@@ -1,0 +1,13 @@
+:BidirTyping
+
+
+def foo: int -> int
+//│ foo: int -> int
+//│    = <missing implementation>
+
+// Remove the `TODO` comment to see the full stack trace
+// TODO
+foo x = x
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+
+

@@ -662,8 +662,8 @@ ra: (Array['a], Array['a], Array['a]) as 'a
 //│ ╙──       	    ^^^^^^^^^^^^
 //│ res: 'a
 //│   where
-//│     'a :> 'a0 | ('a, 'a, 'a,) | error
-//│     'a0 :> ('a0, 'a0,)
+//│     'a :> 'a0 | ('a, 'a, 'a,)
+//│     'a0 :> ('a0, 'a0,) | error
 //│    = <no result>
 //│      ra is not implemented
 //│ ╔══[ERROR] Type mismatch in type ascription:
@@ -680,8 +680,8 @@ ra: (Array['a], Array['a], Array['a]) as 'a
 //│ ╙──       	    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ res: 'a
 //│   where
-//│     'a :> 'a0 | (Array['a], Array['a], Array['a],) | error
-//│     'a0 :> ('a0, 'a0,)
+//│     'a :> 'a0 | (Array['a], Array['a], Array['a],)
+//│     'a0 :> ('a0, 'a0,) | error
 //│    = <no result>
 //│      ra is not implemented
 
@@ -763,7 +763,7 @@ ta3[1-2]
 //│ ╟── possibly-undefined array access of type `undefined` does not match type `~undefined`
 //│ ║  l.759: 	((defined ta2[0])[1+4], ta[1])[0]
 //│ ╙──       	 ^^^^^^^^^^^^^^^^^^^^^
-//│ res: error | false | int | true | undefined
+//│ res: false | int | true | undefined
 //│    = undefined
 
 :e
@@ -783,7 +783,7 @@ ge[2]
 //│ ╟── but it flows into array access with expected type `Array[?b]`
 //│ ║  l.771: 	ta3[ge 3][ge (1+2)]
 //│ ╙──       	^^^^^^^^^
-//│ res: 1 | 2 | 3 | error | undefined
+//│ res: 1 | 2 | 3 | undefined
 //│ Runtime error:
 //│   TypeError: Cannot read properties of undefined (reading '4')
 //│ ╔══[ERROR] Type mismatch in array access:
@@ -798,7 +798,7 @@ ge[2]
 //│ ╟── reference of type `true` does not match type `Array[?a]`
 //│ ║  l.772: 	true[false]
 //│ ╙──       	^^^^
-//│ res: error | undefined
+//│ res: undefined
 //│    = undefined
 //│ ╔══[ERROR] Type mismatch in array access:
 //│ ║  l.773: 	4["hello"]
@@ -812,7 +812,7 @@ ge[2]
 //│ ╟── integer literal of type `4` does not match type `Array[?a]`
 //│ ║  l.773: 	4["hello"]
 //│ ╙──       	^
-//│ res: error | undefined
+//│ res: undefined
 //│    = undefined
 //│ ╔══[ERROR] Type mismatch in array access:
 //│ ║  l.774: 	ge[2]
@@ -823,7 +823,7 @@ ge[2]
 //│ ╟── but it flows into reference with expected type `Array[?d]`
 //│ ║  l.774: 	ge[2]
 //│ ╙──       	^^
-//│ res: error | undefined
+//│ res: undefined
 //│    = undefined
 
 def mkarr: 'a -> Array['a]
@@ -853,7 +853,7 @@ mk1[2  ]
 //│ ╟── integer literal of type `3` does not match type `Array[?a]`
 //│ ║  l.848: 	mkarr 3 [  1]
 //│ ╙──       	      ^
-//│ res: Array[error | undefined]
+//│ res: Array[undefined]
 //│    = [ undefined, undefined, undefined, undefined, undefined ]
 //│ ╔══[ERROR] Type mismatch in array access:
 //│ ║  l.849: 	mk1[2  ]
@@ -864,7 +864,7 @@ mk1[2  ]
 //│ ╟── but it flows into reference with expected type `Array[?b]`
 //│ ║  l.849: 	mk1[2  ]
 //│ ╙──       	^^^
-//│ res: error | undefined
+//│ res: undefined
 //│    = undefined
 
 def s1 a = (defined a[1] + defined a[2], a[(1,2)._2])
@@ -920,6 +920,6 @@ dup (defined ara[1])._1 (defined (defined arb[10])[8])._2 + 1
 //│ ╟── but it flows into field selection with expected type `Array[?b]`
 //│ ║  l.913: 	(1,2,3)._1[1]
 //│ ╙──       	^^^^^^^^^^
-//│ res: error | undefined
+//│ res: undefined
 //│ Runtime error:
 //│   TypeError: Cannot read properties of undefined (reading '1')

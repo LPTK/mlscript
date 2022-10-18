@@ -243,7 +243,7 @@ let rec f = n => if n then 0 else f (miss + 1)
 //│ ╟── Note: constraint arises from argument:
 //│ ║  l.+1: 	let rec f = n => if n then 0 else f (miss + 1)
 //│ ╙──      	                    ^
-//│ f: bool -> 0
+//│ f: nothing -> (0 | error)
 
 
 // missing field, cannot constrain

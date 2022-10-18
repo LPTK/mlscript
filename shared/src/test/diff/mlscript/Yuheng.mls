@@ -219,7 +219,7 @@ ep[0]
 //│ ╟── but it flows into reference with expected type `Array[?b]`
 //│ ║  l.+1: 	ep[0]
 //│ ╙──      	^^
-//│ res: error | undefined | 'a
+//│ res: undefined | 'a
 //│   where
 //│     'a :> ('a, 'a,) | 1 | 2 | 3
 

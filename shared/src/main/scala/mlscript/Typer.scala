@@ -19,7 +19,8 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
   def funkyTuples: Bool = false
   def doFactorize: Bool = false
   
-  var recordProvenances: Boolean = true
+  var bidirTyping: Bool = false
+  var recordProvenances: Bool = true
   
   type Raise = Diagnostic => Unit
   type Binding = Str -> TypeScheme
@@ -350,8 +351,9 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
     (rec(ty)(ctx, Map.empty), localVars.values)
   }(r => s"=> ${r._1} | ${r._2.mkString(", ")}")
   
-  def typePattern(pat: Term)(implicit ctx: Ctx, raise: Raise, vars: Map[Str, SimpleType] = Map.empty): SimpleType =
-    typeTerm(pat)(ctx.copy(inPattern = true), raise, vars)
+  def typePattern(pat: Term, expected: Opt[SimpleType -> TypeProvenance])
+        (implicit ctx: Ctx, raise: Raise, vars: Map[Str, SimpleType] = Map.empty): SimpleType =
+    typeTerm(pat, expected)(ctx.copy(inPattern = true), raise, vars)
   
   
   def typeStatement(s: DesugaredStatement, allowPure: Bool)
@@ -370,9 +372,9 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         case _ => "tuple"
       }
       warn(s"Useless $thing in statement position.", t.toLoc)
-      L(PolymorphicType(0, typeTerm(t)))
+      L(PolymorphicType(0, typeTerm(t, N)))
     case t: Term =>
-      val ty = typeTerm(t)
+      val ty = typeTerm(t, N)
       if (!allowPure) {
         if (t.isInstanceOf[Var] || t.isInstanceOf[Lit])
           warn("Pure expression does nothing in statement position.", t.toLoc)
@@ -393,20 +395,23 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
   /** Infer the type of a let binding right-hand side. */
   def typeLetRhs(isrec: Boolean, nme: Str, rhs: Term)(implicit ctx: Ctx, raise: Raise,
       vars: Map[Str, SimpleType] = Map.empty): PolymorphicType = {
+    val prov = tp(rhs.toLoc, "binding of " + rhs.describe)
+    val exp = if (bidirTyping)
+        ctx.get(nme).collect{case ts: TypeScheme => ts.instantiate(lvl+1)}.map(ts => ts -> ts.prov)
+      else N
     val res = if (isrec) {
-      val e_ty = freshVar(
+      val e_ty = exp getOrElse freshVar(
         // It turns out it is better to NOT store a provenance here,
         //    or it will obscure the true provenance of constraints causing errors
         //    across recursive references.
         noProv,
         // TypeProvenance(rhs.toLoc, "let-bound value"),
         S(nme)
-      )(lvl + 1)
-      ctx += nme -> e_ty
-      val ty = typeTerm(rhs)(ctx.nextLevel, raise, vars)
-      constrain(ty, e_ty)(raise, TypeProvenance(rhs.toLoc, "binding of " + rhs.describe), ctx)
-      e_ty
-    } else typeTerm(rhs)(ctx.nextLevel, raise, vars)
+      )(lvl + 1) -> prov
+      ctx += nme -> e_ty._1
+      typeTerm(rhs, S(e_ty))(ctx.nextLevel, raise, vars)
+      e_ty._1
+    } else typeTerm(rhs, exp)(ctx.nextLevel, raise, vars)
     PolymorphicType(lvl, res)
   }
   
@@ -441,10 +446,16 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       } else N
   }
   
-  /** Infer the type of a term. */
-  def typeTerm(term: Term)(implicit ctx: Ctx, raise: Raise, vars: Map[Str, SimpleType] = Map.empty): SimpleType
-        = trace(s"$lvl. Typing ${if (ctx.inPattern) "pattern" else "term"} $term") {
-    implicit val prov: TypeProvenance = ttp(term)
+  /** Type-infer or type-check the type of a term.
+    * When an `expected` type is provided, we use it to help type inference
+    * and check the result against that type. */
+  def typeTerm(term: Term, expected: Opt[SimpleType -> TypeProvenance])
+        (implicit ctx: Ctx, raise: Raise, vars: Map[Str, SimpleType] = Map.empty): SimpleType
+        = trace(s"$lvl. Typing ${if (ctx.inPattern) "pattern" else "term"} $term${
+          expected.fold("")(" against " + _._1)} ${term.getClass().getCanonicalName()}") {
+    val termProv = ttp(term)
+    implicit val ctxProv: TypeProvenance =
+      expected.fold(termProv)(_._2)
     
     def con(lhs: SimpleType, rhs: SimpleType, res: SimpleType): SimpleType = {
       var errorsCount = 0
@@ -468,25 +479,28 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
           }
           errorsCount += 1
         case diag => raise(diag)
-      }, prov, ctx)
+      }, ctxProv, ctx)
       res
     }
-    term match {
+    
+    // * res: the result type
+    // * needsCheck: whether the result still needs to be checked against the expected type
+    // *  — sometimes we've already done that in a recursive call or as part of a checking rule
+    val (res, needsCheck): (ST, Bool) = term match {
       case v @ Var("_") =>
-        if (ctx.inPattern || funkyTuples) freshVar(tp(v.toLoc, "wildcard"))
-        else err(msg"Widlcard in expression position.", v.toLoc)
+        if (ctx.inPattern || funkyTuples) freshVar(tp(v.toLoc, "wildcard")) -> true
+        else err(msg"Widlcard in expression position.", v.toLoc) -> true
       case Asc(trm, ty) =>
-        val trm_ty = typeTerm(trm)
         val ty_ty = typeType(ty)(ctx.copy(inPattern = false), raise, vars)
-        con(trm_ty, ty_ty, ty_ty)
-        if (ctx.inPattern)
-          con(ty_ty, trm_ty, ty_ty) // In patterns, we actually _unify_ the pattern and ascribed type 
-        else ty_ty
+        val trm_ty = typeTerm(trm, S(ty_ty -> ctxProv))
+        (if (ctx.inPattern)
+          con(ty_ty, trm_ty, ty_ty) // * In patterns, we actually _unify_ the pattern and ascribed type 
+        else ty_ty) -> true
       case (v @ ValidPatVar(nme)) =>
         val prov = tp(if (verboseConstraintProvenanceHints) v.toLoc else N, "variable")
-        // Note: only look at ctx.env, and not the outer ones!
+        //*  Note: only look at ctx.env, and not the outer ones!
         ctx.env.get(nme).collect { case ts: TypeScheme => ts.instantiate }
-          .getOrElse(new TypeVariable(lvl, Nil, Nil)(prov).tap(ctx += nme -> _))
+          .getOrElse(new TypeVariable(lvl, Nil, Nil)(prov).tap(ctx += nme -> _)) -> true
       case v @ ValidVar(name) =>
         val ty = ctx.get(name).fold(err("identifier not found: " + name, term.toLoc): TypeScheme) {
           case AbstractConstructor(absMths, traitWithMths) =>
@@ -503,16 +517,17 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
             )
           case ty: TypeScheme => ty
         }.instantiate
-        mkProxy(ty, prov)
+        mkProxy(ty, termProv) -> true
         // ^ TODO maybe use a description passed in param?
         // currently we get things like "flows into variable reference"
         // but we used to get the better "flows into object receiver" or "flows into applied expression"...
-      case lit: Lit => ClassTag(lit, lit.baseClasses)(prov)
-      case App(Var("neg" | "~"), trm) => typeTerm(trm).neg(prov)
+      case lit: Lit => ClassTag(lit, lit.baseClasses)(termProv) -> true
+      case App(Var("neg" | "~"), trm) =>
+        typeTerm(trm, N).neg(termProv) -> true
       case App(App(Var("|"), lhs), rhs) =>
-        typeTerm(lhs) | (typeTerm(rhs), prov)
+        (typeTerm(lhs, N) | (typeTerm(rhs, N), termProv)) -> true
       case App(App(Var("&"), lhs), rhs) =>
-        typeTerm(lhs) & (typeTerm(rhs), prov)
+        (typeTerm(lhs, N) & (typeTerm(rhs, N), termProv)) -> true
       case Rcd(fs) =>
         val prov = tp(term.toLoc, "record literal")
         fs.groupMap(_._1.name)(_._1).foreach { case s -> fieldNames if fieldNames.sizeIs > 1 => err(
@@ -523,19 +538,19 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         RecordType.mk(fs.map { case (n, Fld(mut, _, t)) => 
           if (n.name.isCapitalized)
             err(msg"Field identifiers must start with a small letter", term.toLoc)(raise)
-          val tym = typeTerm(t)
+          val tym = typeTerm(t, N)
           val fprov = tp(App(n, t).toLoc, (if (mut) "mutable " else "") + "record field")
           if (mut) {
             val res = freshVar(fprov, S(n.name))
             val rs = con(tym, res, res)
             (n, FieldType(Some(rs), rs)(fprov))
           } else (n, tym.toUpper(fprov))
-        })(prov)
+        })(prov) -> true
       case tup: Tup if funkyTuples =>
-        typeTerms(tup :: Nil, false, Nil)
+        typeTerms(tup :: Nil, false, Nil, expected)
       case Tup(fs) =>
         TupleType(fs.map { case (n, Fld(mut, _, t)) =>
-          val tym = typeTerm(t)
+          val tym = typeTerm(t, N)
           val fprov = tp(t.toLoc, (if (mut) "mutable " else "") + "tuple field")
           if (mut) {
             val res = freshVar(fprov, n.map(_.name))
@@ -545,23 +560,23 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         })(fs match {
           case Nil | ((N, _) :: Nil) => noProv
           case _ => tp(term.toLoc, "tuple literal")
-        })
+        }) -> true
       case Subs(a, i) =>
-        val t_a = typeTerm(a)
-        val t_i = typeTerm(i)
-        con(t_i, IntType, TopType)
-        val elemType = freshVar(prov)
+        typeTerm(i, S(IntType -> termProv))
+        val elemType = freshVar(termProv) // * Note: could use expected type here (to see later)
         elemType.upperBounds ::=
           // * We forbid using [⋅] indexing to access elements that possibly have `undefined` value,
           // *  which could result in surprising behavior and bugs in the presence of parametricity!
           // * Note that in modern JS, `undefined` is arguably not a value you're supposed to use explicitly;
           // *  `null` should be used instead for those willing to indulge in the Billion Dollar Mistake.
           TypeRef(TypeName("undefined"), Nil)(noProv).neg(
-            prov.copy(desc = "prohibited undefined element")) // TODO better reporting for this; the prov isn't actually used
-        con(t_a, ArrayType(elemType.toUpper(tp(i.toLoc, "array element")))(prov), elemType) |
-          TypeRef(TypeName("undefined"), Nil)(prov.copy(desc = "possibly-undefined array access"))
+            termProv.copy(desc = "prohibited undefined element")) // TODO better reporting for this; the prov isn't actually used
+        typeTerm(a, S((ArrayType(elemType.toUpper(tp(i.toLoc, "array element")))(termProv)) -> termProv))
+        val res = elemType |
+          TypeRef(TypeName("undefined"), Nil)(termProv.copy(desc = "possibly-undefined array access"))
+        res -> true
       case Assign(s @ Sel(r, f), rhs) =>
-        val o_ty = typeTerm(r)
+        val o_ty = typeTerm(r, N)//TODO bidir
         val sprov = tp(s.toLoc, "assigned selection")
         val fieldType = freshVar(sprov, Opt.when(!f.name.startsWith("_"))(f.name))
         val obj_ty =
@@ -570,69 +585,79 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         con(obj_ty, RecordType.mk((f, FieldType(Some(fieldType), TopType)(
           tp(f.toLoc, "assigned field")
         )) :: Nil)(sprov), fieldType)
-        val vl = typeTerm(rhs)
-        con(vl, fieldType, UnitType.withProv(prov))
+        val vl = typeTerm(rhs, N)//TODO bidir
+        con(vl, fieldType, UnitType.withProv(termProv)) -> true
       case Assign(s @ Subs(a, i), rhs) => 
-        val a_ty = typeTerm(a)
+        val a_ty = typeTerm(a, N)//TODO bidir
         val sprov = tp(s.toLoc, "assigned array element")
         val elemType = freshVar(sprov)
         val arr_ty =
             // Note: this proxy does not seem to make any difference:
             mkProxy(a_ty, tp(a.toCoveringLoc, "receiver"))
-        con(arr_ty, ArrayType(FieldType(Some(elemType), elemType)(sprov))(prov), TopType)
-        val i_ty = typeTerm(i)
+        con(arr_ty, ArrayType(FieldType(Some(elemType), elemType)(sprov))(termProv), TopType)
+        val i_ty = typeTerm(i, N)//TODO bidir
         con(i_ty, IntType, TopType)
-        val vl = typeTerm(rhs)
-        con(vl, elemType, UnitType.withProv(prov))
+        val vl = typeTerm(rhs, N)//TODO bidir
+        con(vl, elemType, UnitType.withProv(termProv)) -> true
       case Assign(lhs, rhs) =>
-        err(msg"Illegal assignment" -> prov.loco
-          :: msg"cannot assign to ${lhs.describe}" -> lhs.toLoc :: Nil)
+        err(msg"Illegal assignment" -> termProv.loco
+          :: msg"cannot assign to ${lhs.describe}" -> lhs.toLoc :: Nil) -> true
       case Splc(es) => 
         SpliceType(es.map{
           case L(l) => L({
-            val t_l = typeTerm(l)
-            val t_a = ArrayType(freshVar(prov).toUpper(prov))(prov)
+            val t_l = typeTerm(l, N)//TODO bidir
+            val t_a = ArrayType(freshVar(noProv).toUpper(noProv))(noProv)
             con(t_l, t_a, t_l)
           }) 
           case R(Fld(mt, sp, r)) => {
-            val t = typeTerm(r)
+            val t = typeTerm(r, N)//TODO bidir
             if (mt) { R(FieldType(Some(t), t)(t.prov)) } else {R(t.toUpper(t.prov))}
           }
-        })(prov)
-      case Bra(false, trm: Blk) => typeTerm(trm)
-      case Bra(rcd, trm @ (_: Tup | _: Blk)) if funkyTuples => typeTerms(trm :: Nil, rcd, Nil)
-      case Bra(_, trm) => typeTerm(trm)
-      case Blk((s: Term) :: Nil) => typeTerm(s)
-      case Blk(Nil) => UnitType.withProv(prov)
+        })(termProv) -> true
+      case Bra(false, trm: Blk) => typeTerm(trm, expected) -> false
+      case Bra(rcd, trm @ (_: Tup | _: Blk)) if funkyTuples =>
+        typeTerms(trm :: Nil, rcd, Nil, expected)
+      case Bra(_, trm) => typeTerm(trm, expected) -> false
+      case Blk((s: Term) :: Nil) => typeTerm(s, expected) -> false
+      case Blk(Nil) => UnitType.withProv(termProv) -> true
       case pat if ctx.inPattern =>
         err(msg"Unsupported pattern shape${
-          if (dbg) " ("+pat.getClass.toString+")" else ""}:", pat.toLoc)(raise)
+          if (dbg) " ("+pat.getClass.toString+")" else ""}:", pat.toLoc)(raise) -> true
       case Lam(pat, body) =>
-        val newBindings = mutable.Map.empty[Str, TypeVariable]
-        val newCtx = ctx.nest
-        val param_ty = typePattern(pat)(newCtx, raise, vars)
-        newCtx ++= newBindings
-        val body_ty = typeTerm(body)(newCtx, raise, vars)
-        FunctionType(param_ty, body_ty)(tp(term.toLoc, "function"))
+        expected.map(_._1.unwrapAll).collect {
+          // case S((FunctionType(l, r), _)) =>
+          case FunctionType(l, r) =>
+            (l, r)
+        } match {
+          case S((param_ty, result_ty)) =>
+            ???
+          case N =>
+            val newBindings = mutable.Map.empty[Str, TypeVariable]
+            val newCtx = ctx.nest
+            val param_ty = typePattern(pat, N)(newCtx, raise, vars)
+            newCtx ++= newBindings
+            val body_ty = typeTerm(body, N)(newCtx, raise, vars)
+            FunctionType(param_ty, body_ty)(tp(term.toLoc, "function")) -> true
+        }
       case App(App(Var("and"), lhs), rhs) =>
-        val lhs_ty = typeTerm(lhs)
+        val lhs_ty = typeTerm(lhs, N)
         val newCtx = ctx.nest // TODO use
-        val rhs_ty = typeTerm(lhs)
+        val rhs_ty = typeTerm(lhs, N)
         ??? // TODO
       case App(f, a) =>
-        val f_ty = typeTerm(f)
-        val a_ty = typeTerm(a)
-        val res = freshVar(prov)
+        val f_ty = typeTerm(f, N)//TODO bidir
+        val a_ty = typeTerm(a, N)//TODO bidir
+        val res = freshVar(termProv)
         val arg_ty = mkProxy(a_ty, tp(a.toCoveringLoc, "argument"))
           // ^ Note: this no longer really makes a difference, due to tupled arguments by default
         val funProv = tp(f.toCoveringLoc, "applied expression")
         val fun_ty = mkProxy(f_ty, funProv)
           // ^ This is mostly not useful, except in test Tuples.fun with `(1, true, "hey").2`
         val resTy = con(fun_ty, FunctionType(arg_ty, res)(
-          prov
+          termProv
           // funProv // TODO: better?
           ), res)
-        resTy
+        resTy -> true
       case Sel(obj, fieldName) =>
         // Explicit method calls have the form `x.(Class.Method)`
         // Implicit method calls have the form `x.Method`
@@ -641,11 +666,11 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         // Explicit method retrievals have the form `Class.Method`
         //   Returns a function expecting an additional argument of type `Class` before the method arguments
         def rcdSel(obj: Term, fieldName: Var) = {
-          val o_ty = typeTerm(obj)
-          val res = freshVar(prov, Opt.when(!fieldName.name.startsWith("_"))(fieldName.name))
+          val o_ty = typeTerm(obj, N)//TODO bidir
+          val res = freshVar(termProv, Opt.when(!fieldName.name.startsWith("_"))(fieldName.name))
           val obj_ty = mkProxy(o_ty, tp(obj.toCoveringLoc, "receiver"))
           val rcd_ty = RecordType.mk(
-            fieldName -> res.toUpper(tp(fieldName.toLoc, "field selector")) :: Nil)(prov)
+            fieldName -> res.toUpper(tp(fieldName.toLoc, "field selector")) :: Nil)(termProv)
           con(obj_ty, rcd_ty, res)
         }
         def mthCallOrSel(obj: Term, fieldName: Var) = 
@@ -663,14 +688,14 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
                     msg"• ${td.kind.str} ${td.nme}" -> td.nme.toLoc
                   })
               }
-              val o_ty = typeTerm(obj)
-              val res = freshVar(prov)
-              con(mth_ty.toPT.instantiate, FunctionType(singleTup(o_ty), res)(prov), res)
+              val o_ty = typeTerm(obj, N)//TODO bidir
+              val res = freshVar(termProv)
+              con(mth_ty.toPT.instantiate, FunctionType(singleTup(o_ty), res)(termProv), res)
             case N =>
               if (fieldName.name.isCapitalized) err(msg"Method ${fieldName.name} not found", term.toLoc)
               else rcdSel(obj, fieldName) // TODO: no else?
           }
-        obj match {
+        val res = obj match {
           case Var(name) if name.isCapitalized && ctx.tyDefs.isDefinedAt(name) => // explicit retrieval
             ctx.getMth(S(name), fieldName.name) match {
               case S(mth_ty) => mth_ty.toPT.instantiate
@@ -680,51 +705,57 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
             }
           case _ => mthCallOrSel(obj, fieldName)
         }
+        res -> true
       case Let(isrec, nme, rhs, bod) =>
         val n_ty = typeLetRhs(isrec, nme.name, rhs)
         val newCtx = ctx.nest
         newCtx += nme.name -> n_ty
-        typeTerm(bod)(newCtx, raise)
+        typeTerm(bod, expected)(newCtx, raise) -> false
       // case Blk(s :: stmts) =>
       //   val (newCtx, ty) = typeStatement(s)
       //   typeTerm(Blk(stmts))(newCtx, lvl, raise)
-      case Blk(stmts) => typeTerms(stmts, false, Nil)(ctx.nest, raise, prov)
+      case Blk(stmts) => typeTerms(stmts, false, Nil, expected)(ctx.nest, raise, ctxProv)
       case Bind(l, r) =>
-        val l_ty = typeTerm(l)
         val newCtx = ctx.nest // so the pattern's context don't merge with the outer context!
-        val r_ty = typePattern(r)(newCtx, raise)
+        val r_ty = typePattern(r, expected)(newCtx, raise)
         ctx ++= newCtx.env
-        con(l_ty, r_ty, r_ty)
+        typeTerm(l, S(r_ty -> termProv))
+        r_ty -> true
       case Test(l, r) =>
-        val l_ty = typeTerm(l)
         val newCtx = ctx.nest
-        val r_ty = typePattern(r)(newCtx, raise) // TODO make these bindings flow
-        con(l_ty, r_ty, TopType)
-        BoolType
+        val r_ty = typePattern(r, expected)(newCtx, raise) // TODO make these bindings flow
+        typeTerm(l, S(r_ty -> termProv))
+        BoolType -> true
       case With(t, rcd) =>
-        val t_ty = typeTerm(t)
-        val rcd_ty = typeTerm(rcd)
-        (t_ty without rcd.fields.iterator.map(_._1).toSortedSet) & (rcd_ty, prov)
+        val t_ty = typeTerm(t, N)//TODO bidir
+        val rcd_ty = typeTerm(rcd, N)//TODO bidir
+        ((t_ty without rcd.fields.iterator.map(_._1).toSortedSet) & (rcd_ty, termProv)) -> true
       case CaseOf(s, cs) =>
-        val s_ty = typeTerm(s)
+        val s_ty = typeTerm(s, N) // * Maybe we could form an expected type from the given patterns?
         val (tys, cs_ty) = typeArms(s |>? {
           case v: Var => v
           case Asc(v: Var, _) => v
-        }, cs)
+        }, cs, expected)
         val req = tys.foldRight(BotType: SimpleType) {
           case ((a_ty, tv), req) => a_ty & tv | req & a_ty.neg()
         }
-        con(s_ty, req, cs_ty)
+        con(s_ty, req, cs_ty) -> true
       case If(_, _) =>
         ??? // TODO
       case New(S((nmedTy, trm)), TypingUnit(Nil)) =>
-        typeTerm(App(Var(nmedTy.base.name).withLocOf(nmedTy), trm))
+        typeTerm(App(Var(nmedTy.base.name).withLocOf(nmedTy), trm), expected) -> true
       case New(base, args) => ???
       case TyApp(_, _) => ??? // TODO
     }
+    
+    expected match {
+      case S((exp_ty, _)) if needsCheck => con(res, exp_ty, res)
+      case _ => res
+    }
+    
   }(r => s"$lvl. : ${r}")
   
-  def typeArms(scrutVar: Opt[Var], arms: CaseBranches)
+  def typeArms(scrutVar: Opt[Var], arms: CaseBranches, expected: Opt[SimpleType -> TypeProvenance])
       (implicit ctx: Ctx, raise: Raise, lvl: Int)
       : Ls[SimpleType -> SimpleType] -> SimpleType = arms match {
     case NoCases => Nil -> BotType
@@ -734,10 +765,10 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       scrutVar match {
         case Some(v) =>
           newCtx += v.name -> fv
-          val b_ty = typeTerm(b)(newCtx, raise)
+          val b_ty = typeTerm(b, expected)(newCtx, raise)
           (fv -> TopType :: Nil) -> b_ty
         case _ =>
-          (fv -> TopType :: Nil) -> typeTerm(b)
+          (fv -> TopType :: Nil) -> typeTerm(b, expected)
       }
     case Case(pat, bod, rest) =>
       val patTy = pat match {
@@ -766,35 +797,35 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
             // S(v.name), // this one seems a bit excessive
           )
           newCtx += v.name -> tv
-          val bod_ty = typeTerm(bod)(newCtx, raise)
-          (patTy -> tv, bod_ty, typeArms(scrutVar, rest))
+          val bod_ty = typeTerm(bod, expected)(newCtx, raise)
+          (patTy -> tv, bod_ty, typeArms(scrutVar, rest, expected))
         case N =>
-          val bod_ty = typeTerm(bod)(newCtx, raise)
-          (patTy -> TopType, bod_ty, typeArms(scrutVar, rest))
+          val bod_ty = typeTerm(bod, expected)(newCtx, raise)
+          (patTy -> TopType, bod_ty, typeArms(scrutVar, rest, expected))
       }
       (req_ty :: tys) -> (bod_ty | rest_ty)
   }
   
-  def typeTerms(term: Ls[Statement], rcd: Bool, fields: List[Opt[Var] -> SimpleType])
-        (implicit ctx: Ctx, raise: Raise, prov: TypeProvenance): SimpleType
+  // TODO(LPTK): this function will be removed once we get rid of the old parser
+  def typeTerms(term: Ls[Statement], rcd: Bool, fields: List[Opt[Var] -> SimpleType], expected: Opt[ST -> TP])
+        (implicit ctx: Ctx, raise: Raise, prov: TypeProvenance): (SimpleType, Bool)
       = term match {
     case (trm @ Var(nme)) :: sts if rcd => // field punning
-      typeTerms(Tup(S(trm) -> Fld(false, false, trm) :: Nil) :: sts, rcd, fields)
-    case Blk(sts0) :: sts1 => typeTerms(sts0 ::: sts1, rcd, fields)
-    case Tup(Nil) :: sts => typeTerms(sts, rcd, fields)
+      typeTerms(Tup(S(trm) -> Fld(false, false, trm) :: Nil) :: sts, rcd, fields, expected)
+    case Blk(sts0) :: sts1 => typeTerms(sts0 ::: sts1, rcd, fields, expected)
+    case Tup(Nil) :: sts => typeTerms(sts, rcd, fields, expected)
     case Tup((no, Fld(tmut, _, trm)) :: ofs) :: sts =>
-      val ty = {
+      val ty =
         trm match  {
           case Bra(false, t) if ctx.inPattern => // we use syntax `(x: (p))` to type `p` as a pattern and not a type...
-            typePattern(t)
+            typePattern(t, N)
           case _ => ctx.copy(inPattern = ctx.inPattern && no.isEmpty) |> { implicit ctx => // TODO change this?
-            if (ofs.isEmpty) typeTerm(Bra(rcd, trm))
+            if (ofs.isEmpty) typeTerm(Bra(rcd, trm), N)
             // ^ This is to type { a: ... } as { a: { ... } } to facilitate object literal definitions;
             //   not sure that's a good idea...
-            else typeTerm(trm)
+            else typeTerm(trm, N)
           }
         }
-      }
       val res_ty = no |> {
         case S(nme) if ctx.inPattern =>
           // TODO in 'opaque' definitions we should give the exact specified type and not something more precise
@@ -820,11 +851,11 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         case _ =>
           ty
       }
-      typeTerms(Tup(ofs) :: sts, rcd, (no, res_ty) :: fields)
+      typeTerms(Tup(ofs) :: sts, rcd, (no, res_ty) :: fields, expected)
     case (trm: Term) :: Nil =>
       if (fields.nonEmpty)
         warn("Previous field definitions are discarded by this returned expression.", trm.toLoc)
-      typeTerm(trm)
+      typeTerm(trm, expected) -> false
     // case (trm: Term) :: Nil =>
     //   assert(!rcd)
     //   val ty = typeTerm(trm)
@@ -834,7 +865,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       diags.foreach(raise)
       val newBindings = desug.flatMap(typeStatement(_, allowPure = false).toOption)
       ctx ++= newBindings.flatten
-      typeTerms(sts, rcd, fields)
+      typeTerms(sts, rcd, fields, expected)
     case Nil =>
       if (rcd) {
         val fs = fields.reverseIterator.zipWithIndex.map {
@@ -845,8 +876,8 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
             warn("Missing name for record field", t.prov.loco)
             (Var("_" + (i + 1)), t.toUpper(noProv))
         }.toList
-        RecordType.mk(fs)(prov)
-      } else TupleType(fields.reverseIterator.mapValues(_.toUpper(noProv)))(prov)
+        RecordType.mk(fs)(prov)-> true
+      } else TupleType(fields.reverseIterator.mapValues(_.toUpper(noProv)))(prov)-> true
   }
   
   

@@ -1163,12 +1163,15 @@ add
 //│ res: error
 
 (let rec x = (0 x); x)
-//│ ╔══[ERROR] Type mismatch in application:
+//│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 x); x)
-//│ ║        	              ^^^
+//│ ║        	             ^^^^^
 //│ ╟── integer literal of type `0` is not a function
 //│ ║  l.+1: 	(let rec x = (0 x); x)
-//│ ╙──      	              ^
+//│ ║        	              ^
+//│ ╟── Note: constraint arises from application:
+//│ ║  l.+1: 	(let rec x = (0 x); x)
+//│ ╙──      	              ^^^
 //│ res: error
 
 (let x = 0.u; x)
@@ -1211,7 +1214,7 @@ add
 //│ res: error
 
 (let rec x = {v: x}.u; x)
-//│ ╔══[ERROR] Type mismatch in field selection:
+//│ ╔══[ERROR] Type mismatch in binding of field selection:
 //│ ║  l.+1: 	(let rec x = {v: x}.u; x)
 //│ ║        	                   ^^
 //│ ╟── record of type `{v: ?x}` does not have field 'u'
@@ -1329,12 +1332,15 @@ add
 //│ res: error
 
 (let rec x = (0 x); (0 0))
-//│ ╔══[ERROR] Type mismatch in application:
+//│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 x); (0 0))
-//│ ║        	              ^^^
+//│ ║        	             ^^^^^
 //│ ╟── integer literal of type `0` is not a function
 //│ ║  l.+1: 	(let rec x = (0 x); (0 0))
-//│ ╙──      	              ^
+//│ ║        	              ^
+//│ ╟── Note: constraint arises from application:
+//│ ║  l.+1: 	(let rec x = (0 x); (0 0))
+//│ ╙──      	              ^^^
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	(let rec x = (0 x); (0 0))
 //│ ║        	                     ^^^
@@ -1737,12 +1743,15 @@ add
 //│ res: error
 
 (let rec x = (0 x); (0 x))
-//│ ╔══[ERROR] Type mismatch in application:
+//│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 x); (0 x))
-//│ ║        	              ^^^
+//│ ║        	             ^^^^^
 //│ ╟── integer literal of type `0` is not a function
 //│ ║  l.+1: 	(let rec x = (0 x); (0 x))
-//│ ╙──      	              ^
+//│ ║        	              ^
+//│ ╟── Note: constraint arises from application:
+//│ ║  l.+1: 	(let rec x = (0 x); (0 x))
+//│ ╙──      	              ^^^
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	(let rec x = (0 x); (0 x))
 //│ ║        	                     ^^^
@@ -2043,12 +2052,15 @@ add
 //│ res: {u: 0}
 
 (let rec x = (0 x); {u: 0})
-//│ ╔══[ERROR] Type mismatch in application:
+//│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 x); {u: 0})
-//│ ║        	              ^^^
+//│ ║        	             ^^^^^
 //│ ╟── integer literal of type `0` is not a function
 //│ ║  l.+1: 	(let rec x = (0 x); {u: 0})
-//│ ╙──      	              ^
+//│ ║        	              ^
+//│ ╟── Note: constraint arises from application:
+//│ ║  l.+1: 	(let rec x = (0 x); {u: 0})
+//│ ╙──      	              ^^^
 //│ res: {u: 0}
 
 (let x = (0 {v: 0}); {u: 0})
@@ -2070,12 +2082,15 @@ add
 //│ res: {u: 0}
 
 (let rec x = (0 {v: x}); {u: 0})
-//│ ╔══[ERROR] Type mismatch in application:
+//│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 {v: x}); {u: 0})
-//│ ║        	              ^^^^^^^^
+//│ ║        	             ^^^^^^^^^^
 //│ ╟── integer literal of type `0` is not a function
 //│ ║  l.+1: 	(let rec x = (0 {v: x}); {u: 0})
-//│ ╙──      	              ^
+//│ ║        	              ^
+//│ ╟── Note: constraint arises from application:
+//│ ║  l.+1: 	(let rec x = (0 {v: x}); {u: 0})
+//│ ╙──      	              ^^^^^^^^
 //│ res: {u: 0}
 
 (let x = 0.u; {u: 0})

@@ -159,6 +159,7 @@ class DiffTests
     }
     val defaultMode = Mode()
     
+    var bidirTyping = false
     var parseOnly = basePath.headOption.contains("parser") || basePath.headOption.contains("compiler")
     var allowTypeErrors = false
     var allowParseErrors = false // TODO use
@@ -167,7 +168,7 @@ class DiffTests
     var noProvs = false
     var allowRuntimeErrors = false
     var newParser = basePath.headOption.contains("parser") || basePath.headOption.contains("compiler")
-
+    
     val backend = new JSTestBackend()
     val host = ReplHost()
     
@@ -189,6 +190,7 @@ class DiffTests
           case "ns" | "no-simpl" => mode.copy(noSimplification = true)
           case "stats" => mode.copy(stats = true)
           case "stdout" => mode.copy(stdout = true)
+          case "BidirTyping" => bidirTyping = true; mode
           case "ParseOnly" => parseOnly = true; mode
           case "AllowTypeErrors" => allowTypeErrors = true; mode
           case "AllowParseErrors" => allowParseErrors = true; mode
@@ -394,6 +396,7 @@ class DiffTests
             // typer.recordProvenances = !noProvs
             typer.recordProvenances = !noProvs && !mode.dbg && !mode.dbgSimplif || mode.explainErrors
             typer.verbose = mode.verbose
+            typer.bidirTyping = bidirTyping
             typer.explainErrors = mode.explainErrors
             stdout = mode.stdout
             

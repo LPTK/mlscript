@@ -307,7 +307,7 @@ rec def x = add x
 //│ ║         	                ^
 //│ ╟── [info] flowing into type `int`
 //│ ╙── [info] flowing into type `int`
-//│ x: int -> int
+//│ x: int -> int | error
 
 
 def foo: int | string

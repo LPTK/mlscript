@@ -569,7 +569,7 @@ t : Dup[int, bool]
 //│ ║  l.561: 	t : Dup[int, bool]
 //│ ╙──       	             ^^^^
 //│ res: Dup[?, bool]
-//│ constrain calls  : 31
+//│ constrain calls  : 36
 //│ annoying  calls  : 23
 //│ subtyping calls  : 41
 
