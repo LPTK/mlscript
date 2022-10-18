@@ -21,7 +21,7 @@ A {}
 //│ ╟── Note: constraint arises from record type:
 //│ ║  l.1: 	trait A: { x: int }
 //│ ╙──     	         ^^^^^^^^^^
-//│ res: error | #A
+//│ res: #A | error
 //│    = {}
 
 
@@ -134,7 +134,7 @@ def t = T1 (A { x = 1 })
 //│ ╟── from intersection type:
 //│ ║  l.117: 	trait T1: C & A
 //│ ╙──       	          ^^^^^
-//│ t: error | {x: 1} & #A & #T1
+//│ t: {x: 1} & #A & #T1 | error
 //│  = [Function: t]
 
 def t = T1 (A (C { x = 1 }))

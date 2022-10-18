@@ -255,7 +255,7 @@ rec def eval1_fixed = eval1f eval1_fixed e1
 //│ ╟── from reference:
 //│ ║  l.+1: 	rec def eval1_fixed = eval1f eval1_fixed e1
 //│ ╙──      	                             ^^^^^^^^^^^
-//│ eval1_fixed: error | int
+//│ eval1_fixed: int | error
 
 
 def eval2_broken eval2 e = case e of {
@@ -278,7 +278,7 @@ eval2_broken eval2_broken e2
 //│ ╟── from field selection:
 //│ ║  l.262: 	  | Nega -> e.arg
 //│ ╙──       	            ^^^^^
-//│ res: error | int
+//│ res: int | error
 
 
 def eval2f_oops eval2 e = case e of {
@@ -301,6 +301,6 @@ fix eval2f_oops e2
 //│ ╟── from reference:
 //│ ║  l.284: 	def eval2f_oops eval2 e = case e of {
 //│ ╙──       	                               ^
-//│ res: error | int
+//│ res: int | error
 
 

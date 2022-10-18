@@ -59,7 +59,7 @@ succ true
 //│ ╟── reference of type `true` is not an instance of type `int`
 //│ ║  l.+1: 	succ true
 //│ ╙──      	     ^^^^
-//│ res: error | int
+//│ res: int | error
 
 :e
 x => succ (not x)
@@ -72,7 +72,7 @@ x => succ (not x)
 //│ ╟── but it flows into argument with expected type `int`
 //│ ║  l.+1: 	x => succ (not x)
 //│ ╙──      	          ^^^^^^^
-//│ res: bool -> (error | int)
+//│ res: bool -> (int | error)
 
 :e
 (x => not x.f) { f: 123 }

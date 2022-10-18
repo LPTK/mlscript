@@ -83,7 +83,7 @@ f htx
 //│ ╟── Note: constraint arises from tuple literal:
 //│ ║  l.66: 	f ((a, b)) = add a b
 //│ ╙──      	   ^^^^^^
-//│ res: error | int
+//│ res: int | error
 //│    = 3
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.72: 	f tx
@@ -97,7 +97,7 @@ f htx
 //│ ╟── Note: constraint arises from tuple literal:
 //│ ║  l.66: 	f ((a, b)) = add a b
 //│ ╙──      	   ^^^^^^
-//│ res: error | int
+//│ res: int | error
 //│    = 3
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.73: 	f htx
@@ -111,7 +111,7 @@ f htx
 //│ ╟── Note: constraint arises from tuple literal:
 //│ ║  l.66: 	f ((a, b)) = add a b
 //│ ╙──      	   ^^^^^^
-//│ res: error | int
+//│ res: int | error
 //│    = 3
 
 

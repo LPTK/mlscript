@@ -85,7 +85,7 @@ evalN2 evalN2 e
 //│ ╟── from field selection:
 //│ ║  l.20: 	  | Add -> eval eval x.lhs + eval eval x.rhs
 //│ ╙──      	                                       ^^^^^
-//│ res: error | int
+//│ res: int | error
 
 
 def evalN3 evalN3 x = case x of {
@@ -107,7 +107,7 @@ def evalN3 evalN3 x = case x of {
 //│ ╟── but it flows into application with expected type `int`
 //│ ║  l.+2: 	  Neg -> 0 - (evalN2 x.underlying)
 //│ ╙──      	              ^^^^^^^^^^^^^^^^^^^
-//│ evalN3: ('a -> 'rhs -> int & 'a) -> ((Add with {lhs: 'rhs, rhs: 'rhs}) | (Lit with {val: 'val}) | (Neg with {underlying: 'b -> nothing -> int & 'b})) -> (error | int | 'val)
+//│ evalN3: ('a -> 'rhs -> int & 'a) -> ((Add with {lhs: 'rhs, rhs: 'rhs}) | (Lit with {val: 'val}) | (Neg with {underlying: 'b -> nothing -> int & 'b})) -> (int | 'val | error)
 
 def evalN3 evalN3 x = case x of {
   Neg -> 0 - (evalN3 x.underlying)
@@ -143,6 +143,6 @@ evalN3 evalN3 e
 //│ ╟── from field selection:
 //│ ║  l.113: 	  Neg -> 0 - (evalN3 x.underlying)
 //│ ╙──       	                     ^^^^^^^^^^^^
-//│ res: error | int
+//│ res: int | error
 
 

@@ -242,7 +242,7 @@ fx q2
 //│ ╟── Note: constraint arises from tuple literal:
 //│ ║  l.222: 	fx ((a,b,c)) = a + b + c
 //│ ╙──       	    ^^^^^^^
-//│ res: error | int
+//│ res: int | error
 //│    = 3
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.232: 	fx q2
@@ -256,7 +256,7 @@ fx q2
 //│ ╟── Note: constraint arises from tuple literal:
 //│ ║  l.222: 	fx ((a,b,c)) = a + b + c
 //│ ╙──       	    ^^^^^^^
-//│ res: error | int
+//│ res: int | error
 //│    = NaN
 
 
@@ -292,7 +292,7 @@ sum t2
 //│ ╟── Note: constraint arises from type reference:
 //│ ║  l.270: 	def sum: Array[int] -> int
 //│ ╙──       	               ^^^
-//│ res: error | int
+//│ res: int | error
 //│    = <no result>
 //│      sum is not implemented
 

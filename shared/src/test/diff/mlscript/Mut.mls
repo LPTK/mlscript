@@ -179,7 +179,7 @@ g {x = 3}
 //│ ╟── record field of type `3` is not mutable
 //│ ║  l.175: 	g {x = 3}
 //│ ╙──       	   ^^^^^
-//│ res: error | {x: 3}
+//│ res: {x: 3} | error
 //│    = { x: 3 }
 
 def ga r = (fun x -> r) (r[1] <- 6)
@@ -375,7 +375,7 @@ h {mut x = 4} 2
 //│ ╟── Note: constraint arises from type reference:
 //│ ║  l.354: 	def h : B -> int -> int
 //│ ╙──       	        ^
-//│ res: error | int
+//│ res: int | error
 //│    = 2
 
 def mt1: (mut int, mut bool)
@@ -648,7 +648,7 @@ g (1, true) 2
 //│ ╟── tuple field of type `1` is not mutable
 //│ ║  l.644: 	g (1, true) 2
 //│ ╙──       	   ^
-//│ res: error | unit
+//│ res: unit | error
 //│    = <no result>
 //│      g is not implemented
 

@@ -376,10 +376,10 @@ class ConstraintSolver extends NormalForms { self: Typer =>
           case (_, p @ ProxyType(und)) => rec(lhs, und, true)
           case (_, TupleType(f :: Nil)) if funkyTuples =>
             rec(lhs, f._2.ub, true) // FIXME actually needs reified coercion! not a true subtyping relationship
-          case (err @ ClassTag(ErrTypeId, _), FunctionType(l1, r1)) =>
+          case (err @ TraitTag(ErrTypeId), FunctionType(l1, r1)) =>
             rec(l1, err, false)
             rec(err, r1, false)
-          case (FunctionType(l0, r0), err @ ClassTag(ErrTypeId, _)) =>
+          case (FunctionType(l0, r0), err @ TraitTag(ErrTypeId)) =>
             rec(err, l0, false)
             rec(r0, err, false)
           case (RecordType(fs0), RecordType(fs1)) =>
@@ -393,9 +393,9 @@ class ConstraintSolver extends NormalForms { self: Typer =>
             }
           case (tup: TupleType, _: RecordType) =>
             rec(tup.toRecord, rhs, true) // Q: really support this? means we'd put names into tuple reprs at runtime
-          case (err @ ClassTag(ErrTypeId, _), RecordType(fs1)) =>
+          case (err @ TraitTag(ErrTypeId), RecordType(fs1)) =>
             fs1.foreach(f => rec(err, f._2.ub, false))
-          case (RecordType(fs1), err @ ClassTag(ErrTypeId, _)) =>
+          case (RecordType(fs1), err @ TraitTag(ErrTypeId)) =>
             fs1.foreach(f => rec(f._2.ub, err, false))
             
           case (tr1: TypeRef, tr2: TypeRef) if tr1.defn.name =/= "Array" =>
@@ -419,8 +419,8 @@ class ConstraintSolver extends NormalForms { self: Typer =>
           case (tr: TypeRef, _) => rec(tr.expand, rhs, true)
           case (_, tr: TypeRef) => rec(lhs, tr.expand, true)
           
-          case (ClassTag(ErrTypeId, _), _) => ()
-          case (_, ClassTag(ErrTypeId, _)) => ()
+          case (TraitTag(ErrTypeId), _) => ()
+          case (_, TraitTag(ErrTypeId)) => ()
           case (_, w @ Without(b, ns)) => rec(lhs.without(ns), b, true)
           case (_, n @ NegType(w @ Without(b, ns))) =>
             rec(Without(lhs, ns)(w.prov), NegType(b)(n.prov), true) // this is weird... TODO check sound
@@ -625,7 +625,7 @@ class ConstraintSolver extends NormalForms { self: Typer =>
     raise(ErrorReport(msgs))
     errType
   }
-  def errType: SimpleType = ClassTag(ErrTypeId, Set.empty)(noProv)
+  def errType: SimpleType = TraitTag(ErrTypeId)(noProv)
   
   def warn(msg: Message, loco: Opt[Loc])(implicit raise: Raise): Unit =
     warn(msg -> loco :: Nil)

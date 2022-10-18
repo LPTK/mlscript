@@ -49,7 +49,7 @@ f a2
 //│ ╟── from field selection:
 //│ ║  l.20: 	    A -> (v.x : int)
 //│ ╙──      	          ^^^
-//│ res: error | int
+//│ res: int | error
 //│    = 0
 
 def f2: (A & {x: int} | anything) -> int
@@ -207,7 +207,7 @@ ep + 1
 //│ ╟── but it flows into reference with expected type `int`
 //│ ║  l.+1: 	ep + 1
 //│ ╙──      	^^
-//│ res: error | int
+//│ res: int | error
 
 ep[0]
 //│ ╔══[ERROR] Type mismatch in array access:

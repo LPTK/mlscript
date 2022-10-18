@@ -563,7 +563,7 @@ eval1 done e2
 //│ ╟── from field selection:
 //│ ║  l.75: 	  | Add -> eval1 k e.lhs + eval1 k e.rhs
 //│ ╙──      	                                   ^^^^^
-//│ res: error | int
+//│ res: int | error
 //│ Runtime error:
 //│   Error: non-exhaustive case expression
 
@@ -618,12 +618,12 @@ prettier2 done (eval1 done) e2
 //│ ╟── from field selection:
 //│ ║  l.274: 	      else if ev e.rhs == 0 then prettier1 k ev e.lhs
 //│ ╙──       	                 ^^^^^
-//│ res: error | string
+//│ res: string | error
 //│ Runtime error:
 //│   Error: non-exhaustive case expression
 //│ constrain calls  : 674
 //│ annoying  calls  : 228
-//│ subtyping calls  : 5451
+//│ subtyping calls  : 5447
 
 :e
 :stats
@@ -651,7 +651,7 @@ prettier2 done eval2
 //│    = [Function (anonymous)]
 //│ constrain calls  : 70
 //│ annoying  calls  : 0
-//│ subtyping calls  : 217
+//│ subtyping calls  : 213
 
 :e
 :stats
@@ -761,11 +761,11 @@ prettier2 done eval2 d2
 //│ ╟── from field selection:
 //│ ║  l.274: 	      else if ev e.rhs == 0 then prettier1 k ev e.lhs
 //│ ╙──       	                 ^^^^^
-//│ res: error | string
+//│ res: string | error
 //│    = '-1-1'
 //│ constrain calls  : 301
 //│ annoying  calls  : 95
-//│ subtyping calls  : 1506
+//│ subtyping calls  : 1501
 
 :e
 :stats

@@ -25,7 +25,7 @@ h / mkArg false
 //│ ╟── from field selection:
 //│ ║  l.5: 	  x.prop
 //│ ╙──     	   ^^^^^
-//│ res: error | int
+//│ res: int | error
 
 :v
 :e
@@ -42,7 +42,7 @@ h / mkArg false
 //│ ╟── from variable:
 //│ ║  l.32: 	(x => succ x) false
 //│ ╙──      	 ^
-//│ res: error | int
+//│ res: int | error
 
 
 let f = x =>

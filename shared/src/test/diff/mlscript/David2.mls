@@ -67,7 +67,7 @@ addOne1 ((Integer { value = 1; addOne = id }) with { value = "oops!" })
 //│ ╟── Note: constraint arises from type reference:
 //│ ║  l.2: 	class Integer: { value: int; addOne: Integer -> Integer }
 //│ ╙──     	                        ^^^
-//│ res: error | (Integer with {addOne: 'addOne, value: "oops!"}) | Integer
+//│ res: (Integer with {addOne: 'addOne, value: "oops!"}) | Integer | error
 //│   where
 //│     'addOne :> 'a -> 'a
 //│     'a :> (Integer with {addOne: 'addOne, value: "oops!"}) | Integer

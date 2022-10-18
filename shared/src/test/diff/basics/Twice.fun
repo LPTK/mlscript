@@ -41,6 +41,6 @@ let one = twice (o => o.x) { x: { x: 1 } }
 //│ ╟── Note: constraint arises from field selection:
 //│ ║  l.34: 	let one = twice (o => o.x) { x: { x: 1 } }
 //│ ╙──      	                       ^^
-//│ one: 1 | error | {x: 1}
+//│ one: 1 | {x: 1} | error
 
 

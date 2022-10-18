@@ -630,7 +630,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
             (l, r)
         } match {
           case S((param_ty, result_ty)) =>
-            ???
+            ??? // TODO type check lambda based on expected type
           case N =>
             val newBindings = mutable.Map.empty[Str, TypeVariable]
             val newCtx = ctx.nest
@@ -779,7 +779,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
           ctx.tyDefs.get(nme) match {
             case None =>
               err("type identifier not found: " + nme, pat.toLoc)(raise)
-              val e = ClassTag(ErrTypeId, Set.empty)(tpr)
+              val e = TraitTag(ErrTypeId)(tpr)
               return ((e -> e) :: Nil) -> e
             case Some(td) =>
               td.kind match {

@@ -76,12 +76,12 @@ foo arg
 //│ ╟── from reference:
 //│ ║  l.53: 	def foo x = case x of {
 //│ ╙──      	                 ^
-//│ res: error | int | string | {l: bool, r: nothing}
+//│ res: int | string | {l: bool, r: nothing} | error
 //│    = <no result>
 //│      arg is not implemented
 //│ constrain calls  : 51
 //│ annoying  calls  : 40
-//│ subtyping calls  : 123
+//│ subtyping calls  : 115
 
 :stats
 foo (arg with { payload = 1 })
