@@ -314,7 +314,7 @@ def step arr f = f (stepImpl2_Ann_3 arr)
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.302: 	def step arr f = f (stepImpl2_Ann_3 arr)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `‘a_2803` is not an instance of type `'a_1055_1081`
+//│ ╟── type `‘a_2869` is not an instance of type `'a_1055_1081`
 //│ ║  l.265: 	def step: Arrays['a] -> Arrays['a]
 //│ ║         	                 ^^
 //│ ╟── Note: constraint arises from type variable:
@@ -387,7 +387,7 @@ snb = mkMonoArray 5
 //│    = [Function (anonymous)]
 
 snb (fun arr -> arr.init true)
-//│ res: ‘Rep_3684_3688 | ‘Rep_3692_3696
+//│ res: ‘Rep_3767_3771 | ‘Rep_3775_3779
 //│    = [ [ [ [Array], 'hi' ], 'hi' ], 'hi' ]
 
 

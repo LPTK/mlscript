@@ -28,14 +28,38 @@ class List[A]
 //│ Declared List.HeadOption: List['A] -> Option['A]
 //│ Declared List.Map: List['A] -> ('A -> 'B) -> List['B]
 
+// * Note: an idiosyncrasy of the old class-typing mechanism:
+// *  It seems it wraps the method body's type in a polymorphic type
+// *  which may become disconnected from the class/method type parameters:
+:e
+class Nil_oops[A]: List[A]
+    method Size = 0
+    method HeadOption = None {}
+    method Map f = Nil_oops {}
+//│ ╔══[ERROR] Type mismatch in method definition:
+//│ ║  l.38: 	    method Map f = Nil_oops {}
+//│ ║        	           ^^^^^^^^^^^^^^^^^^^
+//│ ╟── type `A_96` is not an instance of type `B_104`
+//│ ║  l.35: 	class Nil_oops[A]: List[A]
+//│ ║        	               ^
+//│ ╟── Note: constraint arises from method type parameter:
+//│ ║  l.25: 	    method Map[B]: (A -> B) -> List[B]
+//│ ╙──      	               ^
+//│ Defined class Nil_oops[=A]
+//│ Defined Nil_oops.Size: Nil_oops['A] -> 0
+//│ Defined Nil_oops.HeadOption: Nil_oops['A] -> None[nothing]
+//│ Defined Nil_oops.Map: Nil_oops['A] -> anything -> (forall 'A. Nil_oops['A])
+// * Works without distrib:
+:DontDistributeForalls
 class Nil[A]: List[A]
     method Size = 0
     method HeadOption = None {}
-    method Map[B] f = Nil {}
+    method Map f = Nil {}
 //│ Defined class Nil[+A]
 //│ Defined Nil.Size: Nil[?] -> 0
 //│ Defined Nil.HeadOption: Nil[?] -> None[nothing]
 //│ Defined Nil.Map: Nil[?] -> anything -> Nil[nothing]
+:DistributeForalls
 
 class Cons[A]: List[A] & { head: A; tail: List[A] }
     method Size = succ this.tail.Size
@@ -87,9 +111,9 @@ Cons.HeadOption l0
 //│ res: Some[0]
 //│ Runtime error:
 //│   TypeError: (intermediate value).HeadOption is not a function
-//│ constrain calls  : 57
+//│ constrain calls  : 59
 //│ annoying  calls  : 31
-//│ subtyping calls  : 62
+//│ subtyping calls  : 58
 
 
 l1 = Cons { head = 0; tail = Nil {} }
@@ -102,9 +126,9 @@ Cons.HeadOption l1
 //│ res: Some[0]
 //│ Runtime error:
 //│   TypeError: (intermediate value).HeadOption is not a function
-//│ constrain calls  : 57
+//│ constrain calls  : 59
 //│ annoying  calls  : 31
-//│ subtyping calls  : 62
+//│ subtyping calls  : 58
 
 :re
 :stats
@@ -135,13 +159,13 @@ o = l.HeadOption
 :e
 case o of {None -> 0 | Some -> o.payload}
 //│ ╔══[ERROR] Type mismatch in `case` expression:
-//│ ║  l.136: 	case o of {None -> 0 | Some -> o.payload}
+//│ ║  l.160: 	case o of {None -> 0 | Some -> o.payload}
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `Option[?A]` does not match type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.24: 	    method HeadOption: Option[A]
 //│ ║        	                       ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?c`
-//│ ║  l.136: 	case o of {None -> 0 | Some -> o.payload}
+//│ ║  l.160: 	case o of {None -> 0 | Some -> o.payload}
 //│ ╙──       	     ^
 //│ res: 0
 //│    = 0
@@ -180,15 +204,15 @@ case res of {None -> 0 | Some -> res.payload}
 case o of {
     Some -> o.Get | None -> 0 }
 //│ ╔══[ERROR] Type mismatch in `case` expression:
-//│ ║  l.180: 	case o of {
+//│ ║  l.204: 	case o of {
 //│ ║         	^^^^^^^^^^^
-//│ ║  l.181: 	    Some -> o.Get | None -> 0 }
+//│ ║  l.205: 	    Some -> o.Get | None -> 0 }
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `Option[?A]` does not match type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.24: 	    method HeadOption: Option[A]
 //│ ║        	                       ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?c`
-//│ ║  l.180: 	case o of {
+//│ ║  l.204: 	case o of {
 //│ ╙──       	     ^
 //│ res: 0
 //│    = 0

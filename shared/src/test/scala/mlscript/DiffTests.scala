@@ -145,8 +145,8 @@ class DiffTests
     var noProvs = false
     var allowRuntimeErrors = false
     var generalizeCurriedFunctions = false
-    // var distributeForalls = true
-    var distributeForalls = false
+    var distributeForalls = true
+    // var distributeForalls = false
     var noCycleCheck = false
     var noRecursiveTypes = false
     // var noConstrainedTypes = true

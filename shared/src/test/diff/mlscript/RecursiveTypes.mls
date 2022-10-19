@@ -411,19 +411,19 @@ f 1
 
 :ns
 rec def f x = if x > 0 then (f (x with { a = x - 1 })).a else x
-//│ f: forall 'f, 'b, 'c, 'd, 'e, 'a, 'g. 'f
+//│ f: forall 'f, 'b, 'c, 'd, 'a, 'e, 'g. 'f
 //│   where
 //│     'f := 'b -> 'g
-//│     'b :> 'b\a & {a: 'd}
-//│        <: ({a: 'a} | ~{a: 'd} | ~{})\a & ({a: 'a} | ~{a: 'd})\a & (number | ~{a: 'd} | ~{})\a & (number | ~{a: 'd})\a & (int | ~{a: 'd} | ~{})\a & (int | ~{a: 'd})\a & 'c & int & number
-//│     'a <: 'c
-//│     'c :> 'b\a & {a: 'd}
+//│     'b :> 'b\a & {a: 'c}
+//│        <: ({a: 'a} | ~{a: 'c} | ~{})\a & ({a: 'a} | ~{a: 'c})\a & (number | ~{a: 'c} | ~{})\a & (number | ~{a: 'c})\a & (int | ~{a: 'c} | ~{})\a & (int | ~{a: 'c})\a & 'e & int & number
+//│     'a <: 'e
+//│     'e :> 'b\a & {a: 'c}
 //│        <: 'g
-//│     'g :> 'b\a & {a: 'd}
-//│        <: 'e
-//│     'e :> 'b\a & {a: 'd}
+//│     'g :> 'b\a & {a: 'c}
+//│        <: 'd
+//│     'd :> 'b\a & {a: 'c}
 //│        <: {a: 'a}
-//│     'd :> int
+//│     'c :> int
 
 f
 //│ res: 'a -> 'b

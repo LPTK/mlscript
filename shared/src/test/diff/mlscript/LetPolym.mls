@@ -50,14 +50,14 @@ test "hi"
 def test f =
   let local() = succ (f 1)
   in local()
-//│ test: (1 -> int) -> int
+//│ test: (1 -> int) -> (forall 'a. int | 'a)
 //│     = [Function: test5]
 
 test succ
 test id
-//│ res: int
+//│ res: int | 'a
 //│    = 3
-//│ res: int
+//│ res: int | 'a
 //│    = 2
 
 :e
@@ -354,7 +354,7 @@ foo (fun x -> (0, x + 1))
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.353: 	foo (fun x -> (0, x + 1))
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `‘a_672` is not an instance of type `int`
+//│ ╟── type `‘a_679` is not an instance of type `int`
 //│ ║  l.342: 	def foo (f: forall 'a. 'a -> ('a, 'a)) =
 //│ ║         	                   ^^
 //│ ╟── Note: constraint arises from reference:

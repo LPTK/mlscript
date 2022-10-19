@@ -173,7 +173,7 @@ def poly_ f = (f 1, f true)
 // FreezeML A10
 poly id
 poly_ id
-//│ res: (1, true,)
+//│ res: (1 | 'a, true | 'b,)
 //│    = [ 1, true ]
 //│ res: (1, true,)
 //│    = [ 1, true ]
@@ -181,7 +181,7 @@ poly_ id
 // FreezeML A11
 poly (fun x -> x)
 poly_ (fun x -> x)
-//│ res: (1, true,)
+//│ res: (1 | 'a, true | 'b,)
 //│    = [ 1, true ]
 //│ res: (1, true,)
 //│    = [ 1, true ]
@@ -189,7 +189,7 @@ poly_ (fun x -> x)
 // FreezeML D1
 app poly id
 app poly_ id
-//│ res: (1, true,)
+//│ res: (1 | 'a, true | 'b,)
 //│    = [ 1, true ]
 //│ res: (1, true,)
 //│    = [ 1, true ]
@@ -197,7 +197,7 @@ app poly_ id
 // FreezeML D2
 revapp id poly
 revapp id poly_
-//│ res: (1, true,)
+//│ res: (1 | 'a, true | 'b,)
 //│    = [ 1, true ]
 //│ res: (1, true,)
 //│    = [ 1, true ]
@@ -205,7 +205,7 @@ revapp id poly_
 // FreezeML C9
 map poly (single id)
 map poly_ (single id)
-//│ res: List[(1, true,)]
+//│ res: List[forall 'a, 'b. (1 | 'a, true | 'b,)]
 //│    = Cons { head: [ 1, true ], tail: Nil {} }
 //│ res: List[(1, true,)]
 //│    = Cons { head: [ 1, true ], tail: Nil {} }
@@ -220,7 +220,7 @@ append (single inc) (single id)
 
 let ids = single id in
   (map poly ids, append (single inc) ids)
-//│ res: (List[(1, true,)], List[forall 'a. (int & 'a) -> ('a | int)],)
+//│ res: (List[forall 'b, 'c. (1 | 'b, true | 'c,)], List[forall 'a. (int & 'a) -> ('a | int)],)
 //│    = [
 //│        Cons { head: [ 1, true ], tail: Nil {} },
 //│        Cons {
@@ -236,9 +236,9 @@ choose id
 
 fun (f: forall 'a. 'a -> 'a) -> poly f
 fun f -> poly f
-//│ res: (forall 'a. 'a -> 'a) -> (1, true,)
+//│ res: (forall 'a. 'a -> 'a) -> (forall 'b, 'c. (1 | 'b, true | 'c,))
 //│    = [Function: res]
-//│ res: (forall 'a. 'a -> 'a) -> (1, true,)
+//│ res: (forall 'a. 'a -> 'a) -> (forall 'b, 'c. (1 | 'b, true | 'c,))
 //│    = [Function: res]
 
 // ============ Sec 4 ============
@@ -270,7 +270,7 @@ poly (fun x -> x)
 foo (fun y -> fun x -> x)
 //│ foo: (int -> (forall 'a. 'a -> 'a)) -> int
 //│    = <missing implementation>
-//│ res: (1, true,)
+//│ res: (1 | 'a, true | 'b,)
 //│    = [ 1, true ]
 //│ res: int
 //│    = <no result>

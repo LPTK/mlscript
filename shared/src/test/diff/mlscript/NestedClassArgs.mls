@@ -117,10 +117,10 @@ C{}
 //│ res: C['A]
 
 def c4 a = C4{ a = C{} }
-//│ c4: anything -> C4['A]
+//│ c4: anything -> (C4['A] with {a: forall 'A0. C['A0]})
 
 def c = c4
-//│ anything -> C4['A]
+//│ anything -> (C4['A] with {a: forall 'A0. C['A0]})
 //│   <:  c:
 //│ 'a -> C4['a]
 
@@ -329,7 +329,7 @@ append_ty_2 = append
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.325: 	append_ty_2 = append
 //│ ║         	^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `‘T0_777` is not an instance of type `L`
+//│ ╟── type `‘T0_786` is not an instance of type `L`
 //│ ║  l.318: 	def append_ty_2: (L['T] & 'v & 'T0) -> ('T & 'h) -> (L['T] & {h: 'h; t: S['T0] & {v: 'v}})
 //│ ║         	                                                                          ^^^
 //│ ╟── Note: constraint arises from applied type reference:
@@ -352,7 +352,7 @@ append_ty_2 = append_ty
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.348: 	append_ty_2 = append_ty
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `‘T0_838` is not an instance of type `L`
+//│ ╟── type `‘T0_847` is not an instance of type `L`
 //│ ║  l.318: 	def append_ty_2: (L['T] & 'v & 'T0) -> ('T & 'h) -> (L['T] & {h: 'h; t: S['T0] & {v: 'v}})
 //│ ║         	                                                                          ^^^
 //│ ╟── Note: constraint arises from applied type reference:

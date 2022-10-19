@@ -477,15 +477,15 @@ let f = revapp id in f poly
 
 // F10
 a = choose id (fun (x: (forall 'a. 'a -> 'a)) -> auto_ x)
-//│ a: (forall 'a. 'a -> 'a & 'a0) -> ('a0 | 'b -> 'b | 'c)
+//│ a: (forall 'a. 'a -> 'a & 'a0) -> (forall 'a0, 'b, 'c. 'a0 | 'b -> 'b | 'c)
 //│  = [Function: id1]
 
 a id
-//│ res: 'a -> 'a
+//│ res: 'a -> 'a | 'b
 //│    = [Function: id1]
 
 choose id (fun x -> auto_ x)
-//│ res: (forall 'a. 'a -> 'a & 'a0) -> ('a0 | 'b -> 'b)
+//│ res: (forall 'a. 'a -> 'a & 'a0) -> (forall 'a0, 'b. 'a0 | 'b -> 'b)
 //│    = [Function: id1]
 
 a = choose id auto_
@@ -510,7 +510,7 @@ choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.509: 	choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│ ║         	                                  ^^^^^^^
-//│ ╟── type `‘a_1230_1231` is not an instance of type `'a_1230_1232`
+//│ ╟── type `‘a_1224_1225` is not an instance of type `'a_1224_1226`
 //│ ║  l.173: 	def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│ ║         	                    ^^
 //│ ╟── Note: constraint arises from quantified type variable:
@@ -520,13 +520,13 @@ choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│   where
 //│     'b :> (forall 'a. 'a -> 'a) | (forall 'a0, 'c. ('a0 -> 'a0) -> 'c)
 //│     'c :> error
-//│     'a0 :> ‘a_1230_1231
-//│         <: ‘a_1230_1232
+//│     'a0 :> ‘a_1224_1225
+//│         <: ‘a_1224_1226
 //│    = [Function: id1]
 
 // * The skolem used to (unsafely) leak into this type – see also `Skolems.mls`:
 res
-//│ res: (('a | ‘a_1230_1231) -> (‘a_1230_1232 & 'a) & 'a0) -> ('a0 | error)
+//│ res: (('a | ‘a_1224_1225) -> (‘a_1224_1226 & 'a) & 'a0) -> ('a0 | error)
 //│    = [Function: id1]
 
 :e // skolem extrusion
@@ -534,7 +534,7 @@ res id
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.533: 	res id
 //│ ║         	^^^^^^
-//│ ╟── type `‘a_1230_1231` is not an instance of type `'a_1230_1232`
+//│ ╟── type `‘a_1224_1225` is not an instance of type `'a_1224_1226`
 //│ ║  l.173: 	def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│ ║         	                    ^^
 //│ ╟── Note: constraint arises from quantified type variable:
@@ -552,7 +552,7 @@ a (fun x -> { u = x })
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.551: 	a (fun x -> { u = x })
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── record literal of type `{u: ?a}` is not an instance of type `'a_1259`
+//│ ╟── record literal of type `{u: ?a}` is not an instance of type `'a_1252`
 //│ ║  l.551: 	a (fun x -> { u = x })
 //│ ║         	            ^^^^^^^^^
 //│ ╟── Note: constraint arises from quantified type variable:

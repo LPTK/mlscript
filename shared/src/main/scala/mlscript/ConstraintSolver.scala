@@ -741,9 +741,13 @@ class ConstraintSolver extends NormalForms { self: Typer =>
           case (AliasOf(PolymorphicType(plvl, bod)), _) if bod.level <= plvl =>
             // println(s"Useless poly? ${plvl} ${bod.level}")
             rec(bod, rhs, true)
-          case (_, FunctionType(param, AliasOf(PolymorphicType(plvl, bod)))) if distributeForalls =>
-            val newRhs = if (param.level > plvl) ??? // TODO
-            else PolymorphicType(plvl, FunctionType(param, bod)(rhs.prov))
+          case (_, FunctionType(param, AliasOf(poly @ PolymorphicType(plvl, bod)))) if distributeForalls =>
+            val newRhs = if (param.level > plvl) {
+                // ??? // TODO
+                // PolymorphicType(plvl, FunctionType(param, bod)(rhs.prov))
+                val poly2 = poly.raiseLevelTo(param.level)
+                PolymorphicType(poly2.polymLevel, FunctionType(param, poly2.body)(rhs.prov))
+              } else PolymorphicType(plvl, FunctionType(param, bod)(rhs.prov))
             // println(s"DISTRIB-R ${rhs} ~> $newRhs")
             println(s"DISTRIB-R  ~>  $newRhs")
             rec(lhs, newRhs, true)
@@ -1299,6 +1303,7 @@ class ConstraintSolver extends NormalForms { self: Typer =>
     freshenImpl(ty, below)
   }
   
+  // TODO rm
   /* 
   def freshenExtrCtx(above: Int, ec: ExtrCtx, rigidify: Bool = false, below: Int = MaxLevel)
       (implicit ctx:Ctx, //freshened: MutMap[TV, ST],

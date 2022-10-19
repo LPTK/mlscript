@@ -1,4 +1,7 @@
-// :NoJS
+:GeneralizeCurriedFunctions
+:NoRecursiveTypes
+:DontDistributeForalls
+// :ArgGen
 
 
 // =============== Sec 2 ===============
@@ -10,16 +13,16 @@ let id x = x in id
 //│    = [ 3, false ]
 
 let poly f = (f 1, f true) in poly
-//│ res: (true -> 'a & 1 -> 'b) -> ('b, 'a,)
+//│ res: (true -> 'a & 1 -> 'b & 'c) -> ('b, 'a,)
 //│    = [Function (anonymous)]
 let poly f = let y = f in (y 1, y true) in poly
-//│ res: (true -> 'a & 1 -> 'b) -> ('b, 'a,)
+//│ res: (true -> 'a & 1 -> 'b & 'c) -> ('b, 'a,)
 //│    = [Function (anonymous)]
 
 // Altered from
 // let poly f = let y = f {forall 'a. 'a -> 'a} in (y 1, y true)
 def poly = fun (f : (forall 'a. 'a -> 'a)) -> (f 1, f true)
-//│ poly: (forall 'a. 'a -> 'a) -> (1, true,)
+//│ poly: (forall 'a. 'a -> 'a) -> (1 | 'b, true | 'c,)
 //│     = [Function: poly]
 
 def app : ('a -> 'b) -> 'a -> 'b
@@ -81,24 +84,26 @@ def snd: forall 'a 'b. (('a, 'b),) -> 'b
 def snd ((_, x),) = x
 //│ fst: ('a, 'b,) -> 'a
 //│    = <missing implementation>
-//│ ('a, anything,) -> 'a
+//│ ('a, 'b,) -> 'a
 //│   <:  fst:
 //│ ('a, 'b,) -> 'a
 //│    = [Function: fst]
 //│ snd: ('a, 'b,) -> 'b
 //│    = <missing implementation>
-//│ (anything, 'a,) -> 'a
+//│ ('a, 'b,) -> 'b
 //│   <:  snd:
 //│ ('a, 'b,) -> 'b
 //│    = [Function: snd]
 
 // def pack : 
 def pack t = fun f -> f t
-//│ pack: 'a -> ('a -> 'b) -> 'b
+//│ pack: 'a -> (forall 'b, 'c. ('a -> 'b & 'c) -> 'b)
 //│     = [Function: pack]
 
 def open p t = p t
-//│ open: ('a -> 'b) -> 'a -> 'b
+//│ open: 'a -> (forall 'a, 'b, 'c. ('b -> 'c
+//│   where
+//│     'a <: 'b -> 'c))
 //│     = [Function: open]
 
 // Altered from
@@ -120,9 +125,9 @@ def e : 'g -> int
 //│ e: anything -> int
 //│  = <missing implementation>
 
-// 
+// * Notice the effect of distributivity
 (fun (f : (forall 'g. int -> 'g)) -> f 1)
-//│ res: (int -> anything) -> nothing
+//│ res: (forall 'g. int -> 'g) -> nothing
 //│    = [Function: res]
 
 run e
@@ -158,7 +163,7 @@ def div: int -> int -> int
 def div a b = Math.trunc(a/b)
 //│ div: int -> int -> int
 //│    = <missing implementation>
-//│ number -> number -> nothing
+//│ (number & 'a & 'b) -> (forall 'b, 'c. (number & 'b) -> 'c)
 //│   <:  div:
 //│ int -> int -> int
 //│    = [Function: div1]
@@ -243,7 +248,7 @@ rec def mkSArray n = if n == 0 then sbase else sstep (mkSArray (n - 1))
 //│         = [Function: mkSArray]
 
 mkSArray 2 (fun (xinit, xsub) -> xinit 2)
-//│ res: ‘r_1120_1124
+//│ res: ‘r_1197_1201
 //│    = [ [ 2, 2 ], [ 2, 2 ] ]
 
 ma2 = mkSArray 2
@@ -259,26 +264,26 @@ not a2
 //│    = false
 
 a2 = ma2 (fun (xinit, xsub) -> xinit true)
-//│ a2: ‘r_1164_1168
+//│ a2: ‘r_1241_1245
 //│   = [ [ true, true ], [ true, true ] ]
 
 :e // This is expected – xinit returns a value of locally-quantified type 'r
 a2[0]
 //│ ╔══[ERROR] Type mismatch in array access:
-//│ ║  l.266: 	a2[0]
+//│ ║  l.271: 	a2[0]
 //│ ║         	^^^^^
-//│ ╟── type `‘r_1164_1168` does not match type `Array[?a]`
-//│ ║  l.182: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
+//│ ╟── type `‘r_1241_1245` does not match type `Array[?a]`
+//│ ║  l.187: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
 //│ ║         	                       ^^
 //│ ╟── but it flows into reference with expected type `Array[?b]`
-//│ ║  l.266: 	a2[0]
+//│ ║  l.271: 	a2[0]
 //│ ╙──       	^^
 //│ res: error | undefined
 //│    = [ true, true ]
 
 // * Notice the (safely-)extruded skolem for the locally-quantified 'r
 ma2 (fun (xinit, xsub) -> let tmp = xinit true in (tmp, tmp))
-//│ res: (forall 'a. ‘r_1188_1195 | 'a, forall 'a. ‘r_1188_1195 | 'a,)
+//│ res: (forall 'a. ‘r_1265_1272 | 'a, forall 'a. ‘r_1265_1272 | 'a,)
 //│    = [
 //│        [ [ true, true ], [ true, true ] ],
 //│        [ [ true, true ], [ true, true ] ]
@@ -289,7 +294,7 @@ ma1 = mkSArray 1
 //│    = [Function (anonymous)]
 
 ma1 (fun (xinit, xsub) -> xinit true)
-//│ res: ‘r_1214_1218
+//│ res: ‘r_1291_1295
 //│    = [ true, true ]
 
 ma1 (fun (xinit, xsub) -> xsub (xinit true) 0)
@@ -302,16 +307,16 @@ ma1 (fun (xinit, xsub) -> xsub (xinit true) 0)
 :e
 ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.303: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
+//│ ║  l.308: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `‘r_1276` is not an instance of type `'r_1259_1266`
-//│ ║  l.182: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
+//│ ╟── type `‘r_1353` is not an instance of type `'r_1336_1343`
+//│ ║  l.187: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
 //│ ║         	                       ^^
 //│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.182: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
+//│ ║  l.187: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
 //│ ║         	                       ^^
 //│ ╟── from application:
-//│ ║  l.303: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
+//│ ║  l.308: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ╙──       	                                                               ^^^^^^^^^^^
 //│ res: error
 //│ Runtime error:
@@ -320,16 +325,16 @@ ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 :e
 ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.321: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
+//│ ║  l.326: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `‘r_1299_1306` is not an instance of type `'r_1321`
-//│ ║  l.182: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
+//│ ╟── type `‘r_1376_1383` is not an instance of type `'r_1398`
+//│ ║  l.187: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
 //│ ║         	                       ^^
-//│ ╟── but it flows into application with expected type `‘r_1321`
-//│ ║  l.321: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
+//│ ╟── but it flows into application with expected type `‘r_1398`
+//│ ║  l.326: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ║         	                                                               ^^^^^^^^^^^
 //│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.182: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
+//│ ║  l.187: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
 //│ ╙──       	                       ^^
 //│ res: error
 //│    = [ true, true ]
@@ -376,13 +381,13 @@ def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
     fun f -> f ((((init, sub), update), fold),) )
 //│ ((forall 'c, 'd, 'e, 'f. ((('c, 'd,), 'e,), 'f,) -> ((((forall 'c, 'g, 'h, 'i. ('g -> ('h, 'i,)
 //│   where
-//│     'c <: 'g -> 'h & 'g -> 'i), forall 'j. 'j -> (forall 'd, 'j, 'k, 'l, 'm, 'n, 'o, 'p, 'q, 'r, 's, 't, 'u, 'a, 'b, 'a0, 'b0, 'v, 'w, 'x, 'y. ((int & 'v & 'w & 'x & 'y) -> 'p
+//│     'c <: 'g -> 'h & 'g -> 'i), forall 'j. 'j -> (forall 'd, 'j, 'a, 'k, 'b, 'a0, 'b0, 'l, 'm, 'n, 'o, 'p, 'q, 'r, 's, 't, 'u, 'v, 'w, 'x, 'y. ((int & 'v & 'w & 'x & 'y) -> 'q
 //│   where
-//│     'j <: ('k & 'a & 'a0, 'b & 'r & 'b0,)
-//│     'd <: 'k -> ((int | 'l | 'm) -> ('n & 'o & 'p) & 'q) & 'r -> ((int | 's | 'm) -> ('o & 'p & 't) & 'u))),), forall 'z. 'z -> (forall 'y, 'a1. (int & 'y & 'a1) -> (forall 'e, 'm, 'z, 'a1, 'b1, 'b1, 'a2, 'b2, 'c1, 'a3, 'd1, 'b3, 'a4, 'b4, 'e1, 'f1, 'g1, 'h1, 'i1, 'j1, 'k1, 'l1, 'm1, 'n1. ('g1 -> (('h1 | 'd1, 'c1 | 'k1,) | 'n1)
+//│     'd <: 'k -> ((int | 'm | 'n) -> ('o & 'p & 'q) & 'r) & 'l -> ((int | 's | 'n) -> ('p & 'q & 't) & 'u)
+//│     'j <: ('a & 'k & 'a0, 'b & 'b0 & 'l,))),), forall 'z. 'z -> (forall 'y, 'a1. (int & 'y & 'a1) -> (forall 'e, 'n, 'z, 'a1, 'b1, 'b1, 'a2, 'b2, 'c1, 'a3, 'd1, 'b3, 'a4, 'b4, 'e1, 'f1, 'g1, 'h1, 'i1, 'j1, 'k1, 'l1, 'm1, 'n1. ('g1 -> (('h1 | 'd1, 'c1 | 'k1,) | 'n1)
 //│   where
 //│     'z <: ('a1 & 'b1 & 'a2 & 'a3 & 'd1 & 'a4, 'b1 & 'b2 & 'c1 & 'b3 & 'b4 & 'e1,)
-//│     'e <: 'b1 -> ((int | 'f1 | 'm) -> ('g1 -> 'h1 & 'i1) & 'j1) & 'e1 -> ((int | 'm) -> ('g1 -> 'k1 & 'l1) & 'm1)))),), forall 'o1. 'o1 -> (forall 'p1. 'p1 -> (forall 'f, 'o1, 'p1, 'q1, 'r1, 's1, 't1, 'u1, 'v1, 'w1, 'x1, 'a5, 'a6, 'b5, 'b6, 'y1. ((('v1 & 'a5 & 'a6, 'r1 & 'b5 & 'b6,) & 'y1) -> 's1
+//│     'e <: 'b1 -> ((int | 'f1 | 'n) -> ('g1 -> 'h1 & 'i1) & 'j1) & 'e1 -> ((int | 'n) -> ('g1 -> 'k1 & 'l1) & 'm1)))),), forall 'o1. 'o1 -> (forall 'p1. 'p1 -> (forall 'f, 'o1, 'p1, 'q1, 'r1, 's1, 't1, 'u1, 'v1, 'w1, 'x1, 'a5, 'a6, 'b5, 'b6, 'y1. ((('v1 & 'a5 & 'a6, 'r1 & 'b5 & 'b6,) & 'y1) -> 's1
 //│   where
 //│     'f <: 'o1 -> ('q1 -> ('r1 -> 's1 & 't1) & 'u1) & 'o1 -> ('p1 -> ('v1 -> 'q1 & 'w1) & 'x1)))),) -> 'z1 & 'a2) -> 'z1) -> 'b2 & 'c2) -> 'b2
 //│   where
@@ -390,41 +395,41 @@ def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
 //│   <:  step:
 //│ ExSig -> ExSig
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.365: 	def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
+//│ ║  l.370: 	def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.366: 	  let init a = (xinit a, xinit a) in
+//│ ║  l.371: 	  let init a = (xinit a, xinit a) in
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.367: 	  let sub r i =
+//│ ║  l.372: 	  let sub r i =
 //│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.368: 	    if mod i 2 == 0
+//│ ║  l.373: 	    if mod i 2 == 0
 //│ ║         	^^^^^^^^^^^^^^^^^^^
-//│ ║  l.369: 	    then xsub (fst r) (div i 2)
+//│ ║  l.374: 	    then xsub (fst r) (div i 2)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.370: 	    else xsub (snd r) (div i 2) in
+//│ ║  l.375: 	    else xsub (snd r) (div i 2) in
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.371: 	  let update r i a =
+//│ ║  l.376: 	  let update r i a =
 //│ ║         	^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.372: 	    if mod i 2 == 0
+//│ ║  l.377: 	    if mod i 2 == 0
 //│ ║         	^^^^^^^^^^^^^^^^^^^
-//│ ║  l.373: 	    then (xupdate (fst r) (div i 2) a, snd r)
+//│ ║  l.378: 	    then (xupdate (fst r) (div i 2) a, snd r)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.374: 	    else (fst r, xupdate (snd r) (div i 2) a) in
+//│ ║  l.379: 	    else (fst r, xupdate (snd r) (div i 2) a) in
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.375: 	  let fold f b r = xfold f (xfold f b (fst r)) (snd r) in
+//│ ║  l.380: 	  let fold f b r = xfold f (xfold f b (fst r)) (snd r) in
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.376: 	    fun f -> f ((((init, sub), update), fold),) )
+//│ ║  l.381: 	    fun f -> f ((((init, sub), update), fold),) )
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `‘b_2080_2215` is not an instance of type `'b_2080_2222`
-//│ ║  l.341: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
+//│ ╟── type `‘b_2157_2350` is not an instance of type `'b_2157_2357`
+//│ ║  l.346: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
 //│ ║         	                                 ^^
 //│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.341: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
+//│ ║  l.346: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
 //│ ╙──       	                                 ^^
 //│     = [Function: step]
 
 let mkArray n = if n == 0 then base else step base in
   mkArray 1 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
-//│ res: ‘r_2256_2264
+//│ res: ‘r_2391_2399 | ‘r_2404_2412
 //│    = [ 2, 2 ]
 
 def mkArray : int -> ExSig
@@ -438,19 +443,19 @@ rec def mkArray n = if n == 0 then base else step (mkArray (n - 1))
 //│        = [Function: mkArray]
 
 mkArray 3 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
-//│ res: ‘r_2315_2323
+//│ res: ‘r_2473_2481
 //│    = [ [ [ 2, 2 ], [ 2, 2 ] ], [ [ 2, 2 ], [ 2, 2 ] ] ]
 
 :e
 res 0
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.445: 	res 0
+//│ ║  l.450: 	res 0
 //│ ║         	^^^^^
-//│ ╟── type `‘r_2315_2323` is not a function
-//│ ║  l.341: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
+//│ ╟── type `‘r_2473_2481` is not a function
+//│ ║  l.346: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
 //│ ║         	                     ^^
 //│ ╟── but it flows into reference with expected type `0 -> ?a`
-//│ ║  l.445: 	res 0
+//│ ║  l.450: 	res 0
 //│ ╙──       	^^^
 //│ res: error
 //│ Runtime error:

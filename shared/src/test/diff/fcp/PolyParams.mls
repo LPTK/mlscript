@@ -8,7 +8,7 @@ def foo(f: forall 'a. 'a -> 'a) =
 //│    = [Function: foo]
 
 fooid = foo id
-//│ fooid: (1, true,)
+//│ fooid: (1 | 'a, true | 'b,)
 //│      = [ 1, true ]
 
 fooid._1
@@ -24,7 +24,7 @@ def foo(f: (forall 'A. 'A -> 'A) -> (forall 'B. 'B -> 'B)) =
 //│    = [Function: foo1]
 
 foo id
-//│ res: 'B -> 'B
+//│ res: 'B -> 'B | 'a
 //│    = [Function: id]
 
 foo id id

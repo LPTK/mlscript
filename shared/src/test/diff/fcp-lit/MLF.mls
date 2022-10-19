@@ -100,10 +100,10 @@ id auto
 
 // ~ auto id (FreezeML F5, PolyML 1.1)
 (fun x -> x id) auto
-//│ res: 'a -> 'a
+//│ res: 'a -> 'a | 'b
 
 app auto id
-//│ res: 'a -> 'a
+//│ res: 'a -> 'a | 'b
 
 // ------------ Sec 5.2 ------------
 
@@ -113,7 +113,7 @@ let f = choose id in (f auto) (f succ)
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.112: 	let f = choose id in (f auto) (f succ)
 //│ ║         	                     ^^^^^^^^^^^^^^^^^
-//│ ╟── type `‘a_332` is not an instance of type `int`
+//│ ╟── type `‘a_335` is not an instance of type `int`
 //│ ║  l.30: 	def auto (x: forall 'a. 'a -> 'a) = x x
 //│ ╙──      	                    ^^
 //│ res: (int & 'a) -> (int | 'a) | error
@@ -208,7 +208,7 @@ fun z -> (z omega)
 
 fun z -> omegad z
 fun z -> omega z
-//│ res: (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
+//│ res: (forall 'a. 'a -> 'a) -> (forall 'a, 'b. 'a -> 'a | 'b)
 //│ res: ('a -> 'b & 'a) -> 'b
 
 (fun x -> fun y -> x y) omegad
@@ -276,7 +276,7 @@ app runST argST
 // ============ Variations ported from supertype tests ============
 
 killer_app = (fun x -> x id) auto
-//│ killer_app: 'a -> 'a
+//│ killer_app: 'a -> 'a | 'b
 
 I x = x
 K x y = x

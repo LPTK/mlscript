@@ -64,6 +64,14 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
       // body.freshenAbove(level, rigidify = true)
       body.freshenAbove(polymLevel, rigidify = true)
     }
+    def raiseLevelTo(newPolymLevel: Level)
+          (implicit ctx: Ctx, raise: Raise, shadows: Shadows): PolymorphicType = {
+      require(newPolymLevel >= polymLevel)
+      if (newPolymLevel === polymLevel) return this
+      // body.freshenAbove(polymLevel, false)()
+      implicit val freshened: MutMap[TV, ST] = MutMap.empty
+      PolymorphicType(newPolymLevel, self.freshenAbove(polymLevel, body)) //(prov)
+    }
     override def toString = s"‹∀ $polymLevel. $body›"
   }
   object PolymorphicType {
