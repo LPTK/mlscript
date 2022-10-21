@@ -813,11 +813,13 @@ abstract class TyperHelpers { Typer: Typer =>
   
   
   object AliasOf {
-    def unapply(ty: ST)(implicit ctx: Ctx): S[ST] = ty match {
-      case tr: TypeRef => unapply(tr.expand)
+    def unapply(ty: ST)(implicit ctx: Ctx, shadows: Shadows): S[(ST, Shadows)] = ty match {
+      case tr: TypeRef if !shadows.distribExpanded.contains(tr.defn) =>
+        unapply(tr.expand)(ctx, shadows.copy(distribExpanded = shadows.distribExpanded + tr.defn))
       case proxy: ProxyType => unapply(proxy.underlying)
-      case AssignedVariable(ty) => unapply(ty)
-      case _ => S(ty)
+      case tv @ AssignedVariable(ty) if !shadows.distribExpanded.contains(tv) =>
+        unapply(ty)(ctx, shadows.copy(distribExpanded = shadows.distribExpanded + tv))
+      case _ => S(ty -> shadows)
     }
   }
   

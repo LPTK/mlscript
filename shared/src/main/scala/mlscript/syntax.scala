@@ -142,7 +142,7 @@ case object Bot                                          extends NullaryType
 final case class Literal(lit: Lit)                       extends NullaryType
 
 /** Reference to an existing type with the given name. */
-final case class TypeName(name: Str)                     extends NullaryType with NamedType with TypeNameImpl
+final case class TypeName(name: Str)                     extends NullaryType with NamedType with TypeNameImpl with TypeNameOrTV
 final case class TypeTag (name: Str)                     extends NullaryType
 
 final case class TypeVar(val identifier: Int \/ Str, nameHint: Opt[Str]) extends NullaryType with TypeVarImpl {
@@ -180,3 +180,7 @@ final case class NuFunDef(
 
 
 sealed abstract class PgrmOrTypingUnit
+
+
+trait TypeNameOrTV
+

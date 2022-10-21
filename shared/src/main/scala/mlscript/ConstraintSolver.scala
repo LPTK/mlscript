@@ -21,10 +21,10 @@ class ConstraintSolver extends NormalForms { self: Typer =>
   protected var currentConstrainingRun = 0
   
   type ShadowSet = Set[ST -> ST]
-  case class Shadows(current: ShadowSet, previous: ShadowSet) {
+  case class Shadows(current: ShadowSet, previous: ShadowSet, distribExpanded: Set[TypeNameOrTV]) {
     def size: Int = current.size + previous.size
   }
-  object Shadows { val empty: Shadows = Shadows(Set.empty, Set.empty) }
+  object Shadows { val empty: Shadows = Shadows(Set.empty, Set.empty, Set.empty) }
   
   /** Constrains the types to enforce a subtyping relationship `lhs` <: `rhs`. */
   // def constrain(lhs: SimpleType, rhs: SimpleType, extrusionContext: Opt[ExtrCtx])(implicit raise: Raise, prov: TypeProvenance, ctx: Ctx): Unit = { val outerCtx = ctx ; {
@@ -419,7 +419,7 @@ class ConstraintSolver extends NormalForms { self: Typer =>
           (if (cctx._2.headOption.exists(_ is rhs)) cctx._2 else rhs :: cctx._2)
         else (lhs :: Nil) -> (rhs :: Nil),
         ctx,
-        if (sameLevel) shadows else Shadows(Set.empty, shadows.previous)
+        if (sameLevel) shadows else shadows.copy(current = Set.empty)
       )
       stack.pop()
       ()
@@ -484,7 +484,7 @@ class ConstraintSolver extends NormalForms { self: Typer =>
               case _ => !noRecursiveTypes
             }) cache += lhs_rhs
             
-            Shadows(shadows.current + lhs_rhs, shadows.previous + shadow)
+            Shadows(shadows.current + lhs_rhs, shadows.previous + shadow, shadows.distribExpanded)
             
         }) |> { implicit shadows: Shadows =>
         lhs_rhs match {
@@ -738,10 +738,12 @@ class ConstraintSolver extends NormalForms { self: Typer =>
               //   rec(lhs, rigid, true)
               // }
             }
-          case (AliasOf(PolymorphicType(plvl, bod)), _) if bod.level <= plvl =>
+          case (AliasOf(PolymorphicType(plvl, bod), sh), _) if bod.level <= plvl =>
+            implicit val shadows: Shadows = sh
             // println(s"Useless poly? ${plvl} ${bod.level}")
             rec(bod, rhs, true)
-          case (_, FunctionType(param, AliasOf(poly @ PolymorphicType(plvl, bod)))) if distributeForalls =>
+          case (_, FunctionType(param, AliasOf(poly @ PolymorphicType(plvl, bod), sh))) if distributeForalls =>
+            implicit val shadows: Shadows = sh
             val newRhs = if (param.level > plvl) {
                 // ??? // TODO
                 // PolymorphicType(plvl, FunctionType(param, bod)(rhs.prov))
@@ -751,9 +753,11 @@ class ConstraintSolver extends NormalForms { self: Typer =>
             // println(s"DISTRIB-R ${rhs} ~> $newRhs")
             println(s"DISTRIB-R  ~>  $newRhs")
             rec(lhs, newRhs, true)
-          case (AliasOf(PolymorphicType(plvl, AliasOf(FunctionType(param, bod)))), _)
+          case (AliasOf(PolymorphicType(plvl, AliasOf(FunctionType(param, bod), sh)), sh0), _) // FIXME use sh0?
           if distributeForalls
           && param.level <= plvl => // TODO actually split type parameters that are quantified in body and NOT in param
+            implicit val shadows: Shadows = sh
+            println(s"SH ${sh0.distribExpanded}")
             val newLhs = FunctionType(param, PolymorphicType(plvl, bod))(rhs.prov)
             // println(s"DISTRIB-L ${lhs} ~> $newLhs")
             println(s"DISTRIB-L  ~>  $newLhs")

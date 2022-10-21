@@ -81,7 +81,8 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
     /** Tries to split a polymorphic function type
       *  by distributing the quantification of *some* of its type vars into the function result. */
     def splitFunction(implicit ctx: Ctx, raise: Raise, shadows: Shadows): Opt[ST] = body match {
-      case AliasOf(ft @ FunctionType(par, bod)) =>
+      case AliasOf(ft @ FunctionType(par, bod), sh) =>
+        implicit val shadows: Shadows = sh
         val couldBeDistribbed = bod.varsBetween(polymLevel, MaxLevel)
         println(s"could be distribbed: $couldBeDistribbed")
         if (couldBeDistribbed.isEmpty) return N
@@ -532,7 +533,7 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
       originalTV: Opt[TV],
       val nameHint: Opt[Str] = N,
       val recPlaceholder: Bool = false
-  )(val prov: TypeProvenance) extends SimpleType with TypeVarOrRigidVar with Ordered[TypeVariable] with Factorizable {
+  )(val prov: TypeProvenance) extends SimpleType with TypeVarOrRigidVar with Ordered[TypeVariable] with Factorizable with TypeNameOrTV {
     
     var assignedTo: Opt[ST] = N
     
