@@ -103,20 +103,20 @@ def bar: (('a & int & ~'a) -> 'b) -> 'b
 //│    = <missing implementation>
 
 r = bar (fun x -> (x, x + 1, not x, x x))
-//│ r: (int & 'a & ~'a, int, bool, nothing,)
+//│ r: (int & 'a & ~'a, int | 'b, bool | 'c, 'c,)
 //│  = <no result>
 //│    bar is not implemented
 
 :ns
 r
-//│ res: forall 'b, 'a, 'c, 'd, 'e, 'f. 'b
+//│ res: forall 'a, 'b, 'c. forall 'd, 'a, 'b, 'c. 'd
 //│   where
-//│     'b :> ('c, 'e, 'f, 'd,)
+//│     'd :> forall 'e, 'f. ('b, 'e, 'f, 'c,)
 //│     'f :> bool
 //│     'e :> int
-//│     'c :> 'a & int & ~'a
-//│        <: 'c -> 'd & bool & int
-//│     'a <: (int | ~(int & ~'a)) & (bool | ~(int & ~'a)) & ('c -> 'd | ~(int & ~'a))
+//│     'b :> 'a & int & ~'a
+//│        <: 'b -> 'c & bool & int
+//│     'a <: (int | ~(int & ~'a)) & (bool | ~(int & ~'a)) & ('b -> 'c | ~(int & ~'a))
 //│    = <no result>
 //│      r and bar are not implemented
 

@@ -317,7 +317,7 @@ let f' = fun x -> x + 1 in f' 2
 //│ // Query 1
 //│ res = ((f$) => f$(2))((x) => x + 1);
 //│ // End of generated code
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 
 :js

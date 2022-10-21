@@ -24,7 +24,7 @@ def foo2 f =
 //│     = [Function: foo2]
 
 foo2 bar
-//│ res: (0, true,)
+//│ res: 'a
 //│    = [ 0, true ]
 
 

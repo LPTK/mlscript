@@ -106,6 +106,8 @@ foo_ty = foo
 //│       = [Function: foo]
 
 
+// TODO
+:e
 foo2_ty = foo2
 //│ 'a -> 'b -> 'c -> ('a, 'b, 'c,)
 //│   <:  foo2_ty:

@@ -11,7 +11,7 @@ foo / x => x
 //│ res: 1
 
 foo / x => succ x
-//│ res: int
+//│ res: int | 'a
 
 x => succ / x + 1
 //│ res: int -> int
@@ -24,7 +24,7 @@ foo / x => succ / succ / x
 //│ Parsed: foo ((x) => succ (succ x));
 //│ Desugared: foo ((x) => succ (succ x))
 //│ AST: App(Var(foo), Lam(Var(x), App(Var(succ), App(Var(succ), Var(x)))))
-//│ res: int
+//│ res: int | 'a
 
 :e
 foo / foo / x => succ / succ / x

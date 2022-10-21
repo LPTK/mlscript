@@ -31,7 +31,7 @@ ty0 = ty1
 //│ (A & 'a | B & 'b | C & 'c | D & 'd | E & 'e) -> ('a, 'b, 'c, 'd, 'e, nothing,)
 //│   <:  ty0:
 //│ (E & 'e & 'f | 'd & (C & 'c | D & 'e) | 'b & (A & 'a | B & 'c)) -> ('a, 'b, 'c, 'd, 'e, 'f,)
-//│ constrain calls  : 68
+//│ constrain calls  : 70
 //│ annoying  calls  : 30
 //│ subtyping calls  : 360
 
@@ -44,7 +44,7 @@ ty1 = ty0
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.40: 	ty1 = ty0
 //│ ║        	^^^^^^^^^
-//│ ╟── type `A & ‘a_212` is not an instance of type `'b_213`
+//│ ╟── type `A & ‘a_214` is not an instance of type `'b_215`
 //│ ║  l.26: 	def ty1: ('a & A | 'b & B | 'c & C | 'd & D | 'e & E) -> ('a, 'b, 'c, 'd, 'e, 'f)
 //│ ║        	          ^^^^^^
 //│ ╟── Note: constraint arises from type variable:

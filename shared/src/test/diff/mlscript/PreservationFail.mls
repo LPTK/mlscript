@@ -22,7 +22,7 @@ c1 = C1{}
 //│   = C1 {}
 
 r = foo c1
-//│ r: C1 & ~#C2 | C3
+//│ r: C1 & ~#C2 | C3 | 'a
 //│  = C1 {}
 
 // * Here we have the C1{} value typed at ~C2
@@ -62,7 +62,7 @@ c1 = C1_Impl{}
 //│   = C1_Impl {}
 
 r = foo c1
-//│ r: C1_Impl | C3
+//│ r: C1_Impl | C3 | 'a
 //│  = C1_Impl {}
 
 r : ~C2
@@ -88,7 +88,7 @@ rec def getNegT1 x = case x of {
 //│         = [Function: getNegT1]
 
 nt1 = getNegT1 {}
-//│ nt1: ~#T1
+//│ nt1: 'a | ~#T1
 //│    = {}
 
 T1
@@ -96,7 +96,7 @@ T1
 //│    = [Function: build]
 
 t1nt1 = T1 nt1
-//│ t1nt1: nothing
+//│ t1nt1: #T1 & 'a
 //│      = {}
 
 :re

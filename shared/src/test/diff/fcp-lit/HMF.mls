@@ -171,7 +171,7 @@ def revapp x f = f x
 
 // FreezeML D2
 revapp id poly
-//│ res: (1, true,)
+//│ res: 'a
 //│    = [ 1, true ]
 
 // FreezeML C1
@@ -196,19 +196,19 @@ fun f -> poly f
 // FreezeML D2
 // nope in plain HMF
 revapp id poly
-//│ res: (1, true,)
+//│ res: 'a
 //│    = [ 1, true ]
 
 // nope
 let f = revapp id in f poly
-//│ res: (1, true,)
+//│ res: 'a
 //│    = [ 1, true ]
 
 :ne
 def iapp: (int -> int) -> int -> int
 let f = revapp id in (f poly, f iapp)
 //│ iapp: (int -> int) -> int -> int
-//│ res: ((1, true,), int -> int,)
+//│ res: (forall 'a. 'a, forall 'b. 'b,)
 
 // ============ Sec 3 ============
 
@@ -257,7 +257,7 @@ single id
 //│    = Cons { head: [Function: id], tail: Nil {} }
 
 let foo x y = single y in foo ids id
-//│ res: List[forall 'a. 'a -> 'a]
+//│ res: List[forall 'a. 'a -> 'a] | 'b
 //│    = Cons { head: [Function: id], tail: Nil {} }
 
 head ids 1

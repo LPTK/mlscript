@@ -91,13 +91,13 @@ box1.Map (fun x -> Box { inner = x })
 //│   ├── Code: res = box1.Map((x) => new Box({ inner: x }));
 //│   ├── Intermediate: Box { inner: Box { inner: 1 } }
 //│   └── Reply: [success] Box { inner: Box { inner: 1 } }
-//│ res: Box[int]
+//│ res: Box[forall 'a. int | 'a]
 //│    = Box { inner: 2 }
-//│ res: Box[int]
+//│ res: Box[forall 'a. int | 'a]
 //│    = Box { inner: 3 }
-//│ res: Box[Box[1]]
+//│ res: Box[forall 'a. Box[1] | 'a]
 //│    = Box { inner: Box { inner: 1 } }
 
 box1.Map (fun x -> Box { inner = x })
-//│ res: Box[Box[1]]
+//│ res: Box[forall 'a. Box[1] | 'a]
 //│    = Box { inner: Box { inner: 1 } }

@@ -573,7 +573,7 @@ h / mkArg2 false
 //│ ╟── Note: constraint arises from argument:
 //│ ║  l.+1: 	let mkArg2 = a => {prop: succ a}
 //│ ╙──      	                              ^
-//│ res: int
+//│ res: int | 'a
 
 let i = y =>
   succ / f y.fld
@@ -613,7 +613,7 @@ i arg
 //│ res: error
 
 let test x y = if x.prop then i x else y
-//│ test: {fld: {prop: int}, prop: bool} -> 'a -> (int | 'a)
+//│ test: {fld: {prop: int}, prop: bool} -> 'a -> (forall 'b. int | 'b | 'a)
 
 :e
 test arg2
@@ -635,8 +635,8 @@ let mkArg = a => {prop: a}
 h / mkArg 1
 i { fld: mkArg 1 }
 //│ mkArg: 'a -> {prop: 'a}
-//│ res: int
-//│ res: int
+//│ res: int | 'a
+//│ res: int | 'a
 
 :e
 g { fld: mkArg 1 } // TODO multi-step flow message?

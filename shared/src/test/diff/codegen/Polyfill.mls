@@ -52,7 +52,7 @@ add 1 2
 //│ // Query 1
 //│ res = add(1)(2);
 //│ // End of generated code
-//│ res: int
+//│ res: int | 'a
 //│    = 6
 
 // `withConstruct` will be inserted only when `with` is used.

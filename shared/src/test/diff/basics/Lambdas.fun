@@ -75,10 +75,10 @@ let f(x: int) = x + 1
 //│ f: (x: int,) -> int
 
 f 42
-//│ res: int
+//│ res: int | 'a
 
 f (x: 42)
-//│ res: int
+//│ res: int | 'a
 
 :e
 f (y: 42)

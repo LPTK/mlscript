@@ -2,13 +2,13 @@
 def test f =
   let local x = f x
   in (local 0, local true)
-//│ test: ((0 | true) -> 'a) -> ('a, 'a,)
+//│ test: ((0 | true) -> 'a) -> (forall 'b. 'b | 'a, forall 'c. 'c | 'a,)
 //│     = [Function: test]
 
 def test f =
   let local x = f x
   in (local (fun z -> z), local (fun z -> true))
-//│ test: ((forall 'a, 'b. ('a & 'b) -> (true | 'b)) -> 'c) -> ('c, 'c,)
+//│ test: ((forall 'a, 'b. ('a & 'b) -> (true | 'b)) -> 'c) -> (forall 'd. 'd | 'c, forall 'e. 'e | 'c,)
 //│     = [Function: test1]
 
 def test f =
@@ -20,7 +20,7 @@ def test f =
 def test f a b =
   let local x = f x
   in (local a, local b)
-//│ test: ('a -> 'b) -> 'a -> 'a -> ('b, 'b,)
+//│ test: ('a -> 'b) -> 'a -> 'a -> (forall 'c. 'c | 'b, forall 'd. 'd | 'b,)
 //│     = [Function: test3]
 
 def test x =
@@ -30,7 +30,7 @@ def test x =
 //│     = [Function: test4]
 
 test 1
-//│ res: int
+//│ res: int | 'a
 //│    = 2
 
 :e
@@ -55,9 +55,9 @@ def test f =
 
 test succ
 test id
-//│ res: int | 'a
+//│ res: int | 'a | 'b
 //│    = 3
-//│ res: int | 'a
+//│ res: int | 'a | 'b
 //│    = 2
 
 :e
@@ -115,13 +115,13 @@ test (fun x -> "oops")
 def test f =
   let local g x = g (f x)
   in local succ
-//│ test: ('a -> int) -> 'a -> int
+//│ test: ('a -> int) -> (forall 'b. ('a & 'b) -> int)
 //│     = [Function: test8]
 
 def test f =
   let local g x = g (f x)
   in local add
-//│ test: ('a -> int) -> 'a -> int -> int
+//│ test: ('a -> int) -> (forall 'b. ('a & 'b) -> int -> int)
 //│     = [Function: test9]
 
 def test f =
@@ -133,19 +133,19 @@ def test f =
 def test f =
   let local g x = g (f x)
   in (local add 1, local (fun y -> fun z -> y + z) 2)
-//│ test: ((1 | 2) -> int) -> (int -> int, int -> int,)
+//│ test: ((1 | 2) -> (int & 'a)) -> ((int & 'a) -> (int | 'b), forall 'a, 'b. (int & 'a) -> (int | 'b),)
 //│     = [Function: test11]
 
 :re // TODO
 f_g = test succ
 f_g._1 42
 f_g._2 42
-//│ f_g: (int -> int, int -> int,)
+//│ f_g: ((int & 'a) -> (int | 'b) | 'c, forall 'a, 'b. (int & 'a) -> (int | 'b) | 'd,)
 //│    = [ [Function (anonymous)], [Function (anonymous)] ]
 //│ res: int
 //│ Runtime error:
 //│   TypeError: f_g._1 is not a function
-//│ res: int
+//│ res: int | 'a
 //│ Runtime error:
 //│   TypeError: f_g._2 is not a function
 
@@ -321,9 +321,9 @@ def foo f =
 
 foo (fun x -> (x, x))
 foo (fun x -> (0, x + 1))
-//│ res: int
+//│ res: int | 'a
 //│    = 84
-//│ res: int
+//│ res: int | 'a
 //│    = 43
 
 def foo (f: 'a -> ('a, 'a)) =
@@ -334,9 +334,9 @@ def foo (f: 'a -> ('a, 'a)) =
 
 foo (fun x -> (x, x))
 foo (fun x -> (0, x + 1))
-//│ res: int
+//│ res: int | 'a
 //│    = 84
-//│ res: int
+//│ res: int | 'a
 //│    = 43
 
 def foo (f: forall 'a. 'a -> ('a, 'a)) =
@@ -354,7 +354,7 @@ foo (fun x -> (0, x + 1))
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.353: 	foo (fun x -> (0, x + 1))
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `‘a_679` is not an instance of type `int`
+//│ ╟── type `‘a_748` is not an instance of type `int`
 //│ ║  l.342: 	def foo (f: forall 'a. 'a -> ('a, 'a)) =
 //│ ║         	                   ^^
 //│ ╟── Note: constraint arises from reference:

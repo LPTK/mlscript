@@ -21,7 +21,7 @@ id2 = id
 //│    = [Function: id]
 
 def f y = (fun h -> h (h (h (const y)))) id2
-//│ f: 'a -> anything -> 'a
+//│ f: 'a -> (forall 'b. 'b -> 'a)
 //│  = [Function: f]
 
 // * This used to be accepted!

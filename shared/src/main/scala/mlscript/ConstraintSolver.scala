@@ -758,11 +758,13 @@ class ConstraintSolver extends NormalForms { self: Typer =>
             // println(s"DISTRIB-L ${lhs} ~> $newLhs")
             println(s"DISTRIB-L  ~>  $newLhs")
             rec(newLhs, rhs, true)
+            
           case (SplittablePolyFun(newLhs), _)
           if distributeForalls 
           =>
             println(s"DISTRIB-L'  ~>  $newLhs")
             rec(newLhs, rhs, true)
+            
           // case (poly: PolymorphicType, _) if poly.body.level <= poly.polymLevel => rec(poly.body, rhs, true)
           case (poly: PolymorphicType, _) =>
             // TODO Here it might actually be better to try and put poly into a TV if the RHS contains one
@@ -1155,7 +1157,9 @@ class ConstraintSolver extends NormalForms { self: Typer =>
   
   /** Freshens all the type variables whose level is comprised in `(above, below]`
     *   or which have bounds and whose level is greater than `above`. */
-  def freshenAbove(above: Level, ty: SimpleType, rigidify: Bool = false, below: Level = MaxLevel)
+  def freshenAbove(above: Level, ty: SimpleType, rigidify: Bool = false, below: Level = MaxLevel,
+        leaveAlone: Set[TV] = Set.empty // TODO use
+      )
         (implicit ctx:Ctx, freshened: MutMap[TV, ST],
         // ctx:Ctx=Ctx.empty,//FIXME
         // raise:Raise=throw _,
@@ -1177,6 +1181,8 @@ class ConstraintSolver extends NormalForms { self: Typer =>
         && */ ty.level <= above 
           // && false
           ) ty else ty match {
+      
+      case tv: TypeVariable if leaveAlone(tv) => tv
       
       // case _: TypeVariable | _: TraitTag if ty.level <= above => ty
       

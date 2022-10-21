@@ -4,9 +4,9 @@ foo(1, 2, 3)
 foo(1, 2, 3,)
 //│ foo: (int, int, int,) -> int
 //│    = [Function: foo]
-//│ res: int
+//│ res: int | 'a
 //│    = 6
-//│ res: int
+//│ res: int | 'a
 //│    = 6
 
 def bar() = 1
@@ -44,9 +44,9 @@ bar(1, 2)
 bar(1, 2,)
 //│ bar: (int, int,) -> int
 //│    = [Function: bar3]
-//│ res: int
+//│ res: int | 'a
 //│    = 3
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 
 :e
@@ -67,7 +67,7 @@ def bar((x, y)) = add x y
 bar((1, 2))
 //│ bar: (int, int,) -> int
 //│    = [Function: bar4]
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 
 :p
@@ -80,7 +80,7 @@ f(1, 2)
 //│ AST: App(Var(f), Tup(_: IntLit(1), _: IntLit(2)))
 //│ f: (int, int,) -> int
 //│  = [Function: f]
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 
 :e
@@ -124,7 +124,7 @@ f((1, 2))
 //│ AST: App(Var(f), Tup(_: Bra(rcd = false, Tup(_: IntLit(1), _: IntLit(2)))))
 //│ f: (int, int,) -> int
 //│  = [Function: f1]
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 
 :e
@@ -143,6 +143,6 @@ r = (1, 2)
 f r
 //│ r: (1, 2,)
 //│  = [ 1, 2 ]
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 

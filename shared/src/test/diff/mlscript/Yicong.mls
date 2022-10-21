@@ -709,7 +709,7 @@ def ornull x = definedOr x (fun () -> null)
 
 :re
 defined ()[0]
-//│ res: nothing
+//│ res: 'a | 'b
 //│ Runtime error:
 //│   Error: unexpected runtime error
 
@@ -727,7 +727,7 @@ ta3[1-2]
 //│    = 3
 //│ ta2: ((1, 2, 4,), (true, false,),)
 //│    = [ [ 1, 2, 4 ], [ true, false ] ]
-//│ res: false | int | null | true | undefined
+//│ res: false | int | null | true | undefined | 'a | 'b | 'c | 'd
 //│    = null
 //│ ta3: ((1, 2, 3,), "hello", false,)
 //│    = [ [ 1, 2, 3 ], 'hello', false ]
@@ -798,7 +798,7 @@ ge[2]
 //│ ╔══[ERROR] Type mismatch in array access:
 //│ ║  l.755: 	ge[2]
 //│ ║         	^^^^^
-//│ ╟── function of type `?a -> ?b` does not match type `Array[?c]`
+//│ ╟── function of type `?a -> (forall ?b. ?b)` does not match type `Array[?c]`
 //│ ║  l.751: 	def ge x = x + 1
 //│ ║         	       ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `Array[?d]`
@@ -818,7 +818,7 @@ mkarr (1,true,"hi")[0]
 //│   <:  mkarr:
 //│ 'a -> Array['a]
 //│      = [Function: mkarr]
-//│ mk1: 6
+//│ mk1: 6 | 'a | 'b
 //│    = 6
 //│ res: number | undefined
 //│    = 2

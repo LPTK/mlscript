@@ -75,19 +75,19 @@ let pred = n => 0 < n
 //│ pred: number -> bool
 
 let g = x => if pred x then x else f false
-//│ g: (number & 'a) -> (0 | 1 | 'a)
+//│ g: (number & 'a) -> (forall 'b. 0 | 1 | 'b | 'a)
 
 g 3
-//│ res: 0 | 1 | 3
+//│ res: 0 | 1 | 3 | 'a
 
 g / succ 3
-//│ res: int
+//│ res: int | 'a
 
 x => if x then x else f false
-//│ res: (bool & 'a) -> (0 | 1 | 'a)
+//│ res: (bool & 'a) -> (forall 'b. 0 | 1 | 'b | 'a)
 
 res false
-//│ res: 0 | 1 | false
+//│ res: 0 | 1 | false | 'a
 
 let rec f = n =>
   if pred n then n else f (n + 1)

@@ -74,7 +74,7 @@ Nil: ListBase[anything]
 //│    = Nil { size: 0 }
 
 c = Cons 1 Nil
-//│ c: Cons[1] with {tail: Nil & {size: 0}}
+//│ c: (Cons[1] with {tail: Nil & {size: 0}}) | 'a
 //│  = Cons { size: 1, head: 1, tail: Nil { size: 0 } }
 
 c: ListBase[int]
@@ -94,7 +94,7 @@ c.size
 //│    = 1
 
 d = Cons 2 c
-//│ d: Cons[1 | 2] with {head: 2, tail: Cons[1] with {tail: Nil & {size: 0}}}
+//│ d: (Cons[1 | 2] with {head: 2, tail: forall 'a. (Cons[1] with {tail: Nil & {size: 0}}) | 'a}) | 'b
 //│  = Cons {
 //│      size: 2,
 //│      head: 2,
@@ -110,7 +110,7 @@ d.size
 //│    = 2
 
 d.tail
-//│ res: Cons[1] with {tail: Nil & {size: 0}}
+//│ res: (Cons[1] with {tail: Nil & {size: 0}}) | 'a
 //│    = Cons { size: 1, head: 1, tail: Nil { size: 0 } }
 
 d.tail.size

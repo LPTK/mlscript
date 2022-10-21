@@ -27,14 +27,14 @@ l
 
 :ns
 m y = l y
-//│ m: forall 'a, 'b, 'l, 'c. 'a -> 'b
+//│ m: forall 'a, 'b, 'c. 'a -> 'b
 //│   where
-//│     'b :> 'c -> 'l
+//│     'b :> forall 'l. 'l
 //│     'l := 'c -> 'l
 //│     'a <: 'c
 
 m
-//│ res: 'l
+//│ res: anything -> (forall 'l. 'l)
 //│   where
 //│     'l :> anything -> 'l
 

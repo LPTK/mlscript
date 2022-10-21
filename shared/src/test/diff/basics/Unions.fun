@@ -124,10 +124,10 @@ g (0 as 0 | 1)
 let h = y => g(y as 0 | 1)
 h(0)
 //│ g: (x: int,) -> int
-//│ res: int
-//│ res: int
-//│ h: (0 | 1) -> int
-//│ res: int
+//│ res: int | 'a
+//│ res: int | 'a
+//│ h: (0 | 1) -> (forall 'a. int | 'a)
+//│ res: int | 'a | 'b
 
 let foo(r: { v: 0 } | { v: 1 }) = if r.v < 1 then r.v else 2
 //│ foo: (r: {v: 'a & (0 | 1)},) -> (2 | 'a)

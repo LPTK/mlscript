@@ -35,7 +35,7 @@ safeDiv 1 0
 //│    = Infinity
 
 fun x -> safeDiv 1 x
-//│ res: (int & ~0) -> int
+//│ res: (int & ~0) -> (forall 'a. int | 'a)
 //│    = [Function: res]
 
 
@@ -48,7 +48,7 @@ type Option[A] = Some[A] | None
 
 
 fun x -> case x of { int -> safeDiv 1 x | _ -> None{} }
-//│ res: (int & ~0 | ~int) -> (int | None)
+//│ res: (int & ~0 | ~int & ~'a) -> (forall 'a. int | None | 'a)
 //│    = [Function: res]
 
 :e // we no longer refine x's type here, as that was rather unexpected
@@ -72,7 +72,7 @@ fun (x: int) -> safeDiv 1 x
 //│    = [Function: res]
 
 fun (x: int & ~0) -> safeDiv 1 x
-//│ res: (int & ~0) -> int
+//│ res: (int & ~0) -> (forall 'a. int | 'a)
 //│    = [Function: res]
 
 def tryDiv: int -> int -> Option[int]
@@ -80,7 +80,7 @@ def tryDiv: int -> int -> Option[int]
 //│       = <missing implementation>
 
 def tryDiv x y = case y of { 0 -> None{} | _ -> Some { value = safeDiv x y } }
-//│ int -> (0 | int & ~0) -> (None | Some[int])
+//│ int -> (0 | int & ~0) -> (None | Some[forall 'a. int | 'a])
 //│   <:  tryDiv:
 //│ int -> int -> Option[int]
 //│       = [Function: tryDiv]

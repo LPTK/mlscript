@@ -44,7 +44,7 @@ let f = (x, y) => x + y
 //│  = [Function: f2]
 
 f(1, 2)
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 
 :e
@@ -78,11 +78,11 @@ f(1, 2)
 //│   TypeError: number 1 is not iterable (cannot read property Symbol(Symbol.iterator))
 
 f((1, 2))
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 
 f([1, 2])
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 
 let f = (((x, y))) => x + y
@@ -95,7 +95,7 @@ let f = [x, y] => x + y
 //│  = [Function: f5]
 
 f(1, 2)
-//│ res: int
+//│ res: int | 'a
 //│    = 3
 
 // TODO...

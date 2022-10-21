@@ -19,9 +19,9 @@ addOneI = fun x -> add x 1
 addOneB = bb
 //│ selectBoolOrInt: anything -> (1 | true)
 //│                = [Function: selectBoolOrInt]
-//│ r1: 1 | true
+//│ r1: 1 | true | 'a
 //│   = 1
-//│ r2: 1 | true
+//│ r2: 1 | true | 'a
 //│   = 1
 //│ addOneI: int -> int
 //│        = [Function: addOneI]
@@ -33,7 +33,7 @@ addOne = fun x ->
     then addOneI x 
     else addOneB x
 r3 = isInt r2
-//│ addOne: nothing -> (int | true)
+//│ addOne: nothing -> (forall 'a. int | true | 'a)
 //│       = [Function: addOne]
 //│ r3: true
 //│   = true
@@ -43,17 +43,17 @@ r4 = addOne (selectBoolOrInt 1)
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.42: 	r4 = addOne (selectBoolOrInt 1)
 //│ ║        	     ^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── reference of type `true` is not an instance of type `int`
+//│ ╟── integer literal of type `1` is not an instance of type `bool`
 //│ ║  l.15: 	selectBoolOrInt = fun x -> if isInt x then 1 else true
-//│ ║        	                                                  ^^^^
-//│ ╟── but it flows into application with expected type `int`
+//│ ║        	                                           ^
+//│ ╟── but it flows into application with expected type `bool`
 //│ ║  l.42: 	r4 = addOne (selectBoolOrInt 1)
 //│ ║        	             ^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
-//│ ║  l.18: 	addOneI = fun x -> add x 1
-//│ ║        	                       ^
+//│ ║  l.3: 	bb = (fun a -> fun b -> toBool (if b then not a else not a)) true
+//│ ║       	                                   ^
 //│ ╟── from reference:
-//│ ║  l.33: 	    then addOneI x 
+//│ ║  l.34: 	    else addOneB x
 //│ ╙──      	                 ^
 //│ r4: error
 //│   = 2
@@ -72,7 +72,7 @@ r4 = let tmp = selectBoolOrInt 1 in case tmp of { int -> addOne tmp }
 //│ ╟── Note: constraint arises from class pattern:
 //│ ║  l.62: 	r4 = let tmp = selectBoolOrInt 1 in case tmp of { int -> addOne tmp }
 //│ ╙──      	                                                  ^^^
-//│ r4: error | int | true
+//│ r4: error | int | true | 'a | 'b
 //│   = 2
 
 // TODO improve:
@@ -92,18 +92,18 @@ r4 = let tmp = selectBoolOrInt 1 in case tmp of { int -> addOne tmp | _ -> 0 }
 //│ ╟── from refined scrutinee:
 //│ ║  l.84: 	r4 = let tmp = selectBoolOrInt 1 in case tmp of { int -> addOne tmp | _ -> 0 }
 //│ ╙──      	                                         ^^^
-//│ r4: int | true
+//│ r4: int | true | 'a | 'b
 //│   = 2
 
 def addOne x = case x of {
   | int -> addOneI x 
   | bool -> addOneB x
   }
-//│ addOne: (bool | int) -> (int | true)
+//│ addOne: (bool & ~'a | int) -> (forall 'a. int | true | 'a)
 //│       = [Function: addOne1]
 
 def r4 = addOne (selectBoolOrInt 1)
-//│ r4: int | true
+//│ r4: int | true | 'a | 'b | 'c
 //│   = [Function: r43]
 
 
@@ -115,9 +115,9 @@ def addOneS = fun x -> concat x "One"
 
 addOneI 1
 addOneS "Two"
-//│ res: int
+//│ res: int | 'a
 //│    = 2
-//│ res: string
+//│ res: string | 'a
 //│    = 'TwoOne'
 
 
@@ -135,7 +135,7 @@ isInt "Two"
 //│    = false
 
 def addOne = fun x -> if isInt x then addOneI x else addOneS x
-//│ addOne: nothing -> (int | string)
+//│ addOne: nothing -> (forall 'a, 'b. int | string | 'a | 'b)
 //│       = [Function: addOne2]
 
 :e
@@ -161,14 +161,14 @@ addOne "hello"
 def addOne = fun x -> case x of {
    int -> addOneI x | 
    string -> addOneS x }
-//│ addOne: (int | string) -> (int | string)
+//│ addOne: (int | string & ~'a) -> (forall 'a, 'b. int | string | 'b | 'a)
 //│       = [Function: addOne3]
 
 addOne 1
 addOne "Two"
-//│ res: int | string
+//│ res: int | string | 'a | 'b | 'c | 'd
 //│    = 2
-//│ res: int | string
+//│ res: int | string | 'a | 'b | 'c | 'd
 //│    = 'TwoOne'
 
 :e

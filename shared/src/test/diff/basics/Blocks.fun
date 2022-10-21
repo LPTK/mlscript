@@ -22,22 +22,22 @@ let foo = x =>
 foo 1
 foo / 1
 foo / foo / 1
-//│ res: int
-//│ res: int
-//│ res: int
+//│ res: int | 'a
+//│ res: int | 'a
+//│ res: int | 'a
 foo
   foo
     1
-//│ res: int
+//│ res: int | 'a
 foo
   discard / foo
     1
   foo
     1
-//│ res: int
+//│ res: int | 'a
 foo / foo /
   foo 1
-//│ res: int
+//│ res: int | 'a
 
 :p
 discard / foo
@@ -74,7 +74,7 @@ foo
 //│ ╟── but it flows into application with expected type `unit`
 //│ ║  l.64: 	  foo 1
 //│ ╙──      	  ^^^^^
-//│ res: int
+//│ res: int | 'a
 
 :p
 id id

@@ -7,12 +7,12 @@ class Foo(x)
 //│    = [Function: Foo1]
 
 let f = Foo(1)
-//│ f: Foo & {x: 1}
+//│ f: Foo & {x: 1} | 'a
 //│  = Foo { x: 1 }
 
 :ge
 let f = new Foo(1)
-//│ f: Foo & {x: 1}
+//│ f: Foo & {x: 1} | 'a
 //│ Code generation encountered an error:
 //│   cannot generate code for term New(Some((TypeName(Foo),1,)), TypingUnit(List()))
 

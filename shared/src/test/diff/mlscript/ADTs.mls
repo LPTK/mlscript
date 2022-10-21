@@ -40,11 +40,11 @@ rec def eval e = case e of {
 //│     = [Function: eval]
 
 ex = add (lit 2) (lit 2)
-//│ ex: Add[Lit & {val: 2}]
+//│ ex: (Add[forall 'a, 'b. Lit & {val: 2} | 'a | 'b] with {lhs: forall 'a. Lit & {val: 2} | 'a, rhs: forall 'b. Lit & {val: 2} | 'b}) | 'c
 //│   = Add { lhs: Lit { val: 2 }, rhs: Lit { val: 2 } }
 
 eval ex
-//│ res: int
+//│ res: int | 'a | 'b
 //│    = 4
 
 def e: Add['e] as 'e
@@ -66,7 +66,7 @@ def e: Lit | Add['e] | Nega['e] as 'e
 //│  = <missing implementation>
 
 e = ex
-//│ Add[Lit & {val: 2}]
+//│ (Add[forall 'a, 'b. Lit & {val: 2} | 'a | 'b] with {lhs: forall 'a. Lit & {val: 2} | 'a, rhs: forall 'b. Lit & {val: 2} | 'b}) | 'c
 //│   <:  e:
 //│ 'e
 //│   where
@@ -74,12 +74,12 @@ e = ex
 //│  = Add { lhs: Lit { val: 2 }, rhs: Lit { val: 2 } }
 
 eval e
-//│ res: int
+//│ res: int | 'a | 'b
 //│    = 4
 
 // :e // FIXedME a curious infinite recursion, reproduced in `ADRsRepro.mls`
 eval (e : Lit | Add['e] | Nega['e] as 'e)
-//│ res: int
+//│ res: int | 'a | 'b
 //│    = 4
 
 

@@ -37,7 +37,7 @@ mib0.Map
 //│    = [Function: Map]
 
 mib0.Map plus1
-//│ res: MappableIntBox
+//│ res: MappableIntBox with {value: forall 'a. int | 'a}
 //│    = MappableIntBox { value: 1 }
 
 // Naughty map...

@@ -13,7 +13,7 @@ def Some v = Some { value = v }
 
 Some 42
 (Some 42).value
-//│ res: Some[42]
+//│ res: Some[42] | 'a
 //│    = Some { value: 42 }
 //│ res: 42
 //│    = 42

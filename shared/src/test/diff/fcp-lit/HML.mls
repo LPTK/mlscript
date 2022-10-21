@@ -197,9 +197,9 @@ app poly_ id
 // FreezeML D2
 revapp id poly
 revapp id poly_
-//│ res: (1 | 'a, true | 'b,)
+//│ res: 'b
 //│    = [ 1, true ]
-//│ res: (1, true,)
+//│ res: 'b
 //│    = [ 1, true ]
 
 // FreezeML C9

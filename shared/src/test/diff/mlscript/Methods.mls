@@ -111,7 +111,7 @@ WrapperWrapper { x = Psyduck { x = 0 } }
 //│    = WrapperWrapper { x: Psyduck { x: 0 } }
 
 res.Apply2 (fun x -> mul x 2)
-//│ res: WrapperWrapper[int]
+//│ res: WrapperWrapper[forall 'a. int | 'a]
 //│    = WrapperWrapper { x: Psyduck { x: 0 } }
 
 Wrapper
@@ -190,7 +190,7 @@ ft = fun x -> fun y -> if (y) then gt x 0 else y
 p.Map fx fy
 p.Test ft
 (p.Map fx fy).Test ft
-//│ res: AbstractPair[int, bool]
+//│ res: AbstractPair[forall 'a. int | 'a, forall 'b. bool | 'b]
 //│    = Pair { x: 84, y: false }
 //│ res: bool
 //│    = true

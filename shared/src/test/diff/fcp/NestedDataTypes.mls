@@ -83,7 +83,7 @@ rec def map f tree = case tree of {
 
 // :e // fails after new-refreshing-extrusion // Works since inconsistent constrained types...
 map succ n4
-//│ res: Leaf[int] | Node[nothing] & {subTree: nothing}
+//│ res: Leaf[int] | (Node['A] with {subTree: 'subTree}) | 'a | 'b
 //│    = Node1 { subTree: Node1 { subTree: Leaf { value: [Array] } } }
 
 

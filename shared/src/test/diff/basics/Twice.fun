@@ -8,7 +8,7 @@ let twice f x = f / f x
 // (Also see this HN thread: https://news.ycombinator.com/item?id=13783237)
 
 twice(x => x + 1)
-//│ res: int -> int
+//│ res: int -> (forall 'a. int | 'a)
 
 twice twice
 //│ res: ('a -> ('b & 'c) & 'b -> 'a) -> 'b -> 'c

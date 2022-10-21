@@ -90,7 +90,7 @@ let rec ouroboros = {head: 0, tail: ouroboros, eyes: {l: 1, r: 2}}
 //│     'ouroboros :> {eyes: {l: 1, r: 2}, head: 0, tail: 'ouroboros}
 
 sumHeads ouroboros
-//│ res: int
+//│ res: int | 'a
 
 let r = {
   u: 1, v: 2 }

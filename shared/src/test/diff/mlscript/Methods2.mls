@@ -95,11 +95,11 @@ l.Size
 
 :stats
 l.Map (fun x -> mul x 2)
-//│ res: List[int]
+//│ res: List[forall 'a. int | 'a]
 //│    = Cons { head: 0, tail: Cons { head: 2, tail: Nil {} } }
-//│ constrain calls  : 81
+//│ constrain calls  : 79
 //│ annoying  calls  : 6
-//│ subtyping calls  : 12
+//│ subtyping calls  : 14
 
 l0 = Cons { head = 0; tail = Nil {} }
 //│ l0: Cons[0] with {tail: Nil[nothing]}
@@ -187,11 +187,11 @@ def newHeadOption x = case x of {
 
 // Note that `o` is not a list, so this takes the default case:
 newHeadOption o
-//│ res: None[nothing] | Some[nothing]
+//│ res: None['a] | Some['a] | 'b | 'a
 //│    = None {}
 
 newHeadOption l
-//│ res: None[nothing] | Some[0]
+//│ res: None['a] | Some[0] | 'b | 'a
 //│    = Some { payload: 0 }
 
 case res of {None -> 0 | Some -> res.payload}

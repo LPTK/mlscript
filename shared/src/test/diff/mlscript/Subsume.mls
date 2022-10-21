@@ -223,7 +223,7 @@ def f a b = if gt a b then a else b b // mistake!
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.219: 	def f a b = if gt a b then a else b b // mistake!
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `int & ‘a_161` is not a function
+//│ ╟── type `int & ‘a_163` is not a function
 //│ ║  l.205: 	def f: (int & 'a) -> (int & 'a) -> 'a 
 //│ ║         	                     ^^^^^^^^^^
 //│ ╟── Note: constraint arises from application:
@@ -256,7 +256,7 @@ def g a = add a 1
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.250: 	def g a = add a 1
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ╟── application of type `int` is not an instance of type `'a_188`
+//│ ╟── application of type `int` is not an instance of type `'a_194`
 //│ ║  l.250: 	def g a = add a 1
 //│ ║         	          ^^^^^^^
 //│ ╟── Note: constraint arises from type variable:
@@ -334,7 +334,7 @@ self1 = res
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.330: 	self1 = res
 //│ ║         	^^^^^^^^^^^
-//│ ╟── type `‘b_350_352` is not an instance of type `'b_350_353`
+//│ ╟── type `‘b_357_359` is not an instance of type `'b_357_360`
 //│ ║  l.313: 	def self1: ('a -> 'b & 'a) -> 'b
 //│ ╙──       	                  ^^
 //│      = [Function: res]

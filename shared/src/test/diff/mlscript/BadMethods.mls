@@ -80,7 +80,7 @@ i.Fun
 def this = fun x -> fun y -> add x y
 this 42 42
 //│ this: int -> int -> int
-//│ res: int
+//│ res: int | 'a
 
 class BadThis: { x: int; y: int }
     method Sum = this this.x this.y
@@ -109,7 +109,7 @@ class BadSelf[A]: { x: A }
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.108: 	    method F = this.x 42
 //│ ║         	               ^^^^^^^^^
-//│ ╟── field selection of type `A_156` is not a function
+//│ ╟── field selection of type `A_161` is not a function
 //│ ║  l.108: 	    method F = this.x 42
 //│ ║         	               ^^^^^^
 //│ ╟── Note: class type parameter A is defined at:
@@ -136,7 +136,7 @@ class Simple3[A, B]: Simple2[A]
 //│ ╔══[ERROR] Type mismatch in method declaration:
 //│ ║  l.135: 	    method Get: B
 //│ ║         	           ^^^^^^
-//│ ╟── type `B_203` is not an instance of type `A_202`
+//│ ╟── type `B_208` is not an instance of type `A_207`
 //│ ║  l.134: 	class Simple3[A, B]: Simple2[A]
 //│ ║         	                 ^
 //│ ╟── Note: constraint arises from class type parameter:
@@ -161,7 +161,7 @@ class BadPair[A, B]: AbstractPair[A, B]
 //│ ╔══[ERROR] Type mismatch in method definition:
 //│ ║  l.159: 	    method Test f = f this.x this.x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── field selection of type `A_275` is not an instance of type `B_276`
+//│ ╟── field selection of type `A_280` is not an instance of type `B_281`
 //│ ║  l.159: 	    method Test f = f this.x this.x
 //│ ║         	                             ^^^^^^
 //│ ╟── Note: constraint arises from class type parameter:
@@ -173,7 +173,7 @@ class BadPair[A, B]: AbstractPair[A, B]
 //│ ╔══[ERROR] Type mismatch in method definition:
 //│ ║  l.160: 	    method Map fx fy = BadPair { x = fx this.x; y = fx this.x }
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── application of type `C_305` is not an instance of type `D_306`
+//│ ╟── application of type `C_310` is not an instance of type `D_311`
 //│ ║  l.160: 	    method Map fx fy = BadPair { x = fx this.x; y = fx this.x }
 //│ ║         	                                                    ^^^^^^^^^
 //│ ╟── Note: constraint arises from method type parameter:
@@ -550,7 +550,7 @@ t = Dup { x = 42 }
 :stats
 t : Dup[bool, int]
 //│ res: Dup[?, int]
-//│ constrain calls  : 27
+//│ constrain calls  : 30
 //│ annoying  calls  : 21
 //│ subtyping calls  : 42
 
@@ -566,21 +566,21 @@ t : Dup[int, bool]
 //│ ║  l.558: 	t : Dup[int, bool]
 //│ ╙──       	             ^^^^
 //│ res: Dup[?, bool]
-//│ constrain calls  : 25
+//│ constrain calls  : 27
 //│ annoying  calls  : 6
 //│ subtyping calls  : 21
 
 :stats
 t.MthDup (fun x -> mul 2 x)
-//│ res: int
-//│ constrain calls  : 83
+//│ res: int | 'a
+//│ constrain calls  : 81
 //│ annoying  calls  : 21
-//│ subtyping calls  : 35
+//│ subtyping calls  : 37
 
 :stats
 t.MthDup id
 //│ res: 42
-//│ constrain calls  : 68
+//│ constrain calls  : 71
 //│ annoying  calls  : 19
 //│ subtyping calls  : 29
 
@@ -823,10 +823,10 @@ class Test9B: Test9A[int]
 //│ ╔══[ERROR] Type mismatch in method declaration:
 //│ ║  l.815: 	    method Mth9A : Test9A[int] -> int
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `Test9A[int] -> int` is not an instance of type `X_788`
+//│ ╟── type `Test9A[int] -> int` is not an instance of type `X_810`
 //│ ║  l.815: 	    method Mth9A : Test9A[int] -> int
 //│ ║         	                   ^^^^^^^^^^^^^^^^^^
-//│ ╟── but it flows into method declaration with expected type `#X_788`
+//│ ╟── but it flows into method declaration with expected type `#X_810`
 //│ ║  l.815: 	    method Mth9A : Test9A[int] -> int
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from field selection:

@@ -41,9 +41,9 @@ d1 = Derived1 { x = 1 }
 
 foo d1
 foo d1 0
-//│ res: anything -> (Base1[anything] | Derived1)
+//│ res: 'a -> (Base1['a] | Derived1 | 'b | 'c)
 //│    = [Function (anonymous)]
-//│ res: Base1[anything] | Derived1
+//│ res: Base1[anything] | Derived1 | 'a | 'b
 //│    = Derived1 { x: 2 }
 
 def bar0: Base1[int] -> int -> Base1[int]
@@ -128,7 +128,7 @@ def bar2 = foo
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.124: 	def bar2 = foo
 //│ ║         	^^^^^^^^^^^^^^
-//│ ╟── type `int` is not an instance of type `'a_336`
+//│ ╟── type `int` is not an instance of type `'a_374`
 //│ ║  l.4: 	class Derived1: Base1[int] & { x: int }
 //│ ║       	                      ^^^
 //│ ╟── Note: constraint arises from type variable:

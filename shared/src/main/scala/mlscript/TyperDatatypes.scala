@@ -65,7 +65,7 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
       // body.freshenAbove(level, rigidify = true)
       body.freshenAbove(polymLevel, rigidify = true)
     }
-    def raiseLevelTo(newPolymLevel: Level)
+    def raiseLevelTo(newPolymLevel: Level, leaveAlone: Set[TV] = Set.empty)
           (implicit ctx: Ctx, raise: Raise, shadows: Shadows): PolymorphicType = {
       require(newPolymLevel >= polymLevel)
       if (newPolymLevel === polymLevel) return this
@@ -73,7 +73,8 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
       implicit val freshened: MutMap[TV, ST] = MutMap.empty
       // PolymorphicType(newPolymLevel, self.freshenAbove(polymLevel, body)) //(prov)
       PolymorphicType(newPolymLevel,
-        self.freshenAbove(polymLevel, body)(ctx.copy(lvl = newPolymLevel + 1), // * Q: is this really fine?
+        self.freshenAbove(polymLevel, body, leaveAlone = leaveAlone)(
+          ctx.copy(lvl = newPolymLevel + 1), // * Q: is this really fine?
           freshened, raise, shadows)
       ) //(prov)
     }
@@ -87,12 +88,13 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
         val cannotBeDistribbed = par.varsBetween(polymLevel, MaxLevel)
         println(s"cannot be distribbed: $cannotBeDistribbed")
         val canBeDistribbed = couldBeDistribbed -- cannotBeDistribbed
+        if (canBeDistribbed.isEmpty) return N // TODO
         val newInnerLevel =
           (polymLevel + 1) max cannotBeDistribbed.maxByOption(_.level).fold(MinLevel)(_.level)
         // val distribbedLvl = cannotBeDistribbed.maxByOption(_.level).fold(MinLevel)(_.level)
         val innerPoly = PolymorphicType(polymLevel, bod)
         println(s"inner: ${innerPoly}")
-        val res = FunctionType(par, innerPoly.raiseLevelTo(newInnerLevel))(ft.prov)
+        val res = FunctionType(par, innerPoly.raiseLevelTo(newInnerLevel, cannotBeDistribbed))(ft.prov)
         if (cannotBeDistribbed.isEmpty) S(res)
         else S(PolymorphicType(polymLevel, res))
       case _ => N

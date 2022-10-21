@@ -123,7 +123,7 @@ class Collection[a]: { l: List[a] }
 //│     'c <: 'a0 -> ('b | 'a) -> ('a0 & 'd))))
 
 def coll_mem c x = c.Mem x
-//│ coll_mem: 'b -> (forall 'b, 'a, 'c, 'd, 'e, 'f. (('c & 'd & 'e) -> (bool | 'f)
+//│ coll_mem: 'b -> (forall 'b, 'a, 'c, 'd, 'e, 'f. (('c & 'd & 'e) -> (forall 'g. bool | 'g | 'f)
 //│   where
 //│     'b <: Collection['a]))
 

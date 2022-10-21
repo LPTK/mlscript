@@ -122,11 +122,11 @@ def app y k = k (y - 1)
 app 2 cont
 //│ cont: int -> int
 //│ app: int -> (int -> 'a) -> 'a
-//│ res: int
+//│ res: int | 'a
 //│ // start ts
 //│ export declare const cont: (arg: int) => int
 //│ export declare const app<a>: (arg: int) => (arg1: (arg2: int) => a) => a
-//│ export declare const res: int
+//│ export declare const res<a>: int | a
 //│ // end ts
 
 :ts

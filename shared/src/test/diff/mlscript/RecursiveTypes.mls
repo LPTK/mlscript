@@ -555,7 +555,7 @@ f_manual error
 f_manual ainf
 //│ res: 'e | 'ainf
 //│   where
-//│     'e :> 'e\a & {a: int} | 'ainf
+//│     'e :> forall 'e. 'e\a & {a: int} | 'ainf
 //│     'ainf :> {a: 'ainf}
 
 // Notice the simplified type is NOT the same as that of `f`...
@@ -598,7 +598,7 @@ f_manual_2 // [test:T2]
 f_manual_2 ainf
 //│ res: 'c
 //│   where
-//│     'c :> 'c\a & {a: int} | 'ainf
+//│     'c :> forall 'c. 'c\a & {a: int} | 'ainf
 //│     'ainf :> {a: 'ainf}
 
 
@@ -697,8 +697,8 @@ rec def f x = (case x of {int -> f "ok" | string -> f (impossible x)}) + 1
 
 f 1
 f "a"
-//│ res: int
-//│ res: int
+//│ res: int | 'a
+//│ res: int | 'a
 
 rec def f x = case x of {int -> f "ok" | string -> f (impossible x) | _ -> x}
 //│ f: (int | string & (int | string | ~int) | 'a & ~int & ~string) -> 'a
@@ -706,7 +706,7 @@ rec def f x = case x of {int -> f "ok" | string -> f (impossible x) | _ -> x}
 f 1
 f "a"
 f false
-//│ res: nothing
-//│ res: nothing
-//│ res: false
+//│ res: 'a
+//│ res: 'a
+//│ res: 'a
 

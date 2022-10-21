@@ -170,7 +170,7 @@ res id
 
 let f = (x => x + 1); {a: f; b: f 2}
 //│ f: int -> int
-//│ res: {a: int -> int, b: int}
+//│ res: {a: forall 'a. int -> (int | 'a), b: forall 'a. int | 'a}
 
 x => x x x
 //│ res: ('a -> 'a -> 'b & 'a) -> 'b
@@ -187,8 +187,8 @@ x => y => x x y
 //│ ║  l.+1: 	(x => x x) (x => x x)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── ————————— Additional debugging info: —————————
-//│ ╟── this constraint:  ‹∀ 0. (α221_223' -> α222_224')›  <:  α221_228    PolymorphicType  TypeVariable
-//│ ╙──  ... looks like:  ‹∀ 0. (α221_223' -> α222_224')›  <:  α221_223'
+//│ ╟── this constraint:  ‹∀ 0. (α224_226' -> α225_227')›  <:  α224_231    PolymorphicType  TypeVariable
+//│ ╙──  ... looks like:  ‹∀ 0. (α224_226' -> α225_227')›  <:  α224_226'
 //│ res: error
 
 
@@ -204,8 +204,8 @@ x => {l: x x, r: x }
 //│ ║  l.+1: 	(f => (x => f (x x)) (x => f (x x)))
 //│ ║        	      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── ————————— Additional debugging info: —————————
-//│ ╟── this constraint:  ‹∀ 0. {(α243_248' -> α245_247') where: α239 :> (α244_246' -> α245_247')}›  <:  α243_255    PolymorphicType  TypeVariable
-//│ ╙──  ... looks like:  ‹∀ 0. {(α243_248' -> α245_247') where: α239 :> (α244_246' -> α245_247')}›  <:  α243_248'
+//│ ╟── this constraint:  ‹∀ 0. {(α246_251' -> α248_250') where: α242 :> (α247_249' -> α248_250')}›  <:  α246_258    PolymorphicType  TypeVariable
+//│ ╙──  ... looks like:  ‹∀ 0. {(α246_251' -> α248_250') where: α242 :> (α247_249' -> α248_250')}›  <:  α246_251'
 //│ res: (nothing -> anything) -> error
 
 // Z combinator:
@@ -232,13 +232,13 @@ x => {l: x x, r: x }
 //│   where
 //│     'd -> 'e
 //│   where
-//│     forall 'a, 'f. 'f -> 'a -> 'f <: (forall 'a, 'd, 'g, 'h. ('g -> 'h
+//│     forall 'f, 'g. 'f -> 'g -> 'f <: (forall 'g, 'd, 'h, 'i. ('h -> 'i
 //│   where
-//│     'd <: 'd -> ('g -> 'h & 'a))) -> 'e <: ('d -> 'e
+//│     'd <: 'd -> ('h -> 'i & 'g))) -> 'e <: ('d -> 'e
 //│   where
-//│     forall 'a, 'f. 'f -> 'a -> 'f <: (forall 'a, 'd, 'g, 'h. ('g -> 'h
+//│     forall 'f, 'g. 'f -> 'g -> 'f <: (forall 'g, 'd, 'h, 'i. ('h -> 'i
 //│   where
-//│     'd <: 'd -> ('g -> 'h & 'a))) -> 'e) -> 'b -> 'c)
+//│     'd <: 'd -> ('h -> 'i & 'g))) -> 'e) -> 'b -> 'c)
 
 res 1 2
 //│ res: 'a -> 'b
@@ -278,13 +278,13 @@ y => (let f = x => x; {a: f y, b: f true})
 //│ res: 'a -> {a: 'a, b: true}
 
 y => (let f = x => y x; {a: f 0, b: f true})
-//│ res: ((0 | true) -> 'a) -> {a: 'a, b: 'a}
+//│ res: ((0 | true) -> 'a) -> {a: forall 'b. 'b | 'a, b: forall 'c. 'c | 'a}
 
 y => (let f = x => x y; {a: f (z => z), b: f (z => true)})
 //│ res: 'a -> {a: 'a, b: true}
 
 y => (let f = x => x y; {a: f (z => z), b: f (z => succ z)})
-//│ res: (int & 'a) -> {a: 'a, b: int}
+//│ res: (int & 'a) -> {a: 'a, b: forall 'b. int | 'b}
 
 
 
@@ -420,8 +420,8 @@ let rec x = (let y = (x x); (z => z))
 //│ ║  l.+1: 	(w => x => x) ((y => y y) (y => y y))
 //│ ║        	               ^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── ————————— Additional debugging info: —————————
-//│ ╟── this constraint:  ‹∀ 0. (α739_741' -> α740_742')›  <:  α739_748    PolymorphicType  TypeVariable
-//│ ╙──  ... looks like:  ‹∀ 0. (α739_741' -> α740_742')›  <:  α739_741'
+//│ ╟── this constraint:  ‹∀ 0. (α757_759' -> α758_760')›  <:  α757_766    PolymorphicType  TypeVariable
+//│ ╙──  ... looks like:  ‹∀ 0. (α757_759' -> α758_760')›  <:  α757_759'
 //│ res: 'a -> 'a
 
 :NoCycleCheck

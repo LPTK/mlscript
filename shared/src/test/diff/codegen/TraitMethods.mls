@@ -115,7 +115,7 @@ a = A{}
 //│  = A {}
 
 foo a
-//│ res: int
+//│ res: int | 'a
 //│    = undefined
 
 // Note: calling convention not yet supported in JS
@@ -133,7 +133,7 @@ foo b
 //│ // End of generated code
 //│ b: B
 //│  = B {}
-//│ res: int
+//│ res: int | 'a
 //│    = 1
 
 b.(A.Foo)
