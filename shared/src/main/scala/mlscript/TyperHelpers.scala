@@ -705,6 +705,7 @@ abstract class TyperHelpers { Typer: Typer =>
       SortedSet.from(res)(Ordering.by(_.uid))
     }
     
+    /** (exclusive, inclusive) */
     def varsBetween(lb: Level, ub: Level): Set[TV] = {
       val res = MutSet.empty[TypeVariable]
       val traversed = MutSet.empty[TypeVariable]
@@ -815,6 +816,7 @@ abstract class TyperHelpers { Typer: Typer =>
     def unapply(ty: ST)(implicit ctx: Ctx): S[ST] = ty match {
       case tr: TypeRef => unapply(tr.expand)
       case proxy: ProxyType => unapply(proxy.underlying)
+      case AssignedVariable(ty) => unapply(ty)
       case _ => S(ty)
     }
   }

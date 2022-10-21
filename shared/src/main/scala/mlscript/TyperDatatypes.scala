@@ -7,6 +7,7 @@ import scala.util.chaining._
 import scala.annotation.tailrec
 import mlscript.utils._, shorthands._
 import mlscript.Message._
+import scala.annotation.meta.param
 
 abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
   
@@ -70,7 +71,31 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
       if (newPolymLevel === polymLevel) return this
       // body.freshenAbove(polymLevel, false)()
       implicit val freshened: MutMap[TV, ST] = MutMap.empty
-      PolymorphicType(newPolymLevel, self.freshenAbove(polymLevel, body)) //(prov)
+      // PolymorphicType(newPolymLevel, self.freshenAbove(polymLevel, body)) //(prov)
+      PolymorphicType(newPolymLevel,
+        self.freshenAbove(polymLevel, body)(ctx.copy(lvl = newPolymLevel + 1), // * Q: is this really fine?
+          freshened, raise, shadows)
+      ) //(prov)
+    }
+    /** Tries to split a polymorphic function type
+      *  by distributing the quantification of *some* of its type vars into the function result. */
+    def splitFunction(implicit ctx: Ctx, raise: Raise, shadows: Shadows): Opt[ST] = body match {
+      case AliasOf(ft @ FunctionType(par, bod)) =>
+        val couldBeDistribbed = bod.varsBetween(polymLevel, MaxLevel)
+        println(s"could be distribbed: $couldBeDistribbed")
+        if (couldBeDistribbed.isEmpty) return N
+        val cannotBeDistribbed = par.varsBetween(polymLevel, MaxLevel)
+        println(s"cannot be distribbed: $cannotBeDistribbed")
+        val canBeDistribbed = couldBeDistribbed -- cannotBeDistribbed
+        val newInnerLevel =
+          (polymLevel + 1) max cannotBeDistribbed.maxByOption(_.level).fold(MinLevel)(_.level)
+        // val distribbedLvl = cannotBeDistribbed.maxByOption(_.level).fold(MinLevel)(_.level)
+        val innerPoly = PolymorphicType(polymLevel, bod)
+        println(s"inner: ${innerPoly}")
+        val res = FunctionType(par, innerPoly.raiseLevelTo(newInnerLevel))(ft.prov)
+        if (cannotBeDistribbed.isEmpty) S(res)
+        else S(PolymorphicType(polymLevel, res))
+      case _ => N
     }
     override def toString = s"‹∀ $polymLevel. $body›"
   }
@@ -83,6 +108,11 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
         case _ => PolymorphicType(polymLevel, body)
       }
     }
+  }
+  object SplittablePolyFun {
+    def unapply(pt: PolymorphicType)(implicit ctx: Ctx, raise: Raise, shadows: Shadows): Opt[ST] =
+      if (distributeForalls) pt.splitFunction
+      else N
   }
   
   // case class ConstrainedType(constraints: List[ST -> ST], body: ST) extends SimpleType { // TODO add own prov?
