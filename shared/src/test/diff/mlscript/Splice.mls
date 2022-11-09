@@ -38,6 +38,7 @@ def f1 : ('a, ...Array[int]) -> 'a
 //│ | | | | CONSTRAIN Array[Int] <! Array‹α26'›
 //│ | | | |   where 
 //│ | | | | 1. C Array[Int] <! Array‹α26'›    (0)
+//│ | | | | | SH2 Set()
 //│ | | | | | 1. C Array‹Int› <! Array‹α26'›    (2)
 //│ | | | | | | 1. C Int <! α26'    (2)
 //│ | | | | | | | NEW α26' LB (0)

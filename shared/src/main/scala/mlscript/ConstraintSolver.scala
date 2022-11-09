@@ -681,6 +681,8 @@ class ConstraintSolver extends NormalForms { self: Typer =>
             fs1.foreach(f => rec(f._2.ub, err, false))
             
           case (tr1: TypeRef, tr2: TypeRef) if tr1.defn.name =/= "Array" =>
+          shadows.copy(distribExpanded = shadows.distribExpanded + tr1.defn + tr2.defn) |> { implicit shadows =>
+            println(s"SH2 ${shadows.distribExpanded}")
             if (tr1.defn === tr2.defn) {
               assert(tr1.targs.sizeCompare(tr2.targs) === 0)
               val td = ctx.tyDefs(tr1.defn.name)
@@ -698,8 +700,14 @@ class ConstraintSolver extends NormalForms { self: Typer =>
                   rec(tr1.expand, tr2.expand, true)
               }
             }
-          case (tr: TypeRef, _) => rec(tr.expand, rhs, true)
-          case (_, tr: TypeRef) => rec(lhs, tr.expand, true)
+          }
+          case (tr: TypeRef, _) =>
+            println(s"SH2 ${shadows.distribExpanded}")
+            rec(tr.expand, rhs, true)(implicitly, implicitly, implicitly,
+              shadows = shadows.copy(distribExpanded = shadows.distribExpanded + tr.defn))
+          case (_, tr: TypeRef) =>
+            rec(lhs, tr.expand, true)(implicitly, implicitly, implicitly,
+              shadows = shadows.copy(distribExpanded = shadows.distribExpanded + tr.defn))
           
           case (ClassTag(ErrTypeId, _), _) => ()
           case (_, ClassTag(ErrTypeId, _)) => ()
@@ -755,9 +763,10 @@ class ConstraintSolver extends NormalForms { self: Typer =>
             rec(lhs, newRhs, true)
           case (AliasOf(PolymorphicType(plvl, AliasOf(FunctionType(param, bod), sh)), sh0), _) // FIXME use sh0?
           if distributeForalls
+          // && !sh0.distribExpanded.contains()
           && param.level <= plvl => // TODO actually split type parameters that are quantified in body and NOT in param
             implicit val shadows: Shadows = sh
-            println(s"SH ${sh0.distribExpanded}")
+            println(s"SH ${sh0.distribExpanded} ${sh.distribExpanded}")
             val newLhs = FunctionType(param, PolymorphicType(plvl, bod))(rhs.prov)
             // println(s"DISTRIB-L ${lhs} ~> $newLhs")
             println(s"DISTRIB-L  ~>  $newLhs")

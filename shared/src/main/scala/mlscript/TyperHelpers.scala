@@ -815,6 +815,7 @@ abstract class TyperHelpers { Typer: Typer =>
   object AliasOf {
     def unapply(ty: ST)(implicit ctx: Ctx, shadows: Shadows): S[(ST, Shadows)] = ty match {
       case tr: TypeRef if !shadows.distribExpanded.contains(tr.defn) =>
+        println(s"AOSH ${shadows.distribExpanded}")
         unapply(tr.expand)(ctx, shadows.copy(distribExpanded = shadows.distribExpanded + tr.defn))
       case proxy: ProxyType => unapply(proxy.underlying)
       case tv @ AssignedVariable(ty) if !shadows.distribExpanded.contains(tv) =>
