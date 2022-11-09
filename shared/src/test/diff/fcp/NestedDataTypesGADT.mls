@@ -16,9 +16,9 @@ type Two[A] = (A, A)
 //│ Defined type alias Two[+A]
 
 def mapTwo f ((a, b)) = (f a, f b)
-//│ mapTwo: 'a -> (forall 'a, 'b, 'c, 'd, 'e. (('b, 'd,) -> ('c, 'e,)
+//│ mapTwo: 'a -> (forall 'b, 'c, 'a, 'd, 'e. (('d, 'b,) -> ('e, 'c,)
 //│   where
-//│     'a <: 'b -> 'c & 'd -> 'e))
+//│     'a <: 'd -> 'e & 'b -> 'c))
 //│       = [Function: mapTwo]
 
 // class Z

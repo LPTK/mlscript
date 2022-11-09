@@ -20,7 +20,7 @@ def cons head tail = Cons { head; tail }
 //│ Defined Cons.Tail: Cons['a] -> List['a]
 //│ cons: 'a -> List['a] -> List['a]
 //│     = <missing implementation>
-//│ 'b -> (forall 'a, 'c, 'tail, 'head, 'd. (List['a] & 'c & 'tail) -> ((Cons['a | 'b] with {head: 'head | 'b, tail: 'tail}) | 'd))
+//│ 'b -> (forall 'c, 'a, 'd, 'head, 'tail. (List['a] & 'c & 'tail) -> ((Cons['a | 'b] with {head: 'head | 'b, tail: 'tail}) | 'd))
 //│   <:  cons:
 //│ 'a -> List['a] -> List['a]
 //│     = [Function: cons]
@@ -57,7 +57,7 @@ def id_ = fun x -> x
 def succ n = n + 1
 //│ choose: 'a -> (forall 'b, 'c, 'd. ('b & 'c & 'd) -> ('a | 'd))
 //│       = [Function: choose]
-//│ choose3: 'a -> (forall 'b. 'b -> (forall 'c, 'd, 'e, 'f, 'g. ('c & 'd & 'e & 'f & 'g) -> ('a | 'b | 'g)))
+//│ choose3: 'a -> (forall 'b. 'b -> (forall 'c, 'd, 'e, 'f, 'g. ('e & 'd & 'c & 'g & 'f) -> ('a | 'b | 'f)))
 //│        = [Function: choose3]
 //│ id: Sid
 //│   = [Function: id]
@@ -72,9 +72,9 @@ def test = choose3 id
 def test_ = choose3 id_
 def test2 = test succ
 def test2_ = test_ succ
-//│ test: 'a -> (forall 'b, 'c, 'd, 'e, 'f. ('b & 'c & 'd & 'e & 'f) -> (Sid | 'a | 'f))
+//│ test: 'a -> (forall 'b, 'c, 'd, 'e, 'f. ('d & 'e & 'f & 'b & 'c) -> (Sid | 'a | 'c))
 //│     = [Function: test]
-//│ test_: 'a -> (forall 'b, 'c, 'd, 'e, 'f. ('b & 'c & 'd & 'e & 'f) -> (forall 'a, 'f, 'g. 'g -> 'g | 'a | 'f))
+//│ test_: 'a -> (forall 'b, 'c, 'd, 'e, 'f. ('c & 'd & 'e & 'f & 'b) -> (forall 'b, 'g, 'a. 'g -> 'g | 'a | 'b))
 //│      = [Function: test_]
 //│ test2: ('a & 'b & 'c & 'd & 'e) -> (forall 'e, 'f, 'g. (int & 'f) -> (int | 'g) | Sid | 'e)
 //│      = [Function: test2]

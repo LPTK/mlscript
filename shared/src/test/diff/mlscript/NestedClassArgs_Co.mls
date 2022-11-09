@@ -164,7 +164,7 @@ rec def c6 a = C6{ a = c5 (c6 a) }
 //│     'a :> C2['A0]
 
 c = c6
-//│ anything -> (C6['A] with {a: forall 'A, 'A0, 'a, 'b. 'A0 | 'b})
+//│ anything -> (C6['A] with {a: forall 'a, 'b, 'A, 'A0. 'A0 | 'b})
 //│   where
 //│     'A0 :> C5['A] with {a: 'a}
 //│     'a :> C2['A0]

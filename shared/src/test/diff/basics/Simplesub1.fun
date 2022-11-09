@@ -212,46 +212,46 @@ x => {l: x x, r: x }
 // * FIXME simplified type
 // :e // Works thanks to inconsistent constrained types...
 (f => (x => f (v => (x x) v)) (x => f (v => (x x) v)))
-//│ res: (('a -> 'b
+//│ res: ((forall 'a, 'b. ('a -> 'b
 //│   where
-//│     'c -> 'd
-//│   where
-//│     'e <: (forall 'c, 'f, 'g, 'h. ('f -> 'g
-//│   where
-//│     'c <: 'c -> ('f -> 'g & 'h))) -> 'd <: ('c -> 'd
+//│     forall 'c, 'd. ('c -> 'd
 //│   where
 //│     'e <: (forall 'c, 'f, 'g, 'h. ('f -> 'g
 //│   where
-//│     'c <: 'c -> ('f -> 'g & 'h))) -> 'd) -> 'a -> 'b) -> 'i & 'e) -> 'i
+//│     'c <: 'c -> ('f -> 'g & 'h))) -> 'd) <: (forall 'c, 'd. ('c -> 'd
+//│   where
+//│     'e <: (forall 'c, 'f, 'g, 'h. ('f -> 'g
+//│   where
+//│     'c <: 'c -> ('f -> 'g & 'h))) -> 'd)) -> 'a -> 'b)) -> 'i & 'e) -> 'i
 
 // * Function that takes arbitrarily many arguments:
 // * FIXME type of result shouldn't be `nothing`
 // :e // Works thanks to inconsistent constrained types...
 (f => (x => f (v => (x x) v)) (x => f (v => (x x) v))) (f => x => f)
-//│ res: 'a -> ('b -> 'c
+//│ res: 'a -> (forall 'b, 'c. ('b -> 'c
 //│   where
-//│     'd -> 'e
-//│   where
-//│     forall 'f, 'g. 'f -> 'g -> 'f <: (forall 'g, 'd, 'h, 'i. ('h -> 'i
-//│   where
-//│     'd <: 'd -> ('h -> 'i & 'g))) -> 'e <: ('d -> 'e
+//│     forall 'd, 'e. ('d -> 'e
 //│   where
 //│     forall 'f, 'g. 'f -> 'g -> 'f <: (forall 'g, 'd, 'h, 'i. ('h -> 'i
 //│   where
-//│     'd <: 'd -> ('h -> 'i & 'g))) -> 'e) -> 'b -> 'c)
+//│     'd <: 'd -> ('h -> 'i & 'g))) -> 'e) <: (forall 'd, 'e. ('d -> 'e
+//│   where
+//│     forall 'f, 'g. 'f -> 'g -> 'f <: (forall 'g, 'd, 'h, 'i. ('h -> 'i
+//│   where
+//│     'd <: 'd -> ('h -> 'i & 'g))) -> 'e)) -> 'b -> 'c))
 
 res 1 2
 //│ res: 'a -> 'b
 //│   where
-//│     'c -> 'd
+//│     forall 'c, 'd. ('c -> 'd
 //│   where
 //│     forall 'e, 'f. 'e -> 'f -> 'e <: (forall 'c, 'g, 'h, 'i. ('g -> 'h
 //│   where
-//│     'c <: 'c -> ('g -> 'h & 'i))) -> 'd <: ('c -> 'd
+//│     'c <: 'c -> ('g -> 'h & 'i))) -> 'd) <: (forall 'c, 'd. ('c -> 'd
 //│   where
 //│     forall 'e, 'f. 'e -> 'f -> 'e <: (forall 'c, 'g, 'h, 'i. ('g -> 'h
 //│   where
-//│     'c <: 'c -> ('g -> 'h & 'i))) -> 'd) -> ('a -> 'b & 'f)
+//│     'c <: 'c -> ('g -> 'h & 'i))) -> 'd)) -> ('a -> 'b & 'f)
 
 
 let rec trutru = g => trutru (g true)

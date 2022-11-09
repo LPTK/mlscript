@@ -8,22 +8,24 @@ def lol: Lol
 //│ lol: Lol
 //│    = <missing implementation>
 
+:w
 // type Oops = int -> (anything, Oops)
 type Oops[A] = int -> (anything, Oops[Oops[A]])
 //│ Defined type alias Oops[±A]
 //│ ╔══[WARNING] Type definition Oops has bivariant type parameters:
-//│ ║  l.12: 	type Oops[A] = int -> (anything, Oops[Oops[A]])
+//│ ║  l.13: 	type Oops[A] = int -> (anything, Oops[Oops[A]])
 //│ ║        	     ^^^^
 //│ ╟── A is irrelevant and may be removed
-//│ ║  l.12: 	type Oops[A] = int -> (anything, Oops[Oops[A]])
+//│ ║  l.13: 	type Oops[A] = int -> (anything, Oops[Oops[A]])
 //│ ╙──      	          ^
 
 // lol: int -> anything
 
-// :d
+// * The cycle is due to irregular types, which are not yet shadowed
+:e
 lol: Oops[int]
 //│ ╔══[ERROR] Subtyping constraint of the form `Lol <: Oops[?]` exceeded recursion depth limit (300)
-//│ ║  l.24: 	lol: Oops[int]
+//│ ║  l.26: 	lol: Oops[int]
 //│ ║        	^^^
 //│ ╟── while constraining:  ('a21_87, Lol,)  <!<  (Anything, Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Int]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]],)
 //│ ╟── while constraining:  ‹∀ 1. ('a21_22'', Lol,)›  <!<  (Anything, Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Oops[Int]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]],)

@@ -34,9 +34,8 @@ def test: (forall 'b. 'b -> (int, 'b)) -> (int, bool)
 test (f1 42)
 //│ res: (int, bool,)
 
-// TODO this is currently not handled because we don't yet try to split
+// This used not to be handled because we didn't yet try to split
 //    type parameters in order to distribute only *part* of the quantification
-:e
 test (f2 42)
 //│ res: (int, bool,)
 
@@ -110,7 +109,7 @@ f1 = f2
 //│   <:  f1:
 //│ 'a -> (forall 'b. 'b -> ('a, 'b,))
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.108: 	f1 = f2
+//│ ║  l.107: 	f1 = f2
 //│ ║         	^^^^^^^
 //│ ╟── type `‘b_289_290` is not an instance of type `'b_289_291`
 //│ ║  l.10: 	def f1: 'a -> (forall 'b. 'b -> ('a, 'b))

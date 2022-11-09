@@ -4,7 +4,7 @@ def test f = f (fun b -> if b then 1 else 2)
 //│     = [Function: test]
 
 test (fun k -> (k true, k false))
-//│ res: (forall 'a, 'b. 1 | 2 | 'a | 'b, forall 'b. 1 | 2 | 'b,)
+//│ res: (forall 'a, 'b. 1 | 2 | 'b | 'a, forall 'a. 1 | 2 | 'a,)
 //│    = [ 1, 2 ]
 
 

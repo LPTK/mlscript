@@ -96,6 +96,8 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
         val innerPoly = PolymorphicType(polymLevel, bod)
         println(s"inner: ${innerPoly}")
         val res = FunctionType(par, innerPoly.raiseLevelTo(newInnerLevel, cannotBeDistribbed))(ft.prov)
+        println(s"raised: ${res}")
+        println(s"  where: ${res.showBounds}")
         if (cannotBeDistribbed.isEmpty) S(res)
         else S(PolymorphicType(polymLevel, res))
       case _ => N

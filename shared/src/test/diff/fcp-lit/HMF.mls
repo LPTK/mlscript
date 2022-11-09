@@ -20,7 +20,7 @@ def cons head tail = Cons { head; tail }
 //│ Defined Cons.Tail: Cons['a] -> List['a]
 //│ cons: 'a -> List['a] -> List['a]
 //│     = <missing implementation>
-//│ 'b -> (forall 'a, 'c, 'tail, 'head, 'd. (List['a] & 'c & 'tail) -> ((Cons['a | 'b] with {head: 'head | 'b, tail: 'tail}) | 'd))
+//│ 'b -> (forall 'c, 'a, 'd, 'head, 'tail. (List['a] & 'c & 'tail) -> ((Cons['a | 'b] with {head: 'head | 'b, tail: 'tail}) | 'd))
 //│   <:  cons:
 //│ 'a -> List['a] -> List['a]
 //│     = [Function: cons]
@@ -171,7 +171,7 @@ def revapp x f = f x
 
 // FreezeML D2
 revapp id poly
-//│ res: 'a
+//│ res: (1, true,)
 //│    = [ 1, true ]
 
 // FreezeML C1
@@ -196,19 +196,19 @@ fun f -> poly f
 // FreezeML D2
 // nope in plain HMF
 revapp id poly
-//│ res: 'a
+//│ res: (1, true,)
 //│    = [ 1, true ]
 
 // nope
 let f = revapp id in f poly
-//│ res: 'a
+//│ res: (1, true,)
 //│    = [ 1, true ]
 
 :ne
 def iapp: (int -> int) -> int -> int
 let f = revapp id in (f poly, f iapp)
 //│ iapp: (int -> int) -> int -> int
-//│ res: (forall 'a. 'a, forall 'b. 'b,)
+//│ res: ((1, true,), int -> int,)
 
 // ============ Sec 3 ============
 

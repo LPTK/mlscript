@@ -126,7 +126,7 @@ class ComplexMonoid_bad_0[A]: Monoid[Complex[A]] & { base: Monoid[A] }
 //│ ║  l.3: 	  method Empty: A
 //│ ╙──     	         ^^^^^^^^
 //│ Defined class ComplexMonoid_bad_0[=A]
-//│ Defined ComplexMonoid_bad_0.Empty: ComplexMonoid_bad_0['A] -> (forall 'a, 'imaginary, 'b. ('a & 'imaginary & 'A0) -> ((Complex['A0 | {real: Monoid['A]}] with {imaginary: 'imaginary, real: {real: Monoid['A]}}) | 'b))
+//│ Defined ComplexMonoid_bad_0.Empty: ComplexMonoid_bad_0['A] -> (forall 'a, 'b, 'imaginary. ('b & 'imaginary & 'A0) -> ((Complex['A0 | {real: Monoid['A]}] with {imaginary: 'imaginary, real: {real: Monoid['A]}}) | 'a))
 //│ Defined ComplexMonoid_bad_0.Add: ComplexMonoid_bad_0['A] -> anything -> anything -> nothing
 
 

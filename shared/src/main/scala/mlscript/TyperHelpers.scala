@@ -291,7 +291,7 @@ abstract class TyperHelpers { Typer: Typer =>
     private var shadowRun = initialRun - 1
     private var _shadow: ST = this
     private def computeShadow: ST = this match {
-      case tv: TV => tv.original
+      case tv: TV => tv.original // * Q: no special tratment for assigned TVs?
       case _ => map(_.shadow)
     }
     def shadow: ST =
@@ -706,11 +706,13 @@ abstract class TyperHelpers { Typer: Typer =>
     }
     
     /** (exclusive, inclusive) */
+    /* 
     def varsBetween(lb: Level, ub: Level): Set[TV] = {
       val res = MutSet.empty[TypeVariable]
       val traversed = MutSet.empty[TypeVariable]
-      @tailrec def rec(lb: Level, ub: Level, queue: List[SimpleType]): Unit =
-      // trace(s"varsBetween($lb, $ub, $queue)") {
+      // @tailrec
+      def rec(lb: Level, ub: Level, queue: List[SimpleType]): Unit =
+      trace(s"varsBetween($lb, $ub, $queue)") {
       queue match {
         case (tv: TypeVariable) :: tys =>
           if (traversed(tv)) rec(lb, ub, tys)
@@ -724,9 +726,42 @@ abstract class TyperHelpers { Typer: Typer =>
         case ty :: tys => rec(lb, ub, ty.children(includeBounds = true) ::: tys)
         case Nil => ()
       }
-      // }()
+      }()
       rec(lb, ub, this :: Nil)
       SortedSet.from(res)(Ordering.by(_.uid))
+    }
+    */
+    def varsBetween(lb: Level, ub: Level): Set[TV] = {
+      val res = MutSet.empty[TypeVariable]
+      val traversed = MutSet.empty[TypeVariable]
+      // def go(ty: ST, lb: Level, ub: Level): Set[TV] =
+      def go(ty: ST, lb: Level, ub: Level): Unit = if (lb < ub) {
+        // trace(s"varsBetween($ty, $lb, $ub)") {
+        ty match {
+          case tv: TypeVariable =>
+            if (traversed(tv)) ()
+            else {
+              traversed += tv
+              if (tv.level > lb && tv.level <= ub) {
+                // println(s"ADD $tv")
+                res += tv
+              }
+              // (tv.lowerBounds.iterator ++ tv.upperBounds).map(go(_, lb, ub)) ++
+              // tv.lowerBounds.foreach(go(_, lb, ub))
+              // tv.upperBounds.foreach(go(_, lb, ub))
+              tv.children(includeBounds = true) // deals with assignedTo
+                .foreach(go(_, lb, ub))
+            }
+          case pt: PolymorphicType =>
+            go(pt.body, lb, pt.polymLevel min ub)
+          case ty =>
+            ty.children(includeBounds = true) // includeBounds?
+              .foreach(go(_, lb, ub))
+        }
+        // }()
+      }
+      go(this, lb, ub)
+      res.toSet
     }
     
     def showBounds: String =

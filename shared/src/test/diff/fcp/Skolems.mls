@@ -32,7 +32,7 @@ fun (x: ('a -> 'a)) -> auto_ x
 //│    = [Function: res]
 
 foo(x: ('a -> 'b)) = auto_ x
-//│ foo: (('a | ‘a_79_80) -> (‘a_79_81 & 'b)) -> (forall 'b0, 'c. 'b0 -> 'b0 | 'c)
+//│ foo: (('a | ‘a_79_80) -> (‘a_79_81 & 'b)) -> (forall 'c, 'b0. 'b0 -> 'b0 | 'c)
 //│    = [Function: foo]
 
 :e

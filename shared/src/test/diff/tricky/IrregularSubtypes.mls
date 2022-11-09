@@ -15,6 +15,7 @@ type Bar[A] = A -> Bar[Bar[A]]
 
 // error: Foo[int]: Foo[int]
 
+// FIXME should be a depth excess
 error: Foo[int]: Bar[int]
 //│ /!!!\ Uncaught error: java.lang.StackOverflowError
 

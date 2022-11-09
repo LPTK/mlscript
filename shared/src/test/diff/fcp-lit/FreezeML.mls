@@ -71,7 +71,7 @@ def cons: 'a -> List['a] -> List['a]
 def cons head tail = Cons { head; tail }
 //│ cons: 'a -> List['a] -> List['a]
 //│     = <missing implementation>
-//│ 'b -> (forall 'a, 'c, 'tail, 'head, 'd. (List['a] & 'c & 'tail) -> ((Cons['a | 'b] with {head: 'head | 'b, tail: 'tail}) | 'd))
+//│ 'b -> (forall 'a, 'tail, 'head, 'c, 'd. (List['a] & 'c & 'tail) -> ((Cons['a | 'b] with {head: 'head | 'b, tail: 'tail}) | 'd))
 //│   <:  cons:
 //│ 'a -> List['a] -> List['a]
 //│     = [Function: cons]
@@ -214,7 +214,7 @@ def flip: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
 def flip f = fun x -> fun y -> f y x
 //│ flip: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
 //│     = <missing implementation>
-//│ 'a -> (forall 'b. 'b -> (forall 'a, 'b, 'c, 'd, 'e. ('c -> 'd
+//│ 'a -> (forall 'b. 'b -> (forall 'a, 'c, 'd, 'b, 'e. ('c -> 'd
 //│   where
 //│     'a <: 'c -> ('b -> 'd & 'e))))
 //│   <:  flip:
@@ -275,7 +275,7 @@ choose id auto
 // A8
 :ns
 choose id auto_
-//│ res: forall 'b. 'c
+//│ res: 'c
 //│   where
 //│     'c :> (forall 'a. 'a -> 'a) | (forall 'b. (forall 'a0. 'a0 -> 'a0) -> 'b -> 'b)
 //│    = [Function: id1]
@@ -392,7 +392,7 @@ app poly id
 
 // D2
 revapp id poly
-//│ res: 'b
+//│ res: (int, bool,)
 //│    = [ 1, true ]
 
 // D3
@@ -408,7 +408,7 @@ app runST argST
 // D5
 :ng
 revapp argST runST
-//│ res: 'b
+//│ res: int
 
 
 // ============ E. η-expansion ============
@@ -472,7 +472,7 @@ choose (head ids)
 
 // F9
 let f = revapp id in f poly
-//│ res: 'b
+//│ res: (int, bool,)
 //│    = [ 1, true ]
 
 // F10
@@ -510,7 +510,7 @@ choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.509: 	choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│ ║         	                                  ^^^^^^^
-//│ ╟── type `‘a_1275_1276` is not an instance of type `'a_1275_1277`
+//│ ╟── type `‘a_1266_1267` is not an instance of type `'a_1266_1268`
 //│ ║  l.173: 	def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│ ║         	                    ^^
 //│ ╟── Note: constraint arises from quantified type variable:
@@ -520,13 +520,13 @@ choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│   where
 //│     'b :> (forall 'a. 'a -> 'a) | (forall 'a0, 'c. ('a0 -> 'a0) -> 'c)
 //│     'c :> error
-//│     'a0 :> ‘a_1275_1276
-//│         <: ‘a_1275_1277
+//│     'a0 :> ‘a_1266_1267
+//│         <: ‘a_1266_1268
 //│    = [Function: id1]
 
 // * The skolem used to (unsafely) leak into this type – see also `Skolems.mls`:
 res
-//│ res: (('a | ‘a_1275_1276) -> (‘a_1275_1277 & 'a) & 'a0) -> ('a0 | error)
+//│ res: (('a | ‘a_1266_1267) -> (‘a_1266_1268 & 'a) & 'a0) -> ('a0 | error)
 //│    = [Function: id1]
 
 :e // skolem extrusion
@@ -534,7 +534,7 @@ res id
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.533: 	res id
 //│ ║         	^^^^^^
-//│ ╟── type `‘a_1275_1276` is not an instance of type `'a_1275_1277`
+//│ ╟── type `‘a_1266_1267` is not an instance of type `'a_1266_1268`
 //│ ║  l.173: 	def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│ ║         	                    ^^
 //│ ╟── Note: constraint arises from quantified type variable:
@@ -552,7 +552,7 @@ a (fun x -> { u = x })
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.551: 	a (fun x -> { u = x })
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── record literal of type `{u: ?a}` is not an instance of type `'a_1303`
+//│ ╟── record literal of type `{u: ?a}` is not an instance of type `'a_1294`
 //│ ║  l.551: 	a (fun x -> { u = x })
 //│ ║         	            ^^^^^^^^^
 //│ ╟── Note: constraint arises from quantified type variable:

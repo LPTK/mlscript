@@ -61,32 +61,32 @@ def f1 (x, ...y) = x
 //│   <:  f1:
 //│ ('a, ...Array[int]) -> 'a
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.58: 	def f1 (x, ...y) = x
+//│ ║  l.59: 	def f1 (x, ...y) = x
 //│ ║        	^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `(‘a_42, ...Array[int])` does not match type `(?a, ...?b)`
 //│ ║  l.26: 	def f1 : ('a, ...Array[int]) -> 'a
 //│ ║        	         ^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from splice:
-//│ ║  l.58: 	def f1 (x, ...y) = x
+//│ ║  l.59: 	def f1 (x, ...y) = x
 //│ ╙──      	       ^^^^^^^^^
 
 :e
 errt = (1, ...2, 3)
 //│ ╔══[ERROR] Type mismatch in splice:
-//│ ║  l.73: 	errt = (1, ...2, 3)
+//│ ║  l.74: 	errt = (1, ...2, 3)
 //│ ║        	       ^^^^^^^^^^^^
 //│ ╟── integer literal of type `2` does not match type `Array[?a]`
-//│ ║  l.73: 	errt = (1, ...2, 3)
+//│ ║  l.74: 	errt = (1, ...2, 3)
 //│ ╙──      	              ^
 //│ errt: (1, ...2, 3)
 
 :e
 wrerr = (1, ...true, mut 3)
 //│ ╔══[ERROR] Type mismatch in splice:
-//│ ║  l.83: 	wrerr = (1, ...true, mut 3)
+//│ ║  l.84: 	wrerr = (1, ...true, mut 3)
 //│ ║        	        ^^^^^^^^^^^^^^^^^^^
 //│ ╟── reference of type `true` does not match type `Array[?a]`
-//│ ║  l.83: 	wrerr = (1, ...true, mut 3)
+//│ ║  l.84: 	wrerr = (1, ...true, mut 3)
 //│ ╙──      	               ^^^^
 //│ wrerr: (1, ...true, 3)
 
@@ -105,13 +105,13 @@ gt2 = (...arr1)
 :e
 (1, ...(true, false), "hi") : Array[int | bool]
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.105: 	(1, ...(true, false), "hi") : Array[int | bool]
+//│ ║  l.106: 	(1, ...(true, false), "hi") : Array[int | bool]
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── string literal of type `"hi"` does not match type `bool | int`
-//│ ║  l.105: 	(1, ...(true, false), "hi") : Array[int | bool]
+//│ ║  l.106: 	(1, ...(true, false), "hi") : Array[int | bool]
 //│ ║         	                      ^^^^
 //│ ╟── Note: constraint arises from union type:
-//│ ║  l.105: 	(1, ...(true, false), "hi") : Array[int | bool]
+//│ ║  l.106: 	(1, ...(true, false), "hi") : Array[int | bool]
 //│ ╙──       	                                    ^^^^^^^^^^
 //│ res: Array[bool | int]
 
