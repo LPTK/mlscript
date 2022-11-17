@@ -682,7 +682,8 @@ class DiffTests
                 typer.dbg = mode.dbg
                 val ty_sch = typer.PolymorphicType(0,
                   typer.typeType(rhs)(ctx.nextLevel, raise,
-                    vars = tps.map(tp => tp.name -> typer.freshVar(typer.noProv/*FIXME*/)(1)).toMap))
+                    vars = tps.map(tp => tp.name -> typer.freshVar(typer.noProv/*FIXME*/)(1)).toMap),
+                  explicit = true)
                 ctx += nme.name -> ty_sch
                 declared += nme.name -> ty_sch
                 val exp = getType(ty_sch)

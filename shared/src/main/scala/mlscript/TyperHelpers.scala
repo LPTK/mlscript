@@ -67,10 +67,10 @@ abstract class TyperHelpers { Typer: Typer =>
     val fs2m = fs2.toMap
     fs1.flatMap { case (k, v) => fs2m.get(k).map(v2 => k -> (v || v2)) }
   }
-
+  
   def subst(ts: PolymorphicType, map: Map[SimpleType, SimpleType]): PolymorphicType = 
-    PolymorphicType(ts.level, subst(ts.body, map))
-
+    PolymorphicType(ts.level, subst(ts.body, map), ts.explicit)
+  
   def subst(st: SimpleType, map: Map[SimpleType, SimpleType], substInMap: Bool = false)
         (implicit cache: MutMap[TypeVariable, SimpleType] = MutMap.empty): SimpleType =
             // trace(s"subst($st)") {

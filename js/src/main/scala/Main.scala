@@ -326,7 +326,7 @@ object Main {
             case N => ()
           }
           val ty_sch = PolymorphicType(0, typeType(rhs)(ctx.nextLevel, raise,
-            vars = tps.map(tp => tp.name -> freshVar(noProv/*FIXME*/)(1)).toMap))
+            vars = tps.map(tp => tp.name -> freshVar(noProv/*FIXME*/)(1)).toMap), explicit = true)
           ctx += nme.name -> ty_sch
           declared += nme -> ty_sch
           results append S(d.nme.name) -> htmlize(getType(ty_sch).show)

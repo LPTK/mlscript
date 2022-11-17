@@ -328,14 +328,14 @@ class TypeDefs extends NuTypeDefs { self: Typer =>
                         )(noProv)
                         // * TODO try later:
                         // TypeRef(td.nme, td.tparamsargs.unzip._2)(noProv) & RecordType.mk(fieldsRefined)(noProv)
-                      )(originProv(td.nme.toLoc, "class constructor", td.nme.name)))
+                      )(originProv(td.nme.toLoc, "class constructor", td.nme.name)), explicit = false)
                     case Trt =>
                       val nomTag = trtNameToNomTag(td)(originProv(td.nme.toLoc, "trait", td.nme.name), ctx)
                       val tv = freshVar(noProv)(1)
                       tv.upperBounds ::= td.bodyTy
                       PolymorphicType(0, FunctionType(
                         singleTup(tv), tv & nomTag & RecordType.mk(tparamTags)(noProv)
-                      )(originProv(td.nme.toLoc, "trait constructor", td.nme.name)))
+                      )(originProv(td.nme.toLoc, "trait constructor", td.nme.name)), explicit = false)
                   }
                   ctx += n.name -> ctor
               }
@@ -544,10 +544,10 @@ class TypeDefs extends NuTypeDefs { self: Typer =>
                     // and will otherwise mask the more precise new prov that contains "inherited"
                     case ProvType(underlying) => underlying
                     case pt => pt
-                  })
+                  }, explicit = mt.bodyPT.explicit)
                 },
               ty => PolymorphicType(thisCtx.lvl,
-                typeType(ty)(thisCtx.nextLevel, raise, targsMap2))
+                typeType(ty)(thisCtx.nextLevel, raise, targsMap2), explicit = true)
                 // ^ Note: we need to go to the next level here,
                 //    which is also done automatically by `typeLetRhs` in the case above
               ), reverseRigid2)

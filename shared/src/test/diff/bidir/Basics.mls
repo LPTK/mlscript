@@ -8,6 +8,6 @@ def foo: int -> int
 // Remove the `TODO` comment to see the full stack trace
 // TODO
 foo x = x
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: TODO use expected type (Int,) -> Int
 
 

@@ -165,8 +165,8 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       "toString" -> fun(singleTup(TopType), StrType)(noProv),
       "not" -> fun(singleTup(BoolType), BoolType)(noProv),
       "succ" -> fun(singleTup(IntType), IntType)(noProv),
-      "log" -> PolymorphicType(0, fun(singleTup(tv), UnitType)(noProv)),
-      "discard" -> PolymorphicType(0, fun(singleTup(tv), UnitType)(noProv)),
+      "log" -> PolymorphicType(0, fun(singleTup(tv), UnitType)(noProv), false),
+      "discard" -> PolymorphicType(0, fun(singleTup(tv), UnitType)(noProv), false),
       "negate" -> fun(singleTup(IntType), IntType)(noProv),
       "add" -> intBinOpTy,
       "sub" -> intBinOpTy,
@@ -180,11 +180,11 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       "concat" -> fun(singleTup(StrType), fun(singleTup(StrType), StrType)(noProv))(noProv),
       "eq" -> {
         val v = freshVar(noProv)(1)
-        PolymorphicType(0, fun(singleTup(v), fun(singleTup(v), BoolType)(noProv))(noProv))
+        PolymorphicType(0, fun(singleTup(v), fun(singleTup(v), BoolType)(noProv))(noProv), false)
       },
       "ne" -> {
         val v = freshVar(noProv)(1)
-        PolymorphicType(0, fun(singleTup(v), fun(singleTup(v), BoolType)(noProv))(noProv))
+        PolymorphicType(0, fun(singleTup(v), fun(singleTup(v), BoolType)(noProv))(noProv), false)
       },
       "error" -> BotType,
       "+" -> intBinOpTy,
@@ -200,12 +200,12 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       "||" -> fun(singleTup(BoolType), fun(singleTup(BoolType), BoolType)(noProv))(noProv),
       "id" -> {
         val v = freshVar(noProv)(1)
-        PolymorphicType(0, fun(singleTup(v), v)(noProv))
+        PolymorphicType(0, fun(singleTup(v), v)(noProv), false)
       },
       "if" -> {
         val v = freshVar(noProv)(1)
         // PolymorphicType(0, fun(singleTup(BoolType), fun(singleTup(v), fun(singleTup(v), v)(noProv))(noProv))(noProv))
-        PolymorphicType(0, fun(BoolType, fun(v, fun(v, v)(noProv))(noProv))(noProv))
+        PolymorphicType(0, fun(BoolType, fun(v, fun(v, v)(noProv))(noProv))(noProv), false)
       },
     ) ++ primTypes ++ primTypes.map(p => "" + p._1.capitalize -> p._2) // TODO settle on naming convention...
   }
@@ -372,7 +372,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         case _ => "tuple"
       }
       warn(s"Useless $thing in statement position.", t.toLoc)
-      L(PolymorphicType(0, typeTerm(t, N)))
+      L(PolymorphicType(0, typeTerm(t, N), false))
     case t: Term =>
       val ty = typeTerm(t, N)
       if (!allowPure) {
@@ -386,7 +386,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
               err.allMsgs)),
             prov = TypeProvenance(t.toLoc, t.describe), ctx)
       }
-      L(PolymorphicType(0, ty))
+      L(PolymorphicType(0, ty, false))
     case _ =>
       err(msg"Illegal position for this ${s.describe} statement.", s.toLoc)(raise)
       R(Nil)
@@ -397,7 +397,8 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       vars: Map[Str, SimpleType] = Map.empty): PolymorphicType = {
     val prov = tp(rhs.toLoc, "binding of " + rhs.describe)
     val exp = if (bidirTyping)
-        ctx.get(nme).collect{case ts: TypeScheme => ts.instantiate(lvl+1)}.map(ts => ts -> ts.prov)
+        ctx.get(nme).collect{case ts: TypeScheme if ts.explicit =>
+          ts.instantiate(lvl+1)}.map(ts => ts -> ts.prov)
       else N
     val res = if (isrec) {
       val e_ty = exp getOrElse freshVar(
@@ -412,7 +413,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       typeTerm(rhs, S(e_ty))(ctx.nextLevel, raise, vars)
       e_ty._1
     } else typeTerm(rhs, exp)(ctx.nextLevel, raise, vars)
-    PolymorphicType(lvl, res)
+    PolymorphicType(lvl, res, false)
   }
   
   def mkProxy(ty: SimpleType, prov: TypeProvenance): SimpleType = {
@@ -626,11 +627,11 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       case Lam(pat, body) =>
         expected.map(_._1.unwrapAll).collect {
           // case S((FunctionType(l, r), _)) =>
-          case FunctionType(l, r) =>
-            (l, r)
+          case FunctionType(l, r) => (l, r)
         } match {
           case S((param_ty, result_ty)) =>
-            ??? // TODO type check lambda based on expected type
+            // TODO type check lambda based on expected type
+            (lastWords(s"TODO use expected type $param_ty -> $result_ty"): ST) -> false
           case N =>
             val newBindings = mutable.Map.empty[Str, TypeVariable]
             val newCtx = ctx.nest

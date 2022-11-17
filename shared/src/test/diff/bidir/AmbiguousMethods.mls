@@ -1,0 +1,107 @@
+:BidirTyping
+
+
+class A
+  method Test = 0
+//│ Defined class A
+//│ Defined A.Test: A -> 0
+
+class B
+  method Test = "ok"
+//│ Defined class B
+//│ Defined B.Test: B -> "ok"
+
+
+def foo1(x) = x + 1
+//│ foo1: int -> int
+//│     = [Function: foo1]
+
+:e
+def foo1(x) =
+  x.Test
+//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
+//│ ║  l.21: 	  x.Test
+//│ ║        	  ^^^^^^
+//│ ╟── Unrelated methods named Test are defined by:
+//│ ╟── • class A
+//│ ║  l.4: 	class A
+//│ ║       	      ^
+//│ ╟── • class B
+//│ ║  l.9: 	class B
+//│ ╙──     	      ^
+//│ foo1: anything -> error
+//│     = [Function: foo11]
+
+
+// TODO
+def foo2(x: A) =
+  x.Test
+//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
+//│ ║  l.38: 	  x.Test
+//│ ║        	  ^^^^^^
+//│ ╟── Unrelated methods named Test are defined by:
+//│ ╟── • class A
+//│ ║  l.4: 	class A
+//│ ║       	      ^
+//│ ╟── • class B
+//│ ║  l.9: 	class B
+//│ ╙──     	      ^
+//│ foo2: A -> error
+//│     = [Function: foo2]
+
+def foo2: A -> int
+//│ foo2: A -> int
+//│     = <missing implementation>
+
+// TODO
+def foo2(x) =
+  x.Test
+//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: TODO use expected type (A,) -> Int
+
+
+// TODO
+def foo3(x: B) =
+  x.Test
+//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
+//│ ║  l.64: 	  x.Test
+//│ ║        	  ^^^^^^
+//│ ╟── Unrelated methods named Test are defined by:
+//│ ╟── • class A
+//│ ║  l.4: 	class A
+//│ ║       	      ^
+//│ ╟── • class B
+//│ ║  l.9: 	class B
+//│ ╙──     	      ^
+//│ foo3: B -> error
+//│     = [Function: foo3]
+
+
+type T = (A, B)
+//│ Defined type alias T
+
+// TODO
+def foo4((x, y): T) =
+  (x.Test, y.Test)
+//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
+//│ ║  l.84: 	  (x.Test, y.Test)
+//│ ║        	   ^^^^^^
+//│ ╟── Unrelated methods named Test are defined by:
+//│ ╟── • class A
+//│ ║  l.4: 	class A
+//│ ║       	      ^
+//│ ╟── • class B
+//│ ║  l.9: 	class B
+//│ ╙──     	      ^
+//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
+//│ ║  l.84: 	  (x.Test, y.Test)
+//│ ║        	           ^^^^^^
+//│ ╟── Unrelated methods named Test are defined by:
+//│ ╟── • class A
+//│ ║  l.4: 	class A
+//│ ║       	      ^
+//│ ╟── • class B
+//│ ║  l.9: 	class B
+//│ ╙──     	      ^
+//│ foo4: T -> (error, error,)
+//│     = [Function: foo4]
+

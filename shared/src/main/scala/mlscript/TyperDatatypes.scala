@@ -33,11 +33,13 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
   sealed abstract class TypeScheme extends TypeInfo {
     def uninstantiatedBody: SimpleType
     def instantiate(implicit lvl: Int): SimpleType
+    /** Whether the type scheme was inferred from a previous definition or explicitly given. */
+    def explicit: Bool
   }
   
   /** A type with universally quantified type variables
     * (by convention, those variables of level greater than `level` are considered quantified). */
-  case class PolymorphicType(level: Int, body: SimpleType) extends TypeScheme {
+  case class PolymorphicType(level: Int, body: SimpleType, explicit: Bool) extends TypeScheme {
     val prov: TypeProvenance = body.prov
     def uninstantiatedBody: SimpleType = body
     def instantiate(implicit lvl: Int): SimpleType = freshenAbove(level, body)
@@ -64,15 +66,18 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
     parents: List[TypeName],
     isInherited: Bool,
   )(val prov: TypeProvenance) {
+    def explicit: Bool = false // conservative default; actually should be true when signature given by user
     def &(that: MethodType): MethodType = {
       require(this.level === that.level)
       MethodType(level, mergeOptions(this.body, that.body)((b1, b2) => (b1._1 & b2._1, b1._2 & b2._2)),
         (this.parents ::: that.parents).distinct, isInherited = true)(prov)
     }
     val toPT: PolymorphicType =
-      body.fold(PolymorphicType(0, errType))(b => PolymorphicType(level, FunctionType(singleTup(b._1), b._2)(prov)))
+      body.fold(PolymorphicType(0, errType, explicit))(b =>
+        PolymorphicType(level, FunctionType(singleTup(b._1), b._2)(prov), explicit))
     val bodyPT: PolymorphicType =
-      body.fold(PolymorphicType(0, errType))(b => PolymorphicType(level, ProvType(b._2)(prov)))
+      body.fold(PolymorphicType(0, errType, explicit))(b =>
+        PolymorphicType(level, ProvType(b._2)(prov), explicit))
   }
   
   /** A type without universally quantified type variables. */
@@ -81,6 +86,7 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
     def level: Int
     def uninstantiatedBody: SimpleType = this
     def instantiate(implicit lvl: Int) = this
+    def explicit: Bool = false
     constructedTypes += 1
   }
   type ST = SimpleType
