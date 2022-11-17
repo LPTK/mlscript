@@ -453,7 +453,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
   def typeTerm(term: Term, expected: Opt[SimpleType -> TypeProvenance])
         (implicit ctx: Ctx, raise: Raise, vars: Map[Str, SimpleType] = Map.empty): SimpleType
         = trace(s"$lvl. Typing ${if (ctx.inPattern) "pattern" else "term"} $term${
-          expected.fold("")(" against " + _._1)} ${term.getClass().getCanonicalName()}") {
+          expected.fold("")(" against " + _._1)} ${term.getClass().getSimpleName()}") {
     val termProv = ttp(term)
     implicit val ctxProv: TypeProvenance =
       expected.fold(termProv)(_._2)
