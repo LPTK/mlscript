@@ -1,0 +1,48 @@
+:NewParser
+
+
+class Neg(expr)
+//│ Defined class Neg
+//│ Neg: 'expr -> (Neg with {expr: 'expr})
+//│    = [Function: Neg1]
+
+fun EvalNeg(this, super) = {
+  eval: e =>
+    if e is Neg(d) then 0 - this.eval(d)
+    else super.eval(e)
+}
+//│ EvalNeg: ({eval: 'expr -> int}, {eval: 'a -> 'b},) -> {eval: ((Neg with {expr: 'expr}) | 'a & ~#Neg) -> (int | 'b)}
+//│        = [Function: EvalNeg]
+
+class Add(lhs, rhs)
+class Lit(n)
+//│ Defined class Add
+//│ Defined class Lit
+//│ Add: ('lhs, 'rhs,) -> (Add with {lhs: 'lhs, rhs: 'rhs})
+//│    = [Function: Add1]
+//│ Lit: 'n -> (Lit with {n: 'n})
+//│    = [Function: Lit1]
+
+fun EvalBase(this, super) = {
+  eval: e =>
+    if e is
+      Lit(n) then n: int
+      Add(l, r) then this.eval(l) + this.eval(r)
+}
+//│ EvalBase: ({eval: 'rhs -> int}, anything,) -> {eval: ((Add with {lhs: 'rhs, rhs: 'rhs}) | Lit & {n: int}) -> int}
+//│         = [Function: EvalBase]
+
+fun TestLang(self) = EvalNeg(self, EvalBase(self, {}))
+//│ TestLang: {eval: 'expr -> int} -> {eval: ((Add with {lhs: 'expr, rhs: 'expr}) | Lit & {n: int} | (Neg with {expr: 'expr})) -> int}
+//│         = [Function: TestLang]
+
+// * Codegen does not support immediately-recursive let bindings
+:ge
+let rec x = TestLang(x)
+//│ x: {eval: 'a -> int}
+//│   where
+//│     'a <: Add & {lhs: 'a, rhs: 'a} | Lit & {n: int} | Neg & {expr: 'a}
+//│ Code generation encountered an error:
+//│   unguarded recursive use of by-value binding x
+
+
