@@ -46,3 +46,64 @@ let rec x = TestLang(x)
 //│   unguarded recursive use of by-value binding x
 
 
+
+
+// let TestLang = EvalNeg(self, EvalBase(self, {}))
+
+fun EvalNeg(this, super) = super with {
+  eval: e =>
+    if e is Neg(d) then 0 - this().eval(d)
+    else super.eval(e)
+}
+//│ EvalNeg: (() -> {eval: 'expr -> int}, {eval: 'a -> 'b} & 'c,) -> ('c\eval & {eval: ((Neg with {expr: 'expr}) | 'a & ~#Neg) -> (int | 'b)})
+//│        = [Function: EvalNeg1]
+
+fun EvalBase(this, super) = super with {
+  eval: e =>
+    if e is
+      Lit(n) then n: int
+      Add(l, r) then this().eval(l) + this().eval(r)
+}
+//│ EvalBase: (() -> {eval: 'rhs -> int}, 'a,) -> ('a\eval & {eval: ((Add with {lhs: 'rhs, rhs: 'rhs}) | Lit & {n: int}) -> int})
+//│         = [Function: EvalBase1]
+
+// :p
+// let rec TestLang = { mut this: () => TestLang }
+
+let rec TestLang() = { mut this: TestLang }
+//│ TestLang: 'TestLang
+//│   where
+//│     'TestLang :> () -> {mut this: 'this}
+//│     'this :> 'TestLang
+//│         = [Function: TestLang1]
+
+let rec TestLang() = EvalBase(() => { mut this: TestLang() }, {})
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.80: 	let rec TestLang() = EvalBase(() => { mut this: TestLang() }, {})
+//│ ║        	                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{mut this: ?this}` does not have field 'eval'
+//│ ║  l.80: 	let rec TestLang() = EvalBase(() => { mut this: TestLang() }, {})
+//│ ║        	                                                ^^^^^^^^^^
+//│ ╟── Note: constraint arises from field selection:
+//│ ║  l.65: 	      Add(l, r) then this().eval(l) + this().eval(r)
+//│ ║        	                                      ^^^^^^^^^^^
+//│ ╟── from application:
+//│ ║  l.65: 	      Add(l, r) then this().eval(l) + this().eval(r)
+//│ ╙──      	                                      ^^^^^^
+//│ TestLang: () -> (error | {eval: (Add | Lit & {n: int}) -> int})
+//│         = [Function: TestLang2]
+
+// let rec TestLang = EvalBase({ mut this: () => TestLang })
+// let rec TestLang = EvalBase({ mut this: () => TestLang })
+// let rec TestLang = EvalBase(() => { mut this: TestLang })
+
+
+:p
+{ x: 1 }
+//│ |{| |x|#:| |1| |}|
+//│ Parsed: '{' {x: 1} '}';
+//│ Desugared: '{' {x: 1} '}'
+//│ AST: Bra(rcd = true, Rcd(Var(x) = IntLit(1)))
+//│ res: {x: 1}
+//│    = { x: 1 }
+

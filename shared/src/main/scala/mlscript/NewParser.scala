@@ -552,12 +552,29 @@ abstract class NewParser(origin: Origin, tokens: Ls[Stroken -> Loc], raiseFun: D
             L(IfOpApp(acc, v, rhs))
           case R(rhs) =>
             opStr match {
-              case "=>" => {
+              case "with" =>
+                consume
+                // val tu = curlyTypingUnit 
+                // R(With(acc, tu.entities))
+                // yeetSpaces match {
+                //   case (br @ BRACKETS(Curly, toks), l1) :: _ =>
+                //     consume
+                //     val as = rec(toks, S(br.innerLoc), br.describe).concludeWith(_.argsMaybeIndented())
+                //     // .withLoc(S(l1))
+                //     R(With(acc, Rcd(as.map(_.mapFirst(_.getOrElse(???))))))
+                //   case c =>
+                //     lastWords((c,acc,rhs).toString())
+                //     ???
+                // }
+                rhs match {
+                  case Bra(true, r: Rcd) => R(With(acc, r))
+                  case _ => ???
+                }
+              case "=>" =>
                 exprCont(rhs, prec, allowNewlines) match {
                   case R(p) => R(Lam(toParams(acc), p))
                   case L(b) => err(msg"Unexpected ifBody" -> b.toLoc :: Nil); L(b)
                 }
-              }
               case _ =>
                 exprCont(App(App(v, toParams(acc)), toParams(rhs)), prec, allowNewlines)
             }
@@ -793,9 +810,9 @@ abstract class NewParser(origin: Origin, tokens: Ls[Stroken -> Loc], raiseFun: D
           case Nil =>
             acc.reverse
         }
-      case (SPACE, _) :: _ =>
-        consume
-        argsOrIf(acc, seqAcc, allowNewlines, prec)
+      // case (SPACE, _) :: _ =>
+      //   consume
+      //   argsOrIf(acc, seqAcc, allowNewlines, prec)
       case (NEWLINE | IDENT(_, true), _) :: _ => // TODO: | ...
         assert(seqAcc.isEmpty)
         acc.reverse
@@ -803,19 +820,19 @@ abstract class NewParser(origin: Origin, tokens: Ls[Stroken -> Loc], raiseFun: D
     
     // val blck = block
     
-    val argMut = cur match {
+    val argMut = yeetSpaces match {
       case (KEYWORD("mut"), l0) :: _ =>
         consume
         S(l0)
       case _ => N
     }
-    val argSpec = cur match {
+    val argSpec = yeetSpaces match {
       case (KEYWORD("#"), l0) :: _ =>
         consume
         S(l0)
       case _ => N
     }
-    val argName = cur match {
+    val argName = yeetSpaces match {
       case (IDENT(idStr, false), l0) :: (KEYWORD(":"), _) :: _ => // TODO: | ...
         consume
         consume

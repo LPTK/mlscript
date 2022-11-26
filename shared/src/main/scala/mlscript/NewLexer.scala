@@ -47,6 +47,7 @@ class NewLexer(origin: Origin, raise: Diagnostic => Unit, dbg: Bool) {
     "or",
     "is",
     "as",
+    "with",
   )
   
   @tailrec final
