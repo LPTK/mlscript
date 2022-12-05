@@ -629,9 +629,13 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
           // case S((FunctionType(l, r), _)) =>
           case FunctionType(l, r) => (l, r)
         } match {
-          case S((param_ty, result_ty)) =>
-            // TODO type check lambda based on expected type
-            (lastWords(s"TODO use expected type $param_ty -> $result_ty"): ST) -> false
+          case S((param_ty, body_ty)) =>
+            val newBindings = mutable.Map.empty[Str, TypeVariable]
+            val newCtx = ctx.nest
+            val newParam_ty = typePattern(Asc(pat,expandType(param_ty)(newCtx)), N)(newCtx, raise, vars)
+            newCtx ++= newBindings
+            val newBody_ty = typeTerm(body, S(body_ty -> termProv))(newCtx, raise, vars)
+            FunctionType(newParam_ty, newBody_ty)(tp(term.toLoc, "function")) -> false
           case N =>
             val newBindings = mutable.Map.empty[Str, TypeVariable]
             val newCtx = ctx.nest
@@ -646,19 +650,28 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         val rhs_ty = typeTerm(lhs, N)
         ??? // TODO
       case App(f, a) =>
-        val f_ty = typeTerm(f, N)//TODO bidir
-        val a_ty = typeTerm(a, N)//TODO bidir
-        val res = freshVar(termProv)
-        val arg_ty = mkProxy(a_ty, tp(a.toCoveringLoc, "argument"))
-          // ^ Note: this no longer really makes a difference, due to tupled arguments by default
-        val funProv = tp(f.toCoveringLoc, "applied expression")
-        val fun_ty = mkProxy(f_ty, funProv)
-          // ^ This is mostly not useful, except in test Tuples.fun with `(1, true, "hey").2`
-        val resTy = con(fun_ty, FunctionType(arg_ty, res)(
-          termProv
-          // funProv // TODO: better?
-          ), res)
-        resTy -> true
+        val a_ty = typeTerm(a, N)
+        expected match {
+          case S(res_ty -> tp) =>
+            val newCtx = ctx.nest
+            val f_ty = typeTerm(f, S(FunctionType(a_ty, res_ty)(termProv) -> termProv))(newCtx, raise, vars)
+            val res = freshVar(termProv)
+            val resTy = con(f_ty, FunctionType(a_ty, res_ty)(termProv), res)
+            resTy -> false
+          case N =>
+            val f_ty = typeTerm(f, N)
+            val res = freshVar(termProv)
+            val arg_ty = mkProxy(a_ty, tp(a.toCoveringLoc, "argument"))
+              // ^ Note: this no longer really makes a difference, due to tupled arguments by default
+            val funProv = tp(f.toCoveringLoc, "applied expression")
+            val fun_ty = mkProxy(f_ty, funProv)
+              // ^ This is mostly not useful, except in test Tuples.fun with `(1, true, "hey").2`
+            val resTy = con(fun_ty, FunctionType(arg_ty, res)(
+              termProv
+              // funProv // TODO: better?
+              ), res)
+            resTy -> true
+        }
       case Sel(obj, fieldName) =>
         // Explicit method calls have the form `x.(Class.Method)`
         // Implicit method calls have the form `x.Method`
@@ -667,12 +680,26 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         // Explicit method retrievals have the form `Class.Method`
         //   Returns a function expecting an additional argument of type `Class` before the method arguments
         def rcdSel(obj: Term, fieldName: Var) = {
-          val o_ty = typeTerm(obj, N)//TODO bidir
+          val o_ty = typeTerm(obj, N)
           val res = freshVar(termProv, Opt.when(!fieldName.name.startsWith("_"))(fieldName.name))
           val obj_ty = mkProxy(o_ty, tp(obj.toCoveringLoc, "receiver"))
           val rcd_ty = RecordType.mk(
             fieldName -> res.toUpper(tp(fieldName.toLoc, "field selector")) :: Nil)(termProv)
           con(obj_ty, rcd_ty, res)
+        }
+        def handleNonMthCase(obj: Term, fieldName: Var): ST = {
+          if (fieldName.name.isCapitalized) err(msg"Method ${fieldName.name} not found", term.toLoc)
+          else rcdSel(obj, fieldName) // TODO: no else?
+        }
+        def getInnerUnderlying(o_ty: ST): ST = {
+          o_ty match {
+            case ProvType(pt: ProvType) =>
+              var pt1 = pt
+              while (pt1.underlying.getClass().getSimpleName() == "ProvType") pt1 = pt1.underlying match { case pt2: ProvType => pt2 case _ => ProvType(errType)(termProv)}
+              pt1.underlying
+            case ProvType(tv1) => tv1
+            case tv1 => tv1
+          }
         }
         def mthCallOrSel(obj: Term, fieldName: Var) = 
           (fieldName.name match {
@@ -680,33 +707,47 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
             case nme => ctx.getMth(N, nme) // implicit calls
           }) match {
             case S(mth_ty) =>
+              val o_ty = typeTerm(obj, N)
+              def getMethodFromObjType(tv: TypeVariable) =
+                if (tv.lowerBounds.size != 1){
+                  assert(mth_ty.parents.sizeCompare(1) > 0, mth_ty)
+                  err(msg"Implicit call to method ${fieldName.name} is forbidden because it is ambiguous." -> term.toLoc
+                    :: msg"Unrelated methods named ${fieldName.name} are defined by:" -> N
+                    :: mth_ty.parents.map { prt =>
+                      val td = ctx.tyDefs(prt.name)
+                      msg"• ${td.kind.str} ${td.nme}" -> td.nme.toLoc
+                    })
+                }
+                else {
+                  val tr = getInnerUnderlying(tv.lowerBounds(0))
+                  val parent: Str = tr match {
+                    case tr1: TypeRef => tr1.toString
+                    case _ => "Shouldn't happen"
+                  }
+                  ctx.getMth(S(parent), fieldName.name) match {
+                    case S(mth_ty1) =>
+                      // if (mth_ty.body.isEmpty) handleNonMthCase(obj, fieldName) // can we have this case??
+                      mth_ty1.toPT.instantiate match {
+                        case FunctionType(f,a) => 
+                          a
+                        case _ => err(msg"method type not function", term.toLoc) // can this happen??
+                      }
+                    case N => handleNonMthCase(obj, fieldName)
+                  }
+                }
+
               if (mth_ty.body.isEmpty) {
-                assert(mth_ty.parents.sizeCompare(1) > 0, mth_ty)
-                err(msg"Implicit call to method ${fieldName.name} is forbidden because it is ambiguous." -> term.toLoc
-                  :: msg"Unrelated methods named ${fieldName.name} are defined by:" -> N
-                  :: mth_ty.parents.map { prt =>
-                    val td = ctx.tyDefs(prt.name)
-                    msg"• ${td.kind.str} ${td.nme}" -> td.nme.toLoc
-                  })
+                val tv = getInnerUnderlying(o_ty) 
+                tv match { case tv1: TypeVariable => getMethodFromObjType(tv1) case _ => err("tv has type ${tv.getClass().getSimpleName()}", term.toLoc) }
               }
-              val o_ty = typeTerm(obj, N)//TODO bidir
-              val res = freshVar(termProv)
-              con(mth_ty.toPT.instantiate, FunctionType(singleTup(o_ty), res)(termProv), res)
-            case N =>
-              if (fieldName.name.isCapitalized) err(msg"Method ${fieldName.name} not found", term.toLoc)
-              else rcdSel(obj, fieldName) // TODO: no else?
+              else {
+                val res = freshVar(termProv)
+                con(mth_ty.toPT.instantiate, FunctionType(singleTup(o_ty), res)(termProv), res)
+              }
+
+            case N => handleNonMthCase(obj, fieldName)
           }
-        val res = obj match {
-          case Var(name) if name.isCapitalized && ctx.tyDefs.isDefinedAt(name) => // explicit retrieval
-            ctx.getMth(S(name), fieldName.name) match {
-              case S(mth_ty) => mth_ty.toPT.instantiate
-              case N =>
-                err(msg"Class ${name} has no method ${fieldName.name}", term.toLoc)
-                mthCallOrSel(obj, fieldName)
-            }
-          case _ => mthCallOrSel(obj, fieldName)
-        }
-        res -> true
+        mthCallOrSel(obj, fieldName) -> true
       case Let(isrec, nme, rhs, bod) =>
         val n_ty = typeLetRhs(isrec, nme.name, rhs)
         val newCtx = ctx.nest

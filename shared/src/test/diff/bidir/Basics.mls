@@ -5,9 +5,91 @@ def foo: int -> int
 //│ foo: int -> int
 //│    = <missing implementation>
 
-// Remove the `TODO` comment to see the full stack trace
-// TODO
-foo x = x
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: TODO use expected type (Int,) -> Int
+def foo x = x
+//│ int -> int
+//│   <:  foo:
+//│ int -> int
+//│    = [Function: foo]
 
+foo 5
+//│ res: int
+//│    = 5
 
+def a1 : int
+//│ a1: int
+//│   = <missing implementation>
+
+def a1 = foo 6
+//│ nothing
+//│   <:  a1:
+//│ int
+//│   = [Function: a1]
+
+class A
+  method F = "hello"
+//│ Defined class A
+//│ Defined A.F: A -> "hello"
+
+def f: A -> int
+//│ f: A -> int
+//│  = <missing implementation>
+
+:e
+def f x = x.F
+//│ ╔══[ERROR] Type mismatch in lambda expression:
+//│ ║  l.38: 	def f x = x.F
+//│ ║        	      ^^^^^^^
+//│ ╟── string literal of type `"hello"` is not an instance of type `int`
+//│ ║  l.29: 	  method F = "hello"
+//│ ║        	             ^^^^^^^
+//│ ╟── but it flows into field selection with expected type `int`
+//│ ║  l.38: 	def f x = x.F
+//│ ║        	          ^^^
+//│ ╟── Note: constraint arises from type reference:
+//│ ║  l.33: 	def f: A -> int
+//│ ╙──      	            ^^^
+//│ A -> ("hello" | error)
+//│   <:  f:
+//│ A -> int
+//│ ╔══[ERROR] Type mismatch in def definition:
+//│ ║  l.38: 	def f x = x.F
+//│ ║        	^^^^^^^^^^^^^
+//│ ╟── string literal of type `"hello"` is not an instance of type `int`
+//│ ║  l.29: 	  method F = "hello"
+//│ ║        	             ^^^^^^^
+//│ ╟── but it flows into field selection with expected type `int`
+//│ ║  l.38: 	def f x = x.F
+//│ ║        	          ^^^
+//│ ╟── Note: constraint arises from type reference:
+//│ ║  l.33: 	def f: A -> int
+//│ ╙──      	            ^^^
+//│  = [Function: f]
+
+def f2: A -> "hello"
+//│ f2: A -> "hello"
+//│   = <missing implementation>
+
+def f2 x = x.F
+//│ A -> "hello"
+//│   <:  f2:
+//│ A -> "hello"
+//│   = [Function: f2]
+
+def mth x = x.a
+//│ mth: {a: 'a} -> 'a
+//│    = [Function: mth]
+
+class C: {a: 0}
+def mth2(x: C) = x.a
+//│ Defined class C
+//│ mth2: C -> 0
+//│     = [Function: mth2]
+
+def mth3: C -> 0
+def mth3 x = x.a
+//│ mth3: C -> 0
+//│     = <missing implementation>
+//│ C -> 0
+//│   <:  mth3:
+//│ C -> 0
+//│     = [Function: mth3]

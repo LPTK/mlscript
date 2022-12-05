@@ -3,8 +3,14 @@
 
 class A
   method Test = 0
+  method Test2 = 0
 //│ Defined class A
 //│ Defined A.Test: A -> 0
+//│ Defined A.Test2: A -> 0
+
+def foooo(x) = x.(A.Test2)
+//│ foooo: A -> 0
+//│      = [Function: foooo]
 
 class B
   method Test = "ok"
@@ -20,59 +26,39 @@ def foo1(x) = x + 1
 def foo1(x) =
   x.Test
 //│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
-//│ ║  l.21: 	  x.Test
+//│ ║  l.27: 	  x.Test
 //│ ║        	  ^^^^^^
 //│ ╟── Unrelated methods named Test are defined by:
 //│ ╟── • class A
 //│ ║  l.4: 	class A
 //│ ║       	      ^
 //│ ╟── • class B
-//│ ║  l.9: 	class B
-//│ ╙──     	      ^
+//│ ║  l.15: 	class B
+//│ ╙──      	      ^
 //│ foo1: anything -> error
 //│     = [Function: foo11]
 
-
-// TODO
 def foo2(x: A) =
   x.Test
-//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
-//│ ║  l.38: 	  x.Test
-//│ ║        	  ^^^^^^
-//│ ╟── Unrelated methods named Test are defined by:
-//│ ╟── • class A
-//│ ║  l.4: 	class A
-//│ ║       	      ^
-//│ ╟── • class B
-//│ ║  l.9: 	class B
-//│ ╙──     	      ^
-//│ foo2: A -> error
+//│ foo2: A -> 0
 //│     = [Function: foo2]
+
 
 def foo2: A -> int
 //│ foo2: A -> int
 //│     = <missing implementation>
 
-// TODO
 def foo2(x) =
   x.Test
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: TODO use expected type (A,) -> Int
+//│ A -> 0
+//│   <:  foo2:
+//│ A -> int
+//│     = [Function: foo21]
 
 
-// TODO
 def foo3(x: B) =
   x.Test
-//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
-//│ ║  l.64: 	  x.Test
-//│ ║        	  ^^^^^^
-//│ ╟── Unrelated methods named Test are defined by:
-//│ ╟── • class A
-//│ ║  l.4: 	class A
-//│ ║       	      ^
-//│ ╟── • class B
-//│ ║  l.9: 	class B
-//│ ╙──     	      ^
-//│ foo3: B -> error
+//│ foo3: B -> "ok"
 //│     = [Function: foo3]
 
 
@@ -82,26 +68,6 @@ type T = (A, B)
 // TODO
 def foo4((x, y): T) =
   (x.Test, y.Test)
-//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
-//│ ║  l.84: 	  (x.Test, y.Test)
-//│ ║        	   ^^^^^^
-//│ ╟── Unrelated methods named Test are defined by:
-//│ ╟── • class A
-//│ ║  l.4: 	class A
-//│ ║       	      ^
-//│ ╟── • class B
-//│ ║  l.9: 	class B
-//│ ╙──     	      ^
-//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
-//│ ║  l.84: 	  (x.Test, y.Test)
-//│ ║        	           ^^^^^^
-//│ ╟── Unrelated methods named Test are defined by:
-//│ ╟── • class A
-//│ ║  l.4: 	class A
-//│ ║       	      ^
-//│ ╟── • class B
-//│ ║  l.9: 	class B
-//│ ╙──     	      ^
-//│ foo4: T -> (error, error,)
+//│ foo4: T -> (0, "ok",)
 //│     = [Function: foo4]
 
