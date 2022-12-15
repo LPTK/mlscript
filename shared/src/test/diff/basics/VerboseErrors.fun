@@ -65,14 +65,17 @@ test arg2
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.64: 	test arg2
 //│ ║        	^^^^^^^^^
-//│ ╟── application of type `bool` is not an instance of type `int`
-//│ ║  l.51: 	let arg = {prop: not true}
-//│ ║        	                 ^^^^^^^^
-//│ ╟── Note: constraint arises from argument:
-//│ ║  l.54: 	  succ / f y.fld
-//│ ║        	         ^^^^^^^
-//│ ╟── from field selection:
-//│ ║  l.50: 	  x.prop
-//│ ╙──      	   ^^^^^
+//│ ╟── record of type `{fld: {prop: ?a}}` does not have field 'prop'
+//│ ║  l.52: 	let arg2 = {fld: arg}
+//│ ║        	           ^^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `{prop: ?prop}`
+//│ ║  l.64: 	test arg2
+//│ ║        	     ^^^^
+//│ ╟── Note: constraint arises from field selection:
+//│ ║  l.55: 	let test = x => y => if x.prop then i x else y
+//│ ║        	                         ^^^^^
+//│ ╟── from reference:
+//│ ║  l.55: 	let test = x => y => if x.prop then i x else y
+//│ ╙──      	                        ^
 //│ res: 'a -> (int | 'a) | error
 

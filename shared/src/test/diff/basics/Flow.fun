@@ -17,12 +17,12 @@ data R x
 // TODO flow-type
 :e
 let f x = if x is L y then y else 0
-//│ ╔══[ERROR] Unsupported pattern shape:
-//│ ║  l.19: 	let f x = if x is L y then y else 0
-//│ ╙──      	                  ^^^
 //│ ╔══[ERROR] identifier not found: y
 //│ ║  l.19: 	let f x = if x is L y then y else 0
 //│ ╙──      	                           ^
+//│ ╔══[ERROR] Unsupported pattern shape:
+//│ ║  l.19: 	let f x = if x is L y then y else 0
+//│ ╙──      	                  ^^^
 //│ f: error -> (0 | error)
 
 // TODO

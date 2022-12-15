@@ -10,10 +10,21 @@ class Bar: Foo[int, bool]
 //│ Defined class Bar
 //│ Defined Bar.Fun: Bar -> 'a -> 'a
 
+:d
 Foo.Fun
 Bar.Fun
+//│ 0. Typing term (Foo).Fun Sel
+//│ 0. : (this77 -> ((A78 -> (B79 -> C80)) -> (A78 -> (B79 -> C80))))
+//│ ⬤ Typed as: (this77 -> ((A78 -> (B79 -> C80)) -> (A78 -> (B79 -> C80))))
+//│  where: 
+//│ 		this77 <: Foo[A78,B79]
 //│ res: Foo['A, 'B] -> ('A -> 'B -> 'C) -> 'A -> 'B -> 'C
 //│    = undefined
+//│ 0. Typing term (Bar).Fun Sel
+//│ 0. : (this91 -> (α92 -> [α92]))
+//│ ⬤ Typed as: (this91 -> (α92 -> [α92]))
+//│  where: 
+//│ 		this91 <: Bar
 //│ res: Bar -> 'a -> 'a
 //│    = undefined
 
@@ -248,19 +259,19 @@ class Class3C: Class2C
     method MtdA = 42
     method MtdB = 42
 //│ ╔══[ERROR] Type mismatch in method definition:
-//│ ║  l.249: 	    method MtdB = 42
+//│ ║  l.260: 	    method MtdB = 42
 //│ ║         	           ^^^^^^^^^
 //│ ╟── integer literal of type `42` is not an instance of type `bool`
-//│ ║  l.249: 	    method MtdB = 42
+//│ ║  l.260: 	    method MtdB = 42
 //│ ║         	                  ^^
 //│ ╟── but it flows into method definition with expected type `bool`
-//│ ║  l.249: 	    method MtdB = 42
+//│ ║  l.260: 	    method MtdB = 42
 //│ ║         	           ^^^^^^^^^
 //│ ╟── Note: constraint arises from type reference:
-//│ ║  l.233: 	class Class2C: Class2B[int, bool]
+//│ ║  l.244: 	class Class2C: Class2B[int, bool]
 //│ ║         	                            ^^^^
 //│ ╟── from inherited method declaration:
-//│ ║  l.232: 	    method MtdB: B
+//│ ║  l.243: 	    method MtdB: B
 //│ ╙──       	           ^^^^^^^
 //│ Defined class Class3C
 //│ Defined Class3C.MtdA: Class3C -> 42
@@ -296,10 +307,10 @@ Test3B.F
 class Test4A[A]: { x: A }
     method Mth4A[A]: A
 //│ ╔══[WARNING] Method type parameter A
-//│ ║  l.296: 	class Test4A[A]: { x: A }
+//│ ║  l.307: 	class Test4A[A]: { x: A }
 //│ ║         	             ^
 //│ ╟── shadows class type parameter A
-//│ ║  l.297: 	    method Mth4A[A]: A
+//│ ║  l.308: 	    method Mth4A[A]: A
 //│ ╙──       	                 ^
 //│ Defined class Test4A[+A]
 //│ Declared Test4A.Mth4A: Test4A[?] -> nothing
@@ -351,13 +362,13 @@ Ber.F
 :e
 Ber
 //│ ╔══[ERROR] Instantiation of an abstract type is forbidden
-//│ ║  l.352: 	Ber
+//│ ║  l.363: 	Ber
 //│ ║         	^^^
 //│ ╟── Note that class Ber is abstract:
-//│ ║  l.344: 	class Ber: Fee & Fee2
+//│ ║  l.355: 	class Ber: Fee & Fee2
 //│ ║         	      ^^^^^^^^^^^^^^^
 //│ ╟── Hint: method F is abstract
-//│ ║  l.344: 	class Ber: Fee & Fee2
+//│ ║  l.355: 	class Ber: Fee & Fee2
 //│ ╙──       	      ^^^^^^^^^^^^^^^
 //│ res: error
 //│    = [Function: res]

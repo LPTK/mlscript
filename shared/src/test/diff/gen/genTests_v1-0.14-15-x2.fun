@@ -955,31 +955,31 @@ add
 ((x => add.u) 0.u)
 //│ ╔══[ERROR] Type mismatch in field selection:
 //│ ║  l.+1: 	((x => add.u) 0.u)
-//│ ║        	          ^^
-//│ ╟── reference of type `int -> int -> int` does not have field 'u'
-//│ ║  l.+1: 	((x => add.u) 0.u)
-//│ ╙──      	       ^^^
-//│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.+1: 	((x => add.u) 0.u)
 //│ ║        	               ^^
 //│ ╟── integer literal of type `0` does not have field 'u'
 //│ ║  l.+1: 	((x => add.u) 0.u)
 //│ ╙──      	              ^
+//│ ╔══[ERROR] Type mismatch in field selection:
+//│ ║  l.+1: 	((x => add.u) 0.u)
+//│ ║        	          ^^
+//│ ╟── reference of type `int -> int -> int` does not have field 'u'
+//│ ║  l.+1: 	((x => add.u) 0.u)
+//│ ╙──      	       ^^^
 //│ res: error
 
 ((x => add.u) add.u)
-//│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.+1: 	((x => add.u) add.u)
-//│ ║        	          ^^
-//│ ╟── reference of type `int -> int -> int` does not have field 'u'
-//│ ║  l.+1: 	((x => add.u) add.u)
-//│ ╙──      	       ^^^
 //│ ╔══[ERROR] Type mismatch in field selection:
 //│ ║  l.+1: 	((x => add.u) add.u)
 //│ ║        	                 ^^
 //│ ╟── reference of type `int -> int -> int` does not have field 'u'
 //│ ║  l.+1: 	((x => add.u) add.u)
 //│ ╙──      	              ^^^
+//│ ╔══[ERROR] Type mismatch in field selection:
+//│ ║  l.+1: 	((x => add.u) add.u)
+//│ ║        	          ^^
+//│ ╟── reference of type `int -> int -> int` does not have field 'u'
+//│ ║  l.+1: 	((x => add.u) add.u)
+//│ ╙──      	       ^^^
 //│ res: error
 
 ((x => x.u) 0)
@@ -1163,6 +1163,12 @@ add
 //│ res: error
 
 (let rec x = (0 x); x)
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.+1: 	(let rec x = (0 x); x)
+//│ ║        	              ^^^
+//│ ╟── integer literal of type `0` is not a function
+//│ ║  l.+1: 	(let rec x = (0 x); x)
+//│ ╙──      	              ^
 //│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 x); x)
 //│ ║        	             ^^^^^
@@ -1172,7 +1178,7 @@ add
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.+1: 	(let rec x = (0 x); x)
 //│ ╙──      	              ^^^
-//│ res: error
+//│ res: nothing
 
 (let x = 0.u; x)
 //│ ╔══[ERROR] Type mismatch in field selection:
@@ -1332,6 +1338,12 @@ add
 //│ res: error
 
 (let rec x = (0 x); (0 0))
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.+1: 	(let rec x = (0 x); (0 0))
+//│ ║        	              ^^^
+//│ ╟── integer literal of type `0` is not a function
+//│ ║  l.+1: 	(let rec x = (0 x); (0 0))
+//│ ╙──      	              ^
 //│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 x); (0 0))
 //│ ║        	             ^^^^^
@@ -1743,6 +1755,12 @@ add
 //│ res: error
 
 (let rec x = (0 x); (0 x))
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.+1: 	(let rec x = (0 x); (0 x))
+//│ ║        	              ^^^
+//│ ╟── integer literal of type `0` is not a function
+//│ ║  l.+1: 	(let rec x = (0 x); (0 x))
+//│ ╙──      	              ^
 //│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 x); (0 x))
 //│ ║        	             ^^^^^
@@ -1785,13 +1803,17 @@ add
 //│ res: error
 
 (let rec x = (add x); (0 x))
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.+1: 	(let rec x = (add x); (0 x))
+//│ ║        	              ^^^^^
+//│ ╟── expression of type `int -> int` is not an instance of type `int`
+//│ ╟── Note: constraint arises from reference:
+//│ ║  l.+1: 	(let rec x = (add x); (0 x))
+//│ ╙──      	                  ^
 //│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (add x); (0 x))
 //│ ║        	             ^^^^^^^
-//│ ╟── application of type `int -> int` is not an instance of type `int`
-//│ ║  l.+1: 	(let rec x = (add x); (0 x))
-//│ ║        	              ^^^^^
-//│ ╟── Note: constraint arises from argument:
+//│ ╟── reference of type `int -> int` is not an instance of type `int`
 //│ ║  l.+1: 	(let rec x = (add x); (0 x))
 //│ ╙──      	                  ^
 //│ ╔══[ERROR] Type mismatch in application:
@@ -2052,6 +2074,12 @@ add
 //│ res: {u: 0}
 
 (let rec x = (0 x); {u: 0})
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.+1: 	(let rec x = (0 x); {u: 0})
+//│ ║        	              ^^^
+//│ ╟── integer literal of type `0` is not a function
+//│ ║  l.+1: 	(let rec x = (0 x); {u: 0})
+//│ ╙──      	              ^
 //│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 x); {u: 0})
 //│ ║        	             ^^^^^
@@ -2082,6 +2110,12 @@ add
 //│ res: {u: 0}
 
 (let rec x = (0 {v: x}); {u: 0})
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.+1: 	(let rec x = (0 {v: x}); {u: 0})
+//│ ║        	              ^^^^^^^^
+//│ ╟── integer literal of type `0` is not a function
+//│ ║  l.+1: 	(let rec x = (0 {v: x}); {u: 0})
+//│ ╙──      	              ^
 //│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (0 {v: x}); {u: 0})
 //│ ║        	             ^^^^^^^^^^
@@ -2160,13 +2194,17 @@ add
 //│ res: {u: 0, v: 0}
 
 (let rec x = (add x); {u: 0, v: 0})
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.+1: 	(let rec x = (add x); {u: 0, v: 0})
+//│ ║        	              ^^^^^
+//│ ╟── expression of type `int -> int` is not an instance of type `int`
+//│ ╟── Note: constraint arises from reference:
+//│ ║  l.+1: 	(let rec x = (add x); {u: 0, v: 0})
+//│ ╙──      	                  ^
 //│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	(let rec x = (add x); {u: 0, v: 0})
 //│ ║        	             ^^^^^^^
-//│ ╟── application of type `int -> int` is not an instance of type `int`
-//│ ║  l.+1: 	(let rec x = (add x); {u: 0, v: 0})
-//│ ║        	              ^^^^^
-//│ ╟── Note: constraint arises from argument:
+//│ ╟── reference of type `int -> int` is not an instance of type `int`
 //│ ║  l.+1: 	(let rec x = (add x); {u: 0, v: 0})
 //│ ╙──      	                  ^
 //│ res: {u: 0, v: 0}

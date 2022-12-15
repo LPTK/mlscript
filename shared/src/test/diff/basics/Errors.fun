@@ -634,15 +634,18 @@ test arg2
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	test arg2
 //│ ║        	^^^^^^^^^
-//│ ╟── application of type `bool` is not an instance of type `int`
-//│ ║  l.402: 	let arg = {prop: not true}
-//│ ║         	                 ^^^^^^^^
-//│ ╟── Note: constraint arises from argument:
-//│ ║  l.593: 	  succ / f y.fld
-//│ ║         	         ^^^^^^^
-//│ ╟── from field selection:
-//│ ║  l.328: 	  x.prop
-//│ ╙──       	   ^^^^^
+//│ ╟── record of type `{fld: {prop: ?a}}` does not have field 'prop'
+//│ ║  l.472: 	let arg2 = {fld: arg}
+//│ ║         	           ^^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `{prop: ?prop}`
+//│ ║  l.+1: 	test arg2
+//│ ║        	     ^^^^
+//│ ╟── Note: constraint arises from field selection:
+//│ ║  l.629: 	let test x y = if x.prop then i x else y
+//│ ║         	                   ^^^^^
+//│ ╟── from reference:
+//│ ║  l.629: 	let test x y = if x.prop then i x else y
+//│ ╙──       	                  ^
 //│ res: 'a -> (int | 'a) | error
 
 let mkArg = a => {prop: a}
@@ -661,7 +664,7 @@ i / mkArg 1
 //│ ║  l.+1: 	g { fld: mkArg 1 } // TODO multi-step flow message?
 //│ ║        	^^^^^^^^^^^^^^^^^^
 //│ ╟── record of type `{prop: ?a}` is not an instance of type `int`
-//│ ║  l.648: 	let mkArg = a => {prop: a}
+//│ ║  l.651: 	let mkArg = a => {prop: a}
 //│ ║         	                 ^^^^^^^^^
 //│ ╟── but it flows into application with expected type `int`
 //│ ║  l.+1: 	g { fld: mkArg 1 } // TODO multi-step flow message?
@@ -703,7 +706,7 @@ i / mkArg 1
 //│ ║  l.+4: 	i / mkArg 1
 //│ ║        	^^^^^^^^^^^
 //│ ╟── record of type `{prop: ?a}` does not have field 'fld'
-//│ ║  l.648: 	let mkArg = a => {prop: a}
+//│ ║  l.651: 	let mkArg = a => {prop: a}
 //│ ║         	                 ^^^^^^^^^
 //│ ╟── but it flows into application with expected type `{fld: ?fld}`
 //│ ║  l.+4: 	i / mkArg 1
@@ -724,4 +727,4 @@ i / mkArg 1
 foo
 ba)r
 baz
-//│ /!\ Parse error: Expected end-of-input:2:3, found ")r\nbaz\n" at l.725:3: ba)r
+//│ /!\ Parse error: Expected end-of-input:2:3, found ")r\nbaz\n" at l.728:3: ba)r

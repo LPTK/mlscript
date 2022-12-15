@@ -105,12 +105,15 @@ f false
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.104: 	f false
 //│ ║         	^^^^^^^
-//│ ╟── reference of type `false` is not an instance of type `int`
+//│ ╟── reference of type `false` is not an instance of type `number`
 //│ ║  l.104: 	f false
 //│ ║         	  ^^^^^
 //│ ╟── Note: constraint arises from argument:
+//│ ║  l.74: 	let pred = n => 0 < n
+//│ ║        	                    ^
+//│ ╟── from reference:
 //│ ║  l.93: 	  if pred n then n else f (n + 1)
-//│ ╙──      	                           ^
+//│ ╙──      	          ^
 //│ res: false | int | error
 
 let take0 (x: 0) = 0

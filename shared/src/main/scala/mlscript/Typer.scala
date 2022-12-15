@@ -754,7 +754,16 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
 
             case N => handleNonMthCase(obj, fieldName)
           }
-        mthCallOrSel(obj, fieldName) -> true
+        obj match {
+          case Var(name) if name.isCapitalized && ctx.tyDefs.isDefinedAt(name) => // explicit retrieval
+            ctx.getMth(S(name), fieldName.name) match {
+              case S(mth_ty) => mth_ty.toPT.instantiate -> true
+              case N =>
+                err(msg"Class ${name} has no method ${fieldName.name}", term.toLoc)
+                mthCallOrSel(obj, fieldName) -> true
+            }
+          case _ => mthCallOrSel(obj, fieldName) -> true
+        }
       case Let(isrec, nme, rhs, bod) =>
         val n_ty = typeLetRhs(isrec, nme.name, rhs)
         val newCtx = ctx.nest
