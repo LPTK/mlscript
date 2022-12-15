@@ -632,10 +632,13 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
           case S((param_ty, body_ty)) =>
             val newBindings = mutable.Map.empty[Str, TypeVariable]
             val newCtx = ctx.nest
-            val newParam_ty = typePattern(Asc(pat,expandType(param_ty)(newCtx)), N)(newCtx, raise, vars)
+            val newParam_ty = typePattern(pat, S(param_ty -> termProv))(newCtx, raise, vars)
+            val res = freshVar(termProv)
+            con(param_ty, newParam_ty, res)
             newCtx ++= newBindings
             val newBody_ty = typeTerm(body, S(body_ty -> termProv))(newCtx, raise, vars)
-            FunctionType(newParam_ty, newBody_ty)(tp(term.toLoc, "function")) -> false
+            //FunctionType(newParam_ty, newBody_ty)(tp(term.toLoc, "function")) -> false
+            FunctionType(param_ty, body_ty)(tp(term.toLoc, "function")) -> false
           case N =>
             val newBindings = mutable.Map.empty[Str, TypeVariable]
             val newCtx = ctx.nest
@@ -708,8 +711,8 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
           }) match {
             case S(mth_ty) =>
               val o_ty = typeTerm(obj, N)
-              def getMethodFromObjType(tv: TypeVariable) =
-                if (tv.lowerBounds.size != 1){
+              def getMethodFromLowerBounds(lowerBounds: List[ST]) =
+                if (lowerBounds.size != 1){
                   assert(mth_ty.parents.sizeCompare(1) > 0, mth_ty)
                   err(msg"Implicit call to method ${fieldName.name} is forbidden because it is ambiguous." -> term.toLoc
                     :: msg"Unrelated methods named ${fieldName.name} are defined by:" -> N
@@ -719,7 +722,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
                     })
                 }
                 else {
-                  val tr = getInnerUnderlying(tv.lowerBounds(0))
+                  val tr = getInnerUnderlying(lowerBounds(0))
                   val parent: Str = tr match {
                     case tr1: TypeRef => tr1.toString
                     case _ => "Shouldn't happen"
@@ -738,7 +741,11 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
 
               if (mth_ty.body.isEmpty) {
                 val tv = getInnerUnderlying(o_ty) 
-                tv match { case tv1: TypeVariable => getMethodFromObjType(tv1) case _ => err("tv has type ${tv.getClass().getSimpleName()}", term.toLoc) }
+                tv match { 
+                  case tv1: TypeVariable => getMethodFromLowerBounds(tv1.lowerBounds)
+                  case tr1: TypeRef => getMethodFromLowerBounds(List(tr1))
+                  case _ => err(msg"tv has type ${tv.getClass().getSimpleName()}", term.toLoc)
+                }
               }
               else {
                 val res = freshVar(termProv)

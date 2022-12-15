@@ -48,9 +48,17 @@ def foo2: A -> int
 //│ foo2: A -> int
 //│     = <missing implementation>
 
+def y : A
+def fooo = y.Test
+//│ y: A
+//│  = <missing implementation>
+//│ fooo: 0
+//│     = <no result>
+//│       y is not implemented
+
 def foo2(x) =
   x.Test
-//│ A -> 0
+//│ A -> int
 //│   <:  foo2:
 //│ A -> int
 //│     = [Function: foo21]

@@ -1,0 +1,74 @@
+:BidirTyping
+
+
+class A
+  method F = "hello"
+//│ Defined class A
+//│ Defined A.F: A -> "hello"
+
+def f: A -> int
+//│ f: A -> int
+//│  = <missing implementation>
+
+:e
+def f x = x.F
+//│ ╔══[ERROR] Type mismatch in lambda expression:
+//│ ║  l.14: 	def f x = x.F
+//│ ║        	      ^^^^^^^
+//│ ╟── string literal of type `"hello"` is not an instance of type `int`
+//│ ║  l.5: 	  method F = "hello"
+//│ ║       	             ^^^^^^^
+//│ ╟── but it flows into field selection with expected type `int`
+//│ ║  l.14: 	def f x = x.F
+//│ ║        	          ^^^
+//│ ╟── Note: constraint arises from type reference:
+//│ ║  l.9: 	def f: A -> int
+//│ ╙──     	            ^^^
+//│ A -> int
+//│   <:  f:
+//│ A -> int
+//│  = [Function: f]
+
+def f2: A -> "hello"
+//│ f2: A -> "hello"
+//│   = <missing implementation>
+
+def f2 x = x.F
+//│ A -> "hello"
+//│   <:  f2:
+//│ A -> "hello"
+//│   = [Function: f2]
+
+class C: {a: 0}
+//│ Defined class C
+
+def mth x = x.a
+//│ mth: {a: 'a} -> 'a
+//│    = [Function: mth]
+
+def mth2(x: C) = x.a
+//│ mth2: C -> 0
+//│     = [Function: mth2]
+
+def mth3: C -> 0
+def mth3 x = x.a
+//│ mth3: C -> 0
+//│     = <missing implementation>
+//│ C -> 0
+//│   <:  mth3:
+//│ C -> 0
+//│     = [Function: mth3]
+
+class D
+  method G = 1
+//│ Defined class D
+//│ Defined D.G: D -> 1
+
+def mth4: D -> int
+def mth4 x = x.G
+//│ mth4: D -> int
+//│     = <missing implementation>
+//│ D -> int
+//│   <:  mth4:
+//│ D -> int
+//│     = [Function: mth4]
