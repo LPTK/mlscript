@@ -58,11 +58,13 @@ let rec x = { f = x } in x
 //│ Code generation encountered an error:
 //│   recursive non-function definition x is not supported
 
+:e
 :ge
 let x = { f = x } in x
-//│ res: 'x
-//│   where
-//│     'x :> {f: 'x}
+//│ ╔══[ERROR] identifier not found: x
+//│ ║  l.63: 	let x = { f = x } in x
+//│ ╙──      	              ^
+//│ res: {f: error}
 //│ Code generation encountered an error:
 //│   unresolved symbol x
 

@@ -33,6 +33,7 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
   sealed abstract class TypeScheme extends TypeInfo {
     def uninstantiatedBody: SimpleType
     def instantiate(implicit lvl: Int): SimpleType
+    def rigidify(implicit lvl: Int): SimpleType
     /** Whether the type scheme was inferred from a previous definition or explicitly given. */
     def explicit: Bool
   }
@@ -86,6 +87,7 @@ abstract class TyperDatatypes extends TyperHelpers { self: Typer =>
     def level: Int
     def uninstantiatedBody: SimpleType = this
     def instantiate(implicit lvl: Int) = this
+    def rigidify(implicit lvl: Int): SimpleType = this
     def explicit: Bool = false
     constructedTypes += 1
   }

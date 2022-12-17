@@ -73,9 +73,96 @@ def foo3(x: B) =
 type T = (A, B)
 //│ Defined type alias T
 
-// TODO
 def foo4((x, y): T) =
   (x.Test, y.Test)
 //│ foo4: T -> (0, "ok",)
 //│     = [Function: foo4]
+
+
+
+(fun x -> fun a -> a.Test) 1 : A -> int
+//│ res: A -> int
+//│    = [Function (anonymous)]
+
+
+def test: (A -> int) -> int
+//│ test: (A -> int) -> int
+//│     = <missing implementation>
+
+// * TODO: support
+:e
+test (fun a -> a.Test)
+//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
+//│ ║  l.94: 	test (fun a -> a.Test)
+//│ ║        	               ^^^^^^
+//│ ╟── Unrelated methods named Test are defined by:
+//│ ╟── • class A
+//│ ║  l.4: 	class A
+//│ ║       	      ^
+//│ ╟── • class B
+//│ ║  l.15: 	class B
+//│ ╙──      	      ^
+//│ res: int
+//│    = <no result>
+//│      test is not implemented
+
+// * FIXME
+:e
+test (fun a -> a.Test) : int
+//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
+//│ ║  l.111: 	test (fun a -> a.Test) : int
+//│ ║         	               ^^^^^^
+//│ ╟── Unrelated methods named Test are defined by:
+//│ ╟── • class A
+//│ ║  l.4: 	class A
+//│ ║       	      ^
+//│ ╟── • class B
+//│ ║  l.15: 	class B
+//│ ╙──      	      ^
+//│ res: int
+//│    = <no result>
+//│      test is not implemented
+
+// FIXME: should also use `ClassTag`s to disambiguate – also the error is wrong! (should be an ambiguity error)
+let x = A{} in x.Test
+//│ ╔══[ERROR] Method Test not found
+//│ ║  l.127: 	let x = A{} in x.Test
+//│ ╙──       	               ^^^^^^
+//│ res: error
+//│    = 0
+
+let x = A{} : A in x.Test
+//│ res: 0
+//│    = 0
+
+:e
+(fun x -> x.Test) (A{})
+//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
+//│ ║  l.139: 	(fun x -> x.Test) (A{})
+//│ ║         	          ^^^^^^
+//│ ╟── Unrelated methods named Test are defined by:
+//│ ╟── • class A
+//│ ║  l.4: 	class A
+//│ ║       	      ^
+//│ ╟── • class B
+//│ ║  l.15: 	class B
+//│ ╙──      	      ^
+//│ res: error
+//│    = 0
+
+:e
+(fun x -> x.Test) (A{}:A)
+//│ ╔══[ERROR] Implicit call to method Test is forbidden because it is ambiguous.
+//│ ║  l.154: 	(fun x -> x.Test) (A{}:A)
+//│ ║         	          ^^^^^^
+//│ ╟── Unrelated methods named Test are defined by:
+//│ ╟── • class A
+//│ ║  l.4: 	class A
+//│ ║       	      ^
+//│ ╟── • class B
+//│ ║  l.15: 	class B
+//│ ╙──      	      ^
+//│ res: error
+//│    = 0
+
 

@@ -24,3 +24,108 @@ def a1 = foo 6
 //│   <:  a1:
 //│ int
 //│   = [Function: a1]
+
+
+(fun x -> x) 1 : int
+//│ res: int
+//│    = 1
+
+
+def f: int
+//│ f: int
+//│  = <missing implementation>
+
+f = 1
+//│ 1
+//│   <:  f:
+//│ int
+//│  = 1
+
+f
+//│ res: int
+//│    = 1
+
+
+fun (f: int -> int) -> f 0
+//│ res: (int -> int) -> int
+//│    = [Function: res]
+
+fun (f: (int -> int) -> int) -> f (fun y -> y)
+//│ res: ((int -> int) -> int) -> int
+//│    = [Function: res]
+
+
+def id: 'a -> 'a
+//│ id: 'a -> 'a
+//│   = <missing implementation>
+
+:e
+id x = x + 1
+//│ ╔══[ERROR] Type mismatch in operator application:
+//│ ║  l.63: 	id x = x + 1
+//│ ║        	       ^^^
+//│ ╟── type `'a` is not an instance of type `int`
+//│ ║  l.58: 	def id: 'a -> 'a
+//│ ║        	        ^^
+//│ ╟── but it flows into reference with expected type `int`
+//│ ║  l.63: 	id x = x + 1
+//│ ╙──      	       ^
+//│ ╔══[ERROR] Type mismatch in operator application:
+//│ ║  l.63: 	id x = x + 1
+//│ ║        	       ^^^^^
+//│ ╟── type `'a` is not an instance of type `int`
+//│ ║  l.58: 	def id: 'a -> 'a
+//│ ║        	        ^^
+//│ ╟── but it flows into reference with expected type `int`
+//│ ║  l.63: 	id x = x + 1
+//│ ╙──      	       ^
+//│ 'a -> 'a
+//│   <:  id:
+//│ 'a -> 'a
+//│   = [Function: id1]
+
+def test =
+  let id x = x + 1 in
+  123
+//│ test: 123
+//│     = [Function: test]
+
+:e
+:ge
+ida
+//│ ╔══[ERROR] identifier not found: ida
+//│ ║  l.95: 	ida
+//│ ╙──      	^^^
+//│ res: error
+//│ Code generation encountered an error:
+//│   unresolved symbol ida
+
+let rec id x = x + 1 in 123
+//│ res: 123
+//│    = 123
+
+:e
+:ge
+ida
+//│ ╔══[ERROR] identifier not found: ida
+//│ ║  l.109: 	ida
+//│ ╙──       	^^^
+//│ res: error
+//│ Code generation encountered an error:
+//│   unresolved symbol ida
+
+let rec ida x = x + 1 in 123
+//│ res: 123
+//│    = 123
+
+:e
+:ge
+ida
+//│ ╔══[ERROR] identifier not found: ida
+//│ ║  l.123: 	ida
+//│ ╙──       	^^^
+//│ res: error
+//│ Code generation encountered an error:
+//│   unresolved symbol ida
+
+

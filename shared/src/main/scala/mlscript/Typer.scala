@@ -362,7 +362,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
     case Def(isrec, nme, L(rhs), isByname) => // TODO reject R(..)
       if (nme.name === "_")
         err(msg"Illegal definition name: ${nme.name}", nme.toLoc)(raise)
-      val ty_sch = typeLetRhs(isrec, nme.name, rhs)
+      val ty_sch = typeLetRhs(isrec, nme.name, rhs)(ctx.nest, implicitly)
       ctx += nme.name -> ty_sch
       R(nme.name -> ty_sch :: Nil)
     case t @ Tup(fs) if !allowPure => // Note: not sure this is still used!
@@ -397,8 +397,14 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       vars: Map[Str, SimpleType] = Map.empty): PolymorphicType = {
     val prov = tp(rhs.toLoc, "binding of " + rhs.describe)
     val exp = if (bidirTyping)
-        ctx.get(nme).collect{case ts: TypeScheme if ts.explicit =>
-          ts.instantiate(lvl+1)}.map(ts => ts -> ts.prov)
+        // * Note that we use `ctx.env.get` instead of `ctx.get` here;
+        // * this is to make sure we're not picking up
+        // * a type signature provided in some outer scope.
+        // * It's a bit hacky but should do the job well.
+        ctx.env.get(nme).collect{case ts: TypeScheme if ts.explicit =>
+          // * Note: this means ALL signature type variables will be rigidified,
+          // * so this wouldn't work for referring to local variables
+          ts.rigidify}.map(ts => ts -> ts.prov)
       else N
     val res = if (isrec) {
       val e_ty = exp getOrElse freshVar(
@@ -765,7 +771,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
           case _ => mthCallOrSel(obj, fieldName) -> true
         }
       case Let(isrec, nme, rhs, bod) =>
-        val n_ty = typeLetRhs(isrec, nme.name, rhs)
+        val n_ty = typeLetRhs(isrec, nme.name, rhs)(ctx.nest, implicitly)
         val newCtx = ctx.nest
         newCtx += nme.name -> n_ty
         typeTerm(bod, expected)(newCtx, raise) -> false
