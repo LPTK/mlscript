@@ -41,7 +41,7 @@ eval e2
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.40: 	eval e2
 //│ ║        	^^^^^^^
-//│ ╟── application of type `Neg & {e: ?e}` does not match type `Add & ?a | Lit & ?b`
+//│ ╟── application of type `forall ?e. Neg & {e: ?e}` does not match type `Add & ?a | Lit & ?b`
 //│ ║  l.31: 	e2 = Neg { e }
 //│ ║        	     ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `Add & ?c | Lit & ?d`

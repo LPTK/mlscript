@@ -160,17 +160,17 @@ def eval2_fixed_2 = fix eval2f
 eval2_fixed_2 e1
 //│ res: int
 //│    = 6
-//│ constrain calls  : 306
+//│ constrain calls  : 303
 //│ annoying  calls  : 140
-//│ subtyping calls  : 2893
+//│ subtyping calls  : 2858
 
 :stats
 eval2_fixed_2 e2
 //│ res: int
 //│    = -5
-//│ constrain calls  : 737
+//│ constrain calls  : 728
 //│ annoying  calls  : 345
-//│ subtyping calls  : 8010
+//│ subtyping calls  : 7905
 
 
 
@@ -244,7 +244,7 @@ rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> (int | ?val)` does not match type `Add[?] & ?b | Lit & ?c`
+//│ ╟── function of type `forall ?val ?a ?b ?c. ?a -> (int | ?val)` does not match type `Add[?] & ?d | Lit & ?e`
 //│ ║  l.30: 	def eval1f eval1 e = case e of {
 //│ ║        	                 ^^^^^^^^^^^^^^^
 //│ ║  l.31: 	  | Lit -> e.val
@@ -253,7 +253,7 @@ rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ║  l.33: 	  }
 //│ ║        	^^^
-//│ ╟── but it flows into application with expected type `Add[?] & ?d | Lit & ?e`
+//│ ╟── but it flows into application with expected type `Add[?] & ?f | Lit & ?g`
 //│ ║  l.+1: 	rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:

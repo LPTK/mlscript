@@ -60,11 +60,11 @@ fun mapPartition(f, xs) = if xs is
   Cons(x, xs) and mapPartition(f, xs) is Pair(l, r) and f(x) is
     Left(v)  then Pair(Cons(v, l), r)
     Right(v) then Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), 'tail,) -> (Pair & {fst: 'fst, snd: 'tail0})
+//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & 'a | Nil,) -> (Pair & {fst: 'fst, snd: 'tail})
 //│   where
-//│     'tail0 :> Cons & {head: 'rightValue, tail: 'tail0} | Nil
+//│     'tail :> Cons & {head: 'rightValue, tail: 'tail} | Nil
 //│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
-//│     'tail <: Cons & {head: 'head, tail: 'tail} | Nil
+//│     'a <: {head: 'head, tail: Cons & 'a | Nil}
 //│             = [Function: mapPartition]
 
 fun mapPartition(f, xs) = if xs is
@@ -73,11 +73,11 @@ fun mapPartition(f, xs) = if xs is
     mapPartition(f, xs) is Pair(l, r) and f(x) is
       Left(v)  then Pair(Cons(v, l), r)
       Right(v) then Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), 'tail,) -> (Pair & {fst: 'fst, snd: 'tail0})
+//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & 'a | Nil,) -> (Pair & {fst: 'fst, snd: 'tail})
 //│   where
-//│     'tail0 :> Cons & {head: 'rightValue, tail: 'tail0} | Nil
+//│     'tail :> Cons & {head: 'rightValue, tail: 'tail} | Nil
 //│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
-//│     'tail <: Cons & {head: 'head, tail: 'tail} | Nil
+//│     'a <: {head: 'head, tail: Cons & 'a | Nil}
 //│             = [Function: mapPartition1]
 
 fun mapPartition(f, xs) = if xs is
@@ -91,11 +91,11 @@ fun mapPartition(f, xs) = if xs is
             Pair(Cons(v, l), r)
           Right(v) then
             Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), 'tail,) -> (Pair & {fst: 'fst, snd: 'tail0})
+//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & 'a | Nil,) -> (Pair & {fst: 'fst, snd: 'tail})
 //│   where
-//│     'tail0 :> Cons & {head: 'rightValue, tail: 'tail0} | Nil
+//│     'tail :> Cons & {head: 'rightValue, tail: 'tail} | Nil
 //│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
-//│     'tail <: Cons & {head: 'head, tail: 'tail} | Nil
+//│     'a <: {head: 'head, tail: Cons & 'a | Nil}
 //│             = [Function: mapPartition2]
 
 
@@ -134,9 +134,9 @@ fun mapPartition(f, xs) = if xs is
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] type identifier not found: Tuple#2
 //│ ╙──
-//│ mapPartition: (anything, 'tail,) -> ((Nil, Nil,) | error)
+//│ mapPartition: (anything, Cons & 'a | Nil,) -> ((Nil, Nil,) | error)
 //│   where
-//│     'tail <: Cons & {tail: 'tail} | Nil
+//│     'a <: {head: anything, tail: Cons & 'a | Nil}
 //│ Code generation encountered an error:
 //│   unknown match case: Tuple#2
 
