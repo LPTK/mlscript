@@ -216,7 +216,7 @@ table = hashtbl_add table "one" (fun f -> fun x -> f x)
 table = hashtbl_add table "two" (fun f -> fun x -> f (f x))
 //│ table: List[nothing]
 //│      = Nil {}
-//│ table: List[("one", forall 'a 'b. ('b -> 'a) -> 'b -> 'a,)]
+//│ table: List[("one", forall 'a 'b. ('a -> 'b) -> 'a -> 'b,)]
 //│      = Cons { head: [ 'one', [Function (anonymous)] ], tail: Nil {} }
 //│ table: List[("one" | "two", forall 'a 'b 'c. ('a -> 'b & 'b -> 'c & 'a -> 'c) -> 'a -> 'c,)]
 //│      = Cons {
@@ -390,7 +390,7 @@ foo 1 error 2
     fun () -> fun f -> fun x -> x,
     fun v -> v
   ) (find table key)) "two"
-//│ res: ('a -> 'b & 'b -> 'c & 'a -> 'c) -> ('d & 'a) -> ('d | 'c)
+//│ res: ('a -> 'b & 'a -> 'c & 'c -> 'b) -> ('a & 'd) -> ('d | 'b)
 //│    = [Function (anonymous)]
 
 res id

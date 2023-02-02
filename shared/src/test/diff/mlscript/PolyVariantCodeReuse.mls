@@ -148,7 +148,7 @@ def eval_lambda eval_rec subst v = case v of {
     Abs { name = new_name;
           body = eval_rec (Cons (Tuple v.name (Var { name = new_name })) subst) v.body }
   }
-//│ eval_lambda: (((Cons[('a, Var | 'body,) | 'A] with {head: ('a, Var | 'body,), tail: Nil | 'tail}) | 'tail) -> 'lhs -> ('result & 'body & ((Abs[?] with {body: 'lhs, name: 'a}) | 'lhs0 & ~#Abs))) -> (List['A] & 'b & 'tail) -> ((Abs[?] with {body: 'lhs, name: 'a}) | App[?] & {lhs: 'lhs, rhs: 'lhs} | Var & 'result) -> (Abs['body] | (App['lhs0 | 'body] with {lhs: 'lhs0, rhs: 'body}) | 'result)
+//│ eval_lambda: (((Cons[('a, Var | 'body,) | 'A] with {head: ('a, Var | 'body,), tail: Nil | 'tail}) | 'tail) -> 'lhs -> ('body & 'result & ((Abs[?] with {body: 'lhs, name: 'a}) | 'lhs0 & ~#Abs))) -> (List['A] & 'b & 'tail) -> ((Abs[?] with {body: 'lhs, name: 'a}) | App[?] & {lhs: 'lhs, rhs: 'lhs} | Var & 'result) -> (Abs['body] | (App['lhs0 | 'body] with {lhs: 'lhs0, rhs: 'body}) | 'result)
 //│   where
 //│     'b <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'b}) | Nil
 //│            = <no result>
@@ -273,7 +273,7 @@ def eval_lexpr eval_rec subst v = case v of {
   | Lambda -> eval_lambda eval_rec subst v
   | Expr -> eval_expr eval_rec subst v
   }
-//│ eval_lexpr: (((Cons[('a, Var | 'body,) | 'A] with {head: ('a, Var | 'body,), tail: Nil | 'tail}) | 'tail) -> 'lhs -> ('body & 'result & ((Abs[?] with {body: 'lhs, name: 'a}) | 'lhs0 & ~#Abs))) -> (List['A] & 'b & 'tail) -> ((Abs[?] with {body: 'lhs, name: 'a}) | Add[?] & {lhs: 'lhs, rhs: 'lhs} | App[?] & {lhs: 'lhs, rhs: 'lhs} | Mul[?] & {lhs: 'lhs, rhs: 'lhs} | Num & 'result | Var & 'result) -> (Abs['body] | Add['body] | (App['lhs0 | 'body] with {lhs: 'lhs0, rhs: 'body}) | Mul['body] | Num | 'result)
+//│ eval_lexpr: (((Cons[('a, Var | 'body,) | 'A] with {head: ('a, Var | 'body,), tail: Nil | 'tail}) | 'tail) -> 'lhs -> ('result & 'body & ((Abs[?] with {body: 'lhs, name: 'a}) | 'lhs0 & ~#Abs))) -> (List['A] & 'b & 'tail) -> ((Abs[?] with {body: 'lhs, name: 'a}) | Add[?] & {lhs: 'lhs, rhs: 'lhs} | App[?] & {lhs: 'lhs, rhs: 'lhs} | Mul[?] & {lhs: 'lhs, rhs: 'lhs} | Num & 'result | Var & 'result) -> (Abs['body] | Add['body] | (App['lhs0 | 'body] with {lhs: 'lhs0, rhs: 'body}) | Mul['body] | Num | 'result)
 //│   where
 //│     'b <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'b}) | Nil
 //│           = <no result>
@@ -427,25 +427,28 @@ rec def eval4 subst = eval_lexpr' eval4 subst
 //│   where
 //│     'b <: Abs[?] | Add[?] & {lhs: 'b, rhs: 'b} | App[?] | Mul[?] & {lhs: 'b, rhs: 'b} | Num | Var
 //│     'a <: (Cons[?] with {head: {_1: string, _2: 'result & (Num | ~#Num)}, tail: 'a}) | Nil
-//│     'result :> Mul['result] | Add['result] | Abs[nothing] | App[nothing] | Num | Var
+//│     'result :> Abs[nothing] | App[nothing] | Num | Var | Mul['result] | Add['result]
 //│      = <no result>
 //│        eval_lexpr', eval_var, list_assoc and eq are not implemented
 
 :Fuel 20000
 
 rec def eval4 subst = eval_lexpr' eval4 subst
-//│ eval4: (List[?] & 'tail) -> 'b -> 'rhs
+//│ eval4: (List[?] & 'tail & 'tail0) -> 'b -> 'rhs
 //│   where
-//│     'tail <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'tail}) | Nil
-//│     'result :> 'rhs | Var | Num
+//│     'tail0 <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'tail0}) | Nil
+//│     'tail <: (Cons[?] with {head: {_1: string, _2: 'result0}, tail: 'tail}) | Nil
+//│     'result0 :> Num | 'rhs | Var
+//│              <: 'b & (Abs[?] & 'c | 'lhs & (Abs[?] & 'c & ~#Abs | 'lhs0 & (Num | ~#Abs & ~#Num)))
+//│     'rhs :> Abs['rhs] | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | 'result0 | 'result | 'd | 'e | (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs})
+//│     'result :> 'rhs | Var
 //│             <: 'b & (Abs[?] & 'c | 'lhs & (Abs[?] & 'c & ~#Abs | 'lhs0 & (Num | ~#Abs & ~#Num)))
-//│     'rhs :> Abs['rhs] | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | 'result | 'd | 'e | (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs})
 //│     'a :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | 'rhs | Var
 //│     'lhs :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | Num | Var
 //│          <: 'b & 'a
 //│     'lhs0 :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | Num | Var
 //│           <: 'b & 'a
-//│     'b <: Abs[?] & {body: 'b} | Add[?] & {lhs: 'b, rhs: 'b} | App[?] & {lhs: 'b, rhs: 'b} | Mul[?] & {lhs: 'b, rhs: 'b} | Num & (Add[?] & 'e | Mul[?] & 'e | Num & 'result | Var & 'd) | Var & 'd
+//│     'b <: Abs[?] & {body: 'b} | Add[?] & {lhs: 'b, rhs: 'b} | App[?] & {lhs: 'b, rhs: 'b} | Mul[?] & {lhs: 'b, rhs: 'b} | Num & (Add[?] & 'e | Mul[?] & 'e | Num & 'result0 | Var & 'd) | Var & 'd
 //│     'd :> Var
 //│        <: 'b & (Abs[?] & 'c | 'lhs & (Abs[?] & 'c & ~#Abs | 'lhs0 & (Num & {name: string} | {name: string} & ~#Abs & ~#Num)))
 //│     'e :> (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (Add['rhs] with {lhs: 'rhs, rhs: 'rhs})

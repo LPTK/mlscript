@@ -596,7 +596,7 @@ rec def id1 x = if true then x else id1 id1 x
 :e
 // G9
 id1 id1
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?d ?id1 ?e. ?id1 <: (forall ?f ?g ?id10 ?h ?i ?j. ?id10) -> ?k` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?d ?e ?id1. ?id1 <: (forall ?f ?g ?h ?i ?id10 ?j. ?id10) -> ?k` exceeded recursion depth limit (250)
 //│ ║  l.598: 	id1 id1
 //│ ║         	^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
@@ -615,14 +615,14 @@ auto auto
 //│ ╟── Note: constraint arises from function type:
 //│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                       ^^^^^^^^
-//│ res: 'b -> 'b | error
+//│ res: 'b -> 'b
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
 // Gn+1
 :e
 (fun x -> x x) (fun x -> x x)
-//│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: (forall ?c ?d. ?c -> ?d) -> ?e` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `(forall ?a ?b. ?b -> ?a,) <: (?c,)` exceeded recursion depth limit (250)
 //│ ║  l.624: 	(fun x -> x x) (fun x -> x x)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
@@ -938,7 +938,7 @@ rec def id1 x = if true then x else id1 id1 x
 :e
 // G9
 id1 id1
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?id1 ?c ?d ?e. ?id1 <: (forall ?f ?id10 ?g ?h ?i ?j. ?id10) -> ?k` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?d ?e ?id1. ?id1 <: (forall ?f ?g ?h ?i ?id10 ?j. ?id10) -> ?k` exceeded recursion depth limit (250)
 //│ ║  l.940: 	id1 id1
 //│ ║         	^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
@@ -957,14 +957,14 @@ auto auto
 //│ ╟── Note: constraint arises from function type:
 //│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                       ^^^^^^^^
-//│ res: 'b -> 'b | error
+//│ res: 'b -> 'b
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
 // Gn+1
 :e
 (fun x -> x x) (fun x -> x x)
-//│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: (forall ?c ?d. ?c -> ?d) -> ?e` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `(forall ?a ?b. ?b -> ?a,) <: (?c,)` exceeded recursion depth limit (250)
 //│ ║  l.966: 	(fun x -> x x) (fun x -> x x)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
@@ -1305,7 +1305,7 @@ auto auto
 //│ ╟── Note: constraint arises from function type:
 //│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                       ^^^^^^^^
-//│ res: 'b -> 'b | error
+//│ res: 'b -> 'b
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -1653,7 +1653,7 @@ auto auto
 //│ ╟── Note: constraint arises from function type:
 //│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                       ^^^^^^^^
-//│ res: 'b -> 'b | error
+//│ res: 'b -> 'b
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 

@@ -45,7 +45,7 @@ succ x3
 //│ ╟── [info] flowing into type `int`
 //│ ║  l.3: 	def succ: int -> int
 //│ ╙──     	          ^^^
-//│ res: error | int
+//│ res: int
 
 
 f1 y1 = succ y1
@@ -281,7 +281,7 @@ h3 f3 x3
 //│ ╟── [info] flowing into type `int`
 //│ ║  l.3: 	def succ: int -> int
 //│ ╙──     	          ^^^
-//│ res: error | int
+//│ res: int
 
 // :d
 :ex
@@ -296,9 +296,6 @@ rec def x = add x
 //│ ╟── ========= Additional explanations below =========
 //│ ╟── [info] flowing from expression of type `int -> int`
 //│ ╟── [info] flowing from application of type `int -> int`
-//│ ║  l.288: 	rec def x = add x
-//│ ║         	            ^^^^^
-//│ ╟── [info] flowing from application of type `?a`
 //│ ║  l.288: 	rec def x = add x
 //│ ║         	            ^^^^^
 //│ ╟── [info] flowing into expression of type `?x`
@@ -316,31 +313,31 @@ def foo: int | string
 :ex
 succ foo
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.317: 	succ foo
+//│ ║  l.314: 	succ foo
 //│ ║         	^^^^^^^^
 //│ ╟── type `string` is not an instance of `int`
-//│ ║  l.313: 	def foo: int | string
+//│ ║  l.310: 	def foo: int | string
 //│ ║         	               ^^^^^^
 //│ ╟── but it flows into reference with expected type `int`
-//│ ║  l.317: 	succ foo
+//│ ║  l.314: 	succ foo
 //│ ║         	     ^^^
 //│ ╟── Note: constraint arises from type reference:
 //│ ║  l.3: 	def succ: int -> int
 //│ ║       	          ^^^
 //│ ╟── ========= Additional explanations below =========
 //│ ╟── [info] flowing from type `string`
-//│ ║  l.313: 	def foo: int | string
+//│ ║  l.310: 	def foo: int | string
 //│ ║         	               ^^^^^^
 //│ ╟── [info] flowing from type `int | string`
-//│ ║  l.313: 	def foo: int | string
+//│ ║  l.310: 	def foo: int | string
 //│ ║         	         ^^^^^^^^^^^^
 //│ ╟── [info] flowing from reference of type `int | string`
-//│ ║  l.317: 	succ foo
+//│ ║  l.314: 	succ foo
 //│ ║         	     ^^^
 //│ ╟── [info] flowing into type `int`
 //│ ║  l.3: 	def succ: int -> int
 //│ ╙──     	          ^^^
-//│ res: error | int
+//│ res: int
 
 
 
@@ -367,31 +364,31 @@ ty00 = ty11
 //│   <:  ty00:
 //│ (A & 'a | B & 'b) -> ('a, 'b,)
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.365: 	ty00 = ty11
+//│ ║  l.362: 	ty00 = ty11
 //│ ║         	^^^^^^^^^^^
 //│ ╟── type `B & 'b` does not match type `'a`
-//│ ║  l.352: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
+//│ ║  l.349: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
 //│ ║         	                    ^^^^^^
 //│ ╟── Note: constraint arises from type variable:
-//│ ║  l.352: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
+//│ ║  l.349: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
 //│ ║         	                                ^^
 //│ ╟── ========= Additional explanations below =========
 //│ ╟── [info] flowing from expression of type `B & 'b`
 //│ ╟── [info] flowing from type `B & 'b`
-//│ ║  l.352: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
+//│ ║  l.349: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
 //│ ║         	                    ^^^^^^
 //│ ╟── [info] flowing from type `B & 'b`
-//│ ║  l.352: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
+//│ ║  l.349: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
 //│ ║         	          ^^^^^^^^^^^^^^^^^
 //│ ╟── [info] flowing from type `B & 'b`
-//│ ║  l.355: 	def ty11: ('a & A | 'a & B) -> ('a, 'a)
+//│ ║  l.352: 	def ty11: ('a & A | 'a & B) -> ('a, 'a)
 //│ ║         	          ^^^^^^^^^^^^^^^^^
 //│ ╟── [info] flowing from expression of type `'a0`
 //│ ╟── [info] flowing from type `'a1`
-//│ ║  l.355: 	def ty11: ('a & A | 'a & B) -> ('a, 'a)
+//│ ║  l.352: 	def ty11: ('a & A | 'a & B) -> ('a, 'a)
 //│ ║         	                                ^^
 //│ ╟── [info] flowing into type `'a`
-//│ ║  l.352: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
+//│ ║  l.349: 	def ty00: ('a & A | 'b & B) -> ('a, 'b)
 //│ ║         	                                ^^
 //│ ╙── [info] flowing into expression of type `'a`
 

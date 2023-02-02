@@ -21,9 +21,9 @@ def eval1 eval1 e = case e of {
   }
 //│ eval1: ('a -> 'lhs -> int & 'a) -> (Add[?] & {lhs: 'lhs, rhs: 'lhs} | (Lit with {val: 'val})) -> (int | 'val)
 //│      = [Function: eval1]
-//│ constrain calls  : 36
+//│ constrain calls  : 27
 //│ annoying  calls  : 0
-//│ subtyping calls  : 179
+//│ subtyping calls  : 144
 
 :stats
 :js
@@ -43,9 +43,9 @@ def eval1f eval1 e = case e of {
 //│ // End of generated code
 //│ eval1f: ('lhs -> int) -> (Add[?] & {lhs: 'lhs, rhs: 'lhs} | (Lit with {val: 'val})) -> (int | 'val)
 //│       = [Function: eval1f]
-//│ constrain calls  : 32
+//│ constrain calls  : 23
 //│ annoying  calls  : 0
-//│ subtyping calls  : 156
+//│ subtyping calls  : 121
 
 
 e1 = add (lit 1) (add (lit 2) (lit 3))
@@ -162,7 +162,7 @@ eval2_fixed_2 e1
 //│    = 6
 //│ constrain calls  : 348
 //│ annoying  calls  : 140
-//│ subtyping calls  : 2921
+//│ subtyping calls  : 2920
 
 :stats
 eval2_fixed_2 e2
@@ -170,7 +170,7 @@ eval2_fixed_2 e2
 //│    = -5
 //│ constrain calls  : 835
 //│ annoying  calls  : 345
-//│ subtyping calls  : 8060
+//│ subtyping calls  : 8059
 
 
 
@@ -226,7 +226,7 @@ def eval1_fixed = eval1f (fun x -> eval1f eval1f x)
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	def eval1_fixed = eval1f (fun x -> eval1f eval1f x)
 //│ ║        	                                   ^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> (forall ?b. ?val | ?b)` is not an instance of type `int`
+//│ ╟── function of type `?a -> (int | ?val)` is not an instance of type `int`
 //│ ║  l.30: 	def eval1f eval1 e = case e of {
 //│ ║        	                 ^^^^^^^^^^^^^^^
 //│ ║  l.31: 	  | Lit -> e.val
@@ -244,7 +244,7 @@ rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ╔══[ERROR] Type mismatch in binding of application:
 //│ ║  l.+1: 	rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> (forall ?b. ?val | ?b)` does not match type `Add[?] & ?c | Lit & ?d`
+//│ ╟── function of type `?a -> (int | ?val)` does not match type `Add[?] & ?b | Lit & ?c`
 //│ ║  l.30: 	def eval1f eval1 e = case e of {
 //│ ║        	                 ^^^^^^^^^^^^^^^
 //│ ║  l.31: 	  | Lit -> e.val
@@ -253,7 +253,7 @@ rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ║  l.33: 	  }
 //│ ║        	^^^
-//│ ╟── but it flows into application with expected type `Add[?] & ?e | Lit & ?f`
+//│ ╟── but it flows into application with expected type `Add[?] & ?d | Lit & ?e`
 //│ ║  l.+1: 	rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:

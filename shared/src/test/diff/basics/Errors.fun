@@ -91,21 +91,21 @@ log / false + 1
 //│ ╟── reference of type `false` is not an instance of type `int`
 //│ ║  l.+3: 	let oops = succ false
 //│ ╙──      	                ^^^^^
-//│ oops: error | int
+//│ oops: int
 //│ ╔══[ERROR] Type mismatch in operator application:
 //│ ║  l.+4: 	false + 1
 //│ ║        	^^^^^^^
 //│ ╟── reference of type `false` is not an instance of type `int`
 //│ ║  l.+4: 	false + 1
 //│ ╙──      	^^^^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in operator application:
 //│ ║  l.+5: 	1 + false
 //│ ║        	^^^^^^^^^
 //│ ╟── reference of type `false` is not an instance of type `int`
 //│ ║  l.+5: 	1 + false
 //│ ╙──      	    ^^^^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in operator application:
 //│ ║  l.+6: 	true + false
 //│ ║        	^^^^^^
@@ -118,7 +118,7 @@ log / false + 1
 //│ ╟── reference of type `false` is not an instance of type `int`
 //│ ║  l.+6: 	true + false
 //│ ╙──      	       ^^^^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in operator application:
 //│ ║  l.+7: 	log / false + 1
 //│ ║        	      ^^^^^^^
@@ -157,7 +157,7 @@ succ succ
 //│ ╟── reference of type `false` is not an instance of type `int`
 //│ ║  l.+5: 	) false
 //│ ╙──      	  ^^^^^
-//│ res: error | int
+//│ res: int
 
 :e
 :w
@@ -224,7 +224,7 @@ succ ((((false))))
 //│ ╟── but it flows into argument with expected type `int`
 //│ ║  l.+1: 	succ ((((false))))
 //│ ╙──      	     ^^^^^^^^^^^^^
-//│ res: error | int
+//│ res: int
 
 :e
 let rec f = n => if n then 0 else f (miss + 1)
@@ -297,7 +297,7 @@ succ {a: 1}
 //│ ╟── but it flows into field selection with expected type `int`
 //│ ║  l.+5: 	1 + {a: true}.a
 //│ ╙──      	             ^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in operator application:
 //│ ║  l.+6: 	{a: true}.a + 1
 //│ ║        	         ^^^^
@@ -307,14 +307,14 @@ succ {a: 1}
 //│ ╟── but it flows into field selection with expected type `int`
 //│ ║  l.+6: 	{a: true}.a + 1
 //│ ╙──      	         ^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+7: 	succ {a: 1}
 //│ ║        	^^^^^^^^^^^
 //│ ╟── record of type `{a: 1}` is not an instance of type `int`
 //│ ║  l.+7: 	succ {a: 1}
 //│ ╙──      	     ^^^^^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+8: 	{a: 1} succ
 //│ ║        	^^^^^^^^^^^
@@ -477,7 +477,7 @@ f arg2
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+3: 	f arg1
 //│ ║        	^^^^^^
-//│ ╟── record of type `{fld: ?a}` does not have field 'prop'
+//│ ╟── record of type `{fld: bool}` does not have field 'prop'
 //│ ║  l.+1: 	let arg1 = {fld: not true}
 //│ ║        	           ^^^^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `{prop: ?prop}`
@@ -493,7 +493,7 @@ f arg2
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+4: 	f arg2
 //│ ║        	^^^^^^
-//│ ╟── record of type `{fld: forall ?a. {prop: ?a}}` does not have field 'prop'
+//│ ╟── record of type `{fld: {prop: bool}}` does not have field 'prop'
 //│ ║  l.+2: 	let arg2 = {fld: arg}
 //│ ║        	           ^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `{prop: ?prop}`
@@ -521,7 +521,7 @@ x => h / succ x
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	h arg2
 //│ ║        	^^^^^^
-//│ ╟── record of type `{fld: forall ?a. {prop: ?a}}` does not have field 'prop'
+//│ ╟── record of type `{fld: {prop: bool}}` does not have field 'prop'
 //│ ║  l.472: 	let arg2 = {fld: arg}
 //│ ║         	           ^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `{prop: ?prop}`
@@ -612,7 +612,7 @@ i arg
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+2: 	i arg
 //│ ║        	^^^^^
-//│ ╟── record of type `{prop: ?a}` does not have field 'fld'
+//│ ╟── record of type `{prop: bool}` does not have field 'fld'
 //│ ║  l.402: 	let arg = {prop: not true}
 //│ ║         	          ^^^^^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `{fld: ?fld}`

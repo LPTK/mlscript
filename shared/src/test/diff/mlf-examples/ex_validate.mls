@@ -189,7 +189,7 @@ delta_ succ
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.177: 	delta_ succ
 //│ ║         	^^^^^^^^^^^
-//│ ╟── function of type `?a -> (forall ?b. ?b)` is not an instance of type `int`
+//│ ╟── function of type `?a -> int` is not an instance of type `int`
 //│ ║  l.125: 	def succ n = n + 1
 //│ ║         	         ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `int`
@@ -478,7 +478,7 @@ def polyann_ a b f g = g (f 10) a b
 
 // let voyage (f:'p -> 'q) x y = (y, f x)
 def voyage (f: 'p -> 'q) x y = (y, f x)
-//│ voyage: ('p -> 'a) -> 'p -> 'b -> ('b, 'a,)
+//│ voyage: ('p -> 'q) -> 'p -> 'a -> ('a, 'q,)
 //│       = [Function: voyage]
 
 def voyage_ f x y = (y, f x)
@@ -796,7 +796,7 @@ def a = fun f -> f id
 //│            = [Function: church_succ]
 //│ f: Sa -> Sid
 //│  = [Function: f]
-//│ f_: ((forall 'a 'b. ('b -> 'a & 'b) -> 'a) -> 'c & (forall 'd 'e. ((forall 'f. anything -> 'f -> 'f) -> 'd -> anything) -> 'd -> 'e -> 'e) -> anything) -> 'c
+//│ f_: ((forall 'a 'b. ('a -> 'b & 'a) -> 'b) -> 'c & (forall 'd 'e. ((forall 'f. anything -> 'f -> 'f) -> 'd -> anything) -> 'd -> 'e -> 'e) -> anything) -> 'c
 //│   = [Function: f_]
 //│ a: ((forall 'a. 'a -> 'a) -> 'b) -> 'b
 //│  = [Function: a]

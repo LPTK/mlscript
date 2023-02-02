@@ -138,7 +138,7 @@ to_church = to_ch
 //│     'a <: 'b -> 'c -> 'd)) | ChurchInt
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?to_ch ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?to_ch ?c ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
 //│ ║  l.133: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
@@ -166,7 +166,7 @@ to_church = to_ch
 //│     'a <: 'b -> 'c -> 'd)) | ChurchInt
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?to_ch ?a ?b ?c ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?to_ch ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
 //│ ║  l.161: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
@@ -493,7 +493,7 @@ to_church = to_ch
 //│     'd <: 'e -> 'f -> 'g)
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?to_ch ?a ?b ?c ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?to_ch ?b ?c ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
 //│ ║  l.486: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.

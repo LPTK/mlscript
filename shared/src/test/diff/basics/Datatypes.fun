@@ -195,7 +195,7 @@ not (Cons 42 Nil).head
 //│ ╟── but it flows into field selection with expected type `bool`
 //│ ║  l.188: 	not (Cons 42 Nil).head
 //│ ╙──       	                 ^^^^^
-//│ res: bool | error
+//│ res: bool
 
 :e
 (Cons 4).head

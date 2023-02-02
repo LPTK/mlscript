@@ -65,7 +65,7 @@ not / foo(true)
 //│ ╟── but it flows into application with expected type `int`
 //│ ║  l.31: 	succ / foo(1)
 //│ ╙──      	       ^^^^^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.32: 	foo(true)
 //│ ║        	^^^^^^^^^
@@ -100,7 +100,7 @@ not / foo(true)
 //│ ╟── but it flows into application with expected type `bool`
 //│ ║  l.33: 	not / foo(true)
 //│ ╙──      	      ^^^^^^^^^
-//│ res: bool | error
+//│ res: bool
 
 :e
 not / foo(1)
@@ -126,7 +126,7 @@ foo(1) as Nothing
 //│ ╟── but it flows into application with expected type `bool`
 //│ ║  l.106: 	not / foo(1)
 //│ ╙──       	      ^^^^^^
-//│ res: bool | error
+//│ res: bool
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.107: 	foo(1) as Nothing
 //│ ║         	^^^^^^

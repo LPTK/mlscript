@@ -42,7 +42,7 @@ h / mkArg false
 //│ ╟── from variable:
 //│ ║  l.32: 	(x => succ x) false
 //│ ╙──      	 ^
-//│ res: error | int
+//│ res: int
 
 
 let f = x =>

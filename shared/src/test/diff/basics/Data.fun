@@ -27,7 +27,7 @@ foo p
 
 // TODO properly check pattern types!
 let bar (q: Person _) = q.age
-//│ bar: (q: {age: 'age},) -> 'age
+//│ bar: (q: Person\name with {age: 'age},) -> 'age
 
 bar p
 //│ res: int
@@ -35,7 +35,7 @@ bar p
 :e
 bar {}
 bar {name: "Bob"}
-bar {age: 1} // TODO B/E
+bar {age: 1}
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.36: 	bar {}
 //│ ║        	^^^^^^
@@ -62,14 +62,41 @@ bar {age: 1} // TODO B/E
 //│ ║  l.29: 	let bar (q: Person _) = q.age
 //│ ╙──      	         ^^^^^^^^^^^
 //│ res: error
-//│ res: 1
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.38: 	bar {age: 1}
+//│ ║        	^^^^^^^^^^^^
+//│ ╟── record of type `{age: 1}` is not an instance of type `Person`
+//│ ║  l.38: 	bar {age: 1}
+//│ ║        	    ^^^^^^^^
+//│ ╟── Note: constraint arises from application:
+//│ ║  l.29: 	let bar (q: Person _) = q.age
+//│ ║        	            ^^^^^^^^
+//│ ╟── from binding:
+//│ ║  l.29: 	let bar (q: Person _) = q.age
+//│ ╙──      	         ^^^^^^^^^^^
+//│ res: 1 | error
 
 let fake-p = { name: "Bob", age: 42 }
 //│ fake-p: {age: 42, name: "Bob"}
 
-// :e // TODO B/E
+:e
 bar fake-p
-//│ res: 42
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.83: 	bar fake-p
+//│ ║        	^^^^^^^^^^
+//│ ╟── record of type `{age: 42, name: "Bob"}` is not an instance of type `Person`
+//│ ║  l.79: 	let fake-p = { name: "Bob", age: 42 }
+//│ ║        	             ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `Person`
+//│ ║  l.83: 	bar fake-p
+//│ ║        	    ^^^^^^
+//│ ╟── Note: constraint arises from application:
+//│ ║  l.29: 	let bar (q: Person _) = q.age
+//│ ║        	            ^^^^^^^^
+//│ ╟── from binding:
+//│ ║  l.29: 	let bar (q: Person _) = q.age
+//│ ╙──      	         ^^^^^^^^^^^
+//│ res: 42 | error
 
 data Wine(name: string, age: int)
 let w = Wine("Côtes du Rhône", 3)
@@ -77,14 +104,41 @@ let w = Wine("Côtes du Rhône", 3)
 //│ Wine: (name: string, age: int,) -> Wine
 //│ w: Wine
 
-// :e
+:e
 bar w
 bar (q: w)
-//│ res: int
-//│ res: int
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.108: 	bar w
+//│ ║         	^^^^^
+//│ ╟── application of type `Wine` is not an instance of `Person`
+//│ ║  l.102: 	let w = Wine("Côtes du Rhône", 3)
+//│ ║         	        ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `Person`
+//│ ║  l.108: 	bar w
+//│ ║         	    ^
+//│ ╟── Note: constraint arises from application:
+//│ ║  l.29: 	let bar (q: Person _) = q.age
+//│ ║        	            ^^^^^^^^
+//│ ╟── from binding:
+//│ ║  l.29: 	let bar (q: Person _) = q.age
+//│ ╙──      	         ^^^^^^^^^^^
+//│ res: error | int
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.109: 	bar (q: w)
+//│ ║         	^^^^^^^^^^
+//│ ╟── application of type `Wine` is not an instance of `Person`
+//│ ║  l.102: 	let w = Wine("Côtes du Rhône", 3)
+//│ ║         	        ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `Person`
+//│ ║  l.109: 	bar (q: w)
+//│ ║         	        ^
+//│ ╟── Note: constraint arises from application:
+//│ ║  l.29: 	let bar (q: Person _) = q.age
+//│ ╙──      	            ^^^^^^^^
+//│ res: error | int
 
 let bar2 (q: Person _) = succ q.age
-//│ bar2: (q: {age: int},) -> int
+//│ bar2: (q: Person,) -> int
 
 
 :e
@@ -92,13 +146,13 @@ let nested x =
   data Foo a // Note: we get one error for the synthetic class, and one for the synthetic def...
   Foo x
 //│ ╔══[ERROR] Illegal position for this type declaration statement.
-//│ ║  l.92: 	  data Foo a // Note: we get one error for the synthetic class, and one for the synthetic def...
-//│ ╙──      	       ^^^^^
+//│ ║  l.146: 	  data Foo a // Note: we get one error for the synthetic class, and one for the synthetic def...
+//│ ╙──       	       ^^^^^
 //│ ╔══[ERROR] Illegal position for this definition statement.
-//│ ║  l.92: 	  data Foo a // Note: we get one error for the synthetic class, and one for the synthetic def...
-//│ ╙──      	       ^^^^^
+//│ ║  l.146: 	  data Foo a // Note: we get one error for the synthetic class, and one for the synthetic def...
+//│ ╙──       	       ^^^^^
 //│ ╔══[ERROR] identifier not found: Foo
-//│ ║  l.93: 	  Foo x
-//│ ╙──      	  ^^^
+//│ ║  l.147: 	  Foo x
+//│ ╙──       	  ^^^
 //│ nested: error -> error
 

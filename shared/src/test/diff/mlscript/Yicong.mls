@@ -99,7 +99,7 @@ f ((true,false))
 //│ ╟── reference of type `true` does not match type `1 | 3`
 //│ ║  l.95: 	f ((true,false))
 //│ ╙──      	    ^^^^
-//│ res: error
+//│ res: anything
 //│    = <no result>
 //│      f is not implemented
 
@@ -292,7 +292,7 @@ sum t2
 //│ ╟── Note: constraint arises from type reference:
 //│ ║  l.270: 	def sum: Array[int] -> int
 //│ ╙──       	               ^^^
-//│ res: error | int
+//│ res: int
 //│    = <no result>
 //│      sum is not implemented
 
@@ -805,10 +805,10 @@ ge[2]
 //│ ╔══[ERROR] Type mismatch in array access:
 //│ ║  l.762: 	ge[2]
 //│ ║         	^^^^^
-//│ ╟── function of type `?a -> (forall ?b. ?b)` does not match type `Array[?c]`
+//│ ╟── function of type `?a -> int` does not match type `Array[?b]`
 //│ ║  l.758: 	def ge x = x + 1
 //│ ║         	       ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `Array[?d]`
+//│ ╟── but it flows into reference with expected type `Array[?c]`
 //│ ║  l.762: 	ge[2]
 //│ ╙──       	^^
 //│ res: error | undefined

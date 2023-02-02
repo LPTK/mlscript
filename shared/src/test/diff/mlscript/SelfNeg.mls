@@ -86,7 +86,7 @@ r[0] + 1
 //│ ╟── possibly-undefined array access of type `undefined` is not an instance of type `int`
 //│ ║  l.82: 	r[0] + 1
 //│ ╙──      	^^^^
-//│ res: error | int
+//│ res: int
 //│    = <no result>
 //│      r and foo are not implemented
 
@@ -111,9 +111,7 @@ r = bar (fun x -> (x, x + 1, not x, x x))
 r
 //│ res: forall 'b 'a 'c 'd. 'b
 //│   where
-//│     'b :> forall 'e 'f. ('c, 'e, 'f, 'd,)
-//│     'f :> bool
-//│     'e :> int
+//│     'b :> ('c, int, bool, 'd,)
 //│     'c :> 'a & int & ~'a
 //│        <: 'c -> 'd & bool & int
 //│     'a <: (bool | ~(int & ~'a)) & ('c -> 'd | ~(int & ~'a))

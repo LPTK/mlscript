@@ -165,7 +165,7 @@ res.x + 1
 //│ ╟── but it flows into field selection with expected type `int`
 //│ ║  l.149: 	res.x + 1
 //│ ╙──       	^^^^^
-//│ res: error | int
+//│ res: int
 //│    = 1
 
 n2 wrap 0
@@ -203,7 +203,7 @@ res.x.x + 1
 //│ ╟── but it flows into field selection with expected type `int`
 //│ ║  l.178: 	res.x.x + 1
 //│ ╙──       	^^^^^^^
-//│ res: error | int
+//│ res: int
 //│    = 1
 
 
@@ -249,7 +249,7 @@ res.x + 1
 //│ ╟── but it flows into field selection with expected type `int`
 //│ ║  l.233: 	res.x + 1
 //│ ╙──       	^^^^^
-//│ res: error | int
+//│ res: int
 //│    = 1
 
 
@@ -471,16 +471,16 @@ sz = s zero
 
 :ns
 sz
-//│ res: forall 'a 'b 'c 'N 'd. 'a
+//│ res: forall 'a 'b 'c 'N 'd. 'b
 //│   where
-//│     'a :> forall 'e 'f 'g. 'e -> (forall 'h 'i. 'h -> 'i)
+//│     'b :> forall 'e 'f 'g. 'e -> (forall 'h 'i. 'h -> 'i)
 //│     'i :> 'g
 //│     'h <: 'c
 //│     'c <: 'N
-//│     'e <: 'f -> 'g & 'b
-//│     'b <: 'N -> 'N
-//│     'N <: 'd
-//│     'f :> 'd
+//│     'e <: 'f -> 'g & 'd
+//│     'd <: 'N -> 'N
+//│     'N <: 'a
+//│     'f :> 'a
 //│    = [Function (anonymous)]
 
 sz: ChurchInt

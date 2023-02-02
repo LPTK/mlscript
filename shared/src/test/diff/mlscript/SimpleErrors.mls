@@ -7,7 +7,7 @@ succ false
 //│ ╟── reference of type `false` is not an instance of type `int`
 //│ ║  l.3: 	succ false
 //│ ╙──     	     ^^^^^
-//│ res: error | int
+//│ res: int
 
 x = "oops"
 //│ x: "oops"
@@ -109,6 +109,6 @@ add boom 1
 //│ ╟── but it flows into reference with expected type `int`
 //│ ║  l.102: 	add boom 1
 //│ ╙──       	    ^^^^
-//│ res: error | int
+//│ res: int
 
 

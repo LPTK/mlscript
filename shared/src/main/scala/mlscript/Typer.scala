@@ -848,17 +848,23 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
               typeArg(a)
           }
         }
-        val res = freshVar(prov, N)
         val arg_ty = mkProxy(a_ty, tp(a.toCoveringLoc, "argument"))
           // ^ Note: this no longer really makes a difference, due to tupled arguments by default
         val funProv = tp(f.toCoveringLoc, "applied expression")
         val fun_ty = mkProxy(f_ty, funProv)
           // ^ This is mostly not useful, except in test Tuples.fun with `(1, true, "hey").2`
-        val resTy = con(fun_ty, FunctionType(arg_ty, res)(
-          prov
-          // funProv // TODO: better?
-          ), res)
-        resTy
+        def go(f_ty: ST): ST = f_ty.unwrapProxies match {
+          case FunctionType(l, r) =>
+            con(arg_ty, l, r.withProv(prov))
+          case _ =>
+            val res = freshVar(prov, N)
+            val resTy = con(fun_ty, FunctionType(arg_ty, res)(
+              prov
+              // funProv // TODO: better?
+              ), res)
+            resTy
+        }
+        go(f_ty)
       case Sel(obj, fieldName) =>
         implicit val shadows: Shadows = Shadows.empty
         // Explicit method calls have the form `x.(Class.Method)`

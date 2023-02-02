@@ -90,12 +90,12 @@ def mul_ty: ChurchInt -> ChurchInt -> ChurchInt
 //│       = <missing implementation>
 
 def mul n m = n (add m) zero
-//│ mul: ((forall 'a 'b 'c 'd 'e. ('d -> 'b -> 'a & 'c) -> (('a -> ('a & 'e) & 'd) -> 'b -> 'e | 'c)) -> (forall 'f. anything -> 'f -> 'f) -> 'g) -> ChurchInt -> 'g
+//│ mul: ((forall 'a 'b 'c 'd 'e. ('c -> 'b -> 'a & 'e) -> (('a -> ('a & 'd) & 'c) -> 'b -> 'd | 'e)) -> (forall 'f. anything -> 'f -> 'f) -> 'g) -> ChurchInt -> 'g
 //│    = [Function: mul]
 
 // * Note: cycle check fails when generalizing curried lambdas
 mul_ty = mul
-//│ ((forall 'a 'b 'c 'd 'e. ('a -> 'e -> 'd & 'c) -> (('d -> ('d & 'b) & 'a) -> 'e -> 'b | 'c)) -> (forall 'f. anything -> 'f -> 'f) -> 'g) -> ChurchInt -> 'g
+//│ ((forall 'a 'b 'c 'd 'e. ('d -> 'e -> 'c & 'b) -> (('c -> ('c & 'a) & 'd) -> 'e -> 'a | 'b)) -> (forall 'f. anything -> 'f -> 'f) -> 'g) -> ChurchInt -> 'g
 //│   <:  mul_ty:
 //│ ChurchInt -> ChurchInt -> ChurchInt
 //│       = [Function: mul]
@@ -230,11 +230,11 @@ def pred n =
   let s p = pair (snd p) (succ (snd p)) in
   let z = pair zero zero in
   fst (n s z)
-//│ pred: ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> ('b -> 'a -> 'c & 'e)) -> ('e -> (('c -> 'f & 'b) -> 'a -> 'f) -> 'd) -> 'd) -> (forall 'h. ((forall 'i. anything -> 'i -> 'i) -> (forall 'i. anything -> 'i -> 'i) -> 'h) -> 'h) -> (forall 'j. 'j -> anything -> 'j) -> 'k) -> 'k
+//│ pred: ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> ('f -> 'd -> 'b & 'a)) -> ('a -> (('b -> 'c & 'f) -> 'd -> 'c) -> 'e) -> 'e) -> (forall 'h. ((forall 'i. anything -> 'i -> 'i) -> (forall 'i. anything -> 'i -> 'i) -> 'h) -> 'h) -> (forall 'j. 'j -> anything -> 'j) -> 'k) -> 'k
 //│     = [Function: pred1]
 // * Note: cycle check fails when generalizing curried lambdas
 pred_ty = pred
-//│ ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> ('e -> 'a -> 'b & 'c)) -> ('c -> (('b -> 'f & 'e) -> 'a -> 'f) -> 'd) -> 'd) -> (forall 'h. ((forall 'i. anything -> 'i -> 'i) -> (forall 'i. anything -> 'i -> 'i) -> 'h) -> 'h) -> (forall 'j. 'j -> anything -> 'j) -> 'k) -> 'k
+//│ ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> ('b -> 'a -> 'd & 'f)) -> ('f -> (('d -> 'c & 'b) -> 'a -> 'c) -> 'e) -> 'e) -> (forall 'h. ((forall 'i. anything -> 'i -> 'i) -> (forall 'i. anything -> 'i -> 'i) -> 'h) -> 'h) -> (forall 'j. 'j -> anything -> 'j) -> 'k) -> 'k
 //│   <:  pred_ty:
 //│ ChurchInt -> ChurchInt
 //│        = [Function: pred1]
@@ -244,7 +244,7 @@ def pred n =
   let s p = pair (snd p) (succ_ty (snd p)) in
   let z = pair zero zero in
   fst (n s z)
-//│ pred: ((forall 'a 'b. ((forall 'c. anything -> 'c -> 'c) -> (ChurchInt & 'b)) -> ('b -> ChurchInt -> 'a) -> 'a) -> (forall 'd. ((forall 'e. anything -> 'e -> 'e) -> (forall 'e. anything -> 'e -> 'e) -> 'd) -> 'd) -> (forall 'f. 'f -> anything -> 'f) -> 'g) -> 'g
+//│ pred: ((forall 'a 'b. ((forall 'c. anything -> 'c -> 'c) -> (ChurchInt & 'a)) -> ('a -> ChurchInt -> 'b) -> 'b) -> (forall 'd. ((forall 'e. anything -> 'e -> 'e) -> (forall 'e. anything -> 'e -> 'e) -> 'd) -> 'd) -> (forall 'f. 'f -> anything -> 'f) -> 'g) -> 'g
 //│     = [Function: pred2]
 pred_ty = pred
 //│ ((forall 'a 'b. ((forall 'c. anything -> 'c -> 'c) -> (ChurchInt & 'a)) -> ('a -> ChurchInt -> 'b) -> 'b) -> (forall 'd. ((forall 'e. anything -> 'e -> 'e) -> (forall 'e. anything -> 'e -> 'e) -> 'd) -> 'd) -> (forall 'f. 'f -> anything -> 'f) -> 'g) -> 'g

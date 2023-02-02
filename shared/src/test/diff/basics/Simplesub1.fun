@@ -59,7 +59,7 @@ succ true
 //│ ╟── reference of type `true` is not an instance of type `int`
 //│ ║  l.+1: 	succ true
 //│ ╙──      	     ^^^^
-//│ res: error | int
+//│ res: int
 
 :e
 x => succ (not x)
@@ -72,7 +72,7 @@ x => succ (not x)
 //│ ╟── but it flows into argument with expected type `int`
 //│ ║  l.+1: 	x => succ (not x)
 //│ ╙──      	          ^^^^^^^
-//│ res: bool -> (error | int)
+//│ res: bool -> int
 
 :e
 (x => not x.f) { f: 123 }
@@ -88,7 +88,7 @@ x => succ (not x)
 //│ ╟── from field selection:
 //│ ║  l.+1: 	(x => not x.f) { f: 123 }
 //│ ╙──      	           ^^
-//│ res: bool | error
+//│ res: bool
 
 :e
 (f => x => not (f x.u)) false
@@ -104,7 +104,7 @@ x => succ (not x)
 //│ ╟── from reference:
 //│ ║  l.+1: 	(f => x => not (f x.u)) false
 //│ ╙──      	                ^
-//│ res: {u: anything} -> bool | error
+//│ res: (error & {u: anything}) -> bool
 
 
 
@@ -405,7 +405,7 @@ let rec x = (let y = (x x); (z => z)); (x (y => y.u)) // [test:T1]
 
 :ns
 let rec x = (let y = (x x); (z => z))
-//│ x: forall 'x 'a 'b. 'x
+//│ x: forall 'a 'b 'x. 'x
 //│   where
 //│     'x := 'b -> 'b
 //│     'b :> 'b -> 'b
@@ -437,15 +437,15 @@ let rec x = (let y = (x x); (z => z))
 (f => (x => f (v => (x x) v)) (x => f (v => (x x) v)))
 //│ res: ((forall 'a 'b. ('a -> 'b
 //│   where
-//│     forall 'c 'd. ('c -> 'd
+//│     forall 'c 'd. ('d -> 'c
 //│   where
 //│     'e <: (forall 'f 'g. ('f -> 'g
 //│   where
-//│     'c <: 'c -> 'f -> 'g)) -> 'd) <: (forall 'c 'd. ('c -> 'd
+//│     'd <: 'd -> 'f -> 'g)) -> 'c) <: (forall 'c 'd. ('d -> 'c
 //│   where
 //│     'e <: (forall 'f 'g. ('f -> 'g
 //│   where
-//│     'c <: 'c -> 'f -> 'g)) -> 'd)) -> 'a -> 'b)) -> 'h & 'e) -> 'h
+//│     'd <: 'd -> 'f -> 'g)) -> 'c)) -> 'a -> 'b)) -> 'h & 'e) -> 'h
 
 // * Function that takes arbitrarily many arguments:
 // :e // Works thanks to inconsistent constrained types...

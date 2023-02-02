@@ -258,7 +258,7 @@ foo((fun x -> foo((fun y -> x, 0)), 0))
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.233: 	def foo((a, b) : forall 'c. ('c -> 'c, 0)) = ()
 //│ ╙──       	                        ^^
-//│ res: () | error
+//│ res: ()
 //│    = []
 
 
