@@ -299,7 +299,7 @@ foo1 foo
 //│ ╟── Note: constraint arises from type wildcard:
 //│ ║  l.235: 	def foo: Foo[?]
 //│ ╙──       	             ^
-//│ res: Foo['A] -> Foo['A] | error
+//│ res: Foo['A] -> Foo['A]
 //│   where
 //│     'A :> anything
 //│        <: nothing

@@ -151,19 +151,19 @@ def choose: 'a -> 'a -> 'a
 rec def id1 x = choose x (id1 id1 x)
 //│ id1: 'id1
 //│   where
-//│     'id1 :> 'a -> 'b
-//│     'a :> 'id1
-//│        <: 'b
+//│     'id1 :> 'b -> 'a
 //│     'b :> 'id1
-//│        <: 'a -> 'b
+//│        <: 'a
+//│     'a :> 'id1
+//│        <: 'b -> 'a
 
 id1 id
-//│ res: 'a -> 'b | 'id
+//│ res: 'b -> 'a | 'id
 //│   where
-//│     'a :> forall 'id 'c 'd. 'a -> 'b | 'id
-//│        <: 'b
-//│     'b :> forall 'id 'c 'd. 'id
-//│        <: 'a -> 'b
+//│     'b :> forall 'id 'c 'd. 'b -> 'a | 'id
+//│        <: 'a
+//│     'a :> forall 'id 'c 'd. 'id
+//│        <: 'b -> 'a
 //│     'id :> 'c -> 'd
 //│     'c :> 'id
 //│        <: 'd

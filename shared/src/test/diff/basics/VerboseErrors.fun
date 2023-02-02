@@ -25,7 +25,7 @@ h / mkArg false
 //│ ╟── from field selection:
 //│ ║  l.5: 	  x.prop
 //│ ╙──     	   ^^^^^
-//│ res: error | int
+//│ res: int
 
 :v
 :e
@@ -74,5 +74,5 @@ test arg2
 //│ ╟── from field selection:
 //│ ║  l.50: 	  x.prop
 //│ ╙──      	   ^^^^^
-//│ res: 'a -> (int | 'a) | error
+//│ res: error -> (error | int)
 

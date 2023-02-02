@@ -228,7 +228,7 @@ Cons 1 2
 //│ ╟── from tuple type:
 //│ ║  l.115: 	  Cons (head: a) (tail: List a)
 //│ ╙──       	                        ^^^^^^
-//│ res: Cons[1] | error
+//│ res: Cons[1 | error]
 
 // TODO Allow method/field defintions in the same file (lose the let?):
 :e

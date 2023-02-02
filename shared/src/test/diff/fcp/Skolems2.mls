@@ -167,7 +167,7 @@ foo(id, id)
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.155: 	def foo(a, b) = (a, b) : forall 'c. ('c -> 'c, 'c -> 'c)
 //│ ╙──       	                                ^^
-//│ res: ('c -> 'c, 'c -> 'c,) | error
+//│ res: ('c -> 'c, 'c -> 'c,)
 //│    = [ [Function: id], [Function: id] ]
 
 
@@ -189,7 +189,7 @@ foo(id)
 //│ ╟── from application:
 //│ ║  l.174: 	def foo(f) = (fun a -> f a) : forall 'c. 'c -> 'c
 //│ ╙──       	                       ^^^
-//│ res: 'c -> 'c | error
+//│ res: 'c -> 'c
 //│    = [Function (anonymous)]
 
 

@@ -183,7 +183,7 @@ def swap a b = let tmp = a.Get in (a.Set b.Get, b.Set tmp)
 swap r
 swap ri
 swap rn
-//│ res: Ref[in 'A out 'A0 & (1 | 'A)] -> (unit, unit,)
+//│ res: Ref[in 'A | 'A0 out 'A & (1 | 'A0)] -> (unit, unit,)
 //│    = [Function (anonymous)]
 //│ res: Ref[in 'A out nothing] -> (unit, unit,)
 //│    = [Function (anonymous)]
@@ -209,7 +209,7 @@ swap ri rn
 //│ ╟── Note: constraint arises from type reference:
 //│ ║  l.86: 	ri = r : Ref[int]
 //│ ╙──      	             ^^^
-//│ res: (unit, unit,) | error
+//│ res: (unit, unit,)
 //│    = [ [], [] ]
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.202: 	swap ri rn
@@ -226,7 +226,7 @@ swap ri rn
 //│ ╟── Note: class type parameter A is defined at:
 //│ ║  l.3: 	class Ref[A]
 //│ ╙──     	          ^
-//│ res: (unit, unit,) | error
+//│ res: (unit, unit,)
 //│    = [ [], [] ]
 
 

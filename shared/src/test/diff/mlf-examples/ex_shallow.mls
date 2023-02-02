@@ -253,7 +253,7 @@ def a0'_ = a2'_ a1'
 //│ ║  l.251: 	def a0'_ = a2'_ a1'
 //│ ║         	           ^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
-//│ a0'_: error
+//│ a0'_: anything -> ('a -> 'b & 'c -> 'd & 'd -> 'a) -> 'c -> 'b | error
 //│     = [Function: a0$_]
 
 :RecursiveTypes
@@ -312,11 +312,11 @@ def a2_ (x: A1) =
 //│   = [Function: a31]
 //│ a2: A1 -> (forall 'a. (anything -> 'a
 //│   where
-//│     forall 'b 'c 'd 'e. ('c -> 'd -> 'e) -> ('e -> 'b & 'c) -> 'd -> 'b <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a))
+//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a))
 //│   = [Function: a21]
 //│ a2_: A1 -> (forall 'a. (anything -> 'a
 //│   where
-//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a))
+//│     forall 'b 'c 'd 'e. ('e -> 'b -> 'c) -> ('c -> 'd & 'e) -> 'b -> 'd <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a))
 //│    = [Function: a2_1]
 
 def a0 = a2 a1
@@ -328,13 +328,13 @@ def a0 = a2 a1
 def a0_ = a2_ a1
 //│ a0_: anything -> 'a
 //│   where
-//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a
+//│     forall 'b 'c 'd 'e. ('c -> 'd -> 'e) -> ('e -> 'b & 'c) -> 'd -> 'b <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a
 //│    = [Function: a0_1]
 
 def a1' = fun f -> fun x -> f (f (either id x))
-//│ a1': 'a -> (forall 'b 'c 'd. ('d -> 'c
+//│ a1': 'a -> (forall 'b 'c 'd. ('b -> 'd
 //│   where
-//│     'a <: (forall 'e. 'e -> 'e | 'd) -> 'b & 'b -> 'c))
+//│     'a <: (forall 'e. 'e -> 'e | 'b) -> 'c & 'c -> 'd))
 //│    = [Function: a1$1]
 
 def a2' (x: A1') =
@@ -345,7 +345,7 @@ def a2' (x: A1') =
   ) a3
 //│ a2': A1' -> (forall 'a. (anything -> 'a
 //│   where
-//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('h -> 'f & 'f -> 'g) -> 'h -> 'g) -> 'a))
+//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a))
 //│    = [Function: a2$1]
 
 def a2'_ x =
@@ -374,7 +374,7 @@ def a0' = a2' a1'
 //│ ╙──     	                  ^^
 //│ a0': anything -> 'a | error
 //│   where
-//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a
+//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('g -> 'h & 'h -> 'f) -> 'g -> 'f) -> 'a
 //│    = [Function: a0$1]
 
 :e

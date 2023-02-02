@@ -34,7 +34,7 @@ f (0 as Int)
 //│ ╟── from reference:
 //│ ║  l.9: 	let f(x) = x as 0 | 1
 //│ ╙──     	           ^
-//│ res: 0 | 1 | error
+//│ res: 0 | 1
 //│ ╔══[ERROR] Type mismatch in 'as' binding:
 //│ ║  l.21: 	f (0 as 1 | 3)
 //│ ║        	   ^^^^^^^^^^
@@ -59,7 +59,7 @@ f (0 as Int)
 //│ ╟── from reference:
 //│ ║  l.9: 	let f(x) = x as 0 | 1
 //│ ╙──     	           ^
-//│ res: 0 | 1 | error
+//│ res: 0 | 1
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.22: 	f (0 as 0 | 3)
 //│ ║        	^^^^^^^^^^^^^^
@@ -75,7 +75,7 @@ f (0 as Int)
 //│ ╟── from reference:
 //│ ║  l.9: 	let f(x) = x as 0 | 1
 //│ ╙──     	           ^
-//│ res: 0 | 1 | error
+//│ res: 0 | 1
 //│ ╔══[ERROR] Type mismatch in 'as' binding:
 //│ ║  l.23: 	f (0 as 3 | 4)
 //│ ║        	   ^^^^^^^^^^
@@ -100,7 +100,7 @@ f (0 as Int)
 //│ ╟── from reference:
 //│ ║  l.9: 	let f(x) = x as 0 | 1
 //│ ╙──     	           ^
-//│ res: 0 | 1 | error
+//│ res: 0 | 1
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.24: 	f (0 as Int)
 //│ ║        	^^^^^^^^^^^^
@@ -116,7 +116,7 @@ f (0 as Int)
 //│ ╟── from reference:
 //│ ║  l.9: 	let f(x) = x as 0 | 1
 //│ ╙──     	           ^
-//│ res: 0 | 1 | error
+//│ res: 0 | 1
 
 let g(x: int) = succ x
 g 0

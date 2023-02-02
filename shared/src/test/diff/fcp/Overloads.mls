@@ -98,13 +98,13 @@ IISS 0
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.97: 	(if true then IISS else BBNN) 0
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── integer literal of type `0` is not an instance of type `string`
+//│ ╟── integer literal of type `0` is not an instance of type `bool`
 //│ ║  l.97: 	(if true then IISS else BBNN) 0
 //│ ║        	                              ^
 //│ ╟── Note: constraint arises from type reference:
-//│ ║  l.12: 	def IISS: int -> int & string -> string
-//│ ╙──      	                       ^^^^^^
-//│ res: bool | error | number | string
+//│ ║  l.13: 	def BBNN: bool -> bool & number -> number
+//│ ╙──      	          ^^^^
+//│ res: bool | error | number
 
 fun x -> (if true then IISS else BBNN) x
 //│ res: nothing -> (bool | number | string)
@@ -123,12 +123,12 @@ if true then IISS else BBNN
 //│ ╔══[ERROR] Type mismatch in type ascription:
 //│ ║  l.122: 	(if true then IISS else BBNN) : (0 | 1 | true) -> number
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `0` is not an instance of type `string`
+//│ ╟── type `0` is not an instance of type `bool`
 //│ ║  l.122: 	(if true then IISS else BBNN) : (0 | 1 | true) -> number
 //│ ║         	                                 ^
 //│ ╟── Note: constraint arises from type reference:
-//│ ║  l.12: 	def IISS: int -> int & string -> string
-//│ ╙──      	                       ^^^^^^
+//│ ║  l.13: 	def BBNN: bool -> bool & number -> number
+//│ ╙──      	          ^^^^
 //│ res: (0 | 1 | true) -> number
 
 

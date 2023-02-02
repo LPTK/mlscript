@@ -103,11 +103,10 @@ rec def addNTimes a n =
   if n <= 0 then 0 else a.Add addNTimes a (n - 1)
 //│ addNTimes: 'addNTimes
 //│   where
-//│     'addNTimes :> 'a -> int -> 'b
+//│     'addNTimes :> 'a -> int -> (0 | 'b)
 //│     'a <: Addable['A]
 //│     'A :> 'addNTimes
 //│        <: 'a -> int -> 'b
-//│     'b :> 0
 
 addNTimes n 12
 //│ ╔══[ERROR] Type mismatch in application:
@@ -127,12 +126,12 @@ addSame n n
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	addSame n n
 //│ ║        	^^^^^^^^^^^
-//│ ╟── application of type `Num & {val: ?val}` is not a function
-//│ ║  l.17: 	n = Num { val = 1 }
-//│ ║        	    ^^^^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(forall ?a ?val0. ?a) -> ?b`
+//│ ╟── type `Num & Addable[Num]` is not a function
+//│ ║  l.7: 	class Num: Addable[Num] & { val: int }
+//│ ║       	                   ^^^
+//│ ╟── but it flows into application with expected type `(forall ?val. Num & {val: ?val}) -> ?a`
 //│ ║  l.+1: 	addSame n n
-//│ ╙──      	        ^
+//│ ╙──      	^^^^^^^^^
 //│ res: error
 
 addTwo s n
@@ -151,7 +150,7 @@ addTwo s n
 //│ ╟── from reference:
 //│ ║  l.30: 	def addTwo a0 a1 = a0.Add a1
 //│ ╙──      	                          ^^
-//│ res: error
+//│ res: error | Str
 
 class Str_bad_0: Addable[Str_bad_0] & { val: string }
   method Add that = Str_bad_0 { val = this.val + that.val }
@@ -183,5 +182,5 @@ class Str_bad_0: Addable[Str_bad_0] & { val: string }
 //│ ║  l.+2: 	  method Add that = Str_bad_0 { val = this.val + that.val }
 //│ ╙──      	                                                 ^^^^^^^^
 //│ Defined class Str_bad_0
-//│ Defined Str_bad_0.Add: Str_bad_0 -> {val: int} -> (error | (Str_bad_0 with {val: int}))
+//│ Defined Str_bad_0.Add: Str_bad_0 -> {val: int} -> (Str_bad_0 with {val: error | int})
 

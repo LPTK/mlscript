@@ -21,11 +21,11 @@ e = eval eval
 //│ ║  l.19: 	e = eval eval
 //│ ║        	    ^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
-//│ e: (A & {f: A | L} | L) -> 0 | error
+//│ e: (A & {f: A & {f: A | L} | L} | L) -> 0
 //│  = [Function (anonymous)]
 
 e (A{f = L{}})
-//│ res: 0 | error
+//│ res: 0
 //│    = 0
 
 
@@ -52,7 +52,7 @@ e v
 //│ ║  l.50: 	e v
 //│ ║        	^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: 0 | error
+//│ res: 0
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -80,12 +80,12 @@ e = eval eval
 //│ ║  l.78: 	e = eval eval
 //│ ║        	    ^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
-//│ e: (A & {f: A | L} | L) -> (0 | {x: 0 | {x: nothing}}) | error
+//│ e: (A & {f: A & {f: A | L} | L} | L) -> (0 | {x: 0 | {x: 0 | {x: nothing}}})
 //│  = [Function (anonymous)]
 
 :re
 e v
-//│ res: 0 | error | {x: 0 | {x: nothing}}
+//│ res: 0 | {x: 0 | {x: 0 | {x: nothing}}}
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 

@@ -27,7 +27,7 @@ fun (x: ('a -> 'a)) -> auto_ x
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.5: 	def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│ ╙──     	                    ^^
-//│ res: (anything -> nothing) -> ('b -> 'b | error)
+//│ res: (anything -> nothing) -> 'b -> ('b | error)
 //│    = [Function: res]
 
 foo(x: ('a -> 'b)) = auto_ x
@@ -51,7 +51,7 @@ foo (fun x -> x)
 //│ ╟── from type variable:
 //│ ║  l.33: 	foo(x: ('a -> 'b)) = auto_ x
 //│ ╙──      	              ^^
-//│ res: 'b -> 'b | error
+//│ res: 'b -> ('b | error)
 //│    = [Function (anonymous)]
 
 :e
@@ -68,7 +68,7 @@ foo (fun x -> 0)
 //│ ╟── from type variable:
 //│ ║  l.33: 	foo(x: ('a -> 'b)) = auto_ x
 //│ ╙──      	              ^^
-//│ res: 'b -> 'b | error
+//│ res: 'b -> ('b | error)
 //│    = 0
 
 :e
@@ -103,7 +103,7 @@ foo (fun x -> foo (fun y -> y) x)
 //│ ╟── from type variable:
 //│ ║  l.33: 	foo(x: ('a -> 'b)) = auto_ x
 //│ ╙──      	              ^^
-//│ res: 'b -> 'b | error
+//│ res: 'b -> ('b | error)
 //│    = [Function (anonymous)]
 
 // * This would be unsound; `fun y -> x` does not have type `forall 'a. 'a -> 'a` but it is eventually passed to auto_
@@ -121,7 +121,7 @@ foo (fun x -> foo (fun y -> x) x)
 //│ ╟── from reference:
 //│ ║  l.111: 	foo (fun x -> foo (fun y -> x) x)
 //│ ╙──       	                            ^
-//│ res: 'b -> 'b | error
+//│ res: 'b -> ('b | error)
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -153,12 +153,12 @@ f = extrude (fun x -> extrude (fun y -> x) x)
 //│ ╟── from reference:
 //│ ║  l.143: 	f = extrude (fun x -> extrude (fun y -> x) x)
 //│ ╙──       	                                        ^
-//│ f: 'a -> 'a | error
+//│ f: 'a -> 'a
 //│  = [Function (anonymous)]
 
 :re
 f 42 // Boom!
-//│ res: 42 | error
+//│ res: 42
 //│ Runtime error:
 //│   TypeError: i(...) is not a function
 
@@ -171,7 +171,7 @@ def swapWith: (forall 'x 'y. (('x, 'y),) -> ('y, 'x)) -> ('a, 'b) -> ('b, 'a)
 def swapWith f (a, b) = f ((a, b))
 //│ (('a, 'b,) -> 'c) -> ('a, 'b,) -> 'c
 //│   <:  swapWith:
-//│ (forall 'x 'y. ('x, 'y,) -> ('y, 'x,)) -> ('a, 'b,) -> ('b, 'a,)
+//│ (forall 'y 'x. ('x, 'y,) -> ('y, 'x,)) -> ('a, 'b,) -> ('b, 'a,)
 //│         = [Function: swapWith]
 
 
@@ -187,7 +187,7 @@ fun (x: ('a -> 'a)) -> swapWith x
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.167: 	def swapWith: (forall 'x 'y. (('x, 'y),) -> ('y, 'x)) -> ('a, 'b) -> ('b, 'a)
 //│ ╙──       	                         ^^
-//│ res: (('a | (anything, anything,)) -> ((nothing, nothing,) & 'a)) -> (('a0, 'b,) -> ('b, 'a0,) | error)
+//│ res: (('a | (anything, anything,)) -> ((nothing, nothing,) & 'a)) -> ('a0, 'b,) -> ('b, 'a0,)
 //│    = [Function: res]
 
 foo = fun (x: ('a -> 'b)) -> swapWith x
@@ -212,7 +212,7 @@ bar (fun ((u, v),) -> (v, u))
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.167: 	def swapWith: (forall 'x 'y. (('x, 'y),) -> ('y, 'x)) -> ('a, 'b) -> ('b, 'a)
 //│ ╙──       	                         ^^
-//│ res: (2, 1,) | error
+//│ res: (2, 1,)
 //│    = [ 2, 1 ]
 
 :e
@@ -241,7 +241,7 @@ bar (fun ((u1, v1),) -> let tmp = bar (fun ((u2, v2),) -> (v2, u2)) in (v1, u1))
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.167: 	def swapWith: (forall 'x 'y. (('x, 'y),) -> ('y, 'x)) -> ('a, 'b) -> ('b, 'a)
 //│ ╙──       	                         ^^
-//│ res: (2, 1,) | error
+//│ res: (2, 1,)
 //│    = [ 2, 1 ]
 
 :e // * Not sure why this one is rejected (but the `extrude` version above is accepted.)
@@ -258,7 +258,7 @@ bar (fun ((u1, v1),) -> let tmp = bar (fun ((u2, v2),) -> (v1, u1)) in (v1, u1))
 //│ ╟── from reference:
 //│ ║  l.248: 	bar (fun ((u1, v1),) -> let tmp = bar (fun ((u2, v2),) -> (v1, u1)) in (v1, u1))
 //│ ╙──       	                                                               ^^
-//│ res: error
+//│ res: (2, 1,)
 //│    = [ 2, 1 ]
 
 
@@ -273,7 +273,7 @@ fun (x: ((('a, 'b),) -> ('b, 'a))) -> swapWith x
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.167: 	def swapWith: (forall 'x 'y. (('x, 'y),) -> ('y, 'x)) -> ('a, 'b) -> ('b, 'a)
 //│ ╙──       	                         ^^
-//│ res: ((anything, anything,) -> (nothing, nothing,)) -> (('a, 'b,) -> ('b, 'a,) | error)
+//│ res: ((anything, anything,) -> (nothing, nothing,)) -> ('a, 'b,) -> ('b, 'a,)
 //│    = [Function: res]
 
 fun (x: ((('a, 'b),) -> ('c, 'd))) -> swapWith x

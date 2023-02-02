@@ -132,7 +132,7 @@ fun (x, y) -> f (T2 ((x,y)))
 res = if true then (1,2, "hello") else (true, 3)
 //│ res: forall 'a. 'a
 //│   where
-//│     'a :> (1, 2, "hello",) | (true, 3,)
+//│     'a :> (true, 3,) | (1, 2, "hello",)
 //│    = [ 1, 2, 'hello' ]
 
 res = if true then (1, 2, 3, 'hello') else (true, 4, false)
@@ -188,7 +188,7 @@ h (fun x -> x[0])
 //│ ╟── argument list of type `(1, true,)` does not match type `(?a,)`
 //│ ║  l.179: 	def h f = (f (1,2,false), f (1,true))
 //│ ╙──       	                            ^^^^^^^^
-//│ res: (undefined, undefined,) | error
+//│ res: (undefined, undefined,)
 //│    = [ undefined, undefined ]
 
 :e
@@ -202,7 +202,7 @@ h (fun (x, y) -> x)
 //│ ╟── Note: constraint arises from tuple literal:
 //│ ║  l.195: 	h (fun (x, y) -> x)
 //│ ╙──       	       ^^^^^^
-//│ res: (nothing, 1,) | error
+//│ res: (nothing, 1,)
 //│    = [ 1, 1 ]
 
 def h f = (f ((1,2,false)), f ((1,true)))
@@ -242,7 +242,7 @@ fx q2
 //│ ╟── Note: constraint arises from tuple literal:
 //│ ║  l.222: 	fx ((a,b,c)) = a + b + c
 //│ ╙──       	    ^^^^^^^
-//│ res: error | int
+//│ res: int
 //│    = 3
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.232: 	fx q2
@@ -256,7 +256,7 @@ fx q2
 //│ ╟── Note: constraint arises from tuple literal:
 //│ ║  l.222: 	fx ((a,b,c)) = a + b + c
 //│ ╙──       	    ^^^^^^^
-//│ res: error | int
+//│ res: int
 //│    = NaN
 
 
@@ -406,7 +406,7 @@ append2 ((mut 1, mut 2, mut false)) ((mut (), 'hi'))
 //│ ╟── Note: constraint arises from applied type reference:
 //│ ║  l.384: 	def append2: MutArray['aa] -> MutArray['bb] -> MutArray['aa | 'bb]
 //│ ╙──       	                              ^^^^^^^^^^^^^
-//│ res: MutArray['bb | 'a & 'b] | error
+//│ res: MutArray['bb | 'a & 'b]
 //│   where
 //│     'a :> 1 | 2 | false
 //│        <: 'b
@@ -607,7 +607,7 @@ inn2 v1
 //│ ╟── integer literal of type `1` does not match type `Array['a]`
 //│ ║  l.542: 	v1 = T1 (T2 ((1,2,true)))
 //│ ╙──       	              ^
-//│ res: Array[nothing] | error
+//│ res: Array[nothing]
 //│    = <no result>
 //│      inn2 is not implemented
 
@@ -697,7 +697,7 @@ tktup a123
 //│ ╟── from reference:
 //│ ║  l.676: 	def tktup t = (t._2, t._3)
 //│ ╙──       	                     ^
-//│ res: (nothing, nothing,) | error
+//│ res: (nothing, nothing,)
 //│    = [ undefined, undefined ]
 
 

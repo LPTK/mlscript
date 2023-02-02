@@ -69,7 +69,7 @@ example 1
 //│ ╟── from reference:
 //│ ║  l.54: 	def example f = (f: forall 'a. 'a -> 'a)
 //│ ╙──      	                 ^
-//│ res: 'a -> 'a | error
+//│ res: 'a -> 'a
 //│    = 1
 
 :e
@@ -80,7 +80,7 @@ example succ
 //│ ╟── type `'a` is not an instance of type `int`
 //│ ║  l.54: 	def example f = (f: forall 'a. 'a -> 'a)
 //│ ╙──      	                           ^^
-//│ res: 'a -> 'a | error
+//│ res: 'a -> 'a
 //│    = [Function: succ]
 
 example id
@@ -122,7 +122,7 @@ ex 1
 //│ ╟── from reference:
 //│ ║  l.107: 	def ex x = example x
 //│ ╙──       	                   ^
-//│ res: (0, nothing,) | error
+//│ res: (0, nothing,)
 //│    = [ 0, 1 ]
 
 def example f = ((0, f) : forall 'a. (0, 'a -> 'a))

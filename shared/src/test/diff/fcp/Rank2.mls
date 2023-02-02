@@ -50,7 +50,7 @@ test(fun x -> x + 1)
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.43: 	test(fun x -> x + 1)
 //│ ╙──      	              ^
-//│ res: (1, true,) | error
+//│ res: (1, true,)
 //│    = [ 2, 2 ]
 
 :e
@@ -61,7 +61,7 @@ test succ
 //│ ╟── type `'a` is not an instance of type `int`
 //│ ║  l.19: 	test(f: forall 'a. 'a -> 'a) =
 //│ ╙──      	               ^^
-//│ res: (1, true,) | error
+//│ res: (1, true,)
 //│    = [ 2, 2 ]
 
 
@@ -105,7 +105,7 @@ test (fun x -> x + 1)
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.98: 	test (fun x -> x + 1)
 //│ ╙──      	               ^
-//│ res: (1, 2,) | error
+//│ res: (1, 2,)
 //│    = [ 1, 2 ]
 //│ // Output
 //│ 1

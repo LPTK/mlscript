@@ -854,6 +854,9 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         val fun_ty = mkProxy(f_ty, funProv)
           // ^ This is mostly not useful, except in test Tuples.fun with `(1, true, "hey").2`
         def go(f_ty: ST): ST = f_ty.unwrapProxies match {
+          case pt: PolymorphicType =>
+            implicit val shadows: Shadows = Shadows.empty
+            go(pt.instantiate)
           case FunctionType(l, r) =>
             con(arg_ty, l, r.withProv(prov))
           case _ =>

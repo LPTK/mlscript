@@ -162,7 +162,11 @@ test = stepImpl_Ann_4 baseImpl
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.15: 	    fold: forall 'b. (A -> 'b -> 'b) -> 'b -> Rep -> 'b
 //│ ╙──      	                 ^^
-//│ test: error
+//│ test: ArraysRep['a, 'r]
+//│   where
+//│     'r :> (nothing, "hey" | "hi",) | error
+//│        <: ('a, anything,)
+//│     'a :> error
 //│     = {
 //│         init: [Function: init],
 //│         sub: [Function: sub],
@@ -181,7 +185,7 @@ stepImpl_ty = stepImpl_Ann_4
 //│   <:  stepImpl_ty:
 //│ ArraysRep['a, 'r] -> ArraysRep['a, ('r, string,)]
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.174: 	stepImpl_ty = stepImpl_Ann_4
+//│ ║  l.178: 	stepImpl_ty = stepImpl_Ann_4
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.15: 	    fold: forall 'b. (A -> 'b -> 'b) -> 'b -> Rep -> 'b
@@ -195,7 +199,7 @@ stepImpl_ty = stepImpl_Ann_4
 // def stepImpl2 (arr: Arrays['a]) = arr stepImpl
 
 def stepImpl2 arr = arr stepImpl
-//│ stepImpl2: ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i 'j 'k 'l 'm. {fold: 'c -> 'l -> 'i -> 'g, init: 'd -> 'b, sub: 'f -> 'j -> 'm, update: 'a -> 'e -> 'h -> 'k} -> {fold: 'c -> 'l -> ('i, anything,) -> 'g, init: 'd -> ('b, "hi",), sub: ('f, anything,) -> 'j -> 'm, update: ('a, anything,) -> 'e -> 'h -> ('k, "hey",)}) -> 'n) -> 'n
+//│ stepImpl2: ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i 'j 'k 'l 'm. {fold: 'm -> 'b -> 'k -> 'l, init: 'g -> 'd, sub: 'h -> 'j -> 'a, update: 'c -> 'e -> 'i -> 'f} -> {fold: 'm -> 'b -> ('k, anything,) -> 'l, init: 'g -> ('d, "hi",), sub: ('h, anything,) -> 'j -> 'a, update: ('c, anything,) -> 'e -> 'i -> ('f, "hey",)}) -> 'n) -> 'n
 //│          = [Function: stepImpl2]
 
 def stepImpl2_ arr = arr stepImpl_ty
@@ -210,16 +214,16 @@ def stepImpl2_Ann_2 arr = arr stepImpl_Ann_2
 //│                = [Function: stepImpl2_Ann_2]
 
 def stepImpl2_Ann_3 arr = arr stepImpl_Ann_3
-//│ stepImpl2_Ann_3: ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i. {fold: (nothing -> nothing -> anything) -> anything -> anything -> nothing, init: 'i -> 'g, sub: 'a -> 'c -> 'e, update: 'f -> 'h -> 'b -> 'd} -> {fold: Fold[nothing, (anything, string,)], init: 'i -> ('g, "hi",), sub: ('a, anything,) -> 'c -> 'e, update: ('f, anything,) -> 'h -> 'b -> ('d, "hey",)}) -> 'j) -> 'j
+//│ stepImpl2_Ann_3: ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i. {fold: (nothing -> nothing -> anything) -> anything -> anything -> nothing, init: 'i -> 'a, sub: 'c -> 'f -> 'g, update: 'h -> 'b -> 'd -> 'e} -> {fold: Fold[nothing, (anything, string,)], init: 'i -> ('a, "hi",), sub: ('c, anything,) -> 'f -> 'g, update: ('h, anything,) -> 'b -> 'd -> ('e, "hey",)}) -> 'j) -> 'j
 //│                = [Function: stepImpl2_Ann_3]
 
 def stepImpl2_Ann_4 arr = arr stepImpl_Ann_4
-//│ stepImpl2_Ann_4: ((forall 'r 'b 'c 'a 'd 'e. {fold: ('a -> nothing -> anything) -> anything -> 'd -> nothing, init: ('e | 'b) -> ('d & 'c), sub: 'd -> int -> 'b, update: 'd -> int -> ('e | 'b) -> ('d & 'c)} -> ArraysRep['a, 'r]) -> 'f) -> 'f
+//│ stepImpl2_Ann_4: ((forall 'a 'b 'c 'd 'e 'r. {fold: ('a -> nothing -> anything) -> anything -> 'c -> nothing, init: ('d | 'e) -> ('c & 'b), sub: 'c -> int -> 'e, update: 'c -> int -> ('d | 'e) -> ('c & 'b)} -> ArraysRep['a, 'r]) -> 'f) -> 'f
 //│   where
-//│     'r :> ('c, "hey" | "hi",)
-//│        <: ('d, anything,)
-//│     'a :> 'b
-//│        <: 'e
+//│     'r :> ('b, "hey" | "hi",)
+//│        <: ('c, anything,)
+//│     'a :> 'e
+//│        <: 'd
 //│                = [Function: stepImpl2_Ann_4]
 
 def stepImpl2_Ann_2_Ann (arr: Arrays['a]) = arr stepImpl_Ann_2
@@ -239,11 +243,11 @@ def step: Arrays['a] -> Arrays['a]
 // * But this problem actually disappeared after fixing a subtle bug in type freshening...!
 :e // * Since "sound extrusion"
 def step arr f = f (stepImpl2 arr)
-//│ ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i 'j 'k 'l 'm. {fold: 'a -> 'm -> 'j -> 'h, init: 'f -> 'd, sub: 'k -> 'i -> 'e, update: 'c -> 'b -> 'l -> 'g} -> {fold: 'a -> 'm -> ('j, anything,) -> 'h, init: 'f -> ('d, "hi",), sub: ('k, anything,) -> 'i -> 'e, update: ('c, anything,) -> 'b -> 'l -> ('g, "hey",)}) -> 'n) -> ('n -> 'o) -> 'o
+//│ ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i 'j 'k 'l 'm. {fold: 'k -> 'b -> 'c -> 'l, init: 'i -> 'e, sub: 'd -> 'm -> 'h, update: 'g -> 'j -> 'a -> 'f} -> {fold: 'k -> 'b -> ('c, anything,) -> 'l, init: 'i -> ('e, "hi",), sub: ('d, anything,) -> 'm -> 'h, update: ('g, anything,) -> 'j -> 'a -> ('f, "hey",)}) -> 'n) -> ('n -> 'o) -> 'o
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.241: 	def step arr f = f (stepImpl2 arr)
+//│ ║  l.245: 	def step arr f = f (stepImpl2 arr)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.19: 	type Arrays[A] = (forall 'Rep. ArraysRep[A, 'Rep] -> 'r) -> 'r
@@ -265,7 +269,7 @@ def step arr f = f (stepImpl2_Ann_2 arr)
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.263: 	def step arr f = f (stepImpl2_Ann_2 arr)
+//│ ║  l.267: 	def step arr f = f (stepImpl2_Ann_2 arr)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.19: 	type Arrays[A] = (forall 'Rep. ArraysRep[A, 'Rep] -> 'r) -> 'r
@@ -280,14 +284,14 @@ def step arr f = f (stepImpl2_Ann_2 arr)
 
 :e
 def step arr f = f (stepImpl2_Ann_3 arr)
-//│ ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i. {fold: (nothing -> nothing -> anything) -> anything -> anything -> nothing, init: 'f -> 'i, sub: 'g -> 'b -> 'e, update: 'c -> 'd -> 'h -> 'a} -> {fold: Fold[nothing, (anything, string,)], init: 'f -> ('i, "hi",), sub: ('g, anything,) -> 'b -> 'e, update: ('c, anything,) -> 'd -> 'h -> ('a, "hey",)}) -> 'j) -> ('j -> 'k) -> 'k
+//│ ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i. {fold: (nothing -> nothing -> anything) -> anything -> anything -> nothing, init: 'g -> 'd, sub: 'b -> 'e -> 'i, update: 'a -> 'c -> 'f -> 'h} -> {fold: Fold[nothing, (anything, string,)], init: 'g -> ('d, "hi",), sub: ('b, anything,) -> 'e -> 'i, update: ('a, anything,) -> 'c -> 'f -> ('h, "hey",)}) -> 'j) -> ('j -> 'k) -> 'k
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.282: 	def step arr f = f (stepImpl2_Ann_3 arr)
+//│ ║  l.286: 	def step arr f = f (stepImpl2_Ann_3 arr)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `'a` does not match type `nothing`
-//│ ║  l.233: 	def step: Arrays['a] -> Arrays['a]
+//│ ║  l.237: 	def step: Arrays['a] -> Arrays['a]
 //│ ║         	                 ^^
 //│ ╟── Note: constraint arises from type variable:
 //│ ║  l.117: 	    fold   = (fun f -> fun b -> fun ((r0, r1)) -> arrImpl.fold f b r0) : Fold['a, ('rep, string)]
@@ -297,16 +301,16 @@ def step arr f = f (stepImpl2_Ann_3 arr)
 // * This used to be the only working one based on an internal annotation
 :e // * Since "sound extrusion"
 def step arr f = f (stepImpl2_Ann_4 arr)
-//│ ((forall 'b 'c 'd 'e 'a 'r. {fold: ('a -> nothing -> anything) -> anything -> 'b -> nothing, init: ('e | 'd) -> ('b & 'c), sub: 'b -> int -> 'd, update: 'b -> int -> ('e | 'd) -> ('b & 'c)} -> ArraysRep['a, 'r]) -> 'f) -> ('f -> 'g) -> 'g
+//│ ((forall 'b 'c 'r 'd 'a 'e. {fold: ('a -> nothing -> anything) -> anything -> 'e -> nothing, init: ('c | 'b) -> ('e & 'd), sub: 'e -> int -> 'b, update: 'e -> int -> ('c | 'b) -> ('e & 'd)} -> ArraysRep['a, 'r]) -> 'f) -> ('f -> 'g) -> 'g
 //│   where
-//│     'r :> ('c, "hey" | "hi",)
-//│        <: ('b, anything,)
-//│     'a :> 'd
-//│        <: 'e
+//│     'r :> ('d, "hey" | "hi",)
+//│        <: ('e, anything,)
+//│     'a :> 'b
+//│        <: 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.299: 	def step arr f = f (stepImpl2_Ann_4 arr)
+//│ ║  l.303: 	def step arr f = f (stepImpl2_Ann_4 arr)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.15: 	    fold: forall 'b. (A -> 'b -> 'b) -> 'b -> Rep -> 'b
@@ -318,11 +322,11 @@ def step arr f = f (stepImpl2_Ann_4 arr)
 
 :e // * Since "sound extrusion"
 def step arr f = f (stepImpl2_Ann_2_Ann arr)
-//│ Arrays['a] -> ((forall 'a0. {fold: forall 'b. ('a0 -> 'b -> 'b) -> 'b -> (nothing, anything,) -> 'b, init: 'a0 -> (anything, "hi",), sub: (nothing, anything,) -> int -> 'a0, update: (nothing, anything,) -> int -> 'a0 -> (anything, "hey",)}) -> 'c) -> 'c
+//│ Arrays['a] -> ({fold: forall 'b. ('a0 -> 'b -> 'b) -> 'b -> (nothing, anything,) -> 'b, init: 'a0 -> (anything, "hi",), sub: (nothing, anything,) -> int -> 'a0, update: (nothing, anything,) -> int -> 'a0 -> (anything, "hey",)} -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.320: 	def step arr f = f (stepImpl2_Ann_2_Ann arr)
+//│ ║  l.324: 	def step arr f = f (stepImpl2_Ann_2_Ann arr)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.19: 	type Arrays[A] = (forall 'Rep. ArraysRep[A, 'Rep] -> 'r) -> 'r
@@ -337,11 +341,11 @@ def step arr f = f (stepImpl2_Ann_2_Ann arr)
 
 :e // * Since "sound extrusion"
 def step (arr: Arrays['a]) f = f (stepImpl2_Ann_2_Ann arr)
-//│ Arrays['a] -> ((forall 'a0. {fold: forall 'b. ('a0 -> 'b -> 'b) -> 'b -> (nothing, anything,) -> 'b, init: 'a0 -> (anything, "hi",), sub: (nothing, anything,) -> int -> 'a0, update: (nothing, anything,) -> int -> 'a0 -> (anything, "hey",)}) -> 'c) -> 'c
+//│ Arrays['a] -> ({fold: forall 'b. ('a0 -> 'b -> 'b) -> 'b -> (nothing, anything,) -> 'b, init: 'a0 -> (anything, "hi",), sub: (nothing, anything,) -> int -> 'a0, update: (nothing, anything,) -> int -> 'a0 -> (anything, "hey",)} -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.339: 	def step (arr: Arrays['a]) f = f (stepImpl2_Ann_2_Ann arr)
+//│ ║  l.343: 	def step (arr: Arrays['a]) f = f (stepImpl2_Ann_2_Ann arr)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.19: 	type Arrays[A] = (forall 'Rep. ArraysRep[A, 'Rep] -> 'r) -> 'r
@@ -361,7 +365,7 @@ def step arr f = f (stepImpl2_ arr)
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.359: 	def step arr f = f (stepImpl2_ arr)
+//│ ║  l.363: 	def step arr f = f (stepImpl2_ arr)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.19: 	type Arrays[A] = (forall 'Rep. ArraysRep[A, 'Rep] -> 'r) -> 'r

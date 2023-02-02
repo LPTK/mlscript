@@ -420,7 +420,7 @@ f arg
 let g = y =>
   f { prop: y.fld }
 g { fld: 42 }
-//│ g: {fld: int & 'a} -> 'a
+//│ g: {fld: int & 'prop} -> 'prop
 //│ res: 42
 
 :e
@@ -533,7 +533,7 @@ x => h / succ x
 //│ ╟── from reference:
 //│ ║  l.511: 	  succ / f y
 //│ ╙──       	           ^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+2: 	h arg
 //│ ║        	^^^^^
@@ -546,7 +546,7 @@ x => h / succ x
 //│ ╟── from field selection:
 //│ ║  l.328: 	  x.prop
 //│ ╙──       	   ^^^^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+3: 	h / 42
 //│ ║        	^^^^^^
@@ -559,7 +559,7 @@ x => h / succ x
 //│ ╟── from reference:
 //│ ║  l.511: 	  succ / f y
 //│ ╙──       	           ^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+4: 	x => h / succ x
 //│ ║        	     ^^^^^^^^^^
@@ -572,7 +572,7 @@ x => h / succ x
 //│ ╟── from reference:
 //│ ║  l.511: 	  succ / f y
 //│ ╙──       	           ^
-//│ res: int -> (error | int)
+//│ res: int -> int
 
 :e
 let mkArg2 = a => {prop: succ a}
@@ -608,7 +608,7 @@ i arg
 //│ ╟── from field selection:
 //│ ║  l.328: 	  x.prop
 //│ ╙──       	   ^^^^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+2: 	i arg
 //│ ║        	^^^^^
@@ -624,7 +624,7 @@ i arg
 //│ ╟── from reference:
 //│ ║  l.593: 	  succ / f y.fld
 //│ ╙──       	           ^
-//│ res: error | int
+//│ res: int
 
 let test x y = if x.prop then i x else y
 //│ test: {fld: {prop: int}, prop: bool} -> 'a -> (int | 'a)
@@ -643,7 +643,7 @@ test arg2
 //│ ╟── from field selection:
 //│ ║  l.328: 	  x.prop
 //│ ╙──       	   ^^^^^
-//│ res: 'a -> (int | 'a) | error
+//│ res: error -> (error | int)
 
 let mkArg = a => {prop: a}
 h / mkArg 1
@@ -685,7 +685,7 @@ i / mkArg 1
 //│ ╟── from field selection:
 //│ ║  l.328: 	  x.prop
 //│ ╙──       	   ^^^^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+3: 	i { fld: mkArg false }
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^
@@ -698,7 +698,7 @@ i / mkArg 1
 //│ ╟── from field selection:
 //│ ║  l.328: 	  x.prop
 //│ ╙──       	   ^^^^^
-//│ res: error | int
+//│ res: int
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+4: 	i / mkArg 1
 //│ ║        	^^^^^^^^^^^
@@ -714,7 +714,7 @@ i / mkArg 1
 //│ ╟── from reference:
 //│ ║  l.593: 	  succ / f y.fld
 //│ ╙──       	           ^
-//│ res: error | int
+//│ res: int
 
 
 

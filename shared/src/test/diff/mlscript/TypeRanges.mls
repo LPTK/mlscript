@@ -107,7 +107,7 @@ set0 foo
 //│ ╟── from type bounds:
 //│ ║  l.49: 	def foo: MutArray[int..number]
 //│ ╙──      	                  ^^^^^^^^^^^
-//│ res: int -> () | error
+//│ res: int -> ()
 //│    = <no result>
 //│      set0 is not implemented
 

@@ -225,7 +225,7 @@ addOne1 (Str { value = ""; addOne = error })
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.11: 	addOne1 x = case x of {
 //│ ╙──      	                 ^
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   Error: unexpected runtime error
 

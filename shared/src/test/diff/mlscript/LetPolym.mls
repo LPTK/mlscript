@@ -71,7 +71,7 @@ test (fun x -> false)
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.51: 	  let local() = succ (f 1)
 //│ ╙──      	                      ^^^
-//│ res: error | int
+//│ res: int
 //│    = 1
 
 :e
@@ -82,7 +82,7 @@ test concat
 //│ ╟── integer literal of type `1` is not an instance of type `string`
 //│ ║  l.51: 	  let local() = succ (f 1)
 //│ ╙──      	                        ^
-//│ res: error | int
+//│ res: int
 //│    = '(y) => x + y1'
 
 def test f =
@@ -164,7 +164,7 @@ test succ
 //│ ╟── string literal of type `"ok"` is not an instance of type `int`
 //│ ║  l.155: 	  in (local add 1, local concat "ok")
 //│ ╙──       	                                ^^^^
-//│ res: (int -> int, string -> string,) | error
+//│ res: (int -> int, string -> string,)
 //│    = [ [Function (anonymous)], [Function (anonymous)] ]
 
 
@@ -212,7 +212,7 @@ res add "1"
 //│ ╟── from reference:
 //│ ║  l.196: 	  let local = (fun y -> f y) x
 //│ ╙──       	                             ^
-//│ res: () | error
+//│ res: ()
 //│    = []
 
 fun f -> fun x ->
@@ -235,7 +235,7 @@ res add "1"
 //│ ╟── from reference:
 //│ ║  l.219: 	  let local = f ((fun y -> y) x)
 //│ ╙──       	                              ^
-//│ res: () | error
+//│ res: ()
 //│    = []
 
 def id: 'a -> 'a

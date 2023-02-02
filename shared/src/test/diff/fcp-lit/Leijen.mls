@@ -157,7 +157,7 @@ def choose: 'a -> 'a -> 'a
 def choose x y = if true then x else y
 //│ choose: 'a -> 'a -> 'a
 //│       = <missing implementation>
-//│ 'a -> (forall 'b. 'b -> ('a | 'b))
+//│ 'a -> (forall 'b. 'b -> ('b | 'a))
 //│   <:  choose:
 //│ 'a -> 'a -> 'a
 //│       = [Function: choose]
@@ -389,7 +389,7 @@ map xauto (map xauto ids)
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.174: 	def xauto : forall 'a. (forall 'b. 'b -> 'b) -> 'a -> 'a
 //│ ╙──       	                               ^^
-//│ res: error | List['a -> 'a]
+//│ res: List['a -> 'a | error]
 //│    = Cons { head: [Function: id1], tail: Nil {} }
 
 // ,("map auto ids", ok "[forall a. a -> a]")
@@ -883,7 +883,7 @@ revapp (fun f -> f f) takeAuto
 
 // ,("apply (\\f -> choose auto f) (auto :: (forall a. a -> a) -> (forall a. a -> a))", ok "(forall a. a -> a) -> (forall a. a -> a)")
 app (fun f -> choose auto f) (auto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a))
-//│ res: (forall 'a 'a0. 'a0 -> 'a0 & 'a -> 'a) -> (forall 'a1. 'a1 -> 'a1)
+//│ res: (forall 'a 'a0. 'a -> 'a & 'a0 -> 'a0) -> (forall 'a1. 'a1 -> 'a1)
 //│    = [Function: auto]
 
 // ,("revapp (auto :: (forall a. a -> a) -> (forall a. a -> a)) (\\f -> choose auto f)", ok "(forall a. a -> a) -> (forall a. a -> a)")
@@ -908,7 +908,7 @@ fun x -> (auto x, x 1)
 
 // ,("\\x -> (auto x, (x :: forall a. a -> a) 1)", ok "forall a. (forall a. a -> a) -> (a -> a, Int)")
 fun x -> (auto x, (x : forall 'a. 'a -> 'a) 1)
-//│ res: (forall 'a 'a0. 'a0 -> 'a0 & 'a -> 'a) -> (forall 'a1. 'a1 -> 'a1, 1,)
+//│ res: (forall 'a 'a0. 'a -> 'a & 'a0 -> 'a0) -> (forall 'a1. 'a1 -> 'a1, 1,)
 //│    = [Function: res]
 
 // ,("\\x -> (auto x, (x :: Int -> Int) 1)", Wrong)

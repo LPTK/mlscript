@@ -66,7 +66,7 @@ def argST: ST['s, int]
 
 // FreezeML A2
 choose id
-//│ res: 'a -> ('b -> 'b | 'a)
+//│ res: 'a -> (forall 'b. 'b -> 'b | 'a)
 
 fun (g: forall 'a. ('a -> 'a) -> ('a -> 'a)) -> fun (x: forall 'a. 'a -> 'a) -> fun a -> g a (x a)
 //│ res: (forall 'a. ('a -> 'a) -> 'a -> 'a) -> (forall 'a0. 'a0 -> 'a0) -> ('a1 -> 'a1 & 'a1) -> 'a1
@@ -120,7 +120,7 @@ def auto2 x = x x
 //│ auto2: ('a -> 'b & 'a) -> 'b
 
 choose id auto2
-//│ res: ('a -> 'b & 'a) -> ('b | 'a)
+//│ res: ('a -> 'b & 'b & 'a) -> 'b
 
 :e // This is a legit error
 res (choose id succ)
@@ -141,7 +141,7 @@ let f = choose id in (f auto, f succ)
 //│ res: (forall 'b 'a. (forall 'a0. 'a0 -> 'a0 & 'b) -> ('a -> 'a | 'b), forall 'b. (int & 'b) -> (int | 'b),)
 
 let f = choose id in (f auto2, f succ)
-//│ res: (forall 'a 'b 'c. ('a -> 'b & 'a & 'c) -> ('b | 'c), forall 'c. (int & 'c) -> (int | 'c),)
+//│ res: (forall 'a 'b 'c. ('a -> 'b & 'c & 'a) -> ('b | 'c), forall 'c. (int & 'c) -> (int | 'c),)
 
 // ------------ Sec 6 ------------
 
@@ -166,7 +166,7 @@ let tmp = (fun x -> x x) I in (fun x -> x x) K
 
 // to
 let tmp = I I in K K
-//│ res: anything -> 'a -> anything -> 'a
+//│ res: anything -> (forall 'a. 'a -> anything -> 'a)
 
 
 // ============ Recasting MLF (2009) ============
@@ -200,7 +200,7 @@ fun z -> (z omega)
 (fun y -> fun z -> z y) omegad
 (fun y -> fun z -> z y) omega
 //│ res: ((forall 'a. (forall 'a0. 'a0 -> 'a0) -> 'a -> 'a) -> 'b) -> 'b
-//│ res: ((forall 'a 'b. ('b -> 'a & 'b) -> 'a) -> 'c) -> 'c
+//│ res: ((forall 'a 'b. ('a -> 'b & 'a) -> 'b) -> 'c) -> 'c
 
 fun z -> omegad z
 fun z -> omega z
@@ -299,6 +299,6 @@ monster2 = (fun y -> (y I, y K)) (fun x -> x x)
 //│ monster2: (forall 'a. 'a -> 'a, forall 'b. anything -> 'b -> anything -> 'b,)
 
 K K
-//│ res: anything -> 'a -> anything -> 'a
+//│ res: anything -> (forall 'a. 'a -> anything -> 'a)
 
 

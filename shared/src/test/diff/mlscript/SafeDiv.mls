@@ -31,7 +31,7 @@ safeDiv 1 0
 //│ ╟── from intersection type:
 //│ ║  l.16: 	def safeDiv x (y: int & ~0) = div x y
 //│ ╙──      	                  ^^^^^^^^
-//│ res: error | int
+//│ res: int
 //│    = Infinity
 
 fun x -> safeDiv 1 x
@@ -68,7 +68,7 @@ fun (x: int) -> safeDiv 1 x
 //│ ╟── from intersection type:
 //│ ║  l.16: 	def safeDiv x (y: int & ~0) = div x y
 //│ ╙──      	                  ^^^^^^^^
-//│ res: int -> (error | int)
+//│ res: int -> int
 //│    = [Function: res]
 
 fun (x: int & ~0) -> safeDiv 1 x

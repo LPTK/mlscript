@@ -148,9 +148,9 @@ def build = fun (g: forall 'b. ('a -> 'b -> 'b) -> 'b -> 'b) -> g (fun x -> fun 
 //│ ║  l.146: 	def build = fun (g: forall 'b. ('a -> 'b -> 'b) -> 'b -> 'b) -> g (fun x -> fun xs -> Cons (x, xs)) Nil
 //│ ║         	                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
-//│ build: (forall 'b. ('a -> 'b -> 'b) -> 'b -> 'b) -> ((Cons['a] with {tail: 'tail}) | error | Nil)
+//│ build: (forall 'b. ('a -> 'b -> 'b) -> 'b -> 'b) -> 'tail
 //│   where
-//│     'tail :> (Cons['a] with {tail: 'tail}) | Nil
+//│     'tail :> (Cons['a] with {tail: 'tail}) | error | Nil
 //│      = [Function: build]
 
 // * ^ Not sure why this one only works with recursive types:
@@ -193,7 +193,7 @@ rec def foldr k z xs =
     fun (h, t) -> k h (foldr k z t),
     fun () -> z
   )
-//│ foldr: ('a -> 'b -> 'b) -> 'b -> Ls['a] -> 'b
+//│ foldr: ('a -> 'r -> 'r) -> 'r -> Ls['a] -> 'r
 //│      = <no result>
 //│        elim is not implemented
 
@@ -346,7 +346,7 @@ def bfoo_ xs = build_ (foldr k_ z_ xs)
 //│ ╟── from reference:
 //│ ║  l.131: 	def build_ = fun g -> g (fun x -> fun xs -> Cons (x, xs)) Nil
 //│ ╙──       	                                                     ^^
-//│ bfoo_: 'a -> error
+//│ bfoo_: 'a -> (error | Nil)
 //│   where
 //│     'a <: (Cons[?] with {head: int, tail: 'a}) | Nil
 //│      = [Function: bfoo_]

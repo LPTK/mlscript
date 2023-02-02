@@ -47,11 +47,11 @@ def to_church_ty: int -> ChurchInt
 rec def to_church n =
   if n == 0 then zero
   else succ (to_church (n - 1))
-//│ to_church: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ to_church: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│          = [Function: to_church]
 
 to_church_ty = to_church
-//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church]
@@ -90,12 +90,12 @@ def mul_ty: ChurchInt -> ChurchInt -> ChurchInt
 //│       = <missing implementation>
 
 def mul n m = n (add m) zero
-//│ mul: ((forall 'a 'b 'c 'd 'e. ('c -> 'b -> 'a & 'e) -> (('a -> ('a & 'd) & 'c) -> 'b -> 'd | 'e)) -> (forall 'f. anything -> 'f -> 'f) -> 'g) -> ChurchInt -> 'g
+//│ mul: ((('a -> 'b -> 'c & 'd) -> (('c -> ('c & 'e) & 'a) -> 'b -> 'e | 'd)) -> (forall 'f. anything -> 'f -> 'f) -> 'g) -> ChurchInt -> 'g
 //│    = [Function: mul]
 
 // * Note: cycle check fails when generalizing curried lambdas
 mul_ty = mul
-//│ ((forall 'a 'b 'c 'd 'e. ('d -> 'e -> 'c & 'b) -> (('c -> ('c & 'a) & 'd) -> 'e -> 'a | 'b)) -> (forall 'f. anything -> 'f -> 'f) -> 'g) -> ChurchInt -> 'g
+//│ ((('a -> 'b -> 'c & 'd) -> (('c -> ('c & 'e) & 'a) -> 'b -> 'e | 'd)) -> (forall 'f. anything -> 'f -> 'f) -> 'g) -> ChurchInt -> 'g
 //│   <:  mul_ty:
 //│ ChurchInt -> ChurchInt -> ChurchInt
 //│       = [Function: mul]
@@ -120,17 +120,17 @@ def pow_ty: ChurchInt -> ChurchInt -> ChurchInt
 def pow (n: ChurchInt) (m: ChurchInt) = n (mul m) (succ zero)
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.120: 	def pow (n: ChurchInt) (m: ChurchInt) = n (mul m) (succ zero)
-//│ ║         	                                        ^^^^^^^^^^^^^^^^^^^^^
+//│ ║         	                                        ^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.7: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
 //│ ║       	                        ^^
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.7: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
 //│ ║       	                        ^^
-//│ ╟── from reference:
+//│ ╟── from application:
 //│ ║  l.31: 	def succ n f x = f (n f x)
-//│ ╙──      	                        ^
-//│ pow: ChurchInt -> ChurchInt -> ((anything -> nothing) -> nothing -> anything | error)
+//│ ╙──      	                 ^^^^^^^^^
+//│ pow: ChurchInt -> ChurchInt -> error
 //│    = [Function: pow]
 
 def pow (n: ChurchInt) (m: ChurchInt) = n (mul_ty m) (succ_ty zero_ty)
@@ -143,10 +143,22 @@ pow_ty = pow
 //│       = [Function: pow1]
 
 def pow (n: ChurchInt) m = n (mul m) (succ_ty zero)
-//│ pow: ChurchInt -> ChurchInt -> (('a -> ('a & 'b)) -> ('b & 'a) -> 'b | ChurchInt)
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.145: 	def pow (n: ChurchInt) m = n (mul m) (succ_ty zero)
+//│ ║         	                           ^^^^^^^^^
+//│ ╟── type `anything` does not match type `nothing`
+//│ ║  l.7: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
+//│ ║       	                        ^^
+//│ ╟── Note: constraint arises from quantified type variable:
+//│ ║  l.7: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
+//│ ║       	                        ^^
+//│ ╟── from application:
+//│ ║  l.31: 	def succ n f x = f (n f x)
+//│ ╙──      	                 ^^^^^^^^^
+//│ pow: ChurchInt -> ChurchInt -> error
 //│    = [Function: pow2]
 pow_ty = pow
-//│ ChurchInt -> ChurchInt -> (('a -> ('a & 'b)) -> ('b & 'a) -> 'b | ChurchInt)
+//│ ChurchInt -> ChurchInt -> error
 //│   <:  pow_ty:
 //│ ChurchInt -> ChurchInt -> ChurchInt
 //│       = [Function: pow2]
@@ -230,11 +242,11 @@ def pred n =
   let s p = pair (snd p) (succ (snd p)) in
   let z = pair zero zero in
   fst (n s z)
-//│ pred: ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> ('f -> 'd -> 'b & 'a)) -> ('a -> (('b -> 'c & 'f) -> 'd -> 'c) -> 'e) -> 'e) -> (forall 'h. ((forall 'i. anything -> 'i -> 'i) -> (forall 'i. anything -> 'i -> 'i) -> 'h) -> 'h) -> (forall 'j. 'j -> anything -> 'j) -> 'k) -> 'k
+//│ pred: ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> ('c -> 'd -> 'f & 'a)) -> ('a -> (('f -> 'e & 'c) -> 'd -> 'e) -> 'b) -> 'b) -> (forall 'h. ((forall 'i. anything -> 'i -> 'i) -> (forall 'i. anything -> 'i -> 'i) -> 'h) -> 'h) -> (forall 'j. 'j -> anything -> 'j) -> 'k) -> 'k
 //│     = [Function: pred1]
 // * Note: cycle check fails when generalizing curried lambdas
 pred_ty = pred
-//│ ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> ('b -> 'a -> 'd & 'f)) -> ('f -> (('d -> 'c & 'b) -> 'a -> 'c) -> 'e) -> 'e) -> (forall 'h. ((forall 'i. anything -> 'i -> 'i) -> (forall 'i. anything -> 'i -> 'i) -> 'h) -> 'h) -> (forall 'j. 'j -> anything -> 'j) -> 'k) -> 'k
+//│ ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> ('d -> 'b -> 'f & 'e)) -> ('e -> (('f -> 'a & 'd) -> 'b -> 'a) -> 'c) -> 'c) -> (forall 'h. ((forall 'i. anything -> 'i -> 'i) -> (forall 'i. anything -> 'i -> 'i) -> 'h) -> 'h) -> (forall 'j. 'j -> anything -> 'j) -> 'k) -> 'k
 //│   <:  pred_ty:
 //│ ChurchInt -> ChurchInt
 //│        = [Function: pred1]
@@ -260,16 +272,16 @@ def fact_ty: ChurchInt -> ChurchInt
 
 // * Note: cycle check fails when generalizing curried lambdas
 rec def fact (n: ChurchInt) = (iszero n) (fun _ -> succ zero) (fun _ -> mul n (fact (pred n)))
-//│ fact: ChurchInt -> ('a -> ('a & 'b) & 'c -> 'b) -> ('b & 'a & 'c) -> 'b
+//│ fact: ChurchInt -> ('a -> 'b & 'c -> ('c & 'b)) -> ('a & 'c) -> ('a | 'b)
 //│     = [Function: fact]
 
 :precise-rec-typing
 rec def fact (n: ChurchInt) = (iszero n) (fun _ -> succ zero) (fun _ -> mul n (fact (pred n)))
-//│ fact: ChurchInt -> ('a -> ('a & 'b) & 'c -> 'b) -> ('b & 'a & 'c) -> 'b
+//│ fact: ChurchInt -> ('a -> 'b & 'c -> ('c & 'b)) -> ('a & 'c) -> ('a | 'b)
 //│     = [Function: fact1]
 
 fact_ty = fact
-//│ ChurchInt -> ('a -> ('a & 'b) & 'c -> 'b) -> ('b & 'a & 'c) -> 'b
+//│ ChurchInt -> ('a -> 'b & 'c -> ('c & 'b)) -> ('a & 'c) -> ('a | 'b)
 //│   <:  fact_ty:
 //│ ChurchInt -> ChurchInt
 //│        = [Function: fact1]
@@ -278,10 +290,10 @@ fact_ty = fact
 :e
 def fact (n: ChurchInt) = (iszero n) (fun _ -> succ zero) (fun _ -> mul n {})
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.279: 	def fact (n: ChurchInt) = (iszero n) (fun _ -> succ zero) (fun _ -> mul n {})
+//│ ║  l.291: 	def fact (n: ChurchInt) = (iszero n) (fun _ -> succ zero) (fun _ -> mul n {})
 //│ ║         	                                                                    ^^^^^^^^
 //│ ╟── record literal of type `anything` is not a function
-//│ ║  l.279: 	def fact (n: ChurchInt) = (iszero n) (fun _ -> succ zero) (fun _ -> mul n {})
+//│ ║  l.291: 	def fact (n: ChurchInt) = (iszero n) (fun _ -> succ zero) (fun _ -> mul n {})
 //│ ║         	                                                                          ^^
 //│ ╟── Note: constraint arises from function type:
 //│ ║  l.7: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -289,7 +301,7 @@ def fact (n: ChurchInt) = (iszero n) (fun _ -> succ zero) (fun _ -> mul n {})
 //│ ╟── from reference:
 //│ ║  l.103: 	def mul (n: ChurchInt) m = n (add m) zero
 //│ ╙──       	                                  ^
-//│ fact: ChurchInt -> (('a -> ('a & 'b) & 'c -> 'b) -> ('b & 'a & 'c) -> 'b | error)
+//│ fact: ChurchInt -> (('a -> 'b & 'c -> ('c & 'b)) -> ('a & 'c) -> ('a | 'b) | error)
 //│     = [Function: fact2]
 
 // * We can drop all intermediate annotations if the recursive call is annotated:

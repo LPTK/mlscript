@@ -54,10 +54,7 @@ f {} {}
 //│ ║        	^^^^^^^
 //│ ╟── record literal of type `anything` is not a function
 //│ ║  l.51: 	f {} {}
-//│ ║        	  ^^
-//│ ╟── but it flows into application with expected type `anything -> ?a`
-//│ ║  l.51: 	f {} {}
-//│ ╙──      	^^^^
+//│ ╙──      	  ^^
 //│ res: error
 //│ Runtime error:
 //│   TypeError: f1(...) is not a function

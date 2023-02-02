@@ -19,9 +19,9 @@ arg = if true then Some{value = 42} with {payload = 23} else None {}
 flatMap3 (fun x -> add x.value x.payload) arg
 //│ res: int | None
 //│    = 65
-//│ constrain calls  : 85
-//│ annoying  calls  : 23
-//│ subtyping calls  : 504
+//│ constrain calls  : 63
+//│ annoying  calls  : 20
+//│ subtyping calls  : 297
 
 
 arg = if true then Some{value = 42} else None {}
@@ -68,7 +68,7 @@ fun f -> flatMap3 f arg
 
 
 foo = flatMap3 (fun x -> x)
-//│ foo: (Some[?] & 'a | 'a & ~#Some) -> 'a
+//│ foo: ('a & (Some[?] | ~#Some)) -> 'a
 //│    = [Function (anonymous)]
 
 foo 1
@@ -87,7 +87,7 @@ def simpler = fun f -> fun opt -> case opt of { Some -> f opt | None -> opt }
 //│        = [Function: simpler1]
 
 simpler (fun x -> x.value)
-//│ res: (None & 'a | Some[?] & {value: 'b}) -> ('b | 'a)
+//│ res: (None & 'a | Some[?] & {value: 'a}) -> 'a
 //│    = [Function (anonymous)]
 
 :e
@@ -101,7 +101,7 @@ res 1
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.85: 	def simpler = fun f -> fun opt -> case opt of { Some -> f opt | None -> opt }
 //│ ╙──      	                                       ^^^
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   Error: non-exhaustive case expression
 

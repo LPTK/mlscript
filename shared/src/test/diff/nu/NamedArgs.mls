@@ -23,7 +23,7 @@ Foo(y: 1)
 //│ ╔══[ERROR] Wrong tuple field name: found 'y' instead of 'x'
 //│ ║  l.22: 	Foo(y: 1)
 //│ ╙──      	   ^^^^^^
-//│ res: error | Foo & {x: 1}
+//│ res: Foo with {x: 1 | error}
 //│    = Foo { x: 1 }
 
 

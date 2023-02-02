@@ -308,9 +308,9 @@ b3 = B {x = 6; y = false}
 //│ ╟── record field of type `6` is not mutable
 //│ ║  l.304: 	b3 = B {x = 6; y = false}
 //│ ╙──       	        ^^^^^
-//│ b3: (B with {mut x: 'x, y: false}) | error
+//│ b3: B with {mut x: 'x, y: error | false}
 //│   where
-//│     'x :> 6
+//│     'x :> 6 | error
 //│        <: int
 //│   = B { x: 6, y: false }
 
@@ -855,7 +855,7 @@ foo { mut a = 1 } 2 3
 //│ ╟── from reference:
 //│ ║  l.836: 	def foo x y z = (x.a <- 0, x.a + 1, x.a, x.a <- y, z x.a)
 //│ ╙──       	                                                   ^
-//│ res: (unit, int, 0 | 1 | 2, unit, nothing,) | error
+//│ res: (unit, int, 0 | 1 | 2, unit, nothing,)
 //│ Runtime error:
 //│   TypeError: z is not a function
 
@@ -874,7 +874,7 @@ foo { a = 1 } 2
 //│ ╟── Note: constraint arises from field selection:
 //│ ║  l.836: 	def foo x y z = (x.a <- 0, x.a + 1, x.a, x.a <- y, z x.a)
 //│ ╙──       	                           ^^^
-//│ res: (("oops" | 0 | 2) -> 'a) -> (unit, int, "oops" | 0 | 2, unit, 'a,) | error
+//│ res: (("oops" | 0 | 2) -> 'a) -> (unit, int, "oops" | 0 | 2, unit, 'a,)
 //│    = [Function (anonymous)]
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.864: 	foo { a = 1 } 2
@@ -882,7 +882,7 @@ foo { a = 1 } 2
 //│ ╟── record field of type `1` is not mutable
 //│ ║  l.864: 	foo { a = 1 } 2
 //│ ╙──       	      ^^^^^
-//│ res: (1 -> 'a) -> (unit, int, 1, unit, 'a,) | error
+//│ res: (1 -> 'a) -> (unit, int, 1, unit, 'a,)
 //│    = [Function (anonymous)]
 
 

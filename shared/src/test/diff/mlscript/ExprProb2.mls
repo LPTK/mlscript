@@ -72,10 +72,9 @@ eval1_fixed_1 e1
 
 
 rec def eval1_fixed_2 = eval1f (fun x -> eval1f eval1_fixed_2 x)
-//│ eval1_fixed_2: (Add[?] & 'a | (Lit with {val: 'val})) -> (int | 'val)
+//│ eval1_fixed_2: 'a -> int
 //│   where
-//│     'a <: {lhs: Add[?] & {lhs: 'rhs, rhs: 'rhs} | Lit, rhs: Add[?] & {lhs: 'rhs, rhs: 'rhs} | Lit}
-//│     'rhs <: Add[?] & 'a | Lit
+//│     'a <: Add[?] & {lhs: Add[?] & {lhs: 'a, rhs: 'a} | Lit, rhs: Add[?] & {lhs: 'a, rhs: 'a} | Lit} | Lit
 //│              = [Function: eval1_fixed_2]
 
 eval1_fixed_2 e1
@@ -87,9 +86,9 @@ eval1_fixed_2 e1
 def eval1_fixed_3 =
   let fixed fixed = eval1f (fun x -> eval1f (fixed fixed) x)
   in fixed fixed!
-//│ eval1_fixed_3: (Add[?] & {lhs: Add[?] & {lhs: 'rhs, rhs: 'rhs} | Lit, rhs: Add[?] & {lhs: 'rhs, rhs: 'rhs} | Lit} | (Lit with {val: 'val})) -> (int | 'val)
+//│ eval1_fixed_3: (Add[?] & {lhs: Add[?] & {lhs: 'a, rhs: 'a} | Lit, rhs: Add[?] & {lhs: 'a, rhs: 'a} | Lit} | (Lit with {val: 'val})) -> (int | 'val)
 //│   where
-//│     'rhs <: Add[?] & {lhs: Add[?] & {lhs: 'rhs, rhs: 'rhs} | Lit, rhs: Add[?] & {lhs: 'rhs, rhs: 'rhs} | Lit} | Lit
+//│     'a <: Add[?] & {lhs: Add[?] & {lhs: 'a, rhs: 'a} | Lit, rhs: Add[?] & {lhs: 'a, rhs: 'a} | Lit} | Lit
 //│              = [Function: eval1_fixed_3]
 
 eval1_fixed_3 e1
@@ -160,17 +159,17 @@ def eval2_fixed_2 = fix eval2f
 eval2_fixed_2 e1
 //│ res: int
 //│    = 6
-//│ constrain calls  : 348
+//│ constrain calls  : 305
 //│ annoying  calls  : 140
-//│ subtyping calls  : 2920
+//│ subtyping calls  : 2892
 
 :stats
 eval2_fixed_2 e2
 //│ res: int
 //│    = -5
-//│ constrain calls  : 835
+//│ constrain calls  : 736
 //│ annoying  calls  : 345
-//│ subtyping calls  : 8059
+//│ subtyping calls  : 8009
 
 
 
@@ -192,9 +191,9 @@ rec def eval1_fixed = eval1f (eval1f eval1_fixed)
 //│   return eval1f(eval1f(eval1_fixed()));
 //│ };
 //│ // End of generated code
-//│ eval1_fixed: (Add[?] & 'a | (Lit with {val: 'val})) -> (int | 'val)
+//│ eval1_fixed: 'a -> int
 //│   where
-//│     'a <: {lhs: Add[?] & 'a | Lit, rhs: Add[?] & 'a | Lit}
+//│     'a <: Add[?] & {lhs: 'a, rhs: 'a} | Lit
 //│            = [Function: eval1_fixed]
 
 :re
@@ -204,9 +203,9 @@ eval1_fixed e1
 //│   RangeError: Maximum call stack size exceeded
 
 rec def eval1_fixed() = eval1f (eval1f (eval1_fixed()))
-//│ eval1_fixed: () -> (Add[?] & 'a | (Lit with {val: 'val})) -> (int | 'val)
+//│ eval1_fixed: () -> 'a -> int
 //│   where
-//│     'a <: {lhs: Add[?] & 'a | Lit, rhs: Add[?] & 'a | Lit}
+//│     'a <: Add[?] & {lhs: 'a, rhs: 'a} | Lit
 //│            = [Function: eval1_fixed1]
 
 :re
@@ -271,7 +270,7 @@ rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ╟── from application:
 //│ ║  l.+1: 	rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ╙──      	                                       ^^^^^^^^^^^^^^^^^^^^^^^
-//│ eval1_fixed: (Add[?] | (Lit with {val: 'val})) -> (int | 'val)
+//│ eval1_fixed: (Add[?] & {lhs: 'a, rhs: 'a} | (Lit with {val: 'a -> int & 'val})) -> (int | 'val)
 
 :e
 rec def eval1_fixed = eval1f eval1_fixed e1
@@ -326,9 +325,9 @@ eval2_broken eval2_broken! e2
 //│ ║  l.20: 	  | Add -> eval1 eval1 e.lhs + eval1 eval1 e.rhs
 //│ ║        	                               ^^^^^^^^^^^^^^^^^
 //│ ╟── from field selection:
-//│ ║  l.312: 	  | Nega -> e.arg
+//│ ║  l.311: 	  | Nega -> e.arg
 //│ ╙──       	            ^^^^^
-//│ res: error | int
+//│ res: int
 
 
 def eval2f_oops eval2 e = case e of {
@@ -343,14 +342,14 @@ fix eval2f_oops e2
 //│ ║  l.+1: 	fix eval2f_oops e2
 //│ ║        	^^^^^^^^^^^^^^^
 //│ ╟── function of type `?a -> (forall ?b. ?b)` does not match type `Add[?] & ?c | Lit & ?d`
-//│ ║  l.147: 	def fix f = let fixed = fun x -> f (fun v -> (x x) v) in fixed fixed!
+//│ ║  l.146: 	def fix f = let fixed = fun x -> f (fun v -> (x x) v) in fixed fixed!
 //│ ║         	                                    ^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.18: 	def eval1 eval1 e = case e of {
 //│ ║        	                         ^
 //│ ╟── from reference:
-//│ ║  l.334: 	def eval2f_oops eval2 e = case e of {
+//│ ║  l.333: 	def eval2f_oops eval2 e = case e of {
 //│ ╙──       	                               ^
-//│ res: error
+//│ res: error | int
 
 

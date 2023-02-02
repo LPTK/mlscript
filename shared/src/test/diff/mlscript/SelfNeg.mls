@@ -16,12 +16,11 @@ foo
 
 :ns
 r = foo (fun a -> fun f -> f a)
-//│ r: forall 'b 'a 'c 'd. 'b
+//│ r: forall 'a 'b 'c. 'a -> 'a
 //│   where
-//│     'b :> 'a -> 'a
-//│     'a <: 'd & 'c
-//│     'c <: ~'a
-//│     'd <: 'a
+//│     'a <: 'c & 'b
+//│     'b <: ~'a
+//│     'c <: 'a
 //│  = <no result>
 //│    foo is not implemented
 
@@ -33,10 +32,10 @@ r
 :e
 r: anything -> nothing
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.34: 	r: anything -> nothing
+//│ ║  l.33: 	r: anything -> nothing
 //│ ║        	^
 //│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.34: 	r: anything -> nothing
+//│ ║  l.33: 	r: anything -> nothing
 //│ ║        	   ^^^^^^^^
 //│ ╟── Note: constraint arises from type negation:
 //│ ║  l.7: 	def foo: ('a -> (~'a -> 'a) -> 'a) -> 'a -> 'a
@@ -56,9 +55,8 @@ def foo: ('a -> (~'a -> anything) -> anything) -> MutArray['a]
 
 :ns
 r = foo (fun a -> fun f -> f a)
-//│ r: forall 'b 'c 'a. 'c
+//│ r: forall 'a 'b. MutArray['a]
 //│   where
-//│     'c :> MutArray['a]
 //│     'a <: 'b
 //│     'b <: ~'a
 //│  = <no result>
@@ -67,13 +65,13 @@ r = foo (fun a -> fun f -> f a)
 :e
 r[0] <- "test"
 //│ ╔══[ERROR] Type mismatch in assignment:
-//│ ║  l.68: 	r[0] <- "test"
+//│ ║  l.66: 	r[0] <- "test"
 //│ ║        	^^^^^^^^^^^^^^
 //│ ╟── string literal of type `"test"` does not match type `~"test"`
-//│ ║  l.68: 	r[0] <- "test"
+//│ ║  l.66: 	r[0] <- "test"
 //│ ║        	        ^^^^^^
 //│ ╟── but it flows into assigned array element with expected type `~"test"`
-//│ ║  l.68: 	r[0] <- "test"
+//│ ║  l.66: 	r[0] <- "test"
 //│ ╙──      	^^^^
 //│ = <no result>
 //│   r and foo are not implemented
@@ -81,10 +79,10 @@ r[0] <- "test"
 :e
 r[0] + 1
 //│ ╔══[ERROR] Type mismatch in operator application:
-//│ ║  l.82: 	r[0] + 1
+//│ ║  l.80: 	r[0] + 1
 //│ ║        	^^^^^^
 //│ ╟── possibly-undefined array access of type `undefined` is not an instance of type `int`
-//│ ║  l.82: 	r[0] + 1
+//│ ║  l.80: 	r[0] + 1
 //│ ╙──      	^^^^
 //│ res: int
 //│    = <no result>
@@ -109,7 +107,7 @@ r = bar (fun x -> (x, x + 1, not x, x x))
 
 :ns
 r
-//│ res: forall 'b 'a 'c 'd. 'b
+//│ res: forall 'a 'b 'c 'd. 'b
 //│   where
 //│     'b :> ('c, int, bool, 'd,)
 //│     'c :> 'a & int & ~'a

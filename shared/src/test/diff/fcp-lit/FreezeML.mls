@@ -184,7 +184,7 @@ rec def map f l =
   else cons (f (head l)) (map f (tail l))
 //│ map: ('a -> 'b) -> List['a] -> List['b]
 //│    = <missing implementation>
-//│ ('b -> 'a) -> List['b] -> List['a]
+//│ ('a -> 'a0) -> List['a] -> List['a0]
 //│   <:  map:
 //│ ('a -> 'b) -> List['a] -> List['b]
 //│    = [Function: map]
@@ -270,9 +270,9 @@ choose id auto
 // A8
 :ns
 choose id auto_
-//│ res: 'c
+//│ res: 'a
 //│   where
-//│     'c :> (forall 'a. 'a -> 'a) | (forall 'b. (forall 'a0. 'a0 -> 'a0) -> 'b -> 'b)
+//│     'a :> (forall 'b. (forall 'a0. 'a0 -> 'a0) -> 'b -> 'b) | (forall 'a1. 'a1 -> 'a1)
 //│    = [Function: id1]
 
 // A9
@@ -476,7 +476,7 @@ a = choose id (fun (x: (forall 'a. 'a -> 'a)) -> auto_ x)
 //│  = [Function: id1]
 
 a id
-//│ res: 'b -> 'b
+//│ res: 'a -> 'a
 //│    = [Function: id1]
 
 choose id (fun x -> auto_ x)
@@ -488,7 +488,7 @@ a = choose id auto_
 //│  = [Function: id1]
 
 a id
-//│ res: 'b -> 'b
+//│ res: 'a -> 'a
 //│    = [Function: id1]
 
 
@@ -511,17 +511,17 @@ choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.172: 	def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│ ╙──       	                    ^^
-//│ res: 'c
+//│ res: 'a
 //│   where
-//│     'c :> (forall 'a. 'a -> 'a) | (forall 'a0 'd. ('a0 -> 'a0) -> 'd)
-//│     'd :> (forall 'b. 'b -> 'b) | error
+//│     'a :> (forall 'a0 'b. ('a0 -> 'a0) -> 'b -> 'b) | (forall 'a1. 'a1 -> 'a1)
+//│     'b :> error
 //│     'a0 :> anything
 //│         <: nothing
 //│    = [Function: id1]
 
 // * The skolem used to (unsafely) leak into this type – see also `Skolems.mls`:
 res
-//│ res: (anything -> nothing & 'a) -> ('a | 'b -> 'b | error)
+//│ res: (anything -> nothing & 'a) -> ('a | 'b -> ('b | error))
 //│    = [Function: id1]
 
 :e // skolem extrusion
@@ -538,7 +538,7 @@ res id
 //│ ╟── from type variable:
 //│ ║  l.504: 	choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│ ╙──       	                          ^^
-//│ res: 'b -> 'b | error
+//│ res: 'a -> ('a | error) | error
 //│    = [Function: id1]
 
 

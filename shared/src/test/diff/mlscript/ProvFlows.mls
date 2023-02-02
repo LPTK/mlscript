@@ -100,7 +100,7 @@ f3 true
 //│ ╟── [info] flowing into type `int`
 //│ ║  l.3: 	def succ: int -> int
 //│ ╙──     	          ^^^
-//│ res: error | int
+//│ res: int
 
 
 :ex
@@ -160,7 +160,7 @@ f3 x3
 //│ ╟── [info] flowing into type `int`
 //│ ║  l.3: 	def succ: int -> int
 //│ ╙──     	          ^^^
-//│ res: error | int
+//│ res: int
 
 
 h1 f x = f x

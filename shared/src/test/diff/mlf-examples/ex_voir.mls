@@ -124,7 +124,7 @@ example_ mkpair
 
 // let make_ex3 x (f:['a > sid] 'a -> 'b ) = f x 
 def make_ex3 x (f: forall 'a. ('a | Sid) -> 'b) = f x
-//│ make_ex3: anything -> (anything -> 'a) -> 'a
+//│ make_ex3: anything -> (anything -> 'b) -> 'b
 //│         = [Function: make_ex3]
 
 // let ex_list3 = [ make_ex3 succ ;
@@ -134,7 +134,7 @@ def make_ex3 x (f: forall 'a. ('a | Sid) -> 'b) = f x
 def ex_list3 = cons (make_ex3 succ) (
       cons (make_ex3 id) (
       cons (make_ex3 not) nil))
-//│ ex_list3: List[forall 'a. (anything -> 'a) -> 'a]
+//│ ex_list3: List[(anything -> 'b) -> 'b]
 //│         = [Function: ex_list3]
 
 

@@ -134,7 +134,7 @@ test (error: A & { x: int })
 //│ ╟── Note: constraint arises from union type:
 //│ ║  l.116: 	def test: (A & { x: 'a; y: 'b } | B & { x: 'a; y: 'b } | C & { x: 'a; y: 'b }) -> { l: 'a; r: 'b }
 //│ ╙──       	          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ res: error | {l: int, r: nothing}
+//│ res: {l: error | int, r: error}
 
 
 def test: (A & { xA: 'a; yA: 'b } | B & { xB: 'a; yB: 'b } | C & { xC: 'a; yC: 'b }) -> { l: 'a; r: 'b }

@@ -29,7 +29,7 @@ set0((1,))
 //│ ╟── tuple field of type `1` is not mutable
 //│ ║  l.25: 	set0((1,))
 //│ ╙──      	      ^
-//│ res: anything -> unit | error
+//│ res: anything -> unit
 //│    = [Function (anonymous)]
 
 
@@ -70,8 +70,7 @@ update0 0 ((mut 1,))
 //│ ╟── from mutable tuple field:
 //│ ║  l.60: 	update0 0 ((mut 1,))
 //│ ╙──      	                ^
-//│ res: error | unit
-//│    = []
+//│ = []
 
 update1 0 ((mut 1,))
 //│ = []
@@ -103,16 +102,16 @@ foo = emptyArray
 :e
 def bar x = (mut x,) : MutArray[int] & MutArray[string]
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.104: 	def bar x = (mut x,) : MutArray[int] & MutArray[string]
+//│ ║  l.103: 	def bar x = (mut x,) : MutArray[int] & MutArray[string]
 //│ ║         	            ^^^^^^^^
 //│ ╟── type `string` is not an instance of `int`
-//│ ║  l.104: 	def bar x = (mut x,) : MutArray[int] & MutArray[string]
+//│ ║  l.103: 	def bar x = (mut x,) : MutArray[int] & MutArray[string]
 //│ ║         	                                                ^^^^^^
 //│ ╟── Note: constraint arises from type reference:
-//│ ║  l.104: 	def bar x = (mut x,) : MutArray[int] & MutArray[string]
+//│ ║  l.103: 	def bar x = (mut x,) : MutArray[int] & MutArray[string]
 //│ ║         	                                ^^^
 //│ ╟── from mutable tuple field:
-//│ ║  l.104: 	def bar x = (mut x,) : MutArray[int] & MutArray[string]
+//│ ║  l.103: 	def bar x = (mut x,) : MutArray[int] & MutArray[string]
 //│ ╙──       	                 ^
 //│ bar: nothing -> MutArray[in int | string out nothing]
 //│    = [Function: bar]

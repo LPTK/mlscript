@@ -109,7 +109,7 @@ useTrt c
 //│ ╟── from refined scrutinee:
 //│ ║  l.96: 	def useTrt t = case t of { T -> t.y | Class -> t.x }
 //│ ╙──      	                    ^
-//│ res: 1 | error
+//│ res: 1
 //│    = 1
 
 useTrt (c with { y = 1 })
@@ -128,7 +128,7 @@ useTrt c
 //│ ╟── from refined scrutinee:
 //│ ║  l.96: 	def useTrt t = case t of { T -> t.y | Class -> t.x }
 //│ ╙──      	                    ^
-//│ res: 1 | error
+//│ res: 1
 //│    = 1
 
 d = D{z = 1213}

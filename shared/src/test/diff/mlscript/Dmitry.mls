@@ -76,12 +76,12 @@ foo2 arg
 //│ ╟── string literal of type `"C"` does not match type `"A" & ?a | "B" & ?b | "D" & ?c | "E" & ?d | "F" & ?e | "G" & ?f | "H" & ?g | "I" & ?h | "J" & ?i`
 //│ ║  l.35: 	arg = if true then "B" else if false then "C" else "D"
 //│ ║        	                                          ^^^
-//│ ╟── but it flows into reference with expected type `"A" & ?a | "B" & ?j | "D" & ?c | "E" & ?d | "F" & ?e | "G" & ?f | "H" & ?g | "I" & ?h | "J" & ?i`
+//│ ╟── but it flows into reference with expected type `"A" & ?a | "B" & ?b | "D" & ?c | "E" & ?d | "F" & ?e | "G" & ?f | "H" & ?g | "I" & ?h | "J" & ?i`
 //│ ║  l.72: 	foo2 arg
 //│ ║        	     ^^^
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.57: 	foo2 x = case x of {
 //│ ╙──      	              ^
-//│ res: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | error
+//│ res: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 //│    = 2
 

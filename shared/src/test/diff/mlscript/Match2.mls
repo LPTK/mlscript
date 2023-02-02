@@ -47,7 +47,7 @@ bar Test
 //│ ╟── Note: class constructor Test is defined at:
 //│ ║  l.2: 	class Test: { value: int }
 //│ ╙──     	      ^^^^
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   Error: non-exhaustive case expression
 
@@ -62,7 +62,7 @@ bar "ops"
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.29: 	def bar x = case x of
 //│ ╙──      	                 ^
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   Error: non-exhaustive case expression
 
@@ -85,7 +85,7 @@ baz "oops"
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.70: 	def baz x = case x of
 //│ ╙──      	                 ^
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   Error: non-exhaustive case expression
 

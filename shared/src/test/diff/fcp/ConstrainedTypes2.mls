@@ -77,9 +77,9 @@ def test extr =
   let f n m = n 0
   in let _ = extr f
   in f 0
-//│ test: ((forall 'a 'b. 'b -> (anything -> 'a
+//│ test: ((forall 'a 'b. 'a -> (anything -> 'b
 //│   where
-//│     'b <: 0 -> 'a)) -> anything) -> (anything -> 'c
+//│     'a <: 0 -> 'b)) -> anything) -> (anything -> 'c
 //│   where
 //│     0 <: 0 -> 'c)
 //│     = [Function: test]
@@ -95,7 +95,7 @@ test 1
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.78: 	  in let _ = extr f
 //│ ╙──      	             ^^^^^^
-//│ res: anything -> 'a | error
+//│ res: anything -> 'a
 //│   where
 //│     0 <: 0 -> 'a
 //│ Runtime error:
@@ -108,11 +108,11 @@ def test extr x =
   in f 0
 //│ test: ((forall 'a 'b 'c. 'a -> (anything -> 'c
 //│   where
-//│     'd <: 'b -> 'c
-//│     'a <: 0 -> 'b)) -> anything) -> 'd -> (anything -> 'e
+//│     'a <: 0 -> 'b
+//│     'd <: 'b -> 'c)) -> anything) -> 'd -> (anything -> 'e
 //│   where
-//│     'd <: 'f -> 'e
-//│     0 <: 0 -> 'f)
+//│     0 <: 0 -> 'f
+//│     'd <: 'f -> 'e)
 //│     = [Function: test1]
 
 :e
@@ -129,7 +129,7 @@ test 0
 //│ res: 'a -> (anything -> 'b
 //│   where
 //│     'a <: 'c -> 'b
-//│     0 <: 0 -> 'c) | error
+//│     0 <: 0 -> 'c)
 //│    = [Function (anonymous)]
 
 def test extr x =

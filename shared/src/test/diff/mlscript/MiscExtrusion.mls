@@ -60,7 +60,7 @@ alsoPrintSize id
 //│ ║  l.58: 	alsoPrintSize id
 //│ ║        	^^^^^^^^^^^^^^^^
 //│ ╙── expression of type `anything` does not match type `nothing`
-//│ res: Program -> Program | error
+//│ res: Program -> Program
 
 def alsoPrintSize (f: forall 'a. Expr['a] -> Expr['a]) =
   mapExpr(fun e -> let tmp = print e in f e)
@@ -90,7 +90,7 @@ alsoPrintSizeCo id
 //│ ║  l.88: 	alsoPrintSizeCo id
 //│ ║        	^^^^^^^^^^^^^^^^^^
 //│ ╙── expression of type `anything` does not match type `nothing`
-//│ res: Program -> Program | error
+//│ res: Program -> Program
 
 def alsoPrintSizeCo (f: forall 'a. Expr['a] -> Expr['a]) =
   mapExpr(fun e -> let tmp = print e in f e)
