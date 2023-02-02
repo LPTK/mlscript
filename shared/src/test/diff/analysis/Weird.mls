@@ -8,19 +8,14 @@ class Base1[A]
 :DistributeForalls
 
 // * See [FIXME:1] — C should NOT be invariant here! (only happens with :DistributeForalls)
+// * (Note: `Derived2{}` is not enough to trigger this as it's handled by refined app typing.)
 class Derived2[C]: Base1[anything]
-  method M1 r = Derived2{}
-//│ Defined class Derived2[±C]
-//│ Defined Derived2.M1: Derived2[?] -> anything -> Derived2[?]
-//│ ╔══[WARNING] Type definition Derived2 has bivariant type parameters:
-//│ ║  l.11: 	class Derived2[C]: Base1[anything]
-//│ ║        	      ^^^^^^^^
-//│ ╟── C is irrelevant and may be removed
-//│ ║  l.11: 	class Derived2[C]: Base1[anything]
-//│ ╙──      	               ^
+  method M1 r = id Derived2 {}
+//│ Defined class Derived2[=C]
+//│ Defined Derived2.M1: Derived2['C] -> anything -> Derived2['C0]
 
 Derived2.M1
-//│ res: Derived2[?] -> anything -> Derived2[?]
+//│ res: Derived2['C] -> (forall 'C0. anything -> Derived2['C0])
 //│    = undefined
 
 
@@ -28,14 +23,14 @@ Derived2.M1
 
 :w
 class Derived3[C]: Base1[anything]
-  method M1 r = Derived3{}
+  method M1 r = id Derived3 {}
 //│ Defined class Derived3[±C]
 //│ Defined Derived3.M1: Derived3[?] -> anything -> Derived3[?]
 //│ ╔══[WARNING] Type definition Derived3 has bivariant type parameters:
-//│ ║  l.30: 	class Derived3[C]: Base1[anything]
+//│ ║  l.25: 	class Derived3[C]: Base1[anything]
 //│ ║        	      ^^^^^^^^
 //│ ╟── C is irrelevant and may be removed
-//│ ║  l.30: 	class Derived3[C]: Base1[anything]
+//│ ║  l.25: 	class Derived3[C]: Base1[anything]
 //│ ╙──      	               ^
 
 Derived3.M1

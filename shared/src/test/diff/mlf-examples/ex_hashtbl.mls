@@ -221,13 +221,11 @@ table = hashtbl_add table "two" (fun f -> fun x -> f (f x))
 // let zog =
 //   printInt (add (nfind table "one") (nfind table "two"))
 
-// :e // FIXME? failed with genLamBodies but works with quantif extrus
 // * Note: this one requires `:DistributeForalls`
-// :e // due to tapping
-:e // * Since "sound extrusion"
+:e // * [FCP-LIM]
 zog = printInt (add (nfind table "one") (nfind table "two"))
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.228: 	zog = printInt (add (nfind table "one") (nfind table "two"))
+//│ ║  l.226: 	zog = printInt (add (nfind table "one") (nfind table "two"))
 //│ ║         	                ^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.175: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -239,7 +237,7 @@ zog = printInt (add (nfind table "one") (nfind table "two"))
 //│ ║  l.210: 	table = hashtbl_add table "two" (fun f -> fun x -> f (f x))
 //│ ╙──       	                                                      ^^^
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.228: 	zog = printInt (add (nfind table "one") (nfind table "two"))
+//│ ║  l.226: 	zog = printInt (add (nfind table "one") (nfind table "two"))
 //│ ║         	                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.175: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -253,7 +251,7 @@ zog = printInt (add (nfind table "one") (nfind table "two"))
 //│ zog: string
 //│    = '0'
 
-// Repro:
+// * Repro:
 
 // :e // FIXME? failed with genLamBodies but works with quantif extrus
 //:e // due to tapping
@@ -261,7 +259,7 @@ zog = printInt (add (nfind table "one") (nfind table "two"))
 :e // * Since "sound extrusion"
 a = add (nfind table "one")
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.262: 	a = add (nfind table "one")
+//│ ║  l.260: 	a = add (nfind table "one")
 //│ ║         	    ^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.175: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -295,16 +293,17 @@ b = (find table "two")
 //│ b: None | Some[forall 'a 'b 'c. ('a -> 'b & 'a -> 'c & 'c -> 'b) -> 'a -> 'b]
 //│  = None {}
 
+:e // * TODO investigate
 // * Note: this one required `:DistributeForalls`
 a b
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.299: 	a b
+//│ ║  l.298: 	a b
 //│ ║         	^^^
 //│ ╟── application of type `None` is not a function
 //│ ║  l.80: 	def None = None {}
 //│ ║        	           ^^^^^^^
 //│ ╟── but it flows into reference with expected type `('a -> 'a) -> 'a -> 'a`
-//│ ║  l.299: 	a b
+//│ ║  l.298: 	a b
 //│ ║         	  ^
 //│ ╟── Note: constraint arises from function type:
 //│ ║  l.175: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -384,10 +383,10 @@ foo 1
 :e
 foo 1 2
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.385: 	foo 1 2
+//│ ║  l.384: 	foo 1 2
 //│ ║         	^^^^^^^
 //│ ╟── integer literal of type `2` is not a function
-//│ ║  l.385: 	foo 1 2
+//│ ║  l.384: 	foo 1 2
 //│ ║         	      ^
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.209: 	table = hashtbl_add table "one" (fun f -> fun x -> f x)
