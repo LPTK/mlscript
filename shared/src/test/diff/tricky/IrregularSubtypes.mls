@@ -10,10 +10,6 @@ type Bar[A] = A -> Bar[Bar[A]]
 
 :e
 error: Foo[int]: Bar[int]
-//│ ╔══[ERROR] Subtyping constraint of the form `Foo[int] <: Bar[int]` exceeded recursion depth limit (250)
-//│ ║  l.12: 	error: Foo[int]: Bar[int]
-//│ ║        	^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: Bar[int]
 //│ Runtime error:
 //│   Error: unexpected runtime error
@@ -25,7 +21,7 @@ error: Foo[int]: Bar[int]
 :e
 error: Foo[int]: Bar[int]
 //│ ╔══[ERROR] Cyclic-looking constraint while typing type ascription; a type annotation may be required
-//│ ║  l.26: 	error: Foo[int]: Bar[int]
+//│ ║  l.22: 	error: Foo[int]: Bar[int]
 //│ ║        	^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: Bar[int]

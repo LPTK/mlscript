@@ -326,7 +326,7 @@ foo (fun x -> (0, x + 1))
 def foo (f: 'a -> ('a, 'a)) =
   let x = f 42
   in fst x + snd x
-//│ foo: (('a | 42) -> (int & 'a, int & 'a,)) -> int
+//│ foo: (('a | 42) -> ('a, 'a,)) -> int
 //│    = [Function: foo2]
 
 foo (fun x -> (x, x))

@@ -836,6 +836,19 @@ abstract class TyperHelpers { Typer: Typer =>
       |> (expandType(_, stopAtTyVars = true))
     )
     
+    // lazy val dnfPos: DNF = DNF.mkDeep(MaxLevel, Nil, this, true)
+    // lazy val dnfNeg: DNF = DNF.mkDeep(MaxLevel, Nil, this, false)
+    private var _dnfPos: DNF = null
+    def dnfPos(implicit ctx: Ctx): DNF = {
+      if (_dnfPos is null) _dnfPos = DNF.mkDeep(MaxLevel, Nil, this, true)(ctx, ptr = true, etf = false)
+      _dnfPos
+    }
+    private var _dnfNeg: DNF = null
+    def dnfNeg(implicit ctx: Ctx): DNF = {
+      if (_dnfNeg is null) _dnfNeg = DNF.mkDeep(MaxLevel, Nil, this, false)(ctx, ptr = true, etf = false)
+      _dnfNeg
+    }
+    
   }
   
   

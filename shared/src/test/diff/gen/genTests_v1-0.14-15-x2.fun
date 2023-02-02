@@ -332,15 +332,6 @@ add
 //│ res: int -> int
 
 ((let x = 0; add) (let x = add; x))
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.+1: 	((let x = 0; add) (let x = add; x))
-//│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── reference of type `int -> int -> int` is not an instance of type `int`
-//│ ║  l.+1: 	((let x = 0; add) (let x = add; x))
-//│ ║        	                           ^^^
-//│ ╟── but it flows into reference with expected type `int`
-//│ ║  l.+1: 	((let x = 0; add) (let x = add; x))
-//│ ╙──      	                                ^
 //│ res: int -> int
 
 ((let x = 0; add) (let rec x = x; x))
@@ -2511,28 +2502,10 @@ add
 //│ res: {v: 'v} -> {u: 'v}
 
 (let x = 0; {u: x.v})
-//│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.+1: 	(let x = 0; {u: x.v})
-//│ ║        	                 ^^
-//│ ╟── integer literal of type `0` does not have field 'v'
-//│ ║  l.+1: 	(let x = 0; {u: x.v})
-//│ ║        	         ^
-//│ ╟── but it flows into reference with expected type `{v: ?v}`
-//│ ║  l.+1: 	(let x = 0; {u: x.v})
-//│ ╙──      	                ^
-//│ res: {u: error}
+//│ res: {u: nothing}
 
 (let x = add; {u: x.v})
-//│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.+1: 	(let x = add; {u: x.v})
-//│ ║        	                   ^^
-//│ ╟── reference of type `int -> int -> int` does not have field 'v'
-//│ ║  l.+1: 	(let x = add; {u: x.v})
-//│ ║        	         ^^^
-//│ ╟── but it flows into reference with expected type `{v: ?v}`
-//│ ║  l.+1: 	(let x = add; {u: x.v})
-//│ ╙──      	                  ^
-//│ res: {u: error}
+//│ res: {u: nothing}
 
 (let rec x = x; {u: x.v})
 //│ res: {u: nothing}
@@ -2559,10 +2532,10 @@ add
 //│ res: {u: nothing}
 
 (let x = {v: 0}; {u: x.v})
-//│ res: {u: 0}
+//│ res: {u: nothing}
 
 (let x = {v: add}; {u: x.v})
-//│ res: {u: int -> int -> int}
+//│ res: {u: nothing}
 
 (let rec x = {v: x}; {u: x.v})
 //│ res: {u: 'x}
@@ -2570,13 +2543,13 @@ add
 //│     'x :> {v: 'x}
 
 (let x = {v: (y => 0)}; {u: x.v})
-//│ res: {u: anything -> 0}
+//│ res: {u: nothing}
 
 (let x = {v: (y => add)}; {u: x.v})
-//│ res: {u: anything -> int -> int -> int}
+//│ res: {u: nothing}
 
 (let x = {v: (y => y)}; {u: x.v})
-//│ res: {u: forall 'a. 'a -> 'a}
+//│ res: {u: nothing}
 
 (let rec x = {v: (y => x)}; {u: x.v})
 //│ res: {u: 'v}
@@ -2896,37 +2869,19 @@ add
 //│ res: {v: 'v} -> 'v
 
 (let x = 0; x.v)
-//│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.+1: 	(let x = 0; x.v)
-//│ ║        	             ^^
-//│ ╟── integer literal of type `0` does not have field 'v'
-//│ ║  l.+1: 	(let x = 0; x.v)
-//│ ║        	         ^
-//│ ╟── but it flows into reference with expected type `{v: ?v}`
-//│ ║  l.+1: 	(let x = 0; x.v)
-//│ ╙──      	            ^
-//│ res: error
+//│ res: nothing
 
 (let x = add; x.v)
-//│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.+1: 	(let x = add; x.v)
-//│ ║        	               ^^
-//│ ╟── reference of type `int -> int -> int` does not have field 'v'
-//│ ║  l.+1: 	(let x = add; x.v)
-//│ ║        	         ^^^
-//│ ╟── but it flows into reference with expected type `{v: ?v}`
-//│ ║  l.+1: 	(let x = add; x.v)
-//│ ╙──      	              ^
-//│ res: error
+//│ res: nothing
 
 (let rec x = x; x.v)
 //│ res: nothing
 
 (let x = {v: 0}; x.v)
-//│ res: 0
+//│ res: nothing
 
 (let x = {v: add}; x.v)
-//│ res: int -> int -> int
+//│ res: nothing
 
 (let rec x = {v: x}; x.v)
 //│ res: 'x
@@ -2934,10 +2889,10 @@ add
 //│     'x :> {v: 'x}
 
 (let x = {v: {v: 0}}; x.v)
-//│ res: {v: 0}
+//│ res: nothing
 
 (let x = {v: {v: add}}; x.v)
-//│ res: {v: int -> int -> int}
+//│ res: nothing
 
 (let rec x = {v: {v: x}}; x.v)
 //│ res: 'v

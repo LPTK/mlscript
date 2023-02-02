@@ -61,21 +61,6 @@ class A0: S0[int] & T0[string]
 :e
 class A0_2: S0[int] & T0[string]
   method Foo0 = 1
-//│ ╔══[ERROR] Type mismatch in method definition:
-//│ ║  l.63: 	  method Foo0 = 1
-//│ ║        	         ^^^^^^^^
-//│ ╟── integer literal of type `1` is not an instance of type `string`
-//│ ║  l.63: 	  method Foo0 = 1
-//│ ║        	                ^
-//│ ╟── but it flows into method definition with expected type `string`
-//│ ║  l.63: 	  method Foo0 = 1
-//│ ║        	         ^^^^^^^^
-//│ ╟── Note: constraint arises from type reference:
-//│ ║  l.62: 	class A0_2: S0[int] & T0[string]
-//│ ║        	                         ^^^^^^
-//│ ╟── from inherited method declaration:
-//│ ║  l.38: 	  method Foo0: A
-//│ ╙──      	         ^^^^^^^
 //│ Defined class A0_2
 //│ Defined A0_2.Foo0: A0_2 -> 1
 
@@ -104,14 +89,14 @@ trait T1: R1[string]
 :e
 class A1: S1 & T1
 //│ ╔══[ERROR] An overriding method definition must be given when inheriting from multiple method definitions
-//│ ║  l.105: 	class A1: S1 & T1
-//│ ║         	      ^^
+//│ ║  l.90: 	class A1: S1 & T1
+//│ ║        	      ^^
 //│ ╟── Definitions of method Foo1 inherited from:
 //│ ╟── • S1
-//│ ║  l.96: 	  method Foo1 = 1
+//│ ║  l.81: 	  method Foo1 = 1
 //│ ║        	         ^^^^^^^^
 //│ ╟── • T1
-//│ ║  l.98: 	  method Foo1 = "a"
+//│ ║  l.83: 	  method Foo1 = "a"
 //│ ╙──      	         ^^^^^^^^^^
 //│ Defined class A1
 

@@ -997,7 +997,7 @@ rec def eval1 subst = eval_lambda eval1 subst
 //│ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 1. C ‹∀ 2. String› <! String    (27)
 //│ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 1. C ‹∀ 2. String› <! String    (27)
 //│ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 1. C ‹∀ 2. String› <! string<>    (29)
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 1. C String <! string<>    (31)
+//│ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | Cached! (DNF)
 //│ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 1. C ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'})) <! ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>)))    (19)
 //│ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 1. C (α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) <! ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>)))    (21)
 //│ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 1. C α275_404' <! ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>)))    (23)
@@ -1178,83 +1178,11 @@ rec def eval1 subst = eval_lambda eval1 subst
 //│ | | | | | | | | | | | | | | | | | | | | 1. C (app<lambda> & {App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}) <! ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>)))    (12)
 //│ | | | | | | | | | | | | | | | | | | | | | 1. C (app<lambda> & {App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}) <! ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>)))    (12)
 //│ | | | | | | | | | | | | | | | | | | | | | | 1. C (app<lambda> & {App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}) <! ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>)))    (12)
-//│ | | | | | | | | | | | | | | | | | | | | | | | 1. ARGH  (subst382' -> (α232_431' -> ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'})))))  <!  DNF(1, var<lambda>{}∧α233_432' | app<lambda>{}∧α249_436' | abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | | | | Consider app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'} <: DNF(1, var<lambda>{}∧α233_432' | app<lambda>{}∧α249_436' | abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | | | | Possible: List(app<lambda>{}∧α249_436')
-//│ | | | | | | | | | | | | | | | | | | | | | | | | 1. A  app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}  %  List()  <!  List((app<lambda> & α249_436'))  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | Case.1
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | 1. A  app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}  %  List()  <!  List(app<lambda>)  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | | 1. A  app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}  %  List()  <!  List()  %  app<lambda>
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | | | OK  app<lambda>  <:  app<lambda>
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | Case.2
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | 1. A  app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}  %  List()  <!  List(α249_436')  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | | 1. C (app<lambda> & {App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}) <! α249_436'    (14)
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | | | Cached!
+//│ | | | | | | | | | | | | | | | | | | | | | | | Cached! (DNF)
 //│ | | | | | | | | | | | | | | | 1. C ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}))) <! α256_399'    (5)
 //│ | | | | | | | | | | | | | | | | NEW α256_399' LB (1)
 //│ | | | | | | | | | | | | | | | | 1. C ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}))) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (7)
-//│ | | | | | | | | | | | | | | | | | 1. C (α149_434' | result192_416') <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (9)
-//│ | | | | | | | | | | | | | | | | | | 1. C (α149_434' | result192_416') <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (9)
-//│ | | | | | | | | | | | | | | | | | | | 1. C α149_434' <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (11)
-//│ | | | | | | | | | | | | | | | | | | | | 1. C α149_434' <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (11)
-//│ | | | | | | | | | | | | | | | | | | | | | NEW α149_434' UB (1)
-//│ | | | | | | | | | | | | | | | | | | | | | 1. C (var<lambda> & {name: name146_387'}) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (13)
-//│ | | | | | | | | | | | | | | | | | | | | | | 1. ARGH  (subst382' -> (α232_431' -> ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'})))))  <!  DNF(1, var<lambda>{}∧α233_432' | app<lambda>{}∧α249_436' | abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | | | Consider var<lambda>{name: name146_387'} <: DNF(1, var<lambda>{}∧α233_432' | app<lambda>{}∧α249_436' | abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | | | Possible: List(var<lambda>{}∧α233_432')
-//│ | | | | | | | | | | | | | | | | | | | | | | | 1. A  var<lambda>{name: name146_387'}  %  List()  <!  List((var<lambda> & α233_432'))  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | | Case.1
-//│ | | | | | | | | | | | | | | | | | | | | | | | | 1. A  var<lambda>{name: name146_387'}  %  List()  <!  List(var<lambda>)  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | 1. A  var<lambda>{name: name146_387'}  %  List()  <!  List()  %  var<lambda>
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | | OK  var<lambda>  <:  var<lambda>
-//│ | | | | | | | | | | | | | | | | | | | | | | | | Case.2
-//│ | | | | | | | | | | | | | | | | | | | | | | | | 1. A  var<lambda>{name: name146_387'}  %  List()  <!  List(α233_432')  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | 1. C (var<lambda> & {name: name146_387'}) <! α233_432'    (15)
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | | Cached!
-//│ | | | | | | | | | | | | | | | | | | | 1. C result192_416' <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (11)
-//│ | | | | | | | | | | | | | | | | | | | | NEW result192_416' UB (1)
-//│ | | | | | | | | | | | | | | | | | | | | 1. C ‹∀ 2. α254_398'''› <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (13)
-//│ | | | | | | | | | | | | | | | | | | | | | 1. ARGH  (subst382' -> (α232_431' -> ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'})))))  <!  DNF(1, var<lambda>{}∧α233_432' | app<lambda>{}∧α249_436' | abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | | 1. C α254_443' <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (15)
-//│ | | | | | | | | | | | | | | | | | | | | | | | NEW α254_443' UB (1)
-//│ | | | | | | | | | | | | | | | | | | | | | | | 1. C α256_399' <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (17)
-//│ | | | | | | | | | | | | | | | | | | | | | | | | Cached!
-//│ | | | | | | | | | | | | | | | | | | | | 1. C (var<lambda> & {name: name146_387'}) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (13)
-//│ | | | | | | | | | | | | | | | | | | | | | Cached!
-//│ | | | | | | | | | | | | | | | | | 1. C ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'})) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (9)
-//│ | | | | | | | | | | | | | | | | | | 1. C (α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (11)
-//│ | | | | | | | | | | | | | | | | | | | 1. C α275_404' <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (13)
-//│ | | | | | | | | | | | | | | | | | | | | NEW α275_404' UB (1)
-//│ | | | | | | | | | | | | | | | | | | | | 1. C ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}))) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (15)
-//│ | | | | | | | | | | | | | | | | | | | | | Cached!
-//│ | | | | | | | | | | | | | | | | | | | 1. C (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'}) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (13)
-//│ | | | | | | | | | | | | | | | | | | | | 1. C (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'}) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (13)
-//│ | | | | | | | | | | | | | | | | | | | | | 1. ARGH  (subst382' -> (α232_431' -> ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'})))))  <!  DNF(1, var<lambda>{}∧α233_432' | app<lambda>{}∧α249_436' | abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | | Consider app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'} <: DNF(1, var<lambda>{}∧α233_432' | app<lambda>{}∧α249_436' | abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | | Possible: List(app<lambda>{}∧α249_436')
-//│ | | | | | | | | | | | | | | | | | | | | | | 1. A  app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}  %  List()  <!  List((app<lambda> & α249_436'))  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | Case.1
-//│ | | | | | | | | | | | | | | | | | | | | | | | 1. A  app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}  %  List()  <!  List(app<lambda>)  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | | 1. A  app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}  %  List()  <!  List()  %  app<lambda>
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | OK  app<lambda>  <:  app<lambda>
-//│ | | | | | | | | | | | | | | | | | | | | | | | Case.2
-//│ | | | | | | | | | | | | | | | | | | | | | | | 1. A  app<lambda>{App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}  %  List()  <!  List(α249_436')  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | | 1. C (app<lambda> & {App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}) <! α249_436'    (15)
-//│ | | | | | | | | | | | | | | | | | | | | | | | | | Cached!
-//│ | | | | | | | | | | | | | | | | | | 1. C (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (11)
-//│ | | | | | | | | | | | | | | | | | | | 1. C (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}) <! (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437'))    (11)
-//│ | | | | | | | | | | | | | | | | | | | | 1. ARGH  (subst382' -> (α232_431' -> ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'})))))  <!  DNF(1, var<lambda>{}∧α233_432' | app<lambda>{}∧α249_436' | abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | Consider abs<lambda>{Abs#a: mut a216_394'..a216_394', name: name220_440', body: body221_393'} <: DNF(1, var<lambda>{}∧α233_432' | app<lambda>{}∧α249_436' | abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | Possible: List(abs<lambda>{}∧α281_437')
-//│ | | | | | | | | | | | | | | | | | | | | | 1. A  abs<lambda>{Abs#a: mut a216_394'..a216_394', name: name220_440', body: body221_393'}  %  List()  <!  List((abs<lambda> & α281_437'))  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | Case.1
-//│ | | | | | | | | | | | | | | | | | | | | | | 1. A  abs<lambda>{Abs#a: mut a216_394'..a216_394', name: name220_440', body: body221_393'}  %  List()  <!  List(abs<lambda>)  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | 1. A  abs<lambda>{Abs#a: mut a216_394'..a216_394', name: name220_440', body: body221_393'}  %  List()  <!  List()  %  abs<lambda>
-//│ | | | | | | | | | | | | | | | | | | | | | | | | OK  abs<lambda>  <:  abs<lambda>
-//│ | | | | | | | | | | | | | | | | | | | | | | Case.2
-//│ | | | | | | | | | | | | | | | | | | | | | | 1. A  abs<lambda>{Abs#a: mut a216_394'..a216_394', name: name220_440', body: body221_393'}  %  List()  <!  List(α281_437')  %  ⊥
-//│ | | | | | | | | | | | | | | | | | | | | | | | 1. C (abs<lambda> & {Abs#a: mut a216_394'..a216_394', name: name220_440', body: body221_393'}) <! α281_437'    (13)
-//│ | | | | | | | | | | | | | | | | | | | | | | | | Cached!
+//│ | | | | | | | | | | | | | | | | | Cached! (DNF)
 //│ | | | | | | | | | | | | | | | | 1. C ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}))) <! ((abs<lambda> & α264_423') | (α276_425' & ~(abs<lambda>)))    (7)
 //│ | | | | | | | | | | | | | | | | | Cached!
 //│ UNSTASHING... (out)
@@ -1279,7 +1207,7 @@ rec def eval1 subst = eval_lambda eval1 subst
 //│ 		A47_400' :> (α38_396', α39_397',) <: A47_388'
 //│ 		tail52_401' :> nil<> <: List[A47_388'] & tail181_409' & List[A47_400']
 //│ 		body274_403' :> ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}))) <: α232_431'
-//│ 		α275_404' :> ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}))) <: (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437')) & ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>))) & ((abs<lambda> & α264_423') | (α276_425' & ~(abs<lambda>)))
+//│ 		α275_404' :> ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}))) <: ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>))) & ((abs<lambda> & α264_423') | (α276_425' & ~(abs<lambda>)))
 //│ 		α231_405' :> (cons<> & {head: head51_395', tail: tail52_401', Cons#A: mut A47_400'..A47_400'}) | (cons<> & {head: head51_384', tail: tail52_389', Cons#A: mut A47_388'..A47_388'}) <: subst382' & α58_406' & α147_407'
 //│ 		α58_406' :> (cons<> & {head: head51_395', tail: tail52_401', Cons#A: mut A47_400'..A47_400'}) | (cons<> & {head: head51_384', tail: tail52_389', Cons#A: mut A47_388'..A47_388'}) <: tail52_389'
 //│ 		α147_407' :> (cons<> & {head: head51_395', tail: tail52_401', Cons#A: mut A47_400'..A47_400'}) | (cons<> & {head: head51_384', tail: tail52_389', Cons#A: mut A47_388'..A47_388'}) <: ((cons<> & α180_408') | ((nil<> & α183_411') & ~(cons<>)))
@@ -1291,7 +1219,7 @@ rec def eval1 subst = eval_lambda eval1 subst
 //│ 		α185_413' :> ‹∀ 2. α254_398'''› | (var<lambda> & {name: name146_387'}) <: α186_414'
 //│ 		α186_414' :> ‹∀ 2. α254_398'''› | (var<lambda> & {name: name146_387'}) <: result187_415'
 //│ 		result187_415' :> ‹∀ 2. α254_398'''› | (var<lambda> & {name: name146_387'}) <: result192_416' & Anything
-//│ 		result192_416' :> ‹∀ 2. α254_398'''› | (var<lambda> & {name: name146_387'}) <: (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437')) & ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>))) & ((abs<lambda> & α264_423') | (α276_425' & ~(abs<lambda>)))
+//│ 		result192_416' :> ‹∀ 2. α254_398'''› | (var<lambda> & {name: name146_387'}) <: ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>))) & ((abs<lambda> & α264_423') | (α276_425' & ~(abs<lambda>)))
 //│ 		head188_417' :> (α38_396', α39_397',) | (α38_385', α39_386',) <: {_1: α189_418'}
 //│ 		α189_418' :> ‹∀ 2. String› <: String
 //│ 		rhs260_421' :> ‹∀ 2. α254_398'''› <: α232_431'
@@ -1304,7 +1232,7 @@ rec def eval1 subst = eval_lambda eval1 subst
 //│ 		α232_431' :> (app<lambda> & {App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}) | (var<lambda> & {name: name146_387'}) | ‹∀ 2. α254_398'''› | ((α149_434' | result192_416') | ((α275_404' | (app<lambda> & {lhs: lhs222_426', rhs: rhs223_439', App#a: mut a218_427'..a218_427'})) | (abs<lambda> & {name: name220_440', body: body221_393', Abs#a: mut a216_394'..a216_394'}))) <: ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>)))
 //│ 		α233_432' :> (var<lambda> & {name: name146_387'}) <: α148_433'
 //│ 		α148_433' :> (var<lambda> & {name: name146_387'}) <: (var<lambda> & α149_434')
-//│ 		α149_434' :> (var<lambda> & {name: name146_387'}) <: (((var<lambda> & α233_432') | (app<lambda> & α249_436')) | (abs<lambda> & α281_437')) & ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>))) & ((abs<lambda> & α264_423') | (α276_425' & ~(abs<lambda>))) & {name: name151_435'}
+//│ 		α149_434' :> (var<lambda> & {name: name146_387'}) <: ((var<lambda> & α233_432') | (((app<lambda> & α249_436') | ((abs<lambda> & α281_437') & ~(app<lambda>))) & ~(var<lambda>))) & ((abs<lambda> & α264_423') | (α276_425' & ~(abs<lambda>))) & {name: name151_435'}
 //│ 		name151_435' :> ‹∀ 2. String› <: String
 //│ 		α249_436' :> (app<lambda> & {App#a: mut a218_427'..a218_427', lhs: lhs222_426', rhs: rhs223_439'}) <: {rhs: rhs260_421'} & {lhs: lhs253_430'}
 //│ 		α281_437' :> (abs<lambda> & {Abs#a: mut a216_394'..a216_394', name: name220_440', body: body221_393'}) <: {body: body295_391'} & {name: name285_438'}
@@ -1315,16 +1243,14 @@ rec def eval1 subst = eval_lambda eval1 subst
 //│   where
 //│     'tail <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'tail}) | Nil
 //│     'result :> 'rhs | Var
-//│             <: 'b & (Abs[?] & 'c | 'lhs & (Abs[?] & 'c & ~#Abs | App[?] & 'd | Var & 'e))
-//│     'rhs :> Abs['rhs] | (App['a] with {lhs: 'lhs, rhs: 'rhs}) | 'result | 'f
+//│             <: 'b & (Abs[?] & 'c | 'lhs & ~#Abs)
+//│     'rhs :> Abs['rhs] | (App['a] with {lhs: 'lhs, rhs: 'rhs}) | 'result | 'd
 //│     'a :> (App['a] with {lhs: 'lhs, rhs: 'rhs}) | 'rhs | Var
 //│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'rhs}) | Var
 //│          <: 'b & 'a
-//│     'b <: Abs[?] & 'c | App[?] & 'd | Var & 'e
-//│     'e <: Var & 'f
-//│     'f :> Var
-//│        <: 'b & (Abs[?] & 'c | 'lhs & (Abs[?] & 'c & ~#Abs | App[?] & {name: string} & 'd | Var & 'e))
-//│     'd <: {lhs: 'b, rhs: 'b}
+//│     'b <: Abs[?] & {body: 'b} | App[?] & {lhs: 'b, rhs: 'b} | Var & 'd
+//│     'd :> Var
+//│        <: 'b & (Abs[?] & 'c | {name: string} & 'lhs & ~#Abs)
 //│     'c <: {body: 'b, name: string}
 //│      = <no result>
 //│        eval_lambda, eval_var, list_assoc and eq are not implemented
@@ -1441,20 +1367,18 @@ rec def eval3 subst = eval_lexpr eval3 subst
 //│ eval3: (List[?] & 'tail) -> 'b -> 'rhs
 //│   where
 //│     'tail <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'tail}) | Nil
-//│     'result :> 'rhs | Var | Num
-//│             <: 'b & (Abs[?] & 'c & 'd | 'lhs & (Lambda & 'c & ~#Abs | 'e & (Expr & ~#Num | Num)))
-//│     'rhs :> Abs['rhs] | (App['a] with {lhs: 'lhs, rhs: 'rhs}) | 'result | 'f | 'g
+//│     'result :> 'rhs | Var
+//│             <: 'b & (Abs[?] & 'c | 'lhs & (Num | ~#Abs & ~#Num))
+//│     'rhs :> Abs['rhs] | (App['a] with {lhs: 'lhs, rhs: 'rhs}) | 'result | 'd | Num | 'e
 //│     'a :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | 'rhs | Var
-//│     'lhs :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | Num | Var
+//│     'lhs :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | Var
 //│          <: 'b & 'a
-//│     'b <: Expr & 'e | Lambda & 'c
-//│     'e <: Add[?] & {lhs: 'b, rhs: 'b} | Mul[?] & {lhs: 'b, rhs: 'b} | (Add[?] & 'g | Mul[?] & 'g | Num & 'result | Var & 'f) & (Num | Var)
-//│     'g :> (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (Add['rhs] with {lhs: 'rhs, rhs: 'rhs})
-//│        <: 'b & (Abs[?] & {lhs: anything, rhs: anything} & 'c & 'd | 'lhs & (Lambda & {lhs: anything, rhs: anything} & 'c & ~#Abs | 'e & (Expr & {lhs: anything, rhs: anything} & ~#Num | Num & {lhs: anything, rhs: anything})))
-//│     'c <: Abs[?] & {body: 'b} | App[?] & {lhs: 'b, rhs: 'b} | Var & 'f
-//│     'f :> Var
-//│        <: 'b & (Abs[?] & 'c & 'd | 'lhs & (Lambda & {name: string} & 'c & ~#Abs | 'e & (Expr & {name: string} & ~#Num | Num & {name: string})))
-//│     'd <: {body: 'b, name: string}
+//│     'b <: Abs[?] & {body: 'b} | Add[?] & {lhs: 'b, rhs: 'b} | App[?] & {lhs: 'b, rhs: 'b} | Mul[?] & {lhs: 'b, rhs: 'b} | Num & (Add[?] & 'e | Mul[?] & 'e | Num & 'result | Var & 'd) | Var & 'd
+//│     'd :> Var
+//│        <: 'b & (Abs[?] & 'c | 'lhs & (Num & {name: string} | {name: string} & ~#Abs & ~#Num))
+//│     'e :> (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (Add['rhs] with {lhs: 'rhs, rhs: 'rhs})
+//│        <: 'b & (Abs[?] & {lhs: anything, rhs: anything} & 'c | 'lhs & (Num & {lhs: anything, rhs: anything} | {lhs: anything, rhs: anything} & ~#Abs & ~#Num))
+//│     'c <: {body: 'b, name: string}
 //│      = <no result>
 //│        eval_lexpr, eval_lambda, eval_var, list_assoc and eq are not implemented
 
@@ -1493,9 +1417,9 @@ rec def eval3 subst = eval_lexpr eval3 subst
 eval3 Nil (Var { name = "s" })
 //│ res: 'result
 //│   where
-//│     'result :> Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result}) | Var | Num | 'b
-//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | 'result | Var | 'b
-//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | Var | 'b
+//│     'result :> Num | 'b | Var | Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result})
+//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | 'result | Var | 'b
+//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Var | 'b
 //│     'b :> Add['result] | Mul['result]
 //│    = <no result>
 //│      eval3, eval_lexpr, eval_lambda, eval_var, list_assoc and eq are not implemented
@@ -1512,9 +1436,9 @@ eval3 Nil (Var { name = "s" })
 eval3 Nil (Abs { name = "s"; body = Var { name = "s" } })
 //│ res: 'result
 //│   where
-//│     'result :> Num | 'b | Var | Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result})
-//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | 'result | Var | 'b
-//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | Var | 'b
+//│     'result :> Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result}) | Var | Num | 'b
+//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | 'result | Var | 'b
+//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Var | 'b
 //│     'b :> Add['result] | Mul['result]
 //│    = <no result>
 //│      eval3, eval_lexpr, eval_lambda, eval_var, list_assoc and eq are not implemented
@@ -1529,9 +1453,9 @@ eval2 Nil (Num { num = 1 })
 eval3 Nil (Num { num = 1 })
 //│ res: 'result
 //│   where
-//│     'result :> Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result}) | Var | Num | 'b
-//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | 'result | Var | 'b
-//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | Var | 'b
+//│     'result :> Num | 'b | Var | Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result})
+//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num & {num: 1} | 'result | Var | 'b
+//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num & {num: 1} | Var | 'b
 //│     'b :> Add['result] | Mul['result]
 //│    = <no result>
 //│      eval3, eval_lexpr, eval_lambda, eval_var, list_assoc and eq are not implemented
@@ -1539,9 +1463,9 @@ eval3 Nil (Num { num = 1 })
 eval3 Nil (App { lhs = Num {num = 0}; rhs = Num {num = 0}})
 //│ res: 'result
 //│   where
-//│     'result :> Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result}) | Var | Num | 'b
-//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | 'result | Var | 'b
-//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | Var | 'b
+//│     'result :> Num | 'b | Var | Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result})
+//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num & {num: 0} | 'result | Var | 'b
+//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num & {num: 0} | Var | 'b
 //│     'b :> Add['result] | Mul['result]
 //│    = <no result>
 //│      eval3, eval_lexpr, eval_lambda, eval_var, list_assoc and eq are not implemented
@@ -1549,9 +1473,9 @@ eval3 Nil (App { lhs = Num {num = 0}; rhs = Num {num = 0}})
 eval3 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
 //│ res: 'result
 //│   where
-//│     'result :> Num | 'b | Var | Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result})
-//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | 'result | Var | 'b
-//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | Var | 'b
+//│     'result :> Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result}) | Var | Num | 'b
+//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num & {num: 1} | 'result | Var | 'b
+//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num & {num: 1} | Var | 'b
 //│     'b :> Add['result] | Mul['result]
 //│    = <no result>
 //│      eval3, eval_lexpr, eval_lambda, eval_var, list_assoc and eq are not implemented
@@ -1571,7 +1495,7 @@ def eval_lexpr' eval_rec subst v = case v of {
   | Add -> eval_expr eval_rec subst v
   | Mul -> eval_expr eval_rec subst v
   }
-//│ eval_lexpr': (((Cons[('b, Var | 'body,) | 'A] with {head: ('b, Var | 'body,), tail: Nil | 'tail}) | 'tail) -> 'body0 -> ('body & 'result & ((Abs[?] with {body: 'body0, name: 'b}) | 'lhs & 'a & ((Abs[?] with {body: 'body0, name: 'b}) & ~#Abs | 'lhs & 'a & ~#Abs)))) -> (List['A] & 'c & 'tail) -> ((Abs[?] with {body: 'body0, name: 'b}) | Add[?] & {lhs: 'body0, rhs: 'body0} | App[?] & {lhs: 'body0, rhs: 'body0} | Mul[?] & {lhs: 'body0, rhs: 'body0} | Num & 'result | Var & 'result) -> (Abs['body] | Add['body] | (App['a | 'body] with {lhs: 'lhs, rhs: 'body}) | Mul['body] | Num | 'result)
+//│ eval_lexpr': (((Cons[('b, Var | 'body,) | 'A] with {head: ('b, Var | 'body,), tail: Nil | 'tail}) | 'tail) -> 'body0 -> ('body & 'result & ((Abs[?] with {body: 'body0, name: 'b}) | 'a & 'lhs & ((Abs[?] with {body: 'body0, name: 'b}) & ~#Abs | 'lhs & 'a & ~#Abs)))) -> (List['A] & 'c & 'tail) -> ((Abs[?] with {body: 'body0, name: 'b}) | Add[?] & {lhs: 'body0, rhs: 'body0} | App[?] & {lhs: 'body0, rhs: 'body0} | Mul[?] & {lhs: 'body0, rhs: 'body0} | Num & 'result | Var & 'result) -> (Abs['body] | Add['body] | (App['a | 'body] with {lhs: 'lhs, rhs: 'body}) | Mul['body] | Num | 'result)
 //│   where
 //│     'c <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'c}) | Nil
 //│            = <no result>
@@ -1580,48 +1504,36 @@ def eval_lexpr' eval_rec subst v = case v of {
 :e
 rec def eval4 subst = eval_lexpr' eval4 subst
 //│ ╔══[ERROR] Subtyping constraint of the form `?b -> ?c -> (Abs[?a | ?a0] & {Abs#a :> ?a & ?a0 <: ?a | ?a0, body: ?body | ?body0} | App[?a1 | ?a2] & {App#a :> ?a1 & ?a2 <: ?a1 | ?a2, lhs: ?lhs | ?lhs0, rhs: ?rhs | ?rhs0} | ?result | ?result0 | ?result1 | ?d | ?e | ?f | ?g | ?h | ?i | ?j | ?k) <: ?eval4` took too many steps and ran out of fuel (5000)
-//│ ║  l.1581: 	rec def eval4 subst = eval_lexpr' eval4 subst
+//│ ║  l.1505: 	rec def eval4 subst = eval_lexpr' eval4 subst
 //│ ║          	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ eval4: (List[?] & 'tail) -> 'a -> 'result
 //│   where
-//│     'a <: Abs[?] | Add[?] & {lhs: 'a, rhs: 'a} | App[?] | Mul[?] & {lhs: 'a, rhs: 'a} | Num | Var
+//│     'a <: Abs[?] | Add[?] & {lhs: 'a, rhs: 'a} | App[?] | Mul[?] & {lhs: 'a, rhs: 'a} | Num & 'result | Var
 //│     'tail <: (Cons[?] with {head: {_1: string, _2: 'result & (Num | ~#Num)}, tail: 'tail}) | Nil
-//│     'result :> Abs[nothing] | App[nothing] | Num | Var | Mul['result] | Add['result]
+//│     'result :> Mul['result] | Add['result] | Abs['result] | App[nothing] | Num | Var
 //│      = <no result>
 //│        eval_lexpr', eval_var, list_assoc and eq are not implemented
 
 :Fuel 20000
 
 rec def eval4 subst = eval_lexpr' eval4 subst
-//│ eval4: (List[?] & 'tail & 'tail0) -> 'b -> 'rhs
+//│ eval4: (List[?] & 'tail) -> 'b -> 'rhs
 //│   where
-//│     'tail0 <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'tail0}) | Nil
-//│     'tail <: (Cons[?] with {head: {_1: string, _2: 'result0}, tail: 'tail}) | Nil
-//│     'result0 :> 'rhs | Var | Num
-//│              <: 'b & (Abs[?] & 'c & 'd | 'lhs & (Abs[?] & 'd & 'c & ~#Abs | 'lhs0 & (Add[?] & 'e | App[?] & 'd | Mul[?] & 'f | Var & 'g | 'h & (Num | Num & ~#Num))))
-//│     'rhs :> Abs['rhs] | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | 'result0 | 'i | 'j | 'result | 'k | 'l | 'm
-//│     'a :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | Num | 'rhs | Var
-//│     'lhs :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | Num | Var
-//│          <: 'b & 'a
-//│     'lhs0 :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | Num | Var
-//│           <: 'b & 'a
-//│     'b <: Abs[?] & 'd | Add[?] & 'e | App[?] & 'd | Mul[?] & 'f | Num & 'h | Var & 'g
-//│     'd <: Abs[?] & {body: 'b} | App[?] & {lhs: 'b, rhs: 'b} | Var & 'j
-//│     'j <: 'b & (Abs[?] & 'c & 'd | 'lhs & (Abs[?] & 'd & 'c & ~#Abs | 'lhs0 & (Add[?] & {name: string} & 'e | App[?] & {name: string} & 'd | Mul[?] & {name: string} & 'f | Var & 'g | 'h & (Num & {name: string} | Num & {name: string} & ~#Num))))
-//│     'e <: Add[?] & {lhs: 'b, rhs: 'b} | Mul[?] & {lhs: 'b, rhs: 'b} | (Add[?] & 'm | Mul[?] & 'm | Num & 'result | Var & 'k) & (Num | Var)
+//│     'tail <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'tail}) | Nil
 //│     'result :> 'rhs | Var
-//│             <: 'b & (Abs[?] & 'c & 'd | 'lhs & (Abs[?] & 'd & 'c & ~#Abs | 'lhs0 & (Add[?] & 'e | App[?] & 'd | Mul[?] & 'f | Var & 'g | 'h & (Num | Num & ~#Num))))
-//│     'm :> (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (Add['rhs] with {lhs: 'rhs, rhs: 'rhs})
-//│        <: 'b & (Abs[?] & {lhs: anything, rhs: anything} & 'c & 'd | 'lhs & (Abs[?] & {lhs: anything, rhs: anything} & 'd & 'c & ~#Abs | 'lhs0 & (Add[?] & 'e | App[?] & 'd | Mul[?] & 'f | Var & {lhs: anything, rhs: anything} & 'g | 'h & (Num & {lhs: anything, rhs: anything} | Num & {lhs: anything, rhs: anything} & ~#Num))))
-//│     'f <: Add[?] & {lhs: 'b, rhs: 'b} | Mul[?] & {lhs: 'b, rhs: 'b} | (Add[?] & 'l | Mul[?] & 'l | Num & 'result0 | Var & 'i) & (Num | Var)
-//│     'l :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs})
-//│        <: 'b & (Abs[?] & {lhs: anything, rhs: anything} & 'c & 'd | 'lhs & (Abs[?] & {lhs: anything, rhs: anything} & 'd & 'c & ~#Abs | 'lhs0 & (Add[?] & 'e | App[?] & 'd | Mul[?] & 'f | Var & {lhs: anything, rhs: anything} & 'g | 'h & (Num & {lhs: anything, rhs: anything} | Num & {lhs: anything, rhs: anything} & ~#Num))))
-//│     'g <: Var & 'i
-//│     'i :> Var
-//│        <: 'b & (Abs[?] & 'c & 'd | 'lhs & (Abs[?] & 'd & 'c & ~#Abs | 'lhs0 & (Add[?] & {name: string} & 'e | App[?] & {name: string} & 'd | Mul[?] & {name: string} & 'f | Var & 'g | 'h & (Num & {name: string} | Num & {name: string} & ~#Num))))
-//│     'h <: Add[?] & {lhs: 'b, rhs: 'b} | Mul[?] & {lhs: 'b, rhs: 'b} | (Add[?] & 'l | Mul[?] & 'l | Num & 'result0 | Var & 'k) & (Num | Var)
-//│     'k <: 'b & (Abs[?] & 'c & 'd | 'lhs & (Abs[?] & 'd & 'c & ~#Abs | 'lhs0 & (Add[?] & {name: string} & 'e | App[?] & {name: string} & 'd | Mul[?] & {name: string} & 'f | Var & 'g | 'h & (Num & {name: string} | Num & {name: string} & ~#Num))))
+//│             <: 'b & (Abs[?] & 'c | 'lhs & (Abs[?] & 'c & ~#Abs | 'lhs0 & (Num | ~#Abs & ~#Num)))
+//│     'rhs :> Abs['rhs] | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | 'result | 'd | Num | 'e | (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs})
+//│     'a :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | 'rhs | Var
+//│     'lhs :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | Var
+//│          <: 'b & 'a
+//│     'lhs0 :> (Add['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (App['a] with {lhs: 'lhs | 'lhs0, rhs: 'rhs}) | (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | Var
+//│           <: 'b & 'a
+//│     'b <: Abs[?] & {body: 'b} | Add[?] & {lhs: 'b, rhs: 'b} | App[?] & {lhs: 'b, rhs: 'b} | Mul[?] & {lhs: 'b, rhs: 'b} | Num & (Add[?] & 'e | Mul[?] & 'e | Num & 'result | Var & 'd) | Var & 'd
+//│     'd :> Var
+//│        <: 'b & (Abs[?] & 'c | 'lhs & (Abs[?] & 'c & ~#Abs | 'lhs0 & (Num & {name: string} | {name: string} & ~#Abs & ~#Num)))
+//│     'e :> (Mul['rhs] with {lhs: 'rhs, rhs: 'rhs}) | (Add['rhs] with {lhs: 'rhs, rhs: 'rhs})
+//│        <: 'b & (Abs[?] & {lhs: anything, rhs: anything} & 'c | 'lhs & (Abs[?] & {lhs: anything, rhs: anything} & 'c & ~#Abs | 'lhs0 & (Num & {lhs: anything, rhs: anything} | {lhs: anything, rhs: anything} & ~#Abs & ~#Num)))
 //│     'c <: {body: 'b, name: string}
 //│      = <no result>
 //│        eval_lexpr', eval_var, list_assoc and eq are not implemented
@@ -1631,9 +1543,9 @@ rec def eval4 subst = eval_lexpr' eval4 subst
 eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
 //│ res: 'result
 //│   where
-//│     'result :> Num | 'b | Var | Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result})
-//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | 'result | Var | 'b
-//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | Var | 'b
+//│     'result :> Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result}) | Var | Num | 'b
+//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num & {num: 1} | 'result | Var | 'b
+//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num & {num: 1} | Var | 'b
 //│     'b :> Add['result] | Mul['result]
 //│    = <no result>
 //│      eval4, eval_lexpr', eval_var, list_assoc and eq are not implemented

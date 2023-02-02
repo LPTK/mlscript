@@ -22,11 +22,11 @@ def qmrk_qmrk lhs rhs = case lhs of { Undef -> rhs | _ -> lhs }
 //│          = [Function: qmrk_qmrk]
 
 qmrk_qmrk example 0
-//│ res: int
+//│ res: 0
 //│    = 0
 
 qmrk_qmrk example "123"
-//│ res: "123" | int
+//│ res: "123"
 //│    = '123'
 
 qmrk_qmrk undef "123"

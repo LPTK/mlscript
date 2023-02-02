@@ -239,26 +239,9 @@ eval (Pair {
   rhs = IntLit { value = Pair {
     lhs = IntLit { value = 2 };
     rhs = IntLit { value = 3 } } } })
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.+3: 	  rhs = IntLit { value = Pair {
-//│ ║        	        ^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.+4: 	    lhs = IntLit { value = 2 };
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.+5: 	    rhs = IntLit { value = 3 } } } })
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── application of type `Pair[?, ?] & {Pair#A = ?A, Pair#B = ?B, lhs: ?lhs, rhs: ?rhs}` is not an instance of type `int`
-//│ ║  l.+3: 	  rhs = IntLit { value = Pair {
-//│ ║        	                         ^^^^^^
-//│ ║  l.+4: 	    lhs = IntLit { value = 2 };
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.+5: 	    rhs = IntLit { value = 3 } } } })
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── Note: constraint arises from type reference:
-//│ ║  l.90: 	class IntLit: Expr[int] & { value: int }
-//│ ╙──      	                                   ^^^
 //│ res: 'a
 //│   where
-//│     'a :> ('a, 'a,) | 1 | error | (Pair[?, ?] with {lhs: IntLit & {value: 2}, rhs: IntLit & {value: 3}})
+//│     'a :> ('a, 'a,) | 1 | (Pair[?, ?] with {lhs: IntLit & {value: 2}, rhs: IntLit & {value: 3}})
 
 
 p = Pair2 {
@@ -293,7 +276,7 @@ rec def eval(e) = case e of
 //│ ║  l.+4: 	  }
 //│ ║        	^^^
 //│ ╟── type `Expr[?]` does not match type `IntLit & ?a | Pair[?, ?] & ?b`
-//│ ║  l.273: 	def eval: Expr['a] -> 'a
+//│ ║  l.256: 	def eval: Expr['a] -> 'a
 //│ ║         	          ^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.+1: 	rec def eval(e) = case e of

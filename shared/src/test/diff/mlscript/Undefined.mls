@@ -61,32 +61,8 @@ sample2: null
 :e
 sample: bool
 sample2: bool
-//│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.62: 	sample: bool
-//│ ║        	^^^^^^
-//│ ╟── undefined literal of type `undefined` is not an instance of type `bool`
-//│ ║  l.47: 	sample = undefined
-//│ ║        	         ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `bool`
-//│ ║  l.62: 	sample: bool
-//│ ║        	^^^^^^
-//│ ╟── Note: constraint arises from type reference:
-//│ ║  l.62: 	sample: bool
-//│ ╙──      	        ^^^^
 //│ res: bool
 //│    = undefined
-//│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.63: 	sample2: bool
-//│ ║        	^^^^^^^
-//│ ╟── null literal of type `null` is not an instance of type `bool`
-//│ ║  l.54: 	sample2 = null
-//│ ║        	          ^^^^
-//│ ╟── but it flows into reference with expected type `bool`
-//│ ║  l.63: 	sample2: bool
-//│ ║        	^^^^^^^
-//│ ╟── Note: constraint arises from type reference:
-//│ ║  l.63: 	sample2: bool
-//│ ╙──      	         ^^^^
 //│ res: bool
 //│    = null
 
@@ -108,17 +84,17 @@ bar undefined
 :e
 bar "undefined"
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.109: 	bar "undefined"
-//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.85: 	bar "undefined"
+//│ ║        	^^^^^^^^^^^^^^^
 //│ ╟── string literal of type `"undefined"` does not match type `undefined`
-//│ ║  l.109: 	bar "undefined"
-//│ ║         	    ^^^^^^^^^^^
+//│ ║  l.85: 	bar "undefined"
+//│ ║        	    ^^^^^^^^^^^
 //│ ╟── Note: constraint arises from literal type:
 //│ ║  l.35: 	type MoreOnTypes0 = undefined
 //│ ║        	                    ^^^^^^^^^
 //│ ╟── from reference:
-//│ ║  l.101: 	def bar = fun sample -> (sample: MoreOnTypes0)
-//│ ╙──       	                         ^^^^^^
+//│ ║  l.77: 	def bar = fun sample -> (sample: MoreOnTypes0)
+//│ ╙──      	                         ^^^^^^
 //│ res: MoreOnTypes0
 //│    = 'undefined'
 
@@ -165,19 +141,19 @@ nw.x
 undefined.x
 null.x
 //│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.165: 	undefined.x
+//│ ║  l.141: 	undefined.x
 //│ ║         	^^^^^^^^^^^
 //│ ╟── undefined literal of type `undefined` does not have field 'x'
-//│ ║  l.165: 	undefined.x
+//│ ║  l.141: 	undefined.x
 //│ ╙──       	^^^^^^^^^
 //│ res: error
 //│ Runtime error:
 //│   TypeError: Cannot read properties of undefined (reading 'x')
 //│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.166: 	null.x
+//│ ║  l.142: 	null.x
 //│ ║         	^^^^^^
 //│ ╟── null literal of type `null` does not have field 'x'
-//│ ║  l.166: 	null.x
+//│ ║  l.142: 	null.x
 //│ ╙──       	^^^^
 //│ res: error
 //│ Runtime error:
@@ -193,15 +169,6 @@ bypass = undefined
 //│ undefined
 //│   <:  bypass:
 //│ nothing
-//│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.192: 	bypass = undefined
-//│ ║         	^^^^^^^^^^^^^^^^^^
-//│ ╟── undefined literal of type `undefined` does not match type `nothing`
-//│ ║  l.192: 	bypass = undefined
-//│ ║         	         ^^^^^^^^^
-//│ ╟── Note: constraint arises from type reference:
-//│ ║  l.186: 	def bypass: nothing
-//│ ╙──       	            ^^^^^^^
 //│       = undefined
 
 :re

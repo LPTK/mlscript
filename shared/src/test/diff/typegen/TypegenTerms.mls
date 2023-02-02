@@ -72,13 +72,6 @@ def f: ('c -> 'a as 'a) -> 'c -> int
 :e
 1: ?
 { a = "hello" }: { a: string } & { b: int }
-//│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.73: 	1: ?
-//│ ║        	^
-//│ ╟── integer literal of type `1` does not match type `nothing`
-//│ ╟── Note: constraint arises from type wildcard:
-//│ ║  l.73: 	1: ?
-//│ ╙──      	   ^
 //│ res: anything
 //│ ╔══[ERROR] Type mismatch in type ascription:
 //│ ║  l.74: 	{ a = "hello" }: { a: string } & { b: int }

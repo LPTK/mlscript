@@ -100,15 +100,6 @@ def boom: anything
 // :d
 :e
 add boom 1
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.102: 	add boom 1
-//│ ║         	^^^^^^^^
-//│ ╟── type `anything` is not an instance of type `int`
-//│ ║  l.97: 	def boom: anything
-//│ ║        	          ^^^^^^^^
-//│ ╟── but it flows into reference with expected type `int`
-//│ ║  l.102: 	add boom 1
-//│ ╙──       	    ^^^^
 //│ res: int
 
 

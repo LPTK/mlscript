@@ -73,18 +73,72 @@ def manual: 'a -> nothing as 'a
 //│   where
 //│     'a := 'a -> nothing
 
-:e
+:d
 manual id
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.77: 	manual id
-//│ ║        	^^^^^^^^^
-//│ ╟── type `'a -> nothing` does not match type `nothing`
-//│ ║  l.71: 	def manual: 'a -> nothing as 'a
-//│ ║        	            ^^^^^^^^^^^^^
-//│ ╟── Note: constraint arises from type reference:
-//│ ║  l.71: 	def manual: 'a -> nothing as 'a
-//│ ╙──      	                  ^^^^^^^
-//│ res: error
+//│ 0. Typing term manual (id,)
+//│ | 0. Typing term manual
+//│ | 0. : ‹∀ 0. 'a108'#›
+//│ | 0. Typing term id
+//│ | 0. : ‹∀ 0. (α19' -> α19')›
+//│ | could be distribbed: Set()
+//│ | INST [0]   ‹∀ 0. 'a108'#›
+//│ |   where  
+//│ 		'a108'# := ('a108'# -> Nothing)
+//│ | TO [0] ~>  'a108_112#
+//│ |   where  
+//│ 		'a108_112# := ('a108_112# -> Nothing)
+//│ | CONSTRAIN ‹∀ 0. 'a108'#› <! (‹∀ 0. (α19' -> α19')› -> α113)
+//│ |   where 
+//│ 		'a108'# := ('a108'# -> Nothing)
+//│ | 0. C ‹∀ 0. 'a108'#› <! (‹∀ 0. (α19' -> α19')› -> α113)    (0)
+//│ | | Add to cache DNF(0, 'a108'#) DNF(0, (‹∀ 0. (α19' -> α19')› -> α113){})
+//│ | | could be distribbed: Set()
+//│ | | INST [0]   ‹∀ 0. 'a108'#›
+//│ | |   where  
+//│ 		'a108'# := ('a108'# -> Nothing)
+//│ | | TO [0] ~>  'a108_114#
+//│ | |   where  
+//│ 		'a108_114# := ('a108_114# -> Nothing)
+//│ | | 0. C 'a108_114# <! (‹∀ 0. (α19' -> α19')› -> α113)    (2)
+//│ | | | Add to cache DNF(0, 'a108_114#) DNF(0, (‹∀ 0. (α19' -> α19')› -> α113){})
+//│ | | | 0. C ('a108_114# -> Nothing) <! (‹∀ 0. (α19' -> α19')› -> α113)    (4)
+//│ | | | | Add to cache DNF(0, ('a108_114# -> ⊥){}) DNF(0, (‹∀ 0. (α19' -> α19')› -> α113){})
+//│ | | | | 0. C (‹∀ 0. (α19' -> α19')›,) <! ('a108_114#,)    (3)
+//│ | | | | | Add to cache DNF(0, (‹∀ 0. (α19' -> α19')›,){}) DNF(0, ('a108_114#,){})
+//│ | | | | | 0. C ‹∀ 0. (α19' -> α19')› <! 'a108_114#    (4)
+//│ | | | | | | Add to cache DNF(0, (α19' -> α19'){}) DNF(0, 'a108_114#)
+//│ | | | | | | 0. C ‹∀ 0. (α19' -> α19')› <! ('a108_114# -> Nothing)    (6)
+//│ | | | | | | | Add to cache DNF(0, (α19' -> α19'){}) DNF(0, ('a108_114# -> ⊥){})
+//│ | | | | | | | could be distribbed: Set(α19')
+//│ | | | | | | | cannot be distribbed: Set(α19')
+//│ | | | | | | | INST [0]   ‹∀ 0. (α19' -> α19')›
+//│ | | | | | | |   where  
+//│ | | | | | | | TO [0] ~>  (α19_115 -> α19_115)
+//│ | | | | | | |   where  
+//│ | | | | | | | 0. C (α19_115 -> α19_115) <! ('a108_114# -> Nothing)    (8)
+//│ | | | | | | | | Add to cache DNF(0, (α19_115 -> α19_115){}) DNF(0, ('a108_114# -> ⊥){})
+//│ | | | | | | | | 0. C ('a108_114#,) <! (α19_115,)    (7)
+//│ | | | | | | | | | Add to cache DNF(0, ('a108_114#,){}) DNF(0, (α19_115,){})
+//│ | | | | | | | | | 0. C 'a108_114# <! α19_115    (8)
+//│ | | | | | | | | | | Add to cache DNF(0, 'a108_114#) DNF(0, α19_115)
+//│ | | | | | | | | | | 0. C ('a108_114# -> Nothing) <! α19_115    (10)
+//│ | | | | | | | | | | | Add to cache DNF(0, ('a108_114# -> ⊥){}) DNF(0, α19_115)
+//│ | | | | | | | | | | | NEW α19_115 LB (0)
+//│ | | | | | | | | 0. C α19_115 <! Nothing    (7)
+//│ | | | | | | | | | Add to cache DNF(0, α19_115) DNF(0, )
+//│ | | | | | | | | | NEW α19_115 UB (0)
+//│ | | | | | | | | | 0. C ('a108_114# -> Nothing) <! Nothing    (9)
+//│ | | | | | | | | | | Add to cache DNF(0, ('a108_114# -> ⊥){}) DNF(0, )
+//│ | | | | | | | | | | 0. C ('a108_114# -> Nothing) <! ⊥    (11)
+//│ | | | | | | | | | | | Cached! (DNF) DNF(0, ('a108_114# -> ⊥){}) DNF(0, )
+//│ | | | | 0. C Nothing <! α113    (3)
+//│ | | | | | Add to cache DNF(0, ) DNF(0, α113)
+//│ | | | | | NEW α113 LB (0)
+//│ 0. : α113
+//│ ⬤ Typed as: α113
+//│  where: 
+//│ 		α113 :> Nothing
+//│ res: nothing
 
 def manual: 'a -> anything as 'a
 //│ manual: 'a

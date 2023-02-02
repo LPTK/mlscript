@@ -110,18 +110,12 @@ not (test id)._1
 test f =
   let r x = f x
   in (r 0, r True)
-//│ test: forall 'a 'b 'c 'd 'e 'f 'g. 'd -> ('c, 'b,)
-//│   where
-//│     'd <: 'g -> 'e & 'a -> 'f
-//│     'f <: 'c
-//│     'a :> 0
-//│     'e <: 'b
-//│     'g :> true
+//│ test: forall 'a 'b 'c. 'a -> ('b, 'c,)
 //│     = [Function: test3]
 
 // * Q: why does this type *appear* approximated after simplification?
 test
-//│ res: (0 -> 'a & true -> 'b) -> ('a, 'b,)
+//│ res: anything -> (nothing, nothing,)
 //│    = [Function: test3]
 
 // * We can tell the type is still precise enough because these work:
@@ -136,15 +130,6 @@ not (test id)._2
 
 :e // * Legit
 not (test id)._1
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.138: 	not (test id)._1
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ╟── integer literal of type `0` is not an instance of type `bool`
-//│ ║  l.112: 	  in (r 0, r True)
-//│ ║         	        ^
-//│ ╟── but it flows into field selection with expected type `bool`
-//│ ║  l.138: 	not (test id)._1
-//│ ╙──       	    ^^^^^^^^^^^^
 //│ res: bool
 //│    = true
 
@@ -153,7 +138,7 @@ not (test id)._1
 rec def test f =
   let r x = f x
   in (r 0, r True)
-//│ test: (0 -> 'a & true -> 'b) -> ('a, 'b,)
+//│ test: anything -> (nothing, nothing,)
 //│     = [Function: test4]
 
 

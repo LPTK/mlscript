@@ -74,16 +74,7 @@ fr : Array[int] & {b: int}
 
 :e
 arr._1
-//│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.76: 	arr._1
-//│ ║        	^^^^^^
-//│ ╟── type `Array[int]` does not have field '_1'
-//│ ║  l.57: 	def arr: Array[int]
-//│ ║        	         ^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `{_1: ?a}`
-//│ ║  l.76: 	arr._1
-//│ ╙──      	^^^
-//│ res: error
+//│ res: nothing
 //│    = undefined
 
 rr = arr with { x = 1 }
@@ -136,32 +127,17 @@ def test: {x: 1} & (1, 2, 3)
 :e
 f(1,2,3) : 1 | 2 | 3
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.137: 	f(1,2,3) : 1 | 2 | 3
+//│ ║  l.128: 	f(1,2,3) : 1 | 2 | 3
 //│ ║         	^^^^^^^^
 //│ ╟── argument list of type `(1, 2, 3,)` does not match type `(?a,)`
-//│ ║  l.137: 	f(1,2,3) : 1 | 2 | 3
+//│ ║  l.128: 	f(1,2,3) : 1 | 2 | 3
 //│ ╙──       	 ^^^^^^^
 //│ res: 1 | 2 | 3
 //│    = [Number: 1] { b: 2 }
 
 :e
 (arr[0])[1][2]
-//│ ╔══[ERROR] Type mismatch in array access:
-//│ ║  l.148: 	(arr[0])[1][2]
-//│ ║         	^^^^^^^^^^^
-//│ ╟── type `int` does not match type `Array[?a]`
-//│ ║  l.57: 	def arr: Array[int]
-//│ ║        	               ^^^
-//│ ╟── but it flows into array access with expected type `Array[?b]`
-//│ ║  l.148: 	(arr[0])[1][2]
-//│ ╙──       	 ^^^^^^
-//│ ╔══[ERROR] Type mismatch in array access:
-//│ ║  l.148: 	(arr[0])[1][2]
-//│ ║         	^^^^^^^^^^^^^^
-//│ ╟── possibly-undefined array access of type `undefined` does not match type `Array[?a]`
-//│ ║  l.148: 	(arr[0])[1][2]
-//│ ╙──       	^^^^^^^^^^^
-//│ res: error | undefined
+//│ res: undefined
 //│ Runtime error:
 //│   TypeError: Cannot read properties of undefined (reading '2')
 
@@ -311,13 +287,13 @@ a2.x
 :e
 a2._1
 //│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.312: 	a2._1
+//│ ║  l.288: 	a2._1
 //│ ║         	^^^^^
 //│ ╟── `with` extension of type `Array['a]\_2\x & {_2: true, x: "haha"}` does not have field '_1'
-//│ ║  l.299: 	a2 = rep5 2 with {_2 = true; x = "haha"}
+//│ ║  l.275: 	a2 = rep5 2 with {_2 = true; x = "haha"}
 //│ ║         	     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `{_1: ?a}`
-//│ ║  l.312: 	a2._1
+//│ ║  l.288: 	a2._1
 //│ ╙──       	^^
 //│ res: error
 //│    = undefined

@@ -124,28 +124,10 @@ r
 
 :e
 r(2)
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.126: 	r(2)
-//│ ║         	^^^^
-//│ ╟── type `int` is not a function
-//│ ║  l.99: 	  int : 'a
-//│ ║        	  ^^^
-//│ ╟── Note: constraint arises from function type:
-//│ ║  l.98: 	  'a : 'b => 'b
-//│ ╙──      	       ^^^^^^^^
-//│ res: error
+//│ res: nothing
 
 :e
 r + 1
-//│ ╔══[ERROR] Type mismatch in operator application:
-//│ ║  l.139: 	r + 1
-//│ ║         	^^^
-//│ ╟── type `int` is not a function
-//│ ║  l.99: 	  int : 'a
-//│ ║        	  ^^^
-//│ ╟── Note: constraint arises from function type:
-//│ ║  l.98: 	  'a : 'b => 'b
-//│ ╙──      	       ^^^^^^^^
 //│ res: int
 
 
@@ -171,27 +153,9 @@ let r = f(1)
 
 :e
 r(2)
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.173: 	r(2)
-//│ ║         	^^^^
-//│ ╟── type `int` is not a function
-//│ ║  l.154: 	  int : 'a
-//│ ║         	  ^^^
-//│ ╟── Note: constraint arises from function type:
-//│ ║  l.153: 	  'a : 'b => 'b
-//│ ╙──       	       ^^^^^^^^
-//│ res: error
+//│ res: nothing
 
 :e
 r + 1
-//│ ╔══[ERROR] Type mismatch in operator application:
-//│ ║  l.186: 	r + 1
-//│ ║         	^^^
-//│ ╟── type `int` is not a function
-//│ ║  l.154: 	  int : 'a
-//│ ║         	  ^^^
-//│ ╟── Note: constraint arises from function type:
-//│ ║  l.153: 	  'a : 'b => 'b
-//│ ╙──       	       ^^^^^^^^
 //│ res: int
 

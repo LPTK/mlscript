@@ -48,6 +48,7 @@ class ConstraintSolver extends NormalForms { self: Typer =>
     // We need a cache to remember the subtyping tests in process; we also make the cache remember
     // past subtyping tests for performance reasons (it reduces the complexity of the algoritghm):
     val cache: MutSet[(SimpleType, SimpleType)] = MutSet.empty
+    val cache2: MutSet[(DNF, DNF)] = MutSet.empty
     val startingFuel = self.startingFuel
     var fuel = startingFuel
     val stack = MutStack.empty[ST -> ST]
@@ -552,9 +553,11 @@ class ConstraintSolver extends NormalForms { self: Typer =>
           // case (l: TV, r: TV) if noRecursiveTypes =>
           //   if (cache(lhs_rhs)) return println(s"Cached! (not recursive")
           //   cache += lhs_rhs
-          case (_: TV, _: TV) if cache(lhs_rhs) => return println(s"Cached! (not recursive")
+          case (_: TV, _: TV) if cache(lhs_rhs) => return println(s"Cached! (not recursive)")
           case _ =>
             if (!noRecursiveTypes && cache(lhs_rhs)) return println(s"Cached!")
+            else if (!noRecursiveTypes && cache2(lhs.dnfPos -> rhs.dnfNeg))
+              return println(s"Cached! (DNF) ${lhs.dnfPos} ${rhs.dnfNeg}")
             val shadow = lhs.shadow -> rhs.shadow
             // println(s"SH: $shadow")
             // println(s"ALLSH: ${shadows.iterator.map(s => s._1 + "<:" + s._2).mkString(", ")}")
@@ -584,7 +587,11 @@ class ConstraintSolver extends NormalForms { self: Typer =>
             if (lhs_rhs match {
               case (_: TV, _: TV) => true
               case _ => !noRecursiveTypes
-            }) cache += lhs_rhs
+            }) {
+              cache += lhs_rhs
+              println(s"Add to cache ${lhs.dnfPos} ${rhs.dnfNeg}")
+              cache2 += lhs.dnfPos -> rhs.dnfNeg
+            }
             
             Shadows(shadows.current + lhs_rhs, shadows.previous + shadow)
             

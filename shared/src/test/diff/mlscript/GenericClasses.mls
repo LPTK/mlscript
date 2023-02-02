@@ -93,15 +93,6 @@ res.x
 
 :e
 g: Foo1['a]: Foo1[string]
-//│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.95: 	g: Foo1['a]: Foo1[string]
-//│ ║        	^
-//│ ╟── type `int` is not an instance of type `string`
-//│ ║  l.66: 	class Bar1: Foo1[int]
-//│ ║        	                 ^^^
-//│ ╟── Note: constraint arises from type reference:
-//│ ║  l.95: 	g: Foo1['a]: Foo1[string]
-//│ ╙──      	                  ^^^^^^
 //│ res: Foo1[string]
 //│    = Bar1 { x: 42 }
 
@@ -246,10 +237,10 @@ def mrg: Foo2_Co[int] | Foo2_Co[string]
 class Foo2_Bi[A]
 //│ Defined class Foo2_Bi[±A]
 //│ ╔══[WARNING] Type definition Foo2_Bi has bivariant type parameters:
-//│ ║  l.246: 	class Foo2_Bi[A]
+//│ ║  l.237: 	class Foo2_Bi[A]
 //│ ║         	      ^^^^^^^
 //│ ╟── A is irrelevant and may be removed
-//│ ║  l.246: 	class Foo2_Bi[A]
+//│ ║  l.237: 	class Foo2_Bi[A]
 //│ ╙──       	              ^
 
 Foo2_Bi

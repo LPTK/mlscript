@@ -34,7 +34,7 @@ def id x = x
 
 
 id A{}
-//│ res: A
+//│ res: nothing
 //│    = A {}
 
 def f x = case x of { A -> true }
@@ -55,7 +55,7 @@ Cons (A{}) (Cons (C{}) Nil)
 //│    = Cons { head: A {}, tail: Cons { head: C {}, tail: Nil {} } }
 
 Cons (id A{}) (Cons (C{}) Nil)
-//│ res: Cons[A | C] with {head: A, tail: Cons[C] with {tail: Nil}}
+//│ res: Cons[C] with {head: nothing, tail: Cons[C] with {tail: Nil}}
 //│    = Cons { head: A {}, tail: Cons { head: C {}, tail: Nil {} } }
 
 // val id2 : ([< `A | `B ] as 'a) -> 'a = <fun>
@@ -170,21 +170,6 @@ def f = fun (x: {_1: A | B; _2: anything} | {_1: anything; _2: A | B}) -> case x
     | B -> 4
     }
   }
-//│ ╔══[ERROR] Type mismatch in `case` expression:
-//│ ║  l.168: 	  | _ -> case x._2 of {
-//│ ║         	         ^^^^^^^^^^^^^^
-//│ ║  l.169: 	    | A -> 3
-//│ ║         	^^^^^^^^^^^^
-//│ ║  l.170: 	    | B -> 4
-//│ ║         	^^^^^^^^^^^^
-//│ ║  l.171: 	    }
-//│ ║         	^^^^^
-//│ ╟── type `anything` does not match type `A | B`
-//│ ║  l.165: 	def f = fun (x: {_1: A | B; _2: anything} | {_1: anything; _2: A | B}) -> case x._1 of {
-//│ ║         	                                ^^^^^^^^
-//│ ╟── but it flows into field selection with expected type `A | B`
-//│ ║  l.168: 	  | _ -> case x._2 of {
-//│ ╙──       	              ^^^^
 //│ f: {_1: anything, _2: anything} -> (1 | 2 | 3 | 4)
 //│  = [Function: f3]
 
@@ -227,16 +212,16 @@ def f = fun (x: L | R) -> case x._1 of {
     }
   }
 //│ ╔══[ERROR] Type mismatch in `case` expression:
-//│ ║  l.224: 	  | _ -> case x._2 of {
+//│ ║  l.209: 	  | _ -> case x._2 of {
 //│ ║         	         ^^^^^^^^^^^^^^
-//│ ║  l.225: 	    | A -> 3
+//│ ║  l.210: 	    | A -> 3
 //│ ║         	^^^^^^^^^^^^
-//│ ║  l.226: 	    | B -> 4
+//│ ║  l.211: 	    | B -> 4
 //│ ║         	^^^^^^^^^^^^
-//│ ║  l.227: 	    }
+//│ ║  l.212: 	    }
 //│ ║         	^^^^^
 //│ ╟── field selection of type `anything` does not match type `A | B`
-//│ ║  l.224: 	  | _ -> case x._2 of {
+//│ ║  l.209: 	  | _ -> case x._2 of {
 //│ ╙──       	              ^^^^
 //│ f: (L | R) -> (1 | 2 | 3 | 4)
 //│  = [Function: f4]

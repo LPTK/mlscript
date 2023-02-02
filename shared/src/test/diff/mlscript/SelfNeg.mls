@@ -31,18 +31,6 @@ r
 
 :e
 r: anything -> nothing
-//│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.33: 	r: anything -> nothing
-//│ ║        	^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.33: 	r: anything -> nothing
-//│ ║        	   ^^^^^^^^
-//│ ╟── Note: constraint arises from type negation:
-//│ ║  l.7: 	def foo: ('a -> (~'a -> 'a) -> 'a) -> 'a -> 'a
-//│ ║       	                 ^^^
-//│ ╟── from type variable:
-//│ ║  l.7: 	def foo: ('a -> (~'a -> 'a) -> 'a) -> 'a -> 'a
-//│ ╙──     	                                      ^^
 //│ res: anything -> nothing
 //│    = <no result>
 //│      r and foo are not implemented
@@ -64,26 +52,11 @@ r = foo (fun a -> fun f -> f a)
 
 :e
 r[0] <- "test"
-//│ ╔══[ERROR] Type mismatch in assignment:
-//│ ║  l.66: 	r[0] <- "test"
-//│ ║        	^^^^^^^^^^^^^^
-//│ ╟── string literal of type `"test"` does not match type `~"test"`
-//│ ║  l.66: 	r[0] <- "test"
-//│ ║        	        ^^^^^^
-//│ ╟── but it flows into assigned array element with expected type `~"test"`
-//│ ║  l.66: 	r[0] <- "test"
-//│ ╙──      	^^^^
 //│ = <no result>
 //│   r and foo are not implemented
 
 :e
 r[0] + 1
-//│ ╔══[ERROR] Type mismatch in operator application:
-//│ ║  l.80: 	r[0] + 1
-//│ ║        	^^^^^^
-//│ ╟── possibly-undefined array access of type `undefined` is not an instance of type `int`
-//│ ║  l.80: 	r[0] + 1
-//│ ╙──      	^^^^
 //│ res: int
 //│    = <no result>
 //│      r and foo are not implemented
