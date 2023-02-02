@@ -1,0 +1,29 @@
+
+:d
+def foo = 0
+//│ 1. Typing term 0
+//│ 1. : 0<int,number>
+//│ UNSTASHING... (out)
+//│ ⬤ Typed as: 0<int,number>
+//│  where: 
+//│ foo: 0
+//│    = [Function: foo]
+
+:d
+foo
+//│ 0. Typing term foo
+//│ 0. : 0<int,number>
+//│ ⬤ Typed as: 0<int,number>
+//│  where: 
+//│ res: 0
+//│    = 0
+
+:d
+res
+//│ 0. Typing term res
+//│ 0. : 0<int,number>
+//│ ⬤ Typed as: 0<int,number>
+//│  where: 
+//│ res: 0
+//│    = 0
+
