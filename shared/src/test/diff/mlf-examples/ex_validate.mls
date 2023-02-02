@@ -184,7 +184,7 @@ delta_ succ
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.125: 	def succ n = n + 1
 //│ ╙──       	             ^
-//│ res: error | Id
+//│ res: Id
 //│    = 'function succ(n) {  return n + 1;}1'
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.177: 	delta_ succ
@@ -372,7 +372,7 @@ bigtest = ff aa
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.118: 	type Id = forall 'a. 'a -> 'a
 //│ ╙──       	                 ^^
-//│ bigtest: error | int
+//│ bigtest: int
 //│        = 10
 
 bigtest_ = ff_ aa

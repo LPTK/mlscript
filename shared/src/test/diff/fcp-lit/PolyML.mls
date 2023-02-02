@@ -30,7 +30,7 @@ g' = fun f -> f f
 
 fun f -> f (g f)
 fun f -> f (g' f)
-//│ res: (forall 'a. 'a -> 'a & (forall 'a. 'a -> 'a) -> 'b) -> 'b
+//│ res: (forall 'a. 'a -> 'a & (forall 'a0. 'a0 -> 'a0) -> 'b) -> 'b
 //│    = [Function: res]
 //│ res: ('a -> 'b & 'b -> 'c & 'a) -> 'c
 //│    = [Function: res]

@@ -58,23 +58,23 @@ class Cons[A]: List[A] & { head: A; tail: List[A] }
 :stats
 l0 = Cons { head = 1; tail = Nil {} }
 //│ l0: Cons[1] with {tail: Nil[?]}
-//│ constrain calls  : 10
+//│ constrain calls  : 14
 //│ annoying  calls  : 0
-//│ subtyping calls  : 62
+//│ subtyping calls  : 59
 
 :stats
 Cons.HeadOption l0
 //│ res: Some[1]
-//│ constrain calls  : 34
+//│ constrain calls  : 38
 //│ annoying  calls  : 18
-//│ subtyping calls  : 120
+//│ subtyping calls  : 119
 
 :stats
 l1 = Cons { head = 1; tail = Cons { head = 2; tail = Cons { head = 3; tail = Nil {} } } }
 //│ l1: Cons[1] with {tail: Cons[2] with {tail: Cons[3] with {tail: Nil[?]}}}
-//│ constrain calls  : 28
+//│ constrain calls  : 32
 //│ annoying  calls  : 0
-//│ subtyping calls  : 196
+//│ subtyping calls  : 193
 
 :stats
 Cons.HeadOption l1
@@ -150,7 +150,7 @@ l1 = Cons { tail = Cons { tail = Cons { tail = Nil {} } } }
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.149: 	l1 = Cons { tail = Cons { tail = Cons { tail = Nil {} } } }
 //│ ║         	                                 ^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── record literal of type `{tail: Nil[?] & {Nil#A = ?A}}` does not have field 'head'
+//│ ╟── record literal of type `{tail: forall ?A. Nil[?] & {Nil#A = ?A}}` does not have field 'head'
 //│ ║  l.149: 	l1 = Cons { tail = Cons { tail = Cons { tail = Nil {} } } }
 //│ ╙──       	                                      ^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Type mismatch in application:

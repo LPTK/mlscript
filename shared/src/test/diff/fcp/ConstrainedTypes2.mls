@@ -145,8 +145,8 @@ def test extr x =
 test 0 1
 //│ res: anything -> 'a
 //│   where
-//│     1 <: 'b -> 'a
 //│     0 <: 0 -> 'b
+//│     1 <: 'b -> 'a
 //│    = [Function (anonymous)]
 
 :e

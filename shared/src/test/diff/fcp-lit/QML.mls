@@ -202,7 +202,7 @@ def sstep = fun xx -> xx (fun (xinit, xsub) ->
     then xsub r1 (div i 2)
     else xsub r2 (div i 2) in
   fun f -> f (init, sub))
-//│ ((forall 'a 'b 'c 'd 'e. ('d -> 'e, 'b -> int -> 'c,) -> (('d -> ('e, 'e,), ('b, 'b,) -> (int & number) -> 'c,) -> 'a) -> 'a) -> 'f) -> 'f
+//│ ((forall 'a 'b 'c 'd 'e. ('b -> 'a, 'e -> int -> 'd,) -> (('b -> ('a, 'a,), ('e, 'e,) -> (int & number) -> 'd,) -> 'c) -> 'c) -> 'f) -> 'f
 //│   <:  sstep:
 //│ ExSmall -> ExSmall
 //│ ╔══[ERROR] Type mismatch in def definition:
@@ -242,7 +242,7 @@ def sstep = fun xx -> xx (fun (xinit, xsub) ->
     then xsub r1 (div i 2)
     else xsub r2 (div i 2) in
   fun (f : forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> f (init, sub))
-//│ ((forall 'a 'b 'c 'y. (('a | 'b) -> 'c, 'c -> int -> 'b,) -> (forall 'r. ('a -> 'r, 'r -> int -> ('a | 'b),) -> 'y) -> 'y) -> 'd) -> 'd
+//│ ((forall 'b 'y 'a 'c. (('a | 'c) -> 'b, 'b -> int -> 'c,) -> (forall 'r. ('a -> 'r, 'r -> int -> ('a | 'c),) -> 'y) -> 'y) -> 'd) -> 'd
 //│   <:  sstep:
 //│ ExSmall -> ExSmall
 //│      = [Function: sstep1]
@@ -391,7 +391,7 @@ def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
     else (fst r, xupdate (snd r) (div i 2) a) in
   let fold f b r = xfold f (xfold f b (fst r)) (snd r) in
     fun f -> f ((((init, sub), update), fold),) )
-//│ ((forall 'c 'd 'e 'f 'a 'b 'b0 'g 'h 'a0 'i 'a1 'j 'k 'l 'm. ((('d -> 'm, 'a -> int -> 'h,), 'a1 -> int -> 'c -> 'l & 'b -> int -> 'c -> 'e,), 'k -> ('i -> 'b0 -> 'f & 'j -> 'a0 -> 'i),) -> (((('d -> ('m, 'm,), ('a, 'a,) -> (int & number) -> 'h,), forall 'a2 'b1. ('a1 & 'a2, 'b & 'b1,) -> (int & number) -> 'c -> ('a2 | 'l, 'b1 | 'e,),), 'k -> 'j -> ('a0, 'b0,) -> 'f,) -> 'g) -> 'g) -> 'n) -> 'n
+//│ ((forall 'c 'd 'e 'b 'f 'g 'h 'i 'j 'a 'k 'l 'a0 'm 'a1 'b0. ((('i -> 'm, 'a -> int -> 'd,), 'a1 -> int -> 'h -> 'k & 'b -> int -> 'h -> 'e,), 'l -> ('g -> 'b0 -> 'c & 'j -> 'a0 -> 'g),) -> (((('i -> ('m, 'm,), ('a, 'a,) -> (int & number) -> 'd,), forall 'a2 'b1. ('a1 & 'a2, 'b & 'b1,) -> (int & number) -> 'h -> ('a2 | 'k, 'b1 | 'e,),), 'l -> 'j -> ('a0, 'b0,) -> 'c,) -> 'f) -> 'f) -> 'n) -> 'n
 //│   <:  step:
 //│ ExSig -> ExSig
 //│ ╔══[ERROR] Type mismatch in def definition:

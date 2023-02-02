@@ -480,7 +480,7 @@ to_church = to_ch
 //│     'd <: 'e -> 'f -> 'g)
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?d ?to_ch. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?to_ch ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
 //│ ║  l.473: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
@@ -493,9 +493,9 @@ rec def to_ch_weird n =
 //│   where
 //│     'd <: 'a -> 'b -> 'c)
 //│   where
-//│     'd :> forall 'e 'f 'g. 'g -> ('e -> 'f
+//│     'd :> forall 'e 'f 'g. 'e -> ('f -> 'g
 //│   where
-//│     'd <: 'g -> 'e -> 'f)
+//│     'd <: 'e -> 'f -> 'g)
 //│            = [Function: to_ch_weird]
 
 :e // * Since the removal of "recursive definition hacks"
@@ -509,7 +509,7 @@ to_church = to_ch
 //│     'd <: 'e -> 'f -> 'g)
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?d ?to_ch. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?to_ch ?b ?c ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
 //│ ║  l.502: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.

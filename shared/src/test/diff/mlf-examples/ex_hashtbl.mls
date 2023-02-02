@@ -119,24 +119,24 @@ rec def find table key =
 
 :ns
 find
-//│ res: forall 'b 'c 'val 'd 'e 'f 'a 'g 'h 'a0 'i 'j 'a1 'find 'a2. 'find
+//│ res: forall 'b 'a 'c 'd 'e 'a0 'val 'a1 'a2 'f 'find 'g 'h 'i 'j. 'find
 //│   where
-//│     'find := 'g -> 'h -> 'd
-//│     'd :> #None | #Some & {val: 'val, Some#a = 'a1}
+//│     'find := 'j -> 'e -> 'i
+//│     'i :> #None | #Some & {val: 'val, Some#a = 'a}
 //│        <: 'c
-//│     'c :> #None | #Some & {val: 'val, Some#a = 'a1}
-//│        <: 'b
-//│     'b :> #None | #Some & {val: 'val, Some#a = 'a1}
-//│        <: 'd
-//│     'h <: 'e
-//│     'g :> List['a0]
-//│        <: List['a0] & List['a] & List['a2]
-//│     'a0 <: 'a2 & 'a
-//│     'a <: {_2: 'i} & {_1: 'j}
-//│     'j <: 'e
-//│     'i <: 'f
-//│     'f <: 'val
-//│     'val <: 'a1
+//│     'c :> #None | #Some & {val: 'val, Some#a = 'a}
+//│        <: 'h
+//│     'h :> #None | #Some & {val: 'val, Some#a = 'a}
+//│        <: 'i
+//│     'e <: 'f
+//│     'j :> List['a2]
+//│        <: List['a2] & List['a0] & List['a1]
+//│     'a2 <: 'a1 & 'a0
+//│     'a0 <: {_2: 'd} & {_1: 'b}
+//│     'b <: 'f
+//│     'd <: 'g
+//│     'g <: 'val
+//│     'val <: 'a
 //│    = [Function: find1]
 
 :ng
@@ -212,7 +212,7 @@ table = hashtbl_add table "two" (fun f -> fun x -> f (f x))
 //│      = Nil {}
 //│ table: List[("one", forall 'a 'b. ('a -> 'b) -> 'a -> 'b,)]
 //│      = Cons { head: [ 'one', [Function (anonymous)] ], tail: Nil {} }
-//│ table: List[("one" | "two", forall 'a 'b 'c. ('a -> 'b & 'b -> 'c & 'a -> 'c) -> 'a -> 'c,)]
+//│ table: List[("one" | "two", forall 'a 'b 'c. ('b -> 'c & 'c -> 'a & 'b -> 'a) -> 'b -> 'a,)]
 //│      = Cons {
 //│          head: [ 'two', [Function (anonymous)] ],
 //│          tail: Cons { head: [ 'one', [Function (anonymous)] ], tail: Nil {} }
@@ -234,7 +234,10 @@ zog = printInt (add (nfind table "one") (nfind table "two"))
 //│ ║         	                        ^^
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.175: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──       	                        ^^
+//│ ║         	                        ^^
+//│ ╟── from application:
+//│ ║  l.210: 	table = hashtbl_add table "two" (fun f -> fun x -> f (f x))
+//│ ╙──       	                                                      ^^^
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.228: 	zog = printInt (add (nfind table "one") (nfind table "two"))
 //│ ║         	                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -243,7 +246,10 @@ zog = printInt (add (nfind table "one") (nfind table "two"))
 //│ ║         	                        ^^
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.175: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──       	                        ^^
+//│ ║         	                        ^^
+//│ ╟── from application:
+//│ ║  l.210: 	table = hashtbl_add table "two" (fun f -> fun x -> f (f x))
+//│ ╙──       	                                                      ^^^
 //│ zog: string
 //│    = '0'
 
@@ -255,15 +261,18 @@ zog = printInt (add (nfind table "one") (nfind table "two"))
 :e // * Since "sound extrusion"
 a = add (nfind table "one")
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.256: 	a = add (nfind table "one")
+//│ ║  l.262: 	a = add (nfind table "one")
 //│ ║         	    ^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.175: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
 //│ ║         	                        ^^
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.175: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──       	                        ^^
-//│ a: ChurchInt -> (('a -> ('a & 'b)) -> 'a -> 'b | error | ChurchInt)
+//│ ║         	                        ^^
+//│ ╟── from application:
+//│ ║  l.210: 	table = hashtbl_add table "two" (fun f -> fun x -> f (f x))
+//│ ╙──       	                                                      ^^^
+//│ a: ChurchInt -> (('a -> ('a & 'b)) -> 'a -> 'b | ChurchInt)
 //│  = [Function (anonymous)]
 
 b = (nfind table "two")
@@ -289,13 +298,13 @@ b = (find table "two")
 // * Note: this one required `:DistributeForalls`
 a b
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.290: 	a b
+//│ ║  l.299: 	a b
 //│ ║         	^^^
 //│ ╟── application of type `None` is not a function
 //│ ║  l.80: 	def None = None {}
 //│ ║        	           ^^^^^^^
 //│ ╟── but it flows into reference with expected type `('a -> 'a) -> 'a -> 'a`
-//│ ║  l.290: 	a b
+//│ ║  l.299: 	a b
 //│ ║         	  ^
 //│ ╟── Note: constraint arises from function type:
 //│ ║  l.175: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -306,7 +315,7 @@ a b
 //│ ╟── Note: class None is defined at:
 //│ ║  l.77: 	class None
 //│ ╙──      	      ^^^^
-//│ res: ('a -> ('a & 'b)) -> 'a -> 'b | error | ChurchInt
+//│ res: ('a -> ('a & 'b)) -> 'a -> 'b | ChurchInt
 //│    = None {}
 
 zog_ = printInt_ (add_ (nfind table "one") (nfind table "two"))
@@ -369,16 +378,16 @@ def foo key = match_opt (
 //│    = [Function: foo]
 
 foo 1
-//│ res: ('a -> 'b & 'b -> 'c & 'a -> 'c) -> ('d & 'a) -> ('d | 'c)
+//│ res: ('a -> 'b & 'b -> 'c & 'a -> 'c & 'a -> 'd & 'd -> 'c & 'a -> 'e & 'e -> 'c & 'a -> 'f & 'f -> 'c) -> ('c & 'a) -> 'c
 //│    = [Function (anonymous)]
 
 :e
 foo 1 2
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.376: 	foo 1 2
+//│ ║  l.385: 	foo 1 2
 //│ ║         	^^^^^^^
 //│ ╟── integer literal of type `2` is not a function
-//│ ║  l.376: 	foo 1 2
+//│ ║  l.385: 	foo 1 2
 //│ ║         	      ^
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.209: 	table = hashtbl_add table "one" (fun f -> fun x -> f x)

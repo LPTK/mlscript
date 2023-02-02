@@ -12,7 +12,7 @@ def auto_ x = x x
 //│      = [Function: auto_]
 
 fun (x: (forall 'a. 'a -> 'a)) -> auto_ x
-//│ res: (forall 'a. 'a -> 'a) -> 'b -> 'b
+//│ res: (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│    = [Function: res]
 
 // * Compares an extruded higher-level skolem; rightly rejected
@@ -27,7 +27,7 @@ fun (x: ('a -> 'a)) -> auto_ x
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.5: 	def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│ ╙──     	                    ^^
-//│ res: (anything -> nothing) -> 'b -> ('b | error)
+//│ res: (anything -> nothing) -> 'b -> 'b
 //│    = [Function: res]
 
 foo(x: ('a -> 'b)) = auto_ x
@@ -51,7 +51,7 @@ foo (fun x -> x)
 //│ ╟── from type variable:
 //│ ║  l.33: 	foo(x: ('a -> 'b)) = auto_ x
 //│ ╙──      	              ^^
-//│ res: 'b -> ('b | error)
+//│ res: 'b -> 'b
 //│    = [Function (anonymous)]
 
 :e
@@ -68,7 +68,7 @@ foo (fun x -> 0)
 //│ ╟── from type variable:
 //│ ║  l.33: 	foo(x: ('a -> 'b)) = auto_ x
 //│ ╙──      	              ^^
-//│ res: 'b -> ('b | error)
+//│ res: 'b -> 'b
 //│    = 0
 
 :e
@@ -103,7 +103,7 @@ foo (fun x -> foo (fun y -> y) x)
 //│ ╟── from type variable:
 //│ ║  l.33: 	foo(x: ('a -> 'b)) = auto_ x
 //│ ╙──      	              ^^
-//│ res: 'b -> ('b | error)
+//│ res: 'b -> 'b
 //│    = [Function (anonymous)]
 
 // * This would be unsound; `fun y -> x` does not have type `forall 'a. 'a -> 'a` but it is eventually passed to auto_
@@ -121,7 +121,7 @@ foo (fun x -> foo (fun y -> x) x)
 //│ ╟── from reference:
 //│ ║  l.111: 	foo (fun x -> foo (fun y -> x) x)
 //│ ╙──       	                            ^
-//│ res: 'b -> ('b | error)
+//│ res: 'b -> 'b
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -171,7 +171,7 @@ def swapWith: (forall 'x 'y. (('x, 'y),) -> ('y, 'x)) -> ('a, 'b) -> ('b, 'a)
 def swapWith f (a, b) = f ((a, b))
 //│ (('a, 'b,) -> 'c) -> ('a, 'b,) -> 'c
 //│   <:  swapWith:
-//│ (forall 'y 'x. ('x, 'y,) -> ('y, 'x,)) -> ('a, 'b,) -> ('b, 'a,)
+//│ (forall 'x 'y. ('x, 'y,) -> ('y, 'x,)) -> ('a, 'b,) -> ('b, 'a,)
 //│         = [Function: swapWith]
 
 

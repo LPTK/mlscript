@@ -74,5 +74,5 @@ test arg2
 //│ ╟── from field selection:
 //│ ║  l.50: 	  x.prop
 //│ ╙──      	   ^^^^^
-//│ res: error -> (error | int)
+//│ res: 'a -> (int | 'a)
 

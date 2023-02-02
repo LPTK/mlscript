@@ -411,15 +411,15 @@ f 1
 
 :ns
 rec def f x = if x > 0 then (f (x with { a = x - 1 })).a else x
-//│ f: forall 'a 'b 'f 'c 'd. 'f
+//│ f: forall 'b 'f 'c 'a 'd. 'f
 //│   where
-//│     'f := 'd -> 'c
-//│     'd :> 'd\a & {a: int}
+//│     'f := 'b -> 'c
+//│     'b :> 'b\a & {a: int}
 //│        <: ({a: 'a} | ~{a: int} | ~{})\a & ({a: 'a} | ~{a: int})\a & (number | ~{a: int} | ~{})\a & (number | ~{a: int})\a & (int | ~{a: int} | ~{})\a & (int | ~{a: int})\a & 'c & int & number
 //│     'a <: 'c
-//│     'c :> 'd\a & {a: int}
-//│        <: 'b
-//│     'b :> 'd\a & {a: int}
+//│     'c :> 'b\a & {a: int}
+//│        <: 'd
+//│     'd :> 'b\a & {a: int}
 //│        <: {a: 'a}
 
 f

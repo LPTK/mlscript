@@ -43,19 +43,19 @@ r4 = addOne (selectBoolOrInt 1)
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.42: 	r4 = addOne (selectBoolOrInt 1)
 //│ ║        	     ^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── reference of type `true` is not an instance of type `int`
+//│ ╟── integer literal of type `1` is not an instance of type `bool`
 //│ ║  l.15: 	selectBoolOrInt = fun x -> if isInt x then 1 else true
-//│ ║        	                                                  ^^^^
-//│ ╟── but it flows into application with expected type `int`
+//│ ║        	                                           ^
+//│ ╟── but it flows into application with expected type `bool`
 //│ ║  l.42: 	r4 = addOne (selectBoolOrInt 1)
 //│ ║        	             ^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
-//│ ║  l.18: 	addOneI = fun x -> add x 1
-//│ ║        	                       ^
+//│ ║  l.3: 	bb = (fun a -> fun b -> toBool (if b then not a else not a)) true
+//│ ║       	                                   ^
 //│ ╟── from reference:
-//│ ║  l.33: 	    then addOneI x 
+//│ ║  l.34: 	    else addOneB x
 //│ ╙──      	                 ^
-//│ r4: error | int | true
+//│ r4: int | true
 //│   = 2
 
 :e
@@ -72,7 +72,7 @@ r4 = let tmp = selectBoolOrInt 1 in case tmp of { int -> addOne tmp }
 //│ ╟── Note: constraint arises from class pattern:
 //│ ║  l.62: 	r4 = let tmp = selectBoolOrInt 1 in case tmp of { int -> addOne tmp }
 //│ ╙──      	                                                  ^^^
-//│ r4: error | int | true
+//│ r4: int | true
 //│   = 2
 
 // TODO improve:
@@ -152,7 +152,7 @@ addOne "hello"
 //│ ╟── from reference:
 //│ ║  l.137: 	def addOne = fun x -> if isInt x then addOneI x else addOneS x
 //│ ╙──       	                                              ^
-//│ res: error | int | string
+//│ res: int | string
 //│    = 'helloOne'
 
 

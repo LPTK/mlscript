@@ -44,7 +44,7 @@ test "hi"
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.27: 	  let local g = g x
 //│ ╙──      	                  ^
-//│ res: error | int
+//│ res: int
 //│    = 'hi1'
 
 def test f =
@@ -108,7 +108,7 @@ test (fun x -> "oops")
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.95: 	  let local g = g (f 1)
 //│ ╙──      	                   ^^^
-//│ res: error | int
+//│ res: int
 //│    = 'oops1'
 
 

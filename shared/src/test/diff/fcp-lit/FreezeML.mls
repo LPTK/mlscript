@@ -513,21 +513,20 @@ choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│ ╙──       	                    ^^
 //│ res: 'a
 //│   where
-//│     'a :> (forall 'a0 'b. ('a0 -> 'a0) -> 'b -> 'b) | (forall 'a1. 'a1 -> 'a1)
-//│     'b :> error
+//│     'a :> (forall 'a0. ('a0 -> 'a0) -> (forall 'b. 'b -> 'b)) | (forall 'a1. 'a1 -> 'a1)
 //│     'a0 :> anything
 //│         <: nothing
 //│    = [Function: id1]
 
 // * The skolem used to (unsafely) leak into this type – see also `Skolems.mls`:
 res
-//│ res: (anything -> nothing & 'a) -> ('a | 'b -> ('b | error))
+//│ res: (anything -> nothing & 'a) -> ('a | 'b -> 'b)
 //│    = [Function: id1]
 
 :e // skolem extrusion
 res id
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.528: 	res id
+//│ ║  l.527: 	res id
 //│ ║         	^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.172: 	def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
@@ -538,17 +537,17 @@ res id
 //│ ╟── from type variable:
 //│ ║  l.504: 	choose id (fun (x: ('a -> 'a)) -> auto_ x)
 //│ ╙──       	                          ^^
-//│ res: 'a -> ('a | error) | error
+//│ res: 'a -> 'a | error
 //│    = [Function: id1]
 
 
 :e
 a (fun x -> { u = x })
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.546: 	a (fun x -> { u = x })
+//│ ║  l.545: 	a (fun x -> { u = x })
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── record literal of type `{u: ?a}` does not match type `'a`
-//│ ║  l.546: 	a (fun x -> { u = x })
+//│ ║  l.545: 	a (fun x -> { u = x })
 //│ ║         	            ^^^^^^^^^
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.172: 	def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b

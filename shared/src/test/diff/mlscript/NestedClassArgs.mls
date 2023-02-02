@@ -117,10 +117,10 @@ C{}
 //│ res: C['A]
 
 def c4 a = C4{ a = C{} }
-//│ c4: anything -> C4['A]
+//│ c4: anything -> (C4['A] with {a: forall 'A0. C['A0]})
 
 def c = c4
-//│ anything -> C4['A]
+//│ anything -> (C4['A] with {a: forall 'A0. C['A0]})
 //│   <:  c:
 //│ 'a -> C4['a]
 
@@ -178,9 +178,9 @@ c = c6
 //│         <: C5['A0]
 //│   <:  c:
 //│ 'a -> C6['a]
-//│ constrain calls  : 62
+//│ constrain calls  : 60
 //│ annoying  calls  : 30
-//│ subtyping calls  : 392
+//│ subtyping calls  : 383
 
 
 // Reproduction of an issue found while trying out TypeRef ctor typing:
@@ -292,13 +292,13 @@ def append ls elem = L { h = elem; t = S { v = ls } }
 
 :ns
 append
-//│ res: forall 'h 'T 'a 't 'b 'T0 'v. 'a -> 'b -> (#L & {h: 'h, t: 't, L#T = 'T0})
+//│ res: forall 'a 'v 't 'T 'h 'T0 'b. 'b -> 'a -> (#L & {h: 'h, t: 't, L#T = 'T0})
 //│   where
 //│     't :> #S & {v: 'v, S#T = 'T}
 //│        <: O[L['T0]]
-//│     'b <: 'h
+//│     'a <: 'h
 //│     'h <: 'T0
-//│     'a <: 'v
+//│     'b <: 'v
 //│     'v <: L['T0] & 'T
 //│     'T := L['T0]
 

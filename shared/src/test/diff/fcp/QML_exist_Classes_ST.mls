@@ -282,9 +282,9 @@ def stepImpl arrImpl = ArraysImpl {
       else (r0, arrImpl.Update r1 (div i 2) a);
     fold = fun f -> fun b -> fun ((r0, r1)) -> arrImpl.Fold f (arrImpl.Fold f b r0) r1
   }
-//│ stepImpl: ArraysRep[in 'A | 'A0 | 'A1 | 'A2 | 'A3 | 'A4 | 'A5 & ('A6 | 'A7) out 'A1 & 'A2 & 'A6 & 'A7, in 'Rep | 'Rep0 | 'Rep1 | 'Rep2 out 'Rep3 & 'Rep4 & ('Rep5 & ('Rep6 | 'Rep7) | 'Rep8 & ('Rep6 | 'Rep7))] -> (ArraysImpl['A5, 'Rep9] with {fold: forall 'b 'b0. ('A6 -> 'b -> 'b & 'A7 -> 'b0 -> ('b & 'b0)) -> ('b & 'b0) -> ('Rep2, 'Rep1,) -> 'b, init: ('A & 'A0) -> ('Rep3, 'Rep4,), sub: ('Rep, 'Rep0,) -> int -> ('A1 | 'A2), update: forall 'a 'c. ('a & 'Rep5, 'c & 'Rep7,) -> int -> ('A3 & 'A4) -> ('Rep8 | 'a, 'Rep6 | 'c,)})
+//│ stepImpl: ArraysRep[in 'A | 'A0 | 'A1 | 'A2 | 'A3 | 'A4 | 'A5 & ('A6 | 'A7) out 'A1 & 'A2 & 'A6 & 'A7, in 'Rep | 'Rep0 | 'Rep1 | 'Rep2 out 'Rep3 & 'Rep4 & ('Rep5 & ('Rep6 | 'Rep7) | 'Rep8 & ('Rep6 | 'Rep7))] -> (ArraysImpl['A5, 'Rep9] with {fold: forall 'b 'b0. ('A6 -> 'b -> 'b & 'A7 -> 'b0 -> ('b & 'b0)) -> ('b & 'b0) -> ('Rep2, 'Rep1,) -> 'b, init: ('A & 'A0) -> ('Rep4, 'Rep3,), sub: ('Rep, 'Rep0,) -> int -> ('A1 | 'A2), update: forall 'a 'c. ('a & 'Rep5, 'c & 'Rep7,) -> int -> ('A3 & 'A4) -> ('Rep8 | 'a, 'Rep6 | 'c,)})
 //│   where
-//│     'Rep9 :> ('Rep3 | 'd | 'Rep8, 'Rep4 | 'e | 'Rep6,)
+//│     'Rep9 :> ('Rep4 | 'd | 'Rep8, 'Rep3 | 'e | 'Rep6,)
 //│           <: (nothing, nothing,)
 //│     'A5 :> anything
 //│         <: nothing
@@ -295,19 +295,19 @@ def stepImpl2_ty: (forall 'r. (ArraysRep['A, 'Rep] -> 'r) -> 'r) -> ArraysImpl['
 //│             = <missing implementation>
 
 def stepImpl2 arr = arr stepImpl
-//│ stepImpl2: ((forall 'A 'Rep 'Rep0 'Rep1 'a 'Rep2 'A0 'Rep3 'A1 'Rep4 'Rep5 'c 'A2 'A3 'Rep6 'A4 'A5 'Rep7 'A6 'Rep8 'A7 'Rep9. ArraysRep[in 'A3 | 'A5 | 'A0 | 'A1 | 'A6 | 'A4 | 'A2 & ('A | 'A7) out 'A0 & 'A1 & 'A & 'A7, in 'Rep | 'Rep7 | 'Rep2 | 'Rep6 out 'Rep8 & 'Rep1 & ('Rep3 & ('Rep5 | 'Rep4) | 'Rep9 & ('Rep5 | 'Rep4))] -> (ArraysImpl['A2, 'Rep0] with {fold: forall 'b 'b0. ('A -> 'b -> 'b & 'A7 -> 'b0 -> ('b & 'b0)) -> ('b & 'b0) -> ('Rep6, 'Rep2,) -> 'b, init: ('A3 & 'A5) -> ('Rep8, 'Rep1,), sub: ('Rep, 'Rep7,) -> int -> ('A0 | 'A1), update: forall 'd 'e. ('d & 'Rep3, 'e & 'Rep4,) -> int -> ('A6 & 'A4) -> ('Rep9 | 'd, 'Rep5 | 'e,)})) -> 'f) -> 'f
+//│ stepImpl2: ((forall 'Rep 'A 'A0 'Rep0 'Rep1 'Rep2 'A1 'Rep3 'A2 'Rep4 'A3 'a 'Rep5 'Rep6 'Rep7 'A4 'A5 'A6 'c 'Rep8 'A7 'Rep9. ArraysRep[in 'A1 | 'A5 | 'A4 | 'A | 'A2 | 'A7 | 'A6 & ('A0 | 'A3) out 'A4 & 'A & 'A0 & 'A3, in 'Rep5 | 'Rep1 | 'Rep3 | 'Rep out 'Rep2 & 'Rep9 & ('Rep0 & ('Rep7 | 'Rep6) | 'Rep8 & ('Rep7 | 'Rep6))] -> (ArraysImpl['A6, 'Rep4] with {fold: forall 'b 'b0. ('A0 -> 'b -> 'b & 'A3 -> 'b0 -> ('b & 'b0)) -> ('b & 'b0) -> ('Rep, 'Rep3,) -> 'b, init: ('A1 & 'A5) -> ('Rep2, 'Rep9,), sub: ('Rep5, 'Rep1,) -> int -> ('A4 | 'A), update: forall 'd 'e. ('d & 'Rep6, 'e & 'Rep0,) -> int -> ('A2 & 'A7) -> ('Rep7 | 'd, 'Rep8 | 'e,)})) -> 'f) -> 'f
 //│   where
-//│     'Rep0 :> ('Rep8 | 'a | 'Rep9, 'Rep1 | 'c | 'Rep5,)
+//│     'Rep4 :> ('Rep2 | 'c | 'Rep7, 'Rep9 | 'a | 'Rep8,)
 //│           <: (nothing, nothing,)
-//│     'A2 :> anything
+//│     'A6 :> anything
 //│         <: nothing
 //│          = [Function: stepImpl2]
 
 stepImpl2_ty = stepImpl2
-//│ ((forall 'Rep 'A 'a 'A0 'Rep0 'Rep1 'Rep2 'A1 'Rep3 'Rep4 'Rep5 'Rep6 'A2 'A3 'A4 'Rep7 'A5 'Rep8 'Rep9 'A6 'A7 'c. ArraysRep[in 'A1 | 'A7 | 'A0 | 'A5 | 'A2 | 'A6 | 'A & ('A4 | 'A3) out 'A0 & 'A5 & 'A4 & 'A3, in 'Rep4 | 'Rep7 | 'Rep9 | 'Rep5 out 'Rep & 'Rep2 & ('Rep0 & ('Rep3 | 'Rep8) | 'Rep1 & ('Rep3 | 'Rep8))] -> (ArraysImpl['A, 'Rep6] with {fold: forall 'b 'b0. ('A4 -> 'b -> 'b & 'A3 -> 'b0 -> ('b & 'b0)) -> ('b & 'b0) -> ('Rep5, 'Rep9,) -> 'b, init: ('A1 & 'A7) -> ('Rep, 'Rep2,), sub: ('Rep4, 'Rep7,) -> int -> ('A0 | 'A5), update: forall 'd 'e. ('d & 'Rep0, 'e & 'Rep8,) -> int -> ('A2 & 'A6) -> ('Rep1 | 'd, 'Rep3 | 'e,)})) -> 'f) -> 'f
+//│ ((forall 'Rep 'A 'A0 'Rep0 'Rep1 'Rep2 'A1 'Rep3 'Rep4 'a 'A2 'Rep5 'Rep6 'A3 'c 'A4 'A5 'Rep7 'A6 'Rep8 'Rep9 'A7. ArraysRep[in 'A6 | 'A3 | 'A7 | 'A0 | 'A5 | 'A4 | 'A & ('A1 | 'A2) out 'A7 & 'A0 & 'A1 & 'A2, in 'Rep4 | 'Rep9 | 'Rep8 | 'Rep6 out 'Rep2 & 'Rep7 & ('Rep3 & ('Rep1 | 'Rep0) | 'Rep5 & ('Rep1 | 'Rep0))] -> (ArraysImpl['A, 'Rep] with {fold: forall 'b 'b0. ('A1 -> 'b -> 'b & 'A2 -> 'b0 -> ('b & 'b0)) -> ('b & 'b0) -> ('Rep6, 'Rep8,) -> 'b, init: ('A6 & 'A3) -> ('Rep7, 'Rep2,), sub: ('Rep4, 'Rep9,) -> int -> ('A7 | 'A0), update: forall 'd 'e. ('d & 'Rep3, 'e & 'Rep0,) -> int -> ('A5 & 'A4) -> ('Rep5 | 'd, 'Rep1 | 'e,)})) -> 'f) -> 'f
 //│   where
-//│     'Rep6 :> ('Rep | 'c | 'Rep1, 'Rep2 | 'a | 'Rep3,)
-//│           <: (nothing, nothing,)
+//│     'Rep :> ('Rep7 | 'c | 'Rep5, 'Rep2 | 'a | 'Rep1,)
+//│          <: (nothing, nothing,)
 //│     'A :> anything
 //│        <: nothing
 //│   <:  stepImpl2_ty:
@@ -321,11 +321,11 @@ def step: Arrays['a] -> Arrays['a]
 
 :e // * Since "sound extrusion"
 def step arr f = f (stepImpl2 arr)
-//│ ((forall 'Rep 'A 'A0 'Rep0 'Rep1 'Rep2 'Rep3 'Rep4 'A1 'Rep5 'A2 'A3 'Rep6 'Rep7 'a 'A4 'A5 'Rep8 'A6 'Rep9 'c 'A7. ArraysRep[in 'A4 | 'A | 'A3 | 'A5 | 'A7 | 'A2 | 'A0 & ('A6 | 'A1) out 'A3 & 'A5 & 'A6 & 'A1, in 'Rep7 | 'Rep5 | 'Rep6 | 'Rep4 out 'Rep9 & 'Rep8 & ('Rep2 & ('Rep0 | 'Rep1) | 'Rep3 & ('Rep0 | 'Rep1))] -> (ArraysImpl['A0, 'Rep] with {fold: forall 'b 'b0. ('A6 -> 'b -> 'b & 'A1 -> 'b0 -> ('b & 'b0)) -> ('b & 'b0) -> ('Rep4, 'Rep6,) -> 'b, init: ('A4 & 'A) -> ('Rep9, 'Rep8,), sub: ('Rep7, 'Rep5,) -> int -> ('A3 | 'A5), update: forall 'd 'e. ('d & 'Rep2, 'e & 'Rep1,) -> int -> ('A7 & 'A2) -> ('Rep3 | 'd, 'Rep0 | 'e,)})) -> 'f) -> ('f -> 'g) -> 'g
+//│ ((forall 'Rep 'A 'Rep0 'Rep1 'a 'Rep2 'Rep3 'Rep4 'c 'Rep5 'A0 'Rep6 'Rep7 'A1 'Rep8 'A2 'A3 'A4 'A5 'A6 'Rep9 'A7. ArraysRep[in 'A3 | 'A7 | 'A1 | 'A | 'A5 | 'A0 | 'A6 & ('A4 | 'A2) out 'A1 & 'A & 'A4 & 'A2, in 'Rep0 | 'Rep8 | 'Rep1 | 'Rep out 'Rep6 & 'Rep4 & ('Rep3 & ('Rep5 | 'Rep9) | 'Rep2 & ('Rep5 | 'Rep9))] -> (ArraysImpl['A6, 'Rep7] with {fold: forall 'b 'b0. ('A4 -> 'b -> 'b & 'A2 -> 'b0 -> ('b & 'b0)) -> ('b & 'b0) -> ('Rep, 'Rep1,) -> 'b, init: ('A3 & 'A7) -> ('Rep6, 'Rep4,), sub: ('Rep0, 'Rep8,) -> int -> ('A1 | 'A), update: forall 'd 'e. ('d & 'Rep9, 'e & 'Rep3,) -> int -> ('A5 & 'A0) -> ('Rep5 | 'd, 'Rep2 | 'e,)})) -> 'f) -> ('f -> 'g) -> 'g
 //│   where
-//│     'Rep :> ('Rep9 | 'a | 'Rep3, 'Rep8 | 'c | 'Rep0,)
-//│          <: (nothing, nothing,)
-//│     'A0 :> anything
+//│     'Rep7 :> ('Rep6 | 'a | 'Rep5, 'Rep4 | 'c | 'Rep2,)
+//│           <: (nothing, nothing,)
+//│     'A6 :> anything
 //│         <: nothing
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]

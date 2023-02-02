@@ -97,7 +97,7 @@ addNTimes n 12
 //│ ╟── Note: constraint arises from type reference:
 //│ ║  l.7: 	class Num: Addable[Num] & { val: int }
 //│ ╙──     	                   ^^^
-//│ res: error
+//│ res: 0
 
 rec def addNTimes a n =
   if n <= 0 then 0 else a.Add addNTimes a (n - 1)

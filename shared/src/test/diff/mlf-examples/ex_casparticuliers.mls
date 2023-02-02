@@ -165,78 +165,7 @@ def to_church_ty: int -> ChurchInt
 rec def to_church_1 n =
   if n == 0 then zero
   else succ (to_church_1 (n - 1))
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.165: 	rec def to_church_1 n =
-//│ ║         	                    ^^^
-//│ ║  l.166: 	  if n == 0 then zero
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.167: 	  else succ (to_church_1 (n - 1))
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.165: 	rec def to_church_1 n =
-//│ ║         	                    ^^^
-//│ ║  l.166: 	  if n == 0 then zero
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.167: 	  else succ (to_church_1 (n - 1))
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.165: 	rec def to_church_1 n =
-//│ ║         	                    ^^^
-//│ ║  l.166: 	  if n == 0 then zero
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.167: 	  else succ (to_church_1 (n - 1))
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── from reference:
-//│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
-//│ ╙──      	                                                   ^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.165: 	rec def to_church_1 n =
-//│ ║         	                    ^^^
-//│ ║  l.166: 	  if n == 0 then zero
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.167: 	  else succ (to_church_1 (n - 1))
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── from reference:
-//│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
-//│ ╙──      	                                                   ^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.165: 	rec def to_church_1 n =
-//│ ║         	                    ^^^
-//│ ║  l.166: 	  if n == 0 then zero
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.167: 	  else succ (to_church_1 (n - 1))
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ to_church_1: int -> (anything -> nothing) -> nothing -> anything
+//│ to_church_1: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│            = [Function: to_church_1]
 
 rec def to_church_1_t n =
@@ -257,132 +186,20 @@ rec def to_church_1_tt n =
 :ng // rec non-fun not supported in JS
 rec def wat =
   succ wat
-//│ ╔══[ERROR] Type mismatch in binding of application:
-//│ ║  l.259: 	  succ wat
-//│ ║         	  ^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ ╔══[ERROR] Type mismatch in binding of application:
-//│ ║  l.259: 	  succ wat
-//│ ║         	  ^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ ╔══[ERROR] Type mismatch in binding of application:
-//│ ║  l.259: 	  succ wat
-//│ ║         	  ^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── from reference:
-//│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
-//│ ╙──      	                                                   ^
-//│ ╔══[ERROR] Type mismatch in binding of application:
-//│ ║  l.259: 	  succ wat
-//│ ║         	  ^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── from reference:
-//│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
-//│ ╙──      	                                                   ^
-//│ ╔══[ERROR] Type mismatch in binding of application:
-//│ ║  l.259: 	  succ wat
-//│ ║         	  ^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ wat: (anything -> nothing) -> nothing -> anything
+//│ wat: ('a -> ('a & 'b)) -> 'a -> 'b
 
 rec def wat n =
   succ (wat n)
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.313: 	rec def wat n =
-//│ ║         	            ^^^
-//│ ║  l.314: 	  succ (wat n)
-//│ ║         	^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.313: 	rec def wat n =
-//│ ║         	            ^^^
-//│ ║  l.314: 	  succ (wat n)
-//│ ║         	^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.313: 	rec def wat n =
-//│ ║         	            ^^^
-//│ ║  l.314: 	  succ (wat n)
-//│ ║         	^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── from reference:
-//│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
-//│ ╙──      	                                                   ^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.313: 	rec def wat n =
-//│ ║         	            ^^^
-//│ ║  l.314: 	  succ (wat n)
-//│ ║         	^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── from reference:
-//│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
-//│ ╙──      	                                                   ^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.313: 	rec def wat n =
-//│ ║         	            ^^^
-//│ ║  l.314: 	  succ (wat n)
-//│ ║         	^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ wat: anything -> (anything -> nothing) -> nothing -> anything
+//│ wat: anything -> ('a -> ('a & 'b)) -> 'a -> 'b
 //│    = [Function: wat]
 
 :e
 rec def wat n =
   succ wat n
 //│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.380: 	rec def wat n =
+//│ ║  l.197: 	rec def wat n =
 //│ ║         	            ^^^
-//│ ║  l.381: 	  succ wat n
+//│ ║  l.198: 	  succ wat n
 //│ ║         	^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -391,9 +208,9 @@ rec def wat n =
 //│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
 //│ ╙──      	                        ^^
 //│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.380: 	rec def wat n =
+//│ ║  l.197: 	rec def wat n =
 //│ ║         	            ^^^
-//│ ║  l.381: 	  succ wat n
+//│ ║  l.198: 	  succ wat n
 //│ ║         	^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -402,9 +219,9 @@ rec def wat n =
 //│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
 //│ ╙──      	                        ^^
 //│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.380: 	rec def wat n =
+//│ ║  l.197: 	rec def wat n =
 //│ ║         	            ^^^
-//│ ║  l.381: 	  succ wat n
+//│ ║  l.198: 	  succ wat n
 //│ ║         	^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -416,9 +233,9 @@ rec def wat n =
 //│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
 //│ ╙──      	                                                   ^
 //│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.380: 	rec def wat n =
+//│ ║  l.197: 	rec def wat n =
 //│ ║         	            ^^^
-//│ ║  l.381: 	  succ wat n
+//│ ║  l.198: 	  succ wat n
 //│ ║         	^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -430,9 +247,9 @@ rec def wat n =
 //│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
 //│ ╙──      	                                                   ^
 //│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.380: 	rec def wat n =
+//│ ║  l.197: 	rec def wat n =
 //│ ║         	            ^^^
-//│ ║  l.381: 	  succ wat n
+//│ ║  l.198: 	  succ wat n
 //│ ║         	^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -456,68 +273,7 @@ rec def nani =
 
 rec def wat_2 n =
   succ (wat_2 n)
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.457: 	rec def wat_2 n =
-//│ ║         	              ^^^
-//│ ║  l.458: 	  succ (wat_2 n)
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.457: 	rec def wat_2 n =
-//│ ║         	              ^^^
-//│ ║  l.458: 	  succ (wat_2 n)
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.457: 	rec def wat_2 n =
-//│ ║         	              ^^^
-//│ ║  l.458: 	  succ (wat_2 n)
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── from reference:
-//│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
-//│ ╙──      	                                                   ^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.457: 	rec def wat_2 n =
-//│ ║         	              ^^^
-//│ ║  l.458: 	  succ (wat_2 n)
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── from reference:
-//│ ║  l.46: 	def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
-//│ ╙──      	                                                   ^
-//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
-//│ ║  l.457: 	rec def wat_2 n =
-//│ ║         	              ^^^
-//│ ║  l.458: 	  succ (wat_2 n)
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
-//│ wat_2: anything -> (anything -> nothing) -> nothing -> anything
+//│ wat_2: anything -> ('a -> ('a & 'b)) -> 'a -> 'b
 //│      = [Function: wat_2]
 
 def to_church_1_repro n =
@@ -583,18 +339,9 @@ rec def to_church_5 n =
 //│            = [Function: to_church_5]
 
 to_church_ty = to_church_1
-//│ int -> (anything -> nothing) -> nothing -> anything
+//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
-//│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.585: 	to_church_ty = to_church_1
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `'a`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
 //│             = [Function: to_church_1]
 
 to_church_ty = to_church_1_t
@@ -635,7 +382,7 @@ to_church_ty = to_church_4
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.633: 	to_church_ty = to_church_4
+//│ ║  l.380: 	to_church_ty = to_church_4
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `('a -> 'a) -> 'a -> 'a` does not match type `'a0`
 //│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -686,15 +433,6 @@ def to_church_ty n =
 // let tc n = (to_church n : Int);;
 
 def tc n = to_church_1 n : ChurchInt
-//│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.688: 	def tc n = to_church_1 n : ChurchInt
-//│ ║         	           ^^^^^^^^^^^^^
-//│ ╟── type `anything` does not match type `'a`
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                        ^^
-//│ ╟── Note: constraint arises from quantified type variable:
-//│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ╙──      	                        ^^
 //│ tc: int -> ChurchInt
 //│   = [Function: tc]
 
@@ -773,7 +511,7 @@ def succ (n: ChurchInt) = fun f -> fun x -> f (n f x)
 def succ' n = fun f -> fun x -> f (n f x)
 //│ succ_ty: ChurchInt -> ChurchInt
 //│        = <missing implementation>
-//│ succ: ChurchInt -> (forall 'b. 'b -> (forall 'c 'a. ('a -> 'c
+//│ succ: ChurchInt -> (forall 'b. 'b -> (forall 'a 'c. ('a -> 'c
 //│   where
 //│     'b <: 'a -> 'a & 'a -> 'c)))
 //│     = [Function: succ1]
@@ -803,7 +541,7 @@ succ_ty = succ'
 //│   <:  succ_ty:
 //│ ChurchInt -> ChurchInt
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.798: 	succ_ty = succ'
+//│ ║  l.536: 	succ_ty = succ'
 //│ ║         	^^^^^^^^^^^^^^^
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.29: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -824,18 +562,18 @@ succ_ty = succ'
 :DontDistributeForalls
 
 succ'
-//│ res: 'a -> (forall 'b. 'b -> (forall 'c 'd 'e. ('c -> 'e
+//│ res: 'a -> (forall 'b. 'b -> (forall 'c 'd 'e. ('e -> 'd
 //│   where
-//│     'a <: 'b -> 'c -> 'd
-//│     'b <: 'd -> 'e)))
+//│     'b <: 'c -> 'd
+//│     'a <: 'b -> 'e -> 'c)))
 //│    = [Function: succ$1]
 
 // :e // * Error delayed by inconsistent constrained types
 succ' {}
 //│ res: 'a -> (forall 'b 'c 'd. ('b -> 'd
 //│   where
-//│     anything <: 'a -> 'b -> 'c
-//│     'a <: 'c -> 'd))
+//│     'a <: 'c -> 'd
+//│     anything <: 'a -> 'b -> 'c))
 //│    = [Function (anonymous)]
 
 // :e // * Error delayed by inconsistent constrained types
@@ -848,13 +586,13 @@ succ' {} {}
 :e
 succ' {} {} {}
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.849: 	succ' {} {} {}
+//│ ║  l.587: 	succ' {} {} {}
 //│ ║         	^^^^^^^^^^^^^^
 //│ ╟── record literal of type `anything` is not a function
-//│ ║  l.849: 	succ' {} {} {}
+//│ ║  l.587: 	succ' {} {} {}
 //│ ║         	      ^^
 //│ ╟── Note: constraint arises from application:
-//│ ║  l.773: 	def succ' n = fun f -> fun x -> f (n f x)
+//│ ║  l.511: 	def succ' n = fun f -> fun x -> f (n f x)
 //│ ╙──       	                                   ^^^
 //│ res: error
 //│ Runtime error:
