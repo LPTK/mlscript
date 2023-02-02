@@ -78,9 +78,9 @@ rec def evalOpt x = case x of {
 //│   where
 //│     'a <: Lit & {v: int} | (Neg with {sub: 'a}) | (Plus with {lhs: 'a, rhs: 'a}) | Var
 //│        = [Function: evalOpt]
-//│ constrain calls  : 489
-//│ annoying  calls  : 105
-//│ subtyping calls  : 4722
+//│ constrain calls  : 463
+//│ annoying  calls  : 123
+//│ subtyping calls  : 4304
 
 :stats
 evalOpt (Plus{lhs = Lit{v=2}; rhs = Lit{v=3}})

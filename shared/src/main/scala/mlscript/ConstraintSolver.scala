@@ -863,6 +863,13 @@ class ConstraintSolver extends NormalForms { self: Typer =>
             println(s"DISTRIB-L'  ~>  $newLhs")
             rec(newLhs, rhs, true)
             
+          case (_, ComposedType(true, l, r)) =>
+            goToWork(lhs, rhs)
+          case (ComposedType(false, l, r), _) =>
+            goToWork(lhs, rhs)
+          case (_: NegType | _: Without, _) | (_, _: NegType | _: Without) =>
+            goToWork(lhs, rhs)
+            
           // case (poly: PolymorphicType, _) if poly.body.level <= poly.polymLevel => rec(poly.body, rhs, true)
           case (poly: PolymorphicType, _) =>
             // TODO Here it might actually be better to try and put poly into a TV if the RHS contains one
@@ -890,14 +897,8 @@ class ConstraintSolver extends NormalForms { self: Typer =>
             }()
             rec(bod, rhs, true)
           case (_, ConstrainedType(cs, bod)) => ??? // TODO?
-          case (_, ComposedType(true, l, r)) =>
-            goToWork(lhs, rhs)
-          case (ComposedType(false, l, r), _) =>
-            goToWork(lhs, rhs)
           case (ov: Overload, _) =>
             rec(ov.approximatePos, rhs, true) // TODO remove approx. with ambiguous constraints
-          case (_: NegType | _: Without, _) | (_, _: NegType | _: Without) =>
-            goToWork(lhs, rhs)
           case _ => reportError()
       }}
     }}()

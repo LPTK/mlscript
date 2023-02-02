@@ -223,9 +223,9 @@ fun showList(xs) =
 //│   })());
 //│ };
 //│ // End of generated code
-//│ showList: 'tail -> string
+//│ showList: (Cons & 'a | Nil) -> string
 //│   where
-//│     'tail <: Cons & {tail: 'tail} | Nil
+//│     'a <: {head: anything, tail: Cons & 'a | Nil}
 //│         = [Function: showList]
 
 let zeroToThree = Cons(0, Cons(1, Cons(2, Cons(3, Nil()))))
@@ -249,11 +249,11 @@ fun mapPartition(f, xs) =
       let r = res.snd
       Left(v)  then Pair(Cons(v, l), r)
       Right(v) then Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), 'tail,) -> (Pair & {fst: 'fst, snd: 'tail0})
+//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & 'a | Nil,) -> (Pair & {fst: 'fst, snd: 'tail})
 //│   where
-//│     'tail0 :> Cons & {head: 'rightValue, tail: 'tail0} | Nil
+//│     'tail :> Cons & {head: 'rightValue, tail: 'tail} | Nil
 //│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
-//│     'tail <: Cons & {head: 'head, tail: 'tail} | Nil
+//│     'a <: {head: 'head, tail: Cons & 'a | Nil}
 //│             = [Function: mapPartition]
 
 // FIXME: Something wrong with code generation.
