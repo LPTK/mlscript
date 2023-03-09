@@ -14,11 +14,11 @@ class Fun(lhs: Type, rhs: Type)
 //│ class Fun(lhs: Type, rhs: Type)
 
 // type Exp = Add | Lit | App | Lam | Var
-class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+class Exp[M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
 class Lit(n: int)
-class Add[out M](lhs: Exp[M], rhs: Exp[M])
-class App[out M](fn: Exp[M], arg: Exp[M])
-class Lam[out M](param: string, paramTy: Type, body: Exp[M])
+class Add[M](lhs: Exp[M], rhs: Exp[M])
+class App[M](fn: Exp[M], arg: Exp[M])
+class Lam[M](param: string, paramTy: Type, body: Exp[M])
 class Var(name: string)
 //│ class Exp[M](base: Add[M] | App[M] | Lam[M] | Lit | Var, md: M)
 //│ class Lit(n: int)
@@ -43,50 +43,209 @@ mixin Base {
 
 
 :stats
+:ns
 mixin TypeCheck {
+  // fun transform(x: Exp['m], ctx) =
   fun transform(x, ctx) =
     let x_t = super.transform(x, ctx)
     if x_t.base is
-      Lit(n) then Exp(x_t.base, x_t.md with { ty: Nat })
-      Var(nme) then Exp(x_t.base, x_t.md with { ty: ctx.env.get(nme) })
+      Lit(n) then Exp(x_t.base, { ty: Nat, rest: x_t.md })
+      Var(nme) then Exp(x_t.base, { ty: ctx.env.get(nme), rest: x_t.md })
       Add(l, r) then
         let l_t = this.transform(l, ctx)
         let r_t = this.transform(r, ctx)
-        if not (l_t.md.ty is Nat and r_t.md.ty is Nat) then error
-        else Exp(Add(l_t, r_t), x_t.md with { ty: Nat })
+        // if not (l_t.md.ty is Nat and r_t.md.ty is Nat) then error // FIXME
+        if false then error
+        else Exp(Add(l_t, r_t), { ty: Nat, rest: x_t.md })
       Lam(p, pt, b) then
-        let b_t = this.transform(b, ctx with { env: ctx.env.extend(p, pt) })
-        Exp(Lam(p, pt, b_t), x_t.md with { ty: b_t.md.ty })
+        let b_t = this.transform(b, ctx.env.extend(p, pt))
+        Exp(Lam(p, pt, b_t), { ty: Fun(pt, b_t.md.ty), rest: x_t.md })
       App(f, a) then
         let f_t = this.transform(f, ctx)
         let a_t = this.transform(a, ctx)
         // if f_t.ty is Fun(l_ty, r_ty) then // Note: interesting error, to look at
         if f_t.md.ty is Fun(l_ty, r_ty) then
           // TODO check a_ty
-          Exp(App(f_t, a_t), x_t.md with { ty: r_ty })
+          Exp(App(f_t, a_t), { ty: r_ty, rest: x_t.md })
         else error
 }
 //│ mixin TypeCheck() {
-//│   super: {transform: ('a, 'b,) -> {base: Add[nothing] | Add[nothing] & App['M] | Add[nothing] & Lam['M] | Add[nothing] & App['M] & Lam['M] | App[nothing] | App[nothing] & Lam['M] | Lam[nothing] | Lit | Var, md: 'md}}
-//│   this: {transform: (Exp[nothing], 'b,) -> (Exp['M] & {md: {ty: anything}}) & (Exp[nothing], 'b\env & {env: 'c},) -> (Exp['M] & {md: {ty: 'ty}})}
-//│   fun transform: ('a, {env: {extend: (string, Type,) -> 'c, get: string -> 'd}} & 'b,) -> Exp['M | 'md\ty & {ty: Nat | 'ty | Type | 'd}]
+//│   super: 'super
+//│   this: 'this
+//│   fun transform: ('a, 'b,) -> ('c | 'd | 'e | 'f | 'g)
 //│ }
-//│ constrain calls  : 453
-//│ annoying  calls  : 56
-//│ subtyping calls  : 15094
+//│ where
+//│   'g :> Exp & {Exp#M = 'M}
+//│   'M :> {ty: 'rhs, rest: 'md} | 'M0 | 'M1
+//│      <: 'M2
+//│   'M2 :> {ty: 'rhs, rest: 'md} | 'M1 | 'M0
+//│       <: 'M & 'M3 & 'M4
+//│   'md :> 'md0
+//│       <: 'md1 & 'md2
+//│   'rhs :> Type
+//│        <: 'rhs0 & 'rhs1
+//│   'f :> Exp & {Exp#M = 'M5}
+//│   'M5 :> {ty: 'h, rest: 'md3} | 'M6
+//│       <: 'M7
+//│   'M7 :> {ty: 'h, rest: 'md3} | 'M6
+//│       <: 'M5 & 'M8
+//│   'md3 :> 'md4
+//│        <: 'md5
+//│   'h :> Fun
+//│      <: 'i
+//│   'e :> Exp & {Exp#M = 'M9}
+//│   'M9 :> {ty: Nat, rest: 'md6} | 'M10 | 'M11
+//│       <: 'M12
+//│   'M12 :> {ty: Nat, rest: 'md6} | 'M11 | 'M10
+//│        <: 'M9 & 'M13 & 'M14
+//│   'md6 :> 'md7
+//│        <: 'md8 & 'md9
+//│   'd :> Exp & {Exp#M = 'M15}
+//│   'M15 :> {ty: 'j, rest: 'md10} | 'M16
+//│        <: 'M17
+//│   'md10 :> 'md11
+//│         <: 'md12
+//│   'c :> Exp & {Exp#M = 'M18}
+//│   'M18 :> {ty: Nat, rest: 'md13} | 'M19
+//│        <: 'M20
+//│   'md13 :> 'md14
+//│         <: 'md15
+//│   'b <: 'k & 'l & {env: 'env} & 'm & 'n & {env: 'env0} & 'o
+//│   'env0 <: {get: 'get}
+//│   'get <: 'name -> 'j
+//│   'j <: 'p
+//│   'name :> string
+//│   'env <: {extend: 'extend}
+//│   'extend <: ('param, 'paramTy,) -> 'q
+//│   'q <: 'r
+//│   'paramTy := Type
+//│   'param := string
+//│   'a <: 's
+//│   'this <: {transform: 'transform} & {transform: 'transform0} & {transform: 'transform1} & {transform: 'transform2} & {transform: 'transform3}
+//│   'transform3 <: ('lhs, 'n,) -> 't
+//│   't <: Exp[in 'M10 out 'M14]
+//│   'lhs :> Exp['M21]
+//│   'M21 :> 'M22
+//│        <: 'M23
+//│   'transform2 <: ('rhs2, 'm,) -> 'u
+//│   'u <: Exp[in 'M11 out 'M13]
+//│   'M11 <: 'M14 & 'M13
+//│   'M14 :> {ty: Nat, rest: 'md8} | 'M10
+//│   'M10 <: 'M14 & 'M13
+//│   'M13 :> {ty: Nat, rest: 'md9} | 'M11 | 'M10
+//│   'md9 :> 'md7
+//│   'md8 :> 'md7
+//│   'rhs2 :> Exp['M24]
+//│   'M24 :> 'M25
+//│        <: 'M26
+//│   'transform1 <: ('body, 'r,) -> 'v
+//│   'v <: {md: 'md16} & Exp[in 'M6 out 'M8]
+//│   'M6 <: 'M8
+//│   'M8 :> {ty: 'i, rest: 'md5} | 'M6
+//│   'md5 :> 'md4
+//│   'i :> Fun
+//│   'md16 <: {ty: 'ty}
+//│   'ty <: Type
+//│   'body :> Exp['M27]
+//│   'M27 :> 'M28
+//│        <: 'M29
+//│   'transform0 <: ('fn, 'l,) -> 'w
+//│   'w <: Exp[in 'M0 out 'M4] & {md: 'md17}
+//│   'md17 <: {ty: 'ty0}
+//│   'ty0 <: Fun | 'x & ~Fun
+//│   'fn :> Exp['M30]
+//│   'M30 :> 'M31
+//│        <: 'M32
+//│   'transform <: ('arg, 'k,) -> 'y
+//│   'y <: Exp[in 'M1 out 'M3]
+//│   'M1 <: 'M4 & 'M3
+//│   'M4 :> {ty: 'rhs0, rest: 'md1} | 'M0
+//│   'M0 <: 'M4 & 'M3
+//│   'M3 :> {ty: 'rhs1, rest: 'md2} | 'M1 | 'M0
+//│   'md2 :> 'md0
+//│   'rhs1 :> Type
+//│   'md1 :> 'md0
+//│   'rhs0 :> Type
+//│   'arg :> Exp['M33]
+//│   'M33 :> 'M34
+//│        <: 'M35
+//│   'super <: {transform: 'transform4}
+//│   'transform4 <: ('s, 'o,) -> 'z
+//│   'z <: {md: 'md0} & {md: 'md4} & {md: 'md7} & {md: 'md11} & {base: 'base} & {md: 'md14} & {base: 'base0} & {base: 'base1}
+//│   'base1 <: Lit | (Var | (Add & {Add#M :> 'M36 <: 'M37} | (Lam & {Lam#M :> 'M38 <: 'M39} | App & {App#M :> 'M40 <: 'M41} & ~Lam) & ~Add) & ~Var) & ~Lit
+//│   'M41 <: 'M40 & 'M34 & 'M31
+//│   'M40 :> 'M35 | 'M32
+//│   'M35 <: 'M34 & 'M31
+//│   'M34 :> 'M32
+//│        <: 'M35
+//│   'M32 <: 'M35 & 'M31
+//│   'M31 <: 'M32
+//│   'M39 <: 'M38 & 'M28
+//│   'M38 :> 'M29
+//│   'M29 <: 'M28
+//│   'M28 <: 'M29
+//│   'M37 <: 'M36 & 'M25 & 'M22
+//│   'M36 :> 'M26 | 'M23
+//│   'M26 <: 'M25 & 'M22
+//│   'M25 :> 'M23
+//│        <: 'M26
+//│   'M23 <: 'M26 & 'M22
+//│   'M22 <: 'M23
+//│   'base0 <: Lit | Var | Add[in 'M19 out 'M20] | App[in 'M19 out 'M20] | Lam[in 'M19 out 'M20]
+//│   'M20 :> {ty: Nat, rest: 'md15} | 'M19
+//│   'md15 :> 'md14
+//│   'base <: Lit | Var | Add[in 'M16 out 'M17] | App[in 'M16 out 'M17] | Lam[in 'M16 out 'M17]
+//│   'M17 :> {ty: 'p, rest: 'md12} | 'M16
+//│   'md12 :> 'md11
+//│ constrain calls  : 433
+//│ annoying  calls  : 54
+//│ subtyping calls  : 1796
 
 // :d
 :stats
 :Fuel 300000
 module Test0 extends Base, TypeCheck
 //│ module Test0() {
-//│   fun transform: ({base: Add[nothing] | App[nothing] | Lam[nothing] | Lit | Var, md: 'md}, ({env: {extend: (string, Type,) -> 'a, get: string -> 'b}} | ~{env: 'a})\env & {env: {extend: (string, Type,) -> 'a, get: string -> 'b}},) -> Exp['md\ty & {ty: Nat | Type | 'b}]
+//│   fun transform: ({base: Add['M | 'M0] | Add['M0] & App['M] | Add['M0] & Lam['M] | App['M1] & Add['M] | App['M | 'M1] | App['M1] & Lam['M] | Lam['M2] & Add['M] | Lam['M2] & App['M] | Lam['M | 'M2] | Lit | Var, md: 'md}, 'a,) -> Exp['M3]
 //│ }
 //│ where
-//│   'md :> 'md\ty & {ty: Nat | Type | 'b}
-//│       <: ~{ty: Nat | Type | 'b}\ty
-//│ constrain calls  : 115323
-//│ annoying  calls  : 1174
-//│ subtyping calls  : 6864129
+//│   'a <: {env: {extend: (string, Type,) -> 'a, get: string -> Type}}
+//│   'M :> {rest: 'md, ty: Fun | Nat | Type}
+//│      <: 'M4 & 'M5 & 'md & {ty: Type}
+//│   'M4 <: {ty: Type} & 'M5 & 'md & 'M & 'M3
+//│   'M5 :> {rest: 'md, ty: Fun | Nat | Type}
+//│       <: 'M4 & 'M3 & 'M0 & 'M2 & 'md & 'M & 'M1
+//│   'M1 :> 'M | {rest: 'md, ty: Fun | Nat | Type}
+//│       <: 'M4
+//│   'M2 :> 'M5 | {rest: 'md, ty: Fun | Nat | Type}
+//│       <: 'M4
+//│   'M0 :> 'M5 | {rest: 'md, ty: Fun | Nat | Type}
+//│       <: 'M4
+//│   'M3 :> 'M5 | {rest: 'md, ty: Fun | Nat | Type}
+//│       <: 'M4
+//│   'md :> {rest: 'md, ty: Fun | Nat | Type}
+//│ constrain calls  : 71041
+//│ annoying  calls  : 583
+//│ subtyping calls  : 1635898
+
+
+Test0.transform(Exp(Lit(123), {}), {env: error})
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.104: 	Test0.transform(Exp(Lit(123), {}), {env: error})
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `anything` does not have field 'ty'
+//│ ╟── Note: constraint arises from field selection:
+//│ ║  l.62: 	        Exp(Lam(p, pt, b_t), { ty: Fun(pt, b_t.md.ty), rest: x_t.md })
+//│ ║        	                                           ^^^^^^^^^
+//│ ╟── from field selection:
+//│ ║  l.62: 	        Exp(Lam(p, pt, b_t), { ty: Fun(pt, b_t.md.ty), rest: x_t.md })
+//│ ╙──      	                                           ^^^^^^
+//│ Exp['M] | error
+//│   where
+//│     'M :> anything
+//│        <: {ty: Type}
+//│ res
+//│ Runtime error:
+//│   Error: unexpected runtime error
 
 
