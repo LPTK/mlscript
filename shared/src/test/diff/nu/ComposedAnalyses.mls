@@ -2,7 +2,10 @@
 :NewDefs
 
 
-// * A test to show 
+// * A test to show [TODO]
+
+
+// There are probably errors due to the current wrong usage of TypeBounds, leading to the `nothing`
 
 
 
@@ -14,11 +17,11 @@ class Fun(lhs: Type, rhs: Type)
 //│ class Fun(lhs: Type, rhs: Type)
 
 // type Exp = Add | Lit | App | Lam | Var
-class Exp[M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
 class Lit(n: int)
-class Add[M](lhs: Exp[M], rhs: Exp[M])
-class App[M](fn: Exp[M], arg: Exp[M])
-class Lam[M](param: string, paramTy: Type, body: Exp[M])
+class Add[out M](lhs: Exp[M], rhs: Exp[M])
+class App[out M](fn: Exp[M], arg: Exp[M])
+class Lam[out M](param: string, paramTy: Type, body: Exp[M])
 class Var(name: string)
 //│ class Exp[M](base: Add[M] | App[M] | Lam[M] | Lit | Var, md: M)
 //│ class Lit(n: int)
@@ -126,7 +129,7 @@ mixin TypeCheck {
 //│   't <: Exp[in 'M10 out 'M14]
 //│   'lhs :> Exp['M21]
 //│   'M21 :> 'M22
-//│        <: 'M23
+//│        <: nothing
 //│   'transform2 <: ('rhs2, 'm,) -> 'u
 //│   'u <: Exp[in 'M11 out 'M13]
 //│   'M11 <: 'M14 & 'M13
@@ -135,9 +138,9 @@ mixin TypeCheck {
 //│   'M13 :> {ty: Nat, rest: 'md9} | 'M11 | 'M10
 //│   'md9 :> 'md7
 //│   'md8 :> 'md7
-//│   'rhs2 :> Exp['M24]
-//│   'M24 :> 'M25
-//│        <: 'M26
+//│   'rhs2 :> Exp['M23]
+//│   'M23 :> 'M24
+//│        <: nothing
 //│   'transform1 <: ('body, 'r,) -> 'v
 //│   'v <: {md: 'md16} & Exp[in 'M6 out 'M8]
 //│   'M6 <: 'M8
@@ -146,16 +149,16 @@ mixin TypeCheck {
 //│   'i :> Fun
 //│   'md16 <: {ty: 'ty}
 //│   'ty <: Type
-//│   'body :> Exp['M27]
-//│   'M27 :> 'M28
-//│        <: 'M29
+//│   'body :> Exp['M25]
+//│   'M25 :> 'M26
+//│        <: nothing
 //│   'transform0 <: ('fn, 'l,) -> 'w
 //│   'w <: Exp[in 'M0 out 'M4] & {md: 'md17}
 //│   'md17 <: {ty: 'ty0}
 //│   'ty0 <: Fun | 'x & ~Fun
-//│   'fn :> Exp['M30]
-//│   'M30 :> 'M31
-//│        <: 'M32
+//│   'fn :> Exp['M27]
+//│   'M27 :> 'M28
+//│        <: nothing
 //│   'transform <: ('arg, 'k,) -> 'y
 //│   'y <: Exp[in 'M1 out 'M3]
 //│   'M1 <: 'M4 & 'M3
@@ -166,84 +169,142 @@ mixin TypeCheck {
 //│   'rhs1 :> Type
 //│   'md1 :> 'md0
 //│   'rhs0 :> Type
-//│   'arg :> Exp['M33]
-//│   'M33 :> 'M34
-//│        <: 'M35
+//│   'arg :> Exp['M29]
+//│   'M29 :> 'M30
+//│        <: nothing
 //│   'super <: {transform: 'transform4}
 //│   'transform4 <: ('s, 'o,) -> 'z
 //│   'z <: {md: 'md0} & {md: 'md4} & {md: 'md7} & {md: 'md11} & {base: 'base} & {md: 'md14} & {base: 'base0} & {base: 'base1}
-//│   'base1 <: Lit | (Var | (Add & {Add#M :> 'M36 <: 'M37} | (Lam & {Lam#M :> 'M38 <: 'M39} | App & {App#M :> 'M40 <: 'M41} & ~Lam) & ~Add) & ~Var) & ~Lit
-//│   'M41 <: 'M40 & 'M34 & 'M31
-//│   'M40 :> 'M35 | 'M32
-//│   'M35 <: 'M34 & 'M31
-//│   'M34 :> 'M32
-//│        <: 'M35
-//│   'M32 <: 'M35 & 'M31
-//│   'M31 <: 'M32
-//│   'M39 <: 'M38 & 'M28
-//│   'M38 :> 'M29
-//│   'M29 <: 'M28
-//│   'M28 <: 'M29
-//│   'M37 <: 'M36 & 'M25 & 'M22
-//│   'M36 :> 'M26 | 'M23
-//│   'M26 <: 'M25 & 'M22
-//│   'M25 :> 'M23
-//│        <: 'M26
-//│   'M23 <: 'M26 & 'M22
-//│   'M22 <: 'M23
+//│   'base1 <: Lit | (Var | (Add & {Add#M <: 'M31} | (Lam & {Lam#M <: 'M32} | App & {App#M <: 'M33} & ~Lam) & ~Add) & ~Var) & ~Lit
+//│   'M33 <: 'M30 & 'M28
+//│   'M28 <: nothing
+//│   'M30 <: nothing
+//│   'M32 <: 'M26
+//│   'M26 <: nothing
+//│   'M31 <: 'M24 & 'M22
+//│   'M22 <: nothing
+//│   'M24 <: nothing
 //│   'base0 <: Lit | Var | Add[in 'M19 out 'M20] | App[in 'M19 out 'M20] | Lam[in 'M19 out 'M20]
 //│   'M20 :> {ty: Nat, rest: 'md15} | 'M19
 //│   'md15 :> 'md14
 //│   'base <: Lit | Var | Add[in 'M16 out 'M17] | App[in 'M16 out 'M17] | Lam[in 'M16 out 'M17]
 //│   'M17 :> {ty: 'p, rest: 'md12} | 'M16
 //│   'md12 :> 'md11
-//│ constrain calls  : 433
+//│ constrain calls  : 431
 //│ annoying  calls  : 54
-//│ subtyping calls  : 1796
+//│ subtyping calls  : 1794
 
 // :d
 :stats
 :Fuel 300000
 module Test0 extends Base, TypeCheck
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: ?a}` does not match type `nothing`
+//│ ║  l.56: 	      Var(nme) then Exp(x_t.base, { ty: ctx.env.get(nme), rest: x_t.md })
+//│ ║        	                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Note: type parameter M is defined at:
+//│ ║  l.22: 	class Add[out M](lhs: Exp[M], rhs: Exp[M])
+//│ ╙──      	              ^
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: Nat}` does not match type `nothing`
+//│ ║  l.55: 	      Lit(n) then Exp(x_t.base, { ty: Nat, rest: x_t.md })
+//│ ║        	                                      ^^^^^^^^^^^^^^^^^
+//│ ╟── Note: type parameter M is defined at:
+//│ ║  l.22: 	class Add[out M](lhs: Exp[M], rhs: Exp[M])
+//│ ╙──      	              ^
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: Nat}` does not match type `nothing`
+//│ ║  l.55: 	      Lit(n) then Exp(x_t.base, { ty: Nat, rest: x_t.md })
+//│ ║        	                                      ^^^^^^^^^^^^^^^^^
+//│ ╟── Note: type parameter M is defined at:
+//│ ║  l.20: 	class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+//│ ╙──      	              ^
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: ?rhs}` does not match type `nothing`
+//│ ║  l.72: 	          Exp(App(f_t, a_t), { ty: r_ty, rest: x_t.md })
+//│ ║        	                                   ^^^^^^^^^^^^^^^^^^
+//│ ╟── Note: type parameter M is defined at:
+//│ ║  l.20: 	class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+//│ ╙──      	              ^
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: Nat}` does not match type `nothing`
+//│ ║  l.62: 	        else Exp(Add(l_t, r_t), { ty: Nat, rest: x_t.md })
+//│ ╙──      	                                      ^^^^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: ?a}` does not match type `nothing`
+//│ ║  l.65: 	        Exp(Lam(p, pt, b_t), { ty: Fun(pt, b_t.md.ty), rest: x_t.md })
+//│ ╙──      	                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: ?rhs}` does not match type `nothing`
+//│ ║  l.72: 	          Exp(App(f_t, a_t), { ty: r_ty, rest: x_t.md })
+//│ ║        	                                   ^^^^^^^^^^^^^^^^^^
+//│ ╟── Note: type parameter M is defined at:
+//│ ║  l.20: 	class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+//│ ╙──      	              ^
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: ?a}` does not match type `nothing`
+//│ ║  l.65: 	        Exp(Lam(p, pt, b_t), { ty: Fun(pt, b_t.md.ty), rest: x_t.md })
+//│ ║        	                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Note: type parameter M is defined at:
+//│ ║  l.20: 	class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+//│ ╙──      	              ^
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: Nat}` does not match type `nothing`
+//│ ║  l.62: 	        else Exp(Add(l_t, r_t), { ty: Nat, rest: x_t.md })
+//│ ║        	                                      ^^^^^^^^^^^^^^^^^
+//│ ╟── Note: type parameter M is defined at:
+//│ ║  l.20: 	class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+//│ ╙──      	              ^
+//│ ╔══[ERROR] Type mismatch in type declaration:
+//│ ║  l.210: 	module Test0 extends Base, TypeCheck
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── record literal of type `{rest: ?md, ty: Nat}` does not match type `nothing`
+//│ ║  l.62: 	        else Exp(Add(l_t, r_t), { ty: Nat, rest: x_t.md })
+//│ ║        	                                      ^^^^^^^^^^^^^^^^^
+//│ ╟── Note: type parameter M is defined at:
+//│ ║  l.20: 	class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+//│ ╙──      	              ^
 //│ module Test0() {
-//│   fun transform: ({base: Add['M | 'M0] | Add['M0] & App['M] | Add['M0] & Lam['M] | App['M1] & Add['M] | App['M | 'M1] | App['M1] & Lam['M] | Lam['M2] & Add['M] | Lam['M2] & App['M] | Lam['M | 'M2] | Lit | Var, md: 'md}, 'a,) -> Exp['M3]
+//│   fun transform: ({base: Add[nothing] | App[nothing] | Lam[nothing] | Lit | Var, md: 'md}, 'a,) -> Exp[{rest: 'md, ty: Fun | Nat | Type}]
 //│ }
 //│ where
 //│   'a <: {env: {extend: (string, Type,) -> 'a, get: string -> Type}}
-//│   'M :> {rest: 'md, ty: Fun | Nat | Type}
-//│      <: 'M4 & 'M5 & 'md & {ty: Type}
-//│   'M4 <: {ty: Type} & 'M5 & 'md & 'M & 'M3
-//│   'M5 :> {rest: 'md, ty: Fun | Nat | Type}
-//│       <: 'M4 & 'M3 & 'M0 & 'M2 & 'md & 'M & 'M1
-//│   'M1 :> 'M | {rest: 'md, ty: Fun | Nat | Type}
-//│       <: 'M4
-//│   'M2 :> 'M5 | {rest: 'md, ty: Fun | Nat | Type}
-//│       <: 'M4
-//│   'M0 :> 'M5 | {rest: 'md, ty: Fun | Nat | Type}
-//│       <: 'M4
-//│   'M3 :> 'M5 | {rest: 'md, ty: Fun | Nat | Type}
-//│       <: 'M4
 //│   'md :> {rest: 'md, ty: Fun | Nat | Type}
-//│ constrain calls  : 71041
-//│ annoying  calls  : 583
-//│ subtyping calls  : 1635898
+//│ constrain calls  : 12058
+//│ annoying  calls  : 317
+//│ subtyping calls  : 199079
 
 
 Test0.transform(Exp(Lit(123), {}), {env: error})
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.104: 	Test0.transform(Exp(Lit(123), {}), {env: error})
+//│ ║  l.235: 	Test0.transform(Exp(Lit(123), {}), {env: error})
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── record literal of type `anything` does not have field 'ty'
 //│ ╟── Note: constraint arises from field selection:
-//│ ║  l.62: 	        Exp(Lam(p, pt, b_t), { ty: Fun(pt, b_t.md.ty), rest: x_t.md })
+//│ ║  l.65: 	        Exp(Lam(p, pt, b_t), { ty: Fun(pt, b_t.md.ty), rest: x_t.md })
 //│ ║        	                                           ^^^^^^^^^
 //│ ╟── from field selection:
-//│ ║  l.62: 	        Exp(Lam(p, pt, b_t), { ty: Fun(pt, b_t.md.ty), rest: x_t.md })
+//│ ║  l.65: 	        Exp(Lam(p, pt, b_t), { ty: Fun(pt, b_t.md.ty), rest: x_t.md })
 //│ ╙──      	                                           ^^^^^^
-//│ Exp['M] | error
-//│   where
-//│     'M :> anything
-//│        <: {ty: Type}
+//│ error
 //│ res
 //│ Runtime error:
 //│   Error: unexpected runtime error
