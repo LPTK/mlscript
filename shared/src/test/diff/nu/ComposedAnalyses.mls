@@ -29,6 +29,7 @@ class Var(name: string)
 
 
 
+:stats
 mixin Base {
   // fun transform(x, ctx) = { res: x }
   fun transform(x, ctx) = x
@@ -36,8 +37,12 @@ mixin Base {
 //│ mixin Base() {
 //│   fun transform: ('a, anything,) -> 'a
 //│ }
+//│ constrain calls  : 1
+//│ annoying  calls  : 0
+//│ subtyping calls  : 3
 
 
+:stats
 mixin TypeCheck {
   fun transform(x, ctx) =
     let x_t = super.transform(x, ctx)
@@ -47,36 +52,41 @@ mixin TypeCheck {
       Add(l, r) then
         let l_t = this.transform(l, ctx)
         let r_t = this.transform(r, ctx)
-        if not (l_t.t is Nat and r_t.t is Nat) then error
+        if not (l_t.md.ty is Nat and r_t.md.ty is Nat) then error
         else Exp(Add(l_t, r_t), x_t.md with { ty: Nat })
       Lam(p, pt, b) then
-        let b_t = this.transform(b, ctx with { vars: ctx.vars.extend(p, pt) })
-        Exp(Lam(p, pt, b_t), x_t.md with { ty: b_t.ty })
+        let b_t = this.transform(b, ctx with { env: ctx.env.extend(p, pt) })
+        Exp(Lam(p, pt, b_t), x_t.md with { ty: b_t.md.ty })
       App(f, a) then
         let f_t = this.transform(f, ctx)
         let a_t = this.transform(a, ctx)
         // if f_t.ty is Fun(l_ty, r_ty) then // Note: interesting error, to look at
-        if f_t.ty is Fun(l_ty, r_ty) then
+        if f_t.md.ty is Fun(l_ty, r_ty) then
           // TODO check a_ty
           Exp(App(f_t, a_t), x_t.md with { ty: r_ty })
         else error
 }
 //│ mixin TypeCheck() {
 //│   super: {transform: ('a, 'b,) -> {base: Add[nothing] | Add[nothing] & App['M] | Add[nothing] & Lam['M] | Add[nothing] & App['M] & Lam['M] | App[nothing] | App[nothing] & Lam['M] | Lam[nothing] | Lit | Var, md: 'md}}
-//│   this: {transform: (Exp[nothing], 'b,) -> (Exp['M] & {t: anything, ty: anything}) & (Exp[nothing], 'b\vars & {vars: 'c},) -> (Exp['M] & {ty: 'ty})}
-//│   fun transform: ('a, {env: {get: string -> 'd}, vars: {extend: (string, Type,) -> 'c}} & 'b,) -> Exp['M | 'md\ty & {ty: Nat | 'ty | Type | 'd}]
+//│   this: {transform: (Exp[nothing], 'b,) -> (Exp['M] & {md: {ty: anything}}) & (Exp[nothing], 'b\env & {env: 'c},) -> (Exp['M] & {md: {ty: 'ty}})}
+//│   fun transform: ('a, {env: {extend: (string, Type,) -> 'c, get: string -> 'd}} & 'b,) -> Exp['M | 'md\ty & {ty: Nat | 'ty | Type | 'd}]
 //│ }
+//│ constrain calls  : 453
+//│ annoying  calls  : 56
+//│ subtyping calls  : 15094
 
+// :d
+:stats
+:Fuel 300000
 module Test0 extends Base, TypeCheck
-//│ ╔══[ERROR] Subtyping constraint of the form `Test0 & {transform: (?a, ?b,) -> (?c | ?d | ?e | ?f | ?g)} <: ?test0` took too many steps and ran out of fuel (5000)
-//│ ║  l.70: 	module Test0 extends Base, TypeCheck
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
 //│ module Test0() {
-//│   fun transform: ({base: Add[nothing] | App[nothing] | Lam[nothing] | Lit | Var, md: 'md}, {env: {get: string -> 'a}, vars: {extend: (string, Type,) -> anything}},) -> Exp['md\ty & {ty: Nat | Type} | 'md\ty & {ty: Nat | 'a}]
+//│   fun transform: ({base: Add[nothing] | App[nothing] | Lam[nothing] | Lit | Var, md: 'md}, ({env: {extend: (string, Type,) -> 'a, get: string -> 'b}} | ~{env: 'a})\env & {env: {extend: (string, Type,) -> 'a, get: string -> 'b}},) -> Exp['md\ty & {ty: Nat | Type | 'b}]
 //│ }
 //│ where
-//│   'md :> 'md\ty & {ty: Nat | Type} | 'md\ty & {ty: Nat | 'a}
-//│       <: ~{ty: Nat | Type | 'a}\ty
+//│   'md :> 'md\ty & {ty: Nat | Type | 'b}
+//│       <: ~{ty: Nat | Type | 'b}\ty
+//│ constrain calls  : 115323
+//│ annoying  calls  : 1174
+//│ subtyping calls  : 6864129
 
 

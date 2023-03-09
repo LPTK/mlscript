@@ -1,0 +1,36 @@
+:NewParser
+:NewDefs
+
+
+
+// class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+class Lit(n: int)
+class Add[out M](lhs: Lit | Add[M], md: M)
+//│ class Lit(n: int)
+//│ class Add[M](lhs: Add[M] | Lit, md: M)
+
+:stats
+fun transform(x) =
+  if x is
+    Lit(n) then x
+    Add(l, md) then
+      let l_t = transform(l)
+      Add(l_t, md with { ty: 1 })
+//│ fun transform: (Add['md] | Lit) -> (Add['md\ty & {ty: 1}] | Lit)
+//│ constrain calls  : 60
+//│ annoying  calls  : 11
+//│ subtyping calls  : 346
+
+:stats
+fun transform(x) =
+  if x is
+    Lit(n) then x
+    Add(l, md) then
+      let l_t = transform(l)
+      Add(l_t, x.md with { ty: 1 })
+//│ fun transform: (Add['md] | Lit) -> (Add['md\ty & {ty: 1}] | Lit)
+//│ constrain calls  : 66
+//│ annoying  calls  : 15
+//│ subtyping calls  : 366
+
+

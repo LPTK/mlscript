@@ -16,7 +16,7 @@ class ConstraintSolver extends NormalForms { self: Typer =>
   def depthLimit: Int =
     // 150
     // 200
-    250
+    550
   
   type ExtrCtx = MutMap[TV, Buffer[(Bool, ST)]] // tv, is-lower, bound
   
