@@ -1,0 +1,82 @@
+:NewParser
+:NewDefs
+
+
+// * A test to show 
+
+
+
+type Type = Nat | Fun
+module Nat
+class Fun(lhs: Type, rhs: Type)
+//│ type Type = Fun | Nat
+//│ module Nat()
+//│ class Fun(lhs: Type, rhs: Type)
+
+// type Exp = Add | Lit | App | Lam | Var
+class Exp[out M](base: Lit | Var | Add[M] | App[M] | Lam[M], md: M)
+class Lit(n: int)
+class Add[out M](lhs: Exp[M], rhs: Exp[M])
+class App[out M](fn: Exp[M], arg: Exp[M])
+class Lam[out M](param: string, paramTy: Type, body: Exp[M])
+class Var(name: string)
+//│ class Exp[M](base: Add[M] | App[M] | Lam[M] | Lit | Var, md: M)
+//│ class Lit(n: int)
+//│ class Add[M](lhs: Exp[M], rhs: Exp[M])
+//│ class App[M](fn: Exp[M], arg: Exp[M])
+//│ class Lam[M](param: string, paramTy: Type, body: Exp[M])
+//│ class Var(name: string)
+
+
+
+mixin Base {
+  // fun transform(x, ctx) = { res: x }
+  fun transform(x, ctx) = x
+}
+//│ mixin Base() {
+//│   fun transform: ('a, anything,) -> 'a
+//│ }
+
+
+mixin TypeCheck {
+  fun transform(x, ctx) =
+    let x_t = super.transform(x, ctx)
+    if x_t.base is
+      Lit(n) then Exp(x_t.base, x_t.md with { ty: Nat })
+      Var(nme) then Exp(x_t.base, x_t.md with { ty: ctx.env.get(nme) })
+      Add(l, r) then
+        let l_t = this.transform(l, ctx)
+        let r_t = this.transform(r, ctx)
+        if not (l_t.t is Nat and r_t.t is Nat) then error
+        else Exp(Add(l_t, r_t), x_t.md with { ty: Nat })
+      Lam(p, pt, b) then
+        let b_t = this.transform(b, ctx with { vars: ctx.vars.extend(p, pt) })
+        Exp(Lam(p, pt, b_t), x_t.md with { ty: b_t.ty })
+      App(f, a) then
+        let f_t = this.transform(f, ctx)
+        let a_t = this.transform(a, ctx)
+        // if f_t.ty is Fun(l_ty, r_ty) then // Note: interesting error, to look at
+        if f_t.ty is Fun(l_ty, r_ty) then
+          // TODO check a_ty
+          Exp(App(f_t, a_t), x_t.md with { ty: r_ty })
+        else error
+}
+//│ mixin TypeCheck() {
+//│   super: {transform: ('a, 'b,) -> {base: Add[nothing] | Add[nothing] & App['M] | Add[nothing] & Lam['M] | Add[nothing] & App['M] & Lam['M] | App[nothing] | App[nothing] & Lam['M] | Lam[nothing] | Lit | Var, md: 'md}}
+//│   this: {transform: (Exp[nothing], 'b,) -> (Exp['M] & {t: anything, ty: anything}) & (Exp[nothing], 'b\vars & {vars: 'c},) -> (Exp['M] & {ty: 'ty})}
+//│   fun transform: ('a, {env: {get: string -> 'd}, vars: {extend: (string, Type,) -> 'c}} & 'b,) -> Exp['M | 'md\ty & {ty: Nat | 'ty | Type | 'd}]
+//│ }
+
+module Test0 extends Base, TypeCheck
+//│ ╔══[ERROR] Subtyping constraint of the form `Test0 & {transform: (?a, ?b,) -> (?c | ?d | ?e | ?f | ?g)} <: ?test0` took too many steps and ran out of fuel (5000)
+//│ ║  l.70: 	module Test0 extends Base, TypeCheck
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ module Test0() {
+//│   fun transform: ({base: Add[nothing] | App[nothing] | Lam[nothing] | Lit | Var, md: 'md}, {env: {get: string -> 'a}, vars: {extend: (string, Type,) -> anything}},) -> Exp['md\ty & {ty: Nat | Type} | 'md\ty & {ty: Nat | 'a}]
+//│ }
+//│ where
+//│   'md :> 'md\ty & {ty: Nat | Type} | 'md\ty & {ty: Nat | 'a}
+//│       <: ~{ty: Nat | Type | 'a}\ty
+
+
