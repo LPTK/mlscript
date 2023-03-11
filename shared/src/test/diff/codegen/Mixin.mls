@@ -590,7 +590,7 @@ mixin MC(c: int)
 module MM extends MA(1), MB(2, 3), MC(4)
 //│ module MM()
 //│ // Prelude
-//│ let typing_unit22 = {
+//│ let typing_unit24 = {
 //│   cache: {},
 //│   get MM() {
 //│     if (this.cache.MM === undefined) {
@@ -605,7 +605,7 @@ module MM extends MA(1), MB(2, 3), MC(4)
 //│     return this.cache.MM;
 //│   }
 //│ };
-//│ globalThis.MM = typing_unit22.MM;
+//│ globalThis.MM = typing_unit24.MM;
 //│ // End of generated code
 
 MM.a
