@@ -1,0 +1,84 @@
+:NewParser
+:NewDefs
+
+:js
+module Test0 {
+  log("Hello!")
+}
+//│ module Test0()
+//│ // Prelude
+//│ function log(x) {
+//│   return console.info(x);
+//│ }
+//│ let res;
+//│ let typing_unit = {
+//│   cache: {},
+//│   get Test0() {
+//│     if (this.cache.Test0 === undefined) {
+//│       class Test0 {
+//│         constructor() {
+//│           log("Hello!");
+//│         }
+//│       }
+//│       this.cache.Test0 = new Test0();
+//│       this.cache.Test0["class"] = Test0;
+//│     }
+//│     return this.cache.Test0;
+//│   }
+//│ };
+//│ globalThis.Test0 = typing_unit.Test0;
+//│ // End of generated code
+
+:js
+Test0
+//│ Test0
+//│ // Prelude
+//│ let typing_unit1 = { cache: {} };
+//│ // Query 1
+//│ res = Test0;
+//│ // End of generated code
+//│ res
+//│     = Test0 { class: [class Test0] }
+//│ // Output
+//│ Hello!
+
+:js
+class A(a: int) {
+  log(a)
+}
+//│ class A(a: int)
+//│ // Prelude
+//│ let typing_unit2 = {
+//│   cache: {},
+//│   get A() {
+//│     const cache = this.cache;
+//│     if (this.cache.A === undefined) {
+//│       class A {
+//│         #a;
+//│         get a() { return this.#a; }
+//│         constructor(a) {
+//│           this.#a = a;
+//│           log(a);
+//│         }
+//│       };
+//│       this.cache.A = ((a) => new A(a));
+//│       this.cache.A["class"] = A;
+//│     }
+//│     return this.cache.A;
+//│   }
+//│ };
+//│ globalThis.A = typing_unit2.A;
+//│ // End of generated code
+
+:js
+let aa = A(42)
+//│ let aa: A
+//│ // Prelude
+//│ let typing_unit3 = { cache: {} };
+//│ // Query 1
+//│ globalThis.aa = A(42);
+//│ // End of generated code
+//│ aa
+//│    = A {}
+//│ // Output
+//│ 42

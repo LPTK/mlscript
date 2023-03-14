@@ -834,6 +834,7 @@ final case class JSClassNewDecl(
     rest: Opt[Str] = N,
     methods: Ls[JSClassMemberDecl] = Nil,
     implements: Ls[Str] = Nil,
+    initStmts: Ls[JSStmt] = Nil
 ) extends JSStmt {
   def toSourceCode: SourceCode = {
     val constructor: SourceCode = {
@@ -863,6 +864,9 @@ final case class JSClassNewDecl(
       fields.iterator.zipWithIndex.foreach { pair =>
         buffer += s"    this.#${pair._1} = ${pair._1};" // TODO: invalid name?
       }
+      initStmts.foreach { s =>
+        buffer += s"    ${s.toSourceCode}"
+      }
       buffer += "  }"
       SourceCode(buffer.toList)
     }
@@ -876,7 +880,7 @@ final case class JSClassNewDecl(
         SourceCode(s"class $name extends ") ++ base.toSourceCode ++
           SourceCode(" {") + constructor + methodsSourceCode + epilogue
       case None =>
-        if (fields.isEmpty && methods.isEmpty && implements.isEmpty) {
+        if (fields.isEmpty && methods.isEmpty && implements.isEmpty && initStmts.isEmpty) {
           SourceCode(s"class $name {}")
         } else {
           SourceCode(

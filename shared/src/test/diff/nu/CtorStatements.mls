@@ -19,5 +19,7 @@ Test0
 //│ Test0
 //│ res
 //│     = Test0 { class: [class Test0] }
+//│ // Output
+//│ Hello!
 
 
