@@ -117,3 +117,56 @@ let ab = A(0)
 //│    = A {}
 //│ // Output
 //│ 0
+
+:e
+:js
+class Foo {
+  this: { x: int }
+}
+//│ ╔══[ERROR] Class `Foo` does not contain member `x`
+//│ ║  l.124: 	  this: { x: int }
+//│ ╙──       	          ^
+//│ class Foo()
+//│ // Prelude
+//│ let typing_unit7 = {
+//│   cache: {},
+//│   get Foo() {
+//│     const cache = this.cache;
+//│     if (this.cache.Foo === undefined) {
+//│       class Foo {};
+//│       this.cache.Foo = (() => new Foo());
+//│       this.cache.Foo["class"] = Foo;
+//│     }
+//│     return this.cache.Foo;
+//│   }
+//│ };
+//│ globalThis.Foo = typing_unit7.Foo;
+//│ // End of generated code
+
+:e
+:js
+class Bar {
+  super: { x: int }
+}
+//│ ╔══[ERROR] Illegal use of `super`
+//│ ║  l.149: 	  super: { x: int }
+//│ ╙──       	  ^^^^^
+//│ ╔══[ERROR] Class `Bar` does not contain member `x`
+//│ ║  l.149: 	  super: { x: int }
+//│ ╙──       	           ^
+//│ class Bar()
+//│ // Prelude
+//│ let typing_unit8 = {
+//│   cache: {},
+//│   get Bar() {
+//│     const cache = this.cache;
+//│     if (this.cache.Bar === undefined) {
+//│       class Bar {};
+//│       this.cache.Bar = (() => new Bar());
+//│       this.cache.Bar["class"] = Bar;
+//│     }
+//│     return this.cache.Bar;
+//│   }
+//│ };
+//│ globalThis.Bar = typing_unit8.Bar;
+//│ // End of generated code

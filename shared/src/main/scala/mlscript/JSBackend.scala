@@ -773,6 +773,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         case _ => lst
       })
       val stmts = unit.children.foldLeft(List[Term]())((lst, loc) => loc match {
+        case Asc(Var("this"), _) => lst
+        case Asc(Super(), _) => lst
         case t: Term => lst :+ t
         case _ => lst
       })

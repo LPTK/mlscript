@@ -47,23 +47,19 @@ class Foo {
 //│ ║  l.43: 	  this: { x: 'a }
 //│ ╙──      	          ^
 //│ class Foo()
-//│ Code generation encountered an error:
-//│   unresolved symbol this
 
 
 // TODO
 // * All on one line:
 class Test { this: { x: int}; fun test = this.x }
 //│ ╔══[ERROR] Class `Test` does not contain member `x`
-//│ ║  l.56: 	class Test { this: { x: int}; fun test = this.x }
+//│ ║  l.54: 	class Test { this: { x: int}; fun test = this.x }
 //│ ╙──      	                                             ^^
 //│ ╔══[ERROR] Class `Test` does not contain member `x`
-//│ ║  l.56: 	class Test { this: { x: int}; fun test = this.x }
+//│ ║  l.54: 	class Test { this: { x: int}; fun test = this.x }
 //│ ╙──      	                     ^
 //│ class Test() {
 //│   fun test: error
 //│ }
-//│ Code generation encountered an error:
-//│   unresolved symbol this
 
 
