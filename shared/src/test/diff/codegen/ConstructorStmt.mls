@@ -43,12 +43,23 @@ Test0
 //│ Hello!
 
 :js
+Test0
+//│ Test0
+//│ // Prelude
+//│ let typing_unit2 = { cache: {} };
+//│ // Query 1
+//│ res = Test0;
+//│ // End of generated code
+//│ res
+//│     = Test0 { class: [class Test0] }
+
+:js
 class A(a: int) {
   log(a)
 }
 //│ class A(a: int)
 //│ // Prelude
-//│ let typing_unit2 = {
+//│ let typing_unit3 = {
 //│   cache: {},
 //│   get A() {
 //│     const cache = this.cache;
@@ -67,14 +78,14 @@ class A(a: int) {
 //│     return this.cache.A;
 //│   }
 //│ };
-//│ globalThis.A = typing_unit2.A;
+//│ globalThis.A = typing_unit3.A;
 //│ // End of generated code
 
 :js
 let aa = A(42)
 //│ let aa: A
 //│ // Prelude
-//│ let typing_unit3 = { cache: {} };
+//│ let typing_unit4 = { cache: {} };
 //│ // Query 1
 //│ globalThis.aa = A(42);
 //│ // End of generated code
@@ -82,3 +93,27 @@ let aa = A(42)
 //│    = A {}
 //│ // Output
 //│ 42
+
+:js
+aa
+//│ A
+//│ // Prelude
+//│ let typing_unit5 = { cache: {} };
+//│ // Query 1
+//│ res = aa;
+//│ // End of generated code
+//│ res
+//│     = A {}
+
+:js
+let ab = A(0)
+//│ let ab: A
+//│ // Prelude
+//│ let typing_unit6 = { cache: {} };
+//│ // Query 1
+//│ globalThis.ab = A(0);
+//│ // End of generated code
+//│ ab
+//│    = A {}
+//│ // Output
+//│ 0
