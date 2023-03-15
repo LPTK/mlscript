@@ -772,7 +772,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         case NuFunDef(isLetRec, mnme, tys, Left(rhs)) => lst :+ MethodDef(isLetRec.getOrElse(false), TypeName(nme), mnme, tys, Left(rhs))
         case _ => lst
       })
-      val stmts = unit.children.foldLeft(List[Term]())((lst, loc) => loc match {
+      val stmts = unit.entities.foldLeft(List[Term]())((lst, loc) => loc match {
         case Asc(Var("this"), _) => lst
         case Asc(Super(), _) => lst
         case t: Term => lst :+ t
