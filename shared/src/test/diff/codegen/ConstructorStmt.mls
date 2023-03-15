@@ -170,3 +170,20 @@ class Bar {
 //│ };
 //│ globalThis.Bar = typing_unit8.Bar;
 //│ // End of generated code
+
+// FIXME: need further discussion
+:js
+class Baz {
+  let x = 123
+  log((1, x))
+  let y =
+    log((2, x))
+    x + 1
+  log((3, y))
+}
+//│ class Baz() {
+//│   let x: 123
+//│   let y: int
+//│ }
+//│ Code generation encountered an error:
+//│   unresolved symbol x
