@@ -91,6 +91,7 @@ final case class NewClassSymbol(
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
+    ctor: Ls[Term]
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[NewClassSymbol] {
 
@@ -107,6 +108,7 @@ final case class MixinSymbol(
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
+    ctor: Ls[Term]
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[MixinSymbol] {
 
@@ -123,6 +125,7 @@ final case class ModuleSymbol(
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
+    ctor: Ls[Term]
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[ModuleSymbol] {
 
