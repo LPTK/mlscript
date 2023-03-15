@@ -227,10 +227,11 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       params: Ls[Str],
       base: Type,
       methods: Ls[MethodDef[Left[Term, Type]]],
-      ctor: Ls[Term]
+      ctor: Ls[Term],
+      superParameters: Ls[Term]
   ): NewClassSymbol = {
     val runtimeName = allocateRuntimeName(lexicalName)
-    val symbol = NewClassSymbol(lexicalName, runtimeName, params.sorted, base, methods, ctor)
+    val symbol = NewClassSymbol(lexicalName, runtimeName, params.sorted, base, methods, ctor, superParameters)
     register(symbol)
     symbol
   }
@@ -253,10 +254,11 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       params: Ls[Str],
       base: Type,
       methods: Ls[MethodDef[Left[Term, Type]]],
-      ctor: Ls[Term]
+      ctor: Ls[Term],
+      superParameters: Ls[Term]
   ): ModuleSymbol = {
     val runtimeName = allocateRuntimeName(lexicalName)
-    val symbol = ModuleSymbol(lexicalName, runtimeName, params.sorted, base, methods, ctor)
+    val symbol = ModuleSymbol(lexicalName, runtimeName, params.sorted, base, methods, ctor, superParameters)
     register(symbol)
     symbol
   }

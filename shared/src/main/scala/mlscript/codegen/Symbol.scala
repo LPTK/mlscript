@@ -91,7 +91,8 @@ final case class NewClassSymbol(
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
-    ctor: Ls[Term]
+    ctor: Ls[Term],
+    superParameters: Ls[Term]
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[NewClassSymbol] {
 
@@ -125,7 +126,8 @@ final case class ModuleSymbol(
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
-    ctor: Ls[Term]
+    ctor: Ls[Term],
+    superParameters: Ls[Term]
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[ModuleSymbol] {
 
