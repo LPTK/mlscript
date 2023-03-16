@@ -171,7 +171,6 @@ class Bar {
 //│ globalThis.Bar = typing_unit8.Bar;
 //│ // End of generated code
 
-// FIXME: need further discussion
 :js
 class Baz {
   let x = 123
@@ -185,5 +184,58 @@ class Baz {
 //│   let x: 123
 //│   let y: int
 //│ }
-//│ Code generation encountered an error:
-//│   unresolved symbol x
+//│ // Prelude
+//│ let typing_unit9 = {
+//│   cache: {},
+//│   get Baz() {
+//│     const cache = this.cache;
+//│     if (this.cache.Baz === undefined) {
+//│       class Baz {
+//│         #x;
+//│         #y;
+//│         get x() { return this.#x; }
+//│         get y() { return this.#y; }
+//│         constructor() {
+//│           this.#x = 123;
+//│           const x = this.#x;
+//│           log([
+//│   1,
+//│   x
+//│ ]);
+//│           this.#y = (() => {
+//│   log([
+//│     2,
+//│     x
+//│   ]);
+//│   return x + 1;
+//│ })();
+//│           const y = this.#y;
+//│           log([
+//│   3,
+//│   y
+//│ ]);
+//│         }
+//│       };
+//│       this.cache.Baz = (() => new Baz());
+//│       this.cache.Baz["class"] = Baz;
+//│     }
+//│     return this.cache.Baz;
+//│   }
+//│ };
+//│ globalThis.Baz = typing_unit9.Baz;
+//│ // End of generated code
+
+let baz = Baz()
+log((baz.x, baz.y))
+//│ let baz: Baz
+//│ unit
+//│ baz
+//│     = Baz {}
+//│ // Output
+//│ [ 1, 123 ]
+//│ [ 2, 123 ]
+//│ [ 3, 124 ]
+//│ res
+//│     = undefined
+//│ // Output
+//│ [ 123, 124 ]

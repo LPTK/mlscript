@@ -6,7 +6,7 @@ import mlscript.Type
 import scala.reflect.ClassTag
 import mlscript.{TypeName, Top, Bot, TypeDef, Als, Trt, Cls, Nms}
 import mlscript.MethodDef
-import mlscript.Term
+import mlscript.{Term, Statement}
 import mlscript.utils.{AnyOps, lastWords}
 import mlscript.JSField
 
@@ -227,7 +227,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       params: Ls[Str],
       base: Type,
       methods: Ls[MethodDef[Left[Term, Type]]],
-      ctor: Ls[Term],
+      ctor: Ls[Statement],
       superParameters: Ls[Term]
   ): NewClassSymbol = {
     val runtimeName = allocateRuntimeName(lexicalName)
@@ -241,7 +241,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       params: Ls[Str],
       base: Type,
       methods: Ls[MethodDef[Left[Term, Type]]],
-      ctor: Ls[Term]
+      ctor: Ls[Statement]
   ): MixinSymbol = {
     val runtimeName = allocateRuntimeName(lexicalName)
     val symbol = MixinSymbol(lexicalName, runtimeName, params.sorted, base, methods, ctor)
@@ -254,7 +254,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       params: Ls[Str],
       base: Type,
       methods: Ls[MethodDef[Left[Term, Type]]],
-      ctor: Ls[Term],
+      ctor: Ls[Statement],
       superParameters: Ls[Term]
   ): ModuleSymbol = {
     val runtimeName = allocateRuntimeName(lexicalName)

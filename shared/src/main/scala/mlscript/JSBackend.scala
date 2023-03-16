@@ -458,7 +458,14 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     fields.foreach(constructorScope.declareValue(_, Some(false), false))
     val rest = constructorScope.declareValue("rest", Some(false), false)
     val base = getterScope.declareValue("base", Some(false), false)
-    val stmts = mixinSymbol.ctor.map(s => JSExprStmt(translateTerm(s)(constructorScope)))
+    val getter = new ListBuffer[Str]()
+    val stmts = mixinSymbol.ctor.map(s => s match {
+      case s: Term => JSExprStmt(translateTerm(s)(constructorScope)) :: Nil
+      case NuFunDef(_, Var(nme), _, Left(rhs)) => getter += nme; Ls[JSStmt](
+        JSExprStmt(JSAssignExpr(JSIdent(s"this.#$nme"), translateTerm(rhs)(constructorScope))),
+        JSConstDecl(constructorScope.declareValue(nme, S(false), false).runtimeName, JSIdent(s"this.#$nme"))
+      )
+    }).flatten
 
     val traits = mixinSymbol.body.collectTypeNames.flatMap {
       name => scope.getType(name) match {
@@ -469,7 +476,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
     }
     
-    val classBody = JSClassNewDecl(mixinSymbol.runtimeName, fields, S(JSIdent(base.runtimeName)),
+    val classBody = JSClassNewDecl(mixinSymbol.runtimeName, fields, fields ::: getter.toList, S(JSIdent(base.runtimeName)),
       Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName), members, traits, stmts)
     JSClassMethod(mixinSymbol.lexicalName, Ls(JSNamePattern(base.runtimeName)), R(Ls(
       JSReturnStmt(S(JSClassExpr(classBody)))
@@ -526,7 +533,14 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     val members = moduleSymbol.methods.map {
       translateNewClassMember(_, fields)(moduleScope)
     }
-    val stmts = moduleSymbol.ctor.map(s => JSExprStmt(translateTerm(s)(constructorScope)))
+    val getter = new ListBuffer[Str]()
+    val stmts = moduleSymbol.ctor.map(s => s match {
+      case s: Term => JSExprStmt(translateTerm(s)(constructorScope)) :: Nil
+      case NuFunDef(_, Var(nme), _, Left(rhs)) => getter += nme; Ls[JSStmt](
+        JSExprStmt(JSAssignExpr(JSIdent(s"this.#$nme"), translateTerm(rhs)(constructorScope))),
+        JSConstDecl(constructorScope.declareValue(nme, S(false), false).runtimeName, JSIdent(s"this.#$nme"))
+      )
+    }).flatten
     val traits = moduleSymbol.body.collectTypeNames.flatMap {
       name => scope.getType(name) match {
         case S(TraitSymbol(_, runtimeName, _, _, _)) => S(runtimeName)
@@ -546,6 +560,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }).map(_.reverse).flatten
     val decl = JSClassNewDecl(moduleSymbol.runtimeName,
                    fields,
+                   fields ::: getter.toList,
                    base,
                    superParameters.reverse,
                    N,
@@ -571,10 +586,10 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     val cacheSymbol = getterScope.declareValue("cache", Some(false), false)
     val classBody = translateNewClassExpression(classSymbol, N, cacheSymbol.runtimeName)(getterScope)
     val constructor = classBody match {
-      case JSClassNewDecl(_, fields, _, _, _, _, _, _) => fields.map(JSNamePattern(_))
+      case JSClassNewDecl(_, fields, _, _, _, _, _, _, _) => fields.map(JSNamePattern(_))
     }
     val params = classBody match {
-      case JSClassNewDecl(_, fields, _, _, _, _, _, _) => fields.map(JSIdent(_))
+      case JSClassNewDecl(_, fields, _, _, _, _, _, _, _) => fields.map(JSIdent(_))
     }
 
     JSClassGetter(classSymbol.runtimeName, R(Ls(
@@ -623,9 +638,16 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
       case _ => Nil
     }).map(_.reverse).flatten
-    val stmts = classSymbol.ctor.map(s => JSExprStmt(translateTerm(s)(constructorScope)))
+    val getter = new ListBuffer[Str]()
+    val stmts = classSymbol.ctor.map(s => s match {
+      case s: Term => JSExprStmt(translateTerm(s)(constructorScope)) :: Nil
+      case NuFunDef(_, Var(nme), _, Left(rhs)) => getter += nme; Ls[JSStmt](
+        JSExprStmt(JSAssignExpr(JSIdent(s"this.#$nme"), translateTerm(rhs)(constructorScope))),
+        JSConstDecl(constructorScope.declareValue(nme, S(false), false).runtimeName, JSIdent(s"this.#$nme"))
+      )
+    }).flatten
 
-    JSClassNewDecl(classSymbol.runtimeName, fields, base, restRuntime match {
+    JSClassNewDecl(classSymbol.runtimeName, fields, fields ::: getter.toList, base, restRuntime match {
       case Some(restRuntime) => superParameters.reverse :+ JSIdent(s"...$restRuntime")
       case _ => superParameters.reverse
     }, restRuntime, members, traits, stmts)
@@ -760,12 +782,14 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
       val body = pars.map(tt).foldRight(Record(params): Type)(Inter)
       val members = unit.entities.foldLeft(List[MethodDef[Left[Term, Type]]]())((lst, loc) => loc match {
-        case NuFunDef(isLetRec, mnme, tys, Left(rhs)) => lst :+ MethodDef(isLetRec.getOrElse(false), TypeName(nme), mnme, tys, Left(rhs))
+        case NuFunDef(isLetRec, mnme, tys, Left(rhs)) if (isLetRec.isEmpty || isLetRec.getOrElse(false)) =>
+          lst :+ MethodDef(isLetRec.getOrElse(false), TypeName(nme), mnme, tys, Left(rhs))
         case _ => lst
       })
-      val stmts = unit.entities.foldLeft(List[Term]())((lst, loc) => loc match {
+      val stmts = unit.entities.foldLeft(List[Statement]())((lst, loc) => loc match {
         case Asc(Var("this"), _) => lst
         case Asc(Super(), _) => lst
+        case lt @ NuFunDef(S(false), _, _, Left(rhs)) => lst :+ lt
         case t: Term => lst :+ t
         case _ => lst
       })

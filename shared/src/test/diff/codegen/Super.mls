@@ -3,7 +3,6 @@
 
 
 
-// * FIXME `let` fields should not be getters
 :js
 mixin Foo0 {
   let foo0 = 0
@@ -17,11 +16,12 @@ mixin Foo0 {
 //│   cache: {},
 //│   Foo0(base) {
 //│     return (class Foo0 extends base {
+//│       #foo0;
+//│       get foo0() { return this.#foo0; }
 //│       constructor(...rest) {
 //│         super(...rest);
-//│       }
-//│       get foo0() {
-//│         return 0;
+//│         this.#foo0 = 0;
+//│         const foo0 = this.#foo0;
 //│       }
 //│     });
 //│   }
@@ -44,14 +44,16 @@ mixin Foo1 {
 //│   cache: {},
 //│   Foo1(base) {
 //│     return (class Foo1 extends base {
+//│       #foo0;
+//│       #foo1;
+//│       get foo0() { return this.#foo0; }
+//│       get foo1() { return this.#foo1; }
 //│       constructor(...rest) {
 //│         super(...rest);
-//│       }
-//│       get foo0() {
-//│         return 1;
-//│       }
-//│       get foo1() {
-//│         return super.foo0;
+//│         this.#foo0 = 1;
+//│         const foo0 = this.#foo0;
+//│         this.#foo1 = super.foo0;
+//│         const foo1 = this.#foo1;
 //│       }
 //│     });
 //│   }
@@ -78,7 +80,7 @@ mixin Foo2 {
   fun foo2 = super
 }
 //│ ╔══[ERROR] Illegal use of `super`
-//│ ║  l.78: 	  fun foo2 = super
+//│ ║  l.80: 	  fun foo2 = super
 //│ ╙──      	             ^^^^^
 //│ mixin Foo2() {
 //│   super: 'super

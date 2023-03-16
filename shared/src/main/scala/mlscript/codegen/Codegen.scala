@@ -829,6 +829,7 @@ final case class JSClassDecl(
 final case class JSClassNewDecl(
     name: Str,
     fields: Ls[Str],
+    privateMem: Ls[Str],
     `extends`: Opt[JSExpr] = N,
     superFields: Ls[JSExpr] = Nil,
     rest: Opt[Str] = N,
@@ -846,9 +847,9 @@ final case class JSClassNewDecl(
         })((p, s) =>
         if (s.isEmpty) s"${p._1}"
         else s"${p._1}, $s")
-      if (!fields.isEmpty) {
-        fields.foreach(f => buffer += s"  #${f};")
-        fields.foreach(f => buffer += s"  get ${f}() { return this.#${f}; }")
+      if (!privateMem.isEmpty) {
+        privateMem.foreach(f => buffer += s"  #${f};")
+        privateMem.foreach(f => buffer += s"  get ${f}() { return this.#${f}; }")
       }
       buffer += s"  constructor($params) {"
       if (`extends`.isDefined) {
