@@ -458,13 +458,14 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     fields.foreach(constructorScope.declareValue(_, Some(false), false))
     val rest = constructorScope.declareValue("rest", Some(false), false)
     val base = getterScope.declareValue("base", Some(false), false)
-    val getter = new ListBuffer[Str]()
+    val getters = new ListBuffer[Str]()
     val stmts = mixinSymbol.ctor.map(s => s match {
       case s: Term => JSExprStmt(translateTerm(s)(constructorScope)) :: Nil
-      case NuFunDef(_, Var(nme), _, Left(rhs)) => getter += nme; Ls[JSStmt](
+      case NuFunDef(_, Var(nme), _, Left(rhs)) => getters += nme; Ls[JSStmt](
         JSExprStmt(JSAssignExpr(JSIdent(s"this.#$nme"), translateTerm(rhs)(constructorScope))),
         JSConstDecl(constructorScope.declareValue(nme, S(false), false).runtimeName, JSIdent(s"this.#$nme"))
       )
+      case _ => Nil
     }).flatten
 
     val traits = mixinSymbol.body.collectTypeNames.flatMap {
@@ -476,7 +477,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
     }
     
-    val classBody = JSClassNewDecl(mixinSymbol.runtimeName, fields, fields ::: getter.toList, S(JSIdent(base.runtimeName)),
+    val classBody = JSClassNewDecl(mixinSymbol.runtimeName, fields, fields ::: getters.toList, S(JSIdent(base.runtimeName)),
       Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName), members, traits, stmts)
     JSClassMethod(mixinSymbol.lexicalName, Ls(JSNamePattern(base.runtimeName)), R(Ls(
       JSReturnStmt(S(JSClassExpr(classBody)))
@@ -533,13 +534,14 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     val members = moduleSymbol.methods.map {
       translateNewClassMember(_, fields)(moduleScope)
     }
-    val getter = new ListBuffer[Str]()
+    val getters = new ListBuffer[Str]()
     val stmts = moduleSymbol.ctor.map(s => s match {
       case s: Term => JSExprStmt(translateTerm(s)(constructorScope)) :: Nil
-      case NuFunDef(_, Var(nme), _, Left(rhs)) => getter += nme; Ls[JSStmt](
+      case NuFunDef(_, Var(nme), _, Left(rhs)) => getters += nme; Ls[JSStmt](
         JSExprStmt(JSAssignExpr(JSIdent(s"this.#$nme"), translateTerm(rhs)(constructorScope))),
         JSConstDecl(constructorScope.declareValue(nme, S(false), false).runtimeName, JSIdent(s"this.#$nme"))
       )
+      case _ => Nil
     }).flatten
     val traits = moduleSymbol.body.collectTypeNames.flatMap {
       name => scope.getType(name) match {
@@ -560,7 +562,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }).map(_.reverse).flatten
     val decl = JSClassNewDecl(moduleSymbol.runtimeName,
                    fields,
-                   fields ::: getter.toList,
+                   fields ::: getters.toList,
                    base,
                    superParameters.reverse,
                    N,
@@ -638,16 +640,17 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
       case _ => Nil
     }).map(_.reverse).flatten
-    val getter = new ListBuffer[Str]()
+    val getters = new ListBuffer[Str]()
     val stmts = classSymbol.ctor.map(s => s match {
       case s: Term => JSExprStmt(translateTerm(s)(constructorScope)) :: Nil
-      case NuFunDef(_, Var(nme), _, Left(rhs)) => getter += nme; Ls[JSStmt](
+      case NuFunDef(_, Var(nme), _, Left(rhs)) => getters += nme; Ls[JSStmt](
         JSExprStmt(JSAssignExpr(JSIdent(s"this.#$nme"), translateTerm(rhs)(constructorScope))),
         JSConstDecl(constructorScope.declareValue(nme, S(false), false).runtimeName, JSIdent(s"this.#$nme"))
       )
+      case _ => Nil
     }).flatten
 
-    JSClassNewDecl(classSymbol.runtimeName, fields, fields ::: getter.toList, base, restRuntime match {
+    JSClassNewDecl(classSymbol.runtimeName, fields, fields ::: getters.toList, base, restRuntime match {
       case Some(restRuntime) => superParameters.reverse :+ JSIdent(s"...$restRuntime")
       case _ => superParameters.reverse
     }, restRuntime, members, traits, stmts)
@@ -698,11 +701,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       selfClass: Opt[JSConstDecl] = N
   )(implicit scope: Scope): JSClassMemberDecl = {
     val name = method.nme.name
-    // Create the method/getter scope.
-    val memberScope = method.rhs.value match {
-      case _: Lam => scope.derive(s"method $name")
-      case _ => scope.derive(s"getter $name")
-    }
+    // Create the method scope.
+    val memberScope = scope.derive(s"getter $name")
     // Declare the alias for `this` before declaring parameters.
     val selfSymbol = memberScope.declareThisAlias()
     val preDecs = props.map(p => {
