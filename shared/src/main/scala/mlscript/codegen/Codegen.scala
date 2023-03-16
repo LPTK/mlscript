@@ -866,7 +866,9 @@ final case class JSClassNewDecl(
         buffer += s"    this.#${pair._1} = ${pair._1};" // TODO: invalid name?
       }
       initStmts.foreach { s =>
-        buffer += s"    ${s.toSourceCode}"
+        s.toSourceCode.indented.indented.toString.split("\n").foreach {
+          line => buffer += line
+        }
       }
       buffer += "  }"
       SourceCode(buffer.toList)
