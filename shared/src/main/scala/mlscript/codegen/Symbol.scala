@@ -85,6 +85,15 @@ final case class ClassSymbol(
   override def toString: Str = s"class $lexicalName ($runtimeName)"
 }
 
+sealed class NewClassMemberSymbol(val lexicalName: Str, val runtimeName: Str, val isByvalueRec: Option[Boolean], val isLam: Boolean) extends RuntimeSymbol {
+  override def toString: Str = s"new class member $lexicalName"
+}
+
+object NewClassMemberSymbol {
+  def apply(lexicalName: Str, runtimeName: Str, isByvalueRec: Option[Boolean], isLam: Boolean): NewClassMemberSymbol =
+    new NewClassMemberSymbol(lexicalName, runtimeName, isByvalueRec, isLam)
+}
+
 final case class NewClassSymbol(
     lexicalName: Str,
     runtimeName: Str,

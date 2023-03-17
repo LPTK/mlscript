@@ -80,45 +80,35 @@ class Base0(n) {
 //│   fun my: error
 //│   fun oops: error
 //│ }
-//│ Code generation encountered an error:
-//│   unresolved symbol my
 
 // :d
 // Base0
 
-:re
 let b1 = Base0(42)
 //│ let b1: Base0
 //│ b1
-//│ Runtime error:
-//│   ReferenceError: Base0 is not defined
+//│    = Base0 {}
 
-:re
 let n1 = b1.n
 //│ let n1: error
 //│ n1
-//│ Runtime error:
-//│   ReferenceError: b1 is not defined
+//│    = 42
 
 // TODO
 n1 + 1
 //│ int
 //│ res
-//│ Runtime error:
-//│   ReferenceError: n1 is not defined
+//│     = 43
 
 
-:re
 let b2 = Base0("hi")
 let n2 = b2.n
 //│ let b2: Base0
 //│ let n2: error
 //│ b2
-//│ Runtime error:
-//│   ReferenceError: Base0 is not defined
+//│    = Base0 {}
 //│ n2
-//│ Runtime error:
-//│   ReferenceError: b2 is not defined
+//│    = 'hi'
 
 
 
@@ -173,7 +163,7 @@ b.me
 :e
 b.getBaseTypo
 //│ ╔══[ERROR] Class `Base1` does not contain member `getBaseTypo`
-//│ ║  l.174: 	b.getBaseTypo
+//│ ║  l.164: 	b.getBaseTypo
 //│ ╙──       	 ^^^^^^^^^^^^
 //│ error
 //│ res

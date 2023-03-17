@@ -103,6 +103,10 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         JSIdent(sym.runtimeName)
       case S(sym: NewClassSymbol) =>
         JSIdent(sym.runtimeName)
+      case S(sym: NewClassMemberSymbol) =>
+        if (sym.isByvalueRec.getOrElse(false) && !sym.isLam) throw CodeGenError(s"unguarded recursive use of by-value binding $name")
+        val ident = JSIdent("this").member(sym.runtimeName)
+        if (sym.isByvalueRec.isEmpty && !sym.isLam) ident() else ident
       case S(sym: ClassSymbol) =>
         if (isCallee)
           JSNew(JSIdent(sym.runtimeName))
@@ -451,6 +455,13 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     val fields = mixinSymbol.body.collectFields ++
       mixinSymbol.body.collectTypeNames.flatMap(resolveTraitFields)
 
+    mixinSymbol.methods.foreach(_ match {
+      case MethodDef(_, _, Var(nme), _, _) => mixinScope.declareNewClassMember(nme, N, true)
+    })
+    mixinSymbol.ctor.foreach(_ match {
+      case NuFunDef(rec, Var(nme), _, _) => mixinScope.declareNewClassMember(nme, rec, false)
+      case _ => ()
+    })
     val members = mixinSymbol.methods.map {
       translateNewClassMember(_, fields)(mixinScope)
     } 
@@ -531,6 +542,13 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     // Collect class fields.
     val fields = moduleSymbol.body.collectFields ++
       moduleSymbol.body.collectTypeNames.flatMap(resolveTraitFields)
+    moduleSymbol.methods.foreach(_ match {
+      case MethodDef(_, _, Var(nme), _, _) => moduleScope.declareNewClassMember(nme, N, true)
+    })
+    moduleSymbol.ctor.foreach(_ match {
+      case NuFunDef(rec, Var(nme), _, _) => moduleScope.declareNewClassMember(nme, rec, false)
+      case _ => ()
+    })
     val members = moduleSymbol.methods.map {
       translateNewClassMember(_, fields)(moduleScope)
     }
@@ -616,6 +634,13 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     // Collect class fields.
     val fields = classSymbol.body.collectFields ++
       classSymbol.body.collectTypeNames.flatMap(resolveTraitFields)
+    classSymbol.methods.foreach(_ match {
+      case MethodDef(_, _, Var(nme), _, _) => classScope.declareNewClassMember(nme, N, true)
+    })
+    classSymbol.ctor.foreach(_ match {
+      case NuFunDef(rec, Var(nme), _, _) => classScope.declareNewClassMember(nme, rec, false)
+      case _ => ()
+    })
     val members = classSymbol.methods.map {
       translateNewClassMember(_, fields, S(JSConstDecl(classSymbol.runtimeName, JSField(JSIdent(cacheName), classSymbol.runtimeName))))(classScope)
     }
@@ -702,7 +727,10 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
   )(implicit scope: Scope): JSClassMemberDecl = {
     val name = method.nme.name
     // Create the method scope.
-    val memberScope = scope.derive(s"getter $name")
+    val memberScope = method.rhs.value match {
+      case _: Lam => scope.derive(s"method $name")
+      case _ => scope.derive(s"getter $name")
+    }
     // Declare the alias for `this` before declaring parameters.
     val selfSymbol = memberScope.declareThisAlias()
     val preDecs = props.map(p => {

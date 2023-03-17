@@ -301,6 +301,19 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
     symbol
   }
 
+  def declareNewClassMember(lexicalName: Str, isByvalueRec: Option[Boolean], isLam: Boolean): NewClassMemberSymbol = {
+    val runtimeName = lexicalValueSymbols.get(lexicalName) match {
+      // If we are implementing a stub symbol and the stub symbol did not shadow any other
+      // symbols, it is safe to reuse its `runtimeName`.
+      case S(sym: StubValueSymbol) if !sym.shadowing => sym.runtimeName
+      case S(sym: BuiltinSymbol) if !sym.accessed    => sym.runtimeName
+      case _                                         => allocateRuntimeName(lexicalName)
+    }
+    val symbol = NewClassMemberSymbol(lexicalName, runtimeName, isByvalueRec, isLam)
+    register(symbol)
+    symbol
+  }
+
   def declareStubValue(lexicalName: Str)(implicit accessible: Bool): StubValueSymbol =
     declareStubValue(lexicalName, N)
 
