@@ -239,3 +239,53 @@ log((baz.x, baz.y))
 //│     = undefined
 //│ // Output
 //│ [ 123, 124 ]
+
+:js
+class Q() {
+  let q = 42
+  fun qq =
+    let f = (x: int) => {q: x + q}; f(1)
+}
+//│ class Q() {
+//│   let q: 42
+//│   fun qq: {q: int}
+//│ }
+//│ // Prelude
+//│ let typing_unit11 = {
+//│   cache: {},
+//│   get Q() {
+//│     const cache = this.cache;
+//│     if (this.cache.Q === undefined) {
+//│       class Q {
+//│         #q;
+//│         get q() { return this.#q; }
+//│         constructor() {
+//│           this.#q = 42;
+//│           const q = this.#q;
+//│         }
+//│         get qq() {
+//│           const Q = cache.Q;
+//│           const self = this;
+//│           return ((() => {
+//│             let f = (x) => ({ q: x + self.q });
+//│             return f(1);
+//│           })());
+//│         }
+//│       };
+//│       this.cache.Q = (() => new Q());
+//│       this.cache.Q["class"] = Q;
+//│     }
+//│     return this.cache.Q;
+//│   }
+//│ };
+//│ globalThis.Q = typing_unit11.Q;
+//│ // End of generated code
+
+let q = Q()
+q.qq.q
+//│ let q: Q
+//│ int
+//│ q
+//│   = Q {}
+//│ res
+//│     = 43
