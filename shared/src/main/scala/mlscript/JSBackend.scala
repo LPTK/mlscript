@@ -726,7 +726,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       selfClass: Opt[JSConstDecl] = N
   )(implicit scope: Scope): JSClassMemberDecl = {
     val name = method.nme.name
-    // Create the method scope.
+    // Create the method/getter scope.
     val memberScope = method.rhs.value match {
       case _: Lam => scope.derive(s"method $name")
       case _ => scope.derive(s"getter $name")
