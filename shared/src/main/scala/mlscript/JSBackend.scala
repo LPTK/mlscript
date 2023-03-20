@@ -20,6 +20,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
   protected val polyfill = Polyfill()
 
   protected val visitedSymbols = MutSet[ValueSymbol]()
+  protected var isNewClassMemberSymbolVisited = false
 
   /**
     * This function translates parameter destructions in `def` declarations.
@@ -105,7 +106,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         JSIdent(sym.runtimeName)
       case S(sym: NewClassMemberSymbol) =>
         if (sym.isByvalueRec.getOrElse(false) && !sym.isLam) throw CodeGenError(s"unguarded recursive use of by-value binding $name")
-        val ident = JSIdent("this").member(sym.runtimeName)
+        val ident = JSIdent("self").member(sym.runtimeName)
+        isNewClassMemberSymbolVisited = true
         if (sym.isByvalueRec.isEmpty && !sym.isLam) ident() else ident
       case S(sym: ClassSymbol) =>
         if (isCallee)
@@ -751,6 +753,13 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     val bodyStmts = if (visitedSymbols(selfSymbol)) {
       val thisDecl = JSConstDecl(selfSymbol.runtimeName, JSIdent("this"))
       visitedSymbols -= selfSymbol
+      selfClass match {
+        case Some(selfClass) => R((selfClass :: preDecs) ::: (thisDecl :: bodyResult :: Nil))
+        case _ => R(preDecs ::: (thisDecl :: bodyResult :: Nil))
+      }
+    } else if (isNewClassMemberSymbolVisited) {
+      val thisDecl = JSConstDecl(selfSymbol.runtimeName, JSIdent("this"))
+      isNewClassMemberSymbolVisited = false
       selfClass match {
         case Some(selfClass) => R((selfClass :: preDecs) ::: (thisDecl :: bodyResult :: Nil))
         case _ => R(preDecs ::: (thisDecl :: bodyResult :: Nil))
