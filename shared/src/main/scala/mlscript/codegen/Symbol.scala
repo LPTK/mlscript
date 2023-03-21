@@ -87,16 +87,18 @@ final case class ClassSymbol(
 
 sealed class NewClassMemberSymbol(
   val lexicalName: Str,
-  val runtimeName: Str,
   val isByvalueRec: Option[Boolean],
   val isLam: Boolean
 ) extends RuntimeSymbol {
   override def toString: Str = s"new class member $lexicalName"
+
+  // Class members should have fixed names determined by users
+  override def runtimeName: Str = lexicalName
 }
 
 object NewClassMemberSymbol {
-  def apply(lexicalName: Str, runtimeName: Str, isByvalueRec: Option[Boolean], isLam: Boolean): NewClassMemberSymbol =
-    new NewClassMemberSymbol(lexicalName, runtimeName, isByvalueRec, isLam)
+  def apply(lexicalName: Str, isByvalueRec: Option[Boolean], isLam: Boolean): NewClassMemberSymbol =
+    new NewClassMemberSymbol(lexicalName, isByvalueRec, isLam)
 }
 
 final case class NewClassSymbol(
