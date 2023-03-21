@@ -289,3 +289,57 @@ q.qq.q
 //│   = Q {}
 //│ res
 //│     = 43
+
+:js
+class W() {
+  let x = 42
+  fun add(self: int) = x + self
+}
+//│ class W() {
+//│   fun add: (self: int,) -> int
+//│   let x: 42
+//│ }
+//│ // Prelude
+//│ let typing_unit13 = {
+//│   cache: {},
+//│   get W() {
+//│     const cache = this.cache;
+//│     if (this.cache.W === undefined) {
+//│       class W {
+//│         #x;
+//│         get x() { return this.#x; }
+//│         constructor() {
+//│           this.#x = 42;
+//│           const x = this.#x;
+//│         }
+//│         add(self1) {
+//│           const W = cache.W;
+//│           const self = this;
+//│           return self.x + self1;
+//│         }
+//│       };
+//│       this.cache.W = (() => new W());
+//│       this.cache.W["class"] = W;
+//│     }
+//│     return this.cache.W;
+//│   }
+//│ };
+//│ globalThis.W = typing_unit13.W;
+//│ // End of generated code
+
+:js
+let www = W()
+www.add(42)
+//│ let www: W
+//│ int
+//│ // Prelude
+//│ let typing_unit14 = { cache: {} };
+//│ // Query 1
+//│ globalThis.www = W();
+//│ // Query 2
+//│ res = www.add(42);
+//│ // End of generated code
+//│ www
+//│     = W {}
+//│ res
+//│     = 84
