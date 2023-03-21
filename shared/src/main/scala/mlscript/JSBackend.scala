@@ -460,13 +460,13 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     val fields = mixinSymbol.body.collectFields ++
       mixinSymbol.body.collectTypeNames.flatMap(resolveTraitFields)
 
-    mixinSymbol.methods.foreach(_ match {
+    mixinSymbol.methods.foreach {
       case MethodDef(_, _, Var(nme), _, _) => mixinScope.declareNewClassMember(nme, N, true)
-    })
-    mixinSymbol.ctor.foreach(_ match {
+    }
+    mixinSymbol.ctor.foreach {
       case NuFunDef(rec, Var(nme), _, _) => mixinScope.declareNewClassMember(nme, rec, false)
       case _ => ()
-    })
+    }
     val members = mixinSymbol.methods.map {
       translateNewClassMember(_, fields)(mixinScope)
     } 
