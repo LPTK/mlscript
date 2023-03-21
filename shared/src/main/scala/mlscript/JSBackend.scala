@@ -105,8 +105,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         JSIdent(sym.runtimeName)
       case S(sym: NewClassMemberSymbol) =>
         if (sym.isByvalueRec.getOrElse(false) && !sym.isLam) throw CodeGenError(s"unguarded recursive use of by-value binding $name")
-        val selfSymbol = scope.resolveValue("this")
-        selfSymbol match {
+        scope.resolveValue("this") match {
           case Some(selfSymbol) => {
             visitedSymbols += selfSymbol
             val ident = JSIdent(selfSymbol.runtimeName).member(sym.runtimeName)
