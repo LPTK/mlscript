@@ -230,8 +230,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       ctor: Ls[Statement],
       superParameters: Ls[Term]
   ): NewClassSymbol = {
-    val runtimeName = allocateRuntimeName(lexicalName)
-    val symbol = NewClassSymbol(lexicalName, runtimeName, params.sorted, base, methods, ctor, superParameters)
+    val symbol = NewClassSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters)
     register(symbol)
     symbol
   }
@@ -243,8 +242,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       methods: Ls[MethodDef[Left[Term, Type]]],
       ctor: Ls[Statement]
   ): MixinSymbol = {
-    val runtimeName = allocateRuntimeName(lexicalName)
-    val symbol = MixinSymbol(lexicalName, runtimeName, params.sorted, base, methods, ctor)
+    val symbol = MixinSymbol(lexicalName, params.sorted, base, methods, ctor)
     register(symbol)
     symbol
   }
@@ -257,8 +255,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       ctor: Ls[Statement],
       superParameters: Ls[Term]
   ): ModuleSymbol = {
-    val runtimeName = allocateRuntimeName(lexicalName)
-    val symbol = ModuleSymbol(lexicalName, runtimeName, params.sorted, base, methods, ctor, superParameters)
+    val symbol = ModuleSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters)
     register(symbol)
     symbol
   }

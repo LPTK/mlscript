@@ -305,8 +305,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           JSBinary("===", scrut.member("constructor"), JSLit("String"))
         case Var(name) => topLevelScope.getType(name) match {
           case S(ClassSymbol(_, runtimeName, _, _, _)) => JSInstanceOf(scrut, JSIdent(runtimeName))
-          case S(NewClassSymbol(_, runtimeName, _, _, _, _, _)) => JSInstanceOf(scrut, JSMember(JSIdent(runtimeName), JSIdent(JSLit.makeStringLiteral("class"))))
-          case S(ModuleSymbol(_, runtimeName, _, _, _, _, _)) => JSInstanceOf(scrut, JSMember(JSIdent(runtimeName), JSIdent(JSLit.makeStringLiteral("class"))))
+          case S(NewClassSymbol(lexicalName, _, _, _, _, _)) => JSInstanceOf(scrut, JSMember(JSIdent(lexicalName), JSIdent(JSLit.makeStringLiteral("class"))))
+          case S(ModuleSymbol(lexicalName, _, _, _, _, _)) => JSInstanceOf(scrut, JSMember(JSIdent(lexicalName), JSIdent(JSLit.makeStringLiteral("class"))))
           case S(TraitSymbol(_, runtimeName, _, _, _)) => JSIdent(runtimeName)("is")(scrut)
           case S(_: TypeAliasSymbol) => throw new CodeGenError(s"cannot match type alias $name")
           case S(_: MixinSymbol) => throw new CodeGenError(s"cannot match mixin $name")
@@ -493,7 +493,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
     }
     
-    val classBody = JSClassNewDecl(mixinSymbol.runtimeName, fields, fields ::: getters.toList, S(JSIdent(base.runtimeName)),
+    val classBody = JSClassNewDecl(mixinSymbol.lexicalName, fields, fields ::: getters.toList, S(JSIdent(base.runtimeName)),
       Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName), members, traits, stmts)
     JSClassMethod(mixinSymbol.lexicalName, Ls(JSNamePattern(base.runtimeName)), R(Ls(
       JSReturnStmt(S(JSClassExpr(classBody)))
@@ -583,7 +583,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
       case _ => Nil
     }).flatMap(_.reverse)
-    val decl = JSClassNewDecl(moduleSymbol.runtimeName,
+    val decl = JSClassNewDecl(moduleSymbol.lexicalName,
                    fields,
                    fields ::: getters.toList,
                    base,
@@ -593,14 +593,14 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
                    traits,
                    stmts)
 
-    JSClassGetter(moduleSymbol.runtimeName, R(Ls(
-      JSIfStmt(JSBinary("===", JSField(JSField(JSIdent("this"), "cache"), moduleSymbol.runtimeName), JSIdent("undefined")), Ls(
+    JSClassGetter(moduleSymbol.lexicalName, R(Ls(
+      JSIfStmt(JSBinary("===", JSField(JSField(JSIdent("this"), "cache"), moduleSymbol.lexicalName), JSIdent("undefined")), Ls(
         decl,
-        JSExprStmt(JSAssignExpr(JSField(JSField(JSIdent("this"), "cache"), moduleSymbol.runtimeName),
-          JSNew(JSInvoke(JSIdent(moduleSymbol.runtimeName), Nil)))),
-        JSExprStmt(JSAssignExpr(JSMember(JSField(JSField(JSIdent("this"), "cache"), moduleSymbol.runtimeName), JSLit(JSLit.makeStringLiteral("class"))), JSIdent(moduleSymbol.runtimeName))),
+        JSExprStmt(JSAssignExpr(JSField(JSField(JSIdent("this"), "cache"), moduleSymbol.lexicalName),
+          JSNew(JSInvoke(JSIdent(moduleSymbol.lexicalName), Nil)))),
+        JSExprStmt(JSAssignExpr(JSMember(JSField(JSField(JSIdent("this"), "cache"), moduleSymbol.lexicalName), JSLit(JSLit.makeStringLiteral("class"))), JSIdent(moduleSymbol.lexicalName))),
       )),
-      JSReturnStmt(S(JSField(JSField(JSIdent("this"), "cache"), moduleSymbol.runtimeName)))
+      JSReturnStmt(S(JSField(JSField(JSIdent("this"), "cache"), moduleSymbol.lexicalName)))
     )))
   }
 
@@ -617,15 +617,15 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       case JSClassNewDecl(_, fields, _, _, _, _, _, _, _) => fields.map(JSIdent(_))
     }
 
-    JSClassGetter(classSymbol.runtimeName, R(Ls(
+    JSClassGetter(classSymbol.lexicalName, R(Ls(
       JSConstDecl(cacheSymbol.runtimeName, JSField(JSIdent("this"), "cache")),
-      JSIfStmt(JSBinary("===", JSField(JSField(JSIdent("this"), "cache"), classSymbol.runtimeName), JSIdent("undefined")), Ls(
+      JSIfStmt(JSBinary("===", JSField(JSField(JSIdent("this"), "cache"), classSymbol.lexicalName), JSIdent("undefined")), Ls(
         JSExprStmt(JSClassExpr(classBody)),
-        JSExprStmt(JSAssignExpr(JSField(JSField(JSIdent("this"), "cache"), classSymbol.runtimeName),
-          JSArrowFn(constructor, L(JSInvoke(JSNew(JSIdent(classSymbol.runtimeName)), params))))),
-        JSExprStmt(JSAssignExpr(JSMember(JSField(JSField(JSIdent("this"), "cache"), classSymbol.runtimeName), JSLit(JSLit.makeStringLiteral("class"))), JSIdent(classSymbol.runtimeName)))
+        JSExprStmt(JSAssignExpr(JSField(JSField(JSIdent("this"), "cache"), classSymbol.lexicalName),
+          JSArrowFn(constructor, L(JSInvoke(JSNew(JSIdent(classSymbol.lexicalName)), params))))),
+        JSExprStmt(JSAssignExpr(JSMember(JSField(JSField(JSIdent("this"), "cache"), classSymbol.lexicalName), JSLit(JSLit.makeStringLiteral("class"))), JSIdent(classSymbol.lexicalName)))
       )),
-      JSReturnStmt(S(JSField(JSField(JSIdent("this"), "cache"), classSymbol.runtimeName)))
+      JSReturnStmt(S(JSField(JSField(JSIdent("this"), "cache"), classSymbol.lexicalName)))
     )))
   }
 
@@ -647,7 +647,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       case _ => ()
     }
     val members = classSymbol.methods.map {
-      translateNewClassMember(_, fields, S(JSConstDecl(classSymbol.runtimeName, JSField(JSIdent(cacheName), classSymbol.runtimeName))))(classScope)
+      translateNewClassMember(_, fields, S(JSConstDecl(classSymbol.lexicalName, JSField(JSIdent(cacheName), classSymbol.lexicalName))))(classScope)
     }
 
     val constructorScope = classScope.derive(s"${classSymbol.lexicalName} constructor")
@@ -680,7 +680,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       case _ => Nil
     }
 
-    JSClassNewDecl(classSymbol.runtimeName, fields, fields ::: getters.toList, base, restRuntime match {
+    JSClassNewDecl(classSymbol.lexicalName, fields, fields ::: getters.toList, base, restRuntime match {
       case Some(restRuntime) => superParameters.reverse :+ JSIdent(s"...$restRuntime")
       case _ => superParameters.reverse
     }, restRuntime, members, traits, stmts)

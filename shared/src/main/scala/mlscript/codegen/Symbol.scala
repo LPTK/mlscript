@@ -103,7 +103,6 @@ object NewClassMemberSymbol {
 
 final case class NewClassSymbol(
     lexicalName: Str,
-    runtimeName: Str,
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
@@ -117,11 +116,13 @@ final case class NewClassSymbol(
   override def compare(that: NewClassSymbol): Int = lexicalName.compare(that.lexicalName)
 
   override def toString: Str = s"new class $lexicalName ($runtimeName)"
+
+  // Classes should have fixed names determined by users
+  override def runtimeName: Str = lexicalName
 }
 
 final case class MixinSymbol(
     lexicalName: Str,
-    runtimeName: Str,
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
@@ -134,11 +135,13 @@ final case class MixinSymbol(
   override def compare(that: MixinSymbol): Int = lexicalName.compare(that.lexicalName)
 
   override def toString: Str = s"mixin $lexicalName ($runtimeName)"
+
+  // Mixins should have fixed names determined by users
+  override def runtimeName: Str = lexicalName
 }
 
 final case class ModuleSymbol(
     lexicalName: Str,
-    runtimeName: Str,
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
@@ -152,6 +155,9 @@ final case class ModuleSymbol(
   override def compare(that: ModuleSymbol): Int = lexicalName.compare(that.lexicalName)
 
   override def toString: Str = s"module $lexicalName ($runtimeName)"
+
+  // Modules should have fixed names determined by users
+  override def runtimeName: Str = lexicalName
 }
 
 final case class TraitSymbol(
