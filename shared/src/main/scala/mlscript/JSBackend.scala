@@ -991,7 +991,7 @@ class JSWebBackend extends JSBackend(allowUnresolvedSymbols = true) {
     val defs =
       traitSymbols.map { translateTraitDeclaration(_)(topLevelScope) } ++
       mixinSymbols.map { translateMixinDeclaration(_)(topLevelScope) } ++
-      moduleSymbols.map{ translateModuleDeclaration(_)(topLevelScope) } ++
+      moduleSymbols.map { translateModuleDeclaration(_)(topLevelScope) } ++
       classSymbols.map { translateNewClassDeclaration(_)(topLevelScope) }.toList
 
     val defStmts =
@@ -1175,7 +1175,7 @@ class JSTestBackend extends JSBackend(allowUnresolvedSymbols = false) {
     val defStmts = 
       traitSymbols.map { translateTraitDeclaration(_)(topLevelScope) } ++
       mixinSymbols.map { translateMixinDeclaration(_)(topLevelScope) } ++
-      moduleSymbols.map{ translateModuleDeclaration(_)(topLevelScope) } ++
+      moduleSymbols.map { translateModuleDeclaration(_)(topLevelScope) } ++
       classSymbols.map { translateNewClassDeclaration(_)(topLevelScope) }.toList
 
     def include(typeName: Str, moduleName: Str) =
