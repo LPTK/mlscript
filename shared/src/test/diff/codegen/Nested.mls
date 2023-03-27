@@ -27,6 +27,27 @@ module A {
 //│           this.#a = 42;
 //│           const a = this.#a;
 //│         }
+//│         cache = {};
+//│         get B() {
+//│           const cache = this.cache;
+//│           if (this.cache.B === undefined) {
+//│             class B {
+//│               #x;
+//│               get x() { return this.#x; }
+//│               constructor(x) {
+//│                 this.#x = x;
+//│               }
+//│               get b() {
+//│                 const B = cache.B;
+//│                 const x = this.#x;
+//│                 return x + 1;
+//│               }
+//│             };
+//│             this.cache.B = ((x) => new B(x));
+//│             this.cache.B["class"] = B;
+//│           }
+//│           return this.cache.B;
+//│         }
 //│       }
 //│       this.cache.A = new A();
 //│       this.cache.A["class"] = A;
@@ -37,12 +58,12 @@ module A {
 //│ globalThis.A = typing_unit.A;
 //│ // End of generated code
 
-// FIXME: add nested classes
+:e
 :js
 let bb = A.B(A.a)
 bb.b
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.42: 	let bb = A.B(A.a)
+//│ ║  l.63: 	let bb = A.B(A.a)
 //│ ╙──      	          ^^
 //│ let bb: error
 //│ error
@@ -54,8 +75,112 @@ bb.b
 //│ res = bb.b;
 //│ // End of generated code
 //│ bb
-//│ Runtime error:
-//│   TypeError: A.B is not a function
+//│    = B {}
 //│ res
-//│ Runtime error:
-//│   ReferenceError: bb is not defined
+//│     = 43
+
+:js
+class B(x: int) {
+  let cache = 42
+  class C(y: int) {
+  }
+}
+//│ class B(x: int) {
+//│   class C(y: int)
+//│   let cache: 42
+//│ }
+//│ // Prelude
+//│ let typing_unit2 = {
+//│   cache: {},
+//│   get B() {
+//│     const cache = this.cache;
+//│     if (this.cache.B === undefined) {
+//│       class B {
+//│         #x;
+//│         #cache;
+//│         get x() { return this.#x; }
+//│         get cache() { return this.#cache; }
+//│         constructor(x) {
+//│           this.#x = x;
+//│           this.#cache = 42;
+//│           const cache = this.#cache;
+//│         }
+//│         cache1 = {};
+//│         get C() {
+//│           const cache = this.cache1;
+//│           if (this.cache1.C === undefined) {
+//│             class C {
+//│               #y;
+//│               get y() { return this.#y; }
+//│               constructor(y) {
+//│                 this.#y = y;
+//│               }
+//│             };
+//│             this.cache1.C = ((y) => new C(y));
+//│             this.cache1.C["class"] = C;
+//│           }
+//│           return this.cache1.C;
+//│         }
+//│       };
+//│       this.cache.B = ((x) => new B(x));
+//│       this.cache.B["class"] = B;
+//│     }
+//│     return this.cache.B;
+//│   }
+//│ };
+//│ globalThis.B = typing_unit2.B;
+//│ // End of generated code
+
+:js
+mixin C() {
+  mixin D() {
+    mixin E() {}
+  }
+}
+//│ mixin C() {
+//│   mixin D() {
+//│     mixin E()
+//│   }
+//│ }
+//│ // Prelude
+//│ let typing_unit3 = {
+//│   cache: {},
+//│   C(base) {
+//│     return (class C extends base {
+//│       constructor(...rest) {
+//│         super(...rest);
+//│       }
+//│       cache = {};
+//│       D(base) {
+//│         return (class D extends base {
+//│           constructor(...rest) {
+//│             super(...rest);
+//│           }
+//│           cache = {};
+//│           E(base) {
+//│             return (class E extends base {
+//│               constructor(...rest) {
+//│                 super(...rest);
+//│               }
+//│             });
+//│           }
+//│         });
+//│       }
+//│     });
+//│   }
+//│ };
+//│ globalThis.C = typing_unit3.C;
+//│ // End of generated code
+
+// FIXME: Add symbols into scopes
+:js
+module D {
+  class E(x: int) {}
+  fun createE(x: int) = E(x + 1)
+}
+//│ module D() {
+//│   class E(x: int)
+//│   fun createE: (x: int,) -> E
+//│ }
+//│ Code generation encountered an error:
+//│   unresolved symbol E
