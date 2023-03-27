@@ -1,0 +1,61 @@
+:NewParser
+:NewDefs
+
+:js
+module A {
+  let a = 42
+  class B(x: int) {
+    fun b = x + 1
+  }
+}
+//│ module A() {
+//│   class B(x: int) {
+//│     fun b: int
+//│   }
+//│   let a: 42
+//│ }
+//│ // Prelude
+//│ let res;
+//│ let typing_unit = {
+//│   cache: {},
+//│   get A() {
+//│     if (this.cache.A === undefined) {
+//│       class A {
+//│         #a;
+//│         get a() { return this.#a; }
+//│         constructor() {
+//│           this.#a = 42;
+//│           const a = this.#a;
+//│         }
+//│       }
+//│       this.cache.A = new A();
+//│       this.cache.A["class"] = A;
+//│     }
+//│     return this.cache.A;
+//│   }
+//│ };
+//│ globalThis.A = typing_unit.A;
+//│ // End of generated code
+
+// FIXME: add nested classes
+:js
+let bb = A.B(A.a)
+bb.b
+//│ ╔══[ERROR] access to class member not yet supported
+//│ ║  l.42: 	let bb = A.B(A.a)
+//│ ╙──      	          ^^
+//│ let bb: error
+//│ error
+//│ // Prelude
+//│ let typing_unit1 = { cache: {} };
+//│ // Query 1
+//│ globalThis.bb = A.B(A.a);
+//│ // Query 2
+//│ res = bb.b;
+//│ // End of generated code
+//│ bb
+//│ Runtime error:
+//│   TypeError: A.B is not a function
+//│ res
+//│ Runtime error:
+//│   ReferenceError: bb is not defined
