@@ -9,6 +9,7 @@ import mlscript.MethodDef
 import mlscript.{Term, Statement}
 import mlscript.utils.{AnyOps, lastWords}
 import mlscript.JSField
+import mlscript.NuTypeDef
 
 class Scope(name: Str, enclosing: Opt[Scope]) {
   private val lexicalTypeSymbols = scala.collection.mutable.HashMap[Str, TypeSymbol]()
@@ -228,9 +229,10 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       base: Type,
       methods: Ls[MethodDef[Left[Term, Type]]],
       ctor: Ls[Statement],
-      superParameters: Ls[Term]
+      superParameters: Ls[Term],
+      nested: Ls[NuTypeDef]
   ): NewClassSymbol = {
-    val symbol = NewClassSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters)
+    val symbol = NewClassSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters, nested)
     register(symbol)
     symbol
   }
@@ -240,9 +242,10 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       params: Ls[Str],
       base: Type,
       methods: Ls[MethodDef[Left[Term, Type]]],
-      ctor: Ls[Statement]
+      ctor: Ls[Statement],
+      nested: Ls[NuTypeDef]
   ): MixinSymbol = {
-    val symbol = MixinSymbol(lexicalName, params.sorted, base, methods, ctor)
+    val symbol = MixinSymbol(lexicalName, params.sorted, base, methods, ctor, nested)
     register(symbol)
     symbol
   }
@@ -253,9 +256,10 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       base: Type,
       methods: Ls[MethodDef[Left[Term, Type]]],
       ctor: Ls[Statement],
-      superParameters: Ls[Term]
+      superParameters: Ls[Term],
+      nested: Ls[NuTypeDef]
   ): ModuleSymbol = {
-    val symbol = ModuleSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters)
+    val symbol = ModuleSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters, nested)
     register(symbol)
     symbol
   }

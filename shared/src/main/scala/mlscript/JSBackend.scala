@@ -305,8 +305,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           JSBinary("===", scrut.member("constructor"), JSLit("String"))
         case Var(name) => topLevelScope.getType(name) match {
           case S(ClassSymbol(_, runtimeName, _, _, _)) => JSInstanceOf(scrut, JSIdent(runtimeName))
-          case S(NewClassSymbol(lexicalName, _, _, _, _, _)) => JSInstanceOf(scrut, JSMember(JSIdent(lexicalName), JSIdent(JSLit.makeStringLiteral("class"))))
-          case S(ModuleSymbol(lexicalName, _, _, _, _, _)) => JSInstanceOf(scrut, JSMember(JSIdent(lexicalName), JSIdent(JSLit.makeStringLiteral("class"))))
+          case S(NewClassSymbol(lexicalName, _, _, _, _, _, _)) => JSInstanceOf(scrut, JSMember(JSIdent(lexicalName), JSIdent(JSLit.makeStringLiteral("class"))))
+          case S(ModuleSymbol(lexicalName, _, _, _, _, _, _)) => JSInstanceOf(scrut, JSMember(JSIdent(lexicalName), JSIdent(JSLit.makeStringLiteral("class"))))
           case S(TraitSymbol(_, runtimeName, _, _, _)) => JSIdent(runtimeName)("is")(scrut)
           case S(_: TypeAliasSymbol) => throw new CodeGenError(s"cannot match type alias $name")
           case S(_: MixinSymbol) => throw new CodeGenError(s"cannot match mixin $name")
@@ -794,7 +794,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     (traits.toList, classes.toList)
   }
 
-  protected def declareNewTypeDefs(typeDefs: Ls[NuTypeDef]):
+  protected def declareNewTypeDefs(typeDefs: Ls[NuTypeDef])(implicit scope: Scope):
       (Ls[TraitSymbol], Ls[NewClassSymbol], Ls[MixinSymbol], Ls[ModuleSymbol]) = {
     val traits = new ListBuffer[TraitSymbol]()
     val classes = new ListBuffer[NewClassSymbol]()
@@ -826,32 +826,36 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         case t: Term => lst :+ t
         case _ => lst
       })
+      val nested = unit.entities.foldLeft(List[NuTypeDef]())((lst, loc) => loc match {
+        case nd: NuTypeDef => lst :+ nd
+        case _ => lst
+      })
       
-      (body, members, stmts)
+      (body, members, stmts, nested)
     }
 
     typeDefs.foreach {
       case td @ NuTypeDef(Mxn, TypeName(mxName), tps, tup @ Tup(fs), sig, pars, sup, ths, unit) => {
-        val (body, members, stmts) = prepare(mxName, fs, pars, unit)
-        val sym = topLevelScope.declareMixin(mxName, tps map { _._2.name }, body, members, stmts)
+        val (body, members, stmts, nested) = prepare(mxName, fs, pars, unit)
+        val sym = scope.declareMixin(mxName, tps map { _._2.name }, body, members, stmts, nested)
         if (!td.isDecl) mixins += sym
       }
       case td @ NuTypeDef(Nms, TypeName(nme), tps, tup @ Tup(fs), sig, pars, sup, ths, unit) => {
-        val (body, members, stmts) = prepare(nme, fs, pars, unit)
-        val sym = topLevelScope.declareModule(nme, tps map { _._2.name }, body, members, stmts, pars)
+        val (body, members, stmts, nested) = prepare(nme, fs, pars, unit)
+        val sym = scope.declareModule(nme, tps map { _._2.name }, body, members, stmts, pars, nested)
         if (!td.isDecl) modules += sym
       }
       case td @ NuTypeDef(Als, TypeName(nme), tps, _, sig, pars, _, _, _) => {
-        topLevelScope.declareTypeAlias(nme, tps map { _._2.name }, sig.getOrElse(Top))
+        scope.declareTypeAlias(nme, tps map { _._2.name }, sig.getOrElse(Top))
       }
       case td @ NuTypeDef(Cls, TypeName(nme), tps, tup @ Tup(fs), sig, pars, sup, ths, unit) => {
-        val (body, members, stmts) = prepare(nme, fs, pars, unit)
-        val sym = topLevelScope.declareNewClass(nme, tps map { _._2.name }, body, members, stmts, pars)
+        val (body, members, stmts, nested) = prepare(nme, fs, pars, unit)
+        val sym = scope.declareNewClass(nme, tps map { _._2.name }, body, members, stmts, pars, nested)
         if (!td.isDecl) classes += sym
       }
       case td @ NuTypeDef(Trt, TypeName(nme), tps, tup @ Tup(fs), sig, pars, sup, ths, unit) => {
-        val (body, members, _) = prepare(nme, fs, pars, unit)
-        val sym = topLevelScope.declareTrait(nme, tps map { _._2.name }, body, members)
+        val (body, members, _, _) = prepare(nme, fs, pars, unit)
+        val sym = scope.declareTrait(nme, tps map { _._2.name }, body, members)
         if (!td.isDecl) traits += sym
       }
     }
@@ -984,7 +988,7 @@ class JSWebBackend extends JSBackend(allowUnresolvedSymbols = true) {
       case _ => die
    }
 
-    val (traitSymbols, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDefs)
+    val (traitSymbols, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDefs)(topLevelScope)
     def include(typeName: Str, moduleName: Str) =
       JSExprStmt(JSAssignExpr(JSField(JSIdent("globalThis"), typeName), JSField(JSIdent(moduleName), typeName)))
     val includes =
@@ -1181,7 +1185,7 @@ class JSTestBackend extends JSBackend(allowUnresolvedSymbols = false) {
       case _ => die
    }
 
-    val (traitSymbols, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDefs)
+    val (traitSymbols, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDefs)(topLevelScope)
     val defStmts = 
       traitSymbols.map { translateTraitDeclaration(_)(topLevelScope) } ++
       mixinSymbols.map { translateMixinDeclaration(_)(topLevelScope) } ++

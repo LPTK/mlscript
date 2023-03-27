@@ -6,6 +6,7 @@ import mlscript.JSClassDecl
 import mlscript.MethodDef
 import mlscript.{Term, Statement}
 import mlscript.TypeName
+import mlscript.NuTypeDef
 
 sealed trait LexicalSymbol {
 
@@ -107,7 +108,8 @@ final case class NewClassSymbol(
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
     ctor: Ls[Statement],
-    superParameters: Ls[Term]
+    superParameters: Ls[Term],
+    nested: Ls[NuTypeDef]
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[NewClassSymbol] {
 
@@ -126,7 +128,8 @@ final case class MixinSymbol(
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
-    ctor: Ls[Statement]
+    ctor: Ls[Statement],
+    nested: Ls[NuTypeDef]
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[MixinSymbol] {
 
@@ -146,7 +149,8 @@ final case class ModuleSymbol(
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
     ctor: Ls[Statement],
-    superParameters: Ls[Term]
+    superParameters: Ls[Term],
+    nested: Ls[NuTypeDef]
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[ModuleSymbol] {
 
