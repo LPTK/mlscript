@@ -81,7 +81,6 @@ a.f
 //│     = 42
 
 
-// FIXME
 module Foo {
   fun f = C0()
   class C0()
@@ -90,8 +89,6 @@ module Foo {
 //│   class C0()
 //│   fun f: C0
 //│ }
-//│ Code generation encountered an error:
-//│   unresolved symbol C0
 
 
 mixin M0(n: int) {

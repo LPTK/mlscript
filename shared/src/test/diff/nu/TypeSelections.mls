@@ -1,7 +1,6 @@
 :NewDefs
 
 
-:ge // TODO
 module M {
   type T = int -> int
   class C(n: int)
@@ -12,8 +11,6 @@ module M {
 //│   type T = int -> int
 //│   fun mkC: (n: int,) -> C
 //│ }
-//│ Code generation encountered an error:
-//│   unresolved symbol C
 
 let x: M.T = id
 //│ let x: int -> int
@@ -27,8 +24,7 @@ fun foo(x: M.C) = x
 foo(M.mkC(42))
 //│ C
 //│ res
-//│ Runtime error:
-//│   ReferenceError: M is not defined
+//│     = C {}
 
 
 :e

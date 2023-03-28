@@ -107,9 +107,10 @@ final case class NewClassSymbol(
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
-    ctor: Ls[Statement],
-    superParameters: Ls[Term],
-    nested: Ls[NuTypeDef]
+    ctor: Ls[Statement], // statements in the constructor
+    superParameters: Ls[Term], // parameters that need to be passed to the `super()`
+    nested: Ls[NuTypeDef], // nested class/mixin/module
+    isNested: Bool // is nested in another class/mixin/module
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[NewClassSymbol] {
 
@@ -129,7 +130,8 @@ final case class MixinSymbol(
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
     ctor: Ls[Statement],
-    nested: Ls[NuTypeDef]
+    nested: Ls[NuTypeDef],
+    isNested: Bool
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[MixinSymbol] {
 
@@ -150,7 +152,8 @@ final case class ModuleSymbol(
     methods: Ls[MethodDef[Left[Term, Type]]],
     ctor: Ls[Statement],
     superParameters: Ls[Term],
-    nested: Ls[NuTypeDef]
+    nested: Ls[NuTypeDef],
+    isNested: Bool
 ) extends TypeSymbol
     with RuntimeSymbol with Ordered[ModuleSymbol] {
 

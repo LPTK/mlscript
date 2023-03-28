@@ -230,9 +230,10 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       methods: Ls[MethodDef[Left[Term, Type]]],
       ctor: Ls[Statement],
       superParameters: Ls[Term],
-      nested: Ls[NuTypeDef]
+      nested: Ls[NuTypeDef],
+      isNested: Bool
   ): NewClassSymbol = {
-    val symbol = NewClassSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters, nested)
+    val symbol = NewClassSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters, nested, isNested)
     register(symbol)
     symbol
   }
@@ -243,9 +244,10 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       base: Type,
       methods: Ls[MethodDef[Left[Term, Type]]],
       ctor: Ls[Statement],
-      nested: Ls[NuTypeDef]
+      nested: Ls[NuTypeDef],
+      isNested: Bool
   ): MixinSymbol = {
-    val symbol = MixinSymbol(lexicalName, params.sorted, base, methods, ctor, nested)
+    val symbol = MixinSymbol(lexicalName, params.sorted, base, methods, ctor, nested, isNested)
     register(symbol)
     symbol
   }
@@ -257,9 +259,10 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       methods: Ls[MethodDef[Left[Term, Type]]],
       ctor: Ls[Statement],
       superParameters: Ls[Term],
-      nested: Ls[NuTypeDef]
+      nested: Ls[NuTypeDef],
+      isNested: Bool
   ): ModuleSymbol = {
-    val symbol = ModuleSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters, nested)
+    val symbol = ModuleSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters, nested, isNested)
     register(symbol)
     symbol
   }
