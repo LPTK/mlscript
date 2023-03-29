@@ -27,6 +27,10 @@ sealed trait TypeSymbol extends LexicalSymbol {
   val body: Type
 }
 
+sealed trait NuTypeSymbol {
+  val isNested: Bool
+}
+
 sealed class ValueSymbol(val lexicalName: Str, val runtimeName: Str, val isByvalueRec: Option[Boolean], val isLam: Boolean) extends RuntimeSymbol {
   override def toString: Str = s"value $lexicalName"
 }
@@ -112,7 +116,7 @@ final case class NewClassSymbol(
     nested: Ls[NuTypeDef], // nested class/mixin/module
     isNested: Bool // is nested in another class/mixin/module
 ) extends TypeSymbol
-    with RuntimeSymbol with Ordered[NewClassSymbol] {
+    with RuntimeSymbol with NuTypeSymbol with Ordered[NewClassSymbol] {
 
   import scala.math.Ordered.orderingToOrdered
 
@@ -133,7 +137,7 @@ final case class MixinSymbol(
     nested: Ls[NuTypeDef],
     isNested: Bool
 ) extends TypeSymbol
-    with RuntimeSymbol with Ordered[MixinSymbol] {
+    with RuntimeSymbol with NuTypeSymbol with Ordered[MixinSymbol] {
 
   import scala.math.Ordered.orderingToOrdered
 
@@ -155,7 +159,7 @@ final case class ModuleSymbol(
     nested: Ls[NuTypeDef],
     isNested: Bool
 ) extends TypeSymbol
-    with RuntimeSymbol with Ordered[ModuleSymbol] {
+    with RuntimeSymbol with NuTypeSymbol with Ordered[ModuleSymbol] {
 
   import scala.math.Ordered.orderingToOrdered
 

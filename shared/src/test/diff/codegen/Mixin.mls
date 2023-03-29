@@ -12,7 +12,7 @@ class Lit(n: int)
 //│ let typing_unit = {
 //│   cache: {},
 //│   get Add() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Add === undefined) {
 //│       class Add {
@@ -31,7 +31,7 @@ class Lit(n: int)
 //│     return this.cache.Add;
 //│   },
 //│   get Lit() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Lit === undefined) {
 //│       class Lit {
@@ -57,7 +57,7 @@ class Lit(n: int)
 //│ │ │   let typing_unit = {
 //│ │ │     cache: {},
 //│ │ │     get Add() {
-//│ │ │       const outter = this;
+//│ │ │       const outter1 = this;
 //│ │ │       const cache = this.cache;
 //│ │ │       if (this.cache.Add === undefined) {
 //│ │ │         class Add {
@@ -76,7 +76,7 @@ class Lit(n: int)
 //│ │ │       return this.cache.Add;
 //│ │ │     },
 //│ │ │     get Lit() {
-//│ │ │       const outter = this;
+//│ │ │       const outter1 = this;
 //│ │ │       const cache = this.cache;
 //│ │ │       if (this.cache.Lit === undefined) {
 //│ │ │         class Lit {
@@ -114,7 +114,7 @@ mixin EvalBase {
 //│ let typing_unit1 = {
 //│   cache: {},
 //│   EvalBase(base) {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     return (class EvalBase extends base {
 //│       constructor(...rest) {
 //│         super(...rest);
@@ -139,7 +139,7 @@ mixin EvalBase {
 //│ │ │   let typing_unit1 = {
 //│ │ │     cache: {},
 //│ │ │     EvalBase(base) {
-//│ │ │       const outter = this;
+//│ │ │       const outter1 = this;
 //│ │ │       return (class EvalBase extends base {
 //│ │ │         constructor(...rest) {
 //│ │ │           super(...rest);
@@ -169,7 +169,7 @@ class Neg<A>(expr: A)
 //│ let typing_unit2 = {
 //│   cache: {},
 //│   get Neg() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Neg === undefined) {
 //│       class Neg {
@@ -193,7 +193,7 @@ class Neg<A>(expr: A)
 //│ │ │   let typing_unit2 = {
 //│ │ │     cache: {},
 //│ │ │     get Neg() {
-//│ │ │       const outter = this;
+//│ │ │       const outter1 = this;
 //│ │ │       const cache = this.cache;
 //│ │ │       if (this.cache.Neg === undefined) {
 //│ │ │         class Neg {
@@ -230,7 +230,7 @@ mixin EvalNeg {
 //│ let typing_unit3 = {
 //│   cache: {},
 //│   EvalNeg(base) {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     return (class EvalNeg extends base {
 //│       constructor(...rest) {
 //│         super(...rest);
@@ -252,7 +252,7 @@ mixin EvalNeg {
 //│ │ │   let typing_unit3 = {
 //│ │ │     cache: {},
 //│ │ │     EvalNeg(base) {
-//│ │ │       const outter = this;
+//│ │ │       const outter1 = this;
 //│ │ │       return (class EvalNeg extends base {
 //│ │ │         constructor(...rest) {
 //│ │ │           super(...rest);
@@ -287,7 +287,7 @@ mixin EvalNegNeg {
 //│ let typing_unit4 = {
 //│   cache: {},
 //│   EvalNegNeg(base) {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     return (class EvalNegNeg extends base {
 //│       constructor(...rest) {
 //│         super(...rest);
@@ -309,7 +309,7 @@ mixin EvalNegNeg {
 //│ │ │   let typing_unit4 = {
 //│ │ │     cache: {},
 //│ │ │     EvalNegNeg(base) {
-//│ │ │       const outter = this;
+//│ │ │       const outter1 = this;
 //│ │ │       return (class EvalNegNeg extends base {
 //│ │ │         constructor(...rest) {
 //│ │ │           super(...rest);
@@ -340,7 +340,7 @@ module TestLang extends EvalBase, EvalNeg, EvalNegNeg
 //│ let typing_unit5 = {
 //│   cache: {},
 //│   get TestLang() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.TestLang === undefined) {
 //│       class TestLang extends EvalNegNeg(EvalNeg(EvalBase(Object))) {
@@ -362,7 +362,7 @@ module TestLang extends EvalBase, EvalNeg, EvalNegNeg
 //│ │ │   let typing_unit5 = {
 //│ │ │     cache: {},
 //│ │ │     get TestLang() {
-//│ │ │       const outter = this;
+//│ │ │       const outter1 = this;
 //│ │ │       const cache = this.cache;
 //│ │ │       if (this.cache.TestLang === undefined) {
 //│ │ │         class TestLang extends EvalNegNeg(EvalNeg(EvalBase(Object))) {
@@ -464,7 +464,7 @@ mixin Fooo(x: int) { fun f = [x, this.x] }
 //│ let typing_unit14 = {
 //│   cache: {},
 //│   Fooo(base) {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     return (class Fooo extends base {
 //│       #x;
 //│       get x() { return this.#x; }
@@ -493,7 +493,7 @@ mixin Bazz(y: int)
 //│ let typing_unit15 = {
 //│   cache: {},
 //│   Bazz(base) {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     return (class Bazz extends base {
 //│       #y;
 //│       get y() { return this.#y; }
@@ -516,7 +516,7 @@ module Barr extends Fooo(0), Bazz(1)
 //│ let typing_unit16 = {
 //│   cache: {},
 //│   get Barr() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Barr === undefined) {
 //│       class Barr extends Bazz(Fooo(Object)) {
@@ -581,7 +581,7 @@ module MM extends MA(1), MB(2, 3), MC(4)
 //│ let typing_unit22 = {
 //│   cache: {},
 //│   get MM() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.MM === undefined) {
 //│       class MM extends MC(MB(MA(Object))) {

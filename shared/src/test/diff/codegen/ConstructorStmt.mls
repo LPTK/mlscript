@@ -14,7 +14,7 @@ module Test0 {
 //│ let typing_unit = {
 //│   cache: {},
 //│   get Test0() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Test0 === undefined) {
 //│       class Test0 {
@@ -64,7 +64,7 @@ class A(a: int) {
 //│ let typing_unit3 = {
 //│   cache: {},
 //│   get A() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.A === undefined) {
 //│       class A {
@@ -134,7 +134,7 @@ class Foo {
 //│ let typing_unit7 = {
 //│   cache: {},
 //│   get Foo() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Foo === undefined) {
 //│       class Foo {};
@@ -163,7 +163,7 @@ class Bar {
 //│ let typing_unit8 = {
 //│   cache: {},
 //│   get Bar() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Bar === undefined) {
 //│       class Bar {};
@@ -193,7 +193,7 @@ class Baz {
 //│ let typing_unit9 = {
 //│   cache: {},
 //│   get Baz() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Baz === undefined) {
 //│       class Baz {
@@ -260,7 +260,7 @@ class Q() {
 //│ let typing_unit11 = {
 //│   cache: {},
 //│   get Q() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Q === undefined) {
 //│       class Q {
@@ -310,7 +310,7 @@ class W() {
 //│ let typing_unit13 = {
 //│   cache: {},
 //│   get W() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.W === undefined) {
 //│       class W {

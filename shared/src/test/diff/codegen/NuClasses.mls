@@ -12,7 +12,7 @@ class Test(n: int) {
 //│ let typing_unit = {
 //│   cache: {},
 //│   get Test() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Test === undefined) {
 //│       class Test {
@@ -145,7 +145,7 @@ module M2 {
 //│ let typing_unit11 = {
 //│   cache: {},
 //│   get M2() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.M2 === undefined) {
 //│       class M2 {

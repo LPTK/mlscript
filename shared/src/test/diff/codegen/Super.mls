@@ -15,7 +15,7 @@ mixin Foo0 {
 //│ let typing_unit = {
 //│   cache: {},
 //│   Foo0(base) {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     return (class Foo0 extends base {
 //│       #foo0;
 //│       get foo0() { return this.#foo0; }
@@ -44,7 +44,7 @@ mixin Foo1 {
 //│ let typing_unit1 = {
 //│   cache: {},
 //│   Foo1(base) {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     return (class Foo1 extends base {
 //│       #foo0;
 //│       #foo1;
@@ -92,7 +92,7 @@ mixin Foo2 {
 //│ let typing_unit4 = {
 //│   cache: {},
 //│   Foo2(base) {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     return (class Foo2 extends base {
 //│       constructor(...rest) {
 //│         super(...rest);
@@ -118,7 +118,7 @@ module Test0 extends Foo2
 //│ let typing_unit5 = {
 //│   cache: {},
 //│   get Test0() {
-//│     const outter = this;
+//│     const outter1 = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Test0 === undefined) {
 //│       class Test0 extends Foo2(Object) {
