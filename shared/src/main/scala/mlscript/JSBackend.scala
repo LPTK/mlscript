@@ -552,7 +552,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }
 
     val classBody = JSClassNewDecl(mixinSymbol.lexicalName, fields, fields ::: getters.toList, S(JSIdent(base.runtimeName)),
-      Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName), members, traits, stmts)
+      Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName), members, traits, outterDec.drop(1) ::: stmts)
+      // the first one is always `const outter = this;`
     JSClassMethod(mixinSymbol.lexicalName, Ls(JSNamePattern(base.runtimeName)), R(outterDec ::: Ls(
       JSReturnStmt(S(JSClassExpr(classBody)))
     )))
@@ -690,7 +691,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
                    N,
                    members,
                    traits,
-                   stmts)
+                   outterDec.drop(1) ::: stmts) // the first one is always `const outter = this;`
 
     JSClassGetter(moduleSymbol.lexicalName, R(outterDec ::: Ls(
       JSConstDecl(cacheSymbol.runtimeName, JSField(JSIdent("this"), outterCache)),
@@ -826,7 +827,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     JSClassNewDecl(classSymbol.lexicalName, fields, fields ::: getters.toList, base, restRuntime match {
       case Some(restRuntime) => superParameters.reverse :+ JSIdent(s"...$restRuntime")
       case _ => superParameters.reverse
-    }, restRuntime, members, traits, stmts)
+    }, restRuntime, members, traits, outterStmt ::: stmts)
   }
 
   /**

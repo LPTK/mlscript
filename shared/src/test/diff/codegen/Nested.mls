@@ -39,6 +39,7 @@ module A {
 //│               get x() { return this.#x; }
 //│               constructor(x) {
 //│                 this.#x = x;
+//│                 const a = outter1.a;
 //│               }
 //│               get b() {
 //│                 const B = cache.B;
@@ -67,7 +68,7 @@ module A {
 let bb = A.B(A.a)
 bb.b
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.67: 	let bb = A.B(A.a)
+//│ ║  l.68: 	let bb = A.B(A.a)
 //│ ╙──      	          ^^
 //│ let bb: error
 //│ error
@@ -120,6 +121,8 @@ class B(x: int) {
 //│               get y() { return this.#y; }
 //│               constructor(y) {
 //│                 this.#y = y;
+//│                 const x = outter1.x;
+//│                 const cache = outter1.cache;
 //│               }
 //│             };
 //│             this.cache1.C = ((y) => new C(y));
@@ -214,6 +217,7 @@ module D {
 //│               get x() { return this.#x; }
 //│               constructor(x) {
 //│                 this.#x = x;
+//│                 const createE = outter1.createE;
 //│               }
 //│             };
 //│             this.cache.E = ((x) => new E(x));
@@ -288,6 +292,7 @@ class E(x: int) {
 //│               get y() { return this.#y; }
 //│               constructor(y) {
 //│                 this.#y = y;
+//│                 const x = outter1.x;
 //│               }
 //│               get sum() {
 //│                 const F = cache.F;
@@ -306,6 +311,8 @@ class E(x: int) {
 //│                     get z() { return this.#z; }
 //│                     constructor(z) {
 //│                       this.#z = z;
+//│                       const y = outter.y;
+//│                       const sum = outter.sum;
 //│                     }
 //│                     get sum() {
 //│                       const G = cache.G;
@@ -343,7 +350,7 @@ let fff = es.F(2)
 let gg = fff.G(3)
 gg.sum
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.342: 	let fff = es.F(2)
+//│ ║  l.349: 	let fff = es.F(2)
 //│ ╙──       	            ^^
 //│ let es: E
 //│ let fff: error
@@ -405,6 +412,7 @@ class F() {
 //│               #x1;
 //│               get x1() { return this.#x1; }
 //│               constructor() {
+//│                 const x = outter1.x;
 //│                 this.#x1 = x + 1;
 //│                 const x1 = this.#x1;
 //│               }
@@ -476,6 +484,7 @@ module G {
 //│                     get x() { return this.#x; }
 //│                     constructor(x) {
 //│                       this.#x = x;
+//│                       const i1 = outter.i1;
 //│                     }
 //│                     ii(a) {
 //│                       const J = cache.J;
@@ -504,6 +513,7 @@ module G {
 //│               get x() { return this.#x; }
 //│               constructor(x) {
 //│                 this.#x = x;
+//│                 const H = outter1.H;
 //│               }
 //│             };
 //│             this.cache.I = ((x) => new I(x));
@@ -521,14 +531,14 @@ module G {
 //│ globalThis.G = typing_unit9.G;
 //│ // End of generated code
 
-// TODO: constructor/properties?
+
 :e
 :js
 let jj = G.H.J(42)
 let i = jj.ii(2)
 i.x
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.527: 	let jj = G.H.J(42)
+//│ ║  l.537: 	let jj = G.H.J(42)
 //│ ╙──       	          ^^
 //│ let jj: error
 //│ let i: error
@@ -548,3 +558,97 @@ i.x
 //│   = I {}
 //│ res
 //│     = 44
+
+:js
+module H {
+  class I(x: int)
+  class J(x: int) {
+    let i = I(x + 1)
+  }
+}
+//│ module H() {
+//│   class I(x: int)
+//│   class J(x: int) {
+//│     let i: I
+//│   }
+//│ }
+//│ // Prelude
+//│ let typing_unit11 = {
+//│   cache: {},
+//│   get H() {
+//│     const outter = this;
+//│     const cache = this.cache;
+//│     if (this.cache.H === undefined) {
+//│       class H {
+//│         constructor() {
+//│         }
+//│         cache = {};
+//│         get I() {
+//│           const outter1 = this;
+//│           const cache = this.cache;
+//│           if (this.cache.I === undefined) {
+//│             class I {
+//│               #x;
+//│               get x() { return this.#x; }
+//│               constructor(x) {
+//│                 this.#x = x;
+//│                 const J = outter1.J;
+//│               }
+//│             };
+//│             this.cache.I = ((x) => new I(x));
+//│             this.cache.I["class"] = I;
+//│           }
+//│           return this.cache.I;
+//│         }
+//│         get J() {
+//│           const outter1 = this;
+//│           const cache = this.cache;
+//│           if (this.cache.J === undefined) {
+//│             class J {
+//│               #x;
+//│               #i;
+//│               get x() { return this.#x; }
+//│               get i() { return this.#i; }
+//│               constructor(x) {
+//│                 this.#x = x;
+//│                 const I = outter1.I;
+//│                 this.#i = I(x + 1);
+//│                 const i = this.#i;
+//│               }
+//│             };
+//│             this.cache.J = ((x) => new J(x));
+//│             this.cache.J["class"] = J;
+//│           }
+//│           return this.cache.J;
+//│         }
+//│       }
+//│       this.cache.H = new H();
+//│       this.cache.H["class"] = H;
+//│     }
+//│     return this.cache.H;
+//│   }
+//│ };
+//│ globalThis.H = typing_unit11.H;
+//│ // End of generated code
+
+
+:e
+:js
+let j = H.J(42)
+j.i.x
+//│ ╔══[ERROR] access to class member not yet supported
+//│ ║  l.637: 	let j = H.J(42)
+//│ ╙──       	         ^^
+//│ let j: error
+//│ error
+//│ // Prelude
+//│ let typing_unit12 = { cache: {} };
+//│ // Query 1
+//│ globalThis.j = H.J(42);
+//│ // Query 2
+//│ res = j.i.x;
+//│ // End of generated code
+//│ j
+//│   = J {}
+//│ res
+//│     = 43
