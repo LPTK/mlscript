@@ -39,11 +39,9 @@ module A {
 //│               get x() { return this.#x; }
 //│               constructor(x) {
 //│                 this.#x = x;
-//│                 const a = outter.a;
 //│               }
 //│               get b() {
 //│                 const B = cache.B;
-//│                 const a = outter.a;
 //│                 const x = this.#x;
 //│                 return x + 1;
 //│               }
@@ -68,7 +66,7 @@ module A {
 let bb = A.B(A.a)
 bb.b
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.68: 	let bb = A.B(A.a)
+//│ ║  l.66: 	let bb = A.B(A.a)
 //│ ╙──      	          ^^
 //│ let bb: error
 //│ error
@@ -121,8 +119,6 @@ class B(x: int) {
 //│               get y() { return this.#y; }
 //│               constructor(y) {
 //│                 this.#y = y;
-//│                 const x = outter.x;
-//│                 const cache = outter.cache;
 //│               }
 //│             };
 //│             this.cache1.C = ((y) => new C(y));
@@ -170,11 +166,9 @@ mixin C() {
 //│           cache = {};
 //│           E(base) {
 //│             const outter1 = this;
-//│             const D = outter.D;
 //│             return (class E extends base {
 //│               constructor(...rest) {
 //│                 super(...rest);
-//│                 const D = outter1.D;
 //│               }
 //│             });
 //│           }
@@ -219,7 +213,6 @@ module D {
 //│               get x() { return this.#x; }
 //│               constructor(x) {
 //│                 this.#x = x;
-//│                 const createE = outter.createE;
 //│               }
 //│             };
 //│             this.cache.E = ((x) => new E(x));
@@ -294,7 +287,6 @@ class E(x: int) {
 //│               get y() { return this.#y; }
 //│               constructor(y) {
 //│                 this.#y = y;
-//│                 const x = outter.x;
 //│               }
 //│               get sum() {
 //│                 const F = cache.F;
@@ -306,7 +298,6 @@ class E(x: int) {
 //│               get G() {
 //│                 const outter1 = this;
 //│                 const x = outter.x;
-//│                 const F = outter.F;
 //│                 const cache = this.cache;
 //│                 if (this.cache.G === undefined) {
 //│                   class G {
@@ -314,13 +305,10 @@ class E(x: int) {
 //│                     get z() { return this.#z; }
 //│                     constructor(z) {
 //│                       this.#z = z;
-//│                       const y = outter1.y;
-//│                       const sum = outter1.sum;
 //│                     }
 //│                     get sum() {
 //│                       const G = cache.G;
 //│                       const y = outter1.y;
-//│                       const sum = outter1.sum;
 //│                       const z = this.#z;
 //│                       return x + y + z;
 //│                     }
@@ -353,7 +341,7 @@ let fff = es.F(2)
 let gg = fff.G(3)
 gg.sum
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.352: 	let fff = es.F(2)
+//│ ║  l.340: 	let fff = es.F(2)
 //│ ╙──       	            ^^
 //│ let es: E
 //│ let fff: error
@@ -481,7 +469,6 @@ module G {
 //│               get J() {
 //│                 const outter1 = this;
 //│                 const I = outter.I;
-//│                 const H = outter.H;
 //│                 const cache = this.cache;
 //│                 if (this.cache.J === undefined) {
 //│                   class J {
@@ -489,11 +476,9 @@ module G {
 //│                     get x() { return this.#x; }
 //│                     constructor(x) {
 //│                       this.#x = x;
-//│                       const i1 = outter1.i1;
 //│                     }
 //│                     ii(a) {
 //│                       const J = cache.J;
-//│                       const i1 = outter1.i1;
 //│                       const x = this.#x;
 //│                       return I(x + a);
 //│                     }
@@ -518,7 +503,6 @@ module G {
 //│               get x() { return this.#x; }
 //│               constructor(x) {
 //│                 this.#x = x;
-//│                 const H = outter.H;
 //│               }
 //│             };
 //│             this.cache.I = ((x) => new I(x));
@@ -543,7 +527,7 @@ let jj = G.H.J(42)
 let i = jj.ii(2)
 i.x
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.542: 	let jj = G.H.J(42)
+//│ ║  l.526: 	let jj = G.H.J(42)
 //│ ╙──       	          ^^
 //│ let jj: error
 //│ let i: error
@@ -597,7 +581,6 @@ module H {
 //│               get x() { return this.#x; }
 //│               constructor(x) {
 //│                 this.#x = x;
-//│                 const J = outter.J;
 //│               }
 //│             };
 //│             this.cache.I = ((x) => new I(x));
@@ -642,7 +625,7 @@ module H {
 let j = H.J(42)
 j.i.x
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.642: 	let j = H.J(42)
+//│ ║  l.625: 	let j = H.J(42)
 //│ ╙──       	         ^^
 //│ let j: error
 //│ error
@@ -702,13 +685,11 @@ class I(x: int) {
 //│               get y() { return this.#y; }
 //│               constructor(x) {
 //│                 this.#x = x;
-//│                 const y = outter.y;
 //│                 this.#y = x + 2;
 //│                 const y1 = this.#y;
 //│               }
 //│               get incY() {
 //│                 const J = cache.J;
-//│                 const x = outter.x;
 //│                 const y = outter.y;
 //│                 const x1 = this.#x;
 //│                 return y + 1;
@@ -735,7 +716,7 @@ let i = I(1)
 let ij = i.J(0)
 ij.incY
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.735: 	let ij = i.J(0)
+//│ ║  l.716: 	let ij = i.J(0)
 //│ ╙──       	          ^^
 //│ let i: I
 //│ let ij: error
@@ -765,7 +746,7 @@ module J {
   class N(x: int) extends L
 }
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.764: 	  class M() extends K(1) {}
+//│ ║  l.745: 	  class M() extends K(1) {}
 //│ ╙──       	                    ^^^^
 //│ module J() {
 //│   class K(x: int)
@@ -801,9 +782,6 @@ module J {
 //│               get x() { return this.#x; }
 //│               constructor(x) {
 //│                 this.#x = x;
-//│                 const M = outter.M;
-//│                 const N = outter.N;
-//│                 const L = outter.L;
 //│               }
 //│             };
 //│             this.cache.K = ((x) => new K(x));
@@ -819,8 +797,6 @@ module J {
 //│               constructor() {
 //│                 super(1);
 //│                 const K = outter.K;
-//│                 const N = outter.N;
-//│                 const L = outter.L;
 //│               }
 //│             };
 //│             this.cache.M = (() => new M());
@@ -838,8 +814,6 @@ module J {
 //│               constructor(x) {
 //│                 super();
 //│                 this.#x = x;
-//│                 const K = outter.K;
-//│                 const M = outter.M;
 //│                 const L = outter.L;
 //│               }
 //│             };
@@ -863,10 +837,10 @@ module J {
 let m = J.M()
 let n = J.N(2)
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.863: 	let m = J.M()
+//│ ║  l.837: 	let m = J.M()
 //│ ╙──       	         ^^
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.864: 	let n = J.N(2)
+//│ ║  l.838: 	let n = J.N(2)
 //│ ╙──       	         ^^
 //│ let m: error
 //│ let n: error
@@ -906,7 +880,7 @@ module K {
 let m = K.L.M()
 m.f
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.906: 	let m = K.L.M()
+//│ ║  l.880: 	let m = K.L.M()
 //│ ╙──       	         ^^
 //│ let m: error
 //│ error
@@ -925,7 +899,7 @@ module L {
   }
 }
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.923: 	      class P(y: int) extends M(y + 1) {}
+//│ ║  l.897: 	      class P(y: int) extends M(y + 1) {}
 //│ ╙──       	                              ^^^^^^^^
 //│ module L() {
 //│   class M(x: int)
@@ -940,7 +914,7 @@ module L {
 let op = L.N.O.P(0)
 op.x
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.940: 	let op = L.N.O.P(0)
+//│ ║  l.914: 	let op = L.N.O.P(0)
 //│ ╙──       	          ^^
 //│ let op: error
 //│ error

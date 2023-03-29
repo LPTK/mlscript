@@ -466,8 +466,14 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
   private def translateMemberCapcture(outterName: Str, members: Ls[Str])(implicit scope: Scope) =
     members.map(nme => {
       val sym = scope.declareValue(nme, Some(false), false)
-      JSConstDecl(sym.runtimeName, JSField(JSIdent(outterName), nme))
-    })
+      (JSConstDecl(sym.runtimeName, JSField(JSIdent(outterName), nme)), sym)
+    }).unzip(p => p)
+
+  private def filterDecStmts(stmts: Ls[JSConstDecl], syms: Ls[ValueSymbol]) =
+    stmts.zip(syms).filter {
+      case (stmt, sym) => visitedSymbols(sym)
+      case _ => true
+    }.unzip(p => p)._1
 
   protected def translateMixinDeclaration(
       mixinSymbol: MixinSymbol,
@@ -479,7 +485,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     getterScope.declareValue(outterName, Some(false), false) // avoid shadowing
     val outterSymbol = getterScope.declareValue("outter", Some(false), false)
 
-    val outterStmts = JSConstDecl(outterSymbol.runtimeName, JSIdent("this")) ::
+    val (outterStmts, outterSyms) =
       translateMemberCapcture(outterName, outterMembers)(getterScope)
 
     val mixinScope = getterScope.derive(s"mixin ${mixinSymbol.lexicalName}")
@@ -519,7 +525,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
 
     val constructorScope = mixinScope.derive(s"${mixinSymbol.lexicalName} constructor")
     fields.foreach(constructorScope.declareValue(_, Some(false), false))
-    val siblingsStmt = translateMemberCapcture(
+    val (siblingsStmt, siblingSyms) = translateMemberCapcture(
       outterSymbol.runtimeName,
       outterMembers.filter(m => m =/= mixinSymbol.lexicalName && !fields.contains(m)) // should be shadowed by the ctor parameter
     )(constructorScope)
@@ -546,11 +552,12 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }
 
     val classBody = JSClassNewDecl(mixinSymbol.lexicalName, fields, fields ::: getters.toList, S(JSIdent(base.runtimeName)),
-      Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName), members, traits, siblingsStmt ::: stmts)
-      // the first one is always `const outter = this;`
-    JSClassMethod(mixinSymbol.lexicalName, Ls(JSNamePattern(base.runtimeName)), R(outterStmts ::: Ls(
-      JSReturnStmt(S(JSClassExpr(classBody)))
-    )))
+      Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName), members, traits, filterDecStmts(siblingsStmt, siblingSyms) ::: stmts)
+    JSClassMethod(mixinSymbol.lexicalName, Ls(JSNamePattern(base.runtimeName)),
+      R((JSConstDecl(outterSymbol.runtimeName, JSIdent("this")) :: filterDecStmts(outterStmts, outterSyms)) ::: Ls(
+        JSReturnStmt(S(JSClassExpr(classBody)))
+      ))
+    )
   }
 
   private def translateParents(superFields: Ls[Term], constructorScope: Scope)(implicit scope: Scope): Opt[JSExpr] = {
@@ -602,7 +609,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     getterScope.declareValue(outterName, Some(false), false) // avoid shadowing
     val outterSymbol = getterScope.declareValue("outter", Some(false), false)
 
-    val outterStmts = JSConstDecl(outterSymbol.runtimeName, JSIdent("this")) ::
+    val (outterStmts, outterSyms) =
       translateMemberCapcture(outterName, outterMembers)(getterScope)
 
     val cacheSymbol = getterScope.declareValue("cache", Some(false), false)
@@ -614,7 +621,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       moduleSymbol.body.collectTypeNames.flatMap(resolveTraitFields)
 
     fields.foreach(constructorScope.declareValue(_, Some(false), false))
-    val siblingsStmt = translateMemberCapcture(
+    val (siblingsStmt, siblingSyms) = translateMemberCapcture(
       outterSymbol.runtimeName,
       outterMembers.filter(m => m =/= moduleSymbol.lexicalName && !fields.contains(m)) // should be shadowed by the ctor parameter
     )(constructorScope)
@@ -682,9 +689,9 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
                    N,
                    members,
                    traits,
-                   siblingsStmt ::: stmts)
+                   filterDecStmts(siblingsStmt, siblingSyms) ::: stmts)
 
-    JSClassGetter(moduleSymbol.lexicalName, R(outterStmts ::: Ls(
+    JSClassGetter(moduleSymbol.lexicalName, R((JSConstDecl(outterSymbol.runtimeName, JSIdent("this")) :: filterDecStmts(outterStmts, outterSyms)) ::: Ls(
       JSConstDecl(cacheSymbol.runtimeName, JSField(JSIdent("this"), outterCache)),
       JSIfStmt(JSBinary("===", JSField(JSField(JSIdent("this"), outterCache), moduleSymbol.lexicalName), JSIdent("undefined")), Ls(
         decl,
@@ -707,12 +714,12 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     getterScope.declareValue(outterName, Some(false), false) // avoid shadowing
     val outterSymbol = getterScope.declareValue("outter", Some(false), false)
 
-    val outterStmts = JSConstDecl(outterSymbol.runtimeName, JSIdent("this")) ::
+    val (outterStmts, outterSyms) =
       translateMemberCapcture(outterName, outterMembers)(getterScope)
 
     val cacheSymbol = getterScope.declareValue("cache", Some(false), false)
     val classBody =
-      translateNewClassExpression(classSymbol, N, cacheSymbol.runtimeName, siblingsMembers, outterSymbol.runtimeName, outterStmts)(getterScope)
+      translateNewClassExpression(classSymbol, N, cacheSymbol.runtimeName, siblingsMembers, outterSymbol.runtimeName)(getterScope)
     val constructor = classBody match {
       case JSClassNewDecl(_, fields, _, _, _, _, _, _, _) => fields.map(JSNamePattern(_))
     }
@@ -720,7 +727,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       case JSClassNewDecl(_, fields, _, _, _, _, _, _, _) => fields.map(JSIdent(_))
     }
 
-    JSClassGetter(classSymbol.lexicalName, R(outterStmts ::: Ls(
+    val allOutterStmts = JSConstDecl(outterSymbol.runtimeName, JSIdent("this")) :: filterDecStmts(outterStmts, outterSyms)
+    JSClassGetter(classSymbol.lexicalName, R(allOutterStmts ::: Ls(
       JSConstDecl(cacheSymbol.runtimeName, JSField(JSIdent("this"), outterCache)),
       JSIfStmt(JSBinary("===", JSField(JSField(JSIdent("this"), outterCache), classSymbol.lexicalName), JSIdent("undefined")), Ls(
         JSExprStmt(JSClassExpr(classBody)),
@@ -737,8 +745,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       rest: Opt[Str] = N,
       cacheName: Str,
       siblingsMembers: Ls[Str] = Ls(),
-      outterName: Str,
-      outterStmts: Ls[JSStmt] = Ls()
+      outterName: Str
   )(implicit scope: Scope): JSClassNewDecl = {
     // Translate class methods and getters.
     val classScope = scope.derive(s"class ${classSymbol.lexicalName}")
@@ -748,7 +755,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
 
     val constructorScope = classScope.derive(s"${classSymbol.lexicalName} constructor")
     fields.foreach(constructorScope.declareValue(_, Some(false), false))
-    val siblingsStmt = translateMemberCapcture(
+    val (siblingsStmt, siblingSyms) = translateMemberCapcture(
       outterName,
       siblingsMembers.filter(m => m =/= classSymbol.lexicalName && !fields.contains(m)) // should be shadowed by the ctor parameter
     )(constructorScope)
@@ -816,7 +823,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     JSClassNewDecl(classSymbol.lexicalName, fields, fields ::: getters.toList, base, restRuntime match {
       case Some(restRuntime) => superParameters.reverse :+ JSIdent(s"...$restRuntime")
       case _ => superParameters.reverse
-    }, restRuntime, members, traits, siblingsStmt ::: stmts)
+    }, restRuntime, members, traits, filterDecStmts(siblingsStmt, siblingSyms) ::: stmts)
   }
 
   /**
@@ -873,7 +880,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }
     // Declare the alias for `this` before declaring parameters.
     val selfSymbol = memberScope.declareThisAlias()
-    val preDecs = translateMemberCapcture(outterName, outterStmt)(memberScope) ::: props.map(p => {
+    val (outterPreDecs, outterSyms) = translateMemberCapcture(outterName, outterStmt)(memberScope)
+    val propDecs = props.map(p => {
       val runtime = memberScope.declareValue(p, Some(false), false)
       JSConstDecl(runtime.runtimeName, JSIdent(s"this.#$p"))
     })
@@ -887,6 +895,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }
     // Translate class member body.
     val bodyResult = translateTerm(body)(memberScope).`return`
+    val preDecs = filterDecStmts(outterPreDecs, outterSyms) ::: propDecs
     // If `this` is accessed, add `const self = this`.
     val bodyStmts = if (visitedSymbols(selfSymbol)) {
       val thisDecl = JSConstDecl(selfSymbol.runtimeName, JSIdent("this"))
