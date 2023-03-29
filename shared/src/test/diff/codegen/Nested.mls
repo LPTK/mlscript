@@ -424,7 +424,7 @@ class F() {
 //│ globalThis.F = typing_unit8.F;
 //│ // End of generated code
 
-// FIXME: remove `self`
+
 :js
 module G {
   class I(x: int) {}
@@ -463,8 +463,7 @@ module G {
 //│               constructor() {
 //│               }
 //│               i1(x) {
-//│                 const self = this;
-//│                 return self.I(x + 1);
+//│                 return I(x + 1);
 //│               }
 //│               cache = {};
 //│               get J() {
@@ -482,8 +481,7 @@ module G {
 //│                       const J = cache.J;
 //│                       const i1 = outter.i1;
 //│                       const x = this.#x;
-//│                       const self = this;
-//│                       return self.I(x + a);
+//│                       return I(x + a);
 //│                     }
 //│                   };
 //│                   this.cache.J = ((x) => new J(x));
@@ -530,7 +528,7 @@ let jj = G.H.J(42)
 let i = jj.ii(2)
 i.x
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.529: 	let jj = G.H.J(42)
+//│ ║  l.527: 	let jj = G.H.J(42)
 //│ ╙──       	          ^^
 //│ let jj: error
 //│ let i: error
@@ -547,8 +545,6 @@ i.x
 //│ jj
 //│    = J {}
 //│ i
-//│ Runtime error:
-//│   TypeError: self.I is not a function
+//│   = I {}
 //│ res
-//│ Runtime error:
-//│   ReferenceError: i is not defined
+//│     = 44

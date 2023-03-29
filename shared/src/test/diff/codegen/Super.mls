@@ -15,6 +15,7 @@ mixin Foo0 {
 //│ let typing_unit = {
 //│   cache: {},
 //│   Foo0(base) {
+//│     const outter = this;
 //│     return (class Foo0 extends base {
 //│       #foo0;
 //│       get foo0() { return this.#foo0; }
@@ -43,6 +44,7 @@ mixin Foo1 {
 //│ let typing_unit1 = {
 //│   cache: {},
 //│   Foo1(base) {
+//│     const outter = this;
 //│     return (class Foo1 extends base {
 //│       #foo0;
 //│       #foo1;
@@ -80,7 +82,7 @@ mixin Foo2 {
   fun foo2 = super
 }
 //│ ╔══[ERROR] Illegal use of `super`
-//│ ║  l.80: 	  fun foo2 = super
+//│ ║  l.82: 	  fun foo2 = super
 //│ ╙──      	             ^^^^^
 //│ mixin Foo2() {
 //│   super: 'super
@@ -90,6 +92,7 @@ mixin Foo2 {
 //│ let typing_unit4 = {
 //│   cache: {},
 //│   Foo2(base) {
+//│     const outter = this;
 //│     return (class Foo2 extends base {
 //│       constructor(...rest) {
 //│         super(...rest);
@@ -115,6 +118,8 @@ module Test0 extends Foo2
 //│ let typing_unit5 = {
 //│   cache: {},
 //│   get Test0() {
+//│     const outter = this;
+//│     const cache = this.cache;
 //│     if (this.cache.Test0 === undefined) {
 //│       class Test0 extends Foo2(Object) {
 //│         constructor() {

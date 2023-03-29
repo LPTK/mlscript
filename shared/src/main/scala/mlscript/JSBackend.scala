@@ -622,7 +622,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     val outterDec = JSConstDecl(outterSymbol.runtimeName, JSIdent("this")) :: outterStmt
 
     val cacheSymbol = getterScope.declareValue("cache", Some(false), false)
-    val moduleScope = scope.derive(s"module ${moduleSymbol.lexicalName}")
+    val moduleScope = getterScope.derive(s"module ${moduleSymbol.lexicalName}")
     val constructorScope = moduleScope.derive(s"${moduleSymbol.lexicalName} constructor")
     // Collect class fields.
     val fields = moduleSymbol.body.collectFields ++

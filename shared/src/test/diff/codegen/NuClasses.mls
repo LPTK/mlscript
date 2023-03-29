@@ -12,6 +12,7 @@ class Test(n: int) {
 //│ let typing_unit = {
 //│   cache: {},
 //│   get Test() {
+//│     const outter = this;
 //│     const cache = this.cache;
 //│     if (this.cache.Test === undefined) {
 //│       class Test {
@@ -71,7 +72,7 @@ class C[A](n: A) {
 let a = C[int](42)
 a.f
 //│ ╔══[ERROR] Type application syntax is not yet supported
-//│ ║  l.71: 	let a = C[int](42)
+//│ ║  l.72: 	let a = C[int](42)
 //│ ╙──      	        ^^^^^^
 //│ let a: error
 //│ error
@@ -134,7 +135,7 @@ module M2 {
     bar(10)
 }
 //│ ╔══[ERROR] Indirectly-recursive member should have type annotation
-//│ ║  l.136: 	    fun bar(x) = x + y + this.m
+//│ ║  l.134: 	    fun bar(x) = x + y + this.m
 //│ ╙──       	                             ^^
 //│ module M2() {
 //│   fun foo: int -> int
@@ -144,6 +145,8 @@ module M2 {
 //│ let typing_unit11 = {
 //│   cache: {},
 //│   get M2() {
+//│     const outter = this;
+//│     const cache = this.cache;
 //│     if (this.cache.M2 === undefined) {
 //│       class M2 {
 //│         #m;
