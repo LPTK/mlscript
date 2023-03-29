@@ -881,3 +881,70 @@ let n = J.N(2)
 //│   = M {}
 //│ n
 //│   = N {}
+
+
+module K {
+  let x = 1
+  module L {
+    let x = 42
+    class M() {
+      fun f = x
+    }
+  }
+}
+//│ module K() {
+//│   module L() {
+//│     class M() {
+//│       fun f: 42
+//│     }
+//│     let x: 42
+//│   }
+//│   let x: 1
+//│ }
+
+:e
+let m = K.L.M()
+m.f
+//│ ╔══[ERROR] access to module member not yet supported
+//│ ║  l.906: 	let m = K.L.M()
+//│ ╙──       	         ^^
+//│ let m: error
+//│ error
+//│ m
+//│   = M {}
+//│ res
+//│     = 42
+
+:e
+module L {
+  class M(x: int) {}
+  module N {
+    module O {
+      class P(y: int) extends M(y + 1) {}
+    }
+  }
+}
+//│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
+//│ ║  l.923: 	      class P(y: int) extends M(y + 1) {}
+//│ ╙──       	                              ^^^^^^^^
+//│ module L() {
+//│   class M(x: int)
+//│   module N() {
+//│     module O() {
+//│       class P(y: int)
+//│     }
+//│   }
+//│ }
+
+:e
+let op = L.N.O.P(0)
+op.x
+//│ ╔══[ERROR] access to module member not yet supported
+//│ ║  l.940: 	let op = L.N.O.P(0)
+//│ ╙──       	          ^^
+//│ let op: error
+//│ error
+//│ op
+//│    = P {}
+//│ res
+//│     = 1

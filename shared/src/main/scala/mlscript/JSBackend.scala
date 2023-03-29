@@ -509,11 +509,11 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         val nestedCache = mixinScope.declareValue("cache", Some(false), false)
         JSClassMember(nestedCache.runtimeName, JSRecord(Ls())) +:
           (mixinSymbols.map
-          { translateMixinDeclaration(_, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(mixinScope) } ++
+            { translateMixinDeclaration(_, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(mixinScope) } ++
           moduleSymbols.map
-          { translateModuleDeclaration(_, nestedCache.runtimeName, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(mixinScope) } ++
+            { translateModuleDeclaration(_, nestedCache.runtimeName, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(mixinScope) } ++
           classSymbols.map
-          { translateNewClassDeclaration(_, nestedCache.runtimeName, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(mixinScope) })
+            { translateNewClassDeclaration(_, nestedCache.runtimeName, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(mixinScope) })
       }
     )
 
@@ -641,11 +641,11 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         val nestedCache = moduleScope.declareValue("cache", Some(false), false)
         JSClassMember(nestedCache.runtimeName, JSRecord(Ls())) +:
           (mixinSymbols.map
-          { translateMixinDeclaration(_, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(moduleScope) } ++
+            { translateMixinDeclaration(_, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(moduleScope) } ++
           moduleSymbols.map
-          { translateModuleDeclaration(_, nestedCache.runtimeName, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(moduleScope) } ++
+            { translateModuleDeclaration(_, nestedCache.runtimeName, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(moduleScope) } ++
           classSymbols.map
-          { translateNewClassDeclaration(_, nestedCache.runtimeName, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(moduleScope) })
+            { translateNewClassDeclaration(_, nestedCache.runtimeName, memberList.toList, outterSymbol.runtimeName, siblingsMembers)(moduleScope) })
       }
     )
     val getters = new ListBuffer[Str]()
