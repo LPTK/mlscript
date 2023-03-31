@@ -324,13 +324,13 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           JSBinary("===", scrut.member("constructor"), JSLit("String"))
         case Var(name) => scope.resolveValue(name) match {
           case S(NewClassSymbol(lexicalName, _, _, _, _, _, _, _)) =>
-            JSInstanceOf(scrut, JSMember(translateVar(lexicalName, false), JSIdent(JSLit.makeStringLiteral("class"))))
+            JSInstanceOf(scrut, translateVar(lexicalName, false).member("class"))
           case S(ModuleSymbol(lexicalName, _, _, _, _, _, _, _)) =>
-            JSInstanceOf(scrut, JSMember(translateVar(lexicalName, false), JSIdent(JSLit.makeStringLiteral("class"))))
+            JSInstanceOf(scrut, translateVar(lexicalName, false).member("class"))
           case S(CapturedSymbol(out, cls: NewClassSymbol)) =>
-            JSInstanceOf(scrut, JSMember(translateCapcture(CapturedSymbol(out, cls)), JSIdent(JSLit.makeStringLiteral("class"))))
+            JSInstanceOf(scrut, translateCapcture(CapturedSymbol(out, cls)).member("class"))
           case S(CapturedSymbol(out, mdl: ModuleSymbol)) =>
-            JSInstanceOf(scrut, JSMember(translateCapcture(CapturedSymbol(out, mdl)), JSIdent(JSLit.makeStringLiteral("class"))))
+            JSInstanceOf(scrut, translateCapcture(CapturedSymbol(out, mdl)).member("class"))
           case _ => topLevelScope.getType(name) match {
             case S(ClassSymbol(_, runtimeName, _, _, _)) => JSInstanceOf(scrut, JSIdent(runtimeName))
             case S(TraitSymbol(_, runtimeName, _, _, _)) => JSIdent(runtimeName)("is")(scrut)
@@ -575,26 +575,26 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         head match {
           case Some(JSIdent(nme)) => scope.resolveValue(nme) match {
             case Some(sym: MixinSymbol) => Some(JSInvoke(translateVar(nme, false), Ls(JSIdent("Object"))))
-            case Some(_) => Some(JSMember(translateVar(nme, false), JSLit(JSLit.makeStringLiteral("class"))))
+            case Some(_) => Some(translateVar(nme, false).member("class"))
             case _ => throw CodeGenError(s"unresolved symbol in parents: $nme")
           }
           case Some(JSInvoke(JSIdent(nme), _)) => scope.resolveValue(nme) match {
             case Some(sym: MixinSymbol) => Some(JSInvoke(translateVar(nme, false), Ls(JSIdent("Object"))))
-            case Some(_) => Some(JSMember(translateVar(nme, false), JSLit(JSLit.makeStringLiteral("class"))))
+            case Some(_) => Some(translateVar(nme, false).member("class"))
             case _ => throw CodeGenError(s"unresolved symbol in parents: $nme")
           }
           case Some(f: JSField) => scope.resolveValue(f.property.name) match {
             case Some(CapturedSymbol(out, sym: MixinSymbol)) =>
               Some(JSInvoke(translateCapcture(CapturedSymbol(out, sym)), Ls(JSIdent("Object"))))
             case Some(CapturedSymbol(out, sym)) =>
-              Some(JSMember(translateCapcture(CapturedSymbol(out, sym)), JSLit(JSLit.makeStringLiteral("class"))))
+              Some(translateCapcture(CapturedSymbol(out, sym)).member("class"))
             case _ => throw CodeGenError(s"unresolved symbol in parents: ${f.property.name}")
           }
           case Some(JSInvoke(f: JSField, _)) => scope.resolveValue(f.property.name) match {
             case Some(CapturedSymbol(out, sym: MixinSymbol)) =>
               Some(JSInvoke(translateCapcture(CapturedSymbol(out, sym)), Ls(JSIdent("Object"))))
             case Some(CapturedSymbol(out, sym)) =>
-              Some(JSMember(translateCapcture(CapturedSymbol(out, sym)), JSLit(JSLit.makeStringLiteral("class"))))
+              Some(translateCapcture(CapturedSymbol(out, sym)).member("class"))
             case _ => throw CodeGenError(s"unresolved symbol in parents: ${f.property.name}")
           }
           case _ => throw CodeGenError("unresolved parents.")
@@ -781,7 +781,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           decl,
           JSExprStmt(JSAssignExpr(privateIdent,
             JSNew(JSInvoke(JSIdent(moduleSymbol.lexicalName), Nil)))),
-          JSExprStmt(JSAssignExpr(JSMember(privateIdent, JSLit(JSLit.makeStringLiteral("class"))), JSIdent(moduleSymbol.lexicalName))),
+          JSExprStmt(JSAssignExpr(privateIdent.member("class"), JSIdent(moduleSymbol.lexicalName))),
         )),
         JSReturnStmt(S(privateIdent))
       )))
@@ -811,7 +811,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         JSExprStmt(JSClassExpr(classBody)),
         JSExprStmt(JSAssignExpr(privateIdent,
           JSArrowFn(constructor, L(JSInvoke(JSNew(JSIdent(classSymbol.lexicalName)), params))))),
-        JSExprStmt(JSAssignExpr(JSMember(privateIdent, JSLit(JSLit.makeStringLiteral("class"))), JSIdent(classSymbol.lexicalName)))
+        JSExprStmt(JSAssignExpr(privateIdent.member("class"), JSIdent(classSymbol.lexicalName)))
       )),
       JSReturnStmt(S(privateIdent))
     )))

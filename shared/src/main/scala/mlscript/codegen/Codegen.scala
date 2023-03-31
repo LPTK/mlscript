@@ -616,7 +616,7 @@ object JSField {
 
   private val identifierPattern: Regex = "^[A-Za-z$][A-Za-z0-9$]*$".r
 
-  def isValidIdentifier(s: Str): Bool = identifierPattern.matches(s) && !Symbol.isKeyword(s)
+  def isValidIdentifier(s: Str): Bool = identifierPattern.matches(s)
 
   def emitValidFieldName(s: Str): Str = if (isValidIdentifier(s)) s else JSLit.makeStringLiteral(s)
 }
