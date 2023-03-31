@@ -518,11 +518,11 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     // TODO: traitSymbols?
     val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(mixinSymbol.nested, true)(mixinScope)
     classSymbols.foreach { s => { memberList += s; typeList += s.lexicalName } }
-    mixinSymbols.foreach { s => { memberList += s; typeList += s.lexicalName } }
+    mixinSymbols.foreach { s => { memberList += s; } }
     moduleSymbols.foreach { s => { memberList += s; typeList += s.lexicalName } }
 
     val members = mixinSymbol.methods.map {
-      translateNewClassMember(_)(mixinScope)
+      translateNewClassMember(_, fields)(mixinScope)
     } ::: (
       if (mixinSymbol.nested.isEmpty) Nil
       else
@@ -651,11 +651,11 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     if (keepTopLevelScope) // also declare in the top level for diff tests
       declareNewTypeDefs(moduleSymbol.nested, false)(topLevelScope)
     classSymbols.foreach { s => { memberList += s; typeList += s.lexicalName } }
-    mixinSymbols.foreach { s => { memberList += s; typeList += s.lexicalName } }
+    mixinSymbols.foreach { s => { memberList += s; } }
     moduleSymbols.foreach { s => { memberList += s; typeList += s.lexicalName } }
 
     val members = moduleSymbol.methods.map {
-      translateNewClassMember(_)(moduleScope)
+      translateNewClassMember(_, Nil)(moduleScope)
     } ::: (
       if (moduleSymbol.nested.isEmpty) Nil
       else
@@ -723,10 +723,10 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     // TODO: traitSymbols?
     val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(moduleSymbol.nested, true)(moduleScope)
     classSymbols.foreach(s => {memberList += s; typeList += s.lexicalName})
-    mixinSymbols.foreach(s => {memberList += s; typeList += s.lexicalName})
+    mixinSymbols.foreach(s => {memberList += s;})
     moduleSymbols.foreach(s => {memberList += s; typeList += s.lexicalName})
     val members = moduleSymbol.methods.map {
-      translateNewClassMember(_)(moduleScope)
+      translateNewClassMember(_, fields)(moduleScope)
     } ::: (
       if (moduleSymbol.nested.isEmpty) Nil
       else
@@ -846,10 +846,10 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     // TODO: traitSymbols?
     val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(classSymbol.nested, true)(classScope)
     classSymbols.foreach(s => {memberList += s; typeList += s.lexicalName})
-    mixinSymbols.foreach(s => {memberList += s; typeList += s.lexicalName})
+    mixinSymbols.foreach(s => {memberList += s;})
     moduleSymbols.foreach(s => {memberList += s; typeList += s.lexicalName})
     val members = classSymbol.methods.map {
-      translateNewClassMember(_)(classScope)
+      translateNewClassMember(_, fields)(classScope)
     } ::: (
       if (classSymbol.nested.isEmpty) Nil
       else
@@ -932,7 +932,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
   }
 
   private def translateNewClassMember(
-    method: MethodDef[Left[Term, Type]]
+    method: MethodDef[Left[Term, Type]],
+    props: Ls[Str] // fpr overriding
   )(implicit scope: Scope): JSClassMemberDecl = {
     val name = method.nme.name
     // Create the method/getter scope.
@@ -942,6 +943,11 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }
     // Declare the alias for `this` before declaring parameters.
     val selfSymbol = memberScope.declareThisAlias()
+    val preDecs = props.map(p => {
+      val runtime = memberScope.declareValue(p, Some(false), false)
+      JSConstDecl(runtime.runtimeName, JSIdent(s"this.#$p"))
+    })
+
     // Declare parameters.
     val (memberParams, body) = method.rhs.value match {
       case Lam(params, body) =>
@@ -956,8 +962,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     val bodyStmts = if (visitedSymbols(selfSymbol)) {
       val thisDecl = JSConstDecl(selfSymbol.runtimeName, JSIdent("this"))
       visitedSymbols -= selfSymbol
-      R(thisDecl :: bodyResult :: Nil)
-    } else R(bodyResult :: Nil)
+      R(preDecs ::: (thisDecl :: bodyResult :: Nil))
+    } else R(preDecs ::: (bodyResult :: Nil))
     // Returns members depending on what it is.
     memberParams match {
       case S(memberParams) => JSClassMethod(name, memberParams, bodyStmts)
