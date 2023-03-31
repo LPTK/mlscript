@@ -5,11 +5,11 @@ import mlscript.{JSStmt, JSExpr, JSLetDecl}
 import mlscript.Type
 import scala.reflect.ClassTag
 import mlscript.{TypeName, Top, Bot, TypeDef, Als, Trt, Cls, Nms}
-import mlscript.MethodDef
-import mlscript.{Term, Statement}
+import mlscript.{MethodDef, Var}
+import mlscript.{Term, Statement, Record}
 import mlscript.utils.{AnyOps, lastWords}
 import mlscript.JSField
-import mlscript.NuTypeDef
+import mlscript.{NuTypeDef, NuFunDef}
 
 class Scope(name: Str, enclosing: Opt[Scope]) {
   private val lexicalTypeSymbols = scala.collection.mutable.HashMap[Str, TypeSymbol]()
@@ -263,6 +263,35 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       isNested: Bool
   ): ModuleSymbol = {
     val symbol = ModuleSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters, nested, isNested)
+    register(symbol)
+    symbol
+  }
+
+  // in DiffTests, we need to rename `TypingUnit` to some other names
+  // because we would not indicate different names manumally
+  def declareTopModule(
+    lexicalName: Str,
+    stmts: Ls[Statement],
+    nuTypes: Ls[NuTypeDef],
+    allowRenaming: Bool = false
+  ): ModuleSymbol = {
+    val finalName =
+      if (allowRenaming) allocateRuntimeName(lexicalName) else lexicalName
+    val (ctor, mths) = stmts.partitionMap {
+      case NuFunDef(isLetRec, Var(nme), tys, Left(rhs)) if (isLetRec.isEmpty || isLetRec.getOrElse(false)) =>
+        Right(MethodDef[Left[Term, Type]](isLetRec.getOrElse(false), TypeName(finalName), Var(nme), tys, Left(rhs)))
+      case s => Left(s)
+    }
+    val symbol = ModuleSymbol(finalName, Nil, Record(Nil), mths, ctor, Nil, nuTypes, false)
+    register(symbol)
+    symbol
+  }
+
+  def captureSymbol(
+    outsiderSym: RuntimeSymbol,
+    capturedSym: RuntimeSymbol
+  ): CapturedSymbol = {
+    val symbol = CapturedSymbol(outsiderSym, capturedSym)
     register(symbol)
     symbol
   }

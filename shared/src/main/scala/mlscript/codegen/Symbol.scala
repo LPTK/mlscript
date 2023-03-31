@@ -171,6 +171,16 @@ final case class ModuleSymbol(
   override def runtimeName: Str = lexicalName
 }
 
+// all symbols, excepting top level modules and local variables
+// should be accessed by either `self` variables or captured symbols
+final case class CapturedSymbol(
+  outsiderSym: RuntimeSymbol,
+  actualSym: RuntimeSymbol
+) extends RuntimeSymbol {
+  override def lexicalName: Str = actualSym.lexicalName
+  override def runtimeName: Str = actualSym.runtimeName
+}
+
 final case class TraitSymbol(
     lexicalName: Str,
     runtimeName: Str,

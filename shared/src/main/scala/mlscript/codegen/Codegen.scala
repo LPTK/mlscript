@@ -835,7 +835,8 @@ final case class JSClassNewDecl(
     rest: Opt[Str] = N,
     methods: Ls[JSClassMemberDecl] = Nil,
     implements: Ls[Str] = Nil,
-    initStmts: Ls[JSStmt] = Nil
+    initStmts: Ls[JSStmt] = Nil,
+    nestedTypes: Ls[Str] = Nil
 ) extends JSStmt {
   def toSourceCode: SourceCode = {
     val constructor: SourceCode = {
@@ -847,6 +848,7 @@ final case class JSClassNewDecl(
         })((p, s) =>
         if (s.isEmpty) s"${p._1}"
         else s"${p._1}, $s")
+      nestedTypes.foreach(t => buffer += s"  #$t;")
       if (!privateMem.isEmpty) {
         privateMem.foreach(f => buffer += s"  #${f};")
         privateMem.foreach(f => buffer += s"  get ${f}() { return this.#${f}; }")
