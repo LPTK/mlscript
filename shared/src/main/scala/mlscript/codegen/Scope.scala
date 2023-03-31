@@ -15,6 +15,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   private val lexicalTypeSymbols = scala.collection.mutable.HashMap[Str, TypeSymbol]()
   private val lexicalValueSymbols = scala.collection.mutable.HashMap[Str, RuntimeSymbol]()
   private val runtimeSymbols = scala.collection.mutable.HashSet[Str]()
+  private val outsiderSymbols = scala.collection.mutable.HashSet[Str]()
 
   val tempVars: TemporaryVariableEmitter = TemporaryVariableEmitter()
 
@@ -290,10 +291,18 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   def captureSymbol(
     outsiderSym: RuntimeSymbol,
     capturedSym: RuntimeSymbol
-  ): CapturedSymbol = {
+  ): Unit = {
     val symbol = CapturedSymbol(outsiderSym, capturedSym)
-    register(symbol)
-    symbol
+    lexicalValueSymbols.put(symbol.lexicalName, symbol)
+  }
+
+  private def pushDownOutsiders(syms: scala.collection.mutable.HashSet[Str]) = {
+    syms.foreach(s => {
+      runtimeSymbols += s
+      outsiderSymbols += s
+    })
+
+    this
   }
 
   def declareTrait(
@@ -337,6 +346,21 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   def declareNewClassMember(name: Str, isByvalueRec: Option[Boolean], isLam: Boolean): NewClassMemberSymbol = {
     val symbol = NewClassMemberSymbol(name, isByvalueRec, isLam)
     register(symbol)
+    symbol
+  }
+
+  def declareOutterSymbol(): ValueSymbol = {
+    val lexicalName = "outter"
+    val runtimeName = lexicalValueSymbols.get(lexicalName) match {
+      // If we are implementing a stub symbol and the stub symbol did not shadow any other
+      // symbols, it is safe to reuse its `runtimeName`.
+      case S(sym: StubValueSymbol) if !sym.shadowing => sym.runtimeName
+      case S(sym: BuiltinSymbol) if !sym.accessed    => sym.runtimeName
+      case _                                         => allocateRuntimeName(lexicalName)
+    }
+    val symbol = ValueSymbol(lexicalName, runtimeName, Some(false), false)
+    register(symbol)
+    outsiderSymbols += runtimeName
     symbol
   }
 
@@ -403,7 +427,8 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   /**
     * Shorthands for deriving normal scopes.
     */
-  def derive(name: Str): Scope = new Scope(name, S(this))
+  def derive(name: Str): Scope =
+    (new Scope(name, S(this))).pushDownOutsiders(outsiderSymbols)
 
   
   def refreshRes(): Unit = {
