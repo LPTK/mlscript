@@ -11,7 +11,7 @@ class C0 {
 let c = C0()
 //│ let c: C0
 //│ c
-//│   = C0 { cache: {} }
+//│   = C0 {}
 
 :e
 c.NC0

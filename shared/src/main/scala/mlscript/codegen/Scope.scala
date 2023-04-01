@@ -349,8 +349,8 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
     symbol
   }
 
-  def declareOutterSymbol(): ValueSymbol = {
-    val lexicalName = "outter"
+  def declareOuterSymbol(): ValueSymbol = {
+    val lexicalName = "outer"
     val runtimeName = lexicalValueSymbols.get(lexicalName) match {
       // If we are implementing a stub symbol and the stub symbol did not shadow any other
       // symbols, it is safe to reuse its `runtimeName`.

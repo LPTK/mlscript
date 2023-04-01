@@ -21,7 +21,7 @@ module A {
 //│   constructor() {
 //│   }
 //│   get A() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#A === undefined) {
 //│       class A {
 //│         #B;
@@ -32,7 +32,7 @@ module A {
 //│           const a = this.#a;
 //│         }
 //│         get B() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#B === undefined) {
 //│             class B {
 //│               #x;
@@ -57,7 +57,7 @@ module A {
 //│     return this.#A;
 //│   }
 //│ }
-//│ globalThis["typing_unit"] = new TypingUnit;
+//│ const typing_unit = new TypingUnit;
 //│ globalThis.A = typing_unit.A;
 //│ // End of generated code
 
@@ -71,16 +71,8 @@ bb.b
 //│ let bb: error
 //│ error
 //│ // Prelude
-//│ class TypingUnit1 {
-//│   #bb;
-//│   get bb() { return this.#bb; }
-//│   constructor() {
-//│     this.#bb = A.B(A.a);
-//│     const bb = this.#bb;
-//│     bb.b;
-//│   }
-//│ }
-//│ globalThis["typing_unit1"] = new TypingUnit1;
+//│ class TypingUnit1 {}
+//│ const typing_unit1 = new TypingUnit1;
 //│ globalThis.bb = typing_unit1.bb;
 //│ // Query 1
 //│ globalThis.bb1 = A.B(A.a);
@@ -92,60 +84,50 @@ bb.b
 //│ res
 //│     = 43
 
-:js
+
+:e
 class B(x: int) {
-  let outter = 42
+  let outer = 42
   class C(y: int) {
+    let outer1 = outer + outer
   }
+  class D(outer: int)
 }
+let b = B(1)
+b.outer
+let c = b.C(1)
+c.outer1
+let d = b.D(1)
+d.outer
+//│ ╔══[ERROR] access to class member not yet supported
+//│ ║  l.98: 	let c = b.C(1)
+//│ ╙──      	         ^^
+//│ ╔══[ERROR] access to class member not yet supported
+//│ ║  l.100: 	let d = b.D(1)
+//│ ╙──       	         ^^
 //│ class B(x: int) {
-//│   class C(y: int)
-//│   let outter: 42
-//│ }
-//│ // Prelude
-//│ class TypingUnit2 {
-//│   #B;
-//│   constructor() {
+//│   class C(y: int) {
+//│     let outer1: int
 //│   }
-//│   get B() {
-//│     const outter = this;
-//│     if (this.#B === undefined) {
-//│       class B {
-//│         #C;
-//│         #x;
-//│         #outter;
-//│         get x() { return this.#x; }
-//│         get outter() { return this.#outter; }
-//│         constructor(x) {
-//│           this.#x = x;
-//│           this.#outter = 42;
-//│           const outter1 = this.#outter;
-//│         }
-//│         get C() {
-//│           const outter1 = this;
-//│           if (this.#C === undefined) {
-//│             class C {
-//│               #y;
-//│               get y() { return this.#y; }
-//│               constructor(y) {
-//│                 this.#y = y;
-//│               }
-//│             };
-//│             this.#C = ((y) => new C(y));
-//│             this.#C.class = C;
-//│           }
-//│           return this.#C;
-//│         }
-//│       };
-//│       this.#B = ((x) => new B(x));
-//│       this.#B.class = B;
-//│     }
-//│     return this.#B;
-//│   }
+//│   class D(outer: int)
+//│   let outer: 42
 //│ }
-//│ globalThis["typing_unit2"] = new TypingUnit2;
-//│ globalThis.B = typing_unit2.B;
-//│ // End of generated code
+//│ let b: B
+//│ let c: error
+//│ let d: error
+//│ error
+//│ b
+//│   = B {}
+//│ res
+//│     = 42
+//│ c
+//│   = C {}
+//│ res
+//│     = 84
+//│ d
+//│   = D {}
+//│ res
+//│     = 1
 
 :js
 mixin C() {
@@ -163,19 +145,19 @@ mixin C() {
 //│   constructor() {
 //│   }
 //│   C(base) {
-//│     const outter = this;
+//│     const outer = this;
 //│     return (class C extends base {
 //│       constructor(...rest) {
 //│         super(...rest);
 //│       }
 //│       D(base) {
-//│         const outter1 = this;
+//│         const outer1 = this;
 //│         return (class D extends base {
 //│           constructor(...rest) {
 //│             super(...rest);
 //│           }
 //│           E(base) {
-//│             const outter2 = this;
+//│             const outer2 = this;
 //│             return (class E extends base {
 //│               constructor(...rest) {
 //│                 super(...rest);
@@ -187,7 +169,7 @@ mixin C() {
 //│     });
 //│   }
 //│ }
-//│ globalThis["typing_unit3"] = new TypingUnit3;
+//│ const typing_unit3 = new TypingUnit3;
 //│ globalThis.C = typing_unit3.C;
 //│ // End of generated code
 
@@ -206,7 +188,7 @@ module D {
 //│   constructor() {
 //│   }
 //│   get D() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#D === undefined) {
 //│       class D {
 //│         #E;
@@ -217,7 +199,7 @@ module D {
 //│           return self.E(x + 1);
 //│         }
 //│         get E() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#E === undefined) {
 //│             class E {
 //│               #x;
@@ -238,7 +220,7 @@ module D {
 //│     return this.#D;
 //│   }
 //│ }
-//│ globalThis["typing_unit4"] = new TypingUnit4;
+//│ const typing_unit4 = new TypingUnit4;
 //│ globalThis.D = typing_unit4.D;
 //│ // End of generated code
 
@@ -248,16 +230,8 @@ ee.x
 //│ let ee: E
 //│ int
 //│ // Prelude
-//│ class TypingUnit5 {
-//│   #ee;
-//│   get ee() { return this.#ee; }
-//│   constructor() {
-//│     this.#ee = D.createE(42);
-//│     const ee = this.#ee;
-//│     ee.x;
-//│   }
-//│ }
-//│ globalThis["typing_unit5"] = new TypingUnit5;
+//│ class TypingUnit5 {}
+//│ const typing_unit5 = new TypingUnit5;
 //│ globalThis.ee = typing_unit5.ee;
 //│ // Query 1
 //│ globalThis.ee1 = D.createE(42);
@@ -292,7 +266,7 @@ class E(x: int) {
 //│   constructor() {
 //│   }
 //│   get E() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#E === undefined) {
 //│       class E {
 //│         #F;
@@ -302,7 +276,7 @@ class E(x: int) {
 //│           this.#x = x;
 //│         }
 //│         get F() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#F === undefined) {
 //│             class F {
 //│               #G;
@@ -313,10 +287,10 @@ class E(x: int) {
 //│               }
 //│               get sum() {
 //│                 const y = this.#y;
-//│                 return outter1.x + y;
+//│                 return outer1.x + y;
 //│               }
 //│               get G() {
-//│                 const outter2 = this;
+//│                 const outer2 = this;
 //│                 if (this.#G === undefined) {
 //│                   class G {
 //│                     #z;
@@ -326,7 +300,7 @@ class E(x: int) {
 //│                     }
 //│                     get sum() {
 //│                       const z = this.#z;
-//│                       return outter1.x + outter2.y + z;
+//│                       return outer1.x + outer2.y + z;
 //│                     }
 //│                   };
 //│                   this.#G = ((z) => new G(z));
@@ -347,7 +321,7 @@ class E(x: int) {
 //│     return this.#E;
 //│   }
 //│ }
-//│ globalThis["typing_unit6"] = new TypingUnit6;
+//│ const typing_unit6 = new TypingUnit6;
 //│ globalThis.E = typing_unit6.E;
 //│ // End of generated code
 
@@ -358,31 +332,15 @@ let fff = es.F(2)
 let gg = fff.G(3)
 gg.sum
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.357: 	let fff = es.F(2)
+//│ ║  l.331: 	let fff = es.F(2)
 //│ ╙──       	            ^^
 //│ let es: E
 //│ let fff: error
 //│ let gg: error
 //│ error
 //│ // Prelude
-//│ class TypingUnit7 {
-//│   #es;
-//│   #fff;
-//│   #gg;
-//│   get es() { return this.#es; }
-//│   get fff() { return this.#fff; }
-//│   get gg() { return this.#gg; }
-//│   constructor() {
-//│     this.#es = E(1);
-//│     const es = this.#es;
-//│     this.#fff = es.F(2);
-//│     const fff = this.#fff;
-//│     this.#gg = fff.G(3);
-//│     const gg = this.#gg;
-//│     gg.sum;
-//│   }
-//│ }
-//│ globalThis["typing_unit7"] = new TypingUnit7;
+//│ class TypingUnit7 {}
+//│ const typing_unit7 = new TypingUnit7;
 //│ globalThis.es = typing_unit7.es;
 //│ globalThis.fff = typing_unit7.fff;
 //│ globalThis.gg = typing_unit7.gg;
@@ -423,7 +381,7 @@ class F() {
 //│   constructor() {
 //│   }
 //│   get F() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#F === undefined) {
 //│       class F {
 //│         #G;
@@ -434,13 +392,13 @@ class F() {
 //│           const x = this.#x;
 //│         }
 //│         get G() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#G === undefined) {
 //│             class G {
 //│               #x1;
 //│               get x1() { return this.#x1; }
 //│               constructor() {
-//│                 this.#x1 = outter1.x + 1;
+//│                 this.#x1 = outer1.x + 1;
 //│                 const x1 = this.#x1;
 //│               }
 //│             };
@@ -456,7 +414,7 @@ class F() {
 //│     return this.#F;
 //│   }
 //│ }
-//│ globalThis["typing_unit8"] = new TypingUnit8;
+//│ const typing_unit8 = new TypingUnit8;
 //│ globalThis.F = typing_unit8.F;
 //│ // End of generated code
 
@@ -486,7 +444,7 @@ module G {
 //│   constructor() {
 //│   }
 //│   get G() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#G === undefined) {
 //│       class G {
 //│         #I;
@@ -494,17 +452,17 @@ module G {
 //│         constructor() {
 //│         }
 //│         get H() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#H === undefined) {
 //│             class H {
 //│               #J;
 //│               constructor() {
 //│               }
 //│               i1(x) {
-//│                 return outter1.I(x + 1);
+//│                 return outer1.I(x + 1);
 //│               }
 //│               get J() {
-//│                 const outter2 = this;
+//│                 const outer2 = this;
 //│                 if (this.#J === undefined) {
 //│                   class J {
 //│                     #x;
@@ -514,7 +472,7 @@ module G {
 //│                     }
 //│                     ii(a) {
 //│                       const x = this.#x;
-//│                       return outter1.I(x + a);
+//│                       return outer1.I(x + a);
 //│                     }
 //│                   };
 //│                   this.#J = ((x) => new J(x));
@@ -529,7 +487,7 @@ module G {
 //│           return this.#H;
 //│         }
 //│         get I() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#I === undefined) {
 //│             class I {
 //│               #x;
@@ -550,7 +508,7 @@ module G {
 //│     return this.#G;
 //│   }
 //│ }
-//│ globalThis["typing_unit9"] = new TypingUnit9;
+//│ const typing_unit9 = new TypingUnit9;
 //│ globalThis.G = typing_unit9.G;
 //│ // End of generated code
 
@@ -561,26 +519,14 @@ let jj = G.H.J(42)
 let i = jj.ii(2)
 i.x
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.560: 	let jj = G.H.J(42)
+//│ ║  l.518: 	let jj = G.H.J(42)
 //│ ╙──       	          ^^
 //│ let jj: error
 //│ let i: error
 //│ error
 //│ // Prelude
-//│ class TypingUnit10 {
-//│   #jj;
-//│   #i;
-//│   get jj() { return this.#jj; }
-//│   get i() { return this.#i; }
-//│   constructor() {
-//│     this.#jj = G.H.J(42);
-//│     const jj = this.#jj;
-//│     this.#i = jj.ii(2);
-//│     const i = this.#i;
-//│     i.x;
-//│   }
-//│ }
-//│ globalThis["typing_unit10"] = new TypingUnit10;
+//│ class TypingUnit10 {}
+//│ const typing_unit10 = new TypingUnit10;
 //│ globalThis.jj = typing_unit10.jj;
 //│ globalThis.i = typing_unit10.i;
 //│ // Query 1
@@ -616,7 +562,7 @@ module H {
 //│   constructor() {
 //│   }
 //│   get H() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#H === undefined) {
 //│       class H {
 //│         #I;
@@ -624,7 +570,7 @@ module H {
 //│         constructor() {
 //│         }
 //│         get I() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#I === undefined) {
 //│             class I {
 //│               #x;
@@ -639,7 +585,7 @@ module H {
 //│           return this.#I;
 //│         }
 //│         get J() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#J === undefined) {
 //│             class J {
 //│               #x;
@@ -648,7 +594,7 @@ module H {
 //│               get i() { return this.#i; }
 //│               constructor(x) {
 //│                 this.#x = x;
-//│                 this.#i = outter1.I(x + 1);
+//│                 this.#i = outer1.I(x + 1);
 //│                 const i = this.#i;
 //│               }
 //│             };
@@ -664,7 +610,7 @@ module H {
 //│     return this.#H;
 //│   }
 //│ }
-//│ globalThis["typing_unit11"] = new TypingUnit11;
+//│ const typing_unit11 = new TypingUnit11;
 //│ globalThis.H = typing_unit11.H;
 //│ // End of generated code
 
@@ -674,21 +620,13 @@ module H {
 let j = H.J(42)
 j.i.x
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.674: 	let j = H.J(42)
+//│ ║  l.620: 	let j = H.J(42)
 //│ ╙──       	         ^^
 //│ let j: error
 //│ error
 //│ // Prelude
-//│ class TypingUnit12 {
-//│   #j;
-//│   get j() { return this.#j; }
-//│   constructor() {
-//│     this.#j = H.J(42);
-//│     const j = this.#j;
-//│     j.i.x;
-//│   }
-//│ }
-//│ globalThis["typing_unit12"] = new TypingUnit12;
+//│ class TypingUnit12 {}
+//│ const typing_unit12 = new TypingUnit12;
 //│ globalThis.j = typing_unit12.j;
 //│ // Query 1
 //│ globalThis.j1 = H.J(42);
@@ -713,7 +651,7 @@ let i = I(1)
 let ij = i.J(0)
 ij.incY
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.713: 	let ij = i.J(0)
+//│ ║  l.651: 	let ij = i.J(0)
 //│ ╙──       	          ^^
 //│ class I(x: int) {
 //│   class J(x: int) {
@@ -728,20 +666,10 @@ ij.incY
 //│ // Prelude
 //│ class TypingUnit13 {
 //│   #I;
-//│   #i;
-//│   #ij;
-//│   get i() { return this.#i; }
-//│   get ij() { return this.#ij; }
 //│   constructor() {
-//│     const self = this;
-//│     this.#i = self.I(1);
-//│     const i = this.#i;
-//│     this.#ij = i.J(0);
-//│     const ij = this.#ij;
-//│     ij.incY;
 //│   }
 //│   get I() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#I === undefined) {
 //│       class I {
 //│         #J;
@@ -755,7 +683,7 @@ ij.incY
 //│           const y = this.#y;
 //│         }
 //│         get J() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#J === undefined) {
 //│             class J {
 //│               #x;
@@ -785,7 +713,7 @@ ij.incY
 //│     return this.#I;
 //│   }
 //│ }
-//│ globalThis["typing_unit13"] = new TypingUnit13;
+//│ const typing_unit13 = new TypingUnit13;
 //│ globalThis.I = typing_unit13.I;
 //│ globalThis.i2 = typing_unit13.i2;
 //│ globalThis.ij = typing_unit13.ij;
@@ -812,10 +740,10 @@ module J {
   class N(x: int) extends K(x + 2), L
 }
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.757: 	  class M() extends K(1) {}
+//│ ║  l.739: 	  class M() extends K(1) {}
 //│ ╙──       	                    ^^^^
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.758: 	  class N(x: int) extends K(x + 2), L
+//│ ║  l.740: 	  class N(x: int) extends K(x + 2), L
 //│ ╙──       	                          ^^^^^^^^
 //│ module J() {
 //│   class K(x: int)
@@ -829,7 +757,7 @@ module J {
 //│   constructor() {
 //│   }
 //│   get J() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#J === undefined) {
 //│       class J {
 //│         #K;
@@ -838,7 +766,7 @@ module J {
 //│         constructor() {
 //│         }
 //│         L(base) {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           return (class L extends base {
 //│             constructor(...rest) {
 //│               super(...rest);
@@ -846,7 +774,7 @@ module J {
 //│           });
 //│         }
 //│         get K() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#K === undefined) {
 //│             class K {
 //│               #x;
@@ -861,9 +789,9 @@ module J {
 //│           return this.#K;
 //│         }
 //│         get M() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#M === undefined) {
-//│             class M extends outter1.K.class {
+//│             class M extends outer1.K.class {
 //│               constructor() {
 //│                 super(1);
 //│               }
@@ -874,9 +802,9 @@ module J {
 //│           return this.#M;
 //│         }
 //│         get N() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#N === undefined) {
-//│             class N extends outter1.L(outter1.K.class) {
+//│             class N extends outer1.L(outer1.K.class) {
 //│               #x;
 //│               get x() { return this.#x; }
 //│               constructor(x) {
@@ -896,7 +824,7 @@ module J {
 //│     return this.#J;
 //│   }
 //│ }
-//│ globalThis["typing_unit14"] = new TypingUnit14;
+//│ const typing_unit14 = new TypingUnit14;
 //│ globalThis.J = typing_unit14.J;
 //│ // End of generated code
 
@@ -905,27 +833,16 @@ module J {
 let m = J.M()
 let n = J.N(2)
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.851: 	let m = J.M()
+//│ ║  l.833: 	let m = J.M()
 //│ ╙──       	         ^^
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.852: 	let n = J.N(2)
+//│ ║  l.834: 	let n = J.N(2)
 //│ ╙──       	         ^^
 //│ let m: error
 //│ let n: error
 //│ // Prelude
-//│ class TypingUnit15 {
-//│   #m;
-//│   #n;
-//│   get m() { return this.#m; }
-//│   get n() { return this.#n; }
-//│   constructor() {
-//│     this.#m = J.M();
-//│     const m = this.#m;
-//│     this.#n = J.N(2);
-//│     const n = this.#n;
-//│   }
-//│ }
-//│ globalThis["typing_unit15"] = new TypingUnit15;
+//│ class TypingUnit15 {}
+//│ const typing_unit15 = new TypingUnit15;
 //│ globalThis.m = typing_unit15.m;
 //│ globalThis.n = typing_unit15.n;
 //│ // Query 1
@@ -962,7 +879,7 @@ module K {
 let m = K.L.M()
 m.f
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.908: 	let m = K.L.M()
+//│ ║  l.879: 	let m = K.L.M()
 //│ ╙──       	         ^^
 //│ let m: error
 //│ error
@@ -981,7 +898,7 @@ module L {
   }
 }
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.925: 	      class P(y: int) extends M(y + 1) {}
+//│ ║  l.896: 	      class P(y: int) extends M(y + 1) {}
 //│ ╙──       	                              ^^^^^^^^
 //│ module L() {
 //│   class M(x: int)
@@ -996,7 +913,7 @@ module L {
 let op = L.N.O.P(0)
 op.x
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.942: 	let op = L.N.O.P(0)
+//│ ║  l.913: 	let op = L.N.O.P(0)
 //│ ╙──       	          ^^
 //│ let op: error
 //│ error
@@ -1034,7 +951,7 @@ module M {
 //│   constructor() {
 //│   }
 //│   get M() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#M === undefined) {
 //│       class M {
 //│         #O;
@@ -1047,13 +964,13 @@ module M {
 //│           return a = x, a instanceof self.O.class ? 0 : a instanceof self.P.class ? 1 : 2;
 //│         }
 //│         get N() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#N === undefined) {
 //│             class N {
 //│               constructor() {
 //│               }
 //│               op(x) {
-//│                 return a = x, a instanceof outter1.O.class ? 0 : a instanceof outter1.P.class ? 1 : 2;
+//│                 return a = x, a instanceof outer1.O.class ? 0 : a instanceof outer1.P.class ? 1 : 2;
 //│               }
 //│             }
 //│             this.#N = new N();
@@ -1062,7 +979,7 @@ module M {
 //│           return this.#N;
 //│         }
 //│         get O() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#O === undefined) {
 //│             class O {};
 //│             this.#O = (() => new O());
@@ -1071,7 +988,7 @@ module M {
 //│           return this.#O;
 //│         }
 //│         get P() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#P === undefined) {
 //│             class P {};
 //│             this.#P = (() => new P());
@@ -1086,7 +1003,7 @@ module M {
 //│     return this.#M;
 //│   }
 //│ }
-//│ globalThis["typing_unit20"] = new TypingUnit20;
+//│ const typing_unit20 = new TypingUnit20;
 //│ globalThis.M = typing_unit20.M;
 //│ // End of generated code
 
@@ -1099,7 +1016,7 @@ module N {
   class Q()
 }
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.1043: 	    class P() extends Q
+//│ ║  l.1014: 	    class P() extends Q
 //│ ╙──        	                      ^
 //│ module N() {
 //│   module O() {
@@ -1113,7 +1030,7 @@ module N {
 //│   constructor() {
 //│   }
 //│   get N() {
-//│     const outter = this;
+//│     const outer = this;
 //│     if (this.#N === undefined) {
 //│       class N {
 //│         #Q;
@@ -1121,16 +1038,16 @@ module N {
 //│         constructor() {
 //│         }
 //│         get O() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#O === undefined) {
 //│             class O {
 //│               #P;
 //│               constructor() {
 //│               }
 //│               get P() {
-//│                 const outter2 = this;
+//│                 const outer2 = this;
 //│                 if (this.#P === undefined) {
-//│                   class P extends outter1.Q.class {
+//│                   class P extends outer1.Q.class {
 //│                     constructor() {
 //│                       super();
 //│                     }
@@ -1147,7 +1064,7 @@ module N {
 //│           return this.#O;
 //│         }
 //│         get Q() {
-//│           const outter1 = this;
+//│           const outer1 = this;
 //│           if (this.#Q === undefined) {
 //│             class Q {};
 //│             this.#Q = (() => new Q());
@@ -1162,15 +1079,91 @@ module N {
 //│     return this.#N;
 //│   }
 //│ }
-//│ globalThis["typing_unit21"] = new TypingUnit21;
+//│ const typing_unit21 = new TypingUnit21;
 //│ globalThis.N = typing_unit21.N;
 //│ // End of generated code
 
 :e
 N.O.P()
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.1116: 	N.O.P()
+//│ ║  l.1087: 	N.O.P()
 //│ ╙──        	 ^^
 //│ error
 //│ res
 //│     = P {}
+
+:js
+:e
+class I(x: int) {
+  let y = x + 1
+  class J(z: int) {
+    let a = [x, y, z] 
+  }
+}
+I(1).J(3).a
+//│ ╔══[ERROR] access to class member not yet supported
+//│ ║  l.1103: 	I(1).J(3).a
+//│ ╙──        	    ^^
+//│ class I(x: int) {
+//│   class J(z: int) {
+//│     let a: (int, int, int,)
+//│   }
+//│   let y: int
+//│ }
+//│ error
+//│ // Prelude
+//│ class TypingUnit23 {
+//│   #I;
+//│   constructor() {
+//│   }
+//│   get I() {
+//│     const outer = this;
+//│     if (this.#I === undefined) {
+//│       class I {
+//│         #J;
+//│         #x;
+//│         #y;
+//│         get x() { return this.#x; }
+//│         get y() { return this.#y; }
+//│         constructor(x) {
+//│           this.#x = x;
+//│           this.#y = x + 1;
+//│           const y = this.#y;
+//│         }
+//│         get J() {
+//│           const outer1 = this;
+//│           if (this.#J === undefined) {
+//│             class J {
+//│               #z;
+//│               #a;
+//│               get z() { return this.#z; }
+//│               get a() { return this.#a; }
+//│               constructor(z) {
+//│                 this.#z = z;
+//│                 this.#a = [
+//│                   outer1.x,
+//│                   outer1.y,
+//│                   z
+//│                 ];
+//│                 const a = this.#a;
+//│               }
+//│             };
+//│             this.#J = ((z) => new J(z));
+//│             this.#J.class = J;
+//│           }
+//│           return this.#J;
+//│         }
+//│       };
+//│       this.#I = ((x) => new I(x));
+//│       this.#I.class = I;
+//│     }
+//│     return this.#I;
+//│   }
+//│ }
+//│ const typing_unit23 = new TypingUnit23;
+//│ globalThis.I = typing_unit23.I;
+//│ // Query 1
+//│ res = I(1).J(3).a;
+//│ // End of generated code
+//│ res
+//│     = [ 1, 2, 3 ]
