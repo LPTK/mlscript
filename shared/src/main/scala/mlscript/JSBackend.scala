@@ -1395,13 +1395,6 @@ class JSTestBackend extends JSBackend(allowUnresolvedSymbols = false) {
       typeDefs.filter(!_.isDecl).map {
         case NuTypeDef(_, TypeName(nme), _, _, _, _, _, _, _) =>
           include(nme, moduleIns.runtimeName)
-      } ++ otherStmts.filter {
-        case NuFunDef(_, _, _, Left(_)) => true
-        case _ => false
-      }.map {
-        case NuFunDef(_, Var(nme), _, _) =>
-          val sym = topLevelScope.declareValue(nme, Some(false), false)
-          include(sym.runtimeName, moduleIns.runtimeName)
       }
 
     val zeroWidthSpace = JSLit("\"\\u200B\"")
