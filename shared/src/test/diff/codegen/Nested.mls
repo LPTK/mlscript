@@ -911,6 +911,7 @@ op.x
 //│     = 1
 
 :js
+:e
 module M {
   module N {
     fun op(x) = if x is
@@ -925,6 +926,13 @@ module M {
     P then 1
     _ then 2
 }
+M.N.op(M.P())
+//│ ╔══[ERROR] access to module member not yet supported
+//│ ║  l.929: 	M.N.op(M.P())
+//│ ╙──       	 ^^
+//│ ╔══[ERROR] access to class member not yet supported
+//│ ║  l.929: 	M.N.op(M.P())
+//│ ╙──       	        ^^
 //│ module M() {
 //│   module N() {
 //│     fun op: anything -> (0 | 1 | 2)
@@ -933,6 +941,7 @@ module M {
 //│   class P()
 //│   fun op: anything -> (0 | 1 | 2)
 //│ }
+//│ error
 //│ // Prelude
 //│ class TypingUnit20 {
 //│   #M;
@@ -948,6 +957,7 @@ module M {
 //│         constructor() {
 //│         }
 //│         op(x) {
+//│           let a;
 //│           const self = this;
 //│           return a = x, a instanceof self.O.class ? 0 : a instanceof self.P.class ? 1 : 2;
 //│         }
@@ -958,6 +968,7 @@ module M {
 //│               constructor() {
 //│               }
 //│               op(x) {
+//│                 let a;
 //│                 return a = x, a instanceof outer1.O.class ? 0 : a instanceof outer1.P.class ? 1 : 2;
 //│               }
 //│             }
@@ -993,7 +1004,11 @@ module M {
 //│ }
 //│ const typing_unit20 = new TypingUnit20;
 //│ globalThis.M = typing_unit20.M;
+//│ // Query 1
+//│ res = M.N.op(M.P());
 //│ // End of generated code
+//│ res
+//│     = 1
 
 :e
 :js
@@ -1004,7 +1019,7 @@ module N {
   class Q()
 }
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.1002: 	    class P() extends Q
+//│ ║  l.1017: 	    class P() extends Q
 //│ ╙──        	                      ^
 //│ module N() {
 //│   module O() {
@@ -1074,7 +1089,7 @@ module N {
 :e
 N.O.P()
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.1075: 	N.O.P()
+//│ ║  l.1090: 	N.O.P()
 //│ ╙──        	 ^^
 //│ error
 //│ res
@@ -1090,7 +1105,7 @@ class I(x: int) {
 }
 I(1).J(3).a
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.1091: 	I(1).J(3).a
+//│ ║  l.1106: 	I(1).J(3).a
 //│ ╙──        	    ^^
 //│ class I(x: int) {
 //│   class J(z: int) {
@@ -1155,3 +1170,15 @@ I(1).J(3).a
 //│ // End of generated code
 //│ res
 //│     = [ 1, 2, 3 ]
+
+// TODO: handle this
+:js
+fun main =
+  fun f = [g]
+  fun g = [f]
+  f
+//│ fun main: forall 'f. 'f
+//│   where
+//│     'f :> (('f,),)
+//│ Code generation encountered an error:
+//│   unresolved symbol g

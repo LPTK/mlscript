@@ -546,6 +546,11 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       case _ => Nil
     }
 
+    val tempDecs = constructorScope.tempVars.emit() match {
+      case S(decs) => decs :: Nil
+      case _ => Nil
+    }
+
     val traits = mixinSymbol.body.collectTypeNames.flatMap {
       name => scope.getType(name) match {
         case S(TraitSymbol(_, runtimeName, _, _, _)) => S(runtimeName)
@@ -556,7 +561,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }
 
     val classBody = JSClassNewDecl(mixinSymbol.lexicalName, fields, fields ::: getters.toList, S(JSIdent(base.runtimeName)),
-      Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName), members, traits, translateSelfDeclaration(selfSymbol) ::: stmts, typeList.toList)
+      Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName), members, traits,
+      translateSelfDeclaration(selfSymbol) ::: tempDecs ::: stmts, typeList.toList)
     JSClassMethod(mixinSymbol.lexicalName, Ls(JSNamePattern(base.runtimeName)),
       R((JSConstDecl(outerSymbol.runtimeName, JSIdent("this")) :: Nil) ::: Ls(
         JSReturnStmt(S(JSClassExpr(classBody)))
@@ -686,8 +692,13 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
     }
 
-    JSClassNewDecl(moduleSymbol.lexicalName,
-      Nil, getters.toList, N, Nil, N, members, traits, translateSelfDeclaration(selfSymbol) ::: stmts, typeList.toList)
+    val tempDecs = constructorScope.tempVars.emit() match {
+      case S(decs) => decs :: Nil
+      case _ => Nil
+    }
+
+    JSClassNewDecl(moduleSymbol.lexicalName, Nil, getters.toList, N, Nil, N, members, traits,
+      translateSelfDeclaration(selfSymbol) ::: tempDecs ::: stmts, typeList.toList)
   }
 
   protected def translateModuleDeclaration(
@@ -763,6 +774,12 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
       case _ => Nil
     }).flatMap(_.reverse)
+    
+    val tempDecs = constructorScope.tempVars.emit() match {
+      case S(decs) => decs :: Nil
+      case _ => Nil
+    }
+
     val decl = JSClassNewDecl(moduleSymbol.lexicalName,
                    fields,
                    fields ::: getters.toList,
@@ -771,7 +788,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
                    N,
                    members,
                    traits,
-                   translateSelfDeclaration(selfSymbol) ::: stmts,
+                   translateSelfDeclaration(selfSymbol) ::: tempDecs ::: stmts,
                    typeList.toList)
 
     val privateIdent = JSIdent(s"this.#${moduleSymbol.lexicalName}")
@@ -888,8 +905,13 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       case _ => Nil
     }
 
+    val tempDecs = constructorScope.tempVars.emit() match {
+      case S(decs) => decs :: Nil
+      case _ => Nil
+    }
+
     JSClassNewDecl(classSymbol.lexicalName, fields, fields ::: getters.toList, base, superParameters.reverse,
-      N, members, traits, translateSelfDeclaration(selfSymbol) ::: stmts, typeList.toList)
+      N, members, traits, translateSelfDeclaration(selfSymbol) ::: tempDecs ::: stmts, typeList.toList)
   }
 
   /**
@@ -958,12 +980,17 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }
     // Translate class member body.
     val bodyResult = translateTerm(body)(memberScope).`return`
+    val tempDecs = memberScope.tempVars.emit() match {
+      case S(decs) => decs :: Nil
+      case _ => Nil
+    }
+
     // If `this` is accessed, add `const self = this`.
     val bodyStmts = if (visitedSymbols(selfSymbol)) {
       val thisDecl = JSConstDecl(selfSymbol.runtimeName, JSIdent("this"))
       visitedSymbols -= selfSymbol
-      R(preDecs ::: (thisDecl :: bodyResult :: Nil))
-    } else R(preDecs ::: (bodyResult :: Nil))
+      R(preDecs ::: tempDecs ::: (thisDecl :: bodyResult :: Nil))
+    } else R(preDecs ::: tempDecs ::: (bodyResult :: Nil))
     // Returns members depending on what it is.
     memberParams match {
       case S(memberParams) => JSClassMethod(name, memberParams, bodyStmts)
