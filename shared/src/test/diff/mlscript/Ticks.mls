@@ -323,8 +323,8 @@ let f' = fun x -> x + 1 in f' 2
 :js
 foo { return } = return
 //│ // Query 1
-//│ globalThis.foo2 = function foo2({ return: return1 }) {
-//│   return return1;
+//│ globalThis.foo2 = function foo2({ "return": return$ }) {
+//│   return return$;
 //│ };
 //│ // End of generated code
 //│ foo: {return: 'a} -> 'a

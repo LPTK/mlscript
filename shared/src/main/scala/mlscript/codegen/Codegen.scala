@@ -603,7 +603,7 @@ class JSField(`object`: JSExpr, val property: JSIdent) extends JSMember(`object`
     `object`.toSourceCode.parenthesized(
       `object`.precedence < precedence || `object`.isInstanceOf[JSRecord]
     ) ++ SourceCode(
-      if (JSField.isValidIdentifier(property.name)) {
+      if (JSField.isValidFieldName(property.name)) {
         s".${property.name}"
       } else {
         s"[${JSLit.makeStringLiteral(property.name)}]"
@@ -616,7 +616,11 @@ object JSField {
 
   private val identifierPattern: Regex = "^[A-Za-z$][A-Za-z0-9$]*$".r
 
-  def isValidIdentifier(s: Str): Bool = identifierPattern.matches(s)
+  def isValidIdentifier(s: Str): Bool = identifierPattern.matches(s) && !Symbol.isKeyword(s)
+
+  // in this case, a keyword can be used as a field name
+  // e.g. `something.class` is valid
+  def isValidFieldName(s: Str): Bool = identifierPattern.matches(s)
 
   def emitValidFieldName(s: Str): Str = if (isValidIdentifier(s)) s else JSLit.makeStringLiteral(s)
 }

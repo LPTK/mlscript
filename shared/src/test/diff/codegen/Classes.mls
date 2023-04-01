@@ -259,22 +259,22 @@ class Point: { x: int; y: int }
 //│       y: self.y + self1.y
 //│     }));
 //│   }
-//│   Shadow(this1) {
+//│   Shadow(this$) {
 //│     return (new Point({
-//│       x: this1.x + 1,
-//│       y: this1.y + 1
+//│       x: this$.x + 1,
+//│       y: this$.y + 1
 //│     }));
 //│   }
-//│   Shadow2([this1]) {
+//│   Shadow2([this$]) {
 //│     return (new Point({
-//│       x: this1.x + 1,
-//│       y: this1.y + 1
+//│       x: this$.x + 1,
+//│       y: this$.y + 1
 //│     }));
 //│   }
-//│   Shadow3({ this: this1 }) {
+//│   Shadow3({ "this": this$ }) {
 //│     return (new Point({
-//│       x: this1.x + 1,
-//│       y: this1.y + 1
+//│       x: this$.x + 1,
+//│       y: this$.y + 1
 //│     }));
 //│   }
 //│ }
