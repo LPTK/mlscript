@@ -73,11 +73,10 @@ bb.b
 //│ // Prelude
 //│ class TypingUnit1 {}
 //│ const typing_unit1 = new TypingUnit1;
-//│ globalThis.bb = typing_unit1.bb;
 //│ // Query 1
-//│ globalThis.bb1 = A.B(A.a);
+//│ globalThis.bb = A.B(A.a);
 //│ // Query 2
-//│ res = bb1.b;
+//│ res = bb.b;
 //│ // End of generated code
 //│ bb
 //│    = B {}
@@ -100,11 +99,11 @@ c.outer1
 let d = b.D(1)
 d.outer
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.98: 	let c = b.C(1)
+//│ ║  l.97: 	let c = b.C(1)
 //│ ╙──      	         ^^
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.100: 	let d = b.D(1)
-//│ ╙──       	         ^^
+//│ ║  l.99: 	let d = b.D(1)
+//│ ╙──      	         ^^
 //│ class B(x: int) {
 //│   class C(y: int) {
 //│     let outer1: int
@@ -232,11 +231,10 @@ ee.x
 //│ // Prelude
 //│ class TypingUnit5 {}
 //│ const typing_unit5 = new TypingUnit5;
-//│ globalThis.ee = typing_unit5.ee;
 //│ // Query 1
-//│ globalThis.ee1 = D.createE(42);
+//│ globalThis.ee = D.createE(42);
 //│ // Query 2
-//│ res = ee1.x;
+//│ res = ee.x;
 //│ // End of generated code
 //│ ee
 //│    = E {}
@@ -332,7 +330,7 @@ let fff = es.F(2)
 let gg = fff.G(3)
 gg.sum
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.331: 	let fff = es.F(2)
+//│ ║  l.329: 	let fff = es.F(2)
 //│ ╙──       	            ^^
 //│ let es: E
 //│ let fff: error
@@ -341,17 +339,14 @@ gg.sum
 //│ // Prelude
 //│ class TypingUnit7 {}
 //│ const typing_unit7 = new TypingUnit7;
-//│ globalThis.es = typing_unit7.es;
-//│ globalThis.fff = typing_unit7.fff;
-//│ globalThis.gg = typing_unit7.gg;
 //│ // Query 1
-//│ globalThis.es1 = E(1);
+//│ globalThis.es = E(1);
 //│ // Query 2
-//│ globalThis.fff1 = es1.F(2);
+//│ globalThis.fff = es.F(2);
 //│ // Query 3
-//│ globalThis.gg1 = fff1.G(3);
+//│ globalThis.gg = fff.G(3);
 //│ // Query 4
-//│ res = gg1.sum;
+//│ res = gg.sum;
 //│ // End of generated code
 //│ es
 //│    = E {}
@@ -519,7 +514,7 @@ let jj = G.H.J(42)
 let i = jj.ii(2)
 i.x
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.518: 	let jj = G.H.J(42)
+//│ ║  l.513: 	let jj = G.H.J(42)
 //│ ╙──       	          ^^
 //│ let jj: error
 //│ let i: error
@@ -527,14 +522,12 @@ i.x
 //│ // Prelude
 //│ class TypingUnit10 {}
 //│ const typing_unit10 = new TypingUnit10;
-//│ globalThis.jj = typing_unit10.jj;
-//│ globalThis.i = typing_unit10.i;
 //│ // Query 1
-//│ globalThis.jj1 = G.H.J(42);
+//│ globalThis.jj = G.H.J(42);
 //│ // Query 2
-//│ globalThis.i1 = jj1.ii(2);
+//│ globalThis.i = jj.ii(2);
 //│ // Query 3
-//│ res = i1.x;
+//│ res = i.x;
 //│ // End of generated code
 //│ jj
 //│    = J {}
@@ -620,18 +613,17 @@ module H {
 let j = H.J(42)
 j.i.x
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.620: 	let j = H.J(42)
+//│ ║  l.613: 	let j = H.J(42)
 //│ ╙──       	         ^^
 //│ let j: error
 //│ error
 //│ // Prelude
 //│ class TypingUnit12 {}
 //│ const typing_unit12 = new TypingUnit12;
-//│ globalThis.j = typing_unit12.j;
 //│ // Query 1
-//│ globalThis.j1 = H.J(42);
+//│ globalThis.j = H.J(42);
 //│ // Query 2
-//│ res = j1.i.x;
+//│ res = j.i.x;
 //│ // End of generated code
 //│ j
 //│   = J {}
@@ -651,7 +643,7 @@ let i = I(1)
 let ij = i.J(0)
 ij.incY
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.651: 	let ij = i.J(0)
+//│ ║  l.643: 	let ij = i.J(0)
 //│ ╙──       	          ^^
 //│ class I(x: int) {
 //│   class J(x: int) {
@@ -715,14 +707,12 @@ ij.incY
 //│ }
 //│ const typing_unit13 = new TypingUnit13;
 //│ globalThis.I = typing_unit13.I;
-//│ globalThis.i2 = typing_unit13.i2;
-//│ globalThis.ij = typing_unit13.ij;
 //│ // Query 1
-//│ globalThis.i3 = I(1);
+//│ globalThis.i1 = I(1);
 //│ // Query 2
-//│ globalThis.ij1 = i3.J(0);
+//│ globalThis.ij = i1.J(0);
 //│ // Query 3
-//│ res = ij1.incY;
+//│ res = ij.incY;
 //│ // End of generated code
 //│ i
 //│   = I {}
@@ -740,10 +730,10 @@ module J {
   class N(x: int) extends K(x + 2), L
 }
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.739: 	  class M() extends K(1) {}
+//│ ║  l.729: 	  class M() extends K(1) {}
 //│ ╙──       	                    ^^^^
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.740: 	  class N(x: int) extends K(x + 2), L
+//│ ║  l.730: 	  class N(x: int) extends K(x + 2), L
 //│ ╙──       	                          ^^^^^^^^
 //│ module J() {
 //│   class K(x: int)
@@ -833,22 +823,20 @@ module J {
 let m = J.M()
 let n = J.N(2)
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.833: 	let m = J.M()
+//│ ║  l.823: 	let m = J.M()
 //│ ╙──       	         ^^
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.834: 	let n = J.N(2)
+//│ ║  l.824: 	let n = J.N(2)
 //│ ╙──       	         ^^
 //│ let m: error
 //│ let n: error
 //│ // Prelude
 //│ class TypingUnit15 {}
 //│ const typing_unit15 = new TypingUnit15;
-//│ globalThis.m = typing_unit15.m;
-//│ globalThis.n = typing_unit15.n;
 //│ // Query 1
-//│ globalThis.m1 = J.M();
+//│ globalThis.m = J.M();
 //│ // Query 2
-//│ globalThis.n1 = J.N(2);
+//│ globalThis.n = J.N(2);
 //│ // End of generated code
 //│ m
 //│   = M {}
@@ -879,7 +867,7 @@ module K {
 let m = K.L.M()
 m.f
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.879: 	let m = K.L.M()
+//│ ║  l.867: 	let m = K.L.M()
 //│ ╙──       	         ^^
 //│ let m: error
 //│ error
@@ -898,7 +886,7 @@ module L {
   }
 }
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.896: 	      class P(y: int) extends M(y + 1) {}
+//│ ║  l.884: 	      class P(y: int) extends M(y + 1) {}
 //│ ╙──       	                              ^^^^^^^^
 //│ module L() {
 //│   class M(x: int)
@@ -913,7 +901,7 @@ module L {
 let op = L.N.O.P(0)
 op.x
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.913: 	let op = L.N.O.P(0)
+//│ ║  l.901: 	let op = L.N.O.P(0)
 //│ ╙──       	          ^^
 //│ let op: error
 //│ error
@@ -1016,7 +1004,7 @@ module N {
   class Q()
 }
 //│ ╔══[ERROR] Class inheritance is not supported yet (use mixins)
-//│ ║  l.1014: 	    class P() extends Q
+//│ ║  l.1002: 	    class P() extends Q
 //│ ╙──        	                      ^
 //│ module N() {
 //│   module O() {
@@ -1086,7 +1074,7 @@ module N {
 :e
 N.O.P()
 //│ ╔══[ERROR] access to module member not yet supported
-//│ ║  l.1087: 	N.O.P()
+//│ ║  l.1075: 	N.O.P()
 //│ ╙──        	 ^^
 //│ error
 //│ res
@@ -1102,7 +1090,7 @@ class I(x: int) {
 }
 I(1).J(3).a
 //│ ╔══[ERROR] access to class member not yet supported
-//│ ║  l.1103: 	I(1).J(3).a
+//│ ║  l.1091: 	I(1).J(3).a
 //│ ╙──        	    ^^
 //│ class I(x: int) {
 //│   class J(z: int) {
