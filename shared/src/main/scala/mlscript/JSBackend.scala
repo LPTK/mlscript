@@ -220,7 +220,15 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       )
     case Blk(stmts) =>
       val blkScope = scope.derive("Blk")
-      val flattened = stmts.iterator.flatMap(_.desugared._2).toList
+      val (typeDefs, otherStmts) = stmts.partitionMap {
+        case nt: NuTypeDef =>
+          L(nt)
+        case nf @ NuFunDef(_, Var(nme), _, _) =>
+          blkScope.declareStubValue(nme)(true)
+          R(nf)
+        case other => R(other)
+      }
+      val flattened = otherStmts.iterator.flatMap(_.desugared._2).toList
       JSImmEvalFn(
         N,
         Nil,

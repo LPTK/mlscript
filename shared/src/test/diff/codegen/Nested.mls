@@ -1171,14 +1171,41 @@ I(1).J(3).a
 //│ res
 //│     = [ 1, 2, 3 ]
 
-// TODO: handle this
+
 :js
 fun main =
-  fun f = [g]
-  fun g = [f]
+  fun f(x: int): int = if x is
+    0 then 1
+    else g(x - 1)
+  fun g(x: int): int = f(x)
   f
-//│ fun main: forall 'f. 'f
-//│   where
-//│     'f :> (('f,),)
-//│ Code generation encountered an error:
-//│   unresolved symbol g
+//│ fun main: (x: int,) -> int
+//│ // Prelude
+//│ class TypingUnit24 {}
+//│ const typing_unit24 = new TypingUnit24;
+//│ // Query 1
+//│ globalThis.main = function main() {
+//│   return ((() => {
+//│     let f = (x) => x == 0 === true ? 1 : g(x - 1);
+//│     let g = (x) => f(x);
+//│     return f;
+//│   })());
+//│ };
+//│ // End of generated code
+
+// TODO: handle this
+:js
+fun mian =
+  class A(x: int)
+  A(42)
+//│ fun mian: A
+//│ // Prelude
+//│ class TypingUnit25 {}
+//│ const typing_unit25 = new TypingUnit25;
+//│ // Query 1
+//│ globalThis.mian = function mian() {
+//│   return ((() => {
+//│     return A(42);
+//│   })());
+//│ };
+//│ // End of generated code

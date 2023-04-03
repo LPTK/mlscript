@@ -26,6 +26,6 @@ fun foo =
   C(100).bar(10)
 //│ fun foo: int
 //│ Code generation encountered an error:
-//│   unsupported definitions in blocks
+//│   unresolved symbol C
 
 
