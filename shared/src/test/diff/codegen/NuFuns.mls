@@ -25,7 +25,5 @@ fun foo =
   class C(a: int) { fun bar(x) = a + x + 1 }
   C(100).bar(10)
 //│ fun foo: int
-//│ Code generation encountered an error:
-//│   unresolved symbol C
 
 

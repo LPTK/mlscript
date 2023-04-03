@@ -29,6 +29,10 @@ sealed trait TypeSymbol extends LexicalSymbol {
 
 sealed trait NuTypeSymbol {
   val isNested: Bool
+  val methods: Ls[MethodDef[Left[Term, Type]]]
+  val ctor: Ls[Statement]
+  val nested: Ls[NuTypeDef]
+  val superParameters: Ls[Term]
 }
 
 sealed class ValueSymbol(val lexicalName: Str, val runtimeName: Str, val isByvalueRec: Option[Boolean], val isLam: Boolean) extends RuntimeSymbol {
@@ -122,7 +126,7 @@ final case class NewClassSymbol(
 
   override def compare(that: NewClassSymbol): Int = lexicalName.compare(that.lexicalName)
 
-  override def toString: Str = s"new class $lexicalName ($runtimeName)"
+  override def toString: Str = s"new class $lexicalName"
 
   // Classes should have fixed names determined by users
   override def runtimeName: Str = lexicalName
@@ -143,10 +147,11 @@ final case class MixinSymbol(
 
   override def compare(that: MixinSymbol): Int = lexicalName.compare(that.lexicalName)
 
-  override def toString: Str = s"mixin $lexicalName ($runtimeName)"
+  override def toString: Str = s"mixin $lexicalName"
 
   // Mixins should have fixed names determined by users
   override def runtimeName: Str = lexicalName
+  override val superParameters: Ls[Term] = Nil
 }
 
 final case class ModuleSymbol(
@@ -165,7 +170,7 @@ final case class ModuleSymbol(
 
   override def compare(that: ModuleSymbol): Int = lexicalName.compare(that.lexicalName)
 
-  override def toString: Str = s"module $lexicalName ($runtimeName)"
+  override def toString: Str = s"module $lexicalName"
 
   // Modules should have fixed names determined by users
   override def runtimeName: Str = lexicalName
