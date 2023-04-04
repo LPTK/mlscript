@@ -228,13 +228,12 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           R(nf)
         case other => R(other)
       }
-      // TODO: traitSymbols?
-      val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDefs, false)(blkScope)
+      val nuTypeDecs = typeDefs.flatMap{ td => translateLocalNewType(td :: Nil)(blkScope)}
       val flattened = otherStmts.iterator.flatMap(_.desugared._2).toList
       JSImmEvalFn(
         N,
         Nil,
-        R(blkScope.tempVars `with` (flattened.iterator.zipWithIndex.map {
+        R(nuTypeDecs ::: (blkScope.tempVars `with` (flattened.iterator.zipWithIndex.map {
           case (t: Term, index) if index + 1 == flattened.length => translateTerm(t)(blkScope).`return`
           case (t: Term, index)                                  => JSExprStmt(translateTerm(t)(blkScope))
           case (NuFunDef(isLetRec, Var(nme), _, L(rhs)), _) => {
@@ -244,7 +243,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           // TODO: find out if we need to support this.
           case (_: Def | _: TypeDef | _: NuFunDef /* | _: NuTypeDef */, _) =>
             throw CodeGenError("unsupported definitions in blocks")
-        }.toList)),
+        }.toList))),
         Nil
       )
     // Pattern match with only one branch -> comma expression
@@ -495,6 +494,48 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }
     else Nil
 
+  protected def translateLocalNewType(typeDefs: Ls[NuTypeDef])(implicit scope: Scope): Ls[JSStmt] = {
+    // TODO: traitSymbols?
+    val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDefs, false)
+    classSymbols.map(sym => {
+      val localScope = scope.derive(s"local ${sym.lexicalName}")
+      val nd = translateNewTypeDefinition(sym)(localScope)
+      val createMth = localScope.declareValue("create", Some(false), false).runtimeName
+      val (constructor, params) = translateNewClassParameters(nd)
+      JSConstDecl(sym.lexicalName, JSImmEvalFn(
+        N, Nil, R(Ls(
+          nd, JSLetDecl.from(Ls(createMth)),
+          JSAssignExpr(JSIdent(createMth), JSArrowFn(constructor, L(JSInvoke(JSNew(JSIdent(sym.lexicalName)), params)))).stmt,
+          JSExprStmt(JSAssignExpr(JSIdent(createMth).member("class"), JSIdent(sym.lexicalName))),
+          JSReturnStmt(S(JSIdent(createMth)))
+        )), Nil
+      ))
+    }) ++
+    mixinSymbols.map(sym => {
+      val localScope = scope.derive(s"local ${sym.lexicalName}")
+      val base = localScope.declareValue("base", Some(false), false)
+      val nd = translateNewTypeDefinition(sym, S(base))(localScope)
+      JSConstDecl(sym.lexicalName, JSArrowFn(
+        Ls(JSNamePattern(base.runtimeName)), R(Ls(
+          JSReturnStmt(S(JSClassExpr(nd)))
+        ))
+      ))
+    }) ++
+    moduleSymbols.map(sym => {
+      val localScope = scope.derive(s"local ${sym.lexicalName}")
+      val nd = translateNewTypeDefinition(sym)(localScope)
+      val ins = localScope.declareValue("ins", Some(false), false).runtimeName
+      JSConstDecl(sym.lexicalName, JSImmEvalFn(
+        N, Nil, R(Ls(
+          nd, JSLetDecl.from(Ls(ins)),
+          JSAssignExpr(JSIdent(ins), JSInvoke(JSNew(JSIdent(sym.lexicalName)), Nil)).stmt,
+          JSExprStmt(JSAssignExpr(JSIdent(ins).member("class"), JSIdent(sym.lexicalName))),
+          JSReturnStmt(S(JSIdent(ins)))
+        )), Nil
+      ))
+    })
+  }
+
   protected def translateMixinDeclaration(
       mixinSymbol: MixinSymbol,
       siblingsMembers: Ls[RuntimeSymbol] = Ls()
@@ -604,6 +645,17 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       )))
   }
 
+  protected def translateNewClassParameters(classBody: JSClassNewDecl) = {
+    val constructor = classBody match {
+      case dec: JSClassNewDecl => dec.fields.map(JSNamePattern(_))
+    }
+    val params = classBody match {
+      case dec: JSClassNewDecl => dec.fields.map(JSIdent(_))
+    }
+
+    (constructor, params)
+  }
+
   protected def translateNewClassDeclaration(
       classSymbol: NewClassSymbol,
       siblingsMembers: Ls[RuntimeSymbol] = Ls()
@@ -614,12 +666,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
 
     val classBody =
       translateNewTypeDefinition(classSymbol)(getterScope)
-    val constructor = classBody match {
-      case dec: JSClassNewDecl => dec.fields.map(JSNamePattern(_))
-    }
-    val params = classBody match {
-      case dec: JSClassNewDecl => dec.fields.map(JSIdent(_))
-    }
+    val (constructor, params) = translateNewClassParameters(classBody)
 
     val privateIdent = JSIdent(s"this.#${classSymbol.lexicalName}")
     val outerStmt = JSConstDecl(outerSymbol.runtimeName, JSIdent("this"))

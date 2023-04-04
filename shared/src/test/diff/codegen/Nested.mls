@@ -1193,10 +1193,11 @@ fun main =
 //│ };
 //│ // End of generated code
 
-// TODO: handle this
 :js
 fun mian =
   class A(x: int)
+  mixin B()
+  module C
   A(42)
 //│ fun mian: A
 //│ // Prelude
@@ -1205,7 +1206,87 @@ fun mian =
 //│ // Query 1
 //│ globalThis.mian = function mian() {
 //│   return ((() => {
+//│     const A = (() => {
+//│       class A {
+//│         #x;
+//│         get x() { return this.#x; }
+//│         constructor(x) {
+//│           this.#x = x;
+//│         }
+//│       }
+//│       let create;
+//│       create = ((x) => new A(x));
+//│       create.class = A;
+//│       return create;
+//│     })();
+//│     const B = (base) => {
+//│       return (class B extends base {
+//│         constructor(...rest) {
+//│           super(...rest);
+//│         }
+//│       });
+//│     };
+//│     const C = (() => {
+//│       class C {}
+//│       let ins;
+//│       ins = new C();
+//│       ins.class = C;
+//│       return ins;
+//│     })();
 //│     return A(42);
+//│   })());
+//│ };
+//│ // End of generated code
+
+:js
+fun mian =
+  mixin B()
+  class A(x: int) extends B
+  module C extends B
+  [A, C]
+//│ fun mian: ((x: int,) -> A, C,)
+//│ // Prelude
+//│ class TypingUnit26 {}
+//│ const typing_unit26 = new TypingUnit26;
+//│ // Query 1
+//│ globalThis.mian1 = function mian1() {
+//│   return ((() => {
+//│     const B = (base) => {
+//│       return (class B extends base {
+//│         constructor(...rest) {
+//│           super(...rest);
+//│         }
+//│       });
+//│     };
+//│     const A = (() => {
+//│       class A extends B(Object) {
+//│         #x;
+//│         get x() { return this.#x; }
+//│         constructor(x) {
+//│           super();
+//│           this.#x = x;
+//│         }
+//│       }
+//│       let create;
+//│       create = ((x) => new A(x));
+//│       create.class = A;
+//│       return create;
+//│     })();
+//│     const C = (() => {
+//│       class C extends B(Object) {
+//│         constructor() {
+//│           super();
+//│         }
+//│       }
+//│       let ins;
+//│       ins = new C();
+//│       ins.class = C;
+//│       return ins;
+//│     })();
+//│     return ([
+//│       A,
+//│       C
+//│     ]);
 //│   })());
 //│ };
 //│ // End of generated code

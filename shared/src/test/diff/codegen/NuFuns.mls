@@ -19,11 +19,11 @@ fun foo =
 //│ };
 //│ // End of generated code
 
-
-// TODO
 fun foo =
   class C(a: int) { fun bar(x) = a + x + 1 }
   C(100).bar(10)
+foo
 //│ fun foo: int
-
-
+//│ int
+//│ res
+//│     = [Function: foo1]
