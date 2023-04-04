@@ -220,30 +220,28 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       )
     case Blk(stmts) =>
       val blkScope = scope.derive("Blk")
-      val (typeDefs, otherStmts) = stmts.partitionMap {
-        case nt: NuTypeDef =>
-          L(nt)
+      val flattened = stmts.iterator.flatMap {
+        case nt: NuTypeDef => nt :: Nil
         case nf @ NuFunDef(_, Var(nme), _, _) =>
           blkScope.declareStubValue(nme)(true)
-          R(nf)
-        case other => R(other)
-      }
-      val nuTypeDecs = typeDefs.flatMap{ td => translateLocalNewType(td :: Nil)(blkScope)}
-      val flattened = otherStmts.iterator.flatMap(_.desugared._2).toList
+          nf.desugared._2
+        case other => other.desugared._2
+      }.toList
       JSImmEvalFn(
         N,
         Nil,
-        R(nuTypeDecs ::: (blkScope.tempVars `with` (flattened.iterator.zipWithIndex.map {
+        R(blkScope.tempVars `with` (flattened.iterator.zipWithIndex.map {
           case (t: Term, index) if index + 1 == flattened.length => translateTerm(t)(blkScope).`return`
           case (t: Term, index)                                  => JSExprStmt(translateTerm(t)(blkScope))
           case (NuFunDef(isLetRec, Var(nme), _, L(rhs)), _) => {
             val pat = blkScope.declareValue(nme, isLetRec, isLetRec.isEmpty)
             JSLetDecl(Ls(pat.runtimeName -> S(translateTerm(rhs)(blkScope))))
           }
+          case (nt: NuTypeDef, _) => translateLocalNewType(nt)(blkScope)
           // TODO: find out if we need to support this.
           case (_: Def | _: TypeDef | _: NuFunDef /* | _: NuTypeDef */, _) =>
             throw CodeGenError("unsupported definitions in blocks")
-        }.toList))),
+        }.toList)),
         Nil
       )
     // Pattern match with only one branch -> comma expression
@@ -494,20 +492,20 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     }
     else Nil
 
-  protected def translateLocalNewType(typeDefs: Ls[NuTypeDef])(implicit scope: Scope): Ls[JSStmt] = {
+  protected def translateLocalNewType(typeDef: NuTypeDef)(implicit scope: Scope): JSConstDecl = {
     // TODO: traitSymbols?
-    val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDefs, false)
-    classSymbols.map(sym => {
+    val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDef :: Nil, false)
+    (classSymbols.map(sym => {
       val localScope = scope.derive(s"local ${sym.lexicalName}")
       val nd = translateNewTypeDefinition(sym)(localScope)
-      val createMth = localScope.declareValue("create", Some(false), false).runtimeName
+      val ctorMth = localScope.declareValue("ctor", Some(false), false).runtimeName
       val (constructor, params) = translateNewClassParameters(nd)
       JSConstDecl(sym.lexicalName, JSImmEvalFn(
         N, Nil, R(Ls(
-          nd, JSLetDecl.from(Ls(createMth)),
-          JSAssignExpr(JSIdent(createMth), JSArrowFn(constructor, L(JSInvoke(JSNew(JSIdent(sym.lexicalName)), params)))).stmt,
-          JSExprStmt(JSAssignExpr(JSIdent(createMth).member("class"), JSIdent(sym.lexicalName))),
-          JSReturnStmt(S(JSIdent(createMth)))
+          nd, JSLetDecl.from(Ls(ctorMth)),
+          JSAssignExpr(JSIdent(ctorMth), JSArrowFn(constructor, L(JSInvoke(JSNew(JSIdent(sym.lexicalName)), params)))).stmt,
+          JSExprStmt(JSAssignExpr(JSIdent(ctorMth).member("class"), JSIdent(sym.lexicalName))),
+          JSReturnStmt(S(JSIdent(ctorMth)))
         )), Nil
       ))
     }) ++
@@ -533,7 +531,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           JSReturnStmt(S(JSIdent(ins)))
         )), Nil
       ))
-    })
+    }))(0)
   }
 
   protected def translateMixinDeclaration(

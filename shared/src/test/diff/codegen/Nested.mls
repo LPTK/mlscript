@@ -1214,10 +1214,10 @@ fun mian =
 //│           this.#x = x;
 //│         }
 //│       }
-//│       let create;
-//│       create = ((x) => new A(x));
-//│       create.class = A;
-//│       return create;
+//│       let ctor;
+//│       ctor = ((x) => new A(x));
+//│       ctor.class = A;
+//│       return ctor;
 //│     })();
 //│     const B = (base) => {
 //│       return (class B extends base {
@@ -1267,10 +1267,10 @@ fun mian =
 //│           this.#x = x;
 //│         }
 //│       }
-//│       let create;
-//│       create = ((x) => new A(x));
-//│       create.class = A;
-//│       return create;
+//│       let ctor;
+//│       ctor = ((x) => new A(x));
+//│       ctor.class = A;
+//│       return ctor;
 //│     })();
 //│     const C = (() => {
 //│       class C extends B(Object) {
@@ -1287,6 +1287,48 @@ fun mian =
 //│       A,
 //│       C
 //│     ]);
+//│   })());
+//│ };
+//│ // End of generated code
+
+:js
+fun main(arg) =
+  let x = arg + 1
+  fun foo(y) = x + y
+  class C(u: int) { fun z = [foo(u), bar] }
+  fun bar = x
+  C(123)
+//│ fun main: int -> C
+//│ // Prelude
+//│ class TypingUnit27 {}
+//│ const typing_unit27 = new TypingUnit27;
+//│ // Query 1
+//│ globalThis.main1 = function main1(arg) {
+//│   return ((() => {
+//│     let x = arg + 1;
+//│     let foo = (y) => x + y;
+//│     const C = (() => {
+//│       class C {
+//│         #u;
+//│         get u() { return this.#u; }
+//│         constructor(u) {
+//│           this.#u = u;
+//│         }
+//│         get z() {
+//│           const u = this.#u;
+//│           return ([
+//│             foo(u),
+//│             bar
+//│           ]);
+//│         }
+//│       }
+//│       let ctor;
+//│       ctor = ((u) => new C(u));
+//│       ctor.class = C;
+//│       return ctor;
+//│     })();
+//│     let bar = x;
+//│     return C(123);
 //│   })());
 //│ };
 //│ // End of generated code

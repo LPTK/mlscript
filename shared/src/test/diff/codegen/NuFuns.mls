@@ -27,3 +27,26 @@ foo
 //│ int
 //│ res
 //│     = [Function: foo1]
+
+fun main =
+  mixin B { log(1) }
+  log(0)
+  module M extends B
+  log(2)
+main
+//│ fun main: unit
+//│ unit
+//│ res
+//│     = [Function: main]
+
+module Test {
+  log(0)
+  module Foo { log(2) }
+  log(1)
+  Foo
+  log(3)
+  Foo
+}
+//│ module Test() {
+//│   module Foo()
+//│ }
