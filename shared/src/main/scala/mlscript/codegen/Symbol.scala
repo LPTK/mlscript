@@ -28,11 +28,11 @@ sealed trait TypeSymbol extends LexicalSymbol {
 }
 
 sealed trait NuTypeSymbol {
-  val isNested: Bool
+  val isNested: Bool // is nested in another class/mixin/module
   val methods: Ls[MethodDef[Left[Term, Type]]]
-  val ctor: Ls[Statement]
-  val nested: Ls[NuTypeDef]
-  val superParameters: Ls[Term]
+  val ctor: Ls[Statement] // statements in the constructor
+  val nested: Ls[NuTypeDef] // nested class/mixin/module
+  val superParameters: Ls[Term] // parameters that need to be passed to the `super()`
 }
 
 sealed class ValueSymbol(val lexicalName: Str, val runtimeName: Str, val isByvalueRec: Option[Boolean], val isLam: Boolean) extends RuntimeSymbol {
@@ -115,17 +115,12 @@ final case class NewClassSymbol(
     params: Ls[Str],
     body: Type,
     methods: Ls[MethodDef[Left[Term, Type]]],
-    ctor: Ls[Statement], // statements in the constructor
-    superParameters: Ls[Term], // parameters that need to be passed to the `super()`
-    nested: Ls[NuTypeDef], // nested class/mixin/module
-    isNested: Bool // is nested in another class/mixin/module
+    ctor: Ls[Statement],
+    superParameters: Ls[Term],
+    nested: Ls[NuTypeDef],
+    isNested: Bool
 ) extends TypeSymbol
-    with RuntimeSymbol with NuTypeSymbol with Ordered[NewClassSymbol] {
-
-  import scala.math.Ordered.orderingToOrdered
-
-  override def compare(that: NewClassSymbol): Int = lexicalName.compare(that.lexicalName)
-
+    with RuntimeSymbol with NuTypeSymbol {
   override def toString: Str = s"new class $lexicalName"
 
   // Classes should have fixed names determined by users
@@ -141,12 +136,7 @@ final case class MixinSymbol(
     nested: Ls[NuTypeDef],
     isNested: Bool
 ) extends TypeSymbol
-    with RuntimeSymbol with NuTypeSymbol with Ordered[MixinSymbol] {
-
-  import scala.math.Ordered.orderingToOrdered
-
-  override def compare(that: MixinSymbol): Int = lexicalName.compare(that.lexicalName)
-
+    with RuntimeSymbol with NuTypeSymbol {
   override def toString: Str = s"mixin $lexicalName"
 
   // Mixins should have fixed names determined by users
@@ -164,12 +154,7 @@ final case class ModuleSymbol(
     nested: Ls[NuTypeDef],
     isNested: Bool
 ) extends TypeSymbol
-    with RuntimeSymbol with NuTypeSymbol with Ordered[ModuleSymbol] {
-
-  import scala.math.Ordered.orderingToOrdered
-
-  override def compare(that: ModuleSymbol): Int = lexicalName.compare(that.lexicalName)
-
+    with RuntimeSymbol with NuTypeSymbol {
   override def toString: Str = s"module $lexicalName"
 
   // Modules should have fixed names determined by users

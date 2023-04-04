@@ -852,10 +852,10 @@ final case class JSClassNewDecl(
         })((p, s) =>
         if (s.isEmpty) s"${p._1}"
         else s"${p._1}, $s")
-      nestedTypes.distinct.foreach(t => buffer += s"  #$t;")
+      nestedTypes.foreach(t => buffer += s"  #$t;")
       if (!privateMem.isEmpty) {
-        privateMem.distinct.foreach(f => buffer += s"  #${f};")
-        privateMem.distinct.foreach(f => buffer += s"  get ${f}() { return this.#${f}; }")
+        privateMem.foreach(f => buffer += s"  #${f};")
+        privateMem.foreach(f => buffer += s"  get ${f}() { return this.#${f}; }")
       }
       buffer += s"  constructor($params) {"
       if (`extends`.isDefined) {

@@ -79,7 +79,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     case _           => throw CodeGenError(s"term $t is not a valid parameter list")
   }
 
-  private def translateNuTypeSymbol(sym: NuTypeSymbol with RuntimeSymbol, err: CodeGenError)(implicit scope: Scope): JSExpr =
+  private def translateNuTypeSymbol(sym: NuTypeSymbol with RuntimeSymbol)(implicit scope: Scope): JSExpr =
     if (!sym.isNested) JSIdent(sym.runtimeName) else
       scope.resolveValue("this") match { // in a function, we use const self = this;
         case Some(selfSymbol) =>
@@ -87,7 +87,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           JSIdent(selfSymbol.runtimeName).member(sym.runtimeName)
         case _ => scope.resolveValue("outer") match { // in a getter(for classes/modules), we use const outer = this;
           case Some(outerSymbol) => JSIdent(outerSymbol.runtimeName).member(sym.runtimeName)
-          case _ => throw err
+          case _ => throw CodeGenError(s"unexpected NuType symbol ${sym.runtimeName}")
         }
       }
 
@@ -115,11 +115,11 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         val ident = JSIdent(sym.runtimeName)
         if (sym.isByvalueRec.isEmpty && !sym.isLam) ident() else ident
       case S(sym: MixinSymbol) =>
-        translateNuTypeSymbol(sym, CodeGenError(s"unexpected nested mixin $name"))
+        translateNuTypeSymbol(sym)
       case S(sym: ModuleSymbol) =>
-        translateNuTypeSymbol(sym, CodeGenError(s"unexpected nested module $name"))
+        translateNuTypeSymbol(sym)
       case S(sym: NewClassSymbol) =>
-        translateNuTypeSymbol(sym, CodeGenError(s"unexpected nested new class $name"))
+        translateNuTypeSymbol(sym)
       case S(sym: NewClassMemberSymbol) =>
         if (sym.isByvalueRec.getOrElse(false) && !sym.isLam) throw CodeGenError(s"unguarded recursive use of by-value binding $name")
         scope.resolveValue("this") match {
@@ -821,7 +821,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
 
   private def translateNewClassMember(
     method: MethodDef[Left[Term, Type]],
-    props: Ls[Str] // fpr overriding
+    props: Ls[Str] // for overriding
   )(implicit scope: Scope): JSClassMemberDecl = {
     val name = method.nme.name
     // Create the method/getter scope.
@@ -835,7 +835,6 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       val runtime = memberScope.declareValue(p, Some(false), false)
       JSConstDecl(runtime.runtimeName, JSIdent(s"this.#$p"))
     })
-
     // Declare parameters.
     val (memberParams, body) = method.rhs.value match {
       case Lam(params, body) =>
@@ -1282,8 +1281,8 @@ class JSTestBackend extends JSBackend(allowUnresolvedSymbols = false) {
     val insDecl =
       JSConstDecl(moduleIns.runtimeName, JSNew(JSIdent(topModule.runtimeName)))
 
-    def include(name: Str, moduleName: Str) =
-      JSExprStmt(JSAssignExpr(JSField(JSIdent("globalThis"), name), JSField(JSIdent(moduleName), name)))
+    def include(typeName: Str, moduleName: Str) =
+      JSExprStmt(JSAssignExpr(JSField(JSIdent("globalThis"), typeName), JSField(JSIdent(moduleName), typeName)))
     val includes =
       typeDefs.filter(!_.isDecl).map {
         case NuTypeDef(_, TypeName(nme), _, _, _, _, _, _, _) =>

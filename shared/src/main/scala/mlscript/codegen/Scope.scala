@@ -296,6 +296,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
     lexicalValueSymbols.put(symbol.lexicalName, symbol)
   }
 
+  // We don't want `outer` symbols to be shadowed by each other
   private def pushDownOutsiders(syms: scala.collection.mutable.HashSet[Str]) = {
     syms.foreach(s => {
       runtimeSymbols += s
