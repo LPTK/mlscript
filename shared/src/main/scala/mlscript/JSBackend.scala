@@ -88,10 +88,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         case _ => throw CodeGenError(s"unexpected NuType symbol ${sym.runtimeName}")
       }
 
-  protected def translateCapcture(sym: CapturedSymbol): JSExpr = sym match {
-    case CapturedSymbol(outer, cap) =>
-      JSIdent(outer.runtimeName).member(cap.lexicalName)
-  }
+  protected def translateCapcture(sym: CapturedSymbol): JSExpr =
+    JSIdent(sym.outsiderSym.runtimeName).member(sym.actualSym.lexicalName)
 
   protected def translateVar(name: Str, isCallee: Bool)(implicit scope: Scope): JSExpr =
     scope.resolveValue(name) match {
