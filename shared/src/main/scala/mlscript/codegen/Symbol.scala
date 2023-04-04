@@ -141,6 +141,9 @@ final case class MixinSymbol(
 
   // Mixins should have fixed names determined by users
   override def runtimeName: Str = lexicalName
+
+  // Mixins should pass `...rest` to the `super()`
+  // But the variable name is not sure when we create the symbol object
   override val superParameters: Ls[Term] = Nil
 }
 
@@ -161,8 +164,7 @@ final case class ModuleSymbol(
   override def runtimeName: Str = lexicalName
 }
 
-// all symbols, excepting top level modules and local variables
-// should be accessed by either `self` variables or captured symbols
+// capture runtime symbols in the outside module/class/mixin
 final case class CapturedSymbol(
   outsiderSym: RuntimeSymbol,
   actualSym: RuntimeSymbol

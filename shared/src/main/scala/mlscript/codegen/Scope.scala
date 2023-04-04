@@ -352,16 +352,8 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
 
   def declareOuterSymbol(): ValueSymbol = {
     val lexicalName = "outer"
-    val runtimeName = lexicalValueSymbols.get(lexicalName) match {
-      // If we are implementing a stub symbol and the stub symbol did not shadow any other
-      // symbols, it is safe to reuse its `runtimeName`.
-      case S(sym: StubValueSymbol) if !sym.shadowing => sym.runtimeName
-      case S(sym: BuiltinSymbol) if !sym.accessed    => sym.runtimeName
-      case _                                         => allocateRuntimeName(lexicalName)
-    }
-    val symbol = ValueSymbol(lexicalName, runtimeName, Some(false), false)
-    register(symbol)
-    outsiderSymbols += runtimeName
+    val symbol = declareValue(lexicalName, Some(false), false)
+    outsiderSymbols += symbol.runtimeName
     symbol
   }
 

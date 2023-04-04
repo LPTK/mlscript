@@ -81,14 +81,11 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
 
   private def translateNuTypeSymbol(sym: NuTypeSymbol with RuntimeSymbol)(implicit scope: Scope): JSExpr =
     if (!sym.isNested) JSIdent(sym.runtimeName) else
-      scope.resolveValue("this") match { // in a function, we use const self = this;
+      scope.resolveValue("this") match {
         case Some(selfSymbol) =>
           visitedSymbols += selfSymbol
           JSIdent(selfSymbol.runtimeName).member(sym.runtimeName)
-        case _ => scope.resolveValue("outer") match { // in a getter(for classes/modules), we use const outer = this;
-          case Some(outerSymbol) => JSIdent(outerSymbol.runtimeName).member(sym.runtimeName)
-          case _ => throw CodeGenError(s"unexpected NuType symbol ${sym.runtimeName}")
-        }
+        case _ => throw CodeGenError(s"unexpected NuType symbol ${sym.runtimeName}")
       }
 
   protected def translateCapcture(sym: CapturedSymbol): JSExpr = sym match {
@@ -495,43 +492,53 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
   protected def translateLocalNewType(typeDef: NuTypeDef)(implicit scope: Scope): JSConstDecl = {
     // TODO: traitSymbols?
     val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDef :: Nil, false)
-    (classSymbols.map(sym => {
-      val localScope = scope.derive(s"local ${sym.lexicalName}")
-      val nd = translateNewTypeDefinition(sym)(localScope)
-      val ctorMth = localScope.declareValue("ctor", Some(false), false).runtimeName
-      val (constructor, params) = translateNewClassParameters(nd)
-      JSConstDecl(sym.lexicalName, JSImmEvalFn(
-        N, Nil, R(Ls(
-          nd, JSLetDecl.from(Ls(ctorMth)),
-          JSAssignExpr(JSIdent(ctorMth), JSArrowFn(constructor, L(JSInvoke(JSNew(JSIdent(sym.lexicalName)), params)))).stmt,
-          JSExprStmt(JSAssignExpr(JSIdent(ctorMth).member("class"), JSIdent(sym.lexicalName))),
-          JSReturnStmt(S(JSIdent(ctorMth)))
-        )), Nil
-      ))
-    }) ++
-    mixinSymbols.map(sym => {
-      val localScope = scope.derive(s"local ${sym.lexicalName}")
-      val base = localScope.declareValue("base", Some(false), false)
-      val nd = translateNewTypeDefinition(sym, S(base))(localScope)
-      JSConstDecl(sym.lexicalName, JSArrowFn(
-        Ls(JSNamePattern(base.runtimeName)), R(Ls(
-          JSReturnStmt(S(JSClassExpr(nd)))
+    val sym = classSymbols match {
+      case s :: _ => S(s)
+      case Nil => mixinSymbols match {
+        case s :: _ => S(s)
+        case Nil => moduleSymbols match {
+          case s :: _ => S(s)
+          case _ => N
+        }
+      }
+    }
+    sym match {
+      case S(sym: NewClassSymbol) =>
+        val localScope = scope.derive(s"local ${sym.lexicalName}")
+        val nd = translateNewTypeDefinition(sym)(localScope)
+        val ctorMth = localScope.declareValue("ctor", Some(false), false).runtimeName
+        val (constructor, params) = translateNewClassParameters(nd)
+        JSConstDecl(sym.lexicalName, JSImmEvalFn(
+          N, Nil, R(Ls(
+            nd, JSLetDecl.from(Ls(ctorMth)),
+            JSAssignExpr(JSIdent(ctorMth), JSArrowFn(constructor, L(JSInvoke(JSNew(JSIdent(sym.lexicalName)), params)))).stmt,
+            JSExprStmt(JSAssignExpr(JSIdent(ctorMth).member("class"), JSIdent(sym.lexicalName))),
+            JSReturnStmt(S(JSIdent(ctorMth)))
+          )), Nil
         ))
-      ))
-    }) ++
-    moduleSymbols.map(sym => {
-      val localScope = scope.derive(s"local ${sym.lexicalName}")
-      val nd = translateNewTypeDefinition(sym)(localScope)
-      val ins = localScope.declareValue("ins", Some(false), false).runtimeName
-      JSConstDecl(sym.lexicalName, JSImmEvalFn(
-        N, Nil, R(Ls(
-          nd, JSLetDecl.from(Ls(ins)),
-          JSAssignExpr(JSIdent(ins), JSInvoke(JSNew(JSIdent(sym.lexicalName)), Nil)).stmt,
-          JSExprStmt(JSAssignExpr(JSIdent(ins).member("class"), JSIdent(sym.lexicalName))),
-          JSReturnStmt(S(JSIdent(ins)))
-        )), Nil
-      ))
-    }))(0)
+      case S(sym: MixinSymbol) =>
+        val localScope = scope.derive(s"local ${sym.lexicalName}")
+        val base = localScope.declareValue("base", Some(false), false)
+        val nd = translateNewTypeDefinition(sym, S(base))(localScope)
+        JSConstDecl(sym.lexicalName, JSArrowFn(
+          Ls(JSNamePattern(base.runtimeName)), R(Ls(
+            JSReturnStmt(S(JSClassExpr(nd)))
+          ))
+        ))
+      case S(sym: ModuleSymbol) =>
+        val localScope = scope.derive(s"local ${sym.lexicalName}")
+        val nd = translateNewTypeDefinition(sym)(localScope)
+        val ins = localScope.declareValue("ins", Some(false), false).runtimeName
+        JSConstDecl(sym.lexicalName, JSImmEvalFn(
+          N, Nil, R(Ls(
+            nd, JSLetDecl.from(Ls(ins)),
+            JSAssignExpr(JSIdent(ins), JSInvoke(JSNew(JSIdent(sym.lexicalName)), Nil)).stmt,
+            JSExprStmt(JSAssignExpr(JSIdent(ins).member("class"), JSIdent(sym.lexicalName))),
+            JSReturnStmt(S(JSIdent(ins)))
+          )), Nil
+        ))
+      case _ => throw CodeGenError(s"unsupported NuTypeDef in local blocks: $typeDef")
+    }
   }
 
   protected def translateMixinDeclaration(
