@@ -1332,3 +1332,15 @@ fun main(arg) =
 //│   })());
 //│ };
 //│ // End of generated code
+
+module Test {
+  log(0)
+  module Foo { log(2) }
+  log(1)
+  Foo
+  log(3)
+  Foo
+}
+//│ module Test() {
+//│   module Foo()
+//│ }
