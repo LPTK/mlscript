@@ -555,33 +555,35 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
   }
 
   private def translateParents(superFields: Ls[Term], constructorScope: Scope)(implicit scope: Scope): Opt[JSExpr] = {
-    val bases = superFields.map { sym => sym match {
+    val bases = superFields.map {
       case App(lhs, _) => translateTerm(App(lhs, Tup(Ls())))(constructorScope)
-      case _ => translateTerm(sym)(constructorScope)
-    } }
+      case t => translateTerm(t)(constructorScope)
+    }
 
-    def translateParent(current: JSExpr, base: JSExpr, forceMixin: Bool): JSExpr = {
-      val (name, captured) = current match {
-        case JSIdent(nme) => (nme, false)
-        case JSInvoke(JSIdent(nme), _) => (nme, false)
-        case f: JSField => (f.property.name, true)
-        case JSInvoke(f: JSField, _) => (f.property.name, true)
+    def translateParent(current: JSExpr, base: JSExpr, mixinOnly: Bool): JSExpr = {
+      val name = current match {
+        case JSIdent(nme) => nme
+        case JSInvoke(JSIdent(nme), _) => nme
+        case f: JSField => f.property.name
+        case JSInvoke(f: JSField, _) => f.property.name
         case _ => throw CodeGenError("unsupported parents.")
       }
 
       scope.resolveValue(name) match {
-        case Some(CapturedSymbol(out, sym: MixinSymbol)) if (captured) =>
+        case Some(CapturedSymbol(out, sym: MixinSymbol)) =>
           JSInvoke(translateCapture(CapturedSymbol(out, sym)), Ls(base))
-        case Some(CapturedSymbol(out, sym: NuTypeSymbol)) if (captured && !forceMixin) =>
+        case Some(CapturedSymbol(out, sym: NuTypeSymbol)) if !mixinOnly =>
           translateCapture(CapturedSymbol(out, sym)).member("class")
-        case Some(sym: MixinSymbol) if (!captured) =>
+        case Some(sym: MixinSymbol) =>
           JSInvoke(translateVar(name, false), Ls(base))
-        case Some(_: NuTypeSymbol) if (!captured && !forceMixin) =>
+        case Some(_: NuTypeSymbol) if !mixinOnly =>
           translateVar(name, false).member("class")
         case _ => throw CodeGenError(s"unresolved parent $name.")
       }
     }
 
+    // for non-first parent classes, they must be mixins or we would get more than one parent classes,
+    // which is not allowed in JS
     bases match {
       case head :: tail => S(tail.foldLeft(
         translateParent(head, JSIdent("Object"), false)
