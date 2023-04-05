@@ -15,7 +15,12 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   private val lexicalTypeSymbols = scala.collection.mutable.HashMap[Str, TypeSymbol]()
   private val lexicalValueSymbols = scala.collection.mutable.HashMap[Str, RuntimeSymbol]()
   private val runtimeSymbols = scala.collection.mutable.HashSet[Str]()
-  private val outsiderSymbols = scala.collection.mutable.HashSet[Str]()
+
+  // A class method/getter/constructor can access the outer one's member
+  // by `const outer = this;` before the class definition starts.
+  // To access ALL outer variables correctly, we need to make sure
+  // none of them would be shadowed.
+  private val outerSymbols = scala.collection.mutable.HashSet[Str]()
 
   val tempVars: TemporaryVariableEmitter = TemporaryVariableEmitter()
 
@@ -297,10 +302,11 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   }
 
   // We don't want `outer` symbols to be shadowed by each other
-  private def pushDownOutsiders(syms: scala.collection.mutable.HashSet[Str]) = {
+  // Add all runtime names of `outer` symbols from the parent scope
+  private def pullOuterSymbols(syms: scala.collection.mutable.HashSet[Str]) = {
     syms.foreach(s => {
       runtimeSymbols += s
-      outsiderSymbols += s
+      outerSymbols += s
     })
 
     this
@@ -353,7 +359,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   def declareOuterSymbol(): ValueSymbol = {
     val lexicalName = "outer"
     val symbol = declareValue(lexicalName, Some(false), false)
-    outsiderSymbols += symbol.runtimeName
+    outerSymbols += symbol.runtimeName
     symbol
   }
 
@@ -421,7 +427,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
     * Shorthands for deriving normal scopes.
     */
   def derive(name: Str): Scope =
-    (new Scope(name, S(this))).pushDownOutsiders(outsiderSymbols)
+    (new Scope(name, S(this))).pullOuterSymbols(outerSymbols)
 
   
   def refreshRes(): Unit = {
