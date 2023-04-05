@@ -717,16 +717,13 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     moduleSymbols.foreach(s => {memberList += s; typeList += s.lexicalName})
     val members = sym.methods.map {
       translateNewClassMember(_, fields)(nuTypeScope)
-    } ::: (
-      if (sym.nested.isEmpty) Nil
-      else
-        mixinSymbols.map
-          { translateMixinDeclaration(_, memberList.toList)(nuTypeScope) } ++
-        moduleSymbols.map
-          { translateModuleDeclaration(_, memberList.toList)(nuTypeScope) } ++
-        classSymbols.map
-          { translateNewClassDeclaration(_, memberList.toList)(nuTypeScope) }
-    )
+    } ++
+      mixinSymbols.map
+        { translateMixinDeclaration(_, memberList.toList)(nuTypeScope) } ++
+      moduleSymbols.map
+        { translateModuleDeclaration(_, memberList.toList)(nuTypeScope) } ++
+      classSymbols.map
+        { translateNewClassDeclaration(_, memberList.toList)(nuTypeScope) }
 
     val base: Opt[JSExpr] = baseSym match {
       case Some(base) => S(JSIdent(base.runtimeName))
@@ -769,16 +766,18 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       case _ => Nil
     }
 
-    JSClassNewDecl(sym.lexicalName,
-                   fields,
-                   fields ::: getters.toList,
-                   base,
-                   superParameters,
-                   ctorParameter,
-                   members,
-                   traits,
-                   translateSelfDeclaration(selfSymbol) ::: tempDecs ::: stmts,
-                   typeList.toList)
+    JSClassNewDecl(
+      sym.lexicalName,
+      fields,
+      fields ::: getters.toList,
+      base,
+      superParameters,
+      ctorParameter,
+      members,
+      traits,
+      translateSelfDeclaration(selfSymbol) ::: tempDecs ::: stmts,
+      typeList.toList
+    )
   }
 
   /**
