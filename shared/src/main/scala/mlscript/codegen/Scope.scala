@@ -16,8 +16,8 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   private val lexicalValueSymbols = scala.collection.mutable.HashMap[Str, RuntimeSymbol]()
   private val runtimeSymbols = scala.collection.mutable.HashSet[Str]()
 
-  // A class method/getter/constructor can access the outer one's member
-  // by `const outer = this;` before the class definition starts.
+  // To allow a class method/getter/constructor to access members of an outer class,
+  // we insert `const outer = this;` before the class definition starts.
   // To access ALL outer variables correctly, we need to make sure
   // none of them would be shadowed.
   private val outerSymbols = scala.collection.mutable.HashSet[Str]()
