@@ -556,64 +556,36 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
 
   private def translateParents(superFields: Ls[Term], constructorScope: Scope)(implicit scope: Scope): Opt[JSExpr] = {
     val bases = superFields.map { sym => sym match {
-      case App(lhs, _) => S(translateTerm(App(lhs, Tup(Ls())))(constructorScope))
-      case _ => S(translateTerm(sym)(constructorScope))
+      case App(lhs, _) => translateTerm(App(lhs, Tup(Ls())))(constructorScope)
+      case _ => translateTerm(sym)(constructorScope)
     } }
 
+    def translateParent(current: JSExpr, base: JSExpr, forceMixin: Bool): JSExpr = {
+      val (name, captured) = current match {
+        case JSIdent(nme) => (nme, false)
+        case JSInvoke(JSIdent(nme), _) => (nme, false)
+        case f: JSField => (f.property.name, true)
+        case JSInvoke(f: JSField, _) => (f.property.name, true)
+        case _ => throw CodeGenError("unsupported parents.")
+      }
+
+      scope.resolveValue(name) match {
+        case Some(CapturedSymbol(out, sym: MixinSymbol)) if (captured) =>
+          JSInvoke(translateCapture(CapturedSymbol(out, sym)), Ls(base))
+        case Some(CapturedSymbol(out, sym: NuTypeSymbol)) if (captured && !forceMixin) =>
+          translateCapture(CapturedSymbol(out, sym)).member("class")
+        case Some(sym: MixinSymbol) if (!captured) =>
+          JSInvoke(translateVar(name, false), Ls(base))
+        case Some(_: NuTypeSymbol) if (!captured && !forceMixin) =>
+          translateVar(name, false).member("class")
+        case _ => throw CodeGenError(s"unresolved parent $name.")
+      }
+    }
+
     bases match {
-      case head :: tail => tail.foldLeft(
-        head match {
-          case Some(JSIdent(nme)) => scope.resolveValue(nme) match {
-            case Some(sym: MixinSymbol) => Some(JSInvoke(translateVar(nme, false), Ls(JSIdent("Object"))))
-            case Some(_) => Some(translateVar(nme, false).member("class"))
-            case _ => throw CodeGenError(s"unresolved symbol in parents: $nme")
-          }
-          case Some(JSInvoke(JSIdent(nme), _)) => scope.resolveValue(nme) match {
-            case Some(sym: MixinSymbol) => Some(JSInvoke(translateVar(nme, false), Ls(JSIdent("Object"))))
-            case Some(_) => Some(translateVar(nme, false).member("class"))
-            case _ => throw CodeGenError(s"unresolved symbol in parents: $nme")
-          }
-          case Some(f: JSField) => scope.resolveValue(f.property.name) match {
-            case Some(CapturedSymbol(out, sym: MixinSymbol)) =>
-              Some(JSInvoke(translateCapture(CapturedSymbol(out, sym)), Ls(JSIdent("Object"))))
-            case Some(CapturedSymbol(out, sym)) =>
-              Some(translateCapture(CapturedSymbol(out, sym)).member("class"))
-            case _ => throw CodeGenError(s"unresolved symbol in parents: ${f.property.name}")
-          }
-          case Some(JSInvoke(f: JSField, _)) => scope.resolveValue(f.property.name) match {
-            case Some(CapturedSymbol(out, sym: MixinSymbol)) =>
-              Some(JSInvoke(translateCapture(CapturedSymbol(out, sym)), Ls(JSIdent("Object"))))
-            case Some(CapturedSymbol(out, sym)) =>
-              Some(translateCapture(CapturedSymbol(out, sym)).member("class"))
-            case _ => throw CodeGenError(s"unresolved symbol in parents: ${f.property.name}")
-          }
-          case _ => throw CodeGenError("unresolved parents.")
-        }
-      )((res, next) => (res, next) match {
-        case (S(res), S(JSIdent(next))) => scope.resolveValue(next) match {
-          case Some(sym: MixinSymbol) => S(JSInvoke(JSIdent(next), Ls(res)))
-          case Some(_) => throw CodeGenError("can not have more than one parents.")
-          case _ => throw CodeGenError(s"unresolved symbol in parents: $res")
-        }
-        case (S(res), S(JSInvoke(JSIdent(next), _))) => scope.resolveValue(next) match {
-          case Some(sym: MixinSymbol) => S(JSInvoke(JSIdent(next), Ls(res)))
-          case Some(_) => throw CodeGenError("can not have more than one parents.")
-          case _ => throw CodeGenError(s"unresolved symbol in parents: $res")
-        }
-        case (S(res), S(f: JSField)) => scope.resolveValue(f.property.name) match {
-          case Some(CapturedSymbol(out, sym: MixinSymbol)) =>
-            S(JSInvoke(translateCapture(CapturedSymbol(out, sym)), Ls(res)))
-          case Some(_) => throw CodeGenError("can not have more than one parents.")
-          case _ => throw CodeGenError(s"unresolved symbol in parents: $res")
-        }
-        case (S(res), S(JSInvoke(f: JSField, _))) => scope.resolveValue(f.property.name) match {
-          case Some(CapturedSymbol(out, sym: MixinSymbol)) =>
-            S(JSInvoke(translateCapture(CapturedSymbol(out, sym)), Ls(res)))
-          case Some(_) => throw CodeGenError("can not have more than one parents.")
-          case _ => throw CodeGenError(s"unresolved symbol in parents: $res")
-        }
-        case _ => throw CodeGenError("unresolved parents.")
-      })
+      case head :: tail => S(tail.foldLeft(
+        translateParent(head, JSIdent("Object"), false)
+      )((res, next) => translateParent(next, res, true)))
       case Nil => N
     }
   }
