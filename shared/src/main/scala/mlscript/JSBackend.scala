@@ -484,8 +484,10 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     else Nil
 
   protected def translateLocalNewType(typeDef: NuTypeDef)(implicit scope: Scope): JSConstDecl = {
-    // TODO: traitSymbols?
-    val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDef :: Nil, false)
+    // TODO: support traitSymbols
+    val (traitSymbols, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDef :: Nil, false)
+    if (!traitSymbols.isEmpty) throw CodeGenError("traits are not supported yet.")
+
     val sym = classSymbols match {
       case s :: _ => S(s)
       case Nil => mixinSymbols match {
@@ -708,8 +710,10 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       case _ => ()
     }
 
-    // TODO: traitSymbols?
-    val (_, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(sym.nested, true)(nuTypeScope)
+    // TODO: support traitSymbols
+    val (traitSymbols, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(sym.nested, true)(nuTypeScope)
+    if (!traitSymbols.isEmpty) throw CodeGenError("traits are not supported yet.")
+
     if (keepTopLevelScope) // also declare in the top level for diff tests
       declareNewTypeDefs(sym.nested, false)(topLevelScope)
     classSymbols.foreach(s => {memberList += s; typeList += s.lexicalName})
