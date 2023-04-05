@@ -116,7 +116,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   /**
     * Register a lexical symbol in both runtime name set and lexical name set.
     */
-  private def register(symbol: TypeSymbol with RuntimeSymbol): Unit = {
+  def register(symbol: TypeSymbol with RuntimeSymbol): Unit = {
     lexicalTypeSymbols.put(symbol.lexicalName, symbol)
     lexicalValueSymbols.put(symbol.lexicalName, symbol)
     runtimeSymbols += symbol.runtimeName
@@ -126,7 +126,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   /**
     * Register a lexical symbol in both runtime name set and lexical name set.
     */
-  private def register(symbol: RuntimeSymbol): Unit = {
+  def register(symbol: RuntimeSymbol): Unit = {
     lexicalValueSymbols.put(symbol.lexicalName, symbol)
     runtimeSymbols += symbol.runtimeName
     ()
@@ -229,50 +229,6 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
     symbol
   }
 
-  def declareNewClass(
-      lexicalName: Str,
-      params: Ls[Str],
-      base: Type,
-      methods: Ls[MethodDef[Left[Term, Type]]],
-      ctor: Ls[Statement],
-      superParameters: Ls[Term],
-      nested: Ls[NuTypeDef],
-      isNested: Bool
-  ): NewClassSymbol = {
-    val symbol = NewClassSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters, nested, isNested)
-    register(symbol)
-    symbol
-  }
-
-  def declareMixin(
-      lexicalName: Str,
-      params: Ls[Str],
-      base: Type,
-      methods: Ls[MethodDef[Left[Term, Type]]],
-      ctor: Ls[Statement],
-      nested: Ls[NuTypeDef],
-      isNested: Bool
-  ): MixinSymbol = {
-    val symbol = MixinSymbol(lexicalName, params.sorted, base, methods, ctor, nested, isNested)
-    register(symbol)
-    symbol
-  }
-
-  def declareModule(
-      lexicalName: Str,
-      params: Ls[Str],
-      base: Type,
-      methods: Ls[MethodDef[Left[Term, Type]]],
-      ctor: Ls[Statement],
-      superParameters: Ls[Term],
-      nested: Ls[NuTypeDef],
-      isNested: Bool
-  ): ModuleSymbol = {
-    val symbol = ModuleSymbol(lexicalName, params.sorted, base, methods, ctor, superParameters, nested, isNested)
-    register(symbol)
-    symbol
-  }
-
   // in DiffTests, we need to rename `TypingUnit` to some other names
   // because we would not indicate different names manually
   def declareTopModule(
@@ -346,12 +302,6 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       case _                                         => allocateRuntimeName(lexicalName)
     }
     val symbol = ValueSymbol(lexicalName, runtimeName, isByvalueRec, isLam)
-    register(symbol)
-    symbol
-  }
-
-  def declareNewClassMember(name: Str, isByvalueRec: Option[Boolean], isLam: Boolean): NewClassMemberSymbol = {
-    val symbol = NewClassMemberSymbol(name, isByvalueRec, isLam)
     register(symbol)
     symbol
   }
