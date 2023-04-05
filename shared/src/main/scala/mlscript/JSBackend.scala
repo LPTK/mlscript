@@ -109,11 +109,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         visitedSymbols += sym
         val ident = JSIdent(sym.runtimeName)
         if (sym.isByvalueRec.isEmpty && !sym.isLam) ident() else ident
-      case S(sym: MixinSymbol) =>
-        translateNuTypeSymbol(sym)
-      case S(sym: ModuleSymbol) =>
-        translateNuTypeSymbol(sym)
-      case S(sym: NewClassSymbol) =>
+      case S(sym: NuTypeSymbol with RuntimeSymbol) =>
         translateNuTypeSymbol(sym)
       case S(sym: NewClassMemberSymbol) =>
         if (sym.isByvalueRec.getOrElse(false) && !sym.isLam) throw CodeGenError(s"unguarded recursive use of by-value binding $name")
@@ -325,10 +321,10 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           // JS is dumb so `instanceof String` won't actually work on "primitive" strings...
           JSBinary("===", scrut.member("constructor"), JSLit("String"))
         case Var(name) => scope.resolveValue(name) match {
-          case S(NewClassSymbol(lexicalName, _, _, _, _, _, _, _)) =>
-            JSInstanceOf(scrut, translateVar(lexicalName, false).member("class"))
-          case S(ModuleSymbol(lexicalName, _, _, _, _, _, _, _)) =>
-            JSInstanceOf(scrut, translateVar(lexicalName, false).member("class"))
+          case S(sym: NewClassSymbol) =>
+            JSInstanceOf(scrut, translateVar(sym.lexicalName, false).member("class"))
+          case S(sym: ModuleSymbol) =>
+            JSInstanceOf(scrut, translateVar(sym.lexicalName, false).member("class"))
           case S(CapturedSymbol(out, cls: NewClassSymbol)) =>
             JSInstanceOf(scrut, translateCapture(CapturedSymbol(out, cls)).member("class"))
           case S(CapturedSymbol(out, mdl: ModuleSymbol)) =>
@@ -751,12 +747,12 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       (Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName))
     }
     else
-      ((sym.superParameters map {
+      (sym.superParameters.map {
         case App(lhs, Tup(rhs)) => rhs map {
           case (_, Fld(mut, spec, trm)) => translateTerm(trm)(constructorScope)
         }
         case _ => Nil
-      }).flatMap(_.reverse).reverse, N)
+      }.flatMap(_.reverse).reverse, N)
 
     val getters = new ListBuffer[Str]()
     val stmts = sym.ctor.flatMap {
@@ -909,22 +905,22 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         case _ => die
       }
       val body = pars.map(tt).foldRight(Record(params): Type)(Inter)
-      val members = unit.entities.foldLeft(List[MethodDef[Left[Term, Type]]]())((lst, loc) => loc match {
+      val members = unit.entities.collect {
         case NuFunDef(isLetRec, mnme, tys, Left(rhs)) if (isLetRec.isEmpty || isLetRec.getOrElse(false)) =>
-          lst :+ MethodDef(isLetRec.getOrElse(false), TypeName(nme), mnme, tys, Left(rhs))
-        case _ => lst
-      })
-      val stmts = unit.entities.foldLeft(List[Statement]())((lst, loc) => loc match {
-        case Asc(Var("this"), _) => lst
-        case Asc(Super(), _) => lst
-        case lt @ NuFunDef(S(false), _, _, Left(rhs)) => lst :+ lt
-        case t: Term => lst :+ t
-        case _ => lst
-      })
-      val nested = unit.entities.foldLeft(List[NuTypeDef]())((lst, loc) => loc match {
-        case nd: NuTypeDef => lst :+ nd
-        case _ => lst
-      })
+          MethodDef[Left[Term, Type]](isLetRec.getOrElse(false), TypeName(nme), mnme, tys, Left(rhs))
+      }
+
+      val stmts = unit.entities.filter {
+        case Asc(Var("this"), _) => false
+        case Asc(Super(), _) => false
+        case NuFunDef(S(false), _, _, Left(rhs)) => true
+        case _: Term => true
+        case _ => false
+      }
+
+      val nested = unit.entities.collect {
+        case nd: NuTypeDef => nd
+      }
       
       (body, members, stmts, nested)
     }
@@ -1290,8 +1286,8 @@ class JSTestBackend extends JSBackend(allowUnresolvedSymbols = false) {
       JSExprStmt(JSAssignExpr(JSField(JSIdent("globalThis"), typeName), JSField(JSIdent(moduleName), typeName)))
     val includes =
       typeDefs.filter(!_.isDecl).map {
-        case NuTypeDef(_, TypeName(nme), _, _, _, _, _, _, _) =>
-          include(nme, moduleIns.runtimeName)
+        case nu: NuTypeDef =>
+          include(nu.nme.name, moduleIns.runtimeName)
       }
 
     val zeroWidthSpace = JSLit("\"\\u200B\"")
