@@ -269,12 +269,12 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   }
 
   // in DiffTests, we need to rename `TypingUnit` to some other names
-  // because we would not indicate different names manumally
+  // because we would not indicate different names manually
   def declareTopModule(
     lexicalName: Str,
     stmts: Ls[Statement],
     nuTypes: Ls[NuTypeDef],
-    allowRenaming: Bool = false
+    allowRenaming: Bool
   ): ModuleSymbol = {
     val finalName =
       if (allowRenaming) allocateRuntimeName(lexicalName) else lexicalName
