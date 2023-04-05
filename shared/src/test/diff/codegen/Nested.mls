@@ -1344,3 +1344,61 @@ module Test {
 //│ module Test() {
 //│   module Foo()
 //│ }
+
+:js
+class Outer1(outer: int) {
+  log(outer)
+  class Outer2(x: int) {
+    let outer = x + 1
+  }
+}
+//│ class Outer1(outer: int) {
+//│   class Outer2(x: int) {
+//│     let outer: int
+//│   }
+//│ }
+//│ // Prelude
+//│ class TypingUnit29 {
+//│   #Outer1;
+//│   constructor() {
+//│   }
+//│   get Outer1() {
+//│     const outer = this;
+//│     if (this.#Outer1 === undefined) {
+//│       class Outer1 {
+//│         #Outer2;
+//│         #outer;
+//│         get outer() { return this.#outer; }
+//│         constructor(outer1) {
+//│           this.#outer = outer1;
+//│           log(outer1);
+//│         }
+//│         get Outer2() {
+//│           const outer1 = this;
+//│           if (this.#Outer2 === undefined) {
+//│             class Outer2 {
+//│               #x;
+//│               #outer;
+//│               get x() { return this.#x; }
+//│               get outer() { return this.#outer; }
+//│               constructor(x) {
+//│                 this.#x = x;
+//│                 this.#outer = x + 1;
+//│                 const outer2 = this.#outer;
+//│               }
+//│             };
+//│             this.#Outer2 = ((x) => new Outer2(x));
+//│             this.#Outer2.class = Outer2;
+//│           }
+//│           return this.#Outer2;
+//│         }
+//│       };
+//│       this.#Outer1 = ((outer) => new Outer1(outer));
+//│       this.#Outer1.class = Outer1;
+//│     }
+//│     return this.#Outer1;
+//│   }
+//│ }
+//│ const typing_unit29 = new TypingUnit29;
+//│ globalThis.Outer1 = typing_unit29.Outer1;
+//│ // End of generated code

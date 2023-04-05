@@ -669,9 +669,9 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
     val fields = sym.body.collectFields ++
       sym.body.collectTypeNames.flatMap(resolveTraitFields)
 
-    fields.foreach { f =>
+    val ctorParams = fields.map { f =>
       memberList += nuTypeScope.declareNewClassMember(f, Some(false), false)
-      constructorScope.declareValue(f, Some(false), false)
+      constructorScope.declareValue(f, Some(false), false).runtimeName
     }
 
     sym.methods.foreach {
@@ -715,7 +715,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       }
     }
 
-    val (superParameters, ctorParameter) = if (baseSym.isDefined) {
+    val (superParameters, rest) = if (baseSym.isDefined) {
       val rest = constructorScope.declareValue("rest", Some(false), false)
       (Ls(JSIdent(s"...${rest.runtimeName}")), S(rest.runtimeName))
     }
@@ -748,7 +748,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       fields ::: getters.toList,
       base,
       superParameters,
-      ctorParameter,
+      ctorParams,
+      rest,
       members,
       traits,
       translateSelfDeclaration(selfSymbol) ::: tempDecs ::: stmts,

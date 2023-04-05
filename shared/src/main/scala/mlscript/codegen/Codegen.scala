@@ -834,19 +834,20 @@ final case class JSClassNewDecl(
     name: Str,
     fields: Ls[Str],
     privateMem: Ls[Str],
-    `extends`: Opt[JSExpr] = N,
-    superFields: Ls[JSExpr] = Nil,
-    rest: Opt[Str] = N,
-    methods: Ls[JSClassMemberDecl] = Nil,
-    implements: Ls[Str] = Nil,
-    initStmts: Ls[JSStmt] = Nil,
-    nestedTypes: Ls[Str] = Nil
+    `extends`: Opt[JSExpr],
+    superFields: Ls[JSExpr],
+    ctorParams: Ls[Str],
+    rest: Opt[Str],
+    methods: Ls[JSClassMemberDecl],
+    implements: Ls[Str],
+    initStmts: Ls[JSStmt],
+    nestedTypes: Ls[Str]
 ) extends JSStmt {
   def toSourceCode: SourceCode = {
     val constructor: SourceCode = {
       val buffer = new ListBuffer[Str]()
       val params =
-        fields.iterator.zipWithIndex.foldRight(rest match {
+        ctorParams.iterator.zipWithIndex.foldRight(rest match {
           case Some(rest) => s"...$rest"
           case _ => ""
         })((p, s) =>
@@ -868,8 +869,8 @@ final case class JSClassNewDecl(
       implements.foreach { name =>
         buffer += s"    $name.implement(this);"
       }
-      fields.iterator.zipWithIndex.foreach { pair =>
-        buffer += s"    this.#${pair._1} = ${pair._1};" // TODO: invalid name?
+      fields.zip(ctorParams).foreach { pair =>
+        buffer += s"    this.#${pair._1} = ${pair._2};" // TODO: invalid name?
       }
       initStmts.foreach { s =>
         s.toSourceCode.indented.indented.toString.split("\n").foreach {
