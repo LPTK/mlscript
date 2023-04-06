@@ -869,8 +869,8 @@ final case class JSClassNewDecl(
       implements.foreach { name =>
         buffer += s"    $name.implement(this);"
       }
-      fields.zip(ctorParams).foreach { pair =>
-        buffer += s"    this.#${pair._1} = ${pair._2};" // TODO: invalid name?
+      fields.lazyZip(ctorParams).foreach { (field, param) =>
+        buffer += s"    this.#$field = $param;" // TODO: invalid name?
       }
       initStmts.foreach { s =>
         s.toSourceCode.indented.indented.toString.split("\n").foreach {

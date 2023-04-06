@@ -260,10 +260,10 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
   // We don't want `outer` symbols to be shadowed by each other
   // Add all runtime names of `outer` symbols from the parent scope
   private def pullOuterSymbols(syms: scala.collection.mutable.HashSet[Str]) = {
-    syms.foreach(s => {
+    syms.foreach { s =>
       runtimeSymbols += s
       outerSymbols += s
-    })
+    }
 
     this
   }
