@@ -12,7 +12,7 @@ import mlscript.utils._, shorthands._
 import scala.collection.immutable
 import scala.util.matching.Regex
 import scala.collection.mutable.ListBuffer
-import mlscript.codegen.Symbol
+import mlscript.codegen.{Symbol, CodeGenError}
 
 class SourceLine(val content: Str, indent: Int = 0) {
   def indented: SourceLine = new SourceLine(content, indent + 1)
@@ -870,8 +870,9 @@ final case class JSClassNewDecl(
         buffer += s"    $name.implement(this);"
       }
 
-      // `ctorParams` has the same size as `fields` does
-      // In JSBackend.scala: `val ctorParams = fields.map { ...`
+      if (fields.length =/= ctorParams.length)
+        throw CodeGenError(s"fields and ctorParams have different size in class $name.")
+
       fields.lazyZip(ctorParams).foreach { (field, param) =>
         buffer += s"    this.#$field = $param;" // TODO: invalid name?
       }
