@@ -869,6 +869,9 @@ final case class JSClassNewDecl(
       implements.foreach { name =>
         buffer += s"    $name.implement(this);"
       }
+
+      // `ctorParams` has the same size as `fields` does
+      // In JSBackend.scala: `val ctorParams = fields.map { ...`
       fields.lazyZip(ctorParams).foreach { (field, param) =>
         buffer += s"    this.#$field = $param;" // TODO: invalid name?
       }
