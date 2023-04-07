@@ -68,7 +68,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
       translatePattern(base)
     case Inst(bod) => translatePattern(bod)
     case _: Lam | _: App | _: Sel | _: Let | _: Blk | _: Bind | _: Test | _: With | _: CaseOf | _: Subs | _: Assign
-        | If(_, _) | New(_, _) | _: Splc | _: Forall | _: Where =>
+        | If(_, _) | New(_, _) | _: Splc | _: Forall | _: Where | _: Super =>
       throw CodeGenError(s"term ${inspect(t)} is not a valid pattern")
   }
 
@@ -231,7 +231,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
           }
           case (nt: NuTypeDef, _) => translateLocalNewType(nt)(blkScope)
           // TODO: find out if we need to support this.
-          case (_: Def | _: TypeDef | _: NuFunDef /* | _: NuTypeDef */, _) =>
+          case (_: Def | _: TypeDef | _: NuFunDef | _: DataDefn | _: DatatypeDefn | _: LetS, _) =>
             throw CodeGenError("unsupported definitions in blocks")
         }.toList)),
         Nil
@@ -330,12 +330,14 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
             JSInstanceOf(scrut, translateCapture(CapturedSymbol(out, cls)).member("class"))
           case S(CapturedSymbol(out, mdl: ModuleSymbol)) =>
             JSInstanceOf(scrut, translateCapture(CapturedSymbol(out, mdl)).member("class"))
+          case S(_: MixinSymbol) => throw new CodeGenError(s"cannot match mixin $name")
+          case S(CapturedSymbol(out, mdl: MixinSymbol)) =>
+            throw new CodeGenError(s"cannot match mixin $name")
           case _ => topLevelScope.getType(name) match {
             case S(ClassSymbol(_, runtimeName, _, _, _)) => JSInstanceOf(scrut, JSIdent(runtimeName))
             case S(TraitSymbol(_, runtimeName, _, _, _)) => JSIdent(runtimeName)("is")(scrut)
             case S(_: TypeAliasSymbol) => throw new CodeGenError(s"cannot match type alias $name")
-            case S(_: MixinSymbol) => throw new CodeGenError(s"cannot match mixin $name")
-            case N => throw new CodeGenError(s"unknown match case: $name")
+            case _ => throw new CodeGenError(s"unknown match case: $name")
           }
         }
         case lit: Lit =>
@@ -859,6 +861,7 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         traits += topLevelScope.declareTrait(name, tparams map { _.name }, body, methods)
       case TypeDef(Cls, TypeName(name), tparams, baseType, _, members, _) =>
         classes += topLevelScope.declareClass(name, tparams map { _.name }, baseType, members)
+      case TypeDef(Mxn, _, _, _, _, _, _) => throw CodeGenError("Mixins are not supported yet.")
       case TypeDef(Nms, _, _, _, _, _, _) => throw CodeGenError("Namespaces are not supported yet.")
     }
     (traits.toList, classes.toList)
@@ -960,6 +963,8 @@ class JSBackend(allowUnresolvedSymbols: Boolean) {
         case S(sym: TraitSymbol) => N // TODO: inherit from traits
         case S(sym: TypeAliasSymbol) =>
           throw new CodeGenError(s"cannot inherit from type alias $name" )
+        case S(_: NuTypeSymbol) =>
+          throw new CodeGenError(s"NuType symbol $name is not supported when resolving base classes")
         case N =>
           throw new CodeGenError(s"undeclared type name $name when resolving base classes")
       }
@@ -1051,7 +1056,6 @@ class JSWebBackend extends JSBackend(allowUnresolvedSymbols = true) {
   }
 
   private def generateNewDef(pgrm: Pgrm): (Ls[Str], Ls[Str]) = {
-    val mlsModule = topLevelScope.declareValue("typing_unit", Some(false), false)
     val (typeDefs, otherStmts) = pgrm.tops.partitionMap {
       case ot: Terms => R(ot)
       case fd: NuFunDef => R(fd)
@@ -1059,55 +1063,56 @@ class JSWebBackend extends JSBackend(allowUnresolvedSymbols = true) {
       case _ => die
    }
 
-    val (traitSymbols, classSymbols, mixinSymbols, moduleSymbols) = declareNewTypeDefs(typeDefs, false)(topLevelScope)
+    // don't pass `otherStmts` to the top-level module, because we need to execute them one by one later
+    val topModule = topLevelScope.declareTopModule("TypingUnit", Nil, typeDefs, true)
+    val moduleIns = topLevelScope.declareValue("typing_unit", Some(false), false)
+    val moduleDecl = translateTopModuleDeclaration(topModule, true)(topLevelScope)
+    val insDecl =
+      JSConstDecl(moduleIns.runtimeName, JSNew(JSIdent(topModule.runtimeName)))
+
     def include(typeName: Str, moduleName: Str) =
       JSExprStmt(JSAssignExpr(JSField(JSIdent("globalThis"), typeName), JSField(JSIdent(moduleName), typeName)))
     val includes =
-      traitSymbols.map((sym) => include(sym.runtimeName, mlsModule.runtimeName)) ++
-      mixinSymbols.map((sym) => include(sym.runtimeName, mlsModule.runtimeName)) ++
-      moduleSymbols.map((sym) => include(sym.runtimeName, mlsModule.runtimeName)) ++
-      classSymbols.map((sym) => include(sym.runtimeName, mlsModule.runtimeName))
-
-    val defs =
-      traitSymbols.map { translateTraitDeclaration(_)(topLevelScope) } ++
-      mixinSymbols.map { translateMixinDeclaration(_, Nil)(topLevelScope) } ++
-      moduleSymbols.map { translateModuleDeclaration(_, Nil)(topLevelScope) } ++
-      classSymbols.map { translateNewClassDeclaration(_, Nil)(topLevelScope) }
-
-    val defStmts =
-      JSLetDecl(Ls(mlsModule.runtimeName -> S(JSRecord(Ls("cache" -> JSRecord(Ls())), defs)))) :: includes
+      typeDefs.filter(!_.isDecl).map {
+        case nu: NuTypeDef =>
+          include(nu.nme.name, moduleIns.runtimeName)
+      }
 
     val resultsIdent = JSIdent(resultsName)
     val resultNames = ListBuffer[Str]()
     val stmts: Ls[JSStmt] =
       JSConstDecl(resultsName, JSArray(Nil)) ::
-        defStmts
+        (Ls(moduleDecl, insDecl) ::: includes)
         // Generate something like:
         // ```js
         // const <name> = <expr>;
         // <results>.push(<name>);
         // ```
         .concat(otherStmts.flatMap {
-          case Def(recursive, Var(name), L(body), isByname) =>
-            val (originalExpr, sym) = if (recursive) {
+          case NuFunDef(isLetRec, nme @ Var(name), tys, rhs @ L(body)) =>
+            val recursive = isLetRec.getOrElse(true)
+            val isByname = isLetRec.isEmpty
+            val bodyIsLam = body match { case _: Lam => true case _ => false }
+            val (originalExpr, sym) = (if (recursive) {
               val isByvalueRecIn = if (isByname) None else Some(true)
-              val sym = topLevelScope.declareValue(name, isByvalueRecIn, body.isInstanceOf[Lam])
+              val sym = topLevelScope.declareValue(name, isByvalueRecIn, bodyIsLam)
               val translated = translateTerm(body)(topLevelScope)
               topLevelScope.unregisterSymbol(sym)
               val isByvalueRecOut = if (isByname) None else Some(false)
-              (translated, topLevelScope.declareValue(name, isByvalueRecOut, body.isInstanceOf[Lam]))
+              (translated, topLevelScope.declareValue(name, isByvalueRecOut, bodyIsLam))
             } else {
-              val translatedBody = translateTerm(body)(topLevelScope)
+              val translated = translateTerm(body)(topLevelScope)
               val isByvalueRec = if (isByname) None else Some(false)
-              (translatedBody, topLevelScope.declareValue(name, isByvalueRec, body.isInstanceOf[Lam]))
-            }
+              (translated, topLevelScope.declareValue(name, isByvalueRec, bodyIsLam))
+            })
             val translatedBody = if (sym.isByvalueRec.isEmpty && !sym.isLam) JSArrowFn(Nil, L(originalExpr)) else originalExpr
             resultNames += sym.runtimeName
             topLevelScope.tempVars `with` JSConstDecl(sym.runtimeName, translatedBody) ::
               JSInvoke(resultsIdent("push"), JSIdent(sym.runtimeName) :: Nil).stmt :: Nil
-          // Ignore type declarations.
-          case Def(_, _, R(_), isByname) => Nil
-          // `exprs.push(<expr>)`.
+          case fd @ NuFunDef(isLetRec, Var(name), tys, R(ty)) =>
+            Nil
+          case _: Def | _: TypeDef =>
+            throw CodeGenError("Def and TypeDef are not supported in NewDef files.")
           case term: Term =>
             val name = translateTerm(term)(topLevelScope)
             resultNames += name.toSourceCode.toString
@@ -1340,6 +1345,8 @@ class JSTestBackend extends JSBackend(allowUnresolvedSymbols = false) {
           case e: UnimplementedError => JSTestBackend.AbortedQuery(e.getMessage())
           case e: Throwable          => throw e
         }
+      case _: Def | _: TypeDef =>
+        throw CodeGenError("Def and TypeDef are not supported in NewDef files.")
     }
 
     // If this is the first time, insert the declaration of `res`.

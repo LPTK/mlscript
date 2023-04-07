@@ -4,7 +4,7 @@ import mlscript.utils.shorthands._
 import mlscript.{JSStmt, JSExpr, JSLetDecl}
 import mlscript.Type
 import scala.reflect.ClassTag
-import mlscript.{TypeName, Top, Bot, TypeDef, Als, Trt, Cls, Nms}
+import mlscript.{TypeName, Top, Bot, TypeDef, Als, Trt, Cls, Nms, Mxn}
 import mlscript.{MethodDef, Var}
 import mlscript.{Term, Statement, Record}
 import mlscript.utils.{AnyOps, lastWords}
@@ -180,6 +180,8 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
         case S(sym: TraitSymbol) => N
         case S(sym: TypeAliasSymbol) =>
           throw new CodeGenError(s"cannot inherit from type alias $name" )
+        case S(_: NuTypeSymbol) =>
+          throw new CodeGenError(s"NuType symbol $name is not supported when resolving base classes")
         case N =>
           throw new CodeGenError(s"undeclared type name $name when resolving base classes")
       }
@@ -200,6 +202,8 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
         case S(sym: TraitSymbol) => S(sym)
         case S(sym: TypeAliasSymbol) =>
           throw new CodeGenError(s"cannot inherit from type alias $name" )
+        case S(sym: NuTypeSymbol) =>
+          throw new CodeGenError(s"NuType symbol $name is not supported when resolving implemented traits")
         case N =>
           throw new CodeGenError(s"undeclared type name $name when resolving implemented traits")
       }
@@ -213,6 +217,8 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
       declareTrait(name, tparams map { _.name }, body, mthdDefs)
     case TypeDef(Cls, TypeName(name), tparams, baseType, _, members, _) =>
       declareClass(name, tparams map { _.name }, baseType, members)
+    case TypeDef(Mxn, _, _, _, _, _, _) =>
+      throw CodeGenError("Mixins are not supported yet.")
     case TypeDef(Nms, _, _, _, _, _, _) =>
       throw CodeGenError("Namespaces are not supported yet.")
   }
@@ -254,7 +260,7 @@ class Scope(name: Str, enclosing: Opt[Scope]) {
     capturedSym: RuntimeSymbol
   ): Unit = {
     val symbol = CapturedSymbol(outsiderSym, capturedSym)
-    lexicalValueSymbols.put(symbol.lexicalName, symbol)
+    lexicalValueSymbols.put(symbol.lexicalName, symbol); ()
   }
 
   // We don't want `outer` symbols to be shadowed by each other
