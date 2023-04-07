@@ -1082,7 +1082,7 @@ class JSWebBackend extends JSBackend(allowUnresolvedSymbols = true) {
     val resultNames = ListBuffer[Str]()
     val stmts: Ls[JSStmt] =
       JSConstDecl(resultsName, JSArray(Nil)) ::
-        (Ls(moduleDecl, insDecl) ::: includes)
+        (moduleDecl :: insDecl :: includes)
         // Generate something like:
         // ```js
         // const <name> = <expr>;
