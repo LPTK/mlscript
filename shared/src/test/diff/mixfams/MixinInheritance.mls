@@ -1,0 +1,39 @@
+:NewDefs
+
+
+:e // TODO support
+mixin M2
+mixin M1 extends M2
+//│ ╔══[ERROR] mixin definitions cannot yet extend parents
+//│ ║  l.6: 	mixin M1 extends M2
+//│ ╙──     	                 ^^
+//│ mixin M2()
+//│ mixin M1()
+
+
+:e // TODO support?
+class A {
+  mixin M
+}
+class B extends A {
+  mixin M extends super.M
+}
+//│ ╔══[ERROR] mixin definitions cannot yet extend parents
+//│ ║  l.19: 	  mixin M extends super.M
+//│ ╙──      	                  ^^^^^^^
+//│ ╔══[ERROR] Mixin member `M` cannot override mixin member of the same name declared in parent
+//│ ║  l.18: 	class B extends A {
+//│ ║        	^^^^^^^^^^^^^^^^^^^
+//│ ║  l.19: 	  mixin M extends super.M
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Declared here:
+//│ ║  l.16: 	  mixin M
+//│ ╙──      	  ^^^^^^^
+//│ class A {
+//│   mixin M()
+//│ }
+//│ class B extends A {
+//│   mixin M()
+//│ }
+
+

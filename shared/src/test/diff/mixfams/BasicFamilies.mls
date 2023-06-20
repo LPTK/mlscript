@@ -1,0 +1,35 @@
+:NewDefs
+
+
+mixin A {
+  mixin M { fun x = [super.x] }
+}
+//│ mixin A() {
+//│   mixin M() {
+//│     super: {x: 'x}
+//│     fun x: ('x,)
+//│   }
+//│ }
+
+mixin B {
+  mixin M { fun x = 0 }
+}
+//│ mixin B() {
+//│   mixin M() {
+//│     fun x: 0
+//│   }
+//│ }
+
+// * Notice how currently the mixin from B is destructively overridden by the one from A
+// * What we want is that they compose tohgether into a new mixin.
+
+// :d // FIXME missing implemenetation when uncommented
+module C extends B, A
+//│ module C {
+//│   mixin M() {
+//│     super: {x: 'x}
+//│     fun x: ('x,)
+//│   }
+//│ }
+
+
