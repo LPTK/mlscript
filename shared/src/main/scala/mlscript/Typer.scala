@@ -570,7 +570,9 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
     } else ctx.nextLevel { ctx => // * Note: let polymorphism (`ctx.nextLevel`)
       typeTerm(rhs)(ctx, raise, vars, genLambdas = true)
     }
-    PolymorphicType(lvl, res)
+    // PolymorphicType(lvl, res)
+    val simplified = onlineSimplify(res)
+    PolymorphicType(lvl, simplified)
     // * ^ TODO change: this only needs to be done in the rec case;
     // *    and in that case, only for functions!
   }

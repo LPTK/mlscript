@@ -1249,11 +1249,21 @@ trait TypeSimplifier { self: Typer =>
     println("Pos: " + Analyze.posVars)
     println("Neg: " + Analyze.negVars)
     println("Rec: " + Analyze.recVars)
+    println("Unif: " + Analyze.varSubst)
+    
+    val toSubst = Analyze.varSubst.keySet
+    val posSubst = (Analyze.posVars.toSet -- Analyze.negVars -- Analyze.recVars -- toSubst).map { tv =>
+      tv -> tv.lowerBounds.foldLeft(BotType: ST)(_ | _) }
+    val negSubst = (Analyze.negVars.toSet -- Analyze.posVars -- Analyze.recVars -- toSubst).map { tv =>
+      tv -> tv.upperBounds.foldLeft(TopType: ST)(_ &- _) }
+    
+    val finalSubst: Map[ST, ST] = Analyze.varSubst.toMap[ST, ST] ++ posSubst ++ negSubst
+    
     println("Subst: " + Analyze.varSubst)
     
     // * TODO use destructive update for performance?
     // subst(ty, Analyze.varSubst.toMap)
-    subst(ty, Analyze.varSubst.toMap, substInMap = true)
+    subst(ty, finalSubst, substInMap = true)
     
   }
   
