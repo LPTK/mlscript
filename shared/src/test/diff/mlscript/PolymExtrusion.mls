@@ -75,7 +75,7 @@ def foo: (forall 'a. 'a -> 'b) -> 'b
 
 // Notice `id` returns its arg of locally-quantified type 'a, which is extruded to `anything`:
 foo id
-//│ res: ??a
+//│ res: anything
 //│    = <no result>
 //│      foo is not implemented
 
@@ -84,15 +84,10 @@ foo (fun a -> a + 1)
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.83: 	foo (fun a -> a + 1)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `'a` is not an instance of type `int`
-//│ ║  l.71: 	def foo: (forall 'a. 'a -> 'b) -> 'b
-//│ ║        	                     ^^
+//│ ╟── type `anything` is not an instance of type `int`
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.83: 	foo (fun a -> a + 1)
-//│ ║        	              ^
-//│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.71: 	def foo: (forall 'a. 'a -> 'b) -> 'b
-//│ ╙──      	                 ^^
+//│ ╙──      	              ^
 //│ res: error | int
 //│    = <no result>
 //│      foo is not implemented

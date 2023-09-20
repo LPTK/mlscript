@@ -1198,10 +1198,17 @@ trait TypeSimplifier { self: Typer =>
       // val varSubst: MutMap[TV, ST] = MutMap.empty
       val varSubst: MutMap[TV, TV] = MutMap.empty
       
+      val traversedOtherTVs: MutSet[TV] = MutSet.empty
+      
       override def apply(pol: PolMap)(st: ST): Unit =
           trace(s"Analyze[${printPol(pol)}] $st  (${curPath.reverseIterator.mkString(" ~> ")})") {
             st match {
-        case tv: TV if tv.assignedTo.isEmpty && !varSubst.contains(tv) =>
+        case tv @ AssignedVariable(ty) =>
+          if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
+        case tv: TV if tv.level <= lvl =>
+          if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
+        case tv: TV if !varSubst.contains(tv) =>
+        // case tv: TV if tv.assignedTo.isEmpty && !varSubst.contains(tv) =>
           var continue = true
           if (curPath.exists(_ is tv)) { // TODO opt
             // if (tv.level) varSubst
@@ -1215,7 +1222,7 @@ trait TypeSimplifier { self: Typer =>
                 varSubst += tvRepr -> tv
               }
               else if (tv.level > tvRepr.level) varSubst += tv -> tvRepr
-              else if (!varSubst.contains(tvRepr)) varSubst += tvRepr -> tv
+              else if (tvRepr.level > lvl && !varSubst.contains(tvRepr)) varSubst += tvRepr -> tv
             }}
             continue = false
           }

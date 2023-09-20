@@ -103,17 +103,16 @@ rec def addNTimes a n =
   if n <= 0 then 0 else a.Add addNTimes a (n - 1)
 //│ addNTimes: 'addNTimes
 //│   where
-//│     'addNTimes :> 'a -> int -> 'b
+//│     'addNTimes :> 'a -> int -> (0 | 'b)
 //│     'a <: Addable['A]
 //│     'A :> 'addNTimes
 //│        <: 'a -> int -> 'b
-//│     'b :> 0
 
 addNTimes n 12
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	addNTimes n 12
 //│ ║        	^^^^^^^^^^^
-//│ ╟── function of type `?a -> ?b -> ?c` is not an instance of type `Num`
+//│ ╟── function of type `?a -> int -> ?b` is not an instance of type `Num`
 //│ ║  l.102: 	rec def addNTimes a n =
 //│ ║         	                  ^^^^^
 //│ ║  l.103: 	  if n <= 0 then 0 else a.Add addNTimes a (n - 1)
@@ -127,10 +126,10 @@ addSame n n
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	addSame n n
 //│ ║        	^^^^^^^^^^^
-//│ ╟── application of type `Num & {val: ?val}` is not a function
+//│ ╟── application of type `Num & {val: 1}` is not a function
 //│ ║  l.17: 	n = Num { val = 1 }
 //│ ║        	    ^^^^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(forall ?a ?val0. ?a) -> ?b`
+//│ ╟── but it flows into reference with expected type `(Num & {val: 1}) -> ?a`
 //│ ║  l.+1: 	addSame n n
 //│ ╙──      	        ^
 //│ res: error
@@ -139,7 +138,7 @@ addTwo s n
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	addTwo s n
 //│ ║        	^^^^^^^^^^
-//│ ╟── application of type `Num & {val: ?val}` is not an instance of type `Str`
+//│ ╟── application of type `Num & {val: 1}` is not an instance of type `Str`
 //│ ║  l.17: 	n = Num { val = 1 }
 //│ ║        	    ^^^^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `Str`

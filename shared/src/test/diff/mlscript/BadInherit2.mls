@@ -245,9 +245,7 @@ s0 (C0{})
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.244: 	s0 (C0{})
 //│ ║         	^^^^^^^^^
-//│ ╟── type `anything` does not match type `nothing`
-//│ ║  l.239: 	def s0: S0[?] -> S0[?]
-//│ ╙──       	           ^
+//│ ╙── expression of type `anything` does not match type `nothing`
 //│ res: error | S0[?]
 //│    = <no result>
 //│      s0 is not implemented

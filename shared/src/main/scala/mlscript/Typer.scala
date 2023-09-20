@@ -98,7 +98,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       }()
       res
     }
-    def poly(k: Ctx => ST)(implicit raise: Raise, prov: TP, shadows: Shadows = Shadows.empty): ST = {
+    def poly(k: Ctx => ST, doSimplify: Bool = true)(implicit raise: Raise, prov: TP, shadows: Shadows = Shadows.empty): ST = {
       nextLevel { newCtx =>
         
         val innerTy = k(newCtx)
@@ -124,7 +124,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         
         if (dbg) if (cty_fresh =/= cty) println(s"Refreshed:            $cty_fresh  —— where ${cty_fresh.showBounds}")
         
-        val simplified = onlineSimplify(cty_fresh)
+        val simplified = if (doSimplify) onlineSimplify(cty_fresh) else cty_fresh
         
         val poly = PolymorphicType.mk(lvl, simplified)
         
@@ -314,7 +314,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         (implicit ctx: Ctx, raise: Raise, vars: Map[Str, SimpleType], newDefsInfo: Map[Str, (TypeDefKind, Int)] = Map.empty): SimpleType = {
     implicit val prov: TP = tp(ty.toLoc, "type")
     val baseLevel = vars.valuesIterator.map(_.level).maxOption.getOrElse(MinLevel)
-    ctx.copy(lvl = baseLevel).poly { implicit ctx => typeType2(ty, simplify)._1 }
+    ctx.copy(lvl = baseLevel).poly({ implicit ctx => typeType2(ty, simplify)._1 }, doSimplify = simplify)
   }
   
   /* Also returns an iterable of `TypeVariable`s instantiated when typing `TypeVar`s.

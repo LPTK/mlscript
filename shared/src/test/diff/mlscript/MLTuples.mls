@@ -74,10 +74,10 @@ f htx
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.71: 	f t
 //│ ║        	^^^
-//│ ╟── tuple literal of type `(1, 2, 3,)` does not match type `(?a, ?b,)`
+//│ ╟── tuple literal of type `(1, 2, 3,)` does not match type `(int, int,)`
 //│ ║  l.2: 	t = (1, 2, 3)
 //│ ║       	    ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(?c, ?d,)`
+//│ ╟── but it flows into reference with expected type `(int, int,)`
 //│ ║  l.71: 	f t
 //│ ║        	  ^
 //│ ╟── Note: constraint arises from tuple literal:
@@ -91,7 +91,7 @@ f htx
 //│ ╟── `with` extension of type `(1, 2, 3,) & {x: 1}` is not a 2-element tuple
 //│ ║  l.11: 	tx = t with { x = 1 }
 //│ ║        	     ^^^^^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(?a, ?b,)`
+//│ ╟── but it flows into reference with expected type `(int, int,)`
 //│ ║  l.72: 	f tx
 //│ ║        	  ^^
 //│ ╟── Note: constraint arises from tuple literal:
@@ -102,10 +102,10 @@ f htx
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.73: 	f htx
 //│ ║        	^^^^^
-//│ ╟── `with` extension of type `(1, 2, 3,) & {x: 1}` does not match type `(?a, ?b,) | ~#Hey`
-//│ ║  l.11: 	tx = t with { x = 1 }
-//│ ║        	     ^^^^^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(?c, ?d,) | ~#Hey`
+//│ ╟── application of type `(1, 2, 3,) & {x: 1} & #Hey` is not a 2-element tuple
+//│ ║  l.42: 	htx = Hey tx
+//│ ║        	      ^^^^^^
+//│ ╟── but it flows into reference with expected type `(int, int,)`
 //│ ║  l.73: 	f htx
 //│ ║        	  ^^^
 //│ ╟── Note: constraint arises from tuple literal:

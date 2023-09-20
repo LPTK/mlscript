@@ -319,10 +319,10 @@ b2.y <- b1.y
 //│ ╔══[ERROR] Type mismatch in assignment:
 //│ ║  l.318: 	b2.y <- b1.y
 //│ ║         	^^^^^^^^^^^^
-//│ ╟── record field of type `?y` is not mutable
+//│ ╟── record field of type `false` is not mutable
 //│ ║  l.260: 	class B: { mut x: int; y: bool }
 //│ ║         	                       ^^^^^^^
-//│ ╟── but it flows into assigned field with expected type `?y0`
+//│ ╟── but it flows into assigned field with expected type `?y`
 //│ ║  l.318: 	b2.y <- b1.y
 //│ ╙──       	   ^
 //│ = []

@@ -23,9 +23,9 @@ b = B { fB = "test" }
 foo b
 //│ res: "test"
 //│    = 'test'
-//│ constrain calls  : 24
+//│ constrain calls  : 21
 //│ annoying  calls  : 10
-//│ subtyping calls  : 186
+//│ subtyping calls  : 184
 
 
 def arg: A | B | C

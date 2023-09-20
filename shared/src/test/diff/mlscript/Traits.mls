@@ -58,7 +58,7 @@ dv: nothing
 //│ ╔══[ERROR] Type mismatch in type ascription:
 //│ ║  l.57: 	dv: nothing
 //│ ║        	^^
-//│ ╟── application of type `D with {x: ?x, y: ?y}` does not match type `nothing`
+//│ ╟── application of type `D & {x: 0, y: "hello"}` does not match type `nothing`
 //│ ║  l.52: 	dv = D { x = 0; y = "hello" }
 //│ ║        	     ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `nothing`

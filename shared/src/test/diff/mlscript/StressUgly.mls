@@ -30,7 +30,7 @@ def eval1_ty: Add[int] // ~500
 eval1_ty = eval1_ty_ugly
 //│ 'b
 //│   where
-//│     'b := 'a & ~Lit | Add['b]
+//│     'b := Add['b]
 //│   <:  eval1_ty:
 //│ Add[int]
 //│ ╔══[ERROR] Type mismatch in def definition:
@@ -44,7 +44,7 @@ eval1_ty = eval1_ty_ugly
 //│ ╙──      	                  ^^^
 //│         = <no result>
 //│           eval1_ty_ugly is not implemented
-//│ constrain calls  : 62
-//│ annoying  calls  : 44
-//│ subtyping calls  : 542
+//│ constrain calls  : 36
+//│ annoying  calls  : 24
+//│ subtyping calls  : 172
 
