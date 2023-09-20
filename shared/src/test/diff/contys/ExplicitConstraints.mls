@@ -116,17 +116,14 @@ let r = f(1)
 //│     int <: 'b -> 'b
 :ns
 r
-//│ res: forall 'c 'a. 'c
+//│ res: forall 'b. (int
 //│   where
-//│     'c :> forall 'b. ('a
-//│   where
-//│     'a <: 'b -> 'b)
-//│     'a :> int
+//│     int <: 'b -> 'b)
 
 :e
 r(2)
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.127: 	r(2)
+//│ ║  l.124: 	r(2)
 //│ ║         	^^^^
 //│ ╟── type `int` is not a function
 //│ ║  l.99: 	  int : 'a
@@ -139,7 +136,7 @@ r(2)
 :e
 r + 1
 //│ ╔══[ERROR] Type mismatch in operator application:
-//│ ║  l.140: 	r + 1
+//│ ║  l.137: 	r + 1
 //│ ║         	^^^
 //│ ╟── type `int` is not a function
 //│ ║  l.99: 	  int : 'a
@@ -173,26 +170,26 @@ let r = f(1)
 :e
 r(2)
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.174: 	r(2)
+//│ ║  l.171: 	r(2)
 //│ ║         	^^^^
 //│ ╟── type `int` is not a function
-//│ ║  l.155: 	  int : 'a
+//│ ║  l.152: 	  int : 'a
 //│ ║         	  ^^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.154: 	  'a : 'b => 'b
+//│ ║  l.151: 	  'a : 'b => 'b
 //│ ╙──       	       ^^^^^^^^
 //│ res: error
 
 :e
 r + 1
 //│ ╔══[ERROR] Type mismatch in operator application:
-//│ ║  l.187: 	r + 1
+//│ ║  l.184: 	r + 1
 //│ ║         	^^^
 //│ ╟── type `int` is not a function
-//│ ║  l.155: 	  int : 'a
+//│ ║  l.152: 	  int : 'a
 //│ ║         	  ^^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.154: 	  'a : 'b => 'b
+//│ ║  l.151: 	  'a : 'b => 'b
 //│ ╙──       	       ^^^^^^^^
 //│ res: error | int
 

@@ -47,11 +47,9 @@ rec def id x = let tmp = id id x in x
 id 1
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'a <: 'b -> ?
-//│     'b :> 'b -> 'b | 1
-//│        <: ? & 'a
-//│ ║  l.30: 	rec def id x = let tmp = id id x in x
-//│ ╙──      	                         ^^^^^
+//│     'a :> 'a -> 'a | 1
+//│        <: nothing
+//│ ╙──
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.47: 	id 1
 //│ ║        	^^^^
@@ -61,9 +59,9 @@ id 1
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.30: 	rec def id x = let tmp = id id x in x
 //│ ║        	                         ^^^^^^^
-//│ ╟── from reference:
+//│ ╟── from application:
 //│ ║  l.30: 	rec def id x = let tmp = id id x in x
-//│ ╙──      	                                    ^
+//│ ╙──      	                         ^^^^^
 //│ res: 'a -> 'a | 1 | error | 'b
 //│   where
 //│     'a :> 'a -> 'a | 1
@@ -73,13 +71,12 @@ id 1
 
 :e
 id_ty = id
-//│ ╔══[ERROR] Inferred recursive type: 'a
+//│ ╔══[ERROR] Inferred recursive type: 'id
 //│   where
-//│     'a <: 'b -> ?
-//│     'b :> 'b -> 'b
-//│        <: ? & 'a
-//│ ║  l.30: 	rec def id x = let tmp = id id x in x
-//│ ╙──      	                         ^^^^^
+//│     'id :> 'a -> 'a
+//│     'a :> 'id
+//│        <: 'a -> anything
+//│ ╙──
 //│ 'id
 //│   where
 //│     'id :> 'a -> 'a
@@ -88,7 +85,7 @@ id_ty = id
 //│   <:  id_ty:
 //│ 'a -> 'a
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.75: 	id_ty = id
+//│ ║  l.73: 	id_ty = id
 //│ ║        	^^^^^^^^^^
 //│ ╟── type `'a` is not a function
 //│ ║  l.4: 	def id_ty: forall 'a. 'a -> 'a
@@ -96,9 +93,9 @@ id_ty = id
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.30: 	rec def id x = let tmp = id id x in x
 //│ ║        	                         ^^^^^^^
-//│ ╟── from reference:
+//│ ╟── from application:
 //│ ║  l.30: 	rec def id x = let tmp = id id x in x
-//│ ║        	                                    ^
+//│ ║        	                         ^^^^^
 //│ ╟── Note: quantified type variable 'a is defined at:
 //│ ║  l.4: 	def id_ty: forall 'a. 'a -> 'a
 //│ ╙──     	                  ^^
@@ -133,10 +130,10 @@ rec def id x = if true then x else id id x
 //│        <: 'c
 //│     'c :> 'b -> 'c
 //│        <: 'a
-//│ ║  l.128: 	rec def id x = if true then x else id id x
+//│ ║  l.125: 	rec def id x = if true then x else id id x
 //│ ╙──       	                                   ^^^^^
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
-//│ ║  l.128: 	rec def id x = if true then x else id id x
+//│ ║  l.125: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ id: 'id
@@ -157,7 +154,7 @@ id_ty = id
 //│     'c :> 'a | 'c -> 'b
 //│        <: 'a
 //│     'a <: 'b
-//│ ║  l.128: 	rec def id x = if true then x else id id x
+//│ ║  l.125: 	rec def id x = if true then x else id id x
 //│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ 'id
 //│   where
@@ -169,16 +166,16 @@ id_ty = id
 //│   <:  id_ty:
 //│ 'a -> 'a
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.152: 	id_ty = id
+//│ ║  l.149: 	id_ty = id
 //│ ║         	^^^^^^^^^^
 //│ ╟── type `'a` is not a function
 //│ ║  l.4: 	def id_ty: forall 'a. 'a -> 'a
 //│ ║       	                      ^^
 //│ ╟── Note: constraint arises from application:
-//│ ║  l.128: 	rec def id x = if true then x else id id x
+//│ ║  l.125: 	rec def id x = if true then x else id id x
 //│ ║         	                                   ^^^^^^^
 //│ ╟── from reference:
-//│ ║  l.128: 	rec def id x = if true then x else id id x
+//│ ║  l.125: 	rec def id x = if true then x else id id x
 //│ ║         	                            ^
 //│ ╟── Note: quantified type variable 'a is defined at:
 //│ ║  l.4: 	def id_ty: forall 'a. 'a -> 'a

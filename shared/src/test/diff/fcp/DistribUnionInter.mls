@@ -44,13 +44,7 @@ bar foo
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this reference:
 //│ ║  l.34: 	bar foo
-//│ ║        	    ^^^
-//│ ╟── • this function:
-//│ ║  l.24: 	def bar(f: 1 -> ('d & (forall 'c. 'c -> 'c))) = 1
-//│ ║        	       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── • this reference:
-//│ ║  l.34: 	bar foo
-//│ ╙──      	^^^
+//│ ╙──      	    ^^^
 //│ res: 1 | error
 //│    = <no result>
 //│      foo is not implemented

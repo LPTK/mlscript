@@ -52,7 +52,7 @@ f([1, 2])
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.51: 	f([1, 2])
 //│ ║        	^^^^^^^^^
-//│ ╟── argument of type `((1, 2,),)` does not match type `(?a, ?b,)`
+//│ ╟── argument of type `((1, 2,),)` does not match type `(int, int,)`
 //│ ║  l.51: 	f([1, 2])
 //│ ║        	 ^^^^^^^^
 //│ ╟── Note: constraint arises from tuple literal:
@@ -72,7 +72,7 @@ f(1, 2)
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.71: 	f(1, 2)
 //│ ║        	^^^^^^^
-//│ ╟── argument list of type `(1, 2,)` does not match type `((?a, ?b,),)`
+//│ ╟── argument list of type `(1, 2,)` does not match type `((int, int,),)`
 //│ ║  l.71: 	f(1, 2)
 //│ ╙──      	 ^^^^^^
 //│ res: error | int

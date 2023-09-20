@@ -27,7 +27,7 @@ def stepImpl_ty: ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string)]
 
 :ns
 def helper impl (k: ArraysImplConsumer['a2, 'res]) = k (stepImpl_ty impl)
-//│ helper: forall 'r 'a 'b 'r0 'a0. 'b -> (forall 'a2 'res 'a1 'c. ArraysImplConsumer['a2, 'res] -> 'c)
+//│ helper: forall 'a 'r 'r0 'b 'a0. 'b -> (forall 'c 'a2 'a1 'res. ArraysImplConsumer['a2, 'res] -> 'c)
 //│   where
 //│     'res <: 'c
 //│     'a2 :> 'a0

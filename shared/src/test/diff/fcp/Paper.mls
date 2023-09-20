@@ -10,7 +10,7 @@ monster = (fun y -> (let tmp = y I in y K)) auto
 //│ I: 'a -> 'a
 //│ K: 'a -> anything -> 'a
 //│ auto: ('a -> 'b & 'a) -> 'b
-//│ monster: anything -> 'a -> anything -> 'a
+//│ monster: anything -> (forall 'a. 'a -> anything -> 'a)
 
 monster{}
 //│ res: 'a -> anything -> 'a

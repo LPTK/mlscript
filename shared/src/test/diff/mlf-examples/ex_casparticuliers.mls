@@ -15,7 +15,7 @@ def t (z: Sid) = (fun a -> z) : forall 'a 'b. 'b -> 'a -> 'a
 // (* Une seule instance, mais polymorphe. *)
 // let t z = ( (fun a -> z) : ['a,'b] 'b -> 'a -> 'a );;
 def t z = (fun a -> z) : forall 'a 'b. 'b -> 'a -> 'a
-//│ t: (??a -> ??a0) -> anything -> 'a -> 'a
+//│ t: (??a -> ??a0) -> (forall 'a. anything -> 'a -> 'a)
 //│  = [Function: t1]
 
 def t z = fun a -> z
@@ -168,7 +168,7 @@ def to_church_ty: int -> ChurchInt
 rec def to_church_1 n =
   if n == 0 then zero
   else succ (to_church_1 (n - 1))
-//│ to_church_1: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ to_church_1: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│            = [Function: to_church_1]
 
 rec def to_church_1_t n =
@@ -313,11 +313,11 @@ rec def to_church_1_st n =
 rec def to_church_2 n =
   if n == 0 then zero
   else succ' (to_church_2 (n - 1))
-//│ to_church_2: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ to_church_2: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│            = [Function: to_church_2]
 
 to_church_ty = to_church_2
-//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_2]
@@ -331,7 +331,7 @@ to_church_ty = to_church_2
 rec def to_church_3 n =
   if n == 0 then fun f -> fun x -> x
   else fun f -> fun x -> f ((to_church_3 (n - 1) : ChurchInt) f x)
-//│ to_church_3: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ to_church_3: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│            = [Function: to_church_3]
 
 // (* Ne Marche Pas *)
@@ -356,14 +356,14 @@ rec def to_church_4 n =
 rec def to_church_5 n =
   if n == 0 then fun f -> fun x -> x
   else fun f -> fun x -> f ((to_church_5 (n - 1)) f x)
-//│ to_church_5: int -> ('a -> 'b & 'a -> 'a) -> ('a & 'b) -> 'b
+//│ to_church_5: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│            = [Function: to_church_5]
 
 
 // * Now checking whether the inferred types conform to the expected signature:
 
 to_church_ty = to_church_1
-//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_1]
@@ -388,13 +388,13 @@ to_church_ty = to_church_1_st
 //│             = [Function: to_church_1_st]
 
 to_church_ty = to_church_2
-//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_2]
 
 to_church_ty = to_church_3
-//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_3]
@@ -416,7 +416,7 @@ to_church_ty = to_church_4
 //│             = [Function: to_church_4]
 
 to_church_ty = to_church_5
-//│ int -> ('a -> 'b & 'a -> 'a) -> ('a & 'b) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_5]
@@ -434,7 +434,7 @@ to_church_ty = to_church_5
 rec def to_church_ty n =
   if n == 0 then fun f -> fun x -> x
   else fun f -> fun x -> f ((to_church_ty (n - 1)) f x)
-//│ int -> ('a -> 'b & 'a -> 'a) -> ('a & 'b) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_ty8]
@@ -465,7 +465,7 @@ def tc n = to_church_2 n : ChurchInt
 //│   = [Function: tc2]
 
 def tc n = to_church_3 n
-//│ tc: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│ tc: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
 //│   = [Function: tc3]
 
 tc 1 id

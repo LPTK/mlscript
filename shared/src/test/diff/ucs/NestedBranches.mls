@@ -60,11 +60,13 @@ fun mapPartition(f, xs) = if xs is
   Cons(x, xs) and mapPartition(f, xs) is Pair(l, r) and f(x) is
     Left(v)  then Pair(Cons(v, l), r)
     Right(v) then Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), 'tail,) -> (Pair & {fst: 'fst, snd: 'tail0})
+//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & 'a | Nil,) -> (Pair & {fst: forall 'b. 'fst | 'b, snd: forall 'c. 'snd | 'c})
 //│   where
-//│     'tail0 :> Cons & {head: 'rightValue, tail: 'tail0} | Nil
-//│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
-//│     'tail <: Cons & {head: 'head, tail: 'tail} | Nil
+//│     'snd :> forall 'c. Nil | 'c
+//│     'c :> Cons & {head: 'rightValue, tail: 'snd}
+//│     'fst :> forall 'b. Nil | 'b
+//│     'b :> Cons & {head: 'leftValue, tail: 'fst}
+//│     'a <: {head: 'head, tail: Cons & 'a | Nil}
 //│             = [Function: mapPartition]
 
 fun mapPartition(f, xs) = if xs is
@@ -73,11 +75,13 @@ fun mapPartition(f, xs) = if xs is
     mapPartition(f, xs) is Pair(l, r) and f(x) is
       Left(v)  then Pair(Cons(v, l), r)
       Right(v) then Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), 'tail,) -> (Pair & {fst: 'fst, snd: 'tail0})
+//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & 'a | Nil,) -> (Pair & {fst: forall 'b. 'fst | 'b, snd: forall 'c. 'snd | 'c})
 //│   where
-//│     'tail0 :> Cons & {head: 'rightValue, tail: 'tail0} | Nil
-//│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
-//│     'tail <: Cons & {head: 'head, tail: 'tail} | Nil
+//│     'snd :> forall 'c. Nil | 'c
+//│     'c :> Cons & {head: 'rightValue, tail: 'snd}
+//│     'fst :> forall 'b. Nil | 'b
+//│     'b :> Cons & {head: 'leftValue, tail: 'fst}
+//│     'a <: {head: 'head, tail: Cons & 'a | Nil}
 //│             = [Function: mapPartition1]
 
 fun mapPartition(f, xs) = if xs is
@@ -91,11 +95,13 @@ fun mapPartition(f, xs) = if xs is
             Pair(Cons(v, l), r)
           Right(v) then
             Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), 'tail,) -> (Pair & {fst: 'fst, snd: 'tail0})
+//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & 'a | Nil,) -> (Pair & {fst: forall 'b. 'fst | 'b, snd: forall 'c. 'snd | 'c})
 //│   where
-//│     'tail0 :> Cons & {head: 'rightValue, tail: 'tail0} | Nil
-//│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
-//│     'tail <: Cons & {head: 'head, tail: 'tail} | Nil
+//│     'snd :> forall 'c. Nil | 'c
+//│     'c :> Cons & {head: 'rightValue, tail: 'snd}
+//│     'fst :> forall 'b. Nil | 'b
+//│     'b :> Cons & {head: 'leftValue, tail: 'fst}
+//│     'a <: {head: 'head, tail: Cons & 'a | Nil}
 //│             = [Function: mapPartition2]
 
 
@@ -106,7 +112,7 @@ fun mapPartition(f, xs) = if xs is
     Left(v)  then (Cons(v, l), r)
     Right(v) then (l, Cons(v, r))
 //│ ╔══[ERROR] The case when this is false is not handled: is (mapPartition (f, xs,),) (l, r,)
-//│ ║  l.105: 	  Cons(x, xs) and mapPartition(f, xs) is (l, r) and f(x) is
+//│ ║  l.111: 	  Cons(x, xs) and mapPartition(f, xs) is (l, r) and f(x) is
 //│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ mapPartition: (anything, anything,) -> error
 //│ Code generation encountered an error:
@@ -125,18 +131,18 @@ fun mapPartition(f, xs) = if xs is
           and f(x) is Left(v)  then (Cons(v, l), r)
                       Right(v) then (l, Cons(v, r))
 //│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.126: 	                      Right(v) then (l, Cons(v, r))
+//│ ║  l.132: 	                      Right(v) then (l, Cons(v, r))
 //│ ╙──       	                               ^^^^
 //│ ╔══[WARNING] Paren-less applications should use the 'of' keyword
-//│ ║  l.125: 	          and f(x) is Left(v)  then (Cons(v, l), r)
+//│ ║  l.131: 	          and f(x) is Left(v)  then (Cons(v, l), r)
 //│ ║         	                                    ^^^^^^^^^^^^^^^
-//│ ║  l.126: 	                      Right(v) then (l, Cons(v, r))
+//│ ║  l.132: 	                      Right(v) then (l, Cons(v, r))
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] type identifier not found: Tuple#2
 //│ ╙──
-//│ mapPartition: (anything, 'tail,) -> ((Nil, Nil,) | error)
+//│ mapPartition: (anything, Cons & 'a | Nil,) -> ((Nil, Nil,) | error)
 //│   where
-//│     'tail <: Cons & {tail: 'tail} | Nil
+//│     'a <: {head: anything, tail: Cons & 'a | Nil}
 //│ Code generation encountered an error:
 //│   unknown match case: Tuple#2
 

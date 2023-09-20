@@ -56,7 +56,7 @@ def base: Arrays['a]
 // * (not within a more polymorphic context),
 // * so we do not need first-class parametric polymorphism to type check the definition.
 def base f = f baseImpl
-//│ ({fold: forall 'a 'b 'c. ('a -> 'b -> 'c) -> 'b -> 'a -> 'c, init: forall 'd. 'd -> 'd, sub: forall 'e. 'e -> anything -> 'e, update: forall 'f. anything -> anything -> 'f -> 'f} -> 'g) -> 'g
+//│ ({fold: forall 'a 'b 'c. ('c -> 'a -> 'b) -> 'a -> 'c -> 'b, init: forall 'd. 'd -> 'd, sub: forall 'e. 'e -> anything -> 'e, update: forall 'f. anything -> anything -> 'f -> 'f} -> 'g) -> 'g
 //│   <:  base:
 //│ Arrays['a]
 //│     = [Function: base]
@@ -112,7 +112,7 @@ def helper impl (k: ArraysImplConsumer['a, '_]) = k (stepImpl impl)
 // def helper (impl: ArraysImpl['a, 'rep]) k = k (let tmp = stepImpl impl in tmp)
 
 def step arr = arr helper
-//│ ((forall 'a 'r 'b. ArraysImpl['a, 'r] -> ArraysImplConsumer['a, 'b] -> 'b) -> 'c) -> 'c
+//│ ((forall 'r 'b 'a. ArraysImpl['a, 'r] -> ArraysImplConsumer['a, 'b] -> 'b) -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step]
@@ -338,7 +338,7 @@ def step arr = arr (forall 'a. fun impl -> forall 'r. fun (k: ArraysImplConsumer
 
 // * ...unless we use `stepImpl_ty` instead of `stepImpl`
 def step arr = arr (fun impl -> forall 'r. fun (k: ArraysImplConsumer['a, 'r]) -> k (stepImpl_ty impl))
-//│ ((forall 'r 'a 'a0 'r0 'a1. ArraysImpl[in 'a1 & 'a0 out 'a1 | 'a0, 'r0] -> ArraysImplConsumer['a, 'r] -> 'r) -> 'b) -> 'b
+//│ ((forall 'a 'a0 'r 'a1 'r0. ArraysImpl[in 'a1 & 'a0 out 'a1 | 'a0, 'r] -> ArraysImplConsumer['a, 'r0] -> 'r0) -> 'b) -> 'b
 //│   where
 //│     'a :> 'a1
 //│        <: 'a0
@@ -393,13 +393,13 @@ def arrayRepToArray_A impl k = k impl
 
 
 def step arr = arr (fun impl -> arrayRepToArray_A (stepImpl_ty impl))
-//│ ((forall 'a 'r. ArraysImpl['a, 'r] -> Arrays['a]) -> 'b) -> 'b
+//│ ((forall 'r 'a. ArraysImpl['a, 'r] -> Arrays['a]) -> 'b) -> 'b
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step13]
 
 def step arr = arr (fun impl -> arrayRepToArray (stepImpl_ty impl))
-//│ ((forall 'a 'r 'b. ArraysImpl['a, 'r] -> (forall 'rep. ArraysImpl['a, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
+//│ ((forall 'b 'a 'r. ArraysImpl['a, 'r] -> (forall 'rep. ArraysImpl['a, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step14]

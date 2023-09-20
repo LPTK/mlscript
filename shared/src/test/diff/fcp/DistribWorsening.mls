@@ -46,54 +46,22 @@ test (fun g -> fun n -> id)
 def test f =
   let a = f() in
   a : anything -> BTB
-//│ test: (() -> anything -> ??b -> ??b0) -> anything -> BTB
+//│ test: (() -> anything -> BTB) -> anything -> BTB
 
 :e
 test (fun () -> fun n -> id)
-//│ ╔══[ERROR] Type error in application
-//│ ║  l.52: 	test (fun () -> fun n -> id)
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type variable `'b` leaks out of its scope
-//│ ║  l.11: 	type BTB = forall 'b. 'b -> 'b
-//│ ║        	                      ^^
-//│ ╟── back into type variable `'b`
-//│ ║  l.11: 	type BTB = forall 'b. 'b -> 'b
-//│ ║        	                            ^^
-//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this application:
-//│ ║  l.47: 	  let a = f() in
-//│ ║        	          ^^^
-//│ ╟── • this reference:
-//│ ║  l.48: 	  a : anything -> BTB
-//│ ╙──      	  ^
-//│ res: anything -> BTB | error
+//│ res: anything -> BTB
 
 
 // * Idem
 def test f =
   let a() = f id in
   a() : nothing -> BTB
-//│ test: ((forall 'a. 'a -> 'a) -> nothing -> ??b -> ??b0) -> nothing -> BTB
+//│ test: ((forall 'a. 'a -> 'a) -> nothing -> BTB) -> nothing -> BTB
 
 :e
 test (fun g -> fun n -> id)
-//│ ╔══[ERROR] Type error in application
-//│ ║  l.79: 	test (fun g -> fun n -> id)
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type variable `'b` leaks out of its scope
-//│ ║  l.11: 	type BTB = forall 'b. 'b -> 'b
-//│ ║        	                      ^^
-//│ ╟── back into type variable `'b`
-//│ ║  l.11: 	type BTB = forall 'b. 'b -> 'b
-//│ ║        	                            ^^
-//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this application:
-//│ ║  l.74: 	  let a() = f id in
-//│ ║        	            ^^^^
-//│ ╟── • this application:
-//│ ║  l.75: 	  a() : nothing -> BTB
-//│ ╙──      	  ^^^
-//│ res: nothing -> BTB | error
+//│ res: nothing -> BTB
 
 
 

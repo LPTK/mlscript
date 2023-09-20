@@ -109,7 +109,7 @@ rec def append l1 l2 =
   else cons (head l1) (append (tail l1) l2)
 //│ append: List['a] -> List['a] -> List['a]
 //│       = <missing implementation>
-//│ List['a] -> (List['a] & 'b) -> (List['a] | 'b)
+//│ List['a] -> List['a] -> List['a]
 //│   <:  append:
 //│ List['a] -> List['a] -> List['a]
 //│       = [Function: append]
@@ -425,7 +425,7 @@ app (map head) (single ids)
 (error : List['a -> 'a] -> int) (error : List[(forall 'd. 'd -> 'c) -> 'c])
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'a <: ? -> 'a
+//│     'a <: anything -> 'a
 //│ ╙──
 //│ res: int
 
@@ -519,15 +519,12 @@ ids : forall 'b. List[forall 'a. 'a -> 'b]
 //│ ╔══[ERROR] Type mismatch in type ascription:
 //│ ║  l.518: 	ids : forall 'b. List[forall 'a. 'a -> 'b]
 //│ ║         	^^^
-//│ ╟── type `'a` does not match type `'b`
-//│ ║  l.518: 	ids : forall 'b. List[forall 'a. 'a -> 'b]
-//│ ║         	                                 ^^
+//│ ╟── type `anything` does not match type `'b`
+//│ ║  l.137: 	def ids: List[forall 'a. 'a -> 'a]
+//│ ║         	                         ^^
 //│ ╟── Note: constraint arises from type variable:
 //│ ║  l.518: 	ids : forall 'b. List[forall 'a. 'a -> 'b]
-//│ ║         	                                       ^^
-//│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.518: 	ids : forall 'b. List[forall 'a. 'a -> 'b]
-//│ ╙──       	                             ^^
+//│ ╙──       	                                       ^^
 //│ res: List[anything -> nothing]
 //│    = Cons { head: [Function: id1], tail: Nil {} }
 
@@ -572,7 +569,19 @@ let pack x f = fun (open: forall 'a. (('a, 'a -> int),) -> 'b) -> open ((x, f)) 
   let existsI = pack 1 id in
   let exs = cons existsB (cons existsI nil) in
     unpack (head exs) (fun ex -> (snd ex) (fst ex))
-//│ res: int
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.571: 	    unpack (head exs) (fun ex -> (snd ex) (fst ex))
+//│ ║         	    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── function of type `?a -> ?b` does not match type `('a, 'a -> int,) -> 'b & ('a0, 'a0 -> int,) -> 'b0`
+//│ ║  l.571: 	    unpack (head exs) (fun ex -> (snd ex) (fst ex))
+//│ ║         	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Note: constraint arises from function type:
+//│ ║  l.566: 	let pack x f = fun (open: forall 'a. (('a, 'a -> int),) -> 'b) -> open ((x, f)) in
+//│ ║         	                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── from reference:
+//│ ║  l.567: 	  let unpack ex f = ex f in
+//│ ╙──       	                       ^
+//│ res: error
 //│    = 1
 
 // ============ Rigid annotations ============
@@ -967,17 +976,17 @@ test2 = test1
 //│   <:  test2:
 //│ List[forall 'a. 'a -> 'a]
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.965: 	test2 = test1
+//│ ║  l.974: 	test2 = test1
 //│ ║         	^^^^^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
-//│ ║  l.955: 	def test2: List[forall 'a. 'a -> 'a]
+//│ ║  l.964: 	def test2: List[forall 'a. 'a -> 'a]
 //│ ║         	                           ^^
 //│ ╟── back into type variable `'a`
-//│ ║  l.955: 	def test2: List[forall 'a. 'a -> 'a]
+//│ ║  l.964: 	def test2: List[forall 'a. 'a -> 'a]
 //│ ║         	                                 ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this reference:
-//│ ║  l.965: 	test2 = test1
+//│ ║  l.974: 	test2 = test1
 //│ ╙──       	        ^^^^^
 
 
@@ -999,7 +1008,7 @@ map xauto ids
 :e
 map xauto (map xauto ids)
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.1000: 	map xauto (map xauto ids)
+//│ ║  l.1009: 	map xauto (map xauto ids)
 //│ ║          	^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'b` leaks out of its scope
 //│ ║  l.173: 	def xauto : forall 'a. (forall 'b. 'b -> 'b) -> 'a -> 'a
@@ -1009,7 +1018,7 @@ map xauto (map xauto ids)
 //│ ║         	                                         ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this application:
-//│ ║  l.1000: 	map xauto (map xauto ids)
+//│ ║  l.1009: 	map xauto (map xauto ids)
 //│ ╙──        	           ^^^^^^^^^^^^^
 //│ res: error | List['a -> 'a]
 
@@ -1018,17 +1027,17 @@ map xauto (map xauto ids)
 :e
 (fun x -> xauto x) : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.1019: 	(fun x -> xauto x) : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
+//│ ║  l.1028: 	(fun x -> xauto x) : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ║          	^^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
-//│ ║  l.1019: 	(fun x -> xauto x) : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
+//│ ║  l.1028: 	(fun x -> xauto x) : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ║          	                                                          ^^
 //│ ╟── back into type variable `'a`
-//│ ║  l.1019: 	(fun x -> xauto x) : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
+//│ ║  l.1028: 	(fun x -> xauto x) : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ║          	                                                                ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this application:
-//│ ║  l.1019: 	(fun x -> xauto x) : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
+//│ ║  l.1028: 	(fun x -> xauto x) : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ╙──        	          ^^^^^^^
 //│ res: (forall 'a. 'a -> 'a) -> (forall 'a0. 'a0 -> 'a0)
 // * But we can trivially fix it by forcing generalization through a polymorphic let binding:
@@ -1038,17 +1047,17 @@ map xauto (map xauto ids)
 :e
 xauto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.1039: 	xauto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
+//│ ║  l.1048: 	xauto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ║          	^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
-//│ ║  l.1039: 	xauto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
+//│ ║  l.1048: 	xauto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ║          	                                             ^^
 //│ ╟── back into type variable `'a`
-//│ ║  l.1039: 	xauto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
+//│ ║  l.1048: 	xauto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ║          	                                                   ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this reference:
-//│ ║  l.1039: 	xauto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
+//│ ║  l.1048: 	xauto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 //│ ╙──        	^^^^^
 //│ res: (forall 'a. 'a -> 'a) -> (forall 'a0. 'a0 -> 'a0)
 

@@ -82,25 +82,22 @@ f (x: 42)
 
 :e
 f (y: 42)
-//│ ╔══[ERROR] Wrong tuple field name: found 'y' instead of 'x'
-//│ ║  l.84: 	f (y: 42)
-//│ ╙──      	   ^^^^^
-//│ res: error | int
+//│ res: int
 
 :e
 f (x: 42, y: 43)
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.91: 	f (x: 42, y: 43)
+//│ ║  l.88: 	f (x: 42, y: 43)
 //│ ║        	^^^^^^^^^^^^^^^^
 //│ ╟── tuple of type `(x: 42, y: 43,)` is not an instance of type `int`
-//│ ║  l.91: 	f (x: 42, y: 43)
+//│ ║  l.88: 	f (x: 42, y: 43)
 //│ ║        	   ^^^^^^^^^^^^
 //│ ╟── but it flows into argument with expected type `int`
-//│ ║  l.91: 	f (x: 42, y: 43)
+//│ ║  l.88: 	f (x: 42, y: 43)
 //│ ║        	  ^^^^^^^^^^^^^^
-//│ ╟── Note: constraint arises from argument:
+//│ ╟── Note: constraint arises from reference:
 //│ ║  l.74: 	let f(x: int) = x + 1
-//│ ║        	                ^
+//│ ║        	         ^^^
 //│ ╟── from binding:
 //│ ║  l.74: 	let f(x: int) = x + 1
 //│ ╙──      	      ^^^^^^

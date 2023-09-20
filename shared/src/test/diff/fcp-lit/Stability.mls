@@ -121,7 +121,7 @@ swizzle = undef
 
 // In Haskell, "deeply skolemization" would eta expand swizzle as:
 swizzle = fun x -> undef x
-//│ int -> 'a -> 'a
+//│ int -> (forall 'a. 'a -> 'a)
 //│   <:  swizzle:
 //│ int -> (forall 'a. 'a -> 'a)
 //│        = [Function: swizzle1]

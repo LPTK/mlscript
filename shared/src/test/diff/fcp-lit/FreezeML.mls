@@ -436,7 +436,7 @@ r (fun x -> fun y -> y)
 :ng
 :ns
 r
-//│ res: (forall 'a. 'a -> (forall 'b. 'b -> 'b)) -> int
+//│ res: (anything -> (forall 'b. 'b -> 'b)) -> int
 
 
 // ============ F. FreezeML Programs ============
