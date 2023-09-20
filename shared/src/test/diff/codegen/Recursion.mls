@@ -38,17 +38,12 @@ pow1 3 4
 
 :js
 rec def pow2 n = { call = fun x -> if n > 0 then (pow2 (n - 1)).call x * x else 1 }
-//│ // Query 1
-//│ globalThis.pow2 = function pow2(n) {
-//│   return { call: (x) => n > 0 ? pow2(n - 1).call(x) * x : 1 };
-//│ };
-//│ // End of generated code
-//│ pow2: int -> {call: int -> int}
-//│     = [Function: pow2]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 (pow2 3).call 4
 //│ res: int
-//│    = 64
+//│ Code generation encountered an error:
+//│   unresolved symbol pow2
 
 :ge
 let rec x = { f = x } in x

@@ -63,10 +63,7 @@ def base f = f baseImpl
 
 // * Also works, but not necessary
 def base (f: ArraysImplConsumer['a, 'res]) = f baseImpl
-//│ ArraysImplConsumer['a, 'b] -> 'b
-//│   <:  base:
-//│ Arrays['a]
-//│     = [Function: base1]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 
 
@@ -102,8 +99,7 @@ def step: Arrays['a] -> Arrays['a]
 def helper impl (k: ArraysImplConsumer['a, '_]) = k (stepImpl impl)
 // * Or equivalently:
 // def helper impl (k: forall 'rep. ArraysImpl['a, 'rep] -> 'r) = k (stepImpl impl)
-//│ helper: ArraysImpl['a, 'r] -> ArraysImplConsumer['a, 'b] -> 'b
-//│       = [Function: helper]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 // * Note: these versions where we annotate `impl` instead don't work
 // * (cause problem in later definition of step)
@@ -112,40 +108,45 @@ def helper impl (k: ArraysImplConsumer['a, '_]) = k (stepImpl impl)
 // def helper (impl: ArraysImpl['a, 'rep]) k = k (let tmp = stepImpl impl in tmp)
 
 def step arr = arr helper
-//│ ((forall 'r 'b 'a. ArraysImpl['a, 'r] -> ArraysImplConsumer['a, 'b] -> 'b) -> 'c) -> 'c
+//│ (error -> 'a) -> 'a
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step]
+//│ ╔══[ERROR] identifier not found: helper
+//│ ║  l.114: 	def step arr = arr helper
+//│ ╙──       	                   ^^^^^^
+//│ Code generation encountered an error:
+//│   unresolved symbol helper
 
 // * Also works, but not necessary
 def step (arr: Arrays['a]) = arr helper
-//│ Arrays['a] -> ArraysImplConsumer['a, 'b] -> 'b
+//│ Arrays['a] -> nothing
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step1]
+//│ ╔══[ERROR] identifier not found: helper
+//│ ║  l.121: 	def step (arr: Arrays['a]) = arr helper
+//│ ╙──       	                                 ^^^^^^
+//│ Code generation encountered an error:
+//│   unresolved symbol helper
 
 // * In one go:  <------------------------ this is probably the most canonical definition of `step` in this file
 
 // * With `stepImpl`
 def step arr = arr (fun impl -> fun (k: ArraysImplConsumer['a, 'r]) -> k (stepImpl impl))
-//│ ((forall 'a 'r 'b. ArraysImpl['a, 'r] -> ArraysImplConsumer['a, 'b] -> 'b) -> 'c) -> 'c
-//│   <:  step:
-//│ Arrays['a] -> Arrays['a]
-//│     = [Function: step2]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 // * With `stepImpl_ty`
 def step arr = arr (fun impl -> fun (k: ArraysImplConsumer['a, 'r]) -> k (stepImpl_ty impl))
 //│ ((forall 'a 'r 'b. ArraysImpl['a, 'r] -> ArraysImplConsumer['a, 'b] -> 'b) -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step3]
+//│     = [Function: step]
 
 // * With one more annotation (not needed)
 def step (arr: Arrays['a0]) = arr (fun impl -> fun (k: ArraysImplConsumer['a, 'r]) -> k (stepImpl impl))
 //│ Arrays['a0] -> ArraysImplConsumer['a0, 'a] -> 'a
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step4]
+//│     = [Function: step1]
 
 
 
@@ -190,13 +191,7 @@ def step2: Arrays['a] -> Arrays['a]
 
 
 def step2 (arr: Arrays['a]) (k: ArraysImplConsumer['a2, 'rep]) = arr (fun impl -> k (stepImpl impl))
-//│ Arrays['a] -> ArraysImplConsumer['a, 'rep] -> 'rep
-//│   where
-//│     'a := 'a0
-//│     'a0 :> 'a
-//│   <:  step2:
-//│ Arrays['a] -> Arrays['a]
-//│      = [Function: step21]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 
 // * Removing the `arr` annotation still works:
@@ -206,7 +201,7 @@ def step2 = forall 'a. fun arr ->
 //│ ((forall 'r. ArraysImpl['a, 'r] -> 'rep) -> 'b) -> ArraysImplConsumer['a, 'rep] -> 'b
 //│   <:  step2:
 //│ Arrays['a] -> Arrays['a]
-//│      = [Function: step22]
+//│      = [Function: step2]
 
 // * Or just:
 def step2 arr (k: ArraysImplConsumer['a, 'rep]) = arr (fun impl -> k (stepImpl impl))
@@ -216,7 +211,7 @@ def step2 arr (k: ArraysImplConsumer['a, 'rep]) = arr (fun impl -> k (stepImpl i
 //│     'a0 :> 'a
 //│   <:  step2:
 //│ Arrays['a] -> Arrays['a]
-//│      = [Function: step23]
+//│      = [Function: step21]
 
 
 
@@ -276,14 +271,14 @@ def step2 = forall 'a. fun (arr: Arrays['a]) -> fun k -> arr (fun impl -> k (ste
 //│ ╟── Note: constraint arises from type variable:
 //│ ║  l.76: 	def stepImpl_ty: ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string)]
 //│ ╙──      	                                                       ^^
-//│      = [Function: step24]
+//│      = [Function: step22]
 
 
 // * `step` not work with no annotations (even with stepImpl_ty),
 // * because that makes `k` leak its argument type
 :e
 def step arr = arr (fun impl -> fun k -> k (stepImpl_ty impl))
-//│ ((forall 'a 'r 'b. ArraysImpl['a, 'r] -> (ArraysImpl['a, ('r, string,)] -> 'b) -> 'b) -> 'c) -> 'c
+//│ ((forall 'r 'b 'a. ArraysImpl['a, 'r] -> (ArraysImpl['a, ('r, string,)] -> 'b) -> 'b) -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type error in def definition
@@ -302,7 +297,7 @@ def step arr = arr (fun impl -> fun k -> k (stepImpl_ty impl))
 //│ ╟── Note: constraint arises from type variable:
 //│ ║  l.76: 	def stepImpl_ty: ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string)]
 //│ ╙──      	                                                       ^^
-//│     = [Function: step5]
+//│     = [Function: step3]
 
 // * Still doesn't work if we only annotate `arr`, as `k` still leaks the internal repr
 :e
@@ -326,25 +321,25 @@ def step (arr: Arrays['a]) = arr (fun impl -> fun k -> k (stepImpl impl))
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.83: 	    sub    = fun ((r0, r1)) -> fun i -> arrImpl.sub r0 i;
 //│ ╙──      	                                                    ^^
-//│     = [Function: step6]
+//│     = [Function: step4]
 
 
 // * Works. Note: removing `forall 'a.` here leads to badness
 def step arr = arr (forall 'a. fun impl -> forall 'r. fun (k: ArraysImplConsumer['a, 'r]) -> k (stepImpl impl))
-//│ ((forall 'a 'r 'r0. ArraysImpl['a, 'r] -> ArraysImplConsumer['a, 'r0] -> 'r0) -> 'b) -> 'b
+//│ ((forall 'r 'r0 'a. ArraysImpl['a, 'r] -> ArraysImplConsumer['a, 'r0] -> 'r0) -> 'b) -> 'b
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step7]
+//│     = [Function: step5]
 
 // * ...unless we use `stepImpl_ty` instead of `stepImpl`
 def step arr = arr (fun impl -> forall 'r. fun (k: ArraysImplConsumer['a, 'r]) -> k (stepImpl_ty impl))
-//│ ((forall 'a 'a0 'r 'a1 'r0. ArraysImpl[in 'a1 & 'a0 out 'a1 | 'a0, 'r] -> ArraysImplConsumer['a, 'r0] -> 'r0) -> 'b) -> 'b
+//│ ((forall 'a 'a0 'r 'r0 'a1. ArraysImpl[in 'a & 'a1 out 'a | 'a1, 'r] -> ArraysImplConsumer['a0, 'r0] -> 'r0) -> 'b) -> 'b
 //│   where
-//│     'a :> 'a1
-//│        <: 'a0
+//│     'a0 :> 'a
+//│         <: 'a1
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step8]
+//│     = [Function: step6]
 
 
 def step arr = arr (fun impl -> (fun k -> k (stepImpl impl)) : Arrays['a])
@@ -354,25 +349,25 @@ def step arr = arr (fun impl -> (fun k -> k (stepImpl impl)) : Arrays['a])
 //│     'a0 :> 'a
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step9]
+//│     = [Function: step7]
 
 def step arr = arr (fun impl -> (fun k -> k (stepImpl_ty impl)) : Arrays['a])
 //│ ((forall 'a 'r. ArraysImpl['a, 'r] -> Arrays['a]) -> 'b) -> 'b
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step10]
+//│     = [Function: step8]
 
 def step = forall 'a. fun (arr : Arrays['a]) -> arr (fun impl -> (fun k -> k (stepImpl impl)) : Arrays['a])
 //│ Arrays['a] -> Arrays['a]
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step11]
+//│     = [Function: step9]
 
 def step = forall 'a. fun arr -> arr (forall 'rep. fun (impl : ArraysImpl['a, 'rep]) -> (fun k -> k (stepImpl impl)) : Arrays['a])
 //│ ((forall 'rep. ArraysImpl['a, 'rep] -> Arrays['a]) -> 'b) -> 'b
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step12]
+//│     = [Function: step10]
 
 
 // * The following `arrayRepToArray` definition can help type check `step`:
@@ -393,28 +388,25 @@ def arrayRepToArray_A impl k = k impl
 
 
 def step arr = arr (fun impl -> arrayRepToArray_A (stepImpl_ty impl))
-//│ ((forall 'r 'a. ArraysImpl['a, 'r] -> Arrays['a]) -> 'b) -> 'b
+//│ ((forall 'a 'r. ArraysImpl['a, 'r] -> Arrays['a]) -> 'b) -> 'b
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step13]
+//│     = [Function: step11]
 
 def step arr = arr (fun impl -> arrayRepToArray (stepImpl_ty impl))
-//│ ((forall 'b 'a 'r. ArraysImpl['a, 'r] -> (forall 'rep. ArraysImpl['a, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
+//│ ((forall 'a 'r 'b. ArraysImpl['a, 'r] -> (forall 'rep. ArraysImpl['a, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step14]
+//│     = [Function: step12]
 
 def step (arr: Arrays['a]) = arr (fun impl -> arrayRepToArray_A (stepImpl impl))
 //│ Arrays['a] -> Arrays['a]
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step15]
+//│     = [Function: step13]
 
 def step arr = arr (fun impl -> arrayRepToArray (stepImpl impl))
-//│ ((forall 'a 'r 'b. ArraysImpl['a, 'r] -> (forall 'rep. ArraysImpl['a, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
-//│   <:  step:
-//│ Arrays['a] -> Arrays['a]
-//│     = [Function: step16]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 
 // * We can get away with not annotating `arrImpl` as long as we annotate its polymorphic field use:
@@ -435,7 +427,7 @@ def step arr = arr (fun impl -> fun (k: ArraysImplConsumer['a, 'r]) -> k (stepIm
 //│ ((forall 'a 'rep 'b. {fold: Fold['a, 'rep], init: 'a -> 'rep, sub: 'rep -> int -> 'a, update: 'rep -> int -> 'a -> 'rep} -> ArraysImplConsumer['a, 'b] -> 'b) -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
-//│     = [Function: step17]
+//│     = [Function: step14]
 
 
 

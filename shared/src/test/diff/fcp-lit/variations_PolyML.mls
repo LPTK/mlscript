@@ -28,36 +28,39 @@ rec def mem x l = case l of
   { Nil -> false
   | Cons -> if eq l.head x then true else mem x l.tail
   }
-//│ mem: anything -> 'a -> bool
-//│   where
-//│     'a <: (Cons[?] with {tail: 'a}) | Nil
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 rec def fold_left f x l = case l of
   { Nil -> x
   | Cons -> fold_left f (f x l.head) l.tail
   }
-//│ fold_left: ('a -> 'head -> 'a) -> 'a -> 'b -> 'a
-//│   where
-//│     'b <: (Cons[?] with {head: 'head, tail: 'b}) | Nil
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 // ------------ polymorphic methods ------------
 
 class Collection[a]: { l: List[a] }
   method Mem x = mem x this.l
   method Fold f x = fold_left f x this.l
-//│ Defined class Collection[+a]
-//│ Defined Collection.Mem: Collection[?] -> anything -> bool
-//│ Defined Collection.Fold: Collection['a] -> ('b -> 'a -> 'b) -> 'b -> 'b
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 def coll_mem c x = c.Mem x
-//│ coll_mem: Collection[?] -> anything -> bool
+//│ ╔══[ERROR] Method Mem not found
+//│ ║  l.46: 	def coll_mem c x = c.Mem x
+//│ ╙──      	                   ^^^^^
+//│ coll_mem: anything -> anything -> error
 
 // * Typo in the paper? it was `fun x -> fun y -> ...`
 def simple_and_double c =
   let l1 = c.Fold (fun y -> fun x -> Cons x y) Nil in
   let l2 = c.Fold (fun y -> fun x -> Cons ((x, x),) y) Nil in
   (l1, l2)
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ╔══[ERROR] Method Fold not found
+//│ ║  l.54: 	  let l1 = c.Fold (fun y -> fun x -> Cons x y) Nil in
+//│ ╙──      	           ^^^^^^
+//│ ╔══[ERROR] Method Fold not found
+//│ ║  l.55: 	  let l2 = c.Fold (fun y -> fun x -> Cons ((x, x),) y) Nil in
+//│ ╙──      	           ^^^^^^
+//│ simple_and_double: anything -> (error, error,)
 
 
 
@@ -70,13 +73,6 @@ rec def mem x l = case l of
   { Nil -> false
   | Cons -> if eq l.head x then true else mem x l.tail
   }
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: {head: ?, tail: Cons[?] & 'a}
-//│ ║  l.69: 	rec def mem x l = case l of
-//│ ╙──      	                       ^
-//│ mem: anything -> 'a -> bool
-//│   where
-//│     'a <: (Cons[?] with {tail: 'a}) | Nil
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 

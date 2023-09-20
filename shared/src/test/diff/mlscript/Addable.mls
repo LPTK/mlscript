@@ -101,18 +101,13 @@ addNTimes n 12
 
 rec def addNTimes a n =
   if n <= 0 then 0 else a.Add addNTimes a (n - 1)
-//│ addNTimes: 'addNTimes
-//│   where
-//│     'addNTimes :> 'a -> int -> (0 | 'b)
-//│     'a <: Addable['A]
-//│     'A :> 'addNTimes
-//│        <: 'a -> int -> 'b
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 addNTimes n 12
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	addNTimes n 12
 //│ ║        	^^^^^^^^^^^
-//│ ╟── function of type `?a -> int -> ?b` is not an instance of type `Num`
+//│ ╟── function of type `?a -> ?b -> ?c` is not an instance of type `Num`
 //│ ║  l.102: 	rec def addNTimes a n =
 //│ ║         	                  ^^^^^
 //│ ║  l.103: 	  if n <= 0 then 0 else a.Add addNTimes a (n - 1)

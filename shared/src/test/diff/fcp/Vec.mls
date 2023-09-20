@@ -44,28 +44,10 @@ def cons_ty : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 
 // * Note: test cases like this are quite slow... this one seems to take about 100ms!!
 cons_ty = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│ 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│   where
-//│     'n := S['n]
-//│   <:  cons_ty:
-//│ 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.46: 	cons_ty = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│ ║        	^^^^^^^^^^^^^^
-//│ ╟── type `'n` is not an instance of type `S`
-//│ ║  l.42: 	def cons_ty : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│ ║        	                                       ^^
-//│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.46: 	cons_ty = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│ ║        	                                                         ^^^^^
-//│ ╟── from type variable:
-//│ ║  l.46: 	cons_ty = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│ ╙──      	                                          ^^
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 cons_ty2 = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│ cons_ty2: 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│   where
-//│     'n := S['n]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ Defined type alias Cons_ty
@@ -233,25 +215,10 @@ v1_tty = cons_ty 1 nil_ty
 //│ v1_tty: Vec[int, S[Z]]
 
 v1_tty = cons_ty2 1 nil_ty
-//│ ╔══[ERROR] Type mismatch in application:
+//│ ╔══[ERROR] identifier not found: cons_ty2
 //│ ║  l.235: 	v1_tty = cons_ty2 1 nil_ty
-//│ ║         	         ^^^^^^^^^^^^^^^^^
-//│ ╟── type `Z` is not an instance of `S['n & 'p]`
-//│ ║  l.39: 	nil_ty = nil : Vec[int, Z]
-//│ ║        	                        ^
-//│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.65: 	cons_ty2 = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│ ║        	                                                          ^^^^^
-//│ ╟── from type variable:
-//│ ║  l.65: 	cons_ty2 = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
-//│ ╙──      	                                           ^^
-//│ v1_tty: error | Vec[int, S['n]]
-//│   where
-//│     'n :> S['n & 'p] | Z
-//│        <: nothing
-//│     'p :> S['n & 'p] | Z
-//│        <: 'n & 'p0
-//│     'p0 <: 'n & 'p
+//│ ╙──       	         ^^^^^^^^
+//│ v1_tty: error
 
 v1_tty = cons_ty3 1 nil_ty
 //│ v1_tty: Vec[int, S[Z]]
@@ -355,7 +322,7 @@ sum nil
 
 // * Note: also worked woth top/bot extrusion
 sum v1_0
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?sum. ?sum <: (forall ?tail ?c ?d ?e ?N 'n ?A. ?d -> ?e) -> ?f` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?sum ?b. ?sum <: (forall 'n ?A ?tail ?c ?d ?e. ?c -> ?e) -> ?f` exceeded recursion depth limit (250)
 //│ ║  l.357: 	sum v1_0
 //│ ║         	^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
@@ -406,7 +373,7 @@ sum v1_ty
 //│ ╟── type `Cons[int, Z]` is not a function
 //│ ║  l.187: 	v1_ty = v1_ : Cons[int, Z]
 //│ ║         	              ^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(forall ?a ?b ?c ?head ?tail ?d. ?d -> ?c) -> ?e`
+//│ ╟── but it flows into reference with expected type `(forall ?head ?a ?b ?c ?d ?tail. ?d -> ?b) -> ?e`
 //│ ║  l.+1: 	sum v1_ty
 //│ ║        	    ^^^^^
 //│ ╟── Note: constraint arises from application:

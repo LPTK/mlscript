@@ -588,45 +588,18 @@ sz1 2
 rec def to_ch_s n =
   if n == 0 then z
   else s (to_ch_s (n - 1))
-//│ to_ch_s: int -> (forall 'a. ('b -> ('b & 'a)) -> (forall 'c. ('b & 'c) -> ('c | 'a)))
-//│        = [Function: to_ch_s]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 
 // Q: what's the difference with to_ch_s?!
 rec def to_ch n =
   if n == 0 then z
   else s (to_ch (n - 1))
-//│ to_ch: int -> (forall 'a. ('b -> ('b & 'a)) -> (forall 'c. ('b & 'c) -> ('c | 'a)))
-//│      = [Function: to_ch]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 :e // * Needs distrib (see below)
 to_church_ty = to_ch
-//│ int -> (forall 'a. ('b -> ('b & 'a)) -> (forall 'c. ('b & 'c) -> ('c | 'a)))
-//│   <:  to_church_ty:
-//│ int -> ChurchInt
-//│ ╔══[ERROR] Type error in def definition
-//│ ║  l.603: 	to_church_ty = to_ch
-//│ ║         	^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type variable `'N` leaks out of its scope
-//│ ║  l.7: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
-//│ ║       	                                   ^^
-//│ ╟── back into type variable `'N`
-//│ ║  l.7: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
-//│ ║       	                             ^^
-//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this function:
-//│ ║  l.302: 	def s n f x = f (n f x)
-//│ ║         	        ^^^^^^^^^^^^^^^
-//│ ╟── • this application:
-//│ ║  l.598: 	  else s (to_ch (n - 1))
-//│ ║         	       ^^^^^^^^^^^^^^^^^
-//│ ╟── • this reference:
-//│ ║  l.603: 	to_church_ty = to_ch
-//│ ║         	               ^^^^^
-//│ ╟── Note: constraint arises from application:
-//│ ║  l.302: 	def s n f x = f (n f x)
-//│ ╙──       	              ^^^^^^^^^
-//│             = [Function: to_ch]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 // * Works with version where `s` has annotated `n: ChurchInt` parameter
 rec def to_ch_s_A1 n =
@@ -643,37 +616,11 @@ to_church_ty = to_ch_s_A1
 
 // * Boil down the problem with `to_ch`
 rec def to_ch_simplif n = s (to_ch_simplif n)
-//│ to_ch_simplif: anything -> (forall 'a. ('b -> ('b & 'a)) -> anything -> 'a)
-//│              = [Function: to_ch_simplif]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 :e
 to_church_ty = to_ch_simplif
-//│ anything -> (forall 'a. ('b -> ('b & 'a)) -> anything -> 'a)
-//│   <:  to_church_ty:
-//│ int -> ChurchInt
-//│ ╔══[ERROR] Type error in def definition
-//│ ║  l.650: 	to_church_ty = to_ch_simplif
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type variable `'N` leaks out of its scope
-//│ ║  l.7: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
-//│ ║       	                                   ^^
-//│ ╟── back into type variable `'N`
-//│ ║  l.7: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
-//│ ║       	                             ^^
-//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this function:
-//│ ║  l.302: 	def s n f x = f (n f x)
-//│ ║         	        ^^^^^^^^^^^^^^^
-//│ ╟── • this application:
-//│ ║  l.645: 	rec def to_ch_simplif n = s (to_ch_simplif n)
-//│ ║         	                          ^^^^^^^^^^^^^^^^^^^
-//│ ╟── • this reference:
-//│ ║  l.650: 	to_church_ty = to_ch_simplif
-//│ ║         	               ^^^^^^^^^^^^^
-//│ ╟── Note: constraint arises from application:
-//│ ║  l.302: 	def s n f x = f (n f x)
-//│ ╙──       	              ^^^^^^^^^
-//│             = [Function: to_ch_simplif]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 
 // * This annotation here doesn't help
@@ -1061,10 +1008,7 @@ s: ChurchInt -> ChurchInt
 
 // * Now works
 to_church_ty = to_ch
-//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
-//│   <:  to_church_ty:
-//│ int -> ChurchInt
-//│             = [Function: to_ch]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 // * Still works
 to_church_ty = to_ch_s_A1
@@ -1075,20 +1019,12 @@ to_church_ty = to_ch_s_A1
 
 // * Now works
 to_church_ty = to_ch_simplif
-//│ anything -> ('a -> 'a) -> anything -> 'a
-//│   <:  to_church_ty:
-//│ int -> ChurchInt
-//│             = [Function: to_ch_simplif]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 // * Redefinition in the context of distrib, just for the record (still works)
 rec def to_ch_simplif n = s (to_ch_simplif n)
 to_church_ty = to_ch_simplif
-//│ to_ch_simplif: anything -> ('a -> 'a) -> anything -> 'a
-//│              = [Function: to_ch_simplif1]
-//│ anything -> ('a -> 'a) -> anything -> 'a
-//│   <:  to_church_ty:
-//│ int -> ChurchInt
-//│             = [Function: to_ch_simplif1]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 :e
 to_church_ty = to_ch_A1

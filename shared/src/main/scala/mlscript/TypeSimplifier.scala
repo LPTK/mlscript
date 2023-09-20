@@ -1239,6 +1239,38 @@ trait TypeSimplifier { self: Typer =>
             super.apply(pol)(st)
             curPath = oldPath
           }
+          
+          // case ProxyType(und) => super.apply(pol)(st)
+          // case Overload(as) => super.apply(pol)(st)
+          case ProxyType(und) => apply(pol)(und)
+          case Overload(as) => as.foreach(apply(pol))
+          
+          // case NegType(n) => go(pol.contravar, ignoreTLO, upperLvl)(n)
+          // case Without(b, ns) => go(pol, ignoreTLO, upperLvl)(b)
+          case TypeBounds(lb, ub) =>
+            // super.apply(PolMap.neg)(lb)
+            // super.apply(PolMap.pos)(ub)
+            apply(PolMap.neg)(lb)
+            apply(PolMap.pos)(ub)
+            
+            // * or simply:
+            // pol.traverseRange(lb, ub)(go(_, ignoreTLO, upperLvl)(_))
+          
+          case ConstrainedType(cs, bod) =>
+            cs.foreach { vbs =>
+              apply(PolMap.pos)(vbs._1)
+              apply(PolMap.posAtNeg)(vbs._2)
+            }
+            apply(pol)(bod)
+          case ComposedType(p, l, r) =>
+            // super.apply(pol)(l)
+            // super.apply(pol)(r)
+            apply(pol)(l)
+            apply(pol)(r)
+          
+          // case pt: PolymorphicType =>
+          //   go(pol.enter(pt.polymLevel), ignoreTLO, upperLvl min pt.polymLevel)(pt.body)
+            
         case _ =>
           val oldPath = curPath
           val oldPaths = pastPaths

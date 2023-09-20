@@ -241,6 +241,15 @@ listiterA = listiter
 // untype let rec id x = if true then x else id id x in id
 :e
 rec def id1 x = if true then x else id1 id1 x
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+
+
+
+// * === \ Below, some of our own variations ===
+
+// * With annotated recursive calls
+def idy_ty: forall 'a. 'a -> 'a
+def id1 x = if true then x else idy_ty idy_ty x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a <: 'b -> 'c
@@ -250,26 +259,6 @@ rec def id1 x = if true then x else id1 id1 x
 //│        <: 'a
 //│ ║  l.243: 	rec def id1 x = if true then x else id1 id1 x
 //│ ╙──       	                                    ^^^^^^^
-//│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
-//│ ║  l.243: 	rec def id1 x = if true then x else id1 id1 x
-//│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ id1: 'id1
-//│   where
-//│     'id1 :> 'a -> 'b
-//│     'a :> 'id1
-//│        <: 'b
-//│     'b :> 'id1
-//│        <: 'a -> 'b
-//│    = [Function: id1]
-
-
-
-// * === \ Below, some of our own variations ===
-
-// * With annotated recursive calls
-def idy_ty: forall 'a. 'a -> 'a
-def id1 x = if true then x else idy_ty idy_ty x
 //│ idy_ty: 'a -> 'a
 //│       = <missing implementation>
 //│ id1: 'a -> 'a
@@ -280,61 +269,56 @@ def id1 x = if true then x else idy_ty idy_ty x
 // *  but it does need at least recursive types:
 :RecursiveTypes
 rec def id1 x = if true then x else id1 id1 x
-//│ id1: 'id1
-//│   where
-//│     'id1 :> 'a -> 'b
-//│     'a :> 'id1
-//│        <: 'b
-//│     'b :> 'id1
-//│        <: 'a -> 'b
-//│    = [Function: id11]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 id1 id
-//│ res: ('a & 'b) -> 'b | 'c
-//│   where
-//│     'a :> ('a & 'b) -> 'b
-//│        <: 'b
-//│     'b :> ('a & 'b) -> 'b
-//│        <: 'a -> 'b & 'c
-//│    = [Function: id]
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.291: 	id1 id
+//│ ║         	^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ res: error
+//│    = <no result>
+//│      id1 and idy_ty are not implemented
 id1 id1
-//│ res: 'a -> 'b | 'id1
+//│ res: ('a & 'b & 'c) -> ('a | 'd | 'e) | 'f
 //│   where
-//│     'a :> forall 'c 'd 'id1. 'a -> 'b | 'id1
-//│        <: 'b
-//│     'b :> forall 'c 'd 'id1. 'id1
-//│        <: 'a -> 'b
-//│     'id1 :> 'c -> 'd
-//│     'c :> 'id1
-//│        <: 'd
-//│     'd :> 'id1
-//│        <: 'c -> 'd
-//│    = [Function: id11]
+//│     'c <: 'g & 'h & 'i & 'j
+//│     'j <: (forall 'a. ('a & 'c) -> ('a | 'e) | 'b | 'c) -> 'j & 'f & 'k & 'd
+//│     'e :> forall 'a. ('a & 'c) -> ('a | 'e) | 'l | 'j
+//│     'b :> 'g -> 'k
+//│        <: 'g & 'f & 'h & 'i
+//│     'g :> forall 'a. ('g & 'a) -> ('a | 'k)
+//│        <: 'b & 'f & 'k
+//│     'k :> forall 'a. ('g & 'a) -> ('a | 'k) | 'm
+//│        <: 'f
+//│     'm :> forall 'a. ('g & 'a) -> ('a | 'k)
+//│        <: 'i -> 'f & 'f
+//│     'i :> forall 'a. ('g & 'a) -> ('a | 'k) | 'g
+//│        <: 'g & 'b & 'f
+//│     'f <: 'l & 'h -> 'f & 'm
+//│     'h :> forall 'a. ('a & 'b) -> ('a | 'd) | 'g
+//│        <: 'g
+//│     'd :> forall 'a. ('a & 'b) -> ('a | 'd) | 'l
+//│        <: 'f
+//│     'l :> 'g -> 'k
+//│        <: 'f & 'k
+//│    = <no result>
+//│      id1 and idy_ty are not implemented
 // * Note that it can't be applied when typed with :precise-rec-typing AND :DontDistributeForalls
 :DontDistributeForalls
 :precise-rec-typing
 rec def id1_p x = if true then x else id1_p id1_p x
-//│ id1_p: ('a & 'b) -> 'a
+//│ id1_p: 'a -> ('b | 'a)
 //│   where
-//│     'a :> forall 'c. ('c & 'b) -> 'c
-//│        <: 'b -> 'a
-//│     'b :> forall 'd. ('b & 'd) -> 'd
-//│        <: 'a
-//│     'd :> 'a
-//│     'c :> 'a
+//│     'b :> forall 'c. 'c -> 'c
+//│     'c :> 'b
 //│      = [Function: id1_p]
 // * Can't apply it:
 :e
 id1_p id
-//│ res: ('a & 'b & 'c) -> ('a | 'd) | 'e
+//│ res: 'a -> 'a | 'b
 //│   where
-//│     'a :> 'f
-//│     'f :> forall 'a 'b 'c 'd. ('a & 'b & 'c) -> ('a | 'd)
-//│        <: 'g -> 'f & 'e
-//│     'c <: 'd & 'g
-//│     'd :> 'f
-//│     'b <: 'a & 'g
-//│     'g :> forall 'a 'b. ('a & 'b) -> 'a
-//│        <: 'f
+//│     'b :> forall 'c. 'c -> 'c
+//│     'c :> 'b
 //│    = [Function: id]
 :DistributeForalls
 :NoRecursiveTypes
@@ -344,28 +328,78 @@ id1_p id
 id1
 //│ ╔══[ERROR] Inferred recursive type: 'id1
 //│   where
-//│     'id1 :> 'a -> 'b
-//│     'a :> 'id1
-//│        <: 'b
-//│     'b :> 'id1
-//│        <: 'a -> 'b
+//│     'id1 :> (? & 'a & 'b & 'c & 'd) -> 'd
+//│     'd :> forall 'e. 'e -> 'e | ? | 'id1 | 'a | 'f | 'g
+//│        <: nothing
+//│     'a := 'h
+//│     'h :> forall 'e. ('e & 'h & 'c) -> ('e | 'i | 'j)
+//│        <: ? & 'i & 'c & 'a & 'k
+//│     'c <: 'h & 'k & 'a & 'b
+//│     'k <: 'b -> 'k & 'f & 'g
+//│     'b :> forall 'e. ('e & 'h & 'c) -> ('e | 'i | 'j) | 'h
+//│        <: 'h
+//│     'i :> forall 'e. ('e & 'h & 'c) -> ('e | 'i | 'j) | 'f
+//│        <: 'k
+//│     'j :> forall 'e. ('e & 'c) -> ('e | 'j) | 'a | 'f | 'g
+//│     'g :> ('h & 'c) -> ('i | 'j)
+//│        <: ? & 'i & 'k
+//│     'f :> forall 'e. ('e & 'h & 'c) -> ('e | 'i | 'j)
+//│        <: nothing
 //│ ╙──
 //│ res: 'id1
 //│   where
 //│     'id1 :> 'a -> 'b
-//│     'a :> 'id1
-//│        <: 'b
-//│     'b :> 'id1
-//│        <: 'a -> 'b
-//│    = [Function: id11]
+//│     'a :> forall 'c. 'c -> 'c | 'id1 | 'd | 'e
+//│        <: 'd & 'f & 'b
+//│     'b :> forall 'c. 'c -> 'c | 'id1 | 'd | 'g | 'h
+//│        <: 'a -> 'b & 'i & 'j
+//│     'd :> forall 'c. ('c & 'd & 'e) -> ('c | 'i | 'j)
+//│        <: 'e & 'k & 'i
+//│     'e :> ('d & 'e) -> ('i | 'j)
+//│        <: 'd & 'k & 'f
+//│     'i :> forall 'c. ('c & 'd & 'e) -> ('c | 'i | 'j) | 'g
+//│        <: 'k
+//│     'j :> forall 'c. ('c & 'e) -> ('c | 'j) | 'd | 'g | 'h
+//│        <: 'k
+//│     'g :> forall 'c. ('c & 'd & 'e) -> ('c | 'i | 'j)
+//│        <: 'f -> 'k & 'k
+//│     'f :> forall 'c. ('c & 'd & 'e) -> ('c | 'i | 'j) | 'd
+//│        <: 'd & 'e & 'k
+//│     'k <: 'g & 'h & 'f -> 'k
+//│     'h :> ('d & 'e) -> ('i | 'j)
+//│        <: 'i & 'k
+//│    = <no result>
+//│      id1 and idy_ty are not implemented
 
 :e
 id1: nothing
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'a := 'b -> 'a
-//│     'b :> 'b -> 'a
-//│        <: 'a
+//│     'a :> forall 'b. ('c & 'b) -> ('b | 'a) | 'd | 'e | 'f | 'g
+//│        <: 'c -> 'a & 'h & 'i & 'j & 'k
+//│     'c :> forall 'b. ('c & 'b) -> ('b | 'a) | 'l | 'm | 'n
+//│        <: 'a & 'd & 'o & 'p
+//│     'l :> forall 'b. ('b & 'l & 'm) -> ('b | 'h | 'i)
+//│        <: 'e & 'm & 'd & 'f
+//│     'm :> ('l & 'm) -> ('h | 'i)
+//│        <: 'e & 'd & 'o & 'f
+//│     'h :> forall 'b. ('b & 'l & 'm) -> ('b | 'h | 'i) | 'e
+//│        <: 'e & 'f
+//│     'i :> forall 'b. ('b & 'm) -> ('b | 'i) | 'd | 'e | 'f
+//│        <: 'e & 'f
+//│     'd :> forall 'b. ('b & 'l & 'm) -> ('b | 'h | 'i)
+//│        <: 'o -> ('e & 'f) & 'h & 'e & 'f & 'j
+//│     'o :> forall 'b. ('b & 'l & 'm) -> ('b | 'h | 'i) | 'l
+//│        <: 'l & 'e & 'm & 'f
+//│     'e :> forall 'b. ('b & 'l & 'm) -> ('b | 'h | 'i)
+//│        <: 'o -> ('e & 'f) & 'f & 'j
+//│     'f :> ('l & 'm) -> ('h | 'i)
+//│        <: 'o -> ('e & 'f) & 'h & 'e & 'j
+//│     'j :> forall 'b. ('b & 'l & 'm & 'n) -> ('b | 'h | 'i | 'k)
+//│     'n <: 'd & 'o & 'g
+//│     'g <: 'p -> 'g & 'h & 'i & 'j
+//│     'p :> forall 'b. ('b & 'n) -> ('b | 'k) | 'l | 'm | 'n
+//│     'k :> forall 'b. ('b & 'n) -> ('b | 'k) | 'd | 'e | 'f | 'g
 //│ ║  l.282: 	rec def id1 x = if true then x else id1 id1 x
 //│ ╙──       	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Type mismatch in type ascription:
@@ -381,7 +415,8 @@ id1: nothing
 //│ ║  l.363: 	id1: nothing
 //│ ╙──       	     ^^^^^^^
 //│ res: nothing
-//│    = [Function: id11]
+//│    = <no result>
+//│      id1 and idy_ty are not implemented
 
 :e
 rec def id1_ x = id1_ id1_ x
@@ -441,7 +476,7 @@ rec def id1 (x: forall 'a. 'a -> 'a) = if true then x else id1 id1 x
 //│ ║  l.398: 	rec def id1 (x: forall 'a. 'a -> 'a) = if true then x else id1 id1 x
 //│ ╙──       	                                                           ^^^^^^^^^
 //│ id1: (forall 'a. 'a -> 'a) -> 'a0 -> 'a0
-//│    = [Function: id12]
+//│    = [Function: id1]
 
 // * === / ===
 
@@ -485,7 +520,7 @@ ex1_1 (fun ((x, f)) -> f x)
 //│ A String
 
 ex1_2 = if true then make_ex1 ((42, print_int)) else ex1_1
-//│ ex1_2: (forall 'a 'a0. ('a0, 'a0 -> unit,) -> 'b & ('a, 'a -> unit,) -> 'b) -> 'b
+//│ ex1_2: (forall 'a 'a0. ('a, 'a -> unit,) -> 'b & ('a0, 'a0 -> unit,) -> 'b) -> 'b
 //│      = [Function (anonymous)]
 
 ex1_2 (fun ((x, f)) -> f x)
@@ -651,7 +686,7 @@ ex1_1 (fun (x, f) -> f x)
 //│ A String
 
 ex1_2 = if true then make_ex1 (42, print_int) else ex1_1
-//│ ex1_2: (forall 'a 'a0. ('a0, 'a0 -> unit,) -> 'b & ('a, 'a -> unit,) -> 'b) -> 'b
+//│ ex1_2: (forall 'a 'a0. ('a, 'a -> unit,) -> 'b & ('a0, 'a0 -> unit,) -> 'b) -> 'b
 //│      = [Function (anonymous)]
 
 ex1_2 (fun (x, f) -> f x)
@@ -931,7 +966,7 @@ def c_add n (m: Fint) = m c_succ n
 //│      = [Function: c_add]
 
 def c_add_ n m = m c_succ_ n
-//│ c_add_: 'a -> ((forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('e -> 'c & 'b) -> 'e -> 'd) -> 'a -> 'f) -> 'f
+//│ c_add_: 'a -> ((forall 'b 'c 'd 'e. ('e -> 'b -> 'c) -> ('d -> 'b & 'e) -> 'd -> 'c) -> 'a -> 'f) -> 'f
 //│       = [Function: c_add_]
 
 // let c_mul n (m:Int) = m (c_add n) c_i0
@@ -947,7 +982,7 @@ def c_mul_ m n = m (c_add_ n) c_i0
 // let c_pow n (m:Int) = m (c_mul n) c_i1
 
 def c_pow m (n: Fint) = m (c_mul n) c_i1
-//│ c_pow: ((Fint -> (forall 'b 'a. (('a | 'b) -> 'a) -> 'b -> ('a | 'b) | Fint)) -> (forall 'c 'd. ('c -> 'd) -> 'c -> 'd) -> 'e) -> Fint -> 'e
+//│ c_pow: ((Fint -> (forall 'a 'b. (('a | 'b) -> 'a) -> 'b -> ('a | 'b) | Fint)) -> (forall 'c 'd. ('c -> 'd) -> 'c -> 'd) -> 'e) -> Fint -> 'e
 //│      = [Function: c_pow]
 
 def c_pow_ m n = m (c_mul_ n) c_i1
@@ -971,7 +1006,7 @@ def c_pred_ n =
   let s = fun p -> c_pair (c_2_2_ p) (c_succ_ (c_2_2_ p)) in
   let z = c_pair c_i0 c_i0 in
   c_1_2_ (n s z)
-//│ c_pred_: ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> 'c & (forall 'h. anything -> 'h -> 'h) -> 'f -> 'b -> 'e) -> ('c -> (('d -> 'b & 'f) -> 'd -> 'e) -> 'a) -> 'a) -> (forall 'i. ((forall 'j. anything -> 'j -> 'j) -> (forall 'k. anything -> 'k -> 'k) -> 'i) -> 'i) -> (forall 'l. 'l -> anything -> 'l) -> 'm) -> 'm
+//│ c_pred_: ((forall 'a 'b 'c 'd 'e 'f. ((forall 'g. anything -> 'g -> 'g) -> 'd & (forall 'h. anything -> 'h -> 'h) -> 'c -> 'a -> 'f) -> ('d -> (('e -> 'a & 'c) -> 'e -> 'f) -> 'b) -> 'b) -> (forall 'i. ((forall 'j. anything -> 'j -> 'j) -> (forall 'k. anything -> 'k -> 'k) -> 'i) -> 'i) -> (forall 'l. 'l -> anything -> 'l) -> 'm) -> 'm
 //│        = [Function: c_pred_]
 
 
@@ -1047,8 +1082,7 @@ rec def to_church n =
 rec def to_church_ n =
   if n == 0 then fun f -> fun x -> x
   else fun f -> fun x -> f ((to_church_ (n - 1)) f x)
-//│ to_church_: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
-//│           = [Function: to_church_]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 
 // let rec c_fact (n:Int) =
@@ -1083,23 +1117,23 @@ rec def c_fact_ n =
     (fun _ -> c_mul_ n (c_fact_ (c_pred_ n)))
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'a <: (forall 'b. ((forall 'c. ? -> 'c -> 'c) -> (forall 'd. ? -> 'd -> 'd) -> 'b) -> 'b) -> (forall 'e. 'e -> ? -> 'e) -> ((forall 'f. ? -> ? -> ((forall 'g. 'g -> 'g) -> 'f) -> 'f) -> (forall 'h. ((forall 'i. 'i -> 'i) -> 'h) -> ? -> 'h) -> (forall 'j 'k. ? -> ('j -> 'k) -> 'j -> 'k) -> (? -> 'l) -> 'm & (forall 'n. ((forall 'o 'p 'q 'r. ('q -> 'r -> 'o) -> ('p -> 'r & 'q) -> 'p -> 'o) -> 'm -> 'n) -> 'n) -> (forall 's. ? -> 's -> 's) -> 'l & (forall 't 'u 'v 'w 'x 'y. ((forall 'z. ? -> 'z -> 'z) -> 'y & (forall 'a1. ? -> 'a1 -> 'a1) -> 'v -> 'u -> 'w) -> ('y -> (('x -> 'u & 'v) -> 'x -> 'w) -> 't) -> 't) -> 'a)
+//│     'a <: (forall 'b. ((forall 'c. ? -> 'c -> 'c) -> (forall 'd. ? -> 'd -> 'd) -> 'b) -> 'b) -> (forall 'e. 'e -> ? -> 'e) -> ((forall 'f. ? -> ? -> ((forall 'g. 'g -> 'g) -> 'f) -> 'f) -> (forall 'h. ((forall 'i. 'i -> 'i) -> 'h) -> ? -> 'h) -> (forall 'j 'k. ? -> ('j -> 'k) -> 'j -> 'k) -> (? -> 'l) -> 'm & (forall 'n. ((forall 'o 'p 'q 'r. ('o -> 'p -> 'q) -> ('r -> 'p & 'o) -> 'r -> 'q) -> 'm -> 'n) -> 'n) -> (forall 's. ? -> 's -> 's) -> 'l & (forall 't 'u 'v 'w 'x 'y. ((forall 'z. ? -> 'z -> 'z) -> 'w & (forall 'a1. ? -> 'a1 -> 'a1) -> 't -> 'x -> 'v) -> ('w -> (('u -> 'x & 't) -> 'u -> 'v) -> 'y) -> 'y) -> 'a)
 //│ ║  l.973: 	  c_1_2_ (n s z)
 //│ ╙──       	          ^^^
 //│ c_fact_: 'a -> 'b
 //│   where
-//│     'a <: (forall 'c. anything -> anything -> ((forall 'd. 'd -> 'd) -> 'c) -> 'c) -> (forall 'e. ((forall 'f. 'f -> 'f) -> 'e) -> anything -> 'e) -> (forall 'g 'h. anything -> ('g -> 'h) -> 'g -> 'h) -> (anything -> 'i) -> 'b & (forall 'j. ((forall 'k 'l 'm 'n. ('m -> 'n -> 'k) -> ('l -> 'n & 'm) -> 'l -> 'k) -> 'b -> 'j) -> 'j) -> (forall 'o. anything -> 'o -> 'o) -> 'i & (forall 'p 'q 'r 's 't 'u. ((forall 'v. anything -> 'v -> 'v) -> 's & (forall 'w. anything -> 'w -> 'w) -> 'p -> 'q -> 'u) -> ('s -> (('t -> 'q & 'p) -> 't -> 'u) -> 'r) -> 'r) -> (forall 'x. ((forall 'y. anything -> 'y -> 'y) -> (forall 'z. anything -> 'z -> 'z) -> 'x) -> 'x) -> (forall 'a1. 'a1 -> anything -> 'a1) -> 'a
+//│     'a <: (forall 'c. anything -> anything -> ((forall 'd. 'd -> 'd) -> 'c) -> 'c) -> (forall 'e. ((forall 'f. 'f -> 'f) -> 'e) -> anything -> 'e) -> (forall 'g 'h. anything -> ('g -> 'h) -> 'g -> 'h) -> (anything -> 'i) -> 'b & (forall 'j. ((forall 'k 'l 'm 'n. ('k -> 'l -> 'm) -> ('n -> 'l & 'k) -> 'n -> 'm) -> 'b -> 'j) -> 'j) -> (forall 'o. anything -> 'o -> 'o) -> 'i & (forall 'p 'q 'r 's 't 'u. ((forall 'v. anything -> 'v -> 'v) -> 't & (forall 'w. anything -> 'w -> 'w) -> 'q -> 's -> 'r) -> ('t -> (('p -> 's & 'q) -> 'p -> 'r) -> 'u) -> 'u) -> (forall 'x. ((forall 'y. anything -> 'y -> 'y) -> (forall 'z. anything -> 'z -> 'z) -> 'x) -> 'x) -> (forall 'a1. 'a1 -> anything -> 'a1) -> 'a
 //│        = [Function: c_fact_]
 
 :e // * The type we infer without any annotations can't be checked against the desired signature
 c_fact_A = c_fact_
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'a <: (forall 'b. ? -> ? -> ((forall 'c. 'c -> 'c) -> 'b) -> 'b) -> (forall 'd. ((forall 'e. 'e -> 'e) -> 'd) -> ? -> 'd) -> (forall 'f 'g. ? -> ('f -> 'g) -> 'f -> 'g) -> (? -> 'h) -> 'i & (forall 'j. ((forall 'k 'l 'm 'n. ('k -> 'l -> 'm) -> ('n -> 'l & 'k) -> 'n -> 'm) -> 'i -> 'j) -> 'j) -> (forall 'o. ? -> 'o -> 'o) -> 'h & (forall 'p 'q 'r 's 't 'u. ((forall 'v. ? -> 'v -> 'v) -> 'q & (forall 'w. ? -> 'w -> 'w) -> 's -> 't -> 'u) -> ('q -> (('p -> 't & 's) -> 'p -> 'u) -> 'r) -> 'r) -> (forall 'x. ((forall 'y. ? -> 'y -> 'y) -> (forall 'z. ? -> 'z -> 'z) -> 'x) -> 'x) -> (forall 'a1. 'a1 -> ? -> 'a1) -> 'a
+//│     'a <: (forall 'b. ? -> ? -> ((forall 'c. 'c -> 'c) -> 'b) -> 'b) -> (forall 'd. ((forall 'e. 'e -> 'e) -> 'd) -> ? -> 'd) -> (forall 'f 'g. ? -> ('f -> 'g) -> 'f -> 'g) -> (? -> 'h) -> 'i & (forall 'j. ((forall 'k 'l 'm 'n. ('k -> 'l -> 'm) -> ('n -> 'l & 'k) -> 'n -> 'm) -> 'i -> 'j) -> 'j) -> (forall 'o. ? -> 'o -> 'o) -> 'h & (forall 'p 'q 'r 's 't 'u. ((forall 'v. ? -> 'v -> 'v) -> 'r & (forall 'w. ? -> 'w -> 'w) -> 'u -> 'p -> 'q) -> ('r -> (('s -> 'p & 'u) -> 's -> 'q) -> 't) -> 't) -> (forall 'x. ((forall 'y. ? -> 'y -> 'y) -> (forall 'z. ? -> 'z -> 'z) -> 'x) -> 'x) -> (forall 'a1. 'a1 -> ? -> 'a1) -> 'a
 //│ ╙──
 //│ 'a -> 'b
 //│   where
-//│     'a <: (forall 'c. anything -> anything -> ((forall 'd. 'd -> 'd) -> 'c) -> 'c) -> (forall 'e. ((forall 'f. 'f -> 'f) -> 'e) -> anything -> 'e) -> (forall 'g 'h. anything -> ('h -> 'g) -> 'h -> 'g) -> (anything -> 'i) -> 'b & (forall 'j. ((forall 'k 'l 'm 'n. ('k -> 'l -> 'm) -> ('n -> 'l & 'k) -> 'n -> 'm) -> 'b -> 'j) -> 'j) -> (forall 'o. anything -> 'o -> 'o) -> 'i & (forall 'p 'q 'r 's 't 'u. ((forall 'v. anything -> 'v -> 'v) -> 't & (forall 'w. anything -> 'w -> 'w) -> 'q -> 'p -> 'u) -> ('t -> (('s -> 'p & 'q) -> 's -> 'u) -> 'r) -> 'r) -> (forall 'x. ((forall 'y. anything -> 'y -> 'y) -> (forall 'z. anything -> 'z -> 'z) -> 'x) -> 'x) -> (forall 'a1. 'a1 -> anything -> 'a1) -> 'a
+//│     'a <: (forall 'c. anything -> anything -> ((forall 'd. 'd -> 'd) -> 'c) -> 'c) -> (forall 'e. ((forall 'f. 'f -> 'f) -> 'e) -> anything -> 'e) -> (forall 'g 'h. anything -> ('g -> 'h) -> 'g -> 'h) -> (anything -> 'i) -> 'b & (forall 'j. ((forall 'k 'l 'm 'n. ('k -> 'l -> 'm) -> ('n -> 'l & 'k) -> 'n -> 'm) -> 'b -> 'j) -> 'j) -> (forall 'o. anything -> 'o -> 'o) -> 'i & (forall 'p 'q 'r 's 't 'u. ((forall 'v. anything -> 'v -> 'v) -> 't & (forall 'w. anything -> 'w -> 'w) -> 'r -> 's -> 'u) -> ('t -> (('p -> 's & 'r) -> 'p -> 'u) -> 'q) -> 'q) -> (forall 'x. ((forall 'y. anything -> 'y -> 'y) -> (forall 'z. anything -> 'z -> 'z) -> 'x) -> 'x) -> (forall 'a1. 'a1 -> anything -> 'a1) -> 'a
 //│   <:  c_fact_A:
 //│ Fint -> Fint
 //│ ╔══[ERROR] Cyclic-looking constraint while typing def definition; a type annotation may be required
@@ -1132,16 +1166,17 @@ def print_fact_ n =
   let _ = print_string " = " in
   let _ = c_printint_ (c_fact_ (to_church_ n)) in
           print_string "\n"
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: (forall 'b. ? -> ? -> ((forall 'c. 'c -> 'c) -> 'b) -> 'b) -> (forall 'd. ((forall 'e. 'e -> 'e) -> 'd) -> ? -> 'd) -> (forall 'f 'g. ? -> ('f -> 'g) -> 'f -> 'g) -> (forall 'h. ? -> (? -> 'h -> 'h | 'i)) -> 'j & (forall 'k. ((forall 'l 'm 'n 'o. ('l -> 'm -> 'n) -> ('o -> 'm & 'l) -> 'o -> 'n) -> (forall 'p 'q. ('q -> 'p) -> 'q -> 'p | 'j) -> 'k) -> 'k) -> (forall 'r. ? -> 'r -> 'r) -> 'i & (forall 's 't 'u 'v 'w 'x. ((forall 'y. ? -> 'y -> 'y) -> 'u & (forall 'z. ? -> 'z -> 'z) -> 'x -> 'v -> 's) -> ('u -> (('t -> 'v & 'x) -> 't -> 's) -> 'w) -> 'w) -> (forall 'a1. ((forall 'b1. ? -> 'b1 -> 'b1) -> (forall 'c1. ? -> 'c1 -> 'c1) -> 'a1) -> 'a1) -> (forall 'd1. 'd1 -> ? -> 'd1) -> 'a
-//│ ╙──
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.1133: 	  let _ = c_printint_ (c_fact_ (to_church_ n)) in
-//│ ║          	                       ^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ print_fact_: int -> unit
-//│            = [Function: print_fact_]
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: α2678_5638^11 has no occurrences...
+//│ 	at: scala.Predef$.assert(Predef.scala:279)
+//│ 	at: mlscript.TypeSimplifier.$anonfun$simplifyType$23(TypeSimplifier.scala:668)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:284)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$.foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.TreeSet.foreach(TreeSet.scala:118)
+//│ 	at: mlscript.TypeSimplifier.simplifyType(TypeSimplifier.scala:663)
+//│ 	at: mlscript.TypeSimplifier.simplifyType$(TypeSimplifier.scala:392)
+//│ 	at: mlscript.Typer.simplifyType(Typer.scala:18)
 // * Works when using the annotated `c_fact`:
 def print_fact_ n =
   let _ = print_string "Factorial " in
@@ -1149,16 +1184,34 @@ def print_fact_ n =
   let _ = print_string " = " in
   let _ = c_printint_ (c_fact (to_church_ n)) in
           print_string "\n"
-//│ print_fact_: int -> unit
-//│            = [Function: print_fact_1]
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: α2678_5746^11 has no occurrences...
+//│ 	at: scala.Predef$.assert(Predef.scala:279)
+//│ 	at: mlscript.TypeSimplifier.$anonfun$simplifyType$23(TypeSimplifier.scala:668)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:284)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$.foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.TreeSet.foreach(TreeSet.scala:118)
+//│ 	at: mlscript.TypeSimplifier.simplifyType(TypeSimplifier.scala:663)
+//│ 	at: mlscript.TypeSimplifier.simplifyType$(TypeSimplifier.scala:392)
+//│ 	at: mlscript.Typer.simplifyType(Typer.scala:18)
 
 def print_fact2 n =
   concat "Factorial " (
   concat (toString n) (
   concat " = "
          (c_printint2 (c_fact (to_church n))) ))
-//│ print_fact2: int -> string
-//│            = [Function: print_fact2]
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: α2678_5832^11 has no occurrences...
+//│ 	at: scala.Predef$.assert(Predef.scala:279)
+//│ 	at: mlscript.TypeSimplifier.$anonfun$simplifyType$23(TypeSimplifier.scala:668)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:284)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$.foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.TreeSet.foreach(TreeSet.scala:118)
+//│ 	at: mlscript.TypeSimplifier.simplifyType(TypeSimplifier.scala:663)
+//│ 	at: mlscript.TypeSimplifier.simplifyType$(TypeSimplifier.scala:392)
 
 :e // * Similar as above (bad `c_fact_`)
 def print_fact2_ n =
@@ -1166,24 +1219,34 @@ def print_fact2_ n =
   concat (toString n) (
   concat " = "
          (c_printint2_ (c_fact_ (to_church_ n))) ))
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: (forall 'b. ? -> ? -> ((forall 'c. 'c -> 'c) -> 'b) -> 'b) -> (forall 'd. ((forall 'e. 'e -> 'e) -> 'd) -> ? -> 'd) -> (forall 'f 'g. ? -> ('f -> 'g) -> 'f -> 'g) -> (forall 'h. ? -> (? -> 'h -> 'h | 'i)) -> 'j & (forall 'k. ((forall 'l 'm 'n 'o. ('l -> 'm -> 'n) -> ('o -> 'm & 'l) -> 'o -> 'n) -> (forall 'p 'q. ('p -> 'q) -> 'p -> 'q | 'j) -> 'k) -> 'k) -> (forall 'r. ? -> 'r -> 'r) -> 'i & (forall 's 't 'u 'v 'w 'x. ((forall 'y. ? -> 'y -> 'y) -> 's & (forall 'z. ? -> 'z -> 'z) -> 'v -> 't -> 'x) -> ('s -> (('w -> 't & 'v) -> 'w -> 'x) -> 'u) -> 'u) -> (forall 'a1. ((forall 'b1. ? -> 'b1 -> 'b1) -> (forall 'c1. ? -> 'c1 -> 'c1) -> 'a1) -> 'a1) -> (forall 'd1. 'd1 -> ? -> 'd1) -> 'a
-//│ ╙──
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.1168: 	         (c_printint2_ (c_fact_ (to_church_ n))) ))
-//│ ║          	                        ^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ print_fact2_: int -> string
-//│             = [Function: print_fact2_]
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: α2678_6417^11 has no occurrences...
+//│ 	at: scala.Predef$.assert(Predef.scala:279)
+//│ 	at: mlscript.TypeSimplifier.$anonfun$simplifyType$23(TypeSimplifier.scala:668)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:284)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$.foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.TreeSet.foreach(TreeSet.scala:118)
+//│ 	at: mlscript.TypeSimplifier.simplifyType(TypeSimplifier.scala:663)
+//│ 	at: mlscript.TypeSimplifier.simplifyType$(TypeSimplifier.scala:392)
+//│ 	at: mlscript.Typer.simplifyType(Typer.scala:18)
 // * Works when using the annotated `c_fact`:
 def print_fact2_ n =
   concat "Factorial_ " (
   concat (toString n) (
   concat " = "
          (c_printint2_ (c_fact (to_church_ n))) ))
-//│ print_fact2_: int -> string
-//│             = [Function: print_fact2_1]
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: α2678_6534^11 has no occurrences...
+//│ 	at: scala.Predef$.assert(Predef.scala:279)
+//│ 	at: mlscript.TypeSimplifier.$anonfun$simplifyType$23(TypeSimplifier.scala:668)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:284)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$._foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.RedBlackTree$.foreachKey(RedBlackTree.scala:283)
+//│ 	at: scala.collection.immutable.TreeSet.foreach(TreeSet.scala:118)
+//│ 	at: mlscript.TypeSimplifier.simplifyType(TypeSimplifier.scala:663)
+//│ 	at: mlscript.TypeSimplifier.simplifyType$(TypeSimplifier.scala:392)
+//│ 	at: mlscript.Typer.simplifyType(Typer.scala:18)
 
 // let essai =
 //   print_string "Church integers :\n";
@@ -1203,8 +1266,17 @@ this_should_be_98 =
   let c_99 = c_add (c_mul c_i9 c_i10) c_i9 in
   let c_98 = c_pred c_99 in
   c_printint2 c_98
-//│ this_should_be_98: string
-//│                  = '98'
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: α2678_6829^11 has no occurrences...
+//│ 	at: scala.Predef$.assert(Predef.scala:279)
+//│ 	at: mlscript.TypeSimplifier.$anonfun$simplifyType$23(TypeSimplifier.scala:668)
+//│ 	at: scala.collection.immutable.RedBlackTree$.foreachKey(RedBlackTree.scala:284)
+//│ 	at: scala.collection.immutable.TreeSet.foreach(TreeSet.scala:118)
+//│ 	at: mlscript.TypeSimplifier.simplifyType(TypeSimplifier.scala:663)
+//│ 	at: mlscript.TypeSimplifier.simplifyType$(TypeSimplifier.scala:392)
+//│ 	at: mlscript.Typer.simplifyType(Typer.scala:18)
+//│ 	at: mlscript.TypeSimplifier$SimplifyPipeline.apply(TypeSimplifier.scala:1147)
+//│ 	at: mlscript.DiffTests.getType$1(DiffTests.scala:495)
+//│ 	at: mlscript.DiffTests.$anonfun$new$66(DiffTests.scala:741)
 
 // * [FCP:patho] This version without any type annotations doesn't work (probably also doesn't in MLF)
 :stats // * Note: subtyping takes too many steps when replacing both `c_mul_` by `c_mul`
@@ -1255,7 +1327,7 @@ c_i10_ = c_mul_ c_i5_ c_i2_
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ c_i10_: ((('a -> ('b & 'c) & 'c -> ('d & 'e) & 'e -> ('f & 'g) & 'g -> ('h & 'i) & 'i -> ('j & 'k) & 'k -> ('l & 'm) & 'm -> 'n & 'o -> ('p & 'q & 'r & 's & 't & 'u & 'v & 'w) & 'n -> 'o & 'x & 'y & 'z & 'a1 & 'b1 & 'c1 & 'd1) -> 'a -> 'v | 'e1) -> ('f1 & 'g1) & (('c -> ('d & 'e) & 'e -> ('f & 'g) & 'g -> ('h & 'i) & 'i -> ('j & 'k) & 'k -> ('l & 'm) & 'm -> 'n & 'o -> ('p & 'q & 'r & 's & 't & 'u & 'v & 'w) & 'n -> 'o & 'y & 'z & 'a1 & 'b1 & 'c1 & 'd1) -> 'c -> 'u | 'h1) -> ('i1 -> 'j1 -> 'w & 'e1) & (('e -> ('f & 'g) & 'g -> ('h & 'i) & 'i -> ('j & 'k) & 'k -> ('l & 'm) & 'm -> 'n & 'o -> ('p & 'q & 'r & 's & 't & 'u & 'v & 'w) & 'n -> 'o & 'z & 'a1 & 'b1 & 'c1 & 'd1) -> 'e -> 't | 'k1) -> ('x -> 'b -> ('v & 'w) & 'h1) & (('g -> ('h & 'i) & 'i -> ('j & 'k) & 'k -> ('l & 'm) & 'm -> 'n & 'o -> ('p & 'q & 'r & 's & 't & 'u & 'v & 'w) & 'n -> 'o & 'a1 & 'b1 & 'c1 & 'd1) -> 'g -> 's | 'l1) -> ('y -> 'd -> ('u & 'v & 'w) & 'k1) & (('i -> ('j & 'k) & 'k -> ('l & 'm) & 'm -> 'n & 'o -> ('p & 'q & 'r & 's & 't & 'u & 'v & 'w) & 'n -> 'o & 'b1 & 'c1 & 'd1) -> 'i -> 'r | 'm1) -> ('z -> 'f -> ('t & 'u & 'v & 'w) & 'l1) & (('k -> ('l & 'm) & 'm -> 'n & 'o -> ('p & 'q & 'r & 's & 't & 'u & 'v & 'w) & 'n -> 'o & 'c1 & 'd1) -> 'k -> 'q | 'n1) -> ('a1 -> 'h -> ('s & 't & 'u & 'v & 'w) & 'm1) & (('m -> 'n & 'o -> ('p & 'q & 'r & 's & 't & 'u & 'v & 'w) & 'n -> 'o & 'd1) -> 'm -> 'p | 'o1) -> ('b1 -> 'j -> ('r & 's & 't & 'u & 'v & 'w) & 'n1) & (forall 'p1 'q1 'r1. ('p1 -> 'q1 & 'r1 -> 'p1) -> 'r1 -> 'q1 | 's1) -> ('c1 -> 'l -> ('q & 'r & 's & 't & 'u & 'v & 'w) & 'o1)) -> ('d1 -> 'n -> ('p & 'q & 'r & 's & 't & 'u & 'v & 'w) & 's1) -> (('t1 -> ('a & 'j1) & 'a -> ('b & 'c) & 'c -> ('d & 'e) & 'e -> ('f & 'g) & 'g -> ('h & 'i) & 'i -> ('j & 'k) & 'k -> ('l & 'm) & 'm -> 'n & 'o -> ('p & 'q & 'r & 's & 't & 'u & 'v & 'w) & 'n -> 'o & 'x & 'y & 'z & 'a1 & 'b1 & 'c1 & 'd1 & 'i1) -> 't1 -> 'w | 'f1) | error | 'g1
 //│   where
-//│     'g1 <: (forall 'u1 'v1 'w1 'x1. ('u1 -> 'v1 -> 'w1) -> ('x1 -> 'v1 & 'u1) -> 'x1 -> 'w1) -> (forall 'y1 'z1 'a2. ('a2 -> 'y1 & 'z1 -> 'a2) -> 'z1 -> 'y1) -> 'g1
+//│     'g1 <: (forall 'u1 'v1 'w1 'x1. ('v1 -> 'w1 -> 'x1) -> ('u1 -> 'w1 & 'v1) -> 'u1 -> 'x1) -> (forall 'y1 'z1 'a2. ('y1 -> 'z1 & 'a2 -> 'y1) -> 'a2 -> 'z1) -> 'g1
 //│       = [Function (anonymous)]
 //│ constrain calls  : 1208
 //│ annoying  calls  : 0
@@ -1334,19 +1406,14 @@ print_fact2 4
 print_fact2 5
 print_fact2 6
 //│ res: string
-//│    = 'Factorial 0 = 1'
 //│ res: string
-//│    = 'Factorial 1 = 1'
 //│ res: string
-//│    = 'Factorial 2 = 2'
 //│ res: string
-//│    = 'Factorial 3 = 6'
 //│ res: string
-//│    = 'Factorial 4 = 24'
 //│ res: string
-//│    = 'Factorial 5 = 120'
 //│ res: string
-//│    = 'Factorial 6 = 720'
+//│ Code generation encountered an error:
+//│   unresolved symbol print_fact2
 
 print_fact2_ 0
 print_fact2_ 1
@@ -1356,19 +1423,14 @@ print_fact2_ 4
 print_fact2_ 5
 print_fact2_ 6
 //│ res: string
-//│    = 'Factorial_ 0 = 1'
 //│ res: string
-//│    = 'Factorial_ 1 = 1'
 //│ res: string
-//│    = 'Factorial_ 2 = 2'
 //│ res: string
-//│    = 'Factorial_ 3 = 6'
 //│ res: string
-//│    = 'Factorial_ 4 = 24'
 //│ res: string
-//│    = 'Factorial_ 5 = 120'
 //│ res: string
-//│    = 'Factorial_ 6 = 720'
+//│ Code generation encountered an error:
+//│   unresolved symbol print_fact2_
 
 
 
@@ -1389,15 +1451,15 @@ def c_succ_ n = fun f -> fun x -> n f (f x)
 //│       = [Function: c_succ1]
 //│ c_succ_: 'a -> (forall 'b. 'b -> (forall 'c 'd 'e. ('e -> 'd
 //│   where
-//│     'a <: 'b -> 'c -> 'd
-//│     'b <: 'e -> 'c)))
+//│     'b <: 'e -> 'c
+//│     'a <: 'b -> 'c -> 'd)))
 //│        = [Function: c_succ_1]
 
 def c_add_ n m = m c_succ_ n
 //│ c_add_: 'a -> (forall 'b. ((forall 'c. 'c -> (forall 'd. 'd -> (forall 'e 'f 'g. ('g -> 'f
 //│   where
-//│     'c <: 'd -> 'e -> 'f
-//│     'd <: 'g -> 'e)))) -> 'a -> 'b) -> 'b)
+//│     'd <: 'g -> 'e
+//│     'c <: 'd -> 'e -> 'f)))) -> 'a -> 'b) -> 'b)
 //│       = [Function: c_add_1]
 
 // let c_i1 = fun f x -> f x
@@ -1416,10 +1478,10 @@ def c_i2_ = c_succ_ c_i1
 //│     = [Function: c_i22]
 //│ c_i2_: 'a -> (forall 'b 'c 'd. ('d -> 'c
 //│   where
-//│     'a <: 'd -> 'b
-//│     forall 'e. 'e -> (forall 'f 'g. ('g -> 'f
+//│     forall 'e. 'e -> (forall 'f 'g. ('f -> 'g
 //│   where
-//│     'e <: 'g -> 'f)) <: 'a -> 'b -> 'c))
+//│     'e <: 'f -> 'g)) <: 'a -> 'b -> 'c
+//│     'a <: 'd -> 'b))
 //│      = [Function: c_i2_1]
 
 // let c_i3 = c_succ c_i2
@@ -1431,10 +1493,10 @@ def c_i3_ = c_succ_ c_i2
 //│     = [Function: c_i31]
 //│ c_i3_: 'b -> (forall 'c 'd 'e. ('e -> 'd
 //│   where
+//│     'b <: 'e -> 'c
 //│     forall 'f. 'f -> (forall 'a 'g. ('g -> 'a
 //│   where
-//│     'f <: 'a -> 'a & 'g -> 'a)) <: 'b -> 'c -> 'd
-//│     'b <: 'e -> 'c))
+//│     'f <: 'a -> 'a & 'g -> 'a)) <: 'b -> 'c -> 'd))
 //│      = [Function: c_i3_1]
 
 :e
@@ -1456,24 +1518,24 @@ c_i5_ = c_add_ c_i3_ c_i2
 //│ c_i5_: 'b -> (forall 'c 'd 'e 'f. ('f -> 'e
 //│   where
 //│     'b <: 'f -> 'c & 'f -> 'd
-//│     forall 'g. 'g -> (forall 'h 'i 'j. ('j -> 'i
+//│     'g <: 'b -> 'd -> 'e
+//│     forall 'h. 'h -> (forall 'i 'j 'k. ('k -> 'j
 //│   where
-//│     'g <: 'j -> 'h
-//│     forall 'k. 'k -> (forall 'a 'l. ('l -> 'a
+//│     'h <: 'k -> 'i
+//│     forall 'l. 'l -> (forall 'a 'm. ('m -> 'a
 //│   where
-//│     'k <: 'a -> 'a & 'l -> 'a)) <: 'g -> 'h -> 'i)) <: 'b -> 'c -> 'e
-//│     'm <: 'b -> 'd -> 'e))
+//│     'l <: 'a -> 'a & 'm -> 'a)) <: 'h -> 'i -> 'j)) <: 'b -> 'c -> 'e))
 //│   where
-//│     'm :> forall 'n. 'n -> (forall 'o 'p 'q 'r. ('p -> 'o
+//│     'g :> forall 'n. 'n -> (forall 'o 'p 'q 'r. ('q -> 'p
 //│   where
-//│     'n <: 'p -> 'r & 'p -> 'q
-//│     'm <: 'n -> 'r -> 'o
+//│     'n <: 'q -> 'o & 'q -> 'r
 //│     forall 's. 's -> (forall 't 'u 'v. ('v -> 'u
 //│   where
+//│     's <: 'v -> 't
 //│     forall 'w. 'w -> (forall 'a0 'x. ('x -> 'a0
 //│   where
-//│     'w <: 'a0 -> 'a0 & 'x -> 'a0)) <: 's -> 't -> 'u
-//│     's <: 'v -> 't)) <: 'n -> 'q -> 'o))
+//│     'w <: 'a0 -> 'a0 & 'x -> 'a0)) <: 's -> 't -> 'u)) <: 'n -> 'r -> 'p
+//│     'g <: 'n -> 'o -> 'p))
 //│      = [Function (anonymous)]
 //│ constrain calls  : 142
 //│ annoying  calls  : 0
@@ -1485,17 +1547,17 @@ c_i10_ = c_mul_ c_i5_ c_i2_
 //│ ╔══[ERROR] Inferred recursive type: nothing
 //│ ║  l.741: 	type Fint  = forall 'a. ('a -> 'a) -> ('a -> 'a)
 //│ ╙──       	                    ^^
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?d ?e ?f. ?b -> ?a -> ?f <: (forall ?g. (forall ?h ?i. (?i & ?h) -> (forall ?j ?k ?l ?m ?n ?o ?p ?q. ((?k & ?p) -> (?q | ?n)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?d ?e ?f. ?a -> ?d -> ?f <: (forall ?g. (forall ?h ?i. (?i & ?h) -> (forall ?j ?k ?l ?m ?n ?o ?p ?q. ((?p & ?k) -> (?j | ?o)
 //│   where
 //│     forall ?r. ?r -> (forall ?s ?t ?u ?v. (?u -> ?t
 //│   where
-//│     forall ?w. ?w -> (forall ?x 'a ?y ?z. (?x -> ?z
+//│     forall ?w. ?w -> (forall ?x ?y 'a ?z. (?y -> ?x
 //│   where
-//│     ?w <: 'a -> 'a & ?x -> ?y)) <: ?r -> ?v
-//│     ?r <: ?u -> ?s)) <: ?i -> ?j
-//│     ?i <: ?k -> ?o
-//│     ?h <: ?p -> ?m
-//│     ?g <: ?h -> ?l)),)) -> ?a1` exceeded recursion depth limit (250)
+//│     ?w <: 'a -> 'a & ?y -> ?z)) <: ?r -> ?v
+//│     ?r <: ?u -> ?s)) <: ?i -> ?l
+//│     ?h <: ?k -> ?m
+//│     ?g <: ?h -> ?q
+//│     ?i <: ?p -> ?n)),)) -> ?a1` exceeded recursion depth limit (250)
 //│ ║  l.1484: 	c_i10_ = c_mul_ c_i5_ c_i2_
 //│ ║          	         ^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.

@@ -84,26 +84,37 @@ rec def getNegT1 x = case x of {
   | T1 -> getNegT1 x
   | _ -> x
   }
-//│ getNegT1: (#T1 | 'a & ~#T1) -> 'a
-//│         = [Function: getNegT1]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 nt1 = getNegT1 {}
-//│ nt1: ~#T1
-//│    = {}
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 T1
 //│ res: 'a -> (#T1 & 'a)
 //│    = [Function: build]
 
 t1nt1 = T1 nt1
-//│ t1nt1: nothing
-//│      = {}
+//│ ╔══[ERROR] identifier not found: nt1
+//│ ║  l.96: 	t1nt1 = T1 nt1
+//│ ╙──      	           ^^^
+//│ t1nt1: error & #T1
+//│ Code generation encountered an error:
+//│   unresolved symbol nt1
 
 :re
 t1nt1.lol "oops!"
-//│ res: nothing
-//│ Runtime error:
-//│   TypeError: t1nt1.lol is not a function
+//│ ╔══[ERROR] Type mismatch in field selection:
+//│ ║  l.105: 	t1nt1.lol "oops!"
+//│ ║         	^^^^^^^^^
+//│ ╟── application of type `error & #T1` does not have field 'lol'
+//│ ║  l.96: 	t1nt1 = T1 nt1
+//│ ║        	        ^^^^^^
+//│ ╟── but it flows into reference with expected type `{lol: ?lol}`
+//│ ║  l.105: 	t1nt1.lol "oops!"
+//│ ╙──       	^^^^^
+//│ res: error
+//│ Code generation encountered an error:
+//│   unresolved symbol t1nt1
 
 
 

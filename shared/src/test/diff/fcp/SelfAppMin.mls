@@ -31,23 +31,16 @@ e (A{f = L{}})
 
 :e
 e = eval eval!
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+
+:e
+e (A{f = L{}})
 //│ ╔══[ERROR] Inferred recursive type: 'f
 //│   where
 //│     'f <: A with {f: 'f}
 //│ ║  l.13: 	  A -> eval eval x.f
 //│ ╙──      	                 ^^^
-//│ e: (A & 'a | L) -> 0
-//│   where
-//│     'a <: {f: A & 'a | L}
-//│  = [Function (anonymous)]
-
-:e
-e (A{f = L{}})
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: (A with {f: 'a}) | L
-//│ ╙──
-//│ res: 0
+//│ res: 0 | error
 //│    = 0
 
 :e
@@ -64,14 +57,10 @@ rec def v = A{f = v}
 
 :e
 e v
-//│ ╔══[ERROR] Inferred recursive type: 'a
+//│ ╔══[ERROR] Inferred recursive type: 'f
 //│   where
-//│     'a <: (A with {f: 'a}) | L
+//│     'f :> A with {f: 'f}
 //│ ╙──
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.66: 	e v
-//│ ║        	^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: 0 | error
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
@@ -81,7 +70,7 @@ e v
 // * Note: Expected divergence
 :re
 e v
-//│ res: 0
+//│ res: 0 | error
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -97,7 +86,7 @@ def eval eval x = case x of
 :e
 e = eval eval
 //│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.98: 	e = eval eval
+//│ ║  l.87: 	e = eval eval
 //│ ║        	    ^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ e: (A & {f: A | L} | L) -> (0 | {x: 0 | {x: nothing}}) | error

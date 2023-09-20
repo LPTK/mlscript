@@ -417,10 +417,7 @@ def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
 // * later (once for each intersection component)
 // :e
 rec def refin = RefImpl { mut value = refin.Get }
-//│ RefImpl['A]
-//│   <:  refin:
-//│ Ref[out int | string]
-//│      = [Function: refin]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 
 

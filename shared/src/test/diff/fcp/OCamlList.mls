@@ -291,7 +291,7 @@ def of_seq: Seq['a] -> List['a]
 rec def length_aux len = fun x -> match x with
   | Nil -> len
   | Cons(_, l) -> length_aux (len + 1) l
-//│ length_aux: int -> List[?] -> int
+//│ length_aux: 'a -> List[?] -> (int | 'a)
 
 def length l = length_aux 0 l
 //│ List[?] -> int
@@ -324,9 +324,7 @@ def nth l n =
     | Nil -> failwith "nth"
     | Cons(a, l) -> if n == 0 then a else nth_aux l (n-1)
   in nth_aux l n
-//│ List['a] -> int -> 'a
-//│   <:  nth:
-//│ List['a] -> int -> 'a
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 def nth_opt l n =
   if n < 0 then invalid_arg "List.nth" else
@@ -354,7 +352,7 @@ rec def rev_append l1 l2 =
   match l1 with
     Nil -> l2
   | Cons(a, l) -> rev_append l (Cons(a, l2))
-//│ List['a] -> List['a] -> List['a]
+//│ List['a] -> 'b -> (List['a] | 'b)
 //│   <:  rev_append:
 //│ List['a] -> List['a] -> List['a]
 
@@ -371,14 +369,12 @@ rec def init_aux i last f =
     let r1 = f i in
     let r2 = f (i+1) in
     Cons(r1, Cons(r2, init_aux (i+2) last f))
-//│ init_aux: int -> number -> (int -> 'a) -> List['a]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 def init len f =
   if len < 0 then invalid_arg "List.init" else
   init_aux 0 (len - 1) f
-//│ int -> (int -> 'a) -> List['a]
-//│   <:  init:
-//│ int -> (int -> 'a) -> List['a]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 rec def flatten = fun x -> match x with
     Nil -> Nil
@@ -569,9 +565,7 @@ rec def memq x = fun y -> match y with
 rec def assoc x = fun y -> match y with
     Nil -> raise Not_found
   | Cons((a, b), l) -> if compare' a x == 0 then b else assoc x l
-//│ anything -> List[(anything, 'a,)] -> 'a
-//│   <:  assoc:
-//│ anything -> List[(anything, 'b,)] -> 'b
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 rec def assoc_opt x = fun y -> match y with
     Nil -> None
@@ -583,9 +577,7 @@ rec def assoc_opt x = fun y -> match y with
 rec def assq x = fun y -> match y with
     Nil -> raise Not_found
   | Cons((a, b), l) -> if eq a x then b else assq x l
-//│ anything -> List[(anything, 'a,)] -> 'a
-//│   <:  assq:
-//│ anything -> List[(anything, 'b,)] -> 'b
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 rec def assq_opt x = fun y -> match y with
     Nil -> None
@@ -627,9 +619,7 @@ rec def remove_assq x = fun y -> match y with
 rec def find p = fun x -> match x with
   | Nil -> raise Not_found
   | Cons(x, l) -> if p x then x else find p l
-//│ ('A -> bool) -> List['A] -> 'A
-//│   <:  find:
-//│ ('a -> bool) -> List['a] -> 'a
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 rec def find_opt p = fun x -> match x with
   | Nil -> None
@@ -653,9 +643,7 @@ rec def find_map f = fun x -> match x with
       match f x with
         | Some(_) as result -> result
         | None -> find_map f l
-//│ ('A -> (Option[?] & 'a)) -> List['A] -> (Option[nothing] | 'a)
-//│   <:  find_map:
-//│ ('a -> Option['b]) -> List['a] -> Option['b]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 def find_mapi f =
   let rec aux i = fun x -> match x with
@@ -714,11 +702,7 @@ def concat_map = let rec r = {
       | Nil -> r.concat_map f xs
       | Cons(y, ys) -> r.prepend_concat_map ys f xs
   } in r.concat_map
-//│ ('A -> List[?]) -> List['A] -> 'a
-//│   where
-//│     'a :> List[nothing]
-//│   <:  concat_map:
-//│ ('a -> List['b]) -> List['a] -> List['b]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 def fold_left_map f accu l =
   let rec aux accu l_accu = fun x -> match x with
@@ -778,7 +762,7 @@ rec def merge cmp l1 l2 =
       if cmp h1 h2 <= 0
       then Cons(h1, merge cmp t1 l2)
       else Cons(h2, merge cmp l1 t2)
-//│ ('A -> 'A0 -> number) -> List['A & 'a] -> List['A0 & 'a] -> List['A | 'A0 | 'a]
+//│ ('a -> 'A -> number) -> List['a] -> List['a & 'A] -> List['A | 'a]
 //│   <:  merge:
 //│ ('a -> 'a -> int) -> List['a] -> List['a] -> List['a]
 
@@ -852,9 +836,7 @@ def stable_sort cmp l =
   in
   let len = length l in
   if len < 2 then l else fst (sort len l)
-//│ ('A -> 'A -> number) -> (List['A & 'A0] & 'a & List['A & 'A1]) -> (List['A1 | 'A0] | 'a)
-//│   <:  stable_sort:
-//│ ('a -> 'a -> int) -> List['a] -> List['a]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 def sort = stable_sort
 def fast_sort = stable_sort
@@ -973,9 +955,7 @@ def sort_uniq cmp l =
   in
   let len = length l in
   if len < 2 then l else fst (sort len l)
-//│ ('A -> 'A -> number) -> (List['A & 'A0] & 'a & List['A & 'A1]) -> (List['A1 | 'A0] | 'a)
-//│   <:  sort_uniq:
-//│ ('a -> 'a -> int) -> List['a] -> List['a]
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
 rec def compare_lengths l1 l2 =
   match (l1, l2) with
@@ -1012,7 +992,7 @@ rec def equal eq l1 l2 =
   | (Nil, Cons(_, _)) -> false
   | (Cons(_, _), Nil) -> false
   | (Cons(a1, l1), Cons(a2, l2)) -> eq a1 a2 && equal eq l1 l2
-//│ ('A -> 'A0 -> bool) -> List['A] -> List['A0] -> (bool | false)
+//│ ('A -> 'A0 -> bool) -> List['A] -> List['A0] -> bool
 //│   <:  equal:
 //│ ('a -> 'a -> bool) -> List['a] -> List['a] -> bool
 
@@ -1046,7 +1026,7 @@ rec def of_seq seq =
       match seq Unit with
       | SeqNil -> Cons(x1, Nil)
       | SeqCons(x2, seq) -> Cons(x1, Cons(x2, of_seq seq))
-//│ (unit -> Node['A]) -> List['A]
+//│ (unit -> Node['a]) -> List['a]
 //│   <:  of_seq:
 //│ Seq['a] -> List['a]
 
