@@ -77,7 +77,8 @@ abstract class TyperHelpers { Typer: Typer =>
   }
   
   /** Note that this version of `subst` intentionally substitutes unhygienically
-    * over the outer polymorphic type, as needed by the class typing infrastructure. */
+    * over the outer polymorphic type, as needed by the old class typing infrastructure.
+    * TODO: remove when the old classes are sunset */
   def subst(ts: PolymorphicType, map: Map[SimpleType, SimpleType])
         (implicit ctx: Ctx): PolymorphicType = 
     PolymorphicType(ts.polymLevel, subst(ts.body, map))
@@ -87,7 +88,7 @@ abstract class TyperHelpers { Typer: Typer =>
     val cache: MutMap[TypeVariable, SimpleType] = MutMap.empty
     val subsLvl: Level = map.valuesIterator.map(_.level).reduceOption(_ max _).getOrElse(MinLevel)
     def go(st: SimpleType): SimpleType = {
-            // trace(s"subst($st)") {
+            trace(s"subst($st)") {
       map.get(st) match {
         case S(res) => if (substInMap) go(res) else res
         case N =>
@@ -113,7 +114,7 @@ abstract class TyperHelpers { Typer: Typer =>
             case _ => st.map(go(_))
           }
       }
-      // }(r => s"= $r")
+      }(r => s"= $r")
     }
     go(st)
   }
@@ -958,8 +959,10 @@ abstract class TyperHelpers { Typer: Typer =>
     def apply(pol: PolMap)(st: ST): Unit = st match {
       case tv @ AssignedVariable(ty) => apply(pol)(ty)
       case tv: TypeVariable =>
-        if (pol(tv) =/= S(false)) tv.lowerBounds.foreach(apply(pol.at(tv.level, true)))
-        if (pol(tv) =/= S(true)) tv.upperBounds.foreach(apply(pol.at(tv.level, false)))
+        val poltv = pol(tv)
+        println(s"!! $tv $poltv ${tv.upperBounds}")
+        if (poltv =/= S(false)) tv.lowerBounds.foreach(apply(pol.at(tv.level, true)))
+        if (poltv =/= S(true)) tv.upperBounds.foreach(apply(pol.at(tv.level, false)))
       case FunctionType(l, r) => apply(pol.contravar)(l); apply(pol)(r)
       case Overload(as) => as.foreach(apply(pol))
       case ComposedType(_, l, r) => apply(pol)(l); apply(pol)(r)

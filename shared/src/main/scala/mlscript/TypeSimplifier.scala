@@ -1181,4 +1181,84 @@ trait TypeSimplifier { self: Typer =>
     }
   }
   
+  
+  
+  def onlineSimplify(ty: ST)(implicit ctx: Ctx): ST = {
+    
+    object Analyze extends Traverser2 {
+      
+      val posVars: MutSet[TV] = MutSet.empty
+      val negVars: MutSet[TV] = MutSet.empty
+      val recVars: MutSet[TV] = MutSet.empty
+      
+      var curPath: Ls[TV] = Nil
+      var pastPaths: Ls[Ls[TV]] = Nil
+      
+      // val varSubst: MutMap[TV, Opt[TV]] = MutMap.empty
+      // val varSubst: MutMap[TV, ST] = MutMap.empty
+      val varSubst: MutMap[TV, TV] = MutMap.empty
+      
+      override def apply(pol: PolMap)(st: ST): Unit =
+          trace(s"Analyze[${printPol(pol)}] $st  (${curPath.reverseIterator.mkString(" ~> ")})") {
+            st match {
+        case tv: TV if tv.assignedTo.isEmpty && !varSubst.contains(tv) =>
+          var continue = true
+          if (curPath.exists(_ is tv)) { // TODO opt
+            // if (tv.level) varSubst
+            curPath.foreach { tv2 => if (tv2 isnt tv) {
+              // varSubst.get(tv2) match {
+              //   case N => 
+              // }
+              val tvRepr = varSubst.getOrElse(tv2, tv2) // TODO union-set lookup
+              // assert(!varSubst.contains(tvRepr))
+              if (tv.level === tvRepr.level && tvRepr.nameHint.isEmpty && !varSubst.contains(tvRepr)) {
+                varSubst += tvRepr -> tv
+              }
+              else if (tv.level > tvRepr.level) varSubst += tv -> tvRepr
+              else if (!varSubst.contains(tvRepr)) varSubst += tvRepr -> tv
+            }}
+            continue = false
+          }
+          if (pastPaths.exists(_.exists(_ is tv))) { // TODO opt
+            recVars += tv
+            continue = false
+          }
+          if (continue) {
+            val oldPath = curPath
+            curPath ::= tv
+            val poltv = pol(tv)
+            if (poltv =/= S(false)) posVars += tv
+            if (poltv =/= S(true)) negVars += tv
+            super.apply(pol)(st)
+            curPath = oldPath
+          }
+        case _ =>
+          val oldPath = curPath
+          val oldPaths = pastPaths
+          pastPaths ::= oldPath
+          curPath = Nil
+          super.apply(pol)(st)
+          curPath = oldPath
+          pastPaths = oldPaths
+      }
+          }()
+      
+    }
+    
+    Analyze(PolMap.pos)(ty)
+    println("Pos: " + Analyze.posVars)
+    println("Neg: " + Analyze.negVars)
+    println("Rec: " + Analyze.recVars)
+    println("Subst: " + Analyze.varSubst)
+    
+    // * TODO use destructive update for performance?
+    // subst(ty, Analyze.varSubst.toMap)
+    subst(ty, Analyze.varSubst.toMap, substInMap = true)
+    
+  }
+  
+  
+  
+  
+  
 }

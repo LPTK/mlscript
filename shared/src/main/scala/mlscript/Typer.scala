@@ -124,7 +124,9 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         
         if (dbg) if (cty_fresh =/= cty) println(s"Refreshed:            $cty_fresh  —— where ${cty_fresh.showBounds}")
         
-        val poly = PolymorphicType.mk(lvl, cty_fresh)
+        val simplified = onlineSimplify(cty_fresh)
+        
+        val poly = PolymorphicType.mk(lvl, simplified)
         
         /* 
         newCtx.extrCtx.valuesIterator.foreach { buff =>
