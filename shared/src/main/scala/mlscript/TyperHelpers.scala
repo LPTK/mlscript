@@ -90,10 +90,12 @@ abstract class TyperHelpers { Typer: Typer =>
     def go(st: SimpleType): SimpleType = {
             trace(s"subst($st)") {
       map.get(st) match {
+        case S(res: TV) => if (substInMap) cache.getOrElse(res, go(res)) else res
         case S(res) => if (substInMap) go(res) else res
         case N =>
           st match {
-            case tv: TV if tv.level <= lvl => tv
+            // case tv: TV if tv.level <= lvl => tv
+            case tv: TV if tv.level <= lvl => cache.getOrElseUpdate(tv, tv)
             case tv @ AssignedVariable(ty) => cache.getOrElse(tv, {
               val v = freshVar(tv.prov, S(tv), tv.nameHint)(tv.level)
               cache += tv -> v
