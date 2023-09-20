@@ -571,6 +571,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       typeTerm(rhs)(ctx, raise, vars, genLambdas = true)
     }
     // PolymorphicType(lvl, res)
+    println(s"Inferred let-bound term type: $res where ${res.showBounds}")
     val simplified = onlineSimplify(res)
     PolymorphicType(lvl, simplified)
     // * ^ TODO change: this only needs to be done in the rec case;

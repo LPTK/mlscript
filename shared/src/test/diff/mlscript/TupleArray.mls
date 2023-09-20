@@ -186,7 +186,7 @@ f(1,2,3) : 1 | 2 | 3
 //│ ╟── type `int` does not match type `Array[?a]`
 //│ ║  l.91: 	def arr: Array[int]
 //│ ║        	               ^^^
-//│ ╟── but it flows into array access with expected type `Array[?b]`
+//│ ╟── but it flows into array access with expected type `Array[?a]`
 //│ ║  l.182: 	(arr[0])[1][2]
 //│ ╙──       	 ^^^^^^
 //│ ╔══[ERROR] Type mismatch in array access:

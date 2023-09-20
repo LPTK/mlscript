@@ -200,7 +200,7 @@ ga a1
 //│ ╟── type `Array[int]` does not match type `MutArray[?a]`
 //│ ║  l.30: 	def a1: Array[int]
 //│ ║        	        ^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `MutArray[?b]`
+//│ ╟── but it flows into reference with expected type `MutArray[?a]`
 //│ ║  l.196: 	ga a1
 //│ ║         	   ^^
 //│ ╟── Note: constraint arises from assignment:

@@ -32,7 +32,32 @@ rec def lefts() =
   in let a = res.v
   in let tmo = log(a + 1)
   in res
-//│ lefts: () -> (Left & {v: nothing})
+//│ ╔══[ERROR] Type mismatch in binding of lambda expression:
+//│ ║  l.+1: 	rec def lefts() =
+//│ ║        	             ^^^^
+//│ ║  l.+2: 	  let res = Left {v = lefts()}
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+3: 	  in let a = res.v
+//│ ║        	^^^^^^^^^^^^^^^^^^
+//│ ║  l.+4: 	  in let tmo = log(a + 1)
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+5: 	  in res
+//│ ║        	^^^^^^^^^
+//│ ╟── application of type `Left & {v: ?a}` is not an instance of type `int`
+//│ ║  l.+2: 	  let res = Left {v = lefts()}
+//│ ║        	            ^^^^^^^^^^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `int`
+//│ ║  l.+5: 	  in res
+//│ ║        	     ^^^
+//│ ╟── Note: constraint arises from reference:
+//│ ║  l.+4: 	  in let tmo = log(a + 1)
+//│ ║        	                   ^
+//│ ╟── from application:
+//│ ║  l.+2: 	  let res = Left {v = lefts()}
+//│ ╙──      	                      ^^^^^^^
+//│ lefts: () -> 'a
+//│   where
+//│     'a :> Left with {v: 'a}
 
 
 

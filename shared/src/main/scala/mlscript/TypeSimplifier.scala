@@ -1266,11 +1266,12 @@ trait TypeSimplifier { self: Typer =>
     
     val finalSubst: Map[ST, ST] = Analyze.varSubst.toMap[ST, ST] ++ posSubst ++ negSubst
     
-    println("Subst: " + Analyze.varSubst)
+    println("Subst: " + finalSubst)
     
     // * TODO use destructive update for performance?
     // subst(ty, Analyze.varSubst.toMap)
-    subst(ty, finalSubst, substInMap = true)
+    
+    if (finalSubst.isEmpty) ty else subst(ty, finalSubst, substInMap = true)
     
   }
   

@@ -105,7 +105,7 @@ eval exp
 //│ ╟── type `Array[Automata] -> Array[Binding]` does not match type `Add[?] & {lhs: ?a, rhs: ?a} | Lit & {val: ?val} | Nega[?] & {arg: ?a}`
 //│ ║  l.+1: 	def exp: Array[Automata] -> Array[Binding]
 //│ ║        	         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `Add[?] & {lhs: ?b, rhs: ?b} | Lit & {val: ?val0} | Nega[?] & {arg: ?b}`
+//│ ╟── but it flows into reference with expected type `Add[?] & {lhs: ?a, rhs: ?a} | Lit & {val: ?val} | Nega[?] & {arg: ?a}`
 //│ ║  l.+2: 	eval exp
 //│ ║        	     ^^^
 //│ ╟── Note: constraint arises from reference:

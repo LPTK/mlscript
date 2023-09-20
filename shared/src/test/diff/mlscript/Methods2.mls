@@ -154,7 +154,7 @@ case o of {None -> 0 | Some -> o.payload}
 //│ ╟── type `Option[0 | 1]` does not match type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.24: 	    method HeadOption: Option[A]
 //│ ║        	                       ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?c`
+//│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.150: 	case o of {None -> 0 | Some -> o.payload}
 //│ ╙──       	     ^
 //│ res: 0
@@ -201,7 +201,7 @@ case o of {
 //│ ╟── type `Option[0 | 1]` does not match type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.24: 	    method HeadOption: Option[A]
 //│ ║        	                       ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?c`
+//│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.194: 	case o of {
 //│ ╙──       	     ^
 //│ res: 0 | 1

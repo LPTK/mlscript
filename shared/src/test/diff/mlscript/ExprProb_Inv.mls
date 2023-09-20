@@ -82,12 +82,12 @@ rec def eval1 k e = case e of {
 
 :ns
 eval1
-//│ res: forall 'val 'a 'b 'c 'eval1. 'eval1
+//│ res: forall 'a 'val 'eval1 'b 'c. 'eval1
 //│   where
-//│     'eval1 := ('a -> 'c) -> 'b -> ('val | int | 'c)
-//│     'b <: #Lit & {val: 'val} | (#Add & {rhs: 'b} & {lhs: 'b} | 'a & ~#Add) & ~#Lit
+//│     'eval1 := ('a -> 'b) -> 'c -> ('val | int | 'b)
+//│     'c <: #Lit & {val: 'val} | (#Add & {rhs: 'c} & {lhs: 'c} | 'a & ~#Add) & ~#Lit
 //│     'val <: int
-//│     'c <: int
+//│     'b <: int
 //│    = [Function: eval1]
 
 :re
@@ -280,7 +280,7 @@ rec def prettier11 k ev e = case e of {
 //│           = [Function: prettier11]
 //│ constrain calls  : 179
 //│ annoying  calls  : 0
-//│ subtyping calls  : 763
+//│ subtyping calls  : 764
 
 // Doesn't make much sense, but generates very ugly type unless aggressively simplified:
 :stats
@@ -298,7 +298,7 @@ rec def prettier12 k ev e = case e of {
 //│           = [Function: prettier12]
 //│ constrain calls  : 159
 //│ annoying  calls  : 0
-//│ subtyping calls  : 837
+//│ subtyping calls  : 838
 
 
 :stats
@@ -406,9 +406,9 @@ rec def prettier22 k ev = prettier12 (fun x -> case x of {
 //│     'e <: Nega[?] & {arg: 'arg} | 'a & ~#Nega
 //│     'arg <: Add[?] & 'b | Lit | 'e & ~#Add & ~#Lit
 //│           = [Function: prettier22]
-//│ constrain calls  : 176
+//│ constrain calls  : 195
 //│ annoying  calls  : 0
-//│ subtyping calls  : 987
+//│ subtyping calls  : 1035
 
 
 
@@ -493,10 +493,11 @@ prettier2 done (eval1 done)
 prettier22 done (eval1 done)
 //│ res: 'arg -> string
 //│   where
-//│     'arg <: (Add[?] with {lhs: 'a, rhs: 'a}) & 'b | Lit | 'c & ~#Add & ~#Lit
-//│     'b <: (Add[?] with {lhs: 'b, rhs: 'b}) | Lit
-//│     'a <: (Add[?] with {lhs: 'a, rhs: 'a}) | Lit | 'c & ~#Add & ~#Lit
-//│     'c <: Nega[?] & {arg: 'arg}
+//│     'arg <: (Add[?] with {lhs: 'a, rhs: 'b}) & 'c | Lit | 'd & ~#Add & ~#Lit
+//│     'c <: (Add[?] with {lhs: 'c, rhs: 'c}) | Lit
+//│     'b <: (Add[?] with {lhs: 'b, rhs: 'b}) | Lit | 'd & ~#Add & ~#Lit
+//│     'a <: (Add[?] with {lhs: 'a, rhs: 'a}) | Lit | 'd & ~#Add & ~#Lit
+//│     'd <: Nega[?] & {arg: 'arg}
 //│    = [Function (anonymous)]
 
 // TODO could probably merge `a` and `b` here!
@@ -508,9 +509,11 @@ prettier2 done (eval2 done)
 //│     'd <: Nega[?] & {arg: 'e}
 //│     'e <: (Add[?] with {lhs: 'b & 'e, rhs: 'c & 'e}) | Lit | 'd & ~#Add & ~#Lit
 //│     'c <: (Add[?] with {lhs: 'c, rhs: 'c}) | Lit | 'f & ~#Add & ~#Lit
-//│     'f <: Nega[?] & {arg: 'c}
-//│     'b <: (Add[?] with {lhs: 'b, rhs: 'b}) | Lit | 'g & ~#Add & ~#Lit
-//│     'g <: Nega[?] & {arg: 'b}
+//│     'f <: Nega[?] & {arg: 'g}
+//│     'g <: (Add[?] with {lhs: 'g, rhs: 'g}) | Lit | 'f & ~#Add & ~#Lit
+//│     'b <: (Add[?] with {lhs: 'b, rhs: 'b}) | Lit | 'h & ~#Add & ~#Lit
+//│     'h <: Nega[?] & {arg: 'i}
+//│     'i <: (Add[?] with {lhs: 'i, rhs: 'i}) | Lit | 'h & ~#Add & ~#Lit
 //│    = [Function (anonymous)]
 //│ constrain calls  : 102
 //│ annoying  calls  : 0
@@ -529,11 +532,13 @@ prettier22 done (eval2 done) e2
 prettier22 done (eval2 done) d2
 //│ res: 'arg -> string
 //│   where
-//│     'arg <: (Add[?] with {lhs: 'a, rhs: 'a}) & 'b | Lit | 'c & ~#Add & ~#Lit
+//│     'arg <: (Add[?] with {lhs: 'a, rhs: 'b}) & 'c | Lit | 'd & ~#Add & ~#Lit
+//│     'c <: (Add[?] with {lhs: 'c, rhs: 'c}) | Lit | 'e & ~#Add & ~#Lit
+//│     'e <: Nega[?] & {arg: 'f}
+//│     'f <: (Add[?] with {lhs: 'f, rhs: 'f}) | Lit | 'e & ~#Add & ~#Lit
 //│     'b <: (Add[?] with {lhs: 'b, rhs: 'b}) | Lit | 'd & ~#Add & ~#Lit
-//│     'd <: Nega[?] & {arg: 'b}
-//│     'a <: (Add[?] with {lhs: 'a, rhs: 'a}) | Lit | 'c & ~#Add & ~#Lit
-//│     'c <: Nega[?] & {arg: 'arg}
+//│     'a <: (Add[?] with {lhs: 'a, rhs: 'a}) | Lit | 'd & ~#Add & ~#Lit
+//│     'd <: Nega[?] & {arg: 'arg}
 //│    = [Function (anonymous)]
 //│ res: string
 //│    = '1-123'
@@ -626,7 +631,7 @@ prettier2 done (eval1 done) e2
 //│   Error: non-exhaustive case expression
 //│ constrain calls  : 292
 //│ annoying  calls  : 126
-//│ subtyping calls  : 3944
+//│ subtyping calls  : 3869
 
 :e
 :stats
@@ -732,7 +737,7 @@ prettier2 done eval2 e2
 //│    = '1-123'
 //│ constrain calls  : 208
 //│ annoying  calls  : 65
-//│ subtyping calls  : 3068
+//│ subtyping calls  : 2993
 
 :e
 :stats
@@ -808,6 +813,6 @@ prettier2 done eval1 e2
 //│    = '1-123'
 //│ constrain calls  : 196
 //│ annoying  calls  : 65
-//│ subtyping calls  : 2814
+//│ subtyping calls  : 2739
 
 

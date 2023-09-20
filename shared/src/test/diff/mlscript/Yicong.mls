@@ -645,7 +645,7 @@ ra: (Array['a], Array['a], Array['a]) as 'a
 //│ ╟── type `('a, 'a,)` does not match type `('a0, 'a0, 'a0,)`
 //│ ║  l.615: 	def ra: ('a, 'a) as 'a
 //│ ║         	        ^^^^^^^^
-//│ ╟── but it flows into reference with expected type `('a1, 'a1, 'a1,)`
+//│ ╟── but it flows into reference with expected type `('a0, 'a0, 'a0,)`
 //│ ║  l.640: 	ra: ('a, 'a, 'a) as 'a
 //│ ║         	^^
 //│ ╟── Note: constraint arises from tuple type:
@@ -662,7 +662,7 @@ ra: (Array['a], Array['a], Array['a]) as 'a
 //│ ╟── type `('a, 'a,)` does not match type `(Array['a0], Array['a0], Array['a0],)`
 //│ ║  l.615: 	def ra: ('a, 'a) as 'a
 //│ ║         	        ^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(Array['a1], Array['a1], Array['a1],)`
+//│ ╟── but it flows into reference with expected type `(Array['a0], Array['a0], Array['a0],)`
 //│ ║  l.641: 	ra: (Array['a], Array['a], Array['a]) as 'a
 //│ ║         	^^
 //│ ╟── Note: constraint arises from tuple type:
@@ -769,7 +769,7 @@ ge[2]
 //│ ╟── string literal of type `"hello"` does not match type `Array[?a]`
 //│ ║  l.729: 	ta3 = ((1,2,3), "hello", false)
 //│ ║         	                ^^^^^^^
-//│ ╟── but it flows into array access with expected type `Array[?b]`
+//│ ╟── but it flows into array access with expected type `Array[?a]`
 //│ ║  l.760: 	ta3[ge 3][ge (1+2)]
 //│ ╙──       	^^^^^^^^^
 //│ res: 1 | 2 | 3 | error | undefined
@@ -809,7 +809,7 @@ ge[2]
 //│ ╟── function of type `int -> int` does not match type `Array[?a]`
 //│ ║  l.759: 	def ge x = x + 1
 //│ ║         	       ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `Array[?b]`
+//│ ╟── but it flows into reference with expected type `Array[?a]`
 //│ ║  l.763: 	ge[2]
 //│ ╙──       	^^
 //│ res: error | undefined
@@ -850,7 +850,7 @@ mk1[2  ]
 //│ ╟── integer literal of type `6` does not match type `Array[?a]`
 //│ ║  l.820: 	mk1 = defined (mkarr 6)[ 0]
 //│ ║         	                     ^
-//│ ╟── but it flows into reference with expected type `Array[?b]`
+//│ ╟── but it flows into reference with expected type `Array[?a]`
 //│ ║  l.838: 	mk1[2  ]
 //│ ╙──       	^^^
 //│ res: error | undefined
@@ -906,7 +906,7 @@ dup (defined ara[1])._1 (defined (defined arb[10])[8])._2 + 1
 //│ ╟── integer literal of type `1` does not match type `Array[?a]`
 //│ ║  l.902: 	(1,2,3)._1[1]
 //│ ║         	 ^
-//│ ╟── but it flows into field selection with expected type `Array[?b]`
+//│ ╟── but it flows into field selection with expected type `Array[?a]`
 //│ ║  l.902: 	(1,2,3)._1[1]
 //│ ╙──       	^^^^^^^^^^
 //│ res: error | undefined

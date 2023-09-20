@@ -165,17 +165,17 @@ def eval2_fixed_2 = fix eval2f
 eval2_fixed_2 e1
 //│ res: int
 //│    = 6
-//│ constrain calls  : 102
+//│ constrain calls  : 94
 //│ annoying  calls  : 39
-//│ subtyping calls  : 1806
+//│ subtyping calls  : 1776
 
 :stats
 eval2_fixed_2 e2
 //│ res: int
 //│    = -5
-//│ constrain calls  : 143
+//│ constrain calls  : 131
 //│ annoying  calls  : 63
-//│ subtyping calls  : 2561
+//│ subtyping calls  : 2517
 
 
 
@@ -262,7 +262,7 @@ rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ║  l.33: 	  }
 //│ ║        	^^^
-//│ ╟── but it flows into application with expected type `Add[?] & ?e | Lit & ?f`
+//│ ╟── but it flows into application with expected type `Add[?] & ?c | Lit & ?d`
 //│ ║  l.+1: 	rec def eval1_fixed = eval1f (fun x -> eval1_fixed eval1_fixed x)
 //│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
@@ -351,7 +351,7 @@ fix eval2f_oops e2
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	fix eval2f_oops e2
 //│ ║        	^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> ?b` does not match type `Add[?] & ?c | Lit & ?d`
+//│ ╟── function of type `?a -> (forall ?b. ?b)` does not match type `Add[?] & ?c | Lit & ?d`
 //│ ║  l.152: 	def fix f = let fixed = fun x -> f (fun v -> (x x) v) in fixed fixed!
 //│ ║         	                                    ^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:

@@ -44,7 +44,7 @@ eval e2
 //│ ╟── application of type `Neg with {e: Add with {lhs: Lit & {n: 1}, rhs: Lit & {n: 2}}}` does not match type `(Add with {lhs: ?a, rhs: ?a}) | Lit & {n: ?n}`
 //│ ║  l.31: 	e2 = Neg { e }
 //│ ║        	     ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(Add with {lhs: ?b, rhs: ?b}) | Lit & {n: ?n0}`
+//│ ╟── but it flows into reference with expected type `(Add with {lhs: ?a, rhs: ?a}) | Lit & {n: ?n}`
 //│ ║  l.40: 	eval e2
 //│ ║        	     ^^
 //│ ╟── Note: constraint arises from reference:

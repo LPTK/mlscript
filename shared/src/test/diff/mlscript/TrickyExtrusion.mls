@@ -110,12 +110,12 @@ not (test id)._1
 test f =
   let r x = f x
   in (r 0, r True)
-//│ test: forall 'a 'b 'c 'd 'e 'f 'g. 'e -> ('d, 'f,)
+//│ test: forall 'a 'b 'c 'd 'e 'f 'g. 'b -> ('c, 'a,)
 //│   where
-//│     'e <: 'g -> 'b & 'c -> 'a
-//│     'a <: 'd
-//│     'c :> 0
-//│     'b <: 'f
+//│     'b <: 'g -> 'f & 'd -> 'e
+//│     'e <: 'c
+//│     'd :> 0
+//│     'f <: 'a
 //│     'g :> true
 //│     = [Function: test3]
 

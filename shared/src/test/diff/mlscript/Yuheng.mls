@@ -226,7 +226,7 @@ ep[0]
 //│ ╟── integer literal of type `3` does not match type `Array[?a]`
 //│ ║  l.155: 	    rhs = IntLit { value = 3 } } }
 //│ ║         	                           ^
-//│ ╟── but it flows into reference with expected type `Array[?b]`
+//│ ╟── but it flows into reference with expected type `Array[?a]`
 //│ ║  l.+1: 	ep[0]
 //│ ╙──      	^^
 //│ res: error | undefined | 'a

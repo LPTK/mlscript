@@ -110,7 +110,7 @@ Cons 1 res
 //│ ╟── integer literal of type `2` does not match type `Cons[?A] | Nil`
 //│ ║  l.97: 	Cons 2 Nil
 //│ ║        	     ^
-//│ ╟── but it flows into reference with expected type `Cons[?A0] | Nil`
+//│ ╟── but it flows into reference with expected type `Cons[?A] | Nil`
 //│ ║  l.106: 	Cons 1 res
 //│ ║         	       ^^^
 //│ ╟── Note: constraint arises from union type:

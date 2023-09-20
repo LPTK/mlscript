@@ -125,7 +125,7 @@ evalN3 evalN3! e
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	evalN3 evalN3! e
 //│ ║        	^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> ?b` is not an instance of type `int`
+//│ ╟── function of type `?a -> (?b | ?c)` is not an instance of type `int`
 //│ ║  l.118: 	def evalN3 evalN3 x = case x of {
 //│ ║         	                  ^^^^^^^^^^^^^^^
 //│ ║  l.119: 	  Neg -> 0 - (evalN3 x.underlying)
