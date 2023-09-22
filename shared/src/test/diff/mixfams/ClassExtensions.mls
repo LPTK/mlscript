@@ -1,0 +1,16 @@
+:NewDefs
+
+
+class A {
+  class C(x: Int) { fun x = 123 }
+  // virtual 
+  fun foo(x: C): Int = x.x
+}
+
+class B extends A {
+  mixin C { fun x = super.x + d; val d = 1 }
+  fun foo(x: C): Int = x.d
+}
+
+
+

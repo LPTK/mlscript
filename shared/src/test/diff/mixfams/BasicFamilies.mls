@@ -23,7 +23,7 @@ mixin B {
 // * Notice how currently the mixin from B is destructively overridden by the one from A
 // * What we want is that they compose tohgether into a new mixin.
 
-// :d // FIXME missing implemenetation when uncommented
+// :d // FIXME missing implementation when uncommented
 module C extends B, A
 //│ module C {
 //│   mixin M() {
