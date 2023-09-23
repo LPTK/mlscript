@@ -15,7 +15,7 @@ let poly f = (f 1, f true) in poly
 //│ res: (1 -> 'a & true -> 'b) -> ('a, 'b,)
 //│    = [Function (anonymous)]
 let poly f = let y = f in (y 1, y true) in poly
-//│ res: anything -> (nothing, nothing,)
+//│ res: (1 -> 'a & true -> 'b) -> ('a, 'b,)
 //│    = [Function (anonymous)]
 
 // Altered from
@@ -202,9 +202,52 @@ def sstep = fun xx -> xx (fun (xinit, xsub) ->
     then xsub r1 (div i 2)
     else xsub r2 (div i 2) in
   fun f -> f (init, sub))
-//│ ((forall 'a. (nothing -> anything, nothing -> int -> anything,) -> ((anything -> (nothing, nothing,), (anything, anything,) -> int -> nothing,) -> 'a) -> 'a) -> 'b) -> 'b
+//│ ((forall 'a 'b 'c 'd 'e. ('c -> 'b, 'a -> int -> 'e,) -> (('c -> ('b, 'b,), ('a, 'a,) -> int -> 'e,) -> 'd) -> 'd) -> 'f) -> 'f
 //│   <:  sstep:
 //│ ExSmall -> ExSmall
+//│ ╔══[ERROR] Type error in def definition
+//│ ║  l.198: 	def sstep = fun xx -> xx (fun (xinit, xsub) -> 
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.199: 	  let init a = (xinit a, xinit a) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.200: 	  let sub ((r1, r2)) i =
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.201: 	    if mod i 2 == 0
+//│ ║         	^^^^^^^^^^^^^^^^^^^
+//│ ║  l.202: 	    then xsub r1 (div i 2)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.203: 	    else xsub r2 (div i 2) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.204: 	  fun f -> f (init, sub))
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── type variable `'r` leaks out of its scope
+//│ ║  l.181: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
+//│ ║         	                                  ^^
+//│ ╟── back into type variable `'r`
+//│ ║  l.181: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
+//│ ║         	                                      ^^
+//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
+//│ ╟── • this applied expression:
+//│ ║  l.198: 	def sstep = fun xx -> xx (fun (xinit, xsub) -> 
+//│ ║         	                      ^^
+//│ ╟── • this function:
+//│ ║  l.198: 	def sstep = fun xx -> xx (fun (xinit, xsub) -> 
+//│ ║         	                          ^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.199: 	  let init a = (xinit a, xinit a) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.200: 	  let sub ((r1, r2)) i =
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.201: 	    if mod i 2 == 0
+//│ ║         	^^^^^^^^^^^^^^^^^^^
+//│ ║  l.202: 	    then xsub r1 (div i 2)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.203: 	    else xsub r2 (div i 2) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.204: 	  fun f -> f (init, sub))
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Note: constraint arises from reference:
+//│ ║  l.202: 	    then xsub r1 (div i 2)
+//│ ╙──       	              ^^
 //│      = [Function: sstep]
 
 // * Alternative, with an annotation on `f`:
@@ -215,7 +258,7 @@ def sstep = fun xx -> xx (fun (xinit, xsub) ->
     then xsub r1 (div i 2)
     else xsub r2 (div i 2) in
   fun (f : forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> f (init, sub))
-//│ ((forall 'a 'b. (nothing -> anything, nothing -> int -> anything,) -> (forall 'r. ('a -> 'r, 'r -> int -> 'a,) -> 'b) -> 'b) -> 'c) -> 'c
+//│ ((forall 'b 'a 'c. ('a -> 'c, 'c -> int -> 'a,) -> (forall 'r. ('a -> 'r, 'r -> int -> 'a,) -> 'b) -> 'b) -> 'd) -> 'd
 //│   <:  sstep:
 //│ ExSmall -> ExSmall
 //│      = [Function: sstep1]
@@ -257,30 +300,30 @@ a2 = ma2 (fun (xinit, xsub) -> xinit true)
 :e // This is expected – xinit returns a value of locally-quantified type 'r
 a2[0]
 //│ ╔══[ERROR] Type error in array access
-//│ ║  l.258: 	a2[0]
+//│ ║  l.301: 	a2[0]
 //│ ║         	^^^^^
 //│ ╟── type variable `'r` leaks out of its scope
 //│ ║  l.181: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
 //│ ║         	                                  ^^
 //│ ╟── into array access of type `Array[?a]`
-//│ ║  l.258: 	a2[0]
+//│ ║  l.301: 	a2[0]
 //│ ║         	^^^^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this function:
-//│ ║  l.253: 	a2 = ma2 (fun (xinit, xsub) -> xinit true)
+//│ ║  l.296: 	a2 = ma2 (fun (xinit, xsub) -> xinit true)
 //│ ║         	          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.241: 	ma2 = mkSArray 2
+//│ ║  l.284: 	ma2 = mkSArray 2
 //│ ║         	      ^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.253: 	a2 = ma2 (fun (xinit, xsub) -> xinit true)
+//│ ║  l.296: 	a2 = ma2 (fun (xinit, xsub) -> xinit true)
 //│ ╙──       	     ^^^
 //│ res: error | undefined
 //│    = [ true, true ]
 
 // * Notice the (safely-)extruded skolem for the locally-quantified 'r
 ma2 (fun (xinit, xsub) -> let tmp = xinit true in (tmp, tmp))
-//│ res: (nothing, nothing,)
+//│ res: (??r, ??r,)
 //│    = [
 //│        [ [ true, true ], [ true, true ] ],
 //│        [ [ true, true ], [ true, true ] ]
@@ -304,29 +347,29 @@ ma1 (fun (xinit, xsub) -> xsub (xinit true) 0)
 :e
 ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.305: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
+//│ ║  l.348: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'r` leaks out of its scope
 //│ ║  l.181: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
 //│ ║         	                                  ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this application:
-//│ ║  l.305: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
+//│ ║  l.348: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ║         	                                                               ^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.241: 	ma2 = mkSArray 2
+//│ ║  l.284: 	ma2 = mkSArray 2
 //│ ║         	      ^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.305: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
+//│ ║  l.348: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ║         	                            ^^^
 //│ ╟── • this applied expression:
-//│ ║  l.305: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
+//│ ║  l.348: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ║         	                                                        ^^^^^
 //│ ╟── • this tuple literal:
-//│ ║  l.305: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
+//│ ║  l.348: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ║         	                                     ^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from application:
-//│ ║  l.305: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
+//│ ║  l.348: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ╙──       	                                                               ^^^^^^^^^^^
 //│ res: error
 //│ Runtime error:
@@ -335,7 +378,7 @@ ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 :e
 ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.336: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
+//│ ║  l.379: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'r` leaks out of its scope
 //│ ║  l.181: 	type ExSmall = (forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> 'y
@@ -345,16 +388,16 @@ ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ║         	                                      ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this applied expression:
-//│ ║  l.336: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
+//│ ║  l.379: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ║         	                                                               ^^^^^^
 //│ ╟── • this tuple literal:
-//│ ║  l.336: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
+//│ ║  l.379: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ║         	                                     ^^^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.241: 	ma2 = mkSArray 2
+//│ ║  l.284: 	ma2 = mkSArray 2
 //│ ║         	      ^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.336: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
+//│ ║  l.379: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ╙──       	                            ^^^
 //│ res: error
 //│    = [ true, true ]
@@ -397,9 +440,72 @@ def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
     else (fst r, xupdate (snd r) (div i 2) a) in
   let fold f b r = xfold f (xfold f b (fst r)) (snd r) in
     fun f -> f ((((init, sub), update), fold),) )
-//│ ((forall 'a. (((nothing -> anything, nothing -> int -> anything,), nothing -> int -> nothing -> anything,), nothing -> nothing -> nothing -> anything,) -> ((((anything -> (nothing, nothing,), (anything, anything,) -> int -> nothing,), forall 'b 'c. ('b, 'c,) -> int -> anything -> ('b, 'c,),), anything -> anything -> (anything, anything,) -> nothing,) -> 'a) -> 'a) -> 'd) -> 'd
+//│ ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i 'j 'k 'l 'm 'n 'o 'p. ((('b -> 'f, 'j -> int -> 'k,), 'h -> int -> 'a -> 'm & 'l -> int -> 'a -> 'i,), 'd -> ('n -> 'g -> 'p & 'e -> 'o -> 'n),) -> (((('b -> ('f, 'f,), ('j, 'j,) -> int -> 'k,), forall 'q 'r. ('h & 'q, 'l & 'r,) -> int -> 'a -> ('m | 'q, 'r | 'i,),), 'd -> 'e -> ('o, 'g,) -> 'p,) -> 'c) -> 'c) -> 's) -> 's
 //│   <:  step:
 //│ ExSig -> ExSig
+//│ ╔══[ERROR] Type error in def definition
+//│ ║  l.431: 	def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.432: 	  let init a = (xinit a, xinit a) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.433: 	  let sub r i =
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.434: 	    if mod i 2 == 0
+//│ ║         	^^^^^^^^^^^^^^^^^^^
+//│ ║  l.435: 	    then xsub (fst r) (div i 2)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.436: 	    else xsub (snd r) (div i 2) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.437: 	  let update r i a =
+//│ ║         	^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.438: 	    if mod i 2 == 0
+//│ ║         	^^^^^^^^^^^^^^^^^^^
+//│ ║  l.439: 	    then (xupdate (fst r) (div i 2) a, snd r)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.440: 	    else (fst r, xupdate (snd r) (div i 2) a) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.441: 	  let fold f b r = xfold f (xfold f b (fst r)) (snd r) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.442: 	    fun f -> f ((((init, sub), update), fold),) )
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── type variable `'r` leaks out of its scope
+//│ ║  l.409: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
+//│ ║         	                                              ^^
+//│ ╟── back into type variable `'r`
+//│ ║  l.409: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
+//│ ║         	                                                  ^^
+//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
+//│ ╟── • this applied expression:
+//│ ║  l.431: 	def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
+//│ ║         	                     ^^
+//│ ╟── • this function:
+//│ ║  l.431: 	def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
+//│ ║         	                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.432: 	  let init a = (xinit a, xinit a) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.433: 	  let sub r i =
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.434: 	    if mod i 2 == 0
+//│ ║         	^^^^^^^^^^^^^^^^^^^
+//│ ║  l.435: 	    then xsub (fst r) (div i 2)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.436: 	    else xsub (snd r) (div i 2) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.437: 	  let update r i a =
+//│ ║         	^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.438: 	    if mod i 2 == 0
+//│ ║         	^^^^^^^^^^^^^^^^^^^
+//│ ║  l.439: 	    then (xupdate (fst r) (div i 2) a, snd r)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.440: 	    else (fst r, xupdate (snd r) (div i 2) a) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.441: 	  let fold f b r = xfold f (xfold f b (fst r)) (snd r) in
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.442: 	    fun f -> f ((((init, sub), update), fold),) )
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Note: constraint arises from type variable:
+//│ ║  l.82: 	def snd: forall 'a 'b. (('a, 'b),) -> 'b
+//│ ╙──      	                             ^^
 //│     = [Function: step]
 
 let mkArray n = if n == 0 then base else step base in
@@ -424,20 +530,20 @@ mkArray 3 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
 :e
 res 0
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.425: 	res 0
+//│ ║  l.531: 	res 0
 //│ ║         	^^^^^
 //│ ╟── type variable `'r` leaks out of its scope
-//│ ║  l.366: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
+//│ ║  l.409: 	type ExSig = (forall 'r. (forall 'b. ((('a -> 'r, 'r -> int -> 'a), 'r -> int -> 'a -> 'r), ('a -> 'b -> 'b) -> 'b -> 'r -> 'b)) -> 'y) -> 'y
 //│ ║         	                                              ^^
 //│ ╟── into application of type `0 -> ?a`
-//│ ║  l.425: 	res 0
+//│ ║  l.531: 	res 0
 //│ ║         	^^^^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this function:
-//│ ║  l.420: 	mkArray 3 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
+//│ ║  l.526: 	mkArray 3 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.420: 	mkArray 3 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
+//│ ║  l.526: 	mkArray 3 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
 //│ ╙──       	^^^^^^^^^
 //│ res: error
 //│ Runtime error:

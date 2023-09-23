@@ -69,7 +69,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
       inRecursiveDef: Opt[Var],
       nuTyDefs: Map[Str, TypedNuTypeDef],
       extrCtx: ExtrCtx,
-  ) {
+  ) { outerCtx =>
     def +=(b: Str -> TypeInfo): Unit = env += b
     def ++=(bs: IterableOnce[Str -> TypeInfo]): Unit = bs.iterator.foreach(+=)
     def get(name: Str): Opt[TypeInfo] = env.get(name) orElse parent.dlof(_.get(name))(N)
@@ -124,7 +124,9 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
         
         if (dbg) if (cty_fresh =/= cty) println(s"Refreshed:            $cty_fresh  —— where ${cty_fresh.showBounds}")
         
-        val simplified = if (doSimplify) onlineSimplify(cty_fresh) else cty_fresh
+        val simplified =
+          if (doSimplify) { implicit val ctx: Ctx = outerCtx; onlineSimplify(cty_fresh) }
+          else cty_fresh
         
         val poly = PolymorphicType.mk(lvl, simplified)
         

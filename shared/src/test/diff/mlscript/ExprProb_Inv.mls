@@ -282,9 +282,9 @@ rec def prettier11 k ev e = case e of {
 //│     'b <: (Add[?] with {lhs: 'c, rhs: 'rhs & 'b}) | Lit | 'a & ~#Add & ~#Lit
 //│     'c <: (Add[?] with {lhs: 'c, rhs: 'c}) | Lit | 'a & ~#Add & ~#Lit
 //│           = [Function: prettier11]
-//│ constrain calls  : 172
+//│ constrain calls  : 182
 //│ annoying  calls  : 0
-//│ subtyping calls  : 737
+//│ subtyping calls  : 772
 
 // Doesn't make much sense, but generates very ugly type unless aggressively simplified:
 :stats
@@ -300,9 +300,9 @@ rec def prettier12 k ev e = case e of {
 //│     'f <: Add[?]\lhs\rhs & {lhs: 'f, rhs: 'f} | Lit | 'a & ~#Add & ~#Lit
 //│     'e <: Add[?]\lhs\rhs & {lhs: 'e, rhs: 'e} | Lit | 'a & ~#Add & ~#Lit
 //│           = [Function: prettier12]
-//│ constrain calls  : 152
+//│ constrain calls  : 157
 //│ annoying  calls  : 0
-//│ subtyping calls  : 786
+//│ subtyping calls  : 804
 
 
 :stats
@@ -410,9 +410,9 @@ rec def prettier22 k ev = prettier12 (fun x -> case x of {
 //│     'f <: {arg: 'c}
 //│     'c <: Add[?] & 'b | Lit | (Nega[?] & 'f | 'a & ~#Nega) & ~#Add & ~#Lit
 //│           = [Function: prettier22]
-//│ constrain calls  : 162
+//│ constrain calls  : 177
 //│ annoying  calls  : 0
-//│ subtyping calls  : 891
+//│ subtyping calls  : 963
 
 
 
@@ -546,7 +546,7 @@ prettier22 done (eval2 done) d2
 //│    = '-1'
 //│ constrain calls  : 966
 //│ annoying  calls  : 325
-//│ subtyping calls  : 10875
+//│ subtyping calls  : 10881
 
 
 

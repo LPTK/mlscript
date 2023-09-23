@@ -21,103 +21,70 @@ def o = (fun x -> x x)
 //│ | | 2. : α9''
 //│ | | Inferred poly constr: (x8'' -> α9'')  —— where 
 //│ 		x8'' <: (x8'' -> α9'')
-//│ | | Analysis[+] (x8'' -> α9'')  []
-//│ | | | Analysis[-] (x8'',)  []
-//│ | | | | Analysis[-] x8''  []
+//│ | | 1. Online simplification
+//│ | | | Analysis[+] (x8'' -> α9'')  []
+//│ | | | | Analysis[-] (x8'',)  []
+//│ | | | | | Analysis[-] x8''  []
+//│ | | | | | | >>> List()
+//│ | | | | | | >>>> List(x8'')
+//│ | | | | | | !! x8'' Some(false) List((x8'' -> α9''))
+//│ | | | | | | Analysis[-] (x8'' -> α9'')  [x8'']
+//│ | | | | | | | Analysis[+] (x8'',)  []
+//│ | | | | | | | | Analysis[+] x8''  []
+//│ | | | | | | | | | REC x8''
+//│ | | | | | | | Analysis[-] α9''  []
+//│ | | | | | | | | >>> List()
+//│ | | | | | | | | >>>> List(α9'')
+//│ | | | | | | | | !! α9'' Some(false) List()
+//│ | | | | Analysis[+] α9''  []
 //│ | | | | | >>> List()
-//│ | | | | | >>>> List(x8'')
-//│ | | | | | !! x8'' Some(false) List((x8'' -> α9''))
-//│ | | | | | Analysis[-] (x8'' -> α9'')  [x8'']
-//│ | | | | | | Analysis[+] (x8'',)  []
-//│ | | | | | | | Analysis[+] x8''  []
-//│ | | | | | | | | REC x8''
-//│ | | | | | | Analysis[-] α9''  []
-//│ | | | | | | | >>> List()
-//│ | | | | | | | >>>> List(α9'')
-//│ | | | | | | | !! α9'' Some(false) List()
-//│ | | | Analysis[+] α9''  []
-//│ | | | | >>> List()
-//│ | | | | >>>> List(α9'')
-//│ | | | | !! α9'' Some(true) List()
-//│ | | Unif-pre: HashMap()
-//│ | | Pos: HashSet(α9'')
-//│ | | Neg: HashSet(x8'', α9'')
-//│ | | Rec: HashSet(x8'')
-//│ | | Unif: HashMap()
-//│ | | subst((x8'' -> α9''))
-//│ | | | subst((x8'',))
-//│ | | | | subst(x8'')
-//│ | | | | | Repr: x8''
-//│ | | | | | It's recursive!
-//│ | | | | | subst((x8'' -> α9''))
-//│ | | | | | | subst((x8'',))
-//│ | | | | | | | subst(x8'')
-//│ | | | | | | | | Repr: x8''
-//│ | | | | | | | = x8''
-//│ | | | | | | = (x8'',)
-//│ | | | | | | subst(α9'')
-//│ | | | | | | | Repr: α9''
-//│ | | | | | | = α9''
-//│ | | | | | = (x8'' -> α9'')
-//│ | | | | = x8''
-//│ | | | = (x8'',)
-//│ | | | subst(α9'')
-//│ | | | | Repr: α9''
-//│ | | | = α9''
-//│ | | = (x8'' -> α9'')
+//│ | | | | | >>>> List(α9'')
+//│ | | | | | !! α9'' Some(true) List()
+//│ | | | Unif-pre: HashMap()
+//│ | | | Pos: HashSet(α9'')
+//│ | | | Neg: HashSet(x8'', α9'')
+//│ | | | Rec: HashSet(x8'')
+//│ | | | Unif: HashMap()
+//│ | | | subst((x8'' -> α9''))
+//│ | | | | subst((x8'',))
+//│ | | | | | subst(x8'')
+//│ | | | | | | Repr: x8''
+//│ | | | | | | It's recursive!
+//│ | | | | | | subst((x8'' -> α9''))
+//│ | | | | | | | subst((x8'',))
+//│ | | | | | | | | subst(x8'')
+//│ | | | | | | | | | Repr: x8''
+//│ | | | | | | | | = x8''
+//│ | | | | | | | = (x8'',)
+//│ | | | | | | | subst(α9'')
+//│ | | | | | | | | Repr: α9''
+//│ | | | | | | | = α9''
+//│ | | | | | | = (x8'' -> α9'')
+//│ | | | | | = x8''
+//│ | | | | = (x8'',)
+//│ | | | | subst(α9'')
+//│ | | | | | Repr: α9''
+//│ | | | | = α9''
+//│ | | | = (x8'' -> α9'')
+//│ | | 1. Simplified: (x8'' -> α9'') where 
+//│ 		x8'' <: (x8'' -> α9'')
 //│ | | UNSTASHING... (out)
 //│ | 1. : ‹∀ 1. (x8'' -> α9'')›
 //│ 1. : ‹∀ 1. (x8'' -> α9'')›
 //│ UNSTASHING... (out)
 //│ Inferred let-bound term type: ‹∀ 1. (x8'' -> α9'')› where 
 //│ 		x8'' <: (x8'' -> α9'')
-//│ Analysis[+] ‹∀ 1. (x8'' -> α9'')›  []
-//│ | Analysis[+] (x8'' -> α9'')  []
-//│ | | Analysis[-] (x8'',)  []
-//│ | | | Analysis[-] x8''  []
-//│ | | | | >>> List()
-//│ | | | | >>>> List(x8'')
-//│ | | | | !! x8'' Some(false) List((x8'' -> α9''))
-//│ | | | | Analysis[-] (x8'' -> α9'')  [x8'']
-//│ | | | | | Analysis[+] (x8'',)  []
-//│ | | | | | | Analysis[+] x8''  []
-//│ | | | | | | | REC x8''
-//│ | | | | | Analysis[-] α9''  []
-//│ | | | | | | >>> List()
-//│ | | | | | | >>>> List(α9'')
-//│ | | | | | | !! α9'' Some(false) List()
-//│ | | Analysis[+] α9''  []
-//│ | | | >>> List()
-//│ | | | >>>> List(α9'')
-//│ | | | !! α9'' Some(true) List()
-//│ Unif-pre: HashMap()
-//│ Pos: HashSet(α9'')
-//│ Neg: HashSet(x8'', α9'')
-//│ Rec: HashSet(x8'')
-//│ Unif: HashMap()
-//│ subst(‹∀ 1. (x8'' -> α9'')›)
-//│ | subst((x8'' -> α9''))
-//│ | | subst((x8'',))
-//│ | | | subst(x8'')
-//│ | | | | Repr: x8''
-//│ | | | | It's recursive!
-//│ | | | | subst((x8'' -> α9''))
-//│ | | | | | subst((x8'',))
-//│ | | | | | | subst(x8'')
-//│ | | | | | | | Repr: x8''
-//│ | | | | | | = x8''
-//│ | | | | | = (x8'',)
-//│ | | | | | subst(α9'')
-//│ | | | | | | Repr: α9''
-//│ | | | | | = α9''
-//│ | | | | = (x8'' -> α9'')
-//│ | | | = x8''
-//│ | | = (x8'',)
-//│ | | subst(α9'')
-//│ | | | Repr: α9''
-//│ | | = α9''
-//│ | = (x8'' -> α9'')
-//│ = ‹∀ 1. (x8'' -> α9'')›
+//│ 0. Online simplification
+//│ | Analysis[+] ‹∀ 1. (x8'' -> α9'')›  []
+//│ | Unif-pre: HashMap()
+//│ | Pos: HashSet()
+//│ | Neg: HashSet()
+//│ | Rec: HashSet()
+//│ | Unif: HashMap()
+//│ | subst(‹∀ 1. (x8'' -> α9'')›)
+//│ | = ‹∀ 1. (x8'' -> α9'')›
+//│ 0. Simplified: ‹∀ 1. (x8'' -> α9'')› where 
+//│ 		x8'' <: (x8'' -> α9'')
 //│ ⬤ Typed as: ‹∀ 1. (x8'' -> α9'')›
 //│  where: 
 //│ 		x8'' <: (x8'' -> α9'')
@@ -177,8 +144,8 @@ o o
 //│  where: 
 //│ 		α16 :> error<>
 //│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.130: 	o o
-//│ ║         	^^^
+//│ ║  l.97: 	o o
+//│ ║        	^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: error
 //│ Runtime error:
@@ -203,84 +170,60 @@ def foo x = x.a
 //│ | 2. : a23''
 //│ | Inferred poly constr: (x22'' -> a23'')  —— where 
 //│ 		x22'' <: {a: a23''}
-//│ | Analysis[+] (x22'' -> a23'')  []
-//│ | | Analysis[-] (x22'',)  []
-//│ | | | Analysis[-] x22''  []
+//│ | 1. Online simplification
+//│ | | Analysis[+] (x22'' -> a23'')  []
+//│ | | | Analysis[-] (x22'',)  []
+//│ | | | | Analysis[-] x22''  []
+//│ | | | | | >>> List()
+//│ | | | | | >>>> List(x22'')
+//│ | | | | | !! x22'' Some(false) List({a: a23''})
+//│ | | | | | Analysis[-] {a: a23''}  [x22'']
+//│ | | | | | | Analysis[-] a23''  []
+//│ | | | | | | | >>> List()
+//│ | | | | | | | >>>> List(a23'')
+//│ | | | | | | | !! a23'' Some(false) List()
+//│ | | | Analysis[+] a23''  []
 //│ | | | | >>> List()
-//│ | | | | >>>> List(x22'')
-//│ | | | | !! x22'' Some(false) List({a: a23''})
-//│ | | | | Analysis[-] {a: a23''}  [x22'']
-//│ | | | | | Analysis[-] a23''  []
-//│ | | | | | | >>> List()
-//│ | | | | | | >>>> List(a23'')
-//│ | | | | | | !! a23'' Some(false) List()
-//│ | | Analysis[+] a23''  []
-//│ | | | >>> List()
-//│ | | | >>>> List(a23'')
-//│ | | | !! a23'' Some(true) List()
-//│ | Unif-pre: HashMap()
-//│ | Pos: HashSet(a23'')
-//│ | Neg: HashSet(x22'', a23'')
-//│ | Rec: HashSet()
-//│ | Unif: HashMap()
-//│ | subst((x22'' -> a23''))
-//│ | | subst((x22'',))
-//│ | | | subst(x22'')
-//│ | | | | Repr: x22''
-//│ | | | | subst({a: a23''})
-//│ | | | | | subst(a23'')
-//│ | | | | | | Repr: a23''
-//│ | | | | | = a23''
-//│ | | | | = {a: a23''}
-//│ | | | = x22''
-//│ | | = (x22'',)
-//│ | | subst(a23'')
-//│ | | | Repr: a23''
-//│ | | = a23''
-//│ | = (x22'' -> a23'')
+//│ | | | | >>>> List(a23'')
+//│ | | | | !! a23'' Some(true) List()
+//│ | | Unif-pre: HashMap()
+//│ | | Pos: HashSet(a23'')
+//│ | | Neg: HashSet(x22'', a23'')
+//│ | | Rec: HashSet()
+//│ | | Unif: HashMap()
+//│ | | subst((x22'' -> a23''))
+//│ | | | subst((x22'',))
+//│ | | | | subst(x22'')
+//│ | | | | | Repr: x22''
+//│ | | | | | subst({a: a23''})
+//│ | | | | | | subst(a23'')
+//│ | | | | | | | Repr: a23''
+//│ | | | | | | = a23''
+//│ | | | | | = {a: a23''}
+//│ | | | | = x22''
+//│ | | | = (x22'',)
+//│ | | | subst(a23'')
+//│ | | | | Repr: a23''
+//│ | | | = a23''
+//│ | | = (x22'' -> a23'')
+//│ | 1. Simplified: (x22'' -> a23'') where 
+//│ 		x22'' <: {a: a23''}
 //│ | UNSTASHING... (out)
 //│ 1. : ‹∀ 1. (x22'' -> a23'')›
 //│ UNSTASHING... (out)
 //│ Inferred let-bound term type: ‹∀ 1. (x22'' -> a23'')› where 
 //│ 		x22'' <: {a: a23''}
-//│ Analysis[+] ‹∀ 1. (x22'' -> a23'')›  []
-//│ | Analysis[+] (x22'' -> a23'')  []
-//│ | | Analysis[-] (x22'',)  []
-//│ | | | Analysis[-] x22''  []
-//│ | | | | >>> List()
-//│ | | | | >>>> List(x22'')
-//│ | | | | !! x22'' Some(false) List({a: a23''})
-//│ | | | | Analysis[-] {a: a23''}  [x22'']
-//│ | | | | | Analysis[-] a23''  []
-//│ | | | | | | >>> List()
-//│ | | | | | | >>>> List(a23'')
-//│ | | | | | | !! a23'' Some(false) List()
-//│ | | Analysis[+] a23''  []
-//│ | | | >>> List()
-//│ | | | >>>> List(a23'')
-//│ | | | !! a23'' Some(true) List()
-//│ Unif-pre: HashMap()
-//│ Pos: HashSet(a23'')
-//│ Neg: HashSet(x22'', a23'')
-//│ Rec: HashSet()
-//│ Unif: HashMap()
-//│ subst(‹∀ 1. (x22'' -> a23'')›)
-//│ | subst((x22'' -> a23''))
-//│ | | subst((x22'',))
-//│ | | | subst(x22'')
-//│ | | | | Repr: x22''
-//│ | | | | subst({a: a23''})
-//│ | | | | | subst(a23'')
-//│ | | | | | | Repr: a23''
-//│ | | | | | = a23''
-//│ | | | | = {a: a23''}
-//│ | | | = x22''
-//│ | | = (x22'',)
-//│ | | subst(a23'')
-//│ | | | Repr: a23''
-//│ | | = a23''
-//│ | = (x22'' -> a23'')
-//│ = ‹∀ 1. (x22'' -> a23'')›
+//│ 0. Online simplification
+//│ | Analysis[+] ‹∀ 1. (x22'' -> a23'')›  []
+//│ | Unif-pre: HashMap()
+//│ | Pos: HashSet()
+//│ | Neg: HashSet()
+//│ | Rec: HashSet()
+//│ | Unif: HashMap()
+//│ | subst(‹∀ 1. (x22'' -> a23'')›)
+//│ | = ‹∀ 1. (x22'' -> a23'')›
+//│ 0. Simplified: ‹∀ 1. (x22'' -> a23'')› where 
+//│ 		x22'' <: {a: a23''}
 //│ ⬤ Typed as: ‹∀ 1. (x22'' -> a23'')›
 //│  where: 
 //│ 		x22'' <: {a: a23''}
@@ -319,77 +262,61 @@ def foo x = id x
 //│ | Inferred poly constr: (x28'' -> α29'')  —— where 
 //│ 		x28'' <: α5_30''
 //│ 		α5_30'' <: α29''
-//│ | Analysis[+] (x28'' -> α29'')  []
-//│ | | Analysis[-] (x28'',)  []
-//│ | | | Analysis[-] x28''  []
+//│ | 1. Online simplification
+//│ | | Analysis[+] (x28'' -> α29'')  []
+//│ | | | Analysis[-] (x28'',)  []
+//│ | | | | Analysis[-] x28''  []
+//│ | | | | | >>> List()
+//│ | | | | | >>>> List(x28'')
+//│ | | | | | !! x28'' Some(false) List(α5_30'')
+//│ | | | | | Analysis[-] α5_30''  [x28'']
+//│ | | | | | | >>> List(x28'')
+//│ | | | | | | >>>> List(α5_30'', x28'')
+//│ | | | | | | !! α5_30'' Some(false) List(α29'')
+//│ | | | | | | Analysis[-] α29''  [x28'' ~> α5_30'']
+//│ | | | | | | | >>> List(α5_30'', x28'')
+//│ | | | | | | | >>>> List(α29'', α5_30'', x28'')
+//│ | | | | | | | !! α29'' Some(false) List()
+//│ | | | Analysis[+] α29''  []
 //│ | | | | >>> List()
-//│ | | | | >>>> List(x28'')
-//│ | | | | !! x28'' Some(false) List(α5_30'')
-//│ | | | | Analysis[-] α5_30''  [x28'']
-//│ | | | | | >>> List(x28'')
-//│ | | | | | >>>> List(α5_30'', x28'')
-//│ | | | | | !! α5_30'' Some(false) List(α29'')
-//│ | | | | | Analysis[-] α29''  [x28'' ~> α5_30'']
-//│ | | | | | | >>> List(α5_30'', x28'')
-//│ | | | | | | >>>> List(α29'', α5_30'', x28'')
-//│ | | | | | | !! α29'' Some(false) List()
-//│ | | Analysis[+] α29''  []
-//│ | | | >>> List()
-//│ | | | >>>> List(α29'')
-//│ | | | !! α29'' Some(true) List()
-//│ | Unif-pre: HashMap()
-//│ | Pos: HashSet(α29'')
-//│ | Neg: HashSet(x28'', α29'', α5_30'')
-//│ | Rec: HashSet()
-//│ | Unif: HashMap()
-//│ | subst((x28'' -> α29''))
-//│ | | subst((x28'',))
-//│ | | | subst(x28'')
-//│ | | | | Repr: x28''
-//│ | | | | subst(α5_30'')
-//│ | | | | | Repr: α5_30''
-//│ | | | | | subst(α29'')
-//│ | | | | | | Repr: α29''
+//│ | | | | >>>> List(α29'')
+//│ | | | | !! α29'' Some(true) List()
+//│ | | Unif-pre: HashMap()
+//│ | | Pos: HashSet(α29'')
+//│ | | Neg: HashSet(x28'', α29'', α5_30'')
+//│ | | Rec: HashSet()
+//│ | | Unif: HashMap()
+//│ | | subst((x28'' -> α29''))
+//│ | | | subst((x28'',))
+//│ | | | | subst(x28'')
+//│ | | | | | Repr: x28''
+//│ | | | | | subst(α5_30'')
+//│ | | | | | | Repr: α5_30''
+//│ | | | | | | subst(α29'')
+//│ | | | | | | | Repr: α29''
+//│ | | | | | | = α29''
 //│ | | | | | = α29''
 //│ | | | | = α29''
+//│ | | | = (α29'',)
+//│ | | | subst(α29'')
+//│ | | | | Repr: α29''
 //│ | | | = α29''
-//│ | | = (α29'',)
-//│ | | subst(α29'')
-//│ | | | Repr: α29''
-//│ | | = α29''
-//│ | = (α29'' -> α29'')
+//│ | | = (α29'' -> α29'')
+//│ | 1. Simplified: (α29'' -> α29'') where 
 //│ | UNSTASHING... (out)
 //│ 1. : ‹∀ 1. (α29'' -> α29'')›
 //│ UNSTASHING... (out)
 //│ Inferred let-bound term type: ‹∀ 1. (α29'' -> α29'')› where 
-//│ Analysis[+] ‹∀ 1. (α29'' -> α29'')›  []
-//│ | Analysis[+] (α29'' -> α29'')  []
-//│ | | Analysis[-] (α29'',)  []
-//│ | | | Analysis[-] α29''  []
-//│ | | | | >>> List()
-//│ | | | | >>>> List(α29'')
-//│ | | | | !! α29'' Some(false) List()
-//│ | | Analysis[+] α29''  []
-//│ | | | >>> List()
-//│ | | | >>>> List(α29'')
-//│ | | | !! α29'' Some(true) List()
-//│ Unif-pre: HashMap()
-//│ Pos: HashSet(α29'')
-//│ Neg: HashSet(α29'')
-//│ Rec: HashSet()
-//│ Unif: HashMap()
-//│ subst(‹∀ 1. (α29'' -> α29'')›)
-//│ | subst((α29'' -> α29''))
-//│ | | subst((α29'',))
-//│ | | | subst(α29'')
-//│ | | | | Repr: α29''
-//│ | | | = α29''
-//│ | | = (α29'',)
-//│ | | subst(α29'')
-//│ | | | Repr: α29''
-//│ | | = α29''
-//│ | = (α29'' -> α29'')
-//│ = ‹∀ 1. (α29'' -> α29'')›
+//│ 0. Online simplification
+//│ | Analysis[+] ‹∀ 1. (α29'' -> α29'')›  []
+//│ | Unif-pre: HashMap()
+//│ | Pos: HashSet()
+//│ | Neg: HashSet()
+//│ | Rec: HashSet()
+//│ | Unif: HashMap()
+//│ | subst(‹∀ 1. (α29'' -> α29'')›)
+//│ | = ‹∀ 1. (α29'' -> α29'')›
+//│ 0. Simplified: ‹∀ 1. (α29'' -> α29'')› where 
 //│ ⬤ Typed as: ‹∀ 1. (α29'' -> α29'')›
 //│  where: 
 //│ foo: 'a -> 'a
@@ -434,95 +361,66 @@ def foo() = id : 'a -> 'a
 //│ | Inferred poly constr: (() -> ('a34'' -> 'a34''))  —— where 
 //│ 		'a34'' <: α5_35''
 //│ 		α5_35'' <: 'a34''
-//│ | Analysis[+] (() -> ('a34'' -> 'a34''))  []
-//│ | | Analysis[-] ()  []
-//│ | | Analysis[+] ('a34'' -> 'a34'')  []
-//│ | | | Analysis[-] ('a34'',)  []
-//│ | | | | Analysis[-] 'a34''  []
+//│ | 1. Online simplification
+//│ | | Analysis[+] (() -> ('a34'' -> 'a34''))  []
+//│ | | | Analysis[-] ()  []
+//│ | | | Analysis[+] ('a34'' -> 'a34'')  []
+//│ | | | | Analysis[-] ('a34'',)  []
+//│ | | | | | Analysis[-] 'a34''  []
+//│ | | | | | | >>> List()
+//│ | | | | | | >>>> List('a34'')
+//│ | | | | | | !! 'a34'' Some(false) List(α5_35'')
+//│ | | | | | | Analysis[-] α5_35''  ['a34'']
+//│ | | | | | | | >>> List('a34'')
+//│ | | | | | | | >>>> List(α5_35'', 'a34'')
+//│ | | | | | | | !! α5_35'' Some(false) List('a34'')
+//│ | | | | | | | Analysis[-] 'a34''  ['a34'' ~> α5_35'']
+//│ | | | | | | | | UNIFYING 'a34'' with α5_35'', 'a34''
+//│ | | | | | | | | HashMap(α5_35'' -> 'a34'')
+//│ | | | | Analysis[+] 'a34''  []
 //│ | | | | | >>> List()
 //│ | | | | | >>>> List('a34'')
-//│ | | | | | !! 'a34'' Some(false) List(α5_35'')
-//│ | | | | | Analysis[-] α5_35''  ['a34'']
-//│ | | | | | | >>> List('a34'')
-//│ | | | | | | >>>> List(α5_35'', 'a34'')
-//│ | | | | | | !! α5_35'' Some(false) List('a34'')
-//│ | | | | | | Analysis[-] 'a34''  ['a34'' ~> α5_35'']
-//│ | | | | | | | UNIFYING 'a34'' with α5_35'', 'a34''
-//│ | | | | | | | HashMap(α5_35'' -> 'a34'')
-//│ | | | Analysis[+] 'a34''  []
-//│ | | | | >>> List()
-//│ | | | | >>>> List('a34'')
-//│ | | | | !! 'a34'' Some(true) List(α5_35'')
-//│ | Unif-pre: HashMap(α5_35'' -> 'a34'')
-//│ | Pos: HashSet('a34'')
-//│ | Neg: HashSet('a34'', α5_35'')
-//│ | Rec: HashSet()
-//│ | Unif: HashMap(α5_35'' -> 'a34'')
-//│ | subst((() -> ('a34'' -> 'a34'')))
-//│ | | subst(())
-//│ | | = ()
-//│ | | subst(('a34'' -> 'a34''))
-//│ | | | subst(('a34'',))
+//│ | | | | | !! 'a34'' Some(true) List(α5_35'')
+//│ | | Unif-pre: HashMap(α5_35'' -> 'a34'')
+//│ | | Pos: HashSet('a34'')
+//│ | | Neg: HashSet('a34'', α5_35'')
+//│ | | Rec: HashSet()
+//│ | | Unif: HashMap(α5_35'' -> 'a34'')
+//│ | | subst((() -> ('a34'' -> 'a34'')))
+//│ | | | subst(())
+//│ | | | = ()
+//│ | | | subst(('a34'' -> 'a34''))
+//│ | | | | subst(('a34'',))
+//│ | | | | | subst('a34'')
+//│ | | | | | | Repr: 'a34''
+//│ | | | | | | subst(α5_35'')
+//│ | | | | | | | Repr: 'a34''
+//│ | | | | | | = ⊤..⊥
+//│ | | | | | = 'a34''
+//│ | | | | = ('a34'',)
 //│ | | | | subst('a34'')
 //│ | | | | | Repr: 'a34''
-//│ | | | | | subst(α5_35'')
-//│ | | | | | | Repr: 'a34''
-//│ | | | | | = ⊤..⊥
 //│ | | | | = 'a34''
-//│ | | | = ('a34'',)
-//│ | | | subst('a34'')
-//│ | | | | Repr: 'a34''
-//│ | | | = 'a34''
-//│ | | = ('a34'' -> 'a34'')
-//│ | = (() -> ('a34'' -> 'a34''))
+//│ | | | = ('a34'' -> 'a34'')
+//│ | | = (() -> ('a34'' -> 'a34''))
+//│ | 1. Simplified: (() -> ('a34'' -> 'a34'')) where 
+//│ 		'a34'' <: ⊤..⊥
 //│ | UNSTASHING... (out)
 //│ 1. : ‹∀ 1. (() -> ('a34'' -> 'a34''))›
 //│ UNSTASHING... (out)
 //│ Inferred let-bound term type: ‹∀ 1. (() -> ('a34'' -> 'a34''))› where 
 //│ 		'a34'' <: ⊤..⊥
-//│ Analysis[+] ‹∀ 1. (() -> ('a34'' -> 'a34''))›  []
-//│ | Analysis[+] (() -> ('a34'' -> 'a34''))  []
-//│ | | Analysis[-] ()  []
-//│ | | Analysis[+] ('a34'' -> 'a34'')  []
-//│ | | | Analysis[-] ('a34'',)  []
-//│ | | | | Analysis[-] 'a34''  []
-//│ | | | | | >>> List()
-//│ | | | | | >>>> List('a34'')
-//│ | | | | | !! 'a34'' Some(false) List(⊤..⊥)
-//│ | | | | | Analysis[-] ⊤..⊥  ['a34'']
-//│ | | | | | | Analysis[-] ⊤  ['a34'']
-//│ | | | | | | Analysis[+] ⊥  ['a34'']
-//│ | | | Analysis[+] 'a34''  []
-//│ | | | | >>> List()
-//│ | | | | >>>> List('a34'')
-//│ | | | | !! 'a34'' Some(true) List(⊤..⊥)
-//│ Unif-pre: HashMap()
-//│ Pos: HashSet('a34'')
-//│ Neg: HashSet('a34'')
-//│ Rec: HashSet()
-//│ Unif: HashMap()
-//│ subst(‹∀ 1. (() -> ('a34'' -> 'a34''))›)
-//│ | subst((() -> ('a34'' -> 'a34'')))
-//│ | | subst(())
-//│ | | = ()
-//│ | | subst(('a34'' -> 'a34''))
-//│ | | | subst(('a34'',))
-//│ | | | | subst('a34'')
-//│ | | | | | Repr: 'a34''
-//│ | | | | | subst(⊤..⊥)
-//│ | | | | | | subst(⊤)
-//│ | | | | | | = ⊤
-//│ | | | | | | subst(⊥)
-//│ | | | | | | = ⊥
-//│ | | | | | = ⊤..⊥
-//│ | | | | = 'a34''
-//│ | | | = ('a34'',)
-//│ | | | subst('a34'')
-//│ | | | | Repr: 'a34''
-//│ | | | = 'a34''
-//│ | | = ('a34'' -> 'a34'')
-//│ | = (() -> ('a34'' -> 'a34''))
-//│ = ‹∀ 1. (() -> ('a34'' -> 'a34''))›
+//│ 0. Online simplification
+//│ | Analysis[+] ‹∀ 1. (() -> ('a34'' -> 'a34''))›  []
+//│ | Unif-pre: HashMap()
+//│ | Pos: HashSet()
+//│ | Neg: HashSet()
+//│ | Rec: HashSet()
+//│ | Unif: HashMap()
+//│ | subst(‹∀ 1. (() -> ('a34'' -> 'a34''))›)
+//│ | = ‹∀ 1. (() -> ('a34'' -> 'a34''))›
+//│ 0. Simplified: ‹∀ 1. (() -> ('a34'' -> 'a34''))› where 
+//│ 		'a34'' <: ⊤..⊥
 //│ ⬤ Typed as: ‹∀ 1. (() -> ('a34'' -> 'a34''))›
 //│  where: 
 //│ 		'a34'' <: ⊤..⊥
@@ -571,53 +469,57 @@ rec def foo x = foo x.a
 //│ 		foo39'# := (x40' -> α42')
 //│ 		x40' <: {a: a41'}
 //│ 		a41' <: x40'
-//│ Analysis[+] foo39'#  []
-//│ | >>> List()
-//│ | >>>> List(foo39'#)
-//│ | Analysis[+] (x40' -> α42')  [foo39'#]
-//│ | | Analysis[-] (x40',)  []
-//│ | | | Analysis[-] x40'  []
+//│ 0. Online simplification
+//│ | Analysis[+] foo39'#  []
+//│ | | >>> List()
+//│ | | >>>> List(foo39'#)
+//│ | | Analysis[+] (x40' -> α42')  [foo39'#]
+//│ | | | Analysis[-] (x40',)  []
+//│ | | | | Analysis[-] x40'  []
+//│ | | | | | >>> List()
+//│ | | | | | >>>> List(x40')
+//│ | | | | | !! x40' Some(false) List({a: a41'})
+//│ | | | | | Analysis[-] {a: a41'}  [x40']
+//│ | | | | | | Analysis[-] a41'  []
+//│ | | | | | | | >>> List()
+//│ | | | | | | | >>>> List(a41')
+//│ | | | | | | | !! a41' Some(false) List(x40')
+//│ | | | | | | | Analysis[-] x40'  [a41']
+//│ | | | | | | | | REC x40'
+//│ | | | Analysis[+] α42'  []
 //│ | | | | >>> List()
-//│ | | | | >>>> List(x40')
-//│ | | | | !! x40' Some(false) List({a: a41'})
-//│ | | | | Analysis[-] {a: a41'}  [x40']
-//│ | | | | | Analysis[-] a41'  []
-//│ | | | | | | >>> List()
-//│ | | | | | | >>>> List(a41')
-//│ | | | | | | !! a41' Some(false) List(x40')
-//│ | | | | | | Analysis[-] x40'  [a41']
-//│ | | | | | | | REC x40'
-//│ | | Analysis[+] α42'  []
-//│ | | | >>> List()
-//│ | | | >>>> List(α42')
-//│ | | | !! α42' Some(true) List()
-//│ Unif-pre: HashMap()
-//│ Pos: HashSet(foo39'#, α42')
-//│ Neg: HashSet(x40', a41')
-//│ Rec: HashSet(x40')
-//│ Unif: HashMap()
-//│ subst(foo39'#)
-//│ | Repr: foo39'#
-//│ | subst((x40' -> α42'))
-//│ | | subst((x40',))
-//│ | | | subst(x40')
-//│ | | | | Repr: x40'
-//│ | | | | It's recursive!
-//│ | | | | subst({a: a41'})
-//│ | | | | | subst(a41')
-//│ | | | | | | Repr: a41'
-//│ | | | | | | subst(x40')
-//│ | | | | | | | Repr: x40'
+//│ | | | | >>>> List(α42')
+//│ | | | | !! α42' Some(true) List()
+//│ | Unif-pre: HashMap()
+//│ | Pos: HashSet(foo39'#, α42')
+//│ | Neg: HashSet(x40', a41')
+//│ | Rec: HashSet(x40')
+//│ | Unif: HashMap()
+//│ | subst(foo39'#)
+//│ | | Repr: foo39'#
+//│ | | subst((x40' -> α42'))
+//│ | | | subst((x40',))
+//│ | | | | subst(x40')
+//│ | | | | | Repr: x40'
+//│ | | | | | It's recursive!
+//│ | | | | | subst({a: a41'})
+//│ | | | | | | subst(a41')
+//│ | | | | | | | Repr: a41'
+//│ | | | | | | | subst(x40')
+//│ | | | | | | | | Repr: x40'
+//│ | | | | | | | = x40'
 //│ | | | | | | = x40'
-//│ | | | | | = x40'
-//│ | | | | = {a: x40'}
-//│ | | | = x40'
-//│ | | = (x40',)
-//│ | | subst(α42')
-//│ | | | Repr: α42'
-//│ | | = ⊥
-//│ | = (x40' -> ⊥)
-//│ = foo39'#
+//│ | | | | | = {a: x40'}
+//│ | | | | = x40'
+//│ | | | = (x40',)
+//│ | | | subst(α42')
+//│ | | | | Repr: α42'
+//│ | | | = ⊥
+//│ | | = (x40' -> ⊥)
+//│ | = foo39'#
+//│ 0. Simplified: foo39'# where 
+//│ 		foo39'# := (x40' -> ⊥)
+//│ 		x40' <: {a: x40'}
 //│ ⬤ Typed as: ‹∀ 0. foo39'#›
 //│  where: 
 //│ 		foo39'# := (x40' -> ⊥)

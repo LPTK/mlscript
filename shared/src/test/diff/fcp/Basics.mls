@@ -25,11 +25,11 @@ test1 (fun value -> { value })
 test2 f =
   let r x = f x
   in (r 0, r true)
-//│ test2: (nothing -> anything) -> (nothing, nothing,)
+//│ test2: ((0 | true) -> 'a) -> ('a, 'a,)
 //│      = [Function: test2]
 
 test2 (fun value -> { value })
-//│ res: (nothing, nothing,)
+//│ res: ({value: 0 | true}, {value: 0 | true},)
 //│    = [ { value: 0 }, { value: true } ]
 
 

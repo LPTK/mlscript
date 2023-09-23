@@ -48,14 +48,14 @@ test = bar foo
 def foo f = let g x = f x in (g 123, g true)
 fooid = foo id
 fooSome = foo Some
-//│ foo: (nothing -> anything) -> (nothing, nothing,)
-//│ fooid: (nothing, nothing,)
-//│ fooSome: (nothing, nothing,)
+//│ foo: ((123 | true) -> 'a) -> ('a, 'a,)
+//│ fooid: (123 | true, 123 | true,)
+//│ fooSome: (Option[123 | true], Option[123 | true],)
 
 def bar f = (f (fun x -> x), f (fun x -> Some x))
 test = bar foo
 //│ bar: ((forall 'a. 'a -> 'a) -> 'b & (forall 'c. 'c -> Option['c]) -> 'd) -> ('b, 'd,)
-//│ test: ((nothing, nothing,), (nothing, nothing,),)
+//│ test: ((123 | true, 123 | true,), (Option[123 | true], Option[123 | true],),)
 
 
 // * With function type annotation (same lesser generality)
@@ -98,7 +98,7 @@ def found: Option[forall 'a 'b. ('a -> 'b & 'a) -> ('b | 'a)]
 //│ found: Option[forall 'a 'b. ('a -> 'b & 'a) -> ('a | 'b)]
 
 found = find(ls, 1)
-//│ Option[forall 'a 'b 'c. ('a -> 'b & 'a & 'c) -> ('b | 'c)]
+//│ Option[forall 'a 'b 'c. ('c -> 'a & 'c & 'b) -> ('a | 'b)]
 //│   <:  found:
 //│ Option[forall 'a 'b. ('a -> 'b & 'a) -> ('a | 'b)]
 

@@ -38,14 +38,16 @@ x => let y = x; y
 //│ /!\ Parse error: Expected expression:1:1, found "x => let y" at l.37:1: x => let y = x; y
 
 x => (let y = x; y)
+x => (let y = x; y)
 x =>
   let y = x; y
 x =>
   let y = x
   y
-//│ res: anything -> nothing
-//│ res: anything -> nothing
-//│ res: anything -> nothing
+//│ res: 'a -> 'a
+//│ res: 'a -> 'a
+//│ res: 'a -> 'a
+//│ res: 'a -> 'a
 
 let f x = x + 1
 let f x y = x + y
@@ -63,7 +65,7 @@ let f x y z = { log x; if y < z then y else z }
 :pe
 let f / x: int = x + 1
 let f / x: int, y: int = x + y
-//│ /!\ Parse error: Expected (data type definition | data definition | let binding | expression):1:1, found "let f / x:" at l.64:1: let f / x: int = x + 1
+//│ /!\ Parse error: Expected (data type definition | data definition | let binding | expression):1:1, found "let f / x:" at l.66:1: let f / x: int = x + 1
 
 // TODO
 // let f (
@@ -87,19 +89,19 @@ f (y: 42)
 :e
 f (x: 42, y: 43)
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.88: 	f (x: 42, y: 43)
+//│ ║  l.90: 	f (x: 42, y: 43)
 //│ ║        	^^^^^^^^^^^^^^^^
 //│ ╟── tuple of type `(x: 42, y: 43,)` is not an instance of type `int`
-//│ ║  l.88: 	f (x: 42, y: 43)
+//│ ║  l.90: 	f (x: 42, y: 43)
 //│ ║        	   ^^^^^^^^^^^^
 //│ ╟── but it flows into argument with expected type `int`
-//│ ║  l.88: 	f (x: 42, y: 43)
+//│ ║  l.90: 	f (x: 42, y: 43)
 //│ ║        	  ^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
-//│ ║  l.74: 	let f(x: int) = x + 1
+//│ ║  l.76: 	let f(x: int) = x + 1
 //│ ║        	         ^^^
 //│ ╟── from binding:
-//│ ║  l.74: 	let f(x: int) = x + 1
+//│ ║  l.76: 	let f(x: int) = x + 1
 //│ ╙──      	      ^^^^^^
 //│ res: error | int
 

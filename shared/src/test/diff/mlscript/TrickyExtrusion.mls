@@ -27,14 +27,14 @@ test f = (f 0, f True)
 test f =
   let r x = f x
   in (r 0, r True)
-//│ test: (nothing -> anything) -> (nothing, nothing,)
+//│ test: ((0 | true) -> 'a) -> ('a, 'a,)
 //│     = [Function: test1]
 
 // Same example, a little elaborated
 test f =
   let r = fun x -> fun g -> (g x, f x)
   in (r 0 inc, r True not)
-//│ test: (nothing -> anything) -> ((int, nothing,), (bool, nothing,),)
+//│ test: ((0 | true) -> 'a) -> ((int, 'a,), (bool, 'a,),)
 //│     = <no result>
 //│       inc is not implemented
 
@@ -49,22 +49,49 @@ test f =
 test f =
   let r x = f x
   in (r 0, r True)
-//│ test: (nothing -> anything) -> (nothing, nothing,)
+//│ test: ((0 | true) -> 'a) -> ('a, 'a,)
 //│     = [Function: test2]
 
 :e // * Due to lack of precision
 (test id)._1 + 1
-//│ res: int
+//│ ╔══[ERROR] Type mismatch in operator application:
+//│ ║  l.56: 	(test id)._1 + 1
+//│ ║        	^^^^^^^^^^^^^^
+//│ ╟── reference of type `true` is not an instance of type `int`
+//│ ║  l.4: 	True = true
+//│ ║       	       ^^^^
+//│ ╟── but it flows into field selection with expected type `int`
+//│ ║  l.56: 	(test id)._1 + 1
+//│ ╙──      	^^^^^^^^^^^^
+//│ res: error | int
 //│    = NaN
 
 :e // * Due to lack of precision
 not (test id)._2
-//│ res: bool
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.70: 	not (test id)._2
+//│ ║        	^^^^^^^^^^^^^^^^
+//│ ╟── integer literal of type `0` is not an instance of type `bool`
+//│ ║  l.51: 	  in (r 0, r True)
+//│ ║        	        ^
+//│ ╟── but it flows into field selection with expected type `bool`
+//│ ║  l.70: 	not (test id)._2
+//│ ╙──      	    ^^^^^^^^^^^^
+//│ res: bool | error
 //│    = true
 
 :e // * Legit
 not (test id)._1
-//│ res: bool
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.84: 	not (test id)._1
+//│ ║        	^^^^^^^^^^^^^^^^
+//│ ╟── integer literal of type `0` is not an instance of type `bool`
+//│ ║  l.51: 	  in (r 0, r True)
+//│ ║        	        ^
+//│ ╟── but it flows into field selection with expected type `bool`
+//│ ║  l.84: 	not (test id)._1
+//│ ╙──      	    ^^^^^^^^^^^^
+//│ res: bool | error
 //│    = true
 
 
@@ -83,12 +110,14 @@ not (test id)._1
 test f =
   let r x = f x
   in (r 0, r True)
-//│ test: anything -> (nothing, nothing,)
+//│ test: forall 'a 'b 'c. 'b -> ('c, 'a,)
+//│   where
+//│     'b <: true -> 'a & 0 -> 'c
 //│     = [Function: test3]
 
 // * Q: why does this type *appear* approximated after simplification?
 test
-//│ res: anything -> (nothing, nothing,)
+//│ res: (0 -> 'a & true -> 'b) -> ('a, 'b,)
 //│    = [Function: test3]
 
 // * We can tell the type is still precise enough because these work:
@@ -103,7 +132,16 @@ not (test id)._2
 
 :e // * Legit
 not (test id)._1
-//│ res: bool
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.134: 	not (test id)._1
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ╟── integer literal of type `0` is not an instance of type `bool`
+//│ ║  l.112: 	  in (r 0, r True)
+//│ ║         	        ^
+//│ ╟── but it flows into field selection with expected type `bool`
+//│ ║  l.134: 	not (test id)._1
+//│ ╙──       	    ^^^^^^^^^^^^
+//│ res: bool | error
 //│    = true
 
 
@@ -111,7 +149,7 @@ not (test id)._1
 rec def test f =
   let r x = f x
   in (r 0, r True)
-//│ test: anything -> (nothing, nothing,)
+//│ test: (0 -> 'a & true -> 'b) -> ('a, 'b,)
 //│     = [Function: test4]
 
 

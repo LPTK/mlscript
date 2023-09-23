@@ -254,13 +254,13 @@ y => (let f = x => x; {a: f y, b: f true})
 //│ res: 'a -> {a: 'a, b: true}
 
 y => (let f = x => y x; {a: f 0, b: f true})
-//│ res: (nothing -> anything) -> {a: nothing, b: nothing}
+//│ res: ((0 | true) -> 'a) -> {a: 'a, b: 'a}
 
 y => (let f = x => x y; {a: f (z => z), b: f (z => true)})
-//│ res: anything -> {a: nothing, b: true}
+//│ res: 'a -> {a: 'a, b: true}
 
 y => (let f = x => x y; {a: f (z => z), b: f (z => succ z)})
-//│ res: anything -> {a: nothing, b: int}
+//│ res: (int & 'a) -> {a: 'a, b: int}
 
 
 
@@ -405,7 +405,7 @@ let rec x = (let y = (x x); (z => z)); (x (y => y.u)) // [test:T1]
 
 :ns
 let rec x = (let y = (x x); (z => z))
-//│ x: forall 'x 'a. 'x
+//│ x: forall 'a 'x. 'x
 //│   where
 //│     'x := 'a -> 'a
 //│     'a :> 'a -> 'a
@@ -450,15 +450,15 @@ let rec x = (let y = (x x); (z => z))
 (f => (x => f (v => (x x) v)) (x => f (v => (x x) v))) (f => x => f)
 //│ res: anything -> (forall 'a 'b. ('a -> 'b
 //│   where
-//│     forall 'c 'd. ('c -> 'd
+//│     forall 'c 'd. ('d -> 'c
 //│   where
 //│     forall 'e. 'e -> anything -> 'e <: (forall 'f 'g. ('f -> 'g
 //│   where
-//│     'c <: 'c -> 'f -> 'g)) -> 'd) <: (forall 'c 'd. ('c -> 'd
+//│     'd <: 'd -> 'f -> 'g)) -> 'c) <: (forall 'c 'd. ('d -> 'c
 //│   where
 //│     forall 'e. 'e -> anything -> 'e <: (forall 'f 'g. ('f -> 'g
 //│   where
-//│     'c <: 'c -> 'f -> 'g)) -> 'd)) -> 'a -> 'b))
+//│     'd <: 'd -> 'f -> 'g)) -> 'c)) -> 'a -> 'b))
 
 
 

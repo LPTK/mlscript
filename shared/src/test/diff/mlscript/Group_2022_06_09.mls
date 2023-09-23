@@ -154,11 +154,12 @@ def ev2_ty: (Add & { lhs: 'a; rhs: 'a } | Lit | Neg & { e: 'a } as 'a) -> int
 //│       = <missing implementation>
 
 ev2_ty = ev2
-//│ ((Add with {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg}) | (Lit with {n: 'n}) | Neg & 'c) -> (int | 'n)
+//│ ((Add with {lhs: 'a, rhs: 'a}) | (Lit with {n: 'n}) | Neg & 'b) -> (int | 'n)
 //│   where
-//│     'c <: {e: (Add with {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg}) | Lit | Neg & 'c}
-//│     'a <: {e: 'b | Neg & 'a}
-//│     'b <: Add & {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg} | Lit
+//│     'b <: {e: (Add with {lhs: 'a, rhs: 'a}) | Lit | Neg & 'b}
+//│     'a <: Neg & 'c | 'd & ~#Neg
+//│     'c <: {e: 'd | Neg & 'c}
+//│     'd <: (Add with {lhs: 'a, rhs: 'a}) | Lit
 //│   <:  ev2_ty:
 //│ 'a -> int
 //│   where

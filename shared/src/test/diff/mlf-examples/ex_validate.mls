@@ -278,9 +278,9 @@ fun x -> fun y ->
 fun x -> fun y ->
   let isnil = x y in
     (isnil (cons 1 (cons 2 (cons 3 nil))), isnil nil, isnil (cons "ok" nil), isnil (cons true nil)) 
-//│ res: Id -> anything -> (nothing, nothing, nothing, nothing,)
+//│ res: Id -> (List[1 | 2 | 3] -> 'a & List[nothing] -> 'b & List["ok"] -> 'c & List[true] -> 'd) -> ('a, 'b, 'c, 'd,)
 //│    = [Function: res]
-//│ res: ('a -> anything) -> 'a -> (nothing, nothing, nothing, nothing,)
+//│ res: ('a -> (List[1 | 2 | 3] -> 'b & List[nothing] -> 'c & List["ok"] -> 'd & List[true] -> 'e)) -> 'a -> ('b, 'c, 'd, 'e,)
 //│    = [Function: res]
 
 // (*let t1 = f delta	

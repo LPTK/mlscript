@@ -148,28 +148,31 @@ eval2_fixed_1 e2
 //│    = -5
 
 def fix f = let fixed = fun x -> f (fun v -> (x x) v) in fixed fixed!
-//│ fix: ((anything -> nothing) -> anything) -> nothing
+//│ fix: (('a -> 'b) -> ('a -> 'b & 'c)) -> 'c
 //│    = [Function: fix]
 
 def eval2_fixed_2 = fix eval2f
-//│ eval2_fixed_2: nothing
+//│ eval2_fixed_2: (Add[?] & 'a | (Lit with {val: 'val}) | Nega[?] & {arg: 'b}) -> (int | 'val)
+//│   where
+//│     'a <: {lhs: 'b, rhs: 'b}
+//│     'b <: Add[?] & 'a | Lit | Nega[?] & {arg: 'b}
 //│              = [Function: eval2_fixed_2]
 
 :stats
 eval2_fixed_2 e1
-//│ res: nothing
+//│ res: int
 //│    = 6
-//│ constrain calls  : 1
-//│ annoying  calls  : 0
-//│ subtyping calls  : 3
+//│ constrain calls  : 148
+//│ annoying  calls  : 70
+//│ subtyping calls  : 1225
 
 :stats
 eval2_fixed_2 e2
-//│ res: nothing
+//│ res: int
 //│    = -5
-//│ constrain calls  : 1
-//│ annoying  calls  : 0
-//│ subtyping calls  : 3
+//│ constrain calls  : 231
+//│ annoying  calls  : 100
+//│ subtyping calls  : 1838
 
 
 
@@ -327,7 +330,7 @@ eval2_broken eval2_broken! e2
 //│ ║  l.20: 	  | Add -> eval1 eval1 e.lhs + eval1 eval1 e.rhs
 //│ ║        	                               ^^^^^^^^^^^^^^^^^
 //│ ╟── from field selection:
-//│ ║  l.313: 	  | Nega -> e.arg
+//│ ║  l.316: 	  | Nega -> e.arg
 //│ ╙──       	            ^^^^^
 //│ res: error | int
 
@@ -340,6 +343,18 @@ def eval2f_oops eval2 e = case e of {
 
 // :e
 fix eval2f_oops e2
-//│ res: nothing
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.+1: 	fix eval2f_oops e2
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ╟── function of type `?a -> ?b` does not match type `Add[?] & ?c | Lit & ?d`
+//│ ║  l.150: 	def fix f = let fixed = fun x -> f (fun v -> (x x) v) in fixed fixed!
+//│ ║         	                                    ^^^^^^^^^^^^^^^^
+//│ ╟── Note: constraint arises from reference:
+//│ ║  l.18: 	def eval1 eval1 e = case e of {
+//│ ║        	                         ^
+//│ ╟── from reference:
+//│ ║  l.338: 	def eval2f_oops eval2 e = case e of {
+//│ ╙──       	                               ^
+//│ res: error | int
 
 

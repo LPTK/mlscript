@@ -615,7 +615,7 @@ rec def to_ch_s_A1 n =
 //│           = [Function: to_ch_s_A1]
 
 to_church_ty = to_ch_s_A1
-//│ int -> (forall 'N 'N0 'a. ('N -> ('N & 'N0) & 'N0 -> 'a) -> (forall 'b. ('N & 'N0 & 'b) -> ('b | 'a)))
+//│ int -> (forall 'N 'a 'N0. ('N0 -> ('N0 & 'N) & 'N -> 'a) -> (forall 'b. ('N0 & 'N & 'b) -> ('b | 'a)))
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_ch_s_A1]

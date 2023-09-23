@@ -27,7 +27,7 @@ fun compute(v) =
     Left(None()) then 1
     Right(Some(x)) then x * 3
     Right(None()) then 0
-//│ compute: (Left | Right) -> int
+//│ compute: (Left & {leftValue: None | Some & {value: int}} | Right & {rightValue: None | Some & {value: int}}) -> int
 
 fun crazy(v) =
   if v is

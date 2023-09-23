@@ -32,11 +32,11 @@ if Pair(0, 1) is Pair(a, b) then a > b else false
 
 
 fun foo(x) = x is Pair(a, b) and a > b
-//│ foo: anything -> bool
+//│ foo: (Pair & {fst: number, snd: number} | ~Pair) -> bool
 //│    = [Function: foo1]
 
 fun foo(x) = if x is Pair(a, b) then a > b else false
-//│ foo: anything -> bool
+//│ foo: (Pair & {fst: number, snd: number} | ~Pair) -> bool
 //│    = [Function: foo2]
 
 

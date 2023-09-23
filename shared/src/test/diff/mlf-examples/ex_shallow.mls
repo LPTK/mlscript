@@ -146,7 +146,7 @@ def a1_sid_to_nat (g: A1_sid) =
 def a1_sid_to_nat_ g =
   let r = fun f -> g (fun x -> f x) in
   r
-//│ a1_sid_to_nat_: ((anything -> nothing) -> anything) -> (nothing -> anything) -> nothing
+//│ a1_sid_to_nat_: (('a -> 'b) -> 'c) -> ('a -> 'b) -> 'c
 //│               = [Function: a1_sid_to_nat_]
 
 // (* the term is as above but abstract over sb and uses the coercion *)
@@ -331,7 +331,7 @@ def a2_ (x: A1) =
 def a0 = a2 a1
 //│ a0: anything -> 'a
 //│   where
-//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('g -> 'h & 'h -> 'f) -> 'g -> 'f) -> 'a
+//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('h -> 'f & 'f -> 'g) -> 'h -> 'g) -> 'a
 //│   = [Function: a01]
 
 def a0_ = a2_ a1
@@ -371,7 +371,7 @@ def a2'_ x =
     let _ = x y church_two in
     y church_succ
   ) a3
-//│ a2'_: ((forall 'a 'b. ('b -> 'a & 'b) -> 'a) -> (forall 'c. 'c -> 'c) -> anything & (forall 'd. 'd -> (forall 'e. (anything -> 'e
+//│ a2'_: ((forall 'a 'b. ('a -> 'b & 'a) -> 'b) -> (forall 'c. 'c -> 'c) -> anything & (forall 'd. 'd -> (forall 'e. (anything -> 'e
 //│   where
 //│     'd <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'e))) -> (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> anything) -> (forall 'i. (anything -> 'i
 //│   where

@@ -510,7 +510,7 @@ fun x -> (x : List[forall 'a. 'a -> 'a])
 
 // ,("\\x -> let polys (xs :: [forall a . a -> a]) = 1; f y = x in polys [f::some a. forall b. b -> a]",Wrong)  -- escape in unify (with rigid annotations, otherwise we get a skolem mismatch)
 fun x -> let polys (xs: List[forall 'a. 'a -> 'a]) = 1 in let f y = x in polys (single (f : forall 'b. 'b -> 'a))
-//│ res: anything -> 1
+//│ res: ??a -> 1
 //│    = [Function: res]
 
 // ,("ids :: forall b. [forall a. a -> b]", Wrong)                                                       -- unify different skolems

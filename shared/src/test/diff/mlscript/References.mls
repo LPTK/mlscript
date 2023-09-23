@@ -177,17 +177,17 @@ move ri rn
 
 
 def swap a b = let tmp = a.Get in (a.Set b.Get, b.Set tmp)
-//│ swap: Ref['A] -> Ref[in 'A & 'A0 out 'A0] -> (unit, unit,)
+//│ swap: Ref[in 'A & 'A0 out 'A | 'A0] -> Ref[in 'A0 & 'A1 out 'A1 | 'A] -> (unit, unit,)
 //│     = [Function: swap]
 
 swap r
 swap ri
 swap rn
-//│ res: Ref[out 'A] -> (unit, unit,)
+//│ res: Ref[out 'A | 1] -> (unit, unit,)
 //│    = [Function (anonymous)]
-//│ res: Ref[in int & 'A out 'A] -> (unit, unit,)
+//│ res: Ref[int] -> (unit, unit,)
 //│    = [Function (anonymous)]
-//│ res: Ref[in number & 'A out 'A] -> (unit, unit,)
+//│ res: Ref[number] -> (unit, unit,)
 //│    = [Function (anonymous)]
 
 swap r ri
@@ -200,7 +200,16 @@ swap ri r
 :e
 swap rn ri
 swap ri rn
-//│ res: (unit, unit,)
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.201: 	swap rn ri
+//│ ║         	^^^^^^^^^^
+//│ ╟── type `number` is not an instance of type `int`
+//│ ║  l.87: 	rn = r : Ref[number]
+//│ ║        	             ^^^^^^
+//│ ╟── Note: constraint arises from type reference:
+//│ ║  l.86: 	ri = r : Ref[int]
+//│ ╙──      	             ^^^
+//│ res: (unit, unit,) | error
 //│    = [ [], [] ]
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.202: 	swap ri rn
@@ -294,10 +303,10 @@ refrefin = RefImpl { mut value = RefImpl { mut value = error } }
 //│   <:  refrefin:
 //│ Ref[in Ref[out int | string] out Ref[in int | string out nothing]]
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.287: 	refrefin = RefImpl { mut value = RefImpl { mut value = error } }
+//│ ║  l.296: 	refrefin = RefImpl { mut value = RefImpl { mut value = error } }
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `int` does not match type `nothing`
-//│ ║  l.272: 	def refrefin: Ref[Ref[int] & Ref[string]]
+//│ ║  l.281: 	def refrefin: Ref[Ref[int] & Ref[string]]
 //│ ╙──       	                      ^^^
 //│ Runtime error:
 //│   Error: unexpected runtime error
@@ -310,13 +319,13 @@ def consrefin: (Ref[int] & Ref[string]) -> int
 :e
 consrefin (RefImpl { mut value = error })
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.311: 	consrefin (RefImpl { mut value = error })
+//│ ║  l.320: 	consrefin (RefImpl { mut value = error })
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `string` is not an instance of type `int`
-//│ ║  l.306: 	def consrefin: (Ref[int] & Ref[string]) -> int
+//│ ║  l.315: 	def consrefin: (Ref[int] & Ref[string]) -> int
 //│ ║         	                               ^^^^^^
 //│ ╟── Note: constraint arises from type reference:
-//│ ║  l.306: 	def consrefin: (Ref[int] & Ref[string]) -> int
+//│ ║  l.315: 	def consrefin: (Ref[int] & Ref[string]) -> int
 //│ ║         	                    ^^^
 //│ ╟── Note: class type parameter A is defined at:
 //│ ║  l.12: 	class RefImpl[A]: Ref[A] & { mut value: A }
@@ -340,13 +349,13 @@ refun.Get
 fun x -> refun.Set x
 refun.Swap
 //│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.339: 	refun.Get
+//│ ║  l.348: 	refun.Get
 //│ ║         	^^^^^^^^^
 //│ ╟── type `string` is not an instance of `int`
-//│ ║  l.330: 	def refun: Ref[int] | Ref[string]
+//│ ║  l.339: 	def refun: Ref[int] | Ref[string]
 //│ ║         	                          ^^^^^^
 //│ ╟── Note: constraint arises from type reference:
-//│ ║  l.330: 	def refun: Ref[int] | Ref[string]
+//│ ║  l.339: 	def refun: Ref[int] | Ref[string]
 //│ ║         	               ^^^
 //│ ╟── Note: class type parameter A is defined at:
 //│ ║  l.3: 	class Ref[A]
@@ -355,13 +364,13 @@ refun.Swap
 //│    = <no result>
 //│      refun is not implemented
 //│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.340: 	fun x -> refun.Set x
+//│ ║  l.349: 	fun x -> refun.Set x
 //│ ║         	         ^^^^^^^^^
 //│ ╟── type `string` is not an instance of `int`
-//│ ║  l.330: 	def refun: Ref[int] | Ref[string]
+//│ ║  l.339: 	def refun: Ref[int] | Ref[string]
 //│ ║         	                          ^^^^^^
 //│ ╟── Note: constraint arises from type reference:
-//│ ║  l.330: 	def refun: Ref[int] | Ref[string]
+//│ ║  l.339: 	def refun: Ref[int] | Ref[string]
 //│ ║         	               ^^^
 //│ ╟── Note: class type parameter A is defined at:
 //│ ║  l.3: 	class Ref[A]
@@ -370,13 +379,13 @@ refun.Swap
 //│    = <no result>
 //│      refun is not implemented
 //│ ╔══[ERROR] Type mismatch in field selection:
-//│ ║  l.341: 	refun.Swap
+//│ ║  l.350: 	refun.Swap
 //│ ║         	^^^^^^^^^^
 //│ ╟── type `string` is not an instance of `int`
-//│ ║  l.330: 	def refun: Ref[int] | Ref[string]
+//│ ║  l.339: 	def refun: Ref[int] | Ref[string]
 //│ ║         	                          ^^^^^^
 //│ ╟── Note: constraint arises from type reference:
-//│ ║  l.330: 	def refun: Ref[int] | Ref[string]
+//│ ║  l.339: 	def refun: Ref[int] | Ref[string]
 //│ ║         	               ^^^
 //│ ╟── Note: class type parameter A is defined at:
 //│ ║  l.3: 	class Ref[A]
@@ -390,18 +399,18 @@ refun.Swap
 :e
 def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.391: 	def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
+//│ ║  l.400: 	def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
 //│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `string` is not an instance of type `int`
-//│ ║  l.391: 	def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
+//│ ║  l.400: 	def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
 //│ ║         	                                                       ^^^^^^
 //│ ╟── Note: constraint arises from type reference:
-//│ ║  l.391: 	def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
+//│ ║  l.400: 	def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
 //│ ║         	                                            ^^^
 //│ ╟── Note: class type parameter A is defined at:
 //│ ║  l.12: 	class RefImpl[A]: Ref[A] & { mut value: A }
 //│ ╙──      	              ^
-//│ bar: nothing -> Ref[in int | string out nothing]
+//│ bar: anything -> Ref[in int | string out nothing]
 //│    = [Function: bar]
 
 // * Note that this now signature-checks because it instantiates the inferred polymorphic type

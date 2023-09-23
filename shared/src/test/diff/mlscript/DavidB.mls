@@ -151,9 +151,10 @@ rec def foo xs = case xs of
     let tmp = foo xs.t.t in
     if xs.h then Con { h = xs.t.h; t = tmp } else tmp,
   N -> xs
-//│ foo: 'a -> (Con['h, nothing] | 'b)
+//│ foo: 'a -> 'b
 //│   where
 //│     'a <: Con[?, ?] & {h: bool, t: {h: 'h, t: 'a}} | N & 'b
+//│     'b :> Con['h, 'b]
 //│    = [Function: foo1]
 
 rec def foo xs = case xs of
@@ -211,16 +212,16 @@ rec def foo2 xs = case xs of
 :e
 foo (Con{ h = 1; t = N{} })
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.212: 	foo (Con{ h = 1; t = N{} })
+//│ ║  l.213: 	foo (Con{ h = 1; t = N{} })
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── application of type `N` does not have field 't'
-//│ ║  l.212: 	foo (Con{ h = 1; t = N{} })
+//│ ║  l.213: 	foo (Con{ h = 1; t = N{} })
 //│ ║         	                     ^^^
 //│ ╟── Note: constraint arises from field selection:
-//│ ║  l.160: 	  Con -> if xs.h then Con { h = xs.t.h; t = foo xs.t.t } else foo xs.t.t,
+//│ ║  l.161: 	  Con -> if xs.h then Con { h = xs.t.h; t = foo xs.t.t } else foo xs.t.t,
 //│ ║         	                                                                  ^^^^^^
 //│ ╟── from field selection:
-//│ ║  l.160: 	  Con -> if xs.h then Con { h = xs.t.h; t = foo xs.t.t } else foo xs.t.t,
+//│ ║  l.161: 	  Con -> if xs.h then Con { h = xs.t.h; t = foo xs.t.t } else foo xs.t.t,
 //│ ║         	                                                                  ^^^^
 //│ ╟── Note: class N is defined at:
 //│ ║  l.131: 	class N

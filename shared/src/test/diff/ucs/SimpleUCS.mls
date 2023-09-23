@@ -55,7 +55,7 @@ fun f(x, y) =
   if x is
     Left(xv) and y is Left(yv) then xv + yv
     None() then 0
-//│ f: (Left | None, Left,) -> int
+//│ f: (Left & {leftValue: int} | None, Left & {leftValue: int},) -> int
 //│  = [Function: f1]
 
 fun f(x, y) =
@@ -64,7 +64,7 @@ fun f(x, y) =
       Left(yv) then xv + yv
       Right(yv) then xv * yv
     None() then 0
-//│ f: (Left | None, Left | Right,) -> int
+//│ f: (Left & {leftValue: int} | None, Left & {leftValue: int} | Right & {rightValue: int},) -> int
 //│  = [Function: f2]
 
 fun f(x) =
@@ -74,7 +74,7 @@ fun f(x) =
       v > 0 then "positive"
       _     then "zero"
     None() then "nothing"
-//│ f: (None | Some) -> ("negative" | "nothing" | "positive" | "zero")
+//│ f: (None | Some & {value: number}) -> ("negative" | "nothing" | "positive" | "zero")
 //│  = [Function: f3]
 
 fun f(x, y) =
@@ -218,7 +218,7 @@ fun f(x, a, b) =
     A(aa) and a then aa
     B(bb) and b then bb
     _           then 0
-//│ f: (A | B | ~A & ~B, anything, anything,) -> 0
+//│ f: (A & {value: 'value} | B & {value: 'value} | ~A & ~B, anything, anything,) -> (0 | 'value)
 //│  = [Function: f14]
 
 fun f(x, y, b) =
@@ -228,7 +228,7 @@ fun f(x, y, b) =
       is None() then "bruh"
     Some(xv) and b then xv + b
     _ then "roll"
-//│ f: (anything, anything, ~true,) -> ("bruh" | "roll" | int)
+//│ f: (Some & {value: int} | ~Some, anything, ~true,) -> ("bruh" | "roll" | int)
 //│  = [Function: f15]
 
 fun g(x, y, b) =
@@ -238,7 +238,7 @@ fun g(x, y, b) =
       is None() then "bruh"
     Some(xv) and b then xv + b
     _ then "roll"
-//│ g: (anything, anything, ~true,) -> ("bruh" | "roll" | int)
+//│ g: (Some & {value: int} | ~Some, Some & {value: 'value} | ~Some, ~true,) -> ("bruh" | "roll" | int | 'value)
 //│  = [Function: g]
 
 fun foo(x, y, z) =
@@ -259,6 +259,26 @@ fun f(u, v, w) =
       Left(_) then "left-defined"
       Right(_) then "right-defined"
     None then "undefined"
+//│ ╔══[ERROR] Type mismatch in `case` expression:
+//│ ║  l.257: 	  if foo(u, v, w) is
+//│ ║         	     ^^^^^^^^^^^^^^^
+//│ ║  l.258: 	    Some(x) and x is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.259: 	      Left(_) then "left-defined"
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.260: 	      Right(_) then "right-defined"
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.261: 	    None then "undefined"
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── operator application of type `int` does not match type `Left & ?a | Right & ?b`
+//│ ║  l.245: 	  if x - y > 0 then Some(x + y + z) else None()
+//│ ║         	                         ^^^^^^^^^
+//│ ╟── Note: constraint arises from reference:
+//│ ║  l.258: 	    Some(x) and x is
+//│ ║         	                ^
+//│ ╟── from application:
+//│ ║  l.257: 	  if foo(u, v, w) is
+//│ ╙──       	     ^^^^^^^^^^^^
 //│ f: (int, int, int,) -> ("left-defined" | "right-defined" | "undefined")
 //│  = [Function: f16]
 
@@ -274,7 +294,7 @@ fun g(a, b) =
     Right(x) and b is
       Some(y) then x * y
       None    then x
-//│ g: (int, None | Some,) -> int
+//│ g: (int, None | Some & {value: int},) -> int
 //│  = [Function: g1]
 
 // TODO: Fix the NaN.
@@ -319,7 +339,7 @@ fun p(e, context) =
       Some(BoolVal(v)) then Right(v)
     Lit(IntVal(v)) then Left(v)
     Lit(BoolVal(v)) then Right(v)
-//│ p: (Lit | Var, {get: nothing -> anything},) -> (Left & {leftValue: nothing} | Right & {rightValue: nothing})
+//│ p: (Lit & {val: BoolVal & {value: 'value} | IntVal & {value: 'value0}} | Var & {name: 'name}, {get: 'name -> (Some & {value: BoolVal & {value: 'value} | IntVal & {value: 'value0}})},) -> (Left & {leftValue: 'value0} | Right & {rightValue: 'value})
 //│  = [Function: p1]
 
 class Nil()
@@ -335,7 +355,7 @@ fun f(x) =
     0 ::
       Nil() then "oh"
 //│ ╔══[ERROR] Cannot find operator `::` in the context
-//│ ║  l.335: 	    0 ::
+//│ ║  l.355: 	    0 ::
 //│ ╙──       	      ^^
 //│ f: anything -> error
 //│ Code generation encountered an error:
@@ -364,7 +384,7 @@ fun g(x, y) =
       None() then 1
   else
     0
-//│ g: (number, number,) -> int
+//│ g: (int, int,) -> int
 //│  = [Function: g2]
 
 
