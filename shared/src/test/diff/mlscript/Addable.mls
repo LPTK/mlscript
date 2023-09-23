@@ -124,7 +124,7 @@ addSame n n
 //│ ╟── application of type `Num & {val: 1}` is not a function
 //│ ║  l.17: 	n = Num { val = 1 }
 //│ ║        	    ^^^^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(Num & {val: 1}) -> ?a`
+//│ ╟── but it flows into reference with expected type `(forall ?a. ?a) -> ?b`
 //│ ║  l.+1: 	addSame n n
 //│ ╙──      	        ^
 //│ res: error

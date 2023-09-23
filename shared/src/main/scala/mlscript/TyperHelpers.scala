@@ -320,6 +320,12 @@ abstract class TyperHelpers { Typer: Typer =>
         _shadow
       }
     
+    def isSmall: Bool = unwrapProvs match {
+      case _: TypeVariable | _: TypeTag | _: ExtrType => true
+      case tr: TypeRef => tr.targs.forall(_.isSmall) // TODO not sure
+      case _ => false
+    }
+    
     def map(f: SimpleType => SimpleType): SimpleType = this match {
       case TypeBounds(lb, ub) => TypeBounds.mkSimple(f(lb), f(ub))
       case FunctionType(lhs, rhs) => FunctionType(f(lhs), f(rhs))(prov)

@@ -569,19 +569,7 @@ let pack x f = fun (open: forall 'a. (('a, 'a -> int),) -> 'b) -> open ((x, f)) 
   let existsI = pack 1 id in
   let exs = cons existsB (cons existsI nil) in
     unpack (head exs) (fun ex -> (snd ex) (fst ex))
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.571: 	    unpack (head exs) (fun ex -> (snd ex) (fst ex))
-//│ ║         	    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> ?b` does not match type `('a, 'a -> int,) -> 'b & ('a0, 'a0 -> int,) -> 'b0`
-//│ ║  l.571: 	    unpack (head exs) (fun ex -> (snd ex) (fst ex))
-//│ ║         	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── Note: constraint arises from function type:
-//│ ║  l.566: 	let pack x f = fun (open: forall 'a. (('a, 'a -> int),) -> 'b) -> open ((x, f)) in
-//│ ║         	                                     ^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── from reference:
-//│ ║  l.567: 	  let unpack ex f = ex f in
-//│ ╙──       	                       ^
-//│ res: error
+//│ res: int
 //│    = 1
 
 // ============ Rigid annotations ============

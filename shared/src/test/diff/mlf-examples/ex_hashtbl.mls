@@ -149,40 +149,40 @@ table = create_hashtbl ()
 table = hashtbl_add table "one" (fun f -> fun x -> f x)
 table = hashtbl_add table "two" (fun f -> fun x -> f (f x))
 //│ table: List[nothing]
-//│ table: List[("one", forall 'a 'b. ('a -> 'b) -> 'a -> 'b,)]
-//│ table: List[("one" | "two", forall 'a 'b 'c. ('a -> 'b & 'a -> 'c & 'c -> 'b) -> 'a -> 'b,)]
+//│ table: List[("one", forall 'a 'b. ('b -> 'a) -> 'b -> 'a,)]
+//│ table: List[("one" | "two", forall 'a 'b 'c. ('a -> 'b & 'b -> 'c & 'a -> 'c) -> 'a -> 'c,)]
 
 // let zog =
 //   printInt (add (nfind table "one") (nfind table "two"))
 :stats
 zog = printInt (add (nfind table "one") (nfind table "two"))
 //│ zog: string
-//│ constrain calls  : 2238
-//│ annoying  calls  : 76
-//│ subtyping calls  : 13750
+//│ constrain calls  : 3804
+//│ annoying  calls  : 30
+//│ subtyping calls  : 30422
 
 // * Some subexpressions typed individually:
 
 :stats
 a = add (nfind table "one")
 //│ a: ChurchInt -> (('a -> ('a & 'b)) -> 'a -> 'b | ChurchInt)
-//│ constrain calls  : 1065
-//│ annoying  calls  : 38
-//│ subtyping calls  : 6713
+//│ constrain calls  : 1848
+//│ annoying  calls  : 15
+//│ subtyping calls  : 15050
 
 :stats
 b = (nfind table "two")
-//│ b: ('a -> ('b & 'c) & 'c -> 'b & 'a -> ('b & 'd) & 'd -> 'b & 'a -> ('b & 'e) & 'e -> 'b & 'a -> ('b & 'f) & 'f -> 'b & 'a -> ('b & 'g) & 'g -> 'b & 'a -> ('b & 'h) & 'h -> 'b & 'a -> ('b & 'i) & 'i -> 'b & 'a -> ('b & 'j) & 'j -> 'b) -> ('b & 'a) -> 'b
-//│ constrain calls  : 401
-//│ annoying  calls  : 38
-//│ subtyping calls  : 5627
+//│ b: ('a -> 'b & 'b -> 'c & 'a -> 'c & 'a -> 'd & 'd -> 'c & 'a -> 'e & 'e -> 'c & 'a -> 'f & 'f -> 'c & 'a -> 'g & 'g -> 'c) -> 'a -> ('a | 'c)
+//│ constrain calls  : 872
+//│ annoying  calls  : 15
+//│ subtyping calls  : 10260
 
 :stats
 b (fun x -> x)
 //│ res: 'a -> 'a
-//│ constrain calls  : 536
+//│ constrain calls  : 826
 //│ annoying  calls  : 0
-//│ subtyping calls  : 3647
+//│ subtyping calls  : 8821
 
 b (fun x -> x (not x))
 //│ res: nothing -> nothing
@@ -194,9 +194,9 @@ b (fun x -> 0)
 :stats
 a b
 //│ res: ('a -> ('a & 'b)) -> 'a -> 'b | ChurchInt
-//│ constrain calls  : 674
+//│ constrain calls  : 946
 //│ annoying  calls  : 0
-//│ subtyping calls  : 4208
+//│ subtyping calls  : 8525
 
 
 // * [FCP:patho] !! Note the stats here for this fully annotation-free version
@@ -205,23 +205,23 @@ a b
 :Fuel 20000
 zog_ = printInt_ (add_ (nfind table "one") (nfind table "two"))
 //│ zog_: string
-//│ constrain calls  : 16345
-//│ annoying  calls  : 76
-//│ subtyping calls  : 70146
+//│ constrain calls  : 23876
+//│ annoying  calls  : 30
+//│ subtyping calls  : 120702
 
 :stats
 a_ = add_ (nfind table "one")
-//│ a_: ('a -> 'b -> 'c & 'a -> 'b -> 'd & 'a -> 'b -> 'e & 'a -> 'b -> 'f & 'a -> 'b -> 'g & 'a -> 'b -> 'h & 'a -> 'b -> 'i & 'a -> 'b -> 'j & 'a -> 'b -> 'k & 'a -> 'b -> 'l & 'a -> 'b -> 'm & 'a -> 'b -> 'n & 'a -> 'b -> 'o & 'a -> 'b -> 'p & 'a -> 'b -> 'q & 'a -> 'b -> 'r & 's) -> (('q -> 't & 'r -> 'u & 'u -> 't & 'o -> 't & 'p -> 'v & 'v -> 't & 'm -> 't & 'n -> 'w & 'w -> 't & 'k -> 't & 'l -> 'x & 'x -> 't & 'i -> 't & 'j -> 'y & 'y -> 't & 'g -> 't & 'h -> 'z & 'z -> 't & 'e -> 't & 'f -> 'a1 & 'a1 -> 't & 'c -> 't & 'd -> 'b1 & 'b1 -> 't & 'a) -> 'b -> 't | 's)
-//│ constrain calls  : 1223
-//│ annoying  calls  : 38
-//│ subtyping calls  : 13520
+//│ a_: ('a -> 'b -> 'c & 'a -> 'b -> 'd & 'a -> 'b -> 'e & 'a -> 'b -> 'f & 'a -> 'b -> 'g & 'a -> 'b -> 'h & 'a -> 'b -> 'i & 'a -> 'b -> 'j & 'a -> 'b -> 'k & 'a -> 'b -> 'l & 'a -> 'b -> 'm & 'a -> 'b -> 'n & 'a -> 'b -> 'o & 'a -> 'b -> 'p & 'a -> 'b -> 'q & 'a -> 'b -> 'r & 's) -> (('c -> 't & 'd -> 't & 'e -> 't & 'f -> 't & 'u -> 't & 'g -> 'u & 'v -> 't & 'h -> 'v & 'w -> 't & 'i -> 'w & 'x -> 't & 'j -> 'x & 'k -> 't & 'l -> 't & 'm -> 't & 'n -> 't & 'y -> 't & 'o -> 'y & 'z -> 't & 'p -> 'z & 'a1 -> 't & 'q -> 'a1 & 'b1 -> 't & 'r -> 'b1 & 'a) -> 'b -> 't | 's)
+//│ constrain calls  : 2158
+//│ annoying  calls  : 15
+//│ subtyping calls  : 23543
 
 :stats
 a_ b
-//│ res: ('a -> ('b & 'c) & 'c -> 'b & 'a -> ('b & 'd) & 'd -> 'b & 'a -> ('b & 'e) & 'e -> 'b & 'a -> ('b & 'f) & 'f -> 'b & 'a -> ('b & 'g) & 'g -> 'b & 'a -> ('b & 'h) & 'h -> 'b & 'a -> ('b & 'i) & 'i -> 'b & 'a -> ('b & 'j) & 'j -> 'b & 'k -> 'l & 'm -> ('k & 'n) & 'n -> 'k & 'o -> 'p & 'm -> ('o & 'q) & 'q -> 'o & 'p -> 'l & 'r -> 'l & 'm -> ('r & 's) & 's -> 'r & 't -> 'u & 'm -> ('t & 'v) & 'v -> 't & 'u -> 'l & 'w -> 'l & 'm -> ('w & 'x) & 'x -> 'w & 'y -> 'z & 'm -> ('y & 'a1) & 'a1 -> 'y & 'z -> 'l & 'b1 -> 'l & 'm -> ('b1 & 'c1) & 'c1 -> 'b1 & 'd1 -> 'e1 & 'm -> ('d1 & 'f1) & 'f1 -> 'd1 & 'e1 -> 'l & 'g1 -> 'l & 'm -> ('g1 & 'h1) & 'h1 -> 'g1 & 'i1 -> 'j1 & 'm -> ('i1 & 'k1) & 'k1 -> 'i1 & 'j1 -> 'l & 'l1 -> 'l & 'm -> ('l1 & 'm1) & 'm1 -> 'l1 & 'n1 -> 'o1 & 'm -> ('n1 & 'p1) & 'p1 -> 'n1 & 'o1 -> 'l & 'q1 -> 'l & 'm -> ('q1 & 'r1) & 'r1 -> 'q1 & 's1 -> 't1 & 'm -> ('s1 & 'u1) & 'u1 -> 's1 & 't1 -> 'l & 'v1 -> 'l & 'm -> ('v1 & 'w1) & 'w1 -> 'v1 & 'x1 -> 'y1 & 'm -> ('x1 & 'z1) & 'z1 -> 'x1 & 'y1 -> 'l) -> ('a & 'k & 'm & 'o & 'r & 't & 'w & 'y & 'b1 & 'd1 & 'g1 & 'i1 & 'l1 & 'n1 & 'q1 & 's1 & 'v1 & 'x1) -> ('a | 'l | 'b)
-//│ constrain calls  : 3489
+//│ res: ('a -> 'b & 'b -> 'c & 'a -> 'c & 'a -> 'd & 'd -> 'c & 'a -> 'e & 'e -> 'c & 'a -> 'f & 'f -> 'c & 'a -> 'g & 'g -> 'c & 'h -> 'i & 'j -> 'h & 'k -> ('j & 'l) & 'l -> 'j & 'm -> 'i & 'n -> 'm & 'k -> ('n & 'o) & 'o -> 'n & 'p -> 'i & 'q -> 'p & 'k -> ('q & 'r) & 'r -> 'q & 's -> 'i & 't -> 's & 'k -> ('t & 'u) & 'u -> 't & 'v -> 'i & 'k -> ('v & 'w) & 'w -> 'v & 'x -> 'i & 'k -> ('x & 'y) & 'y -> 'x & 'z -> 'i & 'k -> ('z & 'a1) & 'a1 -> 'z & 'b1 -> 'i & 'k -> ('b1 & 'c1) & 'c1 -> 'b1 & 'd1 -> 'i & 'e1 -> 'd1 & 'k -> ('e1 & 'f1) & 'f1 -> 'e1 & 'g1 -> 'i & 'h1 -> 'g1 & 'k -> ('h1 & 'i1) & 'i1 -> 'h1 & 'j1 -> 'i & 'k1 -> 'j1 & 'k -> ('k1 & 'l1) & 'l1 -> 'k1 & 'm1 -> 'i & 'n1 -> 'm1 & 'k -> ('n1 & 'o1) & 'o1 -> 'n1 & 'p1 -> 'i & 'k -> ('p1 & 'q1) & 'q1 -> 'p1 & 'r1 -> 'i & 'k -> ('r1 & 's1) & 's1 -> 'r1 & 't1 -> 'i & 'k -> ('t1 & 'u1) & 'u1 -> 't1 & 'v1 -> 'i & 'k -> ('v1 & 'w1) & 'w1 -> 'v1) -> ('a & 'j & 'k & 'n & 'q & 't & 'v & 'x & 'z & 'b1 & 'e1 & 'h1 & 'k1 & 'n1 & 'p1 & 'r1 & 't1 & 'v1) -> ('a | 'i | 'c)
+//│ constrain calls  : 11688
 //│ annoying  calls  : 0
-//│ subtyping calls  : 137900
+//│ subtyping calls  : 248265
 :ResetFuel
 // ==========================================================================================
 

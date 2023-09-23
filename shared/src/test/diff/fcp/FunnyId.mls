@@ -47,9 +47,11 @@ rec def id x = let tmp = id id x in x
 id 1
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'a :> 'a -> 'a | 1
-//│        <: nothing
-//│ ╙──
+//│     'a <: 'b -> ?
+//│     'b :> 'b -> 'b | 1
+//│        <: ? & 'a
+//│ ║  l.30: 	rec def id x = let tmp = id id x in x
+//│ ╙──      	                         ^^^^^
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.47: 	id 1
 //│ ║        	^^^^
@@ -59,9 +61,9 @@ id 1
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.30: 	rec def id x = let tmp = id id x in x
 //│ ║        	                         ^^^^^^^
-//│ ╟── from application:
+//│ ╟── from reference:
 //│ ║  l.30: 	rec def id x = let tmp = id id x in x
-//│ ╙──      	                         ^^^^^
+//│ ╙──      	                                    ^
 //│ res: 'a -> 'a | 1 | error | 'b
 //│   where
 //│     'a :> 'a -> 'a | 1
@@ -71,12 +73,13 @@ id 1
 
 :e
 id_ty = id
-//│ ╔══[ERROR] Inferred recursive type: 'id
+//│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'id :> 'a -> 'a
-//│     'a :> 'id
-//│        <: 'a -> anything
-//│ ╙──
+//│     'a <: 'b -> anything
+//│     'b :> 'b -> 'b
+//│        <: 'a
+//│ ║  l.30: 	rec def id x = let tmp = id id x in x
+//│ ╙──      	                         ^^^^^
 //│ 'id
 //│   where
 //│     'id :> 'a -> 'a
@@ -93,9 +96,9 @@ id_ty = id
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.30: 	rec def id x = let tmp = id id x in x
 //│ ║        	                         ^^^^^^^
-//│ ╟── from application:
+//│ ╟── from reference:
 //│ ║  l.30: 	rec def id x = let tmp = id id x in x
-//│ ║        	                         ^^^^^
+//│ ║        	                                    ^
 //│ ╟── Note: quantified type variable 'a is defined at:
 //│ ║  l.4: 	def id_ty: forall 'a. 'a -> 'a
 //│ ╙──     	                  ^^

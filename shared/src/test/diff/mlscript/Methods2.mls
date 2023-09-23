@@ -87,7 +87,7 @@ l.Size
 l.Map (fun x -> mul x 2)
 //│ res: List[int]
 //│    = Cons { head: 0, tail: Cons { head: 2, tail: Nil {} } }
-//│ constrain calls  : 70
+//│ constrain calls  : 72
 //│ annoying  calls  : 5
 //│ subtyping calls  : 245
 
@@ -101,9 +101,9 @@ Cons.HeadOption l0
 //│ res: Some[0]
 //│ Runtime error:
 //│   TypeError: (intermediate value).HeadOption is not a function
-//│ constrain calls  : 47
+//│ constrain calls  : 54
 //│ annoying  calls  : 28
-//│ subtyping calls  : 209
+//│ subtyping calls  : 207
 
 
 l1 = Cons { head = 0; tail = Nil {} }
@@ -116,9 +116,9 @@ Cons.HeadOption l1
 //│ res: Some[0]
 //│ Runtime error:
 //│   TypeError: (intermediate value).HeadOption is not a function
-//│ constrain calls  : 47
+//│ constrain calls  : 54
 //│ annoying  calls  : 28
-//│ subtyping calls  : 209
+//│ subtyping calls  : 207
 
 :re
 :stats
@@ -126,17 +126,17 @@ Cons.HeadOption l
 //│ res: Some[0 | 1]
 //│ Runtime error:
 //│   TypeError: (intermediate value).HeadOption is not a function
-//│ constrain calls  : 62
+//│ constrain calls  : 69
 //│ annoying  calls  : 28
-//│ subtyping calls  : 277
+//│ subtyping calls  : 271
 
 :stats
 o = l.(Cons.HeadOption)
 //│ o: Some[0 | 1]
 //│  = undefined
-//│ constrain calls  : 60
+//│ constrain calls  : 67
 //│ annoying  calls  : 28
-//│ subtyping calls  : 260
+//│ subtyping calls  : 258
 
 o = l.(Cons.HeadOption)
 //│ o: Some[0 | 1]
@@ -151,7 +151,7 @@ case o of {None -> 0 | Some -> o.payload}
 //│ ╔══[ERROR] Type mismatch in `case` expression:
 //│ ║  l.150: 	case o of {None -> 0 | Some -> o.payload}
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `Option[0 | 1]` does not match type `None[?] & ?a | Some[?] & ?b`
+//│ ╟── type `Option[?A]` does not match type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.24: 	    method HeadOption: Option[A]
 //│ ║        	                       ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?b`
@@ -198,7 +198,7 @@ case o of {
 //│ ║         	^^^^^^^^^^^
 //│ ║  l.195: 	    Some -> o.Get | None -> 0 }
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `Option[0 | 1]` does not match type `None[?] & ?a | Some[?] & ?b`
+//│ ╟── type `Option[?A]` does not match type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.24: 	    method HeadOption: Option[A]
 //│ ║        	                       ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?b`

@@ -1185,11 +1185,13 @@ trait TypeSimplifier { self: Typer =>
   
   def onlineSimplify(ty: ST)(implicit ctx: Ctx): ST = {
     
-    object Analyze extends Traverser2 {
+    object Analysis extends Traverser2 {
       
       val posVars: MutSet[TV] = MutSet.empty
       val negVars: MutSet[TV] = MutSet.empty
       val recVars: MutSet[TV] = MutSet.empty
+      
+      val occsNum: MutMap[TV, Int] = MutMap.empty[TV, Int]
       
       var curPath: Ls[TV] = Nil
       var pastPaths: Ls[Ls[TV]] = Nil
@@ -1201,8 +1203,9 @@ trait TypeSimplifier { self: Typer =>
       val traversedOtherTVs: MutSet[TV] = MutSet.empty
       
       override def apply(pol: PolMap)(st: ST): Unit =
-          trace(s"Analyze[${printPol(pol)}] $st  (${curPath.reverseIterator.mkString(" ~> ")})") {
+          trace(s"Analysis[${printPol(pol)}] $st  (${curPath.reverseIterator.mkString(" ~> ")})") {
             st match {
+        case tv: TV if { occsNum(tv) = occsNum.getOrElse(tv, 0); false } =>
         case tv @ AssignedVariable(ty) =>
           if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
         case tv: TV if tv.level <= lvl =>
@@ -1284,24 +1287,28 @@ trait TypeSimplifier { self: Typer =>
       
     }
     
-    Analyze(PolMap.pos)(ty)
-    println("Pos: " + Analyze.posVars)
-    println("Neg: " + Analyze.negVars)
-    println("Rec: " + Analyze.recVars)
-    println("Unif: " + Analyze.varSubst)
+    Analysis(PolMap.pos)(ty)
+    println("Pos: " + Analysis.posVars)
+    println("Neg: " + Analysis.negVars)
+    println("Rec: " + Analysis.recVars)
+    println("Unif: " + Analysis.varSubst)
     
-    val toSubst = Analyze.varSubst.keySet
-    val posSubst = (Analyze.posVars.toSet -- Analyze.negVars -- Analyze.recVars -- toSubst).map { tv =>
-      tv -> tv.lowerBounds.foldLeft(BotType: ST)(_ | _) }
-    val negSubst = (Analyze.negVars.toSet -- Analyze.posVars -- Analyze.recVars -- toSubst).map { tv =>
-      tv -> tv.upperBounds.foldLeft(TopType: ST)(_ &- _) }
+    val toSubst = Analysis.varSubst.keySet
+    val posSubst = (Analysis.posVars.toSet -- Analysis.negVars -- Analysis.recVars -- toSubst).flatMap { tv =>
+      val res = tv.lowerBounds.foldLeft(BotType: ST)(_ | _)
+      Option.when(res.isSmall || Analysis.occsNum(tv) === 1)(tv -> res)
+    }
+    val negSubst = (Analysis.negVars.toSet -- Analysis.posVars -- Analysis.recVars -- toSubst).flatMap { tv =>
+      val res = tv.upperBounds.foldLeft(TopType: ST)(_ &- _)
+      Option.when(res.isSmall || Analysis.occsNum(tv) === 1)(tv -> res)
+    }
     
-    val finalSubst: Map[ST, ST] = Analyze.varSubst.toMap[ST, ST] ++ posSubst ++ negSubst
+    val finalSubst: Map[ST, ST] = Analysis.varSubst.toMap[ST, ST] ++ posSubst ++ negSubst
     
     println("Subst: " + finalSubst)
     
     // * TODO use destructive update for performance?
-    // subst(ty, Analyze.varSubst.toMap)
+    // subst(ty, Analysis.varSubst.toMap)
     
     if (finalSubst.isEmpty) ty else subst(ty, finalSubst, substInMap = true)
     

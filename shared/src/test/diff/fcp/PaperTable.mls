@@ -177,7 +177,12 @@ def map: ('a -> 'b) -> List['a] -> List['b]
 rec def map f l =
   if is_empty l then nil
   else cons (f (head l)) (map f (tail l))
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ map: ('a -> 'b) -> List['a] -> List['b]
+//│    = <missing implementation>
+//│ ('b -> 'a) -> List['b] -> List['a]
+//│   <:  map:
+//│ ('a -> 'b) -> List['a] -> List['b]
+//│    = [Function: map]
 
 def app: ('a -> 'b) -> 'a -> 'b
 def app f x = f x
@@ -258,7 +263,7 @@ def succ: (forall 'N. ('N -> 'N) -> ('N -> 'N)) -> (forall 'M. ('M -> 'M) -> ('M
 def succ (n: ChurchInt) f x = f (n f x)
 //│ succ: (forall 'N. ('N -> 'N) -> 'N -> 'N) -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│     = <missing implementation>
-//│ ChurchInt -> (forall 'N 'a 'N0. ('N0 -> ('N0 & 'N) & 'N -> 'a) -> ('N0 & 'N) -> 'a)
+//│ ChurchInt -> (forall 'N 'N0 'a. ('N -> ('N & 'N0) & 'N0 -> 'a) -> ('N & 'N0) -> 'a)
 //│   <:  succ:
 //│ (forall 'N. ('N -> 'N) -> 'N -> 'N) -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│     = [Function: succ1]
@@ -399,23 +404,12 @@ g (single id) ids
 // C9
 map poly (single id)
 //│ res: List[(int, bool,)]
-//│ Code generation encountered an error:
-//│   unresolved symbol map
+//│    = Cons { head: [ 1, true ], tail: Nil {} }
 
 // C10
 map head (single ids)
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.417: 	map head (single ids)
-//│ ║         	^^^^^^^^
-//│ ╟── type `'a -> 'a` is not an instance of type `List`
-//│ ║  l.118: 	def id: 'a -> 'a
-//│ ║         	        ^^^^^^^^
-//│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.41: 	def head: List['a] -> 'a
-//│ ╙──      	          ^^^^^^^^
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol map
+//│ res: List[forall 'a. 'a -> 'a]
+//│    = Cons { head: [Function: id1], tail: Nil {} }
 
 
 // ============ D. application functions ============
@@ -514,7 +508,7 @@ def s n f x = f (n f x)
 
 // G3
 n3 = s (s (s z))
-//│ n3: ('a -> 'b & 'c -> 'a & 'b -> 'd) -> 'c -> 'd
+//│ n3: ('a -> 'b & 'b -> 'c & 'c -> 'd) -> 'a -> 'd
 //│   = [Function (anonymous)]
 
 // G1A
@@ -526,20 +520,20 @@ z: ChurchInt
 // G2A
 s: ChurchInt -> ChurchInt
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.528: 	s: ChurchInt -> ChurchInt
+//│ ║  l.527: 	s: ChurchInt -> ChurchInt
 //│ ║         	^
 //│ ╟── type variable `'N` leaks out of its scope
-//│ ║  l.243: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
+//│ ║  l.233: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
 //│ ║         	                                   ^^
 //│ ╟── back into type variable `'N`
-//│ ║  l.243: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
+//│ ║  l.233: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
 //│ ║         	                             ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this function:
-//│ ║  l.512: 	def s n f x = f (n f x)
+//│ ║  l.511: 	def s n f x = f (n f x)
 //│ ║         	        ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.528: 	s: ChurchInt -> ChurchInt
+//│ ║  l.527: 	s: ChurchInt -> ChurchInt
 //│ ╙──       	^
 //│ res: ChurchInt -> ChurchInt
 //│    = [Function: s]
@@ -588,10 +582,10 @@ id1 id1
 //│        <: 'c
 //│     'c :> 'b -> 'c
 //│        <: 'a
-//│ ║  l.601: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║  l.578: 	rec def id1 x = if true then x else id1 id1 x
 //│ ╙──       	                                    ^^^^^^^
 //│ ╔══[ERROR] Subtyping constraint of the form `?id1 <: ?id10 -> ?a` exceeded recursion depth limit (250)
-//│ ║  l.606: 	id1 id1
+//│ ║  l.583: 	id1 id1
 //│ ║         	^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: error
@@ -602,16 +596,16 @@ id1 id1
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.626: 	auto auto
+//│ ║  l.603: 	auto auto
 //│ ║         	^^^^^^^^^
 //│ ╟── type `'a` is not a function
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^^^^^^^
 //│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                   ^^
 //│ res: 'b -> 'b | error
 //│ Runtime error:
@@ -621,7 +615,7 @@ auto auto
 :e
 (fun x -> x x) (fun x -> x x)
 //│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: (forall ?c ?d. ?d -> ?c) -> ?e` exceeded recursion depth limit (250)
-//│ ║  l.645: 	(fun x -> x x) (fun x -> x x)
+//│ ║  l.622: 	(fun x -> x x) (fun x -> x x)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: error
@@ -777,39 +771,13 @@ g (single id) ids
 
 // C9
 map poly (single id)
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.804: 	map poly (single id)
-//│ ║         	^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `'a -> 'a` is not an instance of type `List`
-//│ ║  l.118: 	def id: 'a -> 'a
-//│ ║         	        ^^^^^^^^
-//│ ╟── but it flows into reference with expected type `List[?]`
-//│ ║  l.804: 	map poly (single id)
-//│ ║         	                 ^^
-//│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.41: 	def head: List['a] -> 'a
-//│ ║        	          ^^^^^^^^
-//│ ╟── from type variable:
-//│ ║  l.50: 	def tail: List['a] -> List['a]
-//│ ╙──      	               ^^
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol map
+//│ res: List[(int, bool,)]
+//│    = Cons { head: [ 1, true ], tail: Nil {} }
 
 // C10
 map head (single ids)
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.809: 	map head (single ids)
-//│ ║         	^^^^^^^^
-//│ ╟── type `'a -> 'a` is not an instance of type `List`
-//│ ║  l.118: 	def id: 'a -> 'a
-//│ ║         	        ^^^^^^^^
-//│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.41: 	def head: List['a] -> 'a
-//│ ╙──      	          ^^^^^^^^
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol map
+//│ res: List[forall 'a. 'a -> 'a]
+//│    = Cons { head: [Function: id1], tail: Nil {} }
 
 
 // ============ D. application functions ============
@@ -908,7 +876,7 @@ def s n f x = f (n f x)
 
 // G3
 n3 = s (s (s z))
-//│ n3: ('a -> 'b & 'b -> 'c & 'c -> 'd) -> 'a -> 'd
+//│ n3: ('a -> 'b & 'c -> 'a & 'd -> 'c) -> 'd -> 'b
 //│   = [Function (anonymous)]
 
 // G1A
@@ -941,7 +909,7 @@ fst (fst (fst (n3 (fun x -> (x, 0)) 1)))
 
 // G7
 rec def to_ch n = if n == 0 then z else s (to_ch (n - 1))
-//│ to_ch: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ to_ch: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│      = [Function: to_ch]
 
 // G7A
@@ -964,10 +932,10 @@ id1 id1
 //│        <: 'c
 //│     'c :> 'b -> 'c
 //│        <: 'a
-//│ ║  l.953: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║  l.954: 	rec def id1 x = if true then x else id1 id1 x
 //│ ╙──       	                                    ^^^^^^^
 //│ ╔══[ERROR] Subtyping constraint of the form `?id1 <: ?id10 -> ?a` exceeded recursion depth limit (250)
-//│ ║  l.958: 	id1 id1
+//│ ║  l.959: 	id1 id1
 //│ ║         	^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: error
@@ -978,16 +946,16 @@ id1 id1
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.978: 	auto auto
+//│ ║  l.979: 	auto auto
 //│ ║         	^^^^^^^^^
 //│ ╟── type `'a` is not a function
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^^^^^^^
 //│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                   ^^
 //│ res: 'b -> 'b | error
 //│ Runtime error:
@@ -996,8 +964,8 @@ auto auto
 // Gn+1
 :e
 (fun x -> x x) (fun x -> x x)
-//│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: (forall ?c ?d. ?d -> ?c) -> ?e` exceeded recursion depth limit (250)
-//│ ║  l.997: 	(fun x -> x x) (fun x -> x x)
+//│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: (forall ?c ?d. ?c -> ?d) -> ?e` exceeded recursion depth limit (250)
+//│ ║  l.998: 	(fun x -> x x) (fun x -> x x)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: error
@@ -1153,39 +1121,13 @@ g (single id) ids
 
 // C9
 map poly (single id)
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1156: 	map poly (single id)
-//│ ║          	^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `'a -> 'a` is not an instance of type `List`
-//│ ║  l.118: 	def id: 'a -> 'a
-//│ ║         	        ^^^^^^^^
-//│ ╟── but it flows into reference with expected type `List[?]`
-//│ ║  l.1156: 	map poly (single id)
-//│ ║          	                 ^^
-//│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.41: 	def head: List['a] -> 'a
-//│ ║        	          ^^^^^^^^
-//│ ╟── from type variable:
-//│ ║  l.50: 	def tail: List['a] -> List['a]
-//│ ╙──      	               ^^
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol map
+//│ res: List[(int, bool,)]
+//│    = Cons { head: [ 1, true ], tail: Nil {} }
 
 // C10
 map head (single ids)
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1161: 	map head (single ids)
-//│ ║          	^^^^^^^^
-//│ ╟── type `'a -> 'a` is not an instance of type `List`
-//│ ║  l.118: 	def id: 'a -> 'a
-//│ ║         	        ^^^^^^^^
-//│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.41: 	def head: List['a] -> 'a
-//│ ╙──      	          ^^^^^^^^
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol map
+//│ res: List[forall 'a. 'a -> 'a]
+//│    = Cons { head: [Function: id1], tail: Nil {} }
 
 
 // ============ D. application functions ============
@@ -1284,7 +1226,7 @@ def s n f x = f (n f x)
 
 // G3
 n3 = s (s (s z))
-//│ n3: ('a -> 'b & 'b -> 'c & 'c -> 'd) -> 'a -> 'd
+//│ n3: ('a -> 'b & 'c -> 'a & 'd -> 'c) -> 'd -> 'b
 //│   = [Function (anonymous)]
 
 // G1A
@@ -1317,7 +1259,7 @@ fst (fst (fst (n3 (fun x -> (x, 0)) 1)))
 
 // G7
 rec def to_ch n = if n == 0 then z else s (to_ch (n - 1))
-//│ to_ch: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ to_ch: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│      = [Function: to_ch1]
 
 // G7A
@@ -1339,14 +1281,14 @@ id1 id1
 //│     'b :> 'b -> 'c
 //│        <: 'c & (nothing -> 'd | ?) & (nothing -> 'e | ?) & (nothing -> 'f | ?)
 //│     'c :> 'b -> 'c
-//│        <: 'e & 'a & 'f & 'd & (nothing -> ('d | 'e | 'f) | error)
+//│        <: 'a & 'f & 'd & 'e & (nothing -> ('d | 'e | 'f) | error)
+//│     'e :> nothing -> 'e | ?
 //│     'd :> nothing -> 'd | ?
 //│     'f :> nothing -> 'f | ?
-//│     'e :> nothing -> 'e | ?
-//│ ║  l.1305: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║  l.1330: 	rec def id1 x = if true then x else id1 id1 x
 //│ ╙──        	                                    ^^^^^^^
 //│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.1330: 	id1 id1
+//│ ║  l.1335: 	id1 id1
 //│ ║          	^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: ('a & 'b & 'c) -> ('d | 'e | 'f) | error | 'g
@@ -1369,16 +1311,16 @@ id1 id1
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1359: 	auto auto
+//│ ║  l.1370: 	auto auto
 //│ ║          	^^^^^^^^^
 //│ ╟── type `'a` is not a function
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^^^^^^^
 //│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                   ^^
 //│ res: 'b -> 'b | error
 //│ Runtime error:
@@ -1388,7 +1330,7 @@ auto auto
 :e
 (fun x -> x x) (fun x -> x x)
 //│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.1378: 	(fun x -> x x) (fun x -> x x)
+//│ ║  l.1389: 	(fun x -> x x) (fun x -> x x)
 //│ ║          	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: error
@@ -1544,45 +1486,13 @@ g (single id) ids
 
 // C9
 map poly (single id)
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1537: 	map poly (single id)
-//│ ║          	^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `'a -> 'a` is not an instance of type `List`
-//│ ║  l.118: 	def id: 'a -> 'a
-//│ ║         	        ^^^^^^^^
-//│ ╟── but it flows into reference with expected type `List[?]`
-//│ ║  l.1537: 	map poly (single id)
-//│ ║          	                 ^^
-//│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.41: 	def head: List['a] -> 'a
-//│ ║        	          ^^^^^^^^
-//│ ╟── from type variable:
-//│ ║  l.50: 	def tail: List['a] -> List['a]
-//│ ╙──      	               ^^
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol map
+//│ res: List[(int, bool,)]
+//│    = Cons { head: [ 1, true ], tail: Nil {} }
 
 // C10
 map head (single ids)
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1542: 	map head (single ids)
-//│ ║          	^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `List[forall 'a. 'a -> 'a]` is not a function
-//│ ║  l.127: 	def ids: List[forall 'a. 'a -> 'a]
-//│ ║         	         ^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `'a0 -> 'a0`
-//│ ║  l.1542: 	map head (single ids)
-//│ ║          	                 ^^^
-//│ ╟── Note: constraint arises from function type:
-//│ ║  l.154: 	def poly: (forall 'a. 'a -> 'a) -> (int, bool)
-//│ ║         	                      ^^^^^^^^
-//│ ╟── from type variable:
-//│ ║  l.50: 	def tail: List['a] -> List['a]
-//│ ╙──      	               ^^
-//│ res: error | List[(int, bool,)]
-//│ Code generation encountered an error:
-//│   unresolved symbol map
+//│ res: List[forall 'a. 'a -> 'a]
+//│    = Cons { head: [Function: id1], tail: Nil {} }
 
 
 // ============ D. application functions ============
@@ -1681,7 +1591,7 @@ def s n f x = f (n f x)
 
 // G3
 n3 = s (s (s z))
-//│ n3: ('a -> 'b & 'b -> 'c & 'c -> 'd) -> 'a -> 'd
+//│ n3: ('a -> 'b & 'c -> 'a & 'd -> 'c) -> 'd -> 'b
 //│   = [Function (anonymous)]
 
 // G1A
@@ -1714,7 +1624,7 @@ fst (fst (fst (n3 (fun x -> (x, 0)) 1)))
 
 // G7
 rec def to_ch n = if n == 0 then z else s (to_ch (n - 1))
-//│ to_ch: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ to_ch: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│      = [Function: to_ch2]
 
 // G7A
@@ -1740,16 +1650,16 @@ id1 id1
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1712: 	auto auto
+//│ ║  l.1741: 	auto auto
 //│ ║          	^^^^^^^^^
 //│ ╟── type `'a` is not a function
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^^^^^^^
 //│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                   ^^
 //│ res: 'b -> 'b | error
 //│ Runtime error:
@@ -1759,7 +1669,7 @@ auto auto
 :e
 (fun x -> x x) (fun x -> x x)
 //│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.1731: 	(fun x -> x x) (fun x -> x x)
+//│ ║  l.1760: 	(fun x -> x x) (fun x -> x x)
 //│ ║          	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: error

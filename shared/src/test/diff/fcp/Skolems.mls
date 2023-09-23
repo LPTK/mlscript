@@ -31,7 +31,7 @@ fun (x: ('a -> 'a)) -> auto_ x
 //│    = [Function: res]
 
 foo(x: ('a -> 'b)) = auto_ x
-//│ foo: (??a -> ??a0) -> (forall 'b. 'b -> 'b)
+//│ foo: (??a -> ??a0) -> 'b -> 'b
 //│    = [Function: foo]
 
 :e
@@ -124,7 +124,7 @@ def oops (i: forall 'a. 'a -> 'a) =
 
 // If we were not careful this would lead to unsound skolem extrusion:
 def extrude (f: 'a -> 'b) = oops f
-//│ extrude: (??a -> ??a0) -> (forall 'a. 'a -> 'a)
+//│ extrude: (??a -> ??a0) -> 'a -> 'a
 //│        = [Function: extrude]
 
 :e
@@ -179,7 +179,7 @@ fun (x: ('a -> 'a)) -> swapWith x
 //│    = [Function: res]
 
 foo = fun (x: ('a -> 'b)) -> swapWith x
-//│ foo: ((??x, ??y,) -> (??y0, ??x0,)) -> (forall 'a 'b. ('a, 'b,) -> ('b, 'a,))
+//│ foo: ((??x, ??y,) -> (??y0, ??x0,)) -> ('a, 'b,) -> ('b, 'a,)
 //│    = [Function: foo1]
 
 bar = fun f -> foo f (1, 2)

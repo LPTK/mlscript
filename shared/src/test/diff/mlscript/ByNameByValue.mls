@@ -142,15 +142,15 @@ rec def xs = Cons 0 (Cons 1 xs)
 //│   return Cons1(0)(Cons1(1)(xs()));
 //│ };
 //│ // End of generated code
-//│ xs: 'xs
+//│ xs: 'tail
 //│   where
-//│     'xs :> Cons[0 | 1] with {head: 0, tail: Cons[0 | 1] with {head: 1, tail: 'xs}}
+//│     'tail :> Cons[0 | 1] with {head: 0, tail: Cons[0 | 1] with {head: 1, tail: 'tail}}
 //│   = [Function: xs]
 
 :re
 xs
-//│ res: 'xs
+//│ res: 'tail
 //│   where
-//│     'xs :> Cons[0 | 1] with {head: 0, tail: Cons[0 | 1] with {head: 1, tail: 'xs}}
+//│     'tail :> Cons[0 | 1] with {head: 0, tail: Cons[0 | 1] with {head: 1, tail: 'tail}}
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded

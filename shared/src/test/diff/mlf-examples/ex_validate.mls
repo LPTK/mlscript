@@ -292,7 +292,7 @@ def partage x = choose id x
 def departage x = choose id (x : Id)
 //│ partage: 'a -> ('b -> 'b | 'a)
 //│        = [Function: partage]
-//│ departage: Id -> (forall 'a. 'a -> 'a | Id)
+//│ departage: Id -> ('a -> 'a | Id)
 //│          = [Function: departage]
 
 // let delta' = fun x -> (departage x) x
@@ -421,7 +421,7 @@ def mkpair x y = (x, y)
 // (* Il faudrait que le message d'erreur soit plus clair. *)
 example mkpair
 example_ mkpair
-//│ res: int -> (??a, int,)
+//│ res: int -> (anything, int,)
 //│    = [Function (anonymous)]
 //│ res: 'a -> (forall 'b 'c. 'b -> 'c -> ('b, 'c,), 'a,)
 //│    = [Function (anonymous)]
@@ -581,7 +581,10 @@ def main =
         let _ = print_string "\n" in
         let _ = print_sep "" x in
         null
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ main: null
+//│ constrain calls  : 1343
+//│ annoying  calls  : 55
+//│ subtyping calls  : 4811
 
 
 

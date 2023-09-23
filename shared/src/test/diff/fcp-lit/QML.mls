@@ -201,7 +201,7 @@ def sstep = fun xx -> xx (fun (xinit, xsub) ->
     then xsub r1 (div i 2)
     else xsub r2 (div i 2) in
   fun f -> f (init, sub))
-//│ ((forall 'a 'b 'c 'd 'e. ('c -> 'b, 'a -> int -> 'e,) -> (('c -> ('b, 'b,), ('a, 'a,) -> int -> 'e,) -> 'd) -> 'd) -> 'f) -> 'f
+//│ ((forall 'a 'b 'c 'd 'e. ('c -> 'd, 'a -> int -> 'e,) -> (('c -> ('d, 'd,), ('a, 'a,) -> int -> 'e,) -> 'b) -> 'b) -> 'f) -> 'f
 //│   <:  sstep:
 //│ ExSmall -> ExSmall
 //│ ╔══[ERROR] Type error in def definition
@@ -258,7 +258,7 @@ def sstep = fun xx -> xx (fun (xinit, xsub) ->
     then xsub r1 (div i 2)
     else xsub r2 (div i 2) in
   fun (f : forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> f (init, sub))
-//│ ((forall 'a 'b 'c. ('a -> 'b, 'b -> int -> 'a,) -> (forall 'r. ('a -> 'r, 'r -> int -> 'a,) -> 'c) -> 'c) -> 'd) -> 'd
+//│ ((forall 'b 'c 'a. ('a -> 'b, 'b -> int -> 'a,) -> (forall 'r. ('a -> 'r, 'r -> int -> 'a,) -> 'c) -> 'c) -> 'd) -> 'd
 //│   <:  sstep:
 //│ ExSmall -> ExSmall
 //│ Code generation encountered an error:
@@ -451,7 +451,7 @@ def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
     else (fst r, xupdate (snd r) (div i 2) a) in
   let fold f b r = xfold f (xfold f b (fst r)) (snd r) in
     fun f -> f ((((init, sub), update), fold),) )
-//│ ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i 'j 'k 'l 'm 'n 'o 'p. ((('j -> 'f, 'b -> int -> 'g,), 'a -> int -> 'n -> 'o & 'd -> int -> 'n -> 'h,), 'l -> ('m -> 'i -> 'e & 'c -> 'k -> 'm),) -> (((('j -> ('f, 'f,), ('b, 'b,) -> int -> 'g,), forall 'q 'r. ('a & 'q, 'd & 'r,) -> int -> 'n -> ('o | 'q, 'r | 'h,),), 'l -> 'c -> ('k, 'i,) -> 'e,) -> 'p) -> 'p) -> 's) -> 's
+//│ ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i 'j 'k 'l 'm 'n 'o 'p. ((('g -> 'd, 'j -> int -> 'h,), 'f -> int -> 'l -> 'a & 'n -> int -> 'l -> 'p,), 'k -> ('e -> 'o -> 'i & 'b -> 'c -> 'e),) -> (((('g -> ('d, 'd,), ('j, 'j,) -> int -> 'h,), forall 'q 'r. ('f & 'q, 'n & 'r,) -> int -> 'l -> ('a | 'q, 'r | 'p,),), 'k -> 'b -> ('c, 'o,) -> 'i,) -> 'm) -> 'm) -> 's) -> 's
 //│   <:  step:
 //│ ExSig -> ExSig
 //│ ╔══[ERROR] Type error in def definition

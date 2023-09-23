@@ -102,10 +102,10 @@ c: nothing
 //│ ╔══[ERROR] Type mismatch in type ascription:
 //│ ║  l.101: 	c: nothing
 //│ ║         	^
-//│ ╟── type `Crazy[{age: 42, name: "Bob"}] with {age: 42, name: "Bob"}` does not match type `nothing`
-//│ ║  l.85: 	def Crazy: 'a -> (Crazy['a] & 'a)
-//│ ║        	                 ^^^^^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `nothing`
+//│ ╟── record literal of type `{age: 42, name: "Bob"}` does not match type `~Crazy['a]`
+//│ ║  l.95: 	def c = Crazy({ name = "Bob"; age = 42 })
+//│ ║        	              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `~Crazy['a]`
 //│ ║  l.101: 	c: nothing
 //│ ║         	^
 //│ ╟── Note: constraint arises from type reference:

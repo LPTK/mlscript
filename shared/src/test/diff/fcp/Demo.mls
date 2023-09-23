@@ -92,13 +92,13 @@ rec def find(table, key) =
 
 
 ls = Cons({key=0; val=id}, Cons({key=1; val=fun x -> x x}, Nil))
-//│ ls: List[{key: 0 | 1, val: forall 'a 'b. ('a -> 'b & 'a) -> ('b | 'a)}]
+//│ ls: List[{key: 0 | 1, val: forall 'a 'b. ('a -> 'b & 'b & 'a) -> 'b}]
 
 def found: Option[forall 'a 'b. ('a -> 'b & 'a) -> ('b | 'a)]
 //│ found: Option[forall 'a 'b. ('a -> 'b & 'a) -> ('a | 'b)]
 
 found = find(ls, 1)
-//│ Option[forall 'a 'b. ('a -> 'b & 'b & 'a) -> 'b]
+//│ Option[forall 'a 'b. ('a -> 'b & 'a) -> ('b | 'a)]
 //│   <:  found:
 //│ Option[forall 'a 'b. ('a -> 'b & 'a) -> ('a | 'b)]
 
@@ -111,7 +111,7 @@ match found with
 use fnd = match fnd with
   | None -> ("???", false)
   | Some(r) -> (r id "!!!", r id true)
-//│ use: Option[(forall 'a. 'a -> 'a) -> "!!!" -> 'b & (forall 'c. 'c -> 'c) -> true -> 'd] -> ("???" | 'b, false | 'd,)
+//│ use: Option[(forall 'a. 'a -> 'a) -> ("!!!" -> 'b & true -> 'c)] -> ("???" | 'b, false | 'c,)
 
 use found
 //│ res: ("!!!" | "???", bool,)

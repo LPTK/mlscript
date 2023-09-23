@@ -31,7 +31,7 @@ g = g2
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.25: 	g = g2
 //│ ║        	^^^^^^
-//│ ╟── function of type `?a -> (G[?] & {G#A = ?A, a: ?a})` is not an instance of type `G`
+//│ ╟── function of type `?a -> (forall ?b. ?b)` is not an instance of type `G`
 //│ ║  l.21: 	rec def g2 a = G { a }
 //│ ║        	           ^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `G[?]`

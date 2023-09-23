@@ -15,7 +15,7 @@ def t (z: Sid) = (fun a -> z) : forall 'a 'b. 'b -> 'a -> 'a
 // (* Une seule instance, mais polymorphe. *)
 // let t z = ( (fun a -> z) : ['a,'b] 'b -> 'a -> 'a );;
 def t z = (fun a -> z) : forall 'a 'b. 'b -> 'a -> 'a
-//│ t: (??a -> ??a0) -> (forall 'a. anything -> 'a -> 'a)
+//│ t: (??a -> ??a0) -> anything -> 'a -> 'a
 //│  = [Function: t1]
 
 def t z = fun a -> z
@@ -168,7 +168,7 @@ def to_church_ty: int -> ChurchInt
 rec def to_church_1 n =
   if n == 0 then zero
   else succ (to_church_1 (n - 1))
-//│ to_church_1: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ to_church_1: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│            = [Function: to_church_1]
 
 rec def to_church_1_t n =
@@ -313,11 +313,11 @@ rec def to_church_1_st n =
 rec def to_church_2 n =
   if n == 0 then zero
   else succ' (to_church_2 (n - 1))
-//│ to_church_2: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ to_church_2: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│            = [Function: to_church_2]
 
 to_church_ty = to_church_2
-//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_2]
@@ -331,7 +331,7 @@ to_church_ty = to_church_2
 rec def to_church_3 n =
   if n == 0 then fun f -> fun x -> x
   else fun f -> fun x -> f ((to_church_3 (n - 1) : ChurchInt) f x)
-//│ to_church_3: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ to_church_3: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│            = [Function: to_church_3]
 
 // (* Ne Marche Pas *)
@@ -343,7 +343,8 @@ rec def to_church_3 n =
 rec def to_church_4 n =
   if n == 0 then fun f -> fun x -> x
   else fun f -> fun x -> f ((to_church_4 (n - 1)) f x) : ChurchInt
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ to_church_4: int -> anything -> 'a -> (ChurchInt | 'a)
+//│            = [Function: to_church_4]
 
 
 // (* La r�cursion est monomorphe. *)
@@ -355,13 +356,14 @@ rec def to_church_4 n =
 rec def to_church_5 n =
   if n == 0 then fun f -> fun x -> x
   else fun f -> fun x -> f ((to_church_5 (n - 1)) f x)
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ to_church_5: int -> anything -> 'a -> 'a
+//│            = [Function: to_church_5]
 
 
 // * Now checking whether the inferred types conform to the expected signature:
 
 to_church_ty = to_church_1
-//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_1]
@@ -386,23 +388,38 @@ to_church_ty = to_church_1_st
 //│             = [Function: to_church_1_st]
 
 to_church_ty = to_church_2
-//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_2]
 
 to_church_ty = to_church_3
-//│ int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│             = [Function: to_church_3]
 
 :e
 to_church_ty = to_church_4
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ int -> anything -> 'a -> (ChurchInt | 'a)
+//│   <:  to_church_ty:
+//│ int -> ChurchInt
+//│ ╔══[ERROR] Type mismatch in def definition:
+//│ ║  l.401: 	to_church_ty = to_church_4
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── type `('a -> 'a) -> 'a -> 'a` does not match type `'a0`
+//│ ║  l.30: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
+//│ ║        	                            ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Note: constraint arises from type variable:
+//│ ║  l.30: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
+//│ ╙──      	                                                 ^^
+//│             = [Function: to_church_4]
 
 to_church_ty = to_church_5
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ int -> anything -> 'a -> 'a
+//│   <:  to_church_ty:
+//│ int -> ChurchInt
+//│             = [Function: to_church_5]
 
 
 
@@ -417,13 +434,19 @@ to_church_ty = to_church_5
 rec def to_church_ty n =
   if n == 0 then fun f -> fun x -> x
   else fun f -> fun x -> f ((to_church_ty (n - 1)) f x)
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ int -> anything -> 'a -> 'a
+//│   <:  to_church_ty:
+//│ int -> ChurchInt
+//│             = [Function: to_church_ty8]
 
 // * Note: same but without `rec`, picking up the to_church_ty annotation for rec calls
 def to_church_ty n =
   if n == 0 then fun f -> fun x -> x
   else fun f -> fun x -> f ((to_church_ty (n - 1)) f x)
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
+//│   <:  to_church_ty:
+//│ int -> ChurchInt
+//│             = [Function: to_church_ty9]
 
 
 // (* �a coince. *)
@@ -434,25 +457,6 @@ def tc n = to_church_1 n : ChurchInt
 //│   = [Function: tc]
 
 def tc n = to_church_ty n : ChurchInt
-//│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.436: 	def tc n = to_church_ty n : ChurchInt
-//│ ║         	           ^^^^^^^^^^^^^^
-//│ ╟── type variable `'a` leaks out of its scope
-//│ ║  l.30: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                                   ^^
-//│ ╟── back into type variable `'a`
-//│ ║  l.30: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
-//│ ║        	                             ^^
-//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this function:
-//│ ║  l.419: 	  else fun f -> fun x -> f ((to_church_ty (n - 1)) f x)
-//│ ║         	       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── • this application:
-//│ ║  l.436: 	def tc n = to_church_ty n : ChurchInt
-//│ ║         	           ^^^^^^^^^^^^^^
-//│ ╟── Note: constraint arises from application:
-//│ ║  l.419: 	  else fun f -> fun x -> f ((to_church_ty (n - 1)) f x)
-//│ ╙──       	                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ tc: int -> ChurchInt
 //│   = [Function: tc1]
 
@@ -461,7 +465,7 @@ def tc n = to_church_2 n : ChurchInt
 //│   = [Function: tc2]
 
 def tc n = to_church_3 n
-//│ tc: int -> ('a -> ('a & 'b)) -> ('b & 'a) -> 'b
+//│ tc: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
 //│   = [Function: tc3]
 
 tc 1 id
@@ -527,14 +531,14 @@ def succ' n = fun f -> fun x -> f (n f x)
 //│     = [Function: succ1]
 //│ succ': 'a -> (forall 'b. 'b -> (forall 'c 'd 'e. ('c -> 'e
 //│   where
-//│     'b <: 'd -> 'e
-//│     'a <: 'b -> 'c -> 'd)))
+//│     'a <: 'b -> 'c -> 'd
+//│     'b <: 'd -> 'e)))
 //│      = [Function: succ$1]
 
 // * Note: without constrained types (and distrib.) we wouldn't get the principal type of succ'
 
 succ_ty = succ
-//│ ChurchInt -> (forall 'b. 'b -> (forall 'c 'a. ('a -> 'c
+//│ ChurchInt -> (forall 'b. 'b -> (forall 'a 'c. ('a -> 'c
 //│   where
 //│     'b <: 'a -> 'a & 'a -> 'c)))
 //│   <:  succ_ty:
@@ -546,8 +550,8 @@ succ_ty = succ
 succ_ty = succ'
 //│ 'a -> (forall 'b. 'b -> (forall 'c 'd 'e. ('c -> 'e
 //│   where
-//│     'a <: 'b -> 'c -> 'd
-//│     'b <: 'd -> 'e)))
+//│     'b <: 'd -> 'e
+//│     'a <: 'b -> 'c -> 'd)))
 //│   <:  succ_ty:
 //│ ChurchInt -> ChurchInt
 //│ ╔══[ERROR] Type error in def definition
@@ -589,8 +593,8 @@ succ'
 succ' {}
 //│ res: 'a -> (forall 'b 'c 'd. ('b -> 'd
 //│   where
-//│     anything <: 'a -> 'b -> 'c
-//│     'a <: 'c -> 'd))
+//│     'a <: 'c -> 'd
+//│     anything <: 'a -> 'b -> 'c))
 //│    = [Function (anonymous)]
 
 // :e // * Error delayed by inconsistent constrained types

@@ -110,11 +110,11 @@ not (test id)._1
 test f =
   let r x = f x
   in (r 0, r True)
-//│ test: forall 'a 'b 'c 'd 'e 'f 'g. 'b -> ('c, 'a,)
+//│ test: forall 'a 'b 'c 'd 'e 'f 'g. 'b -> ('d, 'a,)
 //│   where
-//│     'b <: 'g -> 'f & 'd -> 'e
-//│     'e <: 'c
-//│     'd :> 0
+//│     'b <: 'g -> 'f & 'c -> 'e
+//│     'e <: 'd
+//│     'c :> 0
 //│     'f <: 'a
 //│     'g :> true
 //│     = [Function: test3]
@@ -153,7 +153,7 @@ not (test id)._1
 rec def test f =
   let r x = f x
   in (r 0, r True)
-//│ test: (true -> 'a & 0 -> 'b) -> ('b, 'a,)
+//│ test: (0 -> 'a & true -> 'b) -> ('a, 'b,)
 //│     = [Function: test4]
 
 

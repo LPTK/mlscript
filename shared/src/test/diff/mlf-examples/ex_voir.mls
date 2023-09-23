@@ -117,7 +117,7 @@ def mkpair x y = (x, y)
 // *)
 example mkpair
 example_ mkpair
-//│ res: int -> (??a, int,)
+//│ res: int -> (anything, int,)
 //│    = [Function (anonymous)]
 //│ res: 'a -> (forall 'b 'c. 'b -> 'c -> ('b, 'c,), 'a,)
 //│    = [Function (anonymous)]

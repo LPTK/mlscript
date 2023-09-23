@@ -372,16 +372,16 @@ def bar: Bar[?]
 
 :e
 rec def bar = Bar{value = bar; id}
-//│ Bar['A] with {id: forall 'a. 'a -> 'a, value: 'value}
+//│ 'value
 //│   where
-//│     'A :> Bar['A] with {id: forall 'b. 'b -> 'b, value: 'value}
-//│     'value :> Bar['A] with {id: forall 'c. 'c -> 'c, value: 'value}
+//│     'value :> Bar['A] with {id: forall 'a. 'a -> 'a, value: 'value}
+//│     'A :> 'value
 //│   <:  bar:
 //│ Bar[?]
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.374: 	rec def bar = Bar{value = bar; id}
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── application of type `Bar[?A] with {id: forall ?a. ?a -> ?a, value: ?value}` does not match type `nothing`
+//│ ╟── application of type `Bar[?A] & {id: ?id, value: ?value}` does not match type `nothing`
 //│ ║  l.374: 	rec def bar = Bar{value = bar; id}
 //│ ║         	              ^^^^^^^^^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `nothing`

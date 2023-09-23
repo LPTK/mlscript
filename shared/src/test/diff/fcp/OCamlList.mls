@@ -992,7 +992,7 @@ rec def equal eq l1 l2 =
   | (Nil, Cons(_, _)) -> false
   | (Cons(_, _), Nil) -> false
   | (Cons(a1, l1), Cons(a2, l2)) -> eq a1 a2 && equal eq l1 l2
-//│ ('A -> 'A0 -> bool) -> List['A] -> List['A0] -> bool
+//│ ('A -> 'A0 -> bool) -> List['A] -> List['A0] -> (bool | false)
 //│   <:  equal:
 //│ ('a -> 'a -> bool) -> List['a] -> List['a] -> bool
 

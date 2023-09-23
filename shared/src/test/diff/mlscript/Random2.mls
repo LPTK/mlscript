@@ -27,12 +27,13 @@ l
 
 :ns
 m y = l y
-//│ m: anything -> (forall 'l. 'l)
+//│ m: forall 'a. anything -> 'a
 //│   where
+//│     'a :> forall 'l. 'l
 //│     'l := anything -> 'l
 
 m
-//│ res: anything -> (forall 'l. 'l)
+//│ res: 'l
 //│   where
 //│     'l :> anything -> 'l
 

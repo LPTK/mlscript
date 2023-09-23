@@ -189,9 +189,9 @@ res2() = iter256() S Z
 
 res1_ty() = iter4_ty() S_ty Z_ty
 res2_ty() = iter256_ty() S_ty Z_ty
-//│ res1_ty: () -> (forall 'X 'X0. ('X -> 'X & 'X0 -> 'X0) -> ('X & 'X0) -> ('X0 | 'X))
+//│ res1_ty: () -> ('X -> 'X & 'X0 -> 'X0) -> ('X & 'X0) -> ('X | 'X0)
 //│        = [Function: res1_ty]
-//│ res2_ty: () -> (forall 'X 'X0. ('X -> 'X & 'X0 -> 'X0) -> ('X & 'X0) -> ('X0 | 'X))
+//│ res2_ty: () -> ('X -> 'X & 'X0 -> 'X0) -> ('X & 'X0) -> ('X | 'X0)
 //│        = [Function: res2_ty]
 
 
@@ -237,7 +237,7 @@ snd_ty = snd
 //│       = [Function: snd]
 
 p02 = pair Z (S (S Z))
-//│ p02: ((forall 'a. anything -> 'a -> 'a) -> (('b -> 'c & 'c -> 'd) -> 'b -> 'd) -> 'e) -> 'e
+//│ p02: ((forall 'a. anything -> 'a -> 'a) -> (('b -> 'c & 'd -> 'b) -> 'd -> 'c) -> 'e) -> 'e
 //│    = [Function (anonymous)]
 
 p02_ty = pair_ty Z_ty (S_ty (S_ty Z_ty))
@@ -248,7 +248,7 @@ fp = fst p02
 sp = snd p02
 //│ fp: anything -> 'a -> 'a
 //│   = [Function: Z]
-//│ sp: ('a -> 'b & 'b -> 'c) -> 'a -> 'c
+//│ sp: ('a -> 'b & 'c -> 'a) -> 'c -> 'b
 //│   = [Function (anonymous)]
 
 
@@ -274,7 +274,7 @@ sp_ty = sp
 //│   <:  sp_ty:
 //│ ('a -> 'a) -> 'a -> 'a
 //│      = [Function (anonymous)]
-//│ ('a -> 'b & 'b -> 'c) -> 'a -> 'c
+//│ ('a -> 'b & 'c -> 'a) -> 'c -> 'b
 //│   <:  sp_ty:
 //│ ('a -> 'a) -> 'a -> 'a
 //│      = [Function (anonymous)]
@@ -300,11 +300,11 @@ p01 = p Z
 p02 = pair Z (S (S Z))
 p02_ty = pair_ty Z_ty (S_ty (S_ty Z_ty))
 p02_ty = p02
-//│ p02: ((forall 'a. anything -> 'a -> 'a) -> (('b -> 'c & 'c -> 'd) -> 'b -> 'd) -> 'e) -> 'e
+//│ p02: ((forall 'a. anything -> 'a -> 'a) -> (('b -> 'c & 'd -> 'b) -> 'd -> 'c) -> 'e) -> 'e
 //│    = [Function (anonymous)]
 //│ p02_ty: ((forall 'X. ('X -> 'X) -> 'X -> 'X) -> (forall 'X0. ('X0 -> 'X0) -> 'X0 -> 'X0) -> 'Z) -> 'Z
 //│       = [Function (anonymous)]
-//│ p02_ty: ((forall 'a. anything -> 'a -> 'a) -> (('b -> 'c & 'c -> 'd) -> 'b -> 'd) -> 'e) -> 'e
+//│ p02_ty: ((forall 'a. anything -> 'a -> 'a) -> (('b -> 'c & 'd -> 'b) -> 'd -> 'c) -> 'e) -> 'e
 //│       = [Function (anonymous)]
 
 fp02 = fst p02
@@ -326,22 +326,24 @@ fp02_ty = fp02
 
 :ns
 fp02
-//│ res: forall 'a. anything -> 'a -> 'a
+//│ res: forall 'a. 'a
+//│   where
+//│     'a :> forall 'b. anything -> 'b -> 'b
 //│    = [Function: Z]
 
 sp02 = snd p02
 def sp02_ty: forall 'X. ('X -> 'X) -> 'X -> 'X
 sp02_ty = snd_ty p02_ty
 sp02_ty = sp02
-//│ sp02: ('a -> 'b & 'b -> 'c) -> 'a -> 'c
+//│ sp02: ('a -> 'b & 'c -> 'a) -> 'c -> 'b
 //│     = [Function (anonymous)]
 //│ sp02_ty: ('X -> 'X) -> 'X -> 'X
 //│        = <missing implementation>
-//│ ('a -> 'b & 'b -> 'c) -> 'a -> 'c
+//│ ('a -> 'b & 'c -> 'a) -> 'c -> 'b
 //│   <:  sp02_ty:
 //│ ('X -> 'X) -> 'X -> 'X
 //│        = [Function (anonymous)]
-//│ ('a -> 'b & 'b -> 'c) -> 'a -> 'c
+//│ ('a -> 'b & 'c -> 'a) -> 'c -> 'b
 //│   <:  sp02_ty:
 //│ ('X -> 'X) -> 'X -> 'X
 //│        = [Function (anonymous)]
@@ -390,7 +392,7 @@ E q = q id
 // shallow (not (not true))        -- Shallow encoding.
 // λid.id(λb t f.b f t)(id(λb t f.b f t)(λx y.x))
 sh id = (id not) ((id not) tru)
-//│ sh: ((forall 'a 'b 'c. ('a -> 'b -> 'c) -> 'b -> 'a -> 'c) -> 'd -> 'e & (forall 'f 'g 'h. ('h -> 'f -> 'g) -> 'f -> 'h -> 'g) -> (forall 'i. 'i -> anything -> 'i) -> 'd) -> 'e
+//│ sh: ((forall 'a 'b 'c. ('a -> 'b -> 'c) -> 'b -> 'a -> 'c) -> ('d -> 'e & (forall 'f. 'f -> anything -> 'f) -> 'd)) -> 'e
 //│   = [Function: sh]
 
 // E[forall X.X->X->X](shallow (not( not true)))
@@ -411,7 +413,7 @@ sh_pu id x y = id (id u x) x
 :e
 pu sh_pu
 //│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.415: 	pu sh_pu
+//│ ║  l.412: 	pu sh_pu
 //│ ║         	^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: anything -> anything -> anything -> nothing | error
@@ -421,7 +423,7 @@ pu sh_pu
 :e
 (fun x -> x x) (fun x -> x x)
 //│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.425: 	(fun x -> x x) (fun x -> x x)
+//│ ║  l.422: 	(fun x -> x x) (fun x -> x x)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: error

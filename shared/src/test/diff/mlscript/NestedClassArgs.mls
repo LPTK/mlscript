@@ -73,10 +73,10 @@ rec def rc = mkC(rc)
 //│     'a :> 'rc
 
 rec def rc = mkC'(rc)
-//│ rc: 'rc
+//│ rc: 'a
 //│   where
-//│     'rc :> C2['A] with {a: 'rc}
-//│     'A :> 'rc
+//│     'a :> C2['A] with {a: 'a}
+//│     'A :> 'a
 
 
 
@@ -134,17 +134,17 @@ def c: 'a -> C5['a]
 //│ c: 'a -> C5['a]
 
 rec def c5 a = C5{ a = C2 { a = c5 a } }
-//│ c5: anything -> (C5['A] with {a: 'a})
+//│ c5: anything -> 'a
 //│   where
-//│     'a :> C2['A0] with {a: C5['A] with {a: 'a}}
-//│     'A0 :> (C5['A] with {a: 'a}) | C5['A]
+//│     'a :> C5['A] with {a: C2['A0] with {a: 'a}}
+//│     'A0 :> 'a | C5['A]
 //│         <: C5['A]
 
 c = c5
-//│ anything -> (C5['A] with {a: 'a})
+//│ anything -> 'a
 //│   where
-//│     'a :> C2['A0] with {a: C5['A] with {a: 'a}}
-//│     'A0 :> (C5['A] with {a: 'a}) | C5['A]
+//│     'a :> C5['A] with {a: C2['A0] with {a: 'a}}
+//│     'A0 :> 'a | C5['A]
 //│         <: C5['A]
 //│   <:  c:
 //│ 'a -> C5['a]
@@ -161,24 +161,24 @@ def c: 'a -> C6['a]
 //│ c: 'a -> C6['a]
 
 rec def c6 a = C6{ a = c5 (c6 a) }
-//│ c6: anything -> (C6['A] with {a: forall 'A0 'a 'A1. C5['A0] with {a: 'a}})
+//│ c6: anything -> (C6['A] with {a: forall 'a 'A0 'A1. 'a})
 //│   where
-//│     'a :> C2['A1] with {a: C5['A0] with {a: 'a}}
-//│     'A1 :> (C5['A0] with {a: 'a}) | C5['A0]
+//│     'a :> C5['A0] with {a: C2['A1] with {a: 'a}}
+//│     'A1 :> 'a | C5['A0]
 //│         <: C5['A0]
 
 :stats
 c = c6
-//│ anything -> (C6['A] with {a: forall 'A0 'a 'A1. C5['A0] with {a: 'a}})
+//│ anything -> (C6['A] with {a: forall 'a 'A0 'A1. 'a})
 //│   where
-//│     'a :> C2['A1] with {a: C5['A0] with {a: 'a}}
-//│     'A1 :> (C5['A0] with {a: 'a}) | C5['A0]
+//│     'a :> C5['A0] with {a: C2['A1] with {a: 'a}}
+//│     'A1 :> 'a | C5['A0]
 //│         <: C5['A0]
 //│   <:  c:
 //│ 'a -> C6['a]
-//│ constrain calls  : 57
+//│ constrain calls  : 67
 //│ annoying  calls  : 30
-//│ subtyping calls  : 443
+//│ subtyping calls  : 398
 
 
 // Reproduction of an issue found while trying out TypeRef ctor typing:
@@ -286,14 +286,14 @@ def append ls elem = L { h = elem; t = S { v = ls } }
 
 :ns
 append
-//│ res: forall 'T 'h 'a 'b 'c 't 'v 'T0. 'a -> 'c -> 'b
+//│ res: forall 'v 'a 'b 'h 'c 'T 't 'T0. 'b -> 'c -> 'a
 //│   where
-//│     'b :> #L & {h: 'h, t: 't, L#T = 'T0}
+//│     'a :> #L & {h: 'h, t: 't, L#T = 'T0}
 //│     't :> #S & {v: 'v, S#T = 'T}
 //│        <: O[L['T0]]
 //│     'c <: 'h
 //│     'h <: 'T0
-//│     'a <: 'v
+//│     'b <: 'v
 //│     'v <: L['T0] & 'T
 //│     'T := L['T0]
 

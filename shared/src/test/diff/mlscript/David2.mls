@@ -18,9 +18,9 @@ addOne1 x = case x of {
 
 rec def loopy() =
   Integer { value = 1; addOne = fun x -> loopy() }
-//│ loopy: () -> (Integer with {addOne: 'addOne, value: 1})
+//│ loopy: () -> 'a
 //│   where
-//│     'addOne :> anything -> (Integer with {addOne: 'addOne, value: 1})
+//│     'a :> Integer with {addOne: anything -> 'a, value: 1}
 //│      = [Function: loopy]
 
 addOne1 (loopy())
@@ -38,9 +38,9 @@ res : Integer
 // *  so it could be anything; example:
 
 funny = loopy() with { value = "oops!" }
-//│ funny: Integer with {addOne: 'addOne, value: "oops!"}
+//│ funny: 'a\value & {value: "oops!"}
 //│   where
-//│     'addOne :> anything -> (Integer with {addOne: 'addOne, value: 1})
+//│     'a :> Integer with {addOne: anything -> 'a, value: 1}
 //│      = Integer { value: 'oops!', addOne: [Function: addOne] }
 
 addOne1 funny
@@ -72,13 +72,13 @@ addOne1 (Integer { value = 1; addOne = id })
 rec def mkInteger value = Integer { value; addOne = fun n -> mkInteger (n.value + 1) }
 //│ mkInteger: int -> 'a
 //│   where
-//│     'a :> Integer with {addOne: forall 'a. {value: int} -> 'a}
+//│     'a :> Integer with {addOne: {value: int} -> 'a}
 //│          = [Function: mkInteger]
 
 n = mkInteger 42
 //│ n: 'a
 //│   where
-//│     'a :> Integer with {addOne: forall 'a. {value: int} -> 'a}
+//│     'a :> Integer with {addOne: {value: int} -> 'a}
 //│  = Integer { value: 42, addOne: [Function: addOne] }
 
 n : Integer
@@ -88,7 +88,7 @@ n : Integer
 m = addOne1 n
 //│ m: 'a
 //│   where
-//│     'a :> Integer with {addOne: forall 'a. {value: int} -> 'a}
+//│     'a :> Integer with {addOne: {value: int} -> 'a}
 //│  = Integer { value: 43, addOne: [Function: addOne] }
 
 m : Integer
@@ -104,7 +104,7 @@ def mkInteger2 = mkInteger
 //│           = <missing implementation>
 //│ int -> 'a
 //│   where
-//│     'a :> Integer with {addOne: forall 'a. {value: int} -> 'a}
+//│     'a :> Integer with {addOne: {value: int} -> 'a}
 //│   <:  mkInteger2:
 //│ int -> Integer
 //│           = [Function: mkInteger2]
@@ -121,7 +121,7 @@ def mkInteger_oops: (int & 'a) -> (Integer & { value: 'a })
 rec def mkInteger_oops value = Integer { value; addOne = fun n -> mkInteger_oops (n.value + 1) }
 //│ int -> 'a
 //│   where
-//│     'a :> Integer with {addOne: forall 'a. {value: int} -> 'a}
+//│     'a :> Integer with {addOne: {value: int} -> 'a}
 //│   <:  mkInteger_oops:
 //│ (int & 'a) -> (Integer\addOne with {value: 'a})
 //│ ╔══[ERROR] Type mismatch in def definition:
@@ -141,7 +141,10 @@ rec def mkInteger_oops value = Integer { value; addOne = fun n -> mkInteger_oops
 // :d
 :precise-rec-typing
 rec def mkInteger_oops value = Integer { value; addOne = fun n -> mkInteger_oops (n.value + 1) }
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ (int & 'value) -> (Integer with {addOne: {value: int} -> (Integer with {addOne: nothing}), value: 'value})
+//│   <:  mkInteger_oops:
+//│ (int & 'a) -> (Integer\addOne with {value: 'a})
+//│               = [Function: mkInteger_oops1]
 
 // * We may still want to retain the precise typing of the `value` part:
 
@@ -197,7 +200,7 @@ def mkIntegerPrecise3: (int & 'a) -> (Integer & { value: 'a })
 def mkIntegerPrecise3 = mkInteger
 //│ int -> 'a
 //│   where
-//│     'a :> Integer with {addOne: forall 'a. {value: int} -> 'a}
+//│     'a :> Integer with {addOne: {value: int} -> 'a}
 //│   <:  mkIntegerPrecise3:
 //│ (int & 'a) -> (Integer\addOne with {value: 'a})
 //│ ╔══[ERROR] Type mismatch in def definition:
@@ -252,7 +255,7 @@ rec def mkStr value = Str { value; addOne = fun s -> mkStr (concat s.value "1") 
 //│      = <missing implementation>
 //│ string -> 'a
 //│   where
-//│     'a :> Str with {addOne: forall 'a. {value: string} -> 'a}
+//│     'a :> Str with {addOne: {value: string} -> 'a}
 //│   <:  mkStr:
 //│ string -> Str
 //│      = [Function: mkStr]

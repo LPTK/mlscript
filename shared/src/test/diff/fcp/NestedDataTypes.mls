@@ -220,11 +220,11 @@ rec def map f tree = case tree of {
 //│ ║  l.67: 	  }
 //│ ║        	^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
-//│ map: ('a -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'b & 'A) & 'c -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A & 'd) & 'e -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A & 'f) & 'g -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A & 'h) & 'value -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'value0)) -> 'i -> (Leaf[((nothing, (nothing, nothing,) | 'f,) | 'h, ((nothing, nothing,) | 'b, nothing,) | 'd,) | 'value0]\Leaf#A\value & {Leaf#A <: ((nothing, (nothing, nothing,) | 'f,) | 'h, ((nothing, nothing,) | 'b, nothing,) | 'd,) | 'value0, value: ((nothing, (nothing, nothing,) | 'f,) | 'h, ((nothing, nothing,) | 'b, nothing,) | 'd,) | 'value0} | 'j)
+//│ map: ('value -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'value0) & 'a -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'b & 'A) & 'c -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'd & 'A) & 'e -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'f & 'A) & 'g -> (Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'h & 'A)) -> 'i -> 'subTree
 //│   where
-//│     'j :> Node['A]\Node#A\subTree & {Node#A <: 'A, subTree: Leaf[((nothing, (nothing, nothing,) | 'f,) | 'h, ((nothing, nothing,) | 'b, nothing,) | 'd,) | 'value0]\Leaf#A\value & {Leaf#A <: ((nothing, (nothing, nothing,) | 'f,) | 'h, ((nothing, nothing,) | 'b, nothing,) | 'd,) | 'value0, value: ((nothing, (nothing, nothing,) | 'f,) | 'h, ((nothing, nothing,) | 'b, nothing,) | 'd,) | 'value0} | 'j}
-//│     'i <: Leaf[?] & {value: ((anything, (anything, anything,) & 'e,) & 'g, ((anything, anything,) & 'a, anything,) & 'c,) & 'value} | (Node[?] with {subTree: 'i})
-//│     'A :> ((nothing, nothing,) | 'b, (nothing, nothing,) | 'f,)
+//│     'subTree :> Leaf[((nothing, (nothing, nothing,) | 'd,) | 'b, ((nothing, nothing,) | 'h, nothing,) | 'f,) | 'value0]\Leaf#A\value & {Leaf#A <: ((nothing, (nothing, nothing,) | 'd,) | 'b, ((nothing, nothing,) | 'h, nothing,) | 'f,) | 'value0, value: ((nothing, (nothing, nothing,) | 'd,) | 'b, ((nothing, nothing,) | 'h, nothing,) | 'f,) | 'value0} | Node['A]\Node#A\subTree & {Node#A <: 'A, subTree: 'subTree}
+//│     'i <: Leaf[?] & {value: ((anything, (anything, anything,) & 'c,) & 'a, ((anything, anything,) & 'g, anything,) & 'e,) & 'value} | (Node[?] with {subTree: 'i})
+//│     'A :> ((nothing, nothing,) | 'h, (nothing, nothing,) | 'd,)
 //│        <: Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A]
 //│    = [Function: map]
 
@@ -236,35 +236,35 @@ rec def map f tree = case tree of {
   }
 //│ ╔══[ERROR] Inferred recursive type: 'map
 //│   where
-//│     'map :> forall 'subTree 'A 'subTree0 'a 'value 'value0. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree0}))
+//│     'map :> forall 'A 'subTree 'value 'a 'value0 'subTree0. 'a -> ((Leaf[?] & {value: 'value0} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value] | (Node['A] with {subTree: 'subTree0}))
 //│   where
-//│     'a <: 'value -> 'value0
-//│     'map <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
+//│     'map <: (forall 'b 'c 'd 'e. (('e, 'c,) -> ('b, 'd,)
 //│   where
-//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
+//│     'a <: 'e -> 'b & 'c -> 'd)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0)
+//│     'a <: 'value0 -> 'value)
 //│ ╙──
 //│ map: 'map
 //│   where
-//│     'map :> forall 'subTree 'value 'a 'value0 'A 'subTree0. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree0}))
+//│     'map :> forall 'A 'value 'subTree 'a 'value0 'subTree0. 'a -> ((Leaf[?] & {value: 'value0} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value] | (Node['A] with {subTree: 'subTree0}))
 //│   where
-//│     'a <: 'value -> 'value0
-//│     'map <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
+//│     'a <: 'value0 -> 'value
+//│     'map <: (forall 'b 'c 'd 'e. (('e, 'c,) -> ('b, 'd,)
 //│   where
-//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
+//│     'a <: 'e -> 'b & 'c -> 'd)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
 //│    = [Function: map1]
 
 :e
 map succ n4
 //│ ╔══[ERROR] Inferred recursive type: 'map
 //│   where
-//│     'map :> forall 'value 'a 'subTree 'A 'subTree0 'value0. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree0})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree}))
+//│     'map :> forall 'a 'subTree 'value 'subTree0 'A 'value0. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree0}))
 //│   where
 //│     'a <: 'value -> 'value0
 //│     'map <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
 //│   where
-//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree0 -> (PerfectTree[Two['A]] & 'subTree))
+//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
 //│ ╙──
-//│ ╔══[ERROR] Subtyping constraint of the form `?a <: (forall ?A ?A0 ?A1. Node[?A0] with {Node#A = ?A0, subTree: Node[?A1] with {Node#A = ?A1, subTree: Leaf[?A] with {Leaf#A = ?A, value: ((1, 2,), (3, 4,),)}}}) -> ?b` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `?a <: (forall ?A ?value ?b ?A0 ?A1 ?subTree ?subTree0. ?b) -> ?c` exceeded recursion depth limit (250)
 //│ ║  l.257: 	map succ n4
 //│ ║         	^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.

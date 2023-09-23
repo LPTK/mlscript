@@ -159,9 +159,9 @@ r : (A2 \ x) & {x: 1}
 //│ ╔══[ERROR] Type mismatch in type ascription:
 //│ ║  l.158: 	r : (A2 \ x) & {x: 1}
 //│ ║         	^
-//│ ╟── `with` extension of type `A2` does not have field 'x'
-//│ ║  l.148: 	r = a2 with { x = 1 }
-//│ ║         	    ^^^^^^^^^^^^^^^^^
+//│ ╟── application of type `A2` does not match type `{x: string}`
+//│ ║  l.147: 	a2 = A2{x="a"}
+//│ ║         	     ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `{x: string}`
 //│ ║  l.158: 	r : (A2 \ x) & {x: 1}
 //│ ║         	^

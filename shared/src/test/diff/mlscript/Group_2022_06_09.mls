@@ -41,10 +41,10 @@ eval e2
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.40: 	eval e2
 //│ ║        	^^^^^^^
-//│ ╟── application of type `Neg with {e: Add with {lhs: Lit & {n: 1}, rhs: Lit & {n: 2}}}` does not match type `(Add with {lhs: ?a, rhs: ?a}) | Lit & {n: ?n}`
+//│ ╟── application of type `Neg & {e: ?e}` does not match type `Add & ?a | Lit & ?b`
 //│ ║  l.31: 	e2 = Neg { e }
 //│ ║        	     ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `(Add with {lhs: ?a, rhs: ?a}) | Lit & {n: ?n}`
+//│ ╟── but it flows into reference with expected type `Add & ?a | Lit & ?b`
 //│ ║  l.40: 	eval e2
 //│ ║        	     ^^
 //│ ╟── Note: constraint arises from reference:
@@ -134,11 +134,12 @@ def evalComposed evalComposed = evalN evalN! (eval evalComposed)
 // *    of the need for an algorithm to tie recursive TV knots and inline the rest;
 // *    once we inline, `b` we should get the expected simplified recursive type.
 ev2 = evalComposed evalComposed!
-//│ ev2: ((Add with {lhs: 'a, rhs: 'a}) | (Lit with {n: 'n}) | (Neg with {e: 'b})) -> (int | 'n)
+//│ ev2: ((Add with {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg}) | (Lit with {n: 'n}) | (Neg with {e: 'c})) -> (int | 'n)
 //│   where
-//│     'b <: 'c | (Neg with {e: 'b})
-//│     'a <: (Neg with {e: 'a}) | 'c & ~#Neg
-//│     'c <: (Add with {lhs: 'a, rhs: 'a}) | Lit
+//│     'c <: (Add with {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg}) | Lit | (Neg with {e: 'c})
+//│     'a <: {e: 'd}
+//│     'd <: 'b | (Neg with {e: 'd})
+//│     'b <: Add & {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg} | Lit
 //│    = [Function (anonymous)]
 
 ev2 e3
@@ -153,11 +154,12 @@ def ev2_ty: (Add & { lhs: 'a; rhs: 'a } | Lit | Neg & { e: 'a } as 'a) -> int
 //│       = <missing implementation>
 
 ev2_ty = ev2
-//│ ((Add with {lhs: 'a, rhs: 'a}) | (Lit with {n: 'n}) | (Neg with {e: 'b})) -> (int | 'n)
+//│ ((Add with {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg}) | (Lit with {n: 'n}) | (Neg with {e: 'c})) -> (int | 'n)
 //│   where
-//│     'b <: 'c | (Neg with {e: 'b})
-//│     'a <: (Neg with {e: 'a}) | 'c & ~#Neg
-//│     'c <: (Add with {lhs: 'a, rhs: 'a}) | Lit
+//│     'c <: (Add with {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg}) | Lit | (Neg with {e: 'c})
+//│     'a <: {e: 'd}
+//│     'd <: 'b | (Neg with {e: 'd})
+//│     'b <: Add & {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg} | Lit
 //│   <:  ev2_ty:
 //│ 'a -> int
 //│   where

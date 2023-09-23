@@ -102,10 +102,10 @@ f htx
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.73: 	f htx
 //│ ║        	^^^^^
-//│ ╟── application of type `(1, 2, 3,) & {x: 1} & #Hey` is not a 2-element tuple
-//│ ║  l.42: 	htx = Hey tx
-//│ ║        	      ^^^^^^
-//│ ╟── but it flows into reference with expected type `(int, int,)`
+//│ ╟── `with` extension of type `(1, 2, 3,) & {x: 1}` does not match type `(int, int,) | ~#Hey`
+//│ ║  l.11: 	tx = t with { x = 1 }
+//│ ║        	     ^^^^^^^^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `(int, int,) | ~#Hey`
 //│ ║  l.73: 	f htx
 //│ ║        	  ^^^
 //│ ╟── Note: constraint arises from tuple literal:

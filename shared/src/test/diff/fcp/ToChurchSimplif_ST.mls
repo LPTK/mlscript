@@ -37,10 +37,10 @@ def s n f x = (n f x)
 
 :ns
 s
-//│ res: forall 'a 'b 'c 'd 'e. 'a -> 'd -> 'c -> 'b
+//│ res: forall 'a 'b 'c 'd 'e. 'c -> 'b -> 'a -> 'd
 //│   where
-//│     'a <: 'd -> 'e
-//│     'e <: 'c -> 'b
+//│     'c <: 'b -> 'e
+//│     'e <: 'a -> 'd
 //│    = [Function: s]
 
 :e // * Works with CT
@@ -140,9 +140,9 @@ to_church = to_ch
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
 //│ ║        	                                   ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this reference:
+//│ ╟── • this function:
 //│ ║  l.33: 	def s n f x = (n f x)
-//│ ║        	                 ^
+//│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
 //│ ║  l.123: 	  else s (to_ch n)
 //│ ║         	       ^^^^^^^^^^^
@@ -178,9 +178,9 @@ to_church = to_ch
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
 //│ ║        	                                   ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this reference:
+//│ ╟── • this function:
 //│ ║  l.33: 	def s n f x = (n f x)
-//│ ║        	                 ^
+//│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
 //│ ║  l.161: 	  else s (to_ch n)
 //│ ║         	       ^^^^^^^^^^^
@@ -216,9 +216,9 @@ to_church = to_ch
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
 //│ ║        	                                   ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this reference:
+//│ ╟── • this function:
 //│ ║  l.33: 	def s n f x = (n f x)
-//│ ║        	                 ^
+//│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
 //│ ║  l.199: 	  else s (to_church n)
 //│ ║         	       ^^^^^^^^^^^^^^^
@@ -354,9 +354,9 @@ to_church = to_ch
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
 //│ ║        	                                   ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this reference:
+//│ ╟── • this function:
 //│ ║  l.33: 	def s n f x = (n f x)
-//│ ║        	                 ^
+//│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
 //│ ║  l.337: 	  s (to_church n)
 //│ ║         	  ^^^^^^^^^^^^^^^
@@ -425,9 +425,9 @@ to_church = to_ch
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
 //│ ║        	                                   ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this reference:
+//│ ╟── • this function:
 //│ ║  l.33: 	def s n f x = (n f x)
-//│ ║        	                 ^
+//│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
 //│ ║  l.408: 	  s (to_church n)
 //│ ║         	  ^^^^^^^^^^^^^^^
