@@ -6,9 +6,7 @@
 // :d
 // :ds
 def f: { x: 'a } as 'a
-//│ f: 'a
-//│   where
-//│     'a :> {x: 'a}
+//│ f: in {x: anything} out {x: nothing}
 
 
 // :stdout
@@ -16,30 +14,23 @@ def f: { x: 'a } as 'a
 // :d
 // :ds
 rec def l x = l
-//│ l: 'l
-//│   where
-//│     'l :> anything -> 'l
+//│ l: anything -> nothing
 
 l
-//│ res: 'l
-//│   where
-//│     'l :> anything -> 'l
+//│ res: anything -> nothing
 
 :ns
 m y = l y
 //│ m: forall 'a. anything -> 'a
 //│   where
-//│     'a :> forall 'l. 'l
-//│     'l := anything -> 'l
+//│     'a :> in anything out nothing
 
 m
-//│ res: 'l
-//│   where
-//│     'l :> anything -> 'l
+//│ res: anything -> nothing
 
 
 fun a -> a a
-//│ res: ('a -> 'b & 'a) -> 'b
+//│ res: (nothing -> 'a) -> 'a
 
 
 // :stdout
@@ -50,14 +41,12 @@ fun a -> a a
 rec def f a = a a
 //│ ('a -> 'b & 'a) -> 'b
 //│   <:  f:
-//│ 'a
-//│   where
-//│     'a :> {x: 'a}
+//│ {x: nothing}
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.49: 	rec def f a = a a
+//│ ║  l.50: 	rec def f a = a a
 //│ ║        	^^^^^^^^^^^^^^^^^
 //│ ╟── function of type `?a -> ?b` does not have field 'x'
-//│ ║  l.49: 	rec def f a = a a
+//│ ║  l.50: 	rec def f a = a a
 //│ ║        	          ^^^^^^^
 //│ ╟── Note: constraint arises from record type:
 //│ ║  l.8: 	def f: { x: 'a } as 'a

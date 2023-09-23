@@ -11,43 +11,27 @@ class A: { f: anything }
 def eval eval x = case x of
   L -> 0,
   A -> eval eval x.f
-//│ eval: ('a -> 'f -> 'b & 'a) -> ((A with {f: 'f}) | L) -> (0 | 'b)
+//│ eval: (nothing -> 'f -> 'a) -> ((A with {f: 'f}) | L) -> (0 | 'a)
 //│     = [Function: eval]
 
 
 :e
 e = eval eval
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.19: 	e = eval eval
-//│ ║        	    ^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ e: (A & {f: A | L} | L) -> 0 | error
+//│ e: (A & {f: A | L} | L) -> 0
 //│  = [Function (anonymous)]
 
 e (A{f = L{}})
-//│ res: 0 | error
+//│ res: 0
 //│    = 0
 
 
 :e
 e = eval eval!
-//│ ╔══[ERROR] Inferred recursive type: 'f
-//│   where
-//│     'f <: (A with {f: 'f}) | L
-//│ ║  l.13: 	  A -> eval eval x.f
-//│ ╙──      	                 ^^^
-//│ e: (A & 'a | L) -> 0
-//│   where
-//│     'a <: {f: A & 'a | L}
+//│ e: (A & {f: A | L} | L) -> 0
 //│  = [Function (anonymous)]
 
 :e
 e (A{f = L{}})
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: {f: A & 'a | L}
-//│ ║  l.11: 	def eval eval x = case x of
-//│ ╙──      	                       ^
 //│ res: 0
 //│    = 0
 
@@ -65,16 +49,11 @@ rec def v = A{f = v}
 
 :e
 e v
-//│ ╔══[ERROR] Inferred recursive type: 'a
+//│ ╔══[ERROR] Inferred recursive type: 'f
 //│   where
-//│     'a <: {f: A & 'a | L}
-//│ ║  l.11: 	def eval eval x = case x of
-//│ ╙──      	                       ^
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.59: 	e v
-//│ ║        	^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: 0 | error
+//│     'f :> A with {f: 'f}
+//│ ╙──
+//│ res: 0
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -92,38 +71,29 @@ e v
 def eval eval x = case x of
   L -> 0,
   A -> { x = eval eval x.f }
-//│ eval: ('a -> 'f -> 'b & 'a) -> ((A with {f: 'f}) | L) -> (0 | {x: 'b})
+//│ eval: (nothing -> 'f -> 'a) -> ((A with {f: 'f}) | L) -> (0 | {x: 'a})
 //│     = [Function: eval1]
 
 
 :e
 e = eval eval
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.87: 	e = eval eval
-//│ ║        	    ^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ e: (A & {f: A | L} | L) -> (0 | {x: 0 | {x: nothing}}) | error
+//│ e: (A & {f: A | L} | L) -> (0 | {x: 0 | {x: nothing}})
 //│  = [Function (anonymous)]
 
 :re
 e v
-//│ res: 0 | error | {x: 0 | {x: nothing}}
+//│ res: 0 | {x: 0 | {x: nothing}}
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
 
 e = eval eval!
-//│ e: (A & 'a | L) -> 'b
-//│   where
-//│     'b :> 0 | {x: 'b}
-//│     'a <: {f: A & 'a | L}
+//│ e: (A & {f: A | L} | L) -> (0 | {x: 0 | {x: nothing}})
 //│  = [Function (anonymous)]
 
 :re
 e v
-//│ res: 'a
-//│   where
-//│     'a :> 0 | {x: 'a}
+//│ res: 0 | {x: 0 | {x: nothing}}
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 

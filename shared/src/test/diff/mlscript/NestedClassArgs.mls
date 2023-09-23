@@ -19,29 +19,19 @@ def c: C[C['a]] -> 'a
 //│ c: C[C['a]] -> 'a
 
 def c: C['a] as 'a
-//│ c: 'a
-//│   where
-//│     'a := C['a]
+//│ c: C[in anything out nothing]
 
 def c: C['a] | 'a as 'a
-//│ c: 'a
-//│   where
-//│     'a := 'a | C['a]
+//│ c: in anything out C[in anything out nothing]
 
 def c: C[C['a]] as 'a
-//│ c: 'a
-//│   where
-//│     'a := C[C['a]]
+//│ c: C[C[in anything out nothing]]
 
 def c: C[C['a] & 'a] as 'a
-//│ c: 'a
-//│   where
-//│     'a := C[C['a] & 'a]
+//│ c: C[in C[in anything out nothing] out nothing]
 
 def c: C[C['a] & 'a | 'a] as 'a
-//│ c: 'a
-//│   where
-//│     'a := C['a]
+//│ c: C[in anything out nothing]
 
 def c: C['a]
 //│ c: C['a]
@@ -67,10 +57,9 @@ mkC = mkC'
 //│ 'a -> C2['a]
 
 rec def rc = mkC(rc)
-//│ rc: 'rc
+//│ rc: C2['a]
 //│   where
-//│     'rc :> C2['a]
-//│     'a :> 'rc
+//│     'a :> C2['a]
 
 rec def rc = mkC'(rc)
 //│ rc: 'a
@@ -98,7 +87,9 @@ rec def c a = C3 { a = c a }
 //│ 'a -> C3['a]
 
 rec def c (a: 'X) = C3 { a = c a: 'X }: C3['X]
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ anything -> C3['X]
+//│   <:  c:
+//│ 'a -> C3['a]
 
 
 class C4[A]: { a: C[C4[A]] }
@@ -286,16 +277,14 @@ def append ls elem = L { h = elem; t = S { v = ls } }
 
 :ns
 append
-//│ res: forall 'v 'a 'b 'h 'c 'T 't 'T0. 'b -> 'c -> 'a
+//│ res: forall 'T 'h 'v 'a 'T0 't. 'v -> 'h -> 'a
 //│   where
-//│     'a :> #L & {h: 'h, t: 't, L#T = 'T0}
-//│     't :> #S & {v: 'v, S#T = 'T}
-//│        <: O[L['T0]]
-//│     'c <: 'h
-//│     'h <: 'T0
-//│     'b <: 'v
-//│     'v <: L['T0] & 'T
-//│     'T := L['T0]
+//│     'a :> #L & {h: 'h, t: 't, L#T = 'T}
+//│     't :> #S & {v: 'v, S#T = 'T0}
+//│        <: O[L['T]]
+//│     'h <: 'T
+//│     'v <: L['T] & 'T0
+//│     'T0 := L['T]
 
 append error
 //│ res: ('h & 'T) -> (L['T] with {h: 'h, t: S[L['T]] & {v: nothing}})

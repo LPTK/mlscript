@@ -119,14 +119,14 @@ rec def lr1 = Cons { head = 0; tail = lr1 }
 //│     'tail :> Cons[0] with {tail: 'tail}
 //│ constrain calls  : 19
 //│ annoying  calls  : 0
-//│ subtyping calls  : 96
+//│ subtyping calls  : 95
 
 :stats
 Cons.HeadOption lr1
 //│ res: Some[0]
-//│ constrain calls  : 50
+//│ constrain calls  : 45
 //│ annoying  calls  : 18
-//│ subtyping calls  : 163
+//│ subtyping calls  : 158
 
 :stats
 rec def lr2 = Cons { head = 0; tail = Cons { head = 1; tail = Cons { head = 3; tail = lr2 } } }
@@ -135,14 +135,14 @@ rec def lr2 = Cons { head = 0; tail = Cons { head = 1; tail = Cons { head = 3; t
 //│     'tail :> Cons[0] with {tail: Cons[1] with {tail: Cons[3] with {tail: 'tail}}}
 //│ constrain calls  : 49
 //│ annoying  calls  : 0
-//│ subtyping calls  : 258
+//│ subtyping calls  : 257
 
 :stats
 Cons.HeadOption lr2
 //│ res: Some[0]
-//│ constrain calls  : 49
+//│ constrain calls  : 44
 //│ annoying  calls  : 18
-//│ subtyping calls  : 157
+//│ subtyping calls  : 152
 
 
 :e

@@ -19,29 +19,19 @@ def c: C[C['a]] -> 'a
 //│ c: C[C['a]] -> 'a
 
 def c: C['a] as 'a
-//│ c: 'a
-//│   where
-//│     'a :> C['a]
+//│ c: in C[?] out C[nothing]
 
 def c: C['a] | 'a as 'a
-//│ c: 'a
-//│   where
-//│     'a :> C['a]
+//│ c: in anything out C[nothing]
 
 def c: C[C['a]] as 'a
-//│ c: 'a
-//│   where
-//│     'a :> C[C['a]]
+//│ c: in C[C[?]] out C[C[nothing]]
 
 def c: C[C['a] & 'a] as 'a
-//│ c: 'a
-//│   where
-//│     'a :> C[C['a] & 'a]
+//│ c: in C[C[?]] out C[nothing]
 
 def c: C[C['a] & 'a | 'a] as 'a
-//│ c: 'a
-//│   where
-//│     'a :> C['a]
+//│ c: in C[?] out C[nothing]
 
 def c: C['a]
 //│ c: C[nothing]

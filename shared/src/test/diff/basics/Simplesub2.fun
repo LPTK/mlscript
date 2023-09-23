@@ -61,9 +61,7 @@ let res = consume codata
 
 let rec codata2 = { head: 0, tail: { head: 1, tail: codata2 } }
 let res = consume codata2
-//│ codata2: 'codata2
-//│   where
-//│     'codata2 :> {head: 0, tail: {head: 1, tail: 'codata2}}
+//│ codata2: {head: 0, tail: {head: 1, tail: nothing}}
 //│ res: int
 
 // TODO better parser error
@@ -73,10 +71,9 @@ let rec produce3 = b => { head: 123, tail: if b then codata else codata2 }
 
 let rec produce3 = b => { head: 123, tail: (if b then codata else codata2) }
 let res = x => consume (produce3 x)
-//│ produce3: bool -> {head: 123, tail: forall 'codata2 'a. 'codata2 | 'a}
+//│ produce3: bool -> {head: 123, tail: forall 'a. 'a}
 //│   where
 //│     'a :> {head: int, tail: 'a}
-//│     'codata2 :> {head: 0, tail: {head: 1, tail: 'codata2}}
 //│ res: bool -> int
 
 let consume2 =
@@ -85,8 +82,6 @@ let consume2 =
   // go
 // let rec consume2 = strm => add strm.head (add strm.tail.head (consume2 strm.tail.tail))
 let res = consume2 codata2
-//│ consume2: 'a -> int
-//│   where
-//│     'a <: {head: int, tail: 'a}
+//│ consume2: {head: int, tail: {head: int, tail: anything}} -> int
 //│ res: int
 

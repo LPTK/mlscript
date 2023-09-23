@@ -67,7 +67,7 @@ rec def map f tree = case tree of {
   }
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'a <: {subTree: (Leaf[?] with {value: ((?, (?, ?,),), ((?, ?,), ?,),)}) | Node[?] & 'a}
+//│     'a <: {subTree: Leaf[?] & {value: ((anything, (anything, anything,),), ((anything, anything,), anything,),)} | Node[?] & 'a}
 //│ ║  l.64: 	rec def map f tree = case tree of {
 //│ ╙──      	                          ^^^^
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
@@ -224,7 +224,7 @@ rec def map f tree = case tree of {
 //│   where
 //│     'subTree :> Leaf[((nothing, (nothing, nothing,) | 'd,) | 'b, ((nothing, nothing,) | 'h, nothing,) | 'f,) | 'value0]\Leaf#A\value & {Leaf#A <: ((nothing, (nothing, nothing,) | 'd,) | 'b, ((nothing, nothing,) | 'h, nothing,) | 'f,) | 'value0, value: ((nothing, (nothing, nothing,) | 'd,) | 'b, ((nothing, nothing,) | 'h, nothing,) | 'f,) | 'value0} | Node['A]\Node#A\subTree & {Node#A <: 'A, subTree: 'subTree}
 //│     'i <: Leaf[?] & {value: ((anything, (anything, anything,) & 'c,) & 'a, ((anything, anything,) & 'g, anything,) & 'e,) & 'value} | (Node[?] with {subTree: 'i})
-//│     'A :> ((nothing, nothing,) | 'h, (nothing, nothing,) | 'd,)
+//│     'A :> (nothing, (nothing, nothing,) | 'd,)
 //│        <: Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two[Two['A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A] & 'A]
 //│    = [Function: map]
 
@@ -234,41 +234,17 @@ rec def map f tree = case tree of {
   | Leaf -> Leaf { value = f tree.value }
   | Node -> Node { subTree = map (mapTwo f) tree.subTree }
   }
-//│ ╔══[ERROR] Inferred recursive type: 'map
+//│ map: 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree0}))
 //│   where
-//│     'map :> forall 'A 'subTree 'value 'a 'value0 'subTree0. 'a -> ((Leaf[?] & {value: 'value0} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value] | (Node['A] with {subTree: 'subTree0}))
+//│     'a <: 'value -> 'value0
+//│     nothing <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
 //│   where
-//│     'map <: (forall 'b 'c 'd 'e. (('e, 'c,) -> ('b, 'd,)
-//│   where
-//│     'a <: 'e -> 'b & 'c -> 'd)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0)
-//│     'a <: 'value0 -> 'value)
-//│ ╙──
-//│ map: 'map
-//│   where
-//│     'map :> forall 'A 'value 'subTree 'a 'value0 'subTree0. 'a -> ((Leaf[?] & {value: 'value0} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value] | (Node['A] with {subTree: 'subTree0}))
-//│   where
-//│     'a <: 'value0 -> 'value
-//│     'map <: (forall 'b 'c 'd 'e. (('e, 'c,) -> ('b, 'd,)
-//│   where
-//│     'a <: 'e -> 'b & 'c -> 'd)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
+//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
 //│    = [Function: map1]
 
 :e
 map succ n4
-//│ ╔══[ERROR] Inferred recursive type: 'map
-//│   where
-//│     'map :> forall 'a 'subTree 'value 'subTree0 'A 'value0. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree0}))
-//│   where
-//│     'a <: 'value -> 'value0
-//│     'map <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
-//│   where
-//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
-//│ ╙──
-//│ ╔══[ERROR] Subtyping constraint of the form `?a <: (forall ?A ?value ?b ?A0 ?A1 ?subTree ?subTree0. ?b) -> ?c` exceeded recursion depth limit (250)
-//│ ║  l.257: 	map succ n4
-//│ ║         	^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
+//│ res: Leaf[int] | Node[nothing] & {subTree: nothing}
 //│    = Node1 { subTree: Node1 { subTree: Leaf { value: [Array] } } }
 
 

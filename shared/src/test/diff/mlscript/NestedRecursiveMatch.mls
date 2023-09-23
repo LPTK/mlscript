@@ -36,7 +36,7 @@ rec def f w = case w of
         Some (m,)
 //│ f: 'right -> (None | Some[in 'value out 0 | 'value])
 //│   where
-//│     'right <: Leaf | Node & {left: 'right, right: 'right}
+//│     'right <: Leaf | Node & {left: anything, right: 'right}
 
 // * Minimizations:
 
@@ -71,7 +71,5 @@ def f w =
     None -> Some 0,
     Some ->
       let m = tmp0.value in Some m
-//│ f: {left: 'b} -> Some[in 'a out 0 | 'a]
-//│   where
-//│     'b <: Node & {left: 'b}
+//│ f: {left: Node & {left: Node}} -> Some[in 'a out 0 | 'a]
 

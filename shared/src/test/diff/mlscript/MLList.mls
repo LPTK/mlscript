@@ -23,26 +23,25 @@ rec def find(table, key) =
   table.Fold(
     fun () -> undefined,
     fun (h, t) -> if eq h.key key then h.val else find(t, key))
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ find: (List[{key: anything, val: 'b}], anything,) -> ('b | undefined)
+//│     = [Function: find]
 
 ls = cons({key="I"; val=id}, cons({key="omega"; val=fun x -> x x}, nil))
-//│ ls: List[{key: "I" | "omega", val: forall 'a 'b. ('a -> 'b & 'b & 'a) -> 'b}]
+//│ ls: List[{key: "I" | "omega", val: forall 'a 'b. (nothing -> 'a & 'b) -> ('a | 'b)}]
 //│   = Cons {
 //│       head: { key: 'I', val: [Function: id] },
 //│       tail: Cons { head: { key: 'omega', val: [Function: val] }, tail: Nil {} }
 //│     }
 
 res = find(ls, "omega")
-//│ res: ('a -> 'b & 'b & 'a) -> 'b | undefined
-//│ Code generation encountered an error:
-//│   unresolved symbol find
+//│ res: (nothing -> 'a & 'a) -> 'a | undefined
+//│    = [Function: val]
 
 case res of undefined -> "???", _ -> res id "!"
 //│ res: "!" | "???"
-//│    = '???'
+//│    = '!'
 
 find(ls, "oops")
-//│ res: ('a -> 'b & 'b & 'a) -> 'b | undefined
-//│ Code generation encountered an error:
-//│   unresolved symbol find
+//│ res: (nothing -> 'a & 'b) -> ('a | 'b) | undefined
+//│    = undefined
 

@@ -41,13 +41,13 @@ id_ty = id
 // Self-application.
 xx = fun x -> x x
 def xx_ty: (forall 'X. 'X -> 'X) -> (forall 'X. 'X -> 'X)
-//│ xx: ('a -> 'b & 'a) -> 'b
+//│ xx: (nothing -> 'a) -> 'a
 //│   = [Function: xx]
 //│ xx_ty: (forall 'X. 'X -> 'X) -> (forall 'X0. 'X0 -> 'X0)
 //│      = <missing implementation>
 
 xx_ty = xx
-//│ ('a -> 'b & 'a) -> 'b
+//│ (nothing -> 'a) -> 'a
 //│   <:  xx_ty:
 //│ (forall 'X. 'X -> 'X) -> (forall 'X0. 'X0 -> 'X0)
 //│      = [Function: xx]
@@ -55,7 +55,7 @@ xx_ty = xx
 xx id
 iter2 f x = f(f x)
 def iter2_ty: forall 'X. ('X -> 'X) -> 'X -> 'X
-//│ res: 'a -> 'a
+//│ res: nothing
 //│    = [Function: id]
 //│ iter2: ('a -> 'b & 'b -> 'c) -> 'a -> 'c
 //│      = [Function: iter2]
@@ -113,9 +113,9 @@ iter4_ty = iter4
 //│ ║  l.75: 	def iter4_ty: () -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│ ║        	                                 ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this function:
+//│ ╟── • this reference:
 //│ ║  l.56: 	iter2 f x = f(f x)
-//│ ║        	        ^^^^^^^^^^
+//│ ║        	                ^
 //│ ╟── • this application:
 //│ ║  l.71: 	iter4() = iter2 iter2
 //│ ║        	          ^^^^^^^^^^^
@@ -145,7 +145,7 @@ iter256() = iter4() (iter4())
 def iter256_ty: () -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 iter256_ty() = iter4_ty() (iter4_ty())
 iter256_ty = iter256
-//│ iter256: () -> ('a -> ('a & 'b) & 'b -> ('a & 'b & 'c)) -> 'a -> 'c
+//│ iter256: () -> ('a -> ('a & 'b) & 'b -> 'a) -> 'a -> nothing
 //│        = [Function: iter256]
 //│ iter256_ty: () -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│           = <missing implementation>
@@ -153,7 +153,7 @@ iter256_ty = iter256
 //│   <:  iter256_ty:
 //│ () -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│           = [Function: iter256_ty]
-//│ () -> ('a -> ('a & 'b) & 'b -> ('a & 'b & 'c)) -> 'a -> 'c
+//│ () -> ('a -> ('a & 'b) & 'b -> 'a) -> 'a -> nothing
 //│   <:  iter256_ty:
 //│ () -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│           = [Function: iter256]
@@ -185,7 +185,10 @@ S_ty = S
 
 res1() = iter4() S Z
 res2() = iter256() S Z
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ res1: () -> ('a -> ('b & 'c) & 'c -> 'a) -> 'c -> 'b
+//│     = [Function: res1]
+//│ res2: () -> nothing
+//│     = [Function: res2]
 
 res1_ty() = iter4_ty() S_ty Z_ty
 res2_ty() = iter256_ty() S_ty Z_ty
@@ -392,7 +395,7 @@ E q = q id
 // shallow (not (not true))        -- Shallow encoding.
 // λid.id(λb t f.b f t)(id(λb t f.b f t)(λx y.x))
 sh id = (id not) ((id not) tru)
-//│ sh: ((forall 'a 'b 'c. ('a -> 'b -> 'c) -> 'b -> 'a -> 'c) -> ('d -> 'e & (forall 'f. 'f -> anything -> 'f) -> 'd)) -> 'e
+//│ sh: ((forall 'a 'b 'c. ('c -> 'a -> 'b) -> 'a -> 'c -> 'b) -> ('d -> 'e & (forall 'f. 'f -> anything -> 'f) -> 'd)) -> 'e
 //│   = [Function: sh]
 
 // E[forall X.X->X->X](shallow (not( not true)))
@@ -405,28 +408,20 @@ pu x y = (u x) x
 sh_pu id x y = id (id u x) x
 //│ u: ((forall 'a. 'a -> 'a) -> 'b) -> 'b
 //│  = [Function: E]
-//│ pu: ((forall 'a. 'a -> 'a) -> 'b -> 'c & 'b) -> anything -> 'c
+//│ pu: ((forall 'a. 'a -> 'a) -> nothing -> 'b) -> anything -> 'b
 //│   = [Function: pu]
 //│ sh_pu: ((forall 'a. ((forall 'b. 'b -> 'b) -> 'a) -> 'a) -> 'c -> 'd & 'd -> 'c -> 'e) -> 'c -> anything -> 'e
 //│      = [Function: sh_pu]
 
 :e
 pu sh_pu
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.412: 	pu sh_pu
-//│ ║         	^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: anything -> anything -> anything -> nothing | error
+//│ res: anything -> anything -> nothing
 //│    = [Function (anonymous)]
 
 // * "Of course, self-application of self-application ((\x.x x)(\x.x x)) remains untypable, because it has no normal form."
 :e
 (fun x -> x x) (fun x -> x x)
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.422: 	(fun x -> x x) (fun x -> x x)
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 

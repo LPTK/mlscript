@@ -266,7 +266,7 @@ b g x = build_ g x
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.262: 	b g x = build_ g x
 //│ ║         	^^^^^^^^^^^^^^^^^^
-//│ ╟── type `Ls['a]` is not a function
+//│ ╟── type `Ls[nothing]` is not a function
 //│ ║  l.22: 	def nil: Ls['a]
 //│ ║        	         ^^^^^^
 //│ ╟── Note: constraint arises from application:

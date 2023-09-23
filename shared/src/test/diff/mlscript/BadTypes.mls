@@ -155,9 +155,7 @@ error: BadRec
 //│   Error: unexpected runtime error
 
 def someRec: { y: 'a } as 'a
-//│ someRec: 'a
-//│   where
-//│     'a :> {y: 'a}
+//│ someRec: in {y: anything} out {y: nothing}
 //│        = <missing implementation>
 
 :e
@@ -165,10 +163,10 @@ someRec: BadRec
 //│ ╔══[ERROR] Type mismatch in type ascription:
 //│ ║  l.+1: 	someRec: BadRec
 //│ ║        	^^^^^^^
-//│ ╟── type `{y: 'a}` does not have field 'x'
+//│ ╟── type `{y: nothing}` does not have field 'x'
 //│ ║  l.157: 	def someRec: { y: 'a } as 'a
 //│ ║         	             ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `{x: 'a0, y: BadRec}`
+//│ ╟── but it flows into reference with expected type `{x: 'a, y: BadRec}`
 //│ ║  l.+1: 	someRec: BadRec
 //│ ║        	^^^^^^^
 //│ ╟── Note: constraint arises from record type:
@@ -182,22 +180,11 @@ someRec: BadRec
 //│      someRec is not implemented
 
 def someRec: { x: 'a; y: 'a } as 'a
-//│ someRec: 'a
-//│   where
-//│     'a :> {x: 'a, y: 'a}
+//│ someRec: in {x: anything, y: anything} out {x: nothing, y: nothing}
 //│        = <missing implementation>
 
 :e
 someRec: BadRec
-//│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.+1: 	someRec: BadRec
-//│ ║        	^^^^^^^
-//│ ╟── type `{x: 'a, y: 'a}` does not match type `'a0`
-//│ ║  l.184: 	def someRec: { x: 'a; y: 'a } as 'a
-//│ ║         	             ^^^^^^^^^^^^^^^^
-//│ ╟── Note: constraint arises from type variable:
-//│ ║  l.142: 	type BadRec = { x: 'a; y: BadRec }
-//│ ╙──       	                   ^^
 //│ res: BadRec
 //│    = <no result>
 //│      someRec is not implemented

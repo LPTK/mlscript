@@ -11,9 +11,7 @@ class Add[E]: { lhs: E; rhs: E }
 
 
 def eval1_ty_ugly: Add['b] | 'a & ~Lit as 'b
-//│ eval1_ty_ugly: 'b
-//│   where
-//│     'b := 'a & ~Lit | Add['b]
+//│ eval1_ty_ugly: Add[in anything out nothing]
 //│              = <missing implementation>
 
 // def eval1_ty: Add['b]
@@ -28,23 +26,12 @@ def eval1_ty: Add[int] // ~500
 :stats
 :e
 eval1_ty = eval1_ty_ugly
-//│ 'b
-//│   where
-//│     'b := Add['b]
+//│ Add[in anything out nothing]
 //│   <:  eval1_ty:
 //│ Add[int]
-//│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.30: 	eval1_ty = eval1_ty_ugly
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `Add['b]` is not an instance of type `int`
-//│ ║  l.13: 	def eval1_ty_ugly: Add['b] | 'a & ~Lit as 'b
-//│ ║        	                   ^^^^^^^
-//│ ╟── Note: constraint arises from type reference:
-//│ ║  l.20: 	def eval1_ty: Add[int] // ~500
-//│ ╙──      	                  ^^^
 //│         = <no result>
 //│           eval1_ty_ugly is not implemented
-//│ constrain calls  : 34
-//│ annoying  calls  : 24
-//│ subtyping calls  : 167
+//│ constrain calls  : 19
+//│ annoying  calls  : 0
+//│ subtyping calls  : 62
 

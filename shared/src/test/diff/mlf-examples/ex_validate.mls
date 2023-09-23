@@ -150,7 +150,7 @@ z = (choose succ id) 10
 
 // untype fun x -> x x
 fun x -> x x
-//│ res: ('a -> 'b & 'a) -> 'b
+//│ res: (nothing -> 'a) -> 'a
 //│    = [Function: res]
 
 // let delta (x:id) = x x
@@ -158,7 +158,7 @@ def delta (x: Id) = x x
 def delta_ x = x x
 //│ delta: Id -> Id
 //│      = [Function: delta]
-//│ delta_: ('a -> 'b & 'a) -> 'b
+//│ delta_: (nothing -> 'a) -> 'a
 //│       = [Function: delta_]
 
 // let z = delta (delta id)
@@ -168,7 +168,7 @@ def z = delta (delta id)
 //│  = [Function: z4]
 
 def z_ = delta_ (delta_ id)
-//│ z_: 'a -> 'a
+//│ z_: nothing
 //│   = [Function: z_]
 
 // untype delta succ
@@ -190,19 +190,7 @@ delta succ
 //│    = 'function succ(n) {  return n + 1;}1'
 :e
 delta_ succ
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.192: 	delta_ succ
-//│ ║         	^^^^^^^^^^^
-//│ ╟── function of type `int -> int` is not an instance of type `int`
-//│ ║  l.125: 	def succ n = n + 1
-//│ ║         	         ^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `int`
-//│ ║  l.192: 	delta_ succ
-//│ ║         	       ^^^^
-//│ ╟── Note: constraint arises from reference:
-//│ ║  l.125: 	def succ n = n + 1
-//│ ╙──       	             ^
-//│ res: error | int
+//│ res: int
 //│    = 'function succ(n) {  return n + 1;}1'
 
 // let z = delta (choose id id)
@@ -212,7 +200,7 @@ def z = delta (choose id id)
 //│  = [Function: z5]
 
 def z_ = delta_ (choose id id)
-//│ z_: 'a -> 'a
+//│ z_: nothing
 //│   = [Function: z_1]
 
 // let step g = (g 1) - (g 0)
@@ -232,7 +220,7 @@ test2_ = apply_to_id delta_
 //│      = 1
 //│ test2: Id
 //│      = [Function: id]
-//│ test2_: 'a -> 'a
+//│ test2_: nothing
 //│       = [Function: id]
 
 // type s  = ['a] list ('a) -> bool
@@ -301,7 +289,7 @@ def delta' = fun x -> (departage x) x
 def delta'_ = fun x -> (partage x) x
 //│ delta': (Id & 'a) -> 'a
 //│       = [Function: delta$]
-//│ delta'_: ('a -> 'b & 'a & 'b) -> 'b
+//│ delta'_: (nothing -> 'a & 'a) -> 'a
 //│        = [Function: delta$_]
 
 // let t = fun x -> (x:id) x, x
@@ -323,15 +311,15 @@ def t_ = fun x -> (x x, x)
 //│  = [Function: t2]
 //│ t: (Id & Id -> 'a & 'b) -> ('a, 'b,)
 //│  = [Function: t3]
-//│ t: (Id & 'a -> 'b & 'a) -> ('b, Id,)
+//│ t: (Id & nothing -> 'a) -> ('a, Id,)
 //│  = [Function: t4]
-//│ t_: ('a -> 'b & 'a) -> ('b, 'a,)
+//│ t_: (nothing -> 'a & 'b) -> ('a, 'b,)
 //│   = [Function: t_]
 
 // untype fun x -> (x:id), x x
 // * [FCP-IMPROV] It works for us
 fun x -> (x : Id, x x)
-//│ res: (Id & 'a -> 'b & 'a) -> (Id, 'b,)
+//│ res: (Id & nothing -> 'a) -> (Id, 'a,)
 //│    = [Function: res]
 
 // let ig x = () (* ignore *)
@@ -411,7 +399,7 @@ def example_ f = f f
 def mkpair x y = (x, y)
 //│ example: (anything -> int -> 'b) -> int -> 'b
 //│        = [Function: example]
-//│ example_: ('a -> 'b & 'a) -> 'b
+//│ example_: (nothing -> 'a) -> 'a
 //│         = [Function: example_]
 //│ mkpair: 'a -> 'b -> ('a, 'b,)
 //│       = [Function: mkpair]
@@ -423,7 +411,7 @@ example mkpair
 example_ mkpair
 //│ res: int -> (anything, int,)
 //│    = [Function (anonymous)]
-//│ res: 'a -> (forall 'b 'c. 'b -> 'c -> ('b, 'c,), 'a,)
+//│ res: 'a -> (nothing, 'a,)
 //│    = [Function (anonymous)]
 
 
@@ -582,9 +570,9 @@ def main =
         let _ = print_sep "" x in
         null
 //│ main: null
-//│ constrain calls  : 1343
-//│ annoying  calls  : 55
-//│ subtyping calls  : 4811
+//│ constrain calls  : 996
+//│ annoying  calls  : 45
+//│ subtyping calls  : 3979
 
 
 
@@ -799,7 +787,7 @@ def id x = x
 def k x y = x
 //│ auto: Sid -> Sid
 //│     = [Function: auto]
-//│ auto_: ('a -> 'b & 'a) -> 'b
+//│ auto_: (nothing -> 'a) -> 'a
 //│      = [Function: auto_]
 //│ id: 'a -> 'a
 //│   = [Function: id2]
@@ -827,7 +815,7 @@ def a = fun f -> f id
 //│            = [Function: church_succ]
 //│ f: Sa -> Sid
 //│  = [Function: f]
-//│ f_: ((forall 'a 'b. ('a -> 'b & 'a) -> 'b) -> 'c & (forall 'd 'e. ((anything -> (forall 'f. 'f -> 'f)) -> 'd -> anything) -> 'd -> 'e -> 'e) -> anything) -> 'c
+//│ f_: ((forall 'a. (nothing -> 'a) -> 'a) -> 'b & (forall 'c 'd. ((anything -> (forall 'e. 'e -> 'e)) -> 'c -> anything) -> 'c -> 'd -> 'd) -> anything) -> 'b
 //│   = [Function: f_]
 //│ a: ((forall 'a. 'a -> 'a) -> 'b) -> 'b
 //│  = [Function: a]
@@ -846,7 +834,7 @@ def test1 = f a
 //│      = [Function: test11]
 
 def test1 = f_ a
-//│ test1: 'a -> 'a
+//│ test1: nothing
 //│      = [Function: test12]
 
 def test2 = app f a
@@ -854,7 +842,7 @@ def test2 = app f a
 //│      = [Function: test22]
 
 def test2 = app f_ a
-//│ test2: 'a -> 'a
+//│ test2: nothing
 //│      = [Function: test23]
 
 
@@ -905,15 +893,15 @@ fun x -> ( ((x : Sid) : 'a), (x : 'a) x)
 fun x -> ( (((x : 'a) : Sid) : 'a), x x)
 fun x -> ( (x : Sid), (x : 'a) x)
 fun x -> ( (((x : 'a) : Sid) : 'a), x : 'a)
-//│ res: (Sid & 'a -> 'b & 'a) -> (Sid, 'b,)
+//│ res: (Sid & nothing -> 'a) -> (Sid, 'a,)
 //│    = [Function: res]
-//│ res: (Sid & 'a -> 'b & 'a) -> (Sid, 'b,)
+//│ res: (Sid & nothing -> 'a) -> (Sid, 'a,)
 //│    = [Function: res]
-//│ res: (Sid & 'a -> 'b & 'a) -> (Sid, 'b,)
+//│ res: (Sid & nothing -> 'a) -> (Sid, 'a,)
 //│    = [Function: res]
-//│ res: (Sid & 'a -> 'b & 'a) -> (Sid, 'b,)
+//│ res: (Sid & nothing -> 'a) -> (Sid, 'a,)
 //│    = [Function: res]
-//│ res: (Sid & 'a -> 'b & 'a) -> (Sid, 'b,)
+//│ res: (Sid & nothing -> 'a) -> (Sid, 'a,)
 //│    = [Function: res]
 //│ res: (Sid & 'a) -> (Sid, 'a,)
 //│    = [Function: res]
@@ -925,41 +913,57 @@ fun x -> ( (((x : 'a) : Sid) : 'a), x : 'a)
 // Same as `id1` in `ex_demo.mls`; works with `:RecursiveTypes`
 :e
 rec def id_ x = if true then x else id_ id_ x
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ╔══[ERROR] Inferred recursive type: 'a
+//│   where
+//│     'a :> ? -> 'a
+//│ ║  l.927: 	rec def id_ x = if true then x else id_ id_ x
+//│ ╙──       	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
+//│ ║  l.927: 	rec def id_ x = if true then x else id_ id_ x
+//│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ id_: 'a -> (anything -> nothing | 'a)
+//│    = [Function: id_]
 
 // let rec (id:sid) x = if true then x else id id x
 
 def id: Sid
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: 'b -> 'c
-//│     'b :> 'b -> 'c
-//│        <: 'c
-//│     'c :> 'b -> 'c
-//│        <: 'a
-//│ ║  l.924: 	rec def id_ x = if true then x else id_ id_ x
-//│ ╙──       	                                    ^^^^^^^
 //│ id: Sid
 //│   = <missing implementation>
 
 // * Note: infers with `:RecursiveTypes` but does not signature-check
 :e
 rec def id x = if true then x else id id x
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ╔══[ERROR] Inferred recursive type: 'a
+//│   where
+//│     'a :> ? -> 'a
+//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ 'a -> (anything -> nothing | 'a)
+//│   <:  id:
+//│ Sid
+//│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
+//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ ╔══[ERROR] Type mismatch in def definition:
+//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── function of type `anything -> nothing` does not match type `'a`
+//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `'a`
+//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ║         	                                      ^^
+//│ ╟── Note: constraint arises from type variable:
+//│ ║  l.765: 	type Sid = forall 'a. 'a -> 'a
+//│ ╙──       	                            ^^
+//│   = [Function: id3]
 
 
 // let z = print_string "Ok, all tests passed."
 
 z = log "Ok, all tests passed."
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: 'b -> 'c
-//│     'b :> 'b -> 'c
-//│        <: 'c
-//│     'c :> 'b -> 'c
-//│        <: 'a
-//│ ║  l.944: 	rec def id x = if true then x else id id x
-//│ ╙──       	                                   ^^^^^
 //│ z: unit
 //│  = undefined
 //│ // Output

@@ -12,13 +12,7 @@ rec def f x = f x
 
 :e
 rec def f x = f
-//│ ╔══[ERROR] Inferred recursive type: 'f
-//│   where
-//│     'f :> ? -> 'f
-//│ ╙──
-//│ f: 'f
-//│   where
-//│     'f :> anything -> 'f
+//│ f: anything -> nothing
 //│  = [Function: f2]
 
 :e
@@ -38,8 +32,7 @@ rec def f x = f x.a
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a <: {a: 'a}
-//│ ║  l.37: 	rec def f x = f x.a
-//│ ╙──      	                ^^^
+//│ ╙──
 //│ f: 'a -> nothing
 //│   where
 //│     'a <: {a: 'a}
@@ -56,8 +49,7 @@ rec def foo(x: Foo['a]) = foo(x.Get)
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a <: Foo['a]
-//│ ║  l.55: 	rec def foo(x: Foo['a]) = foo(x.Get)
-//│ ╙──      	                              ^^^^^
+//│ ╙──
 //│ foo: 'a -> nothing
 //│   where
 //│     'a <: Foo['a]
@@ -79,8 +71,7 @@ rec def bar(x: Bar['a]) = bar(get(x))
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a <: Bar['a]
-//│ ║  l.78: 	rec def bar(x: Bar['a]) = bar(get(x))
-//│ ╙──      	                              ^^^^^^
+//│ ╙──
 //│ bar: 'a -> nothing
 //│   where
 //│     'a <: Bar['a]

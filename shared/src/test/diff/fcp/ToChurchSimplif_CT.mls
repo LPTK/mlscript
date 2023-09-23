@@ -164,7 +164,7 @@ to_church = to_ch
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│ ╔══[ERROR] Subtyping constraint of the form `forall ?to_ch ?a ?b ?c. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
-//│ ║  l.154: 	to_church = to_ch
+//│ ║  l.152: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│          = <no result>
@@ -177,9 +177,9 @@ rec def to_ch n =
   else s (to_ch n)
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'a :> forall 'b. 'b -> (forall 'c 'd. ('c -> 'd
+//│     'a :> forall 'b. 'b -> (forall 'c 'd. ('d -> 'c
 //│   where
-//│     'a <: 'b -> 'c -> 'd)) | ChurchInt
+//│     'a <: 'b -> 'd -> 'c)) | ChurchInt
 //│ ╙──
 //│ to_ch: anything -> 'a
 //│   where
@@ -204,8 +204,8 @@ to_church = to_ch
 //│     'a <: 'b -> 'c -> 'd)) | ChurchInt
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?to_ch ?a ?b ?c. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
-//│ ║  l.199: 	to_church = to_ch
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?to_ch ?b ?c. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
+//│ ║  l.193: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│          = <no result>
@@ -229,7 +229,7 @@ to_church = to_ch
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.233: 	to_church = to_ch
+//│ ║  l.225: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'M` leaks out of its scope
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
@@ -242,10 +242,10 @@ to_church = to_ch
 //│ ║  l.33: 	def s n f x = (n f x)
 //│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.225: 	  else s (to_church n)
+//│ ║  l.217: 	  else s (to_church n)
 //│ ║         	       ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.233: 	to_church = to_ch
+//│ ║  l.225: 	to_church = to_ch
 //│ ╙──       	            ^^^^^
 //│          = <no result>
 //│            to_ch and zero are not implemented
@@ -254,21 +254,21 @@ to_church = to_ch
 def to_ch n =
   if true then z
   else s (to_church n)
-//│ to_ch: int -> (forall 'a. 'a -> (forall 'b 'c 'd 'a. (('b & 'd) -> ('d | 'c)
+//│ to_ch: int -> (forall 'a. 'a -> (forall 'b 'c 'a 'd. (('d & 'c) -> ('c | 'b)
 //│   where
-//│     forall 'M. ('M -> 'M) -> 'M -> 'M <: 'a -> 'b -> 'c)))
+//│     forall 'M. ('M -> 'M) -> 'M -> 'M <: 'a -> 'd -> 'b)))
 //│      = <no result>
 //│        to_church, to_ch and zero are not implemented
 
 :e // * Since "sound extrusion"
 to_church = to_ch
-//│ int -> (forall 'a. 'a -> (forall 'a 'b 'c 'd. (('b & 'd) -> ('d | 'c)
+//│ int -> (forall 'a. 'a -> (forall 'b 'c 'd 'a. (('b & 'd) -> ('d | 'c)
 //│   where
 //│     forall 'M. ('M -> 'M) -> 'M -> 'M <: 'a -> 'b -> 'c)))
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.253: 	to_church = to_ch
+//│ ║  l.264: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'M` leaks out of its scope
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
@@ -281,10 +281,10 @@ to_church = to_ch
 //│ ║  l.33: 	def s n f x = (n f x)
 //│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.245: 	  else s (to_church n)
+//│ ║  l.256: 	  else s (to_church n)
 //│ ║         	       ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.253: 	to_church = to_ch
+//│ ║  l.264: 	to_church = to_ch
 //│ ╙──       	            ^^^^^
 //│          = <no result>
 //│            to_ch, to_church, to_ch and zero are not implemented
@@ -307,7 +307,7 @@ to_church = to_ch
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.292: 	to_church = to_ch
+//│ ║  l.303: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'M` leaks out of its scope
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
@@ -320,10 +320,10 @@ to_church = to_ch
 //│ ║  l.33: 	def s n f x = (n f x)
 //│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.284: 	  else s (to_church n)
+//│ ║  l.295: 	  else s (to_church n)
 //│ ║         	       ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.292: 	to_church = to_ch
+//│ ║  l.303: 	to_church = to_ch
 //│ ╙──       	            ^^^^^
 //│          = <no result>
 //│            to_ch and zero are not implemented
@@ -345,7 +345,7 @@ to_church = to_ch
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.330: 	to_church = to_ch
+//│ ║  l.341: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'M` leaks out of its scope
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
@@ -358,10 +358,10 @@ to_church = to_ch
 //│ ║  l.33: 	def s n f x = (n f x)
 //│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.322: 	  s (to_church n)
+//│ ║  l.333: 	  s (to_church n)
 //│ ║         	  ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.330: 	to_church = to_ch
+//│ ║  l.341: 	to_church = to_ch
 //│ ╙──       	            ^^^^^
 //│          = <no result>
 //│            to_ch, to_church, to_ch and zero are not implemented
@@ -383,7 +383,7 @@ to_church = to_ch
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.368: 	to_church = to_ch
+//│ ║  l.379: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'M` leaks out of its scope
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
@@ -396,10 +396,10 @@ to_church = to_ch
 //│ ║  l.33: 	def s n f x = (n f x)
 //│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.360: 	  s (to_church n)
+//│ ║  l.371: 	  s (to_church n)
 //│ ║         	  ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.368: 	to_church = to_ch
+//│ ║  l.379: 	to_church = to_ch
 //│ ╙──       	            ^^^^^
 //│          = <no result>
 //│            to_ch, to_church, to_ch, to_church, to_ch and zero are not implemented
@@ -421,7 +421,7 @@ to_church = to_ch
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.387: 	to_church = to_ch
+//│ ║  l.417: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'M` leaks out of its scope
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
@@ -434,10 +434,10 @@ to_church = to_ch
 //│ ║  l.33: 	def s n f x = (n f x)
 //│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.379: 	  s (to_church n)
+//│ ║  l.409: 	  s (to_church n)
 //│ ║         	  ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.387: 	to_church = to_ch
+//│ ║  l.417: 	to_church = to_ch
 //│ ╙──       	            ^^^^^
 //│          = <no result>
 //│            to_ch, to_church, to_ch, to_church, to_ch, to_church, to_ch and zero are not implemented
@@ -462,7 +462,7 @@ to_church = to_ch
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.428: 	to_church = to_ch
+//│ ║  l.458: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'M` leaks out of its scope
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
@@ -475,10 +475,10 @@ to_church = to_ch
 //│ ║  l.33: 	def s n f x = (n f x)
 //│ ║        	        ^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.420: 	  s (to_church n)
+//│ ║  l.450: 	  s (to_church n)
 //│ ║         	  ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.428: 	to_church = to_ch
+//│ ║  l.458: 	to_church = to_ch
 //│ ╙──       	            ^^^^^
 //│          = <no result>
 //│            to_ch, to_church, to_ch, to_church, to_ch, to_church, to_ch, to_church, to_ch and zero are not implemented
@@ -500,7 +500,7 @@ to_church = to_ch
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.447: 	to_church = to_ch
+//│ ║  l.496: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╟── type `int` is not a function
 //│ ║  l.20: 	def to_church: int -> (forall 'M. ('M -> 'M) -> ('M -> 'M))
@@ -580,13 +580,13 @@ to_church = to_ch
 //│   where
 //│     'd <: 'a -> 'b -> 'c)
 //│   where
-//│     'd :> forall 'e 'f 'g. 'f -> ('g -> ('g | 'e)
+//│     'd :> forall 'e 'f 'g. 'e -> ('f -> ('f | 'g)
 //│   where
-//│     'd <: 'f -> 'g -> 'e)
+//│     'd <: 'e -> 'f -> 'g)
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?to_ch ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
-//│ ║  l.523: 	to_church = to_ch
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?to_ch ?c. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
+//│ ║  l.572: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│          = [Function: to_ch7]
@@ -627,8 +627,8 @@ to_church = to_ch
 //│     'd <: 'e -> 'f -> 'g)
 //│   <:  to_church:
 //│ int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?c ?to_ch ?d. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
-//│ ║  l.565: 	to_church = to_ch
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?a ?b ?to_ch ?c. ?to_ch <: int -> (forall 'M. ('M -> 'M) -> 'M -> 'M)` exceeded recursion depth limit (250)
+//│ ║  l.614: 	to_church = to_ch
 //│ ║         	^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│          = [Function: to_ch7]

@@ -13,12 +13,12 @@ test = (term W);
 //│  = [Function: I]
 //│ K: 'a -> anything -> 'a
 //│  = [Function: K]
-//│ W: ('a -> 'b & 'a) -> 'b
+//│ W: (nothing -> 'a) -> 'a
 //│  = [Function: W]
 //│ term: ((forall 'a. 'a -> 'a) -> 'b & (forall 'c. 'c -> anything -> 'c) -> 'd) -> ('b -> 'd -> 'e) -> 'e
 //│     = [Function: term]
-//│ test: ((forall 'a. 'a -> 'a) -> (anything -> (forall 'b. 'b -> anything -> 'b)) -> 'c) -> 'c
+//│ test: (nothing -> (anything -> nothing) -> 'a) -> 'a
 //│     = [Function (anonymous)]
-//│ res: (3, "b",)
+//│ res: (nothing, nothing,)
 //│    = [ 3, 'b' ]
 

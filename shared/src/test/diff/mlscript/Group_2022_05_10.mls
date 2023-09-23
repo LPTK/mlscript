@@ -12,7 +12,7 @@ f (fun x -> (x, x))
 //│    = 0
 
 fun id -> id id 0
-//│ res: ('a -> 0 -> 'b & 'a) -> 'b
+//│ res: (nothing -> 0 -> 'a) -> 'a
 //│    = [Function: res]
 
 fun x -> x
@@ -39,7 +39,7 @@ def g x y = x (fun x -> y x)
 
 
 self x = x x
-//│ self: ('a -> 'b & 'a) -> 'b
+//│ self: (nothing -> 'a) -> 'a
 //│     = [Function: self]
 
 :re

@@ -85,6 +85,8 @@ foo (fun a -> a + 1)
 //│ ║  l.83: 	foo (fun a -> a + 1)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `anything` is not an instance of type `int`
+//│ ║  l.71: 	def foo: (forall 'a. 'a -> 'b) -> 'b
+//│ ║        	                     ^^
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.83: 	foo (fun a -> a + 1)
 //│ ╙──      	              ^

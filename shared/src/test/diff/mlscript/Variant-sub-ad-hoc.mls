@@ -61,5 +61,5 @@ evalOpt (Plus{} with {lhs = Lit{} with {v=2}; rhs = Lit{} with {v=2}})
 //│    = Some { v: 4 }
 //│ constrain calls  : 81
 //│ annoying  calls  : 34
-//│ subtyping calls  : 1123
+//│ subtyping calls  : 1138
 

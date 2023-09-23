@@ -47,71 +47,49 @@ ty2B = ty2A
 
 
 def ty3A: MyArray['a] as 'a
-//│ ty3A: 'a
-//│   where
-//│     'a := MyArray['a]
+//│ ty3A: MyArray[in anything out nothing]
 
 :stats
 ty3A = ty3A
-//│ 'a
-//│   where
-//│     'a := MyArray['a]
+//│ MyArray[in anything out nothing]
 //│   <:  ty3A:
-//│ 'a
-//│   where
-//│     'a := MyArray['a]
+//│ MyArray[in anything out nothing]
 //│ constrain calls  : 1
 //│ annoying  calls  : 0
-//│ subtyping calls  : 1
+//│ subtyping calls  : 12
 
 def ty3B: MyArray[MyArray['a]] as 'a
-//│ ty3B: 'a
-//│   where
-//│     'a := MyArray[MyArray['a]]
+//│ ty3B: MyArray[MyArray[in anything out nothing]]
 
 :stats
 ty3B = ty3A
-//│ 'a
-//│   where
-//│     'a := MyArray['a]
+//│ MyArray[in anything out nothing]
 //│   <:  ty3B:
-//│ 'a
-//│   where
-//│     'a := MyArray[MyArray['a]]
-//│ constrain calls  : 84
-//│ annoying  calls  : 23
-//│ subtyping calls  : 253
+//│ MyArray[MyArray[in anything out nothing]]
+//│ constrain calls  : 1
+//│ annoying  calls  : 0
+//│ subtyping calls  : 11
 
 :stats
 ty3A = ty3B
-//│ 'a
-//│   where
-//│     'a := MyArray[MyArray['a]]
+//│ MyArray[MyArray[in anything out nothing]]
 //│   <:  ty3A:
-//│ 'a
-//│   where
-//│     'a := MyArray['a]
-//│ constrain calls  : 84
-//│ annoying  calls  : 23
-//│ subtyping calls  : 253
+//│ MyArray[in anything out nothing]
+//│ constrain calls  : 1
+//│ annoying  calls  : 0
+//│ subtyping calls  : 11
 
 def ty4B: MyArray[MyArray[MyArray['a]]] as 'a
-//│ ty4B: 'a
-//│   where
-//│     'a := MyArray[MyArray[MyArray['a]]]
+//│ ty4B: MyArray[MyArray[MyArray[in anything out nothing]]]
 
 :stats
 ty4B = ty4B
-//│ 'a
-//│   where
-//│     'a := MyArray[MyArray[MyArray['a]]]
+//│ MyArray[MyArray[MyArray[in anything out nothing]]]
 //│   <:  ty4B:
-//│ 'a
-//│   where
-//│     'a := MyArray[MyArray[MyArray['a]]]
+//│ MyArray[MyArray[MyArray[in anything out nothing]]]
 //│ constrain calls  : 1
 //│ annoying  calls  : 0
-//│ subtyping calls  : 1
+//│ subtyping calls  : 48
 
 
 

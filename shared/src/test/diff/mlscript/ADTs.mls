@@ -48,29 +48,21 @@ eval ex
 //│    = 4
 
 def e: Add['e] as 'e
-//│ e: 'e
-//│   where
-//│     'e :> Add['e]
+//│ e: in Add[?] out Add[nothing]
 //│  = <missing implementation>
 
 def e: Lit | Add['e] as 'e
-//│ e: 'e
-//│   where
-//│     'e :> Add['e] | Lit
+//│ e: in Add[?] | Lit out Add[nothing] | Lit
 //│  = <missing implementation>
 
 def e: Lit | Add['e] | Nega['e] as 'e
-//│ e: 'e
-//│   where
-//│     'e :> Add['e] | Lit | Nega['e]
+//│ e: in Add[?] | Lit | Nega[?] out Add[nothing] | Lit | Nega[nothing]
 //│  = <missing implementation>
 
 e = ex
 //│ Add[Lit & {val: 2}]
 //│   <:  e:
-//│ 'e
-//│   where
-//│     'e :> Add['e] | Lit | Nega['e]
+//│ Add[nothing] | Lit | Nega[nothing]
 //│  = Add { lhs: Lit { val: 2 }, rhs: Lit { val: 2 } }
 
 eval e
@@ -115,15 +107,6 @@ eval exp
 
 :e
 eval (e : Lit | Add['e] | Nega[int] as 'e)
-//│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.+1: 	eval (e : Lit | Add['e] | Nega[int] as 'e)
-//│ ║        	      ^
-//│ ╟── type `Lit` is not an instance of type `int`
-//│ ║  l.62: 	def e: Lit | Add['e] | Nega['e] as 'e
-//│ ║        	       ^^^
-//│ ╟── Note: constraint arises from type reference:
-//│ ║  l.+1: 	eval (e : Lit | Add['e] | Nega[int] as 'e)
-//│ ╙──      	                               ^^^
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	eval (e : Lit | Add['e] | Nega[int] as 'e)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

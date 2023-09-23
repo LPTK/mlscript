@@ -5,7 +5,7 @@
 
 
 S x = x x
-//│ S: ('a -> 'b & 'a) -> 'b
+//│ S: (nothing -> 'a) -> 'a
 //│  = [Function: S]
 
 S: (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)

@@ -166,7 +166,8 @@ def div a b = Math.trunc(a/b)
 //│    = [Function: div1]
 
 def mod = let rec mod a b = if a < b then a else mod (a - b) b in mod
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ mod: int -> anything -> int
+//│    = [Function: mod]
 
 
 // ********** SMALL ARRAY EXAMPLE **********
@@ -201,7 +202,7 @@ def sstep = fun xx -> xx (fun (xinit, xsub) ->
     then xsub r1 (div i 2)
     else xsub r2 (div i 2) in
   fun f -> f (init, sub))
-//│ ((forall 'a 'b 'c 'd 'e. ('c -> 'd, 'a -> int -> 'e,) -> (('c -> ('d, 'd,), ('a, 'a,) -> int -> 'e,) -> 'b) -> 'b) -> 'f) -> 'f
+//│ ((forall 'a 'b 'c 'd 'e. ('a -> 'e, 'd -> int -> 'c,) -> (('a -> ('e, 'e,), ('d, 'd,) -> int -> 'c,) -> 'b) -> 'b) -> 'f) -> 'f
 //│   <:  sstep:
 //│ ExSmall -> ExSmall
 //│ ╔══[ERROR] Type error in def definition
@@ -247,8 +248,7 @@ def sstep = fun xx -> xx (fun (xinit, xsub) ->
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.201: 	    then xsub r1 (div i 2)
 //│ ╙──       	              ^^
-//│ Code generation encountered an error:
-//│   unresolved symbol mod
+//│      = [Function: sstep]
 
 // * Alternative, with an annotation on `f`:
 def sstep = fun xx -> xx (fun (xinit, xsub) -> 
@@ -258,17 +258,15 @@ def sstep = fun xx -> xx (fun (xinit, xsub) ->
     then xsub r1 (div i 2)
     else xsub r2 (div i 2) in
   fun (f : forall 'r. ('a -> 'r, 'r -> int -> 'a) -> 'y) -> f (init, sub))
-//│ ((forall 'b 'c 'a. ('a -> 'b, 'b -> int -> 'a,) -> (forall 'r. ('a -> 'r, 'r -> int -> 'a,) -> 'c) -> 'c) -> 'd) -> 'd
+//│ ((forall 'a 'b 'c. ('a -> 'b, 'b -> int -> 'a,) -> (forall 'r. ('a -> 'r, 'r -> int -> 'a,) -> 'c) -> 'c) -> 'd) -> 'd
 //│   <:  sstep:
 //│ ExSmall -> ExSmall
-//│ Code generation encountered an error:
-//│   unresolved symbol mod
+//│      = [Function: sstep1]
 
 let mkSArray n = if n == 0 then sbase else sstep (sstep sbase) in
   mkSArray 1 (fun (xinit, xsub) -> xsub (xinit 2) 2)
 //│ res: 2
-//│    = <no result>
-//│      sstep is not implemented
+//│    = 2
 
 def mkSArray : int -> ExSmall
 rec def mkSArray n = if n == 0 then sbase else sstep (mkSArray (n - 1))
@@ -277,33 +275,27 @@ rec def mkSArray n = if n == 0 then sbase else sstep (mkSArray (n - 1))
 //│ int -> ExSmall
 //│   <:  mkSArray:
 //│ int -> ExSmall
-//│         = <no result>
-//│           sstep is not implemented
+//│         = [Function: mkSArray]
 
 mkSArray 2 (fun (xinit, xsub) -> xinit 2)
 //│ res: ??r
-//│    = <no result>
-//│      mkSArray and sstep are not implemented
+//│    = [ [ 2, 2 ], [ 2, 2 ] ]
 
 ma2 = mkSArray 2
 //│ ma2: ExSmall
-//│    = <no result>
-//│      mkSArray and sstep are not implemented
+//│    = [Function (anonymous)]
 
 a2 = ma2 (fun (xinit, xsub) -> xsub (xinit true) 0)
 //│ a2: true
-//│   = <no result>
-//│     ma2, mkSArray and sstep are not implemented
+//│   = true
 
 not a2
 //│ res: bool
-//│    = <no result>
-//│      a2, ma2, mkSArray and sstep are not implemented
+//│    = false
 
 a2 = ma2 (fun (xinit, xsub) -> xinit true)
 //│ a2: ??r
-//│   = <no result>
-//│     ma2, mkSArray and sstep are not implemented
+//│   = [ [ true, true ], [ true, true ] ]
 
 :e // This is expected – xinit returns a value of locally-quantified type 'r
 a2[0]
@@ -327,29 +319,27 @@ a2[0]
 //│ ║  l.303: 	a2 = ma2 (fun (xinit, xsub) -> xinit true)
 //│ ╙──       	     ^^^
 //│ res: error | undefined
-//│    = <no result>
-//│      a2, ma2, mkSArray and sstep are not implemented
+//│    = [ true, true ]
 
 // * Notice the (safely-)extruded skolem for the locally-quantified 'r
 ma2 (fun (xinit, xsub) -> let tmp = xinit true in (tmp, tmp))
 //│ res: (??r, ??r,)
-//│    = <no result>
-//│      ma2, mkSArray and sstep are not implemented
+//│    = [
+//│        [ [ true, true ], [ true, true ] ],
+//│        [ [ true, true ], [ true, true ] ]
+//│      ]
 
 ma1 = mkSArray 1
 //│ ma1: ExSmall
-//│    = <no result>
-//│      mkSArray and sstep are not implemented
+//│    = [Function (anonymous)]
 
 ma1 (fun (xinit, xsub) -> xinit true)
 //│ res: ??r
-//│    = <no result>
-//│      ma1, mkSArray and sstep are not implemented
+//│    = [ true, true ]
 
 ma1 (fun (xinit, xsub) -> xsub (xinit true) 0)
 //│ res: true
-//│    = <no result>
-//│      ma1, mkSArray and sstep are not implemented
+//│    = true
 
 
 // * Trying to do something unsafe now!
@@ -382,8 +372,8 @@ ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ║  l.358: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub2 (xinit1 true) 0))
 //│ ╙──       	                                                               ^^^^^^^^^^^
 //│ res: error
-//│    = <no result>
-//│      ma1, mkSArray and sstep are not implemented
+//│ Runtime error:
+//│   TypeError: boolean true is not iterable (cannot read property Symbol(Symbol.iterator))
 
 :e
 ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
@@ -410,8 +400,7 @@ ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ║  l.389: 	ma1 (fun (xinit1, xsub1) -> ma2 (fun (xinit2, xsub2) -> xsub1 (xinit2 true) 0))
 //│ ╙──       	                            ^^^
 //│ res: error
-//│    = <no result>
-//│      ma1, mkSArray and sstep are not implemented
+//│    = [ true, true ]
 
 
 // ******** ORIGINAL ARRAY EXAMPLE ********
@@ -451,7 +440,7 @@ def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
     else (fst r, xupdate (snd r) (div i 2) a) in
   let fold f b r = xfold f (xfold f b (fst r)) (snd r) in
     fun f -> f ((((init, sub), update), fold),) )
-//│ ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i 'j 'k 'l 'm 'n 'o 'p. ((('g -> 'd, 'j -> int -> 'h,), 'f -> int -> 'l -> 'a & 'n -> int -> 'l -> 'p,), 'k -> ('e -> 'o -> 'i & 'b -> 'c -> 'e),) -> (((('g -> ('d, 'd,), ('j, 'j,) -> int -> 'h,), forall 'q 'r. ('f & 'q, 'n & 'r,) -> int -> 'l -> ('a | 'q, 'r | 'p,),), 'k -> 'b -> ('c, 'o,) -> 'i,) -> 'm) -> 'm) -> 's) -> 's
+//│ ((forall 'a 'b 'c 'd 'e 'f 'g 'h 'i 'j 'k 'l 'm 'n 'o 'p. ((('l -> 'b, 'e -> int -> 'n,), 'j -> int -> 'f -> 'c & 'm -> int -> 'f -> 'i,), 'g -> ('d -> 'a -> 'p & 'h -> 'k -> 'd),) -> (((('l -> ('b, 'b,), ('e, 'e,) -> int -> 'n,), forall 'q 'r. ('j & 'q, 'm & 'r,) -> int -> 'f -> ('q | 'c, 'i | 'r,),), 'g -> 'h -> ('k, 'a,) -> 'p,) -> 'o) -> 'o) -> 's) -> 's
 //│   <:  step:
 //│ ExSig -> ExSig
 //│ ╔══[ERROR] Type error in def definition
@@ -517,14 +506,12 @@ def step = fun xx -> xx (fun ((((xinit, xsub), xupdate), xfold),) ->
 //│ ╟── Note: constraint arises from type variable:
 //│ ║  l.82: 	def snd: forall 'a 'b. (('a, 'b),) -> 'b
 //│ ╙──      	                             ^^
-//│ Code generation encountered an error:
-//│   unresolved symbol mod
+//│     = [Function: step]
 
 let mkArray n = if n == 0 then base else step base in
   mkArray 1 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
 //│ res: ??r
-//│    = <no result>
-//│      step is not implemented
+//│    = [ 2, 2 ]
 
 def mkArray : int -> ExSig
 //│ mkArray: int -> ExSig
@@ -534,13 +521,11 @@ rec def mkArray n = if n == 0 then base else step (mkArray (n - 1))
 //│ int -> ExSig
 //│   <:  mkArray:
 //│ int -> ExSig
-//│        = <no result>
-//│          step is not implemented
+//│        = [Function: mkArray]
 
 mkArray 3 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
 //│ res: ??r
-//│    = <no result>
-//│      mkArray and step are not implemented
+//│    = [ [ [ 2, 2 ], [ 2, 2 ] ], [ [ 2, 2 ], [ 2, 2 ] ] ]
 
 :e
 res 0
@@ -561,7 +546,8 @@ res 0
 //│ ║  l.540: 	mkArray 3 (fun ((((xinit, xsub), xupdate), xfold),) -> xinit 2)
 //│ ╙──       	^^^^^^^^^
 //│ res: error
-//│    = 0
+//│ Runtime error:
+//│   TypeError: res is not a function
 
 
 // =============== Sec 7 ===============

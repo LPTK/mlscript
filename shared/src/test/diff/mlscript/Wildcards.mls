@@ -357,7 +357,7 @@ fid foo2
 //│ res: 'A -> 'A
 
 fid (f: Foo['a..'b]) = Foo.Id f
-//│ fid: Foo['a] -> 'a -> 'a
+//│ fid: Foo[in 'b & 'A out 'b] -> 'A -> 'A
 
 
 class Bar[A]: { value: A; id: A -> A }
@@ -375,7 +375,7 @@ rec def bar = Bar{value = bar; id}
 //│ 'value
 //│   where
 //│     'value :> Bar['A] with {id: forall 'a. 'a -> 'a, value: 'value}
-//│     'A :> 'value
+//│     'A :> Bar['A] with {id: nothing, value: 'value}
 //│   <:  bar:
 //│ Bar[?]
 //│ ╔══[ERROR] Type mismatch in def definition:

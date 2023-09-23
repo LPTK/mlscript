@@ -85,9 +85,7 @@ let rec sumHeads = x => x.head + sumHeads x.tail
 //│     'a <: {head: int, tail: 'a}
 
 let rec ouroboros = {head: 0, tail: ouroboros, eyes: {l: 1, r: 2}}
-//│ ouroboros: 'ouroboros
-//│   where
-//│     'ouroboros :> {eyes: {l: 1, r: 2}, head: 0, tail: 'ouroboros}
+//│ ouroboros: {eyes: {l: 1, r: 2}, head: 0, tail: nothing}
 
 sumHeads ouroboros
 //│ res: int

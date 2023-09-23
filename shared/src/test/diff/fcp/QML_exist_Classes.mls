@@ -45,19 +45,22 @@ baseImpl = ArraysImpl {
     update = fun r -> fun (i : int) -> fun a -> a;
     fold   = fun f -> fun b -> fun r -> f r b
   }
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ baseImpl: ArraysImpl['Rep, 'Rep] with {fold: forall 'a 'b 'c. ('a -> 'b -> 'c) -> 'b -> 'a -> 'c, init: forall 'd. 'd -> 'd, sub: forall 'e. 'e -> int -> 'e, update: forall 'f. anything -> int -> 'f -> 'f}
+//│         = ArraysImpl {
+//│             init: [Function: init],
+//│             sub: [Function: sub],
+//│             update: [Function: update],
+//│             fold: [Function: fold]
+//│           }
 
 def base: Arrays['a]
 def base f = f baseImpl
 //│ base: Arrays['a]
-//│ (error -> 'a) -> 'a
+//│     = <missing implementation>
+//│ ((forall 'Rep. ArraysImpl['Rep, 'Rep] with {fold: forall 'a 'b 'c. ('a -> 'b -> 'c) -> 'b -> 'a -> 'c, init: forall 'd. 'd -> 'd, sub: forall 'e. 'e -> int -> 'e, update: forall 'f. anything -> int -> 'f -> 'f}) -> 'g) -> 'g
 //│   <:  base:
 //│ Arrays['a]
-//│ ╔══[ERROR] identifier not found: baseImpl
-//│ ║  l.51: 	def base f = f baseImpl
-//│ ╙──      	               ^^^^^^^^
-//│ Code generation encountered an error:
-//│   unresolved symbol baseImpl
+//│     = [Function: base]
 
 
 
@@ -71,11 +74,8 @@ def simpleStepImpl arrImpl = ArraysImpl {
   }
 //│ simpleStepImpl: ArraysRep[in 'A & 'A0 & 'A1 out 'A0 | 'A, in 'Rep & 'Rep0 & 'a out 'Rep | 'Rep0] -> (ArraysImpl['A1, 'Rep1] with {fold: forall 'b. ('A0 -> 'b -> 'b) -> 'b -> ('Rep0, anything,) -> 'b, init: 'A -> ('Rep, "initialized",), sub: ('Rep0, anything,) -> int -> 'A0, update: forall 'c. ('Rep0 & 'c, anything,) -> int -> 'A -> ('Rep | 'c, "updated",)})
 //│   where
-//│     'Rep1 :> ('Rep | 'd, "initialized" | "updated",)
+//│     'Rep1 :> ('Rep | 'a, "initialized" | "updated",)
 //│           <: ('Rep0 & 'a, anything,)
-//│     'a <: 'Rep0 & 'd
-//│     'd :> 'Rep
-//│        <: 'Rep0 & 'a
 //│     'A1 :> 'A0
 //│         <: 'A
 //│               = [Function: simpleStepImpl]
@@ -87,11 +87,8 @@ def simpleStepImpl_ty: ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string)]
 simpleStepImpl_ty = simpleStepImpl
 //│ ArraysRep[in 'A & 'A0 & 'A1 out 'A0 | 'A, in 'Rep & 'Rep0 & 'a out 'Rep | 'Rep0] -> (ArraysImpl['A1, 'Rep1] with {fold: forall 'b. ('A0 -> 'b -> 'b) -> 'b -> ('Rep0, anything,) -> 'b, init: 'A -> ('Rep, "initialized",), sub: ('Rep0, anything,) -> int -> 'A0, update: forall 'c. ('Rep0 & 'c, anything,) -> int -> 'A -> ('Rep | 'c, "updated",)})
 //│   where
-//│     'Rep1 :> ('Rep | 'd, "initialized" | "updated",)
+//│     'Rep1 :> ('Rep | 'a, "initialized" | "updated",)
 //│           <: ('Rep0 & 'a, anything,)
-//│     'a <: 'Rep0 & 'd
-//│     'd :> 'Rep
-//│        <: 'Rep0 & 'a
 //│     'A1 :> 'A0
 //│         <: 'A
 //│   <:  simpleStepImpl_ty:
@@ -104,26 +101,32 @@ simpleStepImpl_ty = simpleStepImpl
 :e
 :stats
 simpleStepImpl : ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string)]
-//│ ╔══[ERROR] Subtyping constraint of the form `forall ?A ?a ?A0 ?update ?b ?A1 ?fold ?c ?d ?Rep ?Rep0 ?A2 ?e ?f ?Rep1 ?init ?Rep2 ?Rep3 ?A3 ?g ?sub ?Rep4 ?A4 ?h ?i ?A5 ?Rep5 ?A6 ?j ?A7 ?Rep6 ?Rep7 ?Rep8 ?Rep9 ?k ?Rep10 ?A8 ?A9. ?d -> ?h <: ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string,)]` took too many steps and ran out of fuel (10000)
+//│ ╔══[ERROR] Subtyping constraint of the form `forall ?fold ?Rep ?A ?Rep0 ?Rep1 ?sub ?A0 ?Rep2 ?A1 ?A2 ?a ?b ?A3 ?c ?A4 ?Rep3 ?A5 ?Rep4 ?Rep5 ?init ?update ?d ?Rep6. ?d -> ?c <: ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string,)]` took too many steps and ran out of fuel (10000)
 //│ ║  l.106: 	simpleStepImpl : ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string)]
 //│ ║         	^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string,)]
 //│   where
-//│     'a :> error
+//│     'a :> 'A | error
+//│        <: 'A
+//│     'A :> error
+//│        <: 'a
 //│    = [Function: simpleStepImpl]
-//│ constrain calls  : 10057
+//│ constrain calls  : 10027
 //│ annoying  calls  : 76
-//│ subtyping calls  : 70601
+//│ subtyping calls  : 72831
 // * Note that the above incidentally can be checked using recursive types
 :RecursiveTypes
 :stats
 simpleStepImpl : ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string)]
 //│ res: ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string,)]
+//│   where
+//│     'a := 'A
+//│     'A <: 'a
 //│    = [Function: simpleStepImpl]
-//│ constrain calls  : 579
+//│ constrain calls  : 365
 //│ annoying  calls  : 101
-//│ subtyping calls  : 5641
+//│ subtyping calls  : 3182
 :NoRecursiveTypes
 
 // * Apparently, it's due to excessive extrusion due to the type annot not being generalized!
@@ -131,9 +134,9 @@ simpleStepImpl : ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string)]
 simpleStepImpl : forall 'a 'r. ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string)]
 //│ res: ArraysImpl['a, 'r] -> ArraysImpl['a, ('r, string,)]
 //│    = [Function: simpleStepImpl]
-//│ constrain calls  : 711
+//│ constrain calls  : 611
 //│ annoying  calls  : 101
-//│ subtyping calls  : 1838
+//│ subtyping calls  : 2098
 
 
 
@@ -145,7 +148,12 @@ def simpleStep: Arrays['a] -> Arrays['a]
 
 // * Note: this one fails to type check when the file is typed with `:ConstrainedTypes`
 def simpleStep arr = arr (fun impl -> fun (k: ArraysRepConsumer['a, 'r]) -> k (simpleStepImpl impl))
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ((forall 'A 'a 'Rep 'b. ArraysRep[in 'A & 'a out 'A, 'Rep] -> ArraysRepConsumer['a, 'b] -> 'b) -> 'c) -> 'c
+//│   where
+//│     'a :> 'A
+//│   <:  simpleStep:
+//│ Arrays['a] -> Arrays['a]
+//│           = [Function: simpleStep]
 
 
 // * Second approach to implementing step
@@ -155,24 +163,30 @@ def simpleStep2: Arrays['a] -> Arrays['a]
 //│            = <missing implementation>
 
 def simpleStep2 arr (k: ArraysRepConsumer['a, 'r]) = arr (fun impl -> k (simpleStepImpl impl))
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ((forall 'Rep. ArraysRep[out 'a, 'Rep] -> 'r) -> 'b) -> ArraysRepConsumer['a, 'r] -> 'b
+//│   <:  simpleStep2:
+//│ Arrays['a] -> Arrays['a]
+//│ ╔══[ERROR] Type mismatch in def definition:
+//│ ║  l.157: 	def simpleStep2 arr (k: ArraysRepConsumer['a, 'r]) = arr (fun impl -> k (simpleStepImpl impl))
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── type `'a` does not match type `nothing`
+//│ ║  l.153: 	def simpleStep2: Arrays['a] -> Arrays['a]
+//│ ╙──       	                        ^^
+//│            = [Function: simpleStep2]
 
 
 
 sb = simpleStep base
 //│ sb: Arrays['a]
-//│   = <no result>
-//│     simpleStep is not implemented
+//│   = [Function (anonymous)]
 
 sb (fun arr -> arr.Init true)
 //│ res: ??Rep
-//│    = <no result>
-//│      sb and simpleStep are not implemented
+//│    = [ true, 'initialized' ]
 
 sb (fun arr -> arr.Sub (arr.Init true) 1)
 //│ res: true
-//│    = <no result>
-//│      sb and simpleStep are not implemented
+//│    = true
 
 :e // * Type error is expected – argument order confusion
 sb (fun arr -> arr.Sub 0 (arr.Init true))
@@ -195,13 +209,12 @@ sb (fun arr -> arr.Sub 0 (arr.Init true))
 //│ ║  l.7: 	class ArraysRep[A, Rep]
 //│ ╙──     	                   ^^^
 //│ res: error | true
-//│    = <no result>
-//│      sb and simpleStep are not implemented
+//│ Runtime error:
+//│   TypeError: number 0 is not iterable (cannot read property Symbol(Symbol.iterator))
 
 sb (fun arr -> arr.Update (arr.Init true) 1 false)
 //│ res: ??Rep
-//│    = <no result>
-//│      sb and simpleStep are not implemented
+//│    = [ false, 'updated' ]
 
 :e // * Rightly prevent skolem confusion
 sb (fun arr1 -> sb (fun arr2 -> arr2.Update (arr1.Init true)))
@@ -228,16 +241,14 @@ sb (fun arr1 -> sb (fun arr2 -> arr2.Update (arr1.Init true)))
 //│ ║  l.207: 	sb (fun arr1 -> sb (fun arr2 -> arr2.Update (arr1.Init true)))
 //│ ╙──       	                                             ^^^^^^^^^^^^^^
 //│ res: int -> anything -> (??Rep | ??Rep0) | error
-//│    = <no result>
-//│      sb and simpleStep are not implemented
+//│    = [Function (anonymous)]
 
 sb (fun arr ->
     let r2 = arr.Update (arr.Init true) 1 false
     in (arr.Sub r2 0, arr.Sub r2 1)
   )
 //│ res: (bool, bool,)
-//│    = <no result>
-//│      sb and simpleStep are not implemented
+//│    = [ false, false ]
 
 
 
@@ -245,15 +256,12 @@ sb (fun arr ->
 
 :e
 def simpleStep arr = arr (fun impl -> fun k -> k (simpleStepImpl impl))
-//│ ((forall 'a 'A 'c 'Rep 'A0 'd 'A1 'Rep0. ArraysRep[in 'A & 'A1 & 'A0 out 'A1 | 'A, in 'Rep & 'Rep0 & 'a out 'Rep | 'Rep0] -> ((forall 'Rep1. ArraysImpl['A0, 'Rep1] with {fold: forall 'b. ('A1 -> 'b -> 'b) -> 'b -> ('Rep0, anything,) -> 'b, init: 'A -> ('Rep, "initialized",), sub: ('Rep0, anything,) -> int -> 'A1, update: forall 'e. ('Rep0 & 'e, anything,) -> int -> 'A -> ('Rep | 'e, "updated",)}) -> 'd) -> 'd) -> 'f) -> 'f
+//│ ((forall 'A 'a 'A0 'c 'Rep 'Rep0 'A1. ArraysRep[in 'A1 & 'A & 'A0 out 'A | 'A1, in 'Rep & 'Rep0 & 'c out 'Rep | 'Rep0] -> ((forall 'Rep1. ArraysImpl['A0, 'Rep1] with {fold: forall 'b. ('A -> 'b -> 'b) -> 'b -> ('Rep0, anything,) -> 'b, init: 'A1 -> ('Rep, "initialized",), sub: ('Rep0, anything,) -> int -> 'A, update: forall 'd. ('Rep0 & 'd, anything,) -> int -> 'A1 -> ('Rep | 'd, "updated",)}) -> 'a) -> 'a) -> 'e) -> 'e
 //│   where
 //│     'Rep1 :> ('Rep | 'c, "initialized" | "updated",)
-//│           <: ('Rep0 & 'a, anything,)
-//│     'a <: 'Rep0 & 'c
-//│     'c :> 'Rep
-//│        <: 'Rep0 & 'a
-//│     'A0 :> 'A1
-//│         <: 'A
+//│           <: ('Rep0 & 'c, anything,)
+//│     'A0 :> 'A
+//│         <: 'A1
 //│   <:  simpleStep:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type error in def definition
@@ -272,11 +280,23 @@ def simpleStep arr = arr (fun impl -> fun k -> k (simpleStepImpl impl))
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.68: 	    sub    = fun ((r0, r1)) -> fun i -> arrImpl.Sub r0 i;
 //│ ╙──      	                                                    ^^
-//│           = [Function: simpleStep]
+//│           = [Function: simpleStep1]
 
 :e
 def simpleStep2 arr k = arr (fun impl -> k (simpleStepImpl impl))
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ((ArraysRep[out 'A, out 'Rep] -> 'a) -> 'c) -> ((forall 'Rep0. ArraysImpl[in 'A & 'A0 out 'A0, 'Rep0] with {fold: forall 'b. (nothing -> 'b -> 'b) -> 'b -> ('Rep, anything,) -> 'b, init: 'A -> (nothing, "initialized",), sub: ('Rep, anything,) -> int -> nothing, update: forall 'd. ('Rep & 'd, anything,) -> int -> 'A -> ('d, "updated",)}) -> 'a) -> 'c
+//│   where
+//│     'Rep0 :> ('e, "initialized" | "updated",)
+//│           <: ('Rep & 'e, anything,)
+//│   <:  simpleStep2:
+//│ Arrays['a] -> Arrays['a]
+//│ ╔══[ERROR] Type mismatch in def definition:
+//│ ║  l.278: 	def simpleStep2 arr k = arr (fun impl -> k (simpleStepImpl impl))
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── type `'a` does not match type `nothing`
+//│ ║  l.153: 	def simpleStep2: Arrays['a] -> Arrays['a]
+//│ ╙──       	                        ^^
+//│            = [Function: simpleStep21]
 
 
 
@@ -299,7 +319,12 @@ def div a b = Math.trunc(a/b)
 
 def mod: int -> int -> int
 rec def mod a b = if a < b then a else mod (a - b) b
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ mod: int -> int -> int
+//│    = <missing implementation>
+//│ 'a -> int -> (int | 'a)
+//│   <:  mod:
+//│ int -> int -> int
+//│    = [Function: mod]
 
 def stepImpl arrImpl = ArraysImpl {
     init = fun a -> (arrImpl.Init a, arrImpl.Init a);
@@ -315,18 +340,11 @@ def stepImpl arrImpl = ArraysImpl {
   }
 //│ stepImpl: ArraysRep[in 'A & 'A0 & 'A1 out 'A0 | 'A, in 'Rep & 'Rep0 & 'a & 'c out 'Rep | 'Rep0] -> (ArraysImpl['A1, 'Rep1] with {fold: forall 'b 'b0. ('A0 -> 'b -> 'b & 'A0 -> 'b0 -> ('b & 'b0)) -> ('b & 'b0) -> ('Rep0, 'Rep0,) -> 'b, init: 'A -> ('Rep, 'Rep,), sub: ('Rep0, 'Rep0,) -> int -> 'A0, update: forall 'd 'e. ('Rep0 & 'd, 'Rep0 & 'e,) -> int -> 'A -> ('Rep | 'd, 'Rep | 'e,)})
 //│   where
-//│     'Rep1 :> ('Rep | 'a | 'f, 'Rep | 'c | 'g,)
+//│     'Rep1 :> ('Rep | 'a, 'Rep | 'c,)
 //│           <: ('Rep0 & 'a, 'Rep0 & 'c,)
-//│     'c <: 'Rep0 & 'g
-//│     'g :> 'Rep
-//│        <: 'Rep0 & 'c
-//│     'a <: 'Rep0 & 'f
-//│     'f :> 'Rep
-//│        <: 'Rep0 & 'a
 //│     'A1 :> 'A0
 //│         <: 'A
-//│ Code generation encountered an error:
-//│   unresolved symbol mod
+//│         = [Function: stepImpl]
 
 
 def step: Arrays['a] -> Arrays['a]
@@ -334,7 +352,12 @@ def step: Arrays['a] -> Arrays['a]
 //│     = <missing implementation>
 
 def step arr = arr (fun impl -> fun (k: ArraysRepConsumer['a, 'r]) -> k (stepImpl impl))
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ((forall 'A 'a 'Rep 'b. ArraysRep[in 'A & 'a out 'A, 'Rep] -> ArraysRepConsumer['a, 'b] -> 'b) -> 'c) -> 'c
+//│   where
+//│     'a :> 'A
+//│   <:  step:
+//│ Arrays['a] -> Arrays['a]
+//│     = [Function: step]
 
 
 def step2: Arrays['a] -> Arrays['a]
@@ -342,69 +365,71 @@ def step2: Arrays['a] -> Arrays['a]
 //│      = <missing implementation>
 
 def step2 arr (k: ArraysRepConsumer['a, 'r]) = arr (fun impl -> k (simpleStepImpl impl))
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ((forall 'Rep. ArraysRep[out 'a, 'Rep] -> 'r) -> 'b) -> ArraysRepConsumer['a, 'r] -> 'b
+//│   <:  step2:
+//│ Arrays['a] -> Arrays['a]
+//│ ╔══[ERROR] Type mismatch in def definition:
+//│ ║  l.344: 	def step2 arr (k: ArraysRepConsumer['a, 'r]) = arr (fun impl -> k (simpleStepImpl impl))
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── type `'a` does not match type `nothing`
+//│ ║  l.340: 	def step2: Arrays['a] -> Arrays['a]
+//│ ╙──       	                  ^^
+//│      = [Function: step2]
 
 
 ssb = step (step base)
 //│ ssb: Arrays['a]
-//│    = <no result>
-//│      step is not implemented
+//│    = [Function (anonymous)]
 
 ssb (fun arr ->
     let r2 = arr.Update (arr.Init true) 1 false
     in (arr.Sub r2 0, arr.Sub r2 1)
   )
 //│ res: (bool, bool,)
-//│    = <no result>
-//│      ssb and step are not implemented
+//│    = [ true, false ]
 
 
 ssb = step2 (step2 base)
 //│ ssb: Arrays['a]
-//│    = <no result>
-//│      step2 is not implemented
+//│    = [Function (anonymous)]
 
 ssb (fun arr ->
     let r2 = arr.Update (arr.Init true) 1 false
     in (arr.Sub r2 0, arr.Sub r2 1)
   )
 //│ res: (bool, bool,)
-//│    = <no result>
-//│      ssb and step2 are not implemented
+//│    = [ false, false ]
 
 
 rec def mkMonoArray n =
   if n == 0 then base else step (mkMonoArray(n - 1))
 //│ mkMonoArray: int -> Arrays['a]
-//│            = <no result>
-//│              base is not implemented
+//│            = [Function: mkMonoArray]
 
 snb = mkMonoArray 5
 //│ snb: Arrays['a]
-//│    = <no result>
-//│      mkMonoArray and base are not implemented
+//│    = [Function (anonymous)]
 
 snb (fun arr -> arr.Init true)
 //│ res: ??Rep | ??Rep0
-//│    = <no result>
-//│      snb, mkMonoArray and base are not implemented
+//│    = [
+//│        [ [ [Array], [Array] ], [ [Array], [Array] ] ],
+//│        [ [ [Array], [Array] ], [ [Array], [Array] ] ]
+//│      ]
 
 
 rec def mkMonoArray n =
   if n == 0 then base else step2 (mkMonoArray(n - 1))
 //│ mkMonoArray: int -> Arrays['a]
-//│            = <no result>
-//│              base is not implemented
+//│            = [Function: mkMonoArray1]
 
 snb = mkMonoArray 5
 //│ snb: Arrays['a]
-//│    = <no result>
-//│      mkMonoArray and base are not implemented
+//│    = [Function (anonymous)]
 
 snb (fun arr -> arr.Init true)
 //│ res: ??Rep | ??Rep0
-//│    = <no result>
-//│      snb, mkMonoArray and base are not implemented
+//│    = [ [ [ [Array], 'initialized' ], 'initialized' ], 'initialized' ]
 
 
 

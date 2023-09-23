@@ -173,12 +173,12 @@ def f: (int & 'a) -> 'a
 //│  = <missing implementation>
 
 def impl a = a a
-//│ impl: ('a -> 'b & 'a) -> 'b
+//│ impl: (nothing -> 'a) -> 'a
 //│     = [Function: impl]
 
 :e
 def f = impl
-//│ ('a -> 'b & 'a) -> 'b
+//│ (nothing -> 'a) -> 'a
 //│   <:  f:
 //│ (int & 'a) -> 'a
 //│ ╔══[ERROR] Type mismatch in def definition:
@@ -323,49 +323,45 @@ def self1: ('a -> 'b & 'a) -> 'b
 //│      = <missing implementation>
 
 def self1 a = a a
-//│ ('a -> 'b & 'a) -> 'b
+//│ (nothing -> 'a) -> 'a
 //│   <:  self1:
 //│ ('a -> 'b & 'a) -> 'b
 //│      = [Function: self1]
 
 fun a -> a a
-//│ res: ('a -> 'b & 'a) -> 'b
+//│ res: (nothing -> 'a) -> 'a
 //│    = [Function: res]
 
 self1 = res
-//│ ('a -> 'b & 'a) -> 'b
+//│ (nothing -> 'a) -> 'a
 //│   <:  self1:
 //│ ('a -> 'b & 'a) -> 'b
 //│      = [Function: res]
 
 r = fun a -> a a
-//│ r: ('a -> 'b & 'a) -> 'b
+//│ r: (nothing -> 'a) -> 'a
 //│  = [Function: r]
 
 self1 = r
-//│ ('a -> 'b & 'a) -> 'b
+//│ (nothing -> 'a) -> 'a
 //│   <:  self1:
 //│ ('a -> 'b & 'a) -> 'b
 //│      = [Function: r]
 
 def self2: 'a -> 'b as 'a
-//│ self2: 'a
-//│   where
-//│     'a := 'a -> 'b
+//│ self2: in nothing -> nothing out anything -> nothing
 //│      = <missing implementation>
 
 // :e // fails since the fix to spurious-TV-cycles // works since assigned TVs
 def self2 = self1
 //│ ('a -> 'b & 'a) -> 'b
 //│   <:  self2:
-//│ 'a
-//│   where
-//│     'a := 'a -> 'b
+//│ anything -> nothing
 //│      = [Function: self2]
 
 
 fun p -> fun q -> p q p
-//│ res: ('a -> 'b -> 'c & 'b) -> 'a -> 'c
+//│ res: ('a -> nothing -> 'b) -> 'a -> 'b
 //│    = [Function: res]
 
 :ns
@@ -373,6 +369,6 @@ fun p -> fun q -> p q p
 //│ res: forall 'a 'b 'c 'd. 'a -> 'b -> 'd
 //│   where
 //│     'a <: 'b -> 'c
-//│     'c <: 'a -> 'd
+//│     'c <: in anything out nothing -> 'd
 //│    = [Function: res]
 

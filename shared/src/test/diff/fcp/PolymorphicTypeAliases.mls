@@ -68,13 +68,13 @@ def foo = forall 'a. fun (x, y) -> (x, y) : G['a]
 //│ foo: ('a, ??a,) -> G['a]
 
 def foo = fun a -> forall 'a. fun (x, y) -> (x, y) : G['a]
-//│ foo: anything -> ('a, ??a,) -> G['a]
+//│ foo: anything -> (forall 'a. ('a, ??a,) -> G['a])
 
 foo 1 (2, error)
 //│ res: G[2]
 
 def foo = fun a -> forall 'a. fun x -> (x, error) : G['a]
-//│ foo: anything -> 'a -> G['a]
+//│ foo: anything -> (forall 'a. 'a -> G['a])
 
 foo 1 2
 //│ res: G[2]

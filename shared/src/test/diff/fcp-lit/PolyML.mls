@@ -8,7 +8,7 @@ g = fun (f: forall 'a. 'a -> 'a) -> f f
 g' = fun f -> f f
 //│ g: (forall 'a. 'a -> 'a) -> 'a0 -> 'a0
 //│  = [Function: g]
-//│ g': ('a -> 'b & 'a) -> 'b
+//│ g': (nothing -> 'a) -> 'a
 //│   = [Function: g$]
 
 // * i.e. auto id (FreezeML F5)
@@ -22,7 +22,7 @@ g' = fun f -> f f
 // * i.e. (fun auto -> auto id) auto
 (fun g -> g (fun x -> x)) (fun f -> f f)
 (fun g -> g (fun x -> x)) (fun (f: forall 'a. 'a -> 'a) -> f f)
-//│ res: 'a -> 'a
+//│ res: nothing
 //│    = [Function (anonymous)]
 //│ res: 'a -> 'a
 //│    = [Function (anonymous)]
@@ -33,7 +33,7 @@ fun f -> f (g f)
 fun f -> f (g' f)
 //│ res: (forall 'a. 'a -> 'a & (forall 'a0. 'a0 -> 'a0) -> 'b) -> 'b
 //│    = [Function: res]
-//│ res: ('a -> 'b & 'b -> 'c & 'a) -> 'c
+//│ res: (nothing -> 'a) -> 'a
 //│    = [Function: res]
 
 // ============ Sec 4.1 ============
@@ -76,7 +76,7 @@ def mem[a]: a -> List[a] -> bool
 //│ mem: anything -> List[?] -> bool
 
 rec def mem x l = match_list l false (fun head -> fun tail -> if eq head x then true else mem x tail)
-//│ anything -> List[?] -> (false | true)
+//│ anything -> List[?] -> bool
 //│   <:  mem:
 //│ anything -> List[?] -> bool
 

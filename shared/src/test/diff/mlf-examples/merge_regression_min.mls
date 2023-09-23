@@ -6,56 +6,31 @@ def choose: 'a -> 'a -> 'a
 //│       = <missing implementation>
 
 rec def id1 x = choose x (id1 id1 x)
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ id1: 'a -> ('a | anything -> nothing)
+//│    = <no result>
+//│      choose is not implemented
 
 id1 id
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.11: 	id1 id
-//│ ║        	^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol id1
+//│ res: 'a -> 'a
+//│    = <no result>
+//│      id1 and choose are not implemented
 
 
 :GeneralizeCurriedFunctions
 
 id1 id
-//│ res: ('b & 'c & 'd) -> ('e | 'f | 'b) | 'a
-//│   where
-//│     'd <: 'g & 'h & 'i & 'a0
-//│     'a0 <: (forall 'b. ('b & 'd) -> ('f | 'b) | 'c | 'd) -> 'a0 & 'a & 'j & 'e
-//│     'f :> forall 'b. ('b & 'd) -> ('f | 'b) | 'k
-//│     'c :> 'g -> 'j
-//│        <: 'g & 'a & 'h & 'i
-//│     'g :> forall 'b. ('g & 'b) -> ('j | 'b)
-//│        <: 'c & 'a & 'j
-//│     'j :> forall 'b. ('g & 'b) -> ('j | 'b) | 'l
-//│        <: 'a
-//│     'l :> forall 'b. ('g & 'b) -> ('j | 'b)
-//│        <: 'i -> 'a & 'a
-//│     'i :> forall 'b. ('g & 'b) -> ('j | 'b) | 'g
-//│        <: 'g & 'c & 'a
-//│     'a <: 'k & 'h -> 'a & 'l
-//│     'h :> forall 'b. ('b & 'c) -> ('e | 'b) | 'g
-//│        <: 'g
-//│     'e :> forall 'b. ('b & 'c) -> ('e | 'b) | 'k
-//│        <: 'a
-//│     'k :> 'g -> 'j
-//│        <: 'a & 'j
-//│ Code generation encountered an error:
-//│   unresolved symbol id1
+//│ res: 'a -> 'a
+//│    = <no result>
+//│      id1 and choose are not implemented
 
 rec def id1 x = choose x (id1 id1 x)
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ id1: 'a -> ('a | anything -> nothing)
+//│    = <no result>
+//│      choose is not implemented
 
 // :e
 id1 id
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.53: 	id1 id
-//│ ║        	^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol id1
+//│ res: 'a -> 'a
+//│    = <no result>
+//│      id1 and choose are not implemented
 

@@ -7,18 +7,14 @@ def z: (('a -> 'b) -> (('a -> 'b) & 'c)) -> 'c
 :e
 def z =
   (fun f -> (fun x -> f (fun v -> (x x) v)) (fun x -> f (fun v -> (x x) v)))
-//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('d -> 'e & 'a -> 'b)) -> (error | 'c)
+//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('d -> 'e & 'a -> 'b)) -> 'c
 //│   <:  z:
 //│ (('a -> 'b) -> ('a -> 'b & 'c)) -> 'c
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.9: 	  (fun f -> (fun x -> f (fun v -> (x x) v)) (fun x -> f (fun v -> (x x) v)))
-//│ ║       	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
 //│  = [Function: z]
 
 def z =
   (fun f -> (fun x -> f (fun v -> (x x) v)) (fun x -> f (fun v -> (x x) v))!)
-//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('d -> 'e & 'a -> 'b)) -> 'c
+//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('a -> 'b & 'd -> 'e)) -> 'c
 //│   <:  z:
 //│ (('a -> 'b) -> ('a -> 'b & 'c)) -> 'c
 //│  = [Function: z1]
@@ -124,24 +120,15 @@ oops 1
 :e
 def z =
   (fun f -> (fun x -> f (fun v -> (x x) v)) (fun x -> f (fun v -> (x x) v)))
-//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('d -> 'e & 'a -> 'b)) -> (error | 'c)
+//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('d -> 'e & 'a -> 'b)) -> 'c
 //│   <:  z:
 //│ (('a -> 'b) -> ('a -> 'b & 'c)) -> 'c
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.126: 	  (fun f -> (fun x -> f (fun v -> (x x) v)) (fun x -> f (fun v -> (x x) v)))
-//│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
 //│  = [Function: z2]
 
 :e
 def z =
   (fun f -> (fun x -> f (fun v -> (x x) v)) (fun x -> f (fun v -> (x x) v))!)
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a :> 'a -> ?
-//│        <: 'a -> ? -> ?
-//│ ╙──
-//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('d -> 'e & 'a -> 'b)) -> 'c
+//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('a -> 'b & 'd -> 'e)) -> 'c
 //│   <:  z:
 //│ (('a -> 'b) -> ('a -> 'b & 'c)) -> 'c
 //│  = [Function: z3]
@@ -152,24 +139,15 @@ def z =
 :e
 def z =
   (fun f -> (fun x -> f (fun v -> (x x) v)) (fun x -> f (fun v -> (x x) v)))
-//│ ((anything -> nothing) -> anything) -> error
+//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('d -> 'e & 'a -> 'b)) -> 'c
 //│   <:  z:
 //│ (('a -> 'b) -> ('a -> 'b & 'c)) -> 'c
-//│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: (forall ?c ?d ?e ?f ?g. ?c -> ?d) -> ?h` exceeded recursion depth limit (250)
-//│ ║  l.154: 	  (fun f -> (fun x -> f (fun v -> (x x) v)) (fun x -> f (fun v -> (x x) v)))
-//│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
 //│  = [Function: z4]
 
 :e
 def z =
   (fun f -> (fun x -> f (fun v -> (x x) v)) (fun x -> f (fun v -> (x x) v))!)
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a :> 'a -> ?
-//│        <: 'a -> ? -> ?
-//│ ╙──
-//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('d -> 'e & 'a -> 'b)) -> 'c
+//│ (('a -> 'b) -> 'c & ('d -> 'e) -> ('a -> 'b & 'd -> 'e)) -> 'c
 //│   <:  z:
 //│ (('a -> 'b) -> ('a -> 'b & 'c)) -> 'c
 //│  = [Function: z5]

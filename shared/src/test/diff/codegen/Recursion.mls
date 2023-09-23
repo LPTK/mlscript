@@ -38,26 +38,27 @@ pow1 3 4
 
 :js
 rec def pow2 n = { call = fun x -> if n > 0 then (pow2 (n - 1)).call x * x else 1 }
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ // Query 1
+//│ globalThis.pow2 = function pow2(n) {
+//│   return { call: (x) => n > 0 ? pow2(n - 1).call(x) * x : 1 };
+//│ };
+//│ // End of generated code
+//│ pow2: int -> {call: anything -> int}
+//│     = [Function: pow2]
 
 (pow2 3).call 4
 //│ res: int
-//│ Code generation encountered an error:
-//│   unresolved symbol pow2
+//│    = 64
 
 :ge
 let rec x = { f = x } in x
-//│ res: 'x
-//│   where
-//│     'x :> {f: 'x}
+//│ res: {f: nothing}
 //│ Code generation encountered an error:
 //│   recursive non-function definition x is not supported
 
 :ge
 let x = { f = x } in x
-//│ res: 'x
-//│   where
-//│     'x :> {f: 'x}
+//│ res: {f: {f: nothing}}
 //│ Code generation encountered an error:
 //│   unresolved symbol x
 
@@ -67,9 +68,7 @@ let x = { f = x } in x
 class A
   rec method M x = M
 //│ Defined class A
-//│ Defined A.M: A -> 'M
-//│   where
-//│     'M :> anything -> 'M
+//│ Defined A.M: A -> anything -> nothing
 //│ Code generation encountered an error:
 //│   unresolved symbol M
 

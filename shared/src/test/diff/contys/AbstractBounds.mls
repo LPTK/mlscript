@@ -103,7 +103,7 @@ class Test4[A, B]
 //│     forall 'a. 'a -> 'a <: 'A -> 'B)
 
 fun x -> fun y -> x.Bar4 y id
-//│ res: 'a -> (forall 'A 'B. (('A -> 'B) -> 'B
+//│ res: 'a -> (forall 'B 'A. (('A -> 'B) -> 'B
 //│   where
 //│     'a <: Test4['A, 'B]))
 //│   where

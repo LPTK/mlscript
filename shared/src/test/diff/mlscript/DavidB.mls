@@ -179,9 +179,7 @@ foo (Con{ h = true; t = Con{ h = 0; t = N{} } })
 //│    = Con { h: 0, t: N {} }
 
 def inf: Con[true, Con[0, 'I]] as 'I
-//│ inf: 'I
-//│   where
-//│     'I :> Con[true, Con[0, 'I]]
+//│ inf: in Con[true, Con[0, ?]] out Con[true, Con[0, nothing]]
 //│    = <missing implementation>
 
 foo inf

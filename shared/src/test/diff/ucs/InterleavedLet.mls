@@ -223,9 +223,7 @@ fun showList(xs) =
 //│   })());
 //│ };
 //│ // End of generated code
-//│ showList: 'tail -> string
-//│   where
-//│     'tail <: Cons & {tail: 'tail} | Nil
+//│ showList: (Cons | Nil) -> string
 //│         = [Function: showList]
 
 let zeroToThree = Cons(0, Cons(1, Cons(2, Cons(3, Nil()))))
@@ -249,19 +247,18 @@ fun mapPartition(f, xs) =
       let r = res.snd
       Left(v)  then Pair(Cons(v, l), r)
       Right(v) then Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), 'tail,) -> (Pair & {fst: 'fst, snd: 'snd})
+//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & {head: 'head} | Nil,) -> (Pair & {fst: 'fst, snd: 'snd})
 //│   where
 //│     'snd :> Cons & {head: 'rightValue, tail: 'snd} | Nil
 //│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
-//│     'tail <: Cons & {head: 'head, tail: 'tail} | Nil
 //│             = [Function: mapPartition]
 
 // FIXME: Something wrong with code generation.
 mapPartition(x => if x % 2 == 0 then Left(x) else Right(x), zeroToThree)
 //│ res: Pair & {fst: 'fst, snd: 'snd}
 //│   where
-//│     'snd :> Cons & {head: 0 | 1 | 2 | 3, tail: 'snd} | Nil
-//│     'fst :> Nil | Cons & {head: 0 | 1 | 2 | 3, tail: 'fst}
+//│     'snd :> Cons & {head: 0, tail: 'snd} | Nil
+//│     'fst :> Nil | Cons & {head: 0, tail: 'fst}
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 

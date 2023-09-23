@@ -3,9 +3,7 @@ type Add[E] = { x: E -> E }
 //│ Defined type alias Add[=E]
 
 def e2: Add['e] as 'e
-//│ e2: 'e
-//│   where
-//│     'e := Add['e]
+//│ e2: Add[in anything out nothing]
 //│   = <missing implementation>
 
 e2 : Add['e] as 'e
@@ -17,20 +15,14 @@ e2 : Add['e] as 'e
 
 
 def f0: ('a -> int) as 'a
-//│ f0: 'a
-//│   where
-//│     'a := 'a -> int
+//│ f0: in nothing -> int out anything -> int
 //│   = <missing implementation>
 
 // :e // * Did not work before when added subtype checking to constraining...
 f0 = f0
-//│ 'a
-//│   where
-//│     'a := 'a -> int
+//│ anything -> int
 //│   <:  f0:
-//│ 'a
-//│   where
-//│     'a := 'a -> int
+//│ anything -> int
 //│   = <no result>
 //│     f0 is not implemented
 

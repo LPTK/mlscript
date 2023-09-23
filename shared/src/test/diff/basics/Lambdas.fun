@@ -20,10 +20,10 @@ let id = v => v
 //│ id: 'a -> 'a
 
 f => f f
-//│ res: ('a -> 'b & 'a) -> 'b
+//│ res: (nothing -> 'a) -> 'a
 
 f => id f id f id
-//│ res: ((forall 'a. 'a -> 'a) -> 'b -> (forall 'a. 'a -> 'a) -> 'c & 'b) -> 'c
+//│ res: ((forall 'a. 'a -> 'a) -> nothing -> (forall 'a. 'a -> 'a) -> 'b) -> 'b
 
 :pe
 let oops = hu(h

@@ -106,15 +106,15 @@ def step2 (arr: Arrays) k = k (arr stepImpl_noAnn)
 //│ ║  l.9: 	type ArraysImpl = { fold: forall 'b. 'b -> 'b }
 //│ ║       	                                           ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
+//│ ╟── • this reference:
+//│ ║  l.22: 	def stepImpl_noAnn arrImpl = { fold = fun f -> arrImpl.fold f }
+//│ ║        	                                                            ^
 //│ ╟── • this applied expression:
 //│ ║  l.95: 	def step2 (arr: Arrays) k = k (arr stepImpl_noAnn)
 //│ ║        	                            ^
 //│ ╟── • this application:
 //│ ║  l.95: 	def step2 (arr: Arrays) k = k (arr stepImpl_noAnn)
-//│ ║        	                               ^^^^^^^^^^^^^^^^^^
-//│ ╟── • this application:
-//│ ║  l.22: 	def stepImpl_noAnn arrImpl = { fold = fun f -> arrImpl.fold f }
-//│ ╙──      	                                               ^^^^^^^^^^^^^^
+//│ ╙──      	                               ^^^^^^^^^^^^^^^^^^
 
 
 

@@ -31,44 +31,32 @@ error : T2 : T3
 //│ subtyping calls  : 423
 
 def f: T3 & { x: T1 & 'a } as 'a
-//│ f: 'a
-//│   where
-//│     'a :> T3 & {x: T1 & 'a}
+//│ f: in T3 & {x: T1} out T3 & {x: nothing}
 
 :stats
 f.x
-//│ res: 'a & (T1 & T3 & {x: T2} | T1 & T2 & {x: T3})
-//│   where
-//│     'a :> T3 & {x: T1 & 'a}
-//│ constrain calls  : 6
-//│ annoying  calls  : 4
-//│ subtyping calls  : 148
+//│ res: nothing
+//│ constrain calls  : 5
+//│ annoying  calls  : 0
+//│ subtyping calls  : 16
 
 g = error : T1 & { x: T2 | 'a } as 'a
-//│ g: 'a
-//│   where
-//│     'a :> T1 & {x: 'a | T2}
+//│ g: T1 & {x: T2}
 
 :stats
 g.x
-//│ res: T1 & {x: T1} & 'a | T1 & T2 & {x: T1}
-//│   where
-//│     'a :> T1 & {x: 'a | T2}
+//│ res: T1 & T2 & {x: T1}
 //│ constrain calls  : 6
 //│ annoying  calls  : 4
-//│ subtyping calls  : 85
+//│ subtyping calls  : 38
 
 :stats
 f = g
-//│ 'a
-//│   where
-//│     'a :> T1 & {x: 'a | T2}
+//│ T1 & {x: T2}
 //│   <:  f:
-//│ 'a
-//│   where
-//│     'a :> T3 & {x: T1 & 'a}
-//│ constrain calls  : 69
-//│ annoying  calls  : 95
-//│ subtyping calls  : 3476
+//│ T3 & {x: nothing}
+//│ constrain calls  : 15
+//│ annoying  calls  : 17
+//│ subtyping calls  : 595
 
 

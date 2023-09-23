@@ -324,7 +324,9 @@ def nth l n =
     | Nil -> failwith "nth"
     | Cons(a, l) -> if n == 0 then a else nth_aux l (n-1)
   in nth_aux l n
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ List['a] -> int -> 'a
+//│   <:  nth:
+//│ List['a] -> int -> 'a
 
 def nth_opt l n =
   if n < 0 then invalid_arg "List.nth" else
@@ -369,12 +371,14 @@ rec def init_aux i last f =
     let r1 = f i in
     let r2 = f (i+1) in
     Cons(r1, Cons(r2, init_aux (i+2) last f))
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ init_aux: int -> number -> (int -> anything) -> List[?]
 
 def init len f =
   if len < 0 then invalid_arg "List.init" else
   init_aux 0 (len - 1) f
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ int -> (int -> anything) -> List[?]
+//│   <:  init:
+//│ int -> (int -> 'a) -> List['a]
 
 rec def flatten = fun x -> match x with
     Nil -> Nil
@@ -565,7 +569,9 @@ rec def memq x = fun y -> match y with
 rec def assoc x = fun y -> match y with
     Nil -> raise Not_found
   | Cons((a, b), l) -> if compare' a x == 0 then b else assoc x l
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ anything -> List[(anything, 'a,)] -> 'a
+//│   <:  assoc:
+//│ anything -> List[(anything, 'b,)] -> 'b
 
 rec def assoc_opt x = fun y -> match y with
     Nil -> None
@@ -577,7 +583,9 @@ rec def assoc_opt x = fun y -> match y with
 rec def assq x = fun y -> match y with
     Nil -> raise Not_found
   | Cons((a, b), l) -> if eq a x then b else assq x l
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ anything -> List[(anything, 'a,)] -> 'a
+//│   <:  assq:
+//│ anything -> List[(anything, 'b,)] -> 'b
 
 rec def assq_opt x = fun y -> match y with
     Nil -> None
@@ -619,7 +627,9 @@ rec def remove_assq x = fun y -> match y with
 rec def find p = fun x -> match x with
   | Nil -> raise Not_found
   | Cons(x, l) -> if p x then x else find p l
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ('a -> bool) -> List['a] -> 'a
+//│   <:  find:
+//│ ('a -> bool) -> List['a] -> 'a
 
 rec def find_opt p = fun x -> match x with
   | Nil -> None
@@ -643,7 +653,9 @@ rec def find_map f = fun x -> match x with
       match f x with
         | Some(_) as result -> result
         | None -> find_map f l
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ('A -> 'a) -> List['A] -> (Option[nothing] | 'a)
+//│   <:  find_map:
+//│ ('a -> Option['b]) -> List['a] -> Option['b]
 
 def find_mapi f =
   let rec aux i = fun x -> match x with
@@ -702,7 +714,11 @@ def concat_map = let rec r = {
       | Nil -> r.concat_map f xs
       | Cons(y, ys) -> r.prepend_concat_map ys f xs
   } in r.concat_map
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ anything -> List[?] -> 'a
+//│   where
+//│     'a :> List[nothing]
+//│   <:  concat_map:
+//│ ('a -> List['b]) -> List['a] -> List['b]
 
 def fold_left_map f accu l =
   let rec aux accu l_accu = fun x -> match x with
@@ -836,7 +852,9 @@ def stable_sort cmp l =
   in
   let len = length l in
   if len < 2 then l else fst (sort len l)
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ (nothing -> nothing -> number) -> (List[?] & 'a) -> (List[nothing] | 'a)
+//│   <:  stable_sort:
+//│ ('a -> 'a -> int) -> List['a] -> List['a]
 
 def sort = stable_sort
 def fast_sort = stable_sort
@@ -955,7 +973,9 @@ def sort_uniq cmp l =
   in
   let len = length l in
   if len < 2 then l else fst (sort len l)
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ (nothing -> nothing -> number) -> (List[?] & 'a) -> (List[nothing] | 'a)
+//│   <:  sort_uniq:
+//│ ('a -> 'a -> int) -> List['a] -> List['a]
 
 rec def compare_lengths l1 l2 =
   match (l1, l2) with
@@ -992,7 +1012,7 @@ rec def equal eq l1 l2 =
   | (Nil, Cons(_, _)) -> false
   | (Cons(_, _), Nil) -> false
   | (Cons(a1, l1), Cons(a2, l2)) -> eq a1 a2 && equal eq l1 l2
-//│ ('A -> 'A0 -> bool) -> List['A] -> List['A0] -> (bool | false)
+//│ ('A -> 'A0 -> bool) -> List['A] -> List['A0] -> bool
 //│   <:  equal:
 //│ ('a -> 'a -> bool) -> List['a] -> List['a] -> bool
 

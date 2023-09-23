@@ -150,7 +150,7 @@ succ' {} {} {}
 //│   TypeError: n is not a function
 
 fun x -> succ' x x x x x x x x x
-//│ res: ('a -> 'a -> 'b & 'b -> 'a -> 'a -> 'a -> 'a -> 'a -> 'a -> 'c & 'a) -> 'c
+//│ res: ('a -> 'a -> 'b & 'b -> nothing -> nothing -> nothing -> nothing -> nothing -> nothing -> 'c & 'a) -> 'c
 //│    = [Function: res]
 
 
@@ -405,7 +405,7 @@ to_church_ty = to_church_4
 //│   <:  to_church_ty:
 //│ int -> ChurchInt
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.401: 	to_church_ty = to_church_4
+//│ ║  l.403: 	to_church_ty = to_church_4
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type `('a -> 'a) -> 'a -> 'a` does not match type `'a0`
 //│ ║  l.30: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -529,10 +529,10 @@ def succ' n = fun f -> fun x -> f (n f x)
 //│   where
 //│     'b <: 'a -> 'a & 'a -> 'c)))
 //│     = [Function: succ1]
-//│ succ': 'a -> (forall 'b. 'b -> (forall 'c 'd 'e. ('c -> 'e
+//│ succ': 'a -> (forall 'b. 'b -> (forall 'c 'd 'e. ('e -> 'd
 //│   where
-//│     'a <: 'b -> 'c -> 'd
-//│     'b <: 'd -> 'e)))
+//│     'a <: 'b -> 'e -> 'c
+//│     'b <: 'c -> 'd)))
 //│      = [Function: succ$1]
 
 // * Note: without constrained types (and distrib.) we wouldn't get the principal type of succ'
@@ -550,12 +550,12 @@ succ_ty = succ
 succ_ty = succ'
 //│ 'a -> (forall 'b. 'b -> (forall 'c 'd 'e. ('c -> 'e
 //│   where
-//│     'b <: 'd -> 'e
-//│     'a <: 'b -> 'c -> 'd)))
+//│     'a <: 'b -> 'c -> 'd
+//│     'b <: 'd -> 'e)))
 //│   <:  succ_ty:
 //│ ChurchInt -> ChurchInt
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.546: 	succ_ty = succ'
+//│ ║  l.550: 	succ_ty = succ'
 //│ ║         	^^^^^^^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.30: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -565,10 +565,10 @@ succ_ty = succ'
 //│ ║        	                             ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this function:
-//│ ║  l.521: 	def succ' n = fun f -> fun x -> f (n f x)
+//│ ║  l.525: 	def succ' n = fun f -> fun x -> f (n f x)
 //│ ║         	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.546: 	succ_ty = succ'
+//│ ║  l.550: 	succ_ty = succ'
 //│ ╙──       	          ^^^^^
 //│        = [Function: succ$1]
 :DistributeForalls
@@ -585,16 +585,16 @@ succ_ty = succ'
 succ'
 //│ res: 'a -> (forall 'b. 'b -> (forall 'c 'd 'e. ('c -> 'e
 //│   where
-//│     'a <: 'b -> 'c -> 'd
-//│     'b <: 'd -> 'e)))
+//│     'b <: 'd -> 'e
+//│     'a <: 'b -> 'c -> 'd)))
 //│    = [Function: succ$1]
 
 // :e // * Error delayed by inconsistent constrained types
 succ' {}
 //│ res: 'a -> (forall 'b 'c 'd. ('b -> 'd
 //│   where
-//│     'a <: 'c -> 'd
-//│     anything <: 'a -> 'b -> 'c))
+//│     anything <: 'a -> 'b -> 'c
+//│     'a <: 'c -> 'd))
 //│    = [Function (anonymous)]
 
 // :e // * Error delayed by inconsistent constrained types
@@ -607,13 +607,13 @@ succ' {} {}
 :e
 succ' {} {} {}
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.604: 	succ' {} {} {}
+//│ ║  l.608: 	succ' {} {} {}
 //│ ║         	^^^^^^^^^^^^^^
 //│ ╟── record literal of type `anything` is not a function
-//│ ║  l.604: 	succ' {} {} {}
+//│ ║  l.608: 	succ' {} {} {}
 //│ ║         	      ^^
 //│ ╟── Note: constraint arises from application:
-//│ ║  l.521: 	def succ' n = fun f -> fun x -> f (n f x)
+//│ ║  l.525: 	def succ' n = fun f -> fun x -> f (n f x)
 //│ ╙──       	                                   ^^^
 //│ res: error
 //│ Runtime error:

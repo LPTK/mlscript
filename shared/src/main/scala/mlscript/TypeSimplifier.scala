@@ -1202,6 +1202,18 @@ trait TypeSimplifier { self: Typer =>
       
       val traversedOtherTVs: MutSet[TV] = MutSet.empty
       
+      def getRepr(tv: TV): TV = varSubst.get(tv) match {
+        case S(tv2) =>
+          varSubst.get(tv2) match {
+            case S(tv3) =>
+              varSubst += tv -> tv3
+              // varSubst += tv2 -> tv3
+              getRepr(tv3)
+            case N => tv2
+          }
+        case N => tv
+      }
+      
       override def apply(pol: PolMap)(st: ST): Unit =
           trace(s"Analysis[${printPol(pol)}] $st  (${curPath.reverseIterator.mkString(" ~> ")})") {
             st match {
@@ -1210,23 +1222,31 @@ trait TypeSimplifier { self: Typer =>
           if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
         case tv: TV if tv.level <= lvl =>
           if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
-        case tv: TV if !varSubst.contains(tv) =>
+        // case tv: TV if !varSubst.contains(tv) =>
+        case tv: TV =>
+          if (varSubst.contains(tv)) return
         // case tv: TV if tv.assignedTo.isEmpty && !varSubst.contains(tv) =>
           var continue = true
           if (curPath.exists(_ is tv)) { // TODO opt
+            println(s"UNIFYING $tv with ${curPath.mkString(", ")}")
             // if (tv.level) varSubst
             curPath.foreach { tv2 => if (tv2 isnt tv) {
               // varSubst.get(tv2) match {
               //   case N => 
               // }
-              val tvRepr = varSubst.getOrElse(tv2, tv2) // TODO union-set lookup
-              // assert(!varSubst.contains(tvRepr))
-              if (tv.level === tvRepr.level && tvRepr.nameHint.isEmpty && !varSubst.contains(tvRepr)) {
-                varSubst += tvRepr -> tv
+              // val tvRepr = varSubst.getOrElse(tv2, tv2) // TODO union-set lookup
+              var tvRepr = getRepr(tv2)
+              // while
+              if (tvRepr isnt tv) {
+                // assert(!varSubst.contains(tvRepr))
+                if (tv.level === tvRepr.level && tvRepr.nameHint.isEmpty && !varSubst.contains(tvRepr)) {
+                  varSubst += tvRepr -> tv
+                }
+                else if (tv.level > tvRepr.level) varSubst += tv -> tvRepr
+                else if (tvRepr.level > lvl && !varSubst.contains(tvRepr)) varSubst += tvRepr -> tv
               }
-              else if (tv.level > tvRepr.level) varSubst += tv -> tvRepr
-              else if (tvRepr.level > lvl && !varSubst.contains(tvRepr)) varSubst += tvRepr -> tv
             }}
+            println(varSubst)
             continue = false
           }
           if (pastPaths.exists(_.exists(_ is tv))) { // TODO opt
@@ -1242,38 +1262,38 @@ trait TypeSimplifier { self: Typer =>
             super.apply(pol)(st)
             curPath = oldPath
           }
+        
+        // case ProxyType(und) => super.apply(pol)(st)
+        // case Overload(as) => super.apply(pol)(st)
+        case ProxyType(und) => apply(pol)(und)
+        case Overload(as) => as.foreach(apply(pol))
+        
+        // case NegType(n) => go(pol.contravar, ignoreTLO, upperLvl)(n)
+        // case Without(b, ns) => go(pol, ignoreTLO, upperLvl)(b)
+        case TypeBounds(lb, ub) =>
+          // super.apply(PolMap.neg)(lb)
+          // super.apply(PolMap.pos)(ub)
+          apply(PolMap.neg)(lb)
+          apply(PolMap.pos)(ub)
           
-          // case ProxyType(und) => super.apply(pol)(st)
-          // case Overload(as) => super.apply(pol)(st)
-          case ProxyType(und) => apply(pol)(und)
-          case Overload(as) => as.foreach(apply(pol))
+          // * or simply:
+          // pol.traverseRange(lb, ub)(go(_, ignoreTLO, upperLvl)(_))
+        
+        case ConstrainedType(cs, bod) =>
+          cs.foreach { vbs =>
+            apply(PolMap.pos)(vbs._1)
+            apply(PolMap.posAtNeg)(vbs._2)
+          }
+          apply(pol)(bod)
+        case ComposedType(p, l, r) =>
+          // super.apply(pol)(l)
+          // super.apply(pol)(r)
+          apply(pol)(l)
+          apply(pol)(r)
+        
+        // case pt: PolymorphicType =>
+        //   go(pol.enter(pt.polymLevel), ignoreTLO, upperLvl min pt.polymLevel)(pt.body)
           
-          // case NegType(n) => go(pol.contravar, ignoreTLO, upperLvl)(n)
-          // case Without(b, ns) => go(pol, ignoreTLO, upperLvl)(b)
-          case TypeBounds(lb, ub) =>
-            // super.apply(PolMap.neg)(lb)
-            // super.apply(PolMap.pos)(ub)
-            apply(PolMap.neg)(lb)
-            apply(PolMap.pos)(ub)
-            
-            // * or simply:
-            // pol.traverseRange(lb, ub)(go(_, ignoreTLO, upperLvl)(_))
-          
-          case ConstrainedType(cs, bod) =>
-            cs.foreach { vbs =>
-              apply(PolMap.pos)(vbs._1)
-              apply(PolMap.posAtNeg)(vbs._2)
-            }
-            apply(pol)(bod)
-          case ComposedType(p, l, r) =>
-            // super.apply(pol)(l)
-            // super.apply(pol)(r)
-            apply(pol)(l)
-            apply(pol)(r)
-          
-          // case pt: PolymorphicType =>
-          //   go(pol.enter(pt.polymLevel), ignoreTLO, upperLvl min pt.polymLevel)(pt.body)
-            
         case _ =>
           val oldPath = curPath
           val oldPaths = pastPaths
@@ -1288,11 +1308,17 @@ trait TypeSimplifier { self: Typer =>
     }
     
     Analysis(PolMap.pos)(ty)
+    
+    println("Unif-pre: " + Analysis.varSubst)
+    Analysis.varSubst.valuesIterator.foreach { Analysis.getRepr(_) }
+    // println("Unif-pst: " + Analysis.varSubst)
+    
     println("Pos: " + Analysis.posVars)
     println("Neg: " + Analysis.negVars)
     println("Rec: " + Analysis.recVars)
     println("Unif: " + Analysis.varSubst)
     
+    /* 
     val toSubst = Analysis.varSubst.keySet
     val posSubst = (Analysis.posVars.toSet -- Analysis.negVars -- Analysis.recVars -- toSubst).flatMap { tv =>
       val res = tv.lowerBounds.foldLeft(BotType: ST)(_ | _)
@@ -1311,6 +1337,127 @@ trait TypeSimplifier { self: Typer =>
     // subst(ty, Analysis.varSubst.toMap)
     
     if (finalSubst.isEmpty) ty else subst(ty, finalSubst, substInMap = true)
+    */
+    
+    val cache: MutMap[TypeVariable, SimpleType] = MutMap.empty
+    val traversed: MutSet[TV] = MutSet.empty
+    val transformed: MutMap[TV, ST] = MutMap.empty
+    
+    def subst(ty: ST): ST = trace(s"subst($ty)") {
+      /* 
+        map.get(st) match {
+          case S(res: TV) => if (substInMap) cache.getOrElse(res, go(res)) else res
+          case S(res) => if (substInMap) go(res) else res
+          case N =>
+            st match {
+              // case tv: TV if tv.level <= lvl => tv
+              case tv: TV if tv.level <= lvl => cache.getOrElseUpdate(tv, tv)
+              case tv @ AssignedVariable(ty) => cache.getOrElse(tv, {
+                val v = freshVar(tv.prov, S(tv), tv.nameHint)(tv.level)
+                cache += tv -> v
+                v.assignedTo = S(go(ty))
+                v
+              })
+              case tv: TypeVariable if tv.lowerBounds.isEmpty && tv.upperBounds.isEmpty =>
+                cache += tv -> tv
+                tv
+              case tv: TypeVariable => cache.getOrElse(tv, {
+                val v = freshVar(tv.prov, S(tv), tv.nameHint)(tv.level)
+                cache += tv -> v
+                v.lowerBounds = tv.lowerBounds.map(go(_))
+                v.upperBounds = tv.upperBounds.map(go(_))
+                v
+              })
+              case poly: PolymorphicType if poly.polymLevel < subsLvl =>
+                go(poly.raiseLevelTo(subsLvl))
+              case _ => st.map(go(_))
+            }
+        }
+       */
+      ty match {
+        case ty if ty.level < lvl => ty
+        // case tv @ AssignedVariable(ty) => cache.getOrElse(tv, {
+        //   val v = freshVar(tv.prov, S(tv), tv.nameHint)(tv.level)
+        //   cache += tv -> v
+        //   v.assignedTo = S(subst(ty))
+        //   v
+        // })
+          /* 
+        case tv: TV if !traversed.add(tv) => tv
+        case tv @ AssignedVariable(ty) =>
+          val ty2 = subst(ty)
+          if (ty2.isSmall) ty2
+          else {
+            tv.assignedTo = S(subst(ty))
+            ty
+          }
+        case tv: TypeVariable =>
+          val rtv = Analysis.getRepr(tv)
+          if ((rtv is tv) || traversed.add(rtv)) {
+            val newLBs = rtv.lowerBounds.map(subst(_))
+            val newUBs = rtv.upperBounds.map(subst(_))
+            rtv.lowerBounds = newLBs
+            rtv.upperBounds = newUBs
+            val isPos = Analysis.posVars.contains(rtv)
+            val isNeg = Analysis.negVars.contains(rtv)
+            if (isPos && !isNeg && newLBs.forall(_.isSmall)) {
+              newLBs.foldLeft(BotType: ST)(_ | _)
+            }
+            else if (isNeg && !isPos && newUBs.forall(_.isSmall)) {
+              newUBs.foldLeft(TopType: ST)(_ &- _)
+            }
+            else {
+              // rtv.lowerBounds = newLBs
+              // rtv.upperBounds = newUBs
+              rtv
+            }
+          }
+          rtv
+          */
+        case _tv: TV =>
+          val tv = Analysis.getRepr(_tv)
+          println(s"Repr: $tv")
+          transformed.getOrElseUpdate(tv, {
+            if (Analysis.recVars.contains(tv)) {
+              println(s"It's recursive!")
+              transformed += tv -> tv
+            } else transformed += tv ->
+              TypeBounds(TopType, BotType)(noProv) // TODO improve? creates lots of junk...
+            tv.assignedTo match {
+              case S(ty) =>
+                val res = subst(ty)
+                if (ty.isSmall) res
+                else {
+                  tv.assignedTo = S(res)
+                  tv
+                }
+              case N =>
+                // TODO rm self-cycles
+                val newLBs = tv.lowerBounds.map(subst(_))
+                val newUBs = tv.upperBounds.map(subst(_))
+                tv.lowerBounds = newLBs
+                tv.upperBounds = newUBs
+                val isPos = Analysis.posVars.contains(tv)
+                val isNeg = Analysis.negVars.contains(tv)
+                if (isPos && !isNeg && newLBs.forall(_.isSmall)) {
+                  newLBs.foldLeft(BotType: ST)(_ | _)
+                } else
+                if (isNeg && !isPos && newUBs.forall(_.isSmall)) {
+                  newUBs.foldLeft(TopType: ST)(_ &- _)
+                }
+                else {
+                  // tv.lowerBounds = newLBs
+                  // tv.upperBounds = newUBs
+                  tv
+                }
+            }
+          })
+        case _ => ty.map(subst(_))
+      }
+    }(r => s"= $r")
+    
+    // if (finalSubst.isEmpty) ty else subst(ty)
+    subst(ty)
     
   }
   

@@ -97,7 +97,12 @@ def append: List['a] -> List['a] -> List['a]
 rec def append l1 l2 =
   if is_empty l1 then l2
   else cons (head l1) (append (tail l1) l2)
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ append: List['a] -> List['a] -> List['a]
+//│       = <missing implementation>
+//│ List['a] -> anything -> List['a]
+//│   <:  append:
+//│ List['a] -> List['a] -> List['a]
+//│       = [Function: append]
 
 def length: List['a] -> int
 rec def length l =
@@ -159,7 +164,7 @@ def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 def auto x = x x
 //│ auto: (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│     = <missing implementation>
-//│ ('a -> 'b & 'a) -> 'b
+//│ (nothing -> 'a) -> 'a
 //│   <:  auto:
 //│ (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│     = [Function: auto]
@@ -168,7 +173,7 @@ def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 def auto_ x = x x
 //│ auto_: (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│      = <missing implementation>
-//│ ('a -> 'b & 'a) -> 'b
+//│ (nothing -> 'a) -> 'a
 //│   <:  auto_:
 //│ (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│      = [Function: auto_]
@@ -295,7 +300,7 @@ choose nil ids
 
 // A4
 fun x -> x x
-//│ res: ('a -> 'b & 'a) -> 'b
+//│ res: (nothing -> 'a) -> 'a
 //│    = [Function: res]
 
 // A5
@@ -393,8 +398,10 @@ cons (fun x -> x) ids
 // C7
 append (single inc) (single id)
 //│ res: List[int -> int]
-//│ Code generation encountered an error:
-//│   unresolved symbol append
+//│    = Cons {
+//│        head: [Function: succ],
+//│        tail: Cons { head: [Function: id1], tail: Nil {} }
+//│      }
 
 // C8
 :ng
@@ -520,20 +527,20 @@ z: ChurchInt
 // G2A
 s: ChurchInt -> ChurchInt
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.527: 	s: ChurchInt -> ChurchInt
+//│ ║  l.521: 	s: ChurchInt -> ChurchInt
 //│ ║         	^
 //│ ╟── type variable `'N` leaks out of its scope
-//│ ║  l.233: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
+//│ ║  l.238: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
 //│ ║         	                                   ^^
 //│ ╟── back into type variable `'N`
-//│ ║  l.233: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
+//│ ║  l.238: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
 //│ ║         	                             ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this function:
-//│ ║  l.511: 	def s n f x = f (n f x)
+//│ ║  l.505: 	def s n f x = f (n f x)
 //│ ║         	        ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.527: 	s: ChurchInt -> ChurchInt
+//│ ║  l.521: 	s: ChurchInt -> ChurchInt
 //│ ╙──       	^
 //│ res: ChurchInt -> ChurchInt
 //│    = [Function: s]
@@ -558,45 +565,41 @@ fst (fst (fst (n3 (fun x -> (x, 0)) 1)))
 
 // G7
 rec def to_ch n = if n == 0 then z else s (to_ch (n - 1))
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ to_ch: int -> anything -> (forall 'a. 'a -> 'a)
+//│      = [Function: to_ch]
 
 :e
 // G7A
 to_ch: int -> ChurchInt
 //│ res: int -> ChurchInt
-//│ Code generation encountered an error:
-//│   unresolved symbol to_ch
+//│    = [Function: to_ch]
 
 :e
 // G8
 rec def id1 x = if true then x else id1 id1 x
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ╔══[ERROR] Inferred recursive type: 'a
+//│   where
+//│     'a :> ? -> 'a
+//│ ║  l.572: 	rec def id1 x = if true then x else id1 id1 x
+//│ ╙──       	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: ?id1` exceeded recursion depth limit (250)
+//│ ║  l.572: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ id1: 'a -> (anything -> nothing | 'a)
+//│    = [Function: id11]
 
 :e
 // G9
 id1 id1
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: 'b -> 'c
-//│     'b :> 'b -> 'c
-//│        <: 'c
-//│     'c :> 'b -> 'c
-//│        <: 'a
-//│ ║  l.578: 	rec def id1 x = if true then x else id1 id1 x
-//│ ╙──       	                                    ^^^^^^^
-//│ ╔══[ERROR] Subtyping constraint of the form `?id1 <: ?id10 -> ?a` exceeded recursion depth limit (250)
-//│ ║  l.583: 	id1 id1
-//│ ║         	^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol id1
+//│ res: 'a -> (anything -> nothing | 'a)
+//│    = [Function: id11]
 
 // Gn
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.603: 	auto auto
+//│ ║  l.597: 	auto auto
 //│ ║         	^^^^^^^^^
 //│ ╟── type `'a` is not a function
 //│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
@@ -614,11 +617,7 @@ auto auto
 // Gn+1
 :e
 (fun x -> x x) (fun x -> x x)
-//│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: (forall ?c ?d. ?d -> ?c) -> ?e` exceeded recursion depth limit (250)
-//│ ║  l.622: 	(fun x -> x x) (fun x -> x x)
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -626,11 +625,6 @@ auto auto
 :re
 // Gn+2
 (fun x -> x x) (fun x -> x x)!
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a :> 'a -> 'b
-//│        <: 'a -> (? & 'b)
-//│ ╙──
 //│ res: nothing
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
@@ -663,7 +657,7 @@ choose nil ids
 
 // A4
 fun x -> x x
-//│ res: ('a -> 'b & 'a) -> 'b
+//│ res: (nothing -> 'a) -> 'a
 //│    = [Function: res]
 
 // A5
@@ -761,8 +755,10 @@ cons (fun x -> x) ids
 // C7
 append (single inc) (single id)
 //│ res: List[int -> int]
-//│ Code generation encountered an error:
-//│   unresolved symbol append
+//│    = Cons {
+//│        head: [Function: succ],
+//│        tail: Cons { head: [Function: id1], tail: Nil {} }
+//│      }
 
 // C8
 :ng
@@ -910,43 +906,39 @@ fst (fst (fst (n3 (fun x -> (x, 0)) 1)))
 // G7
 rec def to_ch n = if n == 0 then z else s (to_ch (n - 1))
 //│ to_ch: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
-//│      = [Function: to_ch]
+//│      = [Function: to_ch1]
 
 // G7A
 to_ch: int -> ChurchInt
 //│ res: int -> ChurchInt
-//│    = [Function: to_ch]
+//│    = [Function: to_ch1]
 
 :e
 // G8
 rec def id1 x = if true then x else id1 id1 x
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ╔══[ERROR] Inferred recursive type: 'a
+//│   where
+//│     'a :> ? -> 'a
+//│ ║  l.922: 	rec def id1 x = if true then x else id1 id1 x
+//│ ╙──       	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: ?id1` exceeded recursion depth limit (250)
+//│ ║  l.922: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ id1: 'a -> (anything -> nothing | 'a)
+//│    = [Function: id12]
 
 :e
 // G9
 id1 id1
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: 'b -> 'c
-//│     'b :> 'b -> 'c
-//│        <: 'c
-//│     'c :> 'b -> 'c
-//│        <: 'a
-//│ ║  l.954: 	rec def id1 x = if true then x else id1 id1 x
-//│ ╙──       	                                    ^^^^^^^
-//│ ╔══[ERROR] Subtyping constraint of the form `?id1 <: ?id10 -> ?a` exceeded recursion depth limit (250)
-//│ ║  l.959: 	id1 id1
-//│ ║         	^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
-//│ Code generation encountered an error:
-//│   unresolved symbol id1
+//│ res: 'a -> (anything -> nothing | 'a)
+//│    = [Function: id12]
 
 // Gn
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.979: 	auto auto
+//│ ║  l.947: 	auto auto
 //│ ║         	^^^^^^^^^
 //│ ╟── type `'a` is not a function
 //│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
@@ -964,11 +956,7 @@ auto auto
 // Gn+1
 :e
 (fun x -> x x) (fun x -> x x)
-//│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: (forall ?c ?d. ?c -> ?d) -> ?e` exceeded recursion depth limit (250)
-//│ ║  l.998: 	(fun x -> x x) (fun x -> x x)
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -976,11 +964,6 @@ auto auto
 :re
 // Gn+2
 (fun x -> x x) (fun x -> x x)!
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a :> 'a -> 'b
-//│        <: 'a -> (? & 'b)
-//│ ╙──
 //│ res: nothing
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
@@ -1013,7 +996,7 @@ choose nil ids
 
 // A4
 fun x -> x x
-//│ res: ('a -> 'b & 'a) -> 'b
+//│ res: (nothing -> 'a) -> 'a
 //│    = [Function: res]
 
 // A5
@@ -1111,8 +1094,10 @@ cons (fun x -> x) ids
 // C7
 append (single inc) (single id)
 //│ res: List[int -> int]
-//│ Code generation encountered an error:
-//│   unresolved symbol append
+//│    = Cons {
+//│        head: [Function: succ],
+//│        tail: Cons { head: [Function: id1], tail: Nil {} }
+//│      }
 
 // C8
 :ng
@@ -1260,58 +1245,39 @@ fst (fst (fst (n3 (fun x -> (x, 0)) 1)))
 // G7
 rec def to_ch n = if n == 0 then z else s (to_ch (n - 1))
 //│ to_ch: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
-//│      = [Function: to_ch1]
+//│      = [Function: to_ch2]
 
 // G7A
 to_ch: int -> ChurchInt
 //│ res: int -> ChurchInt
-//│    = [Function: to_ch1]
+//│    = [Function: to_ch2]
 
 :e
 // G8
 rec def id1 x = if true then x else id1 id1 x
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ ╔══[ERROR] Inferred recursive type: 'a
+//│   where
+//│     'a :> ? -> 'a
+//│ ║  l.1272: 	rec def id1 x = if true then x else id1 id1 x
+//│ ╙──        	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
+//│ ║  l.1272: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║          	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ id1: 'a -> (anything -> nothing | 'a)
+//│    = [Function: id13]
 
 :e
 // G9
 id1 id1
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a <: 'b -> 'c
-//│     'b :> 'b -> 'c
-//│        <: 'c & (nothing -> 'd | ?) & (nothing -> 'e | ?) & (nothing -> 'f | ?)
-//│     'c :> 'b -> 'c
-//│        <: 'a & 'f & 'd & 'e & (nothing -> ('d | 'e | 'f) | error)
-//│     'e :> nothing -> 'e | ?
-//│     'd :> nothing -> 'd | ?
-//│     'f :> nothing -> 'f | ?
-//│ ║  l.1330: 	rec def id1 x = if true then x else id1 id1 x
-//│ ╙──        	                                    ^^^^^^^
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.1335: 	id1 id1
-//│ ║          	^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: ('a & 'b & 'c) -> ('d | 'e | 'f) | error | 'g
-//│   where
-//│     'c <: 'h & 'i & 'j
-//│     'j <: ('c -> 'f | 'a | 'b | 'c) -> 'j & 'g & 'd & 'e
-//│     'f :> 'c -> 'f | 'k | 'l | 'j
-//│     'b <: 'h & 'l
-//│     'l <: 'i -> 'l & 'g & 'd
-//│     'i :> 'b -> 'e | 'a | 'b
-//│     'e :> 'b -> 'e | 'k | 'l
-//│     'a <: 'k
-//│     'k <: 'h -> 'k & 'g
-//│     'h :> 'a -> 'd | 'a
-//│     'd :> 'a -> 'd | 'k
-//│ Code generation encountered an error:
-//│   unresolved symbol id1
+//│ res: 'a -> (anything -> nothing | 'a)
+//│    = [Function: id13]
 
 // Gn
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1370: 	auto auto
+//│ ║  l.1312: 	auto auto
 //│ ║          	^^^^^^^^^
 //│ ╟── type `'a` is not a function
 //│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
@@ -1329,11 +1295,7 @@ auto auto
 // Gn+1
 :e
 (fun x -> x x) (fun x -> x x)
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.1389: 	(fun x -> x x) (fun x -> x x)
-//│ ║          	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -1341,11 +1303,6 @@ auto auto
 :re
 // Gn+2
 (fun x -> x x) (fun x -> x x)!
-//│ ╔══[ERROR] Inferred recursive type: 'a
-//│   where
-//│     'a :> 'a -> 'b
-//│        <: 'a -> (? & 'b)
-//│ ╙──
 //│ res: nothing
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
@@ -1378,7 +1335,7 @@ choose nil ids
 
 // A4
 fun x -> x x
-//│ res: ('a -> 'b & 'a) -> 'b
+//│ res: (nothing -> 'a) -> 'a
 //│    = [Function: res]
 
 // A5
@@ -1476,8 +1433,10 @@ cons (fun x -> x) ids
 // C7
 append (single inc) (single id)
 //│ res: List[int -> int]
-//│ Code generation encountered an error:
-//│   unresolved symbol append
+//│    = Cons {
+//│        head: [Function: succ],
+//│        tail: Cons { head: [Function: id1], tail: Nil {} }
+//│      }
 
 // C8
 :ng
@@ -1625,32 +1584,28 @@ fst (fst (fst (n3 (fun x -> (x, 0)) 1)))
 // G7
 rec def to_ch n = if n == 0 then z else s (to_ch (n - 1))
 //│ to_ch: int -> ('a -> ('a & 'b)) -> ('a & 'b) -> 'b
-//│      = [Function: to_ch2]
+//│      = [Function: to_ch3]
 
 // G7A
 to_ch: int -> ChurchInt
 //│ res: int -> ChurchInt
-//│    = [Function: to_ch2]
+//│    = [Function: to_ch3]
 
 // G8
 rec def id1 x = if true then x else id1 id1 x
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ id1: 'a -> (anything -> nothing | 'a)
+//│    = [Function: id14]
 
 // G9
 id1 id1
-//│ res: 'a -> 'b | 'c
-//│   where
-//│     'a <: 'c
-//│     'c <: ('a -> 'b | 'a) -> 'c
-//│     'b :> 'a -> 'b | 'c
-//│ Code generation encountered an error:
-//│   unresolved symbol id1
+//│ res: 'a -> (anything -> nothing | 'a)
+//│    = [Function: id14]
 
 // Gn
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1741: 	auto auto
+//│ ║  l.1651: 	auto auto
 //│ ║          	^^^^^^^^^
 //│ ╟── type `'a` is not a function
 //│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
@@ -1668,11 +1623,7 @@ auto auto
 // Gn+1
 :e
 (fun x -> x x) (fun x -> x x)
-//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.1760: 	(fun x -> x x) (fun x -> x x)
-//│ ║          	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Note: use flag `:ex` to see internal error info.
-//│ res: error
+//│ res: nothing
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 

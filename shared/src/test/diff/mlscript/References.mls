@@ -177,13 +177,13 @@ move ri rn
 
 
 def swap a b = let tmp = a.Get in (a.Set b.Get, b.Set tmp)
-//│ swap: Ref[in 'A & 'A0 out 'A | 'A0] -> Ref[in 'A1 & 'A0 out 'A | 'A1] -> (unit, unit,)
+//│ swap: Ref[in 'A & 'A0 out 'A | 'A0] -> Ref[in 'A0 & 'A1 out 'A1 | 'A] -> (unit, unit,)
 //│     = [Function: swap]
 
 swap r
 swap ri
 swap rn
-//│ res: Ref[in 'A out 1 | 'A] -> (unit, unit,)
+//│ res: Ref[out 'A | 1] -> (unit, unit,)
 //│    = [Function (anonymous)]
 //│ res: Ref[int] -> (unit, unit,)
 //│    = [Function (anonymous)]
@@ -417,7 +417,16 @@ def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
 // * later (once for each intersection component)
 // :e
 rec def refin = RefImpl { mut value = refin.Get }
-//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│ RefImpl['value]
+//│   <:  refin:
+//│ Ref[out int | string]
+//│      = [Function: refin]
+
+rec def refin = RefImpl { mut value = refin.Get }
+//│ RefImpl['value]
+//│   <:  refin:
+//│ Ref[out int | string]
+//│      = [Function: refin1]
 
 
 

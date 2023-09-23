@@ -6,7 +6,7 @@ def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 def auto_ x = x x
 //│ auto_: (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│      = <missing implementation>
-//│ ('a -> 'b & 'a) -> 'b
+//│ (nothing -> 'a) -> 'a
 //│   <:  auto_:
 //│ (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│      = [Function: auto_]

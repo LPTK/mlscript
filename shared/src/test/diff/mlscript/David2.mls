@@ -12,7 +12,7 @@ addOne1 x = case x of {
   | Integer -> x.addOne x
   | Num -> x.addOne x
   }
-//│ addOne1: ((Integer\value with {addOne: 'a -> 'b}) & 'a) -> 'b
+//│ addOne1: (Integer\value with {addOne: nothing -> 'a}) -> 'a
 //│        = [Function: addOne1]
 
 
@@ -58,12 +58,12 @@ addOne1 (Integer { value = 1; addOne = fun x -> (error : Integer) } with { value
 
 // * `addOne` is now typed polymorphically, so this line now works!
 addOne1 ((Integer { value = 1; addOne = id }) with { value = "oops!" })
-//│ res: Integer with {addOne: forall 'a. 'a -> 'a, value: "oops!"}
+//│ res: nothing
 //│    = Integer { value: 'oops!', addOne: [Function: id] }
 
 
 addOne1 (Integer { value = 1; addOne = id })
-//│ res: Integer with {addOne: forall 'a. 'a -> 'a, value: 1}
+//│ res: nothing
 //│    = Integer { value: 1, addOne: [Function: id] }
 
 
@@ -141,7 +141,9 @@ rec def mkInteger_oops value = Integer { value; addOne = fun n -> mkInteger_oops
 // :d
 :precise-rec-typing
 rec def mkInteger_oops value = Integer { value; addOne = fun n -> mkInteger_oops (n.value + 1) }
-//│ (int & 'value) -> (Integer with {addOne: {value: int} -> (Integer with {addOne: nothing}), value: 'value})
+//│ (int & 'value) -> (Integer with {addOne: {value: int} -> 'a, value: 'value})
+//│   where
+//│     'a :> Integer with {addOne: {value: int} -> 'a}
 //│   <:  mkInteger_oops:
 //│ (int & 'a) -> (Integer\addOne with {value: 'a})
 //│               = [Function: mkInteger_oops1]
@@ -149,7 +151,7 @@ rec def mkInteger_oops value = Integer { value; addOne = fun n -> mkInteger_oops
 // * We may still want to retain the precise typing of the `value` part:
 
 def mkIntegerPrecise value = Integer { value; addOne = addOne1 }
-//│ mkIntegerPrecise: (int & 'value) -> (Integer with {addOne: forall 'a 'b. ((Integer\value with {addOne: 'a -> 'b}) & 'a) -> 'b, value: 'value})
+//│ mkIntegerPrecise: (int & 'value) -> (Integer with {addOne: forall 'a. (Integer\value with {addOne: nothing -> 'a}) -> 'a, value: 'value})
 //│                 = [Function: mkIntegerPrecise]
 
 def mkIntegerPrecise value = Integer { value; addOne = fun n -> mkInteger (n.value + 1) }
@@ -204,13 +206,13 @@ def mkIntegerPrecise3 = mkInteger
 //│   <:  mkIntegerPrecise3:
 //│ (int & 'a) -> (Integer\addOne with {value: 'a})
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.197: 	def mkIntegerPrecise3 = mkInteger
+//│ ║  l.200: 	def mkIntegerPrecise3 = mkInteger
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── operator application of type `int` does not match type `'a`
 //│ ║  l.72: 	rec def mkInteger value = Integer { value; addOne = fun n -> mkInteger (n.value + 1) }
 //│ ║        	                                                                        ^^^^^^^^^^^
 //│ ╟── Note: constraint arises from type variable:
-//│ ║  l.191: 	def mkIntegerPrecise3: (int & 'a) -> (Integer & { value: 'a })
+//│ ║  l.194: 	def mkIntegerPrecise3: (int & 'a) -> (Integer & { value: 'a })
 //│ ╙──       	                                                         ^^
 //│                  = [Function: mkIntegerPrecise3]
 
@@ -218,10 +220,10 @@ def mkIntegerPrecise3 = mkInteger
 :e
 addOne1 (Str { value = ""; addOne = error })
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.216: 	addOne1 (Str { value = ""; addOne = error })
+//│ ║  l.219: 	addOne1 (Str { value = ""; addOne = error })
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── application of type `Str & {addOne: ?addOne, value: ?value}` does not match type `Integer & ?a`
-//│ ║  l.216: 	addOne1 (Str { value = ""; addOne = error })
+//│ ║  l.219: 	addOne1 (Str { value = ""; addOne = error })
 //│ ║         	         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.11: 	addOne1 x = case x of {
@@ -236,7 +238,7 @@ addOne2 x = case x of {
   | Num -> x.addOne x
   | Str -> x.addOne x
   }
-//│ addOne2: ((Integer\value with {addOne: 'a -> 'b}) & 'a | (Str\value with {addOne: 'c -> 'b}) & 'c) -> 'b
+//│ addOne2: ((Integer\value with {addOne: nothing -> 'a}) | (Str\value with {addOne: nothing -> 'a})) -> 'a
 //│        = [Function: addOne2]
 
 addOne2 (mkIntegerPrecise 42)

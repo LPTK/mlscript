@@ -13,13 +13,13 @@ fun f -> f (fun x -> x)
 
 // λy. y y
 fun y -> y y
-//│ res: ('a -> 'b & 'a) -> 'b
+//│ res: (nothing -> 'a) -> 'a
 //│    = [Function: res]
 
 // Typeable in P; not in ML nor I2:
 // (λf. f (λx. x)) (λy. y y)
 (fun f -> f (fun x -> x)) (fun y -> y y)
-//│ res: 'a -> 'a
+//│ res: nothing
 //│    = [Function (anonymous)]
 
 

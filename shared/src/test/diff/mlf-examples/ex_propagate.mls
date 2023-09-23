@@ -14,9 +14,9 @@ def delta = (fun x -> x x) : Sid -> 'b
 def delta_ = fun x -> x x
 def k = (fun x -> fun y -> y) : forall 'a. 'a -> Sid
 def k_ = fun x -> fun y -> y
-//│ delta: Sid -> Sid
+//│ delta: Sid -> nothing
 //│      = [Function: delta]
-//│ delta_: ('a -> 'b & 'a) -> 'b
+//│ delta_: (nothing -> 'a) -> 'a
 //│       = [Function: delta_]
 //│ k: anything -> Sid
 //│  = [Function: k]
@@ -36,9 +36,9 @@ def id_ = id : Sid -> Sid
 // untype fun x -> ((fun y -> y y) : 'a -> sid)
 fun x -> ((fun y -> y y) : 'a -> Sid)
 fun x_ -> (fun y -> y y)
-//│ res: anything -> ('a -> Sid & 'a) -> Sid
+//│ res: anything -> (nothing -> Sid) -> Sid
 //│    = [Function: res]
-//│ res: anything -> (forall 'a 'b. ('a -> 'b & 'a) -> 'b)
+//│ res: anything -> (forall 'a. (nothing -> 'a) -> 'a)
 //│    = [Function: res]
 
 // let (delta:sid -> sid) = fun x -> x x
@@ -48,12 +48,12 @@ def delta = (fun x -> x x) : Sid -> Sid
 
 // let (delta:sid -> 'b) = fun x -> x x
 def delta = (fun x -> x x) : Sid -> 'b
-//│ delta: Sid -> Sid
+//│ delta: Sid -> nothing
 //│      = [Function: delta2]
 
 // untype let (delta:'a -> sid) = fun x -> x x in delta
 let delta = (fun x -> x x) : 'a -> Sid in delta
-//│ res: ('a -> Sid & 'a) -> Sid
+//│ res: (nothing -> Sid) -> Sid
 //│    = [Function (anonymous)]
 
 
@@ -65,11 +65,11 @@ let delta = (fun x -> x x) : 'a -> Sid in delta
 // * Interestingly, these ones change from the ones above
 
 fun x -> ((fun y -> y y) : 'a -> Sid)
-//│ res: anything -> ('a -> ??a -> ??a0 & 'a) -> Sid
+//│ res: anything -> (nothing -> ??a -> ??a0) -> Sid
 //│    = [Function: res]
 
 let delta = (fun x -> x x) : 'a -> Sid in delta
-//│ res: ('a -> ??a -> ??a0 & 'a) -> Sid
+//│ res: (nothing -> ??a -> ??a0) -> Sid
 //│    = [Function (anonymous)]
 
 

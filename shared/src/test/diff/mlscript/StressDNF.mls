@@ -33,7 +33,7 @@ ty0 = ty1
 //│ (E & 'e & 'f | 'd & (C & 'c | D & 'e) | 'b & (A & 'a | B & 'c)) -> ('a, 'b, 'c, 'd, 'e, 'f,)
 //│ constrain calls  : 41
 //│ annoying  calls  : 25
-//│ subtyping calls  : 1113
+//│ subtyping calls  : 1114
 
 :stats
 :e

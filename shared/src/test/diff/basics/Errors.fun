@@ -524,7 +524,7 @@ x => h / succ x
 //│ ╟── record of type `{fld: {prop: bool}}` does not have field 'prop'
 //│ ║  l.472: 	let arg2 = {fld: arg}
 //│ ║         	           ^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `{prop: ?prop}`
+//│ ╟── but it flows into reference with expected type `{prop: int}`
 //│ ║  l.+1: 	h arg2
 //│ ║        	  ^^^^
 //│ ╟── Note: constraint arises from field selection:
@@ -615,7 +615,7 @@ i arg
 //│ ╟── record of type `{prop: bool}` does not have field 'fld'
 //│ ║  l.402: 	let arg = {prop: not true}
 //│ ║         	          ^^^^^^^^^^^^^^^^
-//│ ╟── but it flows into reference with expected type `{fld: ?fld}`
+//│ ╟── but it flows into reference with expected type `{fld: ?a}`
 //│ ║  l.+2: 	i arg
 //│ ║        	  ^^^
 //│ ╟── Note: constraint arises from field selection:
@@ -705,7 +705,7 @@ i / mkArg 1
 //│ ╟── record of type `{prop: ?a}` does not have field 'fld'
 //│ ║  l.648: 	let mkArg = a => {prop: a}
 //│ ║         	                 ^^^^^^^^^
-//│ ╟── but it flows into application with expected type `{fld: ?fld}`
+//│ ╟── but it flows into application with expected type `{fld: ?b}`
 //│ ║  l.+4: 	i / mkArg 1
 //│ ║        	    ^^^^^^^
 //│ ╟── Note: constraint arises from field selection:

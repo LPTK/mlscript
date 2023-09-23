@@ -136,7 +136,7 @@ o = l.(Cons.HeadOption)
 //│  = undefined
 //│ constrain calls  : 67
 //│ annoying  calls  : 28
-//│ subtyping calls  : 258
+//│ subtyping calls  : 257
 
 o = l.(Cons.HeadOption)
 //│ o: Some[0 | 1]
@@ -151,7 +151,7 @@ case o of {None -> 0 | Some -> o.payload}
 //│ ╔══[ERROR] Type mismatch in `case` expression:
 //│ ║  l.150: 	case o of {None -> 0 | Some -> o.payload}
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `Option[?A]` does not match type `None[?] & ?a | Some[?] & ?b`
+//│ ╟── type `Option[0 | 1]` does not match type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.24: 	    method HeadOption: Option[A]
 //│ ║        	                       ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?b`
@@ -198,7 +198,7 @@ case o of {
 //│ ║         	^^^^^^^^^^^
 //│ ║  l.195: 	    Some -> o.Get | None -> 0 }
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── type `Option[?A]` does not match type `None[?] & ?a | Some[?] & ?b`
+//│ ╟── type `Option[0 | 1]` does not match type `None[?] & ?a | Some[?] & ?b`
 //│ ║  l.24: 	    method HeadOption: Option[A]
 //│ ║        	                       ^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `None[?] & ?a | Some[?] & ?b`
