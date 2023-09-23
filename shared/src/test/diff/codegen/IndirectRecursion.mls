@@ -35,10 +35,10 @@ pow1 3 4
 :e
 z (fun self -> 1)
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.40: 	z (fun self -> 1)
+//│ ║  l.36: 	z (fun self -> 1)
 //│ ║        	^^^^^^^^^^^^^^^^^
 //│ ╟── integer literal of type `1` is not a function
-//│ ║  l.40: 	z (fun self -> 1)
+//│ ║  l.36: 	z (fun self -> 1)
 //│ ║        	               ^
 //│ ╟── Note: constraint arises from function type:
 //│ ║  l.3: 	def z: (('a -> 'b) -> (('a -> 'b) & 'c)) -> 'c

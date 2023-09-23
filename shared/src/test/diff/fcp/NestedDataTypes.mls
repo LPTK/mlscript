@@ -234,17 +234,41 @@ rec def map f tree = case tree of {
   | Leaf -> Leaf { value = f tree.value }
   | Node -> Node { subTree = map (mapTwo f) tree.subTree }
   }
-//│ map: 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree0}))
+//│ ╔══[ERROR] Inferred recursive type: 'map
+//│   where
+//│     'map :> forall 'subTree 'A 'a 'subTree0 'value 'value0. 'a -> ((Leaf[?] & {value: 'value0} | (Node[?] with {subTree: 'subTree0})) -> (Leaf['value] | (Node['A] with {subTree: 'subTree}))
+//│   where
+//│     'a <: 'value0 -> 'value
+//│     'map <: (forall 'b 'c 'd 'e. (('e, 'c,) -> ('b, 'd,)
+//│   where
+//│     'a <: 'e -> 'b & 'c -> 'd)) -> 'subTree0 -> (PerfectTree[Two['A]] & 'subTree))
+//│ ╙──
+//│ map: 'map
+//│   where
+//│     'map :> forall 'subTree 'A 'a 'subTree0 'value 'value0. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree0}))
 //│   where
 //│     'a <: 'value -> 'value0
-//│     nothing <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
+//│     'map <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
 //│   where
 //│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
 //│    = [Function: map1]
 
 :e
 map succ n4
-//│ res: Leaf[int] | Node[nothing] & {subTree: nothing}
+//│ ╔══[ERROR] Inferred recursive type: 'map
+//│   where
+//│     'map :> forall 'a 'subTree 'value 'value0 'subTree0 'A. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree0})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree}))
+//│   where
+//│     'a <: 'value -> 'value0
+//│     'map <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
+//│   where
+//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree0 -> (PerfectTree[Two['A]] & 'subTree))
+//│ ╙──
+//│ ╔══[ERROR] Subtyping constraint of the form `?a <: (forall ?b ?A ?value ?A0 ?subTree ?A1 ?subTree0. ?b) -> ?c` exceeded recursion depth limit (250)
+//│ ║  l.257: 	map succ n4
+//│ ║         	^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ res: error
 //│    = Node1 { subTree: Node1 { subTree: Leaf { value: [Array] } } }
 
 

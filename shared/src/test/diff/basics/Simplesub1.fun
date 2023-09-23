@@ -269,7 +269,9 @@ let rec recursive_monster = x => { thing: x, self: recursive_monster x }
 
 
 (let rec x = {a: x, b: x}; x)
-//│ res: {a: nothing, b: nothing}
+//│ res: 'x
+//│   where
+//│     'x :> {a: 'x, b: 'x}
 
 (let rec x = v => {a: x v, b: x v}; x)
 //│ res: anything -> 'a
@@ -312,7 +314,7 @@ res (z => (z, z))
 //│ ║  l.+1: 	res (z => (z, z))
 //│ ║        	           ^^^^
 //│ ╟── Note: constraint arises from application:
-//│ ║  l.318: 	(let rec x = (y => (y (x x))); x)
+//│ ║  l.302: 	(let rec x = (y => (y (x x))); x)
 //│ ╙──       	                    ^^^^^^^
 //│ res: error | 'a
 //│   where
@@ -367,7 +369,10 @@ x => (y => (x (y y)))
 //│     'a :> 'x
 
 (let rec x = (y => (let z = (y x); y)); x)
-//│ res: (nothing -> anything & 'a) -> 'a
+//│ res: 'x
+//│   where
+//│     'x :> 'a -> 'a
+//│     'a <: 'x -> anything
 
 (x => (let y = (x x.v); 0))
 //│ res: ('v -> anything & {v: 'v}) -> 0

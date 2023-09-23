@@ -75,7 +75,7 @@ evalN2 evalN2! e
 //│ ║  l.+1: 	evalN2 evalN2! e
 //│ ║        	^^^^^^^^^^^^^^^^
 //│ ╟── application of type `Neg & {underlying: ?underlying}` does not match type `Add & ?a | Lit & ?b`
-//│ ║  l.53: 	e = Add{lhs = Lit{val = 1}; rhs = Neg{underlying = Lit{val = 2}}}
+//│ ║  l.47: 	e = Add{lhs = Lit{val = 1}; rhs = Neg{underlying = Lit{val = 2}}}
 //│ ║        	                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.18: 	def eval eval x = case x of {
@@ -94,13 +94,13 @@ def evalN3 evalN3 x = case x of {
 //│ ║  l.+2: 	  Neg -> 0 - (evalN2 x.underlying)
 //│ ║        	         ^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── function of type `?a -> (forall ?b. ?b)` is not an instance of type `int`
-//│ ║  l.73: 	def evalN2 evalN2 x = case x of {
+//│ ║  l.67: 	def evalN2 evalN2 x = case x of {
 //│ ║        	                  ^^^^^^^^^^^^^^^
-//│ ║  l.74: 	  Neg -> 0 - (evalN2 evalN2 x.underlying)
+//│ ║  l.68: 	  Neg -> 0 - (evalN2 evalN2 x.underlying)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.75: 	  | _ -> eval eval! x
+//│ ║  l.69: 	  | _ -> eval eval! x
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.76: 	  }
+//│ ║  l.70: 	  }
 //│ ║        	^^^
 //│ ╟── but it flows into application with expected type `int`
 //│ ║  l.+2: 	  Neg -> 0 - (evalN2 x.underlying)
@@ -118,16 +118,16 @@ evalN3 evalN3! e
 //│ ║  l.+1: 	evalN3 evalN3! e
 //│ ║        	^^^^^^^^^^^^^
 //│ ╟── function of type `?a -> ?b` is not an instance of type `int`
-//│ ║  l.118: 	def evalN3 evalN3 x = case x of {
+//│ ║  l.110: 	def evalN3 evalN3 x = case x of {
 //│ ║         	                  ^^^^^^^^^^^^^^^
-//│ ║  l.119: 	  Neg -> 0 - (evalN3 x.underlying)
+//│ ║  l.111: 	  Neg -> 0 - (evalN3 x.underlying)
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.120: 	  | _ -> eval evalN3 x
+//│ ║  l.112: 	  | _ -> eval evalN3 x
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.121: 	  }
+//│ ║  l.113: 	  }
 //│ ║         	^^^
 //│ ╟── Note: constraint arises from application:
-//│ ║  l.119: 	  Neg -> 0 - (evalN3 x.underlying)
+//│ ║  l.111: 	  Neg -> 0 - (evalN3 x.underlying)
 //│ ╙──       	              ^^^^^^^^^^^^^^^^^^^
 //│ res: error | int
 

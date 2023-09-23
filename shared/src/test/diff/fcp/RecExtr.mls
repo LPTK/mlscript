@@ -126,12 +126,24 @@ rec def x = x
 
 :e
 rec def lr1 = { tail = lr1 }
-//│ lr1: {tail: nothing}
+//│ ╔══[ERROR] Inferred recursive type: 'lr1
+//│   where
+//│     'lr1 :> {tail: 'lr1}
+//│ ╙──
+//│ lr1: 'lr1
+//│   where
+//│     'lr1 :> {tail: 'lr1}
 //│    = [Function: lr1]
 
 :e
 rec def lr1 = { head = 0; tail = lr1 }
-//│ lr1: {head: 0, tail: nothing}
+//│ ╔══[ERROR] Inferred recursive type: 'lr1
+//│   where
+//│     'lr1 :> {head: 0, tail: 'lr1}
+//│ ╙──
+//│ lr1: 'lr1
+//│   where
+//│     'lr1 :> {head: 0, tail: 'lr1}
 //│    = [Function: lr11]
 
 

@@ -1217,9 +1217,10 @@ trait TypeSimplifier { self: Typer =>
       override def apply(pol: PolMap)(st: ST): Unit =
           trace(s"Analysis[${printPol(pol)}] $st  (${curPath.reverseIterator.mkString(" ~> ")})") {
             st match {
+        // case ty if ty.level <= lvl => // TODO
         case tv: TV if { occsNum(tv) = occsNum.getOrElse(tv, 0); false } =>
-        case tv @ AssignedVariable(ty) =>
-          if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
+        // case tv @ AssignedVariable(ty) =>
+        //   if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
         case tv: TV if tv.level <= lvl =>
           if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
         // case tv: TV if !varSubst.contains(tv) =>
@@ -1375,6 +1376,7 @@ trait TypeSimplifier { self: Typer =>
         }
        */
       ty match {
+        // case ty if ty.level <= lvl => ty // TODO
         case ty if ty.level < lvl => ty
         // case tv @ AssignedVariable(ty) => cache.getOrElse(tv, {
         //   val v = freshVar(tv.prov, S(tv), tv.nameHint)(tv.level)

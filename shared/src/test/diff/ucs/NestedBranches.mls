@@ -103,7 +103,7 @@ fun mapPartition(f, xs) = if xs is
     Left(v)  then (Cons(v, l), r)
     Right(v) then (l, Cons(v, r))
 //│ ╔══[ERROR] The case when this is false is not handled: is (mapPartition (f, xs,),) (l, r,)
-//│ ║  l.105: 	  Cons(x, xs) and mapPartition(f, xs) is (l, r) and f(x) is
+//│ ║  l.102: 	  Cons(x, xs) and mapPartition(f, xs) is (l, r) and f(x) is
 //│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ mapPartition: (anything, anything,) -> error
 //│ Code generation encountered an error:
@@ -122,12 +122,12 @@ fun mapPartition(f, xs) = if xs is
           and f(x) is Left(v)  then (Cons(v, l), r)
                       Right(v) then (l, Cons(v, r))
 //│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.126: 	                      Right(v) then (l, Cons(v, r))
+//│ ║  l.123: 	                      Right(v) then (l, Cons(v, r))
 //│ ╙──       	                               ^^^^
 //│ ╔══[WARNING] Paren-less applications should use the 'of' keyword
-//│ ║  l.125: 	          and f(x) is Left(v)  then (Cons(v, l), r)
+//│ ║  l.122: 	          and f(x) is Left(v)  then (Cons(v, l), r)
 //│ ║         	                                    ^^^^^^^^^^^^^^^
-//│ ║  l.126: 	                      Right(v) then (l, Cons(v, r))
+//│ ║  l.123: 	                      Right(v) then (l, Cons(v, r))
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] type identifier not found: Tuple#2
 //│ ╙──

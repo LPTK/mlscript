@@ -121,7 +121,7 @@ id_ty = id
 //│   <:  id_ty:
 //│ 'a -> 'a
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.118: 	id_ty = id
+//│ ║  l.119: 	id_ty = id
 //│ ║         	^^^^^^^^^^
 //│ ╟── function of type `anything -> nothing` does not match type `'a`
 //│ ║  l.109: 	rec def id x = let tmp = id id x in x
@@ -138,10 +138,10 @@ rec def id x = if true then x else id id x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a :> ? -> 'a
-//│ ║  l.124: 	rec def id x = if true then x else id id x
+//│ ║  l.137: 	rec def id x = if true then x else id id x
 //│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
-//│ ║  l.124: 	rec def id x = if true then x else id id x
+//│ ║  l.137: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ id: 'a -> (anything -> nothing | 'a)
@@ -153,10 +153,10 @@ id_ty = id
 //│   <:  id_ty:
 //│ 'a -> 'a
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.128: 	id_ty = id
+//│ ║  l.151: 	id_ty = id
 //│ ║         	^^^^^^^^^^
 //│ ╟── function of type `anything -> nothing` does not match type `'a`
-//│ ║  l.124: 	rec def id x = if true then x else id id x
+//│ ║  l.137: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from type variable:
 //│ ║  l.4: 	def id_ty: forall 'a. 'a -> 'a

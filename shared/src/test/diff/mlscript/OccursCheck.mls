@@ -12,7 +12,13 @@ rec def f x = f x
 
 :e
 rec def f x = f
-//│ f: anything -> nothing
+//│ ╔══[ERROR] Inferred recursive type: 'f
+//│   where
+//│     'f :> anything -> 'f
+//│ ╙──
+//│ f: 'f
+//│   where
+//│     'f :> anything -> 'f
 //│  = [Function: f2]
 
 :e

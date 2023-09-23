@@ -2,16 +2,20 @@
 
 
 rec def x = {u = x}
-//│ x: {u: nothing}
+//│ x: 'x
+//│   where
+//│     'x :> {u: 'x}
 
 :ns
 {u = x; v = x}
 //│ res: {u: forall 'x. 'x, v: forall 'x. 'x}
 //│   where
-//│     'x := {u: in anything out nothing}
+//│     'x := {u: 'x}
 
 {u = x; v = x}
-//│ res: {u: {u: nothing}, v: {u: nothing}}
+//│ res: {u: forall 'x. 'x, v: forall 'x. 'x}
+//│   where
+//│     'x :> {u: 'x}
 
 
 

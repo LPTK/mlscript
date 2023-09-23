@@ -25,13 +25,13 @@ g = g2
 //│   <:  g:
 //│ G[?] & {a: nothing}
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.25: 	g = g2
+//│ ║  l.23: 	g = g2
 //│ ║        	^^^^^^
 //│ ╟── function of type `?a -> (forall ?b. ?b)` is not an instance of type `G`
-//│ ║  l.21: 	rec def g2 a = G { a }
+//│ ║  l.19: 	rec def g2 a = G { a }
 //│ ║        	           ^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `G[?]`
-//│ ║  l.25: 	g = g2
+//│ ║  l.23: 	g = g2
 //│ ║        	    ^^
 //│ ╟── Note: constraint arises from applied type reference:
 //│ ║  l.13: 	def g: G['a] & {a: 'a} as 'a

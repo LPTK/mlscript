@@ -14,19 +14,26 @@ def f: { x: 'a } as 'a
 // :d
 // :ds
 rec def l x = l
-//│ l: anything -> nothing
+//│ l: 'l
+//│   where
+//│     'l :> anything -> 'l
 
 l
-//│ res: anything -> nothing
+//│ res: 'l
+//│   where
+//│     'l :> anything -> 'l
 
 :ns
 m y = l y
 //│ m: forall 'a. anything -> 'a
 //│   where
-//│     'a :> in anything out nothing
+//│     'a :> forall 'l. 'l
+//│     'l := anything -> 'l
 
 m
-//│ res: anything -> nothing
+//│ res: 'l
+//│   where
+//│     'l :> anything -> 'l
 
 
 fun a -> a a
@@ -43,10 +50,10 @@ rec def f a = a a
 //│   <:  f:
 //│ {x: nothing}
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.50: 	rec def f a = a a
+//│ ║  l.48: 	rec def f a = a a
 //│ ║        	^^^^^^^^^^^^^^^^^
 //│ ╟── function of type `?a -> ?b` does not have field 'x'
-//│ ║  l.50: 	rec def f a = a a
+//│ ║  l.48: 	rec def f a = a a
 //│ ║        	          ^^^^^^^
 //│ ╟── Note: constraint arises from record type:
 //│ ║  l.8: 	def f: { x: 'a } as 'a

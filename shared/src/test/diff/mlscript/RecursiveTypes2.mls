@@ -41,22 +41,28 @@ f.x
 //│ subtyping calls  : 16
 
 g = error : T1 & { x: T2 | 'a } as 'a
-//│ g: T1 & {x: T2}
+//│ g: 'a
+//│   where
+//│     'a :> T1 & {x: 'a | T2}
 
 :stats
 g.x
-//│ res: T1 & T2 & {x: T1}
+//│ res: T1 & {x: T1} & 'a | T1 & T2 & {x: T1}
+//│   where
+//│     'a :> T1 & {x: 'a | T2}
 //│ constrain calls  : 6
 //│ annoying  calls  : 4
-//│ subtyping calls  : 38
+//│ subtyping calls  : 85
 
 :stats
 f = g
-//│ T1 & {x: T2}
+//│ 'a
+//│   where
+//│     'a :> T1 & {x: 'a | T2}
 //│   <:  f:
 //│ T3 & {x: nothing}
-//│ constrain calls  : 15
-//│ annoying  calls  : 17
-//│ subtyping calls  : 595
+//│ constrain calls  : 26
+//│ annoying  calls  : 38
+//│ subtyping calls  : 1577
 
 

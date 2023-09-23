@@ -233,7 +233,7 @@ type ExSigR4 = SigR['a]
 //│ ║        	^
 //│ ╟── integer literal of type `1` does not match type `'a`
 //│ ╟── Note: constraint arises from type variable:
-//│ ║  l.239: 	type ExSigR4 = SigR['a]
+//│ ║  l.226: 	type ExSigR4 = SigR['a]
 //│ ║         	                    ^^
 //│ ╟── from type reference:
 //│ ║  l.+1: 	1: ExSigR4

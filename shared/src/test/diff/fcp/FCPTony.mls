@@ -159,10 +159,10 @@ f
 :e
 f {} {}
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.162: 	f {} {}
+//│ ║  l.160: 	f {} {}
 //│ ║         	^^^^^^^
 //│ ╟── record literal of type `anything` is not a function
-//│ ║  l.162: 	f {} {}
+//│ ║  l.160: 	f {} {}
 //│ ║         	  ^^
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.129: 	def add n m = n succ m

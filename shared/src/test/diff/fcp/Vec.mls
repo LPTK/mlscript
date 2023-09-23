@@ -106,18 +106,18 @@ cons_ty = cons : Cons_ty
 //│   <:  cons_ty:
 //│ 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.86: 	cons_ty = cons : Cons_ty
-//│ ║        	          ^^^^
+//│ ║  l.104: 	cons_ty = cons : Cons_ty
+//│ ║         	          ^^^^
 //│ ╟── expression of type `S[in 'n & 'p out 'p | 'n]` does not match type `'n`
 //│ ╟── Note: constraint arises from type variable:
-//│ ║  l.52: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
+//│ ║  l.70: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ ║        	                                        ^^
 //│ ╟── Note: class type parameter N is defined at:
 //│ ║  l.18: 	class Cons[A, N]: { size: S[N]; head: A; tail: Vec[A, N] }
 //│ ╙──      	              ^
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.86: 	cons_ty = cons : Cons_ty
-//│ ║        	^^^^^^^^^^^^^^
+//│ ║  l.104: 	cons_ty = cons : Cons_ty
+//│ ║         	^^^^^^^^^^^^^^
 //│ ╟── expression of type `'n` does not match type `'p`
 //│ ╟── Note: constraint arises from quantified type variable:
 //│ ║  l.20: 	type Vec[A, N] = forall 'r. (forall 'p. (Nil & { size: N } | Cons[A, S['p]] & Cons[A, N]) -> 'r) -> 'r
@@ -125,11 +125,11 @@ cons_ty = cons : Cons_ty
 
 cons_ty3 = cons : Cons_ty
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.108: 	cons_ty3 = cons : Cons_ty
+//│ ║  l.126: 	cons_ty3 = cons : Cons_ty
 //│ ║         	           ^^^^
 //│ ╟── expression of type `S[in 'n & 'p out 'p | 'n]` does not match type `'n`
 //│ ╟── Note: constraint arises from type variable:
-//│ ║  l.52: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
+//│ ║  l.70: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ ║        	                                        ^^
 //│ ╟── Note: class type parameter N is defined at:
 //│ ║  l.18: 	class Cons[A, N]: { size: S[N]; head: A; tail: Vec[A, N] }
@@ -143,13 +143,13 @@ def cons h (t: Vec['a, 'n]) k = k (Cons h t)
 
 cons : Cons_ty
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.124: 	cons : Cons_ty
+//│ ║  l.144: 	cons : Cons_ty
 //│ ║         	^^^^
 //│ ╟── type `'n` is not an instance of type `S`
-//│ ║  l.52: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
+//│ ║  l.70: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ ║        	                                        ^^
 //│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.52: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
+//│ ║  l.70: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ ╙──      	                                                       ^^^^^
 //│ res: Cons_ty
 
@@ -160,13 +160,13 @@ def cons h (t: Vec['a, 'n]) k = k (Cons h t)
 
 cons : Cons_ty
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.143: 	cons : Cons_ty
+//│ ║  l.161: 	cons : Cons_ty
 //│ ║         	^^^^
 //│ ╟── type `'n` is not an instance of type `S`
-//│ ║  l.52: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
+//│ ║  l.70: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ ║        	                                        ^^
 //│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.52: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
+//│ ║  l.70: 	type Cons_ty = forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ ╙──      	                                                       ^^^^^
 //│ res: Cons_ty
 
@@ -192,13 +192,13 @@ v1_0 = cons 1 nil
 
 v1_0 : Vec[int, S[Z]]
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.177: 	v1_0 : Vec[int, S[Z]]
+//│ ║  l.193: 	v1_0 : Vec[int, S[Z]]
 //│ ║         	^^^^
 //│ ╟── application of type `Z` is not an instance of type `S`
 //│ ║  l.28: 	def Nil = Nil { size = Z{} }
 //│ ║        	                       ^^^
 //│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.177: 	v1_0 : Vec[int, S[Z]]
+//│ ║  l.193: 	v1_0 : Vec[int, S[Z]]
 //│ ║         	                ^^^^
 //│ ╟── Note: class Z is defined at:
 //│ ║  l.7: 	class Z
@@ -213,13 +213,13 @@ v1_1 k = k v1_
 // :e
 v1_1 : Vec[int, S[Z]]
 //│ ╔══[ERROR] Type mismatch in type ascription:
-//│ ║  l.198: 	v1_1 : Vec[int, S[Z]]
+//│ ║  l.214: 	v1_1 : Vec[int, S[Z]]
 //│ ║         	^^^^
 //│ ╟── application of type `Z` is not an instance of type `S`
 //│ ║  l.28: 	def Nil = Nil { size = Z{} }
 //│ ║        	                       ^^^
 //│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.198: 	v1_1 : Vec[int, S[Z]]
+//│ ║  l.214: 	v1_1 : Vec[int, S[Z]]
 //│ ║         	                ^^^^
 //│ ╟── Note: class Z is defined at:
 //│ ║  l.7: 	class Z
@@ -232,16 +232,16 @@ v1_tty = cons_ty 1 nil_ty
 
 v1_tty = cons_ty2 1 nil_ty
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.217: 	v1_tty = cons_ty2 1 nil_ty
+//│ ║  l.233: 	v1_tty = cons_ty2 1 nil_ty
 //│ ║         	         ^^^^^^^^^^^^^^^^^
 //│ ╟── type `Z` is not an instance of `S['n]`
 //│ ║  l.39: 	nil_ty = nil : Vec[int, Z]
 //│ ║        	                        ^
 //│ ╟── Note: constraint arises from applied type reference:
-//│ ║  l.49: 	cons_ty2 = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
+//│ ║  l.65: 	cons_ty2 = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ ║        	                                                          ^^^^^
 //│ ╟── from type variable:
-//│ ║  l.49: 	cons_ty2 = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
+//│ ║  l.65: 	cons_ty2 = cons : forall 'a. 'a -> Vec['a, 'n] -> Vec['a, S['n]]
 //│ ╙──      	                                           ^^
 //│ v1_tty: error | Vec[int, S['n]]
 //│   where
@@ -261,7 +261,7 @@ v1 = cons 1 nil
 
 v2 = cons 1 (cons 2 nil)
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.232: 	v2 = cons 1 (cons 2 nil)
+//│ ║  l.262: 	v2 = cons 1 (cons 2 nil)
 //│ ║         	     ^^^^^^^^^^^^^^^^^^^
 //│ ╟── application of type `Z` is not an instance of type `S`
 //│ ║  l.28: 	def Nil = Nil { size = Z{} }
@@ -305,16 +305,16 @@ head1 v2
 :e
 head1 nil
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.276: 	head1 nil
+//│ ║  l.306: 	head1 nil
 //│ ║         	^^^^^^^^^
 //│ ╟── application of type `Z` does not match type `nothing`
 //│ ║  l.28: 	def Nil = Nil { size = Z{} }
 //│ ║        	                       ^^^
 //│ ╟── Note: constraint arises from reference:
-//│ ║  l.248: 	def impossible x = case x of {}
+//│ ║  l.278: 	def impossible x = case x of {}
 //│ ║         	                        ^
 //│ ╟── from field selection:
-//│ ║  l.252: 	  | Nil -> impossible v.size
+//│ ║  l.282: 	  | Nil -> impossible v.size
 //│ ║         	                      ^^^^^^
 //│ ╟── Note: class Z is defined at:
 //│ ║  l.7: 	class Z
@@ -393,22 +393,22 @@ sum v1_ty
 //│ ║  l.+1: 	sum v1_ty
 //│ ║        	^^^^^^^^^
 //│ ╟── type `Cons[int, Z]` is not a function
-//│ ║  l.169: 	v1_ty = v1_ : Cons[int, Z]
+//│ ║  l.183: 	v1_ty = v1_ : Cons[int, Z]
 //│ ║         	              ^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `(forall ?a ?b. ?a -> int) -> ?c`
 //│ ║  l.+1: 	sum v1_ty
 //│ ║        	    ^^^^^
 //│ ╟── Note: constraint arises from application:
-//│ ║  l.295: 	rec def sum vec = vec (fun v -> case v of {
+//│ ║  l.325: 	rec def sum vec = vec (fun v -> case v of {
 //│ ║         	                  ^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.296: 	  | Nil -> 0
+//│ ║  l.326: 	  | Nil -> 0
 //│ ║         	^^^^^^^^^^^^
-//│ ║  l.297: 	  | Cons -> v.head + sum v.tail
+//│ ║  l.327: 	  | Cons -> v.head + sum v.tail
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.298: 	  })
+//│ ║  l.328: 	  })
 //│ ║         	^^^^
 //│ ╟── from reference:
-//│ ║  l.295: 	rec def sum vec = vec (fun v -> case v of {
+//│ ║  l.325: 	rec def sum vec = vec (fun v -> case v of {
 //│ ╙──       	                  ^^^
 //│ res: error
 

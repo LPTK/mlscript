@@ -527,20 +527,20 @@ z: ChurchInt
 // G2A
 s: ChurchInt -> ChurchInt
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.521: 	s: ChurchInt -> ChurchInt
+//│ ║  l.528: 	s: ChurchInt -> ChurchInt
 //│ ║         	^
 //│ ╟── type variable `'N` leaks out of its scope
-//│ ║  l.238: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
+//│ ║  l.243: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
 //│ ║         	                                   ^^
 //│ ╟── back into type variable `'N`
-//│ ║  l.238: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
+//│ ║  l.243: 	type ChurchInt = forall 'N. ('N -> 'N) -> ('N -> 'N)
 //│ ║         	                             ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this function:
-//│ ║  l.505: 	def s n f x = f (n f x)
+//│ ║  l.512: 	def s n f x = f (n f x)
 //│ ║         	        ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.521: 	s: ChurchInt -> ChurchInt
+//│ ║  l.528: 	s: ChurchInt -> ChurchInt
 //│ ╙──       	^
 //│ res: ChurchInt -> ChurchInt
 //│    = [Function: s]
@@ -580,10 +580,10 @@ rec def id1 x = if true then x else id1 id1 x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a :> ? -> 'a
-//│ ║  l.572: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║  l.579: 	rec def id1 x = if true then x else id1 id1 x
 //│ ╙──       	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: ?id1` exceeded recursion depth limit (250)
-//│ ║  l.572: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║  l.579: 	rec def id1 x = if true then x else id1 id1 x
 //│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ id1: 'a -> (anything -> nothing | 'a)
@@ -599,16 +599,16 @@ id1 id1
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.597: 	auto auto
+//│ ║  l.600: 	auto auto
 //│ ║         	^^^^^^^^^
 //│ ╟── type `'a` is not a function
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^^^^^^^
 //│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                   ^^
 //│ res: 'b -> 'b | error
 //│ Runtime error:
@@ -919,10 +919,10 @@ rec def id1 x = if true then x else id1 id1 x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a :> ? -> 'a
-//│ ║  l.922: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║  l.918: 	rec def id1 x = if true then x else id1 id1 x
 //│ ╙──       	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: ?id1` exceeded recursion depth limit (250)
-//│ ║  l.922: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║  l.918: 	rec def id1 x = if true then x else id1 id1 x
 //│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ id1: 'a -> (anything -> nothing | 'a)
@@ -938,16 +938,16 @@ id1 id1
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.947: 	auto auto
+//│ ║  l.939: 	auto auto
 //│ ║         	^^^^^^^^^
 //│ ╟── type `'a` is not a function
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^^^^^^^
 //│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                   ^^
 //│ res: 'b -> 'b | error
 //│ Runtime error:
@@ -1258,10 +1258,10 @@ rec def id1 x = if true then x else id1 id1 x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a :> ? -> 'a
-//│ ║  l.1272: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║  l.1257: 	rec def id1 x = if true then x else id1 id1 x
 //│ ╙──        	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
-//│ ║  l.1272: 	rec def id1 x = if true then x else id1 id1 x
+//│ ║  l.1257: 	rec def id1 x = if true then x else id1 id1 x
 //│ ║          	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ id1: 'a -> (anything -> nothing | 'a)
@@ -1277,16 +1277,16 @@ id1 id1
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1312: 	auto auto
+//│ ║  l.1278: 	auto auto
 //│ ║          	^^^^^^^^^
 //│ ╟── type `'a` is not a function
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^^^^^^^
 //│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                   ^^
 //│ res: 'b -> 'b | error
 //│ Runtime error:
@@ -1605,16 +1605,16 @@ id1 id1
 :e
 auto auto
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.1651: 	auto auto
+//│ ║  l.1606: 	auto auto
 //│ ║          	^^^^^^^^^
 //│ ╟── type `'a` is not a function
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^
 //│ ╟── Note: constraint arises from function type:
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ║         	                       ^^^^^^^^
 //│ ╟── Note: quantified type variable 'a is defined at:
-//│ ║  l.158: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
+//│ ║  l.163: 	def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│ ╙──       	                   ^^
 //│ res: 'b -> 'b | error
 //│ Runtime error:

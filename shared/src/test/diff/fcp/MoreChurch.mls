@@ -337,7 +337,7 @@ fact_ty = fact
 
 fact (to_church 4) (fun x -> x + 1) 0
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.307: 	fact (to_church 4) (fun x -> x + 1) 0
+//│ ║  l.338: 	fact (to_church 4) (fun x -> x + 1) 0
 //│ ║         	^^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.7: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -362,10 +362,10 @@ fact (to_church 4) (fun x -> x + 1) 0
 //│ ║  l.49: 	  else succ (to_church (n - 1))
 //│ ║        	       ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.307: 	fact (to_church 4) (fun x -> x + 1) 0
+//│ ║  l.338: 	fact (to_church 4) (fun x -> x + 1) 0
 //│ ║         	      ^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.307: 	fact (to_church 4) (fun x -> x + 1) 0
+//│ ║  l.338: 	fact (to_church 4) (fun x -> x + 1) 0
 //│ ║         	^^^^
 //│ ╟── • this applied expression:
 //│ ║  l.195: 	def fst p = p (fun x -> fun _ -> x)
@@ -385,7 +385,7 @@ fact_ty (to_church 4) (fun x -> x + 1) 0
 
 fact (to_church_ty 4) (fun x -> x + 1) 0
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.315: 	fact (to_church_ty 4) (fun x -> x + 1) 0
+//│ ║  l.386: 	fact (to_church_ty 4) (fun x -> x + 1) 0
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.7: 	type ChurchInt = forall 'a. ('a -> 'a) -> ('a -> 'a)
@@ -404,10 +404,10 @@ fact (to_church_ty 4) (fun x -> x + 1) 0
 //│ ║  l.244: 	  let s p = pair (snd p) (succ_ty (snd p)) in
 //│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.315: 	fact (to_church_ty 4) (fun x -> x + 1) 0
+//│ ║  l.386: 	fact (to_church_ty 4) (fun x -> x + 1) 0
 //│ ║         	      ^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.315: 	fact (to_church_ty 4) (fun x -> x + 1) 0
+//│ ║  l.386: 	fact (to_church_ty 4) (fun x -> x + 1) 0
 //│ ║         	^^^^
 //│ ╟── • this applied expression:
 //│ ║  l.195: 	def fst p = p (fun x -> fun _ -> x)

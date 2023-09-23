@@ -210,10 +210,10 @@ rec def foo2 xs = case xs of
 :e
 foo (Con{ h = 1; t = N{} })
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.213: 	foo (Con{ h = 1; t = N{} })
+//│ ║  l.211: 	foo (Con{ h = 1; t = N{} })
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── application of type `N` does not have field 't'
-//│ ║  l.213: 	foo (Con{ h = 1; t = N{} })
+//│ ║  l.211: 	foo (Con{ h = 1; t = N{} })
 //│ ║         	                     ^^^
 //│ ╟── Note: constraint arises from field selection:
 //│ ║  l.161: 	  Con -> if xs.h then Con { h = xs.t.h; t = foo xs.t.t } else foo xs.t.t,

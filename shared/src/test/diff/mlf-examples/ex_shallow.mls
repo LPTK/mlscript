@@ -377,7 +377,7 @@ def a2'_ x =
 :e // * [FCP-LIM] see previous version above
 def a0' = a2' a1'
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.382: 	def a0' = a2' a1'
+//│ ║  l.378: 	def a0' = a2' a1'
 //│ ║         	          ^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.5: 	type Sid = forall 'a. 'a -> 'a
@@ -387,29 +387,29 @@ def a0' = a2' a1'
 //│ ║  l.15: 	def id x = x
 //│ ║        	       ^^^^^
 //│ ╟── • this reference:
-//│ ║  l.343: 	def a1' = fun f -> fun x -> f (f (either id x))
+//│ ║  l.339: 	def a1' = fun f -> fun x -> f (f (either id x))
 //│ ║         	                                         ^^
 //│ ╟── • this reference:
 //│ ║  l.208: 	def either x y = if true then x else y
 //│ ║         	                              ^
 //│ ╟── • this reference:
-//│ ║  l.382: 	def a0' = a2' a1'
+//│ ║  l.378: 	def a0' = a2' a1'
 //│ ║         	              ^^^
 //│ ╟── • this function:
-//│ ║  l.350: 	def a2' (x: A1') =
+//│ ║  l.346: 	def a2' (x: A1') =
 //│ ║         	        ^^^^^^^^^^
-//│ ║  l.351: 	  let _ = x auto id in
+//│ ║  l.347: 	  let _ = x auto id in
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.352: 	  (fun y ->
+//│ ║  l.348: 	  (fun y ->
 //│ ║         	^^^^^^^^^^^
-//│ ║  l.353: 	    let _ = x y church_two in
+//│ ║  l.349: 	    let _ = x y church_two in
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.354: 	    y church_succ
+//│ ║  l.350: 	    y church_succ
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.355: 	  ) a3
+//│ ║  l.351: 	  ) a3
 //│ ║         	^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.382: 	def a0' = a2' a1'
+//│ ║  l.378: 	def a0' = a2' a1'
 //│ ╙──       	          ^^^
 //│ a0': anything -> 'a | error
 //│   where

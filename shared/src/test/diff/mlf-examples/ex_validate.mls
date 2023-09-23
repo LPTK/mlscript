@@ -363,7 +363,7 @@ def ff_ = fun g ->
 :e
 bigtest = ff aa
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.376: 	bigtest = ff aa
+//│ ║  l.364: 	bigtest = ff aa
 //│ ║         	          ^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.118: 	type Id = forall 'a. 'a -> 'a
@@ -373,13 +373,13 @@ bigtest = ff aa
 //│ ║         	                           ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this applied expression:
-//│ ║  l.349: 	def aa f = f id
+//│ ║  l.337: 	def aa f = f id
 //│ ║         	           ^
 //│ ╟── • this reference:
-//│ ║  l.349: 	def aa f = f id
+//│ ║  l.337: 	def aa f = f id
 //│ ║         	             ^^
 //│ ╟── • this reference:
-//│ ║  l.376: 	bigtest = ff aa
+//│ ║  l.364: 	bigtest = ff aa
 //│ ║         	             ^^
 //│ ╟── • this reference:
 //│ ║  l.138: 	def id x = x
@@ -916,10 +916,10 @@ rec def id_ x = if true then x else id_ id_ x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a :> ? -> 'a
-//│ ║  l.927: 	rec def id_ x = if true then x else id_ id_ x
+//│ ║  l.915: 	rec def id_ x = if true then x else id_ id_ x
 //│ ╙──       	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
-//│ ║  l.927: 	rec def id_ x = if true then x else id_ id_ x
+//│ ║  l.915: 	rec def id_ x = if true then x else id_ id_ x
 //│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ id_: 'a -> (anything -> nothing | 'a)
@@ -937,26 +937,26 @@ rec def id x = if true then x else id id x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a :> ? -> 'a
-//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ║  l.936: 	rec def id x = if true then x else id id x
 //│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ 'a -> (anything -> nothing | 'a)
 //│   <:  id:
 //│ Sid
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
-//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ║  l.936: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ║  l.936: 	rec def id x = if true then x else id id x
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── function of type `anything -> nothing` does not match type `'a`
-//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ║  l.936: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `'a`
-//│ ║  l.947: 	rec def id x = if true then x else id id x
+//│ ║  l.936: 	rec def id x = if true then x else id id x
 //│ ║         	                                      ^^
 //│ ╟── Note: constraint arises from type variable:
-//│ ║  l.765: 	type Sid = forall 'a. 'a -> 'a
+//│ ║  l.753: 	type Sid = forall 'a. 'a -> 'a
 //│ ╙──       	                            ^^
 //│   = [Function: id3]
 

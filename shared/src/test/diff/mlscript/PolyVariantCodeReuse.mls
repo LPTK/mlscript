@@ -321,13 +321,13 @@ eval2 Nil (Num { num = 1 })
 
 eval3 Nil (Num { num = 1 })
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.313: 	eval3 Nil (Num { num = 1 })
+//│ ║  l.322: 	eval3 Nil (Num { num = 1 })
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── application of type `Num & {num: ?num}` does not match type `Abs[?] & ?a | App[?] & ?b | Var`
-//│ ║  l.313: 	eval3 Nil (Num { num = 1 })
+//│ ║  l.322: 	eval3 Nil (Num { num = 1 })
 //│ ║         	           ^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
-//│ ║  l.120: 	def eval_lambda eval_rec subst v = case v of {
+//│ ║  l.118: 	def eval_lambda eval_rec subst v = case v of {
 //│ ╙──       	                                        ^
 //│ res: error | 'a
 //│   where
@@ -383,7 +383,7 @@ def eval_lexpr' eval_rec subst v = case v of {
 // FIXME
 // :exit
 ====================================================================================================
-//│ /!\ Parse error: Expected end-of-input:1:1, found "==========" at l.375:1: ====================================================================================================
+//│ /!\ Parse error: Expected end-of-input:1:1, found "==========" at l.385:1: ====================================================================================================
 
 
 
@@ -393,7 +393,7 @@ def eval_lexpr' eval_rec subst v = case v of {
 :e
 rec def eval4 subst = eval_lexpr' eval4 subst
 //│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: ?eval4` took too many steps and ran out of fuel (10000)
-//│ ║  l.384: 	rec def eval4 subst = eval_lexpr' eval4 subst
+//│ ║  l.394: 	rec def eval4 subst = eval_lexpr' eval4 subst
 //│ ║         	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ eval4: ((Cons[?] with {head: {_1: string, _2: 'result & 'b}, tail: Cons[?] | Nil}) & List[?] | Nil & List[?]) -> 'c -> 'a

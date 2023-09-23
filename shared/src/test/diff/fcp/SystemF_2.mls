@@ -289,23 +289,23 @@ succ = succ_
 //│   <:  succ:
 //│ (forall 'X. ('X -> 'X) -> 'X -> 'X) -> (forall 'X0. ('X0 -> 'X0) -> 'X0 -> 'X0)
 //│ ╔══[ERROR] Type error in def definition
-//│ ║  l.291: 	succ = succ_
+//│ ║  l.284: 	succ = succ_
 //│ ║         	^^^^^^^^^^^^
 //│ ╟── type variable `'X` leaks out of its scope
-//│ ║  l.282: 	def succ: (forall 'X. ('X -> 'X) -> 'X -> 'X) -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
+//│ ║  l.275: 	def succ: (forall 'X. ('X -> 'X) -> 'X -> 'X) -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│ ║         	                                                                    ^^
 //│ ╟── back into type variable `'X`
-//│ ║  l.282: 	def succ: (forall 'X. ('X -> 'X) -> 'X -> 'X) -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
+//│ ║  l.275: 	def succ: (forall 'X. ('X -> 'X) -> 'X -> 'X) -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│ ║         	                                                              ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this function:
-//│ ║  l.281: 	succ_ n s z = s (n s z)
+//│ ║  l.274: 	succ_ n s z = s (n s z)
 //│ ║         	        ^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.291: 	succ = succ_
+//│ ║  l.284: 	succ = succ_
 //│ ║         	       ^^^^^
 //│ ╟── Note: constraint arises from type variable:
-//│ ║  l.282: 	def succ: (forall 'X. ('X -> 'X) -> 'X -> 'X) -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
+//│ ║  l.275: 	def succ: (forall 'X. ('X -> 'X) -> 'X -> 'X) -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│ ╙──       	                             ^^
 //│     = [Function: succ_1]
 

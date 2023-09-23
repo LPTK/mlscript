@@ -21,7 +21,9 @@ class Bar[A]: Foo[A]
 //│ Declared Foo.Map: Foo['A] -> ('A -> anything) -> 'A
 //│ Defined class Bar[+A]
 //│ Declared Bar.Map: Bar['A] -> anything -> 'A
-//│ Defined Bar.Map: Bar[?] -> (nothing -> (anything -> nothing) -> 'a) -> 'a
+//│ Defined Bar.Map: Bar[?] -> 'Map
+//│   where
+//│     'Map :> ('Map -> (anything -> 'Map) -> 'a) -> 'a
 
 Foo.Map
 Bar.Map
