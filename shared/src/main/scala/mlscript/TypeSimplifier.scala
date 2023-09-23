@@ -1194,13 +1194,17 @@ trait TypeSimplifier { self: Typer =>
       val occsNum: MutMap[TV, Int] = MutMap.empty[TV, Int]
       
       var curPath: Ls[TV] = Nil
-      var pastPaths: Ls[Ls[TV]] = Nil
+      // var curPathSet: MutSet[TV] = MutSet.empty
+      // var pastPaths: Ls[Ls[TV]] = Nil
+      var pastPathsSet: MutSet[TV] = MutSet.empty
       
       // val varSubst: MutMap[TV, Opt[TV]] = MutMap.empty
       // val varSubst: MutMap[TV, ST] = MutMap.empty
       val varSubst: MutMap[TV, TV] = MutMap.empty
       
-      val traversedOtherTVs: MutSet[TV] = MutSet.empty
+      // val traversedOtherTVs: MutSet[TV] = MutSet.empty
+      // val traversedTVs: MutSet[TV] = MutSet.empty
+      val traversingTVs: MutSet[TV] = MutSet.empty
       
       def getRepr(tv: TV): TV = varSubst.get(tv) match {
         case S(tv2) =>
@@ -1220,6 +1224,7 @@ trait TypeSimplifier { self: Typer =>
         case ty if ty.level <= lvl => // TODO NOPE
         // case ty if ty.level < lvl => // TODO
         case tv: TV if { occsNum(tv) = occsNum.getOrElse(tv, 0); false } =>
+        // case tv: TV if traversingTVs.contains(tv) =>
         // case tv @ AssignedVariable(ty) =>
         //   if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
         // case tv: TV if tv.level <= lvl =>
@@ -1254,7 +1259,8 @@ trait TypeSimplifier { self: Typer =>
             println(varSubst)
             continue = false
           }
-          if (pastPaths.exists(_.exists(_ is tv))) { // TODO opt
+          // if (pastPaths.exists(_.exists(_ is tv))) { // TODO opt
+          if (pastPathsSet.contains(tv)) {
             println(s"REC $tv")
             recVars += tv
             continue = false
@@ -1267,7 +1273,9 @@ trait TypeSimplifier { self: Typer =>
             if (poltv =/= S(false)) posVars += tv
             if (poltv =/= S(true)) negVars += tv
             // println(s">>>> $curPath")
+            // traversingTVs += tv
             super.apply(pol)(st)
+            // traversingTVs -= tv
             curPath = oldPath
           }
         
@@ -1304,12 +1312,15 @@ trait TypeSimplifier { self: Typer =>
           
         case _ =>
           val oldPath = curPath
-          val oldPaths = pastPaths
-          pastPaths ::= oldPath
+          // val oldPaths = pastPaths
+          // pastPaths ::= oldPath
+          pastPathsSet ++= oldPath
           curPath = Nil
           super.apply(pol)(st)
           curPath = oldPath
-          pastPaths = oldPaths
+          // pastPaths = oldPaths
+          pastPathsSet --= oldPath
+          ()
       }
           }()
       

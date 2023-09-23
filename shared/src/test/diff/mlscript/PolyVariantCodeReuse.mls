@@ -383,18 +383,16 @@ def eval_lexpr' eval_rec subst v = case v of {
 
 // FIXME
 // :exit
-====================================================================================================
-//│ /!\ Parse error: Expected end-of-input:1:1, found "==========" at l.386:1: ====================================================================================================
 
 
 
 
 
-
+:stats
 :e
 rec def eval4 subst = eval_lexpr' eval4 subst
 //│ ╔══[ERROR] Subtyping constraint of the form `?a -> ?b <: ?eval4` took too many steps and ran out of fuel (10000)
-//│ ║  l.395: 	rec def eval4 subst = eval_lexpr' eval4 subst
+//│ ║  l.393: 	rec def eval4 subst = eval_lexpr' eval4 subst
 //│ ║         	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ eval4: (List[?] & 'b & 'c & 'd & 'e & 'f) -> 'g -> 'a
@@ -423,9 +421,29 @@ rec def eval4 subst = eval_lexpr' eval4 subst
 //│     'rhs :> 'a1 | 'h
 //│      = <no result>
 //│        eval_lexpr', eval_var, list_assoc and eq are not implemented
+//│ constrain calls  : 8821
+//│ annoying  calls  : 1199
+//│ subtyping calls  : 3638261
+
+// constrain calls  : 8821
+// annoying  calls  : 1199
+// subtyping calls  : 3638261
+
+// * Note: on the main branch:
+// constrain calls  : 8354
+// annoying  calls  : 1666
+// subtyping calls  : 6272374
+
+
+// FIXME
+// :exit
+// ====================================================================================================
 
 :Fuel 20000
+// :Fuel 2000
 
+// :d
+:stats
 rec def eval4 subst = eval_lexpr' eval4 subst
 //│ eval4: 'b -> 'c -> 'a
 //│   where
@@ -441,15 +459,23 @@ rec def eval4 subst = eval_lexpr' eval4 subst
 //│     'a0 :> 'a
 //│      = <no result>
 //│        eval_lexpr', eval_var, list_assoc and eq are not implemented
+//│ constrain calls  : 12411
+//│ annoying  calls  : 1483
+//│ subtyping calls  : 360643
+
+// * Note: on the main branch:
+// constrain calls  : 16185
+// annoying  calls  : 2300
+// subtyping calls  : 592170
 
 :ResetFuel
 
 eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
 //│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.447: 	eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
+//│ ║  l.473: 	eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── application of type `Add[?a] & {Add#a = ?a, lhs: ?lhs, rhs: ?rhs}` does not match type `Abs[?] & ?b | App[?] & ?c | Var & ?d`
-//│ ║  l.447: 	eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
+//│ ║  l.473: 	eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
 //│ ║         	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from reference:
 //│ ║  l.120: 	def eval_lambda eval_rec subst v = case v of {
@@ -464,4 +490,5 @@ eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { 
 //│     'a :> Add['result]\Add#a\lhs\rhs & {Add#a <: 'result, lhs: 'result, rhs: 'result} | Mul['result]\Mul#a\lhs\rhs & {Mul#a <: 'result, lhs: 'result, rhs: 'result} | 'result | Var | 'b
 //│    = <no result>
 //│      eval4, eval_lexpr', eval_var, list_assoc and eq are not implemented
+
 
