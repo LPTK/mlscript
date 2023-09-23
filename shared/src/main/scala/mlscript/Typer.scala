@@ -28,6 +28,7 @@ class Typer(var dbg: Boolean, var verbose: Bool, var explainErrors: Bool)
   var preciselyTypeRecursion: Bool = false
   var distributeForalls: Boolean = false
   var generalizeArguments: Boolean = false
+  var noOnlineSimplification: Boolean = false
   
   var noCycleCheck: Boolean = false
   var noRecursiveTypes: Boolean = false

@@ -22,6 +22,7 @@ abstract class ModeType {
   def showParse: Bool
   def verbose: Bool
   def noSimplification: Bool
+  def noOnlineSimplification: Bool
   def explainErrors: Bool
   def dbg: Bool
   def dbgParsing: Bool
@@ -141,6 +142,7 @@ class DiffTests
       showParse: Bool = false,
       verbose: Bool = false,
       noSimplification: Bool = false,
+      noOnlineSimplification: Bool = false,
       explainErrors: Bool = false,
       dbg: Bool = false,
       dbgParsing: Bool = false,
@@ -209,6 +211,7 @@ class DiffTests
           case "v" | "verbose" => mode.copy(verbose = true)
           case "ex" | "explain" => mode.copy(expectTypeErrors = true, explainErrors = true)
           case "ns" | "no-simpl" => mode.copy(noSimplification = true)
+          case "noOnlineSimplif" => mode.copy(noOnlineSimplification = true)
           // case "limit-errors" => mode.copy(limitErrors = true)
           case "stats" => mode.copy(stats = true)
           case "stdout" => mode.copy(stdout = true)
@@ -456,6 +459,7 @@ class DiffTests
             typer.approximateNegativeFunction = approximateNegativeFunction
             typer.distributeForalls = distributeForalls
             typer.noCycleCheck = noCycleCheck
+            typer.noOnlineSimplification = mode.noOnlineSimplification
             typer.noRecursiveTypes = noRecursiveTypes
             typer.constrainedTypes = constrainedTypes
             typer.generalizeArguments = generalizeArguments

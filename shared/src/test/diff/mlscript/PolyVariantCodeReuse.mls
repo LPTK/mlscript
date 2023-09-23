@@ -443,25 +443,36 @@ rec def eval4 subst = eval_lexpr' eval4 subst
 // :Fuel 2000
 
 // :d
+:noOnlineSimplif
 :stats
 rec def eval4 subst = eval_lexpr' eval4 subst
-//│ eval4: 'b -> 'c -> 'a
+//│ eval4: (List[?] & 'b & 'c & 'd & 'e & 'f & 'g) -> 'h -> 'a
 //│   where
-//│     'b <: (Cons[?] with {head: {_1: string, _2: 'result}, tail: 'b}) | Nil
-//│     'result :> 'a
-//│             <: Abs[?] & 'd & 'e | 'c & 'a0 & (Var | 'd & (Add[?] | App[?] | Mul[?] | Num | Num & ~#Num))
-//│     'a :> (Add['a] with {lhs: 'a, rhs: 'a}) | (App['a | 'a0] with {lhs: 'c, rhs: 'a}) | (Mul['a] with {lhs: 'a, rhs: 'a}) | Num | Var | 'result | 'd | 'c
-//│     'c :> 'a
-//│        <: Var | 'd & (Abs[?] | Add[?] | App[?] | Mul[?] | Num)
-//│     'd :> Abs['a]
-//│        <: Abs[?] & 'e | App[?] & {lhs: 'c, rhs: 'c} | Var
-//│     'e <: {body: 'c, name: string}
-//│     'a0 :> 'a
+//│     'g <: Cons[?]\head\tail & {head: {_1: string, _2: 'result}, tail: 'g} | Nil
+//│     'f <: Cons[?]\head\tail & {head: {_1: string, _2: 'result}, tail: 'f} | Nil
+//│     'e <: Cons[?]\head\tail & {head: {_1: string, _2: 'result}, tail: 'e} | Nil
+//│     'd <: Cons[?]\head\tail & {head: {_1: string, _2: 'result}, tail: 'd} | Nil
+//│     'c <: Cons[?]\head\tail & {head: {_1: string, _2: 'result}, tail: 'c} | Nil
+//│     'b <: Cons[?]\head\tail & {head: {_1: string, _2: 'result}, tail: 'b} | Nil
+//│     'result :> 'a | Var | Num
+//│             <: 'h & (Abs[?] & 'i | 'lhs & (Abs[?] & 'i & ~#Abs | 'lhs0 & (Num | ~#Abs & ~#Num)))
+//│     'a :> Abs['a] | App['a0]\lhs\rhs & {lhs: 'lhs | 'lhs0, rhs: 'a} | Num | 'result | 'j | 'k | Add['a]\lhs\rhs & {lhs: 'a, rhs: 'a} | Mul['a]\lhs\rhs & {lhs: 'a, rhs: 'a}
+//│     'a0 :> 'a | Add['a]\lhs\rhs & {lhs: 'a, rhs: 'a} | App['a0]\lhs\rhs & {lhs: 'lhs | 'lhs0, rhs: 'a} | Mul['a]\lhs\rhs & {lhs: 'a, rhs: 'a} | Num | Var
+//│     'lhs :> Add['a]\lhs\rhs & {lhs: 'a, rhs: 'a} | App['a0]\lhs\rhs & {lhs: 'lhs | 'lhs0, rhs: 'a} | Mul['a]\lhs\rhs & {lhs: 'a, rhs: 'a} | Num | Var
+//│          <: 'h & 'a0
+//│     'lhs0 :> Add['a]\lhs\rhs & {lhs: 'a, rhs: 'a} | App['a0]\lhs\rhs & {lhs: 'lhs | 'lhs0, rhs: 'a} | Mul['a]\lhs\rhs & {lhs: 'a, rhs: 'a} | Num | Var
+//│           <: 'h & 'a0
+//│     'h <: Abs[?] & {body: 'h} | Add[?] & {lhs: 'h, rhs: 'h} | App[?] & {lhs: 'h, rhs: 'h} | Mul[?] & {lhs: 'h, rhs: 'h} | Num & (Add[?] & 'k | Mul[?] & 'k | Num & 'result | Var & 'j) | Var & 'j
+//│     'j :> Var
+//│        <: 'h & (Abs[?] & 'i | 'lhs & (Abs[?] & 'i & ~#Abs | 'lhs0 & (Num & {name: string} | {name: string} & ~#Abs & ~#Num)))
+//│     'k :> Mul['a]\lhs\rhs & {lhs: 'a, rhs: 'a} | Add['a]\lhs\rhs & {lhs: 'a, rhs: 'a}
+//│        <: 'h & (Abs[?] & {lhs: anything, rhs: anything} & 'i | 'lhs & (Abs[?] & {lhs: anything, rhs: anything} & 'i & ~#Abs | 'lhs0 & (Num & {lhs: anything, rhs: anything} | {lhs: anything, rhs: anything} & ~#Abs & ~#Num)))
+//│     'i <: {body: 'h, name: string}
 //│      = <no result>
 //│        eval_lexpr', eval_var, list_assoc and eq are not implemented
 //│ constrain calls  : 12411
 //│ annoying  calls  : 1483
-//│ subtyping calls  : 360643
+//│ subtyping calls  : 402738
 
 // * Note: on the main branch:
 // constrain calls  : 16185
@@ -471,24 +482,15 @@ rec def eval4 subst = eval_lexpr' eval4 subst
 :ResetFuel
 
 eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
-//│ ╔══[ERROR] Type mismatch in application:
-//│ ║  l.470: 	eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── application of type `Add[?a] & {Add#a = ?a, lhs: ?lhs, rhs: ?rhs}` does not match type `Abs[?] & ?b | App[?] & ?c | Var & ?d`
-//│ ║  l.470: 	eval4 Nil (Abs { name = "s"; body = Add { lhs = Var { name = "s" }; rhs = Num { num = 1 } } })
-//│ ║         	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── Note: constraint arises from reference:
-//│ ║  l.120: 	def eval_lambda eval_rec subst v = case v of {
-//│ ║         	                                        ^
-//│ ╟── from field selection:
-//│ ║  l.130: 	          body = eval_rec (Cons (Tuple v.name (Var { name = new_name })) subst) v.body }
-//│ ╙──       	                                                                                ^^^^^^
-//│ res: error | 'result
+//│ res: 'result
 //│   where
-//│     'result :> Var | 'b | Abs[nothing] | Abs[(Add[Num & {num: 1} | Var & {name: "s"}] with {lhs: Var & {name: "s"}, rhs: Num & {num: 1}}) | 'result] | (Add[Num & {num: 1} | Var & {name: "s"}] with {lhs: Var & {name: "s"}, rhs: Num & {num: 1}}) | Num | Add['result]\Add#a\lhs\rhs & {Add#a <: 'result, lhs: 'result, rhs: 'result} | Mul['result]\Mul#a\lhs\rhs & {Mul#a <: 'result, lhs: 'result, rhs: 'result} | Abs[Add[Num & {num: 1} | Var & {name: "s"}] with {lhs: Var & {name: "s"}, rhs: Num & {num: 1}}] & {name: "s"} | Abs['result]
-//│     'b :> (App['a] with {lhs: Add['result]\Add#a\lhs\rhs & {Add#a <: 'result, lhs: 'result, rhs: 'result} | Mul['result]\Mul#a\lhs\rhs & {Mul#a <: 'result, lhs: 'result, rhs: 'result} | Num | Var | 'b, rhs: 'result}) | App['a]\App#a\lhs\rhs & {App#a <: 'a, lhs: 'result, rhs: 'result}
-//│     'a :> Add['result]\Add#a\lhs\rhs & {Add#a <: 'result, lhs: 'result, rhs: 'result} | Mul['result]\Mul#a\lhs\rhs & {Mul#a <: 'result, lhs: 'result, rhs: 'result} | 'result | Var | 'b
+//│     'result :> Var | Abs['result] | (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | 'b
+//│     'a :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | 'result | Var | 'b
+//│     'lhs :> (App['a] with {lhs: 'lhs, rhs: 'result}) | Num | Var | 'b
+//│     'b :> Add['result] | Mul['result]
 //│    = <no result>
 //│      eval4, eval_lexpr', eval_var, list_assoc and eq are not implemented
+
+
 
 
