@@ -320,9 +320,17 @@ abstract class TyperHelpers { Typer: Typer =>
         _shadow
       }
     
-    def isSmall: Bool = unwrapProvs match {
+    // def isSmall: Bool = unwrapProvs match {
+    //   case _: TypeVariable | _: TypeTag | _: ExtrType => true
+    //   case tr: TypeRef => tr.targs.forall(_.isSmall) // TODO not sure
+    //   case _ => false
+    // }
+    @inline final def isSmall: Bool = unwrapProvs match {
+      case tr: TypeRef => tr.targs.forall(_.isReallySmall)
+      case _ => isReallySmall
+    }
+    @inline final def isReallySmall: Bool = unwrapProvs match {
       case _: TypeVariable | _: TypeTag | _: ExtrType => true
-      case tr: TypeRef => tr.targs.forall(_.isSmall) // TODO not sure
       case _ => false
     }
     

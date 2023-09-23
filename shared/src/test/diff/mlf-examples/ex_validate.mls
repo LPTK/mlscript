@@ -584,7 +584,7 @@ def main =
 //│ main: null
 //│ constrain calls  : 913
 //│ annoying  calls  : 15
-//│ subtyping calls  : 4162
+//│ subtyping calls  : 3945
 
 
 
