@@ -523,12 +523,12 @@ sz = s zero
 
 :ns
 sz
-//│ res: forall 'a 'b 'c 'N. 'a
+//│ res: forall 'a 'b 'N 'c. 'c
 //│   where
-//│     'a :> forall 'd 'e. 'd -> 'N -> 'e
-//│     'd <: 'c -> 'e & 'b
-//│     'b <: 'N -> 'N
-//│     'N <: 'c
+//│     'c :> forall 'd 'e. 'd -> 'N -> 'e
+//│     'd <: 'b -> 'e & 'a
+//│     'a <: 'N -> 'N
+//│     'N <: 'b
 //│    = [Function (anonymous)]
 
 sz: ChurchInt

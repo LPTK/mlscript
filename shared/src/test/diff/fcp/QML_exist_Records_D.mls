@@ -347,7 +347,7 @@ def step arr = arr (fun impl -> (fun k -> k (stepImpl impl)) : Arrays['a])
 //│     = [Function: step9]
 
 def step arr = arr (fun impl -> (fun k -> k (stepImpl_ty impl)) : Arrays['a])
-//│ ((forall 'a 'r. ArraysImpl['a, 'r] -> Arrays['a]) -> 'b) -> 'b
+//│ ((forall 'r 'a. ArraysImpl['a, 'r] -> Arrays['a]) -> 'b) -> 'b
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step10]
@@ -383,13 +383,13 @@ def arrayRepToArray_A impl k = k impl
 
 
 def step arr = arr (fun impl -> arrayRepToArray_A (stepImpl_ty impl))
-//│ ((forall 'a 'r. ArraysImpl['a, 'r] -> Arrays['a]) -> 'b) -> 'b
+//│ ((forall 'r 'a. ArraysImpl['a, 'r] -> Arrays['a]) -> 'b) -> 'b
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step13]
 
 def step arr = arr (fun impl -> arrayRepToArray (stepImpl_ty impl))
-//│ ((forall 'a 'r 'b. ArraysImpl['a, 'r] -> (forall 'rep. ArraysImpl['a, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
+//│ ((forall 'r 'b 'a. ArraysImpl['a, 'r] -> (forall 'rep. ArraysImpl['a, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step14]

@@ -359,30 +359,26 @@ x => (y => (x (y y)))
 //│ res: ('a -> 'b) -> ('c -> 'a & 'c) -> 'b
 
 (let rec x = (let y = (x x); (z => z)); x)
-//│ res: 'x
+//│ res: 'a -> 'a
 //│   where
-//│     'x :> 'a -> 'a
-//│     'a :> 'x
+//│     'a :> 'a -> 'a
 
 (let rec x = (y => (let z = (x x); y)); x)
-//│ res: 'x
+//│ res: 'a -> 'a
 //│   where
-//│     'x :> 'a -> 'a
-//│     'a :> 'x
+//│     'a :> 'a -> 'a
 
 (let rec x = (y => {u: y, v: (x x)}); x)
-//│ res: 'x
+//│ res: 'a -> 'b
 //│   where
-//│     'x :> 'a -> 'b
+//│     'a :> 'a -> 'b
 //│     'b :> {u: 'a, v: 'b}
-//│     'a :> 'x
 
 (let rec x = (y => {u: (x x), v: y}); x)
-//│ res: 'x
+//│ res: 'a -> 'b
 //│   where
-//│     'x :> 'a -> 'b
+//│     'a :> 'a -> 'b
 //│     'b :> {u: 'b, v: 'a}
-//│     'a :> 'x
 
 (let rec x = (y => (let z = (y x); y)); x)
 //│ res: 'x
@@ -394,10 +390,9 @@ x => (y => (x (y y)))
 //│ res: ('v -> anything & {v: 'v}) -> 0
 
 let rec x = (let y = (x x); (z => z)); (x (y => y.u)) // [test:T1]
-//│ x: 'x
+//│ x: 'a -> 'a
 //│   where
-//│     'x :> 'a -> 'a
-//│     'a :> 'x
+//│     'a :> 'a -> 'a
 //│ res: ({u: 'u} & 'a) -> ('u | 'a) | 'b
 //│   where
 //│     'a :> forall 'u. ({u: 'u} & 'a) -> ('u | 'a)
@@ -405,9 +400,8 @@ let rec x = (let y = (x x); (z => z)); (x (y => y.u)) // [test:T1]
 
 :ns
 let rec x = (let y = (x x); (z => z))
-//│ x: forall 'a 'x. 'x
+//│ x: forall 'a. 'a -> 'a
 //│   where
-//│     'x := 'a -> 'a
 //│     'a :> 'a -> 'a
 
 
@@ -450,15 +444,15 @@ let rec x = (let y = (x x); (z => z))
 (f => (x => f (v => (x x) v)) (x => f (v => (x x) v))) (f => x => f)
 //│ res: anything -> (forall 'a 'b. ('a -> 'b
 //│   where
-//│     forall 'c 'd. ('d -> 'c
+//│     forall 'c 'd. ('c -> 'd
 //│   where
 //│     forall 'e. 'e -> anything -> 'e <: (forall 'f 'g. ('f -> 'g
 //│   where
-//│     'd <: 'd -> 'f -> 'g)) -> 'c) <: (forall 'c 'd. ('d -> 'c
+//│     'c <: 'c -> 'f -> 'g)) -> 'd) <: (forall 'c 'd. ('c -> 'd
 //│   where
 //│     forall 'e. 'e -> anything -> 'e <: (forall 'f 'g. ('f -> 'g
 //│   where
-//│     'd <: 'd -> 'f -> 'g)) -> 'c)) -> 'a -> 'b))
+//│     'c <: 'c -> 'f -> 'g)) -> 'd)) -> 'a -> 'b))
 
 
 

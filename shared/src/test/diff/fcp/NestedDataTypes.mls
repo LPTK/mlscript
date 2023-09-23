@@ -236,35 +236,35 @@ rec def map f tree = case tree of {
   }
 //│ ╔══[ERROR] Inferred recursive type: 'map
 //│   where
-//│     'map :> forall 'subTree 'A 'a 'subTree0 'value 'value0. 'a -> ((Leaf[?] & {value: 'value0} | (Node[?] with {subTree: 'subTree0})) -> (Leaf['value] | (Node['A] with {subTree: 'subTree}))
+//│     'map :> forall 'value 'subTree 'a 'A 'value0 'subTree0. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree0})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree}))
 //│   where
-//│     'a <: 'value0 -> 'value
-//│     'map <: (forall 'b 'c 'd 'e. (('e, 'c,) -> ('b, 'd,)
+//│     'a <: 'value -> 'value0
+//│     'map <: (forall 'b 'c 'd 'e. (('d, 'b,) -> ('e, 'c,)
 //│   where
-//│     'a <: 'e -> 'b & 'c -> 'd)) -> 'subTree0 -> (PerfectTree[Two['A]] & 'subTree))
+//│     'a <: 'd -> 'e & 'b -> 'c)) -> 'subTree0 -> (PerfectTree[Two['A]] & 'subTree))
 //│ ╙──
 //│ map: 'map
 //│   where
-//│     'map :> forall 'subTree 'A 'a 'subTree0 'value 'value0. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree0}))
+//│     'map :> forall 'A 'subTree 'value 'a 'value0 'subTree0. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree0})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree}))
 //│   where
-//│     'a <: 'value -> 'value0
 //│     'map <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
 //│   where
-//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
+//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree0 -> (PerfectTree[Two['A]] & 'subTree)
+//│     'a <: 'value -> 'value0)
 //│    = [Function: map1]
 
 :e
 map succ n4
 //│ ╔══[ERROR] Inferred recursive type: 'map
 //│   where
-//│     'map :> forall 'a 'subTree 'value 'value0 'subTree0 'A. 'a -> ((Leaf[?] & {value: 'value} | (Node[?] with {subTree: 'subTree0})) -> (Leaf['value0] | (Node['A] with {subTree: 'subTree}))
+//│     'map :> forall 'value 'a 'subTree 'value0 'A 'subTree0. 'a -> ((Leaf[?] & {value: 'value0} | (Node[?] with {subTree: 'subTree})) -> (Leaf['value] | (Node['A] with {subTree: 'subTree0}))
 //│   where
-//│     'a <: 'value -> 'value0
+//│     'a <: 'value0 -> 'value
 //│     'map <: (forall 'b 'c 'd 'e. (('b, 'd,) -> ('c, 'e,)
 //│   where
-//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree0 -> (PerfectTree[Two['A]] & 'subTree))
+//│     'a <: 'b -> 'c & 'd -> 'e)) -> 'subTree -> (PerfectTree[Two['A]] & 'subTree0))
 //│ ╙──
-//│ ╔══[ERROR] Subtyping constraint of the form `?a <: (forall ?b ?A ?value ?A0 ?subTree ?A1 ?subTree0. ?b) -> ?c` exceeded recursion depth limit (250)
+//│ ╔══[ERROR] Subtyping constraint of the form `?a <: (forall ?A ?subTree ?subTree0 ?A0 ?value ?b ?A1. ?b) -> ?c` exceeded recursion depth limit (250)
 //│ ║  l.257: 	map succ n4
 //│ ║         	^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.

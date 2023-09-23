@@ -35,6 +35,7 @@ def o = (fun x -> x x)
 //│ | | | | Analysis[+] α9''  []
 //│ | | | | | !! α9'' Some(true) List()
 //│ | | | Unif-pre: HashMap()
+//│ | | | Occ#: HashMap(x8'' -> 2, α9'' -> 2)
 //│ | | | Pos: HashSet(α9'')
 //│ | | | Neg: HashSet(x8'', α9'')
 //│ | | | Rec: HashSet(x8'')
@@ -71,6 +72,7 @@ def o = (fun x -> x x)
 //│ 0. Online simplification
 //│ | Analysis[+] ‹∀ 1. (x8'' -> α9'')›  []
 //│ | Unif-pre: HashMap()
+//│ | Occ#: HashMap()
 //│ | Pos: HashSet()
 //│ | Neg: HashSet()
 //│ | Rec: HashSet()
@@ -138,7 +140,7 @@ o o
 //│  where: 
 //│ 		α16 :> error<>
 //│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
-//│ ║  l.91: 	o o
+//│ ║  l.93: 	o o
 //│ ║        	^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: error
@@ -175,6 +177,7 @@ def foo x = x.a
 //│ | | | Analysis[+] a23''  []
 //│ | | | | !! a23'' Some(true) List()
 //│ | | Unif-pre: HashMap()
+//│ | | Occ#: HashMap(x22'' -> 1, a23'' -> 2)
 //│ | | Pos: HashSet(a23'')
 //│ | | Neg: HashSet(x22'', a23'')
 //│ | | Rec: HashSet()
@@ -204,6 +207,7 @@ def foo x = x.a
 //│ 0. Online simplification
 //│ | Analysis[+] ‹∀ 1. (x22'' -> a23'')›  []
 //│ | Unif-pre: HashMap()
+//│ | Occ#: HashMap()
 //│ | Pos: HashSet()
 //│ | Neg: HashSet()
 //│ | Rec: HashSet()
@@ -262,6 +266,7 @@ def foo x = id x
 //│ | | | Analysis[+] α29''  []
 //│ | | | | !! α29'' Some(true) List()
 //│ | | Unif-pre: HashMap()
+//│ | | Occ#: HashMap(x28'' -> 1, α29'' -> 2, α5_30'' -> 1)
 //│ | | Pos: HashSet(α29'')
 //│ | | Neg: HashSet(x28'', α29'', α5_30'')
 //│ | | Rec: HashSet()
@@ -290,6 +295,7 @@ def foo x = id x
 //│ 0. Online simplification
 //│ | Analysis[+] ‹∀ 1. (α29'' -> α29'')›  []
 //│ | Unif-pre: HashMap()
+//│ | Occ#: HashMap()
 //│ | Pos: HashSet()
 //│ | Neg: HashSet()
 //│ | Rec: HashSet()
@@ -354,6 +360,7 @@ def foo() = id : 'a -> 'a
 //│ | | | | | | | | UNIFYING 'a34'' with α5_35''
 //│ | | | | Analysis[+] 'a34''  []
 //│ | | Unif-pre: HashMap(α5_35'' -> 'a34'')
+//│ | | Occ#: HashMap('a34'' -> 3, α5_35'' -> 1)
 //│ | | Pos: HashSet()
 //│ | | Neg: HashSet('a34'', α5_35'')
 //│ | | Rec: HashSet()
@@ -385,6 +392,7 @@ def foo() = id : 'a -> 'a
 //│ 0. Online simplification
 //│ | Analysis[+] ‹∀ 1. (() -> ('a34'' -> 'a34''))›  []
 //│ | Unif-pre: HashMap()
+//│ | Occ#: HashMap()
 //│ | Pos: HashSet()
 //│ | Neg: HashSet()
 //│ | Rec: HashSet()
@@ -455,6 +463,7 @@ rec def foo x = foo x.a
 //│ | | | Analysis[+] α42'  []
 //│ | | | | !! α42' Some(true) List()
 //│ | Unif-pre: HashMap()
+//│ | Occ#: HashMap(foo39'# -> 1, x40' -> 2, a41' -> 1, α42' -> 1)
 //│ | Pos: HashSet(foo39'#, α42')
 //│ | Neg: HashSet(x40', a41')
 //│ | Rec: HashSet(x40')
@@ -480,13 +489,11 @@ rec def foo x = foo x.a
 //│ | | | | Repr: α42'
 //│ | | | = ⊥
 //│ | | = (x40' -> ⊥)
-//│ | = foo39'#
-//│ 0. Simplified: foo39'# where 
-//│ 		foo39'# := (x40' -> ⊥)
+//│ | = (x40' -> ⊥)
+//│ 0. Simplified: (x40' -> ⊥) where 
 //│ 		x40' <: {a: x40'}
-//│ ⬤ Typed as: ‹∀ 0. foo39'#›
+//│ ⬤ Typed as: ‹∀ 0. (x40' -> ⊥)›
 //│  where: 
-//│ 		foo39'# := (x40' -> ⊥)
 //│ 		x40' <: {a: x40'}
 //│ foo: 'x -> nothing
 //│   where

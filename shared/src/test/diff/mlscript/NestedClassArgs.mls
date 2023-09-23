@@ -179,7 +179,7 @@ c = c6
 //│ 'a -> C6['a]
 //│ constrain calls  : 67
 //│ annoying  calls  : 30
-//│ subtyping calls  : 398
+//│ subtyping calls  : 397
 
 
 // Reproduction of an issue found while trying out TypeRef ctor typing:
@@ -287,14 +287,14 @@ def append ls elem = L { h = elem; t = S { v = ls } }
 
 :ns
 append
-//│ res: forall 'a 'h 'T 'v 't 'T0. 'v -> 'h -> 'a
+//│ res: forall 'h 'a 't 'T 'T0 'v. 'v -> 'h -> 'a
 //│   where
-//│     'a :> #L & {h: 'h, t: 't, L#T = 'T}
-//│     't :> #S & {v: 'v, S#T = 'T0}
-//│        <: O[L['T]]
-//│     'h <: 'T
-//│     'v <: L['T] & 'T0
-//│     'T0 := L['T]
+//│     'a :> #L & {h: 'h, t: 't, L#T = 'T0}
+//│     't :> #S & {v: 'v, S#T = 'T}
+//│        <: O[L['T0]]
+//│     'h <: 'T0
+//│     'v <: L['T0] & 'T
+//│     'T := L['T0]
 
 append error
 //│ res: ('h & 'T) -> (L['T] with {h: 'h, t: S[L['T]] & {v: nothing}})

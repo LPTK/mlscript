@@ -330,10 +330,10 @@ def step: Arrays['a] -> Arrays['a]
 //│     = <missing implementation>
 
 def step arr = arr (fun impl -> fun (k: ArraysRepConsumer['a, 'r]) -> k (stepImpl impl))
-//│ ((forall 'Rep 'A 'A0 'A1 'a. ArraysRep[in 'A1 & 'A0 & 'A out 'A1 | 'A0, 'Rep] -> ArraysRepConsumer['A, 'a] -> 'a) -> 'b) -> 'b
+//│ ((forall 'A 'A0 'a 'Rep 'A1. ArraysRep[in 'A0 & 'A & 'A1 out 'A0 | 'A, 'Rep] -> ArraysRepConsumer['A1, 'a] -> 'a) -> 'b) -> 'b
 //│   where
-//│     'A :> 'A0
-//│        <: 'A1
+//│     'A1 :> 'A
+//│         <: 'A0
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step]

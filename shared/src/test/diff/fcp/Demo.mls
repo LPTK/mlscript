@@ -98,7 +98,7 @@ def found: Option[forall 'a 'b. ('a -> 'b & 'a) -> ('b | 'a)]
 //│ found: Option[forall 'a 'b. ('a -> 'b & 'a) -> ('a | 'b)]
 
 found = find(ls, 1)
-//│ Option[forall 'a 'b 'c. ('c -> 'a & 'c & 'b) -> ('a | 'b)]
+//│ Option[forall 'a 'b 'c. ('a -> 'b & 'a & 'c) -> ('b | 'c)]
 //│   <:  found:
 //│ Option[forall 'a 'b. ('a -> 'b & 'a) -> ('a | 'b)]
 

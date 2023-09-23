@@ -1223,7 +1223,8 @@ trait TypeSimplifier { self: Typer =>
           trace(s"Analysis[${printPol(pol)}] $st  [${curPath.reverseIterator.mkString(" ~> ")}]") {
             st match {
         case ty if ty.level <= lvl =>
-        case tv: TV if { occsNum(tv) = occsNum.getOrElse(tv, 0); false } =>
+        // case tv: TV if { occsNum(tv) = occsNum.getOrElse(tv, 0); false } =>
+        case tv: TV if { occsNum(tv) = occsNum.getOrElse(tv, 0) + 1; false } =>
         case tv: TV if traversedTVs.contains(tv) =>
         // case tv: TV if !traversedTVs.add(tv) =>
         case tv: TV =>
@@ -1336,6 +1337,7 @@ trait TypeSimplifier { self: Typer =>
       Analysis.varSubst.valuesIterator.foreach { Analysis.getRepr(_) }
       // println("Unif-pst: " + Analysis.varSubst)
       
+      println("Occ#: " + Analysis.occsNum)
       println("Pos: " + Analysis.posVars)
       println("Neg: " + Analysis.negVars)
       println("Rec: " + Analysis.recVars)
@@ -1360,7 +1362,7 @@ trait TypeSimplifier { self: Typer =>
               tv.assignedTo match {
                 case S(ty) =>
                   val res = subst(ty)
-                  if (ty.isSmall) res
+                  if (ty.isSmall || Analysis.occsNum(tv) === 1) res
                   else {
                     tv.assignedTo = S(res)
                     tv
@@ -1373,10 +1375,10 @@ trait TypeSimplifier { self: Typer =>
                   tv.upperBounds = newUBs
                   val isPos = Analysis.posVars.contains(tv)
                   val isNeg = Analysis.negVars.contains(tv)
-                  if (isPos && !isNeg && newLBs.forall(_.isSmall)) {
+                  if (isPos && !isNeg && (Analysis.occsNum(tv) === 1 && {newLBs match { case (tv: TV) :: Nil => true; case _ => false }} || newLBs.forall(_.isSmall))) {
                     newLBs.foldLeft(BotType: ST)(_ | _)
                   } else
-                  if (isNeg && !isPos && newUBs.forall(_.isSmall)) {
+                  if (isNeg && !isPos && (Analysis.occsNum(tv) === 1 && {newUBs match { case (tv: TV) :: Nil => true; case _ => false }} || newUBs.forall(_.isSmall))) {
                     newUBs.foldLeft(TopType: ST)(_ &- _)
                   }
                   else {
