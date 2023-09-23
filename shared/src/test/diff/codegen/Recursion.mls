@@ -43,7 +43,7 @@ rec def pow2 n = { call = fun x -> if n > 0 then (pow2 (n - 1)).call x * x else 
 //│   return { call: (x) => n > 0 ? pow2(n - 1).call(x) * x : 1 };
 //│ };
 //│ // End of generated code
-//│ pow2: int -> {call: anything -> int}
+//│ pow2: int -> {call: int -> int}
 //│     = [Function: pow2]
 
 (pow2 3).call 4

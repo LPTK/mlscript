@@ -41,13 +41,13 @@ id_ty = id
 // Self-application.
 xx = fun x -> x x
 def xx_ty: (forall 'X. 'X -> 'X) -> (forall 'X. 'X -> 'X)
-//│ xx: (nothing -> 'a) -> 'a
+//│ xx: ('a -> 'b & 'a) -> 'b
 //│   = [Function: xx]
 //│ xx_ty: (forall 'X. 'X -> 'X) -> (forall 'X0. 'X0 -> 'X0)
 //│      = <missing implementation>
 
 xx_ty = xx
-//│ (nothing -> 'a) -> 'a
+//│ ('a -> 'b & 'a) -> 'b
 //│   <:  xx_ty:
 //│ (forall 'X. 'X -> 'X) -> (forall 'X0. 'X0 -> 'X0)
 //│      = [Function: xx]
@@ -55,7 +55,7 @@ xx_ty = xx
 xx id
 iter2 f x = f(f x)
 def iter2_ty: forall 'X. ('X -> 'X) -> 'X -> 'X
-//│ res: nothing
+//│ res: 'a -> 'a
 //│    = [Function: id]
 //│ iter2: ('a -> 'b & 'b -> 'c) -> 'a -> 'c
 //│      = [Function: iter2]
@@ -145,7 +145,7 @@ iter256() = iter4() (iter4())
 def iter256_ty: () -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 iter256_ty() = iter4_ty() (iter4_ty())
 iter256_ty = iter256
-//│ iter256: () -> ('a -> ('a & 'b) & 'b -> 'a) -> 'a -> nothing
+//│ iter256: () -> ('a -> ('a & 'b) & 'b -> ('a & 'c)) -> 'a -> 'c
 //│        = [Function: iter256]
 //│ iter256_ty: () -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│           = <missing implementation>
@@ -153,7 +153,7 @@ iter256_ty = iter256
 //│   <:  iter256_ty:
 //│ () -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│           = [Function: iter256_ty]
-//│ () -> ('a -> ('a & 'b) & 'b -> 'a) -> 'a -> nothing
+//│ () -> ('a -> ('a & 'b) & 'b -> ('a & 'c)) -> 'a -> 'c
 //│   <:  iter256_ty:
 //│ () -> (forall 'X. ('X -> 'X) -> 'X -> 'X)
 //│           = [Function: iter256]
@@ -185,9 +185,9 @@ S_ty = S
 
 res1() = iter4() S Z
 res2() = iter256() S Z
-//│ res1: () -> ('a -> ('b & 'c) & 'c -> 'a) -> 'c -> 'b
+//│ res1: () -> (nothing -> 'a) -> anything -> 'a
 //│     = [Function: res1]
-//│ res2: () -> nothing
+//│ res2: () -> (nothing -> 'a) -> anything -> 'a
 //│     = [Function: res2]
 
 res1_ty() = iter4_ty() S_ty Z_ty
@@ -395,7 +395,7 @@ E q = q id
 // shallow (not (not true))        -- Shallow encoding.
 // λid.id(λb t f.b f t)(id(λb t f.b f t)(λx y.x))
 sh id = (id not) ((id not) tru)
-//│ sh: ((forall 'a 'b 'c. ('c -> 'a -> 'b) -> 'a -> 'c -> 'b) -> ('d -> 'e & (forall 'f. 'f -> anything -> 'f) -> 'd)) -> 'e
+//│ sh: ((forall 'a 'b 'c. ('a -> 'b -> 'c) -> 'b -> 'a -> 'c) -> ('d -> 'e & (forall 'f. 'f -> anything -> 'f) -> 'd)) -> 'e
 //│   = [Function: sh]
 
 // E[forall X.X->X->X](shallow (not( not true)))
@@ -421,7 +421,11 @@ pu sh_pu
 // * "Of course, self-application of self-application ((\x.x x)(\x.x x)) remains untypable, because it has no normal form."
 :e
 (fun x -> x x) (fun x -> x x)
-//│ res: nothing
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.423: 	(fun x -> x x) (fun x -> x x)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ res: error
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 

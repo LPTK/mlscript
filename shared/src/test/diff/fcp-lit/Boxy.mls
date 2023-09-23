@@ -71,7 +71,7 @@ length ids
 // def id: forall 'a. 'a -> 'a
 // def id = fun x -> let y = x: 'a in y
 fun x -> let y = x in y
-//│ res: 'a -> 'a
+//│ res: anything -> nothing
 
 // ============ Sec 4.4 ============
 

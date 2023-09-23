@@ -40,7 +40,7 @@ def bui_ty: forall 'a. (forall 'b. 'a -> 'b) -> ()
 bui_ty = bui_ty
 //│ (nothing -> nothing) -> ()
 //│   <:  bui_ty:
-//│ ('a -> 'a) -> ()
+//│ (nothing -> nothing) -> ()
 //│       = <no result>
 //│         bui_ty is not implemented
 

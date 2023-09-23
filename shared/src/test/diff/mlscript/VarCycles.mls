@@ -3,11 +3,15 @@
 
 
 def foo: ('a,) as 'a
-//│ foo: in (anything,) out (nothing,)
+//│ foo: 'a
+//│   where
+//│     'a :> ('a,)
 //│    = <missing implementation>
 
 def bar: (('b,) as 'b) -> ()
-//│ bar: in nothing -> () out anything -> ()
+//│ bar: 'b -> ()
+//│   where
+//│     'b <: ('b,)
 //│    = <missing implementation>
 
 
@@ -41,7 +45,16 @@ f 1 + 2
 
 :e
 bar foo
-//│ res: ()
+//│ ╔══[ERROR] Inferred recursive type: 'b
+//│   where
+//│     'b :> ('b,)
+//│ ║  l.11: 	def bar: (('b,) as 'b) -> ()
+//│ ╙──      	         ^^^^^^^^^^^^^
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.47: 	bar foo
+//│ ║        	^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ res: () | error
 //│    = <no result>
 //│      bar is not implemented
 

@@ -75,7 +75,7 @@ def test18 = (s x x x x x x x x x x x x x x x x x x e)
 
 // (* A function that receives a token *)
 def f t = (s x x t x x e)
-//│ f: (() -> List["x"] -> (forall 'a 'b. () -> List['a] -> (() -> List["x" | 'a] -> 'b) -> 'b) -> (forall 'c 'a. () -> List['a] -> (() -> List["x" | 'a] -> 'c) -> 'c) -> (forall 'a0 'd. () -> List[string] -> () -> List['a0] -> (() -> List['a0 | string] -> 'd) -> 'd) -> 'e) -> 'e
+//│ f: (() -> List["x"] -> (forall 'a 'b. () -> List['a] -> (() -> List["x" | 'a] -> 'b) -> 'b) -> (forall 'a 'c. () -> List['a] -> (() -> List["x" | 'a] -> 'c) -> 'c) -> (forall 'a0 'd. () -> List[string] -> () -> List['a0] -> (() -> List['a0 | string] -> 'd) -> 'd) -> 'e) -> 'e
 
 // (* If the token is used twice, we must reveive two arguments *)
 def g t1 t2 = (s x x t1 x (s x t2 x e) e)
@@ -83,5 +83,5 @@ def g t1 t2 = (s x x t1 x (s x t2 x e) e)
 
 // (* This does not type. It requires first-class polymorphism. *)
 def h t = g t t
-//│ h: (() -> List["x"] -> ((forall 'a 'b. () -> List['a] -> (() -> List["x" | 'a] -> 'b) -> 'b) -> (forall 'a0 'c. () -> List[string] -> () -> List['a0] -> (() -> List['a0 | string] -> 'c) -> 'c) -> 'd & (forall 'a 'e. () -> List['a] -> (() -> List["x" | 'a] -> 'e) -> 'e) -> 'd -> (forall 'a0 'f. () -> List[string] -> () -> List['a0] -> (() -> List['a0 | string] -> 'f) -> 'f) -> 'g)) -> 'g
+//│ h: (() -> List["x"] -> ((forall 'b 'a. () -> List['a] -> (() -> List["x" | 'a] -> 'b) -> 'b) -> (forall 'a0 'c. () -> List[string] -> () -> List['a0] -> (() -> List['a0 | string] -> 'c) -> 'c) -> 'd & (forall 'e 'a. () -> List['a] -> (() -> List["x" | 'a] -> 'e) -> 'e) -> 'd -> (forall 'a0 'f. () -> List[string] -> () -> List['a0] -> (() -> List['a0 | string] -> 'f) -> 'f) -> 'g)) -> 'g
 

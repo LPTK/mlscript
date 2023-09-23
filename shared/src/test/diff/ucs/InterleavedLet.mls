@@ -56,7 +56,7 @@ fun h(x, y) =
     None then y
     let y_square = y * y
     Some(z) then z + y_square
-//│ h: (None | Some & {value: int}, int,) -> int
+//│ h: (None | Some, int,) -> int
 //│  = [Function: h]
 
 h(Some(5), 6)
@@ -78,7 +78,7 @@ fun f(a, y) =
       let y = v + 1
       Right(x) then x + y
     else 0
-//│ f: (Some & {value: int} | ~Some, anything,) -> int
+//│ f: (anything, anything,) -> int
 //│  = [Function: f1]
 
 :pe
@@ -92,7 +92,7 @@ fun q(a) =
 //│ ║        	            ^^^^^
 //│ ║  l.89: 	    then y
 //│ ╙──      	^^^^^^^^^^
-//│ q: (Left & {leftValue: 'leftValue}) -> 'leftValue
+//│ q: Left -> nothing
 //│  = [Function: q1]
 
 class A()
@@ -176,7 +176,7 @@ fun tr(x) =
     Some(v) then v
     let tmp = 1
     None then tmp
-//│ tr: (None | Some & {value: 'value}) -> (1 | 'value)
+//│ tr: (None | Some) -> 1
 //│   = [Function: tr]
 
 class Pair(fst, snd)
@@ -247,18 +247,12 @@ fun mapPartition(f, xs) =
       let r = res.snd
       Left(v)  then Pair(Cons(v, l), r)
       Right(v) then Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & {head: 'head} | Nil,) -> (Pair & {fst: 'fst, snd: 'snd})
-//│   where
-//│     'snd :> Cons & {head: 'rightValue, tail: 'snd} | Nil
-//│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
+//│ mapPartition: (nothing -> anything, Cons | Nil,) -> (Pair & {fst: Cons & {head: nothing, tail: nothing} | Nil, snd: Cons & {head: nothing, tail: nothing} | Nil})
 //│             = [Function: mapPartition]
 
 // FIXME: Something wrong with code generation.
 mapPartition(x => if x % 2 == 0 then Left(x) else Right(x), zeroToThree)
-//│ res: Pair & {fst: 'fst, snd: 'snd}
-//│   where
-//│     'snd :> Cons & {head: 0, tail: 'snd} | Nil
-//│     'fst :> Nil | Cons & {head: 0, tail: 'fst}
+//│ res: Pair & {fst: Cons & {head: nothing, tail: nothing} | Nil, snd: Cons & {head: nothing, tail: nothing} | Nil}
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
@@ -269,5 +263,5 @@ fun mn(a) =
       let y = x + 1
       Right(b) then "right-defined"
     None       then "undefined"
-//│ mn: (None | Some & {value: nothing}) -> ("left-defined" | "right-defined" | "undefined")
+//│ mn: (None | Some) -> ("left-defined" | "right-defined" | "undefined")
 //│   = [Function: mn]

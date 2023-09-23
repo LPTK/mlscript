@@ -227,7 +227,7 @@ def oops (i: forall 'c. ('c -> 'c, 0)) =
 
 
 def foo(a, b) = (a, b) : forall 'c. ('c, 'c)
-//│ foo: (??c, ??c,) -> (nothing, nothing,)
+//│ foo: (nothing, nothing,) -> (nothing, nothing,)
 //│    = [Function: foo]
 
 :re

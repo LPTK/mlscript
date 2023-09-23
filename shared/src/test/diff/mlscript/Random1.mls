@@ -11,7 +11,9 @@ class G[A]: { a: G[A] }
 //│ ╙──     	        ^
 
 def g: G['a] & {a: 'a} as 'a
-//│ g: G[?]
+//│ g: 'a
+//│   where
+//│     'a :> G[?] with {a: 'a}
 //│  = <missing implementation>
 
 :NoJS
@@ -23,15 +25,17 @@ rec def g2 a = G { a }
 g = g2
 //│ (G[?] & 'a) -> (G[?] with {a: 'a})
 //│   <:  g:
-//│ G[?] & {a: nothing}
+//│ 'a
+//│   where
+//│     'a :> G[?] with {a: 'a}
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.23: 	g = g2
+//│ ║  l.25: 	g = g2
 //│ ║        	^^^^^^
 //│ ╟── function of type `?a -> (forall ?b. ?b)` is not an instance of type `G`
-//│ ║  l.19: 	rec def g2 a = G { a }
+//│ ║  l.21: 	rec def g2 a = G { a }
 //│ ║        	           ^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `G[?]`
-//│ ║  l.23: 	g = g2
+//│ ║  l.25: 	g = g2
 //│ ║        	    ^^
 //│ ╟── Note: constraint arises from applied type reference:
 //│ ║  l.13: 	def g: G['a] & {a: 'a} as 'a
@@ -50,23 +54,42 @@ g = g2
 //│   where
 //│     'a :> G[?] with {a: 'a}
 //│   <:  g:
-//│ G[?] & {a: nothing}
+//│ 'a
+//│   where
+//│     'a :> G[?] with {a: 'a}
 
 g = g
-//│ G[?] & {a: nothing}
+//│ 'a
+//│   where
+//│     'a :> G[?] with {a: 'a}
 //│   <:  g:
-//│ G[?] & {a: nothing}
+//│ 'a
+//│   where
+//│     'a :> G[?] with {a: 'a}
 
 
 def manual: 'a -> nothing as 'a
-//│ manual: in nothing -> nothing out anything -> nothing
+//│ manual: 'a
+//│   where
+//│     'a := 'a -> nothing
 
 :e
 manual id
-//│ res: nothing
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.77: 	manual id
+//│ ║        	^^^^^^^^^
+//│ ╟── type `'a -> nothing` does not match type `nothing`
+//│ ║  l.71: 	def manual: 'a -> nothing as 'a
+//│ ║        	            ^^^^^^^^^^^^^
+//│ ╟── Note: constraint arises from type reference:
+//│ ║  l.71: 	def manual: 'a -> nothing as 'a
+//│ ╙──      	                  ^^^^^^^
+//│ res: error
 
 def manual: 'a -> anything as 'a
-//│ manual: in nothing -> anything out anything -> anything
+//│ manual: 'a
+//│   where
+//│     'a := 'a -> anything
 
 manual id
 //│ res: anything

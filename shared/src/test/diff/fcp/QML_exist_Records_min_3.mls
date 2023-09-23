@@ -15,22 +15,17 @@ def stepImpl_ty: ArraysImpl['a] -> ArraysImpl['a]
 
 // * There used to be a wrongly-simplified `'a <: nothing` bound here
 def s arr (k: ArraysImplConsumer['a]) = arr (fun impl -> k (stepImpl_ty impl))
-//│ s: ((forall 'a. ArraysImpl['a] -> int) -> 'b) -> ArraysImplConsumer[in 'a0 & 'a1 out 'a1] -> 'b
+//│ s: ((ArraysImpl['a] -> int) -> 'b) -> ArraysImplConsumer['a0] -> 'b
 //│   where
-//│     'a :> 'a0
-//│        <: 'a1
+//│     'a <: 'a0
 
 // * ...although we could see that it shouldn't be simplified to nothing:
 :ns
 s
-//│ res: forall 'b 'a 'a0 'c. 'b -> (forall 'a1. ArraysImplConsumer['a1] -> 'c)
+//│ res: forall 'b 'a 'a0 'c. 'b -> ArraysImplConsumer['a] -> 'c
 //│   where
-//│     'a1 :> 'a0
-//│         <: 'a
-//│     'b <: (forall 'a2. ArraysImpl['a2] -> int) -> 'c
-//│     'a2 :> 'a
-//│         <: 'a0
-//│     'a <: 'a0
-//│     'a0 <: in anything out nothing
+//│     'b <: (ArraysImpl['a0] -> int) -> 'c
+//│     'a0 <: 'a
+//│     'a <: in anything out nothing
 
 

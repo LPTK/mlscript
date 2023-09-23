@@ -132,9 +132,9 @@ def step (arr: Arrays['a]) = arr helper
 
 // * With `stepImpl`
 def step arr = arr (fun impl -> fun (k: ArraysImplConsumer['a, 'r]) -> k (stepImpl impl))
-//│ ((forall 'a 'r 'b 'a0. ArraysImpl['a0, 'r] -> ArraysImplConsumer['a, 'b] -> 'b) -> 'c) -> 'c
+//│ ((forall 'a 'a0 'r 'b. ArraysImpl['a, 'r] -> ArraysImplConsumer['a0, 'b] -> 'b) -> 'c) -> 'c
 //│   where
-//│     'a0 <: 'a
+//│     'a <: 'a0
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step2]
@@ -198,7 +198,7 @@ def step2: Arrays['a] -> Arrays['a]
 
 
 def step2 (arr: Arrays['a]) (k: ArraysImplConsumer['a2, 'rep]) = arr (fun impl -> k (stepImpl impl))
-//│ Arrays['a] -> ArraysImplConsumer['a2, 'rep] -> 'rep
+//│ Arrays['a] -> ArraysImplConsumer['a2, 'b] -> 'b
 //│   where
 //│     'a <: 'a2
 //│   <:  step2:
@@ -287,7 +287,7 @@ def step2 = forall 'a. fun (arr: Arrays['a]) -> fun k -> arr (fun impl -> k (ste
 // * because that makes `k` leak its argument type
 :e
 def step arr = arr (fun impl -> fun k -> k (stepImpl_ty impl))
-//│ ((forall 'b 'a 'r. ArraysImpl['a, 'r] -> (ArraysImpl['a, ('r, string,)] -> 'b) -> 'b) -> 'c) -> 'c
+//│ ((forall 'a 'r 'b. ArraysImpl['a, 'r] -> (ArraysImpl['a, ('r, string,)] -> 'b) -> 'b) -> 'c) -> 'c
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│ ╔══[ERROR] Type error in def definition
@@ -342,10 +342,10 @@ def step arr = arr (forall 'a. fun impl -> forall 'r. fun (k: ArraysImplConsumer
 
 // * ...unless we use `stepImpl_ty` instead of `stepImpl`
 def step arr = arr (fun impl -> forall 'r. fun (k: ArraysImplConsumer['a, 'r]) -> k (stepImpl_ty impl))
-//│ ((forall 'a 'r 'a0 'a1 'r0. ArraysImpl[in 'a1 & 'a0 out 'a0, 'r] -> ArraysImplConsumer['a, 'r0] -> 'r0) -> 'b) -> 'b
+//│ ((forall 'a 'r 'r0 'a0 'a1. ArraysImpl[in 'a & 'a1 out 'a1, 'r] -> ArraysImplConsumer['a0, 'r0] -> 'r0) -> 'b) -> 'b
 //│   where
-//│     'a :> 'a1
-//│        <: 'a0
+//│     'a0 :> 'a
+//│         <: 'a1
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step8]
@@ -402,9 +402,9 @@ def step arr = arr (fun impl -> arrayRepToArray_A (stepImpl_ty impl))
 //│     = [Function: step13]
 
 def step arr = arr (fun impl -> arrayRepToArray (stepImpl_ty impl))
-//│ ((forall 'a 'r 'b 'a0. ArraysImpl['a0, 'r] -> (forall 'rep. ArraysImpl['a, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
+//│ ((forall 'a 'a0 'r 'b. ArraysImpl['a, 'r] -> (forall 'rep. ArraysImpl['a0, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
 //│   where
-//│     'a0 <: 'a
+//│     'a <: 'a0
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step14]
@@ -416,9 +416,9 @@ def step (arr: Arrays['a]) = arr (fun impl -> arrayRepToArray_A (stepImpl impl))
 //│     = [Function: step15]
 
 def step arr = arr (fun impl -> arrayRepToArray (stepImpl impl))
-//│ ((forall 'a 'a0 'r 'b. ArraysImpl['a, 'r] -> (forall 'rep. ArraysImpl['a0, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
+//│ ((forall 'a 'r 'b 'a0. ArraysImpl['a0, 'r] -> (forall 'rep. ArraysImpl['a, 'rep] -> 'b) -> 'b) -> 'c) -> 'c
 //│   where
-//│     'a <: 'a0
+//│     'a0 <: 'a
 //│   <:  step:
 //│ Arrays['a] -> Arrays['a]
 //│     = [Function: step16]

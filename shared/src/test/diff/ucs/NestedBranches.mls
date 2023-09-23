@@ -50,7 +50,7 @@ fun optionApply(x, y, f) =
       Some(yv) then Some(f(xv, yv))
       None() then None()
     None() then None()
-//│ optionApply: (None | Some & {value: 'value}, None | Some & {value: 'value0}, ('value, 'value0,) -> 'value1,) -> (None | Some & {value: 'value1})
+//│ optionApply: (None | Some, None | Some, (nothing, nothing,) -> 'value,) -> (None | Some & {value: 'value})
 //│            = [Function: optionApply]
 
 
@@ -60,10 +60,7 @@ fun mapPartition(f, xs) = if xs is
   Cons(x, xs) and mapPartition(f, xs) is Pair(l, r) and f(x) is
     Left(v)  then Pair(Cons(v, l), r)
     Right(v) then Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & {head: 'head} | Nil,) -> (Pair & {fst: 'fst, snd: 'snd})
-//│   where
-//│     'snd :> Cons & {head: 'rightValue, tail: 'snd} | Nil
-//│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
+//│ mapPartition: (nothing -> anything, Cons | Nil,) -> (Pair & {fst: Cons & {head: nothing, tail: nothing} | Nil, snd: Cons & {head: nothing, tail: nothing} | Nil})
 //│             = [Function: mapPartition]
 
 fun mapPartition(f, xs) = if xs is
@@ -72,10 +69,7 @@ fun mapPartition(f, xs) = if xs is
     mapPartition(f, xs) is Pair(l, r) and f(x) is
       Left(v)  then Pair(Cons(v, l), r)
       Right(v) then Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & {head: 'head} | Nil,) -> (Pair & {fst: 'fst, snd: 'snd})
-//│   where
-//│     'snd :> Cons & {head: 'rightValue, tail: 'snd} | Nil
-//│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
+//│ mapPartition: (nothing -> anything, Cons | Nil,) -> (Pair & {fst: Cons & {head: nothing, tail: nothing} | Nil, snd: Cons & {head: nothing, tail: nothing} | Nil})
 //│             = [Function: mapPartition1]
 
 fun mapPartition(f, xs) = if xs is
@@ -89,10 +83,7 @@ fun mapPartition(f, xs) = if xs is
             Pair(Cons(v, l), r)
           Right(v) then
             Pair(l, Cons(v, r))
-//│ mapPartition: ('head -> (Left & {leftValue: 'leftValue} | Right & {rightValue: 'rightValue}), Cons & {head: 'head} | Nil,) -> (Pair & {fst: 'fst, snd: 'snd})
-//│   where
-//│     'snd :> Cons & {head: 'rightValue, tail: 'snd} | Nil
-//│     'fst :> Nil | Cons & {head: 'leftValue, tail: 'fst}
+//│ mapPartition: (nothing -> anything, Cons | Nil,) -> (Pair & {fst: Cons & {head: nothing, tail: nothing} | Nil, snd: Cons & {head: nothing, tail: nothing} | Nil})
 //│             = [Function: mapPartition2]
 
 
@@ -103,8 +94,8 @@ fun mapPartition(f, xs) = if xs is
     Left(v)  then (Cons(v, l), r)
     Right(v) then (l, Cons(v, r))
 //│ ╔══[ERROR] The case when this is false is not handled: is (mapPartition (f, xs,),) (l, r,)
-//│ ║  l.102: 	  Cons(x, xs) and mapPartition(f, xs) is (l, r) and f(x) is
-//│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.93: 	  Cons(x, xs) and mapPartition(f, xs) is (l, r) and f(x) is
+//│ ╙──      	                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ mapPartition: (anything, anything,) -> error
 //│ Code generation encountered an error:
 //│   if expression has not been desugared
@@ -122,12 +113,12 @@ fun mapPartition(f, xs) = if xs is
           and f(x) is Left(v)  then (Cons(v, l), r)
                       Right(v) then (l, Cons(v, r))
 //│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.123: 	                      Right(v) then (l, Cons(v, r))
+//│ ║  l.114: 	                      Right(v) then (l, Cons(v, r))
 //│ ╙──       	                               ^^^^
 //│ ╔══[WARNING] Paren-less applications should use the 'of' keyword
-//│ ║  l.122: 	          and f(x) is Left(v)  then (Cons(v, l), r)
+//│ ║  l.113: 	          and f(x) is Left(v)  then (Cons(v, l), r)
 //│ ║         	                                    ^^^^^^^^^^^^^^^
-//│ ║  l.123: 	                      Right(v) then (l, Cons(v, r))
+//│ ║  l.114: 	                      Right(v) then (l, Cons(v, r))
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] type identifier not found: Tuple#2
 //│ ╙──

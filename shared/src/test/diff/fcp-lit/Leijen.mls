@@ -165,7 +165,7 @@ def auto : (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a)
 def auto x = x x
 //│ auto: (forall 'a. 'a -> 'a) -> (forall 'a0. 'a0 -> 'a0)
 //│     = <missing implementation>
-//│ (nothing -> 'a) -> 'a
+//│ ('a -> 'b & 'a) -> 'b
 //│   <:  auto:
 //│ (forall 'a. 'a -> 'a) -> (forall 'a0. 'a0 -> 'a0)
 //│     = [Function: auto]
@@ -174,7 +174,7 @@ def xauto : forall 'a. (forall 'b. 'b -> 'b) -> 'a -> 'a
 def xauto x = x x
 //│ xauto: (forall 'b. 'b -> 'b) -> 'a -> 'a
 //│      = <missing implementation>
-//│ (nothing -> 'a) -> 'a
+//│ ('a -> 'b & 'a) -> 'b
 //│   <:  xauto:
 //│ (forall 'b. 'b -> 'b) -> 'a -> 'a
 //│      = [Function: xauto]
@@ -294,7 +294,7 @@ let i = fun x -> x in i i
 
 // ,("\\i -> i i", Wrong)              -- infinite type
 fun i -> i i
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 //│    = [Function: res]
 
 // ,("\\i -> (i 1, i True)", Wrong)    -- polymorphic use of parameter
@@ -338,7 +338,7 @@ fun (i: forall 'a. 'a -> 'a) -> i i
 fun i -> i i
 //│ res: (forall 'a. 'a -> 'a) -> 'a0 -> 'a0
 //│    = [Function: res]
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 //│    = [Function: res]
 
 // ,("auto id", ok "forall a. a -> a")
@@ -510,7 +510,7 @@ fun x -> (x : List[forall 'a. 'a -> 'a])
 
 // ,("\\x -> let polys (xs :: [forall a . a -> a]) = 1; f y = x in polys [f::some a. forall b. b -> a]",Wrong)  -- escape in unify (with rigid annotations, otherwise we get a skolem mismatch)
 fun x -> let polys (xs: List[forall 'a. 'a -> 'a]) = 1 in let f y = x in polys (single (f : forall 'b. 'b -> 'a))
-//│ res: ??a -> 1
+//│ res: anything -> 1
 //│    = [Function: res]
 
 // ,("ids :: forall b. [forall a. a -> b]", Wrong)                                                       -- unify different skolems
@@ -519,7 +519,7 @@ ids : forall 'b. List[forall 'a. 'a -> 'b]
 //│ ╔══[ERROR] Type mismatch in type ascription:
 //│ ║  l.518: 	ids : forall 'b. List[forall 'a. 'a -> 'b]
 //│ ║         	^^^
-//│ ╟── type `anything` does not match type `'b`
+//│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.518: 	ids : forall 'b. List[forall 'a. 'a -> 'b]
 //│ ║         	                                 ^^
 //│ ╟── Note: constraint arises from type variable:

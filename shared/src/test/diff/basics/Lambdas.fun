@@ -20,7 +20,7 @@ let id = v => v
 //│ id: 'a -> 'a
 
 f => f f
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 
 f => id f id f id
 //│ res: ((forall 'a. 'a -> 'a) -> nothing -> (forall 'a. 'a -> 'a) -> 'b) -> 'b
@@ -43,9 +43,9 @@ x =>
 x =>
   let y = x
   y
-//│ res: 'a -> 'a
-//│ res: 'a -> 'a
-//│ res: 'a -> 'a
+//│ res: anything -> nothing
+//│ res: anything -> nothing
+//│ res: anything -> nothing
 
 let f x = x + 1
 let f x y = x + y

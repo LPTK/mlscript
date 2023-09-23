@@ -46,7 +46,7 @@ test (fun g -> fun n -> id)
 def test f =
   let a = f() in
   a : anything -> BTB
-//│ test: (() -> anything -> BTB) -> anything -> BTB
+//│ test: (() -> anything) -> anything -> BTB
 
 :e
 test (fun () -> fun n -> id)
@@ -57,7 +57,7 @@ test (fun () -> fun n -> id)
 def test f =
   let a() = f id in
   a() : nothing -> BTB
-//│ test: ((forall 'a. 'a -> 'a) -> nothing -> BTB) -> nothing -> BTB
+//│ test: ((forall 'a. 'a -> 'a) -> anything) -> nothing -> BTB
 
 :e
 test (fun g -> fun n -> id)
@@ -72,7 +72,7 @@ test (fun g -> fun n -> id)
 def test f =
   let a = f() in
   a : anything -> BTB
-//│ test: (() -> anything -> BTB) -> anything -> BTB
+//│ test: (() -> anything) -> anything -> BTB
 
 test (fun () -> fun n -> id)
 //│ res: anything -> BTB
@@ -82,7 +82,7 @@ test (fun () -> fun n -> id)
 def test f =
   let a = f id in
   a : nothing -> BTB
-//│ test: ((forall 'a. 'a -> 'a) -> nothing -> BTB) -> nothing -> BTB
+//│ test: ((forall 'a. 'a -> 'a) -> anything) -> nothing -> BTB
 
 test (fun g -> fun n -> id)
 //│ res: nothing -> BTB

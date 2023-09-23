@@ -78,30 +78,11 @@ EM_to_DNE_A0: EM -> DNE
 def EM_to_DNE_A1 em =
   let poly (nna: Not[Not['A]]) = case em of Left -> em.v, Right -> nna em.v
   in poly
-//│ EM_to_DNE_A1: ((Left with {v: 'v}) | Right & {v: Not['A]}) -> Not[Not['A]] -> 'v
+//│ EM_to_DNE_A1: (Left | Right & {v: Not[?]}) -> Not[Not[anything]] -> nothing
 //│             = [Function: EM_to_DNE_A1]
 
 :e
 EM_to_DNE_A1: EM -> DNE
-//│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.85: 	EM_to_DNE_A1: EM -> DNE
-//│ ║        	^^^^^^^^^^^^
-//│ ╟── type variable `'a` leaks out of its scope
-//│ ║  l.23: 	type DNE = forall 'a. Not[Not['a]] -> 'a
-//│ ║        	                              ^^
-//│ ╟── back into type variable `'a`
-//│ ║  l.23: 	type DNE = forall 'a. Not[Not['a]] -> 'a
-//│ ║        	                                      ^^
-//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this reference:
-//│ ║  l.80: 	  in poly
-//│ ║        	     ^^^^
-//│ ╟── • this reference:
-//│ ║  l.85: 	EM_to_DNE_A1: EM -> DNE
-//│ ║        	^^^^^^^^^^^^
-//│ ╟── • this field selection:
-//│ ║  l.79: 	  let poly (nna: Not[Not['A]]) = case em of Left -> em.v, Right -> nna em.v
-//│ ╙──      	                                                    ^^^^
 //│ res: EM -> DNE
 //│    = [Function: EM_to_DNE_A1]
 
@@ -114,14 +95,14 @@ EM_to_DNE_A1: EM -> DNE
 // *      )
 def DNE_to_EM dne =
   dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
-//│ DNE_to_EM: ((forall 'a 'b 'v. ((Left with {v: 'v}) -> 'a & (Right & {v: 'v -> 'a}) -> 'b) -> 'b) -> 'c) -> 'c
+//│ DNE_to_EM: ((forall 'v 'a 'b. ((Left with {v: 'v}) -> 'a & (Right & {v: 'v -> 'a}) -> 'b) -> 'b) -> 'c) -> 'c
 //│          = [Function: DNE_to_EM]
 
 // * Requires distributivity because we currently don't generalize function bodies
 :e
 DNE_to_EM: DNE -> EM
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.122: 	DNE_to_EM: DNE -> EM
+//│ ║  l.103: 	DNE_to_EM: DNE -> EM
 //│ ║         	^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.19: 	type EM = forall 'a. Either['a, Not['a]]
@@ -131,43 +112,24 @@ DNE_to_EM: DNE -> EM
 //│ ║        	                 ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this reference:
-//│ ║  l.122: 	DNE_to_EM: DNE -> EM
+//│ ║  l.103: 	DNE_to_EM: DNE -> EM
 //│ ║         	^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.116: 	  dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
-//│ ╙──       	                                                          ^^^^^^^^^^^^^^
+//│ ║  l.97: 	  dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
+//│ ╙──      	                                                          ^^^^^^^^^^^^^^
 //│ res: DNE -> EM
 //│    = [Function: DNE_to_EM]
 
 def DNE_to_EM_let dne =
   let poly = dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
   in poly
-//│ DNE_to_EM_let: ((forall 'v 'a 'b. ((Left with {v: 'v}) -> 'a & (Right & {v: 'v -> 'a}) -> 'b) -> 'b) -> 'c) -> 'c
+//│ DNE_to_EM_let: ((forall 'v 'a 'b. ((Left with {v: 'v}) -> 'a & (Right & {v: 'v -> 'a}) -> 'b) -> 'b) -> anything) -> nothing
 //│              = [Function: DNE_to_EM_let]
 
 // * This one used to work because we used let polymorphism
 // * Stopped working after "sound extrusion", but works with distrib (see below)
 :e
 DNE_to_EM_let: DNE -> EM
-//│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.151: 	DNE_to_EM_let: DNE -> EM
-//│ ║         	^^^^^^^^^^^^^
-//│ ╟── type variable `'a` leaks out of its scope
-//│ ║  l.19: 	type EM = forall 'a. Either['a, Not['a]]
-//│ ║        	                                    ^^
-//│ ╟── back into type variable `'a`
-//│ ║  l.19: 	type EM = forall 'a. Either['a, Not['a]]
-//│ ║        	                 ^^
-//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this application:
-//│ ║  l.143: 	  let poly = dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
-//│ ║         	             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── • this reference:
-//│ ║  l.144: 	  in poly
-//│ ║         	     ^^^^
-//│ ╟── • this reference:
-//│ ║  l.151: 	DNE_to_EM_let: DNE -> EM
-//│ ╙──       	^^^^^^^^^^^^^
 //│ res: DNE -> EM
 //│    = [Function: DNE_to_EM_let]
 
@@ -182,7 +144,7 @@ def DNE_to_EM_A0 (dne: DNE) =
 :e
 DNE_to_EM_A0: DNE -> EM
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.183: 	DNE_to_EM_A0: DNE -> EM
+//│ ║  l.145: 	DNE_to_EM_A0: DNE -> EM
 //│ ║         	^^^^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.19: 	type EM = forall 'a. Either['a, Not['a]]
@@ -192,10 +154,10 @@ DNE_to_EM_A0: DNE -> EM
 //│ ║        	                 ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this reference:
-//│ ║  l.183: 	DNE_to_EM_A0: DNE -> EM
+//│ ║  l.145: 	DNE_to_EM_A0: DNE -> EM
 //│ ║         	^^^^^^^^^^^^
 //│ ╟── • this application:
-//│ ║  l.178: 	  dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
+//│ ║  l.140: 	  dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
 //│ ╙──       	                                                          ^^^^^^^^^^^^^^
 //│ res: DNE -> EM
 //│    = [Function: DNE_to_EM_A0]
@@ -214,20 +176,20 @@ def DNE_to_EM_A1 dne =
 :e
 DNE_to_EM_A1: DNE -> EM
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.215: 	DNE_to_EM_A1: DNE -> EM
+//│ ║  l.177: 	DNE_to_EM_A1: DNE -> EM
 //│ ║         	^^^^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.19: 	type EM = forall 'a. Either['a, Not['a]]
 //│ ║        	                                    ^^
 //│ ╟── back into type variable `'a0`
-//│ ║  l.210: 	  (dne: Not[Not[EM_of['a]]] -> EM_of['a]) (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
+//│ ║  l.172: 	  (dne: Not[Not[EM_of['a]]] -> EM_of['a]) (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
 //│ ║         	                                     ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this application:
-//│ ║  l.210: 	  (dne: Not[Not[EM_of['a]]] -> EM_of['a]) (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
+//│ ║  l.172: 	  (dne: Not[Not[EM_of['a]]] -> EM_of['a]) (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
 //│ ║         	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.215: 	DNE_to_EM_A1: DNE -> EM
+//│ ║  l.177: 	DNE_to_EM_A1: DNE -> EM
 //│ ╙──       	^^^^^^^^^^^^
 //│ res: DNE -> EM
 //│    = [Function: DNE_to_EM_A1]
@@ -254,20 +216,20 @@ def DNE_to_EM_A2 (dne: DNE) =
 :e
 DNE_to_EM_A2: DNE -> EM
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.255: 	DNE_to_EM_A2: DNE -> EM
+//│ ║  l.217: 	DNE_to_EM_A2: DNE -> EM
 //│ ║         	^^^^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.19: 	type EM = forall 'a. Either['a, Not['a]]
 //│ ║        	                                    ^^
 //│ ╟── back into type variable `'a0`
-//│ ║  l.248: 	  dne (fun (not_em: Not[Either['A, Not['A]]]) -> not_em (Right { v = helper not_em }))
+//│ ║  l.210: 	  dne (fun (not_em: Not[Either['A, Not['A]]]) -> not_em (Right { v = helper not_em }))
 //│ ║         	                                       ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this application:
-//│ ║  l.248: 	  dne (fun (not_em: Not[Either['A, Not['A]]]) -> not_em (Right { v = helper not_em }))
+//│ ║  l.210: 	  dne (fun (not_em: Not[Either['A, Not['A]]]) -> not_em (Right { v = helper not_em }))
 //│ ║         	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.255: 	DNE_to_EM_A2: DNE -> EM
+//│ ║  l.217: 	DNE_to_EM_A2: DNE -> EM
 //│ ╙──       	^^^^^^^^^^^^
 //│ res: DNE -> EM
 //│    = [Function: DNE_to_EM_A2]
@@ -296,7 +258,7 @@ EM_to_DNE_A0 em
 //│ res: (Not['v] -> 'v) -> 'v
 
 EM_to_DNE_A1 em
-//│ res: Not[Not['v]] -> 'v
+//│ res: Not[Not[anything]] -> nothing
 
 
 DNE_to_EM_A0 dne
@@ -369,7 +331,7 @@ DNE_to_EM dne
 :e
 EM_to_DNE: EM -> DNE
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.370: 	EM_to_DNE: EM -> DNE
+//│ ║  l.332: 	EM_to_DNE: EM -> DNE
 //│ ║         	^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.23: 	type DNE = forall 'a. Not[Not['a]] -> 'a
@@ -382,7 +344,7 @@ EM_to_DNE: EM -> DNE
 //│ ║  l.32: 	  case em of Left -> em.v, Right -> nna em.v
 //│ ║        	                                        ^^^^
 //│ ╟── • this reference:
-//│ ║  l.370: 	EM_to_DNE: EM -> DNE
+//│ ║  l.332: 	EM_to_DNE: EM -> DNE
 //│ ║         	^^^^^^^^^
 //│ ╟── • this field selection:
 //│ ║  l.32: 	  case em of Left -> em.v, Right -> nna em.v
@@ -395,27 +357,24 @@ EM_to_DNE: EM -> DNE
 :e
 EM_to_DNE: EM -> DNE
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.396: 	EM_to_DNE: EM -> DNE
+//│ ║  l.358: 	EM_to_DNE: EM -> DNE
 //│ ║         	^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.23: 	type DNE = forall 'a. Not[Not['a]] -> 'a
 //│ ║        	                              ^^
 //│ ╟── back into type variable `'a`
-//│ ║  l.32: 	  case em of Left -> em.v, Right -> nna em.v
-//│ ║        	                     ^^^^
+//│ ║  l.23: 	type DNE = forall 'a. Not[Not['a]] -> 'a
+//│ ║        	                  ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this field selection:
 //│ ║  l.32: 	  case em of Left -> em.v, Right -> nna em.v
 //│ ║        	                                        ^^^^
 //│ ╟── • this reference:
-//│ ║  l.396: 	EM_to_DNE: EM -> DNE
+//│ ║  l.358: 	EM_to_DNE: EM -> DNE
 //│ ║         	^^^^^^^^^
 //│ ╟── • this field selection:
 //│ ║  l.32: 	  case em of Left -> em.v, Right -> nna em.v
-//│ ║        	                     ^^^^
-//│ ╟── Note: constraint arises from type variable:
-//│ ║  l.19: 	type EM = forall 'a. Either['a, Not['a]]
-//│ ╙──      	                                    ^^
+//│ ╙──      	                     ^^^^
 //│ res: EM -> DNE
 
 
@@ -430,7 +389,7 @@ def EM_to_DNE em nna =
 :e // * Still needs distrib! (after "sound extrusion")
 EM_to_DNE: EM -> DNE
 //│ ╔══[ERROR] Type error in type ascription
-//│ ║  l.431: 	EM_to_DNE: EM -> DNE
+//│ ║  l.390: 	EM_to_DNE: EM -> DNE
 //│ ║         	^^^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.23: 	type DNE = forall 'a. Not[Not['a]] -> 'a
@@ -440,12 +399,12 @@ EM_to_DNE: EM -> DNE
 //│ ║        	                                      ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this function:
-//│ ║  l.424: 	def EM_to_DNE em nna =
+//│ ║  l.383: 	def EM_to_DNE em nna =
 //│ ║         	                 ^^^^^
-//│ ║  l.425: 	  case em of Left -> em.v, Right -> nna em.v
+//│ ║  l.384: 	  case em of Left -> em.v, Right -> nna em.v
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.431: 	EM_to_DNE: EM -> DNE
+//│ ║  l.390: 	EM_to_DNE: EM -> DNE
 //│ ║         	^^^^^^^^^
 //│ ╟── Note: constraint arises from type variable:
 //│ ║  l.19: 	type EM = forall 'a. Either['a, Not['a]]
@@ -454,12 +413,28 @@ EM_to_DNE: EM -> DNE
 
 def DNE_to_EM dne =
   dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
-//│ DNE_to_EM: ((forall 'a. ((Right & {v: forall 'v 'b. ('v -> 'b
+//│ DNE_to_EM: ((forall 'a 'b. ((Right & {v: forall 'v 'c. ('v -> 'c
 //│   where
-//│     nothing <: (Left with {v: 'v}) -> 'b)}) -> 'a) -> 'a) -> 'c) -> 'c
+//│     'a <: (Left with {v: 'v}) -> 'c)}) -> 'b & 'a) -> 'b) -> 'd) -> 'd
 
 :e // * Still needs distrib! (after "sound extrusion")
 DNE_to_EM: DNE -> EM
+//│ ╔══[ERROR] Type error in type ascription
+//│ ║  l.421: 	DNE_to_EM: DNE -> EM
+//│ ║         	^^^^^^^^^
+//│ ╟── type variable `'a` leaks out of its scope
+//│ ║  l.19: 	type EM = forall 'a. Either['a, Not['a]]
+//│ ║        	                                    ^^
+//│ ╟── back into type variable `'a0`
+//│ ║  l.415: 	  dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
+//│ ║         	                                                                     ^
+//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
+//│ ╟── • this reference:
+//│ ║  l.421: 	DNE_to_EM: DNE -> EM
+//│ ║         	^^^^^^^^^
+//│ ╟── • this application:
+//│ ║  l.415: 	  dne (fun not_em -> not_em (Right { v = fun a -> not_em (Left { v = a }) }))
+//│ ╙──       	                                                          ^^^^^^^^^^^^^^
 //│ res: DNE -> EM
 
 // * They work with distrib:

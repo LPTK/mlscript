@@ -35,14 +35,14 @@ def g = rcd with { y = "yeah" }
 // records
 //│ rcd: {x: 1}
 //│ res: 1
-//│ funky: (('a\y & {y: "nah"}) -> 'b) -> 'a -> 'b
-//│ cool: (('a\a\b & {a: "apple", b: "ball"}) -> 'b) -> 'a -> 'b
+//│ funky: (nothing -> 'a) -> anything -> 'a
+//│ cool: (nothing -> 'a) -> anything -> 'a
 //│ g: {x: 1, y: "yeah"}
 //│ // start ts
 //│ export declare const rcd: {readonly x: 1}
 //│ export declare const res: 1
-//│ export declare const funky<a, b>: (arg: (arg1: Omit<a, "y"> & {readonly y: "nah"}) => b) => (arg2: a) => b
-//│ export declare const cool<a, b>: (arg: (arg1: Omit<a, "a" | "b"> & {readonly a: "apple", readonly b: "ball"}) => b) => (arg2: a) => b
+//│ export declare const funky<a>: (arg: (arg1: never) => a) => (arg2: unknown) => a
+//│ export declare const cool<a>: (arg: (arg1: never) => a) => (arg2: unknown) => a
 //│ export declare const g: {readonly x: 1, readonly y: "yeah"}
 //│ // end ts
 
@@ -66,7 +66,7 @@ rec def l (a: int) = l
 rec def m (a: int) (b: int) = m
 def f: ('c -> 'a as 'a) -> 'c -> int
 // recursion type functions
-//│ /!!!\ Uncaught error: mlscript.codegen.CodeGenError: Cannot generate type for `where` clause List((α86,Bounds(Function(Tuple(List((None,Field(None,TypeName(int))))),α86),Top))) List()
+//│ /!!!\ Uncaught error: mlscript.codegen.CodeGenError: Cannot generate type for `where` clause List((α80,Bounds(Function(Tuple(List((None,Field(None,TypeName(int))))),α80),Top))) List()
 
 :ts
 :e
@@ -152,15 +152,6 @@ def weird: ((int, int) -> 'a) as 'a
 def weird: ('a -> (int, int)) as 'a
 def weird: ((int, 'a) as 'a) -> int
 def weird: ((int, bool) | 'a) -> 'a
-//│ weird: in (int, int,) -> anything out (int, int,) -> nothing
-//│ weird: in nothing -> (int, int,) out anything -> (int, int,)
-//│ weird: in (int, nothing,) -> int out (int, anything,) -> int
-//│ weird: ('a | (int, bool,)) -> 'a
-//│ // start ts
-//│ export declare const weird: (arg: int, arg1: int) => never
-//│ export declare const weird: (arg: unknown) => readonly [int, int]
-//│ export declare const weird: (arg: readonly [int, unknown]) => int
-//│ export declare const weird<'a>: (arg: 'a | readonly [int, bool]) => 'a
-//│ // end ts
+//│ /!!!\ Uncaught error: mlscript.codegen.CodeGenError: Cannot generate type for `where` clause List((α169,Bounds(Function(Tuple(List((None,Field(None,TypeName(int))), (None,Field(None,TypeName(int))))),α169),Top))) List()
 
 

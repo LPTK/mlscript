@@ -47,49 +47,79 @@ ty2B = ty2A
 
 
 def ty3A: MyArray['a] as 'a
-//│ ty3A: MyArray[in anything out nothing]
+//│ ty3A: MyArray['a]
+//│   where
+//│     'a := MyArray['a]
 
 :stats
 ty3A = ty3A
-//│ MyArray[in anything out nothing]
+//│ MyArray[MyArray['a]]
+//│   where
+//│     'a := MyArray['a]
 //│   <:  ty3A:
-//│ MyArray[in anything out nothing]
-//│ constrain calls  : 1
-//│ annoying  calls  : 0
-//│ subtyping calls  : 12
+//│ MyArray['a]
+//│   where
+//│     'a := MyArray['a]
+//│ ╔══[ERROR] Cyclic-looking constraint while typing def definition; a type annotation may be required
+//│ ║  l.+1: 	ty3A = ty3A
+//│ ║        	^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ constrain calls  : 54
+//│ annoying  calls  : 23
+//│ subtyping calls  : 222
 
 def ty3B: MyArray[MyArray['a]] as 'a
-//│ ty3B: MyArray[MyArray[in anything out nothing]]
+//│ ty3B: MyArray[MyArray['a]]
+//│   where
+//│     'a := MyArray[MyArray['a]]
 
 :stats
 ty3B = ty3A
-//│ MyArray[in anything out nothing]
+//│ MyArray[MyArray['a]]
+//│   where
+//│     'a := MyArray['a]
 //│   <:  ty3B:
-//│ MyArray[MyArray[in anything out nothing]]
-//│ constrain calls  : 1
-//│ annoying  calls  : 0
-//│ subtyping calls  : 11
+//│ MyArray[MyArray['a]]
+//│   where
+//│     'a := MyArray[MyArray['a]]
+//│ constrain calls  : 80
+//│ annoying  calls  : 23
+//│ subtyping calls  : 294
 
 :stats
 ty3A = ty3B
-//│ MyArray[MyArray[in anything out nothing]]
+//│ MyArray[MyArray[MyArray[MyArray['a]]]]
+//│   where
+//│     'a := MyArray[MyArray['a]]
 //│   <:  ty3A:
-//│ MyArray[in anything out nothing]
-//│ constrain calls  : 1
-//│ annoying  calls  : 0
-//│ subtyping calls  : 11
+//│ MyArray['a]
+//│   where
+//│     'a := MyArray['a]
+//│ constrain calls  : 110
+//│ annoying  calls  : 23
+//│ subtyping calls  : 361
 
 def ty4B: MyArray[MyArray[MyArray['a]]] as 'a
-//│ ty4B: MyArray[MyArray[MyArray[in anything out nothing]]]
+//│ ty4B: MyArray[MyArray[MyArray['a]]]
+//│   where
+//│     'a := MyArray[MyArray[MyArray['a]]]
 
 :stats
 ty4B = ty4B
-//│ MyArray[MyArray[MyArray[in anything out nothing]]]
+//│ MyArray[MyArray[MyArray[MyArray[MyArray[MyArray['a]]]]]]
+//│   where
+//│     'a := MyArray[MyArray[MyArray['a]]]
 //│   <:  ty4B:
-//│ MyArray[MyArray[MyArray[in anything out nothing]]]
-//│ constrain calls  : 1
-//│ annoying  calls  : 0
-//│ subtyping calls  : 48
+//│ MyArray[MyArray[MyArray['a]]]
+//│   where
+//│     'a := MyArray[MyArray[MyArray['a]]]
+//│ ╔══[ERROR] Cyclic-looking constraint while typing def definition; a type annotation may be required
+//│ ║  l.+1: 	ty4B = ty4B
+//│ ║        	^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ constrain calls  : 102
+//│ annoying  calls  : 23
+//│ subtyping calls  : 424
 
 
 

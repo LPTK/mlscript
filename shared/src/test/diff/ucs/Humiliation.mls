@@ -21,7 +21,7 @@ fun testF(x) = if x is
   Foo(a) then a
 //│ ╔══[WARNING] duplicated branch
 //│ ╙──
-//│ testF: (Foo & {x: 'x}) -> 'x
+//│ testF: Foo -> nothing
 //│      = [Function: testF]
 
 class Bar(y, z)
@@ -32,7 +32,7 @@ class Bar(y, z)
 fun test(f) = if f is
   Foo(a) then a
   Bar(b, c) then b + c
-//│ test: (Bar & {y: int, z: int} | Foo & {x: 'x}) -> (int | 'x)
+//│ test: (Bar | Foo) -> int
 //│     = [Function: test1]
 
 
@@ -47,7 +47,7 @@ fun f(x) =
     Pair(1, 1) then "ones"
     Pair(y, 1) then x
     _          then "nah"
-//│ f: (Pair & {fst: number, snd: number} & 'a | ~Pair) -> ("nah" | "ones" | "zeros" | 'a)
+//│ f: (Pair & 'a | ~Pair) -> ("nah" | "ones" | "zeros" | 'a)
 //│  = [Function: f]
 
 class Z()
@@ -105,7 +105,7 @@ fun foo(x) = if x is
       Z() then "zeros"
     O() then if b is
       O() then "ones"
-//│ foo: (Pair & {fst: O | Z, snd: nothing}) -> ("ones" | "zeros")
+//│ foo: Pair -> ("ones" | "zeros")
 //│    = [Function: foo2]
 
 fun foo(x) = if x is
@@ -115,7 +115,7 @@ fun foo(x) = if x is
       else "???"
     O() then if b is
       O() then "ones"
-//│ foo: (Pair & {fst: O | Z, snd: O}) -> ("???" | "ones" | "zeros")
+//│ foo: Pair -> ("???" | "ones" | "zeros")
 //│    = [Function: foo3]
 
 fun foo(x) = if x is
@@ -126,7 +126,7 @@ fun foo(x) = if x is
     O() then if b is
       O() then "zeros"
       else "???"
-//│ foo: (Pair & {fst: O | Z}) -> ("???" | "zeros")
+//│ foo: Pair -> ("???" | "zeros")
 //│    = [Function: foo4]
 
 class S(pred)
@@ -143,7 +143,7 @@ fun foo(x) = if x is
     O() then if b is
       O() then "zeros"
       else "???"
-//│ foo: (Pair & {fst: O | Z, snd: S & {pred: 'pred} | ~S}) -> ("???" | "zeros" | 'pred)
+//│ foo: Pair -> ("???" | "zeros")
 //│    = [Function: foo5]
 
 :re

@@ -266,7 +266,7 @@ add
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	((let x = 0; add) (x => 0))
 //│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> 0` is not an instance of type `int`
+//│ ╟── function of type `anything -> 0` is not an instance of type `int`
 //│ ║  l.+1: 	((let x = 0; add) (x => 0))
 //│ ║        	                   ^^^^^^
 //│ ╟── but it flows into argument with expected type `int`
@@ -308,7 +308,7 @@ add
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	((let x = 0; add) (x => add))
 //│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> int -> int -> int` is not an instance of type `int`
+//│ ╟── function of type `anything -> int -> int -> int` is not an instance of type `int`
 //│ ║  l.+1: 	((let x = 0; add) (x => add))
 //│ ║        	                   ^^^^^^^^
 //│ ╟── but it flows into argument with expected type `int`
@@ -470,7 +470,7 @@ add
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	((let x = add; add) (x => 0))
 //│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> 0` is not an instance of type `int`
+//│ ╟── function of type `anything -> 0` is not an instance of type `int`
 //│ ║  l.+1: 	((let x = add; add) (x => 0))
 //│ ║        	                     ^^^^^^
 //│ ╟── but it flows into argument with expected type `int`
@@ -491,7 +491,7 @@ add
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	((let x = add; add) (x => add))
 //│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> int -> int -> int` is not an instance of type `int`
+//│ ╟── function of type `anything -> int -> int -> int` is not an instance of type `int`
 //│ ║  l.+1: 	((let x = add; add) (x => add))
 //│ ║        	                     ^^^^^^^^
 //│ ╟── but it flows into argument with expected type `int`
@@ -686,7 +686,7 @@ add
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	((let x = {v: 0}; add) (x => 0))
 //│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> 0` is not an instance of type `int`
+//│ ╟── function of type `anything -> 0` is not an instance of type `int`
 //│ ║  l.+1: 	((let x = {v: 0}; add) (x => 0))
 //│ ║        	                        ^^^^^^
 //│ ╟── but it flows into argument with expected type `int`
@@ -707,7 +707,7 @@ add
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.+1: 	((let x = {v: 0}; add) (x => add))
 //│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `?a -> int -> int -> int` is not an instance of type `int`
+//│ ╟── function of type `anything -> int -> int -> int` is not an instance of type `int`
 //│ ║  l.+1: 	((let x = {v: 0}; add) (x => add))
 //│ ║        	                        ^^^^^^^^
 //│ ╟── but it flows into argument with expected type `int`

@@ -16,7 +16,7 @@ def id x = x
 def k x y = x
 //│ auto: Sid -> Sid
 //│     = [Function: auto]
-//│ auto_: (nothing -> 'a) -> 'a
+//│ auto_: ('a -> 'b & 'a) -> 'b
 //│      = [Function: auto_]
 //│ id: 'a -> 'a
 //│   = [Function: id]
@@ -115,7 +115,7 @@ def test0_ =
       k (g (fun x -> x x))
         ((fun t -> (fun u -> fun v -> v) (g t) (t (fun f -> fun x -> x)))
           (fun x -> ((fun f -> fun x -> f x) x) (fun f -> fun x -> x))))
-//│ test0_: nothing
+//│ test0_: 'a -> 'a
 //│       = [Function: test0_]
 
 
@@ -146,7 +146,7 @@ def a1_sid_to_nat (g: A1_sid) =
 def a1_sid_to_nat_ g =
   let r = fun f -> g (fun x -> f x) in
   r
-//│ a1_sid_to_nat_: (('a -> 'b) -> 'c) -> ('a -> 'b) -> 'c
+//│ a1_sid_to_nat_: ((anything -> nothing) -> anything) -> (nothing -> anything) -> nothing
 //│               = [Function: a1_sid_to_nat_]
 
 // (* the term is as above but abstract over sb and uses the coercion *)
@@ -174,7 +174,7 @@ def test_in_F_eta_ =
       k (g (fun x -> x x))
         ((fun t -> (fun u -> fun v -> v) ((a1_sid_to_nat_ g) t) (t (fun f -> fun x -> x)))
           (fun x -> ((fun f -> fun x -> f x) x) (fun f -> fun x -> x))))
-//│ test_in_F_eta_: nothing
+//│ test_in_F_eta_: 'a -> 'a
 //│               = [Function: test_in_F_eta_]
 
 // (*
@@ -228,7 +228,7 @@ def a2'_ x =
     let _ = x y church_two in
     y church_succ
   ) a3
-//│ a2'_: ((forall 'a. (nothing -> 'a) -> 'a) -> (forall 'b. 'b -> 'b) -> anything & (forall 'c. ((forall 'd 'e 'f. ('d -> 'e & 'e -> 'f) -> 'd -> 'f) -> 'c) -> anything -> 'c) -> (forall 'd 'e 'f. ('d -> 'e & 'e -> 'f) -> 'd -> 'f) -> anything) -> anything -> ('g -> 'h & 'i -> 'j & 'j -> 'g) -> 'i -> 'h
+//│ a2'_: ((forall 'a 'b. ('a -> 'b & 'a) -> 'b) -> (forall 'c. 'c -> 'c) -> anything & (forall 'd. ((forall 'e 'f 'g. ('e -> 'f & 'f -> 'g) -> 'e -> 'g) -> 'd) -> anything -> 'd) -> (forall 'e 'f 'g. ('e -> 'f & 'f -> 'g) -> 'e -> 'g) -> anything) -> anything -> ('h -> 'i & 'j -> 'k & 'k -> 'h) -> 'j -> 'i
 //│     = [Function: a2$_]
 
 :e // * [FCP-LIM] current limitation due to the union type in A1' (we don't currently handle them precisely)
@@ -263,7 +263,11 @@ def a0' = a2' a1'
 
 :e
 def a0'_ = a2'_ a1'
-//│ a0'_: anything -> ('a -> 'b & 'c -> 'd & 'd -> 'a) -> 'c -> 'b
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.265: 	def a0'_ = a2'_ a1'
+//│ ║         	           ^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ a0'_: anything -> ('a -> 'b & 'c -> 'd & 'd -> 'a) -> 'c -> 'b | error
 //│     = [Function: a0$_]
 
 :RecursiveTypes
@@ -313,7 +317,7 @@ def a2_ (x: A1) =
 //│   = [Function: a11]
 //│ a3: 'a -> (forall 'b. (anything -> 'b
 //│   where
-//│     'a <: (forall 'c 'd 'e. ('e -> 'c & 'c -> 'd) -> 'e -> 'd) -> 'b))
+//│     'a <: (forall 'c 'd 'e. ('c -> 'd & 'd -> 'e) -> 'c -> 'e) -> 'b))
 //│   = [Function: a31]
 //│ a2: A1 -> (forall 'a. (anything -> 'a
 //│   where
@@ -327,13 +331,13 @@ def a2_ (x: A1) =
 def a0 = a2 a1
 //│ a0: anything -> 'a
 //│   where
-//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a
+//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('g -> 'h & 'h -> 'f) -> 'g -> 'f) -> 'a
 //│   = [Function: a01]
 
 def a0_ = a2_ a1
 //│ a0_: anything -> 'a
 //│   where
-//│     forall 'b 'c 'd 'e. ('d -> 'e -> 'b) -> ('b -> 'c & 'd) -> 'e -> 'c <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a
+//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a
 //│    = [Function: a0_1]
 
 def a1' = fun f -> fun x -> f (f (either id x))
@@ -351,9 +355,9 @@ def a2' (x: A1') =
   ) a3
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
-//│     'a :> forall 'a 'b 'c 'd 'e. (('b -> 'e & 'e -> 'd) -> ('b -> 'd | 'c)
+//│     'a :> forall 'b 'c 'a 'd 'e. (('c -> 'b & 'b -> 'e) -> ('c -> 'e | 'd)
 //│   where
-//│     'a | Sid <: (forall 'b 'e 'd. ('b -> 'e & 'e -> 'd) -> 'b -> 'd) -> 'c)
+//│     'a | Sid <: (forall 'c 'b 'e. ('c -> 'b & 'b -> 'e) -> 'c -> 'e) -> 'd)
 //│ ║  l.198: 	type A1' = forall 'a. (('a | Sid) -> 'a) -> 'a -> ('a | Sid)
 //│ ╙──       	                  ^^
 //│ a2': A1' -> (forall 'a. (anything -> 'a
@@ -367,17 +371,17 @@ def a2'_ x =
     let _ = x y church_two in
     y church_succ
   ) a3
-//│ a2'_: ((forall 'a. (nothing -> 'a) -> 'a) -> (forall 'b. 'b -> 'b) -> anything & (forall 'c. 'c -> (forall 'd. (anything -> 'd
+//│ a2'_: ((forall 'a 'b. ('b -> 'a & 'b) -> 'a) -> (forall 'c. 'c -> 'c) -> anything & (forall 'd. 'd -> (forall 'e. (anything -> 'e
 //│   where
-//│     'c <: (forall 'e 'f 'g. ('g -> 'e & 'e -> 'f) -> 'g -> 'f) -> 'd))) -> (forall 'e 'f 'g. ('g -> 'e & 'e -> 'f) -> 'g -> 'f) -> anything) -> (forall 'h. (anything -> 'h
+//│     'd <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'e))) -> (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> anything) -> (forall 'i. (anything -> 'i
 //│   where
-//│     forall 'i 'j 'k 'l. ('i -> 'j -> 'k) -> ('k -> 'l & 'i) -> 'j -> 'l <: (forall 'e 'f 'g. ('g -> 'e & 'e -> 'f) -> 'g -> 'f) -> 'h))
+//│     forall 'j 'k 'l 'm. ('j -> 'k -> 'l) -> ('l -> 'm & 'j) -> 'k -> 'm <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'i))
 //│     = [Function: a2$_1]
 
 :e // * [FCP-LIM] see previous version above
 def a0' = a2' a1'
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.378: 	def a0' = a2' a1'
+//│ ║  l.382: 	def a0' = a2' a1'
 //│ ║         	          ^^^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.5: 	type Sid = forall 'a. 'a -> 'a
@@ -387,29 +391,29 @@ def a0' = a2' a1'
 //│ ║  l.15: 	def id x = x
 //│ ║        	       ^^^^^
 //│ ╟── • this reference:
-//│ ║  l.339: 	def a1' = fun f -> fun x -> f (f (either id x))
+//│ ║  l.343: 	def a1' = fun f -> fun x -> f (f (either id x))
 //│ ║         	                                         ^^
 //│ ╟── • this reference:
 //│ ║  l.208: 	def either x y = if true then x else y
 //│ ║         	                              ^
 //│ ╟── • this reference:
-//│ ║  l.378: 	def a0' = a2' a1'
+//│ ║  l.382: 	def a0' = a2' a1'
 //│ ║         	              ^^^
 //│ ╟── • this function:
-//│ ║  l.346: 	def a2' (x: A1') =
+//│ ║  l.350: 	def a2' (x: A1') =
 //│ ║         	        ^^^^^^^^^^
-//│ ║  l.347: 	  let _ = x auto id in
+//│ ║  l.351: 	  let _ = x auto id in
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.348: 	  (fun y ->
+//│ ║  l.352: 	  (fun y ->
 //│ ║         	^^^^^^^^^^^
-//│ ║  l.349: 	    let _ = x y church_two in
+//│ ║  l.353: 	    let _ = x y church_two in
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.350: 	    y church_succ
+//│ ║  l.354: 	    y church_succ
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.351: 	  ) a3
+//│ ║  l.355: 	  ) a3
 //│ ║         	^^^^^^^
 //│ ╟── • this reference:
-//│ ║  l.378: 	def a0' = a2' a1'
+//│ ║  l.382: 	def a0' = a2' a1'
 //│ ╙──       	          ^^^
 //│ a0': anything -> 'a | error
 //│   where
@@ -418,9 +422,13 @@ def a0' = a2' a1'
 
 :e
 def a0'_ = a2'_ a1'
-//│ a0'_: anything -> 'a
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.424: 	def a0'_ = a2'_ a1'
+//│ ║         	           ^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ a0'_: anything -> 'a | error
 //│   where
-//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('g -> 'h & 'h -> 'f) -> 'g -> 'f) -> 'a
+//│     forall 'b 'c 'd 'e. ('b -> 'c -> 'd) -> ('d -> 'e & 'b) -> 'c -> 'e <: (forall 'f 'g 'h. ('f -> 'g & 'g -> 'h) -> 'f -> 'h) -> 'a
 //│     = [Function: a0$_2]
 
 :RecursiveTypes

@@ -59,7 +59,7 @@ def eval eval e = case e of {
   | Lit -> e.n
   | Add -> eval eval e.lhs + eval eval e.rhs
   }
-//│ eval: (nothing -> 'rhs -> int) -> ((Add with {lhs: anything, rhs: 'rhs}) | (Lit with {n: 'n})) -> (int | 'n)
+//│ eval: ('a -> 'lhs -> int & 'a) -> ((Add with {lhs: 'lhs, rhs: 'lhs}) | (Lit with {n: 'n})) -> (int | 'n)
 //│     = [Function: eval1]
 
 eval eval! e
@@ -71,7 +71,7 @@ def evalN evalN e = case e of {
   | Neg -> 0 - evalN evalN e.e
   | _ -> eval evalN e
   }
-//│ evalN: (nothing -> 'rhs -> int) -> ((Add with {lhs: anything, rhs: 'rhs}) | (Lit with {n: 'n}) | (Neg with {e: anything})) -> (int | 'n)
+//│ evalN: ('a -> 'e -> int & 'a -> 'lhs -> int & 'a) -> ((Add with {lhs: 'lhs, rhs: 'lhs}) | (Lit with {n: 'n}) | (Neg with {e: 'e})) -> (int | 'n)
 //│      = [Function: evalN]
 
 evalN eval! e
@@ -83,7 +83,11 @@ evalN eval! e2
 //│    = -3
 
 ev = evalN evalN!
-//│ ev: ((Add with {lhs: Add | Lit | Neg, rhs: Add | Lit | Neg}) | (Lit with {n: 'n}) | (Neg with {e: Add | Lit | Neg})) -> (int | 'n)
+//│ ev: (Add & 'a | (Lit with {n: 'n}) | Neg & 'b) -> (int | 'n)
+//│   where
+//│     'a <: {lhs: 'c, rhs: 'c}
+//│     'c <: Add & 'a | Lit | Neg & 'b
+//│     'b <: {e: 'c}
 //│   = [Function (anonymous)]
 
 (ev e, ev e2)
@@ -106,7 +110,7 @@ def evalN evalN k e = case e of {
   | Neg -> 0 - evalN evalN k e.e
   | _ -> k e
   }
-//│ evalN: (nothing -> 'a -> 'e -> int) -> ('b -> 'c & 'a) -> ((Neg with {e: 'e}) | 'b & ~#Neg) -> (int | 'c)
+//│ evalN: ('a -> 'b -> 'e -> int & 'a) -> ('c -> 'd & 'b) -> ((Neg with {e: 'e}) | 'c & ~#Neg) -> (int | 'd)
 //│      = [Function: evalN1]
 
 
@@ -114,11 +118,15 @@ def evalN evalN k e = case e of {
 // *  by making the simplifier realize that in `Lit with {n: 'n}`, `'n` really co-occurs with `int`!
 
 def evalComposed evalComposed = evalN evalN! (fun e -> eval evalComposed e)
-//│ evalComposed: (nothing -> 'lhs -> int) -> ((Add with {lhs: 'lhs, rhs: anything}) | (Lit with {n: 'n}) | (Neg with {e: (Add with {lhs: 'lhs, rhs: anything}) | Lit | Neg})) -> (int | 'n)
+//│ evalComposed: ('a -> 'rhs -> int & 'a) -> ((Add with {lhs: 'rhs, rhs: 'rhs}) | (Lit with {n: 'n}) | Neg & 'b) -> (int | 'n)
+//│   where
+//│     'b <: {e: (Add with {lhs: 'rhs, rhs: 'rhs}) | Lit | Neg & 'b}
 //│             = [Function: evalComposed]
 
 def evalComposed evalComposed = evalN evalN! (eval evalComposed)
-//│ evalComposed: (nothing -> 'rhs -> int) -> ((Add with {lhs: anything, rhs: 'rhs}) | (Lit with {n: 'n}) | (Neg with {e: (Add with {lhs: anything, rhs: 'rhs}) | Lit | Neg})) -> (int | 'n)
+//│ evalComposed: ('a -> 'lhs -> int & 'a) -> ((Add with {lhs: 'lhs, rhs: 'lhs}) | (Lit with {n: 'n}) | Neg & 'b) -> (int | 'n)
+//│   where
+//│     'b <: {e: (Add with {lhs: 'lhs, rhs: 'lhs}) | Lit | Neg & 'b}
 //│             = [Function: evalComposed1]
 
 
@@ -126,7 +134,12 @@ def evalComposed evalComposed = evalN evalN! (eval evalComposed)
 // *    of the need for an algorithm to tie recursive TV knots and inline the rest;
 // *    once we inline, `b` we should get the expected simplified recursive type.
 ev2 = evalComposed evalComposed!
-//│ ev2: ((Add with {lhs: Add | Lit | (Neg with {e: Add | Lit | Neg}), rhs: Add | Lit | (Neg with {e: Add | Lit | Neg})}) | (Lit with {n: 'n}) | (Neg with {e: (Add with {lhs: Add | Lit | (Neg with {e: Add | Lit | Neg}), rhs: Add | Lit | (Neg with {e: Add | Lit | Neg})}) | Lit | Neg})) -> (int | 'n)
+//│ ev2: ((Add with {lhs: 'a, rhs: 'a}) | (Lit with {n: 'n}) | Neg & 'b) -> (int | 'n)
+//│   where
+//│     'b <: {e: (Add with {lhs: 'a, rhs: 'a}) | Lit | Neg & 'b}
+//│     'a <: Neg & 'c | 'd & ~#Neg
+//│     'c <: {e: 'd | Neg & 'c}
+//│     'd <: (Add with {lhs: 'a, rhs: 'a}) | Lit
 //│    = [Function (anonymous)]
 
 ev2 e3
@@ -135,12 +148,20 @@ ev2 e3
 
 
 def ev2_ty: (Add & { lhs: 'a; rhs: 'a } | Lit | Neg & { e: 'a } as 'a) -> int
-//│ ev2_ty: (Add | Lit | Neg) -> int
+//│ ev2_ty: 'a -> int
+//│   where
+//│     'a <: (Add with {lhs: 'a, rhs: 'a}) | Lit | (Neg with {e: 'a})
 //│       = <missing implementation>
 
 ev2_ty = ev2
-//│ ((Add with {lhs: Add | Lit | (Neg with {e: Add | Lit | Neg}), rhs: Add | Lit | (Neg with {e: Add | Lit | Neg})}) | (Lit with {n: 'n}) | (Neg with {e: (Add with {lhs: Add | Lit | (Neg with {e: Add | Lit | Neg}), rhs: Add | Lit | (Neg with {e: Add | Lit | Neg})}) | Lit | Neg})) -> (int | 'n)
+//│ ((Add with {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg}) | (Lit with {n: 'n}) | Neg & 'c) -> (int | 'n)
+//│   where
+//│     'c <: {e: (Add with {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg}) | Lit | Neg & 'c}
+//│     'a <: {e: 'b | Neg & 'a}
+//│     'b <: Add & {lhs: Neg & 'a | 'b & ~#Neg, rhs: Neg & 'a | 'b & ~#Neg} | Lit
 //│   <:  ev2_ty:
-//│ (Add | Lit | Neg) -> int
+//│ 'a -> int
+//│   where
+//│     'a <: (Add with {lhs: 'a, rhs: 'a}) | Lit | (Neg with {e: 'a})
 //│       = [Function (anonymous)]
 

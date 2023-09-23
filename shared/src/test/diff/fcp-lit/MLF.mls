@@ -80,7 +80,7 @@ choose id auto
 // Not typeable in MLF, along with anything with it as a subterm
 // i.e. unannotated auto
 omega = fun x -> x x
-//│ omega: (nothing -> 'a) -> 'a
+//│ omega: ('a -> 'b & 'a) -> 'b
 
 fun (x: forall 'a. 'a) -> x x
 //│ res: nothing -> nothing
@@ -119,14 +119,23 @@ let f = choose id in (f auto) (f succ)
 // * Reproduced with an unnanotated auto:
 
 def auto2 x = x x
-//│ auto2: (nothing -> 'a) -> 'a
+//│ auto2: ('a -> 'b & 'a) -> 'b
 
 choose id auto2
-//│ res: (nothing -> 'a & 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> ('b | 'a)
 
 :e // * This is a legit error
 res (choose id succ)
-//│ res: int -> int | int
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.128: 	res (choose id succ)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^
+//│ ╟── reference of type `int -> int` is not an instance of type `int`
+//│ ║  l.128: 	res (choose id succ)
+//│ ║         	               ^^^^
+//│ ╟── but it flows into application with expected type `int`
+//│ ║  l.128: 	res (choose id succ)
+//│ ╙──       	     ^^^^^^^^^^^^^^
+//│ res: int -> int | error | int
 
 // * Didier Le Botlan suggested this fix by email:
 
@@ -134,7 +143,7 @@ let f = choose id in (f auto, f succ)
 //│ res: (forall 'b 'a. (forall 'a0. 'a0 -> 'a0 & 'b) -> ('a -> 'a | 'b), forall 'b. (int & 'b) -> (int | 'b),)
 
 let f = choose id in (f auto2, f succ)
-//│ res: (forall 'a 'b. (nothing -> 'a & 'b) -> ('a | 'b), forall 'b. (int & 'b) -> (int | 'b),)
+//│ res: (forall 'a 'b 'c. ('b -> 'c & 'b & 'a) -> ('c | 'a), forall 'a. (int & 'a) -> (int | 'a),)
 
 // ------------ Sec 6 ------------
 
@@ -151,7 +160,7 @@ K x y = x
 //│ K: 'a -> anything -> 'a
 
 (fun y -> let tmp = y I in y K) (fun x -> x x)
-//│ res: anything -> nothing
+//│ res: anything -> (forall 'a. 'a -> anything -> 'a)
 
 // * Note: reduces to
 let tmp = (fun x -> x x) I in (fun x -> x x) K
@@ -179,7 +188,7 @@ let tmp = I I in K K
 (fun z -> z) omegad
 (fun z -> z) omega
 //│ res: (forall 'a. 'a -> 'a) -> 'a0 -> 'a0
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 
 // * i.e. auto id (FreezeML F5)
 (fun x -> x x) id
@@ -188,22 +197,22 @@ let tmp = I I in K K
 fun z -> (z omegad)
 fun z -> (z omega)
 //│ res: ((forall 'a. (forall 'a0. 'a0 -> 'a0) -> 'a -> 'a) -> 'b) -> 'b
-//│ res: ((forall 'a. (nothing -> 'a) -> 'a) -> 'b) -> 'b
+//│ res: ((forall 'a 'b. ('a -> 'b & 'a) -> 'b) -> 'c) -> 'c
 
 (fun y -> fun z -> z y) omegad
 (fun y -> fun z -> z y) omega
 //│ res: ((forall 'a. (forall 'a0. 'a0 -> 'a0) -> 'a -> 'a) -> 'b) -> 'b
-//│ res: ((forall 'a. (nothing -> 'a) -> 'a) -> 'b) -> 'b
+//│ res: ((forall 'a 'b. ('a -> 'b & 'a) -> 'b) -> 'c) -> 'c
 
 fun z -> omegad z
 fun z -> omega z
 //│ res: (forall 'a. 'a -> 'a) -> 'a0 -> 'a0
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 
 (fun x -> fun y -> x y) omegad
 (fun x -> fun y -> x y) omega
 //│ res: (forall 'a. 'a -> 'a) -> (forall 'a0. 'a0 -> 'a0)
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 
 // ------------ Sec 4.3 ------------
 // affects the order of bindings in the result type in MLF, not very interesting otherwise
@@ -271,25 +280,25 @@ K x y = x
 // """ In particular, we conjecture that the term ...
 monster = (fun y -> (let tmp = y I in y K)) (fun x -> x x)
 // """ ... that is typable in Fω but not in F [9] is not typable in MLF either.
-//│ monster: anything -> nothing
+//│ monster: anything -> 'a -> anything -> 'a
 
 ignore x y = y
 //│ ignore: anything -> 'a -> 'a
 
 monsterThunk() = (fun y -> (ignore (y I) (y K))) (fun x -> x x)
-//│ monsterThunk: () -> anything -> nothing
+//│ monsterThunk: () -> anything -> 'a -> anything -> 'a
 
 monster2 = (fun y -> (y I, y K)) (fun x -> x x)
-//│ monster2: (nothing, anything -> nothing,)
+//│ monster2: (forall 'a. 'a -> 'a, anything -> (forall 'b. 'b -> anything -> 'b),)
 
 monster = (fun y -> (let tmp = y I in y K)) (fun x -> x x)
-//│ monster: anything -> nothing
+//│ monster: anything -> 'a -> anything -> 'a
 
 monsterThunk() = (fun y -> ignore (y I) (y K)) (fun x -> x x)
-//│ monsterThunk: () -> anything -> nothing
+//│ monsterThunk: () -> anything -> 'a -> anything -> 'a
 
 monster2 = (fun y -> (y I, y K)) (fun x -> x x)
-//│ monster2: (nothing, anything -> nothing,)
+//│ monster2: (forall 'a. 'a -> 'a, anything -> (forall 'b. 'b -> anything -> 'b),)
 
 K K
 //│ res: anything -> (forall 'a. 'a -> anything -> 'a)

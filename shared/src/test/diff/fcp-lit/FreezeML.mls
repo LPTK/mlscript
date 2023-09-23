@@ -164,7 +164,7 @@ def auto : (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 def auto x = x x
 //│ auto: (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│     = <missing implementation>
-//│ (nothing -> 'a) -> 'a
+//│ ('a -> 'b & 'a) -> 'b
 //│   <:  auto:
 //│ (forall 'a. 'a -> 'a) -> (forall 'b. 'b -> 'b)
 //│     = [Function: auto]
@@ -173,7 +173,7 @@ def auto_ : (forall 'a. 'a -> 'a) -> 'b -> 'b
 def auto_ x = x x
 //│ auto_: (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│      = <missing implementation>
-//│ (nothing -> 'a) -> 'a
+//│ ('a -> 'b & 'a) -> 'b
 //│   <:  auto_:
 //│ (forall 'a. 'a -> 'a) -> 'b -> 'b
 //│      = [Function: auto_]
@@ -249,7 +249,7 @@ fun (x: forall 'a. 'a -> 'a) -> x x
 
 // A4'
 fun x -> x x
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 //│    = [Function: res]
 
 // A5
@@ -428,7 +428,7 @@ k (fun x -> h x) lst
 // E3
 :ng
 def r: (forall 'a. 'a -> (forall 'b. 'b -> 'b)) -> int
-//│ r: (forall 'b. anything -> 'b -> 'b) -> int
+//│ r: (anything -> (forall 'b. 'b -> 'b)) -> int
 :ng
 r (fun x -> fun y -> y)
 //│ res: int
@@ -436,7 +436,7 @@ r (fun x -> fun y -> y)
 :ng
 :ns
 r
-//│ res: (forall 'a. 'a -> (forall 'b. 'b -> 'b)) -> int
+//│ res: (anything -> (forall 'b. 'b -> 'b)) -> int
 
 
 // ============ F. FreezeML Programs ============

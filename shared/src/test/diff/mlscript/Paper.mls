@@ -134,11 +134,9 @@ rec def unzip xs = case xs of
   None -> { fst = None; snd = None },
   Some -> let tmp = unzip xs.tail in { fst = Cons xs.value.fst tmp.fst ;
                                        snd = Cons xs.value.snd tmp.snd }
-//│ unzip: 'a -> {fst: 'tail, snd: 'tail0}
+//│ unzip: 'a -> {fst: Cons['value] & {tail: nothing} | None, snd: Cons['value0] & {tail: nothing} | None}
 //│   where
-//│     'tail0 :> (Cons['value] with {tail: 'tail0}) | None
-//│     'tail :> (Cons['value0] with {tail: 'tail}) | None
-//│     'a <: None | Some[?] & {tail: 'a, value: {fst: 'value0, snd: 'value}}
+//│     'a <: None | Some[?] & {tail: 'a, value: {fst: 'value, snd: 'value0}}
 //│      = [Function: unzip]
 
 // * Declare desired types:
@@ -156,11 +154,9 @@ def unzip_ty = unzip
 //│   <:  Cons_ty:
 //│ 'a -> (List['a] & 'b) -> (Cons['a] with {tail: 'b})
 //│        = [Function: Cons_ty]
-//│ 'a -> {fst: 'tail, snd: 'tail0}
+//│ 'a -> {fst: Cons['value] & {tail: nothing} | None, snd: Cons['value0] & {tail: nothing} | None}
 //│   where
-//│     'tail0 :> (Cons['value] with {tail: 'tail0}) | None
-//│     'tail :> (Cons['value0] with {tail: 'tail}) | None
-//│     'a <: None | Some[?] & {tail: 'a, value: {fst: 'value0, snd: 'value}}
+//│     'a <: None | Some[?] & {tail: 'a, value: {fst: 'value, snd: 'value0}}
 //│   <:  unzip_ty:
 //│ List[{fst: 'a, snd: 'b}] -> {fst: List['a], snd: List['b]}
 //│         = [Function: unzip_ty]

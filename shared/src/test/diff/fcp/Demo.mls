@@ -48,14 +48,14 @@ test = bar foo
 def foo f = let g x = f x in (g 123, g true)
 fooid = foo id
 fooSome = foo Some
-//│ foo: ((123 | true) -> 'a) -> ('a, 'a,)
-//│ fooid: (123 | true, 123 | true,)
-//│ fooSome: (Option[123 | true], Option[123 | true],)
+//│ foo: (nothing -> anything) -> (nothing, nothing,)
+//│ fooid: (nothing, nothing,)
+//│ fooSome: (nothing, nothing,)
 
 def bar f = (f (fun x -> x), f (fun x -> Some x))
 test = bar foo
 //│ bar: ((forall 'a. 'a -> 'a) -> 'b & (forall 'c. 'c -> Option['c]) -> 'd) -> ('b, 'd,)
-//│ test: ((123 | true, 123 | true,), (Option[123 | true], Option[123 | true],),)
+//│ test: ((nothing, nothing,), (nothing, nothing,),)
 
 
 // * With function type annotation (same lesser generality)
@@ -92,15 +92,15 @@ rec def find(table, key) =
 
 
 ls = Cons({key=0; val=id}, Cons({key=1; val=fun x -> x x}, Nil))
-//│ ls: List[{key: 0 | 1, val: forall 'a 'b. (nothing -> 'a & 'b) -> ('a | 'b)}]
+//│ ls: List[{key: 0 | 1, val: forall 'a 'b 'c. ('a -> 'b & 'c & 'a) -> ('b | 'c)}]
 
 def found: Option[forall 'a 'b. ('a -> 'b & 'a) -> ('b | 'a)]
 //│ found: Option[forall 'a 'b. ('a -> 'b & 'a) -> ('a | 'b)]
 
 found = find(ls, 1)
-//│ Option[forall 'a 'b. (nothing -> 'a & 'b) -> ('a | 'b)]
+//│ Option[forall 'a 'b 'c. ('a -> 'b & 'a & 'c) -> ('b | 'c)]
 //│   <:  found:
-//│ Option[forall 'b 'a. ('a -> 'b & 'a) -> ('a | 'b)]
+//│ Option[forall 'a 'b. ('a -> 'b & 'a) -> ('a | 'b)]
 
 match found with
   | None -> ("???", false)

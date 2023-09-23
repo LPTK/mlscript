@@ -1215,13 +1215,16 @@ trait TypeSimplifier { self: Typer =>
       }
       
       override def apply(pol: PolMap)(st: ST): Unit =
-          trace(s"Analysis[${printPol(pol)}] $st  (${curPath.reverseIterator.mkString(" ~> ")})") {
+          trace(s"Analysis[${printPol(pol)}] $st  [${curPath.reverseIterator.mkString(" ~> ")}]") {
             st match {
-        // case ty if ty.level <= lvl => // TODO
+        // case ty if ty.level <= lvl => // TODO NOPE
+        // case ty if ty.level < lvl => // TODO
         case tv: TV if { occsNum(tv) = occsNum.getOrElse(tv, 0); false } =>
         // case tv @ AssignedVariable(ty) =>
         //   if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
-        case tv: TV if tv.level <= lvl =>
+        // case tv: TV if tv.level <= lvl =>
+        //   if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
+        case tv: TV if tv.level < lvl =>
           if (traversedOtherTVs.add(tv)) super.apply(pol)(tv)
         // case tv: TV if !varSubst.contains(tv) =>
         case tv: TV =>
@@ -1251,15 +1254,18 @@ trait TypeSimplifier { self: Typer =>
             continue = false
           }
           if (pastPaths.exists(_.exists(_ is tv))) { // TODO opt
+            println(s"REC $tv")
             recVars += tv
             continue = false
           }
           if (continue) {
+            println(s">>> $curPath")
             val oldPath = curPath
             curPath ::= tv
             val poltv = pol(tv)
             if (poltv =/= S(false)) posVars += tv
             if (poltv =/= S(true)) negVars += tv
+            println(s">>>> $curPath")
             super.apply(pol)(st)
             curPath = oldPath
           }
@@ -1376,7 +1382,7 @@ trait TypeSimplifier { self: Typer =>
         }
        */
       ty match {
-        // case ty if ty.level <= lvl => ty // TODO
+        // case ty if ty.level <= lvl => ty // TODO NOPE
         case ty if ty.level < lvl => ty
         // case tv @ AssignedVariable(ty) => cache.getOrElse(tv, {
         //   val v = freshVar(tv.prov, S(tv), tv.nameHint)(tv.level)

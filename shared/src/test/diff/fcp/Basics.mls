@@ -25,11 +25,11 @@ test1 (fun value -> { value })
 test2 f =
   let r x = f x
   in (r 0, r true)
-//│ test2: ((0 | true) -> 'a) -> ('a, 'a,)
+//│ test2: (nothing -> anything) -> (nothing, nothing,)
 //│      = [Function: test2]
 
 test2 (fun value -> { value })
-//│ res: ({value: 0 | true}, {value: 0 | true},)
+//│ res: (nothing, nothing,)
 //│    = [ { value: 0 }, { value: true } ]
 
 
@@ -98,30 +98,29 @@ def example f = ((fun x -> x, f) : forall 'a. ('a -> 'a, 'a -> 'a))
 //│        = [Function: example2]
 
 def example f = ((0, f) : forall 'a. (0, 'a))
-//│ example: ??a -> (0, nothing,)
+//│ example: nothing -> (0, nothing,)
 //│        = [Function: example3]
 
 def ex = example
-//│ ex: ??a -> (0, nothing,)
+//│ ex: nothing -> (0, nothing,)
 //│   = [Function: ex]
 
 def ex x = example x
-//│ ex: ??a -> (0, nothing,)
+//│ ex: nothing -> (0, nothing,)
 //│   = [Function: ex1]
 
 :e
 ex 1
-//│ ╔══[ERROR] Type error in application
+//│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.113: 	ex 1
 //│ ║         	^^^^
-//│ ╟── type variable `'a` leaks out of its scope
+//│ ╟── integer literal of type `1` does not match type `nothing`
 //│ ║  l.113: 	ex 1
 //│ ║         	   ^
-//│ ╟── adding a type annotation to any of the following terms may help resolve the problem
-//│ ╟── • this reference:
+//│ ╟── Note: constraint arises from type variable:
 //│ ║  l.100: 	def example f = ((0, f) : forall 'a. (0, 'a))
-//│ ║         	                     ^
-//│ ╟── Note: constraint arises from reference:
+//│ ║         	                                         ^^
+//│ ╟── from reference:
 //│ ║  l.108: 	def ex x = example x
 //│ ╙──       	                   ^
 //│ res: (0, nothing,) | error

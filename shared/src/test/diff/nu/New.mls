@@ -19,7 +19,7 @@ if f is Foo then 1 else 0
 //│    = 1
 
 if f is Foo(a) then a else 0
-//│ res: 0 | 1
+//│ res: 0
 //│    = 1
 
 // case f of
@@ -33,11 +33,11 @@ if f is Foo(a) then a else 0
 
 
 fun test(x) = if x is Foo(a) then a
-//│ test: (Foo & {x: 'x}) -> 'x
+//│ test: Foo -> nothing
 //│     = [Function: test]
 
 test(f)
-//│ res: 1
+//│ res: nothing
 //│    = 1
 
 class Point(x, y)

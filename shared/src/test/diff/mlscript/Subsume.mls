@@ -97,7 +97,7 @@ boom = 1
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.93: 	boom = 1
 //│ ║        	^^^^^^^^
-//│ ╟── integer literal of type `1` does not match type `'a`
+//│ ╟── integer literal of type `1` does not match type `nothing`
 //│ ║  l.93: 	boom = 1
 //│ ║        	       ^
 //│ ╟── Note: constraint arises from type variable:
@@ -173,12 +173,12 @@ def f: (int & 'a) -> 'a
 //│  = <missing implementation>
 
 def impl a = a a
-//│ impl: (nothing -> 'a) -> 'a
+//│ impl: ('a -> 'b & 'a) -> 'b
 //│     = [Function: impl]
 
 :e
 def f = impl
-//│ (nothing -> 'a) -> 'a
+//│ ('a -> 'b & 'a) -> 'b
 //│   <:  f:
 //│ (int & 'a) -> 'a
 //│ ╔══[ERROR] Type mismatch in def definition:
@@ -323,45 +323,49 @@ def self1: ('a -> 'b & 'a) -> 'b
 //│      = <missing implementation>
 
 def self1 a = a a
-//│ (nothing -> 'a) -> 'a
+//│ ('a -> 'b & 'a) -> 'b
 //│   <:  self1:
 //│ ('a -> 'b & 'a) -> 'b
 //│      = [Function: self1]
 
 fun a -> a a
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 //│    = [Function: res]
 
 self1 = res
-//│ (nothing -> 'a) -> 'a
+//│ ('a -> 'b & 'a) -> 'b
 //│   <:  self1:
 //│ ('a -> 'b & 'a) -> 'b
 //│      = [Function: res]
 
 r = fun a -> a a
-//│ r: (nothing -> 'a) -> 'a
+//│ r: ('a -> 'b & 'a) -> 'b
 //│  = [Function: r]
 
 self1 = r
-//│ (nothing -> 'a) -> 'a
+//│ ('a -> 'b & 'a) -> 'b
 //│   <:  self1:
 //│ ('a -> 'b & 'a) -> 'b
 //│      = [Function: r]
 
 def self2: 'a -> 'b as 'a
-//│ self2: in nothing -> nothing out anything -> nothing
+//│ self2: 'a
+//│   where
+//│     'a := 'a -> nothing
 //│      = <missing implementation>
 
 // :e // fails since the fix to spurious-TV-cycles // works since assigned TVs
 def self2 = self1
 //│ ('a -> 'b & 'a) -> 'b
 //│   <:  self2:
-//│ anything -> nothing
+//│ 'a
+//│   where
+//│     'a := 'a -> nothing
 //│      = [Function: self2]
 
 
 fun p -> fun q -> p q p
-//│ res: ('a -> nothing -> 'b) -> 'a -> 'b
+//│ res: ('a -> 'b -> 'c & 'b) -> 'a -> 'c
 //│    = [Function: res]
 
 :ns
@@ -369,6 +373,6 @@ fun p -> fun q -> p q p
 //│ res: forall 'a 'b 'c 'd. 'a -> 'b -> 'd
 //│   where
 //│     'a <: 'b -> 'c
-//│     'c <: in anything out nothing -> 'd
+//│     'c <: 'a -> 'd
 //│    = [Function: res]
 

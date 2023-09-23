@@ -93,7 +93,7 @@ fun x -> fun y -> ((x : S1), (y : S2), x x)
 //│ Defined type alias S2
 //│ res: (S1 & 'a) -> (S2 & 'a) -> (S1, S2, 'a,)
 //│    = [Function: res]
-//│ res: (S1 & nothing -> 'a) -> S2 -> (S1, S2, 'a,)
+//│ res: (S1 & 'a -> 'b & 'a) -> S2 -> (S1, S2, 'b,)
 //│    = [Function: res]
 
 // (* please onlyweak ['b = sid] 'b -> 'b : sid -> sid *)
@@ -106,7 +106,7 @@ def example_ f = f f
 def mkpair x y = (x, y)
 //│ example: (anything -> int -> 'b) -> int -> 'b
 //│        = [Function: example]
-//│ example_: (nothing -> 'a) -> 'a
+//│ example_: ('a -> 'b & 'a) -> 'b
 //│         = [Function: example_]
 //│ mkpair: 'a -> 'b -> ('a, 'b,)
 //│       = [Function: mkpair]
@@ -119,7 +119,7 @@ example mkpair
 example_ mkpair
 //│ res: int -> (anything, int,)
 //│    = [Function (anonymous)]
-//│ res: 'a -> (nothing, 'a,)
+//│ res: 'a -> (forall 'b 'c. 'b -> 'c -> ('b, 'c,), 'a,)
 //│    = [Function (anonymous)]
 
 // let make_ex3 x (f:['a > sid] 'a -> 'b ) = f x 

@@ -83,7 +83,7 @@ def nfind table key =
   { None -> fun f -> fun x -> x
   | Some -> opt.val
   }
-//│ nfind: List[{_1: anything, _2: 'val}] -> anything -> (anything -> 'a -> 'a | 'val)
+//│ nfind: List[{_1: anything, _2: nothing}] -> anything -> anything -> 'a -> 'a
 
 def nfind: List[{_1: anything; _2: 'val}] -> anything -> (anything -> 'a -> 'a | 'val)
 //│ nfind: List[{_1: anything, _2: 'val}] -> anything -> ('val | anything -> 'a -> 'a)

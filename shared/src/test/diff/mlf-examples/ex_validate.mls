@@ -150,7 +150,7 @@ z = (choose succ id) 10
 
 // untype fun x -> x x
 fun x -> x x
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 //│    = [Function: res]
 
 // let delta (x:id) = x x
@@ -158,7 +158,7 @@ def delta (x: Id) = x x
 def delta_ x = x x
 //│ delta: Id -> Id
 //│      = [Function: delta]
-//│ delta_: (nothing -> 'a) -> 'a
+//│ delta_: ('a -> 'b & 'a) -> 'b
 //│       = [Function: delta_]
 
 // let z = delta (delta id)
@@ -168,7 +168,7 @@ def z = delta (delta id)
 //│  = [Function: z4]
 
 def z_ = delta_ (delta_ id)
-//│ z_: nothing
+//│ z_: 'a -> 'a
 //│   = [Function: z_]
 
 // untype delta succ
@@ -190,7 +190,19 @@ delta succ
 //│    = 'function succ(n) {  return n + 1;}1'
 :e
 delta_ succ
-//│ res: int
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.192: 	delta_ succ
+//│ ║         	^^^^^^^^^^^
+//│ ╟── function of type `int -> int` is not an instance of type `int`
+//│ ║  l.125: 	def succ n = n + 1
+//│ ║         	         ^^^^^^^^^
+//│ ╟── but it flows into reference with expected type `int`
+//│ ║  l.192: 	delta_ succ
+//│ ║         	       ^^^^
+//│ ╟── Note: constraint arises from reference:
+//│ ║  l.125: 	def succ n = n + 1
+//│ ╙──       	             ^
+//│ res: error | int
 //│    = 'function succ(n) {  return n + 1;}1'
 
 // let z = delta (choose id id)
@@ -200,7 +212,7 @@ def z = delta (choose id id)
 //│  = [Function: z5]
 
 def z_ = delta_ (choose id id)
-//│ z_: nothing
+//│ z_: 'a -> 'a
 //│   = [Function: z_1]
 
 // let step g = (g 1) - (g 0)
@@ -220,7 +232,7 @@ test2_ = apply_to_id delta_
 //│      = 1
 //│ test2: Id
 //│      = [Function: id]
-//│ test2_: nothing
+//│ test2_: 'a -> 'a
 //│       = [Function: id]
 
 // type s  = ['a] list ('a) -> bool
@@ -266,9 +278,9 @@ fun x -> fun y ->
 fun x -> fun y ->
   let isnil = x y in
     (isnil (cons 1 (cons 2 (cons 3 nil))), isnil nil, isnil (cons "ok" nil), isnil (cons true nil)) 
-//│ res: Id -> (List[1 | 2 | 3] -> 'a & List[nothing] -> 'b & List["ok"] -> 'c & List[true] -> 'd) -> ('a, 'b, 'c, 'd,)
+//│ res: Id -> anything -> (nothing, nothing, nothing, nothing,)
 //│    = [Function: res]
-//│ res: ('a -> (List[1 | 2 | 3] -> 'b & List[nothing] -> 'c & List["ok"] -> 'd & List[true] -> 'e)) -> 'a -> ('b, 'c, 'd, 'e,)
+//│ res: ('a -> anything) -> 'a -> (nothing, nothing, nothing, nothing,)
 //│    = [Function: res]
 
 // (*let t1 = f delta	
@@ -311,15 +323,15 @@ def t_ = fun x -> (x x, x)
 //│  = [Function: t2]
 //│ t: (Id & Id -> 'a & 'b) -> ('a, 'b,)
 //│  = [Function: t3]
-//│ t: (Id & nothing -> 'a) -> ('a, Id,)
+//│ t: (Id & 'a -> 'b & 'a) -> ('b, Id,)
 //│  = [Function: t4]
-//│ t_: (nothing -> 'a & 'b) -> ('a, 'b,)
+//│ t_: ('a -> 'b & 'a) -> ('b, 'a,)
 //│   = [Function: t_]
 
 // untype fun x -> (x:id), x x
 // * [FCP-IMPROV] It works for us
 fun x -> (x : Id, x x)
-//│ res: (Id & nothing -> 'a) -> (Id, 'a,)
+//│ res: (Id & 'a -> 'b & 'a) -> (Id, 'b,)
 //│    = [Function: res]
 
 // let ig x = () (* ignore *)
@@ -363,7 +375,7 @@ def ff_ = fun g ->
 :e
 bigtest = ff aa
 //│ ╔══[ERROR] Type error in application
-//│ ║  l.364: 	bigtest = ff aa
+//│ ║  l.376: 	bigtest = ff aa
 //│ ║         	          ^^^^^
 //│ ╟── type variable `'a` leaks out of its scope
 //│ ║  l.118: 	type Id = forall 'a. 'a -> 'a
@@ -373,13 +385,13 @@ bigtest = ff aa
 //│ ║         	                           ^^
 //│ ╟── adding a type annotation to any of the following terms may help resolve the problem
 //│ ╟── • this applied expression:
-//│ ║  l.337: 	def aa f = f id
+//│ ║  l.349: 	def aa f = f id
 //│ ║         	           ^
 //│ ╟── • this reference:
-//│ ║  l.337: 	def aa f = f id
+//│ ║  l.349: 	def aa f = f id
 //│ ║         	             ^^
 //│ ╟── • this reference:
-//│ ║  l.364: 	bigtest = ff aa
+//│ ║  l.376: 	bigtest = ff aa
 //│ ║         	             ^^
 //│ ╟── • this reference:
 //│ ║  l.138: 	def id x = x
@@ -399,7 +411,7 @@ def example_ f = f f
 def mkpair x y = (x, y)
 //│ example: (anything -> int -> 'b) -> int -> 'b
 //│        = [Function: example]
-//│ example_: (nothing -> 'a) -> 'a
+//│ example_: ('a -> 'b & 'a) -> 'b
 //│         = [Function: example_]
 //│ mkpair: 'a -> 'b -> ('a, 'b,)
 //│       = [Function: mkpair]
@@ -411,7 +423,7 @@ example mkpair
 example_ mkpair
 //│ res: int -> (anything, int,)
 //│    = [Function (anonymous)]
-//│ res: 'a -> (nothing, 'a,)
+//│ res: 'a -> (forall 'b 'c. 'b -> 'c -> ('b, 'c,), 'a,)
 //│    = [Function (anonymous)]
 
 
@@ -570,9 +582,9 @@ def main =
         let _ = print_sep "" x in
         null
 //│ main: null
-//│ constrain calls  : 996
-//│ annoying  calls  : 45
-//│ subtyping calls  : 3979
+//│ constrain calls  : 913
+//│ annoying  calls  : 15
+//│ subtyping calls  : 4162
 
 
 
@@ -787,7 +799,7 @@ def id x = x
 def k x y = x
 //│ auto: Sid -> Sid
 //│     = [Function: auto]
-//│ auto_: (nothing -> 'a) -> 'a
+//│ auto_: ('a -> 'b & 'a) -> 'b
 //│      = [Function: auto_]
 //│ id: 'a -> 'a
 //│   = [Function: id2]
@@ -815,7 +827,7 @@ def a = fun f -> f id
 //│            = [Function: church_succ]
 //│ f: Sa -> Sid
 //│  = [Function: f]
-//│ f_: ((forall 'a. (nothing -> 'a) -> 'a) -> 'b & (forall 'c 'd. ((anything -> (forall 'e. 'e -> 'e)) -> 'c -> anything) -> 'c -> 'd -> 'd) -> anything) -> 'b
+//│ f_: ((forall 'a 'b. ('a -> 'b & 'a) -> 'b) -> 'c & (forall 'd 'e. ((anything -> (forall 'f. 'f -> 'f)) -> 'd -> anything) -> 'd -> 'e -> 'e) -> anything) -> 'c
 //│   = [Function: f_]
 //│ a: ((forall 'a. 'a -> 'a) -> 'b) -> 'b
 //│  = [Function: a]
@@ -834,7 +846,7 @@ def test1 = f a
 //│      = [Function: test11]
 
 def test1 = f_ a
-//│ test1: nothing
+//│ test1: 'a -> 'a
 //│      = [Function: test12]
 
 def test2 = app f a
@@ -842,7 +854,7 @@ def test2 = app f a
 //│      = [Function: test22]
 
 def test2 = app f_ a
-//│ test2: nothing
+//│ test2: 'a -> 'a
 //│      = [Function: test23]
 
 
@@ -899,7 +911,7 @@ fun x -> ( (((x : 'a) : Sid) : 'a), x : 'a)
 //│    = [Function: res]
 //│ res: (Sid & nothing -> 'a) -> (Sid, 'a,)
 //│    = [Function: res]
-//│ res: (Sid & nothing -> 'a) -> (Sid, 'a,)
+//│ res: (Sid & 'a -> 'b & 'a) -> (Sid, 'b,)
 //│    = [Function: res]
 //│ res: (Sid & nothing -> 'a) -> (Sid, 'a,)
 //│    = [Function: res]
@@ -916,10 +928,10 @@ rec def id_ x = if true then x else id_ id_ x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a :> ? -> 'a
-//│ ║  l.915: 	rec def id_ x = if true then x else id_ id_ x
+//│ ║  l.927: 	rec def id_ x = if true then x else id_ id_ x
 //│ ╙──       	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
-//│ ║  l.915: 	rec def id_ x = if true then x else id_ id_ x
+//│ ║  l.927: 	rec def id_ x = if true then x else id_ id_ x
 //│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ id_: 'a -> (anything -> nothing | 'a)
@@ -937,26 +949,26 @@ rec def id x = if true then x else id id x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a :> ? -> 'a
-//│ ║  l.936: 	rec def id x = if true then x else id id x
+//│ ║  l.948: 	rec def id x = if true then x else id id x
 //│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ 'a -> (anything -> nothing | 'a)
 //│   <:  id:
 //│ Sid
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
-//│ ║  l.936: 	rec def id x = if true then x else id id x
+//│ ║  l.948: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.936: 	rec def id x = if true then x else id id x
+//│ ║  l.948: 	rec def id x = if true then x else id id x
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── function of type `anything -> nothing` does not match type `'a`
-//│ ║  l.936: 	rec def id x = if true then x else id id x
+//│ ║  l.948: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `'a`
-//│ ║  l.936: 	rec def id x = if true then x else id id x
+//│ ║  l.948: 	rec def id x = if true then x else id id x
 //│ ║         	                                      ^^
 //│ ╟── Note: constraint arises from type variable:
-//│ ║  l.753: 	type Sid = forall 'a. 'a -> 'a
+//│ ║  l.765: 	type Sid = forall 'a. 'a -> 'a
 //│ ╙──       	                            ^^
 //│   = [Function: id3]
 

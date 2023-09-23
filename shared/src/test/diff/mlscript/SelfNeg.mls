@@ -55,7 +55,7 @@ def foo: ('a -> (~'a -> anything) -> anything) -> MutArray['a]
 
 :ns
 r = foo (fun a -> fun f -> f a)
-//│ r: forall 'b 'a. MutArray['a]
+//│ r: forall 'a 'b. MutArray['a]
 //│   where
 //│     'a <: 'b
 //│     'b <: ~'a
@@ -107,12 +107,12 @@ r = bar (fun x -> (x, x + 1, not x, x x))
 
 :ns
 r
-//│ res: forall 'b 'c 'd 'a. 'd
+//│ res: forall 'b 'c 'a 'd. 'c
 //│   where
-//│     'd :> ('b, int, bool, 'c,)
-//│     'b :> 'a & int & ~'a
-//│        <: in anything out nothing -> 'c & bool & int
-//│     'a <: (bool | ~(int & ~'a)) & (nothing -> 'c | ~(int & ~'a))
+//│     'c :> ('d, int, bool, 'b,)
+//│     'd :> 'a & int & ~'a
+//│        <: 'd -> 'b & bool & int
+//│     'a <: (bool | ~(int & ~'a)) & ('d -> 'b | ~(int & ~'a))
 //│    = <no result>
 //│      r and bar are not implemented
 

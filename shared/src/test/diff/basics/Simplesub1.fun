@@ -162,10 +162,10 @@ x => { a: x }.b
 
 
 x => x x
-//│ res: (nothing -> 'a) -> 'a
+//│ res: ('a -> 'b & 'a) -> 'b
 
 res id
-//│ res: nothing
+//│ res: 'a -> 'a
 
 
 let f = (x => x + 1); {a: f; b: f 2}
@@ -173,43 +173,59 @@ let f = (x => x + 1); {a: f; b: f 2}
 //│ res: {a: int -> int, b: int}
 
 x => x x x
-//│ res: (nothing -> nothing -> 'a) -> 'a
+//│ res: ('a -> 'a -> 'b & 'a) -> 'b
 
 x => y => x y x
-//│ res: ('a -> nothing -> 'b) -> 'a -> 'b
+//│ res: ('a -> 'b -> 'c & 'b) -> 'a -> 'c
 
 x => y => x x y
-//│ res: (nothing -> 'a -> 'b) -> 'a -> 'b
+//│ res: ('a -> 'b -> 'c & 'a) -> 'b -> 'c
 
 :e // Omega: causes divergence in first-class-polymorphic type inference, as expected
 (x => x x) (x => x x)
-//│ res: nothing
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.+1: 	(x => x x) (x => x x)
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ res: error
 
 
 x => {l: x x, r: x }
-//│ res: (nothing -> 'a & 'b) -> {l: 'a, r: 'b}
+//│ res: ('a -> 'b & 'a) -> {l: 'b, r: 'a}
 
 
 // * From https://github.com/stedolan/mlsub
 // * Y combinator:
 :e // similarly to Omega
 (f => (x => f (x x)) (x => f (x x)))
-//│ res: ('a -> 'a) -> 'a
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.+1: 	(f => (x => f (x x)) (x => f (x x)))
+//│ ║        	      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ res: ('a -> 'a) -> (error | 'a)
 
 // * Z combinator:
 :e
 (f => (x => f (v => (x x) v)) (x => f (v => (x x) v)))
-//│ res: (('a -> 'b) -> 'c & ('d -> 'e) -> ('d -> 'e & 'a -> 'b)) -> 'c
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.+1: 	(f => (x => f (v => (x x) v)) (x => f (v => (x x) v)))
+//│ ║        	      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ res: (('a -> 'b) -> 'c & ('d -> 'e) -> ('a -> 'b & 'd -> 'e)) -> (error | 'c)
 
 // * Function that takes arbitrarily many arguments:
 :e
 (f => (x => f (v => (x x) v)) (x => f (v => (x x) v))) (f => x => f)
-//│ res: 'a
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.+1: 	(f => (x => f (v => (x x) v)) (x => f (v => (x x) v))) (f => x => f)
+//│ ║        	      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
+//│ res: 'a | error
 //│   where
 //│     'a :> anything -> 'a
 
 res 1 2
-//│ res: 'a
+//│ res: error | 'a
 //│   where
 //│     'a :> anything -> 'a
 
@@ -220,7 +236,7 @@ let rec trutru = g => trutru (g true)
 //│     'a <: true -> 'a
 
 i => if ((i i) true) then true else true
-//│ res: (nothing -> true -> bool) -> true
+//│ res: ('a -> true -> bool & 'a) -> true
 // ^ for: λi. if ((i i) true) then true else true,
 //    Dolan's thesis says MLsub infers: (α → ((bool → bool) ⊓ α)) → bool
 //    which does seem equivalent, despite being quite syntactically different
@@ -238,13 +254,13 @@ y => (let f = x => x; {a: f y, b: f true})
 //│ res: 'a -> {a: 'a, b: true}
 
 y => (let f = x => y x; {a: f 0, b: f true})
-//│ res: ((0 | true) -> 'a) -> {a: 'a, b: 'a}
+//│ res: (nothing -> anything) -> {a: nothing, b: nothing}
 
 y => (let f = x => x y; {a: f (z => z), b: f (z => true)})
-//│ res: 'a -> {a: 'a, b: true}
+//│ res: anything -> {a: nothing, b: true}
 
 y => (let f = x => x y; {a: f (z => z), b: f (z => succ z)})
-//│ res: (int & 'a) -> {a: 'a, b: int}
+//│ res: anything -> {a: nothing, b: int}
 
 
 
@@ -296,7 +312,7 @@ let rec x = (let rec y = {u: y, v: (x y)}; 0); 0
 //│ res: 0
 
 (x => (let y = (x x); 0))
-//│ res: (nothing -> anything) -> 0
+//│ res: ('a -> anything & 'a) -> 0
 
 // TODO simplify more?
 (let rec x = (y => (y (x x))); x)
@@ -314,7 +330,7 @@ res (z => (z, z))
 //│ ║  l.+1: 	res (z => (z, z))
 //│ ║        	           ^^^^
 //│ ╟── Note: constraint arises from application:
-//│ ║  l.302: 	(let rec x = (y => (y (x x))); x)
+//│ ║  l.318: 	(let rec x = (y => (y (x x))); x)
 //│ ╙──       	                    ^^^^^^^
 //│ res: error | 'a
 //│   where
@@ -340,7 +356,7 @@ next => 0
 //│     'a <: 'a -> 'a
 
 x => (y => (x (y y)))
-//│ res: ('a -> 'b) -> (nothing -> 'a) -> 'b
+//│ res: ('a -> 'b) -> ('c -> 'a & 'c) -> 'b
 
 (let rec x = (let y = (x x); (z => z)); x)
 //│ res: 'x
@@ -400,6 +416,10 @@ let rec x = (let y = (x x); (z => z))
 
 :e
 (w => x => x) ((y => y y) (y => y y))
+//│ ╔══[ERROR] Cyclic-looking constraint while typing application; a type annotation may be required
+//│ ║  l.+1: 	(w => x => x) ((y => y y) (y => y y))
+//│ ║        	               ^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Note: use flag `:ex` to see internal error info.
 //│ res: 'a -> 'a
 
 
@@ -417,13 +437,13 @@ let rec x = (let y = (x x); (z => z))
 //│   where
 //│     forall 'c 'd. ('c -> 'd
 //│   where
-//│     nothing <: (forall 'e 'f. ('e -> 'f
+//│     'e <: (forall 'f 'g. ('f -> 'g
 //│   where
-//│     'c <: 'c -> 'e -> 'f)) -> 'd) <: (forall 'c 'd. ('c -> 'd
+//│     'c <: 'c -> 'f -> 'g)) -> 'd) <: (forall 'c 'd. ('c -> 'd
 //│   where
-//│     nothing <: (forall 'e 'f. ('e -> 'f
+//│     'e <: (forall 'f 'g. ('f -> 'g
 //│   where
-//│     'c <: 'c -> 'e -> 'f)) -> 'd)) -> 'a -> 'b)) -> 'g) -> 'g
+//│     'c <: 'c -> 'f -> 'g)) -> 'd)) -> 'a -> 'b)) -> 'h & 'e) -> 'h
 
 // * Function that takes arbitrarily many arguments:
 // :e // Works thanks to inconsistent constrained types...

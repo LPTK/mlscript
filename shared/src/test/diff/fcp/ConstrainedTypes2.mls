@@ -108,11 +108,11 @@ def test extr x =
   in f 0
 //│ test: ((forall 'a 'b 'c. 'a -> (anything -> 'c
 //│   where
-//│     'd <: 'b -> 'c
-//│     'a <: 0 -> 'b)) -> anything) -> 'd -> (anything -> 'e
+//│     nothing <: 'b -> 'c
+//│     'a <: 0 -> 'b)) -> anything) -> anything -> (anything -> 'd
 //│   where
-//│     'd <: 'f -> 'e
-//│     0 <: 0 -> 'f)
+//│     0 <: 0 -> 'e
+//│     nothing <: 'e -> 'd)
 //│     = [Function: test1]
 
 :e
@@ -126,19 +126,19 @@ test 0
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.107: 	  in let _ = extr f
 //│ ╙──       	             ^^^^^^
-//│ res: 'a -> (anything -> 'b
+//│ res: anything -> (anything -> 'a
 //│   where
-//│     0 <: 0 -> 'c
-//│     'a <: 'c -> 'b) | error
+//│     0 <: 0 -> 'b
+//│     nothing <: 'b -> 'a) | error
 //│    = [Function (anonymous)]
 
 def test extr x =
   let f n m = x (n 0)
   in f 0
-//│ test: anything -> (forall 'a 'b 'c. 'a -> (anything -> 'c
+//│ test: anything -> (forall 'a 'b. anything -> (anything -> 'b
 //│   where
-//│     0 <: 0 -> 'b
-//│     'a <: 'b -> 'c))
+//│     nothing <: 'a -> 'b
+//│     0 <: 0 -> 'a))
 //│     = [Function: test2]
 
 // Error delayed by inconsistent constrained types
@@ -146,7 +146,7 @@ test 0 1
 //│ res: anything -> 'a
 //│   where
 //│     0 <: 0 -> 'b
-//│     1 <: 'b -> 'a
+//│     nothing <: 'b -> 'a
 //│    = [Function (anonymous)]
 
 :e
@@ -154,12 +154,12 @@ test 0 1 2
 //│ ╔══[ERROR] Type mismatch in application:
 //│ ║  l.153: 	test 0 1 2
 //│ ║         	^^^^^^^^^^
-//│ ╟── integer literal of type `1` is not a function
-//│ ║  l.153: 	test 0 1 2
+//│ ╟── integer literal of type `0` is not a function
+//│ ║  l.137: 	  in f 0
 //│ ║         	       ^
 //│ ╟── Note: constraint arises from application:
 //│ ║  l.136: 	  let f n m = x (n 0)
-//│ ╙──       	              ^^^^^^^
+//│ ╙──       	                 ^^^
 //│ res: error
 //│ Runtime error:
 //│   TypeError: n is not a function
@@ -167,16 +167,16 @@ test 0 1 2
 def test extr x =
   let f n m = (n x 0)
   in f 0
-//│ test: anything -> (forall 'a 'b. 'a -> (anything -> 'b
+//│ test: anything -> (forall 'a. anything -> (anything -> 'a
 //│   where
-//│     0 <: 'a -> 0 -> 'b))
+//│     0 <: nothing -> 0 -> 'a))
 //│     = [Function: test3]
 
 // Error delayed by inconsistent constrained types
 test 0 1
 //│ res: anything -> 'a
 //│   where
-//│     0 <: 1 -> 0 -> 'a
+//│     0 <: nothing -> 0 -> 'a
 //│    = [Function (anonymous)]
 
 :e

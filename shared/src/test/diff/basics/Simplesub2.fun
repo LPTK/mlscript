@@ -85,6 +85,8 @@ let consume2 =
   // go
 // let rec consume2 = strm => add strm.head (add strm.tail.head (consume2 strm.tail.tail))
 let res = consume2 codata2
-//│ consume2: {head: int, tail: {head: int, tail: anything}} -> int
+//│ consume2: 'a -> int
+//│   where
+//│     'a <: {head: int, tail: 'a}
 //│ res: int
 
