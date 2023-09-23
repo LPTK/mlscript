@@ -291,7 +291,7 @@ def of_seq: Seq['a] -> List['a]
 rec def length_aux len = fun x -> match x with
   | Nil -> len
   | Cons(_, l) -> length_aux (len + 1) l
-//│ length_aux: 'a -> List[?] -> (int | 'a)
+//│ length_aux: int -> List[?] -> int
 
 def length l = length_aux 0 l
 //│ List[?] -> int
@@ -354,7 +354,7 @@ rec def rev_append l1 l2 =
   match l1 with
     Nil -> l2
   | Cons(a, l) -> rev_append l (Cons(a, l2))
-//│ List['a] -> 'b -> (List['a] | 'b)
+//│ List['a] -> List['a] -> List['a]
 //│   <:  rev_append:
 //│ List['a] -> List['a] -> List['a]
 
@@ -627,7 +627,7 @@ rec def remove_assq x = fun y -> match y with
 rec def find p = fun x -> match x with
   | Nil -> raise Not_found
   | Cons(x, l) -> if p x then x else find p l
-//│ ('a -> bool) -> List['a] -> 'a
+//│ ('A -> bool) -> List['A] -> 'A
 //│   <:  find:
 //│ ('a -> bool) -> List['a] -> 'a
 
@@ -653,7 +653,7 @@ rec def find_map f = fun x -> match x with
       match f x with
         | Some(_) as result -> result
         | None -> find_map f l
-//│ ('A -> 'a) -> List['A] -> (Option[nothing] | 'a)
+//│ ('A -> (Option[?] & 'a)) -> List['A] -> (Option[nothing] | 'a)
 //│   <:  find_map:
 //│ ('a -> Option['b]) -> List['a] -> Option['b]
 
@@ -776,7 +776,7 @@ rec def merge cmp l1 l2 =
       if cmp h1 h2 <= 0
       then Cons(h1, merge cmp t1 l2)
       else Cons(h2, merge cmp l1 t2)
-//│ ('a -> 'A -> number) -> List['a] -> List['a & 'A] -> List['A | 'a]
+//│ ('A -> 'A0 -> number) -> List['A & 'a] -> List['A0 & 'a] -> List['A | 'A0 | 'a]
 //│   <:  merge:
 //│ ('a -> 'a -> int) -> List['a] -> List['a] -> List['a]
 
@@ -971,7 +971,7 @@ def sort_uniq cmp l =
   in
   let len = length l in
   if len < 2 then l else fst (sort len l)
-//│ ('A -> 'A -> number) -> List['A] -> List['A]
+//│ ('A -> 'A -> number) -> (List['A] & 'a) -> (List['A] | 'a)
 //│   <:  sort_uniq:
 //│ ('a -> 'a -> int) -> List['a] -> List['a]
 

@@ -91,19 +91,28 @@ res false
 
 let rec f = n =>
   if pred n then n else f (n + 1)
-//│ f: 'a -> (int | 'a)
+//│ f: int -> int
 
 // :d
 let g = n =>
   if pred n then 0 else if not (pred n) then 1 else f n
-//│ g: (number & 'a) -> (int | 'a)
+//│ g: int -> int
 
 x => if pred x then x else f x
-//│ res: (number & 'a) -> (int | 'a)
+//│ res: int -> int
 
 :e
 f false
-//│ res: false | int
+//│ ╔══[ERROR] Type mismatch in application:
+//│ ║  l.105: 	f false
+//│ ║         	^^^^^^^
+//│ ╟── reference of type `false` is not an instance of type `int`
+//│ ║  l.105: 	f false
+//│ ║         	  ^^^^^
+//│ ╟── Note: constraint arises from argument:
+//│ ║  l.93: 	  if pred n then n else f (n + 1)
+//│ ╙──      	                           ^
+//│ res: error | false | int
 
 let take0 (x: 0) = 0
 let take1 (x: 1) = 1

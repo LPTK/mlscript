@@ -23,7 +23,8 @@ s
 //│ res: forall 'b 'a 'c. 'b -> (forall 'a0. ArraysImplConsumer['a0] -> 'c)
 //│   where
 //│     'a0 := 'a
-//│     'b <: (ArraysImpl['a] -> int) -> 'c
+//│     'b <: (forall 'a1. ArraysImpl['a1] -> int) -> 'c
+//│     'a1 := 'a
 //│     'a <: in anything out nothing
 
 

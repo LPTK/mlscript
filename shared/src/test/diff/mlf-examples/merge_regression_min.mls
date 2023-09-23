@@ -6,12 +6,12 @@ def choose: 'a -> 'a -> 'a
 //│       = <missing implementation>
 
 rec def id1 x = choose x (id1 id1 x)
-//│ id1: 'a -> ('a | anything -> nothing)
+//│ id1: 'a -> ('a | 'a -> nothing)
 //│    = <no result>
 //│      choose is not implemented
 
 id1 id
-//│ res: 'a -> 'a
+//│ res: ('a & 'b) -> 'b | 'a
 //│    = <no result>
 //│      id1 and choose are not implemented
 
@@ -19,18 +19,18 @@ id1 id
 :GeneralizeCurriedFunctions
 
 id1 id
-//│ res: 'a -> 'a
+//│ res: ('a & 'b) -> 'b | 'a
 //│    = <no result>
 //│      id1 and choose are not implemented
 
 rec def id1 x = choose x (id1 id1 x)
-//│ id1: 'a -> ('a | anything -> nothing)
+//│ id1: 'a -> ('a | 'a -> nothing)
 //│    = <no result>
 //│      choose is not implemented
 
 // :e
 id1 id
-//│ res: 'a -> 'a
+//│ res: ('a & 'b) -> 'b | 'a
 //│    = <no result>
 //│      id1 and choose are not implemented
 

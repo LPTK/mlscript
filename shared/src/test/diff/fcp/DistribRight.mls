@@ -76,7 +76,7 @@ T: (forall 'a. 'a -> 'a, (forall 'a. 'a -> 'a) -> (forall 'a. 'a -> 'a))
 def T: ('a, forall 'b. ('a, 'b) -> 'a)
 //│ T: ('a, ('a, anything,) -> 'a,)
 
-:e
+// :e
 T: (anything, (forall 'a. 'a -> 'a, anything) -> (forall 'a. 'a -> 'a))
 //│ res: (anything, (forall 'a. 'a -> 'a, anything,) -> (forall 'a0. 'a0 -> 'a0),)
 

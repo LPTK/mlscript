@@ -107,28 +107,19 @@ id_ty = id
 // * Note: the above seem to work with :precise-rec-typing
 :precise-rec-typing
 rec def id x = let tmp = id id x in x
-//│ id: 'a -> (anything -> nothing | 'a)
+//│ id: 'a -> 'a
 //│   = [Function: id2]
 
 :re
 id 1
-//│ res: anything -> nothing | 1
+//│ res: 1
 //│ Runtime error:
 //│   RangeError: Maximum call stack size exceeded
 
 id_ty = id
-//│ 'a -> (anything -> nothing | 'a)
+//│ 'a -> 'a
 //│   <:  id_ty:
 //│ 'a -> 'a
-//│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.119: 	id_ty = id
-//│ ║         	^^^^^^^^^^
-//│ ╟── function of type `anything -> nothing` does not match type `'a`
-//│ ║  l.109: 	rec def id x = let tmp = id id x in x
-//│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── Note: constraint arises from type variable:
-//│ ║  l.4: 	def id_ty: forall 'a. 'a -> 'a
-//│ ╙──     	                            ^^
 //│      = [Function: id2]
 
 
@@ -138,25 +129,25 @@ rec def id x = if true then x else id id x
 //│ ╔══[ERROR] Inferred recursive type: 'a
 //│   where
 //│     'a :> ? -> 'a
-//│ ║  l.137: 	rec def id x = if true then x else id id x
+//│ ║  l.128: 	rec def id x = if true then x else id id x
 //│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
-//│ ║  l.137: 	rec def id x = if true then x else id id x
+//│ ║  l.128: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
-//│ id: 'a -> (anything -> nothing | 'a)
+//│ id: 'a -> ('a -> nothing | 'a)
 //│   = [Function: id3]
 
 :e
 id_ty = id
-//│ 'a -> (anything -> nothing | 'a)
+//│ 'a -> ('a -> nothing | 'a)
 //│   <:  id_ty:
 //│ 'a -> 'a
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.151: 	id_ty = id
+//│ ║  l.142: 	id_ty = id
 //│ ║         	^^^^^^^^^^
-//│ ╟── function of type `anything -> nothing` does not match type `'a`
-//│ ║  l.137: 	rec def id x = if true then x else id id x
+//│ ╟── function of type `?a -> nothing` does not match type `'a`
+//│ ║  l.128: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Note: constraint arises from type variable:
 //│ ║  l.4: 	def id_ty: forall 'a. 'a -> 'a
@@ -173,15 +164,15 @@ def choose: 'a -> 'a -> 'a
 //│ choose: 'a -> 'a -> 'a
 
 rec def id1 x = choose x (id1 id1 x)
-//│ id1: 'a -> ('a | anything -> nothing)
+//│ id1: 'a -> ('a | 'a -> nothing)
 
 id1 id
-//│ res: 'a -> (anything -> nothing | 'a)
+//│ res: ('a & 'b) -> ('b -> nothing | 'b) | 'a
 
 rec def id1 x = if true then x else id1 id1 x
-//│ id1: 'a -> (anything -> nothing | 'a)
+//│ id1: 'a -> ('a -> nothing | 'a)
 
 id1 id
-//│ res: 'a -> (anything -> nothing | 'a)
+//│ res: ('a & 'b) -> ('b -> nothing | 'b) | 'a
 
 

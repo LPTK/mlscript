@@ -417,13 +417,13 @@ def bar x = RefImpl { mut value = x } : Ref[int] & Ref[string]
 // * later (once for each intersection component)
 // :e
 rec def refin = RefImpl { mut value = refin.Get }
-//│ RefImpl['value]
+//│ RefImpl['A]
 //│   <:  refin:
 //│ Ref[out int | string]
 //│      = [Function: refin]
 
 rec def refin = RefImpl { mut value = refin.Get }
-//│ RefImpl['value]
+//│ RefImpl['A]
 //│   <:  refin:
 //│ Ref[out int | string]
 //│      = [Function: refin1]

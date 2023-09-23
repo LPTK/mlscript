@@ -934,7 +934,7 @@ rec def id_ x = if true then x else id_ id_ x
 //│ ║  l.927: 	rec def id_ x = if true then x else id_ id_ x
 //│ ║         	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── Note: use flag `:ex` to see internal error info.
-//│ id_: 'a -> (anything -> nothing | 'a)
+//│ id_: 'a -> ('a -> nothing | 'a)
 //│    = [Function: id_]
 
 // let rec (id:sid) x = if true then x else id id x
@@ -951,7 +951,7 @@ rec def id x = if true then x else id id x
 //│     'a :> ? -> 'a
 //│ ║  l.948: 	rec def id x = if true then x else id id x
 //│ ╙──       	                  ^^^^^^^^^^^^^^^^^^^^^^^^
-//│ 'a -> (anything -> nothing | 'a)
+//│ 'a -> ('a -> nothing | 'a)
 //│   <:  id:
 //│ Sid
 //│ ╔══[ERROR] Cyclic-looking constraint while typing binding of lambda expression; a type annotation may be required
@@ -961,7 +961,7 @@ rec def id x = if true then x else id id x
 //│ ╔══[ERROR] Type mismatch in def definition:
 //│ ║  l.948: 	rec def id x = if true then x else id id x
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── function of type `anything -> nothing` does not match type `'a`
+//│ ╟── function of type `?a -> nothing` does not match type `'a`
 //│ ║  l.948: 	rec def id x = if true then x else id id x
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── but it flows into reference with expected type `'a`

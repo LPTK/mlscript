@@ -1232,9 +1232,10 @@ trait TypeSimplifier { self: Typer =>
         // case tv: TV if tv.assignedTo.isEmpty && !varSubst.contains(tv) =>
           var continue = true
           if (curPath.exists(_ is tv)) { // TODO opt
-            println(s"UNIFYING $tv with ${curPath.mkString(", ")}")
+            val recPrefix = curPath.takeWhile(_ isnt tv)
+            println(s"UNIFYING $tv with ${recPrefix.mkString(", ")}")
             // if (tv.level) varSubst
-            curPath.foreach { tv2 => if (tv2 isnt tv) {
+            recPrefix.foreach { tv2 => if (tv2 isnt tv) {
               // varSubst.get(tv2) match {
               //   case N => 
               // }
@@ -1259,13 +1260,13 @@ trait TypeSimplifier { self: Typer =>
             continue = false
           }
           if (continue) {
-            println(s">>> $curPath")
+            // println(s">>> $curPath")
             val oldPath = curPath
             curPath ::= tv
             val poltv = pol(tv)
             if (poltv =/= S(false)) posVars += tv
             if (poltv =/= S(true)) negVars += tv
-            println(s">>>> $curPath")
+            // println(s">>>> $curPath")
             super.apply(pol)(st)
             curPath = oldPath
           }

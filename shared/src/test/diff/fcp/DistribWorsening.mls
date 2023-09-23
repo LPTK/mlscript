@@ -48,7 +48,7 @@ def test f =
   a : anything -> BTB
 //│ test: (() -> anything -> BTB) -> anything -> BTB
 
-:e
+// :e
 test (fun () -> fun n -> id)
 //│ res: anything -> BTB
 
