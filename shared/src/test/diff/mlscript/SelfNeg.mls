@@ -19,13 +19,13 @@ r = foo (fun a -> fun f -> f a)
 //│ r: forall 'b 'a 'c. 'b
 //│   where
 //│     'b :> 'a -> 'a
-//│     'a <: 'a & 'c
-//│     'c <: ~'a
+//│     'a <: in anything out nothing & 'c
+//│     'c <: ~in anything out nothing
 //│  = <no result>
 //│    foo is not implemented
 
 r
-//│ res: nothing -> nothing
+//│ res: 'a -> 'a
 //│    = <no result>
 //│      r and foo are not implemented
 
@@ -37,12 +37,9 @@ r: anything -> nothing
 //│ ╟── type `anything` does not match type `nothing`
 //│ ║  l.33: 	r: anything -> nothing
 //│ ║        	   ^^^^^^^^
-//│ ╟── Note: constraint arises from type negation:
-//│ ║  l.7: 	def foo: ('a -> (~'a -> 'a) -> 'a) -> 'a -> 'a
-//│ ║       	                 ^^^
-//│ ╟── from type variable:
-//│ ║  l.7: 	def foo: ('a -> (~'a -> 'a) -> 'a) -> 'a -> 'a
-//│ ╙──     	                                      ^^
+//│ ╟── Note: constraint arises from type reference:
+//│ ║  l.33: 	r: anything -> nothing
+//│ ╙──      	               ^^^^^^^
 //│ res: anything -> nothing
 //│    = <no result>
 //│      r and foo are not implemented
@@ -55,7 +52,7 @@ def foo: ('a -> (~'a -> anything) -> anything) -> MutArray['a]
 
 :ns
 r = foo (fun a -> fun f -> f a)
-//│ r: forall 'a 'b. MutArray['a]
+//│ r: forall 'b 'a. MutArray['a]
 //│   where
 //│     'a <: 'b
 //│     'b <: ~'a
@@ -65,13 +62,13 @@ r = foo (fun a -> fun f -> f a)
 :e
 r[0] <- "test"
 //│ ╔══[ERROR] Type mismatch in assignment:
-//│ ║  l.66: 	r[0] <- "test"
+//│ ║  l.63: 	r[0] <- "test"
 //│ ║        	^^^^^^^^^^^^^^
 //│ ╟── string literal of type `"test"` does not match type `~"test"`
-//│ ║  l.66: 	r[0] <- "test"
+//│ ║  l.63: 	r[0] <- "test"
 //│ ║        	        ^^^^^^
 //│ ╟── but it flows into assigned array element with expected type `~"test"`
-//│ ║  l.66: 	r[0] <- "test"
+//│ ║  l.63: 	r[0] <- "test"
 //│ ╙──      	^^^^
 //│ = <no result>
 //│   r and foo are not implemented
@@ -79,10 +76,10 @@ r[0] <- "test"
 :e
 r[0] + 1
 //│ ╔══[ERROR] Type mismatch in operator application:
-//│ ║  l.80: 	r[0] + 1
+//│ ║  l.77: 	r[0] + 1
 //│ ║        	^^^^^^
 //│ ╟── possibly-undefined array access of type `undefined` is not an instance of type `int`
-//│ ║  l.80: 	r[0] + 1
+//│ ║  l.77: 	r[0] + 1
 //│ ╙──      	^^^^
 //│ res: error | int
 //│    = <no result>
@@ -107,12 +104,12 @@ r = bar (fun x -> (x, x + 1, not x, x x))
 
 :ns
 r
-//│ res: forall 'b 'c 'a 'd. 'c
+//│ res: forall 'b 'c 'd 'a. 'd
 //│   where
-//│     'c :> ('d, int, bool, 'b,)
-//│     'd :> 'a & int & ~'a
-//│        <: 'd -> 'b & bool & int
-//│     'a <: (bool | ~(int & ~'a)) & ('d -> 'b | ~(int & ~'a))
+//│     'd :> ('b, int, bool, 'c,)
+//│     'b :> 'a & int & ~'a
+//│        <: 'b -> 'c & bool & int
+//│     'a <: (bool | ~(int & ~'a)) & ('b -> 'c | ~(int & ~'a))
 //│    = <no result>
 //│      r and bar are not implemented
 
@@ -141,13 +138,13 @@ k = impossible
 //│   <:  k:
 //│ 'a -> 'a
 //│ ╔══[ERROR] Type mismatch in def definition:
-//│ ║  l.139: 	k = impossible
+//│ ║  l.136: 	k = impossible
 //│ ║         	^^^^^^^^^^^^^^
 //│ ╟── type `'a` does not match type `nothing`
-//│ ║  l.134: 	def k: 'a -> 'a
+//│ ║  l.131: 	def k: 'a -> 'a
 //│ ║         	       ^^
 //│ ╟── Note: constraint arises from reference:
-//│ ║  l.124: 	def impossible x = case x of {}
+//│ ║  l.121: 	def impossible x = case x of {}
 //│ ╙──       	                        ^
 //│  = [Function: impossible]
 

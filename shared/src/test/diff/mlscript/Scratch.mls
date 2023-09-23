@@ -352,11 +352,9 @@ def foo() = id : 'a -> 'a
 //│ | | | | | | | !! α5_35'' Some(false) List('a34'')
 //│ | | | | | | | Analysis[-] 'a34''  ['a34'' ~> α5_35'']
 //│ | | | | | | | | UNIFYING 'a34'' with α5_35''
-//│ | | | | | | | | HashMap(α5_35'' -> 'a34'')
 //│ | | | | Analysis[+] 'a34''  []
-//│ | | | | | !! 'a34'' Some(true) List(α5_35'')
 //│ | | Unif-pre: HashMap(α5_35'' -> 'a34'')
-//│ | | Pos: HashSet('a34'')
+//│ | | Pos: HashSet()
 //│ | | Neg: HashSet('a34'', α5_35'')
 //│ | | Rec: HashSet()
 //│ | | Unif: HashMap(α5_35'' -> 'a34'')

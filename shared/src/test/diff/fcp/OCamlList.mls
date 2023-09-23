@@ -354,9 +354,22 @@ rec def rev_append l1 l2 =
   match l1 with
     Nil -> l2
   | Cons(a, l) -> rev_append l (Cons(a, l2))
-//│ List['a] -> List['a] -> List['a]
+//│ List[?] -> List[?] -> List[?]
 //│   <:  rev_append:
 //│ List['a] -> List['a] -> List['a]
+//│ ╔══[ERROR] Type mismatch in def definition:
+//│ ║  l.353: 	rec def rev_append l1 l2 =
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.354: 	  match l1 with
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.355: 	    Nil -> l2
+//│ ║         	^^^^^^^^^^^^^
+//│ ║  l.356: 	  | Cons(a, l) -> rev_append l (Cons(a, l2))
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── type `anything` does not match type `'a`
+//│ ╟── Note: constraint arises from type variable:
+//│ ║  l.127: 	def rev_append: List['a] -> List['a] -> List ['a]
+//│ ╙──       	                                              ^^
 
 def rev l = rev_append l Nil
 //│ List['a] -> List['a]
@@ -428,9 +441,26 @@ def rev_map f l =
     | Cons(a, l) -> rmap_f (Cons(f a, accu)) l
   in
   rmap_f Nil l
-//│ ('A -> 'a) -> List['A] -> List['a]
+//│ ('A -> anything) -> List['A] -> List[?]
 //│   <:  rev_map:
 //│ ('a -> 'b) -> List['a] -> List['b]
+//│ ╔══[ERROR] Type mismatch in def definition:
+//│ ║  l.438: 	def rev_map f l =
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ║  l.439: 	  let rec rmap_f accu = fun x -> match x with
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.440: 	    | Nil -> accu
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ║  l.441: 	    | Cons(a, l) -> rmap_f (Cons(f a, accu)) l
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.442: 	  in
+//│ ║         	^^^^
+//│ ║  l.443: 	  rmap_f Nil l
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ╟── type `anything` does not match type `'b`
+//│ ╟── Note: constraint arises from type variable:
+//│ ║  l.154: 	def rev_map: ('a -> 'b) -> List['a] -> List['b]
+//│ ╙──       	                                            ^^
 
 rec def iter f = fun x -> match x with
     Nil -> Unit
@@ -489,9 +519,30 @@ def rev_map2 f l1 l2 =
     | (_, _) -> invalid_arg "List.rev_map2"
   in
   rmap2_f Nil l1 l2
-//│ ('A -> 'A0 -> 'a) -> List['A] -> List['A0] -> List['a]
+//│ ('A -> 'A0 -> anything) -> List['A] -> List['A0] -> List[?]
 //│   <:  rev_map2:
 //│ ('a -> 'b -> 'c) -> List['a] -> List['b] -> List['c]
+//│ ╔══[ERROR] Type mismatch in def definition:
+//│ ║  l.514: 	def rev_map2 f l1 l2 =
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.515: 	  let rec rmap2_f accu l1 l2 =
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.516: 	    match (l1, l2) with
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.517: 	    | (Nil, Nil) -> accu
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.518: 	    | (Cons(a1, l1), Cons(a2, l2)) -> rmap2_f (Cons(f a1 a2, accu)) l1 l2
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.519: 	    | (_, _) -> invalid_arg "List.rev_map2"
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.520: 	  in
+//│ ║         	^^^^
+//│ ║  l.521: 	  rmap2_f Nil l1 l2
+//│ ║         	^^^^^^^^^^^^^^^^^^^^
+//│ ╟── type `anything` does not match type `'c`
+//│ ╟── Note: constraint arises from type variable:
+//│ ║  l.178: 	def rev_map2: ('a -> 'b -> 'c) -> List['a] -> List['b] -> List['c]
+//│ ╙──       	                                                               ^^
 
 rec def iter2 f l1 l2 =
   match (l1, l2) with

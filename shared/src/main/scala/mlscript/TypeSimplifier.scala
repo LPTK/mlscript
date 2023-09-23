@@ -1183,8 +1183,8 @@ trait TypeSimplifier { self: Typer =>
   
   
   
-  def onlineSimplify(ty: ST)(implicit ctx: Ctx): ST = {
-  // def onlineSimplify(ty: ST)(implicit ctx: Ctx): ST = if (noOnlineSimplification) ty else {
+  // def onlineSimplify(ty: ST)(implicit ctx: Ctx): ST = {
+  def onlineSimplify(ty: ST)(implicit ctx: Ctx): ST = if (noOnlineSimplification) ty else {
     
     object Analysis extends Traverser2 {
       
@@ -1204,8 +1204,8 @@ trait TypeSimplifier { self: Typer =>
       val varSubst: MutMap[TV, TV] = MutMap.empty
       
       // val traversedOtherTVs: MutSet[TV] = MutSet.empty
-      // val traversedTVs: MutSet[TV] = MutSet.empty
-      val traversingTVs: MutSet[TV] = MutSet.empty
+      val traversedTVs: MutSet[TV] = MutSet.empty
+      // val traversingTVs: MutSet[TV] = MutSet.empty
       
       def getRepr(tv: TV): TV = varSubst.get(tv) match {
         case S(tv2) =>
@@ -1222,23 +1222,28 @@ trait TypeSimplifier { self: Typer =>
       override def apply(pol: PolMap)(st: ST): Unit =
           trace(s"Analysis[${printPol(pol)}] $st  [${curPath.reverseIterator.mkString(" ~> ")}]") {
             st match {
-        case ty if ty.level <= lvl => // TODO NOPE
-        // case ty if ty.level < lvl => // TODO
+        case ty if ty.level <= lvl =>
         case tv: TV if { occsNum(tv) = occsNum.getOrElse(tv, 0); false } =>
+        case tv: TV if traversedTVs.contains(tv) =>
+        // case tv: TV if !traversedTVs.add(tv) =>
         case tv: TV =>
-          if (varSubst.contains(tv)) return
+          if (varSubst.contains(tv)) return // * If the TV was set to be substituted, it means it's been found recursive and we don't need to traverse it again
         // case tv: TV if tv.assignedTo.isEmpty && !varSubst.contains(tv) =>
           var continue = true
+          // if (!traversedTVs.contains(tv)) {
           if (curPath.exists(_ is tv)) { // TODO opt
+            traversedTVs += tv
             val recPrefix = curPath.takeWhile(_ isnt tv)
             println(s"UNIFYING $tv with ${recPrefix.mkString(", ")}")
             // if (tv.level) varSubst
             recPrefix.foreach { tv2 => if (tv2 isnt tv) {
+              traversedTVs += tv2
               // varSubst.get(tv2) match {
               //   case N => 
               // }
               // val tvRepr = varSubst.getOrElse(tv2, tv2) // TODO union-set lookup
               var tvRepr = getRepr(tv2)
+              assert(traversedTVs(tvRepr))
               // while
               if (tvRepr isnt tv) {
                 // assert(!varSubst.contains(tvRepr))
@@ -1249,15 +1254,18 @@ trait TypeSimplifier { self: Typer =>
                 else if (tvRepr.level > lvl && !varSubst.contains(tvRepr)) varSubst += tvRepr -> tv
               }
             }}
-            println(varSubst)
+            // println(varSubst)
             continue = false
           }
+          // TODO else??
+          if (!traversedTVs.contains(tv))
           // if (pastPaths.exists(_.exists(_ is tv))) { // TODO opt
           if (pastPathsSet.contains(tv)) {
             println(s"REC $tv")
             recVars += tv
             continue = false
           }
+          // }
           if (continue) {
             // println(s">>> $curPath")
             val oldPath = curPath
@@ -1267,6 +1275,7 @@ trait TypeSimplifier { self: Typer =>
             if (poltv =/= S(true)) negVars += tv
             // println(s">>>> $curPath")
             // traversingTVs += tv
+            // traversedTVs += tv
             super.apply(pol)(st)
             // traversingTVs -= tv
             curPath = oldPath
@@ -1382,8 +1391,8 @@ trait TypeSimplifier { self: Typer =>
       }(r => s"= $r")
       
       // if (finalSubst.isEmpty) ty else subst(ty)
-      // subst(ty)
-      if (noOnlineSimplification) ty else subst(ty)
+      subst(ty)
+      // if (noOnlineSimplification) ty else subst(ty)
     
     }(r => s"${ctx.lvl}. Simplified: $r where ${r.showBounds}")
     
