@@ -1375,10 +1375,14 @@ trait TypeSimplifier { self: Typer =>
                   tv.upperBounds = newUBs
                   val isPos = Analysis.posVars.contains(tv)
                   val isNeg = Analysis.negVars.contains(tv)
-                  if (isPos && !isNeg && (Analysis.occsNum(tv) === 1 && {newLBs match { case (tv: TV) :: Nil => true; case _ => false }} || newLBs.forall(_.isSmall))) {
+                  // if (isPos && !isNeg && (Analysis.occsNum(tv) === 1 && {newLBs match { case (tv: TV) :: Nil => true; case _ => false }} || newLBs.forall(_.isSmall))) {
+                  if (isPos && !isNeg && ({newLBs match { case (tv: TV) :: Nil => true; case _ => false }} || newLBs.forall(_.isSmall))) {
+                  // if (isPos && !isNeg && ({newLBs match { case (tv: TV) :: Nil => true; case _ => false }})) {
                     newLBs.foldLeft(BotType: ST)(_ | _)
                   } else
-                  if (isNeg && !isPos && (Analysis.occsNum(tv) === 1 && {newUBs match { case (tv: TV) :: Nil => true; case _ => false }} || newUBs.forall(_.isSmall))) {
+                  // if (isNeg && !isPos && (Analysis.occsNum(tv) === 1 && {newUBs match { case (tv: TV) :: Nil => true; case _ => false }} || newUBs.forall(_.isSmall))) {
+                  if (isNeg && !isPos && ({newUBs match { case (tv: TV) :: Nil => true; case _ => false }} || newUBs.forall(_.isSmall))) {
+                  // if (isNeg && !isPos && ({newUBs match { case (tv: TV) :: Nil => true; case _ => false }})) {
                     newUBs.foldLeft(TopType: ST)(_ &- _)
                   }
                   else {
