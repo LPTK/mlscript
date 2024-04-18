@@ -56,7 +56,7 @@ object Keyword:
   val `trait` = Keyword("trait", N, N)
   val `mixin` = Keyword("mixin", N, N)
   val `interface` = Keyword("interface", N, N)
-  val `extends` = Keyword("extends", nextPrec, nextPrec)
+  val `extends` = Keyword("extends", N, nextPrec)
   val `with` = Keyword("with", curPrec, curPrec)
   val `override` = Keyword("override", N, N)
   val `super` = Keyword("super", N, N)
@@ -76,6 +76,9 @@ object Keyword:
   val `false` = Keyword("false", N, N)
   val `public` = Keyword("public", N, N)
   val `private` = Keyword("private", N, N)
+  val `match` = Keyword("match", nextPrec, curPrec)
+  val `|` = Keyword("|", nextPrec, curPrec)
+  val `->` = Keyword("->", nextPrec, curPrec)
   
   // * The lambda operator is special:
   // *  it should associate very strongly on the left and very loosely on the right

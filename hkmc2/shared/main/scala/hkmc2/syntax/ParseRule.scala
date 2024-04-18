@@ -20,7 +20,8 @@ enum Alt[+A]:
     case End(a) => End(f(a))
     case b: Blk[rest, A] => Blk(b.rest)((tree, rest) => f(b.k(tree, rest)))
 
-class ParseRule[+A](val name: Str)(alts: Alt[A]*):
+class ParseRule[+A](val name: Str)(mkAlts: => Alt[A]*):
+  lazy val alts = mkAlts
   def map[B](f: A => B): ParseRule[B] =
     ParseRule(name)(alts.map(_.map(f))*)
   
@@ -130,7 +131,36 @@ object ParseRule:
     modified(`public`),
     modified(`private`),
     standaloneExpr,
+    Kw(`match`):
+      ParseRule("blah"):
+        Expr(
+          ParseRule("blah"):
+            Kw(`with`):
+              ParseRule("blah") (
+                  Kw(`|`):
+                    ParseRule("blah"):
+                      matchRest
+                  ,
+                  matchRest
+                )
+        )((_, _) => Tree.Empty)
   )
+  
+  lazy val matchRest: Alt[Tree] =
+    Expr(
+      ParseRule("blah"):
+        Kw(`->`):
+          ParseRule("blah"):
+            Expr(
+              ParseRule("blah") (
+                  Kw(`|`):
+                    ParseRule("blah"):
+                      matchRest
+                  ,
+                  End(())
+              )
+            )((_, _) => Tree.Empty)
+    )((_, _) => Tree.Empty)
   
   val infixRules: ParseRule[Tree => Tree] = ParseRule("continuation of statement")(
     // TODO dedup:

@@ -1,0 +1,50 @@
+:global
+:p
+
+
+
+:pe
+match x with A(n)
+//│ |match| |x| |with| |A|(|n|)|
+//│ ╔══[PARSE ERROR] Expected '->' keyword after blah; found end of input instead
+//│ ║  l.7: 	match x with A(n)
+//│ ╙──     	                 ^
+//│ AST: List(Empty)
+
+match x with A(n) -> n
+//│ |match| |x| |with| |A|(|n|)| |->| |n|
+//│ AST: List(Empty)
+
+match x with A(n) -> n | _ -> y
+//│ |match| |x| |with| |A|(|n|)| |->| |n| ||| |_| |->| |y|
+//│ AST: List(Empty)
+
+match x with A(n) -> n
+//│ |match| |x| |with| |A|(|n|)| |->| |n|
+//│ AST: List(Empty)
+
+match x with A(n) -> n | B(n) -> n
+//│ |match| |x| |with| |A|(|n|)| |->| |n| ||| |B|(|n|)| |->| |n|
+//│ AST: List(Empty)
+
+match x with A(n) -> n | B(n) -> n | _ -> y
+//│ |match| |x| |with| |A|(|n|)| |->| |n| ||| |B|(|n|)| |->| |n| ||| |_| |->| |y|
+//│ AST: List(Empty)
+
+match x with | A(n) -> n | B(n) -> n | _ -> y
+//│ |match| |x| |with| ||| |A|(|n|)| |->| |n| ||| |B|(|n|)| |->| |n| ||| |_| |->| |y|
+//│ AST: List(Empty)
+
+
+:pe
+| _ -> y
+//│ ||| |_| |->| |y|
+//│ ╔══[PARSE ERROR] Expected 'val' keyword, 'let' keyword, 'type' keyword, 'class' keyword, 'trait' keyword, 'module' keyword, 'abstract' keyword, 'mut' keyword, 'virtual' keyword, 'override' keyword, 'declare' keyword, 'public' keyword, 'private' keyword, expression, or 'match' keyword after start of statement; found '|' keyword instead
+//│ ║  l.40: 	| _ -> y
+//│ ╙──      	^
+//│ ╔══[PARSE ERROR] Expected end of input; found identifier instead
+//│ ║  l.40: 	| _ -> y
+//│ ╙──      	  ^
+//│ AST: List(Empty)
+
+

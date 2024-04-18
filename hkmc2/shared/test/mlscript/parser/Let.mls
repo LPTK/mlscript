@@ -149,7 +149,7 @@ let x = 1 in
 :pe
 if
 //│ |if|
-//│ ╔══[PARSE ERROR] Expected 'val' keyword, 'let' keyword, 'type' keyword, 'class' keyword, 'trait' keyword, 'module' keyword, 'abstract' keyword, 'mut' keyword, 'virtual' keyword, 'override' keyword, 'declare' keyword, 'public' keyword, 'private' keyword, or expression after start of statement; found 'if' keyword instead
+//│ ╔══[PARSE ERROR] Expected 'val' keyword, 'let' keyword, 'type' keyword, 'class' keyword, 'trait' keyword, 'module' keyword, 'abstract' keyword, 'mut' keyword, 'virtual' keyword, 'override' keyword, 'declare' keyword, 'public' keyword, 'private' keyword, expression, or 'match' keyword after start of statement; found 'if' keyword instead
 //│ ║  l.150: 	if
 //│ ╙──       	^^
 //│ AST: List(Empty)
