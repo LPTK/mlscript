@@ -39,9 +39,9 @@ class Foo extends Bar with val x
 //│ ╔══[PARSE ERROR] Expected indented block after type declaration body; found 'val' keyword instead
 //│ ║  l.38: 	class Foo extends Bar with val x
 //│ ╙──      	                           ^^^
-//│ ╔══[PARSE ERROR] Expected end of input; found identifier instead
+//│ ╔══[PARSE ERROR] Expected end of input; found 'val' keyword instead
 //│ ║  l.38: 	class Foo extends Bar with val x
-//│ ╙──      	                               ^
+//│ ╙──      	                           ^^^
 //│ Parsed:
 //│ 	Error()
 

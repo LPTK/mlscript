@@ -28,32 +28,37 @@ object Keyword:
     _curPrec += 1
     S(res)
   
+  val termDefBodyPrec = nextPrec
+  val `mut` = Keyword("mut", N, termDefBodyPrec)
+  val `fun` = Keyword("fun", termDefBodyPrec, termDefBodyPrec)
+  val `val` = Keyword("val", termDefBodyPrec, termDefBodyPrec)
+  val `var` = Keyword("var", termDefBodyPrec, termDefBodyPrec)
+  
+  val `let` = Keyword("let", termDefBodyPrec, termDefBodyPrec)
+  // val `in` = Keyword("in", termDefBodyPrec, termDefBodyPrec)
+  
   val eqPrec = nextPrec
   val `=` = Keyword("=", eqPrec, eqPrec)
   val `:` = Keyword(":", eqPrec, eqPrec)
   
-  val termDefBodyPrec = nextPrec
-  val `fun` = Keyword("fun", N, termDefBodyPrec)
-  val `val` = Keyword("val", N, termDefBodyPrec)
-  val `var` = Keyword("var", N, termDefBodyPrec)
+  val `in` = Keyword("in", eqPrec, termDefBodyPrec)
   
   // nextPrec
   // nextPrec
   // nextPrec
-  val `then` = Keyword("then", nextPrec, nextPrec)
-  val `if` = Keyword("if", N, nextPrec)
-  val `else` = Keyword("else", N, nextPrec)
+  val ifPrec = nextPrec
+  // val `if` = Keyword("if", N, ifPrec)
+  val `if` = Keyword("if", ifPrec, ifPrec)
+  val `then` = Keyword("then", ifPrec, ifPrec)
+  val `else` = Keyword("else", ifPrec, ifPrec)
   val `case` = Keyword("case", N, N)
   val `is` = Keyword("is", N, N)
   val `as` = Keyword("as", N, N)
   val `of` = Keyword("of", N, N)
   val `or` = Keyword("or", nextPrec, curPrec)
   val `and` = Keyword("and", nextPrec, curPrec)
-  val `let` = Keyword("let", nextPrec, curPrec)
   val `rec` = Keyword("rec", N, N)
-  val `in` = Keyword("in", curPrec, curPrec)
   val `out` = Keyword("out", N, N)
-  val `mut` = Keyword("mut", N, nextPrec)
   val `set` = Keyword("set", N, N)
   val `do` = Keyword("do", N, N)
   val `while` = Keyword("while", N, N)

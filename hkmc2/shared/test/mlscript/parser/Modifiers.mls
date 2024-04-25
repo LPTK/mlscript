@@ -6,8 +6,14 @@ mut let x = 1
 //│ Parsed:
 //│ 	Modified(keyword 'mut',Let(Ident(x),IntLit(1),None))
 
+:fixme
 mut mut let x = 1
+//│ /!!!\ Uncaught error: scala.NotImplementedError: IDENT(mut,false)
+
+
+class A with
+  mut val x = 1
 //│ Parsed:
-//│ 	Modified(keyword 'mut',Modified(keyword 'mut',Let(Ident(x),IntLit(1),None)))
+//│ 	TypeDecl(Ident(A),None,Some(Block(List(Modified(keyword 'mut',TermDef(None,Some(Ident(x)),None,Some(IntLit(1))))))))
 
 

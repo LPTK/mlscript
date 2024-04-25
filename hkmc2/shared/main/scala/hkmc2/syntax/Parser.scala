@@ -280,8 +280,9 @@ abstract class Parser(
     //       err((msg"Expected ${rule.whatComesAfter} after ${rule.name}; found end of phrase instead" -> S(loc.left) :: Nil))
     //       N
     case (tok @ (id: IDENT), loc) :: _ =>
+      printDbg(s"Trying to parse $id ${Keyword.all.get(id.name).map(_.leftPrecOrMin)} $prec")
       Keyword.all.get(id.name) match
-      case S(kw) =>
+      case S(kw) if kw.leftPrecOrMin >= prec =>
         rule.kwAlts.get(id.name) match
         case S(subRule) =>
           consume
@@ -304,7 +305,8 @@ abstract class Parser(
               tryEmpty(tok, loc)
           case N =>
             tryEmpty(tok, loc)
-      case N =>
+      // case N =>
+      case _ =>
         tryParseExp(prec, tok, loc, rule)
     case (tok @ NEWLINE, l0) :: (id: IDENT, l1) :: _ if rule.kwAlts.contains(id.name) =>
       consume
@@ -350,7 +352,7 @@ abstract class Parser(
   def expr(prec: Int)(using Line): Tree = wrap(prec)(exprImpl(prec))
   def exprImpl(prec: Int): Tree =
     yeetSpaces match
-    case (IDENT(nme, sym), loc) :: _ =>
+    case (IDENT(nme, sym), loc) :: _ if !Keyword.all.contains(nme) =>
       consume
       exprCont(Tree.Ident(nme), prec, allowNewlines = true)
     case (LITVAL(lit), loc) :: _ =>
