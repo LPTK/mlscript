@@ -36,4 +36,9 @@ fun (**) pow = 1
 //│ Elab: <error>(1, 2)
 
 
+fun f: Int = g
+//│ Elab: { fun Ident(f) = Ident(g); }
 
+
+:p
+// fun 1 2 = 3

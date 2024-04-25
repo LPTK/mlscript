@@ -150,9 +150,9 @@ let x = 1 in
 
 :pe
 if
-//│ ╔══[PARSE ERROR] Expected 'let' keyword, 'fun' keyword, 'val' keyword, 'type' keyword, 'class' keyword, 'trait' keyword, 'module' keyword, 'abstract' keyword, 'mut' keyword, 'virtual' keyword, 'override' keyword, 'declare' keyword, 'public' keyword, 'private' keyword, or expression after start of statement; found 'if' keyword instead
+//│ ╔══[PARSE ERROR] Expected expression after ite keyword; found end of input instead
 //│ ║  l.152: 	if
-//│ ╙──       	^^
+//│ ╙──       	  ^
 //│ Parsed:
 //│ 	Error()
 

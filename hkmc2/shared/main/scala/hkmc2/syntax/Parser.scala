@@ -205,7 +205,8 @@ abstract class Parser(
             consume
             rec(toks, S(tok.innerLoc), tok.describe).concludeWith(_.blockOf(subRule))
           case _ =>
-            parseRule(CommaPrecNext, subRule).getOrElse(errExpr) :: blockContOf(rule)
+            // parseRule(CommaPrecNext, subRule).getOrElse(errExpr) :: blockContOf(rule)
+            parseRule(kw.assumeRightPrec, subRule).getOrElse(errExpr) :: blockContOf(rule)
         case N =>
           
           // TODO dedup this common-looking logic:

@@ -1,0 +1,82 @@
+:global
+:parseOnly
+
+
+:dp
+:parseOnly
+if a then b else c
+//│ |if| |a| |then| |b| |else| |c|
+//│ @ blockOf(start of statement)    [at syntax/Parser.scala:242]
+//│ │ ? blockOf		inspects |if| |a| |then|...    [at syntax/Parser.scala:193]
+//│ │ ! blockOf		consumes |if|    [at syntax/Parser.scala:200]
+//│ │ ? blockOf		inspects | |a| |then| |...    [at syntax/Parser.scala:203]
+//│ │ ! blockOf		consumes | |    [at syntax/Parser.scala:203]
+//│ │ @ parseRule(6,ite keyword ::= Expr(ite head ::= Kw(keyword 'then')))    [at syntax/Parser.scala:348]
+//│ │ │ ? parseRule		inspects |a| |then| |b|...    [at syntax/Parser.scala:272]
+//│ │ │ @ expr(6)    [at syntax/Parser.scala:254]
+//│ │ │ │ ? exprImpl		inspects |a| |then| |b|...    [at syntax/Parser.scala:352]
+//│ │ │ │ ! exprImpl		consumes |a|    [at syntax/Parser.scala:354]
+//│ │ │ │ @ exprCont(6,`Ident(a)`,true)    [at syntax/Parser.scala:632]
+//│ │ │ │ │ ? exprCont		inspects | |then| |b| |...    [at syntax/Parser.scala:385]
+//│ │ │ │ │ ! exprCont		consumes | |    [at syntax/Parser.scala:484]
+//│ │ │ │ │ @ exprCont(6,`Ident(a)`,true)    [at syntax/Parser.scala:632]
+//│ │ │ │ │ │ ? exprCont		inspects |then| |b| |else|...    [at syntax/Parser.scala:385]
+//│ │ │ │ │ = Ident(a)
+//│ │ │ │ = Ident(a)
+//│ │ │ = Ident(a)
+//│ │ │ @ parseRule(6,ite head ::= Kw(keyword 'then'))    [at syntax/Parser.scala:348]
+//│ │ │ │ ? parseRule		inspects |then| |b| |else|...    [at syntax/Parser.scala:272]
+//│ │ │ │ ! parseRule		consumes |then|    [at syntax/Parser.scala:287]
+//│ │ │ │ ? parseRule		inspects | |b| |else| |...    [at syntax/Parser.scala:288]
+//│ │ │ │ ! parseRule		consumes | |    [at syntax/Parser.scala:288]
+//│ │ │ │ @ parseRule(5,ite equals sign ::= Expr(ite right-hand side ::= Kw(keyword 'else') | End(None)))    [at syntax/Parser.scala:348]
+//│ │ │ │ │ ? parseRule		inspects |b| |else| |c|    [at syntax/Parser.scala:272]
+//│ │ │ │ │ @ expr(5)    [at syntax/Parser.scala:254]
+//│ │ │ │ │ │ ? exprImpl		inspects |b| |else| |c|    [at syntax/Parser.scala:352]
+//│ │ │ │ │ │ ! exprImpl		consumes |b|    [at syntax/Parser.scala:354]
+//│ │ │ │ │ │ @ exprCont(5,`Ident(b)`,true)    [at syntax/Parser.scala:632]
+//│ │ │ │ │ │ │ ? exprCont		inspects | |else| |c|    [at syntax/Parser.scala:385]
+//│ │ │ │ │ │ │ ! exprCont		consumes | |    [at syntax/Parser.scala:484]
+//│ │ │ │ │ │ │ @ exprCont(5,`Ident(b)`,true)    [at syntax/Parser.scala:632]
+//│ │ │ │ │ │ │ │ ? exprCont		inspects |else| |c|    [at syntax/Parser.scala:385]
+//│ │ │ │ │ │ │ = Ident(b)
+//│ │ │ │ │ │ = Ident(b)
+//│ │ │ │ │ = Ident(b)
+//│ │ │ │ │ @ parseRule(5,ite right-hand side ::= Kw(keyword 'else') | End(None))    [at syntax/Parser.scala:348]
+//│ │ │ │ │ │ ? parseRule		inspects |else| |c|    [at syntax/Parser.scala:272]
+//│ │ │ │ │ │ ! parseRule		consumes |else|    [at syntax/Parser.scala:287]
+//│ │ │ │ │ │ ? parseRule		inspects | |c|    [at syntax/Parser.scala:288]
+//│ │ │ │ │ │ ! parseRule		consumes | |    [at syntax/Parser.scala:288]
+//│ │ │ │ │ │ @ parseRule(7,ite `in` clause ::= Expr(ite body ::= End(())))    [at syntax/Parser.scala:348]
+//│ │ │ │ │ │ │ ? parseRule		inspects |c|    [at syntax/Parser.scala:272]
+//│ │ │ │ │ │ │ @ expr(7)    [at syntax/Parser.scala:254]
+//│ │ │ │ │ │ │ │ ? exprImpl		inspects |c|    [at syntax/Parser.scala:352]
+//│ │ │ │ │ │ │ │ ! exprImpl		consumes |c|    [at syntax/Parser.scala:354]
+//│ │ │ │ │ │ │ │ @ exprCont(7,`Ident(c)`,true)    [at syntax/Parser.scala:632]
+//│ │ │ │ │ │ │ │ │ ? exprCont		inspects ||    [at syntax/Parser.scala:385]
+//│ │ │ │ │ │ │ │ = Ident(c)
+//│ │ │ │ │ │ │ = Ident(c)
+//│ │ │ │ │ │ │ @ parseRule(7,ite body ::= End(()))    [at syntax/Parser.scala:348]
+//│ │ │ │ │ │ │ │ ? parseRule		inspects ||    [at syntax/Parser.scala:272]
+//│ │ │ │ │ │ │ = Some(())
+//│ │ │ │ │ │ = Some(Some(Ident(c)))
+//│ │ │ │ │ = Some(Some(Ident(c)))
+//│ │ │ │ = Some((Ident(b),Some(Ident(c))))
+//│ │ │ = Some((Ident(b),Some(Ident(c))))
+//│ │ = Some(If(Ident(a),Ident(b),Some(Ident(c))))
+//│ │ ? blockContOf		inspects ||    [at syntax/Parser.scala:245]
+//│ = List(If(Ident(a),Ident(b),Some(Ident(c))))
+//│ ? parseAll		inspects ||    [at syntax/Parser.scala:162]
+//│ Parsed:
+//│ 	If(Ident(a),Ident(b),Some(Ident(c)))
+
+if a then if b then c else d
+//│ Parsed:
+//│ 	If(Ident(a),If(Ident(b),Ident(c),Some(Ident(d))),None)
+
+
+1 then 2
+//│ Parsed:
+//│ 	InfixApp(IntLit(1),keyword 'then',IntLit(2))
+
+

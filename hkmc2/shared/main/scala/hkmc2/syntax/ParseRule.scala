@@ -128,6 +128,25 @@ object ParseRule:
         // ) { case (lhs, body) => Let(lhs, lhs, body) }
       )
     ,
+    Kw(`if`):
+      ParseRule("ite keyword")(
+        Expr(
+          ParseRule("ite head"):
+            Kw(`then`):
+              ParseRule("ite equals sign"):
+                Expr(
+                  ParseRule("ite right-hand side")(
+                    Kw(`else`):
+                      ParseRule("ite `in` clause"):
+                        Expr(ParseRule("ite body")(End(())))((body, _: Unit) => S(body))
+                    ,
+                    End(N)
+                  )
+                ) { (rhs, body) => (rhs, body) }
+        ) { case (lhs, (rhs, body)) => If(lhs, rhs, body) }
+        ,
+      )
+    ,
     Kw(`fun`)(termDefBody(Fun)),
     Kw(`val`)(termDefBody(Val)),
     Kw(`type`)(typeDeclBody),

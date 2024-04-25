@@ -32,13 +32,18 @@ object Keyword:
   val `=` = Keyword("=", eqPrec, eqPrec)
   val `:` = Keyword(":", eqPrec, eqPrec)
   
-  val `if` = Keyword("if", N, N)
-  val `then` = Keyword("then", nextPrec, N)
-  val `else` = Keyword("else", N, N)
+  val termDefBodyPrec = nextPrec
+  val `fun` = Keyword("fun", N, termDefBodyPrec)
+  val `val` = Keyword("val", N, termDefBodyPrec)
+  val `var` = Keyword("var", N, termDefBodyPrec)
+  
+  // nextPrec
+  // nextPrec
+  // nextPrec
+  val `then` = Keyword("then", nextPrec, nextPrec)
+  val `if` = Keyword("if", N, nextPrec)
+  val `else` = Keyword("else", N, nextPrec)
   val `case` = Keyword("case", N, N)
-  val `fun` = Keyword("fun", N, N)
-  val `val` = Keyword("val", N, N)
-  val `var` = Keyword("var", N, N)
   val `is` = Keyword("is", N, N)
   val `as` = Keyword("as", N, N)
   val `of` = Keyword("of", N, N)
@@ -53,7 +58,7 @@ object Keyword:
   val `do` = Keyword("do", N, N)
   val `while` = Keyword("while", N, N)
   val `declare` = Keyword("declare", N, N)
-  val `class` = Keyword("class", N, N)
+  val `class` = Keyword("class", N, nextPrec)
   val `trait` = Keyword("trait", N, N)
   val `mixin` = Keyword("mixin", N, N)
   val `interface` = Keyword("interface", N, N)

@@ -27,6 +27,7 @@ enum Tree extends Located:
   case UnitLit(undefinedOrNull: Bool) extends Tree with Literal
   case Block(stmts: Ls[Tree])
   case Let(lhs: Tree, rhs: Tree, body: Opt[Tree])
+  case If(lhs: Tree, rhs: Tree, body: Opt[Tree])
   case TermDef(symName: Opt[Tree], alphaName: Opt[Tree], sign: Opt[Tree], rhs: Opt[Tree])
   case TypeDecl(head: Tree, extension: Opt[Tree], body: Opt[Tree])
   case Modified(modifier: Keyword, body: Tree)
