@@ -30,9 +30,9 @@ object Keyword:
   
   val termDefBodyPrec = nextPrec
   val `mut` = Keyword("mut", N, termDefBodyPrec)
-  val `fun` = Keyword("fun", termDefBodyPrec, termDefBodyPrec)
-  val `val` = Keyword("val", termDefBodyPrec, termDefBodyPrec)
-  val `var` = Keyword("var", termDefBodyPrec, termDefBodyPrec)
+  val `fun` = Keyword("fun", N, termDefBodyPrec)
+  val `val` = Keyword("val", N, termDefBodyPrec)
+  val `var` = Keyword("var", N, termDefBodyPrec)
   
   val `let` = Keyword("let", termDefBodyPrec, termDefBodyPrec)
   // val `in` = Keyword("in", termDefBodyPrec, termDefBodyPrec)
@@ -46,11 +46,12 @@ object Keyword:
   // nextPrec
   // nextPrec
   // nextPrec
+  val thenPrec = nextPrec
   val ifPrec = nextPrec
   // val `if` = Keyword("if", N, ifPrec)
   val `if` = Keyword("if", ifPrec, ifPrec)
-  val `then` = Keyword("then", ifPrec, ifPrec)
-  val `else` = Keyword("else", ifPrec, ifPrec)
+  val `then` = Keyword("then", ifPrec, thenPrec)
+  val `else` = Keyword("else", ifPrec, thenPrec)
   val `case` = Keyword("case", N, N)
   val `is` = Keyword("is", N, N)
   val `as` = Keyword("as", N, N)

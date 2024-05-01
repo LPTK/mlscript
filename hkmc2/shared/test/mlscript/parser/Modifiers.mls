@@ -13,7 +13,16 @@ mut mut let x = 1
 
 class A with
   mut val x = 1
-//│ Parsed:
-//│ 	TypeDecl(Ident(A),None,Some(Block(List(Modified(keyword 'mut',TermDef(None,Some(Ident(x)),None,Some(IntLit(1))))))))
+//│ /!!!\ Uncaught error: scala.NotImplementedError: IDENT(val,false)
+//│ 	at: mlscript.utils.package$.TODO(package.scala:207)
+//│ 	at: hkmc2.syntax.Parser.exprImpl(Parser.scala:373)
+//│ 	at: hkmc2.syntax.Parser.expr$$anonfun$2(Parser.scala:352)
+//│ 	at: hkmc2.syntax.Parser.wrap(Parser.scala:107)
+//│ 	at: hkmc2.syntax.Parser.expr(Parser.scala:352)
+//│ 	at: hkmc2.syntax.Parser.tryParseExp(Parser.scala:254)
+//│ 	at: hkmc2.syntax.Parser.parseRule$$anonfun$2(Parser.scala:310)
+//│ 	at: hkmc2.syntax.Parser.wrap(Parser.scala:107)
+//│ 	at: hkmc2.syntax.Parser.parseRule(Parser.scala:350)
+//│ 	at: hkmc2.syntax.Parser.blockOf$$anonfun$2(Parser.scala:209)
 
 
