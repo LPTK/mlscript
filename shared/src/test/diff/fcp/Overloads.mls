@@ -120,8 +120,88 @@ not test
 def test: ~(int -> int) & ~bool
 //│ test: ~bool & ~(int -> int)
 
+:ds
 def test: ~(int -> int) & bool
-//│ test: bool
+//│ ⬤ Typed as: (~((Int -> Int)) & Bool)
+//│  where: 
+//│ ⬤ Initial: (~((Int -> Int)) & Bool)
+//│  where: 
+//│ allVarPols: 
+//│ ⬤ Cleaned up: (~((Int -> Int)) & Bool)
+//│  where: 
+//│ ⬤ Unskid: (~((Int -> Int)) & Bool)
+//│  where: 
+//│ analyze1[=] (~((Int -> Int)) & Bool)
+//│ | analyze1[=] ~((Int -> Int))
+//│ | | analyze1[=;-] (Int -> Int)
+//│ | | | analyze1[=;-;-] (Int,)
+//│ | | | | analyze1[=;-;-] Int
+//│ | | | analyze1[=;-] Int
+//│ | analyze1[=] Bool
+//│ [inv] 
+//│ [nums] 
+//│ analyze2[=] (~((Int -> Int)) & Bool)
+//│ | Components Set((None,~((Int -> Int))), (None,Bool))
+//│ | >> Processing (~((Int -> Int)) & Bool) at [-]
+//│ | go (~((Int -> Int)) & Bool)   ()
+//│ | | go ~((Int -> Int))   ()
+//│ | | go Bool   (~((Int -> Int)))
+//│ | >> Occurrences LinkedHashSet(~((Int -> Int)), Bool)
+//│ | analyze2[=] ~((Int -> Int))
+//│ | | analyze2[=;-] (Int -> Int)
+//│ | | | analyze2[=;-;-] (Int,)
+//│ | | | | analyze2[=;-;-] Int
+//│ | | | analyze2[=;-] Int
+//│ | analyze2[=] Bool
+//│ [occs] 
+//│ [vars] TreeSet()
+//│ [rec] Set()
+//│ [sub] 
+//│ [bounds] 
+//│ [rec] Set()
+//│ transform[=] (~((Int -> Int)) & Bool)   ()  =  None
+//│ | transform[=] ~((Int -> Int))   ()  =  None
+//│ | | transform[=] (Int -> Int)   ()  =;-  None
+//│ | | | transform[=] (Int,)   ()  =;-;-  None
+//│ | | | | transform[=] Int   ()  =;-;-  None
+//│ | | | | ~> Int
+//│ | | | ~> (Int,)
+//│ | | | transform[=] Int   ()  =;-  None
+//│ | | | ~> Int
+//│ | | ~> (Int -> Int)
+//│ | ~> ~((Int -> Int))
+//│ | transform[=] Bool   ()  =  None
+//│ | ~> Bool
+//│ ~> (~((Int -> Int)) & Bool)
+//│ ⬤ Type after simplification: (~((Int -> Int)) & Bool)
+//│  where: 
+//│ allVarPols: 
+//│ normLike[=] (~((Int -> Int)) & Bool)
+//│ | norm[=] (~((Int -> Int)) & Bool)
+//│ | | DNF[-,true,false,1024]((~((Int -> Int)) & Bool))
+//│ | | | DNF[-,true,false,1024](~((Int -> Int)))
+//│ | | | | (?!,⊥,(Int -> Int))
+//│ | | | | List(~(|(Int -> Int)))
+//│ | | | | DNF(0, ~(|(Int -> Int)))
+//│ | | | = DNF(0, ~(|(Int -> Int)))
+//│ | | | DNF[-,true,false,1024](Bool)
+//│ | | | | DNF[-,true,false,1024](#bool<>)
+//│ | | | | = DNF(0, #bool<>{})
+//│ | | | = DNF(0, #bool<>{})
+//│ | | | ????????
+//│ | | | ... |(Int -> Int) ⊥
+//│ | | | (%%%%%%%,List(),Some(Left((Int -> Int))),TreeMap(),#bool<>{})
+//│ /!!!\ Uncaught error: scala.MatchError: (Some(#bool<>),(Int -> Int)) (of class scala.Tuple2)
+//│ 	at: mlscript.NormalForms$LhsNf.$amp(NormalForms.scala:108)
+//│ 	at: mlscript.NormalForms$Conjunct$.$anonfun$mk$4(NormalForms.scala:641)
+//│ 	at: mlscript.NormalForms$Conjunct$.$anonfun$mk$4$adapted(NormalForms.scala:640)
+//│ 	at: scala.Option.filter(Option.scala:319)
+//│ 	at: mlscript.NormalForms$Conjunct$.mk(NormalForms.scala:640)
+//│ 	at: mlscript.NormalForms$Conjunct.$amp(NormalForms.scala:556)
+//│ 	at: mlscript.NormalForms$DNF.$anonfun$$amp$26(NormalForms.scala:762)
+//│ 	at: scala.collection.immutable.List.flatMap(List.scala:293)
+//│ 	at: mlscript.NormalForms$DNF.$amp(NormalForms.scala:762)
+//│ 	at: mlscript.NormalForms$DNF.$anonfun$$amp$24(NormalForms.scala:707)
 
 def test: ~(int -> int) & ~(bool -> bool)
 //│ test: ~(nothing -> (bool | int))
@@ -131,5 +211,6 @@ def test: ~(int -> int | bool -> bool)
 
 def test: ~(int -> int & string -> string) & ~(bool -> bool & number -> number)
 //│ test: in ~(nothing -> (number | string) & int -> number & nothing -> (bool | string) & nothing -> (bool | int)) out ~(nothing -> (bool | int) & nothing -> (bool | string) & int -> number & nothing -> (number | string))
+
 
 
