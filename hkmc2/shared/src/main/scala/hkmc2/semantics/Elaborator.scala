@@ -106,12 +106,25 @@ class Elaborator(raise: Raise):
     case IfElse(InfixApp(InfixApp(scrutinee, Keyword.`is`, Ident(cls)), Keyword.`then`, cons), alts) =>
       ctx.members.get(cls) match
         case S(sym: ClassSymbol) =>
-          Term.If(TermBranch.Match(term(scrutinee), Split.single(PatternBranch(Pattern.Class(sym, N, true), Split.default(term(cons))))) :: Split.default(term(alts)))
+          val scrutVar = VarSymbol("scrut", nextUid)
+          val scrutTerm = term(scrutinee)
+          Term.If:
+            Split.Let(false, scrutVar, scrutTerm, Branch(
+              scrutVar.ref,
+              Pattern.Class(sym, N, true),
+              Split.default(term(cons))
+            ) :: Split.default(term(alts)))
         case _ =>
           raise(ErrorReport(msg"Illegal pattern $cls." -> tree.toLoc :: Nil))
           Term.Error
     case IfElse(InfixApp(cond, Keyword.`then`, cons), alts) =>
-      Term.If(TermBranch.Boolean(term(cond), Split.`then`(term(cons))) :: Split.default(term(alts)))
+      val scrutVar = VarSymbol("scrut", nextUid)
+      val scrutTerm = term(cond)
+      Term.If:
+        Split.Let(false, scrutVar, scrutTerm, Branch(
+          scrutVar.ref,
+          Split.default(term(cons))
+        ) :: Split.default(term(alts)))
     case Tree.Quoted(body) => Term.Quoted(term(body))
     case Tree.Unquoted(body) => Term.Unquoted(term(body))
     case Tree.Case(Block(branches)) => branches.lastOption match
@@ -120,12 +133,15 @@ class Elaborator(raise: Raise):
         val nestCtx = ctx.copy(locals = ctx.locals ++ Ls(name -> sym))
         Term.Lam(
           Param(FldFlags.empty, sym, N) :: Nil,
-          Term.If(branches.dropRight(1).foldRight[Split[TermBranch]](Split.Else(term(dflt)(using nestCtx)))((e, res) => e match
+          Term.If(branches.dropRight(1).foldRight(Split.default(term(dflt)(using nestCtx)))((e, res) => e match
             case InfixApp(target, Keyword.`then`, cons) =>
-              TermBranch.Boolean(
-                term(App(Ident("=="), Tree.Tup(Ident(name) :: target :: Nil)))(using nestCtx),
-                Split.`then`(term(cons)(using nestCtx))
-              ) :: res
+              val scrut = VarSymbol("scrut", nextUid)
+              val cond = term(App(Ident("=="), Tree.Tup(Ident(name) :: target :: Nil)))(using nestCtx)
+              Split.Let(false, scrut, cond, Branch(
+                scrut.ref,
+                Pattern.LitPat(Tree.BoolLit(true)),
+                Split.default(term(cons)(using nestCtx))
+              ) :: res)
             case _ =>
               raise(ErrorReport(msg"Unsupported case branch." -> tree.toLoc :: Nil))
               Split.default(Term.Error)

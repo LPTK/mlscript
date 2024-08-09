@@ -3,70 +3,49 @@ package semantics
 
 import mlscript.utils.*, shorthands.*
 import syntax.*
+import scala.annotation.tailrec
 
+final case class Branch(scrutinee: Term.Ref, pattern: Pattern, continuation: Split) extends Located:
+  override def children: List[Located] = scrutinee :: pattern :: continuation :: Nil
+  def showDbg: String = s"${scrutinee.sym.nme} is ${pattern.showDbg} -> { ${continuation.showDbg} }"
 
-sealed abstract class Split[+SomeBranch <: Branch] extends Located {
-  def ::[OtherBranch >: SomeBranch <: Branch](head: OtherBranch): Split[OtherBranch] = Split.Cons(head, this)
-}
-object Split {
-  final case class Cons[SomeBranch <: Branch](head: SomeBranch, tail: Split[SomeBranch]) extends Split[SomeBranch] {
-    override def children: Ls[Located] = head :: tail :: Nil
+object Branch:
+  def apply(scrutinee: Term.Ref, continuation: Split): Branch =
+    Branch(scrutinee, Pattern.LitPat(Tree.BoolLit(true)), continuation)
+
+enum Split extends Located:
+  case Cons(head: Branch, tail: Split)
+  case Let(rec: Bool, name: VarSymbol, term: Term, tail: Split)
+  case Else(default: Term)
+  case Nil
+
+  @inline def ::(head: Branch): Split = Split.Cons(head, this)
+  
+  lazy val isFull: Bool = this match
+    case Split.Cons(_, tail) => tail.isFull
+    case Split.Let(_, _, _, tail) => tail.isFull
+    case Split.Else(_) => true
+    case Split.Nil => false
+
+  lazy val isEmpty: Bool = this match
+    case Split.Let(_, _, _, tail) => tail.isEmpty
+    case Split.Else(_) | Split.Cons(_, _) => false
+    case Split.Nil => true
+
+  final override def children: Ls[Located] = this match
+    case Split.Cons(head, tail) => List(head, tail)
+    case Split.Let(rec, name, term, tail) => List(name, term, tail)
+    case Split.Else(default) => List(default)
+    case Split.Nil => List()
+
+  final def showDbg: String = this match {
+    case Split.Cons(head, tail) => s"${head.showDbg}; ${tail.showDbg}"
+    case Split.Let(rec, name, term, tail) => s"let ${name.name} = ${term.showDbg}; ${tail.showDbg}"
+    case Split.Else(default) => s"else ${default.showDbg}"
+    case Split.Nil => ""
   }
-  final case class Let[SomeBranch <: Branch](rec: Bool, nme: VarSymbol, rhs: Term, tail: Split[SomeBranch]) extends Split[SomeBranch] {
-    override def children: Ls[Located] = nme :: rhs :: tail :: Nil
-  }
-  final case class Else(term: Term) extends Split[Nothing] {
-    override def children: Ls[Located] = term :: Nil
-  }
-  case object NoSplit extends Split[Nothing] {
-    override def children: Ls[Located] = Nil
-  }
 
-  def empty[SomeBranch <: Branch]: Split[SomeBranch] = NoSplit
-  def single[SomeBranch <: Branch](branch: SomeBranch): Split[SomeBranch] = Cons(branch, NoSplit)
-  def `then`(term: Term): Split[TermBranch] = Else(term)
-  def default[SomeBranch <: Branch](term: Term): Split[SomeBranch] = Else(term)
-  def from[SomeBranch <: Branch](branches: Iterable[SomeBranch]): Split[SomeBranch] =
-    branches.foldRight(NoSplit: Split[SomeBranch])(Cons.apply)
-}
+end Split
 
-sealed abstract class Branch extends Located
-
-sealed abstract class TermBranch extends Branch {
-  final def toSplit: TermSplit = Split.single(this)
-}
-object TermBranch {
-  final case class Boolean(test: Term, continuation: TermSplit) extends TermBranch {
-    override def children: Ls[Located] = test :: continuation :: Nil
-  }
-  final case class Match(scrutinee: Term, continuation: PatternSplit) extends TermBranch {
-    override def children: Ls[Located] = scrutinee :: continuation :: Nil
-  }
-  final case class Left(left: Term, continuation: OperatorSplit) extends TermBranch {
-    override def children: Ls[Located] = left :: continuation :: Nil
-  }
-}
-type TermSplit = Split[TermBranch]
-
-sealed abstract class OperatorBranch extends Branch {
-  val operator: VarSymbol
-  final def toSplit: OperatorSplit = Split.single(this)
-}
-object OperatorBranch {
-  final case class Match(override val operator: VarSymbol, continuation: PatternSplit) extends OperatorBranch {
-    override def children: Ls[Located] = operator :: continuation :: Nil
-  }
-  final case class Binary(override val operator: VarSymbol, continuation: TermSplit) extends OperatorBranch {
-    override def children: Ls[Located] = operator :: continuation :: Nil
-  }
-}
-type OperatorSplit = Split[OperatorBranch]
-
-final case class PatternBranch(val pattern: Pattern, val continuation: TermSplit) extends Branch {
-  override def children: Ls[Located] = pattern :: continuation :: Nil
-  final def toSplit: PatternSplit = Split.single(this)
-}
-type PatternSplit = Split[PatternBranch]
-
-
-
+object Split:
+  def default(term: Term): Split = Split.Else(term)

@@ -1,0 +1,8 @@
+"hello"
+//│ Elab: { "hello"‹› }‹›
+//│ Type: Ctor(lit:StrLit(hello),List())
+
+"hello\n"
+//│ Elab: { "hello\n"‹› }‹›
+//│ Type: Ctor(lit:StrLit(hello
+//│ ),List())

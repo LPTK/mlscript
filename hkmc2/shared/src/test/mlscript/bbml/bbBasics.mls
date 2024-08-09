@@ -206,23 +206,43 @@ class Pair[A, B](fst: A, snd: B)
 
 
 if 1 < 2 then 1 else 0
-//│ Elab: { if Cons(Boolean(App(Ref(<),Tup(List(Fld(‹›,Lit(IntLit(1)),None), Fld(‹›,Lit(IntLit(2)),None)))),Else(Lit(IntLit(1)))),Else(Lit(IntLit(0))))‹› }‹›
-//│ Type: Int
+//│ Elab: { if { let scrut = <#0(1‹›, 2‹›)‹›; scrut is true -> { else 1‹› }; else 0‹› }‹› }‹›
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@2),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(IntLit(0)))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
+//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:464)
+//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
+//│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:573)
+//│ 	at: hkmc2.DiffMaker.rec(DiffMaker.scala:248)
 
 if false then 1 else "1"
-//│ Elab: { if Cons(Boolean(Lit(BoolLit(false)),Else(Lit(IntLit(1)))),Else(Lit(StrLit(1))))‹› }‹›
-//│ Type: Int ∨ Str
+//│ Elab: { if { let scrut = false‹›; scrut is true -> { else 1‹› }; else "1"‹› }‹› }‹›
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@2),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(StrLit(1)))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
+//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:464)
+//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
+//│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:573)
+//│ 	at: hkmc2.DiffMaker.rec(DiffMaker.scala:248)
 
 
 if 1 is Int then 1 else 0
-//│ Elab: { if Cons(Match(Lit(IntLit(1)),Cons(PatternBranch(Class(class:Int,None,true),Else(Lit(IntLit(1)))),NoSplit)),Else(Lit(IntLit(0))))‹› }‹›
+//│ Elab: { if { let scrut = 1‹›; scrut is refined Int -> { else 1‹› }; else 0‹› }‹› }‹›
 //│ Type: Int
 
 fun test(x) =
   if x is Int then x + 1 else 0
 test
-//│ Elab: { fun test(x@2) = if Cons(Match(Ref(x@2),Cons(PatternBranch(Class(class:Int,None,true),Else(App(Ref(+),Tup(List(Fld(‹›,Ref(x@2),None), Fld(‹›,Lit(IntLit(1)),None)))))),NoSplit)),Else(Lit(IntLit(0))))‹›; test#0 }‹›
-//│ Type: (¬Int ∨ Int) ->{⊥} Int
+//│ Elab: { fun test(x@2) = if { let scrut = x@2#0; scrut is refined Int -> { else +#9(x@2#1, 1‹›)‹› }; else 0‹› }‹›; test#0 }‹›
+//│ Type: (Int ∧ (¬Int ∨ Int)) ->{⊥} Int
 
 test(1)
 //│ Elab: { test#1(1‹›)‹› }‹›
@@ -231,33 +251,55 @@ test(1)
 
 test("1")
 //│ Elab: { test#2("1"‹›)‹› }‹›
+//│ ╔══[ERROR] Cannot solve Str ∧ ⊤ ∧ ¬⊥
+//│ ╙──
 //│ Type: Int
 
 
 fun fact(n) =
   if n > 1 then n * fact(n - 1) else 1
-//│ Elab: { fun fact(n@2) = if Cons(Boolean(App(Ref(>),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,Lit(IntLit(1)),None)))),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,App(Ref(fact),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))),Else(Lit(IntLit(1))))‹›; }‹›
-//│ Type: ⊤
+//│ Elab: { fun fact(n@2) = if { let scrut = >#0(n@2#0, 1‹›)‹›; scrut is true -> { else *#1(n@2#1, fact#0(-#0(n@2#2, 1‹›)‹›)‹›)‹› }; else 1‹› }‹›; }‹›
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@3),LitPat(BoolLit(true)),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,App(Ref(fact),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))),Else(Lit(IntLit(1)))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
+//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:480)
+//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
+//│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:316)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3$$anonfun$1(bbML.scala:459)
 
 fact
 //│ Elab: { fact#1 }‹›
-//│ Type: Int ->{⊥} Int
+//│ Type: ⊥
 
 fact(1)
 //│ Elab: { fact#2(1‹›)‹› }‹›
-//│ Type: Int
+//│ Type: ⊥
 
 
 fun fact2 = case
   0 then 1
   n then n * fact2(n - 1)
-//│ Elab: { fun fact2 = λn@2. if Cons(Boolean(App(Ref(==),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,Lit(IntLit(0)),None)))),Else(Lit(IntLit(1)))),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,App(Ref(fact2),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None))))))‹›‹›; }‹›
-//│ Type: ⊤
+//│ Elab: { fun fact2 = λn@2. if { let scrut = ==#0(n@2#2, 0‹›)‹›; scrut is true -> { else 1‹› }; else *#2(n@2#0, fact2#0(-#1(n@2#1, 1‹›)‹›)‹›)‹› }‹›‹›; }‹›
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@6),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,App(Ref(fact2),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
+//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:480)
+//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
+//│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:316)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3$$anonfun$1(bbML.scala:459)
 
 fact2
 //│ Elab: { fact2#1 }‹›
-//│ Type: Int ->{⊥} Int
+//│ Type: ⊥
 
 fact2(0)
 //│ Elab: { fact2#2(0‹›)‹› }‹›
-//│ Type: Int
+//│ Type: ⊥

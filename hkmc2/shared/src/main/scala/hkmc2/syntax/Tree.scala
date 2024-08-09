@@ -13,7 +13,12 @@ sealed trait Literal extends Located:
   val idStr: Str = this match
     case IntLit(value) => value.toString
     case DecLit(value) => value.toString
-    case StrLit(value) => '"'.toString + value + '"'
+    case StrLit(value) => value.iterator.map:
+        case '\b' => "\\b" case '\t' => "\\t" case '\n' => "\\n" case '\r' => "\\r"
+        case '\f' => "\\f" case '"' => "\\\"" case '\\' => "\\\\"
+        case c if c.isControl => f"\\u${c.toInt}%04x"
+        case c => c.toString
+      .mkString("\"", "", "\"")
     case UnitLit(value) => if value then "undefined" else "null"
     case BoolLit(value) => value.toString
   // def children: List[Located] = Nil
@@ -91,7 +96,7 @@ case object BlockKind extends OuterKind("block")
 sealed abstract class DeclKind(desc: Str) extends OuterKind(desc)
 sealed abstract class TermDefKind(val str: Str, desc: Str) extends DeclKind(desc)
 case object Val extends TermDefKind("val", "value")
-case object Fun extends TermDefKind("fun","function")
+case object Fun extends TermDefKind("fun", "function")
 sealed abstract class TypeDefKind(desc: Str) extends DeclKind(desc)
 sealed trait ObjDefKind
 sealed trait ClsLikeKind extends ObjDefKind
