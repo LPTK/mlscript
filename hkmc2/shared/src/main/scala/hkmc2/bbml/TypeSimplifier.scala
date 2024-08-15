@@ -5,6 +5,7 @@ import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.util.chaining._
 
 import mlscript.utils.*, shorthands.*
+import utils.TraceLogger
 
 import Type.*
 
@@ -26,9 +27,12 @@ class TypeSimplifier(tl: TraceLogger):
         tv.state.lowerBounds = tv.state.lowerBounds.map(goType)
         tv.state.upperBounds = tv.state.upperBounds.map(goType)
       tv
-    def goType(ty: Type): Type = ty match
+    def goType(ty: Type): Type =
+    trace[Type](s"simplifyStructure($ty)", r => s"= $r"):
+      ty match
       case tv: InfVar => goTV(tv)
-      case _ => ty.map(goType).simp
+      case _ =>
+        ty.map(goType).simp
     def go(ty: GeneralType): GeneralType = ty match
       case ty: Type => goType(ty)
       case pt: PolyType =>
@@ -131,11 +135,11 @@ class TypeSimplifier(tl: TraceLogger):
     Analysis.varSubst.valuesIterator.foreach { Analysis.getRepr(_) }
     // log("Unif-pst: " + Analysis.varSubst)
     
-    log("Occ#: " + Analysis.occsNum)
-    log("Pos: " + Analysis.posVars)
-    log("Neg: " + Analysis.negVars)
-    log("Rec: " + Analysis.recVars)
-    log("Unif: " + Analysis.varSubst)
+    log("Occ#: " + Analysis.occsNum.toSortedMap)
+    log("Pos: " + Analysis.posVars.toSortedSet)
+    log("Neg: " + Analysis.negVars.toSortedSet)
+    log("Rec: " + Analysis.recVars.toSortedSet)
+    log("Unif: " + Analysis.varSubst.toSortedMap)
     
     val cache: MutMap[IV, Type] = MutMap.empty
     val traversed: MutSet[IV] = MutSet.empty

@@ -2,9 +2,29 @@
 :parseOnly
 
 
++
+//│ Parsed:
+//│ 	Ident(+)
+
++1
+//│ Parsed:
+//│ 	App(Ident(+),Tup(List(IntLit(1))))
+
 1 + 2
 //│ Parsed:
 //│ 	App(Ident(+),Tup(List(IntLit(1), IntLit(2))))
+
+1 + +2
+//│ Parsed:
+//│ 	App(Ident(+),Tup(List(IntLit(1), App(Ident(+),Tup(List(IntLit(2)))))))
+
++1 + +2
+//│ Parsed:
+//│ 	App(Ident(+),Tup(List(App(Ident(+),Tup(List(IntLit(1)))), App(Ident(+),Tup(List(IntLit(2)))))))
+
++ + 1 + + + 2
+//│ Parsed:
+//│ 	App(Ident(+),Tup(List(App(Ident(+),Tup(List(App(Ident(+),Tup(List(IntLit(1))))))), App(Ident(+),Tup(List(App(Ident(+),Tup(List(IntLit(2))))))))))
 
 1 + 2 * 3
 //│ Parsed:
@@ -17,5 +37,51 @@
 1 => 2
 //│ Parsed:
 //│ 	InfixApp(Tup(List(IntLit(1))),keyword '=>',IntLit(2))
+
+1 =>
+  2
+//│ Parsed:
+//│ 	InfixApp(Tup(List(IntLit(1))),keyword '=>',Block(List(IntLit(2))))
+
+x =>
+  1
+  2
+//│ Parsed:
+//│ 	InfixApp(Tup(List(Ident(x))),keyword '=>',Block(List(IntLit(1), IntLit(2))))
+
+x => x : t
+//│ Parsed:
+//│ 	InfixApp(Tup(List(Ident(x))),keyword '=>',InfixApp(Ident(x),keyword ':',Ident(t)))
+
+x =>
+  x : t
+//│ Parsed:
+//│ 	InfixApp(Tup(List(Ident(x))),keyword '=>',Block(List(InfixApp(Ident(x),keyword ':',Ident(t)))))
+
+
+1 +
+ 2
+//│ Parsed:
+//│ 	App(Ident(+),Tup(List(IntLit(1), IntLit(2))))
+
+:pe
+1 +
+ 2
+ 3
+//│ ╔══[PARSE ERROR] Unexpected literal here
+//│ ║  l.70: 	 3
+//│ ╙──      	 ^
+//│ Parsed:
+//│ 	App(Ident(+),Tup(List(IntLit(1), IntLit(2))))
+
+:pe
+1 +
+ 2,
+ 3
+//│ ╔══[PARSE ERROR] Unexpected comma here
+//│ ║  l.79: 	 2,
+//│ ╙──      	  ^
+//│ Parsed:
+//│ 	App(Ident(+),Tup(List(IntLit(1), IntLit(2))))
 
 

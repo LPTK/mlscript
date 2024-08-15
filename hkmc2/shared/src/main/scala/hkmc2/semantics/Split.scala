@@ -5,7 +5,7 @@ import mlscript.utils.*, shorthands.*
 import syntax.*
 import scala.annotation.tailrec
 
-final case class Branch(scrutinee: Term.Ref, pattern: Pattern, continuation: Split) extends Located:
+final case class Branch(scrutinee: Term.Ref, pattern: Pattern, continuation: Split) extends AutoLocated:
   override def children: List[Located] = scrutinee :: pattern :: continuation :: Nil
   def showDbg: String = s"${scrutinee.sym.nme} is ${pattern.showDbg} -> { ${continuation.showDbg} }"
 
@@ -13,7 +13,7 @@ object Branch:
   def apply(scrutinee: Term.Ref, continuation: Split): Branch =
     Branch(scrutinee, Pattern.LitPat(Tree.BoolLit(true)), continuation)
 
-enum Split extends Located:
+enum Split extends AutoLocated:
   case Cons(head: Branch, tail: Split)
   case Let(rec: Bool, name: VarSymbol, term: Term, tail: Split)
   case Else(default: Term)
@@ -38,12 +38,11 @@ enum Split extends Located:
     case Split.Else(default) => List(default)
     case Split.Nil => List()
 
-  final def showDbg: String = this match {
+  final def showDbg: String = this match
     case Split.Cons(head, tail) => s"${head.showDbg}; ${tail.showDbg}"
     case Split.Let(rec, name, term, tail) => s"let ${name.name} = ${term.showDbg}; ${tail.showDbg}"
     case Split.Else(default) => s"else ${default.showDbg}"
     case Split.Nil => ""
-  }
 
 end Split
 

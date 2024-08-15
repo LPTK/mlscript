@@ -2,19 +2,35 @@ package hkmc2
 
 import scala.collection.mutable
 import mlscript.utils.*, shorthands.*
-import hkmc2.semantics.Elaborator
-import hkmc2.bbml.*
+
 
 
 class Outputter(val out: java.io.PrintWriter):
+  
   val outputMarker = "//│ "
   // val oldOutputMarker = "/// "
+
+  val diffBegMarker = "<<<<<<<"
+  val diffMidMarker = "======="
+  val diff3MidMarker = "|||||||" // * Appears under `git config merge.conflictstyle diff3` (https://stackoverflow.com/a/18131595/1518588)
+  val diffEndMarker = ">>>>>>>"
+
+  val exitMarker = "=" * 100
+  
   def apply(str: String) =
     // out.println(outputMarker + str)
     str.splitSane('\n').foreach(l => out.println(outputMarker + l))
 
 
-class DiffMaker(file: os.Path, predefFile: os.Path, relativeName: Str):
+
+abstract class DiffMaker:
+  
+  val file: os.Path
+  val relativeName: Str
+  
+  def processOrigin(origin: Origin)(using Raise): Unit
+  
+  
   
   def doFail(blockLineNum: Int, msg: String): Unit =
     System.err.println(fansi.Color.Red("FAILURE: ").toString + msg)
@@ -22,18 +38,9 @@ class DiffMaker(file: os.Path, predefFile: os.Path, relativeName: Str):
     unexpected("exception", blockLineNum)
   
   final def unexpected(what: Str, blockLineNum: Int): Unit =
+    output(s"FAILURE: Unexpected $what")
     doFail(blockLineNum, s"unexpected $what at $relativeName.${file.ext}:" + blockLineNum)
   
-  
-  val outputMarker = "//│ "
-  // val oldOutputMarker = "/// "
-  
-  val diffBegMarker = "<<<<<<<"
-  val diffMidMarker = "======="
-  val diff3MidMarker = "|||||||" // * Appears under `git config merge.conflictstyle diff3` (https://stackoverflow.com/a/18131595/1518588)
-  val diffEndMarker = ">>>>>>>"
-  
-  val exitMarker = "=" * 100
   
   
   private val commands: mutable.Map[Str, Command[?]] = mutable.Map.empty
@@ -48,11 +55,15 @@ class DiffMaker(file: os.Path, predefFile: os.Path, relativeName: Str):
     if commands.contains(name) then
       throw new IllegalArgumentException(s"Option '$name' already exists")
     commands += name -> this
-    private[DiffMaker] var currentValue: Opt[A] = N
+    private var currentValue: Opt[A] = N
+    private[DiffMaker] def setCurrentValue(a: A): Unit =
+      currentValue = S(a)
+      onSet()
     def get: Opt[A] = currentValue
     def isSet: Bool = currentValue.isDefined
     def isUnset: Bool = !isSet
     def unset: Unit = currentValue = N
+    def onSet(): Unit = ()
     override def toString: Str = s"${if isGlobal then "global " else ""}$name: $currentValue"
   
   class NullaryCommand(name: Str) extends Command[Unit](name)(
@@ -68,22 +79,17 @@ class DiffMaker(file: os.Path, predefFile: os.Path, relativeName: Str):
   val fullExceptionStack = NullaryCommand("s")
   
   val debug = NullaryCommand("d")
-  val dbgParsing = NullaryCommand("dp")
   
-  val expectParseError = NullaryCommand("pe") // TODO handle lack of errors
-  val expectTypeErrors = NullaryCommand("e") // TODO handle lack of errors
+  val expectParseError = NullaryCommand("pe")
+  val expectTypeErrors = NullaryCommand("e")
+  val expectRuntimeError = NullaryCommand("re")
   val expectWarnings = NullaryCommand("w")
   val showRelativeLineNums = NullaryCommand("showRelativeLineNums")
   
-  val showParse = NullaryCommand("p")
-  val parseOnly = NullaryCommand("parseOnly")
   
-  val bbml = NullaryCommand("bbml")
-  
-  
-  val tests = Command("tests"){ case "" =>
-    new DiffTests(new DiffTests.State).execute()
-  }
+  val tests = Command("tests"):
+    case "" =>
+      new DiffTestRunner(new DiffTestRunner.State).execute()
   
   
   val fileName = file.last
@@ -95,53 +101,74 @@ class DiffMaker(file: os.Path, predefFile: os.Path, relativeName: Str):
   val output = Outputter(out)
   val report = ReportFormatter(output.apply)
   
-  // val typer = new Typer {
-  //   dbg = false
-  //   verbose = false
-  //   explainErrors = false
-  //   override def emitDbg(str: String): Unit = output(str)
-  // }
-  // var ctx: typer.Ctx = typer.Ctx.init
   val failures = mutable.Buffer.empty[Int]
+  val unmergedChanges = mutable.Buffer.empty[Int]
   
   var _onlyParse = false
   var _allowTypeErrors = false
   var _showRelativeLineNums = false
   
   
-  var curCtx = if file == predefFile then Elaborator.Ctx.empty else
-    // val raise: Raise = throw _
+  
+  def processBlock(origin: Origin): Unit =
+    val globalStartLineNum = origin.startLineNum
+    val blockLineNum = origin.startLineNum
+    // * ^ In previous DiffTest versions, these two could be different due to relative line numbers
+    
+    var parseErrors, typeErrors, compilationErrors, runtimeErrors, warnings = 0
+    
     val raise: Raise = d =>
-      output(s"Error: $d")
-      ()
+      d.kind match
+      case Diagnostic.Kind.Error =>
+        d.source match
+        case Diagnostic.Source.Lexing =>
+          parseErrors += 1
+          if expectParseError.isUnset && !tolerateErrors then
+            failures += globalStartLineNum
+            unexpected("lexing error", blockLineNum)
+        case Diagnostic.Source.Parsing =>
+          parseErrors += 1
+          if expectParseError.isUnset && !tolerateErrors then
+            failures += globalStartLineNum
+            // doFail(fileName, blockLineNum, "unexpected parse error at ")
+            unexpected("parse error", blockLineNum)
+            // report(blockLineNum, d :: Nil, showRelativeLineNums.isSet)
+        case Diagnostic.Source.Typing =>
+          typeErrors += 1
+          if expectTypeErrors.isUnset && !tolerateErrors then
+            failures += globalStartLineNum
+            unexpected("type error", blockLineNum)
+        case Diagnostic.Source.Compilation =>
+          compilationErrors += 1
+          TODO(d.source)
+        case Diagnostic.Source.Runtime =>
+          runtimeErrors += 1
+          TODO(d.source)
+      case Diagnostic.Kind.Warning =>
+        warnings += 1
+        TODO(d.kind)
+      report(blockLineNum, d :: Nil, showRelativeLineNums.isSet)
     
-    val block = os.read(predefFile)
-    val fph = new FastParseHelpers(block)
-    val origin = Origin(predefFile.toString, 0, fph)
+    processOrigin(origin)(using raise)
     
-    val lexer = new syntax.Lexer(origin, raise, dbg = dbgParsing.isSet)
-    val tokens = lexer.bracketedTokens
+    if expectParseError.isSet && parseErrors == 0 then
+      failures += globalStartLineNum
+      unexpected("lack of parse error", blockLineNum)
+    if expectTypeErrors.isSet && typeErrors == 0 then
+      failures += globalStartLineNum
+      unexpected("lack of type error", blockLineNum)
+    if expectRuntimeError.isSet && runtimeErrors == 0 then
+      failures += globalStartLineNum
+      unexpected("lack of runtime error", blockLineNum)
+    if expectWarnings.isSet && warnings == 0 then
+      failures += globalStartLineNum
+      unexpected("lack of warnings", blockLineNum)
     
-    if showParse.isSet || showParse.isSet || dbgParsing.isSet then
-      output(syntax.Lexer.printTokens(tokens))
-    
-    val p = new syntax.Parser(origin, tokens, raise, dbg = dbgParsing.isSet):
-      def doPrintDbg(msg: => Str): Unit = if dbg then output(msg)
-    val res = p.parseAll(p.block)
-    given ctx: Elaborator.Ctx = Elaborator.Ctx.empty
-    val elab = Elaborator(raise)
-    try elab.importFrom(res)
-    catch
-      case err: Throwable =>
-        output("/!!!\\ Uncaught error during Predef import: " + err)
-        ctx
-      
+    if fixme.isSet && (parseErrors + typeErrors + compilationErrors + runtimeErrors) == 0 then
+      failures += globalStartLineNum
+      unexpected("lack of error to fix", blockLineNum)
   
-  val tl = new TraceLogger:
-    override def doTrace = debug.isSet
-    override def emitDbg(str: String): Unit = output(str)
   
-  var bbmlTyper: Opt[BBTyper] = None
   
   @annotation.tailrec
   final def rec(lines: List[String]): Unit = lines match
@@ -152,8 +179,8 @@ class DiffMaker(file: os.Path, predefFile: os.Path, relativeName: Str):
       rec(ls)
     case ":exit" :: ls =>
       out.println(":exit")
-      out.println(exitMarker)
-      ls.dropWhile(_ =:= exitMarker).tails.foreach {
+      out.println(output.exitMarker)
+      ls.dropWhile(_ =:= output.exitMarker).tails.foreach {
         case Nil =>
         case lastLine :: Nil => out.print(lastLine)
         case l :: _ => out.println(l)
@@ -167,7 +194,7 @@ class DiffMaker(file: os.Path, predefFile: os.Path, relativeName: Str):
       commands.get(cmd) match
         case S(cmd) =>
           if global.isSet then cmd.isGlobal = true
-          cmd.currentValue = S(cmd.process(rest))
+          cmd.setCurrentValue(cmd.process(rest))
         case N =>
           failures += allLines.size - lines.size + 1
           output("/!\\ Unrecognized command: " + cmd)
@@ -178,83 +205,43 @@ class DiffMaker(file: os.Path, predefFile: os.Path, relativeName: Str):
     case line :: ls if line.startsWith("//") =>
       out.println(line)
       rec(ls)
+    case line :: ls if line.startsWith(output.diffBegMarker) => // Check if there are unmerged git conflicts
+      val diff = ls.takeWhile(l => !l.startsWith(output.diffEndMarker))
+      assert(diff.exists(_.startsWith(output.diffMidMarker)), diff)
+      val rest = ls.drop(diff.length)
+      val hdo = rest.headOption
+      assert(hdo.exists(_.startsWith(output.diffEndMarker)), hdo)
+      val blankLines = diff.count(_.isEmpty)
+      val hasBlankLines = diff.exists(_.isEmpty)
+      if diff.forall(l => l.startsWith(output.outputMarker) || l.startsWith(output.diffMidMarker) || l.startsWith(output.diff3MidMarker) || l.isEmpty) then {
+        for _ <- 1 to blankLines do out.println()
+      } else {
+        unmergedChanges += allLines.size - lines.size + 1
+        out.println(output.diffBegMarker)
+        diff.foreach(out.println)
+        out.println(output.diffEndMarker)
+      }
+      if hasBlankLines then resetCommands
+      rec(rest.tail)
     case l :: ls =>
-    
-      val blockLineNum = (allLines.size - lines.size) + 1
+      
+      val blockLineNum = allLines.size - lines.size + 1
       
       val block = (l :: ls.takeWhile(l => l.nonEmpty && !(
-        l.startsWith(outputMarker)
-        || l.startsWith(diffBegMarker)
+        l.startsWith(output.outputMarker)
+        || l.startsWith(output.diffBegMarker)
         // || l.startsWith(oldOutputMarker)
       ))).toIndexedSeq
       block.foreach(out.println)
       val processedBlock = block
       val processedBlockStr = processedBlock.mkString
       val fph = new FastParseHelpers(block)
-      val globalStartLineNum = allLines.size - lines.size + 1
-        
+      
+      val origin = Origin(fileName, blockLineNum, fph)
+      
       try
         
-        val origin = Origin(fileName, globalStartLineNum, fph)
-        val raise: Raise = d =>
-          d.kind match
-          case Diagnostic.Kind.Error =>
-            d.source match
-            case Diagnostic.Source.Lexing =>
-              TODO(d.source)
-            case Diagnostic.Source.Parsing =>
-              if expectParseError.isUnset && !tolerateErrors then
-                failures += allLines.size - lines.size + 1
-                // doFail(fileName, blockLineNum, "unexpected parse error at ")
-                unexpected("parse error", blockLineNum)
-                // report(blockLineNum, d :: Nil, showRelativeLineNums.isSet)
-            case Diagnostic.Source.Typing =>
-              if expectTypeErrors.isUnset && !tolerateErrors then
-                failures += allLines.size - lines.size + 1
-                unexpected("type error", blockLineNum)
-            case Diagnostic.Source.Compilation =>
-              TODO(d.source)
-            case Diagnostic.Source.Runtime =>
-              TODO(d.source)
-          case Diagnostic.Kind.Warning =>
-            TODO(d.kind)
-          report(blockLineNum, d :: Nil, showRelativeLineNums.isSet)
-        val lexer = new syntax.Lexer(origin, raise, dbg = dbgParsing.isSet)
-        val tokens = lexer.bracketedTokens
-        
-        if showParse.isSet || showParse.isSet || dbgParsing.isSet then
-          output(syntax.Lexer.printTokens(tokens))
-        
-        val p = new syntax.Parser(origin, tokens, raise, dbg = dbgParsing.isSet):
-          def doPrintDbg(msg: => Str): Unit = if dbg then output(msg)
-        val res = p.parseAll(p.block)
-        
-        if parseOnly.isSet || showParse.isSet then
-          output(s"Parsed:${res.map("\n\t"+_.showDbg).mkString}")
-        
-        // if showParse.isSet then
-        //   output(s"AST: $res")
-        
-        if parseOnly.isUnset then
-          val elab = Elaborator(raise)
-          given Elaborator.Ctx = curCtx
-          val (e, newCtx) = elab.topLevel(res)
-          curCtx = newCtx
-          output(s"Elab: ${e.showDbg}")
-          if bbml.isSet then
-            if bbmlTyper.isEmpty then
-              bbmlTyper = S(BBTyper(raise, Ctx.init(curCtx.members), tl))
-            val typer = bbmlTyper.get
-            val ty = typer.typePurely(e)
-            val printer = PrettyPrinter((msg: String) => output(msg))
-            if debug.isSet then printer.print(ty)
-            val simplif = TypeSimplifier(tl)
-            val sty = simplif(true, 0)(ty)
-            printer.print(sty)
-          else
-            val typer = typing.TypeChecker(raise)
-            val ty = typer.typeProd(e)
-            output(s"Type: ${ty}")
+        processBlock(origin)
         
       catch
         case oh_noes: ThreadDeath => throw oh_noes
@@ -272,13 +259,20 @@ class DiffMaker(file: os.Path, predefFile: os.Path, relativeName: Str):
             ).map("\n" + "\tat: " + _).mkString)
       
       rec(lines.drop(block.size))
+      
     case Nil =>
-  try rec(allLines) finally
-    out.close()
-  val result = strw.toString
-  if result =/= fileContents then
-    println(s"Updating $file...")
-    os.write.over(file, result)
+  
+  
+  
+  def run(): Unit =
+    try rec(allLines) finally out.close()
+    val result = strw.toString
+    if result =/= fileContents then
+      println(s"Updating $file...")
+      os.write.over(file, result)
+  
+  
   
 end DiffMaker
+
 

@@ -24,10 +24,10 @@ sealed abstract class GeneralType:
 // * Types that can be used as class type arguments
 sealed trait TypeArg:
   lazy val lvl: Int
-  def map(f: Type => Type): TypeArg
+  def mapArg(f: Type => Type): TypeArg
 
 case class Wildcard(in: Type, out: Type) extends TypeArg {
-  override def map(f: Type => Type): Wildcard = Wildcard(f(in), f(out))
+  def mapArg(f: Type => Type): Wildcard = Wildcard(f(in), f(out))
 
   override def toString(): String = in match
     case `out` => in.toString
@@ -110,13 +110,16 @@ sealed abstract class Type extends GeneralType with TypeArg:
     case ComposedType(l, r, true) => l.! & r.!
     case ComposedType(l, r, false) => l.! | r.!
     case _ => NegType(this)
-
+  
   override def map(f: Type => Type): Type = this match
-    case ClassType(name, targs) => ClassType(name, targs.map(_.map(f)))
+    case ClassType(name, targs) => ClassType(name, targs.map(_.mapArg(f)))
     case FunType(args, ret, eff) => FunType(args.map(f), f(ret), f(eff))
     case ComposedType(lhs, rhs, pol) => Type.mkComposedType(f(lhs), f(rhs), pol)
     case NegType(ty) => Type.mkNegType(f(ty))
     case Top | Bot | _: InfVar => this
+  
+  def mapArg(f: Type => Type): Type = f(this)
+  
   def monoOr(fallback: => Type): Type = this
 
 case class ClassType(name: ClassSymbol, targs: Ls[TypeArg]) extends Type:
@@ -125,11 +128,16 @@ case class ClassType(name: ClassSymbol, targs: Ls[TypeArg]) extends Type:
         case Wildcard(in, out) => Wildcard(in.subst, out.subst)
         case ty: Type => ty.subst
       })
+
 final case class InfVar(vlvl: Int, uid: Uid[InfVar], state: VarState, isSkolem: Bool) extends Type:
   override def subst(using map: Map[Uid[InfVar], InfVar]): ThisType = map.get(uid).getOrElse(this)
+
+given Ordering[InfVar] = Ordering.by(_.uid)
+
 case class FunType(args: Ls[Type], ret: Type, eff: Type) extends Type:
   override def subst(using map: Map[Uid[InfVar], InfVar]): ThisType =
     FunType(args.map(_.subst), ret.subst, eff.subst)
+
 case class ComposedType(lhs: Type, rhs: Type, pol: Bool) extends Type: // * Positive -> union
   override def subst(using map: Map[Uid[InfVar], InfVar]): ThisType =
     Type.mkComposedType(lhs.subst, rhs.subst, pol)
@@ -139,8 +147,10 @@ case class ComposedType(lhs: Type, rhs: Type, pol: Bool) extends Type: // * Posi
 final case class NegType(ty: Type) extends Type:
   override def subst(using map: Map[Uid[InfVar], InfVar]): ThisType = NegType(ty.subst)
   override lazy val simp: Type = ty.simp.!
+
 object Top extends Type:
   override def subst(using map: Map[Uid[InfVar], InfVar]): ThisType = Top
+
 object Bot extends Type:
   override def subst(using map: Map[Uid[InfVar], InfVar]): ThisType = Bot
 

@@ -10,8 +10,8 @@ import io.methvin.watcher.hashing.{FileHash, FileHasher}
 import java.time.LocalDateTime
 import java.time.temporal._
 
-// Note: when SBT's `fork` is set to `false`, the path should be `File("hkmc2/shared/")` instead...
-object MainWatcher extends Watcher(File("../shared/")):
+// Note: when SBT's `fork` is set to `false`, the path should be `File("hkmc2/")` instead...
+object MainWatcher extends Watcher(File("../")):
   def main(args: Array[String]): Unit = run
 
 class Watcher(dir: File):
@@ -87,10 +87,11 @@ class Watcher(dir: File):
       val relativeName = basePath.map(_ + "/").mkString + path.baseName
       val predefPath = os.pwd/os.up/"shared"/"src"/"test"/"mlscript"/"decls"/"Predef.mls"
       semantics.suid.reset // FIXME hack
-      val dm = new DiffMaker(path, predefPath, relativeName):
+      val dm = new MainDiffMaker(path, predefPath, relativeName):
         override def unhandled(blockLineNum: Int, exc: Throwable): Unit =
           exc.printStackTrace()
           super.unhandled(blockLineNum, exc)
+      dm.run()
       
   def show(file: File) =
     fansi.Color.Yellow:

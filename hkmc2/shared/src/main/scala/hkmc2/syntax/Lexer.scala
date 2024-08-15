@@ -11,7 +11,7 @@ import Diagnostic.Source.{Lexing, Parsing}
 import Lexer._
 import Tree.{IntLit, DecLit, StrLit}
 
-class Lexer(origin: Origin, raise: Raise, dbg: Bool):
+class Lexer(origin: Origin, dbg: Bool)(using raise: Raise):
   
   val bytes: Array[Char] = origin.fph.blockStr.toArray
   private val length = bytes.length
@@ -107,27 +107,30 @@ class Lexer(origin: Origin, raise: Raise, dbg: Bool):
     def isDecimalStart(ch: Char) = ch === '.' || ch === 'e' || ch === 'E'
     /** Take a fraction part with an optional exponent part. Call at periods. */
     def decimal(i: Int, integral: Str): (DecLit, Int) =
-      val (fraction, j) = if test(i, _ === '.') then
-        takeDigits(i + 1, isDigit) match
-          case (N, j) =>
-            raise(ErrorReport(msg"Expect at least one digit after the decimal point" -> S(loc(i + 1, i + 2)) :: Nil,
-              source = Lexing))
-            ("", j)
-          case (S(digits), j) => ("." + digits, j)
-      else ("", i)
-      val (exponent, k) = if test(j, ch => ch === 'e' || ch === 'E') then
-        val (sign, k) = if test(j + 1, ch => ch === '+' || ch === '-') then
-          (bytes(j + 1), j + 2)
-        else
-          ('+', j + 1)
-        takeDigits(k, isDigit) match
+      lazy val msgPrefix = "Expect at least one digit after the "
+      val (fraction, j) =
+        if test(i, _ === '.')
+        then takeDigits(i + 1, isDigit) match
+        case (N, j) =>
+          // TODO should parse a selection here; as in `1.toString()`
+          raise(ErrorReport(msg"$msgPrefix decimal point" -> S(loc(i + 1, i + 2)) :: Nil,
+            source = Lexing))
+          ("", j)
+        case (S(digits), j) => ("." + digits, j)
+        else ("", i)
+      val (exponent, k) =
+        if test(j, ch => ch === 'e' || ch === 'E')
+        then
+          val (sign, k) = if test(j + 1, ch => ch === '+' || ch === '-')
+            then (bytes(j + 1), j + 2)
+            else ('+', j + 1)
+          takeDigits(k, isDigit) match
           case (N, l) =>
-            raise(ErrorReport(msg"Expect at least one digit after the exponent sign" -> S(loc(l - 1, l)) :: Nil,
+            raise(ErrorReport(msg"$msgPrefix exponent sign" -> S(loc(l - 1, l)) :: Nil,
               source = Lexing))
             ("", l)
           case (S(digits), l) => ("E" + sign + digits, l)
-      else
-        ("", j)
+        else ("", j)
       (DecLit(BigDecimal(integral + fraction + exponent)), k)
     if i < length then
       bytes(i) match

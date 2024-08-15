@@ -3,303 +3,311 @@
 
 
 123
-//│ Elab: { 123‹› }‹›
 //│ Type: Int
 
 3.14
-//│ Elab: { 3.14‹› }‹›
 //│ Type: Num
 
 false
-//│ Elab: { false‹› }‹›
 //│ Type: Bool
 
 "bbml"
-//│ Elab: { "bbml"‹› }‹›
 //│ Type: Str
 
 ()
-//│ Elab: { }‹›
 //│ Type: ⊤
 
 fun id(x) = x
-//│ Elab: { fun id(x@2) = x@2#0; }‹›
-//│ Type: ⊤
+id
+//│ Type: α2_1 ->{⊥} α2_1
 
 fun inc(x) = x + 1
-//│ Elab: { fun inc(x@2) = +#0(x@2#0, 1‹›)‹›; }‹›
 //│ Type: ⊤
 
 fun mul(x, y) = x * y
-//│ Elab: { fun mul(x@2, y@3) = *#0(x@2#0, y@3#0)‹›; }‹›
 //│ Type: ⊤
 
 x => x
-//│ Elab: { λx@2. x@2#0‹› }‹›
 //│ Type: (α8_1) ->{⊥} α8_1
 
 +
-//│ Elab: { +#1 }‹›
 //│ Type: (Int, Int) ->{⊥} Int
 
 (x, y) => x + y
-//│ Elab: { λx@2, y@3. +#2(x@2#0, y@3#0)‹›‹› }‹›
 //│ Type: (Int, Int) ->{⊥} Int
 
 ((x, y) => x + y)(40, 2)
-//│ Elab: { λx@3, y@4. +#3(x@3#0, y@4#0)‹›‹›(40‹›, 2‹›)‹› }‹›
 //│ Type: Int
 
 :e
 114 + "514"
-//│ Elab: { +#4(114‹›, "514"‹›)‹› }‹›
-//│ ╔══[ERROR] Cannot solve Str ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in string literal with expected type Int
+//│ ║  l.43: 	114 + "514"
+//│ ║        	      ^^^^^
+//│ ╙── because: cannot constrain  Str  <:  Int
 //│ Type: Int
 
 
 inc(42)
-//│ Elab: { inc#0(42‹›)‹› }‹›
 //│ Type: Int
 
 let x = 42 in x
-//│ Elab: { { let x@2 = 42‹›; x@2#0 }‹› }‹›
 //│ Type: Int
 
 let x = 1 in let y = 2 in x + y
-//│ Elab: { { let x@2 = 1‹›; { let y@3 = 2‹›; +#5(x@2#0, y@3#0)‹› }‹› }‹› }‹›
 //│ Type: Int
 
 :e
 let x = 0 in x + "1"
-//│ Elab: { { let x@2 = 0‹›; +#6(x@2#0, "1"‹›)‹› }‹› }‹›
-//│ ╔══[ERROR] Cannot solve Str ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in string literal with expected type Int
+//│ ║  l.61: 	let x = 0 in x + "1"
+//│ ║        	                 ^^^
+//│ ╙── because: cannot constrain  Str  <:  Int
 //│ Type: Int
 
 class Foo(x: Int)
-//│ Elab: { class Foo(x@2: class:Int#15) { }‹›; }‹›
 //│ Type: ⊤
 
 :e
 new Nothingness(0)
 //│ ╔══[ERROR] Class Nothingness not found.
-//│ ║  l.85: 	new Nothingness(0)
-//│ ╙──      	               ^^^
-//│ Elab: { <error>‹› }‹›
+//│ ║  l.72: 	new Nothingness(0)
+//│ ╙──      	    ^^^^^^^^^^^^^^
 //│ Type: ⊥
 
 :e
 new 42
 //│ ╔══[ERROR] Illegal new expression.
-//│ ╙──
-//│ Elab: { <error>‹› }‹›
+//│ ║  l.79: 	new 42
+//│ ╙──      	    ^^
 //│ Type: ⊥
 
 
 new Foo(42)
-//│ Elab: { new class:Foo(Lit(IntLit(42)))‹› }‹›
 //│ Type: Foo
 
 
 class Point(x: Num, y: Num, z: Num)
-//│ Elab: { class Point(x@2: class:Num#13, y@3: class:Num#14, z@4: class:Num#15) { }‹›; }‹›
 //│ Type: ⊤
 
 
 new Point(0.0, 0.0, 0.0)
-//│ Elab: { new class:Point(Lit(DecLit(0.0)), Lit(DecLit(0.0)), Lit(DecLit(0.0)))‹› }‹›
 //│ Type: Point
 
 :e
 new Foo("1!5!")
-//│ Elab: { new class:Foo(Lit(StrLit(1!5!)))‹› }‹›
-//│ ╔══[ERROR] Cannot solve Str ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in string literal with expected type Int
+//│ ║  l.98: 	new Foo("1!5!")
+//│ ║        	        ^^^^^^
+//│ ╙── because: cannot constrain  Str  <:  Int
 //│ Type: Foo
 
 
 class Some[A](value: A)
-//│ Elab: { class Some[out A@2](value@3: A@2#0) { }‹›; }‹›
 //│ Type: ⊤
 
 new Some(true)
-//│ Elab: { new class:Some(Lit(BoolLit(true)))‹› }‹›
-//│ Type: Some[in ⊤ out Bool]
+//│ Type: Some[α15_1]
+//│ Where:
+//│   Bool <: α15_1
 
 new Some(42)
-//│ Elab: { new class:Some(Lit(IntLit(42)))‹› }‹›
-//│ Type: Some[in ⊤ out Int]
+//│ Type: Some[α16_1]
+//│ Where:
+//│   Int <: α16_1
 
 let p = new Point(1.0, 0.0, 0.0) in p.Point#x
-//│ Elab: { { let p@2 = new class:Point(Lit(DecLit(1.0)), Lit(DecLit(0.0)), Lit(DecLit(0.0)))‹›; p@2#0.class:Point#0#x‹› }‹› }‹›
 //│ Type: Num
 
 let t = new Some(true) in t.Some#value
-//│ Elab: { { let t@2 = new class:Some(Lit(BoolLit(true)))‹›; t@2#0.class:Some#0#value‹› }‹› }‹›
 //│ Type: Bool
 
 :fixme
-:e
+:pe
 42.Some#value
-//│ /!!!\ Uncaught error: scala.NotImplementedError: Lexing
+//│ ╔══[LEXICAL ERROR] Expect at least one digit after the  decimal point
+//│ ║  l.127: 	42.Some#value
+//│ ╙──       	   ^
+//│ ╔══[PARSE ERROR] Expected end of input; found identifier instead
+//│ ║  l.127: 	42.Some#value
+//│ ╙──       	   ^^^^
+//│ Type: Num
 
 
 class Printer[T](f: T -> Str)
-//│ Elab: { class Printer[in T@2](f@3: T@2#0 -> class:Str#0‹›) { }‹›; }‹›
 //│ Type: ⊤
 
 fun foofoo(x) =
   let t = x + 1 in "foo"
-//│ Elab: { fun foofoo(x@2) = { let t@3 = +#7(x@2#0, 1‹›)‹›; "foo"‹› }‹›; }‹›
 //│ Type: ⊤
 
 new Printer(foofoo)
-//│ Elab: { new class:Printer(Ref(foofoo))‹› }‹›
-//│ Type: Printer[in Int out ⊥]
+//│ Type: Printer[α22_1]
+//│ Where:
+//│   α22_1 <: Int
 
 let ip = new Printer(foofoo) in ip.Printer#f(42)
-//│ Elab: { { let ip@2 = new class:Printer(Ref(foofoo))‹›; ip@2#0.class:Printer#0#f‹›(42‹›)‹› }‹› }‹›
 //│ Type: Str
 
 :e
 let ip = new Printer(foofoo) in ip.Printer#f("42")
-//│ Elab: { { let ip@2 = new class:Printer(Ref(foofoo))‹›; ip@2#0.class:Printer#1#f‹›("42"‹›)‹› }‹› }‹›
-//│ ╔══[ERROR] Cannot solve Str ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in string literal with expected type α27_1
+//│ ║  l.153: 	let ip = new Printer(foofoo) in ip.Printer#f("42")
+//│ ║         	                                             ^^^^
+//│ ╟── because: cannot constrain  Str  <:  α27_1
+//│ ╟── because: cannot constrain  Str  <:  α26_1
+//│ ╟── because: cannot constrain  Str  <:  α21_1
+//│ ╙── because: cannot constrain  Str  <:  Int
 //│ Type: Str
 
 class TFun[T](f: T -> T)
-//│ Elab: { class TFun[in out T@2](f@3: T@2#0 -> T@2#1‹›) { }‹›; }‹›
 //│ Type: ⊤
 
 fun inc(x) = x + 1
-//│ Elab: { fun inc(x@2) = +#8(x@2#0, 1‹›)‹›; }‹›
 //│ Type: ⊤
 
 new TFun(inc)
-//│ Elab: { new class:TFun(Ref(inc))‹› }‹›
-//│ Type: TFun[Int]
+//│ Type: TFun[α31_1]
+//│ Where:
+//│   Int <: α31_1
+//│   α31_1 <: Int
 
 let tf = new TFun(inc) in tf.TFun#f(1)
-//│ Elab: { { let tf@2 = new class:TFun(Ref(inc))‹›; tf@2#0.class:TFun#0#f‹›(1‹›)‹› }‹› }‹›
 //│ Type: Int
 
 :e
 let tf = new TFun(inc) in tf.TFun#f("1")
-//│ Elab: { { let tf@2 = new class:TFun(Ref(inc))‹›; tf@2#0.class:TFun#1#f‹›("1"‹›)‹› }‹› }‹›
-//│ ╔══[ERROR] Cannot solve Str ∧ ⊤ ∧ ¬⊥
-//│ ╙──
-//│ Type: Int
+//│ ╔══[ERROR] Type error in string literal with expected type α36_1
+//│ ║  l.179: 	let tf = new TFun(inc) in tf.TFun#f("1")
+//│ ║         	                                    ^^^
+//│ ╟── because: cannot constrain  Str  <:  α36_1
+//│ ╟── because: cannot constrain  Str  <:  α35_1
+//│ ╟── because: cannot constrain  Str  <:  α30_1
+//│ ╙── because: cannot constrain  Str  <:  Int
+//│ Type: Str ∨ Int
 
 class Pair[A, B](fst: A, snd: B)
-//│ Elab: { class Pair[out A@2, out B@3](fst@4: A@2#0, snd@5: B@3#0) { }‹›; }‹›
 //│ Type: ⊤
 
 (new Pair(42, true)).Pair#fst
-//│ Elab: { new class:Pair(Lit(IntLit(42)), Lit(BoolLit(true)))‹›.class:Pair#0#fst‹› }‹›
 //│ Type: Int
 
 (new Pair(42, true)).Pair#snd
-//│ Elab: { new class:Pair(Lit(IntLit(42)), Lit(BoolLit(true)))‹›.class:Pair#1#snd‹› }‹›
 //│ Type: Bool
 
 
 if 1 < 2 then 1 else 0
-//│ Elab: { if { let scrut = <#0(1‹›, 2‹›)‹›; scrut is true -> { else 1‹› }; else 0‹› }‹› }‹›
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@2),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(IntLit(0)))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:464)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:573)
-//│ 	at: hkmc2.DiffMaker.rec(DiffMaker.scala:248)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@128),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(IntLit(0)))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:496)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:611)
+//│ 	at: hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:29)
 
 if false then 1 else "1"
-//│ Elab: { if { let scrut = false‹›; scrut is true -> { else 1‹› }; else "1"‹› }‹› }‹›
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@2),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(StrLit(1)))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:464)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:573)
-//│ 	at: hkmc2.DiffMaker.rec(DiffMaker.scala:248)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@131),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(StrLit(1)))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:496)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:611)
+//│ 	at: hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:29)
 
 
 if 1 is Int then 1 else 0
-//│ Elab: { if { let scrut = 1‹›; scrut is refined Int -> { else 1‹› }; else 0‹› }‹› }‹›
 //│ Type: Int
 
 fun test(x) =
   if x is Int then x + 1 else 0
 test
-//│ Elab: { fun test(x@2) = if { let scrut = x@2#0; scrut is refined Int -> { else +#9(x@2#1, 1‹›)‹› }; else 0‹› }‹›; test#0 }‹›
 //│ Type: (Int ∧ (¬Int ∨ Int)) ->{⊥} Int
 
 test(1)
-//│ Elab: { test#1(1‹›)‹› }‹›
 //│ Type: Int
 
 
 test("1")
-//│ Elab: { test#2("1"‹›)‹› }‹›
-//│ ╔══[ERROR] Cannot solve Str ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ FAILURE: Unexpected type error
+//│ ╔══[ERROR] Type error in application
+//│ ║  l.240: 	test("1")
+//│ ║         	^^^^^^^^^
+//│ ╟── because: cannot constrain  α54_1  <:  Str ->{α60_1} α61_1
+//│ ╟── because: cannot constrain  α54_1  <:  (((Str ∧ ⊤) ∧ ⊤) ∨ ⊥) ->{((⊤ ∧ ⊤) ∧ α60_1) ∨ ⊥} (((⊤ ∧ ⊤) ∧ α61_1) ∨ ⊥)
+//│ ╟── because: cannot constrain  (Int ∧ (¬Int ∨ Int)) ->{⊥} Int  <:  (((Str ∧ ⊤) ∧ ⊤) ∨ ⊥) ->{((⊤ ∧ ⊤) ∧ α60_1) ∨ ⊥} (((⊤ ∧ ⊤) ∧ α61_1) ∨ ⊥)
+//│ ╙── because: cannot constrain  ((Str ∧ ⊤) ∧ ⊤) ∨ ⊥  <:  (((Int ∧ ⊤) ∧ ¬Int) ∨ ((Int ∧ ⊤) ∧ ⊤)) ∨ ⊥
 //│ Type: Int
 
 
 fun fact(n) =
   if n > 1 then n * fact(n - 1) else 1
-//│ Elab: { fun fact(n@2) = if { let scrut = >#0(n@2#0, 1‹›)‹›; scrut is true -> { else *#1(n@2#1, fact#0(-#0(n@2#2, 1‹›)‹›)‹›)‹› }; else 1‹› }‹›; }‹›
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@3),LitPat(BoolLit(true)),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,App(Ref(fact),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))),Else(Lit(IntLit(1)))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:480)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:316)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3$$anonfun$1(bbML.scala:459)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@145),LitPat(BoolLit(true)),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@144),None), Fld(‹›,App(Ref(fact),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@144),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))),Else(Lit(IntLit(1)))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:340)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3$$anonfun$1(bbML.scala:491)
 
 fact
-//│ Elab: { fact#1 }‹›
 //│ Type: ⊥
 
 fact(1)
-//│ Elab: { fact#2(1‹›)‹› }‹›
 //│ Type: ⊥
 
 
 fun fact2 = case
   0 then 1
   n then n * fact2(n - 1)
-//│ Elab: { fun fact2 = λn@2. if { let scrut = ==#0(n@2#2, 0‹›)‹›; scrut is true -> { else 1‹› }; else *#2(n@2#0, fact2#0(-#1(n@2#1, 1‹›)‹›)‹›)‹› }‹›‹›; }‹›
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@6),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,App(Ref(fact2),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@2),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:480)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:316)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3$$anonfun$1(bbML.scala:459)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@159),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@155),None), Fld(‹›,App(Ref(fact2),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@155),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:340)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3$$anonfun$1(bbML.scala:491)
 
 fact2
-//│ Elab: { fact2#1 }‹›
 //│ Type: ⊥
 
 fact2(0)
-//│ Elab: { fact2#2(0‹›)‹› }‹›
 //│ Type: ⊥
+
+
+class Foo[A](x: A -> A)
+//│ Type: ⊤
+
+new Foo(x => x)
+//│ Type: Foo[α73_1]
+
+fun f(g) = new Foo(g)
+f
+//│ Type: (α76_1 ->{⊥} α76_1) ->{⊥} Foo[α76_1]
+
+f(x => x).Foo#x
+//│ Type: (α76_1) ->{⊥} α76_1
+
+g => (new Foo(g)).Foo#x
+//│ Type: (α83_1 ->{⊥} α83_1) ->{⊥} (α83_1) ->{⊥} α83_1
+
+

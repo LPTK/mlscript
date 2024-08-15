@@ -6,27 +6,25 @@ fun power(x) = case
   0 then `1.0
   n then x `*. power(x)(n - 1)
 power
-//│ Elab: { fun power: forall C@3: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Num))), WildcardTy(None,Some(Ref(C@3))), WildcardTy(None,Some(Ref(class:Any))))),None))),FunTy(Tup(List(Fld(‹›,Ref(class:Int),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Num))), WildcardTy(None,Some(Ref(C@3))), WildcardTy(None,Some(Ref(class:Any))))),None),None)‹›; fun power(x@4): forall C@13: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Num))), WildcardTy(None,Some(Ref(C@13))), WildcardTy(None,Some(Ref(class:Any))))),None))),FunTy(Tup(List(Fld(‹›,Ref(class:Int),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Num))), WildcardTy(None,Some(Ref(C@13))), WildcardTy(None,Some(Ref(class:Any))))),None),None)‹› = λn@5. if { let scrut = ==#0(n@5#1, 0‹›)‹›; scrut is true -> { else code"1.0‹›"‹› }; else code"*.#0(${x@4#0}‹›, ${power#0(x@4#1)‹›(-#0(n@5#0, 1‹›)‹›)‹›}‹›)‹›"‹› }‹›‹›; power#1 }‹›
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@10),LitPat(BoolLit(true)),Else(Quoted(Lit(DecLit(1.0))))),Else(Quoted(App(Ref(*.),Tup(List(Fld(‹›,Unquoted(Ref(x@4)),None), Fld(‹›,Unquoted(App(App(Ref(power),Tup(List(Fld(‹›,Ref(x@4),None)))),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@5),None), Fld(‹›,Lit(IntLit(1)),None)))),None))))),None))))))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:480)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.ascribe(bbML.scala:368)
-//│ 	at: hkmc2.bbml.BBTyper.ascribe(bbML.scala:379)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@32),LitPat(BoolLit(true)),Else(Quoted(Lit(DecLit(1.0))))),Else(Quoted(App(Ref(*.),Tup(List(Fld(‹›,Unquoted(Ref(x@26)),None), Fld(‹›,Unquoted(App(App(Ref(power),Tup(List(Fld(‹›,Ref(x@26),None)))),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@27),None), Fld(‹›,Lit(IntLit(1)),None)))),None))))),None))))))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.ascribe$$anonfun$3(bbML.scala:397)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
 
 
 fun id: [A] -> A -> A
 fun id(x) = x
-//│ Elab: { fun id: forall A@3: FunTy(Tup(List(Fld(‹›,Ref(A@3),None))),Ref(A@3),None)‹›; fun id(x@4): forall A@6: FunTy(Tup(List(Fld(‹›,Ref(A@6),None))),Ref(A@6),None)‹› = x@4#0; }‹›
 //│ Type: ⊤
 
 run(x `=> id(x) `* x)
-//│ Elab: { run#0(code"λx@3. ${code"*#0(${id#0(x@3#0)‹›}‹›, ${x@3#1}‹›)‹›"‹›}‹›‹›"‹›)‹› }‹›
 //│ Type: Int ->{⊥} Int
 
 fun assertNotZero: [C] -> CodeBase[out Num, out C, out Any] -> CodeBase[out Num, out C, out Any]
@@ -34,26 +32,23 @@ fun assertNotZero(x) =
   `if (x `== `0.0) then `error else x
 let checkedDiv = x `=> y `=> x `/. (assertNotZero(y))
 run(checkedDiv)
-//│ Elab: { fun assertNotZero: forall C@3: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Num))), WildcardTy(None,Some(Ref(C@3))), WildcardTy(None,Some(Ref(class:Any))))),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Num))), WildcardTy(None,Some(Ref(C@3))), WildcardTy(None,Some(Ref(class:Any))))),None)‹›; fun assertNotZero(x@4): forall C@8: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Num))), WildcardTy(None,Some(Ref(C@8))), WildcardTy(None,Some(Ref(class:Any))))),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Num))), WildcardTy(None,Some(Ref(C@8))), WildcardTy(None,Some(Ref(class:Any))))),None)‹› = code"if { let scrut = ${code"==#1(${x@4#0}‹›, ${code"0.0‹›"‹›}‹›)‹›"‹›}‹›; scrut is true -> { else ${code"error#0"‹›}‹› }; else ${x@4#1}‹› }‹›"‹›; let checkedDiv@9 = code"λx@10. ${code"λy@11. ${code"/.#0(${x@10#0}‹›, ${assertNotZero#0(y@11#0)‹›}‹›)‹›"‹›}‹›‹›"‹›}‹›‹›"‹›; run#1(checkedDiv@9#0)‹› }‹›
-//│ ╔══[ERROR] Cannot quote If(Let(false,scrut@5,Unquoted(Quoted(App(Ref(==),Tup(List(Fld(‹›,Unquoted(Ref(x@4)),None), Fld(‹›,Unquoted(Quoted(Lit(DecLit(0.0)))),None)))))),Cons(Branch(Ref(scrut@5),LitPat(BoolLit(true)),Else(Unquoted(Quoted(Ref(error))))),Else(Unquoted(Ref(x@4))))))
+//│ FAILURE: Unexpected type error
+//│ ╔══[ERROR] Cannot quote If(Let(false,scrut@56,Unquoted(Quoted(App(Ref(==),Tup(List(Fld(‹›,Unquoted(Ref(x@55)),None), Fld(‹›,Unquoted(Quoted(Lit(DecLit(0.0)))),None)))))),Cons(Branch(Ref(scrut@56),LitPat(BoolLit(true)),Else(Unquoted(Quoted(Ref(error))))),Else(Unquoted(Ref(x@55))))))
 //│ ╙──
 //│ Type: Num ->{⊥} (Num ->{⊥} Num)
 
 
 fun show: [T] -> CodeBase[out T, out Any, out Any] -> Str = s => "debug"
 show
-//│ Elab: { fun show: forall T@4: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(T@4))), WildcardTy(None,Some(Ref(class:Any))), WildcardTy(None,Some(Ref(class:Any))))),None))),Ref(class:Str),None)‹› = λs@2. "debug"‹›‹›; show#0 }‹›
 //│ Type: forall α47_2: (CodeBase[?, ?, ?]) ->{⊥} Str
 
 
 fun inc(dbg) =
   x `=> let c = x `+ `1 in let t = dbg(c) in c
 inc
-//│ Elab: { fun inc(dbg@2) = code"λx@3. ${{ let c@4 = code"+#0(${x@3#0}‹›, ${code"1‹›"‹›}‹›)‹›"‹›; { let t@6 = dbg@2#0(c@4#0)‹›; c@4#1 }‹› }‹›}‹›‹›"‹›; inc#0 }‹›
 //│ Type: (CodeBase[out Int, ?, ?] ->{α63_1} ⊤) ->{α63_1} CodeBase[out Int ->{⊥} Int, ⊥, ?]
 
 inc(c => log(show(c)))
-//│ Elab: { inc#1(λc@3. log#0(show#1(c@3#0)‹›)‹›‹›)‹› }‹›
 //│ Type: CodeBase[out Int ->{⊥} Int, ⊥, ?]
 
 fun body: [T, C] -> (CodeBase[out Int, out T, out Any], CodeBase[out Int, out C, out Any]) -> Int -> CodeBase[out Int, out T | C, out Any]
@@ -64,22 +59,21 @@ fun body(x, y) = case
 fun gib_naive(n) =
   (x, y) `=> body(x, y)(n)
 let gn5 = run(gib_naive(5))
-//│ Elab: { fun body: forall T@3, C@4: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(T@3))), WildcardTy(None,Some(Ref(class:Any))))),None), Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@4))), WildcardTy(None,Some(Ref(class:Any))))),None))),FunTy(Tup(List(Fld(‹›,Ref(class:Int),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(CompType(Ref(T@3),Ref(C@4),true))), WildcardTy(None,Some(Ref(class:Any))))),None),None)‹›; fun body(x@5, y@6): forall T@17, C@18: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(T@17))), WildcardTy(None,Some(Ref(class:Any))))),None), Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@18))), WildcardTy(None,Some(Ref(class:Any))))),None))),FunTy(Tup(List(Fld(‹›,Ref(class:Int),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(CompType(Ref(T@17),Ref(C@18),true))), WildcardTy(None,Some(Ref(class:Any))))),None),None)‹› = λn@7. if { let scrut = ==#3(n@7#2, 0‹›)‹›; scrut is true -> { else x@5#1 }; let scrut = ==#2(n@7#1, 1‹›)‹›; scrut is true -> { else y@6#2 }; else body#0(y@6#0, code"+#1(${x@5#0}‹›, ${y@6#1}‹›)‹›"‹›)‹›(-#1(n@7#0, 1‹›)‹›)‹› }‹›‹›; fun gib_naive(n@19) = code"λx@20, y@21. ${body#1(x@20#0, y@21#0)‹›(n@19#0)‹›}‹›‹›"‹›; let gn5@25 = run#2(gib_naive#0(5‹›)‹›)‹›; }‹›
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@14),LitPat(BoolLit(true)),Else(Ref(x@5))),Let(false,scrut@12,App(Ref(==),Tup(List(Fld(‹›,Ref(n@7),None), Fld(‹›,Lit(IntLit(1)),None)))),Cons(Branch(Ref(scrut@12),LitPat(BoolLit(true)),Else(Ref(y@6))),Else(App(App(Ref(body),Tup(List(Fld(‹›,Ref(y@6),None), Fld(‹›,Quoted(App(Ref(+),Tup(List(Fld(‹›,Unquoted(Ref(x@5)),None), Fld(‹›,Unquoted(Ref(y@6)),None))))),None)))),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@7),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))))))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:480)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.ascribe(bbML.scala:368)
-//│ 	at: hkmc2.bbml.BBTyper.ascribe(bbML.scala:379)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@96),LitPat(BoolLit(true)),Else(Ref(x@87))),Let(false,scrut@94,App(Ref(==),Tup(List(Fld(‹›,Ref(n@89),None), Fld(‹›,Lit(IntLit(1)),None)))),Cons(Branch(Ref(scrut@94),LitPat(BoolLit(true)),Else(Ref(y@88))),Else(App(App(Ref(body),Tup(List(Fld(‹›,Ref(y@88),None), Fld(‹›,Quoted(App(Ref(+),Tup(List(Fld(‹›,Unquoted(Ref(x@87)),None), Fld(‹›,Unquoted(Ref(y@88)),None))))),None)))),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@89),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))))))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.ascribe$$anonfun$3(bbML.scala:397)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
 
 fun bind(rhs, k) = `let x = rhs `in k(x)
 bind
-//│ Elab: { fun bind(rhs@2, k@3) = code"{ let x@4 = ${rhs@2#0}‹›; ${k@3#0(x@4#0)‹›}‹› }‹›"‹›; bind#0 }‹›
 //│ Type: (CodeBase[out α87_1, out α88_1, ?], CodeBase[in α92_1 out α92_1 ∨ α87_1, ?, ⊥] ->{α95_1} CodeBase[out α98_1, out α99_1, ?]) ->{α95_1} CodeBase[out α98_1, out α88_1 ∨ α99_1, ?]
 
 :e
@@ -88,23 +82,22 @@ fun body(x, y) = case
   0 then x
   1 then y
   n then bind of x `+ y, (z => body(y, z)(n - 1)): [C] -> CodeBase[out Int, out C, out Any] -> CodeBase[out C, out Any]
-//│ Elab: { fun body: forall G@3: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@3))), WildcardTy(None,Some(Ref(class:Any))))),None), Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@3))), WildcardTy(None,Some(Ref(class:Any))))),None))),FunTy(Tup(List(Fld(‹›,Ref(class:Int),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@3))), WildcardTy(None,Some(Ref(class:Any))))),None),None)‹›; fun body(x@4, y@5): forall G@19: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@19))), WildcardTy(None,Some(Ref(class:Any))))),None), Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@19))), WildcardTy(None,Some(Ref(class:Any))))),None))),FunTy(Tup(List(Fld(‹›,Ref(class:Int),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@19))), WildcardTy(None,Some(Ref(class:Any))))),None),None)‹› = λn@6. if { let scrut = ==#5(n@6#2, 0‹›)‹›; scrut is true -> { else x@4#1 }; let scrut = ==#4(n@6#1, 1‹›)‹›; scrut is true -> { else y@5#2 }; else bind#1(code"+#2(${x@4#0}‹›, ${y@5#0}‹›)‹›"‹›, λz@9. body#0(y@5#1, z@9#0)‹›(-#2(n@6#0, 1‹›)‹›)‹›‹›)‹› }‹›‹›; }‹›
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@16),LitPat(BoolLit(true)),Else(Ref(x@4))),Let(false,scrut@14,App(Ref(==),Tup(List(Fld(‹›,Ref(n@6),None), Fld(‹›,Lit(IntLit(1)),None)))),Cons(Branch(Ref(scrut@14),LitPat(BoolLit(true)),Else(Ref(y@5))),Else(App(Ref(bind),Tup(List(Fld(‹›,Quoted(App(Ref(+),Tup(List(Fld(‹›,Unquoted(Ref(x@4)),None), Fld(‹›,Unquoted(Ref(y@5)),None))))),None), Fld(‹›,Lam(List(Param(‹›,z@9,None)),App(App(Ref(body),Tup(List(Fld(‹›,Ref(y@5),None), Fld(‹›,Ref(z@9),None)))),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@6),None), Fld(‹›,Lit(IntLit(1)),None)))),None))))),Some(Forall(List(C@13),FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@13))), WildcardTy(None,Some(Ref(class:Any))))),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(C@13))), WildcardTy(None,Some(Ref(class:Any))))),None))))))))))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:480)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.ascribe(bbML.scala:368)
-//│ 	at: hkmc2.bbml.BBTyper.ascribe(bbML.scala:379)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@131),LitPat(BoolLit(true)),Else(Ref(x@119))),Let(false,scrut@129,App(Ref(==),Tup(List(Fld(‹›,Ref(n@121),None), Fld(‹›,Lit(IntLit(1)),None)))),Cons(Branch(Ref(scrut@129),LitPat(BoolLit(true)),Else(Ref(y@120))),Else(App(Ref(bind),Tup(List(Fld(‹›,Quoted(App(Ref(+),Tup(List(Fld(‹›,Unquoted(Ref(x@119)),None), Fld(‹›,Unquoted(Ref(y@120)),None))))),None), Fld(‹›,Lam(List(Param(‹›,z@124,None)),App(App(Ref(body),Tup(List(Fld(‹›,Ref(y@120),None), Fld(‹›,Ref(z@124),None)))),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@121),None), Fld(‹›,Lit(IntLit(1)),None)))),None))))),Some(Forall(List(C@128),FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@128))), WildcardTy(None,Some(Ref(class:Any))))),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(C@128))), WildcardTy(None,Some(Ref(class:Any))))),None))))))))))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.ascribe$$anonfun$3(bbML.scala:397)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
 
 fun bind: [G] -> (CodeBase[out Int, out G, out Any], [C] -> CodeBase[out Int, out C, out Any] -> CodeBase[out Int, out C | G, out Any]) -> CodeBase[out Int, out G, out Any]
 fun bind(rhs, k) = `let x = rhs `in k(x)
 bind
-//│ Elab: { fun bind: forall G@3: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@3))), WildcardTy(None,Some(Ref(class:Any))))),None), Fld(‹›,Forall(List(C@4),FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@4))), WildcardTy(None,Some(Ref(class:Any))))),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(CompType(Ref(C@4),Ref(G@3),true))), WildcardTy(None,Some(Ref(class:Any))))),None)),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@3))), WildcardTy(None,Some(Ref(class:Any))))),None)‹›; fun bind(rhs@5, k@6): forall G@10: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@10))), WildcardTy(None,Some(Ref(class:Any))))),None), Fld(‹›,Forall(List(C@11),FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@11))), WildcardTy(None,Some(Ref(class:Any))))),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(CompType(Ref(C@11),Ref(G@10),true))), WildcardTy(None,Some(Ref(class:Any))))),None)),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@10))), WildcardTy(None,Some(Ref(class:Any))))),None)‹› = code"{ let x@7 = ${rhs@5#0}‹›; ${k@6#0(x@7#0)‹›}‹› }‹›"‹›; bind#0 }‹›
 //│ Type: forall α112_2: (CodeBase[out Int, out α112_2, ?], forall α113_3: (CodeBase[out Int, out α113_3, ?]) ->{⊥} CodeBase[out Int, out α113_3 ∨ α112_2, ?]) ->{⊥} CodeBase[out Int, out α112_2, ?]
 
 
@@ -114,21 +107,20 @@ fun body(x, y) = case
   1 then y
   n then bind of x `+ y, (z => body(y, z)(n - 1)): [C] -> CodeBase[out Int, out C, out Any] -> CodeBase[out Int, out C, out Any]
 body
-//│ Elab: { fun body: forall G@3: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@3))), WildcardTy(None,Some(Ref(class:Any))))),None), Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@3))), WildcardTy(None,Some(Ref(class:Any))))),None))),FunTy(Tup(List(Fld(‹›,Ref(class:Int),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@3))), WildcardTy(None,Some(Ref(class:Any))))),None),None)‹›; fun body(x@4, y@5): forall G@19: FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@19))), WildcardTy(None,Some(Ref(class:Any))))),None), Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@19))), WildcardTy(None,Some(Ref(class:Any))))),None))),FunTy(Tup(List(Fld(‹›,Ref(class:Int),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(G@19))), WildcardTy(None,Some(Ref(class:Any))))),None),None)‹› = λn@6. if { let scrut = ==#7(n@6#2, 0‹›)‹›; scrut is true -> { else x@4#1 }; let scrut = ==#6(n@6#1, 1‹›)‹›; scrut is true -> { else y@5#2 }; else bind#1(code"+#3(${x@4#0}‹›, ${y@5#0}‹›)‹›"‹›, λz@9. body#0(y@5#1, z@9#0)‹›(-#3(n@6#0, 1‹›)‹›)‹›‹›)‹› }‹›‹›; body#1 }‹›
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@16),LitPat(BoolLit(true)),Else(Ref(x@4))),Let(false,scrut@14,App(Ref(==),Tup(List(Fld(‹›,Ref(n@6),None), Fld(‹›,Lit(IntLit(1)),None)))),Cons(Branch(Ref(scrut@14),LitPat(BoolLit(true)),Else(Ref(y@5))),Else(App(Ref(bind),Tup(List(Fld(‹›,Quoted(App(Ref(+),Tup(List(Fld(‹›,Unquoted(Ref(x@4)),None), Fld(‹›,Unquoted(Ref(y@5)),None))))),None), Fld(‹›,Lam(List(Param(‹›,z@9,None)),App(App(Ref(body),Tup(List(Fld(‹›,Ref(y@5),None), Fld(‹›,Ref(z@9),None)))),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@6),None), Fld(‹›,Lit(IntLit(1)),None)))),None))))),Some(Forall(List(C@13),FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@13))), WildcardTy(None,Some(Ref(class:Any))))),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@13))), WildcardTy(None,Some(Ref(class:Any))))),None))))))))))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:355)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:350)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:532)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:480)
-//│ 	at: hkmc2.bbml.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:570)
-//│ 	at: hkmc2.bbml.BBTyper.ascribe(bbML.scala:368)
-//│ 	at: hkmc2.bbml.BBTyper.ascribe(bbML.scala:379)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@161),LitPat(BoolLit(true)),Else(Ref(x@149))),Let(false,scrut@159,App(Ref(==),Tup(List(Fld(‹›,Ref(n@151),None), Fld(‹›,Lit(IntLit(1)),None)))),Cons(Branch(Ref(scrut@159),LitPat(BoolLit(true)),Else(Ref(y@150))),Else(App(Ref(bind),Tup(List(Fld(‹›,Quoted(App(Ref(+),Tup(List(Fld(‹›,Unquoted(Ref(x@149)),None), Fld(‹›,Unquoted(Ref(y@150)),None))))),None), Fld(‹›,Lam(List(Param(‹›,z@154,None)),App(App(Ref(body),Tup(List(Fld(‹›,Ref(y@150),None), Fld(‹›,Ref(z@154),None)))),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@151),None), Fld(‹›,Lit(IntLit(1)),None)))),None))))),Some(Forall(List(C@158),FunTy(Tup(List(Fld(‹›,TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@158))), WildcardTy(None,Some(Ref(class:Any))))),None))),TyApp(Ref(class:CodeBase),List(WildcardTy(None,Some(Ref(class:Int))), WildcardTy(None,Some(Ref(C@158))), WildcardTy(None,Some(Ref(class:Any))))),None))))))))))) (of class hkmc2.semantics.Split$Cons)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
+//│ 	at: hkmc2.bbml.BBTyper.ascribe$$anonfun$3(bbML.scala:397)
+//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
 
 fun gib(n) = (x, y) `=> body(x, y)(n)
 let g5 = run(gib(5))
 g5
-//│ Elab: { fun gib(n@2) = code"λx@3, y@4. ${body#2(x@3#0, y@4#0)‹›(n@2#0)‹›}‹›‹›"‹›; let g5@8 = run#3(gib#0(5‹›)‹›)‹›; g5@8#0 }‹›
 //│ Type: (Int, Int) ->{⊥} Int

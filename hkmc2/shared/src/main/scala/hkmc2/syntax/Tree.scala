@@ -7,9 +7,11 @@ import hkmc2.Message.MessageContext
 import Tree._
 
 
-sealed trait Literal extends Located:
+sealed trait Literal extends AutoLocated:
   this: Tree =>
+  
   def asTree: Tree = this
+  
   val idStr: Str = this match
     case IntLit(value) => value.toString
     case DecLit(value) => value.toString
@@ -21,10 +23,20 @@ sealed trait Literal extends Located:
       .mkString("\"", "", "\"")
     case UnitLit(value) => if value then "undefined" else "null"
     case BoolLit(value) => value.toString
+  
+  def describeLit: Str =
+    this.match
+      case _: IntLit => "integer"
+      case _: DecLit => "decimal"
+      case _: StrLit => "string"
+      case _: UnitLit => "unit"
+      case _: BoolLit => "boolean"
+    + " literal"
+  
   // def children: List[Located] = Nil
 
 
-enum Tree extends Located:
+enum Tree extends AutoLocated:
   case Empty()
   case Error()
   case Ident(name: Str)
@@ -51,11 +63,10 @@ enum Tree extends Located:
   case Case(branches: Tree)
   case Region(name: Tree, body: Tree)
   case RegRef(reg: Tree, value: Tree)
-  case Deref(ref: Tree)
   case Effectful(eff: Tree, body: Tree)
 
   def children: Ls[Tree] = this match
-    case Empty() | Error() | Ident(_) | IntLit(_) | DecLit(_) | StrLit(_) | UnitLit(_) => Nil
+    case _: Empty | _: Error | _: Ident | _: Literal => Nil
     case Block(stmts) => stmts
     case Let(lhs, rhs, body) => Ls(lhs, rhs) ++ body
     case TypeDef(k, head, extension, body) => Ls(head) ++ extension ++ body
@@ -71,7 +82,6 @@ enum Tree extends Located:
     case Case(bs) => Ls(bs)
     case Region(name, body) => name :: body :: Nil
     case RegRef(reg, value) => reg :: value :: Nil
-    case Deref(ref) => ref :: Nil
     case Effectful(eff, body) => eff :: body :: Nil
   
   def describe: Str = ??? // TODO
@@ -79,6 +89,11 @@ enum Tree extends Located:
   def showDbg: Str = toString // TODO
 
 object Tree:
+  object Block:
+    def mk(stmts: Ls[Tree]): Tree = stmts match
+      case Nil => UnitLit(true)
+      case e :: Nil => e
+      case es => Block(es)
   object TyApp:
     def apply(lhs: Tree, targs: Ls[Tree]): App =
       App(lhs, TyTup(targs))

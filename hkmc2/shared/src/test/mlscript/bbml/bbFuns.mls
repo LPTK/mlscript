@@ -1,0 +1,21 @@
+:global
+:bbml
+
+
+fun f(x, y) = x(y)
+f
+//│ Type: (α3_1 ->{α4_1} α5_1, α3_1) ->{α4_1} α5_1
+
+
+f((x => x), 42)
+//│ Type: Int
+
+f(x => x, 42)
+//│ Type: Int
+
+
+fun id: [A] -> A -> A
+id(id) : [A] -> A -> A
+//│ Type: forall α13_2: (α13_2) ->{⊥} α13_2
+
+

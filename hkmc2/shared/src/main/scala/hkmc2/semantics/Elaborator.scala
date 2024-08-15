@@ -1,13 +1,16 @@
 package hkmc2
 package semantics
 
+
 import scala.collection.mutable
+import scala.annotation.tailrec
 
 import mlscript.utils.*, shorthands.*
+import utils.TraceLogger
+
 import syntax.*
 import Tree.*
 import hkmc2.Message.MessageContext
-import scala.annotation.tailrec
 
 
 object Elaborator:
@@ -16,17 +19,24 @@ object Elaborator:
     val empty: Ctx = Ctx(N, Map.empty, Map.empty)
   type Ctxl[A] = Ctx ?=> A
   def ctx: Ctxl[Ctx] = summon
+  class State:
+    private var curUi = 0
+    def nextUid: Int = { curUi += 1; curUi }
 import Elaborator.*
 
-class Elaborator(raise: Raise):
+class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
+  import state.nextUid
+  import tl.*
   
-  private var curUi = 0
-  def nextUid: Int = { curUi += 1; curUi }
-
   // * Ref allocation skolem UID, preserved
   private val allocSkolemUID = nextUid
+  private val allocSkolemSym = VarSymbol(Ident("Alloc"), allocSkolemUID)
+  private val allocSkolemDef = TyParam(FldFlags.empty, N, allocSkolemSym)
+  allocSkolemSym.decl = S(allocSkolemDef)
   
-  def term(tree: Tree): Ctxl[Term] = tree match
+  def term(tree: Tree): Ctxl[Term] =
+  trace[Term](s"Elab term ${tree.showDbg}", r => s"~> $r"):
+    tree match
     case Block(s :: Nil) =>
       term(s)
     case Block(sts) =>
@@ -40,13 +50,13 @@ class Elaborator(raise: Raise):
       Term.Blk(List(LetBinding(pat, r)), b)
     case Ident("true") => Term.Lit(Tree.BoolLit(true))
     case Ident("false") => Term.Lit(Tree.BoolLit(false))
-    case Ident("Alloc") => Term.Ref(VarSymbol("Alloc", allocSkolemUID))(1)
-    case Ident(name) =>
+    case id @ Ident("Alloc") => Term.Ref(allocSkolemSym)(id, 1)
+    case id @ Ident(name) =>
       ctx.locals.get(name) match
-        case S(sym) => sym.ref
+        case S(sym) => sym.ref(id)
         case N =>
           ctx.members.get(name) match
-            case S(sym) => sym.ref
+            case S(sym) => sym.ref(id)
             case N =>
               raise(ErrorReport(msg"Name not found: $name" -> tree.toLoc :: Nil))
               Term.Error
@@ -61,10 +71,10 @@ class Elaborator(raise: Raise):
     case InfixApp(TyTup(tvs), Keyword.`->`, body) =>
       val boundVars = mutable.HashMap.empty[Str, VarSymbol]
       val bds = tvs.collect:
-        case Tree.Ident(nme) =>
-          val sym = VarSymbol(nme, nextUid)
-          sym.decl = S(TyParam(FldFlags.empty, sym))
-          boundVars += nme -> sym
+        case id: Tree.Ident =>
+          val sym = VarSymbol(id, nextUid)
+          sym.decl = S(TyParam(FldFlags.empty, N, sym)) // TODO vce
+          boundVars += id.name -> sym
           sym          
       if bds.length != tvs.length then
         raise(ErrorReport(msg"Illegal forall annotation." -> tree.toLoc :: Nil))
@@ -82,17 +92,25 @@ class Elaborator(raise: Raise):
       Term.Asc(term(lhs), term(rhs))
     case App(Ident("|"), Tree.Tup(lhs :: rhs :: Nil)) =>
       Term.CompType(term(lhs), term(rhs), true)
+    case App(Ident("&"), Tree.Tup(lhs :: rhs :: Nil)) =>
+      Term.CompType(term(lhs), term(rhs), false)
     case App(Ident(":="), Tree.Tup(lhs :: rhs :: Nil)) =>
       Term.Set(term(lhs), term(rhs))
-    case App(Ident("#"), Tree.Tup(Sel(pre, Ident(name)) :: Ident(proj) :: Nil)) =>
-      Term.SelProj(term(pre), term(Ident(name)), Ident(proj))
-    case App(lhs, rhs) =>
+    case App(Ident("#"), Tree.Tup(Sel(pre, idn: Ident) :: (idp: Ident) :: Nil)) =>
+      Term.SelProj(term(pre), term(idn), idp)
+    case App(Ident("#"), Tree.Tup(Sel(pre, Ident(name)) :: App(Ident(proj), args) :: Nil)) =>
+      term(App(App(Ident("#"), Tree.Tup(Sel(pre, Ident(name)) :: Ident(proj) :: Nil)), args))
+    case App(Ident("!"), Tree.Tup(rhs :: Nil)) =>
+      Term.Deref(term(rhs))
+    case App(Ident("~"), Tree.Tup(rhs :: Nil)) =>
+      term(rhs)
+    case tree @ App(lhs, rhs) =>
       val sym = FlowSymbol("‹app-res›", nextUid)
-      Term.App(term(lhs), term(rhs))(sym)
+      Term.App(term(lhs), term(rhs))(tree, sym)
     case Sel(pre, nme) =>
       Term.Sel(term(pre), nme)
-    case Tup(fields) =>
-      Term.Tup(fields.map(fld(_)))
+    case tree @ Tup(fields) =>
+      Term.Tup(fields.map(fld(_)))(tree)
     case New(body) => body match
       case App(Ident(cls), Tup(params)) =>
         ctx.members.get(cls) match
@@ -106,11 +124,12 @@ class Elaborator(raise: Raise):
     case IfElse(InfixApp(InfixApp(scrutinee, Keyword.`is`, Ident(cls)), Keyword.`then`, cons), alts) =>
       ctx.members.get(cls) match
         case S(sym: ClassSymbol) =>
-          val scrutVar = VarSymbol("scrut", nextUid)
+          val scrutIdent = Ident("scrut"): Ident
+          val scrutVar = VarSymbol(scrutIdent, nextUid)
           val scrutTerm = term(scrutinee)
           Term.If:
             Split.Let(false, scrutVar, scrutTerm, Branch(
-              scrutVar.ref,
+              scrutVar.ref(scrutIdent),
               Pattern.Class(sym, N, true),
               Split.default(term(cons))
             ) :: Split.default(term(alts)))
@@ -118,27 +137,29 @@ class Elaborator(raise: Raise):
           raise(ErrorReport(msg"Illegal pattern $cls." -> tree.toLoc :: Nil))
           Term.Error
     case IfElse(InfixApp(cond, Keyword.`then`, cons), alts) =>
-      val scrutVar = VarSymbol("scrut", nextUid)
+      val scrutIdent = Ident("scrut"): Ident
+      val scrutVar = VarSymbol(scrutIdent, nextUid)
       val scrutTerm = term(cond)
       Term.If:
         Split.Let(false, scrutVar, scrutTerm, Branch(
-          scrutVar.ref,
+          scrutVar.ref(scrutIdent),
           Split.default(term(cons))
         ) :: Split.default(term(alts)))
     case Tree.Quoted(body) => Term.Quoted(term(body))
     case Tree.Unquoted(body) => Term.Unquoted(term(body))
     case Tree.Case(Block(branches)) => branches.lastOption match
-      case S(InfixApp(Ident(name), Keyword.`then`, dflt)) =>
-        val sym = VarSymbol(name, nextUid)
-        val nestCtx = ctx.copy(locals = ctx.locals ++ Ls(name -> sym))
+      case S(InfixApp(id: Ident, Keyword.`then`, dflt)) =>
+        val sym = VarSymbol(id, nextUid)
+        val nestCtx = ctx.copy(locals = ctx.locals ++ Ls(id.name -> sym))
         Term.Lam(
           Param(FldFlags.empty, sym, N) :: Nil,
           Term.If(branches.dropRight(1).foldRight(Split.default(term(dflt)(using nestCtx)))((e, res) => e match
             case InfixApp(target, Keyword.`then`, cons) =>
-              val scrut = VarSymbol("scrut", nextUid)
-              val cond = term(App(Ident("=="), Tree.Tup(Ident(name) :: target :: Nil)))(using nestCtx)
+              val scrutIdent = Ident("scrut"): Ident
+              val scrut = VarSymbol(scrutIdent, nextUid)
+              val cond = term(App(Ident("=="), Tree.Tup(id :: target :: Nil)))(using nestCtx)
               Split.Let(false, scrut, cond, Branch(
-                scrut.ref,
+                scrut.ref(scrutIdent),
                 Pattern.LitPat(Tree.BoolLit(true)),
                 Split.default(term(cons)(using nestCtx))
               ) :: res)
@@ -150,12 +171,11 @@ class Elaborator(raise: Raise):
       case _ =>
         raise(ErrorReport(msg"Unsupported default case branch." -> tree.toLoc :: Nil))
         Term.Error
-    case Tree.Region(Tree.Ident(name), body) =>
-      val sym = VarSymbol(name, nextUid)
-      val nestCtx = ctx.copy(locals = ctx.locals ++ Ls(name -> sym))
+    case Tree.Region(id: Tree.Ident, body) =>
+      val sym = VarSymbol(id, nextUid)
+      val nestCtx = ctx.copy(locals = ctx.locals ++ Ls(id.name -> sym))
       Term.Region(sym, term(body)(using nestCtx))
     case Tree.RegRef(reg, value) => Term.RegRef(term(reg), term(value))
-    case Tree.Deref(ref) => Term.Deref(term(ref))
     case Empty() =>
       raise(ErrorReport(msg"A term was expected in this position, but no term was found." -> tree.toLoc :: Nil))
       Term.Error
@@ -178,8 +198,9 @@ class Elaborator(raise: Raise):
   def unit: Term.Lit = Term.Lit(UnitLit(true))
   
   def block(sts: Ls[Tree])(using c: Ctx): (Term.Blk, Ctx) =
-    val newMembers = mutable.Map.empty[Str, MemberSymbol] // * Definitions with implementations
-    val newSignatures = mutable.Map.empty[Str, MemberSymbol] // * Definitions containing only signatures
+  trace[(Term.Blk, Ctx)](s"Elab block ${sts.toString.take(20)}[...]", r => s"~> ${r._1}"):
+    val newMembers = mutable.Map.empty[Str, MemberSymbol[?]] // * Definitions with implementations
+    val newSignatures = mutable.Map.empty[Str, MemberSymbol[?]] // * Definitions containing only signatures
     val newSignatureTrees = mutable.Map.empty[Str, Tree] // * Store trees of signatures, passing them to definition objects
     sts.foreach:
       case td: TermDef =>
@@ -190,16 +211,16 @@ class Elaborator(raise: Raise):
             members.get(id.name) match
               case S(sym) =>
                 raise(ErrorReport(msg"Duplicate definition of ${id.name}" -> td.toLoc
-                  :: msg"aready defined here" -> sym.toLoc :: Nil))
+                  :: msg"aready defined here" -> id.toLoc :: Nil))
               case N =>
                 members += id.name -> s
                 td.signature.foreach(newSignatureTrees += id.name -> _)
             td.symbolicName match
-              case S(Ident(nme)) =>
+              case S(id @ Ident(nme)) =>
                 members.get(nme) match
                   case S(sym) =>
                     raise(ErrorReport(msg"Duplicate definition of $nme" -> td.toLoc
-                      :: msg"aready defined here" -> sym.toLoc :: Nil))
+                      :: msg"aready defined here" -> id.toLoc :: Nil))
                   case N =>
                     members += nme -> s
                     td.signature.foreach(newSignatureTrees += id.name -> _)
@@ -212,7 +233,7 @@ class Elaborator(raise: Raise):
               // TODO pair up companions
               case S(sym) =>
                 raise(ErrorReport(msg"Duplicate definition of ${id.name}" -> td.toLoc
-                  :: msg"aready defined here" -> sym.toLoc :: Nil))
+                  :: msg"aready defined here" -> id.toLoc :: Nil))
               case N =>
                 newMembers += id.name -> ClassSymbol(id)
           case L(d) => raise(d)
@@ -247,25 +268,26 @@ class Elaborator(raise: Raise):
       case TypeDef(k, head, extension, body) :: sts =>
         assert((k is Cls) || (k is Mod), k)
         def processHead(head: Tree): Ctxl[(Ident, Ls[TyParam], Opt[Ls[Param]], Ctx)] = head match
-          case TyApp(base, targs) =>
+          case TyApp(base, tparams) =>
             
             val (name, tas, as, newCtx) = processHead(base)
             // TODO reject duplicated tas, out of order as
             
-            val tparams =
+            val tps =
               given Ctx = newCtx
-              targs.flatMap:
-                case id: Ident =>
-                  val vs = VarSymbol(id.name, nextUid)
-                  val res = TyParam(FldFlags.empty, vs)
-                  vs.decl = S(res)
-                  res :: Nil
-                case InfixApp(lhs: Ident, Keyword.`:`, rhs) =>
-                  val vs = VarSymbol(lhs.name, nextUid)
-                  val res = TyParam(FldFlags.empty, vs)
-                  vs.decl = S(res)
-                  res :: Nil
-            (name, tparams, as, newCtx.copy(locals = ctx.locals ++ tparams.map(tp => tp.sym.name -> tp.sym)))
+              tparams.flatMap: targ =>
+                val (id, vce) = targ match
+                  case id: Ident =>
+                    (id, N)
+                  case Modified(Keyword.`in`, id: Ident) =>
+                    (id, S(false))
+                  case Modified(Keyword.`out`, id: Ident) =>
+                    (id, S(true))
+                val vs = VarSymbol(id, nextUid)
+                val res = TyParam(FldFlags.empty, vce, vs)
+                vs.decl = S(res)
+                res :: Nil
+            (name, tps, as, newCtx.copy(locals = ctx.locals ++ tps.map(tp => tp.sym.name -> tp.sym)))
           case App(base, args) =>
             
             val (name, tas, as, newCtx) = processHead(base)
@@ -304,17 +326,17 @@ class Elaborator(raise: Raise):
     case Tup(ps) =>
       val res = ps.flatMap:
         case id: Ident =>
-          Param(FldFlags.empty, VarSymbol(id.name, nextUid), N) :: Nil
+          Param(FldFlags.empty, VarSymbol(id, nextUid), N) :: Nil
         case InfixApp(lhs: Ident, Keyword.`:`, rhs) =>
-          Param(FldFlags.empty, VarSymbol(lhs.name, nextUid), S(term(rhs))) :: Nil
+          Param(FldFlags.empty, VarSymbol(lhs, nextUid), S(term(rhs))) :: Nil
         case App(Ident(","), list) => params(list)._1
       (res, ctx.copy(locals = ctx.locals ++ res.map(p => p.sym.name -> p.sym)))
   
   def pattern(t: Tree): Ctxl[(Pattern, Ls[Str -> VarSymbol])] =
     val boundVars = mutable.HashMap.empty[Str, VarSymbol]
     def go(t: Tree): Pattern = t match
-      case Ident(name) =>
-        val sym = boundVars.getOrElseUpdate(name, VarSymbol(name, nextUid))
+      case id @ Ident(name) =>
+        val sym = boundVars.getOrElseUpdate(name, VarSymbol(id, nextUid))
         Pattern.Var(sym)
       case Tup(fields) =>
         val pats = fields.map(
@@ -331,7 +353,7 @@ class Elaborator(raise: Raise):
   def importFrom(sts: Ls[Tree])(using c: Ctx): Ctx =
     val (_, newCtx) = block(sts)
     // TODO handle name clashes
-    c.copy(members = c.members ++ newCtx.members)
+    newCtx
   
   
   def topLevel(sts: Ls[Tree])(using c: Ctx): (Term, Ctx) =
@@ -387,7 +409,9 @@ class Elaborator(raise: Raise):
             if pol =/= S(false) && ty.isContravariant then
               changed = true
               ty.isContravariant = false
-          case _ => ???
+          // case _ => ???
+          case N =>
+            lastWords(s"VarSymbol ${sym.name} has no declaration")
       case _ => super.traverseType(pol)(trm)
   abstract class Traverser:
     def traverseType(pol: Pol)(trm: Term): Unit = trm match

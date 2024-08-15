@@ -3,115 +3,116 @@
 
 
 `42
-//│ Elab: { code"42‹›"‹› }‹›
 //│ Type: CodeBase[out Int, ⊥, ?]
 
 `false
-//│ Elab: { code"false‹›"‹› }‹›
 //│ Type: CodeBase[out Bool, ⊥, ?]
 
 `"rua"
-//│ Elab: { code""rua"‹›"‹› }‹›
 //│ Type: CodeBase[out Str, ⊥, ?]
 
 `3.14
-//│ Elab: { code"3.14‹›"‹› }‹›
 //│ Type: CodeBase[out Num, ⊥, ?]
 
 
 x `=> x
-//│ Elab: { code"λx@2. ${x@2#0}‹›‹›"‹› }‹›
 //│ Type: CodeBase[out α1_3 ->{⊥} α1_3, ⊥, ?]
 
 x `=> `42
-//│ Elab: { code"λx@2. ${code"42‹›"‹›}‹›‹›"‹› }‹›
 //│ Type: CodeBase[out ⊤ ->{⊥} Int, ⊥, ?]
 
 :e
 x `=> 42
-//│ Elab: { code"λx@2. ${42‹›}‹›‹›"‹› }‹›
-//│ ╔══[ERROR] Cannot solve Int ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in unquoted term
+//│ ║  l.25: 	x `=> 42
+//│ ║        	      ^^
+//│ ╙── because: cannot constrain  Int  <:  CodeBase[out α13_3, out α14_3, ?]
 //│ Type: CodeBase[out ⊤ ->{⊥} ⊥, ⊥, ?]
 
 
 f `=> x `=> f`(x)
-//│ Elab: { code"λf@2. ${code"λx@3. ${code"${f@2#0}‹›(${x@3#0}‹›)‹›"‹›}‹›‹›"‹›}‹›‹›"‹› }‹›
 //│ Type: CodeBase[out (α26_3 ->{⊥} α27_3) ->{⊥} (α26_3 ->{⊥} α27_3), ⊥, ?]
 
 
 x `=> y `=> x `+ y
-//│ Elab: { code"λx@2. ${code"λy@3. ${code"+#0(${x@2#0}‹›, ${y@3#0}‹›)‹›"‹›}‹›‹›"‹›}‹›‹›"‹› }‹›
 //│ Type: CodeBase[out Int ->{⊥} (Int ->{⊥} Int), ⊥, ?]
 
 
 (x, y) `=> x `+ y
-//│ Elab: { code"λx@2, y@3. ${code"+#1(${x@2#0}‹›, ${y@3#0}‹›)‹›"‹›}‹›‹›"‹› }‹›
 //│ Type: CodeBase[out (Int, Int) ->{⊥} Int, ⊥, ?]
 
 (x, y, z) `=> x `+ y `+ z
-//│ Elab: { code"λx@2, y@3, z@4. ${code"+#2(${code"+#3(${x@2#0}‹›, ${y@3#0}‹›)‹›"‹›}‹›, ${z@4#0}‹›)‹›"‹›}‹›‹›"‹› }‹›
 //│ Type: CodeBase[out (Int, Int, Int) ->{⊥} Int, ⊥, ?]
 
 f `=> x `=> y `=> f`(x, y)
-//│ Elab: { code"λf@2. ${code"λx@3. ${code"λy@4. ${code"${f@2#0}‹›(${x@3#0}‹›, ${y@4#0}‹›)‹›"‹›}‹›‹›"‹›}‹›‹›"‹›}‹›‹›"‹› }‹›
 //│ Type: CodeBase[out ((α98_3, α100_3) ->{⊥} α101_3) ->{⊥} (α98_3 ->{⊥} (α100_3 ->{⊥} α101_3)), ⊥, ?]
 
 `let x = `42 `in x
-//│ Elab: { code"{ let x@2 = ${code"42‹›"‹›}‹›; ${x@2#0}‹› }‹›"‹› }‹›
 //│ Type: CodeBase[out Int, ⊥, ?]
 
 :e
 `let x = 42 `in x
-//│ Elab: { code"{ let x@2 = ${42‹›}‹›; ${x@2#0}‹› }‹›"‹› }‹›
-//│ ╔══[ERROR] Cannot solve Int ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in unquoted term
+//│ ║  l.54: 	`let x = 42 `in x
+//│ ║        	         ^^
+//│ ╙── because: cannot constrain  Int  <:  CodeBase[out α123_2, out α124_2, ?]
 //│ Type: CodeBase[⊥, ⊥, ?]
 
 :e
 `let x = `0 `in 1
-//│ Elab: { code"{ let x@2 = ${code"0‹›"‹›}‹›; ${1‹›}‹› }‹›"‹› }‹›
-//│ ╔══[ERROR] Cannot solve Int ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in unquoted term
+//│ ║  l.62: 	`let x = `0 `in 1
+//│ ║        	                ^
+//│ ╙── because: cannot constrain  Int  <:  CodeBase[out α132_3, out α133_3, ?]
 //│ Type: CodeBase[⊥, ⊥, ?]
 
 
 `if `true then `true else `false
-//│ Elab: { code"if { let scrut = ${code"true‹›"‹›}‹›; scrut is true -> { else ${code"true‹›"‹›}‹› }; else ${code"false‹›"‹›}‹› }‹›"‹› }‹›
-//│ ╔══[ERROR] Cannot quote If(Let(false,scrut@2,Unquoted(Quoted(Lit(BoolLit(true)))),Cons(Branch(Ref(scrut@2),LitPat(BoolLit(true)),Else(Unquoted(Quoted(Lit(BoolLit(true)))))),Else(Unquoted(Quoted(Lit(BoolLit(false))))))))
+//│ FAILURE: Unexpected type error
+//│ ╔══[ERROR] Cannot quote If(Let(false,scrut@68,Unquoted(Quoted(Lit(BoolLit(true)))),Cons(Branch(Ref(scrut@68),LitPat(BoolLit(true)),Else(Unquoted(Quoted(Lit(BoolLit(true)))))),Else(Unquoted(Quoted(Lit(BoolLit(false))))))))
 //│ ╙──
 //│ Type: CodeBase[⊥, ⊥, ?]
 
 
 x `=> `if x `== `0.0 then `1.0 else x
-//│ Elab: { code"λx@2. ${code"if { let scrut = ${code"==#0(${x@2#0}‹›, ${code"0.0‹›"‹›}‹›)‹›"‹›}‹›; scrut is true -> { else ${code"1.0‹›"‹›}‹› }; else ${x@2#1}‹› }‹›"‹›}‹›‹›"‹› }‹›
-//│ ╔══[ERROR] Cannot quote If(Let(false,scrut@3,Unquoted(Quoted(App(Ref(==),Tup(List(Fld(‹›,Unquoted(Ref(x@2)),None), Fld(‹›,Unquoted(Quoted(Lit(DecLit(0.0)))),None)))))),Cons(Branch(Ref(scrut@3),LitPat(BoolLit(true)),Else(Unquoted(Quoted(Lit(DecLit(1.0)))))),Else(Unquoted(Ref(x@2))))))
+//│ FAILURE: Unexpected type error
+//│ ╔══[ERROR] Cannot quote If(Let(false,scrut@71,Unquoted(Quoted(App(Ref(==),Tup(List(Fld(‹›,Unquoted(Ref(x@70)),None), Fld(‹›,Unquoted(Quoted(Lit(DecLit(0.0)))),None)))))),Cons(Branch(Ref(scrut@71),LitPat(BoolLit(true)),Else(Unquoted(Quoted(Lit(DecLit(1.0)))))),Else(Unquoted(Ref(x@70))))))
 //│ ╙──
 //│ Type: CodeBase[out ⊤ ->{⊥} ⊥, ⊥, ?]
 
 run(`1)
-//│ Elab: { run#0(code"1‹›"‹›)‹› }‹›
 //│ Type: Int
 
 :e
 run(1)
-//│ Elab: { run#1(1‹›)‹› }‹›
-//│ ╔══[ERROR] Cannot solve Int ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in integer literal with expected type CodeBase[out α141_1, ⊥, ?]
+//│ ║  l.87: 	run(1)
+//│ ║        	    ^
+//│ ╙── because: cannot constrain  Int  <:  CodeBase[out α141_1, ⊥, ?]
 //│ Type: ⊥
 
 :e
 x `=> run(x)
-//│ Elab: { code"λx@2. ${run#2(x@2#0)‹›}‹›‹›"‹› }‹›
-//│ ╔══[ERROR] Cannot solve ⊤ ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in reference with expected type CodeBase[out α144_3, ⊥, ?]
+//│ ║  l.95: 	x `=> run(x)
+//│ ║        	          ^
+//│ ╟── because: cannot constrain  CodeBase[α142_3, <α>143_3, ⊥]  <:  CodeBase[out α144_3, ⊥, ?]
+//│ ╙── because: cannot constrain  ((⊤ ∧ ⊤) ∧ <α>143_3) ∨ ⊥  <:  ⊥ ∨ ⊥
 //│ Type: CodeBase[out CodeBase[out α145_3, ?, ?] ->{⊥} α145_3, out α147_2, ?]
 
 :e
 `let x = `42 `in run(x)
-//│ Elab: { code"{ let x@2 = ${code"42‹›"‹›}‹›; ${run#3(x@2#0)‹›}‹› }‹›"‹› }‹›
-//│ ╔══[ERROR] Cannot solve ⊤ ∧ ⊤ ∧ ¬⊥
-//│ ╙──
-//│ ╔══[ERROR] Cannot solve Int ∧ ⊤ ∧ ¬⊥
-//│ ╙──
+//│ ╔══[ERROR] Type error in reference with expected type CodeBase[out α151_3, ⊥, ?]
+//│ ║  l.104: 	`let x = `42 `in run(x)
+//│ ║         	                     ^
+//│ ╟── because: cannot constrain  CodeBase[α148_2, <α>150_3, ⊥]  <:  CodeBase[out α151_3, ⊥, ?]
+//│ ╙── because: cannot constrain  ((⊤ ∧ ⊤) ∧ <α>150_3) ∨ ⊥  <:  ⊥ ∨ ⊥
+//│ ╔══[ERROR] Type error in unquoted term
+//│ ║  l.104: 	`let x = `42 `in run(x)
+//│ ║         	                 ^^^^^^
+//│ ╟── because: cannot constrain  α151_3  <:  CodeBase[out α152_3, out α153_3, ?]
+//│ ╟── because: cannot constrain  α151_3  <:  CodeBase[in ⊥ ∨ ⊥ out ((⊤ ∧ ⊤) ∧ α152_3) ∨ ⊥, in ⊥ ∨ ⊥ out ((⊤ ∧ ⊤) ∧ α153_3) ∨ ⊥, in ⊥ ∨ ⊥ out ((⊤ ∧ ⊤) ∧ ⊤) ∨ ⊥]
+//│ ╟── because: cannot constrain  α148_2  <:  CodeBase[in ⊥ ∨ ⊥ out ((⊤ ∧ ⊤) ∧ α152_3) ∨ ⊥, in ⊥ ∨ ⊥ out ((⊤ ∧ ⊤) ∧ α153_3) ∨ ⊥, in ⊥ ∨ ⊥ out ((⊤ ∧ ⊤) ∧ ⊤) ∨ ⊥]
+//│ ╟── because: cannot constrain  α148_2  <:  CodeBase[in ⊥ ∨ ⊥ out (⊤ ∧ ⊤) ∧ α154_2, in ⊥ ∨ ⊥ out (⊤ ∧ ⊤) ∧ α155_2, in ⊥ ∨ ⊥ out ((⊤ ∧ ⊤) ∧ ⊤) ∨ ⊥]
+//│ ╙── because: cannot constrain  Int  <:  CodeBase[in ⊥ ∨ ⊥ out (⊤ ∧ ⊤) ∧ α154_2, in ⊥ ∨ ⊥ out (⊤ ∧ ⊤) ∧ α155_2, in ⊥ ∨ ⊥ out ((⊤ ∧ ⊤) ∧ ⊤) ∨ ⊥]
 //│ Type: CodeBase[⊥, ⊥, ?]

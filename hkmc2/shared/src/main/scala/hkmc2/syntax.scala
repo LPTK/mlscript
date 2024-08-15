@@ -8,6 +8,7 @@ import math.Ordered.orderingToOrdered
 
 
 type Raise = Diagnostic => Unit
+def raise(using r: Raise): Raise = r
 
 
 trait TypeLike:
@@ -20,7 +21,10 @@ trait TypeLike:
 trait NullaryType extends TypeLike
 
 trait Located:
-  def children: List[Located]
+  def toLoc: Opt[Loc]
+
+trait AutoLocated extends Located:
+  protected def children: List[Located]
   
   private var loc: Opt[Loc] = N
   
