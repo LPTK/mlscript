@@ -198,31 +198,31 @@ class Pair[A, B](fst: A, snd: B)
 
 if 1 < 2 then 1 else 0
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@128),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(IntLit(0)))) (of class hkmc2.semantics.Split$Cons)
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@132),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(IntLit(0)))) (of class hkmc2.semantics.Split$Cons)
 //│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
 //│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
-//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:496)
-//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
 //│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:611)
-//│ 	at: hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:29)
 
 if false then 1 else "1"
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@131),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(StrLit(1)))) (of class hkmc2.semantics.Split$Cons)
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@135),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(StrLit(1)))) (of class hkmc2.semantics.Split$Cons)
 //│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
 //│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
-//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:496)
-//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
 //│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:611)
-//│ 	at: hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:29)
 
 
 if 1 is Int then 1 else 0
@@ -231,38 +231,30 @@ if 1 is Int then 1 else 0
 fun test(x) =
   if x is Int then x + 1 else 0
 test
-//│ Type: (Int ∧ (¬Int ∨ Int)) ->{⊥} Int
+//│ Type: (¬Int ∨ Int) ->{⊥} Int
 
 test(1)
 //│ Type: Int
 
 
 test("1")
-//│ FAILURE: Unexpected type error
-//│ ╔══[ERROR] Type error in application
-//│ ║  l.240: 	test("1")
-//│ ║         	^^^^^^^^^
-//│ ╟── because: cannot constrain  α54_1  <:  Str ->{α60_1} α61_1
-//│ ╟── because: cannot constrain  α54_1  <:  (((Str ∧ ⊤) ∧ ⊤) ∨ ⊥) ->{((⊤ ∧ ⊤) ∧ α60_1) ∨ ⊥} (((⊤ ∧ ⊤) ∧ α61_1) ∨ ⊥)
-//│ ╟── because: cannot constrain  (Int ∧ (¬Int ∨ Int)) ->{⊥} Int  <:  (((Str ∧ ⊤) ∧ ⊤) ∨ ⊥) ->{((⊤ ∧ ⊤) ∧ α60_1) ∨ ⊥} (((⊤ ∧ ⊤) ∧ α61_1) ∨ ⊥)
-//│ ╙── because: cannot constrain  ((Str ∧ ⊤) ∧ ⊤) ∨ ⊥  <:  (((Int ∧ ⊤) ∧ ¬Int) ∨ ((Int ∧ ⊤) ∧ ⊤)) ∨ ⊥
 //│ Type: Int
 
 
 fun fact(n) =
   if n > 1 then n * fact(n - 1) else 1
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@145),LitPat(BoolLit(true)),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@144),None), Fld(‹›,App(Ref(fact),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@144),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))),Else(Lit(IntLit(1)))) (of class hkmc2.semantics.Split$Cons)
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@150),LitPat(BoolLit(true)),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@147),None), Fld(‹›,App(Ref(fact),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@147),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))),Else(Lit(IntLit(1)))) (of class hkmc2.semantics.Split$Cons)
 //│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
 //│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
+//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
-//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
-//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
 //│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:340)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3$$anonfun$1(bbML.scala:491)
 
 fact
 //│ Type: ⊥
@@ -275,14 +267,14 @@ fun fact2 = case
   0 then 1
   n then n * fact2(n - 1)
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@159),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@155),None), Fld(‹›,App(Ref(fact2),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@155),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))) (of class hkmc2.semantics.Split$Cons)
+//│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@163),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@159),None), Fld(‹›,App(Ref(fact2),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@159),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))) (of class hkmc2.semantics.Split$Cons)
 //│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
 //│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
-//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
-//│ 	at: utils.TraceLogger.trace(TraceLogger.scala:14)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
 //│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:340)
 //│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3$$anonfun$1(bbML.scala:491)
@@ -298,16 +290,16 @@ class Foo[A](x: A -> A)
 //│ Type: ⊤
 
 new Foo(x => x)
-//│ Type: Foo[α73_1]
+//│ Type: Foo[α75_1]
 
 fun f(g) = new Foo(g)
 f
-//│ Type: (α76_1 ->{⊥} α76_1) ->{⊥} Foo[α76_1]
+//│ Type: (α78_1 ->{⊥} α78_1) ->{⊥} Foo[α78_1]
 
 f(x => x).Foo#x
-//│ Type: (α76_1) ->{⊥} α76_1
+//│ Type: (α78_1) ->{⊥} α78_1
 
 g => (new Foo(g)).Foo#x
-//│ Type: (α83_1 ->{⊥} α83_1) ->{⊥} (α83_1) ->{⊥} α83_1
+//│ Type: (α85_1 ->{⊥} α85_1) ->{⊥} (α85_1) ->{⊥} α85_1
 
 

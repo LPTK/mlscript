@@ -80,6 +80,14 @@ object Parser:
     def unapply(t: Token): Opt[Str] = t match
       case IDENT(nme, false) if !Keyword.all.contains(nme) => S(nme)
       case _ => N
+
+  extension (loc: Loc)
+    def showStart: String =
+      loc.origin.fph.getLineColAt(loc.spanStart) match
+        case (ln, _, col) => s"Ln $ln Col $col"
+    def showEnd: String =
+      loc.origin.fph.getLineColAt(loc.spanStart) match
+        case (ln, _, col) => s"Ln $ln Col $col"
   
 end Parser
 import Parser._
@@ -257,6 +265,7 @@ abstract class Parser(
     rule.exprAlt match
       case S(exprAlt) =>
         val e = simpleExpr(prec)
+        printDbg("$ proceed with rule: " + exprAlt)
         parseRule(prec, exprAlt.rest).map(res => exprAlt.k(e, res))
       case N =>
         rule.emptyAlt match
@@ -291,6 +300,7 @@ abstract class Parser(
       case S(kw) =>
         rule.kwAlts.get(id.name) match
         case S(subRule) =>
+          printDbg(s"$$ proceed with rule: ${subRule.name}")
           consume
           yeetSpaces match
           case (tok @ BRACKETS(Indent, toks), loc) :: _ if subRule.blkAlt.isEmpty =>
@@ -312,6 +322,7 @@ abstract class Parser(
           case N =>
             tryEmpty(tok, loc)
       case N =>
+        printDbg(s"$$ cannot find a rule starting with: ${id.name}")
         tryParseExp(prec, tok, loc, rule)
     case (tok @ NEWLINE, l0) :: (id: IDENT, l1) :: _ if rule.kwAlts.contains(id.name) =>
       consume
@@ -330,14 +341,22 @@ abstract class Parser(
       //     err((msg"Expected ${rule.whatComesAfter} after ${rule.name}; found ${tok.describe} instead" -> lastLoc :: Nil))
       //     N
       consume
+      printDbg("$ found an indented" + (toks match
+        case (_, loc) :: tail =>
+          val lastLoc = tail.lastOption.map(_._2).getOrElse(loc)
+          s" block from ${loc.showStart} to ${lastLoc.showEnd}"
+        case Nil => "empty block"))
       rule.blkAlt match
         case S(exprAlt) =>
+          printDbg("$ found blockAlt; proceed with block")
           val e = rec(toks, S(br.innerLoc), br.describe).concludeWith(_.block(allowNewlines = true))
             |> Tree.Block.apply
           parseRule(prec, exprAlt.rest).map(res => exprAlt.k(e, res))
         case N =>
+          printDbg("$ no blockAlt; proceed with rule")
           rec(toks, S(br.innerLoc), br.describe).concludeWith(_.parseRule(prec, rule))
     case (tok, loc) :: _ =>
+      printDbg("$ treat as an expression: " + tok.describe)
       tryParseExp(prec, tok, loc, rule)
       // TODO(tok)
     case Nil =>
@@ -726,9 +745,11 @@ abstract class Parser(
         */
         
       case (KEYWORD(kw), l0) :: _ if kw.leftPrecOrMin > prec =>
+        printDbg(s"$$ found keyword: ${kw.name}")
         ParseRule.infixRules.kwAlts.get(kw.name) match
           case S(rule) =>
             consume
+            printDbg(s"$$ proceed with rule: ${rule.name}")
             rule.exprAlt match
               case S(exprAlt) =>
                 yeetSpaces match
@@ -736,7 +757,8 @@ abstract class Parser(
                     consume
                     ???
                   case _ =>
-                val rhs = expr(kw.rightPrecOrMin)
+                printDbg("$ parsing the right-hand side")
+                val rhs = expr(kw.rightPrecOrMin, true)
                 parseRule(kw.rightPrecOrMin, exprAlt.rest).map: rest =>
                   exprCont(exprAlt.k(rhs, rest)(acc), prec, allowNewlines) // FIXME prec??
                 .getOrElse(errExpr)
@@ -745,7 +767,12 @@ abstract class Parser(
                 err((msg"Expected ${rule.whatComesAfter} after ${rule.name}; found ${kw.name} instead" -> S(l0) :: Nil))
                 acc
           case _ => acc
-      case _ => acc
+      case (tok, _) :: _ =>
+        printDbg(s"stops at ${tok.toString}")
+        acc
+      case Nil =>
+        printDbg(s"stops at the end of input")
+        acc
     }
   
 

@@ -2,6 +2,7 @@ package hkmc2
 package syntax
 
 import mlscript.utils.*, shorthands.*
+import hkmc2.utils.StringOps.escaped
 
 import hkmc2.Message.MessageContext
 import Tree._
@@ -59,7 +60,10 @@ enum Tree extends AutoLocated:
   case Sel(prefix: Tree, name: Ident)
   case InfixApp(lhs: Tree, kw: Keyword.Infix, rhs: Tree)
   case New(body: Tree)
+  case If(split: Tree)
+  @deprecated("Use If instead", "hkmc2-ucs")
   case IfElse(cond: Tree, alt: Tree)
+  @deprecated("Use If instead", "hkmc2-ucs")
   case Case(branches: Tree)
   case Region(name: Tree, body: Tree)
   case RegRef(reg: Tree, value: Tree)
@@ -78,13 +82,47 @@ enum Tree extends AutoLocated:
     case InfixApp(lhs, _, rhs) => Ls(lhs, rhs)
     case TermDef(k, symName, alphaName, rhs) => symName.toList ++ alphaName ++ rhs
     case New(body) => body :: Nil
+    case If(split) => split :: Nil
     case IfElse(cond, alt) => cond :: alt :: Nil
     case Case(bs) => Ls(bs)
     case Region(name, body) => name :: body :: Nil
     case RegRef(reg, value) => reg :: value :: Nil
     case Effectful(eff, body) => eff :: body :: Nil
   
-  def describe: Str = ??? // TODO
+  def describe: Str = this match
+    case Empty() => "empty"
+    case Error() => "error"
+    case Ident(name) => name
+    case IntLit(value) => value.toString
+    case DecLit(value) => value.toString
+    case StrLit(value) => value.escaped
+    case UnitLit(value) => if value then "undefined" else "null"
+    case BoolLit(value) => value.toString
+    case Block(stmts) => stmts.map(_.describe).mkString("{ ", "; ", " }")
+    case Let(lhs, rhs, body) => s"let $lhs = $rhs in $body"
+    case TermDef(k, symName, alphaName, rhs) =>
+      val name = symName.orElse(alphaName).fold("")(n => s" ${n.describe}")
+      val sign = rhs.fold("")(s => s" : ${s.describe}")
+      s"${k.str}$name$sign"
+    case TypeDef(k, head, extension, body) =>
+      val ext = extension.fold("")(e => s" extends ${e.describe}")
+      val bdy = body.fold("")(b => s" { $b }")
+      s"${k.desc} ${head.describe}$ext$bdy"
+    case Modified(modifier, body) => s"$modifier $body"
+    case Quoted(body) => s"'$body"
+    case Unquoted(body) => s"~$body"
+    case Tup(fields) => fields.map(_.describe).mkString("(", ", ", ")")
+    case TyTup(tys) => tys.map(_.describe).mkString("(", ", ", ")")
+    case App(lhs, rhs) => s"$lhs $rhs"
+    case Sel(prefix, name) => s"$prefix.$name"
+    case InfixApp(lhs, kw, rhs) => s"$lhs $kw $rhs"
+    case New(body) => s"new $body"
+    case If(split) => s"if $split"
+    case IfElse(cond, alt) => s"if $cond else $alt"
+    case Case(bs) => s"case $bs"
+    case Region(name, body) => s"region $name $body"
+    case RegRef(reg, value) => s"$reg[$value]"
+    case Effectful(eff, body) => s"$eff $body"
   
   def showDbg: Str = toString // TODO
 
@@ -131,6 +169,8 @@ private def getName(t: Tree): Diagnostic \/ Ident =
       getName(base)
     case App(base, args) =>
       getName(base)
+    case InfixApp(lhs, Keyword.`:`, rhs) =>
+      getName(lhs)
     case _ => L(ErrorReport(
       msg"Expected a valid definition head, found ${t.describe} instead" -> t.toLoc :: Nil))
 

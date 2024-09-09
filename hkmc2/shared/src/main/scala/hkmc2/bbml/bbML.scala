@@ -366,7 +366,7 @@ class BBTyper(tl: TraceLogger)(using elState: Elaborator.State):
       val (altsTy, altsEff) = typeSplit(alts, sign)(using nestCtx2)
       val allEff = scrutineeEff | (consEff | altsEff)
       (sign.getOrElse(monoOrErr(consTy, cons) | monoOrErr(altsTy, alts)), allEff)
-    case Split.Let(rec, name, term, tail) =>
+    case Split.Let(name, term, tail) =>
       val nestCtx = ctx.nest
       given Ctx = nestCtx
       val (termTy, termEff) = typeCheck(term)

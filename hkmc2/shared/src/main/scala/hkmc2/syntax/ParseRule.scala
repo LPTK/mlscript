@@ -56,6 +56,8 @@ object ParseRule:
   
   def modified(kw: Keyword) =
     Kw(kw)(ParseRule(s"modifier keyword '${kw.name}'")(standaloneExpr)).map(Tree.Modified(kw, _))
+  def modified(kw: Keyword, body: Alt[Tree]) =
+    Kw(kw)(ParseRule(s"modifier keyword '${kw.name}'")(body)).map(Tree.Modified(kw, _))
   
   val typeDeclTemplate: Alt[Opt[Tree]] =
     Kw(`with`):
@@ -167,14 +169,35 @@ object ParseRule:
         }
     ,
     Kw(`if`):
-      ParseRule("`if` keyword")(
+      ParseRule("`if`")(
         Expr(
-          ParseRule("`if` expression"):
+          ParseRule("`if` split")(
+            End(N),
             Kw(`else`):
-              ParseRule("`else` keyword")(
-                Expr(ParseRule("`else` branch")(End(())))((body, _: Unit) => body)
+              ParseRule(s"`then` operator `else` clause")(
+                Expr(ParseRule(s"`then` operator `else` body")(End(()))):
+                  case (body, _) => S(body)
               )
-        ) { case (cond, alt) => IfElse(cond, alt) }
+          )
+        ):
+          case (split, S(default)) =>
+            val clause = Modified(`else`, default)
+            val items = split match
+              case Block(stmts) => stmts.appended(clause)
+              case _ => split :: clause :: Nil
+            If(Block(items))
+          case (split, N) => If(split)
+        ,
+        Blk(
+          ParseRule("`if` block")(End(()))
+        ) { case (body, _) => If(body) }
+      )
+    ,
+    Kw(`else`):
+      ParseRule("`else` clause")(
+        Expr(
+          ParseRule("`else` body")(End(()))
+        ) { case (tree, _) => Modified(`else`, tree) },
       )
     ,
     Kw(`case`):
@@ -195,11 +218,22 @@ object ParseRule:
     ,
     Kw(`fun`)(termDefBody(Fun)),
     Kw(`val`)(termDefBody(Val)),
-    Kw(`type`)(typeDeclBody(Als)),
+    Kw(`type`):
+      ParseRule("type alias declaration"):
+        Expr(
+          ParseRule("type alias head"):
+            Kw(`=`):
+              ParseRule("type alias declaration equals sign"):
+                Expr(
+                  ParseRule("type alias declaration right-hand side")(
+                    End(())
+                  )
+                ) { (rhs, _) => rhs }
+        ) { (lhs, rhs) => TypeDef(Als, lhs, S(rhs), N) },
     Kw(`class`)(typeDeclBody(Cls)),
     Kw(`trait`)(typeDeclBody(Trt)),
     Kw(`module`)(typeDeclBody(Mod)),
-    modified(`abstract`),
+    modified(`abstract`, Kw(`class`)(typeDeclBody(Cls))),
     modified(`mut`),
     modified(`virtual`),
     modified(`override`),
@@ -249,6 +283,19 @@ object ParseRule:
     genInfixRule(`and`, (rhs, _: Unit) => lhs => InfixApp(lhs, `and`, rhs)),
     genInfixRule(`or`, (rhs, _: Unit) => lhs => InfixApp(lhs, `or`, rhs)),
     genInfixRule(`is`, (rhs, _: Unit) => lhs => InfixApp(lhs, `is`, rhs)),
+    // Kw(`then`):
+    //   ParseRule(s"`then` operator"):
+    //     Expr(ParseRule(s"`then` operator right-hand side")(
+    //       End(N),
+    //       Kw(`else`):
+    //         ParseRule(s"`then` operator `else` clause")(
+    //           Expr(ParseRule(s"`then` operator `else` body")(End(()))):
+    //             case (body, _) => S(body)
+    //         )
+    //     )):
+    //       case (consequent, N) => (test: Tree) => InfixApp(test, `then`, consequent)
+    //       case (consequent, S(default)) => (test: Tree) =>
+    //         InfixApp(test, `then`, InfixApp(consequent, `else`, default)),
     genInfixRule(`then`, (rhs, _: Unit) => lhs => InfixApp(lhs, `then`, rhs)),
     genInfixRule(`:`, (rhs, _: Unit) => lhs => InfixApp(lhs, `:`, rhs)),
   )

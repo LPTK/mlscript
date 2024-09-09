@@ -5,6 +5,7 @@ import mlscript.utils.*, shorthands.*
 import hkmc2.semantics.Elaborator
 import hkmc2.syntax.Keyword.all
 import utils.TraceLogger
+import hkmc2.utils.ProductOps.showAsTree
 
 
 abstract class MLsDiffMaker extends DiffMaker:
@@ -15,8 +16,11 @@ abstract class MLsDiffMaker extends DiffMaker:
   val dbgParsing = NullaryCommand("dp")
   
   val showParse = NullaryCommand("p")
+  val showParsedTree = NullaryCommand("pt")
   val showElab = NullaryCommand("el")
+  val showElaboratedTree = NullaryCommand("elt")
   val parseOnly = NullaryCommand("parseOnly")
+  val noTypeCheck = NullaryCommand("noTypeCheck")
   
   val importCmd = Command("import"): ln =>
     importFile(file / os.up / os.RelPath(ln.trim), verbose = true)
@@ -82,8 +86,13 @@ abstract class MLsDiffMaker extends DiffMaker:
       def doPrintDbg(msg: => Str): Unit = if dbg then output(msg)
     val res = p.parseAll(p.block(allowNewlines = true))
     
-    if parseOnly.isSet || showParse.isSet then
+    // If parsed tree is displayed, don't show the string serialization.
+    if (parseOnly.isSet || showParse.isSet) && !showParsedTree.isSet then
       output(s"Parsed:${res.map("\n\t"+_.showDbg).mkString}")
+
+    if showParsedTree.isSet then
+      output(s"Parsed tree:")
+      res.foreach(t => output(t.showAsTree))
     
     // if showParse.isSet then
     //   output(s"AST: $res")
@@ -97,9 +106,14 @@ abstract class MLsDiffMaker extends DiffMaker:
     given Elaborator.Ctx = curCtx
     val (e, newCtx) = elab.topLevel(trees)
     curCtx = newCtx
-    if showElab.isSet || debug.isSet then
+    // If elaborated tree is displayed, don't show the string serialization.
+    if (showElab.isSet || debug.isSet) && !showElaboratedTree.isSet then
       output(s"Elab: ${e.showDbg}")
-    processTerm(e)
+    if showElaboratedTree.isSet then
+      output(s"Elaborated tree:")
+      output(e.showAsTree)
+    if noTypeCheck.isUnset then
+      processTerm(e)
   
   
   def processTerm(trm: semantics.Term)(using Raise): Unit =
