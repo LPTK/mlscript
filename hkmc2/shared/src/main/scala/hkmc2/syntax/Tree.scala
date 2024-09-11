@@ -92,37 +92,31 @@ enum Tree extends AutoLocated:
   def describe: Str = this match
     case Empty() => "empty"
     case Error() => "error"
-    case Ident(name) => name
-    case IntLit(value) => value.toString
-    case DecLit(value) => value.toString
-    case StrLit(value) => value.escaped
+    case Ident(name) => "identifier"
+    case IntLit(value) => "integer literal"
+    case DecLit(value) => "decimal literal"
+    case StrLit(value) => "string literal"
     case UnitLit(value) => if value then "undefined" else "null"
-    case BoolLit(value) => value.toString
-    case Block(stmts) => stmts.map(_.describe).mkString("{ ", "; ", " }")
-    case Let(lhs, rhs, body) => s"let $lhs = $rhs in $body"
-    case TermDef(k, symName, alphaName, rhs) =>
-      val name = symName.orElse(alphaName).fold("")(n => s" ${n.describe}")
-      val sign = rhs.fold("")(s => s" : ${s.describe}")
-      s"${k.str}$name$sign"
-    case TypeDef(k, head, extension, body) =>
-      val ext = extension.fold("")(e => s" extends ${e.describe}")
-      val bdy = body.fold("")(b => s" { $b }")
-      s"${k.desc} ${head.describe}$ext$bdy"
-    case Modified(modifier, body) => s"$modifier $body"
-    case Quoted(body) => s"'$body"
-    case Unquoted(body) => s"~$body"
-    case Tup(fields) => fields.map(_.describe).mkString("(", ", ", ")")
-    case TyTup(tys) => tys.map(_.describe).mkString("(", ", ", ")")
-    case App(lhs, rhs) => s"$lhs $rhs"
-    case Sel(prefix, name) => s"$prefix.$name"
-    case InfixApp(lhs, kw, rhs) => s"$lhs $kw $rhs"
-    case New(body) => s"new $body"
-    case If(split) => s"if $split"
-    case IfElse(cond, alt) => s"if $cond else $alt"
-    case Case(bs) => s"case $bs"
-    case Region(name, body) => s"region $name $body"
-    case RegRef(reg, value) => s"$reg[$value]"
-    case Effectful(eff, body) => s"$eff $body"
+    case BoolLit(value) => s"$value literal"
+    case Block(stmts) => "block"
+    case Let(lhs, rhs, body) => "let"
+    case TermDef(k, symName, alphaName, rhs) => "term definition"
+    case TypeDef(k, head, extension, body) => "type definition"
+    case Modified(modifier, body) => "modified"
+    case Quoted(body) => "quoted"
+    case Unquoted(body) => "unquoted"
+    case Tup(fields) => "tuple"
+    case TyTup(tys) => "type tuple"
+    case App(lhs, rhs) => "application"
+    case Sel(prefix, name) => "selection"
+    case InfixApp(lhs, kw, rhs) => "infix application"
+    case New(body) => "new"
+    case If(split) => "if expression"
+    case IfElse(cond, alt) => "if-then-else"
+    case Case(branches) => "case"
+    case Region(name, body) => "region"
+    case RegRef(reg, value) => "region reference"
+    case Effectful(eff, body) => "effectful"
   
   def showDbg: Str = toString // TODO
 
