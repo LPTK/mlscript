@@ -5,7 +5,7 @@ import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.util.chaining._
 
 import mlscript.utils.*, shorthands.*
-import hkmc2.utils.TraceLogger
+import hkmc2.utils.*
 
 import Type.*
 
