@@ -169,9 +169,9 @@ object ParseRule:
         }
     ,
     Kw(`if`):
-      ParseRule("`if`")(
+      ParseRule("`if` keyword")(
         Expr(
-          ParseRule("`if` split")(
+          ParseRule("`if` expression")(
             End(N),
             Kw(`else`):
               ParseRule(s"`then` operator `else` clause")(
