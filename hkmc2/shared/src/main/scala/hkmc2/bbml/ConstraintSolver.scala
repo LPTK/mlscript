@@ -6,10 +6,11 @@ import scala.collection.mutable
 import semantics.*
 import Message.MessageContext
 import mlscript.utils.*, shorthands.*
-import utils.TraceLogger
+import utils.*
 
 // * TODO use mutabnle cache instead for correct asymptotic complexity
 type Cache = Set[(Type, Type)]
+type ExtrudeCache = mutable.HashMap[(Uid[InfVar], Bool), InfVar]
 
 case class CCtx(cache: Cache, parents: Ls[(Type, Type)], origin: Term, exp: Opt[GeneralType]):
   def err(using Raise) =
@@ -36,12 +37,11 @@ class ConstraintSolver(infVarState: InfVarUid.State, tl: TraceLogger):
 
   import hkmc2.bbml.NormalForm.*
 
-  // TODO: cache x-fresh
   private def freshXVar(lvl: Int): InfVar = InfVar(lvl, infVarState.nextUid, new VarState(), false)
 
-  def extrude(ty: Type)(using lvl: Int, pol: Bool): Type =
+  def extrude(ty: Type)(using lvl: Int, pol: Bool, cache: ExtrudeCache): Type =
   trace[Type](s"Extruding[${printPol(pol)}] $ty", r => s"~> $r"):
-    if ty.lvl <= lvl then ty else ty match
+    if ty.lvl <= lvl then ty else ty.toBasic/*TODO improve extrude directly*/ match
     case ClassType(sym, targs) =>
       ClassType(sym, targs.map {
         case Wildcard(in, out) =>
@@ -51,14 +51,17 @@ class ConstraintSolver(infVarState: InfVarUid.State, tl: TraceLogger):
     case v @ InfVar(_, uid, _, true) => // * skolem
       if pol then Top else Bot
     case v @ InfVar(_, uid, _, false) =>
-      val nv = freshXVar(lvl)
-      if pol then
-        v.state.upperBounds ::= nv
-        nv.state.lowerBounds = v.state.lowerBounds.map(extrude) // * propagate
-      else
-        v.state.lowerBounds ::= nv
-        nv.state.upperBounds = v.state.upperBounds.map(extrude) // * propagate
-      nv
+      cache.getOrElse(uid -> pol, {
+        val nv = freshXVar(lvl)
+        cache += uid -> pol -> nv
+        if pol then
+          v.state.upperBounds ::= nv
+          nv.state.lowerBounds = v.state.lowerBounds.map(extrude) // * propagate
+        else
+          v.state.lowerBounds ::= nv
+          nv.state.upperBounds = v.state.upperBounds.map(extrude) // * propagate
+        nv
+      })
     case FunType(args, ret, eff) =>
       FunType(args.map(arg => extrude(arg)(using lvl, !pol)), extrude(ret), extrude(eff))
     case ComposedType(lhs, rhs, p) =>
@@ -66,14 +69,13 @@ class ConstraintSolver(infVarState: InfVarUid.State, tl: TraceLogger):
     case NegType(ty) => Type.mkNegType(extrude(ty)(using lvl, !pol))
     case Top | Bot => ty
 
-  private def constrainConj(conj: Conj)(using Ctx, CCtx): Unit = trace(s"Constraining $conj"):
+  private def constrainConj(conj: Conj)(using Ctx, CCtx, TL): Unit = trace(s"Constraining $conj"):
     conj match
       case Conj(i, u, (v, pol) :: tail) =>
         var rest = Conj(i, u, tail)
         if v.isSkolem then constrainConj(rest)
         else
-          val comp = rest.simp
-          val bd = if v.lvl >= comp.lvl then comp else extrude(comp)(using v.lvl, true)
+          val bd = if v.lvl >= rest.lvl then rest else extrude(rest)(using v.lvl, true, mutable.HashMap.empty)
           if pol then
             val nc = Type.mkNegType(bd)
             log(s"New bound: $v <: $nc")
@@ -89,17 +91,14 @@ class ConstraintSolver(infVarState: InfVarUid.State, tl: TraceLogger):
         case (_, Union(N, Nil)) =>
           // raise(ErrorReport(msg"Cannot solve ${conj.i.toString()} ∧ ¬⊥" -> N :: Nil))
           cctx.err
-        case (Inter(S(NormalClassType(cls1, targs1))), Union(f, NormalClassType(cls2, targs2) :: rest)) =>
-          if cls1.uid == cls2.uid then
-            targs1.zip(targs2).foreach {
-              case ((in1, out1), (in2, out2)) =>
-                constrainImpl(in2, in1)
-                constrainImpl(out1, out2)
-            }
+        case (Inter(S(ClassType(cls1, targs1))), Union(f, ClassType(cls2, targs2) :: rest)) =>
+          if cls1.uid === cls2.uid then
+            targs1.zip(targs2).foreach: (ta1, ta2) =>
+              constrainArgs(ta1, ta2)
           else constrainConj(Conj(conj.i, Union(f, rest), Nil))
         case (int: Inter, Union(f, _ :: rest)) => constrainConj(Conj(int, Union(f, rest), Nil))
-        case (Inter(S(NormalFunType(args1, ret1, eff1))), Union(S(NormalFunType(args2, ret2, eff2)), Nil)) =>
-          if args1.length != args2.length then
+        case (Inter(S(FunType(args1, ret1, eff1))), Union(S(FunType(args2, ret2, eff2)), Nil)) =>
+          if args1.length =/= args2.length then
             // raise(ErrorReport(msg"Cannot constrain ${conj.i.toString()} <: ${conj.u.toString()}" -> N :: Nil))
             cctx.err
           else
@@ -112,14 +111,19 @@ class ConstraintSolver(infVarState: InfVarUid.State, tl: TraceLogger):
           // raise(ErrorReport(msg"Cannot solve ${conj.i.toString()} <: ${conj.u.toString()}" -> N :: Nil))
           cctx.err
 
-  private def constrainDNF(disj: Disj)(using Ctx, CCtx): Unit =
+  private def constrainDNF(disj: Disj)(using Ctx, CCtx, TL): Unit =
     disj.conjs.foreach(constrainConj(_))
 
-  private def constrainImpl(lhs: Type, rhs: Type)(using Ctx, CCtx) =
+  private def constrainArgs(lhs: TypeArg, rhs: TypeArg)(using Ctx, CCtx, TL): Unit =
+    constrainImpl(rhs.negPart, lhs.negPart)
+    constrainImpl(lhs.posPart, rhs.posPart)
+  
+  private def constrainImpl(lhs: Type, rhs: Type)(using Ctx, CCtx, TL): Unit =
     if cctx.cache((lhs, rhs)) then log(s"Cached!")
     else trace(s"CONSTRAINT $lhs <: $rhs"):
       cctx.nest(lhs -> rhs) givenIn:
-        constrainDNF(dnf(lhs & rhs.!)(using raise)) // TODO: inline skolem bounds
-  def constrain(lhs: Type, rhs: Type)(using Ctx, CCtx): Unit =
+        val ty = dnf(lhs & rhs.!) // TODO: inline skolem bounds
+        constrainDNF(ty)
+  def constrain(lhs: Type, rhs: Type)(using Ctx, CCtx, TL): Unit =
     constrainImpl(lhs, rhs)
 

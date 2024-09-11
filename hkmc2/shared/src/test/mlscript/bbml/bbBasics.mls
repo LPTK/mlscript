@@ -19,7 +19,7 @@ false
 
 fun id(x) = x
 id
-//│ Type: α2_1 ->{⊥} α2_1
+//│ Type: α1_1 -> α1_1
 
 fun inc(x) = x + 1
 //│ Type: ⊤
@@ -28,10 +28,10 @@ fun mul(x, y) = x * y
 //│ Type: ⊤
 
 x => x
-//│ Type: (α8_1) ->{⊥} α8_1
+//│ Type: (α7_1) ->{⊥} α7_1
 
 +
-//│ Type: (Int, Int) ->{⊥} Int
+//│ Type: (Int, Int) -> Int
 
 (x, y) => x + y
 //│ Type: (Int, Int) ->{⊥} Int
@@ -107,14 +107,14 @@ class Some[A](value: A)
 //│ Type: ⊤
 
 new Some(true)
-//│ Type: Some[α15_1]
+//│ Type: Some[α14_1]
 //│ Where:
-//│   Bool <: α15_1
+//│   Bool <: α14_1
 
 new Some(42)
-//│ Type: Some[α16_1]
+//│ Type: Some[α15_1]
 //│ Where:
-//│   Int <: α16_1
+//│   Int <: α15_1
 
 let p = new Point(1.0, 0.0, 0.0) in p.Point#x
 //│ Type: Num
@@ -142,21 +142,24 @@ fun foofoo(x) =
 //│ Type: ⊤
 
 new Printer(foofoo)
-//│ Type: Printer[α22_1]
+//│ Type: Printer[α21_1]
 //│ Where:
-//│   α22_1 <: Int
+//│   α21_1 <: Int
 
 let ip = new Printer(foofoo) in ip.Printer#f(42)
 //│ Type: Str
 
 :e
 let ip = new Printer(foofoo) in ip.Printer#f("42")
-//│ ╔══[ERROR] Type error in string literal with expected type α27_1
+//│ ╔══[ERROR] Type error in string literal with expected type α26_1
 //│ ║  l.153: 	let ip = new Printer(foofoo) in ip.Printer#f("42")
 //│ ║         	                                             ^^^^
-//│ ╟── because: cannot constrain  Str  <:  α27_1
 //│ ╟── because: cannot constrain  Str  <:  α26_1
-//│ ╟── because: cannot constrain  Str  <:  α21_1
+//│ ╟── because: cannot constrain  Str  <:  α26_1
+//│ ╟── because: cannot constrain  Str  <:  ¬(~α25_1)
+//│ ╟── because: cannot constrain  Str  <:  α25_1
+//│ ╟── because: cannot constrain  Str  <:  ¬(~α20_1)
+//│ ╟── because: cannot constrain  Str  <:  α20_1
 //│ ╙── because: cannot constrain  Str  <:  Int
 //│ Type: Str
 
@@ -167,22 +170,25 @@ fun inc(x) = x + 1
 //│ Type: ⊤
 
 new TFun(inc)
-//│ Type: TFun[α31_1]
+//│ Type: TFun[α30_1]
 //│ Where:
-//│   Int <: α31_1
-//│   α31_1 <: Int
+//│   Int <: α30_1
+//│   α30_1 <: Int
 
 let tf = new TFun(inc) in tf.TFun#f(1)
 //│ Type: Int
 
 :e
 let tf = new TFun(inc) in tf.TFun#f("1")
-//│ ╔══[ERROR] Type error in string literal with expected type α36_1
-//│ ║  l.179: 	let tf = new TFun(inc) in tf.TFun#f("1")
+//│ ╔══[ERROR] Type error in string literal with expected type α35_1
+//│ ║  l.182: 	let tf = new TFun(inc) in tf.TFun#f("1")
 //│ ║         	                                    ^^^
-//│ ╟── because: cannot constrain  Str  <:  α36_1
 //│ ╟── because: cannot constrain  Str  <:  α35_1
-//│ ╟── because: cannot constrain  Str  <:  α30_1
+//│ ╟── because: cannot constrain  Str  <:  α35_1
+//│ ╟── because: cannot constrain  Str  <:  ¬(~α34_1)
+//│ ╟── because: cannot constrain  Str  <:  α34_1
+//│ ╟── because: cannot constrain  Str  <:  ¬(~α29_1)
+//│ ╟── because: cannot constrain  Str  <:  α29_1
 //│ ╙── because: cannot constrain  Str  <:  Int
 //│ Type: Str ∨ Int
 
@@ -196,33 +202,13 @@ class Pair[A, B](fst: A, snd: B)
 //│ Type: Bool
 
 
+:fixme
 if 1 < 2 then 1 else 0
-//│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@132),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(IntLit(0)))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:496)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
-//│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:611)
 
+:fixme
 if false then 1 else "1"
-//│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@135),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(Lit(StrLit(1)))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:496)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
-//│ 	at: hkmc2.bbml.BBTyper.typePurely(bbML.scala:611)
 
 
 if 1 is Int then 1 else 0
@@ -231,7 +217,7 @@ if 1 is Int then 1 else 0
 fun test(x) =
   if x is Int then x + 1 else 0
 test
-//│ Type: (¬Int ∨ Int) ->{⊥} Int
+//│ Type: (¬Int ∨ Int) -> Int
 
 test(1)
 //│ Type: Int
@@ -241,20 +227,10 @@ test("1")
 //│ Type: Int
 
 
+:fixme
 fun fact(n) =
   if n > 1 then n * fact(n - 1) else 1
-//│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@150),LitPat(BoolLit(true)),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@147),None), Fld(‹›,App(Ref(fact),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@147),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))),Else(Lit(IntLit(1)))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
-//│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:340)
 
 fact
 //│ Type: ⊥
@@ -263,21 +239,11 @@ fact(1)
 //│ Type: ⊥
 
 
+:fixme
 fun fact2 = case
   0 then 1
   n then n * fact2(n - 1)
-//│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: scala.MatchError: Cons(Branch(Ref(scrut@163),LitPat(BoolLit(true)),Else(Lit(IntLit(1)))),Else(App(Ref(*),Tup(List(Fld(‹›,Ref(n@159),None), Fld(‹›,App(Ref(fact2),Tup(List(Fld(‹›,App(Ref(-),Tup(List(Fld(‹›,Ref(n@159),None), Fld(‹›,Lit(IntLit(1)),None)))),None)))),None)))))) (of class hkmc2.semantics.Split$Cons)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:380)
-//│ 	at: hkmc2.bbml.BBTyper.typeSplit(bbML.scala:375)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:570)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3(bbML.scala:512)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:14)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck(bbML.scala:608)
-//│ 	at: hkmc2.bbml.BBTyper.typeFunDef(bbML.scala:340)
-//│ 	at: hkmc2.bbml.BBTyper.typeCheck$$anonfun$3$$anonfun$1(bbML.scala:491)
 
 fact2
 //│ Type: ⊥
@@ -290,16 +256,16 @@ class Foo[A](x: A -> A)
 //│ Type: ⊤
 
 new Foo(x => x)
-//│ Type: Foo[α75_1]
+//│ Type: Foo[α74_1]
 
 fun f(g) = new Foo(g)
 f
-//│ Type: (α78_1 ->{⊥} α78_1) ->{⊥} Foo[α78_1]
+//│ Type: (α77_1 -> α77_1) -> Foo[α77_1]
 
 f(x => x).Foo#x
-//│ Type: (α78_1) ->{⊥} α78_1
+//│ Type: (α77_1) ->{⊥} α77_1
 
 g => (new Foo(g)).Foo#x
-//│ Type: (α85_1 ->{⊥} α85_1) ->{⊥} (α85_1) ->{⊥} α85_1
+//│ Type: (α84_1 -> α84_1) ->{⊥} (α84_1) ->{⊥} α84_1
 
 
