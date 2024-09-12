@@ -204,7 +204,7 @@ fun f() =
 //│   symName = N
 //│   alphaName = S of App:
 //│     lhs = Ident of "f"
-//│     rhs = Tup of Ls of 
+//│     rhs = Tup of Nil
 //│   rhs = S of If of Block of Ls of 
 //│     InfixApp:
 //│       lhs = Ident of "x"

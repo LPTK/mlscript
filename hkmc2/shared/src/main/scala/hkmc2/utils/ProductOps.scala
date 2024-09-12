@@ -8,6 +8,7 @@ object ProductOps:
       def aux(v: Any): String = v match
         case Some(v) => "S of " + aux(v)
         case None => "N"
+        case Nil => "Nil"
         case xs: List[_] => "Ls of \n" + xs.iterator.map(aux).mkString("\n").indent(2).dropRight(1)
         case s: String => s.escaped
         case t: Product => t.showAsTree
