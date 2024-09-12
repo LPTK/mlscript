@@ -18,6 +18,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   val showParsedTree = NullaryCommand("pt")
   val showElab = NullaryCommand("el")
   val showElaboratedTree = NullaryCommand("elt")
+  val showContext = NullaryCommand("ctx")
   val parseOnly = NullaryCommand("parseOnly")
   val noTypeCheck = NullaryCommand("noTypeCheck")
   
@@ -75,6 +76,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   
   
   def processOrigin(origin: Origin)(using Raise): Unit =
+    val oldCtx = curCtx
     val lexer = new syntax.Lexer(origin, dbg = dbgParsing.isSet)
     val tokens = lexer.bracketedTokens
     
@@ -98,6 +100,16 @@ abstract class MLsDiffMaker extends DiffMaker:
     
     if parseOnly.isUnset then
       processTrees(res)(using raise)
+
+    if showContext.isSet then
+      output("Members:")
+      curCtx.members.foreach: (k, v) =>
+        if !(oldCtx.members contains k) then
+          output(s"  $k -> $v")
+      output("Locals:")
+      curCtx.locals.foreach: (k, v) =>
+        if !(oldCtx.locals contains k) then
+          output(s"  $k -> $v")
   
   
   def processTrees(trees: Ls[syntax.Tree])(using Raise): Unit =
