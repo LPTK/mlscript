@@ -191,7 +191,7 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
     case TermDef(k, sym, nme, rhs) =>
       raise(ErrorReport(msg"Illegal definition in term position." -> tree.toLoc :: Nil))
       Term.Error
-    case TypeDef(k, head, extension, body) =>
+    case TypeDef(k, symName, head, extension, body) =>
       raise(ErrorReport(msg"Illegal type declaration in term position." -> tree.toLoc :: Nil))
       Term.Error
     // case _ =>
@@ -238,13 +238,23 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
         log(s"Found TypeDef ${td.name}")
         td.name match
           case R(id) =>
+            lazy val s = ClassSymbol(id)
             newMembers.get(id.name) match
               // TODO pair up companions
               case S(sym) =>
                 raise(ErrorReport(msg"Duplicate definition of ${id.name}" -> td.toLoc
                   :: msg"aready defined here" -> id.toLoc :: Nil))
               case N =>
-                newMembers += id.name -> ClassSymbol(id)
+                newMembers += id.name -> s
+            td.symName match
+              case S(id @ Ident(nme)) =>
+                newMembers.get(nme) match
+                  case S(sym) =>
+                    raise(ErrorReport(msg"Duplicate definition of $nme" -> td.toLoc
+                      :: msg"aready defined here" -> id.toLoc :: Nil))
+                  case N =>
+                    newMembers += nme -> s
+              case S(_) | N =>
           case L(d) => raise(d)
       case Modified(Keyword.`abstract`, body) =>
         // TODO: Handle abstract
@@ -279,7 +289,7 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
             s.defn = S(tdf)
             go(sts, tdf :: acc)
           case L(d) => go(sts, acc) // error already raised in newMembers initialization
-      case TypeDef(k, head, extension, body) :: sts =>
+      case TypeDef(k, symName, head, extension, body) :: sts =>
         assert((k is Als) || (k is Cls) || (k is Mod), k)
         def processHead(head: Tree): Ctxl[(Ident, Ls[TyParam], Opt[Ls[Param]], Ctx)] = head match
           case TyApp(base, tparams) =>

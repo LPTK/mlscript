@@ -1,0 +1,25 @@
+:ctx
+type List = Nil | Cons
+module Nil
+class (::) Cons(head: Int, tail: List)
+//│ Type: Ctor(lit:UnitLit(true),List())
+//│ Members:
+//│   Nil -> class:Nil
+//│   Cons -> class:Cons
+//│   List -> class:List
+//│   :: -> class:Cons
+//│ Locals:
+
+:fixme
+Cons(1, Nil)
+//│ /!!!\ Uncaught error: scala.MatchError: Lit(IntLit(1)) (of class hkmc2.semantics.Term$Lit)
+
+:fixme
+1 :: 2
+//│ /!!!\ Uncaught error: scala.MatchError: Lit(IntLit(1)) (of class hkmc2.semantics.Term$Lit)
+
+:fixme
+fun map(f, xs) = if xs is
+  Nil then Nil
+  x :: xs' then f(x) :: map(f, xs')
+//│ /!!!\ Uncaught error: scala.MatchError: If(Cons(Branch(Ref(xs@25),Class(class:Nil,None,false),Else(Ref(class:Nil))),Cons(Branch(Ref(xs@25),Class(class:Cons,Some(List(param0@26, param1@27)),false),Let(args@28,App(Sel(Ref(class:Cons),Ident(unapply)),Tup(List(Fld(‹›,Ref(xs@25),None)))),Let(param0@26,Sel(Ref(args@28),Ident(0)),Let(param1@27,Sel(Ref(args@28),Ident(1)),Let(x@30,Ref(param0@26),Let(xs'@31,Ref(param1@27),Else(App(Ref(class:Cons),Tup(List(Fld(‹›,App(Ref(f@24),Tup(List(Fld(‹›,Ref(x@30),None)))),None), Fld(‹›,App(Ref(map),Tup(List(Fld(‹›,Ref(f@24),None), Fld(‹›,Ref(xs'@31),None)))),None))))))))))),Nil))) (of class hkmc2.semantics.Term$If)

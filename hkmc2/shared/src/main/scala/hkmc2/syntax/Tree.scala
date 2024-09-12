@@ -50,7 +50,7 @@ enum Tree extends AutoLocated:
   case Let(lhs: Tree, rhs: Tree, body: Opt[Tree])
   // case TermDef(k: TermDefKind, symName: Opt[Tree], alphaName: Opt[Tree], sign: Opt[Tree], rhs: Opt[Tree])
   case TermDef(k: TermDefKind, symName: Opt[Tree], alphaName: Opt[Tree], rhs: Opt[Tree]) extends Tree with TermDefImpl
-  case TypeDef(k: TypeDefKind, head: Tree, extension: Opt[Tree], body: Opt[Tree]) extends Tree with TypeDefImpl
+  case TypeDef(k: TypeDefKind, symName: Opt[Tree], head: Tree, extension: Opt[Tree], body: Opt[Tree]) extends Tree with TypeDefImpl
   case Modified(modifier: Keyword, body: Tree)
   case Quoted(body: Tree)
   case Unquoted(body: Tree)
@@ -73,7 +73,8 @@ enum Tree extends AutoLocated:
     case _: Empty | _: Error | _: Ident | _: Literal => Nil
     case Block(stmts) => stmts
     case Let(lhs, rhs, body) => Ls(lhs, rhs) ++ body
-    case TypeDef(k, head, extension, body) => Ls(head) ++ extension ++ body
+    case TypeDef(k, symName, head, extension, body) =>
+      symName.toList ++ Ls(head) ++ extension ++ body
     case Modified(_, body) => Ls(body)
     case Quoted(body) => Ls(body)
     case Unquoted(body) => Ls(body)
@@ -101,7 +102,7 @@ enum Tree extends AutoLocated:
     case Block(stmts) => "block"
     case Let(lhs, rhs, body) => "let"
     case TermDef(k, symName, alphaName, rhs) => "term definition"
-    case TypeDef(k, head, extension, body) => "type definition"
+    case TypeDef(k, symName, head, extension, body) => "type definition"
     case Modified(modifier, body) => "modified"
     case Quoted(body) => "quoted"
     case Unquoted(body) => "unquoted"

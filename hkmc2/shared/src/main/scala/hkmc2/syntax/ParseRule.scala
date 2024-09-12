@@ -111,21 +111,39 @@ object ParseRule:
     ParseRule("type declaration start"):
       Expr(
         ParseRule("type declaration head")(
-          End((N, N)),
+          End((N, N, N)),
+          Expr(
+            ParseRule("type declaration name")(
+              End((N, N)),
+              Kw(`extends`):
+                ParseRule("extension clause")(
+                  Expr(
+                    ParseRule("parent specification")(
+                      typeDeclTemplate,
+                      End(N),
+                    )
+                  ) { case (ext, bod) => (S(ext), bod) }
+                ),
+              typeDeclTemplate.map(bod => (N, bod)),
+            )
+          ):
+            case (head, (ext, bod)) => (S(head), ext, bod)
+          ,
           Kw(`extends`):
             ParseRule("extension clause")(
-              // End((N, N)),
               Expr(
                 ParseRule("parent specification")(
                   typeDeclTemplate,
                   End(N),
                 )
-              ) { case (ext, bod) => (S(ext), bod) }
+              ) { case (ext, bod) => (N, S(ext), bod) }
             ),
-          typeDeclTemplate.map(bod => (N, bod)),
+          typeDeclTemplate.map(bod => (N, N, bod)),
         )
       // ) { case (head, ext, bod) => TypeDecl(head, ext, bod) }
-      ) { case (head, (ext, bod)) => TypeDef(k, head, ext, bod) }
+      ):
+        case (symName, (S(head), ext, bod)) => TypeDef(k, S(symName), head, ext, bod)
+        case (head, (N, ext, bod)) => TypeDef(k, N, head, ext, bod)
   
   val prefixRules: ParseRule[Tree] = ParseRule("start of statement")(
     Kw(`let`):
@@ -229,7 +247,7 @@ object ParseRule:
                     End(())
                   )
                 ) { (rhs, _) => rhs }
-        ) { (lhs, rhs) => TypeDef(Als, lhs, S(rhs), N) },
+        ) { (lhs, rhs) => TypeDef(Als, N, lhs, S(rhs), N) },
     Kw(`class`)(typeDeclBody(Cls)),
     Kw(`trait`)(typeDeclBody(Trt)),
     Kw(`module`)(typeDeclBody(Mod)),
