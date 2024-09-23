@@ -5,31 +5,32 @@ import syntax.{Keyword, Tree}, Tree.*
 import mlscript.utils.*, shorthands.*
 import Message.MessageContext
 import utils.TraceLogger
+import scala.annotation.showAsInfix
 
 object Desugarer:
   object and:
-    def unapply(tree: Tree): Opt[(Tree, Tree)] = tree match
+    infix def unapply(tree: Tree): Opt[(Tree, Tree)] = tree match
       case InfixApp(lhs, Keyword.and, rhs) => S((lhs, rhs))
       case _ => N
 
   object is:
-    def unapply(tree: Tree): Opt[(Tree, Tree)] = tree match
+    infix def unapply(tree: Tree): Opt[(Tree, Tree)] = tree match
       case InfixApp(lhs, Keyword.is, rhs) => S((lhs, rhs))
       case _ => N
 
   object `then`:
-    def unapply(tree: Tree): Opt[(Tree, Tree)] = tree match
+    infix def unapply(tree: Tree): Opt[(Tree, Tree)] = tree match
       case InfixApp(lhs, Keyword.`then`, rhs) => S((lhs, rhs))
       case _ => N
 
   object `->`:
-    def unapply(tree: Tree): Opt[(Tree, Tree \/ Tree)] = tree match
+    infix def unapply(tree: Tree): Opt[(Tree, Tree \/ Tree)] = tree match
       case InfixApp(lhs, Keyword.and, rhs) => S((lhs, L(rhs)))
       case InfixApp(lhs, Keyword.`then`, rhs) => S((lhs, R(rhs)))
       case _ => N
 
   object `else`:
-    def unapply(tree: Tree): Opt[(Tree, Tree)] = tree match
+    infix def unapply(tree: Tree): Opt[(Tree, Tree)] = tree match
       case InfixApp(lhs, Keyword.`else`, rhs) => S((lhs, rhs))
       case _ => N
 end Desugarer
