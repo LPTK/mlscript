@@ -11,14 +11,7 @@ fun foo(x) = x > 1
 if foo of
   0 then "a"
   1 then "b"
-//│ ╔══[ERROR] Unrecognized term split.
-//│ ║  l.11: 	if foo of
-//│ ║        	   ^^^^^^
-//│ ║  l.12: 	  0 then "a"
-//│ ║        	^^^^^^^^^^^^
-//│ ║  l.13: 	  1 then "b"
-//│ ╙──      	^^^^^^^^^^^^
-//│ /!!!\ Uncaught error: scala.MatchError: If(Else(Error)) (of class hkmc2.semantics.Term$If)
+//│ /!!!\ Uncaught error: scala.MatchError: InfixApp(IntLit(0),keyword 'then',StrLit(a)) (of class hkmc2.syntax.Tree$InfixApp)
 
 :todo
 :pe
@@ -27,15 +20,13 @@ if foo of 1,
   0 then "a"
   1 then "b"
 //│ ╔══[PARSE ERROR] Expected an expression; found indented block instead
-//│ ║  l.27: 	  0 then "a"
+//│ ║  l.20: 	  0 then "a"
 //│ ╙──      	  ^
 //│ ╔══[PARSE ERROR] Unexpected literal here
-//│ ║  l.27: 	  0 then "a"
+//│ ║  l.20: 	  0 then "a"
 //│ ╙──      	  ^
 //│ ╔══[ERROR] Unrecognized term split.
-//│ ║  l.26: 	if foo of 1,
-//│ ║        	   ^^^^^^^^^
-//│ ║  l.27: 	  0 then "a"
+//│ ║  l.20: 	  0 then "a"
 //│ ╙──      	^^
 //│ /!!!\ Uncaught error: scala.MatchError: If(Else(Error)) (of class hkmc2.semantics.Term$If)
 
@@ -46,10 +37,10 @@ if foo
   (0) then "a"
   (1) then "b"
 //│ ╔══[PARSE ERROR] Unexpected parenthesis section here
-//│ ║  l.46: 	  (0) then "a"
+//│ ║  l.37: 	  (0) then "a"
 //│ ╙──      	  ^^^
 //│ ╔══[ERROR] Unrecognized term split.
-//│ ║  l.45: 	if foo
+//│ ║  l.36: 	if foo
 //│ ╙──      	   ^^^
 //│ /!!!\ Uncaught error: scala.MatchError: If(Else(Error)) (of class hkmc2.semantics.Term$If)
 

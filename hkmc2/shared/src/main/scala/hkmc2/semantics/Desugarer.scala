@@ -98,6 +98,23 @@ class Desugarer(tl: TraceLogger, elaborator: Elaborator)(using raise: Raise, sta
           case _ => ctx => nominate(finish(term(headCoda)(using ctx))):
               expandMatch(_, headPattern, tailSplit)(fallback)
             .apply(ctx)
+    case tree @ App(opIdent @ Ident(opName), rawTup @ Tup(lhs :: rhs :: Nil)) => fallback => ctx =>
+      val opRef = ctx.locals.get(opName) match
+        case S(sym) => sym.ref(opIdent)
+        case N =>
+          ctx.members.get(opName) match
+            case S(sym) => sym.ref(opIdent)
+            case N =>
+              raise(ErrorReport(msg"Name not found: $opName" -> tree.toLoc :: Nil))
+              Term.Error
+      val lhsTerm = term(lhs)(using ctx)
+      val finishInner = (rhsTerm: Term) =>
+        val first = Fld(FldFlags.empty, lhsTerm, N)
+        val second = Fld(FldFlags.empty, rhsTerm, N)
+        val arguments = Term.Tup(first :: second :: Nil)(rawTup)
+        val joint = FlowSymbol("‹applied-result›", nextUid)
+        Term.App(opRef, arguments)(tree, joint)
+      termSplit(rhs, finishInner)(fallback)(ctx)
     case _ => _ => _ =>
       raise(ErrorReport(msg"Unrecognized term split." -> tree.toLoc :: Nil))
       Split.default(Term.Error)

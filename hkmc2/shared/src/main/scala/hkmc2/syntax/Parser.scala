@@ -522,6 +522,48 @@ abstract class Parser(
         Effectful(eff, simpleExpr(prec))
       case _ => expr(prec, allowIndentedBlock = true)
       // case _ => Block.mk(blockMaybeIndented)
+
+  def splitOf()(using Line): Ls[Tree] = wrap("split")(splitOfImpl())
+  def splitOfImpl(): Ls[Tree] =
+    def splitContOf(): Ls[Tree] = yeetSpaces match
+      case (COMMA, _) :: _ => consume; splitOf()
+      case (SEMI, _) :: _ => consume; splitOf()
+      case (NEWLINE, _) :: _ => consume; splitOf()
+      case _ => Nil
+    cur match
+    case Nil => Nil
+    case (NEWLINE, _) :: _ => consume; splitOf()
+    case (SPACE, _) :: _ => consume; splitOf()
+    case (tok @ (id: IDENT), loc) :: _ =>
+      Keyword.all.get(id.name) match
+      case S(kw) =>
+        consume
+        ParseRule.prefixRules.kwAlts.get(kw.name) match
+          case S(subRule) =>
+            parseRule(CommaPrecNext, subRule).getOrElse(errExpr) :: splitContOf()
+          case N => expr(0, false) :: splitContOf()
+      case N => expr(0, false) :: splitContOf()
+    case _ =>
+      printDbg(s"continue to parse expressions")
+      expr(0, false) :: splitContOf()
+
+  def operatorSplitOf()(using Line): Ls[Tree] = wrap("split")(operatorSplitOfImpl())
+  def operatorSplitOfImpl(): Ls[Tree] =
+    def splitContOf(): Ls[Tree] = yeetSpaces match
+      case (COMMA, _) :: _ => consume; operatorSplitOf()
+      case (SEMI, _) :: _ => consume; operatorSplitOf()
+      case (NEWLINE, _) :: _ => consume; operatorSplitOf()
+      case _ => Nil
+    cur match
+    case Nil => Nil
+    case (NEWLINE, _) :: _ => consume; operatorSplitOf()
+    case (SPACE, _) :: _ => consume; operatorSplitOf()
+    case (tok @ IDENT(opStr, true), loc) :: _ if opPrec(opStr)._1 > 0 =>
+      consume
+      App(Ident(opStr).withLoc(S(loc)), expr(0, false)) :: splitContOf()
+    case (_, loc) :: _ =>
+      err(msg"Expect an operator" -> S(loc) :: Nil)
+      errExpr :: operatorSplitOfImpl()
   
   final def exprCont(acc: Tree, prec: Int, allowNewlines: Bool)(using Line): Tree =
     wrap(prec, s"`$acc`", allowNewlines)(exprContImpl(acc, prec, allowNewlines))
@@ -587,6 +629,9 @@ abstract class Parser(
         val newAcc = Subs(acc, idx).withLoc(S(l0 ++ l1 ++ idx.toLoc))
         exprCont(newAcc, prec, allowNewlines)
         */
+      case (br @ BRACKETS(Indent, toks @ ((IDENT(opStr, true), _) :: _)), loc) :: _ if opPrec(opStr)._1 > prec =>
+        consume
+        Block(rec(toks, S(loc), "operator split").concludeWith(_.operatorSplitOf()))
       case (OP(opStr), l0) :: _ if /* isInfix(opStr) && */ opPrec(opStr)._1 > prec =>
         consume
         val v = Ident(opStr).withLoc(S(l0))
@@ -594,22 +639,30 @@ abstract class Parser(
           case (NEWLINE, l0) :: _ => consume
           case _ =>
         }
-        // val rhs = simpleExpr(opPrec(opStr)._2)
-        val rhs = expr(opPrec(opStr)._2)
-        exprCont(opStr match {
-          case "with" =>
-            rhs match {
-              // TODO?
-              // case rhs: Rcd =>
-              //   With(acc, rhs)//.withLocOf(term)
-              // case Bra(true, rhs: Rcd) =>
-              //   With(acc, rhs)//.withLocOf(term)
-              case _ =>
-                err(msg"record literal expected here; found ${rhs.describe}" -> rhs.toLoc :: Nil)
-                acc
-            }
-          case _ => App(v, PlainTup(acc, rhs))
-        }, prec, allowNewlines)
+        printDbg(s"found an infix operator: $opStr")
+        yeetSpaces match
+          case (BRACKETS(Indent, toks), l0) :: _ =>
+            consume
+            // rec(toks, S(br.innerLoc), br.describe).concludeWith(f(_, true))
+            val rhs = rec(toks, S(l0), "operator split").concludeWith(_.splitOf())
+            App(v, PlainTup(acc, Block(rhs)))
+          case _ => 
+            // val rhs = simpleExpr(opPrec(opStr)._2)
+            val rhs = expr(opPrec(opStr)._2)
+            exprCont(opStr match {
+              case "with" =>
+                rhs match {
+                  // TODO?
+                  // case rhs: Rcd =>
+                  //   With(acc, rhs)//.withLocOf(term)
+                  // case Bra(true, rhs: Rcd) =>
+                  //   With(acc, rhs)//.withLocOf(term)
+                  case _ =>
+                    err(msg"record literal expected here; found ${rhs.describe}" -> rhs.toLoc :: Nil)
+                    acc
+                }
+              case _ => App(v, PlainTup(acc, rhs))
+            }, prec, allowNewlines)
         /*
       case (KEYWORD(":"), l0) :: _ if prec <= NewParser.prec(':') =>
         consume

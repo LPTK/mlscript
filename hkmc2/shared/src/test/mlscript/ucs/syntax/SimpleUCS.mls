@@ -43,7 +43,6 @@ fun f(x, y) =
 class A[T](value: T)
 class B[T](value: T)
 
-:fixme
 fun f(x, y, u, v) =
   if x is
     A(a) and y ==
@@ -53,14 +52,6 @@ fun f(x, y, u, v) =
       B(0) then 0
       B(1) then 1
     A(_) then 99
-//│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.50: 	      u then 0
-//│ ╙──      	        ^^^^
-//│ ╔══[ERROR] Unrecognized term split.
-//│ ║  l.49: 	    A(a) and y ==
-//│ ║        	             ^^^^
-//│ ║  l.50: 	      u then 0
-//│ ╙──      	^^^^^^^
 
 fun f(x) =
   if x is
@@ -101,12 +92,15 @@ fun f(x, y) =
       >  0 then "gt"
       <  0 then "le"
       == 0 then "eq"
-//│ ╔══[PARSE ERROR] Unexpected operator here
-//│ ║  l.101: 	      >  0 then "gt"
-//│ ╙──       	      ^
 //│ ╔══[ERROR] Unrecognized term split.
-//│ ║  l.100: 	    Some(x) and y
-//│ ╙──       	                ^
+//│ ║  l.94: 	      == 0 then "eq"
+//│ ╙──      	      ^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Unrecognized term split.
+//│ ║  l.93: 	      <  0 then "le"
+//│ ╙──      	      ^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Unrecognized term split.
+//│ ║  l.92: 	      >  0 then "gt"
+//│ ╙──      	      ^^^^^^^^^^^^^^
 
 
 fun isValid(x) = if x then false else true
@@ -140,10 +134,10 @@ fun f(x, y, b) =
     Some(xv) and b then xv + b
     _ then "roll"
 //│ ╔══[PARSE ERROR] Unexpected 'is' keyword here
-//│ ║  l.138: 	      is Some(yv) then "bruh"
+//│ ║  l.132: 	      is Some(yv) then "bruh"
 //│ ╙──       	      ^^
 //│ ╔══[ERROR] Unrecognized term split.
-//│ ║  l.137: 	    Some(xv) and y
+//│ ║  l.131: 	    Some(xv) and y
 //│ ╙──       	                 ^
 
 :fixme
@@ -155,10 +149,10 @@ fun g(x, y, b) =
     Some(xv) and b then xv + b
     _ then "roll"
 //│ ╔══[PARSE ERROR] Unexpected 'is' keyword here
-//│ ║  l.153: 	      is Some(yv) then yv
+//│ ║  l.147: 	      is Some(yv) then yv
 //│ ╙──       	      ^^
 //│ ╔══[ERROR] Unrecognized term split.
-//│ ║  l.152: 	    Some(xv) and y
+//│ ║  l.146: 	    Some(xv) and y
 //│ ╙──       	                 ^
 
 
@@ -220,14 +214,11 @@ fun f(x) =
   if x is
     0 ::
       Nil() then "oh"
-//│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.222: 	      Nil() then "oh"
-//│ ╙──       	            ^^^^
 //│ ╔══[ERROR] Unrecognized pattern split.
-//│ ║  l.221: 	    0 ::
+//│ ║  l.215: 	    0 ::
 //│ ║         	    ^^^^
-//│ ║  l.222: 	      Nil() then "oh"
-//│ ╙──       	^^^^^^^^^^^
+//│ ║  l.216: 	      Nil() then "oh"
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^
 
 
 fun f(x) =
