@@ -286,10 +286,15 @@ object ParseRule:
   
   def funBody(k: TermDefKind): Alt[S[Tree]] =
     Kw(`=`):
-      ParseRule(s"'${k.str}' binding equals sign"):
+      ParseRule(s"'${k.str}' binding equals sign")(
         Expr(
           ParseRule(s"'${k.str}' binding right-hand side")(End(()))
         ) { case (rhs, ()) => S(rhs) }
+        ,
+        Blk(
+          ParseRule(s"'${k.str}' binding block")(End(()))
+        ) { case (rhs, _) => S(rhs) }
+      )
 
   def genInfixRule[A](kw: Keyword, k: (Tree, Unit) => A): Alt[A] =
     Kw(kw):

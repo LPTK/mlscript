@@ -171,13 +171,21 @@ private def getName(t: Tree): Diagnostic \/ Ident =
 
 trait TermDefImpl:
   this: TermDef =>
-  lazy val (name, params, signature): (Diagnostic \/ Ident, Opt[Tree], Opt[Tree]) = alphaName.orElse(symName) match
+  lazy val (name, params, typeParams, signature): (Diagnostic \/ Ident, Opt[Tree], Opt[Tree], Opt[Tree]) =
+    alphaName.orElse(symName) match
     case S(InfixApp(id: Ident, Keyword.`:`, sign)) =>
-      (R(id), N, S(sign))
+      (R(id), N, N, S(sign))
+    // show(t: Tree): Str
+    case S(InfixApp(App(id: Ident, args), Keyword.`:`, ret)) =>
+      (R(id), S(args), N, S(InfixApp(args, Keyword.`=>`, ret)))
+    // show[A](t: Tree[A]): Str
+    case S(InfixApp(App(App(id: Ident, typeParams: TyTup), args), Keyword.`:`, ret)) =>
+      // val sign = S(InfixApp(typeParams, Keyword.`->`, InfixApp(args, Keyword.`->`, ret)))
+      (R(id), S(args), S(typeParams), N)
     case S(id: Ident) =>
-      (R(id), N, N)
+      (R(id), N, N, N)
     case S(App(id: Ident, args)) =>
-      (R(id), S(args), N)
+      (R(id), S(args), N, N)
   lazy val symbolicName: Opt[Ident] = symName match
     case S(id: Ident) => S(id)
     case _ => N

@@ -104,23 +104,27 @@ if
 x
   + 1
 //│ Parsed tree:
-//│ Block of Ls of 
-//│   App:
-//│     lhs = Ident of "+"
-//│     rhs = IntLit of 1
+//│ App:
+//│   lhs = Ident of "x"
+//│   rhs = Block of Ls of 
+//│     App:
+//│       lhs = Ident of "+"
+//│       rhs = IntLit of 1
 
 x
   + 1
   + 2
   + 3
 //│ Parsed tree:
-//│ Block of Ls of 
-//│   App:
-//│     lhs = Ident of "+"
-//│     rhs = IntLit of 1
-//│   App:
-//│     lhs = Ident of "+"
-//│     rhs = IntLit of 2
-//│   App:
-//│     lhs = Ident of "+"
-//│     rhs = IntLit of 3
+//│ App:
+//│   lhs = Ident of "x"
+//│   rhs = Block of Ls of 
+//│     App:
+//│       lhs = Ident of "+"
+//│       rhs = IntLit of 1
+//│     App:
+//│       lhs = Ident of "+"
+//│       rhs = IntLit of 2
+//│     App:
+//│       lhs = Ident of "+"
+//│       rhs = IntLit of 3

@@ -558,12 +558,16 @@ abstract class Parser(
     case Nil => Nil
     case (NEWLINE, _) :: _ => consume; operatorSplitOf()
     case (SPACE, _) :: _ => consume; operatorSplitOf()
+    case (KEYWORD(kw @ Keyword.`else`), _) :: _ =>
+      consume
+      val default = expr(0, true)
+      Modified(kw, default) :: splitContOf()
     case (tok @ IDENT(opStr, true), loc) :: _ if opPrec(opStr)._1 > 0 =>
       consume
       App(Ident(opStr).withLoc(S(loc)), expr(0, false)) :: splitContOf()
     case (_, loc) :: _ =>
       err(msg"Expect an operator" -> S(loc) :: Nil)
-      errExpr :: operatorSplitOfImpl()
+      errExpr :: Nil
   
   final def exprCont(acc: Tree, prec: Int, allowNewlines: Bool)(using Line): Tree =
     wrap(prec, s"`$acc`", allowNewlines)(exprContImpl(acc, prec, allowNewlines))
@@ -631,7 +635,7 @@ abstract class Parser(
         */
       case (br @ BRACKETS(Indent, toks @ ((IDENT(opStr, true), _) :: _)), loc) :: _ if opPrec(opStr)._1 > prec =>
         consume
-        Block(rec(toks, S(loc), "operator split").concludeWith(_.operatorSplitOf()))
+        App(acc, Block(rec(toks, S(loc), "operator split").concludeWith(_.operatorSplitOf())))
       case (OP(opStr), l0) :: _ if /* isInfix(opStr) && */ opPrec(opStr)._1 > prec =>
         consume
         val v = Ident(opStr).withLoc(S(l0))

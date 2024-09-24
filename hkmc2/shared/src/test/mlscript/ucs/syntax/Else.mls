@@ -119,15 +119,16 @@ fun f(x, y, z) =
 //│       Ident of "x"
 //│       Ident of "y"
 //│       Ident of "z"
-//│   rhs = S of If of Block of Ls of 
-//│     InfixApp:
-//│       lhs = Ident of "x"
-//│       kw = keyword 'then'
-//│       rhs = Block of Ls of 
-//│         Ident of "y"
-//│     Modified:
-//│       modifier = keyword 'else'
-//│       body = Ident of "z"
+//│   rhs = S of Block of Ls of 
+//│     If of Block of Ls of 
+//│       InfixApp:
+//│         lhs = Ident of "x"
+//│         kw = keyword 'then'
+//│         rhs = Block of Ls of 
+//│           Ident of "y"
+//│       Modified:
+//│         modifier = keyword 'else'
+//│         body = Ident of "z"
 
 fun f(x, y, z) =
   if x then y
@@ -142,23 +143,27 @@ fun f(x, y, z) =
 //│       Ident of "x"
 //│       Ident of "y"
 //│       Ident of "z"
-//│   rhs = S of If of Block of Ls of 
-//│     InfixApp:
-//│       lhs = Ident of "x"
-//│       kw = keyword 'then'
-//│       rhs = Ident of "y"
-//│     Modified:
-//│       modifier = keyword 'else'
-//│       body = Ident of "z"
+//│   rhs = S of Block of Ls of 
+//│     If of Block of Ls of 
+//│       InfixApp:
+//│         lhs = Ident of "x"
+//│         kw = keyword 'then'
+//│         rhs = Ident of "y"
+//│       Modified:
+//│         modifier = keyword 'else'
+//│         body = Ident of "z"
 
 :pe
 fun f(x, y, z) =
   if x
   then y
   else z
-//│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.157: 	  then y
+//│ ╔══[PARSE ERROR] Expected 'let' keyword, 'new' keyword, 'in' keyword, 'if' keyword, 'else' keyword, 'case' keyword, 'region' keyword, 'fun' keyword, 'val' keyword, 'type' keyword, 'class' keyword, 'trait' keyword, 'module' keyword, 'abstract' keyword, 'mut' keyword, 'virtual' keyword, 'override' keyword, 'declare' keyword, 'public' keyword, 'private' keyword, 'out' keyword, expression, 'true' keyword, or 'false' keyword after start of statement; found 'then' keyword instead
+//│ ║  l.159: 	  then y
 //│ ╙──       	  ^^^^
+//│ ╔══[PARSE ERROR] Unexpected identifier here
+//│ ║  l.159: 	  then y
+//│ ╙──       	       ^
 //│ Parsed tree:
 //│ TermDef:
 //│   k = Fun
@@ -169,7 +174,9 @@ fun f(x, y, z) =
 //│       Ident of "x"
 //│       Ident of "y"
 //│       Ident of "z"
-//│   rhs = S of If of Ident of "x"
+//│   rhs = S of Block of Ls of 
+//│     If of Ident of "x"
+//│     Error
 
 :pe
 fun f(x, y, z) =
@@ -177,7 +184,7 @@ fun f(x, y, z) =
     then y
     else z
 //│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.177: 	    then y
+//│ ║  l.184: 	    then y
 //│ ╙──       	    ^^^^
 //│ Parsed tree:
 //│ TermDef:
@@ -189,14 +196,15 @@ fun f(x, y, z) =
 //│       Ident of "x"
 //│       Ident of "y"
 //│       Ident of "z"
-//│   rhs = S of If of Ident of "x"
+//│   rhs = S of Block of Ls of 
+//│     If of Ident of "x"
 
 :fixme
 fun f() =
   if
     x then y else z
 //│ ╔══[PARSE ERROR] Unexpected 'else' keyword here
-//│ ║  l.197: 	    x then y else z
+//│ ║  l.205: 	    x then y else z
 //│ ╙──       	             ^^^^
 //│ Parsed tree:
 //│ TermDef:
@@ -205,8 +213,9 @@ fun f() =
 //│   alphaName = S of App:
 //│     lhs = Ident of "f"
 //│     rhs = Tup of Nil
-//│   rhs = S of If of Block of Ls of 
-//│     InfixApp:
-//│       lhs = Ident of "x"
-//│       kw = keyword 'then'
-//│       rhs = Ident of "y"
+//│   rhs = S of Block of Ls of 
+//│     If of Block of Ls of 
+//│       InfixApp:
+//│         lhs = Ident of "x"
+//│         kw = keyword 'then'
+//│         rhs = Ident of "y"

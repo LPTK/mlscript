@@ -45,8 +45,13 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
     case lit: Literal =>
       Term.Lit(lit)
     case Let(lhs, rhs, bodo) =>
-      val (pat, syms) = pattern(lhs)
-      val r = term(rhs)
+      val (pat, syms, optTup) = pattern(lhs)
+      val r = term(rhs)(using optTup match // TODO: dedup with the other usage
+        case S(tup) =>
+          val ctx1 = ctx.copy(locals = ctx.locals ++ syms)
+          val (_, ctx2) = params(tup)(using ctx1)
+          ctx2
+        case N => ctx)
       val b = bodo.map(term(_)(using ctx.copy(locals = ctx.locals ++ syms))).getOrElse(unit)
       Term.Blk(List(LetBinding(pat, r)), b)
     case Ident("true") => Term.Lit(Tree.BoolLit(true))
@@ -204,8 +209,9 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
   
   def unit: Term.Lit = Term.Lit(UnitLit(true))
   
-  def block(sts: Ls[Tree])(using c: Ctx): (Term.Blk, Ctx) =
-  trace[(Term.Blk, Ctx)](s"Elab block ${sts.toString.take(20)}[...]", r => s"~> ${r._1}"):
+  def block(sts: Ls[Tree])(using c: Ctx): (Term.Blk, Ctx) = trace[(Term.Blk, Ctx)](
+    pre = s"Elab block ${sts.toString.take(20)}[...]", r => s"~> ${r._1}"
+  ):
     val newMembers = mutable.Map.empty[Str, MemberSymbol[?]] // * Definitions with implementations
     val newSignatures = mutable.Map.empty[Str, MemberSymbol[?]] // * Definitions containing only signatures
     val newSignatureTrees = mutable.Map.empty[Str, Tree] // * Store trees of signatures, passing them to definition objects
@@ -273,16 +279,26 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
         val res = unit
         (Term.Blk(acc.reverse, res), ctx)
       case Let(lhs, rhs, N) :: sts =>
-        val (pat, syms) = pattern(lhs)
-        val rhsTerm = term(rhs)
+        val (pat, syms, optTup) = pattern(lhs)
+        val rhsTerm = term(rhs)(using optTup match
+          case S(tup) =>
+            val ctx1 = ctx.copy(locals = ctx.locals ++ syms)
+            val (_, ctx2) = params(tup)(using ctx1)
+            ctx2
+          case N => ctx)
         go(sts, LetBinding(pat, rhsTerm) :: acc)(using ctx.copy(locals = ctx.locals ++ syms))
       case (td @ TermDef(k, sym, nme, rhs)) :: sts =>
         td.name match
           case R(id) =>
             val s = newMembers(id.name).asInstanceOf[TermSymbol] // TODO improve
-            val (ps, newCtx) = td.params match
-              case S(t) => params(t).mapFirst(some)
+            // Add type parameters to context
+            val (tps, newCtx1) = td.typeParams match
+              case S(t) => typeParams(t)
               case N => (N, ctx)
+            // Add parameters to context
+            val (ps, newCtx) = td.params match
+              case S(t) => params(t)(using newCtx1).mapFirst(some)
+              case N => (N, newCtx1)
             val b = rhs.map(term(_)(using newCtx))
             val r = FlowSymbol(s"‹result of ${s}›", nextUid)
             val tdf = TermDefinition(k, s, ps, (td.signature orElse newSignatureTrees.get(id.name)).map(term), b, r)
@@ -367,25 +383,37 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
       val res = ps.flatMap(param)
       (res, ctx.copy(locals = ctx.locals ++ res.map(p => p.sym.name -> p.sym)))
 
+  def typeParams(t: Tree): Ctxl[(Ls[Param], Ctx)] = t match
+    case TyTup(ps) =>
+      val vs = ps.map:
+        case id: Ident =>
+          val sym = VarSymbol(id, nextUid)
+          sym.decl = S(TyParam(FldFlags.empty, N, sym))
+          Param(FldFlags.empty, sym, N)
+      (vs, ctx.copy(locals = ctx.locals ++ vs.map(p => p.sym.name -> p.sym)))
+
       
   
-  def pattern(t: Tree): Ctxl[(Pattern, Ls[Str -> VarSymbol])] =
-    val boundVars = mutable.HashMap.empty[Str, VarSymbol]
-    def go(t: Tree): Pattern = t match
-      case id @ Ident(name) =>
-        val sym = boundVars.getOrElseUpdate(name, VarSymbol(id, nextUid))
-        Pattern.Var(sym)
-      case Tup(fields) =>
-        val pats = fields.map(
-          f => pattern(f) match
-            case (pat, vars) =>
-              boundVars ++= vars
-              pat
-        )
-        Pattern.Tuple(pats)
-      case _ =>
-        ???
-    (go(t), boundVars.toList)
+  /** Elaborate the left-hand side of `let` expressions. */
+  def pattern(t: Tree): Ctxl[(Pattern, Ls[Str -> VarSymbol], Opt[Tup])] =
+    t match
+    // If the top-level pattern is function declaration, the only bound variable
+    // is the function name and the parameters are bound in the body.
+    case App(id @ Ident(name), tup @ Tup(params)) =>
+      val idSym = VarSymbol(id, nextUid)
+      (Pattern.Var(idSym), (name -> idSym) :: Nil, S(tup))
+    // Otherwise, we recursively elaborate the pattern. `App` is interpreted as
+    // constructor patterns.
+    case _ =>
+      val boundVars = mutable.HashMap.empty[Str, VarSymbol]
+      def go(t: Tree): Pattern = t match
+        case id @ Ident(name) => Pattern.Var:
+          if boundVars contains name then
+            raise(ErrorReport(msg"Duplicate bindings: $name" -> id.toLoc :: Nil))
+          boundVars.getOrElseUpdate(name, VarSymbol(id, nextUid))
+        case Tup(fields) => Pattern.Tuple(fields.map(go))
+        case _ => ???
+      (go(t), boundVars.toList, N)
   
   def importFrom(sts: Ls[Tree])(using c: Ctx): Ctx =
     val (_, newCtx) = block(sts)
