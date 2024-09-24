@@ -70,10 +70,7 @@ fun example(args) =
 //│       sym = example
 //│       params = S of Ls of 
 //│         Param:
-//│           flags = FldFlags:
-//│             mut = false
-//│             spec = false
-//│             genGetter = false
+//│           flags = ()
 //│           sym = args@30
 //│           sign = N
 //│       sign = N
@@ -83,10 +80,7 @@ fun example(args) =
 //│           lhs = Ref of foo
 //│           rhs = Tup of Ls of 
 //│             Fld:
-//│               flags = FldFlags:
-//│                 mut = false
-//│                 spec = false
-//│                 genGetter = false
+//│               flags = ()
 //│               value = Ref of args@30
 //│               asc = N
 //│         tail = Let:
@@ -95,17 +89,11 @@ fun example(args) =
 //│             lhs = Ref of <
 //│             rhs = Tup of Ls of 
 //│               Fld:
-//│                 flags = FldFlags:
-//│                   mut = false
-//│                   spec = false
-//│                   genGetter = false
+//│                 flags = ()
 //│                 value = Ref of scrut@32
 //│                 asc = N
 //│               Fld:
-//│                 flags = FldFlags:
-//│                   mut = false
-//│                   spec = false
-//│                   genGetter = false
+//│                 flags = ()
 //│                 value = Lit of IntLit of 0
 //│                 asc = N
 //│           tail = Let:
@@ -122,17 +110,11 @@ fun example(args) =
 //│                   lhs = Ref of ==
 //│                   rhs = Tup of Ls of 
 //│                     Fld:
-//│                       flags = FldFlags:
-//│                         mut = false
-//│                         spec = false
-//│                         genGetter = false
+//│                       flags = ()
 //│                       value = Ref of scrut@32
 //│                       asc = N
 //│                     Fld:
-//│                       flags = FldFlags:
-//│                         mut = false
-//│                         spec = false
-//│                         genGetter = false
+//│                       flags = ()
 //│                       value = Lit of IntLit of 0
 //│                       asc = N
 //│                 tail = Let:
@@ -149,17 +131,11 @@ fun example(args) =
 //│                         lhs = Ref of pipe
 //│                         rhs = Tup of Ls of 
 //│                           Fld:
-//│                             flags = FldFlags:
-//│                               mut = false
-//│                               spec = false
-//│                               genGetter = false
+//│                             flags = ()
 //│                             value = Ref of scrut@32
 //│                             asc = N
 //│                           Fld:
-//│                             flags = FldFlags:
-//│                               mut = false
-//│                               spec = false
-//│                               genGetter = false
+//│                             flags = ()
 //│                             value = Ref of abs
 //│                             asc = N
 //│                       tail = Let:
@@ -168,17 +144,11 @@ fun example(args) =
 //│                           lhs = Ref of >
 //│                           rhs = Tup of Ls of 
 //│                             Fld:
-//│                               flags = FldFlags:
-//│                                 mut = false
-//│                                 spec = false
-//│                                 genGetter = false
+//│                               flags = ()
 //│                               value = Ref of scrut@34
 //│                               asc = N
 //│                             Fld:
-//│                               flags = FldFlags:
-//│                                 mut = false
-//│                                 spec = false
-//│                                 genGetter = false
+//│                               flags = ()
 //│                               value = Lit of IntLit of 100
 //│                               asc = N
 //│                         tail = Let:
@@ -195,17 +165,11 @@ fun example(args) =
 //│                                 lhs = Ref of <
 //│                                 rhs = Tup of Ls of 
 //│                                   Fld:
-//│                                     flags = FldFlags:
-//│                                       mut = false
-//│                                       spec = false
-//│                                       genGetter = false
+//│                                     flags = ()
 //│                                     value = Ref of scrut@34
 //│                                     asc = N
 //│                                   Fld:
-//│                                     flags = FldFlags:
-//│                                       mut = false
-//│                                       spec = false
-//│                                       genGetter = false
+//│                                     flags = ()
 //│                                     value = Lit of IntLit of 10
 //│                                     asc = N
 //│                               tail = Let:

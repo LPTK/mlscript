@@ -1,6 +1,8 @@
 package hkmc2.utils
 
 import hkmc2.utils.StringOps.escaped
+import hkmc2.semantics.FldFlags
+import scala.collection.mutable.Buffer
 
 object ProductOps:
   extension (t: Product)
@@ -11,6 +13,12 @@ object ProductOps:
         case Nil => "Nil"
         case xs: List[_] => "Ls of \n" + xs.iterator.map(aux).mkString("\n").indent(2).dropRight(1)
         case s: String => s.escaped
+        case FldFlags(mut, spec, genGetter) =>
+          val flags = Buffer.empty[String]
+          if mut then flags += "mut"
+          if spec then flags += "spec"
+          if genGetter then flags += "gen"
+          if flags.isEmpty then "()" else flags.mkString("(", ", ", ")")
         case t: Product => t.showAsTree
         case v => v.toString
       t.productArity match
