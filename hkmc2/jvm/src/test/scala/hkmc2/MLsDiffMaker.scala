@@ -4,7 +4,7 @@ import mlscript.utils.*, shorthands.*
 
 import hkmc2.semantics.Elaborator
 import hkmc2.syntax.Keyword.all
-import utils.*, ProductOps.*
+import utils.*
 
 
 abstract class MLsDiffMaker extends DiffMaker:

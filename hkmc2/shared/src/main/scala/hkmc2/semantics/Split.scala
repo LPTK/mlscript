@@ -3,7 +3,6 @@ package semantics
 
 import mlscript.utils.*, shorthands.*
 import syntax.*
-import scala.annotation.tailrec
 
 final case class Branch(scrutinee: Term.Ref, pattern: Pattern, continuation: Split) extends AutoLocated:
   override def children: List[Located] = scrutinee :: pattern :: continuation :: Nil

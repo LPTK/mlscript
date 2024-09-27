@@ -346,7 +346,7 @@ class BBTyper(using elState: Elaborator.State, tl: TL):
 
   private def typeSplit(split: Split, sign: Opt[GeneralType])(using ctx: Ctx)(using CCtx): (GeneralType, Type) = split match
     case Split.Cons(Branch(scrutinee, Pattern.Class(sym, _, _), cons), alts) =>
-      // * Pattern matchingds
+      // * Pattern matching
       val (clsTy, tv, emptyTy) = ctx.getDef(sym.nme) match
         case S(ClassDef.Parameterized(_, tparams, _, _, _)) =>
           (ClassType(sym, tparams.map(_ => freshWildcard)), freshVar, ClassType(sym, tparams.map(_ => Wildcard.empty)))

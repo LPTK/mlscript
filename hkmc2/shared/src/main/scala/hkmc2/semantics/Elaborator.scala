@@ -45,7 +45,7 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
     case lit: Literal =>
       Term.Lit(lit)
     case Let(lhs, rhs, bodo) =>
-      val (pat, syms, optTup) = pattern(lhs)
+      val (pat, syms, optTup) = letPattern(lhs)
       val r = term(rhs)(using optTup match // TODO: dedup with the other usage
         case S(tup) =>
           val ctx1 = ctx.copy(locals = ctx.locals ++ syms)
@@ -279,7 +279,7 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
         val res = unit
         (Term.Blk(acc.reverse, res), ctx)
       case Let(lhs, rhs, N) :: sts =>
-        val (pat, syms, optTup) = pattern(lhs)
+        val (pat, syms, optTup) = letPattern(lhs)
         val rhsTerm = term(rhs)(using optTup match
           case S(tup) =>
             val ctx1 = ctx.copy(locals = ctx.locals ++ syms)
@@ -395,7 +395,7 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
       
   
   /** Elaborate the left-hand side of `let` expressions. */
-  def pattern(t: Tree): Ctxl[(Pattern, Ls[Str -> VarSymbol], Opt[Tup])] =
+  def letPattern(t: Tree): Ctxl[(Pattern, Ls[Str -> VarSymbol], Opt[Tup])] =
     t match
     // If the top-level pattern is function declaration, the only bound variable
     // is the function name and the parameters are bound in the body.

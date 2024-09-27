@@ -54,8 +54,7 @@ object ParseRule:
   val standaloneExpr =
     Expr(ParseRule("expression")(End(())))((l, _: Unit) => l)
   
-  def modified(kw: Keyword) =
-    Kw(kw)(ParseRule(s"modifier keyword '${kw.name}'")(standaloneExpr)).map(Tree.Modified(kw, _))
+  def modified(kw: Keyword): Alt[Tree] = modified(kw, standaloneExpr)
   def modified(kw: Keyword, body: Alt[Tree]) =
     Kw(kw)(ParseRule(s"modifier keyword '${kw.name}'")(body)).map(Tree.Modified(kw, _))
   

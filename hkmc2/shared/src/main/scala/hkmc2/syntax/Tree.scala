@@ -2,7 +2,7 @@ package hkmc2
 package syntax
 
 import mlscript.utils.*, shorthands.*
-import hkmc2.utils.StringOps.escaped
+import hkmc2.utils.*
 
 import hkmc2.Message.MessageContext
 import Tree._
