@@ -340,7 +340,7 @@ class Elaborator(tl: TraceLogger)(using raise: Raise, state: State):
           case id: Ident =>
             (id, Nil, N, ctx)
           case InfixApp(lhs, Keyword.`:`, rhs) =>
-            // For self-annotations
+            // Elaborate the signature
             processHead(lhs)
           // case _ => ???
         val (nme, tps, ps, newCtx) = processHead(head)
