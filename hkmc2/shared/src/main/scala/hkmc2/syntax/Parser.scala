@@ -635,7 +635,15 @@ abstract class Parser(
         */
       case (br @ BRACKETS(Indent, toks @ ((IDENT(opStr, true), _) :: _)), loc) :: _ if opPrec(opStr)._1 > prec =>
         consume
-        App(acc, Block(rec(toks, S(loc), "operator split").concludeWith(_.operatorSplitOf())))
+        // Note: operator splits (before operators) are represented by `App`,
+        // where `lhs` is the left-hand side and `rhs` is a `Block` in which
+        // each element is an `App` that applies an operator to the right-hand side.
+        val continuations = rec(toks, S(loc), "operator split").concludeWith(_.operatorSplitOf())
+        continuations match
+          case App(op @ Ident(_), rhs) :: Nil =>
+            // If there is only one continuation, we can just apply the operator directly.
+            exprCont(App(op, PlainTup(acc, rhs)), prec, allowNewlines)
+          case _ => App(acc, Block(continuations))
       case (OP(opStr), l0) :: _ if /* isInfix(opStr) && */ opPrec(opStr)._1 > prec =>
         consume
         val v = Ident(opStr).withLoc(S(l0))

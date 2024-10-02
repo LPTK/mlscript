@@ -105,11 +105,10 @@ x
   + 1
 //│ Parsed tree:
 //│ App:
-//│   lhs = Ident of "x"
-//│   rhs = Block of Ls of 
-//│     App:
-//│       lhs = Ident of "+"
-//│       rhs = IntLit of 1
+//│   lhs = Ident of "+"
+//│   rhs = Tup of Ls of 
+//│     Ident of "x"
+//│     IntLit of 1
 
 x
   + 1
