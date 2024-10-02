@@ -305,19 +305,6 @@ object ParseRule:
     genInfixRule(`and`, (rhs, _: Unit) => lhs => InfixApp(lhs, `and`, rhs)),
     genInfixRule(`or`, (rhs, _: Unit) => lhs => InfixApp(lhs, `or`, rhs)),
     genInfixRule(`is`, (rhs, _: Unit) => lhs => InfixApp(lhs, `is`, rhs)),
-    // Kw(`then`):
-    //   ParseRule(s"`then` operator"):
-    //     Expr(ParseRule(s"`then` operator right-hand side")(
-    //       End(N),
-    //       Kw(`else`):
-    //         ParseRule(s"`then` operator `else` clause")(
-    //           Expr(ParseRule(s"`then` operator `else` body")(End(()))):
-    //             case (body, _) => S(body)
-    //         )
-    //     )):
-    //       case (consequent, N) => (test: Tree) => InfixApp(test, `then`, consequent)
-    //       case (consequent, S(default)) => (test: Tree) =>
-    //         InfixApp(test, `then`, InfixApp(consequent, `else`, default)),
     genInfixRule(`then`, (rhs, _: Unit) => lhs => InfixApp(lhs, `then`, rhs)),
     genInfixRule(`:`, (rhs, _: Unit) => lhs => InfixApp(lhs, `:`, rhs)),
   )
