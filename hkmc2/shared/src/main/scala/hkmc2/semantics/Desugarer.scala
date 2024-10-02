@@ -5,7 +5,6 @@ import syntax.{Keyword, Tree}, Tree.*
 import mlscript.utils.*, shorthands.*
 import Message.MessageContext
 import utils.TraceLogger
-import scala.annotation.showAsInfix
 
 object Desugarer:
   object and:
