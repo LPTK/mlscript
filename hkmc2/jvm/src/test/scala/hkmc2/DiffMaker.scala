@@ -70,7 +70,7 @@ abstract class DiffMaker:
     line =>
       val commentIndex = line.indexOf("//")
       val body = if commentIndex == -1 then line else line.take(commentIndex)
-      assert(body.isBlank))
+      assert(body.forall(_.isWhitespace)))
   
   
   val global = NullaryCommand("global")
