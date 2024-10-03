@@ -18,6 +18,7 @@ extension (s: String)
 
 import hkmc2.semantics.FldFlags
 import scala.collection.mutable.Buffer
+import mlscript.utils.StringOps
 
 extension (t: Product)
   def showAsTree: String =
@@ -25,7 +26,7 @@ extension (t: Product)
       case Some(v) => "S of " + aux(v)
       case None => "N"
       case Nil => "Nil"
-      case xs: List[_] => "Ls of \n" + xs.iterator.map(aux).mkString("\n").indent(2).dropRight(1)
+      case xs: List[_] => "Ls of \n" + xs.iterator.map(aux).mkString("\n").indent("  ")
       case s: String => s.escaped
       case FldFlags(mut, spec, genGetter) =>
         val flags = Buffer.empty[String]
@@ -41,5 +42,5 @@ extension (t: Product)
       case _ =>
         val args = t.productIterator.zipWithIndex.map:
           case (v, i) => t.productElementName(i) + " = " + aux(v)
-        t.productPrefix + ":\n" + args.mkString("\n").indent(2).dropRight(1)
+        t.productPrefix + ":\n" + args.mkString("\n").indent("  ")
 
