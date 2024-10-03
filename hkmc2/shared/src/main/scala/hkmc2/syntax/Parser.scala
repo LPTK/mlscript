@@ -548,7 +548,7 @@ abstract class Parser(
       printDbg(s"continue to parse expressions")
       expr(0, false) :: splitContOf()
 
-  /** Parse a operator block. Each block item should be a binary operator
+  /** Parse an operator block. Each block item should be a binary operator
    *  followed by an expression, a `let` binding, or an `else` clause.
    */
   def operatorBlock()(using Line): OpBlock = wrap(""):
