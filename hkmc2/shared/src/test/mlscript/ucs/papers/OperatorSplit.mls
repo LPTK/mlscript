@@ -29,39 +29,41 @@ fun example(args) =
 //│         lhs = Ident of "foo"
 //│         rhs = Tup of Ls of 
 //│           Ident of "args"
-//│       rhs = Block of Ls of 
-//│         App:
-//│           lhs = Ident of "<"
-//│           rhs = InfixApp:
+//│       rhs = OpBlock of Ls of 
+//│         Tuple2:
+//│           _1 = Ident of "<"
+//│           _2 = InfixApp:
 //│             lhs = IntLit of 0
 //│             kw = keyword 'then'
 //│             rhs = StrLit of "invalid"
-//│         App:
-//│           lhs = Ident of "=="
-//│           rhs = InfixApp:
+//│         Tuple2:
+//│           _1 = Ident of "=="
+//│           _2 = InfixApp:
 //│             lhs = IntLit of 0
 //│             kw = keyword 'then'
 //│             rhs = StrLit of "null"
-//│         App:
-//│           lhs = Ident of "|>"
-//│           rhs = App:
+//│         Tuple2:
+//│           _1 = Ident of "|>"
+//│           _2 = App:
 //│             lhs = Ident of "abs"
-//│             rhs = Block of Ls of 
-//│               App:
-//│                 lhs = Ident of ">"
-//│                 rhs = InfixApp:
+//│             rhs = OpBlock of Ls of 
+//│               Tuple2:
+//│                 _1 = Ident of ">"
+//│                 _2 = InfixApp:
 //│                   lhs = IntLit of 100
 //│                   kw = keyword 'then'
 //│                   rhs = StrLit of "large"
-//│               App:
-//│                 lhs = Ident of "<"
-//│                 rhs = InfixApp:
+//│               Tuple2:
+//│                 _1 = Ident of "<"
+//│                 _2 = InfixApp:
 //│                   lhs = IntLit of 10
 //│                   kw = keyword 'then'
 //│                   rhs = StrLit of "small"
-//│               Modified:
-//│                 modifier = keyword 'else'
-//│                 body = StrLit of "medium"
+//│               Tuple2:
+//│                 _1 = Empty
+//│                 _2 = Modified:
+//│                   modifier = keyword 'else'
+//│                   body = StrLit of "medium"
 //│ Elaborated tree:
 //│ Blk:
 //│   stats = Ls of 

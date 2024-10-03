@@ -47,6 +47,7 @@ enum Tree extends AutoLocated:
   case UnitLit(undefinedOrNull: Bool) extends Tree with Literal
   case BoolLit(value: Bool)           extends Tree with Literal
   case Block(stmts: Ls[Tree])
+  case OpBlock(items: Ls[Tree -> Tree])
   case Let(lhs: Tree, rhs: Tree, body: Opt[Tree])
   // case TermDef(k: TermDefKind, symName: Opt[Tree], alphaName: Opt[Tree], sign: Opt[Tree], rhs: Opt[Tree])
   case TermDef(k: TermDefKind, symName: Opt[Tree], alphaName: Opt[Tree], rhs: Opt[Tree]) extends Tree with TermDefImpl
@@ -72,6 +73,8 @@ enum Tree extends AutoLocated:
   def children: Ls[Tree] = this match
     case _: Empty | _: Error | _: Ident | _: Literal => Nil
     case Block(stmts) => stmts
+    case OpBlock(items) => items.flatMap:
+      case (op, body) => op :: body :: Nil
     case Let(lhs, rhs, body) => Ls(lhs, rhs) ++ body
     case TypeDef(k, symName, head, extension, body) =>
       symName.toList ++ Ls(head) ++ extension ++ body
@@ -100,6 +103,7 @@ enum Tree extends AutoLocated:
     case UnitLit(value) => if value then "undefined" else "null"
     case BoolLit(value) => s"$value literal"
     case Block(stmts) => "block"
+    case OpBlock(_) => "operator block"
     case Let(lhs, rhs, body) => "let"
     case TermDef(k, symName, alphaName, rhs) => "term definition"
     case TypeDef(k, symName, head, extension, body) => "type definition"

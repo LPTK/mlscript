@@ -115,7 +115,7 @@ class Desugarer(tl: TraceLogger, elaborator: Elaborator)(using raise: Raise, sta
         val joint = FlowSymbol("‹applied-result›", nextUid)
         Term.App(opRef, arguments)(tree, joint)
       termSplit(rhs, finishInner)(fallback)(ctx)
-    case tree @ App(lhs, blk @ Block(opRhsApps)) => fallback => ctx =>
+    case tree @ App(lhs, blk @ OpBlock(opRhsApps)) => fallback => ctx =>
       nominate(finish(term(lhs)(using ctx))): vs =>
         val mkInnerFinish = (op: Term) => (rhsTerm: Term) =>
           val first = Fld(FldFlags.empty, vs.ref(vs.id), N)
@@ -125,19 +125,19 @@ class Desugarer(tl: TraceLogger, elaborator: Elaborator)(using raise: Raise, sta
           val joint = FlowSymbol("‹applied-result›", nextUid)
           Term.App(op, arguments)(tree, joint)
         opRhsApps.foldRight(Function.const(fallback): Sequel):
-          case (Let(ident @ Ident(_), termTree, N), rest) => ctx =>
+          case ((Tree.Empty(), Let(ident @ Ident(_), termTree, N)), rest) => ctx =>
             val sym = VarSymbol(ident, nextUid)
             val restCtx = ctx + (ident.name -> sym)
             Split.Let(sym, term(termTree)(using ctx), rest(restCtx))
-          case (Modified(Keyword.`else`, default), rest) => ctx =>
+          case ((Tree.Empty(), Modified(Keyword.`else`, default)), rest) => ctx =>
             // TODO: report `rest` as unreachable
             Split.default(term(default)(using ctx))
-          case (App(rawOp, rhs), rest) => ctx =>
+          case (((rawOp @ Ident(_)), rhs), rest) => ctx =>
             val op = term(rawOp)(using ctx)
             val innerFinish = mkInnerFinish(op)
             termSplit(rhs, innerFinish)(rest(ctx))(ctx)
-          case (_, rest) => ctx =>
-            raise(ErrorReport(msg"Unrecognized operator branch." -> tree.toLoc :: Nil))
+          case ((op, rhs), rest) => ctx =>
+            raise(ErrorReport(msg"Unrecognized operator branch." -> op.toLoc :: Nil))
             rest(ctx)
       .apply(ctx)
     case _ => _ => _ =>

@@ -9,6 +9,7 @@ import BracketKind._
 
 import Tree.*
 import Parser.*
+import scala.annotation.tailrec
 
 
 object Parser:
@@ -547,27 +548,33 @@ abstract class Parser(
       printDbg(s"continue to parse expressions")
       expr(0, false) :: splitContOf()
 
-  def operatorSplitOf()(using Line): Ls[Tree] = wrap("split")(operatorSplitOfImpl())
-  def operatorSplitOfImpl(): Ls[Tree] =
-    def splitContOf(): Ls[Tree] = yeetSpaces match
-      case (COMMA, _) :: _ => consume; operatorSplitOf()
-      case (SEMI, _) :: _ => consume; operatorSplitOf()
-      case (NEWLINE, _) :: _ => consume; operatorSplitOf()
-      case _ => Nil
-    cur match
-    case Nil => Nil
-    case (NEWLINE, _) :: _ => consume; operatorSplitOf()
-    case (SPACE, _) :: _ => consume; operatorSplitOf()
-    case (KEYWORD(kw @ Keyword.`else`), _) :: _ =>
-      consume
-      val default = expr(0, true)
-      Modified(kw, default) :: splitContOf()
-    case (tok @ IDENT(opStr, true), loc) :: _ if opPrec(opStr)._1 > 0 =>
-      consume
-      App(Ident(opStr).withLoc(S(loc)), expr(0, false)) :: splitContOf()
-    case (_, loc) :: _ =>
-      err(msg"Expect an operator" -> S(loc) :: Nil)
-      errExpr :: Nil
+  /** Parse a operator block. Each block item should be a binary operator
+   *  followed by an expression, a `let` binding, or an `else` clause.
+   */
+  def operatorBlock()(using Line): OpBlock = wrap(""):
+    @tailrec
+    def item(acc: Ls[Tree -> Tree])(using Line): Ls[Tree -> Tree] =
+      printDbg(s"! start parsing #${acc.size + 1} block item")
+      cur match
+      case Nil => printDbg(s"! end of the operator block"); acc
+      case (NEWLINE | SPACE, _) :: _ => consume; item(acc)
+      case (tok @ KEYWORD(kw @ (Keyword.`let` | Keyword.`else`)), loc) :: _ =>
+        ParseRule.prefixRules.kwAlts.get(kw.name) match
+        case S(subRule) =>
+          consume
+          val rhs = parseRule(kw.rightPrecOrMin, subRule).getOrElse(errExpr)
+          item(Tree.Empty().withLoc(S(loc)) -> rhs :: acc)
+        case N => lastWords(s"missing the parse rule for `${kw.name}`")
+      case (tok @ IDENT(opStr, true), loc) :: _ if opPrec(opStr)._1 > 0 =>
+        consume
+        val res = (Ident(opStr).withLoc(S(loc)) -> expr(0, false)) :: acc
+        yeetSpaces match
+        case (COMMA | SEMI | NEWLINE, _) :: _ => consume; item(res)
+        case _ => res
+      case (tok, loc) :: _ =>
+        err(msg"Expect an operator instead of ${tok.describe}" -> S(loc) :: Nil)
+        (Tree.Error() -> Tree.Error()) :: acc
+    OpBlock(item(Nil).reverse)
   
   final def exprCont(acc: Tree, prec: Int, allowNewlines: Bool)(using Line): Tree =
     wrap(prec, s"`$acc`", allowNewlines)(exprContImpl(acc, prec, allowNewlines))
@@ -635,15 +642,7 @@ abstract class Parser(
         */
       case (br @ BRACKETS(Indent, toks @ ((IDENT(opStr, true), _) :: _)), loc) :: _ if opPrec(opStr)._1 > prec =>
         consume
-        // Note: operator splits (before operators) are represented by `App`,
-        // where `lhs` is the left-hand side and `rhs` is a `Block` in which
-        // each element is an `App` that applies an operator to the right-hand side.
-        val continuations = rec(toks, S(loc), "operator split").concludeWith(_.operatorSplitOf())
-        continuations match
-          case App(op @ Ident(_), rhs) :: Nil =>
-            // If there is only one continuation, we can just apply the operator directly.
-            exprCont(App(op, PlainTup(acc, rhs)), prec, allowNewlines)
-          case _ => App(acc, Block(continuations))
+        App(acc, rec(toks, S(loc), "operator block").concludeWith(_.operatorBlock()))
       case (OP(opStr), l0) :: _ if /* isInfix(opStr) && */ opPrec(opStr)._1 > prec =>
         consume
         val v = Ident(opStr).withLoc(S(l0))
