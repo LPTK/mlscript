@@ -110,23 +110,26 @@ class Desugarer(tl: TraceLogger, elaborator: Elaborator)(using raise: Raise, sta
         ):
           nominate(ctx, finish(term(headCoda)(using ctx))):
             expandMatch(_, headPattern, tailSplit)(fallback)
-    case tree @ App(opIdent @ Ident(opName), rawTup @ Tup(lhs :: rhs :: Nil)) => fallback => ctx =>
-      val opRef = ctx.locals.get(opName) match
+    case tree @ App(opIdent @ Ident(opName), rawTup @ Tup(lhs :: rhs :: Nil)) => fallback => ctx => trace(
+      pre = s"termSplit: after op <<< $opName",
+      post = (res: Split) => s"termSplit: after op >>> $res"
+    ):
+      // Resolve the operator.
+      val opRef = ctx.locals.get(opName).orElse(ctx.members.get(opName)) match
         case S(sym) => sym.ref(opIdent)
         case N =>
-          ctx.members.get(opName) match
-            case S(sym) => sym.ref(opIdent)
-            case N =>
-              raise(ErrorReport(msg"Name not found: $opName" -> tree.toLoc :: Nil))
-              Term.Error
-      val lhsTerm = term(lhs)(using ctx)
-      val finishInner = (rhsTerm: Term) =>
-        val first = Fld(FldFlags.empty, lhsTerm, N)
-        val second = Fld(FldFlags.empty, rhsTerm, N)
-        val arguments = Term.Tup(first :: second :: Nil)(rawTup)
-        val joint = FlowSymbol("‹applied-result›", nextUid)
-        Term.App(opRef, arguments)(tree, joint)
-      termSplit(rhs, finishInner)(fallback)(ctx)
+          raise(ErrorReport(msg"Name not found: $opName" -> tree.toLoc :: Nil))
+          Term.Error
+      // Elaborate and finish the LHS. Nominate the LHS if necessary.
+      nominate(ctx, finish(term(lhs)(using ctx))): lhsSymbol =>
+        // Compose a function that takes the RHS and finishes the application.
+        val finishInner = (rhsTerm: Term) =>
+          val first = Fld(FldFlags.empty, lhsSymbol.ref(lhsSymbol.id), N)
+          val second = Fld(FldFlags.empty, rhsTerm, N)
+          val arguments = Term.Tup(first :: second :: Nil)(rawTup)
+          val joint = FlowSymbol("‹applied-result›", nextUid)
+          Term.App(opRef, arguments)(tree, joint)
+        termSplit(rhs, finishInner)(fallback)
     case tree @ App(lhs, blk @ OpBlock(opRhsApps)) => fallback => ctx =>
       nominate(ctx, finish(term(lhs)(using ctx))): vs =>
         val mkInnerFinish = (op: Term) => (rhsTerm: Term) =>
