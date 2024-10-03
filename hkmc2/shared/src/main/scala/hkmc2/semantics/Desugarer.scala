@@ -61,43 +61,55 @@ class Desugarer(tl: TraceLogger, elaborator: Elaborator)(using raise: Raise, sta
   def termSplit(tree: Tree, finish: Term => Term): Split => Sequel = tree match
     case Block(branches) =>
       branches.foldRight(default):
-        case (Let(ident @ Ident(_), termTree, N), rest) => fallback => ctx =>
+        case (Let(ident @ Ident(_), termTree, N), rest) => fallback => ctx => trace(
+          pre = s"termSplit: let ${ident.name} = $termTree",
+          post = (res: Split) => s"termSplit: let >>> $res"
+        ):
           val sym = VarSymbol(ident, nextUid)
           val restCtx = ctx + (ident.name -> sym)
           Split.Let(sym, term(termTree)(using ctx), rest(fallback)(restCtx))
-        case (Modified(Keyword.`else`, default), rest) => fallback => ctx =>
+        case (Modified(Keyword.`else`, default), rest) => fallback => ctx => trace(
+          pre = s"termSplit: else $default",
+          post = (res: Split) => s"termSplit: else >>> $res"
+        ):
           // TODO: report `rest` as unreachable
           Split.default(term(default)(using ctx))
-        case (branch, rest) => fallback => ctx =>
+        case (branch, rest) => fallback => ctx => trace(
+          pre = s"termSplit: $branch",
+          post = (res: Split) => s"termSplit >>> $res"
+        ):
           termSplit(branch, finish)(rest(fallback)(ctx))(ctx)
     case coda is rhs => fallback => ctx =>
-      nominate(finish(term(coda)(using ctx))):
+      nominate(ctx, finish(term(coda)(using ctx))):
         patternSplit(rhs, _)(fallback)
-      .apply(ctx)
     case matches -> consequent => fallback =>
-      trace(s"termBranch: $matches then $consequent"):
-        // There are N > 0 conjunct matches. We use `::[T]` instead of `List[T]`.
-        // Each match is represented by a pair of a _coda_ and a _pattern_
-        // that is yet to be elaborated.
-        val (headCoda, headPattern) :: tail = disaggregate(matches)
-        // The `consequent` serves as the innermost split, based on which we
-        // expand from the N-th to the second match.
-        lazy val tailSplit = trace(s"conjunct matches <<< $tail"):
-          val innermostSplit = consequent match
-            case L(tree) => termSplit(tree, identity)(fallback)
-            case R(tree) => (ctx: Ctx) => Split.default(term(tree)(using ctx))
-          tail.foldRight(innermostSplit):
-            case ((coda, pat), sequel) => ctx =>
-              nominate(term(coda)(using ctx)):
-                expandMatch(_, pat, sequel)(fallback)
-              .apply(ctx)
-        // We apply `finish` to the first coda and expand the first match.
-        // Note that the scrutinee might be not an identifier.
-        headCoda match
-          case Ident("_") => tailSplit
-          case _ => ctx => nominate(finish(term(headCoda)(using ctx))):
-              expandMatch(_, headPattern, tailSplit)(fallback)
-            .apply(ctx)
+      // There are N > 0 conjunct matches. We use `::[T]` instead of `List[T]`.
+      // Each match is represented by a pair of a _coda_ and a _pattern_
+      // that is yet to be elaborated.
+      val (headCoda, headPattern) :: tail = disaggregate(matches)
+      // The `consequent` serves as the innermost split, based on which we
+      // expand from the N-th to the second match.
+      lazy val tailSplit =
+        val innermostSplit = consequent match
+          case L(tree) => termSplit(tree, identity)(fallback)
+          case R(tree) => (ctx: Ctx) => Split.default(term(tree)(using ctx))
+        tail.foldRight(innermostSplit):
+          case ((coda, pat), sequel) => ctx => trace(
+            pre = s"conjunct matches <<< $tail",
+            post = (res: Split) => s"conjunct matches >>> $res"
+          ):
+            nominate(ctx, term(coda)(using ctx)):
+              expandMatch(_, pat, sequel)(fallback)
+      // We apply `finish` to the first coda and expand the first match.
+      // Note that the scrutinee might be not an identifier.
+      headCoda match
+        case Ident("_") => tailSplit
+        case _ => ctx => trace(
+          pre = s"termBranch <<< $matches then $consequent",
+          post = (res: Split) => s"termBranch >>> $res"
+        ):
+          nominate(ctx, finish(term(headCoda)(using ctx))):
+            expandMatch(_, headPattern, tailSplit)(fallback)
     case tree @ App(opIdent @ Ident(opName), rawTup @ Tup(lhs :: rhs :: Nil)) => fallback => ctx =>
       val opRef = ctx.locals.get(opName) match
         case S(sym) => sym.ref(opIdent)
@@ -116,7 +128,7 @@ class Desugarer(tl: TraceLogger, elaborator: Elaborator)(using raise: Raise, sta
         Term.App(opRef, arguments)(tree, joint)
       termSplit(rhs, finishInner)(fallback)(ctx)
     case tree @ App(lhs, blk @ OpBlock(opRhsApps)) => fallback => ctx =>
-      nominate(finish(term(lhs)(using ctx))): vs =>
+      nominate(ctx, finish(term(lhs)(using ctx))): vs =>
         val mkInnerFinish = (op: Term) => (rhsTerm: Term) =>
           val first = Fld(FldFlags.empty, vs.ref(vs.id), N)
           val second = Fld(FldFlags.empty, rhsTerm, N)
@@ -139,24 +151,24 @@ class Desugarer(tl: TraceLogger, elaborator: Elaborator)(using raise: Raise, sta
           case ((op, rhs), rest) => ctx =>
             raise(ErrorReport(msg"Unrecognized operator branch." -> op.toLoc :: Nil))
             rest(ctx)
-      .apply(ctx)
     case _ => _ => _ =>
       raise(ErrorReport(msg"Unrecognized term split." -> tree.toLoc :: Nil))
       Split.default(Term.Error)
 
   /** Given a elaborated scrutinee, give it a name and add it to the context.
+   *  @param baseCtx the context to be extended with the new symbol
    *  @param scrutinee the elaborated scrutinee
    *  @param cont the continuation that needs the symbol and the context
    */
-  def nominate(scrutinee: Term)
-              (cont: VarSymbol => Sequel): Sequel = ctx => scrutinee match
+  def nominate(baseCtx: Ctx, scrutinee: Term)
+              (cont: VarSymbol => Sequel): Split = scrutinee match
     case ref @ Term.Ref(symbol: VarSymbol) =>
-      val innerCtx = ctx + (ref.tree.name -> symbol)
+      val innerCtx = baseCtx + (ref.tree.name -> symbol)
       cont(symbol)(innerCtx)
     case _ =>
       val ident = Ident("scrut"): Ident
       val symbol = VarSymbol(ident, nextUid)
-      val innerCtx = ctx + (ident.name -> symbol)
+      val innerCtx = baseCtx + (ident.name -> symbol)
       Split.Let(symbol, scrutinee, cont(symbol)(innerCtx))
 
   /** Decompose a `Tree` of conjunct matches. The tree is from the same line in
@@ -225,9 +237,8 @@ class Desugarer(tl: TraceLogger, elaborator: Elaborator)(using raise: Raise, sta
             case R(tree) => (ctx: Ctx) => Split.default(term(tree)(using ctx))
           tail.foldRight(innermostSplit):
             case ((coda, pat), sequel) => ctx =>
-              nominate(term(coda)(using ctx)):
+              nominate(ctx, term(coda)(using ctx)):
                 expandMatch(_, pat, sequel)(fallback)
-              .apply(ctx)
         expandMatch(scrutSymbol, headPattern, tailSplit)(fallback)
     case _ =>
       raise(ErrorReport(msg"Unrecognized pattern split." -> tree.toLoc :: Nil))
@@ -289,14 +300,15 @@ class Desugarer(tl: TraceLogger, elaborator: Elaborator)(using raise: Raise, sta
       case pattern and consequent => fallback =>
         val innermostSplit: Sequel = ctx => termSplit(consequent, identity)(fallback)(ctx)
         ctx => expandMatch(scrutSymbol, pattern, innermostSplit)(fallback)(ctx)
-      case test => fallback => ctx =>
-        nominate(term(test)(using ctx)): scrutSymbol =>
-          ctx => Branch(
-            scrutSymbol.ref(scrutSymbol.id),
-            Pattern.LitPat(Tree.BoolLit(true)),
-            sequel(ctx)
-          ) :: fallback
-        .apply(ctx)
+      case test => fallback => ctx => trace(
+        pre = s"expandMatch: test <<< $test",
+        post = (r: Split) => s"expandMatch: test >>> ${r.showDbg}"
+      ):
+        Branch(
+          scrutSymbol.ref(scrutSymbol.id),
+          Pattern.LitPat(Tree.BoolLit(true)),
+          sequel(ctx)
+        ) :: fallback
 
   /** Desugar a list of sub-patterns (with their corresponding scrutinees).
    *  This is called when handling nested patterns. The caller is responsible

@@ -106,22 +106,10 @@ fun add_6(x, y) =
     [None,     None]     then 0
 //│ ╔══[ERROR] Name not found: yv
 //│ ║  l.105: 	    [None,     Some(yv)] then yv
-//│ ╙──       	                    ^^
-//│ ╔══[ERROR] Name not found: yv
-//│ ║  l.105: 	    [None,     Some(yv)] then yv
 //│ ╙──       	                              ^^
 //│ ╔══[ERROR] Name not found: xv
 //│ ║  l.104: 	    [Some(xv), None]     then xv
-//│ ╙──       	          ^^
-//│ ╔══[ERROR] Name not found: xv
-//│ ║  l.104: 	    [Some(xv), None]     then xv
 //│ ╙──       	                              ^^
-//│ ╔══[ERROR] Name not found: xv
-//│ ║  l.103: 	    [Some(xv), Some(yv)] then xv + yv
-//│ ╙──       	          ^^
-//│ ╔══[ERROR] Name not found: yv
-//│ ║  l.103: 	    [Some(xv), Some(yv)] then xv + yv
-//│ ╙──       	                    ^^
 //│ ╔══[ERROR] Name not found: xv
 //│ ║  l.103: 	    [Some(xv), Some(yv)] then xv + yv
 //│ ╙──       	                              ^^
