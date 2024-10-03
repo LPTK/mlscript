@@ -181,7 +181,7 @@ trait TermDefImpl:
       (R(id), N, N, S(sign))
     // show(t: Tree): Str
     case S(InfixApp(App(id: Ident, args), Keyword.`:`, ret)) =>
-      (R(id), S(args), N, S(InfixApp(args, Keyword.`=>`, ret)))
+      (R(id), S(args), N, N)
     // show[A](t: Tree[A]): Str
     case S(InfixApp(App(App(id: Ident, typeParams: TyTup), args), Keyword.`:`, ret)) =>
       // val sign = S(InfixApp(typeParams, Keyword.`->`, InfixApp(args, Keyword.`->`, ret)))
