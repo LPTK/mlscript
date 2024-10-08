@@ -274,6 +274,14 @@ case class PolyType(tvs: Ls[InfVar], body: GeneralType) extends GeneralType:
         InfVar(lvl, uid, newSt, skolem)
     }, body.subst)
 
+  def substBody(using map: Map[Uid[InfVar], InfVar]): GeneralType =
+    tvs.foreach:
+      case InfVar(lvl, uid, state, skolem) =>
+        val v = map(uid)
+        v.state.lowerBounds = state.lowerBounds.map(_.subst)
+        v.state.upperBounds = state.upperBounds.map(_.subst)
+    body.subst
+
 object PolyType:
   def generalize(ty: GeneralType, lvl: Int): PolyType =
     val tvs = MutSet[InfVar]()

@@ -37,7 +37,7 @@ show
 fun inc(dbg) =
   x `=> let c = x `+ `1 in let t = dbg(c) in c
 inc
-//│ Type: forall α61_2: (CodeBase[out Int, ?, ?] ->{α61_2} ⊤) ->{α61_2} CodeBase[out Int -> Int, ⊥, ?]
+//│ Type: forall α65_2: (CodeBase[out Int, ?, ?] ->{α65_2} ⊤) ->{α65_2} CodeBase[out Int -> Int, ⊥, ?]
 
 inc(c => log(show(c)))
 //│ Type: CodeBase[out Int -> Int, ⊥, ?]
@@ -55,7 +55,7 @@ let gn5 = run(gib_naive(5))
 
 fun bind(rhs, k) = `let x = rhs `in k(x)
 bind
-//│ Type: forall α96_2, α97_2, α101_2, α104_2, α107_2, α108_2: (CodeBase[out α96_2, out α97_2, ?], CodeBase[in α101_2 out α101_2 ∨ α96_2, ?, ⊥] ->{α104_2} CodeBase[out α107_2, out α108_2, ?]) ->{α104_2} CodeBase[out α107_2, out α97_2 ∨ α108_2, ?]
+//│ Type: forall α102_2, α103_2, α107_2, α110_2, α113_2, α114_2: (CodeBase[out α102_2, out α103_2, ?], CodeBase[in α107_2 out α107_2 ∨ α102_2, ?, ⊥] ->{α110_2} CodeBase[out α113_2, out α114_2, ?]) ->{α110_2} CodeBase[out α113_2, out α103_2 ∨ α114_2, ?]
 
 :e
 :fixme
@@ -69,7 +69,7 @@ fun body(x, y) = case
 fun bind: [G] -> (CodeBase[out Int, out G, out Any], [C] -> CodeBase[out Int, out C, out Any] -> CodeBase[out Int, out C | G, out Any]) -> CodeBase[out Int, out G, out Any]
 fun bind(rhs, k) = `let x = rhs `in k(x)
 bind
-//│ Type: forall α120_2: (CodeBase[out Int, out α120_2, ?], forall α121_3: (CodeBase[out Int, out α121_3, ?]) ->{⊥} CodeBase[out Int, out α121_3 ∨ α120_2, ?]) ->{⊥} CodeBase[out Int, out α120_2, ?]
+//│ Type: forall α127_2: (CodeBase[out Int, out α127_2, ?], forall α128_3: (CodeBase[out Int, out α128_3, ?]) ->{⊥} CodeBase[out Int, out α128_3 ∨ α127_2, ?]) ->{⊥} CodeBase[out Int, out α127_2, ?]
 
 
 :fixme

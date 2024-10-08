@@ -221,13 +221,7 @@ class BBTyper(using elState: Elaborator.State, tl: TL):
         val nv = freshVar
         uid -> nv
     }).toMap
-    ty.tvs.foreach {
-      case InfVar(_, uid, state, _) =>
-        val nv = map(uid)
-        state.upperBounds.foreach(ub => nv.state.upperBounds ::= ub.subst(using map))
-        state.lowerBounds.foreach(lb => nv.state.lowerBounds ::= lb.subst(using map))
-    }
-    ty.body.subst(using map)
+    ty.substBody(using map)
 
   private def extrude(ty: GeneralType)(using ctx: Ctx, pol: Bool): GeneralType = ty match
     case ty: Type => solver.extrude(ty)(using ctx.lvl, pol, HashMap.empty)
@@ -386,10 +380,10 @@ class BBTyper(using elState: Elaborator.State, tl: TL):
         constrain(effTy, eff)
         (ft, Bot)
     case (Term.Lam(params, body), ft @ FunType(args, ret, eff)) => ascribe(lhs, PolyFunType(args, ret, eff))
-    case (term, pt @ PolyType(tvs, body)) => // * generalize
+    case (term, pt: PolyType) => // * generalize
       val nextCtx = ctx.nextLevel
       given Ctx = nextCtx
-      constrain(ascribe(term, skolemize(tvs, body))._2, Bot) // * never generalize terms with effects
+      constrain(ascribe(term, skolemize(pt))._2, Bot) // * never generalize terms with effects
       (pt, Bot)
     case (Term.Blk(LetBinding(Pattern.Var(sym), rhs) :: Nil, body), ty) => // * propagate
       val nestCtx = ctx.nest
@@ -436,13 +430,14 @@ class BBTyper(using elState: Elaborator.State, tl: TL):
       constrain(tryMkMono(funTy, t), FunType(argTy.map((tryMkMono(_, t))), retVar, effVar))
       (retVar, argEff.foldLeft[Type](effVar | lhsEff)((res, e) => res | e))
 
-  private def skolemize(tv: Ls[InfVar], body: GeneralType)(using ctx: Ctx) =
+  private def skolemize(ty: PolyType)(using ctx: Ctx) =
     // * Note that by this point, the state is supposed to be frozen/treated as immutable
-    val bds = tv.map(v =>
-      log(s"skolemize $v")
-      (v.uid, InfVar(ctx.lvl, v.uid, v.state, true))
+    val map = ty.tvs.map(v =>
+      val sk = freshSkolem
+      log(s"skolemize $v ~> $sk")
+      (v.uid, sk)
     ).toMap
-    body.subst(using bds)
+    ty.substBody(using map)
 
   // TODO: implement toLoc
   private def monoOrErr(ty: GeneralType, sc: Located)(using Ctx) =
