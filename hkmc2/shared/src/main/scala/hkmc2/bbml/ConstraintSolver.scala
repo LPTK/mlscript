@@ -50,9 +50,9 @@ class ConstraintSolver(infVarState: InfVarUid.State, tl: TraceLogger):
       })
     case v @ InfVar(_, uid, state, true) => // * skolem
       if pol then
-        if state.upperBounds.isEmpty then Top else state.upperBounds.reduceLeft(_ & _)
+        state.upperBounds.foldLeft[Type](Top)((r, t) => r & t)
       else
-        if state.lowerBounds.isEmpty then Bot else state.lowerBounds.reduceLeft(_ | _)
+        state.lowerBounds.foldLeft[Type](Bot)((r, t) => r | t)
     case v @ InfVar(_, uid, _, false) =>
       cache.getOrElse(uid -> pol, {
         val nv = freshXVar(lvl)
