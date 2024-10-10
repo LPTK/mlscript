@@ -221,7 +221,7 @@ class BBTyper(using elState: Elaborator.State, tl: TL):
         val nv = freshVar
         uid -> nv
     }).toMap
-    ty.substBody(using map)
+    ty.substAndGetBody(using map)
 
   private def extrude(ty: GeneralType)(using ctx: Ctx, pol: Bool): GeneralType = ty match
     case ty: Type => solver.extrude(ty)(using ctx.lvl, pol, HashMap.empty)
@@ -437,7 +437,7 @@ class BBTyper(using elState: Elaborator.State, tl: TL):
       log(s"skolemize $v ~> $sk")
       (v.uid, sk)
     ).toMap
-    ty.substBody(using map)
+    ty.substAndGetBody(using map)
 
   // TODO: implement toLoc
   private def monoOrErr(ty: GeneralType, sc: Located)(using Ctx) =
