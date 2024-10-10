@@ -277,13 +277,30 @@ case class PolyType(tvs: Ls[InfVar], body: GeneralType) extends GeneralType:
   // * This function will only return the body after substitution
   // * and \dom(map) should cover all tvs.
   // * This function is dedicated to `skolemize` and `instantiate`.
-  def substAndGetBody(using map: Map[Uid[InfVar], InfVar]): GeneralType =
+  private def substAndGetBody(using map: Map[Uid[InfVar], InfVar]): GeneralType =
     tvs.foreach:
       case InfVar(lvl, uid, state, skolem) =>
         val v = map(uid)
         v.state.lowerBounds = state.lowerBounds.map(_.subst)
         v.state.upperBounds = state.upperBounds.map(_.subst)
     body.subst
+
+  def skolemize(nextUid: => Uid[InfVar], lvl: Int)(tl: TL) =
+    // * Note that by this point, the state is supposed to be frozen/treated as immutable
+    val map = tvs.map(v =>
+      val sk = InfVar(lvl, nextUid, new VarState(), true)
+      tl.log(s"skolemize $v ~> $sk")
+      v.uid -> sk
+    ).toMap
+    substAndGetBody(using map)
+  
+  def instantiate(nextUid: => Uid[InfVar], lvl: Int)(tl: TL): GeneralType =
+    val map = tvs.map(v =>
+      val nv = InfVar(lvl, nextUid, new VarState(), false)
+      tl.log(s"instantiate $v ~> $nv")
+      v.uid -> nv
+    ).toMap
+    substAndGetBody(using map)
 
 object PolyType:
   def generalize(ty: GeneralType, lvl: Int): PolyType =

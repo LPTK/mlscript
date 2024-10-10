@@ -215,13 +215,7 @@ class BBTyper(using elState: Elaborator.State, tl: TL):
   private def typeType(ty: Term)(using ctx: Ctx, cctx: CCtx): GeneralType =
     typeAndSubstType(ty, pol = true)(using Map.empty)
   
-  private def instantiate(ty: PolyType)(using ctx: Ctx): GeneralType =
-    val map = (ty.tvs.map {
-      case InfVar(_, uid, state, _) =>
-        val nv = freshVar
-        uid -> nv
-    }).toMap
-    ty.substAndGetBody(using map)
+  private def instantiate(ty: PolyType)(using ctx: Ctx): GeneralType = ty.instantiate(infVarState.nextUid, ctx.lvl)(tl)
 
   private def extrude(ty: GeneralType)(using ctx: Ctx, pol: Bool): GeneralType = ty match
     case ty: Type => solver.extrude(ty)(using ctx.lvl, pol, HashMap.empty)
@@ -430,14 +424,7 @@ class BBTyper(using elState: Elaborator.State, tl: TL):
       constrain(tryMkMono(funTy, t), FunType(argTy.map((tryMkMono(_, t))), retVar, effVar))
       (retVar, argEff.foldLeft[Type](effVar | lhsEff)((res, e) => res | e))
 
-  private def skolemize(ty: PolyType)(using ctx: Ctx) =
-    // * Note that by this point, the state is supposed to be frozen/treated as immutable
-    val map = ty.tvs.map(v =>
-      val sk = freshSkolem
-      log(s"skolemize $v ~> $sk")
-      (v.uid, sk)
-    ).toMap
-    ty.substAndGetBody(using map)
+  private def skolemize(ty: PolyType)(using ctx: Ctx) = ty.skolemize(infVarState.nextUid, ctx.lvl)(tl)
 
   // TODO: implement toLoc
   private def monoOrErr(ty: GeneralType, sc: Located)(using Ctx) =
@@ -447,7 +434,7 @@ class BBTyper(using elState: Elaborator.State, tl: TL):
   private def tryMkMono(ty: GeneralType, sc: Located)(using Ctx): Type = ty match
     case pt: PolyType => tryMkMono(instantiate(pt), sc)
     case ft: PolyFunType =>
-      ft.monoOr(error(msg"Expect a monomorphic type or an instantiable type here, but ${ty.toString} found" -> sc.toLoc :: Nil))
+      ft.monoOr(error(msg"Expected a monomorphic type or an instantiable type here, but ${ty.toString} found" -> sc.toLoc :: Nil))
     case ty: Type => ty
   
   private def typeCheck(t: Term)(using ctx: Ctx): (GeneralType, Type) =
