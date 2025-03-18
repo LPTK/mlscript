@@ -158,11 +158,13 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
     t match
     case _: HandleBlock =>
       errStmt(msg"This code requires effect handler instrumentation but was compiled without it.")
-    case Assign(l, r, rst) =>
+    case Assign(l, r, rst) => // * TODO sanity check the LHS is undefined
       doc" # ${getVar(l)} = ${result(r)};${returningTerm(rst, endSemi)}"
-    case AssignField(p, n, r, rst) =>
+    case Reassign(l, r, rst) =>
+      doc" # ${getVar(l)} = ${result(r)};${returningTerm(rst, endSemi)}"
+    case ReassignField(p, n, r, rst) =>
       doc" # ${result(p)}.${n.name} = ${result(r)};${returningTerm(rst, endSemi)}"
-    case AssignDynField(p, f, ai, r, rst) =>
+    case ReassignDynField(p, f, ai, r, rst) =>
       doc" # ${result(p)}[${result(f)}] = ${result(r)};${returningTerm(rst, endSemi)}"
     case Define(defn, rst) =>
       def mkThis(sym: InnerSymbol): Document =
@@ -455,8 +457,13 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
     blockPreamble(p.main) -> (imps.mkDocument(doc" # ") :/: returningTerm(p.main, endSemi = false).stripBreaks)
   
   def blockPreamble(t: Block)(using Raise, Scope): Document =
+    
     // TODO document: mutable var assnts require the lookup
     val vars = t.definedVars.toSeq.filter(scope.lookup(_).isEmpty).sortBy(_.uid).iterator.map(l =>
+    
+    // TODO: now should be possible to just write: (currently causes problems to handlers)
+    // val vars = t.definedVars.toSeq.sortBy(_.uid).iterator.map(l =>
+    
       l -> scope.allocateName(l))
     if vars.isEmpty then doc"" else
       doc" # let " :: vars.map: (_, nme) =>

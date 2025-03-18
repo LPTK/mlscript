@@ -127,7 +127,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
         applyBlock(b)
         
         override def applyBlock(b: Block): Unit = b match
-          case Assign(lhs, rhs, rest) =>
+          case Reassign(lhs, rhs, rest) =>
             accessed = accessed.addMutated(lhs)
             applyResult(rhs)
             applyBlock(rest)
@@ -282,7 +282,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
       new BlockTraverserShallow:
         applyBlock(b)
         override def applyBlock(b: Block): Unit = b match
-          case Assign(lhs, rhs, rest) =>
+          case Reassign(lhs, rhs, rest) =>
             applyResult(rhs)
             if hasReader.contains(lhs) || hasMutator.contains(lhs) then reqCapture += lhs
             applyBlock(rest)

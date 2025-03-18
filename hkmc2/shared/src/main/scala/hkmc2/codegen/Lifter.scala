@@ -601,24 +601,27 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
         case (blk, (bms, local)) =>
           val initial = blk.assign(local, createCall(bms, ctx))
           ctx.defns(bms) match
-            case c: ClsLikeDefn => initial.assignFieldN(local.asPath, Tree.Ident("class"), bms.asPath)
+            case c: ClsLikeDefn => initial.reassignFieldN(local.asPath, Tree.Ident("class"), bms.asPath)
             case _ => initial
       
       val remaining = rewritten match
-        case Assign(lhs: InnerSymbol, rhs, rest) => ctx.getIsymPath(lhs) match
+        
+        // TODO (LP:) not sure about the semantics of these "Reassign" cases
+        
+        case Reassign(lhs: InnerSymbol, rhs, rest) => ctx.getIsymPath(lhs) match
           case Some(value) if !belongsToCtor(lhs) => 
-            Assign(value, applyResult(rhs), applyBlock(rest))
+            Reassign(value, applyResult(rhs), applyBlock(rest))
           case _ => super.applyBlock(rewritten)
 
-        case Assign(t: TermSymbol, rhs, rest) if t.owner.isDefined =>
+        case Reassign(t: TermSymbol, rhs, rest) if t.owner.isDefined =>
           ctx.getIsymPath(t.owner.get) match
             case Some(value) if !belongsToCtor(t.owner.get) =>
-              AssignField(value.asPath, t.id, applyResult(rhs), applyBlock(rest))(N)
+              ReassignField(value.asPath, t.id, applyResult(rhs), applyBlock(rest))(N)
             case _ => super.applyBlock(rewritten)
         
-        case Assign(lhs, rhs, rest) => ctx.getLocalCaptureSym(lhs) match
+        case Reassign(lhs, rhs, rest) => ctx.getLocalCaptureSym(lhs) match
           case Some(captureSym) => 
-            AssignField(ctx.getLocalClosPath(lhs).get, captureSym.id, applyResult(rhs), applyBlock(rest))(N)
+            ReassignField(ctx.getLocalClosPath(lhs).get, captureSym.id, applyResult(rhs), applyBlock(rest))(N)
           case None => ctx.getLocalPath(lhs) match
             case None => super.applyBlock(rewritten)
             case Some(value) => Assign(value, applyResult(rhs), applyBlock(rest))

@@ -144,21 +144,21 @@ sum(10000)
 //│ JS (unsanitized):
 //│ let sum1, res1, handleBlock$1;
 //│ sum1 = function sum(n) {
-//│   let scrut, tmp, tmp1, curDepth, stackDelayRes, Cont$func$sum$StackSafety$_mls_L139_4_57$1;
+//│   let scrut, tmp, tmp1, tmp2, curDepth, stackDelayRes, Cont$func$sum$StackSafety$_mls_L139_4_57$1;
 //│   Cont$func$sum$StackSafety$_mls_L139_4_57$1 = function Cont$func$sum$StackSafety$_mls_L139_4_57$(pc1) {
 //│     return new Cont$func$sum$StackSafety$_mls_L139_4_57$.class(pc1);
 //│   };
 //│   Cont$func$sum$StackSafety$_mls_L139_4_57$1.class = class Cont$func$sum$StackSafety$_mls_L139_4_57$ extends runtime.FunctionContFrame.class {
 //│     constructor(pc) {
-//│       let tmp2;
-//│       tmp2 = super(null);
+//│       let tmp3;
+//│       tmp3 = super(null);
 //│       this.pc = pc;
 //│     }
 //│     resume(value$) {
 //│       if (this.pc === 0) {
 //│         stackDelayRes = value$;
 //│       } else if (this.pc === 1) {
-//│         tmp1 = value$;
+//│         tmp2 = value$;
 //│       }
 //│       contLoop: while (true) {
 //│         if (this.pc === 0) {
@@ -176,17 +176,18 @@ sum(10000)
 //│           break contLoop;
 //│         } else if (this.pc === 3) {
 //│           runtime.stackDepth = runtime.stackDepth + 1;
-//│           tmp1 = sum1(tmp);
-//│           if (tmp1 instanceof runtime.EffectSig.class) {
+//│           tmp2 = sum1(tmp);
+//│           if (tmp2 instanceof runtime.EffectSig.class) {
 //│             this.pc = 1;
-//│             tmp1.contTrace.last.next = this;
-//│             tmp1.contTrace.last = this;
-//│             return tmp1
+//│             tmp2.contTrace.last.next = this;
+//│             tmp2.contTrace.last = this;
+//│             return tmp2
 //│           }
 //│           this.pc = 1;
 //│           continue contLoop;
 //│         } else if (this.pc === 1) {
-//│           tmp1 = runtime.resetDepth(tmp1, curDepth);
+//│           tmp2 = runtime.resetDepth(tmp2, curDepth);
+//│           tmp1 = tmp2;
 //│           return n + tmp1
 //│         }
 //│         break;
@@ -207,13 +208,14 @@ sum(10000)
 //│   } else {
 //│     tmp = n - 1;
 //│     runtime.stackDepth = runtime.stackDepth + 1;
-//│     tmp1 = sum1(tmp);
-//│     if (tmp1 instanceof runtime.EffectSig.class) {
-//│       tmp1.contTrace.last.next = new Cont$func$sum$StackSafety$_mls_L139_4_57$1.class(1);
-//│       tmp1.contTrace.last = tmp1.contTrace.last.next;
-//│       return tmp1
+//│     tmp2 = sum1(tmp);
+//│     if (tmp2 instanceof runtime.EffectSig.class) {
+//│       tmp2.contTrace.last.next = new Cont$func$sum$StackSafety$_mls_L139_4_57$1.class(1);
+//│       tmp2.contTrace.last = tmp2.contTrace.last.next;
+//│       return tmp2
 //│     }
-//│     tmp1 = runtime.resetDepth(tmp1, curDepth);
+//│     tmp2 = runtime.resetDepth(tmp2, curDepth);
+//│     tmp1 = tmp2;
 //│     return n + tmp1
 //│   }
 //│ };

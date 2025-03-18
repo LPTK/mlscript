@@ -47,8 +47,11 @@ object Printer:
       doc"try #{  # ${mkDocument(sub)} #  #} finally #  #{ ${mkDocument(finallyDo)} in #  #} ${mkDocument(rest)}"
     case Assign(lhs, rhs, rest) =>
       val docLhs = summon[Scope].lookup(lhs).getOrElse(summon[Scope].allocateName(lhs))
+      doc"$docLhs = ${mkDocument(rhs)} in # ${mkDocument(rest)}"
+    case Reassign(lhs, rhs, rest) =>
+      val docLhs = summon[Scope].lookup(lhs).getOrElse(summon[Scope].allocateName(lhs))
       doc"set $docLhs = ${mkDocument(rhs)} in # ${mkDocument(rest)}"
-    case AssignField(lhs, nme, rhs, rest) =>
+    case ReassignField(lhs, nme, rhs, rest) =>
       doc"set ${mkDocument(lhs)}.${nme.name} = ${mkDocument(rhs)} in # ${mkDocument(rest)}"
     case Define(defn, rest) => {
       doc"define ${mkDocument(defn)} in # ${mkDocument(rest)}"

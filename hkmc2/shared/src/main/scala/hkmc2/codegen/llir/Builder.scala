@@ -278,8 +278,8 @@ final class LlirBuilder(tl: TraceLogger)(fresh: Fresh, fnUid: FreshInt, clsUid: 
             definedVars.foreach(allocIfNew)
             bBlock(sub):
               x => bBlock(rest)(k)
-          case Assign(lhs, rhs, rest2) =>
-            bBlock(Assign(lhs, rhs, Begin(rest2, rest)))(k)
+          case Reassign(lhs, rhs, rest2) =>
+            bBlock(Reassign(lhs, rhs, Begin(rest2, rest)))(k)
           case Begin(sub, rest2) =>
             bBlock(Begin(sub, Begin(rest2, rest)))(k)
           case Define(defn, rest2) =>
@@ -291,7 +291,10 @@ final class LlirBuilder(tl: TraceLogger)(fresh: Fresh, fnUid: FreshInt, clsUid: 
       case Assign(lhs, rhs, rest) =>
         val name = allocIfNew(lhs)
         bBind(S(name), rhs, rest)(k)
-      case AssignField(lhs, nme, rhs, rest) => TODO("AssignField not supported")
+      case Reassign(lhs, rhs, rest) =>
+        val name = allocIfNew(lhs)
+        bBind(S(name), rhs, rest)(k)
+      case ReassignField(lhs, nme, rhs, rest) => TODO("AssignField not supported")
       case Define(fd @ FunDefn(_own, sym, params, body), rest) =>
         val f = bFunDef(fd)
         ctx.def_acc += f

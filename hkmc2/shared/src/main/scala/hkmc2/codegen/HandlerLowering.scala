@@ -67,10 +67,10 @@ class HandlerLowering(paths: HandlerPaths)(using TL, Raise, Elaborator.State, El
   private def funcLikeHandlerCtx(ctorThis: Option[Path], isHandlerMtd: Bool, nme: Str) =
     HandlerCtx(false, false, nme, ctorThis, state =>
       blockBuilder
-        .assignFieldN(state.res.contTrace.last, nextIdent, Instantiate(
+        .reassignFieldN(state.res.contTrace.last, nextIdent, Instantiate(
           state.cls.selN(Tree.Ident("class")),
           Value.Lit(Tree.IntLit(state.uid)) :: Nil))
-        .assignFieldN(state.res.contTrace, lastIdent, state.res.contTrace.last.next)
+        .reassignFieldN(state.res.contTrace, lastIdent, state.res.contTrace.last.next)
         .ret(state.res))
   private def functionHandlerCtx(nme: Str) = funcLikeHandlerCtx(N, false, nme)
   private def topLevelCtx(nme: Str) = HandlerCtx(true, false, nme, N, _ => rtThrowMsg("Unhandled effects"))
@@ -270,12 +270,15 @@ class HandlerLowering(paths: HandlerPaths)(using TL, Raise, Elaborator.State, El
       case Assign(lhs, rhs, rest) =>
         val PartRet(head, parts) = go(rest)
         PartRet(Assign(lhs, rhs, head), parts)
-      case blk @ AssignField(lhs, nme, rhs, rest) =>
+      case Reassign(lhs, rhs, rest) =>
         val PartRet(head, parts) = go(rest)
-        PartRet(AssignField(lhs, nme, rhs, head)(blk.symbol), parts)
-      case AssignDynField(lhs, fld, arrayIdx, rhs, rest) =>
+        PartRet(Reassign(lhs, rhs, head), parts)
+      case blk @ ReassignField(lhs, nme, rhs, rest) =>
         val PartRet(head, parts) = go(rest)
-        PartRet(AssignDynField(lhs, fld, arrayIdx, rhs, head), parts)
+        PartRet(ReassignField(lhs, nme, rhs, head)(blk.symbol), parts)
+      case ReassignDynField(lhs, fld, arrayIdx, rhs, rest) =>
+        val PartRet(head, parts) = go(rest)
+        PartRet(ReassignDynField(lhs, fld, arrayIdx, rhs, head), parts)
       case Return(_, _) => PartRet(blk, Nil)
       // ignored cases
       case TryBlock(sub, finallyDo, rest) => ??? // ignore
@@ -385,7 +388,7 @@ class HandlerLowering(paths: HandlerPaths)(using TL, Raise, Elaborator.State, El
     
     val handlerBody = translateBlock(h.body, HandlerCtx(false, true,
       s"Cont$$handleBlock$$${h.lhs.nme}$$", N, state => blockBuilder
-        .assignFieldN(state.res.contTrace.last, nextIdent, PureCall(state.cls, Value.Lit(Tree.IntLit(state.uid)) :: Nil))
+        .reassignFieldN(state.res.contTrace.last, nextIdent, PureCall(state.cls, Value.Lit(Tree.IntLit(state.uid)) :: Nil))
         .ret(PureCall(paths.handleBlockImplPath, state.res :: h.lhs.asPath :: Nil))))
     
     val handlerMtds = h.handlers.map: handler =>
@@ -460,13 +463,13 @@ class HandlerLowering(paths: HandlerPaths)(using TL, Raise, Elaborator.State, El
         override def applyBlock(b: Block): Block = b match
           case ReturnCont(res, uid) =>
             blockBuilder
-              .assign(pcSymbol, Value.Lit(Tree.IntLit(uid)))
-              .assignFieldN(res.asPath.contTrace.last, nextIdent, clsSym.asPath)
-              .assignFieldN(res.asPath.contTrace, lastIdent, clsSym.asPath)
+              .reassign(pcSymbol, Value.Lit(Tree.IntLit(uid)))
+              .reassignFieldN(res.asPath.contTrace.last, nextIdent, clsSym.asPath)
+              .reassignFieldN(res.asPath.contTrace, lastIdent, clsSym.asPath)
               .ret(res.asPath)
           case StateTransition(uid) =>
             blockBuilder
-              .assign(pcSymbol, Value.Lit(Tree.IntLit(uid)))
+              .reassign(pcSymbol, Value.Lit(Tree.IntLit(uid)))
               .continue(loopLbl)
           case FnEnd() =>
             blockBuilder.break(loopLbl)
@@ -486,7 +489,7 @@ class HandlerLowering(paths: HandlerPaths)(using TL, Raise, Elaborator.State, El
     
     val resumedVal = VarSymbol(Tree.Ident("value$"))
 
-    def createAssignment(sym: Local) = Assign(sym, resumedVal.asPath, End())
+    def createAssignment(sym: Local) = Reassign(sym, resumedVal.asPath, End()) // TODO: or is this `Assign`?
     
     val assignedResumedCases = for 
       b   <- parts
@@ -531,7 +534,7 @@ class HandlerLowering(paths: HandlerPaths)(using TL, Raise, Elaborator.State, El
       Assign(freshTmp(), PureCall(
         Value.Ref(State.builtinOpsMap("super")), // refers to runtime.FunctionContFrame which is pure
         Value.Lit(Tree.UnitLit(true)) :: Nil), End()),
-      AssignField(
+      ReassignField(
         clsSym.asPath,
         pcVar.id,
         Value.Ref(pcVar),

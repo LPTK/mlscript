@@ -53,16 +53,17 @@ hi(0)
 //│     }
 //│   }
 //│   resume(value$) {
+//│     let scrut, tmp;
 //│     if (this.pc === 0) {
 //│       this.stackDelayRes$3 = value$;
 //│     }
 //│     contLoop: while (true) {
 //│       if (this.pc === 0) {
-//│         this.scrut$1 = this.n$0 == 0;
+//│         scrut = this.n$0 == 0;
 //│         if (this.scrut$1 === true) {
 //│           return 0
 //│         } else {
-//│           this.tmp$2 = this.n$0 - 1;
+//│           tmp = this.n$0 - 1;
 //│           this.pc = 2;
 //│           continue contLoop;
 //│         }
@@ -190,52 +191,54 @@ fun sum(n) =
     n + sum(n - 1)
 sum(10000)
 //│ JS (unsanitized):
-//│ let sum1, res1, Cont$func$sum$StackSafetyLift$_mls_L187_4_57$1, handleBlock$1, Cont$handleBlock$stackHandler$3, StackDelay$3, lambda1, Cont$func$sum$StackSafetyLift$_mls_L187_4_57$$ctor, Cont$func$sum$StackSafetyLift$_mls_L187_4_57$$, Cont$handleBlock$stackHandler$$ctor1, Cont$handleBlock$stackHandler$$1, lambda$1;
-//│ Cont$func$sum$StackSafetyLift$_mls_L187_4_57$$ = function Cont$func$sum$StackSafetyLift$_mls_L187_4_57$$(n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5, pc) {
+//│ let sum1, res1, Cont$func$sum$StackSafetyLift$_mls_L188_4_57$1, handleBlock$1, Cont$handleBlock$stackHandler$3, StackDelay$3, lambda1, Cont$func$sum$StackSafetyLift$_mls_L188_4_57$$ctor, Cont$func$sum$StackSafetyLift$_mls_L188_4_57$$, Cont$handleBlock$stackHandler$$ctor1, Cont$handleBlock$stackHandler$$1, lambda$1;
+//│ Cont$func$sum$StackSafetyLift$_mls_L188_4_57$$ = function Cont$func$sum$StackSafetyLift$_mls_L188_4_57$$(n$0, scrut$1, tmp$2, tmp$3, tmp$4, curDepth$5, stackDelayRes$6, pc) {
 //│   let tmp;
-//│   tmp = new Cont$func$sum$StackSafetyLift$_mls_L187_4_57$1.class(pc);
-//│   return tmp(n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5)
+//│   tmp = new Cont$func$sum$StackSafetyLift$_mls_L188_4_57$1.class(pc);
+//│   return tmp(n$0, scrut$1, tmp$2, tmp$3, tmp$4, curDepth$5, stackDelayRes$6)
 //│ };
-//│ Cont$func$sum$StackSafetyLift$_mls_L187_4_57$$ctor = function Cont$func$sum$StackSafetyLift$_mls_L187_4_57$$ctor(n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5) {
+//│ Cont$func$sum$StackSafetyLift$_mls_L188_4_57$$ctor = function Cont$func$sum$StackSafetyLift$_mls_L188_4_57$$ctor(n$0, scrut$1, tmp$2, tmp$3, tmp$4, curDepth$5, stackDelayRes$6) {
 //│   return (pc) => {
 //│     let tmp;
-//│     tmp = new Cont$func$sum$StackSafetyLift$_mls_L187_4_57$1.class(pc);
-//│     return tmp(n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5)
+//│     tmp = new Cont$func$sum$StackSafetyLift$_mls_L188_4_57$1.class(pc);
+//│     return tmp(n$0, scrut$1, tmp$2, tmp$3, tmp$4, curDepth$5, stackDelayRes$6)
 //│   }
 //│ };
-//│ Cont$func$sum$StackSafetyLift$_mls_L187_4_57$1 = function Cont$func$sum$StackSafetyLift$_mls_L187_4_57$(pc1) {
-//│   return (n$01, scrut$11, tmp$21, tmp$31, curDepth$41, stackDelayRes$51) => {
-//│     return new Cont$func$sum$StackSafetyLift$_mls_L187_4_57$.class(pc1)(n$01, scrut$11, tmp$21, tmp$31, curDepth$41, stackDelayRes$51);
+//│ Cont$func$sum$StackSafetyLift$_mls_L188_4_57$1 = function Cont$func$sum$StackSafetyLift$_mls_L188_4_57$(pc1) {
+//│   return (n$01, scrut$11, tmp$21, tmp$31, tmp$41, curDepth$51, stackDelayRes$61) => {
+//│     return new Cont$func$sum$StackSafetyLift$_mls_L188_4_57$.class(pc1)(n$01, scrut$11, tmp$21, tmp$31, tmp$41, curDepth$51, stackDelayRes$61);
 //│   }
 //│ };
-//│ Cont$func$sum$StackSafetyLift$_mls_L187_4_57$1.class = class Cont$func$sum$StackSafetyLift$_mls_L187_4_57$ extends runtime.FunctionContFrame.class {
+//│ Cont$func$sum$StackSafetyLift$_mls_L188_4_57$1.class = class Cont$func$sum$StackSafetyLift$_mls_L188_4_57$ extends runtime.FunctionContFrame.class {
 //│   constructor(pc) {
-//│     return (n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5) => {
+//│     return (n$0, scrut$1, tmp$2, tmp$3, tmp$4, curDepth$5, stackDelayRes$6) => {
 //│       let tmp;
 //│       tmp = super(null);
 //│       this.n$0 = n$0;
 //│       this.scrut$1 = scrut$1;
 //│       this.tmp$2 = tmp$2;
 //│       this.tmp$3 = tmp$3;
-//│       this.curDepth$4 = curDepth$4;
-//│       this.stackDelayRes$5 = stackDelayRes$5;
+//│       this.tmp$4 = tmp$4;
+//│       this.curDepth$5 = curDepth$5;
+//│       this.stackDelayRes$6 = stackDelayRes$6;
 //│       this.pc = pc;
 //│       return this;
 //│     }
 //│   }
 //│   resume(value$) {
+//│     let scrut, tmp, tmp1, tmp2;
 //│     if (this.pc === 0) {
-//│       this.stackDelayRes$5 = value$;
+//│       this.stackDelayRes$6 = value$;
 //│     } else if (this.pc === 1) {
-//│       this.tmp$3 = value$;
+//│       this.tmp$4 = value$;
 //│     }
 //│     contLoop: while (true) {
 //│       if (this.pc === 0) {
-//│         this.scrut$1 = this.n$0 == 0;
+//│         scrut = this.n$0 == 0;
 //│         if (this.scrut$1 === true) {
 //│           return 0
 //│         } else {
-//│           this.tmp$2 = this.n$0 - 1;
+//│           tmp = this.n$0 - 1;
 //│           this.pc = 3;
 //│           continue contLoop;
 //│         }
@@ -245,30 +248,31 @@ sum(10000)
 //│         break contLoop;
 //│       } else if (this.pc === 3) {
 //│         runtime.stackDepth = runtime.stackDepth + 1;
-//│         this.tmp$3 = sum1(this.tmp$2);
-//│         if (this.tmp$3 instanceof runtime.EffectSig.class) {
+//│         tmp2 = sum1(this.tmp$2);
+//│         if (this.tmp$4 instanceof runtime.EffectSig.class) {
 //│           this.pc = 1;
-//│           this.tmp$3.contTrace.last.next = this;
-//│           this.tmp$3.contTrace.last = this;
-//│           return this.tmp$3
+//│           this.tmp$4.contTrace.last.next = this;
+//│           this.tmp$4.contTrace.last = this;
+//│           return this.tmp$4
 //│         }
 //│         this.pc = 1;
 //│         continue contLoop;
 //│       } else if (this.pc === 1) {
-//│         this.tmp$3 = runtime.resetDepth(this.tmp$3, this.curDepth$4);
+//│         tmp2 = runtime.resetDepth(this.tmp$4, this.curDepth$5);
+//│         tmp1 = this.tmp$4;
 //│         return this.n$0 + this.tmp$3
 //│       }
 //│       break;
 //│     }
 //│   }
-//│   toString() { return "Cont$func$sum$StackSafetyLift$_mls_L187_4_57$(" + globalThis.Predef.render(this.pc) + ")"; }
+//│   toString() { return "Cont$func$sum$StackSafetyLift$_mls_L188_4_57$(" + globalThis.Predef.render(this.pc) + ")"; }
 //│ };
 //│ sum1 = function sum(n) {
-//│   let scrut, tmp, tmp1, curDepth, stackDelayRes;
+//│   let scrut, tmp, tmp1, tmp2, curDepth, stackDelayRes;
 //│   curDepth = runtime.stackDepth;
 //│   stackDelayRes = runtime.checkDepth();
 //│   if (stackDelayRes instanceof runtime.EffectSig.class) {
-//│     stackDelayRes.contTrace.last.next = Cont$func$sum$StackSafetyLift$_mls_L187_4_57$$(n, scrut, tmp, tmp1, curDepth, stackDelayRes, 0);
+//│     stackDelayRes.contTrace.last.next = Cont$func$sum$StackSafetyLift$_mls_L188_4_57$$(n, scrut, tmp, tmp1, tmp2, curDepth, stackDelayRes, 0);
 //│     stackDelayRes.contTrace.last = stackDelayRes.contTrace.last.next;
 //│     return stackDelayRes
 //│   }
@@ -278,13 +282,14 @@ sum(10000)
 //│   } else {
 //│     tmp = n - 1;
 //│     runtime.stackDepth = runtime.stackDepth + 1;
-//│     tmp1 = sum1(tmp);
-//│     if (tmp1 instanceof runtime.EffectSig.class) {
-//│       tmp1.contTrace.last.next = Cont$func$sum$StackSafetyLift$_mls_L187_4_57$$(n, scrut, tmp, tmp1, curDepth, stackDelayRes, 1);
-//│       tmp1.contTrace.last = tmp1.contTrace.last.next;
-//│       return tmp1
+//│     tmp2 = sum1(tmp);
+//│     if (tmp2 instanceof runtime.EffectSig.class) {
+//│       tmp2.contTrace.last.next = Cont$func$sum$StackSafetyLift$_mls_L188_4_57$$(n, scrut, tmp, tmp1, tmp2, curDepth, stackDelayRes, 1);
+//│       tmp2.contTrace.last = tmp2.contTrace.last.next;
+//│       return tmp2
 //│     }
-//│     tmp1 = runtime.resetDepth(tmp1, curDepth);
+//│     tmp2 = runtime.resetDepth(tmp2, curDepth);
+//│     tmp1 = tmp2;
 //│     return n + tmp1
 //│   }
 //│ };
@@ -370,7 +375,10 @@ sum(10000)
 //│ runtime.stackDepth = 0;
 //│ runtime.stackHandler = null;
 //│ res1
-//│ = 50005000
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:191)
+//│ ═══[RUNTIME ERROR] Expected: '50005000', got: 'NaN'
+//│ = NaN
 
 // stack-overflows without :stackSafe
 :re
@@ -391,8 +399,20 @@ fun foo(f) =
     set ctr += 1
     dummy(f(f))
 foo(foo)
-//│ = 0
-//│ ctr = 10001
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:145)
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
+//│     at Runtime.checkCall (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:99:24)
+//│     at Cont$func$foo$StackSafetyLift$_mls_L394_37_111$.resume (REPL20:1:3459)
+//│     at Runtime.resumeContTrace (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:412:38)
+//│     at file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:403:22
+//│     at lambda$ (REPL20:1:5675)
+//│     at EffectSig.handlerFun (REPL20:1:5967)
+//│     at Runtime.handleEffect (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:369:34)
+//│     at Runtime.handleBlockImpl (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:308:24)
+//│     at handleBlock$ (REPL20:1:8689)
+//│     at REPL20:1:8771
+//│ ctr = NaN
 
 :stackSafe 1000
 :effectHandlers
@@ -403,8 +423,11 @@ val foo =
     else n + f(n-1)
   f(10000)
 foo
-//│ = 50005000
-//│ foo = 50005000
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:191)
+//│ ═══[RUNTIME ERROR] Expected: '50005000', got: 'NaN'
+//│ = NaN
+//│ foo = NaN
 
 :re
 fun foo() =
@@ -432,7 +455,9 @@ handle h = Eff with
       else n + f(n-1)
     resume(f(10000))
 foo(h)
-//│ = 50005000
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:191)
+//│ ═══[RUNTIME ERROR] Expected: '50005000', got: '()'
 
 // function call and defn inside handler
 :effectHandlers
@@ -448,7 +473,9 @@ handle h = Eff with
 in
   fun foo(h) = h.perform
   foo(h)
-//│ = 50005000
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:191)
+//│ ═══[RUNTIME ERROR] Expected: '50005000', got: '()'
 
 :re
 :effectHandlers
@@ -504,5 +531,8 @@ fun sum(n) =
     n + sum(n - 1)
 fun bad() = sum(10000) + sum(10000)
 bad()
-//│ = 100010000
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:191)
+//│ ═══[RUNTIME ERROR] Expected: '100010000', got: 'NaN'
+//│ = NaN
 

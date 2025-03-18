@@ -35,7 +35,8 @@ class BlockTraverser:
     case Begin(sub, rst) => applySubBlock(sub); applySubBlock(rst)
     case TryBlock(sub, fin, rst) => applySubBlock(sub); applySubBlock(fin); applySubBlock(rst)
     case Assign(l, r, rst) => applyLocal(l); applyResult(r); applySubBlock(rst)
-    case b @ AssignField(l, n, r, rst) =>
+    case Reassign(l, r, rst) => applyLocal(l); applyResult(r); applySubBlock(rst)
+    case b @ ReassignField(l, n, r, rst) =>
       applyPath(l); applyResult(r); applySubBlock(rst); b.symbol.foreach(_.traverse)
     case Define(defn, rst) => applyDefn(defn); applySubBlock(rst)
     case HandleBlock(l, res, par, args, cls, hdr, bod, rst) =>
@@ -46,7 +47,7 @@ class BlockTraverser:
       hdr.foreach(applyHandler)
       applySubBlock(bod)
       applySubBlock(rst)
-    case AssignDynField(lhs, fld, arrayIdx, rhs, rest) =>
+    case ReassignDynField(lhs, fld, arrayIdx, rhs, rest) =>
       applyPath(lhs)
       applyResult(rhs)
       applyPath(fld)

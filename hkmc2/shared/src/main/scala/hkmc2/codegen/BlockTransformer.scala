@@ -60,13 +60,18 @@ class BlockTransformer(subst: SymbolSubst):
         val l2 = applyLocal(l)
         val rst2 = applySubBlock(rst)
         if (l2 is l) && (r2 is r) && (rst2 is rst) then b else Assign(l2, r2, rst2)
-    case b @ AssignField(l, n, r, rst) =>
+    case Reassign(l, r, rst) =>
+      applyResult2(r): r2 =>
+        val l2 = applyLocal(l)
+        val rst2 = applySubBlock(rst)
+        if (l2 is l) && (r2 is r) && (rst2 is rst) then b else Reassign(l2, r2, rst2)
+    case b @ ReassignField(l, n, r, rst) =>
       applyResult2(r): r2 =>
         val l2 = applyPath(l)
         val rst2 = applySubBlock(rst)
         val sym = b.symbol.mapConserve(_.subst)
         if (l2 is l) && (r2 is r) && (rst2 is rst) && (sym is b.symbol)
-          then b else AssignField(l2, n, r2, rst2)(sym)
+          then b else ReassignField(l2, n, r2, rst2)(sym)
     case Define(defn, rst) =>
       val defn2 = applyDefn(defn)
       val rst2 = applySubBlock(rst)
@@ -83,14 +88,14 @@ class BlockTransformer(subst: SymbolSubst):
       if (l2 is l) && (res2 is res) && (par2 is par) && (args2 is args) &&
           (cls2 is cls) && (hdr2 is hdr) && (bod2 is bod) && (rst2 is rst)
         then b else HandleBlock(l2, res2, par2, args2, cls2, hdr2, bod2, rst2)
-    case AssignDynField(lhs, fld, arrayIdx, rhs, rest) =>
+    case ReassignDynField(lhs, fld, arrayIdx, rhs, rest) =>
       applyResult2(rhs): rhs2 =>
         val lhs2 = applyPath(lhs)
         val fld2 = applyPath(fld)
         val rest2 = applySubBlock(rest)
         if (lhs2 is lhs) && (fld2 is fld) && (rhs2 is rhs) && (rest2 is rest)
         then b
-        else AssignDynField(lhs2, fld2, arrayIdx, rhs2, rest2)
+        else ReassignDynField(lhs2, fld2, arrayIdx, rhs2, rest2)
       
   
   def applyResult2(r: Result)(k: Result => Block): Block = k(applyResult(r))

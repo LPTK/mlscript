@@ -26,13 +26,24 @@ sealed abstract class Block extends Product with AutoLocated:
   
   protected def children: Ls[Located] = ??? // Maybe extending AutoLocated is unnecessary
   
+  /** Returns all local variables defined in this block through an `Assign` instruction.
+    * Does not look inside nested definitions. */
   lazy val definedVars: Set[Local] = this match
     case _: Return | _: Throw => Set.empty
     case Begin(sub, rst) => sub.definedVars ++ rst.definedVars
+    
+    // * Currently, `TermSymbol` is used to represent private fields,
+    // * such as `let` bindings in object scopes and non-`val` class parameters.
+    // * Assignments to such fields are not defining a variable of the IR,
+    // * even though they're represented using the same Assign instruction.
+    // * TODO: It may be much cleaner to just have the elaborator use explicit selections and ReassignField instead.
+    // * TODO: Confusingly, we also have the case of `Define` being used to define a `val` without an owner (see below). We should simplify all this ad-hoc logic.
     case Assign(l: TermSymbol, r, rst) => rst.definedVars
     case Assign(l, r, rst) => rst.definedVars + l
-    case AssignField(l, n, r, rst) => rst.definedVars
-    case AssignDynField(l, n, ai, r, rst) => rst.definedVars
+    
+    case Reassign(l, r, rst) => rst.definedVars
+    case ReassignField(l, n, r, rst) => rst.definedVars
+    case ReassignDynField(l, n, ai, r, rst) => rst.definedVars
     case Match(scrut, arms, dflt, rst) =>
       arms.flatMap(_._2.definedVars).toSet ++ dflt.toList.flatMap(_.definedVars) ++ rst.definedVars
     case End(_) => Set.empty
@@ -49,8 +60,9 @@ sealed abstract class Block extends Product with AutoLocated:
     case _: Return | _: Throw | _: End | _: Break | _: Continue => 1
     case Begin(sub, rst) => sub.size + rst.size
     case Assign(_, _, rst) => 1 + rst.size
-    case AssignField(_, _, _, rst) => 1 + rst.size
-    case AssignDynField(_, _, _, _, rst) => 1 + rst.size
+    case Reassign(_, _, rst) => 1 + rst.size
+    case ReassignField(_, _, _, rst) => 1 + rst.size
+    case ReassignDynField(_, _, _, _, rst) => 1 + rst.size
     case Match(_, arms, dflt, rst) =>
       1 + arms.map(_._2.size).sum + dflt.map(_.size).getOrElse(0) + rst.size
     case Define(_, rst) => 1 + rst.size
@@ -63,6 +75,7 @@ sealed abstract class Block extends Product with AutoLocated:
     case b: BlockTail => f(b)
     case Begin(sub, rst) => Begin(sub, rst.mapTail(f))
     case Assign(lhs, rhs, rst) => Assign(lhs, rhs, rst.mapTail(f))
+    case Reassign(lhs, rhs, rst) => Reassign(lhs, rhs, rst.mapTail(f))
     case Define(defn, rst) => Define(defn, rst.mapTail(f))
     case HandleBlock(lhs, res, par, args, cls, handlers, body, rest) =>
       HandleBlock(lhs, res, par, args, cls, handlers.map(h => Handler(h.sym, h.resumeSym, h.params, h.body)), body, rest.mapTail(f))
@@ -71,10 +84,10 @@ sealed abstract class Block extends Product with AutoLocated:
     case Match(scrut, arms, dflt, rst) =>
       Match(scrut, arms, dflt, rst.mapTail(f))
     case Label(label, body, rest) => Label(label, body, rest.mapTail(f))
-    case af @ AssignField(lhs, nme, rhs, rest) =>
-      AssignField(lhs, nme, rhs, rest.mapTail(f))(af.symbol)
-    case adf @ AssignDynField(lhs, fld, arrayIdx, rhs, rest) =>
-      AssignDynField(lhs, fld, arrayIdx, rhs, rest.mapTail(f))
+    case af @ ReassignField(lhs, nme, rhs, rest) =>
+      ReassignField(lhs, nme, rhs, rest.mapTail(f))(af.symbol)
+    case adf @ ReassignDynField(lhs, fld, arrayIdx, rhs, rest) =>
+      ReassignDynField(lhs, fld, arrayIdx, rhs, rest.mapTail(f))
     case tb @ TryBlock(sub, fin, rest) =>
       TryBlock(sub, fin, rest.mapTail(f))
   
@@ -90,9 +103,10 @@ sealed abstract class Block extends Product with AutoLocated:
     case Continue(label) => Set(label)
     case Begin(sub, rest) => sub.freeVars ++ rest.freeVars
     case TryBlock(sub, finallyDo, rest) => sub.freeVars ++ finallyDo.freeVars ++ rest.freeVars
-    case Assign(lhs, rhs, rest) => Set(lhs) ++ rhs.freeVars ++ rest.freeVars
-    case AssignField(lhs, nme, rhs, rest) => lhs.freeVars ++ rhs.freeVars ++ rest.freeVars
-    case AssignDynField(lhs, fld, arrayIdx, rhs, rest) => lhs.freeVars ++ fld.freeVars ++ rhs.freeVars ++ rest.freeVars
+    case Assign(lhs, rhs, rest) => rhs.freeVars ++ rest.freeVars
+    case Reassign(lhs, rhs, rest) => rhs.freeVars ++ rest.freeVars + lhs
+    case ReassignField(lhs, nme, rhs, rest) => lhs.freeVars ++ rhs.freeVars ++ rest.freeVars
+    case ReassignDynField(lhs, fld, arrayIdx, rhs, rest) => lhs.freeVars ++ fld.freeVars ++ rhs.freeVars ++ rest.freeVars
     case Define(defn, rest) => defn.freeVars ++ rest.freeVars
     case HandleBlock(lhs, res, par, args, cls, hdr, bod, rst) =>
       (bod.freeVars - lhs) ++ rst.freeVars ++ hdr.flatMap(_.freeVars)
@@ -113,9 +127,10 @@ sealed abstract class Block extends Product with AutoLocated:
     case Continue(label) => Set(label)
     case Begin(sub, rest) => sub.freeVarsLLIR ++ rest.freeVarsLLIR
     case TryBlock(sub, finallyDo, rest) => sub.freeVarsLLIR ++ finallyDo.freeVarsLLIR ++ rest.freeVarsLLIR
-    case Assign(lhs, rhs, rest) => Set(lhs) ++ rhs.freeVarsLLIR ++ rest.freeVarsLLIR
-    case AssignField(lhs, nme, rhs, rest) => lhs.freeVarsLLIR ++ rhs.freeVarsLLIR ++ rest.freeVarsLLIR
-    case AssignDynField(lhs, fld, arrayIdx, rhs, rest) => lhs.freeVarsLLIR ++ fld.freeVarsLLIR ++ rhs.freeVarsLLIR ++ rest.freeVarsLLIR
+    case Assign(lhs, rhs, rest) => rhs.freeVarsLLIR ++ rest.freeVarsLLIR
+    case Reassign(lhs, rhs, rest) => Set(lhs) ++ rhs.freeVarsLLIR ++ rest.freeVarsLLIR
+    case ReassignField(lhs, nme, rhs, rest) => lhs.freeVarsLLIR ++ rhs.freeVarsLLIR ++ rest.freeVarsLLIR
+    case ReassignDynField(lhs, fld, arrayIdx, rhs, rest) => lhs.freeVarsLLIR ++ fld.freeVarsLLIR ++ rhs.freeVarsLLIR ++ rest.freeVarsLLIR
     case Define(defn, rest) => defn.freeVarsLLIR ++ rest.freeVarsLLIR
     case HandleBlock(lhs, res, par, args, cls, hdr, bod, rst) =>
       (bod.freeVarsLLIR - lhs) ++ rst.freeVarsLLIR ++ hdr.flatMap(_.freeVars)
@@ -126,8 +141,9 @@ sealed abstract class Block extends Product with AutoLocated:
     case Begin(sub, rest) => sub :: rest :: Nil
     case TryBlock(sub, finallyDo, rest) => sub :: finallyDo :: rest :: Nil
     case Assign(_, rhs, rest) => rhs.subBlocks ::: rest :: Nil
-    case AssignField(_, _, rhs, rest) => rhs.subBlocks ::: rest :: Nil
-    case AssignDynField(_, _, _, rhs, rest) => rhs.subBlocks ::: rest :: Nil
+    case Reassign(_, rhs, rest) => rhs.subBlocks ::: rest :: Nil
+    case ReassignField(_, _, rhs, rest) => rhs.subBlocks ::: rest :: Nil
+    case ReassignDynField(_, _, _, rhs, rest) => rhs.subBlocks ::: rest :: Nil
     case Define(d, rest) => d.subBlocks ::: rest :: Nil
     case HandleBlock(_, _, par, args, _, handlers, body, rest) => par.subBlocks ++ args.flatMap(_.subBlocks) ++ handlers.map(_.body) :+ body :+ rest
     case Label(_, body, rest) => body :: rest :: Nil
@@ -198,18 +214,24 @@ sealed abstract class Block extends Product with AutoLocated:
       if newRest is rest
       then this
       else Assign(lhs, rhs, newRest)
-      
-    case a@AssignField(lhs, nme, rhs, rest) =>
+    
+    case Reassign(lhs, rhs, rest) =>
       val newRest = rest.flatten(k)
       if newRest is rest
       then this
-      else AssignField(lhs, nme, rhs, newRest)(a.symbol)
+      else Reassign(lhs, rhs, newRest)
       
-    case AssignDynField(lhs, fld, arrayIdx, rhs, rest) =>
+    case a@ReassignField(lhs, nme, rhs, rest) =>
       val newRest = rest.flatten(k)
       if newRest is rest
       then this
-      else AssignDynField(lhs, fld, arrayIdx, rhs, newRest)
+      else ReassignField(lhs, nme, rhs, newRest)(a.symbol)
+      
+    case ReassignDynField(lhs, fld, arrayIdx, rhs, rest) =>
+      val newRest = rest.flatten(k)
+      if newRest is rest
+      then this
+      else ReassignDynField(lhs, fld, arrayIdx, rhs, newRest)
     
     case Define(defn, rest) =>
       val newDefn = defn match
@@ -271,12 +293,18 @@ case class Begin(sub: Block, rest: Block) extends Block with ProductWithTail
 
 case class TryBlock(sub: Block, finallyDo: Block, rest: Block) extends Block with ProductWithTail
 
+// * Assigns the initial value of a variable or private field symbol.
+// * Invariant: any given symbol may be assigned a value at most once, in the same block
+// * (and specifically not in nested definitions),
+// * and may only be read or reassigned after it has been assigned first.
 case class Assign(lhs: Local, rhs: Result, rest: Block) extends Block with ProductWithTail
-// case class Assign(lhs: Path, rhs: Result, rest: Block) extends Block with ProductWithTail
 
-case class AssignField(lhs: Path, nme: Tree.Ident, rhs: Result, rest: Block)(val symbol: Opt[FieldSymbol]) extends Block with ProductWithTail
+// * Reassigns the value of a variable or private field symbol.
+case class Reassign(lhs: Local, rhs: Result, rest: Block) extends Block with ProductWithTail
 
-case class AssignDynField(lhs: Path, fld: Path, arrayIdx: Bool, rhs: Result, rest: Block) extends Block with ProductWithTail
+case class ReassignField(lhs: Path, nme: Tree.Ident, rhs: Result, rest: Block)(val symbol: Opt[FieldSymbol]) extends Block with ProductWithTail
+
+case class ReassignDynField(lhs: Path, fld: Path, arrayIdx: Bool, rhs: Result, rest: Block) extends Block with ProductWithTail
 
 case class Define(defn: Defn, rest: Block) extends Block with ProductWithTail
 
@@ -466,7 +494,8 @@ extension (k: Block => Block)
   def transform(f: (Block => Block) => (Block => Block)) = f(k)
   
   def assign(l: Local, r: Result) = k.chain(Assign(l, r, _))
-  def assignFieldN(lhs: Path, nme: Tree.Ident, rhs: Result) = k.chain(AssignField(lhs, nme, rhs, _)(N))
+  def reassign(l: Local, r: Result) = k.chain(Reassign(l, r, _))
+  def reassignFieldN(lhs: Path, nme: Tree.Ident, rhs: Result) = k.chain(ReassignField(lhs, nme, rhs, _)(N))
   def break(l: Local): Block = k.rest(Break(l))
   def continue(l: Local): Block = k.rest(Continue(l))
   def define(defn: Defn) = k.chain(Define(defn, _))

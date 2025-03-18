@@ -32,13 +32,13 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths)(using State):
   def extractRes(res: Result, isTailCall: Bool, f: Result => Block, sym: Option[Symbol], curDepth: => Symbol) =
     if isTailCall then
       blockBuilder
-        .assignFieldN(runtimePath, STACK_DEPTH_IDENT, op("+", stackDepthPath, intLit(1)))
+        .reassignFieldN(runtimePath, STACK_DEPTH_IDENT, op("+", stackDepthPath, intLit(1)))
         .ret(res)
     else
       val tmp = sym getOrElse TempSymbol(None, "tmp")
       val offsetGtDepth = TempSymbol(None, "offsetGtDepth")
       blockBuilder
-        .assignFieldN(runtimePath, STACK_DEPTH_IDENT, op("+", stackDepthPath, intLit(1)))
+        .reassignFieldN(runtimePath, STACK_DEPTH_IDENT, op("+", stackDepthPath, intLit(1)))
         .assign(tmp, res)
         .assign(tmp, Call(resetDepthPath, tmp.asPath.asArg :: curDepth.asPath.asArg :: Nil)(true, false))
         .rest(f(tmp.asPath))
@@ -64,18 +64,18 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths)(using State):
             resume()
         */
         blockBuilder
-          .assignFieldN(runtimePath, STACK_OFFSET_IDENT, stackDepthPath)
+          .reassignFieldN(runtimePath, STACK_OFFSET_IDENT, stackDepthPath)
           .ret(Call(Value.Ref(resumeSym), Nil)(true, true))
       ) :: Nil,
       blockBuilder
-        .assignFieldN(runtimePath, STACK_LIMIT_IDENT, intLit(depthLimit)) // set stackLimit before call
-        .assignFieldN(runtimePath, STACK_OFFSET_IDENT, intLit(0)) // set stackOffset = 0 before call
-        .assignFieldN(runtimePath, STACK_DEPTH_IDENT, intLit(1)) // set stackDepth = 1 before call
-        .assignFieldN(runtimePath, STACK_HANDLER_IDENT, handlerSym.asPath) // assign stack handler
+        .reassignFieldN(runtimePath, STACK_LIMIT_IDENT, intLit(depthLimit)) // set stackLimit before call
+        .reassignFieldN(runtimePath, STACK_OFFSET_IDENT, intLit(0)) // set stackOffset = 0 before call
+        .reassignFieldN(runtimePath, STACK_DEPTH_IDENT, intLit(1)) // set stackDepth = 1 before call
+        .reassignFieldN(runtimePath, STACK_HANDLER_IDENT, handlerSym.asPath) // assign stack handler
         .rest(body),
       blockBuilder // reset the stack safety values
-        .assignFieldN(runtimePath, STACK_DEPTH_IDENT, intLit(0)) // set stackDepth = 0 after call
-        .assignFieldN(runtimePath, STACK_HANDLER_IDENT, Value.Lit(Tree.UnitLit(true))) // set stackHandler = null
+        .reassignFieldN(runtimePath, STACK_DEPTH_IDENT, intLit(0)) // set stackDepth = 0 after call
+        .reassignFieldN(runtimePath, STACK_HANDLER_IDENT, Value.Lit(Tree.UnitLit(true))) // set stackHandler = null
         .rest(rest)
     )
 
@@ -104,7 +104,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths)(using State):
         case Return(res, implct) if usesStack(res) =>
           extract(applyResult(res), true, Return(_, implct), N, curDepth)
         // Optimization to avoid generation of unnecessary variables
-        case Assign(lhs, r, rest) =>
+        case Reassign(lhs, r, rest) =>
           if usesStack(r) then
             extract(applyResult(r), false, _ => applyBlock(rest), S(lhs), curDepth)
           else

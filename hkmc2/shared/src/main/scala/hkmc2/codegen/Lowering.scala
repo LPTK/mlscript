@@ -350,20 +350,20 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       lhs match
       case Ref(sym) =>
         subTerm(rhs): r =>
-          Assign(sym, r, k(unit))
+          Reassign(sym, r, k(unit))
       case sel @ SynthSel(prefix, nme) =>
         subTerm(prefix): p =>
           subTerm_nonTail(rhs): r =>
-            AssignField(p, nme, r, k(unit))(sel.sym)
+            ReassignField(p, nme, r, k(unit))(sel.sym)
       case sel @ Sel(prefix, nme) =>
         subTerm(prefix): p =>
           subTerm_nonTail(rhs): r =>
-            AssignField(p, nme, r, k(unit))(sel.sym)
+            ReassignField(p, nme, r, k(unit))(sel.sym)
       case sel @ DynSel(prefix, fld, ai) =>
         subTerm(prefix): p =>
           subTerm_nonTail(fld): f =>
             subTerm_nonTail(rhs): r =>
-              AssignDynField(p, f, ai, r, k(unit))
+              ReassignDynField(p, f, ai, r, k(unit))
       
     case st.Lam(params, body) =>
       warnStmt
@@ -541,7 +541,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     case SetRef(lhs, rhs) =>
       subTerm(lhs): ref =>
         subTerm_nonTail(rhs): value =>
-          AssignField(ref, Tree.Ident("value"), value, k(value))(N)
+          ReassignField(ref, Tree.Ident("value"), value, k(value))(N)
     
     case Rcd(stats) =>
       block(stats, L(Nil))(k)
@@ -682,7 +682,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
   
   def setupSelection(prefix: Term, nme: Tree.Ident, sym: Opt[FieldSymbol])(k: Result => Block)(using Subst): Block =
     subTerm(prefix): p =>
-      val selRes = TempSymbol(N, "selRes")
       k(Select(p, nme)(sym))
   
   final def setupFunctionOrByNameDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
@@ -811,7 +810,9 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
 
 
 object TrivialStatementsAndMatch:
+  
   def unapply(b: Block): Opt[(Opt[Block => Block], Match)] =
+    
     def handleAssignAndMatch(
       assign: Block => Block,
       m: Match,
@@ -826,10 +827,10 @@ object TrivialStatementsAndMatch:
       case m: Match => S(N, m)
       case Assign(lhs, rhs: Path, TrivialStatementsAndMatch(k, m)) =>
         handleAssignAndMatch(r => Assign(lhs, rhs, r), m, k)
-      case a@AssignField(lhs, nme, rhs: Path, TrivialStatementsAndMatch(k, m)) =>
-        handleAssignAndMatch(r => AssignField(lhs, nme, rhs, r)(a.symbol), m, k)
-      case AssignDynField(lhs, fld, arrayIdx, rhs: Path, TrivialStatementsAndMatch(k, m)) =>
-        handleAssignAndMatch(r =>  AssignDynField(lhs, fld, arrayIdx, rhs, r), m, k)
+      case a@ReassignField(lhs, nme, rhs: Path, TrivialStatementsAndMatch(k, m)) =>
+        handleAssignAndMatch(r => ReassignField(lhs, nme, rhs, r)(a.symbol), m, k)
+      case ReassignDynField(lhs, fld, arrayIdx, rhs: Path, TrivialStatementsAndMatch(k, m)) =>
+        handleAssignAndMatch(r =>  ReassignDynField(lhs, fld, arrayIdx, rhs, r), m, k)
       case Define(defn, TrivialStatementsAndMatch(k, m)) => 
         handleAssignAndMatch(r => Define(defn, r), m, k)
       case _ => N

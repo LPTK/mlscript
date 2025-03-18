@@ -70,6 +70,7 @@ f() + f() + f()
 //│     }
 //│   }
 //│   resume(value$) {
+//│     let tmp1, tmp2, tmp3, tmp4;
 //│     if (this.pc === 2) {
 //│       this.tmp$1 = value$;
 //│     } else if (this.pc === 3) {
@@ -79,7 +80,7 @@ f() + f() + f()
 //│     }
 //│     contLoop: while (true) {
 //│       if (this.pc === 7) {
-//│         this.tmp$1 = f$(this.h$0);
+//│         tmp1 = f$(this.h$0);
 //│         if (this.tmp$1 instanceof runtime.EffectSig.class) {
 //│           this.pc = 2;
 //│           this.tmp$1.contTrace.last.next = this;
@@ -92,7 +93,7 @@ f() + f() + f()
 //│         this.pc = 6;
 //│         continue contLoop;
 //│       } else if (this.pc === 6) {
-//│         this.tmp$2 = f$(this.h$0);
+//│         tmp2 = f$(this.h$0);
 //│         if (this.tmp$2 instanceof runtime.EffectSig.class) {
 //│           this.pc = 3;
 //│           this.tmp$2.contTrace.last.next = this;
@@ -102,11 +103,11 @@ f() + f() + f()
 //│         this.pc = 3;
 //│         continue contLoop;
 //│       } else if (this.pc === 3) {
-//│         this.tmp$3 = this.tmp$1 + this.tmp$2;
+//│         tmp3 = this.tmp$1 + this.tmp$2;
 //│         this.pc = 5;
 //│         continue contLoop;
 //│       } else if (this.pc === 5) {
-//│         this.tmp$4 = f$(this.h$0);
+//│         tmp4 = f$(this.h$0);
 //│         if (this.tmp$4 instanceof runtime.EffectSig.class) {
 //│           this.pc = 4;
 //│           this.tmp$4.contTrace.last.next = this;
@@ -152,12 +153,13 @@ f() + f() + f()
 //│     }
 //│   }
 //│   resume(value$) {
+//│     let tmp1;
 //│     if (this.pc === 0) {
 //│       this.tmp$1 = value$;
 //│     }
 //│     contLoop: while (true) {
 //│       if (this.pc === 1) {
-//│         this.tmp$1 = runtime.safeCall(this.h$0.perform());
+//│         tmp1 = runtime.safeCall(this.h$0.perform());
 //│         if (this.tmp$1 instanceof runtime.EffectSig.class) {
 //│           this.pc = 0;
 //│           this.tmp$1.contTrace.last.next = this;
@@ -215,7 +217,7 @@ f() + f() + f()
 //│   throw new this.Error("Unhandled effects");
 //│ }
 //│ tmp
-//│ = 3
+//│ = NaN
 
 :expect 1
 :sjs
@@ -571,12 +573,12 @@ f().foo()
 //│   toString() { return "f$capture(" + globalThis.Predef.render(this.w0$) + ")"; }
 //│ };
 //│ f6 = function f() {
-//│   let x, y, z, tmp6, tmp7, capture;
+//│   let x, y, z, w, tmp6, tmp7, capture;
 //│   capture = new f$capture3(null);
 //│   x = 1;
 //│   y = 10;
 //│   z = 10;
-//│   capture.w0$ = 1000;
+//│   w = 1000;
 //│   tmp6 = Bad$(capture);
 //│   tmp7 = runtime.safeCall(tmp6.foo());
 //│   return Good$(x, y, z, capture)
@@ -623,7 +625,7 @@ fun sum(n) =
   else
     n + sum(n - 1)
 sum(100)
-//│ = 5050
+//│ = NaN
 
 // instance checks
 
