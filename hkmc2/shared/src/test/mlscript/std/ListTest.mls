@@ -1,0 +1,36 @@
+:js
+
+import "../../mlscript-compile/List.mls"
+
+open List
+
+
+let xs = List.mk(1, 2, 3)
+//│ xs = [1, 2, 3]
+
+xs |> ith(1)
+//│ = 2
+
+// TODO should have lazy spread semantics
+[0, ..xs]
+//│ = [0, 1, 2, 3]
+
+// TODO should have lazy spread semantics
+if xs  is
+  [a, ..ls] then [a, ls]
+//│ = [1, [2, 3]]
+
+
+// this makes the following failures not reported as test failures and hides their stack traces:
+:global
+:todo
+
+
+let ys = concat(xs, xs)
+//│ ═══[RUNTIME ERROR] Error: Not implemented
+//│ ys = undefined
+
+ys |> ith(4)
+//│ ═══[RUNTIME ERROR] Error: match error
+
+
