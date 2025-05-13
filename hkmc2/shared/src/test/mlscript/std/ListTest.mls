@@ -11,6 +11,13 @@ let xs = List.mk(1, 2, 3)
 xs |> ith(1)
 //│ = 2
 
+// TODO: implement & test concat
+
+// TODO: implement & test slice
+
+
+// * TODO for later: support the lazy spread syntax
+
 // TODO should have lazy spread semantics
 [0, ..xs]
 //│ = [0, 1, 2, 3]
@@ -19,6 +26,23 @@ xs |> ith(1)
 if xs  is
   [a, ..ls] then [a, ls]
 //│ = [1, [2, 3]]
+
+
+fun build(i) =
+  if i > 0 then [i, ..build(i - 1), -i] else []
+
+let res = build(4)
+//│ res = [4, 3, 2, 1, -1, -2, -3, -4]
+
+res |> ith(3)
+//│ = 1
+
+fun funnySum(xs) = if xs is
+  [a, ..ls, b] then a + funnySum(ls) - b
+  [] then 0
+
+res |> funnySum
+//│ = 20
 
 
 // this makes the following failures not reported as test failures and hides their stack traces:

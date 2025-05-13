@@ -28,6 +28,9 @@ fun mk(...args) =
 fun concat(...args) =
   ???
 
+fun slice(beg, end) =
+  ???
+
 // * Amortized O(1) operation, assuming the list is not indexed while being built
 fun ith(idx) = case
   Array as a then a.[idx]
