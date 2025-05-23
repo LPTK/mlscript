@@ -1,60 +1,39 @@
+
+import "./Option.mls"
+
+open Option
+open ListFingerTree
+
+
 // Node[T]
 class Branch2(val size, val e1, val e2)
 class Branch3(val size, val e1, val e2, val e3)
 
 // View[T]
-class Nil()
+object Nil
 class View(val e1, val rest) // T, ListFingerTree[T]
 
 // ListFingerTree[T]
 class LFT
-class Empty() extends LFT
+object Empty extends LFT
 class Single(val e) extends LFT
 // prefix and suffix are at most length 4
-class Deep(val size, val prefix, val middle, val suffix) extends LFT // Array[T], ListFingerTree[Node[T]], Array[T]
-
-module ListFingerTree with...
-
-fun arrayFoldl(f, init, arr) = arr.reduce(f, init)
-fun arrayFoldr(f, init, arr) = arr.reduceRight(f, init)
-
-// Option[T]
-class Some(val value)
-class None()
+class Deep[T](val size, val prefix: Array[T], val middle, val suffix: Array[T]) extends LFT // TODO: middle: ListFingerTree[Node[T]]
 
 fun getNodeSize(node) = if node is
   Branch2(s, _, _) then s
   Branch3(s, _, _, _) then s
   _ then 1
 
-// amortized O(1)
-fun cons(x, xs) = if xs is
-  Empty then Single(x)
-  Single(y) then Deep(getNodeSize(y) + getNodeSize(x), [x], Empty(), [y])
-  Deep(s, ax, dt, ay) then 
-    if (ax.length >= 4)
-    then Deep(s + getNodeSize(x), [x, ax[0]], cons(Branch3(ax[1], ax[2], ax[3]), dt), ay)
-    else Deep(s + getNodeSize(x), [x, ...ax], dt, ay)
-
-// amortized O(1)
-fun snoc(xs, x) =
-  if xs is
-    Empty then Single(x)
-    Single(y) then Deep(getNodeSize(y) + getNodeSize(x), [y], Empty(), [x])
-    Deep(s, ax, dt, ay) then (if (ay.length >= 4)
-      then Deep(s + getNodeSize(x), ax, snoc(dt, Branch3(ax[0], ax[1], ax[2])), [ax[3], x])
-      else Deep(s + getNodeSize(x), ax, dt, [...ay, x])
-    )
-
-fun mk(...args) = arrayFoldl(
-    (acc, x) => snoc(acc, x), 
-    Empty(), args)
-
-// O(1)
-fun length(ft) = if ft is
-  Empty then 0
-  Single(x) then getNodeSize(x)
-  Deep(s, _, _, _) then s
+// amortized O(log n) - is there a proper way to match on tuples?
+fun concatMiddle(ft1, middle, ft2) = if [ft1, middle, ft2] is
+  [Empty, [], right] then right
+  [Empty, [x, ...xs], right] then cons(x, concatMiddle(Empty, xs, right))
+  [Single(y), xs, right] then cons(y, concatMiddle(Empty, xs, right))
+  [left, [...xs, x], Empty] then snoc(concatMiddle(left, xs, Empty), x)
+  [left, xs, Single(y)] then snoc(concatMiddle(left, xs, Empty), y)
+  [Deep(s1, pre1, dt1, ay1), middle, Deep(s2, ax2, dt2, post2)] then 
+    Deep(s1 + s2 + middle.length, pre1, concatMiddle(dt1, toNodes([...ay1, ...middle, ...ax2]), dt2), post2)
 
 // arr should be at most size 8 or so
 fun toNodes(arr) = if arr is
@@ -62,50 +41,7 @@ fun toNodes(arr) = if arr is
   [a, b, c] then [Branch3(getNodeSize(a) + getNodeSize(b) + getNodeSize(c),a, b, c)]
   [a, b, ...rest] then [Branch2(getNodeSize(a) + getNodeSize(b), a, b), ...rest]
 
-// amortized O(log n) - is there a proper way to match on tuples?
-fun concatMiddle(ft1, middle, ft2) = if [ft1, middle, ft2] is
-  [Empty, [], right] then right
-  [Empty, [x, ...xs], right] then cons(x, concatMiddle(Empty(), xs, right))
-  [Single(y), xs, right] then cons(y, concatMiddle(Empty(), xs, right))
-  [left, [...xs, x], Empty] then snoc(concatMiddle(left, xs, Empty()), x)
-  [left, xs, Single(y)] then snoc(concatMiddle(left, xs, Empty()), y)
-  [Deep(s1, pre1, dt1, ay1), middle, Deep(s2, ax2, dt2, post2)] then 
-    Deep(s1 + s2 + middle.length, pre1, concatMiddle(dt1, toNodes([...ay1, ...middle, ...ax2]), dt2), post2)
-
-// O(1)
-fun arrayOfNode(node) = if node is
-  Branch2(_, a, b) then [a, b]
-  Branch3(_, a, b, c) then [a, b, c]
-
-// amortized O(1)
-fun popFront(ft) = if ft is
-  Empty then Nil()
-  Single(x) then View(x, Empty())
-  Deep(s, [x], dt, ay) then if (popFront(dt)) is
-    Nil() then if ay is
-      [y] then View(x, Single(y))
-      [...front, y] then View(x, Deep(s - 1, front, Empty(), [y]))
-    View(x', dt) then 
-      View(x, Deep(s - 1, arrayOfNode(x'), dt, ay))
-  Deep(s, [x, ...ax], dt, ay) then
-    View(x, Deep(s - 1, ax, dt, ay))
-
-// amortized O(1)
-fun popBack(ft) = if ft is
-  Empty then Nil()
-  Single(x) then View(x, Empty())
-  Deep(s, ax, dt, [x]) then if (popBack(dt)) is
-    Nil() then if ax is
-      [y] then View(x, Single(y))
-      [y, ...front] then View(x, Deep(s - 1, [y], Empty(), front))
-    View(x', dt) then 
-      View(x, Deep(s - 1,  ax, dt, arrayOfNode(x')))
-  Deep(s, ax, dt, [...ay, y]) then
-    View(y, Deep(s - 1, ax, dt, ay))
-
-// amortized O(log n)
-fun concat(ft1, ft2) = concatMiddle(ft1, [], ft2)
-
+// TODO: rm else/if stuttering
 fun ithNode(idx, node) = if node is
   Branch2(s, a, b) then if idx >= 0 && idx < s
     then if idx < getNodeSize(a)
@@ -123,20 +59,102 @@ fun ithNode(idx, node) = if node is
     then a
     else throw "ithNode: index out of bounds"
 
+// TODO rm
+fun arrayFoldl(f, init, arr) = arr.reduce(f, init)
+fun arrayFoldr(f, init, arr) = arr.reduceRight(f, init)
+
+
+module ListFingerTree with...
+
+
+// amortized O(1)
+fun cons(x, xs) = if xs is
+  Empty then Single(x)
+  Single(y) then Deep(getNodeSize(y) + getNodeSize(x), [x], Empty, [y])
+  Deep(s, ax, dt, ay) then 
+    if (ax.length >= 4)
+    then Deep(s + getNodeSize(x), [x, ax[0]], cons(Branch3(ax[1], ax[2], ax[3]), dt), ay)
+    else Deep(s + getNodeSize(x), [x, ...ax], dt, ay)
+
+// amortized O(1)
+fun snoc(xs, x) =
+  if xs is
+    Empty then Single(x)
+    Single(y) then Deep(getNodeSize(y) + getNodeSize(x), [y], Empty, [x])
+    Deep(s, ax, dt, ay) then if (ay.length >= 4)
+      then Deep(s + getNodeSize(x), ax, snoc(dt, Branch3(ax[0], ax[1], ax[2])), [ax[3], x])
+      else Deep(s + getNodeSize(x), ax, dt, [...ay, x])
+
+fun mk(...args) = arrayFoldl(
+    (acc, x) => snoc(acc, x), 
+    Empty, args)
+
+// O(1)
+fun length(ft) = if ft is
+  Empty then 0
+  Single(x) then getNodeSize(x)
+  Deep(s, _, _, _) then s
+
+// O(1)
+fun arrayOfNode(node) = if node is
+  Branch2(_, a, b) then [a, b]
+  Branch3(_, a, b, c) then [a, b, c]
+
+// amortized O(1)
+fun popFront(ft) = if ft is
+  Empty then Nil
+  Single(x) then View(x, Empty)
+  Deep(s, [x], dt, ay) then if (popFront(dt)) is
+    Nil then if ay is
+      [y] then View(x, Single(y))
+      [...front, y] then View(x, Deep(s - 1, front, Empty, [y]))
+    View(x', dt) then 
+      View(x, Deep(s - 1, arrayOfNode(x'), dt, ay))
+  Deep(s, [x, ...ax], dt, ay) then
+    View(x, Deep(s - 1, ax, dt, ay))
+
+// amortized O(1)
+fun popBack(ft) = if ft is
+  Empty then Nil
+  Single(x) then View(x, Empty)
+  Deep(s, ax, dt, [x]) then if popBack(dt) is
+    Nil then if ax is
+      [y] then View(x, Single(y))
+      [y, ...front] then View(x, Deep(s - 1, [y], Empty, front))
+    View(x', dt) then 
+      View(x, Deep(s - 1,  ax, dt, arrayOfNode(x')))
+  Deep(s, ax, dt, [...ay, y]) then
+    View(y, Deep(s - 1, ax, dt, ay))
+
+// amortized O(log n)
+fun concat(ft1, ft2) = concatMiddle(ft1, [], ft2)
+
 // affix should be at most size 4
 fun getAffixSize(arr) = if arr is
   [] then 0
   [a, ...rest] then getNodeSize(a) + getAffixSize(rest)
 
 fun ithAffixElement(idx, arr) = if arr is
-  [] then None()
+  [] then None
   [a, ...rest] then if idx < getNodeSize(a)
     then Some(ithNode(idx, a))
     else ithAffixElement(idx - getNodeSize(a), rest)
 
 // amortized O(log n)
 fun ith(idx) = case
-  Empty then None()
+  Empty then None
+  Single(x) then ithNode(idx, x)
+  Deep(s, ax, dt, ay) and
+    idx >= 0 && idx < s and
+      idx < getAffixSize(ax) then ithAffixElement(idx, ax)
+      idx < getAffixSize(ax) + length(dt) then ith(idx - getAffixSize(ax))(dt)
+      else ithAffixElement(idx - getAffixSize(ax) - length(dt), ay)
+    else None
+
+// TODO rm
+// amortized O(log n)
+fun ith2(idx) = case
+  Empty then None
   Single(x) then ithNode(idx, x)
   Deep(s, ax, dt, ay) then if idx >= 0 && idx < s
     then if idx < getAffixSize(ax)
@@ -144,7 +162,7 @@ fun ith(idx) = case
       else if idx < getAffixSize(ax) + length(dt)
         then ith(idx - getAffixSize(ax))(dt)
         else ithAffixElement(idx - getAffixSize(ax) - length(dt), ay)
-    else None()
+    else None
 
 // fix - should make linear
 fun toArray = case
@@ -157,14 +175,14 @@ fun repeatPopFront(n)(xs) =
   if n is
     0 then xs
     _ then if popFront(xs) is
-      Nil() then xs
+      Nil then xs
       View(_, rest) then repeatPopFront(n - 1)(rest)
 
 fun repeatPopBack(n)(xs) =
   if n is
     0 then xs
     _ then if popBack(xs) is
-      Nil() then xs
+      Nil then xs
       View(_, rest) then repeatPopBack(n - 1)(rest)
 
 /// amortized O(beg + end)
@@ -172,3 +190,4 @@ fun slice(beg, end)(und) =
   if beg < 0 || end < 0 || beg > end || end > length(und)
     then throw "slice: index out of bounds"
     else repeatPopFront(beg)(repeatPopBack(length(und) - end)(und))
+

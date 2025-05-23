@@ -6,6 +6,7 @@ open Predef
 open Option { Some, None }
 open Stack { Nil, Cons }
 
+
 // * Implements the `Iterable` protocol.
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
 class Iterable(mk) with
@@ -21,7 +22,9 @@ module Result with
   object Done with
     val done = true
 
+
 module Iter with ...
+
 
 // A helper function to detect if `Symbol.iterator` is on an object, and if not,
 // indicate the object's class in the error message, which is useful for debugging.
@@ -200,3 +203,5 @@ fun fromStack(stack) = Iterable of () =>
     Nil then Result.Done
 
 fun toStack(xs) = xs rightFolded of Nil, Cons
+
+

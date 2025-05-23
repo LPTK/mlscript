@@ -15,6 +15,7 @@ print(print("hello!"))
 
 import "../../mlscript-compile/Runtime.mls"
 
+
 print(Runtime.Unit)
 //│ > ()
 
@@ -83,3 +84,8 @@ print of Str.startsWith("hello, world", "")
 
 print of Str.startsWith("hello, world", "farewell")
 //│ > false
+
+
+Runtime.ListFingerTree.mk(1,2,3)
+//│ = Deep(3, [1], Empty, [2, 3])
+

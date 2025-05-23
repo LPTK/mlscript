@@ -1,10 +1,13 @@
 import runtime from "./Runtime.mjs";
 import RuntimeJS from "./RuntimeJS.mjs";
 import Rendering from "./Rendering.mjs";
-let Runtime1;
+import ListFingerTree from "./ListFingerTree.mjs";
+let Runtime1, lft;
+lft = ListFingerTree;
 (class Runtime {
   static {
     Runtime1 = Runtime;
+    this.ListFingerTree = lft;
     const Unit$class = class Unit {
       constructor() {}
       toString() {
