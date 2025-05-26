@@ -43,6 +43,7 @@ trait DesugaringBase(using state: State):
     Pattern.ClassLike(classSym, classSel, parameters.map(_.map(S.apply)), false)(Empty())
 
   protected lazy val tupleSlice = sel(sel(state.runtimeSymbol.ref(), "Tuple"), "slice")
+  protected lazy val tupleLazySlice = sel(sel(state.runtimeSymbol.ref(), "Tuple"), "lazySlice")
   protected lazy val tupleGet = sel(sel(state.runtimeSymbol.ref(), "Tuple"), "get")
   protected lazy val stringStartsWith = sel(sel(state.runtimeSymbol.ref(), "Str"), "startsWith")
   protected lazy val stringGet = sel(sel(state.runtimeSymbol.ref(), "Str"), "get")

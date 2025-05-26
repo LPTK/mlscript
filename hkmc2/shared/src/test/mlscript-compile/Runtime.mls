@@ -68,6 +68,8 @@ module Tuple with
     // * as it is not affected by users redefining `slice`
     globalThis.Array.prototype.slice.call(xs, i, xs.length - j)
 
+  fun lazySlice(xs, i, j) = ListFingerTree.slice(i, j)(xs)
+
   fun get(xs, i) =
     // * Contrary to `xs.[i]`, this supports negative indices (Python-style)
     if i >= xs.length then

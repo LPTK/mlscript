@@ -9,11 +9,11 @@ import "../../mlscript-compile/ListFingerTree.mls"
 open ListFingerTree
 
 let xs = ListFingerTree.mk(1,2,3)
-//│ xs = Deep(3, [1], Empty, [2, 3])
+//│ xs = [1, 2, 3]
 
 
 let ys = concat(concat(xs, xs), xs)
-//│ ys = Deep(9, [1], Deep(6, [Branch3(3, 2, 3, 1)], Empty, [Branch3(3, 2, 3, 1)]), [2, 3])
+//│ ys = [1, 2, 3, 1, 2, 3, 1, 2, 3]
 
 ys |> ith(-1)
 //│ = None
@@ -39,58 +39,78 @@ ys |> ith(9)
 //│ = None
 
 let ys = (ys |> popFront).rest
-//│ ys = Deep(8, [2, 3, 1], Single(Branch3(3, 2, 3, 1)), [2, 3])
+//│ ys = [2, 3, 1, 2, 3, 1, 2, 3]
 let ys = (ys |> popBack).rest
-//│ ys = Deep(7, [2, 3, 1], Single(Branch3(3, 2, 3, 1)), [2])
+//│ ys = [2, 3, 1, 2, 3, 1, 2]
 let ys = (ys |> popBack).rest
-//│ ys = Deep(6, [2, 3, 1], Empty, [2, 3, 1])
+//│ ys = [2, 3, 1, 2, 3, 1]
 let ys = (ys |> popBack).rest
-//│ ys = Deep(5, [2, 3, 1], Empty, [2, 3])
+//│ ys = [2, 3, 1, 2, 3]
 let ys = (ys |> popFront).rest
-//│ ys = Deep(4, [3, 1], Empty, [2, 3])
+//│ ys = [3, 1, 2, 3]
 let ys = (ys |> popFront).rest
-//│ ys = Deep(3, [1], Empty, [2, 3])
+//│ ys = [1, 2, 3]
 let ys = (ys |> popFront).rest
-//│ ys = Deep(2, [2], Empty, [3])
+//│ ys = [2, 3]
 
 let ys = concat(concat(xs, xs), xs)
-//│ ys = Deep(9, [1], Deep(6, [Branch3(3, 2, 3, 1)], Empty, [Branch3(3, 2, 3, 1)]), [2, 3])
+//│ ys = [1, 2, 3, 1, 2, 3, 1, 2, 3]
 
 // TODO: implement & test slice
-ys |> slice(4, 6)
-//│ = Deep(2, [2], Empty, [3])
+ys |> slice(3, 3)
+//│ = [1, 2, 3]
 
-// * TODO for later: support the lazy spread syntax
+:sjs
+[...[1, 2, 3]]
+//│ JS (unsanitized):
+//│ [ ...[ 1, 2, 3 ] ]
+//│ = [1, 2, 3]
 
-// TODO should have lazy spread semantics
-// [0, ..xs]
+let ys = 1 +: 2 +: 3 +: ys :+ 1 :+ 2 :+ 3
+//│ ys = [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
 
-// TODO should have lazy spread semantics
-// if xs  is
-//   [a, ..ls] then [a, ls]
+[...ys]
+//│ = [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
 
+ListFingerTree.length(ys ++ ys)
+//│ = 30
 
-// fun build(i) =
-//   if i > 0 then [i, ..build(i - 1), -i] else []
-
-// let res = build(4)
-// //│ res = [4, 3, 2, 1, -1, -2, -3, -4]
-
-// res |> ith(3)
-
-
-// fun funnySum(xs) = if xs is
-//   [a, ..ls, b] then a + funnySum(ls) - b
-//   [] then 0
-
-// res |> funnySum
+ys
+//│ = [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
 
 
-// this makes the following failures not reported as test failures and hides their stack traces:
-:global
-:todo
+let zs = ys ++ ys
+//│ zs = [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
 
+[...zs]
+//│ = [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
 
-// let ys = concat(xs, xs)
+fun mkRange(start, end) =
+    if start < end then
+        mkRange(start + 1, end) :+ start
+    else
+        mk()
 
-// ys |> slice(2, 4) |> ith(1)
+fun repeat(xs, n) = 
+    if n == 0 then mk()
+    else xs ++ repeat(xs, n - 1)
+
+xs ++ xs
+//│ = [1, 2, 3, 1, 2, 3]
+
+1
+//│ = 1
+
+repeat(xs, 5124) length()
+//│ = 15372
+
+mk(1, 2, 3) length()
+//│ = 3
+
+[1, 2, 3]
+//│ = [1, 2, 3]
+
+(if [1,2,3,4] is
+    [..a, b] then a
+    [] then []) slice(1, 1)()
+//│ = [2]

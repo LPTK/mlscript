@@ -68,13 +68,18 @@ lft = ListFingerTree;
         tmp = xs.length - j;
         return runtime.safeCall(globalThis.Array.prototype.slice.call(xs, i, tmp))
       } 
-      static get(xs1, i1) {
+      static lazySlice(xs1, i1, j1) {
+        let tmp;
+        tmp = Runtime.ListFingerTree.slice(i1, j1);
+        return runtime.safeCall(tmp(xs1))
+      } 
+      static get(xs2, i2) {
         let scrut;
-        scrut = i1 >= xs1.length;
+        scrut = i2 >= xs2.length;
         if (scrut === true) {
           throw globalThis.RangeError("Tuple.get: index out of bounds");
         } else {
-          return globalThis.Array.prototype.at.call(xs1, i1)
+          return globalThis.Array.prototype.at.call(xs2, i2)
         }
       }
       static toString() { return "Tuple"; }
