@@ -143,7 +143,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
         if isValidFieldName(name)
         then doc".$name"
         else name.toIntOption match
-          case S(index) => s"[$index]"
+          case S(index) => s".at($index)"
           case N => s"[${makeStringLiteral(name)}]"
       }"
     case DynSelect(qual, fld, ai) =>
@@ -374,7 +374,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
           case Elaborator.ctx.builtins.Bool => doc"typeof $sd === 'boolean'"
           case Elaborator.ctx.builtins.Int => doc"globalThis.Number.isInteger($sd)"
           case _ => doc"$sd instanceof ${result(pth)}"
-        case Case.Tup(len, inf) => doc"globalThis.Array.isArray($sd) && $sd.length ${if inf then ">=" else "==="} ${len}"
+        case Case.Tup(len, inf) => doc"runtime.Tuple.isArrayLike($sd) && $sd.length ${if inf then ">=" else "==="} ${len}"
       val h = doc" # if (${ cond(hd._1) }) ${ braced(returningTerm(hd._2, endSemi = false)) }"
       val t = tl.foldLeft(h)((acc, arm) =>
         acc :: doc" else if (${ cond(arm._1) }) ${ braced(returningTerm(arm._2, endSemi = false)) }")

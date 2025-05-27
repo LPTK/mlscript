@@ -101,16 +101,49 @@ xs ++ xs
 1
 //│ = 1
 
-repeat(xs, 5124) length()
+// TODO: 
+repeat(xs, 5124).length
 //│ = 15372
 
-mk(1, 2, 3) length()
+mk(1, 2, 3).length
 //│ = 3
 
-[1, 2, 3]
-//│ = [1, 2, 3]
+mk(1, 2, 3).at(2)
+//│ = 3
 
 (if [1,2,3,4] is
     [..a, b] then a
     [] then []) slice(1, 1)()
 //│ = [2]
+
+// Lazy spread syntax
+let xs = ListFingerTree.mk(1, 2, 3)
+//│ xs = [1, 2, 3]
+
+xs |> ith(1)
+//│ = Some(2)
+
+// Note: this is still eager
+[0, ..xs]
+//│ = [0, 1, 2, 3]
+
+// Note: ls is a finger tree
+if xs is
+  [a, ..ls] then [a, ls]
+//│ = [1, [2, 3]]
+
+fun build(i) =
+  if i > 0 then [i, ..build(i - 1), -i] else []
+
+let res = build(4)
+//│ res = [4, 3, 2, 1, -1, -2, -3, -4]
+
+res
+//│ = [4, 3, 2, 1, -1, -2, -3, -4]
+
+fun funnySum(xs) = if xs is
+  [a, ..ls, b] then a + funnySum(ls) - b
+  [] then 0
+
+res |> funnySum
+//│ = 20

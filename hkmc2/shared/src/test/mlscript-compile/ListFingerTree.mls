@@ -30,6 +30,8 @@ class LFT with
         Result.Next of head
 
   fun toString() = "[" + [...this].join(", ") + "]"
+  fun length = ListFingerTree.length(this)
+  fun at(i) = get(i)(this)
 
 object Empty extends LFT with
   fun toString() = "[" + [...this].join(", ") + "]"
@@ -75,23 +77,20 @@ fun ithAffixElement(idx, arr) = if arr is
     then Some(ithNode(idx, a))
     else ithAffixElement(idx - getNodeSize(a), rest)
 
-// TODO: rm else/if stuttering
 fun ithNode(idx, node) = if node is
-  Branch2(s, a, b) then if idx >= 0 && idx < s
-    then if idx < getNodeSize(a)
-      then ithNode(idx, a)
+  Branch2(s, a, b) and 
+    idx >= 0 && idx < s and
+      idx < getNodeSize(a) then ithNode(idx, a)
       else ithNode(idx - getNodeSize(a), b)
     else throw "ithNode: index out of bounds"
-  Branch3(s, a, b, c) then if idx >= 0 && idx < s
-    then if idx < getNodeSize(a)
-      then ithNode(idx, a)
-      else if idx < getNodeSize(a) + getNodeSize(b)
-        then ithNode(idx - getNodeSize(a), b)
-        else ithNode(idx - getNodeSize(a) - getNodeSize(b), c)
+  Branch3(s, a, b, c) and
+    idx >= 0 && idx < s and
+      idx < getNodeSize(a) then ithNode(idx, a)
+      idx < getNodeSize(a) + getNodeSize(b) then ithNode(idx - getNodeSize(a), b)
+      else ithNode(idx - getNodeSize(a) - getNodeSize(b), c)
     else throw "ithNode: index out of bounds"
-  a then if idx == 0
-    then a
-    else throw "ithNode: index out of bounds"
+  a and idx == 0 then a
+  else throw "ithNode: index out of bounds"
 
 fun repeatPopFront(n)(xs) =
   if n is
@@ -107,6 +106,9 @@ fun repeatPopBack(n)(xs) =
       Nil then xs
       View(_, rest) then repeatPopBack(n - 1)(rest)
 
+fun normIdx(idx, len) =
+  if idx < 0 then idx + len
+  else idx
 
 module ListFingerTree with...
 
@@ -136,8 +138,14 @@ fun mk(...args) = args.reduce(
     (acc, x) => snoc(acc, x), 
     Empty)
 
+fun isArrayLike = case
+  Array then true
+  LFT then true
+  else false
+
 // O(1)
-fun length(ft) = if ft is
+fun length = case
+  Array as a then a.length
   Empty then 0
   Single(x) then getNodeSize(x)
   Deep(s, _, _, _) then s
@@ -149,11 +157,11 @@ fun popFront(ft) = if ft is
   Deep(s, [x], dt, ay) then if (popFront(dt)) is
     Nil then if ay is
       [y] then View(x, Single(y))
-      [...front, y] then View(x, Deep(s - 1, front, Empty, [y]))
-    View(x', dt) then 
-      View(x, Deep(s - 1, arrayOfNode(x'), dt, ay))
+      [...front, y] then View(x, Deep(s - getNodeSize(x), front, Empty, [y]))
+    View(x', dt') then 
+      View(x, Deep(s - getNodeSize(x), arrayOfNode(x'), dt', ay))
   Deep(s, [x, ...ax], dt, ay) then
-    View(x, Deep(s - 1, ax, dt, ay))
+    View(x, Deep(s - getNodeSize(x), ax, dt, ay))
 
 // amortized O(1)
 fun popBack(ft) = if ft is
@@ -162,11 +170,11 @@ fun popBack(ft) = if ft is
   Deep(s, ax, dt, [x]) then if popBack(dt) is
     Nil then if ax is
       [y] then View(x, Single(y))
-      [y, ...front] then View(x, Deep(s - 1, [y], Empty, front))
-    View(x', dt) then 
-      View(x, Deep(s - 1,  ax, dt, arrayOfNode(x')))
+      [y, ...front] then View(x, Deep(s - getNodeSize(x), [y], Empty, front))
+    View(x', dt') then 
+      View(x, Deep(s - getNodeSize(x), ax, dt', arrayOfNode(x')))
   Deep(s, ax, dt, [...ay, y]) then
-    View(y, Deep(s - 1, ax, dt, ay))
+    View(y, Deep(s - getNodeSize(y), ax, dt, ay))
 
 // amortized O(log n)
 fun (++) concat(ft1, ft2) = concatMiddle(ft1, [], ft2)
@@ -181,6 +189,12 @@ fun ith(idx) = case
       idx < getAffixSize(ax) + length(dt) then ith(idx - getAffixSize(ax))(dt)
       else ithAffixElement(idx - getAffixSize(ax) - length(dt), ay)
     else None
+
+fun get(idx) = case
+  Array as a then a.at(idx)
+  LFT as lft then if ith(normIdx(idx, length(lft)))(lft) is
+    None then throw "get: index out of bounds"
+    Some(x) then x
 
 // TODO rm
 // amortized O(log n)

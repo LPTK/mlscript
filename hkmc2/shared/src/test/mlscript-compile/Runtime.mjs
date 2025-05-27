@@ -74,13 +74,17 @@ lft = ListFingerTree;
         return runtime.safeCall(tmp(xs1))
       } 
       static get(xs2, i2) {
-        let scrut;
+        let scrut, tmp;
         scrut = i2 >= xs2.length;
         if (scrut === true) {
           throw globalThis.RangeError("Tuple.get: index out of bounds");
         } else {
-          return globalThis.Array.prototype.at.call(xs2, i2)
+          tmp = runtime.safeCall(Runtime.ListFingerTree.get(i2));
+          return runtime.safeCall(tmp(xs2))
         }
+      } 
+      static isArrayLike(xs3) {
+        return runtime.safeCall(Runtime.ListFingerTree.isArrayLike(xs3))
       }
       static toString() { return "Tuple"; }
     });

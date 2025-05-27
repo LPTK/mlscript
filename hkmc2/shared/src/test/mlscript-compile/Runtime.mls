@@ -74,7 +74,9 @@ module Tuple with
     // * Contrary to `xs.[i]`, this supports negative indices (Python-style)
     if i >= xs.length then
       throw RangeError("Tuple.get: index out of bounds")
-    else globalThis.Array.prototype.at.call(xs, i)
+    else ListFingerTree.get(i)(xs)
+
+  fun isArrayLike(xs) = ListFingerTree.isArrayLike(xs)
 
 module Str with
   fun startsWith(string, prefix) = string.startsWith(prefix)
