@@ -87,5 +87,5 @@ print of Str.startsWith("hello, world", "farewell")
 
 
 Runtime.ListFingerTree.mk(1,2,3)
-//│ = Deep(3, [1], Empty, [2, 3])
+//│ = [1, 2, 3]
 
