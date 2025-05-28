@@ -3,6 +3,7 @@ package codegen
 
 import scala.language.implicitConversions
 import scala.annotation.tailrec
+import os.{Path as AbsPath, RelPath}
 
 import mlscript.utils.*, shorthands.*
 import utils.*
@@ -219,7 +220,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       args(fs)(args => k(Value.Arr(args)))
     case ref @ st.Ref(sym) =>
       sym match
-      case ctx.builtins.source.bms | ctx.builtins.js.bms | ctx.builtins.debug.bms =>
+      case ctx.builtins.source.bms | ctx.builtins.js.bms | ctx.builtins.debug.bms | ctx.builtins.annotations.bms =>
         raise:
           ErrorReport(
             msg"Module '${sym.nme}' is virtual (i.e., \"compiler fiction\"); cannot be used directly" -> t.toLoc ::
@@ -465,30 +466,48 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
               )
             pat match
               case Pattern.Lit(lit) => mkMatch(Case.Lit(lit) -> go(tail, topLevel = false))
-              case Pattern.ClassLike(cls: ClassSymbol, _trm, _args0, _refined)
-                  // Do not elaborate `_trm` when the `cls` is virtual.
-                  if Elaborator.ctx.builtins.virtualClasses contains cls =>
-                // [invariant:0] Some classes (e.g., `Int`) from `Prelude` do
-                // not exist at runtime. If we do lowering on `trm`, backends
-                // (e.g., `JSBuilder`) will not be able to handle the corresponding selections.
-                // In this case the second parameter of `Case.Cls` will not be used.
-                // So we make it `Predef.unreachable` here.
-                mkMatch(Case.Cls(cls, unreachableFn) -> go(tail, topLevel = false))
-              case Pattern.ClassLike(cls, trm, args0, _refined) =>
-                subTerm_nonTail(trm): st =>
-                  val args = args0.getOrElse(Nil)
-                  val clsParams = cls match
-                    case cls: ClassSymbol => cls.tree.clsParams
-                    case _: ModuleSymbol => Nil
-                  assert(args0.isEmpty || clsParams.length === args.length)
+              case Pattern.ClassLike(ctor, argsOpt, _mode, _refined) =>
+                /** Make a continuation that creates the match. */
+                def k(ctorSym: ClassLikeSymbol, clsParams: Ls[TermSymbol])(st: Path): Block =
+                  val args = argsOpt.map(_.map(_.scrutinee)).getOrElse(Nil)
+                  // Normalization should reject cases where the user provides
+                  // more sub-patterns than there are actual class parameters.
+                  assert(argsOpt.isEmpty || args.length <= clsParams.length)
                   def mkArgs(args: Ls[TermSymbol -> BlockLocalSymbol])(using Subst): Case -> Block = args match
                     case Nil =>
-                      Case.Cls(cls, st) -> go(tail, topLevel = false)
+                      Case.Cls(ctorSym, st) -> go(tail, topLevel = false)
                     case (param, arg) :: args =>
                       val (cse, blk) = mkArgs(args)
                       (cse, Assign(arg, Select(sr, param.id/*FIXME incorrect Ident?*/)(S(param)), blk))
-                  mkMatch(mkArgs(clsParams.iterator.zip(args).collect { case (s1, S(s2)) => (s1, s2) }.toList))
+                  mkMatch(mkArgs(clsParams.iterator.zip(args).toList))
+                ctor.symbol.flatMap(_.asClsOrMod) match
+                  case S(cls: ClassSymbol) if ctx.builtins.virtualClasses contains cls =>
+                    // [invariant:0] Some classes (e.g., `Int`) from `Prelude` do
+                    // not exist at runtime. If we do lowering on `trm`, backends
+                    // (e.g., `JSBuilder`) will not be able to handle the corresponding selections.
+                    // In this case the second parameter of `Case.Cls` will not be used.
+                    // So we do not elaborate `ctor` when the `cls` is virtual
+                    // and use it `Predef.unreachable` here.
+                    k(cls, Nil)(unreachableFn)
+                  case S(cls: ClassSymbol) => subTerm_nonTail(ctor)(k(cls, cls.tree.clsParams))
+                  case S(mod: ModuleSymbol) => subTerm_nonTail(ctor)(k(mod, Nil))
+                  case N =>
+                    // Normalization have already checked the constructor
+                    // resolves to a class or module. Branches with unresolved
+                    // constructors should have been removed.
+                    lastWords("Pattern.ClassLike: constructor is neither a class nor a module")
               case Pattern.Tuple(len, inf) => mkMatch(Case.Tup(len, inf) -> go(tail, topLevel = false))
+              case Pattern.Record(entries) =>
+                val objectSym = ctx.builtins.Object
+                mkMatch( // checking that we have an object
+                  Case.Cls(objectSym, Value.Ref(BuiltinSymbol(objectSym.nme, false, false, true, false))),
+                  entries.foldRight(go(tail, topLevel = false)):
+                    case ((fieldName, fieldSymbol), blk) =>
+                      mkMatch(
+                        Case.Field(fieldName, safe = true), // we know we have an object, no need to check again
+                        Assign(fieldSymbol, Select(sr, fieldName)(N), blk)
+                      )
+                )
         case Split.Else(els) =>
           if k.isInstanceOf[TailOp] && isIf then term_nonTail(els)(k)
           else
@@ -501,11 +520,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           Throw(Instantiate(Select(Value.Ref(State.globalThisSymbol), Tree.Ident("Error"))(N),
             Value.Lit(syntax.Tree.StrLit("match error")) :: Nil)) // TODO add failed-match scrutinee info
       
-      if k.isInstanceOf[TailOp] && isIf then go(iftrm.normalized, topLevel = true)
+      val normalize = ucs.Normalization()
+      val normalized = tl.scoped("ucs:normalize"):
+        normalize(iftrm.desugared)
+      tl.scoped("ucs:normalized"):
+        tl.log(s"Normalized:\n${Split.display(normalized)}")
+
+      if k.isInstanceOf[TailOp] && isIf then go(normalized, topLevel = true)
       else
         val body = if isWhile
-          then Label(lbl, go(iftrm.normalized, topLevel = true), End())
-          else go(iftrm.normalized, topLevel = true)
+          then Label(lbl, go(normalized, topLevel = true), End())
+          else go(normalized, topLevel = true)
         Begin(
           body,
           if usesResTmp then k(Value.Ref(l))
@@ -549,7 +574,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         subTerm_nonTail(finallyDo)(_ => End()),
         k(Value.Ref(l))
       )
-      
+    
+    case Quoted(body) => quote(body)(k)
+    
     // * BbML-specific cases: t.Cls#field and mutable operations
     case sp @ SelProj(prefix, _, proj) =>
       setupSelection(prefix, proj, sp.sym)(k)
@@ -587,6 +614,127 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     
     // case _ =>
     //   subTerm(t)(k)
+
+  def setupTerm(name: Str, args: Ls[Path])(k: Result => Block)(using Subst): Block =
+    k(Instantiate(Value.Ref(State.termSymbol).selSN(name), args))
+
+  def setupQuotedKeyword(kw: Str): Path =
+    Value.Ref(State.termSymbol).selSN("Keyword").selSN(kw)
+
+  def setupSymbol(symbol: Local)(k: Result => Block)(using Subst): Block =
+    k(Instantiate(Value.Ref(State.termSymbol).selSN("Symbol"), Value.Lit(Tree.StrLit(symbol.nme)) :: Nil))
+
+  def quotePattern(p: Pattern)(k: Result => Block)(using Subst): Block = p match
+    case Pattern.Lit(lit) => setupTerm("LitPattern", Value.Lit(lit) :: Nil)(k)
+    case _ => // TODO
+      raise(ErrorReport(
+        msg"Unsupported quasiquote pattern type ${p.showDbg}" ->
+        p.toLoc :: Nil,
+        source = Diagnostic.Source.Compilation
+      ))
+      End("error")
+
+
+  def quoteSplit(split: Split)(k: Result => Block)(using Subst): Block = split match
+    case Split.Cons(Branch(scrutinee, pattern, continuation), tail) => quote(scrutinee): r1 =>
+      val l1, l2, l3, l4, l5 = new TempSymbol(N)
+      blockBuilder.assign(l1, r1)
+        .chain(b => quotePattern(pattern)(r2 => Assign(l2, r2, b)))
+        .chain(b => quoteSplit(continuation)(r3 => Assign(l3, r3, b)))
+        .chain(b => setupTerm("Branch", (l1 :: l2 :: l3 :: Nil).map(s => Value.Ref(s)))(r4 => Assign(l4, r4, b)))
+        .chain(b => quoteSplit(tail)(r5 => Assign(l5, r5, b)))
+        .rest(setupTerm("Cons", (l4 :: l5 :: Nil).map(s => Value.Ref(s)))(k))
+    case Split.Let(sym, term, tail) => setupSymbol(sym): r1 =>
+      val l1, l2, l3 = new TempSymbol(N)
+      blockBuilder.assign(l1, r1)
+        .chain(b => setupTerm("Ref", Value.Ref(l1) :: Nil)(r => Assign(sym, r, b)))
+        .chain(b => quote(term)(r2 => Assign(l2, r2, b)))
+        .chain(b => quoteSplit(tail)(r3 => Assign(l3, r3, b)))
+        .rest(setupTerm("Let", (l1 :: l2 :: l3 :: Nil).map(s => Value.Ref(s)))(k))
+    case Split.Else(default) => quote(default): r =>
+      val l = new TempSymbol(N)
+      Assign(l, r, setupTerm("Else", Value.Ref(l) :: Nil)(k))
+    case Split.End => setupTerm("End", Nil)(k)
+
+  lazy val setupFilename: Path =
+    val state = summon[State]
+    Value.Ref(state.importSymbol).selSN("meta").selSN("url")
+
+  def quote(t: st)(k: Result => Block)(using Subst): Block = t match
+    case Lit(lit) =>
+      setupTerm("Lit", Value.Lit(lit) :: Nil)(k)
+    case Ref(sym) if Elaborator.binaryOps.contains(sym.nme) => // builtin symbols
+      val l = new TempSymbol(N)
+      setupTerm("Builtin", Value.Lit(Tree.StrLit(sym.nme)) :: Nil)(k)
+    case Ref(sym) =>
+      k(Value.Ref(sym))
+    case SynthSel(Ref(sym: ModuleSymbol), name) => // Local cross-stage references
+      setupSymbol(sym): r1 =>
+        val l1, l2 = new TempSymbol(N)
+        Assign(l1, r1, setupTerm("CSRef", Value.Ref(l1) :: setupFilename :: Value.Lit(syntax.Tree.UnitLit(false)) :: Nil)(r2 =>
+          Assign(l2, r2, setupTerm("Sel", Value.Ref(l2) :: Value.Lit(syntax.Tree.StrLit(name.name)) :: Nil)(k))
+        ))
+    case SynthSel(Ref(sym: BlockMemberSymbol), name) => // Multi-file cross-stage references
+      (t.toLoc, sym.toLoc) match
+        case (S(Loc(_, _, Origin(base, _, _))), S(Loc(_, _, Origin(filename, _, _)))) => setupSymbol(sym): r1 =>
+          val l1, l2 = new TempSymbol(N)
+          val basePath = base / os.up
+          val targetPath = filename
+          val relPath = targetPath.relativeTo(basePath).toString
+          Assign(l1, r1, setupTerm("CSRef", Value.Ref(l1) :: setupFilename :: Value.Lit(syntax.Tree.StrLit(relPath)) :: Nil)(r2 =>
+            Assign(l2, r2, setupTerm("Sel", Value.Ref(l2) :: Value.Lit(syntax.Tree.StrLit(name.name)) :: Nil)(k))
+          ))
+        case _ =>
+          raise(ErrorReport(
+            msg"Cannot refer to imported module ${sym.nme} due to the lack of path." ->
+            t.toLoc :: Nil,
+            source = Diagnostic.Source.Compilation
+          ))
+          End("error")
+    case Lam(params, body) =>
+      def rec(ps: Ls[LocalSymbol & NamedSymbol], ds: Ls[Path])(k: Result => Block)(using Subst): Block = ps match
+        case Nil => quote(body): r =>
+          val l = new TempSymbol(N)
+          Assign(l, r, setupTerm("Lam", Value.Arr(ds.reverse.map(_.asArg)) :: Value.Ref(l) :: Nil)(k))
+        case sym :: rest =>
+          setupSymbol(sym): r =>
+            val l = new TempSymbol(N)
+            Assign(l, r, setupTerm("Ref", Value.Ref(l) :: Nil): r1 =>
+              Assign(sym, r1, rec(rest, Value.Ref(l) :: ds)(k)))
+      rec(params.params.map(_.sym), Nil)(k) // TODO: restParam?
+    case App(lhs, Tup(rhs)) => quote(lhs): r1 =>
+      def rec(es: Ls[Elem], xs: Ls[Path])(k: Result => Block): Block = es match
+        case Nil => setupTerm("Tup", Value.Arr(xs.reverse.map(_.asArg)) :: Nil): r2 =>
+          val l1, l2 = new TempSymbol(N)
+          Assign(l1, r1, Assign(l2, r2, setupTerm("App", Value.Ref(l1) :: Value.Ref(l2) :: Nil)(k)))
+        case Fld(_, t, _) :: rest => quote(t): r2 =>
+          val l = new TempSymbol(N)
+          Assign(l, r2, rec(rest, Value.Ref(l) :: xs)(k))
+      rec(rhs, Nil)(k)
+    case Blk(LetDecl(sym, _) :: DefineVar(sym2, rhs) :: Nil, res) => // Let bindings
+      require(sym2 is sym)
+      setupSymbol(sym){r1 =>
+        val l1, l2, l3, l4, l5 = new TempSymbol(N)
+        blockBuilder.assign(l1, r1)
+          .chain(b => setupTerm("Ref", Value.Ref(l1) :: Nil)(r => Assign(sym, r, b)))
+          .chain(b => quote(rhs)(r2 => Assign(l2, r2, b)))
+          .chain(b => quote(res)(r3 => Assign(l3, r3, b)))
+          .chain(b => setupTerm("LetDecl", Value.Ref(l1) :: Nil)(r4 => Assign(l4, r4, b)))
+          .chain(b => setupTerm("DefineVar", Value.Ref(l1) :: Value.Ref(l2) :: Nil)(r5 => Assign(l5, r5, b)))
+          .rest(setupTerm("Blk", Value.Arr((l4 :: l5 :: Nil).map(s => Value.Ref(s).asArg)) :: Value.Ref(l3) :: Nil)(k))
+      }
+    case IfLike(syntax.Keyword.`if`, split) => quoteSplit(split): r =>
+      val l = new TempSymbol(N)
+      Assign(l, r, setupTerm("IfLike", setupQuotedKeyword("If") :: Value.Ref(l) :: Nil)(k))
+    case Unquoted(body) => term(body)(k)
+    case _ =>
+      raise(ErrorReport(
+        msg"Unsupported quasiquote type ${t.describe}" ->
+        t.toLoc :: Nil,
+        source = Diagnostic.Source.Compilation
+      ))
+      End("error")
+
   
   def gatherMembers(clsBody: ObjBody)(using Subst): (Ls[FunDefn], Ls[BlockMemberSymbol], Ls[TermSymbol], Block) =
     val mtds = clsBody.methods

@@ -31,9 +31,11 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     utils.Scope.empty
   
   val runtimeNme = baseScp.allocateName(Elaborator.State.runtimeSymbol)
+  val termNme = baseScp.allocateName(Elaborator.State.termSymbol)
   
   val ltl = new TraceLogger:
-    override def doTrace = debugLowering.isSet
+    override def doTrace = debugLowering.isSet || scope.exists:
+      showUCS.get.getOrElse(Set.empty).contains
     override def emitDbg(str: String): Unit = output(str)
   
   val replTL = new TraceLogger:
@@ -44,10 +46,13 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     hostCreated = true
     given TL = replTL
     val h = ReplHost(rootPath)
-    h.execute(s"const $runtimeNme = (await import(\"${runtimeFile}\")).default;") match
-    case ReplHost.Result(msg) =>
-      if msg.startsWith("Uncaught") then output(s"Failed to load runtime: $msg")
-    case r => output(s"Failed to load runtime: $r")
+    def importRuntimeModule(name: Str, file: os.Path) =
+      h.execute(s"const $name = (await import(\"${file}\")).default;") match
+      case ReplHost.Result(msg) =>
+        if msg.startsWith("Uncaught") then output(s"Failed to load $name: $msg")
+      case r => output(s"Failed to load $name: $r")
+    importRuntimeModule(runtimeNme, runtimeFile)
+    if importQQ.isSet then importRuntimeModule(termNme, termFile)
     h
   
   private var hostCreated = false
