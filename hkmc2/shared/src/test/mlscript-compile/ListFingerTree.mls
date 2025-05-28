@@ -20,8 +20,8 @@ object Nil
 class View(val e1, val rest) // T, ListFingerTree[T]
 
 // ListFingerTree[T]
-class LFT with
-  set this.(Symbol.iterator) = () =>
+class LFT extends IterableBase with
+  fun iterator() =
     let current = this
     Iterator of () => if popFront(current) is
       Nil then Result.Done
@@ -32,6 +32,7 @@ class LFT with
   fun toString() = "[" + this joined(", ") + "]"
   fun length = ListFingerTree.length(this)
   fun at(i) = get(i)(this)
+  fun concat(other) = ListFingerTree.concat(this, other)
 
 object Empty extends LFT with
   fun toString() = "[" + this joined(", ") + "]"
