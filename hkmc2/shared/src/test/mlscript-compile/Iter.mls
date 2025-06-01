@@ -9,12 +9,6 @@ open Stack { Nil, Cons }
 
 module Iter with ...
 
-
-// * Implements the `Iterable` protocol.
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
-class Iterable(mk) with
-  set this.(Symbol.iterator) = mk
-
 class IterableBase with
   set this.(Symbol.iterator) = iterator
   fun iterator() = throw new Error("Not implemented: iterator()")
@@ -58,8 +52,13 @@ class IterableBase with
   fun unshift(..args) = toArray().unshift(...args)
   fun values() = toArray().values()
   fun length = toArray().length
-  // TODO is an mls keyword
+  // TODO 'with' is an mls keyword
   // fun with(..args) = toArray().with(...args)
+
+// * Implements the `Iterable` protocol.
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
+class Iterable(mk) extends IterableBase with
+  fun iterator() = mk()
 
 // * Implements the `Iterator` protocol.
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol

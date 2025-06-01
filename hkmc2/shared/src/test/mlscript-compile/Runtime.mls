@@ -66,7 +66,7 @@ module Tuple with
   fun slice(xs, i, j) =
     // * This is more robust than `xs.slice(i, xs.length - j)`
     // * as it is not affected by users redefining `slice`
-    globalThis.Array.prototype.slice.call(xs, i, xs.length - j)
+    xs.slice(i, xs.length - j)
 
   fun lazySlice(xs, i, j) = ListFingerTree.slice(i, j)(xs)
 
@@ -74,7 +74,7 @@ module Tuple with
     // * Contrary to `xs.[i]`, this supports negative indices (Python-style)
     if i >= xs.length then
       throw RangeError("Tuple.get: index out of bounds")
-    else ListFingerTree.get(i)(xs)
+    else xs.at(i)
 
   fun isArrayLike(xs) = ListFingerTree.isArrayLike(xs)
 
