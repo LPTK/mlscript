@@ -6,7 +6,7 @@ open Iter
 open ListFingerTree
 open LazyIterator
 
-val useLFT = true
+val useLFT = false
 
 class LazyItr extends IterableBase with
   fun toString() = "[" + this joined(", ") + "]"
@@ -82,7 +82,7 @@ fun normIdx(idx, len) =
   else idx
 
 class LazyItrBoxed(val underlying: IterableBase) extends IterableBase with
-  val fuse = 0
+  val fuse = 5
 
   fun iterator() = underlying.(Symbol.iterator)()
 
