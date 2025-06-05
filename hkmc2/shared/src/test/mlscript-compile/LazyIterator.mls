@@ -1,0 +1,168 @@
+
+import "./Iter.mls"
+import "./ListFingerTree.mls"
+
+open Iter
+open ListFingerTree
+open LazyIterator
+
+val useLFT = true
+
+class LazyItr extends IterableBase with
+  fun toString() = "[" + this joined(", ") + "]"
+
+class View(val underlying: IterableBase, val start, val end) extends LazyItr with
+  fun iterator() = 
+    let uitr = underlying.(Symbol.iterator)()
+    let idx = 0
+    let until = underlying.length - end
+    Iterator of () =>
+      while idx < start do
+        uitr.next()
+        set idx = idx + 1
+      if idx < until then
+        set idx = idx + 1
+        let next = uitr.next()
+        if next.done then Result.Done
+        else Result.Next of next.value
+      else Result.Done
+
+  fun flatten() = 
+    LazyIterator.flatten(underlying) ListFingerTree.slice(start, end)()
+
+  fun length = underlying.length - start - end
+  fun toString() = "[" + this joined(", ") + "]"
+
+object SpliceMarker
+class Splice(val bits) extends LazyItr with
+  fun iterator() =
+    let uitr = null
+    let subiter = false
+    let idx = 0
+    fun nextf() =
+      if idx < bits.length and
+        bits.[idx] is
+          SpliceMarker then
+            if subiter == false then 
+              set subiter = true
+              set uitr = bits.[idx + 1].(Symbol.iterator)()
+            else ()
+            let n = uitr.next()
+            if n.done then
+              set subiter = false
+              set idx = idx + 2
+              nextf()
+            else
+              n
+          else
+            let value = bits.[idx]
+            set idx = idx + 1
+            Result.Next of value
+      else Result.Done
+    Iterator of nextf
+
+  fun lengthHelper = case
+    [SpliceMarker, e, ...rest] then e.length + lengthHelper(rest)
+    [a, ...rest] then 1 + lengthHelper(rest)
+    [] then 0
+
+  fun flattenHelper = case
+    [SpliceMarker, e, ..rest] then LazyIterator.flatten(e) ++ flattenHelper(rest)
+    [a, ...rest] then ListFingerTree.mk(a) ++ flattenHelper(rest)
+    [] then []
+
+  fun flatten() = 
+    flattenHelper(bits)
+
+  fun length = lengthHelper(bits)
+  fun toString() = "[" + this joined(", ") + "]"
+
+fun normIdx(idx, len) =
+  if idx < 0 then idx + len
+  else idx
+
+class LazyItrBoxed(val underlying: IterableBase) extends IterableBase with
+  val fuse = 0
+
+  fun iterator() = underlying.(Symbol.iterator)()
+
+  fun updateFlatten() = 
+    if this.fuse > 0 then
+      set this.fuse -=  1
+    else
+      set underlying = LazyIterator.flatten(underlying)
+
+  fun length = underlying.length
+  // TODO: fix to not traverse one by one
+  fun at(idx) =
+    if underlying is
+      Array then ()
+      else updateFlatten()
+    if underlying is
+      LazyItr then
+        let itr = underlying.(Symbol.iterator)()
+        let next = itr.next()
+        set idx = normIdx(idx, underlying.length)
+        while idx > 0 do
+          set idx = idx - 1
+          set next = itr.next()
+          if next.done then throw "at: index out of bounds"
+          else ()
+        next.value
+      else underlying.at(idx)
+
+  fun concat(...args) = LazyIterator.concat(split, underlying, ...(args.flatMap (x => [split, x])))
+  fun slice(beg, end) = LazyIterator.slice(beg, underlying.length - end)(underlying)
+  fun toString() = "[" + this joined(", ") + "]"
+
+fun unbox = if useLFT 
+  then
+    case
+      LazyItrBoxed(underlying) then underlying
+      Array | IterableBase as itr then ListFingerTree.safeInput(itr)
+      x then x
+  else
+    case
+      LazyItrBoxed(underlying) then underlying
+      x then x
+
+fun safeArgs(args) = if args is
+  [SpliceMarker, itr, ...rest] then
+    [SpliceMarker, unbox(itr), ...safeArgs(rest)]
+  [x, ...rest] then [x, ...safeArgs(rest)]
+  [] then []
+
+
+module LazyIterator with...
+
+
+fun flatten(xs) = if 
+  useLFT and 
+    xs is
+      LazyItr then xs.flatten()
+      x then x
+  else [...xs]
+
+fun mk(...args) = LazyItrBoxed of 
+  if useLFT 
+  then ListFingerTree.safeInput(args) 
+  else args
+
+fun concat(...args) = LazyItrBoxed of Splice(safeArgs(args))
+
+fun slice(beg, end)(itr) = 
+  let itr = if unbox(itr) is
+    View(itr, beg', end') as v and beg + end <= v.length
+      then
+        View(itr, beg' + beg, end' + end)
+    _ as itr and beg + end <= itr.length
+      then View(itr, beg, end)
+    else throw "slice: index out of bounds"
+  LazyItrBoxed of itr
+
+fun isArrayLike = case
+  Array then true
+  IterableBase then true
+  else false
+
+val split = SpliceMarker

@@ -80,7 +80,8 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
   def runtimeVar(using Raise, Scope): Document = getVar(State.runtimeSymbol)
   
   def argument(a: Arg)(using Raise, Scope): Document =
-    if a.spread then doc"...${result(a.value)}" else result(a.value)
+    val spd = if a.eager then "..." else "runtime.Tuple.split, "
+    if a.spread then doc"${spd}${result(a.value)}" else result(a.value)
   
   def operand(a: Arg)(using Raise, Scope): Document =
     if a.spread then die else subexpression(a.value)
@@ -152,7 +153,12 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
       doc"new ${result(cls)}(${as.map(result).mkDocument(", ")})"
     case Value.Arr(es) if es.isEmpty => doc"[]"
     case Value.Arr(es) =>
-      doc"[ #{  # ${es.map(argument).mkDocument(doc", # ")} #}  # ]"
+      // check if there exits an e that is not eager
+      val lazyConcat = es.exists(!_.eager)
+      if lazyConcat then
+       doc"runtime.Tuple.lazyConcat(${es.map(argument).mkDocument(doc", # ")})"
+      else
+       doc"[ #{  # ${es.map(argument).mkDocument(doc", # ")} #}  # ]"
     case Value.Rcd(flds) =>
       doc"{ #  #{ ${
         flds.map:

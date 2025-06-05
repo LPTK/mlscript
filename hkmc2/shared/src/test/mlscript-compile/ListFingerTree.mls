@@ -111,13 +111,13 @@ fun normIdx(idx, len) =
   if idx < 0 then idx + len
   else idx
 
-fun safeInput(xs) = if xs is
-  LFT then xs
-  else mk(...xs) // assume that the input is iterable if not a finger tree
-
 
 module ListFingerTree with...
 
+
+fun safeInput(xs) = if xs is
+  LFT then xs
+  else mk(...xs) // assume that the input is iterable if not a finger tree
 
 // amortized O(1)
 fun (+:) cons(x, xs) = if safeInput(xs) is
@@ -142,11 +142,6 @@ fun (:+) snoc(xs, x) = if safeInput(xs) is
 fun mk(...args) = args.reduce(
     (acc, x) => snoc(acc, x),
     Empty)
-
-fun isArrayLike = case
-  Array then true
-  LFT then true
-  else false
 
 // O(1)
 fun length = case

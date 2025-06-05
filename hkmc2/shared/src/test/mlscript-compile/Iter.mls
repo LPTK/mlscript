@@ -12,8 +12,15 @@ module Iter with ...
 class IterableBase with
   set this.(Symbol.iterator) = iterator
   fun iterator() = throw new Error("Not implemented: iterator()")
+  val cache = None
 
-  fun toArray() = [...this]
+  // require that subclasses are immutable
+  fun toArray() =
+    if cache is Some(arr) then arr
+    else
+      let arr = [...this]
+      set this.cache = Some of arr
+      arr
   fun at(idx) = toArray().at(idx)
   fun concat(...xs) = toArray().concat(...xs)
   fun copyWithin(...args) = toArray().copyWithin(...args)

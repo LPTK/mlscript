@@ -3,12 +3,15 @@ import Term from "./Term.mjs";
 import RuntimeJS from "./RuntimeJS.mjs";
 import Rendering from "./Rendering.mjs";
 import ListFingerTree from "./ListFingerTree.mjs";
-let Runtime1, lft;
+import LazyIterator from "./LazyIterator.mjs";
+let Runtime1, lft, lit;
 lft = ListFingerTree;
+lit = LazyIterator;
 (class Runtime {
   static {
     Runtime1 = Runtime;
     this.ListFingerTree = lft;
+    this.LazyIterator = lit;
     const Unit$class = class Unit {
       constructor() {}
       toString() {
@@ -63,6 +66,7 @@ lft = ListFingerTree;
     (class Tuple {
       static {
         Runtime.Tuple = Tuple;
+        this.split = Runtime.LazyIterator.split;
       }
       static slice(xs, i, j) {
         let tmp;
@@ -71,8 +75,11 @@ lft = ListFingerTree;
       } 
       static lazySlice(xs1, i1, j1) {
         let tmp;
-        tmp = Runtime.ListFingerTree.slice(i1, j1);
+        tmp = Runtime.LazyIterator.slice(i1, j1);
         return runtime.safeCall(tmp(xs1))
+      } 
+      static lazyConcat(...args) {
+        return runtime.safeCall(Runtime.LazyIterator.concat(...args))
       } 
       static get(xs2, i2) {
         let scrut;
@@ -84,7 +91,7 @@ lft = ListFingerTree;
         }
       } 
       static isArrayLike(xs3) {
-        return runtime.safeCall(Runtime.ListFingerTree.isArrayLike(xs3))
+        return runtime.safeCall(Runtime.LazyIterator.isArrayLike(xs3))
       }
       static toString() { return "Tuple"; }
     });
