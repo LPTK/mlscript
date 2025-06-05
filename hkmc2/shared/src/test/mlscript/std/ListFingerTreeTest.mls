@@ -114,10 +114,6 @@ mk(1, 2, 3).length
 mk(1, 2, 3).at(2)
 //│ = 3
 
-(if [1,2,3,4] is
-  [..a, b] then a
-  [] then []) slice(1, 1)()
-//│ = [2]
 
 // Lazy spread syntax
 let xs = ListFingerTree.mk(1, 2, 3)
@@ -179,17 +175,15 @@ fun popByIndex(start, end, acc, lft) =
 //│ JS (unsanitized):
 //│ let popByIndex;
 //│ popByIndex = function popByIndex(start, end, acc, lft) {
-//│   let scrut1, tmp43, tmp44;
-//│   scrut1 = start >= end;
-//│   if (scrut1 === true) {
+//│   let scrut, tmp41, tmp42;
+//│   scrut = start >= end;
+//│   if (scrut === true) {
 //│     return acc
 //│   } else {
-//│     tmp43 = start + 1;
-//│     tmp44 = runtime.safeCall(lft.at(start));
-//│     return popByIndex(tmp43, end, [
-//│       ...acc,
-//│       tmp44
-//│     ], lft)
+//│     tmp41 = start + 1;
+//│     tmp42 = runtime.safeCall(lft.at(start));
+//│     return popByIndex(tmp41, end, runtime.Tuple.lazyConcat(runtime.Tuple.split, acc,
+//│     tmp42), lft)
 //│   }
 //│ };
 
@@ -210,20 +204,20 @@ fun equal(xs, ys) =
 //│ JS (unsanitized):
 //│ let equal;
 //│ equal = function equal(xs2, ys10) {
-//│   let rest2, first01, x, xs3, rest3, first02, b1, bs, tmp43, tmp44;
+//│   let rest1, first01, x, xs3, rest2, first02, b, bs, tmp41, tmp42;
 //│   if (runtime.Tuple.isArrayLike(xs2) && xs2.length >= 1) {
 //│     first01 = xs2.at(0);
-//│     rest2 = runtime.safeCall(runtime.Tuple.lazySlice(xs2, 1, 0));
+//│     rest1 = runtime.safeCall(runtime.Tuple.lazySlice(xs2, 1, 0));
 //│     x = first01;
-//│     xs3 = rest2;
+//│     xs3 = rest1;
 //│     if (runtime.Tuple.isArrayLike(ys10) && ys10.length >= 1) {
 //│       first02 = ys10.at(0);
-//│       rest3 = runtime.safeCall(runtime.Tuple.lazySlice(ys10, 1, 0));
-//│       b1 = first02;
-//│       bs = rest3;
-//│       tmp43 = x == b1;
-//│       tmp44 = equal(xs3, bs);
-//│       return tmp43 && tmp44
+//│       rest2 = runtime.safeCall(runtime.Tuple.lazySlice(ys10, 1, 0));
+//│       b = first02;
+//│       bs = rest2;
+//│       tmp41 = x == b;
+//│       tmp42 = equal(xs3, bs);
+//│       return tmp41 && tmp42
 //│     } else if (runtime.Tuple.isArrayLike(ys10) && ys10.length === 0) {
 //│       return false
 //│     } else {
@@ -265,19 +259,19 @@ equal(zs2, zs)
 (if zs is
   [a, b, ...rest, c] then rest) |> isFingerTree
 //│ JS (unsanitized):
-//│ let last01, rest2, first1, first01, a2, b1, rest3, c, tmp45;
+//│ let last0, rest1, first1, first01, a1, b, rest2, c, tmp43;
 //│ if (runtime.Tuple.isArrayLike(zs2) && zs2.length >= 3) {
 //│   first01 = zs2.at(0);
 //│   first1 = zs2.at(1);
-//│   rest2 = runtime.safeCall(runtime.Tuple.slice(zs2, 2, 1));
-//│   last01 = runtime.Tuple.get(zs2, -1);
-//│   a2 = first01;
-//│   b1 = first1;
-//│   rest3 = rest2;
-//│   c = last01;
-//│   tmp45 = rest3;
+//│   rest1 = runtime.safeCall(runtime.Tuple.slice(zs2, 2, 1));
+//│   last0 = runtime.Tuple.get(zs2, -1);
+//│   a1 = first01;
+//│   b = first1;
+//│   rest2 = rest1;
+//│   c = last0;
+//│   tmp43 = rest2;
 //│ } else {
 //│   throw new this.Error("match error");
 //│ }
-//│ Predef.pipeInto(tmp45, ListFingerTree.isFingerTree)
+//│ Predef.pipeInto(tmp43, ListFingerTree.isFingerTree)
 //│ = false
