@@ -24,6 +24,8 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
   val showJS = NullaryCommand("sjs")
   val showRepl = NullaryCommand("showRepl")
   val traceJS = NullaryCommand("traceJS")
+  val runtimeClock = Command("clock")(_.trim)
+  val runtimeClockPrefix = "runtime clock time"
   val expect = Command("expect"): ln =>
     ln.trim
   
@@ -59,8 +61,8 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
   override def run(): Unit =
     try super.run() finally if hostCreated then host.terminate()
   
-  override def processTerm(blk: semantics.Term.Blk, inImport: Bool)(using Config, Raise): Unit =
-    super.processTerm(blk, inImport)
+  override def processTerm(blk: semantics.Term.Blk, inImport: Bool, statefulComments: Ls[String])(using Config, Raise): Unit =
+    super.processTerm(blk, inImport, statefulComments)
     
     val outerRaise: Raise = summon
     val reportedMessages = mutable.Set.empty[Str]
@@ -159,10 +161,28 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       // * Sometimes the JS block won't execute due to a syntax or runtime error so we always set this first
       host.execute(s"$resNme = undefined")
       
+      val timingId = runtimeClock.get.flatMap(s => if s == "" then N else S(s))
+      val startTime = timingId.map(_ => System.nanoTime())
+      
       mkQuery(preStr, jsStr): stdout =>
         stdout.splitSane('\n').init // should always ends with "undefined" (TODO: check)
           .foreach: line =>
             output(s"> ${line}")
+      
+      startTime.foreach: start =>
+        val endTime = System.nanoTime()
+        val elapsedMs = (endTime - start) / 1_000_000.0
+        val key = (blk, timingId.get)
+        statefulComments.find(_.startsWith(runtimeClockPrefix)) match
+          case S(time) => 
+            val cachedId = time.stripPrefix(s"${runtimeClockPrefix} (").split(')').headOption.getOrElse("")
+            if cachedId == timingId.get then
+              output.stateful(time)
+            else
+              output.stateful(s"${runtimeClockPrefix} (${timingId.get}): ${elapsedMs} ms")
+          case N => 
+            output.stateful(s"${runtimeClockPrefix} (${timingId.get}): ${elapsedMs} ms")
+      
       if traceJS.isSet then
         host.execute(s"$runtimeNme.TraceLogger.enabled = false")
       
