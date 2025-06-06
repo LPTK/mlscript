@@ -1,0 +1,42 @@
+
+import "./Predef.mls"
+
+open Predef
+
+
+// * [A, B, ...C, D, ...E, F] is represented as Splice([A, B, SpliceMarker, C, D, SpliceMarker, E, F])
+object SpliceMarker
+class Splice(val bits)
+
+// * A View is what we get when we match patterns of the form [x, ..xs]
+class View(val underlying, val start, val end)
+
+
+// * type+module overloading is not yet supported; also we don't do type checking yet;
+// * but this would be the type:
+// type List[A] = Array[A] | Splice(Array[A | SpliceMarker]) | View[A]
+
+module List with...
+
+
+fun mk(...args) =
+  args // Arrays are valid List values
+
+
+// * Linear-time operation
+// (Implemented using a Splice)
+fun concat(...args) =
+  ???
+
+fun slice(beg, end) =
+  ???
+
+// * Amortized O(1) operation, assuming the list is not indexed while being built
+fun ith(idx) = case
+  Array as a then a.[idx]
+  Splice(bits) then ???
+  View(und, s, e) then ???
+
+// * TODO other operations
+
+
