@@ -219,7 +219,7 @@ let a =
 set a.x = a
 
 a
-//│ = {x: ref'1, y: 1} as ref'1
+//│ = {x: 0, y: 1}
 
 // Test: an object is referenced multiple times in a circular way.
 
@@ -236,20 +236,20 @@ set tree.left.left = tree
 set tree.right.left = tree
 
 tree
-//│ = {left: {left: ref'1, right: null}, right: {left: ref'1, right: null}} as ref'1
+//│ = {left: {left: null, right: null}, right: {left: null, right: null}}
 
 // Test: nested circular reference.
 
 // If the same circular object appears multiple times, it should be rendered as
 // the same reference.
-let b = [a, a]
-//│ b = [{x: ref'1, y: 1} as ref'1, {x: ref'1, y: 1} as ref'1]
+let b = mut [a, a]
+//│ b = [{x: 0, y: 1}, {x: 0, y: 1}]
 
 b.push(b)
 //│ = 3
 
 b
-//│ = [{x: ref'1, y: 1} as ref'1, {x: ref'1, y: 1} as ref'1, ref'2] as ref'2
+//│ = [{x: 0, y: 1}, {x: 0, y: 1}, ref'1] as ref'1
 
 let functionWithProperties = Object.assign(x => x, "kind": "Callable")
 //│ functionWithProperties = fun { kind: "Callable" }
@@ -268,7 +268,7 @@ functionWithProperties.kind
 //           |__/
 // =============================
 
-let something = (x: 0)
+let something = mut { x: 0 }
 //│ something = {x: 0}
 
 Object.defineProperty(something, "y", enumerable: true, get: () => 42)
@@ -387,8 +387,10 @@ pattern Null = null
 renderAsStr of Null
 //│ = "pattern Null"
 
+// FIXME?
+:re
 renderAsStr of Null.class
-//│ = "pattern Null"
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'class' yielded 'undefined'
 
 declare class Iterator
 

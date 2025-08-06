@@ -37,7 +37,7 @@ fun fromArray(arr) =
 
 fun toReverseArray(xs) =
   let
-    arr = []
+    arr = mut []
     i = 0
   while xs is
     h :: t do
@@ -62,11 +62,11 @@ fun (:::) concat(xs, ys) = if
     Nil then ys
     head' :: tail' then
       let
-        result = head' :: ys
+        result = new mut ::(head', ys)
         current = result // the insertion point
         rest = tail' // the remaining of `xs`
       while rest is head :: tail do
-        let next = head :: ys
+        let next = new mut ::(head, ys)
         set
           current.tail = next
           current = next
