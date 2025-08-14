@@ -1054,6 +1054,7 @@ extends Importer:
         
         // TODO comp
         
+        
         assert((k is Als) || (k is Cls) || (k is Mod) || (k is Obj) || (k is Pat), k)
         val body = td.withPart
         

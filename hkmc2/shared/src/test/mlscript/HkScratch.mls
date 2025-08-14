@@ -10,10 +10,31 @@
 
 
 
+:de
 class Foo
 module Foo with
-  fun test = new Foo
+  fun test() = new Foo
+//│ Elab block List(TypeDef(Cls,Ident(Foo),None,Some((List(),TypeDef(Mod,InfixApp(Ident(Foo),keyword 'with',Block(L[...] LocalScope
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: blockOrRcd (Elaborator.scala:823)
+//│ ╔══[ERROR] Multiple definitions of symbol 'Foo'
+//│ ╟── defined here
+//│ ║  l.14: 	class Foo
+//│ ║        	      ^^^
+//│ ║  l.15: 	module Foo with
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ║  l.16: 	  fun test() = new Foo
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── defined here
+//│ ║  l.15: 	module Foo with
+//│ ║        	       ^^^^^^^^
+//│ ║  l.16: 	  fun test() = new Foo
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ | Processing type definition Ident(Foo)
+//│ ~> Blk(List(Plain(None,Cls,class:Foo‹629›,member:Foo‹628›,List(),None,( ),None,List())),Lit(UnitLit(false)))
 
+
+:rt
 
 
 
