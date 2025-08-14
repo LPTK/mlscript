@@ -473,7 +473,7 @@ class Desugarer(elaborator: Elaborator)(using Ctx, Raise, State, UnderCtx):
           // patterns on the fly and we don't know whether the argument should
           // be interpreted as a sub-pattern or a pattern argument. This can be
           // solved after we rewrite the desugarer using `Pattern`.
-          case TypeDef(syntax.Pat, body, _) => Argument(symbol, elaborator.pattern(body))
+          case TypeDef(syntax.Pat, body, _, N) => Argument(symbol, elaborator.pattern(body))
           case _: Tree => Argument(symbol, tree)
       .toList
       Branch(

@@ -67,7 +67,7 @@ enum Tree extends AutoLocated:
   case Hndl(lhs: Tree, cls: Tree, defs: Tree, body: Opt[Tree])
   case Def(lhs: Tree, rhs: Tree)
   case TermDef(k: TermDefKind, head: Tree, rhs: Opt[Tree]) extends Tree with TermDefImpl
-  case TypeDef(k: TypeDefKind, head: Tree, rhs: Opt[Tree])(using State)
+  case TypeDef(k: TypeDefKind, head: Tree, rhs: Opt[Tree], companion: Opt[(anns: Ls[Tree], td: TypeDef)])(using State)
     extends Tree with TypeDefImpl
   case Open(opened: Tree)
   case OpenIn(opened: Tree, body: Tree)
@@ -123,7 +123,7 @@ enum Tree extends AutoLocated:
     case Hndl(lhs, rhs, defs, body) => body match
       case Some(value) => lhs :: rhs :: defs :: value :: Nil
       case None => lhs :: rhs :: defs :: Nil
-    case TypeDef(k, head, rhs) => head :: rhs.toList
+    case TypeDef(k, head, rhs, comp) => head :: rhs.toList ::: comp.toList.flatMap(c => c.anns ::: c.td :: Nil)
     case Modified(_, _, body) => Ls(body)
     case Quoted(body) => Ls(body)
     case Unquoted(body) => Ls(body)
@@ -175,7 +175,7 @@ enum Tree extends AutoLocated:
     case Block(stmts) => "block"
     case LetLike(kw, lhs, rhs, body) => kw.name
     case TermDef(k, alphaName, rhs) => "term definition"
-    case TypeDef(k, head, rhs) => "type definition"
+    case TypeDef(k, head, rhs, comp) => "type definition"
     case Modified(kw, _, body) => s"'${kw.name}'-modified ${body.describe}"
     case Quoted(body) => "quoted"
     case Unquoted(body) => "unquoted"
@@ -282,10 +282,10 @@ enum Tree extends AutoLocated:
       
       // * Unwrapping Cases
       // fun f(module <...>)
-      case TypeDef(Mod, inner, N) =>
+      case TypeDef(Mod, inner, N, N) =>
         go(inner, flags, modifiers + Mod)
       // fun f(pattern <...>)
-      case TypeDef(Pat, inner, N) =>
+      case TypeDef(Pat, inner, N, N) =>
         go(inner, flags.copy(pat = true), modifiers + Pat)
       // class C(val <...>)
       case TermDef(ImmutVal, inner, _) =>
@@ -314,7 +314,7 @@ enum Tree extends AutoLocated:
     go(this, flags = FldFlags.empty, modifiers = Set.empty)
 
   def isModified(modifier: Keyword | DeclKind): Bool = this match
-    case td @ Tree.TypeDef(m, head, N) =>
+    case td @ Tree.TypeDef(m, head, N, N) =>
       (td.extension.isEmpty && td.withPart.isEmpty && m == modifier) || head.isModified(modifier)
     case td @ Tree.TermDef(m, head, N) =>
       (td.extension.isEmpty && td.withPart.isEmpty && m == modifier) || head.isModified(modifier)
@@ -327,7 +327,7 @@ object Tree:
   val DummyApp: App = App(Dummy, Dummy) // TODO change the places where this is used
   val DummyTup: Tup = Tup(Dummy :: Nil)
   def DummyTypeDef(k: TypeDefKind)(using State): TypeDef =
-    Tree.TypeDef(syntax.Cls, Tree.Dummy, N)
+    Tree.TypeDef(syntax.Cls, Tree.Dummy, N, N)
   object Block:
     def mk(stmts: Ls[Tree])(using State): Tree = stmts match
       case Nil => UnitLit(false)

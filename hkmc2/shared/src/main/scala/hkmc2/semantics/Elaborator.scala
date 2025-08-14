@@ -223,7 +223,7 @@ object Elaborator:
       BlockMemberSymbol(id.name, Nil, true)
     val matchResultClsSymbol =
       val id = new Ident("MatchResult")
-      val td = TypeDef(syntax.Cls, App(id, Tup(Ident("output") :: Ident("bindings") :: Nil)), N)
+      val td = TypeDef(syntax.Cls, App(id, Tup(Ident("output") :: Ident("bindings") :: Nil)), N, N)
       val cs = ClassSymbol(td, id)
       val flag = FldFlags.empty.copy(isVal = true)
       val ps = PlainParamList(
@@ -667,7 +667,7 @@ extends Importer:
       Term.Throw(subterm(body))
     case PrefixApp(Keyword.`do`, kwLoc, body) =>
       Blk(subterm(body) :: Nil, unit)
-    case TypeDef(Mod, head, N) =>
+    case TypeDef(Mod, head, N, N) =>
       subterm(head)
     case Region(id: Ident, body) =>
       val sym = VarSymbol(id)
@@ -690,7 +690,7 @@ extends Importer:
     case TermDef(k, nme, rhs) =>
       raise(ErrorReport(msg"Illegal definition in term position." -> tree.toLoc :: Nil))
       Term.Error
-    case TypeDef(k, head, rhs) =>
+    case TypeDef(k, head, rhs, comp) =>
       raise(ErrorReport(msg"Illegal type declaration in term position." -> tree.toLoc :: Nil))
       Term.Error
     case Modified(Keyword.`mut`, kwLoc, body: Block) =>
@@ -1034,7 +1034,7 @@ extends Importer:
                 // TypeDef(Mod, _, N, N) indicates if the function marks
                 // its result as "module". e.g, `fun f: module M`
                 //                                      ^^^^^^
-                case S(TypeDef(Mod, _, N)) => 
+                case S(TypeDef(Mod, _, N, N)) => 
                   Modulefulness.ofSign(s)(true)
                 case _ =>
                   Modulefulness.none
@@ -1050,7 +1050,9 @@ extends Importer:
             reportUnusedAnnotations
             raise(d)
             go(sts, Nil, acc)
-      case (td @ TypeDef(k, head, rhs)) :: sts =>
+      case (td @ TypeDef(k, head, rhs, comp)) :: sts =>
+        
+        // TODO comp
         
         assert((k is Als) || (k is Cls) || (k is Mod) || (k is Obj) || (k is Pat), k)
         val body = td.withPart
@@ -1397,7 +1399,7 @@ extends Importer:
       Record(entries.reverse)
     /** Elaborate a pattern argument. */
     def arg(t: Tree): Ctxl[Pattern \/ Pattern] = t match
-      case TypeDef(syntax.Pat, body, N) => L(go(body))
+      case TypeDef(syntax.Pat, body, N, N) => L(go(body))
       case _ => R(go(t))
     def go(t: Tree): Ctxl[Pattern] = t match
       // Brackets.

@@ -2,7 +2,7 @@ package hkmc2
 package semantics
 
 import mlscript.utils.*, shorthands.*
-import syntax.Tree
+import syntax.*
 import syntax.Tree.*
 import hkmc2.syntax.{PossiblyAnnotated, TypeOrTermDef}
 
@@ -13,19 +13,28 @@ trait BlockImpl(using Elaborator.State):
   val desugStmts =
     def desug(stmts: Ls[Tree]): Ls[Tree] =
       stmts match
-      case syntax.Desugared(PossiblyAnnotated(anns, td: TypeDef)) :: stmts =>
+      case Desugared(PossiblyAnnotated(anns1, td1: TypeDef))
+        :: Desugared(PossiblyAnnotated(anns2, td2: TypeDef))
+        :: stmts
+      if td1.name == td2.name
+      && td1.companion.isEmpty
+      =>
+        PossiblyAnnotated(anns1, td1.copy(companion = S((anns = anns2, td = td2)))) :: desug(stmts)
+      case Desugared(PossiblyAnnotated(anns, td: TypeDef)) :: stmts =>
         val ctors = td.withPart.toList.flatMap:
           case Block(sts) => sts.flatMap:
             case Constructor(Block(ctors)) => ctors
             case _ => Nil
           case _ => Nil
         PossiblyAnnotated(anns, td) :: (
-          ctors.map(head => PossiblyAnnotated(anns, TypeDef(syntax.Cls,
+          ctors.map(head => PossiblyAnnotated(anns, TypeDef(Cls,
               td.name match
               case L(_) => head
               case R(name) =>
-                InfixApp(head, syntax.Keyword.`extends`, name)
-              , N
+                InfixApp(head, Keyword.`extends`, name)
+              ,
+              N,
+              N,
             )))
         ) ::: desug(stmts)
       case stmt :: stmts =>
@@ -39,7 +48,7 @@ trait BlockImpl(using Elaborator.State):
   val definedSymbols: Array[Str -> BlockMemberSymbol] =
     desugStmts
       .flatMap:
-        case PossiblyAnnotated(_, td: syntax.TypeOrTermDef) =>
+        case PossiblyAnnotated(_, td: TypeOrTermDef) =>
           td.name match
             case L(_) => Nil
             case R(id) =>

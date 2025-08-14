@@ -122,7 +122,7 @@ class ParseRules(using State):
           end(())
       ):
         case (head, ()) =>
-          TypeDef(k, head, N)
+          TypeDef(k, head, N, N)
   
   def letLike(kw: Keyword.letLike) = 
     Kw(kw):
@@ -202,7 +202,7 @@ class ParseRules(using State):
                 ) { case (rhs, ()) => S(rhs) },
             end(N),
           )
-        ) { (lhs, rhs) => TypeDef(kind, lhs, rhs) }
+        ) { (lhs, rhs) => TypeDef(kind, lhs, rhs, N) }
   
   val prefixRules: ParseRule[Tree] = ParseRule("start of expression", omitAltsStr = true)(
     letLike(`let`),
