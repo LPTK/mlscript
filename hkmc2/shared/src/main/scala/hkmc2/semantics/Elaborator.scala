@@ -380,7 +380,7 @@ extends Importer:
       derivedClsSym.defn = S(ClassDef(
         N, syntax.Cls, derivedClsSym,
         BlockMemberSymbol(derivedClsSym.name, Nil),
-        Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(Tree.UnitLit(false)))), List()))
+        Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(Tree.UnitLit(false)))), Nil, N))
       
       val elabed = ctx.nestInner(derivedClsSym).givenIn:
         block(sts_, hasResult = false)._1
@@ -819,9 +819,9 @@ extends Importer:
         val defns = sym.trees.collect:
           case td: TermDef if td.rhs.isDefined => td
           case td: TypeDef => td
-        if defns.length > 1 then
-          raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
-            defns.map(msg"defined here" -> _.toLoc)))
+        // if defns.length > 1 then
+        //   raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
+        //     defns.map(msg"defined here" -> _.toLoc)))
         val decls = sym.trees.collect:
           case td: TermDef if td.rhs.isEmpty => td
         if decls.length > 1 then
@@ -1231,22 +1231,27 @@ extends Importer:
           val clsSym = td.symbol.asInstanceOf[ModuleSymbol] // TODO: improve `asInstanceOf`
           val owner = ctx.outer.inner
           newCtx.nestInner(clsSym).givenIn:
-            log(s"Processing type definition $nme")
-            val cd =
-              val (bod, c) = mkBody
-              ModuleDef(owner, clsSym, sym, tps, pss.headOption, pss.tailOr(Nil), newOf(td), k, ObjBody(bod), annotations)
-            clsSym.defn = S(cd)
-            cd
+            trace(s"Processing module/object definition $nme"):
+              val comp = sym.asCls
+              log(s"Companion: ${comp}")
+              val cd =
+                val (bod, c) = mkBody
+                ModuleDef(owner, clsSym, sym,
+                  tps, pss.headOption, pss.tailOr(Nil), newOf(td), k, ObjBody(bod), comp, annotations)
+              if comp.isEmpty then clsSym.defn = S(cd)
+              cd
         case Cls =>
           val clsSym = td.symbol.asInstanceOf[ClassSymbol] // TODO: improve `asInstanceOf`
           val owner = ctx.outer.inner
           newCtx.nestInner(clsSym).givenIn:
-            log(s"Processing type definition $nme")
-            val cd =
-              val (bod, c) = mkBody
-              ClassDef(owner, Cls, clsSym, sym, tps, pss, newOf(td), ObjBody(bod), annotations)
-            clsSym.defn = S(cd)
-            cd
+            trace(s"Processing class definition $nme"):
+              val comp = sym.asMod
+              log(s"Companion: ${comp}")
+              val cd =
+                val (bod, c) = mkBody
+                ClassDef(owner, Cls, clsSym, sym, tps, pss, newOf(td), ObjBody(bod), annotations, comp)
+              clsSym.defn = S(cd)
+              cd
         sym.defn = S(defn)
         go(sts, Nil, defn :: acc)
       case Annotated(annotation, target) :: sts =>

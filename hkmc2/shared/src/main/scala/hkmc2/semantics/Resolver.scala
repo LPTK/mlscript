@@ -726,7 +726,8 @@ class Resolver(tl: TraceLogger)
             raise: 
               ErrorReport(
                 msg"${mdef.kind.desc.capitalize} '${mdef.sym.nme}' " +
-                msg"does not contain member '${id.name}'" -> t.toLoc :: Nil)
+                msg"does not contain member '${id.name}'" -> t.toLoc :: Nil,
+                extraInfo = S(mdef))
         case _ =>
     case _ =>
     

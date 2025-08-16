@@ -525,6 +525,8 @@ sealed abstract class Definition extends Declaration with Statement:
 
 sealed trait CompanionValue extends Definition
 
+type CompanionSymbol = ModuleSymbol | TypeAliasSymbol
+
 
 sealed abstract class TypeLikeDef extends Definition:
   val tparams: Ls[TyParam]
@@ -556,6 +558,7 @@ case class ModuleDef(
   ext: Opt[New],
   kind: ClsLikeKind,
   body: ObjBody,
+  companion: Opt[ClassSymbol],
   annotations: Ls[Annot],
 ) extends ClassLikeDef with CompanionValue
 
@@ -595,7 +598,8 @@ sealed abstract class ClassDef extends ClassLikeDef:
   val paramsOpt: Opt[ParamList]
   val auxParams: Ls[ParamList]
   val body: ObjBody
-  val companion: Opt[CompanionValue]
+  // val companion: Opt[CompanionValue]
+  val companion: Opt[CompanionSymbol]
   val annotations: Ls[Annot]
   def isData: Opt[Annot.Modifier] = annotations.collectFirst:
     case mod @ Annot.Modifier(Keyword.`data`) => mod
@@ -614,14 +618,15 @@ object ClassDef:
       ext: Opt[New],
       body: ObjBody,
       annotations: Ls[Annot],
+      comp: Opt[CompanionSymbol],
   ): ClassDef =
     params match
       case ps :: pss => Parameterized(owner, kind, sym.asInstanceOf// TODO: improve
         , bsym
-        , tparams, ps, pss, ext, body, N, annotations)
+        , tparams, ps, pss, ext, body, comp, annotations)
       case Nil => Plain(owner, kind, sym.asInstanceOf// TODO: improve
         , bsym
-        , tparams, ext, body, N, annotations)
+        , tparams, ext, body, comp, annotations)
   
   def unapply(cls: ClassDef): Opt[(ClassSymbol, Ls[TyParam], Opt[ParamList], ObjBody)] =
     S((cls.sym, cls.tparams, cls.paramsOpt, cls.body))
@@ -636,7 +641,7 @@ object ClassDef:
       auxParams: Ls[ParamList],
       ext: Opt[New],
       body: ObjBody,
-      companion: Opt[ModuleDef],
+      companion: Opt[CompanionSymbol],
       annotations: Ls[Annot],
   ) extends ClassDef:
     val paramsOpt: Opt[ParamList] = S(params)
@@ -644,10 +649,12 @@ object ClassDef:
   case class Plain(
       owner: Opt[InnerSymbol],
       kind: ClsLikeKind,
-      sym: ClassSymbol, bsym: BlockMemberSymbol,
+      sym: ClassSymbol,
+      bsym: BlockMemberSymbol,
       tparams: Ls[TyParam],
       ext: Opt[New],
-      body: ObjBody, companion: Opt[CompanionValue],
+      body: ObjBody,
+      companion: Opt[CompanionSymbol],
       annotations: Ls[Annot]
   ) extends ClassDef:
     val paramsOpt: Opt[ParamList] = N
