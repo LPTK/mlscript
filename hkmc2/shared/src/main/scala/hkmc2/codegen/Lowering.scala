@@ -208,7 +208,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             // case _ => mod
           case _ => _defn
         reportAnnotations(defn, defn.extraAnnotations)
-        val (mtds, publicFlds, privateFlds, ctor) = defn match
+        val (mtds, smtds, publicFlds, privateFlds, ctor) = defn match
           case pd: PatternDef => compilePatternMethods(pd)
           case _ => gatherMembers(defn.body)
         defn.ext match
@@ -216,6 +216,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           Define(
             ClsLikeDefn(defn.owner, defn.sym, defn.bsym, defn.kind, defn.paramsOpt, defn.auxParams, N,
               mtds,
+              smtds,
               privateFlds,
               publicFlds,
               End(),
@@ -229,7 +230,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             Define(
               ClsLikeDefn(
                 defn.owner, defn.sym, defn.bsym, defn.kind, defn.paramsOpt, defn.auxParams, S(clsp),
-                mtds, privateFlds, publicFlds, pctor, ctor
+                mtds, smtds, privateFlds, publicFlds, pctor, ctor
               ),
               blockImpl(stats, res)(k)
             )
@@ -654,10 +655,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             Assign(ts, Instantiate(mut, sr, asr), z(Value.Ref(ts)))
         case S((isym, rft)) =>
           val sym = new BlockMemberSymbol(isym.name, Nil)
-          val (mtds, publicFlds, privateFlds, ctor) = gatherMembers(rft)
+          val (mtds, smtds, publicFlds, privateFlds, ctor) = gatherMembers(rft)
           val pctor = parentConstructor(cls, as)
           val clsDef = ClsLikeDefn(N, isym, sym, syntax.Cls, N, Nil, S(sr),
-            mtds, privateFlds, publicFlds, pctor, ctor)
+            mtds, smtds, privateFlds, publicFlds, pctor, ctor)
           val inner = new New(sym.ref().resolve, Nil, N)
           Define(clsDef, term_nonTail(if mut then Mut(inner) else inner)(k))
       
@@ -844,7 +845,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       )
   
   
-  def gatherMembers(clsBody: ObjBody)(using Subst): (Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
+  def gatherMembers(clsBody: ObjBody)(using Subst)
+  : (Ls[FunDefn], Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
     val mtds = clsBody.methods
       .flatMap: td =>
         td.body.map: bod =>
@@ -861,14 +863,15 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         .mapTail:
           case Return(Value.Lit(syntax.Tree.UnitLit(true)), true) => End()
           case t => t
-    (mtds, publicFlds, privateFlds, ctor)
+    (mtds, Nil // TODO
+    , publicFlds, privateFlds, ctor)
   
   /** Compile the pattern definition into `unapply` and `unapplyStringPrefix`
    *  methods using the `NaiveCompiler`, which transliterate the pattern into
    *  UCS splits that backtrack without any optimizations. */
   def compilePatternMethods(defn: PatternDef)(using Subst):
       // The return type is intended to be consistent with `gatherMembers`
-      (Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
+      (Ls[FunDefn], Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
     val compiler = new ups.NaiveCompiler
     val methods = compiler.compilePattern(defn)
     val mtds = methods
@@ -876,7 +879,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         td.body.map: bod =>
           val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
           FunDefn(td.owner, td.sym, paramLists, bodyBlock)
-    (mtds, Nil, Nil, End())
+    (mtds, Nil, Nil, Nil, End())
   
   def args(elems: Ls[Elem])(k: Ls[Arg] => Block)(using Subst): Block =
     val as = elems.map:

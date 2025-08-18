@@ -64,7 +64,8 @@ object Printer:
       doc"fun ${sym.nme}${docParams} { #{  # ${docBody} #}  # }"
     case ValDefn(tsym, sym, rhs) =>
       doc"val ${tsym.nme} = ${mkDocument(rhs)}"
-    case ClsLikeDefn(own, _, sym, k, paramsOpt, auxParams, parentSym, methods, privateFields, publicFields, preCtor, ctor) =>
+    case ClsLikeDefn(own, _, sym, k, paramsOpt, auxParams, parentSym, methods, smethods,
+        privateFields, publicFields, preCtor, ctor) =>
       def optFldBody(t: semantics.TermDefinition) =
         t.body match
           case Some(x) => doc" = ..."
