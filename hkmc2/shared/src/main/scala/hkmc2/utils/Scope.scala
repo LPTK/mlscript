@@ -99,9 +99,11 @@ class Scope
         case sym: semantics.BlockMemberSymbol =>
           sym.trees.collectFirst:
             case t: syntax.Tree.TypeDef => t.head.toLoc
-          .flatten.orElse(l.toLoc)
+          // .flatten.orElse(l.toLoc)
+          .flatten
         case other => other.toLoc
-      raise(ErrorReport(msg"No definition found in scope for '${l.nme}'" -> loc :: Nil,
+      raise(ErrorReport(msg"No definition found in scope for '${l.nme}'" -> l.toLoc ::
+          (if loc.isEmpty then Nil else msg"which is introduced here" -> loc :: Nil),
         extraInfo = Some(l -> l.getClass),
         source = Diagnostic.Source.Compilation))
       l.nme

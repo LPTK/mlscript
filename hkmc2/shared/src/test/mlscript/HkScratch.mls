@@ -155,11 +155,11 @@ module Foo with
 //│ | | ~> Blk(List(TermDefinition(ImmutVal,member:foo‹658›,module:Foo‹663›.foo,List(),None,None,Some(Lit(IntLit(1))),‹result of member:foo‹658››‹669›,‹›,Modulefulness(None),List())),Lit(UnitLit(false)))
 //│ ~> Blk(List(Parameterized(None,Cls,class:Foo‹660›,member:Foo‹659›,List(),ParamList(‹›,List(Param(‹val›,x‹662›,None,Modulefulness(None))),None),List(),None,( ‹› val member:x‹665› = x‹662›#0; ),Some(module:Foo‹663›),List()), ModuleDef(None,module:Foo‹663›,member:Foo‹659›,List(),None,List(),None,Mod,( ‹› val member:foo‹658› = 1; ),Some(class:Foo‹660›),List())),Lit(UnitLit(false)))
 //│ JS (unsanitized):
-//│ let Foo4;
-//│ Foo4 = function Foo(x1) {
+//│ let Foo3;
+//│ Foo3 = function Foo(x1) {
 //│   return globalThis.Object.freeze(new Foo.class(x1));
 //│ };
-//│ Object.defineProperty(Foo4, "class", {
+//│ Object.defineProperty(Foo3, "class", {
 //│   enumerable: true,
 //│   value: class Foo2 {
 //│     constructor(x) {
@@ -169,24 +169,33 @@ module Foo with
 //│     static [definitionMetadata] = ["class", "Foo", ["x"]]; 
 //│   }
 //│ });
-//│ (class Foo3 {
-//│   static {
-//│     Foo4 = Foo3;
-//│     this.foo = 1;
-//│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "Foo"]; 
-//│ });
 
+:rt
 Foo
-//│ = module Foo { foo: 1 }
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = Ref{member:Foo} of member:Foo
+//│ = fun Foo { class: class Foo }
 
 
 :sjs
 Foo.foo
 //│ JS (unsanitized):
-//│ Foo4.foo
-//│ = 1
+//│ Foo3.foo
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'foo' yielded 'undefined'
+//│     at REPL34:1:101
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 :dr
 :sjs
@@ -200,35 +209,89 @@ new Foo
 //│ | | | Resolved resolvable term member:Foo‹659›#666 to symbol CallableDefinition(member:Foo‹659›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹663›,member:Foo‹659›,List(),None,List(),None,Mod,( ‹› val member:foo‹658› = 1; ),Some(class:Foo‹660›),List()))
 //│ | | | hasExpansion true Ref(member:Foo‹659›) ~> Ref(member:Foo‹659›)
 //│ JS (unsanitized):
-//│ globalThis.Object.freeze(new Foo4.class())
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'class' yielded 'undefined'
-//│     at REPL37:1:103
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ globalThis.Object.freeze(new Foo3.class())
+//│ = Foo(undefined)
 
 new Foo(12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'class' yielded 'undefined'
-//│     at REPL40:1:103
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = Foo(12)
 
 
+:rt
+module Foo with
+  val foo = 1
+class Foo(val x)
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Ls of 
+//│     ModuleDef:
+//│       owner = N
+//│       sym = module:Foo
+//│       bsym = member:Foo
+//│       tparams = Nil
+//│       paramsOpt = N
+//│       auxParams = Nil
+//│       ext = N
+//│       kind = Mod
+//│       body = ObjBody of Blk:
+//│         stats = Ls of 
+//│           TermDefinition:
+//│             k = ImmutVal
+//│             sym = member:foo
+//│             tsym = module:Foo.foo
+//│             params = Nil
+//│             tparams = N
+//│             sign = N
+//│             body = S of Lit of IntLit of 1
+//│             resSym = ‹result of member:foo›
+//│             flags = ()
+//│             modulefulness = Modulefulness of N
+//│             annotations = Nil
+//│         res = Lit of UnitLit of false
+//│       companion = S of class:Foo
+//│       annotations = Nil
+//│     Parameterized:
+//│       owner = N
+//│       kind = Cls
+//│       sym = class:Foo
+//│       bsym = member:Foo
+//│       tparams = Nil
+//│       params = ParamList:
+//│         flags = ()
+//│         params = Ls of 
+//│           Param:
+//│             flags = (val)
+//│             sym = x
+//│             sign = N
+//│             modulefulness = Modulefulness of N
+//│         restParam = N
+//│       auxParams = Nil
+//│       ext = N
+//│       body = ObjBody of Blk:
+//│         stats = Ls of 
+//│           TermDefinition:
+//│             k = ImmutVal
+//│             sym = member:x
+//│             tsym = class:Foo.x
+//│             params = Nil
+//│             tparams = N
+//│             sign = N
+//│             body = S of Ref{x} of x
+//│             resSym = ‹class-param-res›
+//│             flags = ()
+//│             modulefulness = Modulefulness of N
+//│             annotations = Nil
+//│         res = Lit of UnitLit of false
+//│       companion = S of module:Foo
+//│       annotations = Nil
+//│   res = Lit of UnitLit of false
+
+new Foo(1)
+//│ = Foo(1)
+
+
+
+
+// declare object Oops
+
+// Oops
 

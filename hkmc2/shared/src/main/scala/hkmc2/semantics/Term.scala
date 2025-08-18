@@ -528,7 +528,8 @@ sealed abstract class Definition extends Declaration with Statement:
 
 sealed trait CompanionValue extends Definition
 
-type CompanionSymbol = ModuleSymbol | TypeAliasSymbol
+type ClassCompanionSymbol = ModuleSymbol | TypeAliasSymbol
+type CompanionSymbol = ModuleSymbol | TypeAliasSymbol | ClassSymbol
 
 
 sealed abstract class TypeLikeDef extends Definition:
@@ -545,7 +546,14 @@ sealed abstract class ClassLikeDef extends TypeLikeDef:
   val auxParams: Ls[ParamList]
   val ext: Opt[New]
   val body: ObjBody
+  val companion: Opt[CompanionSymbol]
   val annotations: Ls[Annot]
+  def classCompanion = companion match
+    case S(sym: ClassSymbol) => S(sym)
+    case _ => N
+  def moduleCompanion = companion match
+    case S(sym: ModuleSymbol) => S(sym)
+    case _ => N
   def extraAnnotations: Ls[Annot] = annotations.filter:
     case Annot.Modifier(Keyword.`declare` | Keyword.`abstract` | Keyword.`data`) => false
     case _ => true
@@ -561,7 +569,8 @@ case class ModuleDef(
   ext: Opt[New],
   kind: ClsLikeKind,
   body: ObjBody,
-  companion: Opt[ClassSymbol],
+  // companion: Opt[ClassSymbol],
+  companion: Opt[CompanionSymbol],
   annotations: Ls[Annot],
 ) extends ClassLikeDef with CompanionValue
 
@@ -592,6 +601,7 @@ case class PatternDef(
   /** Pattern definitions do not need parameter lists. */
   val paramsOpt: Opt[ParamList] = N
   val auxParams: Ls[ParamList] = Nil
+  val companion: Opt[CompanionSymbol] = N
 
 
 sealed abstract class ClassDef extends ClassLikeDef:

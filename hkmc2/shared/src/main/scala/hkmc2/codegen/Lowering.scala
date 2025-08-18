@@ -193,20 +193,34 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       case cls: ClassLikeDef if cls.sym.defn.exists(_.isDeclare.isDefined) =>
         // * Declarations have no lowering
         blockImpl(stats, res)(k)
-      case cls: ClassLikeDef =>
+      // case cls: ClassDef if cls.companion.isDefined => // TODO refine
+      case cls: ClassDef if cls.moduleCompanion.isDefined => // TODO refine
+        // * 
         reportAnnotations(cls, cls.extraAnnotations)
-        val (mtds, publicFlds, privateFlds, ctor) = cls match
+        blockImpl(stats, res)(k)
+      case _defn: ClassLikeDef =>
+        val defn = _defn match
+          case cls: ClassDef => cls
+          case mod: ModuleDef =>
+            mod.classCompanion match
+            case S(comp) => comp.defn.getOrElse(wat("Module companion without definition", mod.companion))
+            case N => mod
+            // case _ => mod
+          case _ => _defn
+        reportAnnotations(defn, defn.extraAnnotations)
+        val (mtds, publicFlds, privateFlds, ctor) = defn match
           case pd: PatternDef => compilePatternMethods(pd)
-          case _ => gatherMembers(cls.body)
-        cls.ext match
+          case _ => gatherMembers(defn.body)
+        defn.ext match
         case N =>
-          Define(ClsLikeDefn(cls.owner, cls.sym, cls.bsym, cls.kind, cls.paramsOpt, cls.auxParams, N,
-                mtds,
-                privateFlds,
-                publicFlds,
-                End(),
-                ctor
-              ),
+          Define(
+            ClsLikeDefn(defn.owner, defn.sym, defn.bsym, defn.kind, defn.paramsOpt, defn.auxParams, N,
+              mtds,
+              privateFlds,
+              publicFlds,
+              End(),
+              ctor
+            ),
             blockImpl(stats, res)(k))
         case S(ext) =>
           assert(k isnt syntax.Mod) // modules can't extend things and can't have super calls
@@ -214,7 +228,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             val pctor = parentConstructor(ext.cls, ext.args)
             Define(
               ClsLikeDefn(
-                cls.owner, cls.sym, cls.bsym, cls.kind, cls.paramsOpt, cls.auxParams, S(clsp),
+                defn.owner, defn.sym, defn.bsym, defn.kind, defn.paramsOpt, defn.auxParams, S(clsp),
                 mtds, privateFlds, publicFlds, pctor, ctor
               ),
               blockImpl(stats, res)(k)
