@@ -15,6 +15,7 @@ import Resolver.ICtx.Type
 import Message.MessageContext
 import scala.annotation.tailrec
 import hkmc2.semantics.Resolver.ICtx.Instance
+import hkmc2.semantics.Term.Sel
 
 object Resolver:
   
@@ -225,14 +226,17 @@ class Resolver(tl: TraceLogger)
   enum Expect:
     case Module(reason: Opt[Message])
     case NonModule(reason: Opt[Message])
+    case Class(reason: Opt[Message])
     case Any
     
     def message: Ls[Message -> Opt[Loc]] = this match
       case Expect.Module(msg) => msg.toList.map(_ -> N)
       case Expect.NonModule(msg) => msg.toList.map(_ -> N)
+      case Expect.Class(msg) => msg.toList.map(_ -> N)
       case Expect.Any => Nil
     
     def module = isInstanceOf[Module]
+    def clasz = isInstanceOf[Class]
     
     def nonModule = this match
       case Expect.NonModule(_) => true
@@ -282,20 +286,28 @@ class Resolver(tl: TraceLogger)
       body
       val evalsToModule = ModuleChecker.evalsToModule(t)
       if expect.module && !evalsToModule then
-        raise(ErrorReport(msg"Expected a module, found non-moduleful ${t.describe}." -> t.toLoc 
+        raise(ErrorReport(msg"Expected a module; found non-moduleful ${t.describe}." -> t.toLoc 
           :: expect.message))
       if expect.nonModule && evalsToModule then
         raise(ErrorReport(msg"Unexpected moduleful ${t.describe}." -> t.toLoc 
           :: expect.message))
     
+    def checkNoClassExpecation(found: => Str) =
+      if expect.clasz then
+        raise(ErrorReport(msg"Expected a statically known class; found ${found} instead." -> t.toLoc 
+          :: expect.message))
+    
     check:
       t match
         case blk: Term.Blk =>
+          checkNoClassExpecation(t.describe)
           traverseBlock(blk)
         case Term.Rcd(mut, stats) =>
+          checkNoClassExpecation(t.describe)
           traverseStmts(stats)
         
         case t: Term.IfLike =>
+          checkNoClassExpecation(t.describe)
           def split(s: Split): Unit = s match
             case Split.Cons(head, tail) =>
               traverse(head.scrutinee, expect = NonModule(N))
@@ -311,16 +323,34 @@ class Resolver(tl: TraceLogger)
           split(t.desugared)
         
         case Term.New(cls, args, rft) =>
-          traverse(cls, expect = Any)
+          checkNoClassExpecation(t.describe)
+          traverse(cls, expect = Class(N)) // TODO reason?
           args.foreach(traverse(_, expect = NonModule(N)))
           rft.foreach((sym, bdy) => traverseBlock(bdy.blk))
         
         case t: Resolvable =>
-          resolve(t, inTyPrefix = false, inCtxPrefix = false)
+          resolve(t, inTyPrefix = false, inCtxPrefix = false) match
+          case _ if !expect.clasz => ()
+          case res @ (S(callable), ictx) =>
+            log(s"Resolved resolvable term ${t.show} to symbol ${callable.toString()}")
+            callable.sym.asCls match
+            case S(cls) =>
+              log(s"hasExpansion ${t.hasExpansion} ${t.toString} ~> ${t.instantiate.toString}")
+              if callable.sym.hasLiftedClass then
+                // raise(ErrorReport(msg"Expected a class; found a lifted class ${callable.sym.describe}." -> t.toLoc 
+                //   :: expect.message))
+                t.expand(S(t => Sel(t, new Tree.Ident("class"))(S(cls))))
+              ()
+            case N =>
+              checkNoClassExpecation(s"term that resolves to a ${callable.sym.describe}")
+          case res @ (N, _) =>
+            checkNoClassExpecation(t.describe)
+            // res
         
-        case _ => 
+        case _ =>
+          checkNoClassExpecation(t.describe)
           t.subTerms.foreach(traverse(_, expect = NonModule(N)))
-
+  
   def resolveDefn(defn: Definition)(using ICtx): ICtx =
   trace(s"Resolving definition: $defn"):
     def traverseTermDef(tdf: TermDefinition) =

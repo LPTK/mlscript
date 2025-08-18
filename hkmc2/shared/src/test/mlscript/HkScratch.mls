@@ -9,6 +9,131 @@
 // :todo
 
 
+:sjs
+class Foo(x) with
+  print("ok", x)
+//│ JS (unsanitized):
+//│ let Foo1;
+//│ Foo1 = function Foo(x1) {
+//│   return globalThis.Object.freeze(new Foo.class(x1));
+//│ };
+//│ Object.defineProperty(Foo1, "class", {
+//│   enumerable: true,
+//│   value: class Foo {
+//│     #x;
+//│     constructor(x) {
+//│       this.#x = x;
+//│       Predef.print("ok", this.#x);
+//│     }
+//│     toString() { return runtime.render(this); }
+//│     static [definitionMetadata] = ["class", "Foo", [null]]; 
+//│   }
+//│ });
+
+:rt
+:sjs
+:dr
+new Foo(1)
+//│ Traversing block: Blk(List(),New(Ref(member:Foo‹627›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))
+//│ | Traversing term: New(Ref(member:Foo‹627›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
+//│ | | Traversing term: Ref(member:Foo‹627›)
+//│ | | | Resolving resolvable term: Ref(member:Foo‹627›), (inPrefix = false)
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹627›)): Some(CallableDefinition(member:Foo‹627›,List(ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None)),Some(List()),None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹628›,member:Foo‹627›,List(),ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None),List(),None,( let class:Foo‹628›.x; class:Foo‹628›.x = x‹630›#0; (member:Predef‹468›#666.)print‹member:print‹436››("ok", class:Foo‹628›.x#666) ),None,List())))
+//│ | | | ~> Ref(member:Foo‹627›)
+//│ | | | Resolved resolvable term member:Foo‹627›#666 to symbol CallableDefinition(member:Foo‹627›,List(ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None)),Some(List()),None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹628›,member:Foo‹627›,List(),ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None),List(),None,( let class:Foo‹628›.x; class:Foo‹628›.x = x‹630›#0; (member:Predef‹468›#666.)print‹member:print‹436››("ok", class:Foo‹628›.x#666) ),None,List()))
+//│ | | | hasExpansion true Ref(member:Foo‹627›) ~> Ref(member:Foo‹627›)
+//│ | | Traversing term: Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
+//│ | | | Traversing term: Lit(IntLit(1))
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = New:
+//│     cls = Sel{class:Foo‹628›}:
+//│       prefix = Ref{member:Foo‹627›} of member:Foo‹627›
+//│       nme = Ident of "class"
+//│     args = Ls of 
+//│       Tup of Ls of 
+//│         Fld:
+//│           flags = ()
+//│           term = Lit of IntLit of 1
+//│           asc = N
+//│     rft = N
+//│ JS (unsanitized):
+//│ globalThis.Object.freeze(new Foo1.class(1))
+//│ > ok 1
+//│ = Foo(_)
+
+:e
+:re
+new id(1)
+//│ ╔══[ERROR] Expected a statically known class; found term that resolves to a term definition instead.
+//│ ║  l.68: 	new id(1)
+//│ ╙──      	    ^^
+//│ ═══[RUNTIME ERROR] TypeError: Predef.id is not a constructor
+
+:e
+new (id(Foo))(12)
+//│ ╔══[ERROR] Expected a statically known class; found term that resolves to a term definition instead.
+//│ ║  l.75: 	new (id(Foo))(12)
+//│ ╙──      	     ^^^^^^^
+//│ > ok 12
+//│ = Foo(_)
+
+new! (id(Foo))(12)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: checkNoClassExpecation (Resolver.scala:297)
+//│ ╔══[ERROR] Expected a statically known class; found term that resolves to a term definition instead.
+//│ ║  l.82: 	new! (id(Foo))(12)
+//│ ╙──      	      ^^^^^^^
+//│ > ok 12
+//│ = Foo(_)
+
+:rt
+:sjs
+object Bar extends Foo(42)
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Ls of 
+//│     ModuleDef:
+//│       owner = N
+//│       sym = object:Bar
+//│       bsym = member:Bar
+//│       tparams = Nil
+//│       paramsOpt = N
+//│       auxParams = Nil
+//│       ext = S of New:
+//│         cls = Sel{class:Foo}:
+//│           prefix = Ref{member:Foo} of member:Foo
+//│           nme = Ident of "class"
+//│         args = Ls of 
+//│           Tup of Ls of 
+//│             Fld:
+//│               flags = ()
+//│               term = Lit of IntLit of 42
+//│               asc = N
+//│         rft = N
+//│       kind = Obj
+//│       body = ObjBody of Blk:
+//│         stats = Nil
+//│         res = Lit of UnitLit of false
+//│       companion = N
+//│       annotations = Nil
+//│   res = Lit of UnitLit of false
+//│ JS (unsanitized):
+//│ let Bar1;
+//│ const Bar$class = class Bar extends Foo1.class {
+//│   constructor() {
+//│     super(42);
+//│     Object.defineProperty(this, "class", {
+//│       value: Bar
+//│     })
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["object", "Bar"]; 
+//│ }; Bar1 = globalThis.Object.freeze(new Bar$class);
+//│ > ok 42
+
+
 
 :de
 :sjs
@@ -18,25 +143,25 @@ module Foo with
 //│ Elab block List(TypeDef(Cls,App(Ident(Foo),Tup(List(TermDef(ImmutVal,Ident(x),None)))),None), TypeDef(Mod,Infix[...] LocalScope
 //│ | Elaborating ParamTree: ParamTree(‹val›,Ident(x),None,None,Set(ImmutVal))
 //│ | Processing class definition Ident(Foo)
-//│ | | Companion: Some(module:Foo‹632›)
+//│ | | Companion: Some(module:Foo‹663›)
 //│ | Processing module/object definition Ident(Foo)
-//│ | | Companion: Some(class:Foo‹629›)
-//│ | | Elab block List(TermDef(ImmutVal,Ident(foo),Some(IntLit(1)))) InnerScope(module:Foo‹632›)
+//│ | | Companion: Some(class:Foo‹660›)
+//│ | | Elab block List(TermDef(ImmutVal,Ident(foo),Some(IntLit(1)))) InnerScope(module:Foo‹663›)
 //│ | | | Processing term definition Ident(foo)
 //│ | | | Elab term IntLit(1)
 //│ | | | | Elab subterm IntLit(1)
 //│ | | | | ~> Lit(IntLit(1))
 //│ | | | ~> Lit(IntLit(1))
-//│ | | ~> Blk(List(TermDefinition(ImmutVal,member:foo‹627›,module:Foo‹632›.foo,List(),None,None,Some(Lit(IntLit(1))),‹result of member:foo‹627››‹638›,‹›,Modulefulness(None),List())),Lit(UnitLit(false)))
-//│ ~> Blk(List(Parameterized(None,Cls,class:Foo‹629›,member:Foo‹628›,List(),ParamList(‹›,List(Param(‹val›,x‹631›,None,Modulefulness(None))),None),List(),None,( ‹› val member:x‹634› = x‹631›#0; ),Some(module:Foo‹632›),List()), ModuleDef(None,module:Foo‹632›,member:Foo‹628›,List(),None,List(),None,Mod,( ‹› val member:foo‹627› = 1; ),Some(class:Foo‹629›),List())),Lit(UnitLit(false)))
+//│ | | ~> Blk(List(TermDefinition(ImmutVal,member:foo‹658›,module:Foo‹663›.foo,List(),None,None,Some(Lit(IntLit(1))),‹result of member:foo‹658››‹669›,‹›,Modulefulness(None),List())),Lit(UnitLit(false)))
+//│ ~> Blk(List(Parameterized(None,Cls,class:Foo‹660›,member:Foo‹659›,List(),ParamList(‹›,List(Param(‹val›,x‹662›,None,Modulefulness(None))),None),List(),None,( ‹› val member:x‹665› = x‹662›#0; ),Some(module:Foo‹663›),List()), ModuleDef(None,module:Foo‹663›,member:Foo‹659›,List(),None,List(),None,Mod,( ‹› val member:foo‹658› = 1; ),Some(class:Foo‹660›),List())),Lit(UnitLit(false)))
 //│ JS (unsanitized):
-//│ let Foo2;
-//│ Foo2 = function Foo(x1) {
+//│ let Foo4;
+//│ Foo4 = function Foo(x1) {
 //│   return globalThis.Object.freeze(new Foo.class(x1));
 //│ };
-//│ Object.defineProperty(Foo2, "class", {
+//│ Object.defineProperty(Foo4, "class", {
 //│   enumerable: true,
-//│   value: class Foo {
+//│   value: class Foo2 {
 //│     constructor(x) {
 //│       this.x = x;
 //│     }
@@ -44,9 +169,9 @@ module Foo with
 //│     static [definitionMetadata] = ["class", "Foo", ["x"]]; 
 //│   }
 //│ });
-//│ (class Foo1 {
+//│ (class Foo3 {
 //│   static {
-//│     Foo2 = Foo1;
+//│     Foo4 = Foo3;
 //│     this.foo = 1;
 //│   }
 //│   static toString() { return runtime.render(this); }
@@ -60,58 +185,26 @@ Foo
 :sjs
 Foo.foo
 //│ JS (unsanitized):
-//│ Foo2.foo
+//│ Foo4.foo
 //│ = 1
 
 :dr
 :sjs
 new Foo
-//│ Traversing block: Blk(List(),New(SynthSel(Ref(member:Foo‹628›),Ident(class)),List(),None))
-//│ | Traversing term: New(SynthSel(Ref(member:Foo‹628›),Ident(class)),List(),None)
-//│ | | Traversing term: SynthSel(Ref(member:Foo‹628›),Ident(class))
-//│ | | | Resolving resolvable term: SynthSel(Ref(member:Foo‹628›),Ident(class)), (inPrefix = false)
-//│ | | | | Resolving resolvable term: Ref(member:Foo‹628›), (inPrefix = false)
-//│ | | | | | Resolving resolvable (sym = Some(member:Foo‹628›)): Some(CallableDefinition(member:Foo‹628›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹632›,member:Foo‹628›,List(),None,List(),None,Mod,( ‹› val member:foo‹627› = 1; ),Some(class:Foo‹629›),List())))
-//│ | | | | ~> Ref(member:Foo‹628›)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: resolveSymbol (Resolver.scala:727)
-//│ FAILURE INFO: ModuleDef:
-//│   owner = N
-//│   sym = module:Foo‹632›
-//│   bsym = member:Foo‹628›
-//│   tparams = Nil
-//│   paramsOpt = N
-//│   auxParams = Nil
-//│   ext = N
-//│   kind = Mod
-//│   body = ObjBody of Blk:
-//│     stats = Ls of 
-//│       TermDefinition:
-//│         k = ImmutVal
-//│         sym = member:foo‹627›
-//│         tsym = module:Foo‹632›.foo
-//│         params = Nil
-//│         tparams = N
-//│         sign = N
-//│         body = S of Lit of IntLit of 1
-//│         resSym = ‹result of member:foo‹627››‹638›
-//│         flags = ()
-//│         modulefulness = Modulefulness of N
-//│         annotations = Nil
-//│     res = Lit of UnitLit of false
-//│   companion = S of class:Foo‹629›
-//│   annotations = Nil
-//│ ╔══[ERROR] Module 'Foo' does not contain member 'class'
-//│ ║  l.68: 	new Foo
-//│ ╙──      	    ^^^
-//│ | | | | Resolving resolvable (sym = Some(error:class)): None
-//│ | | | ~> SynthSel(Ref(member:Foo‹628›),Ident(class))
+//│ Traversing block: Blk(List(),New(Ref(member:Foo‹659›),List(),None))
+//│ | Traversing term: New(Ref(member:Foo‹659›),List(),None)
+//│ | | Traversing term: Ref(member:Foo‹659›)
+//│ | | | Resolving resolvable term: Ref(member:Foo‹659›), (inPrefix = false)
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹659›)): Some(CallableDefinition(member:Foo‹659›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹663›,member:Foo‹659›,List(),None,List(),None,Mod,( ‹› val member:foo‹658› = 1; ),Some(class:Foo‹660›),List())))
+//│ | | | ~> Ref(member:Foo‹659›)
+//│ | | | Resolved resolvable term member:Foo‹659›#666 to symbol CallableDefinition(member:Foo‹659›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹663›,member:Foo‹659›,List(),None,List(),None,Mod,( ‹› val member:foo‹658› = 1; ),Some(class:Foo‹660›),List()))
+//│ | | | hasExpansion true Ref(member:Foo‹659›) ~> Ref(member:Foo‹659›)
 //│ JS (unsanitized):
-//│ globalThis.Object.freeze(new Foo2.class())
+//│ globalThis.Object.freeze(new Foo4.class())
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Foo2.class is not a constructor
-//│     at REPL19:1:45
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'class' yielded 'undefined'
+//│     at REPL37:1:103
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -123,41 +216,10 @@ new Foo
 //│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 new Foo(12)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: resolveSymbol (Resolver.scala:727)
-//│ FAILURE INFO: ModuleDef:
-//│   owner = N
-//│   sym = module:Foo
-//│   bsym = member:Foo
-//│   tparams = Nil
-//│   paramsOpt = N
-//│   auxParams = Nil
-//│   ext = N
-//│   kind = Mod
-//│   body = ObjBody of Blk:
-//│     stats = Ls of 
-//│       TermDefinition:
-//│         k = ImmutVal
-//│         sym = member:foo
-//│         tsym = module:Foo.foo
-//│         params = Nil
-//│         tparams = N
-//│         sign = N
-//│         body = S of Lit of IntLit of 1
-//│         resSym = ‹result of member:foo‹627››
-//│         flags = ()
-//│         modulefulness = Modulefulness of N
-//│         annotations = Nil
-//│     res = Lit of UnitLit of false
-//│   companion = S of class:Foo
-//│   annotations = Nil
-//│ ╔══[ERROR] Module 'Foo' does not contain member 'class'
-//│ ║  l.125: 	new Foo(12)
-//│ ╙──       	    ^^^
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Foo2.class is not a constructor
-//│     at REPL22:1:45
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'class' yielded 'undefined'
+//│     at REPL40:1:103
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)

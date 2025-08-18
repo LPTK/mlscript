@@ -66,10 +66,12 @@ sealed trait ResolvableImpl:
   private[semantics] def expand(expansionFn: Opt[Term => Term]): this.type =
     val newExpansion = expansionFn.map(_(t.duplicate.resolve))
     expansion match
-      case S(expansion) if expansion != newExpansion => lastWords:
+      /* 
+      case S(expansion) if expansion =/= newExpansion => lastWords: // FIXME: @Harry this check seems like a hack
         s"the expansion for term ${t.showDbg} " +
-        s"are already set to ${expansion}; " +
-        s"they cannot be set to a different term ${newExpansion}"
+        s"is already set to ${expansion}; " +
+        s"it cannot be set to a different term ${newExpansion}"
+      */  
       case _ =>
         this.expansion = S(newExpansion)
     this
@@ -245,6 +247,7 @@ enum Term extends Statement:
     case Throw(e) => "throw"
     case Annotated(annotation, target) => "annotation"
     case Ret(res) => "return"
+    case Try(body, finallyDo) => "try expression"
 end Term
 
 import Term.*

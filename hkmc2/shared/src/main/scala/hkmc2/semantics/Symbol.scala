@@ -140,6 +140,12 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[Tree], val nameIsMeaningful:
   
   def toLoc: Option[Loc] = Loc(trees)
   
+  def describe: Str =
+    trees match
+    // case (td: TypeOrTermDef) :: Nil => s"${td.describe}"
+    case td :: Nil => td.describe
+    case _ => trees.iterator.map(_.describe).mkString("overloaded ", ", ", "symbol")
+  
   def clsTree: Opt[Tree.TypeDef] = trees.collectFirst:
     case t: Tree.TypeDef if t.k is Cls => t
   def modOrObjTree: Opt[Tree.TypeDef] = modTree orElse objTree
