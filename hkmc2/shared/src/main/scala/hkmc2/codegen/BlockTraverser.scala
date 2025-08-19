@@ -88,8 +88,8 @@ class BlockTraverser:
   def applyDefn(defn: Defn): Unit = defn match
     case defn: FunDefn => applyFunDefn(defn)
     case defn: ValDefn => applyValDefn(defn)
-    case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentPath, methods, smethods, 
-        privateFields, publicFields, preCtor, ctor) =>
+    case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentPath, methods,
+        privateFields, publicFields, preCtor, ctor, mod) =>
       own.foreach(_.traverse)
       isym.traverse
       sym.traverse
@@ -97,12 +97,15 @@ class BlockTraverser:
       auxParams.foreach(applyParamList)
       parentPath.foreach(applyPath)
       methods.foreach(applyFunDefn)
-      smethods.foreach(applyFunDefn)
+      // smethods.foreach(applyFunDefn)
       privateFields.foreach(_.traverse)
       publicFields.foreach: f =>
         f._1.traverse; f._2.traverse
       applySubBlock(preCtor)
       applySubBlock(ctor)
+      mod.foreach(applyClsLikeBody)
+  
+  def applyClsLikeBody(b: ClsLikeBody): Unit = ???
   
   def applyArg(arg: Arg): Unit =
     applyPath(arg.value)

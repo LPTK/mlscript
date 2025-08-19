@@ -135,25 +135,24 @@ object Bar extends Foo(42)
 
 
 
-:de
+// :de
+:dl
+:lot
 :sjs
 class Foo(val x)
 module Foo with
   val foo = 1
-//│ Elab block List(TypeDef(Cls,App(Ident(Foo),Tup(List(TermDef(ImmutVal,Ident(x),None)))),None), TypeDef(Mod,Infix[...] LocalScope
-//│ | Elaborating ParamTree: ParamTree(‹val›,Ident(x),None,None,Set(ImmutVal))
-//│ | Processing class definition Ident(Foo)
-//│ | | Companion: Some(module:Foo‹663›)
-//│ | Processing module/object definition Ident(Foo)
-//│ | | Companion: Some(class:Foo‹660›)
-//│ | | Elab block List(TermDef(ImmutVal,Ident(foo),Some(IntLit(1)))) InnerScope(module:Foo‹663›)
-//│ | | | Processing term definition Ident(foo)
-//│ | | | Elab term IntLit(1)
-//│ | | | | Elab subterm IntLit(1)
-//│ | | | | ~> Lit(IntLit(1))
-//│ | | | ~> Lit(IntLit(1))
-//│ | | ~> Blk(List(TermDefinition(ImmutVal,member:foo‹658›,module:Foo‹663›.foo,List(),None,None,Some(Lit(IntLit(1))),‹result of member:foo‹658››‹669›,‹›,Modulefulness(None),List())),Lit(UnitLit(false)))
-//│ ~> Blk(List(Parameterized(None,Cls,class:Foo‹660›,member:Foo‹659›,List(),ParamList(‹›,List(Param(‹val›,x‹662›,None,Modulefulness(None))),None),List(),None,( ‹› val member:x‹665› = x‹662›#0; ),Some(module:Foo‹663›),List()), ModuleDef(None,module:Foo‹663›,member:Foo‹659›,List(),None,List(),None,Mod,( ‹› val member:foo‹658› = 1; ),Some(class:Foo‹660›),List())),Lit(UnitLit(false)))
+//│ Lowering.term ( ‹› val member:x = x#0; )
+//│ Lowering.term x#0 – symbol x
+//│ Expanding term Ref(x)
+//│ ~> x#0
+//│ Lowering.term undefined
+//│ Lowering.term undefined
+//│ avoidNames Define(ClsLikeDefn(None,class:Foo,member:Foo,Cls,Some(ParamList(‹›,List(Param(‹val›,x,None,Moduleful...
+//│ | avoidNames End()...
+//│ | avoidNames Define(ValDefn(class:Foo.x,member:x,Ref(x)),End())...
+//│ | | avoidNames End()...
+//│ | avoidNames End()...
 //│ JS (unsanitized):
 //│ let Foo3;
 //│ Foo3 = function Foo(x1) {
@@ -169,6 +168,56 @@ module Foo with
 //│     static [definitionMetadata] = ["class", "Foo", ["x"]]; 
 //│   }
 //│ });
+//│ Lowering.term ( ‹› val member:x = x#0; )
+//│ Lowering.term x#0 – symbol x
+//│ Expanding term Ref(x)
+//│ ~> x#0
+//│ Lowering.term undefined
+//│ Lowering.term undefined
+//│ Lowered:
+//│ Program:
+//│   imports = Nil
+//│   main = Define:
+//│     defn = ClsLikeDefn:
+//│       owner = N
+//│       isym = class:Foo
+//│       sym = member:Foo
+//│       k = Cls
+//│       paramsOpt = S of ParamList:
+//│         flags = ()
+//│         params = Ls of 
+//│           Param:
+//│             flags = (val)
+//│             sym = x
+//│             sign = N
+//│             modulefulness = Modulefulness of N
+//│         restParam = N
+//│       auxParams = Nil
+//│       parentPath = N
+//│       methods = Nil
+//│       privateFields = Nil
+//│       publicFields = Ls of 
+//│         Tuple2:
+//│           _1 = member:x
+//│           _2 = class:Foo.x
+//│       preCtor = End of ""
+//│       ctor = Define:
+//│         defn = ValDefn:
+//│           tsym = class:Foo.x
+//│           sym = member:x
+//│           rhs = Ref of x
+//│         rest = End of ""
+//│       companion = N
+//│     rest = Assign: \
+//│     lhs = $block$res
+//│     rhs = Lit of UnitLit of false
+//│     rest = End of ""
+//│ avoidNames Define(ClsLikeDefn(None,class:Foo,member:Foo,Cls,Some(ParamList(‹›,List(Param(‹val›,x,None,Moduleful...
+//│ | avoidNames End()...
+//│ | avoidNames Define(ValDefn(class:Foo.x,member:x,Ref(x)),End())...
+//│ | | avoidNames End()...
+//│ | avoidNames Assign($block$res,Lit(UnitLit(false)),End())...
+//│ | | avoidNames End()...
 
 :rt
 Foo

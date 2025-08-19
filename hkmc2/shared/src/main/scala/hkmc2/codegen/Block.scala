@@ -38,11 +38,11 @@ sealed abstract class Block extends Product with AutoLocated:
     case AssignDynField(lhs, fld, arrayIdx, rhs, rest) => lhs :: fld :: rhs :: rest :: Nil
     case Define(FunDefn(owner, sym, params, body), rest) => sym :: (params :+ body :+ rest)
     case Define(ValDefn(tsym, sym, rhs), rest) => tsym :: sym :: rhs :: rest :: Nil
-    case Define(ClsLikeDefn(owner, isym, sym, k, paramsOpt, aux, parentSym, methods, smethods,
-        privFlds, pubFlds, preCtor, ctor), rest) =>
+    case Define(ClsLikeDefn(owner, isym, sym, k, paramsOpt, aux, parentSym, methods,
+        privFlds, pubFlds, preCtor, ctor, stat), rest) =>
       isym :: sym :: paramsOpt.toList ++ aux ++ parentSym.toList ++
         methods.flatMap(_.subBlocks) ++
-        smethods.flatMap(_.subBlocks) ++
+        stat.iterator.flatMap(_.subBlocks) ++
         privFlds ++ pubFlds.flatMap(f => f._1 :: f._2 :: Nil) ++ preCtor.subBlocks ++ ctor.subBlocks :+ rest
     case HandleBlock(lhs, res, par, args, cls, handlers, body, rest) =>
       lhs :: res :: par :: args ++ handlers.flatMap: handler =>
@@ -302,6 +302,7 @@ case class AssignDynField(lhs: Path, fld: Path, arrayIdx: Bool, rhs: Result, res
 
 case class Define(defn: Defn, rest: Block) extends Block with ProductWithTail
 
+
 case class HandleBlock(
     lhs: Local,
     res: Local,
@@ -312,6 +313,7 @@ case class HandleBlock(
     body: Block,
     rest: Block
 ) extends Block with ProductWithTail
+
 
 sealed abstract class Defn:
   val innerSym: Opt[MemberSymbol[?]]
@@ -333,20 +335,21 @@ sealed abstract class Defn:
     case FunDefn(own, sym, params, body) => body.freeVars -- params.flatMap(_.paramSyms) - sym
     case ValDefn(tsym, sym, rhs) => rhs.freeVars
     case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentSym, 
-        methods, smethods, privateFields, publicFields, preCtor, ctor) =>
+        methods, privateFields, publicFields, preCtor, ctor, stat) =>
       preCtor.freeVars
-        ++ ctor.freeVars ++ methods.flatMap(_.freeVars) ++ smethods.flatMap(_.freeVars)
+        ++ ctor.freeVars ++ methods.flatMap(_.freeVars) ++ stat.iterator.flatMap(_.freeVars)
         -- auxParams.flatMap(_.paramSyms)
   
   lazy val freeVarsLLIR: Set[Local] = this match
     case FunDefn(own, sym, params, body) => body.freeVarsLLIR -- params.flatMap(_.paramSyms) - sym
     case ValDefn(tsym, sym, rhs) => rhs.freeVarsLLIR
     case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentSym, 
-        methods, smethods, privateFields, publicFields, preCtor, ctor) =>
+        methods, privateFields, publicFields, preCtor, ctor, stat) =>
       preCtor.freeVarsLLIR
-        ++ ctor.freeVarsLLIR ++ methods.flatMap(_.freeVarsLLIR) ++ smethods.flatMap(_.freeVarsLLIR)
+        ++ ctor.freeVarsLLIR ++ methods.flatMap(_.freeVarsLLIR) ++ stat.iterator.flatMap(_.freeVarsLLIR)
         -- auxParams.flatMap(_.paramSyms)
   
+
 final case class FunDefn(
     owner: Opt[InnerSymbol],
     sym: BlockMemberSymbol,
@@ -354,6 +357,7 @@ final case class FunDefn(
     body: Block,
 ) extends Defn:
   val innerSym = N
+
 
 final case class ValDefn(
     tsym: TermSymbol,
@@ -364,6 +368,7 @@ final case class ValDefn(
   val k = tsym.k
   val owner: Opt[InnerSymbol] = tsym.owner
 
+
 object ValDefn:
   def mk(
       owner: Opt[InnerSymbol],
@@ -373,6 +378,7 @@ object ValDefn:
     )(using State)
     : ValDefn =
       ValDefn(tsym = TermSymbol(k, owner, Tree.Ident(sym.nme)), sym = sym, rhs = rhs)
+
 
 /*
   This explains the difference between paramsOpt, auxParams, privateFields and publicFields.
@@ -414,14 +420,36 @@ final case class ClsLikeDefn(
     paramsOpt: Opt[ParamList],
     auxParams: List[ParamList],
     parentPath: Opt[Path],
+    
+    // TODO: make a ClsLikeBody
     methods: Ls[FunDefn],
-    staticMethods: Ls[FunDefn],
+    // staticMethods: Ls[FunDefn],
     privateFields: Ls[TermSymbol],
     publicFields: Ls[BlockMemberSymbol -> TermSymbol],
     preCtor: Block,
     ctor: Block,
+    
+    companion: Opt[ClsLikeBody],
 ) extends Defn:
   val innerSym = S(isym)
+
+
+final case class ClsLikeBody(
+    isym: MemberSymbol[? <: ClassLikeDef] & InnerSymbol,
+    // k: syntax.ClsLikeKind,
+    // parentPath: Opt[Path],
+    methods: Ls[FunDefn],
+    // staticMethods: Ls[FunDefn],
+    privateFields: Ls[TermSymbol],
+    publicFields: Ls[BlockMemberSymbol -> TermSymbol],
+    // preCtor: Block,
+    ctor: Block,
+):
+  val innerSym = S(isym)
+  def subBlocks: Ls[Block] = ???
+  lazy val freeVars: Set[Local] = ???
+  lazy val freeVarsLLIR: Set[Local] = ???
+
 
 final case class Handler(
     sym: BlockMemberSymbol,
@@ -431,6 +459,7 @@ final case class Handler(
 ):
   lazy val freeVars: Set[Local] = body.freeVars -- params.flatMap(_.paramSyms) - sym - resumeSym
   lazy val freeVarsLLIR: Set[Local] = body.freeVarsLLIR -- params.flatMap(_.paramSyms) - sym - resumeSym
+
 
 /* Represents either unreachable code (for functions that must return a result)
  * or the end of a non-returning function or a REPL block */

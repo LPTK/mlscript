@@ -277,10 +277,10 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       N,
       PlainParamList(sortedVars.iterator.map(_._2).toList) :: Nil, None, Nil, Nil, 
       Nil,
-      Nil,
       End(),
       sortedVars.iterator.foldLeft[Block](End()):
-        case (acc, (_, _, vd)) => Define(vd, acc)
+        case (acc, (_, _, vd)) => Define(vd, acc),
+      N,
     )
     
     (defn, sortedVars.iterator.map(_._1).toMap, sortedVars.iterator.map(_._1._1).toList)
@@ -434,8 +434,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
           tsym.owner.foreach(_.traverse)
           sym.traverse
           applyPath(rhs)
-        case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentPath, methods, smethods,
-            privateFields, publicFields, preCtor, ctor) =>
+        case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentPath, methods,
+            privateFields, publicFields, preCtor, ctor, mod) =>
           own.foreach(_.traverse)
           isym.traverse
           sym.traverse
@@ -460,12 +460,13 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
           paramsOpt.foreach(applyParamList)
           auxParams.foreach(applyParamList)
           methods.foreach(applyFunDefn)
-          smethods.foreach(applyFunDefn)
+          // smethods.foreach(applyFunDefn)
           privateFields.foreach(_.traverse)
           publicFields.foreach: f =>
             f._1.traverse; f._2.traverse
           applyBlock(preCtor)
           applyBlock(ctor)
+          mod.foreach(applyClsLikeBody)
 
       override def applyValue(v: Value): Unit = v match
         case RefOfBms(l) if clsSyms.contains(l) && !modOrObj(ctx.defns(l)) =>

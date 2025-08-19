@@ -208,19 +208,27 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             // case _ => mod
           case _ => _defn
         reportAnnotations(defn, defn.extraAnnotations)
-        val (mtds, smtds, publicFlds, privateFlds, ctor) = defn match
+        val (mtds, publicFlds, privateFlds, ctor) = defn match
           case pd: PatternDef => compilePatternMethods(pd)
           case _ => gatherMembers(defn.body)
+          // case _ => gatherMembers(defn.body, defn.companion match
+          //     case S(sym) => sym.defn match
+          //       case S(mod: ModuleDef) => S(mod.body)
+          //       case _ => N
+          //     case _ => N
+          //   )
+        val mod = N
         defn.ext match
         case N =>
           Define(
             ClsLikeDefn(defn.owner, defn.sym, defn.bsym, defn.kind, defn.paramsOpt, defn.auxParams, N,
               mtds,
-              smtds,
+              // smtds,
               privateFlds,
               publicFlds,
               End(),
-              ctor
+              ctor,
+              mod
             ),
             blockImpl(stats, res)(k))
         case S(ext) =>
@@ -230,7 +238,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             Define(
               ClsLikeDefn(
                 defn.owner, defn.sym, defn.bsym, defn.kind, defn.paramsOpt, defn.auxParams, S(clsp),
-                mtds, smtds, privateFlds, publicFlds, pctor, ctor
+                mtds, privateFlds, publicFlds, pctor, ctor, mod
               ),
               blockImpl(stats, res)(k)
             )
@@ -655,10 +663,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             Assign(ts, Instantiate(mut, sr, asr), z(Value.Ref(ts)))
         case S((isym, rft)) =>
           val sym = new BlockMemberSymbol(isym.name, Nil)
-          val (mtds, smtds, publicFlds, privateFlds, ctor) = gatherMembers(rft)
+          val (mtds, publicFlds, privateFlds, ctor) = gatherMembers(rft)
           val pctor = parentConstructor(cls, as)
           val clsDef = ClsLikeDefn(N, isym, sym, syntax.Cls, N, Nil, S(sr),
-            mtds, smtds, privateFlds, publicFlds, pctor, ctor)
+            mtds, privateFlds, publicFlds, pctor, ctor, N)
           val inner = new New(sym.ref().resolve, Nil, N)
           Define(clsDef, term_nonTail(if mut then Mut(inner) else inner)(k))
       
@@ -844,8 +852,27 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         source = Diagnostic.Source.Compilation
       )
   
-  
   def gatherMembers(clsBody: ObjBody)(using Subst)
+  : (Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
+    val mtds = clsBody.methods
+      .flatMap: td =>
+        td.body.map: bod =>
+          val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
+          FunDefn(td.owner, td.sym, paramLists, bodyBlock)
+    val publicFlds = clsBody.publicFlds.map(f => f.sym -> f.tsym)
+    val privateFlds = clsBody.nonMethods.collect:
+      case decl @ LetDecl(sym: TermSymbol, annotations) =>
+        reportAnnotations(decl, annotations)
+        sym
+    val ctor =
+      term_nonTail(Blk(clsBody.nonMethods, clsBody.blk.res))(ImplctRet)
+        // * This is just a minor improvement to get `constructor() {}` instead of `constructor() { null }`
+        .mapTail:
+          case Return(Value.Lit(syntax.Tree.UnitLit(true)), true) => End()
+          case t => t
+    (mtds, publicFlds, privateFlds, ctor)
+  /* 
+  def gatherMembers(clsBody: ObjBody, companionBody: Opt[ObjBody])(using Subst)
   : (Ls[FunDefn], Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
     val mtds = clsBody.methods
       .flatMap: td =>
@@ -863,8 +890,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         .mapTail:
           case Return(Value.Lit(syntax.Tree.UnitLit(true)), true) => End()
           case t => t
-    (mtds, Nil // TODO
-    , publicFlds, privateFlds, ctor)
+    val smtds = companionBody.toList.flatMap:
+      _.methods.flatMap: td =>
+        td.body.map: bod =>
+          val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
+          FunDefn(td.owner, td.sym, paramLists, bodyBlock)
+    // tl.log(s"Gathered members: $mtds, $publicFlds, $privateFlds, $ctor")
+    (mtds, smtds, publicFlds, privateFlds, ctor)
+  */
   
   /** Compile the pattern definition into `unapply` and `unapplyStringPrefix`
    *  methods using the `NaiveCompiler`, which transliterate the pattern into
