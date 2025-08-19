@@ -88,37 +88,9 @@ new! (id(Foo))(12)
 //│ > ok 12
 //│ = Foo(_)
 
-:rt
+// :rt
 :sjs
 object Bar extends Foo(42)
-//│ Resolved tree:
-//│ Blk:
-//│   stats = Ls of 
-//│     ModuleDef:
-//│       owner = N
-//│       sym = object:Bar
-//│       bsym = member:Bar
-//│       tparams = Nil
-//│       paramsOpt = N
-//│       auxParams = Nil
-//│       ext = S of New:
-//│         cls = Sel{class:Foo}:
-//│           prefix = Ref{member:Foo} of member:Foo
-//│           nme = Ident of "class"
-//│         args = Ls of 
-//│           Tup of Ls of 
-//│             Fld:
-//│               flags = ()
-//│               term = Lit of IntLit of 42
-//│               asc = N
-//│         rft = N
-//│       kind = Obj
-//│       body = ObjBody of Blk:
-//│         stats = Nil
-//│         res = Lit of UnitLit of false
-//│       companion = N
-//│       annotations = Nil
-//│   res = Lit of UnitLit of false
 //│ JS (unsanitized):
 //│ let Bar1;
 //│ const Bar$class = class Bar extends Foo1.class {
@@ -132,6 +104,55 @@ object Bar extends Foo(42)
 //│   static [definitionMetadata] = ["object", "Bar"]; 
 //│ }; Bar1 = globalThis.Object.freeze(new Bar$class);
 //│ > ok 42
+
+:lot
+:sjs
+module Bar with
+  fun foo = 1
+//│ JS (unsanitized):
+//│ let Bar3;
+//│ Bar3 = class Bar2 {
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Bar"]; 
+//│ };
+//│ Lowered:
+//│ Program:
+//│   imports = Nil
+//│   main = Define:
+//│     defn = ClsLikeDefn:
+//│       owner = N
+//│       isym = class:Bar
+//│       sym = member:Bar
+//│       k = Cls
+//│       paramsOpt = N
+//│       auxParams = Nil
+//│       parentPath = N
+//│       methods = Nil
+//│       privateFields = Nil
+//│       publicFields = Nil
+//│       preCtor = End of ""
+//│       ctor = Return:
+//│         res = Select{module:Unit}:
+//│           qual = Ref of $runtime
+//│           name = Ident of "Unit"
+//│         implct = true
+//│       companion = S of ClsLikeBody:
+//│         isym = module:Bar
+//│         methods = Nil
+//│         privateFields = Nil
+//│         publicFields = Nil
+//│         ctor = Return:
+//│           res = Select{module:Unit}:
+//│             qual = Ref of $runtime
+//│             name = Ident of "Unit"
+//│           implct = true
+//│     rest = Assign: \
+//│     lhs = $block$res
+//│     rhs = Lit of UnitLit of false
+//│     rest = End of ""
 
 
 
@@ -260,7 +281,7 @@ Foo.foo
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] Error: Access to required field 'foo' yielded 'undefined'
-//│     at REPL34:1:101
+//│     at REPL37:1:101
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -274,14 +295,14 @@ Foo.foo
 :dr
 :sjs
 new Foo
-//│ Traversing block: Blk(List(),New(Ref(member:Foo‹659›),List(),None))
-//│ | Traversing term: New(Ref(member:Foo‹659›),List(),None)
-//│ | | Traversing term: Ref(member:Foo‹659›)
-//│ | | | Resolving resolvable term: Ref(member:Foo‹659›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹659›)): Some(CallableDefinition(member:Foo‹659›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹663›,member:Foo‹659›,List(),None,List(),None,Mod,( ‹› val member:foo‹658› = 1; ),Some(class:Foo‹660›),List())))
-//│ | | | ~> Ref(member:Foo‹659›)
-//│ | | | Resolved resolvable term member:Foo‹659›#666 to symbol CallableDefinition(member:Foo‹659›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹663›,member:Foo‹659›,List(),None,List(),None,Mod,( ‹› val member:foo‹658› = 1; ),Some(class:Foo‹660›),List()))
-//│ | | | hasExpansion true Ref(member:Foo‹659›) ~> Ref(member:Foo‹659›)
+//│ Traversing block: Blk(List(),New(Ref(member:Foo‹672›),List(),None))
+//│ | Traversing term: New(Ref(member:Foo‹672›),List(),None)
+//│ | | Traversing term: Ref(member:Foo‹672›)
+//│ | | | Resolving resolvable term: Ref(member:Foo‹672›), (inPrefix = false)
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹672›)): Some(CallableDefinition(member:Foo‹672›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹676›,member:Foo‹672›,List(),None,List(),None,Mod,( ‹› val member:foo‹671› = 1; ),Some(class:Foo‹673›),List())))
+//│ | | | ~> Ref(member:Foo‹672›)
+//│ | | | Resolved resolvable term member:Foo‹672›#666 to symbol CallableDefinition(member:Foo‹672›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹676›,member:Foo‹672›,List(),None,List(),None,Mod,( ‹› val member:foo‹671› = 1; ),Some(class:Foo‹673›),List()))
+//│ | | | hasExpansion true Ref(member:Foo‹672›) ~> Ref(member:Foo‹672›)
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new Foo3.class())
 //│ = Foo(undefined)
