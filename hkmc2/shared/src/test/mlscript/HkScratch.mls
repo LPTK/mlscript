@@ -147,6 +147,12 @@ module Foo with
 //│ Expanding term Ref(x)
 //│ ~> x#0
 //│ Lowering.term undefined
+//│ mod Some(ModuleDef(None,module:Foo,member:Foo,List(),None,List(),None,Mod,( ‹› val member:foo = 1; ),Some(class:Foo),List()))
+//│ Lowering.term ( ‹› val member:x = x#0; )
+//│ Lowering.term x#0 – symbol x
+//│ Expanding term Ref(x)
+//│ ~> x#0
+//│ Lowering.term undefined
 //│ Lowering.term undefined
 //│ avoidNames Define(ClsLikeDefn(None,class:Foo,member:Foo,Cls,Some(ParamList(‹›,List(Param(‹val›,x,None,Moduleful...
 //│ | avoidNames End()...
@@ -168,6 +174,12 @@ module Foo with
 //│     static [definitionMetadata] = ["class", "Foo", ["x"]]; 
 //│   }
 //│ });
+//│ Lowering.term ( ‹› val member:x = x#0; )
+//│ Lowering.term x#0 – symbol x
+//│ Expanding term Ref(x)
+//│ ~> x#0
+//│ Lowering.term undefined
+//│ mod Some(ModuleDef(None,module:Foo,member:Foo,List(),None,List(),None,Mod,( ‹› val member:foo = 1; ),Some(class:Foo),List()))
 //│ Lowering.term ( ‹› val member:x = x#0; )
 //│ Lowering.term x#0 – symbol x
 //│ Expanding term Ref(x)
@@ -207,7 +219,20 @@ module Foo with
 //│           sym = member:x
 //│           rhs = Ref of x
 //│         rest = End of ""
-//│       companion = N
+//│       companion = S of ClsLikeBody:
+//│         isym = module:Foo
+//│         methods = Nil
+//│         privateFields = Nil
+//│         publicFields = Ls of 
+//│           Tuple2:
+//│             _1 = member:x
+//│             _2 = class:Foo.x
+//│         ctor = Define:
+//│           defn = ValDefn:
+//│             tsym = class:Foo.x
+//│             sym = member:x
+//│             rhs = Ref of x
+//│           rest = End of ""
 //│     rest = Assign: \
 //│     lhs = $block$res
 //│     rhs = Lit of UnitLit of false

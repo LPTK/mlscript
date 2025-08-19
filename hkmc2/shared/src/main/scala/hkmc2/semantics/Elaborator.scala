@@ -1228,18 +1228,19 @@ extends Importer:
             patSym.defn = S(pd)
             pd
         case k: (Mod.type | Obj.type) =>
-          val clsSym = td.symbol.asInstanceOf[ModuleSymbol] // TODO: improve `asInstanceOf`
+          val modSym = td.symbol.asInstanceOf[ModuleSymbol] // TODO: improve `asInstanceOf`
           val owner = ctx.outer.inner
-          newCtx.nestInner(clsSym).givenIn:
+          newCtx.nestInner(modSym).givenIn:
             trace(s"Processing module/object definition $nme"):
               val comp = sym.asCls
               log(s"Companion: ${comp}")
-              val cd =
+              val md =
                 val (bod, c) = mkBody
-                ModuleDef(owner, clsSym, sym,
+                ModuleDef(owner, modSym, sym,
                   tps, pss.headOption, pss.tailOr(Nil), newOf(td), k, ObjBody(bod), comp, annotations)
-              if comp.isEmpty then clsSym.defn = S(cd)
-              cd
+              // if comp.isEmpty then 
+              modSym.defn = S(md)
+              md
         case Cls =>
           val clsSym = td.symbol.asInstanceOf[ClassSymbol] // TODO: improve `asInstanceOf`
           val owner = ctx.outer.inner

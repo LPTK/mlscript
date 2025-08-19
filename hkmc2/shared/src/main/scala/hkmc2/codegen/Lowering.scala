@@ -217,7 +217,19 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           //       case _ => N
           //     case _ => N
           //   )
-        val mod = N
+        val mod = defn.companion match
+            case S(sym) =>
+              tl.log(s"mod ${sym.defn}")
+              sym.defn match
+              case S(mod: ModuleDef) =>
+                val (mtds, publicFlds, privateFlds, ctor) = gatherMembers(defn.body)
+                S(ClsLikeBody(mod.sym, mtds, privateFlds, publicFlds, ctor))
+              // case S(d) =>
+              //   tl.log(s"mod $d")
+              //   N
+              case _ => N
+            case _ => N
+        // tl.log(s"mod $mod ${defn.companion}")
         defn.ext match
         case N =>
           Define(
@@ -904,7 +916,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
    *  UCS splits that backtrack without any optimizations. */
   def compilePatternMethods(defn: PatternDef)(using Subst):
       // The return type is intended to be consistent with `gatherMembers`
-      (Ls[FunDefn], Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
+      (Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
+      // (Ls[FunDefn], Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
     val compiler = new ups.NaiveCompiler
     val methods = compiler.compilePattern(defn)
     val mtds = methods
@@ -912,7 +925,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         td.body.map: bod =>
           val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
           FunDefn(td.owner, td.sym, paramLists, bodyBlock)
-    (mtds, Nil, Nil, Nil, End())
+    (mtds, Nil, Nil, End())
   
   def args(elems: Ls[Elem])(k: Ls[Arg] => Block)(using Subst): Block =
     val as = elems.map:
