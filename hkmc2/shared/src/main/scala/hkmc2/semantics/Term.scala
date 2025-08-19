@@ -31,7 +31,7 @@ enum Annot extends AutoLocated:
 type Resolvable = Term & ResolvableImpl
 
 sealed trait ResolvableImpl:
-  t: Term =>
+  this: Term =>
   
   import Resolvable.CallableDefinition
   
@@ -45,42 +45,45 @@ sealed trait ResolvableImpl:
   private var expansion: Opt[Opt[Term]] = N
 
   def duplicate: Resolvable =
-    t.match
+    this.match
       case t: Term.Ref => t.copy()(t.tree, t.refNum, t.resSym)
       case t: Term.App => t.copy()(t.tree, t.sym, t.resSym)
       case t: Term.TyApp => t.copy()(t.sym)
       case t: Term.Sel => t.copy()(t.sym)
       case t: Term.SynthSel => t.copy()(t.sym)
-    .withLocOf(t)
+    .withLocOf(this)
   
   override def show: Str = expansion match
-    case S(S(expansion)) => t.showDbg + "{~>" + expansion.show + "}"
-    case _ => t.showDbg
+    case S(S(expansion)) => showDbg + "{~>" + expansion.show + "}"
+    case _ => showDbg
   
   def instantiate = expansion match
     case S(S(t)) => t
-    case S(N) => t
-    case N => lastWords(s"missing expansion for term ${t}")
+    case S(N) => this
+    // case N => lastWords(s"missing expansion for term ${this}")
+    case N => this
 
   /** This method is only supposed to be called by Resolver. */
   private[semantics] def expand(expansionFn: Opt[Term => Term]): this.type =
-    val newExpansion = expansionFn.map(_(t.duplicate.resolve))
+    // val newExpansion = expansionFn.map(_(t.duplicate.resolve))
+    val newExpansion = expansionFn.map(_(duplicate))
     expansion match
-      /* 
+      // /* 
       case S(expansion) if expansion =/= newExpansion => lastWords: // FIXME: @Harry this check seems like a hack
-        s"the expansion for term ${t.showDbg} " +
+        s"the expansion for term ${showDbg} " +
         s"is already set to ${expansion}; " +
         s"it cannot be set to a different term ${newExpansion}"
-      */  
+      // */  
       case _ =>
         this.expansion = S(newExpansion)
     this
     
   def resolve: this.type = expand(N)
+  def dontResolve: this.type = this // TODO rm
   
   def hasExpansion = expansion.isDefined
   
-  def defn: Opt[Definition] = t.resolvedSymbol match
+  def defn: Opt[Definition] = resolvedSymbol match
     case S(sym: MemberSymbol[?]) => sym.defn
     case S(sym: BlockLocalSymbol) => sym.decl match
       case S(td: Definition) => S(td)
@@ -111,11 +114,11 @@ sealed trait ResolvableImpl:
       )
     case _ => N
   
-  def termDefn: Opt[TermDefinition] = t.defn match
+  def termDefn: Opt[TermDefinition] = defn match
     case S(td: TermDefinition) => S(td)
     case _ => N
   
-  def typeDefn: Opt[ClassLikeDef] = t.defn match
+  def typeDefn: Opt[ClassLikeDef] = defn match
     case S(td: ClassLikeDef) => S(td)
     case _ => N
 

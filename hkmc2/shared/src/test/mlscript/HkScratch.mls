@@ -36,12 +36,14 @@ class Foo(x) with
 new Foo(1)
 //│ Traversing block: Blk(List(),New(Ref(member:Foo‹627›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))
 //│ | Traversing term: New(Ref(member:Foo‹627›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
+//│ | | !! Ref(member:Foo‹627›) false
 //│ | | Traversing term: Ref(member:Foo‹627›)
+//│ | | | ! hasExpansion false
 //│ | | | Resolving resolvable term: Ref(member:Foo‹627›), (inPrefix = false)
 //│ | | | | Resolving resolvable (sym = Some(member:Foo‹627›)): Some(CallableDefinition(member:Foo‹627›,List(ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None)),Some(List()),None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹628›,member:Foo‹627›,List(),ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None),List(),None,( let class:Foo‹628›.x; class:Foo‹628›.x = x‹630›#0; (member:Predef‹468›#666.)print‹member:print‹436››("ok", class:Foo‹628›.x#666) ),None,List())))
 //│ | | | ~> Ref(member:Foo‹627›)
 //│ | | | Resolved resolvable term member:Foo‹627›#666 to symbol CallableDefinition(member:Foo‹627›,List(ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None)),Some(List()),None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹628›,member:Foo‹627›,List(),ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None),List(),None,( let class:Foo‹628›.x; class:Foo‹628›.x = x‹630›#0; (member:Predef‹468›#666.)print‹member:print‹436››("ok", class:Foo‹628›.x#666) ),None,List()))
-//│ | | | hasExpansion true Ref(member:Foo‹627›) ~> Ref(member:Foo‹627›)
+//│ | | | hasExpansion false Ref(member:Foo‹627›) ~> Ref(member:Foo‹627›)
 //│ | | Traversing term: Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
 //│ | | | Traversing term: Lit(IntLit(1))
 //│ Resolved tree:
@@ -49,7 +51,7 @@ new Foo(1)
 //│   stats = Nil
 //│   res = New:
 //│     cls = Sel{class:Foo‹628›}:
-//│       prefix = Ref{member:Foo‹627›} of member:Foo‹627›
+//│       prefix = Unexpanded of Ref{member:Foo‹627›} of member:Foo‹627›
 //│       nme = Ident of "class"
 //│     args = Ls of 
 //│       Tup of Ls of 
@@ -67,14 +69,14 @@ new Foo(1)
 :re
 new id(1)
 //│ ╔══[ERROR] Expected a statically known class; found term that resolves to a term definition instead.
-//│ ║  l.68: 	new id(1)
+//│ ║  l.70: 	new id(1)
 //│ ╙──      	    ^^
 //│ ═══[RUNTIME ERROR] TypeError: Predef.id is not a constructor
 
 :e
 new (id(Foo))(12)
 //│ ╔══[ERROR] Expected a statically known class; found term that resolves to a term definition instead.
-//│ ║  l.75: 	new (id(Foo))(12)
+//│ ║  l.77: 	new (id(Foo))(12)
 //│ ╙──      	     ^^^^^^^
 //│ > ok 12
 //│ = Foo(_)
@@ -83,7 +85,7 @@ new! (id(Foo))(12)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: checkNoClassExpecation (Resolver.scala:297)
 //│ ╔══[ERROR] Expected a statically known class; found term that resolves to a term definition instead.
-//│ ║  l.82: 	new! (id(Foo))(12)
+//│ ║  l.84: 	new! (id(Foo))(12)
 //│ ╙──      	      ^^^^^^^
 //│ > ok 12
 //│ = Foo(_)
@@ -280,7 +282,7 @@ Foo
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Ref{member:Foo} of member:Foo
+//│   res = Unexpanded of Ref{member:Foo} of member:Foo
 //│ = fun Foo { class: class Foo { foo: 1 } }
 
 
@@ -307,12 +309,14 @@ Foo.foo
 new Foo
 //│ Traversing block: Blk(List(),New(Ref(member:Foo‹676›),List(),None))
 //│ | Traversing term: New(Ref(member:Foo‹676›),List(),None)
+//│ | | !! Ref(member:Foo‹676›) false
 //│ | | Traversing term: Ref(member:Foo‹676›)
+//│ | | | ! hasExpansion false
 //│ | | | Resolving resolvable term: Ref(member:Foo‹676›), (inPrefix = false)
 //│ | | | | Resolving resolvable (sym = Some(member:Foo‹676›)): Some(CallableDefinition(member:Foo‹676›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹680›,member:Foo‹676›,List(),None,List(),None,Mod,( ‹› val member:foo‹675› = 1; ),Some(class:Foo‹677›),List())))
 //│ | | | ~> Ref(member:Foo‹676›)
 //│ | | | Resolved resolvable term member:Foo‹676›#666 to symbol CallableDefinition(member:Foo‹676›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹680›,member:Foo‹676›,List(),None,List(),None,Mod,( ‹› val member:foo‹675› = 1; ),Some(class:Foo‹677›),List()))
-//│ | | | hasExpansion true Ref(member:Foo‹676›) ~> Ref(member:Foo‹676›)
+//│ | | | hasExpansion false Ref(member:Foo‹676›) ~> Ref(member:Foo‹676›)
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new Foo3.class())
 //│ = Foo(undefined)
@@ -380,7 +384,7 @@ class Foo(val x)
 //│             params = Nil
 //│             tparams = N
 //│             sign = N
-//│             body = S of Ref{x} of x
+//│             body = S of Unexpanded of Ref{x} of x
 //│             resSym = ‹class-param-res›
 //│             flags = ()
 //│             modulefulness = Modulefulness of N

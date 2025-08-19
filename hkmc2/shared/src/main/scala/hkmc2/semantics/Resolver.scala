@@ -324,11 +324,18 @@ class Resolver(tl: TraceLogger)
         
         case Term.New(cls, args, rft) =>
           checkNoClassExpecation(t.describe)
-          traverse(cls, expect = Class(N)) // TODO reason?
+          tl.log(s"!! ${cls} ${cls match
+            case r: ResolvableImpl => r.hasExpansion
+            case _ => ""}")
+          traverse(cls, expect = Class(N)) // TODO Class(S(reason))?
+          // tl.log(s"!!!! ${cls} ${cls match
+          //   case r: ResolvableImpl => r.hasExpansion
+          //   case _ => ""}")
           args.foreach(traverse(_, expect = NonModule(N)))
           rft.foreach((sym, bdy) => traverseBlock(bdy.blk))
         
         case t: Resolvable =>
+          log(s"! hasExpansion ${t.hasExpansion}")
           resolve(t, inTyPrefix = false, inCtxPrefix = false) match
           case _ if !expect.clasz => ()
           case res @ (S(callable), ictx) =>
@@ -686,11 +693,11 @@ class Resolver(tl: TraceLogger)
             case (ps @ ParamList(
               flags = ParamListFlags(ctx = false)
             )) :: pss if pss.exists(_.flags.ctx) =>
-              val as = ps.params.map(p => Fld(p.flags, p.sym.ref().resolve, N))
+              val as = ps.params.map(p => Fld(p.flags, p.sym.ref().dontResolve, N))
               val newLam = (t: Term) => 
                 lam(Term.Lam(ps, t))
               val newBod = (t: Term) =>
-                Term.App(bod(t), Term.Tup(as)(DummyTup))(DummyApp, N, FlowSymbol("implicit app")).resolve
+                Term.App(bod(t), Term.Tup(as)(DummyTup))(DummyApp, N, FlowSymbol("implicit app")).dontResolve
               expand(pss, newLam, newBod)
             // The current parameter list is a using clause, so resolve
             // implicit arguments from the context.
@@ -699,13 +706,14 @@ class Resolver(tl: TraceLogger)
             )) :: pss =>
               val as = ps.params.map(resolveArg(_)(t))
               val newBod = (t: Term) =>
-                Term.App(bod(t), Term.Tup(as)(DummyTup))(DummyApp, N, FlowSymbol("implicit app")).resolve
+                Term.App(bod(t), Term.Tup(as)(DummyTup))(DummyApp, N, FlowSymbol("implicit app")).dontResolve
               expand(pss, lam, newBod)
             case _ =>
               ((t: Term) => lam(bod(t)), pss)
         
         val (expansion, pss) = expand(defn.params, identity, identity)
-        t.expand(if defn.params.length != pss.length then S(expansion) else N)
+        // t.expand(if defn.params.length =/= pss.length then S(expansion) else N)
+        if defn.params.length =/= pss.length then t.expand(S(expansion))
         
         // resolution may change the semantics
         if t.hasExpansion then t.instantiate match
@@ -714,10 +722,10 @@ class Resolver(tl: TraceLogger)
         
         (S(defn.copy(params = pss)), ictx)
       case S(defn) =>
-        t.resolve
+        t.dontResolve
         (S(defn), ictx)
       case _ =>
-        t.resolve
+        t.dontResolve
         (N, ictx)
   
   /**
