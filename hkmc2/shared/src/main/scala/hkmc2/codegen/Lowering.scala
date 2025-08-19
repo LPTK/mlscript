@@ -230,7 +230,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             tl.log(s"mod ${sym.defn}")
             sym.defn match
             case S(mod: ModuleDef) =>
-              val (mtds, publicFlds, privateFlds, ctor) = gatherMembers(defn.body)
+              // val oldSubst = subst
+              val (mtds, publicFlds, privateFlds, ctor) =
+                // given Subst = oldSubst
+                gatherMembers(mod.body)
               S(ClsLikeBody(mod.sym, mtds, privateFlds, publicFlds, ctor))
             // case S(d) =>
             //   tl.log(s"mod $d")

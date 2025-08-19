@@ -233,7 +233,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             else
               // in JS, let name = (0, function (args) => {} ) prevents function's name from being bound to `name`
               doc"${getVar(sym)} = (undefined, function ($params) ${ braced(bodyDoc) });"
-          case ClsLikeDefn(ownr, isym, sym, kind, paramsOpt, auxParams, par, mtds, privFlds, pubFlds, preCtor, ctor, mod) =>
+          case ClsLikeDefn(ownr, isym, sym, kind, paramsOpt, auxParams, par, mtds, privFlds, pubFlds, preCtor, ctor, modo) =>
             // assert(smtds.isEmpty) // TODO
             val clsParams = paramsOpt.fold(Nil)(_.paramSyms)
             val ctorParams = clsParams.map(p => p -> scope.allocateName(p))
@@ -242,6 +242,50 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
               case S(Param(flags = FldFlags(isVal = true))) => true
               case _ => false
             val ctorAuxParams = auxParams.map(ps => ps.params.map(p => p.sym -> scope.allocateName(p.sym)))
+            
+            val modDoc = modo match
+              case S(mod) =>
+                val (thisProxy, res) = scope.nestRebindThis(
+                  // * Either this is an InnerSymbol or this is a Fun,
+                  // * and we need to rebind `this` to None to shadow it.
+                  mod.innerSym.collectFirst{ case s: InnerSymbol => s }):
+                  
+                  // TODO dedup some of that logic
+                  val mtdPrefix = "static "
+                  val mutPubFields = 
+                    mod.publicFields.collect:
+                      case (_, sym) if sym.k is MutVal =>
+                        sym -> TermSymbol(
+                          syntax.LetBind, S(isym), Tree.Ident(sym.nme))
+                  val allPrivFlds = mod.privateFields ++ mutPubFields.map(_._2)
+                  val privs =
+                    val scp = isym.asInstanceOf[InnerSymbol].privatesScope
+                    val privDecls = allPrivFlds.map: fld =>
+                        val nme = scp.allocateName(fld)
+                        doc" # $mtdPrefix#$nme;"
+                    val accessors = mutPubFields.flatMap: (valSym, letSym) =>
+                      doc" # get ${escapeField(valSym.name, "")}() { return ${getVar(letSym)}; }" ::
+                        doc" # set ${escapeField(valSym.name, "")}(value) { ${getVar(letSym)} = value; }" ::
+                        Nil
+                    (privDecls ::: accessors).mkDocument(doc"")
+                  val ctorCode = doc"static " :: braced:
+                    body(mod.ctor, endSemi = true)
+                  // tl.log(s"!! ${ctorCode.toString}")
+                  privs :/: ctorCode :: {
+                    mod.methods.map: 
+                      case td @ FunDefn(_, _, ps :: pss, bod) =>
+                        val result = pss.foldRight(bod):
+                          case (ps, block) => 
+                            Return(Lam(ps, block), false)
+                        val (params, bodyDoc) = setupFunction(some(td.sym.nme), ps, result)
+                        doc" # $mtdPrefix${td.sym.nme}($params) ${ braced(bodyDoc) }"
+                      case td @ FunDefn(_, _, Nil, bod) =>
+                        doc" # ${mtdPrefix}get ${td.sym.nme}() ${ braced(body(bod, endSemi = true)) }"
+                    .mkDocument(" ")
+                  }
+                assert(thisProxy.isEmpty) // FIXME?
+                res
+              case N => doc""
             
             val isModule = kind is syntax.Mod
             val mtdPrefix = if isModule then "static " else ""
@@ -309,7 +353,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                 par.map(p => doc" extends ${result(p)}").getOrElse("")
               } " :: braced:
                 
-                privs :/: ctorOrStatic :: " " :: ctorBod :: {
+                modDoc :: privs :/: ctorOrStatic :: " " :: ctorBod :: {
                   if checkSelections && !isModule
                   then mtds
                     .flatMap:

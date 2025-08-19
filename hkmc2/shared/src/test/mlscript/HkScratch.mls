@@ -108,10 +108,17 @@ object Bar extends Foo(42)
 :lot
 :sjs
 module Bar with
-  fun foo = 1
+  // fun foo = 1
+  mut val x = 1
 //│ JS (unsanitized):
 //│ let Bar3;
 //│ Bar3 = class Bar2 {
+//│   static #x;
+//│   get x() { return this$Bar.#x; }
+//│   set x(value) { this$Bar.#x = value; }
+//│   static {
+//│     this.x = 1;
+//│   }
 //│   constructor() {
 //│     runtime.Unit;
 //│   }
@@ -143,12 +150,16 @@ module Bar with
 //│         isym = module:Bar
 //│         methods = Nil
 //│         privateFields = Nil
-//│         publicFields = Nil
-//│         ctor = Return:
-//│           res = Select{module:Unit}:
-//│             qual = Ref of $runtime
-//│             name = Ident of "Unit"
-//│           implct = true
+//│         publicFields = Ls of 
+//│           Tuple2:
+//│             _1 = member:x
+//│             _2 = module:Bar.x
+//│         ctor = Define:
+//│           defn = ValDefn:
+//│             tsym = module:Bar.x
+//│             sym = member:x
+//│             rhs = Lit of IntLit of 1
+//│           rest = End of ""
 //│     rest = Assign: \
 //│     lhs = $block$res
 //│     rhs = Lit of UnitLit of false
@@ -169,10 +180,8 @@ module Foo with
 //│ ~> x#0
 //│ Lowering.term undefined
 //│ mod Some(ModuleDef(None,module:Foo,member:Foo,List(),None,List(),None,Mod,( ‹› val member:foo = 1; ),Some(class:Foo),List()))
-//│ Lowering.term ( ‹› val member:x = x#0; )
-//│ Lowering.term x#0 – symbol x
-//│ Expanding term Ref(x)
-//│ ~> x#0
+//│ Lowering.term ( ‹› val member:foo = 1; )
+//│ Lowering.term 1
 //│ Lowering.term undefined
 //│ Lowering.term undefined
 //│ avoidNames Define(ClsLikeDefn(None,class:Foo,member:Foo,Cls,Some(ParamList(‹›,List(Param(‹val›,x,None,Moduleful...
@@ -188,6 +197,9 @@ module Foo with
 //│ Object.defineProperty(Foo3, "class", {
 //│   enumerable: true,
 //│   value: class Foo2 {
+//│     static {
+//│       this.foo = 1;
+//│     }
 //│     constructor(x) {
 //│       this.x = x;
 //│     }
@@ -201,10 +213,8 @@ module Foo with
 //│ ~> x#0
 //│ Lowering.term undefined
 //│ mod Some(ModuleDef(None,module:Foo,member:Foo,List(),None,List(),None,Mod,( ‹› val member:foo = 1; ),Some(class:Foo),List()))
-//│ Lowering.term ( ‹› val member:x = x#0; )
-//│ Lowering.term x#0 – symbol x
-//│ Expanding term Ref(x)
-//│ ~> x#0
+//│ Lowering.term ( ‹› val member:foo = 1; )
+//│ Lowering.term 1
 //│ Lowering.term undefined
 //│ Lowering.term undefined
 //│ Lowered:
@@ -246,13 +256,13 @@ module Foo with
 //│         privateFields = Nil
 //│         publicFields = Ls of 
 //│           Tuple2:
-//│             _1 = member:x
-//│             _2 = class:Foo.x
+//│             _1 = member:foo
+//│             _2 = module:Foo.foo
 //│         ctor = Define:
 //│           defn = ValDefn:
-//│             tsym = class:Foo.x
-//│             sym = member:x
-//│             rhs = Ref of x
+//│             tsym = module:Foo.foo
+//│             sym = member:foo
+//│             rhs = Lit of IntLit of 1
 //│           rest = End of ""
 //│     rest = Assign: \
 //│     lhs = $block$res
@@ -271,7 +281,7 @@ Foo
 //│ Blk:
 //│   stats = Nil
 //│   res = Ref{member:Foo} of member:Foo
-//│ = fun Foo { class: class Foo }
+//│ = fun Foo { class: class Foo { foo: 1 } }
 
 
 :sjs
@@ -295,14 +305,14 @@ Foo.foo
 :dr
 :sjs
 new Foo
-//│ Traversing block: Blk(List(),New(Ref(member:Foo‹672›),List(),None))
-//│ | Traversing term: New(Ref(member:Foo‹672›),List(),None)
-//│ | | Traversing term: Ref(member:Foo‹672›)
-//│ | | | Resolving resolvable term: Ref(member:Foo‹672›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹672›)): Some(CallableDefinition(member:Foo‹672›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹676›,member:Foo‹672›,List(),None,List(),None,Mod,( ‹› val member:foo‹671› = 1; ),Some(class:Foo‹673›),List())))
-//│ | | | ~> Ref(member:Foo‹672›)
-//│ | | | Resolved resolvable term member:Foo‹672›#666 to symbol CallableDefinition(member:Foo‹672›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹676›,member:Foo‹672›,List(),None,List(),None,Mod,( ‹› val member:foo‹671› = 1; ),Some(class:Foo‹673›),List()))
-//│ | | | hasExpansion true Ref(member:Foo‹672›) ~> Ref(member:Foo‹672›)
+//│ Traversing block: Blk(List(),New(Ref(member:Foo‹676›),List(),None))
+//│ | Traversing term: New(Ref(member:Foo‹676›),List(),None)
+//│ | | Traversing term: Ref(member:Foo‹676›)
+//│ | | | Resolving resolvable term: Ref(member:Foo‹676›), (inPrefix = false)
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹676›)): Some(CallableDefinition(member:Foo‹676›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹680›,member:Foo‹676›,List(),None,List(),None,Mod,( ‹› val member:foo‹675› = 1; ),Some(class:Foo‹677›),List())))
+//│ | | | ~> Ref(member:Foo‹676›)
+//│ | | | Resolved resolvable term member:Foo‹676›#666 to symbol CallableDefinition(member:Foo‹676›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹680›,member:Foo‹676›,List(),None,List(),None,Mod,( ‹› val member:foo‹675› = 1; ),Some(class:Foo‹677›),List()))
+//│ | | | hasExpansion true Ref(member:Foo‹676›) ~> Ref(member:Foo‹676›)
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new Foo3.class())
 //│ = Foo(undefined)
