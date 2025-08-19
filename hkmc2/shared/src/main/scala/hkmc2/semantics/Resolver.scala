@@ -920,11 +920,11 @@ object ModuleChecker:
       case defn: TyParam => false
     
     def checkSym(sym: Symbol): Bool = sym match
-      case sym if sym.isModule => true
+      case sym if sym.isModuleful => true
       case sym: (BuiltinSymbol | TopLevelSymbol) => false
       case sym: BlockLocalSymbol => sym.decl.exists(checkDecl)
       case sym: MemberSymbol[?] => sym.defn.exists(checkDecl)
-      case sym => lastWords(s"unsupported symbol type ${sym}")
+      case sym => lastWords(s"unsupported symbol type ${sym.getClass} (${sym})")
     
     t match
       case Term.Blk(_, res) => evalsToModule(res)

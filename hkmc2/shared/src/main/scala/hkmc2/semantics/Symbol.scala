@@ -28,7 +28,14 @@ abstract class Symbol(using State) extends Located:
     res
   def refsNumber: Int = directRefs.size
   
-  def isModule: Bool = asMod.nonEmpty
+  def isModuleful: Bool =
+    // * Modules overloaded with classes, objects, or functions are
+    asMod.nonEmpty && asCls.isEmpty && asObj.isEmpty && !hasTrmDef
+  
+  // * Not defining `asTrm` since `TermDef` curretly doesn't have a symbol
+  def hasTrmDef: Bool = this match
+    case trm: TermSymbol => true
+    case mem: BlockMemberSymbol => mem.trmTree.nonEmpty
   
   def asCls: Opt[ClassSymbol] = this match
     case cls: ClassSymbol => S(cls)
