@@ -36,14 +36,10 @@ class Foo(x) with
 new Foo(1)
 //│ Traversing block: Blk(List(),New(Ref(member:Foo‹627›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))
 //│ | Traversing term: New(Ref(member:Foo‹627›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
-//│ | | !! Ref(member:Foo‹627›) false
 //│ | | Traversing term: Ref(member:Foo‹627›)
-//│ | | | ! hasExpansion false
 //│ | | | Resolving resolvable term: Ref(member:Foo‹627›), (inPrefix = false)
 //│ | | | | Resolving resolvable (sym = Some(member:Foo‹627›)): Some(CallableDefinition(member:Foo‹627›,List(ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None)),Some(List()),None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹628›,member:Foo‹627›,List(),ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None),List(),None,( let class:Foo‹628›.x; class:Foo‹628›.x = x‹630›#0; (member:Predef‹468›#666.)print‹member:print‹436››("ok", class:Foo‹628›.x#666) ),None,List())))
 //│ | | | ~> Ref(member:Foo‹627›)
-//│ | | | Resolved resolvable term member:Foo‹627›#666 to symbol CallableDefinition(member:Foo‹627›,List(ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None)),Some(List()),None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹628›,member:Foo‹627›,List(),ParamList(‹›,List(Param(‹›,x‹630›,None,Modulefulness(None))),None),List(),None,( let class:Foo‹628›.x; class:Foo‹628›.x = x‹630›#0; (member:Predef‹468›#666.)print‹member:print‹436››("ok", class:Foo‹628›.x#666) ),None,List()))
-//│ | | | hasExpansion false Ref(member:Foo‹627›) ~> Ref(member:Foo‹627›)
 //│ | | Traversing term: Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
 //│ | | | Traversing term: Lit(IntLit(1))
 //│ Resolved tree:
@@ -68,24 +64,36 @@ new Foo(1)
 :e
 :re
 new id(1)
-//│ ╔══[ERROR] Expected a statically known class; found term that resolves to a term definition instead.
-//│ ║  l.70: 	new id(1)
-//│ ╙──      	    ^^
+//│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
+//│ ║  l.66: 	new id(1)
+//│ ║        	    ^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: Predef.id is not a constructor
 
 :e
+:re
+new 1
+//│ ╔══[ERROR] Expected a statically known class; found integer literal.
+//│ ║  l.75: 	new 1
+//│ ║        	    ^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ═══[RUNTIME ERROR] TypeError: 1 is not a constructor
+
+:e
 new (id(Foo))(12)
-//│ ╔══[ERROR] Expected a statically known class; found term that resolves to a term definition instead.
-//│ ║  l.77: 	new (id(Foo))(12)
-//│ ╙──      	     ^^^^^^^
+//│ ╔══[ERROR] Expected a statically known class; found application without any resolvable definition.
+//│ ║  l.83: 	new (id(Foo))(12)
+//│ ║        	     ^^^^^^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ > ok 12
 //│ = Foo(_)
 
 :todo // TODO handle dynamic new specially
 new! (id(Foo))(12)
-//│ ╔══[ERROR] Expected a statically known class; found term that resolves to a term definition instead.
-//│ ║  l.85: 	new! (id(Foo))(12)
-//│ ╙──      	      ^^^^^^^
+//│ ╔══[ERROR] Expected a statically known class; found application without any resolvable definition.
+//│ ║  l.92: 	new! (id(Foo))(12)
+//│ ║        	      ^^^^^^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ > ok 12
 //│ = Foo(_)
 
@@ -286,10 +294,9 @@ Foo
 
 :dr
 id(Foo)
-//│ Traversing block: Blk(List(),App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹676›),None)))))
-//│ | Traversing term: App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹676›),None))))
-//│ | | ! hasExpansion false
-//│ | | Resolving resolvable term: App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹676›),None)))), (inPrefix = false)
+//│ Traversing block: Blk(List(),App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹678›),None)))))
+//│ | Traversing term: App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹678›),None))))
+//│ | | Resolving resolvable term: App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹678›),None)))), (inPrefix = false)
 //│ | | | Resolving resolvable term: SynthSel(Ref(member:Predef‹468›),Ident(id)), (inPrefix = false)
 //│ | | | | Resolving resolvable term: Ref(member:Predef‹468›), (inPrefix = false)
 //│ | | | | | Resolving resolvable (sym = Some(member:Predef‹468›)): Some(CallableDefinition(member:Predef‹468›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Predef‹472›,member:Predef‹468›,List(),None,List(),None,Mod,( ‹› fun member:id‹461›(Param(‹›,x‹475›,None,Modulefulness(None)), ) = missing; ‹› fun member:apply‹463›(Param(‹›,f‹479›,None,Modulefulness(None)), ...Param(‹›,args‹480›,None,Modulefulness(None))) = missing; ‹› fun member:pipeInto‹439›(Param(‹›,x‹484›,None,Modulefulness(None)), Param(‹›,f‹485›,None,Modulefulness(None)), ) = missing; ‹› fun member:pipeFrom‹447›(Param(‹›,f‹489›,None,Modulefulness(None)), Param(‹›,x‹490›,None,Modulefulness(None)), ) = missing; ‹› fun member:pipeIntoHi‹442›(Param(‹›,x‹494›,None,Modulefulness(None)), Param(‹›,f‹495›,None,Modulefulness(None)), ) = missing; ‹› fun member:pipeFromHi‹454›(Param(‹›,f‹499›,None,Modulefulness(None)), Param(‹›,x‹500›,None,Modulefulness(None)), ) = missing; ‹› fun member:tap‹450›(Param(‹›,x‹504›,None,Modulefulness(None)), Param(‹›,f‹505›,None,Modulefulness(None)), ) = missing; ‹› fun member:pat‹464›(Param(‹›,f‹509›,None,Modulefulness(None)), Param(‹›,x‹510›,None,Modulefulness(None)), ) = missing; ‹› fun member:alsoDo‹449›(Param(‹›,x‹514›,None,Modulefulness(None)), Param(‹›,eff‹515›,None,Modulefulness(None)), ) = missing; ‹› fun member:andThen‹451›(Param(‹›,f‹519›,None,Modulefulness(None)), Param(‹›,g‹520›,None,Modulefulness(None)), )(Param(‹›,x‹521›,None,Modulefulness(None)), ) = missing; ‹› fun member:compose‹434›(Param(‹›,f‹525›,None,Modulefulness(None)), Param(‹›,g‹526›,None,Modulefulness(None)), )(Param(‹›,x‹527›,None,Modulefulness(None)), ) = missing; ‹› fun member:passTo‹440›(Param(‹›,receiver‹531›,None,Modulefulness(None)), Param(‹›,f‹532›,None,Modulefulness(None)), )(...Param(‹›,args‹533›,None,Modulefulness(None))) = missing; ‹› fun member:passToLo‹446›(Param(‹›,receiver‹537›,None,Modulefulness(None)), Param(‹›,f‹538›,None,Modulefulness(None)), )(...Param(‹›,args‹539›,None,Modulefulness(None))) = missing; ‹› fun member:call‹444›(Param(‹›,receiver‹543›,None,Modulefulness(None)), Param(‹›,f‹544›,None,Modulefulness(None)), )(...Param(‹›,args‹545›,None,Modulefulness(None))) = missing; Obj Symbols ( ‹› val member:prettyPrint‹432› = missing; ); ‹› val member:pass1‹437› = missing; ‹› val member:pass2‹457› = missing; ‹› val member:pass3‹448› = missing; ‹› val member:passing‹459› = missing; ‹› val member:map‹435› = missing; ‹› val member:fold‹438› = missing; ‹› val member:interleave‹452› = missing; ‹› val member:render‹467› = missing; ‹› fun member:print‹436›(...Param(‹›,xs‹578›,None,Modulefulness(None))) = missing; ‹› fun member:renderAsStr‹443›(Param(‹›,arg‹582›,None,Modulefulness(None)), ) = missing; ‹› val member:assert‹445› = missing; ‹› fun member:notImplemented‹458›(Param(‹›,msg‹589›,None,Modulefulness(None)), ) = missing; ‹› fun member:notImplementedError‹453› = missing; ‹› fun member:tuple‹465›(...Param(‹›,xs‹596›,None,Modulefulness(None))) = missing; ‹› val member:foldl‹462› = missing; ‹› fun member:foldr‹466›(Param(‹›,f‹603›,None,Modulefulness(None)), )(Param(‹›,first‹604›,None,Modulefulness(None)), ...Param(‹›,rest‹605›,None,Modulefulness(None))) = missing; ‹› fun member:mkStr‹455›(...Param(‹›,xs‹609›,None,Modulefulness(None))) = missing; ‹› fun member:use‹441›[List(‹›T‹613›)]ctx (Param(‹›,instance‹614›,Some(Ref(T‹613›)),Modulefulness(None)), ) = missing; ‹› fun member:enterHandleBlock‹433›(Param(‹›,handler‹618›,None,Modulefulness(None)), Param(‹›,body‹619›,None,Modulefulness(None)), ) = missing; ‹› fun member:raiseUnhandledEffect‹460›() = missing; ),None,List())))
@@ -298,21 +305,20 @@ id(Foo)
 //│ | | | | Resolved symbol for SynthSel(Ref(member:Predef‹468›),Ident(id)): member:id‹461›
 //│ | | | | Resolving resolvable (sym = Some(member:id‹461›)): Some(CallableDefinition(member:id‹461›,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,‹›,Modulefulness(None),TermDefinition(Fun,member:id‹461›,module:Predef‹472›.id,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,Some(Missing),‹result of member:id›‹476›,‹›,Modulefulness(None),List())))
 //│ | | | ~> SynthSel(Ref(member:Predef‹468›),Ident(id))
-//│ | | | Resolving symbol for App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹676›),None)))): defn = TermDefinition(Fun,member:id‹461›,module:Predef‹472›.id,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,Some(Missing),‹result of member:id›‹476›,‹›,Modulefulness(None),List())
-//│ | | | Resolved symbol for App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹676›),None)))): None
+//│ | | | Resolving symbol for App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹678›),None)))): defn = TermDefinition(Fun,member:id‹461›,module:Predef‹472›.id,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,Some(Missing),‹result of member:id›‹476›,‹›,Modulefulness(None),List())
+//│ | | | Resolved symbol for App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹678›),None)))): None
 //│ | | | Resolving resolvable (sym = None): Some(CallableDefinition(member:id‹461›,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,‹›,Modulefulness(None),TermDefinition(Fun,member:id‹461›,module:Predef‹472›.id,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,Some(Missing),‹result of member:id›‹476›,‹›,Modulefulness(None),List())))
-//│ | | | Traversing term: Ref(member:Foo‹676›)
-//│ | | | | ! hasExpansion false
-//│ | | | | Resolving resolvable term: Ref(member:Foo‹676›), (inPrefix = false)
-//│ | | | | | Resolving resolvable (sym = Some(member:Foo‹676›)): Some(CallableDefinition(member:Foo‹676›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹680›,member:Foo‹676›,List(),None,List(),None,Mod,( ‹› val member:foo‹675› = 1; ),Some(class:Foo‹677›),List())))
-//│ | | | | ~> Ref(member:Foo‹676›)
+//│ | | | Traversing term: Ref(member:Foo‹678›)
+//│ | | | | Resolving resolvable term: Ref(member:Foo‹678›), (inPrefix = false)
+//│ | | | | | Resolving resolvable (sym = Some(member:Foo‹678›)): Some(CallableDefinition(member:Foo‹678›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹682›,member:Foo‹678›,List(),None,List(),None,Mod,( ‹› val member:foo‹677› = 1; ),Some(class:Foo‹679›),List())))
+//│ | | | | ~> Ref(member:Foo‹678›)
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:292)
-//│ ╔══[ERROR] Unexpected moduleful reference.
-//│ ║  l.288: 	id(Foo)
+//│ FAILURE LOCATION: check (Resolver.scala:289)
+//│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'Foo'.
+//│ ║  l.296: 	id(Foo)
 //│ ║         	   ^^^
 //│ ╙── Module argument passed to a non-module parameter.
-//│ | | ~> App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹676›),None))))
+//│ | | ~> App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹678›),None))))
 //│ = fun Foo { class: class Foo { foo: 1 } }
 
 
@@ -324,30 +330,26 @@ Foo.foo
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] Error: Access to required field 'foo' yielded 'undefined'
-//│     at REPL40:1:101
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│     at REPL43:1:101
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
 
 :dr
 :sjs
 new Foo
-//│ Traversing block: Blk(List(),New(Ref(member:Foo‹676›),List(),None))
-//│ | Traversing term: New(Ref(member:Foo‹676›),List(),None)
-//│ | | !! Ref(member:Foo‹676›) false
-//│ | | Traversing term: Ref(member:Foo‹676›)
-//│ | | | ! hasExpansion false
-//│ | | | Resolving resolvable term: Ref(member:Foo‹676›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹676›)): Some(CallableDefinition(member:Foo‹676›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹680›,member:Foo‹676›,List(),None,List(),None,Mod,( ‹› val member:foo‹675› = 1; ),Some(class:Foo‹677›),List())))
-//│ | | | ~> Ref(member:Foo‹676›)
-//│ | | | Resolved resolvable term member:Foo‹676›#666 to symbol CallableDefinition(member:Foo‹676›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹680›,member:Foo‹676›,List(),None,List(),None,Mod,( ‹› val member:foo‹675› = 1; ),Some(class:Foo‹677›),List()))
-//│ | | | hasExpansion false Ref(member:Foo‹676›) ~> Ref(member:Foo‹676›)
+//│ Traversing block: Blk(List(),New(Ref(member:Foo‹678›),List(),None))
+//│ | Traversing term: New(Ref(member:Foo‹678›),List(),None)
+//│ | | Traversing term: Ref(member:Foo‹678›)
+//│ | | | Resolving resolvable term: Ref(member:Foo‹678›), (inPrefix = false)
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹678›)): Some(CallableDefinition(member:Foo‹678›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹682›,member:Foo‹678›,List(),None,List(),None,Mod,( ‹› val member:foo‹677› = 1; ),Some(class:Foo‹679›),List())))
+//│ | | | ~> Ref(member:Foo‹678›)
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new Foo3.class())
 //│ = Foo(undefined)

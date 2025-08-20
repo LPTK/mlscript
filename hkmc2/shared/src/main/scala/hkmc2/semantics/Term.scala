@@ -30,7 +30,13 @@ enum Annot extends AutoLocated:
 
 type Resolvable = Term & ResolvableImpl
 
-sealed trait ResolvableImpl:
+// This is a Scala hack because Scala does not support accessing
+// overridden methods from a mixin. See ResolvableImpl.describe for more
+// information.
+trait Describable:
+  def describe: Str
+
+sealed trait ResolvableImpl extends Describable:
   this: Term =>
   
   import Resolvable.CallableDefinition
@@ -56,6 +62,17 @@ sealed trait ResolvableImpl:
   override def show: Str = expansion match
     case S(S(expansion)) => showDbg + "{~>" + expansion.show + "}"
     case _ => showDbg
+  
+  // Scala requires `abstract override` for this to work. Only god knows why.
+  abstract override def describe: Str = 
+    val desc = super.describe // this calls Term.describe
+    defn match
+    case S(df: TermDefinition) =>
+      s"${desc} with a ${df.k.desc} definition '${df.sym.nme}'"
+    case S(df: ClassLikeDef) =>
+      s"${desc} with a ${df.kind.desc} definition '${df.sym.nme}'"
+    case N =>
+      s"${desc} without any resolvable definition"
   
   def instantiate = expansion match
     case S(S(t)) => t

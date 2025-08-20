@@ -235,12 +235,9 @@ class Resolver(tl: TraceLogger)
       case Expect.Class(msg) => msg.toList.map(_ -> N)
       case Expect.Any => Nil
     
-    def module = isInstanceOf[Module]
-    def clasz = isInstanceOf[Class]
-    
-    def nonModule = this match
-      case Expect.NonModule(_) => true
-      case _ => false
+    def `module` = isInstanceOf[Module]
+    def `class` = isInstanceOf[Class]
+    def nonModule = isInstanceOf[NonModule]
     
   end Expect
   import Expect.*
@@ -285,29 +282,26 @@ class Resolver(tl: TraceLogger)
     def check(body: => Unit) =
       body
       val evalsToModule = ModuleChecker.evalsToModule(t)
-      if expect.module && !evalsToModule then
+      if expect.`module` && !evalsToModule then
         raise(ErrorReport(msg"Expected a module; found non-moduleful ${t.describe}." -> t.toLoc 
           :: expect.message))
       if expect.nonModule && evalsToModule then
         raise(ErrorReport(msg"Unexpected moduleful ${t.describe}." -> t.toLoc 
           :: expect.message))
-    
-    def checkNoClassExpecation(found: => Str) =
-      if expect.clasz then
-        raise(ErrorReport(msg"Expected a statically known class; found ${found} instead." -> t.toLoc 
+      
+      val isStaticallyKnownClass = ModuleChecker.isStaticallyKnownClass(t)
+      if expect.`class` && !isStaticallyKnownClass then
+        raise(ErrorReport(msg"Expected a statically known class; found ${t.describe}." -> t.toLoc
           :: expect.message))
     
     check:
       t match
         case blk: Term.Blk =>
-          checkNoClassExpecation(t.describe)
           traverseBlock(blk)
         case Term.Rcd(mut, stats) =>
-          checkNoClassExpecation(t.describe)
           traverseStmts(stats)
         
         case t: Term.IfLike =>
-          checkNoClassExpecation(t.describe)
           def split(s: Split): Unit = s match
             case Split.Cons(head, tail) =>
               traverse(head.scrutinee, expect = NonModule(N))
@@ -323,39 +317,18 @@ class Resolver(tl: TraceLogger)
           split(t.desugared)
         
         case Term.New(cls, args, rft) =>
-          checkNoClassExpecation(t.describe)
-          tl.log(s"!! ${cls} ${cls match
-            case r: ResolvableImpl => r.hasExpansion
-            case _ => ""}")
-          traverse(cls, expect = Class(N)) // TODO Class(S(reason))?
-          // tl.log(s"!!!! ${cls} ${cls match
-          //   case r: ResolvableImpl => r.hasExpansion
-          //   case _ => ""}")
+          traverse(cls, expect = Class(S("The new operator is for statically known class only. Use new! operator for dynamic instantiation.")))
           args.foreach(traverse(_, expect = NonModule(N)))
           rft.foreach((sym, bdy) => traverseBlock(bdy.blk))
         
         case t: Resolvable =>
-          log(s"! hasExpansion ${t.hasExpansion}")
-          resolve(t, inTyPrefix = false, inCtxPrefix = false) match
-          case _ if !expect.clasz => ()
-          case res @ (S(callable), ictx) =>
-            log(s"Resolved resolvable term ${t.show} to symbol ${callable.toString()}")
-            callable.sym.asCls match
-            case S(cls) =>
-              log(s"hasExpansion ${t.hasExpansion} ${t.toString} ~> ${t.instantiate.toString}")
-              if callable.sym.hasLiftedClass then
-                // raise(ErrorReport(msg"Expected a class; found a lifted class ${callable.sym.describe}." -> t.toLoc 
-                //   :: expect.message))
-                t.expand(S(t => Sel(t, new Tree.Ident("class"))(S(cls))))
-              ()
-            case N =>
-              checkNoClassExpecation(s"term that resolves to a ${callable.sym.describe}")
-          case res @ (N, _) =>
-            checkNoClassExpecation(t.describe)
-            // res
+          resolve(t, inTyPrefix = false, inCtxPrefix = false)
+          if expect.`class` then t.resolvedSymbol match
+            case S(bsym: BlockMemberSymbol) if bsym.hasLiftedClass => bsym.asCls.foreach: cls =>
+              t.expand(S(t => Sel(t, new Tree.Ident("class"))(S(cls))))
+            case _ =>
         
         case _ =>
-          checkNoClassExpecation(t.describe)
           t.subTerms.foreach(traverse(_, expect = NonModule(N)))
   
   def resolveDefn(defn: Definition)(using ICtx): ICtx =
@@ -930,6 +903,11 @@ object ModuleChecker:
       case Term.Blk(_, res) => evalsToModule(res)
       case Term.IfLike(`if`, split) => split.results.exists(evalsToModule(_))
       case t => t.resolvedSymbol.exists(checkSym)
+  
+  def isStaticallyKnownClass(t: Term): Bool =
+    t.resolvedSymbol match
+      case S(sym) => sym.asCls.isDefined
+      case N => false
 
 extension [T](xs: Ls[Opt[T]])
   def sequence: Opt[Ls[T]] =
