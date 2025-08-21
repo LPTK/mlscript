@@ -1,0 +1,32 @@
+:js
+// :de
+// :sjs
+// :pt
+// :elt
+
+:global
+// :d
+// :todo
+
+
+module Bar with
+  // fun foo = 1
+  fun x = 1
+  x
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:105)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = module:Bar
+//│   _2 = class hkmc2.semantics.ModuleSymbol
+//│ ╔══[COMPILATION ERROR] No definition found in scope for 'Bar'
+//│ ║  l.12: 	module Bar with
+//│ ║        	       ^^^
+//│ ╟── which is introduced here
+//│ ║  l.12: 	module Bar with
+//│ ╙──      	       ^^^
+
+Bar.x
+//│ = 1
+
+
+
