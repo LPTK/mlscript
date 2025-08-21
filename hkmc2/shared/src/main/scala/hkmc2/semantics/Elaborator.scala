@@ -73,7 +73,7 @@ object Elaborator:
         // * but they should be allowed to shadow previous imports.
         env.get(kv._1).forall(_.isImport))
     
-    def withMembers(members: Iterable[Str -> MemberSymbol[?]], out: Opt[Symbol] = N): Ctx =
+    def withMembers(members: Iterable[Str -> MemberSymbol[?]], out: Opt[Symbol]): Ctx =
       copy(env = env ++ members.map:
         case (nme, sym) =>
           val elem = out orElse outer.inner match

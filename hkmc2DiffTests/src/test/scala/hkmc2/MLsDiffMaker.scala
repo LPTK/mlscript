@@ -182,7 +182,7 @@ abstract class MLsDiffMaker extends DiffMaker:
     try
       val resBlk = new syntax.Tree.Block(res)
       val (e, newCtx) = elab.importFrom(resBlk)
-      val ctxWithImports = newCtx.withMembers(resBlk.definedSymbols)
+      val ctxWithImports = newCtx.withMembers(resBlk.definedSymbols, N)
       if verbose then
         output(s"Imported ${resBlk.definedSymbols.size} member(s)")
       curCtx = ctxWithImports

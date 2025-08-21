@@ -22,7 +22,7 @@ import hkmc2.codegen.js.JSBuilder
   * to something unknown, following JavaScript's inane `this` handling in `function`s.
   * When `curThis` is Some(Some(sym)), it means the scope rebinds `this`
   * to an inner symbol (e.g., class or module). */
-class Scope
+case class Scope
     (val parent: Opt[Scope], val curThis: Opt[Opt[InnerSymbol]], val bindings: MutMap[Local, Str])
     (using State):
   
@@ -104,8 +104,11 @@ class Scope
         case other => other.toLoc
       raise(ErrorReport(msg"No definition found in scope for '${l.nme}'" -> l.toLoc ::
           (if loc.isEmpty then Nil else msg"which is introduced here" -> loc :: Nil),
-        extraInfo = Some(l -> l.getClass),
+        extraInfo = Some(l -> l.getClass -> this),
         source = Diagnostic.Source.Compilation))
+      
+      ???
+      
       l.nme
   
   def allocateName(l: Local, prefix: Str = ""): Str =
@@ -127,6 +130,9 @@ class Scope
     bindings += l -> name
     
     name
+  
+  // override def toString(): String =
+  //   s"Scope(bindings = {${bindings.mkString(", ")}}, parent = ${parent.map(_.toString).getOrElse("N")}, curThis = ${curThis.map(_.toString).getOrElse("N")})"
 
 
 object Scope:

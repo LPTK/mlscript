@@ -74,12 +74,16 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
           else fieldSelect(ts.id.name)
         }"
       case N => summon[Scope].lookup_!(ts)
+    case ts: semantics.ModuleSymbol =>
+      // * Module self-references use the module name itself instead of `this`
+      summon[Scope].lookup_!(ts)
     case ts: semantics.InnerSymbol =>
-      if ts.asMod.isDefined
-      then
-        // * Module self-references use the module name itself instead of `this`
-        summon[Scope].lookup_!(ts)
-      else summon[Scope].findThis_!(ts)
+      // if ts.asMod.isDefined
+      // then
+      //   // * Module self-references use the module name itself instead of `this`
+      //   summon[Scope].lookup_!(ts)
+      // else summon[Scope].findThis_!(ts)
+      summon[Scope].findThis_!(ts)
     case _ => summon[Scope].lookup_!(l)
   
   def runtimeVar(using Raise, Scope): Document = getVar(State.runtimeSymbol)
@@ -246,9 +250,11 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             val modDoc = modo match
               case S(mod) =>
                 val (thisProxy, res) = scope.nestRebindThis(
-                  // * Either this is an InnerSymbol or this is a Fun,
-                  // * and we need to rebind `this` to None to shadow it.
-                  mod.innerSym.collectFirst{ case s: InnerSymbol => s }):
+                    // * Either this is an InnerSymbol or this is a Fun,
+                    // * and we need to rebind `this` to None to shadow it.
+                    mod.innerSym.collectFirst{ case s: InnerSymbol => s }):
+                  
+                  // tl.log(s"Generating module ${mod.innerSym}")
                   
                   // TODO dedup some of that logic
                   val mtdPrefix = "static "
@@ -367,7 +373,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                     .mkDocument(" ")
                   else doc""
                 } :: {
-                  mtds.map: 
+                  mtds.map:
                     case td @ FunDefn(_, _, ps :: pss, bod) =>
                       val result = pss.foldRight(bod):
                         case (ps, block) => 
@@ -557,7 +563,15 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
       case Define(defn, rest) =>
         defn match
           case d: ClsLikeDefn =>
-            scope.allocateName(d.isym)
+            // println((d, d.innerSym))
+            val nme = scope.allocateName(d.isym)
+            
+            // TODO: improve this hack
+            d.companion.foreach: comp =>
+              // * If the companion is a module, we need to reserve its name as well.
+              // * Otherwise, it is a class and we do not need to reserve its name.
+              scope.bindings += comp.isym -> nme
+            
           case _ => //scope.allocateName(defn.sym)
         defn.subBlocks.foreach(go)
         go(rest)
