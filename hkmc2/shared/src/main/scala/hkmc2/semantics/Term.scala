@@ -78,23 +78,21 @@ sealed trait ResolvableImpl extends Describable:
     case S(S(t)) => t
     case S(N) => this
     // case N => lastWords(s"missing expansion for term ${this}")
-    case N => this
+    case N =>
+      // FIXME: instantiating a term without an expansion should be an
+      // error
+      this
 
   /** This method is only supposed to be called by Resolver. */
   private[semantics] def expand(expansionFn: Opt[Term => Term]): this.type =
-    // val newExpansion = expansionFn.map(_(t.duplicate.resolve))
-    // This method expands the current term using `expansionFn`.
-    // If there is already an expansion, it creates a new expansion
-    // based on the current one, which doesn't have to be duplicated.
-    val self = expansion.flatten.getOrElse(this.duplicate)
-    val newExpansion = expansionFn.map(_(self))
+    val newExpansion = expansionFn.map(_(this.duplicate))
     expansion match
-      // /* 
-      case S(expansion) if expansion =/= newExpansion => lastWords: // FIXME: @Harry this check seems like a hack
+       // FIXME: @Harry this check seems like a hack
+       // @LP yes this is a hack
+      case S(expansion) if expansion =/= newExpansion => lastWords:
         s"the expansion for term ${showDbg} " +
         s"is already set to ${expansion}; " +
         s"it cannot be set to a different term ${newExpansion}"
-      // */  
       case _ =>
         this.expansion = S(newExpansion)
     this

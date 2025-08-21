@@ -727,6 +727,9 @@ class Resolver(tl: TraceLogger)
    * parameters as an App, even for a generalized "App" that has no
    * parameter list (in order to handle implicit applications), and
    * resolves the symbol for the result of this App.
+   * 
+   * This also expands the LHS `Foo` of a selection to `Foo.class` if
+   * the selection is selecting a static member from a lifted module.
    */
   def resolveSymbol(t: Resolvable)(using ictx: ICtx): Unit =
     // The symbol resolution already failed in the elaborator. We will
