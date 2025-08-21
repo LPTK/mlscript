@@ -287,16 +287,26 @@ class Resolver(tl: TraceLogger)
   trace(s"Traversing term: $t"):
     def check(body: => Unit) =
       body
+      
+      // * The `module checks` checks the term's all possibly overloaded
+      // * definitions / declarations. It raise errors only if the term
+      // * can only be interpreted as a module.
+      
+      // TODO: currently it checks for only overloaded statically
+      // known classes, it might require checking other definitions also
+      // later.
+      
       val evalsToModule = ModuleChecker.evalsToModule(t)
+      val evalsToStaticClass = ModuleChecker.evalsToStaticClass(t)
+      
       if expect.`module` && !evalsToModule then
         raise(ErrorReport(msg"Expected a module; found non-moduleful ${t.describe}." -> t.toLoc 
           :: expect.message))
-      if expect.nonModule && evalsToModule then
+      if expect.nonModule && evalsToModule && !evalsToStaticClass then
         raise(ErrorReport(msg"Unexpected moduleful ${t.describe}." -> t.toLoc 
           :: expect.message))
       
-      val isStaticallyKnownClass = ModuleChecker.isStaticallyKnownClass(t)
-      if expect.`class` && !isStaticallyKnownClass then
+      if expect.`class` && !evalsToStaticClass then
         raise(ErrorReport(msg"Expected a statically known class; found ${t.describe}." -> t.toLoc
           :: expect.message))
     
@@ -908,7 +918,7 @@ object ModuleChecker:
       case Term.IfLike(`if`, split) => split.results.exists(evalsToModule(_))
       case t => t.resolvedSymbol.exists(checkSym)
   
-  def isStaticallyKnownClass(t: Term): Bool =
+  def evalsToStaticClass(t: Term): Bool =
     t.resolvedSymbol match
       case S(sym) => sym.asCls.isDefined
       case N => false

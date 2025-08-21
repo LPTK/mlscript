@@ -312,12 +312,6 @@ id(Foo)
 //│ | | | | Resolving resolvable term: Ref(member:Foo‹678›), (inPrefix = false)
 //│ | | | | | Resolving resolvable (sym = Some(member:Foo‹678›)): Some(CallableDefinition(member:Foo‹678›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹682›,member:Foo‹678›,List(),None,List(),None,Mod,( ‹› val member:foo‹677› = 1; ),Some(class:Foo‹679›),List())))
 //│ | | | | ~> Ref(member:Foo‹678›)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:295)
-//│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'Foo'.
-//│ ║  l.296: 	id(Foo)
-//│ ║         	   ^^^
-//│ ╙── Module argument passed to a non-module parameter.
 //│ | | ~> App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹678›),None))))
 //│ = fun Foo { class: class Foo { foo: 1 } }
 
