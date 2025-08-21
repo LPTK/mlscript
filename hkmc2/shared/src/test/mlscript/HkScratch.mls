@@ -313,7 +313,7 @@ id(Foo)
 //│ | | | | | Resolving resolvable (sym = Some(member:Foo‹678›)): Some(CallableDefinition(member:Foo‹678›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹682›,member:Foo‹678›,List(),None,List(),None,Mod,( ‹› val member:foo‹677› = 1; ),Some(class:Foo‹679›),List())))
 //│ | | | | ~> Ref(member:Foo‹678›)
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:289)
+//│ FAILURE LOCATION: check (Resolver.scala:295)
 //│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'Foo'.
 //│ ║  l.296: 	id(Foo)
 //│ ║         	   ^^^
@@ -322,24 +322,12 @@ id(Foo)
 //│ = fun Foo { class: class Foo { foo: 1 } }
 
 
-// TOOD should compile to `Foo.class.foo`
+// Should compile to `Foo.class.foo`
 :sjs
 Foo.foo
 //│ JS (unsanitized):
-//│ Foo3.foo
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'foo' yielded 'undefined'
-//│     at REPL43:1:101
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ Foo3.class.foo
+//│ = 1
 
 :dr
 :sjs

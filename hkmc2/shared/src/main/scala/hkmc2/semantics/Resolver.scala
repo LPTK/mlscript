@@ -273,6 +273,12 @@ class Resolver(tl: TraceLogger)
       traverseStmts(rest)(using newICtx)
     
   
+  def expand2DotClass(t: Resolvable) = t.resolvedSymbol match
+    case S(bsym: BlockMemberSymbol) if bsym.hasLiftedClass => bsym.asCls.foreach: cls =>
+      t.expand(S(t => Sel(t, new Tree.Ident("class"))(S(cls))))
+    case _ =>
+      ()
+  
   /**
     * Traverse a term: traverse the sub-terms, resolve the term, and
     * check the modulefulness of the term.
@@ -323,10 +329,7 @@ class Resolver(tl: TraceLogger)
         
         case t: Resolvable =>
           resolve(t, inTyPrefix = false, inCtxPrefix = false)
-          if expect.`class` then t.resolvedSymbol match
-            case S(bsym: BlockMemberSymbol) if bsym.hasLiftedClass => bsym.asCls.foreach: cls =>
-              t.expand(S(t => Sel(t, new Tree.Ident("class"))(S(cls))))
-            case _ =>
+          if expect.`class` then expand2DotClass(t)
         
         case _ =>
           t.subTerms.foreach(traverse(_, expect = NonModule(N)))
@@ -729,6 +732,7 @@ class Resolver(tl: TraceLogger)
             t match
               case t: Term.Sel => t.sym = S(sym)
               case t: Term.SynthSel => t.sym = S(sym)
+            expand2DotClass(lhs)
             log(s"Resolved symbol for ${t}: ${sym}")
           case N => 
             t match

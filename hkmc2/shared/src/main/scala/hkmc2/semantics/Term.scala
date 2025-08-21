@@ -83,7 +83,11 @@ sealed trait ResolvableImpl extends Describable:
   /** This method is only supposed to be called by Resolver. */
   private[semantics] def expand(expansionFn: Opt[Term => Term]): this.type =
     // val newExpansion = expansionFn.map(_(t.duplicate.resolve))
-    val newExpansion = expansionFn.map(_(duplicate))
+    // This method expands the current term using `expansionFn`.
+    // If there is already an expansion, it creates a new expansion
+    // based on the current one, which doesn't have to be duplicated.
+    val self = expansion.flatten.getOrElse(this.duplicate)
+    val newExpansion = expansionFn.map(_(self))
     expansion match
       // /* 
       case S(expansion) if expansion =/= newExpansion => lastWords: // FIXME: @Harry this check seems like a hack
