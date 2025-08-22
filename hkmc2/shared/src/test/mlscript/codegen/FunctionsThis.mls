@@ -15,6 +15,9 @@ class Test with
 //│ JS (unsanitized):
 //│ let Test1;
 //│ Test1 = class Test {
+//│   static {
+//│     Test1 = this
+//│   }
 //│   constructor() {
 //│     let tmp;
 //│     tmp = foo();

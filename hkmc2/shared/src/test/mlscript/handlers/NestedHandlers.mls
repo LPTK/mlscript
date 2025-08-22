@@ -44,13 +44,13 @@ handleEffects(f)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
-//│     at Handler$h1$.f (REPL14:1:1441)
-//│     at f (REPL17:1:3243)
-//│     at handleBlock$ (REPL14:1:20325)
-//│     at handleBlock$ (REPL14:1:20562)
-//│     at handleEffects (REPL14:1:20795)
-//│     at REPL17:1:4345
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
+//│     at Handler$h1$.f (REPL14:1:1550)
+//│     at f (REPL17:1:3289)
+//│     at handleBlock$ (REPL14:1:20775)
+//│     at handleBlock$ (REPL14:1:21012)
+//│     at handleEffects (REPL14:1:21245)
+//│     at REPL17:1:4391
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -67,13 +67,13 @@ handleEffects(f)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
-//│     at Handler$h1$.f (REPL14:1:1441)
-//│     at f (REPL20:1:3246)
-//│     at handleBlock$ (REPL14:1:20325)
-//│     at handleBlock$ (REPL14:1:20562)
-//│     at handleEffects (REPL14:1:20795)
-//│     at REPL20:1:4348
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
+//│     at Handler$h1$.f (REPL14:1:1550)
+//│     at f (REPL20:1:3292)
+//│     at handleBlock$ (REPL14:1:20775)
+//│     at handleBlock$ (REPL14:1:21012)
+//│     at handleEffects (REPL14:1:21245)
+//│     at REPL20:1:4394
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -90,13 +90,13 @@ handleEffects(f)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
-//│     at Handler$h1$.f (REPL14:1:1441)
-//│     at f (REPL23:1:3246)
-//│     at handleBlock$ (REPL14:1:20325)
-//│     at handleBlock$ (REPL14:1:20562)
-//│     at handleEffects (REPL14:1:20795)
-//│     at REPL23:1:4348
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
+//│     at Handler$h1$.f (REPL14:1:1550)
+//│     at f (REPL23:1:3292)
+//│     at handleBlock$ (REPL14:1:20775)
+//│     at handleBlock$ (REPL14:1:21012)
+//│     at handleEffects (REPL14:1:21245)
+//│     at REPL23:1:4394
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -130,16 +130,16 @@ box.n
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
-//│     at Handler$h2$1.perform (REPL30:1:1537)
-//│     at f (REPL30:1:6751)
-//│     at handleBlock$ (REPL30:1:6235)
-//│     at f (REPL30:1:6802)
-//│     at handleBlock$ (REPL30:1:6235)
-//│     at f (REPL30:1:6802)
-//│     at handleBlock$ (REPL30:1:6235)
-//│     at f (REPL30:1:6802)
-//│     at handleBlock$ (REPL30:1:6235)
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
+//│     at Handler$h2$1.perform (REPL30:1:1634)
+//│     at f (REPL30:1:6990)
+//│     at handleBlock$ (REPL30:1:6474)
+//│     at f (REPL30:1:7041)
+//│     at handleBlock$ (REPL30:1:6474)
+//│     at f (REPL30:1:7041)
+//│     at handleBlock$ (REPL30:1:6474)
+//│     at f (REPL30:1:7041)
+//│     at handleBlock$ (REPL30:1:6474)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
 //│ ═══[RUNTIME ERROR] Expected: '5120', got: 'undefined'
@@ -163,11 +163,11 @@ h2.perform()
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
-//│     at Handler$h2$2.perform (REPL33:1:5318)
-//│     at handleBlock$ (REPL33:1:12136)
-//│     at handleBlock$ (REPL33:1:12783)
-//│     at REPL33:1:13003
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
+//│     at Handler$h2$2.perform (REPL33:1:5544)
+//│     at handleBlock$ (REPL33:1:12504)
+//│     at handleBlock$ (REPL33:1:13151)
+//│     at REPL33:1:13371
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -194,12 +194,12 @@ h3.perform()
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
-//│     at Handler$h1$2.perform (REPL36:1:514)
-//│     at handleBlock$ (REPL36:1:12845)
-//│     at handleBlock$ (REPL36:1:13306)
-//│     at handleBlock$ (REPL36:1:13539)
-//│     at REPL36:1:13759
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
+//│     at Handler$h1$2.perform (REPL36:1:559)
+//│     at handleBlock$ (REPL36:1:13424)
+//│     at handleBlock$ (REPL36:1:13885)
+//│     at handleBlock$ (REPL36:1:14118)
+//│     at REPL36:1:14338
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -228,10 +228,10 @@ d
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
-//│     at Handler$h1$3.perform (REPL43:1:536)
-//│     at handleBlock$ (REPL43:1:5126)
-//│     at REPL43:1:5729
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
+//│     at Handler$h1$3.perform (REPL43:1:581)
+//│     at handleBlock$ (REPL43:1:5336)
+//│     at REPL43:1:5939
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -268,11 +268,11 @@ h2.f1()
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
-//│     at Handler$h2$5.f2 (REPL49:1:6973)
-//│     at handleBlock$ (REPL49:1:12486)
-//│     at handleBlock$ (REPL49:1:12913)
-//│     at REPL49:1:13133
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
+//│     at Handler$h2$5.f2 (REPL49:1:7271)
+//│     at handleBlock$ (REPL49:1:12921)
+//│     at handleBlock$ (REPL49:1:13348)
+//│     at REPL49:1:13568
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)

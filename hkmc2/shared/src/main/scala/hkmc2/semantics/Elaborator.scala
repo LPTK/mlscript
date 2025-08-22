@@ -596,7 +596,7 @@ extends Importer:
       Term.Tup(fields.map(fld(_)))(tree)
       
     case DynamicNew(Apps(c, args)) =>
-      Term.New(subterm(c, inAppPrefix = inAppPrefix), args.map(subterm(_)), N).withLocOf(tree)
+      Term.DynNew(subterm(c, inAppPrefix = inAppPrefix), args.map(subterm(_))).withLocOf(tree)
     // case New(c, rfto) =>
     //   assert(rfto.isEmpty)
     //   Term.New(cls(subterm(c), inAppPrefix = inAppPrefix), params.map(subterm(_)), bodo).withLocOf(tree)

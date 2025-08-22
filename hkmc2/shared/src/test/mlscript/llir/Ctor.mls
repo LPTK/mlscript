@@ -10,7 +10,7 @@ fun testCtor2() = new None
 //│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'None'.
 //│ ║  l.7: 	fun testCtor2() = new None
 //│ ║       	                      ^^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: bErrStop (Builder.scala:21)
 //│ ═══[COMPILATION ERROR] Unsupported kind of Instantiate

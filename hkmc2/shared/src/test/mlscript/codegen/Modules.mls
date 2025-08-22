@@ -6,10 +6,13 @@ module None
 //│ JS (unsanitized):
 //│ let None1;
 //│ None1 = class None {
-//│   static {}
+//│   static {
+//│     None1 = this
+//│   }
 //│   constructor() {
 //│     runtime.Unit;
 //│   }
+//│   static {}
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "None"]; 
 //│ };
@@ -34,7 +37,7 @@ new None
 //│ ╔══[ERROR] Expected a statically known class; found reference with a module definition 'None'.
 //│ ║  l.31: 	new None
 //│ ║        	    ^^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new None1())
 //│ = None
@@ -50,8 +53,17 @@ module M with
 //│ let M1;
 //│ M1 = class M {
 //│   static {
+//│     M1 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
 //│     let tmp;
 //│     this.C = class C {
+//│       static {
+//│         M.C = this
+//│       }
 //│       constructor() {}
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "C"]; 
@@ -59,20 +71,17 @@ module M with
 //│     this.D = function D() {
 //│       return globalThis.Object.freeze(new D.class());
 //│     };
-//│     Object.defineProperty(this.D, "class", {
-//│       enumerable: true,
-//│       value: class D {
-//│         constructor() {}
-//│         toString() { return runtime.render(this); }
-//│         static [definitionMetadata] = ["class", "D", []]; 
+//│     class D {
+//│       static {
+//│         M.D.class = this
 //│       }
-//│     });
+//│       constructor() {}
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "D", []]; 
+//│     };
 //│     this.x = 1;
 //│     tmp = M.x + 1;
 //│     this.y = tmp;
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
@@ -112,10 +121,13 @@ module M with
 //│ let M3;
 //│ M3 = class M2 {
 //│   static {
-//│     this.m = M3;
+//│     M3 = this
 //│   }
 //│   constructor() {
 //│     runtime.Unit;
+//│   }
+//│   static {
+//│     this.m = M3;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
@@ -125,19 +137,7 @@ module M with
 M.m
 //│ JS (unsanitized):
 //│ M3.m
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'm' yielded 'undefined'
-//│     at REPL46:1:97
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = class M { m: ref'1 } as ref'1
 
 
 

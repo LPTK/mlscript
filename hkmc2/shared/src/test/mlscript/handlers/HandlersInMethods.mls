@@ -20,10 +20,10 @@ let t = new Test
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
-//│     at Handler$h$.perform (REPL13:1:1551)
-//│     at handleBlock$ (REPL13:1:5546)
-//│     at Test.p (REPL13:1:6025)
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
+//│     at Handler$h$.perform (REPL13:1:1691)
+//│     at handleBlock$ (REPL13:1:5838)
+//│     at Test.p (REPL13:1:6317)
 //│     at REPL17:1:48
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)

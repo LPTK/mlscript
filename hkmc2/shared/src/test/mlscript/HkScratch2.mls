@@ -119,13 +119,16 @@ module Bar with
 //│ JS:
 //│ Bar3 = class Bar2 {
 //│   static {
+//│     Bar3 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
 //│     Bar2.x;
 //│   }
 //│   static get x() {
 //│     return 1;
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Bar"]; 

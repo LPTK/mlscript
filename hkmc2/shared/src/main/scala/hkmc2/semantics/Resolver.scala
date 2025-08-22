@@ -333,7 +333,7 @@ class Resolver(tl: TraceLogger)
           split(t.desugared)
         
         case Term.New(cls, args, rft) =>
-          traverse(cls, expect = Class(S("The new operator is for statically known class only. Use new! operator for dynamic instantiation.")))
+          traverse(cls, expect = Class(S("The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.")))
           args.foreach(traverse(_, expect = NonModule(N)))
           rft.foreach((sym, bdy) => traverseBlock(bdy.blk))
         

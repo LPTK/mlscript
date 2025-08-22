@@ -11,14 +11,20 @@ object Bar with
 //│ JS (unsanitized):
 //│ let Bar1;
 //│ const Bar$class = class Bar {
+//│   static {
+//│     Bar1 = Bar
+//│   }
 //│   constructor() {
 //│     this.x = 1;
 //│     this.Baz = class Baz {
 //│       static {
-//│         this.a = Bar1.x;
+//│         Bar.Baz = this
 //│       }
 //│       constructor() {
 //│         runtime.Unit;
+//│       }
+//│       static {
+//│         this.a = Bar1.x;
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Baz"]; 
@@ -30,7 +36,7 @@ object Bar with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["object", "Bar"]; 
 //│ }; Bar1 = globalThis.Object.freeze(new Bar$class);
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'x' yielded 'undefined'
 
 
 // * Modules don't have this initialization problem because they set their bindings
@@ -45,36 +51,29 @@ module Bar with
 //│ let Bar3;
 //│ Bar3 = class Bar2 {
 //│   static {
+//│     Bar3 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
 //│     this.x = 1;
 //│     this.Baz = class Baz1 {
 //│       static {
-//│         this.a = Bar3.x;
+//│         Bar2.Baz = this
 //│       }
 //│       constructor() {
 //│         runtime.Unit;
+//│       }
+//│       static {
+//│         this.a = Bar3.x;
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Baz"]; 
 //│     };
 //│   }
-//│   constructor() {
-//│     runtime.Unit;
-//│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Bar"]; 
 //│ };
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
-//│     at <static_initializer> (REPL13:1:148)
-//│     at <static_initializer> (REPL13:1:461)
-//│     at REPL13:1:609
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
 
 

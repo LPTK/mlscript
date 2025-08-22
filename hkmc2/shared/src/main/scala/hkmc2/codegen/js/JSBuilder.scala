@@ -295,6 +295,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                 res
               case N => doc""
             
+            // TODO rm the module path
             val isModule = kind is syntax.Mod
             val mtdPrefix = if isModule then "static " else ""
             
@@ -342,14 +343,14 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                 case (psDoc, doc) => doc"(${psDoc.mkDocument(", ")}) => $doc"
               doc" # return $funBod"
             
-            val ctorBod = if isModule then
-              ownr match
-              case S(owner) =>
-                braced(doc" # ${result(Value.Ref(owner))}.${sym.nme} = ${getVar(isym)};$ctorAux")
-              case N =>
-                braced(doc" # ${getVar(sym)} = ${getVar(isym)};$ctorAux")
-            else
-              braced(ctorAux)
+            // // val ctorBod = if isModule then
+            // val ctorBod = if isModule || true then
+            //   ownr match
+            //   case S(owner) =>
+            //     braced(doc" # ${result(Value.Ref(owner))}.${sym.nme} = ${getVar(isym)};$ctorAux")
+            //   case N =>
+            //     braced(doc" # ${getVar(sym)} = ${getVar(isym)};$ctorAux")
+            // else
             
             val ctorOrStatic = if isModule
               then doc"static"
@@ -357,11 +358,21 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                   initialCtorParams.unzip._2.mkDocument(", ")
                 })"
             
+            val ctorBod = {
+                val extraPath = if paramsOpt.isDefined then ".class" else ""
+                ownr match
+                case S(owner) =>
+                  doc" # static " :: braced(doc" # ${result(Value.Ref(owner))}.${sym.nme}$extraPath = ${getVar(isym)}")
+                case N =>
+                  doc" # static " :: braced(doc" # ${getVar(sym)}$extraPath = ${getVar(isym)}")
+              } :/: ctorOrStatic :: " " :: braced(ctorAux)
+            
             val clsJS = doc"class ${scope.lookup_!(isym)}${
                 par.map(p => doc" extends ${result(p)}").getOrElse("")
               } " :: braced:
                 
-                modDoc :: privs :/: ctorOrStatic :: " " :: ctorBod :: {
+                // modDoc :: privs :: ctorBod :: {
+                ctorBod :: modDoc :: privs :: {
                   if checkSelections && !isModule
                   then mtds
                     .flatMap:
@@ -444,19 +455,27 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                 val ths = mkThis(owner)
                 fun match
                 case S(f) =>
-                  // Make the `class` property enumerable so that it can be
-                  // displayed by the `Rendering` module.
-                  doc"${ths}.${sym.nme} = ${f}; # ${defineProperty(
-                    doc"${ths}.${sym.nme}", "class", clsJS, enumerable = true)};"
+                  
+                  // FIXME:
+                  // // Make the `class` property enumerable so that it can be
+                  // // displayed by the `Rendering` module.
+                  // doc"${ths}.${sym.nme} = ${f}; # ${defineProperty(
+                  //   doc"${ths}.${sym.nme}", "class", clsJS, enumerable = true)};"
+                  
+                  doc"${ths}.${sym.nme} = ${f}; # $clsJS;"
                 case N =>
                   doc"${ths}.${sym.nme} = ${clsJS};"
               case N =>
                 fun match
                 case S(f) =>
-                  // Make the `class` property enumerable so that it can be
-                  // displayed by the `Rendering` module.
-                  doc"${getVar(sym)} = ${f}; # ${defineProperty(getVar(sym),
-                    "class", clsJS, enumerable = true)};"
+                  
+                  // FIXME:
+                  // // Make the `class` property enumerable so that it can be
+                  // // displayed by the `Rendering` module.
+                  // doc"${getVar(sym)} = ${f}; # ${defineProperty(getVar(sym),
+                  //   "class", clsJS, enumerable = true)};"
+                  
+                  doc"${getVar(sym)} = ${f}; # $clsJS;"
                 case N => doc"${getVar(sym)} = ${clsJS};"
             
         thisProxy match

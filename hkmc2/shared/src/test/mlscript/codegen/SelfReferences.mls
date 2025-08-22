@@ -8,29 +8,20 @@ module Foo with
 //│ let Foo1;
 //│ Foo1 = class Foo {
 //│   static {
-//│     this.self = Foo1;
+//│     Foo1 = this
 //│   }
 //│   constructor() {
 //│     runtime.Unit;
+//│   }
+//│   static {
+//│     this.self = Foo1;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"]; 
 //│ };
 
 Foo.self
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'self' yielded 'undefined'
-//│     at REPL13:1:99
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = class Foo { self: ref'1 } as ref'1
 
 
 module Foo with
@@ -44,7 +35,7 @@ Foo.self
 module Foo with
   val self = this
 //│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'Foo'.
-//│ ║  l.67: 	  val self = this
+//│ ║  l.45: 	  val self = this
 //│ ║        	             ^^^^
 //│ ╙── Value must be marked as returning a 'module' in order to return a module.
 
@@ -66,6 +57,9 @@ object Foo with
 //│ JS (unsanitized):
 //│ let Foo9;
 //│ const Foo$class1 = class Foo8 {
+//│   static {
+//│     Foo9 = Foo8
+//│   }
 //│   constructor() {
 //│     this.self = Foo9;
 //│     Object.defineProperty(this, "class", {
@@ -78,6 +72,7 @@ object Foo with
 
 :re
 Foo.self
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'self' yielded 'undefined'
+//│ = object Foo
+//│ FAILURE: Unexpected lack of runtime error
 
 

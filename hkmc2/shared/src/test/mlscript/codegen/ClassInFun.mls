@@ -10,6 +10,9 @@ fun test(a) =
 //│ test = function test(a) {
 //│   let C1;
 //│   C1 = class C {
+//│     static {
+//│       C1 = this
+//│     }
 //│     constructor() {
 //│       this.x = a;
 //│     }
@@ -40,17 +43,17 @@ fun test(x) =
 //│   Foo2 = function Foo(a1, b1) {
 //│     return globalThis.Object.freeze(new Foo.class(a1, b1));
 //│   };
-//│   Object.defineProperty(Foo2, "class", {
-//│     enumerable: true,
-//│     value: class Foo1 {
-//│       constructor(a, b) {
-//│         this.a = a;
-//│         this.b = b;
-//│       }
-//│       toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["class", "Foo", ["a", "b"]]; 
+//│   class Foo1 {
+//│     static {
+//│       Foo2.class = this
 //│     }
-//│   });
+//│     constructor(a, b) {
+//│       this.a = a;
+//│       this.b = b;
+//│     }
+//│     toString() { return runtime.render(this); }
+//│     static [definitionMetadata] = ["class", "Foo", ["a", "b"]]; 
+//│   };
 //│   tmp = x + 1;
 //│   return Foo2(x, tmp)
 //│ };

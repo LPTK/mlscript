@@ -14,7 +14,7 @@ new MyClass("Bob")
 //│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
 //│ ║  l.11: 	new MyClass("Bob")
 //│ ║        	    ^^^^^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = MyClass { name: "Bob" }
 
 let C = MyClass
@@ -28,7 +28,7 @@ new c("Bob")
 //│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
 //│ ║  l.27: 	new c("Bob")
 //│ ║        	    ^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = MyClass { name: "Bob" }
 
 :re

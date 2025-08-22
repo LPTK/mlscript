@@ -70,7 +70,7 @@ new mut Foo.x
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.67: 	new mut Foo.x
 //│ ║        	        ^^^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] Error: Access to required field 'x' yielded 'undefined'
 
 

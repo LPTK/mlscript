@@ -25,38 +25,38 @@ fun test(a) =
 //│   Inner1 = function Inner(b1) {
 //│     return globalThis.Object.freeze(new Inner.class(b1));
 //│   };
-//│   Object.defineProperty(Inner1, "class", {
-//│     enumerable: true,
-//│     value: class Inner {
-//│       constructor(b) {
-//│         let tmp;
-//│         this.b = b;
-//│         tmp = Predef.print(a);
-//│       }
-//│       f(c) {
+//│   class Inner {
+//│     static {
+//│       Inner1.class = this
+//│     }
+//│     constructor(b) {
+//│       let tmp;
+//│       this.b = b;
+//│       tmp = Predef.print(a);
+//│     }
+//│     f(c) {
+//│       return globalThis.Object.freeze([
+//│         a,
+//│         this.b,
+//│         c
+//│       ])
+//│     } 
+//│     g(d) {
+//│       let h;
+//│       const this$Inner = this;
+//│       h = function h(e) {
 //│         return globalThis.Object.freeze([
 //│           a,
-//│           this.b,
-//│           c
+//│           this$Inner.b,
+//│           d,
+//│           e
 //│         ])
-//│       } 
-//│       g(d) {
-//│         let h;
-//│         const this$Inner = this;
-//│         h = function h(e) {
-//│           return globalThis.Object.freeze([
-//│             a,
-//│             this$Inner.b,
-//│             d,
-//│             e
-//│           ])
-//│         };
-//│         return h(d)
-//│       }
-//│       toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["class", "Inner", ["b"]]; 
+//│       };
+//│       return h(d)
 //│     }
-//│   });
+//│     toString() { return runtime.render(this); }
+//│     static [definitionMetadata] = ["class", "Inner", ["b"]]; 
+//│   };
 //│   return Inner1(42)
 //│ };
 
@@ -85,37 +85,37 @@ fun test(a) =
 //│   C11 = function C1(b1) {
 //│     return globalThis.Object.freeze(new C1.class(b1));
 //│   };
-//│   Object.defineProperty(C11, "class", {
-//│     enumerable: true,
-//│     value: class C1 {
-//│       constructor(b) {
-//│         this.b = b;
-//│         Predef.print(globalThis.Object.freeze([
-//│           a,
-//│           this.b
-//│         ]));
-//│       }
-//│       toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["class", "C1", ["b"]]; 
+//│   class C1 {
+//│     static {
+//│       C11.class = this
 //│     }
-//│   });
+//│     constructor(b) {
+//│       this.b = b;
+//│       Predef.print(globalThis.Object.freeze([
+//│         a,
+//│         this.b
+//│       ]));
+//│     }
+//│     toString() { return runtime.render(this); }
+//│     static [definitionMetadata] = ["class", "C1", ["b"]]; 
+//│   };
 //│   C21 = function C2(b1) {
 //│     return globalThis.Object.freeze(new C2.class(b1));
 //│   };
-//│   Object.defineProperty(C21, "class", {
-//│     enumerable: true,
-//│     value: class C2 {
-//│       constructor(b) {
-//│         this.b = b;
-//│         Predef.print(globalThis.Object.freeze([
-//│           a,
-//│           this.b
-//│         ]));
-//│       }
-//│       toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["class", "C2", ["b"]]; 
+//│   class C2 {
+//│     static {
+//│       C21.class = this
 //│     }
-//│   });
+//│     constructor(b) {
+//│       this.b = b;
+//│       Predef.print(globalThis.Object.freeze([
+//│         a,
+//│         this.b
+//│       ]));
+//│     }
+//│     toString() { return runtime.render(this); }
+//│     static [definitionMetadata] = ["class", "C2", ["b"]]; 
+//│   };
 //│   tmp1 = C11(1);
 //│   tmp2 = C21(2);
 //│   return globalThis.Object.freeze([ tmp1, tmp2 ])
@@ -141,29 +141,29 @@ Foo(123)
 //│ Foo1 = function Foo(a1) {
 //│   return globalThis.Object.freeze(new Foo.class(a1));
 //│ };
-//│ Object.defineProperty(Foo1, "class", {
-//│   enumerable: true,
-//│   value: class Foo {
-//│     constructor(a) {
-//│       this.a = a;
-//│       this.foo();
-//│     }
-//│     foo() {
-//│       let bar, baz, tmp1;
-//│       const this$Foo = this;
-//│       bar = function bar() {
-//│         return this$Foo.a
-//│       };
-//│       baz = function baz() {
-//│         return this$Foo.a
-//│       };
-//│       tmp1 = bar();
-//│       return baz()
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Foo", ["a"]]; 
+//│ class Foo {
+//│   static {
+//│     Foo1.class = this
 //│   }
-//│ });
+//│   constructor(a) {
+//│     this.a = a;
+//│     this.foo();
+//│   }
+//│   foo() {
+//│     let bar, baz, tmp1;
+//│     const this$Foo = this;
+//│     bar = function bar() {
+//│       return this$Foo.a
+//│     };
+//│     baz = function baz() {
+//│       return this$Foo.a
+//│     };
+//│     tmp1 = bar();
+//│     return baz()
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Foo", ["a"]]; 
+//│ };
 //│ Foo1(123)
 //│ = Foo(123)
 
@@ -180,28 +180,28 @@ Bar(1)
 //│ Bar1 = function Bar(x1) {
 //│   return globalThis.Object.freeze(new Bar.class(x1));
 //│ };
-//│ Object.defineProperty(Bar1, "class", {
-//│   enumerable: true,
-//│   value: class Bar {
-//│     constructor(x) {
-//│       let tmp1;
-//│       this.x = x;
-//│       tmp1 = this.foo();
-//│       runtime.safeCall(tmp1());
-//│     }
-//│     foo() {
-//│       return () => {
-//│         let bar;
-//│         const this$Bar = this;
-//│         bar = function bar() {
-//│           return this$Bar.x
-//│         };
-//│         return bar()
-//│       }
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Bar", ["x"]]; 
+//│ class Bar {
+//│   static {
+//│     Bar1.class = this
 //│   }
-//│ });
+//│   constructor(x) {
+//│     let tmp1;
+//│     this.x = x;
+//│     tmp1 = this.foo();
+//│     runtime.safeCall(tmp1());
+//│   }
+//│   foo() {
+//│     return () => {
+//│       let bar;
+//│       const this$Bar = this;
+//│       bar = function bar() {
+//│         return this$Bar.x
+//│       };
+//│       return bar()
+//│     }
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Bar", ["x"]]; 
+//│ };
 //│ Bar1(1)
 //│ = Bar(1)

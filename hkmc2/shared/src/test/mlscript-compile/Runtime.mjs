@@ -8,6 +8,12 @@ import LazyArray from "./LazyArray.mjs";
 import Iter from "./Iter.mjs";
 let Runtime1;
 Runtime1 = class Runtime {
+  static {
+    Runtime1 = this
+  }
+  constructor() {
+    runtime.Unit;
+  }
   static #stackLimit;
   static #stackDepth;
   static #stackOffset;
@@ -25,6 +31,9 @@ Runtime1 = class Runtime {
   set stackResume(value) { Runtime.#stackResume = value; }
   static {
     const Unit$class = class Unit {
+      static {
+        Runtime.Unit = Unit
+      }
       constructor() {
         Object.defineProperty(this, "class", {
           value: Unit
@@ -43,56 +52,62 @@ Runtime1 = class Runtime {
     this.EffectHandle = function EffectHandle(_reified1) {
       return globalThis.Object.freeze(new EffectHandle.class(_reified1));
     };
-    Object.defineProperty(this.EffectHandle, "class", {
-      enumerable: true,
-      value: class EffectHandle {
-        #_reified;
-        constructor(_reified) {
-          this.#_reified = _reified;
-          this.reified = this.#_reified;
-        }
-        resumeWith(value) {
-          return Runtime1.try(() => {
-            let tmp;
-            tmp = Runtime.resume(this.reified.contTrace);
-            return runtime.safeCall(tmp(value))
-          })
-        } 
-        raise() {
-          return Runtime.topLevelEffect(this.reified, false)
-        }
-        toString() { return runtime.render(this); }
-        static [definitionMetadata] = ["class", "EffectHandle", [null]]; 
+    class EffectHandle {
+      static {
+        Runtime.EffectHandle.class = this
       }
-    });
+      constructor(_reified) {
+        this.#_reified = _reified;
+        this.reified = this.#_reified;
+      }
+      #_reified;
+      resumeWith(value) {
+        return Runtime1.try(() => {
+          let tmp;
+          tmp = Runtime.resume(this.reified.contTrace);
+          return runtime.safeCall(tmp(value))
+        })
+      } 
+      raise() {
+        return Runtime.topLevelEffect(this.reified, false)
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "EffectHandle", [null]]; 
+    };
     this.MatchResult = function MatchResult(output1, bindings1) {
       return globalThis.Object.freeze(new MatchResult.class(output1, bindings1));
     };
-    Object.defineProperty(this.MatchResult, "class", {
-      enumerable: true,
-      value: class MatchResult {
-        constructor(output, bindings) {
-          this.output = output;
-          this.bindings = bindings;
-        }
-        toString() { return runtime.render(this); }
-        static [definitionMetadata] = ["class", "MatchResult", ["output", "bindings"]]; 
+    class MatchResult {
+      static {
+        Runtime.MatchResult.class = this
       }
-    });
+      constructor(output, bindings) {
+        this.output = output;
+        this.bindings = bindings;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "MatchResult", ["output", "bindings"]]; 
+    };
     this.MatchFailure = function MatchFailure(errors1) {
       return globalThis.Object.freeze(new MatchFailure.class(errors1));
     };
-    Object.defineProperty(this.MatchFailure, "class", {
-      enumerable: true,
-      value: class MatchFailure {
-        constructor(errors) {
-          this.errors = errors;
-        }
-        toString() { return runtime.render(this); }
-        static [definitionMetadata] = ["class", "MatchFailure", ["errors"]]; 
+    class MatchFailure {
+      static {
+        Runtime.MatchFailure.class = this
       }
-    });
+      constructor(errors) {
+        this.errors = errors;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "MatchFailure", ["errors"]]; 
+    };
     this.Tuple = class Tuple {
+      static {
+        Runtime.Tuple = this
+      }
+      constructor() {
+        runtime.Unit;
+      }
       static {
         this.split = LazyArray.__split;
       }
@@ -129,13 +144,16 @@ Runtime1 = class Runtime {
       static isArrayLike(xs3) {
         return runtime.safeCall(Iter.isArrayLike(xs3))
       }
-      constructor() {
-        runtime.Unit;
-      }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "Tuple"]; 
     };
     this.Str = class Str {
+      static {
+        Runtime.Str = this
+      }
+      constructor() {
+        runtime.Unit;
+      }
       static {}
       static startsWith(string, prefix) {
         return runtime.safeCall(string.startsWith(prefix))
@@ -155,14 +173,17 @@ Runtime1 = class Runtime {
       static leave(string3, n1) {
         return runtime.safeCall(string3.slice(n1))
       }
-      constructor() {
-        runtime.Unit;
-      }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "Str"]; 
     };
     this.render = Rendering.render;
     this.TraceLogger = class TraceLogger {
+      static {
+        Runtime.TraceLogger = this
+      }
+      constructor() {
+        runtime.Unit;
+      }
       static #enabled;
       static #indentLvl;
       get enabled() { return TraceLogger.#enabled; }
@@ -209,13 +230,13 @@ Runtime1 = class Runtime {
           return runtime.Unit
         }
       }
-      constructor() {
-        runtime.Unit;
-      }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "TraceLogger"]; 
     };
     const FatalEffect$class = class FatalEffect {
+      static {
+        Runtime.FatalEffect = FatalEffect
+      }
       constructor() {
         Object.defineProperty(this, "class", {
           value: FatalEffect
@@ -226,6 +247,9 @@ Runtime1 = class Runtime {
     };
     this.FatalEffect = globalThis.Object.freeze(new FatalEffect$class);
     const PrintStackEffect$class = class PrintStackEffect {
+      static {
+        Runtime.PrintStackEffect = PrintStackEffect
+      }
       constructor() {
         Object.defineProperty(this, "class", {
           value: PrintStackEffect
@@ -238,64 +262,67 @@ Runtime1 = class Runtime {
     this.FunctionContFrame = function FunctionContFrame(next1) {
       return globalThis.Object.freeze(new FunctionContFrame.class(next1));
     };
-    Object.defineProperty(this.FunctionContFrame, "class", {
-      enumerable: true,
-      value: class FunctionContFrame {
-        constructor(next) {
-          this.next = next;
-        }
-        toString() { return runtime.render(this); }
-        static [definitionMetadata] = ["class", "FunctionContFrame", ["next"]]; 
+    class FunctionContFrame {
+      static {
+        Runtime.FunctionContFrame.class = this
       }
-    });
+      constructor(next) {
+        this.next = next;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "FunctionContFrame", ["next"]]; 
+    };
     this.HandlerContFrame = function HandlerContFrame(next1, nextHandler1, handler1) {
       return globalThis.Object.freeze(new HandlerContFrame.class(next1, nextHandler1, handler1));
     };
-    Object.defineProperty(this.HandlerContFrame, "class", {
-      enumerable: true,
-      value: class HandlerContFrame {
-        constructor(next, nextHandler, handler) {
-          this.next = next;
-          this.nextHandler = nextHandler;
-          this.handler = handler;
-        }
-        toString() { return runtime.render(this); }
-        static [definitionMetadata] = ["class", "HandlerContFrame", ["next", "nextHandler", "handler"]]; 
+    class HandlerContFrame {
+      static {
+        Runtime.HandlerContFrame.class = this
       }
-    });
+      constructor(next, nextHandler, handler) {
+        this.next = next;
+        this.nextHandler = nextHandler;
+        this.handler = handler;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "HandlerContFrame", ["next", "nextHandler", "handler"]]; 
+    };
     this.ContTrace = function ContTrace(next1, last1, nextHandler1, lastHandler1, resumed1) {
       return globalThis.Object.freeze(new ContTrace.class(next1, last1, nextHandler1, lastHandler1, resumed1));
     };
-    Object.defineProperty(this.ContTrace, "class", {
-      enumerable: true,
-      value: class ContTrace {
-        constructor(next, last, nextHandler, lastHandler, resumed) {
-          this.next = next;
-          this.last = last;
-          this.nextHandler = nextHandler;
-          this.lastHandler = lastHandler;
-          this.resumed = resumed;
-        }
-        toString() { return runtime.render(this); }
-        static [definitionMetadata] = ["class", "ContTrace", ["next", "last", "nextHandler", "lastHandler", "resumed"]]; 
+    class ContTrace {
+      static {
+        Runtime.ContTrace.class = this
       }
-    });
+      constructor(next, last, nextHandler, lastHandler, resumed) {
+        this.next = next;
+        this.last = last;
+        this.nextHandler = nextHandler;
+        this.lastHandler = lastHandler;
+        this.resumed = resumed;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "ContTrace", ["next", "last", "nextHandler", "lastHandler", "resumed"]]; 
+    };
     this.EffectSig = function EffectSig(contTrace1, handler1, handlerFun1) {
       return globalThis.Object.freeze(new EffectSig.class(contTrace1, handler1, handlerFun1));
     };
-    Object.defineProperty(this.EffectSig, "class", {
-      enumerable: true,
-      value: class EffectSig {
-        constructor(contTrace, handler, handlerFun) {
-          this.contTrace = contTrace;
-          this.handler = handler;
-          this.handlerFun = handlerFun;
-        }
-        toString() { return runtime.render(this); }
-        static [definitionMetadata] = ["class", "EffectSig", ["contTrace", "handler", "handlerFun"]]; 
+    class EffectSig {
+      static {
+        Runtime.EffectSig.class = this
       }
-    });
+      constructor(contTrace, handler, handlerFun) {
+        this.contTrace = contTrace;
+        this.handler = handler;
+        this.handlerFun = handlerFun;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "EffectSig", ["contTrace", "handler", "handlerFun"]]; 
+    };
     this.NonLocalReturn = class NonLocalReturn {
+      static {
+        Runtime.NonLocalReturn = this
+      }
       constructor() {}
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "NonLocalReturn"]; 
@@ -303,37 +330,40 @@ Runtime1 = class Runtime {
     this.FnLocalsInfo = function FnLocalsInfo(fnName1, locals1) {
       return globalThis.Object.freeze(new FnLocalsInfo.class(fnName1, locals1));
     };
-    Object.defineProperty(this.FnLocalsInfo, "class", {
-      enumerable: true,
-      value: class FnLocalsInfo {
-        constructor(fnName, locals) {
-          this.fnName = fnName;
-          this.locals = locals;
-        }
-        toString() { return runtime.render(this); }
-        static [definitionMetadata] = ["class", "FnLocalsInfo", ["fnName", "locals"]]; 
+    class FnLocalsInfo {
+      static {
+        Runtime.FnLocalsInfo.class = this
       }
-    });
+      constructor(fnName, locals) {
+        this.fnName = fnName;
+        this.locals = locals;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "FnLocalsInfo", ["fnName", "locals"]]; 
+    };
     this.LocalVarInfo = function LocalVarInfo(localName1, value1) {
       return globalThis.Object.freeze(new LocalVarInfo.class(localName1, value1));
     };
-    Object.defineProperty(this.LocalVarInfo, "class", {
-      enumerable: true,
-      value: class LocalVarInfo {
-        constructor(localName, value) {
-          this.localName = localName;
-          this.value = value;
-        }
-        toString() { return runtime.render(this); }
-        static [definitionMetadata] = ["class", "LocalVarInfo", ["localName", "value"]]; 
+    class LocalVarInfo {
+      static {
+        Runtime.LocalVarInfo.class = this
       }
-    });
+      constructor(localName, value) {
+        this.localName = localName;
+        this.value = value;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "LocalVarInfo", ["localName", "value"]]; 
+    };
     this.stackLimit = 0;
     this.stackDepth = 0;
     this.stackOffset = 0;
     this.stackHandler = null;
     this.stackResume = null;
     const StackDelayHandler$class = class StackDelayHandler {
+      static {
+        Runtime.StackDelayHandler = StackDelayHandler
+      }
       constructor() {
         Object.defineProperty(this, "class", {
           value: StackDelayHandler
@@ -939,9 +969,6 @@ Runtime1 = class Runtime {
     Runtime.stackOffset = 0;
     Runtime.stackHandler = null;
     return result
-  }
-  constructor() {
-    runtime.Unit;
   }
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Runtime"]; 

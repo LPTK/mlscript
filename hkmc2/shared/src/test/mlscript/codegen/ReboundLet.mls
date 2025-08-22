@@ -42,8 +42,8 @@ object Foo with
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #x to an object whose class did not declare it
-//│     at new Foo (REPL31:1:141)
-//│     at REPL31:1:958
+//│     at new Foo (REPL31:1:152)
+//│     at REPL31:1:988
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)

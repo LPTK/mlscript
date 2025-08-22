@@ -12,6 +12,9 @@ object Test with
 //│ JS (unsanitized):
 //│ let Test1;
 //│ const Test$class = class Test {
+//│   static {
+//│     Test1 = Test
+//│   }
 //│   constructor() {
 //│     this.x = 12;
 //│     Object.defineProperty(this, "class", {
@@ -76,13 +79,16 @@ module Test with
 //│ ╙──      	  ^^^^^^^^^
 //│ JS:
 //│ Test4 = class Test3 {
+//│   static {
+//│     Test4 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
 //│   static #x;
 //│   static {
 //│     this.x = 1;
 //│     Test3.#x = 2;
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Test"]; 
@@ -113,30 +119,30 @@ data class Cls(x) with
 //│ Cls1 = function Cls(x3) {
 //│   return globalThis.Object.freeze(new Cls.class(x3));
 //│ };
-//│ Object.defineProperty(Cls1, "class", {
-//│   enumerable: true,
-//│   value: class Cls {
-//│     #x;
-//│     #x1;
-//│     constructor(x2) {
-//│       let tmp, tmp1;
-//│       this.x = x2;
-//│       tmp = this.x + 1;
-//│       this.#x = tmp;
-//│       tmp1 = this.#x * 2;
-//│       this.#x1 = tmp1;
-//│       Predef.print(this.x, this.#x1);
-//│     }
-//│     get foo() {
-//│       return this.#x;
-//│     } 
-//│     get bar() {
-//│       return this.#x1;
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Cls", ["x"]]; 
+//│ class Cls {
+//│   static {
+//│     Cls1.class = this
 //│   }
-//│ });
+//│   constructor(x2) {
+//│     let tmp, tmp1;
+//│     this.x = x2;
+//│     tmp = this.x + 1;
+//│     this.#x = tmp;
+//│     tmp1 = this.#x * 2;
+//│     this.#x1 = tmp1;
+//│     Predef.print(this.x, this.#x1);
+//│   }
+//│   #x;
+//│   #x1;
+//│   get foo() {
+//│     return this.#x;
+//│   } 
+//│   get bar() {
+//│     return this.#x1;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Cls", ["x"]]; 
+//│ };
 
 let cls = Cls(10)
 //│ > 10 22
@@ -179,16 +185,25 @@ module Whoops with
 //│ let Whoops2;
 //│ Whoops2 = class Whoops {
 //│   static {
+//│     Whoops2 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
 //│     this.v = Whoops;
 //│     this.Whoops = class Whoops1 {
+//│       static {
+//│         Whoops.Whoops = this
+//│       }
+//│       constructor() {
+//│         runtime.Unit;
+//│       }
 //│       static {
 //│         this.w = Whoops1;
 //│       }
 //│       static g() {
 //│         return Whoops.f()
-//│       }
-//│       constructor() {
-//│         runtime.Unit;
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Whoops"]; 
@@ -196,9 +211,6 @@ module Whoops with
 //│   }
 //│   static f() {
 //│     return "Hello"
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Whoops"]; 
@@ -217,7 +229,7 @@ Whoops.Whoops.g()
 :e
 Runtime
 //│ ╔══[ERROR] Name not found: Runtime
-//│ ║  l.320: 	Runtime
+//│ ║  l.218: 	Runtime
 //│ ╙──       	^^^^^^^
 
 

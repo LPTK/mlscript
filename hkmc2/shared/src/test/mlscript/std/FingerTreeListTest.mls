@@ -166,11 +166,11 @@ LazyFingerTree.equals(zs1, zs)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: globalThis.Array.class is not a constructor
-//│     at get reify (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:309:13)
-//│     at Splice.materialize (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:408:35)
-//│     at Splice.at (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:417:18)
-//│     at Tuple.get (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:127:20)
-//│     at LazyFingerTree.equals (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyFingerTree.mjs:437:30)
+//│     at get reify (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:316:11)
+//│     at Splice.materialize (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:415:33)
+//│     at Splice.at (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:424:16)
+//│     at Tuple.get (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:142:20)
+//│     at LazyFingerTree.equals (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyFingerTree.mjs:449:30)
 //│     at REPL153:1:36
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)

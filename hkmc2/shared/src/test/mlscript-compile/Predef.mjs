@@ -8,7 +8,16 @@ import Rendering from "./Rendering.mjs";
 let Predef1;
 Predef1 = class Predef {
   static {
+    Predef1 = this
+  }
+  constructor() {
+    runtime.Unit;
+  }
+  static {
     const Symbols$class = class Symbols {
+      static {
+        Predef.Symbols = Symbols
+      }
       constructor() {
         this.prettyPrint = RuntimeJS.symbols.prettyPrint;
         Object.defineProperty(this, "class", {
@@ -169,9 +178,6 @@ Predef1 = class Predef {
   } 
   static raiseUnhandledEffect() {
     return Runtime.mkEffect(Runtime.FatalEffect, null)
-  }
-  constructor() {
-    runtime.Unit;
   }
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Predef"]; 

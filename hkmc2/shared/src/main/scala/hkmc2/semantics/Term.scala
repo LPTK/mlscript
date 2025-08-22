@@ -164,7 +164,7 @@ enum Term extends Statement:
   case SynthSel(prefix: Term, nme: Tree.Ident)(var sym: Opt[FieldSymbol]) extends Term with ResolvableImpl
   case DynSel(prefix: Term, fld: Term, arrayIdx: Bool)
   case Tup(fields: Ls[Elem])(val tree: Tree.Tup)
-  case Mut(underlying: Tup | Rcd | New)
+  case Mut(underlying: Tup | Rcd | New | DynNew)
   case CtxTup(fields: Ls[Elem])(val tree: Tree.Tup)
   case IfLike(kw: Keyword.`if`.type | Keyword.`while`.type, desugared: Split)
   case Lam(params: ParamList, body: Term)
@@ -176,6 +176,7 @@ enum Term extends Statement:
   case Quoted(body: Term)
   case Unquoted(body: Term)
   case New(cls: Term, args: Ls[Term], rft: Opt[ClassSymbol -> ObjBody])
+  case DynNew(cls: Term, args: Ls[Term])
   case SelProj(prefix: Term, cls: Term, proj: Tree.Ident)(val sym: Opt[FieldSymbol])
   case Asc(term: Term, ty: Term)
   case CompType(lhs: Term, rhs: Term, pol: Bool)
@@ -311,6 +312,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
     case Quoted(term) => term :: Nil
     case Unquoted(term) => term :: Nil
     case New(cls, args, rft) => cls :: args ::: rft.toList.flatMap(_._2.blk.subTerms)
+    case DynNew(cls, args) => cls :: args
     case SelProj(pre, cls, _) => pre :: cls :: Nil
     case Asc(term, ty) => term :: ty :: Nil
     case Ret(res) => res :: Nil

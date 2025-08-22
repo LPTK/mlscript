@@ -45,6 +45,12 @@ module Test with
 //│ let Test1;
 //│ Test1 = class Test {
 //│   static {
+//│     Test1 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
 //│     this.a = 3;
 //│   }
 //│   static test1(x) {
@@ -55,9 +61,6 @@ module Test with
 //│       Test.a,
 //│       x1
 //│     ])
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Test"]; 

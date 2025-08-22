@@ -10,16 +10,16 @@ data class Foo(arguments)
 //│ Foo1 = function Foo(arguments2) {
 //│   return globalThis.Object.freeze(new Foo.class(arguments2));
 //│ };
-//│ Object.defineProperty(Foo1, "class", {
-//│   enumerable: true,
-//│   value: class Foo {
-//│     constructor(arguments1) {
-//│       this.arguments = arguments1;
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Foo", ["arguments"]]; 
+//│ class Foo {
+//│   static {
+//│     Foo1.class = this
 //│   }
-//│ });
+//│   constructor(arguments1) {
+//│     this.arguments = arguments1;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Foo", ["arguments"]]; 
+//│ };
 
 
 data class Foo(eval)
@@ -28,16 +28,16 @@ data class Foo(eval)
 //│ Foo3 = function Foo(eval2) {
 //│   return globalThis.Object.freeze(new Foo.class(eval2));
 //│ };
-//│ Object.defineProperty(Foo3, "class", {
-//│   enumerable: true,
-//│   value: class Foo2 {
-//│     constructor(eval1) {
-//│       this.eval = eval1;
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Foo", ["eval"]]; 
+//│ class Foo2 {
+//│   static {
+//│     Foo3.class = this
 //│   }
-//│ });
+//│   constructor(eval1) {
+//│     this.eval = eval1;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Foo", ["eval"]]; 
+//│ };
 
 
 data class Foo(static)
@@ -46,16 +46,16 @@ data class Foo(static)
 //│ Foo5 = function Foo(static2) {
 //│   return globalThis.Object.freeze(new Foo.class(static2));
 //│ };
-//│ Object.defineProperty(Foo5, "class", {
-//│   enumerable: true,
-//│   value: class Foo4 {
-//│     constructor(static1) {
-//│       this.static = static1;
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Foo", ["static"]]; 
+//│ class Foo4 {
+//│   static {
+//│     Foo5.class = this
 //│   }
-//│ });
+//│   constructor(static1) {
+//│     this.static = static1;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Foo", ["static"]]; 
+//│ };
 
 
 data class Foo(v')
@@ -64,15 +64,15 @@ data class Foo(v')
 //│ Foo7 = function Foo(v$_1) {
 //│   return globalThis.Object.freeze(new Foo.class(v$_1));
 //│ };
-//│ Object.defineProperty(Foo7, "class", {
-//│   enumerable: true,
-//│   value: class Foo6 {
-//│     constructor(v$_) {
-//│       this["v'"] = v$_;
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Foo", ["v'"]]; 
+//│ class Foo6 {
+//│   static {
+//│     Foo7.class = this
 //│   }
-//│ });
+//│   constructor(v$_) {
+//│     this["v'"] = v$_;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Foo", ["v'"]]; 
+//│ };
 
 

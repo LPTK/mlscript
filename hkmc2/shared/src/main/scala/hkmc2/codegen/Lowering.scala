@@ -663,10 +663,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           k(DynSelect(p, f, ai))
       
       
-    case nw @ (_: New | Mut(_: New)) =>
+    case nw @ (_: New | _: DynNew | Mut(_: New | _: DynNew)) =>
       val (mut, cls, as, rft) = nw match
         case New(c, a, r) => (false, c, a, r)
         case Mut(New(c, a, r)) => (true, c, a, r)
+        case DynNew(c, a) => (false, c, a, N)
+        case Mut(DynNew(c, a)) => (true, c, a, N)
         case _ => spuriousWarning
       subTerm(cls): sr =>
         rft match

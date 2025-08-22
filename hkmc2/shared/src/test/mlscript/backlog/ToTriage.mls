@@ -153,6 +153,9 @@ data object Cls(x) with
 //│ JS (unsanitized):
 //│ let Cls1;
 //│ const Cls$class = class Cls {
+//│   static {
+//│     Cls1.class = Cls
+//│   }
 //│   constructor(x1) {
 //│     this.x = x1;
 //│     Object.defineProperty(this, "class", {
@@ -165,23 +168,24 @@ data object Cls(x) with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["object", "Cls"]; 
 //│ }; Cls1 = globalThis.Object.freeze(new Cls$class);
+//│ ═══[RUNTIME ERROR] TypeError: Cannot set properties of undefined (setting 'class')
 
 :e
 Cls.x
 //│ ╔══[ERROR] Object 'Cls' does not contain member 'x'
 //│ ║  l.170: 	Cls.x
 //│ ╙──       	   ^^
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'x' yielded 'undefined'
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
 
 :fixme
 Cls.huh
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'huh' yielded 'undefined'
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'huh')
 
 let c = new Cls(123)
 //│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'Cls'.
 //│ ║  l.180: 	let c = new Cls(123)
 //│ ║         	            ^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: Cls1 is not a constructor
 //│ c = undefined
 
@@ -192,8 +196,8 @@ c.x
 
 class Foo' with
   class Bar'
-//│ > let Foo$_1;try { Foo$_1 = class Foo$_ {   constructor() {     this.Bar' = class Bar$_ {       constructor() {}       toString() { return runtime.render(this); }       static [definitionMetadata] = ["class", "Bar'"];      };   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Foo'"];  }; block$res28 = undefined; } catch (e) { console.log('\u200B' + e + '\u200B'); }
-//│ >                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ > let Foo$_1;try { Foo$_1 = class Foo$_ {   static {     Foo$_1 = this   }   constructor() {     const this$Foo$_ = this;     this.Bar' = class Bar$_ {       static {         this$Foo$_.Bar' = this       }       constructor() {}       toString() { return runtime.render(this); }       static [definitionMetadata] = ["class", "Bar'"];      };   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Foo'"];  }; block$res28 = undefined; } catch (e) { console.log('\u200B' + e + '\u200B'); }
+//│ >                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Unexpected string
 
 // ——— ——— ———
@@ -220,7 +224,7 @@ let xs = new Oopsie
 //│ ║  l.218: 	let xs = new Oopsie
 //│ ╙──       	             ^^^^^^
 //│ ╔══[ERROR] Expected a statically known class; found <error>.
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'xs'
 //│ ║  l.218: 	let xs = new Oopsie
 //│ ║         	    ^^
@@ -255,10 +259,13 @@ class D extends id(C)
 //│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
 //│ ║  l.254: 	class D extends id(C)
 //│ ║         	                ^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ let D1;
 //│ D1 = class D extends Predef.id {
+//│   static {
+//│     D1 = this
+//│   }
 //│   constructor() {
 //│     super(C1);
 //│   }
@@ -372,7 +379,7 @@ if Foo(1, 2, 3) is Foo(arg) then arg
 
 module M with
   val name = "Student"
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'name' of function 'class M {   static {     this.name = "Student";   }   constructor() {     runtime.Unit;   }   toString() { retu...<omitted>... }'
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'name' of function 'class M {   static {     M1 = this   }   constructor() {     runtime.Unit;   }   static {     this.name = "Stud...<omitted>... }'
 
 // ——— ——— ———
 
@@ -417,12 +424,15 @@ module Foo(x)
 //│ JS (unsanitized):
 //│ let Foo5;
 //│ Foo5 = class Foo4 {
-//│   static #x;
 //│   static {
-//│     Foo4.#x = x;
+//│     Foo5 = this
 //│   }
 //│   constructor() {
 //│     runtime.Unit;
+//│   }
+//│   static #x;
+//│   static {
+//│     Foo4.#x = x;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"]; 
@@ -441,10 +451,13 @@ module Foo(val x)
 //│ let Foo7;
 //│ Foo7 = class Foo6 {
 //│   static {
-//│     this.x = x;
+//│     Foo7 = this
 //│   }
 //│   constructor() {
 //│     runtime.Unit;
+//│   }
+//│   static {
+//│     this.x = x;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"]; 

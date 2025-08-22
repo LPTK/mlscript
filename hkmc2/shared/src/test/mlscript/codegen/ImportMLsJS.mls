@@ -16,7 +16,7 @@ Option.isDefined(new Option.Some(1))
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.13: 	Option.isDefined(new Option.Some(1))
 //│ ║        	                     ^^^^^^^^^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = true
 
 Option.isDefined(Option.None)
@@ -29,7 +29,7 @@ Option.isDefined(Option.None)
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.26: 	(new Option.Some(1)) Option.isDefined()
 //│ ║        	     ^^^^^^^^^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = true
 
 Option.None Option.isDefined()
@@ -45,7 +45,7 @@ new Option.Some(1)
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.42: 	new Option.Some(1)
 //│ ║        	    ^^^^^^^^^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = Some(1)
 
 new Option.Both(1, 2)
@@ -54,7 +54,7 @@ new Option.Both(1, 2)
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.51: 	new Option.Both(1, 2)
 //│ ║        	    ^^^^^^^^^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = Both(1, 2)
 
 
@@ -68,7 +68,7 @@ new Option.Some(1)
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.65: 	new Option.Some(1)
 //│ ║        	    ^^^^^^^^^^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = Some(1)
 
 

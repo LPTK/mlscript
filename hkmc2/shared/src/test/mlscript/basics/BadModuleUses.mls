@@ -34,7 +34,7 @@ Example.foo()
 :e
 id(Example.foo())
 //│ ╔══[ERROR] Unexpected moduleful application with a module definition 'M'.
-//│ ║  l.60: 	id(Example.foo())
+//│ ║  l.35: 	id(Example.foo())
 //│ ║        	   ^^^^^^^^^^^^^
 //│ ╙── Module argument passed to a non-module parameter.
 //│ = class M
@@ -45,30 +45,30 @@ Example.foo().mtd()
 :e
 Example.foo() + 1
 //│ ╔══[ERROR] Unexpected moduleful application with a module definition 'M'.
-//│ ║  l.78: 	Example.foo() + 1
+//│ ║  l.46: 	Example.foo() + 1
 //│ ╙──      	^^^^^^^^^^^^^
-//│ = "class M {   static {}   static mtd(...args) {     runtime.checkArgs(\"mtd\", 0, true, args.length);     return 42   }   constructor() {     runtime.Unit;   }   toString() { return runtime.render(this); }   static [definitionMetadata] = [\"class\", \"M\"];  }1"
+//│ = "class M {   static {     M1 = this   }   constructor() {     runtime.Unit;   }   static {}   static mtd(...args) {     runtime.checkArgs(\"mtd\", 0, true, args.length);     return 42   }   toString() { return runtime.render(this); }   static [definitionMetadata] = [\"class\", \"M\"];  }1"
 
 :e
 M + 1
 //│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'M'.
-//│ ║  l.93: 	M + 1
+//│ ║  l.53: 	M + 1
 //│ ╙──      	^
-//│ = "class M {   static {}   static mtd(...args) {     runtime.checkArgs(\"mtd\", 0, true, args.length);     return 42   }   constructor() {     runtime.Unit;   }   toString() { return runtime.render(this); }   static [definitionMetadata] = [\"class\", \"M\"];  }1"
+//│ = "class M {   static {     M1 = this   }   constructor() {     runtime.Unit;   }   static {}   static mtd(...args) {     runtime.checkArgs(\"mtd\", 0, true, args.length);     return 42   }   toString() { return runtime.render(this); }   static [definitionMetadata] = [\"class\", \"M\"];  }1"
 
 :e
 M |> id
 //│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'M'.
-//│ ║  l.100: 	M |> id
-//│ ║         	^
+//│ ║  l.60: 	M |> id
+//│ ║        	^
 //│ ╙── Module argument passed to a non-module parameter.
 //│ = class M
 
 :e
 id <| M
 //│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'M'.
-//│ ║  l.108: 	id <| M
-//│ ║         	      ^
+//│ ║  l.68: 	id <| M
+//│ ║        	      ^
 //│ ╙── Module argument passed to a non-module parameter.
 //│ = class M
 
@@ -77,16 +77,16 @@ fun (+) lol(a, b) = [a, b]
 :e
 M + 1
 //│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'M'.
-//│ ║  l.118: 	M + 1
-//│ ║         	^
+//│ ║  l.78: 	M + 1
+//│ ║        	^
 //│ ╙── Module argument passed to a non-module parameter.
 //│ = [class M, 1]
 
 :e
 let m = M
 //│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'M'.
-//│ ║  l.126: 	let m = M
-//│ ╙──       	        ^
+//│ ║  l.86: 	let m = M
+//│ ╙──      	        ^
 //│ m = class M
 
 
@@ -97,8 +97,8 @@ module B with
   val a: module A = A
 print(B.a)
 //│ ╔══[ERROR] Unexpected moduleful selection with a module definition 'A'.
-//│ ║  l.138: 	print(B.a)
-//│ ╙──       	      ^^^
+//│ ║  l.98: 	print(B.a)
+//│ ╙──      	      ^^^
 //│ > class A
 
 
@@ -106,7 +106,7 @@ print(B.a)
 :re
 id(module 1)
 //│ ╔══[ERROR] Illegal type declaration in term position.
-//│ ║  l.155: 	id(module 1)
+//│ ║  l.107: 	id(module 1)
 //│ ╙──       	   ^^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 

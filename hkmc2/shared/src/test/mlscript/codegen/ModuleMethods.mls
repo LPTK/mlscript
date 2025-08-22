@@ -43,6 +43,12 @@ module Test with
 //│ JS (unsanitized):
 //│ let Test1;
 //│ Test1 = class Test {
+//│   static {
+//│     Test1 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
 //│   static #s;
 //│   static {
 //│     let tmp1;
@@ -54,9 +60,6 @@ module Test with
 //│   } 
 //│   static bar() {
 //│     return Test.foo()
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Test"]; 

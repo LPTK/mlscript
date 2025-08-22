@@ -22,6 +22,9 @@ fun foo() =
 //│   }
 //│ };
 //│ foo$capture1 = class foo$capture {
+//│   static {
+//│     foo$capture1 = this
+//│   }
 //│   constructor(x0$) {
 //│     this.x0$ = x0$;
 //│   }

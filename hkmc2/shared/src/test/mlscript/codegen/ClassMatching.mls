@@ -85,9 +85,10 @@ object M with
   val d = D(27)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: M.D is not a function
-//│     at new M (REPL53:1:485)
-//│     at REPL53:1:710
+//│ ═══[RUNTIME ERROR] TypeError: Cannot set properties of undefined (setting 'class')
+//│     at <static_initializer> (REPL53:1:248)
+//│     at new M (REPL53:1:378)
+//│     at REPL53:1:687
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -95,13 +96,12 @@ object M with
 //│     at REPLServer.onLine (node:repl:927:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 M.d
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'd')
-//│     at REPL56:1:32
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'd' yielded 'undefined'
+//│     at REPL56:1:97
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -117,8 +117,8 @@ fun f(x) = if x is M.D then 1 else 0
 M.D.class
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'D')
-//│     at REPL62:1:53
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'D' yielded 'undefined'
+//│     at REPL62:1:118
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -132,8 +132,8 @@ M.D.class
 M is M.D
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'D')
-//│     at REPL65:1:53
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'D' yielded 'undefined'
+//│     at REPL65:1:118
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -147,8 +147,8 @@ M is M.D
 f(M.d)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'd')
-//│     at REPL68:1:32
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'd' yielded 'undefined'
+//│     at REPL68:1:97
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -162,7 +162,7 @@ f(M.d)
 f(M.D(27))
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'D')
+//│ ═══[RUNTIME ERROR] TypeError: M1.D is not a function
 //│     at REPL71:1:44
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
@@ -180,8 +180,8 @@ fun f(x) = if x is M.D(a) then a else 0
 f(M.d)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'd')
-//│     at REPL77:1:32
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'd' yielded 'undefined'
+//│     at REPL77:1:97
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -195,7 +195,7 @@ f(M.d)
 f(M.D(27))
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'D')
+//│ ═══[RUNTIME ERROR] TypeError: M1.D is not a function
 //│     at REPL80:1:44
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)

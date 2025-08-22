@@ -21,8 +21,8 @@ object O with
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #y to an object whose class did not declare it
-//│     at new O (REPL20:1:89)
-//│     at REPL20:1:418
+//│     at new O (REPL20:1:109)
+//│     at REPL20:1:444
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -33,40 +33,15 @@ object O with
 //│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 set O.x = 2
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot set properties of undefined (setting 'x')
-//│     at REPL23:1:12
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 O.x
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
-//│     at REPL26:1:30
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 2
 
 O.sy
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'sy')
-//│     at REPL29:1:32
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'sy' yielded 'undefined'
+//│     at REPL29:1:98
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -80,8 +55,8 @@ O.sy
 O.gy
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'gy')
-//│     at REPL32:1:32
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'gy' yielded 'undefined'
+//│     at REPL32:1:98
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│     at bound (node:domain:433:15)
@@ -100,22 +75,22 @@ class Foo(x, val y, mut val z)
 //│ Foo1 = function Foo(x1, y1, z1) {
 //│   return globalThis.Object.freeze(new Foo.class(x1, y1, z1));
 //│ };
-//│ Object.defineProperty(Foo1, "class", {
-//│   enumerable: true,
-//│   value: class Foo {
-//│     #x;
-//│     #z;
-//│     get z() { return this.#z; }
-//│     set z(value) { this.#z = value; }
-//│     constructor(x, y, z) {
-//│       this.#x = x;
-//│       this.y = y;
-//│       this.z = z;
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Foo", [null, "y", "z"]]; 
+//│ class Foo {
+//│   static {
+//│     Foo1.class = this
 //│   }
-//│ });
+//│   constructor(x, y, z) {
+//│     this.#x = x;
+//│     this.y = y;
+//│     this.z = z;
+//│   }
+//│   #x;
+//│   #z;
+//│   get z() { return this.#z; }
+//│   set z(value) { this.#z = value; }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Foo", [null, "y", "z"]]; 
+//│ };
 
 let f = Foo(1, 2, 3)
 //│ f = Foo(_, 2, 3)

@@ -121,15 +121,18 @@ module Foo with
 //│ owner: module:Foo, Scope(None,Some(Some(globalThis:globalThis)),HashMap(module:Foo.x -> x))
 //│ JS:
 //│ Foo1 = class Foo {
+//│   static {
+//│     Foo1 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
 //│   static #x;
 //│   get x() { return Foo.#x; }
 //│   set x(value) { Foo.#x = value; }
 //│   static {
 //│     this.x = 1;
 //│     Foo.x = 2;
-//│     runtime.Unit;
-//│   }
-//│   constructor() {
 //│     runtime.Unit;
 //│   }
 //│   toString() { return runtime.render(this); }

@@ -75,7 +75,7 @@ new Nothingness(0)
 //│ ║  l.73: 	new Nothingness(0)
 //│ ╙──      	    ^^^^^^^^^^^
 //│ ╔══[ERROR] Expected a statically known class; found <error>.
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[ERROR] Not a valid class: <error>
 //│ Type: ⊥
 
@@ -84,7 +84,7 @@ new 42
 //│ ╔══[ERROR] Expected a statically known class; found integer literal.
 //│ ║  l.83: 	new 42
 //│ ║        	    ^^
-//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ╔══[ERROR] Not a valid class: integer literal
 //│ ║  l.83: 	new 42
 //│ ╙──      	    ^^

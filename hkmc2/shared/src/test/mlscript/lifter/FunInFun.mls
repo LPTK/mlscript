@@ -180,6 +180,9 @@ x + y
 //│   }
 //│ };
 //│ f$capture1 = class f$capture {
+//│   static {
+//│     f$capture1 = this
+//│   }
 //│   constructor(a0$) {
 //│     this.a0$ = a0$;
 //│   }
@@ -197,17 +200,17 @@ x + y
 //│ Tuple1 = function Tuple(a1, b1) {
 //│   return globalThis.Object.freeze(new Tuple.class(a1, b1));
 //│ };
-//│ Object.defineProperty(Tuple1, "class", {
-//│   enumerable: true,
-//│   value: class Tuple {
-//│     constructor(a, b) {
-//│       this.a = a;
-//│       this.b = b;
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Tuple", ["a", "b"]]; 
+//│ class Tuple {
+//│   static {
+//│     Tuple1.class = this
 //│   }
-//│ });
+//│   constructor(a, b) {
+//│     this.a = a;
+//│     this.b = b;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Tuple", ["a", "b"]]; 
+//│ };
 //│ tmp = f5();
 //│ ret = tmp;
 //│ f11 = ret.a;
@@ -315,6 +318,9 @@ f(1, 2, 1000)
 //│   }
 //│ };
 //│ f$capture5 = class f$capture4 {
+//│   static {
+//│     f$capture5 = this
+//│   }
 //│   constructor(mutated0$) {
 //│     this.mutated0$ = mutated0$;
 //│   }
@@ -458,6 +464,9 @@ g()(1)
 //│   }
 //│ };
 //│ g$capture1 = class g$capture {
+//│   static {
+//│     g$capture1 = this
+//│   }
 //│   constructor(y0$) {
 //│     this.y0$ = y0$;
 //│   }
@@ -562,6 +571,9 @@ f()
 //│   }
 //│ };
 //│ f$capture15 = class f$capture14 {
+//│   static {
+//│     f$capture15 = this
+//│   }
 //│   constructor(x0$) {
 //│     this.x0$ = x0$;
 //│   }
@@ -607,13 +619,16 @@ fun f(es, vs) =
 //│   return tmp19
 //│ };
 //│ A1 = class A {
-//│   #v$_$0;
-//│   get ["v'$0"]() { return this.#v$_$0; }
-//│   set ["v'$0"](value) { this.#v$_$0 = value; }
+//│   static {
+//│     A1 = this
+//│   }
 //│   constructor(v$_$0) {
 //│     this["v'$0"] = v$_$0;
 //│     this.fld = this["v'$0"];
 //│   }
+//│   #v$_$0;
+//│   get ["v'$0"]() { return this.#v$_$0; }
+//│   set ["v'$0"](value) { this.#v$_$0 = value; }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"]; 
 //│ };

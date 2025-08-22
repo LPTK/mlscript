@@ -17,18 +17,24 @@ fun foo(h): module M =
 //│ foo = function foo(h) {
 //│   let A2, A3, scrut;
 //│   A2 = class A {
-//│     static {}
+//│     static {
+//│       A2 = this
+//│     }
 //│     constructor() {
 //│       runtime.Unit;
 //│     }
+//│     static {}
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "A"]; 
 //│   };
 //│   A3 = class A1 {
-//│     static {}
+//│     static {
+//│       A3 = this
+//│     }
 //│     constructor() {
 //│       runtime.Unit;
 //│     }
+//│     static {}
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "A"]; 
 //│   };
