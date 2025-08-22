@@ -747,15 +747,17 @@ class Resolver(tl: TraceLogger)
     t match
     case t @ AnySel(lhs: Resolvable, id) =>
       lhs.typeDefn match
-        case S(mdef @ ModuleDef(kind = Mod)) => mdef.body.members.get(id.name).map(_.asBlkMember) match
-          case S(S(sym)) =>
+        case S(mdef @ ModuleDef(kind = Mod)) => 
+          val fsym = mdef.body.members.get(id.name)
+          fsym match
+          case S(fldSym) => 
+            val bsym = fldSym.asBlkMember.getOrElse:
+              lastWords(s"${mdef}: field symbol found ${fldSym} but no block member symbol")
             log(s"Resolving symbol for ${t}, defn = ${lhs.defn}")
-            withSym(t, sym)
+            withSym(t, bsym)
             expand2DotClass(lhs)
-            log(s"Resolved symbol for ${t}: ${sym}")
-          case S(N) =>
-            lastWords("member symbol found but it doesn't have a block member symbol")
-          case _ => 
+            log(s"Resolved symbol for ${t}: ${bsym}")
+          case N => 
             withSym(t, ErrorSymbol(id.name, Tree.Dummy))
             raise: 
               ErrorReport(

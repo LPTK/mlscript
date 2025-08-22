@@ -1,0 +1,22 @@
+:js
+// :de
+// :sjs
+// :pt
+// :elt
+
+:global
+// :d
+// :todo
+
+
+module M with
+  type T = Int
+
+fun f[T] = 42
+
+// the resolved used to not resolve `M.T`'s block member symbol,
+// resulting in an error :(
+f[M.T]
+//│ = 42
+
+

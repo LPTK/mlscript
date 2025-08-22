@@ -439,7 +439,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
     case Throw(res) => s"throw ${res.showDbg}"
     case Try(body, finallyDo) => s"try ${body.showDbg} finally ${finallyDo.showDbg}"
     case Ret(res) => s"return ${res.showDbg}"
-    case TypeDef(sym, tparams, rhs, _, _) =>
+    case TypeDef(sym, _, tparams, rhs, _, _) =>
       s"type ${sym}${tparams.mkStringOr(", ", "[", "]")} = ${rhs.fold("")(x => x.showDbg)}"
     case Missing => "missing"
 
@@ -557,6 +557,7 @@ type CompanionSymbol = ModuleSymbol | TypeAliasSymbol | ClassSymbol
 
 
 sealed abstract class TypeLikeDef extends Definition:
+  val bsym: BlockMemberSymbol
   val tparams: Ls[TyParam]
   val annotations: Ls[Annot]
 
@@ -702,6 +703,7 @@ end ClassDef
 
 case class TypeDef(
   sym: TypeAliasSymbol,
+  bsym: BlockMemberSymbol,
   tparams: Ls[TyParam],
   rhs: Opt[Term],
   companion: Opt[CompanionValue],

@@ -1174,7 +1174,7 @@ extends Importer:
             assert(body.isEmpty)
             val d =
               given Ctx = newCtx
-              semantics.TypeDef(alsSym, tps, rhs.map(term(_)), N, annotations)
+              semantics.TypeDef(alsSym, sym, tps, rhs.map(term(_)), N, annotations)
             alsSym.defn = S(d)
             d
         case Pat =>
