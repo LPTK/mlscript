@@ -219,7 +219,7 @@ object Resolver:
   * Therefore, resolution of such symbols is deferred to the resolver. 
   */
 class Resolver(tl: TraceLogger)
-(using raise: Raise, state: State):
+(using raise: Raise, state: State, ctx: Elaborator.Ctx):
   import tl.*
   import Resolver.*
   
@@ -275,7 +275,8 @@ class Resolver(tl: TraceLogger)
   
   def expand2DotClass(t: Resolvable) = t.resolvedSymbol match
     case S(bsym: BlockMemberSymbol) if bsym.hasLiftedClass => bsym.asCls.foreach: cls =>
-      t.expand(S(t => Sel(t, new Tree.Ident("class"))(S(cls))))
+      if cls isnt ctx.builtins.Array then
+        t.expand(S(t => Sel(t, new Tree.Ident("class"))(S(cls))))
     case _ =>
       ()
   

@@ -1,0 +1,23 @@
+:js
+// :de
+// :sjs
+// :pt
+// :elt
+
+:global
+// :d
+// :todo
+
+
+
+new! mut Object
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:706)
+//│ ╔══[ERROR] Illegal position for 'mut' modifier.
+//│ ║  l.13: 	new! mut Object
+//│ ╙──      	     ^^^
+//│ = {}
+
+
+
+

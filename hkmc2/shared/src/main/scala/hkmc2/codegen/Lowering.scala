@@ -230,6 +230,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             tl.log(s"mod ${sym.defn}")
             sym.defn match
             case S(mod: ModuleDef) =>
+              assert(mod.ext.isEmpty, mod.ext) // modules can't extend things and can't have super calls
               // val oldSubst = subst
               val (mtds, publicFlds, privateFlds, ctor) =
                 // given Subst = oldSubst

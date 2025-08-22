@@ -78,7 +78,7 @@ new Foo(123) with { fun foo = 27 }
 :re
 new (Foo(123)) with { fun foo = 27 }
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found application without any resolvable definition.
 //│ ║  l.79: 	new (Foo(123)) with { fun foo = 27 }
 //│ ║        	     ^^^^^^^^
@@ -90,7 +90,7 @@ new (Foo(123)) with { fun foo = 27 }
 :re
 new {Foo(123)} with { fun foo = 27 }
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found application without any resolvable definition.
 //│ ║  l.91: 	new {Foo(123)} with { fun foo = 27 }
 //│ ║        	     ^^^^^^^^

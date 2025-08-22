@@ -72,7 +72,7 @@ sealed trait ResolvableImpl extends Describable:
     case S(df: ClassLikeDef) =>
       s"${desc} with a ${df.kind.desc} definition '${df.sym.nme}'"
     case N =>
-      s"${desc} without any resolvable definition"
+      s"${desc} without a resolvable definition"
   
   def instantiate = expansion match
     case S(S(t)) => t

@@ -104,7 +104,7 @@ let f = foo(1, 2)
 
 let f = new foo(1, 2)
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
 //│ ║  l.105: 	let f = new foo(1, 2)
 //│ ║         	            ^^^

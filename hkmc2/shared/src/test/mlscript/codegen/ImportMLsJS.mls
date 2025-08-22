@@ -12,7 +12,7 @@ import "../../mlscript-compile/Option.mjs"
 
 Option.isDefined(new Option.Some(1))
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.13: 	Option.isDefined(new Option.Some(1))
 //│ ║        	                     ^^^^^^^^^^^
@@ -25,7 +25,7 @@ Option.isDefined(Option.None)
 
 (new Option.Some(1)) Option.isDefined()
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.26: 	(new Option.Some(1)) Option.isDefined()
 //│ ║        	     ^^^^^^^^^^^
@@ -41,7 +41,7 @@ Option.None
 
 new Option.Some(1)
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.42: 	new Option.Some(1)
 //│ ║        	    ^^^^^^^^^^^
@@ -50,7 +50,7 @@ new Option.Some(1)
 
 new Option.Both(1, 2)
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.51: 	new Option.Both(1, 2)
 //│ ║        	    ^^^^^^^^^^^
@@ -64,7 +64,7 @@ Option.None
 // * This used to misbehave due to inadequately handling the weird precedence of `new`
 new Option.Some(1)
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
 //│ ║  l.65: 	new Option.Some(1)
 //│ ║        	    ^^^^^^^^^^^

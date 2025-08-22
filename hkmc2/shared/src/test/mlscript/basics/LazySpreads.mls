@@ -1,23 +1,25 @@
 :js
 
+:ssjs
 :expect [[1, 2], 3]
 if [1, ..[2, 3]] is [..a, b] then [a, b]
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: globalThis.Array.class is not a constructor
-//│     at get reify (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:316:11)
-//│     at Splice.materialize (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:415:33)
-//│     at sliceHelper (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:135:31)
-//│     at file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:496:14
-//│     at Tuple.lazySlice (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:122:33)
-//│     at REPL10:1:261
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '[[1, 2], 3]', got: 'undefined'
+//│ JS:
+//│ scrut = globalThis.Object.freeze(runtime.Tuple.lazyConcat(1, runtime.Tuple.split, globalThis.Object.freeze([
+//│   2,
+//│   3
+//│ ])));
+//│ if (runtime.Tuple.isArrayLike(scrut) && scrut.length >= 1) {
+//│   rest = runtime.safeCall(runtime.Tuple.lazySlice(scrut, 0, 1));
+//│   last0 = runtime.Tuple.get(scrut, -1);
+//│   a = rest;
+//│   b = last0;
+//│   block$res1 = globalThis.Object.freeze([
+//│     a,
+//│     b
+//│   ]);
+//│   undefined
+//│ } else { throw globalThis.Object.freeze(new globalThis.Error("match error")) }
+//│ = [[1, 2], 3]
 
 :expect [[1, 2], 3]
 if [1, ...[2, 3]] is [..a, b] then [a, b]
@@ -25,22 +27,7 @@ if [1, ...[2, 3]] is [..a, b] then [a, b]
 
 :expect [[1, 2], 3]
 if [1, ..[2, 3]] is [..a, b] then [a, b]
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: globalThis.Array.class is not a constructor
-//│     at get reify (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:316:11)
-//│     at Splice.materialize (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:415:33)
-//│     at sliceHelper (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:135:31)
-//│     at file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:496:14
-//│     at Tuple.lazySlice (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:122:33)
-//│     at REPL16:1:270
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '[[1, 2], 3]', got: 'undefined'
+//│ = [[1, 2], 3]
 
 :sjs
 fun buildPalindrome = case
@@ -71,19 +58,7 @@ val arr = buildPalindrome(5)
 
 :expect [5, 4, 3, 2, 1, 1, 2, 3, 4, 5]
 arr
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: globalThis.Array.class is not a constructor
-//│     at get reify (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:316:11)
-//│     at Splice.materialize (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:415:33)
-//│     at Splice.toString (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:450:16)
-//│     at [mlscript.prettyPrint] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:455:33)
-//│     at renderValue (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs:1326:111)
-//│     at Runtime.render (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs:1513:12)
-//│     at Runtime.printRaw (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:461:19)
-//│     at REPL25:1:33
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│ = [5, 4, 3, 2, 1, 1, 2, 3, 4, 5]
 
 :sjs
 fun sum2 = case
@@ -117,33 +92,18 @@ fun sum2 = case
 
 :expect 30
 sum2(arr)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: globalThis.Array.class is not a constructor
-//│     at get reify (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:316:11)
-//│     at Splice.materialize (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:415:33)
-//│     at Splice.at (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:424:16)
-//│     at Tuple.get (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:142:20)
-//│     at lambda (REPL27:1:495)
-//│     at REPL30:1:81
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '30', got: 'undefined'
+//│ = 30
 
 :e
 fun f(..xs) = xs
 //│ ╔══[ERROR] Lazy spread parameters not allowed.
-//│ ║  l.138: 	fun f(..xs) = xs
-//│ ╙──       	      ^^^^
+//│ ║  l.98: 	fun f(..xs) = xs
+//│ ╙──      	      ^^^^
 
 :ge
 sum2(..arr)
 //│ ╔══[COMPILATION ERROR] Lazy spreads are not supported in call arguments
-//│ ║  l.144: 	sum2(..arr)
+//│ ║  l.104: 	sum2(..arr)
 //│ ╙──       	    ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: Function expected 1 argument but got 2
 
@@ -154,19 +114,4 @@ fun map2(f) = case
 
 :expect [10, 8, 6, 4, 2, 2, 4, 6, 8, 10]
 map2(x => x * 2)(arr)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: globalThis.Array.class is not a constructor
-//│     at get reify (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:316:11)
-//│     at Splice.materialize (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:415:33)
-//│     at Splice.at (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/LazyArray.mjs:424:16)
-//│     at Tuple.get (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:142:20)
-//│     at lambda (REPL39:1:548)
-//│     at REPL42:1:222
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '[10, 8, 6, 4, 2, 2, 4, 6, 8, 10]', got: 'undefined'
+//│ = [10, 8, 6, 4, 2, 2, 4, 6, 8, 10]

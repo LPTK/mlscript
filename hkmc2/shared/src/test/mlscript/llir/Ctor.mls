@@ -6,7 +6,7 @@ object None
 fun testCtor1() = None
 fun testCtor2() = new None
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'None'.
 //│ ║  l.7: 	fun testCtor2() = new None
 //│ ║       	                      ^^^^

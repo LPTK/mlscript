@@ -4,8 +4,8 @@
 class Foo
 
 // TODO Report elab' error
-:ge
+:fixme
 module M extends Foo
-//│ FAILURE: Unexpected lack of compilation error
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: Some(New(Ref(member:Foo),List(),None))
 
 

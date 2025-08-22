@@ -10,7 +10,7 @@ new
 :re
 new 2
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found integer literal.
 //│ ║  l.11: 	new 2
 //│ ║        	    ^
@@ -21,7 +21,7 @@ new 2
 :re
 new 2 + 2
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found integer literal.
 //│ ║  l.22: 	new 2 + 2
 //│ ║        	    ^
@@ -35,30 +35,30 @@ new()
 //│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: scala.MatchError: UnitVal() (of class hkmc2.semantics.Term$UnitVal)
 //│ 	at: hkmc2.semantics.Term.describe(Term.scala:273)
-//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:310)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2(Resolver.scala:345)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$adapted$1(Resolver.scala:345)
+//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:311)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2(Resolver.scala:346)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$adapted$1(Resolver.scala:346)
 //│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
-//│ 	at: hkmc2.semantics.Resolver.traverse(Resolver.scala:345)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$1(Resolver.scala:336)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$adapted$1(Resolver.scala:345)
+//│ 	at: hkmc2.semantics.Resolver.traverse(Resolver.scala:346)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$1(Resolver.scala:337)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$adapted$1(Resolver.scala:346)
 //│ 	at: scala.Function0.apply$mcV$sp(Function0.scala:42)
-//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:289)
+//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:290)
 
 :re
 new {}
 //│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: scala.MatchError: UnitVal() (of class hkmc2.semantics.Term$UnitVal)
 //│ 	at: hkmc2.semantics.Term.describe(Term.scala:273)
-//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:310)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2(Resolver.scala:345)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$adapted$1(Resolver.scala:345)
+//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:311)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2(Resolver.scala:346)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$adapted$1(Resolver.scala:346)
 //│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
-//│ 	at: hkmc2.semantics.Resolver.traverse(Resolver.scala:345)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$1(Resolver.scala:336)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$adapted$1(Resolver.scala:345)
+//│ 	at: hkmc2.semantics.Resolver.traverse(Resolver.scala:346)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$1(Resolver.scala:337)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$adapted$1(Resolver.scala:346)
 //│ 	at: scala.Function0.apply$mcV$sp(Function0.scala:42)
-//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:289)
+//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:290)
 
 
 // * Note that thanks to the parser "feature" for keyword-block stutter

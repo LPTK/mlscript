@@ -13,28 +13,26 @@ new
   Foo
 //│ = Foo
 
+:e
 :w
 new
   Foo
   Foo
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
 //│ ╔══[ERROR] Expected a statically known class; found block.
-//│ ║  l.19: 	  Foo
+//│ ║  l.20: 	  Foo
 //│ ║        	  ^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.18: 	  Foo
+//│ ║  l.19: 	  Foo
 //│ ╙──      	  ^^^
 //│ = Foo
 
 // * Interesting... it tries to call `Foo()` and instantiate the resulting class value...
+:e
 :re
 new
   Foo()
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
-//│ ╔══[ERROR] Expected a statically known class; found application without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
 //│ ║  l.34: 	  Foo()
 //│ ║        	  ^^^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
@@ -45,23 +43,22 @@ new
   Foo
     ()
 //│ ╔══[ERROR] Illegal juxtaposition right-hand side (unit).
-//│ ║  l.46: 	    ()
+//│ ║  l.44: 	    ()
 //│ ╙──      	    ^^
 //│ = Foo
 
+:e
 :w
 :re
 new
   Foo
   ()
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
 //│ ╔══[ERROR] Expected a statically known class; found block.
-//│ ║  l.56: 	  ()
+//│ ║  l.55: 	  ()
 //│ ║        	  ^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.55: 	  Foo
+//│ ║  l.54: 	  Foo
 //│ ╙──      	  ^^^
 //│ ═══[RUNTIME ERROR] TypeError: runtime.Unit is not a constructor
 
@@ -69,7 +66,7 @@ new
 new Foo
   ()
 //│ ╔══[ERROR] Illegal juxtaposition right-hand side (unit).
-//│ ║  l.70: 	  ()
+//│ ║  l.67: 	  ()
 //│ ╙──      	  ^^
 //│ = Foo
 

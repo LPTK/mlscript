@@ -10,7 +10,7 @@ MyClass
 
 new MyClass("Bob")
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
 //│ ║  l.11: 	new MyClass("Bob")
 //│ ║        	    ^^^^^^^

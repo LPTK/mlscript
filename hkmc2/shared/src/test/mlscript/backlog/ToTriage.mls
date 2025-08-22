@@ -173,7 +173,7 @@ data object Cls(x) with
 :e
 Cls.x
 //│ ╔══[ERROR] Object 'Cls' does not contain member 'x'
-//│ ║  l.170: 	Cls.x
+//│ ║  l.174: 	Cls.x
 //│ ╙──       	   ^^
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
 
@@ -183,7 +183,7 @@ Cls.huh
 
 let c = new Cls(123)
 //│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'Cls'.
-//│ ║  l.180: 	let c = new Cls(123)
+//│ ║  l.184: 	let c = new Cls(123)
 //│ ║         	            ^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: Cls1 is not a constructor
@@ -206,30 +206,30 @@ module Example with
 // whoops
   val a = this
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found new line instead
-//│ ║  l.201: 	module Example with
+//│ ║  l.205: 	module Example with
 //│ ║         	                   ^
-//│ ║  l.202: 	// whoops
+//│ ║  l.206: 	// whoops
 //│ ╙──       	
 //│ ╔══[PARSE ERROR] Expected an expression; found block instead
-//│ ║  l.203: 	  val a = this
+//│ ║  l.207: 	  val a = this
 //│ ╙──       	  ^
 //│ ╔══[PARSE ERROR] Expected end of input; found indented block instead
-//│ ║  l.203: 	  val a = this
+//│ ║  l.207: 	  val a = this
 //│ ╙──       	^^
 
 // ——— ——— ———
 
 let xs = new Oopsie
 //│ ╔══[ERROR] Name not found: Oopsie
-//│ ║  l.218: 	let xs = new Oopsie
+//│ ║  l.222: 	let xs = new Oopsie
 //│ ╙──       	             ^^^^^^
 //│ ╔══[ERROR] Expected a statically known class; found <error>.
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'xs'
-//│ ║  l.218: 	let xs = new Oopsie
+//│ ║  l.222: 	let xs = new Oopsie
 //│ ║         	    ^^
 //│ ╟── which is introduced here
-//│ ║  l.218: 	let xs = new Oopsie
+//│ ║  l.222: 	let xs = new Oopsie
 //│ ╙──       	    ^^
 //│ ═══[RUNTIME ERROR] ReferenceError: xs is not defined
 
@@ -257,7 +257,7 @@ class C
 :sjs
 class D extends id(C)
 //│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
-//│ ║  l.254: 	class D extends id(C)
+//│ ║  l.258: 	class D extends id(C)
 //│ ║         	                ^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ JS (unsanitized):
@@ -305,13 +305,13 @@ import "../../mlscript-compile/Stack.mls"
 // The parser rejects this, but it should be allowed.
 open Stack { ::, Nil }
 //│ ╔══[ERROR] Illegal 'open' statement shape.
-//│ ║  l.299: 	open Stack { ::, Nil }
+//│ ║  l.306: 	open Stack { ::, Nil }
 //│ ╙──       	     ^^^^^^^^^^^^^^^
 
 // Instead, if we parenthesize the operator, it is rejected by the elaborator.
 open Stack { (::), Nil }
 //│ ╔══[ERROR] Illegal 'open' statement element.
-//│ ║  l.305: 	open Stack { (::), Nil }
+//│ ║  l.312: 	open Stack { (::), Nil }
 //│ ╙──       	             ^^^^
 
 open Stack { Nil, :: }
@@ -319,7 +319,7 @@ open Stack { Nil, :: }
 :sjs
 1 :: Nil
 //│ ╔══[ERROR] Module 'Stack' does not contain member '::'
-//│ ║  l.313: 	1 :: Nil
+//│ ║  l.320: 	1 :: Nil
 //│ ╙──       	  ^^
 //│ JS (unsanitized):
 //│ Stack["::"](1, Stack.Nil)
@@ -330,9 +330,9 @@ open Stack { Nil, :: }
 mkStr of ... // hello
 "oops"
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found new line instead
-//│ ║  l.323: 	mkStr of ... // hello
+//│ ║  l.330: 	mkStr of ... // hello
 //│ ║         	                     ^
-//│ ║  l.324: 	"oops"
+//│ ║  l.331: 	"oops"
 //│ ╙──       	
 //│ = "oops"
 
@@ -355,22 +355,22 @@ Foo(1, 2, 3).args
 :todo
 if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╔══[ERROR] Unrecognized pattern (spread)
-//│ ║  l.349: 	if Foo(1, 2, 3) is Foo(...args) then args
+//│ ║  l.356: 	if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╙──       	                       ^^^^^^^
 //│ ╔══[ERROR] The constructor does not take any arguments but found one argument.
-//│ ║  l.349: 	if Foo(1, 2, 3) is Foo(...args) then args
+//│ ║  l.356: 	if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╙──       	                       ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
 if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
 //│ ╔══[ERROR] The constructor does not take any arguments but found three arguments.
-//│ ║  l.358: 	if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
+//│ ║  l.365: 	if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
 //│ ╙──       	                       ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
 if Foo(1, 2, 3) is Foo(arg) then arg
 //│ ╔══[ERROR] The constructor does not take any arguments but found one argument.
-//│ ║  l.364: 	if Foo(1, 2, 3) is Foo(arg) then arg
+//│ ║  l.371: 	if Foo(1, 2, 3) is Foo(arg) then arg
 //│ ╙──       	                       ^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
@@ -404,10 +404,10 @@ fun foo() =
   let bar(x: Str): Str = x + x
   bar("test")
 //│ ╔══[ERROR] Unsupported let binding shape
-//│ ║  l.397: 	  let bar(x: Str): Str = x + x
+//│ ║  l.404: 	  let bar(x: Str): Str = x + x
 //│ ╙──       	      ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Expected 0 arguments, got 1
-//│ ║  l.398: 	  bar("test")
+//│ ║  l.405: 	  bar("test")
 //│ ╙──       	     ^^^^^^^^
 
 // ——— ——— ———
@@ -416,10 +416,10 @@ fun foo() =
 :sjs
 module Foo(x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
-//│ ║  l.410: 	module Foo(x)
+//│ ║  l.417: 	module Foo(x)
 //│ ║         	           ^
 //│ ╟── which is introduced here
-//│ ║  l.410: 	module Foo(x)
+//│ ║  l.417: 	module Foo(x)
 //│ ╙──       	           ^
 //│ JS (unsanitized):
 //│ let Foo5;
@@ -442,10 +442,10 @@ module Foo(x)
 :sjs
 module Foo(val x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
-//│ ║  l.433: 	module Foo(val x)
+//│ ║  l.443: 	module Foo(val x)
 //│ ║         	               ^
 //│ ╟── which is introduced here
-//│ ║  l.433: 	module Foo(val x)
+//│ ║  l.443: 	module Foo(val x)
 //│ ╙──       	               ^
 //│ JS (unsanitized):
 //│ let Foo7;
@@ -468,7 +468,7 @@ module Foo(val x)
 // TODO support syntax?
 data class Foo(mut x)
 //│ ╔══[ERROR] Expected a valid parameter, found 'mut'-modified identifier
-//│ ║  l.456: 	data class Foo(mut x)
+//│ ║  l.469: 	data class Foo(mut x)
 //│ ╙──       	                   ^
 
 // ——— ——— ———
