@@ -1,4 +1,5 @@
 import "benchmark"
+// import "../../1111111"
 
 let bm = benchmark
 
@@ -7,7 +8,8 @@ module Benchmark with...
 val benchmark = bm
 let prefixPath = "src/test/logs/"
 
-fun mkSuite() = new mut bm.Suite()
+// TODO
+// fun mkSuite() = new! mut bm.Suite()
 
 fun setPrefixPath(path) = set prefixPath = path
 

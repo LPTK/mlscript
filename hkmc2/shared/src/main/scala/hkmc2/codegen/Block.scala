@@ -324,8 +324,8 @@ sealed abstract class Defn:
   def subBlocks: Ls[Block] = this match
     case FunDefn(body = body) => body :: Nil
     case _: ValDefn => Nil
-    case ClsLikeDefn(preCtor = preCtor, ctor = ctor, methods = mtds) =>
-      preCtor :: ctor :: mtds.flatMap(_.subBlocks)
+    case ClsLikeDefn(preCtor = preCtor, ctor = ctor, methods = mtds, companion = comp) =>
+      preCtor :: ctor :: mtds.flatMap(_.subBlocks) ::: comp.toList.flatMap(_.subBlocks)
   
   // * Note that `privateFields` abd `publicFields` can't possibly be free since they are never
   // * referred to directly (they are only accessed through selections).
@@ -446,7 +446,8 @@ final case class ClsLikeBody(
     ctor: Block,
 ):
   val innerSym = S(isym)
-  def subBlocks: Ls[Block] = ???
+  def subBlocks: Ls[Block] =
+    ctor :: methods.flatMap(_.subBlocks)
   lazy val freeVars: Set[Local] = ???
   lazy val freeVarsLLIR: Set[Local] = ???
 

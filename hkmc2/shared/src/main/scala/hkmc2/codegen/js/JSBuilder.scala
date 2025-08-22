@@ -68,6 +68,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
     case ts: semantics.TermSymbol =>
       ts.owner match
       case S(owner) =>
+        tl.log(s"owner: $owner, ${owner.privatesScope}")
         doc"${getVar(owner)}${
           if (ts.k is syntax.LetBind) && !owner.isInstanceOf[semantics.TopLevelSymbol]
           then ".#" + owner.privatesScope.lookup_!(ts)
@@ -258,14 +259,15 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                   
                   // TODO dedup some of that logic
                   val mtdPrefix = "static "
-                  val mutPubFields = 
+                  val mutPubFields =
                     mod.publicFields.collect:
                       case (_, sym) if sym.k is MutVal =>
                         sym -> TermSymbol(
-                          syntax.LetBind, S(isym), Tree.Ident(sym.nme))
+                          syntax.LetBind, S(mod.isym), Tree.Ident(sym.nme))
                   val allPrivFlds = mod.privateFields ++ mutPubFields.map(_._2)
                   val privs =
-                    val scp = isym.asInstanceOf[InnerSymbol].privatesScope
+                    val scp = mod.isym.asInstanceOf[InnerSymbol].privatesScope // TODO improve (asInstanceOf)
+                    tl.log(s"isym: $isym, ${isym.asInstanceOf[InnerSymbol].privatesScope}")
                     val privDecls = allPrivFlds.map: fld =>
                         val nme = scp.allocateName(fld)
                         doc" # $mtdPrefix#$nme;"
@@ -297,7 +299,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             val mtdPrefix = if isModule then "static " else ""
             
             // * Note: the non-mut-val parts of `pubFlds` are not used because in JS, fields are not declared
-            val mutPubFields = 
+            val mutPubFields =
               pubFlds.collect:
                 case (_, sym) if sym.k is MutVal =>
                   sym -> TermSymbol(
@@ -306,7 +308,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             val allPrivFlds = privFlds ++ mutPubFields.map(_._2)
             
             val privs =
-              val scp = isym.asInstanceOf[InnerSymbol].privatesScope
+              val scp = isym.asInstanceOf[InnerSymbol].privatesScope // TODO improve (asInstanceOf)
               val privDecls = allPrivFlds.map: fld =>
                   val nme = scp.allocateName(fld)
                   doc" # $mtdPrefix#$nme;"

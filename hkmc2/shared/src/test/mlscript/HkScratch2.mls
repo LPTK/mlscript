@@ -111,8 +111,11 @@ module Bar with
 //│ avoidNames Define(ClsLikeDefn(None,class:Bar,member:Bar,Cls,None,List(),None,List(),List(),List(),End(),Return(...
 //│ | avoidNames End()...
 //│ | avoidNames Return(Select(Ref($runtime),Ident(Unit)),true)...
+//│ | avoidNames Return(Select(Ref(module:Bar),Ident(x)),true)...
+//│ | avoidNames Return(Lit(IntLit(1)),false)...
 //│ | avoidNames Assign($block$res,Lit(UnitLit(false)),End())...
 //│ | | avoidNames End()...
+//│ isym: class:Bar, Scope(None,Some(Some(globalThis:globalThis)),HashMap())
 //│ JS:
 //│ Bar3 = class Bar2 {
 //│   static {
@@ -131,6 +134,51 @@ module Bar with
 
 Bar.x
 //│ = 1
+
+
+// fun makeLetBindings(x) = [x]
+// fun rule(x, y) = [x, y]
+
+// let letExpression = makeLetBindings(true)
+// //│ letExpression = [true]
+
+// rule of
+//   "prefix rules for expressions"
+//   letExpression
+// //│ = ["prefix rules for expressions", [true]]
+
+// // Prefix rules and infix rules for expressions.
+// val termRule = rule of
+//   "prefix rules for expressions"
+//   letExpression
+// //│ termRule = ["prefix rules for expressions", [true]]
+
+
+// :elt
+// :dl
+// :ssjs
+// :lot
+module Foo with
+  let x = 1
+  print(x)
+//│ > 1
+
+
+// :ssjs
+// :elt
+// :lot
+module Foo with
+  class CollapsibleTree
+  print of CollapsibleTree
+//│ > class CollapsibleTree
+
+
+// :ssjs
+// :elt
+// :lot
+module Foo with
+  mut val x = 1
+
 
 
 

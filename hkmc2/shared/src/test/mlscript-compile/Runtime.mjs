@@ -7,7 +7,7 @@ import Rendering from "./Rendering.mjs";
 import LazyArray from "./LazyArray.mjs";
 import Iter from "./Iter.mjs";
 let Runtime1;
-(class Runtime {
+Runtime1 = class Runtime {
   static #stackLimit;
   static #stackDepth;
   static #stackOffset;
@@ -24,7 +24,6 @@ let Runtime1;
   get stackResume() { return Runtime.#stackResume; }
   set stackResume(value) { Runtime.#stackResume = value; }
   static {
-    Runtime1 = Runtime;
     const Unit$class = class Unit {
       constructor() {
         Object.defineProperty(this, "class", {
@@ -53,14 +52,11 @@ let Runtime1;
           this.reified = this.#_reified;
         }
         resumeWith(value) {
-          let lambda;
-          const this$EffectHandle = this;
-          lambda = (undefined, function () {
+          return Runtime1.try(() => {
             let tmp;
-            tmp = Runtime.resume(this$EffectHandle.reified.contTrace);
+            tmp = Runtime.resume(this.reified.contTrace);
             return runtime.safeCall(tmp(value))
-          });
-          return Runtime1.try(lambda)
+          })
         } 
         raise() {
           return Runtime.topLevelEffect(this.reified, false)
@@ -96,9 +92,8 @@ let Runtime1;
         static [definitionMetadata] = ["class", "MatchFailure", ["errors"]]; 
       }
     });
-    (class Tuple {
+    this.Tuple = class Tuple {
       static {
-        Runtime.Tuple = Tuple;
         this.split = LazyArray.__split;
       }
       static slice(xs, i, j) {
@@ -134,13 +129,14 @@ let Runtime1;
       static isArrayLike(xs3) {
         return runtime.safeCall(Iter.isArrayLike(xs3))
       }
-      static toString() { return runtime.render(this); }
-      static [definitionMetadata] = ["module", "Tuple"]; 
-    });
-    (class Str {
-      static {
-        Runtime.Str = Str;
+      constructor() {
+        runtime.Unit;
       }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "Tuple"]; 
+    };
+    this.Str = class Str {
+      static {}
       static startsWith(string, prefix) {
         return runtime.safeCall(string.startsWith(prefix))
       } 
@@ -159,11 +155,14 @@ let Runtime1;
       static leave(string3, n1) {
         return runtime.safeCall(string3.slice(n1))
       }
-      static toString() { return runtime.render(this); }
-      static [definitionMetadata] = ["module", "Str"]; 
-    });
+      constructor() {
+        runtime.Unit;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "Str"]; 
+    };
     this.render = Rendering.render;
-    (class TraceLogger {
+    this.TraceLogger = class TraceLogger {
       static #enabled;
       static #indentLvl;
       get enabled() { return TraceLogger.#enabled; }
@@ -171,7 +170,6 @@ let Runtime1;
       get indentLvl() { return TraceLogger.#indentLvl; }
       set indentLvl(value) { TraceLogger.#indentLvl = value; }
       static {
-        Runtime.TraceLogger = TraceLogger;
         this.enabled = false;
         this.indentLvl = 0;
       }
@@ -211,9 +209,12 @@ let Runtime1;
           return runtime.Unit
         }
       }
-      static toString() { return runtime.render(this); }
-      static [definitionMetadata] = ["module", "TraceLogger"]; 
-    });
+      constructor() {
+        runtime.Unit;
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "TraceLogger"]; 
+    };
     const FatalEffect$class = class FatalEffect {
       constructor() {
         Object.defineProperty(this, "class", {
@@ -339,12 +340,10 @@ let Runtime1;
         })
       }
       delay() {
-        let lambda;
-        lambda = (undefined, function (k) {
+        return Runtime.mkEffect(StackDelayHandler, (k) => {
           Runtime.stackResume = k;
           return runtime.Unit
-        });
-        return Runtime.mkEffect(this, lambda)
+        })
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["object", "StackDelayHandler"]; 
@@ -355,16 +354,13 @@ let Runtime1;
     throw globalThis.Error("unreachable");
   } 
   static checkArgs(functionName, expected, isUB, got) {
-    let scrut, name, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, lambda;
+    let scrut, name, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
     tmp = got < expected;
-    lambda = (undefined, function () {
-      let lambda1;
-      lambda1 = (undefined, function () {
+    scrut = runtime.short_or(tmp, () => {
+      return runtime.short_and(isUB, () => {
         return got > expected
-      });
-      return runtime.short_and(isUB, lambda1)
+      })
     });
-    scrut = runtime.short_or(tmp, lambda);
     if (scrut === true) {
       scrut1 = functionName.length > 0;
       if (scrut1 === true) {
@@ -466,7 +462,7 @@ let Runtime1;
     }
   } 
   static showStackTrace(header, tr1, debug1, showLocals1) {
-    let msg, curHandler, atTail, scrut, cur, scrut1, locals, curLocals, loc, loc1, localsMsg, scrut2, scrut3, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, lambda;
+    let msg, curHandler, atTail, scrut, cur, scrut1, locals, curLocals, loc, loc1, localsMsg, scrut2, scrut3, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19;
     msg = header;
     curHandler = tr1.contTrace;
     atTail = true;
@@ -492,13 +488,12 @@ let Runtime1;
               if (showLocals1 === true) {
                 scrut2 = curLocals.locals.length > 0;
                 if (scrut2 === true) {
-                  lambda = (undefined, function (l) {
+                  tmp3 = runtime.safeCall(curLocals.locals.map((l) => {
                     let tmp22, tmp23;
                     tmp22 = l.localName + "=";
                     tmp23 = Rendering.render(l.value);
                     return tmp22 + tmp23
-                  });
-                  tmp3 = runtime.safeCall(curLocals.locals.map(lambda));
+                  }));
                   tmp4 = runtime.safeCall(tmp3.join(", "));
                   tmp5 = " with locals: " + tmp4;
                 } else {
@@ -557,12 +552,12 @@ let Runtime1;
     return msg
   } 
   static showFunctionContChain(cont, hl, vis, reps) {
-    let scrut, result, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, lambda;
+    let scrut, result, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
     if (cont instanceof Runtime.FunctionContFrame.class) {
       tmp = cont.constructor.name + "(pc=";
       tmp1 = tmp + cont.pc;
       result = tmp1;
-      lambda = (undefined, function (m, marker) {
+      tmp2 = (m, marker) => {
         let scrut3, tmp10, tmp11;
         scrut3 = runtime.safeCall(m.has(cont));
         if (scrut3 === true) {
@@ -573,8 +568,7 @@ let Runtime1;
         } else {
           return runtime.Unit
         }
-      });
-      tmp2 = lambda;
+      };
       tmp3 = runtime.safeCall(hl.forEach(tmp2));
       scrut1 = runtime.safeCall(vis.has(cont));
       if (scrut1 === true) {
@@ -605,10 +599,10 @@ let Runtime1;
     }
   } 
   static showHandlerContChain(cont1, hl1, vis1, reps1) {
-    let scrut, result, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, lambda;
+    let scrut, result, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     if (cont1 instanceof Runtime.HandlerContFrame.class) {
       result = cont1.handler.constructor.name;
-      lambda = (undefined, function (m, marker) {
+      tmp = (m, marker) => {
         let scrut3, tmp8, tmp9;
         scrut3 = runtime.safeCall(m.has(cont1));
         if (scrut3 === true) {
@@ -619,8 +613,7 @@ let Runtime1;
         } else {
           return runtime.Unit
         }
-      });
-      tmp = lambda;
+      };
       tmp1 = runtime.safeCall(hl1.forEach(tmp));
       scrut1 = runtime.safeCall(vis1.has(cont1));
       if (scrut1 === true) {
@@ -728,8 +721,8 @@ let Runtime1;
   } 
   static mkEffect(handler, handlerFun) {
     let res, tmp, tmp1;
-    tmp = new Runtime.ContTrace.class(null, null, null, null, false);
-    tmp1 = new Runtime.EffectSig.class(tmp, handler, handlerFun);
+    tmp = new Runtime.ContTrace(null, null, null, null, false);
+    tmp1 = new Runtime.EffectSig(tmp, handler, handlerFun);
     res = tmp1;
     res.contTrace.last = res.contTrace;
     res.contTrace.lastHandler = res.contTrace;
@@ -737,7 +730,7 @@ let Runtime1;
   } 
   static handleBlockImpl(cur, handler1) {
     let handlerFrame, tmp;
-    tmp = new Runtime.HandlerContFrame.class(null, null, handler1);
+    tmp = new Runtime.HandlerContFrame(null, null, handler1);
     handlerFrame = tmp;
     cur.contTrace.lastHandler.nextHandler = handlerFrame;
     cur.contTrace.lastHandler = handlerFrame;
@@ -802,7 +795,7 @@ let Runtime1;
       tmp1 = runtime.Unit;
     }
     handlerFrame = prevHandlerFrame.nextHandler;
-    tmp2 = new Runtime.ContTrace.class(handlerFrame.next, cur2.contTrace.last, handlerFrame.nextHandler, cur2.contTrace.lastHandler, false);
+    tmp2 = new Runtime.ContTrace(handlerFrame.next, cur2.contTrace.last, handlerFrame.nextHandler, cur2.contTrace.lastHandler, false);
     saved = tmp2;
     cur2.contTrace.last = handlerFrame;
     cur2.contTrace.lastHandler = handlerFrame;
@@ -894,13 +887,12 @@ let Runtime1;
     return tmp4
   } 
   static checkDepth() {
-    let scrut, tmp, tmp1, lambda;
+    let scrut, tmp, tmp1;
     tmp = Runtime.stackDepth - Runtime.stackOffset;
     tmp1 = tmp >= Runtime.stackLimit;
-    lambda = (undefined, function () {
+    scrut = runtime.short_and(tmp1, () => {
       return Runtime.stackHandler !== null
     });
-    scrut = runtime.short_and(tmp1, lambda);
     if (scrut === true) {
       return runtime.safeCall(Runtime.stackHandler.delay())
     } else {
@@ -948,7 +940,10 @@ let Runtime1;
     Runtime.stackHandler = null;
     return result
   }
-  static toString() { return runtime.render(this); }
-  static [definitionMetadata] = ["module", "Runtime"]; 
-});
+  constructor() {
+    runtime.Unit;
+  }
+  toString() { return runtime.render(this); }
+  static [definitionMetadata] = ["class", "Runtime"]; 
+};
 let Runtime = Runtime1; export default Runtime;

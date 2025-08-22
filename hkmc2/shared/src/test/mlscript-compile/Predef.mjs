@@ -6,9 +6,8 @@ import RuntimeJS from "./RuntimeJS.mjs";
 import Runtime from "./Runtime.mjs";
 import Rendering from "./Rendering.mjs";
 let Predef1;
-(class Predef {
+Predef1 = class Predef {
   static {
-    Predef1 = Predef;
     const Symbols$class = class Symbols {
       constructor() {
         this.prettyPrint = RuntimeJS.symbols.prettyPrint;
@@ -147,8 +146,8 @@ let Predef1;
     }
   } 
   static mkStr(...xs2) {
-    let tmp, tmp1, lambda;
-    lambda = (undefined, function (acc, x8) {
+    let tmp, tmp1;
+    tmp = (acc, x8) => {
       let tmp2, tmp3, tmp4;
       if (typeof x8 === 'string') {
         tmp2 = true;
@@ -158,8 +157,7 @@ let Predef1;
       tmp3 = runtime.safeCall(Predef.assert(tmp2));
       tmp4 = acc + x8;
       return (tmp3 , tmp4)
-    });
-    tmp = lambda;
+    };
     tmp1 = runtime.safeCall(Predef.fold(tmp));
     return runtime.safeCall(tmp1(...xs2))
   } 
@@ -172,7 +170,10 @@ let Predef1;
   static raiseUnhandledEffect() {
     return Runtime.mkEffect(Runtime.FatalEffect, null)
   }
-  static toString() { return runtime.render(this); }
-  static [definitionMetadata] = ["module", "Predef"]; 
-});
+  constructor() {
+    runtime.Unit;
+  }
+  toString() { return runtime.render(this); }
+  static [definitionMetadata] = ["class", "Predef"]; 
+};
 let Predef = Predef1; export default Predef;

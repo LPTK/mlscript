@@ -33,7 +33,7 @@ fun reset() =
 fun render(rr, title: Str, rule: ParseRule.ParseRule) =
   let helperRules = mut []
   let referencedKinds = new Set()
-  let renderCache = new globalThis.Map()
+  let renderCache = new Map()
   fun sequence(lhs, rhsOpt) =
     if rhsOpt is
       Some(rhs) then rr.Sequence(lhs, rhs)

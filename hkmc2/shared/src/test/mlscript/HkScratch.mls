@@ -315,6 +315,11 @@ id(Foo)
 //│ | | ~> App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹678›),None))))
 //│ = fun Foo { class: class Foo { foo: 1 } }
 
+// TODO: should be an error, down the line, when we resolve all selections statically
+:re
+id(Foo).foo
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'foo' yielded 'undefined'
+
 
 // Should compile to `Foo.class.foo`
 :sjs
