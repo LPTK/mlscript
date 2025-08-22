@@ -18,6 +18,30 @@ new! mut Object
 //│ ╙──      	     ^^^
 //│ = {}
 
+module Test with
+  class Foo()
+
+:ssjs
+new Test.Foo()
+//│ JS:
+//│ selRes1 = Test1.Foo;
+//│ if (selRes1 === undefined) {
+//│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'Foo' yielded 'undefined'"))
+//│ }
+//│ block$res3 = globalThis.Object.freeze(new selRes1());
+//│ undefined
+//│ = Foo()
+
+:ssjs
+new mut Test.Foo()
+//│ JS:
+//│ selRes2 = Test1.Foo;
+//│ if (selRes2 === undefined) {
+//│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'Foo' yielded 'undefined'"))
+//│ }
+//│ block$res4 = new selRes2();
+//│ undefined
+//│ = Foo()
 
 
 

@@ -75,7 +75,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
           else fieldSelect(ts.id.name)
         }"
       case N => summon[Scope].lookup_!(ts)
-    case ts: semantics.ModuleSymbol =>
+    case ts: semantics.ModuleSymbol if ts.asMod.isDefined => // FIXME: currently, objects have a ModuleSymbol...
       // * Module self-references use the module name itself instead of `this`
       summon[Scope].lookup_!(ts)
     case ts: semantics.InnerSymbol =>
