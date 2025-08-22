@@ -66,9 +66,8 @@ module T with
   val d = this.p
 //│ JS (unsanitized):
 //│ let T1;
-//│ (class T {
+//│ T1 = class T {
 //│   static {
-//│     T1 = T;
 //│     this.a = T.t;
 //│     this.b = T.t;
 //│     this.c = T.p;
@@ -80,9 +79,12 @@ module T with
 //│   static get p() {
 //│     return 2;
 //│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "T"]; 
-//│ });
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "T"]; 
+//│ };
 
 
 T.a
@@ -103,16 +105,17 @@ module M with
   fun t = 0
 //│ JS (unsanitized):
 //│ let M1;
-//│ (class M {
-//│   static {
-//│     M1 = M;
-//│   }
+//│ M1 = class M {
+//│   static {}
 //│   static get t() {
 //│     return 0;
 //│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "M"]; 
-//│ });
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "M"]; 
+//│ };
 
 
 :sjs

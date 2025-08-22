@@ -14,7 +14,22 @@ fun foo(x, y) =
 
 :expect 14
 foo(10, 0)
-//│ = 14
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #x$0 to an object whose class did not declare it
+//│     at set x$0 (REPL10:1:107)
+//│     at new M (REPL10:1:225)
+//│     at foo (REPL10:1:751)
+//│     at REPL13:1:38
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '14', got: 'undefined'
 
 // * This works the same with classes.
 // * Note that we currently generate accessors, which is not ideal;
@@ -90,12 +105,25 @@ fun foo(y) =
   O
 
 let o = foo(10)
-//│ o = O
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #y$0 to an object whose class did not declare it
+//│     at set y$0 (REPL34:1:100)
+//│     at new O (REPL34:1:145)
+//│     at foo (REPL34:1:576)
+//│     at REPL37:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│ o = undefined
 
 :re
 set o.x = 1
 o.x
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'x' yielded 'undefined'
+//│ ═══[RUNTIME ERROR] TypeError: Cannot set properties of undefined (setting 'x')
 
 
 :sjs
@@ -119,17 +147,17 @@ fun foo(x, y) =
 //│ M5 = class M4 {
 //│   #foo$capture$0;
 //│   #x$1;
-//│   get foo$capture$0() { return this.#foo$capture$0; }
-//│   set foo$capture$0(value) { this.#foo$capture$0 = value; }
-//│   get x$1() { return this.#x$1; }
-//│   set x$1(value) { this.#x$1 = value; }
+//│   get foo$capture$0() { return M4.#foo$capture$0; }
+//│   set foo$capture$0(value) { M4.#foo$capture$0 = value; }
+//│   get x$1() { return M4.#x$1; }
+//│   set x$1(value) { M4.#x$1 = value; }
 //│   constructor(x$1, foo$capture$0) {
 //│     this.foo$capture$0 = foo$capture$0;
 //│     this.x$1 = x$1;
 //│   }
 //│   foo2() {
-//│     this.foo$capture$0.y0$ = 2;
-//│     return this.x$1 + this.foo$capture$0.y0$
+//│     M4.foo$capture$0.y0$ = 2;
+//│     return M4.x$1 + M4.foo$capture$0.y0$
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
@@ -151,7 +179,22 @@ fun foo(x, y) =
 
 :expect 12
 foo(10, 0)
-//│ = 12
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #foo$capture$01 to an object whose class did not declare it
+//│     at set foo$capture$0 (REPL44:1:681)
+//│     at new M4 (REPL44:1:823)
+//│     at foo (REPL44:1:1578)
+//│     at REPL47:1:39
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '12', got: 'undefined'
 
 
 :sjs
@@ -163,13 +206,13 @@ data class A(x) with
 //│ let M7, A1;
 //│ M7 = class M6 {
 //│   #A$instance$0;
-//│   get A$instance$0() { return this.#A$instance$0; }
-//│   set A$instance$0(value) { this.#A$instance$0 = value; }
+//│   get A$instance$0() { return M6.#A$instance$0; }
+//│   set A$instance$0(value) { M6.#A$instance$0 = value; }
 //│   constructor(A$instance$0) {
 //│     this.A$instance$0 = A$instance$0;
 //│   }
 //│   getB() {
-//│     return this.A$instance$0.x
+//│     return M6.A$instance$0.x
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
@@ -194,7 +237,22 @@ data class A(x) with
 
 :expect 2
 A(2).getA()
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #A$instance$01 to an object whose class did not declare it
+//│     at set A$instance$0 (REPL50:1:149)
+//│     at new M6 (REPL50:1:212)
+//│     at new A (REPL50:1:749)
+//│     at A (REPL50:1:566)
+//│     at REPL53:1:41
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 
 // Classes and functions in modules //
 
@@ -205,7 +263,18 @@ module M with
     fun get = x
   val hi = A()
 M.hi.get
-//│ = 2
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 :expect 2
 module M with
@@ -214,7 +283,18 @@ module M with
     fun g() = x
     g
 M.f()()
-//│ = 2
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 :expect 2
 object M with
@@ -223,7 +303,22 @@ object M with
     fun get = x
   val hi = A()
 M.hi.get
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'get' yielded 'undefined'
+//│     at REPL56:1:1656
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 
 :expect 2
 object M with
@@ -232,7 +327,22 @@ object M with
     fun g() = x
     g
 M.f()()
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
+//│     at Runtime.checkCall (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:406:24)
+//│     at REPL59:1:354
+//│     at REPL59:1:901
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 
 :sjs
 module M with
@@ -240,40 +350,18 @@ module M with
     fun get = M.x + x
   val x = if A() is A then 2 else 3
 M.A().get
-//│ JS (unsanitized):
-//│ let M17, tmp5;
-//│ (class M16 {
-//│   static {
-//│     M17 = M16;
-//│     let scrut, tmp6;
-//│     this.A = function A() {
-//│       return globalThis.Object.freeze(new A.class());
-//│     };
-//│     Object.defineProperty(this.A, "class", {
-//│       enumerable: true,
-//│       value: class A5 {
-//│         constructor() {}
-//│         get get() {
-//│           return M17.x + M16.x;
-//│         }
-//│         toString() { return runtime.render(this); }
-//│         static [definitionMetadata] = ["class", "A", []]; 
-//│       }
-//│     });
-//│     scrut = runtime.safeCall(M16.A());
-//│     if (scrut instanceof M16.A.class) {
-//│       tmp6 = 2;
-//│     } else {
-//│       tmp6 = 3;
-//│     }
-//│     this.x = tmp6;
-//│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "M"]; 
-//│ });
-//│ tmp5 = runtime.safeCall(M17.A());
-//│ tmp5.get
-//│ = 4
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 module M with
   val x = 2
@@ -281,7 +369,18 @@ module M with
     fun get = x
   class B() extends A
 M.B().get
-//│ = 2
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 /// Top Level Modules ///
 
@@ -298,86 +397,34 @@ module M with
     fun newB = B()
   0 is A
 M.A(2).newB.newA_B(3).newB.get
-//│ JS (unsanitized):
-//│ let B2, M21, tmp7, tmp8, B$;
-//│ B$ = function B$(isMut, A$instance$0) {
-//│   let tmp9, tmp10;
-//│   if (isMut === true) {
-//│     tmp9 = new B2.class();
-//│   } else {
-//│     tmp9 = globalThis.Object.freeze(new B2.class());
-//│   }
-//│   tmp10 = tmp9(A$instance$0);
-//│   return tmp10
-//│ };
-//│ B2 = function B() {
-//│   return (A$instance$01) => {
-//│     return globalThis.Object.freeze(new B.class()(A$instance$01));
-//│   }
-//│ };
-//│ Object.defineProperty(B2, "class", {
-//│   enumerable: true,
-//│   value: class B1 {
-//│     #A$instance$0;
-//│     get A$instance$0() { return this.#A$instance$0; }
-//│     set A$instance$0(value) { this.#A$instance$0 = value; }
-//│     constructor() {
-//│       return (A$instance$0) => {
-//│         this.A$instance$0 = A$instance$0;
-//│         return this;
-//│       }
-//│     }
-//│     get get() {
-//│       return this.A$instance$0.x;
-//│     } 
-//│     newA_B(y) {
-//│       return runtime.safeCall(M21.A(y))
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "B", []]; 
-//│   }
-//│ });
-//│ (class M20 {
-//│   static {
-//│     M21 = M20;
-//│     let scrut;
-//│     this.A = function A(x1) {
-//│       return globalThis.Object.freeze(new A.class(x1));
-//│     };
-//│     Object.defineProperty(this.A, "class", {
-//│       enumerable: true,
-//│       value: class A7 {
-//│         constructor(x) {
-//│           this.x = x;
-//│         }
-//│         get newA() {
-//│           return runtime.safeCall(M20.A(42));
-//│         } 
-//│         get newB() {
-//│           return B$(false, this);
-//│         }
-//│         toString() { return runtime.render(this); }
-//│         static [definitionMetadata] = ["class", "A", ["x"]]; 
-//│       }
-//│     });
-//│     scrut = 0;
-//│     if (scrut instanceof M20.A.class) {
-//│       true
-//│     } else {
-//│       false
-//│     }
-//│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "M"]; 
-//│ });
-//│ tmp7 = runtime.safeCall(M21.A(2));
-//│ tmp8 = runtime.safeCall(tmp7.newB.newA_B(3));
-//│ tmp8.newB.get
-//│ = 3
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 module M with
   class A
   object B extends A
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 
 :lift
@@ -388,41 +435,70 @@ fun foo(x) =
   [x === O.bar, set x += 1 in [x === O.bar, x === O.baz], x === O.bar]
 
 foo(123)
-//│ = [true, [true, false], true]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #foo$capture$0 to an object whose class did not declare it
+//│     at set foo$capture$0 (REPL62:1:167)
+//│     at new O2 (REPL62:1:232)
+//│     at foo (REPL62:1:890)
+//│     at REPL65:1:39
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
 
 :sjs
 module A with
   fun g = 1
   fun f = () => g
   f()
-//│ JS (unsanitized):
-//│ let A10, lambda;
-//│ lambda = (undefined, function () {
-//│   return A10.g
-//│ });
-//│ (class A9 {
-//│   static {
-//│     A10 = A9;
-//│     A9.f();
-//│   }
-//│   static get g() {
-//│     return 1;
-//│   } 
-//│   static get f() {
-//│     return lambda;
-//│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "A"]; 
-//│ });
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 module A with
   val a = (() => 1)()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 // This is related to the above, but it will look into the ignored bms map
 module A with
   val x =
     fun f() = 1
     f()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 :sjs
 module A with
@@ -433,36 +509,18 @@ module A with
       h()
     f() + g()
 A.x
-//│ JS (unsanitized):
-//│ let h, A16, h$;
-//│ h$ = function h$(f$member) {
-//│   return f$member()
-//│ };
-//│ h = function h(f$member) {
-//│   return () => {
-//│     return h$(f$member)
-//│   }
-//│ };
-//│ (class A15 {
-//│   static {
-//│     A16 = A15;
-//│     let f, g2, tmp9, tmp10, tmp11;
-//│     f = function f() {
-//│       return 1
-//│     };
-//│     g2 = function g() {
-//│       return h$(f)
-//│     };
-//│     tmp9 = f();
-//│     tmp10 = g2();
-//│     tmp11 = tmp9 + tmp10;
-//│     this.x = tmp11;
-//│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "A"]; 
-//│ });
-//│ A16.x
-//│ = 2
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.Option.foreach(Option.scala:437)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
+//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 // private fields in modules
 :fixme
@@ -472,7 +530,6 @@ module A with
     fun nested() = x
     nested()
 A.mtd
-//│ ═══[COMPILATION ERROR] Uses of private fields cannot yet be lifted.
-//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
 
 

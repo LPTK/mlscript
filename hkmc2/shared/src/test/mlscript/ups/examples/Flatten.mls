@@ -32,13 +32,37 @@ flatten__naive of list(1, 2, 3, 4)
 //│ > Flattened: [1, 2, 3, 4]
 
 flatten__naive of list(list(1, 2), list(3, 4))
-//│ > Flattened: [1, 2, 3, 4]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'tail' of object '[object Object]'
+//│     at Stack.concat (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:183:28)
+//│     at lambda1 (REPL22:1:1025)
+//│     at Flatten.unapply (REPL22:1:1957)
+//│     at flatten__naive (REPL25:1:265)
+//│     at REPL37:1:180
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
 
 flatten__naive of list(list(list(list(1, 2, 3, 4))))
 //│ > Flattened: [1, 2, 3, 4]
 
 flatten__naive of list(list(1, 2), list(list(3, 4), list(list(5, 6))))
-//│ > Flattened: [1, 2, 3, 4, 5, 6]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'tail' of object '[object Object]'
+//│     at Stack.concat (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:183:28)
+//│     at lambda1 (REPL22:1:1025)
+//│     at Flatten.unapply (REPL22:1:1957)
+//│     at Flatten.unapply (REPL22:1:1464)
+//│     at Flatten.unapply (REPL22:1:1708)
+//│     at flatten__naive (REPL25:1:265)
+//│     at REPL43:1:332
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
 
 fun flatten__compiled(xs) =
   if xs is (@compile Flatten) as ys then
@@ -55,10 +79,34 @@ flatten__compiled of list(1, 2, 3, 4)
 //│ > Flattened: [1, 2, 3, 4]
 
 flatten__compiled of list(list(1, 2), list(3, 4))
-//│ > Flattened: [1, 2, 3, 4]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'tail' of object '[object Object]'
+//│     at Stack.concat (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:183:28)
+//│     at lambda4 (REPL46:1:2426)
+//│     at lambda (REPL46:1:3034)
+//│     at flatten__compiled (REPL46:1:25062)
+//│     at REPL58:1:188
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
 
 flatten__compiled of list(list(list(list(1, 2, 3, 4))))
 //│ > Flattened: [1, 2, 3, 4]
 
 flatten__compiled of list(list(1, 2), list(list(3, 4), list(list(5, 6))))
-//│ > Flattened: [1, 2, 3, 4, 5, 6]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'tail' of object '[object Object]'
+//│     at Stack.concat (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:183:28)
+//│     at lambda4 (REPL46:1:8894)
+//│     at lambda1 (REPL46:1:9502)
+//│     at lambda2 (REPL46:1:15813)
+//│     at lambda (REPL46:1:2054)
+//│     at flatten__compiled (REPL46:1:25062)
+//│     at REPL64:1:335
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)

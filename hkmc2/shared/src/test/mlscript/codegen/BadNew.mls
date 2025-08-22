@@ -9,22 +9,56 @@ new
 
 :re
 new 2
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found integer literal.
+//│ ║  l.11: 	new 2
+//│ ║        	    ^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: 2 is not a constructor
 
 :sjs
 :re
 new 2 + 2
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found integer literal.
+//│ ║  l.22: 	new 2 + 2
+//│ ║        	    ^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ let tmp; tmp = globalThis.Object.freeze(new 2()); tmp + 2
 //│ ═══[RUNTIME ERROR] TypeError: 2 is not a constructor
 
 :re
 new()
-//│ ═══[RUNTIME ERROR] TypeError: runtime.Unit is not a constructor
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: UnitVal() (of class hkmc2.semantics.Term$UnitVal)
+//│ 	at: hkmc2.semantics.Term.describe(Term.scala:272)
+//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:310)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2(Resolver.scala:345)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$adapted$1(Resolver.scala:345)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
+//│ 	at: hkmc2.semantics.Resolver.traverse(Resolver.scala:345)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$1(Resolver.scala:336)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$adapted$1(Resolver.scala:345)
+//│ 	at: scala.Function0.apply$mcV$sp(Function0.scala:42)
+//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:289)
 
 :re
 new {}
-//│ ═══[RUNTIME ERROR] TypeError: runtime.Unit is not a constructor
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.MatchError: UnitVal() (of class hkmc2.semantics.Term$UnitVal)
+//│ 	at: hkmc2.semantics.Term.describe(Term.scala:272)
+//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:310)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2(Resolver.scala:345)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$adapted$1(Resolver.scala:345)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
+//│ 	at: hkmc2.semantics.Resolver.traverse(Resolver.scala:345)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$1(Resolver.scala:336)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$adapted$1(Resolver.scala:345)
+//│ 	at: scala.Function0.apply$mcV$sp(Function0.scala:42)
+//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:289)
 
 
 // * Note that thanks to the parser "feature" for keyword-block stutter
@@ -41,7 +75,9 @@ new { x = 1 }
 //│       rhs = IntLit of 1
 //│   rft = N
 //│ ╔══[ERROR] Name not found: x
-//│ ║  l.35: 	new { x = 1 }
+//│ ║  l.69: 	new { x = 1 }
 //│ ╙──      	      ^
+//│ ╔══[ERROR] Expected a statically known class; found block.
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 
 

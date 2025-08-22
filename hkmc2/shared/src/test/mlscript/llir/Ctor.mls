@@ -5,7 +5,29 @@
 object None
 fun testCtor1() = None
 fun testCtor2() = new None
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'None'.
+//│ ║  l.7: 	fun testCtor2() = new None
+//│ ║       	                      ^^^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: bErrStop (Builder.scala:21)
+//│ ═══[COMPILATION ERROR] Unsupported kind of Instantiate
+//│ Stopped due to an error during the Llir generation
 
 class A(x)
 fun testCtor1() = A(1)
 fun testCtor2() = new A(1)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:11)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.bClsLikeDef$$anonfun$3(Builder.scala:217)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.bClsLikeDef(Builder.scala:234)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.registerClasses(Builder.scala:525)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.registerClasses$$anonfun$2(Builder.scala:531)
+//│ 	at: scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+//│ 	at: scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+//│ 	at: scala.collection.immutable.List.foldLeft(List.scala:79)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.registerClasses(Builder.scala:531)

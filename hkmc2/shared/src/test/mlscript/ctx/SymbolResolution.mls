@@ -24,33 +24,33 @@ M.foo
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Sel{module:M}:
-//│     prefix = Ref{member:M} of member:M
+//│   res = Unexpanded of Sel{module:M}:
+//│     prefix = Unexpanded of Ref{member:M} of member:M
 //│     nme = Ident of "foo"
 
 M.bar
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Sel{module:M}:
-//│     prefix = Ref{member:M} of member:M
+//│   res = Unexpanded of Sel{module:M}:
+//│     prefix = Unexpanded of Ref{member:M} of member:M
 //│     nme = Ident of "bar"
 
 M.baz
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Sel{member:baz}:
-//│     prefix = Ref{member:M} of member:M
+//│   res = Unexpanded of Sel{member:baz}:
+//│     prefix = Unexpanded of Ref{member:M} of member:M
 //│     nme = Ident of "baz"
 
 M.baz()
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = App{module:M}:
-//│     lhs = Sel{member:baz}:
-//│       prefix = Ref{member:M} of member:M
+//│   res = Unexpanded of App{module:M}:
+//│     lhs = Unexpanded of Sel{member:baz}:
+//│       prefix = Unexpanded of Ref{member:M} of member:M
 //│       nme = Ident of "baz"
 //│     rhs = Tup of Nil
 
@@ -58,11 +58,11 @@ M.foo.bar.baz()
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = App{module:M}:
-//│     lhs = Sel{member:baz}:
-//│       prefix = Sel{module:M}:
-//│         prefix = Sel{module:M}:
-//│           prefix = Ref{member:M} of member:M
+//│   res = Unexpanded of App{module:M}:
+//│     lhs = Unexpanded of Sel{member:baz}:
+//│       prefix = Unexpanded of Sel{module:M}:
+//│         prefix = Unexpanded of Sel{module:M}:
+//│           prefix = Unexpanded of Ref{member:M} of member:M
 //│           nme = Ident of "foo"
 //│         nme = Ident of "bar"
 //│       nme = Ident of "baz"
@@ -72,9 +72,9 @@ M.that.that
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Sel{module:M}:
-//│     prefix = Sel{module:N}:
-//│       prefix = Ref{member:M} of member:M
+//│   res = Unexpanded of Sel{module:M}:
+//│     prefix = Unexpanded of Sel{module:N}:
+//│       prefix = Unexpanded of Ref{member:M} of member:M
 //│       nme = Ident of "that"
 //│     nme = Ident of "that"
 
@@ -82,13 +82,13 @@ M.that.that.that.that.that.that
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Sel{module:M}:
-//│     prefix = Sel{module:N}:
-//│       prefix = Sel{module:M}:
-//│         prefix = Sel{module:N}:
-//│           prefix = Sel{module:M}:
-//│             prefix = Sel{module:N}:
-//│               prefix = Ref{member:M} of member:M
+//│   res = Unexpanded of Sel{module:M}:
+//│     prefix = Unexpanded of Sel{module:N}:
+//│       prefix = Unexpanded of Sel{module:M}:
+//│         prefix = Unexpanded of Sel{module:N}:
+//│           prefix = Unexpanded of Sel{module:M}:
+//│             prefix = Unexpanded of Sel{module:N}:
+//│               prefix = Unexpanded of Ref{member:M} of member:M
 //│               nme = Ident of "that"
 //│             nme = Ident of "that"
 //│           nme = Ident of "that"
@@ -100,17 +100,17 @@ R.foo
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Sel{member:foo}:
-//│     prefix = Ref{member:R} of member:R
+//│   res = Unexpanded of Sel{member:foo}:
+//│     prefix = Unexpanded of Ref{member:R} of member:R
 //│     nme = Ident of "foo"
 
 R.foo()
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = App:
-//│     lhs = Sel{member:foo}:
-//│       prefix = Ref{member:R} of member:R
+//│   res = Unexpanded of App:
+//│     lhs = Unexpanded of Sel{member:foo}:
+//│       prefix = Unexpanded of Ref{member:R} of member:R
 //│       nme = Ident of "foo"
 //│     rhs = Tup of Nil
 
@@ -118,10 +118,10 @@ R.foo()()
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = App{module:N}:
-//│     lhs = App:
-//│       lhs = Sel{member:foo}:
-//│         prefix = Ref{member:R} of member:R
+//│   res = Unexpanded of App{module:N}:
+//│     lhs = Unexpanded of App:
+//│       lhs = Unexpanded of Sel{member:foo}:
+//│         prefix = Unexpanded of Ref{member:R} of member:R
 //│         nme = Ident of "foo"
 //│       rhs = Tup of Nil
 //│     rhs = Tup of Nil
@@ -130,11 +130,11 @@ R.foo()()()
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = App:
-//│     lhs = App{module:N}:
-//│       lhs = App:
-//│         lhs = Sel{member:foo}:
-//│           prefix = Ref{member:R} of member:R
+//│   res = Unexpanded of App:
+//│     lhs = Unexpanded of App{module:N}:
+//│       lhs = Unexpanded of App:
+//│         lhs = Unexpanded of Sel{member:foo}:
+//│           prefix = Unexpanded of Ref{member:R} of member:R
 //│           nme = Ident of "foo"
 //│         rhs = Tup of Nil
 //│       rhs = Tup of Nil
@@ -149,25 +149,25 @@ R.bar
 //│ Blk:
 //│   stats = Nil
 //│   res = App{module:M}:
-//│     lhs = App:
-//│       lhs = App:
-//│         lhs = Sel{member:bar}:
-//│           prefix = Ref{member:R} of member:R
+//│     lhs = Unexpanded of App:
+//│       lhs = Unexpanded of App:
+//│         lhs = Unexpanded of Sel{member:bar}:
+//│           prefix = Unexpanded of Ref{member:R} of member:R
 //│           nme = Ident of "bar"
 //│         rhs = Tup of Ls of 
 //│           Fld:
 //│             flags = ()
-//│             term = Ref{member:instance$Ident(Int)} of member:instance$Ident(Int)
+//│             term = Unexpanded of Ref{member:instance$Ident(Int)} of member:instance$Ident(Int)
 //│             asc = N
 //│       rhs = Tup of Ls of 
 //│         Fld:
 //│           flags = ()
-//│           term = Ref{member:instance$Ident(Num)} of member:instance$Ident(Num)
+//│           term = Unexpanded of Ref{member:instance$Ident(Num)} of member:instance$Ident(Num)
 //│           asc = N
 //│     rhs = Tup of Ls of 
 //│       Fld:
 //│         flags = ()
-//│         term = Ref{member:instance$Ident(Str)} of member:instance$Ident(Str)
+//│         term = Unexpanded of Ref{member:instance$Ident(Str)} of member:instance$Ident(Str)
 //│         asc = N
 
 // the symbol of this Ref should be M because of the implicit application
@@ -176,23 +176,23 @@ foo
 //│ Blk:
 //│   stats = Nil
 //│   res = App{module:M}:
-//│     lhs = App:
-//│       lhs = App:
-//│         lhs = Ref{member:foo} of member:foo
+//│     lhs = Unexpanded of App:
+//│       lhs = Unexpanded of App:
+//│         lhs = Unexpanded of Ref{member:foo} of member:foo
 //│         rhs = Tup of Ls of 
 //│           Fld:
 //│             flags = ()
-//│             term = Ref{member:instance$Ident(Int)} of member:instance$Ident(Int)
+//│             term = Unexpanded of Ref{member:instance$Ident(Int)} of member:instance$Ident(Int)
 //│             asc = N
 //│       rhs = Tup of Ls of 
 //│         Fld:
 //│           flags = ()
-//│           term = Ref{member:instance$Ident(Num)} of member:instance$Ident(Num)
+//│           term = Unexpanded of Ref{member:instance$Ident(Num)} of member:instance$Ident(Num)
 //│           asc = N
 //│     rhs = Tup of Ls of 
 //│       Fld:
 //│         flags = ()
-//│         term = Ref{member:instance$Ident(Str)} of member:instance$Ident(Str)
+//│         term = Unexpanded of Ref{member:instance$Ident(Str)} of member:instance$Ident(Str)
 //│         asc = N
 
 // the symbol of this TyApp should be M because of the implicit application
@@ -202,28 +202,28 @@ R.bar[Int]
 //│ Blk:
 //│   stats = Nil
 //│   res = App{module:M}:
-//│     lhs = App:
-//│       lhs = App:
-//│         lhs = TyApp{member:bar}:
-//│           lhs = Sel{member:bar}:
-//│             prefix = Ref{member:R} of member:R
+//│     lhs = Unexpanded of App:
+//│       lhs = Unexpanded of App:
+//│         lhs = Unexpanded of TyApp{member:bar}:
+//│           lhs = Unexpanded of Sel{member:bar}:
+//│             prefix = Unexpanded of Ref{member:R} of member:R
 //│             nme = Ident of "bar"
 //│           targs = Ls of 
-//│             Ref{member:Int} of member:Int
+//│             Unexpanded of Ref{member:Int} of member:Int
 //│         rhs = Tup of Ls of 
 //│           Fld:
 //│             flags = ()
-//│             term = Ref{member:instance$Ident(Int)} of member:instance$Ident(Int)
+//│             term = Unexpanded of Ref{member:instance$Ident(Int)} of member:instance$Ident(Int)
 //│             asc = N
 //│       rhs = Tup of Ls of 
 //│         Fld:
 //│           flags = ()
-//│           term = Ref{member:instance$Ident(Num)} of member:instance$Ident(Num)
+//│           term = Unexpanded of Ref{member:instance$Ident(Num)} of member:instance$Ident(Num)
 //│           asc = N
 //│     rhs = Tup of Ls of 
 //│       Fld:
 //│         flags = ()
-//│         term = Ref{member:instance$Ident(Str)} of member:instance$Ident(Str)
+//│         term = Unexpanded of Ref{member:instance$Ident(Str)} of member:instance$Ident(Str)
 //│         asc = N
 
 // the symbol of this TyApp should be M because of the implicit application
@@ -233,24 +233,24 @@ foo[Int]
 //│ Blk:
 //│   stats = Nil
 //│   res = App{module:M}:
-//│     lhs = App:
-//│       lhs = App:
-//│         lhs = TyApp{member:foo}:
-//│           lhs = Ref{member:foo} of member:foo
+//│     lhs = Unexpanded of App:
+//│       lhs = Unexpanded of App:
+//│         lhs = Unexpanded of TyApp{member:foo}:
+//│           lhs = Unexpanded of Ref{member:foo} of member:foo
 //│           targs = Ls of 
-//│             Ref{member:Int} of member:Int
+//│             Unexpanded of Ref{member:Int} of member:Int
 //│         rhs = Tup of Ls of 
 //│           Fld:
 //│             flags = ()
-//│             term = Ref{member:instance$Ident(Int)} of member:instance$Ident(Int)
+//│             term = Unexpanded of Ref{member:instance$Ident(Int)} of member:instance$Ident(Int)
 //│             asc = N
 //│       rhs = Tup of Ls of 
 //│         Fld:
 //│           flags = ()
-//│           term = Ref{member:instance$Ident(Num)} of member:instance$Ident(Num)
+//│           term = Unexpanded of Ref{member:instance$Ident(Num)} of member:instance$Ident(Num)
 //│           asc = N
 //│     rhs = Tup of Ls of 
 //│       Fld:
 //│         flags = ()
-//│         term = Ref{member:instance$Ident(Str)} of member:instance$Ident(Str)
+//│         term = Unexpanded of Ref{member:instance$Ident(Str)} of member:instance$Ident(Str)
 //│         asc = N

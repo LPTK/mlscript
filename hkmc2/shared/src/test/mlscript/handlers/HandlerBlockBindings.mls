@@ -12,12 +12,24 @@ handle h = Effect with
     "A"
 h.perform("B")
 let x = 123
-//│ = "A"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at Handler$h$.perform (REPL13:1:521)
+//│     at handleBlock$ (REPL13:1:1888)
+//│     at REPL13:1:2120
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
 
 :e
 x
 //│ ╔══[ERROR] Name not found: x
-//│ ║  l.18: 	x
+//│ ║  l.30: 	x
 //│ ╙──      	^
 
 
@@ -31,7 +43,7 @@ x + 1
 :e
 x
 //│ ╔══[ERROR] Name not found: x
-//│ ║  l.32: 	x
+//│ ║  l.44: 	x
 //│ ╙──      	^
 
 
@@ -43,7 +55,7 @@ val y = 123
 :e
 y
 //│ ╔══[ERROR] Name not found: y
-//│ ║  l.44: 	y
+//│ ║  l.56: 	y
 //│ ╙──      	^
 
 

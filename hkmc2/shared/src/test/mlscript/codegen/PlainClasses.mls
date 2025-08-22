@@ -87,12 +87,24 @@ let t = test()
 //│ t = class Foo
 
 new t
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ║  l.89: 	new t
+//│ ║        	    ^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new t())
 //│ > hi
 //│ = Foo
 
 new t()
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ║  l.101: 	new t()
+//│ ║         	    ^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new t())
 //│ > hi
@@ -198,13 +210,6 @@ print(a.bar(1))
 class Foo with
   val x = 1
   val x = 2
-//│ ╔══[ERROR] Multiple definitions of symbol 'x'
-//│ ╟── defined here
-//│ ║  l.199: 	  val x = 1
-//│ ║         	  ^^^^^^^^^
-//│ ╟── defined here
-//│ ║  l.200: 	  val x = 2
-//│ ╙──       	  ^^^^^^^^^
 //│ JS (unsanitized):
 //│ let Foo12;
 //│ Foo12 = class Foo11 {
@@ -215,16 +220,17 @@ class Foo with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"]; 
 //│ };
+//│ FAILURE: Unexpected lack of type error
 
 :e
 class Foo with
   val x = 1
   let x = 2
 //│ ╔══[ERROR] Name 'x' is already used
-//│ ║  l.222: 	  let x = 2
+//│ ║  l.228: 	  let x = 2
 //│ ║         	      ^^^^^
 //│ ╟── by a member declared in the same block
-//│ ║  l.221: 	  val x = 1
+//│ ║  l.227: 	  val x = 1
 //│ ╙──       	  ^^^^^^^^^
 //│ JS (unsanitized):
 //│ let Foo14;
@@ -248,7 +254,7 @@ class Foo with
 :e
 class Foo with val x = 1
 //│ ╔══[ERROR] Illegal body of class definition (should be a block; found term definition).
-//│ ║  l.249: 	class Foo with val x = 1
+//│ ║  l.255: 	class Foo with val x = 1
 //│ ╙──       	               ^^^^^^^^^
 //│ JS (unsanitized):
 //│ let Foo16;

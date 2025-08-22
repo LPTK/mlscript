@@ -131,13 +131,6 @@ x => x.Foo#S
 //│ ║  l.101: 	class Foo(using T) with
 //│ ║         	                ^
 //│ ╙── Missing instance: Expected: T; Available: Int
-//│ ╔══[ERROR] Cannot query instance of type T for call: 
-//│ ║  l.123: 	x => x.Foo#S
-//│ ║         	      ^^^^
-//│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.101: 	class Foo(using T) with
-//│ ║         	                ^
-//│ ╙── Missing instance: Expected: T; Available: Int
 //│ JS (unsanitized):
 //│ let lambda; lambda = (undefined, function (x) { return x.S }); lambda
 //│ = fun

@@ -29,7 +29,7 @@ val someInt = 42
 
 :e
 using someInt = 42
-//│ ╔══[ERROR] Expected a type, got reference
+//│ ╔══[ERROR] Expected a type, got reference with a value definition 'someInt'
 //│ ║  l.31: 	using someInt = 42
 //│ ╙──      	      ^^^^^^^
 

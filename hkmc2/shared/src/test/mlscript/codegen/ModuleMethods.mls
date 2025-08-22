@@ -27,7 +27,7 @@ s(123)
 
 :e
 Example |>. s(123)
-//│ ╔══[ERROR] Unexpected moduleful reference.
+//│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'Example'.
 //│ ║  l.29: 	Example |>. s(123)
 //│ ║        	^^^^^^^
 //│ ╙── Module argument passed to a non-module parameter.
@@ -42,10 +42,9 @@ module Test with
   fun bar() = foo()
 //│ JS (unsanitized):
 //│ let Test1;
-//│ (class Test {
+//│ Test1 = class Test {
 //│   static #s;
 //│   static {
-//│     Test1 = Test;
 //│     let tmp1;
 //│     Test.#s = 1;
 //│     tmp1 = Predef.print(Test.#s);
@@ -56,9 +55,12 @@ module Test with
 //│   static bar() {
 //│     return Test.foo()
 //│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "Test"]; 
-//│ });
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Test"]; 
+//│ };
 //│ > 1
 
 let f = Test.foo

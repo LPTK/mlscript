@@ -13,15 +13,16 @@ object Bar with
 //│ const Bar$class = class Bar {
 //│   constructor() {
 //│     this.x = 1;
-//│     const this$Bar = this;
-//│     (class Baz {
+//│     this.Baz = class Baz {
 //│       static {
-//│         this$Bar.Baz = Baz;
 //│         this.a = Bar1.x;
 //│       }
-//│       static toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["module", "Baz"]; 
-//│     });
+//│       constructor() {
+//│         runtime.Unit;
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "Baz"]; 
+//│     };
 //│     Object.defineProperty(this, "class", {
 //│       value: Bar
 //│     })
@@ -42,21 +43,38 @@ module Bar with
     val a = Bar.x
 //│ JS (unsanitized):
 //│ let Bar3;
-//│ (class Bar2 {
+//│ Bar3 = class Bar2 {
 //│   static {
-//│     Bar3 = Bar2;
 //│     this.x = 1;
-//│     (class Baz1 {
+//│     this.Baz = class Baz1 {
 //│       static {
-//│         Bar2.Baz = Baz1;
 //│         this.a = Bar3.x;
 //│       }
-//│       static toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["module", "Baz"]; 
-//│     });
+//│       constructor() {
+//│         runtime.Unit;
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "Baz"]; 
+//│     };
 //│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "Bar"]; 
-//│ });
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Bar"]; 
+//│ };
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
+//│     at <static_initializer> (REPL13:1:148)
+//│     at <static_initializer> (REPL13:1:461)
+//│     at REPL13:1:609
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
 
 

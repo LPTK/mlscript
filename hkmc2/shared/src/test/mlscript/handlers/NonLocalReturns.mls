@@ -6,7 +6,19 @@ fun f() =
   (() => return 100)()
   print("Bad")
 f()
-//│ = 100
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at $_non$_local$_return$_effect$_.ret (REPL10:1:1894)
+//│     at lambda (REPL10:1:4093)
+//│     at handleBlock$ (REPL10:1:4140)
+//│     at f (REPL10:1:5047)
+//│     at REPL10:1:5273
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
 
 
 fun foo(x) =
@@ -14,7 +26,19 @@ fun foo(x) =
   xs.0()
 
 foo(123)
-//│ = 124
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at $_non$_local$_return$_effect$_1.ret (REPL13:1:1929)
+//│     at Array.lambda (REPL13:1:3827)
+//│     at handleBlock$ (REPL13:1:3936)
+//│     at foo (REPL13:1:4589)
+//│     at REPL16:1:41
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
 
 
 :expect 123
@@ -31,7 +55,22 @@ fun f() =
   100
 f()
 //│ > Ok
-//│ = 123
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at $_non$_local$_return$_effect$_2.ret (REPL19:1:1916)
+//│     at lam (REPL19:1:10447)
+//│     at handleBlock$ (REPL19:1:9088)
+//│     at g (REPL19:1:10068)
+//│     at handleBlock$ (REPL19:1:10762)
+//│     at f (REPL19:1:11664)
+//│     at REPL19:1:11892
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '123', got: 'undefined'
 
 :expect 100
 fun f() =
@@ -47,42 +86,55 @@ fun f() =
   100
 f()
 //│ > Ok
-//│ > 200
-//│ > Continue
-//│ = 100
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at $_non$_local$_return$_effect$_5.ret (REPL22:1:7136)
+//│     at lam2 (REPL22:1:9552)
+//│     at handleBlock$ (REPL22:1:9627)
+//│     at g (REPL22:1:10607)
+//│     at handleBlock$ (REPL22:1:11301)
+//│     at f (REPL22:1:12462)
+//│     at REPL22:1:12690
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '100', got: 'undefined'
 
 
 :re
 fun f() = () => return 3
 f()()
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect $_non$_local$_return$_effect$_6
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
 
 :re
 fun f(): () -> Int = () => return () => 3
 f()()
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect $_non$_local$_return$_effect$_7
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
 
 
 :e
 return 100
 //│ ╔══[ERROR] Return statements are not allowed outside of a function.
-//│ ║  l.67: 	return 100
-//│ ╙──      	^^^^^^^^^^
+//│ ║  l.119: 	return 100
+//│ ╙──       	^^^^^^^^^^
 
 :e
 if true do
   while false do
     let f = () => return 100
 //│ ╔══[ERROR] Return statements are not allowed outside of a function.
-//│ ║  l.75: 	    let f = () => return 100
-//│ ╙──      	                  ^^^^^^^^^^
+//│ ║  l.127: 	    let f = () => return 100
+//│ ╙──       	                  ^^^^^^^^^^
 
 :e
 fun f() =
   type A = return "lol"
 //│ ╔══[ERROR] Return statements are not allowed in this context.
-//│ ║  l.82: 	  type A = return "lol"
-//│ ╙──      	           ^^^^^^^^^^^^
+//│ ║  l.134: 	  type A = return "lol"
+//│ ╙──       	           ^^^^^^^^^^^^
 
 
 :expect 100
@@ -97,7 +149,22 @@ fun f() =
     f()
     print("Bad")
 f()
-//│ = 100
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at $_non$_local$_return$_effect$_8.ret (REPL40:1:1936)
+//│     at f (REPL40:1:4614)
+//│     at handleBlock$ (REPL40:1:5006)
+//│     at f (REPL40:1:5975)
+//│     at REPL40:1:6208
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '100', got: 'undefined'
 
 // broken due to handlers currently not handling `object` properly
 :fixme
@@ -107,8 +174,8 @@ fun f() =
     return 100
   4
 f()
-//│ ═══[RUNTIME ERROR] Expected: '100', got: '4'
-//│ = 4
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ ═══[RUNTIME ERROR] Expected: '100', got: 'undefined'
 
 :expect 100
 fun f() =
@@ -116,7 +183,22 @@ fun f() =
     return 100
   new A
 f()
-//│ = 100
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at $_non$_local$_return$_effect$_10.ret (REPL46:1:1903)
+//│     at new A1 (REPL46:1:4566)
+//│     at handleBlock$ (REPL46:1:4956)
+//│     at f (REPL46:1:5614)
+//│     at REPL46:1:5847
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '100', got: 'undefined'
 
 :fixme
 :expect 100
@@ -125,8 +207,8 @@ fun f() =
     (() => return 100)()
   4
 f()
-//│ ═══[RUNTIME ERROR] Expected: '100', got: '4'
-//│ = 4
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ ═══[RUNTIME ERROR] Expected: '100', got: 'undefined'
 
 :expect 100
 fun f() =
@@ -135,4 +217,19 @@ fun f() =
   new A
   4
 f()
-//│ = 100
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at $_non$_local$_return$_effect$_12.ret (REPL52:1:1908)
+//│     at A3.lambda (REPL52:1:4662)
+//│     at new A3 (REPL52:1:4718)
+//│     at handleBlock$ (REPL52:1:5107)
+//│     at f (REPL52:1:5766)
+//│     at REPL52:1:6001
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '100', got: 'undefined'

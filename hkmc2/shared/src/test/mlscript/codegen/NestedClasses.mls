@@ -17,6 +17,12 @@ c(123)
 //│ = C(123)
 
 new c(123)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ║  l.19: 	new c(123)
+//│ ║        	    ^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ = C(123)
 
 

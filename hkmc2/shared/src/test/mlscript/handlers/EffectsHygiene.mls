@@ -16,20 +16,22 @@ fun foo(h): module M =
 //│ let foo;
 //│ foo = function foo(h) {
 //│   let A2, A3, scrut;
-//│   (class A {
-//│     static {
-//│       A2 = A;
+//│   A2 = class A {
+//│     static {}
+//│     constructor() {
+//│       runtime.Unit;
 //│     }
-//│     static toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["module", "A"]; 
-//│   });
-//│   (class A1 {
-//│     static {
-//│       A3 = A1;
+//│     toString() { return runtime.render(this); }
+//│     static [definitionMetadata] = ["class", "A"]; 
+//│   };
+//│   A3 = class A1 {
+//│     static {}
+//│     constructor() {
+//│       runtime.Unit;
 //│     }
-//│     static toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["module", "A"]; 
-//│   });
+//│     toString() { return runtime.render(this); }
+//│     static [definitionMetadata] = ["class", "A"]; 
+//│   };
 //│   scrut = false;
 //│   if (scrut === true) { return A2 } else { return A3 }
 //│ };

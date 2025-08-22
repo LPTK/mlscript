@@ -13,6 +13,12 @@ let c = C
 //│ c = class C
 
 new! c
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ║  l.15: 	new! c
+//│ ║        	     ^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ = C
 
 // * Same in JS:
@@ -31,19 +37,37 @@ new! id(C)
 //│     rhs = Ident of "id"
 //│   rhs = Tup of Ls of 
 //│     Ident of "C"
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
+//│ ║  l.32: 	new! id(C)
+//│ ║        	     ^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new Predef.id(C1))
 //│ ═══[RUNTIME ERROR] TypeError: Predef.id is not a constructor
 
 // * Ok (as in JS)
 new! (id(C))
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found application without any resolvable definition.
+//│ ║  l.51: 	new! (id(C))
+//│ ║        	      ^^^^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ = C
 
 // * Note that this is currently miscompiled by the Elaborator's ad-hoc logic;
 // * instead, we should reject static new on an unknown class.
 :re
 new id(C)
-//│ ═══[RUNTIME ERROR] TypeError: Predef.id.class is not a constructor
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
+//│ ║  l.63: 	new id(C)
+//│ ║        	    ^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
+//│ ═══[RUNTIME ERROR] TypeError: Predef.id is not a constructor
 
 
 data class C(x, y)

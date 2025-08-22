@@ -17,6 +17,12 @@ new
 new
   Foo
   Foo
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found block.
+//│ ║  l.19: 	  Foo
+//│ ║        	  ^^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ ╔══[WARNING] Pure expression in statement position
 //│ ║  l.18: 	  Foo
 //│ ╙──      	  ^^^
@@ -26,6 +32,12 @@ new
 :re
 new
   Foo()
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found application without any resolvable definition.
+//│ ║  l.34: 	  Foo()
+//│ ║        	  ^^^^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo cannot be invoked without 'new'
 
 :e
@@ -33,7 +45,7 @@ new
   Foo
     ()
 //│ ╔══[ERROR] Illegal juxtaposition right-hand side (unit).
-//│ ║  l.34: 	    ()
+//│ ║  l.46: 	    ()
 //│ ╙──      	    ^^
 //│ = Foo
 
@@ -42,8 +54,14 @@ new
 new
   Foo
   ()
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found block.
+//│ ║  l.56: 	  ()
+//│ ║        	  ^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.43: 	  Foo
+//│ ║  l.55: 	  Foo
 //│ ╙──      	  ^^^
 //│ ═══[RUNTIME ERROR] TypeError: runtime.Unit is not a constructor
 
@@ -51,7 +69,7 @@ new
 new Foo
   ()
 //│ ╔══[ERROR] Illegal juxtaposition right-hand side (unit).
-//│ ║  l.52: 	  ()
+//│ ║  l.70: 	  ()
 //│ ╙──      	  ^^
 //│ = Foo
 

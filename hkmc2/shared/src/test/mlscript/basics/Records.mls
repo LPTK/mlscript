@@ -80,6 +80,9 @@ let rcd =
 //│ ╙──      	  ^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'rcd'
 //│ ║  l.71: 	let rcd =
+//│ ║        	    ^^^
+//│ ╟── which is introduced here
+//│ ║  l.71: 	let rcd =
 //│ ╙──      	    ^^^
 //│ rcd = {foo: 1, bar: "..."}
 
@@ -92,10 +95,10 @@ let rcd = new with
   bar =
     "..."
 //│ ╔══[ERROR] Name not found: foo
-//│ ║  l.91: 	  foo = 1
+//│ ║  l.94: 	  foo = 1
 //│ ╙──      	  ^^^
 //│ ╔══[ERROR] Name not found: bar
-//│ ║  l.92: 	  bar =
+//│ ║  l.95: 	  bar =
 //│ ╙──      	  ^^^
 //│ rcd = $anon
 
@@ -170,14 +173,14 @@ display(x: 88, y: 99, i: 0)
 :todo
 t("group")
 //│ ╔══[ERROR] Expected 2 arguments, got 1
-//│ ║  l.171: 	t("group")
+//│ ║  l.174: 	t("group")
 //│ ╙──       	 ^^^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: Function 't' expected 2 arguments but got 1
 
 :todo
 t("group")
 //│ ╔══[ERROR] Expected 2 arguments, got 1
-//│ ║  l.178: 	t("group")
+//│ ║  l.181: 	t("group")
 //│ ╙──       	 ^^^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: Function 't' expected 2 arguments but got 1
 

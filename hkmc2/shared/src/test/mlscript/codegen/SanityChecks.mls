@@ -251,9 +251,8 @@ if M.A(1).y is
   x and x == 1 then x
   else 0
 //│ JS:
-//│ (class M {
+//│ M1 = class M {
 //│   static {
-//│     M1 = M;
 //│     this.A = function A(...args1) {
 //│       return globalThis.Object.freeze(new A.class(...args1));
 //│     };
@@ -274,9 +273,12 @@ if M.A(1).y is
 //│       }
 //│     });
 //│   }
-//│   static toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["module", "M"]; 
-//│ });
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "M"]; 
+//│ };
 //│ tmp5 = runtime.safeCall(M1.A(1));
 //│ selRes2 = tmp5.y;
 //│ discarded1 = tmp5.y$__checkNotMethod;

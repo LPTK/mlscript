@@ -144,11 +144,27 @@ fun foo(x, y) =
       set y = 2
       x + y + test
   M.foo()
-//│ ═══[WARNING] Modules are not yet lifted.
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
 
 :expect 14
 foo(10, 0)
-//│ = 14
+//│ ╔══[COMPILATION ERROR] No definition found in scope for 'foo'
+//│ ║  l.140: 	fun foo(x, y) =
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.141: 	  module M with
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.142: 	    val test = 2
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ║  l.143: 	    fun foo() =
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.144: 	      set y = 2
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.145: 	      x + y + test
+//│ ║         	^^^^^^^^^^^^^^^^^^
+//│ ║  l.146: 	  M.foo()
+//│ ╙──       	^^^^^^^^^
+//│ ═══[RUNTIME ERROR] ReferenceError: foo is not defined
+//│ ═══[RUNTIME ERROR] Expected: '14', got: 'undefined'
 
 fun foo(x, y) =
   module M with
@@ -157,20 +173,26 @@ fun foo(x, y) =
       x + y
   fun foo = M.foo()
   foo
-//│ ═══[WARNING] Modules are not yet lifted.
-//│ ╔══[COMPILATION ERROR] No definition found in scope for 'M'
-//│ ║  l.154: 	  module M with
-//│ ║         	         ^^^^^^
-//│ ║  l.155: 	    fun foo() =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.156: 	      set y = 2
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.157: 	      x + y
-//│ ╙──       	^^^^^^^^^^^
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
 
 :expect 12
 foo(10, 0)
-//│ ═══[RUNTIME ERROR] ReferenceError: M is not defined
+//│ ╔══[COMPILATION ERROR] No definition found in scope for 'foo'
+//│ ║  l.169: 	fun foo(x, y) =
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.170: 	  module M with
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.171: 	    fun foo() =
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.172: 	      set y = 2
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.173: 	      x + y
+//│ ║         	^^^^^^^^^^^
+//│ ║  l.174: 	  fun foo = M.foo()
+//│ ║         	^^^^^^^^^^^^^^^^^^^
+//│ ║  l.175: 	  foo
+//│ ╙──       	^^^^^
+//│ ═══[RUNTIME ERROR] ReferenceError: foo is not defined
 //│ ═══[RUNTIME ERROR] Expected: '12', got: 'undefined'
 
 
@@ -178,11 +200,30 @@ data class A(x) with
   module M with
     fun getB() = x
   fun getA() = M.getB()
-//│ ═══[WARNING] Modules are not yet lifted.
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
 
 :expect 2
 A(2).getA()
-//│ = 2
+//│ ╔══[COMPILATION ERROR] No definition found in scope for 'A'
+//│ ║  l.199: 	data class A(x) with
+//│ ║         	     ^^^^^^^^^^^^^^^
+//│ ║  l.200: 	  module M with
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.201: 	    fun getB() = x
+//│ ║         	^^^^^^^^^^^^^^^^^^
+//│ ║  l.202: 	  fun getA() = M.getB()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── which is introduced here
+//│ ║  l.199: 	data class A(x) with
+//│ ║         	           ^^^^^^^^^
+//│ ║  l.200: 	  module M with
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.201: 	    fun getB() = x
+//│ ║         	^^^^^^^^^^^^^^^^^^
+//│ ║  l.202: 	  fun getA() = M.getB()
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 
 // TODO: Foo needs to be put in a mutable capture. Also, we need to pass the Foo instance itself into Foo
 fun foo(x) =
@@ -192,8 +233,12 @@ fun foo(x) =
   class Bar extends Foo
   (new Bar).self2
 foo(2)
+//│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'Foo'.
+//│ ║  l.233: 	  class Bar extends Foo
+//│ ║         	                    ^^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ ═══[COMPILATION ERROR] No definition found in scope for 'Foo$'
-//│ ═══[RUNTIME ERROR] TypeError: Foo1 is not a constructor
+//│ ═══[RUNTIME ERROR] TypeError: Class extends value [object Object] is not a constructor or null
 
 // `h` is lifted out, but then cannot access the BlockMemberSymbol M.
 :fixme
@@ -203,13 +248,4 @@ fun f =
       fun h = M.g
       h
   M.g
-//│ ═══[WARNING] Modules are not yet lifted.
-//│ ╔══[COMPILATION ERROR] No definition found in scope for 'M'
-//│ ║  l.201: 	  module M with
-//│ ║         	         ^^^^^^
-//│ ║  l.202: 	    fun g =
-//│ ║         	^^^^^^^^^^^
-//│ ║  l.203: 	      fun h = M.g
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.204: 	      h
-//│ ╙──       	^^^^^^^
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing

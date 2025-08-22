@@ -36,6 +36,7 @@ abstract class Symbol(using State) extends Located:
   def hasTrmDef: Bool = this match
     case trm: TermSymbol => true
     case mem: BlockMemberSymbol => mem.trmTree.nonEmpty
+    case _ => false
   
   def asCls: Opt[ClassSymbol] = this match
     case cls: ClassSymbol => S(cls)

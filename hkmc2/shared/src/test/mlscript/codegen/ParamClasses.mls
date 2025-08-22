@@ -103,6 +103,12 @@ let f = foo(1, 2)
 //│ f = Foo(1, 2)
 
 let f = new foo(1, 2)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: check (Resolver.scala:310)
+//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ║  l.105: 	let f = new foo(1, 2)
+//│ ║         	            ^^^
+//│ ╙── The new operator is for statically known class only. Use new! operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ let f1, tmp2; tmp2 = globalThis.Object.freeze(new foo1(1, 2)); f1 = tmp2;
 //│ f = Foo(1, 2)

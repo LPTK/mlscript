@@ -35,22 +35,46 @@ let fact = mkrec of self => x =>
 
 :stackSafe 1000
 fact(10000)
-//│ = Infinity
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:343:24)
+//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:897:52)
+//│     at lambda1 (REPL29:1:4767)
+//│     at selfApp (REPL10:1:1380)
+//│     at lambda2 (REPL29:1:4358)
+//│     at lambda2 (REPL32:1:2513)
+//│     at lambda2 (REPL29:1:4703)
+//│     at lambda2 (REPL32:1:2513)
+//│     at lambda2 (REPL29:1:4703)
 
 // * Without `:stackSafe`, gives `RangeError: Maximum call stack size exceeded`
 :re
 :stackSafe off
 fact(10000)
-//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
 
 :stackSafe 1000
 fact(10000)
-//│ = Infinity
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:343:24)
+//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:897:52)
+//│     at lambda1 (REPL29:1:4767)
+//│     at selfApp (REPL10:1:1380)
+//│     at lambda2 (REPL29:1:4358)
+//│     at lambda2 (REPL32:1:2513)
+//│     at lambda2 (REPL29:1:4703)
+//│     at lambda2 (REPL32:1:2513)
+//│     at lambda2 (REPL29:1:4703)
 
 :re
 :stackSafe off
 fact(10000)
-//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
 
 
 :stackSafe 5
@@ -58,14 +82,41 @@ set selfApp = f => f(f)
 
 :expect 3628800
 fact(10)
-//│ = 3628800
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:343:24)
+//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:897:52)
+//│     at selfApp (REPL48:1:1072)
+//│     at lambda2 (REPL29:1:4358)
+//│     at lambda2 (REPL32:1:2513)
+//│     at lambda2 (REPL29:1:4703)
+//│     at lambda2 (REPL32:1:2513)
+//│     at $_stack$_safe$_body$_6 (REPL51:1:171)
+//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:742:28)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '3628800', got: 'undefined'
 
 
 :stackSafe 10
 set selfApp = f => f(f)
 
 fact(1000)
-//│ = Infinity
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:343:24)
+//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:897:52)
+//│     at lambda1 (REPL29:1:4767)
+//│     at selfApp (REPL54:1:1385)
+//│     at lambda2 (REPL29:1:4358)
+//│     at lambda2 (REPL32:1:2513)
+//│     at lambda2 (REPL29:1:4703)
+//│     at lambda2 (REPL32:1:2513)
+//│     at lambda2 (REPL29:1:4703)
 
 // simplified version without lambdas for easier debugging
 :stackSafe 5
@@ -94,22 +145,19 @@ let fact =
 fact(10)
 //│ > 1 0
 //│ > 3 0
-//│ > 5 4
-//│ > 7 4
-//│ > 9 8
-//│ > 11 8
-//│ > 13 12
-//│ > 15 12
-//│ > 17 16
-//│ > 19 16
-//│ > resumed: 1
-//│ > resumed: 2
-//│ > resumed: 3
-//│ > resumed: 4
-//│ > resumed: 5
-//│ > resumed: 6
-//│ > resumed: 7
-//│ > resumed: 8
-//│ > resumed: 9
-//│ > resumed: 10
-//│ = 3628800
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:727:24)
+//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:343:24)
+//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:897:52)
+//│     at selfApp (REPL54:1:1072)
+//│     at b (REPL60:1:4245)
+//│     at b (REPL63:1:9224)
+//│     at b (REPL60:1:4585)
+//│     at b (REPL63:1:9224)
+//│     at $_stack$_safe$_body$_9 (REPL67:1:171)
+//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:742:28)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
+//│ ═══[RUNTIME ERROR] Expected: '3628800', got: 'undefined'

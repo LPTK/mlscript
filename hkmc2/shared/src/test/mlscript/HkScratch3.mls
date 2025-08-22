@@ -1,0 +1,158 @@
+:js
+// :de
+// :sjs
+// :pt
+// :elt
+
+:global
+// :d
+// :todo
+
+
+:elt
+:dl
+:ssjs
+:lot
+module Foo with
+  mut val x = 1
+  set x = 2
+//│ Elaborated tree:
+//│ Blk:
+//│   stats = Ls of 
+//│     ModuleDef:
+//│       owner = N
+//│       sym = module:Foo
+//│       bsym = member:Foo
+//│       tparams = Nil
+//│       paramsOpt = N
+//│       auxParams = Nil
+//│       ext = N
+//│       kind = Mod
+//│       body = ObjBody of Blk:
+//│         stats = Ls of 
+//│           TermDefinition:
+//│             k = MutVal
+//│             sym = member:x
+//│             tsym = module:Foo.x
+//│             params = Nil
+//│             tparams = N
+//│             sign = N
+//│             body = S of Lit of IntLit of 1
+//│             resSym = ‹result of member:x›
+//│             flags = ()
+//│             modulefulness = Modulefulness of N
+//│             annotations = Nil
+//│         res = Assgn:
+//│           lhs = SynthSel{member:x}:
+//│             prefix = Ref of module:Foo
+//│             nme = Ident of "x"
+//│           rhs = Lit of IntLit of 2
+//│       companion = N
+//│       annotations = Nil
+//│   res = Lit of UnitLit of false
+//│ Lowering.term ( () )
+//│ Lowering.term ()
+//│ mod Some(ModuleDef(None,module:Foo,member:Foo,List(),None,List(),None,Mod,( ‹› mut val member:x = 1; (module:Foo#666.)x‹member:x› := 2 ),None,List()))
+//│ Lowering.term ( ‹› mut val member:x = 1; (module:Foo#666.)x‹member:x› := 2 )
+//│ Lowering.term 1
+//│ Lowering.term (module:Foo#666.)x‹member:x› := 2
+//│ Lowering.term module:Foo#666 – symbol module:Foo
+//│ Expanding term Ref(module:Foo)
+//│ ~> module:Foo#666
+//│ Lowering.term 2
+//│ Lowering.term undefined
+//│ Lowered:
+//│ Program:
+//│   imports = Nil
+//│   main = Define:
+//│     defn = ClsLikeDefn:
+//│       owner = N
+//│       isym = class:Foo
+//│       sym = member:Foo
+//│       k = Cls
+//│       paramsOpt = N
+//│       auxParams = Nil
+//│       parentPath = N
+//│       methods = Nil
+//│       privateFields = Nil
+//│       publicFields = Nil
+//│       preCtor = End of ""
+//│       ctor = Return:
+//│         res = Select{module:Unit}:
+//│           qual = Ref of $runtime
+//│           name = Ident of "Unit"
+//│         implct = true
+//│       companion = S of ClsLikeBody:
+//│         isym = module:Foo
+//│         methods = Nil
+//│         privateFields = Nil
+//│         publicFields = Ls of 
+//│           Tuple2:
+//│             _1 = member:x
+//│             _2 = module:Foo.x
+//│         ctor = Define:
+//│           defn = ValDefn:
+//│             tsym = module:Foo.x
+//│             sym = member:x
+//│             rhs = Lit of IntLit of 1
+//│           rest = AssignField: \
+//│           lhs = Ref of module:Foo
+//│           nme = Ident of "x"
+//│           rhs = Lit of IntLit of 2
+//│           rest = Return: \
+//│           res = Select{module:Unit}:
+//│             qual = Ref of $runtime
+//│             name = Ident of "Unit"
+//│           implct = true
+//│     rest = Assign: \
+//│     lhs = $block$res
+//│     rhs = Lit of UnitLit of false
+//│     rest = End of ""
+//│ avoidNames Define(ClsLikeDefn(None,class:Foo,member:Foo,Cls,None,List(),None,List(),List(),List(),End(),Return(...
+//│ | avoidNames End()...
+//│ | avoidNames Return(Select(Ref($runtime),Ident(Unit)),true)...
+//│ | avoidNames Define(ValDefn(module:Foo.x,member:x,Lit(IntLit(1))),AssignField(Ref(module:Foo),Ident(x),Lit(IntLit...
+//│ | | avoidNames AssignField(Ref(module:Foo),Ident(x),Lit(IntLit(2)),Return(Select(Ref($runtime),Ident(Unit)),true))...
+//│ | | | avoidNames Return(Select(Ref($runtime),Ident(Unit)),true)...
+//│ | avoidNames Assign($block$res,Lit(UnitLit(false)),End())...
+//│ | | avoidNames End()...
+//│ isym: class:Foo, Scope(None,Some(Some(globalThis:globalThis)),HashMap())
+//│ owner: module:Foo, Scope(None,Some(Some(globalThis:globalThis)),HashMap(module:Foo.x -> x))
+//│ owner: module:Foo, Scope(None,Some(Some(globalThis:globalThis)),HashMap(module:Foo.x -> x))
+//│ JS:
+//│ Foo1 = class Foo {
+//│   static #x;
+//│   get x() { return Foo.#x; }
+//│   set x(value) { Foo.#x = value; }
+//│   static {
+//│     this.x = 1;
+//│     Foo.x = 2;
+//│     runtime.Unit;
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Foo"]; 
+//│ };
+//│ block$res1 = undefined;
+
+
+:ssjs
+Foo.x
+//│ JS:
+//│ selRes = Foo1.x;
+//│ if (selRes === undefined) {
+//│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'x' yielded 'undefined'"))
+//│ }
+//│ block$res2 = selRes;
+//│ undefined
+//│ = 2
+
+:ssjs
+set Foo.x = 3
+//│ JS:
+//│ Foo1.x = 3; block$res3 = runtime.Unit; undefined
+
+
+

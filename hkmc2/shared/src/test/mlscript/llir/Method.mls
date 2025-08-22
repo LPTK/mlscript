@@ -10,17 +10,16 @@ fun main() =
   a.A#f()
 main()
 //│ = 1
-//│ LLIR:
-//│   class A(m) {
-//│     def f() =
-//│       m
-//│   }
-//│   def main() =
-//│     let x = A(1) in
-//│     let x1 = A.f(x) in
-//│     x1
-//│   def entry() =
-//│     let* (x2) = main() in
-//│     x2
-//│   entry = entry
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:11)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.bClsLikeDef$$anonfun$3(Builder.scala:217)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.bClsLikeDef(Builder.scala:234)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.registerClasses(Builder.scala:525)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.registerClasses$$anonfun$2(Builder.scala:531)
+//│ 	at: scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+//│ 	at: scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+//│ 	at: scala.collection.immutable.List.foldLeft(List.scala:79)
+//│ 	at: hkmc2.codegen.llir.LlirBuilder.registerClasses(Builder.scala:531)
 
