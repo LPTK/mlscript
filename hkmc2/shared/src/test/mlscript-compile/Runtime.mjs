@@ -32,7 +32,7 @@ Runtime1 = class Runtime {
   static {
     const Unit$class = class Unit {
       static {
-        Runtime.Unit = Unit
+        Runtime.Unit = this
       }
       constructor() {
         Object.defineProperty(this, "class", {
@@ -235,7 +235,7 @@ Runtime1 = class Runtime {
     };
     const FatalEffect$class = class FatalEffect {
       static {
-        Runtime.FatalEffect = FatalEffect
+        Runtime.FatalEffect = this
       }
       constructor() {
         Object.defineProperty(this, "class", {
@@ -248,7 +248,7 @@ Runtime1 = class Runtime {
     this.FatalEffect = globalThis.Object.freeze(new FatalEffect$class);
     const PrintStackEffect$class = class PrintStackEffect {
       static {
-        Runtime.PrintStackEffect = PrintStackEffect
+        Runtime.PrintStackEffect = this
       }
       constructor() {
         Object.defineProperty(this, "class", {
@@ -362,7 +362,7 @@ Runtime1 = class Runtime {
     this.stackResume = null;
     const StackDelayHandler$class = class StackDelayHandler {
       static {
-        Runtime.StackDelayHandler = StackDelayHandler
+        Runtime.StackDelayHandler = this
       }
       constructor() {
         Object.defineProperty(this, "class", {
@@ -370,7 +370,7 @@ Runtime1 = class Runtime {
         })
       }
       delay() {
-        return Runtime.mkEffect(StackDelayHandler, (k) => {
+        return Runtime.mkEffect(this, (k) => {
           Runtime.stackResume = k;
           return runtime.Unit
         })
@@ -451,7 +451,7 @@ Runtime1 = class Runtime {
     tmp = runtime.safeCall(f());
     res = tmp;
     if (res instanceof Runtime.EffectSig.class) {
-      return runtime.safeCall(Runtime.EffectHandle(res))
+      return Runtime.EffectHandle(res)
     } else {
       return res
     }
@@ -751,8 +751,8 @@ Runtime1 = class Runtime {
   } 
   static mkEffect(handler, handlerFun) {
     let res, tmp, tmp1;
-    tmp = new Runtime.ContTrace(null, null, null, null, false);
-    tmp1 = new Runtime.EffectSig(tmp, handler, handlerFun);
+    tmp = new Runtime.ContTrace.class(null, null, null, null, false);
+    tmp1 = new Runtime.EffectSig.class(tmp, handler, handlerFun);
     res = tmp1;
     res.contTrace.last = res.contTrace;
     res.contTrace.lastHandler = res.contTrace;
@@ -760,7 +760,7 @@ Runtime1 = class Runtime {
   } 
   static handleBlockImpl(cur, handler1) {
     let handlerFrame, tmp;
-    tmp = new Runtime.HandlerContFrame(null, null, handler1);
+    tmp = new Runtime.HandlerContFrame.class(null, null, handler1);
     handlerFrame = tmp;
     cur.contTrace.lastHandler.nextHandler = handlerFrame;
     cur.contTrace.lastHandler = handlerFrame;
@@ -825,7 +825,7 @@ Runtime1 = class Runtime {
       tmp1 = runtime.Unit;
     }
     handlerFrame = prevHandlerFrame.nextHandler;
-    tmp2 = new Runtime.ContTrace(handlerFrame.next, cur2.contTrace.last, handlerFrame.nextHandler, cur2.contTrace.lastHandler, false);
+    tmp2 = new Runtime.ContTrace.class(handlerFrame.next, cur2.contTrace.last, handlerFrame.nextHandler, cur2.contTrace.lastHandler, false);
     saved = tmp2;
     cur2.contTrace.last = handlerFrame;
     cur2.contTrace.lastHandler = handlerFrame;

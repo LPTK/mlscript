@@ -108,7 +108,7 @@ handle k = Eff with
   fun test()(k) = k()
 k.test()
 print("test")
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ ═══[RUNTIME ERROR] TypeError: k.test is not a function
 
 
 let oops = 
@@ -117,26 +117,12 @@ let oops =
       print(arg)
       "b"
   Lol(h)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Handler$h$1.perform (REPL19:1:571)
-//│     at new Lol (REPL13:1:2028)
-//│     at Lol (REPL13:1:81)
-//│     at handleBlock$ (REPL19:1:3584)
-//│     at REPL19:1:3789
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│ oops = undefined
+//│ > k
+//│ oops = "b"
 
 :expect "b"
 oops
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '"b"', got: 'undefined'
+//│ = "b"
 
 let oops = 
   handle h = Effect with
@@ -144,26 +130,12 @@ let oops =
       print(arg)
       "b"
   new Lol(h)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Handler$h$2.perform (REPL26:1:586)
-//│     at new Lol (REPL13:1:2028)
-//│     at handleBlock$ (REPL26:1:4086)
-//│     at REPL26:1:4301
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│ oops = undefined
+//│ > k
+//│ oops = "b"
 
 :expect "b"
 oops
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '"b"', got: 'undefined'
+//│ = "b"
 
 
 let oops = 
@@ -172,35 +144,12 @@ let oops =
       print(arg)
       k("b")
   Lol(h)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Handler$h$3.perform (REPL33:1:572)
-//│     at new Lol (REPL13:1:2028)
-//│     at Lol (REPL13:1:81)
-//│     at handleBlock$ (REPL33:1:3732)
-//│     at REPL33:1:3937
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│ oops = undefined
+//│ > k
+//│ > b
+//│ oops = Lol(Handler$h$)
 
 oops.h
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'h')
-//│     at REPL37:1:49
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = Handler$h$
 
 let obj = mut {s: undefined}
 //│ obj = {s: undefined}
@@ -210,19 +159,7 @@ handle h = Effect with
     k()
     print(arg)
 set obj.s = h.perform("k")
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Handler$h$4.perform (REPL44:1:566)
-//│     at handleBlock$ (REPL44:1:3767)
-//│     at REPL44:1:4005
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > k
 
 fun f() = ()
 

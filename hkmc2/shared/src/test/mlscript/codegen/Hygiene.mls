@@ -13,7 +13,7 @@ object Test with
 //│ let Test1;
 //│ const Test$class = class Test {
 //│   static {
-//│     Test1 = Test
+//│     Test1 = this
 //│   }
 //│   constructor() {
 //│     this.x = 12;

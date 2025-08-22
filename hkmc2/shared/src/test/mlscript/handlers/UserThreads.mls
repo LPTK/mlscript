@@ -46,19 +46,17 @@ handle h = ThreadEffect with
     k(())
 in
   h.start(main)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Handler$h$.start (REPL22:1:9074)
-//│     at handleBlock$ (REPL22:1:20232)
-//│     at REPL22:1:20440
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > main start
+//│ > main end
+//│ > f 2
+//│ > f 1
+//│ > f 0
+//│ > f 2
+//│ > f 1
+//│ > f 0
+//│ > f 2
+//│ > f 1
+//│ > f 0
 
 
 // FIFO
@@ -76,19 +74,17 @@ handle h = ThreadEffect with
     k(())
 in
   h.start(main)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Handler$h$1.start (REPL25:1:9075)
-//│     at handleBlock$ (REPL25:1:20235)
-//│     at REPL25:1:20444
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > main start
+//│ > main end
+//│ > f 0
+//│ > f 1
+//│ > f 2
+//│ > f 0
+//│ > f 1
+//│ > f 2
+//│ > f 0
+//│ > f 1
+//│ > f 2
 
 
 // Adapted from: https://ocaml.org/manual/5.3/effects.html
@@ -132,19 +128,16 @@ fun start(thread: ThreadEffect -> ()) =
 
 start(main)
 //│ > main start
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Handler$h$2.fork (REPL44:1:1661)
-//│     at main (REPL38:1:4750)
-//│     at handleBlock$ (REPL44:1:7099)
-//│     at start (REPL44:1:7320)
-//│     at REPL47:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│ > f 0
+//│ > f 1
+//│ > f 0
+//│ > f 2
+//│ > f 1
+//│ > f 0
+//│ > main end
+//│ > f 2
+//│ > f 1
+//│ > f 2
 
 
 import "../../mlscript-compile/Option.mls"
@@ -198,16 +191,7 @@ fun main(h) =
     print("[t2] received " + v.toString()))
 
 start(main)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Handler$h$3.fork (REPL64:1:1754)
-//│     at main (REPL67:1:8178)
-//│     at handleBlock$ (REPL64:1:14139)
-//│     at start (REPL64:1:14364)
-//│     at REPL70:1:41
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│ > [t1] Sending 0
+//│ > [t2] Sending 1
+//│ > [t2] received 0
+//│ > [t1] received 1

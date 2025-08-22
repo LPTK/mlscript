@@ -47,7 +47,7 @@ object Foo with
   val self = this
 
 Foo.self
-//│ = object Foo
+//│ = Foo { self: ref'1, class: object Foo } as ref'1
 
 
 :todo // * Initialization error
@@ -58,7 +58,7 @@ object Foo with
 //│ let Foo9;
 //│ const Foo$class1 = class Foo8 {
 //│   static {
-//│     Foo9 = Foo8
+//│     Foo9 = this
 //│   }
 //│   constructor() {
 //│     this.self = Foo9;

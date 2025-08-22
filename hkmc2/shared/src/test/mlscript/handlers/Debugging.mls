@@ -5,7 +5,8 @@
 
 :re
 raiseUnhandledEffect()
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect FatalEffect
+//│ 	at tail position
 
 :sjs
 fun f() =
@@ -124,7 +125,8 @@ fun f() =
 
 :re
 f()
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect FatalEffect
+//│ 	at f (Debugging.mls:16:14)
 
 :re
 fun lambda_test(f) =
@@ -133,71 +135,37 @@ fun lambda_test(f) =
 lambda_test(() =>
   raiseUnhandledEffect()
   100)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect FatalEffect
+//│ 	at lambda (Debugging.mls:134:3)
+//│ 	at lambda_test (Debugging.mls:131:3)
 
 
 import "../../mlscript-compile/Runtime.mls"
 
 :silent
 let res = Runtime.try(f)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Predef.raiseUnhandledEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Predef.mjs:180:20)
-//│     at f (REPL13:1:2973)
-//│     at Runtime.try (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:451:28)
-//│     at REPL25:1:445
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
 
 res.reified.contTrace.next.getLocals
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'reified')
-//│     at REPL27:1:447
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = [
+//│   FnLocalsInfo("‹top level›", []),
+//│   FnLocalsInfo(
+//│     "f",
+//│     [LocalVarInfo("i", 0), LocalVarInfo("j", 100), LocalVarInfo("k", 2000)]
+//│   )
+//│ ]
 
 Runtime.debugEff(res.reified)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'reified')
-//│     at REPL30:1:375
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > Debug EffectSig:
+//│ > handler:  FatalEffect
+//│ > handlerFun:  null
+//│ > resumed:  false
+//│ > <lastHandler is self>
+//│ > Cont$func$f$(pc=0, last) -> (null)
+//│ > 
 
 res.resumeWith(42)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'resumeWith')
-//│     at REPL33:1:364
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > 42
+//│ = Infinity
 
 
 
@@ -227,10 +195,10 @@ let res =
 //│     at REPL39:1:1793
 //│     at lambda2 (REPL42:1:6308)
 //│     at lambda1 (REPL42:1:6378)
-//│     at Runtime.try (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:451:28)
+//│     at Runtime.try (file:///Users/parreaux/work/Research/experiments/hkmc2/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:451:28)
 //│     at handleBlock$ (REPL42:1:6468)
 //│     at REPL42:1:6683
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
 //│ res = undefined
 
@@ -243,15 +211,15 @@ set res = res.resumeWith(42)
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'resumeWith')
 //│     at REPL49:1:441
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
 //│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
 
 :re
 res.raise()
@@ -262,15 +230,15 @@ res.resumeWith(666)
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'resumeWith')
 //│     at REPL55:1:367
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
 //│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
 
 let i = 100
 fun f() =
@@ -285,16 +253,10 @@ fun f() =
 
 f()
 //│ > [FnLocalsInfo("‹top level›", [LocalVarInfo("i", 100)]), FnLocalsInfo("f", [LocalVarInfo("j", 200)])]
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Runtime.raisePrintStackEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:468:20)
-//│     at f (REPL58:1:5608)
-//│     at REPL62:1:362
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > Stack Trace:
+//│ > 	at f (Debugging.mls:279:3) with locals: j=200
+//│ > Stack Trace:
+//│ > 	at f (Debugging.mls:281:3)
+//│ > Stack Trace:
+//│ > 	at f (Debugging.mls:282:3) with locals: j=300
+//│ > [FnLocalsInfo("‹top level›", [LocalVarInfo("i", 100)]), FnLocalsInfo("f", [LocalVarInfo("j", 300)])]

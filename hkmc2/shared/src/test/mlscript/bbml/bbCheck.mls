@@ -29,7 +29,7 @@ fun id(y) = y
 :e
 fun bar: Str -> Str
 fun bar(x) = let t = x + 1 in "aaa"
-//│ ╔══[ERROR] Type error in reference without any resolvable definition with expected type Int
+//│ ╔══[ERROR] Type error in reference without a resolvable definition with expected type Int
 //│ ║  l.31: 	fun bar(x) = let t = x + 1 in "aaa"
 //│ ║        	                     ^
 //│ ╙── because: cannot constrain  Str  <:  Int
@@ -53,7 +53,7 @@ add(1, 2) as Int
 
 :e
 add(0, 0) as Str
-//│ ╔══[ERROR] Type error in application without any resolvable definition with expected type Str
+//│ ╔══[ERROR] Type error in application without a resolvable definition with expected type Str
 //│ ║  l.55: 	add(0, 0) as Str
 //│ ║        	^^^^^^^^^
 //│ ╙── because: cannot constrain  Int  <:  Str
@@ -83,11 +83,11 @@ high(x => x)
 
 :e
 high(x => x + 1)
-//│ ╔══[ERROR] Type error in reference without any resolvable definition with expected type Int
+//│ ╔══[ERROR] Type error in reference without a resolvable definition with expected type Int
 //│ ║  l.85: 	high(x => x + 1)
 //│ ║        	          ^
 //│ ╙── because: cannot constrain  A  <:  Int
-//│ ╔══[ERROR] Type error in application without any resolvable definition with expected type A
+//│ ╔══[ERROR] Type error in application without a resolvable definition with expected type A
 //│ ║  l.85: 	high(x => x + 1)
 //│ ║        	          ^^^^^
 //│ ╙── because: cannot constrain  Int  <:  A

@@ -98,7 +98,7 @@ let t = test()
 new t
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found reference without a resolvable definition.
 //│ ║  l.98: 	new t
 //│ ║        	    ^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
@@ -110,7 +110,7 @@ new t
 new t()
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found reference without a resolvable definition.
 //│ ║  l.110: 	new t()
 //│ ║         	    ^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.

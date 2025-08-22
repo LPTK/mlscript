@@ -175,22 +175,7 @@ sum(10000)
 //│ res1 = runtime.runStackSafe(1000, $_stack$_safe$_body$_1);
 //│ if (res1 instanceof runtime.EffectSig.class) { res1 = runtime.topLevelEffect(res1, false); }
 //│ res1
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at sum (REPL16:1:1858)
-//│     at sum (REPL16:1:2255)
-//│     at sum (REPL16:1:2255)
-//│     at sum (REPL16:1:2255)
-//│     at sum (REPL16:1:2255)
-//│     at sum (REPL16:1:2255)
-//│     at sum (REPL16:1:2255)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '50005000', got: 'undefined'
+//│ = 50005000
 
 // stack-overflows without :stackSafe
 :re
@@ -211,20 +196,8 @@ fun foo(f) =
     set ctr += 1
     dummy(f(f))
 foo(foo)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at foo (REPL22:1:2175)
-//│     at foo (REPL22:1:2593)
-//│     at foo (REPL22:1:2593)
-//│     at foo (REPL22:1:2593)
-//│     at foo (REPL22:1:2593)
-//│     at foo (REPL22:1:2593)
-//│     at foo (REPL22:1:2593)
-//│ ctr = 99
+//│ = 0
+//│ ctr = 10001
 
 :stackSafe 1000
 :effectHandlers
@@ -235,23 +208,8 @@ val foo =
     else n + f(n-1)
   f(10000)
 foo
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at lambda (REPL26:1:1899)
-//│     at lambda (REPL26:1:2299)
-//│     at lambda (REPL26:1:2299)
-//│     at lambda (REPL26:1:2299)
-//│     at lambda (REPL26:1:2299)
-//│     at lambda (REPL26:1:2299)
-//│     at lambda (REPL26:1:2299)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '50005000', got: 'undefined'
-//│ foo = undefined
+//│ = 50005000
+//│ foo = 50005000
 
 :stackSafe 0
 :effectHandlers
@@ -262,23 +220,8 @@ val foo =
     else n + f(n-1)
   f(10000)
 foo
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at lambda1 (REPL30:1:1905)
-//│     at $_stack$_safe$_body$_4 (REPL30:1:2738)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:772:28)
-//│     at Runtime.runStackSafe (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:950:20)
-//│     at REPL30:1:2768
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '50005000', got: 'undefined'
-//│ foo = undefined
+//│ = 50005000
+//│ foo = 50005000
 
 :re
 fun foo() =
@@ -306,22 +249,7 @@ handle h = Eff with
       else n + f(n-1)
     resume(f(10000))
 foo(h)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at get perform (REPL40:1:3998)
-//│     at foo (REPL40:1:2109)
-//│     at handleBlock$ (REPL40:1:12360)
-//│     at $_stack$_safe$_body$_5 (REPL40:1:12583)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:772:28)
-//│     at Runtime.runStackSafe (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:950:20)
-//│     at REPL40:1:12828
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '50005000', got: 'undefined'
+//│ = 50005000
 
 // function call and defn inside handler
 :effectHandlers
@@ -337,22 +265,7 @@ handle h = Eff with
 in
   fun foo(h) = h.perform
   foo(h)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at get perform (REPL43:1:1419)
-//│     at foo (REPL43:1:11772)
-//│     at handleBlock$ (REPL43:1:12678)
-//│     at $_stack$_safe$_body$_6 (REPL43:1:12901)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:772:28)
-//│     at Runtime.runStackSafe (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:950:20)
-//│     at REPL43:1:13146
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '50005000', got: 'undefined'
+//│ = 50005000
 
 :effectHandlers
 :stackSafe 100
@@ -387,7 +300,7 @@ handle h = Eff with
       else n + f(n-1)
     resume(f(10000))
 foo(h)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
 
 :effectHandlers
 :stackSafe
@@ -426,22 +339,7 @@ fun sum(n) =
     n + sum(n - 1)
 fun bad() = sum(10000) + sum(10000)
 bad()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at sum (REPL58:1:1867)
-//│     at sum (REPL58:1:2265)
-//│     at sum (REPL58:1:2265)
-//│     at sum (REPL58:1:2265)
-//│     at sum (REPL58:1:2265)
-//│     at sum (REPL58:1:2265)
-//│     at sum (REPL58:1:2265)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '100010000', got: 'undefined'
+//│ = 100010000
 
 
 :effectHandlers
@@ -455,20 +353,5 @@ handle h = Object with
       set depth += 1
       enterHandleBlock(this, () => whoops())
 h.whoops()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at Handler$h$3.whoops (REPL61:1:3214)
-//│     at handleBlock$ (REPL61:1:9386)
-//│     at $_stack$_safe$_body$_9 (REPL61:1:9610)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:772:28)
-//│     at Runtime.runStackSafe (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:950:20)
-//│     at REPL61:1:9856
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '0', got: 'undefined'
-//│ depth = 0
+//│ = 0
+//│ depth = 50000

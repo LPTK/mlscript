@@ -11,7 +11,8 @@ handle h = Logger with
     k()
     k()
 h.info("a")
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ > a
+//│ ═══[RUNTIME ERROR] Error: Multiple resumption
 
 
 handle h = Logger with

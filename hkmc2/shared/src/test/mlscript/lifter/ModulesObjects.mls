@@ -14,22 +14,7 @@ fun foo(x, y) =
 
 :expect 14
 foo(10, 0)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #x$0 to an object whose class did not declare it
-//│     at set x$0 (REPL10:1:222)
-//│     at new M (REPL10:1:99)
-//│     at foo (REPL10:1:777)
-//│     at REPL13:1:38
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '14', got: 'undefined'
+//│ = 14
 
 // * This works the same with classes.
 // * Note that we currently generate accessors, which is not ideal;
@@ -108,25 +93,12 @@ fun foo(y) =
   O
 
 let o = foo(10)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #y$0 to an object whose class did not declare it
-//│     at set y$0 (REPL34:1:171)
-//│     at new O (REPL34:1:95)
-//│     at foo (REPL34:1:602)
-//│     at REPL37:1:44
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│ o = undefined
+//│ o = O
 
 :re
 set o.x = 1
 o.x
-//│ ═══[RUNTIME ERROR] TypeError: Cannot set properties of undefined (setting 'x')
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'x' yielded 'undefined'
 
 
 :sjs
@@ -149,7 +121,7 @@ fun foo(x, y) =
 //│ };
 //│ M5 = class M4 {
 //│   static {
-//│     M5 = M4
+//│     M5 = this
 //│   }
 //│   constructor(x$1, foo$capture$0) {
 //│     this.foo$capture$0 = foo$capture$0;
@@ -157,13 +129,13 @@ fun foo(x, y) =
 //│   }
 //│   #foo$capture$0;
 //│   #x$1;
-//│   get foo$capture$0() { return M4.#foo$capture$0; }
-//│   set foo$capture$0(value) { M4.#foo$capture$0 = value; }
-//│   get x$1() { return M4.#x$1; }
-//│   set x$1(value) { M4.#x$1 = value; }
+//│   get foo$capture$0() { return this.#foo$capture$0; }
+//│   set foo$capture$0(value) { this.#foo$capture$0 = value; }
+//│   get x$1() { return this.#x$1; }
+//│   set x$1(value) { this.#x$1 = value; }
 //│   foo2() {
-//│     M4.foo$capture$0.y0$ = 2;
-//│     return M4.x$1 + M4.foo$capture$0.y0$
+//│     this.foo$capture$0.y0$ = 2;
+//│     return this.x$1 + this.foo$capture$0.y0$
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
@@ -188,22 +160,7 @@ fun foo(x, y) =
 
 :expect 12
 foo(10, 0)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #foo$capture$01 to an object whose class did not declare it
-//│     at set foo$capture$0 (REPL44:1:808)
-//│     at new M4 (REPL44:1:638)
-//│     at foo (REPL44:1:1644)
-//│     at REPL47:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '12', got: 'undefined'
+//│ = 12
 
 
 :sjs
@@ -215,16 +172,16 @@ data class A(x) with
 //│ let M7, A1;
 //│ M7 = class M6 {
 //│   static {
-//│     M7 = M6
+//│     M7 = this
 //│   }
 //│   constructor(A$instance$0) {
 //│     this.A$instance$0 = A$instance$0;
 //│   }
 //│   #A$instance$0;
-//│   get A$instance$0() { return M6.#A$instance$0; }
-//│   set A$instance$0(value) { M6.#A$instance$0 = value; }
+//│   get A$instance$0() { return this.#A$instance$0; }
+//│   set A$instance$0(value) { this.#A$instance$0 = value; }
 //│   getB() {
-//│     return M6.A$instance$0.x
+//│     return this.A$instance$0.x
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
@@ -249,22 +206,7 @@ data class A(x) with
 
 :expect 2
 A(2).getA()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #A$instance$01 to an object whose class did not declare it
-//│     at set A$instance$0 (REPL50:1:248)
-//│     at new M6 (REPL50:1:113)
-//│     at new A (REPL50:1:739)
-//│     at A (REPL50:1:593)
-//│     at REPL53:1:41
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 // Classes and functions in modules //
 
@@ -315,22 +257,7 @@ object M with
     fun get = x
   val hi = A()
 M.hi.get
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'get' yielded 'undefined'
-//│     at REPL56:1:1619
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 :expect 2
 object M with
@@ -339,22 +266,7 @@ object M with
     fun g() = x
     g
 M.f()()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
-//│     at Runtime.checkCall (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:436:24)
-//│     at REPL59:1:354
-//│     at REPL59:1:930
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 :sjs
 module M with
@@ -447,19 +359,7 @@ fun foo(x) =
   [x === O.bar, set x += 1 in [x === O.bar, x === O.baz], x === O.bar]
 
 foo(123)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot write private member #foo$capture$0 to an object whose class did not declare it
-//│     at set foo$capture$0 (REPL62:1:306)
-//│     at new O2 (REPL62:1:131)
-//│     at foo (REPL62:1:956)
-//│     at REPL65:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ = [true, [true, false], true]
 
 :sjs
 module A with

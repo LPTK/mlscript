@@ -11,7 +11,7 @@ MyClass
 new MyClass("Bob")
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found reference without a resolvable definition.
 //│ ║  l.11: 	new MyClass("Bob")
 //│ ║        	    ^^^^^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
@@ -25,7 +25,7 @@ let c = C
 
 :todo
 new c("Bob")
-//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found reference without a resolvable definition.
 //│ ║  l.27: 	new c("Bob")
 //│ ║        	    ^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.

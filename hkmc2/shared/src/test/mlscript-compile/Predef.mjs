@@ -16,7 +16,7 @@ Predef1 = class Predef {
   static {
     const Symbols$class = class Symbols {
       static {
-        Predef.Symbols = Symbols
+        Predef.Symbols = this
       }
       constructor() {
         this.prettyPrint = RuntimeJS.symbols.prettyPrint;

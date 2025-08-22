@@ -13,7 +13,7 @@ import "../../mlscript-compile/Option.mjs"
 Option.isDefined(new Option.Some(1))
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found selection without a resolvable definition.
 //│ ║  l.13: 	Option.isDefined(new Option.Some(1))
 //│ ║        	                     ^^^^^^^^^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
@@ -26,7 +26,7 @@ Option.isDefined(Option.None)
 (new Option.Some(1)) Option.isDefined()
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found selection without a resolvable definition.
 //│ ║  l.26: 	(new Option.Some(1)) Option.isDefined()
 //│ ║        	     ^^^^^^^^^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
@@ -42,7 +42,7 @@ Option.None
 new Option.Some(1)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found selection without a resolvable definition.
 //│ ║  l.42: 	new Option.Some(1)
 //│ ║        	    ^^^^^^^^^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
@@ -51,7 +51,7 @@ new Option.Some(1)
 new Option.Both(1, 2)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found selection without a resolvable definition.
 //│ ║  l.51: 	new Option.Both(1, 2)
 //│ ║        	    ^^^^^^^^^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
@@ -65,7 +65,7 @@ Option.None
 new Option.Some(1)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found selection without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found selection without a resolvable definition.
 //│ ║  l.65: 	new Option.Some(1)
 //│ ║        	    ^^^^^^^^^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.

@@ -12,13 +12,14 @@ object Bar with
 //│ let Bar1;
 //│ const Bar$class = class Bar {
 //│   static {
-//│     Bar1 = Bar
+//│     Bar1 = this
 //│   }
 //│   constructor() {
 //│     this.x = 1;
+//│     const this$Bar = this;
 //│     this.Baz = class Baz {
 //│       static {
-//│         Bar.Baz = this
+//│         this$Bar.Baz = this
 //│       }
 //│       constructor() {
 //│         runtime.Unit;

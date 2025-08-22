@@ -37,7 +37,7 @@ f(M)
 
 :e
 fun f[T](module m: T)
-//│ ╔══[ERROR] Expected a module; found non-moduleful reference without any resolvable definition.
+//│ ╔══[ERROR] Expected a module; found non-moduleful reference without a resolvable definition.
 //│ ║  l.39: 	fun f[T](module m: T)
 //│ ║        	                   ^
 //│ ╙── Module parameter must have a module type.
@@ -89,7 +89,7 @@ assertM(f())
 
 :e
 fun f4[T](): module T = M
-//│ ╔══[ERROR] Expected a module; found non-moduleful reference without any resolvable definition.
+//│ ╔══[ERROR] Expected a module; found non-moduleful reference without a resolvable definition.
 //│ ║  l.91: 	fun f4[T](): module T = M
 //│ ║        	                    ^
 //│ ╙── Function marked as returning a 'module' must have a module return type.
@@ -135,7 +135,7 @@ fun f3() = (() => return M)()
 
 :e
 fun f(module m: M) = m
-//│ ╔══[ERROR] Unexpected moduleful reference without any resolvable definition.
+//│ ╔══[ERROR] Unexpected moduleful reference without a resolvable definition.
 //│ ║  l.137: 	fun f(module m: M) = m
 //│ ║         	                     ^
 //│ ╙── Function must be marked as returning a 'module' in order to return a module.

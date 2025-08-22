@@ -25,8 +25,7 @@ let f = Test.("foo")
 
 :re
 f()
-//│ = NaN
-//│ FAILURE: Unexpected lack of runtime error
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'bar')
 
 
 // * I tried compiling selections to essentially the following,
@@ -37,7 +36,7 @@ let g = if f is Function then f.bind(Test) else f
 //│ g = fun bound foo
 
 g()
-//│ = NaN
+//│ = 2
 
 
 // * TODO we should probably compile the above as:

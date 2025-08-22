@@ -43,7 +43,13 @@ handle h = ThreadEffect with
 in
   main(h)
 //│ > main start
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ > main end
+//│ > f 2
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
+//│ 	at f (UserThreadsUnsafe.mls:12:3)
+//│ 	at drain (UserThreadsUnsafe.mls:29:5)
+//│ 	at fork (UserThreadsUnsafe.mls:38:5)
+//│ 	at fork (UserThreadsUnsafe.mls:38:5)
 
 
 // FIFO
@@ -59,6 +65,12 @@ handle h = ThreadEffect with
 in
   main(h)
 //│ > main start
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ > main end
+//│ > f 1
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
+//│ 	at f (UserThreadsUnsafe.mls:12:3)
+//│ 	at drain (UserThreadsUnsafe.mls:29:5)
+//│ 	at fork (UserThreadsUnsafe.mls:54:5)
+//│ 	at fork (UserThreadsUnsafe.mls:54:5)
 
 

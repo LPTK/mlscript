@@ -53,7 +53,7 @@ object Outer with
   val r = foo()
   fun bar() = r
 Outer.r
-//│ ═══[RUNTIME ERROR] TypeError: Outer.foo is not a function
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 
 
 fun outerfun(x) =

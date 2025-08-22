@@ -19,7 +19,7 @@ c(123)
 new c(123)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found reference without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found reference without a resolvable definition.
 //│ ║  l.19: 	new c(123)
 //│ ║        	    ^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.

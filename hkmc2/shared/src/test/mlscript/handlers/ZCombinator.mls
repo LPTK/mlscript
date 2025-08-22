@@ -35,46 +35,22 @@ let fact = mkrec of self => x =>
 
 :stackSafe 1000
 fact(10000)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at lambda1 (REPL29:1:4937)
-//│     at selfApp (REPL10:1:1432)
-//│     at lambda2 (REPL29:1:4528)
-//│     at lambda2 (REPL32:1:2570)
-//│     at lambda2 (REPL29:1:4873)
-//│     at lambda2 (REPL32:1:2570)
-//│     at lambda2 (REPL29:1:4873)
+//│ = Infinity
 
 // * Without `:stackSafe`, gives `RangeError: Maximum call stack size exceeded`
 :re
 :stackSafe off
 fact(10000)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
 
 :stackSafe 1000
 fact(10000)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at lambda1 (REPL29:1:4937)
-//│     at selfApp (REPL10:1:1432)
-//│     at lambda2 (REPL29:1:4528)
-//│     at lambda2 (REPL32:1:2570)
-//│     at lambda2 (REPL29:1:4873)
-//│     at lambda2 (REPL32:1:2570)
-//│     at lambda2 (REPL29:1:4873)
+//│ = Infinity
 
 :re
 :stackSafe off
 fact(10000)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
+//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
 
 
 :stackSafe 5
@@ -82,41 +58,14 @@ set selfApp = f => f(f)
 
 :expect 3628800
 fact(10)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at selfApp (REPL48:1:1124)
-//│     at lambda2 (REPL29:1:4528)
-//│     at lambda2 (REPL32:1:2570)
-//│     at lambda2 (REPL29:1:4873)
-//│     at lambda2 (REPL32:1:2570)
-//│     at $_stack$_safe$_body$_6 (REPL51:1:171)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:772:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '3628800', got: 'undefined'
+//│ = 3628800
 
 
 :stackSafe 10
 set selfApp = f => f(f)
 
 fact(1000)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at lambda1 (REPL29:1:4937)
-//│     at selfApp (REPL54:1:1437)
-//│     at lambda2 (REPL29:1:4528)
-//│     at lambda2 (REPL32:1:2570)
-//│     at lambda2 (REPL29:1:4873)
-//│     at lambda2 (REPL32:1:2570)
-//│     at lambda2 (REPL29:1:4873)
+//│ = Infinity
 
 // simplified version without lambdas for easier debugging
 :stackSafe 5
@@ -145,19 +94,22 @@ let fact =
 fact(10)
 //│ > 1 0
 //│ > 3 0
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'last' of object '[object Object]'
-//│     at Runtime.mkEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:757:24)
-//│     at StackDelayHandler.delay (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:373:24)
-//│     at Runtime.checkDepth (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:927:52)
-//│     at selfApp (REPL54:1:1124)
-//│     at b (REPL60:1:4405)
-//│     at b (REPL63:1:9276)
-//│     at b (REPL60:1:4745)
-//│     at b (REPL63:1:9276)
-//│     at $_stack$_safe$_body$_9 (REPL67:1:171)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:772:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:203)
-//│ ═══[RUNTIME ERROR] Expected: '3628800', got: 'undefined'
+//│ > 5 4
+//│ > 7 4
+//│ > 9 8
+//│ > 11 8
+//│ > 13 12
+//│ > 15 12
+//│ > 17 16
+//│ > 19 16
+//│ > resumed: 1
+//│ > resumed: 2
+//│ > resumed: 3
+//│ > resumed: 4
+//│ > resumed: 5
+//│ > resumed: 6
+//│ > resumed: 7
+//│ > resumed: 8
+//│ > resumed: 9
+//│ > resumed: 10
+//│ = 3628800
