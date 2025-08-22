@@ -141,7 +141,7 @@ new 1
 
 :e
 new (id(Foo))(12)
-//│ ╔══[ERROR] Expected a statically known class; found application without any resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
 //│ ║  l.143: 	new (id(Foo))(12)
 //│ ║         	     ^^^^^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
@@ -160,7 +160,7 @@ object Bar extends Foo(42)
 //│ let Bar3;
 //│ const Bar$class = class Bar2 extends Foo3.class {
 //│   static {
-//│     Bar3 = Bar2
+//│     Bar3 = this
 //│   }
 //│   constructor() {
 //│     super(42);

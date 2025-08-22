@@ -737,21 +737,26 @@ class Resolver(tl: TraceLogger)
     // not try to resolve it again in the resolver.
     if t.symbol.exists(_.isInstanceOf[ErrorSymbol]) then return
     
+    def withSym(r: Resolvable, sym: FieldSymbol) = r match
+      case t: Term.Sel => t.sym = S(sym)
+      case t: Term.SynthSel => t.sym = S(sym)
+      case t: Term.App => t.sym = S(sym)
+      case t: Term.TyApp => t.sym = S(sym)
+      case t: Term.Ref => t.resSym = S(sym)
+    
     t match
     case t @ AnySel(lhs: Resolvable, id) =>
       lhs.typeDefn match
-        case S(mdef @ ModuleDef(kind = Mod)) => mdef.body.members.get(id.name) match
-          case S(sym) =>
+        case S(mdef @ ModuleDef(kind = Mod)) => mdef.body.members.get(id.name).map(_.asBlkMember) match
+          case S(S(sym)) =>
             log(s"Resolving symbol for ${t}, defn = ${lhs.defn}")
-            t match
-              case t: Term.Sel => t.sym = S(sym)
-              case t: Term.SynthSel => t.sym = S(sym)
+            withSym(t, sym)
             expand2DotClass(lhs)
             log(s"Resolved symbol for ${t}: ${sym}")
-          case N => 
-            t match
-              case t: Term.Sel => t.sym = S(ErrorSymbol(id.name, Tree.Dummy))
-              case t: Term.SynthSel => t.sym = S(ErrorSymbol(id.name, Tree.Dummy))
+          case S(N) =>
+            lastWords("member symbol found but it doesn't have a block member symbol")
+          case _ => 
+            withSym(t, ErrorSymbol(id.name, Tree.Dummy))
             raise: 
               ErrorReport(
                 msg"${mdef.kind.desc.capitalize} '${mdef.sym.nme}' " +
@@ -766,12 +771,7 @@ class Resolver(tl: TraceLogger)
         case S(lhsDefn) if lhsDefn.params.length == ass.length =>
           val sym = lhsDefn.modulefulness.msym
           log(s"Resolving symbol for ${t}: defn = ${lhsDefn}")
-          t match
-            case t: Term.Sel => sym.map(sym => t.sym = S(sym))
-            case t: Term.SynthSel => sym.map(sym => t.sym = S(sym))
-            case t: Term.App => sym.map(sym => t.sym = S(sym))
-            case t: Term.TyApp => sym.map(sym => t.sym = S(sym))
-            case t: Term.Ref => sym.map(sym => t.resSym = S(sym))
+          sym.map(withSym(t, _))
           log(s"Resolved symbol for ${t}: ${sym}")
         case _ =>
     case _ =>

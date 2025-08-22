@@ -70,6 +70,10 @@ abstract class Symbol(using State) extends Located:
   
   def asBlkMember: Opt[BlockMemberSymbol] = this match
     case mem: BlockMemberSymbol => S(mem)
+    case mem: MemberSymbol[?] => mem.defn match
+      case S(defn: ClassLikeDef) => S(defn.bsym)
+      case S(defn: TermDefinition) => S(defn.sym)
+      case _ => N
     case _ => N
   
   override def equals(x: Any): Bool = x match
