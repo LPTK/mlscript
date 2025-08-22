@@ -94,9 +94,9 @@ fun f() =
 //│     } 
 //│     get getLoc() {
 //│       if (this.pc === 0) {
-//│         return "Debugging.mls:16:14"
+//│         return "Debugging.mls:17:14"
 //│       } else if (this.pc === 1) {
-//│         return "Debugging.mls:16:5"
+//│         return "Debugging.mls:17:5"
 //│       }
 //│     }
 //│     toString() { return runtime.render(this); }
@@ -126,7 +126,7 @@ fun f() =
 :re
 f()
 //│ ═══[RUNTIME ERROR] Error: Unhandled effect FatalEffect
-//│ 	at f (Debugging.mls:16:14)
+//│ 	at f (Debugging.mls:17:14)
 
 :re
 fun lambda_test(f) =
@@ -136,8 +136,8 @@ lambda_test(() =>
   raiseUnhandledEffect()
   100)
 //│ ═══[RUNTIME ERROR] Error: Unhandled effect FatalEffect
-//│ 	at lambda (Debugging.mls:134:3)
-//│ 	at lambda_test (Debugging.mls:131:3)
+//│ 	at lambda (Debugging.mls:136:3)
+//│ 	at lambda_test (Debugging.mls:133:3)
 
 
 import "../../mlscript-compile/Runtime.mls"
@@ -254,9 +254,9 @@ fun f() =
 f()
 //│ > [FnLocalsInfo("‹top level›", [LocalVarInfo("i", 100)]), FnLocalsInfo("f", [LocalVarInfo("j", 200)])]
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:279:3) with locals: j=200
+//│ > 	at f (Debugging.mls:247:3) with locals: j=200
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:281:3)
+//│ > 	at f (Debugging.mls:249:3)
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:282:3) with locals: j=300
+//│ > 	at f (Debugging.mls:250:3) with locals: j=300
 //│ > [FnLocalsInfo("‹top level›", [LocalVarInfo("i", 100)]), FnLocalsInfo("f", [LocalVarInfo("j", 300)])]

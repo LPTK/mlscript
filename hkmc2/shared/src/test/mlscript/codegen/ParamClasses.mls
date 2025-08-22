@@ -102,13 +102,7 @@ let f = foo(1, 2)
 //│ let f, tmp1; tmp1 = runtime.safeCall(foo1(1, 2)); f = tmp1;
 //│ f = Foo(1, 2)
 
-let f = new foo(1, 2)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found reference without a resolvable definition.
-//│ ║  l.105: 	let f = new foo(1, 2)
-//│ ║         	            ^^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+let f = new! foo(1, 2)
 //│ JS (unsanitized):
 //│ let f1, tmp2; tmp2 = globalThis.Object.freeze(new foo1(1, 2)); f1 = tmp2;
 //│ f = Foo(1, 2)

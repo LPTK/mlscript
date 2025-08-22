@@ -30,14 +30,20 @@ None()
 //│ runtime.safeCall(None1())
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor None cannot be invoked without 'new'
 
-:sjs
+:e
 new None
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found reference with a module definition 'None'.
 //│ ║  l.34: 	new None
 //│ ║        	    ^^^^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ = None
+
+:sjs
+:e
+new! None
+//│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'None'.
+//│ ║  l.43: 	new! None
+//│ ╙──      	     ^^^^
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new None1())
 //│ = None
@@ -106,7 +112,7 @@ M.y
 :re
 M.oops
 //│ ╔══[ERROR] Module 'M' does not contain member 'oops'
-//│ ║  l.107: 	M.oops
+//│ ║  l.113: 	M.oops
 //│ ╙──       	 ^^^^^
 //│ ═══[RUNTIME ERROR] Error: Access to required field 'oops' yielded 'undefined'
 

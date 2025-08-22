@@ -7,65 +7,63 @@ new
 //│ ║  l.5: 	new
 //│ ╙──     	   ^
 
+:e
 :re
 new 2
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found integer literal.
-//│ ║  l.11: 	new 2
+//│ ║  l.12: 	new 2
+//│ ║        	    ^
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ═══[RUNTIME ERROR] TypeError: 2 is not a constructor
+
+:e
+:re
+new 2 + 2
+//│ ╔══[ERROR] Expected a statically known class; found integer literal.
+//│ ║  l.21: 	new 2 + 2
 //│ ║        	    ^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: 2 is not a constructor
 
 :sjs
 :re
-new 2 + 2
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found integer literal.
-//│ ║  l.22: 	new 2 + 2
-//│ ║        	    ^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+new! 2 + 2
 //│ JS (unsanitized):
-//│ let tmp; tmp = globalThis.Object.freeze(new 2()); tmp + 2
+//│ let tmp1; tmp1 = globalThis.Object.freeze(new 2()); tmp1 + 2
 //│ ═══[RUNTIME ERROR] TypeError: 2 is not a constructor
 
+:e
 :re
 new()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.MatchError: UnitVal() (of class hkmc2.semantics.Term$UnitVal)
-//│ 	at: hkmc2.semantics.Term.describe(Term.scala:273)
-//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:311)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2(Resolver.scala:346)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$adapted$1(Resolver.scala:346)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
-//│ 	at: hkmc2.semantics.Resolver.traverse(Resolver.scala:346)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$1(Resolver.scala:337)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$adapted$1(Resolver.scala:346)
-//│ 	at: scala.Function0.apply$mcV$sp(Function0.scala:42)
-//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:290)
+//│ ╔══[ERROR] Expected a statically known class; found unit value.
+//│ ║  l.37: 	new()
+//│ ║        	   ^^
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ═══[RUNTIME ERROR] TypeError: runtime.Unit is not a constructor
 
 :re
+new!()
+//│ ═══[RUNTIME ERROR] TypeError: runtime.Unit is not a constructor
+
+:e
+:re
 new {}
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.MatchError: UnitVal() (of class hkmc2.semantics.Term$UnitVal)
-//│ 	at: hkmc2.semantics.Term.describe(Term.scala:273)
-//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:311)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2(Resolver.scala:346)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$adapted$1(Resolver.scala:346)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
-//│ 	at: hkmc2.semantics.Resolver.traverse(Resolver.scala:346)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$1(Resolver.scala:337)
-//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2$$anonfun$adapted$1(Resolver.scala:346)
-//│ 	at: scala.Function0.apply$mcV$sp(Function0.scala:42)
-//│ 	at: hkmc2.semantics.Resolver.check$1(Resolver.scala:290)
+//│ ╔══[ERROR] Expected a statically known class; found unit value.
+//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ═══[RUNTIME ERROR] TypeError: runtime.Unit is not a constructor
+
+:pe
+new! {}
+//│ ╔══[PARSE ERROR] Expected expression after prefix keyword 'new!'; found end of block instead
+//│ ║  l.56: 	new! {}
+//│ ╙──      	     ^^
 
 
 // * Note that thanks to the parser "feature" for keyword-block stutter
 // * this used to parse as `((new x) = 1)`;
 // * it no longer does, since I make `new` accept `exprOrBlk`
+:e
 :pt
-:todo
 new { x = 1 }
 //│ Parsed tree:
 //│ LexicalNew:
@@ -75,9 +73,15 @@ new { x = 1 }
 //│       rhs = IntLit of 1
 //│   rft = N
 //│ ╔══[ERROR] Name not found: x
-//│ ║  l.69: 	new { x = 1 }
+//│ ║  l.67: 	new { x = 1 }
 //│ ╙──      	      ^
 //│ ╔══[ERROR] Expected a statically known class; found block.
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+
+:e
+new! { x = 1 }
+//│ ╔══[ERROR] Unrecognized definitional assignment left-hand side: prefix operator 'new!'
+//│ ║  l.82: 	new! { x = 1 }
+//│ ╙──      	^^^^^^^^
 
 

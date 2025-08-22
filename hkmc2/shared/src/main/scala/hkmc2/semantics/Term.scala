@@ -239,6 +239,7 @@ enum Term extends Statement:
   
   def describe: Str = this match
     case Error => "<error>"
+    case UnitVal() => "unit value"
     case Lit(lit) => lit.describeLit
     case Ref(sym) => "reference"
     case App(lhs, rhs) => "application"

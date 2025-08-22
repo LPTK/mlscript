@@ -50,29 +50,39 @@ Foo.self
 //│ = Foo { self: ref'1, class: object Foo } as ref'1
 
 
-:todo // * Initialization error
+object Foo with
+  val self = id(Foo)
+
+Foo.self
+//│ = object Foo
+
+
+// * This should probably be an initialization error
+// * (leaking a partially-initialized module)
 :sjs
 object Foo with
-  val self = Foo
+  val self = id(Foo)
+  val lateInit = 1
 //│ JS (unsanitized):
-//│ let Foo9;
-//│ const Foo$class1 = class Foo8 {
+//│ let Foo11;
+//│ const Foo$class2 = class Foo10 {
 //│   static {
-//│     Foo9 = this
+//│     Foo11 = this
 //│   }
 //│   constructor() {
-//│     this.self = Foo9;
+//│     let tmp;
+//│     tmp = Predef.id(Foo11);
+//│     this.self = tmp;
+//│     this.lateInit = 1;
 //│     Object.defineProperty(this, "class", {
-//│       value: Foo8
+//│       value: Foo10
 //│     })
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["object", "Foo"]; 
-//│ }; Foo9 = globalThis.Object.freeze(new Foo$class1);
+//│ }; Foo11 = globalThis.Object.freeze(new Foo$class2);
 
-:re
 Foo.self
 //│ = object Foo
-//│ FAILURE: Unexpected lack of runtime error
 
 

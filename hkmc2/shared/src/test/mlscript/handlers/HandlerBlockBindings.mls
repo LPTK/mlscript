@@ -17,7 +17,7 @@ let x = 123
 :e
 x
 //│ ╔══[ERROR] Name not found: x
-//│ ║  l.30: 	x
+//│ ║  l.18: 	x
 //│ ╙──      	^
 
 
@@ -31,7 +31,7 @@ x + 1
 :e
 x
 //│ ╔══[ERROR] Name not found: x
-//│ ║  l.44: 	x
+//│ ║  l.32: 	x
 //│ ╙──      	^
 
 
@@ -43,7 +43,7 @@ val y = 123
 :e
 y
 //│ ╔══[ERROR] Name not found: y
-//│ ║  l.56: 	y
+//│ ║  l.44: 	y
 //│ ╙──      	^
 
 

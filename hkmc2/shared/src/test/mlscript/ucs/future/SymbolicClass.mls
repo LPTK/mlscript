@@ -25,13 +25,12 @@ fun map(f, xs) = if xs is
 
 
 // TODO?
+:e
 :re
 :sjs
 new 1 :: 2
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found integer literal.
-//│ ║  l.30: 	new 1 :: 2
+//│ ║  l.31: 	new 1 :: 2
 //│ ║        	    ^
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ JS (unsanitized):
@@ -39,11 +38,10 @@ new 1 :: 2
 //│ ═══[RUNTIME ERROR] TypeError: 1 is not a constructor
 
 // TODO?
+:e
 :re
 :sjs
 new (1 :: 2)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:311)
 //│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
 //│ ║  l.44: 	new (1 :: 2)
 //│ ║        	     ^^^^^^
