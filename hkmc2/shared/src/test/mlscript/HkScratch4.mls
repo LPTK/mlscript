@@ -20,34 +20,49 @@ new! mut Object
 
 module Test with
   class Foo()
+  val x = 1
+
+:sjs
+:ssjs
+Test.x
+//│ JS (unsanitized):
+//│ Test1.x
+//│ JS:
+//│ selRes1 = Test1.x;
+//│ if (selRes1 === undefined) {
+//│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'x' yielded 'undefined'"))
+//│ }
+//│ block$res3 = selRes1;
+//│ undefined
+//│ = 1
 
 :ssjs
 new Test.Foo()
 //│ JS:
-//│ selRes1 = Test1.Foo;
-//│ if (selRes1 === undefined) {
+//│ selRes2 = Test1.Foo;
+//│ if (selRes2 === undefined) {
 //│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'Foo' yielded 'undefined'"))
 //│ }
-//│ selRes2 = selRes1.class;
-//│ if (selRes2 === undefined) {
+//│ selRes3 = selRes2.class;
+//│ if (selRes3 === undefined) {
 //│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'class' yielded 'undefined'"))
 //│ }
-//│ block$res3 = globalThis.Object.freeze(new selRes2());
+//│ block$res4 = globalThis.Object.freeze(new selRes3());
 //│ undefined
 //│ = Foo()
 
 :ssjs
 new mut Test.Foo()
 //│ JS:
-//│ selRes3 = Test1.Foo;
-//│ if (selRes3 === undefined) {
+//│ selRes4 = Test1.Foo;
+//│ if (selRes4 === undefined) {
 //│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'Foo' yielded 'undefined'"))
 //│ }
-//│ selRes4 = selRes3.class;
-//│ if (selRes4 === undefined) {
+//│ selRes5 = selRes4.class;
+//│ if (selRes5 === undefined) {
 //│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'class' yielded 'undefined'"))
 //│ }
-//│ block$res4 = new selRes4();
+//│ block$res5 = new selRes5();
 //│ undefined
 //│ = Foo()
 
