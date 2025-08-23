@@ -1,5 +1,7 @@
 package hkmc2
 
+import scala.collection.mutable
+
 import mlscript.utils.*, shorthands.*
 import utils.*
 
@@ -358,13 +360,13 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     var ignored: Set[BlockMemberSymbol] = Set.empty
     var unliftable: Set[BlockMemberSymbol] = Set.empty
     var clsSymToBms: Map[Local, BlockMemberSymbol] = Map.empty
-    var modules: List[ClsLikeDefn] = Nil
-    var objects: List[ClsLikeDefn] = Nil
+    val modules: mutable.ListBuffer[ClsLikeDefn] = mutable.ListBuffer.empty
+    val objects: mutable.ListBuffer[ClsLikeDefn] = mutable.ListBuffer.empty
     var extendsGraph: Set[(BlockMemberSymbol, BlockMemberSymbol)] = Set.empty
 
     d match
-      case c @ ClsLikeDefn(k = syntax.Mod) => modules +:= c
-      case c @ ClsLikeDefn(k = syntax.Obj) => objects +:= c
+      case c @ ClsLikeDefn(k = syntax.Mod) => modules += c
+      case c @ ClsLikeDefn(k = syntax.Obj) => objects += c
       case _ => ()
 
     // search for modules
@@ -383,10 +385,10 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
                   msg"Modules are not yet lifted." -> N :: Nil,
                   N, Diagnostic.Source.Compilation
                 ))
-                modules +:= c
+                modules += c
                 ignored += c.sym
               else if c.k is syntax.Obj then
-                objects +:= c
+                objects += c
             case _ => ()
           super.applyDefn(defn)
 
@@ -446,9 +448,9 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
             case None => ()
             case Some(path) if isHandlerClsPath(path) => ()
             case Some(Select(RefOfBms(s), Tree.Ident("class"))) =>
-               if clsSyms.contains(s) then extendsGraph += (s -> defn.sym)
+              if clsSyms.contains(s) then extendsGraph += (s -> defn.sym)
             case Some(RefOfBms(s)) =>
-               if clsSyms.contains(s) then extendsGraph += (s -> defn.sym)
+              if clsSyms.contains(s) then extendsGraph += (s -> defn.sym)
             case _ if !ignored.contains(defn.sym) =>
               raise(WarningReport(
                 msg"Cannot yet lift class/module `${sym.nme}` as it extends an expression." -> N :: Nil,
@@ -497,8 +499,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
         dfs(b)
     for s <- ignored do
       dfs(s)
-    
-    (ignored ++ newUnliftable, modules, objects)
+
+    (ignored ++ newUnliftable, modules.toList, objects.toList)
 
   extension (b: Block)
     private def floatOut(ctx: LifterCtx) =

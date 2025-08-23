@@ -14,14 +14,14 @@ data class Lol(h) with
 //│ Lol1 = function Lol(h1) {
 //│   return globalThis.Object.freeze(new Lol.class(h1));
 //│ };
-//│ class Lol {
+//│ globalThis.Object.freeze(class Lol {
 //│   static {
 //│     Lol1.class = this
 //│   }
 //│   constructor(h) {
 //│     let tmp, res, Cont$ctor$Lol$1;
 //│     const this$Lol = this;
-//│     Cont$ctor$Lol$1 = class Cont$ctor$Lol$ extends runtime.FunctionContFrame.class {
+//│     globalThis.Object.freeze(class Cont$ctor$Lol$ extends runtime.FunctionContFrame.class {
 //│       static {
 //│         Cont$ctor$Lol$1 = this
 //│       }
@@ -71,7 +71,7 @@ data class Lol(h) with
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Cont$ctor$Lol$"]; 
-//│     };
+//│     });
 //│     this.h = h;
 //│     tmp = runtime.safeCall(this.h.perform("k"));
 //│     if (tmp instanceof runtime.EffectSig.class) {
@@ -89,7 +89,7 @@ data class Lol(h) with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Lol", ["h"]]; 
-//│ };
+//│ });
 
 
 // * This is a weird use of effect handlers where an effect is raised during the construction of a handler.

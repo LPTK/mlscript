@@ -11,9 +11,9 @@ object Test with
     Test.x
 //│ JS (unsanitized):
 //│ let Test1;
-//│ const Test$class = class Test {
+//│ globalThis.Object.freeze(class Test {
 //│   static {
-//│     Test1 = this
+//│     Test1 = globalThis.Object.freeze(new this)
 //│   }
 //│   constructor() {
 //│     this.x = 12;
@@ -28,7 +28,7 @@ object Test with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["object", "Test"]; 
-//│ }; Test1 = globalThis.Object.freeze(new Test$class);
+//│ });
 
 Test
 //│ = Test { x: 12, class: object Test }
@@ -78,7 +78,7 @@ module Test with
 //│ ║  l.72: 	  val x = 1
 //│ ╙──      	  ^^^^^^^^^
 //│ JS:
-//│ Test4 = class Test3 {
+//│ globalThis.Object.freeze(class Test3 {
 //│   static {
 //│     Test4 = this
 //│   }
@@ -92,7 +92,7 @@ module Test with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Test"]; 
-//│ };
+//│ });
 //│ block$res8 = undefined;
 
 Test.x
@@ -119,7 +119,7 @@ data class Cls(x) with
 //│ Cls1 = function Cls(x3) {
 //│   return globalThis.Object.freeze(new Cls.class(x3));
 //│ };
-//│ class Cls {
+//│ globalThis.Object.freeze(class Cls {
 //│   static {
 //│     Cls1.class = this
 //│   }
@@ -142,7 +142,7 @@ data class Cls(x) with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Cls", ["x"]]; 
-//│ };
+//│ });
 
 let cls = Cls(10)
 //│ > 10 22
@@ -183,7 +183,7 @@ module Whoops with
     fun g() = f()
 //│ JS (unsanitized):
 //│ let Whoops2;
-//│ Whoops2 = class Whoops {
+//│ globalThis.Object.freeze(class Whoops {
 //│   static {
 //│     Whoops2 = this
 //│   }
@@ -192,7 +192,7 @@ module Whoops with
 //│   }
 //│   static {
 //│     this.v = Whoops;
-//│     this.Whoops = class Whoops1 {
+//│     globalThis.Object.freeze(class Whoops1 {
 //│       static {
 //│         Whoops.Whoops = this
 //│       }
@@ -207,14 +207,14 @@ module Whoops with
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Whoops"]; 
-//│     };
+//│     });
 //│   }
 //│   static f() {
 //│     return "Hello"
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Whoops"]; 
-//│ };
+//│ });
 
 Whoops.f()
 //│ = "Hello"

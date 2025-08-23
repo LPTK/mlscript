@@ -105,7 +105,7 @@ class Foo(using T) with
 //│ Foo9 = function Foo(tmp6) {
 //│   return globalThis.Object.freeze(new Foo.class(tmp6));
 //│ };
-//│ class Foo8 {
+//│ globalThis.Object.freeze(class Foo8 {
 //│   static {
 //│     Foo9.class = this
 //│   }
@@ -116,7 +116,7 @@ class Foo(using T) with
 //│   #tmp;
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", [null]]; 
-//│ };
+//│ });
 
 :todo
 :sjs

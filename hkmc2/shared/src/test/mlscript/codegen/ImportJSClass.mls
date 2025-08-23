@@ -8,13 +8,7 @@ import "../../js/MyClass.mjs"
 MyClass
 //│ = class MyClass
 
-new MyClass("Bob")
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: check (Resolver.scala:311)
-//│ ╔══[ERROR] Expected a statically known class; found reference without a resolvable definition.
-//│ ║  l.11: 	new MyClass("Bob")
-//│ ║        	    ^^^^^^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+new! MyClass("Bob")
 //│ = MyClass { name: "Bob" }
 
 let C = MyClass
@@ -36,7 +30,7 @@ fun foo() =
   import "../../js/MyClass.mjs"
   ()
 //│ ╔══[COMPILATION ERROR] Imports must be at the top level
-//│ ║  l.36: 	  import "../../js/MyClass.mjs"
+//│ ║  l.30: 	  import "../../js/MyClass.mjs"
 //│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 

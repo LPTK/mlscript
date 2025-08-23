@@ -179,7 +179,7 @@ x + y
 //│     return h$(f$capture2)
 //│   }
 //│ };
-//│ f$capture1 = class f$capture {
+//│ globalThis.Object.freeze(class f$capture {
 //│   static {
 //│     f$capture1 = this
 //│   }
@@ -188,7 +188,7 @@ x + y
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "f$capture"]; 
-//│ };
+//│ });
 //│ f5 = function f() {
 //│   let capture, g$this, h$this;
 //│   capture = new f$capture1(null);
@@ -200,7 +200,7 @@ x + y
 //│ Tuple1 = function Tuple(a1, b1) {
 //│   return globalThis.Object.freeze(new Tuple.class(a1, b1));
 //│ };
-//│ class Tuple {
+//│ globalThis.Object.freeze(class Tuple {
 //│   static {
 //│     Tuple1.class = this
 //│   }
@@ -210,7 +210,7 @@ x + y
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Tuple", ["a", "b"]]; 
-//│ };
+//│ });
 //│ tmp = f5();
 //│ ret = tmp;
 //│ f11 = ret.a;
@@ -317,7 +317,7 @@ f(1, 2, 1000)
 //│     return h$2(f$capture6)
 //│   }
 //│ };
-//│ f$capture5 = class f$capture4 {
+//│ globalThis.Object.freeze(class f$capture4 {
 //│   static {
 //│     f$capture5 = this
 //│   }
@@ -326,7 +326,7 @@ f(1, 2, 1000)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "f$capture"]; 
-//│ };
+//│ });
 //│ f7 = function f(unused, immutable, mutated) {
 //│   let a1, tmp15, tmp16, tmp17, capture;
 //│   capture = new f$capture5(mutated);
@@ -463,7 +463,7 @@ g()(1)
 //│     return f$1(g$capture2, x1)
 //│   }
 //│ };
-//│ g$capture1 = class g$capture {
+//│ globalThis.Object.freeze(class g$capture {
 //│   static {
 //│     g$capture1 = this
 //│   }
@@ -472,7 +472,7 @@ g()(1)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "g$capture"]; 
-//│ };
+//│ });
 //│ g13 = function g() {
 //│   let capture;
 //│   capture = new g$capture1(null);
@@ -570,7 +570,7 @@ f()
 //│     return f$2(f$capture16)
 //│   }
 //│ };
-//│ f$capture15 = class f$capture14 {
+//│ globalThis.Object.freeze(class f$capture14 {
 //│   static {
 //│     f$capture15 = this
 //│   }
@@ -579,7 +579,7 @@ f()
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "f$capture"]; 
-//│ };
+//│ });
 //│ f20 = function f() {
 //│   let tmp19, capture;
 //│   capture = new f$capture15(null);
@@ -618,7 +618,7 @@ fun f(es, vs) =
 //│   }
 //│   return tmp19
 //│ };
-//│ A1 = class A {
+//│ globalThis.Object.freeze(class A {
 //│   static {
 //│     A1 = this
 //│   }
@@ -631,6 +631,6 @@ fun f(es, vs) =
 //│   set ["v'$0"](value) { this.#v$_$0 = value; }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"]; 
-//│ };
+//│ });
 //│ f23 = function f(es, vs) { let v$_; v$_ = es; return A$(false, v$_) };
 

@@ -18,7 +18,7 @@ data class Outer(a, b) with
 //│ Outer1 = function Outer(a1, b1) {
 //│   return globalThis.Object.freeze(new Outer.class(a1, b1));
 //│ };
-//│ class Outer {
+//│ globalThis.Object.freeze(class Outer {
 //│   static {
 //│     Outer1.class = this
 //│   }
@@ -30,7 +30,7 @@ data class Outer(a, b) with
 //│     this.Inner = function Inner(c1) {
 //│       return globalThis.Object.freeze(new Inner.class(c1));
 //│     };
-//│     class Inner {
+//│     globalThis.Object.freeze(class Inner {
 //│       static {
 //│         this$Outer.Inner.class = this
 //│       }
@@ -51,7 +51,7 @@ data class Outer(a, b) with
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Inner", ["c"]]; 
-//│     };
+//│     });
 //│     tmp = this.Inner(this.a);
 //│     this.i = tmp;
 //│     tmp1 = Predef.print(this.i.c);
@@ -68,7 +68,7 @@ data class Outer(a, b) with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Outer", ["a", "b"]]; 
-//│ };
+//│ });
 
 
 val o = Outer(100, 200)

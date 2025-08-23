@@ -10,14 +10,14 @@ object Bar with
     val a = Bar.x
 //│ JS (unsanitized):
 //│ let Bar1;
-//│ const Bar$class = class Bar {
+//│ globalThis.Object.freeze(class Bar {
 //│   static {
-//│     Bar1 = this
+//│     Bar1 = globalThis.Object.freeze(new this)
 //│   }
 //│   constructor() {
 //│     this.x = 1;
 //│     const this$Bar = this;
-//│     this.Baz = class Baz {
+//│     globalThis.Object.freeze(class Baz {
 //│       static {
 //│         this$Bar.Baz = this
 //│       }
@@ -29,15 +29,15 @@ object Bar with
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Baz"]; 
-//│     };
+//│     });
 //│     Object.defineProperty(this, "class", {
 //│       value: Bar
 //│     })
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["object", "Bar"]; 
-//│ }; Bar1 = globalThis.Object.freeze(new Bar$class);
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'x' yielded 'undefined'
+//│ });
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
 
 
 // * Modules don't have this initialization problem because they set their bindings
@@ -50,7 +50,7 @@ module Bar with
     val a = Bar.x
 //│ JS (unsanitized):
 //│ let Bar3;
-//│ Bar3 = class Bar2 {
+//│ globalThis.Object.freeze(class Bar2 {
 //│   static {
 //│     Bar3 = this
 //│   }
@@ -59,7 +59,7 @@ module Bar with
 //│   }
 //│   static {
 //│     this.x = 1;
-//│     this.Baz = class Baz1 {
+//│     globalThis.Object.freeze(class Baz1 {
 //│       static {
 //│         Bar2.Baz = this
 //│       }
@@ -71,10 +71,10 @@ module Bar with
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Baz"]; 
-//│     };
+//│     });
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Bar"]; 
-//│ };
+//│ });
 
 

@@ -144,7 +144,7 @@ fun foo(x, y) =
       set y = 2
       x + y + test
   M.foo()
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:foo
 
 :expect 14
 foo(10, 0)
@@ -173,7 +173,7 @@ fun foo(x, y) =
       x + y
   fun foo = M.foo()
   foo
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:foo
 
 :expect 12
 foo(10, 0)
@@ -200,7 +200,7 @@ data class A(x) with
   module M with
     fun getB() = x
   fun getA() = M.getB()
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:getB
 
 :expect 2
 A(2).getA()
@@ -248,4 +248,4 @@ fun f =
       fun h = M.g
       h
   M.g
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:g

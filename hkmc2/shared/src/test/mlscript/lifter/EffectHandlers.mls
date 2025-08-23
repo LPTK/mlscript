@@ -9,17 +9,17 @@ module A with
     f()
     val a = 1
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:Test
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 //│ 	at: scala.Option.foreach(Option.scala:437)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 :effectHandlers
 class Test with

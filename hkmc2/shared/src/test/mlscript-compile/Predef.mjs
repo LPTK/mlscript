@@ -16,7 +16,7 @@ globalThis.Object.freeze(class Predef {
   static {
     globalThis.Object.freeze(class Symbols {
       static {
-        Predef.Symbols = new this
+        Predef.Symbols = globalThis.Object.freeze(new this)
       }
       constructor() {
         this.prettyPrint = RuntimeJS.symbols.prettyPrint;

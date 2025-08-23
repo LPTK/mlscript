@@ -105,7 +105,7 @@ Cls(1, 2).f(3)
 //│ Cls1 = function Cls(x1, y1) {
 //│   return globalThis.Object.freeze(new Cls.class(x1, y1));
 //│ };
-//│ class Cls {
+//│ globalThis.Object.freeze(class Cls {
 //│   static {
 //│     Cls1.class = this
 //│   }
@@ -121,7 +121,7 @@ Cls(1, 2).f(3)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Cls", ["x", "y"]]; 
-//│ };
+//│ });
 //│ tmp1 = Cls1(1, 2);
 //│ block$res7 = runtime.safeCall(tmp1.f(3));
 //│ undefined
@@ -136,7 +136,7 @@ Cls(1, 2).f(3)
 //│ Cls3 = function Cls(...args1) {
 //│   return globalThis.Object.freeze(new Cls.class(...args1));
 //│ };
-//│ class Cls2 {
+//│ globalThis.Object.freeze(class Cls2 {
 //│   static {
 //│     Cls3.class = this
 //│   }
@@ -156,7 +156,7 @@ Cls(1, 2).f(3)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Cls", ["x", "y"]]; 
-//│ };
+//│ });
 //│ tmp2 = runtime.checkCall(Cls3(1, 2));
 //│ block$res8 = runtime.safeCall(tmp2.f(3));
 //│ undefined
@@ -172,7 +172,7 @@ Cls(1, 2).f(3, 4)(5)
 //│ Cls5 = function Cls(...args1) {
 //│   return globalThis.Object.freeze(new Cls.class(...args1));
 //│ };
-//│ class Cls4 {
+//│ globalThis.Object.freeze(class Cls4 {
 //│   static {
 //│     Cls5.class = this
 //│   }
@@ -199,7 +199,7 @@ Cls(1, 2).f(3, 4)(5)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Cls", ["x", "y"]]; 
-//│ };
+//│ });
 //│ tmp3 = runtime.checkCall(Cls5(1, 2));
 //│ tmp4 = tmp3.f(3, 4);
 //│ block$res9 = runtime.safeCall(tmp4(5));
@@ -251,7 +251,7 @@ if M.A(1).y is
   x and x == 1 then x
   else 0
 //│ JS:
-//│ M1 = class M {
+//│ globalThis.Object.freeze(class M {
 //│   static {
 //│     M1 = this
 //│   }
@@ -262,7 +262,7 @@ if M.A(1).y is
 //│     this.A = function A(...args1) {
 //│       return globalThis.Object.freeze(new A.class(...args1));
 //│     };
-//│     class A {
+//│     globalThis.Object.freeze(class A {
 //│       static {
 //│         M.A.class = this
 //│       }
@@ -277,11 +277,11 @@ if M.A(1).y is
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "A", ["x"]]; 
-//│     };
+//│     });
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
-//│ };
+//│ });
 //│ tmp5 = runtime.checkCall(M1.A(1));
 //│ selRes2 = tmp5.y;
 //│ discarded1 = tmp5.y$__checkNotMethod;

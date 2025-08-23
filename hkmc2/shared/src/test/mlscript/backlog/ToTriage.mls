@@ -152,9 +152,9 @@ data object Cls(x) with
   fun huh = x
 //│ JS (unsanitized):
 //│ let Cls1;
-//│ const Cls$class = class Cls {
+//│ globalThis.Object.freeze(class Cls {
 //│   static {
-//│     Cls1.class = this
+//│     Cls1.class = globalThis.Object.freeze(new this)
 //│   }
 //│   constructor(x1) {
 //│     this.x = x1;
@@ -167,7 +167,7 @@ data object Cls(x) with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["object", "Cls"]; 
-//│ }; Cls1 = globalThis.Object.freeze(new Cls$class);
+//│ });
 //│ ═══[RUNTIME ERROR] TypeError: Cannot set properties of undefined (setting 'class')
 
 :e
@@ -196,8 +196,8 @@ c.x
 
 class Foo' with
   class Bar'
-//│ > let Foo$_1;try { Foo$_1 = class Foo$_ {   static {     Foo$_1 = this   }   constructor() {     const this$Foo$_ = this;     this.Bar' = class Bar$_ {       static {         this$Foo$_.Bar' = this       }       constructor() {}       toString() { return runtime.render(this); }       static [definitionMetadata] = ["class", "Bar'"];      };   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Foo'"];  }; block$res28 = undefined; } catch (e) { console.log('\u200B' + e + '\u200B'); }
-//│ >                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ > let Foo$_1;try { globalThis.Object.freeze(class Foo$_ {   static {     Foo$_1 = this   }   constructor() {     const this$Foo$_ = this;     globalThis.Object.freeze(class Bar$_ {       static {         this$Foo$_.Bar' = this       }       constructor() {}       toString() { return runtime.render(this); }       static [definitionMetadata] = ["class", "Bar'"];      });   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Foo'"];  }); block$res28 = undefined; } catch (e) { console.log('\u200B' + e + '\u200B'); }
+//│ >                                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Unexpected string
 
 // ——— ——— ———
@@ -262,7 +262,7 @@ class D extends id(C)
 //│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ let D1;
-//│ D1 = class D extends Predef.id {
+//│ globalThis.Object.freeze(class D extends Predef.id {
 //│   static {
 //│     D1 = this
 //│   }
@@ -271,7 +271,7 @@ class D extends id(C)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "D"]; 
-//│ };
+//│ });
 //│ ═══[RUNTIME ERROR] TypeError: Class extends value id(x) {
 //│     return x
 //│   } is not a constructor or null
@@ -423,7 +423,7 @@ module Foo(x)
 //│ ╙──       	           ^
 //│ JS (unsanitized):
 //│ let Foo5;
-//│ Foo5 = class Foo4 {
+//│ globalThis.Object.freeze(class Foo4 {
 //│   static {
 //│     Foo5 = this
 //│   }
@@ -436,7 +436,7 @@ module Foo(x)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"]; 
-//│ };
+//│ });
 
 :fixme // proper comoilation error
 :sjs
@@ -449,7 +449,7 @@ module Foo(val x)
 //│ ╙──       	               ^
 //│ JS (unsanitized):
 //│ let Foo7;
-//│ Foo7 = class Foo6 {
+//│ globalThis.Object.freeze(class Foo6 {
 //│   static {
 //│     Foo7 = this
 //│   }
@@ -461,7 +461,7 @@ module Foo(val x)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"]; 
-//│ };
+//│ });
 
 // ——— ——— ———
 

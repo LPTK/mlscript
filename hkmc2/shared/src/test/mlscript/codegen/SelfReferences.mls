@@ -6,7 +6,7 @@ module Foo with
   val self: module Foo = Foo
 //│ JS (unsanitized):
 //│ let Foo1;
-//│ Foo1 = class Foo {
+//│ globalThis.Object.freeze(class Foo {
 //│   static {
 //│     Foo1 = this
 //│   }
@@ -18,7 +18,7 @@ module Foo with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"]; 
-//│ };
+//│ });
 
 Foo.self
 //│ = class Foo { self: ref'1 } as ref'1
@@ -50,39 +50,37 @@ Foo.self
 //│ = Foo { self: ref'1, class: object Foo } as ref'1
 
 
-object Foo with
-  val self = id(Foo)
-
-Foo.self
-//│ = object Foo
-
-
-// * This should probably be an initialization error
-// * (leaking a partially-initialized module)
+// * This should be an initialization error
+:fixme
 :sjs
 object Foo with
   val self = id(Foo)
-  val lateInit = 1
 //│ JS (unsanitized):
-//│ let Foo11;
-//│ const Foo$class2 = class Foo10 {
+//│ let Foo9;
+//│ globalThis.Object.freeze(class Foo8 {
 //│   static {
-//│     Foo11 = this
+//│     Foo9 = globalThis.Object.freeze(new this)
 //│   }
 //│   constructor() {
 //│     let tmp;
-//│     tmp = Predef.id(Foo11);
+//│     tmp = Predef.id(Foo9);
 //│     this.self = tmp;
-//│     this.lateInit = 1;
 //│     Object.defineProperty(this, "class", {
-//│       value: Foo10
+//│       value: Foo8
 //│     })
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["object", "Foo"]; 
-//│ }; Foo11 = globalThis.Object.freeze(new Foo$class2);
+//│ });
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 
-Foo.self
-//│ = object Foo
+
+// * This should be an initialization error
+// * (leaking a partially-initialized module)
+:fixme
+object Foo with
+  val self = id(Foo)
+  val lateInit = 1
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 
 

@@ -5,7 +5,7 @@
 module None
 //│ JS (unsanitized):
 //│ let None1;
-//│ None1 = class None {
+//│ globalThis.Object.freeze(class None {
 //│   static {
 //│     None1 = this
 //│   }
@@ -15,7 +15,7 @@ module None
 //│   static {}
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "None"]; 
-//│ };
+//│ });
 
 :sjs
 None
@@ -57,7 +57,7 @@ module M with
   val y = x + 1
 //│ JS (unsanitized):
 //│ let M1;
-//│ M1 = class M {
+//│ globalThis.Object.freeze(class M {
 //│   static {
 //│     M1 = this
 //│   }
@@ -66,32 +66,32 @@ module M with
 //│   }
 //│   static {
 //│     let tmp;
-//│     this.C = class C {
+//│     globalThis.Object.freeze(class C {
 //│       static {
 //│         M.C = this
 //│       }
 //│       constructor() {}
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "C"]; 
-//│     };
+//│     });
 //│     this.D = function D() {
 //│       return globalThis.Object.freeze(new D.class());
 //│     };
-//│     class D {
+//│     globalThis.Object.freeze(class D {
 //│       static {
 //│         M.D.class = this
 //│       }
 //│       constructor() {}
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "D", []]; 
-//│     };
+//│     });
 //│     this.x = 1;
 //│     tmp = M.x + 1;
 //│     this.y = tmp;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
-//│ };
+//│ });
 
 M.C
 //│ = class C
@@ -125,7 +125,7 @@ module M with
   val m: module M = M
 //│ JS (unsanitized):
 //│ let M3;
-//│ M3 = class M2 {
+//│ globalThis.Object.freeze(class M2 {
 //│   static {
 //│     M3 = this
 //│   }
@@ -137,7 +137,7 @@ module M with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
-//│ };
+//│ });
 
 :sjs
 M.m

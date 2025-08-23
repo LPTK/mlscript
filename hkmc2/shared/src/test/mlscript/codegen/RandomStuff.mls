@@ -26,14 +26,14 @@ data class Foo(x) with
 //│ Foo1 = function Foo(x1) {
 //│   return globalThis.Object.freeze(new Foo.class(x1));
 //│ };
-//│ class Foo {
+//│ globalThis.Object.freeze(class Foo {
 //│   static {
 //│     Foo1.class = this
 //│   }
 //│   constructor(x) {
 //│     this.x = x;
 //│     const this$Foo = this;
-//│     this.Bar = class Bar {
+//│     globalThis.Object.freeze(class Bar {
 //│       static {
 //│         this$Foo.Bar = this
 //│       }
@@ -42,11 +42,11 @@ data class Foo(x) with
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Bar"]; 
-//│     };
+//│     });
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", ["x"]]; 
-//│ };
+//│ });
 
 
 :sjs

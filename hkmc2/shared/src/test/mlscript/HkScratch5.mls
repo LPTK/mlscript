@@ -4,9 +4,6 @@
 // :pt
 // :elt
 
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 :global
 // :d
 // :todo
@@ -14,21 +11,13 @@
 
 module M with
   type T = Int
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 fun f[T] = 42
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 // the resolved used to not resolve `M.T`'s block member symbol,
 // resulting in an error :(
 f[M.T]
 //│ = 42
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 
 
@@ -46,17 +35,10 @@ f[M.T]
 //│ REPL> Sending: try { runtime.checkCall(runtime.printRaw(block$res4)) } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
 //│ REPL> Collected:
 //│ >  ()
-//│ >  [class Unit] {
-//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
-//│ >  }
+//│ >  Unit {}
 //│ REPL> Parsed:
 //│ >  ()
-//│ >  [class Unit] {
-//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
-//│ >  }
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+//│ >  Unit {}
 
 
 :showRepl
@@ -72,17 +54,10 @@ class Foo
 //│ REPL> Sending: try { runtime.checkCall(runtime.printRaw(block$res5)) } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
 //│ REPL> Collected:
 //│ >  undefined
-//│ >  [class Unit] {
-//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
-//│ >  }
+//│ >  Unit {}
 //│ REPL> Parsed:
 //│ >  undefined
-//│ >  [class Unit] {
-//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
-//│ >  }
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+//│ >  Unit {}
 
 
 

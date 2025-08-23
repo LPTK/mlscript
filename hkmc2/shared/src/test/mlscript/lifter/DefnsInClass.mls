@@ -23,7 +23,7 @@ data class A(x) with
 //│     return globalThis.Object.freeze(new B.class(y1)(A$instance$01));
 //│   }
 //│ };
-//│ class B {
+//│ globalThis.Object.freeze(class B {
 //│   static {
 //│     B1.class = this
 //│   }
@@ -42,11 +42,11 @@ data class A(x) with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "B", ["y"]]; 
-//│ };
+//│ });
 //│ A1 = function A(x1) {
 //│   return globalThis.Object.freeze(new A.class(x1));
 //│ };
-//│ class A {
+//│ globalThis.Object.freeze(class A {
 //│   static {
 //│     A1.class = this
 //│   }
@@ -60,7 +60,7 @@ data class A(x) with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A", ["x"]]; 
-//│ };
+//│ });
 
 :expect 3
 A(1).getA()
@@ -82,7 +82,7 @@ class A with
 //│     return g$(A$instance)
 //│   }
 //│ };
-//│ A3 = class A2 {
+//│ globalThis.Object.freeze(class A2 {
 //│   static {
 //│     A3 = this
 //│   }
@@ -93,7 +93,7 @@ class A with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"]; 
-//│ };
+//│ });
 //│ tmp1 = globalThis.Object.freeze(new A3());
 //│ runtime.safeCall(tmp1.x())
 //│ = 2

@@ -105,8 +105,14 @@ class BlockTraverser:
       applySubBlock(ctor)
       mod.foreach(applyClsLikeBody)
   
-  def applyClsLikeBody(b: ClsLikeBody): Unit = ???
-  
+  def applyClsLikeBody(b: ClsLikeBody): Unit =
+    b.isym.traverse
+    b.methods.foreach(applyFunDefn)
+    b.privateFields.foreach(_.traverse)
+    b.publicFields.foreach: f =>
+      f._1.traverse; f._2.traverse
+    applySubBlock(b.ctor)
+
   def applyArg(arg: Arg): Unit =
     applyPath(arg.value)
   

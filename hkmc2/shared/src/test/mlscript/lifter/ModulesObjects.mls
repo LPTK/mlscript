@@ -37,7 +37,7 @@ foo(10)
 //│   }
 //│   return tmp
 //│ };
-//│ M3 = class M2 {
+//│ globalThis.Object.freeze(class M2 {
 //│   static {
 //│     M3 = this
 //│   }
@@ -53,7 +53,7 @@ foo(10)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
-//│ };
+//│ });
 //│ foo1 = function foo(y) { let tmp; tmp = M$(false, y); return runtime.safeCall(tmp.foo()) };
 //│ foo1(10)
 
@@ -119,7 +119,7 @@ fun foo(x, y) =
 //│     return foo3$(M6, x, foo$capture4)
 //│   }
 //│ };
-//│ M5 = class M4 {
+//│ globalThis.Object.freeze(class M4 {
 //│   static {
 //│     M5 = this
 //│   }
@@ -139,8 +139,8 @@ fun foo(x, y) =
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
-//│ };
-//│ foo$capture3 = class foo$capture2 {
+//│ });
+//│ globalThis.Object.freeze(class foo$capture2 {
 //│   static {
 //│     foo$capture3 = this
 //│   }
@@ -149,7 +149,7 @@ fun foo(x, y) =
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "foo$capture"]; 
-//│ };
+//│ });
 //│ foo4 = function foo(x, y) {
 //│   let tmp2, M$1, capture;
 //│   capture = new foo$capture3(y);
@@ -170,7 +170,7 @@ data class A(x) with
   fun getA() = M.getB()
 //│ JS (unsanitized):
 //│ let M7, A1;
-//│ M7 = class M6 {
+//│ globalThis.Object.freeze(class M6 {
 //│   static {
 //│     M7 = this
 //│   }
@@ -185,11 +185,11 @@ data class A(x) with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
-//│ };
+//│ });
 //│ A1 = function A(x1) {
 //│   return globalThis.Object.freeze(new A.class(x1));
 //│ };
-//│ class A {
+//│ globalThis.Object.freeze(class A {
 //│   static {
 //│     A1.class = this
 //│   }
@@ -202,7 +202,7 @@ data class A(x) with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A", ["x"]]; 
-//│ };
+//│ });
 
 :expect 2
 A(2).getA()
@@ -218,17 +218,17 @@ module M with
   val hi = A()
 M.hi.get
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 :expect 2
 module M with
@@ -238,17 +238,17 @@ module M with
     g
 M.f()()
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyFunDefn(UsedVarAnalyzer.scala:193)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody$$anonfun$1(BlockTraverser.scala:110)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.collection.immutable.List.foreach(List.scala:334)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:110)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 :expect 2
 object M with
@@ -275,17 +275,17 @@ module M with
   val x = if A() is A then 2 else 3
 M.A().get
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 //│ 	at: scala.Option.foreach(Option.scala:437)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 module M with
   val x = 2
@@ -294,17 +294,17 @@ module M with
   class B() extends A
 M.B().get
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 /// Top Level Modules ///
 
@@ -322,33 +322,33 @@ module M with
   0 is A
 M.A(2).newB.newA_B(3).newB.get
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 //│ 	at: scala.Option.foreach(Option.scala:437)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 module M with
   class A
   object B extends A
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 //│ 	at: scala.Option.foreach(Option.scala:437)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 
 :lift
@@ -367,32 +367,20 @@ module A with
   fun f = () => g
   f()
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:g
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyFunDefn(UsedVarAnalyzer.scala:193)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody$$anonfun$1(BlockTraverser.scala:110)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.collection.immutable.List.foreach(List.scala:334)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:110)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 module A with
   val a = (() => 1)()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 // This is related to the above, but it will look into the ignored bms map
 module A with
@@ -400,17 +388,17 @@ module A with
     fun f() = 1
     f()
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyFunDefn(UsedVarAnalyzer.scala:193)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:89)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:200)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 :sjs
 module A with
@@ -422,17 +410,17 @@ module A with
     f() + g()
 A.x
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:108)
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
+//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyFunDefn(UsedVarAnalyzer.scala:193)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:89)
+//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:200)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.<init>(UsedVarAnalyzer.scala:188)
-//│ 	at: hkmc2.UsedVarAnalyzer.hkmc2$UsedVarAnalyzer$$findAccesses(UsedVarAnalyzer.scala:198)
 
 // private fields in modules
 :fixme
@@ -442,6 +430,6 @@ module A with
     fun nested() = x
     nested()
 A.mtd
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:mtd
 
 

@@ -120,7 +120,7 @@ module Foo with
 //│ owner: module:Foo, Scope(None,Some(Some(globalThis:globalThis)),HashMap(module:Foo.x -> x))
 //│ owner: module:Foo, Scope(None,Some(Some(globalThis:globalThis)),HashMap(module:Foo.x -> x))
 //│ JS:
-//│ Foo1 = class Foo {
+//│ globalThis.Object.freeze(class Foo {
 //│   static {
 //│     Foo1 = this
 //│   }
@@ -137,7 +137,7 @@ module Foo with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"]; 
-//│ };
+//│ });
 //│ block$res1 = undefined;
 
 

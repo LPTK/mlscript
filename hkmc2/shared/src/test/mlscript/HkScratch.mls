@@ -160,7 +160,7 @@ object Bar extends Foo(42)
 //│ let Bar3;
 //│ globalThis.Object.freeze(class Bar2 extends Foo3.class {
 //│   static {
-//│     Bar3 = new this
+//│     Bar3 = globalThis.Object.freeze(new this)
 //│   }
 //│   constructor() {
 //│     super(42);

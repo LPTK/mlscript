@@ -117,7 +117,7 @@ module Bar with
 //│ | | avoidNames End()...
 //│ isym: class:Bar, Scope(None,Some(Some(globalThis:globalThis)),HashMap())
 //│ JS:
-//│ Bar3 = class Bar2 {
+//│ globalThis.Object.freeze(class Bar2 {
 //│   static {
 //│     Bar3 = this
 //│   }
@@ -132,7 +132,7 @@ module Bar with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Bar"]; 
-//│ };
+//│ });
 //│ block$res2 = undefined;
 
 Bar.x

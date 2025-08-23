@@ -1,5 +1,7 @@
 package hkmc2
 
+import scala.collection.mutable
+
 import mlscript.utils.*, shorthands.*
 import utils.*
 
@@ -181,19 +183,19 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
 
   // MUST be called from a top-level defn
   private def findAccesses(d: Defn): Map[BlockMemberSymbol, AccessInfo] =
-    var defns: List[Defn] = Nil
+    var defns: mutable.ListBuffer[Defn] = mutable.ListBuffer.empty
     var definedVarsDeep: Set[Local] = Set.empty
 
     new BlockTraverser:
       applyDefn(d)
       
       override def applyFunDefn(f: FunDefn): Unit =
-        defns +:= f; definedVarsDeep ++= definedLocals(f.sym)
+        defns += f; definedVarsDeep ++= definedLocals(f.sym)
         super.applyFunDefn(f)
       
       override def applyDefn(defn: Defn): Unit =
         defn match
-          case c: ClsLikeDefn => defns +:= c; definedVarsDeep ++= definedLocals(c.sym)
+          case c: ClsLikeDefn => defns += c; definedVarsDeep ++= definedLocals(c.sym)
           case _ =>
         super.applyDefn(defn)
 

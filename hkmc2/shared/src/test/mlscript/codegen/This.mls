@@ -43,7 +43,7 @@ module Test with
     [this.a, x]
 //│ JS (unsanitized):
 //│ let Test1;
-//│ Test1 = class Test {
+//│ globalThis.Object.freeze(class Test {
 //│   static {
 //│     Test1 = this
 //│   }
@@ -64,7 +64,7 @@ module Test with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Test"]; 
-//│ };
+//│ });
 
 
 Test.test1(123)

@@ -66,7 +66,7 @@ module T with
   val d = this.p
 //│ JS (unsanitized):
 //│ let T1;
-//│ T1 = class T {
+//│ globalThis.Object.freeze(class T {
 //│   static {
 //│     T1 = this
 //│   }
@@ -87,7 +87,7 @@ module T with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "T"]; 
-//│ };
+//│ });
 
 
 T.a
@@ -108,7 +108,7 @@ module M with
   fun t = 0
 //│ JS (unsanitized):
 //│ let M1;
-//│ M1 = class M {
+//│ globalThis.Object.freeze(class M {
 //│   static {
 //│     M1 = this
 //│   }
@@ -121,7 +121,7 @@ module M with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"]; 
-//│ };
+//│ });
 
 
 :sjs
@@ -295,7 +295,7 @@ data class Foo(x) with
 //│ Foo1 = function Foo(x1) {
 //│   return globalThis.Object.freeze(new Foo.class(x1));
 //│ };
-//│ class Foo {
+//│ globalThis.Object.freeze(class Foo {
 //│   static {
 //│     Foo1.class = this
 //│   }
@@ -307,7 +307,7 @@ data class Foo(x) with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", ["x"]]; 
-//│ };
+//│ });
 
 
 fun foo(f) =

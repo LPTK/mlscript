@@ -9,7 +9,7 @@ fun test(a) =
 //│ let test;
 //│ test = function test(a) {
 //│   let C1;
-//│   C1 = class C {
+//│   globalThis.Object.freeze(class C {
 //│     static {
 //│       C1 = this
 //│     }
@@ -18,7 +18,7 @@ fun test(a) =
 //│     }
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "C"]; 
-//│   };
+//│   });
 //│   return globalThis.Object.freeze(new C1())
 //│ };
 
@@ -43,7 +43,7 @@ fun test(x) =
 //│   Foo2 = function Foo(a1, b1) {
 //│     return globalThis.Object.freeze(new Foo.class(a1, b1));
 //│   };
-//│   class Foo1 {
+//│   globalThis.Object.freeze(class Foo1 {
 //│     static {
 //│       Foo2.class = this
 //│     }
@@ -53,7 +53,7 @@ fun test(x) =
 //│     }
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "Foo", ["a", "b"]]; 
-//│   };
+//│   });
 //│   tmp = x + 1;
 //│   return Foo2(x, tmp)
 //│ };

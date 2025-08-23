@@ -65,7 +65,7 @@ data class Foo(x: Int)
 //│ Foo1 = function Foo(x2) {
 //│   return globalThis.Object.freeze(new Foo.class(x2));
 //│ };
-//│ class Foo {
+//│ globalThis.Object.freeze(class Foo {
 //│   static {
 //│     Foo1.class = this
 //│   }
@@ -74,7 +74,7 @@ data class Foo(x: Int)
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", ["x"]]; 
-//│ };
+//│ });
 //│ Type: ⊤
 
 

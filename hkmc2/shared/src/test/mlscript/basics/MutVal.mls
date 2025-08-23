@@ -20,9 +20,9 @@ object O with
   fun gy = y
   fun sy = set y += 1
 //│ JS:
-//│ const O$class = class O {
+//│ globalThis.Object.freeze(class O {
 //│   static {
-//│     O1 = this
+//│     O1 = globalThis.Object.freeze(new this)
 //│   }
 //│   constructor() {
 //│     this.x = 1;
@@ -43,7 +43,7 @@ object O with
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["object", "O"]; 
-//│ }; O1 = globalThis.Object.freeze(new O$class);
+//│ });
 //│ block$res4 = undefined;
 
 set O.x = 2
@@ -64,7 +64,7 @@ class Foo(x, val y, mut val z)
 //│ Foo1 = function Foo(x1, y1, z1) {
 //│   return globalThis.Object.freeze(new Foo.class(x1, y1, z1));
 //│ };
-//│ class Foo {
+//│ globalThis.Object.freeze(class Foo {
 //│   static {
 //│     Foo1.class = this
 //│   }
@@ -79,7 +79,7 @@ class Foo(x, val y, mut val z)
 //│   set z(value) { this.#z = value; }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", [null, "y", "z"]]; 
-//│ };
+//│ });
 
 let f = Foo(1, 2, 3)
 //│ f = Foo(_, 2, 3)

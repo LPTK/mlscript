@@ -368,8 +368,8 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                 // doc" # static  # " :: braced:
                 doc" # static " :: braced:
                   val v = getVar(isym)
-                  val rhs = if kind is syntax.Obj
-                    then doc"new $v"
+                  val rhs = if (kind is syntax.Obj) || (kind is syntax.Pat)
+                    then doc"$freeze(new $v)"
                     else v
                   ownr match
                   case S(owner) =>
