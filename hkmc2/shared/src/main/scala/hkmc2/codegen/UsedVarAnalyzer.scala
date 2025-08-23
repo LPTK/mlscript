@@ -73,17 +73,40 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
       case c: ClsLikeDefn =>
         createMetadataCls(c, existing, inScope)
       case d => Map.empty
-
+    
+    def createMetadataBody(sym: BlockMemberSymbol, c: ClsLikeBody, existing: Set[Local], inScope: Set[BlockMemberSymbol]): Set[BlockMemberSymbol] =
+      var nested: Set[BlockMemberSymbol] = Set.empty
+      
+      val thisScopeDefns: List[Defn] =
+        (c.methods ++ c.ctor.floatOutDefns()._2)
+      
+      nestedDefns += sym -> thisScopeDefns
+      
+      val newInScope = inScope ++ thisScopeDefns.map(_.sym)
+      for s <- thisScopeDefns do
+        inScopeDefns += s.sym -> (newInScope - s.sym)
+        nested += s.sym
+      
+      // defnsMap += (sym -> c)
+      // definedLocals += (sym -> thisVars)
+      
+      for d <- thisScopeDefns do
+        nestedIn += (d.sym -> sym)
+        createMetadataDefn(d, existing, newInScope)
+        nested ++= nestedDeep(d.sym)
+      
+      nested
+    
     def createMetadataCls(c: ClsLikeDefn, existing: Set[Local], inScope: Set[BlockMemberSymbol]): Unit =
       var nested: Set[BlockMemberSymbol] = Set.empty
       
       existingVars += (c.sym -> existing)
       val thisVars = Lifter.getVars(c) -- existing
       val newExisting = existing ++ thisVars
-
+      
       val thisScopeDefns: List[Defn] =
         (c.methods ++ c.preCtor.floatOutDefns()._2 ++ c.ctor.floatOutDefns()._2)
-
+      
       nestedDefns += c.sym -> thisScopeDefns
       
       val newInScope = inScope ++ thisScopeDefns.map(_.sym)
@@ -93,14 +116,17 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
       
       defnsMap += (c.sym -> c)
       definedLocals += (c.sym -> thisVars)
-
+      
       for d <- thisScopeDefns do
         nestedIn += (d.sym -> c.sym)
         createMetadataDefn(d, newExisting, newInScope)
         nested ++= nestedDeep(d.sym)
       
+      nested = nested  | c.companion.fold(nested)(mod =>
+        createMetadataBody(c.sym, mod, newExisting, newInScope))
+      
       nestedDeep += c.sym -> nested
-  
+    
     new BlockTraverserShallow:
       applyBlock(b)
       override def applyDefn(defn: Defn): Unit =
@@ -190,7 +216,8 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
       applyDefn(d)
       
       override def applyFunDefn(f: FunDefn): Unit =
-        defns += f; definedVarsDeep ++= definedLocals(f.sym)
+        defns += f
+        definedVarsDeep ++= definedLocals(f.sym)
         super.applyFunDefn(f)
       
       override def applyDefn(defn: Defn): Unit =

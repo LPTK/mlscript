@@ -46,7 +46,7 @@ new id(C)
 //│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
 //│ ║  l.45: 	new id(C)
 //│ ║        	    ^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: Predef.id is not a constructor
 
 :e
@@ -54,7 +54,7 @@ new (id(C))
 //│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
 //│ ║  l.53: 	new (id(C))
 //│ ║        	     ^^^^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = C
 
 

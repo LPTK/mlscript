@@ -6,16 +6,24 @@ import "../../mlscript-compile/Option.mls"
 :sjs
 module A with
   fun f(x) = x is Option.Some
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyFunDefn(UsedVarAnalyzer.scala:193)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody$$anonfun$1(BlockTraverser.scala:110)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.collection.immutable.List.foreach(List.scala:334)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:110)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ JS (unsanitized):
+//│ let A1;
+//│ globalThis.Object.freeze(class A {
+//│   static {
+//│     A1 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {}
+//│   static f(x) {
+//│     if (x instanceof Option.Some.class) {
+//│       return true
+//│     } else {
+//│       return false
+//│     }
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "A"]; 
+//│ });
 

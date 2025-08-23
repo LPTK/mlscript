@@ -100,7 +100,7 @@ new t
 //│ ╔══[ERROR] Expected a statically known class; found reference without a resolvable definition.
 //│ ║  l.99: 	new t
 //│ ║        	    ^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new t())
 //│ > hi
@@ -117,7 +117,7 @@ new t()
 //│ ╔══[ERROR] Expected a statically known class; found reference without a resolvable definition.
 //│ ║  l.116: 	new t()
 //│ ║         	    ^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new t())
 //│ > hi

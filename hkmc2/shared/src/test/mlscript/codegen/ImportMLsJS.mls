@@ -15,7 +15,7 @@ Option.isDefined(new Option.Some(1))
 //│ ╔══[ERROR] Expected a statically known class; found selection without a resolvable definition.
 //│ ║  l.14: 	Option.isDefined(new Option.Some(1))
 //│ ║        	                     ^^^^^^^^^^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = true
 
 Option.isDefined(new! Option.Some(1))

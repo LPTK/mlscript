@@ -363,12 +363,12 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     val modules: mutable.ListBuffer[ClsLikeDefn] = mutable.ListBuffer.empty
     val objects: mutable.ListBuffer[ClsLikeDefn] = mutable.ListBuffer.empty
     var extendsGraph: Set[(BlockMemberSymbol, BlockMemberSymbol)] = Set.empty
-
+    
     d match
       case c @ ClsLikeDefn(k = syntax.Mod) => modules += c
       case c @ ClsLikeDefn(k = syntax.Obj) => objects += c
       case _ => ()
-
+    
     // search for modules
     new BlockTraverser:
       applyDefn(d)
@@ -391,17 +391,17 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
                 objects += c
             case _ => ()
           super.applyDefn(defn)
-
+    
     // search for defns nested within a top-level module, which are unnecessary to lift
     def inModuleDefns(d: Defn): Set[BlockMemberSymbol] =
       val nested = ctx.nestedDefns(d.sym)
       nested.map(_.sym).toSet ++ nested.flatMap: nested =>
         if modules.contains(nested.sym) then inModuleDefns(nested) else Set.empty
-
+    
     val isMod = d match
       case c: ClsLikeDefn if c.k is syntax.Mod => true
       case _ => false
-
+    
     val inModTopLevel = if isMod then inModuleDefns(d) else Set.empty
     ignored ++= inModTopLevel
     
@@ -469,7 +469,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
           applyBlock(preCtor)
           applyBlock(ctor)
           mod.foreach(applyClsLikeBody)
-
+      
       override def applyValue(v: Value): Unit = v match
         case RefOfBms(l) if clsSyms.contains(l) && !modOrObj(ctx.defns(l)) =>
           raise(WarningReport(
@@ -479,7 +479,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
           ignored += l
           unliftable += l
         case _ => super.applyValue(v)
-
+    
     // analyze the extends graph
     val extendsEdges = extendsGraph.groupBy(_._1).map:
         case (a, bs) => a -> bs.map(_._2)
@@ -499,35 +499,35 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
         dfs(b)
     for s <- ignored do
       dfs(s)
-
+  
     (ignored ++ newUnliftable, modules.toList, objects.toList)
-
+  
   extension (b: Block)
     private def floatOut(ctx: LifterCtx) =
       b.floatOutDefns(preserve = defn => ctx.isModOrObj(defn.sym) || ctx.ignored(defn.sym))
       
-
+  
   def createLiftInfoCont(d: Defn, parentCls: Opt[ClsLikeDefn], ctx: LifterCtx): Map[BlockMemberSymbol, LiftedInfo] =
     val AccessInfo(accessed, _, refdDefns) = ctx.getAccesses(d.sym)
-
+    
     val inScopeRefs = refdDefns.intersect(ctx.inScopeDefns(d.sym))
-
+    
     val includedCaptures = ctx.prevFnLocals.reqCapture
       .intersect(accessed)
       .map(sym => ctx.lookup(sym).get)
       .toList.sortBy(_.uid)
-
+    
     val refMod = inScopeRefs.intersect(ctx.modObjLocals.keySet)
     val includedLocals = ((accessed -- ctx.prevFnLocals.reqCapture) ++ refMod).toList.sortBy(_.uid)
     val clsCaptures: List[InnerSymbol] = ctx.prevClsDefns.map(_.isym)
     val refBms = inScopeRefs.intersect(ctx.ignoredDefns).toList.sortBy(_.uid)
-
+    
     val modLocal = d match
       case c: ClsLikeDefn if modOrObj(c) && !ctx.ignored(c.sym) => parentCls match
         case None => S(VarSymbol(Tree.Ident(c.sym.nme + "$")))
         case Some(value) => S(TermSymbol(syntax.ImmutVal, S(value.isym), Tree.Ident(c.sym.nme + "$")))
       case _ => N
-
+    
     if ctx.ignored(d.sym) ||
       (includedCaptures.isEmpty && includedLocals.isEmpty && clsCaptures.isEmpty && refBms.isEmpty) then
       d match
@@ -540,9 +540,9 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       val fakeCtorBms = d match
         case c: ClsLikeDefn if !modLocal.isDefined => S(BlockMemberSymbol(d.sym.nme + "$ctor", Nil))
         case _ => N
-
+      
       val singleCallBms = BlockMemberSymbol(d.sym.nme + "$", Nil)
-
+      
       val info = LiftedInfo(
         includedCaptures, includedLocals, clsCaptures,
         refBms, fakeCtorBms, singleCallBms

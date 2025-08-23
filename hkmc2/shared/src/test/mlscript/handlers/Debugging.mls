@@ -187,29 +187,16 @@ let res =
     fun break(payload)(resume) = resume
   using Debugger = h
   Runtime.try(() => Test.main())
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: dbg.break is not a function
-//│     at REPL39:1:1216
-//│     at REPL39:1:1790
-//│     at REPL39:1:1810
-//│     at lambda2 (REPL42:1:6328)
-//│     at lambda1 (REPL42:1:6398)
-//│     at Runtime.try (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:447:28)
-//│     at handleBlock$ (REPL42:1:6488)
-//│     at REPL42:1:6703
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│ res = undefined
+//│ res = NaN
 
 :re
 res.raise()
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'raise')
+//│ ═══[RUNTIME ERROR] TypeError: res11.raise is not a function
 
 set res = res.resumeWith(42)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'resumeWith')
+//│ ═══[RUNTIME ERROR] TypeError: res11.resumeWith is not a function
 //│     at REPL49:1:441
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
@@ -223,12 +210,12 @@ set res = res.resumeWith(42)
 
 :re
 res.raise()
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'raise')
+//│ ═══[RUNTIME ERROR] TypeError: res11.raise is not a function
 
 res.resumeWith(666)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'resumeWith')
+//│ ═══[RUNTIME ERROR] TypeError: res11.resumeWith is not a function
 //│     at REPL55:1:367
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
 //│     at REPLServer.defaultEval (node:repl:598:22)
@@ -254,9 +241,9 @@ fun f() =
 f()
 //│ > [FnLocalsInfo("‹top level›", [LocalVarInfo("i", 100)]), FnLocalsInfo("f", [LocalVarInfo("j", 200)])]
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:247:3) with locals: j=200
+//│ > 	at f (Debugging.mls:234:3) with locals: j=200
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:249:3)
+//│ > 	at f (Debugging.mls:236:3)
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:250:3) with locals: j=300
+//│ > 	at f (Debugging.mls:237:3) with locals: j=300
 //│ > [FnLocalsInfo("‹top level›", [LocalVarInfo("i", 100)]), FnLocalsInfo("f", [LocalVarInfo("j", 300)])]

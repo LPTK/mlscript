@@ -217,18 +217,7 @@ module M with
     fun get = x
   val hi = A()
 M.hi.get
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ = 2
 
 :expect 2
 module M with
@@ -237,18 +226,7 @@ module M with
     fun g() = x
     g
 M.f()()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyFunDefn(UsedVarAnalyzer.scala:193)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody$$anonfun$1(BlockTraverser.scala:110)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.collection.immutable.List.foreach(List.scala:334)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:110)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ = 2
 
 :expect 2
 object M with
@@ -274,18 +252,51 @@ module M with
     fun get = M.x + x
   val x = if A() is A then 2 else 3
 M.A().get
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ FAILURE: Unexpected warning
+//│ FAILURE LOCATION: applyCase (Lifter.scala:417)
+//│ ═══[WARNING] Cannot yet lift class/module `A` as it is used in an instance check.
+//│ JS (unsanitized):
+//│ let M17, tmp5;
+//│ globalThis.Object.freeze(class M16 {
+//│   static {
+//│     M17 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
+//│     let scrut, tmp6;
+//│     this.A = function A() {
+//│       return globalThis.Object.freeze(new A.class());
+//│     };
+//│     globalThis.Object.freeze(class A5 {
+//│       static {
+//│         M16.A.class = this
+//│       }
+//│       constructor() {}
+//│       get get() {
+//│         return M17.x + M16.x;
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "A", []]; 
+//│     });
+//│     scrut = M16.A();
+//│     if (scrut instanceof M16.A.class) {
+//│       tmp6 = 2;
+//│     } else {
+//│       tmp6 = 3;
+//│     }
+//│     this.x = tmp6;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "M"]; 
+//│ });
+//│ tmp5 = M17.A();
+//│ tmp5.get
+//│ FAILURE: Unexpected warning
+//│ FAILURE LOCATION: applyCase (Lifter.scala:417)
+//│ ═══[WARNING] Cannot yet lift class/module `A` as it is used in an instance check.
+//│ = 4
 
 module M with
   val x = 2
@@ -293,18 +304,7 @@ module M with
     fun get = x
   class B() extends A
 M.B().get
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ = 2
 
 /// Top Level Modules ///
 
@@ -321,34 +321,78 @@ module M with
     fun newB = B()
   0 is A
 M.A(2).newB.newA_B(3).newB.get
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
+//│ FAILURE: Unexpected warning
+//│ FAILURE LOCATION: applyCase (Lifter.scala:417)
+//│ ═══[WARNING] Cannot yet lift class/module `A` as it is used in an instance check.
+//│ JS (unsanitized):
+//│ let M21, tmp7, tmp8;
+//│ globalThis.Object.freeze(class M20 {
+//│   static {
+//│     M21 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
+//│     let scrut;
+//│     this.A = function A(x1) {
+//│       return globalThis.Object.freeze(new A.class(x1));
+//│     };
+//│     globalThis.Object.freeze(class A7 {
+//│       static {
+//│         M20.A.class = this
+//│       }
+//│       constructor(x) {
+//│         this.x = x;
+//│         const this$A = this;
+//│         this.B = function B() {
+//│           return globalThis.Object.freeze(new B.class());
+//│         };
+//│         globalThis.Object.freeze(class B1 {
+//│           static {
+//│             this$A.B.class = this
+//│           }
+//│           constructor() {}
+//│           get get() {
+//│             return this$A.x;
+//│           } 
+//│           newA_B(y) {
+//│             return M20.A(y)
+//│           }
+//│           toString() { return runtime.render(this); }
+//│           static [definitionMetadata] = ["class", "B", []]; 
+//│         });
+//│       }
+//│       get newA() {
+//│         return M20.A(42);
+//│       } 
+//│       get newB() {
+//│         return this.B();
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "A", ["x"]]; 
+//│     });
+//│     scrut = 0;
+//│     if (scrut instanceof M20.A.class) {
+//│       true
+//│     } else {
+//│       false
+//│     }
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "M"]; 
+//│ });
+//│ tmp7 = M21.A(2);
+//│ tmp8 = runtime.safeCall(tmp7.newB.newA_B(3));
+//│ tmp8.newB.get
+//│ FAILURE: Unexpected warning
+//│ FAILURE LOCATION: applyCase (Lifter.scala:417)
+//│ ═══[WARNING] Cannot yet lift class/module `A` as it is used in an instance check.
+//│ = 3
 
 module M with
   class A
   object B extends A
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:A
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:198)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.Option.foreach(Option.scala:437)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:106)
 
 
 :lift
@@ -366,18 +410,29 @@ module A with
   fun g = 1
   fun f = () => g
   f()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:g
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyFunDefn(UsedVarAnalyzer.scala:193)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody$$anonfun$1(BlockTraverser.scala:110)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.collection.immutable.List.foreach(List.scala:334)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:110)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ JS (unsanitized):
+//│ let A10;
+//│ globalThis.Object.freeze(class A9 {
+//│   static {
+//│     A10 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
+//│     A9.f();
+//│   }
+//│   static get g() {
+//│     return 1;
+//│   } 
+//│   static get f() {
+//│     return () => {
+//│       return A9.g
+//│     };
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "A"]; 
+//│ });
 
 module A with
   val a = (() => 1)()
@@ -387,18 +442,6 @@ module A with
   val x =
     fun f() = 1
     f()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyFunDefn(UsedVarAnalyzer.scala:193)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:89)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:200)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 
 :sjs
 module A with
@@ -409,18 +452,37 @@ module A with
       h()
     f() + g()
 A.x
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyFunDefn(UsedVarAnalyzer.scala:193)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:89)
-//│ 	at: hkmc2.UsedVarAnalyzer$$anon$3.applyDefn(UsedVarAnalyzer.scala:200)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:40)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:20)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyClsLikeBody(BlockTraverser.scala:114)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn$$anonfun$8(BlockTraverser.scala:106)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ JS (unsanitized):
+//│ let A16;
+//│ globalThis.Object.freeze(class A15 {
+//│   static {
+//│     A16 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
+//│     let f, g1, tmp9, tmp10, tmp11;
+//│     f = function f() {
+//│       return 1
+//│     };
+//│     g1 = function g() {
+//│       let h;
+//│       h = function h() {
+//│         return f()
+//│       };
+//│       return h()
+//│     };
+//│     tmp9 = f();
+//│     tmp10 = g1();
+//│     tmp11 = tmp9 + tmp10;
+//│     this.x = tmp11;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "A"]; 
+//│ });
+//│ A16.x
+//│ = 2
 
 // private fields in modules
 :fixme
@@ -430,6 +492,7 @@ module A with
     fun nested() = x
     nested()
 A.mtd
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:mtd
+//│ = 1
+//│ FAILURE: Unexpected lack of error to fix
 
 

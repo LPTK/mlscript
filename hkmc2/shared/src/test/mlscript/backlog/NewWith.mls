@@ -80,7 +80,7 @@ new (Foo(123)) with { fun foo = 27 }
 //│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
 //│ ║  l.79: 	new (Foo(123)) with { fun foo = 27 }
 //│ ║        	     ^^^^^^^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ > Foo 123 124
 //│ ═══[RUNTIME ERROR] TypeError: Class extends value [object Object] is not a constructor or null
 
@@ -96,7 +96,7 @@ new {Foo(123)} with { fun foo = 27 }
 //│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
 //│ ║  l.95: 	new {Foo(123)} with { fun foo = 27 }
 //│ ║        	     ^^^^^^^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ > Foo 123 124
 //│ ═══[RUNTIME ERROR] TypeError: Class extends value [object Object] is not a constructor or null
 

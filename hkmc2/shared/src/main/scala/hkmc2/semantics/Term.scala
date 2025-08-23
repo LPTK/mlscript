@@ -294,7 +294,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
     case Blk(stats, res) => stats ::: res :: Nil
     case _ => subTerms
   def subTerms: Ls[Term] = this match
-    case Error | _: Lit | _: Ref | _: UnitVal => Nil
+    case Error | Missing | _: Lit | _: Ref | _: UnitVal => Nil
     case App(lhs, rhs) => lhs :: rhs :: Nil
     case RcdField(lhs, rhs) => lhs :: rhs :: Nil
     case RcdSpread(bod) => bod :: Nil

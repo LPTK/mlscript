@@ -293,6 +293,7 @@ extends Importer:
         N
     case _ => N
   
+  // TODO: rm
   def cls(trm: Term, inAppPrefix: Bool)
       : Ctxl[Term]
       = trace[Term](s"Elab class ${trm}", r => s"~> $r"):
@@ -597,7 +598,10 @@ extends Importer:
       Term.Tup(fields.map(fld(_)))(tree)
       
     case DynamicNew(Apps(c, args)) =>
-      Term.DynNew(subterm(c, inAppPrefix = inAppPrefix), args.map(subterm(_))).withLocOf(tree)
+      val (mut, c2) = c match
+        case Modified(Keywrd(Keyword.`mut`), c) => (true, c)
+        case c => (false, c)
+      Term.DynNew(subterm(c2, inAppPrefix = inAppPrefix), args.map(subterm(_))).withLocOf(tree)
     // case New(c, rfto) =>
     //   assert(rfto.isEmpty)
     //   Term.New(cls(subterm(c), inAppPrefix = inAppPrefix), params.map(subterm(_)), bodo).withLocOf(tree)

@@ -21,7 +21,7 @@ new
 //│ ╔══[ERROR] Expected a statically known class; found block.
 //│ ║  l.20: 	  Foo
 //│ ║        	  ^^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ╔══[WARNING] Pure expression in statement position
 //│ ║  l.19: 	  Foo
 //│ ╙──      	  ^^^
@@ -35,7 +35,7 @@ new
 //│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
 //│ ║  l.34: 	  Foo()
 //│ ║        	  ^^^^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo cannot be invoked without 'new'
 
 :e
@@ -56,7 +56,7 @@ new
 //│ ╔══[ERROR] Expected a statically known class; found block.
 //│ ║  l.55: 	  ()
 //│ ║        	  ^^
-//│ ╙── The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.
+//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ╔══[WARNING] Pure expression in statement position
 //│ ║  l.54: 	  Foo
 //│ ╙──      	  ^^^

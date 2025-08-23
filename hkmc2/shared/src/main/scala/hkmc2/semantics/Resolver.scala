@@ -333,8 +333,14 @@ class Resolver(tl: TraceLogger)
             case Split.End =>
           split(t.desugared)
         
+        case Term.Handle(lhs, rhs, args, derivedClsSym, defs, body) =>
+          traverse(rhs, expect = Class(S("The 'handle' keyword requires a statically known class.")))
+          args.foreach(traverse(_, expect = NonModule(N)))
+          defs.foreach(d => resolveDefn(d.td))
+          traverse(body, expect = NonModule(N))
+          
         case Term.New(cls, args, rft) =>
-          traverse(cls, expect = Class(S("The 'new' requires a statically known class; use the 'new!' operator for dynamic instantiation.")))
+          traverse(cls, expect = Class(S("The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.")))
           args.foreach(traverse(_, expect = NonModule(N)))
           rft.foreach((sym, bdy) => traverseBlock(bdy.blk))
         
@@ -848,7 +854,7 @@ class Resolver(tl: TraceLogger)
       // Complex types are not supported.
       // TODO: Handle complex types.
       case _: (Term.FunTy | Term.WildcardTy | Term.CompType | Term.Neg | Term.Forall | Term.Tup) => N
-        
+      
       // Otherwise, resolve the term directly.
       case _ => t.symbol match
         // A VarSymbol is probably a type parameter.
