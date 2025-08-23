@@ -2,6 +2,8 @@ package hkmc2
 package syntax
 
 import scala.annotation.tailrec
+import scala.collection.mutable
+import sourcecode.Line
 
 import mlscript.utils.*, shorthands.*
 import hkmc2.utils.*
@@ -395,12 +397,21 @@ object PossiblyParenthesized:
     case _ => S(t)
 
 
-sealed abstract class OuterKind(val desc: Str)
+sealed abstract class OuterKind(val desc: Str)(using line: Line) extends Ordered[OuterKind]:
+  val ordinal: Int =
+    // try OuterKind.counter finally OuterKind.counter += 1
+    line.value
+  assert(!OuterKind.kinds.contains(ordinal))
+  OuterKind.kinds += (ordinal -> this)
+  def compare(that: OuterKind): Int = this.ordinal - that.ordinal
+object OuterKind:
+  private var counter = 0
+  private val kinds = mutable.Map.empty[Int, OuterKind]
 case object BlockKind extends OuterKind("block")
-sealed abstract class DeclKind(desc: Str) extends OuterKind(desc)
-sealed abstract class TermDefKind(val str: Str, desc: Str) extends DeclKind(desc)
-sealed abstract class ValLike(str: Str, desc: Str) extends TermDefKind(str, desc)
-sealed abstract class Val(str: Str, desc: Str) extends ValLike(str, desc)
+sealed abstract class DeclKind(desc: Str)(using Line) extends OuterKind(desc)
+sealed abstract class TermDefKind(val str: Str, desc: Str)(using Line) extends DeclKind(desc)
+sealed abstract class ValLike(str: Str, desc: Str)(using Line) extends TermDefKind(str, desc)
+sealed abstract class Val(str: Str, desc: Str)(using Line) extends ValLike(str, desc)
 case object ImmutVal extends Val("val", "value")
 case object MutVal extends Val("mut val", "mutable value")
 case object LetBind extends ValLike("let", "let binding")
@@ -408,7 +419,7 @@ case object HandlerBind extends TermDefKind("handler", "handler binding")
 case object ParamBind extends ValLike("", "parameter")
 case object Fun extends TermDefKind("fun", "function")
 case object Ins extends TermDefKind("using", "implicit instance")
-sealed abstract class TypeDefKind(desc: Str) extends DeclKind(desc)
+sealed abstract class TypeDefKind(desc: Str)(using Line) extends DeclKind(desc)
 sealed trait ObjDefKind
 sealed trait ClsLikeKind extends ObjDefKind:
   val desc: Str
@@ -420,6 +431,24 @@ case object Mod extends TypeDefKind("module") with ClsLikeKind
 case object Obj extends TypeDefKind("object") with ClsLikeKind
 case object Pat extends TypeDefKind("pattern") with ClsLikeKind
 
+// val _ =
+//   // * Initialize in expected order
+//   BlockKind
+//   ImmutVal
+//   MutVal
+//   LetBind
+//   HandlerBind
+//   ParamBind
+//   Fun
+//   Ins
+//   Cls
+//   Trt
+//   Mxn
+//   Als
+//   Mod
+//   Obj
+//   Pat
+//   ()
 
 
 trait TermDefImpl extends TypeOrTermDef:
@@ -429,8 +458,10 @@ trait TermDefImpl extends TypeOrTermDef:
     (k is Fun) && paramLists.length > 0
   
 
-trait TypeOrTermDef:
+trait TypeOrTermDef extends Located:
   this: TypeDef | TermDef =>
+  
+  def describe: Str
   
   def k: DeclKind
   def head: Tree

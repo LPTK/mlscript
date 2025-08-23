@@ -146,7 +146,7 @@ class BuiltinSymbol
   * definition living in a block – e.g., a module or class.
   * `nameIsMeaningful` is `true` when the name comes from the user's source code;
   *   it is false when the name is a default given by the compiler, such as "lambda" when lifting lambdas. */
-class BlockMemberSymbol(val nme: Str, val trees: Ls[Tree], val nameIsMeaningful: Bool = true)(using State)
+class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMeaningful: Bool = true)(using State)
     extends MemberSymbol[Definition]:
   
   def toLoc: Option[Loc] = Loc(trees)

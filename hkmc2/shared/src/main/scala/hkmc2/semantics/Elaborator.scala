@@ -804,6 +804,17 @@ extends Importer:
     case (blk: Blk, ctx) => (blk, ctx)
     case (rcd: Rcd, ctx) => (Blk(Nil, rcd), ctx)
   
+  val supportedOverloadings: Set[(OuterKind, OuterKind)] = Set(
+    Cls -> Mod,
+    Obj -> Mod,
+  )
+  val notYetSupportedOverloadings: Set[(OuterKind, OuterKind)] = Set(
+    Fun -> Cls,
+    Fun -> Mod,
+    ImmutVal -> Mod,
+    MutVal -> Mod,
+  )
+  
   // * Some blocks do not have a meaningful result,
   // * e.g., constructor blocks or top-level blocks (in MLscript files and diff-tests);
   // * for these, elaborate with `hasResult = false`, which uses `undefined` as the result
@@ -821,12 +832,49 @@ extends Importer:
     // TODO Support module overloading and roll this check up
     blk.definedSymbols.foreach:
       case (name, sym) =>
+        // log(s"!! Processing overloadings for '$name' ${sym.trees.map(_.name)}")
         val defns = sym.trees.collect:
-          case td: TermDef if td.rhs.isDefined => td
-          case td: TypeDef => td
+          case td: TermDef if td.rhs.isDefined && td.name.exists(_.name === name) => td
+          case td: TypeDef if td.name.exists(_.name === name) => td
         // if defns.length > 1 then
         //   raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
         //     defns.map(msg"defined here" -> _.toLoc)))
+        if defns.length > 1 then
+          val groups = defns.groupMapReduce(_.k)(_ :: Nil)(_ ::: _)
+          val sortedGroups = scala.collection.immutable.SortedMap.from(groups)
+          // sortedGroups.valuesIterator.foreach: group =>
+          //   if group.size > 1 then
+          //     raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
+          //       group.map(msg"defined here" -> _.toLoc)))
+          sortedGroups.iterator.foreach: (k, group) =>
+            if group.size > 1 then
+              raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
+                group.map(msg"defined here" -> _.toLoc)))
+            val mainDefn = group.head // Safe since these `groupMapReduce` groups cannot be empty
+            // k match
+            // case _ =>
+            log(s"Processing overloadings for '$name'")
+            defns.iterator.foreach: defn =>
+              if defn.k > k then
+                if !supportedOverloadings(k -> defn.k) then
+                  if notYetSupportedOverloadings(k -> defn.k)
+                  then raise:
+                    ErrorReport:
+                      // // msg"Overloading of '$name' with kind '${defn.k.desc}' cannot follow definition with kind '${k.desc}'" -> defn.toLoc
+                      // msg"Overloading of ${k.desc} '$name'" -> mainDefn.toLoc
+                      // :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
+                      // :: msg"is not yet supported." -> N
+                      // :: Nil
+                      msg"Not yet supported: overloading of ${k.desc} '$name'" -> mainDefn.toLoc
+                      :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
+                      :: Nil
+                  else raise:
+                    // log(s"$k ${k.ordinal} < ${defn.k} ${defn.k.ordinal}")
+                    ErrorReport:
+                      // msg"Illegal overloading of ${defn.k.desc} '$name' with ${k.desc} of the same name" -> defn.toLoc :: Nil
+                      msg"Illegal overloading of ${k.desc} '$name'" -> mainDefn.toLoc
+                      :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
+                      :: Nil
         val decls = sym.trees.collect:
           case td: TermDef if td.rhs.isEmpty => td
         if decls.length > 1 then

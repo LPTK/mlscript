@@ -246,6 +246,7 @@ object M with
 M.f()()
 //│ = 2
 
+// FIXME: properly recognize that `A` is in a module and thus doesn't need lifting
 :sjs
 module M with
   class A() with
