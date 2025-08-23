@@ -1,0 +1,95 @@
+:js
+// :de
+// :sjs
+// :pt
+// :elt
+
+:global
+// :d
+// :todo
+
+
+
+:ssjs
+object U with
+  val x = 1
+U
+//│ JS:
+//│ globalThis.Object.freeze(class U {
+//│   static {
+//│     U1 = new this
+//│   }
+//│   constructor() {
+//│     this.x = 1;
+//│     Object.defineProperty(this, "class", {
+//│       value: U
+//│     })
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["object", "U"]; 
+//│ });
+//│ block$res1 = U1;
+//│ undefined
+//│ = U { x: 1, class: object U }
+
+:ssjs
+U
+//│ JS:
+//│ block$res2 = U1; undefined
+//│ = U { x: 1, class: object U }
+
+U.x
+//│ = 1
+
+U.class
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: resolveField (Elaborator.scala:289)
+//│ ╔══[ERROR] Object 'U' does not contain member 'class'
+//│ ║  l.44: 	U.class
+//│ ╙──      	 ^^^^^^
+//│ = object U
+
+:ssjs
+module W with
+  object U
+//│ JS:
+//│ globalThis.Object.freeze(class W {
+//│   static {
+//│     W1 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
+//│     globalThis.Object.freeze(class U2 {
+//│       static {
+//│         W.U = new this
+//│       }
+//│       constructor() {
+//│         Object.defineProperty(this, "class", {
+//│           value: U2
+//│         })
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["object", "U"]; 
+//│     });
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "W"]; 
+//│ });
+//│ block$res5 = undefined;
+
+:ssjs
+W.U
+//│ JS:
+//│ selRes2 = W1.U;
+//│ if (selRes2 === undefined) {
+//│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'U' yielded 'undefined'"))
+//│ }
+//│ block$res6 = selRes2;
+//│ undefined
+//│ = U
+
+
+
+

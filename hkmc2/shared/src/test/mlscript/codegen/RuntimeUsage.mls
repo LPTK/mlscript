@@ -1,34 +1,19 @@
 :js
 
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 ()
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print(())
 //│ > ()
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print(print("hello!"))
 //│ > hello!
 //│ > ()
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 
 // * One can import the Runtime module explicitly
 
 import "../../mlscript-compile/Runtime.mls"
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 :showRepl
 Runtime.printRaw(1)
@@ -46,149 +31,76 @@ Runtime.printRaw(1)
 //│ REPL> Sending: try { runtime.checkCall(runtime.printRaw(block$res5)) } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
 //│ REPL> Collected:
 //│ >  ()
-//│ >  [class Unit] {
-//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
-//│ >  }
+//│ >  Unit {}
 //│ REPL> Parsed:
 //│ >  ()
-//│ >  [class Unit] {
-//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
-//│ >  }
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+//│ >  Unit {}
 
 print(Runtime.Unit)
 //│ > ()
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 open Runtime
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print(Unit)
 //│ > ()
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of safeCall(123)
 //│ > 123
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of safeCall(null)
 //│ > null
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of safeCall(undefined)
 //│ > ()
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of safeCall(())
 //│ > ()
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of  checkCall(123)
 //│ > 123
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of  checkCall(null)
 //│ > null
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 :re
 print of  checkCall(undefined)
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 
 print of Tuple.slice([1, 2, 3, 4], 1, -1)
 //│ > [2, 3, 4]
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of Tuple.get([1, 2, 3, 4], 0)
 //│ > 1
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of Tuple.get([1, 2, 3, 4], -1)
 //│ > 4
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 :re
 print of Tuple.get([1, 2, 3, 4], 5)
 //│ ═══[RUNTIME ERROR] RangeError: Tuple.get: index out of bounds
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of Str.leave("hello, world", 2)
 //│ > llo, world
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of Str.leave("hello, world", -2)
 //│ > ld
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of Str.get("hello, world", 2)
 //│ > l
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 :re
 print of Str.get("hello, world", 22)
 //│ ═══[RUNTIME ERROR] RangeError: Str.get: index out of bounds
-//│ = undefined
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of Str.get("hello, world", -1)
 //│ > d
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of Str.startsWith("hello, world", "hello")
 //│ > true
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of Str.startsWith("hello, world", "")
 //│ > true
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 print of Str.startsWith("hello, world", "farewell")
 //│ > false
-//│ = ()
-//│ [class Unit] {
-//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]

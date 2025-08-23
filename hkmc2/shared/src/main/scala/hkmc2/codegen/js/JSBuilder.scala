@@ -360,11 +360,22 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             
             val ctorBod = {
                 val extraPath = if paramsOpt.isDefined then ".class" else ""
-                ownr match
-                case S(owner) =>
-                  doc" # static " :: braced(doc" # ${result(Value.Ref(owner))}.${sym.nme}$extraPath = ${getVar(isym)}")
-                case N =>
-                  doc" # static " :: braced(doc" # ${getVar(sym)}$extraPath = ${getVar(isym)}")
+                // ownr match
+                // case S(owner) =>
+                //   doc" # static " :: braced(doc" # ${result(Value.Ref(owner))}.${sym.nme}$extraPath = ${getVar(isym)}")
+                // case N =>
+                //   doc" # static " :: braced(doc" # ${getVar(sym)}$extraPath = ${getVar(isym)}")
+                // doc" # static  # " :: braced:
+                doc" # static " :: braced:
+                  val v = getVar(isym)
+                  val rhs = if kind is syntax.Obj
+                    then doc"new $v"
+                    else v
+                  ownr match
+                  case S(owner) =>
+                    doc" # ${result(Value.Ref(owner))}.${sym.nme}$extraPath = $rhs"
+                  case N =>
+                    doc" # ${getVar(sym)}$extraPath = $rhs"
               } :/: ctorOrStatic :: " " :: braced(ctorAux)
             
             val clsJS = doc"class ${scope.lookup_!(isym)}${

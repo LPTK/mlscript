@@ -32,7 +32,7 @@ globalThis.Object.freeze(class Runtime {
   static {
     globalThis.Object.freeze(class Unit {
       static {
-        Runtime.Unit = this
+        Runtime.Unit = new this
       }
       constructor() {
         Object.defineProperty(this, "class", {
@@ -234,7 +234,7 @@ globalThis.Object.freeze(class Runtime {
     });
     globalThis.Object.freeze(class FatalEffect {
       static {
-        Runtime.FatalEffect = this
+        Runtime.FatalEffect = new this
       }
       constructor() {
         Object.defineProperty(this, "class", {
@@ -246,7 +246,7 @@ globalThis.Object.freeze(class Runtime {
     });
     globalThis.Object.freeze(class PrintStackEffect {
       static {
-        Runtime.PrintStackEffect = this
+        Runtime.PrintStackEffect = new this
       }
       constructor() {
         Object.defineProperty(this, "class", {
@@ -359,7 +359,7 @@ globalThis.Object.freeze(class Runtime {
     this.stackResume = null;
     globalThis.Object.freeze(class StackDelayHandler {
       static {
-        Runtime.StackDelayHandler = this
+        Runtime.StackDelayHandler = new this
       }
       constructor() {
         Object.defineProperty(this, "class", {
