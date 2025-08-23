@@ -188,8 +188,8 @@ module Bar with
 //│     runtime.Unit;
 //│   }
 //│   static #x;
-//│   get x() { return Bar4.#x; }
-//│   set x(value) { Bar4.#x = value; }
+//│   static get x() { return Bar4.#x; }
+//│   static set x(value) { Bar4.#x = value; }
 //│   static {
 //│     this.x = 1;
 //│   }

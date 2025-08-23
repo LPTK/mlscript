@@ -128,8 +128,8 @@ module Foo with
 //│     runtime.Unit;
 //│   }
 //│   static #x;
-//│   get x() { return Foo.#x; }
-//│   set x(value) { Foo.#x = value; }
+//│   static get x() { return Foo.#x; }
+//│   static set x(value) { Foo.#x = value; }
 //│   static {
 //│     this.x = 1;
 //│     Foo.x = 2;

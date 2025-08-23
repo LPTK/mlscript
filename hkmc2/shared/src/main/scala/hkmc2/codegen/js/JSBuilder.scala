@@ -272,8 +272,8 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                         val nme = scp.allocateName(fld)
                         doc" # $mtdPrefix#$nme;"
                     val accessors = mutPubFields.flatMap: (valSym, letSym) =>
-                      doc" # get ${escapeField(valSym.name, "")}() { return ${getVar(letSym)}; }" ::
-                        doc" # set ${escapeField(valSym.name, "")}(value) { ${getVar(letSym)} = value; }" ::
+                      doc" # static get ${escapeField(valSym.name, "")}() { return ${getVar(letSym)}; }" ::
+                        doc" # static set ${escapeField(valSym.name, "")}(value) { ${getVar(letSym)} = value; }" ::
                         Nil
                     (privDecls ::: accessors).mkDocument(doc"")
                   val ctorCode = doc"static " :: braced:

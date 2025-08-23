@@ -94,65 +94,46 @@ W.U
 
 
 
-
-
-:lot
+// :lot
 fun f() =
   class Test(a)
   new Test(123)
-//│ Lowered:
-//│ Program:
-//│   imports = Nil
-//│   main = Define:
-//│     defn = FunDefn:
-//│       owner = N
-//│       sym = member:f
-//│       params = Ls of 
-//│         ParamList:
-//│           flags = ()
-//│           params = Nil
-//│           restParam = N
-//│       body = Define:
-//│         defn = ClsLikeDefn:
-//│           owner = N
-//│           isym = class:Test
-//│           sym = member:Test
-//│           k = Cls
-//│           paramsOpt = S of ParamList:
-//│             flags = ()
-//│             params = Ls of 
-//│               Param:
-//│                 flags = ()
-//│                 sym = a
-//│                 sign = N
-//│                 modulefulness = Modulefulness of N
-//│             restParam = N
-//│           auxParams = Nil
-//│           parentPath = N
-//│           methods = Nil
-//│           privateFields = Ls of 
-//│             class:Test.a
-//│           publicFields = Nil
-//│           preCtor = End of ""
-//│           ctor = Assign:
-//│             lhs = class:Test.a
-//│             rhs = Ref of a
-//│             rest = End of ""
-//│           companion = N
-//│         rest = Return: \
-//│         res = Instantiate:
-//│           mut = false
-//│           cls = Select{class:Test}:
-//│             qual = Ref of member:Test
-//│             name = Ident of "class"
-//│           args = Ls of 
-//│             Arg:
-//│               spread = N
-//│               value = Lit of IntLit of 123
-//│         implct = false
-//│     rest = Assign: \
-//│     lhs = $block$res
-//│     rhs = Lit of UnitLit of false
-//│     rest = End of ""
+
+
+
+:ssjs
+module R with
+  mut val sl = 0
+  fun runStackSafe(limit, f) =
+    set sl = limit
+//│ JS:
+//│ globalThis.Object.freeze(class R {
+//│   static {
+//│     R1 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static #sl;
+//│   static get sl() { return R.#sl; }
+//│   static set sl(value) { R.#sl = value; }
+//│   static {
+//│     this.sl = 0;
+//│   }
+//│   static runStackSafe(...args) {
+//│     runtime.checkArgs("runStackSafe", 2, true, args.length);
+//│     let limit = args[0];
+//│     let f1 = args[1];
+//│     R.sl = limit;
+//│     return runtime.Unit
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "R"]; 
+//│ });
+//│ block$res9 = undefined;
+
+R.runStackSafe(0, 1)
+
+
 
 

@@ -104,3 +104,25 @@ print of Str.startsWith("hello, world", "")
 
 print of Str.startsWith("hello, world", "farewell")
 //│ > false
+
+
+
+
+:ssjs
+stackLimit
+//│ JS:
+//│ block$res28 = Runtime.stackLimit; undefined
+//│ = 0
+
+:ssjs
+set stackLimit = 1
+//│ JS:
+//│ Runtime.stackLimit = 1; block$res29 = runtime.Unit; undefined
+
+stackLimit
+//│ = 1
+
+
+
+
+

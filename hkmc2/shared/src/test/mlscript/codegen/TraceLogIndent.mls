@@ -24,19 +24,38 @@ fun h(x) =
 :traceJS
 :re
 h(3)
+//│ > CALL h(3)
+//│ > | CALL g(3)
+//│ > | | CALL g(2)
+//│ > | | | CALL g(1)
+//│ > | | | | CALL g(0)
 //│ ═══[RUNTIME ERROR] Error: Function 'plus' expected 2 arguments but got 1
 
 :traceJS
 h(-2)
+//│ > CALL h(-2)
+//│ > | CALL g(-2)
+//│ > | | CALL g(-1)
+//│ > | | => 42
+//│ > | => 42
+//│ > => 45
 //│ = 45
 
 :traceJS
 f(1,1)(-2)
+//│ > CALL g(-2)
+//│ > | CALL g(-1)
+//│ > | => 42
+//│ > => 42
 //│ = 44
 
 :traceJS
 :re
 f(1,2)(3)
+//│ > CALL g(3)
+//│ > | CALL g(2)
+//│ > | | CALL g(1)
+//│ > | | | CALL g(0)
 //│ ═══[RUNTIME ERROR] Error: Function 'plus' expected 2 arguments but got 1
 
 :showRepl
@@ -50,9 +69,27 @@ f(1,2)(-3)
 //│ >  undefined
 //│ REPL> Sending: let tmp4, tmp5;try { tmp4 = runtime.checkCall(f(1, 2)); tmp5 = - 3; block$res9 = runtime.safeCall(tmp4(tmp5)); undefined } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
 //│ REPL> Collected:
+//│ >  CALL g(-3)
+//│ >  | CALL g(-2)
+//│ >  | | CALL g(-1)
+//│ >  | | => 42
+//│ >  | => 42
+//│ >  => 42
 //│ >  undefined
 //│ REPL> Parsed:
+//│ >  CALL g(-3)
+//│ >  | CALL g(-2)
+//│ >  | | CALL g(-1)
+//│ >  | | => 42
+//│ >  | => 42
+//│ >  => 42
 //│ >  undefined
+//│ > CALL g(-3)
+//│ > | CALL g(-2)
+//│ > | | CALL g(-1)
+//│ > | | => 42
+//│ > | => 42
+//│ > => 42
 //│ REPL> Sending: runtime.TraceLogger.enabled = false
 //│ REPL> Collected:
 //│ >  false

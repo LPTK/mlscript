@@ -19,16 +19,16 @@ globalThis.Object.freeze(class Runtime {
   static #stackOffset;
   static #stackHandler;
   static #stackResume;
-  get stackLimit() { return Runtime.#stackLimit; }
-  set stackLimit(value) { Runtime.#stackLimit = value; }
-  get stackDepth() { return Runtime.#stackDepth; }
-  set stackDepth(value) { Runtime.#stackDepth = value; }
-  get stackOffset() { return Runtime.#stackOffset; }
-  set stackOffset(value) { Runtime.#stackOffset = value; }
-  get stackHandler() { return Runtime.#stackHandler; }
-  set stackHandler(value) { Runtime.#stackHandler = value; }
-  get stackResume() { return Runtime.#stackResume; }
-  set stackResume(value) { Runtime.#stackResume = value; }
+  static get stackLimit() { return Runtime.#stackLimit; }
+  static set stackLimit(value) { Runtime.#stackLimit = value; }
+  static get stackDepth() { return Runtime.#stackDepth; }
+  static set stackDepth(value) { Runtime.#stackDepth = value; }
+  static get stackOffset() { return Runtime.#stackOffset; }
+  static set stackOffset(value) { Runtime.#stackOffset = value; }
+  static get stackHandler() { return Runtime.#stackHandler; }
+  static set stackHandler(value) { Runtime.#stackHandler = value; }
+  static get stackResume() { return Runtime.#stackResume; }
+  static set stackResume(value) { Runtime.#stackResume = value; }
   static {
     globalThis.Object.freeze(class Unit {
       static {
@@ -185,10 +185,10 @@ globalThis.Object.freeze(class Runtime {
       }
       static #enabled;
       static #indentLvl;
-      get enabled() { return TraceLogger.#enabled; }
-      set enabled(value) { TraceLogger.#enabled = value; }
-      get indentLvl() { return TraceLogger.#indentLvl; }
-      set indentLvl(value) { TraceLogger.#indentLvl = value; }
+      static get enabled() { return TraceLogger.#enabled; }
+      static set enabled(value) { TraceLogger.#enabled = value; }
+      static get indentLvl() { return TraceLogger.#indentLvl; }
+      static set indentLvl(value) { TraceLogger.#indentLvl = value; }
       static {
         this.enabled = false;
         this.indentLvl = 0;
