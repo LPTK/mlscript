@@ -109,7 +109,7 @@ object Lifter:
       case Value.Ref(l: BlockMemberSymbol) => S(l)
       case s @ Select(Value.Ref(l: BlockMemberSymbol), Tree.Ident("class")) => S(l)
       case _ => N
-
+  
   def modOrObj(d: Defn) = d match
     case c: ClsLikeDefn => (c.k is syntax.Mod) || (c.k is syntax.Obj)
     case _ => false

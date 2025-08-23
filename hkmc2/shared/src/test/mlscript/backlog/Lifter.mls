@@ -216,7 +216,7 @@ fun foo(x) =
   (new Bar).self2
 foo(2)
 //│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'Foo'.
-//│ ║  l.233: 	  class Bar extends Foo
+//│ ║  l.215: 	  class Bar extends Foo
 //│ ║         	                    ^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[COMPILATION ERROR] No definition found in scope for 'Foo$'

@@ -374,9 +374,6 @@ fun f(used1, unused1) =
     fun get() = used1
   new Test(unused1)
 f(1, 2).get()
-//│ FAILURE: Unexpected warning
-//│ FAILURE LOCATION: applyValue (Lifter.scala:475)
-//│ ═══[WARNING] Cannot yet lift class `Test` as it is used as a first-class class.
 //│ = 1
 
 :sjs
@@ -392,7 +389,7 @@ fun f(used1, unused1) =
   new Test
 f(1, 2).get()
 //│ JS (unsanitized):
-//│ let h2, Test6, g2, f4, tmp4, Test$2, g$2, h$2;
+//│ let h2, Test7, g2, f4, tmp4, Test$3, g$2, h$2;
 //│ h$2 = function h$(used3) {
 //│   return used3
 //│ };
@@ -412,18 +409,18 @@ f(1, 2).get()
 //│     return g$2(used1, g_arg)
 //│   }
 //│ };
-//│ Test$2 = function Test$(isMut, used1$0) {
+//│ Test$3 = function Test$(isMut, used1$0) {
 //│   let tmp5;
 //│   if (isMut === true) {
-//│     tmp5 = new Test6(used1$0);
+//│     tmp5 = new Test7(used1$0);
 //│   } else {
-//│     tmp5 = globalThis.Object.freeze(new Test6(used1$0));
+//│     tmp5 = globalThis.Object.freeze(new Test7(used1$0));
 //│   }
 //│   return tmp5
 //│ };
-//│ globalThis.Object.freeze(class Test5 {
+//│ globalThis.Object.freeze(class Test6 {
 //│   static {
-//│     Test6 = this
+//│     Test7 = this
 //│   }
 //│   constructor(used1$0) {
 //│     this.used1$0 = used1$0;
@@ -440,7 +437,7 @@ f(1, 2).get()
 //│ f4 = function f(used1, unused1) {
 //│   let unused2;
 //│   unused2 = 2;
-//│   return Test$2(false, used1)
+//│   return Test$3(false, used1)
 //│ };
 //│ tmp4 = f4(1, 2);
 //│ runtime.safeCall(tmp4.get())
@@ -725,13 +722,13 @@ f(2).get()
 //│   }
 //│ };
 //│ f9 = function f(x) {
-//│   let Test9, foo1;
-//│   Test9 = function Test() {
+//│   let Test10, foo1;
+//│   Test10 = function Test() {
 //│     return globalThis.Object.freeze(new Test.class());
 //│   };
-//│   globalThis.Object.freeze(class Test8 {
+//│   globalThis.Object.freeze(class Test9 {
 //│     static {
-//│       Test9.class = this
+//│       Test10.class = this
 //│     }
 //│     constructor() {}
 //│     get() {
@@ -740,7 +737,7 @@ f(2).get()
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "Test", []]; 
 //│   });
-//│   foo1 = Test9;
+//│   foo1 = Test10;
 //│   return runtime.safeCall(foo1())
 //│ };
 //│ tmp11 = f9(2);

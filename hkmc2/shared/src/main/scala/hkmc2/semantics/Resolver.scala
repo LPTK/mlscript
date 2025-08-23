@@ -15,7 +15,7 @@ import Resolver.ICtx.Type
 import Message.MessageContext
 import scala.annotation.tailrec
 import hkmc2.semantics.Resolver.ICtx.Instance
-import hkmc2.semantics.Term.Sel
+import hkmc2.semantics.Term.SynthSel
 
 object Resolver:
   
@@ -276,7 +276,7 @@ class Resolver(tl: TraceLogger)
   def expand2DotClass(t: Resolvable) = t.resolvedSymbol match
     case S(bsym: BlockMemberSymbol) if bsym.hasLiftedClass => bsym.asCls.foreach: cls =>
       if cls isnt ctx.builtins.Array then
-        t.expand(S(t => Sel(t, new Tree.Ident("class"))(S(cls))))
+        t.expand(S(t => SynthSel(t, new Tree.Ident("class"))(S(cls))))
     case _ =>
       ()
   

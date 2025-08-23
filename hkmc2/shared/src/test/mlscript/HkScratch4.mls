@@ -38,26 +38,18 @@ new Test.Foo()
 //│ if (selRes2 === undefined) {
 //│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'Foo' yielded 'undefined'"))
 //│ }
-//│ selRes3 = selRes2.class;
-//│ if (selRes3 === undefined) {
-//│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'class' yielded 'undefined'"))
-//│ }
-//│ block$res4 = globalThis.Object.freeze(new selRes3());
+//│ block$res4 = globalThis.Object.freeze(new selRes2.class());
 //│ undefined
 //│ = Foo()
 
 :ssjs
 new mut Test.Foo()
 //│ JS:
-//│ selRes4 = Test1.Foo;
-//│ if (selRes4 === undefined) {
+//│ selRes3 = Test1.Foo;
+//│ if (selRes3 === undefined) {
 //│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'Foo' yielded 'undefined'"))
 //│ }
-//│ selRes5 = selRes4.class;
-//│ if (selRes5 === undefined) {
-//│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'class' yielded 'undefined'"))
-//│ }
-//│ block$res5 = new selRes5();
+//│ block$res5 = new selRes3.class();
 //│ undefined
 //│ = Foo()
 
