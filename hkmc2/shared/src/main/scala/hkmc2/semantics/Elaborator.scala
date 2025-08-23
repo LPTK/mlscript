@@ -832,61 +832,88 @@ extends Importer:
     // TODO Support module overloading and roll this check up
     blk.definedSymbols.foreach:
       case (name, sym) =>
-        // log(s"!! Processing overloadings for '$name' ${sym.trees.map(_.name)}")
-        val defns = sym.trees.collect:
-          case td: TermDef if td.rhs.isDefined && td.name.exists(_.name === name) => td
-          case td: TypeDef if td.name.exists(_.name === name) => td
-        // if defns.length > 1 then
-        //   raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
-        //     defns.map(msg"defined here" -> _.toLoc)))
-        if defns.length > 1 then
-          val groups = defns.groupMapReduce(_.k)(_ :: Nil)(_ ::: _)
-          val sortedGroups = scala.collection.immutable.SortedMap.from(groups)
-          // sortedGroups.valuesIterator.foreach: group =>
-          //   if group.size > 1 then
-          //     raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
-          //       group.map(msg"defined here" -> _.toLoc)))
-          sortedGroups.iterator.foreach: (k, group) =>
-            if group.size > 1 then
-              raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
-                group.map(msg"defined here" -> _.toLoc)))
-            val mainDefn = group.head // Safe since these `groupMapReduce` groups cannot be empty
-            // k match
-            // case _ =>
-            log(s"Processing overloadings for '$name'")
-            defns.iterator.foreach: defn =>
-              if defn.k > k then
-                if !supportedOverloadings(k -> defn.k) then
-                  if notYetSupportedOverloadings(k -> defn.k)
-                  then raise:
-                    ErrorReport:
-                      // // msg"Overloading of '$name' with kind '${defn.k.desc}' cannot follow definition with kind '${k.desc}'" -> defn.toLoc
-                      // msg"Overloading of ${k.desc} '$name'" -> mainDefn.toLoc
-                      // :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
-                      // :: msg"is not yet supported." -> N
-                      // :: Nil
-                      msg"Not yet supported: overloading of ${k.desc} '$name'" -> mainDefn.toLoc
-                      :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
-                      :: Nil
-                  else raise:
-                    // log(s"$k ${k.ordinal} < ${defn.k} ${defn.k.ordinal}")
-                    ErrorReport:
-                      // msg"Illegal overloading of ${defn.k.desc} '$name' with ${k.desc} of the same name" -> defn.toLoc :: Nil
-                      msg"Illegal overloading of ${k.desc} '$name'" -> mainDefn.toLoc
-                      :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
-                      :: Nil
-        val decls = sym.trees.collect:
-          case td: TermDef if td.rhs.isEmpty => td
-        if decls.length > 1 then
-          raise(ErrorReport(msg"Multiple declarations of symbol '$name'" -> N ::
-            decls.map(msg"declared here" -> _.toLoc)))
-        val sig = decls.collectFirst:
-          case td
-            if td.annotatedResultType.isDefined
-            && td.paramLists.isEmpty
-            => td.annotatedResultType.get
-        sig.foreach: sig =>
-          newSignatureTrees += name -> sig
+        
+        if sym.nme =/= name then
+          // ???
+          log(s"!! '$name' ${members.get(name)} ${members.get(name).exists(_ is sym)}")
+        else
+          
+          // log(s"!! Processing overloadings for '$name' ${sym.trees.map(_.name)}")
+          val symbolicallyNamedTrees = sym.trees.collect:
+            case td if td.symbName.exists(_.exists(_.name === name)) => td
+          log(s"!! Processing overloadings for '$name' ${symbolicallyNamedTrees}")
+          // log(s"!! Processing overloadings for '$name' ${(sym.trees,()).showAsTree}")
+          if symbolicallyNamedTrees.sizeCompare(1) > 0 then
+            raise(ErrorReport(msg"Multiple symbolically named trees for '$name'" -> N ::
+              symbolicallyNamedTrees.map(msg"defined here" -> _.toLoc)))
+          
+          sym.trees.foreach: td =>
+            td.symbName match
+            case S(R(id)) =>
+              val mem = members.getOrElse(id.name, die)
+              if mem isnt sym then raise:
+                ErrorReport:
+                  msg"Symbolic name '${id.name}' of ${
+                      td.name.fold(_ => "this definition", id => "definition '" + id.name + "'")
+                    } is already used" -> td.toLoc
+                  :: msg"by sibling member '${mem.nme}'" -> mem.toLoc
+                  :: Nil
+            case _ => ()
+          
+          val defns = sym.trees.collect:
+            case td: TermDef if td.rhs.isDefined && td.name.exists(_.name === name) => td
+            case td: TypeDef if td.name.exists(_.name === name) => td
+          // if defns.length > 1 then
+          //   raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
+          //     defns.map(msg"defined here" -> _.toLoc)))
+          if defns.sizeCompare(1) > 0 then
+            val groups = defns.groupMapReduce(_.k)(_ :: Nil)(_ ::: _)
+            val sortedGroups = scala.collection.immutable.SortedMap.from(groups)
+            // sortedGroups.valuesIterator.foreach: group =>
+            //   if group.size > 1 then
+            //     raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
+            //       group.map(msg"defined here" -> _.toLoc)))
+            sortedGroups.iterator.foreach: (k, group) =>
+              if group.size > 1 then
+                raise(ErrorReport(msg"Multiple definitions of symbol '$name'" -> N ::
+                  group.map(msg"defined here" -> _.toLoc)))
+              val mainDefn = group.head // Safe since these `groupMapReduce` groups cannot be empty
+              // k match
+              // case _ =>
+              log(s"Processing overloadings for '$name'")
+              defns.iterator.foreach: defn =>
+                if defn.k > k then
+                  if !supportedOverloadings(k -> defn.k) then
+                    if notYetSupportedOverloadings(k -> defn.k)
+                    then raise:
+                      ErrorReport:
+                        // // msg"Overloading of '$name' with kind '${defn.k.desc}' cannot follow definition with kind '${k.desc}'" -> defn.toLoc
+                        // msg"Overloading of ${k.desc} '$name'" -> mainDefn.toLoc
+                        // :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
+                        // :: msg"is not yet supported." -> N
+                        // :: Nil
+                        msg"Not yet supported: overloading of ${k.desc} '$name'" -> mainDefn.toLoc
+                        :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
+                        :: Nil
+                    else raise:
+                      // log(s"$k ${k.ordinal} < ${defn.k} ${defn.k.ordinal}")
+                      ErrorReport:
+                        // msg"Illegal overloading of ${defn.k.desc} '$name' with ${k.desc} of the same name" -> defn.toLoc :: Nil
+                        msg"Illegal overloading of ${k.desc} '$name'" -> mainDefn.toLoc
+                        :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
+                        :: Nil
+          val decls = sym.trees.collect:
+            case td: TermDef if td.rhs.isEmpty => td
+          if decls.length > 1 then
+            raise(ErrorReport(msg"Multiple declarations of symbol '$name'" -> N ::
+              decls.map(msg"declared here" -> _.toLoc)))
+          val sig = decls.collectFirst:
+            case td
+              if td.annotatedResultType.isDefined
+              && td.paramLists.isEmpty
+              => td.annotatedResultType.get
+          sig.foreach: sig =>
+            newSignatureTrees += name -> sig
     
     // TODO extract this into a separate method
     // * @param funs:
