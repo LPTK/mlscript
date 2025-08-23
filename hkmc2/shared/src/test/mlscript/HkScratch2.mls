@@ -9,45 +9,11 @@
 // :todo
 
 
-:lot
 object Bar with
   fun x = 1
   x
-//│ Lowered:
-//│ Program:
-//│   imports = Nil
-//│   main = Define:
-//│     defn = ClsLikeDefn:
-//│       owner = N
-//│       isym = object:Bar
-//│       sym = member:Bar
-//│       k = Obj
-//│       paramsOpt = N
-//│       auxParams = Nil
-//│       parentPath = N
-//│       methods = Ls of 
-//│         FunDefn:
-//│           owner = S of object:Bar
-//│           sym = member:x
-//│           params = Nil
-//│           body = Return:
-//│             res = Lit of IntLit of 1
-//│             implct = false
-//│       privateFields = Nil
-//│       publicFields = Nil
-//│       preCtor = End of ""
-//│       ctor = Return:
-//│         res = Select{member:x}:
-//│           qual = Ref of object:Bar
-//│           name = Ident of "x"
-//│         implct = true
-//│       companion = N
-//│     rest = Assign: \
-//│     lhs = $block$res
-//│     rhs = Lit of UnitLit of false
-//│     rest = End of ""
 
-:lot
+// :lot
 :dl
 :ssjs
 module Bar with
@@ -66,48 +32,6 @@ module Bar with
 //│ Expanding term Ref(module:Bar)
 //│ ~> module:Bar#666
 //│ Lowering.term undefined
-//│ Lowered:
-//│ Program:
-//│   imports = Nil
-//│   main = Define:
-//│     defn = ClsLikeDefn:
-//│       owner = N
-//│       isym = class:Bar
-//│       sym = member:Bar
-//│       k = Cls
-//│       paramsOpt = N
-//│       auxParams = Nil
-//│       parentPath = N
-//│       methods = Nil
-//│       privateFields = Nil
-//│       publicFields = Nil
-//│       preCtor = End of ""
-//│       ctor = Return:
-//│         res = Select{module:Unit}:
-//│           qual = Ref of $runtime
-//│           name = Ident of "Unit"
-//│         implct = true
-//│       companion = S of ClsLikeBody:
-//│         isym = module:Bar
-//│         methods = Ls of 
-//│           FunDefn:
-//│             owner = S of module:Bar
-//│             sym = member:x
-//│             params = Nil
-//│             body = Return:
-//│               res = Lit of IntLit of 1
-//│               implct = false
-//│         privateFields = Nil
-//│         publicFields = Nil
-//│         ctor = Return:
-//│           res = Select{member:x}:
-//│             qual = Ref of module:Bar
-//│             name = Ident of "x"
-//│           implct = true
-//│     rest = Assign: \
-//│     lhs = $block$res
-//│     rhs = Lit of UnitLit of false
-//│     rest = End of ""
 //│ avoidNames Define(ClsLikeDefn(None,class:Bar,member:Bar,Cls,None,List(),None,List(),List(),List(),End(),Return(...
 //│ | avoidNames End()...
 //│ | avoidNames Return(Select(Ref($runtime),Ident(Unit)),true)...

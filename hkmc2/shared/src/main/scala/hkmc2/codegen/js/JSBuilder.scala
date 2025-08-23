@@ -68,7 +68,6 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
     case ts: semantics.TermSymbol =>
       ts.owner match
       case S(owner) =>
-        tl.log(s"owner: $owner, ${owner.privatesScope}")
         doc"${getVar(owner)}${
           if (ts.k is syntax.LetBind) && !owner.isInstanceOf[semantics.TopLevelSymbol]
           then ".#" + owner.privatesScope.lookup_!(ts)
@@ -238,8 +237,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             else
               // in JS, let name = (0, function (args) => {} ) prevents function's name from being bound to `name`
               doc"${getVar(sym)} = (undefined, function ($params) ${ braced(bodyDoc) });"
-          case ClsLikeDefn(ownr, isym, sym, kind, paramsOpt, auxParams, par, mtds, privFlds, pubFlds, preCtor, ctor, modo) =>
-            // assert(smtds.isEmpty) // TODO
+          case ClsLikeDefn(ownr, isym, sym, kind, paramsOpt, auxParams, par, mtds, privFlds, pubFlds, preCtor, ctor, mod) =>
             val clsParams = paramsOpt.fold(Nil)(_.paramSyms)
             val ctorParams = clsParams.map(p => p -> scope.allocateName(p))
             val ctorFields = ctorParams.filter: p =>
@@ -248,16 +246,12 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
               case _ => false
             val ctorAuxParams = auxParams.map(ps => ps.params.map(p => p.sym -> scope.allocateName(p.sym)))
             
-            val modDoc = modo match
-              case S(mod) =>
-                val (thisProxy, res) = scope.nestRebindThis(
-                    // * Either this is an InnerSymbol or this is a Fun,
-                    // * and we need to rebind `this` to None to shadow it.
-                    mod.innerSym.collectFirst{ case s: InnerSymbol => s }):
-                  
-                  // tl.log(s"Generating module ${mod.innerSym}")
-                  
-                  // TODO dedup some of that logic
+            val modDoc =
+              // TODO dedup some of that logic
+              val (thisProxy, res) = scope.nestRebindThis(
+                // * Either this is an InnerSymbol or this is a Fun,
+                // * and we need to rebind `this` to None to shadow it.
+                mod.innerSym.collectFirst{ case s: InnerSymbol => s }):
                   val mtdPrefix = "static "
                   val mutPubFields =
                     mod.publicFields.collect:
@@ -269,17 +263,17 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                     val scp = mod.isym.asInstanceOf[InnerSymbol].privatesScope // TODO improve (asInstanceOf)
                     tl.log(s"isym: $isym, ${isym.asInstanceOf[InnerSymbol].privatesScope}")
                     val privDecls = allPrivFlds.map: fld =>
-                        val nme = scp.allocateName(fld)
-                        doc" # $mtdPrefix#$nme;"
+                      val nme = scp.allocateName(fld)
+                      doc" # $mtdPrefix#$nme;"
                     val accessors = mutPubFields.flatMap: (valSym, letSym) =>
                       doc" # static get ${escapeField(valSym.name, "")}() { return ${getVar(letSym)}; }" ::
                         doc" # static set ${escapeField(valSym.name, "")}(value) { ${getVar(letSym)} = value; }" ::
                         Nil
                     (privDecls ::: accessors).mkDocument(doc"")
-                  val ctorCode = doc"static " :: braced:
+                  val ctorCode = if mod.ctor.isEmpty then doc"" else doc" # static " :: braced:
                     body(mod.ctor, endSemi = true)
                   // tl.log(s"!! ${ctorCode.toString}")
-                  privs :/: ctorCode :: {
+                  privs :: ctorCode :: {
                     mod.methods.map: 
                       case td @ FunDefn(_, _, ps :: pss, bod) =>
                         val result = pss.foldRight(bod):
@@ -291,9 +285,8 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                         doc" # ${mtdPrefix}get ${td.sym.nme}() ${ braced(body(bod, endSemi = true)) }"
                     .mkDocument(" ")
                   }
-                assert(thisProxy.isEmpty) // FIXME?
-                res
-              case N => doc""
+              // assert(thisProxy.isEmpty) // FIXME?
+              res
             
             // TODO rm the module path
             val isModule = kind is syntax.Mod
@@ -606,10 +599,20 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             val nme = scope.allocateName(d.isym)
             
             // TODO: improve this hack
-            d.companion.foreach: comp =>
-              // * If the companion is a module, we need to reserve its name as well.
-              // * Otherwise, it is a class and we do not need to reserve its name.
-              scope.bindings += comp.isym -> nme
+            val comp = d.staticPart
+            
+            
+            
+            
+            
+            
+            // * If the companion is a module, we need to reserve its name as well.
+            // * Otherwise, it is a class and we do not need to reserve its name.
+            scope.bindings += comp.isym -> nme
+            
+            
+            
+            
             
           case _ => //scope.allocateName(defn.sym)
         defn.subBlocks.foreach(go)

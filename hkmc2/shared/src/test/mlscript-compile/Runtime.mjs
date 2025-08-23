@@ -156,7 +156,6 @@ globalThis.Object.freeze(class Runtime {
       constructor() {
         runtime.Unit;
       }
-      static {}
       static startsWith(string, prefix) {
         return runtime.safeCall(string.startsWith(prefix))
       } 

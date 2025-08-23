@@ -13,3 +13,15 @@ module A with
 class Test with
   f()
   val a = 1
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:resume
+//│ 	at: scala.collection.immutable.Map$EmptyMap$.apply(Map.scala:243)
+//│ 	at: scala.collection.immutable.Map$EmptyMap$.apply(Map.scala:239)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
+//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
+//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
+//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
+//│ 	at: hkmc2.Lifter.$anonfun$60(Lifter.scala:1002)

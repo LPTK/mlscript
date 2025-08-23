@@ -107,8 +107,6 @@ case class Scope
         extraInfo = Some(l -> l.getClass -> this),
         source = Diagnostic.Source.Compilation))
       
-      // ???
-      
       l.nme
   
   def allocateName(l: Local, prefix: Str = ""): Str =
@@ -130,9 +128,6 @@ case class Scope
     bindings += l -> name
     
     name
-  
-  // override def toString(): String =
-  //   s"Scope(bindings = {${bindings.mkString(", ")}}, parent = ${parent.map(_.toString).getOrElse("N")}, curThis = ${curThis.map(_.toString).getOrElse("N")})"
 
 
 object Scope:

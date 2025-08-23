@@ -42,8 +42,7 @@ data class A(x) with
     fun getB() = x + y
   fun getA() = this.B(2).getB()
 A(1).getA()
-//│ ═══[RUNTIME ERROR] TypeError: this.B is not a function
-//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:getB
 
 // This is due to the order of classes after lifting
 class Test
@@ -61,8 +60,7 @@ fun test(x) =
   class B() extends A
   B().get
 test(2)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'get' yielded 'undefined'
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
 
 /// The following are related to first-class classes, instance checks, and private fields. ///
 
@@ -80,7 +78,7 @@ fun f(used1, unused1) =
   foo(unused1)
 f(1, 2).get()
 //│ ═══[WARNING] Cannot yet lift class `Test` as it is used as a first-class class.
-//│ = 1
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
 
 
 :todo
@@ -121,7 +119,7 @@ fun test(x) =
 test(2)
 //│ ═══[WARNING] Cannot yet lift class/module `A` as it is used in an instance check.
 //│ ═══[WARNING] Cannot yet lift class/module `B` as it extends an unliftable class.
-//│ = 2
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
 
 :expect 2
 class A(a) with
@@ -130,9 +128,7 @@ class A(a) with
     fun g() = x
     g()
 A(2).f()
-//│ ═══[COMPILATION ERROR] Uses of private fields cannot yet be lifted.
-//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
 
 /// The following are related to modules and objects. ///
 
@@ -144,27 +140,11 @@ fun foo(x, y) =
       set y = 2
       x + y + test
   M.foo()
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ ═══[WARNING] Cannot yet lift class `M` as it is used as a first-class class.
 
 :expect 14
 foo(10, 0)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for 'foo'
-//│ ║  l.140: 	fun foo(x, y) =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.141: 	  module M with
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.142: 	    val test = 2
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ║  l.143: 	    fun foo() =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.144: 	      set y = 2
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.145: 	      x + y + test
-//│ ║         	^^^^^^^^^^^^^^^^^^
-//│ ║  l.146: 	  M.foo()
-//│ ╙──       	^^^^^^^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: foo is not defined
-//│ ═══[RUNTIME ERROR] Expected: '14', got: 'undefined'
+//│ = 14
 
 fun foo(x, y) =
   module M with
@@ -173,38 +153,40 @@ fun foo(x, y) =
       x + y
   fun foo = M.foo()
   foo
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ ═══[WARNING] Cannot yet lift class `M` as it is used as a first-class class.
 
 :expect 12
 foo(10, 0)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for 'foo'
-//│ ║  l.169: 	fun foo(x, y) =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.170: 	  module M with
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.171: 	    fun foo() =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.172: 	      set y = 2
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.173: 	      x + y
-//│ ║         	^^^^^^^^^^^
-//│ ║  l.174: 	  fun foo = M.foo()
-//│ ║         	^^^^^^^^^^^^^^^^^^^
-//│ ║  l.175: 	  foo
-//│ ╙──       	^^^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: foo is not defined
-//│ ═══[RUNTIME ERROR] Expected: '12', got: 'undefined'
+//│ = 12
 
 
 data class A(x) with
   module M with
     fun getB() = x
   fun getA() = M.getB()
-//│ /!!!\ Uncaught error: hkmc2.InternalError: `this` not in scope: class:A
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:getA
 
 :expect 2
 A(2).getA()
-//│ ═══[RUNTIME ERROR] ReferenceError: A8 is not defined
+//│ ╔══[COMPILATION ERROR] No definition found in scope for 'A'
+//│ ║  l.163: 	data class A(x) with
+//│ ║         	     ^^^^^^^^^^^^^^^
+//│ ║  l.164: 	  module M with
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.165: 	    fun getB() = x
+//│ ║         	^^^^^^^^^^^^^^^^^^
+//│ ║  l.166: 	  fun getA() = M.getB()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── which is introduced here
+//│ ║  l.163: 	data class A(x) with
+//│ ║         	           ^^^^^^^^^
+//│ ║  l.164: 	  module M with
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.165: 	    fun getB() = x
+//│ ║         	^^^^^^^^^^^^^^^^^^
+//│ ║  l.166: 	  fun getA() = M.getB()
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
 //│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 
 // TODO: Foo needs to be put in a mutable capture. Also, we need to pass the Foo instance itself into Foo
@@ -216,11 +198,10 @@ fun foo(x) =
   (new Bar).self2
 foo(2)
 //│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'Foo'.
-//│ ║  l.215: 	  class Bar extends Foo
+//│ ║  l.197: 	  class Bar extends Foo
 //│ ║         	                    ^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
-//│ ═══[COMPILATION ERROR] No definition found in scope for 'Foo$'
-//│ ═══[RUNTIME ERROR] TypeError: Class extends value [object Object] is not a constructor or null
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:self1
 
 // `h` is lifted out, but then cannot access the BlockMemberSymbol M.
 :fixme
@@ -230,4 +211,6 @@ fun f =
       fun h = M.g
       h
   M.g
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ ═══[WARNING] Cannot yet lift class `M` as it is used as a first-class class.
+//│ ═══[WARNING] Cannot yet lift class `M` as it is used as a first-class class.
+//│ FAILURE: Unexpected lack of error to fix

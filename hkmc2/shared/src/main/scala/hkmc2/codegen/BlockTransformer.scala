@@ -187,7 +187,7 @@ class BlockTransformer(subst: SymbolSubst):
       val publicFields2 = publicFields.mapConserve(f => f._1.subst -> f._2.subst)
       val preCtor2 = applySubBlock(preCtor)
       val ctor2 = applySubBlock(ctor)
-      val mod2 = mod.mapConserve(applyObjBody)
+      val mod2 = applyObjBody(mod)
       // println(s"Transforming class-like definition: $isym $mod2")
       // println(s"!!!>>> ${mod2.showAsTree}")
       if (own2 is own) && (isym2 is isym) && (sym2 is sym) &&

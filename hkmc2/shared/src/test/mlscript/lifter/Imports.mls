@@ -15,7 +15,6 @@ module A with
 //│   constructor() {
 //│     runtime.Unit;
 //│   }
-//│   static {}
 //│   static f(x) {
 //│     if (x instanceof Option.Some.class) {
 //│       return true

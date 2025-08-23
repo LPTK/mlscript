@@ -87,9 +87,6 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
         inScopeDefns += s.sym -> (newInScope - s.sym)
         nested += s.sym
       
-      // defnsMap += (sym -> c)
-      // definedLocals += (sym -> thisVars)
-      
       for d <- thisScopeDefns do
         nestedIn += (d.sym -> sym)
         createMetadataDefn(d, existing, newInScope)
@@ -122,8 +119,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
         createMetadataDefn(d, newExisting, newInScope)
         nested ++= nestedDeep(d.sym)
       
-      nested = nested  | c.companion.fold(nested)(mod =>
-        createMetadataBody(c.sym, mod, newExisting, newInScope))
+      nested = nested  | createMetadataBody(c.sym, c.staticPart, newExisting, newInScope)
       
       nestedDeep += c.sym -> nested
     

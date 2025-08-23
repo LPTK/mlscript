@@ -151,6 +151,8 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
   
   def toLoc: Option[Loc] = Loc(trees)
   
+  // val id = new Tree.Ident(nme) // FIXME
+  
   def describe: Str =
     trees match
     // case (td: TypeOrTermDef) :: Nil => s"${td.describe}"
@@ -188,6 +190,7 @@ end BlockMemberSymbol
 
 sealed abstract class MemberSymbol[Defn <: Definition](using State) extends Symbol:
   def nme: Str
+  // val id: Tree.Ident
   var defn: Opt[Defn] = N
   def subst(using SymbolSubst): MemberSymbol[Defn]
 
@@ -240,9 +243,8 @@ case class ErrorSymbol(val nme: Str, tree: Tree)(using State) extends MemberSymb
 
   override def toString = s"error:$nme"
 
-sealed trait ClassLikeSymbol extends Symbol:
+sealed trait ClassLikeSymbol extends IdentifiedSymbol:
   self: MemberSymbol[? <: ClassDef | ModuleDef] =>
-  val id: Tree.Ident
   val tree: Tree.TypeDef
   def subst(using sub: SymbolSubst): ClassLikeSymbol
 
@@ -252,9 +254,13 @@ sealed trait ClassLikeSymbol extends Symbol:
   * A `Ref(_: InnerSymbol)` represents a `this`-like reference to the current object. */
   // TODO prevent from appearing in Ref
 sealed trait InnerSymbol(using State) extends Symbol:
+  // val id: Tree.Ident
   val privatesScope: Scope = Scope.empty // * Scope for private members of this symbol
   val thisProxy: TempSymbol = TempSymbol(N, s"this$$$nme")
   def subst(using SymbolSubst): InnerSymbol
+
+trait IdentifiedSymbol extends Symbol:
+  val id: Tree.Ident
 
 class ClassSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
     extends MemberSymbol[ClassDef] with ClassLikeSymbol with CtorSymbol with InnerSymbol with NamedSymbol:

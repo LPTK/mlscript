@@ -201,7 +201,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       case _defn: ClassLikeDef =>
         val defn = _defn match
           case cls: ClassDef => cls
-          case mod: ModuleDef if mod.kind is syntax.Mod =>
+          case mod: ModuleDef if mod.kind is syntax.Mod => // * Currently, objects are also represented as `ModuleDef`s
             mod.classCompanion match
             case S(comp) => comp.defn.getOrElse(wat("Module companion without definition", mod.companion))
             case N =>
@@ -225,7 +225,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           //       case _ => N
           //     case _ => N
           //   )
-        val mod = defn.companion match
+        val modo = defn.companion match
           case S(sym) =>
             tl.log(s"mod ${sym.defn}")
             sym.defn match
@@ -242,6 +242,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             case _ => N
           case _ => N
         // tl.log(s"mod $mod ${defn.companion}")
+        // val mod = modo.getOrElse(ClsLikeBody.empty(defn.sym.defn.get.id))
+        val mod = modo.getOrElse(ClsLikeBody.empty(new Tree.Ident(defn.sym.nme)))
         defn.ext match
         case N =>
           Define(
@@ -252,7 +254,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
               publicFlds,
               End(),
               ctor,
-              mod
+              mod,
             ),
             blockImpl(stats, res)(k))
         case S(ext) =>
@@ -692,7 +694,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           val (mtds, publicFlds, privateFlds, ctor) = gatherMembers(rft)
           val pctor = parentConstructor(cls, as)
           val clsDef = ClsLikeDefn(N, isym, sym, syntax.Cls, N, Nil, S(sr),
-            mtds, privateFlds, publicFlds, pctor, ctor, N)
+            mtds, privateFlds, publicFlds, pctor, ctor, ClsLikeBody.empty(isym.id))
           val inner = new New(sym.ref().resolve, Nil, N)
           Define(clsDef, term_nonTail(if mut then Mut(inner) else inner)(k))
       

@@ -282,7 +282,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       End(),
       sortedVars.iterator.foldLeft[Block](End()):
         case (acc, (_, _, vd)) => Define(vd, acc),
-      N,
+      ClsLikeBody.empty(clsSym.id),
     )
     
     (defn, sortedVars.iterator.map(_._1).toMap, sortedVars.iterator.map(_._1._1).toList)
@@ -462,13 +462,12 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
           paramsOpt.foreach(applyParamList)
           auxParams.foreach(applyParamList)
           methods.foreach(applyFunDefn)
-          // smethods.foreach(applyFunDefn)
           privateFields.foreach(_.traverse)
           publicFields.foreach: f =>
             f._1.traverse; f._2.traverse
           applyBlock(preCtor)
           applyBlock(ctor)
-          mod.foreach(applyClsLikeBody)
+          applyClsLikeBody(mod)
       
       override def applyValue(v: Value): Unit = v match
         case RefOfBms(l) if clsSyms.contains(l) && !modOrObj(ctx.defns(l)) =>

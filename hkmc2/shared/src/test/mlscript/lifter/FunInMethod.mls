@@ -9,4 +9,15 @@ data class A(a) with
       a + b + c
     g
 A(1).f(1)(3)
-//│ = 6
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
+//│ 	at: scala.collection.immutable.Map$EmptyMap$.apply(Map.scala:243)
+//│ 	at: scala.collection.immutable.Map$EmptyMap$.apply(Map.scala:239)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createLiftInfoFn$$anonfun$1(Lifter.scala:559)
+//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
+//│ 	at: hkmc2.Lifter.createLiftInfoFn(Lifter.scala:559)
+//│ 	at: hkmc2.Lifter.createLiftInfoCls$$anonfun$2(Lifter.scala:565)
+//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
+//│ 	at: hkmc2.Lifter.createLiftInfoCls(Lifter.scala:565)
+//│ 	at: hkmc2.Lifter$$anon$9.applyBlock(Lifter.scala:1145)

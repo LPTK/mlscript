@@ -12,7 +12,6 @@ module None
 //│   constructor() {
 //│     runtime.Unit;
 //│   }
-//│   static {}
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "None"]; 
 //│ });
@@ -33,7 +32,7 @@ None()
 :e
 new None
 //│ ╔══[ERROR] Expected a statically known class; found reference with a module definition 'None'.
-//│ ║  l.34: 	new None
+//│ ║  l.33: 	new None
 //│ ║        	    ^^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = None
@@ -42,7 +41,7 @@ new None
 :e
 new! None
 //│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'None'.
-//│ ║  l.43: 	new! None
+//│ ║  l.42: 	new! None
 //│ ╙──      	     ^^^^
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new None1())
@@ -112,7 +111,7 @@ M.y
 :re
 M.oops
 //│ ╔══[ERROR] Module 'M' does not contain member 'oops'
-//│ ║  l.113: 	M.oops
+//│ ║  l.112: 	M.oops
 //│ ╙──       	 ^^^^^
 //│ ═══[RUNTIME ERROR] Error: Access to required field 'oops' yielded 'undefined'
 

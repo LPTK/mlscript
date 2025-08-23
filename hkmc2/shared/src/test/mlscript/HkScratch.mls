@@ -94,20 +94,20 @@ class Foo(x) with
 :sjs
 :dr
 new Foo(1)
-//│ Traversing block: Blk(List(),New(Ref(member:Foo‹654›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))
-//│ | Traversing term: New(Ref(member:Foo‹654›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
-//│ | | Traversing term: Ref(member:Foo‹654›)
-//│ | | | Resolving resolvable term: Ref(member:Foo‹654›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹654›)): Some(CallableDefinition(member:Foo‹654›,List(ParamList(‹›,List(Param(‹›,x‹657›,None,Modulefulness(None))),None)),Some(List()),None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹655›,member:Foo‹654›,List(),ParamList(‹›,List(Param(‹›,x‹657›,None,Modulefulness(None))),None),List(),None,( let class:Foo‹655›.x; class:Foo‹655›.x = x‹657›#0; (member:Predef‹468›#666.)print‹member:print‹436››("ok", class:Foo‹655›.x#666) ),None,List())))
-//│ | | | ~> Ref(member:Foo‹654›)
+//│ Traversing block: Blk(List(),New(Ref(member:Foo‹662›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))
+//│ | Traversing term: New(Ref(member:Foo‹662›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
+//│ | | Traversing term: Ref(member:Foo‹662›)
+//│ | | | Resolving resolvable term: Ref(member:Foo‹662›), (inPrefix = false)
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹662›)): Some(CallableDefinition(member:Foo‹662›,List(ParamList(‹›,List(Param(‹›,x‹665›,None,Modulefulness(None))),None)),Some(List()),None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹663›,member:Foo‹662›,List(),ParamList(‹›,List(Param(‹›,x‹665›,None,Modulefulness(None))),None),List(),None,( let class:Foo‹663›.x; class:Foo‹663›.x = x‹665›#0; (member:Predef‹468›#666.)print‹member:print‹436››("ok", class:Foo‹663›.x#666) ),None,List())))
+//│ | | | ~> Ref(member:Foo‹662›)
 //│ | | Traversing term: Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
 //│ | | | Traversing term: Lit(IntLit(1))
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
 //│   res = New:
-//│     cls = SynthSel{class:Foo‹655›}:
-//│       prefix = Unexpanded of Ref{member:Foo‹654›} of member:Foo‹654›
+//│     cls = SynthSel{class:Foo‹663›}:
+//│       prefix = Unexpanded of Ref{member:Foo‹662›} of member:Foo‹662›
 //│       nme = Ident of "class"
 //│     args = Ls of 
 //│       Tup of Ls of 
@@ -173,7 +173,7 @@ object Bar extends Foo(42)
 //│ });
 //│ > ok 42
 
-:lot
+// :lot
 :sjs
 module Bar with
   // fun foo = 1
@@ -196,51 +196,12 @@ module Bar with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Bar"]; 
 //│ });
-//│ Lowered:
-//│ Program:
-//│   imports = Nil
-//│   main = Define:
-//│     defn = ClsLikeDefn:
-//│       owner = N
-//│       isym = class:Bar
-//│       sym = member:Bar
-//│       k = Cls
-//│       paramsOpt = N
-//│       auxParams = Nil
-//│       parentPath = N
-//│       methods = Nil
-//│       privateFields = Nil
-//│       publicFields = Nil
-//│       preCtor = End of ""
-//│       ctor = Return:
-//│         res = Select{module:Unit}:
-//│           qual = Ref of $runtime
-//│           name = Ident of "Unit"
-//│         implct = true
-//│       companion = S of ClsLikeBody:
-//│         isym = module:Bar
-//│         methods = Nil
-//│         privateFields = Nil
-//│         publicFields = Ls of 
-//│           Tuple2:
-//│             _1 = member:x
-//│             _2 = module:Bar.x
-//│         ctor = Define:
-//│           defn = ValDefn:
-//│             tsym = module:Bar.x
-//│             sym = member:x
-//│             rhs = Lit of IntLit of 1
-//│           rest = End of ""
-//│     rest = Assign: \
-//│     lhs = $block$res
-//│     rhs = Lit of UnitLit of false
-//│     rest = End of ""
 
 
 
 // :de
 :dl
-:lot
+// :lot
 :sjs
 class Foo(val x)
 module Foo with
@@ -291,57 +252,6 @@ module Foo with
 //│ Lowering.term 1
 //│ Lowering.term undefined
 //│ Lowering.term undefined
-//│ Lowered:
-//│ Program:
-//│   imports = Nil
-//│   main = Define:
-//│     defn = ClsLikeDefn:
-//│       owner = N
-//│       isym = class:Foo
-//│       sym = member:Foo
-//│       k = Cls
-//│       paramsOpt = S of ParamList:
-//│         flags = ()
-//│         params = Ls of 
-//│           Param:
-//│             flags = (val)
-//│             sym = x
-//│             sign = N
-//│             modulefulness = Modulefulness of N
-//│         restParam = N
-//│       auxParams = Nil
-//│       parentPath = N
-//│       methods = Nil
-//│       privateFields = Nil
-//│       publicFields = Ls of 
-//│         Tuple2:
-//│           _1 = member:x
-//│           _2 = class:Foo.x
-//│       preCtor = End of ""
-//│       ctor = Define:
-//│         defn = ValDefn:
-//│           tsym = class:Foo.x
-//│           sym = member:x
-//│           rhs = Ref of x
-//│         rest = End of ""
-//│       companion = S of ClsLikeBody:
-//│         isym = module:Foo
-//│         methods = Nil
-//│         privateFields = Nil
-//│         publicFields = Ls of 
-//│           Tuple2:
-//│             _1 = member:foo
-//│             _2 = module:Foo.foo
-//│         ctor = Define:
-//│           defn = ValDefn:
-//│             tsym = module:Foo.foo
-//│             sym = member:foo
-//│             rhs = Lit of IntLit of 1
-//│           rest = End of ""
-//│     rest = Assign: \
-//│     lhs = $block$res
-//│     rhs = Lit of UnitLit of false
-//│     rest = End of ""
 //│ avoidNames Define(ClsLikeDefn(None,class:Foo,member:Foo,Cls,Some(ParamList(‹›,List(Param(‹val›,x,None,Moduleful...
 //│ | avoidNames End()...
 //│ | avoidNames Define(ValDefn(class:Foo.x,member:x,Ref(x)),End())...
@@ -362,9 +272,9 @@ Foo
 
 :dr
 id(Foo)
-//│ Traversing block: Blk(List(),App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹699›),None)))))
-//│ | Traversing term: App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹699›),None))))
-//│ | | Resolving resolvable term: App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹699›),None)))), (inPrefix = false)
+//│ Traversing block: Blk(List(),App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹715›),None)))))
+//│ | Traversing term: App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹715›),None))))
+//│ | | Resolving resolvable term: App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹715›),None)))), (inPrefix = false)
 //│ | | | Resolving resolvable term: SynthSel(Ref(member:Predef‹468›),Ident(id)), (inPrefix = false)
 //│ | | | | Resolving resolvable term: Ref(member:Predef‹468›), (inPrefix = false)
 //│ | | | | | Resolving resolvable (sym = Some(member:Predef‹468›)): Some(CallableDefinition(member:Predef‹468›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Predef‹472›,member:Predef‹468›,List(),None,List(),None,Mod,( ‹› fun member:id‹461›(Param(‹›,x‹475›,None,Modulefulness(None)), ) = missing; ‹› fun member:apply‹463›(Param(‹›,f‹479›,None,Modulefulness(None)), ...Param(‹›,args‹480›,None,Modulefulness(None))) = missing; ‹› fun member:pipeInto‹439›(Param(‹›,x‹484›,None,Modulefulness(None)), Param(‹›,f‹485›,None,Modulefulness(None)), ) = missing; ‹› fun member:pipeFrom‹447›(Param(‹›,f‹489›,None,Modulefulness(None)), Param(‹›,x‹490›,None,Modulefulness(None)), ) = missing; ‹› fun member:pipeIntoHi‹442›(Param(‹›,x‹494›,None,Modulefulness(None)), Param(‹›,f‹495›,None,Modulefulness(None)), ) = missing; ‹› fun member:pipeFromHi‹454›(Param(‹›,f‹499›,None,Modulefulness(None)), Param(‹›,x‹500›,None,Modulefulness(None)), ) = missing; ‹› fun member:tap‹450›(Param(‹›,x‹504›,None,Modulefulness(None)), Param(‹›,f‹505›,None,Modulefulness(None)), ) = missing; ‹› fun member:pat‹464›(Param(‹›,f‹509›,None,Modulefulness(None)), Param(‹›,x‹510›,None,Modulefulness(None)), ) = missing; ‹› fun member:alsoDo‹449›(Param(‹›,x‹514›,None,Modulefulness(None)), Param(‹›,eff‹515›,None,Modulefulness(None)), ) = missing; ‹› fun member:andThen‹451›(Param(‹›,f‹519›,None,Modulefulness(None)), Param(‹›,g‹520›,None,Modulefulness(None)), )(Param(‹›,x‹521›,None,Modulefulness(None)), ) = missing; ‹› fun member:compose‹434›(Param(‹›,f‹525›,None,Modulefulness(None)), Param(‹›,g‹526›,None,Modulefulness(None)), )(Param(‹›,x‹527›,None,Modulefulness(None)), ) = missing; ‹› fun member:passTo‹440›(Param(‹›,receiver‹531›,None,Modulefulness(None)), Param(‹›,f‹532›,None,Modulefulness(None)), )(...Param(‹›,args‹533›,None,Modulefulness(None))) = missing; ‹› fun member:passToLo‹446›(Param(‹›,receiver‹537›,None,Modulefulness(None)), Param(‹›,f‹538›,None,Modulefulness(None)), )(...Param(‹›,args‹539›,None,Modulefulness(None))) = missing; ‹› fun member:call‹444›(Param(‹›,receiver‹543›,None,Modulefulness(None)), Param(‹›,f‹544›,None,Modulefulness(None)), )(...Param(‹›,args‹545›,None,Modulefulness(None))) = missing; Obj Symbols ( ‹› val member:prettyPrint‹432› = missing; ); ‹› val member:pass1‹437› = missing; ‹› val member:pass2‹457› = missing; ‹› val member:pass3‹448› = missing; ‹› val member:passing‹459› = missing; ‹› val member:map‹435› = missing; ‹› val member:fold‹438› = missing; ‹› val member:interleave‹452› = missing; ‹› val member:render‹467› = missing; ‹› fun member:print‹436›(...Param(‹›,xs‹578›,None,Modulefulness(None))) = missing; ‹› fun member:renderAsStr‹443›(Param(‹›,arg‹582›,None,Modulefulness(None)), ) = missing; ‹› val member:assert‹445› = missing; ‹› fun member:notImplemented‹458›(Param(‹›,msg‹589›,None,Modulefulness(None)), ) = missing; ‹› fun member:notImplementedError‹453› = missing; ‹› fun member:tuple‹465›(...Param(‹›,xs‹596›,None,Modulefulness(None))) = missing; ‹› val member:foldl‹462› = missing; ‹› fun member:foldr‹466›(Param(‹›,f‹603›,None,Modulefulness(None)), )(Param(‹›,first‹604›,None,Modulefulness(None)), ...Param(‹›,rest‹605›,None,Modulefulness(None))) = missing; ‹› fun member:mkStr‹455›(...Param(‹›,xs‹609›,None,Modulefulness(None))) = missing; ‹› fun member:use‹441›[List(‹›T‹613›)]ctx (Param(‹›,instance‹614›,Some(Ref(T‹613›)),Modulefulness(None)), ) = missing; ‹› fun member:enterHandleBlock‹433›(Param(‹›,handler‹618›,None,Modulefulness(None)), Param(‹›,body‹619›,None,Modulefulness(None)), ) = missing; ‹› fun member:raiseUnhandledEffect‹460›() = missing; ),None,List())))
@@ -373,14 +283,14 @@ id(Foo)
 //│ | | | | Resolved symbol for SynthSel(Ref(member:Predef‹468›),Ident(id)): member:id‹461›
 //│ | | | | Resolving resolvable (sym = Some(member:id‹461›)): Some(CallableDefinition(member:id‹461›,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,‹›,Modulefulness(None),TermDefinition(Fun,member:id‹461›,module:Predef‹472›.id,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,Some(Missing),‹result of member:id›‹476›,‹›,Modulefulness(None),List())))
 //│ | | | ~> SynthSel(Ref(member:Predef‹468›),Ident(id))
-//│ | | | Resolving symbol for App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹699›),None)))): defn = TermDefinition(Fun,member:id‹461›,module:Predef‹472›.id,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,Some(Missing),‹result of member:id›‹476›,‹›,Modulefulness(None),List())
-//│ | | | Resolved symbol for App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹699›),None)))): None
+//│ | | | Resolving symbol for App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹715›),None)))): defn = TermDefinition(Fun,member:id‹461›,module:Predef‹472›.id,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,Some(Missing),‹result of member:id›‹476›,‹›,Modulefulness(None),List())
+//│ | | | Resolved symbol for App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹715›),None)))): None
 //│ | | | Resolving resolvable (sym = None): Some(CallableDefinition(member:id‹461›,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,‹›,Modulefulness(None),TermDefinition(Fun,member:id‹461›,module:Predef‹472›.id,List(ParamList(‹›,List(Param(‹›,x‹475›,None,Modulefulness(None))),None)),None,None,Some(Missing),‹result of member:id›‹476›,‹›,Modulefulness(None),List())))
-//│ | | | Traversing term: Ref(member:Foo‹699›)
-//│ | | | | Resolving resolvable term: Ref(member:Foo‹699›), (inPrefix = false)
-//│ | | | | | Resolving resolvable (sym = Some(member:Foo‹699›)): Some(CallableDefinition(member:Foo‹699›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹703›,member:Foo‹699›,List(),None,List(),None,Mod,( ‹› val member:foo‹698› = 1; ),Some(class:Foo‹700›),List())))
-//│ | | | | ~> Ref(member:Foo‹699›)
-//│ | | ~> App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹699›),None))))
+//│ | | | Traversing term: Ref(member:Foo‹715›)
+//│ | | | | Resolving resolvable term: Ref(member:Foo‹715›), (inPrefix = false)
+//│ | | | | | Resolving resolvable (sym = Some(member:Foo‹715›)): Some(CallableDefinition(member:Foo‹715›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹719›,member:Foo‹715›,List(),None,List(),None,Mod,( ‹› val member:foo‹714› = 1; ),Some(class:Foo‹716›),List())))
+//│ | | | | ~> Ref(member:Foo‹715›)
+//│ | | ~> App(SynthSel(Ref(member:Predef‹468›),Ident(id)),Tup(List(Fld(‹›,Ref(member:Foo‹715›),None))))
 //│ = fun Foo { class: class Foo { foo: 1 } }
 
 // TODO: should be an error, down the line, when we resolve all selections statically
@@ -399,12 +309,12 @@ Foo.foo
 :dr
 :sjs
 new Foo
-//│ Traversing block: Blk(List(),New(Ref(member:Foo‹699›),List(),None))
-//│ | Traversing term: New(Ref(member:Foo‹699›),List(),None)
-//│ | | Traversing term: Ref(member:Foo‹699›)
-//│ | | | Resolving resolvable term: Ref(member:Foo‹699›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹699›)): Some(CallableDefinition(member:Foo‹699›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹703›,member:Foo‹699›,List(),None,List(),None,Mod,( ‹› val member:foo‹698› = 1; ),Some(class:Foo‹700›),List())))
-//│ | | | ~> Ref(member:Foo‹699›)
+//│ Traversing block: Blk(List(),New(Ref(member:Foo‹715›),List(),None))
+//│ | Traversing term: New(Ref(member:Foo‹715›),List(),None)
+//│ | | Traversing term: Ref(member:Foo‹715›)
+//│ | | | Resolving resolvable term: Ref(member:Foo‹715›), (inPrefix = false)
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹715›)): Some(CallableDefinition(member:Foo‹715›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹719›,member:Foo‹715›,List(),None,List(),None,Mod,( ‹› val member:foo‹714› = 1; ),Some(class:Foo‹716›),List())))
+//│ | | | ~> Ref(member:Foo‹715›)
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new Foo5.class())
 //│ = Foo(undefined)

@@ -12,7 +12,7 @@
 :elt
 :dl
 :ssjs
-:lot
+// :lot
 module Foo with
   mut val x = 1
   set x = 2
@@ -61,53 +61,6 @@ module Foo with
 //│ ~> module:Foo#666
 //│ Lowering.term 2
 //│ Lowering.term undefined
-//│ Lowered:
-//│ Program:
-//│   imports = Nil
-//│   main = Define:
-//│     defn = ClsLikeDefn:
-//│       owner = N
-//│       isym = class:Foo
-//│       sym = member:Foo
-//│       k = Cls
-//│       paramsOpt = N
-//│       auxParams = Nil
-//│       parentPath = N
-//│       methods = Nil
-//│       privateFields = Nil
-//│       publicFields = Nil
-//│       preCtor = End of ""
-//│       ctor = Return:
-//│         res = Select{module:Unit}:
-//│           qual = Ref of $runtime
-//│           name = Ident of "Unit"
-//│         implct = true
-//│       companion = S of ClsLikeBody:
-//│         isym = module:Foo
-//│         methods = Nil
-//│         privateFields = Nil
-//│         publicFields = Ls of 
-//│           Tuple2:
-//│             _1 = member:x
-//│             _2 = module:Foo.x
-//│         ctor = Define:
-//│           defn = ValDefn:
-//│             tsym = module:Foo.x
-//│             sym = member:x
-//│             rhs = Lit of IntLit of 1
-//│           rest = AssignField: \
-//│           lhs = Ref of module:Foo
-//│           nme = Ident of "x"
-//│           rhs = Lit of IntLit of 2
-//│           rest = Return: \
-//│           res = Select{module:Unit}:
-//│             qual = Ref of $runtime
-//│             name = Ident of "Unit"
-//│           implct = true
-//│     rest = Assign: \
-//│     lhs = $block$res
-//│     rhs = Lit of UnitLit of false
-//│     rest = End of ""
 //│ avoidNames Define(ClsLikeDefn(None,class:Foo,member:Foo,Cls,None,List(),None,List(),List(),List(),End(),Return(...
 //│ | avoidNames End()...
 //│ | avoidNames Return(Select(Ref($runtime),Ident(Unit)),true)...
@@ -117,8 +70,6 @@ module Foo with
 //│ | avoidNames Assign($block$res,Lit(UnitLit(false)),End())...
 //│ | | avoidNames End()...
 //│ isym: class:Foo, Scope(None,Some(Some(globalThis:globalThis)),HashMap())
-//│ owner: module:Foo, Scope(None,Some(Some(globalThis:globalThis)),HashMap(module:Foo.x -> x))
-//│ owner: module:Foo, Scope(None,Some(Some(globalThis:globalThis)),HashMap(module:Foo.x -> x))
 //│ JS:
 //│ globalThis.Object.freeze(class Foo {
 //│   static {

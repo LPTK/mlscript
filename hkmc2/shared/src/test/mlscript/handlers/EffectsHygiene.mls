@@ -23,7 +23,6 @@ fun foo(h): module M =
 //│     constructor() {
 //│       runtime.Unit;
 //│     }
-//│     static {}
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "A"]; 
 //│   });
@@ -34,7 +33,6 @@ fun foo(h): module M =
 //│     constructor() {
 //│       runtime.Unit;
 //│     }
-//│     static {}
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "A"]; 
 //│   });

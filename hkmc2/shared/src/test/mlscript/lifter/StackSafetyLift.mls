@@ -20,99 +20,18 @@ fun hi(n) =
   if n == 0 then 0
   else hi(n - 1)
 hi(0)
-//│ JS (unsanitized):
-//│ let hi, res, $_stack$_safe$_body$_, Cont$func$hi$1, Cont$func$hi$$;
-//│ Cont$func$hi$$ = function Cont$func$hi$$(isMut, n$0, scrut$1, tmp$2, stackDelayRes$3, pc) {
-//│   let tmp, tmp1;
-//│   if (isMut === true) {
-//│     tmp = new Cont$func$hi$1(pc);
-//│   } else {
-//│     tmp = globalThis.Object.freeze(new Cont$func$hi$1(pc));
-//│   }
-//│   tmp1 = tmp(n$0, scrut$1, tmp$2, stackDelayRes$3);
-//│   return tmp1
-//│ };
-//│ globalThis.Object.freeze(class Cont$func$hi$ extends runtime.FunctionContFrame.class {
-//│   static {
-//│     Cont$func$hi$1 = this
-//│   }
-//│   constructor(pc) {
-//│     return (n$0, scrut$1, tmp$2, stackDelayRes$3) => {
-//│       let tmp;
-//│       tmp = super(null);
-//│       this.n$0 = n$0;
-//│       this.scrut$1 = scrut$1;
-//│       this.tmp$2 = tmp$2;
-//│       this.stackDelayRes$3 = stackDelayRes$3;
-//│       this.pc = pc;
-//│       return this;
-//│     }
-//│   }
-//│   #n$0;
-//│   #scrut$1;
-//│   #tmp$2;
-//│   #stackDelayRes$3;
-//│   get n$0() { return this.#n$0; }
-//│   set n$0(value) { this.#n$0 = value; }
-//│   get scrut$1() { return this.#scrut$1; }
-//│   set scrut$1(value) { this.#scrut$1 = value; }
-//│   get tmp$2() { return this.#tmp$2; }
-//│   set tmp$2(value) { this.#tmp$2 = value; }
-//│   get stackDelayRes$3() { return this.#stackDelayRes$3; }
-//│   set stackDelayRes$3(value) { this.#stackDelayRes$3 = value; }
-//│   resume(value$) {
-//│     if (this.pc === 0) {
-//│       this.stackDelayRes$3 = value$;
-//│     }
-//│     contLoop: while (true) {
-//│       if (this.pc === 0) {
-//│         this.scrut$1 = this.n$0 == 0;
-//│         if (this.scrut$1 === true) {
-//│           return 0
-//│         } else {
-//│           this.tmp$2 = this.n$0 - 1;
-//│           this.pc = 2;
-//│           continue contLoop
-//│         }
-//│         this.pc = 1;
-//│         continue contLoop
-//│       } else if (this.pc === 1) {
-//│         break contLoop
-//│       } else if (this.pc === 2) {
-//│         runtime.stackDepth = runtime.stackDepth + 1;
-//│         return hi(this.tmp$2)
-//│       }
-//│       break;
-//│     }
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Cont$func$hi$"]; 
-//│ });
-//│ hi = function hi(n) {
-//│   let scrut, tmp, curDepth, stackDelayRes;
-//│   curDepth = runtime.stackDepth;
-//│   stackDelayRes = runtime.checkDepth();
-//│   if (stackDelayRes instanceof runtime.EffectSig.class) {
-//│     stackDelayRes.contTrace.last.next = Cont$func$hi$$(true, n, scrut, tmp, stackDelayRes, 0);
-//│     stackDelayRes.contTrace.last = stackDelayRes.contTrace.last.next;
-//│     return stackDelayRes
-//│   }
-//│   scrut = n == 0;
-//│   if (scrut === true) {
-//│     return 0
-//│   } else {
-//│     tmp = n - 1;
-//│     runtime.stackDepth = runtime.stackDepth + 1;
-//│     return hi(tmp)
-//│   }
-//│ };
-//│ $_stack$_safe$_body$_ = (undefined, function () {
-//│   return hi(0)
-//│ });
-//│ res = runtime.runStackSafe(5, $_stack$_safe$_body$_);
-//│ if (res instanceof runtime.EffectSig.class) { res = runtime.topLevelEffect(res, false); }
-//│ res
-//│ = 0
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:resume
+//│ 	at: scala.collection.immutable.Map$Map2.apply(Map.scala:316)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
+//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
+//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
+//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
+//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
 
 :sjs
 :stackSafe 1000
@@ -123,127 +42,18 @@ fun sum(n) =
   else
     n + sum(n - 1)
 sum(10000)
-//│ JS (unsanitized):
-//│ let sum1, res1, $_stack$_safe$_body$_1, Cont$func$sum$1, Cont$func$sum$$;
-//│ Cont$func$sum$$ = function Cont$func$sum$$(isMut, n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5, pc) {
-//│   let tmp, tmp1;
-//│   if (isMut === true) {
-//│     tmp = new Cont$func$sum$1(pc);
-//│   } else {
-//│     tmp = globalThis.Object.freeze(new Cont$func$sum$1(pc));
-//│   }
-//│   tmp1 = tmp(n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5);
-//│   return tmp1
-//│ };
-//│ globalThis.Object.freeze(class Cont$func$sum$ extends runtime.FunctionContFrame.class {
-//│   static {
-//│     Cont$func$sum$1 = this
-//│   }
-//│   constructor(pc) {
-//│     return (n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5) => {
-//│       let tmp;
-//│       tmp = super(null);
-//│       this.n$0 = n$0;
-//│       this.scrut$1 = scrut$1;
-//│       this.tmp$2 = tmp$2;
-//│       this.tmp$3 = tmp$3;
-//│       this.curDepth$4 = curDepth$4;
-//│       this.stackDelayRes$5 = stackDelayRes$5;
-//│       this.pc = pc;
-//│       return this;
-//│     }
-//│   }
-//│   #n$0;
-//│   #scrut$1;
-//│   #tmp$2;
-//│   #tmp$3;
-//│   #curDepth$4;
-//│   #stackDelayRes$5;
-//│   get n$0() { return this.#n$0; }
-//│   set n$0(value) { this.#n$0 = value; }
-//│   get scrut$1() { return this.#scrut$1; }
-//│   set scrut$1(value) { this.#scrut$1 = value; }
-//│   get tmp$2() { return this.#tmp$2; }
-//│   set tmp$2(value) { this.#tmp$2 = value; }
-//│   get tmp$3() { return this.#tmp$3; }
-//│   set tmp$3(value) { this.#tmp$3 = value; }
-//│   get curDepth$4() { return this.#curDepth$4; }
-//│   set curDepth$4(value) { this.#curDepth$4 = value; }
-//│   get stackDelayRes$5() { return this.#stackDelayRes$5; }
-//│   set stackDelayRes$5(value) { this.#stackDelayRes$5 = value; }
-//│   resume(value$) {
-//│     if (this.pc === 0) {
-//│       this.stackDelayRes$5 = value$;
-//│     } else if (this.pc === 1) {
-//│       this.tmp$3 = value$;
-//│     }
-//│     contLoop: while (true) {
-//│       if (this.pc === 0) {
-//│         this.scrut$1 = this.n$0 == 0;
-//│         if (this.scrut$1 === true) {
-//│           return 0
-//│         } else {
-//│           this.tmp$2 = this.n$0 - 1;
-//│           this.pc = 3;
-//│           continue contLoop
-//│         }
-//│         this.pc = 2;
-//│         continue contLoop
-//│       } else if (this.pc === 2) {
-//│         break contLoop
-//│       } else if (this.pc === 3) {
-//│         runtime.stackDepth = runtime.stackDepth + 1;
-//│         this.tmp$3 = sum1(this.tmp$2);
-//│         if (this.tmp$3 instanceof runtime.EffectSig.class) {
-//│           this.pc = 1;
-//│           this.tmp$3.contTrace.last.next = this;
-//│           this.tmp$3.contTrace.last = this;
-//│           return this.tmp$3
-//│         }
-//│         this.pc = 1;
-//│         continue contLoop
-//│       } else if (this.pc === 1) {
-//│         this.tmp$3 = runtime.resetDepth(this.tmp$3, this.curDepth$4);
-//│         return this.n$0 + this.tmp$3
-//│       }
-//│       break;
-//│     }
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Cont$func$sum$"]; 
-//│ });
-//│ sum1 = function sum(n) {
-//│   let scrut, tmp, tmp1, curDepth, stackDelayRes;
-//│   curDepth = runtime.stackDepth;
-//│   stackDelayRes = runtime.checkDepth();
-//│   if (stackDelayRes instanceof runtime.EffectSig.class) {
-//│     stackDelayRes.contTrace.last.next = Cont$func$sum$$(true, n, scrut, tmp, tmp1, curDepth, stackDelayRes, 0);
-//│     stackDelayRes.contTrace.last = stackDelayRes.contTrace.last.next;
-//│     return stackDelayRes
-//│   }
-//│   scrut = n == 0;
-//│   if (scrut === true) {
-//│     return 0
-//│   } else {
-//│     tmp = n - 1;
-//│     runtime.stackDepth = runtime.stackDepth + 1;
-//│     tmp1 = sum1(tmp);
-//│     if (tmp1 instanceof runtime.EffectSig.class) {
-//│       tmp1.contTrace.last.next = Cont$func$sum$$(true, n, scrut, tmp, tmp1, curDepth, stackDelayRes, 1);
-//│       tmp1.contTrace.last = tmp1.contTrace.last.next;
-//│       return tmp1
-//│     }
-//│     tmp1 = runtime.resetDepth(tmp1, curDepth);
-//│     return n + tmp1
-//│   }
-//│ };
-//│ $_stack$_safe$_body$_1 = (undefined, function () {
-//│   return sum1(10000)
-//│ });
-//│ res1 = runtime.runStackSafe(1000, $_stack$_safe$_body$_1);
-//│ if (res1 instanceof runtime.EffectSig.class) { res1 = runtime.topLevelEffect(res1, false); }
-//│ res1
-//│ = 50005000
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:resume
+//│ 	at: scala.collection.immutable.Map$Map2.apply(Map.scala:316)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
+//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
+//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
+//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
+//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
 
 // stack-overflows without :stackSafe
 :re
@@ -264,8 +74,18 @@ fun foo(f) =
     set ctr += 1
     dummy(f(f))
 foo(foo)
-//│ = 0
-//│ ctr = 10001
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:resume
+//│ 	at: scala.collection.immutable.Map$Map3.apply(Map.scala:417)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
+//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
+//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
+//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
+//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
 
 :stackSafe 1000
 :effectHandlers
@@ -276,8 +96,18 @@ val foo =
     else n + f(n-1)
   f(10000)
 foo
-//│ = 50005000
-//│ foo = 50005000
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:resume
+//│ 	at: scala.collection.immutable.Map$Map2.apply(Map.scala:316)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
+//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
+//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
+//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
+//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
 
 :re
 fun foo() =
@@ -305,7 +135,18 @@ handle h = Eff with
       else n + f(n-1)
     resume(f(10000))
 foo(h)
-//│ = 50005000
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:resume
+//│ 	at: scala.collection.immutable.Map$Map3.apply(Map.scala:417)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
+//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
+//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
+//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
+//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
 
 // function call and defn inside handler
 :effectHandlers
@@ -321,7 +162,18 @@ handle h = Eff with
 in
   fun foo(h) = h.perform
   foo(h)
-//│ = 50005000
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:perform
+//│ 	at: scala.collection.immutable.Map$Map3.apply(Map.scala:417)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createLiftInfoFn$$anonfun$1(Lifter.scala:559)
+//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
+//│ 	at: hkmc2.Lifter.createLiftInfoFn(Lifter.scala:559)
+//│ 	at: hkmc2.Lifter.createLiftInfoCls$$anonfun$2(Lifter.scala:565)
+//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
+//│ 	at: hkmc2.Lifter.createLiftInfoCls(Lifter.scala:565)
+//│ 	at: hkmc2.Lifter.createLiftInfoCont(Lifter.scala:536)
+//│ 	at: hkmc2.Lifter.createLiftInfoFn$$anonfun$1(Lifter.scala:559)
 
 :re
 :effectHandlers
@@ -334,7 +186,18 @@ handle h = Eff with
       else n + f(n-1)
     resume(f(10000))
 foo(h)
-//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:perform
+//│ 	at: scala.collection.immutable.Map$Map2.apply(Map.scala:316)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createLiftInfoFn$$anonfun$1(Lifter.scala:559)
+//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
+//│ 	at: hkmc2.Lifter.createLiftInfoFn(Lifter.scala:559)
+//│ 	at: hkmc2.Lifter.createLiftInfoCls$$anonfun$2(Lifter.scala:565)
+//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
+//│ 	at: hkmc2.Lifter.createLiftInfoCls(Lifter.scala:565)
+//│ 	at: hkmc2.Lifter.createLiftInfoCont(Lifter.scala:536)
+//│ 	at: hkmc2.Lifter.createLiftInfoFn$$anonfun$1(Lifter.scala:559)
 
 :effectHandlers
 :stackSafe
@@ -355,7 +218,7 @@ fun hi(n) = n
 hi(0)
 //│ /!!!\ Option ':stackSafe' requires ':effectHandlers' to be set
 //│ JS (unsanitized):
-//│ let hi1; hi1 = function hi(n) { return n }; hi1(0)
+//│ let hi; hi = function hi(n) { return n }; hi(0)
 //│ = 0
 
 :stackSafe 42
@@ -373,5 +236,16 @@ fun sum(n) =
     n + sum(n - 1)
 fun bad() = sum(10000) + sum(10000)
 bad()
-//│ = 100010000
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:resume
+//│ 	at: scala.collection.immutable.Map$Map3.apply(Map.scala:417)
+//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
+//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
+//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
+//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
+//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
+//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
+//│ 	at: scala.collection.immutable.List.map(List.scala:247)
 
