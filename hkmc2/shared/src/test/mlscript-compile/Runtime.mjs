@@ -61,11 +61,14 @@ globalThis.Object.freeze(class Runtime {
       }
       #_reified;
       resumeWith(value) {
-        return Runtime1.try(() => {
+        let lambda;
+        const this$EffectHandle = this;
+        lambda = (undefined, function () {
           let tmp;
-          tmp = Runtime.resume(this.reified.contTrace);
+          tmp = Runtime.resume(this$EffectHandle.reified.contTrace);
           return runtime.safeCall(tmp(value))
-        })
+        });
+        return Runtime1.try(lambda)
       } 
       raise() {
         return Runtime.topLevelEffect(this.reified, false)
@@ -367,10 +370,12 @@ globalThis.Object.freeze(class Runtime {
         })
       }
       delay() {
-        return Runtime.mkEffect(this, (k) => {
+        let lambda;
+        lambda = (undefined, function (k) {
           Runtime.stackResume = k;
           return runtime.Unit
-        })
+        });
+        return Runtime.mkEffect(this, lambda)
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["object", "StackDelayHandler"]; 
@@ -380,13 +385,16 @@ globalThis.Object.freeze(class Runtime {
     throw globalThis.Error("unreachable");
   } 
   static checkArgs(functionName, expected, isUB, got) {
-    let scrut, name, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+    let scrut, name, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, lambda;
     tmp = got < expected;
-    scrut = runtime.short_or(tmp, () => {
-      return runtime.short_and(isUB, () => {
+    lambda = (undefined, function () {
+      let lambda1;
+      lambda1 = (undefined, function () {
         return got > expected
-      })
+      });
+      return runtime.short_and(isUB, lambda1)
     });
+    scrut = runtime.short_or(tmp, lambda);
     if (scrut === true) {
       scrut1 = functionName.length > 0;
       if (scrut1 === true) {
@@ -488,7 +496,7 @@ globalThis.Object.freeze(class Runtime {
     }
   } 
   static showStackTrace(header, tr1, debug1, showLocals1) {
-    let msg, curHandler, atTail, scrut, cur, scrut1, locals, curLocals, loc, loc1, localsMsg, scrut2, scrut3, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19;
+    let msg, curHandler, atTail, scrut, cur, scrut1, locals, curLocals, loc, loc1, localsMsg, scrut2, scrut3, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, lambda;
     msg = header;
     curHandler = tr1.contTrace;
     atTail = true;
@@ -514,12 +522,13 @@ globalThis.Object.freeze(class Runtime {
               if (showLocals1 === true) {
                 scrut2 = curLocals.locals.length > 0;
                 if (scrut2 === true) {
-                  tmp3 = runtime.safeCall(curLocals.locals.map((l) => {
+                  lambda = (undefined, function (l) {
                     let tmp22, tmp23;
                     tmp22 = l.localName + "=";
                     tmp23 = Rendering.render(l.value);
                     return tmp22 + tmp23
-                  }));
+                  });
+                  tmp3 = runtime.safeCall(curLocals.locals.map(lambda));
                   tmp4 = runtime.safeCall(tmp3.join(", "));
                   tmp5 = " with locals: " + tmp4;
                 } else {
@@ -578,12 +587,12 @@ globalThis.Object.freeze(class Runtime {
     return msg
   } 
   static showFunctionContChain(cont, hl, vis, reps) {
-    let scrut, result, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
+    let scrut, result, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, lambda;
     if (cont instanceof Runtime.FunctionContFrame.class) {
       tmp = cont.constructor.name + "(pc=";
       tmp1 = tmp + cont.pc;
       result = tmp1;
-      tmp2 = (m, marker) => {
+      lambda = (undefined, function (m, marker) {
         let scrut3, tmp10, tmp11;
         scrut3 = runtime.safeCall(m.has(cont));
         if (scrut3 === true) {
@@ -594,7 +603,8 @@ globalThis.Object.freeze(class Runtime {
         } else {
           return runtime.Unit
         }
-      };
+      });
+      tmp2 = lambda;
       tmp3 = runtime.safeCall(hl.forEach(tmp2));
       scrut1 = runtime.safeCall(vis.has(cont));
       if (scrut1 === true) {
@@ -625,10 +635,10 @@ globalThis.Object.freeze(class Runtime {
     }
   } 
   static showHandlerContChain(cont1, hl1, vis1, reps1) {
-    let scrut, result, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let scrut, result, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, lambda;
     if (cont1 instanceof Runtime.HandlerContFrame.class) {
       result = cont1.handler.constructor.name;
-      tmp = (m, marker) => {
+      lambda = (undefined, function (m, marker) {
         let scrut3, tmp8, tmp9;
         scrut3 = runtime.safeCall(m.has(cont1));
         if (scrut3 === true) {
@@ -639,7 +649,8 @@ globalThis.Object.freeze(class Runtime {
         } else {
           return runtime.Unit
         }
-      };
+      });
+      tmp = lambda;
       tmp1 = runtime.safeCall(hl1.forEach(tmp));
       scrut1 = runtime.safeCall(vis1.has(cont1));
       if (scrut1 === true) {
@@ -913,12 +924,13 @@ globalThis.Object.freeze(class Runtime {
     return tmp4
   } 
   static checkDepth() {
-    let scrut, tmp, tmp1;
+    let scrut, tmp, tmp1, lambda;
     tmp = Runtime.stackDepth - Runtime.stackOffset;
     tmp1 = tmp >= Runtime.stackLimit;
-    scrut = runtime.short_and(tmp1, () => {
+    lambda = (undefined, function () {
       return Runtime.stackHandler !== null
     });
+    scrut = runtime.short_and(tmp1, lambda);
     if (scrut === true) {
       return runtime.safeCall(Runtime.stackHandler.delay())
     } else {

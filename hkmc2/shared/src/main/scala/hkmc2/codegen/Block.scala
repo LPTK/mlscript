@@ -445,6 +445,7 @@ final case class ClsLikeBody(
     // preCtor: Block,
     ctor: Block,
 ):
+  val k = syntax.Mod // TODO generalize
   val innerSym = S(isym)
   def subBlocks: Ls[Block] =
     ctor :: methods.flatMap(_.subBlocks)

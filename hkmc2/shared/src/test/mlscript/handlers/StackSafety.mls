@@ -22,7 +22,7 @@ hi(0)
 //│ JS (unsanitized):
 //│ let hi, res, $_stack$_safe$_body$_;
 //│ hi = function hi(n) {
-//│   let scrut, tmp, stackDelayRes, Cont$func$hi$1;
+//│   let scrut, tmp, curDepth, stackDelayRes, Cont$func$hi$1;
 //│   globalThis.Object.freeze(class Cont$func$hi$ extends runtime.FunctionContFrame.class {
 //│     static {
 //│       Cont$func$hi$1 = this
@@ -60,6 +60,7 @@ hi(0)
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "Cont$func$hi$"]; 
 //│   });
+//│   curDepth = runtime.stackDepth;
 //│   stackDelayRes = runtime.checkDepth();
 //│   if (stackDelayRes instanceof runtime.EffectSig.class) {
 //│     stackDelayRes.contTrace.last.next = new Cont$func$hi$1(0);
@@ -270,24 +271,115 @@ in
 :effectHandlers
 :stackSafe 100
 :expect 50005000
+:sjs
 module A with
   val f = n =>
     if n <= 0 then 0
     else n + f(n-1)
   val x = f(10000)
 A.x
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:344)
-//│ 	at: hkmc2.StackSafeTransform.rewriteObjBody(StackSafeTransform.scala:135)
-//│ 	at: hkmc2.StackSafeTransform.rewriteCls$$anonfun$2(StackSafeTransform.scala:132)
-//│ 	at: scala.Option.map(Option.scala:242)
-//│ 	at: hkmc2.StackSafeTransform.rewriteCls(StackSafeTransform.scala:132)
-//│ 	at: hkmc2.StackSafeTransform$$anon$1.applyDefn(StackSafeTransform.scala:64)
-//│ 	at: hkmc2.codegen.BlockTransformer.applyBlock(BlockTransformer.scala:71)
-//│ 	at: hkmc2.StackSafeTransform$$anon$1.applyBlock(StackSafeTransform.scala:92)
-//│ 	at: hkmc2.StackSafeTransform.transform(StackSafeTransform.scala:110)
-//│ 	at: hkmc2.StackSafeTransform.transformTopLevel(StackSafeTransform.scala:155)
+//│ JS (unsanitized):
+//│ let A1;
+//│ globalThis.Object.freeze(class A {
+//│   static {
+//│     A1 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
+//│     let tmp6, tmp7, lambda2, $_stack$_safe$_body$_7;
+//│     lambda2 = (undefined, function (n) {
+//│       let scrut, tmp8, tmp9, curDepth, stackDelayRes, Cont$func$lambda$5;
+//│       globalThis.Object.freeze(class Cont$func$lambda$4 extends runtime.FunctionContFrame.class {
+//│         static {
+//│           Cont$func$lambda$5 = this
+//│         }
+//│         constructor(pc) {
+//│           let tmp10;
+//│           tmp10 = super(null);
+//│           this.pc = pc;
+//│         }
+//│         resume(value$) {
+//│           if (this.pc === 0) {
+//│             stackDelayRes = value$;
+//│           } else if (this.pc === 1) {
+//│             tmp9 = value$;
+//│           }
+//│           contLoop: while (true) {
+//│             if (this.pc === 0) {
+//│               scrut = n <= 0;
+//│               if (scrut === true) {
+//│                 return 0
+//│               } else {
+//│                 tmp8 = n - 1;
+//│                 this.pc = 3;
+//│                 continue contLoop
+//│               }
+//│               this.pc = 2;
+//│               continue contLoop
+//│             } else if (this.pc === 2) {
+//│               break contLoop
+//│             } else if (this.pc === 3) {
+//│               runtime.stackDepth = runtime.stackDepth + 1;
+//│               tmp9 = runtime.safeCall(A.f(tmp8));
+//│               if (tmp9 instanceof runtime.EffectSig.class) {
+//│                 this.pc = 1;
+//│                 tmp9.contTrace.last.next = this;
+//│                 tmp9.contTrace.last = this;
+//│                 return tmp9
+//│               }
+//│               this.pc = 1;
+//│               continue contLoop
+//│             } else if (this.pc === 1) {
+//│               tmp9 = runtime.resetDepth(tmp9, curDepth);
+//│               return n + tmp9
+//│             }
+//│             break;
+//│           }
+//│         }
+//│         toString() { return runtime.render(this); }
+//│         static [definitionMetadata] = ["class", "Cont$func$lambda$"]; 
+//│       });
+//│       curDepth = runtime.stackDepth;
+//│       stackDelayRes = runtime.checkDepth();
+//│       if (stackDelayRes instanceof runtime.EffectSig.class) {
+//│         stackDelayRes.contTrace.last.next = new Cont$func$lambda$5(0);
+//│         stackDelayRes.contTrace.last = stackDelayRes.contTrace.last.next;
+//│         return stackDelayRes
+//│       }
+//│       scrut = n <= 0;
+//│       if (scrut === true) {
+//│         return 0
+//│       } else {
+//│         tmp8 = n - 1;
+//│         runtime.stackDepth = runtime.stackDepth + 1;
+//│         tmp9 = runtime.safeCall(A.f(tmp8));
+//│         if (tmp9 instanceof runtime.EffectSig.class) {
+//│           tmp9.contTrace.last.next = new Cont$func$lambda$5(1);
+//│           tmp9.contTrace.last = tmp9.contTrace.last.next;
+//│           return tmp9
+//│         }
+//│         tmp9 = runtime.resetDepth(tmp9, curDepth);
+//│         return n + tmp9
+//│       }
+//│     });
+//│     tmp6 = lambda2;
+//│     this.f = tmp6;
+//│     $_stack$_safe$_body$_7 = (undefined, function () {
+//│       return runtime.safeCall(A.f(10000))
+//│     });
+//│     tmp7 = runtime.runStackSafe(100, $_stack$_safe$_body$_7);
+//│     if (tmp7 instanceof runtime.EffectSig.class) {
+//│       tmp7 = runtime.topLevelEffect(tmp7, false);
+//│     }
+//│     this.x = tmp7;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "A"]; 
+//│ });
+//│ A1.x
+//│ = 50005000
 
 :re
 :effectHandlers
@@ -355,3 +447,4 @@ handle h = Object with
 h.whoops()
 //│ = 0
 //│ depth = 50000
+

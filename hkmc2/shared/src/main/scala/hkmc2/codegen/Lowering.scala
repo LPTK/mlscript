@@ -1007,7 +1007,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     
     val blk = block(funs ::: rest, R(main.res))(ImplctRet)(using Subst.empty)
     
+    // println(s"???????????? DESUG")
+    
     val desug = LambdaRewriter.desugar(blk)
+    
+    // println(s"DESUG ${desug.showAsTree}")
     
     val handlerPaths = new HandlerPaths
     val stackSafe = config.stackSafety match

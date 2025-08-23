@@ -128,25 +128,32 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths)(using State):
       // smethods.map(rewriteFn),
       privateFields,
       publicFields, rewriteBlk(preCtor),
-      if isTopLevel && (defn.k is syntax.Mod) then transformTopLevel(ctor) else rewriteBlk(ctor),
-      mod.map(rewriteObjBody),
+      if isTopLevel && (defn.k is syntax.Mod) then
+          die // TODO rm this branch
+          transformTopLevel(ctor)
+        else rewriteBlk(ctor),
+      mod.map(rewriteObjBody(_, isTopLevel)),
     )
   
-  def rewriteObjBody(defn: ClsLikeBody): ClsLikeBody = ???
+  def rewriteObjBody(defn: ClsLikeBody, isTopLevel: Bool): ClsLikeBody =
+    ClsLikeBody(
+      defn.isym,
+      defn.methods.map(rewriteFn),
+      defn.privateFields,
+      defn.publicFields,
+      if isTopLevel then transformTopLevel(defn.ctor) else rewriteBlk(defn.ctor),
+    )
 
   def rewriteBlk(blk: Block) =
-    var usedDepth = false
-    lazy val curDepth =
-      usedDepth = true
+    val curDepth =
       TempSymbol(None, "curDepth")
     val newBody = transform(blk, curDepth)
-
     if isTrivial(blk) then
       newBody
     else
       val resSym = TempSymbol(None, "stackDelayRes")
       blockBuilder
-        .staticif(usedDepth, _.assign(curDepth, stackDepthPath))
+        .assign(curDepth, stackDepthPath)
         .assign(resSym, Call(checkDepthPath, Nil)(true, true))
         .rest(newBody)
   

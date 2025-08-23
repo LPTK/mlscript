@@ -89,7 +89,8 @@ hi(0)
 //│   static [definitionMetadata] = ["class", "Cont$func$hi$"]; 
 //│ });
 //│ hi = function hi(n) {
-//│   let scrut, tmp, stackDelayRes;
+//│   let scrut, tmp, curDepth, stackDelayRes;
+//│   curDepth = runtime.stackDepth;
 //│   stackDelayRes = runtime.checkDepth();
 //│   if (stackDelayRes instanceof runtime.EffectSig.class) {
 //│     stackDelayRes.contTrace.last.next = Cont$func$hi$$(true, n, scrut, tmp, stackDelayRes, 0);

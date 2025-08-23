@@ -426,9 +426,11 @@ module A with
 //│     return 1;
 //│   } 
 //│   static get f() {
-//│     return () => {
+//│     let lambda;
+//│     lambda = (undefined, function () {
 //│       return A9.g
-//│     };
+//│     });
+//│     return lambda;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"]; 

@@ -1103,10 +1103,10 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
   end liftDefnsInFn
 
   // top-level
-  def transform(b: Block) =
+  def transform(_blk: Block) =
     // this is already done once in the lowering, but the handler lowering adds lambdas currently
     // so we need to desugar them again
-    val blk = LambdaRewriter.desugar(b)
+    val blk = LambdaRewriter.desugar(_blk)
 
     val analyzer = UsedVarAnalyzer(blk, handlerPaths)
     val ctx = LifterCtx

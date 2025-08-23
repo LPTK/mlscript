@@ -154,8 +154,8 @@ globalThis.Object.freeze(class Predef {
     }
   } 
   static mkStr(...xs2) {
-    let tmp, tmp1;
-    tmp = (acc, x8) => {
+    let tmp, tmp1, lambda;
+    lambda = (undefined, function (acc, x8) {
       let tmp2, tmp3, tmp4;
       if (typeof x8 === 'string') {
         tmp2 = true;
@@ -165,7 +165,8 @@ globalThis.Object.freeze(class Predef {
       tmp3 = runtime.safeCall(Predef.assert(tmp2));
       tmp4 = acc + x8;
       return (tmp3 , tmp4)
-    };
+    });
+    tmp = lambda;
     tmp1 = runtime.safeCall(Predef.fold(tmp));
     return runtime.safeCall(tmp1(...xs2))
   } 
