@@ -27,107 +27,12 @@
 
 // ——— ——— ———
 
-:e
-:de
-fun (**) f1(a, b) = "[" + a + " * " + b + "]"
-fun (**) f2(a, b) = "(" + a + " + " + b + ")"
-//│ Elab block List(TermDef(Fun,Jux(Bra(Round,Ident(**)),App(Ident(f1),Tup(List(Ident(a), Ident(b))))),Some(OpApp(O[...] LocalScope
-//│ | !! '**' Some(member:f2‹638›) true
-//│ | !! Processing overloadings for 'f1' List()
-//│ ╔══[ERROR] Symbolic name '**' of definition 'f1' is already used
-//│ ║  l.32: 	fun (**) f1(a, b) = "[" + a + " * " + b + "]"
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── by sibling member 'f2'
-//│ ║  l.33: 	fun (**) f2(a, b) = "(" + a + " + " + b + ")"
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ | !! Processing overloadings for 'f2' List()
-//│ | Processing term definition Jux(Bra(Round,Ident(**)),App(Ident(f1),Tup(List(Ident(a), Ident(b)))))
-//│ | Elaborating ParamTree: ParamTree(‹›,Ident(a),None,None,Set())
-//│ | Elaborating ParamTree: ParamTree(‹›,Ident(b),None,None,Set())
-//│ | Elab term OpApp(OpApp(OpApp(OpApp(StrLit([),Ident(+),List(Ident(a))),Ident(+),List(StrLit( * ))),Ident(+),List(Ident(b))),Ident(+),List(StrLit(])))
-//│ | | Elab subterm OpApp(OpApp(OpApp(OpApp(StrLit([),Ident(+),List(Ident(a))),Ident(+),List(StrLit( * ))),Ident(+),List(Ident(b))),Ident(+),List(StrLit(])))
-//│ | | | Elab subterm OpApp(OpApp(OpApp(StrLit([),Ident(+),List(Ident(a))),Ident(+),List(StrLit( * ))),Ident(+),List(Ident(b)))
-//│ | | | | Elab subterm OpApp(OpApp(StrLit([),Ident(+),List(Ident(a))),Ident(+),List(StrLit( * )))
-//│ | | | | | Elab subterm OpApp(StrLit([),Ident(+),List(Ident(a)))
-//│ | | | | | | Elab subterm StrLit([)
-//│ | | | | | | ~> Lit(StrLit([))
-//│ | | | | | | Elab subterm Ident(+)
-//│ | | | | | | ~> Ref(builtin:+‹38›)
-//│ | | | | | | Elab subterm Ident(a)
-//│ | | | | | | ~> Ref(a‹640›)
-//│ | | | | | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit([)),None), Fld(‹›,Ref(a‹640›),None))))
-//│ | | | | | Elab subterm Ident(+)
-//│ | | | | | ~> Ref(builtin:+‹38›)
-//│ | | | | | Elab subterm StrLit( * )
-//│ | | | | | ~> Lit(StrLit( * ))
-//│ | | | | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit([)),None), Fld(‹›,Ref(a‹640›),None)))),None), Fld(‹›,Lit(StrLit( * )),None))))
-//│ | | | | Elab subterm Ident(+)
-//│ | | | | ~> Ref(builtin:+‹38›)
-//│ | | | | Elab subterm Ident(b)
-//│ | | | | ~> Ref(b‹641›)
-//│ | | | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit([)),None), Fld(‹›,Ref(a‹640›),None)))),None), Fld(‹›,Lit(StrLit( * )),None)))),None), Fld(‹›,Ref(b‹641›),None))))
-//│ | | | Elab subterm Ident(+)
-//│ | | | ~> Ref(builtin:+‹38›)
-//│ | | | Elab subterm StrLit(])
-//│ | | | ~> Lit(StrLit(]))
-//│ | | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit([)),None), Fld(‹›,Ref(a‹640›),None)))),None), Fld(‹›,Lit(StrLit( * )),None)))),None), Fld(‹›,Ref(b‹641›),None)))),None), Fld(‹›,Lit(StrLit(])),None))))
-//│ | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit([)),None), Fld(‹›,Ref(a‹640›),None)))),None), Fld(‹›,Lit(StrLit( * )),None)))),None), Fld(‹›,Ref(b‹641›),None)))),None), Fld(‹›,Lit(StrLit(])),None))))
-//│ | Processing term definition Jux(Bra(Round,Ident(**)),App(Ident(f2),Tup(List(Ident(a), Ident(b)))))
-//│ | Elaborating ParamTree: ParamTree(‹›,Ident(a),None,None,Set())
-//│ | Elaborating ParamTree: ParamTree(‹›,Ident(b),None,None,Set())
-//│ | Elab term OpApp(OpApp(OpApp(OpApp(StrLit((),Ident(+),List(Ident(a))),Ident(+),List(StrLit( + ))),Ident(+),List(Ident(b))),Ident(+),List(StrLit())))
-//│ | | Elab subterm OpApp(OpApp(OpApp(OpApp(StrLit((),Ident(+),List(Ident(a))),Ident(+),List(StrLit( + ))),Ident(+),List(Ident(b))),Ident(+),List(StrLit())))
-//│ | | | Elab subterm OpApp(OpApp(OpApp(StrLit((),Ident(+),List(Ident(a))),Ident(+),List(StrLit( + ))),Ident(+),List(Ident(b)))
-//│ | | | | Elab subterm OpApp(OpApp(StrLit((),Ident(+),List(Ident(a))),Ident(+),List(StrLit( + )))
-//│ | | | | | Elab subterm OpApp(StrLit((),Ident(+),List(Ident(a)))
-//│ | | | | | | Elab subterm StrLit(()
-//│ | | | | | | ~> Lit(StrLit(())
-//│ | | | | | | Elab subterm Ident(+)
-//│ | | | | | | ~> Ref(builtin:+‹38›)
-//│ | | | | | | Elab subterm Ident(a)
-//│ | | | | | | ~> Ref(a‹649›)
-//│ | | | | | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit(()),None), Fld(‹›,Ref(a‹649›),None))))
-//│ | | | | | Elab subterm Ident(+)
-//│ | | | | | ~> Ref(builtin:+‹38›)
-//│ | | | | | Elab subterm StrLit( + )
-//│ | | | | | ~> Lit(StrLit( + ))
-//│ | | | | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit(()),None), Fld(‹›,Ref(a‹649›),None)))),None), Fld(‹›,Lit(StrLit( + )),None))))
-//│ | | | | Elab subterm Ident(+)
-//│ | | | | ~> Ref(builtin:+‹38›)
-//│ | | | | Elab subterm Ident(b)
-//│ | | | | ~> Ref(b‹650›)
-//│ | | | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit(()),None), Fld(‹›,Ref(a‹649›),None)))),None), Fld(‹›,Lit(StrLit( + )),None)))),None), Fld(‹›,Ref(b‹650›),None))))
-//│ | | | Elab subterm Ident(+)
-//│ | | | ~> Ref(builtin:+‹38›)
-//│ | | | Elab subterm StrLit())
-//│ | | | ~> Lit(StrLit()))
-//│ | | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit(()),None), Fld(‹›,Ref(a‹649›),None)))),None), Fld(‹›,Lit(StrLit( + )),None)))),None), Fld(‹›,Ref(b‹650›),None)))),None), Fld(‹›,Lit(StrLit())),None))))
-//│ | ~> App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit(()),None), Fld(‹›,Ref(a‹649›),None)))),None), Fld(‹›,Lit(StrLit( + )),None)))),None), Fld(‹›,Ref(b‹650›),None)))),None), Fld(‹›,Lit(StrLit())),None))))
-//│ ~> Blk(List(TermDefinition(Fun,member:f1‹637›,.f1,List(ParamList(‹›,List(Param(‹›,a‹640›,None,Modulefulness(None)), Param(‹›,b‹641›,None,Modulefulness(None))),None)),None,None,Some(App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit([)),None), Fld(‹›,Ref(a‹640›),None)))),None), Fld(‹›,Lit(StrLit( * )),None)))),None), Fld(‹›,Ref(b‹641›),None)))),None), Fld(‹›,Lit(StrLit(])),None))))),‹result of member:f1‹637››‹646›,‹›,Modulefulness(None),List()), TermDefinition(Fun,member:f2‹638›,.f2,List(ParamList(‹›,List(Param(‹›,a‹649›,None,Modulefulness(None)), Param(‹›,b‹650›,None,Modulefulness(None))),None)),None,None,Some(App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,App(Ref(builtin:+‹38›),Tup(List(Fld(‹›,Lit(StrLit(()),None), Fld(‹›,Ref(a‹649›),None)))),None), Fld(‹›,Lit(StrLit( + )),None)))),None), Fld(‹›,Ref(b‹650›),None)))),None), Fld(‹›,Lit(StrLit())),None))))),‹result of member:f2‹638››‹655›,‹›,Modulefulness(None),List())),Lit(UnitLit(false)))
-
-1 ** 2
-//│ = "(1 + 2)"
-
-// FIXME error is duplicated & refers to wrong name
-:e
-fun (**) t() = 0
-fun (++) t() = 1
-//│ ╔══[ERROR] Multiple definitions of symbol 't'
-//│ ╟── defined here
-//│ ║  l.113: 	fun (**) t() = 0
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ╟── defined here
-//│ ║  l.114: 	fun (++) t() = 1
-//│ ╙──       	^^^^^^^^^^^^^^^^
-
-// ——— ——— ———
-
 :todo // TODO instrument Predef
 :re
 id(1, 2)
 //│ ╔══[ERROR] Expected 1 arguments, got 2
-//│ ║  l.127: 	id(1, 2)
-//│ ╙──       	  ^^^^^^
+//│ ║  l.32: 	id(1, 2)
+//│ ╙──      	  ^^^^^^
 //│ = 1
 
 // ——— ——— ———
@@ -181,8 +86,8 @@ fun p: Int
 
 p
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'p'
-//│ ║  l.180: 	fun p: Int
-//│ ╙──       	^^^^^^^^^^
+//│ ║  l.85: 	fun p: Int
+//│ ╙──      	^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] ReferenceError: p is not defined
 
 
@@ -194,15 +99,15 @@ fun (++) test: (Int, Int) -> Int
 
 test(1, 2)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'test'
-//│ ║  l.190: 	fun (++) test: (Int, Int) -> Int
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.95: 	fun (++) test: (Int, Int) -> Int
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] ReferenceError: test is not defined
 
 :sjs
 1 ++ 1
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'test'
-//│ ║  l.190: 	fun (++) test: (Int, Int) -> Int
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.95: 	fun (++) test: (Int, Int) -> Int
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ JS (unsanitized):
 //│ let tmp4; tmp4 = test(); runtime.safeCall(tmp4(1, 1))
 //│ ═══[RUNTIME ERROR] ReferenceError: test is not defined
@@ -254,7 +159,7 @@ data object Cls(x) with
 :e
 Cls.x
 //│ ╔══[ERROR] Object 'Cls' does not contain member 'x'
-//│ ║  l.255: 	Cls.x
+//│ ║  l.160: 	Cls.x
 //│ ╙──       	   ^^
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
 
@@ -264,7 +169,7 @@ Cls.huh
 
 let c = new Cls(123)
 //│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'Cls'.
-//│ ║  l.265: 	let c = new Cls(123)
+//│ ║  l.170: 	let c = new Cls(123)
 //│ ║         	            ^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: Cls1 is not a constructor
@@ -277,7 +182,7 @@ c.x
 
 class Foo' with
   class Bar'
-//│ > let Foo$_1;try { globalThis.Object.freeze(class Foo$_ {   static {     Foo$_1 = this   }   constructor() {     const this$Foo$_ = this;     globalThis.Object.freeze(class Bar$_ {       static {         this$Foo$_.Bar' = this       }       constructor() {}       toString() { return runtime.render(this); }       static [definitionMetadata] = ["class", "Bar'"];      });   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Foo'"];  }); block$res28 = undefined; } catch (e) { console.log('\u200B' + e + '\u200B'); }
+//│ > let Foo$_1;try { globalThis.Object.freeze(class Foo$_ {   static {     Foo$_1 = this   }   constructor() {     const this$Foo$_ = this;     globalThis.Object.freeze(class Bar$_ {       static {         this$Foo$_.Bar' = this       }       constructor() {}       toString() { return runtime.render(this); }       static [definitionMetadata] = ["class", "Bar'"];      });   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Foo'"];  }); block$res25 = undefined; } catch (e) { console.log('\u200B' + e + '\u200B'); }
 //│ >                                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Unexpected string
 
@@ -287,30 +192,30 @@ module Example with
 // whoops
   val a = this
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found new line instead
-//│ ║  l.286: 	module Example with
+//│ ║  l.191: 	module Example with
 //│ ║         	                   ^
-//│ ║  l.287: 	// whoops
+//│ ║  l.192: 	// whoops
 //│ ╙──       	
 //│ ╔══[PARSE ERROR] Expected an expression; found block instead
-//│ ║  l.288: 	  val a = this
+//│ ║  l.193: 	  val a = this
 //│ ╙──       	  ^
 //│ ╔══[PARSE ERROR] Expected end of input; found indented block instead
-//│ ║  l.288: 	  val a = this
+//│ ║  l.193: 	  val a = this
 //│ ╙──       	^^
 
 // ——— ——— ———
 
 let xs = new Oopsie
 //│ ╔══[ERROR] Name not found: Oopsie
-//│ ║  l.303: 	let xs = new Oopsie
+//│ ║  l.208: 	let xs = new Oopsie
 //│ ╙──       	             ^^^^^^
 //│ ╔══[ERROR] Expected a statically known class; found <error>.
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'xs'
-//│ ║  l.303: 	let xs = new Oopsie
+//│ ║  l.208: 	let xs = new Oopsie
 //│ ║         	    ^^
 //│ ╟── which is introduced here
-//│ ║  l.303: 	let xs = new Oopsie
+//│ ║  l.208: 	let xs = new Oopsie
 //│ ╙──       	    ^^
 //│ ═══[RUNTIME ERROR] ReferenceError: xs is not defined
 
@@ -338,7 +243,7 @@ class C
 :sjs
 class D extends id(C)
 //│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
-//│ ║  l.339: 	class D extends id(C)
+//│ ║  l.244: 	class D extends id(C)
 //│ ║         	                ^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ JS (unsanitized):
@@ -386,13 +291,13 @@ import "../../mlscript-compile/Stack.mls"
 // The parser rejects this, but it should be allowed.
 open Stack { ::, Nil }
 //│ ╔══[ERROR] Illegal 'open' statement shape.
-//│ ║  l.387: 	open Stack { ::, Nil }
+//│ ║  l.292: 	open Stack { ::, Nil }
 //│ ╙──       	     ^^^^^^^^^^^^^^^
 
 // Instead, if we parenthesize the operator, it is rejected by the elaborator.
 open Stack { (::), Nil }
 //│ ╔══[ERROR] Illegal 'open' statement element.
-//│ ║  l.393: 	open Stack { (::), Nil }
+//│ ║  l.298: 	open Stack { (::), Nil }
 //│ ╙──       	             ^^^^
 
 open Stack { Nil, :: }
@@ -400,7 +305,7 @@ open Stack { Nil, :: }
 :sjs
 1 :: Nil
 //│ ╔══[ERROR] Module 'Stack' does not contain member '::'
-//│ ║  l.401: 	1 :: Nil
+//│ ║  l.306: 	1 :: Nil
 //│ ╙──       	  ^^
 //│ JS (unsanitized):
 //│ Stack["::"](1, Stack.Nil)
@@ -411,9 +316,9 @@ open Stack { Nil, :: }
 mkStr of ... // hello
 "oops"
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found new line instead
-//│ ║  l.411: 	mkStr of ... // hello
+//│ ║  l.316: 	mkStr of ... // hello
 //│ ║         	                     ^
-//│ ║  l.412: 	"oops"
+//│ ║  l.317: 	"oops"
 //│ ╙──       	
 //│ = "oops"
 
@@ -436,22 +341,22 @@ Foo(1, 2, 3).args
 :todo
 if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╔══[ERROR] Unrecognized pattern (spread)
-//│ ║  l.437: 	if Foo(1, 2, 3) is Foo(...args) then args
+//│ ║  l.342: 	if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╙──       	                       ^^^^^^^
 //│ ╔══[ERROR] The constructor does not take any arguments but found one argument.
-//│ ║  l.437: 	if Foo(1, 2, 3) is Foo(...args) then args
+//│ ║  l.342: 	if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╙──       	                       ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
 if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
 //│ ╔══[ERROR] The constructor does not take any arguments but found three arguments.
-//│ ║  l.446: 	if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
+//│ ║  l.351: 	if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
 //│ ╙──       	                       ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
 if Foo(1, 2, 3) is Foo(arg) then arg
 //│ ╔══[ERROR] The constructor does not take any arguments but found one argument.
-//│ ║  l.452: 	if Foo(1, 2, 3) is Foo(arg) then arg
+//│ ║  l.357: 	if Foo(1, 2, 3) is Foo(arg) then arg
 //│ ╙──       	                       ^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
@@ -485,10 +390,10 @@ fun foo() =
   let bar(x: Str): Str = x + x
   bar("test")
 //│ ╔══[ERROR] Unsupported let binding shape
-//│ ║  l.485: 	  let bar(x: Str): Str = x + x
+//│ ║  l.390: 	  let bar(x: Str): Str = x + x
 //│ ╙──       	      ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Expected 0 arguments, got 1
-//│ ║  l.486: 	  bar("test")
+//│ ║  l.391: 	  bar("test")
 //│ ╙──       	     ^^^^^^^^
 
 // ——— ——— ———
@@ -497,10 +402,10 @@ fun foo() =
 :sjs
 module Foo(x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
-//│ ║  l.498: 	module Foo(x)
+//│ ║  l.403: 	module Foo(x)
 //│ ║         	           ^
 //│ ╟── which is introduced here
-//│ ║  l.498: 	module Foo(x)
+//│ ║  l.403: 	module Foo(x)
 //│ ╙──       	           ^
 //│ JS (unsanitized):
 //│ let Foo5;
@@ -523,10 +428,10 @@ module Foo(x)
 :sjs
 module Foo(val x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
-//│ ║  l.524: 	module Foo(val x)
+//│ ║  l.429: 	module Foo(val x)
 //│ ║         	               ^
 //│ ╟── which is introduced here
-//│ ║  l.524: 	module Foo(val x)
+//│ ║  l.429: 	module Foo(val x)
 //│ ╙──       	               ^
 //│ JS (unsanitized):
 //│ let Foo7;
@@ -549,7 +454,7 @@ module Foo(val x)
 // TODO support syntax?
 data class Foo(mut x)
 //│ ╔══[ERROR] Expected a valid parameter, found 'mut'-modified identifier
-//│ ║  l.550: 	data class Foo(mut x)
+//│ ║  l.455: 	data class Foo(mut x)
 //│ ╙──       	                   ^
 
 // ——— ——— ———

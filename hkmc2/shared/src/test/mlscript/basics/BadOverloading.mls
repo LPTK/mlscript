@@ -105,3 +105,28 @@ module Foo
 //│ Foo = class Foo
 
 
+:e
+fun (**) f1(a, b) = "[" + a + " * " + b + "]"
+fun (**) f2(a, b) = "(" + a + " + " + b + ")"
+//│ ╔══[ERROR] Symbolic name '**' of definition 'f1' is already used
+//│ ║  l.109: 	fun (**) f1(a, b) = "[" + a + " * " + b + "]"
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── by sibling member 'f2'
+//│ ║  l.110: 	fun (**) f2(a, b) = "(" + a + " + " + b + ")"
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1 ** 2
+//│ = "(1 + 2)"
+
+:e
+fun (**) t() = 0
+fun (++) t() = 1
+//│ ╔══[ERROR] Multiple definitions of symbol 't'
+//│ ╟── defined here
+//│ ║  l.122: 	fun (**) t() = 0
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ╟── defined here
+//│ ║  l.123: 	fun (++) t() = 1
+//│ ╙──       	^^^^^^^^^^^^^^^^
+
+
