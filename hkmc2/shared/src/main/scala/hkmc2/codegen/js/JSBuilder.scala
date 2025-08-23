@@ -240,15 +240,11 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
           case ClsLikeDefn(ownr, isym, sym, kind, paramsOpt, auxParams, par, mtds, privFlds, pubFlds, preCtor, ctor, mod) =>
             val clsParams = paramsOpt.fold(Nil)(_.paramSyms)
             val ctorParams = clsParams.map(p => p -> scope.allocateName(p))
-            val ctorFields = ctorParams.filter: p =>
-              p._1.decl match
-              case S(Param(flags = FldFlags(isVal = true))) => true
-              case _ => false
             val ctorAuxParams = auxParams.map(ps => ps.params.map(p => p.sym -> scope.allocateName(p.sym)))
             
             val modDoc =
               // TODO dedup some of that logic
-              val (thisProxy, res) = scope.nestRebindThis(
+              val (thisProxy, res) = outerScope.nestRebindThis(
                 // * Either this is an InnerSymbol or this is a Fun,
                 // * and we need to rebind `this` to None to shadow it.
                 mod.innerSym.collectFirst{ case s: InnerSymbol => s }):
@@ -263,7 +259,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                     val scp = mod.isym.asInstanceOf[InnerSymbol].privatesScope // TODO improve (asInstanceOf)
                     tl.log(s"isym: $isym, ${isym.asInstanceOf[InnerSymbol].privatesScope}")
                     val privDecls = allPrivFlds.map: fld =>
-                      val nme = scp.allocateName(fld)
+                      val nme = scp.allocateOrGetName(fld)
                       doc" # $mtdPrefix#$nme;"
                     val accessors = mutPubFields.flatMap: (valSym, letSym) =>
                       doc" # static get ${escapeField(valSym.name, "")}() { return ${getVar(letSym)}; }" ::
@@ -279,7 +275,8 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                         val result = pss.foldRight(bod):
                           case (ps, block) => 
                             Return(Lam(ps, block), false)
-                        val (params, bodyDoc) = setupFunction(some(td.sym.nme), ps, result)
+                        val (params, bodyDoc) = scope.nest.givenIn:
+                          setupFunction(S(td.sym.nme), ps, result)
                         doc" # $mtdPrefix${td.sym.nme}($params) ${ braced(bodyDoc) }"
                       case td @ FunDefn(_, _, Nil, bod) =>
                         doc" # ${mtdPrefix}get ${td.sym.nme}() ${ braced(body(bod, endSemi = true)) }"
@@ -304,7 +301,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             val privs =
               val scp = isym.asInstanceOf[InnerSymbol].privatesScope // TODO improve (asInstanceOf)
               val privDecls = allPrivFlds.map: fld =>
-                  val nme = scp.allocateName(fld)
+                  val nme = scp.allocateOrGetName(fld)
                   doc" # $mtdPrefix#$nme;"
               val accessors = mutPubFields.flatMap: (valSym, letSym) =>
                 doc" # get ${escapeField(valSym.name, "")}() { return ${getVar(letSym)}; }" ::
@@ -395,7 +392,8 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                       val result = pss.foldRight(bod):
                         case (ps, block) => 
                           Return(Lam(ps, block), false)
-                      val (params, bodyDoc) = setupFunction(some(td.sym.nme), ps, result)
+                      val (params, bodyDoc) = scope.nest.givenIn:
+                        setupFunction(S(td.sym.nme), ps, result)
                       doc" # $mtdPrefix${td.sym.nme}($params) ${ braced(bodyDoc) }"
                     case td @ FunDefn(_, _, Nil, bod) =>
                       doc" # ${mtdPrefix}get ${td.sym.nme}() ${ braced(body(bod, endSemi = true)) }"
@@ -442,7 +440,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                 case Some(value) => value :: auxParams
               
               val fun = paramsAll match
-                case ps_ :: pss_ if paramsOpt.isDefined =>
+                case ps_ :: pss_ if paramsOpt.isDefined => outerScope.nest.givenIn:
                   val (ps, _) = setupFunction(some(sym.nme), ps_, End())
                   val pss = pss_.map(setupFunction(N, _, End())._1)
                   val paramsDoc = pss.foldLeft(doc"($ps)"):
@@ -606,9 +604,17 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             
             
             
+            
+            
+            // TODO: should this be changed?
+            
+            
             // * If the companion is a module, we need to reserve its name as well.
             // * Otherwise, it is a class and we do not need to reserve its name.
-            scope.bindings += comp.isym -> nme
+            
+            scope.addToBindings(comp.isym, nme, shadow = false)
+            
+            
             
             
             
@@ -792,9 +798,11 @@ trait JSBuilderArgNumSanityChecks(using Config, Elaborator.State)
   
   override def setupFunction(name: Option[Str], params: ParamList, body: Block)(using Raise, Scope): (Document, Document) =
     if instrument then
-      val paramsList = params.params.map(p => Scope.scope.allocateName(p.sym))
-      val paramRest = params.restParam.map(p => Scope.scope.allocateName(p.sym))
-      val paramsStr = Scope.scope.allocateName(functionParamVarargSymbol)
+      val paramsList = params.params.map(p => scope.allocateName(p.sym))
+      val paramRest = params.restParam.map(p => scope.allocateOrGetName(p.sym))
+      // val paramsList = params.params.map(p => scope.allocateOrGetName(p.sym))
+      // val paramRest = params.restParam.map(p => scope.allocateOrGetName(p.sym))
+      val paramsStr = scope.allocateName(functionParamVarargSymbol, shadow = true)
       val functionName = JSBuilder.makeStringLiteral(name.fold("")(n => s"${JSBuilder.escapeStringCharacters(n)}"))
       val checkArgsNum = doc"\n$runtimeVar.checkArgs($functionName, ${params.paramCountLB}, ${params.paramCountUB.toString}, $paramsStr.length);"
       val paramsAssign = paramsList.zipWithIndex.map{(nme, i) =>

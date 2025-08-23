@@ -27,7 +27,7 @@ fun foo(x, y) =
 :expect 14
 foo(10, 0)
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:105)
+//│ FAILURE LOCATION: lookup_! (Scope.scala:113)
 //│ FAILURE INFO: Tuple2:
 //│   _1 = Tuple2:
 //│     _1 = member:foo
@@ -117,7 +117,7 @@ let
   c0 = cc.0
   c1 = cc.1
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:105)
+//│ FAILURE LOCATION: lookup_! (Scope.scala:113)
 //│ FAILURE INFO: Tuple2:
 //│   _1 = Tuple2:
 //│     _1 = member:foo
@@ -198,7 +198,7 @@ fun foo(y) =
 
 let o = foo(10)
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:105)
+//│ FAILURE LOCATION: lookup_! (Scope.scala:113)
 //│ FAILURE INFO: Tuple2:
 //│   _1 = Tuple2:
 //│     _1 = member:foo
@@ -263,7 +263,7 @@ fun foo(x, y) =
 :expect 12
 foo(10, 0)
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:105)
+//│ FAILURE LOCATION: lookup_! (Scope.scala:113)
 //│ FAILURE INFO: Tuple2:
 //│   _1 = Tuple2:
 //│     _1 = member:foo
@@ -326,7 +326,7 @@ data class A(x) with
 :expect 2
 A(2).getA()
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:105)
+//│ FAILURE LOCATION: lookup_! (Scope.scala:113)
 //│ FAILURE INFO: Tuple2:
 //│   _1 = Tuple2:
 //│     _1 = member:A
@@ -520,8 +520,8 @@ M.A(2).newB.newA_B(3).newB.get
 //│   }
 //│   static {
 //│     let scrut;
-//│     this.A = function A(x1) {
-//│       return globalThis.Object.freeze(new A.class(x1));
+//│     this.A = function A(x) {
+//│       return globalThis.Object.freeze(new A.class(x));
 //│     };
 //│     globalThis.Object.freeze(class A3 {
 //│       static {
@@ -601,7 +601,7 @@ fun foo(x) =
 
 foo(123)
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:105)
+//│ FAILURE LOCATION: lookup_! (Scope.scala:113)
 //│ FAILURE INFO: Tuple2:
 //│   _1 = Tuple2:
 //│     _1 = member:foo

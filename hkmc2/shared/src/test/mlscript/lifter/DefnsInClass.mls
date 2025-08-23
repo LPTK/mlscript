@@ -22,7 +22,7 @@ data class A(x) with
 :expect 3
 A(1).getA()
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:105)
+//│ FAILURE LOCATION: lookup_! (Scope.scala:113)
 //│ FAILURE INFO: Tuple2:
 //│   _1 = Tuple2:
 //│     _1 = member:A

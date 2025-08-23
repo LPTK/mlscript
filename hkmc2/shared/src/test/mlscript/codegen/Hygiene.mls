@@ -116,8 +116,8 @@ data class Cls(x) with
   print(this.x, x)
 //│ JS (unsanitized):
 //│ let Cls1;
-//│ Cls1 = function Cls(x3) {
-//│   return globalThis.Object.freeze(new Cls.class(x3));
+//│ Cls1 = function Cls(x2) {
+//│   return globalThis.Object.freeze(new Cls.class(x2));
 //│ };
 //│ globalThis.Object.freeze(class Cls {
 //│   static {
