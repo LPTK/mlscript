@@ -4,6 +4,9 @@
 // :pt
 // :elt
 
+//│ = undefined
+//│ [class Unit] {
+//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 :global
 // :d
 // :todo
@@ -11,12 +14,75 @@
 
 module M with
   type T = Int
+//│ = undefined
+//│ [class Unit] {
+//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 fun f[T] = 42
+//│ = undefined
+//│ [class Unit] {
+//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
 
 // the resolved used to not resolve `M.T`'s block member symbol,
 // resulting in an error :(
 f[M.T]
 //│ = 42
+//│ [class Unit] {
+//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+
+
+
+
+:showRepl
+()
+//│ REPL> Sending: block$res4 = undefined
+//│ REPL> Collected:
+//│ >  undefined
+//│ REPL> Sending: try { block$res4 = runtime.Unit; undefined } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
+//│ REPL> Collected:
+//│ >  undefined
+//│ REPL> Parsed:
+//│ >  undefined
+//│ REPL> Sending: try { runtime.checkCall(runtime.printRaw(block$res4)) } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
+//│ REPL> Collected:
+//│ >  ()
+//│ >  [class Unit] {
+//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+//│ >  }
+//│ REPL> Parsed:
+//│ >  ()
+//│ >  [class Unit] {
+//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+//│ >  }
+//│ = ()
+//│ [class Unit] {
+//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+
+
+:showRepl
+class Foo
+//│ REPL> Sending: block$res5 = undefined
+//│ REPL> Collected:
+//│ >  undefined
+//│ REPL> Sending: let Foo1;try { globalThis.Object.freeze(class Foo {   static {     Foo1 = this   }   constructor() {}   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Foo"];  }); block$res5 = undefined; } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
+//│ REPL> Collected:
+//│ >  undefined
+//│ REPL> Parsed:
+//│ >  undefined
+//│ REPL> Sending: try { runtime.checkCall(runtime.printRaw(block$res5)) } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
+//│ REPL> Collected:
+//│ >  undefined
+//│ >  [class Unit] {
+//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+//│ >  }
+//│ REPL> Parsed:
+//│ >  undefined
+//│ >  [class Unit] {
+//│ >    [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+//│ >  }
+//│ = undefined
+//│ [class Unit] {
+//│   [Symbol(mlscript.definitionMetadata)]: [ 'object', 'Unit' ]
+
 
 

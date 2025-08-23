@@ -422,14 +422,16 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
               case S(owner) =>
                 assert((kind is syntax.Pat) || paramsOpt.isEmpty)
                 // doc"${mkThis(owner)}.${sym.nme} = new ${clsJS}"
-                if isModule
-                then doc"(${clsJS});"
-                else doc"const $clsTmp = ${clsJS}; # ${mkThis(owner)}.${sym.nme} = $freeze(new ${clsTmp});"
+                // if isModule
+                // then doc"(${clsJS});"
+                // else doc"const $clsTmp = ${clsJS}; # ${mkThis(owner)}.${sym.nme} = $freeze(new ${clsTmp});"
+                doc"$freeze(${clsJS});"
               case N =>
                 val v = getVar(sym)
-                if isModule
-                then doc"(${clsJS});"
-                else doc"const $clsTmp = ${clsJS}; ${v} = $freeze(new ${clsTmp});"
+                // if isModule
+                // then doc"(${clsJS});"
+                // else doc"const $clsTmp = ${clsJS}; ${v} = $freeze(new ${clsTmp});"
+                doc"$freeze(${clsJS});"
             else
               val paramsAll = paramsOpt match
                 case None => auxParams
@@ -462,9 +464,11 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                   // doc"${ths}.${sym.nme} = ${f}; # ${defineProperty(
                   //   doc"${ths}.${sym.nme}", "class", clsJS, enumerable = true)};"
                   
-                  doc"${ths}.${sym.nme} = ${f}; # $clsJS;"
+                  // doc"${ths}.${sym.nme} = ${f}; # $clsJS;"
+                  doc"${ths}.${sym.nme} = ${f}; # $freeze($clsJS);"
                 case N =>
-                  doc"${ths}.${sym.nme} = ${clsJS};"
+                  // doc"${ths}.${sym.nme} = ${clsJS};"
+                  doc"$freeze(${clsJS});"
               case N =>
                 fun match
                 case S(f) =>
@@ -475,8 +479,11 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
                   // doc"${getVar(sym)} = ${f}; # ${defineProperty(getVar(sym),
                   //   "class", clsJS, enumerable = true)};"
                   
-                  doc"${getVar(sym)} = ${f}; # $clsJS;"
-                case N => doc"${getVar(sym)} = ${clsJS};"
+                  // doc"${getVar(sym)} = ${f}; # $clsJS;"
+                  doc"${getVar(sym)} = ${f}; # $freeze($clsJS);"
+                case N =>
+                  // doc"${getVar(sym)} = ${clsJS};"
+                  doc"$freeze(${clsJS});"
             
         thisProxy match
           case S(proxy) if !scope.thisProxyDefined =>

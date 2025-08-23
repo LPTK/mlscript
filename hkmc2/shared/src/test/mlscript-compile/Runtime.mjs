@@ -7,7 +7,7 @@ import Rendering from "./Rendering.mjs";
 import LazyArray from "./LazyArray.mjs";
 import Iter from "./Iter.mjs";
 let Runtime1;
-Runtime1 = class Runtime {
+globalThis.Object.freeze(class Runtime {
   static {
     Runtime1 = this
   }
@@ -30,7 +30,7 @@ Runtime1 = class Runtime {
   get stackResume() { return Runtime.#stackResume; }
   set stackResume(value) { Runtime.#stackResume = value; }
   static {
-    const Unit$class = class Unit {
+    globalThis.Object.freeze(class Unit {
       static {
         Runtime.Unit = this
       }
@@ -44,15 +44,14 @@ Runtime1 = class Runtime {
       }
       [prettyPrint]() { return this.toString(); }
       static [definitionMetadata] = ["object", "Unit"]; 
-    };
-    this.Unit = globalThis.Object.freeze(new Unit$class);
+    });
     this.short_and = RuntimeJS.short_and;
     this.short_or = RuntimeJS.short_or;
     this.try_catch = RuntimeJS.try_catch;
     this.EffectHandle = function EffectHandle(_reified1) {
       return globalThis.Object.freeze(new EffectHandle.class(_reified1));
     };
-    class EffectHandle {
+    globalThis.Object.freeze(class EffectHandle {
       static {
         Runtime.EffectHandle.class = this
       }
@@ -73,11 +72,11 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "EffectHandle", [null]]; 
-    };
+    });
     this.MatchResult = function MatchResult(output1, bindings1) {
       return globalThis.Object.freeze(new MatchResult.class(output1, bindings1));
     };
-    class MatchResult {
+    globalThis.Object.freeze(class MatchResult {
       static {
         Runtime.MatchResult.class = this
       }
@@ -87,11 +86,11 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "MatchResult", ["output", "bindings"]]; 
-    };
+    });
     this.MatchFailure = function MatchFailure(errors1) {
       return globalThis.Object.freeze(new MatchFailure.class(errors1));
     };
-    class MatchFailure {
+    globalThis.Object.freeze(class MatchFailure {
       static {
         Runtime.MatchFailure.class = this
       }
@@ -100,8 +99,8 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "MatchFailure", ["errors"]]; 
-    };
-    this.Tuple = class Tuple {
+    });
+    globalThis.Object.freeze(class Tuple {
       static {
         Runtime.Tuple = this
       }
@@ -146,8 +145,8 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "Tuple"]; 
-    };
-    this.Str = class Str {
+    });
+    globalThis.Object.freeze(class Str {
       static {
         Runtime.Str = this
       }
@@ -175,9 +174,9 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "Str"]; 
-    };
+    });
     this.render = Rendering.render;
-    this.TraceLogger = class TraceLogger {
+    globalThis.Object.freeze(class TraceLogger {
       static {
         Runtime.TraceLogger = this
       }
@@ -232,8 +231,8 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "TraceLogger"]; 
-    };
-    const FatalEffect$class = class FatalEffect {
+    });
+    globalThis.Object.freeze(class FatalEffect {
       static {
         Runtime.FatalEffect = this
       }
@@ -244,9 +243,8 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["object", "FatalEffect"]; 
-    };
-    this.FatalEffect = globalThis.Object.freeze(new FatalEffect$class);
-    const PrintStackEffect$class = class PrintStackEffect {
+    });
+    globalThis.Object.freeze(class PrintStackEffect {
       static {
         Runtime.PrintStackEffect = this
       }
@@ -257,12 +255,11 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["object", "PrintStackEffect"]; 
-    };
-    this.PrintStackEffect = globalThis.Object.freeze(new PrintStackEffect$class);
+    });
     this.FunctionContFrame = function FunctionContFrame(next1) {
       return globalThis.Object.freeze(new FunctionContFrame.class(next1));
     };
-    class FunctionContFrame {
+    globalThis.Object.freeze(class FunctionContFrame {
       static {
         Runtime.FunctionContFrame.class = this
       }
@@ -271,11 +268,11 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "FunctionContFrame", ["next"]]; 
-    };
+    });
     this.HandlerContFrame = function HandlerContFrame(next1, nextHandler1, handler1) {
       return globalThis.Object.freeze(new HandlerContFrame.class(next1, nextHandler1, handler1));
     };
-    class HandlerContFrame {
+    globalThis.Object.freeze(class HandlerContFrame {
       static {
         Runtime.HandlerContFrame.class = this
       }
@@ -286,11 +283,11 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "HandlerContFrame", ["next", "nextHandler", "handler"]]; 
-    };
+    });
     this.ContTrace = function ContTrace(next1, last1, nextHandler1, lastHandler1, resumed1) {
       return globalThis.Object.freeze(new ContTrace.class(next1, last1, nextHandler1, lastHandler1, resumed1));
     };
-    class ContTrace {
+    globalThis.Object.freeze(class ContTrace {
       static {
         Runtime.ContTrace.class = this
       }
@@ -303,11 +300,11 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "ContTrace", ["next", "last", "nextHandler", "lastHandler", "resumed"]]; 
-    };
+    });
     this.EffectSig = function EffectSig(contTrace1, handler1, handlerFun1) {
       return globalThis.Object.freeze(new EffectSig.class(contTrace1, handler1, handlerFun1));
     };
-    class EffectSig {
+    globalThis.Object.freeze(class EffectSig {
       static {
         Runtime.EffectSig.class = this
       }
@@ -318,19 +315,19 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "EffectSig", ["contTrace", "handler", "handlerFun"]]; 
-    };
-    this.NonLocalReturn = class NonLocalReturn {
+    });
+    globalThis.Object.freeze(class NonLocalReturn {
       static {
         Runtime.NonLocalReturn = this
       }
       constructor() {}
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "NonLocalReturn"]; 
-    };
+    });
     this.FnLocalsInfo = function FnLocalsInfo(fnName1, locals1) {
       return globalThis.Object.freeze(new FnLocalsInfo.class(fnName1, locals1));
     };
-    class FnLocalsInfo {
+    globalThis.Object.freeze(class FnLocalsInfo {
       static {
         Runtime.FnLocalsInfo.class = this
       }
@@ -340,11 +337,11 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "FnLocalsInfo", ["fnName", "locals"]]; 
-    };
+    });
     this.LocalVarInfo = function LocalVarInfo(localName1, value1) {
       return globalThis.Object.freeze(new LocalVarInfo.class(localName1, value1));
     };
-    class LocalVarInfo {
+    globalThis.Object.freeze(class LocalVarInfo {
       static {
         Runtime.LocalVarInfo.class = this
       }
@@ -354,13 +351,13 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "LocalVarInfo", ["localName", "value"]]; 
-    };
+    });
     this.stackLimit = 0;
     this.stackDepth = 0;
     this.stackOffset = 0;
     this.stackHandler = null;
     this.stackResume = null;
-    const StackDelayHandler$class = class StackDelayHandler {
+    globalThis.Object.freeze(class StackDelayHandler {
       static {
         Runtime.StackDelayHandler = this
       }
@@ -377,8 +374,7 @@ Runtime1 = class Runtime {
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["object", "StackDelayHandler"]; 
-    };
-    this.StackDelayHandler = globalThis.Object.freeze(new StackDelayHandler$class);
+    });
   }
   static get unreachable() {
     throw globalThis.Error("unreachable");
@@ -972,5 +968,5 @@ Runtime1 = class Runtime {
   }
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Runtime"]; 
-};
+});
 let Runtime = Runtime1; export default Runtime;
