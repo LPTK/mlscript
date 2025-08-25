@@ -145,12 +145,10 @@ fun foo(x, y) =
       x + y + test
   M.foo()
 //│ ═══[WARNING] Modules are not yet lifted.
-//│ /!!!\ Uncaught error: hkmc2.InternalError: `this` not in scope: class:M
 
 :expect 14
 foo(10, 0)
-//│ ═══[RUNTIME ERROR] ReferenceError: foo is not defined
-//│ ═══[RUNTIME ERROR] Expected: '14', got: 'undefined'
+//│ = 14
 
 fun foo(x, y) =
   module M with

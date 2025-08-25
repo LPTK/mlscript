@@ -304,9 +304,9 @@ M.B().get
 
 // newA should reference the class symbol
 // newA_B should reference the BlockMemberSymbol
+// note: no warning because A is not lifted
 :lift
 :sjs
-:w // FIXME
 module M with
   data class A(x) with
     class B() with
@@ -316,24 +316,87 @@ module M with
     fun newB = B()
   0 is A
 M.A(2).newB.newA_B(3).newB.get
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (class:B,Scope:
-//│   parent = S of Scope:
-//│     parent = N
-//│     curThis = S of S of globalThis:globalThis
-//│     bindings = HashMap(cc -> cc, c0 -> c0, c1 -> c1, $runtime -> runtime, $definitionMetadata -> definitionMetadata, $block$res -> block$res5, $prettyPrint -> prettyPrint, $tmp -> tmp, $Term -> Term, $selRes -> selRes, $discarded -> discarded, $selRes -> selRes1, $block$res -> block$res16, $discarded -> discarded1, class:M -> M10, $block$res -> block$res6, $selRes -> selRes2, $tmp -> tmp3, $discarded -> discarded2, $block$res -> block$res7, $selRes -> selRes3, $discarded -> discarded3, member:O -> O1, member:foo -> foo3, member:A -> A4, object:O -> O, member:M -> M13, object:M -> M12, $block$res -> block$res8, class:A -> A3, $block$res -> block$res17, $selRes -> selRes7, $selRes -> selRes8, $discarded -> discarded6, o -> o, member:A$ -> A$, $block$res -> block$res9, $tmp -> tmp1, $block$res -> block$res10, $selRes -> selRes4, $discarded -> discarded4, member:M -> M5, member:foo3 -> foo31, member:foo -> foo4, object:M -> M4, member:g -> g1, member:M -> M15, object:M -> M14, $block$res -> block$res18, $tmp -> tmp4, member:g$ -> g$, member:M -> M17, module:M -> M16, class:A -> A5, $block$res -> block$res, $block$res -> block$res11, member:M -> M1, member:foo -> foo, member:foo3$ -> foo3$, class:foo$capture -> foo$capture2, object:M -> M, member:foo$capture -> foo$capture3, $block$res -> block$res19, class:M -> M16, $tmp -> tmp5, $selRes -> selRes9, $block$res -> block$res1, $discarded -> discarded7, member:M -> M19, module:M -> M18, class:A -> A6, $block$res -> block$res12, class:B -> B, member:M -> M7, member:A -> A1, class:A -> A, $block$res -> block$res20, class:M -> M18, $block$res -> block$res2, member:M -> M3, $tmp -> tmp6, member:foo -> foo1, object:M -> M6, $selRes -> selRes10, $discarded -> discarded8, class:M -> M2, $block$res -> block$res13, $block$res -> block$res3, member:M$ -> M$, member:Predef -> Predef, $block$res -> block$res14, $tmp -> tmp2, member:M -> M9, member:C -> C1, module:M -> M8, member:foo -> foo2, class:C -> C, class:A -> A2, $block$res -> block$res4, $block$res -> block$res15, member:C$ -> C$, class:M -> M8, class:foo$capture -> foo$capture, $selRes -> selRes5, member:foo$capture -> foo$capture1, $selRes -> selRes6, $discarded -> discarded5, member:g -> g, member:M -> M11, module:M -> M10)
-//│   curThis = N
-//│   bindings = HashMap(module:M -> M20, class:A -> A7, class:B -> B1, class:M -> M20))
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
-//│ 	at: hkmc2.utils.Scope.addToBindings(Scope.scala:50)
-//│ 	at: hkmc2.utils.Scope.allocateName(Scope.scala:144)
-//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$2(JSBuilder.scala:601)
-//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$adapted$1(JSBuilder.scala:629)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
-//│ 	at: hkmc2.codegen.js.JSBuilder.go$1(JSBuilder.scala:629)
-//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$2(JSBuilder.scala:628)
-//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$adapted$1(JSBuilder.scala:629)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
+//│ JS (unsanitized):
+//│ let B2, M21, tmp7, tmp8, B$;
+//│ B$ = function B$(isMut, A$instance$0) {
+//│   let tmp9, tmp10;
+//│   if (isMut === true) {
+//│     tmp9 = new B2.class();
+//│   } else {
+//│     tmp9 = globalThis.Object.freeze(new B2.class());
+//│   }
+//│   tmp10 = tmp9(A$instance$0);
+//│   return tmp10
+//│ };
+//│ B2 = function B() {
+//│   return (A$instance$0) => {
+//│     return globalThis.Object.freeze(new B.class()(A$instance$0));
+//│   }
+//│ };
+//│ globalThis.Object.freeze(class B1 {
+//│   static {
+//│     B2.class = this
+//│   }
+//│   constructor() {
+//│     return (A$instance$0) => {
+//│       this.A$instance$0 = A$instance$0;
+//│       return this;
+//│     }
+//│   }
+//│   #A$instance$0;
+//│   get A$instance$0() { return this.#A$instance$0; }
+//│   set A$instance$0(value) { this.#A$instance$0 = value; }
+//│   get get() {
+//│     return this.A$instance$0.x;
+//│   } 
+//│   newA_B(y) {
+//│     return M21.A(y)
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "B", []]; 
+//│ });
+//│ globalThis.Object.freeze(class M20 {
+//│   static {
+//│     M21 = this
+//│   }
+//│   constructor() {
+//│     runtime.Unit;
+//│   }
+//│   static {
+//│     let scrut;
+//│     this.A = function A(x) {
+//│       return globalThis.Object.freeze(new A.class(x));
+//│     };
+//│     globalThis.Object.freeze(class A7 {
+//│       static {
+//│         M20.A.class = this
+//│       }
+//│       constructor(x) {
+//│         this.x = x;
+//│       }
+//│       get newA() {
+//│         return M20.A(42);
+//│       } 
+//│       get newB() {
+//│         return B$(false, this);
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "A", ["x"]]; 
+//│     });
+//│     scrut = 0;
+//│     if (scrut instanceof M20.A.class) {
+//│       true
+//│     } else {
+//│       false
+//│     }
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "M"]; 
+//│ });
+//│ tmp7 = M21.A(2);
+//│ tmp8 = runtime.safeCall(tmp7.newB.newA_B(3));
+//│ tmp8.newB.get
+//│ = 3
 
 module M with
   class A
@@ -356,19 +419,19 @@ module A with
   fun f = () => g
   f()
 //│ JS (unsanitized):
-//│ let A9, lambda;
+//│ let A10, lambda;
 //│ lambda = (undefined, function () {
-//│   return A9.g
+//│   return A10.g
 //│ });
-//│ globalThis.Object.freeze(class A8 {
+//│ globalThis.Object.freeze(class A9 {
 //│   static {
-//│     A9 = this
+//│     A10 = this
 //│   }
 //│   constructor() {
 //│     runtime.Unit;
 //│   }
 //│   static {
-//│     A8.f();
+//│     A9.f();
 //│   }
 //│   static get g() {
 //│     return 1;
@@ -399,7 +462,7 @@ module A with
     f() + g()
 A.x
 //│ JS (unsanitized):
-//│ let h, A15, h$;
+//│ let h, A16, h$;
 //│ h$ = function h$(f$member) {
 //│   return f$member()
 //│ };
@@ -408,33 +471,30 @@ A.x
 //│     return h$(f$member)
 //│   }
 //│ };
-//│ globalThis.Object.freeze(class A14 {
+//│ globalThis.Object.freeze(class A15 {
 //│   static {
-//│     A15 = this
+//│     A16 = this
 //│   }
 //│   constructor() {
 //│     runtime.Unit;
 //│   }
 //│   static {
-//│     let f, g2, tmp7, tmp8, tmp9;
+//│     let f, g2, tmp9, tmp10, tmp11;
 //│     f = function f() {
 //│       return 1
 //│     };
 //│     g2 = function g() {
-//│       h = function h() {
-//│         return f()
-//│       };
-//│       return h()
+//│       return h$(f)
 //│     };
-//│     tmp7 = f();
-//│     tmp8 = g2();
-//│     tmp9 = tmp7 + tmp8;
-//│     this.x = tmp9;
+//│     tmp9 = f();
+//│     tmp10 = g2();
+//│     tmp11 = tmp9 + tmp10;
+//│     this.x = tmp11;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"]; 
 //│ });
-//│ A15.x
+//│ A16.x
 //│ = 2
 
 // private fields in modules
@@ -448,20 +508,20 @@ module A with
 A.mtd
 //│ ═══[COMPILATION ERROR] Uses of private fields cannot yet be lifted.
 //│ JS (unsanitized):
-//│ let nested, A17;
+//│ let nested, A18;
 //│ nested = function nested() {
-//│   return A17.x
+//│   return A18.x
 //│ };
-//│ globalThis.Object.freeze(class A16 {
+//│ globalThis.Object.freeze(class A17 {
 //│   static {
-//│     A17 = this
+//│     A18 = this
 //│   }
 //│   constructor() {
 //│     runtime.Unit;
 //│   }
 //│   static #x;
 //│   static {
-//│     A16.#x = 1;
+//│     A17.#x = 1;
 //│   }
 //│   static get mtd() {
 //│     return nested();
@@ -469,7 +529,7 @@ A.mtd
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"]; 
 //│ });
-//│ A17.mtd
+//│ A18.mtd
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 
 

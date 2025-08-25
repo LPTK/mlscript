@@ -2,8 +2,7 @@
 :js
 
 
-:w // FIXME: warning seems wrong
-:fixme // FIXME: fix uncaught exception
+:w
 fun foo(x) =
   class C(y) with
     fun get = [x, y]
@@ -12,11 +11,9 @@ fun foo(x) =
   C.empty
 foo(10).get
 //│ ═══[WARNING] Modules are not yet lifted.
-//│ ═══[COMPILATION ERROR] Uses of private fields cannot yet be lifted.
-//│ = [10, undefined]
+//│ = [10, 123]
 
-:w // FIXME: warning seems wrong
-:fixme // FIXME: fix uncaught exception
+:w
 fun foo(x) =
   class C with
     fun get = x
@@ -26,4 +23,3 @@ fun foo(x) =
 foo(10).get
 //│ ═══[WARNING] Modules are not yet lifted.
 //│ = 10
-//│ FAILURE: Unexpected lack of error to fix
