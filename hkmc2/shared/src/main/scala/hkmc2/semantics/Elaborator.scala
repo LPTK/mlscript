@@ -807,6 +807,7 @@ extends Importer:
   val supportedOverloadings: Set[(OuterKind, OuterKind)] = Set(
     Cls -> Mod,
     Obj -> Mod,
+    Als -> Mod,
   )
   val notYetSupportedOverloadings: Set[(OuterKind, OuterKind)] = Set(
     Fun -> Cls,
