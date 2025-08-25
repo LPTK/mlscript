@@ -1,9 +1,0 @@
-
-
-:todo
-class Test with
-  fun hi = 0
-module Test with
-  fun test = 1
-
-

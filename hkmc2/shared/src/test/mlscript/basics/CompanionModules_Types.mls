@@ -1,0 +1,80 @@
+:js
+
+
+:fixme
+type Foo = Int
+module Foo with
+  val default: Foo = 123
+//│ ╔══[ERROR] Illegal overloading of type alias 'Foo'
+//│ ║  l.5: 	type Foo = Int
+//│ ║       	^^^^^^^^^^^^^^
+//│ ╟── with module of the same name
+//│ ║  l.6: 	module Foo with
+//│ ║       	^^^^^^^^^^^^^^^
+//│ ║  l.7: 	  val default: Foo = 123
+//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'Foo'.
+//│ ║  l.7: 	  val default: Foo = 123
+//│ ║       	               ^^^
+//│ ╙── Value must be marked as returning a 'module' in order to have a module return type.
+
+
+:fixme
+class Cons[A](head: A, tail: List[A])
+object Nil
+type List[A] = Cons[A]
+module List with
+  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
+      Nil then Nil
+      Cons(head, tail) then Cons(f(head), map(f, tail))
+//│ ╔══[ERROR] Illegal overloading of type alias 'List'
+//│ ║  l.25: 	type List[A] = Cons[A]
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── with module of the same name
+//│ ║  l.26: 	module List with
+//│ ║        	^^^^^^^^^^^^^^^^
+//│ ║  l.27: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.28: 	      Nil then Nil
+//│ ║        	^^^^^^^^^^^^^^^^^^
+//│ ║  l.29: 	      Cons(head, tail) then Cons(f(head), map(f, tail))
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Expected 0 type arguments, got 1
+//│ ║  l.23: 	class Cons[A](head: A, tail: List[A])
+//│ ╙──      	                             ^^^^^^
+//│ ╔══[ERROR] Unexpected moduleful type application with a module definition 'List'.
+//│ ║  l.23: 	class Cons[A](head: A, tail: List[A])
+//│ ║        	                             ^^^^^^
+//│ ╙── Non-module parameter must have a non-module type.
+//│ ╔══[ERROR] Expected 0 type arguments, got 1
+//│ ║  l.27: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
+//│ ╙──      	                               ^^^^^^
+//│ ╔══[ERROR] Unexpected moduleful type application with a module definition 'List'.
+//│ ║  l.27: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
+//│ ║        	                               ^^^^^^
+//│ ╙── Non-module parameter must have a non-module type.
+//│ ╔══[ERROR] Expected 0 type arguments, got 1
+//│ ║  l.27: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
+//│ ╙──      	                                         ^^^^^^
+//│ ╔══[ERROR] Unexpected moduleful type application with a module definition 'List'.
+//│ ║  l.27: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
+//│ ║        	                                         ^^^^^^
+//│ ╙── Function must be marked as returning a 'module' in order to have a module return type.
+//│ ╔══[ERROR] This pattern cannot be matched
+//│ ║  l.29: 	      Cons(head, tail) then Cons(f(head), map(f, tail))
+//│ ║        	           ^^^^
+//│ ╟── because the corresponding parameter `head` is not publicly accessible
+//│ ║  l.23: 	class Cons[A](head: A, tail: List[A])
+//│ ║        	              ^^^^
+//│ ╟── Suggestion: use a wildcard pattern `_` in this position
+//│ ╙── Suggestion: mark this parameter with `val` so it becomes accessible
+//│ ╔══[ERROR] This pattern cannot be matched
+//│ ║  l.29: 	      Cons(head, tail) then Cons(f(head), map(f, tail))
+//│ ║        	                 ^^^^
+//│ ╟── because the corresponding parameter `tail` is not publicly accessible
+//│ ║  l.23: 	class Cons[A](head: A, tail: List[A])
+//│ ║        	                       ^^^^
+//│ ╟── Suggestion: use a wildcard pattern `_` in this position
+//│ ╙── Suggestion: mark this parameter with `val` so it becomes accessible
+
+

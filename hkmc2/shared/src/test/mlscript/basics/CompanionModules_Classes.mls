@@ -1,0 +1,70 @@
+:js
+
+
+class C()
+module C with
+  val empty = 1
+
+:rt
+C()
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = Unexpanded of App:
+//│     lhs = Unexpanded of Ref{member:C} of member:C
+//│     rhs = Tup of Nil
+//│ = C()
+
+:rt
+new C
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = New:
+//│     cls = SynthSel{class:C}:
+//│       prefix = Unexpanded of Ref{member:C} of member:C
+//│       nme = Ident of "class"
+//│     args = Nil
+//│     rft = N
+//│ = C()
+
+// FIXME: should be `SynthSel{module:C}`, instead of `SynthSel{class:C}`
+:rt
+C.empty
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = Unexpanded of Sel{member:empty}:
+//│     prefix = SynthSel{class:C}:
+//│       prefix = Unexpanded of Ref{member:C} of member:C
+//│       nme = Ident of "class"
+//│     nme = Ident of "empty"
+//│ = 1
+
+
+class C
+module C with
+  val empty = 1
+
+// TODO: there should be a way of seeing that this reference denotes the module and not the class
+:rt
+C.empty
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = Unexpanded of Sel{member:empty}:
+//│     prefix = Unexpanded of Ref{member:C} of member:C
+//│     nme = Ident of "empty"
+//│ = 1
+
+
+class Test with
+  fun hi = Test.ans
+module Test with
+  val ans = 42
+  fun test = new Test
+
+Test.test.hi
+//│ = 42
+
+

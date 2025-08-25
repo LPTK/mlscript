@@ -10,10 +10,7 @@ fun foo(x) =
   module C with
     val empty = C(123)
   C.empty
-foo().get
-//│ ╔══[ERROR] Expected 1 arguments, got 0
-//│ ║  l.13: 	foo().get
-//│ ╙──      	   ^^
+foo(10).get
 //│ ═══[WARNING] Cannot yet lift class `C` as it is used as a first-class class.
 //│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
 
