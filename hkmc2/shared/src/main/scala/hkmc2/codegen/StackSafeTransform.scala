@@ -132,7 +132,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths)(using State):
           die // TODO rm this branch
           transformTopLevel(ctor)
         else rewriteBlk(ctor),
-      rewriteObjBody(mod, isTopLevel),
+      mod.map(rewriteObjBody(_, isTopLevel)),
     )
   
   def rewriteObjBody(defn: ClsLikeBody, isTopLevel: Bool): ClsLikeBody =

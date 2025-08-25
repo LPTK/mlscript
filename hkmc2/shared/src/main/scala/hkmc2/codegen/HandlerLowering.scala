@@ -468,7 +468,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         s"Cont$$ctor$$${symToStr(cls.sym)}$$", s"‹constructor of ${cls.sym.nme}›")
     cls.copy(methods = cls.methods.map(translateFun),
       ctor = translateBlock(cls.ctor, Set.empty, curCtorCtx),
-      staticPart = translateBody(cls.staticPart, cls.sym))
+      companion = cls.companion.map(translateBody(_, cls.sym)))
   
   // Handle block becomes a FunDefn and CallPlaceholder
   private def translateHandleBlock(h: HandleBlock)(using HandlerCtx): Block =
@@ -501,7 +501,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       S(h.par), handlerMtds, Nil, Nil,
       Assign(freshTmp(), Call(Value.Ref(State.builtinOpsMap("super")), h.args.map(_.asArg))(true, true), End()),
       End(),
-      ClsLikeBody.empty(h.cls.id),
+      N,
     ) // TODO: handle effect in super call
     // NOTE: the super call is inside the preCtor
     // during resumption we need to resume both the this.x = x bindings done in JSBuilder and the ctor
@@ -670,7 +670,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         Value.Ref(pcVar),
         End()
       )(S(pcSymbol)),
-      ClsLikeBody.empty(clsSym.id),
+      N,
     ))
   
   private def genNormalBody(b: Block, clsSym: BlockMemberSymbol)(using HandlerCtx): Block =

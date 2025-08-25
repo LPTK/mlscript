@@ -12,18 +12,231 @@ fun f() =
   h.perform()
   1
 f() + f() + f()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:perform
-//│ 	at: scala.collection.immutable.Map$Map2.apply(Map.scala:316)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createLiftInfoFn$$anonfun$1(Lifter.scala:559)
-//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
-//│ 	at: hkmc2.Lifter.createLiftInfoFn(Lifter.scala:559)
-//│ 	at: hkmc2.Lifter.createLiftInfoCls$$anonfun$2(Lifter.scala:565)
-//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
-//│ 	at: hkmc2.Lifter.createLiftInfoCls(Lifter.scala:565)
-//│ 	at: hkmc2.Lifter.createLiftInfoCont(Lifter.scala:536)
-//│ 	at: hkmc2.Lifter.createLiftInfoFn$$anonfun$1(Lifter.scala:559)
+//│ JS (unsanitized):
+//│ let f, Effect1, tmp, handleBlock$, Cont$func$f$1, Cont$handleBlock$h$1, Handler$h$1, lambda, f$, Cont$func$f$$, Cont$handleBlock$h$$, lambda$;
+//│ globalThis.Object.freeze(class Effect {
+//│   static {
+//│     Effect1 = this
+//│   }
+//│   constructor() {}
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Effect"]; 
+//│ });
+//│ lambda$ = function lambda$(Handler$h$$instance, k) {
+//│   return runtime.safeCall(k())
+//│ };
+//│ lambda = (undefined, function (Handler$h$$instance) {
+//│   return (k) => {
+//│     return lambda$(Handler$h$$instance, k)
+//│   }
+//│ });
+//│ globalThis.Object.freeze(class Handler$h$ extends Effect1 {
+//│   static {
+//│     Handler$h$1 = this
+//│   }
+//│   constructor() {
+//│     let tmp1;
+//│     tmp1 = super();
+//│   }
+//│   perform() {
+//│     let lambda$this;
+//│     lambda$this = runtime.safeCall(lambda(this));
+//│     return runtime.mkEffect(this, lambda$this)
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Handler$h$"]; 
+//│ });
+//│ Cont$handleBlock$h$$ = function Cont$handleBlock$h$$(isMut, h$0, tmp$1, tmp$2, tmp$3, tmp$4, pc) {
+//│   let tmp1, tmp2;
+//│   if (isMut === true) {
+//│     tmp1 = new Cont$handleBlock$h$1(pc);
+//│   } else {
+//│     tmp1 = globalThis.Object.freeze(new Cont$handleBlock$h$1(pc));
+//│   }
+//│   tmp2 = tmp1(h$0, tmp$1, tmp$2, tmp$3, tmp$4);
+//│   return tmp2
+//│ };
+//│ globalThis.Object.freeze(class Cont$handleBlock$h$ extends runtime.FunctionContFrame.class {
+//│   static {
+//│     Cont$handleBlock$h$1 = this
+//│   }
+//│   constructor(pc) {
+//│     return (h$0, tmp$1, tmp$2, tmp$3, tmp$4) => {
+//│       let tmp1;
+//│       tmp1 = super(null);
+//│       this.h$0 = h$0;
+//│       this.tmp$1 = tmp$1;
+//│       this.tmp$2 = tmp$2;
+//│       this.tmp$3 = tmp$3;
+//│       this.tmp$4 = tmp$4;
+//│       this.pc = pc;
+//│       return this;
+//│     }
+//│   }
+//│   #h$0;
+//│   #tmp$1;
+//│   #tmp$2;
+//│   #tmp$3;
+//│   #tmp$4;
+//│   get h$0() { return this.#h$0; }
+//│   set h$0(value) { this.#h$0 = value; }
+//│   get tmp$1() { return this.#tmp$1; }
+//│   set tmp$1(value) { this.#tmp$1 = value; }
+//│   get tmp$2() { return this.#tmp$2; }
+//│   set tmp$2(value) { this.#tmp$2 = value; }
+//│   get tmp$3() { return this.#tmp$3; }
+//│   set tmp$3(value) { this.#tmp$3 = value; }
+//│   get tmp$4() { return this.#tmp$4; }
+//│   set tmp$4(value) { this.#tmp$4 = value; }
+//│   resume(value$) {
+//│     if (this.pc === 2) {
+//│       this.tmp$1 = value$;
+//│     } else if (this.pc === 3) {
+//│       this.tmp$2 = value$;
+//│     } else if (this.pc === 4) {
+//│       this.tmp$4 = value$;
+//│     }
+//│     contLoop: while (true) {
+//│       if (this.pc === 7) {
+//│         this.tmp$1 = f$(this.h$0);
+//│         if (this.tmp$1 instanceof runtime.EffectSig.class) {
+//│           this.pc = 2;
+//│           this.tmp$1.contTrace.last.next = this;
+//│           this.tmp$1.contTrace.last = this;
+//│           return this.tmp$1
+//│         }
+//│         this.pc = 2;
+//│         continue contLoop
+//│       } else if (this.pc === 2) {
+//│         this.pc = 6;
+//│         continue contLoop
+//│       } else if (this.pc === 6) {
+//│         this.tmp$2 = f$(this.h$0);
+//│         if (this.tmp$2 instanceof runtime.EffectSig.class) {
+//│           this.pc = 3;
+//│           this.tmp$2.contTrace.last.next = this;
+//│           this.tmp$2.contTrace.last = this;
+//│           return this.tmp$2
+//│         }
+//│         this.pc = 3;
+//│         continue contLoop
+//│       } else if (this.pc === 3) {
+//│         this.tmp$3 = this.tmp$1 + this.tmp$2;
+//│         this.pc = 5;
+//│         continue contLoop
+//│       } else if (this.pc === 5) {
+//│         this.tmp$4 = f$(this.h$0);
+//│         if (this.tmp$4 instanceof runtime.EffectSig.class) {
+//│           this.pc = 4;
+//│           this.tmp$4.contTrace.last.next = this;
+//│           this.tmp$4.contTrace.last = this;
+//│           return this.tmp$4
+//│         }
+//│         this.pc = 4;
+//│         continue contLoop
+//│       } else if (this.pc === 4) {
+//│         return this.tmp$3 + this.tmp$4
+//│       }
+//│       break;
+//│     }
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Cont$handleBlock$h$"]; 
+//│ });
+//│ Cont$func$f$$ = function Cont$func$f$$(isMut, h$0, tmp$1, pc) {
+//│   let tmp1, tmp2;
+//│   if (isMut === true) {
+//│     tmp1 = new Cont$func$f$1(pc);
+//│   } else {
+//│     tmp1 = globalThis.Object.freeze(new Cont$func$f$1(pc));
+//│   }
+//│   tmp2 = tmp1(h$0, tmp$1);
+//│   return tmp2
+//│ };
+//│ globalThis.Object.freeze(class Cont$func$f$ extends runtime.FunctionContFrame.class {
+//│   static {
+//│     Cont$func$f$1 = this
+//│   }
+//│   constructor(pc) {
+//│     return (h$0, tmp$1) => {
+//│       let tmp1;
+//│       tmp1 = super(null);
+//│       this.h$0 = h$0;
+//│       this.tmp$1 = tmp$1;
+//│       this.pc = pc;
+//│       return this;
+//│     }
+//│   }
+//│   #h$0;
+//│   #tmp$1;
+//│   get h$0() { return this.#h$0; }
+//│   set h$0(value) { this.#h$0 = value; }
+//│   get tmp$1() { return this.#tmp$1; }
+//│   set tmp$1(value) { this.#tmp$1 = value; }
+//│   resume(value$) {
+//│     if (this.pc === 0) {
+//│       this.tmp$1 = value$;
+//│     }
+//│     contLoop: while (true) {
+//│       if (this.pc === 1) {
+//│         this.tmp$1 = runtime.safeCall(this.h$0.perform());
+//│         if (this.tmp$1 instanceof runtime.EffectSig.class) {
+//│           this.pc = 0;
+//│           this.tmp$1.contTrace.last.next = this;
+//│           this.tmp$1.contTrace.last = this;
+//│           return this.tmp$1
+//│         }
+//│         this.pc = 0;
+//│         continue contLoop
+//│       } else if (this.pc === 0) {
+//│         return 1
+//│       }
+//│       break;
+//│     }
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Cont$func$f$"]; 
+//│ });
+//│ f$ = function f$(h) {
+//│   let tmp1;
+//│   tmp1 = runtime.safeCall(h.perform());
+//│   if (tmp1 instanceof runtime.EffectSig.class) {
+//│     tmp1.contTrace.last.next = Cont$func$f$$(true, h, tmp1, 0);
+//│     tmp1.contTrace.last = tmp1.contTrace.last.next;
+//│     return tmp1
+//│   }
+//│   return 1
+//│ };
+//│ f = function f(h) {
+//│   return () => {
+//│     return f$(h)
+//│   }
+//│ };
+//│ handleBlock$ = function handleBlock$() {
+//│   let h, tmp1, tmp2, tmp3, tmp4;
+//│   h = new Handler$h$1();
+//│   tmp1 = f$(h);
+//│   if (tmp1 instanceof runtime.EffectSig.class) {
+//│     tmp1.contTrace.last.next = Cont$handleBlock$h$$(true, h, tmp1, tmp2, tmp3, tmp4, 2);
+//│     return runtime.handleBlockImpl(tmp1, h)
+//│   }
+//│   tmp2 = f$(h);
+//│   if (tmp2 instanceof runtime.EffectSig.class) {
+//│     tmp2.contTrace.last.next = Cont$handleBlock$h$$(true, h, tmp1, tmp2, tmp3, tmp4, 3);
+//│     return runtime.handleBlockImpl(tmp2, h)
+//│   }
+//│   tmp3 = tmp1 + tmp2;
+//│   tmp4 = f$(h);
+//│   if (tmp4 instanceof runtime.EffectSig.class) {
+//│     tmp4.contTrace.last.next = Cont$handleBlock$h$$(true, h, tmp1, tmp2, tmp3, tmp4, 4);
+//│     return runtime.handleBlockImpl(tmp4, h)
+//│   }
+//│   return tmp3 + tmp4
+//│ };
+//│ tmp = handleBlock$();
+//│ if (tmp instanceof runtime.EffectSig.class) { tmp = runtime.topLevelEffect(tmp, false); }
+//│ tmp
+//│ = 3
 
 :expect 1
 :sjs
@@ -32,18 +245,46 @@ fun f(x) =
     fun get() = x
   Test()
 f(1).get()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
-//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ JS (unsanitized):
+//│ let Test1, f1, tmp1, Test$;
+//│ Test$ = function Test$(isMut, x$0) {
+//│   let tmp2, tmp3;
+//│   if (isMut === true) {
+//│     tmp2 = new Test1.class();
+//│   } else {
+//│     tmp2 = globalThis.Object.freeze(new Test1.class());
+//│   }
+//│   tmp3 = tmp2(x$0);
+//│   return tmp3
+//│ };
+//│ Test1 = function Test() {
+//│   return (x$0) => {
+//│     return globalThis.Object.freeze(new Test.class()(x$0));
+//│   }
+//│ };
+//│ globalThis.Object.freeze(class Test {
+//│   static {
+//│     Test1.class = this
+//│   }
+//│   constructor() {
+//│     return (x$0) => {
+//│       this.x$0 = x$0;
+//│       return this;
+//│     }
+//│   }
+//│   #x$0;
+//│   get x$0() { return this.#x$0; }
+//│   set x$0(value) { this.#x$0 = value; }
+//│   get() {
+//│     return this.x$0
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Test", []]; 
+//│ });
+//│ f1 = function f(x) { return Test$(false, x) };
+//│ tmp1 = f1(1);
+//│ runtime.safeCall(tmp1.get())
+//│ = 1
 
 :expect 1
 :sjs
@@ -57,18 +298,70 @@ fun f(used1, unused1) =
     fun get() = used1
   Test(unused1)
 f(1, 2).get()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
-//│ 	at: scala.collection.immutable.Map$Map3.apply(Map.scala:417)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
-//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ JS (unsanitized):
+//│ let h, Test3, g, f2, tmp2, Test$1, g$, h$;
+//│ h$ = function h$(used3) {
+//│   return used3
+//│ };
+//│ h = function h(used3) {
+//│   return () => {
+//│     return h$(used3)
+//│   }
+//│ };
+//│ g$ = function g$(used1, g_arg) {
+//│   let used3, tmp3;
+//│   used3 = 2;
+//│   tmp3 = h$(used3);
+//│   return used1 + tmp3
+//│ };
+//│ g = function g(used1) {
+//│   return (g_arg) => {
+//│     return g$(used1, g_arg)
+//│   }
+//│ };
+//│ Test$1 = function Test$(isMut, used1$0, a) {
+//│   let tmp3, tmp4;
+//│   if (isMut === true) {
+//│     tmp3 = new Test3.class(a);
+//│   } else {
+//│     tmp3 = globalThis.Object.freeze(new Test3.class(a));
+//│   }
+//│   tmp4 = tmp3(used1$0);
+//│   return tmp4
+//│ };
+//│ Test3 = function Test(a) {
+//│   return (used1$0) => {
+//│     return globalThis.Object.freeze(new Test.class(a)(used1$0));
+//│   }
+//│ };
+//│ globalThis.Object.freeze(class Test2 {
+//│   static {
+//│     Test3.class = this
+//│   }
+//│   constructor(a) {
+//│     return (used1$0) => {
+//│       this.used1$0 = used1$0;
+//│       this.a = a;
+//│       return this;
+//│     }
+//│   }
+//│   #used1$0;
+//│   get used1$0() { return this.#used1$0; }
+//│   set used1$0(value) { this.#used1$0 = value; }
+//│   get() {
+//│     return this.used1$0
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Test", ["a"]]; 
+//│ });
+//│ f2 = function f(used1, unused1) {
+//│   let unused2;
+//│   unused2 = 2;
+//│   return Test$1(false, used1, unused1)
+//│ };
+//│ tmp2 = f2(1, 2);
+//│ runtime.safeCall(tmp2.get())
+//│ = 1
 
 :expect 1
 fun f(used1, unused1) =
@@ -81,18 +374,7 @@ fun f(used1, unused1) =
     fun get() = used1
   new Test(unused1)
 f(1, 2).get()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
-//│ 	at: scala.collection.immutable.Map$Map3.apply(Map.scala:417)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
-//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ = 1
 
 :sjs
 :expect 1
@@ -106,18 +388,60 @@ fun f(used1, unused1) =
     fun get() = used1
   new Test
 f(1, 2).get()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
-//│ 	at: scala.collection.immutable.Map$Map3.apply(Map.scala:417)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
-//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ JS (unsanitized):
+//│ let h2, Test7, g2, f4, tmp4, Test$3, g$2, h$2;
+//│ h$2 = function h$(used3) {
+//│   return used3
+//│ };
+//│ h2 = function h(used3) {
+//│   return () => {
+//│     return h$2(used3)
+//│   }
+//│ };
+//│ g$2 = function g$(used1, g_arg) {
+//│   let used3, tmp5;
+//│   used3 = 2;
+//│   tmp5 = h$2(used3);
+//│   return used1 + tmp5
+//│ };
+//│ g2 = function g(used1) {
+//│   return (g_arg) => {
+//│     return g$2(used1, g_arg)
+//│   }
+//│ };
+//│ Test$3 = function Test$(isMut, used1$0) {
+//│   let tmp5;
+//│   if (isMut === true) {
+//│     tmp5 = new Test7(used1$0);
+//│   } else {
+//│     tmp5 = globalThis.Object.freeze(new Test7(used1$0));
+//│   }
+//│   return tmp5
+//│ };
+//│ globalThis.Object.freeze(class Test6 {
+//│   static {
+//│     Test7 = this
+//│   }
+//│   constructor(used1$0) {
+//│     this.used1$0 = used1$0;
+//│   }
+//│   #used1$0;
+//│   get used1$0() { return this.#used1$0; }
+//│   set used1$0(value) { this.#used1$0 = value; }
+//│   get() {
+//│     return this.used1$0
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Test"]; 
+//│ });
+//│ f4 = function f(used1, unused1) {
+//│   let unused2;
+//│   unused2 = 2;
+//│   return Test$3(false, used1)
+//│ };
+//│ tmp4 = f4(1, 2);
+//│ runtime.safeCall(tmp4.get())
+//│ = 1
 
 :sjs
 :expect 2
@@ -127,18 +451,62 @@ fun f(x) =
   A().f()
   x
 f(1)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:f
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
-//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ JS (unsanitized):
+//│ let A1, f5, A$, f$capture1;
+//│ A$ = function A$(isMut, f$capture$0) {
+//│   let tmp5, tmp6;
+//│   if (isMut === true) {
+//│     tmp5 = new A1.class();
+//│   } else {
+//│     tmp5 = globalThis.Object.freeze(new A1.class());
+//│   }
+//│   tmp6 = tmp5(f$capture$0);
+//│   return tmp6
+//│ };
+//│ A1 = function A() {
+//│   return (f$capture$0) => {
+//│     return globalThis.Object.freeze(new A.class()(f$capture$0));
+//│   }
+//│ };
+//│ globalThis.Object.freeze(class A {
+//│   static {
+//│     A1.class = this
+//│   }
+//│   constructor() {
+//│     return (f$capture$0) => {
+//│       this.f$capture$0 = f$capture$0;
+//│       return this;
+//│     }
+//│   }
+//│   #f$capture$0;
+//│   get f$capture$0() { return this.#f$capture$0; }
+//│   set f$capture$0(value) { this.#f$capture$0 = value; }
+//│   f() {
+//│     this.f$capture$0.x0$ = 2;
+//│     return runtime.Unit
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "A", []]; 
+//│ });
+//│ globalThis.Object.freeze(class f$capture {
+//│   static {
+//│     f$capture1 = this
+//│   }
+//│   constructor(x0$) {
+//│     this.x0$ = x0$;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "f$capture"]; 
+//│ });
+//│ f5 = function f(x) {
+//│   let tmp5, tmp6, capture;
+//│   capture = new f$capture1(x);
+//│   tmp5 = A$(false, capture);
+//│   tmp6 = runtime.safeCall(tmp5.f());
+//│   return capture.x0$
+//│ };
+//│ f5(1)
+//│ = 2
 
 // only w should be in a capture
 :expect 10111
@@ -158,18 +526,117 @@ fun f() =
   Bad().foo()
   Good()
 f().foo()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:foo
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
-//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ JS (unsanitized):
+//│ let Bad1, Good1, f6, tmp5, Bad$, Good$, f$capture3;
+//│ Good$ = function Good$(isMut, x$1, y$2, z$3, f$capture$0) {
+//│   let tmp6, tmp7;
+//│   if (isMut === true) {
+//│     tmp6 = new Good1.class();
+//│   } else {
+//│     tmp6 = globalThis.Object.freeze(new Good1.class());
+//│   }
+//│   tmp7 = tmp6(x$1, y$2, z$3, f$capture$0);
+//│   return tmp7
+//│ };
+//│ Good1 = function Good() {
+//│   return (x$1, y$2, z$3, f$capture$0) => {
+//│     return globalThis.Object.freeze(new Good.class()(x$1, y$2, z$3, f$capture$0));
+//│   }
+//│ };
+//│ globalThis.Object.freeze(class Good {
+//│   static {
+//│     Good1.class = this
+//│   }
+//│   constructor() {
+//│     return (x$1, y$2, z$3, f$capture$0) => {
+//│       this.f$capture$0 = f$capture$0;
+//│       this.x$1 = x$1;
+//│       this.y$2 = y$2;
+//│       this.z$3 = z$3;
+//│       return this;
+//│     }
+//│   }
+//│   #f$capture$0;
+//│   #x$1;
+//│   #y$2;
+//│   #z$3;
+//│   get f$capture$0() { return this.#f$capture$0; }
+//│   set f$capture$0(value) { this.#f$capture$0 = value; }
+//│   get x$1() { return this.#x$1; }
+//│   set x$1(value) { this.#x$1 = value; }
+//│   get y$2() { return this.#y$2; }
+//│   set y$2(value) { this.#y$2 = value; }
+//│   get z$3() { return this.#z$3; }
+//│   set z$3(value) { this.#z$3 = value; }
+//│   foo() {
+//│     let tmp6, tmp7;
+//│     this.z$3 = 100;
+//│     tmp6 = this.x$1 + this.y$2;
+//│     tmp7 = tmp6 + this.z$3;
+//│     return tmp7 + this.f$capture$0.w0$
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Good", []]; 
+//│ });
+//│ Bad$ = function Bad$(isMut, f$capture$0) {
+//│   let tmp6, tmp7;
+//│   if (isMut === true) {
+//│     tmp6 = new Bad1.class();
+//│   } else {
+//│     tmp6 = globalThis.Object.freeze(new Bad1.class());
+//│   }
+//│   tmp7 = tmp6(f$capture$0);
+//│   return tmp7
+//│ };
+//│ Bad1 = function Bad() {
+//│   return (f$capture$0) => {
+//│     return globalThis.Object.freeze(new Bad.class()(f$capture$0));
+//│   }
+//│ };
+//│ globalThis.Object.freeze(class Bad {
+//│   static {
+//│     Bad1.class = this
+//│   }
+//│   constructor() {
+//│     return (f$capture$0) => {
+//│       this.f$capture$0 = f$capture$0;
+//│       return this;
+//│     }
+//│   }
+//│   #f$capture$0;
+//│   get f$capture$0() { return this.#f$capture$0; }
+//│   set f$capture$0(value) { this.#f$capture$0 = value; }
+//│   foo() {
+//│     this.f$capture$0.w0$ = 10000;
+//│     return runtime.Unit
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Bad", []]; 
+//│ });
+//│ globalThis.Object.freeze(class f$capture2 {
+//│   static {
+//│     f$capture3 = this
+//│   }
+//│   constructor(w0$) {
+//│     this.w0$ = w0$;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "f$capture"]; 
+//│ });
+//│ f6 = function f() {
+//│   let x, y, z, tmp6, tmp7, capture;
+//│   capture = new f$capture3(null);
+//│   x = 1;
+//│   y = 10;
+//│   z = 10;
+//│   capture.w0$ = 1000;
+//│   tmp6 = Bad$(false, capture);
+//│   tmp7 = runtime.safeCall(tmp6.foo());
+//│   return Good$(false, x, y, z, capture)
+//│ };
+//│ tmp5 = f6();
+//│ runtime.safeCall(tmp5.foo())
+//│ = 10111
 
 :expect 2
 fun f(x) =
@@ -185,18 +652,9 @@ a.foo()
 let b = a.newA()
 b.foo()
 a.getX()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:newA
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
-//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ = 2
+//│ a = A()
+//│ b = A()
 
 // handler
 
@@ -208,18 +666,144 @@ fun sum(n) =
   else
     n + sum(n - 1)
 sum(100)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:resume
-//│ 	at: scala.collection.immutable.Map$Map2.apply(Map.scala:316)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:884)
-//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ JS:
+//│ Cont$func$sum$$ = function Cont$func$sum$$(...args) {
+//│   runtime.checkArgs("Cont$func$sum$$", 8, true, args.length);
+//│   let isMut = args[0];
+//│   let n$0 = args[1];
+//│   let scrut$1 = args[2];
+//│   let tmp$2 = args[3];
+//│   let tmp$3 = args[4];
+//│   let curDepth$4 = args[5];
+//│   let stackDelayRes$5 = args[6];
+//│   let pc = args[7];
+//│   let tmp10, tmp11;
+//│   if (isMut === true) {
+//│     tmp10 = new Cont$func$sum$1(pc);
+//│   } else {
+//│     tmp10 = globalThis.Object.freeze(new Cont$func$sum$1(pc));
+//│   }
+//│   tmp11 = runtime.checkCall(tmp10(n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5));
+//│   return tmp11
+//│ };
+//│ globalThis.Object.freeze(class Cont$func$sum$ extends runtime.FunctionContFrame.class {
+//│   static {
+//│     Cont$func$sum$1 = this
+//│   }
+//│   constructor(pc) {
+//│     return (n$0, scrut$1, tmp$2, tmp$3, curDepth$4, stackDelayRes$5) => {
+//│       let tmp10;
+//│       tmp10 = super(null);
+//│       this.n$0 = n$0;
+//│       this.scrut$1 = scrut$1;
+//│       this.tmp$2 = tmp$2;
+//│       this.tmp$3 = tmp$3;
+//│       this.curDepth$4 = curDepth$4;
+//│       this.stackDelayRes$5 = stackDelayRes$5;
+//│       this.pc = pc;
+//│       return this;
+//│     }
+//│   }
+//│   #n$0;
+//│   #scrut$1;
+//│   #tmp$2;
+//│   #tmp$3;
+//│   #curDepth$4;
+//│   #stackDelayRes$5;
+//│   get n$0() { return this.#n$0; }
+//│   set n$0(value) { this.#n$0 = value; }
+//│   get scrut$1() { return this.#scrut$1; }
+//│   set scrut$1(value) { this.#scrut$1 = value; }
+//│   get tmp$2() { return this.#tmp$2; }
+//│   set tmp$2(value) { this.#tmp$2 = value; }
+//│   get tmp$3() { return this.#tmp$3; }
+//│   set tmp$3(value) { this.#tmp$3 = value; }
+//│   get curDepth$4() { return this.#curDepth$4; }
+//│   set curDepth$4(value) { this.#curDepth$4 = value; }
+//│   get stackDelayRes$5() { return this.#stackDelayRes$5; }
+//│   set stackDelayRes$5(value) { this.#stackDelayRes$5 = value; }
+//│   get resume$__checkNotMethod() { runtime.deboundMethod("resume", "Cont$func$sum$"); }
+//│   resume(...args) {
+//│     runtime.checkArgs("resume", 1, true, args.length);
+//│     let value$ = args[0];
+//│     if (this.pc === 0) {
+//│       this.stackDelayRes$5 = value$;
+//│     } else if (this.pc === 1) {
+//│       this.tmp$3 = value$;
+//│     }
+//│     contLoop: while (true) {
+//│       if (this.pc === 0) {
+//│         this.scrut$1 = this.n$0 == 0;
+//│         if (this.scrut$1 === true) {
+//│           return 0
+//│         } else {
+//│           this.tmp$2 = this.n$0 - 1;
+//│           this.pc = 3;
+//│           continue contLoop
+//│         }
+//│         this.pc = 2;
+//│         continue contLoop
+//│       } else if (this.pc === 2) {
+//│         break contLoop
+//│       } else if (this.pc === 3) {
+//│         runtime.stackDepth = runtime.stackDepth + 1;
+//│         this.tmp$3 = runtime.checkCall(sum(this.tmp$2));
+//│         if (this.tmp$3 instanceof runtime.EffectSig.class) {
+//│           this.pc = 1;
+//│           this.tmp$3.contTrace.last.next = this;
+//│           this.tmp$3.contTrace.last = this;
+//│           return this.tmp$3
+//│         }
+//│         this.pc = 1;
+//│         continue contLoop
+//│       } else if (this.pc === 1) {
+//│         this.tmp$3 = runtime.resetDepth(this.tmp$3, this.curDepth$4);
+//│         return this.n$0 + this.tmp$3
+//│       }
+//│       break;
+//│     }
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Cont$func$sum$"]; 
+//│ });
+//│ sum = function sum(...args) {
+//│   runtime.checkArgs("sum", 1, true, args.length);
+//│   let n = args[0];
+//│   let scrut, tmp10, tmp11, curDepth, stackDelayRes;
+//│   curDepth = runtime.stackDepth;
+//│   stackDelayRes = runtime.checkCall(runtime.checkDepth());
+//│   if (stackDelayRes instanceof runtime.EffectSig.class) {
+//│     stackDelayRes.contTrace.last.next = runtime.checkCall(Cont$func$sum$$(true, n, scrut, tmp10, tmp11, curDepth, stackDelayRes, 0));
+//│     stackDelayRes.contTrace.last = stackDelayRes.contTrace.last.next;
+//│     return stackDelayRes
+//│   }
+//│   scrut = n == 0;
+//│   if (scrut === true) {
+//│     return 0
+//│   } else {
+//│     tmp10 = n - 1;
+//│     runtime.stackDepth = runtime.stackDepth + 1;
+//│     tmp11 = runtime.checkCall(sum(tmp10));
+//│     if (tmp11 instanceof runtime.EffectSig.class) {
+//│       tmp11.contTrace.last.next = runtime.checkCall(Cont$func$sum$$(true, n, scrut, tmp10, tmp11, curDepth, stackDelayRes, 1));
+//│       tmp11.contTrace.last = tmp11.contTrace.last.next;
+//│       return tmp11
+//│     }
+//│     tmp11 = runtime.resetDepth(tmp11, curDepth);
+//│     return n + tmp11
+//│   }
+//│ };
+//│ $_stack$_safe$_body$_ = (undefined, function (...args) {
+//│   runtime.checkArgs("", 0, true, args.length);
+//│   return runtime.checkCall(sum(100))
+//│ });
+//│ res = runtime.runStackSafe(10, $_stack$_safe$_body$_);
+//│ if (res instanceof runtime.EffectSig.class) {
+//│   res = runtime.topLevelEffect(res, false);
+//│ }
+//│ block$res9 = res;
+//│ undefined
+//│ = 5050
 
 // instance checks
 
@@ -231,18 +815,7 @@ fun f() =
   foo()(0)
 f().get()
 //│ ═══[WARNING] Cannot yet lift class `Test` as it is used as a first-class class.
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
-//│ 	at: scala.collection.immutable.Map$Map2.apply(Map.scala:316)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:752)
-//│ 	at: hkmc2.Lifter.$anonfun$73(Lifter.scala:1077)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
+//│ = 0
 
 :sjs
 :lift
@@ -256,18 +829,39 @@ fun f(x) =
   foo()
 f(2).get()
 //│ ═══[WARNING] Cannot yet lift class `Test` as it is used as a first-class class.
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createLiftInfoFn$$anonfun$1(Lifter.scala:559)
-//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
-//│ 	at: hkmc2.Lifter.createLiftInfoFn(Lifter.scala:559)
-//│ 	at: hkmc2.Lifter.createLiftInfoCls$$anonfun$2(Lifter.scala:565)
-//│ 	at: scala.collection.immutable.List.flatMap(List.scala:294)
-//│ 	at: hkmc2.Lifter.createLiftInfoCls(Lifter.scala:565)
-//│ 	at: hkmc2.Lifter.createLiftInfoCont(Lifter.scala:536)
-//│ 	at: hkmc2.Lifter.createLiftInfoFn$$anonfun$1(Lifter.scala:559)
+//│ JS (unsanitized):
+//│ let h3, f9, tmp11, h$3;
+//│ h$3 = function h$(Test$instance, x) {
+//│   return x
+//│ };
+//│ h3 = function h(Test$instance, x) {
+//│   return () => {
+//│     return h$3(Test$instance, x)
+//│   }
+//│ };
+//│ f9 = function f(x) {
+//│   let Test10, foo1;
+//│   Test10 = function Test() {
+//│     return globalThis.Object.freeze(new Test.class());
+//│   };
+//│   globalThis.Object.freeze(class Test9 {
+//│     static {
+//│       Test10.class = this
+//│     }
+//│     constructor() {}
+//│     get() {
+//│       return h$3(this, x)
+//│     }
+//│     toString() { return runtime.render(this); }
+//│     static [definitionMetadata] = ["class", "Test", []]; 
+//│   });
+//│   foo1 = Test10;
+//│   return runtime.safeCall(foo1())
+//│ };
+//│ tmp11 = f9(2);
+//│ runtime.safeCall(tmp11.get())
+//│ ═══[WARNING] Cannot yet lift class `Test` as it is used as a first-class class.
+//│ = 2
 
 :expect 2
 fun test() =
@@ -276,18 +870,7 @@ fun test() =
   class B() extends A
   B().get
 test()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
-//│ 	at: scala.collection.immutable.Map$Map1.apply(Map.scala:263)
-//│ 	at: hkmc2.Lifter$UsedLocalsMap.apply(Lifter.scala:34)
-//│ 	at: hkmc2.Lifter.createCaptureCls(Lifter.scala:252)
-//│ 	at: hkmc2.Lifter.liftDefnsInFn(Lifter.scala:1049)
-//│ 	at: hkmc2.Lifter.$anonfun$64(Lifter.scala:1019)
-//│ 	at: scala.collection.immutable.List.map(List.scala:247)
-//│ 	at: hkmc2.Lifter.liftDefnsInCls(Lifter.scala:1019)
-//│ 	at: hkmc2.Lifter.liftOutDefnCont(Lifter.scala:752)
-//│ 	at: hkmc2.Lifter.$anonfun$72(Lifter.scala:1076)
-//│ 	at: scala.collection.immutable.List.map(List.scala:251)
+//│ = 2
 
 // Note: semicolon required for auxparam before `return this;`
 // :sjs

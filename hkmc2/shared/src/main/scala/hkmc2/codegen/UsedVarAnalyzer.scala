@@ -119,7 +119,9 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
         createMetadataDefn(d, newExisting, newInScope)
         nested ++= nestedDeep(d.sym)
       
-      nested = nested  | createMetadataBody(c.sym, c.staticPart, newExisting, newInScope)
+      // FIXME
+      nested = nested  | c.companion.fold(nested)(mod =>
+        createMetadataBody(c.sym, mod, newExisting, newInScope))
       
       nestedDeep += c.sym -> nested
     

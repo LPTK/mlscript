@@ -46,7 +46,7 @@ sealed abstract class Block extends Product with AutoLocated:
         privFlds, pubFlds, preCtor, ctor, stat), rest) =>
       isym :: sym :: paramsOpt.toList ++ aux ++ parentSym.toList ++
         methods.flatMap(_.subBlocks) ++
-        stat.subBlocks ++
+        stat.iterator.flatMap(_.subBlocks) ++
         privFlds ++ pubFlds.flatMap(f => f._1 :: f._2 :: Nil) ++ preCtor.subBlocks ++ ctor.subBlocks :+ rest
     case HandleBlock(lhs, res, par, args, cls, handlers, body, rest) =>
       lhs :: res :: par :: args ++ handlers.flatMap: handler =>
@@ -332,8 +332,8 @@ sealed abstract class Defn:
   def subBlocks: Ls[Block] = this match
     case FunDefn(body = body) => body :: Nil
     case _: ValDefn => Nil
-    case ClsLikeDefn(preCtor = preCtor, ctor = ctor, methods = mtds, staticPart = stat) =>
-      preCtor :: ctor :: mtds.flatMap(_.subBlocks) ::: stat.subBlocks
+    case ClsLikeDefn(preCtor = preCtor, ctor = ctor, methods = mtds, companion = comp) =>
+      preCtor :: ctor :: mtds.flatMap(_.subBlocks) ::: comp.toList.flatMap(_.subBlocks)
   
   // * Note that `privateFields` abd `publicFields` can't possibly be free since they are never
   // * referred to directly (they are only accessed through selections).
@@ -345,7 +345,7 @@ sealed abstract class Defn:
     case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentSym, 
         methods, privateFields, publicFields, preCtor, ctor, stat) =>
       preCtor.freeVars
-        ++ ctor.freeVars ++ methods.flatMap(_.freeVars) ++ stat.freeVars
+        ++ ctor.freeVars ++ methods.flatMap(_.freeVars) ++ stat.iterator.flatMap(_.freeVars)
         -- auxParams.flatMap(_.paramSyms)
   
   lazy val freeVarsLLIR: Set[Local] = this match
@@ -354,7 +354,7 @@ sealed abstract class Defn:
     case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentSym, 
         methods, privateFields, publicFields, preCtor, ctor, stat) =>
       preCtor.freeVarsLLIR
-        ++ ctor.freeVarsLLIR ++ methods.flatMap(_.freeVarsLLIR) ++ stat.freeVarsLLIR
+        ++ ctor.freeVarsLLIR ++ methods.flatMap(_.freeVarsLLIR) ++ stat.iterator.flatMap(_.freeVarsLLIR)
         -- auxParams.flatMap(_.paramSyms)
   
 
@@ -423,9 +423,6 @@ object ValDefn:
 final case class ClsLikeDefn(
     owner: Opt[InnerSymbol],
     isym: MemberSymbol[? <: ClassLikeDef] & InnerSymbol,
-    // isym: MemberSymbol[? <: ClassLikeDef] & InnerSymbol & IdentifiedSymbol,
-    // isym: MemberSymbol[? <: ClassLikeDef] & InnerSymbol & ClassLikeSymbol,
-    // isym: ClassLikeSymbol,
     sym: BlockMemberSymbol,
     k: syntax.ClsLikeKind,
     paramsOpt: Opt[ParamList],
@@ -440,7 +437,7 @@ final case class ClsLikeDefn(
     preCtor: Block,
     ctor: Block,
     
-    staticPart: ClsLikeBody,
+    companion: Opt[ClsLikeBody],
 ) extends Defn:
   val innerSym = S(isym)
 

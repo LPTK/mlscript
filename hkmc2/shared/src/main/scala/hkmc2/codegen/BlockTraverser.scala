@@ -103,7 +103,7 @@ class BlockTraverser:
         f._1.traverse; f._2.traverse
       applySubBlock(preCtor)
       applySubBlock(ctor)
-      applyClsLikeBody(mod)
+      mod.foreach(applyClsLikeBody)
   
   def applyClsLikeBody(b: ClsLikeBody): Unit =
     b.isym.traverse
