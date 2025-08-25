@@ -345,7 +345,7 @@ class Resolver(tl: TraceLogger)
           rft.foreach((sym, bdy) => traverseBlock(bdy.blk))
         
         case t: Resolvable =>
-          resolve(t, inTyPrefix = false, inCtxPrefix = false)
+          resolve(t, inAppPrefix = false, inTyPrefix = false, inCtxPrefix = false)
           if expect.`class` then expand2DotClass(t)
         
         case _ =>
@@ -471,6 +471,11 @@ class Resolver(tl: TraceLogger)
     *    the semantic of the term, so it has to done before the symbol
     *    resolution.
     *
+    * @param inAppPrefix if true, the currently resolving term is the
+    * prefix of an App. The eta-expansion should only happens on the
+    * outer-most App term, rather than on the in-between App terms
+    * (otherwise the expansion might be redundant).
+    * 
     * @param inCtxPrefix if true, the currently resolving term is the
     * prefix of an App where the implicit arguments are explicitly
     * specified, e.g., `f(using 42)`. The implicit arguments should be
@@ -481,7 +486,7 @@ class Resolver(tl: TraceLogger)
     * be resolved on the the TyApp `f[Int]`, but not on the base of the
     * TyApp `f`.
     */
-  def resolve(t: Resolvable, inCtxPrefix: Bool, inTyPrefix: Bool)(using ICtx): (Opt[CallableDefinition], ICtx) =
+  def resolve(t: Resolvable, inAppPrefix: Bool, inCtxPrefix: Bool, inTyPrefix: Bool)(using ICtx): (Opt[CallableDefinition], ICtx) =
   trace[(Opt[CallableDefinition], ICtx)](s"Resolving resolvable term: ${t}, (inPrefix = ${inTyPrefix})", _ => s"~> ${t.instantiate}"):
     // Resolve the sub-resolvable-terms of the term. 
     val (defn, newICtx1) = t match
@@ -490,9 +495,9 @@ class Resolver(tl: TraceLogger)
       case Term.App(lhs: Resolvable, args) =>
         val result = args match
           case t @ Term.CtxTup(_) => 
-            resolve(lhs, inCtxPrefix = true, inTyPrefix = inTyPrefix)
+            resolve(lhs, inAppPrefix = true, inCtxPrefix = true, inTyPrefix = inTyPrefix)
           case _ => 
-            resolve(lhs, inCtxPrefix = inCtxPrefix, inTyPrefix = inTyPrefix)
+            resolve(lhs, inAppPrefix = true, inCtxPrefix = inCtxPrefix, inTyPrefix = inTyPrefix)
         resolveSymbol(t)
         result
       case Term.App(lhs, _) =>
@@ -500,7 +505,7 @@ class Resolver(tl: TraceLogger)
         (t.callableDefn, ictx)
       
       case Term.TyApp(lhs: Resolvable, targs) =>
-        resolve(lhs, inCtxPrefix = false, inTyPrefix = true)
+        resolve(lhs, inAppPrefix = inAppPrefix, inCtxPrefix = inCtxPrefix, inTyPrefix = true)
         targs.foreach(traverse(_, expect = Any))
         resolveSymbol(t)
         (t.callableDefn, ictx)
@@ -510,7 +515,7 @@ class Resolver(tl: TraceLogger)
         (t.callableDefn, ictx)
       
       case AnySel(pre: Resolvable, id) =>
-        resolve(pre, inCtxPrefix = false, inTyPrefix = false)
+        resolve(pre, inAppPrefix = false, inCtxPrefix = false, inTyPrefix = false)
         resolveSymbol(t)
         (t.callableDefn, ictx)
       case AnySel(pre, id) =>
@@ -685,8 +690,9 @@ class Resolver(tl: TraceLogger)
             // so perform eta-expansion.
             case (ps @ ParamList(
               flags = ParamListFlags(ctx = false)
-            )) :: pss if pss.exists(_.flags.ctx) =>
+            )) :: pss if !inAppPrefix && pss.exists(_.flags.ctx) =>
               val as = ps.params.map(p => Fld(p.flags, p.sym.ref().dontResolve, N))
+            //   val as = ps.params.map(p => Fld(p.flags, p.sym.ref().resolve, N))
               val newLam = (t: Term) => 
                 lam(Term.Lam(ps, t))
               val newBod = (t: Term) =>
