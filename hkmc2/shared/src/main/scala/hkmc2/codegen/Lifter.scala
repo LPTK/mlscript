@@ -647,11 +647,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       
       // Rewrite the rest
       val remaining = rewritten match
-        case Assign(lhs: InnerSymbol, rhs, rest) => ctx.getIsymPath(lhs) match
-          case Some(value) if !iSymInScope(lhs) =>
-            value.assign(applyResult(rhs), applyBlock(rest))
-          case _ => super.applyBlock(rewritten)
-
+        
+        // Detect private field usages
         case Assign(t: TermSymbol, rhs, rest) if t.owner.isDefined =>
           ctx.resolveIsymPath(t.owner.get) match
             case Some(value) if !iSymInScope(t.owner.get) =>
@@ -664,6 +661,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
               AssignField(value.read, t.id, applyResult(rhs), applyBlock(rest))(N)
             case _ => super.applyBlock(rewritten)
         
+        // Assignment to variables
         case Assign(lhs, rhs, rest) => ctx.getLocalCaptureSym(lhs) match
           case Some(captureSym) => 
             AssignField(ctx.getLocalClosPath(lhs).get.read, captureSym.id, applyResult(rhs), applyBlock(rest))(N)
@@ -745,6 +743,9 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
           case None => super.applyPath(p)
       case _ => super.applyPath(p)
 
+  // When calling a lifted function or constructor, we need to pass, as arguments, the local variables,
+  // inner symbols, etc that it needs to access. This function creates those arguments for that in
+  // the correct order.
   def getCallArgs(sym: BlockMemberSymbol, ctx: LifterCtx) =
     val info = ctx.getBmsReqdInfo(sym).get
     val localsArgs = info.reqdVars.map(s => ctx.getLocalPath(s).get.asArg)
@@ -753,6 +754,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     val bmsArgs = info.reqdBms.map(ctx.getIgnoredBmsPath(_).get.asArg)
     bmsArgs ++ iSymArgs ++ localsArgs ++ capturesArgs
   
+  // This creates a call to a lifted function or constructor.
   def createCall(sym: BlockMemberSymbol, ctx: LifterCtx): Call =
     val info = ctx.getBmsReqdInfo(sym).get
     val callSym = info.fakeCtorBms match
@@ -760,7 +762,20 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       case None => sym
     Call(callSym.asPath, getCallArgs(sym, ctx))(false, false)
 
-  // deals with creating parameter lists
+  /* 
+   * Explanation of liftOutDefnCont, liftDefnsInCls, liftDefnsInFn:
+   * 
+   * The initial call is to liftDefnsInFn or liftDefnsInCls:
+   * - liftDefnsInFn rewrites a function's body so that it references variables correctly, and calls liftOutDefnCont
+   *   on its nested definitions and lifts them (if they're not ignored).
+   * - liftDefnsInCls does the same but for classes by rewriting their constructors and methods. Notably, it directly
+   *   calls liftDefnsInFn on its member functions.
+   * 
+   * liftOutDefnCont's purpose is to rewrite definitions' signatures so that they make sense after being lifted. This 
+   * includes adding the parameter lists which take in variables, captures, references to inner symbols etc. If a
+   * definition has been marked as "ignored" (not lifted), or if the definition is so simple that it doesn't need,
+   * extra parameter lists, it will directly call liftDefnsInFn or liftDefnsInCls on that definition.
+   */
   def liftOutDefnCont(base: Defn, d: Defn, ctx: LifterCtx): Lifted[Defn] = ctx.getBmsReqdInfo(d.sym) match
     case N => d match
       case f: FunDefn => liftDefnsInFn(f, ctx)
@@ -984,6 +999,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
             // Lifted(lifted, extras ::: (fakeCtorDefn :: auxCtorDefn :: Nil))
             Lifted(lifted, extras ::: (auxCtorDefn :: Nil))
         case _ => Lifted(d, Nil)
+  
+  end liftOutDefnCont
   
   def liftDefnsInCls(c: ClsLikeDefn, ctx: LifterCtx): Lifted[ClsLikeDefn] =
     val ctxx = if c.companion.isDefined then ctx.inModule(c) else ctx // TODO: refine
