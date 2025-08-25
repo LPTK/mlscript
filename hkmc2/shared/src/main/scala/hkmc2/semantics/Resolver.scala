@@ -106,7 +106,23 @@ object Resolver:
         s"${tEnv.get(sym).getOrElse(Type.Unspecified).show} (type parameter ${tpe.show})"
       case _ => 
         s"${tpe.show}"
+  
+  enum Expect:
+    case Module(reason: Opt[Message])
+    case NonModule(reason: Opt[Message])
+    case Class(reason: Opt[Message])
+    case Any
+        
+    def message: Ls[Message -> Opt[Loc]] = this match
+      case Expect.Module(msg) => msg.toList.map(_ -> N)
+      case Expect.NonModule(msg) => msg.toList.map(_ -> N)
+      case Expect.Class(msg) => msg.toList.map(_ -> N)
+      case Expect.Any => Nil
     
+    def `module` = isInstanceOf[Module]
+    def `class` = isInstanceOf[Class]
+    def nonModule = isInstanceOf[NonModule]
+  
   object ICtx:
     
     enum Type:
@@ -222,26 +238,9 @@ class Resolver(tl: TraceLogger)
 (using raise: Raise, state: State, ctx: Elaborator.Ctx):
   import tl.*
   import Resolver.*
-  
-  enum Expect:
-    case Module(reason: Opt[Message])
-    case NonModule(reason: Opt[Message])
-    case Class(reason: Opt[Message])
-    case Any
-    
-    def message: Ls[Message -> Opt[Loc]] = this match
-      case Expect.Module(msg) => msg.toList.map(_ -> N)
-      case Expect.NonModule(msg) => msg.toList.map(_ -> N)
-      case Expect.Class(msg) => msg.toList.map(_ -> N)
-      case Expect.Any => Nil
-    
-    def `module` = isInstanceOf[Module]
-    def `class` = isInstanceOf[Class]
-    def nonModule = isInstanceOf[NonModule]
-    
-  end Expect
   import Expect.*
-  
+  import ModuleChecker.*
+
   /**
     * Traverse a block and resolve any resolvable sub-terms. This is
     * usually the entry point for the resolver.
@@ -297,13 +296,12 @@ class Resolver(tl: TraceLogger)
       // known classes, it might require checking other definitions also
       // later.
       
-      val evalsToModule = ModuleChecker.evalsToModule(t)
       val evalsToStaticClass = ModuleChecker.evalsToStaticClass(t)
-      
-      if expect.`module` && !evalsToModule then
+
+      if expect.`module` && !evalsToModule(t, prefer = expect) then
         raise(ErrorReport(msg"Expected a module; found non-moduleful ${t.describe}." -> t.toLoc 
           :: expect.message))
-      if expect.nonModule && evalsToModule && !evalsToStaticClass then
+      if expect.nonModule && evalsToModule(t, prefer = expect) && !evalsToStaticClass then
         raise(ErrorReport(msg"Unexpected moduleful ${t.describe}." -> t.toLoc 
           :: expect.message))
       
@@ -909,8 +907,10 @@ object ModuleChecker:
   def isTypeParam(sym: VarSymbol): Bool = sym.decl
     .exists(_.isInstanceOf[TyParam])
   
+  import Resolver.Expect
+  
   /** Checks the term's modulefulness. */
-  def evalsToModule(t: Term): Bool =
+  def evalsToModule(t: Term, prefer: Expect): Bool =
     def checkDecl(decl: Declaration): Bool = decl match
       /* Type Declaration / Defintiions */
       // A type is not moduleful if it is not a module. (obvious!)
@@ -925,15 +925,17 @@ object ModuleChecker:
       case defn: TyParam => false
     
     def checkSym(sym: Symbol): Bool = sym match
-      case sym if sym.isModuleful => true
-      case sym: (BuiltinSymbol | TopLevelSymbol) => false
+      case sym: BuiltinSymbol => false
       case sym: BlockLocalSymbol => sym.decl.exists(checkDecl)
-      case sym: MemberSymbol[?] => sym.defn.exists(checkDecl)
+      case sym: FieldSymbol => prefer match
+        case Expect.Module(_) => sym.existsModuleful
+        case _ => !sym.existsNonModuleful
+      
       case sym => lastWords(s"unsupported symbol type ${sym.getClass} (${sym})")
     
     t match
-      case Term.Blk(_, res) => evalsToModule(res)
-      case Term.IfLike(`if`, split) => split.results.exists(evalsToModule(_))
+      case Term.Blk(_, res) => evalsToModule(res, prefer = prefer)
+      case Term.IfLike(`if`, split) => split.results.exists(evalsToModule(_, prefer = prefer))
       case t => t.resolvedSymbol.exists(checkSym)
   
   def evalsToStaticClass(t: Term): Bool =

@@ -71,6 +71,8 @@ sealed trait ResolvableImpl extends Describable:
       s"${desc} with a ${df.k.desc} definition '${df.sym.nme}'"
     case S(df: ClassLikeDef) =>
       s"${desc} with a ${df.kind.desc} definition '${df.sym.nme}'"
+    case S(df: TypeDef) =>
+      s"${desc} with a type definition '${df.sym.nme}'"
     case N =>
       s"${desc} without a resolvable definition"
   

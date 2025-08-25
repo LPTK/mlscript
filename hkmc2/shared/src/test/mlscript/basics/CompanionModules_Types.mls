@@ -1,14 +1,9 @@
 :js
 
 
-:fixme
 type Foo = Int
 module Foo with
   val default: Foo = 123
-//│ ╔══[ERROR] Unexpected moduleful reference with a module definition 'Foo'.
-//│ ║  l.7: 	  val default: Foo = 123
-//│ ║       	               ^^^
-//│ ╙── Value must be marked as returning a 'module' in order to have a module return type.
 
 Foo.default
 //│ = 123
@@ -23,39 +18,27 @@ module List with
       Nil then Nil
       Cons(head, tail) then Cons(f(head), map(f, tail))
 //│ ╔══[ERROR] Expected 0 type arguments, got 1
-//│ ║  l.18: 	class Cons[A](head: A, tail: List[A])
+//│ ║  l.13: 	class Cons[A](head: A, tail: List[A])
 //│ ╙──      	                             ^^^^^^
-//│ ╔══[ERROR] Unexpected moduleful type application with a module definition 'List'.
-//│ ║  l.18: 	class Cons[A](head: A, tail: List[A])
-//│ ║        	                             ^^^^^^
-//│ ╙── Non-module parameter must have a non-module type.
 //│ ╔══[ERROR] Expected 0 type arguments, got 1
-//│ ║  l.22: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
+//│ ║  l.17: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
 //│ ╙──      	                               ^^^^^^
-//│ ╔══[ERROR] Unexpected moduleful type application with a module definition 'List'.
-//│ ║  l.22: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
-//│ ║        	                               ^^^^^^
-//│ ╙── Non-module parameter must have a non-module type.
 //│ ╔══[ERROR] Expected 0 type arguments, got 1
-//│ ║  l.22: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
+//│ ║  l.17: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
 //│ ╙──      	                                         ^^^^^^
-//│ ╔══[ERROR] Unexpected moduleful type application with a module definition 'List'.
-//│ ║  l.22: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
-//│ ║        	                                         ^^^^^^
-//│ ╙── Function must be marked as returning a 'module' in order to have a module return type.
 //│ ╔══[ERROR] This pattern cannot be matched
-//│ ║  l.24: 	      Cons(head, tail) then Cons(f(head), map(f, tail))
+//│ ║  l.19: 	      Cons(head, tail) then Cons(f(head), map(f, tail))
 //│ ║        	           ^^^^
 //│ ╟── because the corresponding parameter `head` is not publicly accessible
-//│ ║  l.18: 	class Cons[A](head: A, tail: List[A])
+//│ ║  l.13: 	class Cons[A](head: A, tail: List[A])
 //│ ║        	              ^^^^
 //│ ╟── Suggestion: use a wildcard pattern `_` in this position
 //│ ╙── Suggestion: mark this parameter with `val` so it becomes accessible
 //│ ╔══[ERROR] This pattern cannot be matched
-//│ ║  l.24: 	      Cons(head, tail) then Cons(f(head), map(f, tail))
+//│ ║  l.19: 	      Cons(head, tail) then Cons(f(head), map(f, tail))
 //│ ║        	                 ^^^^
 //│ ╟── because the corresponding parameter `tail` is not publicly accessible
-//│ ║  l.18: 	class Cons[A](head: A, tail: List[A])
+//│ ║  l.13: 	class Cons[A](head: A, tail: List[A])
 //│ ║        	                       ^^^^
 //│ ╟── Suggestion: use a wildcard pattern `_` in this position
 //│ ╙── Suggestion: mark this parameter with `val` so it becomes accessible

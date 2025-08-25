@@ -1,0 +1,70 @@
+:js
+
+
+// Cls -> Mod,
+// Als -> Mod,
+// Fun -> Mod,
+
+class ClsMod with
+  val whoami = "class"
+module ClsMod with
+  val whoami = "module"
+
+type TypMod = Int
+module TypMod with
+  val whoami = "module"
+
+:todo
+fun TrmMod = 42
+module TrmMod with
+  val whoami = "module"
+//│ ╔══[ERROR] Not yet supported: overloading of function 'TrmMod'
+//│ ║  l.18: 	fun TrmMod = 42
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ╟── with module of the same name
+//│ ║  l.19: 	module TrmMod with
+//│ ║        	^^^^^^^^^^^^^^^^^^
+//│ ║  l.20: 	  val whoami = "module"
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
+
+fun f: ClsMod
+
+fun f: module ClsMod
+
+fun f: TypMod
+
+fun f: module TypMod
+
+:todo
+fun f: TrmMod
+
+:todo
+fun f: module TrmMod
+
+
+fun assertModule(module m: ClsMod): module ClsMod = m
+
+assertModule(ClsMod).whoami
+//│ = "module"
+
+assertModule(TypMod).whoami
+//│ = "module"
+
+assertModule(TrmMod).whoami
+//│ = "module"
+
+
+fun assertNonModule(m) = m
+
+// FIXME: should be resolver error
+assertNonModule(ClsMod).whoami
+//│ = "module"
+
+// FIXME: should be resolver error
+assertNonModule(TypMod).whoami
+//│ = "module"
+
+// FIXME: should be resolver error
+assertNonModule(TrmMod).whoami
+//│ = "module"
+

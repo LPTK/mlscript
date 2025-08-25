@@ -544,7 +544,9 @@ extends Importer:
       sym match
       // * Enforcing [invariant:1]
       case S(ms: BlockMemberSymbol)
-        if !inAppPrefix && ms.isParameterizedMethod && !preTrm.symbol.exists(_.isModuleful) =>
+        // FIXME: move the check to resolver becuase preTrm's symbol may
+        // not be resolved yet.
+        if !inAppPrefix && ms.isParameterizedMethod && preTrm.symbol.exists(_.existsNonModuleful) =>
         raise:
           ErrorReport(
             msg"[debinding error] Method '${nme.name}' cannot be accessed without being called." -> nme.toLoc :: Nil)
