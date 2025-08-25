@@ -144,11 +144,13 @@ fun foo(x, y) =
       set y = 2
       x + y + test
   M.foo()
-//│ ═══[WARNING] Cannot yet lift class `M` as it is used as a first-class class.
+//│ ═══[WARNING] Modules are not yet lifted.
+//│ /!!!\ Uncaught error: hkmc2.InternalError: `this` not in scope: class:M
 
 :expect 14
 foo(10, 0)
-//│ = 14
+//│ ═══[RUNTIME ERROR] ReferenceError: foo is not defined
+//│ ═══[RUNTIME ERROR] Expected: '14', got: 'undefined'
 
 fun foo(x, y) =
   module M with
@@ -157,23 +159,41 @@ fun foo(x, y) =
       x + y
   fun foo = M.foo()
   foo
-//│ ═══[WARNING] Cannot yet lift class `M` as it is used as a first-class class.
+//│ ═══[WARNING] Modules are not yet lifted.
+//│ ╔══[COMPILATION ERROR] No definition found in scope for 'M'
+//│ ║  l.154: 	  module M with
+//│ ║         	  ^^^^^^^^^^^^^
+//│ ║  l.155: 	    fun foo() =
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.156: 	      set y = 2
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.157: 	      x + y
+//│ ║         	^^^^^^^^^^^
+//│ ╟── which is introduced here
+//│ ║  l.154: 	  module M with
+//│ ║         	         ^^^^^^
+//│ ║  l.155: 	    fun foo() =
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.156: 	      set y = 2
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.157: 	      x + y
+//│ ╙──       	^^^^^^^^^^^
 
 :expect 12
 foo(10, 0)
-//│ = 12
+//│ ═══[RUNTIME ERROR] ReferenceError: M is not defined
+//│ ═══[RUNTIME ERROR] Expected: '12', got: 'undefined'
 
 
 data class A(x) with
   module M with
     fun getB() = x
   fun getA() = M.getB()
-//│ /!!!\ Uncaught error: hkmc2.InternalError: `this` not in scope: class:A
+//│ ═══[WARNING] Modules are not yet lifted.
 
 :expect 2
 A(2).getA()
-//│ ═══[RUNTIME ERROR] ReferenceError: A8 is not defined
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 // TODO: Foo needs to be put in a mutable capture. Also, we need to pass the Foo instance itself into Foo
 fun foo(x) =
@@ -184,7 +204,7 @@ fun foo(x) =
   (new Bar).self2
 foo(2)
 //│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'Foo'.
-//│ ║  l.183: 	  class Bar extends Foo
+//│ ║  l.201: 	  class Bar extends Foo
 //│ ║         	                    ^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[COMPILATION ERROR] No definition found in scope for 'Foo$'
@@ -199,5 +219,23 @@ fun f =
       fun h = M.g
       h
   M.g
-//│ ═══[WARNING] Cannot yet lift class `M` as it is used as a first-class class.
-//│ ═══[WARNING] Cannot yet lift class `M` as it is used as a first-class class.
+//│ ═══[WARNING] Modules are not yet lifted.
+//│ ╔══[COMPILATION ERROR] No definition found in scope for 'M'
+//│ ║  l.215: 	  module M with
+//│ ║         	  ^^^^^^^^^^^^^
+//│ ║  l.216: 	    fun g =
+//│ ║         	^^^^^^^^^^^
+//│ ║  l.217: 	      fun h = M.g
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ║  l.218: 	      h
+//│ ║         	^^^^^^^
+//│ ╟── which is introduced here
+//│ ║  l.215: 	  module M with
+//│ ║         	         ^^^^^^
+//│ ║  l.216: 	    fun g =
+//│ ║         	^^^^^^^^^^^
+//│ ║  l.217: 	      fun h = M.g
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ║  l.218: 	      h
+//│ ╙──       	^^^^^^^
+//│ /!!!\ Uncaught error: hkmc2.InternalError: `this` not in scope: class:M

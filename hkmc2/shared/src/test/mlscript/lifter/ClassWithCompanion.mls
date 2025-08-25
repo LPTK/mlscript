@@ -10,12 +10,10 @@ fun foo(x) =
   module C with
     val empty = C(123)
   C.empty
-foo().get
-//│ ╔══[ERROR] Expected 1 arguments, got 0
-//│ ║  l.13: 	foo().get
-//│ ╙──      	   ^^
-//│ ═══[WARNING] Cannot yet lift class `C` as it is used as a first-class class.
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
+foo(10).get
+//│ ═══[WARNING] Modules are not yet lifted.
+//│ ═══[COMPILATION ERROR] Uses of private fields cannot yet be lifted.
+//│ = [10, undefined]
 
 :w // FIXME: warning seems wrong
 :fixme // FIXME: fix uncaught exception
@@ -26,7 +24,6 @@ fun foo(x) =
     val empty = new C
   C.empty
 foo(10).get
-//│ ═══[WARNING] Cannot yet lift class `C` as it is used as a first-class class.
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
-
-
+//│ ═══[WARNING] Modules are not yet lifted.
+//│ = 10
+//│ FAILURE: Unexpected lack of error to fix

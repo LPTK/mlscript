@@ -87,9 +87,11 @@ object Lifter:
     case f: FunDefn =>
       (f.body.definedVars ++ f.params.flatMap(_.paramSyms)).collect:
         case s: FlowSymbol if !(s is state.runtimeSymbol) => s
-    case c: ClsLikeDefn =>
-      (c.preCtor.definedVars ++ c.ctor.definedVars).collect:
+    case c: ClsLikeDefn =>      
+      val companionVars = c.companion.fold(Set.empty)(_.ctor.definedVars)
+      (companionVars ++ c.preCtor.definedVars ++ c.ctor.definedVars).collect:
         case s: FlowSymbol if !(s is state.runtimeSymbol) => s
+      
     case _ => Set.empty
 
   def getVarsBlk(b: Block)(using state: State): Set[Local] =
@@ -111,7 +113,7 @@ object Lifter:
       case _ => N
   
   def modOrObj(d: Defn) = d match
-    case c: ClsLikeDefn => (c.k is syntax.Mod) || (c.k is syntax.Obj)
+    case c: ClsLikeDefn => (c.companion.isDefined) || (c.k is syntax.Obj) // TODO: refine companion
     case _ => false
 
 
@@ -166,6 +168,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     val localPaths: Map[Local, LocalPath] = Map.empty,
     val isymPaths: Map[InnerSymbol, LocalPath] = Map.empty,
     val replacedDefns: Map[BlockMemberSymbol, Defn] = Map.empty,
+    val companionMap: Map[InnerSymbol, InnerSymbol] = Map.empty
   ):
     // gets the function to which a local belongs
     def lookup(l: Local) = usedLocals.lookup(l)
@@ -175,6 +178,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     def getLocalCaptureSym(l: Local) = localCaptureSyms.get(l)
     def getLocalPath(l: Local) = localPaths.get(l)
     def getIsymPath(l: InnerSymbol) = isymPaths.get(l)
+    def resolveIsymPath(l: InnerSymbol) = getIsymPath(companionMap.getOrElse(l, l))
     def getIgnoredBmsPath(b: BlockMemberSymbol) = ignoredBmsPaths.get(b)
     def ignored(b: BlockMemberSymbol) = ignoredDefns.contains(b)
     def isModOrObj(b: BlockMemberSymbol) = modObjLocals.contains(b)
@@ -182,12 +186,13 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     def isRelevant(sym: BlockMemberSymbol) = defnsCur.contains(sym)
     
     def addIgnored(defns: Set[BlockMemberSymbol]) = copy(ignoredDefns = ignoredDefns ++ defns)
-    def withmodObjLocals(mp: Map[BlockMemberSymbol, Local]) = copy(modObjLocals = modObjLocals ++ mp)
+    def withModObjLocals(mp: Map[BlockMemberSymbol, Local]) = copy(modObjLocals = modObjLocals ++ mp)
     def withDefns(mp: Map[BlockMemberSymbol, Defn]) = copy(defns = mp)
     def withDefnsCur(defns: Set[BlockMemberSymbol]) = copy(defnsCur = defns)
     def withNestedDefns(mp: Map[BlockMemberSymbol, List[Defn]]) = copy(nestedDefns = mp)
     def withAccesses(mp: Map[BlockMemberSymbol, AccessInfo]) = copy(accessInfo = mp)
     def withInScopes(mp: Map[BlockMemberSymbol, Set[BlockMemberSymbol]]) = copy(inScopeDefns = mp)
+    def withCompanionMap(mp: Map[InnerSymbol, InnerSymbol]) = copy(companionMap = mp)
     def addFnLocals(f: FreeVars) = copy(prevFnLocals = prevFnLocals ++ f)
     def addClsDefn(c: ClsLikeDefn) = copy(prevClsDefns = c :: prevClsDefns)
     def addLocalCaptureSyms(m: Map[Local, VarSymbol]) = copy(localCaptureSyms = localCaptureSyms ++ m)
@@ -206,7 +211,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     def addreplacedDefns(mp: Map[BlockMemberSymbol, Defn]) = copy(replacedDefns = replacedDefns ++ mp)
     def inModule(defn: ClsLikeDefn) = copy(curModules = defn :: curModules)
     def flushModules = 
-      // called when we are lifted out while in some modules, so we need to add the modules' isym paths
+      // called when we are lifted out while in some module, so we need to add the modules' isym paths
       copy(curModules = Nil).addIsymPaths(curModules.map(d => d.isym -> LocalPath.Sym(d.sym)).toMap)
   
   object LifterCtx:
@@ -340,11 +345,12 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     imutVars.filter: s =>
       !mutVars.contains(s) && candVars.contains(s)
 
+  // Info required for lifting a definition.
   case class LiftedInfo(
-    val reqdCaptures: List[BlockMemberSymbol],
-    val reqdVars: List[Local],
-    val reqdInnerSyms: List[InnerSymbol],
-    val reqdBms: List[BlockMemberSymbol], // pass ignored blockmembersymbols
+    val reqdCaptures: List[BlockMemberSymbol], // The mutable captures a lifted definition must take.
+    val reqdVars: List[Local], // The (passed by value) variables a lifted definition must take.
+    val reqdInnerSyms: List[InnerSymbol], // The inner symbols a lifted definition must take.
+    val reqdBms: List[BlockMemberSymbol], // BMS's belonging to unlifted definitions that this definition references.
     val fakeCtorBms: Option[BlockMemberSymbol], // only for classes
     val singleCallBms: BlockMemberSymbol, // optimization
   )
@@ -380,7 +386,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
             case c: ClsLikeDefn =>
               clsSymToBms += c.isym -> c.sym
               
-              if c.k is syntax.Mod then
+              if c.companion.isDefined then // TODO: refine
                 raise(WarningReport(
                   msg"Modules are not yet lifted." -> N :: Nil,
                   N, Diagnostic.Source.Compilation
@@ -399,7 +405,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
         if modules.contains(nested.sym) then inModuleDefns(nested) else Set.empty
     
     val isMod = d match
-      case c: ClsLikeDefn if c.k is syntax.Mod => true
+      case c: ClsLikeDefn => c.companion.isDefined // TODO: refine
       case _ => false
     
     val inModTopLevel = if isMod then inModuleDefns(d) else Set.empty
@@ -559,10 +565,14 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     defns.flatMap(createLiftInfoCont(_, N, ctx.addFnLocals(ctx.usedLocals(f.sym)))).toMap
 
   def createLiftInfoCls(c: ClsLikeDefn, ctx: LifterCtx): Map[BlockMemberSymbol, LiftedInfo] =
-    val defns = c.preCtor.floatOut(ctx)._2 ++ c.ctor.floatOut(ctx)._2
-    val newCtx = if (c.k is syntax.Mod) && !ctx.ignored(c.sym) then ctx else ctx.addClsDefn(c)
+    val defns = c.preCtor.floatOut(ctx)._2 ++ c.ctor.floatOut(ctx)._2 ++ c.companion.fold(Nil)(_.ctor.floatOut(ctx)._2)
+    val newCtx = if (c.companion.isDefined) && !ctx.ignored(c.sym) then ctx else ctx.addClsDefn(c)
+    val staticMtdInfo = c.companion.fold(Map.empty):
+      case value => value.methods.flatMap(f => createLiftInfoFn(f, newCtx))
+    
     defns.flatMap(f => createLiftInfoCont(f, S(c), newCtx)).toMap
       ++ c.methods.flatMap(f => createLiftInfoFn(f, newCtx))
+      ++ staticMtdInfo
 
   // Replaces references to BlockMemberSymbols as needed with fresh variables, and
   // returns the mapping from the symbol to the required variable. When possible,
@@ -613,6 +623,9 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     (walker.applyBlock(b), syms.toList)
   end rewriteBms
   
+  // This rewrites code so that it's valid when lifted to the top level.
+  // This way, no piece of code must be traversed by a BlockRewriter more than once.
+  // Remark: This is why so much prior analysis is needed and is the main source of complexity in the lifter.
   class BlockRewriter(ctorCls: Opt[ClsLikeDefn], ctx: LifterCtx) extends BlockTransformerShallow(SymbolSubst()):
     def belongsToCtor(l: Symbol) =
       ctorCls match
@@ -631,6 +644,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
             case c: ClsLikeDefn => initial.assignFieldN(local.asPath, Tree.Ident("class"), bms.asPath)
             case _ => initial
       
+      // Rewrite the rest
       val remaining = rewritten match
         case Assign(lhs: InnerSymbol, rhs, rest) => ctx.getIsymPath(lhs) match
           case Some(value) if !belongsToCtor(lhs) =>
@@ -663,7 +677,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
               AssignField(value.read, Tree.Ident(d.sym.nme), applyResult(d.rhs), applyBlock(rest))(S(d.sym))
             case _ => super.applyBlock(rewritten)
         
-        // rewrite module/object definitions
+        // rewrite object definitions, assigning to the given symbol in modObjLocals
         case Define(d: Defn, rest: Block) => ctx.modObjLocals.get(d.sym) match 
           case Some(sym) if !ctx.ignored(d.sym) => ctx.getBmsReqdInfo(d.sym) match
             case Some(_) => // has args
@@ -686,11 +700,11 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       p match
       // These two cases rewrites `this.whatever` when referencing an outer class's fields.
       case Value.Ref(l: InnerSymbol) =>
-        ctx.getIsymPath(l) match
+        ctx.resolveIsymPath(l) match
         case Some(value) if !belongsToCtor(l) => value.read
         case _ => super.applyPath(p)
       case Value.Ref(t: TermSymbol) if t.owner.isDefined =>
-        ctx.getIsymPath(t.owner.get) match
+        ctx.resolveIsymPath(t.owner.get) match
           case Some(value) if !belongsToCtor(t.owner.get) =>
             if (t.k is syntax.LetBind) && !t.owner.forall(_.isInstanceOf[semantics.TopLevelSymbol]) then
               // TODO: improve the error message
@@ -861,7 +875,6 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
           if modOrObj(c) then // module or object
             // force it to be a class
             val newK = c.k match
-              case syntax.Mod => syntax.Mod
               case syntax.Obj => syntax.Cls
               case _ => wat("unreachable", c.k)
             
@@ -972,14 +985,26 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
         case _ => Lifted(d, Nil)
   
   def liftDefnsInCls(c: ClsLikeDefn, ctx: LifterCtx): Lifted[ClsLikeDefn] =
-    val ctxx = if c.k is syntax.Mod then ctx.inModule(c) else ctx
+    val ctxx = if c.companion.isDefined then ctx.inModule(c) else ctx // TODO: refine
+    
+    // ===========================================================
+    // STEP 1: lift out definitions nested in the ctor and prector
+    //         and deal with class defns in the companion class
     
     val (preCtor, preCtorDefns) = c.preCtor.floatOut(ctxx)
     val (ctor, ctorDefns) = c.ctor.floatOut(ctxx)
+    val (cCtor, cCtorDefns) = c.companion.fold((None, Nil)):
+      case value =>
+        val (a, b) = value.ctor.floatOut(ctxx)
+        (S(a), b)
 
-    val allCtorDefns = preCtorDefns ++ ctorDefns
+    val allCtorDefns = preCtorDefns ++ ctorDefns ++ cCtorDefns
+    
+    // ctorIgnored: definitions within the class (i.e. ctor) that we don't lift
+    // ctorIncluded: ditto, but lifted
     val (ctorIgnored, ctorIncluded) = allCtorDefns.partition(d => ctxx.ignored(d.sym))
 
+    // Deals with references to lifted objects defined within the class
     val nestedClsPaths: Map[Local, LocalPath] = ctorIncluded.map:
         case c: ClsLikeDefn if modOrObj(c) => ctxx.modObjLocals.get(c.sym) match
           case Some(sym) => S(c.sym -> LocalPath.Sym(sym))
@@ -990,21 +1015,30 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       .toMap
     
     val newCtx_ = ctxx
+      // references to lifted objects
       .addLocalPaths(nestedClsPaths)
+      // references to variables defined in the class, including ones in the companion obj
       .addLocalPaths(getVars(c).map(s => s -> LocalPath.Sym(s)).toMap)
+      // reference to unlifted BMS's
       .addIgnoredBmsPaths(ctorIgnored.map(d => d.sym -> LocalPath.Sym(d.sym)).toMap)
-
-    val newCtx = c.k match
-      case syntax.Mod if !ctx.ignored(c.sym) => newCtx_
-      case _ => newCtx_.addIsymPath(c.isym, LocalPath.Sym(c.isym))
+      .addIsymPath(c.isym, LocalPath.Sym(c.isym))
+      
+    // add the reference to `this` if it has a companion object
+    val newCtx = c.companion match
+        case None => newCtx_
+        case Some(value) => newCtx_.addIsymPath(value.isym, LocalPath.Sym(c.sym))
     
+    // lifts the liftable definitions
     val ctorDefnsLifted = ctorIncluded.flatMap: defn =>
       val Lifted(liftedDefn, extraDefns) = liftOutDefnCont(c, defn, newCtx.flushModules)
       liftedDefn :: extraDefns
     
+    // we still need to lift out definitions within unliftable defns
     val ctorIgnoredLift = ctorIgnored.map: defn =>
       liftOutDefnCont(c, defn, newCtx)
-      
+    
+    // we still need to rewrite definitions that aren't lifted
+    // this map tells us how to rewrite the Defns
     val ctorIgnoredExtra = ctorIgnoredLift.flatMap(_.extraDefns)
     val ctorIgnoredRewrite = ctorIgnoredLift.map: lifted =>
         lifted.liftedDefn.sym -> lifted.liftedDefn
@@ -1015,14 +1049,29 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     val newPreCtor = rewriter.applyBlock(preCtor)
     val newCtor = rewriter.applyBlock(ctor)
     
+    // ===========================================================
+    // STEP 2: rewrite non-static class methods
     
     val fLifted = c.methods.map(liftDefnsInFn(_, newCtx))
     val methods = fLifted.collect:
       case Lifted(liftedDefn, extraDefns) => liftedDefn
     val fExtra = fLifted.flatMap:
       case Lifted(liftedDefn, extraDefns) => extraDefns
+      
+    // ===========================================================
+    // STEP 3: rewrite companion class methods
+        
+    val cfLifted = c.companion.fold(Nil)(_.methods.map(liftDefnsInFn(_, newCtx)))
+      
+    val cMethods = cfLifted.collect:
+      case Lifted(liftedDefn, extraDefns) => liftedDefn
+    val cfExtra = cfLifted.flatMap:
+      case Lifted(liftedDefn, extraDefns) => extraDefns
+      
+    val newCompanion = c.companion.fold(None):
+      case value => S(value.copy(methods = cMethods, ctor = cCtor.get))
 
-    val extras = (ctorDefnsLifted ++ fExtra ++ ctorIgnoredExtra).map:
+    val extras = (ctorDefnsLifted ++ fExtra ++ cfExtra ++ ctorIgnoredExtra).map:
       case f: FunDefn => f.copy(owner = N)
       case c: ClsLikeDefn => c.copy(owner = N)
       case d => d
@@ -1041,9 +1090,12 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       preCtor = newPreCtor,
       parentPath = newPar,
       ctor = newCtor,
+      companion = newCompanion,
     )
     
     Lifted(newDef, extras)
+  
+  end liftDefnsInCls
 
   def liftDefnsInFn(f: FunDefn, ctx: LifterCtx): Lifted[FunDefn] =
     val (captureCls, varsMap, varsList) = createCaptureCls(f, ctx)
@@ -1114,6 +1166,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       .withNestedDefns(analyzer.nestedDefns)
       .withAccesses(analyzer.accessMap)
       .withInScopes(analyzer.inScopeDefns)
+      .withCompanionMap(analyzer.companionMap)
 
     val walker1 = new BlockTransformerShallow(SymbolSubst()):
       override def applyBlock(b: Block): Block = b match
@@ -1134,7 +1187,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
 
           val ctxx = ctx
             .addIgnored(unliftable)
-            .withmodObjLocals(modObjLocals)
+            .withModObjLocals(modObjLocals)
           
           val Lifted(lifted, extra) = d match
             case f: FunDefn => 

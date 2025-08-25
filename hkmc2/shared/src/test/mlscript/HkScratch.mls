@@ -8,360 +8,43 @@
 // :d
 // :todo
 
-
-:sjs
-fun foo() =
-  class Foo(x) with
-    print("ok", x)
-//│ JS (unsanitized):
-//│ let foo;
-//│ foo = function foo() {
-//│   let Foo1;
-//│   Foo1 = function Foo(x) {
-//│     return globalThis.Object.freeze(new Foo.class(x));
-//│   };
-//│   globalThis.Object.freeze(class Foo {
-//│     static {
-//│       Foo1.class = this
-//│     }
-//│     constructor(x) {
-//│       this.#x = x;
-//│       Predef.print("ok", this.#x);
-//│     }
-//│     #x;
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Foo", [null]]; 
-//│   });
-//│   return runtime.Unit
-//│ };
-
-:sjs
-module Bar with
-  class Foo(x) with
-    print("ok", x)
-//│ JS (unsanitized):
-//│ let Bar1;
-//│ globalThis.Object.freeze(class Bar {
-//│   static {
-//│     Bar1 = this
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
-//│   }
-//│   static {
-//│     this.Foo = function Foo(x) {
-//│       return globalThis.Object.freeze(new Foo.class(x));
-//│     };
-//│     globalThis.Object.freeze(class Foo1 {
-//│       static {
-//│         Bar.Foo.class = this
-//│       }
-//│       constructor(x) {
-//│         this.#x = x;
-//│         Predef.print("ok", this.#x);
-//│       }
-//│       #x;
-//│       toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["class", "Foo", [null]]; 
-//│     });
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Bar"]; 
-//│ });
-
-:sjs
-class Foo(x) with
-  print("ok", x)
-//│ JS (unsanitized):
-//│ let Foo3;
-//│ Foo3 = function Foo(x) {
-//│   return globalThis.Object.freeze(new Foo.class(x));
-//│ };
-//│ globalThis.Object.freeze(class Foo2 {
-//│   static {
-//│     Foo3.class = this
-//│   }
-//│   constructor(x) {
-//│     this.#x = x;
-//│     Predef.print("ok", this.#x);
-//│   }
-//│   #x;
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Foo", [null]]; 
-//│ });
-
-// :rt
-:sjs
-// :dr
-new Foo(1)
-//│ JS (unsanitized):
-//│ globalThis.Object.freeze(new Foo3.class(1))
-//│ > ok 1
-//│ = Foo(_)
-
-:e
-:re
-new id(1)
-//│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
-//│ ║  l.104: 	new id(1)
-//│ ║         	    ^^
-//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
-//│ ═══[RUNTIME ERROR] TypeError: Predef.id is not a constructor
-
-:e
-:re
-new 1
-//│ ╔══[ERROR] Expected a statically known class; found integer literal.
-//│ ║  l.113: 	new 1
-//│ ║         	    ^
-//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
-//│ ═══[RUNTIME ERROR] TypeError: 1 is not a constructor
-
-:e
-new (id(Foo))(12)
-//│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
-//│ ║  l.121: 	new (id(Foo))(12)
-//│ ║         	     ^^^^^^^
-//│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
-//│ > ok 12
-//│ = Foo(_)
-
-:todo // TODO handle dynamic new specially
-new! (id(Foo))(12)
-//│ > ok 12
-//│ = Foo(_)
-
-// :rt
-:sjs
-object Bar extends Foo(42)
-//│ JS (unsanitized):
-//│ let Bar3;
-//│ globalThis.Object.freeze(class Bar2 extends Foo3.class {
-//│   static {
-//│     Bar3 = globalThis.Object.freeze(new this)
-//│   }
-//│   constructor() {
-//│     super(42);
-//│     Object.defineProperty(this, "class", {
-//│       value: Bar2
-//│     })
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["object", "Bar"]; 
-//│ });
-//│ > ok 42
-
-// :lot
-:sjs
-module Bar with
-  // fun foo = 1
-  mut val x = 1
-//│ JS (unsanitized):
-//│ let Bar5;
-//│ globalThis.Object.freeze(class Bar4 {
-//│   static {
-//│     Bar5 = this
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
-//│   }
-//│   static #x;
-//│   static get x() { return Bar4.#x; }
-//│   static set x(value) { Bar4.#x = value; }
-//│   static {
-//│     this.x = 1;
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Bar"]; 
-//│ });
-
-
-
-// :de
-// :dl
-// :lot
-:sjs
-class Foo(val x)
-module Foo with
-  val foo = 1
-//│ JS (unsanitized):
-//│ let Foo5;
-//│ Foo5 = function Foo(x) {
-//│   return globalThis.Object.freeze(new Foo.class(x));
-//│ };
-//│ globalThis.Object.freeze(class Foo4 {
-//│   static {
-//│     Foo5.class = this
-//│   }
-//│   constructor(x) {
-//│     this.x = x;
-//│   }
-//│   static {
-//│     this.foo = 1;
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Foo", ["x"]]; 
-//│ });
-
-:rt
-Foo
-//│ Resolved tree:
-//│ Blk:
-//│   stats = Nil
-//│   res = Unexpanded of Ref{member:Foo} of member:Foo
-//│ = fun Foo { class: class Foo { foo: 1 } }
-
-// :dr
-id(Foo)
-//│ = fun Foo { class: class Foo { foo: 1 } }
-
-// TODO: should be an error, down the line, when we resolve all selections statically
-:re
-id(Foo).foo
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'foo' yielded 'undefined'
-
-
-// Should compile to `Foo.class.foo`
-:sjs
-Foo.foo
-//│ JS (unsanitized):
-//│ Foo5.class.foo
-//│ = 1
-
-:dr
-:sjs
-new Foo
-//│ Traversing block: Blk(List(),New(Ref(member:Foo‹699›),List(),None))
-//│ | Traversing term: New(Ref(member:Foo‹699›),List(),None)
-//│ | | Traversing term: Ref(member:Foo‹699›)
-//│ | | | Resolving resolvable term: Ref(member:Foo‹699›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹699›)): Some(CallableDefinition(member:Foo‹699›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹703›,member:Foo‹699›,List(),None,List(),None,Mod,( ‹› val member:foo‹698› = 1; ),Some(class:Foo‹700›),List())))
-//│ | | | ~> Ref(member:Foo‹699›)
-//│ JS (unsanitized):
-//│ globalThis.Object.freeze(new Foo5.class())
-//│ = Foo(undefined)
-
-new Foo(12)
-//│ = Foo(12)
-
-
-:rt
-module Foo with
-  val foo = 1
-class Foo(val x)
-//│ Resolved tree:
-//│ Blk:
-//│   stats = Ls of 
-//│     ModuleDef:
-//│       owner = N
-//│       sym = module:Foo
-//│       bsym = member:Foo
-//│       tparams = Nil
-//│       paramsOpt = N
-//│       auxParams = Nil
-//│       ext = N
-//│       kind = Mod
-//│       body = ObjBody of Blk:
-//│         stats = Ls of 
-//│           TermDefinition:
-//│             k = ImmutVal
-//│             sym = member:foo
-//│             tsym = module:Foo.foo
-//│             params = Nil
-//│             tparams = N
-//│             sign = N
-//│             body = S of Lit of IntLit of 1
-//│             resSym = ‹result of member:foo›
-//│             flags = ()
-//│             modulefulness = Modulefulness of N
-//│             annotations = Nil
-//│         res = Lit of UnitLit of false
-//│       companion = S of class:Foo
-//│       annotations = Nil
-//│     Parameterized:
-//│       owner = N
-//│       kind = Cls
-//│       sym = class:Foo
-//│       bsym = member:Foo
-//│       tparams = Nil
-//│       params = ParamList:
-//│         flags = ()
-//│         params = Ls of 
-//│           Param:
-//│             flags = (val)
-//│             sym = x
-//│             sign = N
-//│             modulefulness = Modulefulness of N
-//│         restParam = N
-//│       auxParams = Nil
-//│       ext = N
-//│       body = ObjBody of Blk:
-//│         stats = Ls of 
-//│           TermDefinition:
-//│             k = ImmutVal
-//│             sym = member:x
-//│             tsym = class:Foo.x
-//│             params = Nil
-//│             tparams = N
-//│             sign = N
-//│             body = S of Unexpanded of Ref{x} of x
-//│             resSym = ‹class-param-res›
-//│             flags = ()
-//│             modulefulness = Modulefulness of N
-//│             annotations = Nil
-//│         res = Lit of UnitLit of false
-//│       companion = S of module:Foo
-//│       annotations = Nil
-//│   res = Lit of UnitLit of false
-
-new Foo(1)
-//│ = Foo(1)
-
-
-
-
-// declare object Oops
-
-// Oops
-
-
-
-
-:ssjs
-module Foo with
-  val foo = 1
-  print(Foo.foo)
-//│ JS:
-//│ globalThis.Object.freeze(class Foo8 {
-//│   static {
-//│     Foo9 = this
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
-//│   }
-//│   static {
-//│     let selRes2;
-//│     this.foo = 1;
-//│     selRes2 = Foo9.foo;
-//│     if (selRes2 === undefined) {
-//│       throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'foo' yielded 'undefined'"))
-//│     }
-//│     runtime.checkCall(Predef.print(selRes2));
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Foo"]; 
-//│ });
-//│ block$res20 = undefined;
-//│ > 1
-
-:ssjs
-Foo.foo
-//│ JS:
-//│ selRes2 = Foo9.foo;
-//│ if (selRes2 === undefined) {
-//│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'foo' yielded 'undefined'"))
-//│ }
-//│ block$res21 = selRes2;
-//│ undefined
-//│ = 1
-
+:lift
+:slot
+module M with
+  class A with
+    class B
+4
+//│ Pretty Lowered:
+//│  
+//│ define fun B$(isMut, A$instance$0) {
+//│   match isMut
+//│     true =>
+//│       set tmp = new mut B(A$instance$0) in
+//│       end
+//│     else
+//│       set tmp = new B(A$instance$0) in
+//│       end
+//│   in
+//│   return tmp
+//│ } in
+//│ define class B {
+//│   A$instance$0
+//│ } in
+//│ define class M in
+//│ set block$res1 = 4 in
+//│ return undefined
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (class:B,Scope:
+//│   parent = N
+//│   curThis = S of S of globalThis:globalThis
+//│   bindings = HashMap($block$res -> block$res, member:Predef -> Predef, $runtime -> runtime, $definitionMetadata -> definitionMetadata, module:M -> M, $prettyPrint -> prettyPrint, $Term -> Term, class:A -> A, class:B -> B, $block$res -> block$res1, class:M -> M))
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
+//│ 	at: hkmc2.utils.Scope.addToBindings(Scope.scala:50)
+//│ 	at: hkmc2.utils.Scope.allocateName(Scope.scala:144)
+//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$2(JSBuilder.scala:601)
+//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$adapted$1(JSBuilder.scala:629)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
+//│ 	at: hkmc2.codegen.js.JSBuilder.go$1(JSBuilder.scala:629)
+//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$2$$anonfun$1(JSBuilder.scala:627)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)

@@ -30,6 +30,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
     nestedDefns: Map[BlockMemberSymbol, List[Defn]], // definitions that are a successor of the current defn
     nestedDeep: Map[BlockMemberSymbol, Set[BlockMemberSymbol]], // definitions nested within another defn, including that defn (deep)
     nestedIn: Map[BlockMemberSymbol, BlockMemberSymbol], // the definition that a definition is directly nested in
+    companionMap: Map[InnerSymbol, InnerSymbol], // a (bijective) map between companion object symbols and class symbols
   )
   private def createMetadata: DefnMetadata =
     var defnsMap: Map[BlockMemberSymbol, Defn] = Map.empty
@@ -39,6 +40,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
     var nestedDefns: Map[BlockMemberSymbol, List[Defn]] = Map.empty
     var nestedDeep: Map[BlockMemberSymbol, Set[BlockMemberSymbol]] = Map.empty
     var nestedIn: Map[BlockMemberSymbol, BlockMemberSymbol] = Map.empty
+    var companionMap: Map[InnerSymbol, InnerSymbol] = Map.empty
 
     def createMetadataFn(f: FunDefn, existing: Set[Local], inScope: Set[BlockMemberSymbol]): Unit =
       var nested: Set[BlockMemberSymbol] = Set.empty
@@ -74,26 +76,6 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
         createMetadataCls(c, existing, inScope)
       case d => Map.empty
     
-    def createMetadataBody(sym: BlockMemberSymbol, c: ClsLikeBody, existing: Set[Local], inScope: Set[BlockMemberSymbol]): Set[BlockMemberSymbol] =
-      var nested: Set[BlockMemberSymbol] = Set.empty
-      
-      val thisScopeDefns: List[Defn] =
-        (c.methods ++ c.ctor.floatOutDefns()._2)
-      
-      nestedDefns += sym -> thisScopeDefns
-      
-      val newInScope = inScope ++ thisScopeDefns.map(_.sym)
-      for s <- thisScopeDefns do
-        inScopeDefns += s.sym -> (newInScope - s.sym)
-        nested += s.sym
-      
-      for d <- thisScopeDefns do
-        nestedIn += (d.sym -> sym)
-        createMetadataDefn(d, existing, newInScope)
-        nested ++= nestedDeep(d.sym)
-      
-      nested
-    
     def createMetadataCls(c: ClsLikeDefn, existing: Set[Local], inScope: Set[BlockMemberSymbol]): Unit =
       var nested: Set[BlockMemberSymbol] = Set.empty
       
@@ -101,8 +83,8 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
       val thisVars = Lifter.getVars(c) -- existing
       val newExisting = existing ++ thisVars
       
-      val thisScopeDefns: List[Defn] =
-        (c.methods ++ c.preCtor.floatOutDefns()._2 ++ c.ctor.floatOutDefns()._2)
+      val thisScopeDefns: List[Defn] = c.methods ++ c.preCtor.floatOutDefns()._2 
+        ++ c.ctor.floatOutDefns()._2 ++ c.companion.fold(Nil)(comp => comp.ctor.floatOutDefns()._2 ++ comp.methods)
       
       nestedDefns += c.sym -> thisScopeDefns
       
@@ -119,24 +101,24 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
         createMetadataDefn(d, newExisting, newInScope)
         nested ++= nestedDeep(d.sym)
       
-      // FIXME
-      nested = nested  | c.companion.fold(nested)(mod =>
-        createMetadataBody(c.sym, mod, newExisting, newInScope))
-      
       nestedDeep += c.sym -> nested
+      
+      c.companion match
+        case None => 
+        case Some(value) => companionMap += (value.isym -> c.isym)
     
     new BlockTraverserShallow:
       applyBlock(b)
       override def applyDefn(defn: Defn): Unit =
         inScopeDefns += defn.sym -> Set.empty
         createMetadataDefn(defn, b.definedVars, Set.empty)
-    DefnMetadata(definedLocals, defnsMap, existingVars, inScopeDefns, nestedDefns, nestedDeep, nestedIn)
+    DefnMetadata(definedLocals, defnsMap, existingVars, inScopeDefns, nestedDefns, nestedDeep, nestedIn, companionMap)
 
   val DefnMetadata(definedLocals, defnsMap, existingVars, 
-    inScopeDefns, nestedDefns, nestedDeep, nestedIn) = createMetadata
+    inScopeDefns, nestedDefns, nestedDeep, nestedIn, companionMap) = createMetadata
 
   def isModule(s: BlockMemberSymbol) = defnsMap.get(s) match
-    case S(c: ClsLikeDefn) => c.k is syntax.Mod
+    case S(c: ClsLikeDefn) => c.companion.isDefined // TODO: refine
     case _ => false
     
   def isHandlerClsPath(p: Path) = handlerPaths match

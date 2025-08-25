@@ -8,6 +8,21 @@ module A with
   data class Test with
     f()
     val a = 1
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (class:Cont$ctor$Test$,Scope:
+//│   parent = N
+//│   curThis = S of S of globalThis:globalThis
+//│   bindings = HashMap(module:A -> A, class:Test -> Test, class:Cont$ctor$Test$ -> Cont$ctor$Test$, $runtime -> runtime, $definitionMetadata -> definitionMetadata, $prettyPrint -> prettyPrint, $Term -> Term, $block$res -> block$res2, class:A -> A, $block$res -> block$res, member:f -> f, member:Predef -> Predef, $block$res -> block$res1))
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
+//│ 	at: hkmc2.utils.Scope.addToBindings(Scope.scala:50)
+//│ 	at: hkmc2.utils.Scope.allocateName(Scope.scala:144)
+//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$2(JSBuilder.scala:601)
+//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$adapted$1(JSBuilder.scala:629)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
+//│ 	at: hkmc2.codegen.js.JSBuilder.go$1(JSBuilder.scala:629)
+//│ 	at: hkmc2.codegen.js.JSBuilder.go$1$$anonfun$2$$anonfun$1(JSBuilder.scala:627)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 
 :effectHandlers
 class Test with
