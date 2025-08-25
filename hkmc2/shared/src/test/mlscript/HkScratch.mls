@@ -231,12 +231,12 @@ Foo.foo
 :dr
 :sjs
 new Foo
-//│ Traversing block: Blk(List(),New(Ref(member:Foo‹699›),List(),None))
-//│ | Traversing term: New(Ref(member:Foo‹699›),List(),None)
-//│ | | Traversing term: Ref(member:Foo‹699›)
-//│ | | | Resolving resolvable term: Ref(member:Foo‹699›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹699›)): Some(CallableDefinition(member:Foo‹699›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹703›,member:Foo‹699›,List(),None,List(),None,Mod,( ‹› val member:foo‹698› = 1; ),Some(class:Foo‹700›),List())))
-//│ | | | ~> Ref(member:Foo‹699›)
+//│ Traversing block: Blk(List(),New(Ref(member:Foo‹607›),List(),None))
+//│ | Traversing term: New(Ref(member:Foo‹607›),List(),None)
+//│ | | Traversing term: Ref(member:Foo‹607›)
+//│ | | | Resolving resolvable term: Ref(member:Foo‹607›), (inPrefix = false)
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹607›)): Some(CallableDefinition(member:Foo‹607›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹611›,member:Foo‹607›,List(),None,List(),None,Mod,( ‹› val member:foo‹606› = 1; ),Some(class:Foo‹608›),List())))
+//│ | | | ~> Ref(member:Foo‹607›)
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new Foo5.class())
 //│ = Foo(undefined)

@@ -15,7 +15,7 @@
 module Test with
   fun test(j)(using Int) = 0
   fun main(using Int) = test
-//│ Elab: ( Mod Test ( ‹› fun member:test‹627›(Param(‹›,j‹633›,None,Modulefulness(None)), )ctx (Param(‹›,‹634›,Some(Ref(member:Int‹126›)),Modulefulness(None)), ) = 0; ‹› fun member:main‹628›ctx (Param(‹›,‹638›,Some(Ref(member:Int‹126›)),Modulefulness(None)), ) = (module:Test‹630›#666.)test‹member:test‹627››; ); )
+//│ Elab: ( Mod Test ( ‹› fun member:test‹535›(Param(‹›,j‹540›,None,Modulefulness(None)), )ctx (Param(‹›,‹541›,Some(Ref(member:Int‹126›)),Modulefulness(None)), ) = 0; ‹› fun member:main‹536›ctx (Param(‹›,‹545›,Some(Ref(member:Int‹126›)),Modulefulness(None)), ) = (module:Test‹538›#666.)test‹member:test‹535››; ); )
 //│ JS (unsanitized):
 //│ let Test1;
 //│ globalThis.Object.freeze(class Test {
