@@ -30,7 +30,7 @@ bmi of weight: 70, height: 1.75
 bmi of weight: 70
 //│ ═══[RUNTIME ERROR] Error: match error
 
-// This pattern is useful becuase it turns a pattern into a function that
+// This pattern is useful because it turns a pattern into a function that
 // returns `Some` if the pattern matches, and `None` otherwise.
 pattern MatchOrNone(pattern P) = ((P as x) => Some(x)) | (_ => None)
 

@@ -112,7 +112,7 @@ object Resolver:
     case NonModule(reason: Opt[Message])
     case Class(reason: Opt[Message])
     case Any
-        
+    
     def message: Ls[Message -> Opt[Loc]] = this match
       case Expect.Module(msg) => msg.toList.map(_ -> N)
       case Expect.NonModule(msg) => msg.toList.map(_ -> N)
@@ -297,7 +297,7 @@ class Resolver(tl: TraceLogger)
       // later.
       
       val evalsToStaticClass = ModuleChecker.evalsToStaticClass(t)
-
+      
       if expect.`module` && !evalsToModule(t, prefer = expect) then
         raise(ErrorReport(msg"Expected a module; found non-moduleful ${t.describe}." -> t.toLoc 
           :: expect.message))

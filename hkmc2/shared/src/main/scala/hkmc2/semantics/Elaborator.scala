@@ -544,7 +544,7 @@ extends Importer:
       sym match
       // * Enforcing [invariant:1]
       case S(ms: BlockMemberSymbol)
-        // FIXME: move the check to resolver becuase preTrm's symbol may
+        // FIXME: move the check to resolver because preTrm's symbol may
         // not be resolved yet.
         if !inAppPrefix && ms.isParameterizedMethod && preTrm.symbol.exists(_.existsNonModuleful) =>
         raise:
