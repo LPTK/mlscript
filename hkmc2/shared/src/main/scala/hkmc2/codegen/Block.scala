@@ -450,7 +450,6 @@ final case class ClsLikeBody(
     publicFields: Ls[BlockMemberSymbol -> TermSymbol],
     ctor: Block,
 ):
-  val innerSym = S(isym)
   def subBlocks: Ls[Block] =
     ctor :: methods.flatMap(_.subBlocks)
   lazy val freeVars: Set[Local] =

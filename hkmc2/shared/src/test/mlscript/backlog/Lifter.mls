@@ -247,3 +247,5 @@ fun f =
 //│ ║  l.228: 	      h
 //│ ╙──       	^^^^^^^
 //│ /!!!\ Uncaught error: hkmc2.InternalError: `this` not in scope: class:M
+
+
