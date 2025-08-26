@@ -113,27 +113,7 @@ sealed trait ResolvableImpl extends Describable:
   
   
   def callableDefn: Opt[CallableDefinition] = defn.flatMap:
-    case td: TermDefinition => S:
-      CallableDefinition(
-        td.sym,
-        td.params,
-        td.tparams,
-        td.sign,
-        td.flags,
-        td.modulefulness,
-        td,
-      )
-    case td: ClassLikeDef => S:
-      CallableDefinition(
-        td.bsym, 
-        td.paramsOpt.toList ::: td.auxParams, 
-        S(td.tparams.map(tp => Param(FldFlags.empty, tp.sym, N, Modulefulness.none))), 
-        N, // TODO: handle class-like definitions with signatures
-        TermDefFlags.empty, // TODO: handle class-like definitions with flags
-        Modulefulness.none, // TODO: handle modulefulness for class-like definitions
-        td,
-      )
-    case _ => N
+    CallableDefinition.fromDefn(_)
   
   def termDefn: Opt[TermDefinition] = defn match
     case S(td: TermDefinition) => S(td)
@@ -151,8 +131,43 @@ object Resolvable:
     sign: Opt[Term],
     flags: TermDefFlags,
     modulefulness: Modulefulness,
-    defn: TermDefinition | ClassLikeDef
+    defn: Definition
   )
+  
+  object CallableDefinition:
+    def fromDefn(defn: Definition): Opt[CallableDefinition] = defn match
+      case defn: TermDefinition => S(CallableDefinition(
+        defn.sym,
+        defn.params,
+        defn.tparams,
+        defn.sign,
+        defn.flags,
+        defn.modulefulness,
+        defn,
+      ))
+      case defn: TypeDef => S(CallableDefinition(
+        defn.bsym,
+        Nil,
+        if defn.tparams.isEmpty
+        then N
+        else S(defn.tparams.map(tp => Param(FldFlags.empty, tp.sym, N, Modulefulness.none))), 
+        defn.rhs,
+        TermDefFlags.empty, // TODO: handle class-like definitions with flags
+        Modulefulness.none, // TODO: handle modulefulness for class-like definitions
+        defn,
+      ))
+      case defn: ClassLikeDef => S(CallableDefinition(
+        defn.bsym, 
+        defn.paramsOpt.toList ::: defn.auxParams, 
+        if defn.tparams.isEmpty
+        then N
+        else S(defn.tparams.map(tp => Param(FldFlags.empty, tp.sym, N, Modulefulness.none))), 
+        N, // TODO: handle class-like definitions with signatures
+        TermDefFlags.empty, // TODO: handle class-like definitions with flags
+        Modulefulness.none, // TODO: handle modulefulness for class-like definitions
+        defn,
+      ))
+      case _ => N
 
 enum Term extends Statement:
   case Error
@@ -472,7 +487,7 @@ object TermDefFlags { val empty: TermDefFlags = TermDefFlags(false) }
  * symbol, the declaration is moduleful and the symbol is the symbol of
  * the module's type
  */
-final case class Modulefulness(msym: Opt[MemberSymbol[?]])(val modified: Bool):
+final case class Modulefulness(msym: Opt[ModuleSymbol])(val modified: Bool):
   
   def isModuleful: Bool = msym.isDefined
   
@@ -483,18 +498,18 @@ final case class Modulefulness(msym: Opt[MemberSymbol[?]])(val modified: Bool):
   def mdef: Opt[ModuleOrObjectDef] = msym match
     case S(msym) => msym.defn match
       case S(defn: ModuleOrObjectDef) => S(defn)
-      case _ => lastWords(s"no module definition for moduleful symbol $msym")
+      case N => lastWords(s"no definition for module symbol $msym")
     case N => N
 
 object Modulefulness:
   
   def ofSign(sign: Option[Term])(modified: Bool) = 
     sign.flatMap(_.symbol) match
-      case S(sym: BlockMemberSymbol) if modified => sym.modTree.collect(_.symbol) match
-        case S(value: MemberSymbol[?]) => 
-          Modulefulness(S(value))(modified)
-        case _ =>
+      case S(sym: BlockMemberSymbol) if modified => sym.asMod match
+        case S(sym) => 
           Modulefulness(S(sym))(modified)
+        case N =>
+          Modulefulness(N)(modified)
       case _ =>
         Modulefulness(N)(modified)
   

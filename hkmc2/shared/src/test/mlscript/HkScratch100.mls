@@ -35,10 +35,13 @@ fun f: TypMod = 42
 
 fun f: module TypMod = TypMod
 
-// Should be error: Unexpected moduleful reference 'TrmMod'
-:breakme
+:e
 :sjs
 fun f: TrmMod = 42
+//│ ╔══[ERROR] Expected a non-module type; found reference with a module definition 'TrmMod'.
+//│ ║  l.40: 	fun f: TrmMod = 42
+//│ ║        	       ^^^^^^
+//│ ╙── Function must be marked as returning a 'module' in order to have a module return type.
 //│ JS (unsanitized):
 //│ let f4; f4 = function f() { return 42 };
 
@@ -85,4 +88,29 @@ assertNonModule(TypMod).whoami
 :breakme
 assertNonModule(TrmMod).whoami
 //│ = "module"
+
+type Foo[A] = Int
+module Foo
+
+:e
+fun f(x: Foo): Foo = x
+//│ ╔══[ERROR] Expected 1 type arguments, got none
+//│ ║  l.96: 	fun f(x: Foo): Foo = x
+//│ ╙──      	         ^^^
+//│ ╔══[ERROR] Expected 1 type arguments, got none
+//│ ║  l.96: 	fun f(x: Foo): Foo = x
+//│ ╙──      	               ^^^
+
+fun f(x: Foo[Int]): Foo[Int] = x
+
+fun f(module x: Foo): module Foo = x
+
+:e
+fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ╔══[ERROR] Expected no type arguments, got 1
+//│ ║  l.109: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ╙──       	                ^^^^^^^^
+//│ ╔══[ERROR] Expected no type arguments, got 1
+//│ ║  l.109: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ╙──       	                                  ^^^^^^^^
 

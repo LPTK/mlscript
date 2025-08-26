@@ -7,7 +7,7 @@ module M with
 :e
 module Example with
   fun foo(): module null = M
-//│ ╔══[ERROR] Expected a module; found non-moduleful null literal.
+//│ ╔══[ERROR] Expected a module type; found null literal.
 //│ ║  l.9: 	  fun foo(): module null = M
 //│ ║       	                    ^^^^
 //│ ╙── Function marked as returning a 'module' must have a module return type.

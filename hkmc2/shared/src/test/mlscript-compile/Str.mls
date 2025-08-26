@@ -1,5 +1,10 @@
 
-object Str with ...
+// TODO:
+// The `object Str` in this file overrides the default `class Str`,
+// rather than overloading it. As a workaround, declare an overloaded
+// `class Str` again.
+declare class Str
+module Str with ...
 
 
 fun (~) concat2(a, b) = a + b

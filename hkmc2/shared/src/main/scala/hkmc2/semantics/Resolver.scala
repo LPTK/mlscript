@@ -19,7 +19,7 @@ import hkmc2.semantics.Term.SynthSel
 
 object Resolver:
   
-  /*
+  /**
    * An "implicit" or "instance" context, as opposed to the one in
    * Elaborator.
    *
@@ -258,7 +258,7 @@ class Resolver(tl: TraceLogger)
       log(s"Traversing statement: $stmt")
       val newICtx = stmt match
         case tdf: Definition =>
-          resolveDefn(tdf)
+          traverseDefn(tdf)
         
         case t: Term =>
           traverse(t, expect = NonModule(N))
@@ -334,7 +334,7 @@ class Resolver(tl: TraceLogger)
         case Term.Handle(lhs, rhs, args, derivedClsSym, defs, body) =>
           traverse(rhs, expect = Class(S("The 'handle' keyword requires a statically known class.")))
           args.foreach(traverse(_, expect = NonModule(N)))
-          defs.foreach(d => resolveDefn(d.td))
+          defs.foreach(d => traverseDefn(d.td))
           traverse(body, expect = NonModule(N))
           
         case Term.New(cls, args, rft) =>
@@ -349,7 +349,7 @@ class Resolver(tl: TraceLogger)
         case _ =>
           t.subTerms.foreach(traverse(_, expect = NonModule(N)))
   
-  def resolveDefn(defn: Definition)(using ICtx): ICtx =
+  def traverseDefn(defn: Definition)(using ICtx): ICtx =
   trace(s"Resolving definition: $defn"):
     def traverseTermDef(tdf: TermDefinition) =
       val TermDefinition(_k, _sym, _tsym, 
@@ -376,9 +376,9 @@ class Resolver(tl: TraceLogger)
       if isMethod && modulefulness.isModuleful then
         raise(ErrorReport(msg"${tdf.k.desc.capitalize} returning modules should not be a class member." -> defn.toLoc :: Nil))
       
-      pss.foreach(_.allParams.foreach(resolveParam(_)))
+      pss.foreach(_.allParams.foreach(traverseParam(_)))
       tps.getOrElse(Nil).flatMap(_.subTerms).foreach(traverse(_, expect = NonModule(N)))
-      sign.foreach(traverse(_,
+      sign.foreach(traverseType(_,
         expect = if modulefulness.modified
           then Module(S(msg"${tdf.k.desc.capitalize} marked as returning a 'module' must have a module return type."))
           else NonModule(S(msg"${tdf.k.desc.capitalize} must be marked as returning a 'module' in order to have a module return type."))
@@ -411,7 +411,7 @@ class Resolver(tl: TraceLogger)
                 // The type signature should be present because of the syntax of contextual parameter.
                 lastWords(s"No type signature for contextual parameter ${defn.showDbg} at ${defn.toLoc}")
       
-      cld.paramsOpt.foreach(_.allParams.foreach(resolveParam(_)))
+      cld.paramsOpt.foreach(_.allParams.foreach(traverseParam(_)))
       cld.annotations.flatMap(_.subTerms).foreach(traverse(_, expect = NonModule(N)))
       cld.ext.foreach(traverse(_, expect = NonModule(N)))
 
@@ -727,7 +727,8 @@ class Resolver(tl: TraceLogger)
   
   /**
    * Resolve the symbol for a resolvable term, which was not resolved by
-   * the elaborator due to unready or missing definitions.
+   * the elaborator due to unready or missing definitions. Disambiguate
+   * `BlockMemberSymbol`s to concrete ones by checking the `expect` parameter.
    *
    * In particular, for Sel and SynthSel terms, it checks the definition
    * of the prefix (note that the prefix should be resolved before this
@@ -831,18 +832,93 @@ class Resolver(tl: TraceLogger)
         // the type signature should be present.
         lastWords(s"No type signature for contextual parameter ${p.showDbg} at ${p.toLoc}")
   
-  def resolveParam(p: Param)(using ictx: ICtx): Unit =
+  def traverseParam(p: Param)(using ictx: ICtx): Unit =
     log(s"Resolving parameter ${p.showDbg}")
     if p.modulefulness.modified then
       if p.sign.isEmpty then
         raise(ErrorReport(msg"Module parameter must have explicit type." -> p.sym.toLoc :: Nil))
     p.sign.foreach:
-      traverse(_, 
+      traverseType(_, 
         expect = if p.modulefulness.modified
           then Module(S(msg"Module parameter must have a module type."))
           else NonModule(S(msg"Non-module parameter must have a non-module type.")),
       )
   
+  def traverseType(t: Term, expect: Expect, inTyAppPrefix: Bool = false)(using ictx: ICtx): Unit =
+  trace(s"Traversing type ${t}, expecting ${expect}"):
+    def checkTypeArity(sym: FieldSymbol): Unit =
+      if inTyAppPrefix && !t.isInstanceOf[Term.TyApp] then
+        return
+      val targs = t match
+        case Term.TyApp(_, targs) => S(targs)
+        case _ => N
+      val cdefn = sym.defn.flatMap(CallableDefinition.fromDefn(_))
+      cdefn.foreach: 
+        case CallableDefinition(tparams = tparams) =>
+          val tparamsNum = tparams.map(_.length)
+          val targsNum = targs.map(_.length)
+          if tparamsNum != targsNum then
+            val tparamsMsg = tparamsNum.getOrElse("no").toString()
+            val targsMsg = targsNum.getOrElse("none").toString()
+            raise:
+              ErrorReport:
+                msg"Expected ${tparamsMsg} type arguments, " +
+                msg"got ${targsMsg}" -> t.toLoc :: Nil
+    
+    def check(body: => Unit): Unit =
+      body
+      
+      expect match
+        case expect: Module => t.asModulefulType match
+          case S(m) => checkTypeArity(m)
+          case N => raise:
+            log(s"Error: no moduelful type defn in ${t.resolvedSymbol}, ${t.resolvedSymbol.flatMap(_.asBlkMember).map(_.trees)}")
+            ErrorReport(msg"Expected a module type; found ${t.describe}." -> t.toLoc
+              :: expect.message)
+        case expect: NonModule => t.asNonModulefulType match
+          case S(S(s: FieldSymbol)) => checkTypeArity(s)
+          case S(S(_)) => ()
+          case S(N) => ()
+          case N => raise:
+            log(s"Error: no non-moduleful type defn in ${t.resolvedSymbol}, ${t.resolvedSymbol.flatMap(_.asBlkMember).map(_.trees)}")
+            ErrorReport(msg"Expected a non-module type; found ${t.describe}." -> t.toLoc
+              :: expect.message)
+        case expect: Class => t.asStaticClassType match
+          case S(c) => checkTypeArity(c)
+          case N => raise:
+            log(s"Error: no statically resolable class defn in ${t.resolvedSymbol.flatMap(_.asBlkMember).map(_.trees)}")
+            ErrorReport(msg"Expected a statically resolvable class; found ${t.describe}." -> t.toLoc
+              :: expect.message)
+        case _ => ()
+      
+    check:
+      t match
+      // If the term is a reference (probably to a class, module or type
+      // alias definition), check its symbol to ensure it is really a type.
+      case Term.Ref(_) =>
+      case AnySel(_, _) =>
+      case Term.Lit(_) =>
+      case Term.UnitVal() =>
+      case Term.App(Term.Ref(_: BuiltinSymbol), args) =>
+        args.subTerms.foreach(traverseType(_, expect = NonModule(N)))
+      
+      // If the term is a type application (T[A, ...]), traverse the
+      // type constructor and arguments respectively.
+      case Term.TyApp(con, targs) => 
+        traverseType(con, expect = expect, inTyAppPrefix = true)
+        targs.foreach(traverseType(_, expect = Expect.NonModule(S("Type arguments should be non-moduleful types."))))
+      
+      case t: (Term.FunTy | Term.WildcardTy | Term.CompType | Term.Neg | Term.Forall | Term.Tup) =>
+        t.subTerms.foreach(traverseType(_, expect = Expect.NonModule(N)))
+      
+      case _ => raise:
+        ErrorReport(msg"Expected a type, got ${t.describe}" -> t.toLoc :: Nil)
+      
+      t match
+        case t: Resolvable => resolveSymbol(t)
+        case _ => ()
+  
+  // FIXME @Harry: refactor resolveType and dedup with traverseType
   def resolveType(t: Term): Opt[ICtx.Type.Specified] = t match
       // If the term is a type application, e.g., T[A, ...], resolve the
       // type constructor and arguments respectively.
@@ -942,6 +1018,27 @@ object ModuleChecker:
     t.resolvedSymbol match
       case S(sym) => sym.asCls.isDefined
       case N => false
+  
+  extension (t: Term)
+    def asModulefulType: Opt[ModuleSymbol] = t.resolvedSymbol match
+      case S(sym: FieldSymbol) =>
+        sym.asMod
+      case _ =>
+        N
+    
+    def asNonModulefulType: Opt[Opt[Symbol]] = t.resolvedSymbol match
+      case S(sym: FieldSymbol) =>
+        (sym.asTpe orElse sym.asObj).map(S(_))
+      case S(sym: VarSymbol) if isTypeParam(sym) =>
+        S(S(sym))
+      case _ =>
+        S(N)
+    
+    def asStaticClassType: Opt[ClassSymbol] = t.resolvedSymbol match
+      case S(sym: FieldSymbol) =>
+        sym.asCls
+      case _ =>
+        N
 
 extension [T](xs: Ls[Opt[T]])
   def sequence: Opt[Ls[T]] =
