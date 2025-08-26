@@ -2,28 +2,28 @@
 :js
 
 
-:w // FIXME: warning seems wrong
-:fixme // FIXME: fix uncaught exception
+:w
 fun foo(x) =
   class C(y) with
     fun get = [x, y]
   module C with
     val empty = C(123)
   C.empty
-foo(10).get
-//│ ═══[WARNING] Cannot yet lift class `C` as it is used as a first-class class.
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
+//│ ═══[WARNING] Modules are not yet lifted.
 
-:w // FIXME: warning seems wrong
-:fixme // FIXME: fix uncaught exception
+foo(10).get
+//│ = [10, 123]
+
+:w
 fun foo(x) =
   class C with
     fun get = x
   module C with
     val empty = new C
   C.empty
+//│ ═══[WARNING] Modules are not yet lifted.
+
 foo(10).get
-//│ ═══[WARNING] Cannot yet lift class `C` as it is used as a first-class class.
-//│ /!!!\ Uncaught error: java.util.NoSuchElementException: key not found: member:get
+//│ = 10
 
 

@@ -246,15 +246,12 @@ object M with
 M.f()()
 //│ = 2
 
-// FIXME: properly recognize that `A` is in a module and thus doesn't need lifting
-:w
 :sjs
 module M with
   class A() with
     fun get = M.x + x
   val x = if A() is A then 2 else 3
 M.A().get
-//│ ═══[WARNING] Cannot yet lift class/module `A` as it is used in an instance check.
 //│ JS (unsanitized):
 //│ let M17, tmp5;
 //│ globalThis.Object.freeze(class M16 {
@@ -293,7 +290,6 @@ M.A().get
 //│ });
 //│ tmp5 = M17.A();
 //│ tmp5.get
-//│ ═══[WARNING] Cannot yet lift class/module `A` as it is used in an instance check.
 //│ = 4
 
 module M with
@@ -308,9 +304,9 @@ M.B().get
 
 // newA should reference the class symbol
 // newA_B should reference the BlockMemberSymbol
+// note: no warning because A is not lifted
 :lift
 :sjs
-:w // FIXME
 module M with
   data class A(x) with
     class B() with
@@ -320,9 +316,45 @@ module M with
     fun newB = B()
   0 is A
 M.A(2).newB.newA_B(3).newB.get
-//│ ═══[WARNING] Cannot yet lift class/module `A` as it is used in an instance check.
 //│ JS (unsanitized):
-//│ let M21, tmp7, tmp8;
+//│ let B2, M21, tmp7, tmp8, B$;
+//│ B$ = function B$(isMut, A$instance$0) {
+//│   let tmp9, tmp10;
+//│   if (isMut === true) {
+//│     tmp9 = new B2.class();
+//│   } else {
+//│     tmp9 = globalThis.Object.freeze(new B2.class());
+//│   }
+//│   tmp10 = tmp9(A$instance$0);
+//│   return tmp10
+//│ };
+//│ B2 = function B() {
+//│   return (A$instance$0) => {
+//│     return globalThis.Object.freeze(new B.class()(A$instance$0));
+//│   }
+//│ };
+//│ globalThis.Object.freeze(class B1 {
+//│   static {
+//│     B2.class = this
+//│   }
+//│   constructor() {
+//│     return (A$instance$0) => {
+//│       this.A$instance$0 = A$instance$0;
+//│       return this;
+//│     }
+//│   }
+//│   #A$instance$0;
+//│   get A$instance$0() { return this.#A$instance$0; }
+//│   set A$instance$0(value) { this.#A$instance$0 = value; }
+//│   get get() {
+//│     return this.A$instance$0.x;
+//│   } 
+//│   newA_B(y) {
+//│     return M21.A(y)
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "B", []]; 
+//│ });
 //│ globalThis.Object.freeze(class M20 {
 //│   static {
 //│     M21 = this
@@ -341,30 +373,12 @@ M.A(2).newB.newA_B(3).newB.get
 //│       }
 //│       constructor(x) {
 //│         this.x = x;
-//│         const this$A = this;
-//│         this.B = function B() {
-//│           return globalThis.Object.freeze(new B.class());
-//│         };
-//│         globalThis.Object.freeze(class B1 {
-//│           static {
-//│             this$A.B.class = this
-//│           }
-//│           constructor() {}
-//│           get get() {
-//│             return this$A.x;
-//│           } 
-//│           newA_B(y) {
-//│             return M20.A(y)
-//│           }
-//│           toString() { return runtime.render(this); }
-//│           static [definitionMetadata] = ["class", "B", []]; 
-//│         });
 //│       }
 //│       get newA() {
 //│         return M20.A(42);
 //│       } 
 //│       get newB() {
-//│         return this.B();
+//│         return B$(false, this);
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "A", ["x"]]; 
@@ -382,7 +396,6 @@ M.A(2).newB.newA_B(3).newB.get
 //│ tmp7 = M21.A(2);
 //│ tmp8 = runtime.safeCall(tmp7.newB.newA_B(3));
 //│ tmp8.newB.get
-//│ ═══[WARNING] Cannot yet lift class/module `A` as it is used in an instance check.
 //│ = 3
 
 module M with
@@ -406,7 +419,10 @@ module A with
   fun f = () => g
   f()
 //│ JS (unsanitized):
-//│ let A10;
+//│ let A10, lambda;
+//│ lambda = (undefined, function () {
+//│   return A10.g
+//│ });
 //│ globalThis.Object.freeze(class A9 {
 //│   static {
 //│     A10 = this
@@ -421,10 +437,6 @@ module A with
 //│     return 1;
 //│   } 
 //│   static get f() {
-//│     let lambda;
-//│     lambda = (undefined, function () {
-//│       return A9.g
-//│     });
 //│     return lambda;
 //│   }
 //│   toString() { return runtime.render(this); }
@@ -450,7 +462,15 @@ module A with
     f() + g()
 A.x
 //│ JS (unsanitized):
-//│ let A16;
+//│ let h, A16, h$;
+//│ h$ = function h$(f$member) {
+//│   return f$member()
+//│ };
+//│ h = function h(f$member) {
+//│   return () => {
+//│     return h$(f$member)
+//│   }
+//│ };
 //│ globalThis.Object.freeze(class A15 {
 //│   static {
 //│     A16 = this
@@ -459,19 +479,15 @@ A.x
 //│     runtime.Unit;
 //│   }
 //│   static {
-//│     let f, g1, tmp9, tmp10, tmp11;
+//│     let f, g2, tmp9, tmp10, tmp11;
 //│     f = function f() {
 //│       return 1
 //│     };
-//│     g1 = function g() {
-//│       let h;
-//│       h = function h() {
-//│         return f()
-//│       };
-//│       return h()
+//│     g2 = function g() {
+//│       return h$(f)
 //│     };
 //│     tmp9 = f();
-//│     tmp10 = g1();
+//│     tmp10 = g2();
 //│     tmp11 = tmp9 + tmp10;
 //│     this.x = tmp11;
 //│   }
@@ -483,16 +499,19 @@ A.x
 
 // private fields in modules
 :sjs
-// FIXME: why isn't `nested` lifted?
-// :fixme
+:fixme
 module A with
   let x = 1
   fun mtd =
     fun nested() = x
     nested()
 A.mtd
+//│ ═══[COMPILATION ERROR] Uses of private fields cannot yet be lifted.
 //│ JS (unsanitized):
-//│ let A18;
+//│ let nested, A18;
+//│ nested = function nested() {
+//│   return A18.x
+//│ };
 //│ globalThis.Object.freeze(class A17 {
 //│   static {
 //│     A18 = this
@@ -505,16 +524,12 @@ A.mtd
 //│     A17.#x = 1;
 //│   }
 //│   static get mtd() {
-//│     let nested;
-//│     nested = function nested() {
-//│       return A17.#x
-//│     };
 //│     return nested();
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"]; 
 //│ });
 //│ A18.mtd
-//│ = 1
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 
 
