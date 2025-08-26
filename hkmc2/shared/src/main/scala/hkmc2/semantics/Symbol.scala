@@ -30,7 +30,11 @@ abstract class Symbol(using State) extends Located:
   
   def existsNonModuleful: Bool = this match
     case mod: ModuleSymbol => !(mod.tree.k is Mod)
-    case mem: BlockMemberSymbol => 
+    case mem: BlockMemberSymbol =>
+      // Some block member symbols do not correspond to a definition
+      // Tree, e.g., val definitions of a data class. So, it is supposed
+      // that if there is no tree, then it is not moduleful (because
+      // modules do have a tree).
       mem.trees.isEmpty ||
       mem.trees.exists:
         case t @ Tree.TypeDef(k = Mod) => false

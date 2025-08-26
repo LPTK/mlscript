@@ -14,7 +14,7 @@ type TypMod = Int
 module TypMod with
   val whoami = "module"
 
-:todo
+:fixme
 fun TrmMod = 42
 module TrmMod with
   val whoami = "module"
@@ -27,20 +27,32 @@ module TrmMod with
 //│ ║  l.20: 	  val whoami = "module"
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
 
-fun f: ClsMod
+fun f: ClsMod = 42
 
-fun f: module ClsMod
+fun f: module ClsMod = ClsMod
 
-fun f: TypMod
+fun f: TypMod = 42
 
-fun f: module TypMod
+fun f: module TypMod = TypMod
 
+// Should be error: Unexpected moduleful reference 'TrmMod'
+:breakme
+:sjs
+fun f: TrmMod = 42
+//│ JS (unsanitized):
+//│ let f4; f4 = function f() { return 42 };
+
+// Should compile to term (function) `TrmMod` rather than module `TrmMod`
 :todo
-fun f: TrmMod
+:sjs
+fun f = TrmMod
+//│ JS (unsanitized):
+//│ let f5; f5 = function f() { return TrmMod1 };
 
-:todo
-fun f: module TrmMod
-
+:sjs
+fun f: module TrmMod = TrmMod
+//│ JS (unsanitized):
+//│ let f6; f6 = function f() { return TrmMod1 };
 
 fun assertModule(module m: ClsMod): module ClsMod = m
 
@@ -56,15 +68,21 @@ assertModule(TrmMod).whoami
 
 fun assertNonModule(m) = m
 
-// FIXME: should be resolver error
+// FIXME: should not resolve to module's `.whoami`, 
+// hence should be an error
+:breakme
 assertNonModule(ClsMod).whoami
 //│ = "module"
 
-// FIXME: should be resolver error
+// FIXME: should not resolve to module's `.whoami`,
+// hence should be an error
+:breakme
 assertNonModule(TypMod).whoami
 //│ = "module"
 
-// FIXME: should be resolver error
+// FIXME: should not resolve to module's `.whoami`,
+// hence should be an error
+:breakme
 assertNonModule(TrmMod).whoami
 //│ = "module"
 
