@@ -43,8 +43,6 @@ object LambdaRewriter:
           case (acc, defn) => Define(defn, acc)
         super.applyBlock(ret)
     
-    // println(s"-------------")
-    
     transformer.applyBlock(b)
   
 

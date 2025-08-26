@@ -189,7 +189,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
 
   // MUST be called from a top-level defn
   private def findAccesses(d: Defn): Map[BlockMemberSymbol, AccessInfo] =
-    var defns: mutable.ListBuffer[Defn] = mutable.ListBuffer.empty
+    var defns: mutable.Buffer[Defn] = mutable.Buffer.empty
     var definedVarsDeep: Set[Local] = Set.empty
 
     new BlockTraverser:
@@ -202,11 +202,13 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
       
       override def applyDefn(defn: Defn): Unit =
         defn match
-          case c: ClsLikeDefn => defns += c; definedVarsDeep ++= definedLocals(c.sym)
+          case c: ClsLikeDefn =>
+            defns += c
+            definedVarsDeep ++= definedLocals(c.sym)
           case _ =>
         super.applyDefn(defn)
-
-    val defnSyms = defns.map(_.sym).toSet
+    
+    val defnSyms = defns.iterator.map(_.sym).toSet
     val accessInfo = defns.map: d =>
       val AccessInfo(accessed, mutated, refdDefns) = findAccessesShallow(d)
       d.sym -> AccessInfo(
@@ -214,9 +216,9 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
         mutated.intersect(definedVarsDeep),
         refdDefns.intersect(defnSyms) // only care about definitions nested in this top-level definition
       )
-
+    
     val accessInfoMap = accessInfo.toMap
-
+    
     val edges =
       for
         (sym, AccessInfo(_, _, refd)) <- accessInfo
@@ -224,7 +226,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
         if defnSyms.contains(r)
       yield sym -> r
     .toSet
-
+    
     // (sccs, sccEdges) forms a directed acyclic graph (DAG)
     val algorithms.SccsInfo(sccs, sccEdges, inDegs, outDegs) = algorithms.sccsWithInfo(edges, defnSyms)
     
@@ -242,12 +244,12 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
           case (acc, nextScc) => acc ++ sccAccessInfo(nextScc)
         dp.addOne(scc -> ret)
         ret
-
+    
     for
       (id, scc) <- sccs
       sym <- scc
     yield sym -> (sccAccessInfo(id).intersectLocals(existingVars(sym)))
-
+  
   private def findAccessesTop =
     var accessMap: Map[BlockMemberSymbol, AccessInfo] = Map.empty
     new BlockTraverserShallow:
@@ -260,7 +262,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
     accessMap
   
   val accessMap = findAccessesTop
-
+  
   // TODO: let declarations inside loops (also broken without class lifting)
   // I'll fix it once it's fixed in the IR since we will have more tools to determine
   // what locals belong to what block.

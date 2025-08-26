@@ -43,7 +43,8 @@ sealed abstract class Block extends Product with AutoLocated:
     case Define(FunDefn(owner, sym, params, body), rest) => sym :: (params :+ body :+ rest)
     case Define(ValDefn(tsym, sym, rhs), rest) => tsym :: sym :: rhs :: rest :: Nil
     case Define(ClsLikeDefn(owner, isym, sym, k, paramsOpt, aux, parentSym, methods,
-        privFlds, pubFlds, preCtor, ctor, stat), rest) =>
+        privFlds, pubFlds, preCtor, ctor, stat), rest)
+    =>
       isym :: sym :: paramsOpt.toList ++ aux ++ parentSym.toList ++
         methods.flatMap(_.subBlocks) ++
         stat.iterator.flatMap(_.subBlocks) ++
@@ -389,7 +390,7 @@ object ValDefn:
 
 
 /*
-  This explains the difference between paramsOpt, auxParams, privateFields and publicFields.
+  The following explains the difference between paramsOpt, auxParams, privateFields and publicFields.
   
   paramsOpt is the main parameter list of a class, i.e. in `class A(plist0)`, `plist0` will be in paramsOpt.
   If there is no such parameter list, for example `class A`, then paramsOpt will be None.
@@ -420,6 +421,8 @@ object ValDefn:
   respectively. The symbols must match what is defined in `privateFields` and `publicFields`. 
   (An assignment to a flow symbol will be treated as a local symbol to the constructor, not a field assignment.)
 */
+// * This is only supposed to be for classes, objects, and patterns;
+// * a lone module is represented as an empty class with a `companion` module.
 final case class ClsLikeDefn(
     owner: Opt[InnerSymbol],
     isym: MemberSymbol[? <: ClassLikeDef] & InnerSymbol,
@@ -428,32 +431,25 @@ final case class ClsLikeDefn(
     paramsOpt: Opt[ParamList],
     auxParams: List[ParamList],
     parentPath: Opt[Path],
-    
-    // TODO: make a ClsLikeBody
     methods: Ls[FunDefn],
-    // staticMethods: Ls[FunDefn],
     privateFields: Ls[TermSymbol],
     publicFields: Ls[BlockMemberSymbol -> TermSymbol],
     preCtor: Block,
     ctor: Block,
-    
     companion: Opt[ClsLikeBody],
 ) extends Defn:
+  require(k isnt syntax.Mod)
   val innerSym = S(isym)
 
 
+// * This is only supposed to be for companion module definitions (notably, not for `object`)
 final case class ClsLikeBody(
-    isym: MemberSymbol[? <: ClassLikeDef] & InnerSymbol,
-    // k: syntax.ClsLikeKind,
-    // parentPath: Opt[Path],
+    isym: MemberSymbol[? <: ModuleOrObjectDef] & InnerSymbol,
     methods: Ls[FunDefn],
-    // staticMethods: Ls[FunDefn],
     privateFields: Ls[TermSymbol],
     publicFields: Ls[BlockMemberSymbol -> TermSymbol],
-    // preCtor: Block,
     ctor: Block,
 ):
-  val k = syntax.Mod // TODO generalize
   val innerSym = S(isym)
   def subBlocks: Ls[Block] =
     ctor :: methods.flatMap(_.subBlocks)
@@ -462,6 +458,7 @@ final case class ClsLikeBody(
   lazy val freeVarsLLIR: Set[Local] = ???
 
 object ClsLikeBody:
+  // TODO rm `empty`? it's currently unused
   def empty(id: Tree.Ident)(using State) = ClsLikeBody(
     isym = ModuleSymbol(Tree.DummyTypeDef(syntax.Mod), id),
     methods = Nil,
@@ -469,6 +466,7 @@ object ClsLikeBody:
     publicFields = Nil,
     ctor = End(),
   )
+
 
 final case class Handler(
     sym: BlockMemberSymbol,

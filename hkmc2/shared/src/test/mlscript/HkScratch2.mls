@@ -22,7 +22,6 @@ module Bar with
   x
 //│ Lowering.term ( () )
 //│ Lowering.term ()
-//│ mod Some(ModuleDef(None,module:Bar,member:Bar,List(),None,List(),None,Mod,( ‹› fun member:x = 1; (module:Bar#666.)x‹member:x› ),None,List()))
 //│ Lowering.term 1
 //│ Lowering.term ( (module:Bar#666.)x‹member:x› )
 //│ Lowering.term (module:Bar#666.)x‹member:x› – symbol member:x

@@ -49,7 +49,7 @@ class TypeChecker(using Raise, Elaborator.State):
         case _: ClassDef =>
           // println(s"TODO ${t.showDbg}")
           // TODO
-        case _: ModuleDef =>
+        case _: ModuleOrObjectDef =>
           // TODO
       typeProd(res)
     case Lit(lit) =>

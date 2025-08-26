@@ -235,7 +235,7 @@ new Foo
 //│ | Traversing term: New(Ref(member:Foo‹607›),List(),None)
 //│ | | Traversing term: Ref(member:Foo‹607›)
 //│ | | | Resolving resolvable term: Ref(member:Foo‹607›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹607›)): Some(CallableDefinition(member:Foo‹607›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleDef(None,module:Foo‹611›,member:Foo‹607›,List(),None,List(),None,Mod,( ‹› val member:foo‹606› = 1; ),Some(class:Foo‹608›),List())))
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹607›)): Some(CallableDefinition(member:Foo‹607›,List(),Some(List()),None,‹›,Modulefulness(None),ModuleOrObjectDef(None,module:Foo‹611›,member:Foo‹607›,List(),None,List(),None,Mod,( ‹› val member:foo‹606› = 1; ),Some(class:Foo‹608›),List())))
 //│ | | | ~> Ref(member:Foo‹607›)
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new Foo5.class())
@@ -252,7 +252,7 @@ class Foo(val x)
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Ls of 
-//│     ModuleDef:
+//│     ModuleOrObjectDef:
 //│       owner = N
 //│       sym = module:Foo
 //│       bsym = member:Foo

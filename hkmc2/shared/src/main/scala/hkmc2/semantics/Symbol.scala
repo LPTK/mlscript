@@ -260,7 +260,7 @@ case class ErrorSymbol(val nme: Str, tree: Tree)(using State) extends MemberSymb
   override def toString = s"error:$nme"
 
 sealed trait ClassLikeSymbol extends IdentifiedSymbol:
-  self: MemberSymbol[? <: ClassDef | ModuleDef] =>
+  self: MemberSymbol[? <: ClassDef | ModuleOrObjectDef] =>
   val tree: Tree.TypeDef
   def subst(using sub: SymbolSubst): ClassLikeSymbol
 
@@ -289,7 +289,7 @@ class ClassSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
   override def subst(using sub: SymbolSubst): ClassSymbol = sub.mapClsSym(this)
 
 class ModuleSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
-    extends MemberSymbol[ModuleDef] with ClassLikeSymbol with CtorSymbol with InnerSymbol with NamedSymbol:
+    extends MemberSymbol[ModuleOrObjectDef] with ClassLikeSymbol with CtorSymbol with InnerSymbol with NamedSymbol:
   def name: Str = nme
   def nme = id.name
   def toLoc: Option[Loc] = id.toLoc // TODO track source tree of module here
@@ -315,7 +315,7 @@ class PatternSymbol(val id: Tree.Ident, val params: Opt[Tree.Tup], val body: Tre
   override def subst(using sub: SymbolSubst): PatternSymbol = sub.mapPatSym(this)
 
 class TopLevelSymbol(blockNme: Str)(using State)
-    extends MemberSymbol[ModuleDef] with InnerSymbol:
+    extends MemberSymbol[ModuleOrObjectDef] with InnerSymbol:
   def nme = blockNme
   def toLoc: Option[Loc] = N
   override def toString: Str = s"globalThis:$blockNme${State.dbgUid(uid)}"

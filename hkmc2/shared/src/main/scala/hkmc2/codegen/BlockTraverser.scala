@@ -89,7 +89,8 @@ class BlockTraverser:
     case defn: FunDefn => applyFunDefn(defn)
     case defn: ValDefn => applyValDefn(defn)
     case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentPath, methods,
-        privateFields, publicFields, preCtor, ctor, mod) =>
+        privateFields, publicFields, preCtor, ctor, mod)
+    =>
       own.foreach(_.traverse)
       isym.traverse
       sym.traverse
@@ -97,7 +98,6 @@ class BlockTraverser:
       auxParams.foreach(applyParamList)
       parentPath.foreach(applyPath)
       methods.foreach(applyFunDefn)
-      // smethods.foreach(applyFunDefn)
       privateFields.foreach(_.traverse)
       publicFields.foreach: f =>
         f._1.traverse; f._2.traverse

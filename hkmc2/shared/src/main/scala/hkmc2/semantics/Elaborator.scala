@@ -1298,7 +1298,7 @@ extends Importer:
               log(s"Companion: ${comp}")
               val md =
                 val (bod, c) = mkBody
-                ModuleDef(owner, modSym, sym,
+                ModuleOrObjectDef(owner, modSym, sym,
                   tps, pss.headOption, pss.tailOr(Nil), newOf(td), k, ObjBody(bod), comp, annotations)
               // if comp.isEmpty then 
               modSym.defn = S(md)
@@ -1605,7 +1605,7 @@ extends Importer:
               // TODO(sym->sym.uid)
           case S(sym: ModuleSymbol) =>
             sym.defn match
-            case S(td: ModuleDef) =>
+            case S(td: ModuleOrObjectDef) =>
               if td.tparams.sizeCompare(targs) =/= 0 then
                 raise(ErrorReport(msg"Wrong number of type arguments" -> trm.toLoc :: Nil)) // TODO BE
               td.tparams.zip(targs).foreach:

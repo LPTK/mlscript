@@ -113,7 +113,7 @@ object Lifter:
       case _ => N
   
   def modOrObj(d: Defn) = d match
-    case c: ClsLikeDefn => (c.companion.isDefined) || (c.k is syntax.Obj) // TODO: refine companion
+    case c: ClsLikeDefn => (c.companion.isDefined) || (c.k is syntax.Obj) // TODO: refine handling of companions
     case _ => false
 
 
@@ -371,13 +371,13 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     var ignored: Set[BlockMemberSymbol] = Set.empty
     var unliftable: Set[BlockMemberSymbol] = Set.empty
     var clsSymToBms: Map[Local, BlockMemberSymbol] = Map.empty
-    val modules: mutable.ListBuffer[ClsLikeDefn] = mutable.ListBuffer.empty
-    val objects: mutable.ListBuffer[ClsLikeDefn] = mutable.ListBuffer.empty
+    var modules: List[ClsLikeDefn] = Nil
+    var objects: List[ClsLikeDefn] = Nil
     var extendsGraph: Set[(BlockMemberSymbol, BlockMemberSymbol)] = Set.empty
     
     d match
-      case c @ ClsLikeDefn(k = syntax.Mod) => modules += c
-      case c @ ClsLikeDefn(k = syntax.Obj) => objects += c
+      case c @ ClsLikeDefn(k = syntax.Mod) => modules ::= c
+      case c @ ClsLikeDefn(k = syntax.Obj) => objects ::= c
       case _ => ()
     
     // search for modules
@@ -391,15 +391,15 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
             case c: ClsLikeDefn =>
               clsSymToBms += c.isym -> c.sym
               
-              if c.companion.isDefined then // TODO: refine
+              if c.companion.isDefined then // TODO: refine handling of companions
                 raise(WarningReport(
                   msg"Modules are not yet lifted." -> N :: Nil,
                   N, Diagnostic.Source.Compilation
                 ))
-                modules += c
+                modules ::= c
                 ignored += c.sym
               else if c.k is syntax.Obj then
-                objects += c
+                objects ::= c
             case _ => ()
           super.applyDefn(defn)
     
@@ -410,7 +410,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
         if modules.contains(nested.sym) then inModuleDefns(nested) else Set.empty
     
     val isMod = d match
-      case c: ClsLikeDefn => c.companion.isDefined // TODO: refine
+      case c: ClsLikeDefn => c.companion.isDefined // TODO: refine handling of companions
       case _ => false
     
     val inModTopLevel = if isMod then inModuleDefns(d) else Set.empty
@@ -448,7 +448,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
           sym.traverse
           applyPath(rhs)
         case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentPath, methods,
-            privateFields, publicFields, preCtor, ctor, mod) =>
+            privateFields, publicFields, preCtor, ctor, mod)
+        =>
           own.foreach(_.traverse)
           isym.traverse
           sym.traverse
@@ -464,7 +465,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
               if clsSyms.contains(s) then extendsGraph += (s -> defn.sym)
             case _ if !ignored.contains(defn.sym) =>
               raise(WarningReport(
-                msg"Cannot yet lift class/module `${sym.nme}` as it extends an expression." -> N :: Nil,
+                msg"Cannot yet lift definition `${sym.nme}` as it extends an expression." -> N :: Nil,
                 N, Diagnostic.Source.Compilation
               ))
               ignored += defn.sym
@@ -502,7 +503,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
         b <- edges if !newUnliftable.contains(b) && !ignored.contains(b) 
       do 
         raise(WarningReport(
-          msg"Cannot yet lift class/module `${b.nme}` as it extends an unliftable class." -> N :: Nil,
+          msg"Cannot yet lift definition `${b.nme}` as it extends an unliftable class." -> N :: Nil,
           N, Diagnostic.Source.Compilation
         ))
         newUnliftable += b
@@ -1003,7 +1004,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
   end liftOutDefnCont
   
   def liftDefnsInCls(c: ClsLikeDefn, ctx: LifterCtx): Lifted[ClsLikeDefn] =
-    val ctxx = if c.companion.isDefined then ctx.inModule(c) else ctx // TODO: refine
+    val ctxx = if c.companion.isDefined then ctx.inModule(c) else ctx // TODO: refine handling of companions
     
     // ===========================================================
     // STEP 1: lift out definitions nested in the ctor and prector

@@ -125,13 +125,9 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths)(using State):
     ClsLikeDefn(
       owner, isym, sym, k, paramsOpt, auxParams, parentPath,
       methods.map(rewriteFn),
-      // smethods.map(rewriteFn),
       privateFields,
       publicFields, rewriteBlk(preCtor),
-      if isTopLevel && (defn.k is syntax.Mod) then
-          die // TODO rm this branch
-          transformTopLevel(ctor)
-        else rewriteBlk(ctor),
+      rewriteBlk(ctor),
       mod.map(rewriteObjBody(_, isTopLevel)),
     )
   

@@ -335,7 +335,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
       pss.toList.flatMap(_.subTerms) ::: tps.getOrElse(Nil).flatMap(_.subTerms) ::: sign.toList ::: body.toList ::: annotations.flatMap(_.subTerms)
     case cls: ClassDef =>
       cls.paramsOpt.toList.flatMap(_.subTerms) ::: cls.body.blk :: cls.annotations.flatMap(_.subTerms)
-    case mod: ModuleDef =>
+    case mod: ModuleOrObjectDef =>
       mod.paramsOpt.toList.flatMap(_.subTerms) ::: mod.body.blk :: mod.annotations.flatMap(_.subTerms)
     case td: TypeDef =>
       td.rhs.toList ::: td.annotations.flatMap(_.subTerms)
@@ -480,9 +480,9 @@ final case class Modulefulness(msym: Opt[MemberSymbol[?]])(val modified: Bool):
    * Return Some of the module definition if it is moduleful; None
    * otherwise.
    */
-  def mdef: Opt[ModuleDef] = msym match
+  def mdef: Opt[ModuleOrObjectDef] = msym match
     case S(msym) => msym.defn match
-      case S(defn: ModuleDef) => S(defn)
+      case S(defn: ModuleOrObjectDef) => S(defn)
       case _ => lastWords(s"no module definition for moduleful symbol $msym")
     case N => N
 
@@ -564,6 +564,8 @@ sealed abstract class TypeLikeDef extends Definition:
   val tparams: Ls[TyParam]
   val annotations: Ls[Annot]
 
+// sealed abstract class ObjectTypeDef extends ClassLikeDef
+
 sealed abstract class ClassLikeDef extends TypeLikeDef:
   val owner: Opt[InnerSymbol]
   val kind: ClsLikeKind
@@ -587,7 +589,7 @@ sealed abstract class ClassLikeDef extends TypeLikeDef:
     case _ => true
 
 
-case class ModuleDef(
+case class ModuleOrObjectDef(
   owner: Opt[InnerSymbol], 
   sym: ModuleSymbol, 
   bsym: BlockMemberSymbol,

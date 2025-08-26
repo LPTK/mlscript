@@ -193,15 +193,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       case cls: ClassLikeDef if cls.sym.defn.exists(_.isDeclare.isDefined) =>
         // * Declarations have no lowering
         blockImpl(stats, res)(k)
-      // case cls: ClassDef if cls.companion.isDefined => // TODO refine
-      case cls: ClassDef if cls.moduleCompanion.isDefined => // TODO refine
-        // * 
+      case cls: ClassDef if cls.moduleCompanion.isDefined =>
+        // * Class definitions are pure, but their companions might not be,
+        // * as they may contain static initialization code;
+        // * therefore, we lower classes at the point where the companion is defined,
+        // * if it is defined, rather than at the point where the class is defined.
         reportAnnotations(cls, cls.extraAnnotations)
         blockImpl(stats, res)(k)
       case _defn: ClassLikeDef =>
         val defn = _defn match
           case cls: ClassDef => cls
-          case mod: ModuleDef if mod.kind is syntax.Mod => // * Currently, objects are also represented as `ModuleDef`s
+          case mod: ModuleOrObjectDef if mod.kind is syntax.Mod => // * Currently, both objects and modules are represented as `ModuleOrObjectDef`s
             mod.classCompanion match
             case S(comp) => comp.defn.getOrElse(wat("Module companion without definition", mod.companion))
             case N =>
@@ -213,41 +215,26 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
                 S(mod.sym),
                 Nil,
               )
-            // case _ => mod
           case _ => _defn
         reportAnnotations(defn, defn.extraAnnotations)
         val (mtds, publicFlds, privateFlds, ctor) = defn match
           case pd: PatternDef => compilePatternMethods(pd)
           case _ => gatherMembers(defn.body)
-          // case _ => gatherMembers(defn.body, defn.companion match
-          //     case S(sym) => sym.defn match
-          //       case S(mod: ModuleDef) => S(mod.body)
-          //       case _ => N
-          //     case _ => N
-          //   )
         val mod = defn.companion match
           case S(sym) =>
-            tl.log(s"mod ${sym.defn}")
             sym.defn match
-            case S(mod: ModuleDef) =>
+            case S(mod: ModuleOrObjectDef) =>
               assert(mod.ext.isEmpty, mod.ext) // modules can't extend things and can't have super calls
-              // val oldSubst = subst
               val (mtds, publicFlds, privateFlds, ctor) =
-                // given Subst = oldSubst
                 gatherMembers(mod.body)
               S(ClsLikeBody(mod.sym, mtds, privateFlds, publicFlds, ctor))
-            // case S(d) =>
-            //   tl.log(s"mod $d")
-            //   N
             case _ => N
           case _ => N
-        // tl.log(s"mod $mod ${defn.companion}")
         defn.ext match
         case N =>
           Define(
             ClsLikeDefn(defn.owner, defn.sym, defn.bsym, defn.kind, defn.paramsOpt, defn.auxParams, N,
               mtds,
-              // smtds,
               privateFlds,
               publicFlds,
               End(),
@@ -897,33 +884,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           case Return(Value.Lit(syntax.Tree.UnitLit(true)), true) => End()
           case t => t
     (mtds, publicFlds, privateFlds, ctor)
-  /* 
-  def gatherMembers(clsBody: ObjBody, companionBody: Opt[ObjBody])(using Subst)
-  : (Ls[FunDefn], Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
-    val mtds = clsBody.methods
-      .flatMap: td =>
-        td.body.map: bod =>
-          val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
-          FunDefn(td.owner, td.sym, paramLists, bodyBlock)
-    val publicFlds = clsBody.publicFlds.map(f => f.sym -> f.tsym)
-    val privateFlds = clsBody.nonMethods.collect:
-      case decl @ LetDecl(sym: TermSymbol, annotations) =>
-        reportAnnotations(decl, annotations)
-        sym
-    val ctor =
-      term_nonTail(Blk(clsBody.nonMethods, clsBody.blk.res))(ImplctRet)
-        // * This is just a minor improvement to get `constructor() {}` instead of `constructor() { null }`
-        .mapTail:
-          case Return(Value.Lit(syntax.Tree.UnitLit(true)), true) => End()
-          case t => t
-    val smtds = companionBody.toList.flatMap:
-      _.methods.flatMap: td =>
-        td.body.map: bod =>
-          val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
-          FunDefn(td.owner, td.sym, paramLists, bodyBlock)
-    // tl.log(s"Gathered members: $mtds, $publicFlds, $privateFlds, $ctor")
-    (mtds, smtds, publicFlds, privateFlds, ctor)
-  */
   
   /** Compile the pattern definition into `unapply` and `unapplyStringPrefix`
    *  methods using the `NaiveCompiler`, which transliterate the pattern into
@@ -931,7 +891,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
   def compilePatternMethods(defn: PatternDef)(using Subst):
       // The return type is intended to be consistent with `gatherMembers`
       (Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
-      // (Ls[FunDefn], Ls[FunDefn], Ls[BlockMemberSymbol -> TermSymbol], Ls[TermSymbol], Block) =
     val compiler = new ups.NaiveCompiler
     val methods = compiler.compilePattern(defn)
     val mtds = methods
@@ -1007,11 +966,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     
     val blk = block(funs ::: rest, R(main.res))(ImplctRet)(using Subst.empty)
     
-    // println(s"???????????? DESUG")
-    
     val desug = LambdaRewriter.desugar(blk)
-    
-    // println(s"DESUG ${desug.showAsTree}")
     
     val handlerPaths = new HandlerPaths
     val stackSafe = config.stackSafety match

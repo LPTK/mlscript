@@ -757,7 +757,7 @@ class Resolver(tl: TraceLogger)
     t match
     case t @ AnySel(lhs: Resolvable, id) =>
       lhs.typeDefn match
-        case S(mdef @ ModuleDef(kind = Mod)) => 
+        case S(mdef @ ModuleOrObjectDef(kind = Mod)) => 
           val fsym = mdef.body.members.get(id.name)
           fsym match
           case S(fldSym) => 
@@ -914,7 +914,7 @@ object ModuleChecker:
     def checkDecl(decl: Declaration): Bool = decl match
       /* Type Declaration / Defintiions */
       // A type is not moduleful if it is not a module. (obvious!)
-      case ModuleDef(kind = Mod) => true
+      case ModuleOrObjectDef(kind = Mod) => true
       // Objects use ModuleDef but is not moduleful.
       case _: TypeLikeDef => false
       

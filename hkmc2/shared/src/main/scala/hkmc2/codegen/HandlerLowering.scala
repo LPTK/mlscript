@@ -441,9 +441,8 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
   
   private def translateBody(cls: ClsLikeBody, sym: BlockMemberSymbol)(using HandlerCtx): ClsLikeBody =
     val curCtorCtx =
-      if handlerCtx.isTopLevel && (cls.k is syntax.Mod)
+      if handlerCtx.isTopLevel
       then 
-        // die
         topLevelCtx(s"Cont$$modCtor$$${symToStr(sym)}$$", s"‹constructor of ${sym.nme}›")
       else ctorCtx(
         cls.isym.asPath,
@@ -453,19 +452,13 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       cls.methods.map(translateFun),
       cls.privateFields,
       cls.publicFields,
-      // if handlerCtx.isTopLevel then transformTopLevel(cls.ctor) else rewriteBlk(cls.ctor),
       translateBlock(cls.ctor, Set.empty, curCtorCtx),
     )
   
   private def translateCls(cls: ClsLikeDefn)(using HandlerCtx): ClsLikeDefn =
-    val curCtorCtx =
-      if handlerCtx.isTopLevel && (cls.k is syntax.Mod)
-      then 
-        die
-        topLevelCtx(s"Cont$$modCtor$$${symToStr(cls.sym)}$$", s"‹constructor of ${cls.sym.nme}›")
-      else ctorCtx(
-        cls.isym.asPath,
-        s"Cont$$ctor$$${symToStr(cls.sym)}$$", s"‹constructor of ${cls.sym.nme}›")
+    val curCtorCtx = ctorCtx(
+      cls.isym.asPath,
+      s"Cont$$ctor$$${symToStr(cls.sym)}$$", s"‹constructor of ${cls.sym.nme}›")
     cls.copy(methods = cls.methods.map(translateFun),
       ctor = translateBlock(cls.ctor, Set.empty, curCtorCtx),
       companion = cls.companion.map(translateBody(_, cls.sym)))

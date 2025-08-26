@@ -19,7 +19,7 @@ module Foo with
 //│ Elaborated tree:
 //│ Blk:
 //│   stats = Ls of 
-//│     ModuleDef:
+//│     ModuleOrObjectDef:
 //│       owner = N
 //│       sym = module:Foo
 //│       bsym = member:Foo
@@ -52,7 +52,6 @@ module Foo with
 //│   res = Lit of UnitLit of false
 //│ Lowering.term ( () )
 //│ Lowering.term ()
-//│ mod Some(ModuleDef(None,module:Foo,member:Foo,List(),None,List(),None,Mod,( ‹› mut val member:x = 1; (module:Foo#666.)x‹member:x› := 2 ),None,List()))
 //│ Lowering.term ( ‹› mut val member:x = 1; (module:Foo#666.)x‹member:x› := 2 )
 //│ Lowering.term 1
 //│ Lowering.term (module:Foo#666.)x‹member:x› := 2

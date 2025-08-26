@@ -156,14 +156,11 @@ class BlockTransformer(subst: SymbolSubst):
       then defn else ValDefn(tsym2, sym2, rhs2)
   
   def applyObjBody(defn: ClsLikeBody): ClsLikeBody =
-    // TODO share logic
     val isym2 = defn.isym.subst
     val methods2 = defn.methods.mapConserve(applyFunDefn)
     val privateFields2 = defn.privateFields.mapConserve(_.subst)
     val publicFields2 = defn.publicFields.mapConserve(f => f._1.subst -> f._2.subst)
     val ctor2 = applySubBlock(defn.ctor)
-    // println(s"Transforming class-like definition: ${defn.isym} ${defn.ctor.showAsTree}")
-    // println(s"~>(${ctor2 is defn.ctor}) $ctor2")
     if (methods2 is defn.methods) &&
         (privateFields2 is defn.privateFields) &&
         (publicFields2 is defn.publicFields) &&
@@ -174,8 +171,8 @@ class BlockTransformer(subst: SymbolSubst):
     case defn: FunDefn => applyFunDefn(defn)
     case defn: ValDefn => applyValDefn(defn)
     case ClsLikeDefn(own, isym, sym, k, paramsOpt, auxParams, parentPath, methods,
-        privateFields, publicFields, preCtor, ctor, mod) =>
-      // println(s"!!! $isym")
+        privateFields, publicFields, preCtor, ctor, mod)
+    =>
       val own2 = own.mapConserve(_.subst)
       val isym2 = isym.subst
       val sym2 = sym.subst
@@ -188,8 +185,6 @@ class BlockTransformer(subst: SymbolSubst):
       val preCtor2 = applySubBlock(preCtor)
       val ctor2 = applySubBlock(ctor)
       val mod2 = mod.mapConserve(applyObjBody)
-      // println(s"Transforming class-like definition: $isym $mod2")
-      // println(s"!!!>>> ${mod2.showAsTree}")
       if (own2 is own) && (isym2 is isym) && (sym2 is sym) &&
           (paramsOpt2 is paramsOpt) &&
           (auxParams2 is auxParams) &&

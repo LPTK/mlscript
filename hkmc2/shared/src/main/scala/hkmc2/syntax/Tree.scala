@@ -548,17 +548,19 @@ end TypeOrTermDef
 trait TypeDefImpl(using State) extends TypeOrTermDef:
   this: TypeDef =>
   
-  lazy val symbol = k match
-    case Cls => semantics.ClassSymbol(this, name.getOrElse(Ident("<error>")))
-    case Mod | Obj => semantics.ModuleSymbol(this, name.getOrElse(Ident("<error>")))
-    case Als => semantics.TypeAliasSymbol(name.getOrElse(Ident("<error>")))
-    case Pat => semantics.PatternSymbol(
+  import semantics.*
+  
+  lazy val symbol: MemberSymbol[? <: TypeLikeDef] = k match
+    case Cls => ClassSymbol(this, name.getOrElse(Ident("<error>")))
+    case Mod | Obj => ModuleSymbol(this, name.getOrElse(Ident("<error>")))
+    case Als => TypeAliasSymbol(name.getOrElse(Ident("<error>")))
+    case Pat => PatternSymbol(
       name.getOrElse(Ident("<error>")),
       paramLists.headOption,
-      rhs.getOrElse(die))
+      rhs.getOrElse(Empty()))
     case Trt | Mxn => ???
   
-  lazy val definedSymbols: Map[Str, semantics.BlockMemberSymbol] =
+  lazy val definedSymbols: Map[Str, BlockMemberSymbol] =
     // val fromParams = 
     // val fromTypeParams = 
     withPart match
@@ -567,13 +569,13 @@ trait TypeDefImpl(using State) extends TypeOrTermDef:
     case _ =>
       Map.empty
   
-  lazy val clsParams: Ls[semantics.TermSymbol] =
+  lazy val clsParams: Ls[TermSymbol] =
     this.paramLists.headOption.fold(Nil): tup =>
       val pts = tup.fields
       val inUsing = pts.headOption.exists(_.isModified(Ins))
       pts.flatMap(_.asParam(inUsing = inUsing).toOption).map:
         case ParamTree(spd = S(_)) => lastWords("spreads are not allowed in class parameters")
-        case ParamTree(ident = id) => semantics.TermSymbol(ParamBind, symbol.asClsLike, id)
+        case ParamTree(ident = id) => TermSymbol(ParamBind, symbol.asClsLike, id)
       .toList
     
   lazy val allSymbols = definedSymbols ++ clsParams.map(s => s.nme -> s).toMap
