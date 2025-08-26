@@ -19,12 +19,12 @@ module List with
       Cons(head, tail) then Cons(f(head), map(f, tail))
 //│ ╔══[ERROR] Expected 0 type arguments, got 1
 //│ ║  l.13: 	data class Cons[A](head: A, tail: List[A])
-//│ ╙──      	                                  ^^^^^^
+//│ ╙──      	                                  ^^^^^^^
 //│ ╔══[ERROR] Expected 0 type arguments, got 1
 //│ ║  l.17: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
-//│ ╙──      	                               ^^^^^^
+//│ ╙──      	                               ^^^^^^^
 //│ ╔══[ERROR] Expected 0 type arguments, got 1
 //│ ║  l.17: 	  fun map[A, B](f: A -> B, xs: List[A]): List[B] = if xs is
-//│ ╙──      	                                         ^^^^^^
+//│ ╙──      	                                         ^^^^^^^
 
 
