@@ -346,7 +346,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
     case SetRef(lhs, rhs) => lhs :: rhs :: Nil
     case Drop(term) => term :: Nil
     case Deref(term) => term :: Nil
-    case TermDefinition(_, _, _, pss, tps, sign, body, res, _, _, annotations) =>
+    case TermDefinition(_, _, _, pss, tps, sign, body, res, _, _, annotations, _) =>
       pss.toList.flatMap(_.subTerms) ::: tps.getOrElse(Nil).flatMap(_.subTerms) ::: sign.toList ::: body.toList ::: annotations.flatMap(_.subTerms)
     case cls: ClassDef =>
       cls.paramsOpt.toList.flatMap(_.subTerms) ::: cls.body.blk :: cls.annotations.flatMap(_.subTerms)
@@ -438,7 +438,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
     case Tup(fields) => fields.map(_.showDbg).mkString("[", ", ", "]")
     case Mut(und) => s"mut ${und.showDbg}"
     case CtxTup(fields) => fields.map(_.showDbg).mkString("‹using›[", ", ", "]")
-    case TermDefinition(k, sym, tsym, pss, tps, sign, body, res, flags, _, _) =>
+    case TermDefinition(k, sym, tsym, pss, tps, sign, body, res, flags, _, _, _) =>
       s"${flags} ${k.str} ${sym}${
         tps.map(_.map(_.showDbg)).mkStringOr(", ", "[", "]")
       }${
@@ -527,6 +527,7 @@ final case class TermDefinition(
     flags: TermDefFlags,
     modulefulness: Modulefulness,
     annotations: Ls[Annot],
+    companion: Opt[CompanionSymbol],
 ) extends CompanionValue:
   require(k is tsym.k)
   val owner = tsym.owner
@@ -567,11 +568,19 @@ sealed abstract class Definition extends Declaration with Statement:
   val annotations: Ls[Annot]
   def isDeclare: Opt[Annot.Modifier] = annotations.collectFirst:
     case mod @ Annot.Modifier(Keyword.`declare`) => mod
+  
+  /** Whether this definition is the "representative" definition of a set of overloaded definitions,
+    * or the sole definition, if it is not overloaded.
+    * We should consider the ordering terms > classes/objects > modules, for this purpose. */
+  def isPrincipalOverload: Bool = this match
+    case cls: ModuleOrObjectDef => cls.companion.isEmpty
+    case _ => true
 
 sealed trait CompanionValue extends Definition
 
-type ClassCompanionSymbol = ModuleSymbol | TypeAliasSymbol
 type CompanionSymbol = ModuleSymbol | TypeAliasSymbol | ClassSymbol
+type ClassCompanionSymbol = ModuleSymbol | TypeAliasSymbol
+type ModuleCompanionSymbol = TypeAliasSymbol | ClassSymbol
 
 
 sealed abstract class TypeLikeDef extends Definition:
@@ -614,8 +623,7 @@ case class ModuleOrObjectDef(
   ext: Opt[New],
   kind: ClsLikeKind,
   body: ObjBody,
-  // companion: Opt[ClassSymbol],
-  companion: Opt[CompanionSymbol],
+  companion: Opt[ModuleCompanionSymbol],
   annotations: Ls[Annot],
 ) extends ClassLikeDef with CompanionValue
 
@@ -646,7 +654,7 @@ case class PatternDef(
   /** Pattern definitions do not need parameter lists. */
   val paramsOpt: Opt[ParamList] = N
   val auxParams: Ls[ParamList] = Nil
-  val companion: Opt[CompanionSymbol] = N
+  val companion: Opt[CompanionSymbol] = N // TODO support
 
 
 sealed abstract class ClassDef extends ClassLikeDef:
@@ -656,8 +664,7 @@ sealed abstract class ClassDef extends ClassLikeDef:
   val paramsOpt: Opt[ParamList]
   val auxParams: Ls[ParamList]
   val body: ObjBody
-  // val companion: Opt[CompanionValue]
-  val companion: Opt[CompanionSymbol]
+  val companion: Opt[ClassCompanionSymbol]
   val annotations: Ls[Annot]
   def isData: Opt[Annot.Modifier] = annotations.collectFirst:
     case mod @ Annot.Modifier(Keyword.`data`) => mod
@@ -676,7 +683,7 @@ object ClassDef:
       ext: Opt[New],
       body: ObjBody,
       annotations: Ls[Annot],
-      comp: Opt[CompanionSymbol],
+      comp: Opt[ClassCompanionSymbol],
   ): ClassDef =
     params match
       case ps :: pss => Parameterized(owner, kind, sym.asInstanceOf// TODO: improve
@@ -699,7 +706,7 @@ object ClassDef:
       auxParams: Ls[ParamList],
       ext: Opt[New],
       body: ObjBody,
-      companion: Opt[CompanionSymbol],
+      companion: Opt[ClassCompanionSymbol],
       annotations: Ls[Annot],
   ) extends ClassDef:
     val paramsOpt: Opt[ParamList] = S(params)
@@ -712,7 +719,7 @@ object ClassDef:
       tparams: Ls[TyParam],
       ext: Opt[New],
       body: ObjBody,
-      companion: Opt[CompanionSymbol],
+      companion: Opt[ClassCompanionSymbol],
       annotations: Ls[Annot]
   ) extends ClassDef:
     val paramsOpt: Opt[ParamList] = N

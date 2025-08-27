@@ -427,9 +427,9 @@ case object Cls extends TypeDefKind("class") with ClsLikeKind
 case object Trt extends TypeDefKind("trait") with ObjDefKind
 case object Mxn extends TypeDefKind("mixin")
 case object Als extends TypeDefKind("type alias")
+case object Pat extends TypeDefKind("pattern") with ClsLikeKind
 case object Mod extends TypeDefKind("module") with ClsLikeKind
 case object Obj extends TypeDefKind("object") with ClsLikeKind
-case object Pat extends TypeDefKind("pattern") with ClsLikeKind
 
 // val _ =
 //   // * Initialize in expected order

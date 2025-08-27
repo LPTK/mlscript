@@ -73,4 +73,54 @@ A(42)
 
 
 
+pattern Foo = 1
+module Foo
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: blockOrRcd (Elaborator.scala:864)
+//│ ╔══[ERROR] Not yet supported: overloading of pattern 'Foo'
+//│ ║  l.76: 	pattern Foo = 1
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ╟── with module of the same name
+//│ ║  l.77: 	module Foo
+//│ ╙──      	^^^^^^^^^^
+
+
+:fixme
+:sjs
+fun Foo(x) = new Foo(x, 0)
+data class Foo(x, y)
+//│ ╔══[ERROR] Not yet supported: overloading of function 'Foo'
+//│ ║  l.90: 	fun Foo(x) = new Foo(x, 0)
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── with class of the same name
+//│ ║  l.91: 	data class Foo(x, y)
+//│ ╙──      	     ^^^^^^^^^^^^^^^
+//│ JS (unsanitized):
+//│ let Foo6;
+//│ Foo6 = function Foo(x) {
+//│   return globalThis.Object.freeze(new Foo6.class(x, 0))
+//│ };
+//│ Foo6 = function Foo(x, y) {
+//│   return globalThis.Object.freeze(new Foo.class(x, y));
+//│ };
+//│ globalThis.Object.freeze(class Foo5 {
+//│   static {
+//│     Foo6.class = this
+//│   }
+//│   constructor(x, y) {
+//│     this.x = x;
+//│     this.y = y;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Foo", ["x", "y"]]; 
+//│ });
+
+:fixme
+Foo(123)
+//│ ╔══[ERROR] Expected 2 arguments, got 1
+//│ ║  l.119: 	Foo(123)
+//│ ╙──       	   ^^^^^
+//│ = Foo(123, undefined)
+
+
 

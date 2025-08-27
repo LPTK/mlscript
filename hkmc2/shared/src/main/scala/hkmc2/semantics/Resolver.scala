@@ -354,7 +354,7 @@ class Resolver(tl: TraceLogger)
     def traverseTermDef(tdf: TermDefinition) =
       val TermDefinition(_k, _sym, _tsym, 
         pss, tps, sign, body, 
-        _resSym, TermDefFlags(isMethod), modulefulness, annotations
+        _resSym, TermDefFlags(isMethod), modulefulness, annotations, comp
       ) = tdf
       /** 
        * Add the contextual parameters in pss to the ICtx so that they

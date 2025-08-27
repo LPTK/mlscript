@@ -379,10 +379,10 @@ extends Importer:
       case trm => raise(WarningReport(msg"Terms in handler block do nothing" -> trm.toLoc :: Nil))
       
       val tds = elabed.stats.map {
-          case td @ TermDefinition(Fun, sym, tsym, params, tparams, sign, body, resSym, flags, mf, annotations) =>
+          case td @ TermDefinition(Fun, sym, tsym, params, tparams, sign, body, resSym, flags, mf, annotations, comp) =>
             params.reverse match
               case ParamList(_, value :: Nil, _) :: newParams =>
-                val newTd = TermDefinition(Fun, sym, tsym, newParams.reverse, tparams, sign, body, resSym, flags, mf, annotations)
+                val newTd = TermDefinition(Fun, sym, tsym, newParams.reverse, tparams, sign, body, resSym, flags, mf, annotations, comp)
                 S(HandlerTermDefinition(value.sym, newTd))
               case _ => 
                 raise(ErrorReport(msg"Handler function is missing resumption parameter" -> td.toLoc :: Nil))
@@ -808,6 +808,7 @@ extends Importer:
   val notYetSupportedOverloadings: Set[(OuterKind, OuterKind)] = Set(
     Fun -> Cls,
     Fun -> Mod,
+    Pat -> Mod,
     ImmutVal -> Mod,
     MutVal -> Mod,
   )
@@ -1081,7 +1082,7 @@ extends Importer:
                       val tsym = TermSymbol(Fun, N, Ident("ret"))
                       val td = TermDefinition(
                         Fun, mtdSym, tsym, PlainParamList(Param(FldFlags.empty, valueSym, N, Modulefulness.none) :: Nil) :: Nil,
-                        N, N, S(valueSym.ref(Ident("value"))), FlowSymbol(s"‹result of non-local return›"), TermDefFlags.empty, Modulefulness.none, Nil)
+                        N, N, S(valueSym.ref(Ident("value"))), FlowSymbol(s"‹result of non-local return›"), TermDefFlags.empty, Modulefulness.none, Nil, N)
                       val htd = HandlerTermDefinition(resumeSym, td)
                       Term.Handle(nonLocalRetHandler, state.nonLocalRetHandlerTrm, Nil, clsSym, htd :: Nil, b)
               val r = FlowSymbol(s"‹result of ${sym}›")
@@ -1097,7 +1098,7 @@ extends Importer:
               
               val tsym = TermSymbol(k, owner, id) // TODO?
               val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, r, 
-                TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations)
+                TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations, N)
               sym.defn = S(tdf)
               
               tdf
@@ -1179,7 +1180,8 @@ extends Importer:
                   FlowSymbol("‹class-param-res›"),
                   TermDefFlags.empty.copy(isMethod = (k is Cls)),
                   p.modulefulness,
-                  Nil
+                  Nil,
+                  N,
                 )
                 assert(p.fldSym.isEmpty)
                 p.fldSym = S(fsym)
@@ -1303,7 +1305,7 @@ extends Importer:
                 ClassDef(owner, Cls, clsSym, sym, tps, pss, newOf(td), ObjBody(bod), annotations, comp)
               clsSym.defn = S(cd)
               cd
-        sym.defn = S(defn)
+        if defn.isPrincipalOverload then sym.defn = S(defn)
         go(sts, Nil, defn :: acc)
       case Annotated(annotation, target) :: sts =>
         go(target :: sts, annotations ++ annot(annotation), acc)
@@ -1557,7 +1559,7 @@ extends Importer:
   def computeVariances(s: Statement): Unit =
     val trav = VarianceTraverser()
     def go(s: Statement): Unit = s match
-      case TermDefinition(k, sym, tsym, pss, _, sign, body, r, _, _, _) =>
+      case TermDefinition(k, sym, tsym, pss, _, sign, body, r, _, _, _, _) =>
         pss.foreach(ps => ps.params.foreach(trav.traverseType(S(false))))
         sign.foreach(trav.traverseType(S(true)))
         body match

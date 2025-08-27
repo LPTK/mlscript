@@ -42,6 +42,7 @@ module Foo with
 //│             flags = ()
 //│             modulefulness = Modulefulness of N
 //│             annotations = Nil
+//│             companion = N
 //│         res = Assgn:
 //│           lhs = SynthSel{member:x}:
 //│             prefix = Ref of module:Foo
