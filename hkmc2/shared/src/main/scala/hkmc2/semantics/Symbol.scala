@@ -35,8 +35,8 @@ abstract class Symbol(using State) extends Located:
       // Tree, e.g., val definitions of a data class. So, it is supposed
       // that if there is no tree, then it is not moduleful (because
       // modules do have a tree).
-      mem.trees.isEmpty ||
-      mem.trees.exists:
+      mem.trees.isEmpty
+      || mem.trees.exists:
         case t @ Tree.TypeDef(k = Mod) => false
         case _ => true
     case _ => true

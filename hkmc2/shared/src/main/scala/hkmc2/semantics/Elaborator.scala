@@ -546,7 +546,11 @@ extends Importer:
       case S(ms: BlockMemberSymbol)
         // FIXME: move the check to resolver because preTrm's symbol may
         // not be resolved yet.
-        if !inAppPrefix && ms.isParameterizedMethod && !preTrm.symbol.exists(_.existsModuleful) =>
+        if
+          // * If we're selecting a parameterized class method without applying it, an error should be reported.
+          // * Note that module methods are fine to select without applying, since they don't use `this`.
+          !inAppPrefix && ms.isParameterizedMethod && !preTrm.symbol.exists(_.existsModuleful)
+        =>
         raise:
           ErrorReport(
             msg"[debinding error] Method '${nme.name}' cannot be accessed without being called." -> nme.toLoc :: Nil)

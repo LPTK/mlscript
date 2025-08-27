@@ -3,9 +3,10 @@ import "./Predef.mls"
 open Predef
 
 
-// TODO
-type Stack[A] = Stack.Cons[A] | Stack.Nil
+type Stack[A] = Stack.{ Cons[A] | Nil }
+
 module Stack with ...
+
 
 data class (::) Cons[A](head: A, tail: Stack[A])
 object Nil

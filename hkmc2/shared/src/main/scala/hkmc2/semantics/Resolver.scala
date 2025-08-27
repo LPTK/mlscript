@@ -858,12 +858,12 @@ class Resolver(tl: TraceLogger)
           val tparamsNum = tparams.map(_.length)
           val targsNum = targs.map(_.length)
           if tparamsNum != targsNum then
-            val tparamsMsg = tparamsNum.getOrElse("no").toString()
-            val targsMsg = targsNum.getOrElse("none").toString()
+            val tparamsMsg = tparamsNum.getOrElse("no").toString
+            val targsMsg = targsNum.getOrElse("none").toString
             raise:
               ErrorReport:
-                msg"Expected ${tparamsMsg} type arguments, " +
-                msg"got ${targsMsg}" -> t.toLoc :: Nil
+                msg"Expected ${tparamsMsg} type arguments, "
+                + msg"got ${targsMsg}" -> t.toLoc :: Nil
     
     def check(body: => Unit): Unit =
       body
