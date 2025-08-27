@@ -571,7 +571,7 @@ sealed abstract class Definition extends Declaration with Statement:
   
   /** Whether this definition is the "representative" definition of a set of overloaded definitions,
     * or the sole definition, if it is not overloaded.
-    * We should consider the ordering terms > classes/objects > modules, for this purpose. */
+    * We should consider the ordering terms > classes/objects/types > modules, for this purpose. */
   def isPrincipalOverload: Bool = this match
     case cls: ModuleOrObjectDef => cls.companion.isEmpty
     case _ => true

@@ -1186,7 +1186,7 @@ extends Importer:
                 assert(p.fldSym.isEmpty)
                 p.fldSym = S(fsym)
                 fsym.defn = S(fdef)
-                sym.defn = S(fdef)
+                tsym.defn = S(fdef)
                 fdef :: Nil
               else
                 val psym = TermSymbol(LetBind, owner, p.sym.id)
@@ -1285,7 +1285,11 @@ extends Importer:
           val owner = ctx.outer.inner
           newCtx.nestInner(modSym).givenIn:
             trace(s"Processing module/object definition $nme"):
-              val comp = sym.asCls
+              val comp = sym.asCls match
+                case comp @ S(_) =>
+                  assert(sym.asAls.isEmpty)
+                  comp
+                case N => sym.asAls
               log(s"Companion: ${comp}")
               val md =
                 val (bod, c) = mkBody
@@ -1305,7 +1309,11 @@ extends Importer:
                 ClassDef(owner, Cls, clsSym, sym, tps, pss, newOf(td), ObjBody(bod), annotations, comp)
               clsSym.defn = S(cd)
               cd
-        if defn.isPrincipalOverload then sym.defn = S(defn)
+        if defn.isPrincipalOverload then
+          //* At this point Sometimes, `sym.defn` *should* be empty, but it might not be due to an erroneous overload,
+          // * which would have triggered an error already.
+          // assert(sym.defn.isEmpty, (defn, sym.defn))
+          sym.defn = S(defn)
         go(sts, Nil, defn :: acc)
       case Annotated(annotation, target) :: sts =>
         go(target :: sts, annotations ++ annot(annotation), acc)

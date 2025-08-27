@@ -304,9 +304,6 @@ open Stack { Nil, :: }
 
 :sjs
 1 :: Nil
-//│ ╔══[ERROR] Module 'Stack' does not contain member '::'
-//│ ║  l.306: 	1 :: Nil
-//│ ╙──       	  ^^
 //│ JS (unsanitized):
 //│ Stack["::"](1, Stack.Nil)
 //│ ═══[RUNTIME ERROR] TypeError: Stack.:: is not a function
@@ -316,9 +313,9 @@ open Stack { Nil, :: }
 mkStr of ... // hello
 "oops"
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found new line instead
-//│ ║  l.316: 	mkStr of ... // hello
+//│ ║  l.313: 	mkStr of ... // hello
 //│ ║         	                     ^
-//│ ║  l.317: 	"oops"
+//│ ║  l.314: 	"oops"
 //│ ╙──       	
 //│ = "oops"
 
@@ -341,22 +338,22 @@ Foo(1, 2, 3).args
 :todo
 if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╔══[ERROR] Unrecognized pattern (spread)
-//│ ║  l.342: 	if Foo(1, 2, 3) is Foo(...args) then args
+//│ ║  l.339: 	if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╙──       	                       ^^^^^^^
 //│ ╔══[ERROR] The constructor does not take any arguments but found one argument.
-//│ ║  l.342: 	if Foo(1, 2, 3) is Foo(...args) then args
+//│ ║  l.339: 	if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╙──       	                       ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
 if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
 //│ ╔══[ERROR] The constructor does not take any arguments but found three arguments.
-//│ ║  l.351: 	if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
+//│ ║  l.348: 	if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
 //│ ╙──       	                       ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
 if Foo(1, 2, 3) is Foo(arg) then arg
 //│ ╔══[ERROR] The constructor does not take any arguments but found one argument.
-//│ ║  l.357: 	if Foo(1, 2, 3) is Foo(arg) then arg
+//│ ║  l.354: 	if Foo(1, 2, 3) is Foo(arg) then arg
 //│ ╙──       	                       ^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
@@ -390,10 +387,10 @@ fun foo() =
   let bar(x: Str): Str = x + x
   bar("test")
 //│ ╔══[ERROR] Unsupported let binding shape
-//│ ║  l.390: 	  let bar(x: Str): Str = x + x
+//│ ║  l.387: 	  let bar(x: Str): Str = x + x
 //│ ╙──       	      ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Expected 0 arguments, got 1
-//│ ║  l.391: 	  bar("test")
+//│ ║  l.388: 	  bar("test")
 //│ ╙──       	     ^^^^^^^^
 
 // ——— ——— ———
@@ -402,10 +399,10 @@ fun foo() =
 :sjs
 module Foo(x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
-//│ ║  l.403: 	module Foo(x)
+//│ ║  l.400: 	module Foo(x)
 //│ ║         	           ^
 //│ ╟── which is introduced here
-//│ ║  l.403: 	module Foo(x)
+//│ ║  l.400: 	module Foo(x)
 //│ ╙──       	           ^
 //│ JS (unsanitized):
 //│ let Foo5;
@@ -428,10 +425,10 @@ module Foo(x)
 :sjs
 module Foo(val x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
-//│ ║  l.429: 	module Foo(val x)
+//│ ║  l.426: 	module Foo(val x)
 //│ ║         	               ^
 //│ ╟── which is introduced here
-//│ ║  l.429: 	module Foo(val x)
+//│ ║  l.426: 	module Foo(val x)
 //│ ╙──       	               ^
 //│ JS (unsanitized):
 //│ let Foo7;
@@ -454,7 +451,7 @@ module Foo(val x)
 // TODO support syntax?
 data class Foo(mut x)
 //│ ╔══[ERROR] Expected a valid parameter, found 'mut'-modified identifier
-//│ ║  l.455: 	data class Foo(mut x)
+//│ ║  l.452: 	data class Foo(mut x)
 //│ ╙──       	                   ^
 
 // ——— ——— ———
