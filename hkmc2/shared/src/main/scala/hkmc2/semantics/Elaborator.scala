@@ -293,19 +293,6 @@ extends Importer:
         N
     case _ => N
   
-  // TODO: rm
-  def cls(trm: Term, inAppPrefix: Bool)
-      : Ctxl[Term]
-      = trace[Term](s"Elab class ${trm}", r => s"~> $r"):
-    trm.symbol match
-    // case S(cls: ClassSymbol) =>
-    //   trm
-    // case S(mem: BlockMemberSymbol) =>
-    //   // FIXME: `defn` is not available before elaboration. See pull/277#discussion_r2051448677
-    //   if !mem.hasLiftedClass || mem.defn.exists(_.isDeclare.isDefined) then trm
-    //   else Term.SynthSel(trm, Ident("class"))(mem.clsTree.orElse(mem.modOrObjTree).map(_.symbol))
-    case _ => trm
-  
   def annot(tree: Tree): Ctxl[Opt[Annot]] = tree match
     case Keywrd(kw @ (Keyword.`abstract` | Keyword.`declare` | Keyword.`data`)) => S(Annot.Modifier(kw))
     case _ => term(tree) match
@@ -408,9 +395,9 @@ extends Importer:
       
       val (cp, p) = c match
         case App(c, Tup(params)) =>
-          (cls(subterm(c), inAppPrefix = true), params.map(subterm(_)))
+          (subterm(c), params.map(subterm(_)))
         case c =>
-          (cls(subterm(c), inAppPrefix = false), Nil)
+          (subterm(c), Nil)
       
       (ctx + (id.name -> sym)).givenIn:
         Term.Handle(sym, cp, p, derivedClsSym, tds, subterm(bod))
@@ -499,7 +486,7 @@ extends Importer:
     case OpApp(lhs, Ident(":="),rhs :: Nil) =>
       Term.SetRef(subterm(lhs), subterm(rhs))
     case OpApp(Sel(pre, idn: Ident), Ident("#"), (idp: Ident) :: Nil) =>
-      val c = cls(subterm(idn), inAppPrefix = false)
+      val c = subterm(idn)
       val f = c.symbol.flatMap(_.asCls) match
         case S(cls: ClassSymbol) =>
           cls.tree.allSymbols.get(idp.name) match
@@ -544,8 +531,7 @@ extends Importer:
       sym match
       // * Enforcing [invariant:1]
       case S(ms: BlockMemberSymbol)
-        // FIXME: move the check to resolver because preTrm's symbol may
-        // not be resolved yet.
+        // FIXME[Harry]: move the check to resolver because preTrm's symbol may not be resolved yet.
         if
           // * If we're selecting a parameterized class method without applying it, an error should be reported.
           // * Note that module methods are fine to select without applying, since they don't use `this`.
@@ -567,7 +553,7 @@ extends Importer:
       else
         Term.Sel(preTrm, nme)(sym)
     case MemberProj(ct, nme) =>
-      val c = cls(subterm(ct), inAppPrefix = false)
+      val c = subterm(ct)
       val f = c.symbol.flatMap(_.asCls) match
         case S(cls: ClassSymbol) =>
           cls.tree.allSymbols.get(nme.name) match
@@ -625,8 +611,7 @@ extends Importer:
           case Modified(Keywrd(Keyword.`mut`), c) => (true, c)
           case c => (false, c)
         val inner = new Term.New(
-          cls(subterm(c2), // * Note: we'll catch bad `new` targets during type checking
-            inAppPrefix = true), 
+          subterm(c2), // * Note: we'll catch bad `new` targets during type checking
           args.map(subterm(_)),
           bodo
         ).withLocOf(tree)
@@ -1304,7 +1289,6 @@ extends Importer:
                 val (bod, c) = mkBody
                 ModuleOrObjectDef(owner, modSym, sym,
                   tps, pss.headOption, pss.tailOr(Nil), newOf(td), k, ObjBody(bod), comp, annotations)
-              // if comp.isEmpty then 
               modSym.defn = S(md)
               md
         case Cls =>

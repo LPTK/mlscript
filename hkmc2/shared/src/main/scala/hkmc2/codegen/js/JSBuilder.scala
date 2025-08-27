@@ -276,15 +276,14 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
             val modDoc = modo match
               case N => doc""
               case S(mod) =>
-                // TODO dedup some of that logic
                 val (thisProxy, res) = outerScope.nestRebindThis(S(mod.isym)):
-                    val mtdPrefix = "static "
-                    val privs = mkPrivs(mod.publicFields, mod.privateFields, mtdPrefix, mod.isym)
-                    val ctorCode = if mod.ctor.isEmpty then doc"" else doc" # static " :: braced:
-                      body(mod.ctor, endSemi = true)
-                    privs :: ctorCode :: {
-                      mkMethods(mod.methods, mtdPrefix)
-                    }
+                  val mtdPrefix = "static "
+                  val privs = mkPrivs(mod.publicFields, mod.privateFields, mtdPrefix, mod.isym)
+                  val ctorCode = if mod.ctor.isEmpty then doc"" else doc" # static " :: braced:
+                    body(mod.ctor, endSemi = true)
+                  privs :: ctorCode :: {
+                    mkMethods(mod.methods, mtdPrefix)
+                  }
                 // * Note that `thisProxy` might be defined at this point,
                 // * if the module accesses the self-reference of an outer definition.
                 // * But in that case, we'll already be creating a proxy through the `nestRebindThis` call above,
