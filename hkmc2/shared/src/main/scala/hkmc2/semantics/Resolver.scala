@@ -850,7 +850,7 @@ class Resolver(tl: TraceLogger)
   def traverseType(t: Term, expect: Expect, inTyAppPrefix: Bool = false)(using ictx: ICtx): Unit =
   trace(s"Traversing type ${t}, expecting ${expect}"):
     def checkTypeArity(sym: FieldSymbol): Unit =
-      if inTyAppPrefix && !t.isInstanceOf[Term.TyApp] then
+      if inTyAppPrefix then
         return
       val targs = t match
         case Term.TyApp(_, targs) => S(targs)
