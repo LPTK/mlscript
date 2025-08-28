@@ -12,19 +12,7 @@ fun foo(x) =
 //│ ═══[WARNING] Modules are not yet lifted.
 
 foo(10).get
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'empty' yielded 'undefined'
-//│     at foo (REPL10:1:755)
-//│     at REPL13:1:58
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│ = [10, 123]
 
 :w
 fun foo(x) =

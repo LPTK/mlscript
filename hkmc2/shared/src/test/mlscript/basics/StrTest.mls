@@ -6,37 +6,13 @@ open Str
 
 
 concat of "a", "b", "c"
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at REPL16:1:104
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+//│ = "abc"
 
 concat of
   "a"
   "b"
   "c"
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at REPL19:1:107
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+//│ = "abc"
 
 
 // TODO (~) should be sanitized
@@ -44,53 +20,29 @@ concat of
 :e
 (~)("a", "b", "c")
 //│ ╔══[ERROR] Expected 2 arguments, got 3
-//│ ║  l.45: 	(~)("a", "b", "c")
+//│ ║  l.21: 	(~)("a", "b", "c")
 //│ ╙──      	   ^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at REPL22:1:107
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+//│ = "ab"
 
 
 :e
 (~)("a")
 //│ ╔══[ERROR] Expected 2 arguments, got 1
-//│ ║  l.65: 	(~)("a")
+//│ ║  l.29: 	(~)("a")
 //│ ╙──      	   ^^^^^
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at REPL25:1:107
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+//│ = "aundefined"
 
 :ge
 ~"a"
 //│ ╔══[COMPILATION ERROR] Unexpected term form in expression position (negation type)
-//│ ║  l.84: 	~"a"
+//│ ║  l.36: 	~"a"
 //│ ╙──      	 ^^^
 
 
 :ge
 ~("a", "b")
 //│ ╔══[COMPILATION ERROR] Unexpected term form in expression position (negation type)
-//│ ║  l.91: 	~("a", "b")
+//│ ║  l.43: 	~("a", "b")
 //│ ╙──      	       ^^^
 
 
@@ -98,76 +50,28 @@ concat of
 :ge
 ~ of "a", "b"
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found 'of' keyword instead
-//│ ║  l.99: 	~ of "a", "b"
+//│ ║  l.51: 	~ of "a", "b"
 //│ ╙──      	  ^^
 //│ ╔══[PARSE ERROR] Expected end of input; found literal instead
-//│ ║  l.99: 	~ of "a", "b"
+//│ ║  l.51: 	~ of "a", "b"
 //│ ╙──      	     ^^^
 //│ ═══[COMPILATION ERROR] Unexpected term form in expression position (negation type)
 
 (~) of "a", "b"
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at REPL37:1:107
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+//│ = "ab"
 
 
 fun test(...xs) =
   concat of ...xs, "!"
 
 test("a", "b", "c")
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at test (REPL40:1:253)
-//│     at REPL43:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│ = "abc!"
 
 
 "a" Str.concat2("b")
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at REPL46:1:107
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+//│ = "ab"
 
 "a" Str.concat2 of "b"
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at REPL49:1:107
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+//│ = "ab"
 
 

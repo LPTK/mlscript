@@ -16,6 +16,7 @@ import Message.MessageContext
 import scala.annotation.tailrec
 import hkmc2.semantics.Resolver.ICtx.Instance
 import hkmc2.semantics.Term.SynthSel
+import hkmc2.semantics.Term.Disamb
 
 object Resolver:
   
@@ -757,25 +758,27 @@ class Resolver(tl: TraceLogger)
     
     t match
     case t @ AnySel(lhs: Resolvable, id) =>
-      lhs.typeDefn match
-        case S(mdef @ ModuleOrObjectDef(kind = Mod)) => 
-          val fsym = mdef.body.members.get(id.name)
-          fsym match
-          case S(fldSym) => 
-            val bsym = fldSym.asBlkMember.getOrElse:
-              lastWords(s"${mdef}: field symbol found ${fldSym} but no block member symbol")
-            log(s"Resolving symbol for ${t}, defn = ${lhs.defn}")
-            withSym(t, bsym)
-            expand2DotClass(lhs)
-            log(s"Resolved symbol for ${t}: ${bsym}")
-          case N => 
-            withSym(t, ErrorSymbol(id.name, Tree.Dummy))
-            raise: 
-              ErrorReport(
-                msg"${mdef.kind.desc.capitalize} '${mdef.sym.nme}' " +
-                msg"does not contain member '${id.name}'" -> t.toLoc :: Nil,
-                extraInfo = S(mdef))
-        case _ =>
+      log(s"Resolving symbol for ${t}, defn = ${lhs.defn}")
+      lhs.moduleDefn.foreach: mdef =>
+        val fsym = mdef.body.members.get(id.name)
+        fsym match
+        case S(fldSym) => 
+          val bsym = fldSym.asBlkMember.getOrElse:
+            lastWords(s"${mdef}: field symbol found ${fldSym} but no block member symbol")
+          log(s"Resolving symbol for ${t}, defn = ${lhs.defn}")
+          withSym(t, bsym)
+          expand2DotClass(lhs)
+          lhs.instantiate match
+            case ref: Term.Ref => ref.expand(S(ref => Disamb(ref, mdef.sym)))
+            case _ => ()
+          log(s"Resolved symbol for ${t}: ${bsym}")
+        case N => 
+          withSym(t, ErrorSymbol(id.name, Tree.Dummy))
+          raise: 
+            ErrorReport(
+              msg"${mdef.kind.desc.capitalize} '${mdef.sym.nme}' " +
+              msg"does not contain member '${id.name}'" -> t.toLoc :: Nil,
+              extraInfo = S(mdef))
     case _ =>
     
     t match

@@ -35,19 +35,7 @@ fun join(sep) =
 
 join(", ")(1 :: 2 :: 3 :: Nil)
 (1 :: 2 :: 3 :: Nil) |> join(", ")
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at lambda (REPL29:1:1785)
-//│     at REPL32:1:256
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│ = "1, 2, 3"
 
 fun showList(xs) = "[" ~ join(", ")(xs) ~ "]"
 
@@ -57,19 +45,7 @@ fun (:::) appendAll(xs, ys) =
     Cons(x, xs') then x :: (xs' ::: ys)
 
 ((1 :: 2 :: 3 :: Nil) ::: (4 :: 5 :: 6 :: Nil)) |> showList
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at showList (REPL35:1:271)
-//│     at pipe (REPL16:1:163)
-//│     at REPL41:1:409
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = "[1, 2, 3, 4, 5, 6]"
 
 fun reverse(xs) =
   fun aux(acc, xs) =
@@ -80,19 +56,7 @@ fun reverse(xs) =
 
 (1 :: 2 :: 3 :: Nil) |> showList
 reverse(1 :: 2 :: 3 :: Nil) |> showList
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at showList (REPL35:1:271)
-//│     at pipe (REPL16:1:163)
-//│     at REPL47:1:225
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = "[3, 2, 1]"
 
 //   __       _     _ _          __ _
 //  / _| ___ | | __| | |    ___ / _| |_
@@ -148,19 +112,7 @@ reverse'(Nil)
 //│ = Nil
 
 reverse'(1 :: 2 :: 3 :: Nil) |> showList
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at showList (REPL35:1:271)
-//│     at pipe (REPL16:1:163)
-//│     at REPL90:1:247
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = "[3, 2, 1]"
 
 
 //   __       _     _ ____  _       _     _
@@ -181,67 +133,19 @@ let double = foldRight((x, acc) => x :: x :: acc)(Nil)
 //│ double = fun
 
 double(Nil) |> showList
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at showList (REPL35:1:271)
-//│     at pipe (REPL16:1:163)
-//│     at REPL100:1:95
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = "[]"
 
 double(1 :: 2 :: 3 :: Nil) |> showList
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at showList (REPL35:1:271)
-//│     at pipe (REPL16:1:163)
-//│     at REPL103:1:245
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = "[1, 1, 2, 2, 3, 3]"
 
 let flatten = foldRight((xs, acc) => xs ::: acc)(Nil)
 //│ flatten = fun
 
 flatten(Nil) |> showList
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at showList (REPL35:1:271)
-//│     at pipe (REPL16:1:163)
-//│     at REPL110:1:95
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = "[]"
 
 flatten(oneTwoThree :: oneTwoThree :: oneTwoThree :: Nil) |> showList
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at showList (REPL35:1:271)
-//│     at pipe (REPL16:1:163)
-//│     at REPL113:1:275
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = "[1, 2, 3, 1, 2, 3, 1, 2, 3]"
 
 fun id(x) = x
 
@@ -265,17 +169,5 @@ reverse(Nil)
 //│ = Nil
 
 reverse(1 :: 2 :: 3 :: Nil) |> showList
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
-//│     at showList (REPL35:1:271)
-//│     at pipe (REPL16:1:163)
-//│     at REPL139:1:246
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = "[3, 2, 1]"
 

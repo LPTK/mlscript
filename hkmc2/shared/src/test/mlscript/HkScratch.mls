@@ -230,8 +230,11 @@ Foo.foo
 //│ | Traversing term: Sel(Ref(member:Foo‹607›),Ident(foo))
 //│ | | Resolving resolvable term: Sel(Ref(member:Foo‹607›),Ident(foo)), (inPrefix = false)
 //│ | | | Resolving resolvable term: Ref(member:Foo‹607›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹607›)): Some(CallableDefinition(member:Foo‹607›,List(ParamList(‹›,List(Param(‹val›,x‹610›,None,Modulefulness(None))),None)),None,None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹608›,member:Foo‹607›,List(),ParamList(‹›,List(Param(‹val›,x‹610›,None,Modulefulness(None))),None),List(),None,( ‹› val member:x‹613› = x‹610›#0; ),Some(module:Foo‹611›),List())))
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹607›)): Some(CallableDefinition(member:Foo‹607›,List(),None,None,‹›,Modulefulness(None),ModuleOrObjectDef(None,module:Foo‹611›,member:Foo‹607›,List(),None,List(),None,Mod,( ‹› val member:foo‹606› = 1; ),Some(class:Foo‹608›),List())))
 //│ | | | ~> Ref(member:Foo‹607›)
+//│ | | | Resolving symbol for Sel(Ref(member:Foo‹607›),Ident(foo)), defn = Some(ModuleOrObjectDef(None,module:Foo‹611›,member:Foo‹607›,List(),None,List(),None,Mod,( ‹› val member:foo‹606› = 1; ),Some(class:Foo‹608›),List()))
+//│ | | | Resolving symbol for Sel(Ref(member:Foo‹607›),Ident(foo)), defn = Some(ModuleOrObjectDef(None,module:Foo‹611›,member:Foo‹607›,List(),None,List(),None,Mod,( ‹› val member:foo‹606› = 1; ),Some(class:Foo‹608›),List()))
+//│ | | | Resolved symbol for Sel(Ref(member:Foo‹607›),Ident(foo)): member:foo‹606›
 //│ | | | Resolving symbol for Sel(Ref(member:Foo‹607›),Ident(foo)): defn = TermDefinition(ImmutVal,member:foo‹606›,module:Foo‹611›.foo,List(),None,None,Some(Lit(IntLit(1))),‹result of member:foo›‹617›,‹›,Modulefulness(None),List(),None)
 //│ | | | Resolved symbol for Sel(Ref(member:Foo‹607›),Ident(foo)): None
 //│ | | | Resolving resolvable (sym = Some(member:foo‹606›)): Some(CallableDefinition(member:foo‹606›,List(),None,None,‹›,Modulefulness(None),TermDefinition(ImmutVal,member:foo‹606›,module:Foo‹611›.foo,List(),None,None,Some(Lit(IntLit(1))),‹result of member:foo›‹617›,‹›,Modulefulness(None),List(),None)))
@@ -240,23 +243,13 @@ Foo.foo
 //│ Blk:
 //│   stats = Nil
 //│   res = Unexpanded of Sel{member:foo‹606›}:
-//│     prefix = Unexpanded of Ref{member:Foo‹607›} of member:Foo‹607›
+//│     prefix = SynthSel{class:Foo‹608›}:
+//│       prefix = Unexpanded of Ref{member:Foo‹607›} of member:Foo‹607›
+//│       nme = Ident of "class"
 //│     nme = Ident of "foo"
 //│ JS (unsanitized):
-//│ Foo5.foo
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'foo' yielded 'undefined'
-//│     at REPL52:1:101
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+//│ Foo5.class.foo
+//│ = 1
 
 :dr
 :sjs
@@ -265,7 +258,7 @@ new Foo
 //│ | Traversing term: New(Ref(member:Foo‹607›),List(),None)
 //│ | | Traversing term: Ref(member:Foo‹607›)
 //│ | | | Resolving resolvable term: Ref(member:Foo‹607›), (inPrefix = false)
-//│ | | | | Resolving resolvable (sym = Some(member:Foo‹607›)): Some(CallableDefinition(member:Foo‹607›,List(ParamList(‹›,List(Param(‹val›,x‹610›,None,Modulefulness(None))),None)),None,None,‹›,Modulefulness(None),Parameterized(None,Cls,class:Foo‹608›,member:Foo‹607›,List(),ParamList(‹›,List(Param(‹val›,x‹610›,None,Modulefulness(None))),None),List(),None,( ‹› val member:x‹613› = x‹610›#0; ),Some(module:Foo‹611›),List())))
+//│ | | | | Resolving resolvable (sym = Some(member:Foo‹607›)): Some(CallableDefinition(member:Foo‹607›,List(),None,None,‹›,Modulefulness(None),ModuleOrObjectDef(None,module:Foo‹611›,member:Foo‹607›,List(),None,List(),None,Mod,( ‹› val member:foo‹606› = 1; ),Some(class:Foo‹608›),List())))
 //│ | | | ~> Ref(member:Foo‹607›)
 //│ JS (unsanitized):
 //│ globalThis.Object.freeze(new Foo5.class())
@@ -350,19 +343,7 @@ new Foo(1)
 //│ = Foo(1)
 
 Foo.foo
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'foo' yielded 'undefined'
-//│     at REPL67:1:101
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:593:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:922:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+//│ = 1
 
 
 

@@ -50,7 +50,7 @@ sealed trait ResolvableImpl extends Describable:
    */
   private var expansion: Opt[Opt[Term]] = N
 
-  def duplicate: Resolvable =
+  def duplicate: this.type =
     this.match
       case t: Term.Ref => t.copy()(t.tree, t.refNum, t.resSym)
       case t: Term.App => t.copy()(t.tree, t.sym, t.resSym)
@@ -58,6 +58,7 @@ sealed trait ResolvableImpl extends Describable:
       case t: Term.Sel => t.copy()(t.sym)
       case t: Term.SynthSel => t.copy()(t.sym)
     .withLocOf(this)
+    .asInstanceOf
   
   override def show: Str = expansion match
     case S(S(expansion)) => showDbg + "{~>" + expansion.show + "}"
@@ -86,7 +87,7 @@ sealed trait ResolvableImpl extends Describable:
       this
 
   /** This method is only supposed to be called by Resolver. */
-  private[semantics] def expand(expansionFn: Opt[Term => Term]): this.type =
+  private[semantics] def expand(expansionFn: Opt[this.type => Term]): this.type =
     val newExpansion = expansionFn.map(_(this.duplicate))
     expansion match
        // FIXME: @Harry this check seems like a hack
@@ -105,7 +106,8 @@ sealed trait ResolvableImpl extends Describable:
   def hasExpansion = expansion.isDefined
   
   def defn: Opt[Definition] = resolvedSymbol match
-    case S(sym: MemberSymbol[?]) => sym.defn
+    case S(sym: MemberSymbol[?]) => sym.defn.map(_.asPrincipalDefn)
+    // TODO: @Harry check if this case is really needed.
     case S(sym: BlockLocalSymbol) => sym.decl match
       case S(td: Definition) => S(td)
       case _ => N
@@ -122,6 +124,8 @@ sealed trait ResolvableImpl extends Describable:
   def typeDefn: Opt[ClassLikeDef] = defn match
     case S(td: ClassLikeDef) => S(td)
     case _ => N
+
+  def moduleDefn: Opt[ModuleOrObjectDef] = defn.flatMap(_.asOverloadModuleDefn)
 
 object Resolvable:
   case class CallableDefinition(
@@ -174,6 +178,7 @@ enum Term extends Statement:
   case UnitVal()
   case Missing // Placeholder terms that were not elaborated due to the "lightweight" elaboration mode `Mode.Light`
   case Lit(lit: Literal)
+  case Disamb(ref: Ref, sym: FieldSymbol)
   case Ref(sym: Symbol)(val tree: Tree.Ident, val refNum: Int, var resSym: Opt[Symbol]) extends Term with ResolvableImpl
   case App(lhs: Term, rhs: Term)(val tree: Tree.App, var sym: Opt[FieldSymbol], val resSym: FlowSymbol) extends Term with ResolvableImpl
   case TyApp(lhs: Term, targs: Ls[Term])(var sym: Opt[Symbol]) extends Term with ResolvableImpl
@@ -258,6 +263,7 @@ enum Term extends Statement:
     case Error => "<error>"
     case UnitVal() => "unit value"
     case Lit(lit) => lit.describeLit
+    case Disamb(ref, sym) => "reference (disambiguated)"
     case Ref(sym) => "reference"
     case App(lhs, rhs) => "application"
     case TyApp(lhs, targs) => "type application"
@@ -393,6 +399,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
   def showPlain: Str = this match
     case Term.UnitVal() => "()"
     case Lit(lit) => lit.idStr
+    case Disamb(r, disambSym) => s"${r.showPlain} (${disambSym.toString})"
     case r @ Ref(symbol) => symbol.toString+"#"+r.refNum
     case App(lhs, tup: Tup) => s"${lhs.showDbg}(${tup.fields.map(_.showDbg).mkString(", ")})"
     case App(lhs, rhs) => s"${lhs.showDbg}(...${rhs.showDbg})"
@@ -566,7 +573,7 @@ sealed abstract class Declaration:
 
 sealed abstract class Definition extends Declaration with Statement:
   val annotations: Ls[Annot]
-  def isDeclare: Opt[Annot.Modifier] = annotations.collectFirst:
+  def declareModifier: Opt[Annot.Modifier] = annotations.collectFirst:
     case mod @ Annot.Modifier(Keyword.`declare`) => mod
   
   /** Whether this definition is the "representative" definition of a set of overloaded definitions,
@@ -575,6 +582,25 @@ sealed abstract class Definition extends Declaration with Statement:
   def isPrincipalOverload: Bool = this match
     case cls: ModuleOrObjectDef => cls.companion.isEmpty
     case _ => true
+  
+  def asPrincipalDefn: Definition = this match
+    case defn: ClassDef => defn.companion match
+      case S(comSym) => comSym.defn.getOrElse:
+        lastWords(s"No definition found for companion ${comSym} of ${defn.sym}.")
+      case N =>
+        this
+    case defn: ModuleOrObjectDef => defn.companion match
+      case S(comSym) => comSym.defn.getOrElse:
+        lastWords(s"No definition found for companion ${comSym} of ${defn.sym}.")
+      case N =>
+        this
+    case _ =>
+      this
+  
+  def asOverloadModuleDefn: Opt[ModuleOrObjectDef] = this match
+    case defn: ClassDef => defn.companion.flatMap(_.defn).flatMap(_.asOverloadModuleDefn)
+    case defn: ModuleOrObjectDef => S(defn)
+    case _ => N
 
 sealed trait CompanionValue extends Definition
 

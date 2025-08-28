@@ -56,9 +56,9 @@ module Foo with
 //│ Lowering.term ( ‹› mut val member:x = 1; (module:Foo#666.)x‹member:x› := 2 )
 //│ Lowering.term 1
 //│ Lowering.term (module:Foo#666.)x‹member:x› := 2
-//│ Lowering.term module:Foo#666 – symbol module:Foo
+//│ Lowering.term module:Foo#666
 //│ Expanding term Ref(module:Foo)
-//│ ~> module:Foo#666
+//│ ~> module:Foo#666 (module:Foo)
 //│ Lowering.term 2
 //│ Lowering.term undefined
 //│ avoidNames Define(ClsLikeDefn(None,class:Foo,member:Foo,Cls,None,List(),None,List(),List(),List(),End(),Return(...

@@ -190,7 +190,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             ErrorReport(
               msg"Unexpected declaration kind '${td.k.str}' in lowering" -> td.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
-      case cls: ClassLikeDef if cls.sym.defn.exists(_.isDeclare.isDefined) =>
+      case cls: ClassLikeDef if cls.sym.defn.exists(_.declareModifier.isDefined) =>
         // * Declarations have no lowering
         blockImpl(stats, res)(k)
       case cls: ClassDef if cls.moduleCompanion.isDefined =>
@@ -282,7 +282,64 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       // Application arguments that are not tuples represent spreads, as in `f(...arg)`
       subTerm_nonTail(arg): ar =>
         k(Arg(spread = S(true), ar) :: Nil)
-  
+
+  def lowerRef(ref: st.Ref, disamb: Opt[st.Disamb])(k: Result => Block)(using Subst): Block = 
+    val st.Ref(sym) = ref
+    sym match
+      case ctx.builtins.source.bms | ctx.builtins.js.bms | ctx.builtins.debug.bms | ctx.builtins.annotations.bms =>
+        return fail:
+          ErrorReport(
+            msg"Module '${sym.nme}' is virtual (i.e., \"compiler fiction\"); cannot be used directly" -> ref.toLoc ::
+            Nil, S(ref), source = Diagnostic.Source.Compilation)
+      case sym: BuiltinSymbol =>
+        if sym.binary then
+          val t1 = new Tree.Ident("arg1")
+          val t2 = new Tree.Ident("arg2")
+          val p1 = Param(FldFlags.empty, VarSymbol(t1), N, Modulefulness.none)
+          val p2 = Param(FldFlags.empty, VarSymbol(t2), N, Modulefulness.none)
+          val ps = PlainParamList(p1 :: p2 :: Nil)
+          val bod = st.App(ref, st.Tup(List(st.Ref(p1.sym)(t1, 666, N).resolve, st.Ref(p2.sym)(t2, 666, N).resolve))
+            (Tree.Tup(Nil // FIXME should not be required (using dummy value)
+              )))(
+              Tree.App(Tree.Empty(), Tree.Empty()), // FIXME should not be required (using dummy value)
+              N,
+              FlowSymbol(sym.nme)
+            ).resolve
+          val (paramLists, bodyBlock) = setupFunctionDef(ps :: Nil, bod, S(sym.nme))
+          tl.log(s"Ref builtin $sym")
+          assert(paramLists.length === 1)
+          return k(Value.Lam(paramLists.head, bodyBlock))
+        if sym.unary then
+          val t1 = new Tree.Ident("arg")
+          val p1 = Param(FldFlags.empty, VarSymbol(t1), N, Modulefulness.none)
+          val ps = PlainParamList(p1 :: Nil)
+          val bod = st.App(ref, st.Tup(List(st.Ref(p1.sym)(t1, 666, N).resolve))
+            (Tree.Tup(Nil // FIXME should not be required (using dummy value)
+              )))(
+              Tree.App(Tree.Empty(), Tree.Empty()), // FIXME should not be required (using dummy value)
+              N,
+              FlowSymbol(sym.nme)
+            ).resolve
+          val (paramLists, bodyBlock) = setupFunctionDef(ps :: Nil, bod, S(sym.nme))
+          tl.log(s"Ref builtin $sym")
+          assert(paramLists.length === 1)
+          return k(Value.Lam(paramLists.head, bodyBlock))
+      case bs: BlockMemberSymbol =>
+        disamb.map(_.sym).flatMap(_.defn) orElse bs.defn match
+        case S(d) if d.declareModifier.isDefined =>
+          return term(Sel(State.globalThisSymbol.ref().resolve, ref.tree)(S(bs)).resolve)(k)
+        case S(td: TermDefinition) if td.k is syntax.Fun =>
+          // * Local functions with no parameter lists are getters
+          // * and are lowered to functions with an empty parameter list
+          // * (non-local functions are compiled into getter methods selected on some prefix)
+          if td.params.isEmpty then
+            val l = new TempSymbol(S(ref))
+            return Assign(l, Call(Value.Ref(bs), Nil)(true, true), k(Value.Ref(l)))
+        case S(_) => ()
+        case N => () // TODO panic here; can only lower refs to elab'd symbols
+      case _ => ()
+      k(subst(Value.Ref(sym)))
+
   @tailrec
   final def term(t: st, inStmtPos: Bool = false)(k: Result => Block)(using Subst): Block =
     tl.log(s"Lowering.term ${t.showDbg.truncate(100, "[...]")}${
@@ -311,63 +368,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     case st.CtxTup(fs) =>
       // Q: is this ever supposed to be reached?
       args(fs)(args => k(Value.Arr(mut = false, args)))
-    case ref @ st.Ref(sym) =>
-      sym match
-      case ctx.builtins.source.bms | ctx.builtins.js.bms | ctx.builtins.debug.bms | ctx.builtins.annotations.bms =>
-        return fail:
-          ErrorReport(
-            msg"Module '${sym.nme}' is virtual (i.e., \"compiler fiction\"); cannot be used directly" -> t.toLoc ::
-            Nil, S(t), source = Diagnostic.Source.Compilation)
-      case sym: BuiltinSymbol =>
-        warnStmt
-        if sym.binary then
-          val t1 = new Tree.Ident("arg1")
-          val t2 = new Tree.Ident("arg2")
-          val p1 = Param(FldFlags.empty, VarSymbol(t1), N, Modulefulness.none)
-          val p2 = Param(FldFlags.empty, VarSymbol(t2), N, Modulefulness.none)
-          val ps = PlainParamList(p1 :: p2 :: Nil)
-          val bod = st.App(t, st.Tup(List(st.Ref(p1.sym)(t1, 666, N).resolve, st.Ref(p2.sym)(t2, 666, N).resolve))
-            (Tree.Tup(Nil // FIXME should not be required (using dummy value)
-              )))(
-              Tree.App(Tree.Empty(), Tree.Empty()), // FIXME should not be required (using dummy value)
-              N,
-              FlowSymbol(sym.nme)
-            ).resolve
-          val (paramLists, bodyBlock) = setupFunctionDef(ps :: Nil, bod, S(sym.nme))
-          tl.log(s"Ref builtin $sym")
-          assert(paramLists.length === 1)
-          return k(Value.Lam(paramLists.head, bodyBlock))
-        if sym.unary then
-          val t1 = new Tree.Ident("arg")
-          val p1 = Param(FldFlags.empty, VarSymbol(t1), N, Modulefulness.none)
-          val ps = PlainParamList(p1 :: Nil)
-          val bod = st.App(t, st.Tup(List(st.Ref(p1.sym)(t1, 666, N).resolve))
-            (Tree.Tup(Nil // FIXME should not be required (using dummy value)
-              )))(
-              Tree.App(Tree.Empty(), Tree.Empty()), // FIXME should not be required (using dummy value)
-              N,
-              FlowSymbol(sym.nme)
-            ).resolve
-          val (paramLists, bodyBlock) = setupFunctionDef(ps :: Nil, bod, S(sym.nme))
-          tl.log(s"Ref builtin $sym")
-          assert(paramLists.length === 1)
-          return k(Value.Lam(paramLists.head, bodyBlock))
-      case bs: BlockMemberSymbol =>
-        bs.defn match
-        case S(d) if d.isDeclare.isDefined =>
-          return term(Sel(State.globalThisSymbol.ref().resolve, ref.tree)(S(bs)).resolve)(k)
-        case S(td: TermDefinition) if td.k is syntax.Fun =>
-          // * Local functions with no parameter lists are getters
-          // * and are lowered to functions with an empty parameter list
-          // * (non-local functions are compiled into getter methods selected on some prefix)
-          if td.params.isEmpty then
-            val l = new TempSymbol(S(t))
-            return Assign(l, Call(Value.Ref(bs), Nil)(true, true), k(Value.Ref(l)))
-        case S(_) => ()
-        case N => () // TODO panic here; can only lower refs to elab'd symbols
-      case _ => ()
+    case disamb @ st.Disamb(ref = ref) =>
       warnStmt
-      k(subst(Value.Ref(sym)))
+      lowerRef(ref, S(disamb))(k)
+    case ref: st.Ref =>
+      warnStmt
+      lowerRef(ref, N)(k)
     case st.App(Ref(sym: BuiltinSymbol), arg) =>
       arg match
       case st.Tup(Nil) =>
@@ -738,7 +744,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     
     // case _ =>
     //   subTerm(t)(k)
-
+  
   def setupTerm(name: Str, args: Ls[Path])(k: Result => Block)(using Subst): Block =
     k(Instantiate(mut = false, Value.Ref(State.termSymbol).selSN(name), args.map(_.asArg)))
 
