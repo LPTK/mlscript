@@ -178,7 +178,6 @@ enum Term extends Statement:
   case UnitVal()
   case Missing // Placeholder terms that were not elaborated due to the "lightweight" elaboration mode `Mode.Light`
   case Lit(lit: Literal)
-  case Disamb(ref: Ref, sym: FieldSymbol)
   case Ref(sym: Symbol)(val tree: Tree.Ident, val refNum: Int, var resSym: Opt[Symbol]) extends Term with ResolvableImpl
   case App(lhs: Term, rhs: Term)(val tree: Tree.App, var sym: Opt[FieldSymbol], val resSym: FlowSymbol) extends Term with ResolvableImpl
   case TyApp(lhs: Term, targs: Ls[Term])(var sym: Opt[Symbol]) extends Term with ResolvableImpl
@@ -263,7 +262,6 @@ enum Term extends Statement:
     case Error => "<error>"
     case UnitVal() => "unit value"
     case Lit(lit) => lit.describeLit
-    case Disamb(ref, sym) => "reference (disambiguated)"
     case Ref(sym) => "reference"
     case App(lhs, rhs) => "application"
     case TyApp(lhs, targs) => "type application"
@@ -399,7 +397,6 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
   def showPlain: Str = this match
     case Term.UnitVal() => "()"
     case Lit(lit) => lit.idStr
-    case Disamb(r, disambSym) => s"${r.showPlain} (${disambSym.toString})"
     case r @ Ref(symbol) => symbol.toString+"#"+r.refNum
     case App(lhs, tup: Tup) => s"${lhs.showDbg}(${tup.fields.map(_.showDbg).mkString(", ")})"
     case App(lhs, rhs) => s"${lhs.showDbg}(...${rhs.showDbg})"

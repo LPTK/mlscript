@@ -25,9 +25,7 @@ M.foo
 //│ Blk:
 //│   stats = Nil
 //│   res = Unexpanded of Sel{module:M}:
-//│     prefix = Disamb:
-//│       ref = Unexpanded of Ref{member:M} of member:M
-//│       sym = module:M
+//│     prefix = Ref of member:module:M
 //│     nme = Ident of "foo"
 
 M.bar
@@ -35,9 +33,7 @@ M.bar
 //│ Blk:
 //│   stats = Nil
 //│   res = Unexpanded of Sel{module:M}:
-//│     prefix = Disamb:
-//│       ref = Unexpanded of Ref{member:M} of member:M
-//│       sym = module:M
+//│     prefix = Ref of member:module:M
 //│     nme = Ident of "bar"
 
 M.baz
@@ -45,9 +41,7 @@ M.baz
 //│ Blk:
 //│   stats = Nil
 //│   res = Unexpanded of Sel{member:baz}:
-//│     prefix = Disamb:
-//│       ref = Unexpanded of Ref{member:M} of member:M
-//│       sym = module:M
+//│     prefix = Ref of member:module:M
 //│     nme = Ident of "baz"
 
 M.baz()
@@ -56,9 +50,7 @@ M.baz()
 //│   stats = Nil
 //│   res = Unexpanded of App{module:M}:
 //│     lhs = Unexpanded of Sel{member:baz}:
-//│       prefix = Disamb:
-//│         ref = Unexpanded of Ref{member:M} of member:M
-//│         sym = module:M
+//│       prefix = Ref of member:module:M
 //│       nme = Ident of "baz"
 //│     rhs = Tup of Nil
 
@@ -70,9 +62,7 @@ M.foo.bar.baz()
 //│     lhs = Unexpanded of Sel{member:baz}:
 //│       prefix = Unexpanded of Sel{module:M}:
 //│         prefix = Unexpanded of Sel{module:M}:
-//│           prefix = Disamb:
-//│             ref = Unexpanded of Ref{member:M} of member:M
-//│             sym = module:M
+//│           prefix = Ref of member:module:M
 //│           nme = Ident of "foo"
 //│         nme = Ident of "bar"
 //│       nme = Ident of "baz"
@@ -84,9 +74,7 @@ M.that.that
 //│   stats = Nil
 //│   res = Unexpanded of Sel{module:M}:
 //│     prefix = Unexpanded of Sel{module:N}:
-//│       prefix = Disamb:
-//│         ref = Unexpanded of Ref{member:M} of member:M
-//│         sym = module:M
+//│       prefix = Ref of member:module:M
 //│       nme = Ident of "that"
 //│     nme = Ident of "that"
 
@@ -100,9 +88,7 @@ M.that.that.that.that.that.that
 //│         prefix = Unexpanded of Sel{module:N}:
 //│           prefix = Unexpanded of Sel{module:M}:
 //│             prefix = Unexpanded of Sel{module:N}:
-//│               prefix = Disamb:
-//│                 ref = Unexpanded of Ref{member:M} of member:M
-//│                 sym = module:M
+//│               prefix = Ref of member:module:M
 //│               nme = Ident of "that"
 //│             nme = Ident of "that"
 //│           nme = Ident of "that"
@@ -115,9 +101,7 @@ R.foo
 //│ Blk:
 //│   stats = Nil
 //│   res = Unexpanded of Sel{member:foo}:
-//│     prefix = Disamb:
-//│       ref = Unexpanded of Ref{member:R} of member:R
-//│       sym = module:R
+//│     prefix = Ref of member:module:R
 //│     nme = Ident of "foo"
 
 R.foo()
@@ -126,9 +110,7 @@ R.foo()
 //│   stats = Nil
 //│   res = Unexpanded of App:
 //│     lhs = Unexpanded of Sel{member:foo}:
-//│       prefix = Disamb:
-//│         ref = Unexpanded of Ref{member:R} of member:R
-//│         sym = module:R
+//│       prefix = Ref of member:module:R
 //│       nme = Ident of "foo"
 //│     rhs = Tup of Nil
 
@@ -139,9 +121,7 @@ R.foo()()
 //│   res = Unexpanded of App{module:N}:
 //│     lhs = Unexpanded of App:
 //│       lhs = Unexpanded of Sel{member:foo}:
-//│         prefix = Disamb:
-//│           ref = Unexpanded of Ref{member:R} of member:R
-//│           sym = module:R
+//│         prefix = Ref of member:module:R
 //│         nme = Ident of "foo"
 //│       rhs = Tup of Nil
 //│     rhs = Tup of Nil
@@ -154,9 +134,7 @@ R.foo()()()
 //│     lhs = Unexpanded of App{module:N}:
 //│       lhs = Unexpanded of App:
 //│         lhs = Unexpanded of Sel{member:foo}:
-//│           prefix = Disamb:
-//│             ref = Unexpanded of Ref{member:R} of member:R
-//│             sym = module:R
+//│           prefix = Ref of member:module:R
 //│           nme = Ident of "foo"
 //│         rhs = Tup of Nil
 //│       rhs = Tup of Nil
@@ -174,9 +152,7 @@ R.bar
 //│     lhs = Unexpanded of App:
 //│       lhs = Unexpanded of App:
 //│         lhs = Unexpanded of Sel{member:bar}:
-//│           prefix = Disamb:
-//│             ref = Unexpanded of Ref{member:R} of member:R
-//│             sym = module:R
+//│           prefix = Ref of member:module:R
 //│           nme = Ident of "bar"
 //│         rhs = Tup of Ls of 
 //│           Fld:
@@ -230,9 +206,7 @@ R.bar[Int]
 //│       lhs = Unexpanded of App:
 //│         lhs = Unexpanded of TyApp{member:bar}:
 //│           lhs = Unexpanded of Sel{member:bar}:
-//│             prefix = Disamb:
-//│               ref = Unexpanded of Ref{member:R} of member:R
-//│               sym = module:R
+//│             prefix = Ref of member:module:R
 //│             nme = Ident of "bar"
 //│           targs = Ls of 
 //│             Unexpanded of Ref{member:Int} of member:Int

@@ -26,10 +26,10 @@ module Bar with
 //│ Lowering.term ( (module:Bar#666.)x‹member:x› )
 //│ Lowering.term (module:Bar#666.)x‹member:x› – symbol member:x
 //│ Expanding term SynthSel(Ref(module:Bar),Ident(x))
-//│ ~> (module:Bar#666.)x‹member:x›
-//│ Lowering.term module:Bar#666
+//│ ~> SynthSel(Ref(module:Bar),Ident(x))
+//│ Lowering.term module:Bar#666 – symbol module:Bar
 //│ Expanding term Ref(module:Bar)
-//│ ~> module:Bar#666 (module:Bar)
+//│ ~> Ref(module:Bar)
 //│ Lowering.term undefined
 //│ avoidNames Define(ClsLikeDefn(None,class:Bar,member:Bar,Cls,None,List(),None,List(),List(),List(),End(),Return(...
 //│ | avoidNames End()...

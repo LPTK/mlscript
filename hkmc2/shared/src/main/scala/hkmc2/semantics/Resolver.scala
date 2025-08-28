@@ -16,7 +16,6 @@ import Message.MessageContext
 import scala.annotation.tailrec
 import hkmc2.semantics.Resolver.ICtx.Instance
 import hkmc2.semantics.Term.SynthSel
-import hkmc2.semantics.Term.Disamb
 
 object Resolver:
   
@@ -769,7 +768,8 @@ class Resolver(tl: TraceLogger)
           withSym(t, bsym)
           expand2DotClass(lhs)
           lhs.instantiate match
-            case ref: Term.Ref => ref.expand(S(ref => Disamb(ref, mdef.sym)))
+            case ref @ Term.Ref(bsym: BlockMemberSymbol) => ref.expand:
+              S(ref => bsym.disamb(mdef.sym).ref(ref.tree))
             case _ => ()
           log(s"Resolved symbol for ${t}: ${bsym}")
         case N => 

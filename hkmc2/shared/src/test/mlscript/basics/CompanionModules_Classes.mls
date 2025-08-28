@@ -53,9 +53,7 @@ C.empty
 //│ Blk:
 //│   stats = Nil
 //│   res = Unexpanded of Sel{member:empty}:
-//│     prefix = Disamb:
-//│       ref = Unexpanded of Ref{member:C} of member:C
-//│       sym = module:C
+//│     prefix = Ref of member:module:C
 //│     nme = Ident of "empty"
 //│ = 1
 

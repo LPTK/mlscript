@@ -239,7 +239,7 @@ fun f =
 //│ ║         	^^^^^^^
 //│ ╟── which is introduced here
 //│ ║  l.225: 	  module M with
-//│ ║         	         ^^^^^^
+//│ ║         	  ^^^^^^^^^^^^^
 //│ ║  l.226: 	    fun g =
 //│ ║         	^^^^^^^^^^^
 //│ ║  l.227: 	      fun h = M.g

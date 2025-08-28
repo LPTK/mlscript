@@ -12,6 +12,7 @@ import hkmc2.semantics.InnerSymbol
 import hkmc2.semantics.VarSymbol
 import hkmc2.semantics.Elaborator
 import hkmc2.semantics.TopLevelSymbol
+import hkmc2.semantics.DisambBlockMemberSymbol
 import semantics.Elaborator.State
 import hkmc2.codegen.Local
 import hkmc2.codegen.js.JSBuilder
@@ -98,7 +99,11 @@ case class Scope
   
   def lookup(l: Local): Opt[Str] =
     // curThis.filter(_ is l).map(_ => thisProxy) orElse
-    bindings.get(l).orElse(parent.flatMap(_.lookup(l)))
+    val ll = l match
+      // FIXME: DisambBlockMemberSymbol workaround
+      case dbs: DisambBlockMemberSymbol[?] => dbs.bsym
+      case _ => l
+    bindings.get(ll).orElse(parent.flatMap(_.lookup(ll)))
   
   def lookup_!(l: Local)(using Raise): Str =
     lookup(l).getOrElse:
