@@ -29,7 +29,7 @@ abstract class Symbol(using State) extends Located:
   def refsNumber: Int = directRefs.size
   
   def existsNonModuleful: Bool = this match
-    case mod: ModuleSymbol => !(mod.tree.k is Mod)
+    case mod: ModuleOrObjectSymbol => !(mod.tree.k is Mod)
     case mem: BlockMemberSymbol =>
       // Some block member symbols do not correspond to a definition
       // Tree, e.g., val definitions of a data class. So, it is supposed
@@ -43,7 +43,7 @@ abstract class Symbol(using State) extends Located:
   
   def existsModuleful: Bool = 
     this match
-    case mod: ModuleSymbol => (mod.tree.k is Mod)
+    case mod: ModuleOrObjectSymbol => (mod.tree.k is Mod)
     case mem: BlockMemberSymbol => 
       mem.trees.exists:
         case t @ Tree.TypeDef(k = Mod) => true
@@ -61,13 +61,13 @@ abstract class Symbol(using State) extends Located:
     case cls: ClassSymbol => S(cls)
     case mem: BlockMemberSymbol => mem.clsTree.flatMap(_.symbol.asCls)
     case _ => N
-  def asModOrObj: Opt[ModuleSymbol] = this match
-    case mod: ModuleSymbol => S(mod)
+  def asModOrObj: Opt[ModuleOrObjectSymbol] = this match
+    case mod: ModuleOrObjectSymbol => S(mod)
     case mem: BlockMemberSymbol => mem.modOrObjTree.flatMap(_.symbol.asModOrObj)
     case _ => N
-  def asMod: Opt[ModuleSymbol] = asModOrObj.filter(_.tree.k is Mod)
-  def asObj: Opt[ModuleSymbol] = asModOrObj.filter(_.tree.k is Obj)
-  def asClsOrMod: Opt[ClassSymbol | ModuleSymbol] = asCls orElse asModOrObj
+  def asMod: Opt[ModuleOrObjectSymbol] = asModOrObj.filter(_.tree.k is Mod)
+  def asObj: Opt[ModuleOrObjectSymbol] = asModOrObj.filter(_.tree.k is Obj)
+  def asClsOrMod: Opt[ClassSymbol | ModuleOrObjectSymbol] = asCls orElse asModOrObj
   /* 
   def asTrm: Opt[TermSymbol] = this match
     case trm: TermSymbol => S(trm)
@@ -83,8 +83,8 @@ abstract class Symbol(using State) extends Located:
     case mem: BlockMemberSymbol => mem.alsTree.flatMap(_.symbol.asAls)
     case _ => N
   
-  def asClsLike: Opt[ClassSymbol | ModuleSymbol | PatternSymbol] =
-    (asCls: Opt[ClassSymbol | ModuleSymbol | PatternSymbol]) orElse asModOrObj orElse asPat
+  def asClsLike: Opt[ClassSymbol | ModuleOrObjectSymbol | PatternSymbol] =
+    (asCls: Opt[ClassSymbol | ModuleOrObjectSymbol | PatternSymbol]) orElse asModOrObj orElse asPat
   def asTpe: Opt[TypeSymbol] = asCls orElse asAls
   
   def asBlkMember: Opt[BlockMemberSymbol] = this match
@@ -288,7 +288,7 @@ class ClassSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
   
   override def subst(using sub: SymbolSubst): ClassSymbol = sub.mapClsSym(this)
 
-class ModuleSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
+class ModuleOrObjectSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
     extends MemberSymbol[ModuleOrObjectDef] with ClassLikeSymbol with CtorSymbol with InnerSymbol with NamedSymbol:
   def name: Str = nme
   def nme = id.name
@@ -297,7 +297,7 @@ class ModuleSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
     if tree.k is Obj then s"object:$nme${State.dbgUid(uid)}"
     else s"module:${id.name}${State.dbgUid(uid)}"
   
-  override def subst(using sub: SymbolSubst): ModuleSymbol = sub.mapModuleSym(this)
+  override def subst(using sub: SymbolSubst): ModuleOrObjectSymbol = sub.mapModuleSym(this)
 
 class TypeAliasSymbol(val id: Tree.Ident)(using State) extends MemberSymbol[TypeDef]:
   def nme = id.name

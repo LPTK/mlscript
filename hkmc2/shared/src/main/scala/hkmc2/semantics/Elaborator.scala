@@ -128,10 +128,10 @@ object Elaborator:
       private def assumeBuiltinCls(nme: Str): ClassSymbol =
         assumeBuiltin(nme).asCls.getOrElse(throw new NoSuchElementException(
           s"builtin class symbol $nme"))
-      private def assumeBuiltinObj(nme: Str): ModuleSymbol =
+      private def assumeBuiltinObj(nme: Str): ModuleOrObjectSymbol =
         assumeBuiltin(nme).asObj.getOrElse(throw new NoSuchElementException(
           s"builtin object symbol $nme"))
-      private def assumeBuiltinMod(nme: Str): ModuleSymbol =
+      private def assumeBuiltinMod(nme: Str): ModuleOrObjectSymbol =
         assumeBuiltin(nme).asMod.getOrElse(throw new NoSuchElementException(
           s"builtin module symbol $nme"))
       val Int = assumeBuiltinCls("Int")
@@ -145,7 +145,7 @@ object Elaborator:
       val TypedArray = assumeBuiltinCls("TypedArray")
       val untyped = assumeBuiltinTpe("untyped")
       // println(s"Builtins: $Int, $Num, $Str, $untyped")
-      class VirtualModule(val module: ModuleSymbol):
+      class VirtualModule(val module: ModuleOrObjectSymbol):
         val bms = getBuiltin(module.nme) match
           case S(Ctx.RefElem(bms: BlockMemberSymbol)) => bms
           case huh => wat(huh)
@@ -207,7 +207,7 @@ object Elaborator:
     val suid = new Uid.Symbol.State
     given State = this
     val globalThisSymbol = TopLevelSymbol("globalThis")
-    val unitSymbol = ModuleSymbol(DummyTypeDef(syntax.Obj), Ident("Unit"))
+    val unitSymbol = ModuleOrObjectSymbol(DummyTypeDef(syntax.Obj), Ident("Unit"))
     // In JavaScript, `import` can be used for getting current file path, as `import.meta`
     val importSymbol = new VarSymbol(Ident("import"))
     val runtimeSymbol = TempSymbol(N, "runtime")
@@ -1281,7 +1281,7 @@ extends Importer:
             patSym.defn = S(pd)
             pd
         case k: (Mod.type | Obj.type) =>
-          val modSym = td.symbol.asInstanceOf[ModuleSymbol] // TODO: improve `asInstanceOf`
+          val modSym = td.symbol.asInstanceOf[ModuleOrObjectSymbol] // TODO: improve `asInstanceOf`
           val owner = ctx.outer.inner
           newCtx.nestInner(modSym).givenIn:
             trace(s"Processing module/object definition $nme"):
@@ -1601,7 +1601,7 @@ extends Importer:
                   if !tp.isCovariant then traverseType(pol.!)(targ)
             case N =>
               // TODO(sym->sym.uid)
-          case S(sym: ModuleSymbol) =>
+          case S(sym: ModuleOrObjectSymbol) =>
             sym.defn match
             case S(td: ModuleOrObjectDef) =>
               if td.tparams.sizeCompare(targs) =/= 0 then

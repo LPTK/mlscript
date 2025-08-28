@@ -487,7 +487,7 @@ object TermDefFlags { val empty: TermDefFlags = TermDefFlags(false) }
  * symbol, the declaration is moduleful and the symbol is the symbol of
  * the module's type
  */
-final case class Modulefulness(msym: Opt[ModuleSymbol])(val modified: Bool):
+final case class Modulefulness(msym: Opt[ModuleOrObjectSymbol])(val modified: Bool):
   
   def isModuleful: Bool = msym.isDefined
   
@@ -578,8 +578,8 @@ sealed abstract class Definition extends Declaration with Statement:
 
 sealed trait CompanionValue extends Definition
 
-type CompanionSymbol = ModuleSymbol | TypeAliasSymbol | ClassSymbol
-type ClassCompanionSymbol = ModuleSymbol | TypeAliasSymbol
+type CompanionSymbol = ModuleOrObjectSymbol | TypeAliasSymbol | ClassSymbol
+type ClassCompanionSymbol = ModuleOrObjectSymbol | TypeAliasSymbol
 type ModuleCompanionSymbol = TypeAliasSymbol | ClassSymbol
 
 
@@ -606,7 +606,7 @@ sealed abstract class ClassLikeDef extends TypeLikeDef:
     case S(sym: ClassSymbol) => S(sym)
     case _ => N
   def moduleCompanion = companion match
-    case S(sym: ModuleSymbol) => S(sym)
+    case S(sym: ModuleOrObjectSymbol) => S(sym)
     case _ => N
   def extraAnnotations: Ls[Annot] = annotations.filter:
     case Annot.Modifier(Keyword.`declare` | Keyword.`abstract` | Keyword.`data`) => false
@@ -615,7 +615,7 @@ sealed abstract class ClassLikeDef extends TypeLikeDef:
 
 case class ModuleOrObjectDef(
   owner: Opt[InnerSymbol], 
-  sym: ModuleSymbol, 
+  sym: ModuleOrObjectSymbol, 
   bsym: BlockMemberSymbol,
   tparams: Ls[TyParam], 
   paramsOpt: Opt[ParamList], 

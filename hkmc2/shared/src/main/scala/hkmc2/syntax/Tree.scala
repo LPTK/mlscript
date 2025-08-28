@@ -552,7 +552,7 @@ trait TypeDefImpl(using State) extends TypeOrTermDef:
   
   lazy val symbol: MemberSymbol[? <: TypeLikeDef] = k match
     case Cls => ClassSymbol(this, name.getOrElse(Ident("<error>")))
-    case Mod | Obj => ModuleSymbol(this, name.getOrElse(Ident("<error>")))
+    case Mod | Obj => ModuleOrObjectSymbol(this, name.getOrElse(Ident("<error>")))
     case Als => TypeAliasSymbol(name.getOrElse(Ident("<error>")))
     case Pat => PatternSymbol(
       name.getOrElse(Ident("<error>")),

@@ -590,7 +590,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
                     // and use it `Predef.unreachable` here.
                     k(cls, Nil)(unreachableFn)
                   case S(cls: ClassSymbol) => subTerm_nonTail(ctor)(k(cls, cls.tree.clsParams))
-                  case S(mod: ModuleSymbol) => subTerm_nonTail(ctor)(k(mod, Nil))
+                  case S(mod: ModuleOrObjectSymbol) => subTerm_nonTail(ctor)(k(mod, Nil))
                   case N =>
                     // Normalization have already checked the constructor
                     // resolves to a class or module. Branches with unresolved
@@ -792,7 +792,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       setupTerm("Builtin", Value.Lit(Tree.StrLit(sym.nme)) :: Nil)(k)
     case Ref(sym) =>
       k(Value.Ref(sym))
-    case SynthSel(Ref(sym: ModuleSymbol), name) => // Local cross-stage references
+    case SynthSel(Ref(sym: ModuleOrObjectSymbol), name) => // Local cross-stage references
       setupSymbol(sym): r1 =>
         val l1, l2 = new TempSymbol(N)
         Assign(l1, r1, setupTerm("CSRef", Value.Ref(l1) :: setupFilename :: Value.Lit(syntax.Tree.UnitLit(false)) :: Nil)(r2 =>

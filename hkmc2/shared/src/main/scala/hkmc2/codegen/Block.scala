@@ -459,7 +459,7 @@ final case class ClsLikeBody(
 object ClsLikeBody:
   // TODO rm `empty`? it's currently unused
   def empty(id: Tree.Ident)(using State) = ClsLikeBody(
-    isym = ModuleSymbol(Tree.DummyTypeDef(syntax.Mod), id),
+    isym = ModuleOrObjectSymbol(Tree.DummyTypeDef(syntax.Mod), id),
     methods = Nil,
     privateFields = Nil,
     publicFields = Nil,

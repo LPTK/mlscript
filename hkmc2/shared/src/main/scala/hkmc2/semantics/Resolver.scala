@@ -1020,7 +1020,7 @@ object ModuleChecker:
       case N => false
   
   extension (t: Term)
-    def asModulefulType: Opt[ModuleSymbol] = t.resolvedSymbol match
+    def asModulefulType: Opt[ModuleOrObjectSymbol] = t.resolvedSymbol match
       case S(sym: FieldSymbol) =>
         sym.asMod
       case _ =>

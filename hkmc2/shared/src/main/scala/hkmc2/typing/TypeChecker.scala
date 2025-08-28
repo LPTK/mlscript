@@ -26,7 +26,7 @@ class TypeChecker(using Raise, Elaborator.State):
       if rc === 1 then P.Flow(sym)
       else P.Lab(P.Flow(sym), L.Exit(sym, rc, false))
     case Ref(cls: ClassSymbol) => P.Ctor(cls, Nil)
-    case Ref(cls: ModuleSymbol) => P.Ctor(cls, Nil)
+    case Ref(cls: ModuleOrObjectSymbol) => P.Ctor(cls, Nil)
     case Ref(ts: TermSymbol) =>
       ts.defn match
         case S(td: TermDefinition) =>

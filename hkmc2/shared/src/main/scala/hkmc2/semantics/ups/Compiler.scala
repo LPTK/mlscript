@@ -43,7 +43,7 @@ class Compiler(using Context)(using tl: TL)(using Ctx, State, Raise) extends Ter
     /** Create a flat pattern that can be used in the UCS expressions. */
     def toFlatPattern: FlatPattern = head match
       case lit: syntax.Literal => FlatPattern.Lit(lit)(Nil)
-      case sym: (ClassSymbol | ModuleSymbol) =>
+      case sym: (ClassSymbol | ModuleOrObjectSymbol) =>
         FlatPattern.ClassLike(reference(sym).getOrElse(Term.Error), N, Nil)
     def showDbg: Str = head match
       case lit: syntax.Literal => lit.idStr
@@ -397,7 +397,7 @@ object Compiler:
   
   /** Perform a reverse lookup for a term that references a symbol in the
    *  current context. */
-  def reference(symbol: ClassSymbol | ModuleSymbol | PatternSymbol)(using tl: TL)(using Ctx, State): Opt[Term] =
+  def reference(symbol: ClassSymbol | ModuleOrObjectSymbol | PatternSymbol)(using tl: TL)(using Ctx, State): Opt[Term] =
     /** To make `Lowering` happy about the terms. */
     def fillImplicitArgs(term: Term): Term = term match
       case ref: Ref => ref.resolve
@@ -411,10 +411,10 @@ object Compiler:
         case `symbol` =>
           val id = symbol match
             case symbol: PatternSymbol => symbol.id
-            case symbol: (ClassSymbol | ModuleSymbol) => symbol.id
+            case symbol: (ClassSymbol | ModuleOrObjectSymbol) => symbol.id
           S(elem.ref(id))
         // Look up the symbol in module members.
-        case module: ModuleSymbol =>
+        case module: ModuleOrObjectSymbol =>
           val moduleRef = module.defn.get.bsym.ref()
           module.tree.definedSymbols.iterator.map(_.mapSecond(_.asClsLike)).collectFirst:
             case (key, S(`symbol`)) =>
@@ -432,7 +432,7 @@ object Compiler:
       symbol match
         case s: ClassSymbol if !(ctx.builtins.virtualClasses contains s) =>
           SynthSel(term, Ident("class"))(S(s)).resolve
-        case _: (ClassSymbol | ModuleSymbol | PatternSymbol) => term
+        case _: (ClassSymbol | ModuleOrObjectSymbol | PatternSymbol) => term
   
   import Pattern.*
   

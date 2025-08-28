@@ -100,7 +100,7 @@ class Instantiator(using tl: TL)(using Ctx, State, Raise):
                 error(msg"Class `${symbol.nme}` has no parameters." -> Loc(arguments))
                 N
           ClassLike(symbol, keyedArguments)
-        case S(symbol: ModuleSymbol) =>
+        case S(symbol: ModuleOrObjectSymbol) =>
           arguments match
             case N => ClassLike(symbol, N)
             case S(arguments) => error(
