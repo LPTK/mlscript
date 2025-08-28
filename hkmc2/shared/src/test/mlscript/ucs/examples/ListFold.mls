@@ -41,13 +41,13 @@ join(", ")(1 :: 2 :: 3 :: Nil)
 //│     at lambda (REPL29:1:1785)
 //│     at REPL32:1:256
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at REPLServer.defaultEval (node:repl:593:22)
 //│     at bound (node:domain:433:15)
 //│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.onLine (node:repl:922:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
 
 fun showList(xs) = "[" ~ join(", ")(xs) ~ "]"
 
@@ -64,10 +64,10 @@ fun (:::) appendAll(xs, ys) =
 //│     at pipe (REPL16:1:163)
 //│     at REPL41:1:409
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at REPLServer.defaultEval (node:repl:593:22)
 //│     at bound (node:domain:433:15)
 //│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.onLine (node:repl:922:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
 
@@ -87,10 +87,10 @@ reverse(1 :: 2 :: 3 :: Nil) |> showList
 //│     at pipe (REPL16:1:163)
 //│     at REPL47:1:225
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at REPLServer.defaultEval (node:repl:593:22)
 //│     at bound (node:domain:433:15)
 //│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.onLine (node:repl:922:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
 
@@ -155,10 +155,10 @@ reverse'(1 :: 2 :: 3 :: Nil) |> showList
 //│     at pipe (REPL16:1:163)
 //│     at REPL90:1:247
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at REPLServer.defaultEval (node:repl:593:22)
 //│     at bound (node:domain:433:15)
 //│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.onLine (node:repl:922:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
 
@@ -188,10 +188,10 @@ double(Nil) |> showList
 //│     at pipe (REPL16:1:163)
 //│     at REPL100:1:95
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at REPLServer.defaultEval (node:repl:593:22)
 //│     at bound (node:domain:433:15)
 //│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.onLine (node:repl:922:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
 
@@ -203,10 +203,10 @@ double(1 :: 2 :: 3 :: Nil) |> showList
 //│     at pipe (REPL16:1:163)
 //│     at REPL103:1:245
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at REPLServer.defaultEval (node:repl:593:22)
 //│     at bound (node:domain:433:15)
 //│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.onLine (node:repl:922:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
 
@@ -221,10 +221,10 @@ flatten(Nil) |> showList
 //│     at pipe (REPL16:1:163)
 //│     at REPL110:1:95
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at REPLServer.defaultEval (node:repl:593:22)
 //│     at bound (node:domain:433:15)
 //│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.onLine (node:repl:922:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
 
@@ -236,10 +236,10 @@ flatten(oneTwoThree :: oneTwoThree :: oneTwoThree :: Nil) |> showList
 //│     at pipe (REPL16:1:163)
 //│     at REPL113:1:275
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at REPLServer.defaultEval (node:repl:593:22)
 //│     at bound (node:domain:433:15)
 //│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.onLine (node:repl:922:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
 
@@ -272,10 +272,10 @@ reverse(1 :: 2 :: 3 :: Nil) |> showList
 //│     at pipe (REPL16:1:163)
 //│     at REPL139:1:246
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at REPLServer.defaultEval (node:repl:593:22)
 //│     at bound (node:domain:433:15)
 //│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.onLine (node:repl:922:10)
 //│     at REPLServer.emit (node:events:518:28)
 //│     at REPLServer.emit (node:domain:489:12)
 

@@ -17,19 +17,17 @@ fun printLexed(text) = print of
     Iter.joined of "\n"
 
 printLexed of "0 1  0xDEADCAFE 0b1101 0o755     3.1415926535"
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'concat2')
-//│     at number (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1463:38)
-//│     at scan (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1865:29)
-//│     at go (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1814:18)
-//│     at scan (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1828:18)
-//│     at go (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1814:18)
-//│     at scan (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1866:28)
-//│     at go (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1814:18)
-//│     at scan (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1828:18)
-//│     at go (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1814:18)
-//│     at scan (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:1866:28)
+//│ > integer "0" at 1:1-1:2
+//│ > space at 1:2-1:3
+//│ > integer "1" at 1:3-1:4
+//│ > space at 1:4-1:6
+//│ > integer "0xDEADCAFE" at 1:1-1:7
+//│ > space at 1:16-1:17
+//│ > integer "0b1101" at 1:12-1:18
+//│ > space at 1:23-1:24
+//│ > integer "0o755" at 1:20-1:25
+//│ > space at 1:29-1:34
+//│ > decimal "3.1415926535" at 1:23-1:35
 
 // Good strings.
 printLexed of """
