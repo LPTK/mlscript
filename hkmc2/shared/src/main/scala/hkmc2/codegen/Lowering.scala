@@ -316,6 +316,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       val bms = sym match
         case bs: BlockMemberSymbol => bs
         case dbs: DisambBlockMemberSymbol[?] => dbs.bsym
+        case sym => sym
       bms match
       case ctx.builtins.source.bms | ctx.builtins.js.bms | ctx.builtins.debug.bms | ctx.builtins.annotations.bms =>
         return fail:
