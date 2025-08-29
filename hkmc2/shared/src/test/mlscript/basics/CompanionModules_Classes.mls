@@ -35,7 +35,7 @@ C.empty
 //│ Blk:
 //│   stats = Nil
 //│   res = Unexpanded of Sel{member:empty}:
-//│     prefix = SynthSel{class:C}:
+//│     prefix = SynthSel{module:C}:
 //│       prefix = Unexpanded of Ref{member:C} of member:C
 //│       nme = Ident of "class"
 //│     nme = Ident of "empty"

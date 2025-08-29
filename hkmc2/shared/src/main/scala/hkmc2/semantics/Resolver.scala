@@ -272,10 +272,14 @@ class Resolver(tl: TraceLogger)
       traverseStmts(rest)(using newICtx)
     
   
-  def expand2DotClass(t: Resolvable) = t.resolvedSymbol match
-    case S(bsym: BlockMemberSymbol) if bsym.hasLiftedClass => bsym.asCls.foreach: cls =>
-      if cls isnt ctx.builtins.Array then
-        t.expand(S(t => SynthSel(t, new Tree.Ident("class"))(S(cls))))
+  def expand2DotClass(t: Resolvable, expect: Expect.Module | Expect.Class) = t.resolvedSymbol match
+    case S(bsym: BlockMemberSymbol) if bsym.hasLiftedClass => 
+      val sym = expect match
+        case _: Expect.Module => bsym.asMod
+        case _: Expect.Class => bsym.asCls
+      sym.foreach: sym =>
+        if sym isnt ctx.builtins.Array then
+          t.expand(S(t => SynthSel(t, new Tree.Ident("class"))(S(sym))))
     case _ =>
       ()
   
@@ -344,7 +348,9 @@ class Resolver(tl: TraceLogger)
         
         case t: Resolvable =>
           resolve(t, inAppPrefix = false, inTyPrefix = false, inCtxPrefix = false)
-          if expect.`class` then expand2DotClass(t)
+          expect match
+            case expect: Expect.Class => expand2DotClass(t, expect = expect)
+            case _ =>
         
         case _ =>
           t.subTerms.foreach(traverse(_, expect = NonModule(N)))
@@ -766,7 +772,7 @@ class Resolver(tl: TraceLogger)
             lastWords(s"${mdef}: field symbol found ${fldSym} but no block member symbol")
           log(s"Resolving symbol for ${t}, defn = ${lhs.defn}")
           withSym(t, bsym)
-          expand2DotClass(lhs)
+          expand2DotClass(lhs, expect = Expect.Module(N))
           lhs.instantiate match
             case ref @ Term.Ref(bsym: BlockMemberSymbol) => ref.expand:
               S(ref => bsym.disamb(mdef.sym).ref(ref.tree))

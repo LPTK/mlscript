@@ -243,7 +243,7 @@ Foo.foo
 //│ Blk:
 //│   stats = Nil
 //│   res = Unexpanded of Sel{member:foo‹612›}:
-//│     prefix = SynthSel{class:Foo‹614›}:
+//│     prefix = SynthSel{module:Foo‹617›}:
 //│       prefix = Unexpanded of Ref{member:Foo‹613›} of member:Foo‹613›
 //│       nme = Ident of "class"
 //│     nme = Ident of "foo"
