@@ -309,7 +309,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     case Mut(st.Tup(fs)) =>
       args(fs)(args => k(Value.Arr(mut = true, args)))
     case st.CtxTup(fs) =>
-      // Q: is this ever supposed to be reached?
+      // * This case is currently triggered for code such as `f(using 42)`
       args(fs)(args => k(Value.Arr(mut = false, args)))
     case ref @ st.Ref(sym) =>
       // FIXME: DisambBlockMemberSymbol workaround

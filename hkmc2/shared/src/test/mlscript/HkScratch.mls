@@ -102,7 +102,7 @@ new Foo(1)
 :e
 :re
 new id(1)
-//│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
+//│ ╔══[ERROR] Expected a statically known class; found selection denoting function definition 'id'.
 //│ ║  l.104: 	new id(1)
 //│ ║         	    ^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
@@ -119,7 +119,7 @@ new 1
 
 :e
 new (id(Foo))(12)
-//│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
+//│ ╔══[ERROR] Expected a statically known class; found application without resolved definition.
 //│ ║  l.121: 	new (id(Foo))(12)
 //│ ║         	     ^^^^^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.

@@ -38,7 +38,7 @@ fun f: module TypMod = TypMod
 :e
 :sjs
 fun f: TrmMod = 42
-//│ ╔══[ERROR] Expected a non-module type; found reference with a module definition 'TrmMod'.
+//│ ╔══[ERROR] Expected a non-module type; found reference denoting module definition 'TrmMod'.
 //│ ║  l.40: 	fun f: TrmMod = 42
 //│ ║        	       ^^^^^^
 //│ ╙── Function must be marked as returning a 'module' in order to have a module return type.

@@ -244,7 +244,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
   
   def describe: Str =
     val desc = this match
-      case Error => "<error>"
+      case Error => "‹error›"
       case UnitVal() => "unit value"
       case Lit(lit) => lit.describeLit
       case Ref(sym) => "reference"
@@ -283,13 +283,13 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
       case self: Resolvable =>
         self.defn match
         case S(df: TermDefinition) =>
-          s"${desc} with a ${df.k.desc} definition '${df.sym.nme}'"
+          s"${desc} denoting ${df.k.desc} definition '${df.sym.nme}'"
         case S(df: ClassLikeDef) =>
-          s"${desc} with a ${df.kind.desc} definition '${df.sym.nme}'"
+          s"${desc} denoting ${df.kind.desc} definition '${df.sym.nme}'"
         case S(df: TypeDef) =>
-          s"${desc} with a type definition '${df.sym.nme}'"
+          s"${desc} denoting type definition '${df.sym.nme}'"
         case N =>
-          s"${desc} without a resolvable definition"
+          s"${desc} without resolved definition"
       case _ => desc
   
   def extraInfo: Str = this match

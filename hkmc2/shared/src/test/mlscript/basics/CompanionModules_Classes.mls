@@ -28,7 +28,6 @@ new C
 //│     rft = N
 //│ = C()
 
-// FIXME: should be `SynthSel{module:C}`, instead of `SynthSel{class:C}`
 :rt
 C.empty
 //│ Resolved tree:
@@ -46,7 +45,6 @@ class C
 module C with
   val empty = 1
 
-// TODO: there should be a way of seeing that this reference denotes the module and not the class
 :rt
 C.empty
 //│ Resolved tree:

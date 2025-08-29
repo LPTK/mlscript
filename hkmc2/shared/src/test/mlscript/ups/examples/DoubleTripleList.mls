@@ -69,7 +69,6 @@ pattern DoubleTripleList = DoubleList | TripleList
 
 // Make a `Cons` object and print a message whenever the `head` or `tail`
 // property is accessed.
-:ssjs
 let doLog = false
 fun (::) makeObservableCons(x, xs) =
   let cons = new mut Cons(x, xs)
@@ -91,65 +90,6 @@ fun (::) makeObservableCons(x, xs) =
       if doLog do print("access the `tail` of " + repr)
       xs
   cons
-//│ JS:
-//│ makeObservableCons = function makeObservableCons(...args) {
-//│   runtime.checkArgs("makeObservableCons", 2, true, args.length);
-//│   let x = args[0];
-//│   let xs = args[1];
-//│   let cons, repr, tmp5, tmp6, tmp7, tmp8, tmp9, selRes, tmp10, tmp11, selRes1, tmp12, tmp13, lambda, lambda1;
-//│   tmp5 = new Stack.Cons.class(x, xs);
-//│   cons = tmp5;
-//│   tmp6 = runtime.checkCall(Iter.fromStack(cons));
-//│   tmp7 = Iter.joined(tmp6, ", ");
-//│   tmp8 = "[" + tmp7;
-//│   tmp9 = tmp8 + "]";
-//│   repr = tmp9;
-//│   selRes = globalThis.Object;
-//│   if (selRes === undefined) {
-//│     throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'Object' yielded 'undefined'"))
-//│   }
-//│   lambda = (undefined, function (...args1) {
-//│     runtime.checkArgs("", 0, true, args1.length);
-//│     let tmp14, tmp15;
-//│     if (doLog === true) {
-//│       tmp14 = "access the `head` of " + repr;
-//│       tmp15 = runtime.checkCall(Predef.print(tmp14));
-//│     } else {
-//│       tmp15 = runtime.Unit;
-//│     }
-//│     return x
-//│   });
-//│   tmp10 = lambda;
-//│   tmp11 = runtime.safeCall(selRes.defineProperty(cons, "head", globalThis.Object.freeze({
-//│     enumerable: true,
-//│     configurable: false,
-//│     get: tmp10
-//│   })));
-//│   selRes1 = globalThis.Object;
-//│   if (selRes1 === undefined) {
-//│     throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'Object' yielded 'undefined'"))
-//│   }
-//│   lambda1 = (undefined, function (...args1) {
-//│     runtime.checkArgs("", 0, true, args1.length);
-//│     let tmp14, tmp15;
-//│     if (doLog === true) {
-//│       tmp14 = "access the `tail` of " + repr;
-//│       tmp15 = runtime.checkCall(Predef.print(tmp14));
-//│     } else {
-//│       tmp15 = runtime.Unit;
-//│     }
-//│     return xs
-//│   });
-//│   tmp12 = lambda1;
-//│   tmp13 = runtime.safeCall(selRes1.defineProperty(cons, "tail", globalThis.Object.freeze({
-//│     enumerable: true,
-//│     configurable: false,
-//│     get: tmp12
-//│   })));
-//│   return cons
-//│ };
-//│ doLog = false;
-//│ block$res24 = undefined;
 //│ doLog = false
 
 fun withLog(f) =

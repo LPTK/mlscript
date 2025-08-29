@@ -5,6 +5,14 @@ import "../../mlscript-compile/Str.mls"
 open Str
 
 
+:fixme
+:sjs
+"a" is Str
+//│ JS (unsanitized):
+//│ let scrut; scrut = "a"; if (scrut instanceof globalThis.Str) { true } else { false }
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'Str' yielded 'undefined'
+
+
 concat of "a", "b", "c"
 //│ = "abc"
 
@@ -20,7 +28,7 @@ concat of
 :e
 (~)("a", "b", "c")
 //│ ╔══[ERROR] Expected 2 arguments, got 3
-//│ ║  l.21: 	(~)("a", "b", "c")
+//│ ║  l.29: 	(~)("a", "b", "c")
 //│ ╙──      	   ^^^^^^^^^^^^^^^
 //│ = "ab"
 
@@ -28,21 +36,21 @@ concat of
 :e
 (~)("a")
 //│ ╔══[ERROR] Expected 2 arguments, got 1
-//│ ║  l.29: 	(~)("a")
+//│ ║  l.37: 	(~)("a")
 //│ ╙──      	   ^^^^^
 //│ = "aundefined"
 
 :ge
 ~"a"
 //│ ╔══[COMPILATION ERROR] Unexpected term form in expression position (negation type)
-//│ ║  l.36: 	~"a"
+//│ ║  l.44: 	~"a"
 //│ ╙──      	 ^^^
 
 
 :ge
 ~("a", "b")
 //│ ╔══[COMPILATION ERROR] Unexpected term form in expression position (negation type)
-//│ ║  l.43: 	~("a", "b")
+//│ ║  l.51: 	~("a", "b")
 //│ ╙──      	       ^^^
 
 
@@ -50,10 +58,10 @@ concat of
 :ge
 ~ of "a", "b"
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found 'of' keyword instead
-//│ ║  l.51: 	~ of "a", "b"
+//│ ║  l.59: 	~ of "a", "b"
 //│ ╙──      	  ^^
 //│ ╔══[PARSE ERROR] Expected end of input; found literal instead
-//│ ║  l.51: 	~ of "a", "b"
+//│ ║  l.59: 	~ of "a", "b"
 //│ ╙──      	     ^^^
 //│ ═══[COMPILATION ERROR] Unexpected term form in expression position (negation type)
 

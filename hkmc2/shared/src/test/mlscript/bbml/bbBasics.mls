@@ -74,9 +74,9 @@ new Nothingness(0)
 //│ ╔══[ERROR] Name not found: Nothingness
 //│ ║  l.73: 	new Nothingness(0)
 //│ ╙──      	    ^^^^^^^^^^^
-//│ ╔══[ERROR] Expected a statically known class; found <error>.
+//│ ╔══[ERROR] Expected a statically known class; found ‹error›.
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
-//│ ═══[ERROR] Not a valid class: <error>
+//│ ═══[ERROR] Not a valid class: ‹error›
 //│ Type: ⊥
 
 :e
