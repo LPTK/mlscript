@@ -18,8 +18,284 @@ fun int(n) = if n is
 int(nat(42))
 //│ = 42
 
+:lot
 :expect true
 nat(0) is @compile NatBox
+//│ Lowered:
+//│ Program:
+//│   imports = Nil
+//│   main = Assign:
+//│     lhs = $scrut
+//│     rhs = Call{Some(Loc(0,6,NatBox.mls:+23))}:
+//│       fun = Ref{Some(Loc(0,3,NatBox.mls:+23))} of member:nat
+//│       args = Ls of 
+//│         Arg:
+//│           spread = N
+//│           value = Lit{Some(Loc(4,5,NatBox.mls:+23))} of IntLit of 0
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       owner = N
+//│       sym = member:lambda
+//│       params = Ls of 
+//│         ParamList:
+//│           flags = ()
+//│           params = Ls of 
+//│             Param:
+//│               flags = ()
+//│               sym = input
+//│               sign = N
+//│               modulefulness = Modulefulness of N
+//│           restParam = N
+//│       body = Match:
+//│         scrut = Ref{None} of input
+//│         arms = Ls of 
+//│           Tuple2:
+//│             _1 = Lit of UnitLit of true
+//│             _2 = Assign:
+//│               lhs = $tmp
+//│               rhs = Call{None}:
+//│                 fun = Select{None}:
+//│                   qual = Ref{None} of $runtime
+//│                   name = Ident of "MatchResult"
+//│                 args = Ls of 
+//│                   Arg:
+//│                     spread = N
+//│                     value = Ref{None} of input
+//│                   Arg:
+//│                     spread = N
+//│                     value = Rcd{None}:
+//│                       mut = false
+//│                       elems = Nil
+//│               rest = Assign: \
+//│               lhs = $p_0$
+//│               rhs = Ref{None} of $tmp
+//│               rest = Return: \
+//│               res = Rcd{None}:
+//│                 mut = false
+//│                 elems = Ls of 
+//│                   RcdArg:
+//│                     idx = S of Lit{None} of StrLit of "p_0"
+//│                     value = Ref{None} of $p_0$
+//│               implct = false
+//│           Tuple2:
+//│             _1 = Cls:
+//│               cls = class:Box
+//│               path = Select{None}:
+//│                 qual = Ref{None} of member:Box
+//│                 name = Ident of "class"
+//│             _2 = Assign:
+//│               lhs = $tmp
+//│               rhs = Call{None}:
+//│                 fun = Select{None}:
+//│                   qual = Ref{None} of $runtime
+//│                   name = Ident of "MatchFailure"
+//│                 args = Ls of 
+//│                   Arg:
+//│                     spread = N
+//│                     value = Lit{None} of StrLit of "empty"
+//│               rest = Assign: \
+//│               lhs = $emptyRecord$
+//│               rhs = Rcd{None}:
+//│                 mut = false
+//│                 elems = Ls of 
+//│                   RcdArg:
+//│                     idx = S of Lit{None} of StrLit of "p_0"
+//│                     value = Ref{None} of $tmp
+//│               rest = Match: \
+//│               scrut = Ref{None} of input
+//│               arms = Ls of 
+//│                 Tuple2:
+//│                   _1 = Cls:
+//│                     cls = class:Object
+//│                     path = Ref{None} of builtin:Object
+//│                   _2 = Match:
+//│                     scrut = Ref{None} of input
+//│                     arms = Ls of 
+//│                       Tuple2:
+//│                         _1 = Field:
+//│                           name = Ident of "value"
+//│                           safe = true
+//│                         _2 = Assign:
+//│                           lhs = $value
+//│                           rhs = Select{None}:
+//│                             qual = Ref{None} of input
+//│                             name = Ident of "value"
+//│                           rest = Assign: \
+//│                           lhs = $tmp
+//│                           rhs = Call{None}:
+//│                             fun = Ref{None} of $matcher__NatBox$
+//│                             args = Ls of 
+//│                               Arg:
+//│                                 spread = N
+//│                                 value = Ref{None} of $value
+//│                           rest = End of ""
+//│                     dflt = S of Assign:
+//│                       lhs = $tmp
+//│                       rhs = Ref{None} of $emptyRecord$
+//│                       rest = End of ""
+//│                     rest = End of ""
+//│               dflt = S of Assign:
+//│                 lhs = $tmp
+//│                 rhs = Ref{None} of $emptyRecord$
+//│                 rest = End of ""
+//│               rest = Assign: \
+//│               lhs = value
+//│               rhs = Ref{None} of $tmp
+//│               rest = Assign: \
+//│               lhs = $result0$
+//│               rhs = Select{None}:
+//│                 qual = Ref{None} of value
+//│                 name = Ident of "p_0"
+//│               rest = Match: \
+//│               scrut = Ref{None} of $result0$
+//│               arms = Ls of 
+//│                 Tuple2:
+//│                   _1 = Cls:
+//│                     cls = class:MatchResult
+//│                     path = Select{None}:
+//│                       qual = Select{None}:
+//│                         qual = Ref{None} of $runtime
+//│                         name = Ident of "MatchResult"
+//│                       name = Ident of "class"
+//│                   _2 = Assign:
+//│                     lhs = $output0$
+//│                     rhs = Select{None}:
+//│                       qual = Ref{None} of $result0$
+//│                       name = Ident of "output"
+//│                     rest = Assign: \
+//│                     lhs = $bindings
+//│                     rhs = Select{None}:
+//│                       qual = Ref{None} of $result0$
+//│                       name = Ident of "bindings"
+//│                     rest = Assign: \
+//│                     lhs = $fieldBindings
+//│                     rhs = Rcd{None}:
+//│                       mut = false
+//│                       elems = Nil
+//│                     rest = Assign: \
+//│                     lhs = $tmp
+//│                     rhs = Call{None}:
+//│                       fun = Select{None}:
+//│                         qual = Ref{None} of $runtime
+//│                         name = Ident of "MatchResult"
+//│                       args = Ls of 
+//│                         Arg:
+//│                           spread = N
+//│                           value = Rcd{None}:
+//│                             mut = false
+//│                             elems = Ls of 
+//│                               RcdArg:
+//│                                 idx = S of Lit{None} of StrLit of "value"
+//│                                 value = Ref{None} of $output0$
+//│                         Arg:
+//│                           spread = N
+//│                           value = Rcd{None}:
+//│                             mut = false
+//│                             elems = Ls of 
+//│                               RcdArg:
+//│                                 idx = N
+//│                                 value = Ref{None} of $bindings
+//│                               RcdArg:
+//│                                 idx = N
+//│                                 value = Ref{None} of $fieldBindings
+//│                     rest = End of ""
+//│               dflt = S of Assign:
+//│                 lhs = $tmp
+//│                 rhs = Call{None}:
+//│                   fun = Select{None}:
+//│                     qual = Ref{None} of $runtime
+//│                     name = Ident of "MatchFailure"
+//│                   args = Ls of 
+//│                     Arg:
+//│                       spread = N
+//│                       value = Lit{None} of StrLit of "topmost"
+//│                 rest = End of ""
+//│               rest = Assign: \
+//│               lhs = $p_0$
+//│               rhs = Ref{None} of $tmp
+//│               rest = Return: \
+//│               res = Rcd{None}:
+//│                 mut = false
+//│                 elems = Ls of 
+//│                   RcdArg:
+//│                     idx = S of Lit{None} of StrLit of "p_0"
+//│                     value = Ref{None} of $p_0$
+//│               implct = false
+//│         dflt = S of Assign:
+//│           lhs = $tmp
+//│           rhs = Call{None}:
+//│             fun = Select{None}:
+//│               qual = Ref{None} of $runtime
+//│               name = Ident of "MatchFailure"
+//│             args = Ls of 
+//│               Arg:
+//│                 spread = N
+//│                 value = Lit{None} of StrLit of "never"
+//│           rest = Assign: \
+//│           lhs = $p_0$
+//│           rhs = Ref{None} of $tmp
+//│           rest = Return: \
+//│           res = Rcd{None}:
+//│             mut = false
+//│             elems = Ls of 
+//│               RcdArg:
+//│                 idx = S of Lit{None} of StrLit of "p_0"
+//│                 value = Ref{None} of $p_0$
+//│           implct = false
+//│         rest = End of ""
+//│     rest = Assign: \
+//│     lhs = $tmp
+//│     rhs = Ref{None} of member:lambda
+//│     rest = Assign: \
+//│     lhs = $matcher__NatBox$
+//│     rhs = Ref{None} of $tmp
+//│     rest = Assign: \
+//│     lhs = $matchRecord
+//│     rhs = Call{None}:
+//│       fun = Ref{None} of $matcher__NatBox$
+//│       args = Ls of 
+//│         Arg:
+//│           spread = N
+//│           value = Ref{None} of $scrut
+//│     rest = Assign: \
+//│     lhs = $matchResult
+//│     rhs = Select{None}:
+//│       qual = Ref{None} of $matchRecord
+//│       name = Ident of "p_0"
+//│     rest = Match: \
+//│     scrut = Ref{None} of $matchResult
+//│     arms = Ls of 
+//│       Tuple2:
+//│         _1 = Cls:
+//│           cls = class:MatchResult
+//│           path = Select{None}:
+//│             qual = Select{None}:
+//│               qual = Ref{None} of $runtime
+//│               name = Ident of "MatchResult"
+//│             name = Ident of "class"
+//│         _2 = Assign:
+//│           lhs = $patternOutput
+//│           rhs = Select{None}:
+//│             qual = Ref{None} of $matchResult
+//│             name = Ident of "output"
+//│           rest = Assign: \
+//│           lhs = $bindings
+//│           rhs = Select{None}:
+//│             qual = Ref{None} of $matchResult
+//│             name = Ident of "bindings"
+//│           rest = Assign: \
+//│           lhs = $block$res
+//│           rhs = Lit{None} of BoolLit of true
+//│           rest = Return: \
+//│           res = Lit{None} of UnitLit of false
+//│           implct = true
+//│     dflt = S of Assign:
+//│       lhs = $block$res
+//│       rhs = Lit{None} of BoolLit of false
+//│       rest = Return: \
+//│       res = Lit{None} of UnitLit of false
+//│       implct = true
+//│     rest = End of ""
 //│ = true
 
 :expect true

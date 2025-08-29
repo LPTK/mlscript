@@ -26,9 +26,9 @@
 //│   imports = Nil
 //│   main = Assign:
 //│     lhs = $block$res
-//│     rhs = Lit of IntLit of 2
+//│     rhs = Lit{Some(Loc(2,3,BasicTerms.mls:+14))} of IntLit of 2
 //│     rest = Return: \
-//│     res = Lit of UnitLit of false
+//│     res = Lit{None} of UnitLit of false
 //│     implct = true
 //│ = 2
 
@@ -48,19 +48,19 @@ print("Hi")
 //│   imports = Nil
 //│   main = Assign:
 //│     lhs = $tmp
-//│     rhs = Call:
-//│       fun = Select{member:print}:
-//│         qual = Ref of member:module:Predef
+//│     rhs = Call{Some(Loc(0,11,BasicTerms.mls:+42))}:
+//│       fun = Select{Some(Loc(0,5,BasicTerms.mls:+42))}:
+//│         qual = Ref{None} of member:module:Predef
 //│         name = Ident of "print"
 //│       args = Ls of 
 //│         Arg:
 //│           spread = N
-//│           value = Lit of StrLit of "Hi"
+//│           value = Lit{Some(Loc(6,10,BasicTerms.mls:+42))} of StrLit of "Hi"
 //│     rest = Assign: \
 //│     lhs = $block$res
-//│     rhs = Lit of IntLit of 2
+//│     rhs = Lit{Some(Loc(12,13,BasicTerms.mls:+42))} of IntLit of 2
 //│     rest = Return: \
-//│     res = Lit of UnitLit of false
+//│     res = Lit{None} of UnitLit of false
 //│     implct = true
 //│ > Hi
 //│ = 2

@@ -88,7 +88,8 @@ class Instantiator(using tl: TL)(using Ctx, State, Raise):
                     msg"But ${arguments.size} arguments were provided." -> Loc(arguments))
                 S(params.iterator.zip(arguments).flatMap:
                   case (param, argument) if param.flags.isVal =>
-                    S(param.sym.id -> instantiate(argument))
+                    S(new Ident(param.sym.id.name) // TODO: get location from context (symbol.id is NOT the correct identifier here!!)
+                      -> instantiate(argument))
                   case (param, argument) =>
                     error(msg"Parameter `${param.sym.nme}` is not accessible." -> param.toLoc)
                     N

@@ -410,8 +410,8 @@ object Compiler:
         // Check the element's symbol.
         case `symbol` =>
           val id = symbol match
-            case symbol: PatternSymbol => symbol.id
-            case symbol: (ClassSymbol | ModuleOrObjectSymbol) => symbol.id
+            case symbol: PatternSymbol => new Ident(symbol.id.name) // TODO: get location from context
+            case symbol: (ClassSymbol | ModuleOrObjectSymbol) => new Ident(symbol.id.name) // TODO: get location from context
           S(elem.ref(id))
         // Look up the symbol in module members.
         case module: ModuleOrObjectSymbol =>

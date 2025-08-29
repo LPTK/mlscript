@@ -111,26 +111,63 @@ isSumOrDouble__naive of Nil
 //│ = 0
 
 fun isSumOrDouble__compiled(xs) = if xs is (@compile SumOrDouble) as output then output else "noop"
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (List(DoubleOrSum.mls:+22, DoubleOrSum.mls:+113),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(object:Nil,Select(Select(Ref(member:Stack),Ident(Nil)),Ident(class))),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Return(Lit(IntLit(0)),false)),Assign($transform,Ref(member:lambda),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List())))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),Assign($p_3$,Ref($tmp),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref(input)), Arg(None,Rcd(false,List())))),Assign($p_5$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($p_3$)), RcdArg(Some(Lit(StrLit(p_5))),Ref($p_5$)))),false)))))))))), (Cls(class:Cons,Select(Select(Ref(member:Stack),Ident(Cons)),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($tmp)), RcdArg(Some(Lit(StrLit(p_5))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(head),true),Assign($head,Select(Ref(input),Ident(head)),Assign($tmp,Call(Ref($matcher1$),List(Arg(None,Ref($head)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(head,Ref($tmp),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(tail),true),Assign($tail,Select(Ref(input),Ident(tail)),Assign($tmp,Call(Ref($matcher2$),List(Arg(None,Ref($tail)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(tail,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(hd,Select(Ref(args),Ident(hd)),Assign(tl,Select(Ref(args),Ident(tl)),Return(Call(Ref(member:addWithPrint),List(Arg(None,Ref(hd)), Arg(None,Ref(tl)))),false)))),Assign($transform,Ref(member:lambda),Assign($result1$,Select(Ref(head),Ident(p_1)),Match(Ref($result1$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output1$,Select(Ref($result1$),Ident(output)),Assign($bindings,Select(Ref($result1$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(hd))),Ref($output1$)))),Assign($result3$,Select(Ref(tail),Ident(p_3)),Match(Ref($result3$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output3$,Select(Ref($result3$),Ident(output)),Assign($bindings,Select(Ref($result3$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($output3$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_3$,Ref($tmp),Assign($result2$,Select(Ref(head),Ident(p_2)),Match(Ref($result2$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output2$,Select(Ref($result2$),Ident(output)),Assign($bindings,Select(Ref($result2$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List()),Assign($result4$,Select(Ref(tail),Ident(p_4)),Match(Ref($result4$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output4$,Select(Ref($result4$),Ident(output)),Assign($bindings,Select(Ref($result4$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(head))),Ref($output2$)), RcdArg(Some(Lit(StrLit(tail))),Ref($output4$))))), Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),End())))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_5$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($p_3$)), RcdArg(Some(Lit(StrLit(p_5))),Ref($p_5$)))),false)))))))))))))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_3$,Ref($tmp),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_5$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($p_3$)), RcdArg(Some(Lit(StrLit(p_5))),Ref($p_5$)))),false)))))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher3$,Ref($tmp),Assign($matchRecord,Call(Ref($matcher__SumOrDouble$),List(Arg(None,Ref(xs)))),Assign($matchResult,Select(Ref($matchRecord),Ident(p_0)),Match(Ref($matchResult),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($patternOutput,Select(Ref($matchResult),Ident(output)),Assign($bindings,Select(Ref($matchResult),Ident(bindings)),Assign(output,Ref($patternOutput),Return(Ref(output),false)))))),Some(Return(Lit(StrLit(noop)),false)),End())))))))
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
+//│ 	at: hkmc2.AutoLocated.mkLoc(syntax.scala:49)
+//│ 	at: hkmc2.AutoLocated.toLoc(syntax.scala:54)
+//│ 	at: hkmc2.AutoLocated.toLoc$(syntax.scala:26)
+//│ 	at: hkmc2.codegen.Block.toLoc(Block.scala:23)
+//│ 	at: hkmc2.AutoLocated.subLocs$1$$anonfun$1(syntax.scala:43)
+//│ 	at: scala.collection.Iterator$$anon$10.nextCur(Iterator.scala:594)
+//│ 	at: scala.collection.Iterator$$anon$10.hasNext(Iterator.scala:608)
+//│ 	at: scala.collection.Iterator$$anon$9.hasNext(Iterator.scala:583)
+//│ 	at: scala.collection.IterableOnceOps.minOption(IterableOnce.scala:916)
 
 isSumOrDouble__compiled of _1234
-//│ > 4 + 0 = 4
-//│ > 3 + 4 = 7
-//│ > 2 + 7 = 9
-//│ > 1 + 9 = 10
-//│ = 10
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] ReferenceError: isSumOrDouble__compiled is not defined
+//│     at REPL81:1:29
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 isSumOrDouble__compiled of _1234567
-//│ > 7 + 0 = 7
-//│ > 6 + 7 = 13
-//│ > 5 + 13 = 18
-//│ > 4 + 18 = 22
-//│ > 3 + 22 = 25
-//│ > 2 + 25 = 27
-//│ > 1 + 27 = 28
-//│ = 28
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] ReferenceError: isSumOrDouble__compiled is not defined
+//│     at REPL84:1:29
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 isSumOrDouble__compiled of Nil
-//│ = 0
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] ReferenceError: isSumOrDouble__compiled is not defined
+//│     at REPL87:1:29
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 // Swap the order of two patterns.
 
@@ -149,19 +186,45 @@ isDoubleOrSum__naive of list(1, 2, 3)
 //│ = 6
 
 fun isDoubleOrSum__compiled(xs) = if xs is (@compile DoubleOrSum) as output then output else "noop"
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (List(DoubleOrSum.mls:+22, DoubleOrSum.mls:+188),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(object:Nil,Select(Select(Ref(member:Stack),Ident(Nil)),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref(input)), Arg(None,Rcd(false,List())))),Assign($p_5$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Return(Lit(IntLit(0)),false)),Assign($transform,Ref(member:lambda),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List())))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),Assign($p_4$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_5))),Ref($p_5$)), RcdArg(Some(Lit(StrLit(p_4))),Ref($p_4$)))),false)))))))))), (Cls(class:Cons,Select(Select(Ref(member:Stack),Ident(Cons)),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_5))),Ref($tmp)), RcdArg(Some(Lit(StrLit(p_4))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(head),true),Assign($head,Select(Ref(input),Ident(head)),Assign($tmp,Call(Ref($matcher1$),List(Arg(None,Ref($head)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(head,Ref($tmp),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(tail),true),Assign($tail,Select(Ref(input),Ident(tail)),Assign($tmp,Call(Ref($matcher2$),List(Arg(None,Ref($tail)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(tail,Ref($tmp),Assign($result1$,Select(Ref(head),Ident(p_1)),Match(Ref($result1$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output1$,Select(Ref($result1$),Ident(output)),Assign($bindings,Select(Ref($result1$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List()),Assign($result3$,Select(Ref(tail),Ident(p_3)),Match(Ref($result3$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output3$,Select(Ref($result3$),Ident(output)),Assign($bindings,Select(Ref($result3$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(head))),Ref($output1$)), RcdArg(Some(Lit(StrLit(tail))),Ref($output3$))))), Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),End())))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_5$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(hd,Select(Ref(args),Ident(hd)),Assign(tl,Select(Ref(args),Ident(tl)),Return(Call(Ref(member:addWithPrint),List(Arg(None,Ref(hd)), Arg(None,Ref(tl)))),false)))),Assign($transform,Ref(member:lambda),Assign($result2$,Select(Ref(head),Ident(p_2)),Match(Ref($result2$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output2$,Select(Ref($result2$),Ident(output)),Assign($bindings,Select(Ref($result2$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(hd))),Ref($output2$)))),Assign($result4$,Select(Ref(tail),Ident(p_4)),Match(Ref($result4$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output4$,Select(Ref($result4$),Ident(output)),Assign($bindings,Select(Ref($result4$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($output4$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_4$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_5))),Ref($p_5$)), RcdArg(Some(Lit(StrLit(p_4))),Ref($p_4$)))),false)))))))))))))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_5$,Ref($tmp),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_4$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_5))),Ref($p_5$)), RcdArg(Some(Lit(StrLit(p_4))),Ref($p_4$)))),false)))))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher3$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(class:Int,Select(Ref($runtime),Ident(unreachable))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref(input)), Arg(None,Rcd(false,List())))),Assign($p_1$,Ref($tmp),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref(input)), Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(hd))),Ref(input))))))),Assign($p_2$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_1))),Ref($p_1$)), RcdArg(Some(Lit(StrLit(p_2))),Ref($p_2$)))),false))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_1$,Ref($tmp),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_2$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_1))),Ref($p_1$)), RcdArg(Some(Lit(StrLit(p_2))),Ref($p_2$)))),false)))))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher1$,Ref($tmp),Assign($matchRecord,Call(Ref($matcher__DoubleOrSum$),List(Arg(None,Ref(xs)))),Assign($matchResult,Select(Ref($matchRecord),Ident(p_0)),Match(Ref($matchResult),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($patternOutput,Select(Ref($matchResult),Ident(output)),Assign($bindings,Select(Ref($matchResult),Ident(bindings)),Assign(output,Ref($patternOutput),Return(Ref(output),false)))))),Some(Return(Lit(StrLit(noop)),false)),End()))))))))))
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
+//│ 	at: hkmc2.AutoLocated.mkLoc(syntax.scala:49)
+//│ 	at: hkmc2.AutoLocated.toLoc(syntax.scala:54)
+//│ 	at: hkmc2.AutoLocated.toLoc$(syntax.scala:26)
+//│ 	at: hkmc2.codegen.Block.toLoc(Block.scala:23)
+//│ 	at: hkmc2.AutoLocated.subLocs$1$$anonfun$1(syntax.scala:43)
+//│ 	at: scala.collection.Iterator$$anon$10.nextCur(Iterator.scala:594)
+//│ 	at: scala.collection.Iterator$$anon$10.hasNext(Iterator.scala:608)
+//│ 	at: scala.collection.Iterator$$anon$9.hasNext(Iterator.scala:583)
+//│ 	at: scala.collection.IterableOnceOps.minOption(IterableOnce.scala:916)
 
 isDoubleOrSum__compiled of _1234
-//│ > 4 + 0 = 4
-//│ > 3 + 4 = 7
-//│ > 2 + 7 = 9
-//│ = {head: 1, tail: {head: 2, tail: {head: 3, tail: {head: 4, tail: Nil}}}}
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] ReferenceError: isDoubleOrSum__compiled is not defined
+//│     at REPL102:1:29
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 isDoubleOrSum__compiled of _1234567
-//│ > 7 + 0 = 7
-//│ > 6 + 7 = 13
-//│ > 5 + 13 = 18
-//│ > 4 + 18 = 22
-//│ > 3 + 22 = 25
-//│ > 2 + 25 = 27
-//│ > 1 + 27 = 28
-//│ = 28
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] ReferenceError: isDoubleOrSum__compiled is not defined
+//│     at REPL105:1:29
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)

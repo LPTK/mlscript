@@ -179,7 +179,7 @@ let xs = new Oopsie
 //│ ╙──       	             ^^^^^^
 //│ ╔══[ERROR] Expected a statically known class; found ‹error›.
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
-//│ ╔══[COMPILATION ERROR] No definition found in scope for 'xs'
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'xs'
 //│ ╟── which references the symbol introduced here
 //│ ║  l.176: 	let xs = new Oopsie
 //│ ╙──       	    ^^
@@ -357,7 +357,7 @@ fun foo() =
 :fixme // proper compilation error
 :sjs
 module Foo(x)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
 //│ ║  l.359: 	module Foo(x)
 //│ ╙──       	           ^
@@ -381,7 +381,7 @@ module Foo(x)
 :fixme // proper compilation error
 :sjs
 module Foo(val x)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
 //│ ║  l.383: 	module Foo(val x)
 //│ ╙──       	               ^

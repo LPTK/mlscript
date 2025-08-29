@@ -603,7 +603,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
                       Case.Cls(ctorSym, st) -> go(tail, topLevel = false)
                     case (param, arg) :: args =>
                       val (cse, blk) = mkArgs(args)
-                      (cse, Assign(arg, Select(sr, param.id/*FIXME incorrect Ident?*/)(S(param)), blk))
+                      (cse, Assign(arg, Select(sr, new Tree.Ident(param.id.name).withLocOf(arg))(S(param)), blk))
                   mkMatch(mkArgs(clsParams.iterator.zip(args).toList))
                 ctor.symbol.flatMap(_.asClsOrMod) match
                   case S(cls: ClassSymbol) if ctx.builtins.virtualClasses contains cls =>

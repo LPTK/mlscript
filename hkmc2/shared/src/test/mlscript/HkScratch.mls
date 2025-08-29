@@ -10,3 +10,71 @@
 
 
 
+import "../mlscript-compile/Option.mls"
+
+
+open Option
+
+// fun updateWith(m) =
+//   if m is
+//     Some(value) then 1
+
+:lot
+case Some(value) then 1
+//│ Lowered:
+//│ Program:
+//│   imports = Nil
+//│   main = Define:
+//│     defn = FunDefn:
+//│       owner = N
+//│       sym = member:lambda
+//│       params = Ls of 
+//│         ParamList:
+//│           flags = ()
+//│           params = Ls of 
+//│             Param:
+//│               flags = ()
+//│               sym = caseScrut
+//│               sign = N
+//│               modulefulness = Modulefulness of N
+//│           restParam = N
+//│       body = Match:
+//│         scrut = Ref{None} of caseScrut
+//│         arms = Ls of 
+//│           Tuple2:
+//│             _1 = Cls:
+//│               cls = class:Some
+//│               path = Select{Some(Loc(5,9,HkScratch.mls:+23))}:
+//│                 qual = Select{Some(Loc(5,9,HkScratch.mls:+23))}:
+//│                   qual = Ref{None} of member:Option
+//│                   name = Ident of "Some"
+//│                 name = Ident of "class"
+//│             _2 = Assign:
+//│               lhs = $param0
+//│               rhs = Select{None}:
+//│                 qual = Ref{None} of caseScrut
+//│                 name = Ident of "value"
+//│               rest = Assign: \
+//│               lhs = value
+//│               rhs = Ref{None} of $param0
+//│               rest = Return: \
+//│               res = Lit{Some(Loc(22,23,HkScratch.mls:+23))} of IntLit of 1
+//│               implct = false
+//│         dflt = S of Throw of Instantiate{None}:
+//│           mut = false
+//│           cls = Select{None}:
+//│             qual = Ref{None} of globalThis:globalThis
+//│             name = Ident of "Error"
+//│           args = Ls of 
+//│             Arg:
+//│               spread = N
+//│               value = Lit{None} of StrLit of "match error"
+//│         rest = End of ""
+//│     rest = Assign: \
+//│     lhs = $block$res
+//│     rhs = Ref{None} of member:lambda
+//│     rest = Return: \
+//│     res = Lit{None} of UnitLit of false
+//│     implct = true
+//│ = fun
+
