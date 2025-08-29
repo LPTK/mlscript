@@ -289,71 +289,73 @@ class Resolver(tl: TraceLogger)
     */
   def traverse(t: Term, expect: Expect)(using ictx: ICtx): Unit =
   trace(s"Traversing term: $t"):
-    def check(body: => Unit) =
-      body
-      
-      // * The `module checks` checks the term's all possibly overloaded
-      // * definitions / declarations. It raise errors only if the term
-      // * can only be interpreted as a module.
-      
-      // TODO: currently it checks for only overloaded statically
-      // known classes, it might require checking other definitions also
-      // later.
-      
-      val evalsToStaticClass = ModuleChecker.evalsToStaticClass(t)
-      
-      if expect.`module` && !evalsToModule(t, prefer = expect) then
-        raise(ErrorReport(msg"Expected a module; found non-moduleful ${t.describe}." -> t.toLoc 
-          :: expect.message))
-      if expect.nonModule && evalsToModule(t, prefer = expect) && !evalsToStaticClass then
-        raise(ErrorReport(msg"Unexpected moduleful ${t.describe}." -> t.toLoc 
-          :: expect.message))
-      
-      if expect.`class` && !evalsToStaticClass then
-        raise(ErrorReport(msg"Expected a statically known class; found ${t.describe}." -> t.toLoc
-          :: expect.message))
     
-    check:
-      t match
-        case blk: Term.Blk =>
-          traverseBlock(blk)
-        case Term.Rcd(mut, stats) =>
-          traverseStmts(stats)
+    t match
+      case blk: Term.Blk =>
+        traverseBlock(blk)
+      case Term.Rcd(mut, stats) =>
+        traverseStmts(stats)
+      
+      case t: Term.IfLike =>
+        def split(s: Split): Unit = s match
+          case Split.Cons(head, tail) =>
+            traverse(head.scrutinee, expect = NonModule(N))
+            head.pattern.subTerms.foreach(traverse(_, expect = NonModule(N)))
+            split(head.continuation)
+            split(tail)
+          case Split.Let(sym, term, tail) =>
+            traverse(term, expect = NonModule(N))
+            split(tail)
+          case Split.Else(default) =>
+            traverse(default, expect = Any)
+          case Split.End =>
+        split(t.desugared)
+      
+      case Term.Handle(lhs, rhs, args, derivedClsSym, defs, body) =>
+        traverse(rhs, expect = Class(S("The 'handle' keyword requires a statically known class.")))
+        args.foreach(traverse(_, expect = NonModule(N)))
+        defs.foreach(d => traverseDefn(d.td))
+        traverse(body, expect = NonModule(N))
         
-        case t: Term.IfLike =>
-          def split(s: Split): Unit = s match
-            case Split.Cons(head, tail) =>
-              traverse(head.scrutinee, expect = NonModule(N))
-              head.pattern.subTerms.foreach(traverse(_, expect = NonModule(N)))
-              split(head.continuation)
-              split(tail)
-            case Split.Let(sym, term, tail) =>
-              traverse(term, expect = NonModule(N))
-              split(tail)
-            case Split.Else(default) =>
-              traverse(default, expect = Any)
-            case Split.End =>
-          split(t.desugared)
-        
-        case Term.Handle(lhs, rhs, args, derivedClsSym, defs, body) =>
-          traverse(rhs, expect = Class(S("The 'handle' keyword requires a statically known class.")))
-          args.foreach(traverse(_, expect = NonModule(N)))
-          defs.foreach(d => traverseDefn(d.td))
-          traverse(body, expect = NonModule(N))
-          
-        case Term.New(cls, args, rft) =>
-          traverse(cls, expect = Class(S("The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.")))
-          args.foreach(traverse(_, expect = NonModule(N)))
-          rft.foreach((sym, bdy) => traverseBlock(bdy.blk))
-        
-        case t: Resolvable =>
-          resolve(t, inAppPrefix = false, inTyPrefix = false, inCtxPrefix = false)
-          expect match
-            case expect: Expect.Class => expand2DotClass(t, expect = expect)
-            case _ =>
-        
-        case _ =>
-          t.subTerms.foreach(traverse(_, expect = NonModule(N)))
+      case Term.New(cls, args, rft) =>
+        traverse(cls, expect = Class(S("The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.")))
+        args.foreach(traverse(_, expect = NonModule(N)))
+        rft.foreach((sym, bdy) => traverseBlock(bdy.blk))
+      
+      case t: Resolvable =>
+        resolve(t, inAppPrefix = false, inTyPrefix = false, inCtxPrefix = false)
+        expect match
+          case expect: Expect.Class => expand2DotClass(t, expect = expect)
+          case _ =>
+      
+      case _ =>
+        t.subTerms.foreach(traverse(_, expect = NonModule(N)))
+    
+    
+    /* Post Traversal - Checks */
+    
+    // * The `module checks` checks the term's all possibly overloaded
+    // * definitions / declarations. It raise errors only if the term
+    // * can only be interpreted as a module.
+    
+    // TODO: currently it checks for only overloaded statically
+    // known classes, it might require checking other definitions also
+    // later.
+    
+    val evalsToStaticClass = ModuleChecker.evalsToStaticClass(t)
+    
+    if expect.`module` && !evalsToModule(t, prefer = expect) then
+      raise(ErrorReport(msg"Expected a module; found non-moduleful ${t.describe}." -> t.toLoc 
+        :: expect.message))
+    if expect.nonModule && evalsToModule(t, prefer = expect) && !evalsToStaticClass then
+      raise(ErrorReport(msg"Unexpected moduleful ${t.describe}." -> t.toLoc 
+        :: expect.message))
+    
+    if expect.`class` && !evalsToStaticClass then
+      raise(ErrorReport(msg"Expected a statically known class; found ${t.describe}." -> t.toLoc
+        :: expect.message))
+  
+  end traverse
   
   def traverseDefn(defn: Definition)(using ICtx): ICtx =
   trace(s"Resolving definition: $defn"):
@@ -855,6 +857,34 @@ class Resolver(tl: TraceLogger)
   
   def traverseType(t: Term, expect: Expect, inTyAppPrefix: Bool = false)(using ictx: ICtx): Unit =
   trace(s"Traversing type ${t}, expecting ${expect}"):
+    
+    t match
+    
+    // If the term is a reference (probably to a class, module or type
+    // alias definition), check its symbol to ensure it is really a type.
+    case Term.Ref(_) =>
+    case AnySel(_, _) =>
+    case Term.Lit(_) =>
+    case Term.UnitVal() =>
+    case Term.App(Term.Ref(_: BuiltinSymbol), args) =>
+      args.subTerms.foreach(traverseType(_, expect = NonModule(N)))
+    
+    // If the term is a type application (T[A, ...]), traverse the
+    // type constructor and arguments respectively.
+    case Term.TyApp(con, targs) => 
+      traverseType(con, expect = expect, inTyAppPrefix = true)
+      targs.foreach(traverseType(_, expect = Expect.NonModule(S("Type arguments should be non-moduleful types."))))
+    
+    case t: (Term.FunTy | Term.WildcardTy | Term.CompType | Term.Neg | Term.Forall | Term.Tup) =>
+      t.subTerms.foreach(traverseType(_, expect = Expect.NonModule(N)))
+    
+    case _ => raise:
+      ErrorReport(msg"Expected a type, got ${t.describe}" -> t.toLoc :: Nil)
+    
+    t match
+      case t: Resolvable => resolveSymbol(t)
+      case _ => ()
+    
     def checkTypeArity(sym: FieldSymbol): Unit =
       if inTyAppPrefix then
         return
@@ -874,58 +904,28 @@ class Resolver(tl: TraceLogger)
                 msg"Expected ${tparamsMsg} type arguments, "
                 + msg"got ${targsMsg}" -> t.toLoc :: Nil
     
-    def check(body: => Unit): Unit =
-      body
-      
-      expect match
-        case expect: Module => t.asModulefulType match
-          case S(m) => checkTypeArity(m)
-          case N => raise:
-            log(s"Error: no moduelful type defn in ${t.resolvedSymbol}, ${t.resolvedSymbol.flatMap(_.asBlkMember).map(_.trees)}")
-            ErrorReport(msg"Expected a module type; found ${t.describe}." -> t.toLoc
-              :: expect.message)
-        case expect: NonModule => t.asNonModulefulType match
-          case S(S(s: FieldSymbol)) => checkTypeArity(s)
-          case S(S(_)) => ()
-          case S(N) => ()
-          case N => raise:
-            log(s"Error: no non-moduleful type defn in ${t.resolvedSymbol}, ${t.resolvedSymbol.flatMap(_.asBlkMember).map(_.trees)}")
-            ErrorReport(msg"Expected a non-module type; found ${t.describe}." -> t.toLoc
-              :: expect.message)
-        case expect: Class => t.asStaticClassType match
-          case S(c) => checkTypeArity(c)
-          case N => raise:
-            log(s"Error: no statically resolable class defn in ${t.resolvedSymbol.flatMap(_.asBlkMember).map(_.trees)}")
-            ErrorReport(msg"Expected a statically resolvable class; found ${t.describe}." -> t.toLoc
-              :: expect.message)
-        case _ => ()
-      
-    check:
-      t match
-      // If the term is a reference (probably to a class, module or type
-      // alias definition), check its symbol to ensure it is really a type.
-      case Term.Ref(_) =>
-      case AnySel(_, _) =>
-      case Term.Lit(_) =>
-      case Term.UnitVal() =>
-      case Term.App(Term.Ref(_: BuiltinSymbol), args) =>
-        args.subTerms.foreach(traverseType(_, expect = NonModule(N)))
-      
-      // If the term is a type application (T[A, ...]), traverse the
-      // type constructor and arguments respectively.
-      case Term.TyApp(con, targs) => 
-        traverseType(con, expect = expect, inTyAppPrefix = true)
-        targs.foreach(traverseType(_, expect = Expect.NonModule(S("Type arguments should be non-moduleful types."))))
-      
-      case t: (Term.FunTy | Term.WildcardTy | Term.CompType | Term.Neg | Term.Forall | Term.Tup) =>
-        t.subTerms.foreach(traverseType(_, expect = Expect.NonModule(N)))
-      
-      case _ => raise:
-        ErrorReport(msg"Expected a type, got ${t.describe}" -> t.toLoc :: Nil)
-      
-      t match
-        case t: Resolvable => resolveSymbol(t)
-        case _ => ()
+    expect match
+      case expect: Module => t.asModulefulType match
+        case S(m) => checkTypeArity(m)
+        case N => raise:
+          log(s"Error: no moduelful type defn in ${t.resolvedSymbol}, ${t.resolvedSymbol.flatMap(_.asBlkMember).map(_.trees)}")
+          ErrorReport(msg"Expected a module type; found ${t.describe}." -> t.toLoc
+            :: expect.message)
+      case expect: NonModule => t.asNonModulefulType match
+        case S(S(s: FieldSymbol)) => checkTypeArity(s)
+        case S(S(_)) => ()
+        case S(N) => ()
+        case N => raise:
+          log(s"Error: no non-moduleful type defn in ${t.resolvedSymbol}, ${t.resolvedSymbol.flatMap(_.asBlkMember).map(_.trees)}")
+          ErrorReport(msg"Expected a non-module type; found ${t.describe}." -> t.toLoc
+            :: expect.message)
+      case expect: Class => t.asStaticClassType match
+        case S(c) => checkTypeArity(c)
+        case N => raise:
+          log(s"Error: no statically resolable class defn in ${t.resolvedSymbol.flatMap(_.asBlkMember).map(_.trees)}")
+          ErrorReport(msg"Expected a statically resolvable class; found ${t.describe}." -> t.toLoc
+            :: expect.message)
+      case _ => ()
   
   // FIXME @Harry: refactor resolveType and dedup with traverseType
   def resolveType(t: Term): Opt[ICtx.Type.Specified] = t match
