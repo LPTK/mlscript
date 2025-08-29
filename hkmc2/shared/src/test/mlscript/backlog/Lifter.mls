@@ -168,28 +168,11 @@ fun foo(x, y) =
   fun foo = M.foo()
   foo
 //│ ═══[WARNING] Modules are not yet lifted.
-//│ ╔══[COMPILATION ERROR] No definition found in scope for 'M'
-//│ ║  l.164: 	  module M with
-//│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.165: 	    fun foo() =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.166: 	      set y = 2
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.167: 	      x + y
-//│ ║         	^^^^^^^^^^^
-//│ ╟── which is introduced here
-//│ ║  l.164: 	  module M with
-//│ ║         	         ^^^^^^
-//│ ║  l.165: 	    fun foo() =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.166: 	      set y = 2
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.167: 	      x + y
-//│ ╙──       	^^^^^^^^^^^
+//│ ═══[COMPILATION ERROR] No definition found in scope for 'M$'
 
 :expect 12
 foo(10, 0)
-//│ ═══[RUNTIME ERROR] ReferenceError: M is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: M$ is not defined
 //│ ═══[RUNTIME ERROR] Expected: '12', got: 'undefined'
 
 
@@ -212,7 +195,7 @@ fun foo(x) =
   (new Bar).self2
 foo(2)
 //│ ╔══[ERROR] Expected a statically known class; found reference with a object definition 'Foo'.
-//│ ║  l.211: 	  class Bar extends Foo
+//│ ║  l.194: 	  class Bar extends Foo
 //│ ║         	                    ^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[COMPILATION ERROR] No definition found in scope for 'Foo$'
@@ -228,24 +211,6 @@ fun f =
       h
   M.g
 //│ ═══[WARNING] Modules are not yet lifted.
-//│ ╔══[COMPILATION ERROR] No definition found in scope for 'M'
-//│ ║  l.225: 	  module M with
-//│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.226: 	    fun g =
-//│ ║         	^^^^^^^^^^^
-//│ ║  l.227: 	      fun h = M.g
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.228: 	      h
-//│ ║         	^^^^^^^
-//│ ╟── which is introduced here
-//│ ║  l.225: 	  module M with
-//│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.226: 	    fun g =
-//│ ║         	^^^^^^^^^^^
-//│ ║  l.227: 	      fun h = M.g
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.228: 	      h
-//│ ╙──       	^^^^^^^
 //│ /!!!\ Uncaught error: hkmc2.InternalError: `this` not in scope: class:M
 
 

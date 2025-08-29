@@ -116,11 +116,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
 
   val DefnMetadata(definedLocals, defnsMap, existingVars, 
     inScopeDefns, nestedDefns, nestedDeep, nestedIn, companionMap) = createMetadata
-
-  def isModule(s: BlockMemberSymbol) = defnsMap.get(s) match
-    case S(c: ClsLikeDefn) => c.companion.isDefined // TODO: refine
-    case _ => false
-    
+  
   def isHandlerClsPath(p: Path) = handlerPaths match
     case None => false
     case Some(paths) => paths.isHandlerClsPath(p)
@@ -147,7 +143,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
         override def applyValue(v: Value): Unit = v match
           case Value.Ref(_: BuiltinSymbol) => super.applyValue(v)
           case RefOfBms(l) =>
-            if !isModule(l) then accessed = accessed.addRefdDefn(l)
+            accessed = accessed.addRefdDefn(l)
           case Value.Ref(l) =>
             accessed = accessed.addAccess(l)
           case _ => super.applyValue(v)
