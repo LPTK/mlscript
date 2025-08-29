@@ -58,19 +58,35 @@ sealed trait ResolvableImpl:
     case S(S(expansion)) => showDbg + "{~>" + expansion.show + "}"
     case _ => showDbg
   
-  def instantiate = expansion match
+  def instantiate: Term = expansion match
+    case S(S(t: Resolvable)) => t.instantiate
     case S(S(t)) => t
     case S(N) => this
-    // case N => lastWords(s"missing expansion for term ${this}")
-    case N =>
-      // FIXME: instantiating a term without an expansion should be an
-      // error
-      this
+    case N => this
 
-  /** This method is only supposed to be called by Resolver. */
-  private[semantics] def expand(expansionFn: Opt[this.type => Term]): this.type =
-    val newExpansion = expansionFn.map(_(duplicate))
-    expansion = S(newExpansion)
+  /** 
+   * Expanding a term to another, which can be later retrieved by the
+   * `instantiate` method. 
+   *
+   * If a term is expanding to a term that contains itself, the
+   * `instantiate` method goes into an infinite loop and the expansion
+   * never ends. Thus, the term itself should be duplicated by the
+   * `duplicate` method if it appears in its own expansion.
+   *
+   * This method is only supposed to be called by Resolver. 
+   */
+  private[semantics] def expand(expansion: Opt[Term]): this.type =
+    // `expansion.isDefined`: Ideally, if a term is already expanded,
+    // one should look at the term's expansion and expand it again. This
+    // check is to prevent one from mistakenly overriding an expansion
+    // without looking at the instantiation.
+    //
+    // `expansion.get =/= newExpansion`: Waiting for @Luyu to revamp the
+    // desugaring stage so that no same term occurs in different places.
+    if this.expansion.isDefined && this.expansion.get =/= expansion then
+      lastWords(s"Cannot expand the term ${this.show} multiple times (to different expansions).")
+    
+    this.expansion = S(expansion)
     this
     
   def resolve: this.type = expand(N)
@@ -80,12 +96,7 @@ sealed trait ResolvableImpl:
   
   def defn: Opt[Definition] = resolvedSymbol match
     case S(sym: MemberSymbol[?]) => sym.defn.map(_.asPrincipalDefn)
-    // TODO: @Harry check if this case is really needed.
-    case S(sym: BlockLocalSymbol) => sym.decl match
-      case S(td: Definition) => S(td)
-      case _ => N
     case _ => N
-  
   
   def callableDefn: Opt[CallableDefinition] = defn.flatMap:
     CallableDefinition.fromDefn(_)

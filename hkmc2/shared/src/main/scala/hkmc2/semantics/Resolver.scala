@@ -279,7 +279,7 @@ class Resolver(tl: TraceLogger)
         case _: Expect.Class => bsym.asCls
       sym.foreach: sym =>
         if sym isnt ctx.builtins.Array then
-          t.expand(S(t => SynthSel(t, new Tree.Ident("class"))(S(sym))))
+          t.expand(S(SynthSel(t.duplicate, new Tree.Ident("class"))(S(sym))))
     case _ =>
       ()
   
@@ -354,7 +354,7 @@ class Resolver(tl: TraceLogger)
     if expect.`class` && !evalsToStaticClass then
       raise(ErrorReport(msg"Expected a statically known class; found ${t.describe}." -> t.toLoc
         :: expect.message))
-  
+    
   end traverse
   
   def traverseDefn(defn: Definition)(using ICtx): ICtx =
@@ -716,12 +716,11 @@ class Resolver(tl: TraceLogger)
             case _ =>
               ((t: Term) => lam(bod(t)), pss)
         
-        val (expansion, pss) = expand(defn.params, identity, identity)
-        // t.expand(if defn.params.length =/= pss.length then S(expansion) else N)
-        if defn.params.length =/= pss.length then t.expand(S(expansion))
-        
-        // resolution may change the semantics
-        if t.hasExpansion then t.instantiate match
+        val (expansionFn, pss) = expand(defn.params, identity, identity)
+        if defn.params.length =/= pss.length then
+          val expansion = expansionFn(t.duplicate)
+          t.expand(S(expansion))
+          expansion match // * expansion may change the semantics, thus symbol is also changed
           case r: Resolvable => resolveSymbol(r)
           case _ => ()
         
@@ -777,7 +776,7 @@ class Resolver(tl: TraceLogger)
           expand2DotClass(lhs, expect = Expect.Module(N))
           lhs.instantiate match
             case ref @ Term.Ref(bsym: BlockMemberSymbol) => ref.expand:
-              S(ref => bsym.disamb(mdef.sym).ref(ref.tree))
+              S(bsym.disamb(mdef.sym).ref(ref.tree))
             case _ => ()
           log(s"Resolved symbol for ${t}: ${bsym}")
         case N => 
