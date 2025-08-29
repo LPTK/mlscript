@@ -231,19 +231,12 @@ oops
 
 // ——— ——— ———
 
-// TODO prevent explicit accesses to Unit, Int etc. from Prelude or elaborate them
-
-Int
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'Int' yielded 'undefined'
-
-// ——— ——— ———
-
 class C
 
 :sjs
 class D extends id(C)
 //│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
-//│ ║  l.244: 	class D extends id(C)
+//│ ║  l.237: 	class D extends id(C)
 //│ ║         	                ^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ JS (unsanitized):
@@ -291,13 +284,13 @@ import "../../mlscript-compile/Stack.mls"
 // The parser rejects this, but it should be allowed.
 open Stack { ::, Nil }
 //│ ╔══[ERROR] Illegal 'open' statement shape.
-//│ ║  l.292: 	open Stack { ::, Nil }
+//│ ║  l.285: 	open Stack { ::, Nil }
 //│ ╙──       	     ^^^^^^^^^^^^^^^
 
 // Instead, if we parenthesize the operator, it is rejected by the elaborator.
 open Stack { (::), Nil }
 //│ ╔══[ERROR] Illegal 'open' statement element.
-//│ ║  l.298: 	open Stack { (::), Nil }
+//│ ║  l.291: 	open Stack { (::), Nil }
 //│ ╙──       	             ^^^^
 
 open Stack { Nil, :: }
@@ -313,9 +306,9 @@ open Stack { Nil, :: }
 mkStr of ... // hello
 "oops"
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found new line instead
-//│ ║  l.313: 	mkStr of ... // hello
+//│ ║  l.306: 	mkStr of ... // hello
 //│ ║         	                     ^
-//│ ║  l.314: 	"oops"
+//│ ║  l.307: 	"oops"
 //│ ╙──       	
 //│ = "oops"
 
@@ -338,22 +331,22 @@ Foo(1, 2, 3).args
 :todo
 if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╔══[ERROR] Unrecognized pattern (spread)
-//│ ║  l.339: 	if Foo(1, 2, 3) is Foo(...args) then args
+//│ ║  l.332: 	if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╙──       	                       ^^^^^^^
 //│ ╔══[ERROR] The constructor does not take any arguments but found one argument.
-//│ ║  l.339: 	if Foo(1, 2, 3) is Foo(...args) then args
+//│ ║  l.332: 	if Foo(1, 2, 3) is Foo(...args) then args
 //│ ╙──       	                       ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
 if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
 //│ ╔══[ERROR] The constructor does not take any arguments but found three arguments.
-//│ ║  l.348: 	if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
+//│ ║  l.341: 	if Foo(1, 2, 3) is Foo(a, b, c) then [a, b, c]
 //│ ╙──       	                       ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
 if Foo(1, 2, 3) is Foo(arg) then arg
 //│ ╔══[ERROR] The constructor does not take any arguments but found one argument.
-//│ ║  l.354: 	if Foo(1, 2, 3) is Foo(arg) then arg
+//│ ║  l.347: 	if Foo(1, 2, 3) is Foo(arg) then arg
 //│ ╙──       	                       ^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
@@ -387,10 +380,10 @@ fun foo() =
   let bar(x: Str): Str = x + x
   bar("test")
 //│ ╔══[ERROR] Unsupported let binding shape
-//│ ║  l.387: 	  let bar(x: Str): Str = x + x
+//│ ║  l.380: 	  let bar(x: Str): Str = x + x
 //│ ╙──       	      ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[ERROR] Expected 0 arguments, got 1
-//│ ║  l.388: 	  bar("test")
+//│ ║  l.381: 	  bar("test")
 //│ ╙──       	     ^^^^^^^^
 
 // ——— ——— ———
@@ -399,10 +392,10 @@ fun foo() =
 :sjs
 module Foo(x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
-//│ ║  l.400: 	module Foo(x)
+//│ ║  l.393: 	module Foo(x)
 //│ ║         	           ^
 //│ ╟── which is introduced here
-//│ ║  l.400: 	module Foo(x)
+//│ ║  l.393: 	module Foo(x)
 //│ ╙──       	           ^
 //│ JS (unsanitized):
 //│ let Foo5;
@@ -425,10 +418,10 @@ module Foo(x)
 :sjs
 module Foo(val x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
-//│ ║  l.426: 	module Foo(val x)
+//│ ║  l.419: 	module Foo(val x)
 //│ ║         	               ^
 //│ ╟── which is introduced here
-//│ ║  l.426: 	module Foo(val x)
+//│ ║  l.419: 	module Foo(val x)
 //│ ╙──       	               ^
 //│ JS (unsanitized):
 //│ let Foo7;
@@ -451,7 +444,7 @@ module Foo(val x)
 // TODO support syntax?
 data class Foo(mut x)
 //│ ╔══[ERROR] Expected a valid parameter, found 'mut'-modified identifier
-//│ ║  l.452: 	data class Foo(mut x)
+//│ ║  l.445: 	data class Foo(mut x)
 //│ ╙──       	                   ^
 
 // ——— ——— ———

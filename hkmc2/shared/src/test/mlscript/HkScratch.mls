@@ -103,7 +103,7 @@ new Foo(1)
 :re
 new id(1)
 //│ ╔══[ERROR] Expected a statically known class; found selection with a function definition 'id'.
-//│ ║  l.107: 	new id(1)
+//│ ║  l.104: 	new id(1)
 //│ ║         	    ^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: Predef.id is not a constructor
@@ -112,7 +112,7 @@ new id(1)
 :re
 new 1
 //│ ╔══[ERROR] Expected a statically known class; found integer literal.
-//│ ║  l.116: 	new 1
+//│ ║  l.113: 	new 1
 //│ ║         	    ^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] TypeError: 1 is not a constructor
@@ -120,7 +120,7 @@ new 1
 :e
 new (id(Foo))(12)
 //│ ╔══[ERROR] Expected a statically known class; found application without a resolvable definition.
-//│ ║  l.124: 	new (id(Foo))(12)
+//│ ║  l.121: 	new (id(Foo))(12)
 //│ ║         	     ^^^^^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ > ok 12
