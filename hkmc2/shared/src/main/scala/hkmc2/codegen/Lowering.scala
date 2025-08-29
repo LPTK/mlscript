@@ -224,7 +224,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           case S(sym) =>
             sym.defn match
             case S(mod: ModuleOrObjectDef) =>
-              assert(mod.ext.isEmpty, mod.ext) // modules can't extend things and can't have super calls
+              mod.ext match
+              case S(ext) => fail:
+                ErrorReport(
+                  msg"Modules cannot have an extension clause." -> ext.toLoc :: Nil,
+                  source = Diagnostic.Source.Compilation
+                )
+              case N =>
               val (mtds, publicFlds, privateFlds, ctor) =
                 gatherMembers(mod.body)
               S(ClsLikeBody(mod.sym, mtds, privateFlds, publicFlds, ctor))
@@ -730,6 +736,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         subTerm_nonTail(rhs): value =>
           AssignField(ref, Tree.Ident("value"), value, k(value))(N)
     
+    case Mut(Rcd(mut, stats)) =>
+      // * Note: I don't think this is supposed to happen...
+      block(stats, L(mut -> Nil))(k)
     case Rcd(mut, stats) =>
       block(stats, L(mut -> Nil))(k)
     

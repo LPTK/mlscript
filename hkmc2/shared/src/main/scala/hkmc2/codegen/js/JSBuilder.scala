@@ -338,7 +338,12 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
               } :/: ctorHead :: " " :: braced(ctorAux)
             
             val clsJS = doc"class ${scope.lookup_!(isym)}${
-                par.map(p => doc" extends ${result(p)}").getOrElse("")
+                par.map(p => doc" extends ${
+                  val ext = result(p)
+                  p match
+                  case _: Value.Lam => doc"($ext)"
+                  case _ => ext
+                }").getOrElse("")
               } " :: braced:
                 
                 ctorBod :: modDoc :: privs :: {

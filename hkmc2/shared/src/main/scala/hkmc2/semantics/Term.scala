@@ -252,6 +252,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
       case TyApp(lhs, targs) => "type application"
       case Sel(pre, nme) => "selection"
       case SynthSel(pre, nme) => "selection"
+      case DynSel(o, f, _) => "dynamic selection"
       case Tup(fields) => "tuple literal"
       case CtxTup(fields) => "contextual tuple literal"
       case IfLike(Keyword.`if`, body) => "`if` expression"

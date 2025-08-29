@@ -27,4 +27,18 @@ new c(123)
 new! c(123)
 //│ = C(123)
 
+object D extends Foo.C(123) with
+  print(this!x)
+  print(id(this).x)
+//│ > 123
+//│ > 123
+
+:fixme
+object D extends Foo.C(123) with
+  print(this.x)
+//│ ╔══[ERROR] Object 'D' does not contain member 'x'
+//│ ║  l.38: 	  print(this.x)
+//│ ╙──      	        ^^^^^^
+//│ > 123
+
 

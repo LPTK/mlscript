@@ -13,38 +13,11 @@ cached
 //│ = 2
 
 
-:ssjs
 object O with
   val x = 1
   let y = 1
   fun gy = y
   fun sy = set y += 1
-//│ JS:
-//│ globalThis.Object.freeze(class O {
-//│   static {
-//│     O1 = globalThis.Object.freeze(new this)
-//│   }
-//│   constructor() {
-//│     this.x = 1;
-//│     this.#y = 1;
-//│     Object.defineProperty(this, "class", {
-//│       value: O
-//│     })
-//│   }
-//│   #y;
-//│   get gy() {
-//│     return this.#y;
-//│   } 
-//│   get sy() {
-//│     let tmp;
-//│     tmp = this.#y + 1;
-//│     this.#y = tmp;
-//│     return runtime.Unit;
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["object", "O"]; 
-//│ });
-//│ block$res4 = undefined;
 
 set O.x = 2
 

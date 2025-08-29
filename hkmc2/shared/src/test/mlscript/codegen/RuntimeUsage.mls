@@ -15,26 +15,8 @@ print(print("hello!"))
 
 import "../../mlscript-compile/Runtime.mls"
 
-:showRepl
 Runtime.printRaw(1)
-//│ REPL> Sending: block$res5 = undefined
-//│ REPL> Collected:
-//│ >  undefined
-//│ REPL> Sending: try { block$res5 = runtime.checkCall(Runtime.printRaw(1)); undefined } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
-//│ REPL> Collected:
-//│ >  1
-//│ >  undefined
-//│ REPL> Parsed:
-//│ >  1
-//│ >  undefined
 //│ > 1
-//│ REPL> Sending: try { runtime.checkCall(runtime.printRaw(block$res5)) } catch (e) { console.log('\u200B' + e.stack + '\u200B'); }
-//│ REPL> Collected:
-//│ >  ()
-//│ >  Unit {}
-//│ REPL> Parsed:
-//│ >  ()
-//│ >  Unit {}
 
 print(Runtime.Unit)
 //│ > ()
@@ -106,12 +88,7 @@ print of Str.startsWith("hello, world", "farewell")
 //│ > false
 
 
-
-
-:ssjs
 stackLimit
-//│ JS:
-//│ block$res28 = Runtime.stackLimit; undefined
 //│ = 0
 
 :ssjs
@@ -121,8 +98,5 @@ set stackLimit = 1
 
 stackLimit
 //│ = 1
-
-
-
 
 

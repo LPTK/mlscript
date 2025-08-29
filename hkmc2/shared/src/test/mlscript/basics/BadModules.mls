@@ -3,9 +3,10 @@
 
 class Foo
 
-// TODO Report elab' error
-:fixme
+:ge
 module M extends Foo
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: Some(New(Ref(member:Foo),List(),None))
+//│ ╔══[COMPILATION ERROR] Modules cannot have an extension clause.
+//│ ║  l.7: 	module M extends Foo
+//│ ╙──     	                 ^^^
 
 

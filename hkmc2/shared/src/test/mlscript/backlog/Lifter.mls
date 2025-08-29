@@ -202,7 +202,7 @@ foo(2)
 //│ ═══[RUNTIME ERROR] TypeError: Class extends value [object Object] is not a constructor or null
 
 // `h` is lifted out, but then cannot access the BlockMemberSymbol M.
-// :fixme
+:fixme
 :w
 fun f =
   module M with

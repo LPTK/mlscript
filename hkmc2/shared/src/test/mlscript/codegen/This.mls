@@ -74,3 +74,14 @@ Test.test2(123)
 //│ = [3, 123]
 
 
+// * Note: a module that induces a `this`-proxy
+// :sjs
+class A(x) with
+  module M with
+    print(x)
+
+A(42)
+//│ > 42
+//│ = A(_)
+
+

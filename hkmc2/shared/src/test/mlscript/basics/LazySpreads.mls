@@ -1,24 +1,7 @@
 :js
 
-:ssjs
 :expect [[1, 2], 3]
 if [1, ..[2, 3]] is [..a, b] then [a, b]
-//│ JS:
-//│ scrut = globalThis.Object.freeze(runtime.Tuple.lazyConcat(1, runtime.Tuple.split, globalThis.Object.freeze([
-//│   2,
-//│   3
-//│ ])));
-//│ if (runtime.Tuple.isArrayLike(scrut) && scrut.length >= 1) {
-//│   rest = runtime.safeCall(runtime.Tuple.lazySlice(scrut, 0, 1));
-//│   last0 = runtime.Tuple.get(scrut, -1);
-//│   a = rest;
-//│   b = last0;
-//│   block$res1 = globalThis.Object.freeze([
-//│     a,
-//│     b
-//│   ]);
-//│   undefined
-//│ } else { throw globalThis.Object.freeze(new globalThis.Error("match error")) }
 //│ = [[1, 2], 3]
 
 :expect [[1, 2], 3]
@@ -97,14 +80,14 @@ sum2(arr)
 :e
 fun f(..xs) = xs
 //│ ╔══[ERROR] Lazy spread parameters not allowed.
-//│ ║  l.98: 	fun f(..xs) = xs
+//│ ║  l.81: 	fun f(..xs) = xs
 //│ ╙──      	      ^^^^
 
 :ge
 sum2(..arr)
 //│ ╔══[COMPILATION ERROR] Lazy spreads are not supported in call arguments
-//│ ║  l.104: 	sum2(..arr)
-//│ ╙──       	    ^^^^^^^
+//│ ║  l.87: 	sum2(..arr)
+//│ ╙──      	    ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: Function expected 1 argument but got 2
 
 

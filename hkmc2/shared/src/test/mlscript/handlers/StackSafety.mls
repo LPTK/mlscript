@@ -271,114 +271,12 @@ in
 :effectHandlers
 :stackSafe 100
 :expect 50005000
-:sjs
 module A with
   val f = n =>
     if n <= 0 then 0
     else n + f(n-1)
   val x = f(10000)
 A.x
-//│ JS (unsanitized):
-//│ let A1;
-//│ globalThis.Object.freeze(class A {
-//│   static {
-//│     A1 = this
-//│   }
-//│   constructor() {
-//│     runtime.Unit;
-//│   }
-//│   static {
-//│     let tmp6, tmp7, lambda2, $_stack$_safe$_body$_7;
-//│     lambda2 = (undefined, function (n) {
-//│       let scrut, tmp8, tmp9, curDepth, stackDelayRes, Cont$func$lambda$5;
-//│       globalThis.Object.freeze(class Cont$func$lambda$4 extends runtime.FunctionContFrame.class {
-//│         static {
-//│           Cont$func$lambda$5 = this
-//│         }
-//│         constructor(pc) {
-//│           let tmp10;
-//│           tmp10 = super(null);
-//│           this.pc = pc;
-//│         }
-//│         resume(value$) {
-//│           if (this.pc === 0) {
-//│             stackDelayRes = value$;
-//│           } else if (this.pc === 1) {
-//│             tmp9 = value$;
-//│           }
-//│           contLoop: while (true) {
-//│             if (this.pc === 0) {
-//│               scrut = n <= 0;
-//│               if (scrut === true) {
-//│                 return 0
-//│               } else {
-//│                 tmp8 = n - 1;
-//│                 this.pc = 3;
-//│                 continue contLoop
-//│               }
-//│               this.pc = 2;
-//│               continue contLoop
-//│             } else if (this.pc === 2) {
-//│               break contLoop
-//│             } else if (this.pc === 3) {
-//│               runtime.stackDepth = runtime.stackDepth + 1;
-//│               tmp9 = runtime.safeCall(A.f(tmp8));
-//│               if (tmp9 instanceof runtime.EffectSig.class) {
-//│                 this.pc = 1;
-//│                 tmp9.contTrace.last.next = this;
-//│                 tmp9.contTrace.last = this;
-//│                 return tmp9
-//│               }
-//│               this.pc = 1;
-//│               continue contLoop
-//│             } else if (this.pc === 1) {
-//│               tmp9 = runtime.resetDepth(tmp9, curDepth);
-//│               return n + tmp9
-//│             }
-//│             break;
-//│           }
-//│         }
-//│         toString() { return runtime.render(this); }
-//│         static [definitionMetadata] = ["class", "Cont$func$lambda$"]; 
-//│       });
-//│       curDepth = runtime.stackDepth;
-//│       stackDelayRes = runtime.checkDepth();
-//│       if (stackDelayRes instanceof runtime.EffectSig.class) {
-//│         stackDelayRes.contTrace.last.next = new Cont$func$lambda$5(0);
-//│         stackDelayRes.contTrace.last = stackDelayRes.contTrace.last.next;
-//│         return stackDelayRes
-//│       }
-//│       scrut = n <= 0;
-//│       if (scrut === true) {
-//│         return 0
-//│       } else {
-//│         tmp8 = n - 1;
-//│         runtime.stackDepth = runtime.stackDepth + 1;
-//│         tmp9 = runtime.safeCall(A.f(tmp8));
-//│         if (tmp9 instanceof runtime.EffectSig.class) {
-//│           tmp9.contTrace.last.next = new Cont$func$lambda$5(1);
-//│           tmp9.contTrace.last = tmp9.contTrace.last.next;
-//│           return tmp9
-//│         }
-//│         tmp9 = runtime.resetDepth(tmp9, curDepth);
-//│         return n + tmp9
-//│       }
-//│     });
-//│     tmp6 = lambda2;
-//│     this.f = tmp6;
-//│     $_stack$_safe$_body$_7 = (undefined, function () {
-//│       return runtime.safeCall(A.f(10000))
-//│     });
-//│     tmp7 = runtime.runStackSafe(100, $_stack$_safe$_body$_7);
-//│     if (tmp7 instanceof runtime.EffectSig.class) {
-//│       tmp7 = runtime.topLevelEffect(tmp7, false);
-//│     }
-//│     this.x = tmp7;
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "A"]; 
-//│ });
-//│ A1.x
 //│ = 50005000
 
 :re

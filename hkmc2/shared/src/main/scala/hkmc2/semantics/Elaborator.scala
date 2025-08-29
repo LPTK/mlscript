@@ -350,16 +350,13 @@ extends Importer:
       Term.Assgn(subterm(lhs), subterm(rhs))
     case LetLike(Keywrd(`set`), lhs, S(rhs), S(bod)) =>
       // * Backtracking assignment
-      lhs match
-      case id: Ident =>
-        val lt = subterm(lhs)
-        val sym = TempSymbol(S(lt), "old")
-        Blk(
-          LetDecl(sym, Nil) :: DefineVar(sym, lt) :: Nil, Term.Try(Blk(
-            Term.Assgn(lt, subterm(rhs)) :: Nil,
-            subterm(bod),
-        ), Term.Assgn(lt, sym.ref(id))))
-      case _ => ??? // TODO error
+      val lt = subterm(lhs)
+      val sym = TempSymbol(S(lt), "old")
+      Blk(
+        LetDecl(sym, Nil) :: DefineVar(sym, lt) :: Nil, Term.Try(Blk(
+          Term.Assgn(lt, subterm(rhs)) :: Nil,
+          subterm(bod),
+      ), Term.Assgn(lt, sym.ref())))
     case (hd @ Hndl(id: Ident, c, Block(sts_), S(bod))) => ctx.nest(OuterCtx.LambdaOrHandlerBlock).givenIn:
       
       val sym = fieldOrVarSym(HandlerBind, id)
@@ -593,7 +590,8 @@ extends Importer:
       val (mut, c2) = c match
         case Modified(Keywrd(Keyword.`mut`), c) => (true, c)
         case c => (false, c)
-      Term.DynNew(subterm(c2, inAppPrefix = inAppPrefix), args.map(subterm(_))).withLocOf(tree)
+      val base = new Term.DynNew(subterm(c2, inAppPrefix = inAppPrefix), args.map(subterm(_))).withLocOf(tree)
+      if mut then Term.Mut(base) else base
     // case New(c, rfto) =>
     //   assert(rfto.isEmpty)
     //   Term.New(cls(subterm(c), inAppPrefix = inAppPrefix), params.map(subterm(_)), bodo).withLocOf(tree)

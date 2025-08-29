@@ -134,7 +134,7 @@ fun main() =
 // * Or these parameters should have default values.
 
 :sjs
-data object Cls(x) with
+object Cls(val x) with
   fun huh = x
 //│ JS (unsanitized):
 //│ let Cls1;
@@ -388,7 +388,7 @@ fun foo() =
 
 // ——— ——— ———
 
-:fixme // proper comoilation error
+:fixme // proper compilation error
 :sjs
 module Foo(x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'
@@ -414,7 +414,7 @@ module Foo(x)
 //│   static [definitionMetadata] = ["class", "Foo"]; 
 //│ });
 
-:fixme // proper comoilation error
+:fixme // proper compilation error
 :sjs
 module Foo(val x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for 'x'

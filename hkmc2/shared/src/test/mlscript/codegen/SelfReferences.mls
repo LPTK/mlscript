@@ -50,23 +50,28 @@ Foo.self
 //│ = Foo { self: ref'1, class: object Foo } as ref'1
 
 
+module Foo with
+  val foo = 1
+  print(Foo.foo)
+//│ > 1
+
 // * This should be an initialization error
 :fixme
 :sjs
 object Foo with
   val self = id(Foo)
 //│ JS (unsanitized):
-//│ let Foo9;
-//│ globalThis.Object.freeze(class Foo8 {
+//│ let Foo11;
+//│ globalThis.Object.freeze(class Foo10 {
 //│   static {
-//│     Foo9 = globalThis.Object.freeze(new this)
+//│     Foo11 = globalThis.Object.freeze(new this)
 //│   }
 //│   constructor() {
 //│     let tmp;
-//│     tmp = Predef.id(Foo9);
+//│     tmp = Predef.id(Foo11);
 //│     this.self = tmp;
 //│     Object.defineProperty(this, "class", {
-//│       value: Foo8
+//│       value: Foo10
 //│     })
 //│   }
 //│   toString() { return runtime.render(this); }
