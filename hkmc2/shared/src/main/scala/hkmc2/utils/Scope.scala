@@ -105,18 +105,19 @@ case class Scope
       case _ => l
     bindings.get(ll).orElse(parent.flatMap(_.lookup(ll)))
   
-  def lookup_!(l: Local)(using Raise): Str =
+  def lookup_!(l: Local, loc: Opt[Loc])(using Raise): Str =
     lookup(l).getOrElse:
       // Prevent long-winded error messages which quote the entire definition.
-      val loc = l match
+      val extraLoc = l match
+        // TODO DisambSymbol
         case sym: semantics.BlockMemberSymbol =>
           sym.trees.collectFirst:
             case t: syntax.Tree.TypeDef => t.head.toLoc
-          // .flatten.orElse(l.toLoc)
-          .flatten
+          .flatten.orElse(l.toLoc)
+          // .flatten
         case other => other.toLoc
-      raise(ErrorReport(msg"No definition found in scope for '${l.nme}'" -> l.toLoc ::
-          (if loc.isEmpty then Nil else msg"which is introduced here" -> loc :: Nil),
+      raise(ErrorReport(msg"No definition found in scope for member '${l.nme}'" -> loc ::
+          (if extraLoc.isEmpty then Nil else msg"which references the symbol introduced here" -> extraLoc :: Nil),
         extraInfo = Some(l -> l.getClass -> this),
         source = Diagnostic.Source.Compilation))
       

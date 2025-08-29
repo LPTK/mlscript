@@ -504,8 +504,12 @@ enum Case:
 
 sealed trait TrivialResult extends Result
 
-sealed abstract class Result extends AutoLocated:
-
+// sealed abstract class Result extends AutoLocated:
+  
+sealed abstract class Result extends AutoLocated with ProductWithExtraInfo:
+  
+  def extraInfo: Str = toLoc.toString
+  
   protected def children: List[Located] = this match
     case Call(fun, args) => fun :: args.map(_.value)
     case Instantiate(mut, cls, args) => cls :: args.map(_.value)
@@ -574,8 +578,8 @@ sealed abstract class Path extends TrivialResult:
   def selSN(id: Str): Path = selN(new Tree.Ident(id))
   def asArg = Arg(spread = N, this)
 
-case class Select(qual: Path, name: Tree.Ident)(val symbol: Opt[FieldSymbol]) extends Path with ProductWithExtraInfo:
-  def extraInfo: Str = symbol.mkString
+case class Select(qual: Path, name: Tree.Ident)(val symbol: Opt[FieldSymbol]) extends Path /* with ProductWithExtraInfo:
+  def extraInfo: Str = symbol.mkString */
 
 case class DynSelect(qual: Path, fld: Path, arrayIdx: Bool) extends Path
 

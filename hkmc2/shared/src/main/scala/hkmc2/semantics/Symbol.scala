@@ -206,6 +206,7 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
 
 end BlockMemberSymbol
 
+
 type DisambSymbol[Defn <: Definition] = MemberSymbol[Defn] & InnerSymbol
 
 class DisambBlockMemberSymbol[Defn <: Definition]
@@ -220,6 +221,7 @@ class DisambBlockMemberSymbol[Defn <: Definition]
   def subst(using sub: SymbolSubst): DisambBlockMemberSymbol[Defn] = sub.mapDisambBlockMemberSym(this)
   
 end DisambBlockMemberSymbol
+
 
 sealed abstract class MemberSymbol[Defn <: Definition](using State) extends Symbol:
   def nme: Str
