@@ -1,10 +1,10 @@
 :js
 
-import "../../../mlscript-compile/Str.mls"
+import "../../../mlscript-compile/StrOps.mls"
 import "../../../mlscript-compile/Option.mls"
 
 open Option
-open Str
+open StrOps
 
 abstract class EitherOrBoth[out A, out B]: (Left[A, B] | Right[A, B] | Both[A, B])
 data class Left[out A, out B](value: A) extends EitherOrBoth[A, B]
@@ -75,6 +75,6 @@ fun isBoth[A, B](eob: EitherOrBoth[A, B]): Bool =
 
 fun eobToString[A, B](eob: EitherOrBoth[A, B]): Str =
   if eob is
-    Left(left) then "Left(" ~ Str.from(left) ~ ")"
-    Right(right) then "Right(" ~ Str.from(right) ~ ")"
-    Both(left, right) then "Both(" ~ Str.from(left) ~ ", " ~ Str.from(right) ~ ")"
+    Left(left) then "Left(" ~ StrOps.from(left) ~ ")"
+    Right(right) then "Right(" ~ StrOps.from(right) ~ ")"
+    Both(left, right) then "Both(" ~ StrOps.from(left) ~ ", " ~ StrOps.from(right) ~ ")"

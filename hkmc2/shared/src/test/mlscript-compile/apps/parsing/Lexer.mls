@@ -5,14 +5,14 @@ open Predef
 
 import "../../Char.mls"
 import "../../Stack.mls"
-import "../../Str.mls"
+import "../../StrOps.mls"
 import "../../Option.mls"
 import "../../Iter.mls"
 
 import "./Token.mls"
 
 open Stack
-open Str
+open StrOps
 open Option { Some, None}
 open Token { LiteralKind, LineLookupTable }
 

@@ -2,7 +2,7 @@ import "../../Iter.mls"
 import "../../Predef.mls"
 import "../../Stack.mls"
 import "../../Option.mls"
-import "../../Str.mls"
+import "../../StrOps.mls"
 import "./Keywords.mls"
 import "./Token.mls"
 
@@ -129,7 +129,7 @@ module Tree with
           field
       Infix(op, lhs, rhs) then fold(+) of
         go(lhs), " ", go(op), " ", go(rhs)
-      Define(Directive, [name, value] :: Nil) then Str.concat of
+      Define(Directive, [name, value] :: Nil) then StrOps.concat of
         "#", go(name), " ", go(value)
       Define(kind, items) then mkStr of
         if kind is
