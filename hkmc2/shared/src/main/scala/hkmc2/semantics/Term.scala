@@ -30,13 +30,7 @@ enum Annot extends AutoLocated:
 
 type Resolvable = Term & ResolvableImpl
 
-// This is a Scala hack because Scala does not support accessing
-// overridden methods from a mixin. See ResolvableImpl.describe for more
-// information.
-trait Describable:
-  def describe: Str
-
-sealed trait ResolvableImpl extends Describable:
+sealed trait ResolvableImpl:
   this: Term =>
   
   import Resolvable.CallableDefinition
@@ -64,19 +58,6 @@ sealed trait ResolvableImpl extends Describable:
     case S(S(expansion)) => showDbg + "{~>" + expansion.show + "}"
     case _ => showDbg
   
-  // Scala requires `abstract override` for this to work. Only god knows why.
-  abstract override def describe: Str = 
-    val desc = super.describe // this calls Term.describe
-    defn match
-    case S(df: TermDefinition) =>
-      s"${desc} with a ${df.k.desc} definition '${df.sym.nme}'"
-    case S(df: ClassLikeDef) =>
-      s"${desc} with a ${df.kind.desc} definition '${df.sym.nme}'"
-    case S(df: TypeDef) =>
-      s"${desc} with a type definition '${df.sym.nme}'"
-    case N =>
-      s"${desc} without a resolvable definition"
-  
   def instantiate = expansion match
     case S(S(t)) => t
     case S(N) => this
@@ -88,16 +69,8 @@ sealed trait ResolvableImpl extends Describable:
 
   /** This method is only supposed to be called by Resolver. */
   private[semantics] def expand(expansionFn: Opt[this.type => Term]): this.type =
-    val newExpansion = expansionFn.map(_(this.duplicate))
-    expansion match
-       // FIXME: @Harry this check seems like a hack
-       // @LP yes this is a hack
-      case S(expansion) if expansion =/= newExpansion => lastWords:
-        s"the expansion for term ${showDbg} " +
-        s"is already set to ${expansion}; " +
-        s"it cannot be set to a different term ${newExpansion}"
-      case _ =>
-        this.expansion = S(newExpansion)
+    val newExpansion = expansionFn.map(_(duplicate))
+    expansion = S(newExpansion)
     this
     
   def resolve: this.type = expand(N)
@@ -171,7 +144,6 @@ object Resolvable:
         Modulefulness.none, // TODO: handle modulefulness for class-like definitions
         defn,
       ))
-      case _ => N
 
 enum Term extends Statement:
   case Error
@@ -258,41 +230,6 @@ enum Term extends Statement:
     App(this, Tup(args.toList.map(PlainFld(_)))(Tree.DummyTup))
       (Tree.App(Tree.Dummy, Tree.Dummy), N, FlowSymbol(""))
   
-  def describe: Str = this match
-    case Error => "<error>"
-    case UnitVal() => "unit value"
-    case Lit(lit) => lit.describeLit
-    case Ref(sym) => "reference"
-    case App(lhs, rhs) => "application"
-    case TyApp(lhs, targs) => "type application"
-    case Sel(pre, nme) => "selection"
-    case SynthSel(pre, nme) => "selection"
-    case Tup(fields) => "tuple literal"
-    case CtxTup(fields) => "contextual tuple literal"
-    case IfLike(Keyword.`if`, body) => "`if` expression"
-    case IfLike(Keyword.`while`, body) => "`while` expression"
-    case Lam(params, body) => "function literal"
-    case FunTy(lhs, rhs, eff) => "function type"
-    case Forall(tvs, outer, body) => "universal quantification"
-    case WildcardTy(in, out) => "wildcard type"
-    case Blk(stats, res) => "block"
-    case Quoted(term) => "quoted term"
-    case Unquoted(term) => "unquoted term"
-    case New(cls, args, rft) => "object creation"
-    case SelProj(pre, cls, proj) => "field selection"
-    case Asc(term, ty) => "type ascription"
-    case CompType(lhs, rhs, pol) => "composed type"
-    case Neg(rhs) => "negation type"
-    case Region(name, body) => "region expression"
-    case RegRef(reg, value) => "reference creation"
-    case Assgn(lhs, rhs) => "assignment"
-    case SetRef(ref, value) => "mutable reference assignment"
-    case Drop(ref) => "drop"
-    case Deref(ref) => "dereference"
-    case Throw(e) => "throw"
-    case Annotated(annotation, target) => "annotation"
-    case Ret(res) => "return"
-    case Try(body, finallyDo) => "try expression"
 end Term
 
 import Term.*
@@ -304,6 +241,56 @@ extension (self: Blk)
 
 
 sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
+  
+  def describe: Str =
+    val desc = this match
+      case Error => "<error>"
+      case UnitVal() => "unit value"
+      case Lit(lit) => lit.describeLit
+      case Ref(sym) => "reference"
+      case App(lhs, rhs) => "application"
+      case TyApp(lhs, targs) => "type application"
+      case Sel(pre, nme) => "selection"
+      case SynthSel(pre, nme) => "selection"
+      case Tup(fields) => "tuple literal"
+      case CtxTup(fields) => "contextual tuple literal"
+      case IfLike(Keyword.`if`, body) => "`if` expression"
+      case IfLike(Keyword.`while`, body) => "`while` expression"
+      case Lam(params, body) => "function literal"
+      case FunTy(lhs, rhs, eff) => "function type"
+      case Forall(tvs, outer, body) => "universal quantification"
+      case WildcardTy(in, out) => "wildcard type"
+      case Blk(stats, res) => "block"
+      case Quoted(term) => "quoted term"
+      case Unquoted(term) => "unquoted term"
+      case New(cls, args, rft) => "object creation"
+      case SelProj(pre, cls, proj) => "field selection"
+      case Asc(term, ty) => "type ascription"
+      case CompType(lhs, rhs, pol) => "composed type"
+      case Neg(rhs) => "negation type"
+      case Region(name, body) => "region expression"
+      case RegRef(reg, value) => "reference creation"
+      case Assgn(lhs, rhs) => "assignment"
+      case SetRef(ref, value) => "mutable reference assignment"
+      case Drop(ref) => "drop"
+      case Deref(ref) => "dereference"
+      case Throw(e) => "throw"
+      case Annotated(annotation, target) => "annotation"
+      case Ret(res) => "return"
+      case Try(body, finallyDo) => "try expression"
+      case s => TODO(s)
+    this match
+      case self: Resolvable =>
+        self.defn match
+        case S(df: TermDefinition) =>
+          s"${desc} with a ${df.k.desc} definition '${df.sym.nme}'"
+        case S(df: ClassLikeDef) =>
+          s"${desc} with a ${df.kind.desc} definition '${df.sym.nme}'"
+        case S(df: TypeDef) =>
+          s"${desc} with a type definition '${df.sym.nme}'"
+        case N =>
+          s"${desc} without a resolvable definition"
+      case _ => desc
   
   def extraInfo: Str = this match
     case ref: Ref if ref.resSym.isEmpty => ""
@@ -424,6 +411,8 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
     case Unquoted(term) => s"$${${term.showDbg}}"
     case New(cls, args, rft) =>
       s"new ${cls.toString}(${args.mkString(", ")})${rft.fold("")(r => s"{ ${r._2.blk.showDbg} }")}"
+    case DynNew(cls, args) =>
+      s"new! ${cls.toString}(${args.mkString(", ")})"
     case SelProj(pre, cls, proj) => s"${pre.showDbg}.${cls.showDbg}#${proj.name}"
     case Asc(term, ty) => s"${term.toString}: ${ty.toString}"
     case LetDecl(sym, _) => s"let ${sym}"
