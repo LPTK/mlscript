@@ -47,7 +47,7 @@ class Normalization(using tl: TL)(using Raise, Ctx, State) extends TermSynthesiz
         case S(mem: BlockMemberSymbol) =>
           // If the class is declaration-only, we do not need to select the
           // class.
-          if !mem.hasLiftedClass || mem.defn.exists(_.declareModifier.isDefined) then
+          if !mem.hasLiftedClass || mem.defn.exists(_.hasDeclareModifier.isDefined) then
             lhs.constructor
           else
             Term.SynthSel(lhs.constructor, Tree.Ident("class"))(mem.clsTree.orElse(mem.modOrObjTree).map(_.symbol)).resolve

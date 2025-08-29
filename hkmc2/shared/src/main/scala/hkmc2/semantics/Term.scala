@@ -570,7 +570,7 @@ sealed abstract class Declaration:
 
 sealed abstract class Definition extends Declaration with Statement:
   val annotations: Ls[Annot]
-  def declareModifier: Opt[Annot.Modifier] = annotations.collectFirst:
+  def hasDeclareModifier: Opt[Annot.Modifier] = annotations.collectFirst:
     case mod @ Annot.Modifier(Keyword.`declare`) => mod
   
   /** Whether this definition is the "representative" definition of a set of overloaded definitions,
@@ -610,8 +610,6 @@ sealed abstract class TypeLikeDef extends Definition:
   val bsym: BlockMemberSymbol
   val tparams: Ls[TyParam]
   val annotations: Ls[Annot]
-
-// sealed abstract class ObjectTypeDef extends ClassLikeDef
 
 sealed abstract class ClassLikeDef extends TypeLikeDef:
   val owner: Opt[InnerSymbol]

@@ -172,7 +172,6 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
   
   def describe: Str =
     trees match
-    // case (td: TypeOrTermDef) :: Nil => s"${td.describe}"
     case td :: Nil => td.describe
     case _ => trees.iterator.map(_.describe).mkString("overloaded ", ", ", "symbol")
   
@@ -210,8 +209,8 @@ end BlockMemberSymbol
 type DisambSymbol[Defn <: Definition] = MemberSymbol[Defn] & InnerSymbol
 
 class DisambBlockMemberSymbol[Defn <: Definition]
-  (val bsym: BlockMemberSymbol, val sym: DisambSymbol[Defn])(using State)
-  extends Symbol:
+        (val bsym: BlockMemberSymbol, val sym: DisambSymbol[Defn])(using State)
+        extends Symbol:
   
   def nme: Str = bsym.nme
   def toLoc: Option[Loc] = bsym.toLoc

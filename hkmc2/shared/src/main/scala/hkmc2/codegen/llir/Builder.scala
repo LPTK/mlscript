@@ -518,7 +518,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
   def registerClasses(b: Block)(using ctx: Ctx)(using Raise, Scope): Ctx =
     b match
     case Define(cd @ ClsLikeDefn(_own, isym, sym, kind, _paramsOpt, auxParams,
-        parentSym, methods, smethods, privateFields, publicFields, preCtor, ctor), rest) =>
+        parentSym, methods, privateFields, publicFields, preCtor, ctor, mod), rest) =>
       if !auxParams.isEmpty then
         bErrStop(msg"The class ${sym.nme} has auxiliary parameters, which are not yet supported")
       val c = bClsLikeDef(cd)

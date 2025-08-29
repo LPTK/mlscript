@@ -858,16 +858,13 @@ extends Importer:
             log(s"Processing overloadings for '$name'")
             defns.iterator.foreach: defn =>
               if defn.k > k then
-                if !supportedOverloadings(k -> defn.k) then
-                  if notYetSupportedOverloadings(k -> defn.k)
-                  then raise:
-                    ErrorReport:
-                      msg"Not yet supported: overloading of ${k.desc} '$name'" -> mainDefn.toLoc
+                if !supportedOverloadings(k -> defn.k) then raise:
+                  ErrorReport:
+                    if notYetSupportedOverloadings(k -> defn.k)
+                    then msg"Not yet supported: overloading of ${k.desc} '$name'" -> mainDefn.toLoc
                       :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
                       :: Nil
-                  else raise:
-                    ErrorReport:
-                      msg"Illegal overloading of ${k.desc} '$name'" -> mainDefn.toLoc
+                    else msg"Illegal overloading of ${k.desc} '$name'" -> mainDefn.toLoc
                       :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
                       :: Nil
         

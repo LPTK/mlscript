@@ -398,15 +398,15 @@ object PossiblyParenthesized:
 
 
 sealed abstract class OuterKind(val desc: Str)(using line: Line) extends Ordered[OuterKind]:
-  val ordinal: Int =
-    // try OuterKind.counter finally OuterKind.counter += 1
-    line.value
+  val ordinal: Int = line.value // YOLO
   assert(!OuterKind.kinds.contains(ordinal))
   OuterKind.kinds += (ordinal -> this)
   def compare(that: OuterKind): Int = this.ordinal - that.ordinal
 object OuterKind:
   private var counter = 0
   private val kinds = mutable.Map.empty[Int, OuterKind]
+
+// Please don't put any of these on the same line...
 case object BlockKind extends OuterKind("block")
 sealed abstract class DeclKind(desc: Str)(using Line) extends OuterKind(desc)
 sealed abstract class TermDefKind(val str: Str, desc: Str)(using Line) extends DeclKind(desc)
@@ -431,24 +431,6 @@ case object Pat extends TypeDefKind("pattern") with ClsLikeKind
 case object Obj extends TypeDefKind("object") with ClsLikeKind
 case object Mod extends TypeDefKind("module") with ClsLikeKind
 
-// val _ =
-//   // * Initialize in expected order
-//   BlockKind
-//   ImmutVal
-//   MutVal
-//   LetBind
-//   HandlerBind
-//   ParamBind
-//   Fun
-//   Ins
-//   Cls
-//   Trt
-//   Mxn
-//   Als
-//   Mod
-//   Obj
-//   Pat
-//   ()
 
 
 trait TermDefImpl extends TypeOrTermDef:

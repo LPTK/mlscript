@@ -190,7 +190,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             ErrorReport(
               msg"Unexpected declaration kind '${td.k.str}' in lowering" -> td.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
-      case cls: ClassLikeDef if cls.sym.defn.exists(_.declareModifier.isDefined) =>
+      case cls: ClassLikeDef if cls.sym.defn.exists(_.hasDeclareModifier.isDefined) =>
         // * Declarations have no lowering
         blockImpl(stats, res)(k)
       case cls: ClassDef if cls.moduleCompanion.isDefined =>
@@ -366,13 +366,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           assert(paramLists.length === 1)
           return k(Value.Lam(paramLists.head, bodyBlock))
       case sym: (BlockMemberSymbol | DisambBlockMemberSymbol[?]) =>
-        // TODO: Ideally, all lowering-facing symbols should be
-        // disambiguiated...
+        // TODO: Ideally, all lowering-facing symbols should be disambiguiated...
         val (bs, defn) = sym match
           case bs: BlockMemberSymbol => bs -> bs.defn
           case dbs: DisambBlockMemberSymbol[?] => dbs.bsym -> dbs.sym.defn
         defn match
-        case S(d) if d.declareModifier.isDefined =>
+        case S(d) if d.hasDeclareModifier.isDefined =>
           return term(Sel(State.globalThisSymbol.ref().resolve, ref.tree)(S(bs)).resolve)(k)
         case S(td: TermDefinition) if td.k is syntax.Fun =>
           // * Local functions with no parameter lists are getters
