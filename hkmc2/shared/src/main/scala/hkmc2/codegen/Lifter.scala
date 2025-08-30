@@ -903,7 +903,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
             TermSymbol(syntax.MutVal, Tree.Ident(bsym.nme)))
           
           val newCtor = pubFieldsPairs.foldRight(c.ctor):
-            case ((sym, bms), blk) => Define(ValDefn.mk(S(c.isym), syntax.MutVal, bms, sym.asPath), blk)
+            // FIXME @Harry's top-quality change
+            case ((sym, bms), blk) => Define(ValDefn.mk(bms, bms.asTrm.get, sym.asPath), blk)
           
           if modOrObj(c) then // module or object
             // force it to be a class

@@ -275,7 +275,23 @@ class Elaborator(val tl: TraceLogger, val wd: os.Path, val prelude: Ctx)
 extends Importer:
   import tl.*
   
-  def mkLetBinding(kw: Tree.Keywrd[?], sym: LocalSymbol, rhs: Term, annotations: Ls[Annot]): Ls[Statement] =
+  def mkLetBinding(kw: Tree.Keywrd[?], sym: LocalSymbol, rhs: Term, annotations: Ls[Annot])(using Ctx): Ls[Statement] =
+    // FIXME @Harry's Hack
+    sym match
+      case sym: TermSymbol =>
+        sym.defn = S(TermDefinition(
+          ctx.outer.inner,
+          LetBind,
+          BlockMemberSymbol(sym.nme, Nil),
+          sym,
+          Nil, N, N, N,
+          FlowSymbol("let-bind"),
+          TermDefFlags.empty,
+          Modulefulness.none,
+          Nil, N
+        ))
+      case _ =>
+    
     LetDecl(sym, annotations).mkLocWith(kw, sym) :: DefineVar(sym, rhs) :: Nil
   
   def resolveField(srcTree: Tree, base: Opt[Symbol], nme: Ident): Opt[FieldSymbol] =
@@ -1083,6 +1099,7 @@ extends Importer:
                         owner,
                         Fun, mtdSym, tsym, PlainParamList(Param(FldFlags.empty, valueSym, N, Modulefulness.none) :: Nil) :: Nil,
                         N, N, S(valueSym.ref(Ident("value"))), FlowSymbol(s"‹result of non-local return›"), TermDefFlags.empty, Modulefulness.none, Nil, N)
+                      tsym.defn = S(td)
                       val htd = HandlerTermDefinition(resumeSym, td)
                       Term.Handle(nonLocalRetHandler, state.nonLocalRetHandlerTrm, Nil, clsSym, htd :: Nil, b)
               val r = FlowSymbol(s"‹result of ${sym}›")
@@ -1096,11 +1113,10 @@ extends Importer:
                 case _ =>
                   Modulefulness.none
               
-              val tsym = TermSymbol(k, id) // TODO?
+              val tsym = td.symbol
               val tdf = TermDefinition(owner, k, sym, tsym, pss, tps, s, body, r, 
                 TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations, N)
               tsym.defn = S(tdf)
-              
               tdf
             go(sts, Nil, tdf :: acc)
           case L(d) =>
@@ -1186,7 +1202,6 @@ extends Importer:
                 )
                 assert(p.fldSym.isEmpty)
                 p.fldSym = S(tsym)
-                // fsym.defn = S(fdef)
                 tsym.defn = S(fdef)
                 fdef :: Nil
               else
@@ -1198,7 +1213,7 @@ extends Importer:
                   psym,
                   Nil,
                   N,
-                  p.sign,
+                  N,
                   N,
                   FlowSymbol("‹class-param-res›"),
                   TermDefFlags.empty.copy(isMethod = (k is Cls)),

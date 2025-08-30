@@ -38,12 +38,14 @@ abstract class Symbol(using State) extends Located:
       mem.trees.isEmpty
       || mem.trees.exists:
         case t @ Tree.TypeDef(k = Mod) => false
+        case mem: DisambBlockMemberSymbol[?] => mem.sym.existsNonModuleful
         case _ => true
     case _ => true
   
   def existsModuleful: Bool = 
     this match
     case mod: ModuleOrObjectSymbol => (mod.tree.k is Mod)
+    case mem: DisambBlockMemberSymbol[?] => mem.sym.existsModuleful
     case mem: BlockMemberSymbol => 
       mem.trees.exists:
         case t @ Tree.TypeDef(k = Mod) => true
@@ -59,10 +61,12 @@ abstract class Symbol(using State) extends Located:
   
   def asCls: Opt[ClassSymbol] = this match
     case cls: ClassSymbol => S(cls)
+    case mem: DisambBlockMemberSymbol[?] => mem.sym.asCls
     case mem: BlockMemberSymbol => mem.clsTree.flatMap(_.symbol.asCls)
     case _ => N
   def asModOrObj: Opt[ModuleOrObjectSymbol] = this match
     case mod: ModuleOrObjectSymbol => S(mod)
+    case mem: DisambBlockMemberSymbol[?] => mem.sym.asModOrObj
     case mem: BlockMemberSymbol => mem.modOrObjTree.flatMap(_.symbol.asModOrObj)
     case _ => N
   def asMod: Opt[ModuleOrObjectSymbol] = asModOrObj.filter(_.tree.k is Mod)
@@ -70,14 +74,17 @@ abstract class Symbol(using State) extends Located:
   def asClsOrMod: Opt[ClassSymbol | ModuleOrObjectSymbol] = asCls orElse asModOrObj
   def asTrm: Opt[TermSymbol] = this match
     case trm: TermSymbol => S(trm)
+    case mem: DisambBlockMemberSymbol[?] => mem.sym.asTrm
     case mem: BlockMemberSymbol => mem.trmTree.flatMap(_.symbol.asTrm)
     case _ => N
   def asPat: Opt[PatternSymbol] = this match
     case pat: PatternSymbol => S(pat)
+    case mem: DisambBlockMemberSymbol[?] => mem.sym.asPat
     case mem: BlockMemberSymbol => mem.patTree.flatMap(_.symbol.asPat)
     case _ => N
   def asAls: Opt[TypeAliasSymbol] = this match
     case cls: TypeAliasSymbol => S(cls)
+    case mem: DisambBlockMemberSymbol[?] => mem.sym.asAls
     case mem: BlockMemberSymbol => mem.alsTree.flatMap(_.symbol.asAls)
     case _ => N
   
@@ -87,6 +94,7 @@ abstract class Symbol(using State) extends Located:
   
   def asBlkMember: Opt[BlockMemberSymbol] = this match
     case mem: BlockMemberSymbol => S(mem)
+    case mem: DisambBlockMemberSymbol[?] => S(mem.bsym)
     case mem: DefinitionSymbol[?] => mem.defn match
       case S(defn: TypeLikeDef) => S(defn.bsym)
       case S(defn: TermDefinition) => S(defn.sym)
@@ -221,13 +229,15 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
       lastWords(s"No principal overload found for member symbol $this")
 
   def disamb[Defn <: Definition](sym: DefinitionSymbol[Defn]): DisambBlockMemberSymbol[Defn] =
-    DisambBlockMemberSymbol(this, sym)
+    val dbms = DisambBlockMemberSymbol(this, sym)
+    dbms.defn = sym.defn
+    dbms
 
 end BlockMemberSymbol
 
 class DisambBlockMemberSymbol[Defn <: Definition]
         (val bsym: BlockMemberSymbol, val sym: DefinitionSymbol[Defn])(using State)
-        extends Symbol:
+        extends DefinitionSymbol[Defn]:
   
   def nme: Str = bsym.nme
   def toLoc: Option[Loc] = bsym.toLoc
@@ -248,11 +258,17 @@ class TermSymbol(val k: TermDefKind, val id: Tree.Ident)(using State)
   def nme: Str = id.name
   def name: Str = nme
   
-  def owner: Option[InnerSymbol[?]] = defn.flatMap(_.owner)
+  def owner: Option[InnerSymbol[?]] =
+    defn.getOrElse(lastWords(s"Accessing owner, but defn is not set.")).owner
   
   def toLoc: Option[Loc] = id.toLoc
-  override def toString: Str = s"${owner.getOrElse("")}.${id.name}"
-  
+  override def toString: Str =
+    val ownerName = defn match
+      case N => "<no-defn>" // FIXME a debugging placeholder
+      case S(defn) => defn.owner.getOrElse("")
+
+    s"term:${ownerName}.${id.name}"
+
   def subst(using sub: SymbolSubst): TermSymbol = sub.mapTermSym(this)
 
 

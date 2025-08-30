@@ -63,6 +63,10 @@ sealed trait ResolvableImpl:
     case S(S(t)) => t
     case S(N) => this
     case N => this
+  
+  def expandedAsResolvable: Opt[Resolvable] = instantiate match
+    case t: Resolvable => S(t)
+    case _ => N
 
   /** 
    * Expanding a term to another, which can be later retrieved by the
@@ -84,8 +88,8 @@ sealed trait ResolvableImpl:
     // `expansion.get =/= newExpansion`: Waiting for @Luyu to revamp the
     // desugaring stage so that no same term occurs in different places.
     if this.expansion.isDefined && this.expansion.get =/= expansion then
-      lastWords(s"Cannot expand the term ${this.show} multiple times (to different expansions).")
-    
+      lastWords(s"Cannot expand the term ${this.show} multiple times (to different expansion ${expansion.map(_.show)}).")
+
     this.expansion = S(expansion)
     this
     
@@ -95,7 +99,8 @@ sealed trait ResolvableImpl:
   def hasExpansion = expansion.isDefined
   
   def defn: Opt[Definition] = resolvedSymbol match
-    case S(sym: FieldSymbol) => sym.defn.map(_.asPrincipalDefn)
+    case S(sym: BlockMemberSymbol) => sym.asPrincipal.defn
+    case S(sym: FieldSymbol) => sym.defn
     case _ => N
   
   def callableDefn: Opt[CallableDefinition] = defn.flatMap:

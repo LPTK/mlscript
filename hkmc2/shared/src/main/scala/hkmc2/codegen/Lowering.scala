@@ -178,7 +178,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             subTerm_nonTail(bod)(r =>
               // Assign(td.sym, r,
               //   term(st.Blk(stats, res))(k)))
-              Define(ValDefn.mk(td.owner, knd, td.sym, r),
+              Define(ValDefn.mk(td.sym, td.tsym, r),
                 blockImpl(stats, res)(k)))
           case syntax.Fun =>
             val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))
@@ -188,7 +188,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             // Implicit instances are not parameterized for now.
             assert(td.params.isEmpty)
             subTerm(bod)(r =>
-              Define(ValDefn.mk(td.owner, syntax.ImmutVal, td.sym, r),
+              Define(ValDefn.mk(td.sym, td.tsym, r),
                 blockImpl(stats, res)(k)))
           case syntax.LetBind | syntax.ParamBind | syntax.HandlerBind => fail:
             ErrorReport(
@@ -383,14 +383,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           case dbs: DisambBlockMemberSymbol[?] => dbs -> dbs.sym.defn
         defn match
         case S(d) if d.hasDeclareModifier.isDefined =>
-          return term(Sel(State.globalThisSymbol.ref().resolve, ref.tree)(S(dbs.sym)).resolve)(k)
+          return term(Sel(State.globalThisSymbol.ref().resolve, ref.tree)(S(dbs)).resolve)(k)
         case S(td: TermDefinition) if td.k is syntax.Fun =>
           // * Local functions with no parameter lists are getters
           // * and are lowered to functions with an empty parameter list
           // * (non-local functions are compiled into getter methods selected on some prefix)
           if td.params.isEmpty then
             val l = new TempSymbol(S(t))
-            return Assign(l, Call(Value.Ref(dbs.sym), Nil)(true, true), k(Value.Ref(l)))
+            return Assign(l, Call(Value.Ref(dbs), Nil)(true, true), k(Value.Ref(l)))
         case S(_) => ()
         case N => () // TODO panic here; can only lower refs to elab'd symbols
       case _ => ()
@@ -436,8 +436,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     case st.App(f, arg) =>
       val isMlsFun = f.resolvedSymbol.fold(f.isInstanceOf[st.Lam]):
         case _: sem.BuiltinSymbol => true
-        case sym: sem.BlockMemberSymbol =>
-          sym.trmImplTree.fold(sym.clsTree.isDefined)(_.k is syntax.Fun)
+        case sym: sem.DisambBlockMemberSymbol[?] => sym.defn match
+          case S(TermDefinition(k = Fun)) => true
+          case _ => false
         // Do not perform safety check on `MatchResult` and `MatchFailure`.
         case sym => (sym is State.matchResultClsSymbol) ||
           (sym is State.matchFailureClsSymbol)
@@ -708,7 +709,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           val pctor = parentConstructor(cls, as)
           val clsDef = ClsLikeDefn(N, isym, sym, syntax.Cls, N, Nil, S(sr),
             mtds, privateFlds, publicFlds, pctor, ctor, N)
-          val inner = new New(sym.ref().resolve, Nil, N)
+          val inner = new New(sym.disamb(isym).ref().resolve, Nil, N)
           Define(clsDef, term_nonTail(if mut then Mut(inner) else inner)(k))
       
     case Try(sub, finallyDo) =>

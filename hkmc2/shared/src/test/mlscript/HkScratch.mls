@@ -17,7 +17,7 @@ Foo
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Ref of member:class:Foo
+//│   res = Ref{member:class:Foo} of member:class:Foo
 //│ = class Foo
 
 object Foo
@@ -27,7 +27,7 @@ Foo
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Ref of member:object:Foo
+//│   res = Ref{member:object:Foo} of member:object:Foo
 //│ = Foo
 
 module Foo
@@ -37,7 +37,7 @@ Foo
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Ref of member:module:Foo
+//│   res = Ref{member:module:Foo} of member:module:Foo
 //│ = class Foo
 
 fun f = 42
@@ -47,5 +47,141 @@ f
 //│ Resolved tree:
 //│ Blk:
 //│   stats = Nil
-//│   res = Ref of member:.f
-//│ = fun f
+//│   res = Ref{member:term:.f} of member:term:.f
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:118)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = term:.f
+//│     _2 = class hkmc2.semantics.TermSymbol
+//│   _2 = Scope:
+//│     parent = N
+//│     curThis = S of S of globalThis:globalThis
+//│     bindings = HashMap($block$res -> block$res5, class:Foo -> Foo4, $runtime -> runtime, $definitionMetadata -> definitionMetadata, $block$res -> block$res6, $prettyPrint -> prettyPrint, member:f -> f, $Term -> Term, $block$res -> block$res, $block$res -> block$res7, member:Foo -> Foo1, class:Foo -> Foo, $block$res -> block$res8, $tmp -> tmp, member:Predef -> Predef, $block$res -> block$res1, $block$res -> block$res2, member:Foo -> Foo3, object:Foo -> Foo2, $block$res -> block$res3, $block$res -> block$res4, member:Foo -> Foo5, module:Foo -> Foo4)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for 'f'
+//│ ║  l.43: 	fun f = 42
+//│ ║        	    ^
+//│ ╟── which is introduced here
+//│ ║  l.43: 	fun f = 42
+//│ ╙──      	    ^
+//│ = 42
+
+module Foo with
+  fun f = 42
+
+fun f: module Foo = Foo
+
+:rt
+Foo.f
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = Unexpanded of Sel{term:module:Foo.f}:
+//│     prefix = Ref{member:module:Foo} of member:module:Foo
+//│     nme = Ident of "f"
+//│ = 42
+
+object Foo with
+  fun f = 42
+
+:rt
+Foo.f
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = Unexpanded of Sel{term:object:Foo.f}:
+//│     prefix = Ref{member:object:Foo} of member:object:Foo
+//│     nme = Ident of "f"
+//│ = 42
+
+fun id(x) = x
+
+id(42)
+//│ = 42
+
+let x = 42
+//│ x = 42
+
+val y = 42
+//│ y = 42
+
+id(x)
+//│ = 42
+
+id(y)
+//│ = 42
+
+:sjs
+class Cls(x, y) with
+  val z = x + y
+//│ JS (unsanitized):
+//│ let Cls1;
+//│ Cls1 = function Cls(x1, y1) {
+//│   return globalThis.Object.freeze(new Cls.class(x1, y1));
+//│ };
+//│ globalThis.Object.freeze(class Cls {
+//│   static {
+//│     Cls1.class = this
+//│   }
+//│   constructor(x1, y1) {
+//│     let z, tmp1;
+//│     this.#x = x1;
+//│     this.#y = y1;
+//│     tmp1 = this.#x + this.#y;
+//│     z = tmp1;
+//│   }
+//│   #x;
+//│   #y;
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Cls", [null, null]]; 
+//│ });
+
+Cls(1, 2).z
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'z' yielded 'undefined'
+//│     at REPL72:1:190
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
+
+:sjs
+data class Data(x, y)
+//│ JS (unsanitized):
+//│ let Data1;
+//│ Data1 = function Data(x1, y1) {
+//│   return globalThis.Object.freeze(new Data.class(x1, y1));
+//│ };
+//│ globalThis.Object.freeze(class Data {
+//│   static {
+//│     Data1.class = this
+//│   }
+//│   constructor(x1, y1) {
+//│     let x2, y2;
+//│     x2 = x1;
+//│     y2 = y1;
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Data", ["x", "y"]]; 
+//│ });
+
+Data(1, 2).x
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'x' yielded 'undefined'
+//│     at REPL78:1:193
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
