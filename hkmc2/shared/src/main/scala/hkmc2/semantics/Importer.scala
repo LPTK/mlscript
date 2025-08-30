@@ -27,7 +27,7 @@ class Importer:
     val nme = file.baseName
     val id = new syntax.Tree.Ident(nme) // TODO loc
     
-    lazy val sym = TermSymbol(LetBind, N, id)
+    lazy val sym = TermSymbol(LetBind, id)
     
     if path.startsWith(".") || path.startsWith("/") then // leave alone imports like "fs"
       log(s"importing $file")

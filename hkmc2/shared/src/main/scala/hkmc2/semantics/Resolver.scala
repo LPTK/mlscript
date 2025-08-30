@@ -360,7 +360,7 @@ class Resolver(tl: TraceLogger)
   def traverseDefn(defn: Definition)(using ICtx): ICtx =
   trace(s"Resolving definition: $defn"):
     def traverseTermDef(tdf: TermDefinition) =
-      val TermDefinition(_k, _sym, _tsym, 
+      val TermDefinition(_owner, _k, _sym, _tsym, 
         pss, tps, sign, body, 
         _resSym, TermDefFlags(isMethod), modulefulness, annotations, comp
       ) = tdf

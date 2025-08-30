@@ -491,13 +491,13 @@ class NaiveCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynthesiz
       topmost: Split
   ): TermDefinition =
     val sym = BlockMemberSymbol(name, Nil)
-    val tsym = TermSymbol(Fun, owner, Ident(name))
+    val tsym = TermSymbol(Fun, Ident(name))
     // Pattern parameters are passed as objects.
     val patternInputs = patternParameters.map(_.copy(flags = FldFlags.empty))
     // The last parameter is the scrutinee.
     val scrutParam = Param(FldFlags.empty, scrut, N, Modulefulness.none)
     val ps = PlainParamList(patternInputs :+ scrutParam)
-    TermDefinition(Fun, sym, tsym, ps :: Nil, N, N,
+    TermDefinition(owner, Fun, sym, tsym, ps :: Nil, N, N,
       S(Term.IfLike(Keyword.`if`, topmost)), FlowSymbol(s"‹unapply-result›"),
       TermDefFlags.empty, Modulefulness.none, Nil, N)
   

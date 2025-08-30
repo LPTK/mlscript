@@ -549,7 +549,8 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
     
     val parts = partitionBlock(actualBlock)
     val loopLbl = freshTmp("contLoop")
-    val pcSymbol = TermSymbol(ParamBind, S(clsSym), pcIdent)
+    // val pcSymbol = TermSymbol(ParamBind, S(clsSym), pcIdent)
+    val pcSymbol = TermSymbol(ParamBind, pcIdent)
     
     def transformPart(blk: Block): Block = 
       val transform = new BlockTransformerShallow(SymbolSubst()):

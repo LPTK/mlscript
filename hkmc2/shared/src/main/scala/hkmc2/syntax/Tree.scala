@@ -71,7 +71,8 @@ enum Tree extends AutoLocated:
   case LetLike(kw: Keywrd[Keyword.LetLike], lhs: Tree, rhs: Opt[Tree], body: Opt[Tree])
   case Hndl(lhs: Tree, cls: Tree, defs: Tree, body: Opt[Tree])
   case Def(lhs: Tree, rhs: Tree)
-  case TermDef(k: TermDefKind, head: Tree, rhs: Opt[Tree]) extends Tree with TermDefImpl
+  case TermDef(k: TermDefKind, head: Tree, rhs: Opt[Tree])(using State)
+    extends Tree with TermDefImpl
   case TypeDef(k: TypeDefKind, head: Tree, rhs: Opt[Tree])(using State)
     extends Tree with TypeDefImpl
   case Open(opened: Tree)
@@ -436,8 +437,10 @@ case object Mod extends TypeDefKind("module") with ClsLikeKind
 
 
 
-trait TermDefImpl extends TypeOrTermDef:
+trait TermDefImpl(using State) extends TypeOrTermDef:
   this: TermDef =>
+  
+  lazy val symbol: TermSymbol = TermSymbol(k, name.getOrElse(Ident("‹error›")))
   
   def sParameterizedMethod: Bool =
     (k is Fun) && paramLists.length > 0
@@ -560,7 +563,8 @@ trait TypeDefImpl(using State) extends TypeOrTermDef:
       val inUsing = pts.headOption.exists(_.isModified(Ins))
       pts.flatMap(_.asParam(inUsing = inUsing).toOption).map:
         case ParamTree(spd = S(_)) => lastWords("spreads are not allowed in class parameters")
-        case ParamTree(ident = id) => TermSymbol(ParamBind, symbol.asClsLike, id)
+        // case ParamTree(ident = id) => TermSymbol(ParamBind, symbol.asClsLike, id)
+        case ParamTree(ident = id) => TermSymbol(ParamBind, id)
       .toList
     
   lazy val allSymbols = definedSymbols ++ clsParams.map(s => s.nme -> s).toMap

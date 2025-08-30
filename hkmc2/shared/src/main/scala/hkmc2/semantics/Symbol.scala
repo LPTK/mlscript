@@ -68,12 +68,10 @@ abstract class Symbol(using State) extends Located:
   def asMod: Opt[ModuleOrObjectSymbol] = asModOrObj.filter(_.tree.k is Mod)
   def asObj: Opt[ModuleOrObjectSymbol] = asModOrObj.filter(_.tree.k is Obj)
   def asClsOrMod: Opt[ClassSymbol | ModuleOrObjectSymbol] = asCls orElse asModOrObj
-  /* 
   def asTrm: Opt[TermSymbol] = this match
     case trm: TermSymbol => S(trm)
     case mem: BlockMemberSymbol => mem.trmTree.flatMap(_.symbol.asTrm)
     case _ => N
-  */
   def asPat: Opt[PatternSymbol] = this match
     case pat: PatternSymbol => S(pat)
     case mem: BlockMemberSymbol => mem.patTree.flatMap(_.symbol.asPat)
@@ -214,18 +212,14 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
     if trees.forall(_.k isnt Mod) && trees.length > 1 then
       // Illegal (or not yet implemented) overload
       lastWords("Illegal (or not yet implemented) overload")
-    val principalTree =
-      // FIXME
-      // trmTree orElse 
-      clsTree orElse 
-      objTree orElse 
-      alsTree orElse 
-      patTree orElse 
-      modTree
-    principalTree
-      .getOrElse(lastWords(s"No principal overload found for member symbol $this"))
-      .symbol
-  
+    asTrm orElse 
+    asCls orElse 
+    asObj orElse 
+    asAls orElse 
+    asPat orElse 
+    asMod getOrElse
+      lastWords(s"No principal overload found for member symbol $this")
+
   def disamb[Defn <: Definition](sym: DefinitionSymbol[Defn]): DisambBlockMemberSymbol[Defn] =
     DisambBlockMemberSymbol(this, sym)
 
@@ -249,10 +243,12 @@ sealed abstract class MemberSymbol(using State) extends Symbol:
   def subst(using SymbolSubst): MemberSymbol
 
 
-class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol[?]], val id: Tree.Ident)(using State)
+class TermSymbol(val k: TermDefKind, val id: Tree.Ident)(using State)
     extends MemberSymbol with DefinitionSymbol[TermDefinition]with LocalSymbol with NamedSymbol:
   def nme: Str = id.name
   def name: Str = nme
+  
+  def owner: Option[InnerSymbol[?]] = defn.flatMap(_.owner)
   
   def toLoc: Option[Loc] = id.toLoc
   override def toString: Str = s"${owner.getOrElse("")}.${id.name}"

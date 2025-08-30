@@ -261,8 +261,10 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
               val mutPubFields =
                 pubFlds.collect:
                   case (_, sym) if sym.k is MutVal =>
+                    // sym -> TermSymbol(
+                    //   syntax.LetBind, S(isym), Tree.Ident(sym.nme))
                     sym -> TermSymbol(
-                      syntax.LetBind, S(isym), Tree.Ident(sym.nme))
+                      syntax.LetBind, Tree.Ident(sym.nme))
               val allPrivFlds = privFlds ++ mutPubFields.map(_._2)
               val privDecls = allPrivFlds.map: fld =>
                 val nme = isym.privatesScope.allocateOrGetName(fld)

@@ -279,7 +279,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       val ident = new Tree.Ident(nme)
       val varSym = VarSymbol(ident)
       val fldSym = BlockMemberSymbol(nme, Nil)
-      val tSym = TermSymbol(syntax.MutVal, S(clsSym), ident)
+      // val tSym = TermSymbol(syntax.MutVal, S(clsSym), ident)
+      val tSym = TermSymbol(syntax.MutVal, ident)
       
       val p = Param(FldFlags.empty.copy(isVal = true), varSym, N, Modulefulness.none)
       varSym.decl = S(p) // * Currently this is only accessed to create the class' toString method
@@ -548,7 +549,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     val modLocal = d match
       case c: ClsLikeDefn if modOrObj(c) && !ctx.ignored(c.sym) => parentCls match
         case None => S(VarSymbol(Tree.Ident(c.sym.nme + "$")))
-        case Some(value) => S(TermSymbol(syntax.ImmutVal, S(value.isym), Tree.Ident(c.sym.nme + "$")))
+        // case Some(value) => S(TermSymbol(syntax.ImmutVal, S(value.isym), Tree.Ident(c.sym.nme + "$")))
+        case Some(value) => S(TermSymbol(syntax.ImmutVal, Tree.Ident(c.sym.nme + "$")))
       case _ => N
     
     if ctx.ignored(d.sym) ||
@@ -895,8 +897,10 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
           val pubFieldsPairs = flds.map:
             case (_, (vs, LocalPath.PubField(isym, sym))) => vs -> sym
           
+          // val newPubFields = c.publicFields ::: pubFieldsPairs.map(_._2).map(bsym => bsym ->
+          //   TermSymbol(syntax.MutVal, S(c.isym), Tree.Ident(bsym.nme)))
           val newPubFields = c.publicFields ::: pubFieldsPairs.map(_._2).map(bsym => bsym ->
-            TermSymbol(syntax.MutVal, S(c.isym), Tree.Ident(bsym.nme)))
+            TermSymbol(syntax.MutVal, Tree.Ident(bsym.nme)))
           
           val newCtor = pubFieldsPairs.foldRight(c.ctor):
             case ((sym, bms), blk) => Define(ValDefn.mk(S(c.isym), syntax.MutVal, bms, sym.asPath), blk)
@@ -1213,7 +1217,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
                 case Some(bms) =>
                   val nestedIn = analyzer.defnsMap(bms)
                   nestedIn match
-                    case cls: ClsLikeDefn => S(c.sym -> TermSymbol(syntax.ImmutVal, S(cls.isym), Tree.Ident(c.sym.nme + "$")))
+                    // case cls: ClsLikeDefn => S(c.sym -> TermSymbol(syntax.ImmutVal, S(cls.isym), Tree.Ident(c.sym.nme + "$")))
+                    case cls: ClsLikeDefn => S(c.sym -> TermSymbol(syntax.ImmutVal, Tree.Ident(c.sym.nme + "$")))
                     case _ => S(c.sym -> VarSymbol(Tree.Ident(c.sym.nme + "$")))
                 case _ => N
             .collect:

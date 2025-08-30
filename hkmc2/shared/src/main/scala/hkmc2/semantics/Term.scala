@@ -349,7 +349,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
     case SetRef(lhs, rhs) => lhs :: rhs :: Nil
     case Drop(term) => term :: Nil
     case Deref(term) => term :: Nil
-    case TermDefinition(_, _, _, pss, tps, sign, body, res, _, _, annotations, _) =>
+    case TermDefinition(_, _, _, _, pss, tps, sign, body, res, _, _, annotations, _) =>
       pss.toList.flatMap(_.subTerms) ::: tps.getOrElse(Nil).flatMap(_.subTerms) ::: sign.toList ::: body.toList ::: annotations.flatMap(_.subTerms)
     case cls: ClassDef =>
       cls.paramsOpt.toList.flatMap(_.subTerms) ::: cls.body.blk :: cls.annotations.flatMap(_.subTerms)
@@ -443,7 +443,7 @@ sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
     case Tup(fields) => fields.map(_.showDbg).mkString("[", ", ", "]")
     case Mut(und) => s"mut ${und.showDbg}"
     case CtxTup(fields) => fields.map(_.showDbg).mkString("‹using›[", ", ", "]")
-    case TermDefinition(k, sym, tsym, pss, tps, sign, body, res, flags, _, _, _) =>
+    case TermDefinition(_, k, sym, tsym, pss, tps, sign, body, res, flags, _, _, _) =>
       s"${flags} ${k.str} ${sym}${
         tps.map(_.map(_.showDbg)).mkStringOr(", ", "[", "]")
       }${
@@ -521,6 +521,7 @@ object Modulefulness:
   val none = Modulefulness(N)(false)
 
 final case class TermDefinition(
+    owner: Opt[InnerSymbol[?]],
     k: TermDefKind, // * The only reason we store it here in addition to tsym.k is for refining patmats
     sym: BlockMemberSymbol,
     tsym: TermSymbol,
@@ -535,7 +536,6 @@ final case class TermDefinition(
     companion: Opt[CompanionSymbol],
 ) extends CompanionValue:
   require(k is tsym.k)
-  val owner = tsym.owner
   def extraAnnotations: Ls[Annot] = annotations.filter:
     case Annot.Modifier(Keyword.`declare` | Keyword.`abstract`) => false
     case _ => true

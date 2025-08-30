@@ -386,7 +386,8 @@ object ValDefn:
       rhs: Path,
     )(using State)
     : ValDefn =
-      ValDefn(tsym = TermSymbol(k, owner, Tree.Ident(sym.nme)), sym = sym, rhs = rhs)
+      // ValDefn(tsym = TermSymbol(k, owner, Tree.Ident(sym.nme)), sym = sym, rhs = rhs)
+      ValDefn(tsym = TermSymbol(k, Tree.Ident(sym.nme)), sym = sym, rhs = rhs)
 
 
 /*

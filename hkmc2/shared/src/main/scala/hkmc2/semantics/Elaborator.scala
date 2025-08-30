@@ -379,10 +379,10 @@ extends Importer:
       case trm => raise(WarningReport(msg"Terms in handler block do nothing" -> trm.toLoc :: Nil))
       
       val tds = elabed.stats.map {
-          case td @ TermDefinition(Fun, sym, tsym, params, tparams, sign, body, resSym, flags, mf, annotations, comp) =>
+          case td @ TermDefinition(owner, Fun, sym, tsym, params, tparams, sign, body, resSym, flags, mf, annotations, comp) =>
             params.reverse match
               case ParamList(_, value :: Nil, _) :: newParams =>
-                val newTd = TermDefinition(Fun, sym, tsym, newParams.reverse, tparams, sign, body, resSym, flags, mf, annotations, comp)
+                val newTd = TermDefinition(owner, Fun, sym, tsym, newParams.reverse, tparams, sign, body, resSym, flags, mf, annotations, comp)
                 S(HandlerTermDefinition(value.sym, newTd))
               case _ => 
                 raise(ErrorReport(msg"Handler function is missing resumption parameter" -> td.toLoc :: Nil))
@@ -1078,8 +1078,9 @@ extends Importer:
                       val valueSym = VarSymbol(Ident("value"))
                       val resumeSym = VarSymbol(Ident("resume"))
                       val mtdSym = BlockMemberSymbol("ret", Nil, true)
-                      val tsym = TermSymbol(Fun, N, Ident("ret"))
+                      val tsym = TermSymbol(Fun, Ident("ret"))
                       val td = TermDefinition(
+                        owner,
                         Fun, mtdSym, tsym, PlainParamList(Param(FldFlags.empty, valueSym, N, Modulefulness.none) :: Nil) :: Nil,
                         N, N, S(valueSym.ref(Ident("value"))), FlowSymbol(s"‹result of non-local return›"), TermDefFlags.empty, Modulefulness.none, Nil, N)
                       val htd = HandlerTermDefinition(resumeSym, td)
@@ -1095,8 +1096,8 @@ extends Importer:
                 case _ =>
                   Modulefulness.none
               
-              val tsym = TermSymbol(k, owner, id) // TODO?
-              val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, r, 
+              val tsym = TermSymbol(k, id) // TODO?
+              val tdf = TermDefinition(owner, k, sym, tsym, pss, tps, s, body, r, 
                 TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations, N)
               tsym.defn = S(tdf)
               
@@ -1165,12 +1166,13 @@ extends Importer:
                 case s: InnerSymbol[?] => S(s)
                 case _: TypeAliasSymbol => die
               
+              val bms = BlockMemberSymbol(p.sym.nme, Nil)
               if p.flags.isVal || isDataClass
               then
                 val k = if p.flags.mut then MutVal else ImmutVal
-                val bms = BlockMemberSymbol(p.sym.nme, Nil)
-                val tsym = TermSymbol(k, owner, p.sym.id) // TODO?
+                val tsym = TermSymbol(k, p.sym.id) // TODO?
                 val fdef = TermDefinition(
+                  owner,
                   k,
                   bms,
                   tsym,
@@ -1188,7 +1190,22 @@ extends Importer:
                 tsym.defn = S(fdef)
                 fdef :: Nil
               else
-                val psym = TermSymbol(LetBind, owner, p.sym.id)
+                val psym = TermSymbol(LetBind, p.sym.id)
+                psym.defn = S(TermDefinition(
+                  owner,
+                  LetBind,
+                  bms,
+                  psym,
+                  Nil,
+                  N,
+                  p.sign,
+                  N,
+                  FlowSymbol("‹class-param-res›"),
+                  TermDefFlags.empty.copy(isMethod = (k is Cls)),
+                  p.modulefulness,
+                  Nil,
+                  N,
+                ))
                 val decl = LetDecl(psym, Nil)
                 val defn = DefineVar(psym, p.sym.ref())
                 p.fldSym = S(psym)
@@ -1357,7 +1374,8 @@ extends Importer:
     case N => N
   
   def fieldOrVarSym(k: TermDefKind, id: Ident)(using Ctx): TermSymbol | VarSymbol =
-    if ctx.outer.inner.isDefined then TermSymbol(k, ctx.outer.inner, id)
+    // if ctx.outer.inner.isDefined then TermSymbol(k, ctx.outer.inner, id)
+    if ctx.outer.inner.isDefined then TermSymbol(k, id)
     else VarSymbol(id)
   
   def param(t: Tree, inUsing: Bool, inDataClass: Bool): Ctxl[Diagnostic \/ (Param, Opt[SpreadKind])] =
@@ -1567,7 +1585,7 @@ extends Importer:
   def computeVariances(s: Statement): Unit =
     val trav = VarianceTraverser()
     def go(s: Statement): Unit = s match
-      case TermDefinition(k, sym, tsym, pss, _, sign, body, r, _, _, _, _) =>
+      case TermDefinition(_, k, sym, tsym, pss, _, sign, body, r, _, _, _, _) =>
         pss.foreach(ps => ps.params.foreach(trav.traverseType(S(false))))
         sign.foreach(trav.traverseType(S(true)))
         body match
