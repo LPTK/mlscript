@@ -36,7 +36,7 @@ class Compiler(using Context)(using tl: TL)(using Ctx, State, Raise) extends Ter
       case index: Int => s"p_$index"
     /** Convert the field name to an `Ident`. */
     def asIdent: Ident = field match
-      case id: Ident => id
+      case id: Ident => new Ident(id.name)
       case index: Int => Ident(index.toString)
   
   extension (head: Head)
@@ -410,8 +410,8 @@ object Compiler:
         // Check the element's symbol.
         case `symbol` =>
           val id = symbol match
-            case symbol: PatternSymbol => new Ident(symbol.id.name) // TODO: get location from context
-            case symbol: (ClassSymbol | ModuleOrObjectSymbol) => new Ident(symbol.id.name) // TODO: get location from context
+            case symbol: PatternSymbol => new Ident(symbol.id.name) // TODO: get location from context (symbol.id is NOT the correct identifier here!!)
+            case symbol: (ClassSymbol | ModuleOrObjectSymbol) => new Ident(symbol.id.name) // TODO: get location from context (symbol.id is NOT the correct identifier here!!)
           S(elem.ref(id))
         // Look up the symbol in module members.
         case module: ModuleOrObjectSymbol =>
