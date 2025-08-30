@@ -95,7 +95,7 @@ sealed trait ResolvableImpl:
   def hasExpansion = expansion.isDefined
   
   def defn: Opt[Definition] = resolvedSymbol match
-    case S(sym: MemberSymbol[?]) => sym.defn.map(_.asPrincipalDefn)
+    case S(sym: FieldSymbol) => sym.defn.map(_.asPrincipalDefn)
     case _ => N
   
   def callableDefn: Opt[CallableDefinition] = defn.flatMap:
@@ -548,7 +548,7 @@ final case class HandlerTermDefinition(
 case class ObjBody(blk: Term.Blk):
   
   lazy val members: Map[Str, FieldSymbol] = blk.stats.collect:
-    case td: TermDefinition => td.sym.nme -> td.sym
+    case td: TermDefinition => td.sym.nme -> td.tsym
     case td: ClassLikeDef => td.sym.nme -> td.sym
     case td: TypeDef => td.sym.nme -> td.sym
   .toMap
@@ -613,9 +613,9 @@ sealed abstract class TypeLikeDef extends Definition:
   val annotations: Ls[Annot]
 
 sealed abstract class ClassLikeDef extends TypeLikeDef:
-  val owner: Opt[InnerSymbol]
+  val owner: Opt[InnerSymbol[?]]
   val kind: ClsLikeKind
-  val sym: MemberSymbol[? <: ClassLikeDef] & InnerSymbol
+  val sym: InnerSymbol[? <: ClassLikeDef]
   val bsym: BlockMemberSymbol
   val tparams: Ls[TyParam]
   val paramsOpt: Opt[ParamList]
@@ -636,7 +636,7 @@ sealed abstract class ClassLikeDef extends TypeLikeDef:
 
 
 case class ModuleOrObjectDef(
-  owner: Opt[InnerSymbol], 
+  owner: Opt[InnerSymbol[?]], 
   sym: ModuleOrObjectSymbol, 
   bsym: BlockMemberSymbol,
   tparams: Ls[TyParam], 
@@ -650,7 +650,7 @@ case class ModuleOrObjectDef(
 ) extends ClassLikeDef with CompanionValue
 
 case class PatternDef(
-    owner: Opt[InnerSymbol],
+    owner: Opt[InnerSymbol[?]],
     sym: PatternSymbol,
     bsym: BlockMemberSymbol,
     tparams: Ls[TyParam],
@@ -696,9 +696,9 @@ sealed abstract class ClassDef extends ClassLikeDef:
 
 object ClassDef:
   def apply(
-      owner: Opt[InnerSymbol],
+      owner: Opt[InnerSymbol[?]],
       kind: ClsLikeKind,
-      sym: InnerSymbol,
+      sym: InnerSymbol[? <: ClassDef],
       bsym: BlockMemberSymbol,
       tparams: Ls[TyParam],
       params: Ls[ParamList],
@@ -719,7 +719,7 @@ object ClassDef:
     S((cls.sym, cls.tparams, cls.paramsOpt, cls.body))
   
   case class Parameterized(
-      owner: Opt[InnerSymbol],
+      owner: Opt[InnerSymbol[?]],
       kind: ClsLikeKind,
       sym: ClassSymbol,
       bsym: BlockMemberSymbol,
@@ -734,7 +734,7 @@ object ClassDef:
     val paramsOpt: Opt[ParamList] = S(params)
   
   case class Plain(
-      owner: Opt[InnerSymbol],
+      owner: Opt[InnerSymbol[?]],
       kind: ClsLikeKind,
       sym: ClassSymbol,
       bsym: BlockMemberSymbol,

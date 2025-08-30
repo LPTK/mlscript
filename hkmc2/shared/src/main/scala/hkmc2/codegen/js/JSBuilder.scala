@@ -77,7 +77,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
     case ts: semantics.ModuleOrObjectSymbol if ts.asMod.isDefined => // FIXME: currently, objects have a ModuleSymbol...
       // * Module self-references use the module name itself instead of `this`
       summon[Scope].lookup_!(ts)
-    case ts: semantics.InnerSymbol =>
+    case ts: semantics.InnerSymbol[?] =>
       summon[Scope].findThis_!(ts)
     case _ => summon[Scope].lookup_!(l)
   
@@ -198,7 +198,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
     case AssignDynField(p, f, ai, r, rst) =>
       doc" # ${result(p)}[${result(f)}] = ${result(r)};${returningTerm(rst, endSemi)}"
     case Define(defn, rst) =>
-      def mkThis(sym: InnerSymbol): Document =
+      def mkThis(sym: InnerSymbol[?]): Document =
         result(Value.This(sym))
       val resJS = defn match
       case ValDefn(tsym, sym, p) =>
@@ -216,7 +216,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
         val (thisProxy, res) = scope.nestRebindThis(
             // * Either this is an InnerSymbol or this is a Fun,
             // * and we need to rebind `this` to None to shadow it.
-            defn.innerSym.collectFirst{ case s: InnerSymbol => s }):
+            defn.innerSym.collectFirst{ case s: InnerSymbol[?] => s }):
           defn match
             
           case FunDefn(own, sym, Nil, body) =>
@@ -256,7 +256,7 @@ class JSBuilder(using TL, State, Ctx) extends CodeBuilder:
               .mkDocument(" ")
             
             def mkPrivs(pubFlds: Ls[BlockMemberSymbol -> TermSymbol], privFlds: Ls[TermSymbol],
-                  mtdPrefix: Str, isym: InnerSymbol)(using Scope): Document =
+                  mtdPrefix: Str, isym: InnerSymbol[?])(using Scope): Document =
               // * Note: the non-mut-val parts of `pubFlds` are not used because in JS, fields are not declared
               val mutPubFields =
                 pubFlds.collect:

@@ -57,7 +57,11 @@ import Subst.subst
 class Lowering()(using Config, TL, Raise, State, Ctx):
   
   extension (t: Term)
-    def instantiated = t match
+    def instantiated =
+      t.resolvedSymbol match
+        case S(bms: BlockMemberSymbol) => lastWords(s"Unexpected BMS in Lowering: ${t}: ${bms}")
+        case _ => ()
+      t match
       case r: Resolvable =>
         tl.trace[Term](s"Expanding term ${r}", post = t => s"~> ${t}"):
           r.instantiate
@@ -373,19 +377,20 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           return k(Value.Lam(paramLists.head, bodyBlock))
       case sym: (BlockMemberSymbol | DisambBlockMemberSymbol[?]) =>
         // TODO: Ideally, all lowering-facing symbols should be disambiguiated...
-        val (bs, defn) = sym match
-          case bs: BlockMemberSymbol => bs -> bs.defn
-          case dbs: DisambBlockMemberSymbol[?] => dbs.bsym -> dbs.sym.defn
+        val (dbs, defn) = sym match
+          // FIXME: BMS legacy
+          // case bs: BlockMemberSymbol => bs -> bs.defn
+          case dbs: DisambBlockMemberSymbol[?] => dbs -> dbs.sym.defn
         defn match
         case S(d) if d.hasDeclareModifier.isDefined =>
-          return term(Sel(State.globalThisSymbol.ref().resolve, ref.tree)(S(bs)).resolve)(k)
+          return term(Sel(State.globalThisSymbol.ref().resolve, ref.tree)(S(dbs.sym)).resolve)(k)
         case S(td: TermDefinition) if td.k is syntax.Fun =>
           // * Local functions with no parameter lists are getters
           // * and are lowered to functions with an empty parameter list
           // * (non-local functions are compiled into getter methods selected on some prefix)
           if td.params.isEmpty then
             val l = new TempSymbol(S(t))
-            return Assign(l, Call(Value.Ref(bs), Nil)(true, true), k(Value.Ref(l)))
+            return Assign(l, Call(Value.Ref(dbs.sym), Nil)(true, true), k(Value.Ref(l)))
         case S(_) => ()
         case N => () // TODO panic here; can only lower refs to elab'd symbols
       case _ => ()

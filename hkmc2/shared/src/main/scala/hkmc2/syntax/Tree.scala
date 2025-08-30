@@ -12,6 +12,9 @@ import hkmc2.Message.MessageContext
 import semantics.{FldFlags, TermDefFlags, Modulefulness}
 import semantics.Elaborator.State
 import Tree._
+import hkmc2.semantics.TermSymbol
+import hkmc2.semantics.DefinitionSymbol
+import hkmc2.semantics.InnerSymbol
 
 
 sealed trait Literal extends AutoLocated:
@@ -222,7 +225,7 @@ enum Tree extends AutoLocated:
   
   def showDbg: Str = toString // TODO
   
-  lazy val desugared: Tree = this match
+  def desugared(using State): Tree = this match
     
     case Pun(false, id) =>
       InfixApp(id, Keyword.`:`, id)
@@ -372,7 +375,7 @@ object SpreadParam:
     case _ => N
 
 object Desugared:
-  def unapply(t: Tree): S[Tree] = S(t.desugared)
+  def unapply(t: Tree)(using State): S[Tree] = S(t.desugared)
 
 object PlainTup:
   def apply(fields: Tree*): Tree = Tup(fields.toList)
@@ -532,7 +535,7 @@ trait TypeDefImpl(using State) extends TypeOrTermDef:
   
   import semantics.*
   
-  lazy val symbol: MemberSymbol[? <: TypeLikeDef] = k match
+  lazy val symbol: DefinitionSymbol[? <: TypeLikeDef] = k match
     case Cls => ClassSymbol(this, name.getOrElse(Ident("‹error›")))
     case Mod | Obj => ModuleOrObjectSymbol(this, name.getOrElse(Ident("‹error›")))
     case Als => TypeAliasSymbol(name.getOrElse(Ident("‹error›")))

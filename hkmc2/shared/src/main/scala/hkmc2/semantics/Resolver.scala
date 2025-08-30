@@ -768,11 +768,11 @@ class Resolver(tl: TraceLogger)
       lhs.moduleDefn.foreach: mdef =>
         val fsym = mdef.body.members.get(id.name)
         fsym match
-        case S(fldSym) => 
-          val bsym = fldSym.asBlkMember.getOrElse:
-            lastWords(s"${mdef}: field symbol found ${fldSym} but no block member symbol")
+        case S(fsym) => 
+          val bsym = fsym.asBlkMember.getOrElse:
+            lastWords(s"${mdef}: field symbol found ${fsym} but no block member symbol")
           log(s"Resolving symbol for ${t}, defn = ${lhs.defn}")
-          withSym(t, bsym)
+          withSym(t, fsym)
           expand2DotClass(lhs, expect = Expect.Module(N))
           lhs.instantiate match
             case ref @ Term.Ref(bsym: BlockMemberSymbol) => ref.expand:
@@ -790,6 +790,11 @@ class Resolver(tl: TraceLogger)
     
     t match
     case t @ Apps(base: Resolvable, ass) =>
+      base match
+        case base @ Term.Ref(bms: BlockMemberSymbol) if ass.isEmpty =>
+          base.expand(S(bms.disamb(bms.asPrincipal).ref(base.tree)))
+        case _ =>
+      
       base.termDefn match
         case S(lhsDefn) if lhsDefn.params.length == ass.length =>
           val sym = lhsDefn.modulefulness.msym

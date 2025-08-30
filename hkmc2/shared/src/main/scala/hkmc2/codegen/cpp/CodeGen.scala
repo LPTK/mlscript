@@ -87,7 +87,7 @@ class CppCodeGen(builtinClassSymbols: Set[Local], tl: TraceLogger):
       ts.owner match
       case S(owner) => summon[Scope].lookup_!(ts)
       case N => summon[Scope].lookup_!(ts)
-    case ts: hkmc2.semantics.InnerSymbol =>
+    case ts: hkmc2.semantics.InnerSymbol[?] =>
       summon[Scope].lookup_!(ts)
     case _ => summon[Scope].lookup_!(l)
 

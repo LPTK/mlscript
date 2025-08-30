@@ -10,3 +10,48 @@
 
 
 
+class Foo
+
+:rt
+Foo
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = Ref of member:class:Foo
+//│ = class Foo
+
+object Foo
+
+:rt
+Foo
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = Ref of member:object:Foo
+//│ = Foo
+
+module Foo
+
+:rt
+Foo
+//│ Resolved tree:
+//│ Blk:
+//│   stats = Nil
+//│   res = Ref of member:module:Foo
+//│ = class Foo
+
+fun f = 42
+
+f
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: No principal overload found for member symbol member:f
+//│ 	at: mlscript.utils.package$.lastWords(package.scala:230)
+//│ 	at: hkmc2.semantics.BlockMemberSymbol.asPrincipal$$anonfun$2(Symbol.scala:226)
+//│ 	at: scala.Option.getOrElse(Option.scala:201)
+//│ 	at: hkmc2.semantics.BlockMemberSymbol.asPrincipal(Symbol.scala:226)
+//│ 	at: hkmc2.semantics.Resolver.resolveSymbol(Resolver.scala:795)
+//│ 	at: hkmc2.semantics.Resolver.resolve$$anonfun$3(Resolver.scala:532)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:17)
+//│ 	at: hkmc2.semantics.Resolver.resolve(Resolver.scala:733)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$2(Resolver.scala:326)
+//│ 	at: hkmc2.semantics.Resolver.traverse$$anonfun$adapted$1(Resolver.scala:356)

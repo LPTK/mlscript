@@ -325,10 +325,10 @@ case class HandleBlock(
 
 
 sealed abstract class Defn:
-  val innerSym: Opt[MemberSymbol[?]]
+  val innerSym: Opt[FieldSymbol]
   val sym: BlockMemberSymbol
   def isOwned: Bool = owner.isDefined
-  def owner: Opt[InnerSymbol]
+  def owner: Opt[InnerSymbol[?]]
   
   def subBlocks: Ls[Block] = this match
     case FunDefn(body = body) => body :: Nil
@@ -360,7 +360,7 @@ sealed abstract class Defn:
   
 
 final case class FunDefn(
-    owner: Opt[InnerSymbol],
+    owner: Opt[InnerSymbol[?]],
     sym: BlockMemberSymbol,
     params: Ls[ParamList],
     body: Block,
@@ -375,12 +375,12 @@ final case class ValDefn(
 ) extends Defn:
   val innerSym = S(tsym)
   val k = tsym.k
-  val owner: Opt[InnerSymbol] = tsym.owner
+  val owner: Opt[InnerSymbol[?]] = tsym.owner
 
 
 object ValDefn:
   def mk(
-      owner: Opt[InnerSymbol],
+      owner: Opt[InnerSymbol[?]],
       k: syntax.Val,
       sym: BlockMemberSymbol,
       rhs: Path,
@@ -424,8 +424,8 @@ object ValDefn:
 // * This is only supposed to be for classes, objects, and patterns;
 // * a lone module is represented as an empty class with a `companion` module.
 final case class ClsLikeDefn(
-    owner: Opt[InnerSymbol],
-    isym: MemberSymbol[? <: ClassLikeDef] & InnerSymbol,
+    owner: Opt[InnerSymbol[?]],
+    isym: InnerSymbol[? <: ClassLikeDef],
     sym: BlockMemberSymbol,
     k: syntax.ClsLikeKind,
     paramsOpt: Opt[ParamList],
@@ -444,7 +444,7 @@ final case class ClsLikeDefn(
 
 // * This is only supposed to be for companion module definitions (notably, not for `object`)
 final case class ClsLikeBody(
-    isym: MemberSymbol[? <: ModuleOrObjectDef] & InnerSymbol,
+    isym: InnerSymbol[? <: ModuleOrObjectDef],
     methods: Ls[FunDefn],
     privateFields: Ls[TermSymbol],
     publicFields: Ls[BlockMemberSymbol -> TermSymbol],
@@ -545,7 +545,7 @@ sealed abstract class Result extends AutoLocated:
     case Instantiate(mut, cls, args) => cls.freeVarsLLIR ++ args.flatMap(_.value.freeVarsLLIR).toSet
     case Select(qual, name) => qual.freeVarsLLIR 
     case Value.Ref(l: (BuiltinSymbol | TopLevelSymbol | ClassSymbol | TermSymbol)) => Set.empty
-    case Value.Ref(l: MemberSymbol[?]) => l.defn match
+    case Value.Ref(l: FieldSymbol) => l.defn match
       case Some(d: ClassLikeDef) => Set.empty
       case _ => Set(l)
     case Value.Ref(l) => Set(l)
@@ -581,7 +581,7 @@ case class DynSelect(qual: Path, fld: Path, arrayIdx: Bool) extends Path
 
 enum Value extends Path:
   case Ref(l: Local)
-  case This(sym: InnerSymbol) // TODO rm – just use Ref
+  case This(sym: InnerSymbol[?]) // TODO rm – just use Ref
   case Lit(lit: Literal)
   case Lam(params: ParamList, body: Block)
   case Arr(mut: Bool, elems: Ls[Arg])

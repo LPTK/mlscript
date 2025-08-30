@@ -42,12 +42,12 @@ object Elaborator:
 
   enum OuterCtx:
     case Function(returnHandlerSymbol: TempSymbol)
-    case InnerScope(innerSymbol: InnerSymbol)
+    case InnerScope(innerSymbol: InnerSymbol[?])
     case LocalScope
     case LambdaOrHandlerBlock
     case NonReturnContext
 
-    def inner: Opt[InnerSymbol] = this match
+    def inner: Opt[InnerSymbol[?]] = this match
       case InnerScope(inner) => S(inner)
       case _ => N
   
@@ -73,7 +73,7 @@ object Elaborator:
         // * but they should be allowed to shadow previous imports.
         env.get(kv._1).forall(_.isImport))
     
-    def withMembers(members: Iterable[Str -> MemberSymbol[?]]): Ctx =
+    def withMembers(members: Iterable[Str -> BlockMemberSymbol]): Ctx =
       copy(env = env ++ members.map:
         case (nme, sym) =>
           val elem = outer.inner match
@@ -84,11 +84,11 @@ object Elaborator:
     
     def nest(outerCtx: OuterCtx): Ctx = Ctx(outerCtx, Some(this), Map.empty, mode)
     def nestLocal: Ctx = nest(OuterCtx.LocalScope)
-    def nestInner(inner: InnerSymbol): Ctx = nest(OuterCtx.InnerScope(inner))
+    def nestInner(inner: InnerSymbol[?]): Ctx = nest(OuterCtx.InnerScope(inner))
     
     def get(name: Str): Opt[Ctx.Elem] =
       env.get(name).orElse(parent.flatMap(_.get(name)))
-    def getOuter: Opt[InnerSymbol] = outer.inner.orElse(parent.flatMap(_.getOuter))
+    def getOuter: Opt[InnerSymbol[?]] = outer.inner.orElse(parent.flatMap(_.getOuter))
     def getNonLocalRetHandler: Opt[TempSymbol] = outer match
       case OuterCtx.Function(sym) => S(sym)
       case _ => parent.flatMap(_.getNonLocalRetHandler)
@@ -186,11 +186,11 @@ object Elaborator:
         Term.Ref(sym)(id, 666, N) // FIXME: 666 is a temporary placeholder
       def symbol = S(sym)
       def isImport: Bool = false
-    final case class SelElem(base: Elem, nme: Str, symOpt: Opt[FieldSymbol], isImport: Bool) extends Elem:
+    final case class SelElem(base: Elem, nme: Str, symOpt: Opt[BlockMemberSymbol], isImport: Bool) extends Elem:
       def ref(id: Ident)(using Elaborator.State): Term =
         // * Same remark as in RefElem#ref
         Term.SynthSel(base.ref(Ident(base.nme)),
-          new Ident(nme).withLocOf(id))(symOpt)
+          new Ident(nme).withLocOf(id))(N)
       def symbol = symOpt
     given Conversion[Symbol, Elem] = RefElem(_)
     val empty: Ctx = Ctx(OuterCtx.LocalScope, N, Map.empty, Mode.Full)
@@ -219,9 +219,9 @@ object Elaborator:
       val id = new Ident("NonLocalReturn")
       val sym = ClassSymbol(DummyTypeDef(syntax.Cls), id)
       Term.Sel(runtimeSymbol.ref(), id)(S(sym))
-    val nonLocalRet =
-      val id = new Ident("ret")
-      BlockMemberSymbol(id.name, Nil, true)
+    // val nonLocalRet =
+    //   val id = new Ident("ret")
+    //   BlockMemberSymbol(id.name, Nil, true)
     val matchResultClsSymbol =
       val id = new Ident("MatchResult")
       val td = TypeDef(syntax.Cls, App(id, Tup(Ident("output") :: Ident("bindings") :: Nil)), N)
@@ -284,11 +284,14 @@ extends Importer:
       psym.modOrObjTree match
       case S(cls) =>
         cls.definedSymbols.get(nme.name) match
-        case s @ S(clsSym) => s
+        // FIXME resolveField
+        case s @ S(clsSym) => N
+        // FIXME resolveField
         case N =>
           raise(ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
             }' does not contain member '${nme.name}'" -> srcTree.toLoc :: Nil))
-          S(ErrorSymbol(nme.name, srcTree))
+          N
+          // S(ErrorSymbol(nme.name, srcTree))
       case N =>
         N
     case _ => N
@@ -649,7 +652,7 @@ extends Importer:
           val argTree = new Tup(body :: Nil)
           val dummyIdent = new Ident("return").withLocOf(kw)
           Term.App(
-            Term.Sel(sym.ref(dummyIdent), retMtdTree)(S(state.nonLocalRet)),
+            Term.Sel(sym.ref(dummyIdent), retMtdTree)(N),
             Term.Tup(PlainFld(subterm(body)) :: Nil)(argTree)
           )(App(Sel(dummyIdent, retMtdTree), argTree), N, rs)
       case ReturnHandler.NotInFunction =>
@@ -934,7 +937,8 @@ extends Importer:
                     if ctx.env.contains(id.name) then
                       raise(WarningReport(msg"Imported name '${id.name}' is shadowed by a name already defined in the same scope" -> id.toLoc :: Nil))
                     val sym = resolveField(id, baseElem.symbol, id)
-                    val e = Ctx.SelElem(baseElem, id.name, sym, isImport = true)
+                    // FIXME resolveField
+                    val e = Ctx.SelElem(baseElem, id.name, N, isImport = true)
                     id.name -> e :: Nil
                   case t =>
                     raise(ErrorReport(msg"Illegal 'open' statement element." -> t.toLoc :: Nil))
@@ -1094,7 +1098,7 @@ extends Importer:
               val tsym = TermSymbol(k, owner, id) // TODO?
               val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, r, 
                 TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations, N)
-              sym.defn = S(tdf)
+              tsym.defn = S(tdf)
               
               tdf
             go(sts, Nil, tdf :: acc)
@@ -1118,7 +1122,7 @@ extends Importer:
         val sym = members.getOrElse(nme.name, lastWords(s"Symbol not found: ${nme.name}"))
         
         var newCtx = S(td.symbol).collectFirst:
-            case s: InnerSymbol => s
+            case s: InnerSymbol[?] => s
           .fold(ctx.nest(OuterCtx.NonReturnContext))(ctx.nestInner(_))
         
         val tps = td.typeParams match
@@ -1158,17 +1162,17 @@ extends Importer:
               val owner = td.symbol match
                 // Any MemberSymbol should be an InnerSymbol, except for TypeAliasSymbol, 
                 // but type aliases should not call this function.
-                case s: InnerSymbol => S(s)
+                case s: InnerSymbol[?] => S(s)
                 case _: TypeAliasSymbol => die
               
               if p.flags.isVal || isDataClass
               then
                 val k = if p.flags.mut then MutVal else ImmutVal
-                val fsym = BlockMemberSymbol(p.sym.nme, Nil)
+                val bms = BlockMemberSymbol(p.sym.nme, Nil)
                 val tsym = TermSymbol(k, owner, p.sym.id) // TODO?
                 val fdef = TermDefinition(
                   k,
-                  fsym,
+                  bms,
                   tsym,
                   Nil, N, N,
                   S(p.sym.ref()),
@@ -1179,8 +1183,8 @@ extends Importer:
                   N,
                 )
                 assert(p.fldSym.isEmpty)
-                p.fldSym = S(fsym)
-                fsym.defn = S(fdef)
+                p.fldSym = S(tsym)
+                // fsym.defn = S(fdef)
                 tsym.defn = S(fdef)
                 fdef :: Nil
               else
@@ -1304,11 +1308,12 @@ extends Importer:
                 ClassDef(owner, Cls, clsSym, sym, tps, pss, newOf(td), ObjBody(bod), annotations, comp)
               clsSym.defn = S(cd)
               cd
-        if defn.isPrincipalOverload then
-          //* At this point Sometimes, `sym.defn` *should* be empty, but it might not be due to an erroneous overload,
-          // * which would have triggered an error already.
-          // assert(sym.defn.isEmpty, (defn, sym.defn))
-          sym.defn = S(defn)
+        // FIXME: isPrincipalOverload
+        // if defn.isPrincipalOverload then
+        //   //* At this point Sometimes, `sym.defn` *should* be empty, but it might not be due to an erroneous overload,
+        //   // * which would have triggered an error already.
+        //   // assert(sym.defn.isEmpty, (defn, sym.defn))
+        //   sym.defn = S(defn)
         go(sts, Nil, defn :: acc)
       case Annotated(annotation, target) :: sts =>
         go(target :: sts, annotations ++ annot(annotation), acc)

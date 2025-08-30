@@ -169,15 +169,15 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     val localCaptureSyms: Map[Local, VarSymbol] = Map.empty,
     val prevFnLocals: FreeVars = FreeVars.empty,
     val prevClsDefns: List[ClsLikeDefn] = Nil,
-    val inScopeISyms: Set[InnerSymbol] = Set.empty,
+    val inScopeISyms: Set[InnerSymbol[?]] = Set.empty,
     val curModules: List[ClsLikeDefn] = Nil,
     val capturePaths: Map[BlockMemberSymbol, LocalPath] = Map.empty,
     val bmsReqdInfo: Map[BlockMemberSymbol, LiftedInfo] = Map.empty, // required captures
     val ignoredBmsPaths: Map[BlockMemberSymbol, LocalPath] = Map.empty,
     val localPaths: Map[Local, LocalPath] = Map.empty,
-    val isymPaths: Map[InnerSymbol, LocalPath] = Map.empty,
+    val isymPaths: Map[InnerSymbol[?], LocalPath] = Map.empty,
     val replacedDefns: Map[BlockMemberSymbol, Defn] = Map.empty,
-    val companionMap: Map[InnerSymbol, InnerSymbol] = Map.empty
+    val companionMap: Map[InnerSymbol[?], InnerSymbol[?]] = Map.empty
   ):
     // gets the function to which a local belongs
     def lookup(l: Local) = usedLocals.lookup(l)
@@ -189,8 +189,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       // FIXME: DisambBlockMemberSymbol workaround
       case l: DisambBlockMemberSymbol[?] => localPaths.get(l.bsym)
       case _ => localPaths.get(l)
-    def resolveIsymPath(l: InnerSymbol) = getIsymPath(companionMap.getOrElse(l, l))
-    def getIsymPath(l: InnerSymbol) = isymPaths.get(l)
+    def resolveIsymPath(l: InnerSymbol[?]) = getIsymPath(companionMap.getOrElse(l, l))
+    def getIsymPath(l: InnerSymbol[?]) = isymPaths.get(l)
     def getIgnoredBmsPath(b: BlockMemberSymbol) = ignoredBmsPaths.get(b)
     def ignored(b: BlockMemberSymbol) = ignoredDefns.contains(b)
     def isModOrObj(b: BlockMemberSymbol) = modObjLocals.contains(b)
@@ -204,7 +204,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     def withNestedDefns(mp: Map[BlockMemberSymbol, List[Defn]]) = copy(nestedDefns = mp)
     def withAccesses(mp: Map[BlockMemberSymbol, AccessInfo]) = copy(accessInfo = mp)
     def withInScopes(mp: Map[BlockMemberSymbol, Set[BlockMemberSymbol]]) = copy(inScopeDefns = mp)
-    def withCompanionMap(mp: Map[InnerSymbol, InnerSymbol]) = copy(companionMap = mp)
+    def withCompanionMap(mp: Map[InnerSymbol[?], InnerSymbol[?]]) = copy(companionMap = mp)
     def addFnLocals(f: FreeVars) = copy(prevFnLocals = prevFnLocals ++ f)
     def addClsDefn(c: ClsLikeDefn) = copy(prevClsDefns = c :: prevClsDefns)
     def addLocalCaptureSyms(m: Map[Local, VarSymbol]) = copy(localCaptureSyms = localCaptureSyms ++ m)
@@ -214,15 +214,15 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     def addBmsReqdInfo(mp: Map[BlockMemberSymbol, LiftedInfo]) = copy(bmsReqdInfo = bmsReqdInfo ++ mp)
     def replLocalPaths(m: Map[Local, LocalPath]) = copy(localPaths = m)
     def replIgnoredBmsPaths(m: Map[BlockMemberSymbol, LocalPath]) = copy(ignoredBmsPaths = m)
-    def replIsymPaths(m: Map[InnerSymbol, LocalPath]) = copy(isymPaths = m)
+    def replIsymPaths(m: Map[InnerSymbol[?], LocalPath]) = copy(isymPaths = m)
     def addLocalPaths(m: Map[Local, LocalPath]) = copy(localPaths = localPaths ++ m)
     def addLocalPath(target: Local, path: LocalPath) = copy(localPaths = localPaths + (target -> path))
     def addIgnoredBmsPaths(m: Map[BlockMemberSymbol, LocalPath]) = copy(ignoredBmsPaths = ignoredBmsPaths ++ m)
-    def addIsymPath(isym: InnerSymbol, l: LocalPath) = copy(isymPaths = isymPaths + (isym -> l))
-    def addIsymPaths(mp: Map[InnerSymbol, LocalPath]) = copy(isymPaths = isymPaths ++ mp)
+    def addIsymPath(isym: InnerSymbol[?], l: LocalPath) = copy(isymPaths = isymPaths + (isym -> l))
+    def addIsymPaths(mp: Map[InnerSymbol[?], LocalPath]) = copy(isymPaths = isymPaths ++ mp)
     def addreplacedDefns(mp: Map[BlockMemberSymbol, Defn]) = copy(replacedDefns = replacedDefns ++ mp)
     def inModule(defn: ClsLikeDefn) = copy(curModules = defn :: curModules)
-    def inISym(sym: InnerSymbol) = copy(inScopeISyms = inScopeISyms + sym)
+    def inISym(sym: InnerSymbol[?]) = copy(inScopeISyms = inScopeISyms + sym)
     def resetScope = copy(inScopeISyms = Set.empty)
     def flushModules = 
       // called when we are lifted out while in some module, so we need to add the modules' isym paths
@@ -234,17 +234,17 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     
   enum LocalPath:
     case Sym(l: Local)
-    case PubField(isym: MemberSymbol[? <: ClassLikeDef] & InnerSymbol, sym: BlockMemberSymbol)
+    case PubField(isym: InnerSymbol[? <: ClassLikeDef], sym: BlockMemberSymbol)
     
     def read = this match
       case Sym(l) => l.asPath
-      case PubField(isym, sym) => Select(isym.asPath, Tree.Ident(sym.nme))(S(sym))
+      case PubField(isym, sym) => Select(isym.asPath, Tree.Ident(sym.nme))(S(isym))
       
     def asArg = read.asArg
     
     def assign(value: Result, rest: Block) = this match
       case Sym(l) => Assign(l, value, rest)
-      case PubField(isym, sym) => AssignField(isym.asPath, Tree.Ident(sym.nme), value, rest)(S(sym))
+      case PubField(isym, sym) => AssignField(isym.asPath, Tree.Ident(sym.nme), value, rest)(S(isym))
     
     
   def isHandlerClsPath(p: Path) = handlerPaths match
@@ -320,7 +320,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       case _ => wat("unreachable", c.sym)
       
     def create: Set[Local] = c.freeVars.collect:
-      case s: InnerSymbol => s
+      case s: InnerSymbol[?] => s
       case t: TermSymbol if t.owner.isDefined => t.owner.get
 
     innerSymCache.getOrElseUpdate(sym, create)
@@ -363,7 +363,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
   case class LiftedInfo(
     val reqdCaptures: List[BlockMemberSymbol], // The mutable captures a lifted definition must take.
     val reqdVars: List[Local], // The (passed by value) variables a lifted definition must take.
-    val reqdInnerSyms: List[InnerSymbol], // The inner symbols a lifted definition must take.
+    val reqdInnerSyms: List[InnerSymbol[?]], // The inner symbols a lifted definition must take.
     val reqdBms: List[BlockMemberSymbol], // BMS's belonging to unlifted definitions that this definition references.
     val fakeCtorBms: Option[BlockMemberSymbol], // only for classes
     val singleCallBms: BlockMemberSymbol, // optimization
@@ -542,7 +542,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     
     val refMod = inScopeRefs.intersect(ctx.modObjLocals.keySet)
     val includedLocals = ((accessed -- ctx.prevFnLocals.reqCapture) ++ refMod).toList.sortBy(_.uid)
-    val clsCaptures: List[InnerSymbol] = ctx.prevClsDefns.map(_.isym)
+    val clsCaptures: List[InnerSymbol[?]] = ctx.prevClsDefns.map(_.isym)
     val refBms = inScopeRefs.intersect(ctx.ignoredDefns).toList.sortBy(_.uid)
     
     val modLocal = d match
@@ -644,8 +644,8 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
   // This rewrites code so that it's valid when lifted to the top level.
   // This way, no piece of code must be traversed by a BlockRewriter more than once.
   // Remark: This is why so much prior analysis is needed and is the main source of complexity in the lifter.
-  class BlockRewriter(inScopeIsyms: Set[InnerSymbol], ctx: LifterCtx) extends BlockTransformerShallow(SymbolSubst()):
-    def iSymInScope(l: InnerSymbol) = inScopeIsyms.contains(l)
+  class BlockRewriter(inScopeIsyms: Set[InnerSymbol[?]], ctx: LifterCtx) extends BlockTransformerShallow(SymbolSubst()):
+    def iSymInScope(l: InnerSymbol[?]) = inScopeIsyms.contains(l)
     
     override def applyBlock(b: Block): Block = 
       // extract references to BlockMemberSymbols in the block which now may
@@ -686,7 +686,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
         case Define(d: ValDefn, rest: Block) if d.owner.isDefined =>
           ctx.getIsymPath(d.owner.get) match
             case Some(value) if !iSymInScope(d.owner.get) =>
-              AssignField(value.read, Tree.Ident(d.sym.nme), applyResult(d.rhs), applyBlock(rest))(S(d.sym))
+              AssignField(value.read, Tree.Ident(d.sym.nme), applyResult(d.rhs), applyBlock(rest))(S(d.tsym))
             case _ => super.applyBlock(rewritten)
         
         // rewrite object definitions, assigning to the given symbol in modObjLocals
@@ -711,7 +711,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
     override def applyPath(p: Path): Path = 
       p match
       // These two cases rewrites `this.whatever` when referencing an outer class's fields.
-      case Value.Ref(l: InnerSymbol) =>
+      case Value.Ref(l: InnerSymbol[?]) =>
         ctx.resolveIsymPath(l) match
         case Some(value) if !iSymInScope(l) => value.read
         case _ => super.applyPath(p)
@@ -737,7 +737,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
       // from the objects BlockMemberSymbol to that new symbol.
       case s @ Select(qual, ident) => 
         s.symbol.flatMap(ctx.getLocalPath) match
-        case Some(LocalPath.Sym(value: MemberSymbol[?])) => Select(qual, Tree.Ident(value.nme))(S(value))
+        case Some(LocalPath.Sym(value: FieldSymbol)) => Select(qual, Tree.Ident(value.nme))(S(value))
         case _ => super.applyPath(p) 
 
       // This is to rewrite references to classes that are not lifted (when their BlockMemberSymbol
@@ -838,7 +838,7 @@ class Lifter(handlerPaths: Opt[HandlerPaths])(using State, Raise):
         val newCtx = ctx
           .replCapturePaths(newCapturePaths)
           .replLocalPaths(newLocalsPaths)
-          .addIsymPaths(newIsymPaths)
+          .addIsymPaths(newIsymPaths.asInstanceOf) // FIXME
           .replIgnoredBmsPaths(newBmsPaths)
         
         (extraParams, newCtx, capturesSymbols ++ localsSymbols ++ isymSymbols ++ bmsSymbols)

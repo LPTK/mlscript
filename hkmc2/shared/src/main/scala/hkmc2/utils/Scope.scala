@@ -25,7 +25,7 @@ import hkmc2.codegen.js.JSBuilder
   * to an inner symbol (e.g., class or module).
   * Note: I made `Scope` a case class just so that it can benefit from `printAsTree`. */
 case class Scope
-    (val parent: Opt[Scope], val curThis: Opt[Opt[InnerSymbol]], private val bindings: MutMap[Local, Str])
+    (val parent: Opt[Scope], val curThis: Opt[Opt[InnerSymbol[?]]], private val bindings: MutMap[Local, Str])
     (using State):
   
   private val existingNames = MutSet.empty[Str]
@@ -42,7 +42,7 @@ case class Scope
   /** Whether the code generator has produced a binding for `thisProxy` yet. */
   var thisProxyDefined: Bool = false
   
-  private def thisError(thisSym: InnerSymbol)(using Raise): Nothing =
+  private def thisError(thisSym: InnerSymbol[?])(using Raise): Nothing =
     raise(InternalError(msg"`this` not in scope: ${thisSym.toString}" -> N :: Nil,
       source = Diagnostic.Source.Compilation))
     die
@@ -52,7 +52,7 @@ case class Scope
     bindings += symbol -> name
     existingNames += name
   
-  def findThis_!(thisSym: InnerSymbol)(using Raise): Str =
+  def findThis_!(thisSym: InnerSymbol[?])(using Raise): Str =
     // println(s"findThis_! $thisSym")
     def getParent = parent.fold(
       if thisSym.isInstanceOf[TopLevelSymbol]
@@ -71,7 +71,7 @@ case class Scope
     case S(_) => getParent(_.findThisProxy_!(thisSym))
     case N => getParent(_.findThis_!(thisSym))
   
-  def findThisProxy_!(thisSym: InnerSymbol)(using Raise): Str =
+  def findThisProxy_!(thisSym: InnerSymbol[?])(using Raise): Str =
     // println(s"findThisProxy_! $thisSym")
     if thisSym.isInstanceOf[TopLevelSymbol]
     then "globalThis"
@@ -85,7 +85,7 @@ case class Scope
   
   def getOuterThisScope: Opt[Scope] = parent.flatMap(_.getThisScope)
   
-  def nestRebindThis[R](thisSym: Opt[InnerSymbol])(k: Scope ?=> R): (Opt[Str], R) =
+  def nestRebindThis[R](thisSym: Opt[InnerSymbol[?]])(k: Scope ?=> R): (Opt[Str], R) =
     val nested = Scope(Some(this), S(thisSym), MutMap.empty)
     val res = k(using nested)
     getOuterThisScope match

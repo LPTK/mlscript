@@ -30,7 +30,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
     nestedDefns: Map[BlockMemberSymbol, List[Defn]], // definitions that are a successor of the current defn
     nestedDeep: Map[BlockMemberSymbol, Set[BlockMemberSymbol]], // definitions nested within another defn, including that defn (deep)
     nestedIn: Map[BlockMemberSymbol, BlockMemberSymbol], // the definition that a definition is directly nested in
-    companionMap: Map[InnerSymbol, InnerSymbol], // a (bijective) map between companion object symbols and class symbols
+    companionMap: Map[InnerSymbol[?], InnerSymbol[?]], // a (bijective) map between companion object symbols and class symbols
   )
   private def createMetadata: DefnMetadata =
     var defnsMap: Map[BlockMemberSymbol, Defn] = Map.empty
@@ -40,7 +40,7 @@ class UsedVarAnalyzer(b: Block, handlerPaths: Opt[HandlerPaths])(using State):
     var nestedDefns: Map[BlockMemberSymbol, List[Defn]] = Map.empty
     var nestedDeep: Map[BlockMemberSymbol, Set[BlockMemberSymbol]] = Map.empty
     var nestedIn: Map[BlockMemberSymbol, BlockMemberSymbol] = Map.empty
-    var companionMap: Map[InnerSymbol, InnerSymbol] = Map.empty
+    var companionMap: Map[InnerSymbol[?], InnerSymbol[?]] = Map.empty
 
     def createMetadataFn(f: FunDefn, existing: Set[Local], inScope: Set[BlockMemberSymbol]): Unit =
       var nested: Set[BlockMemberSymbol] = Set.empty

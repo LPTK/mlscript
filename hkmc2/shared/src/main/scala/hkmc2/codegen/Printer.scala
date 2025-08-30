@@ -17,7 +17,7 @@ object Printer:
     case ts: semantics.BlockMemberSymbol => // this means it's a locally-defined member
       ts.nme
       // ts.trmTree
-    case ts: semantics.InnerSymbol => ts.nme
+    case ts: semantics.InnerSymbol[?] => ts.nme
     case ts: semantics.BuiltinSymbol => ts.nme
     case _ => summon[Scope].lookup(l) match
       case S(str) => str
