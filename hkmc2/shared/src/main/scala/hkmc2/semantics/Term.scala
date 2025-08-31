@@ -7,6 +7,8 @@ import mlscript.utils.*, shorthands.*
 import syntax.*
 
 import Elaborator.State
+import hkmc2.semantics.ClassDef.Parameterized
+import hkmc2.semantics.ClassDef.Plain
 
 
 final case class QuantVar(sym: VarSymbol, ub: Opt[Term], lb: Opt[Term])
@@ -27,6 +29,11 @@ enum Annot extends AutoLocated:
   def children: Ls[Located] = this match
     case Trm(trm) => trm :: Nil
     case _: Modifier | Untyped => Nil
+  
+  override def clone: this.type = (this match
+    case Untyped => Untyped
+    case Modifier(mod) => Modifier(mod)
+    case Trm(trm) => Trm(trm.clone)).asInstanceOf[this.type]
 
 type Resolvable = Term & ResolvableImpl
 
@@ -230,6 +237,62 @@ enum Term extends Statement:
     App(this, Tup(args.toList.map(PlainFld(_)))(Tree.DummyTup))
       (Tree.App(Tree.Dummy, Tree.Dummy), N, FlowSymbol(""))
   
+  override def clone: this.type = (this match
+    case Error => Error
+    case UnitVal() => UnitVal()
+    case Missing => Missing
+    case Lit(Tree.StrLit(value)) => Lit(Tree.StrLit(value))
+    case Lit(Tree.IntLit(value)) => Lit(Tree.IntLit(value))
+    case Lit(Tree.DecLit(value)) => Lit(Tree.DecLit(value))
+    case Lit(Tree.BoolLit(value)) => Lit(Tree.BoolLit(value))
+    case Lit(Tree.UnitLit(value)) => Lit(Tree.UnitLit(value))
+    case term @ Ref(sym) => Ref(sym)(Tree.Ident(term.tree.name), term.refNum, term.resSym)
+    case term @ App(lhs, rhs) => App(lhs.clone, rhs.clone)(term.tree, term.sym, term.resSym)
+    case term @ TyApp(lhs, targs) => TyApp(lhs.clone, targs.map(_.clone))(term.sym)
+    case term @ Sel(prefix, nme) => Sel(prefix.clone, Tree.Ident(nme.name))(term.sym)
+    case term @ SynthSel(prefix, nme) => SynthSel(prefix.clone, Tree.Ident(nme.name))(term.sym)
+    case DynSel(prefix, fld, arrayIdx) => DynSel(prefix.clone, fld.clone, arrayIdx)
+    case term @ Tup(fields) => Tup(fields.map {
+      case f: Fld => f.copy(term = f.term.clone, asc = f.asc.map(_.clone))
+      case s: Spd => s.copy(term = s.term.clone)
+    })(term.tree)
+    case Mut(underlying) => Mut(underlying.clone.asInstanceOf[Tup | Rcd | New | DynNew])
+    case term @ CtxTup(fields) => CtxTup(fields.map {
+      case f: Fld => f.copy(term = f.term.clone, asc = f.asc.map(_.clone))
+      case s: Spd => s.copy(term = s.term.clone)
+    })(term.tree)
+    case IfLike(kw, desugared) => IfLike(kw, desugared) // desugared is Split, which is immutable
+    case Lam(params, body) => Lam(params, body.clone)
+    case FunTy(lhs, rhs, eff) => FunTy(lhs.clone, rhs.clone, eff.map(_.clone))
+    case Forall(tvs, outer, body) => Forall(tvs, outer, body.clone)
+    case WildcardTy(in, out) => WildcardTy(in.map(_.clone), out.map(_.clone))
+    case Blk(stats, res) => Blk(stats.map(_.clone), res.clone)
+    case Rcd(mut, stats) => Rcd(mut, stats.map(_.clone))
+    case Quoted(body) => Quoted(body.clone)
+    case Unquoted(body) => Unquoted(body.clone)
+    case New(cls, args, rft) =>
+      New(cls.clone, args.map(_.clone), rft.map { case (cs, ob) => cs -> ObjBody(ob.blk.clone) })
+    case DynNew(cls, args) => DynNew(cls.clone, args.map(_.clone))
+    case term @ SelProj(prefix, cls, proj) =>
+      SelProj(prefix.clone, cls.clone, Tree.Ident(proj.name))(term.sym)
+    case Asc(term, ty) => Asc(term.clone, ty.clone)
+    case CompType(lhs, rhs, pol) => CompType(lhs.clone, rhs.clone, pol)
+    case Neg(rhs) => Neg(rhs.clone)
+    case Region(name, body) => Region(name, body.clone)
+    case RegRef(reg, value) => RegRef(reg.clone, value.clone)
+    case Assgn(lhs, rhs) => Assgn(lhs.clone, rhs.clone)
+    case Drop(trm) => Drop(trm.clone)
+    case Deref(ref) => Deref(ref.clone)
+    case SetRef(ref, value) => SetRef(ref.clone, value.clone)
+    case Ret(result) => Ret(result.clone)
+    case Throw(result) => Throw(result.clone)
+    case Try(body, finallyDo) => Try(body.clone, finallyDo.clone)
+    case Annotated(annot, target) => Annotated(annot, target.clone)
+    case Handle(lhs, rhs, args, derivedClsSym, defs, body) =>
+      Handle(lhs, rhs.clone, args.map(_.clone), derivedClsSym, defs, body.clone)
+  ).asInstanceOf[this.type]
+  
+  
 end Term
 
 import Term.*
@@ -241,6 +304,16 @@ extension (self: Blk)
 
 
 sealed trait Statement extends AutoLocated with ProductWithExtraInfo:
+  
+  override def clone: this.type = (this match
+    case t: Term => t.clone
+    case d: Definition => d // Can we clone `Definition`s?
+    case imp: Import => Import(imp.sym, imp.file)
+    case LetDecl(sym, annotations) => LetDecl(sym, annotations.map(_.clone))
+    case RcdField(field, rhs) => RcdField(field.clone, rhs.clone)
+    case RcdSpread(rcd) => RcdSpread(rcd.clone)
+    case DefineVar(sym, rhs) => DefineVar(sym, rhs.clone)
+  ).asInstanceOf[this.type]
   
   def describe: Str =
     val desc = this match
@@ -550,6 +623,8 @@ case class ObjBody(blk: Term.Blk):
   
   // override def toString: String = statmts.mkString("{ ", "; ", " }")
   override def toString: String = blk.showDbg
+  
+  
 
 
 case class Import(sym: Symbol, file: Str) extends Statement

@@ -44,105 +44,21 @@ fun flatten__compiled(xs) =
   if xs is (@compile Flatten) as ys then
     print of "Flattened: [" + (ys Iter.fromStack() Iter.joined(", ")) + "]"
   else "Cannot flatten: " + xs
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (List(Flatten.mls:+15, Flatten.mls:+43),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(object:Nil,Select(Select(Ref(member:Stack),Ident(Nil)),Ident(class))),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Return(Select(Ref(member:Stack),Ident(Nil)),false)),Assign($transform,Ref(member:lambda),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List())))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),Assign($p_3$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Return(Select(Ref(member:Stack),Ident(Nil)),false)),Assign($transform,Ref(member:lambda),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List())))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),Assign($p_4$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($p_3$)), RcdArg(Some(Lit(StrLit(p_4))),Ref($p_4$)))),false)))))))))))))), (Cls(class:Cons,Select(Select(Ref(member:Stack),Ident(Cons)),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($tmp)), RcdArg(Some(Lit(StrLit(p_4))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(head),true),Assign($head,Select(Ref(input),Ident(head)),Assign($tmp,Call(Ref($matcher1$),List(Arg(None,Ref($head)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(head,Ref($tmp),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(tail),true),Assign($tail,Select(Ref(input),Ident(tail)),Assign($tmp,Call(Ref($matcher2$),List(Arg(None,Ref($tail)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(tail,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(hd,Select(Ref(args),Ident(hd)),Assign(tl,Select(Ref(args),Ident(tl)),Return(Call(Select(Ref(member:Stack),Ident(concat)),List(Arg(None,Ref(hd)), Arg(None,Ref(tl)))),false)))),Assign($transform,Ref(member:lambda),Assign($result1$,Select(Ref(head),Ident(p_1)),Match(Ref($result1$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output1$,Select(Ref($result1$),Ident(output)),Assign($bindings,Select(Ref($result1$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(hd))),Ref($output1$)))),Assign($result3$,Select(Ref(tail),Ident(p_3)),Match(Ref($result3$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output3$,Select(Ref($result3$),Ident(output)),Assign($bindings,Select(Ref($result3$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($output3$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(hd,Select(Ref(args),Ident(hd)),Assign(tl,Select(Ref(args),Ident(tl)),Return(Call(Select(Ref(member:Stack),Ident(Cons)),List(Arg(None,Ref(hd)), Arg(None,Ref(tl)))),false)))),Assign($transform,Ref(member:lambda),Assign($result2$,Select(Ref(head),Ident(p_2)),Match(Ref($result2$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output2$,Select(Ref($result2$),Ident(output)),Assign($bindings,Select(Ref($result2$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(hd))),Ref($output2$)))),Assign($result4$,Select(Ref(tail),Ident(p_4)),Match(Ref($result4$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output4$,Select(Ref($result4$),Ident(output)),Assign($bindings,Select(Ref($result4$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($output4$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))),End()))))))),Some(Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(hd,Select(Ref(args),Ident(hd)),Assign(tl,Select(Ref(args),Ident(tl)),Return(Call(Select(Ref(member:Stack),Ident(Cons)),List(Arg(None,Ref(hd)), Arg(None,Ref(tl)))),false)))),Assign($transform,Ref(member:lambda),Assign($result2$,Select(Ref(head),Ident(p_2)),Match(Ref($result2$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output2$,Select(Ref($result2$),Ident(output)),Assign($bindings,Select(Ref($result2$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(hd))),Ref($output2$)))),Assign($result4$,Select(Ref(tail),Ident(p_4)),Match(Ref($result4$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output4$,Select(Ref($result4$),Ident(output)),Assign($bindings,Select(Ref($result4$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($output4$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))),Assign($p_3$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(hd,Select(Ref(args),Ident(hd)),Assign(tl,Select(Ref(args),Ident(tl)),Return(Call(Select(Ref(member:Stack),Ident(concat)),List(Arg(None,Ref(hd)), Arg(None,Ref(tl)))),false)))),Assign($transform,Ref(member:lambda),Assign($result1$,Select(Ref(head),Ident(p_1)),Match(Ref($result1$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output1$,Select(Ref($result1$),Ident(output)),Assign($bindings,Select(Ref($result1$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(hd))),Ref($output1$)))),Assign($result3$,Select(Ref(tail),Ident(p_3)),Match(Ref($result3$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output3$,Select(Ref($result3$),Ident(output)),Assign($bindings,Select(Ref($result3$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($output3$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(hd,Select(Ref(args),Ident(hd)),Assign(tl,Select(Ref(args),Ident(tl)),Return(Call(Select(Ref(member:Stack),Ident(Cons)),List(Arg(None,Ref(hd)), Arg(None,Ref(tl)))),false)))),Assign($transform,Ref(member:lambda),Assign($result2$,Select(Ref(head),Ident(p_2)),Match(Ref($result2$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output2$,Select(Ref($result2$),Ident(output)),Assign($bindings,Select(Ref($result2$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(hd))),Ref($output2$)))),Assign($result4$,Select(Ref(tail),Ident(p_4)),Match(Ref($result4$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output4$,Select(Ref($result4$),Ident(output)),Assign($bindings,Select(Ref($result4$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($output4$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))),End()))))))),Some(Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(hd,Select(Ref(args),Ident(hd)),Assign(tl,Select(Ref(args),Ident(tl)),Return(Call(Select(Ref(member:Stack),Ident(Cons)),List(Arg(None,Ref(hd)), Arg(None,Ref(tl)))),false)))),Assign($transform,Ref(member:lambda),Assign($result2$,Select(Ref(head),Ident(p_2)),Match(Ref($result2$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output2$,Select(Ref($result2$),Ident(output)),Assign($bindings,Select(Ref($result2$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(hd))),Ref($output2$)))),Assign($result4$,Select(Ref(tail),Ident(p_4)),Match(Ref($result4$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output4$,Select(Ref($result4$),Ident(output)),Assign($bindings,Select(Ref($result4$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($output4$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(tl))),Ref($transformResult)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))),Assign($p_4$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($p_3$)), RcdArg(Some(Lit(StrLit(p_4))),Ref($p_4$)))),false)))))))))))))))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_3$,Ref($tmp),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_4$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($p_3$)), RcdArg(Some(Lit(StrLit(p_4))),Ref($p_4$)))),false)))))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher2$,Ref($tmp),Assign($matchRecord,Call(Ref($matcher__Flatten$),List(Arg(None,Ref(xs)))),Assign($matchResult,Select(Ref($matchRecord),Ident(p_0)),Match(Ref($matchResult),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($patternOutput,Select(Ref($matchResult),Ident(output)),Assign($bindings,Select(Ref($matchResult),Ident(bindings)),Assign(ys,Ref($patternOutput),Assign($tmp,Call(Select(Ref(member:module:Iter),Ident(fromStack)),List(Arg(None,Ref(ys)))),Assign($tmp,Call(Select(Ref(member:module:Iter),Ident(joined)),List(Arg(None,Ref($tmp)), Arg(None,Lit(StrLit(, ))))),Assign($tmp,Call(Ref(builtin:+),List(Arg(None,Lit(StrLit(Flattened: [))), Arg(None,Ref($tmp)))),Assign($tmp,Call(Ref(builtin:+),List(Arg(None,Ref($tmp)), Arg(None,Lit(StrLit(]))))),Return(Call(Select(Ref(member:module:Predef),Ident(print)),List(Arg(None,Ref($tmp)))),false)))))))))),Some(Return(Call(Ref(builtin:+),List(Arg(None,Lit(StrLit(Cannot flatten: ))), Arg(None,Ref(xs)))),false)),End())))))))
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
-//│ 	at: hkmc2.AutoLocated.mkLoc(syntax.scala:49)
-//│ 	at: hkmc2.AutoLocated.toLoc(syntax.scala:54)
-//│ 	at: hkmc2.AutoLocated.toLoc$(syntax.scala:26)
-//│ 	at: hkmc2.codegen.Block.toLoc(Block.scala:23)
-//│ 	at: hkmc2.AutoLocated.subLocs$1$$anonfun$1(syntax.scala:43)
-//│ 	at: scala.collection.Iterator$$anon$10.nextCur(Iterator.scala:594)
-//│ 	at: scala.collection.Iterator$$anon$10.hasNext(Iterator.scala:608)
-//│ 	at: scala.collection.Iterator$$anon$9.hasNext(Iterator.scala:583)
-//│ 	at: scala.collection.IterableOnceOps.minOption(IterableOnce.scala:916)
 
 flatten__compiled of Nil
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: flatten__compiled is not defined
-//│     at REPL46:1:29
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > Flattened: []
 
 flatten__compiled of list(1)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: flatten__compiled is not defined
-//│     at REPL49:1:75
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > Flattened: [1]
 
 flatten__compiled of list(1, 2, 3, 4)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: flatten__compiled is not defined
-//│     at REPL52:1:84
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > Flattened: [1, 2, 3, 4]
 
 flatten__compiled of list(list(1, 2), list(3, 4))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: flatten__compiled is not defined
-//│     at REPL55:1:178
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > Flattened: [1, 2, 3, 4]
 
 flatten__compiled of list(list(list(list(1, 2, 3, 4))))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: flatten__compiled is not defined
-//│     at REPL58:1:225
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > Flattened: [1, 2, 3, 4]
 
 flatten__compiled of list(list(1, 2), list(list(3, 4), list(list(5, 6))))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: flatten__compiled is not defined
-//│     at REPL61:1:325
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > Flattened: [1, 2, 3, 4, 5, 6]

@@ -1441,10 +1441,10 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│ Lowering.term member:Math#666.PI‹member:PI› – symbol member:PI
 //│ Expanding term Sel(Ref(member:Math),Ident(PI))
 //│ ~> Sel(Ref(member:Math),Ident(PI))
-//│ Lowering.term member:Math#666
+//│ Lowering.term member:Math#666 – symbol member:Math
 //│ Expanding term Ref(member:Math)
-//│ ~> Ref(member:module:Math)
-//│ ! Some(Loc(39,43,Record.mls:+53))
+//│ ~> Ref(member:Math)
+//│ ! None
 //│ Lowering.term globalThis:globalThis#4.Math‹member:Math› – symbol member:Math
 //│ Expanding term Sel(Ref(globalThis:globalThis),Ident(Math))
 //│ ~> Sel(Ref(globalThis:globalThis),Ident(Math))
@@ -1455,11 +1455,11 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│ Lowering.term radius#666 – symbol radius
 //│ Expanding term Ref(radius)
 //│ ~> Ref(radius)
-//│ ! Some(Loc(49,55,Record.mls:+53))
+//│ ! None
 //│ Lowering.term radius#666 – symbol radius
 //│ Expanding term Ref(radius)
 //│ ~> Ref(radius)
-//│ ! Some(Loc(58,64,Record.mls:+53))
+//│ ! None
 //│ Lowering.term (radius#0.)p_1
 //│ Expanding term SynthSel(Ref(radius),Ident(p_1))
 //│ ~> SynthSel(Ref(radius),Ident(p_1))
@@ -1549,11 +1549,11 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│ Lowering.term width#666 – symbol width
 //│ Expanding term Ref(width)
 //│ ~> Ref(width)
-//│ ! Some(Loc(105,110,Record.mls:+53))
+//│ ! None
 //│ Lowering.term height#666 – symbol height
 //│ Expanding term Ref(height)
 //│ ~> Ref(height)
-//│ ! Some(Loc(113,119,Record.mls:+53))
+//│ ! None
 //│ Lowering.term (width#0.)p_2
 //│ Expanding term SynthSel(Ref(width),Ident(p_2))
 //│ ~> SynthSel(Ref(width),Ident(p_2))
@@ -1682,11 +1682,11 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│ Lowering.term base#666 – symbol base
 //│ Expanding term Ref(base)
 //│ ~> Ref(base)
-//│ ! Some(Loc(165,169,Record.mls:+53))
+//│ ! None
 //│ Lowering.term height#666 – symbol height
 //│ Expanding term Ref(height)
 //│ ~> Ref(height)
-//│ ! Some(Loc(172,178,Record.mls:+53))
+//│ ! None
 //│ Lowering.term 2
 //│ Lowering.term (base#0.)p_5
 //│ Expanding term SynthSel(Ref(base),Ident(p_5))
@@ -1842,11 +1842,11 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│ Lowering.term base#666 – symbol base
 //│ Expanding term Ref(base)
 //│ ~> Ref(base)
-//│ ! Some(Loc(165,169,Record.mls:+53))
+//│ ! None
 //│ Lowering.term height#666 – symbol height
 //│ Expanding term Ref(height)
 //│ ~> Ref(height)
-//│ ! Some(Loc(172,178,Record.mls:+53))
+//│ ! None
 //│ Lowering.term 2
 //│ Lowering.term (base#0.)p_5
 //│ Expanding term SynthSel(Ref(base),Ident(p_5))
@@ -2329,7 +2329,7 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                         safe = true
 //│                       _2 = Assign:
 //│                         lhs = $radius
-//│                         rhs = Select{Some(Loc(27,33,Record.mls:+53))}:
+//│                         rhs = Select{None}:
 //│                           qual = Ref{None} of input
 //│                           name = Ident of "radius"
 //│                         rest = Assign: \
@@ -2369,7 +2369,7 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                         safe = true
 //│                       _2 = Assign:
 //│                         lhs = $width
-//│                         rhs = Select{Some(Loc(85,90,Record.mls:+53))}:
+//│                         rhs = Select{None}:
 //│                           qual = Ref{None} of input
 //│                           name = Ident of "width"
 //│                         rest = Assign: \
@@ -2409,7 +2409,7 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                         safe = true
 //│                       _2 = Assign:
 //│                         lhs = $height
-//│                         rhs = Select{Some(Loc(93,99,Record.mls:+53))}:
+//│                         rhs = Select{None}:
 //│                           qual = Ref{None} of input
 //│                           name = Ident of "height"
 //│                         rest = Assign: \
@@ -2449,7 +2449,7 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                         safe = true
 //│                       _2 = Assign:
 //│                         lhs = $base
-//│                         rhs = Select{Some(Loc(146,150,Record.mls:+53))}:
+//│                         rhs = Select{None}:
 //│                           qual = Ref{None} of input
 //│                           name = Ident of "base"
 //│                         rest = Assign: \
@@ -2494,7 +2494,7 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                   name = Ident of "radius"
 //│                 rest = Assign: \
 //│                 lhs = $selRes
-//│                 rhs = Select{Some(Loc(39,43,Record.mls:+53))}:
+//│                 rhs = Select{None}:
 //│                   qual = Ref{None} of globalThis:globalThis
 //│                   name = Ident of "Math"
 //│                 rest = Match: \
@@ -2514,7 +2514,7 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                 dflt = N
 //│                 rest = Assign: \
 //│                 lhs = $selRes
-//│                 rhs = Select{Some(Loc(43,46,Record.mls:+53))}:
+//│                 rhs = Select{None}:
 //│                   qual = Ref{None} of $selRes
 //│                   name = Ident of "PI"
 //│                 rest = Match: \
@@ -2534,25 +2534,25 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                 dflt = N
 //│                 rest = Assign: \
 //│                 lhs = $tmp
-//│                 rhs = Call{Some(Loc(47,55,Record.mls:+53))}:
-//│                   fun = Ref{Some(Loc(47,48,Record.mls:+53))} of builtin:*
+//│                 rhs = Call{None}:
+//│                   fun = Ref{None} of builtin:*
 //│                   args = Ls of 
 //│                     Arg:
 //│                       spread = N
 //│                       value = Ref{None} of $selRes
 //│                     Arg:
 //│                       spread = N
-//│                       value = Ref{Some(Loc(49,55,Record.mls:+53))} of radius
+//│                       value = Ref{None} of radius
 //│                 rest = Return: \
-//│                 res = Call{Some(Loc(56,64,Record.mls:+53))}:
-//│                   fun = Ref{Some(Loc(56,57,Record.mls:+53))} of builtin:*
+//│                 res = Call{None}:
+//│                   fun = Ref{None} of builtin:*
 //│                   args = Ls of 
 //│                     Arg:
 //│                       spread = N
 //│                       value = Ref{None} of $tmp
 //│                     Arg:
 //│                       spread = N
-//│                       value = Ref{Some(Loc(58,64,Record.mls:+53))} of radius
+//│                       value = Ref{None} of radius
 //│                 implct = false
 //│             rest = Assign: \
 //│             lhs = $tmp
@@ -2654,15 +2654,15 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                     qual = Ref{None} of args
 //│                     name = Ident of "height"
 //│                   rest = Return: \
-//│                   res = Call{Some(Loc(105,119,Record.mls:+53))}:
-//│                     fun = Ref{Some(Loc(111,112,Record.mls:+53))} of builtin:*
+//│                   res = Call{None}:
+//│                     fun = Ref{None} of builtin:*
 //│                     args = Ls of 
 //│                       Arg:
 //│                         spread = N
-//│                         value = Ref{Some(Loc(105,110,Record.mls:+53))} of width
+//│                         value = Ref{None} of width
 //│                       Arg:
 //│                         spread = N
-//│                         value = Ref{Some(Loc(113,119,Record.mls:+53))} of height
+//│                         value = Ref{None} of height
 //│                   implct = false
 //│               rest = Assign: \
 //│               lhs = $transform
@@ -2802,25 +2802,25 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                             name = Ident of "height"
 //│                           rest = Assign: \
 //│                           lhs = $tmp
-//│                           rhs = Call{Some(Loc(165,178,Record.mls:+53))}:
-//│                             fun = Ref{Some(Loc(170,171,Record.mls:+53))} of builtin:*
+//│                           rhs = Call{None}:
+//│                             fun = Ref{None} of builtin:*
 //│                             args = Ls of 
 //│                               Arg:
 //│                                 spread = N
-//│                                 value = Ref{Some(Loc(165,169,Record.mls:+53))} of base
+//│                                 value = Ref{None} of base
 //│                               Arg:
 //│                                 spread = N
-//│                                 value = Ref{Some(Loc(172,178,Record.mls:+53))} of height
+//│                                 value = Ref{None} of height
 //│                           rest = Return: \
-//│                           res = Call{Some(Loc(179,182,Record.mls:+53))}:
-//│                             fun = Ref{Some(Loc(179,180,Record.mls:+53))} of builtin:/
+//│                           res = Call{None}:
+//│                             fun = Ref{None} of builtin:/
 //│                             args = Ls of 
 //│                               Arg:
 //│                                 spread = N
 //│                                 value = Ref{None} of $tmp
 //│                               Arg:
 //│                                 spread = N
-//│                                 value = Lit{Some(Loc(181,182,Record.mls:+53))} of IntLit of 2
+//│                                 value = Lit{None} of IntLit of 2
 //│                           implct = false
 //│                       rest = Assign: \
 //│                       lhs = $transform
@@ -2985,25 +2985,25 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│                       name = Ident of "height"
 //│                     rest = Assign: \
 //│                     lhs = $tmp
-//│                     rhs = Call{Some(Loc(165,178,Record.mls:+53))}:
-//│                       fun = Ref{Some(Loc(170,171,Record.mls:+53))} of builtin:*
+//│                     rhs = Call{None}:
+//│                       fun = Ref{None} of builtin:*
 //│                       args = Ls of 
 //│                         Arg:
 //│                           spread = N
-//│                           value = Ref{Some(Loc(165,169,Record.mls:+53))} of base
+//│                           value = Ref{None} of base
 //│                         Arg:
 //│                           spread = N
-//│                           value = Ref{Some(Loc(172,178,Record.mls:+53))} of height
+//│                           value = Ref{None} of height
 //│                     rest = Return: \
-//│                     res = Call{Some(Loc(179,182,Record.mls:+53))}:
-//│                       fun = Ref{Some(Loc(179,180,Record.mls:+53))} of builtin:/
+//│                     res = Call{None}:
+//│                       fun = Ref{None} of builtin:/
 //│                       args = Ls of 
 //│                         Arg:
 //│                           spread = N
 //│                           value = Ref{None} of $tmp
 //│                         Arg:
 //│                           spread = N
-//│                           value = Lit{Some(Loc(181,182,Record.mls:+53))} of IntLit of 2
+//│                           value = Lit{None} of IntLit of 2
 //│                     implct = false
 //│                 rest = Assign: \
 //│                 lhs = $transform
@@ -3442,78 +3442,18 @@ fun area__compiled(shape) = if shape is (@compile ShapeArea) as a then Some(a) e
 //│ | | | | | | | | | | | | | | | | avoidNames End()...
 //│ | avoidNames Assign($block$res,Lit(UnitLit(false)),End())...
 //│ | | avoidNames End()...
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (List(Record.mls:+53, Record.mls:+78),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_0))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(radius),true),Assign($radius,Select(Ref(input),Ident(radius)),Assign($tmp,Call(Ref($matcher1$),List(Arg(None,Ref($radius)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(radius,Ref($tmp),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(width),true),Assign($width,Select(Ref(input),Ident(width)),Assign($tmp,Call(Ref($matcher2$),List(Arg(None,Ref($width)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(width,Ref($tmp),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(height),true),Assign($height,Select(Ref(input),Ident(height)),Assign($tmp,Call(Ref($matcher3$),List(Arg(None,Ref($height)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(height,Ref($tmp),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(base),true),Assign($base,Select(Ref(input),Ident(base)),Assign($tmp,Call(Ref($matcher4$),List(Arg(None,Ref($base)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(base,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(radius,Select(Ref(args),Ident(radius)),Assign($selRes,Select(Ref(globalThis:globalThis),Ident(Math)),Match(Ref($selRes),List((Lit(UnitLit(false)),Throw(Instantiate(false,Select(Ref(globalThis:globalThis),Ident(Error)),List(Arg(None,Lit(StrLit(Access to required field 'Math' yielded 'undefined')))))))),None,Assign($selRes,Select(Ref($selRes),Ident(PI)),Match(Ref($selRes),List((Lit(UnitLit(false)),Throw(Instantiate(false,Select(Ref(globalThis:globalThis),Ident(Error)),List(Arg(None,Lit(StrLit(Access to required field 'PI' yielded 'undefined')))))))),None,Assign($tmp,Call(Ref(builtin:*),List(Arg(None,Ref($selRes)), Arg(None,Ref(radius)))),Return(Call(Ref(builtin:*),List(Arg(None,Ref($tmp)), Arg(None,Ref(radius)))),false)))))))),Assign($tmp,Ref(member:lambda),Assign($transform,Ref($tmp),Assign($result1$,Select(Ref(radius),Ident(p_1)),Match(Ref($result1$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output1$,Select(Ref($result1$),Ident(output)),Assign($bindings,Select(Ref($result1$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(radius))),Ref($output1$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(width,Select(Ref(args),Ident(width)),Assign(height,Select(Ref(args),Ident(height)),Return(Call(Ref(builtin:*),List(Arg(None,Ref(width)), Arg(None,Ref(height)))),false)))),Assign($transform,Ref(member:lambda),Assign($result2$,Select(Ref(width),Ident(p_2)),Match(Ref($result2$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output2$,Select(Ref($result2$),Ident(output)),Assign($bindings,Select(Ref($result2$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(width))),Ref($output2$)))),Assign($result3$,Select(Ref(height),Ident(p_3)),Match(Ref($result3$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output3$,Select(Ref($result3$),Ident(output)),Assign($bindings,Select(Ref($result3$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(height))),Ref($output3$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(base,Select(Ref(args),Ident(base)),Assign(height,Select(Ref(args),Ident(height)),Assign($tmp,Call(Ref(builtin:*),List(Arg(None,Ref(base)), Arg(None,Ref(height)))),Return(Call(Ref(builtin:/),List(Arg(None,Ref($tmp)), Arg(None,Lit(IntLit(2))))),false))))),Assign($transform,Ref(member:lambda),Assign($result5$,Select(Ref(base),Ident(p_5)),Match(Ref($result5$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output5$,Select(Ref($result5$),Ident(output)),Assign($bindings,Select(Ref($result5$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(base))),Ref($output5$)))),Assign($result4$,Select(Ref(height),Ident(p_4)),Match(Ref($result4$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output4$,Select(Ref($result4$),Ident(output)),Assign($bindings,Select(Ref($result4$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(height))),Ref($output4$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))),End()))))))),Some(Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(base,Select(Ref(args),Ident(base)),Assign(height,Select(Ref(args),Ident(height)),Assign($tmp,Call(Ref(builtin:*),List(Arg(None,Ref(base)), Arg(None,Ref(height)))),Return(Call(Ref(builtin:/),List(Arg(None,Ref($tmp)), Arg(None,Lit(IntLit(2))))),false))))),Assign($transform,Ref(member:lambda),Assign($result5$,Select(Ref(base),Ident(p_5)),Match(Ref($result5$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output5$,Select(Ref($result5$),Ident(output)),Assign($bindings,Select(Ref($result5$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(base))),Ref($output5$)))),Assign($result4$,Select(Ref(height),Ident(p_4)),Match(Ref($result4$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output4$,Select(Ref($result4$),Ident(output)),Assign($bindings,Select(Ref($result4$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(height))),Ref($output4$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),End()))))),End()))))),Assign($p_0$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_0))),Ref($p_0$)))),false)))))))))))))))))),Assign($tmp,Ref(member:lambda),Assign($matcher__ShapeArea$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref(input)), Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(base))),Ref(input))))))),Assign($p_5$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_5))),Ref($p_5$)))),false)))),Assign($matcher4$,Ref(member:lambda),Assign($matchRecord,Call(Ref($matcher__ShapeArea$),List(Arg(None,Ref(shape)))),Assign($matchResult,Select(Ref($matchRecord),Ident(p_0)),Match(Ref($matchResult),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($patternOutput,Select(Ref($matchResult),Ident(output)),Assign($bindings,Select(Ref($matchResult),Ident(bindings)),Assign(a,Ref($patternOutput),Return(Call(Select(Ref(member:Option),Ident(Some)),List(Arg(None,Ref(a)))),false)))))),Some(Return(Select(Ref(member:Option),Ident(None)),false)),End())))))))))
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
-//│ 	at: hkmc2.AutoLocated.mkLoc(syntax.scala:49)
-//│ 	at: hkmc2.AutoLocated.toLoc(syntax.scala:54)
-//│ 	at: hkmc2.AutoLocated.toLoc$(syntax.scala:26)
-//│ 	at: hkmc2.codegen.Block.toLoc(Block.scala:23)
-//│ 	at: hkmc2.AutoLocated.subLocs$1$$anonfun$1(syntax.scala:43)
-//│ 	at: scala.collection.Iterator$$anon$10.nextCur(Iterator.scala:594)
-//│ 	at: scala.collection.Iterator$$anon$10.hasNext(Iterator.scala:608)
-//│ 	at: scala.collection.Iterator$$anon$9.hasNext(Iterator.scala:583)
-//│ 	at: scala.collection.IterableOnceOps.minOption(IterableOnce.scala:916)
 
 area__compiled of (radius: 10)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: area__compiled is not defined
-//│     at REPL76:1:55
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = Some(314.1592653589793)
 
 area__compiled of (width: 10, height: 20)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: area__compiled is not defined
-//│     at REPL79:1:76
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = Some(200)
 
 area__compiled of (base: 10, height: 20)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: area__compiled is not defined
-//│     at REPL82:1:74
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = Some(100)
 
 area__compiled of (width: 10, height: 20, base: 10)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: area__compiled is not defined
-//│     at REPL85:1:95
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = Some(200)
 
 // Convert between different number systems
 pattern NumberSystem = 
@@ -3527,7 +3467,7 @@ fun parseIntegerLiteral(value) = if
     (:radix, :digits) is NumberSystem as value then Some(value)
   else None
 //│ ╔══[ERROR] Cannot use this reference without resolved definition as a pattern
-//│ ║  l.3526: 	  value is "0" ~ (("x" | "o" | "b") as radix) ~ digits and
+//│ ║  l.3466: 	  value is "0" ~ (("x" | "o" | "b") as radix) ~ digits and
 //│ ╙──        	                                              ^
 
 pattern IntegerLiteral =

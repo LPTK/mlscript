@@ -28,33 +28,9 @@ fun action(x) =
     "Just " + output + "!"
   else
     "I don't know."
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (List(Extraction.mls:+24, Extraction.mls:+26),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(class:Some,Select(Select(Ref(member:Option),Ident(Some)),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_0))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(value),true),Assign($value,Select(Ref(input),Ident(value)),Assign($tmp,Call(Ref($matcher1$),List(Arg(None,Ref($value)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(value,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(x,Select(Ref(args),Ident(x)),Return(Ref(x),false))),Assign($transform,Ref(member:lambda),Assign($result1$,Select(Ref(value),Ident(p_1)),Match(Ref($result1$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output1$,Select(Ref($result1$),Ident(output)),Assign($bindings,Select(Ref($result1$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List()),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_0$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_0))),Ref($p_0$)))),false)))))))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_0$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_0))),Ref($p_0$)))),false)))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher__Itch'$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(class:Some,Select(Select(Ref(member:Option),Ident(Some)),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(value),true),Assign($value,Select(Ref(input),Ident(value)),Assign($tmp,Call(Ref($matcher4$),List(Arg(None,Ref($value)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(value,Ref($tmp),Assign($result4$,Select(Ref(value),Ident(p_4)),Match(Ref($result4$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output4$,Select(Ref($result4$),Ident(output)),Assign($bindings,Select(Ref($result4$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(value))),Ref($output4$))))), Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),End())))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_3$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($p_3$)))),false)))))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_3$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_3))),Ref($p_3$)))),false)))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher3$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(class:Some,Select(Select(Ref(member:Option),Ident(Some)),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_4))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(value),true),Assign($value,Select(Ref(input),Ident(value)),Assign($tmp,Call(Ref($matcher5$),List(Arg(None,Ref($value)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(value,Ref($tmp),Assign($result5$,Select(Ref(value),Ident(p_5)),Match(Ref($result5$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output5$,Select(Ref($result5$),Ident(output)),Assign($bindings,Select(Ref($result5$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(x))),Ref($output5$)))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(value))),Ref($output5$))))), Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),End())))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_4$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_4))),Ref($p_4$)))),false)))))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_4$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_4))),Ref($p_4$)))),false)))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher4$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(class:Some,Select(Select(Ref(member:Option),Ident(Some)),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_1))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(value),true),Assign($value,Select(Ref(input),Ident(value)),Assign($tmp,Call(Ref($matcher2$),List(Arg(None,Ref($value)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(value,Ref($tmp),Assign($result2$,Select(Ref(value),Ident(p_2)),Match(Ref($result2$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output2$,Select(Ref($result2$),Ident(output)),Assign($bindings,Select(Ref($result2$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(value))),Ref($output2$))))), Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),End())))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_1$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_1))),Ref($p_1$)))),false)))))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_1$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_1))),Ref($p_1$)))),false)))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher1$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Lit(StrLit(scratch)),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref(input)), Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(x))),Ref(input))))))),Assign($p_5$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_5))),Ref($p_5$)))),false))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_5$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_5))),Ref($p_5$)))),false)))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher5$,Ref($tmp),Assign($matchRecord,Call(Ref($matcher__Itch'$),List(Arg(None,Ref(x)))),Assign($matchResult,Select(Ref($matchRecord),Ident(p_0)),Match(Ref($matchResult),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($patternOutput,Select(Ref($matchResult),Ident(output)),Assign($bindings,Select(Ref($matchResult),Ident(bindings)),Assign(output,Ref($patternOutput),Assign($tmp,Call(Ref(builtin:+),List(Arg(None,Lit(StrLit(Just ))), Arg(None,Ref(output)))),Return(Call(Ref(builtin:+),List(Arg(None,Ref($tmp)), Arg(None,Lit(StrLit(!))))),false))))))),Some(Return(Lit(StrLit(I don't know.)),false)),End())))))))))))))))))))
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
-//│ 	at: hkmc2.AutoLocated.mkLoc(syntax.scala:49)
-//│ 	at: hkmc2.AutoLocated.toLoc(syntax.scala:54)
-//│ 	at: hkmc2.AutoLocated.toLoc$(syntax.scala:26)
-//│ 	at: hkmc2.codegen.Block.toLoc(Block.scala:23)
-//│ 	at: hkmc2.AutoLocated.subLocs$1$$anonfun$1(syntax.scala:43)
-//│ 	at: scala.collection.Iterator$$anon$10.nextCur(Iterator.scala:594)
-//│ 	at: scala.collection.Iterator$$anon$10.hasNext(Iterator.scala:608)
-//│ 	at: scala.collection.Iterator$$anon$9.hasNext(Iterator.scala:583)
-//│ 	at: scala.collection.IterableOnceOps.minOption(IterableOnce.scala:916)
 
 action of Some(Some(Some(Some(Some("scratch")))))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: action is not defined
-//│     at REPL34:1:306
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = "Just scratch!"
 
 // Test the semantics of biased disjunction.
 
@@ -82,53 +58,17 @@ biasedOr1 of Some(Some(Some(Some(Some(Some(Some(Some(42))))))))
 pattern BiasedOr2 = Some(Some(x) => x + 1) | Some(x => x + 2)
 
 fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (List(Extraction.mls:+82, Extraction.mls:+84),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(class:Some,Select(Select(Ref(member:Option),Ident(Some)),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_1))),Ref($tmp)), RcdArg(Some(Lit(StrLit(p_2))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(value),true),Assign($value,Select(Ref(input),Ident(value)),Assign($tmp,Call(Ref($matcher2$),List(Arg(None,Ref($value)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(value,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(x,Select(Ref(args),Ident(x)),Return(Call(Ref(builtin:+),List(Arg(None,Ref(x)), Arg(None,Lit(IntLit(1))))),false))),Assign($transform,Ref(member:lambda),Assign($result3$,Select(Ref(value),Ident(p_3)),Match(Ref($result3$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output3$,Select(Ref($result3$),Ident(output)),Assign($bindings,Select(Ref($result3$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(x))),Ref($output3$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings))))))),Assign($bindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_1$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(x,Select(Ref(args),Ident(x)),Return(Call(Ref(builtin:+),List(Arg(None,Ref(x)), Arg(None,Lit(IntLit(2))))),false))),Assign($transform,Ref(member:lambda),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(x))),Ref(input))))))),Assign($bindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),Assign($p_2$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_1))),Ref($p_1$)), RcdArg(Some(Lit(StrLit(p_2))),Ref($p_2$)))),false))))))))))))))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_1$,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(x,Select(Ref(args),Ident(x)),Return(Call(Ref(builtin:+),List(Arg(None,Ref(x)), Arg(None,Lit(IntLit(2))))),false))),Assign($transform,Ref(member:lambda),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(Some(Lit(StrLit(x))),Ref(input))))))),Assign($bindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),Assign($p_2$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_1))),Ref($p_1$)), RcdArg(Some(Lit(StrLit(p_2))),Ref($p_2$)))),false)))))))))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher1$,Ref($tmp),Assign($matchRecord,Call(Ref($matcher__BiasedOr2$),List(Arg(None,Ref(x)))),Assign($matchResult,Select(Ref($matchRecord),Ident(p_0)),Match(Ref($matchResult),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($patternOutput,Select(Ref($matchResult),Ident(output)),Assign($bindings,Select(Ref($matchResult),Ident(bindings)),Assign(output,Ref($patternOutput),Return(Ref(output),false)))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())))))))
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
-//│ 	at: hkmc2.AutoLocated.mkLoc(syntax.scala:49)
-//│ 	at: hkmc2.AutoLocated.toLoc(syntax.scala:54)
-//│ 	at: hkmc2.AutoLocated.toLoc$(syntax.scala:26)
-//│ 	at: hkmc2.codegen.Block.toLoc(Block.scala:23)
-//│ 	at: hkmc2.AutoLocated.subLocs$1$$anonfun$1(syntax.scala:43)
-//│ 	at: scala.collection.Iterator$$anon$10.nextCur(Iterator.scala:594)
-//│ 	at: scala.collection.Iterator$$anon$10.hasNext(Iterator.scala:608)
-//│ 	at: scala.collection.Iterator$$anon$9.hasNext(Iterator.scala:583)
-//│ 	at: scala.collection.IterableOnceOps.minOption(IterableOnce.scala:916)
 
 fun biasedOr2__naive(x) = if x is BiasedOr2(output) then output
 
 biasedOr2__compiled of Some(1)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: biasedOr2__compiled is not defined
-//│     at REPL64:1:82
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = {value: 3}
 
 biasedOr2__naive of Some(1)
 //│ = 3
 
 biasedOr2__compiled of Some(Some(1))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:154)
-//│ ═══[RUNTIME ERROR] ReferenceError: biasedOr2__compiled is not defined
-//│     at REPL70:1:136
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = {value: 2}
 
 biasedOr2__naive of Some(Some(1))
 //│ = 2

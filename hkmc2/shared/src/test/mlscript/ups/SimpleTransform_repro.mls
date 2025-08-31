@@ -1,4 +1,5 @@
 :js
+:todo
 
 import "../../mlscript-compile/Option.mls"
 
@@ -11,39 +12,27 @@ get_output_using_as of false
 get_output_using_as of 0
 get_output_using_as of 1
 get_output_using_as of 2
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:413)
 //│ ╔══[ERROR] Name not found: get_output_using_as
-//│ ║  l.9: 	get_output_using_as of true
-//│ ╙──     	^^^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:413)
-//│ ╔══[ERROR] Name not found: get_output_using_as
-//│ ║  l.10: 	get_output_using_as of false
+//│ ║  l.10: 	get_output_using_as of true
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:413)
 //│ ╔══[ERROR] Name not found: get_output_using_as
-//│ ║  l.11: 	get_output_using_as of 0
+//│ ║  l.11: 	get_output_using_as of false
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:413)
 //│ ╔══[ERROR] Name not found: get_output_using_as
-//│ ║  l.12: 	get_output_using_as of 1
+//│ ║  l.12: 	get_output_using_as of 0
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:413)
 //│ ╔══[ERROR] Name not found: get_output_using_as
-//│ ║  l.13: 	get_output_using_as of 2
+//│ ║  l.13: 	get_output_using_as of 1
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^
+//│ ╔══[ERROR] Name not found: get_output_using_as
+//│ ║  l.14: 	get_output_using_as of 2
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
 
 fun get_output_using_as'(value) = if value is
   (@compile BoolLike) as b then print("" + value + " is equivalent to " + b)
   else print("the input " + value + " is not a boolean")
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:413)
 //│ ╔══[ERROR] Name not found: BoolLike
-//│ ║  l.41: 	  (@compile BoolLike) as b then print("" + value + " is equivalent to " + b)
+//│ ║  l.32: 	  (@compile BoolLike) as b then print("" + value + " is equivalent to " + b)
 //│ ╙──      	            ^^^^^^^^
 
 get_output_using_as' of true
@@ -60,10 +49,8 @@ get_output_using_as' of 2
 fun get_output_through_param(value) = if value is
   BoolLike(b) then print("" + value + " is equivalent to " + b)
   else print("the input " + value + " is not a boolean")
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:413)
 //│ ╔══[ERROR] Name not found: BoolLike
-//│ ║  l.61: 	  BoolLike(b) then print("" + value + " is equivalent to " + b)
+//│ ║  l.50: 	  BoolLike(b) then print("" + value + " is equivalent to " + b)
 //│ ╙──      	  ^^^^^^^^
 
 get_output_through_param of true
@@ -108,24 +95,13 @@ Prefix("-", 10 +:+ 2 *:* 3) is EvaluatedTerm(-16)
 
 (8 /:/ 2) +:+ (3 *:* 4) -:- 5 is EvaluatedTerm(11)
 //│ = false
-
+ 
 Infix("**", Literal(1), Literal(2)) is EvaluatedTerm
 //│ = false
 
 case
   (@compile EvaluatedTerm) then 1
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: (List(SimpleTransform_repro.mls:+87, SimpleTransform_repro.mls:+115),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,input,None,Modulefulness(None))),None)),Match(Ref(input),List((Cls(class:Literal,Select(Ref(member:Literal),Ident(class))),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(empty))))),Assign($emptyRecord$,Rcd(false,List(RcdArg(Some(Lit(StrLit(p_0))),Ref($tmp)))),Match(Ref(input),List((Cls(class:Object,Ref(builtin:Object)),Match(Ref(input),List((Field(Ident(value),true),Assign($value,Select(Ref(input),Ident(value)),Assign($tmp,Call(Ref($matcher1$),List(Arg(None,Ref($value)))),End())))),Some(Assign($tmp,Ref($emptyRecord$),End())),End()))),Some(Assign($tmp,Ref($emptyRecord$),End())),Assign(value,Ref($tmp),Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(v,Select(Ref(args),Ident(v)),Assign(value,Select(Ref(args),Ident(value)),Return(Ref(v),false)))),Assign($transform,Ref(member:lambda),Assign($result1$,Select(Ref(value),Ident(p_1)),Match(Ref($result1$),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($output1$,Select(Ref($result1$),Ident(output)),Assign($bindings,Select(Ref($result1$),Ident(bindings)),Assign($fieldBindings,Rcd(false,List(RcdArg(Some(Lit(StrLit(value))),Ref($output1$)))),Assign($transformResult,Call(Ref($transform),List(Arg(None,Rcd(false,List(RcdArg(None,Ref($bindings)), RcdArg(None,Ref($fieldBindings)), RcdArg(Some(Lit(StrLit(v))),Ref(input))))))),Assign($bindings,Rcd(false,List()),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchResult)),List(Arg(None,Ref($transformResult)), Arg(None,Ref($bindings)))),End())))))))),Some(Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(topmost))))),End())),Assign($p_0$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_0))),Ref($p_0$)))),false)))))))))))),Some(Define(FunDefn(None,member:lambda,List(ParamList(‹›,List(Param(‹›,args,None,Modulefulness(None))),None)),Assign(v,Select(Ref(args),Ident(v)),Return(Ref(v),false))),Assign($transform,Ref(member:lambda),Assign($tmp,Call(Select(Ref($runtime),Ident(MatchFailure)),List(Arg(None,Lit(StrLit(never))))),Assign($p_0$,Ref($tmp),Return(Rcd(false,List(RcdArg(Some(Lit(StrLit(p_0))),Ref($p_0$)))),false)))))),End())),Assign($tmp,Ref(member:lambda),Assign($matcher__EvaluatedTerm$,Ref($tmp),Assign($matchRecord,Call(Ref($matcher__EvaluatedTerm$),List(Arg(None,Ref(caseScrut)))),Assign($matchResult,Select(Ref($matchRecord),Ident(p_0)),Match(Ref($matchResult),List((Cls(class:MatchResult,Select(Select(Ref($runtime),Ident(MatchResult)),Ident(class))),Assign($patternOutput,Select(Ref($matchResult),Ident(output)),Assign($bindings,Select(Ref($matchResult),Ident(bindings)),Return(Lit(IntLit(1)),false))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())))))))
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:8)
-//│ 	at: hkmc2.AutoLocated.mkLoc(syntax.scala:49)
-//│ 	at: hkmc2.AutoLocated.toLoc(syntax.scala:54)
-//│ 	at: hkmc2.AutoLocated.toLoc$(syntax.scala:26)
-//│ 	at: hkmc2.codegen.Block.toLoc(Block.scala:23)
-//│ 	at: hkmc2.AutoLocated.subLocs$1$$anonfun$1(syntax.scala:43)
-//│ 	at: scala.collection.Iterator$$anon$10.nextCur(Iterator.scala:594)
-//│ 	at: scala.collection.Iterator$$anon$10.hasNext(Iterator.scala:608)
-//│ 	at: scala.collection.Iterator$$anon$9.hasNext(Iterator.scala:583)
-//│ 	at: scala.collection.IterableOnceOps.minOption(IterableOnce.scala:916)
+//│ = fun
 
 
 
