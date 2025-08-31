@@ -227,9 +227,8 @@ class Normalization(using tl: TL)(using Raise, Ctx, State) extends TermSynthesiz
     // from the class definitions.
     val (classHead, paramsOpt) = ctorSymbol.defn match
       case N => lastWords(s"Class ${ctorSymbol.name} does not have a definition")
-      case S(cd) =>
-        new Tree.Ident(ctorSymbol.id.name) // TODO: get location from context (ctorSymbol.id is NOT the correct identifier here!!)
-        -> cd.paramsOpt
+      // Use the constructor pattern's location for error reporting.
+      case S(cd) => new Tree.Ident(ctorSymbol.name).withLoc(ctorTerm.toLoc) -> cd.paramsOpt
     paramsOpt match
       case S(paramList) => argsOpt match
         case S(args) =>
