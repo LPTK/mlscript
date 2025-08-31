@@ -80,8 +80,8 @@ nat(0) is @compile NatBox
 //│           Tuple2:
 //│             _1 = Cls:
 //│               cls = class:Box
-//│               path = Select{None}:
-//│                 qual = Ref{None} of member:Box
+//│               path = Select{Some(Loc(11,14,NatBox.mls:+5))}:
+//│                 qual = Ref{Some(Loc(11,14,NatBox.mls:+5))} of member:Box
 //│                 name = Ident of "class"
 //│             _2 = Assign:
 //│               lhs = $tmp
