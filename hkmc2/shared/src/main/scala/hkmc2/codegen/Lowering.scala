@@ -155,7 +155,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
   
   // * Used to work around Scala's @tailrec annotation for those few calls that are not in tail position.
   final def term_nonTail(t: st, inStmtPos: Bool = false)(k: Result => Block)(using LoweringCtx): Block =
-    term(t: st, inStmtPos: Bool)(k)
+    term(t, inStmtPos)(k)
   
 
   @tailrec
@@ -181,9 +181,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
   def blockImpl(stats: Ls[Statement], res: Rcd \/ Term)(k: Result => Block)(using LoweringCtx): Block =
     stats match
     case (t: sem.Term) :: stats =>
-      term(t, inStmtPos = true):
-        case _: Value | _: Path | _: Lambda => blockImpl(stats, res)(k)
-        case r => Assign(State.noSymbol, r, blockImpl(stats, res)(k))
+      term(t, inStmtPos = true)(Assign.discard(_, blockImpl(stats, res)(k)))
     case Nil =>
       res match
       case R(res) => term(res)(k)
@@ -1018,7 +1016,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     rec(ts, Nil)
   
   def subTerm_nonTail(t: st, inStmtPos: Bool = false)(k: Path => Block)(using LoweringCtx): Block =
-    subTerm(t: st, inStmtPos: Bool)(k)
+    subTerm(t, inStmtPos)(k)
   
   inline def subTerm(t: st, inStmtPos: Bool = false)(k: Path => Block)(using LoweringCtx): Block =
     term(t, inStmtPos = inStmtPos):

@@ -9,6 +9,14 @@ print of foo
 //│ > ()
 
 
+fun foo = return
+
+foo
+
+print of foo
+//│ > ()
+
+
 :todo // warn about useless binding
 :w
 fun foo() =
