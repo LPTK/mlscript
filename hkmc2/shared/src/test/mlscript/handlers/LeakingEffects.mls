@@ -57,7 +57,6 @@ while
 
 // g is non-resumptive, which means g.perform("a") does not resume
 // hence it should exit the entire handle block with the return value of xs.push(k1)
-:w
 :expect 1
 handle h = Effect with
   fun perform(arg)(k) =
@@ -71,7 +70,7 @@ handle h = Effect with
         xs.push(k1)
     k(g)
     while xs.pop() is
-      null then "Done."
+      null then print("Done.")
       f then
         set count += 1
         f(count)
@@ -83,9 +82,6 @@ print("—")
 print(g.perform("c"))
 // set g = h.perform("hola")
 // g.perform("adios")
-//│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.74: 	      null then "Done."
-//│ ╙──      	                ^^^^^^^
 //│ > A hi
 //│ > B hi a
 //│ = 1

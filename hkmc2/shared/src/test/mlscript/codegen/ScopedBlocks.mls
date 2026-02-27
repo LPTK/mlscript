@@ -142,41 +142,34 @@ module M with
 
 // NOTE: while bodies are not rewritten to functions by default
 // and are `Scoped`
-:w
 :sjs
 fun f(x) =
   while x do
     let y = x
-    x
-//│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.150: 	    x
-//│ ╙──       	    ^
+    print(x)
 //│ JS (unsanitized):
 //│ let f6;
 //│ f6 = function f(x1) {
 //│   lbl: while (true) {
 //│     let y1;
-//│     if (x1 === true) { y1 = x1; continue lbl } else {}
+//│     if (x1 === true) {
+//│       y1 = x1;
+//│       Predef.print(x1);
+//│       continue lbl
+//│     } else {}
 //│     break;
 //│   }
 //│   return runtime.Unit
 //│ };
-//│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.150: 	    x
-//│ ╙──       	    ^
 
 
 // `:rewriteWhile` turns while loop into functions
-:w
 :sjs
 :rewriteWhile
 fun f(x) =
   while x do
     let y = x
-    x
-//│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.176: 	    x
-//│ ╙──       	    ^
+    print(x)
 //│ JS (unsanitized):
 //│ let f7;
 //│ f7 = function f(x1) {
@@ -186,6 +179,7 @@ fun f(x) =
 //│     let y1;
 //│     if (x1 === true) {
 //│       y1 = x1;
+//│       Predef.print(x1);
 //│       return while1()
 //│     } else {}
 //│     return runtime.LoopEnd
@@ -194,9 +188,6 @@ fun f(x) =
 //│   tmp3 = tmp2 !== runtime.LoopEnd;
 //│   if (tmp3 === true) { return tmp2 } else { return tmp4 }
 //│ };
-//│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.176: 	    x
-//│ ╙──       	    ^
 
 
 

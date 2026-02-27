@@ -4,12 +4,8 @@
 while false do ???
 
 
-:w
 :sjs
-() => while true then 0
-//│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.9: 	() => while true then 0
-//│ ╙──     	                      ^
+() => while true then ()
 //│ JS (unsanitized):
 //│ let lambda;
 //│ lambda = (undefined, function () {
@@ -22,16 +18,13 @@ while false do ???
 //│   return runtime.Unit
 //│ });
 //│ lambda
-//│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.9: 	() => while true then 0
-//│ ╙──     	                      ^
 //│ = fun
 
 :w
 () =>
   while true then 0
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.32: 	  while true then 0
+//│ ║  l.25: 	  while true then 0
 //│ ╙──      	                  ^
 //│ = fun
 
@@ -328,10 +321,10 @@ while print("Hello World"); false
   then 0(0)
   else 1
 //│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.328: 	  then 0(0)
+//│ ║  l.321: 	  then 0(0)
 //│ ╙──       	  ^^^^
 //│ ╔══[ERROR] Unrecognized term split (false literal)
-//│ ║  l.327: 	while print("Hello World"); false
+//│ ║  l.320: 	while print("Hello World"); false
 //│ ╙──       	                            ^^^^^
 //│ > Hello World
 
@@ -340,12 +333,12 @@ while { print("Hello World"), false }
   then 0(0)
   else 1
 //│ ╔══[ERROR] Unexpected infix use of keyword 'then' here
-//│ ║  l.339: 	while { print("Hello World"), false }
+//│ ║  l.332: 	while { print("Hello World"), false }
 //│ ║         	        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.340: 	  then 0(0)
+//│ ║  l.333: 	  then 0(0)
 //│ ╙──       	^^^^^^^^^^^
 //│ ╔══[ERROR] Illegal position for prefix keyword 'else'.
-//│ ║  l.341: 	  else 1
+//│ ║  l.334: 	  else 1
 //│ ╙──       	  ^^^^
 
 :fixme
@@ -355,14 +348,14 @@ while
   then 0(0)
   else 1
 //│ ╔══[ERROR] Unexpected infix use of keyword 'then' here
-//│ ║  l.353: 	    print("Hello World")
+//│ ║  l.346: 	    print("Hello World")
 //│ ║         	    ^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.354: 	    false
+//│ ║  l.347: 	    false
 //│ ║         	^^^^^^^^^
-//│ ║  l.355: 	  then 0(0)
+//│ ║  l.348: 	  then 0(0)
 //│ ╙──       	^^^^^^^^^^^
 //│ ╔══[ERROR] Illegal position for prefix keyword 'else'.
-//│ ║  l.356: 	  else 1
+//│ ║  l.349: 	  else 1
 //│ ╙──       	  ^^^^
 
 
