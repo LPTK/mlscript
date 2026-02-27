@@ -173,18 +173,18 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       (imps.reverse, funs.reverse, rest.reverse)
   
   
-  def block(stats: Ls[Statement], res: Rcd \/ Term)(k: Result => Block)(using LoweringCtx): Block =
+  def block(stats: Ls[Statement], res: Rcd \/ Term, inStmtPos: Bool = false)(k: Result => Block)(using LoweringCtx): Block =
     // TODO we should also isolate and reorder classes by inheritance topological sort
     val (imps, funs, rest) = splitBlock(stats, Nil, Nil, Nil)
-    blockImpl(imps ::: funs ::: rest, res)(k)
+    blockImpl(imps ::: funs ::: rest, res, inStmtPos)(k)
   
-  def blockImpl(stats: Ls[Statement], res: Rcd \/ Term)(k: Result => Block)(using LoweringCtx): Block =
+  def blockImpl(stats: Ls[Statement], res: Rcd \/ Term, inStmtPos: Bool = false)(k: Result => Block)(using LoweringCtx): Block =
     stats match
     case (t: sem.Term) :: stats =>
-      term(t, inStmtPos = true)(Assign.discard(_, blockImpl(stats, res)(k)))
+      term(t, inStmtPos = true)(Assign.discard(_, blockImpl(stats, res, inStmtPos)(k)))
     case Nil =>
       res match
-      case R(res) => term(res)(k)
+      case R(res) => term(res, inStmtPos = inStmtPos)(k)
       case L((mut, flds)) =>
         k(Record(mut, flds.reverse))
     case RcdSpread(bod) :: stats =>
@@ -203,16 +203,16 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     case (decl @ LetDecl(sym, annotations)) :: stats =>
       reportAnnotations(decl, annotations)
       if sym.asTrm.forall(_.owner.isEmpty) then loweringCtx.collectScopedSym(sym)
-      blockImpl(stats, res)(k)
+      blockImpl(stats, res, inStmtPos)(k)
     case DefineVar(sym, rhs) :: stats =>
       term(rhs): r =>
-        Assign(sym, r, blockImpl(stats, res)(k))
+        Assign(sym, r, blockImpl(stats, res, inStmtPos)(k))
     case (imp: Import) :: stats =>
       raise(ErrorReport(
         msg"Imports must be at the top level" ->
         imp.toLoc :: Nil,
         source = Diagnostic.Source.Compilation))
-      blockImpl(stats, res)(k)
+      blockImpl(stats, res, inStmtPos)(k)
     case (d: Declaration) :: stats =>
       d match
       case td: TermDefinition =>
@@ -221,7 +221,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           loweringCtx.collectScopedSym(td.sym)
         td.body match
         case N => // abstract declarations have no lowering
-          blockImpl(stats, res)(k)
+          blockImpl(stats, res, inStmtPos)(k)
         case S(bod) =>
           td.k match
           case knd: syntax.Val =>
@@ -230,31 +230,31 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
               // Assign(td.sym, r,
               //   term(st.Blk(stats, res))(k)))
               Define(ValDefn(td.tsym, td.sym, r),
-                blockImpl(stats, res)(k)))(using LoweringCtx.nestFunc)
+                blockImpl(stats, res, inStmtPos)(k)))(using LoweringCtx.nestFunc)
           case syntax.Fun =>
             val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))
             Define(FunDefn(td.owner, td.sym, td.tsym, paramLists, bodyBlock)(td.extraAnnotations.contains(Annot.TailRec)),
-              blockImpl(stats, res)(k))
+              blockImpl(stats, res, inStmtPos)(k))
           case syntax.Ins =>
             // Implicit instances are not parameterized for now.
             assert(td.params.isEmpty)
             subTerm(bod)(r =>
               Define(ValDefn(td.tsym, td.sym, r),
-                blockImpl(stats, res)(k)))
+                blockImpl(stats, res, inStmtPos)(k)))
           case syntax.LetBind | syntax.ParamBind | syntax.HandlerBind => fail:
             ErrorReport(
               msg"Unexpected declaration kind '${td.k.str}' in lowering" -> td.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
       case cls: ClassLikeDef if cls.sym.defn.exists(_.hasDeclareModifier.isDefined) =>
         // * Declarations have no lowering
-        blockImpl(stats, res)(k)
+        blockImpl(stats, res, inStmtPos)(k)
       case cls: ClassDef if cls.moduleCompanion.isDefined =>
         // * Class definitions are pure, but their companions might not be,
         // * as they may contain static initialization code;
         // * therefore, we lower classes at the point where the companion is defined,
         // * if it is defined, rather than at the point where the class is defined.
         reportAnnotations(cls, cls.extraAnnotations)
-        blockImpl(stats, res)(k)
+        blockImpl(stats, res, inStmtPos)(k)
       case _defn: ClassLikeDef =>
         if _defn.owner.isEmpty then loweringCtx.collectScopedSym(_defn.bsym)
         val defn = _defn match
@@ -339,7 +339,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
               mod,
               bufferable,
             ),
-            blockImpl(stats, res)(k))
+            blockImpl(stats, res, inStmtPos)(k))
         case S(ext) =>
           assert(k isnt syntax.Mod) // modules can't extend things and can't have super calls
           subTerm(ext.cls): clsp =>
@@ -349,10 +349,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
                 defn.owner, defn.sym, defn.bsym, defn.ctorSym, defn.kind, defn.paramsOpt, defn.auxParams, S(clsp),
                 mtds, privateFlds, publicFlds, pctor, ctor, mod, bufferable,
               ),
-              blockImpl(stats, res)(k)
+              blockImpl(stats, res, inStmtPos)(k)
             )
       case td: TypeDef => // * Type definitions are erased
-        blockImpl(stats, res)(k)
+        blockImpl(stats, res, inStmtPos)(k)
   
   
   def lowerCall(fr: Path, isMlsFun: Bool, isTailCall: Bool, arg: Opt[Term], loc: Opt[Loc])(k: Result => Block)(using LoweringCtx): Block =
@@ -638,7 +638,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           HandleBlock(lhs, resSym, par, asr, cls, handlers,
             inScopedBlock(returnedTerm(bod)),
             k(Value.Ref(resSym)))
-    case st.Blk(sts, res) => block(sts, R(res))(k)
+    case st.Blk(sts, res) => block(sts, R(res), inStmtPos = inStmtPos)(k)
     case Assgn(lhs, rhs) =>
       lhs match
       case Ref(sym) =>

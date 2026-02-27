@@ -3,10 +3,17 @@
 
 // * Note that the following
 
+:w
 :sjs
 () => while
   false do 1
   _ do 2
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.9: 	  false do 1
+//│ ╙──     	           ^
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.10: 	  _ do 2
+//│ ╙──      	       ^
 //│ JS (unsanitized):
 //│ let lambda;
 //│ lambda = (undefined, function () {
@@ -21,20 +28,40 @@
 //│   return runtime.Unit
 //│ });
 //│ lambda
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.9: 	  false do 1
+//│ ╙──     	           ^
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.10: 	  _ do 2
+//│ ╙──      	       ^
 //│ = fun
 
 // * ...is currently interpreted the same as the loop below
 
+:w
 () => while
   false do 1
   else 2
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.43: 	  false do 1
+//│ ╙──      	           ^
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.44: 	  else 2
+//│ ╙──      	       ^
 //│ = fun
 
 // * ...and so is this one
 
+:w
 () => while
   false do 1
   true do 2
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.57: 	  false do 1
+//│ ╙──      	           ^
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.58: 	  true do 2
+//│ ╙──      	          ^
 //│ = fun
 
 // * This semantics for `else` branches is confusing,
