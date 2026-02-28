@@ -531,6 +531,8 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case _ =>
       subTerms // TODO more precise (include located things that aren't terms)
   
+  def size: Int = children.size + 1
+  
   def show: Str = showDbg // TODO use Document
   
   def showDbg: Str = this match

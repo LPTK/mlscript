@@ -17,22 +17,13 @@ if
   x then 0
   y then 0
 //│ JS (unsanitized):
-//│ let tmp;
-//│ split_root$: {
-//│   split_1$: {
-//│     if (x === true) {
-//│       break split_1$
-//│     } else {
-//│       if (y === true) {
-//│         break split_1$
-//│       } else {
-//│         throw globalThis.Object.freeze(new globalThis.Error("match error"))
-//│       }
-//│     }
-//│   }
-//│   tmp = 0;
+//│ if (x === true) {
+//│   0
+//│ } else {
+//│   if (y === true) {
+//│     0
+//│   } else { throw globalThis.Object.freeze(new globalThis.Error("match error")) }
 //│ }
-//│ tmp
 //│ = 0
 
 // * Compare with:
@@ -77,40 +68,39 @@ if
 //│ >        x = 1
 //│ >        builtin:+(x, b)
 //│ JS:
-//│ let b, x1, element0$, tmp1;
-//│ split_root$1: {
+//│ let b, x1, element0$, tmp;
+//│ split_root$: {
 //│   split_default$: {
-//│     split_1$1: {
-//│       if (x === true) {
-//│         if (z === true) {
-//│           tmp1 = 1;
-//│           break split_root$1
-//│         } else {
-//│           if (runtime.Tuple.isArrayLike(y) && y.length === 1) {
-//│             element0$ = runtime.Tuple.get(y, 0);
-//│             b = element0$;
-//│             break split_1$1
-//│           } else {
-//│             break split_default$
-//│           }
-//│         }
+//│     if (x === true) {
+//│       if (z === true) {
+//│         tmp = 1;
+//│         break split_root$
 //│       } else {
 //│         if (runtime.Tuple.isArrayLike(y) && y.length === 1) {
 //│           element0$ = runtime.Tuple.get(y, 0);
 //│           b = element0$;
-//│           break split_1$1
+//│           x1 = 1;
+//│           tmp = x1 + b;
+//│           break split_root$
 //│         } else {
 //│           break split_default$
 //│         }
 //│       }
+//│     } else {
+//│       if (runtime.Tuple.isArrayLike(y) && y.length === 1) {
+//│         element0$ = runtime.Tuple.get(y, 0);
+//│         b = element0$;
+//│         x1 = 1;
+//│         tmp = x1 + b;
+//│         break split_root$
+//│       } else {
+//│         break split_default$
+//│       }
 //│     }
-//│     x1 = 1;
-//│     tmp1 = x1 + b;
-//│     break split_root$1;
 //│   }
 //│   throw globalThis.Object.freeze(new globalThis.Error("match error"));
 //│ }
-//│ block$res4 = tmp1;
+//│ block$res4 = tmp;
 //│ undefined
 //│ = 1
 
@@ -134,15 +124,7 @@ if
 if false do ()
 123
 //│ JS (unsanitized):
-//│ let scrut, tmp2;
-//│ split_root$2: {
-//│   split_1$2: {
-//│     scrut = false;
-//│     if (scrut === true) { break split_1$2 } else { break split_1$2 }
-//│   }
-//│   tmp2 = runtime.Unit;
-//│ }
-//│ 123
+//│ let scrut; scrut = false; if (scrut !== true) {} 123
 //│ = 123
 
 

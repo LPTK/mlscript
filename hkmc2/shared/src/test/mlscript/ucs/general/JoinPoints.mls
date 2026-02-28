@@ -59,54 +59,77 @@ fun crazy(v) =
 //│ JS (unsanitized):
 //│ let crazy;
 //│ crazy = function crazy(v) {
-//│   let arg$S$0$, arg$S$0$1, arg$S$0$2, arg$S$0$3, arg$S$0$4, arg$S$0$5, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
-//│   split_root$: {
-//│     split_1$: {
-//│       if (v instanceof S1.class) {
-//│         arg$S$0$ = v.value;
-//│         if (arg$S$0$ instanceof S1.class) {
-//│           arg$S$0$1 = arg$S$0$.value;
-//│           if (arg$S$0$1 instanceof S1.class) {
-//│             arg$S$0$2 = arg$S$0$1.value;
-//│             if (arg$S$0$2 instanceof S1.class) {
-//│               arg$S$0$3 = arg$S$0$2.value;
-//│               if (arg$S$0$3 instanceof S1.class) {
-//│                 arg$S$0$4 = arg$S$0$3.value;
-//│                 if (arg$S$0$4 instanceof S1.class) {
-//│                   arg$S$0$5 = arg$S$0$4.value;
-//│                   if (arg$S$0$5 === 0) {
-//│                     tmp = "bruh!";
-//│                     break split_root$
-//│                   } else {
-//│                     break split_1$
-//│                   }
-//│                 } else {
-//│                   break split_1$
-//│                 }
+//│   let arg$S$0$, arg$S$0$1, arg$S$0$2, arg$S$0$3, arg$S$0$4, arg$S$0$5, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34;
+//│   if (v instanceof S1.class) {
+//│     arg$S$0$ = v.value;
+//│     if (arg$S$0$ instanceof S1.class) {
+//│       arg$S$0$1 = arg$S$0$.value;
+//│       if (arg$S$0$1 instanceof S1.class) {
+//│         arg$S$0$2 = arg$S$0$1.value;
+//│         if (arg$S$0$2 instanceof S1.class) {
+//│           arg$S$0$3 = arg$S$0$2.value;
+//│           if (arg$S$0$3 instanceof S1.class) {
+//│             arg$S$0$4 = arg$S$0$3.value;
+//│             if (arg$S$0$4 instanceof S1.class) {
+//│               arg$S$0$5 = arg$S$0$4.value;
+//│               if (arg$S$0$5 === 0) {
+//│                 return "bruh!"
 //│               } else {
-//│                 break split_1$
+//│                 tmp = S1(0);
+//│                 tmp1 = S1(tmp);
+//│                 tmp2 = S1(tmp1);
+//│                 tmp3 = S1(tmp2);
+//│                 tmp4 = S1(tmp3);
+//│                 return S1(tmp4)
 //│               }
 //│             } else {
-//│               break split_1$
+//│               tmp5 = S1(0);
+//│               tmp6 = S1(tmp5);
+//│               tmp7 = S1(tmp6);
+//│               tmp8 = S1(tmp7);
+//│               tmp9 = S1(tmp8);
+//│               return S1(tmp9)
 //│             }
 //│           } else {
-//│             break split_1$
+//│             tmp10 = S1(0);
+//│             tmp11 = S1(tmp10);
+//│             tmp12 = S1(tmp11);
+//│             tmp13 = S1(tmp12);
+//│             tmp14 = S1(tmp13);
+//│             return S1(tmp14)
 //│           }
 //│         } else {
-//│           break split_1$
+//│           tmp15 = S1(0);
+//│           tmp16 = S1(tmp15);
+//│           tmp17 = S1(tmp16);
+//│           tmp18 = S1(tmp17);
+//│           tmp19 = S1(tmp18);
+//│           return S1(tmp19)
 //│         }
 //│       } else {
-//│         break split_1$
+//│         tmp20 = S1(0);
+//│         tmp21 = S1(tmp20);
+//│         tmp22 = S1(tmp21);
+//│         tmp23 = S1(tmp22);
+//│         tmp24 = S1(tmp23);
+//│         return S1(tmp24)
 //│       }
+//│     } else {
+//│       tmp25 = S1(0);
+//│       tmp26 = S1(tmp25);
+//│       tmp27 = S1(tmp26);
+//│       tmp28 = S1(tmp27);
+//│       tmp29 = S1(tmp28);
+//│       return S1(tmp29)
 //│     }
-//│     tmp1 = S1(0);
-//│     tmp2 = S1(tmp1);
-//│     tmp3 = S1(tmp2);
-//│     tmp4 = S1(tmp3);
-//│     tmp5 = S1(tmp4);
-//│     tmp = S1(tmp5);
+//│   } else {
+//│     tmp30 = S1(0);
+//│     tmp31 = S1(tmp30);
+//│     tmp32 = S1(tmp31);
+//│     tmp33 = S1(tmp32);
+//│     tmp34 = S1(tmp33);
+//│     return S1(tmp34)
 //│   }
-//│   return tmp
 //│ };
 
 

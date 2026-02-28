@@ -46,7 +46,8 @@ while x ===
     print("valid")
   3 do
     set x += 1
-//│ x = 2
+//│ > valid
+//│ x = 4
 
 :rewriteWhile
 let x = 1

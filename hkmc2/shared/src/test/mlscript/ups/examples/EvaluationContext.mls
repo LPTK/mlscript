@@ -259,7 +259,7 @@ fun evalByValue(term) =
   while term is
     ByValue.Context(ByValue.Redex) as [subterm, remake] then
       set term = remake(subterm)
-    else term
+  term
 
 evalByValue(App(id_x, App(id_x, App(id_x, App(id_x, id_y))))).show
 //│ = "λy. y"
@@ -283,6 +283,12 @@ fun evalByValue'(term) =
 //│ ╔══[ERROR] Pattern chaining is not supported in pattern compilation.
 //│ ║  l.214: 	      App(Context(Hole) as [lhs, remake], Term as rhs) =>
 //│ ╙──       	          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.279: 	    else term
+//│ ╙──       	         ^^^^
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.279: 	    else term
+//│ ╙──       	         ^^^^
 
 object ByName with
   // Call-by-name allows reducing any beta redex. The argument `n` may be any

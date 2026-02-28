@@ -161,20 +161,18 @@ class C2(m) with
 //│ ╙──       	                   ^
 
 C2(m0).P.unapply(Pair(3, 4))
-//│ = MatchFailure(null)
 
 C2(m0).P.unapply(Pair(3, 5))
-//│ = MatchFailure(null)
 
 
 :fixme // incorrect warning
 class C3(m) with
   pattern P = Pair(k, v) where m.get(k) is (w where v === w)
 //│ ╔══[WARNING] Useless pattern binding: v.
-//│ ║  l.172: 	  pattern P = Pair(k, v) where m.get(k) is (w where v === w)
+//│ ║  l.170: 	  pattern P = Pair(k, v) where m.get(k) is (w where v === w)
 //│ ╙──       	                      ^
 //│ ╔══[WARNING] Useless pattern binding: k.
-//│ ║  l.172: 	  pattern P = Pair(k, v) where m.get(k) is (w where v === w)
+//│ ║  l.170: 	  pattern P = Pair(k, v) where m.get(k) is (w where v === w)
 //│ ╙──       	                   ^
 
 C3(m0).P.unapply(Pair(3, 4))

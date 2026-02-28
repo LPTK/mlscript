@@ -218,9 +218,11 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State) e
     var throwCount = 0
     def rec(s: Split): Unit = s match
       case Split.End => throwCount += 1
-      case Split.Else(els) => counts.updateWith(els):
-        case S((n, count)) => S((n, count + 1))
-        case N => S((counts.size + 1, 1))
+      case Split.Else(els) =>
+        if els.size > 5 // magic heuristic number to avoid creating labels for small terms
+        then counts.updateWith(els):
+          case S((n, count)) => S((n, count + 1))
+          case N => S((counts.size + 1, 1))
       case Split.Let(_, _, tail) => rec(tail)
       case Split.Cons(Branch(_, _, cons), tail) => rec(cons); rec(tail)
     rec(split)
