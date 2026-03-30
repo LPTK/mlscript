@@ -17,13 +17,7 @@ Int <:< [Bot <:< Top] => Int
 //│ OK
 
 ([A <:< Int] => Int) <:< ([A <:< Int] => Int)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:65)
-//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int.
-//│ Typing error tree:
-//│   {A ≤ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int
-//│     A ≤ Int
-//│       ⊤ ≤ Int
+//│ OK
 
 :te
 Int <:< ([Bot <:< Top] => Nat)
@@ -58,17 +52,7 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│ OK
 
 ([A <:< Int] => Int) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:65)
-//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ Int ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
-//│ Typing error tree:
-//│   {A ≤ Int} ⟹ Int ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
-//│     {A ≤ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int
-//│       A ≤ Int
-//│         ⊤ ≤ Int
-//│     {A ≤ Int} ⟹ Int ≤ {A ≤ Str} ⟹ Str
-//│       A ≤ Int
-//│         ⊤ ≤ Int
+//│ OK
 
 :te
 (Bool | Int | Str) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
@@ -88,11 +72,13 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│ Typing error tree:
 //│   {A ≤ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
 //│     {A ≤ Int} ⟹ Int ∨ Str ≤ {A ≤ Int} ⟹ Int
-//│       A ≤ Int
-//│         ⊤ ≤ Int
+//│       {A ≤ Int} ⟹ Int ∨ Str ≤ Int
+//│         Int ∨ Str ≤ Int
+//│           Str ≤ Int
 //│     {A ≤ Int} ⟹ Int ∨ Str ≤ {A ≤ Str} ⟹ Str
-//│       A ≤ Int
-//│         ⊤ ≤ Int
+//│       {A ≤ Int} ⟹ Int ∨ Str ≤ Str
+//│         A ≤ Int
+//│           Str ≤ Int
 
 // Opposite bounds
 
@@ -101,16 +87,18 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ Int ≤ {A ≥ Int} ⟹ Int.
 //│ Typing error tree:
 //│   {A ≤ Int} ⟹ Int ≤ {A ≥ Int} ⟹ Int
-//│     A ≤ Int
-//│       ⊤ ≤ Int
+//│     {A ≤ Int} ⟹ Int ≤ Int
+//│       A ≤ Int
+//│         ⊤ ≤ Int
 
 :te
 ([A >:> Int] => Int) <:< ([A <:< Int] => Int)
 //│ ═══[TYPE ERROR] Cannot solve judgment {A ≥ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int.
 //│ Typing error tree:
 //│   {A ≥ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int
-//│     Int ≤ A
-//│       Int ≤ ⊥
+//│     {A ≥ Int} ⟹ Int ≤ Int
+//│       Int ≤ A
+//│         Int ≤ ⊥
 
 // Distributvity across variables
 
