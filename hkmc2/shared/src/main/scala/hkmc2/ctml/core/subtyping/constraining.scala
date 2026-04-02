@@ -219,14 +219,17 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   // Subtyping of constrained types.
 
-  sub match
-    case sub: TConstrained =>
-      return subtypeConstrainedSub(sub, sup)
-    case _ =>
+  // The right constrained type comes first so that the left constraint (which must be solvable)
+  // may be solved using the assumptions of the right constraint (which may not be solvable).
 
   sup match
     case sup: TConstrained =>
       return subtypeConstrainedSup(sup, sub)
+    case _ =>
+
+  sub match
+    case sub: TConstrained =>
+      return subtypeConstrainedSub(sub, sup)
     case _ =>
 
   // Subtyping of class type variables.
@@ -317,8 +320,18 @@ def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Co
 def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Context, cache: SubtypingCache): Clauses =
   val vars = constrained.constraint.getVars()
   val newCtx = ctx.flexify(vars)
-  val clauses = subtypeConstraint(constrained.constraint)(using newCtx, cache)
-  subtypeSeq(type_, constrained.body, clauses)
+  val clauses = try
+    subtypeConstraint(constrained.constraint)(using newCtx, cache)
+  catch
+    case error: TypeError =>
+      if config.absurdConstred then
+        // This line is likely too permissive, as the subtype constraining function does not ensure
+        // by itself that two types can never be subtype.
+        return Clauses.empty
+      else
+        throw error
+  val clauses2 = subtype(type_, constrained.body)(using ctx.extend(clauses), cache)
+  constrainClauses(clauses2)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
 def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, cache: SubtypingCache): Clauses =
