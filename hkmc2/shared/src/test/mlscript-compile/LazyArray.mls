@@ -9,7 +9,7 @@ fun normIdx(i, len) =
   else i
 
 fun enforceArray = case
-  LazyArr | Array | String | Str | TypedArray  as a then a
+  LazyArr | Array | String | Str | TypedArray as a then a
   ow then throw Error("Expected an Array, got: " + ow.toString())
 
 fun concatHelper(a, l, ...args) =
@@ -53,12 +53,12 @@ fun sliceHelper(beg, fin, arr) =
 // Marker base class for View and Splice
 class LazyArr extends IterableBase with
 
-  fun toString() = "[" + this joined(", ") + "]"
+  // fun toString() = "[" + this joined(", ") + "]"
   fun concat(...args) = concatHelper(mut [SpliceMarker, this], this.length, ...args)
 
 // Requires that the underlying iterable is constant-time indexable
 class View(val underlying: IterableBase, val start, val end) extends LazyArr with
-
+  
   fun iterator() =
     let idx = start
     let until = underlying.length - end
@@ -68,7 +68,7 @@ class View(val underlying: IterableBase, val start, val end) extends LazyArr wit
         set idx = idx + 1
         Result.Next of next
       else Result.Done
-
+  
   fun materialize() = underlying.slice(start, underlying.length - end)
   
   fun at(i) =
@@ -76,10 +76,10 @@ class View(val underlying: IterableBase, val start, val end) extends LazyArr wit
       throw RangeError("View.at: Index out of bounds")
     underlying.at(normIdx(i, length) + start)
   fun slice(beg, fin) = sliceHelper(beg, fin, this)
-
+  
   val len = underlying.length - start - end
   fun length = len
-  fun toString() = "[" + this joined(", ") + "]"
+  // fun toString() = "[" + this joined(", ") + "]"
 
 object SpliceMarker
 class Splice(val bits, val len) extends LazyArr with
@@ -146,7 +146,7 @@ class Splice(val bits, val len) extends LazyArr with
     else concatHelper(mut [SpliceMarker, materialized], len, ...args)
   
   fun length = len
-  fun toString() = "[" + materialize() joined(", ") + "]"
+  // fun toString() = "[" + materialize() joined(", ") + "]"
 
 
 module LazyArray with...

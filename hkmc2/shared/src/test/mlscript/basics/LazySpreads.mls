@@ -2,7 +2,10 @@
 
 :expect [[1, 2], 3]
 if [1, ..[2, 3]] is [..a, b] then [a, b]
-//│ = [[1, 2], 3]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[[1, 2], 3]', got: '[View([1, 2], 0, 0), 3]'
+//│ = [View([1, 2], 0, 0), 3]
 
 :expect [[1, 2], 3]
 if [1, ...[2, 3]] is [..a, b] then [a, b]
@@ -10,7 +13,10 @@ if [1, ...[2, 3]] is [..a, b] then [a, b]
 
 :expect [[1, 2], 3]
 if [1, ..[2, 3]] is [..a, b] then [a, b]
-//│ = [[1, 2], 3]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[[1, 2], 3]', got: '[View([1, 2], 0, 0), 3]'
+//│ = [View([1, 2], 0, 0), 3]
 
 :sjs
 fun buildPalindrome = case
@@ -42,7 +48,64 @@ val arr = buildPalindrome(5)
 
 :expect [5, 4, 3, 2, 1, 1, 2, 3, 4, 5]
 arr
-//│ = [5, 4, 3, 2, 1, 1, 2, 3, 4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[5, 4, 3, 2, 1, 1, 2, 3, 4, 5]', got: 'Splice(
+//│   [
+//│     5,
+//│     SpliceMarker,
+//│     Splice(
+//│       [
+//│         4,
+//│         SpliceMarker,
+//│         Splice(
+//│           [
+//│             3,
+//│             SpliceMarker,
+//│             Splice(
+//│               [2, SpliceMarker, Splice([1, SpliceMarker, [], 1], 2), 2],
+//│               4
+//│             ),
+//│             3
+//│           ],
+//│           6
+//│         ),
+//│         4
+//│       ],
+//│       8
+//│     ),
+//│     5
+//│   ],
+//│   10
+//│ )'
+//│ = Splice(
+//│   [
+//│     5,
+//│     SpliceMarker,
+//│     Splice(
+//│       [
+//│         4,
+//│         SpliceMarker,
+//│         Splice(
+//│           [
+//│             3,
+//│             SpliceMarker,
+//│             Splice(
+//│               [2, SpliceMarker, Splice([1, SpliceMarker, [], 1], 2), 2],
+//│               4
+//│             ),
+//│             3
+//│           ],
+//│           6
+//│         ),
+//│         4
+//│       ],
+//│       8
+//│     ),
+//│     5
+//│   ],
+//│   10
+//│ )
 
 :sjs
 fun sum2 = case
@@ -82,14 +145,14 @@ sum2(arr)
 :e
 fun f(..xs) = xs
 //│ ╔══[COMPILATION ERROR] Lazy spread parameters not allowed.
-//│ ║  l.83: 	fun f(..xs) = xs
-//│ ╙──      	      ^^^^
+//│ ║  l.146: 	fun f(..xs) = xs
+//│ ╙──       	      ^^^^
 
 :ge
 sum2(..arr)
 //│ ╔══[COMPILATION ERROR] Lazy spreads are not supported in call arguments
-//│ ║  l.89: 	sum2(..arr)
-//│ ╙──      	    ^^^^^^^
+//│ ║  l.152: 	sum2(..arr)
+//│ ╙──       	    ^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: Function expected 1 argument but got 2
 
 
@@ -99,4 +162,61 @@ fun map2(f) = case
 
 :expect [10, 8, 6, 4, 2, 2, 4, 6, 8, 10]
 map2(x => x * 2)(arr)
-//│ = [10, 8, 6, 4, 2, 2, 4, 6, 8, 10]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[10, 8, 6, 4, 2, 2, 4, 6, 8, 10]', got: 'Splice(
+//│   [
+//│     10,
+//│     SpliceMarker,
+//│     Splice(
+//│       [
+//│         8,
+//│         SpliceMarker,
+//│         Splice(
+//│           [
+//│             6,
+//│             SpliceMarker,
+//│             Splice(
+//│               [4, SpliceMarker, Splice([2, SpliceMarker, [], 2], 2), 4],
+//│               4
+//│             ),
+//│             6
+//│           ],
+//│           6
+//│         ),
+//│         8
+//│       ],
+//│       8
+//│     ),
+//│     10
+//│   ],
+//│   10
+//│ )'
+//│ = Splice(
+//│   [
+//│     10,
+//│     SpliceMarker,
+//│     Splice(
+//│       [
+//│         8,
+//│         SpliceMarker,
+//│         Splice(
+//│           [
+//│             6,
+//│             SpliceMarker,
+//│             Splice(
+//│               [4, SpliceMarker, Splice([2, SpliceMarker, [], 2], 2), 4],
+//│               4
+//│             ),
+//│             6
+//│           ],
+//│           6
+//│         ),
+//│         8
+//│       ],
+//│       8
+//│     ),
+//│     10
+//│   ],
+//│   10
+//│ )

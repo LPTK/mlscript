@@ -12,7 +12,7 @@ module Iter with ...
 class IterableBase with
   set this.(Symbol.iterator) = iterator
   fun iterator() = throw new Error("Not implemented: iterator()")
-
+  
   // require that subclasses are immutable
   fun toArray() = [...this]
   
@@ -52,7 +52,7 @@ class IterableBase with
   fun toReversed() = asArray.toReversed()
   fun toSorted(...args) = asArray.toSorted(...args)
   fun toSpliced(...args) = asArray.toSpliced(...args)
-  fun toString() = asArray.toString()
+  // fun toString() = asArray.toString()
   // `with` is an mls keyword
   fun id"with"(...args) = asArray.with(...args)
   

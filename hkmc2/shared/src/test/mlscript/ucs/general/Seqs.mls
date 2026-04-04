@@ -5,9 +5,9 @@ assert [""] is [..stack, Str as id], [stack, id]
 //│ = [[], ""]
 
 assert [..[], ""] is [..stack, Str as id], [stack, id]
-//│ = [[], ""]
+//│ = [View([], 0, 0), ""]
 
 assert [..[..[""]], ""] is [..stack, Str as id], [stack, id]
-//│ = [[], ""]
+//│ = [View([""], 0, 0), ""]
 
 

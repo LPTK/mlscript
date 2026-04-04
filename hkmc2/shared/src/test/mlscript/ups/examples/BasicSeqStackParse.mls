@@ -62,7 +62,7 @@ parse("x")
 //│ > not Ident?? false
 //│ > Str? () false
 //│ > Str?? false
-//│ > not Ident [Id("x")]
+//│ > not Ident Splice([SpliceMarker, View([], 0, 0), Id("x")], 1)
 //│ > not Ident?? false
 //│ > Str? Id("x") false
 //│ > Str?? false
@@ -73,53 +73,71 @@ parse("x y")
 //│ > not Ident?? false
 //│ > Str? () false
 //│ > Str?? false
-//│ > not Ident [Id("x")]
+//│ > not Ident Splice([SpliceMarker, View([], 0, 0), Id("x")], 1)
 //│ > not Ident?? false
 //│ > Str? Id("x") false
 //│ > Str?? false
-//│ > not Ident [Id("x"), Id("y")]
+//│ > not Ident Splice([SpliceMarker, View([Id("x")], 0, 0), Id("y")], 2)
 //│ > not Ident?? false
 //│ > Str? Id("y") false
 //│ > Str?? false
-//│ = {Error: [Id("x"), Id("y")]}
+//│ = {Error: Splice([SpliceMarker, View([Id("x")], 0, 0), Id("y")], 2)}
 
 parse("x y z")
 //│ > not Ident []
 //│ > not Ident?? false
 //│ > Str? () false
 //│ > Str?? false
-//│ > not Ident [Id("x")]
+//│ > not Ident Splice([SpliceMarker, View([], 0, 0), Id("x")], 1)
 //│ > not Ident?? false
 //│ > Str? Id("x") false
 //│ > Str?? false
-//│ > not Ident [Id("x"), Id("y")]
+//│ > not Ident Splice([SpliceMarker, View([Id("x")], 0, 0), Id("y")], 2)
 //│ > not Ident?? false
 //│ > Str? Id("y") false
 //│ > Str?? false
-//│ > not Ident [Id("x"), Id("y"), z]
+//│ > not Ident Splice([SpliceMarker, Splice([SpliceMarker, View([Id("x")], 0, 0), Id("y")], 2), "z"], 3)
 //│ > not Ident?? true
 //│ > Str? z true
 //│ > Str?? true
-//│ = {Error: [Id("x"), Id("y"), z]}
+//│ = {
+//│   Error: Splice(
+//│     [
+//│       SpliceMarker,
+//│       Splice([SpliceMarker, View([Id("x")], 0, 0), Id("y")], 2),
+//│       "z"
+//│     ],
+//│     3
+//│   )
+//│ }
 
 go([], ["x", "y", "z"])
 //│ > not Ident []
 //│ > not Ident?? false
 //│ > Str? () false
 //│ > Str?? false
-//│ > not Ident [Id("x")]
+//│ > not Ident Splice([SpliceMarker, View([], 0, 0), Id("x")], 1)
 //│ > not Ident?? false
 //│ > Str? Id("x") false
 //│ > Str?? false
-//│ > not Ident [Id("x"), Id("y")]
+//│ > not Ident Splice([SpliceMarker, View([Id("x")], 0, 0), Id("y")], 2)
 //│ > not Ident?? false
 //│ > Str? Id("y") false
 //│ > Str?? false
-//│ > not Ident [Id("x"), Id("y"), z]
+//│ > not Ident Splice([SpliceMarker, Splice([SpliceMarker, View([Id("x")], 0, 0), Id("y")], 2), "z"], 3)
 //│ > not Ident?? true
 //│ > Str? z true
 //│ > Str?? true
-//│ = {Error: [Id("x"), Id("y"), z]}
+//│ = {
+//│   Error: Splice(
+//│     [
+//│       SpliceMarker,
+//│       Splice([SpliceMarker, View([Id("x")], 0, 0), Id("y")], 2),
+//│       "z"
+//│     ],
+//│     3
+//│   )
+//│ }
 
 go([Id("x"), Id("y"), "z"], [])
 //│ > not Ident [Id("x"), Id("y"), "z"]
@@ -133,18 +151,34 @@ parse("x + y")
 //│ > not Ident?? false
 //│ > Str? () false
 //│ > Str?? false
-//│ > not Ident [Id("x")]
+//│ > not Ident Splice([SpliceMarker, View([], 0, 0), Id("x")], 1)
 //│ > not Ident?? false
 //│ > Str? Id("x") false
 //│ > Str?? false
-//│ > not Ident [Id("x"), +]
+//│ > not Ident Splice([SpliceMarker, Splice([SpliceMarker, View([], 0, 0), Id("x")], 1), "+"], 2)
 //│ > not Ident?? false
 //│ > Str? + true
 //│ > Str?? true
-//│ > not Ident [Id("x"), +, y]
+//│ > not Ident Splice([SpliceMarker, Splice([SpliceMarker, Splice([SpliceMarker, View([], 0, 0), Id("x")], 1), "+"], 2), "y"], 3)
 //│ > not Ident?? true
 //│ > Str? y true
 //│ > Str?? true
-//│ = {Error: [Id("x"), +, y]}
+//│ = {
+//│   Error: Splice(
+//│     [
+//│       SpliceMarker,
+//│       Splice(
+//│         [
+//│           SpliceMarker,
+//│           Splice([SpliceMarker, View([], 0, 0), Id("x")], 1),
+//│           "+"
+//│         ],
+//│         2
+//│       ),
+//│       "y"
+//│     ],
+//│     3
+//│   )
+//│ }
 
 

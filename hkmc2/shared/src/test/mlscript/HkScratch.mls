@@ -9,4 +9,13 @@
 // :todo
 
 
+:sjs
+[..[], "a"]
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let tmp;
+//│ tmp = globalThis.Object.freeze([]);
+//│ globalThis.Object.freeze(runtime.Tuple.lazyConcat(runtime.Tuple.split, tmp, "a"))
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = Splice([SpliceMarker, [], "a"], 1)
+
 

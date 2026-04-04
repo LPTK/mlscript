@@ -48,7 +48,10 @@ a.at(-1)
 
 :expect [4, 5, 6]
 a
-//│ = [4, 5, 6]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5, 6]', got: 'View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 4)'
+//│ = View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 4)
 
 :expect [4, 5, 6]
 [...a]
@@ -106,14 +109,20 @@ let ys2 = LazyArray.dropLeftRight(2, 2)(ys1)
 
 :expect [2, 3, 4, 5, 6, 7]
 ys2
-//│ = [2, 3, 4, 5, 6, 7]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[2, 3, 4, 5, 6, 7]', got: 'View([2, 3, 4, 5, 6, 7], 0, 0)'
+//│ = View([2, 3, 4, 5, 6, 7], 0, 0)
 
 :silent
 let ys2 = LazyArray.dropLeftRight(0, 2)(ys2)
 
 :expect [2, 3, 4, 5]
 ys2
-//│ = [2, 3, 4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[2, 3, 4, 5]', got: 'View([2, 3, 4, 5, 6, 7], 0, 2)'
+//│ = View([2, 3, 4, 5, 6, 7], 0, 2)
 
 
 // concat and __concat should do similar things
@@ -148,7 +157,10 @@ let o1 = mk(1, 2, 3, 4, 5).slice(1, 4)
 
 :expect [2, 3, 4]
 o1
-//│ = [2, 3, 4]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[2, 3, 4]', got: 'View([1, 2, 3, 4, 5], 1, 1)'
+//│ = View([1, 2, 3, 4, 5], 1, 1)
 
 :expect [2, 3, 4]
 [...o1]
@@ -159,7 +171,10 @@ o1.materialize()
 //│ = [2, 3, 4]
 
 let o2 = o1.concat([5, 6, 7])
-//│ o2 = [2, 3, 4, 5, 6, 7]
+//│ o2 = Splice(
+//│   [SpliceMarker, View([1, 2, 3, 4, 5], 1, 1), SpliceMarker, [5, 6, 7]],
+//│   6
+//│ )
 
 :silent
 let o3 = concat([1, 2, 3, 4])
@@ -168,7 +183,7 @@ let o3 = concat([1, 2, 3, 4])
 let o4 = o3.concat([5, 6, 7], [8])
 
 let o5 = o4.slice(1, 7)
-//│ o5 = [2, 3, 4, 5, 6, 7]
+//│ o5 = View([2, 3, 4, 5, 6, 7], 0, 0)
 
 :expect true
 equals(o2, o5)
@@ -189,76 +204,137 @@ let r = [1,2,3,4,5,6,7,8,9,10]
 let v = mk(1,2,3,4,5,6,7,8,9,10)
 let s = concat([1,2,3], [4,5,6], [7,8,9,10])
 //│ r = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-//│ s = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-//│ v = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+//│ s = Splice(
+//│   [
+//│     SpliceMarker,
+//│     [1, 2, 3],
+//│     SpliceMarker,
+//│     [4, 5, 6],
+//│     SpliceMarker,
+//│     [7, 8, 9, 10]
+//│   ],
+//│   10
+//│ )
+//│ v = View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0, 0)
 
 :expect [4, 5]
 // both positive
 r.slice(3, 5)
 //│ = [4, 5]
 v.slice(3, 5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: 'View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)'
+//│ = View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)
 s.slice(3, 5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: 'View([4, 5], 0, 0)'
+//│ = View([4, 5], 0, 0)
 dropLeftRight(3, 5)(r)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: 'View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)'
+//│ = View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)
 // both negative
 r.slice(-7, -5)
 //│ = [4, 5]
 v.slice(-7, -5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: 'View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)'
+//│ = View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)
 s.slice(-7, -5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: 'View([4, 5], 0, 0)'
+//│ = View([4, 5], 0, 0)
 // beg positive, fin negative
 r.slice(3, -5)
 //│ = [4, 5]
 v.slice(3, -5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: 'View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)'
+//│ = View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)
 s.slice(3, -5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: 'View([4, 5], 0, 0)'
+//│ = View([4, 5], 0, 0)
 // beg negative, fin positive
 r.slice(-7, 5)
 //│ = [4, 5]
 v.slice(-7, 5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: 'View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)'
+//│ = View([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5)
 s.slice(-7, 5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: 'View([4, 5], 0, 0)'
+//│ = View([4, 5], 0, 0)
 
 :expect []
 // both positive, beg > fin
 r.slice(5, 3)
 //│ = []
 v.slice(5, 3)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: 'View([], 0, 0)'
+//│ = View([], 0, 0)
 s.slice(5, 3)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: 'View([], 0, 0)'
+//│ = View([], 0, 0)
 // both negative, beg > fin
 r.slice(-5, -7)
 //│ = []
 v.slice(-5, -7)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: 'View([], 0, 0)'
+//│ = View([], 0, 0)
 s.slice(-5, -7)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: 'View([], 0, 0)'
+//│ = View([], 0, 0)
 // beg > arr length
 r.slice(10, 12)
 //│ = []
 v.slice(10, 12)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: 'View([], 0, 0)'
+//│ = View([], 0, 0)
 s.slice(10, 12)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: 'View([], 0, 0)'
+//│ = View([], 0, 0)
 // beg = fin = 0
 r.slice(0, 0)
 //│ = []
 v.slice(0, 0)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: 'View([], 0, 0)'
+//│ = View([], 0, 0)
 s.slice(0, 0)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: 'View([], 0, 0)'
+//│ = View([], 0, 0)
 
 
 // LazyArray on non-arrays
 
 dropLeftRight(1, 1)("hello")
-//│ = [e, l, l]
+//│ = View("hello", 1, 1)
 
 val mm = MutMap.empty
 //│ mm = MutMap(Map(0) {})
@@ -274,7 +350,7 @@ val uint8Arr = new mut Uint8Array([1, 2, 3, 4, 5])
 //│ uint8Arr = Uint8Array { "0": 1, "1": 2, "2": 3, "3": 4, "4": 5 }
 
 dropLeftRight(1, 1)(uint8Arr)
-//│ = [2, 3, 4]
+//│ = View(Uint8Array { "0": 1, "1": 2, "2": 3, "3": 4, "4": 5 }, 1, 1)
 
 :re
 concat([1, 2, 3], "hello", uint8Arr, mm)
