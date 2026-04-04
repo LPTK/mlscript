@@ -20,7 +20,10 @@ let b = a.concat([1, 2, 3, 4])
 
 :expect [0, 1, 2, 3, 4]
 b.materialize()
-//│ = [0, 1, 2, 3, 4]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[0, 1, 2, 3, 4]', got: '"[0, 1, 2, 3, 4]"'
+//│ = "[0, 1, 2, 3, 4]"
 
 
 // Views
@@ -49,7 +52,10 @@ a.at(-1)
 
 :expect [4, 5, 6]
 a
-//│ = [4, 5, 6]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5, 6]', got: '"[4, 5, 6]"'
+//│ = "[4, 5, 6]"
 
 :expect [4, 5, 6]
 [...a]
@@ -103,14 +109,20 @@ let ys2 = LazyFingerTree.dropLeftRight(2, 2)(ys1)
 
 :expect [2, 3, 4, 5, 6, 7]
 ys2
-//│ = [2, 3, 4, 5, 6, 7]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[2, 3, 4, 5, 6, 7]', got: '"[2, 3, 4, 5, 6, 7]"'
+//│ = "[2, 3, 4, 5, 6, 7]"
 
 :silent
 let ys2 = LazyFingerTree.dropLeftRight(0, 2)(ys2)
 
 :expect [2, 3, 4, 5]
 ys2
-//│ = [2, 3, 4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[2, 3, 4, 5]', got: '"[2, 3, 4, 5]"'
+//│ = "[2, 3, 4, 5]"
 
 
 // concat and __concat should do similar things
@@ -145,14 +157,17 @@ let o1 = mk(1, 2, 3, 4, 5).slice(1, 4)
 
 :expect [2, 3, 4]
 o1
-//│ = [2, 3, 4]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[2, 3, 4]', got: '"[2, 3, 4]"'
+//│ = "[2, 3, 4]"
 
 :expect [2, 3, 4]
 [...o1]
 //│ = [2, 3, 4]
 
 let o2 = o1.concat([5, 6, 7])
-//│ o2 = [2, 3, 4, 5, 6, 7]
+//│ o2 = "[2, 3, 4, 5, 6, 7]"
 
 :silent
 let o3 = concat([1, 2, 3, 4])
@@ -161,7 +176,7 @@ let o3 = concat([1, 2, 3, 4])
 let o4 = o3.concat([5, 6, 7], [8])
 
 let o5 = o4.slice(1, 7)
-//│ o5 = [2, 3, 4, 5, 6, 7]
+//│ o5 = "[2, 3, 4, 5, 6, 7]"
 
 :expect true
 equals(o2, o5)
@@ -181,69 +196,120 @@ let r = [1,2,3,4,5,6,7,8,9,10]
 let v = mk(1,2,3,4,5,6,7,8,9,10)
 let s = concat([1,2,3], [4,5,6], [7,8,9,10])
 //│ r = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-//│ s = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-//│ v = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+//│ s = "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
+//│ v = "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
 
 :expect [4, 5]
 // both positive
 r.slice(3, 5)
 //│ = [4, 5]
 v.slice(3, 5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: '"[4, 5]"'
+//│ = "[4, 5]"
 s.slice(3, 5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: '"[4, 5]"'
+//│ = "[4, 5]"
 dropLeftRight(3, 5)(r)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: '"[4, 5]"'
+//│ = "[4, 5]"
 // both negative
 r.slice(-7, -5)
 //│ = [4, 5]
 v.slice(-7, -5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: '"[4, 5]"'
+//│ = "[4, 5]"
 s.slice(-7, -5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: '"[4, 5]"'
+//│ = "[4, 5]"
 // beg positive, fin negative
 r.slice(3, -5)
 //│ = [4, 5]
 v.slice(3, -5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: '"[4, 5]"'
+//│ = "[4, 5]"
 s.slice(3, -5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: '"[4, 5]"'
+//│ = "[4, 5]"
 // beg negative, fin positive
 r.slice(-7, 5)
 //│ = [4, 5]
 v.slice(-7, 5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: '"[4, 5]"'
+//│ = "[4, 5]"
 s.slice(-7, 5)
-//│ = [4, 5]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[4, 5]', got: '"[4, 5]"'
+//│ = "[4, 5]"
 
 :expect []
 // both positive, beg > fin
 r.slice(5, 3)
 //│ = []
 v.slice(5, 3)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: '"[]"'
+//│ = "[]"
 s.slice(5, 3)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: '"[]"'
+//│ = "[]"
 // both negative, beg > fin
 r.slice(-5, -7)
 //│ = []
 v.slice(-5, -7)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: '"[]"'
+//│ = "[]"
 s.slice(-5, -7)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: '"[]"'
+//│ = "[]"
 // beg > arr length
 r.slice(10, 12)
 //│ = []
 v.slice(10, 12)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: '"[]"'
+//│ = "[]"
 s.slice(10, 12)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: '"[]"'
+//│ = "[]"
 // beg = fin = 0
 r.slice(0, 0)
 //│ = []
 v.slice(0, 0)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: '"[]"'
+//│ = "[]"
 s.slice(0, 0)
-//│ = []
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[]', got: '"[]"'
+//│ = "[]"
 
 

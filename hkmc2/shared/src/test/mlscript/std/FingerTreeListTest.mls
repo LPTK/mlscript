@@ -6,10 +6,10 @@ import "../../mlscript-compile/LazyFingerTree.mls"
 open FingerTreeList
 
 let xs = FingerTreeList.mk(1,2,3)
-//│ xs = [1, 2, 3]
+//│ xs = "[1, 2, 3]"
 
 let ys = concat(xs, xs) concat(xs)
-//│ ys = [1, 2, 3, 1, 2, 3, 1, 2, 3]
+//│ ys = "[1, 2, 3, 1, 2, 3, 1, 2, 3]"
 
 ys |> ith(-1)
 //│ = None
@@ -35,28 +35,28 @@ ys |> ith(9)
 //│ = None
 
 let ys = (ys |> popFront).rest
-//│ ys = [2, 3, 1, 2, 3, 1, 2, 3]
+//│ ys = "[2, 3, 1, 2, 3, 1, 2, 3]"
 let ys = (ys |> popBack).rest
-//│ ys = [2, 3, 1, 2, 3, 1, 2]
+//│ ys = "[2, 3, 1, 2, 3, 1, 2]"
 let ys = (ys |> popBack).rest
-//│ ys = [2, 3, 1, 2, 3, 1]
+//│ ys = "[2, 3, 1, 2, 3, 1]"
 let ys = (ys |> popBack).rest
-//│ ys = [2, 3, 1, 2, 3]
+//│ ys = "[2, 3, 1, 2, 3]"
 let ys = (ys |> popFront).rest
-//│ ys = [3, 1, 2, 3]
+//│ ys = "[3, 1, 2, 3]"
 let ys = (ys |> popFront).rest
-//│ ys = [1, 2, 3]
+//│ ys = "[1, 2, 3]"
 let ys = (ys |> popFront).rest
-//│ ys = [2, 3]
+//│ ys = "[2, 3]"
 
 let ys = xs ++ xs ++ xs
-//│ ys = [1, 2, 3, 1, 2, 3, 1, 2, 3]
+//│ ys = "[1, 2, 3, 1, 2, 3, 1, 2, 3]"
 
 ys |> dropLeftRight(3, 3)
-//│ = [1, 2, 3]
+//│ = "[1, 2, 3]"
 
 let ys = 1 +: 2 +: 3 +: ys :+ 1 :+ 2 :+ 3
-//│ ys = [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+//│ ys = "[1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]"
 
 :expect true
 LazyFingerTree.equals(ys, [...ys])
@@ -92,7 +92,7 @@ repeat(xs, 512).length == xs.length * 512
 //│ = true
 
 let xs = FingerTreeList.mk(1, 2, 3)
-//│ xs = [1, 2, 3]
+//│ xs = "[1, 2, 3]"
 
 :expect [1, [2, 3]]
 :sjs
@@ -111,7 +111,10 @@ if xs is
 //│   ])
 //│ } else { throw globalThis.Object.freeze(new globalThis.Error("match error")) }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = [1, [2, 3]]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processTerm (JSBackendDiffMaker.scala:262)
+//│ ═══[RUNTIME ERROR] Expected: '[1, [2, 3]]', got: '[1, "[2, 3]"]'
+//│ = [1, "[2, 3]"]
 
 fun addUntilN(xs, n) =
   if n <= 0 then xs

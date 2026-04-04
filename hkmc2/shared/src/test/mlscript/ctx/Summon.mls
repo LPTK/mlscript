@@ -34,7 +34,7 @@ x
 :todo
 using Int -> Int = id
 use[Int -> Int](123)
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Cannot add instance with a not-yet implemented type.
+//│ /!!!\ Uncaught error: java.lang.RuntimeException: Internal Error: Cannot add instance with a not-yet implemented type.
 
 
 :expect -42

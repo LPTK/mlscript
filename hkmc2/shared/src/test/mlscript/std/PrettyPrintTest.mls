@@ -443,20 +443,13 @@ class Hola with
 
 // Customized `toString` should be able to trigger breaking lines.
 show of x: y: new Hola
-//│ > {                                                                         ┊
-//│ >   x: {                                                                    ┊
-//│ >     y: Hola. \                                                            ┊
-//│ >       Mi amigo. \                                                         ┊
-//│ >       ¿Qué tal? \                                                         ┊
-//│ >       Hasta luego.                                                        ┊
-//│ >   }                                                                       ┊
-//│ > }                                                                         ┊
+//│ > {x: {y: "Hola.\nMi amigo.\n¿Qué tal?\nHasta luego."}}                     ┊
 
 class Hello with
   fun toString() = "Hi there. How's going?"
 
 show of x: y: z: new Hello
-//│ > {x: {y: {z: Hi there. How's going?}}}                                     ┊
+//│ > {x: {y: {z: "Hi there. How's going?"}}}                                   ┊
 
 //   ___        _   _
 //  / _ \ _ __ | |_(_) ___  _ __  ___

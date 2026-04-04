@@ -8,7 +8,7 @@
 
 // FIXME: Printing of
 [..[], "a"]
-//│ = [a]
+//│ = Splice([SpliceMarker, [], "a"], 1)
 // It should print the same as:
 ["a"]
 //│ = ["a"]

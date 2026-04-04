@@ -22,7 +22,7 @@ M.f
 :todo // support literal type
 using 42 = 42
 use[42]
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Cannot add instance with a not-yet implemented type.
+//│ /!!!\ Uncaught error: java.lang.RuntimeException: Internal Error: Cannot add instance with a not-yet implemented type.
 
 val someInt = 42
 
