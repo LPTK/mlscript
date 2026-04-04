@@ -7,6 +7,9 @@ module Rendering with ...
 let definitionMetadataSymbol = RuntimeJS.symbols.definitionMetadata
 let prettyPrintSymbol = RuntimeJS.symbols.prettyPrint
 
+
+// Exported to Predef:
+
 fun pass1(f)(...xs) = f(xs.0)
 fun pass2(f)(...xs) = f(xs.0, xs.1)
 fun pass3(f)(...xs) = f(xs.0, xs.1, xs.2)
@@ -38,6 +41,7 @@ fun interleave(sep)(...args) =
       i += 1
     if i < len do set res.[idx + 1] = sep
   res
+
 
 // The following regular expression matches non-empty strings that qualify as
 // Unicode identifiers accepted by ECMAScript. 
@@ -84,7 +88,12 @@ let symbolsForMap(n: Int) =
   start: headline + " {", end: "}",
   entrySeparator: ",", keyValueSeparator: " => ", empty: headline + " {}", padding: true
 
+
+
+// Note: `render` is not recursive; it's just the entry point
+// Note: We don't yet have optional arguments `arg?`, so we use a hacky `...args` spread argument instead
 fun render(target, ...args) =
+  
   let
     options = if args is [options, ...] then options else emptyOptions
     indent = if
@@ -95,9 +104,8 @@ fun render(target, ...args) =
         Int and indent > 0 then " ".repeat(indent)
         // `null` to indicate no indentation and put all the content on a single line.
       else null
-    // If the joined string is less than or equal `breakLength`, it stays on one
-    // line; otherwise it becomes multiline and each item is prefixed with `\n`
-    // plus `indent`.
+    // If the joined string's length is less than or equal `breakLength`, it stays on one line;
+    // otherwise it becomes multiline and each item is prefixed with `\n` plus `indent`.
     breakLength = if
       indent is null then Number.POSITIVE_INFINITY
       options is (:breakLength) and breakLength is Int and breakLength > 0 then breakLength
@@ -107,6 +115,7 @@ fun render(target, ...args) =
     circularCounter = 1
     visitingObjects = new WeakMap // Object -> null | Int
     visitedObjects = new WeakMap // Object -> Str
+  
   // Add indentations to results of `toString` from other objects.
   fun indentText(text: Str, currentLevel: Int): Str =
     if indent is null then text else...
@@ -118,6 +127,7 @@ fun render(target, ...args) =
         let prefix = if index === 0 then "" else indents
         prefix + line + postfix
       .join("\n")
+  
   fun renderArray(array, level, keyLength, startPos) =
     let
       i = 0
@@ -141,7 +151,7 @@ fun render(target, ...args) =
       emptyItemCount > 0 then
         let emptyItemCount' = emptyItemCount
         set emptyItemCount = 0
-        "<" + emptyItemCount' + " empty items>"
+        "‹" + emptyItemCount' + " empty items›"
       i < length then
         let
           // The starting column if the current item is placed on the same line.
@@ -153,6 +163,7 @@ fun render(target, ...args) =
         valueStr
       else throw new Error("All items in this array has been rendered.")
     renderSequence of done, next, level, keyLength, startPos, symbolsForArray
+  
   fun renderSet(theSet, level, keyLength, startPos) =
     let
       iterator = theSet.(Symbol.iterator)()
@@ -175,6 +186,7 @@ fun render(target, ...args) =
       result
     renderSequence of
       done, next, level, keyLength, startPos, symbolsForSet(theSet.size)
+  
   // Render instances of MLscript classes.
   fun renderClassInstance(constructorName, fieldNames, instance, level, keyLength, startPos) =
     let
@@ -193,6 +205,7 @@ fun render(target, ...args) =
             then itemIndentationLength else prefixLengthIfSameLine
         renderValue(value, level + 1, 0, valueStartLength)
     renderSequence of done, next, level, keyLength, startPos, symbolsForClass(constructorName)
+  
   fun renderSequence(done, next, level: Int, keyLength: Int, startPos: Int, symbols) =
     let
       items = mut []
@@ -204,7 +217,7 @@ fun render(target, ...args) =
       parentIndent = if indent is null then null else indent.repeat(level)
       itemIdent = if indent is null then null else indent.repeat(level + 1)
     // Iterate through and render all items.
-    while done() is false do
+    while not done() do
       let item = next(items.length is 0, singleLineLength)
       // Append a new item and update needed variables.
       if item.indexOf("\n") >= 0 do set hasMultiline = true
@@ -232,6 +245,7 @@ fun render(target, ...args) =
       parentIndent.length + (singleLineLength - startPos + keyLength) <= breakLength then
         layoutSingleLine()
       else layoutMultiLine()
+  
   // Render enumerable properties of the given object.
   fun renderObject(subject, level, keyLength, startPos, isRefinement) =
     let
@@ -270,6 +284,7 @@ fun render(target, ...args) =
     skipNonEnumerable()
     renderRecordLike of
       done, next, level, keyLength, startPos, symbolsForObject, isRefinement
+  
   fun renderMap(map, level, keyLength, startPos) =
     let
       iterator = map.(Symbol.iterator)()
@@ -301,6 +316,7 @@ fun render(target, ...args) =
         [keyStr, valueStr]
     renderRecordLike of
       done, next, level, keyLength, startPos, symbolsForMap(map.size), false
+  
   fun renderRecordLike(done, next, level, keyLength, startPos, symbols, isRefinement) =
     let
       startPadding = if
@@ -347,6 +363,11 @@ fun render(target, ...args) =
       let lengthIfBreakParent = parentIndent.length + (singleLineLength - startPos + keyLength)
       lengthIfBreakParent <= breakLength then layoutSingleLine()
       else layoutMultiLine()
+  
+  fun handlePrettyPrintResult(result, level) = if result is
+    Str then result indentText(level)
+    Array then "???"
+  
   fun renderValue(arg, level, keyLength, startPos) = if
     arg is // Primitive values
       undefined then "undefined"
@@ -381,8 +402,8 @@ fun render(target, ...args) =
         Array then renderArray of arg, level, keyLength, startPos
         Set then renderSet of arg, level, keyLength, startPos
         Map then renderMap of arg, level, keyLength, startPos
-        WeakSet then "WeakSet { <items unknown> }"
-        WeakMap then "WeakMap { <items unknown> }"
+        WeakSet then "WeakSet { ‹unknown items› }"
+        WeakMap then "WeakMap { ‹unknown items› }"
         Error then arg.name + ": " + arg.message
         Function then
           let desc = Object.getOwnPropertyDescriptor(arg, "prototype")
@@ -415,7 +436,7 @@ fun render(target, ...args) =
           proto.constructor is Function and
             // Call its implementation of `prettyPrint` if defined.
             proto.hasOwnProperty(prettyPrintSymbol) then
-              arg.(prettyPrintSymbol)() indentText(level)
+              handlePrettyPrintResult(arg.(prettyPrintSymbol)(), level)
             // If the symbol `definitionMetadata` is defined on the constructor,
             // we render the function using the provided field names.
             proto.constructor.hasOwnProperty(definitionMetadataSymbol) and
@@ -450,4 +471,7 @@ fun render(target, ...args) =
     if postfix.length > 0 do visitedObjects.set(arg, result)
     visitingObjects.delete(arg)
     result
+  
   renderValue(target, 0, 0, 0)
+
+

@@ -142,10 +142,10 @@ renderAsStr of Object.assign(Object.create(null), hello: "world")
 //│ = "{hello: \"world\"}"
 
 renderAsStr of new WeakMap
-//│ = "WeakMap { <items unknown> }"
+//│ = "WeakMap { ‹unknown items› }"
 
 renderAsStr of new WeakSet
-//│ = "WeakSet { <items unknown> }"
+//│ = "WeakSet { ‹unknown items› }"
 
 //  _____                 _   _
 // |  ___|   _ _ __   ___| |_(_) ___  _ __  ___
@@ -474,6 +474,12 @@ set Test.prototype.(Symbols.prettyPrint) = () => "Test pretty print!"
 Test
 //│ = class Test
 
-new Test
-//│ = Test pretty print!
+let t = new Test
+//│ t = Test pretty print!
+
+set Test.prototype.(Symbols.prettyPrint) = () => ["Test pretty print!!"]
+
+t
+//│ = ???
+
 

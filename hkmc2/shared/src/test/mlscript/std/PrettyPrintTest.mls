@@ -4,6 +4,7 @@ import "../../mlscript-compile/Rendering.mls"
 
 open Rendering
 
+
 // We set `breakLength` to 74. With the `print` function and diff test comments
 // added, we can use an 80-character-wide ruler to check whether line breaks
 // work correctly.
@@ -92,7 +93,7 @@ show of
 //│ > }                                                                         ┊
 
 show of Array(10)
-//│ > [<10 empty items>]                                                        ┊
+//│ > [‹10 empty items›]                                                        ┊
 
 show of [-100, ...Array(5), BigInt("10000000")]
 //│ > [-100, undefined, undefined, undefined, undefined, undefined, 10000000n]  ┊
