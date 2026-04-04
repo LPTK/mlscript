@@ -146,6 +146,9 @@ let Predef1;
       return f.call(receiver, ...args)
     }
   } 
+  static mkThisFunction(f) {
+    return runtime.safeCall(RuntimeJS.mk_this_function(f))
+  } 
   static equals(a, b) {
     let scrut, scrut1, scrut2, ac, scrut3, md, scrut4, scrut5, scrut6, scrut7, scrut8, scrut9, scrut10, scrut11, lambda, lambda1, tmp, tmp1, tmp2;
     scrut = a === b;

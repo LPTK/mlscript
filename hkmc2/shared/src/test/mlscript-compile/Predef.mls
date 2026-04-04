@@ -44,6 +44,9 @@ fun (|.) passToLo(receiver, f)(...args) = f(receiver, ...args)
 fun (|>.) call(receiver, f)(...args) = f.call(receiver, ...args)
 
 
+fun mkThisFunction(f) = RuntimeJS.mk_this_function(f)
+
+
 object Symbols with
   val prettyPrint = RuntimeJS.symbols.prettyPrint
   val definitionMetadata = RuntimeJS.symbols.definitionMetadata

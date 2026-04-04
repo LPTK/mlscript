@@ -24,7 +24,12 @@ const RuntimeJS = {
   },
   short_or(lhs, rhs) {
     return lhs || rhs();
-  }
+  },
+  mk_this_function(f) {
+    return function(...args) {
+      return f(this, ...args);
+    }
+  },
 }
 
 export default RuntimeJS;

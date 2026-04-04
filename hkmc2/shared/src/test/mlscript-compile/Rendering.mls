@@ -13,11 +13,12 @@ fun mkCustomLayout(...args) =
     else opt
   CustomLayout of
     args.0
-    start: get('start, "[")
-    end: get('end, "]")
+    start: get('start, "{")
+    end: get('end, "}")
     separator: get('separator, ",")
-    empty: get('empty, "[]")
+    empty: get('empty, "{}")
     padding: get('padding, false)
+
 
 
 module Rendering with ...
@@ -449,10 +450,14 @@ fun render(target, ...args) =
           let desc = Object.getOwnPropertyDescriptor(arg, "prototype")
           let head = if
             // ES 2015 classes: `desc.writable` is `false`.
-            desc is Object and desc.writable is false and
+            desc is Object and not desc.writable and
+              // desc.hasOwnProperty(prettyPrintSymbol) then
+              //   handlePrettyPrintResult(arg.(prettyPrintSymbol)(mkCustomLayout), level, keyLength, startPos)
+              // ctor.hasOwnProperty(prettyPrintSymbol) then throw 1
+              let ctor = desc.value.constructor
               // If it is from MLscript, use the kind written in metadata.
-              desc.value.constructor.hasOwnProperty(definitionMetadataSymbol) and
-                desc.value.constructor.(definitionMetadataSymbol) is [kind, name, ...] then
+              ctor.hasOwnProperty(definitionMetadataSymbol) and
+                ctor.(definitionMetadataSymbol) is [kind, name, ...] then
                   kind + " " + name
               arg.name is "" then "class" // Show "class" if there is no name.
               else "class " + arg.name // Or, we can use the name.

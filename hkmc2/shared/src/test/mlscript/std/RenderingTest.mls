@@ -461,28 +461,38 @@ renderAsStr of globalThis.Iterator
 // * Customization
 // ===================
 
-class Test
+class Test(val a)
 
 Test
-//│ = class Test
+//│ = fun Test { class: class Test }
 
-new Test
-//│ = Test
+new Test(123)
+//│ = Test(123)
 
-set Test.prototype.(Symbols.prettyPrint) = (mk) => "Test pretty print!"
+fun setProto(value) =
+  set Test.class.prototype.(Symbols.prettyPrint) = value
+
+
+set Test.class.prototype.(Symbols.prettyPrint) = (mk) => "Test pretty print!"
 
 Test
-//│ = class Test
+//│ = fun Test { class: class Test }
 
-let t = new Test
+Test.class.prototype.(Symbols.prettyPrint)
+//│ = fun
+
+let t = new Test(123)
 //│ t = "Test pretty print!"
 
-set Test.prototype.(Symbols.prettyPrint) = (layout) => ["Test pretty print!!"]
+t.constructor.prototype.(Symbols.prettyPrint)
+//│ = fun
+
+set Test.class.prototype.(Symbols.prettyPrint) = (layout) => ["Test pretty print!!"]
 
 t
 //│ = ["Test pretty print!!"]
 
-set Test.prototype.(Symbols.prettyPrint) = (layout) =>
+set Test.class.prototype.(Symbols.prettyPrint) = (layout) =>
   layout(["Test", "pretty", "print!!"], start: "{| ", end: " |}", separator: " | ", empty: "{|}")
 
 t
@@ -495,7 +505,14 @@ t
 //│ }
 //│ {| "Test" |  "pretty" |  "print!!" |}
 
-set Test.prototype.(Symbols.prettyPrint) = (layout) =>
+set Test.class.prototype.(Symbols.prettyPrint) = mkThisFunction of (self, layout) =>
+  layout(["Test", "pretty", self, "print!!", self.a])
+
+t
+//│ = CustomLayout { start: '{', end: '}', separator: ',', empty: '{}', padding: false }
+//│ {"Test", "pretty", ref'1, "print!!", 123} as ref'1
+
+set Test.class.prototype.(Symbols.prettyPrint) = (layout) =>
   layout(["Test", "pretty", t, "print!!"], start: "{| ", end: " |}", separator: " | ", empty: "{|}")
 
 t
@@ -508,7 +525,7 @@ t
 //│ }
 //│ {| "Test" |  "pretty" |  ref'1 |  "print!!" |} as ref'1
 
-set Test.prototype.(Symbols.prettyPrint) = (layout) =>
+set Test.class.prototype.(Symbols.prettyPrint) = (layout) =>
   layout(["Test", "test", "test", "test", "prettttttttttttty", "print!!!!!!!!!!!!"], start: "{| ", end: " |}", separator: " | ", empty: "{|}")
 
 t
