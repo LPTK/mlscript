@@ -1,6 +1,25 @@
 import "./RuntimeJS.mjs"
 
 
+data class CustomLayout(elems, symbols)
+
+fun mkCustomLayout(...args) =
+  let options =
+    if args.length > 1 then args.1
+    else {}
+  fun get(x, d) = if
+    let opt = options.(x)
+    opt is undefined then d
+    else opt
+  CustomLayout of
+    args.0
+    start: get('start, "[")
+    end: get('end, "]")
+    separator: get('separator, ",")
+    empty: get('empty, "[]")
+    padding: get('padding, false)
+
+
 module Rendering with ...
 
 
@@ -94,8 +113,12 @@ let symbolsForMap(n: Int) =
 // Note: We don't yet have optional arguments `arg?`, so we use a hacky `...args` spread argument instead
 fun render(target, ...args) =
   
+  // TODO: remove all the duplicated `itemIndentationLength` boilerplate (and similar)
+  
   let
-    options = if args is [options, ...] then options else emptyOptions
+    options = if args is
+      [options] then options
+      [] then emptyOptions
     indent = if
       options is (:indent) and indent is
         true then "  " // The default indentation is of two spaces.
@@ -146,7 +169,7 @@ fun render(target, ...args) =
         Reflect.has(array, i) then set isDone = false
         else
           set { emptyItemCount += 1, i += 1 }
-      (emptyItemCount === 0) && (if isDone is null then true else isDone)
+      emptyItemCount === 0 and (isDone is null) || isDone
     let next(isFirst: Bool, prefixLength: Int) = if
       emptyItemCount > 0 then
         let emptyItemCount' = emptyItemCount
@@ -364,9 +387,26 @@ fun render(target, ...args) =
       lengthIfBreakParent <= breakLength then layoutSingleLine()
       else layoutMultiLine()
   
-  fun handlePrettyPrintResult(result, level) = if result is
-    Str then result indentText(level)
-    Array then "???"
+  fun handlePrettyPrintResult(result, level, keyLength, startPos) = if result is
+    // Str then result indentText(level)
+    // Array then "???"
+    CustomLayout(elems, symbols) then
+      console.log("CustomLayout", symbols)
+      let
+        length = elems.length
+        i = 0
+        itemIndentationLength = if indent is null then 0 else (level + 1) * indent.length
+      let done() = i >= length
+      let next(isFirst: Bool, prefixLength: Int) =
+        let value = elems.[i]
+        do set i += 1
+        let
+          prefixLengthIfSameLine = prefixLength + (if isFirst then 0 else 2)
+          valueStartLength = if prefixLengthIfSameLine > breakLength
+            then itemIndentationLength else prefixLengthIfSameLine
+        renderValue(value, level + 1, 0, valueStartLength)
+      renderSequence of done, next, level, keyLength, startPos, symbols
+    else renderValue(result, level, keyLength, startPos)
   
   fun renderValue(arg, level, keyLength, startPos) = if
     arg is // Primitive values
@@ -436,7 +476,7 @@ fun render(target, ...args) =
           proto.constructor is Function and
             // Call its implementation of `prettyPrint` if defined.
             proto.hasOwnProperty(prettyPrintSymbol) then
-              handlePrettyPrintResult(arg.(prettyPrintSymbol)(), level)
+              handlePrettyPrintResult(arg.(prettyPrintSymbol)(mkCustomLayout), level, keyLength, startPos)
             // If the symbol `definitionMetadata` is defined on the constructor,
             // we render the function using the provided field names.
             proto.constructor.hasOwnProperty(definitionMetadataSymbol) and

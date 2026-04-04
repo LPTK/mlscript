@@ -236,7 +236,7 @@ package object utils {
     msg.toString + s" (of class ${msg.getClass().getSimpleName()})")
   def TODO(msg: Any, cond: Bool): Unit = if (cond) TODO(msg)
   def die: Nothing = lastWords("Program reached an unexpected state.")
-  def lastWords(msg: String): Nothing = throw new Exception(s"Internal Error: $msg")
+  def lastWords(msg: String): Nothing = throw new RuntimeException(s"Internal Error: $msg")
   def wat(msg: String, obj: Any): Nothing = lastWords(s"$msg ($obj)")
   def wat(obj: Any): Nothing = wat(s"unexpected value", obj)
   

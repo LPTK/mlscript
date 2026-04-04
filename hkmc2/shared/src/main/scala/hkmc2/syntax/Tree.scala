@@ -577,7 +577,7 @@ trait TypeDefImpl(using State) extends TypeOrTermDef:
       val pts = tup.fields
       val inUsing = pts.headOption.exists(_.isModified(Ins))
       pts.flatMap(_.asParam(inUsing = inUsing).toOption).map:
-        case ParamTree(spd = S(_)) => lastWords("spreads are not allowed in class parameters")
+        case ParamTree(spd = S(_)) => TODO("spreads are not allowed in class parameters")
         case ParamTree(ident = id) => TermSymbol(ParamBind, symbol.asClsLike, id)
       .toList
     
