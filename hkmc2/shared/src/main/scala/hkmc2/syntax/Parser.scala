@@ -474,9 +474,32 @@ abstract class Parser(
             consume
             prefixRules.getKwAlt(kw, S(loc)) match
             case S(subRule) =>
-              val e = exprCont(
-                parseRule(kw.rightPrecOrMin, subRule, allowNewlines = allowNewlines)
-                  .getOrElse(errExpr), prec, allowNewlines = allowNewlines)
+              val e = yeetSpaces match
+                case (br @ BRACKETS(_: Indent_Curly, toks), _brLoc) :: _
+                if subRule.blkAlt.isEmpty && (subRule.kwAlts.nonEmpty || subRule.exprAlt.isDefined) =>
+                  // * Enter this indented block to parse the continuation of a prefix keyword,
+                  // * but only when the subrule doesn't already have its own block handler (`blkAlt.isEmpty`)
+                  // * and has keyword or expression alternatives to parse (`kwAlts.nonEmpty || exprAlt.isDefined`).
+                  // * This skips block entry for keywords registered via `singleKw` (e.g., `true`, `false`,
+                  // * `undefined`, `null`, `this`) whose continuation rule is end-only — they produce a
+                  // * `ParseRule(end(v))` with no `kwAlts`, no `exprAlt`, and no `blkAlt`.
+                  // * Without this guard, `if true` followed by an indented `then`/`else` would consume the
+                  // * block trying to parse `true`'s empty continuation, losing the `then`/`else` tokens.
+                  consume
+                  val blk = rec(toks, S(br.innerLoc), br.describe)
+                    .concludeWith(_.blockOf(subRule, Nil, allowNewlines = true))
+                  val tree = blk match
+                    case Nil =>
+                      err(msg"Expected ${subRule.whatComesAfter} ${subRule.mkAfterStr}; found empty block instead"
+                        -> S(_brLoc) :: Nil)
+                      errExpr
+                    case single :: Nil => single
+                    case multiple => Block(multiple)
+                  exprCont(tree, prec, allowNewlines = allowNewlines)
+                case _ =>
+                  exprCont(
+                    parseRule(kw.rightPrecOrMin, subRule, allowNewlines = allowNewlines)
+                      .getOrElse(errExpr), prec, allowNewlines = allowNewlines)
               parseRule(prec, exprAlt.rest, allowNewlines = allowNewlines).map(res => exprAlt.k(e, res))
             case N =>
               tryEmpty(tok, loc)
@@ -1080,7 +1103,7 @@ abstract class Parser(
         // Otherwise, `do` will be parsed as an infix operator
       =>
         consume
-        exprCont(acc, prec, allowNewlines = false)
+        exprCont(acc, prec, allowNewlines = allowNewlines)
         
       case (br @ BRACKETS(bk @ (_: Indent_Curly), toks @ ((KEYWORD(kw), _) :: _)), loc) :: _
       if kw.leftPrecOrMin > prec
