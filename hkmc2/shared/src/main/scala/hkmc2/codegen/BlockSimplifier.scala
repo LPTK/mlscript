@@ -429,14 +429,15 @@ class BlockSimplifier
       // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
       // println(s"Applying value: ${v} with assignedResults map: ${assignedResults} ${capturedVars}")
       v match
-      case Value.Ref(loc, N) if !capturedVars(loc) && !inDryRun =>
+      // case Value.Ref(loc, N) if !capturedVars(loc) && !inDryRun =>
+      case Value.Ref(loc, N) if !inDryRun =>
         assignedResults.get(loc) match
         case S(rs) =>
           log(s"Assigned ${loc.showDbg} := ${rs}")
           // registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
           var curRs = rs
           var curLoc = loc
-          var value: Value = null
+          var value: Value | Bool = false
           while curRs.nonEmpty do
             // println(s">>> ${curRs} for ${curLoc}")
             val r = curRs.head
@@ -448,13 +449,17 @@ class BlockSimplifier
               // case N => ()
               curLoc = loc2
             case newValue @ Value.Lit(_) =>
-              if value =/= null && value =/= newValue then
-                return super.applyValue(v)(k)
-              value = newValue
+              if value === false then
+                value = newValue
+              else if value =/= newValue then
+                // return super.applyValue(v)(k)
+                value = true
             case _ =>
-              // return applyValue(r)(k)
-              return super.applyValue(v)(k)
-          if value === null then
+              // // return applyValue(r)(k)
+              // return super.applyValue(v)(k)
+              value = true
+          /* 
+          if value === false then
             if curLoc is loc then super.applyValue(v)(k)
             else
               registerChange(s"${loc.showDbg} ~> ${curLoc.showDbg}")
@@ -462,6 +467,20 @@ class BlockSimplifier
           else
             registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
             k(value)
+          */
+          value match
+          case false =>
+            // Value was never assigned
+            super.applyValue(Value.Lit(syntax.Tree.UnitLit(false)))(k)
+          case true =>
+            // Value was not assigned a single literal value
+            if curLoc is loc then super.applyValue(v)(k)
+            else
+              registerChange(s"${loc.showDbg} ~> ${curLoc.showDbg}")
+              k(Value.Ref(curLoc, N))
+          case newValue: Value =>
+            registerChange(s"${loc.showDbg} ~> ${newValue.showDbg}")
+            k(newValue)
         case _ => super.applyValue(v)(k)
       case _ => super.applyValue(v)(k)
     
