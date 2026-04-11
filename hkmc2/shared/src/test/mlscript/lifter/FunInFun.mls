@@ -521,24 +521,8 @@ let _refChoice = () => if
   true then
     let process''() = 0
 _refChoice
-//│ > let _refChoice, lambda3, lambda4, process$_$_, process$_$_1;try { lambda4 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   let scrut, scrut1, arg$Some$0$;   scrut = 0;   if (scrut instanceof Some1.class) {     arg$Some$0$ = 0.x;     if (arg$Some$0$ === 0) {       return runtime.Unit     }     scrut1 = true;     if (scrut1 === true) {       return runtime.Unit     }     throw globalThis.Object.freeze(new globalThis.Error("match error"));   }   scrut1 = true;   if (scrut1 === true) {     return runtime.Unit   }   throw globalThis.Object.freeze(new globalThis.Error("match error")); }); _refChoice = lambda4; block$res35 = lambda4; undefined; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
-//│ >                                                                                                                                                                                                                                                                  ^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:246)
-//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] ReferenceError: _refChoice is not defined
-//│     at REPL130:1:42
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ = fun
+//│ _refChoice = fun
 
 :expect 2
 fun f =

@@ -44,6 +44,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   val showOptimizedIR = NullaryCommand("soir")
   val showOptimizedTree = NullaryCommand("olot")
   val debugOptimizations = NullaryCommand("dopt")
+  val noOptimizations = NullaryCommand("noOpt")
   val showContext = NullaryCommand("ctx")
   val parseOnly = NullaryCommand("parseOnly")
   val funcToCls = NullaryCommand("ftc")

@@ -393,7 +393,7 @@ map(x => x + 4, enumFromTo(1, 4))
 //│ deforest > 	Select(Ref(ls,None),Ident(h))
 //│ deforest > <<< fusing <<<
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
 //│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
 //│     at REPL62:1:682
 //│     at REPL62:1:2110
@@ -406,7 +406,7 @@ map(x => x + 4, enumFromTo(1, 4))
 //│     at REPLServer.emit (node:domain:488:12)
 //│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:291)
 //│ ═══[RUNTIME ERROR] Expected: 'Cons(5, Cons(6, Cons(7, Nil)))', got: 'undefined'
 
 
