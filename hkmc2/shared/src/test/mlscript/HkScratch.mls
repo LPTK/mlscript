@@ -12,12 +12,19 @@
 
 :sir
 :soir
+:dopt
 let x = 1
 x + 2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let x⁰; set x⁰ = 1; +⁰(x⁰, 2)
+//│ ⬤ Simplif. iter. 1
+//│ Assigned x⁰ := Vector(Lit(IntLit(1)))
+//│ !! Change triggered { x⁰ ~> 1 } at BlockSimplifier.scala:425
+//│ ▶ VP:
+//│ >  let x⁰; set x⁰ = 1; +⁰(1, 2)
+//│ ⬤ Simplif. iter. 2
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁰; set x⁰ = 1; +⁰(x⁰, 2)
+//│ let x⁰; set x⁰ = 1; +⁰(1, 2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 //│ x = 1
@@ -40,7 +47,7 @@ fun main =
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let main⁰; define main⁰ as fun main¹() { let x; set x = 1; return +⁰(x, 2) }; end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let main⁰; define main⁰ as fun main¹() { let x; set x = 1; return +⁰(x, 2) }; end
+//│ let main⁰; define main⁰ as fun main¹() { return +⁰(1, 2) }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :sir
@@ -54,8 +61,20 @@ fun main =
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let main²; define main² as fun main³() { let x, y; set x = 1; set y = x; return y }; end
 //│ ⬤ Simplif. iter. 1
+//│ Assigned x¹ := Vector(Lit(IntLit(1)))
+//│ !! Change triggered { x¹ ~> 1 } at BlockSimplifier.scala:425
+//│ Assigned y⁰ := Vector(Lit(IntLit(1)), Ref(x,None))
+//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:425
+//│ ▶ VP:
+//│ >  let main²; define main² as fun main³() { let x, y; set x = 1; set y = 1; return 1 }; end
+//│ ⬤ Simplif. iter. 2
+//│ !! Change triggered { rm x¹ = 1 } at BlockSimplifier.scala:206
+//│ !! Change triggered { rm y⁰ = 1 } at BlockSimplifier.scala:206
+//│ ▶ DCE:
+//│ >  let main²; define main² as fun main³() { return 1 }; end
+//│ ⬤ Simplif. iter. 3
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let main²; define main² as fun main³() { let x, y; set x = 1; set y = x; return y }; end
+//│ let main²; define main² as fun main³() { return 1 }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :sir
@@ -71,9 +90,11 @@ fun main =
 //│ define main⁴ as fun main⁵() { let x, y, z; set x = 1; set y = x; set z = y; return +⁰(y, 2) };
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let main⁴; define main⁴ as fun main⁵() { let x, y; set x = 1; set y = x; return +⁰(y, 2) }; end
+//│ let main⁴; define main⁴ as fun main⁵() { return +⁰(1, 2) }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+:exit
+====================================================================================================
 
 :sir
 :soir
@@ -135,7 +156,7 @@ let {x,y}
 x = y
 y = x
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x¹, y⁰; set x¹ = y⁰; set y⁰ = x¹; end
+//│ let x², y¹; set x² = y¹; set y¹ = x²; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -147,8 +168,9 @@ x = y
 y = z
 z = x
 //│ ⬤ Simplif. iter. 1
+//│ Assigned x³ := Vector(Ref(y,None))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x², y¹, z⁰; set x² = y¹; set y¹ = z⁰; set z⁰ = x²; end
+//│ let x³, y², z⁰; set x³ = y²; set y² = z⁰; set z⁰ = x³; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -161,8 +183,10 @@ x = y
 y = x
 z = y
 //│ ⬤ Simplif. iter. 1
+//│ Assigned x⁴ := Vector(Ref(y,None))
+//│ Assigned y³ := Vector(Ref(y,None), Ref(x,None))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x³, y², z¹; set x³ = y²; set y² = x³; set z¹ = y²; end
+//│ let x⁴, y³, z¹; set x⁴ = y³; set y³ = x⁴; set z¹ = y³; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -191,6 +215,7 @@ fun main =
   x = 2
   x
 //│ ⬤ Simplif. iter. 1
+//│ Assigned x⁵ := Vector(Lit(IntLit(2)))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let main⁸; define main⁸ as fun main⁹() { let x; set x = 1; set x = 2; return x }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

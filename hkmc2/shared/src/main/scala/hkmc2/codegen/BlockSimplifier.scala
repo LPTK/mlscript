@@ -76,7 +76,7 @@ class BlockSimplifier
     
     var changed = false
     def registerChange(dbg: => Str)(using Line) =
-      log(s"Change triggered (${dbg}) at ${summon[FileName].value}:${summon[Line].value}")
+      log(s"!! Change triggered { ${dbg} } at ${summon[FileName].value}:${summon[Line].value}")
       changed = true
     
   end Helper
@@ -319,6 +319,115 @@ class BlockSimplifier
       end new
       applyProgram(prog)
     end apply
+    
+    
+    type AssignedResults = Map[Local, Vector[Result]]
+    val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Vector.empty)
+    
+    var assignedResults: AssignedResults = emptyAssignedResults
+    
+    val atLabelBegin: MutMap[LabelSymbol, AssignedResults] = MutMap.empty
+    val atLabelEnd: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
+    
+    def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
+      mergeMap(ar1, ar2)(_ ++ _)
+    
+    override def applyBlock(b: Block): Block =
+      // log(s"Applying block: ${b} with assignedValue map: ${assignedValue} ${capturedVars}")
+      b match
+      case Assign(lhs, rhs, rst) if !capturedVars(lhs) =>
+        // log(s"Propagating ${rhs} to reference of ${lhs} (${assignedValue.get(lhs)})")
+        /* 
+        assignedResults = assignedResults.updatedWith(lhs):
+          case S(old) =>
+            S(old :+ rhs)
+          case N => S(Vector.single(rhs))
+        */
+        // assignedResults += lhs -> Vector.single(rhs)
+        assignedResults += lhs -> rhs.match
+          case Value.Ref(sym, N) => assignedResults(sym) :+ rhs
+          // TODO: also handle Value.This
+          case _ => Vector.single(rhs)
+        super.applyBlock(b)
+      // case Label(loop = true) =>
+      //   // withAssignedValues(new IdentityHashMap):
+      //   //   super.applyBlock(b)
+      //   ???
+      case Label(label, loop, body, rest) =>
+        if loop then println("TODO")
+        assert(!atLabelBegin.contains(label) && !atLabelEnd.contains(label))
+        atLabelBegin.put(label, assignedResults)
+        val newBody = applyBlock(body)
+        // atLabelEnd.put(label, assignedResults)
+        assignedResults = merge(assignedResults, atLabelEnd(label))
+        val newRest = applySubBlock(rest)
+        if (newBody is body) && (newRest is rest) then b
+        else Label(label, loop, newBody, newRest)
+      case Break(label) =>
+        // atLabelEnd.put(label, merge(atLabelEnd.getOrElse(label, Map.empty), assignedResults))
+        atLabelEnd.put(label, merge(atLabelEnd(label), assignedResults))
+        super.applyBlock(b)
+      case Match(scrut, arms, dflt, rest) =>
+        val oldAssigned = assignedResults
+        var curAssigned = oldAssigned
+        val newArms = arms.mapConserve:
+          case arm @ (cse, body) =>
+            val newBody = applyBlock(body)
+            curAssigned = merge(curAssigned, assignedResults)
+            assignedResults = oldAssigned
+            if newBody is body then arm else cse -> newBody
+        val newDflt = dflt.mapConserve:
+          case body =>
+            val newBody = applyBlock(body)
+            curAssigned = merge(curAssigned, assignedResults)
+            assignedResults = oldAssigned
+            if newBody is body then body else newBody
+        if newDflt.isEmpty then curAssigned = merge(curAssigned, assignedResults)
+        assignedResults = curAssigned
+        val restRewritten = applySubBlock(rest)
+        if (newArms is arms) && (newDflt is dflt) && (restRewritten is rest) then b
+        else Match(scrut, newArms, newDflt, restRewritten)
+      case _ => 
+        super.applyBlock(b)
+    
+    
+    override def applyValue(v: Value)(k: Value => Block): Block =
+      // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
+      v match
+      case Value.Ref(loc, N) if !capturedVars(loc) =>
+        assignedResults.get(loc) match
+        case S(rs) =>
+          log(s"Assigned ${loc.showDbg} := ${rs}")
+          // registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
+          var curRs = rs
+          var curLoc = loc
+          var value: Value = null
+          while curRs.nonEmpty do
+            println(s">>> ${curRs} for ${curLoc}")
+            val r = curRs.head
+            curRs = curRs.tail
+            r match
+            case Value.Ref(loc2, N) if !capturedVars(loc2) =>
+              // assignedResults.get(loc2) match
+              // case S(rs2) => cur ++= rs2
+              // case N => ()
+              curLoc = loc2
+            case newValue @ Value.Lit(_) =>
+              value = newValue
+            case _ =>
+              // return applyValue(r)(k)
+          if value === null then
+            if curLoc is loc then super.applyValue(v)(k)
+            else
+              registerChange(s"${loc.showDbg} ~> ${curLoc.showDbg}")
+              k(Value.Ref(curLoc, N))
+          else
+            registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
+            k(value)
+        case _ => super.applyValue(v)(k)
+      case _ => super.applyValue(v)(k)
+    
+    
     /* 
     override def applyBlock(b: Block): Block =
       // log(s"Applying block: ${b} with assignedValue map: ${assignedValue} ${capturedVars}")
