@@ -285,14 +285,16 @@ class BlockSimplifier
   /** Simple propagation of values inwards; does not require any merges at join points. */
   class ValuePropagation() extends BlockTransformer(SymbolSubst.Id), Helper:
     
-    val capturedVars = MutSet.empty[Local]
+    type LocalVar = LocalSymbol
+    
+    val capturedVars = MutSet.empty[LocalVar]
     // ^ TODO: technically, all we need to prevent is changes to `nonLocallyAssignedVars`,
     //    so we should compute that instead.
     /* 
     import java.util.IdentityHashMap
-    var assignedValue: IdentityHashMap[Local, Opt[Value]] = new IdentityHashMap
+    var assignedValue: IdentityHashMap[LocalVar, Opt[Value]] = new IdentityHashMap
     
-    def withAssignedValues[T](newAssigned: IdentityHashMap[Local, Opt[Value]])(thunk: => T): T =
+    def withAssignedValues[T](newAssigned: IdentityHashMap[LocalVar, Opt[Value]])(thunk: => T): T =
       val oldAssigned = assignedValue
       assignedValue = newAssigned
       val res = thunk
@@ -307,12 +309,12 @@ class BlockSimplifier
         override def applyDefn(defn: Defn): Unit =
           defn match
           case _: ClsLikeDefn | _: FunDefn =>
-            capturedVars ++= defn.freeVars
+            capturedVars ++= defn.freeVars.iterator.collect { case v: LocalVar => v }
           case _ =>
           super.applyDefn(defn)
         
         override def applyLam(lam: Lambda): Unit =
-          capturedVars ++= lam.freeVars
+          capturedVars ++= lam.freeVars.iterator.collect { case v: LocalVar => v }
         
         // override def applyBlock(b: Block): Block = b match
         //   case Assign(lhs, rhs, rst) if !capturedVars(lhs) =>
@@ -324,7 +326,7 @@ class BlockSimplifier
     end apply
     
     
-    type AssignedResults = Map[Local, Vector[Result]]
+    type AssignedResults = Map[LocalVar, Vector[Result]]
     val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Vector.empty)
     
     var assignedResults: AssignedResults = emptyAssignedResults
@@ -356,7 +358,7 @@ class BlockSimplifier
       // println(s"Applying block: ${b} with assignedResults map: ${assignedResults} ${capturedVars}")
       // log(s"Applying block: ${b} with assignedValue map: ${assignedValue} ${capturedVars}")
       b match
-      case Assign(lhs, rhs, rst) if !capturedVars(lhs) =>
+      case Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
         // log(s"Propagating ${rhs} to reference of ${lhs} (${assignedValue.get(lhs)})")
         /* 
         assignedResults = assignedResults.updatedWith(lhs):
@@ -366,7 +368,7 @@ class BlockSimplifier
         */
         // assignedResults += lhs -> Vector.single(rhs)
         assignedResults += lhs -> rhs.match
-          case Value.Ref(sym, N) =>
+          case Value.Ref(sym: LocalVar, N) =>
             // assignedResults(sym) :+ rhs
             val rhs2 = assignedResults(sym)
             if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
@@ -435,12 +437,13 @@ class BlockSimplifier
       // println(s"Applying value: ${v} with assignedResults map: ${assignedResults} ${capturedVars}")
       v match
       // case Value.Ref(loc, N) if !capturedVars(loc) && !inDryRun =>
-      case Value.Ref(loc, N) if !inDryRun =>
-        assignedResults.get(loc) match
-        case S(rs) if rs.isEmpty =>
+      case Value.Ref(loc: LocalVar, N) if !inDryRun && !loc.isInstanceOf[BlockMemberSymbol] =>
+        log(s"?? ${loc.showDbg} ${assignedResults.get(loc)}")
+        val rs = assignedResults(loc)
+        if rs.isEmpty then
           registerChange(s"${loc.showDbg} ~> undefined")
           k(Value.Lit(syntax.Tree.UnitLit(false)))
-        case S(rs) =>
+        else
           log(s"Assignments of ${loc.showDbg}: ${rs}")
           // registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
           var curRs = rs
@@ -498,7 +501,7 @@ class BlockSimplifier
           case newValue: Value =>
             registerChange(s"${loc.showDbg} ~> ${newValue.showDbg}")
             k(newValue)
-        case _ => super.applyValue(v)(k)
+        // case _ => super.applyValue(v)(k)
       case _ => super.applyValue(v)(k)
     
     
@@ -544,7 +547,7 @@ class BlockSimplifier
           registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
           // applyValue(value)(k) // SOF
           // k(value)
-          val traversed = new IdentityHashMap[Local, Unit]
+          val traversed = new IdentityHashMap[LocalVar, Unit]
           def go(value: Value): Block = value match
             // case Value.Ref(loc2, N) if !capturedVars(loc2) && !traversed.containsKey(loc2) =>
             //   traversed.put(loc2, null)
