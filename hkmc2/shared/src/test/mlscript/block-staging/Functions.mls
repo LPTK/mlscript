@@ -7,14 +7,12 @@ staged module Expressions with
   fun lit() =
     let x = 42
     x
-//│ ╔══[INTERNAL ERROR] [BlockChecker] Invalid IR: symbol x⁰ is bound more than once
-//│ ║  l.8: 	    let x = 42
-//│ ╙──     	        ^
 //│ > fun ctor_() = ()
 //│ > fun lit() =
 //│ >   let {x}
 //│ >   x = 42
 //│ >   x
+//│ FAILURE: Unexpected lack of error to fix
 
 let x = [1, 2, 3]
 staged module Expressions with
@@ -212,12 +210,6 @@ staged module LabelBreak with
     1 then 2
     else 2
 //│ ═══[COMPILATION ERROR] Other Blocks not supported in staged module: class hkmc2.codegen.Label.
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
-//│ ║  l.207: 	    let x = 1
-//│ ║         	        ^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.207: 	    let x = 1
-//│ ╙──       	        ^
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 
@@ -229,7 +221,7 @@ staged module A with
   fun g() = {1 : 2}
 //│ ═══[COMPILATION ERROR] Other Blocks not supported in staged module: class hkmc2.codegen.AssignField
 //│ ╔══[COMPILATION ERROR] Other Results not supported in staged module: class hkmc2.codegen.Record
-//│ ║  l.229: 	  fun g() = {1 : 2}
+//│ ║  l.221: 	  fun g() = {1 : 2}
 //│ ╙──       	                 ^
 //│ > fun ctor_() =
 //│ >   x = C(1)
@@ -239,6 +231,5 @@ staged module A with
 staged module Spread with
   fun f() = if [1, ..[1, 2]] is [1, ...x] then x else 0
 //│ ═══[COMPILATION ERROR] Spread parameters are not supported in staged module: Arg(Some(Lazy),Ref(tmp:tmp,None))
-//│ ═══[COMPILATION ERROR] No definition found in scope for member 'tmp'
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.

@@ -24,7 +24,7 @@ fun g() =
 //│ let g;
 //│ runtime.resetEffects();
 //│ g = function g() {
-//│   let a, scrut, tmp, pc;
+//│   let scrut, tmp, pc;
 //│   if (runtime.resumePc === -1) {
 //│     pc = 0;
 //│   } else {
@@ -41,8 +41,7 @@ fun g() =
 //│         }
 //│         return runtime.unwind(g, 3, "SavedVars.mls:17:8", null, null, 1, 0, 0);
 //│       case 1:
-//│         a = tmp;
-//│         return a;
+//│         return tmp;
 //│       case 2:
 //│         runtime.resumeValue;
 //│         tmp = 1;

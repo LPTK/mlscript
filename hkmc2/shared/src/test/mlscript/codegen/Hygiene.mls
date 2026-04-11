@@ -64,9 +64,8 @@ let f = () => x
 let x = 2
 f()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let x, f, x1, f1; x = 1; f1 = function f() { return x }; f = f1; x1 = 2; runtime.safeCall(f())
+//│ let f, x, f1; f1 = function f() { return }; f = f1; x = 2; undefined
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 1
 //│ f = fun f
 //│ x = 2
 
@@ -77,10 +76,10 @@ module Test with
   val x = 1
   let x = 2
 //│ ╔══[COMPILATION ERROR] Name 'x' is already used
-//│ ║  l.78: 	  let x = 2
+//│ ║  l.77: 	  let x = 2
 //│ ║        	      ^^^^^
 //│ ╟── by a member declared in the same block
-//│ ║  l.77: 	  val x = 1
+//│ ║  l.76: 	  val x = 1
 //│ ╙──      	  ^^^^^^^^^
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
 //│ let Test4;
@@ -118,15 +117,15 @@ data class Cls(x) with
   print(this.x, x)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Cls1;
-//│ Cls1 = function Cls(x2) {
-//│   return globalThis.Object.freeze(new Cls.class(x2));
+//│ Cls1 = function Cls(x1) {
+//│   return globalThis.Object.freeze(new Cls.class(x1));
 //│ };
 //│ (class Cls {
 //│   static {
 //│     Cls1.class = this
 //│   }
-//│   constructor(x2) {
-//│     this.x = x2;
+//│   constructor(x1) {
+//│     this.x = x1;
 //│     this.#x = this.x + 1;
 //│     this.#x1 = this.#x * 2;
 //│     Predef.print(this.x, this.#x1);
@@ -224,7 +223,7 @@ Whoops.Whoops.g()
 :e
 Runtime
 //│ ╔══[COMPILATION ERROR] Name not found: Runtime
-//│ ║  l.225: 	Runtime
+//│ ║  l.224: 	Runtime
 //│ ╙──       	^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

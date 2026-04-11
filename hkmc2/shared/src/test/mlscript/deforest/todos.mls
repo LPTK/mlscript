@@ -219,7 +219,22 @@ test(p) + f(p) + test(AA(AA(AA(10)))) + test(B)
 //│ set tmp10 = test_20$test¹(deforest$lam);
 //│ +⁰(tmp9, tmp10)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 78
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at tmp4 (REPL19:1:2797)
+//│     at REPL19:1:3125
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '78', got: 'undefined'
 //│ p = AA(AA(fun tmp))
 
 

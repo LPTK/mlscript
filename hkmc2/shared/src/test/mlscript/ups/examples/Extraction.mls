@@ -11,11 +11,41 @@ fun isItch(x) = x is @compile Itch
 
 :expect true
 isItch of Some(Some(Some(Some(Some(Some(Some(42)))))))
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at isItch (REPL19:1:351)
+//│     at REPL22:1:393
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'undefined'
 
 :expect false
 isItch of Some(Some(Some(Some(Some(Some(Some(Some(42))))))))
-//│ = false
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at isItch (REPL19:1:351)
+//│     at REPL25:1:461
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: 'false', got: 'undefined'
 
 :expect false
 isItch of 42
@@ -30,7 +60,19 @@ fun action(x) =
     "I don't know."
 
 action of Some(Some(Some(Some(Some("scratch")))))
-//│ = "Just scratch!"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at action (REPL34:1:415)
+//│     at REPL37:1:316
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 // Test the semantics of biased disjunction.
 
@@ -38,19 +80,79 @@ pattern BiasedOr1 = Some(1 | Some(_))
 fun biasedOr1(x) = x is @compile BiasedOr1
 
 biasedOr1 of Some(1)
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at biasedOr1 (REPL40:1:380)
+//│     at REPL43:1:92
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 biasedOr1 of Some(42)
-//│ = false
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at biasedOr1 (REPL40:1:380)
+//│     at REPL46:1:93
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 biasedOr1 of Some(Some(2))
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at biasedOr1 (REPL40:1:380)
+//│     at REPL49:1:146
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 biasedOr1 of Some(Some("hello"))
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at biasedOr1 (REPL40:1:380)
+//│     at REPL52:1:152
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 biasedOr1 of Some(Some(Some(Some(Some(Some(Some(Some(42))))))))
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at biasedOr1 (REPL40:1:380)
+//│     at REPL55:1:471
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 fun observeSome(x) =
   print("observe some " + x)
@@ -65,13 +167,35 @@ pattern LoggedBiasedOr =
   | Some((x => observePlain(x)) as res) => res
 
 print of Some(1) is @compile LoggedBiasedOr
-//│ > true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL67:1:357
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 if Some(Some(1)) is (@compile LoggedBiasedOr) as output then
   print("logged biased: " + output)
-//│ > observe some 1
-//│ > observe plain Some(1)
-//│ > logged biased: 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL70:1:568
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 // Make it a bit more complicated: biased disjunction with transformations.
 
@@ -82,18 +206,42 @@ pattern BiasedOr2 =
 :fixme // TODO: fix IR rebinding issue (each symbol should be bound at most once)
 :checkIR
 fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
-//│ ═══[INTERNAL ERROR] [BlockChecker] Invalid IR: symbol x⁰ is bound more than once
+//│ FAILURE: Unexpected lack of error to fix
 
 fun biasedOr2__naive(x) = if x is BiasedOr2(output) then output
 
 biasedOr2__compiled of Some(1)
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at biasedOr2__compiled (REPL76:1:590)
+//│     at REPL82:1:92
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 biasedOr2__naive of Some(1)
 //│ = 3
 
 biasedOr2__compiled of Some(Some(1))
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at biasedOr2__compiled (REPL76:1:590)
+//│     at REPL88:1:146
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 biasedOr2__naive of Some(Some(1))
 //│ = 2
@@ -106,13 +254,49 @@ pattern XorPair = Pair(None, Some(_)) | Pair(Some(_), None)
 fun xorPair(x) = if x is (@compile XorPair) as output then output else "failed"
 
 xorPair of Pair(None, None)
-//│ = "failed"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at xorPair (REPL100:1:452)
+//│     at REPL103:1:109
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 xorPair of Pair(None, Some(1))
-//│ = Pair(None, Some(1))
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at xorPair (REPL100:1:452)
+//│     at REPL106:1:153
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 xorPair of Pair(Some(56), None)
-//│ = Pair(Some(56), None)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at xorPair (REPL100:1:452)
+//│     at REPL109:1:154
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 fun xorPairInterp(x) = if x is XorPair as output then output else "failed"
 
@@ -131,15 +315,51 @@ pattern XorPairT = Pair(None, Some(_ => 111)) | Pair(Some(_), None)
 fun xorPairT(x) = if x is (@compile XorPairT) as output then output else "failed"
 
 xorPairT of Pair(None, None)
-//│ = "failed"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at xorPairT (REPL127:1:550)
+//│     at REPL130:1:109
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 // When one branch transforms a constructor field, both compiled and
 // interpreted matching rebuild a fresh `Pair` with the transformed field.
 xorPairT of Pair(None, Some(1))
-//│ = Pair(None, Some(111))
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at xorPairT (REPL127:1:550)
+//│     at REPL133:1:153
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 xorPairT of Pair(Some(56), None)
-//│ = Pair(Some(56), None)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at xorPairT (REPL127:1:550)
+//│     at REPL136:1:154
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 fun xorPairTInterp(x) = if x is XorPairT as output then output else "failed"
 
@@ -170,13 +390,49 @@ fun exactlyOneNone__naive(x) =
 // scrutinee as the output instead of synthesizing a plain record.
 
 exactlyOneNone of Triplet(None, Some(1), Some(2))
-//│ = Triplet(None, Some(1), Some(2))
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at exactlyOneNone (REPL157:1:573)
+//│     at REPL163:1:213
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 exactlyOneNone of Triplet(Some(1), None, Some(2))
-//│ = Triplet(Some(1), None, Some(2))
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at exactlyOneNone (REPL157:1:573)
+//│     at REPL166:1:213
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 exactlyOneNone of Triplet(Some(1), Some(2), None)
-//│ = Triplet(Some(1), Some(2), None)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at exactlyOneNone (REPL157:1:573)
+//│     at REPL169:1:213
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 // This now agrees with the naive compilation of patterns, which also returns
 // the scrutinee directly.
@@ -192,20 +448,95 @@ exactlyOneNone__naive of Triplet(Some(1), Some(2), None)
 
 :expect "failed"
 exactlyOneNone of Triplet(None, Some(1), None)
-//│ = "failed"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at exactlyOneNone (REPL157:1:573)
+//│     at REPL181:1:169
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '"failed"', got: 'undefined'
 
 :expect "failed"
 exactlyOneNone of Triplet(None, None, Some(1))
-//│ = "failed"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at exactlyOneNone (REPL157:1:573)
+//│     at REPL184:1:171
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '"failed"', got: 'undefined'
 
 :expect "failed"
 exactlyOneNone of Triplet(Some(1), None, None)
-//│ = "failed"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at exactlyOneNone (REPL157:1:573)
+//│     at REPL187:1:174
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '"failed"', got: 'undefined'
 
 :expect "failed"
 exactlyOneNone of Triplet(None, None, None)
-//│ = "failed"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at exactlyOneNone (REPL157:1:573)
+//│     at REPL190:1:127
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '"failed"', got: 'undefined'
 
 :expect "failed"
 exactlyOneNone of Triplet(Some(1), Some(2), Some(3))
-//│ = "failed"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at exactlyOneNone (REPL157:1:573)
+//│     at REPL193:1:268
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '"failed"', got: 'undefined'

@@ -87,7 +87,7 @@ class BlockSimplifier
   end Helper
   
   
-  type LocalVar = LocalSymbol
+  type LocalVar = LocalVarSymbol
   
   /* 
   object DefinedVars extends CachedAnalysis[Block, Set[LocalVar]]:
@@ -384,16 +384,23 @@ class BlockSimplifier
       defn match
       case _: ValDefn => super.applyDefn(defn)(k)
       case _: FunDefn | _: ClsLikeDefn =>
+        // if inDryRun then k(defn)
+        // else withFreshAssignedResults:
+        //   super.applyDefn(defn)(k)
         if inDryRun then k(defn)
-        else withFreshAssignedResults:
-          super.applyDefn(defn)(k)
+        else
+          val oldAssignedResults = assignedResults
+          assignedResults = emptyAssignedResults
+          super.applyDefn(defn): res =>
+            assignedResults = oldAssignedResults
+            k(res)
     
-    override def applyBlock(b: Block): Block =
+    override def applyBlock(b: Block): Block = trace[Block](s"Applying block: ${b} with map: ${assignedResults}", res => s"|- ${assignedResults}"):
       // println(s"Applying block: ${b} with assignedResults map: ${assignedResults} ${capturedVars}")
-      // log(s"Applying block: ${b} with assignedValue map: ${assignedValue} ${capturedVars}")
+      // log(s"Applying block: ${b} with map: ${assignedResults}")
       b match
       case Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
-        // log(s"Propagating ${rhs} to reference of ${lhs} (${assignedValue.get(lhs)})")
+        log(s"Propagating ${lhs} := ${rhs} (${assignedResults.get(lhs)})")
         /* 
         assignedResults = assignedResults.updatedWith(lhs):
           case S(old) =>
@@ -414,6 +421,10 @@ class BlockSimplifier
             else Vector.single(rhs)
           // TODO: also handle Value.This
           case _ => Vector.single(rhs)
+        log(s"NEW assignedResults: ${assignedResults}")
+        super.applyBlock(b)
+      case Assign(lhs, rhs, rst) =>
+        log(s"Not propagating ${rhs} := ${lhs}")
         super.applyBlock(b)
       // case Label(loop = true) =>
       //   // withAssignedValues(new IdentityHashMap):

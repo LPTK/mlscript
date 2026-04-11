@@ -27,32 +27,20 @@ handle gen = Generator with
     res.push(result)
     resume(())
 in permutations(gen, [1, 2, 3, 4])
-//│ res = [
-//│   [1, 2, 3, 4],
-//│   [1, 2, 4, 3],
-//│   [1, 3, 2, 4],
-//│   [1, 3, 4, 2],
-//│   [1, 4, 2, 3],
-//│   [1, 4, 3, 2],
-//│   [2, 1, 3, 4],
-//│   [2, 1, 4, 3],
-//│   [2, 3, 1, 4],
-//│   [2, 3, 4, 1],
-//│   [2, 4, 1, 3],
-//│   [2, 4, 3, 1],
-//│   [3, 1, 2, 4],
-//│   [3, 1, 4, 2],
-//│   [3, 2, 1, 4],
-//│   [3, 2, 4, 1],
-//│   [3, 4, 1, 2],
-//│   [3, 4, 2, 1],
-//│   [4, 1, 2, 3],
-//│   [4, 1, 3, 2],
-//│   [4, 2, 1, 3],
-//│   [4, 2, 3, 1],
-//│   [4, 3, 1, 2],
-//│   [4, 3, 2, 1]
-//│ ]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'produce')
+//│     at Handler$genWithPrefix$produce (REPL13:1:1378)
+//│     at EffectSig.handlerFun (REPL13:1:453)
+//│     at Runtime.handleEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:984:35)
+//│     at Runtime.handleEffects (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:941:23)
+//│     at Runtime.handleBlockImpl (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:926:20)
+//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:935:20)
+//│     at permutations_impl (REPL13:1:6552)
+//│     at permutations (REPL13:1:7349)
+//│     at handleBlock$1 (REPL16:1:2133)
+//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
+//│ res = []
 
 fun permutations_foreach(l, f) =
   handle gen = Generator with
@@ -92,4 +80,17 @@ handle gen = Generator with
     let x = resume(())
     x
 in permutations(gen, [1, 2, 3])
-//│ res = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'produce')
+//│     at Handler$genWithPrefix$produce (REPL23:1:1029)
+//│     at EffectSig.handlerFun (REPL23:1:461)
+//│     at Runtime.handleEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:984:35)
+//│     at Runtime.handleEffects (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:941:23)
+//│     at Runtime.handleBlockImpl (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:926:20)
+//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:935:20)
+//│     at permutations_impl (REPL23:1:6683)
+//│     at permutations (REPL23:1:7485)
+//│     at handleBlock$4 (REPL26:1:2450)
+//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
+//│ res = []

@@ -98,14 +98,8 @@ fun f = while print("checking"); i < 3
   else return print("ok")
 f
 //│ > checking
-//│ > not yet
-//│ > checking
-//│ > not yet
-//│ > checking
-//│ > not yet
-//│ > checking
 //│ > ok
-//│ i = 3
+//│ i = 0
 
 
 // :sjs
@@ -194,14 +188,12 @@ fun f(ls) =
 //│ let f6;
 //│ f6 = function f(ls) {
 //│   lbl6: while (true) {
-//│     let tl, h, arg$Cons$0$, arg$Cons$1$;
+//│     let arg$Cons$0$, arg$Cons$1$;
 //│     if (ls instanceof Cons1.class) {
 //│       arg$Cons$0$ = ls.hd;
 //│       arg$Cons$1$ = ls.tl;
-//│       tl = arg$Cons$1$;
-//│       h = arg$Cons$0$;
-//│       ls = tl;
-//│       Predef.print(h);
+//│       ls = arg$Cons$1$;
+//│       Predef.print(arg$Cons$0$);
 //│       continue lbl6
 //│     }
 //│     break;
@@ -266,7 +258,9 @@ fun f() =
   // Calls the saved lambda
   savedLambda()
 f()
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: '()'
 
 
 class Lazy[out A](f: () -> A) with
@@ -288,10 +282,25 @@ while i < arr.length do
   output.push(new Lazy(() => elem))
   set i += 1
 [output.[0].get, output.[1].get, output.[2].get]
-//│ = [1, 2, 3]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'length')
+//│     at REPL116:1:405
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '[1, 2, 3]', got: 'undefined'
 //│ arr = [1, 2, 3]
-//│ i = 3
-//│ output = [Lazy(_), Lazy(_), Lazy(_)]
+//│ i = 0
+//│ output = []
 
 :expect [1, 2, 3]
 :lift
@@ -317,10 +326,10 @@ while print("Hello World"); false
   then 0(0)
   else 1
 //│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.317: 	  then 0(0)
+//│ ║  l.326: 	  then 0(0)
 //│ ╙──       	  ^^^^
 //│ ╔══[COMPILATION ERROR] Unrecognized term split (false literal)
-//│ ║  l.316: 	while print("Hello World"); false
+//│ ║  l.325: 	while print("Hello World"); false
 //│ ╙──       	                            ^^^^^
 //│ > Hello World
 
@@ -329,12 +338,12 @@ while { print("Hello World"), false }
   then 0(0)
   else 1
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'then' here
-//│ ║  l.328: 	while { print("Hello World"), false }
+//│ ║  l.337: 	while { print("Hello World"), false }
 //│ ║         	        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.329: 	  then 0(0)
+//│ ║  l.338: 	  then 0(0)
 //│ ╙──       	^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Illegal position for prefix keyword 'else'.
-//│ ║  l.330: 	  else 1
+//│ ║  l.339: 	  else 1
 //│ ╙──       	  ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -345,14 +354,14 @@ while
   then 0(0)
   else 1
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'then' here
-//│ ║  l.343: 	    print("Hello World")
+//│ ║  l.352: 	    print("Hello World")
 //│ ║         	    ^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.344: 	    false
+//│ ║  l.353: 	    false
 //│ ║         	^^^^^^^^^
-//│ ║  l.345: 	  then 0(0)
+//│ ║  l.354: 	  then 0(0)
 //│ ╙──       	^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Illegal position for prefix keyword 'else'.
-//│ ║  l.346: 	  else 1
+//│ ║  l.355: 	  else 1
 //│ ╙──       	  ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

@@ -138,16 +138,64 @@ print of or_.show
 //│ > λp. λq. p p q
 
 id_x <~> id_y
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'underlying')
+//│     at file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/MutMap.mjs:35:34
+//│     at Predef.pipeInto (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Predef.mjs:102:29)
+//│     at go (REPL28:1:1852)
+//│     at alphaEquivalent (REPL28:1:3962)
+//│     at REPL36:1:39
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
 
 id_x <~> id_a
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'underlying')
+//│     at file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/MutMap.mjs:35:34
+//│     at Predef.pipeInto (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Predef.mjs:102:29)
+//│     at go (REPL28:1:1852)
+//│     at alphaEquivalent (REPL28:1:3962)
+//│     at REPL39:1:39
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
 
 id_x <~> succ
-//│ = false
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'underlying')
+//│     at file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/MutMap.mjs:35:34
+//│     at Predef.pipeInto (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Predef.mjs:102:29)
+//│     at go (REPL28:1:1852)
+//│     at alphaEquivalent (REPL28:1:3962)
+//│     at REPL42:1:39
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
 
 zero <~> false_
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'underlying')
+//│     at file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/MutMap.mjs:35:34
+//│     at Predef.pipeInto (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Predef.mjs:102:29)
+//│     at go (REPL28:1:1852)
+//│     at alphaEquivalent (REPL28:1:3962)
+//│     at REPL45:1:39
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
 
 fun subst(term, name, target) = if term is
   Var(name') and
@@ -252,7 +300,22 @@ step of App(App(id_x, Var("b")), Var("c"))
 
 :expect "(λb. b) λx. x"
 step(App(App(id_a, id_b), id_x)).show
-//│ = "(λb. b) λx. x"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at lambda8 (REPL78:1:15872)
+//│     at step (REPL93:1:596)
+//│     at REPL108:1:165
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '"(λb. b) λx. x"', got: 'undefined'
 
 :expect "λy. y"
 step(App(id_x, id_y)).show
@@ -265,13 +328,37 @@ fun evalByValue(term) =
   term
 
 evalByValue(App(id_x, App(id_x, App(id_x, App(id_x, id_y))))).show
-//│ = "λy. y"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'show')
+//│     at get show (REPL16:1:6556)
+//│     at REPL117:1:317
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 evalByValue(App(succ, zero)).show
 //│ = "λf. λx. f ((λf. λx. x) f x)"
 
 evalByValue(App(succ, App(succ, zero))).show
-//│ = "λf. λx. f ((λf. λx. f ((λf. λx. x) f x)) f x)"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'show')
+//│     at get show (REPL16:1:6556)
+//│     at REPL123:1:205
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 :fixme
 // More inconsistent origin locations to fix...
@@ -281,16 +368,16 @@ fun evalByValue'(term) =
       set term = remake(subterm)
     else term
 //│ ╔══[COMPILATION ERROR] Pattern chaining is not supported in pattern compilation.
-//│ ║  l.214: 	      App(Abs as lhs, Context(Hole) as [rhs, remake]) =>
+//│ ║  l.262: 	      App(Abs as lhs, Context(Hole) as [rhs, remake]) =>
 //│ ╙──       	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Pattern chaining is not supported in pattern compilation.
-//│ ║  l.217: 	      App(Context(Hole) as [lhs, remake], Term as rhs) =>
+//│ ║  l.265: 	      App(Context(Hole) as [lhs, remake], Term as rhs) =>
 //│ ╙──       	          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.282: 	    else term
+//│ ║  l.369: 	    else term
 //│ ╙──       	         ^^^^
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.282: 	    else term
+//│ ║  l.369: 	    else term
 //│ ╙──       	         ^^^^
 
 object ByName with
@@ -338,8 +425,19 @@ print of omega.show
 
 stepByStep(ByValue, t, 10)
 //│ > Term: (λx. λa. a) (λx. x) λy. y
-//│ > Step 1: (λx. λa. a) λy. y
-//│ > Step 2: λa. a
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'show')
+//│     at get show (REPL16:1:6556)
+//│     at stepByStep (REPL137:1:1811)
+//│     at REPL142:1:39
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
 
 stepByStep(ByName, App(id_x, id_y), 10)
 //│ > Term: (λx. x) λy. y
@@ -347,8 +445,19 @@ stepByStep(ByName, App(id_x, id_y), 10)
 
 stepByStep(ByValue, App(id_x, App(id_y, id_a)), 10)
 //│ > Term: (λx. x) (λy. y) λa. a
-//│ > Step 1: (λx. x) λa. a
-//│ > Step 2: λa. a
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'show')
+//│     at get show (REPL16:1:6556)
+//│     at stepByStep (REPL137:1:1811)
+//│     at REPL148:1:152
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
 
 stepByStep(ByName, App(id_x, App(id_y, id_a)), 10)
 //│ > Term: (λx. x) (λy. y) λa. a
@@ -357,8 +466,19 @@ stepByStep(ByName, App(id_x, App(id_y, id_a)), 10)
 
 stepByStep(ByName, App(App(id_x, id_y), id_a), 10)
 //│ > Term: (λx. x) λy. y λa. a
-//│ > Step 1: (λy. y) λa. a
-//│ > Step 2: λa. a
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at lambda2 (REPL129:1:5728)
+//│     at stepByStep (REPL137:1:1664)
+//│     at REPL154:1:152
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
 
 stepByStep(ByName, App(id_x, App(id_a, id_b)), 10)
 //│ > Term: (λx. x) (λa. a) λb. b
@@ -378,17 +498,19 @@ print of t.show
 
 stepByStep(ByValue, t, 10)
 //│ > Term: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 1: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 2: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 3: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 4: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 5: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 6: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 7: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 8: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 9: (λu. λa. a) (λx. x x) λx. x x
-//│ > Step 10: (λu. λa. a) (λx. x x) λx. x x
-//│ > Stopped due to too many steps.
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'show')
+//│     at get show (REPL16:1:5977)
+//│     at stepByStep (REPL137:1:1811)
+//│     at REPL165:1:39
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
 
 stepByStep(ByName, t, 10)
 //│ > Term: (λu. λa. a) (λx. x x) λx. x x

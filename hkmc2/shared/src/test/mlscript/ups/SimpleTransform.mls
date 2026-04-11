@@ -181,108 +181,633 @@ Infix("**", Literal(1), Literal(2)) is EvaluatedTerm
 fun evaluate(term) = if term is
   (@compile EvaluatedTerm) as v then Some(v)
   else None
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.OutOfMemoryError: Java heap space
+//│ 	at: scala.collection.immutable.VectorBuilder.advance1(Vector.scala:1852)
+//│ 	at: scala.collection.immutable.VectorBuilder.advance(Vector.scala:1835)
+//│ 	at: scala.collection.immutable.VectorBuilder.addArr1(Vector.scala:1719)
+//│ 	at: scala.collection.immutable.VectorBuilder.addVector$$anonfun$1(Vector.scala:1815)
+//│ 	at: scala.collection.immutable.VectorBuilder$$Lambda/0x0000008802afa2c8.applyVoid(Unknown Source)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.collection.immutable.VectorStatics$.foreachRec(Vector.scala:2127)
+//│ 	at: scala.collection.immutable.VectorStatics$.foreachRec(Vector.scala:2133)
+//│ 	at: scala.collection.immutable.VectorStatics$.foreachRec(Vector.scala:2133)
 
 evaluate of Literal(1)
-//│ = Some(1)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:131)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:unapplyResult -> unapplyResult, tmp:block$res -> block$res5, input -> input3, tmp:inlinedVal -> inlinedVal3, member:foo -> foo, tmp:block$res -> block$res16, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:unapplyResult -> unapplyResult1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res17, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res25, tmp:unapplyResult -> unapplyResult2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:block$res -> block$res18, class:Term -> Term1, member:observeInt -> observeInt, class:Literal -> Literal, tmp:block$res -> block$res6, class:Infix -> Infix, tmp:block$res -> block$res27, member:div -> div, member:mul -> mul, tmp:tmp -> tmp, tmp:block$res -> block$res19, member:sub -> sub, tmp:tmp -> tmp1, member:add -> add, tmp:block$res -> block$res7, member:LoggedInt -> LoggedInt1, member:wrapLiteral -> wrapLiteral, pattern:LoggedInt -> LoggedInt, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, class:Prefix -> Prefix, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:block$res -> block$res20, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:tmp -> tmp23, tmp:block$res -> block$res35, tmp:matchSuccess -> matchSuccess, member:lambda -> lambda, input -> input, tmp:inlinedVal -> inlinedVal, tmp:block$res -> block$res21, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$, tmp:block$res -> block$res9, tmp:unapplyResult -> unapplyResult3, tmp:output -> output, tmp:block$res -> block$res29, member:Option -> Option, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:scrut -> scrut1, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$1, tmp:matchRecord -> matchRecord, tmp:unapplyResult -> unapplyResult4, tmp:output -> output1, tmp:patternOutput -> patternOutput, tmp:tmp -> tmp13, tmp:block$res -> block$res30, member:lambda -> lambda1, tmp:tmp -> tmp2, tmp:scrut -> scrut2, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$2, tmp:unapplyResult -> unapplyResult5, tmp:output -> output2, tmp:tmp -> tmp14, input -> input1, tmp:tmp -> tmp15, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res31, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:scrut -> scrut3, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$3, tmp:unapplyResult -> unapplyResult6, tmp:output -> output3, tmp:tmp -> tmp16, tmp:block$res -> block$res22, tmp:tmp -> tmp17, tmp:block$res -> block$res32, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, member:Predef -> Predef, tmp:scrut -> scrut4, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$4, tmp:unapplyResult -> unapplyResult7, tmp:output -> output4, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:block$res -> block$res33, tmp:scrut -> scrut5, tmp:block$res -> block$res23, tmp:unapplyResult -> unapplyResult8, tmp:tmp -> tmp21, tmp:tmp -> tmp22, tmp:block$res -> block$res34, tmp:block$res -> block$res11, tmp:matchRecord -> matchRecord1, tmp:block$res -> block$res12, member:get_output_through_param -> get_output_through_param, member:lambda -> lambda2, input -> input2, tmp:inlinedVal -> inlinedVal2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:block$res -> block$res, tmp:tmp -> tmp8, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:Pair -> Pair1, tmp:block$res -> block$res13, class:Pair -> Pair, tmp:block$res -> block$res24, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair, tmp:matchRecord -> matchRecord2, tmp:patternOutput -> patternOutput1, member:lambda -> lambda3, tmp:tmp -> tmp9, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.197: 	evaluate of Literal(1)
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.181: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.182: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.183: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 evaluate of Literal(1)
-//│ = Some(1)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:131)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:unapplyResult -> unapplyResult, tmp:block$res -> block$res5, input -> input3, tmp:inlinedVal -> inlinedVal3, member:foo -> foo, tmp:block$res -> block$res16, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:unapplyResult -> unapplyResult1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res17, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res25, tmp:unapplyResult -> unapplyResult2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:block$res -> block$res18, class:Term -> Term1, member:observeInt -> observeInt, class:Literal -> Literal, tmp:block$res -> block$res6, class:Infix -> Infix, tmp:block$res -> block$res27, member:div -> div, member:mul -> mul, tmp:tmp -> tmp, tmp:block$res -> block$res19, member:sub -> sub, tmp:tmp -> tmp1, member:add -> add, tmp:block$res -> block$res7, member:LoggedInt -> LoggedInt1, member:wrapLiteral -> wrapLiteral, pattern:LoggedInt -> LoggedInt, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, class:Prefix -> Prefix, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:block$res -> block$res20, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:tmp -> tmp23, tmp:block$res -> block$res35, tmp:tmp -> tmp24, tmp:matchSuccess -> matchSuccess, tmp:block$res -> block$res36, member:lambda -> lambda, input -> input, tmp:inlinedVal -> inlinedVal, tmp:block$res -> block$res21, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$, tmp:block$res -> block$res9, tmp:unapplyResult -> unapplyResult3, tmp:output -> output, tmp:block$res -> block$res29, member:Option -> Option, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:scrut -> scrut1, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$1, tmp:matchRecord -> matchRecord, tmp:unapplyResult -> unapplyResult4, tmp:output -> output1, tmp:patternOutput -> patternOutput, tmp:tmp -> tmp13, tmp:block$res -> block$res30, member:lambda -> lambda1, tmp:tmp -> tmp2, tmp:scrut -> scrut2, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$2, tmp:unapplyResult -> unapplyResult5, tmp:output -> output2, tmp:tmp -> tmp14, input -> input1, tmp:tmp -> tmp15, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res31, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:scrut -> scrut3, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$3, tmp:unapplyResult -> unapplyResult6, tmp:output -> output3, tmp:tmp -> tmp16, tmp:block$res -> block$res22, tmp:tmp -> tmp17, tmp:block$res -> block$res32, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, member:Predef -> Predef, tmp:scrut -> scrut4, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$4, tmp:unapplyResult -> unapplyResult7, tmp:output -> output4, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:block$res -> block$res33, tmp:scrut -> scrut5, tmp:block$res -> block$res23, tmp:unapplyResult -> unapplyResult8, tmp:tmp -> tmp21, tmp:tmp -> tmp22, tmp:block$res -> block$res34, tmp:block$res -> block$res11, tmp:matchRecord -> matchRecord1, tmp:block$res -> block$res12, member:get_output_through_param -> get_output_through_param, member:lambda -> lambda2, input -> input2, tmp:inlinedVal -> inlinedVal2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:block$res -> block$res, tmp:tmp -> tmp8, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:Pair -> Pair1, tmp:block$res -> block$res13, class:Pair -> Pair, tmp:block$res -> block$res24, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair, tmp:matchRecord -> matchRecord2, tmp:patternOutput -> patternOutput1, member:lambda -> lambda3, tmp:tmp -> tmp9, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.235: 	evaluate of Literal(1)
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.181: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.182: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.183: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 evaluate of 2 *:* 3 +:+ 1
-//│ = Some(7)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:131)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:unapplyResult -> unapplyResult, tmp:block$res -> block$res5, input -> input3, tmp:inlinedVal -> inlinedVal3, member:foo -> foo, tmp:block$res -> block$res16, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:unapplyResult -> unapplyResult1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res17, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res25, tmp:unapplyResult -> unapplyResult2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:block$res -> block$res18, class:Term -> Term1, member:observeInt -> observeInt, class:Literal -> Literal, tmp:block$res -> block$res6, class:Infix -> Infix, tmp:block$res -> block$res27, member:div -> div, member:mul -> mul, tmp:tmp -> tmp, tmp:block$res -> block$res19, member:sub -> sub, tmp:tmp -> tmp1, member:add -> add, tmp:block$res -> block$res7, member:LoggedInt -> LoggedInt1, member:wrapLiteral -> wrapLiteral, pattern:LoggedInt -> LoggedInt, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, class:Prefix -> Prefix, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:block$res -> block$res20, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:tmp -> tmp23, tmp:block$res -> block$res35, tmp:tmp -> tmp24, tmp:matchSuccess -> matchSuccess, tmp:block$res -> block$res36, member:lambda -> lambda, tmp:tmp -> tmp25, tmp:tmp -> tmp26, input -> input, tmp:block$res -> block$res37, tmp:inlinedVal -> inlinedVal, tmp:block$res -> block$res21, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$, tmp:block$res -> block$res9, tmp:unapplyResult -> unapplyResult3, tmp:output -> output, tmp:block$res -> block$res29, member:Option -> Option, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:scrut -> scrut1, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$1, tmp:matchRecord -> matchRecord, tmp:unapplyResult -> unapplyResult4, tmp:output -> output1, tmp:patternOutput -> patternOutput, tmp:tmp -> tmp13, tmp:block$res -> block$res30, member:lambda -> lambda1, tmp:tmp -> tmp2, tmp:scrut -> scrut2, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$2, tmp:unapplyResult -> unapplyResult5, tmp:output -> output2, tmp:tmp -> tmp14, input -> input1, tmp:tmp -> tmp15, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res31, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:scrut -> scrut3, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$3, tmp:unapplyResult -> unapplyResult6, tmp:output -> output3, tmp:tmp -> tmp16, tmp:block$res -> block$res22, tmp:tmp -> tmp17, tmp:block$res -> block$res32, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, member:Predef -> Predef, tmp:scrut -> scrut4, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$4, tmp:unapplyResult -> unapplyResult7, tmp:output -> output4, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:block$res -> block$res33, tmp:scrut -> scrut5, tmp:block$res -> block$res23, tmp:unapplyResult -> unapplyResult8, tmp:tmp -> tmp21, tmp:tmp -> tmp22, tmp:block$res -> block$res34, tmp:block$res -> block$res11, tmp:matchRecord -> matchRecord1, tmp:block$res -> block$res12, member:get_output_through_param -> get_output_through_param, member:lambda -> lambda2, input -> input2, tmp:inlinedVal -> inlinedVal2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:block$res -> block$res, tmp:tmp -> tmp8, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:Pair -> Pair1, tmp:block$res -> block$res13, class:Pair -> Pair, tmp:block$res -> block$res24, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair, tmp:matchRecord -> matchRecord2, tmp:patternOutput -> patternOutput1, member:lambda -> lambda3, tmp:tmp -> tmp9, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.273: 	evaluate of 2 *:* 3 +:+ 1
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.181: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.182: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.183: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 evaluate of (4 +:+ 5) *:* (6 -:- 2)
-//│ = Some(36)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:131)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:unapplyResult -> unapplyResult, tmp:block$res -> block$res5, input -> input3, tmp:inlinedVal -> inlinedVal3, member:foo -> foo, tmp:block$res -> block$res16, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:unapplyResult -> unapplyResult1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res17, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res25, tmp:unapplyResult -> unapplyResult2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:block$res -> block$res18, class:Term -> Term1, member:observeInt -> observeInt, class:Literal -> Literal, tmp:block$res -> block$res6, class:Infix -> Infix, tmp:block$res -> block$res27, member:div -> div, member:mul -> mul, tmp:tmp -> tmp, tmp:block$res -> block$res19, member:sub -> sub, tmp:tmp -> tmp1, member:add -> add, tmp:block$res -> block$res7, member:LoggedInt -> LoggedInt1, member:wrapLiteral -> wrapLiteral, pattern:LoggedInt -> LoggedInt, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, class:Prefix -> Prefix, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:block$res -> block$res20, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:tmp -> tmp23, tmp:block$res -> block$res35, tmp:tmp -> tmp24, tmp:matchSuccess -> matchSuccess, tmp:block$res -> block$res36, member:lambda -> lambda, tmp:tmp -> tmp25, tmp:tmp -> tmp26, input -> input, tmp:block$res -> block$res37, tmp:inlinedVal -> inlinedVal, tmp:block$res -> block$res21, tmp:tmp -> tmp27, tmp:block$res -> block$res28, tmp:tmp -> tmp28, tmp:tmp -> tmp29, tmp:block$res -> block$res38, tmp:scrut -> scrut, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$, tmp:block$res -> block$res9, tmp:unapplyResult -> unapplyResult3, tmp:output -> output, tmp:block$res -> block$res29, member:Option -> Option, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:scrut -> scrut1, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$1, tmp:matchRecord -> matchRecord, tmp:unapplyResult -> unapplyResult4, tmp:output -> output1, tmp:patternOutput -> patternOutput, tmp:tmp -> tmp13, tmp:block$res -> block$res30, member:lambda -> lambda1, tmp:tmp -> tmp2, tmp:scrut -> scrut2, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$2, tmp:unapplyResult -> unapplyResult5, tmp:output -> output2, tmp:tmp -> tmp14, input -> input1, tmp:tmp -> tmp15, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res31, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:scrut -> scrut3, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$3, tmp:unapplyResult -> unapplyResult6, tmp:output -> output3, tmp:tmp -> tmp16, tmp:block$res -> block$res22, tmp:tmp -> tmp17, tmp:block$res -> block$res32, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, member:Predef -> Predef, tmp:scrut -> scrut4, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$4, tmp:unapplyResult -> unapplyResult7, tmp:output -> output4, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:block$res -> block$res33, tmp:scrut -> scrut5, tmp:block$res -> block$res23, tmp:unapplyResult -> unapplyResult8, tmp:tmp -> tmp21, tmp:tmp -> tmp22, tmp:block$res -> block$res34, tmp:block$res -> block$res11, tmp:matchRecord -> matchRecord1, tmp:block$res -> block$res12, member:get_output_through_param -> get_output_through_param, member:lambda -> lambda2, input -> input2, tmp:inlinedVal -> inlinedVal2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:block$res -> block$res, tmp:tmp -> tmp8, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:Pair -> Pair1, tmp:block$res -> block$res13, class:Pair -> Pair, tmp:block$res -> block$res24, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair, tmp:matchRecord -> matchRecord2, tmp:patternOutput -> patternOutput1, member:lambda -> lambda3, tmp:tmp -> tmp9, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.311: 	evaluate of (4 +:+ 5) *:* (6 -:- 2)
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.181: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.182: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.183: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 evaluate of Prefix("-", 10 +:+ 2 *:* 3)
-//│ = Some(-16)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:131)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:unapplyResult -> unapplyResult, tmp:block$res -> block$res5, input -> input3, tmp:inlinedVal -> inlinedVal3, member:foo -> foo, tmp:block$res -> block$res16, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:unapplyResult -> unapplyResult1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res17, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res25, tmp:unapplyResult -> unapplyResult2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:block$res -> block$res18, class:Term -> Term1, member:observeInt -> observeInt, class:Literal -> Literal, tmp:block$res -> block$res6, class:Infix -> Infix, tmp:block$res -> block$res27, member:div -> div, member:mul -> mul, tmp:tmp -> tmp, tmp:block$res -> block$res19, member:sub -> sub, tmp:tmp -> tmp1, member:add -> add, tmp:block$res -> block$res7, member:LoggedInt -> LoggedInt1, member:wrapLiteral -> wrapLiteral, pattern:LoggedInt -> LoggedInt, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, class:Prefix -> Prefix, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:block$res -> block$res20, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:tmp -> tmp23, tmp:block$res -> block$res35, tmp:tmp -> tmp24, tmp:matchSuccess -> matchSuccess, tmp:block$res -> block$res36, member:lambda -> lambda, tmp:tmp -> tmp25, tmp:tmp -> tmp26, input -> input, tmp:block$res -> block$res37, tmp:inlinedVal -> inlinedVal, tmp:block$res -> block$res21, tmp:tmp -> tmp27, tmp:block$res -> block$res28, tmp:tmp -> tmp28, tmp:tmp -> tmp29, tmp:block$res -> block$res38, tmp:scrut -> scrut, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$, tmp:block$res -> block$res9, tmp:unapplyResult -> unapplyResult3, tmp:output -> output, tmp:tmp -> tmp30, tmp:tmp -> tmp31, tmp:tmp -> tmp32, tmp:block$res -> block$res29, tmp:block$res -> block$res39, member:Option -> Option, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:scrut -> scrut1, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$1, tmp:matchRecord -> matchRecord, tmp:unapplyResult -> unapplyResult4, tmp:output -> output1, tmp:patternOutput -> patternOutput, tmp:tmp -> tmp13, tmp:block$res -> block$res30, member:lambda -> lambda1, tmp:tmp -> tmp2, tmp:scrut -> scrut2, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$2, tmp:unapplyResult -> unapplyResult5, tmp:output -> output2, tmp:tmp -> tmp14, input -> input1, tmp:tmp -> tmp15, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res31, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:scrut -> scrut3, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$3, tmp:unapplyResult -> unapplyResult6, tmp:output -> output3, tmp:tmp -> tmp16, tmp:block$res -> block$res22, tmp:tmp -> tmp17, tmp:block$res -> block$res32, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, member:Predef -> Predef, tmp:scrut -> scrut4, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$4, tmp:unapplyResult -> unapplyResult7, tmp:output -> output4, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:block$res -> block$res33, tmp:scrut -> scrut5, tmp:block$res -> block$res23, tmp:unapplyResult -> unapplyResult8, tmp:tmp -> tmp21, tmp:tmp -> tmp22, tmp:block$res -> block$res34, tmp:block$res -> block$res11, tmp:matchRecord -> matchRecord1, tmp:block$res -> block$res12, member:get_output_through_param -> get_output_through_param, member:lambda -> lambda2, input -> input2, tmp:inlinedVal -> inlinedVal2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:block$res -> block$res, tmp:tmp -> tmp8, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:Pair -> Pair1, tmp:block$res -> block$res13, class:Pair -> Pair, tmp:block$res -> block$res24, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair, tmp:matchRecord -> matchRecord2, tmp:patternOutput -> patternOutput1, member:lambda -> lambda3, tmp:tmp -> tmp9, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.349: 	evaluate of Prefix("-", 10 +:+ 2 *:* 3)
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.181: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.182: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.183: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 evaluate of (8 /:/ 2) +:+ (3 *:* 4) -:- 5
-//│ = Some(11)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:131)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:unapplyResult -> unapplyResult, tmp:block$res -> block$res5, input -> input3, tmp:inlinedVal -> inlinedVal3, member:foo -> foo, tmp:block$res -> block$res16, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:unapplyResult -> unapplyResult1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res17, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res25, tmp:unapplyResult -> unapplyResult2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:block$res -> block$res18, class:Term -> Term1, member:observeInt -> observeInt, class:Literal -> Literal, tmp:block$res -> block$res6, class:Infix -> Infix, tmp:block$res -> block$res27, member:div -> div, member:mul -> mul, tmp:tmp -> tmp, tmp:block$res -> block$res19, member:sub -> sub, tmp:tmp -> tmp1, member:add -> add, tmp:block$res -> block$res7, member:LoggedInt -> LoggedInt1, member:wrapLiteral -> wrapLiteral, pattern:LoggedInt -> LoggedInt, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, class:Prefix -> Prefix, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:block$res -> block$res20, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:tmp -> tmp23, tmp:block$res -> block$res35, tmp:tmp -> tmp24, tmp:matchSuccess -> matchSuccess, tmp:block$res -> block$res36, member:lambda -> lambda, tmp:tmp -> tmp25, tmp:tmp -> tmp26, input -> input, tmp:block$res -> block$res37, tmp:inlinedVal -> inlinedVal, tmp:block$res -> block$res21, tmp:tmp -> tmp27, tmp:block$res -> block$res28, tmp:tmp -> tmp28, tmp:tmp -> tmp29, tmp:block$res -> block$res38, tmp:scrut -> scrut, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$, tmp:block$res -> block$res9, tmp:unapplyResult -> unapplyResult3, tmp:output -> output, tmp:tmp -> tmp30, tmp:tmp -> tmp31, tmp:tmp -> tmp32, tmp:block$res -> block$res29, tmp:block$res -> block$res39, member:Option -> Option, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:scrut -> scrut1, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$1, tmp:tmp -> tmp33, tmp:matchRecord -> matchRecord, tmp:unapplyResult -> unapplyResult4, tmp:tmp -> tmp34, tmp:output -> output1, tmp:tmp -> tmp35, tmp:patternOutput -> patternOutput, tmp:tmp -> tmp36, tmp:block$res -> block$res40, tmp:tmp -> tmp13, tmp:block$res -> block$res30, member:lambda -> lambda1, tmp:tmp -> tmp2, tmp:scrut -> scrut2, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$2, tmp:unapplyResult -> unapplyResult5, tmp:output -> output2, tmp:tmp -> tmp14, input -> input1, tmp:tmp -> tmp15, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res31, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:scrut -> scrut3, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$3, tmp:unapplyResult -> unapplyResult6, tmp:output -> output3, tmp:tmp -> tmp16, tmp:block$res -> block$res22, tmp:tmp -> tmp17, tmp:block$res -> block$res32, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, member:Predef -> Predef, tmp:scrut -> scrut4, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$4, tmp:unapplyResult -> unapplyResult7, tmp:output -> output4, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:block$res -> block$res33, tmp:scrut -> scrut5, tmp:block$res -> block$res23, tmp:unapplyResult -> unapplyResult8, tmp:tmp -> tmp21, tmp:tmp -> tmp22, tmp:block$res -> block$res34, tmp:block$res -> block$res11, tmp:matchRecord -> matchRecord1, tmp:block$res -> block$res12, member:get_output_through_param -> get_output_through_param, member:lambda -> lambda2, input -> input2, tmp:inlinedVal -> inlinedVal2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:block$res -> block$res, tmp:tmp -> tmp8, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:Pair -> Pair1, tmp:block$res -> block$res13, class:Pair -> Pair, tmp:block$res -> block$res24, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair, tmp:matchRecord -> matchRecord2, tmp:patternOutput -> patternOutput1, member:lambda -> lambda3, tmp:tmp -> tmp9, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.387: 	evaluate of (8 /:/ 2) +:+ (3 *:* 4) -:- 5
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.181: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.182: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.183: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 evaluate of Infix("**", Literal(1), Literal(2))
-//│ = None
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:131)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:unapplyResult -> unapplyResult, tmp:block$res -> block$res5, input -> input3, tmp:inlinedVal -> inlinedVal3, member:foo -> foo, tmp:block$res -> block$res16, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:unapplyResult -> unapplyResult1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res17, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res25, tmp:unapplyResult -> unapplyResult2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:block$res -> block$res18, class:Term -> Term1, member:observeInt -> observeInt, class:Literal -> Literal, tmp:block$res -> block$res6, class:Infix -> Infix, tmp:block$res -> block$res27, member:div -> div, member:mul -> mul, tmp:tmp -> tmp, tmp:block$res -> block$res19, member:sub -> sub, tmp:tmp -> tmp1, member:add -> add, tmp:block$res -> block$res7, member:LoggedInt -> LoggedInt1, member:wrapLiteral -> wrapLiteral, pattern:LoggedInt -> LoggedInt, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, class:Prefix -> Prefix, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:block$res -> block$res20, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:tmp -> tmp23, tmp:block$res -> block$res35, tmp:tmp -> tmp24, tmp:matchSuccess -> matchSuccess, tmp:block$res -> block$res36, member:lambda -> lambda, tmp:tmp -> tmp25, tmp:tmp -> tmp26, input -> input, tmp:block$res -> block$res37, tmp:inlinedVal -> inlinedVal, tmp:block$res -> block$res21, tmp:tmp -> tmp27, tmp:block$res -> block$res28, tmp:tmp -> tmp28, tmp:tmp -> tmp29, tmp:block$res -> block$res38, tmp:scrut -> scrut, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$, tmp:block$res -> block$res9, tmp:unapplyResult -> unapplyResult3, tmp:output -> output, tmp:tmp -> tmp30, tmp:tmp -> tmp31, tmp:tmp -> tmp32, tmp:block$res -> block$res29, tmp:block$res -> block$res39, member:Option -> Option, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:scrut -> scrut1, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$1, tmp:tmp -> tmp33, tmp:matchRecord -> matchRecord, tmp:unapplyResult -> unapplyResult4, tmp:tmp -> tmp34, tmp:output -> output1, tmp:tmp -> tmp35, tmp:patternOutput -> patternOutput, tmp:tmp -> tmp36, tmp:block$res -> block$res40, tmp:tmp -> tmp13, tmp:block$res -> block$res30, member:lambda -> lambda1, tmp:tmp -> tmp37, tmp:tmp -> tmp2, tmp:scrut -> scrut2, tmp:tmp -> tmp38, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$2, tmp:tmp -> tmp39, tmp:block$res -> block$res41, tmp:unapplyResult -> unapplyResult5, tmp:output -> output2, tmp:tmp -> tmp14, input -> input1, tmp:tmp -> tmp15, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res31, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:scrut -> scrut3, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$3, tmp:unapplyResult -> unapplyResult6, tmp:output -> output3, tmp:tmp -> tmp16, tmp:block$res -> block$res22, tmp:tmp -> tmp17, tmp:block$res -> block$res32, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, member:Predef -> Predef, tmp:scrut -> scrut4, tmp:arg$EvaluatedTerm$0$ -> arg$EvaluatedTerm$0$4, tmp:unapplyResult -> unapplyResult7, tmp:output -> output4, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:block$res -> block$res33, tmp:scrut -> scrut5, tmp:block$res -> block$res23, tmp:unapplyResult -> unapplyResult8, tmp:tmp -> tmp21, tmp:tmp -> tmp22, tmp:block$res -> block$res34, tmp:block$res -> block$res11, tmp:matchRecord -> matchRecord1, tmp:block$res -> block$res12, member:get_output_through_param -> get_output_through_param, member:lambda -> lambda2, input -> input2, tmp:inlinedVal -> inlinedVal2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:block$res -> block$res, tmp:tmp -> tmp8, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:Pair -> Pair1, tmp:block$res -> block$res13, class:Pair -> Pair, tmp:block$res -> block$res24, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair, tmp:matchRecord -> matchRecord2, tmp:patternOutput -> patternOutput1, member:lambda -> lambda3, tmp:tmp -> tmp9, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.425: 	evaluate of Infix("**", Literal(1), Literal(2))
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.181: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.182: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.183: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 pattern DropZ = ((:x, :y, :z)) => (x: x, y: y)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 (x: 1, y: 2, z: 3) is DropZ((x: 1, y: 2))
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 (x: 1, y: 2, z: 3) is DropZ((x: 1, y: 3))
-//│ = false
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 pattern ShapeArea = 
   (((:radius)) => Math.PI * radius * radius) |  // Circle
   (((:width, :height)) => width * height) |     // Rectangle
   (((:base, :height)) => base * height / 2)     // Triangle
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 fun area(shape) = if shape is
   ShapeArea(area) then print("area: " + area)
   else print("invalid shape")
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 area of radius: 10
 area of width: 10, height: 20
 area of base: 10, height: 20
-//│ > area: 314.1592653589793
-//│ > area: 200
-//│ > area: 100
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 pattern PairLike = [_, _] | Pair(_, _)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 [1, 2] is PairLike
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 [] is PairLike
-//│ = false
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 [1] is PairLike
-//│ = false
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 Pair(1, 2) is PairLike
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 pattern TransformTwice = (((Int as x) => x + 4) as y) => y * 2
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 2 is TransformTwice(12)
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 100 is TransformTwice(0)
-//│ = false
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 17 is TransformTwice(42)
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 fun testTransformTwice(x) =
   if x is (@compile TransformTwice) as v then Some(v) else None
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 testTransformTwice of 100
-//│ = Some(208)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 testTransformTwice of 2
-//│ = Some(12)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 testTransformTwice of 17
-//│ = Some(42)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 // We can easily define predicative patterns using `as true`.
 pattern Positive = ((Int as x) => x > 0) as true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 print of -100 is Positive
 print of 0 is Positive
 print of 8080 is Positive
-//│ > false
-//│ > false
-//│ > true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 // Hmm, but how to make the pattern return the input value?
 Positive.unapply(100)
-//│ = MatchSuccess(true, null)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 // Just use conjunction patterns.
 pattern Positive = (x & (((Int as x) => x > 0) as true)) => x
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 Positive.unapply(100)
-//│ = MatchSuccess(100, null)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 //  ____  _        _
 // / ___|| |_ _ __(_)_ __   __ _
@@ -295,9 +820,43 @@ Positive.unapply(100)
 pattern HelloWorld =
   (("hello" as a) ~ " " ~ ("world" as b)) =>
     "the user said " + a + " to the " + b
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 "hello world" is HelloWorld
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 if "hello world" is HelloWorld as x then x
-//│ = "the user said hello to the world"
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)

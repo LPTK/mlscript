@@ -18,17 +18,8 @@ fun f() =
     print of raiseUnhandledEffect()
   j / i
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f, f$debugInfo;
+//│ let f;
 //│ runtime.resetEffects();
-//│ f$debugInfo = globalThis.Object.freeze([
-//│   "f",
-//│   0,
-//│   "i",
-//│   1,
-//│   "j",
-//│   2,
-//│   "k"
-//│ ]);
 //│ f = function f() {
 //│   let i, j, k, scrut, tmp1, pc;
 //│   if (runtime.resumePc === -1) {
@@ -54,12 +45,12 @@ fun f() =
 //│         i = 0;
 //│         j = 100;
 //│         k = 2000;
-//│         runtime.resumeValue = Predef.equals(i, 0);
+//│         runtime.resumeValue = Predef.equals(0, 0);
 //│         if (runtime.curEffect === null) {
 //│           pc = 5;
 //│           continue main
 //│         }
-//│         return runtime.unwind(f, 5, "Debugging.mls:17:6", f$debugInfo, null, 1, 0, 5, i, j, k, scrut, tmp1);
+//│         return runtime.unwind(f, 5, "Debugging.mls:17:6", undefined, null, 1, 0, 5, 0, 100, 2000, scrut, tmp1);
 //│       case 5:
 //│         scrut = runtime.resumeValue;
 //│         if (scrut === true) {
@@ -68,7 +59,7 @@ fun f() =
 //│             pc = 4;
 //│             continue main
 //│           }
-//│           return runtime.unwind(f, 4, "Debugging.mls:18:14", f$debugInfo, null, 1, 0, 5, i, j, k, scrut, tmp1);
+//│           return runtime.unwind(f, 4, "Debugging.mls:18:14", undefined, null, 1, 0, 5, i, j, k, scrut, tmp1);
 //│         }
 //│         pc = 1;
 //│         continue main;
@@ -84,7 +75,7 @@ fun f() =
 //│           pc = 2;
 //│           continue main
 //│         }
-//│         return runtime.unwind(f, 2, "Debugging.mls:18:5", f$debugInfo, null, 1, 0, 5, i, j, k, scrut, tmp1);
+//│         return runtime.unwind(f, 2, "Debugging.mls:18:5", undefined, null, 1, 0, 5, i, j, k, scrut, tmp1);
 //│       case 4:
 //│         tmp1 = runtime.resumeValue;
 //│         pc = 3;
@@ -97,8 +88,7 @@ fun f() =
 
 :re
 f()
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect FatalEffect
-//│ 	at f (Debugging.mls:18:14)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'length')
 
 :re
 fun lambda_test(f) =
@@ -107,9 +97,7 @@ fun lambda_test(f) =
 lambda_test(() =>
   raiseUnhandledEffect()
   100)
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect FatalEffect
-//│ 	at lambda (Debugging.mls:108:3)
-//│ 	at lambda_test (Debugging.mls:105:3)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'length')
 
 
 import "../../mlscript-compile/Runtime.mls"
@@ -118,7 +106,19 @@ import "../../mlscript-compile/Runtime.mls"
 let res = Runtime.try(f)
 
 res.reified.contTrace.next.getLocals
-//│ = [LocalVarInfo("i", 0), LocalVarInfo("j", 100), LocalVarInfo("k", 2000)]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'length')
+//│     at get getLocals (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:361:34)
+//│     at REPL27:1:706
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 Runtime.debugEff(res.reified)
 //│ > Debug EffectSig:
@@ -154,25 +154,62 @@ let res =
     fun break(payload)(resume) = resume
   using Debugger = h
   Runtime.try(() => Test.main())
-//│ res = EffectHandle(_)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'break')
+//│     at REPL39:1:1535
+//│     at REPL39:1:3936
+//│     at lambda1 (REPL42:1:1117)
+//│     at REPL42:1:287
+//│     at Runtime.try (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:619:28)
+//│     at handleBlock$ (REPL42:1:2284)
+//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
+//│     at REPL42:1:2318
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│ res = undefined
 
 :re
 res.raise()
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
-//│ 	at Test.test (Debugging.mls:147:15)
-//│ 	at Test.main (Debugging.mls:150:5)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'raise')
 
 set res = res.resumeWith(42)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'resumeWith')
+//│     at REPL49:1:88
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 :re
 res.raise()
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
-//│ 	at Test.test (Debugging.mls:147:15)
-//│ 	at Test.main (Debugging.mls:150:16)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'raise')
 
 :expect 0.33676533676533676
 res.resumeWith(666)
-//│ = 0.33676533676533676
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'resumeWith')
+//│     at REPL55:1:88
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '0.33676533676533676', got: 'undefined'
 
 let i = 100
 fun f() =
@@ -187,9 +224,16 @@ fun f() =
 //│ i = 100
 
 f()
-//│ > Stack Trace:
-//│ > 	at f (Debugging.mls:182:3) with locals: j=200
-//│ > Stack Trace:
-//│ > 	at f (Debugging.mls:184:3)
-//│ > Stack Trace:
-//│ > 	at tail position
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'length')
+//│     at get getLocals (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:361:34)
+//│     at Runtime.showStackTrace (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:701:31)
+//│     at Runtime.topLevelEffect (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:656:26)
+//│     at REPL62:1:205
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)

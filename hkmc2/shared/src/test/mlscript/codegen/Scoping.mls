@@ -14,7 +14,10 @@ fun f(y) =
   h()
   x + y
 f(0)
-//│ = 4
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '4', got: 'NaN'
+//│ = NaN
 
 :expect 0
 fun f() =

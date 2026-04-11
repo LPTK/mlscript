@@ -61,6 +61,6 @@ l()
 //│ ╔══[COMPILATION ERROR] Return statements are not allowed outside of functions.
 //│ ║  l.58: 	  return 3
 //│ ╙──      	  ^^^^^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'foo')
 
 

@@ -135,7 +135,10 @@ modSome(Some(17), 3)
 //│ set tmp = (fv_ctorLam_m, fv_ctorLam_n, fv_ctorLam_scrut, fv_ctorLam_arg$Some$0$, fv_ctorLam_tmp, fv_ctorLam_tmp1) => return modSome_8$x_Some¹(fv_ctorLam_m, fv_ctorLam_n, fv_ctorLam_scrut, fv_ctorLam_arg$Some$0$, fv_ctorLam_tmp, fv_ctorLam_tmp1, Some_x);
 //│ modSome_8$modSome¹(tmp, 3)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = Some(2)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: 'Some(2)', got: 'Some(undefined)'
+//│ = Some(undefined)
 
 
 :deforest
@@ -168,4 +171,19 @@ zipWith([id(Nil), id(Nil)], (x, y) => x)
 //│ deforest > 	Call(Select(Select(Ref(tmp:runtime,None),Ident(Tuple)),Ident(get)),List(Arg(None,Ref(xsys,None)), Arg(None,Lit(IntLit(1)))))
 //│ deforest > 	Call(Select(Select(Ref(tmp:runtime,None),Ident(Tuple)),Ident(get)),List(Arg(None,Ref(xsys,None)), Arg(None,Lit(IntLit(0)))))
 //│ deforest > <<< fusing <<<
-//│ = Nil
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at zipWith_20$xsys_tup2 (REPL34:1:2091)
+//│     at tmp9 (REPL34:1:3802)
+//│     at REPL34:1:4254
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: 'Nil', got: 'undefined'

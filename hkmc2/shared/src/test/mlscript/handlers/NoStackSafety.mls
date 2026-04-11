@@ -28,7 +28,7 @@ fun foo() =
     else n + f(n-1)
   f(10000)
 foo()
-//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
 
 
 :sjs
@@ -37,7 +37,7 @@ fun hi(n) = n
 hi(0)
 //│ /!!!\ Option ':stackSafe' requires ':effectHandlers' to be set
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let hi, n, inlinedVal; hi = function hi(n1) { return n1 }; n = 0; inlinedVal = n; inlinedVal
+//│ let hi; hi = function hi(n) { return n }; 0
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 0
 

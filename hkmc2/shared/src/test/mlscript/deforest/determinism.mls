@@ -190,4 +190,19 @@ c2 of A(A(A(A(A(A(1))))))
 //│ set tmp5 = (fv_ctorLam_a, fv_ctorLam_arg$A$0$, fv_ctorLam_arg$A$0$1, fv_ctorLam_arg$A$0$2, fv_ctorLam_arg$A$0$3, fv_ctorLam_arg$A$0$4, fv_ctorLam_arg$A$0$5) => return c2_20$x_A¹(fv_ctorLam_a, fv_ctorLam_arg$A$0$, fv_ctorLam_arg$A$0$1, fv_ctorLam_arg$A$0$2, fv_ctorLam_arg$A$0$3, fv_ctorLam_arg$A$0$4, fv_ctorLam_arg$A$0$5, A_a5);
 //│ c2_20$c2¹(tmp5)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 1
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at tmp (REPL16:1:1463)
+//│     at REPL16:1:1654
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'

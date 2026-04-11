@@ -17,11 +17,10 @@ fun test(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let test;
 //│ test = function test(x) {
-//│   let v, scrut, v1, arg$Some$0$, arg$Some$0$1, tmp, tmp1;
+//│   let scrut, arg$Some$0$, arg$Some$0$1, tmp, tmp1;
 //│   if (x instanceof Some1.class) {
 //│     arg$Some$0$1 = x.value;
-//│     v = arg$Some$0$1;
-//│     tmp = v + 1;
+//│     tmp = arg$Some$0$1 + 1;
 //│     tmp1 = Some1(tmp);
 //│   } else if (x instanceof None1.class) {
 //│     tmp1 = None1;
@@ -30,9 +29,8 @@ fun test(x) =
 //│   }
 //│   scrut = tmp1;
 //│   if (scrut instanceof Some1.class) {
-//│     arg$Some$0$ = scrut.value;
-//│     v1 = arg$Some$0$;
-//│     return Predef.print(v1)
+//│     arg$Some$0$ = tmp1.value;
+//│     return Predef.print(arg$Some$0$)
 //│   } else if (scrut instanceof None1.class) {
 //│     return Predef.print("none")
 //│   }

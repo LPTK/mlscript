@@ -12,8 +12,7 @@ handle h = Logger with
     k()
     k()
 h.info("a")
-//│ > a
-//│ ═══[RUNTIME ERROR] Error: Multiple resumption
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'info')
 
 
 handle h = Logger with

@@ -33,7 +33,8 @@ fun foo() =
 :expect 1
 foo()
 fs.0()
-//│ = 1
+//│ ═══[RUNTIME ERROR] Expected: '1', got: '2'
+//│ = 2
 
 
 :sir

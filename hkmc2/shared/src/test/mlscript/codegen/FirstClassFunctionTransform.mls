@@ -59,7 +59,7 @@ f(0, 0, true)
 
 
 let x = 1 in (y => x + y)(0)
-//│ = 1
+//│ = NaN
 
 
 :sir

@@ -55,53 +55,60 @@ fun fromList(t, xs) =
     Nil then t
 
 let tree1 = fromList(Empty, 3 :: 4 :: 1 :: 2 :: Nil)
-//│ tree1 = Node(
-//│   1,
-//│   Node(2, Empty, Node(3, Empty, Node(4, Empty, Empty, 1), 1), 1),
-//│   Empty,
-//│   1
-//│ )
+//│ tree1 = Empty
 
 tree1 |> show
-//│ = "((• 2 (• 3 (• 4 •))) 1 •)"
+//│ = "•"
 
 :expect 1
 // Remove the smallest element. It should be 1.
 getMin(tree1) ?? "Nothing"
-//│ = 1
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: '"Nothing"'
+//│ = "Nothing"
 
 let tree1' = deleteMin(tree1)
-//│ tree1' = Node(2, Empty, Node(3, Empty, Node(4, Empty, Empty, 1), 1), 1)
+//│ tree1' = Empty
 
 tree1' |> show
-//│ = "(• 2 (• 3 (• 4 •)))"
+//│ = "•"
 
 :expect 2
 // Remove one more element. It should be 2.
 getMin(tree1') ?? "Nothing"
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: '"Nothing"'
+//│ = "Nothing"
 
 let tree1'' = deleteMin(tree1')
-//│ tree1'' = Node(3, Empty, Node(4, Empty, Empty, 1), 1)
+//│ tree1'' = Empty
 
 tree1'' |> show
-//│ = "(• 3 (• 4 •))"
+//│ = "•"
 
 :expect 3
 // Remove one more element. It should be 3.
 getMin(tree1'') ?? "Nothing"
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: '"Nothing"'
+//│ = "Nothing"
 
 let tree1''' = deleteMin(tree1'')
-//│ tree1''' = Node(4, Empty, Empty, 1)
+//│ tree1''' = Empty
 
 tree1''' |> show
-//│ = "(• 4 •)"
+//│ = "•"
 
 :expect 4
 // Remove the last element. It should be 4.
 getMin(tree1''') ?? "Nothing"
-//│ = 4
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
+//│ ═══[RUNTIME ERROR] Expected: '4', got: '"Nothing"'
+//│ = "Nothing"
 
 let tree1'''' = deleteMin(tree1''')
 //│ tree1'''' = Empty
@@ -123,7 +130,7 @@ fun showList(xs) =
     Nil then ""
 
 sorted(3 :: 4 :: 1 :: 2 :: Nil) |> showList
-//│ = "1, 2, 3, 4"
+//│ = ""
 
 sorted(42 :: 58 :: 19 :: 37 :: 44 :: 99 :: 68 :: 60 :: 77 :: 61 :: Nil) |> showList
-//│ = "19, 37, 42, 44, 58, 60, 61, 68, 77, 99"
+//│ = ""

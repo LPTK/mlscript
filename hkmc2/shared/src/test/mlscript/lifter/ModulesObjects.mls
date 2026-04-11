@@ -293,7 +293,19 @@ fun foo(x) =
 //│ ╙──       	         ^
 
 foo(123)
-//│ = [true, [true, false], true]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x$0')
+//│     at new O1 (REPL83:1:563)
+//│     at <static_initializer> (REPL83:1:484)
+//│     at foo (REPL83:1:807)
+//│     at REPL86:1:39
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
 
 module A with
   fun g = 1
@@ -338,13 +350,13 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.335: 	  object A with
+//│ ║  l.347: 	  object A with
 //│ ╙──       	         ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.336: 	    object B with
+//│ ║  l.348: 	    object B with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.337: 	      object C
+//│ ║  l.349: 	      object C
 //│ ╙──       	             ^
 //│ = C
 
@@ -357,10 +369,10 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.354: 	  module A with
+//│ ║  l.366: 	  module A with
 //│ ╙──       	         ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.356: 	      object C
+//│ ║  l.368: 	      object C
 //│ ╙──       	             ^
 //│ = C
 
@@ -373,7 +385,7 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.370: 	  module A with
+//│ ║  l.382: 	  module A with
 //│ ╙──       	         ^
 //│ = C
 

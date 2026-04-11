@@ -27,12 +27,11 @@ Bool
 :soir
 (case Bool then 1)(true)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let lambda⁰, caseScrut⁰, inlinedVal;
+//│ let lambda⁰, caseScrut⁰;
 //│ set caseScrut⁰ = true;
 //│ match caseScrut⁰
 //│   Bool⁰ =>
-//│     set inlinedVal = 1;
-//│     inlinedVal
+//│     1
 //│   else
 //│     throw new globalThis⁰.Error⁰("match error")
 //│ end
