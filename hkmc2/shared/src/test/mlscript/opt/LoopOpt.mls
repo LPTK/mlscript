@@ -1,0 +1,411 @@
+:js
+
+
+class Empty
+class Node
+
+
+:sir
+:soir
+:dopt
+fun merge(t1, t2) =
+  if
+    t1 is Empty then t2
+    t2 is Empty then t1
+    t1 is Node then merge(t2, t1)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let merge⁰;
+//│ define merge⁰ as fun merge¹(t1, t2) {
+//│   loop loopLabel:
+//│     match t1
+//│       Empty⁰ =>
+//│         return t2
+//│       else
+//│         match t2
+//│           Empty⁰ =>
+//│             return t1
+//│           else
+//│             match t1
+//│               Node⁰ =>
+//│                 let t1_tmp;
+//│                 set t1_tmp = t1;
+//│                 set t1 = t2;
+//│                 set t2 = t1_tmp;
+//│                 continue loopLabel
+//│               else
+//│                 throw new globalThis⁰.Error⁰("match error")
+//│             end
+//│         end
+//│     end
+//│   end
+//│ };
+//│ end
+//│ ⬤ Simplif. iter. 1
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:257
+//│ ▶ DCE:
+//│ >  let merge⁰;
+//│ >  define merge⁰ as fun merge¹(t1, t2) {
+//│ >    loop loopLabel:
+//│ >      match t1
+//│ >        Empty⁰ =>
+//│ >          return t2
+//│ >        else
+//│ >          match t2
+//│ >            Empty⁰ =>
+//│ >              return t1
+//│ >            else
+//│ >              match t1
+//│ >                Node⁰ =>
+//│ >                  let t1_tmp;
+//│ >                  set t1_tmp = t1;
+//│ >                  set t1 = t2;
+//│ >                  set t2 = t1_tmp;
+//│ >                  continue loopLabel
+//│ >                else
+//│ >                  throw new globalThis⁰.Error⁰("match error")
+//│ >              end
+//│ >          end
+//│ >      end
+//│ >    unreachable /* Rest of abortive labelled block */
+//│ >  };
+//│ >  end
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:merge),Define(FunDefn(None,member:merge,term:merge,List(ParamList(‹›,List(Param(‹›,t1,None,Modulefulness(None)), Param(‹›,t2,None,Modulefulness(None))),None)),Label(label:loopLabel,true,Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()),Unreachable(Rest of abortive labelled block))),End())) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:merge,term:merge,List(ParamList(‹›,List(Param(‹›,t1,None,Modulefulness(None)), Param(‹›,t2,None,Modulefulness(None))),None)),Label(label:loopLabel,true,Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()),Unreachable(Rest of abortive labelled block))),End()) with map: Map()
+//│ | | Applying block: Label(label:loopLabel,true,Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()),Unreachable(Rest of abortive labelled block)) with map: Map()
+//│ | | | Applying block: Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()) with map: Map()
+//│ | | | | Applying block: Return(Ref(t2,None),false) with map: Map()
+//│ | | | | |- Map()
+//│ | | | | Applying block: Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End()) with map: Map()
+//│ | | | | | Applying block: Return(Ref(t1,None),false) with map: Map()
+//│ | | | | | |- Map()
+//│ | | | | | Applying block: Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End()) with map: Map()
+//│ | | | | | | Applying block: Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))) with map: Map()
+//│ | | | | | | | Applying block: Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel)))) with map: Map()
+//│ | | | | | | | | Propagating tmp:t1_tmp := Ref(t1,None) (None)
+//│ | | | | | | | | NEW assignedResults: Map(tmp:t1_tmp -> Vector(Ref(t1,None)))
+//│ | | | | | | | | Applying block: Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))) with map: Map(tmp:t1_tmp -> Vector(Ref(t1,None)))
+//│ | | | | | | | | | Propagating t1 := Ref(t2,None) (None)
+//│ | | | | | | | | | NEW assignedResults: Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | Applying block: Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel)) with map: Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | | Propagating t2 := Ref(tmp:t1_tmp,None) (None)
+//│ | | | | | | | | | | NEW assignedResults: Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | | | | | Applying block: Continue(label:loopLabel) with map: Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | | | | | | Continue to label:loopLabel with map: Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | | | | | |   atLabelBegin: Map()
+//│ | | | | | | | | | | |- Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | | | | |- Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | | | |- Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | | |- Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | Applying block: Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error)))))) with map: Map()
+//│ | | | | | | |- Map()
+//│ | | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | Applying block: Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()) with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | Applying block: Return(Ref(t2,None),false) with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | ?? t2⁰ Some(Vector(Ref(t1,None))) false false
+//│ | | | | | Assignments of t2⁰: Vector(Ref(t1,None))
+//│ | | | | | !! Change triggered { t2⁰ ~> t1⁰ } at BlockSimplifier.scala:598
+//│ | | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | Applying block: Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End()) with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | Applying block: Return(Ref(t1,None),false) with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | ?? t1⁰ Some(Vector(Ref(t2,None))) false false
+//│ | | | | | | Assignments of t1⁰: Vector(Ref(t2,None))
+//│ | | | | | | !! Change triggered { t1⁰ ~> t2⁰ } at BlockSimplifier.scala:598
+//│ | | | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | Applying block: Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End()) with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | Applying block: Scoped(Set(tmp:t1_tmp),Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))))) with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | | Applying block: Assign(tmp:t1_tmp,Ref(t1,None),Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel)))) with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | | | Propagating tmp:t1_tmp := Ref(t1,None) (None)
+//│ | | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | | ?? t1⁰ Some(Vector(Ref(t2,None))) false false
+//│ | | | | | | | | Assignments of t1⁰: Vector(Ref(t2,None))
+//│ | | | | | | | | !! Change triggered { t1⁰ ~> t2⁰ } at BlockSimplifier.scala:598
+//│ | | | | | | | | Applying block: Assign(t1,Ref(t2,None),Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel))) with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | Propagating t1 := Ref(t2,None) (Some(Vector(Ref(t2,None))))
+//│ | | | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t1,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | ?? t2⁰ Some(Vector(Ref(t1,None))) false false
+//│ | | | | | | | | | Assignments of t2⁰: Vector(Ref(t1,None))
+//│ | | | | | | | | | !! Change triggered { t2⁰ ~> t1⁰ } at BlockSimplifier.scala:598
+//│ | | | | | | | | | Applying block: Assign(t2,Ref(tmp:t1_tmp,None),Continue(label:loopLabel)) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t1,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | | Propagating t2 := Ref(tmp:t1_tmp,None) (Some(Vector(Ref(t1,None))))
+//│ | | | | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | | ?? tmp:t1_tmp⁰ Some(Vector(Ref(t2,None))) true false
+//│ | | | | | | | | | | Assignments of tmp:t1_tmp⁰: Vector(Ref(t2,None))
+//│ | | | | | | | | | | !! Change triggered { tmp:t1_tmp⁰ ~> t2⁰ } at BlockSimplifier.scala:598
+//│ | | | | | | | | | | Applying block: Continue(label:loopLabel) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | | | Continue to label:loopLabel with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | | |   atLabelBegin: Map(tmp:t1_tmp -> Vector(Ref(t1,None)), t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)), tmp:t1_tmp -> Vector(Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | Applying block: Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error)))))) with map: Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t2,None)), t2 -> Vector(Ref(t1,None)))
+//│ | | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | |- Map(t1 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | Applying block: Unreachable(Rest of abortive labelled block) with map: Map(t1 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | | |- Map(t1 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | |- Map(t1 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t1,None), Ref(t2,None)), t2 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t2,None), Ref(t1,None)))
+//│ | | Applying block: End() with map: Map()
+//│ | | |- Map()
+//│ | |- Map()
+//│ |- Map()
+//│ ▶ VP:
+//│ >  let merge⁰;
+//│ >  define merge⁰ as fun merge¹(t1, t2) {
+//│ >    loop loopLabel:
+//│ >      match t1
+//│ >        Empty⁰ =>
+//│ >          return t1
+//│ >        else
+//│ >          match t2
+//│ >            Empty⁰ =>
+//│ >              return t2
+//│ >            else
+//│ >              match t1
+//│ >                Node⁰ =>
+//│ >                  let t1_tmp;
+//│ >                  set t1_tmp = t2;
+//│ >                  set t1 = t1;
+//│ >                  set t2 = t2;
+//│ >                  continue loopLabel
+//│ >                else
+//│ >                  throw new globalThis⁰.Error⁰("match error")
+//│ >              end
+//│ >          end
+//│ >      end
+//│ >    unreachable /* Rest of abortive labelled block */
+//│ >  };
+//│ >  end
+//│ ⬤ Simplif. iter. 2
+//│ !! Change triggered { rm tmp:t1_tmp⁰ = t2⁰ } at BlockSimplifier.scala:238
+//│ ▶ DCE:
+//│ >  let merge⁰;
+//│ >  define merge⁰ as fun merge¹(t1, t2) {
+//│ >    loop loopLabel:
+//│ >      match t1
+//│ >        Empty⁰ =>
+//│ >          return t1
+//│ >        else
+//│ >          match t2
+//│ >            Empty⁰ =>
+//│ >              return t2
+//│ >            else
+//│ >              match t1
+//│ >                Node⁰ =>
+//│ >                  set t1 = t1;
+//│ >                  set t2 = t2;
+//│ >                  continue loopLabel
+//│ >                else
+//│ >                  throw new globalThis⁰.Error⁰("match error")
+//│ >              end
+//│ >          end
+//│ >      end
+//│ >    unreachable /* Rest of abortive labelled block */
+//│ >  };
+//│ >  end
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:merge),Define(FunDefn(None,member:merge,term:merge,List(ParamList(‹›,List(Param(‹›,t1,None,Modulefulness(None)), Param(‹›,t2,None,Modulefulness(None))),None)),Label(label:loopLabel,true,Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()),Unreachable(Rest of abortive labelled block))),End())) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:merge,term:merge,List(ParamList(‹›,List(Param(‹›,t1,None,Modulefulness(None)), Param(‹›,t2,None,Modulefulness(None))),None)),Label(label:loopLabel,true,Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()),Unreachable(Rest of abortive labelled block))),End()) with map: Map()
+//│ | | Applying block: Label(label:loopLabel,true,Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()),Unreachable(Rest of abortive labelled block)) with map: Map()
+//│ | | | Applying block: Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()) with map: Map()
+//│ | | | | Applying block: Return(Ref(t1,None),false) with map: Map()
+//│ | | | | |- Map()
+//│ | | | | Applying block: Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End()) with map: Map()
+//│ | | | | | Applying block: Return(Ref(t2,None),false) with map: Map()
+//│ | | | | | |- Map()
+//│ | | | | | Applying block: Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End()) with map: Map()
+//│ | | | | | | Applying block: Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))) with map: Map()
+//│ | | | | | | | Propagating t1 := Ref(t1,None) (None)
+//│ | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)))
+//│ | | | | | | | Applying block: Assign(t2,Ref(t2,None),Continue(label:loopLabel)) with map: Map(t1 -> Vector(Ref(t1,None)))
+//│ | | | | | | | | Propagating t2 := Ref(t2,None) (None)
+//│ | | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | Applying block: Continue(label:loopLabel) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | Continue to label:loopLabel with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | |   atLabelBegin: Map()
+//│ | | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | Applying block: Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error)))))) with map: Map()
+//│ | | | | | | |- Map()
+//│ | | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | Applying block: Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | Applying block: Return(Ref(t1,None),false) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | ?? t1⁰ Some(Vector(Ref(t1,None))) false false
+//│ | | | | | Assignments of t1⁰: Vector(Ref(t1,None))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | Applying block: Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End()) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | Applying block: Return(Ref(t2,None),false) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | ?? t2⁰ Some(Vector(Ref(t2,None))) false false
+//│ | | | | | | Assignments of t2⁰: Vector(Ref(t2,None))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | Applying block: Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End()) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | Applying block: Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | Propagating t1 := Ref(t1,None) (Some(Vector(Ref(t1,None))))
+//│ | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | ?? t1⁰ Some(Vector(Ref(t1,None))) false false
+//│ | | | | | | | Assignments of t1⁰: Vector(Ref(t1,None))
+//│ | | | | | | | Applying block: Assign(t2,Ref(t2,None),Continue(label:loopLabel)) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | Propagating t2 := Ref(t2,None) (Some(Vector(Ref(t2,None))))
+//│ | | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | ?? t2⁰ Some(Vector(Ref(t2,None))) false false
+//│ | | | | | | | | Assignments of t2⁰: Vector(Ref(t2,None))
+//│ | | | | | | | | Applying block: Continue(label:loopLabel) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | Continue to label:loopLabel with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | |   atLabelBegin: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | Applying block: Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error)))))) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | Applying block: Unreachable(Rest of abortive labelled block) with map: Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | Applying block: End() with map: Map()
+//│ | | |- Map()
+//│ | |- Map()
+//│ |- Map()
+//│ ⬤ Simplif. iter. 3
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:merge),Define(FunDefn(None,member:merge,term:merge,List(ParamList(‹›,List(Param(‹›,t1,None,Modulefulness(None)), Param(‹›,t2,None,Modulefulness(None))),None)),Label(label:loopLabel,true,Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()),Unreachable(Rest of abortive labelled block))),End())) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:merge,term:merge,List(ParamList(‹›,List(Param(‹›,t1,None,Modulefulness(None)), Param(‹›,t2,None,Modulefulness(None))),None)),Label(label:loopLabel,true,Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()),Unreachable(Rest of abortive labelled block))),End()) with map: Map()
+//│ | | Applying block: Label(label:loopLabel,true,Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()),Unreachable(Rest of abortive labelled block)) with map: Map()
+//│ | | | Applying block: Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()) with map: Map()
+//│ | | | | Applying block: Return(Ref(t1,None),false) with map: Map()
+//│ | | | | |- Map()
+//│ | | | | Applying block: Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End()) with map: Map()
+//│ | | | | | Applying block: Return(Ref(t2,None),false) with map: Map()
+//│ | | | | | |- Map()
+//│ | | | | | Applying block: Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End()) with map: Map()
+//│ | | | | | | Applying block: Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))) with map: Map()
+//│ | | | | | | | Propagating t1 := Ref(t1,None) (None)
+//│ | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)))
+//│ | | | | | | | Applying block: Assign(t2,Ref(t2,None),Continue(label:loopLabel)) with map: Map(t1 -> Vector(Ref(t1,None)))
+//│ | | | | | | | | Propagating t2 := Ref(t2,None) (None)
+//│ | | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | Applying block: Continue(label:loopLabel) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | Continue to label:loopLabel with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | |   atLabelBegin: Map()
+//│ | | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | Applying block: Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error)))))) with map: Map()
+//│ | | | | | | |- Map()
+//│ | | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | Applying block: Match(Ref(t1,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t1,None),false))),Some(Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End())),End()) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | Applying block: Return(Ref(t1,None),false) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | ?? t1⁰ Some(Vector(Ref(t1,None))) false false
+//│ | | | | | Assignments of t1⁰: Vector(Ref(t1,None))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | Applying block: Match(Ref(t2,None),List((Cls(class:Empty,Ref(member:Empty,Some(class:Empty))),Return(Ref(t2,None),false))),Some(Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End())),End()) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | Applying block: Return(Ref(t2,None),false) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | ?? t2⁰ Some(Vector(Ref(t2,None))) false false
+//│ | | | | | | Assignments of t2⁰: Vector(Ref(t2,None))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | Applying block: Match(Ref(t1,None),List((Cls(class:Node,Ref(member:Node,Some(class:Node))),Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))))),Some(Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error))))))),End()) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | Applying block: Assign(t1,Ref(t1,None),Assign(t2,Ref(t2,None),Continue(label:loopLabel))) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | Propagating t1 := Ref(t1,None) (Some(Vector(Ref(t1,None))))
+//│ | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | ?? t1⁰ Some(Vector(Ref(t1,None))) false false
+//│ | | | | | | | Assignments of t1⁰: Vector(Ref(t1,None))
+//│ | | | | | | | Applying block: Assign(t2,Ref(t2,None),Continue(label:loopLabel)) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | Propagating t2 := Ref(t2,None) (Some(Vector(Ref(t2,None))))
+//│ | | | | | | | | NEW assignedResults: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | ?? t2⁰ Some(Vector(Ref(t2,None))) false false
+//│ | | | | | | | | Assignments of t2⁰: Vector(Ref(t2,None))
+//│ | | | | | | | | Applying block: Continue(label:loopLabel) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | | Continue to label:loopLabel with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | |   atLabelBegin: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | Applying block: Throw(Instantiate(false,Select(Ref(globalThis:globalThis,Some(globalThis:globalThis)),Ident(Error)),List(Arg(None,Lit(StrLit(match error)))))) with map: Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None)), t2 -> Vector(Ref(t2,None)))
+//│ | | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | Applying block: End() with map: Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | Applying block: Unreachable(Rest of abortive labelled block) with map: Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | |- Map(t1 -> Vector(Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None), Ref(t1,None)), t2 -> Vector(Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None), Ref(t2,None)))
+//│ | | Applying block: End() with map: Map()
+//│ | | |- Map()
+//│ | |- Map()
+//│ |- Map()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let merge⁰;
+//│ define merge⁰ as fun merge¹(t1, t2) {
+//│   loop loopLabel:
+//│     match t1
+//│       Empty⁰ =>
+//│         return t1
+//│       else
+//│         match t2
+//│           Empty⁰ =>
+//│             return t2
+//│           else
+//│             match t1
+//│               Node⁰ =>
+//│                 set t1 = t1;
+//│                 set t2 = t2;
+//│                 continue loopLabel
+//│               else
+//│                 throw new globalThis⁰.Error⁰("match error")
+//│             end
+//│         end
+//│     end
+//│   unreachable /* Rest of abortive labelled block */
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+

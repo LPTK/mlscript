@@ -440,12 +440,15 @@ class BlockSimplifier
         
         
         // if loop then println("TODO")
-        atLabelBegin.put(label, assignedResults)
+        
+        // atLabelBegin.put(label, assignedResults)
+        
         // val oldDryRun = inDryRun
         // if loop then inDryRun = true
         // if loop then applyBlock(body)
         // inDryRun = oldDryRun
         if loop then
+          atLabelBegin.put(label, assignedResults)
           val oldDryRun = inDryRun
           inDryRun = true
           applyBlock(body) // FIXME wrong complexity for nested loops
@@ -458,6 +461,8 @@ class BlockSimplifier
         if (newBody is body) && (newRest is rest) then b
         else Label(label, loop, newBody, newRest)
       case Continue(label) =>
+        log(s"Continue to ${label} with map: ${assignedResults}")
+        log(s"  atLabelBegin: ${atLabelBegin(label)}")
         atLabelBegin.put(label, merge(assignedResults, atLabelBegin(label)))
         super.applyBlock(b)
       case Break(label) =>
