@@ -500,6 +500,7 @@ print(res)
 //│ > 1
 //│ res = 1
 
+:ssjs
 :sir
 :soir
 let res
@@ -535,6 +536,19 @@ hide of print(res)
 //│     end
 //│ set tmp = Predef⁰.print⁰(y⁴);
 //│ Predef⁰.hide⁰(tmp)
+//│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
+//│ let res2, scrut6, tmp3;
+//│ scrut6 = Predef.maybe;
+//│ if (scrut6 === true) {
+//│   let y4;
+//│   y4 = runtime.checkCall(Predef.hide(1));
+//│   res2 = y4;
+//│ } else {
+//│   Predef.notImplementedError;
+//│ }
+//│ tmp3 = runtime.checkCall(Predef.print(y4));
+//│ block$res24 = runtime.checkCall(Predef.hide(tmp3));
+//│ undefined
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
