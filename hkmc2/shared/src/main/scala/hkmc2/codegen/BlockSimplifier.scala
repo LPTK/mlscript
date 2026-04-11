@@ -348,7 +348,8 @@ class BlockSimplifier
       defn match
       case _: ValDefn => super.applyDefn(defn)(k)
       case _: FunDefn | _: ClsLikeDefn =>
-        withFreshAssignedResults:
+        if inDryRun then k(defn)
+        else withFreshAssignedResults:
           super.applyDefn(defn)(k)
     
     override def applyBlock(b: Block): Block =
@@ -374,9 +375,19 @@ class BlockSimplifier
       //   //   super.applyBlock(b)
       //   ???
       case Label(label, loop, body, rest) =>
-        // if loop then println("TODO")
         assert(!atLabelBegin.contains(label) && !atLabelEnd.contains(label))
+        // if loop then println("TODO")
         atLabelBegin.put(label, assignedResults)
+        // val oldDryRun = inDryRun
+        // if loop then inDryRun = true
+        // if loop then applyBlock(body)
+        // inDryRun = oldDryRun
+        if loop then
+          val oldDryRun = inDryRun
+          inDryRun = true
+          applyBlock(body) // FIXME wrong complexity for nested loops
+          inDryRun = oldDryRun
+        if loop then assignedResults = merge(assignedResults, atLabelEnd(label))
         val newBody = applyBlock(body)
         // atLabelEnd.put(label, assignedResults)
         assignedResults = merge(assignedResults, atLabelEnd(label))
@@ -418,7 +429,7 @@ class BlockSimplifier
       // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
       // println(s"Applying value: ${v} with assignedResults map: ${assignedResults} ${capturedVars}")
       v match
-      case Value.Ref(loc, N) if !capturedVars(loc) =>
+      case Value.Ref(loc, N) if !capturedVars(loc) && !inDryRun =>
         assignedResults.get(loc) match
         case S(rs) =>
           log(s"Assigned ${loc.showDbg} := ${rs}")
@@ -442,6 +453,7 @@ class BlockSimplifier
               value = newValue
             case _ =>
               // return applyValue(r)(k)
+              return super.applyValue(v)(k)
           if value === null then
             if curLoc is loc then super.applyValue(v)(k)
             else
