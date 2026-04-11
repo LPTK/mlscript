@@ -27,7 +27,7 @@ class BlockTransformer(subst: SymbolSubst):
     if l2 is l then imp else l2 -> s
   
   def applySubBlock(b: Block): Block = applyBlock(b)
-
+  
   /** Called for any sub block not in the `rest` position (when `rest` is nonempty).
     * This is not called for Label body or function body. */
   def applySubBlockNonTail(b: Block): Block = applySubBlock(b)

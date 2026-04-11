@@ -19,7 +19,7 @@ x + 2
 //│ let x⁰; set x⁰ = 1; +⁰(x⁰, 2)
 //│ ⬤ Simplif. iter. 1
 //│ Assigned x⁰ := Vector(Lit(IntLit(1)))
-//│ !! Change triggered { x⁰ ~> 1 } at BlockSimplifier.scala:425
+//│ !! Change triggered { x⁰ ~> 1 } at BlockSimplifier.scala:451
 //│ ▶ VP:
 //│ >  let x⁰; set x⁰ = 1; +⁰(1, 2)
 //│ ⬤ Simplif. iter. 2
@@ -62,20 +62,84 @@ fun main =
 //│ let main²; define main² as fun main³() { let x, y; set x = 1; set y = x; return y }; end
 //│ ⬤ Simplif. iter. 1
 //│ Assigned x¹ := Vector(Lit(IntLit(1)))
-//│ !! Change triggered { x¹ ~> 1 } at BlockSimplifier.scala:425
+//│ !! Change triggered { x¹ ~> 1 } at BlockSimplifier.scala:451
 //│ Assigned y⁰ := Vector(Lit(IntLit(1)), Ref(x,None))
-//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:425
+//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:451
 //│ ▶ VP:
 //│ >  let main²; define main² as fun main³() { let x, y; set x = 1; set y = 1; return 1 }; end
 //│ ⬤ Simplif. iter. 2
-//│ !! Change triggered { rm x¹ = 1 } at BlockSimplifier.scala:206
-//│ !! Change triggered { rm y⁰ = 1 } at BlockSimplifier.scala:206
+//│ !! Change triggered { rm x¹ = 1 } at BlockSimplifier.scala:209
+//│ !! Change triggered { rm y⁰ = 1 } at BlockSimplifier.scala:209
 //│ ▶ DCE:
 //│ >  let main²; define main² as fun main³() { return 1 }; end
 //│ ⬤ Simplif. iter. 3
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let main²; define main² as fun main³() { return 1 }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+:soir
+:dopt
+let x = if maybe then 1 else 1
+print(x)
+//│ ⬤ Simplif. iter. 1
+//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(1)))
+//│ !! Change triggered { tmp:tmp⁰ ~> 1 } at BlockSimplifier.scala:451
+//│ Assigned x² := Vector(Lit(IntLit(1)), Lit(IntLit(1)), Ref(tmp:tmp,None))
+//│ !! Change triggered { x² ~> 1 } at BlockSimplifier.scala:451
+//│ ▶ VP:
+//│ >  let x², scrut, tmp;
+//│ >  set scrut = Predef⁰.maybe⁰;
+//│ >  match scrut
+//│ >    true =>
+//│ >      set tmp = 1;
+//│ >      end
+//│ >    else
+//│ >      set tmp = 1;
+//│ >      end
+//│ >  set x² = 1;
+//│ >  Predef⁰.print⁰(1)
+//│ ⬤ Simplif. iter. 2
+//│ !! Change triggered { rm tmp:tmp⁰ = 1 } at BlockSimplifier.scala:209
+//│ !! Change triggered { rm tmp:tmp⁰ = 1 } at BlockSimplifier.scala:209
+//│ ▶ DCE:
+//│ >  let x², scrut; set scrut = Predef⁰.maybe⁰; set x² = 1; Predef⁰.print⁰(1)
+//│ ⬤ Simplif. iter. 3
+//│ !! Change triggered { rm tmp:scrut⁰ = Select(member:Predef¹‹module:Predef⁰›, Ident(maybe)) } at BlockSimplifier.scala:209
+//│ ▶ DCE:
+//│ >  let x²; do Predef⁰.maybe⁰; set x² = 1; Predef⁰.print⁰(1)
+//│ ⬤ Simplif. iter. 4
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let x²; do Predef⁰.maybe⁰; set x² = 1; Predef⁰.print⁰(1)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 1
+//│ x = 1
+
+:soir
+:dopt
+let x = if maybe then 1 else 2
+print(x)
+//│ ⬤ Simplif. iter. 1
+//│ Assigned tmp:tmp¹ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ Assigned x³ := Vector(Lit(IntLit(1)), Lit(IntLit(2)), Ref(tmp:tmp,None))
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let x³, scrut, tmp;
+//│ set scrut = Predef⁰.maybe⁰;
+//│ match scrut
+//│   true =>
+//│     set tmp = 1;
+//│     end
+//│   else
+//│     set tmp = 2;
+//│     end
+//│ set x³ = tmp;
+//│ Predef⁰.print⁰(x³)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 1
+//│ x = 1
+
+
+
 
 :sir
 :soir
@@ -93,8 +157,6 @@ fun main =
 //│ let main⁴; define main⁴ as fun main⁵() { return +⁰(1, 2) }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
-:exit
-====================================================================================================
 
 :sir
 :soir
@@ -104,7 +166,7 @@ fun main =
   while x > 0 do
     print(x)
     set x -= 1
-main
+// main
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let main⁶;
 //│ define main⁶ as fun main⁷() {
@@ -124,30 +186,27 @@ main
 //│     end
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ main⁷()
+//│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let main⁶;
 //│ define main⁶ as fun main⁷() {
-//│   let x;
-//│   set x = 2;
 //│   loop lbl:
-//│     let scrut, tmp;
-//│     set scrut = >⁰(x, 0);
+//│     let scrut;
+//│     set scrut = >⁰(2, 0);
 //│     match scrut
 //│       true =>
-//│         do Predef⁰.print⁰(x);
-//│         set tmp = -⁰(x, 1);
-//│         set x = tmp;
+//│         do Predef⁰.print⁰(2);
 //│         continue lbl
 //│       else
 //│         end
 //│     end
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ main⁷()
+//│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ > 2
-//│ > 1
+
+:exit
+====================================================================================================
 
 
 // :dopt

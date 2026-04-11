@@ -47,6 +47,7 @@ class BlockSimplifier
         return res
       
       log(s"⬤ Simplif. iter. $iteration")
+      // println(s"Current program:\n${printRes}")
       
       val dce = new DeadCodeElim()
       res = dce.apply(res)
@@ -61,9 +62,11 @@ class BlockSimplifier
       summon[Config].inlining.foreach: cfg =>
         val inl = new Inliner(using cfg)
         res = inl.apply(res)
+        // println(s"!!!")
         changed ||= inl.changed
         if inl.changed then log("▶ INL:\n" + printRes)
       
+      // println(s"? ${changed}")
       // TODO: other simplifications, such as partial evaluation?
       
     end while
@@ -325,14 +328,31 @@ class BlockSimplifier
     val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Vector.empty)
     
     var assignedResults: AssignedResults = emptyAssignedResults
+    var inDryRun = false // for traversing loops once before actually transforming the program
+    
+    def withFreshAssignedResults[T](thunk: => T): T =
+      val oldAssignedResults = assignedResults
+      assignedResults = emptyAssignedResults
+      val res = thunk
+      assignedResults = oldAssignedResults
+      res
     
     val atLabelBegin: MutMap[LabelSymbol, AssignedResults] = MutMap.empty
     val atLabelEnd: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
-      mergeMap(ar1, ar2)(_ ++ _)
+      mergeMap(ar1, ar2)(_ ++ _).withDefaultValue(Vector.empty)
+    
+    
+    override def applyDefn(defn: Defn)(k: Defn => Block): Block =
+      defn match
+      case _: ValDefn => super.applyDefn(defn)(k)
+      case _: FunDefn | _: ClsLikeDefn =>
+        withFreshAssignedResults:
+          super.applyDefn(defn)(k)
     
     override def applyBlock(b: Block): Block =
+      // println(s"Applying block: ${b} with assignedResults map: ${assignedResults} ${capturedVars}")
       // log(s"Applying block: ${b} with assignedValue map: ${assignedValue} ${capturedVars}")
       b match
       case Assign(lhs, rhs, rst) if !capturedVars(lhs) =>
@@ -354,7 +374,7 @@ class BlockSimplifier
       //   //   super.applyBlock(b)
       //   ???
       case Label(label, loop, body, rest) =>
-        if loop then println("TODO")
+        // if loop then println("TODO")
         assert(!atLabelBegin.contains(label) && !atLabelEnd.contains(label))
         atLabelBegin.put(label, assignedResults)
         val newBody = applyBlock(body)
@@ -363,9 +383,12 @@ class BlockSimplifier
         val newRest = applySubBlock(rest)
         if (newBody is body) && (newRest is rest) then b
         else Label(label, loop, newBody, newRest)
+      case Continue(label) =>
+        atLabelBegin.put(label, merge(assignedResults, atLabelBegin(label)))
+        super.applyBlock(b)
       case Break(label) =>
         // atLabelEnd.put(label, merge(atLabelEnd.getOrElse(label, Map.empty), assignedResults))
-        atLabelEnd.put(label, merge(atLabelEnd(label), assignedResults))
+        atLabelEnd.put(label, merge(assignedResults, atLabelEnd(label)))
         super.applyBlock(b)
       case Match(scrut, arms, dflt, rest) =>
         val oldAssigned = assignedResults
@@ -393,6 +416,7 @@ class BlockSimplifier
     
     override def applyValue(v: Value)(k: Value => Block): Block =
       // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
+      // println(s"Applying value: ${v} with assignedResults map: ${assignedResults} ${capturedVars}")
       v match
       case Value.Ref(loc, N) if !capturedVars(loc) =>
         assignedResults.get(loc) match
@@ -403,7 +427,7 @@ class BlockSimplifier
           var curLoc = loc
           var value: Value = null
           while curRs.nonEmpty do
-            println(s">>> ${curRs} for ${curLoc}")
+            // println(s">>> ${curRs} for ${curLoc}")
             val r = curRs.head
             curRs = curRs.tail
             r match
@@ -413,6 +437,8 @@ class BlockSimplifier
               // case N => ()
               curLoc = loc2
             case newValue @ Value.Lit(_) =>
+              if value =/= null && value =/= newValue then
+                return super.applyValue(v)(k)
               value = newValue
             case _ =>
               // return applyValue(r)(k)
@@ -719,7 +745,9 @@ class BlockSimplifier
         override def applyMainBlock(main: Block): Block =
           super.applyMainBlock(main).flattened
         
-        override def applyBlock(blk: Block) = blk match
+        override def applyBlock(blk: Block) =
+          // println(s"!?")
+          blk match
           case Define(defn: FunDefn, rest) if m(defn.dSym).canBeInlineEliminated =>
             log(s"Inline elimination: ${defn.dSym}")
             registerChange("TODO")
