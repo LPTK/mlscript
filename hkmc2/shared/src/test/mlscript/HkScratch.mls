@@ -164,13 +164,13 @@ let x = if maybe
     z
 print(x)
 //│ ⬤ Simplif. iter. 1
-//│ Assigned y⁰ := Vector(Lit(IntLit(1)))
-//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:494
-//│ Assigned z⁰ := Vector(Lit(IntLit(2)))
-//│ !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:494
-//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
-//│ Assigned x⁵ := Vector(Ref(tmp:tmp,None))
-//│ !! Change triggered { x⁵ ~> tmp:tmp⁰ } at BlockSimplifier.scala:494
+//│ Assignments of y⁰: Vector(Lit(IntLit(1)))
+//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:499
+//│ Assignments of z⁰: Vector(Lit(IntLit(2)))
+//│ !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:499
+//│ Assignments of tmp:tmp⁰: Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ Assignments of x⁵: Vector(Ref(tmp:tmp,None))
+//│ !! Change triggered { x⁵ ~> tmp:tmp⁰ } at BlockSimplifier.scala:499
 //│ ▶ VP:
 //│ >  let x⁵, scrut, y⁰, z⁰, tmp;
 //│ >  set scrut = Predef⁰.maybe⁰;
@@ -200,11 +200,11 @@ print(x)
 //│ >      end
 //│ >  set x⁵ = tmp;
 //│ >  Predef⁰.print⁰(tmp)
-//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
-//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ Assignments of tmp:tmp⁰: Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ Assignments of tmp:tmp⁰: Vector(Lit(IntLit(1)), Lit(IntLit(2)))
 //│ ⬤ Simplif. iter. 3
-//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
-//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ Assignments of tmp:tmp⁰: Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ Assignments of tmp:tmp⁰: Vector(Lit(IntLit(1)), Lit(IntLit(2)))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let x⁵, scrut, tmp;
 //│ set scrut = Predef⁰.maybe⁰;
@@ -309,14 +309,13 @@ let {x,y}
 x = y
 y = x
 //│ ⬤ Simplif. iter. 1
-//│ Assigned x⁷ := Vector(Ref(y,None))
-//│ !! Change triggered { x⁷ ~> y¹ } at BlockSimplifier.scala:494
+//│ Assignments of x⁷: Vector(Lit(UnitLit(false)))
+//│ !! Change triggered { x⁷ ~> undefined } at BlockSimplifier.scala:499
 //│ ▶ VP:
-//│ >  let x⁷, y¹; set x⁷ = y¹; set y¹ = y¹; end
+//│ >  let x⁷, y¹; set x⁷ = y¹; set y¹ = undefined; end
 //│ ⬤ Simplif. iter. 2
-//│ Assigned y¹ := Vector(Ref(y,None))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁷, y¹; set x⁷ = y¹; set y¹ = y¹; end
+//│ let x⁷, y¹; set x⁷ = y¹; set y¹ = undefined; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -328,19 +327,13 @@ x = y
 y = z
 z = x
 //│ ⬤ Simplif. iter. 1
-//│ Assigned x⁸ := Vector(Ref(y,None))
-//│ !! Change triggered { x⁸ ~> y² } at BlockSimplifier.scala:494
+//│ Assignments of x⁸: Vector(Lit(UnitLit(false)))
+//│ !! Change triggered { x⁸ ~> undefined } at BlockSimplifier.scala:499
 //│ ▶ VP:
-//│ >  let x⁸, y², z¹; set x⁸ = y²; set y² = z¹; set z¹ = y²; end
+//│ >  let x⁸, y², z¹; set x⁸ = y²; set y² = z¹; set z¹ = undefined; end
 //│ ⬤ Simplif. iter. 2
-//│ Assigned y² := Vector(Ref(z,None))
-//│ !! Change triggered { y² ~> z¹ } at BlockSimplifier.scala:494
-//│ ▶ VP:
-//│ >  let x⁸, y², z¹; set x⁸ = y²; set y² = z¹; set z¹ = z¹; end
-//│ ⬤ Simplif. iter. 3
-//│ Assigned z¹ := Vector(Ref(z,None))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁸, y², z¹; set x⁸ = y²; set y² = z¹; set z¹ = z¹; end
+//│ let x⁸, y², z¹; set x⁸ = y²; set y² = z¹; set z¹ = undefined; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -353,16 +346,15 @@ x = y
 y = x
 z = y
 //│ ⬤ Simplif. iter. 1
-//│ Assigned x⁹ := Vector(Ref(y,None))
-//│ !! Change triggered { x⁹ ~> y³ } at BlockSimplifier.scala:494
-//│ Assigned y³ := Vector(Ref(y,None))
+//│ Assignments of x⁹: Vector(Lit(UnitLit(false)))
+//│ !! Change triggered { x⁹ ~> undefined } at BlockSimplifier.scala:499
+//│ Assignments of y³: Vector(Lit(UnitLit(false)))
+//│ !! Change triggered { y³ ~> undefined } at BlockSimplifier.scala:499
 //│ ▶ VP:
-//│ >  let x⁹, y³, z²; set x⁹ = y³; set y³ = y³; set z² = y³; end
+//│ >  let x⁹, y³, z²; set x⁹ = y³; set y³ = undefined; set z² = undefined; end
 //│ ⬤ Simplif. iter. 2
-//│ Assigned y³ := Vector(Ref(y,None))
-//│ Assigned y³ := Vector(Ref(y,None))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁹, y³, z²; set x⁹ = y³; set y³ = y³; set z² = y³; end
+//│ let x⁹, y³, z²; set x⁹ = y³; set y³ = undefined; set z² = undefined; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -391,8 +383,8 @@ fun main =
   x = 2
   x
 //│ ⬤ Simplif. iter. 1
-//│ Assigned x¹⁰ := Vector(Lit(IntLit(2)))
-//│ !! Change triggered { x¹⁰ ~> 2 } at BlockSimplifier.scala:494
+//│ Assignments of x¹⁰: Vector(Lit(IntLit(2)))
+//│ !! Change triggered { x¹⁰ ~> 2 } at BlockSimplifier.scala:499
 //│ ▶ VP:
 //│ >  let main⁸; define main⁸ as fun main⁹() { let x; set x = 1; set x = 2; return 2 }; end
 //│ ⬤ Simplif. iter. 2

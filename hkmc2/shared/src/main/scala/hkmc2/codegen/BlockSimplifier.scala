@@ -437,8 +437,11 @@ class BlockSimplifier
       // case Value.Ref(loc, N) if !capturedVars(loc) && !inDryRun =>
       case Value.Ref(loc, N) if !inDryRun =>
         assignedResults.get(loc) match
+        case S(rs) if rs.isEmpty =>
+          registerChange(s"${loc.showDbg} ~> undefined")
+          k(Value.Lit(syntax.Tree.UnitLit(false)))
         case S(rs) =>
-          log(s"Assigned ${loc.showDbg} := ${rs}")
+          log(s"Assignments of ${loc.showDbg}: ${rs}")
           // registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
           var curRs = rs
           var curLoc = loc
