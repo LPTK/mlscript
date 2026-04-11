@@ -134,7 +134,7 @@ print(x)
 //│ x = 1
 
 :soir
-// :dopt
+:dopt
 let x = if maybe
   then
     let y = 1
@@ -143,6 +143,77 @@ let x = if maybe
     let z = 2
     z
 print(x)
+//│ ⬤ Simplif. iter. 1
+//│ Assigned y⁰ := Vector(Lit(IntLit(1)))
+//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:482
+//│ Assigned z⁰ := Vector(Lit(IntLit(2)))
+//│ !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:482
+//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Ref(y,None), Lit(IntLit(2)), Ref(z,None))
+//│ !! Change triggered { tmp:tmp⁰ ~> z⁰ } at BlockSimplifier.scala:479
+//│ Assigned x⁴ := Vector(Lit(IntLit(1)), Ref(y,None), Lit(IntLit(2)), Ref(z,None), Ref(tmp:tmp,None))
+//│ !! Change triggered { x⁴ ~> tmp:tmp⁰ } at BlockSimplifier.scala:479
+//│ ▶ VP:
+//│ >  let x⁴, scrut, y⁰, z⁰, tmp;
+//│ >  set scrut = Predef⁰.maybe⁰;
+//│ >  match scrut
+//│ >    true =>
+//│ >      set y⁰ = 1;
+//│ >      set tmp = 1;
+//│ >      end
+//│ >    else
+//│ >      set z⁰ = 2;
+//│ >      set tmp = 2;
+//│ >      end
+//│ >  set x⁴ = z⁰;
+//│ >  Predef⁰.print⁰(tmp)
+//│ ⬤ Simplif. iter. 2
+//│ !! Change triggered { rm y⁰ = 1 } at BlockSimplifier.scala:209
+//│ ▶ DCE:
+//│ >  let x⁴, scrut, z⁰, tmp;
+//│ >  set scrut = Predef⁰.maybe⁰;
+//│ >  match scrut
+//│ >    true =>
+//│ >      set tmp = 1;
+//│ >      end
+//│ >    else
+//│ >      set z⁰ = 2;
+//│ >      set tmp = 2;
+//│ >      end
+//│ >  set x⁴ = z⁰;
+//│ >  Predef⁰.print⁰(tmp)
+//│ Assigned z⁰ := Vector(Lit(IntLit(2)))
+//│ !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:482
+//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ ▶ VP:
+//│ >  let x⁴, scrut, z⁰, tmp;
+//│ >  set scrut = Predef⁰.maybe⁰;
+//│ >  match scrut
+//│ >    true =>
+//│ >      set tmp = 1;
+//│ >      end
+//│ >    else
+//│ >      set z⁰ = 2;
+//│ >      set tmp = 2;
+//│ >      end
+//│ >  set x⁴ = 2;
+//│ >  Predef⁰.print⁰(tmp)
+//│ ⬤ Simplif. iter. 3
+//│ !! Change triggered { rm z⁰ = 2 } at BlockSimplifier.scala:209
+//│ ▶ DCE:
+//│ >  let x⁴, scrut, tmp;
+//│ >  set scrut = Predef⁰.maybe⁰;
+//│ >  match scrut
+//│ >    true =>
+//│ >      set tmp = 1;
+//│ >      end
+//│ >    else
+//│ >      set tmp = 2;
+//│ >      end
+//│ >  set x⁴ = 2;
+//│ >  Predef⁰.print⁰(tmp)
+//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ ⬤ Simplif. iter. 4
+//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let x⁴, scrut, tmp;
 //│ set scrut = Predef⁰.maybe⁰;
@@ -236,7 +307,7 @@ let {x,y}
 x = y
 y = x
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁵, y⁰; set x⁵ = y⁰; set y⁰ = undefined; end
+//│ let x⁵, y¹; set x⁵ = y¹; set y¹ = undefined; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -250,7 +321,7 @@ z = x
 //│ ⬤ Simplif. iter. 1
 //│ Assigned x⁶ := Vector(Ref(y,None))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁶, y¹, z⁰; set x⁶ = y¹; set y¹ = z⁰; set z⁰ = undefined; end
+//│ let x⁶, y², z¹; set x⁶ = y²; set y² = z¹; set z¹ = undefined; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -264,9 +335,9 @@ y = x
 z = y
 //│ ⬤ Simplif. iter. 1
 //│ Assigned x⁷ := Vector(Ref(y,None))
-//│ Assigned y² := Vector(Ref(y,None), Ref(x,None))
+//│ Assigned y³ := Vector(Ref(y,None), Ref(x,None))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁷, y², z¹; set x⁷ = y²; set y² = undefined; set z¹ = undefined; end
+//│ let x⁷, y³, z²; set x⁷ = y³; set y³ = undefined; set z² = undefined; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
