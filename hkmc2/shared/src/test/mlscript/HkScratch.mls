@@ -60,13 +60,26 @@ fun main =
 //│ let main²; define main² as fun main³() { return 1 }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+// FIXME: why is `x` treated as exported? -> Seems this parses as `let x = 1, let y = x in y`
+:soir
+// :dopt
+let
+  x = 1
+  y = x
+  in y
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let x¹; set x¹ = 1; 1
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+//│ x = 1
+
 
 :soir
 // :dopt
 let x = if maybe then 1 else 1
 print(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x¹; do Predef⁰.maybe⁰; set x¹ = 1; Predef⁰.print⁰(1)
+//│ let x²; do Predef⁰.maybe⁰; set x² = 1; Predef⁰.print⁰(1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 //│ x = 1
@@ -76,7 +89,14 @@ print(x)
 let x = if maybe then 1 else 1
 in print(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ do Predef⁰.maybe⁰; Predef⁰.print⁰(1)
+//│ let scrut;
+//│ set scrut = Predef⁰.maybe⁰;
+//│ match scrut
+//│   true =>
+//│     Predef⁰.print⁰(1)
+//│   else
+//│     Predef⁰.print⁰(1)
+//│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 
@@ -85,7 +105,7 @@ in print(x)
 let x = if maybe then 1 else 2
 print(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x², scrut, tmp;
+//│ let x³, scrut, tmp;
 //│ set scrut = Predef⁰.maybe⁰;
 //│ match scrut
 //│   true =>
@@ -94,7 +114,7 @@ print(x)
 //│   else
 //│     set tmp = 2;
 //│     end
-//│ set x² = tmp;
+//│ set x³ = tmp;
 //│ Predef⁰.print⁰(tmp)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
@@ -128,7 +148,7 @@ let x = if maybe
     z
 print(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x³; do Predef⁰.maybe⁰; set x³ = 1; Predef⁰.print⁰(1)
+//│ let x⁴; do Predef⁰.maybe⁰; set x⁴ = 1; Predef⁰.print⁰(1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 //│ x = 1
@@ -145,15 +165,14 @@ let x = if maybe
 print(x)
 //│ ⬤ Simplif. iter. 1
 //│ Assigned y⁰ := Vector(Lit(IntLit(1)))
-//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:482
+//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:490
 //│ Assigned z⁰ := Vector(Lit(IntLit(2)))
-//│ !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:482
-//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Ref(y,None), Lit(IntLit(2)), Ref(z,None))
-//│ !! Change triggered { tmp:tmp⁰ ~> z⁰ } at BlockSimplifier.scala:479
-//│ Assigned x⁴ := Vector(Lit(IntLit(1)), Ref(y,None), Lit(IntLit(2)), Ref(z,None), Ref(tmp:tmp,None))
-//│ !! Change triggered { x⁴ ~> tmp:tmp⁰ } at BlockSimplifier.scala:479
+//│ !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:490
+//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ Assigned x⁵ := Vector(Ref(tmp:tmp,None))
+//│ !! Change triggered { x⁵ ~> tmp:tmp⁰ } at BlockSimplifier.scala:490
 //│ ▶ VP:
-//│ >  let x⁴, scrut, y⁰, z⁰, tmp;
+//│ >  let x⁵, scrut, y⁰, z⁰, tmp;
 //│ >  set scrut = Predef⁰.maybe⁰;
 //│ >  match scrut
 //│ >    true =>
@@ -164,43 +183,13 @@ print(x)
 //│ >      set z⁰ = 2;
 //│ >      set tmp = 2;
 //│ >      end
-//│ >  set x⁴ = z⁰;
+//│ >  set x⁵ = tmp;
 //│ >  Predef⁰.print⁰(tmp)
 //│ ⬤ Simplif. iter. 2
 //│ !! Change triggered { rm y⁰ = 1 } at BlockSimplifier.scala:209
-//│ ▶ DCE:
-//│ >  let x⁴, scrut, z⁰, tmp;
-//│ >  set scrut = Predef⁰.maybe⁰;
-//│ >  match scrut
-//│ >    true =>
-//│ >      set tmp = 1;
-//│ >      end
-//│ >    else
-//│ >      set z⁰ = 2;
-//│ >      set tmp = 2;
-//│ >      end
-//│ >  set x⁴ = z⁰;
-//│ >  Predef⁰.print⁰(tmp)
-//│ Assigned z⁰ := Vector(Lit(IntLit(2)))
-//│ !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:482
-//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
-//│ ▶ VP:
-//│ >  let x⁴, scrut, z⁰, tmp;
-//│ >  set scrut = Predef⁰.maybe⁰;
-//│ >  match scrut
-//│ >    true =>
-//│ >      set tmp = 1;
-//│ >      end
-//│ >    else
-//│ >      set z⁰ = 2;
-//│ >      set tmp = 2;
-//│ >      end
-//│ >  set x⁴ = 2;
-//│ >  Predef⁰.print⁰(tmp)
-//│ ⬤ Simplif. iter. 3
 //│ !! Change triggered { rm z⁰ = 2 } at BlockSimplifier.scala:209
 //│ ▶ DCE:
-//│ >  let x⁴, scrut, tmp;
+//│ >  let x⁵, scrut, tmp;
 //│ >  set scrut = Predef⁰.maybe⁰;
 //│ >  match scrut
 //│ >    true =>
@@ -209,13 +198,15 @@ print(x)
 //│ >    else
 //│ >      set tmp = 2;
 //│ >      end
-//│ >  set x⁴ = 2;
+//│ >  set x⁵ = tmp;
 //│ >  Predef⁰.print⁰(tmp)
 //│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
-//│ ⬤ Simplif. iter. 4
+//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
+//│ ⬤ Simplif. iter. 3
+//│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
 //│ Assigned tmp:tmp⁰ := Vector(Lit(IntLit(1)), Lit(IntLit(2)))
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁴, scrut, tmp;
+//│ let x⁵, scrut, tmp;
 //│ set scrut = Predef⁰.maybe⁰;
 //│ match scrut
 //│   true =>
@@ -224,11 +215,11 @@ print(x)
 //│   else
 //│     set tmp = 2;
 //│     end
-//│ set x⁴ = 2;
+//│ set x⁵ = tmp;
 //│ Predef⁰.print⁰(tmp)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
-//│ x = 2
+//│ x = 1
 
 
 
@@ -281,13 +272,16 @@ main
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let main⁶;
 //│ define main⁶ as fun main⁷() {
+//│   let x;
+//│   set x = 2;
 //│   loop lbl:
 //│     let scrut, tmp;
-//│     set scrut = >⁰(tmp, 0);
+//│     set scrut = >⁰(x, 0);
 //│     match scrut
 //│       true =>
-//│         do Predef⁰.print⁰(tmp);
-//│         set tmp = -⁰(tmp, 1);
+//│         do Predef⁰.print⁰(x);
+//│         set tmp = -⁰(x, 1);
+//│         set x = tmp;
 //│         continue lbl
 //│       else
 //│         end
@@ -296,18 +290,71 @@ main
 //│ };
 //│ main⁷()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 2
+//│ > 1
 
 // :exit
 // ====================================================================================================
 
 
-// :dopt
+:dopt
 :soir
 let {x,y}
 x = y
 y = x
+//│ ⬤ Simplif. iter. 1
+//│ Assigned x⁶ := Vector(Ref(y,None))
+//│ !! Change triggered { x⁶ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Simplif. iter. 2
+//│ Assigned y¹ := Vector(Ref(y,None))
+//│ !! Change triggered { y¹ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Simplif. iter. 3
+//│ Assigned y¹ := Vector(Ref(y,None))
+//│ !! Change triggered { y¹ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Simplif. iter. 4
+//│ Assigned y¹ := Vector(Ref(y,None))
+//│ !! Change triggered { y¹ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Simplif. iter. 5
+//│ Assigned y¹ := Vector(Ref(y,None))
+//│ !! Change triggered { y¹ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Simplif. iter. 6
+//│ Assigned y¹ := Vector(Ref(y,None))
+//│ !! Change triggered { y¹ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Simplif. iter. 7
+//│ Assigned y¹ := Vector(Ref(y,None))
+//│ !! Change triggered { y¹ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Simplif. iter. 8
+//│ Assigned y¹ := Vector(Ref(y,None))
+//│ !! Change triggered { y¹ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Simplif. iter. 9
+//│ Assigned y¹ := Vector(Ref(y,None))
+//│ !! Change triggered { y¹ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Simplif. iter. 10
+//│ Assigned y¹ := Vector(Ref(y,None))
+//│ !! Change triggered { y¹ ~> y¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
+//│ ⬤ Reached maximum number of iterations (10), stopping simplifications
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁵, y¹; set x⁵ = y¹; set y¹ = undefined; end
+//│ let x⁶, y¹; set x⁶ = y¹; set y¹ = y¹; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -319,9 +366,58 @@ x = y
 y = z
 z = x
 //│ ⬤ Simplif. iter. 1
-//│ Assigned x⁶ := Vector(Ref(y,None))
+//│ Assigned x⁷ := Vector(Ref(y,None))
+//│ !! Change triggered { x⁷ ~> y² } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = y²; end
+//│ ⬤ Simplif. iter. 2
+//│ Assigned y² := Vector(Ref(z,None))
+//│ !! Change triggered { y² ~> z¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
+//│ ⬤ Simplif. iter. 3
+//│ Assigned z¹ := Vector(Ref(z,None))
+//│ !! Change triggered { z¹ ~> z¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
+//│ ⬤ Simplif. iter. 4
+//│ Assigned z¹ := Vector(Ref(z,None))
+//│ !! Change triggered { z¹ ~> z¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
+//│ ⬤ Simplif. iter. 5
+//│ Assigned z¹ := Vector(Ref(z,None))
+//│ !! Change triggered { z¹ ~> z¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
+//│ ⬤ Simplif. iter. 6
+//│ Assigned z¹ := Vector(Ref(z,None))
+//│ !! Change triggered { z¹ ~> z¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
+//│ ⬤ Simplif. iter. 7
+//│ Assigned z¹ := Vector(Ref(z,None))
+//│ !! Change triggered { z¹ ~> z¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
+//│ ⬤ Simplif. iter. 8
+//│ Assigned z¹ := Vector(Ref(z,None))
+//│ !! Change triggered { z¹ ~> z¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
+//│ ⬤ Simplif. iter. 9
+//│ Assigned z¹ := Vector(Ref(z,None))
+//│ !! Change triggered { z¹ ~> z¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
+//│ ⬤ Simplif. iter. 10
+//│ Assigned z¹ := Vector(Ref(z,None))
+//│ !! Change triggered { z¹ ~> z¹ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
+//│ ⬤ Reached maximum number of iterations (10), stopping simplifications
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁶, y², z¹; set x⁶ = y²; set y² = z¹; set z¹ = undefined; end
+//│ let x⁷, y², z¹; set x⁷ = y²; set y² = z¹; set z¹ = z¹; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -334,10 +430,78 @@ x = y
 y = x
 z = y
 //│ ⬤ Simplif. iter. 1
-//│ Assigned x⁷ := Vector(Ref(y,None))
-//│ Assigned y³ := Vector(Ref(y,None), Ref(x,None))
+//│ Assigned x⁸ := Vector(Ref(y,None))
+//│ !! Change triggered { x⁸ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Simplif. iter. 2
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Simplif. iter. 3
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Simplif. iter. 4
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Simplif. iter. 5
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Simplif. iter. 6
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Simplif. iter. 7
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Simplif. iter. 8
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Simplif. iter. 9
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Simplif. iter. 10
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ Assigned y³ := Vector(Ref(y,None))
+//│ !! Change triggered { y³ ~> y³ } at BlockSimplifier.scala:490
+//│ ▶ VP:
+//│ >  let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
+//│ ⬤ Reached maximum number of iterations (10), stopping simplifications
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁷, y³, z²; set x⁷ = y³; set y³ = undefined; set z² = undefined; end
+//│ let x⁸, y³, z²; set x⁸ = y³; set y³ = y³; set z² = y³; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -366,13 +530,13 @@ fun main =
   x = 2
   x
 //│ ⬤ Simplif. iter. 1
-//│ Assigned x⁸ := Vector(Lit(IntLit(2)))
-//│ !! Change triggered { x⁸ ~> 2 } at BlockSimplifier.scala:482
+//│ Assigned x⁹ := Vector(Lit(IntLit(2)))
+//│ !! Change triggered { x⁹ ~> 2 } at BlockSimplifier.scala:490
 //│ ▶ VP:
 //│ >  let main⁸; define main⁸ as fun main⁹() { let x; set x = 1; set x = 2; return 2 }; end
 //│ ⬤ Simplif. iter. 2
-//│ !! Change triggered { rm x⁸ = 1 } at BlockSimplifier.scala:209
-//│ !! Change triggered { rm x⁸ = 2 } at BlockSimplifier.scala:209
+//│ !! Change triggered { rm x⁹ = 1 } at BlockSimplifier.scala:209
+//│ !! Change triggered { rm x⁹ = 2 } at BlockSimplifier.scala:209
 //│ ▶ DCE:
 //│ >  let main⁸; define main⁸ as fun main⁹() { return 2 }; end
 //│ ⬤ Simplif. iter. 3

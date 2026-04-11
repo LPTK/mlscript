@@ -366,7 +366,10 @@ class BlockSimplifier
         */
         // assignedResults += lhs -> Vector.single(rhs)
         assignedResults += lhs -> rhs.match
-          case Value.Ref(sym, N) => assignedResults(sym) :+ rhs
+          case Value.Ref(sym, N) =>
+            // assignedResults(sym) :+ rhs
+            val rhs2 = assignedResults(sym)
+            if rhs2.sizeCompare(1) === 0 then rhs2 else Vector.single(rhs)
           // TODO: also handle Value.This
           case _ => Vector.single(rhs)
         super.applyBlock(b)
@@ -440,15 +443,20 @@ class BlockSimplifier
           var value: Value | Bool = false
           while curRs.nonEmpty do
             // println(s">>> ${curRs} for ${curLoc}")
-            val r = curRs.head
+            var r = curRs.head
             curRs = curRs.tail
+            // r match
+            // case Value.Ref(loc2, N) if !capturedVars(loc2) =>
+            //   // assignedResults.get(loc2) match
+            //   // case S(rs2) => cur ++= rs2
+            //   // case N => ()
+            //   // curLoc = loc2
+            //   assignedResults.get(loc2) match
+            //   case N =>
+            //   case S(rs2) =>
+            // case _ =>
             r match
-            case Value.Ref(loc2, N) if !capturedVars(loc2) =>
-              // assignedResults.get(loc2) match
-              // case S(rs2) => cur ++= rs2
-              // case N => ()
-              curLoc = loc2
-            case newValue @ Value.Lit(_) =>
+            case newValue @ (_: Value.Lit | _: Value.Ref) =>
               if value === false then
                 value = newValue
               else if value =/= newValue then
