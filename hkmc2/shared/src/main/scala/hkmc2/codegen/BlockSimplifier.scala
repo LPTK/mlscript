@@ -369,7 +369,9 @@ class BlockSimplifier
           case Value.Ref(sym, N) =>
             // assignedResults(sym) :+ rhs
             val rhs2 = assignedResults(sym)
-            if rhs2.sizeCompare(1) === 0 then rhs2 else Vector.single(rhs)
+            if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
+            else if rhs2.sizeCompare(1) === 0 then rhs2
+            else Vector.single(rhs)
           // TODO: also handle Value.This
           case _ => Vector.single(rhs)
         super.applyBlock(b)
@@ -481,11 +483,15 @@ class BlockSimplifier
             // Value was never assigned
             super.applyValue(Value.Lit(syntax.Tree.UnitLit(false)))(k)
           case true =>
-            // Value was not assigned a single literal value
-            if curLoc is loc then super.applyValue(v)(k)
-            else
-              registerChange(s"${loc.showDbg} ~> ${curLoc.showDbg}")
-              k(Value.Ref(curLoc, N))
+            // Value was not assigned a singlular value
+            // if curLoc is loc then super.applyValue(v)(k)
+            // else
+            //   registerChange(s"${loc.showDbg} ~> ${curLoc.showDbg}")
+            //   k(Value.Ref(curLoc, N))
+            k(Value.Ref(curLoc, N))
+          case Value.Ref(`loc`, N) =>
+            // Value was assigned to the same local variable
+            k(Value.Ref(loc, N))
           case newValue: Value =>
             registerChange(s"${loc.showDbg} ~> ${newValue.showDbg}")
             k(newValue)
