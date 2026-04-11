@@ -54,7 +54,9 @@ class BlockSimplifier
       changed ||= dce.changed
       if dce.changed then log("▶ DCE:\n" + printRes)
       
-      val vp = new ValuePropagation()
+      // val vp = new ValuePropagation()
+      // val vp = new ValuePropagation(DefinedVars.analyze(res.main))
+      val vp = new ValuePropagation(LocalVars.analyze(res.main))
       res = vp.apply(res)
       changed ||= vp.changed
       if vp.changed then log("▶ VP:\n" + printRes)
@@ -83,6 +85,33 @@ class BlockSimplifier
       changed = true
     
   end Helper
+  
+  
+  type LocalVar = LocalSymbol
+  
+  /* 
+  object DefinedVars extends CachedAnalysis[Block, Set[LocalVar]]:
+    
+    def analyzeUncached(block: Block): Set[LocalVar] = block match
+      case Assign(lhs: LocalVar, rhs, rst) =>
+        // TODO techni
+        rst.analyze ++ rhs.subBlocks.iterator.flatMap(analyze) + lhs
+      case _ => block.subBlocks.iterator.flatMap(analyze).toSet
+    
+  end DefinedVars
+  */
+  object LocalVars extends CachedAnalysis[Block, Set[LocalVar]]:
+    
+    def analyzeUncached(block: Block): Set[LocalVar] = block match
+      // case Assign(lhs: LocalVar, rhs, rst) =>
+      //   // TODO techni
+      //   rst.analyze ++ rhs.subBlocks.iterator.flatMap(analyze) + lhs
+      case Scoped(syms, rest) =>
+        rest.analyze ++ syms.iterator.collect { case v: LocalVar => v }
+      case _ => block.subBlocks.iterator.flatMap(analyze).toSet
+    
+  end LocalVars
+  
   
   // ——————————————————————————————————————————————————————————————————————————————————————————— //
   
@@ -283,9 +312,10 @@ class BlockSimplifier
   
   
   /** Simple propagation of values inwards; does not require any merges at join points. */
-  class ValuePropagation() extends BlockTransformer(SymbolSubst.Id), Helper:
+  // class ValuePropagation(definedVars: Set[LocalVar]) extends BlockTransformer(SymbolSubst.Id), Helper:
+  class ValuePropagation(localVars: Set[LocalVar]) extends BlockTransformer(SymbolSubst.Id), Helper:
     
-    type LocalVar = LocalSymbol
+    // val definedVars = DefinedVars.analyze
     
     val capturedVars = MutSet.empty[LocalVar]
     // ^ TODO: technically, all we need to prevent is changes to `nonLocallyAssignedVars`,
@@ -327,7 +357,10 @@ class BlockSimplifier
     
     
     type AssignedResults = Map[LocalVar, Vector[Result]]
-    val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Vector.empty)
+    def initVector(sym: LocalVar): Vector[Result] =
+      if localVars(sym) then Vector.empty else Vector.single(Value.Ref(sym, N))
+    // val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Vector.empty)
+    val emptyAssignedResults: AssignedResults = Map.empty.withDefault(initVector)
     
     var assignedResults: AssignedResults = emptyAssignedResults
     var inDryRun = false // for traversing loops once before actually transforming the program
@@ -339,11 +372,12 @@ class BlockSimplifier
       assignedResults = oldAssignedResults
       res
     
-    val atLabelBegin: MutMap[LabelSymbol, AssignedResults] = MutMap.empty
+    val atLabelBegin: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     val atLabelEnd: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
-      mergeMap(ar1, ar2)(_ ++ _).withDefaultValue(Vector.empty)
+      // mergeMap(ar1, ar2)(_ ++ _).withDefaultValue(Vector.empty)
+      mergeMap(ar1, ar2)(_ ++ _).withDefault(initVector)
     
     
     override def applyDefn(defn: Defn)(k: Defn => Block): Block =
@@ -372,6 +406,7 @@ class BlockSimplifier
             // assignedResults(sym) :+ rhs
             val rhs2 = assignedResults(sym)
             if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
+            // if rhs2.isEmpty && localVars(sym) then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
             else if rhs2.sizeCompare(1) === 0 then rhs2
             else Vector.single(rhs)
           // TODO: also handle Value.This
@@ -438,9 +473,10 @@ class BlockSimplifier
       v match
       // case Value.Ref(loc, N) if !capturedVars(loc) && !inDryRun =>
       case Value.Ref(loc: LocalVar, N) if !inDryRun && !loc.isInstanceOf[BlockMemberSymbol] =>
-        log(s"?? ${loc.showDbg} ${assignedResults.get(loc)}")
+        log(s"?? ${loc.showDbg} ${assignedResults.get(loc)} ${localVars(loc)} ${capturedVars(loc)}")
         val rs = assignedResults(loc)
         if rs.isEmpty then
+        // if rs.isEmpty && localVars(loc) then
           registerChange(s"${loc.showDbg} ~> undefined")
           k(Value.Lit(syntax.Tree.UnitLit(false)))
         else
@@ -484,23 +520,30 @@ class BlockSimplifier
             registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
             k(value)
           */
-          value match
-          case false =>
-            // Value was never assigned
-            super.applyValue(Value.Lit(syntax.Tree.UnitLit(false)))(k)
-          case true =>
-            // Value was not assigned a singlular value
-            // if curLoc is loc then super.applyValue(v)(k)
-            // else
-            //   registerChange(s"${loc.showDbg} ~> ${curLoc.showDbg}")
-            //   k(Value.Ref(curLoc, N))
-            k(Value.Ref(curLoc, N))
-          case Value.Ref(`loc`, N) =>
-            // Value was assigned to the same local variable
-            k(Value.Ref(loc, N))
-          case newValue: Value =>
-            registerChange(s"${loc.showDbg} ~> ${newValue.showDbg}")
-            k(newValue)
+          val resValue = value match
+            case false =>
+              // Value was never assigned
+              super.applyValue(Value.Lit(syntax.Tree.UnitLit(false)))(k)
+            case true =>
+              // Value was not assigned a singlular value
+              
+              // if curLoc is loc then super.applyValue(v)(k)
+              // else
+              //   registerChange(s"${loc.showDbg} ~> ${curLoc.showDbg}")
+              //   k(Value.Ref(curLoc, N))
+              
+              // k(Value.Ref(curLoc, N))
+              
+              super.applyValue(v)(k)
+            case Value.Ref(`loc`, N) =>
+              // Value was assigned to the same local variable
+              // k(Value.Ref(loc, N))
+              super.applyValue(v)(k)
+            case newValue: Value =>
+              registerChange(s"${loc.showDbg} ~> ${newValue.showDbg}")
+              k(newValue)
+          // if resValue is v then k(v) else resValue
+          resValue
         // case _ => super.applyValue(v)(k)
       case _ => super.applyValue(v)(k)
     
