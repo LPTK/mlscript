@@ -469,6 +469,31 @@ class BlockSimplifier
       case _ => 
         super.applyBlock(b)
     
+    // FIXME: refactor transformers so this is not so error-prone (adding this case to `applyBlock` doesn't work)
+    override def applyScopedBlock(b: Block): Block =
+      val res = super.applyScopedBlock(b)
+      // println(s"?!")
+      b match
+      case Scoped(syms, body) =>
+        // assignedResults = assignedResults.filterNot:
+        //   case (_, Value.Ref(sym)) => syms.contains(sym)
+        assignedResults = assignedResults.flatMap:
+          // case (k, rs) => k -> rs.filterNot:
+          //   case Value.Ref(sym: LocalVar, N) => syms.contains(sym)
+          //   case _ => false
+          case (k, rs) if syms.contains(k) => N
+          // case (k, rs) => S(k -> rs.flatMap:
+          //   // case Value.Ref(sym: LocalVar, N) =>
+          //   //   if syms.contains(sym)
+          //   case ref @ Value.Ref(sym: LocalVar, N) =>
+          //     S(if syms.contains(sym) then Value.Ref(k, N) else ref)
+          //   case r => S(r))
+          case (k, rs) => S(k -> rs.map:
+            case ref @ Value.Ref(sym: LocalVar, N) =>
+              if syms.contains(sym) then Value.Ref(k, N) else ref
+            case r => r)
+      case _ =>
+      res
     
     override def applyValue(v: Value)(k: Value => Block): Block =
       // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
