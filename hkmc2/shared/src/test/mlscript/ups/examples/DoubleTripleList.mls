@@ -26,49 +26,13 @@ Nil is DoubleList
 fun isDoubleList(xs) = xs is @compile DoubleList
 
 isDoubleList of list(1, 2, 3, 4)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDoubleList (REPL34:1:185)
-//│     at REPL37:1:90
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 isDoubleList of list(1, 2, 3)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDoubleList (REPL34:1:185)
-//│     at REPL40:1:89
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = false
 
 isDoubleList of Nil
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDoubleList (REPL34:1:185)
-//│     at REPL43:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 // The example of lists whose length is a multiple of three.
 
@@ -90,64 +54,16 @@ Nil is TripleList
 fun isTripleList(xs) = xs is @compile TripleList
 
 isTripleList of list(1, 2, 3, 4, 5, 6)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isTripleList (REPL61:1:185)
-//│     at REPL64:1:98
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 isTripleList of list(1, 2, 3)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isTripleList (REPL61:1:185)
-//│     at REPL67:1:89
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 isTripleList of list(1, 2, 3, 4)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isTripleList (REPL61:1:185)
-//│     at REPL70:1:92
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = false
 
 isTripleList of Nil
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isTripleList (REPL61:1:185)
-//│     at REPL73:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 pattern DoubleTripleList = DoubleList | TripleList
 
@@ -189,8 +105,8 @@ withLog of () =>
   testList.head
   testList.tail
   ()
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
+//│ > access the `head` of [1, 2]
+//│ > access the `tail` of [1, 2]
 
 fun list(...elements) = elements Iter.rightFolded of Nil, (::)
 
@@ -198,172 +114,58 @@ fun isDoubleTripleList__compiled(xs) = withLog of
   () => xs is @compile DoubleTripleList
 
 isDoubleTripleList__compiled of list(1, 2, 3)
-//│ > access the `head` of undefined
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at lambda1 (REPL96:1:706)
-//│     at withLog (REPL83:1:172)
-//│     at isDoubleTripleList__compiled (REPL96:1:2828)
-//│     at REPL99:1:90
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > access the `head` of [1, 2, 3]
+//│ > access the `tail` of [1, 2, 3]
+//│ > access the `head` of [2, 3]
+//│ > access the `tail` of [2, 3]
+//│ > access the `head` of [3]
+//│ > access the `tail` of [3]
+//│ = true
 
 isDoubleTripleList__compiled of list(1, 2, 3, 4)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at lambda1 (REPL96:1:706)
-//│     at withLog (REPL83:1:172)
-//│     at isDoubleTripleList__compiled (REPL96:1:2828)
-//│     at REPL102:1:93
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > access the `head` of [1, 2, 3, 4]
+//│ > access the `tail` of [1, 2, 3, 4]
+//│ > access the `head` of [2, 3, 4]
+//│ > access the `tail` of [2, 3, 4]
+//│ > access the `head` of [3, 4]
+//│ > access the `tail` of [3, 4]
+//│ > access the `head` of [4]
+//│ > access the `tail` of [4]
+//│ = true
 
 isDoubleTripleList__compiled of list(1, 2, 3, 4, 5)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at lambda1 (REPL96:1:706)
-//│     at withLog (REPL83:1:172)
-//│     at isDoubleTripleList__compiled (REPL96:1:2828)
-//│     at REPL105:1:96
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > access the `head` of [1, 2, 3, 4, 5]
+//│ > access the `tail` of [1, 2, 3, 4, 5]
+//│ > access the `head` of [2, 3, 4, 5]
+//│ > access the `tail` of [2, 3, 4, 5]
+//│ > access the `head` of [3, 4, 5]
+//│ > access the `tail` of [3, 4, 5]
+//│ > access the `head` of [4, 5]
+//│ > access the `tail` of [4, 5]
+//│ > access the `head` of [5]
+//│ > access the `tail` of [5]
+//│ = false
 
 isDoubleTripleList__compiled of list(1, 2, 3, 4, 5, 6, 7, 8, 9)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at lambda1 (REPL96:1:706)
-//│     at withLog (REPL83:1:172)
-//│     at isDoubleTripleList__compiled (REPL96:1:2828)
-//│     at REPL108:1:108
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > access the `head` of [1, 2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [1, 2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [3, 4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [3, 4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [5, 6, 7, 8, 9]
+//│ > access the `tail` of [5, 6, 7, 8, 9]
+//│ > access the `head` of [6, 7, 8, 9]
+//│ > access the `tail` of [6, 7, 8, 9]
+//│ > access the `head` of [7, 8, 9]
+//│ > access the `tail` of [7, 8, 9]
+//│ > access the `head` of [8, 9]
+//│ > access the `tail` of [8, 9]
+//│ > access the `head` of [9]
+//│ > access the `tail` of [9]
+//│ = true
 
 isDoubleTripleList__compiled of Nil
 //│ = true
@@ -376,69 +178,69 @@ fun isDoubleTripleList__naive(xs) =
 
 // It does not backtracking because the `DoubleList` is tested first.
 isDoubleTripleList__naive of list(1, 2, 3, 4)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
+//│ > access the `head` of [1, 2, 3, 4]
+//│ > access the `tail` of [1, 2, 3, 4]
+//│ > access the `head` of [2, 3, 4]
+//│ > access the `tail` of [2, 3, 4]
+//│ > access the `head` of [3, 4]
+//│ > access the `tail` of [3, 4]
+//│ > access the `head` of [4]
+//│ > access the `tail` of [4]
 //│ = true
 
 // It does backtracking when `DoubleList` does not match.
 isDoubleTripleList__naive of list(1, 2, 3)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
+//│ > access the `head` of [1, 2, 3]
+//│ > access the `tail` of [1, 2, 3]
+//│ > access the `head` of [2, 3]
+//│ > access the `tail` of [2, 3]
+//│ > access the `head` of [3]
+//│ > access the `tail` of [3]
+//│ > access the `head` of [1, 2, 3]
+//│ > access the `tail` of [1, 2, 3]
+//│ > access the `head` of [2, 3]
+//│ > access the `tail` of [2, 3]
+//│ > access the `head` of [3]
+//│ > access the `tail` of [3]
 //│ = true
 
 isDoubleTripleList__naive of list(1, 2, 3, 4, 5, 6, 7, 8, 9)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
+//│ > access the `head` of [1, 2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [1, 2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [3, 4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [3, 4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [5, 6, 7, 8, 9]
+//│ > access the `tail` of [5, 6, 7, 8, 9]
+//│ > access the `head` of [6, 7, 8, 9]
+//│ > access the `tail` of [6, 7, 8, 9]
+//│ > access the `head` of [7, 8, 9]
+//│ > access the `tail` of [7, 8, 9]
+//│ > access the `head` of [8, 9]
+//│ > access the `tail` of [8, 9]
+//│ > access the `head` of [9]
+//│ > access the `tail` of [9]
+//│ > access the `head` of [1, 2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [1, 2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [2, 3, 4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [3, 4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [3, 4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [4, 5, 6, 7, 8, 9]
+//│ > access the `tail` of [4, 5, 6, 7, 8, 9]
+//│ > access the `head` of [5, 6, 7, 8, 9]
+//│ > access the `tail` of [5, 6, 7, 8, 9]
+//│ > access the `head` of [6, 7, 8, 9]
+//│ > access the `tail` of [6, 7, 8, 9]
+//│ > access the `head` of [7, 8, 9]
+//│ > access the `tail` of [7, 8, 9]
+//│ > access the `head` of [8, 9]
+//│ > access the `tail` of [8, 9]
+//│ > access the `head` of [9]
+//│ > access the `tail` of [9]
 //│ = true
 
 pattern DoubleAndTripleList = DoubleList & TripleList
@@ -447,182 +249,112 @@ fun isDoubleAndTriple__naive(xs) = withLog of
   () => xs is DoubleAndTripleList
 
 isDoubleAndTriple__naive of list(8, 9)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
+//│ > access the `head` of [8, 9]
+//│ > access the `tail` of [8, 9]
+//│ > access the `head` of [9]
+//│ > access the `tail` of [9]
+//│ > access the `head` of [8, 9]
+//│ > access the `tail` of [8, 9]
+//│ > access the `head` of [9]
+//│ > access the `tail` of [9]
 //│ = false
 
 isDoubleAndTriple__naive of list(1, 2, 3)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
+//│ > access the `head` of [1, 2, 3]
+//│ > access the `tail` of [1, 2, 3]
+//│ > access the `head` of [2, 3]
+//│ > access the `tail` of [2, 3]
+//│ > access the `head` of [3]
+//│ > access the `tail` of [3]
 //│ = false
 
 isDoubleAndTriple__naive of list(4, 3, 2, 1)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
+//│ > access the `head` of [4, 3, 2, 1]
+//│ > access the `tail` of [4, 3, 2, 1]
+//│ > access the `head` of [3, 2, 1]
+//│ > access the `tail` of [3, 2, 1]
+//│ > access the `head` of [2, 1]
+//│ > access the `tail` of [2, 1]
+//│ > access the `head` of [1]
+//│ > access the `tail` of [1]
+//│ > access the `head` of [4, 3, 2, 1]
+//│ > access the `tail` of [4, 3, 2, 1]
+//│ > access the `head` of [3, 2, 1]
+//│ > access the `tail` of [3, 2, 1]
+//│ > access the `head` of [2, 1]
+//│ > access the `tail` of [2, 1]
+//│ > access the `head` of [1]
+//│ > access the `tail` of [1]
 //│ = false
 
 isDoubleAndTriple__naive of list(1, 2, 3, 4, 5, 6)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
+//│ > access the `head` of [1, 2, 3, 4, 5, 6]
+//│ > access the `tail` of [1, 2, 3, 4, 5, 6]
+//│ > access the `head` of [2, 3, 4, 5, 6]
+//│ > access the `tail` of [2, 3, 4, 5, 6]
+//│ > access the `head` of [3, 4, 5, 6]
+//│ > access the `tail` of [3, 4, 5, 6]
+//│ > access the `head` of [4, 5, 6]
+//│ > access the `tail` of [4, 5, 6]
+//│ > access the `head` of [5, 6]
+//│ > access the `tail` of [5, 6]
+//│ > access the `head` of [6]
+//│ > access the `tail` of [6]
+//│ > access the `head` of [1, 2, 3, 4, 5, 6]
+//│ > access the `tail` of [1, 2, 3, 4, 5, 6]
+//│ > access the `head` of [2, 3, 4, 5, 6]
+//│ > access the `tail` of [2, 3, 4, 5, 6]
+//│ > access the `head` of [3, 4, 5, 6]
+//│ > access the `tail` of [3, 4, 5, 6]
+//│ > access the `head` of [4, 5, 6]
+//│ > access the `tail` of [4, 5, 6]
+//│ > access the `head` of [5, 6]
+//│ > access the `tail` of [5, 6]
+//│ > access the `head` of [6]
+//│ > access the `tail` of [6]
 //│ = true
 
 fun isDoubleAndTriple__compiled(xs) = withLog of
   () => xs is @compile DoubleAndTripleList
 
 isDoubleAndTriple__compiled of list(8, 9)
-//│ > access the `head` of undefined
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at lambda1 (REPL144:1:707)
-//│     at withLog (REPL83:1:172)
-//│     at isDoubleAndTriple__compiled (REPL144:1:2590)
-//│     at REPL147:1:89
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > access the `head` of [8, 9]
+//│ > access the `tail` of [8, 9]
+//│ > access the `head` of [9]
+//│ > access the `tail` of [9]
+//│ = false
 
 isDoubleAndTriple__compiled of list(1, 2, 3)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at lambda1 (REPL144:1:707)
-//│     at withLog (REPL83:1:172)
-//│     at isDoubleAndTriple__compiled (REPL144:1:2590)
-//│     at REPL150:1:92
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > access the `head` of [1, 2, 3]
+//│ > access the `tail` of [1, 2, 3]
+//│ > access the `head` of [2, 3]
+//│ > access the `tail` of [2, 3]
+//│ > access the `head` of [3]
+//│ > access the `tail` of [3]
+//│ = false
 
 isDoubleAndTriple__compiled of list(4, 3, 2, 1)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at lambda1 (REPL144:1:707)
-//│     at withLog (REPL83:1:172)
-//│     at isDoubleAndTriple__compiled (REPL144:1:2590)
-//│     at REPL153:1:95
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > access the `head` of [4, 3, 2, 1]
+//│ > access the `tail` of [4, 3, 2, 1]
+//│ > access the `head` of [3, 2, 1]
+//│ > access the `tail` of [3, 2, 1]
+//│ > access the `head` of [2, 1]
+//│ > access the `tail` of [2, 1]
+//│ > access the `head` of [1]
+//│ > access the `tail` of [1]
+//│ = false
 
 isDoubleAndTriple__compiled of list(1, 2, 3, 4, 5, 6)
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ > access the `tail` of undefined
-//│ > access the `head` of undefined
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at lambda1 (REPL144:1:707)
-//│     at withLog (REPL83:1:172)
-//│     at isDoubleAndTriple__compiled (REPL144:1:2590)
-//│     at REPL156:1:101
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ > access the `head` of [1, 2, 3, 4, 5, 6]
+//│ > access the `tail` of [1, 2, 3, 4, 5, 6]
+//│ > access the `head` of [2, 3, 4, 5, 6]
+//│ > access the `tail` of [2, 3, 4, 5, 6]
+//│ > access the `head` of [3, 4, 5, 6]
+//│ > access the `tail` of [3, 4, 5, 6]
+//│ > access the `head` of [4, 5, 6]
+//│ > access the `tail` of [4, 5, 6]
+//│ > access the `head` of [5, 6]
+//│ > access the `tail` of [5, 6]
+//│ > access the `head` of [6]
+//│ > access the `tail` of [6]
+//│ = true

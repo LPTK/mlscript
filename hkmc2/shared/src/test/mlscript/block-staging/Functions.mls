@@ -210,6 +210,12 @@ staged module LabelBreak with
     1 then 2
     else 2
 //│ ═══[COMPILATION ERROR] Other Blocks not supported in staged module: class hkmc2.codegen.Label.
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
+//│ ║  l.205: 	    let x = 1
+//│ ║         	        ^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.205: 	    let x = 1
+//│ ╙──       	        ^
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 
@@ -221,7 +227,7 @@ staged module A with
   fun g() = {1 : 2}
 //│ ═══[COMPILATION ERROR] Other Blocks not supported in staged module: class hkmc2.codegen.AssignField
 //│ ╔══[COMPILATION ERROR] Other Results not supported in staged module: class hkmc2.codegen.Record
-//│ ║  l.221: 	  fun g() = {1 : 2}
+//│ ║  l.227: 	  fun g() = {1 : 2}
 //│ ╙──       	                 ^
 //│ > fun ctor_() =
 //│ >   x = C(1)
@@ -231,5 +237,6 @@ staged module A with
 staged module Spread with
   fun f() = if [1, ..[1, 2]] is [1, ...x] then x else 0
 //│ ═══[COMPILATION ERROR] Spread parameters are not supported in staged module: Arg(Some(Lazy),Ref(tmp:tmp,None))
+//│ ═══[COMPILATION ERROR] No definition found in scope for member 'tmp'
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.

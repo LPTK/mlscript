@@ -66,19 +66,19 @@ fun outerfun(x) =
 
 let f = outerfun(100)
 f(200)
-//│ > NaN
-//│ = NaN
+//│ > 301
+//│ = 401
 //│ f = fun nested
 
 // f(200)
 
 outerfun(100)
-//│ > NaN
+//│ > 301
 //│ = fun nested
 
 outerfun(100)(200)
-//│ > NaN
-//│ = NaN
+//│ > 301
+//│ = 401
 
 
 // * Notice this strange JS phenomenon:

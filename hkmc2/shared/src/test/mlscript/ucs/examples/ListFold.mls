@@ -160,19 +160,7 @@ minus(Nil)
 //│ = 0
 
 minus(1 :: 2 :: 3 :: Nil)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: f is not a function
-//│     at aux (REPL93:1:559)
-//│     at aux (REPL93:1:503)
-//│     at aux (REPL93:1:503)
-//│     at lambda4 (REPL93:1:801)
-//│     at lambda6 (REPL119:1:416)
-//│     at REPL129:1:195
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│ = -6
 
 let reverse'' = foldLeft'((acc, x) => x :: acc)(Nil)
 //│ reverse'' = fun

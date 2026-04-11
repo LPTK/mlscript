@@ -187,7 +187,7 @@ fun evaluate(term) = if term is
 //│ 	at: scala.collection.immutable.VectorBuilder.advance(Vector.scala:1835)
 //│ 	at: scala.collection.immutable.VectorBuilder.addArr1(Vector.scala:1719)
 //│ 	at: scala.collection.immutable.VectorBuilder.addVector$$anonfun$1(Vector.scala:1815)
-//│ 	at: scala.collection.immutable.VectorBuilder$$Lambda/0x0000008802afa2c8.applyVoid(Unknown Source)
+//│ 	at: scala.collection.immutable.VectorBuilder$$Lambda/0x000000013188c000.applyVoid(Unknown Source)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 //│ 	at: scala.collection.immutable.VectorStatics$.foreachRec(Vector.scala:2127)

@@ -352,6 +352,9 @@ class BlockSimplifier
         //   case _ => super.applyBlock(b)
         
       end new
+      
+      log(s"Captured variables: ${capturedVars}")
+      
       applyProgram(prog)
     end apply
     
@@ -409,7 +412,7 @@ class BlockSimplifier
         */
         // assignedResults += lhs -> Vector.single(rhs)
         assignedResults += lhs -> rhs.match
-          case Value.Ref(sym: LocalVar, N) =>
+          case Value.Ref(sym: LocalVar, N) if !capturedVars(sym) =>
             // assignedResults(sym) :+ rhs
             val rhs2 = assignedResults(sym)
             if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
@@ -518,7 +521,7 @@ class BlockSimplifier
       v match
       // case Value.Ref(loc, N) if !capturedVars(loc) && !inDryRun =>
       // case Value.Ref(loc: LocalVar, N) if !inDryRun && !loc.isInstanceOf[BlockMemberSymbol] =>
-      case Value.Ref(loc: LocalVar, N) if !inDryRun =>
+      case Value.Ref(loc: LocalVar, N) if !inDryRun && !capturedVars(loc) =>
       // case Value.Ref(loc: LocalVar, N) if !inDryRun && localVars(loc) =>
         log(s"?? ${loc.showDbg} ${assignedResults.get(loc)} ${localVars(loc)} ${capturedVars(loc)}")
         val rs = assignedResults(loc)

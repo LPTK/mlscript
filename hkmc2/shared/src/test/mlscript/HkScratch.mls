@@ -173,6 +173,7 @@ let x = if maybe
     z
 print(x)
 //│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(HashSet(y, z, x, tmp:tmp, tmp:scrut),Assign(tmp:scrut,Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)),Match(Ref(tmp:scrut,None),List((Lit(BoolLit(true)),Assign(y,Lit(IntLit(1)),Assign(tmp:tmp,Ref(y,None),End())))),Some(Assign(z,Lit(IntLit(2)),Assign(tmp:tmp,Ref(z,None),End()))),Assign(x,Ref(tmp:tmp,None),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(x,None)))),true))))) with map: Map()
 //│ | Applying block: Assign(tmp:scrut,Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)),Match(Ref(tmp:scrut,None),List((Lit(BoolLit(true)),Assign(y,Lit(IntLit(1)),Assign(tmp:tmp,Ref(y,None),End())))),Some(Assign(z,Lit(IntLit(2)),Assign(tmp:tmp,Ref(z,None),End()))),Assign(x,Ref(tmp:tmp,None),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(x,None)))),true)))) with map: Map()
 //│ | | Propagating tmp:scrut := Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)) (None)
@@ -186,7 +187,7 @@ print(x)
 //│ | | | | | NEW assignedResults: Map(tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))), y -> Vector(Lit(IntLit(1))), tmp:tmp -> Vector(Lit(IntLit(1))))
 //│ | | | | | ?? y⁰ Some(Vector(Lit(IntLit(1)))) true false
 //│ | | | | | Assignments of y⁰: Vector(Lit(IntLit(1)))
-//│ | | | | | !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:590
+//│ | | | | | !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:593
 //│ | | | | | Applying block: End() with map: Map(tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))), y -> Vector(Lit(IntLit(1))), tmp:tmp -> Vector(Lit(IntLit(1))))
 //│ | | | | | |- Map(tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))), y -> Vector(Lit(IntLit(1))), tmp:tmp -> Vector(Lit(IntLit(1))))
 //│ | | | | |- Map(tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))), y -> Vector(Lit(IntLit(1))), tmp:tmp -> Vector(Lit(IntLit(1))))
@@ -199,7 +200,7 @@ print(x)
 //│ | | | | | NEW assignedResults: Map(tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))), z -> Vector(Lit(IntLit(2))), tmp:tmp -> Vector(Lit(IntLit(2))))
 //│ | | | | | ?? z⁰ Some(Vector(Lit(IntLit(2)))) true false
 //│ | | | | | Assignments of z⁰: Vector(Lit(IntLit(2)))
-//│ | | | | | !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:590
+//│ | | | | | !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:593
 //│ | | | | | Applying block: End() with map: Map(tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))), z -> Vector(Lit(IntLit(2))), tmp:tmp -> Vector(Lit(IntLit(2))))
 //│ | | | | | |- Map(tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))), z -> Vector(Lit(IntLit(2))), tmp:tmp -> Vector(Lit(IntLit(2))))
 //│ | | | | |- Map(tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))), z -> Vector(Lit(IntLit(2))), tmp:tmp -> Vector(Lit(IntLit(2))))
@@ -212,7 +213,7 @@ print(x)
 //│ | | | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(x,None)))),true) with map: Map(y -> Vector(Lit(IntLit(1))), z -> Vector(Lit(IntLit(2))), x -> Vector(Ref(tmp:tmp,None)), tmp:tmp -> Vector(Lit(IntLit(1)), Lit(IntLit(2))), tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))))
 //│ | | | | | ?? x⁵ Some(Vector(Ref(tmp:tmp,None))) true false
 //│ | | | | | Assignments of x⁵: Vector(Ref(tmp:tmp,None))
-//│ | | | | | !! Change triggered { x⁵ ~> tmp:tmp⁰ } at BlockSimplifier.scala:590
+//│ | | | | | !! Change triggered { x⁵ ~> tmp:tmp⁰ } at BlockSimplifier.scala:593
 //│ | | | | |- Map(y -> Vector(Lit(IntLit(1))), z -> Vector(Lit(IntLit(2))), x -> Vector(Ref(tmp:tmp,None)), tmp:tmp -> Vector(Lit(IntLit(1)), Lit(IntLit(2))), tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))))
 //│ | | | |- Map(y -> Vector(Lit(IntLit(1))), z -> Vector(Lit(IntLit(2))), x -> Vector(Ref(tmp:tmp,None)), tmp:tmp -> Vector(Lit(IntLit(1)), Lit(IntLit(2))), tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))))
 //│ | | |- Map(y -> Vector(Lit(IntLit(1))), z -> Vector(Lit(IntLit(2))), x -> Vector(Ref(tmp:tmp,None)), tmp:tmp -> Vector(Lit(IntLit(1)), Lit(IntLit(2))), tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))))
@@ -247,6 +248,7 @@ print(x)
 //│ >      end
 //│ >  set x⁵ = tmp;
 //│ >  Predef⁰.print⁰(tmp)
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(HashSet(x, tmp:tmp, tmp:scrut),Assign(tmp:scrut,Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)),Match(Ref(tmp:scrut,None),List((Lit(BoolLit(true)),Assign(tmp:tmp,Lit(IntLit(1)),End()))),Some(Assign(tmp:tmp,Lit(IntLit(2)),End())),Assign(x,Ref(tmp:tmp,None),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(tmp:tmp,None)))),true))))) with map: Map()
 //│ | Applying block: Assign(tmp:scrut,Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)),Match(Ref(tmp:scrut,None),List((Lit(BoolLit(true)),Assign(tmp:tmp,Lit(IntLit(1)),End()))),Some(Assign(tmp:tmp,Lit(IntLit(2)),End())),Assign(x,Ref(tmp:tmp,None),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(tmp:tmp,None)))),true)))) with map: Map()
 //│ | | Propagating tmp:scrut := Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)) (None)
@@ -278,6 +280,7 @@ print(x)
 //│ | |- Map(tmp:tmp -> Vector(Lit(IntLit(1)), Lit(IntLit(2))), tmp:scrut -> Vector(Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)), Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe))), x -> Vector(Ref(tmp:tmp,None)))
 //│ |- Map()
 //│ ⬤ Simplif. iter. 3
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(HashSet(x, tmp:tmp, tmp:scrut),Assign(tmp:scrut,Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)),Match(Ref(tmp:scrut,None),List((Lit(BoolLit(true)),Assign(tmp:tmp,Lit(IntLit(1)),End()))),Some(Assign(tmp:tmp,Lit(IntLit(2)),End())),Assign(x,Ref(tmp:tmp,None),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(tmp:tmp,None)))),true))))) with map: Map()
 //│ | Applying block: Assign(tmp:scrut,Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)),Match(Ref(tmp:scrut,None),List((Lit(BoolLit(true)),Assign(tmp:tmp,Lit(IntLit(1)),End()))),Some(Assign(tmp:tmp,Lit(IntLit(2)),End())),Assign(x,Ref(tmp:tmp,None),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(tmp:tmp,None)))),true)))) with map: Map()
 //│ | | Propagating tmp:scrut := Select(Ref(member:Predef,Some(module:Predef)),Ident(maybe)) (None)
@@ -406,18 +409,19 @@ let {x,y}
 x = y
 y = x
 //│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(x, y),Assign(x,Ref(y,None),Assign(y,Ref(x,None),End()))) with map: Map()
 //│ | Applying block: Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())) with map: Map()
 //│ | | Propagating x := Ref(y,None) (None)
 //│ | | NEW assignedResults: Map(x -> Vector(Lit(UnitLit(false))))
 //│ | | ?? y¹ None true false
-//│ | | !! Change triggered { y¹ ~> undefined } at BlockSimplifier.scala:527
+//│ | | !! Change triggered { y¹ ~> undefined } at BlockSimplifier.scala:530
 //│ | | Applying block: Assign(y,Ref(x,None),End()) with map: Map(x -> Vector(Lit(UnitLit(false))))
 //│ | | | Propagating y := Ref(x,None) (None)
 //│ | | | NEW assignedResults: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))))
 //│ | | | ?? x⁶ Some(Vector(Lit(UnitLit(false)))) true false
 //│ | | | Assignments of x⁶: Vector(Lit(UnitLit(false)))
-//│ | | | !! Change triggered { x⁶ ~> undefined } at BlockSimplifier.scala:590
+//│ | | | !! Change triggered { x⁶ ~> undefined } at BlockSimplifier.scala:593
 //│ | | | Applying block: End() with map: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))))
 //│ | | | |- Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))))
 //│ | | |- Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))))
@@ -426,6 +430,7 @@ y = x
 //│ ▶ VP:
 //│ >  let x⁶, y¹; set x⁶ = undefined; set y¹ = undefined; end
 //│ ⬤ Simplif. iter. 2
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(x, y),Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End()))) with map: Map()
 //│ | Applying block: Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End())) with map: Map()
 //│ | | Propagating x := Lit(UnitLit(false)) (None)
@@ -451,23 +456,24 @@ x = y
 y = z
 z = x
 //│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(x, y, z),Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())))) with map: Map()
 //│ | Applying block: Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))) with map: Map()
 //│ | | Propagating x := Ref(y,None) (None)
 //│ | | NEW assignedResults: Map(x -> Vector(Lit(UnitLit(false))))
 //│ | | ?? y² None true false
-//│ | | !! Change triggered { y² ~> undefined } at BlockSimplifier.scala:527
+//│ | | !! Change triggered { y² ~> undefined } at BlockSimplifier.scala:530
 //│ | | Applying block: Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())) with map: Map(x -> Vector(Lit(UnitLit(false))))
 //│ | | | Propagating y := Ref(z,None) (None)
 //│ | | | NEW assignedResults: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))))
 //│ | | | ?? z¹ None true false
-//│ | | | !! Change triggered { z¹ ~> undefined } at BlockSimplifier.scala:527
+//│ | | | !! Change triggered { z¹ ~> undefined } at BlockSimplifier.scala:530
 //│ | | | Applying block: Assign(z,Ref(x,None),End()) with map: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))))
 //│ | | | | Propagating z := Ref(x,None) (None)
 //│ | | | | NEW assignedResults: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))), z -> Vector(Lit(UnitLit(false))))
 //│ | | | | ?? x⁷ Some(Vector(Lit(UnitLit(false)))) true false
 //│ | | | | Assignments of x⁷: Vector(Lit(UnitLit(false)))
-//│ | | | | !! Change triggered { x⁷ ~> undefined } at BlockSimplifier.scala:590
+//│ | | | | !! Change triggered { x⁷ ~> undefined } at BlockSimplifier.scala:593
 //│ | | | | Applying block: End() with map: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))), z -> Vector(Lit(UnitLit(false))))
 //│ | | | | |- Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))), z -> Vector(Lit(UnitLit(false))))
 //│ | | | |- Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))), z -> Vector(Lit(UnitLit(false))))
@@ -477,6 +483,7 @@ z = x
 //│ ▶ VP:
 //│ >  let x⁷, y², z¹; set x⁷ = undefined; set y² = undefined; set z¹ = undefined; end
 //│ ⬤ Simplif. iter. 2
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(x, y, z),Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())))) with map: Map()
 //│ | Applying block: Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))) with map: Map()
 //│ | | Propagating x := Lit(UnitLit(false)) (None)
@@ -507,24 +514,25 @@ x = y
 y = x
 z = y
 //│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(x, y, z),Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())))) with map: Map()
 //│ | Applying block: Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))) with map: Map()
 //│ | | Propagating x := Ref(y,None) (None)
 //│ | | NEW assignedResults: Map(x -> Vector(Lit(UnitLit(false))))
 //│ | | ?? y³ None true false
-//│ | | !! Change triggered { y³ ~> undefined } at BlockSimplifier.scala:527
+//│ | | !! Change triggered { y³ ~> undefined } at BlockSimplifier.scala:530
 //│ | | Applying block: Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())) with map: Map(x -> Vector(Lit(UnitLit(false))))
 //│ | | | Propagating y := Ref(x,None) (None)
 //│ | | | NEW assignedResults: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))))
 //│ | | | ?? x⁸ Some(Vector(Lit(UnitLit(false)))) true false
 //│ | | | Assignments of x⁸: Vector(Lit(UnitLit(false)))
-//│ | | | !! Change triggered { x⁸ ~> undefined } at BlockSimplifier.scala:590
+//│ | | | !! Change triggered { x⁸ ~> undefined } at BlockSimplifier.scala:593
 //│ | | | Applying block: Assign(z,Ref(y,None),End()) with map: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))))
 //│ | | | | Propagating z := Ref(y,None) (None)
 //│ | | | | NEW assignedResults: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))), z -> Vector(Lit(UnitLit(false))))
 //│ | | | | ?? y³ Some(Vector(Lit(UnitLit(false)))) true false
 //│ | | | | Assignments of y³: Vector(Lit(UnitLit(false)))
-//│ | | | | !! Change triggered { y³ ~> undefined } at BlockSimplifier.scala:590
+//│ | | | | !! Change triggered { y³ ~> undefined } at BlockSimplifier.scala:593
 //│ | | | | Applying block: End() with map: Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))), z -> Vector(Lit(UnitLit(false))))
 //│ | | | | |- Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))), z -> Vector(Lit(UnitLit(false))))
 //│ | | | |- Map(x -> Vector(Lit(UnitLit(false))), y -> Vector(Lit(UnitLit(false))), z -> Vector(Lit(UnitLit(false))))
@@ -534,6 +542,7 @@ z = y
 //│ ▶ VP:
 //│ >  let x⁸, y³, z²; set x⁸ = undefined; set y³ = undefined; set z² = undefined; end
 //│ ⬤ Simplif. iter. 2
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(x, y, z),Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())))) with map: Map()
 //│ | Applying block: Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))) with map: Map()
 //│ | | Propagating x := Lit(UnitLit(false)) (None)
@@ -566,6 +575,7 @@ fun f(x) =
   x = 1
   42
 //│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false))),End())) with map: Map()
 //│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false))),End()) with map: Map()
 //│ | | Applying block: Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false)) with map: Map()
@@ -592,6 +602,7 @@ fun main =
   x = 2
   x
 //│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(x),Assign(x,Lit(IntLit(1)),Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false))))),End())) with map: Map()
 //│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(x),Assign(x,Lit(IntLit(1)),Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false))))),End()) with map: Map()
 //│ | | Applying block: Assign(x,Lit(IntLit(1)),Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false))) with map: Map()
@@ -603,7 +614,7 @@ fun main =
 //│ | | | | Applying block: Return(Ref(x,None),false) with map: Map(x -> Vector(Lit(IntLit(2))))
 //│ | | | | | ?? x⁹ Some(Vector(Lit(IntLit(2)))) true false
 //│ | | | | | Assignments of x⁹: Vector(Lit(IntLit(2)))
-//│ | | | | | !! Change triggered { x⁹ ~> 2 } at BlockSimplifier.scala:590
+//│ | | | | | !! Change triggered { x⁹ ~> 2 } at BlockSimplifier.scala:593
 //│ | | | | |- Map(x -> Vector(Lit(IntLit(2))))
 //│ | | | |- Map(x -> Vector(Lit(IntLit(2))))
 //│ | | |- Map(x -> Vector(Lit(IntLit(2))))
@@ -618,6 +629,7 @@ fun main =
 //│ !! Change triggered { rm x⁹ = 2 } at BlockSimplifier.scala:238
 //│ ▶ DCE:
 //│ >  let main⁸; define main⁸ as fun main⁹() { return 2 }; end
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Return(Lit(IntLit(2)),false)),End())) with map: Map()
 //│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Return(Lit(IntLit(2)),false)),End()) with map: Map()
 //│ | | Applying block: Return(Lit(IntLit(2)),false) with map: Map()
@@ -627,6 +639,7 @@ fun main =
 //│ | |- Map()
 //│ |- Map()
 //│ ⬤ Simplif. iter. 3
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Return(Lit(IntLit(2)),false)),End())) with map: Map()
 //│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Return(Lit(IntLit(2)),false)),End()) with map: Map()
 //│ | | Applying block: Return(Lit(IntLit(2)),false) with map: Map()
@@ -791,6 +804,7 @@ fun main =
   test
 main
 //│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(member:test),Define(FunDefn(None,member:test,term:test,List(ParamList(‹›,List(),None)),Scoped(Set(member:lambda),Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),Return(Ref(member:lambda,Some(term:lambda)),false)))),Return(Call(Ref(member:test,Some(term:test)),List()),false)))),Return(Call(Ref(member:main,Some(term:main)),List()),true))) with map: Map()
 //│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(member:test),Define(FunDefn(None,member:test,term:test,List(ParamList(‹›,List(),None)),Scoped(Set(member:lambda),Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),Return(Ref(member:lambda,Some(term:lambda)),false)))),Return(Call(Ref(member:test,Some(term:test)),List()),false)))),Return(Call(Ref(member:main,Some(term:main)),List()),true)) with map: Map()
 //│ | | Applying block: Define(FunDefn(None,member:test,term:test,List(ParamList(‹›,List(),None)),Scoped(Set(member:lambda),Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),Return(Ref(member:lambda,Some(term:lambda)),false)))),Return(Call(Ref(member:test,Some(term:test)),List()),false)) with map: Map()
@@ -810,8 +824,8 @@ main
 //│ | |- Map()
 //│ |- Map()
 //│ Inline elimination: term:test
-//│ !! Change triggered { TODO } at BlockSimplifier.scala:894
-//│ !! Change triggered { TODO } at BlockSimplifier.scala:931
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:897
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:934
 //│ Inline call for term:test, with args List()
 //│ ▶ INL:
 //│ >  let main¹⁰;
@@ -844,6 +858,7 @@ main
 //│ >    return inlinedVal
 //│ >  };
 //│ >  main¹¹()
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(member:test, tmp:inlinedVal),Label(label:inlinedLbl,false,Scoped(HashSet(member:lambda),Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),Assign(tmp:inlinedVal,Ref(member:lambda,Some(term:lambda)),End()))),Return(Ref(tmp:inlinedVal,None),false)))),Return(Call(Ref(member:main,Some(term:main)),List()),true))) with map: Map()
 //│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(member:test, tmp:inlinedVal),Label(label:inlinedLbl,false,Scoped(HashSet(member:lambda),Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),Assign(tmp:inlinedVal,Ref(member:lambda,Some(term:lambda)),End()))),Return(Ref(tmp:inlinedVal,None),false)))),Return(Call(Ref(member:main,Some(term:main)),List()),true)) with map: Map()
 //│ | | Applying block: Label(label:inlinedLbl,false,Scoped(HashSet(member:lambda),Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),Assign(tmp:inlinedVal,Ref(member:lambda,Some(term:lambda)),End()))),Return(Ref(tmp:inlinedVal,None),false)) with map: Map()
@@ -864,7 +879,7 @@ main
 //│ | | | Applying block: Return(Ref(tmp:inlinedVal,None),false) with map: Map(tmp:inlinedVal -> Vector(Ref(member:lambda,Some(term:lambda))))
 //│ | | | | ?? tmp:inlinedVal⁰ Some(Vector(Ref(member:lambda,Some(term:lambda)))) true false
 //│ | | | | Assignments of tmp:inlinedVal⁰: Vector(Ref(member:lambda,Some(term:lambda)))
-//│ | | | | !! Change triggered { tmp:inlinedVal⁰ ~> member:lambda¹‹term:lambda⁰› } at BlockSimplifier.scala:590
+//│ | | | | !! Change triggered { tmp:inlinedVal⁰ ~> member:lambda¹‹term:lambda⁰› } at BlockSimplifier.scala:593
 //│ | | | |- Map(tmp:inlinedVal -> Vector(Ref(member:lambda,Some(term:lambda))))
 //│ | | |- Map(tmp:inlinedVal -> Vector(Ref(member:lambda,Some(term:lambda))))
 //│ | | Applying block: Return(Call(Ref(member:main,Some(term:main)),List()),true) with map: Map()
@@ -898,6 +913,7 @@ main
 //│ >    return lambda⁰
 //│ >  };
 //│ >  main¹¹()
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(member:lambda, member:test),Begin(Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),End()),Return(Ref(member:lambda,Some(term:lambda)),false)))),Return(Call(Ref(member:main,Some(term:main)),List()),true))) with map: Map()
 //│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(member:lambda, member:test),Begin(Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),End()),Return(Ref(member:lambda,Some(term:lambda)),false)))),Return(Call(Ref(member:main,Some(term:main)),List()),true)) with map: Map()
 //│ | | Applying block: Begin(Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),End()),Return(Ref(member:lambda,Some(term:lambda)),false)) with map: Map()
@@ -917,6 +933,7 @@ main
 //│ | |- Map()
 //│ |- Map()
 //│ ⬤ Simplif. iter. 4
+//│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(member:lambda, member:test),Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),Return(Ref(member:lambda,Some(term:lambda)),false)))),Return(Call(Ref(member:main,Some(term:main)),List()),true))) with map: Map()
 //│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(member:lambda, member:test),Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),Return(Ref(member:lambda,Some(term:lambda)),false)))),Return(Call(Ref(member:main,Some(term:main)),List()),true)) with map: Map()
 //│ | | Applying block: Define(FunDefn(None,member:lambda,term:lambda,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Return(Ref(x,None),false)),Return(Ref(member:lambda,Some(term:lambda)),false)) with map: Map()

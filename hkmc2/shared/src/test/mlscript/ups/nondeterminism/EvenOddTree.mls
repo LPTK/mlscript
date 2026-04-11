@@ -41,109 +41,144 @@ not A is EvenTree
 //│ = true
 
 not a(B, B) is @compile EvenTree
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at REPL40:1:603
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'undefined'
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.OutOfMemoryError: Java heap space
+//│ 	at: scala.collection.immutable.VectorBuilder.advance1(Vector.scala:1852)
+//│ 	at: scala.collection.immutable.VectorBuilder.advance(Vector.scala:1835)
+//│ 	at: scala.collection.immutable.VectorBuilder.addArr1(Vector.scala:1719)
+//│ 	at: scala.collection.immutable.VectorBuilder.addVector$$anonfun$1(Vector.scala:1815)
+//│ 	at: scala.collection.immutable.VectorBuilder$$Lambda/0x000000013188c000.applyVoid(Unknown Source)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.collection.immutable.VectorStatics$.foreachRec(Vector.scala:2127)
+//│ 	at: scala.collection.immutable.VectorStatics$.foreachRec(Vector.scala:2133)
+//│ 	at: scala.collection.immutable.VectorStatics$.foreachRec(Vector.scala:2133)
 
 not a(B, B) is EvenTree
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 a(B, A) is @compile EvenTree
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at REPL46:1:613
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'undefined'
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 a(B, A) is EvenTree
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 a(A, B) is @compile EvenTree
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at REPL52:1:614
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'undefined'
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 a(A, B) is EvenTree
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 b(A, A) is @compile EvenTree
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at REPL58:1:618
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'undefined'
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 b(A, A) is EvenTree
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 b(B, B) is @compile EvenTree
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at REPL64:1:618
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'undefined'
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 b(B, B) is EvenTree
-//│ = true
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 // Test each case of `OddTree`.
 // ============================

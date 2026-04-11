@@ -28,7 +28,7 @@ fun foo() =
     else n + f(n-1)
   f(10000)
 foo()
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
 
 
 :sjs

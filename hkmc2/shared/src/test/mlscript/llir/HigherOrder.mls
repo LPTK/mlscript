@@ -84,7 +84,7 @@ fun nubBy(eq, ls) = if ls is
   Nil then Nil
   h :: t then h :: nubBy(eq, filter(y => nott(eq(h, y)), t))
 nubBy((x, y) => x === y, 1 :: 2 :: 3 :: 3 :: Nil)
-//│ = Cons(undefined, Cons(undefined, Cons(undefined, Cons(undefined, Nil))))
+//│ = Cons(1, Cons(2, Cons(3, Nil)))
 //│ 
 //│ Interpreted:
 //│ Cons(1,Cons(2,Cons(3,Nil())))

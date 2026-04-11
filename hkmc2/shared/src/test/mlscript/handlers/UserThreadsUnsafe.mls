@@ -44,7 +44,14 @@ handle h = ThreadEffect with
 in
   main(h)
 //│ > main start
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'fork')
+//│ > main end
+//│ > f 2
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
+//│ 	at f (UserThreadsUnsafe.mls:13:3)
+//│ 	at while (UserThreadsUnsafe.mls:30:5)
+//│ 	at drain (pc=1)
+//│ 	at Handler$h$fork (UserThreadsUnsafe.mls:39:5)
+//│ 	at Handler$h$fork (UserThreadsUnsafe.mls:39:5)
 
 
 // FIFO
@@ -60,6 +67,13 @@ handle h = ThreadEffect with
 in
   main(h)
 //│ > main start
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'fork')
+//│ > main end
+//│ > f 1
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
+//│ 	at f (UserThreadsUnsafe.mls:13:3)
+//│ 	at while (UserThreadsUnsafe.mls:30:5)
+//│ 	at drain (pc=1)
+//│ 	at Handler$h$fork (UserThreadsUnsafe.mls:62:5)
+//│ 	at Handler$h$fork (UserThreadsUnsafe.mls:62:5)
 
 

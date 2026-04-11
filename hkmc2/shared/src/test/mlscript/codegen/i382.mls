@@ -59,6 +59,7 @@ while x ===
     print("valid")
   3 do
     set x += 1
-//│ x = 1
+//│ > valid
+//│ x = 4
 
 

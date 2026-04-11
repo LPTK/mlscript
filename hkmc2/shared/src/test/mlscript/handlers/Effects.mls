@@ -14,85 +14,25 @@ handle h = Effect with
 handle h = Effect with
   fun perform()(k) = k(42)
 h.perform()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at handleBlock$1 (REPL16:1:1068)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL16:1:1098
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+//│ = 42
 
 :expect "b"
 handle h = Effect with
   fun perform(arg)(k) = "b"
 h.perform("k")
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at handleBlock$2 (REPL19:1:1051)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL19:1:1084
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '"b"', got: 'undefined'
+//│ = "b"
 
 :expect "k"
 handle h = Effect with
   fun perform(arg)(k) = arg
 h.perform("k")
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at handleBlock$3 (REPL22:1:1208)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL22:1:1241
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '"k"', got: 'undefined'
+//│ = "k"
 
 :expect "k"
 handle h = Effect with
   fun perform(arg)(k) = k(arg)
 h.perform("k")
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at handleBlock$4 (REPL25:1:1281)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL25:1:1314
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '"k"', got: 'undefined'
+//│ = "k"
 
 :expect "hi"
 fun foo(e) = e.perform("hi")
@@ -101,22 +41,8 @@ handle h = Effect with
     print(arg)
     k(arg)
 foo(h)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at handleBlock$5 (REPL28:1:2110)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL28:1:2165
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '"hi"', got: 'undefined'
+//│ > hi
+//│ = "hi"
 
 fun foo(e) = e.perform("hi")
 
@@ -126,22 +52,8 @@ handle h = Effect with
     print(arg)
     k(arg)
 (() => h.perform("Hello") + " World!")()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at lambda (REPL34:1:466)
-//│     at handleBlock$6 (REPL34:1:2608)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL34:1:2637
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '"Hello World!"', got: 'undefined'
+//│ > Hello
+//│ = "Hello World!"
 
 :expect "54321"
 :sjs
@@ -159,7 +71,7 @@ in
   h.perform("5")
 result
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let result, handleBlock$7, Handler$h$perform7, Handler$h$15, Handler$h$perform$4;
+//│ let result, h7, handleBlock$7, Handler$h$perform7, Handler$h$15, Handler$h$perform$4;
 //│ runtime.resetEffects();
 //│ Handler$h$perform$4 = function Handler$h$perform$(arg) {
 //│   return (k) => {
@@ -182,10 +94,10 @@ result
 //│           pc = 1;
 //│           continue main
 //│         }
-//│         return runtime.unwind(Handler$h$perform7, 1, "Effects.mls:151:13", null, null, 1, 2, arg, k, 0);
+//│         return runtime.unwind(Handler$h$perform7, 1, "Effects.mls:63:13", null, null, 1, 2, arg, k, 0);
 //│       case 1:
 //│         v = runtime.resumeValue;
-//│         result = undefined + arg;
+//│         result = result + arg;
 //│         return v;
 //│     }
 //│     break;
@@ -215,7 +127,7 @@ result
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Handler$h$"]; 
 //│ });
-//│ new Handler$h$15();
+//│ h7 = new Handler$h$15();
 //│ handleBlock$7 = (undefined, function () {
 //│   let pc;
 //│   if (runtime.resumePc === -1) {
@@ -227,63 +139,48 @@ result
 //│   main: while (true) {
 //│     switch (pc) {
 //│       case 0:
-//│         runtime.resumeValue = runtime.safeCall(undefined.perform("1"));
+//│         runtime.resumeValue = runtime.safeCall(h7.perform("1"));
 //│         if (runtime.curEffect === null) {
 //│           pc = 4;
 //│           continue main
 //│         }
-//│         return runtime.unwind(handleBlock$7, 4, "Effects.mls:155:3", null, null, 1, 0, 0);
+//│         return runtime.unwind(handleBlock$7, 4, "Effects.mls:67:3", null, null, 1, 0, 0);
 //│       case 1:
 //│         runtime.resumeValue;
-//│         return runtime.safeCall(undefined.perform("5"));
+//│         return runtime.safeCall(h7.perform("5"));
 //│       case 2:
 //│         runtime.resumeValue;
-//│         runtime.resumeValue = runtime.safeCall(undefined.perform("4"));
+//│         runtime.resumeValue = runtime.safeCall(h7.perform("4"));
 //│         if (runtime.curEffect === null) {
 //│           pc = 1;
 //│           continue main
 //│         }
-//│         return runtime.unwind(handleBlock$7, 1, "Effects.mls:158:3", null, null, 1, 0, 0);
+//│         return runtime.unwind(handleBlock$7, 1, "Effects.mls:70:3", null, null, 1, 0, 0);
 //│       case 3:
 //│         runtime.resumeValue;
-//│         runtime.resumeValue = runtime.safeCall(undefined.perform("3"));
+//│         runtime.resumeValue = runtime.safeCall(h7.perform("3"));
 //│         if (runtime.curEffect === null) {
 //│           pc = 2;
 //│           continue main
 //│         }
-//│         return runtime.unwind(handleBlock$7, 2, "Effects.mls:157:3", null, null, 1, 0, 0);
+//│         return runtime.unwind(handleBlock$7, 2, "Effects.mls:69:3", null, null, 1, 0, 0);
 //│       case 4:
 //│         runtime.resumeValue;
-//│         runtime.resumeValue = runtime.safeCall(undefined.perform("2"));
+//│         runtime.resumeValue = runtime.safeCall(h7.perform("2"));
 //│         if (runtime.curEffect === null) {
 //│           pc = 3;
 //│           continue main
 //│         }
-//│         return runtime.unwind(handleBlock$7, 3, "Effects.mls:156:3", null, null, 1, 0, 0);
+//│         return runtime.unwind(handleBlock$7, 3, "Effects.mls:68:3", null, null, 1, 0, 0);
 //│     }
 //│     break;
 //│   }
 //│ });
-//│ runtime.enterHandleBlock(undefined, handleBlock$7);
-//│ if (runtime.curEffect === null) { undefined } else { runtime.topLevelEffect(false); undefined }
+//│ runtime.enterHandleBlock(h7, handleBlock$7);
+//│ if (runtime.curEffect === null) { result } else { runtime.topLevelEffect(false); result }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at handleBlock$7 (REPL37:1:2179)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL37:1:3488
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '"54321"', got: 'undefined'
-//│ result = ""
+//│ = "54321"
+//│ result = "54321"
 
 :expect "b"
 handle h = Effect with
@@ -291,22 +188,8 @@ handle h = Effect with
     print(arg)
     "b"
 h.perform("t")
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at handleBlock$8 (REPL41:1:1935)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL41:1:1968
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '"b"', got: 'undefined'
+//│ > t
+//│ = "b"
 
 :expect 3
 handle h = Effect with
@@ -319,22 +202,9 @@ if false || h.perform("hello") then
   3
 else
   0
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at handleBlock$9 (REPL44:1:2939)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL44:1:3485
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
+//│ > hello
+//│ > hello
+//│ = 3
 
 :expect "Hello World!"
 fun foo(h) =
@@ -355,22 +225,13 @@ print("mainbody end")
 result
 //│ > mainbody start
 //│ > Entering foo
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at foo (REPL47:1:3331)
-//│     at handleBlock$10 (REPL47:1:5605)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL47:1:5878
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '"Hello World!"', got: 'undefined'
+//│ > handler called
+//│ > handler called
+//│ > Exiting foo
+//│ > mainbody end
+//│ > handler finished
+//│ > handler finished
+//│ = "Hello World!"
 
 :expect "Hello World!"
 fun foo(h) =
@@ -403,22 +264,15 @@ result
 //│ > Entering foobar
 //│ > Entering bar
 //│ > Entering foo
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at foo (REPL50:1:3349)
-//│     at bar (REPL50:1:4796)
-//│     at foobar (REPL50:1:6250)
-//│     at handleBlock$11 (REPL50:1:8475)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL50:1:8751
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '"Hello World!"', got: 'undefined'
+//│ > handler called
+//│ > handler called
+//│ > Exiting foo
+//│ > Exiting bar
+//│ > Exiting foobar
+//│ > mainbody end
+//│ > handler finished
+//│ > handler finished
+//│ = "Hello World!"
 
 // Float out definitions
 handle h = Effect with
@@ -436,19 +290,7 @@ module A with
 handle h = A.Effect(3) with
   fun perform()(k) = 0
 h.perform()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at handleBlock$13 (REPL59:1:1070)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL59:1:1101
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = 0
 
 fun f(perform) =
   handle h = Effect with
@@ -470,20 +312,9 @@ handle h = Cell with
 print(h.getVal())
 h.setVal(1)
 print(h.getVal())
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'getVal')
-//│     at handleBlock$15 (REPL68:1:1921)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL68:1:3349
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ x = 0
+//│ > 0
+//│ > 1
+//│ x = 1
 
 
 abstract class Eff with
@@ -497,22 +328,7 @@ fun fact(e, factvalue) =
 handle h = Eff with
   fun get()(k) = k(1)
 fact(h, 5)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'get')
-//│     at fact (REPL75:1:1391)
-//│     at fact (REPL75:1:964)
-//│     at fact (REPL75:1:964)
-//│     at fact (REPL75:1:964)
-//│     at fact (REPL75:1:964)
-//│     at fact (REPL75:1:964)
-//│     at handleBlock$16 (REPL75:1:2202)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL75:1:2242
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '120', got: 'undefined'
+//│ = 120
 
 abstract class StackDelay with
   fun raise(): ()
@@ -533,22 +349,7 @@ fun sum(depth, x) =
     x + sum(new_depth, x - 1)
   else 0
 sum(0, 100)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'raise')
-//│     at sum (REPL81:1:648)
-//│     at sum (REPL81:1:1190)
-//│     at sum (REPL81:1:1190)
-//│     at sum (REPL81:1:1190)
-//│     at sum (REPL81:1:1190)
-//│     at sum (REPL81:1:1190)
-//│     at sum (REPL81:1:1190)
-//│     at sum (REPL81:1:1190)
-//│     at sum (REPL81:1:1190)
-//│     at sum (REPL81:1:1190)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '5050', got: 'undefined'
+//│ = 5050
 
 // stack safe recursion
 :expect 450015000
@@ -561,22 +362,7 @@ fun sum(depth, x) =
     x + sum(new_depth, x - 1)
   else 0
 sum(0, 30000)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'raise')
-//│     at sum (REPL84:1:653)
-//│     at sum (REPL84:1:1197)
-//│     at sum (REPL84:1:1197)
-//│     at sum (REPL84:1:1197)
-//│     at sum (REPL84:1:1197)
-//│     at sum (REPL84:1:1197)
-//│     at sum (REPL84:1:1197)
-//│     at sum (REPL84:1:1197)
-//│     at sum (REPL84:1:1197)
-//│     at sum (REPL84:1:1197)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '450015000', got: 'undefined'
+//│ = 450015000
 
 :re
 fun sum(x) =
@@ -598,22 +384,7 @@ fun foo(h) =
 handle h = Eff with
   fun perform()(k) = k(())
 foo(h)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at foo (REPL90:1:610)
-//│     at handleBlock$19 (REPL90:1:1788)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL90:1:1825
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 :expect 3
 fun foo(h) =
@@ -627,22 +398,7 @@ fun foo(h) =
 handle h = Eff with
   fun perform()(k) = k(())
 foo(h)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at foo (REPL93:1:611)
-//│     at handleBlock$20 (REPL93:1:1790)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL93:1:1827
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
+//│ = 3
 
 :expect 123
 fun foo(h) =
@@ -668,22 +424,7 @@ fun foo(h) =
 handle h = Eff with
   fun perform()(k) = k(())
 foo(h) 
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│     at foo (REPL96:1:2485)
-//│     at handleBlock$21 (REPL96:1:6871)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:930:28)
-//│     at REPL96:1:6908
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '123', got: 'undefined'
+//│ = 123
 
 :fixme
 :expect 123
@@ -711,31 +452,30 @@ handle h = Eff with
   fun perform()(k) = k(())
 foo(h)
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.706: 	    module A with
+//│ ║  l.447: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.702: 	    module A with
+//│ ║  l.443: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.698: 	    module A with
+//│ ║  l.439: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.694: 	    module A with
+//│ ║  l.435: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.694: 	    module A with
+//│ ║  l.435: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.698: 	    module A with
+//│ ║  l.439: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.702: 	    module A with
+//│ ║  l.443: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.706: 	    module A with
+//│ ║  l.447: 	    module A with
 //│ ╙──       	           ^
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'perform')
-//│ ═══[RUNTIME ERROR] Expected: '123', got: 'undefined'
+//│ = 123
 
 // Access superclass fields
 handle h1 = Object with

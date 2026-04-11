@@ -24,37 +24,13 @@ f1 is Dnf
 //│ = true
 
 isDnf of f1
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDnf (REPL19:1:156)
-//│     at REPL30:1:38
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 f2 is Dnf
 //│ = true
 
 isDnf of f2
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDnf (REPL19:1:156)
-//│     at REPL36:1:38
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 let f3 = And(f1, f2)
 //│ f3 = And(Var("x"), Pred("P", Var("y")))
@@ -63,19 +39,7 @@ f3 is Dnf
 //│ = true
 
 isDnf of f3
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDnf (REPL19:1:156)
-//│     at REPL46:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 let f4 = Or(f3, Pred("Q", Var("z")))
 //│ f4 = Or(And(Var("x"), Pred("P", Var("y"))), Pred("Q", Var("z")))
@@ -84,19 +48,7 @@ f4 is Dnf
 //│ = true
 
 isDnf of f4
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDnf (REPL19:1:156)
-//│     at REPL56:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 let f5 = Or(And(Pred("A", Var("a")), Pred("B", Var("b"))), Pred("C", Var("c")))
 //│ f5 = Or(And(Pred("A", Var("a")), Pred("B", Var("b"))), Pred("C", Var("c")))
@@ -105,19 +57,7 @@ f5 is Dnf
 //│ = true
 
 isDnf of f5
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDnf (REPL19:1:156)
-//│     at REPL66:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = true
 
 let cnf1 = And(Or(Var("x"), Var("y")), Pred("P", Var("z")))
 //│ cnf1 = And(Or(Var("x"), Var("y")), Pred("P", Var("z")))
@@ -175,19 +115,11 @@ print of isDeepDnf of f2
 print of isDeepDnf of f3
 print of isDeepDnf of f4
 print of isDeepDnf of f5
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDeepDnf (REPL102:1:172)
-//│     at REPL105:1:71
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ > true
+//│ > true
+//│ > true
+//│ > true
+//│ > true
 
 print of isDeepDnf of cnf1
 print of isDeepDnf of cnf2
@@ -195,19 +127,12 @@ print of isDeepDnf of cnf3
 print of isDeepDnf of cnf4
 print of isDeepDnf of cnf5
 print of isDeepDnf of cnf6
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at isDeepDnf (REPL102:1:172)
-//│     at REPL108:1:78
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ > false
+//│ > false
+//│ > false
+//│ > false
+//│ > false
+//│ > false
 
 pattern Cnf'(pattern P) = And(Cnf'(P), Cnf'(P))
 pattern DnfOrCnf = Dnf'(DnfOrCnf) | Cnf'(DnfOrCnf)

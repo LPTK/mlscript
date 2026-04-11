@@ -47,10 +47,7 @@ f1(one) + f2(one) + f2(two)
 //│ deforest > 	Ref(p,None)
 //│ deforest > 	Select(Ref(p,None),Ident(x))
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:289)
-//│ ═══[RUNTIME ERROR] Expected: '9', got: 'NaN'
-//│ = NaN
+//│ = 9
 //│ one = A(1)
 //│ two = fun inlinedVal1
 

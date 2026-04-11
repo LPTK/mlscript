@@ -69,7 +69,7 @@ case
 //│ = 1
 
 1 |> (2 |> case x then case y then [x, y]) |> case [a, b] then [b, a]
-//│ = [1, undefined]
+//│ = [1, 2]
 
 :todo // TODO: support this braceless syntax?
 case [x] then x, [] then 0

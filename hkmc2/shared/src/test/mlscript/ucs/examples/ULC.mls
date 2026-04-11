@@ -177,109 +177,25 @@ let oneTwoThree = 1 :: 2 :: 3 :: Nil
 //│ oneTwoThree = Cons(1, Cons(2, Cons(3, Nil)))
 
 nextVar(1, oneTwoThree, Nil)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at REPL142:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ = Some("")
 
 nextVar(1, oneTwoThree, "1" :: "2" :: "3" :: Nil)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at REPL145:1:171
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ = Some("")
 
 nextVar(2, oneTwoThree, Nil)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at REPL148:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ = Some("")
 
 nextVar(3, oneTwoThree, Nil)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at REPL151:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ = Some("")
 
 nextVar(1, oneTwoThree, "1" :: "3" :: Nil)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at REPL154:1:129
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ = Some("")
 
 nextVar(2, oneTwoThree, "11" :: "12" :: "13" :: Nil)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at REPL157:1:174
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ = Some("")
 
 nextVar(3, oneTwoThree, "111" :: "112" :: "113" :: "121" :: Nil)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at REPL160:1:221
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ = Some("")
 
 
 fun freshVar(t: Term): Str =
@@ -291,49 +207,13 @@ fun freshVar(t: Term): Str =
   aux(1)
 
 freshVar(Var("x"))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at aux (REPL163:1:274)
-//│     at freshVar (REPL163:1:676)
-//│     at REPL166:1:89
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│ = ""
 
 freshVar(App(Var("a"), Var("b")))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at aux (REPL163:1:274)
-//│     at freshVar (REPL163:1:676)
-//│     at REPL169:1:194
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│ = ""
 
 freshVar(App(Abs(Var("a"), Var("a")), Var("b")))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at aux (REPL163:1:274)
-//│     at freshVar (REPL163:1:676)
-//│     at REPL172:1:299
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│ = ""
 
 fun subst(t: Term, x: Str, v: Term): Term =
   if t is
@@ -364,49 +244,13 @@ showSubst(App(Abs(Var("x"), Var("x")), Var("x")), "x", Abs(Var("y"), Var("y")))
 //│ = "((λx. x) x) [x / λy. y] = ((λx. x) λy. y)"
 
 showSubst(Abs(Var("x"), App(Var("x"), Var("y"))), "y", Var("x"))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at aux (REPL163:1:274)
-//│     at freshVar (REPL163:1:676)
-//│     at subst (REPL175:1:784)
-//│     at showSubst (REPL178:1:481)
-//│     at REPL193:1:346
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│ = "λx. (x y) [y / x] = λ. ( x)"
 
 showSubst(Abs(Var("z"), Abs(Var("x"), App(Var("z"), App(Var("x"), Var("y"))))), "y", Var("x"))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at aux (REPL163:1:274)
-//│     at freshVar (REPL163:1:676)
-//│     at subst (REPL175:1:784)
-//│     at subst (REPL175:1:1195)
-//│     at showSubst (REPL178:1:481)
-//│     at REPL196:1:556
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│ = "λz. λx. (z (x y)) [y / x] = λz. λ. (z ( x))"
 
 showSubst(Abs(Var("z"), Abs(Var("x"), App(Var("z"), App(Var("x"), Var("y"))))), "y", App(Var("x"), Var("z")))
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:250)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at Iterator.lambda1 [as next] (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:660:40)
-//│     at Iter.firstDefined (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Iter.mjs:565:38)
-//│     at nextVar (REPL135:1:944)
-//│     at aux (REPL163:1:274)
-//│     at freshVar (REPL163:1:676)
-//│     at subst (REPL175:1:784)
-//│     at showSubst (REPL178:1:481)
-//│     at REPL199:1:661
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
+//│ = "λz. λx. (z (x y)) [y / (x z)] = λ. λ. ( ( (x z)))"
 
 //  ____                     _  _   ____   _
 // / ___|  _ __ ___    __ _ | || | / ___| | |_  ___  _ __
