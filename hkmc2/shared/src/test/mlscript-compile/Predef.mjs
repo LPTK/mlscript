@@ -199,7 +199,7 @@ let Predef1;
                     }
                     return false;
                   });
-                  runtime.safeCall(md[2].every(lambda1));
+                  runtime.safeCall(undefined[2].every(lambda1));
                 }
                 scrut5 = false;
                 if (scrut5 === true) {
@@ -284,7 +284,7 @@ let Predef1;
         }
         break;
       }
-      return runtime.safeCall(f(first, tmp2));
+      return runtime.safeCall(f(first, init));
     }
   } 
   static mkStr(...xs) {

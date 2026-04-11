@@ -420,7 +420,11 @@ class BlockSimplifier
       //   //   super.applyBlock(b)
       //   ???
       case Label(label, loop, body, rest) =>
-        assert(!atLabelBegin.contains(label) && !atLabelEnd.contains(label))
+        
+        // TODO:
+        // assert(!atLabelBegin.contains(label) && !atLabelEnd.contains(label))
+        
+        
         // if loop then println("TODO")
         atLabelBegin.put(label, assignedResults)
         // val oldDryRun = inDryRun
@@ -477,21 +481,23 @@ class BlockSimplifier
       case Scoped(syms, body) =>
         // assignedResults = assignedResults.filterNot:
         //   case (_, Value.Ref(sym)) => syms.contains(sym)
-        assignedResults = assignedResults.flatMap:
-          // case (k, rs) => k -> rs.filterNot:
-          //   case Value.Ref(sym: LocalVar, N) => syms.contains(sym)
-          //   case _ => false
-          case (k, rs) if syms.contains(k) => N
-          // case (k, rs) => S(k -> rs.flatMap:
-          //   // case Value.Ref(sym: LocalVar, N) =>
-          //   //   if syms.contains(sym)
-          //   case ref @ Value.Ref(sym: LocalVar, N) =>
-          //     S(if syms.contains(sym) then Value.Ref(k, N) else ref)
-          //   case r => S(r))
-          case (k, rs) => S(k -> rs.map:
-            case ref @ Value.Ref(sym: LocalVar, N) =>
-              if syms.contains(sym) then Value.Ref(k, N) else ref
-            case r => r)
+        assignedResults = assignedResults
+          .flatMap:
+            // case (k, rs) => k -> rs.filterNot:
+            //   case Value.Ref(sym: LocalVar, N) => syms.contains(sym)
+            //   case _ => false
+            case (k, rs) if syms.contains(k) => N
+            // case (k, rs) => S(k -> rs.flatMap:
+            //   // case Value.Ref(sym: LocalVar, N) =>
+            //   //   if syms.contains(sym)
+            //   case ref @ Value.Ref(sym: LocalVar, N) =>
+            //     S(if syms.contains(sym) then Value.Ref(k, N) else ref)
+            //   case r => S(r))
+            case (k, rs) => S(k -> rs.map:
+              case ref @ Value.Ref(sym: LocalVar, N) =>
+                if syms.contains(sym) then Value.Ref(k, N) else ref
+              case r => r)
+          .withDefault(initVector)
       case _ =>
       res
     
@@ -500,7 +506,9 @@ class BlockSimplifier
       // println(s"Applying value: ${v} with assignedResults map: ${assignedResults} ${capturedVars}")
       v match
       // case Value.Ref(loc, N) if !capturedVars(loc) && !inDryRun =>
-      case Value.Ref(loc: LocalVar, N) if !inDryRun && !loc.isInstanceOf[BlockMemberSymbol] =>
+      // case Value.Ref(loc: LocalVar, N) if !inDryRun && !loc.isInstanceOf[BlockMemberSymbol] =>
+      case Value.Ref(loc: LocalVar, N) if !inDryRun =>
+      // case Value.Ref(loc: LocalVar, N) if !inDryRun && localVars(loc) =>
         log(s"?? ${loc.showDbg} ${assignedResults.get(loc)} ${localVars(loc)} ${capturedVars(loc)}")
         val rs = assignedResults(loc)
         if rs.isEmpty then
