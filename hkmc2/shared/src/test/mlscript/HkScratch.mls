@@ -423,4 +423,126 @@ fun main =
 
 
 
+// :lot
+// if true then locally of (
+//   let x = 1
+//   x
+// )
+
+let x = 1
+//│ x = 1
+
+// :lot
+// :dopt
+:soir
+let res = if maybe
+  then locally(let y = x in y)
+  else ???
+// hide of hide of hide of hide of print(res)
+print(res)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let res⁰, scrut, tmp;
+//│ set scrut = Predef⁰.maybe⁰;
+//│ match scrut
+//│   true =>
+//│     set tmp = x¹⁰;
+//│     end
+//│   else
+//│     set tmp = Predef⁰.notImplementedError⁰;
+//│     end
+//│ set res⁰ = tmp;
+//│ Predef⁰.print⁰(tmp)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 1
+//│ res = 1
+
+// :lot
+// :dopt
+// :dl
+:sir
+:soir
+let res
+if maybe do
+    locally(let y = hide(1) in { res = y })
+  else ???
+print(res)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let res¹, scrut;
+//│ set scrut = Predef⁰.maybe⁰;
+//│ match scrut
+//│   true =>
+//│     let y;
+//│     begin
+//│       set y = Predef⁰.hide⁰(1);
+//│       set res¹ = y;
+//│       end;
+//│     Predef⁰.print⁰(res¹)
+//│   else
+//│     begin
+//│       do Predef⁰.notImplementedError⁰;
+//│       end;
+//│     Predef⁰.print⁰(res¹)
+//│ end
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let res¹, scrut;
+//│ set scrut = Predef⁰.maybe⁰;
+//│ match scrut
+//│   true =>
+//│     let y;
+//│     set y = Predef⁰.hide⁰(1);
+//│     set res¹ = y;
+//│     Predef⁰.print⁰(res¹)
+//│   else
+//│     do Predef⁰.notImplementedError⁰;
+//│     Predef⁰.print⁰(undefined)
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 1
+//│ res = 1
+
+:sir
+:soir
+let res
+if maybe do
+    locally(let y = hide(1) in { res = y })
+  else ???
+hide of print(res)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let res², scrut, tmp;
+//│ set scrut = Predef⁰.maybe⁰;
+//│ match scrut
+//│   true =>
+//│     let y;
+//│     set y = Predef⁰.hide⁰(1);
+//│     set res² = y;
+//│     end
+//│   else
+//│     do Predef⁰.notImplementedError⁰;
+//│     end
+//│ set tmp = Predef⁰.print⁰(res²);
+//│ Predef⁰.hide⁰(tmp)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let res², scrut, tmp;
+//│ set scrut = Predef⁰.maybe⁰;
+//│ match scrut
+//│   true =>
+//│     let y;
+//│     set y = Predef⁰.hide⁰(1);
+//│     set res² = y;
+//│     end
+//│   else
+//│     do Predef⁰.notImplementedError⁰;
+//│     end
+//│ set tmp = Predef⁰.print⁰(res²);
+//│ Predef⁰.hide⁰(tmp)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 1
+//│ res = 1
+
+// :sir
+// :soir
+// :el
+// if maybe do 1
+//   else ???
+
 

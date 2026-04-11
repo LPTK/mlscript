@@ -44,3 +44,12 @@ in x
 //│ x = 1
 
 // ——— ——— ———
+
+// Parses as a prefix `do` in a split instead of an infix `do` that's part of the `if` expression!
+:fixme
+if maybe
+  do 1
+  else ???
+//│ ═══[RUNTIME ERROR] Error: Not implemented
+
+// ——— ——— ———
