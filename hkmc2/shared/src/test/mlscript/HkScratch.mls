@@ -175,15 +175,15 @@ print(x)
 //│ ⬤ Simplif. iter. 1
 //│ ?? y⁰ Some(Vector(Lit(IntLit(1)))) true false
 //│ Assignments of y⁰: Vector(Lit(IntLit(1)))
-//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:571
+//│ !! Change triggered { y⁰ ~> 1 } at BlockSimplifier.scala:579
 //│ ?? z⁰ Some(Vector(Lit(IntLit(2)))) true false
 //│ Assignments of z⁰: Vector(Lit(IntLit(2)))
-//│ !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:571
+//│ !! Change triggered { z⁰ ~> 2 } at BlockSimplifier.scala:579
 //│ ?? tmp:tmp⁰ Some(Vector(Lit(IntLit(1)), Lit(IntLit(2)))) true false
 //│ Assignments of tmp:tmp⁰: Vector(Lit(IntLit(1)), Lit(IntLit(2)))
 //│ ?? x⁵ Some(Vector(Ref(tmp:tmp,None))) true false
 //│ Assignments of x⁵: Vector(Ref(tmp:tmp,None))
-//│ !! Change triggered { x⁵ ~> tmp:tmp⁰ } at BlockSimplifier.scala:571
+//│ !! Change triggered { x⁵ ~> tmp:tmp⁰ } at BlockSimplifier.scala:579
 //│ ▶ VP:
 //│ >  let x⁵, scrut, y⁰, z⁰, tmp;
 //│ >  set scrut = Predef⁰.maybe⁰;
@@ -321,10 +321,10 @@ x = y
 y = x
 //│ ⬤ Simplif. iter. 1
 //│ ?? y¹ None true false
-//│ !! Change triggered { y¹ ~> undefined } at BlockSimplifier.scala:508
+//│ !! Change triggered { y¹ ~> undefined } at BlockSimplifier.scala:516
 //│ ?? x⁶ Some(Vector(Lit(UnitLit(false)))) true false
 //│ Assignments of x⁶: Vector(Lit(UnitLit(false)))
-//│ !! Change triggered { x⁶ ~> undefined } at BlockSimplifier.scala:571
+//│ !! Change triggered { x⁶ ~> undefined } at BlockSimplifier.scala:579
 //│ ▶ VP:
 //│ >  let x⁶, y¹; set x⁶ = undefined; set y¹ = undefined; end
 //│ ⬤ Simplif. iter. 2
@@ -342,12 +342,12 @@ y = z
 z = x
 //│ ⬤ Simplif. iter. 1
 //│ ?? y² None true false
-//│ !! Change triggered { y² ~> undefined } at BlockSimplifier.scala:508
+//│ !! Change triggered { y² ~> undefined } at BlockSimplifier.scala:516
 //│ ?? z¹ None true false
-//│ !! Change triggered { z¹ ~> undefined } at BlockSimplifier.scala:508
+//│ !! Change triggered { z¹ ~> undefined } at BlockSimplifier.scala:516
 //│ ?? x⁷ Some(Vector(Lit(UnitLit(false)))) true false
 //│ Assignments of x⁷: Vector(Lit(UnitLit(false)))
-//│ !! Change triggered { x⁷ ~> undefined } at BlockSimplifier.scala:571
+//│ !! Change triggered { x⁷ ~> undefined } at BlockSimplifier.scala:579
 //│ ▶ VP:
 //│ >  let x⁷, y², z¹; set x⁷ = undefined; set y² = undefined; set z¹ = undefined; end
 //│ ⬤ Simplif. iter. 2
@@ -366,13 +366,13 @@ y = x
 z = y
 //│ ⬤ Simplif. iter. 1
 //│ ?? y³ None true false
-//│ !! Change triggered { y³ ~> undefined } at BlockSimplifier.scala:508
+//│ !! Change triggered { y³ ~> undefined } at BlockSimplifier.scala:516
 //│ ?? x⁸ Some(Vector(Lit(UnitLit(false)))) true false
 //│ Assignments of x⁸: Vector(Lit(UnitLit(false)))
-//│ !! Change triggered { x⁸ ~> undefined } at BlockSimplifier.scala:571
+//│ !! Change triggered { x⁸ ~> undefined } at BlockSimplifier.scala:579
 //│ ?? y³ Some(Vector(Lit(UnitLit(false)))) true false
 //│ Assignments of y³: Vector(Lit(UnitLit(false)))
-//│ !! Change triggered { y³ ~> undefined } at BlockSimplifier.scala:571
+//│ !! Change triggered { y³ ~> undefined } at BlockSimplifier.scala:579
 //│ ▶ VP:
 //│ >  let x⁸, y³, z²; set x⁸ = undefined; set y³ = undefined; set z² = undefined; end
 //│ ⬤ Simplif. iter. 2
@@ -408,7 +408,7 @@ fun main =
 //│ ⬤ Simplif. iter. 1
 //│ ?? x⁹ Some(Vector(Lit(IntLit(2)))) true false
 //│ Assignments of x⁹: Vector(Lit(IntLit(2)))
-//│ !! Change triggered { x⁹ ~> 2 } at BlockSimplifier.scala:571
+//│ !! Change triggered { x⁹ ~> 2 } at BlockSimplifier.scala:579
 //│ ▶ VP:
 //│ >  let main⁸; define main⁸ as fun main⁹() { let x; set x = 1; set x = 2; return 2 }; end
 //│ ⬤ Simplif. iter. 2
@@ -540,9 +540,9 @@ hide of print(res)
 //│ let res2, scrut6, tmp3;
 //│ scrut6 = Predef.maybe;
 //│ if (scrut6 === true) {
-//│   let y4;
-//│   y4 = runtime.checkCall(Predef.hide(1));
-//│   res2 = y4;
+//│   let y3;
+//│   y3 = runtime.checkCall(Predef.hide(1));
+//│   res2 = y3;
 //│ } else {
 //│   Predef.notImplementedError;
 //│ }
