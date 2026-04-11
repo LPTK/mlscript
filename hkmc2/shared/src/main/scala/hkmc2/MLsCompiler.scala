@@ -59,6 +59,7 @@ class MLsCompiler
   given DebugPrinter = new DebugPrinter
   val etl = new TraceLogger{override def doTrace: Bool = false}
   val ltl = new TraceLogger{override def doTrace: Bool = false}
+  val dtl = new TraceLogger{override def doTrace: Bool = false}
   // val ltl = new TraceLogger{override def doTrace: Bool = true}
   val rtl = new TraceLogger{override def doTrace: Bool = false}
   
@@ -114,8 +115,22 @@ class MLsCompiler
       val le_0 = low.program(blk)
       val nme = file.baseName
       val exportedSymbol = parsed.definedSymbols.find(_._1 === nme).map(_._2)
-      val le_1 = ltl.givenIn:
-        codegen.BlockSimplifier(exportedSymbol.toSet)(le_0)
+      /* 
+      lazy val blockPrinter =
+        given ShowCfg = ShowCfg(
+          showExpansionMappings = false,
+          showFlowSymbols = true,
+          debug = false, // TODO
+        )
+        codegen.Printer()
+      val le_1 =
+        val printer = (p: codegen.Program) => blockPrinter.worksheet(p)(using irPrintingScp).mkString(output.ColWidth)
+        // (p: Program) => Printer().worksheet
+        codegen.BlockSimplifier(exportedSymbol.toSet, dtl, printer)(le_0)
+      */
+      val le_1 =
+        val printer = (p: codegen.Program) => p.showAsTree // TODO: proper printing like in diff-tests
+        codegen.BlockSimplifier(exportedSymbol.toSet, dtl, printer)(le_0)
       val baseScp: utils.Scope =
         utils.Scope.empty(utils.Scope.Cfg.default)
       // * This line serves for `import.meta.url`, which retrieves directory and file names of mjs files.

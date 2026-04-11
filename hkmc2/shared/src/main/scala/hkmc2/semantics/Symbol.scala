@@ -21,6 +21,9 @@ abstract class Symbol(using State) extends Located:
   
   val uid: Uid[Symbol] = State.suid.nextUid
   
+  def showDbg(using DebugPrinter): Str =
+    this.showAsPlain
+  
   def showPlainName(using scp: Scope): hkmc2.document.Document =
     import hkmc2.document.*
     scp.allocateOrGetName(this)(using throw _)

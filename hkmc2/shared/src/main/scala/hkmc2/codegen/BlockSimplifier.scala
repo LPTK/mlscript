@@ -3,42 +3,88 @@ package codegen
 
 import scala.collection.mutable.{Map => MutMap, Set => MutSet, Buffer}
 import scala.annotation.tailrec
-import sourcecode.Line
+import sourcecode.{Line, FileName}
 
 import mlscript.utils.*, shorthands.*
 import hkmc2.utils.*
 
 import semantics.*
-import semantics.Elaborator.State
+import semantics.Elaborator.{State, Ctx, ctx}
 import mlscript.utils.algorithms.partitionScc
 
 
 /** `symbolsToPreserve` is the set of local symbols we want to leave alone;
   * typically, these will be top-level symbols that are being exported from a diff-test block;
   * we don't want to eliminate these. */
-class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, Config, TL):
+class BlockSimplifier
+    (symbolsToPreserve: Set[Local], tl: TL, printer: Program => Str)
+    // (using DebugPrinter, State, Config, Raise, Ctx, ShowCfg, SymbolPrinter):
+    (using DebugPrinter, State, Config, Raise, Ctx):
+  import tl.*
   
   
-  private var changed = true
+  // private var changed = true
+  // def registerChange = changed = true
   
-  def registerChange = changed = true
   // * For debugging:
   // def registerChange(using line: Line) = { println(s"Change at line ${line.value}"); changed = true }
   
+  val MaxIterations = 10
+  
   def apply(prog: Program): Program =
+    
     var res = prog
+    def printRes = printer(res)
+    var changed = true
+    var iteration = 0
+    
     while changed do
       changed = false
-      res = new DeadCodeElim().apply(res)
+      iteration += 1
+      
+      if iteration > MaxIterations then
+        log(s"⬤ Reached maximum number of iterations ($MaxIterations), stopping simplifications")
+        return res
+      
+      log(s"⬤ Simplif. iter. $iteration")
+      
+      val dce = new DeadCodeElim()
+      res = dce.apply(res)
+      changed ||= dce.changed
+      if dce.changed then log("▶ DCE:\n" + printRes)
+      
+      val vp = new ValuePropagation()
+      res = vp.apply(res)
+      changed ||= vp.changed
+      if vp.changed then log("▶ VP:\n" + printRes)
+      
       summon[Config].inlining.foreach: cfg =>
-        res = new Inliner.Inliner(using cfg).applyProgram(res)
-      // TODO: other simplifications, such as inlining
+        val inl = new Inliner(using cfg)
+        res = inl.apply(res)
+        changed ||= inl.changed
+        if inl.changed then log("▶ INL:\n" + printRes)
+      
+      // TODO: other simplifications, such as partial evaluation?
+      
+    end while
+    
     res
   end apply
   
   
-  class DeadCodeElim() extends BlockTransformer(SymbolSubst.Id):
+  trait Helper:
     
+    var changed = false
+    def registerChange(dbg: => Str)(using Line) =
+      log(s"Change triggered (${dbg}) at ${summon[FileName].value}:${summon[Line].value}")
+      changed = true
+    
+  end Helper
+  
+  // ——————————————————————————————————————————————————————————————————————————————————————————— //
+  
+  
+  class DeadCodeElim() extends BlockTransformer(SymbolSubst.Id), Helper:
     
     val usedLabels = MutSet.empty[LabelSymbol]
     val definedVars = MutSet.empty[Local]
@@ -148,7 +194,7 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
     override def applyValue(v: Value)(k: Value => Block) = v match
       // * Replace with `undefined` those references to local variables that are never assigned
       case Value.Ref(loc, N) if localVars.contains(loc) && !definedVars.contains(loc) =>
-        registerChange
+        registerChange("TODO")
         if !symbolsToPreserve(loc) then removedLocals += loc
         k(Value.Lit(syntax.Tree.UnitLit(false)))
       case _ => super.applyValue(v)(k)
@@ -157,7 +203,7 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
       
       // * Discard assignments to local variables that are never read (and are not preserved)
       case Assign(lhs, rhs, rst) if localVars(lhs) && !usedVars(lhs) && !symbolsToPreserve(lhs) =>
-        registerChange
+        registerChange(s"rm ${lhs.showDbg} = ${rhs.showDbg}")
         removedLocals += lhs
         applyResult(rhs)(r => Assign.discard(r, applyBlock(rst)))
       
@@ -169,14 +215,14 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
         || symbolsToPreserve(defn.sym)
         then super.applyBlock(b)
         else
-          registerChange
+          registerChange("TODO")
           removedLocals += defn.sym
           applyBlock(rest)
         
       // * Simplify labelled blocks
       case Label(lbl, loop, bod, rst) =>
         if !BrokenLabels.analyze(bod).contains(lbl) && AbortiveAnalysis.analyze(bod) && !rst.isInstanceOf[Unreachable] then
-          registerChange
+          registerChange("TODO")
           val unr = Unreachable("Rest of abortive labelled block")
           if usedLabels.contains(lbl)
           then Label(lbl, loop, nestLabelCtx(applyBlock(bod)), unr)
@@ -191,13 +237,13 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
             val rst2 = applySubBlock(rst)
             if (lbl2 is lbl) && (bod2 is bod) && (rst2 is rst) then b else Label(lbl2, loop, bod2, rst2)
           else
-            registerChange
+            registerChange("TODO")
             Begin(nestLabelCtx(applyBlock(bod)), applyBlock(rst))
       
       // * Remove useless break
       case Break(label) if tailLabels.contains(label) =>
-        tl.log(s"Break ${label} is eliminated: current tail label list is ${tailLabels}")
-        registerChange
+        log(s"Break ${label} is eliminated: current tail label list is ${tailLabels}")
+        registerChange("TODO")
         End()
       
       case x => super.applyBlock(x)
@@ -230,9 +276,154 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
   end DeadCodeElim
   
   
-  object Inliner:
-    object Inliner:
-
+  // ——————————————————————————————————————————————————————————————————————————————————————————— //
+  
+  
+  /** Simple propagation of values inwards; does not require any merges at join points. */
+  class ValuePropagation() extends BlockTransformer(SymbolSubst.Id), Helper:
+    
+    val capturedVars = MutSet.empty[Local]
+    // ^ TODO: technically, all we need to prevent is changes to `nonLocallyAssignedVars`,
+    //    so we should compute that instead.
+    /* 
+    import java.util.IdentityHashMap
+    var assignedValue: IdentityHashMap[Local, Opt[Value]] = new IdentityHashMap
+    
+    def withAssignedValues[T](newAssigned: IdentityHashMap[Local, Opt[Value]])(thunk: => T): T =
+      val oldAssigned = assignedValue
+      assignedValue = newAssigned
+      val res = thunk
+      assignedValue = oldAssigned
+      res
+    */
+    
+    def apply(prog: Program): Program =
+      new BlockTraverser:
+        applyProgram(prog)
+        
+        override def applyDefn(defn: Defn): Unit =
+          defn match
+          case _: ClsLikeDefn | _: FunDefn =>
+            capturedVars ++= defn.freeVars
+          case _ =>
+          super.applyDefn(defn)
+        
+        override def applyLam(lam: Lambda): Unit =
+          capturedVars ++= lam.freeVars
+        
+        // override def applyBlock(b: Block): Block = b match
+        //   case Assign(lhs, rhs, rst) if !capturedVars(lhs) =>
+        //     applyResult(rhs)(r => Assign(lhs, r, applyBlock(rst)))
+        //   case _ => super.applyBlock(b)
+        
+      end new
+      applyProgram(prog)
+    end apply
+    /* 
+    override def applyBlock(b: Block): Block =
+      // log(s"Applying block: ${b} with assignedValue map: ${assignedValue} ${capturedVars}")
+      b match
+      case Assign(lhs, rhs: Value, rst) if !capturedVars(lhs) =>
+        // log(s"Propagating ${rhs} to reference of ${lhs} (${assignedValue.get(lhs)})")
+        assignedValue.get(lhs) match
+        case null => assignedValue.put(lhs, S(rhs))
+        case S(old) =>
+          if old =/= rhs then assignedValue.put(lhs, N)
+        case N =>
+        super.applyBlock(b)
+      case Label(loop = true) =>
+        withAssignedValues(new IdentityHashMap):
+          super.applyBlock(b)
+      case _ => 
+        super.applyBlock(b)
+    
+    override def applyFunDefn(fun: FunDefn): FunDefn =
+      withAssignedValues(new IdentityHashMap):
+        super.applyFunDefn(fun)
+    
+    override def applyClsLikeDefn(defn: ClsLikeDefn)(k: Defn => Block): Block =
+      withAssignedValues(new IdentityHashMap):
+        super.applyClsLikeDefn(defn)(k)
+    
+    // FIXME: refactor transformers so this is not so error-prone (adding this case to `applyBlock` doesn't work)
+    override def applyScopedBlock(b: Block): Block =
+      withAssignedValues(assignedValue.clone().asInstanceOf/* stupid Java */):
+        super.applyScopedBlock(b)
+    
+    override def applyValue(v: Value)(k: Value => Block): Block =
+      // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
+      v match
+      // /* 
+      case Value.Ref(loc, N) if !capturedVars(loc) =>
+        assignedValue.get(loc) match
+        case S(value) if value match { case Value.Ref(l, disamb) => l isnt loc; case _ => true} =>
+          // log(s"Propagating ${value} to reference of ${loc}")
+          registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
+          // applyValue(value)(k) // SOF
+          // k(value)
+          val traversed = new IdentityHashMap[Local, Unit]
+          def go(value: Value): Block = value match
+            // case Value.Ref(loc2, N) if !capturedVars(loc2) && !traversed.containsKey(loc2) =>
+            //   traversed.put(loc2, null)
+            case Value.Ref(loc2, N) if !capturedVars(loc2) && traversed.put(loc2, ()) === null =>
+              assignedValue.get(loc2) match
+              case S(value2) =>
+                go(value2)
+              case _ => k(value)
+            case _ => k(value)
+          go(value)
+        case _ => super.applyValue(v)(k)
+      // */
+      /* 
+      case Value.Ref(loc, N) =>
+        def go(value: Value): Block = value match
+          case Value.Ref(loc2, N) if (loc2 isnt loc) && !capturedVars(loc2) && traversed.put(loc2, ()) === null =>
+            assignedValue.get(loc2) match
+            case S(value2) =>
+              go(value2)
+            case _ => k(value)
+          case _ => k(value)
+        go(value)
+      */
+      case _ => super.applyValue(v)(k)
+    
+    override def applyResult(r: Result)(k: Result => Block): Block =
+      // super.applyResult(r)(k) match
+      // case Call(Value.Ref(stm: BuiltinSymbol, N), args) if args.forall(_._2.isInstanceOf[Value]) =>
+      //   ???
+      // case r => r
+      r match
+      case Call(Value.Ref(sym: BuiltinSymbol, N), args) if args.forall(_.value.isInstanceOf[Value]) =>
+        val argValues = args.map(_.value.asInstanceOf[Value])
+        args.foreach(a => assert(a.spread.isEmpty))
+        import syntax.Tree.*, Value.Lit
+        sym.nme match
+        case "+" => argValues match
+          case (lit @ Lit(IntLit(v1))) :: Nil =>
+            registerChange("TODO")
+            k(lit)
+          case Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil =>
+            registerChange("TODO")
+            k(Lit(IntLit(v1 + v2)))
+          case _ => super.applyResult(r)(k)
+        case _ => super.applyResult(r)(k)
+      case r => super.applyResult(r)(k)
+    */
+    
+  end ValuePropagation
+  
+  
+  // ——————————————————————————————————————————————————————————————————————————————————————————— //
+  
+  
+  class Inliner(using Config.Inliner) extends Helper:
+    
+    def apply(prog: Program): Program =
+      val m = InlinerAnalyzer.walk(prog.main)
+      InlinerReplacer.replace(m, prog)
+    
+    object Helpers:
+      
       // Reference to a function body can occur as a.f or f, this handles both cases.
       object TermSymbolPath:
         def unapply(p: Path) = p match
@@ -263,7 +454,7 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
             S(fixedArgs.zip(params.params).map((arg, param) => (param.sym, arg.value)) ++
               List((params.restParam.get.sym, Tuple(true, restArgs))))
     
-    import Inliner.*
+    import Helpers.*
     
     object InlinerAnalyzer:
       case class InlinerFunInfo(
@@ -281,7 +472,7 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
           isPrivate && !isMethod && useCount <= 1 && !hasNakedRef && !isLoopBreaker
           // false
         
-        def shouldBeInlined(newBlk: Block)(using Config.Inliner): Bool =
+        def shouldBeInlined(newBlk: Block): Bool =
           if isLoopBreaker then return false
           // method requires the capturing of `this`, which is not supported currently.
           if isMethod then return false
@@ -378,6 +569,7 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
       
       def walk(blk: Block): InlinerMap = Traverser().analyze(blk)
     
+    end InlinerAnalyzer
     import InlinerAnalyzer.InlinerMap
     
     
@@ -405,7 +597,7 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
         def applyBlock(blk: Block) =
           Label(lblSym, false, Copier.applyBlock(blk), _)
       
-      class Transformer(m: InlinerMap)(using Config.Inliner, State) extends BlockTransformer(SymbolSubst()):
+      class Transformer(m: InlinerMap) extends BlockTransformer(SymbolSubst()):
         
         // The call graph may be cyclic, in which case we break the infinite loop using this map by
         // assuring that the block corresponding to a term symbol may only be transformed once.
@@ -420,8 +612,8 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
         
         override def applyBlock(blk: Block) = blk match
           case Define(defn: FunDefn, rest) if m(defn.dSym).canBeInlineEliminated =>
-            tl.log(s"Inline elimination: ${defn.dSym}")
-            registerChange
+            log(s"Inline elimination: ${defn.dSym}")
+            registerChange("TODO")
             applyBlock(rest)
           case _ => super.applyBlock(blk)
         
@@ -458,8 +650,8 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
                 case N =>
                   super.applyResult(r)(k)
                 case S(matchedArgs) =>
-                  registerChange
-                  tl.log(s"Inline call for ${ts}, with args ${args}")
+                  registerChange("TODO")
+                  log(s"Inline call for ${ts}, with args ${args}")
                   def go(acc: Block => Block, args: List[(VarSymbol, Result)], mapping: Map[Symbol, Symbol]): Block =
                     args match
                     case Nil =>
@@ -473,14 +665,15 @@ class BlockSimplifier(symbolsToPreserve: Set[Local])(using DebugPrinter, State, 
                   go(blockBuilder, matchedArgs, Map.empty)
           case _ => super.applyResult(r)(k)
       
-      def replace(m: InlinerMap, prog: Program)(using Config.Inliner, State): Program =
+      def replace(m: InlinerMap, prog: Program): Program =
         Transformer(m).applyProgram(prog)
     
-    class Inliner(using Config.Inliner, State):
-      def applyProgram(prog: Program): Program =
-        val m = InlinerAnalyzer.walk(prog.main)
-        InlinerReplacer.replace(m, prog)
+    end InlinerReplacer
+    
   end Inliner
+  
+  
+  // ——————————————————————————————————————————————————————————————————————————————————————————— //
   
   
 end BlockSimplifier
