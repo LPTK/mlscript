@@ -407,7 +407,10 @@ class BlockSimplifier
             val rhs2 = assignedResults(sym)
             if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
             // if rhs2.isEmpty && localVars(sym) then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
-            else if rhs2.sizeCompare(1) === 0 then rhs2
+            else if rhs2.sizeCompare(1) === 0 then
+              rhs2.head match
+              case _: Value.Lit | _: Value.Ref => rhs2
+              case _ => Vector.single(rhs)
             else Vector.single(rhs)
           // TODO: also handle Value.This
           case _ => Vector.single(rhs)
