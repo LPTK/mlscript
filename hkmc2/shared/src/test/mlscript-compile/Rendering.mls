@@ -19,6 +19,15 @@ fun mkCustomLayout(...args) =
     empty: get('empty, "{}")
     padding: get('padding, false)
 
+// set mkCustomLayout."str" = (...args) =>
+//   mkCustomLayout(...args, start: "", end: "", separator: " ", empty: "")
+// set mkCustomLayout."str" = (...args) =>
+//   mkCustomLayout(args, start: "", end: "", separator: " ", empty: "")
+set mkCustomLayout."str" = arg =>
+  mkCustomLayout([], start: "", end: "", separator: "", empty: arg)
+set mkCustomLayout."cat" = (...args) =>
+  mkCustomLayout(args, start: "", end: "", separator: "", empty: "")
+
 
 
 module Rendering with ...
@@ -392,7 +401,7 @@ fun render(target, ...args) =
     // Str then result indentText(level)
     // Array then "???"
     CustomLayout(elems, symbols) then
-      console.log("CustomLayout", symbols)
+      // console.log("CustomLayout", symbols)
       let
         length = elems.length
         i = 0
@@ -446,6 +455,7 @@ fun render(target, ...args) =
         WeakSet then "WeakSet { ‹unknown items› }"
         WeakMap then "WeakMap { ‹unknown items› }"
         Error then arg.name + ": " + arg.message
+        CustomLayout then handlePrettyPrintResult(arg, level, keyLength, startPos)
         Function then
           let desc = Object.getOwnPropertyDescriptor(arg, "prototype")
           let head = if

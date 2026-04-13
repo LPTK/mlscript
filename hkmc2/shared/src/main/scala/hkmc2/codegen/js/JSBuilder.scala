@@ -142,7 +142,7 @@ class JSBuilder(using TL, State, Ctx, Config) extends CodeBuilder:
           if needsParens(jsOp) then doc"(${res})" else res
         case N => doc"${result(s)}(${(argument(lhs) :: argument(rhs) :: Nil).mkDocument(", ")})"
     case c @ Call(fun, args) =>
-      println(config.noSafeCalls)
+      // println(config.noSafeCalls)
       val base = subexpression(fun)
       val argsDoc = args.map(argument).mkDocument(", ")
       if c.isMlsFun

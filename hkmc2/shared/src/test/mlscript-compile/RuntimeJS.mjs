@@ -26,7 +26,7 @@ const RuntimeJS = {
     return lhs || rhs();
   },
   mk_this_function(f) {
-    console.log(this)
+    // console.log(this)
     return function(...args) {
       return f(this, ...args);
     }
