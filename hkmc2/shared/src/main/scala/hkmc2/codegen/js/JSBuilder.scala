@@ -107,7 +107,7 @@ class JSBuilder(using TL, State, Ctx, Config) extends CodeBuilder:
       case S(index) => doc"[$index]"
       case N => doc"[${JSBuilder.makeStringLiteral(s)}]"
   
-  def result(r: Result)(using Raise, Scope): Document = r match
+  def result(r: Result, inStmtPos: Bool = false)(using Raise, Scope): Document = r match
     case Value.This(sym) => scope.findThis_!(sym)
     case Value.Lit(Tree.StrLit(value)) => makeStringLiteral(value)
     case Value.Lit(lit) => lit.idStr
@@ -148,6 +148,8 @@ class JSBuilder(using TL, State, Ctx, Config) extends CodeBuilder:
       then if checkMLsCalls
         then doc"$runtimeVar.checkCall(${base}(${argsDoc}))"
         else doc"${base}(${argsDoc})"
+      else if inStmtPos || config.noSafeCalls
+      then doc"${base}(${argsDoc})"
       else doc"$runtimeVar.safeCall(${base}(${argsDoc}))"
     case Lambda(ps, bod) => scope.nest givenIn:
       val (params, bodyDoc) = setupFunction(none, ps, bod, isLambda = true)
@@ -273,7 +275,7 @@ class JSBuilder(using TL, State, Ctx, Config) extends CodeBuilder:
     case _: HandleBlock =>
       errStmt(msg"This code requires effect handler instrumentation but was compiled without it.")
     case Assign(l, r, rst) if l is State.noSymbol =>
-      doc" # ${result(r)};${returningTerm(rst, endSemi)}"
+      doc" # ${result(r, inStmtPos = true)};${returningTerm(rst, endSemi)}"
     case Assign(l, r, rst) =>
       doc" # ${getVar(l, l.toLoc // TODO: improve location
         )} = ${result(r)};${returningTerm(rst, endSemi)}"

@@ -1,8 +1,7 @@
 
 import "./RuntimeJS.mjs"
 
-// * Importing the mjs for now to avoid reparsing/re-elaborating these files Runtime all the time
-// * TODO: proper caching of parsed/elaborated files
+// * Importing the mjs for now for performance, to avoid parsing/elaborating these files
 import "./Runtime.mjs"
 import "./Rendering.mjs"
 import "./Term.mjs"
@@ -44,13 +43,20 @@ fun (|.) passToLo(receiver, f)(...args) = f(receiver, ...args)
 fun (|>.) call(receiver, f)(...args) = f.call(receiver, ...args)
 
 
-fun mkThisFunction(f) = RuntimeJS.mk_this_function(f)
+fun mkThisFunction(f) =
+  RuntimeJS.mk_this_function(f)
+  // RuntimeJS.mk_this_function.call(f)
 
 
 object Symbols with
   val prettyPrint = RuntimeJS.symbols.prettyPrint
   val definitionMetadata = RuntimeJS.symbols.definitionMetadata
   // val definitionMetadata = Symbol.for("mlscript.definitionMetadata")
+
+fun setPrettyPrinting(cls, f) =
+  set cls.prototype.(Symbols.prettyPrint) = mkThisFunction(f)
+  null
+
 
 abstract class (<:<) Sub[A, B] with
   fun apply(x: A): B

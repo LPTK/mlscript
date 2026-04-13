@@ -149,6 +149,12 @@ let Predef1;
   static mkThisFunction(f) {
     return runtime.safeCall(RuntimeJS.mk_this_function(f))
   } 
+  static setPrettyPrinting(cls, f) {
+    let tmp;
+    tmp = Predef.mkThisFunction(f);
+    cls.prototype[Predef.Symbols.prettyPrint] = tmp;
+    return null
+  } 
   static equals(a, b) {
     let scrut, scrut1, scrut2, ac, scrut3, md, scrut4, scrut5, scrut6, scrut7, scrut8, scrut9, scrut10, scrut11, lambda, lambda1, tmp, tmp1, tmp2;
     scrut = a === b;

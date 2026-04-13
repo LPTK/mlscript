@@ -127,6 +127,7 @@ abstract class MLsDiffMaker extends DiffMaker:
       funcToCls = funcToCls.isSet,
       commentGeneratedCode = debug.isSet,
       noFreeze = noFreeze.isSet,
+      noSafeCalls = false,
       noModuleCheck = noModuleCheck.isSet,
     )
   

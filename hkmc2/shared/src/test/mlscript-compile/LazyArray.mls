@@ -1,7 +1,10 @@
+import "./Predef.mls"
 import "./Iter.mls"
 
 open Iter
 open LazyArray
+// open Predef { Symbols }
+open Predef { setPrettyPrinting }
 
 // Helper Methods
 fun normIdx(i, len) =
@@ -56,6 +59,9 @@ class LazyArr extends IterableBase with
   // fun toString() = "[" + this joined(", ") + "]"
   fun concat(...args) = concatHelper(mut [SpliceMarker, this], this.length, ...args)
 
+
+// ————————— View —————————
+
 // Requires that the underlying iterable is constant-time indexable
 class View(val underlying: IterableBase, val start, val end) extends LazyArr with
   
@@ -80,6 +86,10 @@ class View(val underlying: IterableBase, val start, val end) extends LazyArr wit
   val len = underlying.length - start - end
   fun length = len
   // fun toString() = "[" + this joined(", ") + "]"
+
+// set View.class.prototype.(Symbols.prettyPrint) = (self, layout) => [self.underlying, "..", self.start, self, layout]
+// setPrettyPrinting of View.class, (self, layout) => [self.underlying, "..", self.start, self, layout]
+
 
 object SpliceMarker
 class Splice(val bits, val len) extends LazyArr with
@@ -186,3 +196,16 @@ fun __concat(...args) =
 // This is not meant for users; it's referred to by Runtime.mls
 // TODO: use `LazyArray.internals.split` when this is implemented
 val __split = SpliceMarker
+
+
+// 
+fun delayedInit() =
+  // setPrettyPrinting of View.class, (self, layout) => [self.underlying, "..", self.start, self, layout]
+  null
+
+module internal with
+  fun getView = View
+
+
+
+

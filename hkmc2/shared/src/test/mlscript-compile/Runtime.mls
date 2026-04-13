@@ -3,8 +3,10 @@ import "./Rendering.mls"
 import "./LazyArray.mjs"
 import "./Iter.mjs"
 
+#config(noSafeCalls: true)
 
-module Runtime with ...
+
+module Runtime with { ...
 
 
 object Unit with
@@ -487,3 +489,22 @@ class Int31(v) with
 fun plus_impl(lhs, rhs) = if lhs is
   Int31 and rhs is Int31 then lhs + rhs
   else unreachable()
+
+}
+
+
+fun mkThisFunction(f) =
+  RuntimeJS.mk_this_function(f)
+
+fun setPrettyPrinting(cls, f) =
+  set cls.prototype.(RuntimeJS.symbols.prettyPrint) = mkThisFunction(f)
+
+// LazyArray.delayedInit()
+// console.log("OK",LazyArray.delayedInit)
+// console.log("OK",LazyArray.internal.getView)
+setPrettyPrinting of LazyArray.internal.getView.class,
+  (self, layout) => [self.underlying, "..", self.start, self, layout]
+undefined
+
+
+
