@@ -327,11 +327,13 @@ abstract class MLsDiffMaker extends DiffMaker:
     curCtx = newCtx
     
     // Extract SetConfig statements and update persistent config
-    e.stats.foreach:
-      case sc: semantics.SetConfig =>
-        val prev = configModify
-        configModify = cfg => sc.modify(prev(cfg))
-      case _ => ()
+    // e.stats.foreach:
+    //   case sc: semantics.SetConfig =>
+    //     val prev = configModify
+    //     configModify = cfg => sc.modify(prev(cfg))
+    //   case _ => ()
+    configModify = e.getConfigModifier(configModify)
+    
     
     // If elaborated tree is displayed, don't show the string serialization.
     if (showElab.isSet || debug.isSet) && !showElaboratedTree.isSet then

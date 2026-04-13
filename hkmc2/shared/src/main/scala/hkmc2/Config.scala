@@ -222,7 +222,9 @@ object ConfigParser:
       case S(v) => _.copy(noFreeze = v)
       case N => identity
     case "noSafeCalls" => parseBool(value) match
-      case S(v) => _.copy(noSafeCalls = v)
+      case S(v) =>
+        println(s"Setting noSafeCalls to $v")
+        _.copy(noSafeCalls = v)
       case N => identity
     case "noModuleCheck" => parseBool(value) match
       case S(v) => _.copy(noModuleCheck = v)

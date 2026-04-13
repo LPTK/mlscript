@@ -502,8 +502,10 @@ fun setPrettyPrinting(cls, f) =
 // LazyArray.delayedInit()
 // console.log("OK",LazyArray.delayedInit)
 // console.log("OK",LazyArray.internal.getView)
-setPrettyPrinting of LazyArray.internal.getView.class,
-  (self, layout) => [self.underlying, "..", self.start, self, layout]
+
+// setPrettyPrinting of LazyArray.internal.getView.class,
+//   (self, layout) => [self.underlying, "..", self.start, self, layout]
+
 undefined
 
 

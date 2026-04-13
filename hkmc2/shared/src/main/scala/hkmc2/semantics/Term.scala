@@ -1373,7 +1373,20 @@ object Apps:
 
 trait BlkImpl:
   this: Blk =>
+  
   def mkBlkClone(using State): Blk = Blk(stats.map(_.mkClone), res.mkClone)
+  
+  def getConfigModifier(init: Config => Config): Config => Config = stats.foldLeft(init):
+      case (acc, sc: semantics.SetConfig) =>
+        cfg => sc.modify(acc(cfg))
+      case (acc, _) => acc
+    // stats.collectFirst:
+    //   case SetConfig(modify) => modify
+    // .orElse:
+    //   res match
+    //     case SetConfig(modify) => S(modify)
+    //     case _ => N
+  
   def showTopLevel(using Scope, ShowCfg, Raise): Document =
     (stats ::: (res match
       case Lit(Tree.UnitLit(false)) => Nil
