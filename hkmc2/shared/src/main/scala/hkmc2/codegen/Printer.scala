@@ -17,7 +17,7 @@ import hkmc2.document.Document.{braced, bracedbk}
 
 /** `SymbolPrinter` is used for printing symbols that are not locally bound, so that they are consistent
   * with the debug-printed names shown in other parts of the compiler, such as showAsTreee. */
-class Printer(using Raise, ShowCfg, SymbolPrinter):
+class Printer(using Raise, ShowCfg, SymbolPrinter, Config):
   
   val showPurity =
     false
@@ -71,8 +71,8 @@ class Printer(using Raise, ShowCfg, SymbolPrinter):
         import hkmc2.given_Ordering_Uid // Not sure why needed...
         val names = syms.toList.sortBy(_.uid).map(s => scope.allocateName(s))
         doc"let ${names.mkDocument(", ")}; # ${print(body)}"
-    case End("") => doc"end"
-    case End(msg) => doc"end /* ${msg} */"
+    case End(msg) if msg.nonEmpty && config.commentGeneratedCode => doc"end /* ${msg} */"
+    case End(_) => doc"end"
     case Unreachable(msg) => doc"unreachable /* ${msg} */"
     case _ => TODO(blk)
   
@@ -106,11 +106,13 @@ class Printer(using Raise, ShowCfg, SymbolPrinter):
     then doc""
     else doc" " :: braced(doc"${docPrivFlds}${docPubFlds}${docCtor}${docMethods}")
   
+  def printParamLists(paramss: Ls[ParamList])(using Scope): Document =
+    doc"${paramss.map(_.params.map(x => scope.allocateName(x.sym)).mkDocument("(", ", ", ")")).mkDocument("")}"
+  
   def print(defn: Defn)(using Scope): Document = defn match
-    case FunDefn(own, sym, dSym, params, body) =>
+    case FunDefn(own, sym, dSym, paramss, body) =>
       scope.nest.givenIn:
-        val docParams = doc"${
-          params.map(_.params.map(x => scope.allocateName(x.sym)).mkDocument("(", ", ", ")")).mkDocument("")}"
+        val docParams = printParamLists(paramss)
         val docBody = print(body)
         doc"fun ${print(dSym)}${docParams} ${bracedbk(docBody)}"
     case ValDefn(tsym, sym, rhs) =>
@@ -118,14 +120,11 @@ class Printer(using Raise, ShowCfg, SymbolPrinter):
     case ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentSym, methods,
         privateFields, publicFields, preCtor, ctor, mod, bufferable)
     => scope.nest.givenIn:
-      val clsParams = paramsOpt.fold(Nil)(_.paramSyms)
-      val auxClsParams = auxParams.flatMap(_.paramSyms)
-      val ctorParams = (clsParams ++ auxClsParams).map(p => scope.allocateName(p))
-      val docCtorParams = if clsParams.isEmpty then doc"" else doc"(${ctorParams.mkDocument(", ")})"
+      val ctorParams = printParamLists(paramsOpt.toList ::: auxParams)
       val docStaged = if isym.defn.forall(_.hasStagedModifier.isEmpty) then doc"" else doc"staged "
       val docBody = print(privateFields, publicFields, methods, S(preCtor), ctor, ctorSym)
       val clsType = k.str
-      val docCls = doc"${docStaged}${clsType} ${print(isym)}${docCtorParams}${docBody}"
+      val docCls = doc"${docStaged}${clsType} ${print(isym)}${ctorParams}${docBody}"
       val docModule = mod match
         case Some(mod) =>
           val docStaged = if mod.isym.defn.forall(_.hasStagedModifier.isEmpty) then doc"" else doc"staged "

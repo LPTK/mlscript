@@ -50,7 +50,7 @@ fun foo() =
 //│ define lambda⁰ as fun lambda¹(scope0$cap) {
 //│   return scope0$cap.x$0⁰
 //│ };
-//│ define Capture$scope0⁰ as class Capture$scope0² {
+//│ define Capture$scope0⁰ as class Capture$scope0²(x$0) {
 //│   constructor Capture$scope0¹ {
 //│     define x$0¹ as val x$0⁰ = x$0;
 //│     end
@@ -70,6 +70,8 @@ fun foo() =
 //│         set scope0$cap.x$0 = tmp;
 //│         set lambda$here = lambda$¹(scope0$cap);
 //│         return lambda$here
+//│       else
+//│         end
 //│     end
 //│   return runtime⁰.Unit⁰
 //│ };

@@ -11,7 +11,7 @@ import hkmc2.utils.*
 import hkmc2.utils.SymbolSubst
 import hkmc2.Message.MessageContext
 
-import syntax.{Literal, Tree, ParamBind}
+import syntax.{Literal, Tree}
 import semantics.*
 import semantics.Elaborator.ctx
 import semantics.Elaborator.State
@@ -295,6 +295,8 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         val newSub = go(sub)(using afterEnd = S(restId))
         Begin(newSub, restId.transitionSoft)
 
+      case u: Unreachable => u
+      
       case End(_) =>
         if partitioned then
           afterEnd.fold(blk)(id => StateTransition(id.force_!))

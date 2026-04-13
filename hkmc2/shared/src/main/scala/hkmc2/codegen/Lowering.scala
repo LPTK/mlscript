@@ -258,7 +258,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
               subTerm(bod)(r =>
                 Define(ValDefn(td.tsym, td.sym, r)(cfgOverride),
                   blockImpl(stats, res)))
-            case syntax.LetBind | syntax.ParamBind | syntax.HandlerBind => fail:
+            case syntax.LetBind | syntax.HandlerBind => fail:
               ErrorReport(
                 msg"Unexpected declaration kind '${td.k.str}' in lowering" -> td.toLoc :: Nil,
                 source = Diagnostic.Source.Compilation)
@@ -1357,6 +1357,9 @@ object MergeMatchArmTransformer extends BlockTransformer(SymbolSubst.Id):
             case _ => armsRewritten.map:
               case (cse, body) =>
                 cse -> Begin(body, restRewritten)
-          k.getOrElse(identity: Block => Block)(Match(scrut, arms ::: newArms, dfltRewritten, rest))
+          k.getOrElse(identity[Block]):
+            Match(scrut, arms ::: newArms,
+              dfltRewritten.fold(restRewritten)(Begin(_, restRewritten)) |> some, rest)
       case _ => m
     case b => b
+
