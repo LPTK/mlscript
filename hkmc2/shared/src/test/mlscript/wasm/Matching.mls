@@ -108,7 +108,6 @@ if Bar(true) is
 //│     (local $Baz (ref null any))
 //│     (local $scrut (ref null any))
 //│     (local $a (ref null any))
-//│     (local $b (ref null any))
 //│     (local $arg$Baz$0$ (ref null any))
 //│     (local $arg$Bar$0$ (ref null any))
 //│     (local $matchRes (ref null any))
@@ -186,10 +185,7 @@ if Bar(true) is
 //│                               (struct.get $Baz $z
 //│                                 (ref.cast (ref $Baz)
 //│                                   (local.get $scrut))))
-//│                             (block (result (ref null any))
-//│                               (local.set $b
-//│                                 (local.get $arg$Baz$0$))
-//│                               (local.get $b))))
+//│                             (local.get $arg$Baz$0$)))
 //│                         (br $match))))))
 //│               (local.set $matchRes
 //│                 (ref.i31

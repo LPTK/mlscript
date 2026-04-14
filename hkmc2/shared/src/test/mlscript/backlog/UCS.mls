@@ -1,22 +1,6 @@
 :js
 :ignore
 
-//│ Failed to load runtime: Uncaught:
-//│ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
-//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
-//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
-//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
-//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
-//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
-//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
-//│     at #resolve (node:internal/modules/esm/loader:701:17)
-//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
-//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
-//│   code: 'ERR_MODULE_NOT_FOUND',
-//│   url: 'file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs'
-//│ }
-//│ Error: hkmc2.ErrorReport: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
-//│ Error: hkmc2.ErrorReport: TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 // ——— ——— ———
 
@@ -25,40 +9,37 @@
 if 1 + 0
     == 0 then "X"
     == 1 then "A"
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'equals')
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ = "A"
 
 if 1 + 1
     * 2 == 4 then "X"
     * 2 == 1 then "A"
     |> id is r then r
 //│ ╔══[PARSE ERROR] Operator cannot be used inside this operator split
-//│ ║  l.32: 	    * 2 == 4 then "X"
+//│ ║  l.15: 	    * 2 == 4 then "X"
 //│ ║        	        ^^
 //│ ╟── as it has lower precedence than the splitting operator here
-//│ ║  l.32: 	    * 2 == 4 then "X"
+//│ ║  l.15: 	    * 2 == 4 then "X"
 //│ ╙──      	    ^
 //│ ╔══[PARSE ERROR] Unexpected literal in this operator split inner position
-//│ ║  l.32: 	    * 2 == 4 then "X"
+//│ ║  l.15: 	    * 2 == 4 then "X"
 //│ ║        	           ^
 //│ ╟── Note: the operator split starts here
-//│ ║  l.32: 	    * 2 == 4 then "X"
+//│ ║  l.15: 	    * 2 == 4 then "X"
 //│ ╙──      	    ^
 //│ ╔══[PARSE ERROR] Expected end of input; found literal instead
-//│ ║  l.32: 	    * 2 == 4 then "X"
+//│ ║  l.15: 	    * 2 == 4 then "X"
 //│ ╙──      	           ^
 //│ ╔══[COMPILATION ERROR] Unrecognized term split (integer literal)
-//│ ║  l.32: 	    * 2 == 4 then "X"
+//│ ║  l.15: 	    * 2 == 4 then "X"
 //│ ╙──      	      ^
 //│ ═══[COMPILATION ERROR] Unrecognized term split (reference term)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'equals')
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] Error: match error
 
 // ——— ——— ———
 
 class Some(val v)
 object None
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 // :ucs normalized
 // Uncomment the line above to see the explosion: ~1200 lines of code.
@@ -92,31 +73,27 @@ fun parse(text: Str): [Int, Str] =
     else [idx, ""]
   
   launch(0)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 // ——— ——— ———
 
 data class Tuple(a, b, c)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 let foo =
   case
     Tuple(...elements) then elements
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern (spread).
-//│ ║  l.104: 	    Tuple(...elements) then elements
-//│ ╙──       	          ^^^^^^^^^^^
+//│ ║  l.83: 	    Tuple(...elements) then elements
+//│ ╙──      	          ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: elements
-//│ ║  l.104: 	    Tuple(...elements) then elements
-//│ ╙──       	                            ^^^^^^^^
+//│ ║  l.83: 	    Tuple(...elements) then elements
+//│ ╙──      	                            ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected three arguments, but found only one argument.
-//│ ║  l.104: 	    Tuple(...elements) then elements
-//│ ╙──       	    ^^^^^
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ║  l.83: 	    Tuple(...elements) then elements
+//│ ╙──      	    ^^^^^
+//│ foo = fun foo
 
 foo(Tuple(1, 2, 3))
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // ——— ——— ———
 
@@ -124,30 +101,27 @@ module Foo with
   class
     Bar
     Baz
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 fun foo(x) = if x is Foo.
   Bar then "Bar"
   Foo then "Foo"
 //│ ╔══[PARSE ERROR] Expected end of input; found period instead
-//│ ║  l.129: 	fun foo(x) = if x is Foo.
+//│ ║  l.105: 	fun foo(x) = if x is Foo.
 //│ ╙──       	                        ^
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern split (identifier).
-//│ ║  l.129: 	fun foo(x) = if x is Foo.
+//│ ║  l.105: 	fun foo(x) = if x is Foo.
 //│ ╙──       	                     ^^^
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 fun foo(x) = if x is Foo
   .Bar then "Bar"
   .Foo then "Foo"
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern split (operator split).
-//│ ║  l.140: 	fun foo(x) = if x is Foo
+//│ ║  l.115: 	fun foo(x) = if x is Foo
 //│ ║         	                     ^^^
-//│ ║  l.141: 	  .Bar then "Bar"
+//│ ║  l.116: 	  .Bar then "Bar"
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.142: 	  .Foo then "Foo"
+//│ ║  l.117: 	  .Foo then "Foo"
 //│ ╙──       	^^^^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 // ——— ——— ———
 

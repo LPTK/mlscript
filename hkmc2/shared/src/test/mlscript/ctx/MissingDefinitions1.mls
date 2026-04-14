@@ -18,22 +18,7 @@ f(1)
 //│ ╟── which references the symbol introduced here
 //│ ║  l.3: 	fun f: Any -> Any
 //│ ╙──     	^^^^^^^^^^^^^^^^^
-//│ Failed to load runtime: Uncaught:
-//│ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
-//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
-//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
-//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
-//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
-//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
-//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
-//│     at #resolve (node:internal/modules/esm/loader:701:17)
-//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
-//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
-//│   code: 'ERR_MODULE_NOT_FOUND',
-//│   url: 'file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs'
-//│ }
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] ReferenceError: f is not defined
 
 // no errors if we don't generate code
 f(1)
@@ -45,23 +30,21 @@ fun g(x) = f(x)
 :re
 g(0)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'g'
-//│ ║  l.46: 	g(0)
+//│ ║  l.31: 	g(0)
 //│ ║        	^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.41: 	fun g(x) = f(x)
+//│ ║  l.26: 	fun g(x) = f(x)
 //│ ╙──      	^^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] ReferenceError: g is not defined
 
 :js
 :ge
 fun g(x) = f(x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
-//│ ║  l.58: 	fun g(x) = f(x)
+//│ ║  l.42: 	fun g(x) = f(x)
 //│ ║        	           ^
 //│ ╟── which references the symbol introduced here
 //│ ║  l.3: 	fun f: Any -> Any
 //│ ╙──     	^^^^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 

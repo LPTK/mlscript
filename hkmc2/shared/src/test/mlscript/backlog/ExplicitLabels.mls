@@ -1,42 +1,24 @@
 :js
 :ignore
 
-//│ Failed to load runtime: Uncaught:
-//│ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
-//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
-//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
-//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
-//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
-//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
-//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
-//│     at #resolve (node:internal/modules/esm/loader:701:17)
-//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
-//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
-//│   code: 'ERR_MODULE_NOT_FOUND',
-//│   url: 'file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs'
-//│ }
-//│ Error: hkmc2.ErrorReport: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
-//│ Error: hkmc2.ErrorReport: TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 // TODO: would be nice to be able to define our own labels with the following syntax
 
 
 let x = 0
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ x = 0
 
 do label:
   if x == 0 do label.break 42
   print("Not zero!")
   x
 //│ ╔══[PARSE ERROR] Unexpected literal here
-//│ ║  l.29: 	  if x == 0 do label.break 42
+//│ ║  l.12: 	  if x == 0 do label.break 42
 //│ ╙──      	                           ^^
 //│ ╔══[COMPILATION ERROR] Name not found: label
-//│ ║  l.29: 	  if x == 0 do label.break 42
+//│ ║  l.12: 	  if x == 0 do label.break 42
 //│ ╙──      	               ^^^^^
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'equals')
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 let i = 10 in do
@@ -47,10 +29,10 @@ let i = 10 in do
   label2: // this is implicitly nested in label1
     label1.continue
 //│ ╔══[COMPILATION ERROR] Name not found: label1
-//│ ║  l.44: 	    if i <= 0 do label1.break ()
+//│ ║  l.26: 	    if i <= 0 do label1.break ()
 //│ ╙──      	                 ^^^^^^
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'print')
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ > Still > 0: 10
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'continue' yielded 'undefined'
 
 
 

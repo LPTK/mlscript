@@ -1,102 +1,31 @@
 :js
 :noSanityCheck // * For some reason, these cause problems
 
-//│ Failed to load runtime: Uncaught:
-//│ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
-//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
-//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
-//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
-//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
-//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
-//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
-//│     at #resolve (node:internal/modules/esm/loader:701:17)
-//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
-//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
-//│   code: 'ERR_MODULE_NOT_FOUND',
-//│   url: 'file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs'
-//│ }
-//│ Error: hkmc2.ErrorReport: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
-//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
-//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
-//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
-//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
-//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
-//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
-//│     at #resolve (node:internal/modules/esm/loader:701:17)
-//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
-//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33)
-//│     at ModuleJob.link (node:internal/modules/esm/module_job:245:17)
-//│ Error: hkmc2.ErrorReport: TypeError: Cannot read properties of undefined (reading 'printRaw')
-//│     at REPL8:1:15
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:552:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:887:10)
-//│     at REPLServer.emit (node:events:508:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 :global
 :invalml
-//│ Error: hkmc2.ErrorReport: TypeError: Cannot read properties of undefined (reading 'printRaw')
-//│     at REPL11:1:15
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:552:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:887:10)
-//│     at REPLServer.emit (node:events:508:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 
 :todo
 fun test1() =
   fun sayHi = print("Hi")
   sayHi, sayHi, sayHi
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'printRaw')
 //│ ╔══[COMPILATION ERROR] Function definition shape not yet supported for sayHi
-//│ ║  l.57: 	  fun sayHi = print("Hi")
+//│ ║  l.10: 	  fun sayHi = print("Hi")
 //│ ╙──      	              ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Variable not found: sayHi
-//│ ║  l.58: 	  sayHi, sayHi, sayHi
+//│ ║  l.11: 	  sayHi, sayHi, sayHi
 //│ ╙──      	  ^^^^^
 //│ ╔══[COMPILATION ERROR] Variable not found: sayHi
-//│ ║  l.58: 	  sayHi, sayHi, sayHi
+//│ ║  l.11: 	  sayHi, sayHi, sayHi
 //│ ╙──      	         ^^^^^
 //│ ╔══[COMPILATION ERROR] Variable not found: sayHi
-//│ ║  l.58: 	  sayHi, sayHi, sayHi
+//│ ║  l.11: 	  sayHi, sayHi, sayHi
 //│ ╙──      	                ^^^^^
 
 test1()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'safeCall')
-//│     at print (REPL10:1:104)
-//│     at test1 (REPL13:1:64)
-//│     at REPL16:1:20
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:552:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:887:10)
-//│     at REPLServer.emit (node:events:508:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'printRaw')
-//│     at REPL17:1:15
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:552:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:887:10)
-//│     at REPLServer.emit (node:events:508:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
+//│ > Hi
+//│ > Hi
+//│ > Hi
 //│ Type: ⊥
 
 
@@ -106,52 +35,26 @@ fun test2() =
     0 then 0
     n then funny(n - 1) + 1
   funny
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'printRaw')
 //│ ╔══[COMPILATION ERROR] Expected a monomorphic type or an instantiable type here, but () ->{⊥} [outer, 'caseScrut, 'eff] -> 'caseScrut ->{'eff} Int found
-//│ ║  l.104: 	fun test2() =
-//│ ║         	         ^^^^
-//│ ║  l.105: 	  fun funny = case
-//│ ║         	^^^^^^^^^^^^^^^^^^
-//│ ║  l.106: 	    0 then 0
-//│ ║         	^^^^^^^^^^^^
-//│ ║  l.107: 	    n then funny(n - 1) + 1
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.108: 	... (more lines omitted) ...
-//│ ╙──       	^^^^^^^
+//│ ║  l.33: 	fun test2() =
+//│ ║        	         ^^^^
+//│ ║  l.34: 	  fun funny = case
+//│ ║        	^^^^^^^^^^^^^^^^^^
+//│ ║  l.35: 	    0 then 0
+//│ ║        	^^^^^^^^^^^^
+//│ ║  l.36: 	    n then funny(n - 1) + 1
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.37: 	... (more lines omitted) ...
+//│ ╙──      	^^^^^^^
 
 fun test2() =
   fun funny = case
     0 then 0
     n then funny(n - 1) + 1
   funny(_)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'printRaw')
-//│     at REPL23:1:15
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:552:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:887:10)
-//│     at REPLServer.emit (node:events:508:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 test2
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'printRaw')
-//│     at REPL26:1:15
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:552:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:887:10)
-//│     at REPLServer.emit (node:events:508:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
+//│ = fun test2
 //│ Type: () -> (Int -> Int)
 
 :sjs
@@ -159,19 +62,7 @@ test2()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ test21()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'printRaw')
-//│     at REPL29:1:15
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:552:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:887:10)
-//│     at REPLServer.emit (node:events:508:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
+//│ = fun
 //│ Type: Int -> Int
 
 :ssjs
@@ -180,32 +71,7 @@ test2()(5)
 //│ let tmp;
 //│ tmp = test21(); block$res8 = runtime.safeCall(tmp(5)); undefined
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'safeCall')
-//│     at REPL31:1:52
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:552:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:887:10)
-//│     at REPLServer.emit (node:events:508:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'printRaw')
-//│     at REPL32:1:15
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:552:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:887:10)
-//│     at REPLServer.emit (node:events:508:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
+//│ = 5
 //│ Type: Int
 
 
@@ -219,8 +85,8 @@ fun test2() =
     case n then funny(n - 1) + 1
   funny
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.218: 	    case 0 then 0
-//│ ╙──       	    ^^^^^^^^^^^^^
+//│ ║  l.84: 	    case 0 then 0
+//│ ╙──      	    ^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let test22;
 //│ test22 = function test2() {
@@ -239,26 +105,24 @@ fun test2() =
 //│   return funny()
 //│ };
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.218: 	    case 0 then 0
-//│ ╙──       	    ^^^^^^^^^^^^^
+//│ ║  l.84: 	    case 0 then 0
+//│ ╙──      	    ^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'printRaw')
 //│ ╔══[COMPILATION ERROR] Function definition shape not yet supported for funny
-//│ ║  l.218: 	    case 0 then 0
-//│ ║         	         ^^^^^^^^
-//│ ║  l.219: 	    case n then funny(n - 1) + 1
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.84: 	    case 0 then 0
+//│ ║        	         ^^^^^^^^
+//│ ║  l.85: 	    case n then funny(n - 1) + 1
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Variable not found: funny
-//│ ║  l.220: 	  funny
-//│ ╙──       	  ^^^^^
+//│ ║  l.86: 	  funny
+//│ ╙──      	  ^^^^^
 
 
 :todo
 fun test3 =
   print("Hi")
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'printRaw')
 //│ ╔══[COMPILATION ERROR] Function definition shape not yet supported for test3
-//│ ║  l.258: 	  print("Hi")
+//│ ║  l.123: 	  print("Hi")
 //│ ╙──       	  ^^^^^^^^^^^
 
 

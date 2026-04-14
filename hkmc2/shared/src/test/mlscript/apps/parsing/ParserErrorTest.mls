@@ -5,101 +5,108 @@ import "../../../mlscript-compile/apps/parsing/Test.mls"
 open Test { example }
 
 example of ":tree ((x) ==> x"
-//│ > Error of "unexpected end of input"
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL16:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of ":tree ((x) ==> x))"
-//│ > App:
-//│ >   callee = Ident of "==>"
-//│ >   argument = Stack of 
-//│ >     Ident of "x"
-//│ >     Ident of "x"
-//│ > Error of "unexpected token Identifier(\")\", true)"
-//│ > «x ==> x»
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL19:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 type a = b and b = c
 """
-//│ > «type a = b and b = c»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL22:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 :tree
 type test = Bar | Test | Foo
 and test' = Bar' | Test' | Foo'
 """
-//│ > Define:
-//│ >   kind = Type
-//│ >   items = Stack of 
-//│ >     Infix:
-//│ >       op = Keyword(`=`, 3, 3)
-//│ >       lhs = Ident of "test"
-//│ >       rhs = Infix:
-//│ >         op = Keyword(`|`, N/A, N/A)
-//│ >         lhs = Ident of "Bar"
-//│ >         rhs = Infix:
-//│ >           op = Keyword(`|`, N/A, N/A)
-//│ >           lhs = Ident of "Test"
-//│ >           rhs = Ident of "Foo"
-//│ >     Infix:
-//│ >       op = Keyword(`=`, 3, 3)
-//│ >       lhs = Ident of "test'"
-//│ >       rhs = Infix:
-//│ >         op = Keyword(`|`, N/A, N/A)
-//│ >         lhs = Ident of "Bar'"
-//│ >         rhs = Infix:
-//│ >           op = Keyword(`|`, N/A, N/A)
-//│ >           lhs = Ident of "Test'"
-//│ >           rhs = Ident of "Foo'"
-//│ > «type test = Bar | Test | Foo and test' = Bar' | Test' | Foo'»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL25:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 :tree
 -2 * 3
 ~2 * 3
 """
-//│ > App:
-//│ >   callee = Ident of "*"
-//│ >   argument = Stack of 
-//│ >     App:
-//│ >       callee = Ident of "*"
-//│ >       argument = Stack of 
-//│ >         App:
-//│ >           callee = Ident of "-"
-//│ >           argument = Literal#Integer of "2"
-//│ >         App:
-//│ >           callee = Ident of "~"
-//│ >           argument = Stack of 
-//│ >             Literal#Integer of "3"
-//│ >             Literal#Integer of "2"
-//│ >     Literal#Integer of "3"
-//│ > «(-2) * 3 ~ 2 * 3»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL28:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 :tree
 let foo = -2 * 3
 2 * 3
 """
-//│ > LetIn:
-//│ >   bindings = Stack of 
-//│ >     Infix:
-//│ >       op = Keyword(`=`, 3, 3)
-//│ >       lhs = Ident of "foo"
-//│ >       rhs = App:
-//│ >         callee = Ident of "*"
-//│ >         argument = Stack of 
-//│ >           App:
-//│ >             callee = Ident of "*"
-//│ >             argument = Stack of 
-//│ >               App:
-//│ >                 callee = Ident of "-"
-//│ >                 argument = Literal#Integer of "2"
-//│ >               App:
-//│ >                 callee = Literal#Integer of "3"
-//│ >                 argument = Literal#Integer of "2"
-//│ >           Literal#Integer of "3"
-//│ >   body = None
-//│ > «let foo = (-2) * 3 2 * 3»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL31:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 
 
@@ -107,58 +114,120 @@ let foo = -2 * 3
 example of """
 => xx
 """
-//│ > «=>xx»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL34:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 :tree
 id fun x -> x
 """
-//│ > Ident of "id"
-//│ > Error of "unexpected token Identifier(\"fun\", false)"
-//│ > Error of "unexpected token Identifier(\"x\", false)"
-//│ > Error of "unexpected token Identifier(\"->\", true)"
-//│ > Error of "unexpected token Identifier(\"x\", false)"
-//│ > «id»
-//│ > «⚠»
-//│ > «⚠»
-//│ > «⚠»
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL37:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 :tree
 id if true then 1 else 0
 """
-//│ > Ident of "id"
-//│ > Error of "unexpected token Identifier(\"if\", false)"
-//│ > Error of "unexpected token Literal(Boolean, \"true\")"
-//│ > Error of "unexpected token Identifier(\"then\", false)"
-//│ > Error of "unexpected token Literal(Integer, \"1\")"
-//│ > Error of "unexpected token Identifier(\"else\", false)"
-//│ > Error of "unexpected token Literal(Integer, \"0\")"
-//│ > «id»
-//│ > «⚠»
-//│ > «⚠»
-//│ > «⚠»
-//│ > «⚠»
-//│ > «⚠»
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL40:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 type;;
 """
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL43:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 function;;
 """
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL46:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 let foo_bar = function;;
 """
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL49:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 let let = 0;;
 """
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL52:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)

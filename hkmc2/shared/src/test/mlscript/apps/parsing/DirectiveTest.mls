@@ -16,36 +16,91 @@ let f x = x + 1;;
   
 let g x = x * 2;;
 """
-//│ > «#open "hello"»
-//│ > «let f x = x + 1»
-//│ > «let g x = x * 2»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL19:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 #newKeyword ("hello", None, None)
 #newKeyword ("world", Some 34, None)
 """
-//│ > 
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL22:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 print of Keywords.extended |> MutMap.valuesIterator |. Iter.joined("\n")
-//│ > Keyword(`hello`, N/A, N/A)
-//│ > Keyword(`world`, 34, N/A)
+//│ > 
 
 example of """
 #newCategory "lol"
 """
-//│ > 
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL28:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 #extendCategory "lol", [ keyword("hello"), "lol" ], foo
 #extendCategory "lol", [ keyword("world") ], bar
 #extendCategory "term", [ "lol" ], baz
 """
-//│ > 
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL31:1:43
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 Rules.getRuleByKind("lol").display print()
-//│ > <lol> ::= 
-//│ >   | "hello" <lol>
-//│ >   | "world"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: None.get
+//│     at get (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Option.mjs:62:45)
+//│     at Predef.pipeInto (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Predef.mjs:102:29)
+//│     at Rules.getRuleByKind (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Rules.mjs:876:19)
+//│     at REPL34:1:55
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
 
 Rules.getRuleByKind("term").display print()
 //│ > <prefix rules for expressions> ::= 
@@ -61,15 +116,23 @@ Rules.getRuleByKind("term").display print()
 //│ >   | "{" <term> "}"
 //│ >   | "begin" <term> "end"
 //│ >   | <term> ("," <term> | ";" <term> | "<-" <term> | "==" <term> | "*" <term> | "." ("(" <term> ")" | <term>) | ":" <type> | <term>)
-//│ >   | "hello" <lol>
-//│ >   | "world"
 
 example of """
 hello world
 """
-//│ > «{}»
-//│ > «⚠»
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL40:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 #newKeyword ("assert", None, None)
@@ -78,8 +141,19 @@ example of """
   
 assert 0
 """
-//│ > «⚠»
-//│ > «⚠»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL43:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 example of """
 #newKeyword ("hello", Some 3, Some 3)
@@ -97,8 +171,19 @@ hello "Rob" hello "Bob" goodbye
   
 #diagram ""
 """
-//│ > «baz (foo "Rob" (foo "Bob" bar))»
-//│ > «#diagram ""»
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at Stack.reverseAndAppend (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:59:38)
+//│     at Stack.reverse (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Stack.mjs:63:18)
+//│     at Lexer.lex (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Lexer.mjs:856:34)
+//│     at Test.example (file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/apps/parsing/Test.mjs:149:20)
+//│     at REPL46:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
 
 Rules.getRuleByKind("term").display print()
 //│ > <prefix rules for expressions> ::= 
@@ -114,5 +199,3 @@ Rules.getRuleByKind("term").display print()
 //│ >   | "{" <term> "}"
 //│ >   | "begin" <term> "end"
 //│ >   | <term> ("," <term> | ";" <term> | "<-" <term> | "==" <term> | "*" <term> | "." ("(" <term> ")" | <term>) | ":" <type> | <term>)
-//│ >   | "hello" <lol>
-//│ >   | "world"

@@ -380,12 +380,7 @@ class BlockSimplifier
     
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
       // mergeMap(ar1, ar2)(_ ++ _).withDefaultValue(Vector.empty)
-      val res = mergeMap(ar1, ar2)(_ ++ _).withDefault(initVector)
-      val maxSize = res.valuesIterator.map(_.size).maxOption.getOrElse(0)
-      if maxSize > 50 then
-        System.err.println(s"[VP-DEBUG] merge produced vector of size $maxSize! keys=${res.size}")
-        res.foreach { case (k, v) => if v.size > 50 then System.err.println(s"[VP-DEBUG]   key=${k} vec_size=${v.size}") }
-      res
+      mergeMap(ar1, ar2)((a, b) => (a ++ b).distinct).withDefault(initVector)
     
     
     override def applyDefn(defn: Defn)(k: Defn => Block): Block =

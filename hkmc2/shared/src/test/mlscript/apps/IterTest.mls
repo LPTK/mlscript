@@ -42,13 +42,13 @@ open Stack { Cons, Nil }
 ["foo", "bar", "baz"]
   zippingWithIndex()
   toArray()
-//│ = [["foo", 0], ["bar", 1], ["baz", 2]]
+//│ = [["foo", 1], ["bar", 2], ["baz", 3]]
 
 ["foo", "bar", "baz"]
   zippingWithIndex()
   mapping of case [x, y] then [y, x]
   toArray()
-//│ = [[0, "foo"], [1, "bar"], [2, "baz"]]
+//│ = [[1, "foo"], [2, "bar"], [3, "baz"]]
 
 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] joined(" <> ")
 //│ = "1 <> 2 <> 3 <> 4 <> 5 <> 6 <> 7 <> 8 <> 9 <> 10"
