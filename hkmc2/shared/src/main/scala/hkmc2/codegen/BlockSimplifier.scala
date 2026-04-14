@@ -380,7 +380,8 @@ class BlockSimplifier
     
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
       // mergeMap(ar1, ar2)(_ ++ _).withDefaultValue(Vector.empty)
-      mergeMap(ar1, ar2)(_ ++ _).withDefault(initVector)
+      // mergeMap(ar1, ar2)(_ ++ _).withDefault(initVector)
+      mergeMap(ar1, ar2)((a, b) => (a ++ b).distinct).withDefault(initVector)
     
     
     override def applyDefn(defn: Defn)(k: Defn => Block): Block =

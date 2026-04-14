@@ -95,7 +95,7 @@ let rcd = new with
 //│ ╔══[COMPILATION ERROR] Name not found: bar
 //│ ║  l.90: 	  bar =
 //│ ╙──      	  ^^^
-//│ ═══[RUNTIME ERROR] TypeError: Class extends value undefined is not a constructor or null
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ rcd = undefined
 
 
