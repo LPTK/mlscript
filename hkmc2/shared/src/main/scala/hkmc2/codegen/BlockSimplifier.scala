@@ -485,7 +485,11 @@ class BlockSimplifier
           val newRest = applySubBlock(rest)
           if (newBody is body) && (newRest is rest) then b
           else Label(label, loop, newBody, newRest)
-        else b
+        else
+          // During dry run, still need to traverse `rest` to discover
+          // assignments and continues that may affect outer loop analysis.
+          applyBlock(rest)
+          b
       case Continue(label) =>
         log(s"Continue to ${label} with map: ${assignedResults}")
         log(s"  atLabelBegin: ${atLabelBegin(label)}")
