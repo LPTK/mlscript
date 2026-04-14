@@ -157,9 +157,9 @@ f().foo()
 //│ };
 //│ define Good⁰ as class Good¹() {
 //│   private val Good$cap⁰;
+//│   private val scope0$cap⁰;
 //│   private val x¹;
 //│   private val y²;
-//│   private val scope0$cap⁰;
 //│   constructor Good²(scope0$cap, x, y) {
 //│     set scope0$cap⁰ = scope0$cap;
 //│     set x¹ = x;

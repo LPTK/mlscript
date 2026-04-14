@@ -792,6 +792,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     protected val liftedObjsSyms: Map[InnerSymbol, VarSymbol] = node.liftedObjSyms.map: s =>
         s -> VarSymbol(Tree.Ident(s.nme + "$"))
       .toMap
+    protected val liftedObjsOrdered: List[InnerSymbol] = node.liftedObjSyms.toList.sortBy(_.uid)
     override lazy val liftedObjsMap: Map[InnerSymbol, LocalPath] = liftedObjsSyms.map:
       case k -> v => k -> v.asLocalPath
     
@@ -806,6 +807,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     protected val liftedObjsSyms: Map[InnerSymbol, TermSymbol] = node.liftedObjSyms.map: s =>
         s -> TermSymbol(syntax.ImmutVal, S(sym), Tree.Ident(s.nme + "$"))
       .toMap
+    protected val liftedObjsOrdered: List[InnerSymbol] = node.liftedObjSyms.toList.sortBy(_.uid)
     override lazy val liftedObjsMap: Map[InnerSymbol, LocalPath] = liftedObjsSyms.map:
       case k -> v => k -> v.asLocalPath
     protected def rewriteMethods(node: ScopeNode, methods: List[FunDefn])(using ctx: LifterCtxNew) =
@@ -879,7 +881,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val newCls = obj.cls.copy(
         ctor = ctorWithCap,
         preCtor = rewrittenPrector,
-        privateFields = captureSym :: liftedObjsSyms.values.toList ::: obj.cls.privateFields,
+        privateFields = captureSym :: liftedObjsOrdered.map(liftedObjsSyms) ::: obj.cls.privateFields,
         methods = newMtds,
       )(obj.cls.configOverride)
       LifterResult(newCls, rewriterCtor.extraDefns.toList ::: rewriterPreCtor.extraDefns.toList ::: extras)
@@ -898,7 +900,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val LifterResult(newMtds, extras) = rewriteMethods(node, obj.clsBody.methods)
       val newComp = obj.clsBody.copy(
         ctor = ctorWithCap,
-        privateFields = captureSym :: liftedObjsSyms.values.toList ::: obj.clsBody.privateFields,
+        privateFields = captureSym :: liftedObjsOrdered.map(liftedObjsSyms) ::: obj.clsBody.privateFields,
         methods = newMtds
       )
       LifterResult(newComp, rewriterCtor.extraDefns.toList ::: extras)
@@ -1040,9 +1042,11 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           )
       .toMap
     
-    private val extraPrivSyms = 
-      liftedObjsSyms.values ++ passedSymsMap_.values.map(_.ts)
-      ++ capSymsMap_.values.map(_.ts) ++ defnSymsMap_.values.map(_.ts)
+    private lazy val extraPrivSyms: List[TermSymbol] = 
+      liftedObjsOrdered.map(liftedObjsSyms)
+      ::: passedDefnsOrdered.map(defnSymsMap_(_).ts)
+      ::: capturesOrdered.map(capSymsMap_(_).ts)
+      ::: passedSymsOrdered.map(passedSymsMap_(_).ts)
     
     override lazy val capturesOrdered: List[ScopedInfo] = reqCaptures.toList.sortBy(c => capSymsMap_(c).vs.uid)
     
@@ -1173,7 +1177,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         k = syntax.Cls, // turn objects into classes
         ctor = ctorWithDefns,
         preCtor = rewrittenPrector,
-        privateFields = captureSym :: extraPrivSyms.toList ::: obj.cls.privateFields,
+        privateFields = captureSym :: extraPrivSyms ::: obj.cls.privateFields,
         methods = newMtds,
         auxParams = newAuxList
       )(obj.cls.configOverride)
