@@ -1,93 +1,228 @@
 :js
 
+//│ Failed to load runtime: Uncaught:
+//│ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
+//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
+//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+//│     at #resolve (node:internal/modules/esm/loader:701:17)
+//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
+//│   code: 'ERR_MODULE_NOT_FOUND',
+//│   url: 'file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs'
+//│ }
+//│ Error: hkmc2.ErrorReport: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
+//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
+//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+//│     at #resolve (node:internal/modules/esm/loader:701:17)
+//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33)
+//│     at ModuleJob.link (node:internal/modules/esm/module_job:245:17)
+//│ Error: hkmc2.ErrorReport: TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL8:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 module M with
   fun mtd() = 42
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL11:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 :e
 module Example with
   fun foo(): module null = M
 //│ ╔══[COMPILATION ERROR] Expected a module type; found null literal.
-//│ ║  l.9: 	  fun foo(): module null = M
-//│ ║       	                    ^^^^
+//│ ║  l.58: 	  fun foo(): module null = M
+//│ ║        	                    ^^^^
 //│ ╙── Function marked as returning a 'module' must have a module return type.
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 module Example with
   fun foo(): module M = M
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL17:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 :e
 let m = Example.foo()
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful application of type M.
-//│ ║  l.19: 	let m = Example.foo()
+//│ ║  l.82: 	let m = Example.foo()
 //│ ╙──      	        ^^^^^^^^^^^^^
-//│ m = class M
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :breakme // FIXME: should be an error
 :e
 id(m).mtd()
-//│ = 42
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 Example.foo()
-//│ = class M
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL26:1:28
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL27:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 :e
 id(Example.foo())
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful application of type M.
-//│ ║  l.35: 	id(Example.foo())
-//│ ║        	   ^^^^^^^^^^^^^
+//│ ║  l.126: 	id(Example.foo())
+//│ ║         	   ^^^^^^^^^^^^^
 //│ ╙── Module argument passed to a non-module parameter.
-//│ = class M
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 Example.foo().mtd()
-//│ = 42
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL32:1:31
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL33:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 :e
 Example.foo() + 1
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful application of type M.
-//│ ║  l.46: 	Example.foo() + 1
-//│ ╙──      	^^^^^^^^^^^^^
-//│ = "class M {   static {     M1 = this   }   static mtd() {     runtime.checkArgs(\"mtd\", 0, true, arguments.length);     return 42   }   toString() { return runtime.render(this); }   static [definitionMetadata] = [\"class\", \"M\"];  }1"
+//│ ║  l.163: 	Example.foo() + 1
+//│ ╙──       	^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :e
 M + 1
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type M.
-//│ ║  l.53: 	M + 1
-//│ ╙──      	^
-//│ = "class M {   static {     M1 = this   }   static mtd() {     runtime.checkArgs(\"mtd\", 0, true, arguments.length);     return 42   }   toString() { return runtime.render(this); }   static [definitionMetadata] = [\"class\", \"M\"];  }1"
+//│ ║  l.171: 	M + 1
+//│ ╙──       	^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :e
 M |> id
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type M.
-//│ ║  l.60: 	M |> id
-//│ ║        	^
+//│ ║  l.178: 	M |> id
+//│ ║         	^
 //│ ╙── Module argument passed to a non-module parameter.
-//│ = class M
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'pipeInto')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :e
 id <| M
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type M.
-//│ ║  l.68: 	id <| M
-//│ ║        	      ^
+//│ ║  l.187: 	id <| M
+//│ ║         	      ^
 //│ ╙── Module argument passed to a non-module parameter.
-//│ = class M
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'pipeFrom')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 fun (+) lol(a, b) = [a, b]
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL48:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 :e
 M + 1
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type M.
-//│ ║  l.78: 	M + 1
-//│ ║        	^
+//│ ║  l.211: 	M + 1
+//│ ║         	^
 //│ ╙── Module argument passed to a non-module parameter.
-//│ = [class M, 1]
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :e
 let m = M
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type M.
-//│ ║  l.86: 	let m = M
-//│ ╙──      	        ^
-//│ m = class M
+//│ ║  l.220: 	let m = M
+//│ ╙──       	        ^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 :e
@@ -97,16 +232,18 @@ module B with
   val a: module A = A
 print(B.a)
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful selection of type A.
-//│ ║  l.98: 	print(B.a)
-//│ ╙──      	      ^^^
-//│ > class A
+//│ ║  l.233: 	print(B.a)
+//│ ╙──       	      ^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 :e
 :re
 id(module 1)
 //│ ╔══[COMPILATION ERROR] Illegal type declaration in term position.
-//│ ║  l.107: 	id(module 1)
+//│ ║  l.243: 	id(module 1)
 //│ ╙──       	   ^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 

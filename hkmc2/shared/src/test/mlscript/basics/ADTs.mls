@@ -1,6 +1,22 @@
 :js
 :ignore
 
+//│ Failed to load runtime: Uncaught:
+//│ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
+//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
+//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+//│     at #resolve (node:internal/modules/esm/loader:701:17)
+//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
+//│   code: 'ERR_MODULE_NOT_FOUND',
+//│   url: 'file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs'
+//│ }
+//│ Error: hkmc2.ErrorReport: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│ Error: hkmc2.ErrorReport: TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 // * Standard syntax of ADTs (TODO)
 
@@ -8,8 +24,9 @@ class Expr
   constructor Lit(n: Int)
   constructor Add(lhs: Expr, rhs: Expr)
 //│ ╔══[PARSE ERROR] Expected end of input; found indented block instead
-//│ ║  l.8: 	  constructor Lit(n: Int)
-//│ ╙──     	^^
+//│ ║  l.24: 	  constructor Lit(n: Int)
+//│ ╙──      	^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 class Expr[A] with
   constructor
@@ -17,6 +34,7 @@ class Expr[A] with
     Add(lhs: Expr[Int], rhs: Expr[Int]) { A = Int }
 //│ ═══[COMPILATION ERROR] Expected a valid class definition head; found ‹erroneous syntax› instead
 //│ ═══[COMPILATION ERROR] Expected a valid class definition head; found ‹erroneous syntax› instead
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 // * one can also go the TypeScript way
@@ -24,6 +42,7 @@ class Expr[A] with
 data class Lit(n: Int)
 data class Add(lhs: Expr, rhs: Expr)
 type Expr = Lit | Add
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 // * Which could get a "blessed" shorthand syntax as well
@@ -32,8 +51,9 @@ enum Expr =
   | Lit(n: Int)
   | Add(lhs: Expr, rhs: Expr)
 //│ ╔══[COMPILATION ERROR] Unrecognized definitional assignment left-hand side: juxtaposition
-//│ ║  l.31: 	enum Expr =
+//│ ║  l.50: 	enum Expr =
 //│ ╙──      	^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 

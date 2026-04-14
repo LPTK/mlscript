@@ -1,14 +1,51 @@
 :js
 
+//│ Failed to load runtime: Uncaught:
+//│ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
+//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
+//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+//│     at #resolve (node:internal/modules/esm/loader:701:17)
+//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
+//│   code: 'ERR_MODULE_NOT_FOUND',
+//│   url: 'file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs'
+//│ }
+//│ Error: hkmc2.ErrorReport: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
+//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
+//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+//│     at #resolve (node:internal/modules/esm/loader:701:17)
+//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33)
+//│     at ModuleJob.link (node:internal/modules/esm/module_job:245:17)
+//│ Error: hkmc2.ErrorReport: TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL8:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 :e
 // Hypothetical syntax: parameterized patterns declared by type parameters.
 pattern Rep0[A] = "" | A ~ Rep0[A]
 //│ ╔══[COMPILATION ERROR] Pattern name not found: A.
-//│ ║  l.5: 	pattern Rep0[A] = "" | A ~ Rep0[A]
-//│ ╙──     	                       ^
+//│ ║  l.41: 	pattern Rep0[A] = "" | A ~ Rep0[A]
+//│ ╙──      	                       ^
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern (application).
-//│ ║  l.5: 	pattern Rep0[A] = "" | A ~ Rep0[A]
-//│ ╙──     	                           ^^^^^^^
+//│ ║  l.41: 	pattern Rep0[A] = "" | A ~ Rep0[A]
+//│ ╙──      	                           ^^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :fixme
 // Hypothetical syntax: put pattern parameters in the type parameter list but
@@ -21,33 +58,61 @@ pattern Rep0[pattern A] = "" | A ~ Rep0[A]
 pattern Rep0(pattern A, B, C)(head) =
   "" | (A as head) ~ Rep0[A]
 //│ ╔══[COMPILATION ERROR] Multiple parameter lists are not supported for this definition.
-//│ ║  l.21: 	pattern Rep0(pattern A, B, C)(head) =
+//│ ║  l.58: 	pattern Rep0(pattern A, B, C)(head) =
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.22: 	  "" | (A as head) ~ Rep0[A]
+//│ ║  l.59: 	  "" | (A as head) ~ Rep0[A]
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern (application).
-//│ ║  l.22: 	  "" | (A as head) ~ Rep0[A]
+//│ ║  l.59: 	  "" | (A as head) ~ Rep0[A]
 //│ ╙──      	                     ^^^^^^^
 //│ ╔══[COMPILATION ERROR] Found an inconsistent variable in disjunction patterns.
-//│ ║  l.22: 	  "" | (A as head) ~ Rep0[A]
+//│ ║  l.59: 	  "" | (A as head) ~ Rep0[A]
 //│ ║        	             ^^^^
 //│ ╟── The variable is missing from this sub-pattern.
-//│ ║  l.22: 	  "" | (A as head) ~ Rep0[A]
+//│ ║  l.59: 	  "" | (A as head) ~ Rep0[A]
 //│ ╙──      	  ^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 pattern Identifier = ("a" ..= "z") ~ (Identifier | "")
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL17:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 // Pattern extractions through non-`pattern` parameters.
 pattern Email(name, domain) =
   (Identifier as name) ~ "@" ~ (Identifier as domain)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL20:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 :e
 // Hypothetical syntax (very unlikely to implement): view patterns
 pattern GreaterThan(value) = case
   n and n > value then n
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern (case).
-//│ ║  l.47: 	  n and n > value then n
-//│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.111: 	  n and n > value then n
+//│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :e
 // Hypothetical syntax (very unlikely to implement): normal view patterns
@@ -59,12 +124,13 @@ fun foo(x) = if x is
     Unit then ....
     Arrow(...) then ....
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern split (infix operator 'as').
-//│ ║  l.58: 	  view as
-//│ ║        	  ^^^^^^^
-//│ ║  l.59: 	    Unit then ....
-//│ ║        	^^^^^^^^^^^^^^^^^^
-//│ ║  l.60: 	    Arrow(...) then ....
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.123: 	  view as
+//│ ║         	  ^^^^^^^
+//│ ║  l.124: 	    Unit then ....
+//│ ║         	^^^^^^^^^^^^^^^^^^
+//│ ║  l.125: 	    Arrow(...) then ....
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 // In the future, any function can be a pattern
@@ -81,31 +147,96 @@ pattern Star(pattern T) = "" | Many(T)
 pattern Email(name, domains) =
   Rep(Char | ".") as name ~ "@" ~ Rep(Rep(Char) ~ ) as domain
 //│ ╔══[PARSE ERROR] Expected end of input; found literal instead
-//│ ║  l.78: 	pattern Char = "a" to "z" | "A" to "Z" | "0" to "9" | "_" | "-"
-//│ ╙──      	                      ^^^
+//│ ║  l.144: 	pattern Char = "a" to "z" | "A" to "Z" | "0" to "9" | "_" | "-"
+//│ ╙──       	                      ^^^
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern (juxtaposition).
-//│ ║  l.78: 	pattern Char = "a" to "z" | "A" to "Z" | "0" to "9" | "_" | "-"
-//│ ╙──      	               ^^^^^^
+//│ ║  l.144: 	pattern Char = "a" to "z" | "A" to "Z" | "0" to "9" | "_" | "-"
+//│ ╙──       	               ^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :pe
 :e
 // Hypothetical syntax: use `to` instead of ugly `..=`
 pattern Digits = "0" to "9" ~ (Digits | "")
 //│ ╔══[PARSE ERROR] Expected end of input; found literal instead
-//│ ║  l.93: 	pattern Digits = "0" to "9" ~ (Digits | "")
-//│ ╙──      	                        ^^^
+//│ ║  l.160: 	pattern Digits = "0" to "9" ~ (Digits | "")
+//│ ╙──       	                        ^^^
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern (juxtaposition).
-//│ ║  l.93: 	pattern Digits = "0" to "9" ~ (Digits | "")
-//│ ╙──      	                 ^^^^^^
+//│ ║  l.160: 	pattern Digits = "0" to "9" ~ (Digits | "")
+//│ ╙──       	                 ^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 pattern Test(foo, bar) = ("foo" as foo) ~ ("bar" as bar)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL35:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 "foobar" is Test
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'safeCall')
+//│     at REPL37:1:49
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL38:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 :expect MatchSuccess(["foo", "bar"], null)
 Test.unapply("foobar")
-//│ = MatchSuccess(["foo", "bar"], null)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'safeCall')
+//│     at REPL40:1:29
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL41:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 :pt
 // TODO: We cannot distinguish between `...` and `undefined` in the `Elaborator` now.
@@ -121,6 +252,19 @@ pattern Email(name, domain) = ...
 //│   rhs = S of Block of Ls of 
 //│     UnitLit of false
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL44:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 
 // * Future: `as`-splits
@@ -130,13 +274,13 @@ x => if x as
   0 then false
   1 then true
 //│ ╔══[COMPILATION ERROR] Unrecognized term split (infix operator 'as')
-//│ ║  l.129: 	x => if x as
+//│ ║  l.273: 	x => if x as
 //│ ║         	        ^^^^
-//│ ║  l.130: 	  0 then false
+//│ ║  l.274: 	  0 then false
 //│ ║         	^^^^^^^^^^^^^^
-//│ ║  l.131: 	  1 then true
+//│ ║  l.275: 	  1 then true
 //│ ╙──       	^^^^^^^^^^^^^
-//│ = fun
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :fixme // TODO
 pattern Test = (0 => false) | (1 => true)
@@ -145,36 +289,39 @@ fun test(x) = if x is
     true  then "T"
     false then "F"
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern split (infix operator 'as').
-//│ ║  l.144: 	  Test as
+//│ ║  l.288: 	  Test as
 //│ ║         	  ^^^^^^^
-//│ ║  l.145: 	    true  then "T"
+//│ ║  l.289: 	    true  then "T"
 //│ ║         	^^^^^^^^^^^^^^^^^^
-//│ ║  l.146: 	    false then "F"
+//│ ║  l.290: 	    false then "F"
 //│ ╙──       	^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 :fixme // TODO This should work!
 pattern Test = (0 => false) | (1 => true)
 if 0 is ((Test as r) where (r is x)) then print(x)
 //│ ╔══[COMPILATION ERROR] Name not found: x
-//│ ║  l.158: 	if 0 is ((Test as r) where (r is x)) then print(x)
+//│ ║  l.303: 	if 0 is ((Test as r) where (r is x)) then print(x)
 //│ ╙──       	                                                ^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'safeCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 :fixme // TODO This should work!
 pattern Test = 0 | 1
 class Id(name: Test)
 //│ ╔══[COMPILATION ERROR] Expected a non-module type; found reference.
-//│ ║  l.167: 	class Id(name: Test)
+//│ ║  l.313: 	class Id(name: Test)
 //│ ╙──       	               ^^^^
 //│ ╔══[COMPILATION ERROR] Expected a non-module type; found reference.
-//│ ║  l.167: 	class Id(name: Test)
+//│ ║  l.313: 	class Id(name: Test)
 //│ ║         	               ^^^^
 //│ ╙── Non-module parameter must have a non-module type.
 //│ ╔══[COMPILATION ERROR] Expected a non-module type; found reference.
-//│ ║  l.167: 	class Id(name: Test)
+//│ ║  l.313: 	class Id(name: Test)
 //│ ╙──       	               ^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 // * TODO: maybe we could allow this more lightweight alternative syntax?
@@ -185,41 +332,66 @@ pattern StatementBased =
   1 => "one"
   _ => "many"
 //│ ╔══[COMPILATION ERROR] Unexpected record property pattern.
-//│ ║  l.184: 	  0 => "zero"
+//│ ║  l.331: 	  0 => "zero"
 //│ ╙──       	  ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Unexpected record property pattern.
-//│ ║  l.185: 	  1 => "one"
+//│ ║  l.332: 	  1 => "one"
 //│ ╙──       	  ^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Unexpected record property pattern.
-//│ ║  l.186: 	  _ => "many"
+//│ ║  l.333: 	  _ => "many"
 //│ ╙──       	  ^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 | x => 1
-//│ = fun
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL62:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 // :de
 :fixme // TODO: support lambdas with patterns defined this way?
 | 0 => 1
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found integer literal
-//│ ║  l.203: 	| 0 => 1
+//│ ║  l.363: 	| 0 => 1
 //│ ╙──       	  ^
-//│ = fun
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 :fixme // TODO
 | [x] => 1
 //│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.210: 	| [x] => 1
+//│ ║  l.370: 	| [x] => 1
 //│ ╙──       	   ^
 //│ /!!!\ Uncaught error: scala.MatchError: Constrained(List(),Lit(IntLit(1))) (of class hkmc2.semantics.Term$Constrained)
 
 | (x, y) => 1
-//│ = fun
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:252)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│     at REPL68:1:15
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:552:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:887:10)
+//│     at REPLServer.emit (node:events:508:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)
 
 :fixme // TODO
 | (x, 0) => 1
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found integer literal
-//│ ║  l.220: 	| (x, 0) => 1
+//│ ║  l.392: 	| (x, 0) => 1
 //│ ╙──       	      ^
-//│ = fun
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 

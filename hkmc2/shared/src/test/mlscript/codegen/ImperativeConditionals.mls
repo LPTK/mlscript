@@ -1,22 +1,42 @@
 :js
 :ignore
 
+//│ Failed to load runtime: Uncaught:
+//│ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
+//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
+//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+//│     at #resolve (node:internal/modules/esm/loader:701:17)
+//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
+//│   code: 'ERR_MODULE_NOT_FOUND',
+//│   url: 'file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs'
+//│ }
+//│ Error: hkmc2.ErrorReport: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│ Error: hkmc2.ErrorReport: TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 let x = -1
-//│ x = -1
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 if x < 0 do set x = 0
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'Unit')
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 fun f(x) =
   if x < 0 return 0
   Math.sqrt(x)
 //│ ╔══[PARSE ERROR] Unexpected 'return' keyword here
-//│ ║  l.12: 	  if x < 0 return 0
+//│ ║  l.31: 	  if x < 0 return 0
 //│ ╙──      	           ^^^^^^
 //│ ╔══[COMPILATION ERROR] Unrecognized term split (integer literal)
-//│ ║  l.12: 	  if x < 0 return 0
+//│ ║  l.31: 	  if x < 0 return 0
 //│ ╙──      	         ^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
 fun hasZeroElement(xs) =
@@ -25,19 +45,20 @@ fun hasZeroElement(xs) =
     Cons(hd, tl) do set xs = tl
     Nil return false
 //│ ╔══[PARSE ERROR] Unexpected 'return' keyword here
-//│ ║  l.24: 	    Cons(0, tl) return true
+//│ ║  l.44: 	    Cons(0, tl) return true
 //│ ╙──      	                ^^^^^^
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern split (integer literal).
-//│ ║  l.24: 	    Cons(0, tl) return true
+//│ ║  l.44: 	    Cons(0, tl) return true
 //│ ╙──      	         ^
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern split (identifier).
-//│ ║  l.24: 	    Cons(0, tl) return true
+//│ ║  l.44: 	    Cons(0, tl) return true
 //│ ╙──      	            ^^
 //│ ╔══[WARNING] This catch-all clause makes the following branches unreachable.
-//│ ║  l.24: 	    Cons(0, tl) return true
+//│ ║  l.44: 	    Cons(0, tl) return true
 //│ ║        	         ^
 //│ ╟── This branch is unreachable.
-//│ ║  l.24: 	    Cons(0, tl) return true
+//│ ║  l.44: 	    Cons(0, tl) return true
 //│ ╙──      	            ^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 

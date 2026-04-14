@@ -1,6 +1,22 @@
 :js
 :todo
 
+//│ Failed to load runtime: Uncaught:
+//│ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+//│     at moduleResolve (node:internal/modules/esm/resolve:865:10)
+//│     at defaultResolve (node:internal/modules/esm/resolve:991:11)
+//│     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+//│     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+//│     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+//│     at #resolve (node:internal/modules/esm/loader:701:17)
+//│     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+//│     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
+//│   code: 'ERR_MODULE_NOT_FOUND',
+//│   url: 'file:///home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs'
+//│ }
+//│ Error: hkmc2.ErrorReport: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Rendering.mjs' imported from /home/runner/work/mlscript/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs
+//│ Error: hkmc2.ErrorReport: TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 // fun typeTerm(_, set ctx) = case
 //   IntLit then
@@ -15,22 +31,24 @@ fun typeTerm(_, set ctx) =
   print(ctx)
   ctx = 123
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found set
-//│ ║  l.14: 	fun typeTerm(_, set ctx) =
+//│ ║  l.30: 	fun typeTerm(_, set ctx) =
 //│ ╙──      	                    ^^^
 //│ ╔══[COMPILATION ERROR] Name not found: ctx
-//│ ║  l.15: 	  print(ctx)
+//│ ║  l.31: 	  print(ctx)
 //│ ╙──      	        ^^^
 //│ ╔══[COMPILATION ERROR] Name not found: ctx
-//│ ║  l.16: 	  ctx = 123
+//│ ║  l.32: 	  ctx = 123
 //│ ╙──      	  ^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 fun typeTerm(_, let ctx) =
   ctx = 123
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found let
-//│ ║  l.27: 	fun typeTerm(_, let ctx) =
+//│ ║  l.44: 	fun typeTerm(_, let ctx) =
 //│ ╙──      	                    ^^^
 //│ ╔══[COMPILATION ERROR] Name not found: ctx
-//│ ║  l.28: 	  ctx = 123
+//│ ║  l.45: 	  ctx = 123
 //│ ╙──      	  ^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'checkCall')
 
 
