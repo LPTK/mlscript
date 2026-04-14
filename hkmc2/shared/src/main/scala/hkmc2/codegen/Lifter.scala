@@ -909,7 +909,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     private val passedSymsMap_ : Map[Local, VarSymbol] = passedSyms.map: s =>
         s -> VarSymbol(Tree.Ident(s.nme))
       .toMap
-    private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = reqCaptures.map: i =>
+    private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = reqCaptures.toList.sorted.map: i =>
         val nme = data.getNode(i).obj.nme
         i -> VarSymbol(Tree.Ident(nme + "$cap"))
       .toMap
@@ -918,7 +918,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         i -> VarSymbol(Tree.Ident(nme + "$"))
       .toMap
     
-    override lazy val capturesOrdered: List[ScopedInfo] = reqCaptures.toList.sortBy(c => capSymsMap_(c).uid)
+    override lazy val capturesOrdered: List[ScopedInfo] = reqCaptures.toList.sorted
     
     override protected val passedSymsMap = passedSymsMap_.view.mapValues(_.asLocalPath).toMap
     override protected val capSymsMap = capSymsMap_.view.mapValues(_.asPath).toMap
@@ -1026,7 +1026,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
             TermSymbol(syntax.LetBind, S(obj.cls.isym), Tree.Ident(s.nme))
           )
       .toMap
-    private val capSymsMap_ : Map[ScopedInfo, (vs: VarSymbol, ts: TermSymbol)] = reqCaptures.map: i =>
+    private val capSymsMap_ : Map[ScopedInfo, (vs: VarSymbol, ts: TermSymbol)] = reqCaptures.toList.sorted.map: i =>
         val nme = data.getNode(i).obj.nme + "$cap"
         i ->
           (
@@ -1048,7 +1048,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       ::: capturesOrdered.map(capSymsMap_(_).ts)
       ::: passedSymsOrdered.map(passedSymsMap_(_).ts)
     
-    override lazy val capturesOrdered: List[ScopedInfo] = reqCaptures.toList.sortBy(c => capSymsMap_(c).vs.uid)
+    override lazy val capturesOrdered: List[ScopedInfo] = reqCaptures.toList.sorted
     
     override protected val passedSymsMap = passedSymsMap_.view.mapValues(_.ts.asLocalPath).toMap
     override protected val capSymsMap = capSymsMap_.view.mapValues(_.ts.asPath).toMap
