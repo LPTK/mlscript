@@ -345,6 +345,7 @@ class BlockSimplifier
         
         override def applyLam(lam: Lambda): Unit =
           capturedVars ++= lam.freeVars.iterator.collect { case v: LocalVar => v }
+          super.applyLam(lam)
         
         // override def applyBlock(b: Block): Block = b match
         //   case Assign(lhs, rhs, rst) if !capturedVars(lhs) =>
