@@ -178,7 +178,18 @@ while x < 5 do
   set x += 1
 c
 //│ Wasm result:
-//│ = 25
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: ReplHost could not read more from NodeJS stdout.
+//│ 	at: mlscript.utils.package$.lastWords(package.scala:239)
+//│ 	at: hkmc2.ReplHost.collectUntilPrompt(ReplHost.scala:39)
+//│ 	at: hkmc2.ReplHost.parseQueryResult(ReplHost.scala:79)
+//│ 	at: hkmc2.ReplHost.query(ReplHost.scala:110)
+//│ 	at: hkmc2.WasmDiffMaker.mkQuery$1(WasmDiffMaker.scala:109)
+//│ 	at: hkmc2.WasmDiffMaker.processIRBlock(WasmDiffMaker.scala:161)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:195)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:344)
 
 
 fun nonTailMatchReturn(x) =
@@ -189,7 +200,18 @@ fun nonTailMatchReturn(x) =
   x + 1
 nonTailMatchReturn(0)
 //│ Wasm result:
-//│ = 100
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 
 fun tailMatchReturn(x) =
@@ -199,7 +221,18 @@ fun tailMatchReturn(x) =
     else 99
 tailMatchReturn(0)
 //│ Wasm result:
-//│ = 7
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+//│ 	at: java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:246)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:412)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
+//│ 	at: java.base/java.io.OutputStreamWriter.flush(OutputStreamWriter.java:262)
+//│ 	at: java.base/java.io.BufferedWriter.implFlush(BufferedWriter.java:372)
 
 
 fun loopMatchReturn() =
@@ -210,7 +243,18 @@ fun loopMatchReturn() =
         else set i += 1
 loopMatchReturn()
 //│ Wasm result:
-//│ = 3
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implWrite(BufferedOutputStream.java:222)
+//│ 	at: java.base/java.io.BufferedOutputStream.write(BufferedOutputStream.java:206)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.writeBytes(StreamEncoder.java:309)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlushBuffer(StreamEncoder.java:405)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:410)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
 
 
 :wat
@@ -269,7 +313,18 @@ tailMatchAllValue(1)
 //│   (elem $tailMatchAllValue declare func $tailMatchAllValue)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = 20
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implWrite(BufferedOutputStream.java:222)
+//│ 	at: java.base/java.io.BufferedOutputStream.write(BufferedOutputStream.java:206)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.writeBytes(StreamEncoder.java:309)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlushBuffer(StreamEncoder.java:405)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:410)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedFlush(StreamEncoder.java:214)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:201)
 
 
 fun tailMatchStmtBranch(x) =
@@ -280,7 +335,18 @@ fun tailMatchStmtBranch(x) =
       else 42
 tailMatchStmtBranch(0)
 //│ Wasm result:
-//│ = {}
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implWrite(BufferedOutputStream.java:222)
+//│ 	at: java.base/java.io.BufferedOutputStream.write(BufferedOutputStream.java:206)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.writeBytes(StreamEncoder.java:309)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implWrite(StreamEncoder.java:381)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implWrite(StreamEncoder.java:357)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedWrite(StreamEncoder.java:158)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.write(StreamEncoder.java:139)
 
 
 fun tailMatchStmtDefault(x) =
@@ -291,7 +357,18 @@ fun tailMatchStmtDefault(x) =
         set y += 1
 tailMatchStmtDefault(2)
 //│ Wasm result:
-//│ = {}
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implWrite(BufferedOutputStream.java:222)
+//│ 	at: java.base/java.io.BufferedOutputStream.write(BufferedOutputStream.java:206)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.writeBytes(StreamEncoder.java:309)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implWrite(StreamEncoder.java:381)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implWrite(StreamEncoder.java:357)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedWrite(StreamEncoder.java:158)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.write(StreamEncoder.java:139)
 
 
 fun nonTailStmtMatch(x) =
@@ -303,4 +380,15 @@ fun nonTailStmtMatch(x) =
     y
 nonTailStmtMatch(0)
 //│ Wasm result:
-//│ = 1
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.io.IOException: Stream closed
+//│ 	at: java.base/java.lang.ProcessBuilder$NullOutputStream.write(ProcessBuilder.java:447)
+//│ 	at: java.base/java.io.OutputStream.write(OutputStream.java:167)
+//│ 	at: java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+//│ 	at: java.base/java.io.BufferedOutputStream.implWrite(BufferedOutputStream.java:222)
+//│ 	at: java.base/java.io.BufferedOutputStream.write(BufferedOutputStream.java:206)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.writeBytes(StreamEncoder.java:309)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implWrite(StreamEncoder.java:381)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.implWrite(StreamEncoder.java:357)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.lockedWrite(StreamEncoder.java:158)
+//│ 	at: java.base/sun.nio.cs.StreamEncoder.write(StreamEncoder.java:139)

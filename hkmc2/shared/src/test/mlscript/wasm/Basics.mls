@@ -84,29 +84,13 @@ foo() + foo()
 //│         (unreachable))))
 //│   (func $entry (export "entry") (type $entry1) (result (ref null any))
 //│     (local $foo (ref null any))
-//│     (local $tmp (ref null any))
-//│     (local $tmp1 (ref null any))
-//│     (local $inlinedVal (ref null any))
-//│     (local $inlinedVal1 (ref null any))
 //│     (block (result (ref null any))
 //│       (nop)
-//│       (block (result (ref null any))
-//│         (local.set $inlinedVal
-//│           (ref.i31
-//│             (i32.const 42)))
-//│         (block (result (ref null any))
-//│           (local.set $tmp
-//│             (local.get $inlinedVal))
-//│           (block (result (ref null any))
-//│             (local.set $inlinedVal1
-//│               (ref.i31
-//│                 (i32.const 42)))
-//│             (block (result (ref null any))
-//│               (local.set $tmp1
-//│                 (local.get $inlinedVal1))
-//│               (call $plus_impl1
-//│                 (local.get $tmp)
-//│                 (local.get $tmp1))))))))
+//│       (call $plus_impl1
+//│         (ref.i31
+//│           (i32.const 42))
+//│         (ref.i31
+//│           (i32.const 42)))))
 //│   (elem $foo declare func $foo)
 //│   (elem $plus_impl1 declare func $plus_impl1)
 //│   (elem $entry declare func $entry))
@@ -325,6 +309,5 @@ fun bar() = 42
 fun foo() = bar
 foo()()
 //│ ╔══[COMPILATION ERROR] Returning function instances is not supported
-//│ ║  l.325: 	fun foo() = bar
+//│ ║  l.309: 	fun foo() = bar
 //│ ╙──       	            ^^^
-//│ ═══[COMPILATION ERROR] Expected static function reference in Call(...) expression
