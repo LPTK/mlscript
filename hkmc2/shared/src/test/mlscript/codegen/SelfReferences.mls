@@ -19,14 +19,14 @@ module Foo with
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 Foo.self
-//│ = class Foo { self: ref'2 } as ref'2
+//│ = class Foo { self: ref'1 } as ref'1
 
 
 module Foo with
   val self: module Foo = this
 
 Foo.self
-//│ = class Foo { self: ref'2 } as ref'2
+//│ = class Foo { self: ref'1 } as ref'1
 
 
 :e
@@ -38,14 +38,14 @@ module Foo with
 //│ ╙── Value must be marked as returning a 'module' in order to return a module.
 
 Foo.self
-//│ = class Foo { self: ref'2 } as ref'2
+//│ = class Foo { self: ref'1 } as ref'1
 
 
 object Foo with
   val self = this
 
 Foo.self
-//│ = Foo { self: ref'2, class: object Foo } as ref'2
+//│ = Foo { self: ref'1, class: object Foo } as ref'1
 
 
 module Foo with

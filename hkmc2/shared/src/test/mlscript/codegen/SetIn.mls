@@ -33,14 +33,15 @@ x
 :sjs
 set x += 1 in print(x)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let tmp1, tmp2;
-//│ try { tmp1 = x1 + 1; x1 = tmp1; tmp2 = Predef.print(tmp1); } finally { x1 = tmp1; }
+//│ let old, tmp1, tmp2;
+//│ old = x1;
+//│ try { tmp1 = x1 + 1; x1 = tmp1; tmp2 = Predef.print(tmp1); } finally { x1 = old; }
 //│ tmp2
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 2
 
 x
-//│ = 2
+//│ = 1
 
 
 fun example() =
@@ -80,15 +81,15 @@ example()
 //│     Predef.print(tmp3);
 //│     Predef.print(tmp3);
 //│   } finally {}
-//│   Predef.print(tmp3);
-//│   return Predef.print(tmp3)
+//│   Predef.print(0);
+//│   return Predef.print(0)
 //│ };
 //│ example2()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 //│ > 1
-//│ > 1
-//│ > 1
+//│ > 0
+//│ > 0
 
 :sjs
 fun example() =
@@ -109,14 +110,14 @@ example()
 //│     tmp4 = Predef.print(tmp3);
 //│     tmp5 = (tmp4 , tmp3);
 //│   } finally {}
-//│   Predef.print(tmp3);
-//│   Predef.print(tmp3);
+//│   Predef.print(0);
+//│   Predef.print(0);
 //│   return tmp5
 //│ };
 //│ example3()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
-//│ > 1
-//│ > 1
+//│ > 0
+//│ > 0
 //│ = 1
 

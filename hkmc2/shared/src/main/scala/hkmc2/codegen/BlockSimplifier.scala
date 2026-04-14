@@ -405,12 +405,26 @@ class BlockSimplifier
             assignedResults = oldAssignedResults
             k(res)
     
+    /** Invalidate all `assignedResults` entries whose propagated value references `sym`.
+      * This is needed when a mutable variable is reassigned, so that other variables
+      * that were tracking its value are not incorrectly propagated.
+      * Invalidated entries are replaced with a self-reference, preventing propagation. */
+    def invalidateRefsTo(sym: Local): Unit =
+      assignedResults = assignedResults.map: (key, values) =>
+        if values.exists:
+          case Value.Ref(s, _) => s === sym
+          case _ => false
+        then key -> Vector.single(Value.Ref(key, N))
+        else key -> values
+      .withDefault(initVector)
+    
     override def applyBlock(b: Block): Block = trace[Block](s"Applying block: ${b} with map: ${assignedResults}", res => s"|- ${assignedResults}"):
       // println(s"Applying block: ${b} with assignedResults map: ${assignedResults} ${capturedVars}")
       // log(s"Applying block: ${b} with map: ${assignedResults}")
       b match
       case Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
         log(s"Propagating ${lhs} := ${rhs} (${assignedResults.get(lhs)})")
+        invalidateRefsTo(lhs)
         /* 
         assignedResults = assignedResults.updatedWith(lhs):
           case S(old) =>
@@ -435,6 +449,7 @@ class BlockSimplifier
         super.applyBlock(b)
       case Assign(lhs, rhs, rst) =>
         log(s"Not propagating ${rhs} := ${lhs}")
+        invalidateRefsTo(lhs)
         super.applyBlock(b)
       // case Label(loop = true) =>
       //   // withAssignedValues(new IdentityHashMap):

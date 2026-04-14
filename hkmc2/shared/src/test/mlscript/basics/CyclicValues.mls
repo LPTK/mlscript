@@ -9,6 +9,6 @@ let foo = new mut Foo(null)
 set foo.x = foo
 
 foo
-//│ = Foo(ref'2) as ref'2
+//│ = Foo(ref'1) as ref'1
 
 

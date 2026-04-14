@@ -27,8 +27,10 @@ fun merge(t1, t2) =
 //│           else
 //│             match t1
 //│               Node⁰ =>
+//│                 let t1_tmp;
+//│                 set t1_tmp = t1;
 //│                 set t1 = t2;
-//│                 set t2 = t2;
+//│                 set t2 = t1_tmp;
 //│                 continue loopLabel
 //│               else
 //│                 throw new globalThis⁰.Error⁰("match error")
