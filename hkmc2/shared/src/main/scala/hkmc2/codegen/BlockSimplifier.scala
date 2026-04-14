@@ -387,7 +387,8 @@ class BlockSimplifier
     override def applyDefn(defn: Defn)(k: Defn => Block): Block =
       defn match
       case _: ValDefn => super.applyDefn(defn)(k)
-      case _: FunDefn | _: ClsLikeDefn =>
+      // case _: FunDefn | _: ClsLikeDefn =>
+      case defn: (FunDefn | ClsLikeDefn) =>
         // if inDryRun then k(defn)
         // else withFreshAssignedResults:
         //   super.applyDefn(defn)(k)
@@ -395,6 +396,11 @@ class BlockSimplifier
         else
           val oldAssignedResults = assignedResults
           assignedResults = emptyAssignedResults
+          defn match
+          case defn: FunDefn =>
+            defn.params.iterator.flatMap(_.paramSyms).foreach: sym =>
+              assignedResults += sym -> Vector.single(Value.Ref(sym, N))
+          case defn: ClsLikeDefn => // TODO
           super.applyDefn(defn): res =>
             assignedResults = oldAssignedResults
             k(res)
@@ -452,15 +458,18 @@ class BlockSimplifier
           atLabelBegin.put(label, assignedResults)
           val oldDryRun = inDryRun
           inDryRun = true
-          applyBlock(body) // FIXME wrong complexity for nested loops
+          applyBlock(body) // FIXedME wrong complexity for nested loops
           inDryRun = oldDryRun
-        if loop then assignedResults = merge(assignedResults, atLabelEnd(label))
-        val newBody = applyBlock(body)
-        // atLabelEnd.put(label, assignedResults)
-        assignedResults = merge(assignedResults, atLabelEnd(label))
-        val newRest = applySubBlock(rest)
-        if (newBody is body) && (newRest is rest) then b
-        else Label(label, loop, newBody, newRest)
+        // if loop then 
+          assignedResults = merge(assignedResults, atLabelEnd(label))
+        if !loop || !inDryRun then
+          val newBody = applyBlock(body)
+          // atLabelEnd.put(label, assignedResults)
+          assignedResults = merge(assignedResults, atLabelEnd(label))
+          val newRest = applySubBlock(rest)
+          if (newBody is body) && (newRest is rest) then b
+          else Label(label, loop, newBody, newRest)
+        else b
       case Continue(label) =>
         log(s"Continue to ${label} with map: ${assignedResults}")
         log(s"  atLabelBegin: ${atLabelBegin(label)}")
