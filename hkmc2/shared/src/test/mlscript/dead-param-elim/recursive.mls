@@ -120,8 +120,144 @@ fun pong(n, unused) = if n == 0 then 0 else ping(n - 1, unused)
 ping(5, 99)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = HashSet(member:ping, member:pong)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:ping²
+//│       dSym = term:ping³
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = n⁰
+//│               modulefulness = Modulefulness of N
+//│             Param:
+//│               sym = unused⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {tmp:scrut⁰, tmp:tmp⁰}): 
+//│         body = Assign:
+//│           lhs = tmp:scrut⁰
+//│           rhs = Call:
+//│             fun = Select{sym=term:Predef⁰/equals⁰}:
+//│               qual = Ref{disamb=module:Predef⁰}:
+//│                 l = member:Predef¹
+//│                 disamb = S of module:Predef⁰
+//│               name = Ident of "equals"
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = n⁰
+//│               Arg:
+//│                 value = Lit of IntLit of 0
+//│           rest = Match: \
+//│           scrut = Ref:
+//│             l = tmp:scrut⁰
+//│           arms = Ls of 
+//│             Tuple2:
+//│               _1 = Lit of BoolLit of true
+//│               _2 = Return:
+//│                 res = Lit of IntLit of 0
+//│                 implct = false
+//│           dflt = S of Assign:
+//│             lhs = tmp:tmp⁰
+//│             rhs = Call:
+//│               fun = Ref:
+//│                 l = builtin:-⁰
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = n⁰
+//│                 Arg:
+//│                   value = Lit of IntLit of 1
+//│             rest = Return: \
+//│             res = Call:
+//│               fun = Ref{disamb=term:pong²}:
+//│                 l = member:pong³
+//│                 disamb = S of term:pong²
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = tmp:tmp⁰
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = unused⁰
+//│             implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:pong³
+//│       dSym = term:pong²
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = n¹
+//│               modulefulness = Modulefulness of N
+//│             Param:
+//│               sym = unused¹
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {tmp:scrut¹, tmp:tmp¹}): 
+//│         body = Assign:
+//│           lhs = tmp:scrut¹
+//│           rhs = Call:
+//│             fun = Select{sym=term:Predef⁰/equals⁰}:
+//│               qual = Ref{disamb=module:Predef⁰}:
+//│                 l = member:Predef¹
+//│                 disamb = S of module:Predef⁰
+//│               name = Ident of "equals"
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = n¹
+//│               Arg:
+//│                 value = Lit of IntLit of 0
+//│           rest = Match: \
+//│           scrut = Ref:
+//│             l = tmp:scrut¹
+//│           arms = Ls of 
+//│             Tuple2:
+//│               _1 = Lit of BoolLit of true
+//│               _2 = Return:
+//│                 res = Lit of IntLit of 0
+//│                 implct = false
+//│           dflt = S of Assign:
+//│             lhs = tmp:tmp¹
+//│             rhs = Call:
+//│               fun = Ref:
+//│                 l = builtin:-⁰
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = n¹
+//│                 Arg:
+//│                   value = Lit of IntLit of 1
+//│             rest = Return: \
+//│             res = Call:
+//│               fun = Ref{disamb=term:ping³}:
+//│                 l = member:ping²
+//│                 disamb = S of term:ping³
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = tmp:tmp¹
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = unused¹
+//│             implct = false
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:ping³}:
+//│         l = member:ping²
+//│         disamb = S of term:ping³
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 5
+//│         Arg:
+//│           value = Lit of IntLit of 99
+//│     implct = true
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let ping², pong²;
+//│ let ping², pong³;
 //│ define ping² as fun ping³(n, unused) {
 //│   let scrut, tmp;
 //│   set scrut = Predef⁰.equals⁰(n, 0);
@@ -130,10 +266,10 @@ ping(5, 99)
 //│       return 0
 //│     else
 //│       set tmp = -⁰(n, 1);
-//│       return pong³(tmp, unused)
+//│       return pong²(tmp, unused)
 //│   end
 //│ };
-//│ define pong² as fun pong³(n, unused) {
+//│ define pong³ as fun pong²(n, unused) {
 //│   let scrut, tmp;
 //│   set scrut = Predef⁰.equals⁰(n, 0);
 //│   match scrut
@@ -202,6 +338,164 @@ fun pong(n)(unused) = if n == 0 then 0 else ping(n - 1)(unused)
 ping(5)(99)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = HashSet(member:ping, member:pong, tmp:tmp)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:ping⁶
+//│       dSym = term:ping⁷
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = n²
+//│               modulefulness = Modulefulness of N
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = unused²
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {tmp:scrut², tmp:tmp², tmp:tmp³}): 
+//│         body = Assign:
+//│           lhs = tmp:scrut²
+//│           rhs = Call:
+//│             fun = Select{sym=term:Predef⁰/equals⁰}:
+//│               qual = Ref{disamb=module:Predef⁰}:
+//│                 l = member:Predef¹
+//│                 disamb = S of module:Predef⁰
+//│               name = Ident of "equals"
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = n²
+//│               Arg:
+//│                 value = Lit of IntLit of 0
+//│           rest = Match: \
+//│           scrut = Ref:
+//│             l = tmp:scrut²
+//│           arms = Ls of 
+//│             Tuple2:
+//│               _1 = Lit of BoolLit of true
+//│               _2 = Return:
+//│                 res = Lit of IntLit of 0
+//│                 implct = false
+//│           dflt = S of Assign:
+//│             lhs = tmp:tmp²
+//│             rhs = Call:
+//│               fun = Ref:
+//│                 l = builtin:-⁰
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = n²
+//│                 Arg:
+//│                   value = Lit of IntLit of 1
+//│             rest = Assign: \
+//│             lhs = tmp:tmp³
+//│             rhs = Call:
+//│               fun = Ref{disamb=term:pong⁶}:
+//│                 l = member:pong⁷
+//│                 disamb = S of term:pong⁶
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = tmp:tmp²
+//│             rest = Return: \
+//│             res = Call:
+//│               fun = Ref:
+//│                 l = tmp:tmp³
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = unused²
+//│             implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:pong⁷
+//│       dSym = term:pong⁶
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = n³
+//│               modulefulness = Modulefulness of N
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = unused³
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {tmp:scrut³, tmp:tmp⁴, tmp:tmp⁵}): 
+//│         body = Assign:
+//│           lhs = tmp:scrut³
+//│           rhs = Call:
+//│             fun = Select{sym=term:Predef⁰/equals⁰}:
+//│               qual = Ref{disamb=module:Predef⁰}:
+//│                 l = member:Predef¹
+//│                 disamb = S of module:Predef⁰
+//│               name = Ident of "equals"
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = n³
+//│               Arg:
+//│                 value = Lit of IntLit of 0
+//│           rest = Match: \
+//│           scrut = Ref:
+//│             l = tmp:scrut³
+//│           arms = Ls of 
+//│             Tuple2:
+//│               _1 = Lit of BoolLit of true
+//│               _2 = Return:
+//│                 res = Lit of IntLit of 0
+//│                 implct = false
+//│           dflt = S of Assign:
+//│             lhs = tmp:tmp⁴
+//│             rhs = Call:
+//│               fun = Ref:
+//│                 l = builtin:-⁰
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = n³
+//│                 Arg:
+//│                   value = Lit of IntLit of 1
+//│             rest = Assign: \
+//│             lhs = tmp:tmp⁵
+//│             rhs = Call:
+//│               fun = Ref{disamb=term:ping⁷}:
+//│                 l = member:ping⁶
+//│                 disamb = S of term:ping⁷
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = tmp:tmp⁴
+//│             rest = Return: \
+//│             res = Call:
+//│               fun = Ref:
+//│                 l = tmp:tmp⁵
+//│               args = Ls of 
+//│                 Arg:
+//│                   value = Ref:
+//│                     l = unused³
+//│             implct = false
+//│     rest = Assign: \
+//│     lhs = tmp:tmp⁶
+//│     rhs = Call:
+//│       fun = Ref{disamb=term:ping⁷}:
+//│         l = member:ping⁶
+//│         disamb = S of term:ping⁷
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 5
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref:
+//│         l = tmp:tmp⁶
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 99
+//│     implct = true
 //│ = 0
 
 
@@ -224,8 +518,8 @@ class Test(a) with
 //│ dead-param-elim > prodfun pong#0 @ <root> -> eliminable: {1}
 //│ dead-param-elim > <<< dead-param-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let Test⁰, pong⁶, M⁰;
-//│ define pong⁶ as fun pong⁷(n) {
+//│ let Test⁰, pong⁸, M⁰;
+//│ define pong⁸ as fun pong⁹(n) {
 //│   let scrut, tmp;
 //│   set scrut = Predef⁰.equals⁰(n, 0);
 //│   match scrut
@@ -233,12 +527,12 @@ class Test(a) with
 //│       return 0
 //│     else
 //│       set tmp = -⁰(n, 1);
-//│       return M¹.ping⁶(tmp, undefined)
+//│       return M¹.ping⁸(tmp, undefined)
 //│   end
 //│ };
 //│ define M⁰ as class M²
 //│ module M¹ {
-//│   method ping⁷ = fun ping⁶(n, unused) {
+//│   method ping⁹ = fun ping⁸(n, unused) {
 //│     let scrut, tmp;
 //│     set scrut = Predef⁰.equals⁰(n, 0);
 //│     match scrut
@@ -246,11 +540,11 @@ class Test(a) with
 //│         return 0
 //│       else
 //│         set tmp = -⁰(n, 1);
-//│         return pong⁷(tmp)
+//│         return pong⁹(tmp)
 //│     end
 //│   }
 //│ };
-//│ define Test⁰ as class Test¹(a) { private val a⁰; method f⁰ = fun f¹() { return pong⁷(3) } };
+//│ define Test⁰ as class Test¹(a) { private val a⁰; method f⁰ = fun f¹() { return pong⁹(3) } };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

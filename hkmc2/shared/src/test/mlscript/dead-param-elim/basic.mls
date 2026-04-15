@@ -46,6 +46,32 @@ private fun f(a) = a
 f(42)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(member:f)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:f⁶
+//│       dSym = term:f⁷
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = a⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Ref:
+//│           l = a⁰
+//│         implct = false
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:f⁷}:
+//│         l = member:f⁶
+//│         disamb = S of term:f⁷
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 42
+//│     implct = true
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f⁶; define f⁶ as fun f⁷(a) { return a }; f⁷(42)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -57,6 +83,45 @@ private fun f(a, b) = a + b
 f(1, 2)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(member:f)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:f⁸
+//│       dSym = term:f⁹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = a¹
+//│               modulefulness = Modulefulness of N
+//│             Param:
+//│               sym = b⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Call:
+//│           fun = Ref:
+//│             l = builtin:+⁰
+//│           args = Ls of 
+//│             Arg:
+//│               value = Ref:
+//│                 l = a¹
+//│             Arg:
+//│               value = Ref:
+//│                 l = b⁰
+//│         implct = false
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:f⁹}:
+//│         l = member:f⁸
+//│         disamb = S of term:f⁹
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 1
+//│         Arg:
+//│           value = Lit of IntLit of 2
+//│     implct = true
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f⁸; define f⁸ as fun f⁹(a, b) { return +⁰(a, b) }; f⁹(1, 2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -153,17 +218,71 @@ let foo = Foo(1)
 foo.bar(99)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(foo, member:Foo)
+//│   body = Define:
+//│     defn = ClsLikeDefn:
+//│       isym = class:Foo⁰
+//│       sym = member:Foo¹
+//│       ctorSym = S of term:Foo⁰/Foo²
+//│       k = Cls
+//│       paramsOpt = S of ParamList:
+//│         params = Ls of 
+//│           Param:
+//│             sym = x⁰
+//│             modulefulness = Modulefulness of N
+//│       methods = Ls of 
+//│         FunDefn:
+//│           owner = S of class:Foo⁰
+//│           sym = member:bar⁰
+//│           dSym = term:Foo⁰/bar¹
+//│           params = Ls of 
+//│             ParamList:
+//│               params = Ls of 
+//│                 Param:
+//│                   sym = a²
+//│                   modulefulness = Modulefulness of N
+//│           body = Return:
+//│             res = Ref:
+//│               l = term:Foo⁰/x¹
+//│             implct = false
+//│       privateFields = Ls of 
+//│         term:Foo⁰/x¹
+//│       ctor = Assign:
+//│         lhs = term:Foo⁰/x¹
+//│         rhs = Ref:
+//│           l = x⁰
+//│     rest = Assign: \
+//│     lhs = foo⁰
+//│     rhs = Call:
+//│       fun = Ref{disamb=term:Foo⁰/Foo²}:
+//│         l = member:Foo¹
+//│         disamb = S of term:Foo⁰/Foo²
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 1
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Select:
+//│         qual = Ref:
+//│           l = foo⁰
+//│         name = Ident of "bar"
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 99
+//│     implct = true
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let Foo⁰, foo⁰;
-//│ define Foo⁰ as class Foo²(x) {
-//│   private val x⁰;
-//│   constructor Foo¹ {
-//│     set x⁰ = x;
+//│ let Foo¹, foo⁰;
+//│ define Foo¹ as class Foo⁰(x) {
+//│   private val x¹;
+//│   constructor Foo² {
+//│     set x¹ = x;
 //│     end
 //│   }
-//│   method bar⁰ = fun bar¹(a) { return x⁰ }
+//│   method bar⁰ = fun bar¹(a) { return x¹ }
 //│ };
-//│ set foo⁰ = Foo¹(1);
+//│ set foo⁰ = Foo²(1);
 //│ foo⁰.bar﹖(99)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
@@ -189,6 +308,53 @@ class Foo(x) with
 Foo(1).get()
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(tmp:tmp, member:Foo)
+//│   body = Define:
+//│     defn = ClsLikeDefn:
+//│       isym = class:Foo³
+//│       sym = member:Foo⁴
+//│       ctorSym = S of term:Foo³/Foo⁵
+//│       k = Cls
+//│       paramsOpt = S of ParamList:
+//│         params = Ls of 
+//│           Param:
+//│             sym = x²
+//│             modulefulness = Modulefulness of N
+//│       methods = Ls of 
+//│         FunDefn:
+//│           owner = S of class:Foo³
+//│           sym = member:get⁰
+//│           dSym = term:Foo³/get¹
+//│           params = Ls of 
+//│             ParamList: ‹empty›
+//│           body = Return:
+//│             res = Ref:
+//│               l = term:Foo³/x³
+//│             implct = false
+//│       privateFields = Ls of 
+//│         term:Foo³/x³
+//│       ctor = Assign:
+//│         lhs = term:Foo³/x³
+//│         rhs = Ref:
+//│           l = x²
+//│     rest = Assign: \
+//│     lhs = tmp:tmp⁰
+//│     rhs = Call:
+//│       fun = Ref{disamb=term:Foo³/Foo⁵}:
+//│         l = member:Foo⁴
+//│         disamb = S of term:Foo³/Foo⁵
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 1
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Select{sym=term:Foo³/get¹}:
+//│         qual = Ref:
+//│           l = tmp:tmp⁰
+//│         name = Ident of "get"
+//│     implct = true
 //│ = 1
 
 
@@ -224,6 +390,59 @@ private fun f(a) = g(a)
 f(42)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(member:f, member:g)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:g²
+//│       dSym = term:g³
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = x⁴
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Call:
+//│           fun = Ref:
+//│             l = builtin:+⁰
+//│           args = Ls of 
+//│             Arg:
+//│               value = Ref:
+//│                 l = x⁴
+//│             Arg:
+//│               value = Lit of IntLit of 1
+//│         implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:f²¹
+//│       dSym = term:f²²
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = a³
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Call:
+//│           fun = Ref{disamb=term:g³}:
+//│             l = member:g²
+//│             disamb = S of term:g³
+//│           args = Ls of 
+//│             Arg:
+//│               value = Ref:
+//│                 l = a³
+//│         implct = false
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:f²²}:
+//│         l = member:f²¹
+//│         disamb = S of term:f²²
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 42
+//│     implct = true
 //│ = 43
 
 
@@ -239,6 +458,37 @@ private fun f(a) =
 f(42)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(member:f)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:f²³
+//│       dSym = term:f²⁴
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = a⁴
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {x⁵}): 
+//│         body = Assign:
+//│           lhs = x⁵
+//│           rhs = Ref:
+//│             l = a⁴
+//│           rest = Return: \
+//│           res = Ref:
+//│             l = x⁵
+//│           implct = false
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:f²⁴}:
+//│         l = member:f²³
+//│         disamb = S of term:f²⁴
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 42
+//│     implct = true
 //│ = 42
 
 
@@ -252,6 +502,59 @@ private fun inc(x) = x + 1
 apply(inc)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(member:apply, member:inc)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:apply⁰
+//│       dSym = term:apply¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = f²⁵
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Call:
+//│           fun = Ref:
+//│             l = f²⁵
+//│           args = Ls of 
+//│             Arg:
+//│               value = Lit of IntLit of 0
+//│         implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:inc⁰
+//│       dSym = term:inc¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = x⁶
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Call:
+//│           fun = Ref:
+//│             l = builtin:+⁰
+//│           args = Ls of 
+//│             Arg:
+//│               value = Ref:
+//│                 l = x⁶
+//│             Arg:
+//│               value = Lit of IntLit of 1
+//│         implct = false
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:apply¹}:
+//│         l = member:apply⁰
+//│         disamb = S of term:apply¹
+//│       args = Ls of 
+//│         Arg:
+//│           value = Ref{disamb=term:inc¹}:
+//│             l = member:inc⁰
+//│             disamb = S of term:inc¹
+//│     implct = true
 //│ = 1
 
 
@@ -264,6 +567,81 @@ private fun f(p) = p.Pair#a
 f(Pair(1, 2))
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(member:f, member:Pair, tmp:tmp)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:f²⁶
+//│       dSym = term:f²⁷
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = p⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Select{sym=term:Pair⁰/a⁵}:
+//│           qual = Ref:
+//│             l = p⁰
+//│           name = Ident of "a"
+//│         implct = false
+//│     rest = Define: \
+//│     defn = ClsLikeDefn:
+//│       isym = class:Pair⁰
+//│       sym = member:Pair¹
+//│       ctorSym = S of term:Pair⁰/Pair²
+//│       k = Cls
+//│       paramsOpt = S of ParamList:
+//│         params = Ls of 
+//│           Param:
+//│             flags = (val)
+//│             sym = a⁶
+//│             modulefulness = Modulefulness of N
+//│           Param:
+//│             flags = (val)
+//│             sym = b¹
+//│             modulefulness = Modulefulness of N
+//│       publicFields = Ls of 
+//│         Tuple2:
+//│           _1 = member:a⁷
+//│           _2 = term:Pair⁰/a⁵
+//│         Tuple2:
+//│           _1 = member:b²
+//│           _2 = term:Pair⁰/b³
+//│       ctor = Define:
+//│         defn = ValDefn:
+//│           tsym = term:Pair⁰/a⁵
+//│           sym = member:a⁷
+//│           rhs = Ref:
+//│             l = a⁶
+//│         rest = Define: \
+//│         defn = ValDefn:
+//│           tsym = term:Pair⁰/b³
+//│           sym = member:b²
+//│           rhs = Ref:
+//│             l = b¹
+//│     rest = Assign: \
+//│     lhs = tmp:tmp¹
+//│     rhs = Call:
+//│       fun = Ref{disamb=term:Pair⁰/Pair²}:
+//│         l = member:Pair¹
+//│         disamb = S of term:Pair⁰/Pair²
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 1
+//│         Arg:
+//│           value = Lit of IntLit of 2
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:f²⁷}:
+//│         l = member:f²⁶
+//│         disamb = S of term:f²⁷
+//│       args = Ls of 
+//│         Arg:
+//│           value = Ref:
+//│             l = tmp:tmp¹
+//│     implct = true
 //│ = 1
 
 
@@ -295,6 +673,7 @@ f(2)
 g(1)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
 //│ = 3
 
 

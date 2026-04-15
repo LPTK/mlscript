@@ -8,6 +8,35 @@ let f = (a) => 0
 f(42)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(f, member:f)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:f⁰
+//│       dSym = term:f¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = a⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Lit of IntLit of 0
+//│         implct = false
+//│     rest = Assign: \
+//│     lhs = f²
+//│     rhs = Ref{disamb=term:f¹}:
+//│       l = member:f⁰
+//│       disamb = S of term:f¹
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref:
+//│         l = f²
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 42
+//│     implct = true
 //│ = 0
 //│ f = fun f
 
@@ -18,6 +47,36 @@ let f = (a) => a
 f(42)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(f, member:f)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:f³
+//│       dSym = term:f⁴
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = a¹
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Ref:
+//│           l = a¹
+//│         implct = false
+//│     rest = Assign: \
+//│     lhs = f⁵
+//│     rhs = Ref{disamb=term:f⁴}:
+//│       l = member:f³
+//│       disamb = S of term:f⁴
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref:
+//│         l = f⁵
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 42
+//│     implct = true
 //│ = 42
 //│ f = fun f
 
@@ -50,6 +109,102 @@ private fun pick(x)(y) = if false then x else y
 pick(f)(g)(5)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = HashSet(tmp:tmp, g, tmp:tmp, member:f, member:g, member:pick)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:f⁶
+//│       dSym = term:f⁷
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = a²
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Ref:
+//│           l = a²
+//│         implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:pick⁰
+//│       dSym = term:pick¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = x⁰
+//│               modulefulness = Modulefulness of N
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = y⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {tmp:scrut⁰}): 
+//│         body = Assign:
+//│           lhs = tmp:scrut⁰
+//│           rhs = Lit of BoolLit of false
+//│           rest = Match: \
+//│           scrut = Ref:
+//│             l = tmp:scrut⁰
+//│           arms = Ls of 
+//│             Tuple2:
+//│               _1 = Lit of BoolLit of true
+//│               _2 = Return:
+//│                 res = Ref:
+//│                   l = x⁰
+//│                 implct = false
+//│           dflt = S of Return:
+//│             res = Ref:
+//│               l = y⁰
+//│             implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:g⁰
+//│       dSym = term:g¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = b⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Lit of IntLit of 0
+//│         implct = false
+//│     rest = Assign: \
+//│     lhs = g²
+//│     rhs = Ref{disamb=term:g¹}:
+//│       l = member:g⁰
+//│       disamb = S of term:g¹
+//│     rest = Assign: \
+//│     lhs = tmp:tmp⁰
+//│     rhs = Call:
+//│       fun = Ref{disamb=term:pick¹}:
+//│         l = member:pick⁰
+//│         disamb = S of term:pick¹
+//│       args = Ls of 
+//│         Arg:
+//│           value = Ref{disamb=term:f⁷}:
+//│             l = member:f⁶
+//│             disamb = S of term:f⁷
+//│     rest = Assign: \
+//│     lhs = tmp:tmp¹
+//│     rhs = Call:
+//│       fun = Ref:
+//│         l = tmp:tmp⁰
+//│       args = Ls of 
+//│         Arg:
+//│           value = Ref:
+//│             l = g²
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref:
+//│         l = tmp:tmp¹
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 5
+//│     implct = true
 //│ = 0
 //│ g = fun g
 
@@ -61,6 +216,101 @@ private fun pick(x)(y) = if false then x else y
 pick(f)(g)(5)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = HashSet(member:g, member:pick, member:f, tmp:tmp, tmp:tmp, g)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:f⁸
+//│       dSym = term:f⁹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = a³
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Lit of IntLit of 0
+//│         implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:pick²
+//│       dSym = term:pick³
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = x¹
+//│               modulefulness = Modulefulness of N
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = y¹
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {tmp:scrut¹}): 
+//│         body = Assign:
+//│           lhs = tmp:scrut¹
+//│           rhs = Lit of BoolLit of false
+//│           rest = Match: \
+//│           scrut = Ref:
+//│             l = tmp:scrut¹
+//│           arms = Ls of 
+//│             Tuple2:
+//│               _1 = Lit of BoolLit of true
+//│               _2 = Return:
+//│                 res = Ref:
+//│                   l = x¹
+//│                 implct = false
+//│           dflt = S of Return:
+//│             res = Ref:
+//│               l = y¹
+//│             implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:g³
+//│       dSym = term:g⁴
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = b¹
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Lit of IntLit of 0
+//│         implct = false
+//│     rest = Assign: \
+//│     lhs = g⁵
+//│     rhs = Ref{disamb=term:g⁴}:
+//│       l = member:g³
+//│       disamb = S of term:g⁴
+//│     rest = Assign: \
+//│     lhs = tmp:tmp²
+//│     rhs = Call:
+//│       fun = Ref{disamb=term:pick³}:
+//│         l = member:pick²
+//│         disamb = S of term:pick³
+//│       args = Ls of 
+//│         Arg:
+//│           value = Ref{disamb=term:f⁹}:
+//│             l = member:f⁸
+//│             disamb = S of term:f⁹
+//│     rest = Assign: \
+//│     lhs = tmp:tmp³
+//│     rhs = Call:
+//│       fun = Ref:
+//│         l = tmp:tmp²
+//│       args = Ls of 
+//│         Arg:
+//│           value = Ref:
+//│             l = g⁵
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref:
+//│         l = tmp:tmp³
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 5
+//│     implct = true
 //│ = 0
 //│ g = fun g
 
@@ -74,6 +324,49 @@ private fun f(a) =
 f(42)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(member:f)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:f¹⁰
+//│       dSym = term:f¹¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = a⁴
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {g⁶, member:g⁷}): 
+//│         body = Define:
+//│           defn = FunDefn:
+//│             sym = member:g⁷
+//│             dSym = term:g⁸
+//│             params = Ls of 
+//│               ParamList: ‹empty›
+//│             body = Return:
+//│               res = Ref:
+//│                 l = a⁴
+//│               implct = false
+//│           rest = Assign: \
+//│           lhs = g⁶
+//│           rhs = Ref{disamb=term:g⁸}:
+//│             l = member:g⁷
+//│             disamb = S of term:g⁸
+//│           rest = Return: \
+//│           res = Call:
+//│             fun = Ref:
+//│               l = g⁶
+//│           implct = false
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:f¹¹}:
+//│         l = member:f¹⁰
+//│         disamb = S of term:f¹¹
+//│       args = Ls of 
+//│         Arg:
+//│           value = Lit of IntLit of 42
+//│     implct = true
 //│ = 42
 
 
@@ -88,6 +381,143 @@ private fun main1() = main((a) => 0, (a) => a + 1)
 main1()
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(member:apply, member:main1, member:main)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:apply⁰
+//│       dSym = term:apply¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = f¹²
+//│               modulefulness = Modulefulness of N
+//│             Param:
+//│               sym = x²
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Call:
+//│           fun = Ref:
+//│             l = f¹²
+//│           args = Ls of 
+//│             Arg:
+//│               value = Ref:
+//│                 l = x²
+//│         implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:main⁰
+//│       dSym = term:main¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = f1⁰
+//│               modulefulness = Modulefulness of N
+//│             Param:
+//│               sym = f2⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {tmp:tmp⁴, tmp:tmp⁵}): 
+//│         body = Assign:
+//│           lhs = tmp:tmp⁴
+//│           rhs = Call:
+//│             fun = Ref{disamb=term:apply¹}:
+//│               l = member:apply⁰
+//│               disamb = S of term:apply¹
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = f1⁰
+//│               Arg:
+//│                 value = Lit of IntLit of 42
+//│           rest = Assign: \
+//│           lhs = tmp:tmp⁵
+//│           rhs = Call:
+//│             fun = Ref{disamb=term:apply¹}:
+//│               l = member:apply⁰
+//│               disamb = S of term:apply¹
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = f2⁰
+//│               Arg:
+//│                 value = Lit of IntLit of 0
+//│           rest = Return: \
+//│           res = Call:
+//│             fun = Ref:
+//│               l = builtin:+⁰
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = tmp:tmp⁴
+//│               Arg:
+//│                 value = Ref:
+//│                   l = tmp:tmp⁵
+//│           implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:main1⁰
+//│       dSym = term:main1¹
+//│       params = Ls of 
+//│         ParamList: ‹empty›
+//│       body = Scoped(syms = {member:lambda⁰, member:lambda¹}): 
+//│         body = Define:
+//│           defn = FunDefn:
+//│             sym = member:lambda⁰
+//│             dSym = term:lambda²
+//│             params = Ls of 
+//│               ParamList:
+//│                 params = Ls of 
+//│                   Param:
+//│                     sym = a⁵
+//│                     modulefulness = Modulefulness of N
+//│             body = Return:
+//│               res = Lit of IntLit of 0
+//│               implct = false
+//│           rest = Define: \
+//│           defn = FunDefn:
+//│             sym = member:lambda¹
+//│             dSym = term:lambda³
+//│             params = Ls of 
+//│               ParamList:
+//│                 params = Ls of 
+//│                   Param:
+//│                     sym = a⁶
+//│                     modulefulness = Modulefulness of N
+//│             body = Return:
+//│               res = Call:
+//│                 fun = Ref:
+//│                   l = builtin:+⁰
+//│                 args = Ls of 
+//│                   Arg:
+//│                     value = Ref:
+//│                       l = a⁶
+//│                   Arg:
+//│                     value = Lit of IntLit of 1
+//│               implct = false
+//│           rest = Return: \
+//│           res = Call:
+//│             fun = Ref{disamb=term:main¹}:
+//│               l = member:main⁰
+//│               disamb = S of term:main¹
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref{disamb=term:lambda²}:
+//│                   l = member:lambda⁰
+//│                   disamb = S of term:lambda²
+//│               Arg:
+//│                 value = Ref{disamb=term:lambda³}:
+//│                   l = member:lambda¹
+//│                   disamb = S of term:lambda³
+//│           implct = false
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:main1¹}:
+//│         l = member:main1⁰
+//│         disamb = S of term:main1¹
+//│     implct = true
 //│ = 1
 
 
