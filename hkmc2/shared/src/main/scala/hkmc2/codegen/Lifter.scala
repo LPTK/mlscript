@@ -855,7 +855,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       
       val rewritten = rewriter.rewrite(obj.fun.body)
       val withCapture = addExtraSyms(rewritten)
-      LifterResult(obj.fun.copy(body = withCapture)(obj.fun.forceTailRec, obj.fun.configOverride), rewriter.extraDefns.toList)
+      LifterResult(obj.fun.copy(body = withCapture)(obj.fun.forceTailRec, obj.fun.configOverride, obj.fun.visibility), rewriter.extraDefns.toList)
   
   class RewrittenClassCtor(override val obj: ScopedObject.ClassCtor)(using ctx: LifterCtxNew) extends RewrittenScope[Unit](obj):
     override lazy val capturePath: Path = lastWords("tried to create a capture class for a class ctor")
@@ -950,7 +950,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val rewriter = new BlockRewriter
       val newBod = rewriter.rewrite(fun.body)
       val withCapture = addExtraSyms(newBod)
-      val newDefn = fun.copy(owner = N, sym = mainSym, dSym = mainDsym, params = newPlists, body = withCapture)(fun.forceTailRec, fun.configOverride)
+      val newDefn = fun.copy(owner = N, sym = mainSym, dSym = mainDsym, params = newPlists, body = withCapture)(fun.forceTailRec, fun.configOverride, fun.visibility)
       LifterResult(newDefn, rewriter.extraDefns.toList)
     
     // Definition with the auxiliary parameters merged into the second parameter list.
@@ -980,7 +980,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         auxDsym,
         newPlists,
         bod
-      )(false, N)
+      )(false, N, fun.visibility)
     
     private val aux = Lazy[Defn](mkAuxDefn)
     
@@ -1112,7 +1112,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         ret
       ))
       
-      FunDefn(N, flattenedSym, flattenedDSym, params :: Nil, bod)(false, N)
+      FunDefn(N, flattenedSym, flattenedDSym, params :: Nil, bod)(false, N, Visibility.Public)
     
     private val flat = Lazy[Defn](mkFlattenedDefn)
     
