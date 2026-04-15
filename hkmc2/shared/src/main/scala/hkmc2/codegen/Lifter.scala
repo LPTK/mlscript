@@ -810,6 +810,8 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     protected val liftedObjsOrdered: List[InnerSymbol] = node.liftedObjSyms.toList.sortBy(_.uid)
     override lazy val liftedObjsMap: Map[InnerSymbol, LocalPath] = liftedObjsSyms.map:
       case k -> v => k -> v.asLocalPath
+    protected def appendCaptureField(privFields: List[TermSymbol]) =
+      if hasCapture then captureSym :: privFields else privFields
     protected def rewriteMethods(node: ScopeNode, methods: List[FunDefn])(using ctx: LifterCtxNew) =
       val mtds = node.children
         .map: c =>
@@ -869,19 +871,19 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     private val captureSym = TermSymbol(syntax.ImmutVal, S(obj.cls.isym), Tree.Ident(obj.nme + "$cap"))
     override lazy val capturePath: Path = captureSym.asPath
-      
+    
     override def rewriteImpl: LifterResult[ClsLikeDefn] =
       val rewriterCtor = new BlockRewriter
       val rewriterPreCtor = new BlockRewriter
       val rewrittenCtor = rewriterCtor.rewrite(obj.cls.ctor)
       val rewrittenPrector = rewriterPreCtor.rewrite(obj.cls.preCtor)
-      val ctorWithCap = addExtraSyms(rewrittenCtor, captureSym, Nil, false)
-        
+      val ctorWithCap = addExtraSyms(rewrittenCtor, captureSym, Nil, false) 
+      
       val LifterResult(newMtds, extras) = rewriteMethods(node, obj.cls.methods)
       val newCls = obj.cls.copy(
         ctor = ctorWithCap,
         preCtor = rewrittenPrector,
-        privateFields = captureSym :: liftedObjsOrdered.map(liftedObjsSyms) ::: obj.cls.privateFields,
+        privateFields = appendCaptureField(liftedObjsOrdered.map(liftedObjsSyms) ::: obj.cls.privateFields),
         methods = newMtds,
       )(obj.cls.configOverride)
       LifterResult(newCls, rewriterCtor.extraDefns.toList ::: rewriterPreCtor.extraDefns.toList ::: extras)
@@ -900,7 +902,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val LifterResult(newMtds, extras) = rewriteMethods(node, obj.clsBody.methods)
       val newComp = obj.clsBody.copy(
         ctor = ctorWithCap,
-        privateFields = captureSym :: liftedObjsOrdered.map(liftedObjsSyms) ::: obj.clsBody.privateFields,
+        privateFields = appendCaptureField(liftedObjsOrdered.map(liftedObjsSyms) ::: obj.clsBody.privateFields),
         methods = newMtds
       )
       LifterResult(newComp, rewriterCtor.extraDefns.toList ::: extras)
@@ -909,7 +911,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     private val passedSymsMap_ : Map[Local, VarSymbol] = passedSyms.map: s =>
         s -> VarSymbol(Tree.Ident(s.nme))
       .toMap
-    private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = reqCaptures.map: i =>
+    private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = reqCaptures.toList.sorted.map: i =>
         val nme = data.getNode(i).obj.nme
         i -> VarSymbol(Tree.Ident(nme + "$cap"))
       .toMap
@@ -1026,7 +1028,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
             TermSymbol(syntax.LetBind, S(obj.cls.isym), Tree.Ident(s.nme))
           )
       .toMap
-    private val capSymsMap_ : Map[ScopedInfo, (vs: VarSymbol, ts: TermSymbol)] = reqCaptures.map: i =>
+    private val capSymsMap_ : Map[ScopedInfo, (vs: VarSymbol, ts: TermSymbol)] = reqCaptures.toList.sorted.map: i =>
         val nme = data.getNode(i).obj.nme + "$cap"
         i ->
           (
@@ -1172,12 +1174,13 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         else PlainParamList(auxParams) :: cls.auxParams
       
       val LifterResult(newMtds, extras) = rewriteMethods(node, obj.cls.methods)
+      
       val newCls = obj.cls.copy(
         owner = N,
         k = syntax.Cls, // turn objects into classes
         ctor = ctorWithDefns,
         preCtor = rewrittenPrector,
-        privateFields = captureSym :: extraPrivSyms ::: obj.cls.privateFields,
+        privateFields = appendCaptureField(extraPrivSyms ::: obj.cls.privateFields),
         methods = newMtds,
         auxParams = newAuxList
       )(obj.cls.configOverride)

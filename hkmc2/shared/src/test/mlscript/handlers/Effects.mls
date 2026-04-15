@@ -118,7 +118,6 @@ result
 //│       tmp7
 //│     }
 //│   }
-//│   #Handler$h$$cap;
 //│   perform(arg) {
 //│     let Handler$h$perform$here;
 //│     Handler$h$perform$here = Handler$h$perform$4(arg);
@@ -452,28 +451,28 @@ handle h = Eff with
   fun perform()(k) = k(())
 foo(h)
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.447: 	    module A with
+//│ ║  l.446: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.443: 	    module A with
+//│ ║  l.442: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.439: 	    module A with
+//│ ║  l.438: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.435: 	    module A with
+//│ ║  l.434: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.435: 	    module A with
+//│ ║  l.434: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.439: 	    module A with
+//│ ║  l.438: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.443: 	    module A with
+//│ ║  l.442: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.447: 	    module A with
+//│ ║  l.446: 	    module A with
 //│ ╙──       	           ^
 //│ = 123
 
