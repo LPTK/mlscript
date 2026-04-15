@@ -252,9 +252,9 @@ module Foo with
 //│ };
 //│ define Function$⁸ as class Function$⁹ {
 //│   private val Function$$cap⁴;
-//│   private val z⁰;
 //│   private val y⁰;
-//│   constructor {
+//│   private val z⁰;
+//│   constructor(y, z) {
 //│     super⁰();
 //│     set y⁰ = y;
 //│     set z⁰ = z;
@@ -510,7 +510,7 @@ fun foo(x)(y) = x + y
 //│ define Function$¹² as class Function$¹³ {
 //│   private val Function$$cap⁶;
 //│   private val x²;
-//│   constructor {
+//│   constructor(x) {
 //│     super⁰();
 //│     set x² = x;
 //│     end
@@ -558,7 +558,9 @@ foo(tuple)
 //│ let Function$¹⁴, tmp;
 //│ define Function$¹⁴ as class Function$¹⁵ {
 //│   private val Function$$cap⁷;
-//│   method call¹⁴ = fun call¹⁵() { return Predef⁰.tuple⁰() }
+//│   method call¹⁴ = fun call¹⁵(...xs) {
+//│     return Predef⁰.tuple⁰()
+//│   }
 //│ };
 //│ set tmp = new Function$¹⁵();
 //│ foo⁷(tmp)

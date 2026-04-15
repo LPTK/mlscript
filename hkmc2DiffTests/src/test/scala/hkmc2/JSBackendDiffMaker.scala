@@ -121,12 +121,14 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         codegen.Lowering()
       val jsb = ltl.givenIn:
         JSBuilder()
-      val le_0 = low.program(blk)
-      val le_1 = if noOptimizations.isSet then le_0 else
-        BlockSimplifier(symbolsToPreserve, dtl, print)(le_0)
+      var lowered = low.program(blk)
+      if noOptimizations.isUnset then
+        lowered = BlockSimplifier(symbolsToPreserve, dtl, print)(lowered)
+        ltl.givenIn:
+          lowered = DeadParamElim(lowered)
       val nestedScp = baseScp.nest
       val je = nestedScp.givenIn:
-        jsb.programBody(le_1, N, wd)
+        jsb.programBody(lowered, N, wd)
       val jsStr = je.stripBreaks.mkString(output.ColWidth)
       outputSeparator("JS (unsanitized)")
       output(jsStr)
@@ -143,11 +145,12 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
           with codegen.LoweringSelSanityChecks
           with codegen.LoweringTraceLog(traceJS.isSet)
       
-      val lowered_0 = low.program(blk)
+      var lowered = low.program(blk)
+      var optimized = lowered
       
       if showLoweredTree.isSet then
         outputSeparator("Lowered IR Tree")
-        output(lowered_0.showAsTree)
+        output(optimized.showAsTree)
       
       if showIR.isSet then
         outputSeparator("Lowered IR")
@@ -156,14 +159,15 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
           showFlowSymbols = true,
           debug = debug.isSet,
         )
-        output(Printer().worksheet(lowered_0)(using irPrintingScp).mkString(output.ColWidth))
+        output(Printer().worksheet(optimized)(using irPrintingScp).mkString(output.ColWidth))
       
-      val lowered_1 =
-        if noOptimizations.isSet then lowered_0 else
-          BlockSimplifier(symbolsToPreserve, dtl, print)(lowered_0)
+      if noOptimizations.isUnset then
+        optimized = BlockSimplifier(symbolsToPreserve, dtl, print)(optimized)
+        ltl.givenIn:
+          optimized = DeadParamElim(optimized)
       
       // TODO: Test that transformers retain object identity when there are no changes
-      if (lowered_1 isnt lowered_0) && (lowered_1 === lowered_0) then
+      if (optimized isnt lowered) && (optimized === lowered) then
         output("/!\\ Warning: object identity between equal objects was not preserved by BlockSimplifier")
         def rec(lhs: Block, rhs: Block): Bool =
           (lhs is rhs) || {
@@ -175,10 +179,13 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
               false
             else false
           }
-        rec(lowered_0.main, lowered_1.main)
-      
+        rec(optimized.main, lowered.main)
+      /* 
+      val lowered_2 = ltl.givenIn:
+        DeadParamElim(lowered_1)
+      */
       if checkIR.isSet then
-        BlockChecker().applyProgram(lowered_1)
+        BlockChecker().applyProgram(optimized)
       
       if showOptimizedIR.isSet then
         outputSeparator("Optimized IR")
@@ -187,12 +194,12 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
           showFlowSymbols = true,
           debug = debug.isSet,
         )
-        output(Printer().worksheet(lowered_1)(using irPrintingScp).mkString(output.ColWidth))
+        output(Printer().worksheet(optimized)(using irPrintingScp).mkString(output.ColWidth))
       if showOptimizedTree.isSet then
         outputSeparator("Optimized IR Tree")
-        output(lowered_1.showAsTree)
+        output(optimized.showAsTree)
       
-      processIRBlock(lowered_1, definedValues)
+      processIRBlock(optimized, definedValues)
       
   end processTerm
   

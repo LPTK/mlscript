@@ -1,0 +1,269 @@
+:js
+
+
+
+:deadParamElim
+:expect 0
+let f = (a) => 0
+f(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 0
+//│ f = fun f
+
+
+:deadParamElim
+:expect 42
+let f = (a) => a
+f(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 42
+//│ f = fun f
+
+:noInline
+:deadParamElim
+:expect 0
+private fun apply(f, x) = f(x)
+apply((a) => 0, 42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun apply#0 @ <root> -> eliminable: {1}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 0
+
+
+:deadParamElim
+:expect 43
+private fun apply(f, x) = f(x)
+apply((a) => a + 1, 42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 43
+
+
+
+
+:deadParamElim
+private fun f(a) = a
+let g = (b) => 0
+private fun pick(x)(y) = if false then x else y
+pick(f)(g)(5)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 0
+//│ g = fun g
+
+
+:deadParamElim
+fun f(a) = 0
+let g = (b) => 0
+private fun pick(x)(y) = if false then x else y
+pick(f)(g)(5)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 0
+//│ g = fun g
+
+
+
+:deadParamElim
+:expect 42
+private fun f(a) =
+  let g = () => a
+  g()
+f(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 42
+
+
+
+// two `apply`, one has dead param, another does not
+:deadParamElim
+:noInline
+private fun apply(f, x) = f(x)
+private fun main(f1, f2) =
+  apply(f1, 42) + apply(f2, 0)
+private fun main1() = main((a) => 0, (a) => a + 1)
+main1()
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
+//│ /!\ Offending subblock: Scoped:
+//│   syms = Set(member:apply, member:main1, member:main)
+//│   body = Define:
+//│     defn = FunDefn:
+//│       sym = member:apply⁰
+//│       dSym = term:apply¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = f⁰
+//│               modulefulness = Modulefulness of N
+//│             Param:
+//│               sym = x⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Return:
+//│         res = Call:
+//│           fun = Ref:
+//│             l = f⁰
+//│           args = Ls of 
+//│             Arg:
+//│               value = Ref:
+//│                 l = x⁰
+//│         implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:main⁰
+//│       dSym = term:main¹
+//│       params = Ls of 
+//│         ParamList:
+//│           params = Ls of 
+//│             Param:
+//│               sym = f1⁰
+//│               modulefulness = Modulefulness of N
+//│             Param:
+//│               sym = f2⁰
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {tmp:tmp⁰, tmp:tmp¹}): 
+//│         body = Assign:
+//│           lhs = tmp:tmp⁰
+//│           rhs = Call:
+//│             fun = Ref{disamb=term:apply¹}:
+//│               l = member:apply⁰
+//│               disamb = S of term:apply¹
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = f1⁰
+//│               Arg:
+//│                 value = Lit of IntLit of 42
+//│           rest = Assign: \
+//│           lhs = tmp:tmp¹
+//│           rhs = Call:
+//│             fun = Ref{disamb=term:apply¹}:
+//│               l = member:apply⁰
+//│               disamb = S of term:apply¹
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = f2⁰
+//│               Arg:
+//│                 value = Lit of IntLit of 0
+//│           rest = Return: \
+//│           res = Call:
+//│             fun = Ref:
+//│               l = builtin:+⁰
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref:
+//│                   l = tmp:tmp⁰
+//│               Arg:
+//│                 value = Ref:
+//│                   l = tmp:tmp¹
+//│           implct = false
+//│     rest = Define: \
+//│     defn = FunDefn:
+//│       sym = member:main1⁰
+//│       dSym = term:main1¹
+//│       params = Ls of 
+//│         ParamList: ‹empty›
+//│       body = Scoped(syms = {member:lambda⁰, member:lambda¹}): 
+//│         body = Define:
+//│           defn = FunDefn:
+//│             sym = member:lambda⁰
+//│             dSym = term:lambda²
+//│             params = Ls of 
+//│               ParamList:
+//│                 params = Ls of 
+//│                   Param:
+//│                     sym = a⁰
+//│                     modulefulness = Modulefulness of N
+//│             body = Return:
+//│               res = Lit of IntLit of 0
+//│               implct = false
+//│           rest = Define: \
+//│           defn = FunDefn:
+//│             sym = member:lambda¹
+//│             dSym = term:lambda³
+//│             params = Ls of 
+//│               ParamList:
+//│                 params = Ls of 
+//│                   Param:
+//│                     sym = a¹
+//│                     modulefulness = Modulefulness of N
+//│             body = Return:
+//│               res = Call:
+//│                 fun = Ref:
+//│                   l = builtin:+⁰
+//│                 args = Ls of 
+//│                   Arg:
+//│                     value = Ref:
+//│                       l = a¹
+//│                   Arg:
+//│                     value = Lit of IntLit of 1
+//│               implct = false
+//│           rest = Return: \
+//│           res = Call:
+//│             fun = Ref{disamb=term:main¹}:
+//│               l = member:main⁰
+//│               disamb = S of term:main¹
+//│             args = Ls of 
+//│               Arg:
+//│                 value = Ref{disamb=term:lambda²}:
+//│                   l = member:lambda⁰
+//│                   disamb = S of term:lambda²
+//│               Arg:
+//│                 value = Ref{disamb=term:lambda³}:
+//│                   l = member:lambda¹
+//│                   disamb = S of term:lambda³
+//│           implct = false
+//│     rest = Return: \
+//│     res = Call:
+//│       fun = Ref{disamb=term:main1¹}:
+//│         l = member:main1⁰
+//│         disamb = S of term:main1¹
+//│     implct = true
+//│ = 1
+
+
+// two `apply`, one has dead param, another does not;
+// but if `apply` is inlined, we can eliminate the `a` in `(a) => 0`
+:deadParamElim
+private fun apply(f, x) = f(x)
+private fun main(f1, f2) =
+  apply(f1, 42) + apply(f2, 0)
+private fun main1() = main((a) => 0, (a) => a + 1)
+main1()
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun lambda#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 1
+
+
+:deadParamElim poly
+:noInline
+private fun apply(f, x) = f(x)
+private fun main(f1, f2) =
+  apply(f1, 42) + apply(f2, 0)
+private fun main1() = main((a) => 0, (a) => a + 1)
+main1()
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun apply#0 @ main1@10.main@8.apply@2 -> eliminable: {1}
+//│ dead-param-elim > prodfun apply#0 @ main1@13.main@8.apply@2 -> eliminable: {1}
+//│ dead-param-elim > prodfun lambda#0 @ main1@10 -> eliminable: {0}
+//│ dead-param-elim > prodfun lambda#0 @ main1@13 -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 1
+
+
+:deadParamElim
+:expect 0
+private fun f = (a) => 0
+f(3)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun lambda#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 0
+

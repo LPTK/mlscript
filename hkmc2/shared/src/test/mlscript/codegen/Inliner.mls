@@ -60,9 +60,9 @@ f(1, ...[2])
 f(1, ...[2], ...[3])
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f⁸, tmp, tmp1, tmp2;
-//│ define f⁸ as fun f⁹(a) {
+//│ define f⁸ as fun f⁹(a, ...b) {
 //│   do Predef⁰.print⁰(a);
-//│   return Predef⁰.print⁰(b⁰)
+//│   return Predef⁰.print⁰(b)
 //│ };
 //│ set tmp = [2];
 //│ do f⁹(1, ...tmp);
@@ -87,11 +87,11 @@ f(1, 2, 3)
 f(1, 2, 3, 4)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f¹⁰, c⁰, c¹, c², inlinedVal, tmp, tmp1, tmp2;
-//│ define f¹⁰ as fun f¹¹(a, b) {
+//│ define f¹⁰ as fun f¹¹(a, b, ...c) {
 //│   let tmp3;
 //│   set tmp3 = +⁰(a, b);
 //│   do Predef⁰.print⁰(tmp3);
-//│   return Predef⁰.print⁰(c³)
+//│   return Predef⁰.print⁰(c)
 //│ };
 //│ set c⁰ = mut [];
 //│ set tmp2 = +⁰(1, 2);
