@@ -18,7 +18,6 @@ object Uid:
 
 extension [T] (x: Uid[T])
   def <=(rhs: Uid[T]) = x <= rhs
-  def toInt: Int = x
 
 private val ord = Ordering.Int
 given [A]: Ordering[Uid[A]] = ord

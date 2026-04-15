@@ -909,7 +909,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     private val passedSymsMap_ : Map[Local, VarSymbol] = passedSyms.map: s =>
         s -> VarSymbol(Tree.Ident(s.nme))
       .toMap
-    private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = reqCaptures.toList.sorted.map: i =>
+    private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = reqCaptures.map: i =>
         val nme = data.getNode(i).obj.nme
         i -> VarSymbol(Tree.Ident(nme + "$cap"))
       .toMap
@@ -1026,7 +1026,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
             TermSymbol(syntax.LetBind, S(obj.cls.isym), Tree.Ident(s.nme))
           )
       .toMap
-    private val capSymsMap_ : Map[ScopedInfo, (vs: VarSymbol, ts: TermSymbol)] = reqCaptures.toList.sorted.map: i =>
+    private val capSymsMap_ : Map[ScopedInfo, (vs: VarSymbol, ts: TermSymbol)] = reqCaptures.map: i =>
         val nme = data.getNode(i).obj.nme + "$cap"
         i ->
           (

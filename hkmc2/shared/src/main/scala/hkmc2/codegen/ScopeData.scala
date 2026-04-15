@@ -48,7 +48,7 @@ object ScopeData:
 
   given Ordering[ScopedInfo] with
     def compare(x: ScopedInfo, y: ScopedInfo): Int = (x, y) match
-      case (a: Symbol, b: Symbol) => a.uid.toInt compare b.uid.toInt
+      case (a: Symbol, b: Symbol) => Ordering[Uid[Symbol]].compare(a.uid, b.uid)
       case (_: Symbol, _) => -1
       case (_, _: Symbol) => 1
       case ((), ()) => 0
