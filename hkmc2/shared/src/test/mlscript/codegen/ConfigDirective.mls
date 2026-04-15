@@ -165,7 +165,6 @@ deadParamConfig(42)
 #config(deadParamElim: None)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
-//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
 
 
 #config(deforest: Some(Deforest(mono: false)))

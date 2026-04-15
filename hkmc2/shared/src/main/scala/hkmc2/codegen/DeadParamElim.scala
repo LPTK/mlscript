@@ -397,5 +397,9 @@ object DeadParamElim:
           val fState = new FlowAnalysis.State
           val flowAnalysisRes = FlowAnalysis(p.main, mono = dCfg.mono)
           val deadParamElimSolver = new DeadParamElimSolver(flowAnalysisRes)
-          val rewrite = new Rewrite(deadParamElimSolver)
-          Program(p.imports, rewrite.newBody)
+          if deadParamElimSolver.eliminableParamsById.isEmpty
+            && deadParamElimSolver.eliminableCallSiteArgsById.isEmpty
+          then p
+          else
+            val rewrite = new Rewrite(deadParamElimSolver)
+            Program(p.imports, rewrite.newBody)
