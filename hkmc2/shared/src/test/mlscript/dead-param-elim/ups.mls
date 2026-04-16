@@ -1,6 +1,6 @@
 :js
 
-:deadParamElim
+:deadParamElim debug
 :ucs ups
 pattern Middle = ([x] => x) | ([x, ...(Middle as m), y] => m)
 //│ elaborated pattern body: [x] => x⁰ ∨ [x, ...Middle as m, y] => m⁰
@@ -9,7 +9,7 @@ pattern Middle = ([x] => x) | ([x, ...(Middle as m), y] => m)
 //│ dead-param-elim > <<< dead-param-elim results <<<
 
 
-:deadParamElim
+:deadParamElim debug
 if [1,2,3,4,5] is
   Middle as x then x
 //│ dead-param-elim > >>> dead-param-elim results >>>

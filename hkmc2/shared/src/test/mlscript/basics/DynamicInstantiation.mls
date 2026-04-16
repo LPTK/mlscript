@@ -68,6 +68,10 @@ new (id(C))
 
 data class C(x, y)
 
+
+// TODO: dead param elimination cannot yet handle this
+// mismatch of the number of arguments and class parameters
+:deadParamElim off
 new! C
 //│ = C(undefined, undefined)
 

@@ -2,7 +2,7 @@
 :noInline
 
 
-:deadParamElim
+:deadParamElim debug
 :soir
 private fun f(a) =
   a = 3
@@ -21,7 +21,7 @@ f(undefined)
 
 data class Box(x)
 
-:deadParamElim
+:deadParamElim debug
 :soir
 private fun f(a) = Box(a)
 if f(42) is Box(v) then 0
@@ -45,7 +45,7 @@ if f(42) is Box(v) then 0
 
 
 
-:deadParamElim
+:deadParamElim debug
 :soir
 private fun f(a) =
   let x = a

@@ -2,7 +2,7 @@
 
 
 
-:deadParamElim
+:deadParamElim debug
 :expect 0
 :soir
 :noTailRec
@@ -32,7 +32,7 @@ countdown(5, 42)
 
 
 
-:deadParamElim
+:deadParamElim debug
 :soir
 private fun countdown(n) =
   if n == 0 then 0
@@ -62,7 +62,7 @@ countdown(5)
 
 
 
-:deadParamElim
+:deadParamElim debug
 private fun isEven(n) = if n == 0 then true else isOdd(n - 1)
 private fun isOdd(n) = if n == 0 then false else isEven(n - 1)
 isEven(10)
@@ -72,7 +72,7 @@ isEven(10)
 
 
 
-:deadParamElim
+:deadParamElim debug
 :soir
 :noTailRec
 private fun ping(n, unused) = if n == 0 then 0 else pong(n - 1, unused)
@@ -112,7 +112,7 @@ ping(5, 99)
 
 
 
-:deadParamElim
+:deadParamElim debug
 :soir
 :noTailRec
 fun ping(n, unused) = if n == 0 then 0 else pong(n - 1, unused)
@@ -153,7 +153,7 @@ ping(5, 0)
 pong(5, 0)
 //│ = 0
 
-:deadParamElim
+:deadParamElim debug
 :soir
 :noTailRec
 private fun ping(n)(unused) = if n == 0 then 0 else pong(n - 1)(unused)
@@ -195,7 +195,7 @@ ping(5)(99)
 //│ = 0
 
 
-:deadParamElim
+:deadParamElim debug
 :noTailRec
 fun ping(n)(unused) = if n == 0 then 0 else pong(n - 1)(unused)
 fun pong(n)(unused) = if n == 0 then 0 else ping(n - 1)(unused)
@@ -212,7 +212,7 @@ pong(5)(0)
 
 
 
-:deadParamElim
+:deadParamElim debug
 :soir
 :noTailRec
 module M with
