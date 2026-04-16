@@ -404,7 +404,6 @@ object DeadParamElim:
           override def doTrace: Bool = dCfg.debug
           override def emitDbg(str: Str): Unit = outerTl.emitDbg(s"dead-param-elim > $str")
         ).givenIn:
-          val fState = new FlowAnalysis.State
           val flowAnalysisRes = FlowAnalysis(p, mono = dCfg.mono)
           val deadParamElimSolver = new DeadParamElimSolver(flowAnalysisRes)
           if deadParamElimSolver.eliminableParamsById.isEmpty

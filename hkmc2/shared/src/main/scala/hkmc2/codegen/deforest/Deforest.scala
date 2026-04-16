@@ -119,7 +119,6 @@ object Deforest:
     raise: Raise,
     eState: Elaborator.State,
   ): Program =
-    val fState = new FlowAnalysis.State
     // TODO: handle see through imported modules
     val flowAnalysisRes = FlowAnalysis(p, mono = cfg.deforest.exists(_.mono))
     val solver = new DeforestFusionSolver(flowAnalysisRes)
