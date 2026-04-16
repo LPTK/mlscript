@@ -154,7 +154,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       
       // TODO: Test that transformers retain object identity when there are no changes
       if (lowered_2 isnt lowered_0) && (lowered_2 === lowered_0) then
-        output("/!\\ Warning: object identity between equal objects was not preserved by BlockSimplifier")
+        output("/!\\ Warning: object identity between equal objects was not preserved by BlockSimplifier or DeadParamElim")
         def rec(lhs: Block, rhs: Block): Bool =
           (lhs is rhs) || {
             if
