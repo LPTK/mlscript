@@ -596,31 +596,75 @@ class BlockSimplifier
         log(s"?? ${loc.showDbg} ${assignedResults.get(loc)} ${localVars(loc)} ${capturedVars(loc)}")
         val rs = assignedResults(loc)
         
+        var litValue: Bool | Value = true
         var emptyHanded = false
         def getUnchangedVars(asst: Assignment): Set[LocalVar] =
-          if emptyHanded then Set.empty
+          if emptyHanded && litValue === false then Set.empty
           else asst match
-            case Unknown => Set.empty
+            case Unknown =>
+              litValue = false
+              Set.empty
             case Uninitialized => Set.empty
-            case Assigned(_, N) => Set.empty
+              /* 
+            case Assigned(ass, N) =>
+              if litValue =/= false then
+                ass.rhs match
+                case Value.Lit(lit) =>
+                  // if litValue =/= true && litValue =/= lit then
+                  //   litValue = false
+                  if litValue === true then
+                    litValue = lit
+                  else if litValue =/= lit then
+                    litValue = false
+                case _ =>
+                  litValue = false
+              Set.empty
             case Assigned(_, S(lv -> rhs)) =>
               if assignedResults(lv) is rhs
               then Set.single(lv) ++ getUnchangedVars(rhs)
               else Set.empty
+              */ 
+            case Assigned(ass, opt) =>
+              if litValue =/= false then
+                ass.rhs match
+                case v @ Value.Lit(lit) =>
+                  // if litValue =/= true && litValue =/= lit then
+                  //   litValue = false
+                  if litValue === true then
+                    litValue = v
+                  else if litValue =/= lit then
+                    litValue = false
+                case _ =>
+                  litValue = false
+              // Set.empty
+              opt match
+              case S(lv -> rhs) =>
+                if assignedResults(lv) is rhs
+                then Set.single(lv) ++ getUnchangedVars(rhs)
+                else Set.empty
+              case N => Set.empty
             case Merge(a1, a2) =>
               val l = getUnchangedVars(a1)
-              if l.isEmpty then
+              if l.isEmpty && litValue === false then
                 emptyHanded = true
                 Set.empty
               else l & getUnchangedVars(a2)
         
         val vars = getUnchangedVars(rs)
         
-        vars.minByOption(_.uid) match
-        case N => k(v)
-        case S(v2) => 
-          registerChange(s"${loc.showDbg} ~> ${v2.showDbg} (via ${vars.map(_.showDbg).mkString(", ")})")
-          k(Value.Ref(v2, N))
+        litValue match
+        case true =>
+          registerChange(s"${loc.showDbg} ~> undefined")
+          return k(Value.Lit(syntax.Tree.UnitLit(false)))
+        case lit: Value =>
+          registerChange(s"${loc.showDbg} ~> ${lit.showDbg}")
+          return k(lit)
+        case false =>
+          vars.minByOption(_.uid) match
+          case N => k(v)
+          case S(v2) => 
+            registerChange(s"${loc.showDbg} ~> ${v2.showDbg} (via ${vars.map(_.showDbg).mkString(", ")})")
+            k(Value.Ref(v2, N))
         
         /* 
         if rs.isEmpty then
