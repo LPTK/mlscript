@@ -366,7 +366,8 @@ class BlockSimplifier
       case Uninitialized
       // case Assigned(asst: Assign)
       // case Variable(historicAsst: Assignment)
-      case Assigned(asst: Assign, varAsst: Opt[LocalVar -> Assignment])
+      // case Assigned(asst: Assign, varAsst: Opt[LocalVar -> Assignment])
+      case Assigned(asst: Assign, varAsst: Opt[Local -> Assignment])
       case Merge(asst1: Assignment, asst2: Assignment)
     import Assignment.*
     
@@ -379,6 +380,7 @@ class BlockSimplifier
     // val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Vector.empty)
     val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Unknown)
     
+    // *** ASSUMPTION: only LocalVar symbols can be Assign'ed ***
     var assignedResults: AssignedResults = emptyAssignedResults
     var inDryRun = false // for traversing loops once before actually transforming the program
     
@@ -451,9 +453,10 @@ class BlockSimplifier
         // assignedResults += lhs -> Vector.single(rhs)
         assignedResults += lhs -> Assigned(ass, rhs.match
           case Value.Ref(sym: LocalVar, N) if !capturedVars(sym) =>
-            // assignedResults(sym) :+ rhs
             val rhs2 = assignedResults(sym)
-            S(sym -> assignedResults(sym))
+            S(sym -> rhs2)
+          case Value.Ref(sym, _) =>
+            S(sym -> Unknown)
           case _ => N
             /* 
             if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
@@ -598,7 +601,8 @@ class BlockSimplifier
         
         var litValue: Bool | Value = true
         var emptyHanded = false
-        def getUnchangedVars(asst: Assignment): Set[LocalVar] =
+        // def getUnchangedVars(asst: Assignment): Set[LocalVar] =
+        def getUnchangedVars(asst: Assignment): Set[Local] =
           if emptyHanded && litValue === false then Set.empty
           else asst match
             case Unknown =>
@@ -638,10 +642,12 @@ class BlockSimplifier
                   litValue = false
               // Set.empty
               opt match
-              case S(lv -> rhs) =>
+              case S((lv: LocalVar) -> rhs) =>
                 if assignedResults(lv) is rhs
                 then Set.single(lv) ++ getUnchangedVars(rhs)
                 else Set.empty
+              case S(lv -> rhs) =>
+                Set.single(lv) ++ getUnchangedVars(rhs)
               case N => Set.empty
             case Merge(a1, a2) =>
               val l = getUnchangedVars(a1)

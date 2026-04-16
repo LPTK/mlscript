@@ -2,88 +2,72 @@
 
 
 
-:sir
-:dopt
+// :dopt
+:soir
 let x = 1
 in let y = x
 in y + 1
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let x⁰, y⁰; set x⁰ = 1; set y⁰ = x⁰; +⁰(y⁰, 1)
-//│ ⬤ Simplif. iter. 1
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y),Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true)))) with map: Map()
-//│ | Applying block: Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))) with map: Map(x -> Uninitialized, y -> Uninitialized)
-//│ | | Propagating x := Lit(IntLit(1)) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None), y -> Uninitialized)
-//│ | | Applying block: Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true)) with map: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None), y -> Uninitialized)
-//│ | | | Propagating y := Ref(x,None) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None), y -> Assigned(Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true)),Some((x,Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None)))))
-//│ | | | ?? x⁰ Some(Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None)) true false
-//│ | | | !! Change triggered { x⁰ ~> 1 } at BlockSimplifier.scala:660
-//│ | | | Applying block: Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true) with map: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None), y -> Assigned(Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true)),Some((x,Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None)))))
-//│ | | | | ?? y⁰ Some(Assigned(Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true)),Some((x,Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None))))) true false
-//│ | | | | !! Change triggered { y⁰ ~> x⁰ (via x⁰) } at BlockSimplifier.scala:666
-//│ | | | |= Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None), y -> Assigned(Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true)),Some((x,Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None)))))
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None), y -> Assigned(Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true)),Some((x,Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None)))))
-//│ | |= Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None), y -> Assigned(Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true)),Some((x,Assigned(Assign(x,Lit(IntLit(1)),Assign(y,Ref(x,None),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(y,None)), Arg(None,Lit(IntLit(1))))),true))),None)))))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized)
-//│ ▶ VP:
-//│ >  let x⁰, y⁰; set x⁰ = 1; set y⁰ = 1; +⁰(x⁰, 1)
-//│ ⬤ Simplif. iter. 2
-//│ !! Change triggered { rm y⁰ = 1 } at BlockSimplifier.scala:238
-//│ ▶ DCE:
-//│ >  let x⁰; set x⁰ = 1; +⁰(x⁰, 1)
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x),Assign(x,Lit(IntLit(1)),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(x,None)), Arg(None,Lit(IntLit(1))))),true))) with map: Map()
-//│ | Applying block: Assign(x,Lit(IntLit(1)),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(x,None)), Arg(None,Lit(IntLit(1))))),true)) with map: Map(x -> Uninitialized)
-//│ | | Propagating x := Lit(IntLit(1)) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(x,None)), Arg(None,Lit(IntLit(1))))),true)),None))
-//│ | | Applying block: Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(x,None)), Arg(None,Lit(IntLit(1))))),true) with map: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(x,None)), Arg(None,Lit(IntLit(1))))),true)),None))
-//│ | | | ?? x⁰ Some(Assigned(Assign(x,Lit(IntLit(1)),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(x,None)), Arg(None,Lit(IntLit(1))))),true)),None)) true false
-//│ | | | !! Change triggered { x⁰ ~> 1 } at BlockSimplifier.scala:660
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(x,None)), Arg(None,Lit(IntLit(1))))),true)),None))
-//│ | |= Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Return(Call(Ref(builtin:+,None),List(Arg(None,Ref(x,None)), Arg(None,Lit(IntLit(1))))),true)),None))
-//│ |= Map(x -> Uninitialized)
-//│ ▶ VP:
-//│ >  let x⁰; set x⁰ = 1; +⁰(1, 1)
-//│ ⬤ Simplif. iter. 3
-//│ !! Change triggered { rm x⁰ = 1 } at BlockSimplifier.scala:238
-//│ ▶ DCE:
-//│ >  +⁰(1, 1)
-//│ Captured variables: HashSet()
-//│ Applying block: Return(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(1))), Arg(None,Lit(IntLit(1))))),true) with map: Map()
-//│ |= Map()
-//│ ⬤ Simplif. iter. 4
-//│ Captured variables: HashSet()
-//│ Applying block: Return(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(1))), Arg(None,Lit(IntLit(1))))),true) with map: Map()
-//│ |= Map()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ +⁰(1, 1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
 
-:sir
-:dopt
+// :dopt
+:soir
 let x
 print(x)
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let x¹; Predef⁰.print⁰(x¹)
-//│ ⬤ Simplif. iter. 1
-//│ !! Change triggered { TODO } at BlockSimplifier.scala:229
-//│ ▶ DCE:
-//│ >  let x¹; Predef⁰.print⁰(undefined)
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(UnitLit(false))))),true)) with map: Map()
-//│ | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(UnitLit(false))))),true) with map: Map(x -> Uninitialized)
-//│ | |= Map(x -> Uninitialized)
-//│ |= Map(x -> Uninitialized)
-//│ ⬤ Simplif. iter. 2
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(UnitLit(false))))),true)) with map: Map()
-//│ | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(UnitLit(false))))),true) with map: Map(x -> Uninitialized)
-//│ | |= Map(x -> Uninitialized)
-//│ |= Map(x -> Uninitialized)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let x⁰; Predef⁰.print⁰(undefined)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > undefined
 //│ x = undefined
+
+
+:dopt
+:soir
+val x = 1
+let y = x in print(y)
+//│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(y, member:x),Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)))) with map: Map()
+//│ | Applying block: Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true))) with map: Map(y -> Uninitialized)
+//│ | | Applying block: Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)) with map: Map(y -> Uninitialized)
+//│ | | | Propagating y := Ref(member:x,Some(term:x)) (Some(Uninitialized))
+//│ | | | NEW assignedResults: Map(y -> Assigned(Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)),Some((member:x,Unknown))))
+//│ | | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true) with map: Map(y -> Assigned(Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)),Some((member:x,Unknown))))
+//│ | | | | ?? y⁰ Some(Assigned(Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)),Some((member:x,Unknown)))) true false
+//│ | | | | !! Change triggered { y⁰ ~> member:x¹ (via member:x¹) } at BlockSimplifier.scala:672
+//│ | | | |= Map(y -> Assigned(Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)),Some((member:x,Unknown))))
+//│ | | |= Map(y -> Assigned(Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)),Some((member:x,Unknown))))
+//│ | |= Map(y -> Assigned(Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)),Some((member:x,Unknown))))
+//│ |= Map(y -> Uninitialized)
+//│ ▶ VP:
+//│ >  let x¹, y⁰; define x¹ as val x² = 1; set y⁰ = x²; Predef⁰.print⁰(x¹)
+//│ ⬤ Simplif. iter. 2
+//│ !! Change triggered { rm y⁰ = member:x¹‹term:x²› } at BlockSimplifier.scala:238
+//│ ▶ DCE:
+//│ >  let x¹; define x¹ as val x² = 1; Predef⁰.print⁰(x¹)
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:x),Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true))) with map: Map()
+//│ | Applying block: Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true)) with map: Map()
+//│ | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true) with map: Map()
+//│ | | |= Map()
+//│ | |= Map()
+//│ |= Map()
+//│ ⬤ Simplif. iter. 3
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:x),Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true))) with map: Map()
+//│ | Applying block: Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true)) with map: Map()
+//│ | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true) with map: Map()
+//│ | | |= Map()
+//│ | |= Map()
+//│ |= Map()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let x¹; define x¹ as val x² = 1; Predef⁰.print⁰(x¹)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 1
+//│ x = 1
+
 
 
 
