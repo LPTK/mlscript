@@ -30,43 +30,41 @@ let y = x in print(y)
 //│ ⬤ Simplif. iter. 1
 //│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(y, member:x),Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)))) with map: Map()
-//│ | Applying block: Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true))) with map: Map(y -> ∅)
-//│ | | Applying block: Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)) with map: Map(y -> ∅)
-//│ | | | Propagating y := Ref(member:x,Some(term:x)) (Some(∅))
-//│ | | | NEW assignedResults: Map(y -> Ref(member:x,Some(term:x))‹(member:x,?)›)
-//│ | | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true) with map: Map(y -> Ref(member:x,Some(term:x))‹(member:x,?)›)
-//│ | | | | ?? y⁰ Some(Ref(member:x,Some(term:x))‹(member:x,?)›) true false
-//│ | | | | 2
-//│ | | | | 0
-//│ | | | | Analysis: litValue: false, unchanged vars: Set(member:x)
-//│ | | | | !! Change triggered { y⁰ ~> member:x¹ (via member:x¹) } at BlockSimplifier.scala:685
-//│ | | | |= Map(y -> Ref(member:x,Some(term:x))‹(member:x,?)›)
-//│ | | |= Map(y -> Ref(member:x,Some(term:x))‹(member:x,?)›)
-//│ | |= Map(y -> Ref(member:x,Some(term:x))‹(member:x,?)›)
-//│ |= Map(y -> ∅)
+//│ | Applying block: Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true))) with map: Map()
+//│ | | Applying block: Assign(y,Ref(member:x,Some(term:x)),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true)) with map: Map()
+//│ | | | Propagating y := Ref(member:x,Some(term:x)) (None)
+//│ | | | NEW assignedResults: Map(y -> Vector(Ref(member:x,Some(term:x))))
+//│ | | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true) with map: Map(y -> Vector(Ref(member:x,Some(term:x))))
+//│ | | | | ?? y⁰ Some(Vector(Ref(member:x,Some(term:x)))) true false
+//│ | | | | Assignments of y⁰: Vector(Ref(member:x,Some(term:x)))
+//│ | | | | !! Change triggered { y⁰ ~> member:x¹‹term:x²› } at BlockSimplifier.scala:628
+//│ | | | |- Map(y -> Vector(Ref(member:x,Some(term:x))))
+//│ | | |- Map(y -> Vector(Ref(member:x,Some(term:x))))
+//│ | |- Map(y -> Vector(Ref(member:x,Some(term:x))))
+//│ |- Map()
 //│ ▶ VP:
-//│ >  let x¹, y⁰; define x¹ as val x² = 1; set y⁰ = x²; Predef⁰.print⁰(x¹)
+//│ >  let x¹, y⁰; define x¹ as val x² = 1; set y⁰ = x²; Predef⁰.print⁰(x²)
 //│ ⬤ Simplif. iter. 2
 //│ !! Change triggered { rm y⁰ = member:x¹‹term:x²› } at BlockSimplifier.scala:238
 //│ ▶ DCE:
-//│ >  let x¹; define x¹ as val x² = 1; Predef⁰.print⁰(x¹)
+//│ >  let x¹; define x¹ as val x² = 1; Predef⁰.print⁰(x²)
 //│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(member:x),Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true))) with map: Map()
-//│ | Applying block: Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true)) with map: Map()
-//│ | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true) with map: Map()
-//│ | | |= Map()
-//│ | |= Map()
-//│ |= Map()
+//│ Applying block: Scoped(Set(member:x),Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,Some(term:x))))),true))) with map: Map()
+//│ | Applying block: Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,Some(term:x))))),true)) with map: Map()
+//│ | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,Some(term:x))))),true) with map: Map()
+//│ | | |- Map()
+//│ | |- Map()
+//│ |- Map()
 //│ ⬤ Simplif. iter. 3
 //│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(member:x),Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true))) with map: Map()
-//│ | Applying block: Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true)) with map: Map()
-//│ | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,None)))),true) with map: Map()
-//│ | | |= Map()
-//│ | |= Map()
-//│ |= Map()
+//│ Applying block: Scoped(Set(member:x),Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,Some(term:x))))),true))) with map: Map()
+//│ | Applying block: Define(ValDefn(term:x,member:x,Lit(IntLit(1))),Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,Some(term:x))))),true)) with map: Map()
+//│ | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(member:x,Some(term:x))))),true) with map: Map()
+//│ | | |- Map()
+//│ | |- Map()
+//│ |- Map()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x¹; define x¹ as val x² = 1; Predef⁰.print⁰(x¹)
+//│ let x¹; define x¹ as val x² = 1; Predef⁰.print⁰(x²)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 //│ x = 1
