@@ -17,27 +17,25 @@ last
 //│ ⬤ Simplif. iter. 1
 //│ Captured variables: HashSet()
 //│ Applying block: Scoped(Set(peek, last),Assign(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))),Assign(last,Ref(peek,None),Assign(peek,Lit(IntLit(1)),Return(Ref(last,None),true))))) with map: Map()
-//│ | Applying block: Assign(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))),Assign(last,Ref(peek,None),Assign(peek,Lit(IntLit(1)),Return(Ref(last,None),true)))) with map: Map(peek -> ∅, last -> ∅)
-//│ | | Propagating peek := Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))) (Some(∅))
-//│ | | NEW assignedResults: Map(peek -> Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))), last -> ∅)
-//│ | | Applying block: Assign(last,Ref(peek,None),Assign(peek,Lit(IntLit(1)),Return(Ref(last,None),true))) with map: Map(peek -> Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))), last -> ∅)
-//│ | | | Propagating last := Ref(peek,None) (Some(∅))
-//│ | | | NEW assignedResults: Map(peek -> Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))), last -> Ref(peek,None)‹(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))›)
-//│ | | | ?? peek⁰ Some(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2)))))) true false
-//│ | | | 2
-//│ | | | Analysis: litValue: false, unchanged vars: Set()
-//│ | | | Applying block: Assign(peek,Lit(IntLit(1)),Return(Ref(last,None),true)) with map: Map(peek -> Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))), last -> Ref(peek,None)‹(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))›)
-//│ | | | | Propagating peek := Lit(IntLit(1)) (Some(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2)))))))
-//│ | | | | NEW assignedResults: Map(peek -> Lit(IntLit(1)), last -> Ref(peek,None)‹(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))›)
-//│ | | | | Applying block: Return(Ref(last,None),true) with map: Map(peek -> Lit(IntLit(1)), last -> Ref(peek,None)‹(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))›)
-//│ | | | | | ?? last⁰ Some(Ref(peek,None)‹(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))›) true false
-//│ | | | | | 2
-//│ | | | | | Analysis: litValue: false, unchanged vars: Set()
-//│ | | | | |= Map(peek -> Lit(IntLit(1)), last -> Ref(peek,None)‹(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))›)
-//│ | | | |= Map(peek -> Lit(IntLit(1)), last -> Ref(peek,None)‹(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))›)
-//│ | | |= Map(peek -> Lit(IntLit(1)), last -> Ref(peek,None)‹(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))›)
-//│ | |= Map(peek -> Lit(IntLit(1)), last -> Ref(peek,None)‹(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))›)
-//│ |= Map(peek -> ∅, last -> ∅)
+//│ | Applying block: Assign(peek,Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))),Assign(last,Ref(peek,None),Assign(peek,Lit(IntLit(1)),Return(Ref(last,None),true)))) with map: Map()
+//│ | | Propagating peek := Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))) (None)
+//│ | | NEW assignedResults: Map(peek -> Vector(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2)))))))
+//│ | | Applying block: Assign(last,Ref(peek,None),Assign(peek,Lit(IntLit(1)),Return(Ref(last,None),true))) with map: Map(peek -> Vector(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2)))))))
+//│ | | | Propagating last := Ref(peek,None) (None)
+//│ | | | NEW assignedResults: Map(peek -> Vector(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2)))))), last -> Vector(Ref(peek,None)))
+//│ | | | ?? peek⁰ Some(Vector(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))) true false
+//│ | | | Assignments of peek⁰: Vector(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))
+//│ | | | Applying block: Assign(peek,Lit(IntLit(1)),Return(Ref(last,None),true)) with map: Map(peek -> Vector(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2)))))), last -> Vector(Ref(peek,None)))
+//│ | | | | Propagating peek := Lit(IntLit(1)) (Some(Vector(Call(Ref(builtin:+,None),List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(2))))))))
+//│ | | | | NEW assignedResults: Map(peek -> Vector(Lit(IntLit(1))), last -> Vector(Ref(last,None)))
+//│ | | | | Applying block: Return(Ref(last,None),true) with map: Map(peek -> Vector(Lit(IntLit(1))), last -> Vector(Ref(last,None)))
+//│ | | | | | ?? last⁰ Some(Vector(Ref(last,None))) true false
+//│ | | | | | Assignments of last⁰: Vector(Ref(last,None))
+//│ | | | | |- Map(peek -> Vector(Lit(IntLit(1))), last -> Vector(Ref(last,None)))
+//│ | | | |- Map(peek -> Vector(Lit(IntLit(1))), last -> Vector(Ref(last,None)))
+//│ | | |- Map(peek -> Vector(Lit(IntLit(1))), last -> Vector(Ref(last,None)))
+//│ | |- Map(peek -> Vector(Lit(IntLit(1))), last -> Vector(Ref(last,None)))
+//│ |- Map()
 //│ = 4
 //│ last = 4
 //│ peek = 1
@@ -48,7 +46,7 @@ val x = 1
 let y = x
 y
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁰, y⁰; define x⁰ as val x¹ = 1; set y⁰ = x¹; x⁰
+//│ let x⁰, y⁰; define x⁰ as val x¹ = 1; set y⁰ = x¹; x¹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 //│ x = 1

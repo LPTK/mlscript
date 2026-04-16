@@ -59,7 +59,7 @@ Array
 //│ = class Array
 
 Array(1)
-//│ = [<0 empty items>]
+//│ = [<1 empty items>]
 
 :breakme // TODO better report an error, here
 :e

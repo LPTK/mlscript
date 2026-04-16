@@ -23,13 +23,14 @@ f(2, 3)
 let f = (x, y) => x + y
 f(2, 3)
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let f1, f2;
+//│ let f1, f2, inlinedVal1;
 //│ f2 = function f(x, y) {
 //│   runtime.checkArgs("f", 2, true, arguments.length);
 //│   return x + y
 //│ };
 //│ f1 = f2;
-//│ block$res2 = runtime.safeCall(f2(2, 3));
+//│ inlinedVal1 = 2 + 3;
+//│ block$res2 = inlinedVal1;
 //│ undefined
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 5

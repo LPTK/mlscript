@@ -23,7 +23,7 @@ fun f() =
   done
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f⁴;
-//│ define f⁴ as fun f⁵() { let done; define done as fun done⁰(x) { return x }; return done };
+//│ define f⁴ as fun f⁵() { let done; define done as fun done⁰(x) { return x }; return done⁰ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
