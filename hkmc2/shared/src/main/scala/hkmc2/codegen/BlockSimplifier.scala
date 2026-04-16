@@ -369,6 +369,13 @@ class BlockSimplifier
       // case Assigned(asst: Assign, varAsst: Opt[LocalVar -> Assignment])
       case Assigned(asst: Assign, varAsst: Opt[Local -> Assignment])
       case Merge(asst1: Assignment, asst2: Assignment)
+      
+      override def toString: String = this match
+        case Unknown => "?"
+        case Uninitialized => "∅"
+        case Assigned(asst, varAsst) => s"${asst.rhs}${varAsst.fold("")("‹"+_+"›")}"
+        case Merge(a1, a2) => s"{${a1.toString} | ${a2.toString}}"
+      
     import Assignment.*
     
     
@@ -606,6 +613,7 @@ class BlockSimplifier
           if emptyHanded && litValue === false then Set.empty
           else asst match
             case Unknown =>
+              log(s"0")
               litValue = false
               Set.empty
             case Uninitialized => Set.empty
@@ -636,9 +644,12 @@ class BlockSimplifier
                   //   litValue = false
                   if litValue === true then
                     litValue = v
-                  else if litValue =/= lit then
+                  else if litValue =/= v then
+                    log(s"1 ${litValue} !== ${v}")
                     litValue = false
                 case _ =>
+                  // log(s"Unexpected value: ${v}")
+                  log(s"2")
                   litValue = false
               // Set.empty
               opt match
@@ -657,6 +668,8 @@ class BlockSimplifier
               else l & getUnchangedVars(a2)
         
         val vars = getUnchangedVars(rs)
+        
+        log(s"Analysis: litValue: ${litValue}, unchanged vars: ${vars}")
         
         litValue match
         case true =>

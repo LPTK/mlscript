@@ -13,8 +13,8 @@ open scope { locally }
 
 
 :sir
-:soir
 // :dopt
+:soir
 let x = 1
 x + 2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -55,9 +55,9 @@ fun main =
 //│ let main⁰; define main⁰ as fun main¹() { return +⁰(1, 2) }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+// :dopt
 :sir
 :soir
-// :dopt
 fun main =
   let
     x = 1
@@ -70,8 +70,8 @@ fun main =
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // FIXME: why is `x` treated as exported? -> Seems this parses as `let x = 1, let y = x in y`
-:soir
 // :dopt
+:soir
 let
   x = 1
   y = x
@@ -83,11 +83,12 @@ let
 //│ x = 1
 
 
-:soir
 // :dopt
+:sir
+:soir
 let x = if maybe then 1 else 1
 print(x)
-//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let x², scrut, tmp;
 //│ set scrut = Predef⁰.maybe⁰;
 //│ match scrut
@@ -98,13 +99,15 @@ print(x)
 //│     set tmp = 1;
 //│     end
 //│ set x² = tmp;
-//│ Predef⁰.print⁰(tmp)
+//│ Predef⁰.print⁰(x²)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let x²; do Predef⁰.maybe⁰; set x² = 1; Predef⁰.print⁰(1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 //│ x = 1
 
-:soir
 // :dopt
+:soir
 let x = if maybe then 1 else 1
 in print(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
@@ -119,8 +122,8 @@ in print(x)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 
-:soir
 // :dopt
+:soir
 let x = if maybe then 1 else 2
 print(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
@@ -139,8 +142,8 @@ print(x)
 //│ > 1
 //│ x = 1
 
-:soir
 // :dopt
+:soir
 let x = if maybe then 1 else 2
 in print(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
@@ -156,8 +159,8 @@ in print(x)
 //│ > 1
 
 
-:soir
 // :dopt
+:soir
 let x = if maybe
   then
     let y = 1
@@ -167,17 +170,7 @@ let x = if maybe
     z
 print(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁴, scrut, tmp;
-//│ set scrut = Predef⁰.maybe⁰;
-//│ match scrut
-//│   true =>
-//│     set tmp = 1;
-//│     end
-//│   else
-//│     set tmp = 1;
-//│     end
-//│ set x⁴ = tmp;
-//│ Predef⁰.print⁰(tmp)
+//│ let x⁴; do Predef⁰.maybe⁰; set x⁴ = 1; Predef⁰.print⁰(1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 //│ x = 1
@@ -228,8 +221,8 @@ fun main =
 
 
 :sir
-:soir
 // :dopt
+:soir
 fun main =
   let x = 2
   while x > 0 do
@@ -284,139 +277,23 @@ main
 // ====================================================================================================
 
 
-:dopt
+// :dopt
 :soir
 let {x,y}
 x = y
 y = x
-//│ ⬤ Simplif. iter. 1
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y),Assign(x,Ref(y,None),Assign(y,Ref(x,None),End()))) with map: Map()
-//│ | Applying block: Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())) with map: Map(x -> Uninitialized, y -> Uninitialized)
-//│ | | Propagating x := Ref(y,None) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized))), y -> Uninitialized)
-//│ | | ?? y⁰ Some(Uninitialized) true false
-//│ | | !! Change triggered { y⁰ ~> undefined } at BlockSimplifier.scala:663
-//│ | | Applying block: Assign(y,Ref(x,None),End()) with map: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized))), y -> Uninitialized)
-//│ | | | Propagating y := Ref(x,None) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized)))))))
-//│ | | | ?? x⁶ Some(Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized)))) true false
-//│ | | | Applying block: End() with map: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized)))))))
-//│ | | | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized)))))))
-//│ | | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized)))))))
-//│ | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),End())),Some((y,Uninitialized)))))))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized)
-//│ ▶ VP:
-//│ >  let x⁶, y⁰; set x⁶ = undefined; set y⁰ = x⁶; end
-//│ ⬤ Simplif. iter. 2
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y),Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End()))) with map: Map()
-//│ | Applying block: Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())) with map: Map(x -> Uninitialized, y -> Uninitialized)
-//│ | | Propagating x := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None), y -> Uninitialized)
-//│ | | Applying block: Assign(y,Ref(x,None),End()) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None), y -> Uninitialized)
-//│ | | | Propagating y := Ref(x,None) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None)))))
-//│ | | | ?? x⁶ Some(Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None)) true false
-//│ | | | !! Change triggered { x⁶ ~> undefined } at BlockSimplifier.scala:666
-//│ | | | Applying block: End() with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None)))))
-//│ | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None)))))
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None)))))
-//│ | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None), y -> Assigned(Assign(y,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),End())),None)))))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized)
-//│ ▶ VP:
-//│ >  let x⁶, y⁰; set x⁶ = undefined; set y⁰ = undefined; end
-//│ ⬤ Simplif. iter. 3
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y),Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End()))) with map: Map()
-//│ | Applying block: Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End())) with map: Map(x -> Uninitialized, y -> Uninitialized)
-//│ | | Propagating x := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End())),None), y -> Uninitialized)
-//│ | | Applying block: Assign(y,Lit(UnitLit(false)),End()) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End())),None), y -> Uninitialized)
-//│ | | | Propagating y := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End())),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),End()),None))
-//│ | | | Applying block: End() with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End())),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),End()),None))
-//│ | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End())),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),End()),None))
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End())),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),End()),None))
-//│ | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),End())),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),End()),None))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let x⁶, y⁰; set x⁶ = undefined; set y⁰ = undefined; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
 
-:dopt
+// :dopt
 :soir
 let {x,y,z}
 x = y
 y = z
 z = x
-//│ ⬤ Simplif. iter. 1
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y, z),Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())))) with map: Map()
-//│ | Applying block: Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))) with map: Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ | | Propagating x := Ref(y,None) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Uninitialized, z -> Uninitialized)
-//│ | | ?? y¹ Some(Uninitialized) true false
-//│ | | !! Change triggered { y¹ ~> undefined } at BlockSimplifier.scala:663
-//│ | | Applying block: Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())) with map: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Uninitialized, z -> Uninitialized)
-//│ | | | Propagating y := Ref(z,None) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())),Some((z,Uninitialized))), z -> Uninitialized)
-//│ | | | ?? z⁰ Some(Uninitialized) true false
-//│ | | | !! Change triggered { z⁰ ~> undefined } at BlockSimplifier.scala:663
-//│ | | | Applying block: Assign(z,Ref(x,None),End()) with map: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())),Some((z,Uninitialized))), z -> Uninitialized)
-//│ | | | | Propagating z := Ref(x,None) (Some(Uninitialized))
-//│ | | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())),Some((z,Uninitialized))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized)))))))
-//│ | | | | ?? x⁷ Some(Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized)))) true false
-//│ | | | | Applying block: End() with map: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())),Some((z,Uninitialized))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized)))))))
-//│ | | | | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())),Some((z,Uninitialized))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized)))))))
-//│ | | | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())),Some((z,Uninitialized))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized)))))))
-//│ | | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())),Some((z,Uninitialized))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized)))))))
-//│ | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(z,None),Assign(z,Ref(x,None),End())),Some((z,Uninitialized))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(z,None),Assign(z,Ref(x,None),End()))),Some((y,Uninitialized)))))))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ ▶ VP:
-//│ >  let x⁷, y¹, z⁰; set x⁷ = undefined; set y¹ = undefined; set z⁰ = x⁷; end
-//│ ⬤ Simplif. iter. 2
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y, z),Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())))) with map: Map()
-//│ | Applying block: Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))) with map: Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ | | Propagating x := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Uninitialized, z -> Uninitialized)
-//│ | | Applying block: Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Uninitialized, z -> Uninitialized)
-//│ | | | Propagating y := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())),None), z -> Uninitialized)
-//│ | | | Applying block: Assign(z,Ref(x,None),End()) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())),None), z -> Uninitialized)
-//│ | | | | Propagating z := Ref(x,None) (Some(Uninitialized))
-//│ | | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())),None), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None)))))
-//│ | | | | ?? x⁷ Some(Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None)) true false
-//│ | | | | !! Change triggered { x⁷ ~> undefined } at BlockSimplifier.scala:666
-//│ | | | | Applying block: End() with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())),None), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None)))))
-//│ | | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())),None), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None)))))
-//│ | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())),None), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None)))))
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())),None), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None)))))
-//│ | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End())),None), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Ref(x,None),End()))),None)))))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ ▶ VP:
-//│ >  let x⁷, y¹, z⁰; set x⁷ = undefined; set y¹ = undefined; set z⁰ = undefined; end
-//│ ⬤ Simplif. iter. 3
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y, z),Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())))) with map: Map()
-//│ | Applying block: Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))) with map: Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ | | Propagating x := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Uninitialized, z -> Uninitialized)
-//│ | | Applying block: Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Uninitialized, z -> Uninitialized)
-//│ | | | Propagating y := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Uninitialized)
-//│ | | | Applying block: Assign(z,Lit(UnitLit(false)),End()) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Uninitialized)
-//│ | | | | Propagating z := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | | | | Applying block: End() with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let x⁷, y¹, z⁰; set x⁷ = undefined; set y¹ = undefined; set z⁰ = undefined; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -424,79 +301,12 @@ z = x
 //│ y = undefined
 //│ z = undefined
 
-:dopt
+// :dopt
 :soir
 let {x,y,z}
 x = y
 y = x
 z = y
-//│ ⬤ Simplif. iter. 1
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y, z),Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())))) with map: Map()
-//│ | Applying block: Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))) with map: Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ | | Propagating x := Ref(y,None) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Uninitialized, z -> Uninitialized)
-//│ | | ?? y² Some(Uninitialized) true false
-//│ | | !! Change triggered { y² ~> undefined } at BlockSimplifier.scala:663
-//│ | | Applying block: Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())) with map: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Uninitialized, z -> Uninitialized)
-//│ | | | Propagating y := Ref(x,None) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized)))))), z -> Uninitialized)
-//│ | | | ?? x⁸ Some(Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized)))) true false
-//│ | | | Applying block: Assign(z,Ref(y,None),End()) with map: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized)))))), z -> Uninitialized)
-//│ | | | | Propagating z := Ref(y,None) (Some(Uninitialized))
-//│ | | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized)))))), z -> Assigned(Assign(z,Ref(y,None),End()),Some((y,Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))))))))))
-//│ | | | | ?? y² Some(Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))))))) true false
-//│ | | | | !! Change triggered { y² ~> x⁸ (via x⁸) } at BlockSimplifier.scala:672
-//│ | | | | Applying block: End() with map: Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized)))))), z -> Assigned(Assign(z,Ref(y,None),End()),Some((y,Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))))))))))
-//│ | | | | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized)))))), z -> Assigned(Assign(z,Ref(y,None),End()),Some((y,Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))))))))))
-//│ | | | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized)))))), z -> Assigned(Assign(z,Ref(y,None),End()),Some((y,Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))))))))))
-//│ | | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized)))))), z -> Assigned(Assign(z,Ref(y,None),End()),Some((y,Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))))))))))
-//│ | |= Map(x -> Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized)))))), z -> Assigned(Assign(z,Ref(y,None),End()),Some((y,Assigned(Assign(y,Ref(x,None),Assign(z,Ref(y,None),End())),Some((x,Assigned(Assign(x,Ref(y,None),Assign(y,Ref(x,None),Assign(z,Ref(y,None),End()))),Some((y,Uninitialized))))))))))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ ▶ VP:
-//│ >  let x⁸, y², z¹; set x⁸ = undefined; set y² = x⁸; set z¹ = x⁸; end
-//│ ⬤ Simplif. iter. 2
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y, z),Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())))) with map: Map()
-//│ | Applying block: Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))) with map: Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ | | Propagating x := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Uninitialized, z -> Uninitialized)
-//│ | | Applying block: Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Uninitialized, z -> Uninitialized)
-//│ | | | Propagating y := Ref(x,None) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))), z -> Uninitialized)
-//│ | | | ?? x⁸ Some(Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)) true false
-//│ | | | !! Change triggered { x⁸ ~> undefined } at BlockSimplifier.scala:666
-//│ | | | Applying block: Assign(z,Ref(x,None),End()) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))), z -> Uninitialized)
-//│ | | | | Propagating z := Ref(x,None) (Some(Uninitialized))
-//│ | | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))))
-//│ | | | | ?? x⁸ Some(Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)) true false
-//│ | | | | !! Change triggered { x⁸ ~> undefined } at BlockSimplifier.scala:666
-//│ | | | | Applying block: End() with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))))
-//│ | | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))))
-//│ | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))))
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))))
-//│ | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None), y -> Assigned(Assign(y,Ref(x,None),Assign(z,Ref(x,None),End())),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))), z -> Assigned(Assign(z,Ref(x,None),End()),Some((x,Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Ref(x,None),Assign(z,Ref(x,None),End()))),None)))))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ ▶ VP:
-//│ >  let x⁸, y², z¹; set x⁸ = undefined; set y² = undefined; set z¹ = undefined; end
-//│ ⬤ Simplif. iter. 3
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(x, y, z),Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())))) with map: Map()
-//│ | Applying block: Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))) with map: Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
-//│ | | Propagating x := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Uninitialized, z -> Uninitialized)
-//│ | | Applying block: Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Uninitialized, z -> Uninitialized)
-//│ | | | Propagating y := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Uninitialized)
-//│ | | | Applying block: Assign(z,Lit(UnitLit(false)),End()) with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Uninitialized)
-//│ | | | | Propagating z := Lit(UnitLit(false)) (Some(Uninitialized))
-//│ | | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | | | | Applying block: End() with map: Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ | |= Map(x -> Assigned(Assign(x,Lit(UnitLit(false)),Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End()))),None), y -> Assigned(Assign(y,Lit(UnitLit(false)),Assign(z,Lit(UnitLit(false)),End())),None), z -> Assigned(Assign(z,Lit(UnitLit(false)),End()),None))
-//│ |= Map(x -> Uninitialized, y -> Uninitialized, z -> Uninitialized)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let x⁸, y², z¹; set x⁸ = undefined; set y² = undefined; set z¹ = undefined; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -518,10 +328,10 @@ fun f(x) =
 //│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false))),End()) with map: Map()
 //│ | | Applying block: Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false)) with map: Map()
 //│ | | | Propagating x := Lit(IntLit(1)) (None)
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false)),None))
-//│ | | | Applying block: Return(Lit(IntLit(42)),false) with map: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false)),None))
-//│ | | | |= Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false)),None))
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false)),None))
+//│ | | | NEW assignedResults: Map(x -> Lit(IntLit(1)))
+//│ | | | Applying block: Return(Lit(IntLit(42)),false) with map: Map(x -> Lit(IntLit(1)))
+//│ | | | |= Map(x -> Lit(IntLit(1)))
+//│ | | |= Map(x -> Lit(IntLit(1)))
 //│ | | Applying block: End() with map: Map()
 //│ | | |= Map()
 //│ | |= Map()
@@ -532,59 +342,13 @@ fun f(x) =
 
 
 // TODO: rm dead assignment
-:dopt
+// :dopt
 :soir
 fun main =
   let x
   x = 1
   x = 2
   x
-//│ ⬤ Simplif. iter. 1
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(x),Assign(x,Lit(IntLit(1)),Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false))))),End())) with map: Map()
-//│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Scoped(HashSet(x),Assign(x,Lit(IntLit(1)),Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false))))),End()) with map: Map()
-//│ | | Applying block: Assign(x,Lit(IntLit(1)),Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false))) with map: Map(x -> Uninitialized)
-//│ | | | Propagating x := Lit(IntLit(1)) (Some(Uninitialized))
-//│ | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false))),None))
-//│ | | | Applying block: Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false)) with map: Map(x -> Assigned(Assign(x,Lit(IntLit(1)),Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false))),None))
-//│ | | | | Propagating x := Lit(IntLit(2)) (Some(Assigned(Assign(x,Lit(IntLit(1)),Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false))),None)))
-//│ | | | | NEW assignedResults: Map(x -> Assigned(Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false)),None))
-//│ | | | | Applying block: Return(Ref(x,None),false) with map: Map(x -> Assigned(Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false)),None))
-//│ | | | | | ?? x⁹ Some(Assigned(Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false)),None)) true false
-//│ | | | | | !! Change triggered { x⁹ ~> 2 } at BlockSimplifier.scala:666
-//│ | | | | |= Map(x -> Assigned(Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false)),None))
-//│ | | | |= Map(x -> Assigned(Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false)),None))
-//│ | | |= Map(x -> Assigned(Assign(x,Lit(IntLit(2)),Return(Ref(x,None),false)),None))
-//│ | | Applying block: End() with map: Map()
-//│ | | |= Map()
-//│ | |= Map()
-//│ |= Map()
-//│ ▶ VP:
-//│ >  let main⁸; define main⁸ as fun main⁹() { let x; set x = 1; set x = 2; return 2 }; end
-//│ ⬤ Simplif. iter. 2
-//│ !! Change triggered { rm x⁹ = 1 } at BlockSimplifier.scala:238
-//│ !! Change triggered { rm x⁹ = 2 } at BlockSimplifier.scala:238
-//│ ▶ DCE:
-//│ >  let main⁸; define main⁸ as fun main⁹() { return 2 }; end
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Return(Lit(IntLit(2)),false)),End())) with map: Map()
-//│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Return(Lit(IntLit(2)),false)),End()) with map: Map()
-//│ | | Applying block: Return(Lit(IntLit(2)),false) with map: Map()
-//│ | | |= Map()
-//│ | | Applying block: End() with map: Map()
-//│ | | |= Map()
-//│ | |= Map()
-//│ |= Map()
-//│ ⬤ Simplif. iter. 3
-//│ Captured variables: HashSet()
-//│ Applying block: Scoped(Set(member:main),Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Return(Lit(IntLit(2)),false)),End())) with map: Map()
-//│ | Applying block: Define(FunDefn(None,member:main,term:main,List(ParamList(‹›,List(),None)),Return(Lit(IntLit(2)),false)),End()) with map: Map()
-//│ | | Applying block: Return(Lit(IntLit(2)),false) with map: Map()
-//│ | | |= Map()
-//│ | | Applying block: End() with map: Map()
-//│ | | |= Map()
-//│ | |= Map()
-//│ |= Map()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let main⁸; define main⁸ as fun main⁹() { return 2 }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -613,7 +377,7 @@ print(res)
 //│ set scrut = Predef⁰.maybe⁰;
 //│ match scrut
 //│   true =>
-//│     set tmp = x¹⁰;
+//│     set tmp = x⁹;
 //│     end
 //│   else
 //│     set tmp = Predef⁰.notImplementedError⁰;
@@ -705,17 +469,17 @@ hide of print(res)
 //│ set tmp = Predef⁰.print⁰(res²);
 //│ Predef⁰.hide⁰(tmp)
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let res2, scrut8, tmp5;
-//│ scrut8 = Predef.maybe;
-//│ if (scrut8 === true) {
+//│ let res2, scrut6, tmp3;
+//│ scrut6 = Predef.maybe;
+//│ if (scrut6 === true) {
 //│   let y3;
 //│   y3 = runtime.checkCall(Predef.hide(1));
 //│   res2 = y3;
 //│ } else {
 //│   Predef.notImplementedError;
 //│ }
-//│ tmp5 = runtime.checkCall(Predef.print(res2));
-//│ block$res24 = runtime.checkCall(Predef.hide(tmp5));
+//│ tmp3 = runtime.checkCall(Predef.print(res2));
+//│ block$res24 = runtime.checkCall(Predef.hide(tmp3));
 //│ undefined
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
