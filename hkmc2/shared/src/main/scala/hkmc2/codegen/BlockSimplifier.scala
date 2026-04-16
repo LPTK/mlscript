@@ -453,7 +453,7 @@ class BlockSimplifier
           case Value.Ref(sym: LocalVar, N) if !capturedVars(sym) =>
             // assignedResults(sym) :+ rhs
             val rhs2 = assignedResults(sym)
-            S(assignedResults(sym))
+            S(sym -> assignedResults(sym))
           case _ => N
             /* 
             if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
@@ -545,7 +545,7 @@ class BlockSimplifier
     
     // FIXME: refactor transformers so this is not so error-prone (adding this case to `applyBlock` doesn't work)
     override def applyScopedBlock(b: Block): Block =
-      val res = super.applyScopedBlock(b)
+      // val res = super.applyScopedBlock(b)
       // println(s"?!")
       b match
       case Scoped(syms, body) =>
@@ -572,10 +572,18 @@ class BlockSimplifier
         */
         syms.foreach:
           case sym: LocalVar =>
-            assignedResults += sym -> Unknown
+            assignedResults += sym -> Uninitialized
           case _ =>
+        val res = super.applyScopedBlock(b)
+        syms.foreach:
+          case sym: LocalVar =>
+            // assignedResults += sym -> Unknown
+            assignedResults += sym -> Uninitialized
+          case _ =>
+        res
       case _ =>
-      res
+        super.applyScopedBlock(b)
+      // res
     
     override def applyValue(v: Value)(k: Value => Block): Block =
       // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
