@@ -122,6 +122,8 @@ object Deforest:
     // TODO: handle see through imported modules
     val flowAnalysisRes = FlowAnalysis(p, mono = cfg.deforest.exists(_.mono))
     val solver = new DeforestFusionSolver(flowAnalysisRes)
-    val rewrite = new DeforestRewriter(solver)
-    rewrite()
+    if solver.finalCtorDests.isEmpty && solver.finalDtorSrcs.isEmpty then p
+    else
+      val rewrite = new DeforestRewriter(solver)
+      rewrite()
 
