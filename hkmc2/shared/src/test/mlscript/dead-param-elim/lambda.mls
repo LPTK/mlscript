@@ -73,8 +73,11 @@ private fun f(a) =
   g()
 f(42)
 //│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
 //│ dead-param-elim > <<< dead-param-elim results <<<
-//│ = 42
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: '42', got: '()'
 
 
 

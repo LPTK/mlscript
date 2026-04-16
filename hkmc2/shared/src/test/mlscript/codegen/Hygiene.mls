@@ -64,7 +64,7 @@ let f = () => x
 let x = 2
 f()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let x, f, x1, f1; x = 1; f1 = function f() { return x }; f = f1; x1 = 2; x
+//│ let x, f, x1, f1; x = 1; f1 = function f() { return x }; f = f1; x1 = 2; runtime.safeCall(f1())
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 //│ f = fun f
@@ -215,7 +215,7 @@ Whoops.f()
 //│ = "Hello"
 
 Whoops.Whoops
-//│ = class Whoops { w: ref'1 } as ref'1
+//│ = class Whoops { w: ref'2 } as ref'2
 
 Whoops.Whoops.g()
 //│ = "Hello"

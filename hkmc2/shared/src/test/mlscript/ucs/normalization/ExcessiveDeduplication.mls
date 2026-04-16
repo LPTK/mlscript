@@ -72,7 +72,7 @@ if
 //│ >        x = 1
 //│ >        builtin:+⁰(x⁰, b⁰)
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let element0$, tmp;
+//│ let b, element0$, tmp;
 //│ split_root$: {
 //│   split_default$: {
 //│     if (x === true) {
@@ -82,17 +82,19 @@ if
 //│       }
 //│       if (runtime.Tuple.isArrayLike(y) && y.length === 1) {
 //│         element0$ = runtime.Tuple.get(y, 0);
+//│         b = element0$;
 //│       } else {
 //│         break split_default$
 //│       }
 //│     } else {
 //│       if (runtime.Tuple.isArrayLike(y) && y.length === 1) {
 //│         element0$ = runtime.Tuple.get(y, 0);
+//│         b = element0$;
 //│       } else {
 //│         break split_default$
 //│       }
 //│     }
-//│     tmp = 1 + element0$;
+//│     tmp = 1 + b;
 //│     break split_root$;
 //│   }
 //│   throw globalThis.Object.freeze(new globalThis.Error("match error"));

@@ -106,7 +106,22 @@ cons of
 //│ deforest > 	Ref(caseScrut,None)
 //│ deforest > 	Select(Ref(caseScrut,None),Ident(x))
 //│ deforest > <<< fusing <<<
-//│ = 22
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[RUNTIME ERROR] TypeError: fv_ctorLam_f is not a function
+//│     at inlinedVal (REPL31:1:1146)
+//│     at REPL31:1:1317
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: '22', got: 'undefined'
 
 
 

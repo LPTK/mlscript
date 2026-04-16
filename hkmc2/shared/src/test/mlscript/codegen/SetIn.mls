@@ -75,14 +75,24 @@ example()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let example2;
 //│ example2 = function example() {
-//│   let tmp3;
+//│   let x2, old1, tmp3, tmp4, tmp5, get_x;
+//│   x2 = 0;
+//│   get_x = function get_x() {
+//│     return x2
+//│   };
+//│   old1 = x2;
 //│   try {
-//│     tmp3 = 0 + 1;
-//│     Predef.print(tmp3);
-//│     Predef.print(tmp3);
-//│   } finally {}
-//│   Predef.print(0);
-//│   return Predef.print(0)
+//│     tmp3 = x2 + 1;
+//│     x2 = tmp3;
+//│     Predef.print(x2);
+//│     tmp4 = runtime.safeCall(get_x());
+//│     Predef.print(tmp4);
+//│   } finally {
+//│     x2 = old1;
+//│   }
+//│   Predef.print(x2);
+//│   tmp5 = runtime.safeCall(get_x());
+//│   return Predef.print(tmp5)
 //│ };
 //│ example2()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -104,14 +114,23 @@ example()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let example3;
 //│ example3 = function example() {
-//│   let tmp3, tmp4, tmp5;
+//│   let x2, old1, tmp3, tmp4, tmp5, tmp6, get_x;
+//│   x2 = 0;
+//│   get_x = function get_x() {
+//│     return x2
+//│   };
+//│   old1 = x2;
 //│   try {
-//│     tmp3 = 0 + 1;
-//│     tmp4 = Predef.print(tmp3);
-//│     tmp5 = (tmp4 , tmp3);
-//│   } finally {}
-//│   Predef.print(0);
-//│   Predef.print(0);
+//│     tmp3 = x2 + 1;
+//│     x2 = tmp3;
+//│     tmp4 = Predef.print(x2);
+//│     tmp5 = (tmp4 , x2);
+//│   } finally {
+//│     x2 = old1;
+//│   }
+//│   Predef.print(x2);
+//│   tmp6 = runtime.safeCall(get_x());
+//│   Predef.print(tmp6);
 //│   return tmp5
 //│ };
 //│ example3()

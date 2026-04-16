@@ -576,7 +576,22 @@ map(x => if x is A then 1 else 0, A :: B :: Nil)
 //│ deforest > Ref(member:Nil,Some(object:Nil)) ->
 //│ deforest > 	Ref(xs_map,None)
 //│ deforest > <<< fusing <<<
-//│ = Cons(1, Cons(0, Nil))
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[RUNTIME ERROR] TypeError: fv_f is not a function
+//│     at map_15$xs_map_Cons (REPL90:1:559)
+//│     at tmp40 (REPL90:1:2139)
+//│     at REPL90:1:2339
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'Cons(1, Cons(0, Nil))', got: 'undefined'
 
 
 :expect T(0, T(1, L, L), T(0, L, L))
