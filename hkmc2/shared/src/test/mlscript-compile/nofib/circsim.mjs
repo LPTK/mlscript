@@ -292,14 +292,13 @@ let circsim1;
     return circsim.PS(tmp, tmp1, tmp2, ninports, tmp3)
   } 
   static put(xs) {
-    let x, scrut, fstHalf, sndHalf, element1$, element0$, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+    let scrut, fstHalf, sndHalf, element1$, element0$, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
     split_default$: {
       if (xs instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = xs.head;
         arg$Cons$1$ = xs.tail;
         if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
-          x = arg$Cons$0$;
-          return circsim.Cell(x)
+          return circsim.Cell(arg$Cons$0$)
         }
         tmp = NofibPrelude.listLen(xs);
         tmp1 = NofibPrelude.intDiv(tmp, 2);
@@ -332,55 +331,45 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"))
   } 
   static get(t) {
-    let x, l, r, arg$Node$1$, arg$Node$2$, arg$Cell$0$, tmp, tmp1;
+    let arg$Node$1$, arg$Node$2$, arg$Cell$0$, tmp, tmp1;
     if (t instanceof circsim.Cell.class) {
       arg$Cell$0$ = t.value;
-      x = arg$Cell$0$;
-      return NofibPrelude.Cons(x, NofibPrelude.Nil)
+      return NofibPrelude.Cons(arg$Cell$0$, NofibPrelude.Nil)
     } else if (t instanceof circsim.Node.class) {
       arg$Node$1$ = t.left;
       arg$Node$2$ = t.right;
-      r = arg$Node$2$;
-      l = arg$Node$1$;
-      tmp = circsim.get(l);
-      tmp1 = circsim.get(r);
+      tmp = circsim.get(arg$Node$1$);
+      tmp1 = circsim.get(arg$Node$2$);
       return NofibPrelude.append(tmp, tmp1)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static upsweep(f, t) {
-    let a, l, r, lv, l_, r_, rv, scrut, scrut1, arg$Node$1$, arg$Node$2$, element1$, element0$, element1$1, element0$1, arg$Cell$0$, tmp, tmp1, tmp2, tmp3;
+    let scrut, scrut1, arg$Node$1$, arg$Node$2$, element1$, element0$, element1$1, element0$1, arg$Cell$0$, tmp, tmp1, tmp2, tmp3;
     if (t instanceof circsim.Cell.class) {
       arg$Cell$0$ = t.value;
-      a = arg$Cell$0$;
-      tmp = circsim.Cell(a);
+      tmp = circsim.Cell(arg$Cell$0$);
       return globalThis.Object.freeze([
-        a,
+        arg$Cell$0$,
         tmp
       ])
     } else if (t instanceof circsim.Node.class) {
       arg$Node$1$ = t.left;
       arg$Node$2$ = t.right;
-      r = arg$Node$2$;
-      l = arg$Node$1$;
-      scrut1 = circsim.upsweep(f, l);
+      scrut1 = circsim.upsweep(f, arg$Node$1$);
       if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
         element0$ = runtime.Tuple.get(scrut1, 0);
         element1$ = runtime.Tuple.get(scrut1, 1);
-        l_ = element1$;
-        lv = element0$;
-        scrut = circsim.upsweep(f, r);
+        scrut = circsim.upsweep(f, arg$Node$2$);
         if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
           element0$1 = runtime.Tuple.get(scrut, 0);
           element1$1 = runtime.Tuple.get(scrut, 1);
-          r_ = element1$1;
-          rv = element0$1;
-          tmp1 = runtime.safeCall(f(lv, rv));
+          tmp1 = runtime.safeCall(f(element0$, element0$1));
           tmp2 = globalThis.Object.freeze([
-            lv,
-            rv
+            element0$,
+            element0$1
           ]);
-          tmp3 = circsim.Node(tmp2, l_, r_);
+          tmp3 = circsim.Node(tmp2, element1$, element1$1);
           return globalThis.Object.freeze([
             tmp1,
             tmp3
@@ -393,7 +382,7 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static downsweep(g, d, t) {
-    let lv, l, rv, r, dl, dr, scrut, arg$Node$0$, arg$Node$1$, arg$Node$2$, element1$, element0$, element1$1, element0$1, tmp, tmp1;
+    let scrut, arg$Node$0$, arg$Node$1$, arg$Node$2$, element1$, element0$, element1$1, element0$1, tmp, tmp1;
     if (t instanceof circsim.Cell.class) {
       return circsim.Cell(d)
     } else if (t instanceof circsim.Node.class) {
@@ -403,18 +392,12 @@ let circsim1;
       if (runtime.Tuple.isArrayLike(arg$Node$0$) && arg$Node$0$.length === 2) {
         element0$ = runtime.Tuple.get(arg$Node$0$, 0);
         element1$ = runtime.Tuple.get(arg$Node$0$, 1);
-        r = arg$Node$2$;
-        l = arg$Node$1$;
-        rv = element1$;
-        lv = element0$;
-        scrut = runtime.safeCall(g(lv, rv, d));
+        scrut = runtime.safeCall(g(element0$, element1$, d));
         if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
           element0$1 = runtime.Tuple.get(scrut, 0);
           element1$1 = runtime.Tuple.get(scrut, 1);
-          dr = element1$1;
-          dl = element0$1;
-          tmp = circsim.downsweep(g, dl, l);
-          tmp1 = circsim.downsweep(g, dr, r);
+          tmp = circsim.downsweep(g, element0$1, arg$Node$1$);
+          tmp1 = circsim.downsweep(g, element1$1, arg$Node$2$);
           return circsim.Node(circsim.Unit, tmp, tmp1)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -424,23 +407,21 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static sweep_ud(up, down, u, t) {
-    let scrut, t_, ans, element1$, element0$, tmp;
+    let scrut, element1$, element0$, tmp;
     scrut = circsim.upsweep(up, t);
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      t_ = element1$;
-      ans = element0$;
-      tmp = circsim.downsweep(down, u, t_);
+      tmp = circsim.downsweep(down, u, element1$);
       return globalThis.Object.freeze([
-        ans,
+        element0$,
         tmp
       ])
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static scanL(f, u, xs) {
-    let down1, scrut, up_ans, t_, element1$, element0$, tmp, tmp1;
+    let down1, scrut, element1$, element0$, tmp, tmp1;
     down1 = function down1(l, r, x) {
       let tmp2;
       tmp2 = runtime.safeCall(f(x, l));
@@ -454,18 +435,16 @@ let circsim1;
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      t_ = element1$;
-      up_ans = element0$;
-      tmp1 = circsim.get(t_);
+      tmp1 = circsim.get(element1$);
       return globalThis.Object.freeze([
-        up_ans,
+        element0$,
         tmp1
       ])
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static scanR(f, u, xs) {
-    let down2, scrut, up_ans, t_, element1$, element0$, tmp, tmp1;
+    let down2, scrut, element1$, element0$, tmp, tmp1;
     down2 = function down2(l, r, x) {
       let tmp2;
       tmp2 = runtime.safeCall(f(r, x));
@@ -479,18 +458,16 @@ let circsim1;
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      t_ = element1$;
-      up_ans = element0$;
-      tmp1 = circsim.get(t_);
+      tmp1 = circsim.get(element1$);
       return globalThis.Object.freeze([
-        up_ans,
+        element0$,
         tmp1
       ])
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static scanlr(f, g, lu, ru, xs) {
-    let xs_, scrut, l_ans, t_, r_ans, ans, lambda, element1$, element0$, element1$1, element0$1, lambda1, lambda2, tmp, tmp1, tmp2, tmp3, tmp4;
+    let xs_, scrut, ans, lambda, element1$, element0$, element1$1, element0$1, lambda1, lambda2, tmp, tmp1, tmp2, tmp3, tmp4;
     lambda = (undefined, function (x) {
       return globalThis.Object.freeze([
         x,
@@ -499,23 +476,19 @@ let circsim1;
     });
     xs_ = NofibPrelude.map(lambda, xs);
     lambda1 = (undefined, function (a, b) {
-      let f1, g1, lxly, rxry, inlinedVal, lx, ly, rx, ry, element1$2, element0$2, element1$3, element0$3, tmp5, tmp6;
+      let f1, g1, lxly, rxry, inlinedVal, element1$2, element0$2, element1$3, element0$3, tmp5, tmp6;
       f1 = f;
       g1 = g;
       lxly = a;
       rxry = b;
       if (runtime.Tuple.isArrayLike(lxly) && lxly.length === 2) {
-        element0$2 = runtime.Tuple.get(lxly, 0);
-        element1$2 = runtime.Tuple.get(lxly, 1);
-        ly = element1$2;
-        lx = element0$2;
+        element0$2 = runtime.Tuple.get(a, 0);
+        element1$2 = runtime.Tuple.get(a, 1);
         if (runtime.Tuple.isArrayLike(rxry) && rxry.length === 2) {
-          element0$3 = runtime.Tuple.get(rxry, 0);
-          element1$3 = runtime.Tuple.get(rxry, 1);
-          ry = element1$3;
-          rx = element0$3;
-          tmp5 = runtime.safeCall(f1(lx, rx));
-          tmp6 = runtime.safeCall(g1(ly, ry));
+          element0$3 = runtime.Tuple.get(b, 0);
+          element1$3 = runtime.Tuple.get(b, 1);
+          tmp5 = runtime.safeCall(f1(element0$2, element0$3));
+          tmp6 = runtime.safeCall(g1(element1$2, element1$3));
           inlinedVal = globalThis.Object.freeze([
             tmp5,
             tmp6
@@ -527,34 +500,30 @@ let circsim1;
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
     lambda2 = (undefined, function (a, b, c) {
-      let f1, g1, lxly, rxry, ab, inlinedVal, lx, ry, a1, b1, element0$2, element1$2, element1$3, element0$3, tmp5, tmp6, tmp7, tmp8;
+      let f1, g1, lxly, rxry, ab, inlinedVal, element0$2, element1$2, element1$3, element0$3, tmp5, tmp6, tmp7, tmp8;
       f1 = f;
       g1 = g;
       lxly = a;
       rxry = b;
       ab = c;
       if (runtime.Tuple.isArrayLike(lxly) && lxly.length === 2) {
-        element0$2 = runtime.Tuple.get(lxly, 0);
-        runtime.Tuple.get(lxly, 1);
-        lx = element0$2;
+        element0$2 = runtime.Tuple.get(a, 0);
+        runtime.Tuple.get(a, 1);
         if (runtime.Tuple.isArrayLike(rxry) && rxry.length === 2) {
-          runtime.Tuple.get(rxry, 0);
-          element1$2 = runtime.Tuple.get(rxry, 1);
-          ry = element1$2;
+          runtime.Tuple.get(b, 0);
+          element1$2 = runtime.Tuple.get(b, 1);
           if (runtime.Tuple.isArrayLike(ab) && ab.length === 2) {
-            element0$3 = runtime.Tuple.get(ab, 0);
-            element1$3 = runtime.Tuple.get(ab, 1);
-            b1 = element1$3;
-            a1 = element0$3;
-            tmp5 = runtime.safeCall(g1(ry, b1));
+            element0$3 = runtime.Tuple.get(c, 0);
+            element1$3 = runtime.Tuple.get(c, 1);
+            tmp5 = runtime.safeCall(g1(element1$2, element1$3));
             tmp6 = globalThis.Object.freeze([
-              a1,
+              element0$3,
               tmp5
             ]);
-            tmp7 = runtime.safeCall(f1(a1, lx));
+            tmp7 = runtime.safeCall(f1(element0$3, element0$2));
             tmp8 = globalThis.Object.freeze([
               tmp7,
-              b1
+              element1$3
             ]);
             inlinedVal = globalThis.Object.freeze([
               tmp6,
@@ -581,16 +550,13 @@ let circsim1;
       if (runtime.Tuple.isArrayLike(element0$) && element0$.length === 2) {
         element0$1 = runtime.Tuple.get(element0$, 0);
         element1$1 = runtime.Tuple.get(element0$, 1);
-        t_ = element1$;
-        r_ans = element1$1;
-        l_ans = element0$1;
-        tmp2 = runtime.safeCall(g(r_ans, ru));
-        tmp3 = runtime.safeCall(f(lu, l_ans));
+        tmp2 = runtime.safeCall(g(element1$1, ru));
+        tmp3 = runtime.safeCall(f(lu, element0$1));
         ans = globalThis.Object.freeze([
           tmp2,
           tmp3
         ]);
-        tmp4 = circsim.get(t_);
+        tmp4 = circsim.get(element1$);
         return globalThis.Object.freeze([
           ans,
           tmp4
@@ -611,24 +577,20 @@ let circsim1;
     return NofibPrelude.until(lambda, lambda1, 1)
   } 
   static pad_circuit(size_ins_outs_states) {
-    let size, outs, ins, states, p2, states_, element3$, element2$, element1$, element0$, tmp, tmp1;
+    let p2, states_, element3$, element2$, element1$, element0$, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(size_ins_outs_states) && size_ins_outs_states.length === 4) {
       element0$ = runtime.Tuple.get(size_ins_outs_states, 0);
       element1$ = runtime.Tuple.get(size_ins_outs_states, 1);
       element2$ = runtime.Tuple.get(size_ins_outs_states, 2);
       element3$ = runtime.Tuple.get(size_ins_outs_states, 3);
-      states = element3$;
-      outs = element2$;
-      ins = element1$;
-      size = element0$;
-      p2 = circsim.nearest_power_of_two(size);
+      p2 = circsim.nearest_power_of_two(element0$);
       tmp = NofibPrelude.replicate_lz(p2, circsim.emptyState);
-      states_ = NofibPrelude.append_nl_lz(states, tmp);
+      states_ = NofibPrelude.append_nl_lz(element3$, tmp);
       tmp1 = NofibPrelude.take_lz(p2, states_);
       return globalThis.Object.freeze([
         p2,
-        ins,
-        outs,
+        element1$,
+        element2$,
         tmp1
       ])
     }
@@ -679,7 +641,7 @@ let circsim1;
     return circsim.F;
   } 
   static send_right(a, b) {
-    let dra, qla, ma, ia, ea, sa, dla, qra, mb, ib, eb, drb, sb, qrb, qlb, dlb, scrut, element7$, element6$, element5$, element4$, element3$, element2$, element1$, element0$, element7$1, element6$1, element5$1, element4$1, element3$1, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
+    let qra, scrut, element7$, element6$, element5$, element4$, element3$, element2$, element1$, element0$, element7$1, element6$1, element5$1, element4$1, element3$1, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(a) && a.length === 8) {
       element0$ = runtime.Tuple.get(a, 0);
       element1$ = runtime.Tuple.get(a, 1);
@@ -689,14 +651,7 @@ let circsim1;
       element5$ = runtime.Tuple.get(a, 5);
       element6$ = runtime.Tuple.get(a, 6);
       element7$ = runtime.Tuple.get(a, 7);
-      ea = element7$;
-      dra = element6$;
       qra = element5$;
-      dla = element4$;
-      qla = element3$;
-      ma = element2$;
-      sa = element1$;
-      ia = element0$;
       if (runtime.Tuple.isArrayLike(b) && b.length === 8) {
         element0$1 = runtime.Tuple.get(b, 0);
         element1$1 = runtime.Tuple.get(b, 1);
@@ -706,40 +661,32 @@ let circsim1;
         element5$1 = runtime.Tuple.get(b, 5);
         element6$1 = runtime.Tuple.get(b, 6);
         element7$1 = runtime.Tuple.get(b, 7);
-        eb = element7$1;
-        drb = element6$1;
-        qrb = element5$1;
-        dlb = element4$1;
-        qlb = element3$1;
-        mb = element2$1;
-        sb = element1$1;
-        ib = element0$1;
         if (qra === true) {
-          scrut = dra > eb;
+          scrut = element6$ > element7$1;
           if (scrut === true) {
-            tmp = dra - eb;
-            tmp1 = ea + eb;
+            tmp = element6$ - element7$1;
+            tmp1 = element7$ + element7$1;
             return globalThis.Object.freeze([
-              ia,
-              sa,
-              ma,
-              qla,
-              dla,
-              qra,
+              element0$,
+              element1$,
+              element2$,
+              element3$,
+              element4$,
+              element5$,
               tmp,
               tmp1
             ])
           }
         }
-        tmp2 = ea + eb;
+        tmp2 = element7$ + element7$1;
         return globalThis.Object.freeze([
-          ib,
-          sb,
-          mb,
-          qlb,
-          dlb,
-          qrb,
-          drb,
+          element0$1,
+          element1$1,
+          element2$1,
+          element3$1,
+          element4$1,
+          element5$1,
+          element6$1,
           tmp2
         ])
       }
@@ -748,7 +695,7 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static send_left(a, b) {
-    let dra, qla, ma, ia, ea, sa, dla, qra, mb, ib, eb, drb, sb, qrb, qlb, dlb, scrut, element7$, element6$, element5$, element4$, element3$, element2$, element1$, element0$, element7$1, element6$1, element5$1, element4$1, element3$1, element2$1, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
+    let qlb, scrut, element7$, element6$, element5$, element4$, element3$, element2$, element1$, element0$, element7$1, element6$1, element5$1, element4$1, element3$1, element2$1, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
     if (runtime.Tuple.isArrayLike(a) && a.length === 8) {
       element0$ = runtime.Tuple.get(a, 0);
       element1$ = runtime.Tuple.get(a, 1);
@@ -758,14 +705,6 @@ let circsim1;
       element5$ = runtime.Tuple.get(a, 5);
       element6$ = runtime.Tuple.get(a, 6);
       element7$ = runtime.Tuple.get(a, 7);
-      ea = element7$;
-      dra = element6$;
-      qra = element5$;
-      dla = element4$;
-      qla = element3$;
-      ma = element2$;
-      sa = element1$;
-      ia = element0$;
       if (runtime.Tuple.isArrayLike(b) && b.length === 8) {
         element0$1 = runtime.Tuple.get(b, 0);
         element1$1 = runtime.Tuple.get(b, 1);
@@ -775,43 +714,36 @@ let circsim1;
         element5$1 = runtime.Tuple.get(b, 5);
         element6$1 = runtime.Tuple.get(b, 6);
         element7$1 = runtime.Tuple.get(b, 7);
-        eb = element7$1;
-        drb = element6$1;
-        qrb = element5$1;
-        dlb = element4$1;
         qlb = element3$1;
-        mb = element2$1;
-        sb = element1$1;
-        ib = element0$1;
         if (qlb === true) {
-          tmp = dlb > ea;
+          tmp = element4$1 > element7$;
         } else {
           tmp = false;
         }
         scrut = tmp;
         if (scrut === true) {
-          tmp1 = dlb - ea;
-          tmp2 = ea + eb;
+          tmp1 = element4$1 - element7$;
+          tmp2 = element7$ + element7$1;
           return globalThis.Object.freeze([
-            ib,
-            sb,
-            mb,
-            qlb,
+            element0$1,
+            element1$1,
+            element2$1,
+            element3$1,
             tmp1,
-            qrb,
-            drb,
+            element5$1,
+            element6$1,
             tmp2
           ])
         }
-        tmp3 = ea + eb;
+        tmp3 = element7$ + element7$1;
         return globalThis.Object.freeze([
-          ia,
-          sa,
-          ma,
-          qla,
-          dla,
-          qra,
-          dra,
+          element0$,
+          element1$,
+          element2$,
+          element3$,
+          element4$,
+          element5$,
+          element6$,
           tmp3
         ]);
       }
@@ -825,38 +757,32 @@ let circsim1;
   static update_outports(state, value) {
     let lscomp, tmp, tmp1;
     lscomp = function lscomp(ls) {
-      let t, h, qr, ql, dl, p, dr, arg$Cons$0$, arg$Cons$1$, element5$, element4$, element3$, element2$, element0$, tmp2, tmp3;
+      let h, arg$Cons$0$, arg$Cons$1$, element5$, element4$, element3$, element2$, element0$, tmp2, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         h = arg$Cons$0$;
         if (runtime.Tuple.isArrayLike(h) && h.length === 6) {
-          element0$ = runtime.Tuple.get(h, 0);
-          runtime.Tuple.get(h, 1);
-          element2$ = runtime.Tuple.get(h, 2);
-          element3$ = runtime.Tuple.get(h, 3);
-          element4$ = runtime.Tuple.get(h, 4);
-          element5$ = runtime.Tuple.get(h, 5);
-          dr = element5$;
-          qr = element4$;
-          dl = element3$;
-          ql = element2$;
-          p = element0$;
+          element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
+          runtime.Tuple.get(arg$Cons$0$, 1);
+          element2$ = runtime.Tuple.get(arg$Cons$0$, 2);
+          element3$ = runtime.Tuple.get(arg$Cons$0$, 3);
+          element4$ = runtime.Tuple.get(arg$Cons$0$, 4);
+          element5$ = runtime.Tuple.get(arg$Cons$0$, 5);
           tmp2 = globalThis.Object.freeze([
-            p,
+            element0$,
             value,
-            ql,
-            dl,
-            qr,
-            dr
+            element2$,
+            element3$,
+            element4$,
+            element5$
           ]);
-          tmp3 = lscomp(t);
+          tmp3 = lscomp(arg$Cons$1$);
           return NofibPrelude.Cons(tmp2, tmp3)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -865,54 +791,50 @@ let circsim1;
     return circsim.updateOutports(state, tmp1)
   } 
   static critical_path_depth(siot) {
-    let states, element3$, tmp;
+    let element3$, tmp;
     if (runtime.Tuple.isArrayLike(siot) && siot.length === 4) {
       runtime.Tuple.get(siot, 0);
       runtime.Tuple.get(siot, 1);
       runtime.Tuple.get(siot, 2);
       element3$ = runtime.Tuple.get(siot, 3);
-      states = element3$;
-      tmp = NofibPrelude.map(circsim.pathDepth, states);
+      tmp = NofibPrelude.map(circsim.pathDepth, element3$);
       return NofibPrelude.maximum(tmp)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static collect_outputs(tp4) {
-    let outs, states, element3$, element2$, lambda;
+    let states, element3$, element2$, lambda;
     if (runtime.Tuple.isArrayLike(tp4) && tp4.length === 4) {
       runtime.Tuple.get(tp4, 0);
       runtime.Tuple.get(tp4, 1);
       element2$ = runtime.Tuple.get(tp4, 2);
       element3$ = runtime.Tuple.get(tp4, 3);
       states = element3$;
-      outs = element2$;
       lambda = (undefined, function (p) {
-        let states1, label_p, inlinedVal, lscomp, p1, element1$, tmp, tmp1;
+        let states1, label_p, lscomp, p1, element1$, tmp, tmp1;
         states1 = states;
         label_p = p;
         if (runtime.Tuple.isArrayLike(label_p) && label_p.length === 2) {
-          let tp3, inlinedVal1, v, element2$1;
-          runtime.Tuple.get(label_p, 0);
-          element1$ = runtime.Tuple.get(label_p, 1);
+          let tp3, element2$1;
+          runtime.Tuple.get(p, 0);
+          element1$ = runtime.Tuple.get(p, 1);
           p1 = element1$;
           lscomp = function lscomp(ls) {
-            let s, t, scrut, arg$Cons$0$, arg$Cons$1$, tmp2, tmp3, tmp4, tmp5;
+            let scrut, arg$Cons$0$, arg$Cons$1$, tmp2, tmp3, tmp4, tmp5;
             if (ls instanceof NofibPrelude.Nil.class) {
               return NofibPrelude.Nil
             } else if (ls instanceof NofibPrelude.Cons.class) {
               arg$Cons$0$ = ls.head;
               arg$Cons$1$ = ls.tail;
-              t = arg$Cons$1$;
-              s = arg$Cons$0$;
-              tmp2 = circsim.pid(s);
+              tmp2 = circsim.pid(arg$Cons$0$);
               scrut = p1 == tmp2;
               if (scrut === true) {
-                tmp3 = circsim.inports(s);
+                tmp3 = circsim.inports(arg$Cons$0$);
                 tmp4 = NofibPrelude.head(tmp3);
-                tmp5 = lscomp(t);
+                tmp5 = lscomp(arg$Cons$1$);
                 return NofibPrelude.Cons(tmp4, tmp5)
               }
-              return lscomp(t);
+              return lscomp(arg$Cons$1$);
             }
             throw globalThis.Object.freeze(new globalThis.Error("match error"));
           };
@@ -920,19 +842,16 @@ let circsim1;
           tmp1 = NofibPrelude.head(tmp);
           tp3 = tmp1;
           if (runtime.Tuple.isArrayLike(tp3) && tp3.length === 3) {
-            runtime.Tuple.get(tp3, 0);
-            runtime.Tuple.get(tp3, 1);
-            element2$1 = runtime.Tuple.get(tp3, 2);
-            v = element2$1;
-            inlinedVal1 = v;
-            inlinedVal = inlinedVal1;
-            return inlinedVal
+            runtime.Tuple.get(tmp1, 0);
+            runtime.Tuple.get(tmp1, 1);
+            element2$1 = runtime.Tuple.get(tmp1, 2);
+            return element2$1
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       });
-      return NofibPrelude.map(lambda, outs)
+      return NofibPrelude.map(lambda, element2$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -944,33 +863,30 @@ let circsim1;
       if (arg$PS$1$ instanceof circsim.Inp.class) {
         pid_ = arg$PS$0$;
         lscomp = function lscomp(ls) {
-          let t, h, input_pid, value, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, element1$1, tmp1, tmp2;
+          let h, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, element1$1, tmp1, tmp2;
           if (ls instanceof NofibPrelude.Nil.class) {
             return NofibPrelude.Nil
           } else if (ls instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$ = ls.head;
             arg$Cons$1$ = ls.tail;
-            t = arg$Cons$1$;
             h = arg$Cons$0$;
             if (runtime.Tuple.isArrayLike(h) && h.length === 2) {
-              element0$ = runtime.Tuple.get(h, 0);
-              element1$ = runtime.Tuple.get(h, 1);
+              element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
+              element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
               if (runtime.Tuple.isArrayLike(element0$) && element0$.length === 2) {
                 runtime.Tuple.get(element0$, 0);
                 element1$1 = runtime.Tuple.get(element0$, 1);
-                value = element1$;
-                input_pid = element1$1;
-                scrut = pid_ == input_pid;
+                scrut = pid_ == element1$1;
                 if (scrut === true) {
-                  tmp1 = circsim.update_outports(state, value);
-                  tmp2 = lscomp(t);
+                  tmp1 = circsim.update_outports(state, element1$);
+                  tmp2 = lscomp(arg$Cons$1$);
                   return NofibPrelude.Cons(tmp1, tmp2)
                 }
-                return lscomp(t);
+                return lscomp(arg$Cons$1$);
               }
-              return lscomp(t);
+              return lscomp(arg$Cons$1$);
             }
-            return lscomp(t);
+            return lscomp(arg$Cons$1$);
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         };
@@ -982,7 +898,7 @@ let circsim1;
     return state;
   } 
   static apply_component(comp, signals) {
-    let x, x1, x2, x3, y, x4, y1, x5, y2, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp, tmp1, tmp2, tmp3;
+    let arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp, tmp1, tmp2, tmp3;
     if (comp instanceof circsim.Inp.class) {
       return NofibPrelude.None
     } else if (comp instanceof circsim.Outp.class) {
@@ -990,8 +906,7 @@ let circsim1;
         arg$Cons$0$ = signals.head;
         arg$Cons$1$ = signals.tail;
         if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
-          x = arg$Cons$0$;
-          return NofibPrelude.Some(x)
+          return NofibPrelude.Some(arg$Cons$0$)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -1001,8 +916,7 @@ let circsim1;
         arg$Cons$0$ = signals.head;
         arg$Cons$1$ = signals.tail;
         if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
-          x1 = arg$Cons$0$;
-          return NofibPrelude.Some(x1)
+          return NofibPrelude.Some(arg$Cons$0$)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -1012,8 +926,7 @@ let circsim1;
         arg$Cons$0$ = signals.head;
         arg$Cons$1$ = signals.tail;
         if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
-          x2 = arg$Cons$0$;
-          tmp = circsim.inv(x2);
+          tmp = circsim.inv(arg$Cons$0$);
           return NofibPrelude.Some(tmp)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1027,9 +940,7 @@ let circsim1;
           arg$Cons$0$1 = arg$Cons$1$.head;
           arg$Cons$1$1 = arg$Cons$1$.tail;
           if (arg$Cons$1$1 instanceof NofibPrelude.Nil.class) {
-            y = arg$Cons$0$1;
-            x3 = arg$Cons$0$;
-            tmp1 = circsim.and2(x3, y);
+            tmp1 = circsim.and2(arg$Cons$0$, arg$Cons$0$1);
             return NofibPrelude.Some(tmp1)
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1045,9 +956,7 @@ let circsim1;
           arg$Cons$0$1 = arg$Cons$1$.head;
           arg$Cons$1$1 = arg$Cons$1$.tail;
           if (arg$Cons$1$1 instanceof NofibPrelude.Nil.class) {
-            y1 = arg$Cons$0$1;
-            x4 = arg$Cons$0$;
-            tmp2 = circsim.or2(x4, y1);
+            tmp2 = circsim.or2(arg$Cons$0$, arg$Cons$0$1);
             return NofibPrelude.Some(tmp2)
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1063,9 +972,7 @@ let circsim1;
           arg$Cons$0$1 = arg$Cons$1$.head;
           arg$Cons$1$1 = arg$Cons$1$.tail;
           if (arg$Cons$1$1 instanceof NofibPrelude.Nil.class) {
-            y2 = arg$Cons$0$1;
-            x5 = arg$Cons$0$;
-            tmp3 = circsim.xor(x5, y2);
+            tmp3 = circsim.xor(arg$Cons$0$, arg$Cons$0$1);
             return NofibPrelude.Some(tmp3)
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1097,7 +1004,7 @@ let circsim1;
       return circsim.updateOutports(ns, tmp2)
     };
     restore_outport = function restore_outport(pql, mdq) {
-      let qr, ql, dq, dl, p, m, element5$, element4$, element3$, element2$, element0$, element1$;
+      let element5$, element4$, element3$, element2$, element0$, element1$;
       if (runtime.Tuple.isArrayLike(pql) && pql.length === 6) {
         element0$ = runtime.Tuple.get(pql, 0);
         runtime.Tuple.get(pql, 1);
@@ -1105,11 +1012,6 @@ let circsim1;
         element3$ = runtime.Tuple.get(pql, 3);
         element4$ = runtime.Tuple.get(pql, 4);
         element5$ = runtime.Tuple.get(pql, 5);
-        dq = element5$;
-        qr = element4$;
-        dl = element3$;
-        ql = element2$;
-        p = element0$;
         if (runtime.Tuple.isArrayLike(mdq) && mdq.length === 6) {
           runtime.Tuple.get(mdq, 0);
           element1$ = runtime.Tuple.get(mdq, 1);
@@ -1117,14 +1019,13 @@ let circsim1;
           runtime.Tuple.get(mdq, 3);
           runtime.Tuple.get(mdq, 4);
           runtime.Tuple.get(mdq, 5);
-          m = element1$;
           return globalThis.Object.freeze([
-            p,
-            m,
-            ql,
-            dl,
-            qr,
-            dq
+            element0$,
+            element1$,
+            element2$,
+            element3$,
+            element4$,
+            element5$
           ])
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1136,37 +1037,32 @@ let circsim1;
   static update_requests(b, state) {
     let lscomp, tmp, tmp1;
     lscomp = function lscomp(ls) {
-      let t, h, m, dl, p, dr, arg$Cons$0$, arg$Cons$1$, element5$, element3$, element1$, element0$, tmp2, tmp3;
+      let h, arg$Cons$0$, arg$Cons$1$, element5$, element3$, element1$, element0$, tmp2, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         h = arg$Cons$0$;
         if (runtime.Tuple.isArrayLike(h) && h.length === 6) {
-          element0$ = runtime.Tuple.get(h, 0);
-          element1$ = runtime.Tuple.get(h, 1);
-          runtime.Tuple.get(h, 2);
-          element3$ = runtime.Tuple.get(h, 3);
-          runtime.Tuple.get(h, 4);
-          element5$ = runtime.Tuple.get(h, 5);
-          dr = element5$;
-          dl = element3$;
-          m = element1$;
-          p = element0$;
+          element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
+          element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
+          runtime.Tuple.get(arg$Cons$0$, 2);
+          element3$ = runtime.Tuple.get(arg$Cons$0$, 3);
+          runtime.Tuple.get(arg$Cons$0$, 4);
+          element5$ = runtime.Tuple.get(arg$Cons$0$, 5);
           tmp2 = globalThis.Object.freeze([
-            p,
-            m,
+            element0$,
+            element1$,
             b,
-            dl,
+            element3$,
             b,
-            dr
+            element5$
           ]);
-          tmp3 = lscomp(t);
+          tmp3 = lscomp(arg$Cons$1$);
           return NofibPrelude.Cons(tmp2, tmp3)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -1186,7 +1082,7 @@ let circsim1;
   static acknowledge(d, states) {
     let check_lr_requests, states1, lambda, lambda1, tmp, tmp1;
     check_lr_requests = function check_lr_requests(pql) {
-      let qr, ql, element4$, element2$;
+      let ql, element4$, element2$;
       if (runtime.Tuple.isArrayLike(pql) && pql.length === 6) {
         runtime.Tuple.get(pql, 0);
         runtime.Tuple.get(pql, 1);
@@ -1194,10 +1090,9 @@ let circsim1;
         runtime.Tuple.get(pql, 3);
         element4$ = runtime.Tuple.get(pql, 4);
         runtime.Tuple.get(pql, 5);
-        qr = element4$;
         ql = element2$;
         if (ql === false) {
-          return qr
+          return element4$
         }
         return true;
       }
@@ -1208,10 +1103,9 @@ let circsim1;
     });
     states1 = NofibPrelude.map(lambda, states);
     lambda1 = (undefined, function (s) {
-      let tmp2, xs, inlinedVal, tmp3;
+      let tmp2, inlinedVal, tmp3;
       tmp2 = circsim.outports(s);
-      xs = tmp2;
-      tmp3 = NofibPrelude.map(check_lr_requests, xs);
+      tmp3 = NofibPrelude.map(check_lr_requests, tmp2);
       inlinedVal = NofibPrelude.orList(tmp3);
       return inlinedVal
     });
@@ -1222,15 +1116,14 @@ let circsim1;
   static pad_packets(pss) {
     let lambda;
     lambda = (undefined, function (x) {
-      let xs, inlinedVal, max_ps, lambda1, tmp, tmp1, tmp2;
-      xs = x;
+      let inlinedVal, max_ps, lambda1, tmp, tmp1, tmp2;
       lambda1 = (undefined, function (x1) {
         return NofibPrelude.listLen(x1)
       });
       tmp = NofibPrelude.map(lambda1, pss);
       max_ps = NofibPrelude.maximum(tmp);
       tmp1 = NofibPrelude.replicate_lz(max_ps, circsim.emptyPacket);
-      tmp2 = NofibPrelude.append_nl_lz(xs, tmp1);
+      tmp2 = NofibPrelude.append_nl_lz(x, tmp1);
       inlinedVal = NofibPrelude.take_lz(max_ps, tmp2);
       return inlinedVal
     });
@@ -1239,42 +1132,35 @@ let circsim1;
   static make_packet(state) {
     let lscomp, tmp;
     lscomp = function lscomp(ls) {
-      let t, h, qr, m, ql, dl, p, dr, arg$Cons$0$, arg$Cons$1$, element5$, element4$, element3$, element2$, element1$, element0$, tmp1, tmp2, tmp3;
+      let h, arg$Cons$0$, arg$Cons$1$, element5$, element4$, element3$, element2$, element1$, element0$, tmp1, tmp2, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         h = arg$Cons$0$;
         if (runtime.Tuple.isArrayLike(h) && h.length === 6) {
-          element0$ = runtime.Tuple.get(h, 0);
-          element1$ = runtime.Tuple.get(h, 1);
-          element2$ = runtime.Tuple.get(h, 2);
-          element3$ = runtime.Tuple.get(h, 3);
-          element4$ = runtime.Tuple.get(h, 4);
-          element5$ = runtime.Tuple.get(h, 5);
-          dr = element5$;
-          qr = element4$;
-          dl = element3$;
-          ql = element2$;
-          m = element1$;
-          p = element0$;
+          element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
+          element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
+          element2$ = runtime.Tuple.get(arg$Cons$0$, 2);
+          element3$ = runtime.Tuple.get(arg$Cons$0$, 3);
+          element4$ = runtime.Tuple.get(arg$Cons$0$, 4);
+          element5$ = runtime.Tuple.get(arg$Cons$0$, 5);
           tmp1 = circsim.pid(state);
           tmp2 = globalThis.Object.freeze([
             tmp1,
-            p,
-            m,
-            ql,
-            dl,
-            qr,
-            dr,
+            element0$,
+            element1$,
+            element2$,
+            element3$,
+            element4$,
+            element5$,
             1
           ]);
-          tmp3 = lscomp(t);
+          tmp3 = lscomp(arg$Cons$1$);
           return NofibPrelude.Cons(tmp2, tmp3)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -1282,41 +1168,35 @@ let circsim1;
     return lscomp(tmp)
   } 
   static compare_and_update(ipm_, pid_port_m) {
-    let i, p, m_, m, port, pid_, scrut, element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1;
+    let scrut, element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(ipm_) && ipm_.length === 3) {
       element0$ = runtime.Tuple.get(ipm_, 0);
       element1$ = runtime.Tuple.get(ipm_, 1);
       element2$ = runtime.Tuple.get(ipm_, 2);
-      m_ = element2$;
-      p = element1$;
-      i = element0$;
       if (runtime.Tuple.isArrayLike(pid_port_m) && pid_port_m.length === 3) {
         element0$1 = runtime.Tuple.get(pid_port_m, 0);
         element1$1 = runtime.Tuple.get(pid_port_m, 1);
         element2$1 = runtime.Tuple.get(pid_port_m, 2);
-        m = element2$1;
-        port = element1$1;
-        pid_ = element0$1;
         tmp = globalThis.Object.freeze([
-          i,
-          p
+          element0$,
+          element1$
         ]);
         tmp1 = globalThis.Object.freeze([
-          pid_,
-          port
+          element0$1,
+          element1$1
         ]);
         scrut = NofibPrelude.eqTup2(tmp, tmp1);
         if (scrut === true) {
           return globalThis.Object.freeze([
-            pid_,
-            port,
-            m_
+            element0$1,
+            element1$1,
+            element2$
           ])
         }
         return globalThis.Object.freeze([
-          pid_,
-          port,
-          m
+          element0$1,
+          element1$1,
+          element2$1
         ]);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1351,19 +1231,17 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static update_i(l_r, ins) {
-    let l, r, element1$, element0$, tmp;
+    let element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(l_r) && l_r.length === 2) {
       element0$ = runtime.Tuple.get(l_r, 0);
       element1$ = runtime.Tuple.get(l_r, 1);
-      r = element1$;
-      l = element0$;
-      tmp = circsim.up_i(r, ins);
-      return circsim.up_i(l, tmp)
+      tmp = circsim.up_i(element1$, ins);
+      return circsim.up_i(element0$, tmp)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static check_left(a, b) {
-    let pqr, pdr, qr, m, ql, dl, p, dr, scrut, element6$, element5$, element5$1, element4$, element3$, element2$, element1$, element0$, tmp;
+    let pqr, scrut, element6$, element5$, element5$1, element4$, element3$, element2$, element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(a) && a.length === 8) {
       runtime.Tuple.get(a, 0);
       runtime.Tuple.get(a, 1);
@@ -1373,7 +1251,6 @@ let circsim1;
       element5$ = runtime.Tuple.get(a, 5);
       element6$ = runtime.Tuple.get(a, 6);
       runtime.Tuple.get(a, 7);
-      pdr = element6$;
       pqr = element5$;
       if (runtime.Tuple.isArrayLike(b) && b.length === 6) {
         element0$ = runtime.Tuple.get(b, 0);
@@ -1382,35 +1259,29 @@ let circsim1;
         element3$ = runtime.Tuple.get(b, 3);
         element4$ = runtime.Tuple.get(b, 4);
         element5$1 = runtime.Tuple.get(b, 5);
-        dr = element5$1;
-        qr = element4$;
-        dl = element3$;
-        ql = element2$;
-        m = element1$;
-        p = element0$;
         if (pqr === true) {
-          tmp = pdr > 0;
+          tmp = element6$ > 0;
         } else {
           tmp = false;
         }
         scrut = tmp;
         if (scrut === true) {
           return globalThis.Object.freeze([
-            p,
-            m,
-            ql,
-            dl,
-            qr,
-            dr
+            element0$,
+            element1$,
+            element2$,
+            element3$,
+            element4$,
+            element5$1
           ])
         }
         return globalThis.Object.freeze([
-          p,
-          m,
-          ql,
-          dl,
+          element0$,
+          element1$,
+          element2$,
+          element3$,
           false,
-          dr
+          element5$1
         ]);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1418,7 +1289,7 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static check_right(a, b) {
-    let pql, pdl, qr, m, ql, dl, p, dr, scrut, element4$, element3$, element5$, element4$1, element3$1, element2$, element1$, element0$, tmp;
+    let pql, scrut, element4$, element3$, element5$, element4$1, element3$1, element2$, element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(a) && a.length === 8) {
       runtime.Tuple.get(a, 0);
       runtime.Tuple.get(a, 1);
@@ -1428,7 +1299,6 @@ let circsim1;
       runtime.Tuple.get(a, 5);
       runtime.Tuple.get(a, 6);
       runtime.Tuple.get(a, 7);
-      pdl = element4$;
       pql = element3$;
       if (runtime.Tuple.isArrayLike(b) && b.length === 6) {
         element0$ = runtime.Tuple.get(b, 0);
@@ -1437,35 +1307,29 @@ let circsim1;
         element3$1 = runtime.Tuple.get(b, 3);
         element4$1 = runtime.Tuple.get(b, 4);
         element5$ = runtime.Tuple.get(b, 5);
-        dr = element5$;
-        qr = element4$1;
-        dl = element3$1;
-        ql = element2$;
-        m = element1$;
-        p = element0$;
         if (pql === true) {
-          tmp = pdl > 0;
+          tmp = element4$ > 0;
         } else {
           tmp = false;
         }
         scrut = tmp;
         if (scrut === true) {
           return globalThis.Object.freeze([
-            p,
-            m,
-            ql,
-            dl,
-            qr,
-            dr
+            element0$,
+            element1$,
+            element2$,
+            element3$1,
+            element4$1,
+            element5$
           ])
         }
         return globalThis.Object.freeze([
-          p,
-          m,
+          element0$,
+          element1$,
           false,
-          dl,
-          qr,
-          dr
+          element3$1,
+          element4$1,
+          element5$
         ]);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1473,35 +1337,30 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static update_o(lp_rp, out_) {
-    let lp, rp, element1$, element0$, tmp;
+    let element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(lp_rp) && lp_rp.length === 2) {
       element0$ = runtime.Tuple.get(lp_rp, 0);
       element1$ = runtime.Tuple.get(lp_rp, 1);
-      rp = element1$;
-      lp = element0$;
-      tmp = circsim.check_right(rp, out_);
-      return circsim.check_left(lp, tmp)
+      tmp = circsim.check_right(element1$, out_);
+      return circsim.check_left(element0$, tmp)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static update_io(d, lrps, state) {
-    let tmp, state1, inlinedVal, state2, inlinedVal1, scrut, tmp1, tmp2, tmp3, tmp4, tmp5;
-    state1 = state;
-    tmp4 = circsim.inports(state1);
-    tmp5 = NofibPrelude.foldr(circsim.update_i, tmp4, lrps);
-    inlinedVal = circsim.updateInports(state1, tmp5);
-    tmp = inlinedVal;
-    state2 = tmp;
-    tmp1 = circsim.pathDepth(state2);
-    scrut = tmp1 == d;
+    let inlinedVal, inlinedVal1, scrut, tmp, tmp1, tmp2, tmp3, tmp4;
+    tmp3 = circsim.inports(state);
+    tmp4 = NofibPrelude.foldr(circsim.update_i, tmp3, lrps);
+    inlinedVal = circsim.updateInports(state, tmp4);
+    tmp = circsim.pathDepth(inlinedVal);
+    scrut = tmp == d;
     if (scrut === true) {
-      tmp2 = circsim.outports(state2);
-      tmp3 = NofibPrelude.zipWith(circsim.update_o, lrps, tmp2);
-      inlinedVal1 = circsim.updateOutports(state2, tmp3);
+      tmp1 = circsim.outports(inlinedVal);
+      tmp2 = NofibPrelude.zipWith(circsim.update_o, lrps, tmp1);
+      inlinedVal1 = circsim.updateOutports(inlinedVal, tmp2);
       return inlinedVal1
     }
-    inlinedVal1 = state2;
-    return inlinedVal1;
+    inlinedVal1 = inlinedVal;
+    return inlinedVal;
   } 
   static do_send(d, states) {
     let states1, send_results, pss_, lambda, lambda1, tmp, tmp1, tmp2, lambda2;
@@ -1535,25 +1394,23 @@ let circsim1;
     return NofibPrelude.until(lambda, lambda1, states)
   } 
   static simulate_component(d, state) {
-    let lscomp, out_signals, new_value, scrut, v, scrut1, tmp, tmp1, arg$Some$0$, tmp2, tmp3;
+    let lscomp, out_signals, new_value, scrut, scrut1, tmp, tmp1, arg$Some$0$, tmp2, tmp3;
     lscomp = function lscomp(ls) {
-      let t, h, sig, arg$Cons$0$, arg$Cons$1$, element2$, tmp4;
+      let h, arg$Cons$0$, arg$Cons$1$, element2$, tmp4;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         h = arg$Cons$0$;
         if (runtime.Tuple.isArrayLike(h) && h.length === 3) {
-          runtime.Tuple.get(h, 0);
-          runtime.Tuple.get(h, 1);
-          element2$ = runtime.Tuple.get(h, 2);
-          sig = element2$;
-          tmp4 = lscomp(t);
-          return NofibPrelude.Cons(sig, tmp4)
+          runtime.Tuple.get(arg$Cons$0$, 0);
+          runtime.Tuple.get(arg$Cons$0$, 1);
+          element2$ = runtime.Tuple.get(arg$Cons$0$, 2);
+          tmp4 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(element2$, tmp4)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -1569,8 +1426,7 @@ let circsim1;
       if (scrut1 === true) {
         if (new_value instanceof NofibPrelude.Some.class) {
           arg$Some$0$ = new_value.x;
-          v = arg$Some$0$;
-          return circsim.update_outports(state, v)
+          return circsim.update_outports(state, arg$Some$0$)
         }
         return state;
       }
@@ -1586,7 +1442,7 @@ let circsim1;
     return NofibPrelude.map(lambda, states)
   } 
   static do_cycle(cpd, tp4, inputs) {
-    let sim_then_send, size, outs, ins, states, states1, states2, states3, states4, element3$, element2$, element1$, element0$, lambda, tmp;
+    let sim_then_send, ins, states1, states2, states3, states4, element3$, element2$, element1$, element0$, lambda, tmp;
     sim_then_send = function sim_then_send(state, d) {
       let tmp1;
       tmp1 = circsim.simulate_components(d, state);
@@ -1597,24 +1453,21 @@ let circsim1;
       element1$ = runtime.Tuple.get(tp4, 1);
       element2$ = runtime.Tuple.get(tp4, 2);
       element3$ = runtime.Tuple.get(tp4, 3);
-      states = element3$;
-      outs = element2$;
       ins = element1$;
-      size = element0$;
       lambda = (undefined, function (s) {
         let tmp1;
         tmp1 = NofibPrelude.zip(ins, inputs);
         return circsim.store_inputs(tmp1, s)
       });
-      states1 = NofibPrelude.map(lambda, states);
+      states1 = NofibPrelude.map(lambda, element3$);
       states2 = circsim.do_sends(0, states1);
       tmp = NofibPrelude.enumFromTo(1, cpd);
       states3 = NofibPrelude.foldl(sim_then_send, states2, tmp);
-      states4 = circsim.restore_requests(states, states3);
+      states4 = circsim.restore_requests(element3$, states3);
       return globalThis.Object.freeze([
-        size,
+        element0$,
         ins,
-        outs,
+        element2$,
         states4
       ])
     }

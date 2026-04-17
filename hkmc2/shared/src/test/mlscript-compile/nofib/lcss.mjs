@@ -8,7 +8,7 @@ let lcss1;
     lcss1 = this
   }
   static algb2(x, k0j1, k1j1, yss) {
-    let ys, y, k0j, kjcurr, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2;
+    let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2;
     if (yss instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (yss instanceof NofibPrelude.Cons.class) {
@@ -17,21 +17,17 @@ let lcss1;
       if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
         element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
         element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-        ys = arg$Cons$1$;
-        k0j = element1$;
-        y = element0$;
-        scrut = x == y;
+        scrut = x == element0$;
         if (scrut === true) {
           tmp = k0j1 + 1;
         } else {
-          tmp = NofibPrelude.max(k1j1, k0j);
+          tmp = NofibPrelude.max(k1j1, element1$);
         }
-        kjcurr = tmp;
         tmp1 = globalThis.Object.freeze([
-          y,
-          kjcurr
+          element0$,
+          tmp
         ]);
-        tmp2 = lcss.algb2(x, k0j, kjcurr, ys);
+        tmp2 = lcss.algb2(x, element1$, tmp, arg$Cons$1$);
         return NofibPrelude.Cons(tmp1, tmp2)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -40,16 +36,14 @@ let lcss1;
   } 
   static algb1(xss, yss) {
     loopLabel: while (true) {
-      let x, xs, arg$Cons$0$, arg$Cons$1$, tmp;
+      let arg$Cons$0$, arg$Cons$1$, tmp;
       if (xss instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.map(NofibPrelude.snd, yss)
       } else if (xss instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = xss.head;
         arg$Cons$1$ = xss.tail;
-        xs = arg$Cons$1$;
-        x = arg$Cons$0$;
-        tmp = lcss.algb2(x, 0, 0, yss);
-        xss = xs;
+        tmp = lcss.algb2(arg$Cons$0$, 0, 0, yss);
+        xss = arg$Cons$1$;
         yss = tmp;
         continue loopLabel
       }
@@ -59,17 +53,15 @@ let lcss1;
   static algb(xs, ys) {
     let listcomp_fun, tmp, tmp1;
     listcomp_fun = function listcomp_fun(listcomp_fun_para) {
-      let listcomp_fun_ls_h, listcomp_fun_ls_t, arg$Cons$0$, arg$Cons$1$, tmp2, tmp3;
+      let arg$Cons$0$, arg$Cons$1$, tmp2, tmp3;
       if (listcomp_fun_para instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = listcomp_fun_para.head;
         arg$Cons$1$ = listcomp_fun_para.tail;
-        listcomp_fun_ls_t = arg$Cons$1$;
-        listcomp_fun_ls_h = arg$Cons$0$;
         tmp2 = globalThis.Object.freeze([
-          listcomp_fun_ls_h,
+          arg$Cons$0$,
           0
         ]);
-        tmp3 = listcomp_fun(listcomp_fun_ls_t);
+        tmp3 = listcomp_fun(arg$Cons$1$);
         return NofibPrelude.Cons(tmp2, tmp3)
       } else if (listcomp_fun_para instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
@@ -82,7 +74,7 @@ let lcss1;
   } 
   static findk(k, km, m, ls) {
     loopLabel: while (true) {
-      let x, y, xys, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3;
+      let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return km
       } else if (ls instanceof NofibPrelude.Cons.class) {
@@ -91,25 +83,22 @@ let lcss1;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-          xys = arg$Cons$1$;
-          y = element1$;
-          x = element0$;
-          tmp = x + y;
+          tmp = element0$ + element1$;
           scrut = tmp >= m;
           if (scrut === true) {
             let k_tmp;
             tmp1 = k + 1;
-            tmp2 = x + y;
+            tmp2 = element0$ + element1$;
             k_tmp = k;
             k = tmp1;
             km = k_tmp;
             m = tmp2;
-            ls = xys;
+            ls = arg$Cons$1$;
             continue loopLabel
           }
           tmp3 = k + 1;
           k = tmp3;
-          ls = xys;
+          ls = arg$Cons$1$;
           continue loopLabel;
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));

@@ -243,7 +243,7 @@ let Extension1;
     return Predef.print(tmp4)
   } 
   static extendCategory(choiceBodyTree) {
-    let scrut, choice, scrut1, rule, scrut2, arg$Some$0$, element1$, element0$, arg$Some$0$1, unapplyResult, unapplyResult1, arg$Ref$0$, arg$Ref$1$, arg$Ref$4$, arg$Some$0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
+    let scrut, choice, scrut1, scrut2, arg$Some$0$, element1$, element0$, arg$Some$0$1, unapplyResult, unapplyResult1, arg$Ref$0$, arg$Ref$1$, arg$Ref$4$, arg$Some$0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
     scrut = Extension.parseChoiceTree(choiceBodyTree);
     if (scrut instanceof Option.Some.class) {
       arg$Some$0$ = scrut.value;
@@ -255,7 +255,6 @@ let Extension1;
         scrut1 = Predef.pipeInto(Rules.syntaxKinds, tmp);
         if (scrut1 instanceof Option.Some.class) {
           arg$Some$0$1 = scrut1.value;
-          rule = arg$Some$0$1;
           unapplyResult1 = runtime.safeCall(Extension.OpenCategory.unapply(element0$));
           if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
             unapplyResult1.output;
@@ -283,8 +282,8 @@ let Extension1;
               return Predef.print(tmp4)
             }
           }
-          tmp8 = Stack.Cons(choice, Stack.Nil);
-          return runtime.safeCall(rule.extendChoices(tmp8))
+          tmp8 = Stack.Cons(element1$, Stack.Nil);
+          return runtime.safeCall(arg$Some$0$1.extendChoices(tmp8))
         } else if (scrut1 instanceof Option.None.class) {
           tmp5 = "Unknown syntax kind: " + element0$;
           return Predef.print(tmp5)

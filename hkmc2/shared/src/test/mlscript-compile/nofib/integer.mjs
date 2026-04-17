@@ -20,16 +20,14 @@ let integer1;
         t1 = arg$Cons$1$;
         a = arg$Cons$0$;
         lscomp2 = function lscomp2(ls1) {
-          let t2, b, arg$Cons$0$1, arg$Cons$1$1, tmp4, tmp5;
+          let arg$Cons$0$1, arg$Cons$1$1, tmp4, tmp5;
           if (ls1 instanceof NofibPrelude.Nil.class) {
             return lscomp1(t1)
           } else if (ls1 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$1 = ls1.head;
             arg$Cons$1$1 = ls1.tail;
-            t2 = arg$Cons$1$1;
-            b = arg$Cons$0$1;
-            tmp4 = runtime.safeCall(op(a, b));
-            tmp5 = lscomp2(t2);
+            tmp4 = runtime.safeCall(op(a, arg$Cons$0$1));
+            tmp5 = lscomp2(arg$Cons$1$1);
             return NofibPrelude.Cons(tmp4, tmp5)
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -56,16 +54,14 @@ let integer1;
         t1 = arg$Cons$1$;
         a = arg$Cons$0$;
         lscomp2 = function lscomp2(ls1) {
-          let t2, b, arg$Cons$0$1, arg$Cons$1$1, tmp4, tmp5;
+          let arg$Cons$0$1, arg$Cons$1$1, tmp4, tmp5;
           if (ls1 instanceof NofibPrelude.Nil.class) {
             return lscomp1(t1)
           } else if (ls1 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$1 = ls1.head;
             arg$Cons$1$1 = ls1.tail;
-            t2 = arg$Cons$1$1;
-            b = arg$Cons$0$1;
-            tmp4 = runtime.safeCall(op(a, b));
-            tmp5 = lscomp2(t2);
+            tmp4 = runtime.safeCall(op(a, arg$Cons$0$1));
+            tmp5 = lscomp2(arg$Cons$1$1);
             return NofibPrelude.Cons(tmp4, tmp5)
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -89,10 +85,8 @@ let integer1;
   static runalltests(astart, astep, alim, bstart, bstep, blim) {
     let lambda, lambda1, tmp, lambda2, lambda3, tmp1, tmp2, lambda4, lambda5, tmp3, tmp4, lambda6, lambda7, tmp5, tmp6, lambda8, lambda9, tmp7, tmp8, lambda10, lambda11, tmp9, tmp10, lambda12, lambda13, tmp11, tmp12, lambda14, lambda15, tmp13, tmp14, lambda16, lambda17, tmp15, tmp16, lambda18, lambda19, tmp17;
     lambda = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = a1 + b1;
+      let inlinedVal;
+      inlinedVal = a + b;
       return inlinedVal
     });
     lambda1 = (undefined, function (a, b) {
@@ -100,10 +94,8 @@ let integer1;
     });
     tmp = integer.runbench(lambda, lambda1, "(+)", astart, astep, alim, astart, astep, alim);
     lambda2 = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = a1 - b1;
+      let inlinedVal;
+      inlinedVal = a - b;
       return inlinedVal
     });
     lambda3 = (undefined, function (a, b) {
@@ -112,10 +104,8 @@ let integer1;
     tmp1 = integer.runbench(lambda2, lambda3, "(-)", astart, astep, alim, astart, astep, alim);
     tmp2 = (tmp , tmp1);
     lambda4 = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = a1 * b1;
+      let inlinedVal;
+      inlinedVal = a * b;
       return inlinedVal
     });
     lambda5 = (undefined, function (a, b) {
@@ -124,10 +114,8 @@ let integer1;
     tmp3 = integer.runbench(lambda4, lambda5, "(*)", astart, astep, alim, astart, astep, alim);
     tmp4 = (tmp2 , tmp3);
     lambda6 = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = NofibPrelude.intDiv(a1, b1);
+      let inlinedVal;
+      inlinedVal = NofibPrelude.intDiv(a, b);
       return inlinedVal
     });
     lambda7 = (undefined, function (a, b) {
@@ -136,10 +124,8 @@ let integer1;
     tmp5 = integer.runbench(lambda6, lambda7, "div", astart, astep, alim, astart, astep, alim);
     tmp6 = (tmp4 , tmp5);
     lambda8 = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = NofibPrelude.intMod(a1, b1);
+      let inlinedVal;
+      inlinedVal = NofibPrelude.intMod(a, b);
       return inlinedVal
     });
     lambda9 = (undefined, function (a, b) {
@@ -148,10 +134,8 @@ let integer1;
     tmp7 = integer.runbench(lambda8, lambda9, "mod", astart, astep, alim, astart, astep, alim);
     tmp8 = (tmp6 , tmp7);
     lambda10 = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = a1 == b1;
+      let inlinedVal;
+      inlinedVal = a == b;
       return inlinedVal
     });
     lambda11 = (undefined, function (a, b) {
@@ -160,10 +144,8 @@ let integer1;
     tmp9 = integer.runbench(lambda10, lambda11, "(==)", astart, astep, alim, astart, astep, alim);
     tmp10 = (tmp8 , tmp9);
     lambda12 = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = a1 < b1;
+      let inlinedVal;
+      inlinedVal = a < b;
       return inlinedVal
     });
     lambda13 = (undefined, function (a, b) {
@@ -172,10 +154,8 @@ let integer1;
     tmp11 = integer.runbench(lambda12, lambda13, "(<)", astart, astep, alim, astart, astep, alim);
     tmp12 = (tmp10 , tmp11);
     lambda14 = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = a1 <= b1;
+      let inlinedVal;
+      inlinedVal = a <= b;
       return inlinedVal
     });
     lambda15 = (undefined, function (a, b) {
@@ -184,10 +164,8 @@ let integer1;
     tmp13 = integer.runbench(lambda14, lambda15, "(<=)", astart, astep, alim, astart, astep, alim);
     tmp14 = (tmp12 , tmp13);
     lambda16 = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = a1 > b1;
+      let inlinedVal;
+      inlinedVal = a > b;
       return inlinedVal
     });
     lambda17 = (undefined, function (a, b) {
@@ -196,10 +174,8 @@ let integer1;
     tmp15 = integer.runbench(lambda16, lambda17, "(>)", astart, astep, alim, astart, astep, alim);
     tmp16 = (tmp14 , tmp15);
     lambda18 = (undefined, function (a, b) {
-      let a1, b1, inlinedVal;
-      a1 = a;
-      b1 = b;
-      inlinedVal = a1 >= b1;
+      let inlinedVal;
+      inlinedVal = a >= b;
       return inlinedVal
     });
     lambda19 = (undefined, function (a, b) {

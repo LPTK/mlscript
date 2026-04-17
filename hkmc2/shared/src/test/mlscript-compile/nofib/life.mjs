@@ -112,26 +112,22 @@ let life1;
     this.start = tmp56;
   }
   static last(a_t) {
-    let go, t, a, arg$Cons$0$, arg$Cons$1$;
-    go = function go(h, t1) {
-      let t2, head, arg$Cons$0$1, arg$Cons$1$1;
-      if (t1 instanceof NofibPrelude.Nil.class) {
+    let go, arg$Cons$0$, arg$Cons$1$;
+    go = function go(h, t) {
+      let arg$Cons$0$1, arg$Cons$1$1;
+      if (t instanceof NofibPrelude.Nil.class) {
         return h
-      } else if (t1 instanceof NofibPrelude.Cons.class) {
-        arg$Cons$0$1 = t1.head;
-        arg$Cons$1$1 = t1.tail;
-        t2 = arg$Cons$1$1;
-        head = arg$Cons$0$1;
-        return go(head, t2)
+      } else if (t instanceof NofibPrelude.Cons.class) {
+        arg$Cons$0$1 = t.head;
+        arg$Cons$1$1 = t.tail;
+        return go(arg$Cons$0$1, arg$Cons$1$1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     if (a_t instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = a_t.head;
       arg$Cons$1$ = a_t.tail;
-      t = arg$Cons$1$;
-      a = arg$Cons$0$;
-      return go(a, t)
+      return go(arg$Cons$0$, arg$Cons$1$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -152,56 +148,46 @@ let life1;
   static append_lz_lz(xs, ys) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, t, h, arg$LzCons$0$, arg$LzCons$1$, tmp;
+      let scrut, arg$LzCons$0$, arg$LzCons$1$, tmp;
       scrut = NofibPrelude.force(xs);
       if (scrut instanceof NofibPrelude.LzNil.class) {
         return NofibPrelude.force(ys)
       } else if (scrut instanceof NofibPrelude.LzCons.class) {
         arg$LzCons$0$ = scrut.head;
         arg$LzCons$1$ = scrut.tail;
-        t = arg$LzCons$1$;
-        h = arg$LzCons$0$;
-        tmp = life.append_lz_lz(t, ys);
-        return NofibPrelude.LzCons(h, tmp)
+        tmp = life.append_lz_lz(arg$LzCons$1$, ys);
+        return NofibPrelude.LzCons(arg$LzCons$0$, tmp)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
     return NofibPrelude.lazy(lambda)
   } 
   static init(ls) {
-    let t, a, arg$Cons$0$, arg$Cons$1$, tmp;
+    let arg$Cons$0$, arg$Cons$1$, tmp;
     if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
       if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       }
-      t = arg$Cons$1$;
-      a = arg$Cons$0$;
-      tmp = life.init(t);
-      return NofibPrelude.Cons(a, tmp);
+      tmp = life.init(arg$Cons$1$);
+      return NofibPrelude.Cons(arg$Cons$0$, tmp);
     }
     throw runtime.safeCall(globalThis.Error(ls));
   } 
   static zipWith3(f, xs, ys, zs) {
-    let hx, tx, hy, ty, tz, hz, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1;
+    let arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1;
     if (xs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = xs.head;
       arg$Cons$1$ = xs.tail;
-      tx = arg$Cons$1$;
-      hx = arg$Cons$0$;
       if (ys instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$1 = ys.head;
         arg$Cons$1$1 = ys.tail;
-        ty = arg$Cons$1$1;
-        hy = arg$Cons$0$1;
         if (zs instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$2 = zs.head;
           arg$Cons$1$2 = zs.tail;
-          tz = arg$Cons$1$2;
-          hz = arg$Cons$0$2;
-          tmp = runtime.safeCall(f(hx, hy, hz));
-          tmp1 = life.zipWith3(f, tx, ty, tz);
+          tmp = runtime.safeCall(f(arg$Cons$0$, arg$Cons$0$1, arg$Cons$0$2));
+          tmp1 = life.zipWith3(f, arg$Cons$1$, arg$Cons$1$1, arg$Cons$1$2);
           return NofibPrelude.Cons(tmp, tmp1)
         }
         return NofibPrelude.Nil;
@@ -211,28 +197,22 @@ let life1;
     return NofibPrelude.Nil;
   } 
   static zip3(xs, ys, zs) {
-    let hx, tx, hy, ty, tz, hz, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1;
+    let arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1;
     if (xs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = xs.head;
       arg$Cons$1$ = xs.tail;
-      tx = arg$Cons$1$;
-      hx = arg$Cons$0$;
       if (ys instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$1 = ys.head;
         arg$Cons$1$1 = ys.tail;
-        ty = arg$Cons$1$1;
-        hy = arg$Cons$0$1;
         if (zs instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$2 = zs.head;
           arg$Cons$1$2 = zs.tail;
-          tz = arg$Cons$1$2;
-          hz = arg$Cons$0$2;
           tmp = globalThis.Object.freeze([
-            hx,
-            hy,
-            hz
+            arg$Cons$0$,
+            arg$Cons$0$1,
+            arg$Cons$0$2
           ]);
-          tmp1 = life.zip3(tx, ty, tz);
+          tmp1 = life.zip3(arg$Cons$1$, arg$Cons$1$1, arg$Cons$1$2);
           return NofibPrelude.Cons(tmp, tmp1)
         }
         return NofibPrelude.Nil;
@@ -244,49 +224,38 @@ let life1;
   static lzfy(ls) {
     let lambda;
     lambda = (undefined, function () {
-      let t, a, arg$Cons$0$, arg$Cons$1$, tmp;
+      let arg$Cons$0$, arg$Cons$1$, tmp;
       if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
-        a = arg$Cons$0$;
-        tmp = life.lzfy(t);
-        return NofibPrelude.LzCons(a, tmp)
+        tmp = life.lzfy(arg$Cons$1$);
+        return NofibPrelude.LzCons(arg$Cons$0$, tmp)
       }
       return NofibPrelude.LzNil;
     });
     return NofibPrelude.lazy(lambda)
   } 
   static elt(a_b_c, d_e_f, g_h_i) {
-    let a, b, c, e, f, d, i, g, h, tot, scrut, scrut1, element2$, element1$, element0$, element2$1, element1$1, element0$1, element2$2, element1$2, element0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let tot, scrut, scrut1, element2$, element1$, element0$, element2$1, element1$1, element0$1, element2$2, element1$2, element0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     if (runtime.Tuple.isArrayLike(a_b_c) && a_b_c.length === 3) {
       element0$ = runtime.Tuple.get(a_b_c, 0);
       element1$ = runtime.Tuple.get(a_b_c, 1);
       element2$ = runtime.Tuple.get(a_b_c, 2);
-      c = element2$;
-      b = element1$;
-      a = element0$;
       if (runtime.Tuple.isArrayLike(d_e_f) && d_e_f.length === 3) {
         element0$1 = runtime.Tuple.get(d_e_f, 0);
         element1$1 = runtime.Tuple.get(d_e_f, 1);
         element2$1 = runtime.Tuple.get(d_e_f, 2);
-        f = element2$1;
-        e = element1$1;
-        d = element0$1;
         if (runtime.Tuple.isArrayLike(g_h_i) && g_h_i.length === 3) {
           element0$2 = runtime.Tuple.get(g_h_i, 0);
           element1$2 = runtime.Tuple.get(g_h_i, 1);
           element2$2 = runtime.Tuple.get(g_h_i, 2);
-          i = element2$2;
-          h = element1$2;
-          g = element0$2;
-          tmp = a + b;
-          tmp1 = tmp + c;
-          tmp2 = tmp1 + d;
-          tmp3 = tmp2 + f;
-          tmp4 = tmp3 + g;
-          tmp5 = tmp4 + h;
-          tot = tmp5 + i;
+          tmp = element0$ + element1$;
+          tmp1 = tmp + element2$;
+          tmp2 = tmp1 + element0$1;
+          tmp3 = tmp2 + element2$1;
+          tmp4 = tmp3 + element0$2;
+          tmp5 = tmp4 + element1$2;
+          tot = tmp5 + element2$2;
           tmp6 = tot < 2;
           if (tmp6 === false) {
             tmp7 = tot > 3;
@@ -301,7 +270,7 @@ let life1;
           if (scrut1 === true) {
             return 1
           }
-          return e;
+          return element1$1;
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"))
       }
@@ -327,17 +296,14 @@ let life1;
     return life.zip3(tmp, xs, tmp1)
   } 
   static row(last_this_next) {
-    let last, next, this_, element2$, element1$, element0$, tmp, tmp1, tmp2;
+    let element2$, element1$, element0$, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(last_this_next) && last_this_next.length === 3) {
       element0$ = runtime.Tuple.get(last_this_next, 0);
       element1$ = runtime.Tuple.get(last_this_next, 1);
       element2$ = runtime.Tuple.get(last_this_next, 2);
-      next = element2$;
-      this_ = element1$;
-      last = element0$;
-      tmp = life.shift(0, last);
-      tmp1 = life.shift(0, this_);
-      tmp2 = life.shift(0, next);
+      tmp = life.shift(0, element0$);
+      tmp1 = life.shift(0, element1$);
+      tmp2 = life.shift(0, element2$);
       return life.zipWith3(life.elt, tmp, tmp1, tmp2)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -366,29 +332,27 @@ let life1;
     return NofibPrelude.append(xs, tmp)
   } 
   static limit(ls) {
-    let scrut, x, ys, xs, y, scrut1, scrut2, arg$LzCons$0$, arg$LzCons$1$, arg$LzCons$0$1, arg$LzCons$1$1, lambda, tmp, tmp1;
+    let scrut, xs, y, scrut1, scrut2, arg$LzCons$0$, arg$LzCons$1$, arg$LzCons$0$1, arg$LzCons$1$1, lambda, tmp, tmp1;
     scrut = NofibPrelude.force(ls);
     if (scrut instanceof NofibPrelude.LzCons.class) {
       arg$LzCons$0$ = scrut.head;
       arg$LzCons$1$ = scrut.tail;
-      ys = arg$LzCons$1$;
-      x = arg$LzCons$0$;
-      scrut2 = NofibPrelude.force(ys);
+      scrut2 = NofibPrelude.force(arg$LzCons$1$);
       if (scrut2 instanceof NofibPrelude.LzCons.class) {
         arg$LzCons$0$1 = scrut2.head;
         arg$LzCons$1$1 = scrut2.tail;
         xs = arg$LzCons$1$1;
         y = arg$LzCons$0$1;
-        scrut1 = NofibPrelude.listEqBy(NofibPrelude.listEq, x, y);
+        scrut1 = NofibPrelude.listEqBy(NofibPrelude.listEq, arg$LzCons$0$, y);
         if (scrut1 === true) {
-          return NofibPrelude.Cons(x, NofibPrelude.Nil)
+          return NofibPrelude.Cons(arg$LzCons$0$, NofibPrelude.Nil)
         }
         lambda = (undefined, function () {
           return NofibPrelude.LzCons(y, xs)
         });
         tmp = NofibPrelude.lazy(lambda);
         tmp1 = life.limit(tmp);
-        return NofibPrelude.Cons(x, tmp1);
+        return NofibPrelude.Cons(arg$LzCons$0$, tmp1);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }

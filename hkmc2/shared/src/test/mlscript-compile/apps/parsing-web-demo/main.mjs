@@ -192,10 +192,9 @@ let Main1;
         return this.render()
       } 
       render() {
-        let error, stackLines, scrut, arg$Some$0$, rcd, tmp, rcd1, tmp1, tmp2, tmp3, tmp4, rcd2, tmp5, lambda4, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+        let stackLines, scrut, arg$Some$0$, rcd, tmp, rcd1, tmp1, tmp2, tmp3, tmp4, rcd2, tmp5, lambda4, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
         if (this.#_error instanceof Option.Some.class) {
           arg$Some$0$ = this.#_error.value;
-          error = arg$Some$0$;
           stackLines = runtime.safeCall(arg$Some$0$.stack.split("\n"));
           scrut = runtime.safeCall(stackLines.at(0).startsWith(arg$Some$0$.name));
           if (scrut === true) {
@@ -209,8 +208,8 @@ let Main1;
             "class": "error-message"
           });
           tmp1 = XML.elem("h3", rcd1);
-          tmp2 = error.name + ": ";
-          tmp3 = tmp2 + error.message;
+          tmp2 = arg$Some$0$.name + ": ";
+          tmp3 = tmp2 + arg$Some$0$.message;
           tmp4 = runtime.safeCall(tmp1(tmp3));
           rcd2 = globalThis.Object.freeze({
             "class": "stack-trace"

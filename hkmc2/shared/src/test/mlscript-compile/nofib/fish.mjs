@@ -855,19 +855,15 @@ let fish1;
     fish.#s_tile = NofibPrelude.Cons(tmp181, tmp235);
   }
   static vec_add(v1, v2) {
-    let y1, x1, x2, y2, element1$, element0$, element1$1, element0$1, tmp, tmp1;
+    let element1$, element0$, element1$1, element0$1, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(v1) && v1.length === 2) {
       element0$ = runtime.Tuple.get(v1, 0);
       element1$ = runtime.Tuple.get(v1, 1);
-      y1 = element1$;
-      x1 = element0$;
       if (runtime.Tuple.isArrayLike(v2) && v2.length === 2) {
         element0$1 = runtime.Tuple.get(v2, 0);
         element1$1 = runtime.Tuple.get(v2, 1);
-        y2 = element1$1;
-        x2 = element0$1;
-        tmp = x1 + x2;
-        tmp1 = y1 + y2;
+        tmp = element0$ + element0$1;
+        tmp1 = element1$ + element1$1;
         return globalThis.Object.freeze([
           tmp,
           tmp1
@@ -878,19 +874,15 @@ let fish1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static vec_sub(v1, v2) {
-    let y1, x1, x2, y2, element1$, element0$, element1$1, element0$1, tmp, tmp1;
+    let element1$, element0$, element1$1, element0$1, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(v1) && v1.length === 2) {
       element0$ = runtime.Tuple.get(v1, 0);
       element1$ = runtime.Tuple.get(v1, 1);
-      y1 = element1$;
-      x1 = element0$;
       if (runtime.Tuple.isArrayLike(v2) && v2.length === 2) {
         element0$1 = runtime.Tuple.get(v2, 0);
         element1$1 = runtime.Tuple.get(v2, 1);
-        y2 = element1$1;
-        x2 = element0$1;
-        tmp = x1 - x2;
-        tmp1 = y1 - y2;
+        tmp = element0$ - element0$1;
+        tmp1 = element1$ - element1$1;
         return globalThis.Object.freeze([
           tmp,
           tmp1
@@ -901,15 +893,13 @@ let fish1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static scale_vec2(v, a, b) {
-    let x, y, element1$, element0$, tmp, tmp1, tmp2, tmp3;
+    let element1$, element0$, tmp, tmp1, tmp2, tmp3;
     if (runtime.Tuple.isArrayLike(v) && v.length === 2) {
       element0$ = runtime.Tuple.get(v, 0);
       element1$ = runtime.Tuple.get(v, 1);
-      y = element1$;
-      x = element0$;
-      tmp = x * a;
+      tmp = element0$ * a;
       tmp1 = NofibPrelude.intDiv(tmp, b);
-      tmp2 = y * a;
+      tmp2 = element1$ * a;
       tmp3 = NofibPrelude.intDiv(tmp2, b);
       return globalThis.Object.freeze([
         tmp1,
@@ -922,22 +912,18 @@ let fish1;
     return NofibPrelude.Nil
   } 
   static tup2(a_b, c_d) {
-    let a, b, c, d, element1$, element0$, element1$1, element0$1;
+    let element1$, element0$, element1$1, element0$1;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
-      b = element1$;
-      a = element0$;
       if (runtime.Tuple.isArrayLike(c_d) && c_d.length === 2) {
         element0$1 = runtime.Tuple.get(c_d, 0);
         element1$1 = runtime.Tuple.get(c_d, 1);
-        d = element1$1;
-        c = element0$1;
         return globalThis.Object.freeze([
-          a,
-          b,
-          c,
-          d
+          element0$,
+          element1$,
+          element0$1,
+          element1$1
         ])
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -947,7 +933,7 @@ let fish1;
   static grid(m, n, segments, a, b, c) {
     let lscomp;
     lscomp = function lscomp(ls) {
-      let t, y0, x0, y1, x1, arg$Cons$0$, arg$Cons$1$, element3$, element2$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
+      let arg$Cons$0$, arg$Cons$1$, element3$, element2$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
@@ -958,21 +944,16 @@ let fish1;
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
           element2$ = runtime.Tuple.get(arg$Cons$0$, 2);
           element3$ = runtime.Tuple.get(arg$Cons$0$, 3);
-          t = arg$Cons$1$;
-          y1 = element3$;
-          x1 = element2$;
-          y0 = element1$;
-          x0 = element0$;
-          tmp = fish.scale_vec2(b, x0, m);
+          tmp = fish.scale_vec2(b, element0$, m);
           tmp1 = fish.vec_add(a, tmp);
-          tmp2 = fish.scale_vec2(c, y0, n);
+          tmp2 = fish.scale_vec2(c, element1$, n);
           tmp3 = fish.vec_add(tmp1, tmp2);
-          tmp4 = fish.scale_vec2(b, x1, m);
+          tmp4 = fish.scale_vec2(b, element2$, m);
           tmp5 = fish.vec_add(a, tmp4);
-          tmp6 = fish.scale_vec2(c, y1, n);
+          tmp6 = fish.scale_vec2(c, element3$, n);
           tmp7 = fish.vec_add(tmp5, tmp6);
           tmp8 = fish.tup2(tmp3, tmp7);
-          tmp9 = lscomp(t);
+          tmp9 = lscomp(arg$Cons$1$);
           return NofibPrelude.Cons(tmp8, tmp9)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1115,27 +1096,23 @@ let fish1;
     return fish.cycle_(fish.pseudocorner, arg, p2, p3)
   } 
   static showFourTupleofInt(a_b_c_d) {
-    let a, b, c, d, element3$, element2$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17;
+    let element3$, element2$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17;
     if (runtime.Tuple.isArrayLike(a_b_c_d) && a_b_c_d.length === 4) {
       element0$ = runtime.Tuple.get(a_b_c_d, 0);
       element1$ = runtime.Tuple.get(a_b_c_d, 1);
       element2$ = runtime.Tuple.get(a_b_c_d, 2);
       element3$ = runtime.Tuple.get(a_b_c_d, 3);
-      d = element3$;
-      c = element2$;
-      b = element1$;
-      a = element0$;
       tmp = NofibPrelude.nofibStringToList("(");
-      tmp1 = NofibPrelude.stringOfInt(a);
+      tmp1 = NofibPrelude.stringOfInt(element0$);
       tmp2 = NofibPrelude.nofibStringToList(tmp1);
       tmp3 = NofibPrelude.nofibStringToList(",");
-      tmp4 = NofibPrelude.stringOfInt(b);
+      tmp4 = NofibPrelude.stringOfInt(element1$);
       tmp5 = NofibPrelude.nofibStringToList(tmp4);
       tmp6 = NofibPrelude.nofibStringToList(",");
-      tmp7 = NofibPrelude.stringOfInt(c);
+      tmp7 = NofibPrelude.stringOfInt(element2$);
       tmp8 = NofibPrelude.nofibStringToList(tmp7);
       tmp9 = NofibPrelude.nofibStringToList(",");
-      tmp10 = NofibPrelude.stringOfInt(d);
+      tmp10 = NofibPrelude.stringOfInt(element3$);
       tmp11 = NofibPrelude.nofibStringToList(tmp10);
       tmp12 = NofibPrelude.append(tmp9, tmp11);
       tmp13 = NofibPrelude.append(tmp8, tmp12);
@@ -1148,34 +1125,30 @@ let fish1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static fmt(ls) {
-    let showl, x, xs, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3;
+    let showl, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3;
     if (ls instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.nofibStringToList("[]")
     } else if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
-      xs = arg$Cons$1$;
-      x = arg$Cons$0$;
       showl = function showl(ls1, s) {
-        let x1, xs1, arg$Cons$0$1, arg$Cons$1$1, tmp4, tmp5, tmp6, tmp7;
+        let arg$Cons$0$1, arg$Cons$1$1, tmp4, tmp5, tmp6, tmp7;
         if (ls1 instanceof NofibPrelude.Nil.class) {
           return NofibPrelude.Cons("]", s)
         } else if (ls1 instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$1 = ls1.head;
           arg$Cons$1$1 = ls1.tail;
-          xs1 = arg$Cons$1$1;
-          x1 = arg$Cons$0$1;
           tmp4 = NofibPrelude.nofibStringToList(",|");
-          tmp5 = fish.showFourTupleofInt(x1);
-          tmp6 = showl(xs1, s);
+          tmp5 = fish.showFourTupleofInt(arg$Cons$0$1);
+          tmp6 = showl(arg$Cons$1$1, s);
           tmp7 = NofibPrelude.append(tmp5, tmp6);
           return NofibPrelude.append(tmp4, tmp7)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
       tmp = NofibPrelude.nofibStringToList("[|");
-      tmp1 = fish.showFourTupleofInt(x);
-      tmp2 = showl(xs, "");
+      tmp1 = fish.showFourTupleofInt(arg$Cons$0$);
+      tmp2 = showl(arg$Cons$1$, "");
       tmp3 = NofibPrelude.append(tmp1, tmp2);
       return NofibPrelude.append(tmp, tmp3)
     }

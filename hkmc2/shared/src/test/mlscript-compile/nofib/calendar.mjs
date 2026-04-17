@@ -73,14 +73,12 @@ let calendar1;
     return NofibPrelude.foldr1(lambda, ls)
   } 
   static emptyPic(hw) {
-    let h, w, element1$, element0$, tmp;
+    let element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(hw) && hw.length === 2) {
       element0$ = runtime.Tuple.get(hw, 0);
       element1$ = runtime.Tuple.get(hw, 1);
-      w = element1$;
-      h = element0$;
-      tmp = NofibPrelude.replicate(w, " ");
-      return NofibPrelude.replicate(h, tmp)
+      tmp = NofibPrelude.replicate(element1$, " ");
+      return NofibPrelude.replicate(element0$, tmp)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -107,25 +105,23 @@ let calendar1;
     return calendar.stack(tmp1)
   } 
   static lframe(mn, p) {
-    let n, m, h, w, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+    let h, w, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
     if (runtime.Tuple.isArrayLike(mn) && mn.length === 2) {
       element0$ = runtime.Tuple.get(mn, 0);
       element1$ = runtime.Tuple.get(mn, 1);
-      n = element1$;
-      m = element0$;
       h = calendar.height(p);
       w = calendar.width(p);
-      tmp = n - w;
+      tmp = element1$ - w;
       tmp1 = globalThis.Object.freeze([
         h,
         tmp
       ]);
       tmp2 = calendar.emptyPic(tmp1);
       tmp3 = NofibPrelude.zipWith(NofibPrelude.append, p, tmp2);
-      tmp4 = m - h;
+      tmp4 = element0$ - h;
       tmp5 = globalThis.Object.freeze([
         tmp4,
-        n
+        element1$
       ]);
       tmp6 = calendar.emptyPic(tmp5);
       return NofibPrelude.append(tmp3, tmp6)
@@ -144,14 +140,13 @@ let calendar1;
     return tmp2 == 0;
   } 
   static monthLengths(year) {
-    let feb, scrut, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+    let scrut, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
     scrut = calendar.leap(year);
     if (scrut === true) {
       tmp = 29;
     } else {
       tmp = 28;
     }
-    feb = tmp;
     tmp1 = NofibPrelude.Cons(31, NofibPrelude.Nil);
     tmp2 = NofibPrelude.Cons(30, tmp1);
     tmp3 = NofibPrelude.Cons(31, tmp2);
@@ -162,7 +157,7 @@ let calendar1;
     tmp8 = NofibPrelude.Cons(31, tmp7);
     tmp9 = NofibPrelude.Cons(30, tmp8);
     tmp10 = NofibPrelude.Cons(31, tmp9);
-    tmp11 = NofibPrelude.Cons(feb, tmp10);
+    tmp11 = NofibPrelude.Cons(tmp, tmp10);
     return NofibPrelude.Cons(31, tmp11)
   } 
   static jan1st(year) {
@@ -247,7 +242,7 @@ let calendar1;
     return NofibPrelude.append(tmp1, tmp4)
   } 
   static cal(year) {
-    let side, end, daynames, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, yr, inlinedVal, yr1, inlinedVal1, lambda, tmp6, tmp7, yer, inlinedVal2, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
+    let side, end, daynames, tmp, tmp1, tmp2, tmp3, inlinedVal, inlinedVal1, lambda, tmp4, inlinedVal2, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
     tmp = globalThis.Object.freeze([
       8,
       2
@@ -260,62 +255,43 @@ let calendar1;
     end = calendar.emptyPic(tmp1);
     tmp2 = NofibPrelude.nofibStringToList(" Su Mo Tu We Th Fr Sa");
     daynames = NofibPrelude.Cons(tmp2, NofibPrelude.Nil);
-    yr = year;
-    tmp10 = NofibPrelude.stringOfInt(yr);
-    tmp11 = NofibPrelude.nofibStringToList(tmp10);
-    tmp12 = calendar.cjustify(75, tmp11);
-    tmp13 = globalThis.Object.freeze([
+    tmp7 = NofibPrelude.stringOfInt(year);
+    tmp8 = NofibPrelude.nofibStringToList(tmp7);
+    tmp9 = calendar.cjustify(75, tmp8);
+    tmp10 = globalThis.Object.freeze([
       1,
       75
     ]);
-    tmp14 = calendar.emptyPic(tmp13);
-    inlinedVal = NofibPrelude.Cons(tmp12, tmp14);
-    tmp3 = inlinedVal;
-    yr1 = year;
+    tmp11 = calendar.emptyPic(tmp10);
+    inlinedVal = NofibPrelude.Cons(tmp9, tmp11);
     lambda = (undefined, function (x) {
-      let tmp15, mnfdml, inlinedVal3, p, inlinedVal4, fd, ml, mn, element2$, element1$, element0$, tmp16, tmp17, tmp18, tmp19;
+      let mnfdml, inlinedVal3, inlinedVal4, element2$, element1$, element0$, tmp12, tmp13;
       mnfdml = x;
       if (runtime.Tuple.isArrayLike(mnfdml) && mnfdml.length === 3) {
-        let mn1, inlinedVal5, fd1, ml1, inlinedVal6, tmp20, tmp21, fd2, ml2, inlinedVal7, tmp22;
-        element0$ = runtime.Tuple.get(mnfdml, 0);
-        element1$ = runtime.Tuple.get(mnfdml, 1);
-        element2$ = runtime.Tuple.get(mnfdml, 2);
-        ml = element2$;
-        fd = element1$;
-        mn = element0$;
-        mn1 = mn;
-        tmp20 = calendar.cjustify(21, mn1);
-        inlinedVal5 = NofibPrelude.Cons(tmp20, NofibPrelude.Nil);
-        tmp16 = inlinedVal5;
-        fd1 = fd;
-        ml1 = ml;
-        fd2 = fd1;
-        ml2 = ml1;
-        tmp22 = calendar.dates(fd2, ml2);
-        inlinedVal7 = calendar.block(7, tmp22);
-        tmp21 = inlinedVal7;
-        inlinedVal6 = NofibPrelude.append(daynames, tmp21);
-        tmp17 = inlinedVal6;
-        inlinedVal3 = NofibPrelude.append(tmp16, tmp17);
-        tmp15 = inlinedVal3;
-        p = tmp15;
-        tmp18 = NofibPrelude.zipWith(NofibPrelude.append, side, p);
-        tmp19 = NofibPrelude.zipWith(NofibPrelude.append, tmp18, side);
-        inlinedVal4 = NofibPrelude.append(tmp19, end);
+        let inlinedVal5, inlinedVal6, tmp14, inlinedVal7, tmp15;
+        element0$ = runtime.Tuple.get(x, 0);
+        element1$ = runtime.Tuple.get(x, 1);
+        element2$ = runtime.Tuple.get(x, 2);
+        tmp14 = calendar.cjustify(21, element0$);
+        inlinedVal5 = NofibPrelude.Cons(tmp14, NofibPrelude.Nil);
+        tmp15 = calendar.dates(element1$, element2$);
+        inlinedVal7 = calendar.block(7, tmp15);
+        inlinedVal6 = NofibPrelude.append(daynames, inlinedVal7);
+        inlinedVal3 = NofibPrelude.append(inlinedVal5, inlinedVal6);
+        tmp12 = NofibPrelude.zipWith(NofibPrelude.append, side, inlinedVal3);
+        tmp13 = NofibPrelude.zipWith(NofibPrelude.append, tmp12, side);
+        inlinedVal4 = NofibPrelude.append(tmp13, end);
         return inlinedVal4
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
-    yer = yr1;
-    tmp8 = calendar.firstDays(yer);
-    tmp9 = calendar.monthLengths(yer);
-    inlinedVal2 = NofibPrelude.zip3(calendar.monthNames, tmp8, tmp9);
-    tmp6 = inlinedVal2;
-    tmp7 = NofibPrelude.map(lambda, tmp6);
-    inlinedVal1 = calendar.block(3, tmp7);
-    tmp4 = inlinedVal1;
-    tmp5 = NofibPrelude.append(tmp3, tmp4);
-    return calendar.unlines(tmp5)
+    tmp5 = calendar.firstDays(year);
+    tmp6 = calendar.monthLengths(year);
+    inlinedVal2 = NofibPrelude.zip3(calendar.monthNames, tmp5, tmp6);
+    tmp4 = NofibPrelude.map(lambda, inlinedVal2);
+    inlinedVal1 = calendar.block(3, tmp4);
+    tmp3 = NofibPrelude.append(inlinedVal, inlinedVal1);
+    return calendar.unlines(tmp3)
   } 
   static testCalendar_nofib(n) {
     let lambda, tmp, tmp1;

@@ -74,7 +74,7 @@ let cryptarithm21;
   } 
   static lookup(k, t) {
     loopLabel: while (true) {
-      let x, t1, v, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
+      let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
       if (t instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.None
       } else if (t instanceof NofibPrelude.Cons.class) {
@@ -83,14 +83,11 @@ let cryptarithm21;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-          t1 = arg$Cons$1$;
-          v = element1$;
-          x = element0$;
-          scrut = k === x;
+          scrut = k === element0$;
           if (scrut === true) {
-            return NofibPrelude.Some(v)
+            return NofibPrelude.Some(element1$)
           }
-          t = t1;
+          t = arg$Cons$1$;
           continue loopLabel;
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -109,11 +106,10 @@ let cryptarithm21;
     return NofibPrelude.foldl(cryptarithm2.delete_, a, ls)
   } 
   static runStateT(m, s) {
-    let run, arg$StateT$0$;
+    let arg$StateT$0$;
     if (m instanceof cryptarithm2.StateT.class) {
       arg$StateT$0$ = m.run;
-      run = arg$StateT$0$;
-      return runtime.safeCall(run(s))
+      return runtime.safeCall(arg$StateT$0$(s))
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -122,14 +118,12 @@ let cryptarithm21;
     lambda = (undefined, function (s) {
       let lambda1, tmp, tmp1;
       lambda1 = (undefined, function (caseScrut) {
-        let ss, a, element1$, element0$, tmp2;
+        let element1$, element0$, tmp2;
         if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
           element0$ = runtime.Tuple.get(caseScrut, 0);
           element1$ = runtime.Tuple.get(caseScrut, 1);
-          ss = element1$;
-          a = element0$;
-          tmp2 = runtime.safeCall(f(a));
-          return cryptarithm2.runStateT(tmp2, ss)
+          tmp2 = runtime.safeCall(f(element0$));
+          return cryptarithm2.runStateT(tmp2, element1$)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       });
@@ -190,12 +184,11 @@ let cryptarithm21;
   static execStateT(m, s) {
     let lambda, tmp, tmp1;
     lambda = (undefined, function (caseScrut) {
-      let s1, element1$;
+      let element1$;
       if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
         runtime.Tuple.get(caseScrut, 0);
         element1$ = runtime.Tuple.get(caseScrut, 1);
-        s1 = element1$;
-        return NofibPrelude.Cons(s1, NofibPrelude.Nil)
+        return NofibPrelude.Cons(element1$, NofibPrelude.Nil)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
@@ -234,20 +227,18 @@ let cryptarithm21;
     return cryptarithm2.StateT(lambda)
   } 
   static digits(d) {
-    let a, arg$Digits$0$;
+    let arg$Digits$0$;
     if (d instanceof cryptarithm2.Digits.class) {
       arg$Digits$0$ = d.i;
-      a = arg$Digits$0$;
-      return a
+      return arg$Digits$0$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static digitEnv(d) {
-    let b, arg$Digits$1$;
+    let arg$Digits$1$;
     if (d instanceof cryptarithm2.Digits.class) {
       arg$Digits$1$ = d.c;
-      b = arg$Digits$1$;
-      return b
+      return arg$Digits$1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -268,11 +259,10 @@ let cryptarithm21;
       tmp = NofibPrelude.map(lambda1, xs);
       tmp1 = cryptarithm2.lift(tmp);
       lambda2 = (undefined, function (iis) {
-        let i, iss, element1$, element0$, tmp2, tmp3, tmp4, tmp5, tmp6, lambda3;
+        let i, element1$, element0$, tmp2, tmp3, tmp4, tmp5, tmp6, lambda3;
         if (runtime.Tuple.isArrayLike(iis) && iis.length === 2) {
           element0$ = runtime.Tuple.get(iis, 0);
           element1$ = runtime.Tuple.get(iis, 1);
-          iss = element1$;
           i = element0$;
           tmp2 = globalThis.Object.freeze([
             c,
@@ -280,7 +270,7 @@ let cryptarithm21;
           ]);
           tmp3 = cryptarithm2.digitEnv(st);
           tmp4 = NofibPrelude.Cons(tmp2, tmp3);
-          tmp5 = cryptarithm2.Digits(iss, tmp4);
+          tmp5 = cryptarithm2.Digits(element1$, tmp4);
           tmp6 = cryptarithm2.put(tmp5);
           lambda3 = (undefined, function (_p) {
             return cryptarithm2.return_(i)
@@ -296,13 +286,12 @@ let cryptarithm21;
   static select(c) {
     let lambda;
     lambda = (undefined, function (st) {
-      let scrut, r, arg$Some$0$, tmp;
+      let scrut, arg$Some$0$, tmp;
       tmp = cryptarithm2.digitEnv(st);
       scrut = cryptarithm2.lookup(c, tmp);
       if (scrut instanceof NofibPrelude.Some.class) {
         arg$Some$0$ = scrut.x;
-        r = arg$Some$0$;
-        return cryptarithm2.return_(r)
+        return cryptarithm2.return_(arg$Some$0$)
       } else if (scrut instanceof NofibPrelude.None.class) {
         return cryptarithm2.permute(c)
       }
@@ -311,18 +300,17 @@ let cryptarithm21;
     return cryptarithm2.bind(cryptarithm2.get, lambda)
   } 
   static rest(ls) {
-    let xs, arg$Cons$1$;
+    let arg$Cons$1$;
     if (ls instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$1$ = ls.tail;
-      xs = arg$Cons$1$;
-      return xs
+      return arg$Cons$1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static solve(tops, bots, carry) {
-    let bot, botss, top, scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, tmp, tmp1, lambda, lambda1, lambda2;
+    let bot, botss, scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, tmp, tmp1, lambda, lambda1, lambda2;
     if (bots instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = bots.head;
       arg$Cons$1$ = bots.tail;
@@ -332,8 +320,7 @@ let cryptarithm21;
         tmp = cryptarithm2.return_(carry);
       } else if (tops instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$1 = tops.head;
-        top = arg$Cons$0$1;
-        tmp1 = cryptarithm2.mapM(cryptarithm2.select, top);
+        tmp1 = cryptarithm2.mapM(cryptarithm2.select, arg$Cons$0$1);
         lambda = (undefined, function (topNS) {
           let tmp2, tmp3;
           tmp2 = NofibPrelude.sum(topNS);
@@ -377,7 +364,7 @@ let cryptarithm21;
     return cryptarithm2.StateT(lambda2)
   } 
   static puzzle(top, bot) {
-    let solution, answer, scrut, a, env, look, expand, topVal, botVal, scrut1, scrut2, tmp, tmp1, tmp2, arg$Cons$0$, tmp3, tmp4, tmp5, lambda, tmp6, lambda1, tmp7, tmp8, tmp9, tmp10, lambda2, tmp11, look1, expand1;
+    let solution, scrut, env, look, expand, topVal, botVal, scrut1, scrut2, tmp, tmp1, tmp2, arg$Cons$0$, tmp3, tmp4, lambda, tmp5, lambda1, tmp6, tmp7, tmp8, tmp9, lambda2, tmp10, look1, expand1;
     tmp = NofibPrelude.map(NofibPrelude.reverse, top);
     tmp1 = NofibPrelude.transpose(tmp);
     tmp2 = NofibPrelude.reverse(bot);
@@ -387,23 +374,20 @@ let cryptarithm21;
     scrut = cryptarithm2.execStateT(solution, tmp4);
     if (scrut instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = scrut.head;
-      a = arg$Cons$0$;
-      tmp5 = a;
-      answer = tmp5;
-      env = cryptarithm2.digitEnv(answer);
+      env = cryptarithm2.digitEnv(arg$Cons$0$);
       look1 = function look(c) {
-        let tmp12;
-        tmp12 = cryptarithm2.lookup(c, env);
-        return NofibPrelude.fromSome(tmp12)
+        let tmp11;
+        tmp11 = cryptarithm2.lookup(c, env);
+        return NofibPrelude.fromSome(tmp11)
       };
       look = look1;
       expand1 = function expand(ls) {
         let lambda3;
-        lambda3 = (undefined, function (a1, b) {
-          let tmp12, tmp13;
-          tmp12 = a1 * 10;
-          tmp13 = runtime.safeCall(look(b));
-          return tmp12 + tmp13
+        lambda3 = (undefined, function (a, b) {
+          let tmp11, tmp12;
+          tmp11 = a * 10;
+          tmp12 = runtime.safeCall(look(b));
+          return tmp11 + tmp12
         });
         return NofibPrelude.foldl(lambda3, 0, ls)
       };
@@ -411,17 +395,17 @@ let cryptarithm21;
       lambda = (undefined, function (xs) {
         return runtime.safeCall(expand(xs))
       });
-      tmp6 = NofibPrelude.map(lambda, top);
-      topVal = NofibPrelude.sum(tmp6);
+      tmp5 = NofibPrelude.map(lambda, top);
+      topVal = NofibPrelude.sum(tmp5);
       botVal = runtime.safeCall(expand(bot));
       lambda1 = (undefined, function (x, y) {
         return x === y
       });
-      tmp7 = NofibPrelude.concat(top);
-      tmp8 = NofibPrelude.append(tmp7, bot);
-      tmp9 = NofibPrelude.nubBy(lambda1, tmp8);
-      tmp10 = NofibPrelude.listLen(tmp9);
-      scrut1 = tmp10 > 10;
+      tmp6 = NofibPrelude.concat(top);
+      tmp7 = NofibPrelude.append(tmp6, bot);
+      tmp8 = NofibPrelude.nubBy(lambda1, tmp7);
+      tmp9 = NofibPrelude.listLen(tmp8);
+      scrut1 = tmp9 > 10;
       if (scrut1 === true) {
         throw runtime.safeCall(globalThis.Error("error"))
       }
@@ -430,22 +414,20 @@ let cryptarithm21;
         throw runtime.safeCall(globalThis.Error("error"))
       }
       lambda2 = (undefined, function (caseScrut) {
-        let i, c, element1$, element0$, tmp12, tmp13, tmp14, tmp15;
+        let element1$, element0$, tmp11, tmp12, tmp13, tmp14;
         if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
           element0$ = runtime.Tuple.get(caseScrut, 0);
           element1$ = runtime.Tuple.get(caseScrut, 1);
-          i = element1$;
-          c = element0$;
-          tmp12 = NofibPrelude.nofibStringToList(" => ");
-          tmp13 = NofibPrelude.stringOfInt(i);
-          tmp14 = NofibPrelude.nofibStringToList(tmp13);
-          tmp15 = NofibPrelude.append(tmp12, tmp14);
-          return NofibPrelude.Cons(c, tmp15)
+          tmp11 = NofibPrelude.nofibStringToList(" => ");
+          tmp12 = NofibPrelude.stringOfInt(element1$);
+          tmp13 = NofibPrelude.nofibStringToList(tmp12);
+          tmp14 = NofibPrelude.append(tmp11, tmp13);
+          return NofibPrelude.Cons(element0$, tmp14)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       });
-      tmp11 = NofibPrelude.map(lambda2, env);
-      return cryptarithm2.unlines(tmp11);
+      tmp10 = NofibPrelude.map(lambda2, env);
+      return cryptarithm2.unlines(tmp10);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 

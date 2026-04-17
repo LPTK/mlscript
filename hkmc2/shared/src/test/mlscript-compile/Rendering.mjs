@@ -179,7 +179,7 @@ let Rendering1;
       indents = runtime.safeCall(indent.repeat(tmp4));
       tmp5 = runtime.safeCall(text.split("\n"));
       lambda = (undefined, function (line, index, lines) {
-        let postfix, scrut2, scrut3, tmp7, tmp8, tmp9, tmp10;
+        let scrut2, scrut3, tmp7, tmp8, tmp9, tmp10;
         tmp7 = index + 1;
         scrut2 = tmp7 === lines.length;
         if (scrut2 === true) {
@@ -187,7 +187,6 @@ let Rendering1;
         } else {
           tmp8 = " \\";
         }
-        postfix = tmp8;
         scrut3 = index === 0;
         if (scrut3 === true) {
           tmp9 = "";
@@ -195,7 +194,7 @@ let Rendering1;
           tmp9 = indents;
         }
         tmp10 = tmp9 + line;
-        return tmp10 + postfix
+        return tmp10 + tmp8
       });
       tmp6 = runtime.safeCall(tmp5.map(lambda));
       return runtime.safeCall(tmp6.join("\n"));
@@ -355,7 +354,7 @@ let Rendering1;
         return i >= length
       };
       lambda1 = (undefined, function (isFirst, prefixLength) {
-        let key, desc, keyStr, scrut2, value, dryRunStartPos, scrut3, valueStr, setter, getter, tmp7, tmp8, field_set$, field_get$, field_value$, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
+        let key, desc, scrut2, dryRunStartPos, scrut3, valueStr, setter, getter, tmp7, tmp8, field_set$, field_get$, field_value$, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
         key = entries.at(i)[0];
         desc = entries.at(i)[1];
         runtime.safeCall(skipNonEnumerable());
@@ -367,17 +366,15 @@ let Rendering1;
         } else {
           tmp8 = renderValue(key, 0, 0, 0);
         }
-        keyStr = tmp8;
         if (desc instanceof Object) {
           if ("value" in desc) {
             field_value$ = desc.value;
-            value = field_value$;
             if (isFirst === true) {
               tmp9 = 0;
             } else {
               tmp9 = 2;
             }
-            tmp10 = tmp9 + keyStr.length;
+            tmp10 = tmp9 + tmp8.length;
             tmp11 = tmp10 + 2;
             dryRunStartPos = prefixLength + tmp11;
             scrut3 = dryRunStartPos > breakLength;
@@ -387,10 +384,10 @@ let Rendering1;
               tmp12 = dryRunStartPos;
             }
             tmp13 = level + 1;
-            tmp14 = keyStr.length + 2;
-            valueStr = renderValue(value, tmp13, tmp14, tmp12);
+            tmp14 = tmp8.length + 2;
+            valueStr = renderValue(field_value$, tmp13, tmp14, tmp12);
             return globalThis.Object.freeze([
-              keyStr,
+              tmp8,
               valueStr
             ])
           } else if (desc instanceof Object) {
@@ -597,7 +594,7 @@ let Rendering1;
       return runtime.safeCall(lambda());
     };
     renderValue = function renderValue(arg, level, keyLength, startPos) {
-      let scrut2, scrut3, scrut4, scrut5, scrut6, index, rendered, desc, head, scrut7, scrut8, scrut9, scrut10, scrut11, properties, scrut12, scrut13, scrut14, scrut15, scrut16, definitionMetadata1, kind, head1, body, head2, scrut17, scrut18, scrut19, result, scrut20, tmp4, tmp5, element1$, element0$1, element2$, tmp6, tmp7, element1$1, element0$2, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      let scrut2, scrut3, scrut4, scrut5, scrut6, index, desc, scrut7, scrut8, scrut9, scrut10, scrut11, properties, scrut12, scrut13, scrut14, scrut15, scrut16, definitionMetadata1, kind, body, head, scrut17, scrut18, scrut19, result, scrut20, tmp4, tmp5, element1$, element0$1, element2$, tmp6, tmp7, element1$1, element0$2, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
       split_1$: {
         if (arg === undefined) {
           return "undefined"
@@ -749,14 +746,13 @@ let Rendering1;
               return peek.done
             };
             lambda = (undefined, function (isFirst, prefixLength) {
-              let value, prefixLengthIfSameLine, scrut21, field_value$, field_done$, tmp26, tmp27, tmp28, tmp29, tmp30;
+              let prefixLengthIfSameLine, scrut21, field_value$, field_done$, tmp26, tmp27, tmp28, tmp29, tmp30;
               if (peek instanceof Object) {
                 if ("done" in peek) {
                   field_done$ = peek.done;
                   if ("value" in peek) {
                     field_value$ = peek.value;
                     if (field_done$ === false) {
-                      value = field_value$;
                       if (isFirst === true) {
                         tmp26 = 0;
                       } else {
@@ -770,7 +766,7 @@ let Rendering1;
                         tmp27 = prefixLengthIfSameLine;
                       }
                       tmp28 = level1 + 1;
-                      tmp29 = renderValue(value, tmp28, 0, tmp27);
+                      tmp29 = renderValue(field_value$, tmp28, 0, tmp27);
                     } else {
                       throw globalThis.Object.freeze(new globalThis.Error("match error"))
                     }
@@ -803,7 +799,7 @@ let Rendering1;
               return peek.done
             };
             lambda = (undefined, function (isFirst, prefixLength) {
-              let last, key, value, keyPrefixLengthIfSameLine, scrut21, keyStr, scrut22, valueStr, tmp26, field_value$, field_done$, element1$2, element0$3, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36;
+              let last, keyPrefixLengthIfSameLine, scrut21, keyStr, scrut22, valueStr, tmp26, field_value$, field_done$, element1$2, element0$3, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36;
               last = peek;
               tmp26 = runtime.safeCall(iterator.next());
               peek = tmp26;
@@ -816,8 +812,6 @@ let Rendering1;
                       if (runtime.Tuple.isArrayLike(field_value$) && field_value$.length === 2) {
                         element0$3 = runtime.Tuple.get(field_value$, 0);
                         element1$2 = runtime.Tuple.get(field_value$, 1);
-                        value = element1$2;
-                        key = element0$3;
                         if (isFirst === true) {
                           tmp27 = 0;
                         } else {
@@ -831,7 +825,7 @@ let Rendering1;
                           tmp28 = keyPrefixLengthIfSameLine;
                         }
                         tmp29 = level1 + 1;
-                        keyStr = renderValue(key, tmp29, 0, tmp28);
+                        keyStr = renderValue(element0$3, tmp29, 0, tmp28);
                         tmp30 = runtime.safeCall(keyStr.indexOf("\n"));
                         scrut22 = tmp30 >= 0;
                         if (scrut22 === true) {
@@ -844,7 +838,7 @@ let Rendering1;
                           tmp34 = tmp35 + 5;
                         }
                         tmp36 = level1 + 1;
-                        valueStr = renderValue(value, tmp36, 0, tmp34);
+                        valueStr = renderValue(element1$2, tmp36, 0, tmp34);
                         return globalThis.Object.freeze([
                           keyStr,
                           valueStr
@@ -912,7 +906,6 @@ let Rendering1;
               }
               tmp9 = "fun" + tmp10;
             }
-            head = tmp9;
             tmp11 = startPos + tmp9.length;
             properties = renderObject(arg, level, keyLength, tmp11, true);
             if (properties === "{}") {
@@ -920,7 +913,7 @@ let Rendering1;
             } else {
               tmp12 = " " + properties;
             }
-            tmp6 = head + tmp12;
+            tmp6 = tmp9 + tmp12;
           } else {
             scrut12 = globalThis.Reflect.getPrototypeOf(arg);
             if (scrut12 !== null) {
@@ -938,11 +931,10 @@ let Rendering1;
                   if (scrut16 === true) {
                     definitionMetadata1 = scrut12.constructor[Rendering.#definitionMetadataSymbol];
                     if (runtime.Tuple.isArrayLike(definitionMetadata1) && definitionMetadata1.length === 3) {
-                      let constructorName, fieldNames, instance, level1, inlinedVal, length, i, itemIndentationLength, tmp23, tmp24, lambda, tmp25, done;
+                      let fieldNames, instance, level1, inlinedVal, length, i, itemIndentationLength, tmp23, tmp24, lambda, tmp25, done;
                       element0$1 = runtime.Tuple.get(definitionMetadata1, 0);
                       element1$ = runtime.Tuple.get(definitionMetadata1, 1);
                       element2$ = runtime.Tuple.get(definitionMetadata1, 2);
-                      constructorName = element1$;
                       fieldNames = element2$;
                       instance = arg;
                       level1 = level;
@@ -984,7 +976,7 @@ let Rendering1;
                         }
                         throw globalThis.Object.freeze(new globalThis.Error("match error"));
                       });
-                      tmp25 = runtime.safeCall(Rendering.#symbolsForClass(constructorName));
+                      tmp25 = runtime.safeCall(Rendering.#symbolsForClass(element1$));
                       inlinedVal = renderSequence(done, lambda, level1, keyLength, startPos, tmp25);
                       tmp6 = inlinedVal;
                       break split_root$
@@ -1003,7 +995,6 @@ let Rendering1;
                           tmp15 = element0$1 + " ";
                           tmp14 = tmp15 + element1$;
                       }
-                      head1 = tmp14;
                       tmp16 = startPos + tmp14.length;
                       body = renderObject(arg, level, keyLength, tmp16, true);
                       if (body === "{}") {
@@ -1011,16 +1002,16 @@ let Rendering1;
                       } else {
                         tmp17 = " " + body;
                       }
-                      tmp6 = head1 + tmp17;
+                      tmp6 = tmp14 + tmp17;
                       break split_root$
                     }
-                    head2 = scrut12.constructor.name + " ";
+                    head = scrut12.constructor.name + " ";
                   } else {
-                    head2 = scrut12.constructor.name + " ";
+                    head = scrut12.constructor.name + " ";
                   }
-                  tmp19 = startPos + head2.length;
+                  tmp19 = startPos + head.length;
                   tmp20 = renderObject(arg, level, keyLength, tmp19, true);
-                  tmp6 = head2 + tmp20;
+                  tmp6 = head + tmp20;
                   break split_root$;
                 }
                 scrut17 = runtime.safeCall(scrut12.hasOwnProperty("toString"));
@@ -1034,7 +1025,6 @@ let Rendering1;
             tmp6 = renderObject(arg, level, keyLength, startPos, false);
           }
         }
-        rendered = tmp6;
         scrut18 = runtime.safeCall(visitingObjects.has(arg));
         if (scrut18 === true) {
           scrut19 = runtime.safeCall(visitingObjects.get(arg));
@@ -1043,7 +1033,7 @@ let Rendering1;
           } else {
             tmp21 = "";
           }
-          result = rendered + tmp21;
+          result = tmp6 + tmp21;
           scrut20 = tmp21.length > 0;
           if (scrut20 === true) {
             visitedObjects.set(arg, result);
@@ -1095,7 +1085,7 @@ let Rendering1;
     } else {
       if (options instanceof Object) {
         if ("breakLength" in options) {
-          field_breakLength$ = options.breakLength;
+          field_breakLength$ = tmp.breakLength;
           breakLength1 = field_breakLength$;
           if (globalThis.Number.isInteger(breakLength1)) {
             scrut1 = field_breakLength$ > 0;
@@ -1117,7 +1107,7 @@ let Rendering1;
     breakLength = tmp2;
     if (options instanceof Object) {
       if ("padding" in options) {
-        field_padding$ = options.padding;
+        field_padding$ = tmp.padding;
         if (field_padding$ === true) {
           tmp3 = " ";
         } else {

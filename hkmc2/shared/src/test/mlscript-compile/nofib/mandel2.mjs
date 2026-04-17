@@ -102,20 +102,16 @@ let mandel21;
     this.right = tmp13;
   }
   static equalp(p1, p2) {
-    let x2, x1, y1, y2, scrut, scrut1, element1$, element0$, element1$1, element0$1;
+    let scrut, scrut1, element1$, element0$, element1$1, element0$1;
     if (runtime.Tuple.isArrayLike(p1) && p1.length === 2) {
       element0$ = runtime.Tuple.get(p1, 0);
       element1$ = runtime.Tuple.get(p1, 1);
-      x2 = element1$;
-      x1 = element0$;
       if (runtime.Tuple.isArrayLike(p2) && p2.length === 2) {
         element0$1 = runtime.Tuple.get(p2, 0);
         element1$1 = runtime.Tuple.get(p2, 1);
-        y2 = element1$1;
-        y1 = element0$1;
-        scrut = x1 == y1;
+        scrut = element0$ == element0$1;
         if (scrut === true) {
-          scrut1 = x2 == y2;
+          scrut1 = element1$ == element1$1;
           if (scrut1 === true) {
             return true
           }
@@ -157,19 +153,16 @@ let mandel21;
     return tmp1 + q
   } 
   static finite(t) {
-    let c, t2, t1, scrut, scrut1, t21, t11, scrut2, scrut3, arg$EW$0$, arg$EW$1$, arg$NS$0$, arg$NS$1$, arg$Leaf$0$;
+    let scrut, scrut1, scrut2, scrut3, arg$EW$0$, arg$EW$1$, arg$NS$0$, arg$NS$1$, arg$Leaf$0$;
     if (t instanceof mandel2.Leaf.class) {
       arg$Leaf$0$ = t.colour;
-      c = arg$Leaf$0$;
-      return c == c
+      return arg$Leaf$0$ == arg$Leaf$0$
     } else if (t instanceof mandel2.NS.class) {
       arg$NS$0$ = t.l;
       arg$NS$1$ = t.r;
-      t2 = arg$NS$1$;
-      t1 = arg$NS$0$;
-      scrut = mandel2.finite(t1);
+      scrut = mandel2.finite(arg$NS$0$);
       if (scrut === true) {
-        scrut1 = mandel2.finite(t2);
+        scrut1 = mandel2.finite(arg$NS$1$);
         if (scrut1 === true) {
           return true
         }
@@ -179,11 +172,9 @@ let mandel21;
     } else if (t instanceof mandel2.EW.class) {
       arg$EW$0$ = t.l;
       arg$EW$1$ = t.r;
-      t21 = arg$EW$1$;
-      t11 = arg$EW$0$;
-      scrut2 = mandel2.finite(t11);
+      scrut2 = mandel2.finite(arg$EW$0$);
       if (scrut2 === true) {
-        scrut3 = mandel2.finite(t21);
+        scrut3 = mandel2.finite(arg$EW$1$);
         if (scrut3 === true) {
           return true
         }
@@ -215,14 +206,12 @@ let mandel21;
     }
   } 
   static point_colour(xy) {
-    let x, y, element1$, element0$, tmp, tmp1;
+    let element1$, element0$, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(xy) && xy.length === 2) {
       element0$ = runtime.Tuple.get(xy, 0);
       element1$ = runtime.Tuple.get(xy, 1);
-      y = element1$;
-      x = element0$;
-      tmp = mandel2.np(x);
-      tmp1 = mandel2.nq(y);
+      tmp = mandel2.np(element0$);
+      tmp1 = mandel2.nq(element1$);
       return mandel2.check_radius(tmp, tmp1, 0, 0.0, 0.0)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -241,30 +230,26 @@ let mandel21;
         y2 = element1$1;
         x2 = element0$1;
         check_line = function check_line(xcyc, xdyd) {
-          let xc, yc, xd, yd, finished, scrut8, scrut9, scrut10, scrut11, element1$2, element0$2, element1$3, element0$3, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17;
+          let finished, scrut8, scrut9, scrut10, scrut11, element1$2, element0$2, element1$3, element0$3, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17;
           if (runtime.Tuple.isArrayLike(xcyc) && xcyc.length === 2) {
             element0$2 = runtime.Tuple.get(xcyc, 0);
             element1$2 = runtime.Tuple.get(xcyc, 1);
-            yc = element1$2;
-            xc = element0$2;
             if (runtime.Tuple.isArrayLike(xdyd) && xdyd.length === 2) {
               element0$3 = runtime.Tuple.get(xdyd, 0);
               element1$3 = runtime.Tuple.get(xdyd, 1);
-              yd = element1$3;
-              xd = element0$3;
               scrut8 = mandel2.equalp(xdyd, mandel2.right);
               if (scrut8 === true) {
-                tmp11 = xc >= x2;
+                tmp11 = element0$2 >= x2;
               } else {
                 scrut9 = mandel2.equalp(xdyd, mandel2.down);
                 if (scrut9 === true) {
-                  tmp11 = yc <= y2;
+                  tmp11 = element1$2 <= y2;
                 } else {
                   scrut10 = mandel2.equalp(xdyd, mandel2.left);
                   if (scrut10 === true) {
-                    tmp11 = xc <= x1;
+                    tmp11 = element0$2 <= x1;
                   } else {
-                    tmp11 = yc >= y1;
+                    tmp11 = element1$2 >= y1;
                   }
                 }
               }
@@ -278,15 +263,15 @@ let mandel21;
               if (scrut11 === true) {
                 return false
               }
-              tmp14 = xc + xd;
-              tmp15 = yc + yd;
+              tmp14 = element0$2 + element0$3;
+              tmp15 = element1$2 + element1$3;
               tmp16 = globalThis.Object.freeze([
                 tmp14,
                 tmp15
               ]);
               tmp17 = globalThis.Object.freeze([
-                xd,
-                yd
+                element0$3,
+                element1$3
               ]);
               return check_line(tmp16, tmp17);
             }
@@ -369,17 +354,13 @@ let mandel21;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static build_tree(x1y1, x2y2) {
-    let y1, x1, x2, y2, rec_col, scrut, split, scrut1, split_x, split_y, nsp1, nsp2, nsp3, nsp4, ewp1, ewp2, ewp3, ewp4, scrut2, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+    let rec_col, scrut, scrut1, split_x, split_y, nsp2, nsp3, ewp2, ewp3, scrut2, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
     if (runtime.Tuple.isArrayLike(x1y1) && x1y1.length === 2) {
       element0$ = runtime.Tuple.get(x1y1, 0);
       element1$ = runtime.Tuple.get(x1y1, 1);
-      y1 = element1$;
-      x1 = element0$;
       if (runtime.Tuple.isArrayLike(x2y2) && x2y2.length === 2) {
         element0$1 = runtime.Tuple.get(x2y2, 0);
         element1$1 = runtime.Tuple.get(x2y2, 1);
-        y2 = element1$1;
-        x2 = element0$1;
         rec_col = mandel2.check_perim(x1y1, x2y2);
         tmp = - 1;
         tmp1 = rec_col == tmp;
@@ -387,49 +368,44 @@ let mandel21;
         if (scrut === true) {
           return mandel2.Leaf(rec_col)
         }
-        tmp2 = x2 - x1;
-        tmp3 = y2 - y1;
+        tmp2 = element0$1 - element0$;
+        tmp3 = element1$1 - element1$;
         scrut1 = tmp2 >= tmp3;
         if (scrut1 === true) {
           tmp4 = "NS";
         } else {
           tmp4 = "EW";
         }
-        split = tmp4;
-        tmp5 = x2 + x1;
+        tmp5 = element0$1 + element0$;
         split_x = NofibPrelude.intDiv(tmp5, 2);
-        tmp6 = y2 + y1;
+        tmp6 = element1$1 + element1$;
         split_y = NofibPrelude.intDiv(tmp6, 2);
-        nsp1 = x1y1;
         nsp2 = globalThis.Object.freeze([
           split_x,
-          y2
+          element1$1
         ]);
         tmp7 = split_x + 1;
         nsp3 = globalThis.Object.freeze([
           tmp7,
-          y1
+          element1$
         ]);
-        nsp4 = x2y2;
-        ewp1 = x1y1;
         ewp2 = globalThis.Object.freeze([
-          x2,
+          element0$1,
           split_y
         ]);
         tmp8 = split_y + 1;
         ewp3 = globalThis.Object.freeze([
-          x1,
+          element0$,
           tmp8
         ]);
-        ewp4 = x2y2;
-        scrut2 = split == "NS";
+        scrut2 = tmp4 == "NS";
         if (scrut2 === true) {
-          tmp9 = mandel2.build_tree(nsp1, nsp2);
-          tmp10 = mandel2.build_tree(nsp3, nsp4);
+          tmp9 = mandel2.build_tree(x1y1, nsp2);
+          tmp10 = mandel2.build_tree(nsp3, x2y2);
           return mandel2.NS(tmp9, tmp10)
         }
-        tmp11 = mandel2.build_tree(ewp1, ewp2);
-        tmp12 = mandel2.build_tree(ewp3, ewp4);
+        tmp11 = mandel2.build_tree(x1y1, ewp2);
+        tmp12 = mandel2.build_tree(ewp3, x2y2);
         return mandel2.EW(tmp11, tmp12);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));

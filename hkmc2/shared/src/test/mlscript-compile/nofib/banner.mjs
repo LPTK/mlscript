@@ -604,27 +604,24 @@ let banner1;
   static picChar(c) {
     let lscomp, scrut, scrut1, scrut2, scrut3, scrut4, scrut5, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
     lscomp = function lscomp(ls) {
-      let t, h, letter, c_, scrut6, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp13;
+      let h, scrut6, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp13;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         h = arg$Cons$0$;
         if (runtime.Tuple.isArrayLike(h) && h.length === 2) {
-          element0$ = runtime.Tuple.get(h, 0);
-          element1$ = runtime.Tuple.get(h, 1);
-          letter = element1$;
-          c_ = element0$;
-          scrut6 = c_ === c;
+          element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
+          element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
+          scrut6 = element0$ === c;
           if (scrut6 === true) {
-            tmp13 = lscomp(t);
-            return NofibPrelude.Cons(letter, tmp13)
+            tmp13 = lscomp(arg$Cons$1$);
+            return NofibPrelude.Cons(element1$, tmp13)
           }
-          return lscomp(t);
+          return lscomp(arg$Cons$1$);
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };

@@ -914,11 +914,10 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                           idx = tmp31;
                           continue lbl;
                         case "\\":
-                          let idx1, inlinedVal2;
+                          let inlinedVal2;
                           tmp32 = idx + 1;
-                          idx1 = tmp32;
                           inlinedLbl1: {
-                            let scrut6, scrut7, cnt, scrut8, scrut9, cp, cnt1, scrut10, scrut11, idx2, cnt2, arg$Some$0$4, arg$Some$0$5, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, element2$, element1$2, element0$2, tmp52, tmp53, tmp54, tmp55, element2$1, element1$3, element0$3, tmp56, arg$Some$0$6, tmp57, tmp58, tmp59, tmp60, tmp61, element2$2, element1$4, element0$4, tmp62, tmp63, tmp64, tmp65;
+                            let scrut6, scrut7, cnt, scrut8, scrut9, cnt1, scrut10, scrut11, cnt2, arg$Some$0$4, arg$Some$0$5, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, element2$, element1$2, element0$2, tmp52, tmp53, tmp54, tmp55, element2$1, element1$3, element0$3, tmp56, arg$Some$0$6, tmp57, tmp58, tmp59, tmp60, tmp61, element2$2, element1$4, element0$4, tmp62, tmp63, tmp64, tmp65;
                             scrut6 = char1(str, tmp32);
                             if (scrut6 instanceof Option.Some.class) {
                               arg$Some$0$4 = scrut6.value;
@@ -1020,7 +1019,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                         element1$3 = runtime.Tuple.get(scrut9, 1);
                                         element2$1 = runtime.Tuple.get(scrut9, 2);
                                         cnt1 = element2$1;
-                                        cp = element1$3;
                                         scrut10 = char1(str, element0$3);
                                         if (scrut10 instanceof Option.Some.class) {
                                           arg$Some$0$6 = scrut10.value;
@@ -1037,7 +1035,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                           inlinedVal2 = Predef.tuple(tmp57, tmp58);
                                           break inlinedLbl1
                                         }
-                                        tmp59 = globalThis.String.fromCodePoint(cp);
+                                        tmp59 = globalThis.String.fromCodePoint(element1$3);
                                         tmp58 = Option.Some(tmp59);
                                         inlinedVal2 = Predef.tuple(tmp57, tmp58);
                                         break inlinedLbl1;
@@ -1045,21 +1043,20 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                       throw globalThis.Object.freeze(new globalThis.Error("match error"));
                                     }
                                   }
-                                  tmp62 = idx1 + 1;
+                                  tmp62 = tmp32 + 1;
                                   scrut11 = scanHexDigits(str, tmp62, 4, 0, 0);
                                   if (runtime.Tuple.isArrayLike(scrut11) && scrut11.length === 3) {
                                     element0$4 = runtime.Tuple.get(scrut11, 0);
                                     element1$4 = runtime.Tuple.get(scrut11, 1);
                                     element2$2 = runtime.Tuple.get(scrut11, 2);
                                     cnt2 = element2$2;
-                                    idx2 = element0$4;
                                     if (cnt2 === 0) {
                                       tmp63 = Option.None;
                                     } else {
                                       tmp64 = globalThis.String.fromCodePoint(element1$4);
                                       tmp63 = Option.Some(tmp64);
                                     }
-                                    tmp65 = Predef.tuple(idx2, tmp63);
+                                    tmp65 = Predef.tuple(element0$4, tmp63);
                                     inlinedVal2 = tmp65;
                                   } else {
                                     throw globalThis.Object.freeze(new globalThis.Error("match error"))
@@ -1136,10 +1133,9 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                 continue loopLabel
               }
               if (ch === "/") {
-                let idx, inlinedVal1, start, content, scrut4, terminated, arg$Some$0$2, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36;
+                let idx, inlinedVal1, content, scrut4, terminated, arg$Some$0$2, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36;
                 tmp8 = param4 + 1;
                 idx = tmp8;
-                start = tmp8;
                 content = "";
                 scrut4 = char1(str, tmp8);
                 if (scrut4 instanceof Option.Some.class) {
@@ -1164,7 +1160,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                         }
                         break;
                       }
-                      tmp30 = Token.comment(content, start, idx);
+                      tmp30 = Token.comment(content, tmp8, idx);
                       tmp31 = runtime.safeCall(tmp30(instance$Ident$_LineLookupTable$_));
                       inlinedVal1 = globalThis.Object.freeze([
                         idx,
@@ -1209,14 +1205,14 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                         break;
                       }
                       if (terminated === true) {
-                        tmp33 = Token.comment(content, start, idx);
+                        tmp33 = Token.comment(content, tmp8, idx);
                         tmp34 = runtime.safeCall(tmp33(instance$Ident$_LineLookupTable$_));
                         inlinedVal1 = globalThis.Object.freeze([
                           idx,
                           tmp34
                         ]);
                       } else {
-                        tmp35 = Token.error(start, idx);
+                        tmp35 = Token.error(tmp8, idx);
                         tmp36 = runtime.safeCall(tmp35(instance$Ident$_LineLookupTable$_));
                         inlinedVal1 = globalThis.Object.freeze([
                           idx,
@@ -1550,7 +1546,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                             break split_default$
                           }
                         }
-                        tmp54 = Token.integer(integer1, idx);
+                        tmp54 = Token.integer(integer1, tmp11);
                         tmp55 = runtime.safeCall(tmp54(instance$Ident$_LineLookupTable$_));
                         inlinedVal1 = globalThis.Object.freeze([
                           idx$_1,

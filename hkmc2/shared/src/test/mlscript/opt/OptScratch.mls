@@ -36,10 +36,8 @@ let y = x in print(y)
 //│ | | | NEW assignedResults: Map(y -> Ref(member:x,Some(term:x))‹(Ref(member:x,Some(term:x)),?)›)
 //│ | | | Applying block: Return(Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Ref(y,None)))),true) with map: Map(y -> Ref(member:x,Some(term:x))‹(Ref(member:x,Some(term:x)),?)›)
 //│ | | | | ?? y⁰ Some(Ref(member:x,Some(term:x))‹(Ref(member:x,Some(term:x)),?)›) true false
-//│ | | | | 2
-//│ | | | | 0
 //│ | | | | Analysis: litValue: false, unchanged vars: Set(Ref(member:x,Some(term:x)))
-//│ | | | | !! Change triggered { y⁰ ~> member:x¹‹term:x²› (via member:x¹‹term:x²›) } at BlockSimplifier.scala:700
+//│ | | | | !! Change triggered { y⁰ ~> member:x¹‹term:x²› (via member:x¹‹term:x²›) } at BlockSimplifier.scala:545
 //│ | | | |= Map(y -> Ref(member:x,Some(term:x))‹(Ref(member:x,Some(term:x)),?)›)
 //│ | | |= Map(y -> Ref(member:x,Some(term:x))‹(Ref(member:x,Some(term:x)),?)›)
 //│ | |= Map(y -> Ref(member:x,Some(term:x))‹(Ref(member:x,Some(term:x)),?)›)

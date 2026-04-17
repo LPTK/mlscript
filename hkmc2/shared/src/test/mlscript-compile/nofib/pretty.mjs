@@ -194,7 +194,7 @@ let pretty1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let seqs, col, seq, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
+          let arg$Cons$0$, arg$Cons$1$, element1$, element0$;
           if (param1 instanceof NofibPrelude.Nil.class) {
             return NofibPrelude.Nil
           } else if (param1 instanceof NofibPrelude.Cons.class) {
@@ -204,14 +204,11 @@ let pretty1;
               let param0_tmp;
               element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
               element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-              seqs = arg$Cons$1$;
-              seq = element1$;
-              col = element0$;
               param0_tmp = param0;
-              param0 = col;
+              param0 = element0$;
               param1 = param0_tmp;
-              param2 = seq;
-              param3 = seqs;
+              param2 = element1$;
+              param3 = arg$Cons$1$;
               id = 1;
               continue loopLabel
             }
@@ -219,36 +216,30 @@ let pretty1;
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         case 1:
-          let seq2, seq1, n_, seq3, s, c, arg$CCh$0$, arg$CStr$0$, arg$CIndent$0$, arg$CIndent$1$, arg$CAppend$0$, arg$CAppend$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
+          let arg$CCh$0$, arg$CStr$0$, arg$CIndent$0$, arg$CIndent$1$, arg$CAppend$0$, arg$CAppend$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
           if (param2 instanceof pretty.CNil.class) {
-            let param3_tmp;
-            param3_tmp = param3;
             param0 = param1;
-            param1 = param3_tmp;
+            param1 = param3;
             id = 0;
             continue loopLabel
           } else if (param2 instanceof pretty.CAppend.class) {
             arg$CAppend$0$ = param2.a;
             arg$CAppend$1$ = param2.b;
-            seq2 = arg$CAppend$1$;
-            seq1 = arg$CAppend$0$;
             tmp = globalThis.Object.freeze([
               param0,
-              seq2
+              arg$CAppend$1$
             ]);
             tmp1 = NofibPrelude.Cons(tmp, param3);
-            param2 = seq1;
+            param2 = arg$CAppend$0$;
             param3 = tmp1;
             id = 1;
             continue loopLabel
           } else if (param2 instanceof pretty.CIndent.class) {
             arg$CIndent$0$ = param2.a;
             arg$CIndent$1$ = param2.b;
-            seq3 = arg$CIndent$1$;
-            n_ = arg$CIndent$0$;
-            tmp2 = n_ + param0;
+            tmp2 = arg$CIndent$0$ + param0;
             param0 = tmp2;
-            param2 = seq3;
+            param2 = arg$CIndent$1$;
             id = 1;
             continue loopLabel
           } else if (param2 instanceof pretty.CNewline.class) {
@@ -256,24 +247,22 @@ let pretty1;
             return NofibPrelude.Cons("\n", tmp3)
           } else if (param2 instanceof pretty.CStr.class) {
             arg$CStr$0$ = param2.a;
-            s = arg$CStr$0$;
             if (param1 === true) {
               tmp4 = pretty.flattenS(false, param3);
-              tmp5 = NofibPrelude.append(s, tmp4);
+              tmp5 = NofibPrelude.append(arg$CStr$0$, tmp4);
               return pretty.mkIndent(param0, tmp5)
             }
             tmp6 = pretty.flattenS(false, param3);
-            return NofibPrelude.append(s, tmp6);
+            return NofibPrelude.append(arg$CStr$0$, tmp6);
           } else if (param2 instanceof pretty.CCh.class) {
             arg$CCh$0$ = param2.a;
-            c = arg$CCh$0$;
             if (param1 === true) {
               tmp7 = pretty.flattenS(false, param3);
-              tmp8 = NofibPrelude.Cons(c, tmp7);
+              tmp8 = NofibPrelude.Cons(arg$CCh$0$, tmp7);
               return pretty.mkIndent(param0, tmp8)
             }
             tmp9 = pretty.flattenS(false, param3);
-            return NofibPrelude.Cons(c, tmp9);
+            return NofibPrelude.Cons(arg$CCh$0$, tmp9);
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -318,22 +307,20 @@ let pretty1;
     return pretty.flatten(0, true, seq, NofibPrelude.Nil)
   } 
   static ppShow(width, p) {
-    let scrut, seq, arg$MkPrettyRep$0$;
+    let scrut, arg$MkPrettyRep$0$;
     scrut = runtime.safeCall(p(width, false));
     if (scrut instanceof pretty.MkPrettyRep.class) {
       arg$MkPrettyRep$0$ = scrut.cseq;
-      seq = arg$MkPrettyRep$0$;
-      return pretty.cShow(seq)
+      return pretty.cShow(arg$MkPrettyRep$0$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static ppUnformatted(p) {
-    let scrut, seq, arg$MkPrettyRep$0$;
+    let scrut, arg$MkPrettyRep$0$;
     scrut = runtime.safeCall(p(80, false));
     if (scrut instanceof pretty.MkPrettyRep.class) {
       arg$MkPrettyRep$0$ = scrut.cseq;
-      seq = arg$MkPrettyRep$0$;
-      return pretty.cShow(seq)
+      return pretty.cShow(arg$MkPrettyRep$0$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -400,34 +387,26 @@ let pretty1;
     return b;
   } 
   static ppBeside(p1, p2, width, is_vert) {
-    let scrut, sl1, ll1, emp1, seq1, scrut1, seq2, sl2, emp2, ll2, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$2$1, arg$MkPrettyRep$3$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let scrut, scrut1, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$2$1, arg$MkPrettyRep$3$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     scrut = runtime.safeCall(p1(width, false));
     if (scrut instanceof pretty.MkPrettyRep.class) {
       arg$MkPrettyRep$0$ = scrut.cseq;
       arg$MkPrettyRep$1$ = scrut.n;
       arg$MkPrettyRep$2$ = scrut.b1;
       arg$MkPrettyRep$3$ = scrut.b2;
-      sl1 = arg$MkPrettyRep$3$;
-      emp1 = arg$MkPrettyRep$2$;
-      ll1 = arg$MkPrettyRep$1$;
-      seq1 = arg$MkPrettyRep$0$;
-      tmp = width - ll1;
+      tmp = width - arg$MkPrettyRep$1$;
       scrut1 = runtime.safeCall(p2(tmp, false));
       if (scrut1 instanceof pretty.MkPrettyRep.class) {
         arg$MkPrettyRep$0$1 = scrut1.cseq;
         arg$MkPrettyRep$1$1 = scrut1.n;
         arg$MkPrettyRep$2$1 = scrut1.b1;
         arg$MkPrettyRep$3$1 = scrut1.b2;
-        sl2 = arg$MkPrettyRep$3$1;
-        emp2 = arg$MkPrettyRep$2$1;
-        ll2 = arg$MkPrettyRep$1$1;
-        seq2 = arg$MkPrettyRep$0$1;
-        tmp1 = pretty.cIndent(ll1, seq2);
-        tmp2 = pretty.cAppend(seq1, tmp1);
-        tmp3 = ll1 + ll2;
-        tmp4 = pretty.andL(emp1, emp2);
+        tmp1 = pretty.cIndent(arg$MkPrettyRep$1$, arg$MkPrettyRep$0$1);
+        tmp2 = pretty.cAppend(arg$MkPrettyRep$0$, tmp1);
+        tmp3 = arg$MkPrettyRep$1$ + arg$MkPrettyRep$1$1;
+        tmp4 = pretty.andL(arg$MkPrettyRep$2$, arg$MkPrettyRep$2$1);
         tmp5 = width >= 0;
-        tmp6 = pretty.andL(sl1, sl2);
+        tmp6 = pretty.andL(arg$MkPrettyRep$3$, arg$MkPrettyRep$3$1);
         tmp7 = pretty.andL(tmp5, tmp6);
         return pretty.MkPrettyRep(tmp2, tmp3, tmp4, tmp7)
       }
@@ -450,54 +429,44 @@ let pretty1;
     return NofibPrelude.foldr1(lambda, ps);
   } 
   static ppBesideSP(p1, p2, width, is_vert) {
-    let scrut, sl1, ll1, emp1, seq1, li, scrut1, seq2, sl2, emp2, ll2, wi, sp, scrut2, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, tmp, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$2$1, arg$MkPrettyRep$3$1, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+    let scrut, emp1, scrut1, scrut2, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, tmp, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$2$1, arg$MkPrettyRep$3$1, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
     scrut = runtime.safeCall(p1(width, false));
     if (scrut instanceof pretty.MkPrettyRep.class) {
       arg$MkPrettyRep$0$ = scrut.cseq;
       arg$MkPrettyRep$1$ = scrut.n;
       arg$MkPrettyRep$2$ = scrut.b1;
       arg$MkPrettyRep$3$ = scrut.b2;
-      sl1 = arg$MkPrettyRep$3$;
       emp1 = arg$MkPrettyRep$2$;
-      ll1 = arg$MkPrettyRep$1$;
-      seq1 = arg$MkPrettyRep$0$;
       if (emp1 === true) {
         tmp = 0;
       } else {
-        tmp = ll1 + 1;
+        tmp = arg$MkPrettyRep$1$ + 1;
       }
-      li = tmp;
-      tmp1 = width - li;
+      tmp1 = width - tmp;
       scrut1 = runtime.safeCall(p2(tmp1, false));
       if (scrut1 instanceof pretty.MkPrettyRep.class) {
         arg$MkPrettyRep$0$1 = scrut1.cseq;
         arg$MkPrettyRep$1$1 = scrut1.n;
         arg$MkPrettyRep$2$1 = scrut1.b1;
         arg$MkPrettyRep$3$1 = scrut1.b2;
-        sl2 = arg$MkPrettyRep$3$1;
-        emp2 = arg$MkPrettyRep$2$1;
-        ll2 = arg$MkPrettyRep$1$1;
-        seq2 = arg$MkPrettyRep$0$1;
         if (emp1 === true) {
           tmp2 = 0;
         } else {
           tmp2 = 1;
         }
-        wi = tmp2;
-        scrut2 = pretty.orL(emp1, emp2);
+        scrut2 = pretty.orL(arg$MkPrettyRep$2$, arg$MkPrettyRep$2$1);
         if (scrut2 === true) {
           tmp3 = pretty.cNil;
         } else {
           tmp3 = pretty.cCh(" ");
         }
-        sp = tmp3;
-        tmp4 = pretty.cIndent(li, seq2);
-        tmp5 = pretty.cAppend(sp, tmp4);
-        tmp6 = pretty.cAppend(seq1, tmp5);
-        tmp7 = li + ll2;
-        tmp8 = pretty.andL(emp1, emp2);
-        tmp9 = width >= wi;
-        tmp10 = pretty.andL(sl1, sl2);
+        tmp4 = pretty.cIndent(tmp, arg$MkPrettyRep$0$1);
+        tmp5 = pretty.cAppend(tmp3, tmp4);
+        tmp6 = pretty.cAppend(arg$MkPrettyRep$0$, tmp5);
+        tmp7 = tmp + arg$MkPrettyRep$1$1;
+        tmp8 = pretty.andL(arg$MkPrettyRep$2$, arg$MkPrettyRep$2$1);
+        tmp9 = width >= tmp2;
+        tmp10 = pretty.andL(arg$MkPrettyRep$3$, arg$MkPrettyRep$3$1);
         tmp11 = pretty.andL(tmp9, tmp10);
         return pretty.MkPrettyRep(tmp6, tmp7, tmp8, tmp11)
       }
@@ -520,32 +489,26 @@ let pretty1;
     return NofibPrelude.foldr1(lambda, ps);
   } 
   static ppAbove(p1, p2, width, is_vert) {
-    let scrut, emp1, seq1, scrut1, seq2, emp2, ll2, nl, scrut2, arg$MkPrettyRep$0$, arg$MkPrettyRep$2$, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$1, tmp, tmp1, tmp2, tmp3;
+    let scrut, scrut1, scrut2, arg$MkPrettyRep$0$, arg$MkPrettyRep$2$, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$1, tmp, tmp1, tmp2, tmp3;
     scrut = runtime.safeCall(p1(width, true));
     if (scrut instanceof pretty.MkPrettyRep.class) {
       arg$MkPrettyRep$0$ = scrut.cseq;
       arg$MkPrettyRep$2$ = scrut.b1;
-      emp1 = arg$MkPrettyRep$2$;
-      seq1 = arg$MkPrettyRep$0$;
       scrut1 = runtime.safeCall(p2(width, true));
       if (scrut1 instanceof pretty.MkPrettyRep.class) {
         arg$MkPrettyRep$0$1 = scrut1.cseq;
         arg$MkPrettyRep$1$ = scrut1.n;
         arg$MkPrettyRep$2$1 = scrut1.b1;
-        emp2 = arg$MkPrettyRep$2$1;
-        ll2 = arg$MkPrettyRep$1$;
-        seq2 = arg$MkPrettyRep$0$1;
-        scrut2 = pretty.orL(emp1, emp2);
+        scrut2 = pretty.orL(arg$MkPrettyRep$2$, arg$MkPrettyRep$2$1);
         if (scrut2 === true) {
           tmp = pretty.cNil;
         } else {
           tmp = pretty.cNL;
         }
-        nl = tmp;
-        tmp1 = pretty.cAppend(nl, seq2);
-        tmp2 = pretty.cAppend(seq1, tmp1);
-        tmp3 = pretty.andL(emp1, emp2);
-        return pretty.MkPrettyRep(tmp2, ll2, tmp3, false)
+        tmp1 = pretty.cAppend(tmp, arg$MkPrettyRep$0$1);
+        tmp2 = pretty.cAppend(arg$MkPrettyRep$0$, tmp1);
+        tmp3 = pretty.andL(arg$MkPrettyRep$2$, arg$MkPrettyRep$2$1);
+        return pretty.MkPrettyRep(tmp2, arg$MkPrettyRep$1$, tmp3, false)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
@@ -567,7 +530,7 @@ let pretty1;
     return runtime.safeCall(tmp(a, b));
   } 
   static ppNest(n, p, width, is_vert) {
-    let emp, ll, seq, sl, scrut, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, tmp, tmp1, tmp2;
+    let scrut, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, tmp, tmp1, tmp2;
     if (is_vert === true) {
       tmp = width - n;
       scrut = runtime.safeCall(p(tmp, true));
@@ -576,67 +539,55 @@ let pretty1;
         arg$MkPrettyRep$1$ = scrut.n;
         arg$MkPrettyRep$2$ = scrut.b1;
         arg$MkPrettyRep$3$ = scrut.b2;
-        sl = arg$MkPrettyRep$3$;
-        emp = arg$MkPrettyRep$2$;
-        ll = arg$MkPrettyRep$1$;
-        seq = arg$MkPrettyRep$0$;
-        tmp1 = pretty.cIndent(n, seq);
-        tmp2 = ll + n;
-        return pretty.MkPrettyRep(tmp1, tmp2, emp, sl)
+        tmp1 = pretty.cIndent(n, arg$MkPrettyRep$0$);
+        tmp2 = arg$MkPrettyRep$1$ + n;
+        return pretty.MkPrettyRep(tmp1, tmp2, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$)
       }
       return runtime.safeCall(p(width, false));
     }
     return runtime.safeCall(p(width, false));
   } 
   static ppHang(p1, n, p2, width, is_vert) {
-    let scrut, sl1, ll1, emp1, seq1, scrut1, seq2, sl2, ll2, scrut2, ll2_, seq2_, scrut3, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$3$1, arg$MkPrettyRep$0$2, arg$MkPrettyRep$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
+    let scrut, emp1, scrut1, scrut2, scrut3, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$3$1, arg$MkPrettyRep$0$2, arg$MkPrettyRep$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
     scrut = runtime.safeCall(p1(width, false));
     if (scrut instanceof pretty.MkPrettyRep.class) {
       arg$MkPrettyRep$0$ = scrut.cseq;
       arg$MkPrettyRep$1$ = scrut.n;
       arg$MkPrettyRep$2$ = scrut.b1;
       arg$MkPrettyRep$3$ = scrut.b2;
-      sl1 = arg$MkPrettyRep$3$;
       emp1 = arg$MkPrettyRep$2$;
-      ll1 = arg$MkPrettyRep$1$;
-      seq1 = arg$MkPrettyRep$0$;
-      tmp = ll1 + 1;
+      tmp = arg$MkPrettyRep$1$ + 1;
       tmp1 = width - tmp;
       scrut1 = runtime.safeCall(p2(tmp1, false));
       if (scrut1 instanceof pretty.MkPrettyRep.class) {
         arg$MkPrettyRep$0$1 = scrut1.cseq;
         arg$MkPrettyRep$1$1 = scrut1.n;
         arg$MkPrettyRep$3$1 = scrut1.b2;
-        sl2 = arg$MkPrettyRep$3$1;
-        ll2 = arg$MkPrettyRep$1$1;
-        seq2 = arg$MkPrettyRep$0$1;
         tmp2 = width - n;
         scrut2 = runtime.safeCall(p2(tmp2, false));
         if (scrut2 instanceof pretty.MkPrettyRep.class) {
           arg$MkPrettyRep$0$2 = scrut2.cseq;
           arg$MkPrettyRep$1$2 = scrut2.n;
-          ll2_ = arg$MkPrettyRep$1$2;
-          seq2_ = arg$MkPrettyRep$0$2;
           if (emp1 === true) {
             return runtime.safeCall(p2(width, is_vert))
           }
-          tmp3 = ll1 <= n;
-          scrut3 = pretty.orL(tmp3, sl2);
+          tmp3 = arg$MkPrettyRep$1$ <= n;
+          scrut3 = pretty.orL(tmp3, arg$MkPrettyRep$3$1);
           if (scrut3 === true) {
             tmp4 = pretty.cCh(" ");
-            tmp5 = ll1 + 1;
-            tmp6 = pretty.cIndent(tmp5, seq2);
+            tmp5 = arg$MkPrettyRep$1$ + 1;
+            tmp6 = pretty.cIndent(tmp5, arg$MkPrettyRep$0$1);
             tmp7 = pretty.cAppend(tmp4, tmp6);
-            tmp8 = pretty.cAppend(seq1, tmp7);
-            tmp9 = ll1 + 1;
-            tmp10 = tmp9 + ll2;
-            tmp11 = pretty.andL(sl1, sl2);
+            tmp8 = pretty.cAppend(arg$MkPrettyRep$0$, tmp7);
+            tmp9 = arg$MkPrettyRep$1$ + 1;
+            tmp10 = tmp9 + arg$MkPrettyRep$1$1;
+            tmp11 = pretty.andL(arg$MkPrettyRep$3$, arg$MkPrettyRep$3$1);
             return pretty.MkPrettyRep(tmp8, tmp10, false, tmp11)
           }
-          tmp12 = pretty.cIndent(n, seq2_);
+          tmp12 = pretty.cIndent(n, arg$MkPrettyRep$0$2);
           tmp13 = pretty.cAppend(pretty.cNL, tmp12);
-          tmp14 = pretty.cAppend(seq1, tmp13);
-          return pretty.MkPrettyRep(tmp14, ll2_, false, false);
+          tmp14 = pretty.cAppend(arg$MkPrettyRep$0$, tmp13);
+          return pretty.MkPrettyRep(tmp14, arg$MkPrettyRep$1$2, false, false);
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"))
       }

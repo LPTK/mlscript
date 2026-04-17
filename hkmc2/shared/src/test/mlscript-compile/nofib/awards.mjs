@@ -12,22 +12,19 @@ let awards1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let x, x1, xs, arg$Cons$0$, arg$Cons$1$;
+          let arg$Cons$0$, arg$Cons$1$;
           if (param1 instanceof NofibPrelude.Nil.class) {
             return param2
           } else if (param1 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$ = param1.head;
             arg$Cons$1$ = param1.tail;
             if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
-              x = arg$Cons$0$;
-              return NofibPrelude.Cons(x, param2)
+              return NofibPrelude.Cons(arg$Cons$0$, param2)
             }
             let param2_tmp;
-            xs = arg$Cons$1$;
-            x1 = arg$Cons$0$;
             param2_tmp = param2;
-            param1 = x1;
-            param2 = xs;
+            param1 = arg$Cons$0$;
+            param2 = arg$Cons$1$;
             param3 = NofibPrelude.Nil;
             param4 = NofibPrelude.Nil;
             param5 = param2_tmp;
@@ -36,53 +33,46 @@ let awards1;
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         case 1:
-          let ys, y, scrut, arg$Cons$0$1, arg$Cons$1$1, tmp, tmp1, tmp2, tmp3;
+          let scrut, arg$Cons$0$1, arg$Cons$1$1, tmp, tmp1, tmp2, tmp3;
           if (param2 instanceof NofibPrelude.Nil.class) {
-            let param3_tmp;
             tmp = awards.rqsort(param0, param4, param5);
             tmp1 = NofibPrelude.Cons(param1, tmp);
-            param3_tmp = param3;
-            param1 = param3_tmp;
+            param1 = param3;
             param2 = tmp1;
             id = 2;
             continue loopLabel
           } else if (param2 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$1 = param2.head;
             arg$Cons$1$1 = param2.tail;
-            ys = arg$Cons$1$1;
-            y = arg$Cons$0$1;
-            scrut = runtime.safeCall(param0(param1, y));
+            scrut = runtime.safeCall(param0(param1, arg$Cons$0$1));
             if (scrut === true) {
-              tmp2 = NofibPrelude.Cons(y, param4);
-              param2 = ys;
+              tmp2 = NofibPrelude.Cons(arg$Cons$0$1, param4);
+              param2 = arg$Cons$1$1;
               param4 = tmp2;
               id = 1;
               continue loopLabel
             }
-            tmp3 = NofibPrelude.Cons(y, param3);
-            param2 = ys;
+            tmp3 = NofibPrelude.Cons(arg$Cons$0$1, param3);
+            param2 = arg$Cons$1$1;
             param3 = tmp3;
             id = 1;
             continue loopLabel;
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         case 2:
-          let x2, x3, xs1, arg$Cons$0$2, arg$Cons$1$2;
+          let arg$Cons$0$2, arg$Cons$1$2;
           if (param1 instanceof NofibPrelude.Nil.class) {
             return param2
           } else if (param1 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$2 = param1.head;
             arg$Cons$1$2 = param1.tail;
             if (arg$Cons$1$2 instanceof NofibPrelude.Nil.class) {
-              x2 = arg$Cons$0$2;
-              return NofibPrelude.Cons(x2, param2)
+              return NofibPrelude.Cons(arg$Cons$0$2, param2)
             }
             let param2_tmp;
-            xs1 = arg$Cons$1$2;
-            x3 = arg$Cons$0$2;
             param2_tmp = param2;
-            param1 = x3;
-            param2 = xs1;
+            param1 = arg$Cons$0$2;
+            param2 = arg$Cons$1$2;
             param3 = NofibPrelude.Nil;
             param4 = NofibPrelude.Nil;
             param5 = param2_tmp;
@@ -91,31 +81,27 @@ let awards1;
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         case 3:
-          let ys1, y1, scrut1, arg$Cons$0$3, arg$Cons$1$3, tmp4, tmp5, tmp6, tmp7;
+          let scrut1, arg$Cons$0$3, arg$Cons$1$3, tmp4, tmp5, tmp6, tmp7;
           if (param2 instanceof NofibPrelude.Nil.class) {
-            let param3_tmp;
             tmp4 = awards.qsort(param0, param4, param5);
             tmp5 = NofibPrelude.Cons(param1, tmp4);
-            param3_tmp = param3;
-            param1 = param3_tmp;
+            param1 = param3;
             param2 = tmp5;
             id = 0;
             continue loopLabel
           } else if (param2 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$3 = param2.head;
             arg$Cons$1$3 = param2.tail;
-            ys1 = arg$Cons$1$3;
-            y1 = arg$Cons$0$3;
-            scrut1 = runtime.safeCall(param0(y1, param1));
+            scrut1 = runtime.safeCall(param0(arg$Cons$0$3, param1));
             if (scrut1 === true) {
-              tmp6 = NofibPrelude.Cons(y1, param3);
-              param2 = ys1;
+              tmp6 = NofibPrelude.Cons(arg$Cons$0$3, param3);
+              param2 = arg$Cons$1$3;
               param3 = tmp6;
               id = 3;
               continue loopLabel
             }
-            tmp7 = NofibPrelude.Cons(y1, param4);
-            param2 = ys1;
+            tmp7 = NofibPrelude.Cons(arg$Cons$0$3, param4);
+            param2 = arg$Cons$1$3;
             param4 = tmp7;
             id = 3;
             continue loopLabel;
@@ -172,7 +158,7 @@ let awards1;
     return awards.qsort(lambda, l, NofibPrelude.Nil)
   } 
   static perms(m, nns) {
-    let scrut, n, ns, arg$Cons$0$, arg$Cons$1$, lambda, lambda1, tmp, tmp1, tmp2, tmp3;
+    let scrut, n, arg$Cons$0$, arg$Cons$1$, lambda, lambda1, tmp, tmp1, tmp2, tmp3;
     if (nns instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     }
@@ -186,15 +172,14 @@ let awards1;
     if (nns instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = nns.head;
       arg$Cons$1$ = nns.tail;
-      ns = arg$Cons$1$;
       n = arg$Cons$0$;
       lambda1 = (undefined, function (x) {
         return NofibPrelude.Cons(n, x)
       });
       tmp = m - 1;
-      tmp1 = awards.perms(tmp, ns);
+      tmp1 = awards.perms(tmp, arg$Cons$1$);
       tmp2 = NofibPrelude.map(lambda1, tmp1);
-      tmp3 = awards.perms(m, ns);
+      tmp3 = awards.perms(m, arg$Cons$1$);
       return NofibPrelude.append(tmp2, tmp3)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -202,12 +187,11 @@ let awards1;
   static awards(scores) {
     let award, sumscores, lambda, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     award = function award(name_threshold) {
-      let name, threshold, element1$, element0$, lambda1, tmp8, tmp9;
+      let name, element1$, element0$, lambda1, tmp8;
       if (runtime.Tuple.isArrayLike(name_threshold) && name_threshold.length === 2) {
-        let threshold1, inlinedVal, lambda2;
+        let threshold, inlinedVal, lambda2;
         element0$ = runtime.Tuple.get(name_threshold, 0);
         element1$ = runtime.Tuple.get(name_threshold, 1);
-        threshold = element1$;
         name = element0$;
         lambda1 = (undefined, function (ps) {
           return globalThis.Object.freeze([
@@ -215,21 +199,19 @@ let awards1;
             ps
           ])
         });
-        threshold1 = threshold;
+        threshold = element1$;
         lambda2 = (undefined, function (caseScrut) {
-          let sum_, element0$1;
+          let element0$1;
           if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
             element0$1 = runtime.Tuple.get(caseScrut, 0);
             runtime.Tuple.get(caseScrut, 1);
-            sum_ = element0$1;
-            return sum_ >= threshold1
+            return element0$1 >= threshold
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         });
         inlinedVal = NofibPrelude.filter(lambda2, sumscores);
-        tmp8 = inlinedVal;
-        tmp9 = awards.sort(tmp8);
-        return NofibPrelude.map(lambda1, tmp9)
+        tmp8 = awards.sort(inlinedVal);
+        return NofibPrelude.map(lambda1, tmp8)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -262,7 +244,7 @@ let awards1;
     return NofibPrelude.append(tmp2, tmp7)
   } 
   static findawards(scores) {
-    let scrut, head_, award, perm, sum_, arg$Cons$0$, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
+    let scrut, head_, arg$Cons$0$, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
     scrut = awards.awards(scores);
     if (scrut instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
@@ -270,23 +252,20 @@ let awards1;
       arg$Cons$0$ = scrut.head;
       head_ = arg$Cons$0$;
       if (runtime.Tuple.isArrayLike(head_) && head_.length === 2) {
-        element0$ = runtime.Tuple.get(head_, 0);
-        element1$ = runtime.Tuple.get(head_, 1);
+        element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
+        element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
         if (runtime.Tuple.isArrayLike(element1$) && element1$.length === 2) {
           element0$1 = runtime.Tuple.get(element1$, 0);
           element1$1 = runtime.Tuple.get(element1$, 1);
-          perm = element1$1;
-          sum_ = element0$1;
-          award = element0$;
           tmp = globalThis.Object.freeze([
-            sum_,
-            perm
+            element0$1,
+            element1$1
           ]);
           tmp1 = globalThis.Object.freeze([
-            award,
+            element0$,
             tmp
           ]);
-          tmp2 = awards.listDiff(scores, perm);
+          tmp2 = awards.listDiff(scores, element1$1);
           tmp3 = awards.findawards(tmp2);
           return NofibPrelude.Cons(tmp1, tmp3)
         }
@@ -299,15 +278,13 @@ let awards1;
   static findallawards(competitors) {
     let lambda;
     lambda = (undefined, function (caseScrut) {
-      let name, scores, element1$, element0$, tmp;
+      let element1$, element0$, tmp;
       if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
         element0$ = runtime.Tuple.get(caseScrut, 0);
         element1$ = runtime.Tuple.get(caseScrut, 1);
-        scores = element1$;
-        name = element0$;
-        tmp = awards.findawards(scores);
+        tmp = awards.findawards(element1$);
         return globalThis.Object.freeze([
-          name,
+          element0$,
           tmp
         ])
       }

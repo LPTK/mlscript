@@ -21,25 +21,23 @@ let primetest1;
   static int_val_of_string(s) {
     let f;
     f = function f(l, a) {
-      let t, h, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2;
+      let arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2;
       if (l instanceof NofibPrelude.Nil.class) {
         return a
       } else if (l instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = l.head;
         arg$Cons$1$ = l.tail;
-        t = arg$Cons$1$;
-        h = arg$Cons$0$;
         tmp = 10 * a;
-        tmp1 = primetest.int_val_of_char(h);
+        tmp1 = primetest.int_val_of_char(arg$Cons$0$);
         tmp2 = tmp + tmp1;
-        return f(t, tmp2)
+        return f(arg$Cons$1$, tmp2)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     return f(s, 0)
   } 
   static break_(p, ls) {
-    let x, xs, scrut, scrut1, ys, zs, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1;
+    let scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1;
     if (ls instanceof NofibPrelude.Nil.class) {
       return globalThis.Object.freeze([
         NofibPrelude.Nil,
@@ -48,26 +46,22 @@ let primetest1;
     } else if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
-      xs = arg$Cons$1$;
-      x = arg$Cons$0$;
-      scrut = runtime.safeCall(p(x));
+      scrut = runtime.safeCall(p(arg$Cons$0$));
       if (scrut === true) {
-        tmp = NofibPrelude.Cons(x, xs);
+        tmp = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
         return globalThis.Object.freeze([
           NofibPrelude.Nil,
           tmp
         ])
       }
-      scrut1 = primetest.break_(p, xs);
+      scrut1 = primetest.break_(p, arg$Cons$1$);
       if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
         element0$ = runtime.Tuple.get(scrut1, 0);
         element1$ = runtime.Tuple.get(scrut1, 1);
-        zs = element1$;
-        ys = element0$;
-        tmp1 = NofibPrelude.Cons(x, ys);
+        tmp1 = NofibPrelude.Cons(arg$Cons$0$, element0$);
         return globalThis.Object.freeze([
           tmp1,
-          zs
+          element1$
         ])
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -75,7 +69,7 @@ let primetest1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lines(s) {
-    let scrut, s_, l, tt, s__, element1$, element0$, lambda, arg$Cons$1$, tmp;
+    let scrut, s_, element1$, element0$, lambda, arg$Cons$1$, tmp;
     lambda = (undefined, function (x) {
       return x == "|"
     });
@@ -84,18 +78,15 @@ let primetest1;
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
       s_ = element1$;
-      l = element0$;
       if (s_ instanceof NofibPrelude.Nil.class) {
         tmp = NofibPrelude.Nil;
+        return NofibPrelude.Cons(element0$, tmp)
       } else if (s_ instanceof NofibPrelude.Cons.class) {
-        arg$Cons$1$ = s_.tail;
-        s__ = arg$Cons$1$;
-        tmp = primetest.lines(s__);
-      } else {
-        throw globalThis.Object.freeze(new globalThis.Error("match error"))
+        arg$Cons$1$ = element1$.tail;
+        tmp = primetest.lines(arg$Cons$1$);
+        return NofibPrelude.Cons(element0$, tmp)
       }
-      tt = tmp;
-      return NofibPrelude.Cons(l, tt)
+      throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -111,19 +102,17 @@ let primetest1;
   static chop(b, n) {
     let chop_;
     chop_ = function chop_(a, n1) {
-      let scrut, q, r, scrut1, element1$, element0$, tmp;
+      let scrut, scrut1, element1$, element0$, tmp;
       scrut = NofibPrelude.divMod(n1, b);
       if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
         element0$ = runtime.Tuple.get(scrut, 0);
         element1$ = runtime.Tuple.get(scrut, 1);
-        r = element1$;
-        q = element0$;
         scrut1 = n1 == 0;
         if (scrut1 === true) {
           return a
         }
-        tmp = NofibPrelude.Cons(r, a);
-        return chop_(tmp, q);
+        tmp = NofibPrelude.Cons(element1$, a);
+        return chop_(tmp, element0$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -234,17 +223,15 @@ let primetest1;
   static findKQ(n) {
     let f, tmp;
     f = function f(k, q) {
-      let scrut, r, d, scrut1, element1$, element0$, tmp1;
+      let scrut, scrut1, element1$, element0$, tmp1;
       scrut = NofibPrelude.divMod(q, 2);
       if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
         element0$ = runtime.Tuple.get(scrut, 0);
         element1$ = runtime.Tuple.get(scrut, 1);
-        r = element1$;
-        d = element0$;
-        scrut1 = r == 0;
+        scrut1 = element1$ == 0;
         if (scrut1 === true) {
           tmp1 = k + 1;
-          return f(tmp1, d)
+          return f(tmp1, element0$)
         }
         return globalThis.Object.freeze([
           k,
@@ -257,41 +244,33 @@ let primetest1;
     return f(0, tmp)
   } 
   static uniform(nns, rrs) {
-    let n, r, n1, ns, rs, r1, t, scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp, tmp1, tmp2, lambda, tmp3;
+    let t, scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp, tmp1, tmp2, lambda, tmp3;
     if (nns instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = nns.head;
       arg$Cons$1$ = nns.tail;
       if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
-        n = arg$Cons$0$;
         if (rrs instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$1 = rrs.head;
           arg$Cons$1$1 = rrs.tail;
-          r = arg$Cons$0$1;
-          tmp = NofibPrelude.intMod(r, n);
+          tmp = NofibPrelude.intMod(arg$Cons$0$1, arg$Cons$0$);
           return NofibPrelude.Cons(tmp, NofibPrelude.Nil)
         }
-        ns = arg$Cons$1$;
-        n1 = arg$Cons$0$;
         throw globalThis.Object.freeze(new globalThis.Error("match error"))
       }
-      ns = arg$Cons$1$;
-      n1 = arg$Cons$0$;
       if (rrs instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$1 = rrs.head;
         arg$Cons$1$1 = rrs.tail;
-        rs = arg$Cons$1$1;
-        r1 = arg$Cons$0$1;
-        tmp1 = n1 + 1;
-        t = NofibPrelude.intMod(r1, tmp1);
-        scrut = t == n1;
+        tmp1 = arg$Cons$0$ + 1;
+        t = NofibPrelude.intMod(arg$Cons$0$1, tmp1);
+        scrut = t == arg$Cons$0$;
         if (scrut === true) {
-          tmp2 = primetest.uniform(ns, rs);
+          tmp2 = primetest.uniform(arg$Cons$1$, arg$Cons$1$1);
           return NofibPrelude.Cons(t, tmp2)
         }
         lambda = (undefined, function (x) {
           return NofibPrelude.intMod(x, 65536)
         });
-        tmp3 = NofibPrelude.map(lambda, rs);
+        tmp3 = NofibPrelude.map(lambda, arg$Cons$1$1);
         return NofibPrelude.Cons(t, tmp3);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -299,75 +278,67 @@ let primetest1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static random(n, rs) {
-    let ns, scrut, rs2, rs1, element1$, element0$, tmp, tmp1, tmp2;
+    let ns, scrut, element1$, element0$, tmp, tmp1, tmp2;
     ns = primetest.chop(65536, n);
     tmp = NofibPrelude.listLen(ns);
     scrut = NofibPrelude.splitAt_lz(tmp, rs);
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      rs2 = element1$;
-      rs1 = element0$;
-      tmp1 = primetest.uniform(ns, rs1);
+      tmp1 = primetest.uniform(ns, element0$);
       tmp2 = primetest.makeNumber(65536, tmp1);
       return globalThis.Object.freeze([
         tmp2,
-        rs2
+        element1$
       ])
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static singleTestX(n, kq, x) {
-    let square, witness, q, k, t, ts, scrut, element1$, element0$, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4;
+    let square, witness, scrut, element1$, element0$, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4;
     square = function square(x1) {
       let tmp5;
       tmp5 = x1 * x1;
       return NofibPrelude.intMod(tmp5, n)
     };
     witness = function witness(ls) {
-      let t1, ts1, scrut1, scrut2, arg$Cons$0$1, arg$Cons$1$1, tmp5;
+      let scrut1, scrut2, arg$Cons$0$1, arg$Cons$1$1, tmp5;
       if (ls instanceof NofibPrelude.Nil.class) {
         return false
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$1 = ls.head;
         arg$Cons$1$1 = ls.tail;
-        ts1 = arg$Cons$1$1;
-        t1 = arg$Cons$0$1;
         tmp5 = n - 1;
-        scrut1 = t1 == tmp5;
+        scrut1 = arg$Cons$0$1 == tmp5;
         if (scrut1 === true) {
           return true
         }
-        scrut2 = t1 == 1;
+        scrut2 = arg$Cons$0$1 == 1;
         if (scrut2 === true) {
           return false
         }
-        return witness(ts1);
+        return witness(arg$Cons$1$1);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     if (runtime.Tuple.isArrayLike(kq) && kq.length === 2) {
       element0$ = runtime.Tuple.get(kq, 0);
       element1$ = runtime.Tuple.get(kq, 1);
-      q = element1$;
-      k = element0$;
-      tmp = primetest.powerMod(x, q, n);
+      tmp = primetest.powerMod(x, element1$, n);
       tmp1 = NofibPrelude.iterate(square, tmp);
-      scrut = NofibPrelude.take_lz(k, tmp1);
+      scrut = NofibPrelude.take_lz(element0$, tmp1);
       if (scrut instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = scrut.head;
         arg$Cons$1$ = scrut.tail;
-        ts = arg$Cons$1$;
-        t = arg$Cons$0$;
-        tmp2 = t == 1;
+        tmp2 = arg$Cons$0$ == 1;
         if (tmp2 === false) {
           tmp4 = n - 1;
-          tmp3 = t == tmp4;
+          tmp3 = arg$Cons$0$ == tmp4;
         } else {
           tmp3 = true;
         }
         if (tmp3 === false) {
-          return witness(ts)
+          return witness(arg$Cons$1$)
         }
         return true;
       }
@@ -376,19 +347,17 @@ let primetest1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static singleTest(n, kq, rs) {
-    let scrut, x, rs_, element1$, element0$, tmp, tmp1, tmp2;
+    let scrut, element1$, element0$, tmp, tmp1, tmp2;
     tmp = n - 2;
     scrut = primetest.random(tmp, rs);
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      rs_ = element1$;
-      x = element0$;
-      tmp1 = 2 + x;
+      tmp1 = 2 + element0$;
       tmp2 = primetest.singleTestX(n, kq, tmp1);
       return globalThis.Object.freeze([
         tmp2,
-        rs_
+        element1$
       ])
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -396,7 +365,7 @@ let primetest1;
   static multiTest(k, rs, n) {
     let mTest, scrut, tmp, tmp1, tmp2;
     mTest = function mTest(k1, rs1) {
-      let scrut1, scrut2, t, rs_, element1$, element0$, tmp3, tmp4;
+      let scrut1, scrut2, t, element1$, element0$, tmp3, tmp4;
       scrut1 = k1 == 0;
       if (scrut1 === true) {
         return globalThis.Object.freeze([
@@ -409,15 +378,14 @@ let primetest1;
       if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
         element0$ = runtime.Tuple.get(scrut2, 0);
         element1$ = runtime.Tuple.get(scrut2, 1);
-        rs_ = element1$;
         t = element0$;
         if (t === true) {
           tmp4 = k1 - 1;
-          return mTest(tmp4, rs_)
+          return mTest(tmp4, element1$)
         }
         return globalThis.Object.freeze([
           false,
-          rs_
+          element1$
         ]);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -439,36 +407,34 @@ let primetest1;
     return mTest(k, rs);
   } 
   static doLine(cs, cont, rs) {
-    let n, scrut, t, rs_, element1$, element0$, tmp, tmp1;
+    let n, scrut, t, element1$, element0$, tmp, tmp1;
     n = primetest.int_val_of_string(cs);
     scrut = primetest.multiTest(100, rs, n);
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      rs_ = element1$;
       t = element0$;
       if (t === true) {
-        tmp = runtime.safeCall(cont(rs_));
+        tmp = runtime.safeCall(cont(element1$));
         return NofibPrelude.Cons("Probably prime", tmp)
       }
-      tmp1 = runtime.safeCall(cont(rs_));
+      tmp1 = runtime.safeCall(cont(element1$));
       return NofibPrelude.Cons("Composite", tmp1);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static doInput(state, lls) {
-    let ls, l, arg$Cons$0$, arg$Cons$1$, lambda;
+    let ls, arg$Cons$0$, arg$Cons$1$, lambda;
     if (lls instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (lls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = lls.head;
       arg$Cons$1$ = lls.tail;
       ls = arg$Cons$1$;
-      l = arg$Cons$0$;
       lambda = (undefined, function (state1) {
         return primetest.doInput(state1, ls)
       });
-      return primetest.doLine(l, lambda, state)
+      return primetest.doLine(arg$Cons$0$, lambda, state)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 

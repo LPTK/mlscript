@@ -21,7 +21,7 @@ let cryptarithm11;
     return tmp7 + tmp8
   } 
   static condition(thirywelvn) {
-    let e, n, y, t, i, v, l, h, r, w, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, arg$Cons$0$3, arg$Cons$1$3, arg$Cons$0$4, arg$Cons$1$4, arg$Cons$0$5, arg$Cons$1$5, arg$Cons$0$6, arg$Cons$1$6, arg$Cons$0$7, arg$Cons$1$7, arg$Cons$0$8, arg$Cons$1$8, arg$Cons$0$9, arg$Cons$1$9, tmp, tmp1, tmp2, tmp3, tmp4;
+    let arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, arg$Cons$0$3, arg$Cons$1$3, arg$Cons$0$4, arg$Cons$1$4, arg$Cons$0$5, arg$Cons$1$5, arg$Cons$0$6, arg$Cons$1$6, arg$Cons$0$7, arg$Cons$1$7, arg$Cons$0$8, arg$Cons$1$8, arg$Cons$0$9, arg$Cons$1$9, tmp, tmp1, tmp2, tmp3, tmp4;
     if (thirywelvn instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = thirywelvn.head;
       arg$Cons$1$ = thirywelvn.tail;
@@ -53,21 +53,11 @@ let cryptarithm11;
                         arg$Cons$0$9 = arg$Cons$1$8.head;
                         arg$Cons$1$9 = arg$Cons$1$8.tail;
                         if (arg$Cons$1$9 instanceof NofibPrelude.Nil.class) {
-                          n = arg$Cons$0$9;
-                          v = arg$Cons$0$8;
-                          l = arg$Cons$0$7;
-                          e = arg$Cons$0$6;
-                          w = arg$Cons$0$5;
-                          y = arg$Cons$0$4;
-                          r = arg$Cons$0$3;
-                          i = arg$Cons$0$2;
-                          h = arg$Cons$0$1;
-                          t = arg$Cons$0$;
-                          tmp = cryptarithm1.expand(t, h, i, r, t, y);
-                          tmp1 = cryptarithm1.expand(t, w, e, l, v, e);
+                          tmp = cryptarithm1.expand(arg$Cons$0$, arg$Cons$0$1, arg$Cons$0$2, arg$Cons$0$3, arg$Cons$0$, arg$Cons$0$4);
+                          tmp1 = cryptarithm1.expand(arg$Cons$0$, arg$Cons$0$5, arg$Cons$0$6, arg$Cons$0$7, arg$Cons$0$8, arg$Cons$0$6);
                           tmp2 = 5 * tmp1;
                           tmp3 = tmp + tmp2;
-                          tmp4 = cryptarithm1.expand(n, i, n, e, t, y);
+                          tmp4 = cryptarithm1.expand(arg$Cons$0$9, arg$Cons$0$2, arg$Cons$0$9, arg$Cons$0$6, arg$Cons$0$, arg$Cons$0$4);
                           return tmp3 == tmp4
                         }
                       }
@@ -85,76 +75,69 @@ let cryptarithm11;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static addj(j, ls) {
-    let lscomp, k, ks, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4;
+    let lscomp, k, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4;
     if (ls instanceof NofibPrelude.Nil.class) {
       tmp = NofibPrelude.Cons(j, NofibPrelude.Nil);
       return NofibPrelude.Cons(tmp, NofibPrelude.Nil)
     } else if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
-      ks = arg$Cons$1$;
       k = arg$Cons$0$;
       lscomp = function lscomp(p1) {
-        let h1, t1, arg$Cons$0$1, arg$Cons$1$1, tmp5, tmp6;
+        let arg$Cons$0$1, arg$Cons$1$1, tmp5, tmp6;
         if (p1 instanceof NofibPrelude.Nil.class) {
           return NofibPrelude.Nil
         } else if (p1 instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$1 = p1.head;
           arg$Cons$1$1 = p1.tail;
-          t1 = arg$Cons$1$1;
-          h1 = arg$Cons$0$1;
-          tmp5 = NofibPrelude.Cons(k, h1);
-          tmp6 = lscomp(t1);
+          tmp5 = NofibPrelude.Cons(k, arg$Cons$0$1);
+          tmp6 = lscomp(arg$Cons$1$1);
           return NofibPrelude.Cons(tmp5, tmp6)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
-      tmp1 = NofibPrelude.Cons(k, ks);
+      tmp1 = NofibPrelude.Cons(k, arg$Cons$1$);
       tmp2 = NofibPrelude.Cons(j, tmp1);
-      tmp3 = cryptarithm1.addj(j, ks);
+      tmp3 = cryptarithm1.addj(j, arg$Cons$1$);
       tmp4 = lscomp(tmp3);
       return NofibPrelude.Cons(tmp2, tmp4)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static permutations(ls) {
-    let lscomp1, j, js, arg$Cons$0$, arg$Cons$1$, tmp;
+    let lscomp1, j, arg$Cons$0$, arg$Cons$1$, tmp;
     if (ls instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Cons(NofibPrelude.Nil, NofibPrelude.Nil)
     } else if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
-      js = arg$Cons$1$;
       j = arg$Cons$0$;
       lscomp1 = function lscomp1(p1) {
-        let lscomp2, pjs, t1, arg$Cons$0$1, arg$Cons$1$1, tmp1;
+        let lscomp2, t1, arg$Cons$0$1, arg$Cons$1$1, tmp1;
         if (p1 instanceof NofibPrelude.Nil.class) {
           return NofibPrelude.Nil
         } else if (p1 instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$1 = p1.head;
           arg$Cons$1$1 = p1.tail;
           t1 = arg$Cons$1$1;
-          pjs = arg$Cons$0$1;
           lscomp2 = function lscomp2(p2) {
-            let t2, r, arg$Cons$0$2, arg$Cons$1$2, tmp2;
+            let arg$Cons$0$2, arg$Cons$1$2, tmp2;
             if (p2 instanceof NofibPrelude.Nil.class) {
               return lscomp1(t1)
             } else if (p2 instanceof NofibPrelude.Cons.class) {
               arg$Cons$0$2 = p2.head;
               arg$Cons$1$2 = p2.tail;
-              t2 = arg$Cons$1$2;
-              r = arg$Cons$0$2;
-              tmp2 = lscomp2(t2);
-              return NofibPrelude.Cons(r, tmp2)
+              tmp2 = lscomp2(arg$Cons$1$2);
+              return NofibPrelude.Cons(arg$Cons$0$2, tmp2)
             }
             throw globalThis.Object.freeze(new globalThis.Error("match error"));
           };
-          tmp1 = cryptarithm1.addj(j, pjs);
+          tmp1 = cryptarithm1.addj(j, arg$Cons$0$1);
           return lscomp2(tmp1)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
-      tmp = cryptarithm1.permutations(js);
+      tmp = cryptarithm1.permutations(arg$Cons$1$);
       return lscomp1(tmp)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));

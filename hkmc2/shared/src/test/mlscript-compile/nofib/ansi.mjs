@@ -26,13 +26,11 @@ let ansi1;
     return NofibPrelude.Cons("E", tmp8)
   } 
   static at(x_y, s) {
-    let x, y, element1$, element0$, tmp;
+    let element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(x_y) && x_y.length === 2) {
       element0$ = runtime.Tuple.get(x_y, 0);
       element1$ = runtime.Tuple.get(x_y, 1);
-      y = element1$;
-      x = element0$;
-      tmp = ansi.goto(x, y);
+      tmp = ansi.goto(element0$, element1$);
       return NofibPrelude.append(tmp, s)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -48,29 +46,25 @@ let ansi1;
     return NofibPrelude.nofibStringToList("")
   } 
   static readChar(eof, consume, cs) {
-    let cs1, c, arg$Cons$0$, arg$Cons$1$;
+    let arg$Cons$0$, arg$Cons$1$;
     if (cs instanceof NofibPrelude.Nil.class) {
       return runtime.safeCall(eof(NofibPrelude.Nil))
     } else if (cs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = cs.head;
       arg$Cons$1$ = cs.tail;
-      cs1 = arg$Cons$1$;
-      c = arg$Cons$0$;
-      return runtime.safeCall(consume(c, cs1))
+      return runtime.safeCall(consume(arg$Cons$0$, arg$Cons$1$))
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static peekChar(eof, consume, cs) {
-    let cs1, c, arg$Cons$0$, arg$Cons$1$, tmp;
+    let arg$Cons$0$, arg$Cons$1$, tmp;
     if (cs instanceof NofibPrelude.Nil.class) {
       return runtime.safeCall(eof(NofibPrelude.Nil))
     } else if (cs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = cs.head;
       arg$Cons$1$ = cs.tail;
-      cs1 = arg$Cons$1$;
-      c = arg$Cons$0$;
-      tmp = NofibPrelude.Cons(c, cs1);
-      return runtime.safeCall(consume(c, tmp))
+      tmp = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
+      return runtime.safeCall(consume(arg$Cons$0$, tmp))
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -203,21 +197,19 @@ let ansi1;
     return ansi.writeAt(x_y, tmp, tmp2)
   } 
   static promptReadAt(x_y, l, prompt, consume) {
-    let x, y, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4;
+    let element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4;
     if (runtime.Tuple.isArrayLike(x_y) && x_y.length === 2) {
       element0$ = runtime.Tuple.get(x_y, 0);
       element1$ = runtime.Tuple.get(x_y, 1);
-      y = element1$;
-      x = element0$;
       tmp = globalThis.Object.freeze([
-        x,
-        y
+        element0$,
+        element1$
       ]);
       tmp1 = NofibPrelude.listLen(prompt);
-      tmp2 = x + tmp1;
+      tmp2 = element0$ + tmp1;
       tmp3 = globalThis.Object.freeze([
         tmp2,
-        y
+        element1$
       ]);
       tmp4 = ansi.readAt(tmp3, l, consume);
       return ansi.writeAt(tmp, prompt, tmp4)

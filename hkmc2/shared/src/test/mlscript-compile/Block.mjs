@@ -678,9 +678,9 @@ let Block2;
           }
         }
       }
-      tmp13 = Block.showPath(fun_);
+      tmp13 = Block.showPath(arg$Call$0$);
       tmp14 = tmp13 + "(";
-      tmp15 = Block.showArgs(args);
+      tmp15 = Block.showArgs(arg$Call$1$);
       tmp16 = tmp14 + tmp15;
       return tmp16 + ")"
     } else if (r instanceof Block.Instantiate.class) {
@@ -783,7 +783,7 @@ let Block2;
         tmp5 = "\n  ";
       }
       tmp6 = tmp4 + tmp5;
-      tmp7 = Block.showBlock(body);
+      tmp7 = Block.showBlock(arg$FunDefn$2$);
       tmp8 = Block.indent(tmp7);
       return tmp6 + tmp8
     } else if (d instanceof Block.ClsLikeDefn.class) {
@@ -799,7 +799,7 @@ let Block2;
       } else {
         tmp13 = " with\n";
       }
-      tmp14 = runtime.safeCall(methods.map(Block.showDefn));
+      tmp14 = runtime.safeCall(arg$ClsLikeDefn$1$.map(Block.showDefn));
       tmp15 = runtime.safeCall(tmp14.join("\n"));
       tmp16 = tmp13 + tmp15;
       tmp17 = Block.indent(tmp16);
@@ -818,13 +818,11 @@ let Block2;
     return tmp23 + " >";
   } 
   static showBlock(b) {
-    let rhs, rest, lhs, rest1, dflt, db, arg$Scoped$0$, arg$Scoped$1$, arg$Match$0$, arg$Match$1$, arg$Match$2$, arg$Match$3$, arg$Return$0$, arg$Define$0$, arg$Define$1$, arg$Assign$0$, arg$Assign$1$, arg$Assign$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, arg$Some$0$, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27;
+    let lhs, dflt, db, arg$Scoped$0$, arg$Scoped$1$, arg$Match$0$, arg$Match$1$, arg$Match$2$, arg$Match$3$, arg$Return$0$, arg$Define$0$, arg$Define$1$, arg$Assign$0$, arg$Assign$1$, arg$Assign$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, arg$Some$0$, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27;
     if (b instanceof Block.Assign.class) {
       arg$Assign$0$ = b.lhs;
       arg$Assign$1$ = b.rhs;
       arg$Assign$2$ = b.rest;
-      rest = arg$Assign$2$;
-      rhs = arg$Assign$1$;
       lhs = arg$Assign$0$;
       if (lhs instanceof Block.NoSymbol.class) {
         tmp = "";
@@ -832,9 +830,9 @@ let Block2;
         tmp1 = Block.showSymbol(arg$Assign$0$);
         tmp = tmp1 + " = ";
       }
-      tmp2 = Block.showResult(rhs);
+      tmp2 = Block.showResult(arg$Assign$1$);
       tmp3 = tmp + tmp2;
-      tmp4 = Block.showRestBlock(rest);
+      tmp4 = Block.showRestBlock(arg$Assign$2$);
       return tmp3 + tmp4
     } else if (b instanceof Block.Define.class) {
       arg$Define$0$ = b.defn;
@@ -850,7 +848,6 @@ let Block2;
       arg$Match$1$ = b.arms;
       arg$Match$2$ = b.dflt;
       arg$Match$3$ = b.rest;
-      rest1 = arg$Match$3$;
       dflt = arg$Match$2$;
       tmp7 = Block.showPath(arg$Match$0$);
       tmp8 = "if " + tmp7;
@@ -868,7 +865,7 @@ let Block2;
         } else {
           tmp15 = "\n";
         }
-        tmp16 = Block.showBlock(db);
+        tmp16 = Block.showBlock(arg$Some$0$);
         tmp17 = tmp15 + tmp16;
         tmp18 = Block.indent(tmp17);
         tmp19 = "\nelse" + tmp18;
@@ -877,7 +874,7 @@ let Block2;
         tmp20 = "";
       }
       tmp21 = tmp14 + tmp20;
-      tmp22 = Block.showRestBlock(rest1);
+      tmp22 = Block.showRestBlock(arg$Match$3$);
       return tmp21 + tmp22
     } else if (b instanceof Block.Scoped.class) {
       arg$Scoped$0$ = b.symbols;

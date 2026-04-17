@@ -41,36 +41,32 @@ let para1;
     this.test = tmp21;
   }
   static unwords(ws) {
-    let go, w, ws1, arg$Cons$0$, arg$Cons$1$, tmp;
+    let go, arg$Cons$0$, arg$Cons$1$, tmp;
     if (ws instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (ws instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ws.head;
       arg$Cons$1$ = ws.tail;
-      ws1 = arg$Cons$1$;
-      w = arg$Cons$0$;
       go = function go(vs) {
-        let v, vs1, arg$Cons$0$1, arg$Cons$1$1, tmp1, tmp2;
+        let arg$Cons$0$1, arg$Cons$1$1, tmp1, tmp2;
         if (vs instanceof NofibPrelude.Nil.class) {
           return NofibPrelude.Nil
         } else if (vs instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$1 = vs.head;
           arg$Cons$1$1 = vs.tail;
-          vs1 = arg$Cons$1$1;
-          v = arg$Cons$0$1;
-          tmp1 = go(vs1);
-          tmp2 = NofibPrelude.append(v, tmp1);
+          tmp1 = go(arg$Cons$1$1);
+          tmp2 = NofibPrelude.append(arg$Cons$0$1, tmp1);
           return NofibPrelude.Cons(" ", tmp2)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
-      tmp = go(ws1);
-      return NofibPrelude.append(w, tmp)
+      tmp = go(arg$Cons$1$);
+      return NofibPrelude.append(arg$Cons$0$, tmp)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static break_(p, xs) {
-    let x, xs1, scrut, scrut1, ys, zs, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1;
+    let scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1;
     if (xs instanceof NofibPrelude.Nil.class) {
       return globalThis.Object.freeze([
         NofibPrelude.Nil,
@@ -79,26 +75,22 @@ let para1;
     } else if (xs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = xs.head;
       arg$Cons$1$ = xs.tail;
-      xs1 = arg$Cons$1$;
-      x = arg$Cons$0$;
-      scrut = runtime.safeCall(p(x));
+      scrut = runtime.safeCall(p(arg$Cons$0$));
       if (scrut === true) {
-        tmp = NofibPrelude.Cons(x, xs1);
+        tmp = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
         return globalThis.Object.freeze([
           NofibPrelude.Nil,
           tmp
         ])
       }
-      scrut1 = para.break_(p, xs1);
+      scrut1 = para.break_(p, arg$Cons$1$);
       if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
         element0$ = runtime.Tuple.get(scrut1, 0);
         element1$ = runtime.Tuple.get(scrut1, 1);
-        zs = element1$;
-        ys = element0$;
-        tmp1 = NofibPrelude.Cons(x, ys);
+        tmp1 = NofibPrelude.Cons(arg$Cons$0$, element0$);
         return globalThis.Object.freeze([
           tmp1,
-          zs
+          element1$
         ])
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -109,31 +101,27 @@ let para1;
     return c === " "
   } 
   static words(s) {
-    let scrut, t, h, scrut1, s_, w, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1;
+    let scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1;
     scrut = NofibPrelude.leaveWhile(para.isSpace, s);
     if (scrut instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (scrut instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = scrut.head;
       arg$Cons$1$ = scrut.tail;
-      t = arg$Cons$1$;
-      h = arg$Cons$0$;
-      tmp = NofibPrelude.Cons(h, t);
+      tmp = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
       scrut1 = para.break_(para.isSpace, tmp);
       if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
         element0$ = runtime.Tuple.get(scrut1, 0);
         element1$ = runtime.Tuple.get(scrut1, 1);
-        s_ = element1$;
-        w = element0$;
-        tmp1 = para.words(s_);
-        return NofibPrelude.Cons(w, tmp1)
+        tmp1 = para.words(element1$);
+        return NofibPrelude.Cons(element0$, tmp1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lines(s) {
-    let scrut, s_, l, s__, element1$, element0$, lambda, arg$Cons$1$, tmp;
+    let scrut, s_, element1$, element0$, lambda, arg$Cons$1$, tmp;
     lambda = (undefined, function (x) {
       return x === "\n"
     });
@@ -142,15 +130,13 @@ let para1;
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
       s_ = element1$;
-      l = element0$;
       if (s_ instanceof NofibPrelude.Nil.class) {
         tmp = NofibPrelude.Nil;
-        return NofibPrelude.Cons(l, tmp)
+        return NofibPrelude.Cons(element0$, tmp)
       } else if (s_ instanceof NofibPrelude.Cons.class) {
-        arg$Cons$1$ = s_.tail;
-        s__ = arg$Cons$1$;
-        tmp = para.lines(s__);
-        return NofibPrelude.Cons(l, tmp)
+        arg$Cons$1$ = element1$.tail;
+        tmp = para.lines(arg$Cons$1$);
+        return NofibPrelude.Cons(element0$, tmp)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
@@ -168,17 +154,15 @@ let para1;
   } 
   static all(p, xs) {
     loopLabel: while (true) {
-      let x, xs1, arg$Cons$0$, arg$Cons$1$, tmp;
+      let arg$Cons$0$, arg$Cons$1$, tmp;
       if (xs instanceof NofibPrelude.Nil.class) {
         return true
       } else if (xs instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = xs.head;
         arg$Cons$1$ = xs.tail;
-        xs1 = arg$Cons$1$;
-        x = arg$Cons$0$;
-        tmp = runtime.safeCall(p(x));
+        tmp = runtime.safeCall(p(arg$Cons$0$));
         if (tmp === true) {
-          xs = xs1;
+          xs = arg$Cons$1$;
           continue loopLabel
         }
         return false;
@@ -187,18 +171,15 @@ let para1;
     }
   } 
   static fold1(f, g, xs) {
-    let a, x, a1, arg$Cons$0$, arg$Cons$1$, tmp;
+    let arg$Cons$0$, arg$Cons$1$, tmp;
     if (xs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = xs.head;
       arg$Cons$1$ = xs.tail;
       if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
-        a = arg$Cons$0$;
-        return runtime.safeCall(g(a))
+        return runtime.safeCall(g(arg$Cons$0$))
       }
-      x = arg$Cons$1$;
-      a1 = arg$Cons$0$;
-      tmp = para.fold1(f, g, x);
-      return runtime.safeCall(f(a1, tmp));
+      tmp = para.fold1(f, g, arg$Cons$1$);
+      return runtime.safeCall(f(arg$Cons$0$, tmp));
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -261,14 +242,12 @@ let para1;
     return NofibPrelude.Cons(tmp, ls)
   } 
   static glue(w, ls) {
-    let l, ls_, arg$Cons$0$, arg$Cons$1$, tmp;
+    let arg$Cons$0$, arg$Cons$1$, tmp;
     if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
-      ls_ = arg$Cons$1$;
-      l = arg$Cons$0$;
-      tmp = NofibPrelude.Cons(w, l);
-      return NofibPrelude.Cons(tmp, ls_)
+      tmp = NofibPrelude.Cons(w, arg$Cons$0$);
+      return NofibPrelude.Cons(tmp, arg$Cons$1$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -315,13 +294,11 @@ let para1;
   static cost(ls) {
     let plus, lambda;
     plus = function plus(l, n) {
-      let tmp, l1, inlinedVal, a, tmp1;
-      l1 = l;
-      tmp1 = para.width(l1);
-      a = para.optw - tmp1;
+      let inlinedVal, a, tmp;
+      tmp = para.width(l);
+      a = para.optw - tmp;
       inlinedVal = a * a;
-      tmp = inlinedVal;
-      return tmp + n
+      return inlinedVal + n
     };
     lambda = (undefined, function (x) {
       return 0
@@ -340,35 +317,32 @@ let para1;
     return para.fits(tmp)
   } 
   static fst3(a_b_c) {
-    let a, element0$;
+    let element0$;
     if (runtime.Tuple.isArrayLike(a_b_c) && a_b_c.length === 3) {
       element0$ = runtime.Tuple.get(a_b_c, 0);
       runtime.Tuple.get(a_b_c, 1);
       runtime.Tuple.get(a_b_c, 2);
-      a = element0$;
-      return a
+      return element0$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static snd3(a_b_c) {
-    let b, element1$;
+    let element1$;
     if (runtime.Tuple.isArrayLike(a_b_c) && a_b_c.length === 3) {
       runtime.Tuple.get(a_b_c, 0);
       element1$ = runtime.Tuple.get(a_b_c, 1);
       runtime.Tuple.get(a_b_c, 2);
-      b = element1$;
-      return b
+      return element1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static thd3(a_b_c) {
-    let c, element2$;
+    let element2$;
     if (runtime.Tuple.isArrayLike(a_b_c) && a_b_c.length === 3) {
       runtime.Tuple.get(a_b_c, 0);
       runtime.Tuple.get(a_b_c, 1);
       element2$ = runtime.Tuple.get(a_b_c, 2);
-      c = element2$;
-      return c
+      return element2$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -382,7 +356,7 @@ let para1;
     return para.thd3(a_b_c)
   } 
   static tile(ws, a_b) {
-    let n, m, ms, l, scrut, ws1, ws2, element1$, element0$, arg$Cons$0$, arg$Cons$1$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
+    let l, scrut, element1$, element0$, arg$Cons$0$, arg$Cons$1$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
@@ -391,24 +365,19 @@ let para1;
       } else if (element0$ instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = element0$.head;
         arg$Cons$1$ = element0$.tail;
-        n = element1$;
-        ms = arg$Cons$1$;
-        m = arg$Cons$0$;
-        l = n - m;
+        l = element1$ - arg$Cons$0$;
         scrut = NofibPrelude.splitAt(l, ws);
         if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
           element0$1 = runtime.Tuple.get(scrut, 0);
           element1$1 = runtime.Tuple.get(scrut, 1);
-          ws2 = element1$1;
-          ws1 = element0$1;
-          tmp = NofibPrelude.Cons(m, ms);
+          tmp = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
           tmp1 = NofibPrelude.leave(l, tmp);
           tmp2 = globalThis.Object.freeze([
             tmp1,
-            m
+            arg$Cons$0$
           ]);
-          tmp3 = para.tile(ws2, tmp2);
-          return NofibPrelude.Cons(ws1, tmp3)
+          tmp3 = para.tile(element1$1, tmp2);
+          return NofibPrelude.Cons(element0$1, tmp3)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -432,22 +401,20 @@ let para1;
     return false;
   } 
   static single_(a_b) {
-    let x, y, element1$, element0$, tmp, tmp1, tmp2;
+    let element1$, element0$, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
-      y = element1$;
-      x = element0$;
-      tmp = NofibPrelude.null_(x);
+      tmp = NofibPrelude.null_(element0$);
       if (tmp === true) {
-        tmp1 = para.single(y);
+        tmp1 = para.single(element1$);
       } else {
         tmp1 = false;
       }
       if (tmp1 === false) {
-        tmp2 = para.single(x);
+        tmp2 = para.single(element0$);
         if (tmp2 === true) {
-          return NofibPrelude.null_(y)
+          return NofibPrelude.null_(element1$)
         }
         return false;
       }
@@ -456,168 +423,152 @@ let para1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static head_(a_b) {
-    let x, y, scrut, element1$, element0$, tmp;
+    let scrut, element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
-      y = element1$;
-      x = element0$;
-      tmp = NofibPrelude.null_(x);
+      tmp = NofibPrelude.null_(element0$);
       scrut = ! tmp;
       if (scrut === true) {
-        return NofibPrelude.head(x)
+        return NofibPrelude.head(element0$)
       }
-      return NofibPrelude.head(y);
+      return NofibPrelude.head(element1$);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static last_(a_b) {
-    let x, y, scrut, element1$, element0$, tmp;
+    let scrut, element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
-      x = element1$;
-      y = element0$;
-      tmp = NofibPrelude.null_(x);
+      tmp = NofibPrelude.null_(element1$);
       scrut = ! tmp;
       if (scrut === true) {
-        return NofibPrelude.head(x)
+        return NofibPrelude.head(element1$)
       }
-      return NofibPrelude.head(y);
+      return NofibPrelude.head(element0$);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static cons_(a, a_b) {
-    let x, y, scrut, element1$, element0$, tmp, tmp1, tmp2;
+    let scrut, element1$, element0$, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
-      y = element1$;
-      x = element0$;
-      tmp = NofibPrelude.null_(y);
+      tmp = NofibPrelude.null_(element1$);
       scrut = ! tmp;
       if (scrut === true) {
-        tmp1 = NofibPrelude.Cons(a, x);
+        tmp1 = NofibPrelude.Cons(a, element0$);
         return globalThis.Object.freeze([
           tmp1,
-          y
+          element1$
         ])
       }
       tmp2 = NofibPrelude.Cons(a, NofibPrelude.Nil);
       return globalThis.Object.freeze([
         tmp2,
-        x
+        element0$
       ]);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static snoc_(a, a_b) {
-    let x, y, scrut, element1$, element0$, tmp, tmp1, tmp2;
+    let scrut, element1$, element0$, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
-      x = element1$;
-      y = element0$;
-      tmp = NofibPrelude.null_(y);
+      tmp = NofibPrelude.null_(element0$);
       scrut = ! tmp;
       if (scrut === true) {
-        tmp1 = NofibPrelude.Cons(a, x);
+        tmp1 = NofibPrelude.Cons(a, element1$);
         return globalThis.Object.freeze([
-          y,
+          element0$,
           tmp1
         ])
       }
       tmp2 = NofibPrelude.Cons(a, NofibPrelude.Nil);
       return globalThis.Object.freeze([
-        x,
+        element1$,
         tmp2
       ]);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static tail_(a_b) {
-    let x, y, scrut, scrut1, y0, y1, scrut2, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4;
+    let scrut, scrut1, scrut2, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
-      y = element1$;
-      x = element0$;
-      scrut = NofibPrelude.null_(x);
+      scrut = NofibPrelude.null_(element0$);
       if (scrut === true) {
         return globalThis.Object.freeze([
           NofibPrelude.Nil,
           NofibPrelude.Nil
         ])
       }
-      scrut1 = para.single(x);
+      scrut1 = para.single(element0$);
       if (scrut1 === true) {
-        tmp = NofibPrelude.listLen(y);
+        tmp = NofibPrelude.listLen(element1$);
         tmp1 = NofibPrelude.intDiv(tmp, 2);
-        scrut2 = NofibPrelude.splitAt(tmp1, y);
+        scrut2 = NofibPrelude.splitAt(tmp1, element1$);
         if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
           element0$1 = runtime.Tuple.get(scrut2, 0);
           element1$1 = runtime.Tuple.get(scrut2, 1);
-          y1 = element1$1;
-          y0 = element0$1;
-          tmp2 = NofibPrelude.reverse(y1);
+          tmp2 = NofibPrelude.reverse(element1$1);
           return globalThis.Object.freeze([
             tmp2,
-            y0
+            element0$1
           ])
         }
-        tmp3 = NofibPrelude.tail(x);
+        tmp3 = NofibPrelude.tail(element0$);
         return globalThis.Object.freeze([
           tmp3,
-          y
+          element1$
         ]);
       }
-      tmp4 = NofibPrelude.tail(x);
+      tmp4 = NofibPrelude.tail(element0$);
       return globalThis.Object.freeze([
         tmp4,
-        y
+        element1$
       ]);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static init_(a_b) {
-    let x, y, scrut, scrut1, y0, y1, scrut2, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4;
+    let scrut, scrut1, scrut2, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
-      x = element1$;
-      y = element0$;
-      scrut = NofibPrelude.null_(x);
+      scrut = NofibPrelude.null_(element1$);
       if (scrut === true) {
         return globalThis.Object.freeze([
           NofibPrelude.Nil,
           NofibPrelude.Nil
         ])
       }
-      scrut1 = para.single(x);
+      scrut1 = para.single(element1$);
       if (scrut1 === true) {
-        tmp = NofibPrelude.listLen(y);
+        tmp = NofibPrelude.listLen(element0$);
         tmp1 = NofibPrelude.intDiv(tmp, 2);
-        scrut2 = NofibPrelude.splitAt(tmp1, y);
+        scrut2 = NofibPrelude.splitAt(tmp1, element0$);
         if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
           element0$1 = runtime.Tuple.get(scrut2, 0);
           element1$1 = runtime.Tuple.get(scrut2, 1);
-          y1 = element1$1;
-          y0 = element0$1;
-          tmp2 = NofibPrelude.reverse(y1);
+          tmp2 = NofibPrelude.reverse(element1$1);
           return globalThis.Object.freeze([
-            y0,
+            element0$1,
             tmp2
           ])
         }
-        tmp3 = NofibPrelude.tail(x);
+        tmp3 = NofibPrelude.tail(element1$);
         return globalThis.Object.freeze([
-          y,
+          element0$,
           tmp3
         ]);
       }
-      tmp4 = NofibPrelude.tail(x);
+      tmp4 = NofibPrelude.tail(element1$);
       return globalThis.Object.freeze([
-        y,
+        element0$,
         tmp4
       ]);
     }
@@ -642,10 +593,8 @@ let para1;
       return NofibPrelude.Cons(NofibPrelude.Nil, NofibPrelude.Nil)
     }
     breakk = function breakk(a1, b, xs) {
-      let scrut, tmp, tmp1, tmp2, a2, b1, inlinedVal;
-      a2 = a1;
-      b1 = b;
-      inlinedVal = a2 === b1;
+      let scrut, tmp, tmp1, tmp2, inlinedVal;
+      inlinedVal = a1 === b;
       scrut = inlinedVal;
       if (scrut === true) {
         return NofibPrelude.Cons(NofibPrelude.Nil, xs)
@@ -659,11 +608,10 @@ let para1;
       return breakk(a, x1, y)
     });
     lambda1 = (undefined, function (y) {
-      let a1, b, inlinedVal, tmp;
+      let a1, inlinedVal, tmp;
       a1 = a;
-      b = y;
       tmp = NofibPrelude.Cons(NofibPrelude.Nil, NofibPrelude.Nil);
-      inlinedVal = breakk(a1, b, tmp);
+      inlinedVal = breakk(a1, y, tmp);
       return inlinedVal
     });
     return para.fold1(lambda, lambda1, x);
@@ -727,44 +675,41 @@ let para1;
     return para.unparse(tmp1)
   } 
   static stepr(w, ps_tw_tl) {
-    let bf, width_hd, myAdd, single, cost, leave_nofit, trim, tl, ps, tw, tot_width, tot_len, element2$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+    let bf, width_hd, myAdd, single, cost, leave_nofit, trim, tot_width, tot_len, element2$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4;
     if (runtime.Tuple.isArrayLike(ps_tw_tl) && ps_tw_tl.length === 3) {
-      let p, inlinedVal, scrut, x, tmp6, tmp7, tmp8, tmp9;
+      let inlinedVal, scrut, x, tmp5, tmp6, tmp7;
       element0$ = runtime.Tuple.get(ps_tw_tl, 0);
       element1$ = runtime.Tuple.get(ps_tw_tl, 1);
       element2$ = runtime.Tuple.get(ps_tw_tl, 2);
-      tl = element2$;
-      tw = element1$;
-      ps = element0$;
-      single = function single(p1) {
-        let tmp10;
-        tmp10 = para.len_tl(p1);
-        return tmp10 === 0
+      single = function single(p) {
+        let tmp8;
+        tmp8 = para.len_tl(p);
+        return tmp8 === 0
       };
-      width_hd = function width_hd(p1) {
-        let scrut1, tmp10, tmp11;
-        scrut1 = single(p1);
+      width_hd = function width_hd(p) {
+        let scrut1, tmp8, tmp9;
+        scrut1 = single(p);
         if (scrut1 === true) {
           return tot_width
         }
-        tmp10 = para.width_tl(p1);
-        tmp11 = tot_width - tmp10;
-        return tmp11 - 1;
+        tmp8 = para.width_tl(p);
+        tmp9 = tot_width - tmp8;
+        return tmp9 - 1;
       };
-      cost = function cost(p1) {
-        let scrut1, a, tmp10, tmp11, tmp12;
-        scrut1 = single(p1);
+      cost = function cost(p) {
+        let scrut1, a, tmp8, tmp9, tmp10;
+        scrut1 = single(p);
         if (scrut1 === true) {
           return 0
         }
-        tmp10 = para.cost_tl(p1);
-        tmp11 = width_hd(p1);
-        a = para.optw - tmp11;
-        tmp12 = a * a;
-        return tmp10 + tmp12;
+        tmp8 = para.cost_tl(p);
+        tmp9 = width_hd(p);
+        a = para.optw - tmp9;
+        tmp10 = a * a;
+        return tmp8 + tmp10;
       };
       trim = function trim(ps_pq) {
-        let scrut1, scrut2, ps_p, q, p1, scrut3, tmp10, tmp11;
+        let scrut1, scrut2, ps_p, q, p, scrut3, tmp8, tmp9;
         scrut1 = para.null__(ps_pq);
         if (scrut1 === true) {
           return ps_pq
@@ -775,124 +720,120 @@ let para1;
         }
         ps_p = para.init_(ps_pq);
         q = para.last_(ps_pq);
-        p1 = para.last_(ps_p);
-        tmp10 = cost(p1);
-        tmp11 = cost(q);
-        scrut3 = tmp10 <= tmp11;
+        p = para.last_(ps_p);
+        tmp8 = cost(p);
+        tmp9 = cost(q);
+        scrut3 = tmp8 <= tmp9;
         if (scrut3 === true) {
           return trim(ps_p)
         }
         return ps_pq;
       };
       leave_nofit = function leave_nofit(ps_p) {
-        let scrut1, scrut2, tmp10, tmp11, tmp12;
+        let scrut1, scrut2, tmp8, tmp9, tmp10;
         scrut1 = para.null__(ps_p);
         if (scrut1 === true) {
           return ps_p
         }
-        tmp10 = para.last_(ps_p);
-        tmp11 = width_hd(tmp10);
-        scrut2 = tmp11 > para.maxw;
+        tmp8 = para.last_(ps_p);
+        tmp9 = width_hd(tmp8);
+        scrut2 = tmp9 > para.maxw;
         if (scrut2 === true) {
-          tmp12 = para.init_(ps_p);
-          return leave_nofit(tmp12)
+          tmp10 = para.init_(ps_p);
+          return leave_nofit(tmp10)
         }
         return ps_p;
       };
-      bf = function bf(p1, q) {
-        let wqh, rqh, scrut1, scrut2, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      bf = function bf(p, q) {
+        let wqh, rqh, scrut1, scrut2, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20;
         wqh = width_hd(q);
-        tmp10 = para.maxw - wqh;
-        rqh = tmp10 + 1;
-        tmp11 = single(q);
-        if (tmp11 === true) {
-          tmp13 = para.cost_tl(p1);
-          tmp12 = tmp13 === 0;
+        tmp8 = para.maxw - wqh;
+        rqh = tmp8 + 1;
+        tmp9 = single(q);
+        if (tmp9 === true) {
+          tmp11 = para.cost_tl(p);
+          tmp10 = tmp11 === 0;
         } else {
-          tmp12 = false;
+          tmp10 = false;
         }
-        scrut1 = tmp12;
+        scrut1 = tmp10;
         if (scrut1 === true) {
-          tmp14 = width_hd(p1);
-          tmp15 = para.optw - tmp14;
-          return NofibPrelude.min(tmp15, rqh)
+          tmp12 = width_hd(p);
+          tmp13 = para.optw - tmp12;
+          return NofibPrelude.min(tmp13, rqh)
         }
         scrut2 = single(q);
         if (scrut2 === true) {
           return rqh
         }
-        tmp16 = cost(p1);
-        tmp17 = cost(q);
-        tmp18 = tmp16 - tmp17;
-        tmp19 = width_hd(p1);
-        tmp20 = wqh - tmp19;
-        tmp21 = 2 * tmp20;
-        tmp22 = para.ceildiv(tmp18, tmp21);
-        return NofibPrelude.min(tmp22, rqh);
+        tmp14 = cost(p);
+        tmp15 = cost(q);
+        tmp16 = tmp14 - tmp15;
+        tmp17 = width_hd(p);
+        tmp18 = wqh - tmp17;
+        tmp19 = 2 * tmp18;
+        tmp20 = para.ceildiv(tmp16, tmp19);
+        return NofibPrelude.min(tmp20, rqh);
       };
-      myAdd = function myAdd(p1, qr_rs) {
-        let scrut1, q, r_rs, r, scrut2, tmp10, tmp11, tmp12, tmp13;
-        tmp10 = para.single_(qr_rs);
-        if (tmp10 === false) {
-          tmp11 = para.null__(qr_rs);
+      myAdd = function myAdd(p, qr_rs) {
+        let scrut1, q, r_rs, r, scrut2, tmp8, tmp9, tmp10, tmp11;
+        tmp8 = para.single_(qr_rs);
+        if (tmp8 === false) {
+          tmp9 = para.null__(qr_rs);
         } else {
-          tmp11 = true;
+          tmp9 = true;
         }
-        scrut1 = tmp11;
+        scrut1 = tmp9;
         if (scrut1 === true) {
-          return para.cons_(p1, qr_rs)
+          return para.cons_(p, qr_rs)
         }
         q = para.head_(qr_rs);
         r_rs = para.tail_(qr_rs);
         r = para.head_(r_rs);
-        tmp12 = bf(p1, q);
-        tmp13 = bf(q, r);
-        scrut2 = tmp12 <= tmp13;
+        tmp10 = bf(p, q);
+        tmp11 = bf(q, r);
+        scrut2 = tmp10 <= tmp11;
         if (scrut2 === true) {
-          return myAdd(p1, r_rs)
+          return myAdd(p, r_rs)
         }
-        return para.cons_(p1, qr_rs);
+        return para.cons_(p, qr_rs);
       };
       tmp = w + 1;
-      tot_width = tmp + tw;
-      tot_len = 1 + tl;
-      tmp1 = para.last_(ps);
-      p = tmp1;
-      scrut = single(p);
+      tot_width = tmp + element1$;
+      tot_len = 1 + element2$;
+      tmp1 = para.last_(element0$);
+      scrut = single(tmp1);
       if (scrut === true) {
         inlinedVal = globalThis.Object.freeze([
-          tw,
+          element1$,
           0,
-          tl
+          element2$
         ]);
       } else {
-        let p1, inlinedVal1, scrut1, tmp10, tmp11;
-        tmp6 = para.cost_tl(p);
-        p1 = p;
-        scrut1 = single(p1);
+        let inlinedVal1, scrut1, tmp8, tmp9;
+        tmp5 = para.cost_tl(tmp1);
+        scrut1 = single(tmp1);
         if (scrut1 === true) {
-          inlinedVal1 = tw;
+          inlinedVal1 = element1$;
         } else {
-          tmp10 = para.width_tl(p1);
-          tmp11 = tw - tmp10;
-          inlinedVal1 = tmp11 - 1;
+          tmp8 = para.width_tl(tmp1);
+          tmp9 = element1$ - tmp8;
+          inlinedVal1 = tmp9 - 1;
         }
-        tmp7 = inlinedVal1;
-        x = para.optw - tmp7;
-        tmp8 = x * x;
-        tmp9 = tmp6 + tmp8;
+        x = para.optw - inlinedVal1;
+        tmp6 = x * x;
+        tmp7 = tmp5 + tmp6;
         inlinedVal = globalThis.Object.freeze([
-          tw,
-          tmp9,
-          tl
+          element1$,
+          tmp7,
+          element2$
         ]);
       }
-      tmp2 = inlinedVal;
-      tmp3 = myAdd(tmp2, ps);
-      tmp4 = leave_nofit(tmp3);
-      tmp5 = trim(tmp4);
+      tmp2 = myAdd(inlinedVal, element0$);
+      tmp3 = leave_nofit(tmp2);
+      tmp4 = trim(tmp3);
       return globalThis.Object.freeze([
-        tmp5,
+        tmp4,
         tot_width,
         tot_len
       ])

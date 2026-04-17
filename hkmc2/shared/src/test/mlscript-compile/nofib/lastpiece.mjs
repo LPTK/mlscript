@@ -1507,17 +1507,14 @@ let lastpiece1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let q, g, p1, q1, g1, p11, arg$Above$0$, arg$Above$1$, arg$Above$2$, arg$Beside$0$, arg$Beside$1$, arg$Beside$2$, tmp, tmp1;
+          let arg$Above$0$, arg$Above$1$, arg$Above$2$, arg$Beside$0$, arg$Beside$1$, arg$Beside$2$, tmp, tmp1;
           if (param0 instanceof lastpiece.Beside.class) {
             arg$Beside$0$ = param0.d1;
             arg$Beside$1$ = param0.b;
             arg$Beside$2$ = param0.d2;
-            q = arg$Beside$2$;
-            g = arg$Beside$1$;
-            p1 = arg$Beside$0$;
-            tmp = lastpiece.reduceDoc(q);
-            param0 = p1;
-            param1 = g;
+            tmp = lastpiece.reduceDoc(arg$Beside$2$);
+            param0 = arg$Beside$0$;
+            param1 = arg$Beside$1$;
             param2 = tmp;
             id = 1;
             continue loopLabel
@@ -1525,55 +1522,45 @@ let lastpiece1;
             arg$Above$0$ = param0.d1;
             arg$Above$1$ = param0.b;
             arg$Above$2$ = param0.d2;
-            q1 = arg$Above$2$;
-            g1 = arg$Above$1$;
-            p11 = arg$Above$0$;
-            tmp1 = lastpiece.reduceDoc(q1);
-            param0 = p11;
-            param1 = g1;
+            tmp1 = lastpiece.reduceDoc(arg$Above$2$);
+            param0 = arg$Above$0$;
+            param1 = arg$Above$1$;
             param2 = tmp1;
             id = 2;
             continue loopLabel
           }
           return param0;
         case 1:
-          let p2, p12, p13, k, g11, q11, p14, scrut, p15, t, p16, rest, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Beside$0$1, arg$Beside$1$1, arg$Beside$2$1, arg$Nest$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
+          let scrut, p1, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Beside$0$1, arg$Beside$1$1, arg$Beside$2$1, arg$Nest$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
           if (param0 instanceof lastpiece.NoDoc.class) {
             return lastpiece.NoDoc
           } else if (param0 instanceof lastpiece.Union.class) {
             arg$Union$0$ = param0.d1;
             arg$Union$1$ = param0.d2;
-            p2 = arg$Union$1$;
-            p12 = arg$Union$0$;
-            tmp2 = lastpiece.beside(p12, param1, param2);
-            tmp3 = lastpiece.beside(p2, param1, param2);
+            tmp2 = lastpiece.beside(arg$Union$0$, param1, param2);
+            tmp3 = lastpiece.beside(arg$Union$1$, param1, param2);
             return lastpiece.Union(tmp2, tmp3)
           } else if (param0 instanceof lastpiece.Empty.class) {
             return param2
           } else if (param0 instanceof lastpiece.Nest.class) {
             arg$Nest$0$ = param0.i;
             arg$Nest$1$ = param0.d;
-            p13 = arg$Nest$1$;
-            k = arg$Nest$0$;
-            tmp4 = lastpiece.beside(p13, param1, param2);
-            return lastpiece.Nest(k, tmp4)
+            tmp4 = lastpiece.beside(arg$Nest$1$, param1, param2);
+            return lastpiece.Nest(arg$Nest$0$, tmp4)
           } else if (param0 instanceof lastpiece.Beside.class) {
             arg$Beside$0$1 = param0.d1;
             arg$Beside$1$1 = param0.b;
             arg$Beside$2$1 = param0.d2;
-            q11 = arg$Beside$2$1;
-            g11 = arg$Beside$1$1;
-            p14 = arg$Beside$0$1;
-            scrut = g11 === param1;
+            scrut = arg$Beside$1$1 === param1;
             if (scrut === true) {
-              tmp5 = lastpiece.beside(q11, param1, param2);
-              param0 = p14;
-              param1 = g11;
+              tmp5 = lastpiece.beside(arg$Beside$2$1, param1, param2);
+              param0 = arg$Beside$0$1;
+              param1 = arg$Beside$1$1;
               param2 = tmp5;
               id = 1;
               continue loopLabel
             }
-            tmp6 = lastpiece.Beside(p14, g11, q11);
+            tmp6 = lastpiece.Beside(arg$Beside$0$1, arg$Beside$1$1, arg$Beside$2$1);
             tmp7 = lastpiece.reduceDoc(tmp6);
             param0 = tmp7;
             id = 1;
@@ -1585,35 +1572,29 @@ let lastpiece1;
             continue loopLabel
           } else if (param0 instanceof lastpiece.NilAbove.class) {
             arg$NilAbove$0$ = param0.d;
-            p15 = arg$NilAbove$0$;
-            tmp9 = lastpiece.beside(p15, param1, param2);
+            tmp9 = lastpiece.beside(arg$NilAbove$0$, param1, param2);
             return lastpiece.NilAbove(tmp9)
           } else if (param0 instanceof lastpiece.TextBeside.class) {
             arg$TextBeside$0$ = param0.a;
             arg$TextBeside$1$ = param0.d;
-            p16 = arg$TextBeside$1$;
-            t = arg$TextBeside$0$;
-            if (p16 instanceof lastpiece.Empty.class) {
+            p1 = arg$TextBeside$1$;
+            if (p1 instanceof lastpiece.Empty.class) {
               tmp10 = lastpiece.nilBeside(param1, param2);
-            } else {
-              tmp10 = lastpiece.beside(p16, param1, param2);
+              return lastpiece.TextBeside(arg$TextBeside$0$, tmp10)
             }
-            rest = tmp10;
-            return lastpiece.TextBeside(t, rest)
+            tmp10 = lastpiece.beside(arg$TextBeside$1$, param1, param2);
+            return lastpiece.TextBeside(arg$TextBeside$0$, tmp10);
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         case 2:
-          let g12, q12, p17, arg$Above$0$1, arg$Above$1$1, arg$Above$2$1, tmp11, tmp12, tmp13, tmp14;
+          let arg$Above$0$1, arg$Above$1$1, arg$Above$2$1, tmp11, tmp12, tmp13, tmp14;
           if (param0 instanceof lastpiece.Above.class) {
             arg$Above$0$1 = param0.d1;
             arg$Above$1$1 = param0.b;
             arg$Above$2$1 = param0.d2;
-            q12 = arg$Above$2$1;
-            g12 = arg$Above$1$1;
-            p17 = arg$Above$0$1;
-            tmp11 = lastpiece.above(q12, param1, param2);
-            param0 = p17;
-            param1 = g12;
+            tmp11 = lastpiece.above(arg$Above$2$1, param1, param2);
+            param0 = arg$Above$0$1;
+            param1 = arg$Above$1$1;
             param2 = tmp11;
             id = 2;
             continue loopLabel
@@ -1636,23 +1617,20 @@ let lastpiece1;
   } 
   static mapMaybe(f, ls) {
     loopLabel: while (true) {
-      let t, h, scrut, a, arg$Cons$0$, arg$Cons$1$, arg$Some$0$, tmp;
+      let scrut, arg$Cons$0$, arg$Cons$1$, arg$Some$0$, tmp;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
-        h = arg$Cons$0$;
-        scrut = runtime.safeCall(f(h));
+        scrut = runtime.safeCall(f(arg$Cons$0$));
         if (scrut instanceof NofibPrelude.None.class) {
-          ls = t;
+          ls = arg$Cons$1$;
           continue loopLabel
         } else if (scrut instanceof NofibPrelude.Some.class) {
           arg$Some$0$ = scrut.x;
-          a = arg$Some$0$;
-          tmp = lastpiece.mapMaybe(f, t);
-          return NofibPrelude.Cons(a, tmp)
+          tmp = lastpiece.mapMaybe(f, arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Some$0$, tmp)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -1660,30 +1638,26 @@ let lastpiece1;
     }
   } 
   static compareIntInt(ab, cd) {
-    let a, b, c, d, scrut, scrut1, scrut2, scrut3, element1$, element0$, element1$1, element0$1;
+    let scrut, scrut1, scrut2, scrut3, element1$, element0$, element1$1, element0$1;
     if (runtime.Tuple.isArrayLike(ab) && ab.length === 2) {
       element0$ = runtime.Tuple.get(ab, 0);
       element1$ = runtime.Tuple.get(ab, 1);
-      b = element1$;
-      a = element0$;
       if (runtime.Tuple.isArrayLike(cd) && cd.length === 2) {
         element0$1 = runtime.Tuple.get(cd, 0);
         element1$1 = runtime.Tuple.get(cd, 1);
-        d = element1$1;
-        c = element0$1;
-        scrut = a > c;
+        scrut = element0$ > element0$1;
         if (scrut === true) {
           return lastpiece.GT
         }
-        scrut1 = a < c;
+        scrut1 = element0$ < element0$1;
         if (scrut1 === true) {
           return lastpiece.LT
         }
-        scrut2 = b > d;
+        scrut2 = element1$ > element1$1;
         if (scrut2 === true) {
           return lastpiece.GT
         }
-        scrut3 = b < d;
+        scrut3 = element1$ < element1$1;
         if (scrut3 === true) {
           return lastpiece.LT
         }
@@ -1695,7 +1669,7 @@ let lastpiece1;
   } 
   static mapLookup(k, m) {
     loopLabel: while (true) {
-      let x, l, r, kx, scrut, arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$;
+      let scrut, arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$;
       if (m instanceof lastpiece.Tip.class) {
         return NofibPrelude.None
       } else if (m instanceof lastpiece.Bin.class) {
@@ -1703,19 +1677,15 @@ let lastpiece1;
         arg$Bin$2$ = m.v;
         arg$Bin$3$ = m.l;
         arg$Bin$4$ = m.r;
-        r = arg$Bin$4$;
-        l = arg$Bin$3$;
-        x = arg$Bin$2$;
-        kx = arg$Bin$1$;
-        scrut = lastpiece.compareIntInt(k, kx);
+        scrut = lastpiece.compareIntInt(k, arg$Bin$1$);
         if (scrut instanceof lastpiece.LT.class) {
-          m = l;
+          m = arg$Bin$3$;
           continue loopLabel
         } else if (scrut instanceof lastpiece.GT.class) {
-          m = r;
+          m = arg$Bin$4$;
           continue loopLabel
         } else if (scrut instanceof lastpiece.EQ.class) {
-          return NofibPrelude.Some(x)
+          return NofibPrelude.Some(arg$Bin$2$)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -1723,13 +1693,12 @@ let lastpiece1;
     }
   } 
   static size(p) {
-    let sz, arg$Bin$0$;
+    let arg$Bin$0$;
     if (p instanceof lastpiece.Tip.class) {
       return 0
     } else if (p instanceof lastpiece.Bin.class) {
       arg$Bin$0$ = p.i;
-      sz = arg$Bin$0$;
-      return sz
+      return arg$Bin$0$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -1742,39 +1711,31 @@ let lastpiece1;
     return lastpiece.Bin(tmp3, k, x, l, r)
   } 
   static singleL(k1, x1, t1, r) {
-    let k2, t3, x2, t2, arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, tmp;
+    let arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, tmp;
     if (r instanceof lastpiece.Bin.class) {
       arg$Bin$1$ = r.k;
       arg$Bin$2$ = r.v;
       arg$Bin$3$ = r.l;
       arg$Bin$4$ = r.r;
-      t3 = arg$Bin$4$;
-      t2 = arg$Bin$3$;
-      x2 = arg$Bin$2$;
-      k2 = arg$Bin$1$;
-      tmp = lastpiece.bin(k1, x1, t1, t2);
-      return lastpiece.bin(k2, x2, tmp, t3)
+      tmp = lastpiece.bin(k1, x1, t1, arg$Bin$3$);
+      return lastpiece.bin(arg$Bin$1$, arg$Bin$2$, tmp, arg$Bin$4$)
     }
     throw runtime.safeCall(globalThis.Error("singleL Tip"));
   } 
   static singleR(k1, x1, l, t3) {
-    let k2, x2, t2, t1, arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, tmp;
+    let arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, tmp;
     if (l instanceof lastpiece.Bin.class) {
       arg$Bin$1$ = l.k;
       arg$Bin$2$ = l.v;
       arg$Bin$3$ = l.l;
       arg$Bin$4$ = l.r;
-      t2 = arg$Bin$4$;
-      t1 = arg$Bin$3$;
-      x2 = arg$Bin$2$;
-      k2 = arg$Bin$1$;
-      tmp = lastpiece.bin(k1, x1, t2, t3);
-      return lastpiece.bin(k2, x2, t1, tmp)
+      tmp = lastpiece.bin(k1, x1, arg$Bin$4$, t3);
+      return lastpiece.bin(arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, tmp)
     }
     throw runtime.safeCall(globalThis.Error("singleR Tip"));
   } 
   static doubleL(k1, x1, t1, r) {
-    let x3, t3, x2, t2, k3, k2, t4, arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, arg$Bin$1$1, arg$Bin$2$1, arg$Bin$3$1, arg$Bin$4$1, tmp, tmp1;
+    let arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, arg$Bin$1$1, arg$Bin$2$1, arg$Bin$3$1, arg$Bin$4$1, tmp, tmp1;
     if (r instanceof lastpiece.Bin.class) {
       arg$Bin$1$ = r.k;
       arg$Bin$2$ = r.v;
@@ -1785,23 +1746,16 @@ let lastpiece1;
         arg$Bin$2$1 = arg$Bin$3$.v;
         arg$Bin$3$1 = arg$Bin$3$.l;
         arg$Bin$4$1 = arg$Bin$3$.r;
-        t4 = arg$Bin$4$;
-        t3 = arg$Bin$4$1;
-        t2 = arg$Bin$3$1;
-        x3 = arg$Bin$2$1;
-        k3 = arg$Bin$1$1;
-        x2 = arg$Bin$2$;
-        k2 = arg$Bin$1$;
-        tmp = lastpiece.bin(k1, x1, t1, t2);
-        tmp1 = lastpiece.bin(k2, x2, t3, t4);
-        return lastpiece.bin(k3, x3, tmp, tmp1)
+        tmp = lastpiece.bin(k1, x1, t1, arg$Bin$3$1);
+        tmp1 = lastpiece.bin(arg$Bin$1$, arg$Bin$2$, arg$Bin$4$1, arg$Bin$4$);
+        return lastpiece.bin(arg$Bin$1$1, arg$Bin$2$1, tmp, tmp1)
       }
       throw runtime.safeCall(globalThis.Error("doubleL Tip"));
     }
     throw runtime.safeCall(globalThis.Error("doubleL Tip"));
   } 
   static doubleR(k1, x1, l, t4) {
-    let k2, x3, t3, x2, t2, k3, t1, arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, arg$Bin$1$1, arg$Bin$2$1, arg$Bin$3$1, arg$Bin$4$1, tmp, tmp1;
+    let arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, arg$Bin$1$1, arg$Bin$2$1, arg$Bin$3$1, arg$Bin$4$1, tmp, tmp1;
     if (l instanceof lastpiece.Bin.class) {
       arg$Bin$1$ = l.k;
       arg$Bin$2$ = l.v;
@@ -1812,30 +1766,21 @@ let lastpiece1;
         arg$Bin$2$1 = arg$Bin$4$.v;
         arg$Bin$3$1 = arg$Bin$4$.l;
         arg$Bin$4$1 = arg$Bin$4$.r;
-        t3 = arg$Bin$4$1;
-        t2 = arg$Bin$3$1;
-        x3 = arg$Bin$2$1;
-        k3 = arg$Bin$1$1;
-        t1 = arg$Bin$3$;
-        x2 = arg$Bin$2$;
-        k2 = arg$Bin$1$;
-        tmp = lastpiece.bin(k2, x2, t1, t2);
-        tmp1 = lastpiece.bin(k1, x1, t3, t4);
-        return lastpiece.bin(k3, x3, tmp, tmp1)
+        tmp = lastpiece.bin(arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$3$1);
+        tmp1 = lastpiece.bin(k1, x1, arg$Bin$4$1, t4);
+        return lastpiece.bin(arg$Bin$1$1, arg$Bin$2$1, tmp, tmp1)
       }
       throw runtime.safeCall(globalThis.Error("doubleR Tip"));
     }
     throw runtime.safeCall(globalThis.Error("doubleR Tip"));
   } 
   static rotateL(k, x, l, r) {
-    let ry, ly, scrut, arg$Bin$3$, arg$Bin$4$, tmp, tmp1, tmp2;
+    let scrut, arg$Bin$3$, arg$Bin$4$, tmp, tmp1, tmp2;
     if (r instanceof lastpiece.Bin.class) {
       arg$Bin$3$ = r.l;
       arg$Bin$4$ = r.r;
-      ry = arg$Bin$4$;
-      ly = arg$Bin$3$;
-      tmp = lastpiece.size(ly);
-      tmp1 = lastpiece.size(ry);
+      tmp = lastpiece.size(arg$Bin$3$);
+      tmp1 = lastpiece.size(arg$Bin$4$);
       tmp2 = 2 * tmp1;
       scrut = tmp < tmp2;
       if (scrut === true) {
@@ -1846,14 +1791,12 @@ let lastpiece1;
     throw runtime.safeCall(globalThis.Error("rotateL Tip"));
   } 
   static rotateR(k, x, l, r) {
-    let ry, ly, scrut, arg$Bin$3$, arg$Bin$4$, tmp, tmp1, tmp2;
+    let scrut, arg$Bin$3$, arg$Bin$4$, tmp, tmp1, tmp2;
     if (l instanceof lastpiece.Bin.class) {
       arg$Bin$3$ = l.l;
       arg$Bin$4$ = l.r;
-      ry = arg$Bin$4$;
-      ly = arg$Bin$3$;
-      tmp = lastpiece.size(ry);
-      tmp1 = lastpiece.size(ly);
+      tmp = lastpiece.size(arg$Bin$4$);
+      tmp1 = lastpiece.size(arg$Bin$3$);
       tmp2 = 2 * tmp1;
       scrut = tmp < tmp2;
       if (scrut === true) {
@@ -1887,7 +1830,7 @@ let lastpiece1;
     return lastpiece.Bin(sizeX, k, x, l, r);
   } 
   static insert(kx, x, m) {
-    let l, sz, r, ky, y, scrut, arg$Bin$0$, arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, tmp, tmp1;
+    let scrut, arg$Bin$0$, arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, arg$Bin$4$, tmp, tmp1;
     if (m instanceof lastpiece.Tip.class) {
       return lastpiece.Bin(1, kx, x, lastpiece.Tip, lastpiece.Tip)
     } else if (m instanceof lastpiece.Bin.class) {
@@ -1896,20 +1839,15 @@ let lastpiece1;
       arg$Bin$2$ = m.v;
       arg$Bin$3$ = m.l;
       arg$Bin$4$ = m.r;
-      r = arg$Bin$4$;
-      l = arg$Bin$3$;
-      y = arg$Bin$2$;
-      ky = arg$Bin$1$;
-      sz = arg$Bin$0$;
-      scrut = lastpiece.compareIntInt(kx, ky);
+      scrut = lastpiece.compareIntInt(kx, arg$Bin$1$);
       if (scrut instanceof lastpiece.LT.class) {
-        tmp = lastpiece.insert(kx, x, l);
-        return lastpiece.balance(ky, y, tmp, r)
+        tmp = lastpiece.insert(kx, x, arg$Bin$3$);
+        return lastpiece.balance(arg$Bin$1$, arg$Bin$2$, tmp, arg$Bin$4$)
       } else if (scrut instanceof lastpiece.GT.class) {
-        tmp1 = lastpiece.insert(kx, x, r);
-        return lastpiece.balance(ky, y, l, tmp1)
+        tmp1 = lastpiece.insert(kx, x, arg$Bin$4$);
+        return lastpiece.balance(arg$Bin$1$, arg$Bin$2$, arg$Bin$3$, tmp1)
       } else if (scrut instanceof lastpiece.EQ.class) {
-        return lastpiece.Bin(sz, kx, x, l, r)
+        return lastpiece.Bin(arg$Bin$0$, kx, x, arg$Bin$3$, arg$Bin$4$)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
@@ -1934,19 +1872,15 @@ let lastpiece1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static addIntInt(row_col, orow_ocol) {
-    let row, col, orow, ocol, element1$, element0$, element1$1, element0$1, tmp, tmp1;
+    let element1$, element0$, element1$1, element0$1, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(row_col) && row_col.length === 2) {
       element0$ = runtime.Tuple.get(row_col, 0);
       element1$ = runtime.Tuple.get(row_col, 1);
-      col = element1$;
-      row = element0$;
       if (runtime.Tuple.isArrayLike(orow_ocol) && orow_ocol.length === 2) {
         element0$1 = runtime.Tuple.get(orow_ocol, 0);
         element1$1 = runtime.Tuple.get(orow_ocol, 1);
-        ocol = element1$1;
-        orow = element0$1;
-        tmp = row + orow;
-        tmp1 = col + ocol;
+        tmp = element0$ + element0$1;
+        tmp1 = element1$ + element1$1;
         return globalThis.Object.freeze([
           tmp,
           tmp1
@@ -1957,15 +1891,13 @@ let lastpiece1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static next(row_col) {
-    let row, col, element1$, element0$, tmp;
+    let element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(row_col) && row_col.length === 2) {
       element0$ = runtime.Tuple.get(row_col, 0);
       element1$ = runtime.Tuple.get(row_col, 1);
-      col = element1$;
-      row = element0$;
-      tmp = col + 1;
+      tmp = element1$ + 1;
       return globalThis.Object.freeze([
-        row,
+        element0$,
         tmp
       ])
     }
@@ -1978,20 +1910,18 @@ let lastpiece1;
     return lastpiece.insert(sq, id, bd)
   } 
   static extend_maybe(bd, sq, id) {
-    let row, col, scrut, scrut1, element1$, element0$, tmp, tmp1, tmp2, tmp3;
+    let scrut, scrut1, element1$, element0$, tmp, tmp1, tmp2, tmp3;
     if (runtime.Tuple.isArrayLike(sq) && sq.length === 2) {
       element0$ = runtime.Tuple.get(sq, 0);
       element1$ = runtime.Tuple.get(sq, 1);
-      col = element1$;
-      row = element0$;
-      tmp = row > lastpiece.maxRow;
+      tmp = element0$ > lastpiece.maxRow;
       if (tmp === false) {
-        tmp1 = col < 1;
+        tmp1 = element1$ < 1;
       } else {
         tmp1 = true;
       }
       if (tmp1 === false) {
-        tmp2 = col > lastpiece.maxCol;
+        tmp2 = element1$ > lastpiece.maxCol;
       } else {
         tmp2 = true;
       }
@@ -2013,15 +1943,14 @@ let lastpiece1;
   static pickOne(xs) {
     let go, lambda;
     go = function go(f, xs1) {
-      let x, xs2, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, lambda1, tmp2;
+      let x, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, lambda1, tmp2;
       if (xs1 instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (xs1 instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = xs1.head;
         arg$Cons$1$ = xs1.tail;
-        xs2 = arg$Cons$1$;
         x = arg$Cons$0$;
-        tmp = runtime.safeCall(f(xs2));
+        tmp = runtime.safeCall(f(arg$Cons$1$));
         tmp1 = globalThis.Object.freeze([
           x,
           tmp
@@ -2031,7 +1960,7 @@ let lastpiece1;
           tmp3 = runtime.safeCall(f(p));
           return NofibPrelude.Cons(x, tmp3)
         });
-        tmp2 = go(lambda1, xs2);
+        tmp2 = go(lambda1, arg$Cons$1$);
         return NofibPrelude.Cons(tmp1, tmp2)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -2043,22 +1972,19 @@ let lastpiece1;
   } 
   static fit(bd, sq, id, os) {
     loopLabel: while (true) {
-      let os1, o, scrut, bd1, arg$Cons$0$, arg$Cons$1$, arg$Some$0$, tmp, tmp1;
+      let scrut, arg$Cons$0$, arg$Cons$1$, arg$Some$0$, tmp, tmp1;
       if (os instanceof NofibPrelude.Nil.class) {
         tmp = lastpiece.extend(bd, sq, id);
         return NofibPrelude.Some(tmp)
       } else if (os instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = os.head;
         arg$Cons$1$ = os.tail;
-        os1 = arg$Cons$1$;
-        o = arg$Cons$0$;
-        tmp1 = lastpiece.addIntInt(sq, o);
+        tmp1 = lastpiece.addIntInt(sq, arg$Cons$0$);
         scrut = lastpiece.extend_maybe(bd, tmp1, id);
         if (scrut instanceof NofibPrelude.Some.class) {
           arg$Some$0$ = scrut.x;
-          bd1 = arg$Some$0$;
-          bd = bd1;
-          os = os1;
+          bd = arg$Some$0$;
+          os = arg$Cons$1$;
           continue loopLabel
         } else if (scrut instanceof NofibPrelude.None.class) {
           return NofibPrelude.None
@@ -2069,21 +1995,17 @@ let lastpiece1;
     }
   } 
   static tryy(sq, se, bd, id_is_ps) {
-    let os, ps, id, scrut, bd1, element2$, element1$, element0$, arg$Some$0$, tmp, tmp1, tmp2;
+    let scrut, element2$, element1$, element0$, arg$Some$0$, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(id_is_ps) && id_is_ps.length === 3) {
       element0$ = runtime.Tuple.get(id_is_ps, 0);
       element1$ = runtime.Tuple.get(id_is_ps, 1);
       element2$ = runtime.Tuple.get(id_is_ps, 2);
-      ps = element2$;
-      os = element1$;
-      id = element0$;
-      scrut = lastpiece.fit(bd, sq, id, os);
+      scrut = lastpiece.fit(bd, sq, element0$, element1$);
       if (scrut instanceof NofibPrelude.Some.class) {
         arg$Some$0$ = scrut.x;
-        bd1 = arg$Some$0$;
         tmp = lastpiece.next(sq);
         tmp1 = lastpiece.flip(se);
-        tmp2 = lastpiece.search(tmp, tmp1, bd1, ps);
+        tmp2 = lastpiece.search(tmp, tmp1, arg$Some$0$, element2$);
         return NofibPrelude.Some(tmp2)
       } else if (scrut instanceof NofibPrelude.None.class) {
         return NofibPrelude.None
@@ -2094,22 +2016,20 @@ let lastpiece1;
   } 
   static search(row_col, sey, bd, ps) {
     loopLabel: while (true) {
-      let lscomp1, row, col, scrut, scrut1, choices, scrut2, ss, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, lambda, sey1, row_col1, bd1;
+      let lscomp1, scrut, scrut1, choices, scrut2, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, lambda, sey1, row_col1, bd1;
       row_col1 = row_col;
       sey1 = sey;
       bd1 = bd;
       if (runtime.Tuple.isArrayLike(row_col1) && row_col1.length === 2) {
         element0$ = runtime.Tuple.get(row_col1, 0);
         element1$ = runtime.Tuple.get(row_col1, 1);
-        col = element1$;
-        row = element0$;
         if (ps instanceof NofibPrelude.Nil.class) {
           return lastpiece.Soln(bd1)
         }
         tmp = lastpiece.maxCol + 1;
-        scrut = col === tmp;
+        scrut = element1$ === tmp;
         if (scrut === true) {
-          tmp1 = row + 1;
+          tmp1 = element0$ + 1;
           tmp2 = globalThis.Object.freeze([
             tmp1,
             1
@@ -2130,7 +2050,7 @@ let lastpiece1;
           continue loopLabel
         }
         lscomp1 = function lscomp1(ls) {
-          let lscomp2, ls1, ps1, id, fs, ms, arg$Cons$0$, arg$Cons$1$, element1$1, element0$1, arg$P$0$, arg$P$1$, arg$P$2$, tmp7;
+          let lscomp2, ls1, ps1, id, arg$Cons$0$, arg$Cons$1$, element1$1, element0$1, arg$P$0$, arg$P$1$, arg$P$2$;
           if (ls instanceof NofibPrelude.Nil.class) {
             return NofibPrelude.Nil
           } else if (ls instanceof NofibPrelude.Cons.class) {
@@ -2145,34 +2065,28 @@ let lastpiece1;
                 arg$P$2$ = element0$1.b;
                 ls1 = arg$Cons$1$;
                 ps1 = element1$1;
-                fs = arg$P$2$;
-                ms = arg$P$1$;
                 id = arg$P$0$;
                 lscomp2 = function lscomp2(ls2) {
-                  let ls3, os, arg$Cons$0$1, arg$Cons$1$1, tmp8, tmp9;
+                  let arg$Cons$0$1, arg$Cons$1$1, tmp7, tmp8;
                   if (ls2 instanceof NofibPrelude.Nil.class) {
                     return lscomp1(ls1)
                   } else if (ls2 instanceof NofibPrelude.Cons.class) {
                     arg$Cons$0$1 = ls2.head;
                     arg$Cons$1$1 = ls2.tail;
-                    ls3 = arg$Cons$1$1;
-                    os = arg$Cons$0$1;
-                    tmp8 = globalThis.Object.freeze([
+                    tmp7 = globalThis.Object.freeze([
                       id,
-                      os,
+                      arg$Cons$0$1,
                       ps1
                     ]);
-                    tmp9 = lscomp2(ls3);
-                    return NofibPrelude.Cons(tmp8, tmp9)
+                    tmp8 = lscomp2(arg$Cons$1$1);
+                    return NofibPrelude.Cons(tmp7, tmp8)
                   }
                   throw globalThis.Object.freeze(new globalThis.Error("match error"));
                 };
                 if (sey1 instanceof lastpiece.Male.class) {
-                  tmp7 = ms;
-                  return lscomp2(tmp7)
+                  return lscomp2(arg$P$1$)
                 }
-                tmp7 = fs;
-                return lscomp2(tmp7);
+                return lscomp2(arg$P$2$);
               }
               throw globalThis.Object.freeze(new globalThis.Error("match error"));
             }
@@ -2189,37 +2103,33 @@ let lastpiece1;
         if (scrut2 instanceof NofibPrelude.Nil.class) {
           return lastpiece.Fail(bd1, row_col1)
         }
-        ss = scrut2;
-        return lastpiece.Choose(ss);
+        return lastpiece.Choose(scrut2);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
   } 
   static annotSize(p) {
-    let l, arg$NoAnnot$1$;
+    let arg$NoAnnot$1$;
     if (p instanceof lastpiece.NoAnnot.class) {
       arg$NoAnnot$1$ = p.i;
-      l = arg$NoAnnot$1$;
-      return l
+      return arg$NoAnnot$1$
     }
     return 0;
   } 
   static display(s) {
-    let bd, ss, arg$Fail$1$, arg$Choose$0$, arg$Soln$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+    let arg$Fail$1$, arg$Choose$0$, arg$Soln$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
     if (s instanceof lastpiece.Soln.class) {
       arg$Soln$0$ = s.b;
-      bd = arg$Soln$0$;
       tmp = NofibPrelude.nofibStringToList("Success!");
       tmp1 = lastpiece.text(tmp);
-      tmp2 = lastpiece.displayBoard(bd);
+      tmp2 = lastpiece.displayBoard(arg$Soln$0$);
       tmp3 = lastpiece.nest(2, tmp2);
       tmp4 = NofibPrelude.Cons(tmp3, NofibPrelude.Nil);
       tmp5 = NofibPrelude.Cons(tmp1, tmp4);
       return lastpiece.vcat(tmp5)
     } else if (s instanceof lastpiece.Choose.class) {
       arg$Choose$0$ = s.s;
-      ss = arg$Choose$0$;
-      tmp6 = NofibPrelude.map(lastpiece.display, ss);
+      tmp6 = NofibPrelude.map(lastpiece.display, arg$Choose$0$);
       return lastpiece.vcat(tmp6)
     } else if (s instanceof lastpiece.Fail.class) {
       arg$Fail$1$ = s.s;
@@ -2237,18 +2147,16 @@ let lastpiece1;
     row = function row(n) {
       let lambda, tmp4, tmp5;
       lambda = (undefined, function (col) {
-        let n1, col1, inlinedVal, scrut, id, arg$Some$0$, tmp6;
+        let n1, inlinedVal, scrut, arg$Some$0$, tmp6;
         n1 = n;
-        col1 = col;
         tmp6 = globalThis.Object.freeze([
           n1,
-          col1
+          col
         ]);
         scrut = lastpiece.check(bd, tmp6);
         if (scrut instanceof NofibPrelude.Some.class) {
           arg$Some$0$ = scrut.x;
-          id = arg$Some$0$;
-          inlinedVal = lastpiece.char(id);
+          inlinedVal = lastpiece.char(arg$Some$0$);
           return inlinedVal
         } else if (scrut instanceof NofibPrelude.None.class) {
           inlinedVal = lastpiece.char(".");
@@ -2267,7 +2175,7 @@ let lastpiece1;
     return lastpiece.above_(tmp2, false, tmp3)
   } 
   static eliminateEmpty(cons, p, g, q) {
-    let q1, element1$, element0$, tmp;
+    let element1$, element0$, tmp;
     if (p instanceof lastpiece.Empty.class) {
       return q
     }
@@ -2275,8 +2183,7 @@ let lastpiece1;
       element0$ = runtime.Tuple.get(q, 0);
       element1$ = runtime.Tuple.get(q, 1);
       if (element0$ instanceof lastpiece.NotEmpty.class) {
-        q1 = element1$;
-        tmp = runtime.safeCall(cons(p, g, q1));
+        tmp = runtime.safeCall(cons(p, g, element1$));
         return globalThis.Object.freeze([
           lastpiece.NotEmpty,
           tmp
@@ -2293,21 +2200,18 @@ let lastpiece1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static reduceVert(doc) {
-    let q, g, p, arg$Above$0$, arg$Above$1$, arg$Above$2$, lambda, tmp, tmp1, tmp2;
+    let arg$Above$0$, arg$Above$1$, arg$Above$2$, lambda, tmp, tmp1, tmp2;
     if (doc instanceof lastpiece.Above.class) {
       arg$Above$0$ = doc.d1;
       arg$Above$1$ = doc.b;
       arg$Above$2$ = doc.d2;
-      q = arg$Above$2$;
-      g = arg$Above$1$;
-      p = arg$Above$0$;
       lambda = (undefined, function (a, b, c) {
         return lastpiece.Above(a, b, c)
       });
-      tmp = lastpiece.reduceVert(p);
+      tmp = lastpiece.reduceVert(arg$Above$0$);
       tmp1 = NofibPrelude.snd(tmp);
-      tmp2 = lastpiece.reduceVert(q);
-      return lastpiece.eliminateEmpty(lambda, tmp1, g, tmp2)
+      tmp2 = lastpiece.reduceVert(arg$Above$2$);
+      return lastpiece.eliminateEmpty(lambda, tmp1, arg$Above$1$, tmp2)
     }
     return globalThis.Object.freeze([
       lastpiece.NotEmpty,
@@ -2337,21 +2241,18 @@ let lastpiece1;
     return lastpiece.TextBeside(tmp1, lastpiece.Empty)
   } 
   static reduceHoriz(doc) {
-    let q, g, p, arg$Beside$0$, arg$Beside$1$, arg$Beside$2$, lambda, tmp, tmp1, tmp2;
+    let arg$Beside$0$, arg$Beside$1$, arg$Beside$2$, lambda, tmp, tmp1, tmp2;
     if (doc instanceof lastpiece.Beside.class) {
       arg$Beside$0$ = doc.d1;
       arg$Beside$1$ = doc.b;
       arg$Beside$2$ = doc.d2;
-      q = arg$Beside$2$;
-      g = arg$Beside$1$;
-      p = arg$Beside$0$;
       lambda = (undefined, function (a, b, c) {
         return lastpiece.Beside(a, b, c)
       });
-      tmp = lastpiece.reduceHoriz(p);
+      tmp = lastpiece.reduceHoriz(arg$Beside$0$);
       tmp1 = NofibPrelude.snd(tmp);
-      tmp2 = lastpiece.reduceHoriz(q);
-      return lastpiece.eliminateEmpty(lambda, tmp1, g, tmp2)
+      tmp2 = lastpiece.reduceHoriz(arg$Beside$2$);
+      return lastpiece.eliminateEmpty(lambda, tmp1, arg$Beside$1$, tmp2)
     }
     return globalThis.Object.freeze([
       lastpiece.NotEmpty,
@@ -2383,15 +2284,13 @@ let lastpiece1;
   } 
   static mkNest(k, p) {
     loopLabel: while (true) {
-      let k1, p1, scrut, arg$Nest$0$, arg$Nest$1$, tmp;
+      let scrut, arg$Nest$0$, arg$Nest$1$, tmp;
       if (p instanceof lastpiece.Nest.class) {
         arg$Nest$0$ = p.i;
         arg$Nest$1$ = p.d;
-        p1 = arg$Nest$1$;
-        k1 = arg$Nest$0$;
-        tmp = k + k1;
+        tmp = k + arg$Nest$0$;
         k = tmp;
-        p = p1;
+        p = arg$Nest$1$;
         continue loopLabel
       } else if (p instanceof lastpiece.NoDoc.class) {
         return lastpiece.NoDoc
@@ -2416,13 +2315,12 @@ let lastpiece1;
   } 
   static nilBeside(g, p) {
     loopLabel: while (true) {
-      let p1, arg$Nest$1$;
+      let arg$Nest$1$;
       if (p instanceof lastpiece.Empty.class) {
         return lastpiece.Empty
       } else if (p instanceof lastpiece.Nest.class) {
         arg$Nest$1$ = p.d;
-        p1 = arg$Nest$1$;
-        p = p1;
+        p = arg$Nest$1$;
         continue loopLabel
       }
       if (g === true) {
@@ -2432,46 +2330,39 @@ let lastpiece1;
     }
   } 
   static aboveNest(p, g, k, q) {
-    let p2, p1, k1, p11, p12, s, p13, k11, rest, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Nest$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+    let p1, k1, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Nest$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
     if (p instanceof lastpiece.NoDoc.class) {
       return lastpiece.NoDoc
     } else if (p instanceof lastpiece.Union.class) {
       arg$Union$0$ = p.d1;
       arg$Union$1$ = p.d2;
-      p2 = arg$Union$1$;
-      p1 = arg$Union$0$;
-      tmp = lastpiece.aboveNest(p1, g, k, q);
-      tmp1 = lastpiece.aboveNest(p2, g, k, q);
+      tmp = lastpiece.aboveNest(arg$Union$0$, g, k, q);
+      tmp1 = lastpiece.aboveNest(arg$Union$1$, g, k, q);
       return lastpiece.Union(tmp, tmp1)
     } else if (p instanceof lastpiece.Empty.class) {
       return lastpiece.mkNest(k, q)
     } else if (p instanceof lastpiece.Nest.class) {
       arg$Nest$0$ = p.i;
       arg$Nest$1$ = p.d;
-      p11 = arg$Nest$1$;
-      k1 = arg$Nest$0$;
-      tmp2 = k - k1;
-      tmp3 = lastpiece.aboveNest(p11, g, tmp2, q);
-      return lastpiece.Nest(k1, tmp3)
+      tmp2 = k - arg$Nest$0$;
+      tmp3 = lastpiece.aboveNest(arg$Nest$1$, g, tmp2, q);
+      return lastpiece.Nest(arg$Nest$0$, tmp3)
     } else if (p instanceof lastpiece.NilAbove.class) {
       arg$NilAbove$0$ = p.d;
-      p12 = arg$NilAbove$0$;
-      tmp4 = lastpiece.aboveNest(p12, g, k, q);
+      tmp4 = lastpiece.aboveNest(arg$NilAbove$0$, g, k, q);
       return lastpiece.NilAbove(tmp4)
     } else if (p instanceof lastpiece.TextBeside.class) {
       arg$TextBeside$0$ = p.a;
       arg$TextBeside$1$ = p.d;
-      p13 = arg$TextBeside$1$;
-      s = arg$TextBeside$0$;
-      tmp5 = lastpiece.annotSize(s);
-      k11 = k - tmp5;
-      if (p13 instanceof lastpiece.Empty.class) {
-        tmp6 = lastpiece.nilAboveNest(g, k11, q);
-      } else {
-        tmp6 = lastpiece.aboveNest(p13, g, k11, q);
+      p1 = arg$TextBeside$1$;
+      tmp5 = lastpiece.annotSize(arg$TextBeside$0$);
+      k1 = k - tmp5;
+      if (p1 instanceof lastpiece.Empty.class) {
+        tmp6 = lastpiece.nilAboveNest(g, k1, q);
+        return lastpiece.TextBeside(arg$TextBeside$0$, tmp6)
       }
-      rest = tmp6;
-      return lastpiece.TextBeside(s, rest)
+      tmp6 = lastpiece.aboveNest(arg$TextBeside$1$, g, k1, q);
+      return lastpiece.TextBeside(arg$TextBeside$0$, tmp6);
     } else if (p instanceof lastpiece.Above.class) {
       throw runtime.safeCall(globalThis.Error("aboveNest Above"))
     } else if (p instanceof lastpiece.Beside.class) {
@@ -2481,17 +2372,15 @@ let lastpiece1;
   } 
   static nilAboveNest(g, k, q) {
     loopLabel: while (true) {
-      let k1, q1, scrut, scrut1, arg$Nest$0$, arg$Nest$1$, tmp, tmp1, tmp2, tmp3, tmp4;
+      let scrut, scrut1, arg$Nest$0$, arg$Nest$1$, tmp, tmp1, tmp2, tmp3, tmp4;
       if (q instanceof lastpiece.Empty.class) {
         return lastpiece.Empty
       } else if (q instanceof lastpiece.Nest.class) {
         arg$Nest$0$ = q.i;
         arg$Nest$1$ = q.d;
-        q1 = arg$Nest$1$;
-        k1 = arg$Nest$0$;
-        tmp = k + k1;
+        tmp = k + arg$Nest$0$;
         k = tmp;
-        q = q1;
+        q = arg$Nest$1$;
         continue loopLabel
       }
       scrut = ! g;
@@ -2511,19 +2400,16 @@ let lastpiece1;
   static printDoc(d) {
     let put, done;
     put = function put(k, next) {
-      let c, s, s1, arg$PStr$0$, arg$Str$0$, arg$Chr$0$;
+      let arg$PStr$0$, arg$Str$0$, arg$Chr$0$;
       if (k instanceof lastpiece.Chr.class) {
         arg$Chr$0$ = k.c;
-        c = arg$Chr$0$;
-        return NofibPrelude.Cons(c, next)
+        return NofibPrelude.Cons(arg$Chr$0$, next)
       } else if (k instanceof lastpiece.Str.class) {
         arg$Str$0$ = k.s;
-        s = arg$Str$0$;
-        return NofibPrelude.append(s, next)
+        return NofibPrelude.append(arg$Str$0$, next)
       } else if (k instanceof lastpiece.PStr.class) {
         arg$PStr$0$ = k.s;
-        s1 = arg$PStr$0$;
-        return NofibPrelude.append(s1, next)
+        return NofibPrelude.append(arg$PStr$0$, next)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -2533,11 +2419,10 @@ let lastpiece1;
   static fullRender(m, l, r, txt, a, b) {
     let annTxt;
     annTxt = function annTxt(p, x) {
-      let s, arg$NoAnnot$0$;
+      let arg$NoAnnot$0$;
       if (p instanceof lastpiece.NoAnnot.class) {
         arg$NoAnnot$0$ = p.t;
-        s = arg$NoAnnot$0$;
-        return runtime.safeCall(txt(s, x))
+        return runtime.safeCall(txt(arg$NoAnnot$0$, x))
       }
       return x;
     };
@@ -2547,7 +2432,7 @@ let lastpiece1;
     return runtime.safeCall(globalThis.Math.ceil(x))
   } 
   static fullRenderAnn(m, lineLen, ribbons, txt, rest, doc) {
-    let ribbonLen, bestLineLen, doc1, lambda, tmp, tmp1, tmp2, tmp3, tmp4;
+    let ribbonLen, doc1, lambda, tmp, tmp1, tmp2, tmp3, tmp4;
     if (m instanceof lastpiece.OneLineMode.class) {
       lambda = (undefined, function (a, b) {
         return b
@@ -2565,42 +2450,35 @@ let lastpiece1;
     } else {
       tmp3 = lineLen;
     }
-    bestLineLen = tmp3;
     tmp4 = lastpiece.reduceDoc(doc);
-    doc1 = lastpiece.best(bestLineLen, ribbonLen, tmp4);
+    doc1 = lastpiece.best(tmp3, ribbonLen, tmp4);
     return lastpiece.displayDoc(m, lineLen, ribbonLen, txt, rest, doc1);
   } 
   static easyDisplay(nlSpaceText, choose, txt, end, x) {
     let lay;
     lay = function lay(x1) {
-      let q, p, p1, p2, s, p3, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp, tmp1, tmp2;
+      let arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp, tmp1, tmp2;
       if (x1 instanceof lastpiece.NoDoc.class) {
         throw runtime.safeCall(globalThis.Error("easyDisplay: NoDoc"))
       } else if (x1 instanceof lastpiece.Union.class) {
         arg$Union$0$ = x1.d1;
         arg$Union$1$ = x1.d2;
-        q = arg$Union$1$;
-        p = arg$Union$0$;
-        tmp = runtime.safeCall(choose(p, q));
+        tmp = runtime.safeCall(choose(arg$Union$0$, arg$Union$1$));
         return lay(tmp)
       } else if (x1 instanceof lastpiece.Nest.class) {
         arg$Nest$1$ = x1.d;
-        p1 = arg$Nest$1$;
-        return lay(p1)
+        return lay(arg$Nest$1$)
       } else if (x1 instanceof lastpiece.Empty.class) {
         return end
       } else if (x1 instanceof lastpiece.NilAbove.class) {
         arg$NilAbove$0$ = x1.d;
-        p2 = arg$NilAbove$0$;
-        tmp1 = lay(p2);
+        tmp1 = lay(arg$NilAbove$0$);
         return runtime.safeCall(txt(nlSpaceText, tmp1))
       } else if (x1 instanceof lastpiece.TextBeside.class) {
         arg$TextBeside$0$ = x1.a;
         arg$TextBeside$1$ = x1.d;
-        p3 = arg$TextBeside$1$;
-        s = arg$TextBeside$0$;
-        tmp2 = lay(p3);
-        return runtime.safeCall(txt(s, tmp2))
+        tmp2 = lay(arg$TextBeside$1$);
+        return runtime.safeCall(txt(arg$TextBeside$0$, tmp2))
       } else if (x1 instanceof lastpiece.Above.class) {
         throw runtime.safeCall(globalThis.Error("easyDisplay Above"))
       } else if (x1 instanceof lastpiece.Beside.class) {
@@ -2613,62 +2491,53 @@ let lastpiece1;
   static displayDoc(m, pageWidth, ribbonWidth, txt, end, doc) {
     let lay, gapWidth, shift;
     lay = function lay(k, docc) {
-      let lay2, lay1, p, k1, p1, s, p2, scrut, scrut1, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Nest$0$, arg$Nest$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
-      lay2 = function lay2(k2, param) {
-        let p3, s1, p4, p5, arg$Nest$1$1, arg$TextBeside$0$1, arg$TextBeside$1$1, arg$NilAbove$0$1, tmp16, tmp17, tmp18, tmp19;
+      let lay2, lay1, scrut, scrut1, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Nest$0$, arg$Nest$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
+      lay2 = function lay2(k1, param) {
+        let arg$Nest$1$1, arg$TextBeside$0$1, arg$TextBeside$1$1, arg$NilAbove$0$1, tmp16, tmp17, tmp18, tmp19;
         if (param instanceof lastpiece.NilAbove.class) {
           arg$NilAbove$0$1 = param.d;
-          p3 = arg$NilAbove$0$1;
-          tmp16 = lay(k2, p3);
+          tmp16 = lay(k1, arg$NilAbove$0$1);
           return runtime.safeCall(txt(lastpiece.nlText, tmp16))
         } else if (param instanceof lastpiece.TextBeside.class) {
           arg$TextBeside$0$1 = param.a;
           arg$TextBeside$1$1 = param.d;
-          p4 = arg$TextBeside$1$1;
-          s1 = arg$TextBeside$0$1;
-          tmp17 = lastpiece.annotSize(s1);
-          tmp18 = k2 + tmp17;
-          tmp19 = lay2(tmp18, p4);
-          return runtime.safeCall(txt(s1, tmp19))
+          tmp17 = lastpiece.annotSize(arg$TextBeside$0$1);
+          tmp18 = k1 + tmp17;
+          tmp19 = lay2(tmp18, arg$TextBeside$1$1);
+          return runtime.safeCall(txt(arg$TextBeside$0$1, tmp19))
         } else if (param instanceof lastpiece.Nest.class) {
           arg$Nest$1$1 = param.d;
-          p5 = arg$Nest$1$1;
-          return lay2(k2, p5)
+          return lay2(k1, arg$Nest$1$1)
         } else if (param instanceof lastpiece.Empty.class) {
           return end
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
-      lay1 = function lay1(k2, s1, p3) {
+      lay1 = function lay1(k1, s, p) {
         let r, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21;
-        tmp16 = lastpiece.annotSize(s1);
-        r = k2 + tmp16;
-        tmp17 = lastpiece.indent(k2);
+        tmp16 = lastpiece.annotSize(s);
+        r = k1 + tmp16;
+        tmp17 = lastpiece.indent(k1);
         tmp18 = lastpiece.Str(tmp17);
-        tmp19 = lastpiece.NoAnnot(tmp18, k2);
-        tmp20 = lay2(r, p3);
-        tmp21 = runtime.safeCall(txt(s1, tmp20));
+        tmp19 = lastpiece.NoAnnot(tmp18, k1);
+        tmp20 = lay2(r, p);
+        tmp21 = runtime.safeCall(txt(s, tmp20));
         return runtime.safeCall(txt(tmp19, tmp21))
       };
       if (docc instanceof lastpiece.Nest.class) {
         arg$Nest$0$ = docc.i;
         arg$Nest$1$ = docc.d;
-        p = arg$Nest$1$;
-        k1 = arg$Nest$0$;
-        tmp = k + k1;
-        return lay(tmp, p)
+        tmp = k + arg$Nest$0$;
+        return lay(tmp, arg$Nest$1$)
       } else if (docc instanceof lastpiece.Empty.class) {
         return end
       } else if (docc instanceof lastpiece.NilAbove.class) {
         arg$NilAbove$0$ = docc.d;
-        p1 = arg$NilAbove$0$;
-        tmp1 = lay(k, p1);
+        tmp1 = lay(k, arg$NilAbove$0$);
         return runtime.safeCall(txt(lastpiece.nlText, tmp1))
       } else if (docc instanceof lastpiece.TextBeside.class) {
         arg$TextBeside$0$ = docc.a;
         arg$TextBeside$1$ = docc.d;
-        p2 = arg$TextBeside$1$;
-        s = arg$TextBeside$0$;
         if (m instanceof lastpiece.ZigZagMode.class) {
           scrut = k >= gapWidth;
           if (scrut === true) {
@@ -2676,7 +2545,7 @@ let lastpiece1;
             tmp3 = lastpiece.Str(tmp2);
             tmp4 = lastpiece.NoAnnot(tmp3, shift);
             tmp5 = k - shift;
-            tmp6 = lay1(tmp5, s, p2);
+            tmp6 = lay1(tmp5, arg$TextBeside$0$, arg$TextBeside$1$);
             tmp7 = runtime.safeCall(txt(lastpiece.nlText, tmp6));
             tmp8 = runtime.safeCall(txt(tmp4, tmp7));
             return runtime.safeCall(txt(lastpiece.nlText, tmp8))
@@ -2687,14 +2556,14 @@ let lastpiece1;
             tmp10 = lastpiece.Str(tmp9);
             tmp11 = lastpiece.NoAnnot(tmp10, shift);
             tmp12 = k + shift;
-            tmp13 = lay1(tmp12, s, p2);
+            tmp13 = lay1(tmp12, arg$TextBeside$0$, arg$TextBeside$1$);
             tmp14 = runtime.safeCall(txt(lastpiece.nlText, tmp13));
             tmp15 = runtime.safeCall(txt(tmp11, tmp14));
             return runtime.safeCall(txt(lastpiece.nlText, tmp15))
           }
-          return lay1(k, s, p2);
+          return lay1(k, arg$TextBeside$0$, arg$TextBeside$1$);
         }
-        return lay1(k, s, p2);
+        return lay1(k, arg$TextBeside$0$, arg$TextBeside$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -2705,39 +2574,32 @@ let lastpiece1;
   static best(w0, r, doc) {
     let get, get1;
     get = function get(r1, w, docc) {
-      let p, s, p1, p2, k, q, p3, arg$Union$0$, arg$Union$1$, arg$Nest$0$, arg$Nest$1$, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+      let arg$Union$0$, arg$Union$1$, arg$Nest$0$, arg$Nest$1$, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
       if (docc instanceof lastpiece.Empty.class) {
         return lastpiece.Empty
       } else if (docc instanceof lastpiece.NoDoc.class) {
         return lastpiece.NoDoc
       } else if (docc instanceof lastpiece.NilAbove.class) {
         arg$NilAbove$0$ = docc.d;
-        p = arg$NilAbove$0$;
-        tmp = get(r1, w, p);
+        tmp = get(r1, w, arg$NilAbove$0$);
         return lastpiece.NilAbove(tmp)
       } else if (docc instanceof lastpiece.TextBeside.class) {
         arg$TextBeside$0$ = docc.a;
         arg$TextBeside$1$ = docc.d;
-        p1 = arg$TextBeside$1$;
-        s = arg$TextBeside$0$;
-        tmp1 = lastpiece.annotSize(s);
-        tmp2 = get1(r1, w, tmp1, p1);
-        return lastpiece.TextBeside(s, tmp2)
+        tmp1 = lastpiece.annotSize(arg$TextBeside$0$);
+        tmp2 = get1(r1, w, tmp1, arg$TextBeside$1$);
+        return lastpiece.TextBeside(arg$TextBeside$0$, tmp2)
       } else if (docc instanceof lastpiece.Nest.class) {
         arg$Nest$0$ = docc.i;
         arg$Nest$1$ = docc.d;
-        p2 = arg$Nest$1$;
-        k = arg$Nest$0$;
-        tmp3 = w - k;
-        tmp4 = get(r1, tmp3, p2);
-        return lastpiece.Nest(k, tmp4)
+        tmp3 = w - arg$Nest$0$;
+        tmp4 = get(r1, tmp3, arg$Nest$1$);
+        return lastpiece.Nest(arg$Nest$0$, tmp4)
       } else if (docc instanceof lastpiece.Union.class) {
         arg$Union$0$ = docc.d1;
         arg$Union$1$ = docc.d2;
-        q = arg$Union$1$;
-        p3 = arg$Union$0$;
-        tmp5 = get(r1, w, p3);
-        tmp6 = get(r1, w, q);
+        tmp5 = get(r1, w, arg$Union$0$);
+        tmp6 = get(r1, w, arg$Union$1$);
         return lastpiece.nicest(w, r1, tmp5, tmp6)
       } else if (docc instanceof lastpiece.Above.class) {
         throw runtime.safeCall(globalThis.Error("best get Above"))
@@ -2747,37 +2609,31 @@ let lastpiece1;
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     get1 = function get1(r1, w, sl, p) {
-      let p1, s, p2, p3, q, p4, arg$Union$0$, arg$Union$1$, arg$Nest$1$, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+      let arg$Union$0$, arg$Union$1$, arg$Nest$1$, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
       if (p instanceof lastpiece.Empty.class) {
         return lastpiece.Empty
       } else if (p instanceof lastpiece.NoDoc.class) {
         return lastpiece.NoDoc
       } else if (p instanceof lastpiece.NilAbove.class) {
         arg$NilAbove$0$ = p.d;
-        p1 = arg$NilAbove$0$;
         tmp = w - sl;
-        tmp1 = get(r1, tmp, p1);
+        tmp1 = get(r1, tmp, arg$NilAbove$0$);
         return lastpiece.NilAbove(tmp1)
       } else if (p instanceof lastpiece.TextBeside.class) {
         arg$TextBeside$0$ = p.a;
         arg$TextBeside$1$ = p.d;
-        p2 = arg$TextBeside$1$;
-        s = arg$TextBeside$0$;
-        tmp2 = lastpiece.annotSize(s);
+        tmp2 = lastpiece.annotSize(arg$TextBeside$0$);
         tmp3 = sl + tmp2;
-        tmp4 = get1(r1, w, tmp3, p2);
-        return lastpiece.TextBeside(s, tmp4)
+        tmp4 = get1(r1, w, tmp3, arg$TextBeside$1$);
+        return lastpiece.TextBeside(arg$TextBeside$0$, tmp4)
       } else if (p instanceof lastpiece.Nest.class) {
         arg$Nest$1$ = p.d;
-        p3 = arg$Nest$1$;
-        return get1(r1, w, sl, p3)
+        return get1(r1, w, sl, arg$Nest$1$)
       } else if (p instanceof lastpiece.Union.class) {
         arg$Union$0$ = p.d1;
         arg$Union$1$ = p.d2;
-        q = arg$Union$1$;
-        p4 = arg$Union$0$;
-        tmp5 = get1(r1, w, sl, p4);
-        tmp6 = get1(r1, w, sl, q);
+        tmp5 = get1(r1, w, sl, arg$Union$0$);
+        tmp6 = get1(r1, w, sl, arg$Union$1$);
         return lastpiece.nicest1(w, r1, sl, tmp5, tmp6)
       } else if (p instanceof lastpiece.Above.class) {
         throw runtime.safeCall(globalThis.Error("best get1 Above"))
@@ -2790,7 +2646,7 @@ let lastpiece1;
   } 
   static nonEmptySet(doc) {
     loopLabel: while (true) {
-      let p, p1, arg$Nest$1$, arg$TextBeside$1$;
+      let arg$Nest$1$, arg$TextBeside$1$;
       if (doc instanceof lastpiece.NoDoc.class) {
         return false
       } else if (doc instanceof lastpiece.Union.class) {
@@ -2801,13 +2657,11 @@ let lastpiece1;
         return true
       } else if (doc instanceof lastpiece.TextBeside.class) {
         arg$TextBeside$1$ = doc.d;
-        p = arg$TextBeside$1$;
-        doc = p;
+        doc = arg$TextBeside$1$;
         continue loopLabel
       } else if (doc instanceof lastpiece.Nest.class) {
         arg$Nest$1$ = doc.d;
-        p1 = arg$Nest$1$;
-        doc = p1;
+        doc = arg$Nest$1$;
         continue loopLabel
       } else if (doc instanceof lastpiece.Above.class) {
         throw runtime.safeCall(globalThis.Error("nonEmptySet Above"))
@@ -2819,7 +2673,7 @@ let lastpiece1;
   } 
   static fits(n, param) {
     loopLabel: while (true) {
-      let scrut, s, p, arg$TextBeside$0$, arg$TextBeside$1$, tmp, tmp1;
+      let scrut, arg$TextBeside$0$, arg$TextBeside$1$, tmp, tmp1;
       scrut = n < 0;
       if (scrut === true) {
         return false
@@ -2833,12 +2687,10 @@ let lastpiece1;
       } else if (param instanceof lastpiece.TextBeside.class) {
         arg$TextBeside$0$ = param.a;
         arg$TextBeside$1$ = param.d;
-        p = arg$TextBeside$1$;
-        s = arg$TextBeside$0$;
-        tmp = lastpiece.annotSize(s);
+        tmp = lastpiece.annotSize(arg$TextBeside$0$);
         tmp1 = n - tmp;
         n = tmp1;
-        param = p;
+        param = arg$TextBeside$1$;
         continue loopLabel
       } else if (param instanceof lastpiece.Above.class) {
         throw runtime.safeCall(globalThis.Error("fits Above"))

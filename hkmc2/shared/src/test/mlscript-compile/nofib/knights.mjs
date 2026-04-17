@@ -165,22 +165,18 @@ let knights1;
     return false;
   } 
   static intintComp(a_b, c_d) {
-    let a, b, c, d, element1$, element0$, element1$1, element0$1, tmp, tmp1;
+    let element1$, element0$, element1$1, element0$1, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       element1$ = runtime.Tuple.get(a_b, 1);
-      b = element1$;
-      a = element0$;
       if (runtime.Tuple.isArrayLike(c_d) && c_d.length === 2) {
         element0$1 = runtime.Tuple.get(c_d, 0);
         element1$1 = runtime.Tuple.get(c_d, 1);
-        d = element1$1;
-        c = element0$1;
-        tmp = a < c;
+        tmp = element0$ < element0$1;
         if (tmp === false) {
-          tmp1 = a === c;
+          tmp1 = element0$ === element0$1;
           if (tmp1 === true) {
-            return b < d
+            return element1$ < element1$1
           }
           return false;
         }
@@ -191,109 +187,96 @@ let knights1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static intChessSetComp(a_b, c_d) {
-    let a, c, element0$, element0$1;
+    let element0$, element0$1;
     if (runtime.Tuple.isArrayLike(a_b) && a_b.length === 2) {
       element0$ = runtime.Tuple.get(a_b, 0);
       runtime.Tuple.get(a_b, 1);
-      a = element0$;
       if (runtime.Tuple.isArrayLike(c_d) && c_d.length === 2) {
         element0$1 = runtime.Tuple.get(c_d, 0);
         runtime.Tuple.get(c_d, 1);
-        c = element0$1;
-        return a < c
+        return element0$ < element0$1
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static myInit(a_t) {
-    let t, a, arg$Cons$0$, arg$Cons$1$, tmp;
+    let arg$Cons$0$, arg$Cons$1$, tmp;
     if (a_t instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = a_t.head;
       arg$Cons$1$ = a_t.tail;
       if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       }
-      t = arg$Cons$1$;
-      a = arg$Cons$0$;
-      tmp = knights.myInit(t);
-      return NofibPrelude.Cons(a, tmp);
+      tmp = knights.myInit(arg$Cons$1$);
+      return NofibPrelude.Cons(arg$Cons$0$, tmp);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static myLast(a_t) {
-    let go, t, a, arg$Cons$0$, arg$Cons$1$;
-    go = function go(h, t1) {
-      let t2, head, arg$Cons$0$1, arg$Cons$1$1;
-      if (t1 instanceof NofibPrelude.Nil.class) {
+    let go, arg$Cons$0$, arg$Cons$1$;
+    go = function go(h, t) {
+      let arg$Cons$0$1, arg$Cons$1$1;
+      if (t instanceof NofibPrelude.Nil.class) {
         return h
-      } else if (t1 instanceof NofibPrelude.Cons.class) {
-        arg$Cons$0$1 = t1.head;
-        arg$Cons$1$1 = t1.tail;
-        t2 = arg$Cons$1$1;
-        head = arg$Cons$0$1;
-        return go(head, t2)
+      } else if (t instanceof NofibPrelude.Cons.class) {
+        arg$Cons$0$1 = t.head;
+        arg$Cons$1$1 = t.tail;
+        return go(arg$Cons$0$1, arg$Cons$1$1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     if (a_t instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = a_t.head;
       arg$Cons$1$ = a_t.tail;
-      t = arg$Cons$1$;
-      a = arg$Cons$0$;
-      return go(a, t)
+      return go(arg$Cons$0$, arg$Cons$1$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static quickSortIntInt(xs) {
-    let lscomp2, lscomp1, x, xs1, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4;
+    let lscomp2, lscomp1, x, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4;
     if (xs instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (xs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = xs.head;
       arg$Cons$1$ = xs.tail;
-      xs1 = arg$Cons$1$;
       x = arg$Cons$0$;
       lscomp1 = function lscomp1(ls) {
-        let t, h, scrut, arg$Cons$0$1, arg$Cons$1$1, tmp5;
+        let scrut, arg$Cons$0$1, arg$Cons$1$1, tmp5;
         if (ls instanceof NofibPrelude.Nil.class) {
           return NofibPrelude.Nil
         } else if (ls instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$1 = ls.head;
           arg$Cons$1$1 = ls.tail;
-          t = arg$Cons$1$1;
-          h = arg$Cons$0$1;
-          scrut = knights.intintComp(h, x);
+          scrut = knights.intintComp(arg$Cons$0$1, x);
           if (scrut === true) {
-            tmp5 = lscomp1(t);
-            return NofibPrelude.Cons(h, tmp5)
+            tmp5 = lscomp1(arg$Cons$1$1);
+            return NofibPrelude.Cons(arg$Cons$0$1, tmp5)
           }
-          return lscomp1(t);
+          return lscomp1(arg$Cons$1$1);
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
       lscomp2 = function lscomp2(ls) {
-        let t, h, scrut, arg$Cons$0$1, arg$Cons$1$1, tmp5, tmp6;
+        let scrut, arg$Cons$0$1, arg$Cons$1$1, tmp5, tmp6;
         if (ls instanceof NofibPrelude.Nil.class) {
           return NofibPrelude.Nil
         } else if (ls instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$1 = ls.head;
           arg$Cons$1$1 = ls.tail;
-          t = arg$Cons$1$1;
-          h = arg$Cons$0$1;
-          tmp5 = knights.intintComp(h, x);
+          tmp5 = knights.intintComp(arg$Cons$0$1, x);
           scrut = ! tmp5;
           if (scrut === true) {
-            tmp6 = lscomp2(t);
-            return NofibPrelude.Cons(h, tmp6)
+            tmp6 = lscomp2(arg$Cons$1$1);
+            return NofibPrelude.Cons(arg$Cons$0$1, tmp6)
           }
-          return lscomp2(t);
+          return lscomp2(arg$Cons$1$1);
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
-      tmp = lscomp1(xs1);
+      tmp = lscomp1(arg$Cons$1$);
       tmp1 = knights.quickSortIntInt(tmp);
-      tmp2 = lscomp2(xs1);
+      tmp2 = lscomp2(arg$Cons$1$);
       tmp3 = knights.quickSortIntInt(tmp2);
       tmp4 = NofibPrelude.Cons(x, tmp3);
       return NofibPrelude.append(tmp1, tmp4)
@@ -386,41 +369,36 @@ let knights1;
     return NofibPrelude.listEq(x, NofibPrelude.Nil)
   } 
   static removeBack(xs) {
-    let x, xs1, arg$Cons$0$, arg$Cons$1$, tmp;
+    let arg$Cons$0$, arg$Cons$1$, tmp;
     if (xs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = xs.head;
       arg$Cons$1$ = xs.tail;
       if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       }
-      xs1 = arg$Cons$1$;
-      x = arg$Cons$0$;
-      tmp = knights.removeBack(xs1);
-      return NofibPrelude.Cons(x, tmp);
+      tmp = knights.removeBack(arg$Cons$1$);
+      return NofibPrelude.Cons(arg$Cons$0$, tmp);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static removeFront(xs) {
-    let t, arg$Cons$1$;
+    let arg$Cons$1$;
     if (xs instanceof NofibPrelude.Cons.class) {
       arg$Cons$1$ = xs.tail;
-      t = arg$Cons$1$;
-      return t
+      return arg$Cons$1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static inquireBack(xs) {
     loopLabel: while (true) {
-      let x, xs1, arg$Cons$0$, arg$Cons$1$;
+      let arg$Cons$0$, arg$Cons$1$;
       if (xs instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = xs.head;
         arg$Cons$1$ = xs.tail;
         if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
-          x = arg$Cons$0$;
-          return x
+          return arg$Cons$0$
         }
-        xs1 = arg$Cons$1$;
-        xs = xs1;
+        xs = arg$Cons$1$;
         continue loopLabel;
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -453,152 +431,133 @@ let knights1;
     return knights.Board(x, 1, tmp, tmp1)
   } 
   static sizeBoard(b) {
-    let a, arg$Board$0$;
+    let arg$Board$0$;
     if (b instanceof knights.Board.class) {
       arg$Board$0$ = b.a;
-      a = arg$Board$0$;
-      return a
+      return arg$Board$0$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static noPieces(b) {
-    let n, arg$Board$1$;
+    let arg$Board$1$;
     if (b instanceof knights.Board.class) {
       arg$Board$1$ = b.b;
-      n = arg$Board$1$;
-      return n
+      return arg$Board$1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static addPiece(t, b) {
-    let s, n, f, ts, arg$Board$0$, arg$Board$1$, arg$Board$2$, arg$Board$3$, tmp, tmp1;
+    let arg$Board$0$, arg$Board$1$, arg$Board$2$, arg$Board$3$, tmp, tmp1;
     if (b instanceof knights.Board.class) {
       arg$Board$0$ = b.a;
       arg$Board$1$ = b.b;
       arg$Board$2$ = b.c;
       arg$Board$3$ = b.d;
-      ts = arg$Board$3$;
-      f = arg$Board$2$;
-      n = arg$Board$1$;
-      s = arg$Board$0$;
-      tmp = n + 1;
-      tmp1 = NofibPrelude.Cons(t, ts);
-      return knights.Board(s, tmp, f, tmp1)
+      tmp = arg$Board$1$ + 1;
+      tmp1 = NofibPrelude.Cons(t, arg$Board$3$);
+      return knights.Board(arg$Board$0$, tmp, arg$Board$2$, tmp1)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static deleteFirst(b) {
-    let s, n, ts, ts_, arg$Board$0$, arg$Board$1$, arg$Board$3$, tmp, lambda, tmp1;
+    let ts_, arg$Board$0$, arg$Board$1$, arg$Board$3$, tmp, lambda, tmp1;
     if (b instanceof knights.Board.class) {
       arg$Board$0$ = b.a;
       arg$Board$1$ = b.b;
       arg$Board$3$ = b.d;
-      ts = arg$Board$3$;
-      n = arg$Board$1$;
-      s = arg$Board$0$;
-      ts_ = knights.myInit(ts);
-      tmp = n - 1;
+      ts_ = knights.myInit(arg$Board$3$);
+      tmp = arg$Board$1$ - 1;
       lambda = (undefined, function () {
         return knights.myLast(ts_)
       });
       tmp1 = NofibPrelude.lazy(lambda);
-      return knights.Board(s, tmp, tmp1, ts_)
+      return knights.Board(arg$Board$0$, tmp, tmp1, ts_)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static positionPiece(x, b) {
-    let n, ts, arg$Board$1$, arg$Board$3$, tmp;
+    let arg$Board$1$, arg$Board$3$, tmp;
     if (b instanceof knights.Board.class) {
       arg$Board$1$ = b.b;
       arg$Board$3$ = b.d;
-      ts = arg$Board$3$;
-      n = arg$Board$1$;
-      tmp = n - x;
-      return NofibPrelude.atIndex(tmp, ts)
+      tmp = arg$Board$1$ - x;
+      return NofibPrelude.atIndex(tmp, arg$Board$3$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lastPiece(b) {
-    let t, arg$Board$3$, arg$Cons$0$;
+    let arg$Board$3$, arg$Cons$0$;
     if (b instanceof knights.Board.class) {
       arg$Board$3$ = b.d;
       if (arg$Board$3$ instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = arg$Board$3$.head;
-        t = arg$Cons$0$;
-        return t
+        return arg$Cons$0$
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static firstPiece(b) {
-    let f, arg$Board$2$;
+    let arg$Board$2$;
     if (b instanceof knights.Board.class) {
       arg$Board$2$ = b.c;
-      f = arg$Board$2$;
-      return NofibPrelude.force(f)
+      return NofibPrelude.force(arg$Board$2$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static pieceAtTile(x, b) {
-    let find, ts, arg$Board$3$;
+    let find, arg$Board$3$;
     if (b instanceof knights.Board.class) {
       arg$Board$3$ = b.d;
-      ts = arg$Board$3$;
       find = function find(x1, xs) {
-        let xs1, y, scrut, arg$Cons$0$, arg$Cons$1$, tmp;
+        let scrut, arg$Cons$0$, arg$Cons$1$, tmp;
         if (xs instanceof NofibPrelude.Nil.class) {
           throw runtime.safeCall(globalThis.Error("Tile not used"))
         } else if (xs instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$ = xs.head;
           arg$Cons$1$ = xs.tail;
-          xs1 = arg$Cons$1$;
-          y = arg$Cons$0$;
-          scrut = NofibPrelude.eqTup2(x1, y);
+          scrut = NofibPrelude.eqTup2(x1, arg$Cons$0$);
           if (scrut === true) {
-            tmp = NofibPrelude.listLen(xs1);
+            tmp = NofibPrelude.listLen(arg$Cons$1$);
             return 1 + tmp
           }
-          return find(x1, xs1);
+          return find(x1, arg$Cons$1$);
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
-      return find(x, ts)
+      return find(x, arg$Board$3$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static tup2InList(y, xs) {
     loopLabel: while (true) {
-      let x, xs1, scrut, arg$Cons$0$, arg$Cons$1$;
+      let scrut, arg$Cons$0$, arg$Cons$1$;
       if (xs instanceof NofibPrelude.Nil.class) {
         return false
       } else if (xs instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = xs.head;
         arg$Cons$1$ = xs.tail;
-        xs1 = arg$Cons$1$;
-        x = arg$Cons$0$;
-        scrut = NofibPrelude.eqTup2(y, x);
+        scrut = NofibPrelude.eqTup2(y, arg$Cons$0$);
         if (scrut === true) {
           return true
         }
-        xs = xs1;
+        xs = arg$Cons$1$;
         continue loopLabel;
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
   } 
   static isSquareFree(x, b) {
-    let ts, arg$Board$3$, tmp;
+    let arg$Board$3$, tmp;
     if (b instanceof knights.Board.class) {
       arg$Board$3$ = b.d;
-      ts = arg$Board$3$;
-      tmp = knights.tup2InList(x, ts);
+      tmp = knights.tup2InList(x, arg$Board$3$);
       return ! tmp
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static assignMoveNo(t, size, z) {
-    let x, y, t1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+    let arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
     if (t instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (t instanceof NofibPrelude.Cons.class) {
@@ -607,18 +566,15 @@ let knights1;
       if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
         element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
         element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-        t1 = arg$Cons$1$;
-        y = element1$;
-        x = element0$;
-        tmp = y - 1;
+        tmp = element1$ - 1;
         tmp1 = tmp * size;
-        tmp2 = tmp1 + x;
+        tmp2 = tmp1 + element0$;
         tmp3 = globalThis.Object.freeze([
           tmp2,
           z
         ]);
         tmp4 = z - 1;
-        tmp5 = knights.assignMoveNo(t1, size, tmp4);
+        tmp5 = knights.assignMoveNo(arg$Cons$1$, size, tmp4);
         return NofibPrelude.Cons(tmp3, tmp5)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -683,20 +639,20 @@ let knights1;
                 xs1 = arg$Cons$1$;
                 j = element1$;
                 i = element0$;
-                scrut3 = i === n;
+                scrut3 = element0$ === n;
                 if (scrut3 === true) {
                   tmp11 = NofibPrelude.intMod(n, s);
                   scrut4 = tmp11 === 0;
                   if (scrut4 === true) {
-                    tmp12 = NofibPrelude.stringOfInt(j);
+                    tmp12 = NofibPrelude.stringOfInt(element1$);
                     tmp13 = NofibPrelude.nofibStringToList(tmp12);
                     tmp14 = NofibPrelude.nofibStringToList("\n");
                     tmp15 = n + 1;
-                    tmp16 = knights.printBoard(s, tmp15, xs1);
+                    tmp16 = knights.printBoard(s, tmp15, arg$Cons$1$);
                     tmp17 = NofibPrelude.append(tmp14, tmp16);
                     return NofibPrelude.append(tmp13, tmp17)
                   }
-                  scrut5 = i === n;
+                  scrut5 = element0$ === n;
                   if (scrut5 === true) {
                     tmp18 = NofibPrelude.intMod(n, s);
                     scrut6 = tmp18 != 0;
@@ -710,8 +666,8 @@ let knights1;
                     }
                     tmp20 = NofibPrelude.intMod(n, s);
                     scrut8 = tmp20 === 0;
-                    if (scrut8 === true) {
-                      break split_3$
+                    if (scrut8 !== true) {
+                      throw runtime.safeCall(globalThis.Error("printBoard non-empty list error"))
                     }
                   } else {
                     tmp21 = NofibPrelude.intMod(n, s);
@@ -721,46 +677,47 @@ let knights1;
                     }
                     tmp22 = NofibPrelude.intMod(n, s);
                     scrut8 = tmp22 === 0;
-                    if (scrut8 === true) {
-                      break split_3$
+                    if (scrut8 !== true) {
+                      throw runtime.safeCall(globalThis.Error("printBoard non-empty list error"))
                     }
                   }
-                  throw runtime.safeCall(globalThis.Error("printBoard non-empty list error"))
-                }
-                scrut5 = i === n;
-                if (scrut5 === true) {
-                  tmp23 = NofibPrelude.intMod(n, s);
-                  scrut6 = tmp23 != 0;
-                  if (scrut6 === true) {
-                    break split_1$
-                  }
-                  tmp24 = NofibPrelude.intMod(n, s);
-                  scrut7 = tmp24 != 0;
-                  if (scrut7 === true) {
-                    break split_2$
-                  }
-                  tmp25 = NofibPrelude.intMod(n, s);
-                  scrut8 = tmp25 === 0;
-                  if (scrut8 === true) {
-                    break split_3$
-                  }
                 } else {
-                  tmp26 = NofibPrelude.intMod(n, s);
-                  scrut7 = tmp26 != 0;
-                  if (scrut7 === true) {
-                    break split_2$
-                  }
-                  tmp27 = NofibPrelude.intMod(n, s);
-                  scrut8 = tmp27 === 0;
-                  if (scrut8 === true) {
-                    break split_3$
+                  scrut5 = element0$ === n;
+                  if (scrut5 === true) {
+                    tmp23 = NofibPrelude.intMod(n, s);
+                    scrut6 = tmp23 != 0;
+                    if (scrut6 === true) {
+                      break split_1$
+                    }
+                    tmp24 = NofibPrelude.intMod(n, s);
+                    scrut7 = tmp24 != 0;
+                    if (scrut7 === true) {
+                      break split_2$
+                    }
+                    tmp25 = NofibPrelude.intMod(n, s);
+                    scrut8 = tmp25 === 0;
+                    if (scrut8 !== true) {
+                      throw runtime.safeCall(globalThis.Error("printBoard non-empty list error"))
+                    }
+                  } else {
+                    tmp26 = NofibPrelude.intMod(n, s);
+                    scrut7 = tmp26 != 0;
+                    if (scrut7 === true) {
+                      break split_2$
+                    }
+                    tmp27 = NofibPrelude.intMod(n, s);
+                    scrut8 = tmp27 === 0;
+                    if (scrut8 !== true) {
+                      throw runtime.safeCall(globalThis.Error("printBoard non-empty list error"))
+                    }
                   }
                 }
-                throw runtime.safeCall(globalThis.Error("printBoard non-empty list error"));
+              } else {
+                break split_default$
               }
-              break split_default$;
+            } else {
+              break split_default$
             }
-            break split_default$;
           }
           tmp28 = NofibPrelude.nofibStringToList("*\n");
           tmp29 = n + 1;
@@ -796,64 +753,62 @@ let knights1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"))
   } 
   static move(d, x_y) {
-    let x, y, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
+    let element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
     if (runtime.Tuple.isArrayLike(x_y) && x_y.length === 2) {
       element0$ = runtime.Tuple.get(x_y, 0);
       element1$ = runtime.Tuple.get(x_y, 1);
-      y = element1$;
-      x = element0$;
       if (d instanceof knights.UL.class) {
-        tmp = x - 1;
-        tmp1 = y - 2;
+        tmp = element0$ - 1;
+        tmp1 = element1$ - 2;
         return globalThis.Object.freeze([
           tmp,
           tmp1
         ])
       } else if (d instanceof knights.UR.class) {
-        tmp2 = x + 1;
-        tmp3 = y - 2;
+        tmp2 = element0$ + 1;
+        tmp3 = element1$ - 2;
         return globalThis.Object.freeze([
           tmp2,
           tmp3
         ])
       } else if (d instanceof knights.DL.class) {
-        tmp4 = x - 1;
-        tmp5 = y + 2;
+        tmp4 = element0$ - 1;
+        tmp5 = element1$ + 2;
         return globalThis.Object.freeze([
           tmp4,
           tmp5
         ])
       } else if (d instanceof knights.DR.class) {
-        tmp6 = x + 1;
-        tmp7 = y + 2;
+        tmp6 = element0$ + 1;
+        tmp7 = element1$ + 2;
         return globalThis.Object.freeze([
           tmp6,
           tmp7
         ])
       } else if (d instanceof knights.LU.class) {
-        tmp8 = x - 2;
-        tmp9 = y - 1;
+        tmp8 = element0$ - 2;
+        tmp9 = element1$ - 1;
         return globalThis.Object.freeze([
           tmp8,
           tmp9
         ])
       } else if (d instanceof knights.LD.class) {
-        tmp10 = x - 2;
-        tmp11 = y + 1;
+        tmp10 = element0$ - 2;
+        tmp11 = element1$ + 1;
         return globalThis.Object.freeze([
           tmp10,
           tmp11
         ])
       } else if (d instanceof knights.RU.class) {
-        tmp12 = x + 2;
-        tmp13 = y - 1;
+        tmp12 = element0$ + 2;
+        tmp13 = element1$ - 1;
         return globalThis.Object.freeze([
           tmp12,
           tmp13
         ])
       } else if (d instanceof knights.RD.class) {
-        tmp14 = x + 2;
-        tmp15 = y + 1;
+        tmp14 = element0$ + 2;
+        tmp15 = element1$ + 1;
         return globalThis.Object.freeze([
           tmp14,
           tmp15
@@ -879,41 +834,32 @@ let knights1;
     return knights.addPiece(tmp1, board)
   } 
   static canMoveTo(x_y, board) {
-    let x, y, sze, res, scrut, scrut1, scrut2, scrut3, scrut4, element1$, element0$, tmp;
+    let sze, scrut, scrut1, scrut2, scrut3, scrut4, element1$, element0$;
     if (runtime.Tuple.isArrayLike(x_y) && x_y.length === 2) {
       element0$ = runtime.Tuple.get(x_y, 0);
       element1$ = runtime.Tuple.get(x_y, 1);
-      y = element1$;
-      x = element0$;
       sze = knights.sizeBoard(board);
-      scrut = x >= 1;
+      scrut = element0$ >= 1;
       if (scrut === true) {
-        scrut4 = x <= sze;
+        scrut4 = element0$ <= sze;
         if (scrut4 === true) {
-          scrut3 = y >= 1;
+          scrut3 = element1$ >= 1;
           if (scrut3 === true) {
-            scrut2 = y <= sze;
+            scrut2 = element1$ <= sze;
             if (scrut2 === true) {
               scrut1 = knights.isSquareFree(x_y, board);
               if (scrut1 === true) {
-                tmp = true;
-              } else {
-                tmp = false;
+                return true
               }
-            } else {
-              tmp = false;
+              return false;
             }
-          } else {
-            tmp = false;
+            return false;
           }
-        } else {
-          tmp = false;
+          return false;
         }
-      } else {
-        tmp = false;
+        return false;
       }
-      res = tmp;
-      return res
+      return false;
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -943,20 +889,18 @@ let knights1;
   static possibleMoves(board) {
     let lscomp, res, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     lscomp = function lscomp(ls) {
-      let x, t, scrut, arg$Cons$0$, arg$Cons$1$, tmp8;
+      let scrut, arg$Cons$0$, arg$Cons$1$, tmp8;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
-        x = arg$Cons$0$;
-        scrut = knights.canMove(board, x);
+        scrut = knights.canMove(board, arg$Cons$0$);
         if (scrut === true) {
-          tmp8 = lscomp(t);
-          return NofibPrelude.Cons(x, tmp8)
+          tmp8 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Cons$0$, tmp8)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -1021,7 +965,7 @@ let knights1;
   static singleDescend(board) {
     let lscomp, tmp;
     lscomp = function lscomp(ls) {
-      let scrut, x, y, t, scrut1, arg$LzCons$0$, arg$LzCons$1$, element1$, element0$, tmp1;
+      let scrut, scrut1, arg$LzCons$0$, arg$LzCons$1$, element1$, element0$, tmp1;
       scrut = NofibPrelude.force(ls);
       if (scrut instanceof NofibPrelude.LzNil.class) {
         return NofibPrelude.Nil
@@ -1031,15 +975,12 @@ let knights1;
         if (runtime.Tuple.isArrayLike(arg$LzCons$0$) && arg$LzCons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$LzCons$0$, 0);
           element1$ = runtime.Tuple.get(arg$LzCons$0$, 1);
-          t = arg$LzCons$1$;
-          x = element1$;
-          y = element0$;
-          scrut1 = y === 1;
+          scrut1 = element0$ === 1;
           if (scrut1 === true) {
-            tmp1 = lscomp(t);
-            return NofibPrelude.Cons(x, tmp1)
+            tmp1 = lscomp(arg$LzCons$1$);
+            return NofibPrelude.Cons(element1$, tmp1)
           }
-          return lscomp(t);
+          return lscomp(arg$LzCons$1$);
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -1049,7 +990,7 @@ let knights1;
     return lscomp(tmp)
   } 
   static descendents(board) {
-    let scrut, singles, scrut1, res, scrut2, scrut3, h, tmp, tmp1, tmp2, tmp3, lambda, tmp4, tmp5, tmp6, arg$Cons$0$, arg$Cons$1$, lambda1, tmp7, lambda2;
+    let scrut, singles, scrut1, scrut2, scrut3, h, tmp, tmp1, tmp2, tmp3, lambda, tmp4, tmp5, tmp6, arg$Cons$0$, arg$Cons$1$, lambda1, tmp7, lambda2;
     tmp = knights.canJumpFirst(board);
     if (tmp === true) {
       tmp2 = knights.firstPiece(board);
@@ -1072,52 +1013,46 @@ let knights1;
       tmp4 = knights.descAndNo(board);
       tmp5 = knights.quickSortIntChessSet(tmp4);
       tmp6 = NofibPrelude.map_lz(NofibPrelude.snd, tmp5);
-    } else {
-      scrut3 = scrut1 === 1;
-      if (scrut3 === true) {
-        if (singles instanceof NofibPrelude.Cons.class) {
-          arg$Cons$0$ = singles.head;
-          arg$Cons$1$ = singles.tail;
-          if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
-            h = arg$Cons$0$;
-            lambda1 = (undefined, function () {
-              let lambda3, tmp8;
-              lambda3 = (undefined, function () {
-                return NofibPrelude.LzNil
-              });
-              tmp8 = NofibPrelude.lazy(lambda3);
-              return NofibPrelude.LzCons(h, tmp8)
-            });
-            tmp7 = NofibPrelude.lazy(lambda1);
-            tmp6 = tmp7;
-          } else {
-            throw runtime.safeCall(globalThis.Error("unreachable"))
-          }
-        } else {
-          throw runtime.safeCall(globalThis.Error("unreachable"))
-        }
-      } else {
-        lambda2 = (undefined, function () {
-          return NofibPrelude.LzNil
-        });
-        tmp6 = NofibPrelude.lazy(lambda2);
-      }
+      return tmp6
     }
-    res = tmp6;
-    return res;
+    scrut3 = scrut1 === 1;
+    if (scrut3 === true) {
+      if (singles instanceof NofibPrelude.Cons.class) {
+        arg$Cons$0$ = singles.head;
+        arg$Cons$1$ = singles.tail;
+        if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
+          h = arg$Cons$0$;
+          lambda1 = (undefined, function () {
+            let lambda3, tmp8;
+            lambda3 = (undefined, function () {
+              return NofibPrelude.LzNil
+            });
+            tmp8 = NofibPrelude.lazy(lambda3);
+            return NofibPrelude.LzCons(h, tmp8)
+          });
+          tmp7 = NofibPrelude.lazy(lambda1);
+          tmp6 = tmp7;
+          return tmp7
+        }
+        throw runtime.safeCall(globalThis.Error("unreachable"));
+      }
+      throw runtime.safeCall(globalThis.Error("unreachable"));
+    }
+    lambda2 = (undefined, function () {
+      return NofibPrelude.LzNil
+    });
+    tmp6 = NofibPrelude.lazy(lambda2);
+    return tmp6;
   } 
   static showChessSet(b) {
-    let sze, n, ts, sortedTrail, arg$Board$0$, arg$Board$1$, arg$Board$3$, tmp;
+    let sortedTrail, arg$Board$0$, arg$Board$1$, arg$Board$3$, tmp;
     if (b instanceof knights.Board.class) {
       arg$Board$0$ = b.a;
       arg$Board$1$ = b.b;
       arg$Board$3$ = b.d;
-      ts = arg$Board$3$;
-      n = arg$Board$1$;
-      sze = arg$Board$0$;
-      tmp = knights.assignMoveNo(ts, sze, n);
+      tmp = knights.assignMoveNo(arg$Board$3$, arg$Board$0$, arg$Board$1$);
       sortedTrail = knights.quickSortIntInt(tmp);
-      return knights.printBoard(sze, 1, sortedTrail)
+      return knights.printBoard(arg$Board$0$, 1, sortedTrail)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -1178,26 +1113,23 @@ let knights1;
     return NofibPrelude.append_lz_lz(tmp8, tmp9)
   } 
   static grow(x_y) {
-    let x, y, element1$, element0$, tmp, tmp1, tmp2;
+    let element1$, element0$, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(x_y) && x_y.length === 2) {
       element0$ = runtime.Tuple.get(x_y, 0);
       element1$ = runtime.Tuple.get(x_y, 1);
-      y = element1$;
-      x = element0$;
-      tmp = x + 1;
+      tmp = element0$ + 1;
       tmp1 = NofibPrelude.repeat(tmp);
-      tmp2 = knights.descendents(y);
+      tmp2 = knights.descendents(element1$);
       return NofibPrelude.zip_lz_lz(tmp1, tmp2)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static isFinished(x_y) {
-    let y, element1$;
+    let element1$;
     if (runtime.Tuple.isArrayLike(x_y) && x_y.length === 2) {
       runtime.Tuple.get(x_y, 0);
       element1$ = runtime.Tuple.get(x_y, 1);
-      y = element1$;
-      return knights.tourFinished(y)
+      return knights.tourFinished(element1$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -1210,22 +1142,20 @@ let knights1;
     return false;
   } 
   static removeFront_lz(xs) {
-    let scrut, t, arg$LzCons$1$;
+    let scrut, arg$LzCons$1$;
     scrut = NofibPrelude.force(xs);
     if (scrut instanceof NofibPrelude.LzCons.class) {
       arg$LzCons$1$ = scrut.tail;
-      t = arg$LzCons$1$;
-      return t
+      return arg$LzCons$1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static inquireFront_lz(h_t) {
-    let scrut, h, arg$LzCons$0$;
+    let scrut, arg$LzCons$0$;
     scrut = NofibPrelude.force(h_t);
     if (scrut instanceof NofibPrelude.LzCons.class) {
       arg$LzCons$0$ = scrut.head;
-      h = arg$LzCons$0$;
-      return h
+      return arg$LzCons$0$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -1268,26 +1198,24 @@ let knights1;
     }
   } 
   static printTour(ss) {
-    let pp, strToInt, scrut, number, size, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, lambda, tmp, tmp1, tmp2;
+    let pp, strToInt, scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, lambda, tmp, tmp1, tmp2;
     strToInt = function strToInt(y, xs) {
-      let x, xs1, arg$Cons$0$2, arg$Cons$1$2, tmp3, tmp4, tmp5, tmp6;
+      let arg$Cons$0$2, arg$Cons$1$2, tmp3, tmp4, tmp5, tmp6;
       if (xs instanceof NofibPrelude.Nil.class) {
         return y
       } else if (xs instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$2 = xs.head;
         arg$Cons$1$2 = xs.tail;
-        xs1 = arg$Cons$1$2;
-        x = arg$Cons$0$2;
         tmp3 = 10 * y;
-        tmp4 = runtime.safeCall(x.codePointAt(0));
+        tmp4 = runtime.safeCall(arg$Cons$0$2.codePointAt(0));
         tmp5 = tmp4 - 48;
         tmp6 = tmp3 + tmp5;
-        return strToInt(tmp6, xs1)
+        return strToInt(tmp6, arg$Cons$1$2)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     pp = function pp(xs) {
-      let x, xs1, y, arg$Cons$0$2, arg$Cons$1$2, element1$, element0$, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+      let arg$Cons$0$2, arg$Cons$1$2, element1$, element0$, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
       if (xs instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (xs instanceof NofibPrelude.Cons.class) {
@@ -1296,15 +1224,12 @@ let knights1;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$2) && arg$Cons$0$2.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$2, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$2, 1);
-          xs1 = arg$Cons$1$2;
-          y = element1$;
-          x = element0$;
           tmp3 = NofibPrelude.nofibStringToList("\nKnights tour with ");
-          tmp4 = NofibPrelude.stringOfInt(x);
+          tmp4 = NofibPrelude.stringOfInt(element0$);
           tmp5 = NofibPrelude.nofibStringToList(tmp4);
           tmp6 = NofibPrelude.nofibStringToList(" backtracking moves\n");
-          tmp7 = knights.showChessSet(y);
-          tmp8 = pp(xs1);
+          tmp7 = knights.showChessSet(element1$);
+          tmp8 = pp(arg$Cons$1$2);
           tmp9 = NofibPrelude.append(tmp7, tmp8);
           tmp10 = NofibPrelude.append(tmp6, tmp9);
           tmp11 = NofibPrelude.append(tmp5, tmp10);
@@ -1325,11 +1250,9 @@ let knights1;
         arg$Cons$0$1 = arg$Cons$1$.head;
         arg$Cons$1$1 = arg$Cons$1$.tail;
         if (arg$Cons$1$1 instanceof NofibPrelude.Nil.class) {
-          number = arg$Cons$0$1;
-          size = arg$Cons$0$;
-          tmp = knights.root(size);
+          tmp = knights.root(arg$Cons$0$);
           tmp1 = knights.depthSearch(tmp, knights.grow, knights.isFinished);
-          tmp2 = NofibPrelude.take_lz(number, tmp1);
+          tmp2 = NofibPrelude.take_lz(arg$Cons$0$1, tmp1);
           return pp(tmp2)
         }
         throw runtime.safeCall(globalThis.Error("printTour error"));
@@ -1339,15 +1262,12 @@ let knights1;
     throw runtime.safeCall(globalThis.Error("printTour error"));
   } 
   static testKnights_nofib(ss) {
-    let usageString, scrut, ss1, inlinedVal, tmp, tmp1, lambda;
-    usageString = "\nUsage: knights <board size> <no solutions> \n";
-    ss1 = ss;
-    tmp = NofibPrelude.listLen(ss1);
+    let scrut, inlinedVal, tmp, tmp1, lambda;
+    tmp = NofibPrelude.listLen(ss);
     tmp1 = tmp === 2;
     if (tmp1 === true) {
       lambda = (undefined, function (a, b) {
-        let tmp2, s, inlinedVal1, lambda1;
-        s = a;
+        let tmp2, inlinedVal1, lambda1;
         lambda1 = (undefined, function (a1, b1) {
           let tmp3;
           tmp3 = knights.myIsDigit(a1);
@@ -1356,14 +1276,14 @@ let knights1;
           }
           return false;
         });
-        inlinedVal1 = NofibPrelude.foldr(lambda1, true, s);
+        inlinedVal1 = NofibPrelude.foldr(lambda1, true, a);
         tmp2 = inlinedVal1;
         if (tmp2 === true) {
           return b
         }
         return false;
       });
-      inlinedVal = NofibPrelude.foldr(lambda, true, ss1);
+      inlinedVal = NofibPrelude.foldr(lambda, true, ss);
     } else {
       inlinedVal = false;
     }
@@ -1371,7 +1291,7 @@ let knights1;
     if (scrut === true) {
       return knights.printTour(ss)
     }
-    throw runtime.safeCall(globalThis.Error(usageString));
+    throw runtime.safeCall(globalThis.Error("\nUsage: knights <board size> <no solutions> \n"));
   } 
   static main() {
     let tmp, tmp1, tmp2, tmp3, tmp4;

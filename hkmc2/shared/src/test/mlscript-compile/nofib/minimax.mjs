@@ -246,16 +246,15 @@ let minimax1;
   }
   static andd(ls) {
     loopLabel: while (true) {
-      let bs, b, arg$Cons$0$, arg$Cons$1$;
+      let b, arg$Cons$0$, arg$Cons$1$;
       if (ls instanceof NofibPrelude.Nil.class) {
         return true
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        bs = arg$Cons$1$;
         b = arg$Cons$0$;
         if (b === true) {
-          ls = bs;
+          ls = arg$Cons$1$;
           continue loopLabel
         }
         return false;
@@ -283,7 +282,7 @@ let minimax1;
     return false;
   } 
   static evaluationEq(x, y) {
-    let i, j, scrut, arg$Score$0$, arg$Score$0$1;
+    let scrut, arg$Score$0$, arg$Score$0$1;
     if (x instanceof minimax.XWin.class) {
       if (y instanceof minimax.XWin.class) {
         return true
@@ -296,11 +295,9 @@ let minimax1;
       return false;
     } else if (x instanceof minimax.Score.class) {
       arg$Score$0$ = x.i;
-      i = arg$Score$0$;
       if (y instanceof minimax.Score.class) {
         arg$Score$0$1 = y.i;
-        j = arg$Score$0$1;
-        scrut = i === j;
+        scrut = arg$Score$0$ === arg$Score$0$1;
         if (scrut === true) {
           return true
         }
@@ -311,16 +308,15 @@ let minimax1;
     return false;
   } 
   static showEvaluation(e) {
-    let i, arg$Score$0$, tmp, tmp1, tmp2;
+    let arg$Score$0$, tmp, tmp1, tmp2;
     if (e instanceof minimax.XWin.class) {
       return NofibPrelude.nofibStringToList("XWin")
     } else if (e instanceof minimax.OWin.class) {
       return NofibPrelude.nofibStringToList("OWin")
     } else if (e instanceof minimax.Score.class) {
       arg$Score$0$ = e.i;
-      i = arg$Score$0$;
       tmp = NofibPrelude.nofibStringToList("Score ");
-      tmp1 = NofibPrelude.stringOfInt(i);
+      tmp1 = NofibPrelude.stringOfInt(arg$Score$0$);
       tmp2 = NofibPrelude.nofibStringToList(tmp1);
       return NofibPrelude.append(tmp, tmp2)
     }
@@ -337,7 +333,7 @@ let minimax1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static showRow(ps) {
-    let p3, p2, p1, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     if (ps instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ps.head;
       arg$Cons$1$ = ps.tail;
@@ -348,14 +344,11 @@ let minimax1;
           arg$Cons$0$2 = arg$Cons$1$1.head;
           arg$Cons$1$2 = arg$Cons$1$1.tail;
           if (arg$Cons$1$2 instanceof NofibPrelude.Nil.class) {
-            p3 = arg$Cons$0$2;
-            p2 = arg$Cons$0$1;
-            p1 = arg$Cons$0$;
-            tmp = minimax.showPiece(p1);
+            tmp = minimax.showPiece(arg$Cons$0$);
             tmp1 = NofibPrelude.nofibStringToList("|");
-            tmp2 = minimax.showPiece(p2);
+            tmp2 = minimax.showPiece(arg$Cons$0$1);
             tmp3 = NofibPrelude.nofibStringToList("|");
-            tmp4 = minimax.showPiece(p3);
+            tmp4 = minimax.showPiece(arg$Cons$0$2);
             tmp5 = NofibPrelude.append(tmp3, tmp4);
             tmp6 = NofibPrelude.append(tmp2, tmp5);
             tmp7 = NofibPrelude.append(tmp1, tmp6);
@@ -370,7 +363,7 @@ let minimax1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static showBoard(rs) {
-    let r1, r2, r3, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
+    let arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
     if (rs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = rs.head;
       arg$Cons$1$ = rs.tail;
@@ -381,14 +374,11 @@ let minimax1;
           arg$Cons$0$2 = arg$Cons$1$1.head;
           arg$Cons$1$2 = arg$Cons$1$1.tail;
           if (arg$Cons$1$2 instanceof NofibPrelude.Nil.class) {
-            r3 = arg$Cons$0$2;
-            r2 = arg$Cons$0$1;
-            r1 = arg$Cons$0$;
-            tmp = minimax.showRow(r1);
+            tmp = minimax.showRow(arg$Cons$0$);
             tmp1 = NofibPrelude.nofibStringToList("\n------\n");
-            tmp2 = minimax.showRow(r2);
+            tmp2 = minimax.showRow(arg$Cons$0$1);
             tmp3 = NofibPrelude.nofibStringToList("\n------\n");
-            tmp4 = minimax.showRow(r3);
+            tmp4 = minimax.showRow(arg$Cons$0$2);
             tmp5 = NofibPrelude.nofibStringToList("\n\n");
             tmp6 = NofibPrelude.append(tmp4, tmp5);
             tmp7 = NofibPrelude.append(tmp3, tmp6);
@@ -405,7 +395,7 @@ let minimax1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static insert(p, ps, i) {
-    let p3, p2, p1, scrut, scrut1, scrut2, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+    let scrut, scrut1, scrut2, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
     if (ps instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ps.head;
       arg$Cons$1$ = ps.tail;
@@ -416,26 +406,23 @@ let minimax1;
           arg$Cons$0$2 = arg$Cons$1$1.head;
           arg$Cons$1$2 = arg$Cons$1$1.tail;
           if (arg$Cons$1$2 instanceof NofibPrelude.Nil.class) {
-            p3 = arg$Cons$0$2;
-            p2 = arg$Cons$0$1;
-            p1 = arg$Cons$0$;
             scrut = i === 1;
             if (scrut === true) {
-              tmp = NofibPrelude.Cons(p3, NofibPrelude.Nil);
-              tmp1 = NofibPrelude.Cons(p2, tmp);
+              tmp = NofibPrelude.Cons(arg$Cons$0$2, NofibPrelude.Nil);
+              tmp1 = NofibPrelude.Cons(arg$Cons$0$1, tmp);
               return NofibPrelude.Cons(p, tmp1)
             }
             scrut1 = i === 2;
             if (scrut1 === true) {
-              tmp2 = NofibPrelude.Cons(p3, NofibPrelude.Nil);
+              tmp2 = NofibPrelude.Cons(arg$Cons$0$2, NofibPrelude.Nil);
               tmp3 = NofibPrelude.Cons(p, tmp2);
-              return NofibPrelude.Cons(p1, tmp3)
+              return NofibPrelude.Cons(arg$Cons$0$, tmp3)
             }
             scrut2 = i === 3;
             if (scrut2 === true) {
               tmp4 = NofibPrelude.Cons(p, NofibPrelude.Nil);
-              tmp5 = NofibPrelude.Cons(p2, tmp4);
-              return NofibPrelude.Cons(p1, tmp5)
+              tmp5 = NofibPrelude.Cons(arg$Cons$0$1, tmp4);
+              return NofibPrelude.Cons(arg$Cons$0$, tmp5)
             }
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"))
@@ -621,7 +608,7 @@ let minimax1;
     return false;
   } 
   static empty(pos, board) {
-    let r1, r2, r3, x, x1, x2, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, element1$, element0$;
+    let arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, element1$, element0$;
     if (board instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = board.head;
       arg$Cons$1$ = board.tail;
@@ -632,22 +619,16 @@ let minimax1;
           arg$Cons$0$2 = arg$Cons$1$1.head;
           arg$Cons$1$2 = arg$Cons$1$1.tail;
           if (arg$Cons$1$2 instanceof NofibPrelude.Nil.class) {
-            r3 = arg$Cons$0$2;
-            r2 = arg$Cons$0$1;
-            r1 = arg$Cons$0$;
             if (runtime.Tuple.isArrayLike(pos) && pos.length === 2) {
               element0$ = runtime.Tuple.get(pos, 0);
               element1$ = runtime.Tuple.get(pos, 1);
               switch (element0$) {
                 case 1:
-                  x = element1$;
-                  return minimax.empty_(x, r1);
+                  return minimax.empty_(element1$, arg$Cons$0$);
                 case 2:
-                  x1 = element1$;
-                  return minimax.empty_(x1, r2);
+                  return minimax.empty_(element1$, arg$Cons$0$1);
                 case 3:
-                  x2 = element1$;
-                  return minimax.empty_(x2, r3);
+                  return minimax.empty_(element1$, arg$Cons$0$2);
               }
             }
           }
@@ -660,7 +641,7 @@ let minimax1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static placePiece(p, board, pos) {
-    let scrut, r1, r2, r3, x, x1, x2, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+    let scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
     tmp = minimax.empty(pos, board);
     scrut = ! tmp;
     if (scrut === true) {
@@ -676,33 +657,27 @@ let minimax1;
           arg$Cons$0$2 = arg$Cons$1$1.head;
           arg$Cons$1$2 = arg$Cons$1$1.tail;
           if (arg$Cons$1$2 instanceof NofibPrelude.Nil.class) {
-            r3 = arg$Cons$0$2;
-            r2 = arg$Cons$0$1;
-            r1 = arg$Cons$0$;
             if (runtime.Tuple.isArrayLike(pos) && pos.length === 2) {
               element0$ = runtime.Tuple.get(pos, 0);
               element1$ = runtime.Tuple.get(pos, 1);
               switch (element0$) {
                 case 1:
-                  x = element1$;
-                  tmp1 = minimax.insert(p, r1, x);
-                  tmp2 = NofibPrelude.Cons(r3, NofibPrelude.Nil);
-                  tmp3 = NofibPrelude.Cons(r2, tmp2);
+                  tmp1 = minimax.insert(p, arg$Cons$0$, element1$);
+                  tmp2 = NofibPrelude.Cons(arg$Cons$0$2, NofibPrelude.Nil);
+                  tmp3 = NofibPrelude.Cons(arg$Cons$0$1, tmp2);
                   tmp4 = NofibPrelude.Cons(tmp1, tmp3);
                   return NofibPrelude.Cons(tmp4, NofibPrelude.Nil);
                 case 2:
-                  x1 = element1$;
-                  tmp5 = minimax.insert(p, r2, x1);
-                  tmp6 = NofibPrelude.Cons(r3, NofibPrelude.Nil);
+                  tmp5 = minimax.insert(p, arg$Cons$0$1, element1$);
+                  tmp6 = NofibPrelude.Cons(arg$Cons$0$2, NofibPrelude.Nil);
                   tmp7 = NofibPrelude.Cons(tmp5, tmp6);
-                  tmp8 = NofibPrelude.Cons(r1, tmp7);
+                  tmp8 = NofibPrelude.Cons(arg$Cons$0$, tmp7);
                   return NofibPrelude.Cons(tmp8, NofibPrelude.Nil);
                 case 3:
-                  x2 = element1$;
-                  tmp9 = minimax.insert(p, r3, x2);
+                  tmp9 = minimax.insert(p, arg$Cons$0$2, element1$);
                   tmp10 = NofibPrelude.Cons(tmp9, NofibPrelude.Nil);
-                  tmp11 = NofibPrelude.Cons(r2, tmp10);
-                  tmp12 = NofibPrelude.Cons(r1, tmp11);
+                  tmp11 = NofibPrelude.Cons(arg$Cons$0$1, tmp10);
+                  tmp12 = NofibPrelude.Cons(arg$Cons$0$, tmp11);
                   return NofibPrelude.Cons(tmp12, NofibPrelude.Nil);
               }
             }
@@ -737,19 +712,17 @@ let minimax1;
         xs = arg$Cons$1$;
         x = arg$Cons$0$;
         lscomp2 = function lscomp2(ls1) {
-          let ys, y, arg$Cons$0$1, arg$Cons$1$1, tmp8, tmp9;
+          let arg$Cons$0$1, arg$Cons$1$1, tmp8, tmp9;
           if (ls1 instanceof NofibPrelude.Nil.class) {
             return lscomp1(xs)
           } else if (ls1 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$1 = ls1.head;
             arg$Cons$1$1 = ls1.tail;
-            ys = arg$Cons$1$1;
-            y = arg$Cons$0$1;
             tmp8 = globalThis.Object.freeze([
               x,
-              y
+              arg$Cons$0$1
             ]);
-            tmp9 = lscomp2(ys);
+            tmp9 = lscomp2(arg$Cons$1$1);
             return NofibPrelude.Cons(tmp8, tmp9)
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -786,7 +759,7 @@ let minimax1;
   } 
   static interpret(x, l) {
     loopLabel: while (true) {
-      let ls, y, arg$Cons$0$, arg$Cons$1$, arg$Score$0$, tmp;
+      let arg$Cons$0$, arg$Cons$1$, arg$Score$0$, tmp;
       if (l instanceof NofibPrelude.Nil.class) {
         return minimax.Score(x)
       } else if (l instanceof NofibPrelude.Cons.class) {
@@ -794,11 +767,9 @@ let minimax1;
         arg$Cons$1$ = l.tail;
         if (arg$Cons$0$ instanceof minimax.Score.class) {
           arg$Score$0$ = arg$Cons$0$.i;
-          ls = arg$Cons$1$;
-          y = arg$Score$0$;
-          tmp = x + y;
+          tmp = x + arg$Score$0$;
           x = tmp;
-          l = ls;
+          l = arg$Cons$1$;
           continue loopLabel
         } else if (arg$Cons$0$ instanceof minimax.XWin.class) {
           return minimax.XWin
@@ -821,21 +792,17 @@ let minimax1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static map2(f, xs, ys) {
-    let x, xs1, ys1, y, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp, tmp1;
+    let arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp, tmp1;
     if (xs instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (xs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = xs.head;
       arg$Cons$1$ = xs.tail;
-      xs1 = arg$Cons$1$;
-      x = arg$Cons$0$;
       if (ys instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$1 = ys.head;
         arg$Cons$1$1 = ys.tail;
-        ys1 = arg$Cons$1$1;
-        y = arg$Cons$0$1;
-        tmp = runtime.safeCall(f(x, y));
-        tmp1 = minimax.map2(f, xs1, ys1);
+        tmp = runtime.safeCall(f(arg$Cons$0$, arg$Cons$0$1));
+        tmp1 = minimax.map2(f, arg$Cons$1$, arg$Cons$1$1);
         return NofibPrelude.Cons(tmp, tmp1)
       } else if (ys instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
@@ -872,31 +839,27 @@ let minimax1;
     return minimax.Branch(a, tmp1)
   } 
   static mapTree(f, t) {
-    let a, l, arg$Branch$0$, arg$Branch$1$, tmp, lambda, tmp1;
+    let arg$Branch$0$, arg$Branch$1$, tmp, lambda, tmp1;
     if (t instanceof minimax.Branch.class) {
       arg$Branch$0$ = t.a;
       arg$Branch$1$ = t.cs;
-      l = arg$Branch$1$;
-      a = arg$Branch$0$;
-      tmp = runtime.safeCall(f(a));
+      tmp = runtime.safeCall(f(arg$Branch$0$));
       lambda = (undefined, function (x) {
         return minimax.mapTree(f, x)
       });
-      tmp1 = NofibPrelude.map(lambda, l);
+      tmp1 = NofibPrelude.map(lambda, arg$Branch$1$);
       return minimax.Branch(tmp, tmp1)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static prune(n, t) {
-    let a, l, scrut, scrut1, arg$Branch$0$, arg$Branch$1$, lambda, tmp;
+    let scrut, scrut1, arg$Branch$0$, arg$Branch$1$, lambda, tmp;
     if (t instanceof minimax.Branch.class) {
       arg$Branch$0$ = t.a;
       arg$Branch$1$ = t.cs;
-      l = arg$Branch$1$;
-      a = arg$Branch$0$;
       scrut = n === 0;
       if (scrut === true) {
-        return minimax.Branch(a, NofibPrelude.Nil)
+        return minimax.Branch(arg$Branch$0$, NofibPrelude.Nil)
       }
       scrut1 = n < 0;
       if (scrut1 === true) {
@@ -907,8 +870,8 @@ let minimax1;
         tmp1 = n - 1;
         return minimax.prune(tmp1, x)
       });
-      tmp = NofibPrelude.map(lambda, l);
-      return minimax.Branch(a, tmp);
+      tmp = NofibPrelude.map(lambda, arg$Branch$1$);
+      return minimax.Branch(arg$Branch$0$, tmp);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -921,71 +884,61 @@ let minimax1;
     throw runtime.safeCall(globalThis.Error("opposite"));
   } 
   static best(f, bs, ss) {
-    let best_, bs1, b, ss1, s, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1;
+    let best_, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1;
     if (bs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = bs.head;
       arg$Cons$1$ = bs.tail;
-      bs1 = arg$Cons$1$;
-      b = arg$Cons$0$;
       if (ss instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$1 = ss.head;
         arg$Cons$1$1 = ss.tail;
-        ss1 = arg$Cons$1$1;
-        s = arg$Cons$0$1;
-        best_ = function best_(b1, s1, ls1, ls2) {
-          let bs2, b_, ss2, s_, scrut, arg$Cons$0$2, arg$Cons$1$2, arg$Cons$0$3, arg$Cons$1$3, tmp;
+        best_ = function best_(b, s, ls1, ls2) {
+          let scrut, arg$Cons$0$2, arg$Cons$1$2, arg$Cons$0$3, arg$Cons$1$3, tmp;
           if (ls1 instanceof NofibPrelude.Nil.class) {
             if (ls2 instanceof NofibPrelude.Nil.class) {
               return globalThis.Object.freeze([
-                b1,
-                s1
+                b,
+                s
               ])
             }
             throw globalThis.Object.freeze(new globalThis.Error("match error"));
           } else if (ls1 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$2 = ls1.head;
             arg$Cons$1$2 = ls1.tail;
-            bs2 = arg$Cons$1$2;
-            b_ = arg$Cons$0$2;
             if (ls2 instanceof NofibPrelude.Cons.class) {
               arg$Cons$0$3 = ls2.head;
               arg$Cons$1$3 = ls2.tail;
-              ss2 = arg$Cons$1$3;
-              s_ = arg$Cons$0$3;
-              tmp = runtime.safeCall(f(s1, s_));
-              scrut = minimax.evaluationEq(s1, tmp);
+              tmp = runtime.safeCall(f(s, arg$Cons$0$3));
+              scrut = minimax.evaluationEq(s, tmp);
               if (scrut === true) {
-                return best_(b1, s1, bs2, ss2)
+                return best_(b, s, arg$Cons$1$2, arg$Cons$1$3)
               }
-              return best_(b_, s_, bs2, ss2);
+              return best_(arg$Cons$0$2, arg$Cons$0$3, arg$Cons$1$2, arg$Cons$1$3);
             }
             throw globalThis.Object.freeze(new globalThis.Error("match error"));
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         };
-        return best_(b, s, bs1, ss1)
+        return best_(arg$Cons$0$, arg$Cons$0$1, arg$Cons$1$, arg$Cons$1$1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static showMove(m) {
-    let e, b, element1$, element0$, tmp, tmp1, tmp2, tmp3;
+    let element1$, element0$, tmp, tmp1, tmp2, tmp3;
     if (runtime.Tuple.isArrayLike(m) && m.length === 2) {
       element0$ = runtime.Tuple.get(m, 0);
       element1$ = runtime.Tuple.get(m, 1);
-      e = element1$;
-      b = element0$;
-      tmp = minimax.showEvaluation(e);
+      tmp = minimax.showEvaluation(element1$);
       tmp1 = NofibPrelude.nofibStringToList("\n");
-      tmp2 = minimax.showBoard(b);
+      tmp2 = minimax.showBoard(element0$);
       tmp3 = NofibPrelude.append(tmp1, tmp2);
       return NofibPrelude.append(tmp, tmp3)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static max_(e1, e2) {
-    let x, y, scrut, arg$Score$0$, arg$Score$0$1;
+    let scrut, arg$Score$0$, arg$Score$0$1;
     if (e1 instanceof minimax.XWin.class) {
       return minimax.XWin
     }
@@ -998,22 +951,20 @@ let minimax1;
       return e2
     } else if (e1 instanceof minimax.Score.class) {
       arg$Score$0$ = e1.i;
-      x = arg$Score$0$;
       if (e2 instanceof minimax.Score.class) {
         arg$Score$0$1 = e2.i;
-        y = arg$Score$0$1;
-        scrut = x > y;
+        scrut = arg$Score$0$ > arg$Score$0$1;
         if (scrut === true) {
-          return minimax.Score(x)
+          return minimax.Score(arg$Score$0$)
         }
-        return minimax.Score(y);
+        return minimax.Score(arg$Score$0$1);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"))
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static min_(e1, e2) {
-    let x, y, scrut, arg$Score$0$, arg$Score$0$1;
+    let scrut, arg$Score$0$, arg$Score$0$1;
     if (e1 instanceof minimax.OWin.class) {
       return minimax.OWin
     }
@@ -1026,35 +977,31 @@ let minimax1;
       return e2
     } else if (e1 instanceof minimax.Score.class) {
       arg$Score$0$ = e1.i;
-      x = arg$Score$0$;
       if (e2 instanceof minimax.Score.class) {
         arg$Score$0$1 = e2.i;
-        y = arg$Score$0$1;
-        scrut = x < y;
+        scrut = arg$Score$0$ < arg$Score$0$1;
         if (scrut === true) {
-          return minimax.Score(x)
+          return minimax.Score(arg$Score$0$)
         }
-        return minimax.Score(y);
+        return minimax.Score(arg$Score$0$1);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"))
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static mise(f, g, t) {
-    let a, l, arg$Branch$0$, arg$Branch$1$, tmp, lambda, tmp1;
+    let arg$Branch$0$, arg$Branch$1$, tmp, lambda, tmp1;
     if (t instanceof minimax.Branch.class) {
       arg$Branch$0$ = t.a;
       arg$Branch$1$ = t.cs;
       if (arg$Branch$1$ instanceof NofibPrelude.Nil.class) {
-        a = arg$Branch$0$;
-        return a
+        return arg$Branch$0$
       }
-      l = arg$Branch$1$;
       tmp = runtime.safeCall(g(minimax.OWin, minimax.XWin));
       lambda = (undefined, function (x) {
         return minimax.mise(g, f, x)
       });
-      tmp1 = NofibPrelude.map(lambda, l);
+      tmp1 = NofibPrelude.map(lambda, arg$Branch$1$);
       return NofibPrelude.foldr(f, tmp, tmp1);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1073,24 +1020,20 @@ let minimax1;
     return minimax.prune(5, tmp)
   } 
   static cropTree(t) {
-    let a, x, l, x1, arg$Branch$0$, arg$Branch$1$, arg$Score$0$, tmp, tmp1;
+    let arg$Branch$0$, arg$Branch$1$, arg$Score$0$, tmp, tmp1;
     if (t instanceof minimax.Branch.class) {
       arg$Branch$0$ = t.a;
       arg$Branch$1$ = t.cs;
       if (arg$Branch$1$ instanceof NofibPrelude.Nil.class) {
-        a = arg$Branch$0$;
-        return minimax.Branch(a, NofibPrelude.Nil)
+        return minimax.Branch(arg$Branch$0$, NofibPrelude.Nil)
       }
       if (arg$Branch$0$ instanceof minimax.Score.class) {
         arg$Score$0$ = arg$Branch$0$.i;
-        l = arg$Branch$1$;
-        x = arg$Score$0$;
-        tmp = minimax.Score(x);
-        tmp1 = NofibPrelude.map(minimax.cropTree, l);
+        tmp = minimax.Score(arg$Score$0$);
+        tmp1 = NofibPrelude.map(minimax.cropTree, arg$Branch$1$);
         return minimax.Branch(tmp, tmp1)
       }
-      x1 = arg$Branch$0$;
-      return minimax.Branch(x1, NofibPrelude.Nil);
+      return minimax.Branch(arg$Branch$0$, NofibPrelude.Nil);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -1102,7 +1045,7 @@ let minimax1;
     return minimax.mise(f, g, tmp2)
   } 
   static alternate(player, f, g, board) {
-    let scrut, scrut1, scrut2, opposition, possibles, scores, boardd_eval, boardd, eval1, element1$, element0$, tmp, tmp1, lambda, tmp2, tmp3;
+    let scrut, scrut1, scrut2, opposition, possibles, scores, boardd_eval, element1$, element0$, tmp, tmp1, lambda, tmp2, tmp3;
     scrut = minimax.fullBoard(board);
     if (scrut === true) {
       return NofibPrelude.Nil
@@ -1127,19 +1070,17 @@ let minimax1;
     if (runtime.Tuple.isArrayLike(boardd_eval) && boardd_eval.length === 2) {
       element0$ = runtime.Tuple.get(boardd_eval, 0);
       element1$ = runtime.Tuple.get(boardd_eval, 1);
-      eval1 = element1$;
-      boardd = element0$;
       tmp2 = globalThis.Object.freeze([
-        boardd,
-        eval1
+        element0$,
+        element1$
       ]);
-      tmp3 = minimax.alternate(opposition, g, f, boardd);
+      tmp3 = minimax.alternate(opposition, g, f, element0$);
       return NofibPrelude.Cons(tmp2, tmp3)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static prog(input) {
-    let testBoard, game, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, x, inlinedVal, scrut;
+    let testBoard, game, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, inlinedVal, scrut;
     tmp = NofibPrelude.Cons(minimax.Empty, NofibPrelude.Nil);
     tmp1 = NofibPrelude.Cons(minimax.O, tmp);
     tmp2 = NofibPrelude.Cons(minimax.Empty, tmp1);
@@ -1152,19 +1093,17 @@ let minimax1;
     tmp9 = NofibPrelude.Cons(tmp8, NofibPrelude.Nil);
     tmp10 = NofibPrelude.Cons(tmp5, tmp9);
     testBoard = NofibPrelude.Cons(tmp2, tmp10);
-    x = input;
-    scrut = x === "doesn't happen";
+    scrut = input === "doesn't happen";
     if (scrut === true) {
       inlinedVal = NofibPrelude.append(testBoard, testBoard);
     } else {
       inlinedVal = testBoard;
     }
-    tmp11 = inlinedVal;
-    game = minimax.alternate(minimax.X, minimax.max_, minimax.min_, tmp11);
-    tmp12 = NofibPrelude.nofibStringToList("OXO\n");
-    tmp13 = NofibPrelude.map(minimax.showMove, game);
-    tmp14 = NofibPrelude.concat(tmp13);
-    return NofibPrelude.append(tmp12, tmp14)
+    game = minimax.alternate(minimax.X, minimax.max_, minimax.min_, inlinedVal);
+    tmp11 = NofibPrelude.nofibStringToList("OXO\n");
+    tmp12 = NofibPrelude.map(minimax.showMove, game);
+    tmp13 = NofibPrelude.concat(tmp12);
+    return NofibPrelude.append(tmp11, tmp13)
   } 
   static main() {
     let tmp;

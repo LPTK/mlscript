@@ -550,7 +550,7 @@ test(p) + f(p)
 //│ deforest > 	Select(Ref(tmp:arg$AA$0$,None),Ident(x))
 //│ deforest > <<< fusing <<<
 //│ = 15
-//│ p = AA(AA(fun tmp80))
+//│ p = AA(AA(fun tmp78))
 
 
 :expect "()()"

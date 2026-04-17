@@ -86,7 +86,7 @@ let TreeTracer2;
         return runtime.Unit
       } 
       print(...pieces) {
-        let message, scrut, scrut1, lastElement1$, middleElements, lambda, tmp, tmp1, tmp2, tmp3, lambda1, tmp4, tmp5, tmp6;
+        let scrut, scrut1, lastElement1$, middleElements, lambda, tmp, tmp1, tmp2, tmp3, lambda1, tmp4, tmp5, tmp6;
         split_root$: {
           if (runtime.Tuple.isArrayLike(pieces) && pieces.length >= 1) {
             middleElements = runtime.Tuple.slice(pieces, 0, 1);
@@ -108,7 +108,6 @@ let TreeTracer2;
           tmp4 = runtime.safeCall(Predef.fold(lambda1));
           tmp3 = runtime.safeCall(tmp4(...pieces));
         }
-        message = tmp3;
         scrut = this.steps > 0;
         if (scrut === true) {
           tmp5 = this.steps - 1;
@@ -118,9 +117,9 @@ let TreeTracer2;
         }
         scrut1 = this.steps > 0;
         if (scrut1 === true) {
-          return this.output(tmp6, "\u251C ", "\u2502 ", message)
+          return this.output(tmp6, "\u251C ", "\u2502 ", tmp3)
         }
-        return this.output(tmp6, "", "\u2502 ", message);
+        return this.output(tmp6, "", "\u2502 ", tmp3);
       } 
       leave(...pieces) {
         let tmp, tmp1, lambda, tmp2, tmp3;

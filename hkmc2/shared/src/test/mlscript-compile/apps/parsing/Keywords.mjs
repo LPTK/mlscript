@@ -585,7 +585,7 @@ let Keywords1;
     return Predef.tuple(tmp6, tmp9);
   } 
   static opPrecOpt(opStr) {
-    let scrut, lastChar, scrut1, rightPrec, scrut2, leftPrec, arg$Some$0$, arg$Some$0$1, unapplyResult, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, unapplyResult1, tmp8, tmp9, tmp10;
+    let scrut, lastChar, scrut1, scrut2, arg$Some$0$, arg$Some$0$1, unapplyResult, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, unapplyResult1, tmp8, tmp9, tmp10;
     if (opStr === "") {
       return Option.None
     }
@@ -610,12 +610,10 @@ let Keywords1;
     scrut1 = Keywords1.charPrecOpt(lastChar);
     if (scrut1 instanceof Option.Some.class) {
       arg$Some$0$ = scrut1.value;
-      rightPrec = arg$Some$0$;
       tmp7 = runtime.safeCall(opStr.at(0));
       scrut2 = Keywords1.charPrecOpt(tmp7);
       if (scrut2 instanceof Option.Some.class) {
         arg$Some$0$1 = scrut2.value;
-        leftPrec = arg$Some$0$1;
         unapplyResult1 = runtime.safeCall(Keywords.RightAssociative.unapply(lastChar));
         if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
           unapplyResult1.output;
@@ -624,8 +622,8 @@ let Keywords1;
         } else {
           tmp8 = 0;
         }
-        tmp9 = rightPrec + tmp8;
-        tmp10 = Predef.tuple(leftPrec, tmp9);
+        tmp9 = arg$Some$0$ + tmp8;
+        tmp10 = Predef.tuple(arg$Some$0$1, tmp9);
         return Option.Some(tmp10)
       }
       return Option.None;

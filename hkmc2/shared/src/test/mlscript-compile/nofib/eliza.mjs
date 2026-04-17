@@ -9,7 +9,7 @@ let eliza1;
     eliza1 = this
   }
   static {
-    let lscomp, lscomp1, canYou, canI, youAre, iDont, iFeel, whyDont, whyCant, areYou, iCant, iAm, you, yes, no, computer, iWant, question, name, because, sorry, dream, hello, maybe, your, always, think, alike, friend, nokeyMsgs, oneways, bothways, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, tmp55, tmp56, tmp57, tmp58, tmp59, tmp60, tmp61, tmp62, tmp63, tmp64, tmp65, tmp66, tmp67, tmp68, tmp69, tmp70, tmp71, tmp72, tmp73, tmp74, tmp75, tmp76, tmp77, tmp78, tmp79, tmp80, tmp81, tmp82, tmp83, tmp84, tmp85, tmp86, tmp87, tmp88, tmp89, tmp90, tmp91, tmp92, tmp93, tmp94, tmp95, tmp96, tmp97, tmp98, tmp99, tmp100, tmp101, tmp102, tmp103, tmp104, tmp105, tmp106, tmp107, tmp108, tmp109, tmp110, tmp111, tmp112, tmp113, tmp114, tmp115, tmp116, tmp117, tmp118, tmp119, tmp120, tmp121, tmp122, tmp123, tmp124, tmp125, tmp126, tmp127, tmp128, tmp129, tmp130, tmp131, tmp132, tmp133, tmp134, tmp135, tmp136, tmp137, tmp138, tmp139, tmp140, tmp141, tmp142, tmp143, tmp144, tmp145, tmp146, tmp147, tmp148, tmp149, tmp150, tmp151, tmp152, tmp153, tmp154, tmp155, tmp156, tmp157, tmp158, tmp159, tmp160, tmp161, tmp162, tmp163, tmp164, tmp165, tmp166, tmp167, tmp168, tmp169, tmp170, tmp171, tmp172, tmp173, tmp174, tmp175, tmp176, tmp177, tmp178, tmp179, tmp180, tmp181, tmp182, tmp183, tmp184, tmp185, tmp186, tmp187, tmp188, tmp189, tmp190, tmp191, tmp192, tmp193, tmp194, tmp195, tmp196, tmp197, tmp198, tmp199, tmp200, tmp201, tmp202, tmp203, tmp204, tmp205, tmp206, tmp207, tmp208, tmp209, tmp210, tmp211, tmp212, tmp213, tmp214, tmp215, tmp216, tmp217, tmp218, tmp219, tmp220, tmp221, tmp222, tmp223, tmp224, tmp225, tmp226, tmp227, tmp228, tmp229, tmp230, tmp231, tmp232, tmp233, tmp234, tmp235, tmp236, tmp237, tmp238, tmp239, tmp240, tmp241, tmp242, tmp243, tmp244, tmp245, tmp246, tmp247, tmp248, tmp249, tmp250, tmp251, tmp252, tmp253, tmp254, tmp255, tmp256, tmp257, tmp258, tmp259, tmp260, tmp261, tmp262, tmp263, tmp264, tmp265, tmp266, tmp267, tmp268, tmp269, tmp270, tmp271, tmp272, tmp273, tmp274, tmp275, tmp276, tmp277, tmp278, tmp279, tmp280, tmp281, tmp282, tmp283, tmp284, tmp285, tmp286, tmp287, tmp288, tmp289, tmp290, tmp291, tmp292, tmp293, tmp294, tmp295, tmp296, tmp297, tmp298, tmp299, tmp300, tmp301, tmp302, tmp303, tmp304, tmp305, tmp306, tmp307, tmp308, tmp309, tmp310, tmp311, tmp312, tmp313, tmp314, tmp315, tmp316, tmp317, tmp318, tmp319, tmp320, tmp321, tmp322, tmp323, tmp324, tmp325, tmp326, tmp327, tmp328, tmp329, tmp330, tmp331, tmp332, tmp333, tmp334, tmp335, tmp336, tmp337, tmp338, tmp339, tmp340, tmp341, tmp342, tmp343, tmp344, tmp345, tmp346, tmp347, tmp348, tmp349, tmp350, tmp351, tmp352, tmp353, ls, inlinedVal, lambda;
+    let lscomp, lscomp1, canYou, canI, youAre, iDont, iFeel, whyDont, whyCant, areYou, iCant, iAm, you, yes, no, computer, iWant, question, name, because, sorry, dream, hello, maybe, your, always, think, alike, friend, nokeyMsgs, oneways, bothways, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, tmp55, tmp56, tmp57, tmp58, tmp59, tmp60, tmp61, tmp62, tmp63, tmp64, tmp65, tmp66, tmp67, tmp68, tmp69, tmp70, tmp71, tmp72, tmp73, tmp74, tmp75, tmp76, tmp77, tmp78, tmp79, tmp80, tmp81, tmp82, tmp83, tmp84, tmp85, tmp86, tmp87, tmp88, tmp89, tmp90, tmp91, tmp92, tmp93, tmp94, tmp95, tmp96, tmp97, tmp98, tmp99, tmp100, tmp101, tmp102, tmp103, tmp104, tmp105, tmp106, tmp107, tmp108, tmp109, tmp110, tmp111, tmp112, tmp113, tmp114, tmp115, tmp116, tmp117, tmp118, tmp119, tmp120, tmp121, tmp122, tmp123, tmp124, tmp125, tmp126, tmp127, tmp128, tmp129, tmp130, tmp131, tmp132, tmp133, tmp134, tmp135, tmp136, tmp137, tmp138, tmp139, tmp140, tmp141, tmp142, tmp143, tmp144, tmp145, tmp146, tmp147, tmp148, tmp149, tmp150, tmp151, tmp152, tmp153, tmp154, tmp155, tmp156, tmp157, tmp158, tmp159, tmp160, tmp161, tmp162, tmp163, tmp164, tmp165, tmp166, tmp167, tmp168, tmp169, tmp170, tmp171, tmp172, tmp173, tmp174, tmp175, tmp176, tmp177, tmp178, tmp179, tmp180, tmp181, tmp182, tmp183, tmp184, tmp185, tmp186, tmp187, tmp188, tmp189, tmp190, tmp191, tmp192, tmp193, tmp194, tmp195, tmp196, tmp197, tmp198, tmp199, tmp200, tmp201, tmp202, tmp203, tmp204, tmp205, tmp206, tmp207, tmp208, tmp209, tmp210, tmp211, tmp212, tmp213, tmp214, tmp215, tmp216, tmp217, tmp218, tmp219, tmp220, tmp221, tmp222, tmp223, tmp224, tmp225, tmp226, tmp227, tmp228, tmp229, tmp230, tmp231, tmp232, tmp233, tmp234, tmp235, tmp236, tmp237, tmp238, tmp239, tmp240, tmp241, tmp242, tmp243, tmp244, tmp245, tmp246, tmp247, tmp248, tmp249, tmp250, tmp251, tmp252, tmp253, tmp254, tmp255, tmp256, tmp257, tmp258, tmp259, tmp260, tmp261, tmp262, tmp263, tmp264, tmp265, tmp266, tmp267, tmp268, tmp269, tmp270, tmp271, tmp272, tmp273, tmp274, tmp275, tmp276, tmp277, tmp278, tmp279, tmp280, tmp281, tmp282, tmp283, tmp284, tmp285, tmp286, tmp287, tmp288, tmp289, tmp290, tmp291, tmp292, tmp293, tmp294, tmp295, tmp296, tmp297, tmp298, tmp299, tmp300, tmp301, tmp302, tmp303, tmp304, tmp305, tmp306, tmp307, tmp308, tmp309, tmp310, tmp311, tmp312, tmp313, tmp314, tmp315, tmp316, tmp317, tmp318, tmp319, tmp320, tmp321, tmp322, tmp323, tmp324, tmp325, tmp326, tmp327, tmp328, tmp329, tmp330, tmp331, tmp332, tmp333, tmp334, tmp335, tmp336, tmp337, tmp338, tmp339, tmp340, tmp341, tmp342, tmp343, tmp344, tmp345, tmp346, tmp347, tmp348, tmp349, tmp350, tmp351, tmp352, inlinedVal, lambda;
     tmp = NofibPrelude.nofibStringToList("Why did you repeat yourself?");
     tmp1 = NofibPrelude.nofibStringToList("Do you expect a different answer by repeating yourself?");
     tmp2 = NofibPrelude.nofibStringToList("Come, come, elucidate your thoughts.");
@@ -481,27 +481,24 @@ let eliza1;
     tmp319 = NofibPrelude.Cons(tmp202, tmp318);
     tmp320 = Predef.id(tmp319);
     this.respMsgs = tmp320;
-    lscomp = function lscomp(ls1) {
-      let rs, t, k, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp354, tmp355, tmp356, tmp357;
-      if (ls1 instanceof NofibPrelude.Nil.class) {
+    lscomp = function lscomp(ls) {
+      let arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp353, tmp354, tmp355, tmp356;
+      if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
-      } else if (ls1 instanceof NofibPrelude.Cons.class) {
-        arg$Cons$0$ = ls1.head;
-        arg$Cons$1$ = ls1.tail;
+      } else if (ls instanceof NofibPrelude.Cons.class) {
+        arg$Cons$0$ = ls.head;
+        arg$Cons$1$ = ls.tail;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-          t = arg$Cons$1$;
-          rs = element1$;
-          k = element0$;
-          tmp354 = eliza1.words(k);
-          tmp355 = eliza1.cycle(rs);
-          tmp356 = globalThis.Object.freeze([
-            tmp354,
-            tmp355
+          tmp353 = eliza1.words(element0$);
+          tmp354 = eliza1.cycle(element1$);
+          tmp355 = globalThis.Object.freeze([
+            tmp353,
+            tmp354
           ]);
-          tmp357 = lscomp(t);
-          return NofibPrelude.Cons(tmp356, tmp357)
+          tmp356 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(tmp355, tmp356)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -514,31 +511,28 @@ let eliza1;
       tmp322
     ]);
     this.initial = tmp323;
-    lscomp1 = function lscomp(ls1) {
-      let x, y, t, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp354, tmp355, tmp356, tmp357, tmp358;
-      if (ls1 instanceof NofibPrelude.Nil.class) {
+    lscomp1 = function lscomp(ls) {
+      let arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp353, tmp354, tmp355, tmp356, tmp357;
+      if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
-      } else if (ls1 instanceof NofibPrelude.Cons.class) {
-        arg$Cons$0$ = ls1.head;
-        arg$Cons$1$ = ls1.tail;
+      } else if (ls instanceof NofibPrelude.Cons.class) {
+        arg$Cons$0$ = ls.head;
+        arg$Cons$1$ = ls.tail;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-          t = arg$Cons$1$;
-          y = element1$;
-          x = element0$;
+          tmp353 = globalThis.Object.freeze([
+            element0$,
+            element1$
+          ]);
           tmp354 = globalThis.Object.freeze([
-            x,
-            y
+            element1$,
+            element0$
           ]);
-          tmp355 = globalThis.Object.freeze([
-            y,
-            x
-          ]);
-          tmp356 = NofibPrelude.Cons(tmp355, NofibPrelude.Nil);
-          tmp357 = NofibPrelude.Cons(tmp354, tmp356);
-          tmp358 = lscomp1(t);
-          return NofibPrelude.Cons(tmp357, tmp358)
+          tmp355 = NofibPrelude.Cons(tmp354, NofibPrelude.Nil);
+          tmp356 = NofibPrelude.Cons(tmp353, tmp355);
+          tmp357 = lscomp1(arg$Cons$1$);
+          return NofibPrelude.Cons(tmp356, tmp357)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -596,25 +590,21 @@ let eliza1;
     tmp350 = lscomp1(bothways);
     tmp351 = NofibPrelude.concat(tmp350);
     tmp352 = NofibPrelude.append(oneways, tmp351);
-    ls = tmp352;
     lambda = (undefined, function (caseScrut) {
-      let r, w, element1$, element0$, tmp354;
+      let element1$, element0$, tmp353;
       if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
         element0$ = runtime.Tuple.get(caseScrut, 0);
         element1$ = runtime.Tuple.get(caseScrut, 1);
-        r = element1$;
-        w = element0$;
-        tmp354 = eliza.ucase(w);
+        tmp353 = eliza.ucase(element0$);
         return globalThis.Object.freeze([
-          tmp354,
-          r
+          tmp353,
+          element1$
         ])
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
-    inlinedVal = NofibPrelude.map(lambda, ls);
-    tmp353 = inlinedVal;
-    this.conjugates = tmp353;
+    inlinedVal = NofibPrelude.map(lambda, tmp352);
+    this.conjugates = inlinedVal;
   }
   static toUpper(c) {
     return runtime.safeCall(c.toUpperCase())
@@ -622,16 +612,14 @@ let eliza1;
   static lz_map(f, ls) {
     let lambda;
     lambda = (undefined, function () {
-      let t, h, arg$Cons$0$, arg$Cons$1$, tmp, tmp1;
+      let arg$Cons$0$, arg$Cons$1$, tmp, tmp1;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.LzNil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
-        h = arg$Cons$0$;
-        tmp = runtime.safeCall(f(h));
-        tmp1 = eliza.lz_map(f, t);
+        tmp = runtime.safeCall(f(arg$Cons$0$));
+        tmp1 = eliza.lz_map(f, arg$Cons$1$);
         return NofibPrelude.LzCons(tmp, tmp1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -668,42 +656,36 @@ let eliza1;
     return c === " "
   } 
   static words(s) {
-    let scrut, t2t, h2h, scrut1, s_, w, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1;
+    let scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1;
     scrut = NofibPrelude.leaveWhile(eliza1.isSpace, s);
     if (scrut instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (scrut instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = scrut.head;
       arg$Cons$1$ = scrut.tail;
-      t2t = arg$Cons$1$;
-      h2h = arg$Cons$0$;
-      tmp = NofibPrelude.Cons(h2h, t2t);
+      tmp = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
       scrut1 = NofibPrelude.break_(eliza1.isSpace, tmp);
       if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
         element0$ = runtime.Tuple.get(scrut1, 0);
         element1$ = runtime.Tuple.get(scrut1, 1);
-        s_ = element1$;
-        w = element0$;
-        tmp1 = eliza1.words(s_);
-        return NofibPrelude.Cons(w, tmp1)
+        tmp1 = eliza1.words(element1$);
+        return NofibPrelude.Cons(element0$, tmp1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static unwords(ws) {
-    let go, w, ws1, arg$Cons$0$, arg$Cons$1$, tmp;
-    go = function go(ws2) {
-      let w1, ws3, arg$Cons$0$1, arg$Cons$1$1, tmp1, tmp2;
-      if (ws2 instanceof NofibPrelude.Nil.class) {
+    let go, arg$Cons$0$, arg$Cons$1$, tmp;
+    go = function go(ws1) {
+      let arg$Cons$0$1, arg$Cons$1$1, tmp1, tmp2;
+      if (ws1 instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
-      } else if (ws2 instanceof NofibPrelude.Cons.class) {
-        arg$Cons$0$1 = ws2.head;
-        arg$Cons$1$1 = ws2.tail;
-        ws3 = arg$Cons$1$1;
-        w1 = arg$Cons$0$1;
-        tmp1 = go(ws3);
-        tmp2 = NofibPrelude.append(w1, tmp1);
+      } else if (ws1 instanceof NofibPrelude.Cons.class) {
+        arg$Cons$0$1 = ws1.head;
+        arg$Cons$1$1 = ws1.tail;
+        tmp1 = go(arg$Cons$1$1);
+        tmp2 = NofibPrelude.append(arg$Cons$0$1, tmp1);
         return NofibPrelude.Cons(" ", tmp2)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -713,10 +695,8 @@ let eliza1;
     } else if (ws instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ws.head;
       arg$Cons$1$ = ws.tail;
-      ws1 = arg$Cons$1$;
-      w = arg$Cons$0$;
-      tmp = go(ws1);
-      return NofibPrelude.append(w, tmp)
+      tmp = go(arg$Cons$1$);
+      return NofibPrelude.append(arg$Cons$0$, tmp)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -754,22 +734,19 @@ let eliza1;
     return NofibPrelude.foldr(cons, NofibPrelude.Nil, tmp)
   } 
   static repeated(kt_rp) {
-    let rp, kt, r, element1$, element0$, arg$Cons$0$, arg$Cons$1$, tmp;
+    let element1$, element0$, arg$Cons$0$, arg$Cons$1$, tmp;
     if (runtime.Tuple.isArrayLike(kt_rp) && kt_rp.length === 2) {
       element0$ = runtime.Tuple.get(kt_rp, 0);
       element1$ = runtime.Tuple.get(kt_rp, 1);
       if (element1$ instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = element1$.head;
         arg$Cons$1$ = element1$.tail;
-        rp = arg$Cons$1$;
-        r = arg$Cons$0$;
-        kt = element0$;
         tmp = globalThis.Object.freeze([
-          kt,
-          rp
+          element0$,
+          arg$Cons$1$
         ]);
         return globalThis.Object.freeze([
-          r,
+          arg$Cons$0$,
           tmp
         ])
       }
@@ -778,48 +755,44 @@ let eliza1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static newKeyTab(kt_, kt_rp) {
-    let rp, element1$;
+    let element1$;
     if (runtime.Tuple.isArrayLike(kt_rp) && kt_rp.length === 2) {
       runtime.Tuple.get(kt_rp, 0);
       element1$ = runtime.Tuple.get(kt_rp, 1);
-      rp = element1$;
       return globalThis.Object.freeze([
         kt_,
-        rp
+        element1$
       ])
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static keyTabOf(kt_rp) {
-    let kt, element0$;
+    let element0$;
     if (runtime.Tuple.isArrayLike(kt_rp) && kt_rp.length === 2) {
       element0$ = runtime.Tuple.get(kt_rp, 0);
       runtime.Tuple.get(kt_rp, 1);
-      kt = element0$;
-      return kt
+      return element0$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static makeResponse(cs, us) {
-    let cs_, cs_1, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     if (cs instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = cs.head;
       arg$Cons$1$ = cs.tail;
       switch (arg$Cons$0$) {
         case "?":
-          cs_ = arg$Cons$1$;
           tmp = NofibPrelude.nofibStringToList(" ");
           tmp1 = NofibPrelude.nofibStringToList("?");
           tmp2 = NofibPrelude.append(us, tmp1);
           tmp3 = NofibPrelude.append(tmp, tmp2);
-          return NofibPrelude.append(cs_, tmp3);
+          return NofibPrelude.append(arg$Cons$1$, tmp3);
         case ".":
-          cs_1 = arg$Cons$1$;
           tmp4 = NofibPrelude.nofibStringToList(" ");
           tmp5 = NofibPrelude.nofibStringToList(".");
           tmp6 = NofibPrelude.append(us, tmp5);
           tmp7 = NofibPrelude.append(tmp4, tmp6);
-          return NofibPrelude.append(cs_1, tmp7);
+          return NofibPrelude.append(arg$Cons$1$, tmp7);
       }
       return cs
     }
@@ -827,26 +800,22 @@ let eliza1;
   } 
   static prefix(xxs, yys) {
     loopLabel: while (true) {
-      let x, xs, scrut, ys, y, arg$Cons$0$, arg$Cons$1$, arg$LzCons$0$, arg$LzCons$1$, tmp;
+      let scrut, arg$Cons$0$, arg$Cons$1$, arg$LzCons$0$, arg$LzCons$1$, tmp;
       if (xxs instanceof NofibPrelude.Nil.class) {
         return true
       } else if (xxs instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = xxs.head;
         arg$Cons$1$ = xxs.tail;
-        xs = arg$Cons$1$;
-        x = arg$Cons$0$;
         scrut = NofibPrelude.force(yys);
         if (scrut instanceof NofibPrelude.LzNil.class) {
           return false
         } else if (scrut instanceof NofibPrelude.LzCons.class) {
           arg$LzCons$0$ = scrut.head;
           arg$LzCons$1$ = scrut.tail;
-          ys = arg$LzCons$1$;
-          y = arg$LzCons$0$;
-          tmp = NofibPrelude.listEq(x, y);
+          tmp = NofibPrelude.listEq(arg$Cons$0$, arg$LzCons$0$);
           if (tmp === true) {
-            xxs = xs;
-            yys = ys;
+            xxs = arg$Cons$1$;
+            yys = arg$LzCons$1$;
             continue loopLabel
           }
           return false;
@@ -874,69 +843,61 @@ let eliza1;
     return NofibPrelude.map(eliza.toUpper, ls)
   } 
   static conjug(d, w) {
-    let conj, tmp, tmp1, tmp2, d1, xs, inlinedVal, ls, inlinedVal1, cons, scrut;
+    let conj, tmp, inlinedVal, inlinedVal1, cons, scrut;
     conj = function conj(w1) {
-      let lscomp, tmp3, tmp4, tmp5;
-      lscomp = function lscomp(ls1) {
-        let t, w_, m, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp6, tmp7;
-        if (ls1 instanceof NofibPrelude.Nil.class) {
+      let lscomp, tmp1, tmp2, tmp3;
+      lscomp = function lscomp(ls) {
+        let scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp4, tmp5;
+        if (ls instanceof NofibPrelude.Nil.class) {
           return NofibPrelude.Nil
-        } else if (ls1 instanceof NofibPrelude.Cons.class) {
-          arg$Cons$0$ = ls1.head;
-          arg$Cons$1$ = ls1.tail;
+        } else if (ls instanceof NofibPrelude.Cons.class) {
+          arg$Cons$0$ = ls.head;
+          arg$Cons$1$ = ls.tail;
           if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
             element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
             element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-            t = arg$Cons$1$;
-            m = element1$;
-            w_ = element0$;
-            tmp6 = eliza.ucase(w1);
-            scrut1 = NofibPrelude.listEq(tmp6, w_);
+            tmp4 = eliza.ucase(w1);
+            scrut1 = NofibPrelude.listEq(tmp4, element0$);
             if (scrut1 === true) {
-              tmp7 = lscomp(t);
-              return NofibPrelude.Cons(m, tmp7)
+              tmp5 = lscomp(arg$Cons$1$);
+              return NofibPrelude.Cons(element1$, tmp5)
             }
-            return lscomp(t);
+            return lscomp(arg$Cons$1$);
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
-      tmp3 = lscomp(eliza.conjugates);
-      tmp4 = NofibPrelude.Cons(w1, NofibPrelude.Nil);
-      tmp5 = NofibPrelude.append(tmp3, tmp4);
-      return NofibPrelude.head(tmp5)
+      tmp1 = lscomp(eliza.conjugates);
+      tmp2 = NofibPrelude.Cons(w1, NofibPrelude.Nil);
+      tmp3 = NofibPrelude.append(tmp1, tmp2);
+      return NofibPrelude.head(tmp3)
     };
-    d1 = d;
-    xs = w;
-    scrut = NofibPrelude.null_(xs);
+    scrut = NofibPrelude.null_(w);
     if (scrut === true) {
-      inlinedVal = d1;
+      inlinedVal = d;
     } else {
-      inlinedVal = xs;
+      inlinedVal = w;
     }
-    tmp = inlinedVal;
-    tmp1 = NofibPrelude.map(conj, tmp);
-    ls = tmp1;
-    cons = function cons(x, xs1) {
-      let scrut1, tmp3, tmp4, tmp5, tmp6;
-      tmp3 = NofibPrelude.nofibStringToList("I");
-      tmp4 = NofibPrelude.listEq(x, tmp3);
-      if (tmp4 === true) {
-        tmp5 = NofibPrelude.null_(xs1);
+    tmp = NofibPrelude.map(conj, inlinedVal);
+    cons = function cons(x, xs) {
+      let scrut1, tmp1, tmp2, tmp3, tmp4;
+      tmp1 = NofibPrelude.nofibStringToList("I");
+      tmp2 = NofibPrelude.listEq(x, tmp1);
+      if (tmp2 === true) {
+        tmp3 = NofibPrelude.null_(xs);
       } else {
-        tmp5 = false;
+        tmp3 = false;
       }
-      scrut1 = tmp5;
+      scrut1 = tmp3;
       if (scrut1 === true) {
-        tmp6 = NofibPrelude.nofibStringToList("me");
-        return NofibPrelude.Cons(tmp6, NofibPrelude.Nil)
+        tmp4 = NofibPrelude.nofibStringToList("me");
+        return NofibPrelude.Cons(tmp4, NofibPrelude.Nil)
       }
-      return NofibPrelude.Cons(x, xs1);
+      return NofibPrelude.Cons(x, xs);
     };
-    inlinedVal1 = NofibPrelude.foldr(cons, NofibPrelude.Nil, ls);
-    tmp2 = inlinedVal1;
-    return eliza.unwords(tmp2)
+    inlinedVal1 = NofibPrelude.foldr(cons, NofibPrelude.Nil, tmp);
+    return eliza.unwords(inlinedVal1)
   } 
   static replies(key, l) {
     let lambda, lambda1, tmp, tmp1;
@@ -956,43 +917,35 @@ let eliza1;
     return NofibPrelude.map_lz(lambda, tmp1)
   } 
   static answer(st, l) {
-    let ans, scrut, response, kt, element1$, element0$, tmp, tmp1;
+    let ans, scrut, element1$, element0$, tmp, tmp1;
     ans = function ans(e_es, l1) {
-      let key, a_as, es, a, as_, rs, scrut1, scrut2, arg$Cons$0$, arg$Cons$1$, element1$1, element0$1, arg$LzCons$0$, arg$LzCons$1$, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+      let rs, scrut1, scrut2, arg$Cons$0$, arg$Cons$1$, element1$1, element0$1, arg$LzCons$0$, arg$LzCons$1$, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
       if (e_es instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = e_es.head;
         arg$Cons$1$ = e_es.tail;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$1 = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$1 = runtime.Tuple.get(arg$Cons$0$, 1);
-          es = arg$Cons$1$;
-          a_as = element1$1;
-          key = element0$1;
-          scrut2 = NofibPrelude.force(a_as);
+          scrut2 = NofibPrelude.force(element1$1);
           if (scrut2 instanceof NofibPrelude.LzCons.class) {
             arg$LzCons$0$ = scrut2.head;
             arg$LzCons$1$ = scrut2.tail;
-            as_ = arg$LzCons$1$;
-            a = arg$LzCons$0$;
-            rs = eliza.replies(key, l1);
+            rs = eliza.replies(element0$1, l1);
             scrut1 = eliza.null_lz(rs);
             if (scrut1 === true) {
-              let e, r_es, inlinedVal, es1, r, element1$2, element0$2, tmp8;
+              let r_es, inlinedVal, element1$2, element0$2, tmp8;
               tmp2 = globalThis.Object.freeze([
-                key,
-                a_as
+                element0$1,
+                element1$1
               ]);
-              tmp3 = ans(es, l1);
-              e = tmp2;
+              tmp3 = ans(arg$Cons$1$, l1);
               r_es = tmp3;
               if (runtime.Tuple.isArrayLike(r_es) && r_es.length === 2) {
-                element0$2 = runtime.Tuple.get(r_es, 0);
-                element1$2 = runtime.Tuple.get(r_es, 1);
-                es1 = element1$2;
-                r = element0$2;
-                tmp8 = NofibPrelude.Cons(e, es1);
+                element0$2 = runtime.Tuple.get(tmp3, 0);
+                element1$2 = runtime.Tuple.get(tmp3, 1);
+                tmp8 = NofibPrelude.Cons(tmp2, element1$2);
                 inlinedVal = globalThis.Object.freeze([
-                  r,
+                  element0$2,
                   tmp8
                 ]);
                 return inlinedVal
@@ -1000,12 +953,12 @@ let eliza1;
               throw globalThis.Object.freeze(new globalThis.Error("match error"));
             }
             tmp4 = NofibPrelude.head_lz(rs);
-            tmp5 = eliza.makeResponse(a, tmp4);
+            tmp5 = eliza.makeResponse(arg$LzCons$0$, tmp4);
             tmp6 = globalThis.Object.freeze([
-              key,
-              as_
+              element0$1,
+              arg$LzCons$1$
             ]);
-            tmp7 = NofibPrelude.Cons(tmp6, es);
+            tmp7 = NofibPrelude.Cons(tmp6, arg$Cons$1$);
             return globalThis.Object.freeze([
               tmp5,
               tmp7
@@ -1022,41 +975,35 @@ let eliza1;
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      kt = element1$;
-      response = element0$;
-      tmp1 = eliza.newKeyTab(kt, st);
+      tmp1 = eliza.newKeyTab(element1$, st);
       return globalThis.Object.freeze([
-        response,
+        element0$,
         tmp1
       ])
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static session(rs, prev, ls) {
-    let ls1, l, scrut, scrut1, response, rs_, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3;
+    let scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3;
     if (ls instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
-      ls1 = arg$Cons$1$;
-      l = arg$Cons$0$;
-      scrut = NofibPrelude.listEqBy(NofibPrelude.listEq, prev, l);
+      scrut = NofibPrelude.listEqBy(NofibPrelude.listEq, prev, arg$Cons$0$);
       if (scrut === true) {
         tmp = eliza.repeated(rs);
       } else {
-        tmp = eliza.answer(rs, l);
+        tmp = eliza.answer(rs, arg$Cons$0$);
       }
       scrut1 = tmp;
       if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
-        element0$ = runtime.Tuple.get(scrut1, 0);
-        element1$ = runtime.Tuple.get(scrut1, 1);
-        rs_ = element1$;
-        response = element0$;
+        element0$ = runtime.Tuple.get(tmp, 0);
+        element1$ = runtime.Tuple.get(tmp, 1);
         tmp1 = NofibPrelude.nofibStringToList("\n\n");
-        tmp2 = eliza.session(rs_, l, ls1);
+        tmp2 = eliza.session(element1$, arg$Cons$0$, arg$Cons$1$);
         tmp3 = NofibPrelude.append(tmp1, tmp2);
-        return NofibPrelude.append(response, tmp3)
+        return NofibPrelude.append(element0$, tmp3)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }

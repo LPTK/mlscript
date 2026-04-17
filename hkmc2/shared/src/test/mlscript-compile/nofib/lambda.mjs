@@ -216,7 +216,7 @@ let lambda1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let b, s1, t1, s2, t2, d, scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, arg$Cons$0$1, arg$Cons$1$1, element1$1, element0$1;
+          let b, scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, arg$Cons$0$1, arg$Cons$1$1, element1$1, element0$1;
           if (param0 instanceof NofibPrelude.Nil.class) {
             if (param1 instanceof NofibPrelude.Nil.class) {
               return true
@@ -229,23 +229,18 @@ let lambda1;
               element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
               element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
               b = arg$Cons$1$;
-              t1 = element1$;
-              s1 = element0$;
               if (b instanceof NofibPrelude.Cons.class) {
-                arg$Cons$0$1 = b.head;
-                arg$Cons$1$1 = b.tail;
+                arg$Cons$0$1 = arg$Cons$1$.head;
+                arg$Cons$1$1 = arg$Cons$1$.tail;
                 if (runtime.Tuple.isArrayLike(arg$Cons$0$1) && arg$Cons$0$1.length === 2) {
                   element0$1 = runtime.Tuple.get(arg$Cons$0$1, 0);
                   element1$1 = runtime.Tuple.get(arg$Cons$0$1, 1);
-                  d = arg$Cons$1$1;
-                  t2 = element1$1;
-                  s2 = element0$1;
-                  scrut = NofibPrelude.listEq(s1, s2);
+                  scrut = NofibPrelude.listEq(element0$, element0$1);
                   if (scrut === true) {
-                    scrut1 = lambda.eqTerm(t1, t2);
+                    scrut1 = lambda.eqTerm(element1$, element1$1);
                     if (scrut1 === true) {
-                      param0 = b;
-                      param1 = d;
+                      param0 = arg$Cons$1$;
+                      param1 = arg$Cons$1$1;
                       id = 0;
                       continue loopLabel
                     }
@@ -261,23 +256,19 @@ let lambda1;
           }
           return false;
         case 1:
-          let a, b1, a1, b2, a2, b3, c, d1, a3, b4, c1, d2, a4, b5, c2, d3, a5, b6, c3, e, f, d4, a6, b7, c4, d5, arg$Thunk$0$, arg$Thunk$1$, arg$Thunk$0$1, arg$Thunk$1$1, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$IfZero$0$1, arg$IfZero$1$1, arg$IfZero$2$1, arg$App$0$, arg$App$1$, arg$App$0$1, arg$App$1$1, arg$Lam$0$, arg$Lam$1$, arg$Lam$0$1, arg$Lam$1$1, arg$Add$0$, arg$Add$1$, arg$Add$0$1, arg$Add$1$1, arg$Con$0$, arg$Con$0$1, arg$Var$0$, arg$Var$0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+          let b1, b2, b3, b4, b5, arg$Thunk$0$, arg$Thunk$1$, arg$Thunk$0$1, arg$Thunk$1$1, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$IfZero$0$1, arg$IfZero$1$1, arg$IfZero$2$1, arg$App$0$, arg$App$1$, arg$App$0$1, arg$App$1$1, arg$Lam$0$, arg$Lam$1$, arg$Lam$0$1, arg$Lam$1$1, arg$Add$0$, arg$Add$1$, arg$Add$0$1, arg$Add$1$1, arg$Con$0$, arg$Con$0$1, arg$Var$0$, arg$Var$0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
           if (param0 instanceof lambda.Var.class) {
             arg$Var$0$ = param0.s;
-            a = arg$Var$0$;
             if (param1 instanceof lambda.Var.class) {
               arg$Var$0$1 = param1.s;
-              b1 = arg$Var$0$1;
-              return NofibPrelude.listEq(a, b1)
+              return NofibPrelude.listEq(arg$Var$0$, arg$Var$0$1)
             }
             return false;
           } else if (param0 instanceof lambda.Con.class) {
             arg$Con$0$ = param0.i;
-            a1 = arg$Con$0$;
             if (param1 instanceof lambda.Con.class) {
               arg$Con$0$1 = param1.i;
-              b2 = arg$Con$0$1;
-              return a1 === b2
+              return arg$Con$0$ === arg$Con$0$1
             }
             return false;
           } else if (param0 instanceof lambda.Incr.class) {
@@ -288,17 +279,14 @@ let lambda1;
           } else if (param0 instanceof lambda.Add.class) {
             arg$Add$0$ = param0.a;
             arg$Add$1$ = param0.b;
-            b3 = arg$Add$1$;
-            a2 = arg$Add$0$;
-            if (b3 instanceof lambda.Add.class) {
-              arg$Add$0$1 = b3.a;
-              arg$Add$1$1 = b3.b;
-              d1 = arg$Add$1$1;
-              c = arg$Add$0$1;
-              tmp = lambda.eqTerm(a2, c);
+            b1 = arg$Add$1$;
+            if (b1 instanceof lambda.Add.class) {
+              arg$Add$0$1 = arg$Add$1$.a;
+              arg$Add$1$1 = arg$Add$1$.b;
+              tmp = lambda.eqTerm(arg$Add$0$, arg$Add$0$1);
               if (tmp === true) {
-                param0 = b3;
-                param1 = d1;
+                param0 = arg$Add$1$;
+                param1 = arg$Add$1$1;
                 id = 1;
                 continue loopLabel
               }
@@ -308,17 +296,14 @@ let lambda1;
           } else if (param0 instanceof lambda.Lam.class) {
             arg$Lam$0$ = param0.s;
             arg$Lam$1$ = param0.t;
-            b4 = arg$Lam$1$;
-            a3 = arg$Lam$0$;
-            if (b4 instanceof lambda.Lam.class) {
-              arg$Lam$0$1 = b4.s;
-              arg$Lam$1$1 = b4.t;
-              d2 = arg$Lam$1$1;
-              c1 = arg$Lam$0$1;
-              tmp1 = NofibPrelude.listEq(a3, c1);
+            b2 = arg$Lam$1$;
+            if (b2 instanceof lambda.Lam.class) {
+              arg$Lam$0$1 = arg$Lam$1$.s;
+              arg$Lam$1$1 = arg$Lam$1$.t;
+              tmp1 = NofibPrelude.listEq(arg$Lam$0$, arg$Lam$0$1);
               if (tmp1 === true) {
-                param0 = b4;
-                param1 = d2;
+                param0 = arg$Lam$1$;
+                param1 = arg$Lam$1$1;
                 id = 1;
                 continue loopLabel
               }
@@ -328,17 +313,14 @@ let lambda1;
           } else if (param0 instanceof lambda.App.class) {
             arg$App$0$ = param0.a;
             arg$App$1$ = param0.b;
-            b5 = arg$App$1$;
-            a4 = arg$App$0$;
-            if (b5 instanceof lambda.App.class) {
-              arg$App$0$1 = b5.a;
-              arg$App$1$1 = b5.b;
-              d3 = arg$App$1$1;
-              c2 = arg$App$0$1;
-              tmp2 = lambda.eqTerm(a4, c2);
+            b3 = arg$App$1$;
+            if (b3 instanceof lambda.App.class) {
+              arg$App$0$1 = arg$App$1$.a;
+              arg$App$1$1 = arg$App$1$.b;
+              tmp2 = lambda.eqTerm(arg$App$0$, arg$App$0$1);
               if (tmp2 === true) {
-                param0 = b5;
-                param1 = d3;
+                param0 = arg$App$1$;
+                param1 = arg$App$1$1;
                 id = 1;
                 continue loopLabel
               }
@@ -349,25 +331,20 @@ let lambda1;
             arg$IfZero$0$ = param0.a;
             arg$IfZero$1$ = param0.b;
             arg$IfZero$2$ = param0.c;
-            c3 = arg$IfZero$2$;
-            b6 = arg$IfZero$1$;
-            a5 = arg$IfZero$0$;
-            if (b6 instanceof lambda.IfZero.class) {
-              arg$IfZero$0$1 = b6.a;
-              arg$IfZero$1$1 = b6.b;
-              arg$IfZero$2$1 = b6.c;
-              f = arg$IfZero$2$1;
-              e = arg$IfZero$1$1;
-              d4 = arg$IfZero$0$1;
-              tmp3 = lambda.eqTerm(a5, d4);
+            b4 = arg$IfZero$1$;
+            if (b4 instanceof lambda.IfZero.class) {
+              arg$IfZero$0$1 = arg$IfZero$1$.a;
+              arg$IfZero$1$1 = arg$IfZero$1$.b;
+              arg$IfZero$2$1 = arg$IfZero$1$.c;
+              tmp3 = lambda.eqTerm(arg$IfZero$0$, arg$IfZero$0$1);
               if (tmp3 === true) {
-                tmp4 = lambda.eqTerm(b6, e);
+                tmp4 = lambda.eqTerm(arg$IfZero$1$, arg$IfZero$1$1);
               } else {
                 tmp4 = false;
               }
               if (tmp4 === true) {
-                param0 = c3;
-                param1 = f;
+                param0 = arg$IfZero$2$;
+                param1 = arg$IfZero$2$1;
                 id = 1;
                 continue loopLabel
               }
@@ -377,17 +354,14 @@ let lambda1;
           } else if (param0 instanceof lambda.Thunk.class) {
             arg$Thunk$0$ = param0.t;
             arg$Thunk$1$ = param0.e;
-            b7 = arg$Thunk$1$;
-            a6 = arg$Thunk$0$;
-            if (b7 instanceof lambda.Thunk.class) {
-              arg$Thunk$0$1 = b7.t;
-              arg$Thunk$1$1 = b7.e;
-              d5 = arg$Thunk$1$1;
-              c4 = arg$Thunk$0$1;
-              tmp5 = lambda.eqTerm(a6, c4);
+            b5 = arg$Thunk$1$;
+            if (b5 instanceof lambda.Thunk.class) {
+              arg$Thunk$0$1 = arg$Thunk$1$.t;
+              arg$Thunk$1$1 = arg$Thunk$1$.e;
+              tmp5 = lambda.eqTerm(arg$Thunk$0$, arg$Thunk$0$1);
               if (tmp5 === true) {
-                param0 = b7;
-                param1 = d5;
+                param0 = arg$Thunk$1$;
+                param1 = arg$Thunk$1$1;
                 id = 0;
                 continue loopLabel
               }
@@ -410,25 +384,24 @@ let lambda1;
           let tmp, lambda2;
           tmp = lambda.traverseTerm(param0);
           lambda2 = (undefined, function (_t) {
-            let c, arg$Con$0$;
+            let arg$Con$0$;
             if (_t instanceof lambda.Con.class) {
               arg$Con$0$ = _t.i;
-              c = arg$Con$0$;
-              return lambda.myReturn(c)
+              return lambda.myReturn(arg$Con$0$)
             }
             throw runtime.safeCall(globalThis.Error("Not a Con"));
           });
           return lambda.myBind(tmp, lambda2);
         case 2:
-          let x, u, v, e, t, x1, b, u1, v1, a, b1, c, i, arg$Con$0$, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$App$0$, arg$App$1$, arg$Lam$0$, arg$Lam$1$, arg$Thunk$0$, arg$Thunk$1$, arg$Add$0$, arg$Add$1$, arg$Var$0$, lambda3, tmp1, lambda4, tmp2, lambda5, tmp3, lambda6, tmp4, lambda7, tmp5, lambda8;
+          let x, v, x1, b, v1, a, b1, arg$Con$0$, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$App$0$, arg$App$1$, arg$Lam$0$, arg$Lam$1$, arg$Thunk$0$, arg$Thunk$1$, arg$Add$0$, arg$Add$1$, arg$Var$0$, lambda3, tmp1, lambda4, tmp2, lambda5, tmp3, lambda6, tmp4, lambda7, tmp5, lambda8;
           if (param0 instanceof lambda.Var.class) {
             arg$Var$0$ = param0.s;
             x = arg$Var$0$;
-            lambda3 = (undefined, function (e1) {
+            lambda3 = (undefined, function (e) {
               let tmp6, lambda9;
               tmp6 = lambda.lookupVar(x);
-              lambda9 = (undefined, function (t1) {
-                return lambda.traverseTerm(t1)
+              lambda9 = (undefined, function (t) {
+                return lambda.traverseTerm(t)
               });
               return lambda.myBind(tmp6, lambda9)
             });
@@ -437,8 +410,7 @@ let lambda1;
             arg$Add$0$ = param0.a;
             arg$Add$1$ = param0.b;
             v = arg$Add$1$;
-            u = arg$Add$0$;
-            tmp1 = lambda.traverseCon(u);
+            tmp1 = lambda.traverseCon(arg$Add$0$);
             lambda4 = (undefined, function (u_) {
               let tmp6, lambda9;
               tmp6 = lambda.traverseCon(v);
@@ -454,10 +426,8 @@ let lambda1;
           } else if (param0 instanceof lambda.Thunk.class) {
             arg$Thunk$0$ = param0.t;
             arg$Thunk$1$ = param0.e;
-            e = arg$Thunk$1$;
-            t = arg$Thunk$0$;
-            tmp2 = lambda.traverseTerm(t);
-            return lambda.withEnv(e, tmp2)
+            tmp2 = lambda.traverseTerm(arg$Thunk$0$);
+            return lambda.withEnv(arg$Thunk$1$, tmp2)
           } else if (param0 instanceof lambda.Lam.class) {
             arg$Lam$0$ = param0.s;
             arg$Lam$1$ = param0.t;
@@ -474,8 +444,7 @@ let lambda1;
             arg$App$0$ = param0.a;
             arg$App$1$ = param0.b;
             v1 = arg$App$1$;
-            u1 = arg$App$0$;
-            tmp3 = lambda.traverseTerm(u1);
+            tmp3 = lambda.traverseTerm(arg$App$0$);
             lambda6 = (undefined, function (u_) {
               return lambda.apply(u_, v1)
             });
@@ -486,8 +455,7 @@ let lambda1;
             arg$IfZero$2$ = param0.c;
             b1 = arg$IfZero$2$;
             a = arg$IfZero$1$;
-            c = arg$IfZero$0$;
-            tmp4 = lambda.traverseTerm(c);
+            tmp4 = lambda.traverseTerm(arg$IfZero$0$);
             lambda7 = (undefined, function (vall) {
               let scrut, tmp6;
               tmp6 = lambda.Con(0);
@@ -500,8 +468,7 @@ let lambda1;
             return lambda.myBind(tmp4, lambda7)
           } else if (param0 instanceof lambda.Con.class) {
             arg$Con$0$ = param0.i;
-            i = arg$Con$0$;
-            tmp5 = lambda.Con(i);
+            tmp5 = lambda.Con(arg$Con$0$);
             return lambda.myReturn(tmp5)
           } else if (param0 instanceof lambda.Incr.class) {
             lambda8 = (undefined, function (_dummy) {
@@ -520,101 +487,85 @@ let lambda1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let v, e, u, v1, u_, v_, x, b, u1, v2, u_1, a, b1, c, val_, scrut, e1, t, arg$Thunk$0$, arg$Thunk$1$, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$App$0$, arg$App$1$, arg$Lam$0$, arg$Lam$1$, arg$Add$0$, arg$Add$1$, arg$Con$0$, arg$Var$0$, lambda2, lambda3, tmp, tmp1, tmp2, tmp3, tmp4;
+          let u_, v_, u_1, val_, scrut, arg$Thunk$0$, arg$Thunk$1$, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$App$0$, arg$App$1$, arg$Lam$0$, arg$Lam$1$, arg$Add$0$, arg$Add$1$, arg$Con$0$, arg$Var$0$, lambda2, lambda3, tmp, tmp1, tmp2, tmp3, tmp4;
           if (param1 instanceof lambda.Var.class) {
             arg$Var$0$ = param1.s;
-            v = arg$Var$0$;
             lambda2 = (undefined, function (dummy) {
               throw runtime.safeCall(globalThis.Error("undefined var"))
             });
-            lambda3 = (undefined, function (x1) {
-              return x1
+            lambda3 = (undefined, function (x) {
+              return x
             });
-            tmp = lambda.lookup(v, param0);
+            tmp = lambda.lookup(arg$Var$0$, param0);
             tmp1 = lambda.myMaybe(lambda2, lambda3, tmp);
             param1 = tmp1;
             id = 0;
             continue loopLabel
           } else if (param1 instanceof lambda.Con.class) {
             arg$Con$0$ = param1.i;
-            e = arg$Con$0$;
-            return lambda.Con(e)
+            return lambda.Con(arg$Con$0$)
           } else if (param1 instanceof lambda.Incr.class) {
             return lambda.Con(0)
           } else if (param1 instanceof lambda.Add.class) {
             arg$Add$0$ = param1.a;
             arg$Add$1$ = param1.b;
-            v1 = arg$Add$1$;
-            u = arg$Add$0$;
-            u_ = lambda.simpleEvalCon(param0, u);
-            v_ = lambda.simpleEvalCon(param0, v1);
+            u_ = lambda.simpleEvalCon(param0, arg$Add$0$);
+            v_ = lambda.simpleEvalCon(param0, arg$Add$1$);
             tmp2 = u_ + v_;
             return lambda.Con(tmp2)
           } else if (param1 instanceof lambda.Lam.class) {
             arg$Lam$0$ = param1.s;
             arg$Lam$1$ = param1.t;
-            b = arg$Lam$1$;
-            x = arg$Lam$0$;
-            tmp3 = lambda.Lam(x, b);
+            tmp3 = lambda.Lam(arg$Lam$0$, arg$Lam$1$);
             return lambda.Thunk(tmp3, param0)
           } else if (param1 instanceof lambda.App.class) {
             arg$App$0$ = param1.a;
             arg$App$1$ = param1.b;
-            v2 = arg$App$1$;
-            u1 = arg$App$0$;
-            u_1 = lambda.simpleEval(param0, u1);
+            u_1 = lambda.simpleEval(param0, arg$App$0$);
             param1 = u_1;
-            param2 = v2;
+            param2 = arg$App$1$;
             id = 1;
             continue loopLabel
           } else if (param1 instanceof lambda.IfZero.class) {
             arg$IfZero$0$ = param1.a;
             arg$IfZero$1$ = param1.b;
             arg$IfZero$2$ = param1.c;
-            b1 = arg$IfZero$2$;
-            a = arg$IfZero$1$;
-            c = arg$IfZero$0$;
-            val_ = lambda.simpleEval(param0, c);
+            val_ = lambda.simpleEval(param0, arg$IfZero$0$);
             tmp4 = lambda.Con(0);
             scrut = lambda.eqTerm(val_, tmp4);
             if (scrut === true) {
-              param1 = a;
+              param1 = arg$IfZero$1$;
               id = 0;
               continue loopLabel
             }
-            param1 = b1;
+            param1 = arg$IfZero$2$;
             id = 0;
             continue loopLabel;
           } else if (param1 instanceof lambda.Thunk.class) {
             arg$Thunk$0$ = param1.t;
             arg$Thunk$1$ = param1.e;
-            e1 = arg$Thunk$1$;
-            t = arg$Thunk$0$;
-            param0 = e1;
-            param1 = t;
+            param0 = arg$Thunk$1$;
+            param1 = arg$Thunk$0$;
             id = 0;
             continue loopLabel
           }
           throw runtime.safeCall(globalThis.Error(param1));
         case 1:
-          let e2, x1, b2, arg$Thunk$0$1, arg$Thunk$1$1, arg$Lam$0$1, arg$Lam$1$1, tmp5, tmp6, tmp7;
+          let arg$Thunk$0$1, arg$Thunk$1$1, arg$Lam$0$1, arg$Lam$1$1, tmp5, tmp6, tmp7;
           if (param1 instanceof lambda.Thunk.class) {
             arg$Thunk$0$1 = param1.t;
             arg$Thunk$1$1 = param1.e;
             if (arg$Thunk$0$1 instanceof lambda.Lam.class) {
               arg$Lam$0$1 = arg$Thunk$0$1.s;
               arg$Lam$1$1 = arg$Thunk$0$1.t;
-              e2 = arg$Thunk$1$1;
-              b2 = arg$Lam$1$1;
-              x1 = arg$Lam$0$1;
               tmp5 = lambda.Thunk(param2, param0);
               tmp6 = globalThis.Object.freeze([
-                x1,
+                arg$Lam$0$1,
                 tmp5
               ]);
-              tmp7 = NofibPrelude.Cons(tmp6, e2);
+              tmp7 = NofibPrelude.Cons(tmp6, arg$Thunk$1$1);
               param0 = tmp7;
-              param1 = b2;
+              param1 = arg$Lam$1$1;
               id = 0;
               continue loopLabel
             }
@@ -622,12 +573,11 @@ let lambda1;
           }
           throw runtime.safeCall(globalThis.Error("bad application"));
         case 2:
-          let e_, c1, arg$Con$0$1;
+          let e_, arg$Con$0$1;
           e_ = lambda.simpleEval(param0, param1);
           if (e_ instanceof lambda.Con.class) {
             arg$Con$0$1 = e_.i;
-            c1 = arg$Con$0$1;
-            return c1
+            return arg$Con$0$1
           }
           throw runtime.safeCall(globalThis.Error("Not a Con"));
       }
@@ -636,7 +586,7 @@ let lambda1;
   } 
   static lookup(k, t) {
     loopLabel: while (true) {
-      let x, t1, v, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
+      let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
       if (t instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.None
       } else if (t instanceof NofibPrelude.Cons.class) {
@@ -645,14 +595,11 @@ let lambda1;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-          t1 = arg$Cons$1$;
-          v = element1$;
-          x = element0$;
-          scrut = NofibPrelude.listEq(k, x);
+          scrut = NofibPrelude.listEq(k, element0$);
           if (scrut === true) {
-            return NofibPrelude.Some(v)
+            return NofibPrelude.Some(element1$)
           }
-          t = t1;
+          t = arg$Cons$1$;
           continue loopLabel;
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -661,26 +608,23 @@ let lambda1;
     }
   } 
   static myRunState(m, s) {
-    let f, arg$MyState$0$;
+    let arg$MyState$0$;
     if (m instanceof lambda.MyState.class) {
       arg$MyState$0$ = m.r;
-      f = arg$MyState$0$;
-      return runtime.safeCall(f(s))
+      return runtime.safeCall(arg$MyState$0$(s))
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static myBind(m, f) {
     let lambda2;
     lambda2 = (undefined, function (s) {
-      let scrut, a, s_, element1$, element0$, tmp;
+      let scrut, element1$, element0$, tmp;
       scrut = lambda.myRunState(m, s);
       if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
         element0$ = runtime.Tuple.get(scrut, 0);
         element1$ = runtime.Tuple.get(scrut, 1);
-        a = element1$;
-        s_ = element0$;
-        tmp = runtime.safeCall(f(a));
-        return lambda.myRunState(tmp, s_)
+        tmp = runtime.safeCall(f(element1$));
+        return lambda.myRunState(tmp, element0$)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
@@ -697,13 +641,12 @@ let lambda1;
     return lambda.MyState(lambda2)
   } 
   static myEvalState(m, s) {
-    let scrut, a, element1$;
+    let scrut, element1$;
     scrut = lambda.myRunState(m, s);
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      a = element1$;
-      return a
+      return element1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -714,29 +657,26 @@ let lambda1;
     return lambda.eqEnv_eqTerm(1, a, b)
   } 
   static myMaybe(d, f, x) {
-    let x1, arg$Some$0$;
+    let arg$Some$0$;
     if (x instanceof NofibPrelude.Some.class) {
       arg$Some$0$ = x.x;
-      x1 = arg$Some$0$;
-      return runtime.safeCall(f(x1))
+      return runtime.safeCall(f(arg$Some$0$))
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lookupVar(v) {
     let lambda2;
     lambda2 = (undefined, function (env) {
-      let tmp, env1, inlinedVal, lambda3, lambda4, tmp1;
-      env1 = env;
+      let inlinedVal, lambda3, lambda4, tmp;
       lambda3 = (undefined, function (dummy) {
         throw runtime.safeCall(globalThis.Error("undefined"))
       });
       lambda4 = (undefined, function (x) {
         return x
       });
-      tmp1 = lambda.lookup(v, env1);
-      inlinedVal = lambda.myMaybe(lambda3, lambda4, tmp1);
-      tmp = inlinedVal;
-      return lambda.myReturn(tmp)
+      tmp = lambda.lookup(v, env);
+      inlinedVal = lambda.myMaybe(lambda3, lambda4, tmp);
+      return lambda.myReturn(inlinedVal)
     });
     return lambda.myBind(lambda.myGet, lambda2)
   } 
@@ -811,49 +751,41 @@ let lambda1;
     return t;
   } 
   static ppn(n, ter) {
-    let v, i, t, v1, a, b, a1, b1, a2, b2, c, e, t1, arg$Thunk$0$, arg$Thunk$1$, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$App$0$, arg$App$1$, arg$Add$0$, arg$Add$1$, arg$Lam$0$, arg$Lam$1$, arg$Con$0$, arg$Var$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32;
+    let arg$Thunk$0$, arg$Thunk$1$, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$App$0$, arg$App$1$, arg$Add$0$, arg$Add$1$, arg$Lam$0$, arg$Lam$1$, arg$Con$0$, arg$Var$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32;
     if (ter instanceof lambda.Var.class) {
       arg$Var$0$ = ter.s;
-      v = arg$Var$0$;
-      return v
+      return arg$Var$0$
     } else if (ter instanceof lambda.Con.class) {
       arg$Con$0$ = ter.i;
-      i = arg$Con$0$;
-      tmp = NofibPrelude.stringOfInt(i);
+      tmp = NofibPrelude.stringOfInt(arg$Con$0$);
       return NofibPrelude.nofibStringToList(tmp)
     } else if (ter instanceof lambda.Incr.class) {
       return NofibPrelude.nofibStringToList("INCR")
     } else if (ter instanceof lambda.Lam.class) {
       arg$Lam$0$ = ter.s;
       arg$Lam$1$ = ter.t;
-      t = arg$Lam$1$;
-      v1 = arg$Lam$0$;
       tmp1 = NofibPrelude.nofibStringToList(". ");
       tmp2 = 0 - 1;
-      tmp3 = lambda.ppn(tmp2, t);
+      tmp3 = lambda.ppn(tmp2, arg$Lam$1$);
       tmp4 = NofibPrelude.append(tmp1, tmp3);
-      tmp5 = NofibPrelude.append(v1, tmp4);
+      tmp5 = NofibPrelude.append(arg$Lam$0$, tmp4);
       tmp6 = NofibPrelude.Cons("@", tmp5);
       return lambda.bracket(n, 0, tmp6)
     } else if (ter instanceof lambda.Add.class) {
       arg$Add$0$ = ter.a;
       arg$Add$1$ = ter.b;
-      b = arg$Add$1$;
-      a = arg$Add$0$;
-      tmp7 = lambda.ppn(1, a);
+      tmp7 = lambda.ppn(1, arg$Add$0$);
       tmp8 = NofibPrelude.nofibStringToList(" + ");
-      tmp9 = lambda.ppn(1, b);
+      tmp9 = lambda.ppn(1, arg$Add$1$);
       tmp10 = NofibPrelude.append(tmp8, tmp9);
       tmp11 = NofibPrelude.append(tmp7, tmp10);
       return lambda.bracket(n, 1, tmp11)
     } else if (ter instanceof lambda.App.class) {
       arg$App$0$ = ter.a;
       arg$App$1$ = ter.b;
-      b1 = arg$App$1$;
-      a1 = arg$App$0$;
-      tmp12 = lambda.ppn(2, a1);
+      tmp12 = lambda.ppn(2, arg$App$0$);
       tmp13 = NofibPrelude.nofibStringToList(" ");
-      tmp14 = lambda.ppn(2, b1);
+      tmp14 = lambda.ppn(2, arg$App$1$);
       tmp15 = NofibPrelude.append(tmp13, tmp14);
       tmp16 = NofibPrelude.append(tmp12, tmp15);
       return lambda.bracket(n, 2, tmp16)
@@ -861,15 +793,12 @@ let lambda1;
       arg$IfZero$0$ = ter.a;
       arg$IfZero$1$ = ter.b;
       arg$IfZero$2$ = ter.c;
-      b2 = arg$IfZero$2$;
-      a2 = arg$IfZero$1$;
-      c = arg$IfZero$0$;
       tmp17 = NofibPrelude.nofibStringToList("IF ");
-      tmp18 = lambda.ppn(0, c);
+      tmp18 = lambda.ppn(0, arg$IfZero$0$);
       tmp19 = NofibPrelude.nofibStringToList(" THEN ");
-      tmp20 = lambda.ppn(0, a2);
+      tmp20 = lambda.ppn(0, arg$IfZero$1$);
       tmp21 = NofibPrelude.nofibStringToList(" ELSE ");
-      tmp22 = lambda.ppn(0, b2);
+      tmp22 = lambda.ppn(0, arg$IfZero$2$);
       tmp23 = NofibPrelude.append(tmp21, tmp22);
       tmp24 = NofibPrelude.append(tmp20, tmp23);
       tmp25 = NofibPrelude.append(tmp19, tmp24);
@@ -879,11 +808,9 @@ let lambda1;
     } else if (ter instanceof lambda.Thunk.class) {
       arg$Thunk$0$ = ter.t;
       arg$Thunk$1$ = ter.e;
-      e = arg$Thunk$1$;
-      t1 = arg$Thunk$0$;
-      tmp28 = lambda.ppn(3, t1);
+      tmp28 = lambda.ppn(3, arg$Thunk$0$);
       tmp29 = NofibPrelude.nofibStringToList("::");
-      tmp30 = lambda.ppenv(e);
+      tmp30 = lambda.ppenv(arg$Thunk$1$);
       tmp31 = NofibPrelude.append(tmp29, tmp30);
       tmp32 = NofibPrelude.append(tmp28, tmp31);
       return lambda.bracket(n, 0, tmp32)
@@ -897,18 +824,16 @@ let lambda1;
     let tmp, lambda2, tmp1, tmp2, tmp3;
     tmp = NofibPrelude.nofibStringToList("[");
     lambda2 = (undefined, function (caseScrut) {
-      let t, v, element1$, element0$, tmp4, tmp5, tmp6, tmp7, tmp8;
+      let element1$, element0$, tmp4, tmp5, tmp6, tmp7, tmp8;
       if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
         element0$ = runtime.Tuple.get(caseScrut, 0);
         element1$ = runtime.Tuple.get(caseScrut, 1);
-        t = element1$;
-        v = element0$;
         tmp4 = NofibPrelude.nofibStringToList("=");
-        tmp5 = lambda.pp(t);
+        tmp5 = lambda.pp(element1$);
         tmp6 = NofibPrelude.nofibStringToList(", ");
         tmp7 = NofibPrelude.append(tmp5, tmp6);
         tmp8 = NofibPrelude.append(tmp4, tmp7);
-        return NofibPrelude.append(v, tmp8)
+        return NofibPrelude.append(element0$, tmp8)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
@@ -918,29 +843,26 @@ let lambda1;
     return NofibPrelude.append(tmp, tmp3)
   } 
   static showTerm(t) {
-    let a, arg$Con$0$, tmp, tmp1, tmp2;
+    let arg$Con$0$, tmp, tmp1, tmp2;
     if (t instanceof lambda.Con.class) {
       arg$Con$0$ = t.i;
-      a = arg$Con$0$;
       tmp = NofibPrelude.nofibStringToList("Con ");
-      tmp1 = NofibPrelude.stringOfInt(a);
+      tmp1 = NofibPrelude.stringOfInt(arg$Con$0$);
       tmp2 = NofibPrelude.nofibStringToList(tmp1);
       return NofibPrelude.append(tmp, tmp2)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static ev(t) {
-    let envt2, t2, env, tmp, element1$, element0$, tmp1, tmp2, tmp3, tmp4;
+    let envt2, tmp, element1$, element0$, tmp1, tmp2, tmp3, tmp4;
     tmp = lambda.traverseTerm(t);
     envt2 = lambda.myRunState(tmp, NofibPrelude.Nil);
     if (runtime.Tuple.isArrayLike(envt2) && envt2.length === 2) {
       element0$ = runtime.Tuple.get(envt2, 0);
       element1$ = runtime.Tuple.get(envt2, 1);
-      t2 = element1$;
-      env = element0$;
-      tmp1 = lambda.pp(t2);
+      tmp1 = lambda.pp(element1$);
       tmp2 = NofibPrelude.nofibStringToList("  ");
-      tmp3 = lambda.ppenv(env);
+      tmp3 = lambda.ppenv(element0$);
       tmp4 = NofibPrelude.append(tmp2, tmp3);
       return NofibPrelude.append(tmp1, tmp4)
     }

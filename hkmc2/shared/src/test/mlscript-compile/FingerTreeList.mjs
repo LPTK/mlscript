@@ -301,13 +301,11 @@ ithAffixElement = function ithAffixElement(idx, arr) {
 };
 ithNode = function ithNode(idx, node) {
   loopLabel: while (true) {
-    let a, b, scrut, scrut1, a1, b1, c, scrut2, scrut3, scrut4, scrut5, arg$Branch3$0$, arg$Branch3$1$, arg$Branch3$2$, arg$Branch3$3$, arg$Branch2$0$, arg$Branch2$1$, arg$Branch2$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
+    let scrut, scrut1, scrut2, scrut3, scrut4, scrut5, arg$Branch3$0$, arg$Branch3$1$, arg$Branch3$2$, arg$Branch3$3$, arg$Branch2$0$, arg$Branch2$1$, arg$Branch2$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
     if (node instanceof Branch21.class) {
       arg$Branch2$0$ = node.size;
       arg$Branch2$1$ = node.e1;
       arg$Branch2$2$ = node.e2;
-      b = arg$Branch2$2$;
-      a = arg$Branch2$1$;
       tmp = idx >= 0;
       if (tmp === true) {
         tmp1 = idx < arg$Branch2$0$;
@@ -316,16 +314,16 @@ ithNode = function ithNode(idx, node) {
       }
       scrut = tmp1;
       if (scrut === true) {
-        tmp2 = getNodeSize(a);
+        tmp2 = getNodeSize(arg$Branch2$1$);
         scrut1 = idx < tmp2;
         if (scrut1 === true) {
-          node = a;
+          node = arg$Branch2$1$;
           continue loopLabel
         }
-        tmp3 = getNodeSize(a);
+        tmp3 = getNodeSize(arg$Branch2$1$);
         tmp4 = idx - tmp3;
         idx = tmp4;
-        node = b;
+        node = arg$Branch2$2$;
         continue loopLabel;
       }
       return Option.None;
@@ -334,9 +332,6 @@ ithNode = function ithNode(idx, node) {
       arg$Branch3$1$ = node.e1;
       arg$Branch3$2$ = node.e2;
       arg$Branch3$3$ = node.e3;
-      c = arg$Branch3$3$;
-      b1 = arg$Branch3$2$;
-      a1 = arg$Branch3$1$;
       tmp5 = idx >= 0;
       if (tmp5 === true) {
         tmp6 = idx < arg$Branch3$0$;
@@ -345,29 +340,29 @@ ithNode = function ithNode(idx, node) {
       }
       scrut2 = tmp6;
       if (scrut2 === true) {
-        tmp7 = getNodeSize(a1);
+        tmp7 = getNodeSize(arg$Branch3$1$);
         scrut3 = idx < tmp7;
         if (scrut3 === true) {
-          node = a1;
+          node = arg$Branch3$1$;
           continue loopLabel
         }
-        tmp8 = getNodeSize(a1);
-        tmp9 = getNodeSize(b1);
+        tmp8 = getNodeSize(arg$Branch3$1$);
+        tmp9 = getNodeSize(arg$Branch3$2$);
         tmp10 = tmp8 + tmp9;
         scrut4 = idx < tmp10;
         if (scrut4 === true) {
-          tmp11 = getNodeSize(a1);
+          tmp11 = getNodeSize(arg$Branch3$1$);
           tmp12 = idx - tmp11;
           idx = tmp12;
-          node = b1;
+          node = arg$Branch3$2$;
           continue loopLabel
         }
-        tmp13 = getNodeSize(a1);
+        tmp13 = getNodeSize(arg$Branch3$1$);
         tmp14 = idx - tmp13;
-        tmp15 = getNodeSize(b1);
+        tmp15 = getNodeSize(arg$Branch3$2$);
         tmp16 = tmp14 - tmp15;
         idx = tmp16;
-        node = c;
+        node = arg$Branch3$3$;
         continue loopLabel;
       }
       return Option.None;
@@ -531,12 +526,12 @@ View1 = function View(e1, rest) {
     if (scrut1 === true) {
       end = len;
     }
-    scrut2 = end <= beg;
+    scrut2 = end <= tmp;
     if (scrut2 === true) {
       return Empty1
     }
     tmp2 = len - end;
-    tmp3 = FingerTreeList1.dropLeftRight(beg, tmp2);
+    tmp3 = FingerTreeList1.dropLeftRight(tmp, tmp2);
     return runtime.safeCall(tmp3(this));
   }
   [prettyPrint]() { return this.toString(); }
@@ -892,7 +887,7 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
   static ith(idx) {
     let lambda;
     lambda = (undefined, function (caseScrut) {
-      let dt, ax, ay, scrut, scrut1, scrut2, arg$Deep$0$, arg$Deep$1$, arg$Deep$2$, arg$Deep$3$, arg$Single$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+      let scrut, scrut1, scrut2, arg$Deep$0$, arg$Deep$1$, arg$Deep$2$, arg$Deep$3$, arg$Single$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
       if (caseScrut instanceof Empty1.class) {
         return Option.None
       } else if (caseScrut instanceof Single1.class) {
@@ -903,9 +898,6 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
         arg$Deep$1$ = caseScrut.prefix;
         arg$Deep$2$ = caseScrut.middle;
         arg$Deep$3$ = caseScrut.suffix;
-        ay = arg$Deep$3$;
-        dt = arg$Deep$2$;
-        ax = arg$Deep$1$;
         tmp = idx >= 0;
         if (tmp === true) {
           tmp1 = idx < arg$Deep$0$;
@@ -914,26 +906,26 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
         }
         scrut = tmp1;
         if (scrut === true) {
-          tmp2 = getAffixSize(ax);
+          tmp2 = getAffixSize(arg$Deep$1$);
           scrut1 = idx < tmp2;
           if (scrut1 === true) {
-            return ithAffixElement(idx, ax)
+            return ithAffixElement(idx, arg$Deep$1$)
           }
-          tmp3 = getAffixSize(ax);
-          tmp4 = FingerTreeList.length(dt);
+          tmp3 = getAffixSize(arg$Deep$1$);
+          tmp4 = FingerTreeList.length(arg$Deep$2$);
           tmp5 = tmp3 + tmp4;
           scrut2 = idx < tmp5;
           if (scrut2 === true) {
-            tmp6 = getAffixSize(ax);
+            tmp6 = getAffixSize(arg$Deep$1$);
             tmp7 = idx - tmp6;
             tmp8 = FingerTreeList.ith(tmp7);
-            return runtime.safeCall(tmp8(dt))
+            return runtime.safeCall(tmp8(arg$Deep$2$))
           }
-          tmp9 = getAffixSize(ax);
+          tmp9 = getAffixSize(arg$Deep$1$);
           tmp10 = idx - tmp9;
-          tmp11 = FingerTreeList.length(dt);
+          tmp11 = FingerTreeList.length(arg$Deep$2$);
           tmp12 = tmp10 - tmp11;
-          return ithAffixElement(tmp12, ay);
+          return ithAffixElement(tmp12, arg$Deep$3$);
         }
         return Option.None;
       }

@@ -355,24 +355,18 @@ let sphere1;
     this.background = tmp68;
   }
   static vecadd(a1, a2) {
-    let z1, y1, x1, x2, z2, y2, element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
+    let element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(a1) && a1.length === 3) {
       element0$ = runtime.Tuple.get(a1, 0);
       element1$ = runtime.Tuple.get(a1, 1);
       element2$ = runtime.Tuple.get(a1, 2);
-      z1 = element2$;
-      y1 = element1$;
-      x1 = element0$;
       if (runtime.Tuple.isArrayLike(a2) && a2.length === 3) {
         element0$1 = runtime.Tuple.get(a2, 0);
         element1$1 = runtime.Tuple.get(a2, 1);
         element2$1 = runtime.Tuple.get(a2, 2);
-        z2 = element2$1;
-        y2 = element1$1;
-        x2 = element0$1;
-        tmp = x1 + x2;
-        tmp1 = y1 + y2;
-        tmp2 = z1 + z2;
+        tmp = element0$ + element0$1;
+        tmp1 = element1$ + element1$1;
+        tmp2 = element2$ + element2$1;
         return globalThis.Object.freeze([
           tmp,
           tmp1,
@@ -384,24 +378,18 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static vecsub(a1, a2) {
-    let z1, y1, x1, x2, z2, y2, element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
+    let element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(a1) && a1.length === 3) {
       element0$ = runtime.Tuple.get(a1, 0);
       element1$ = runtime.Tuple.get(a1, 1);
       element2$ = runtime.Tuple.get(a1, 2);
-      z1 = element2$;
-      y1 = element1$;
-      x1 = element0$;
       if (runtime.Tuple.isArrayLike(a2) && a2.length === 3) {
         element0$1 = runtime.Tuple.get(a2, 0);
         element1$1 = runtime.Tuple.get(a2, 1);
         element2$1 = runtime.Tuple.get(a2, 2);
-        z2 = element2$1;
-        y2 = element1$1;
-        x2 = element0$1;
-        tmp = x1 - x2;
-        tmp1 = y1 - y2;
-        tmp2 = z1 - z2;
+        tmp = element0$ - element0$1;
+        tmp1 = element1$ - element1$1;
+        tmp2 = element2$ - element2$1;
         return globalThis.Object.freeze([
           tmp,
           tmp1,
@@ -413,24 +401,18 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static vecmult(a1, a2) {
-    let z1, y1, x1, x2, z2, y2, element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
+    let element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(a1) && a1.length === 3) {
       element0$ = runtime.Tuple.get(a1, 0);
       element1$ = runtime.Tuple.get(a1, 1);
       element2$ = runtime.Tuple.get(a1, 2);
-      z1 = element2$;
-      y1 = element1$;
-      x1 = element0$;
       if (runtime.Tuple.isArrayLike(a2) && a2.length === 3) {
         element0$1 = runtime.Tuple.get(a2, 0);
         element1$1 = runtime.Tuple.get(a2, 1);
         element2$1 = runtime.Tuple.get(a2, 2);
-        z2 = element2$1;
-        y2 = element1$1;
-        x2 = element0$1;
-        tmp = x1 * x2;
-        tmp1 = y1 * y2;
-        tmp2 = z1 * z2;
+        tmp = element0$ * element0$1;
+        tmp1 = element1$ * element1$1;
+        tmp2 = element2$ * element2$1;
         return globalThis.Object.freeze([
           tmp,
           tmp1,
@@ -451,23 +433,20 @@ let sphere1;
     return NofibPrelude.foldr(sphere.vecadd, tmp, param)
   } 
   static vecnorm(xyz) {
-    let x, y, z, len, element2$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
+    let len, element2$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
     if (runtime.Tuple.isArrayLike(xyz) && xyz.length === 3) {
       element0$ = runtime.Tuple.get(xyz, 0);
       element1$ = runtime.Tuple.get(xyz, 1);
       element2$ = runtime.Tuple.get(xyz, 2);
-      z = element2$;
-      y = element1$;
-      x = element0$;
-      tmp = x * x;
-      tmp1 = y * y;
+      tmp = element0$ * element0$;
+      tmp1 = element1$ * element1$;
       tmp2 = tmp + tmp1;
-      tmp3 = z * z;
+      tmp3 = element2$ * element2$;
       tmp4 = tmp2 + tmp3;
       len = NofibPrelude.sqrt(tmp4);
-      tmp5 = x / len;
-      tmp6 = y / len;
-      tmp7 = z / len;
+      tmp5 = element0$ / len;
+      tmp6 = element1$ / len;
+      tmp7 = element2$ / len;
       tmp8 = globalThis.Object.freeze([
         tmp5,
         tmp6,
@@ -481,17 +460,14 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static vecscale(xyz, a) {
-    let x, y, z, element2$, element1$, element0$, tmp, tmp1, tmp2;
+    let element2$, element1$, element0$, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(xyz) && xyz.length === 3) {
       element0$ = runtime.Tuple.get(xyz, 0);
       element1$ = runtime.Tuple.get(xyz, 1);
       element2$ = runtime.Tuple.get(xyz, 2);
-      z = element2$;
-      y = element1$;
-      x = element0$;
-      tmp = a * x;
-      tmp1 = a * y;
-      tmp2 = a * z;
+      tmp = a * element0$;
+      tmp1 = a * element1$;
+      tmp2 = a * element2$;
       return globalThis.Object.freeze([
         tmp,
         tmp1,
@@ -501,25 +477,19 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static vecdot(x1, x2) {
-    let z1, y1, x11, x21, z2, y2, element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
+    let element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
     if (runtime.Tuple.isArrayLike(x1) && x1.length === 3) {
       element0$ = runtime.Tuple.get(x1, 0);
       element1$ = runtime.Tuple.get(x1, 1);
       element2$ = runtime.Tuple.get(x1, 2);
-      z1 = element2$;
-      y1 = element1$;
-      x11 = element0$;
       if (runtime.Tuple.isArrayLike(x2) && x2.length === 3) {
         element0$1 = runtime.Tuple.get(x2, 0);
         element1$1 = runtime.Tuple.get(x2, 1);
         element2$1 = runtime.Tuple.get(x2, 2);
-        z2 = element2$1;
-        y2 = element1$1;
-        x21 = element0$1;
-        tmp = x11 * x21;
-        tmp1 = y1 * y2;
+        tmp = element0$ * element0$1;
+        tmp1 = element1$ * element1$1;
         tmp2 = tmp + tmp1;
-        tmp3 = z1 * z2;
+        tmp3 = element2$ * element2$1;
         return tmp2 + tmp3
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -527,29 +497,23 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static veccross(x1, x2) {
-    let z1, y1, x11, x21, z2, y2, element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
+    let element2$, element1$, element0$, element2$1, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
     if (runtime.Tuple.isArrayLike(x1) && x1.length === 3) {
       element0$ = runtime.Tuple.get(x1, 0);
       element1$ = runtime.Tuple.get(x1, 1);
       element2$ = runtime.Tuple.get(x1, 2);
-      z1 = element2$;
-      y1 = element1$;
-      x11 = element0$;
       if (runtime.Tuple.isArrayLike(x2) && x2.length === 3) {
         element0$1 = runtime.Tuple.get(x2, 0);
         element1$1 = runtime.Tuple.get(x2, 1);
         element2$1 = runtime.Tuple.get(x2, 2);
-        z2 = element2$1;
-        y2 = element1$1;
-        x21 = element0$1;
-        tmp = y1 * z2;
-        tmp1 = y2 * z1;
+        tmp = element1$ * element2$1;
+        tmp1 = element1$1 * element2$;
         tmp2 = tmp - tmp1;
-        tmp3 = z1 * x21;
-        tmp4 = z2 * x11;
+        tmp3 = element2$ * element0$1;
+        tmp4 = element2$1 * element0$;
         tmp5 = tmp3 - tmp4;
-        tmp6 = x11 * y2;
-        tmp7 = x21 * y1;
+        tmp6 = element0$ * element1$1;
+        tmp7 = element0$1 * element1$;
         tmp8 = tmp6 - tmp7;
         return globalThis.Object.freeze([
           tmp2,
@@ -562,77 +526,68 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static is_zerovector(x) {
-    let x1, y, z, element2$, element1$, element0$, tmp, tmp1;
+    let element2$, element1$, element0$, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(x) && x.length === 3) {
       element0$ = runtime.Tuple.get(x, 0);
       element1$ = runtime.Tuple.get(x, 1);
       element2$ = runtime.Tuple.get(x, 2);
-      z = element2$;
-      y = element1$;
-      x1 = element0$;
-      tmp = x1 < sphere.epsilon;
+      tmp = element0$ < sphere.epsilon;
       if (tmp === true) {
-        tmp1 = y < sphere.epsilon;
+        tmp1 = element1$ < sphere.epsilon;
       } else {
         tmp1 = false;
       }
       if (tmp1 === true) {
-        return z < sphere.epsilon
+        return element2$ < sphere.epsilon
       }
       return false;
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lightpos(p) {
-    let pos, arg$Point$0$;
+    let arg$Point$0$;
     if (p instanceof sphere.Point.class) {
       arg$Point$0$ = p.x;
-      pos = arg$Point$0$;
-      return pos
+      return arg$Point$0$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lightdir(d) {
-    let dir, arg$Directional$0$, tmp;
+    let arg$Directional$0$, tmp;
     if (d instanceof sphere.Directional.class) {
       arg$Directional$0$ = d.x;
-      dir = arg$Directional$0$;
-      tmp = sphere.vecnorm(dir);
+      tmp = sphere.vecnorm(arg$Directional$0$);
       return NofibPrelude.fst(tmp)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lightcolour(x) {
-    let col, col1, arg$Point$1$, arg$Directional$1$;
+    let arg$Point$1$, arg$Directional$1$;
     if (x instanceof sphere.Directional.class) {
       arg$Directional$1$ = x.y;
-      col = arg$Directional$1$;
-      return col
+      return arg$Directional$1$
     } else if (x instanceof sphere.Point.class) {
       arg$Point$1$ = x.y;
-      col1 = arg$Point$1$;
-      return col1
+      return arg$Point$1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static ambientsurf(ss) {
     let lscomp, tmp, tmp1, tmp2, tmp3;
     lscomp = function lscomp(ls) {
-      let x, t, s, arg$Cons$0$, arg$Cons$1$, arg$Ambient$0$, tmp4;
+      let x, arg$Cons$0$, arg$Cons$1$, arg$Ambient$0$, tmp4;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         x = arg$Cons$0$;
         if (x instanceof sphere.Ambient.class) {
-          arg$Ambient$0$ = x.v;
-          s = arg$Ambient$0$;
-          tmp4 = lscomp(t);
-          return NofibPrelude.Cons(s, tmp4)
+          arg$Ambient$0$ = arg$Cons$0$.v;
+          tmp4 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Ambient$0$, tmp4)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -649,21 +604,19 @@ let sphere1;
   static diffusesurf(ss) {
     let lscomp, tmp, tmp1, tmp2, tmp3;
     lscomp = function lscomp(ls) {
-      let x, t, s, arg$Cons$0$, arg$Cons$1$, arg$Diffuse$0$, tmp4;
+      let x, arg$Cons$0$, arg$Cons$1$, arg$Diffuse$0$, tmp4;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         x = arg$Cons$0$;
         if (x instanceof sphere.Diffuse.class) {
-          arg$Diffuse$0$ = x.v;
-          s = arg$Diffuse$0$;
-          tmp4 = lscomp(t);
-          return NofibPrelude.Cons(s, tmp4)
+          arg$Diffuse$0$ = arg$Cons$0$.v;
+          tmp4 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Diffuse$0$, tmp4)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -680,21 +633,19 @@ let sphere1;
   static specularsurf(ss) {
     let lscomp, tmp, tmp1, tmp2, tmp3;
     lscomp = function lscomp(ls) {
-      let x, t, s, arg$Cons$0$, arg$Cons$1$, arg$Specular$0$, tmp4;
+      let x, arg$Cons$0$, arg$Cons$1$, arg$Specular$0$, tmp4;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         x = arg$Cons$0$;
         if (x instanceof sphere.Specular.class) {
-          arg$Specular$0$ = x.v;
-          s = arg$Specular$0$;
-          tmp4 = lscomp(t);
-          return NofibPrelude.Cons(s, tmp4)
+          arg$Specular$0$ = arg$Cons$0$.v;
+          tmp4 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Specular$0$, tmp4)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -711,21 +662,19 @@ let sphere1;
   static specpowsurf(ss) {
     let lscomp, tmp, tmp1, tmp2;
     lscomp = function lscomp(ls) {
-      let x, t, s, arg$Cons$0$, arg$Cons$1$, arg$Specpow$0$, tmp3;
+      let x, arg$Cons$0$, arg$Cons$1$, arg$Specpow$0$, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         x = arg$Cons$0$;
         if (x instanceof sphere.Specpow.class) {
-          arg$Specpow$0$ = x.v;
-          s = arg$Specpow$0$;
-          tmp3 = lscomp(t);
-          return NofibPrelude.Cons(s, tmp3)
+          arg$Specpow$0$ = arg$Cons$0$.v;
+          tmp3 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Specpow$0$, tmp3)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -737,21 +686,19 @@ let sphere1;
   static reflectsurf(ss) {
     let lscomp, tmp, tmp1, tmp2;
     lscomp = function lscomp(ls) {
-      let x, t, s, arg$Cons$0$, arg$Cons$1$, arg$Reflect$0$, tmp3;
+      let x, arg$Cons$0$, arg$Cons$1$, arg$Reflect$0$, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         x = arg$Cons$0$;
         if (x instanceof sphere.Reflect.class) {
-          arg$Reflect$0$ = x.v;
-          s = arg$Reflect$0$;
-          tmp3 = lscomp(t);
-          return NofibPrelude.Cons(s, tmp3)
+          arg$Reflect$0$ = arg$Cons$0$.v;
+          tmp3 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Reflect$0$, tmp3)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -763,21 +710,19 @@ let sphere1;
   static transmitsurf(ss) {
     let lscomp, tmp, tmp1, tmp2;
     lscomp = function lscomp(ls) {
-      let x, t, s, arg$Cons$0$, arg$Cons$1$, arg$Transmit$0$, tmp3;
+      let x, arg$Cons$0$, arg$Cons$1$, arg$Transmit$0$, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         x = arg$Cons$0$;
         if (x instanceof sphere.Transmit.class) {
-          arg$Transmit$0$ = x.v;
-          s = arg$Transmit$0$;
-          tmp3 = lscomp(t);
-          return NofibPrelude.Cons(s, tmp3)
+          arg$Transmit$0$ = arg$Cons$0$.v;
+          tmp3 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Transmit$0$, tmp3)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -789,21 +734,19 @@ let sphere1;
   static refractsurf(ss) {
     let lscomp, tmp, tmp1, tmp2;
     lscomp = function lscomp(ls) {
-      let x, t, s, arg$Cons$0$, arg$Cons$1$, arg$Refract$0$, tmp3;
+      let x, arg$Cons$0$, arg$Cons$1$, arg$Refract$0$, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         x = arg$Cons$0$;
         if (x instanceof sphere.Refract.class) {
-          arg$Refract$0$ = x.v;
-          s = arg$Refract$0$;
-          tmp3 = lscomp(t);
-          return NofibPrelude.Cons(s, tmp3)
+          arg$Refract$0$ = arg$Cons$0$.v;
+          tmp3 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Refract$0$, tmp3)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -815,21 +758,19 @@ let sphere1;
   static bodysurf(ss) {
     let lscomp, tmp, tmp1, tmp2, tmp3;
     lscomp = function lscomp(ls) {
-      let x, t, s, arg$Cons$0$, arg$Cons$1$, arg$Body$0$, tmp4;
+      let x, arg$Cons$0$, arg$Cons$1$, arg$Body$0$, tmp4;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
         x = arg$Cons$0$;
         if (x instanceof sphere.Body.class) {
-          arg$Body$0$ = x.v;
-          s = arg$Body$0$;
-          tmp4 = lscomp(t);
-          return NofibPrelude.Cons(s, tmp4)
+          arg$Body$0$ = arg$Cons$0$.v;
+          tmp4 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Body$0$, tmp4)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -844,23 +785,20 @@ let sphere1;
     return NofibPrelude.head(tmp3)
   } 
   static spheresurf(s) {
-    let surf, arg$Sphere$2$;
+    let arg$Sphere$2$;
     if (s instanceof sphere.Sphere.class) {
       arg$Sphere$2$ = s.surface;
-      surf = arg$Sphere$2$;
-      return surf
+      return arg$Sphere$2$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static spherenormal(pos, sp) {
-    let rad, spos, arg$Sphere$0$, arg$Sphere$1$, tmp, tmp1;
+    let arg$Sphere$0$, arg$Sphere$1$, tmp, tmp1;
     if (sp instanceof sphere.Sphere.class) {
       arg$Sphere$0$ = sp.pos;
       arg$Sphere$1$ = sp.radius;
-      rad = arg$Sphere$1$;
-      spos = arg$Sphere$0$;
-      tmp = sphere.vecsub(pos, spos);
-      tmp1 = 1 / rad;
+      tmp = sphere.vecsub(pos, arg$Sphere$0$);
+      tmp1 = 1 / arg$Sphere$1$;
       return sphere.vecscale(tmp, tmp1)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -871,47 +809,39 @@ let sphere1;
     return tmp / 180.0
   } 
   static camparams(lookfrom, lookat, vup, fov, winsize) {
-    let initfirstray, scrut, lookdir, dist, scrni, scrnj, xfov, yfov, xwinsize, ywinsize, magx, magy, scrnx, scrny, firstray, scrut1, scrut2, element1$, element0$, element0$1, element0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
+    let initfirstray, scrut, magx, magy, scrnx, scrny, firstray, scrut1, scrut2, element1$, element0$, element0$1, element0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
     initfirstray = sphere.vecsub(lookat, lookfrom);
     scrut = sphere.vecnorm(initfirstray);
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      dist = element1$;
-      lookdir = element0$;
-      tmp = sphere.veccross(lookdir, vup);
+      tmp = sphere.veccross(element0$, vup);
       scrut2 = sphere.vecnorm(tmp);
       if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
         element0$1 = runtime.Tuple.get(scrut2, 0);
         runtime.Tuple.get(scrut2, 1);
-        scrni = element0$1;
-        tmp1 = sphere.veccross(scrni, lookdir);
+        tmp1 = sphere.veccross(element0$1, element0$);
         scrut1 = sphere.vecnorm(tmp1);
         if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
           element0$2 = runtime.Tuple.get(scrut1, 0);
           runtime.Tuple.get(scrut1, 1);
-          scrnj = element0$2;
-          xfov = fov;
-          yfov = fov;
-          xwinsize = winsize;
-          ywinsize = winsize;
-          tmp2 = 2.0 * dist;
-          tmp3 = xfov / 2;
+          tmp2 = 2.0 * element1$;
+          tmp3 = fov / 2;
           tmp4 = sphere.dtor(tmp3);
           tmp5 = NofibPrelude.tan(tmp4);
           tmp6 = tmp2 * tmp5;
-          magx = tmp6 / xwinsize;
-          tmp7 = 2.0 * dist;
-          tmp8 = yfov / 2;
+          magx = tmp6 / winsize;
+          tmp7 = 2.0 * element1$;
+          tmp8 = fov / 2;
           tmp9 = sphere.dtor(tmp8);
           tmp10 = NofibPrelude.tan(tmp9);
           tmp11 = tmp7 * tmp10;
-          magy = tmp11 / ywinsize;
-          scrnx = sphere.vecscale(scrni, magx);
-          scrny = sphere.vecscale(scrnj, magy);
-          tmp12 = 0.5 * xwinsize;
+          magy = tmp11 / winsize;
+          scrnx = sphere.vecscale(element0$1, magx);
+          scrny = sphere.vecscale(element0$2, magy);
+          tmp12 = 0.5 * winsize;
           tmp13 = sphere.vecscale(scrnx, tmp12);
-          tmp14 = 0.5 * ywinsize;
+          tmp14 = 0.5 * winsize;
           tmp15 = sphere.vecscale(scrny, tmp14);
           tmp16 = sphere.vecadd(tmp13, tmp15);
           firstray = sphere.vecsub(initfirstray, tmp16);
@@ -928,18 +858,16 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static sphereintersect(pos, dir, sp) {
-    let rad, spos, m, bm, m2, disc, slo, shi, scrut, scrut1, scrut2, arg$Sphere$0$, arg$Sphere$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+    let m, bm, m2, disc, slo, shi, scrut, scrut1, scrut2, arg$Sphere$0$, arg$Sphere$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
     if (sp instanceof sphere.Sphere.class) {
       arg$Sphere$0$ = sp.pos;
       arg$Sphere$1$ = sp.radius;
-      rad = arg$Sphere$1$;
-      spos = arg$Sphere$0$;
-      m = sphere.vecsub(pos, spos);
+      m = sphere.vecsub(pos, arg$Sphere$0$);
       bm = sphere.vecdot(m, dir);
       m2 = sphere.vecdot(m, m);
       tmp = bm * bm;
       tmp1 = tmp - m2;
-      tmp2 = rad * rad;
+      tmp2 = arg$Sphere$1$ * arg$Sphere$1$;
       disc = tmp1 + tmp2;
       tmp3 = - bm;
       tmp4 = NofibPrelude.sqrt(disc);
@@ -976,29 +904,25 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static trace(spheres, pos, dir) {
-    let f, sphmap, dists, scrut, scrut1, mindist, sp, tmp, element1$, element0$, tmp1, tmp2;
+    let f, sphmap, dists, scrut, scrut1, tmp, element1$, element0$, tmp1, tmp2;
     f = function f(d1s1, d2s2) {
-      let s1, d1, d2, s2_, scrut2, element1$1, element0$1, element1$2, element0$2;
+      let scrut2, element1$1, element0$1, element1$2, element0$2;
       if (runtime.Tuple.isArrayLike(d1s1) && d1s1.length === 2) {
         element0$1 = runtime.Tuple.get(d1s1, 0);
         element1$1 = runtime.Tuple.get(d1s1, 1);
-        s1 = element1$1;
-        d1 = element0$1;
         if (runtime.Tuple.isArrayLike(d2s2) && d2s2.length === 2) {
           element0$2 = runtime.Tuple.get(d2s2, 0);
           element1$2 = runtime.Tuple.get(d2s2, 1);
-          s2_ = element1$2;
-          d2 = element0$2;
-          scrut2 = d1 < d2;
+          scrut2 = element0$1 < element0$2;
           if (scrut2 === true) {
             return globalThis.Object.freeze([
-              d1,
-              s1
+              element0$1,
+              element1$1
             ])
           }
           return globalThis.Object.freeze([
-            d2,
-            s2_
+            element0$2,
+            element1$2
           ]);
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1006,29 +930,26 @@ let sphere1;
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     sphmap = function sphmap(xss) {
-      let x, xs, is_hit, where_hit, scrut2, arg$Cons$0$, arg$Cons$1$, element1$1, element0$1, tmp3, tmp4;
+      let is_hit, scrut2, arg$Cons$0$, arg$Cons$1$, element1$1, element0$1, tmp3, tmp4;
       if (xss instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (xss instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = xss.head;
         arg$Cons$1$ = xss.tail;
-        xs = arg$Cons$1$;
-        x = arg$Cons$0$;
-        scrut2 = sphere.sphereintersect(pos, dir, x);
+        scrut2 = sphere.sphereintersect(pos, dir, arg$Cons$0$);
         if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
           element0$1 = runtime.Tuple.get(scrut2, 0);
           element1$1 = runtime.Tuple.get(scrut2, 1);
-          where_hit = element1$1;
           is_hit = element0$1;
           if (is_hit === true) {
             tmp3 = globalThis.Object.freeze([
-              where_hit,
-              x
+              element1$1,
+              arg$Cons$0$
             ]);
-            tmp4 = sphmap(xs);
+            tmp4 = sphmap(arg$Cons$1$);
             return NofibPrelude.Cons(tmp3, tmp4)
           }
-          return sphmap(xs);
+          return sphmap(arg$Cons$1$);
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -1050,18 +971,16 @@ let sphere1;
     if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
       element0$ = runtime.Tuple.get(scrut1, 0);
       element1$ = runtime.Tuple.get(scrut1, 1);
-      sp = element1$;
-      mindist = element0$;
       return globalThis.Object.freeze([
         true,
-        mindist,
-        sp
+        element0$,
+        element1$
       ])
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static refractray(newindex, olddir, innorm) {
-    let dotp, matchIdent_17, scrut, nr, norm, k, disc, t, scrut1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, element2$, element1$, element0$, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
+    let dotp, matchIdent_17, scrut, disc, t, scrut1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, element2$, element1$, element0$, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
     tmp = sphere.vecdot(olddir, innorm);
     dotp = - tmp;
     scrut = dotp < 0.0;
@@ -1084,18 +1003,15 @@ let sphere1;
     }
     matchIdent_17 = tmp5;
     if (runtime.Tuple.isArrayLike(matchIdent_17) && matchIdent_17.length === 3) {
-      element0$ = runtime.Tuple.get(matchIdent_17, 0);
-      element1$ = runtime.Tuple.get(matchIdent_17, 1);
-      element2$ = runtime.Tuple.get(matchIdent_17, 2);
-      nr = element2$;
-      k = element1$;
-      norm = element0$;
-      tmp6 = nr * nr;
-      tmp7 = k * k;
+      element0$ = runtime.Tuple.get(tmp5, 0);
+      element1$ = runtime.Tuple.get(tmp5, 1);
+      element2$ = runtime.Tuple.get(tmp5, 2);
+      tmp6 = element2$ * element2$;
+      tmp7 = element1$ * element1$;
       tmp8 = 1.0 - tmp7;
       tmp9 = tmp6 * tmp8;
       disc = 1.0 - tmp9;
-      tmp10 = nr * k;
+      tmp10 = element2$ * element1$;
       tmp11 = NofibPrelude.sqrt(disc);
       t = tmp10 - tmp11;
       scrut1 = disc < 0.0;
@@ -1110,8 +1026,8 @@ let sphere1;
           tmp12
         ])
       }
-      tmp13 = sphere.vecscale(norm, t);
-      tmp14 = sphere.vecscale(olddir, nr);
+      tmp13 = sphere.vecscale(element0$, t);
+      tmp14 = sphere.vecscale(olddir, element2$);
       tmp15 = sphere.vecadd(tmp13, tmp14);
       return globalThis.Object.freeze([
         false,
@@ -1121,11 +1037,10 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lightdirection(l, pt) {
-    let dir, pos, arg$Point$0$, arg$Directional$0$, tmp, tmp1, tmp2;
+    let arg$Point$0$, arg$Directional$0$, tmp, tmp1, tmp2;
     if (l instanceof sphere.Directional.class) {
       arg$Directional$0$ = l.x;
-      dir = arg$Directional$0$;
-      tmp = sphere.vecnorm(dir);
+      tmp = sphere.vecnorm(arg$Directional$0$);
       tmp1 = NofibPrelude.fst(tmp);
       return globalThis.Object.freeze([
         tmp1,
@@ -1133,14 +1048,13 @@ let sphere1;
       ])
     } else if (l instanceof sphere.Point.class) {
       arg$Point$0$ = l.x;
-      pos = arg$Point$0$;
-      tmp2 = sphere.vecsub(pos, pt);
+      tmp2 = sphere.vecsub(arg$Point$0$, pt);
       return sphere.vecnorm(tmp2)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static shadowed(pos, dir, lcolour) {
-    let scrut, is_hit, scrut1, element0$, tmp, tmp1;
+    let scrut, scrut1, element0$, tmp, tmp1;
     tmp = sphere.vecscale(dir, sphere.epsilon);
     tmp1 = sphere.vecadd(pos, tmp);
     scrut = sphere.trace(sphere.testspheres, tmp1, dir);
@@ -1148,8 +1062,7 @@ let sphere1;
       element0$ = runtime.Tuple.get(scrut, 0);
       runtime.Tuple.get(scrut, 1);
       runtime.Tuple.get(scrut, 2);
-      is_hit = element0$;
-      scrut1 = ! is_hit;
+      scrut1 = ! element0$;
       if (scrut1 === true) {
         return globalThis.Object.freeze([
           false,
@@ -1164,19 +1077,17 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lightray(l, pos, norm, refl, surf) {
-    let scrut, ldir, cosangle, scrut1, lcolour, is_inshadow, diff, spow, scrut2, bodycol, cosalpha, diffcont, speccont, scrut3, spec, cosalpha1, diffcont1, speccont1, scrut4, element0$, element1$, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
+    let scrut, cosangle, scrut1, is_inshadow, diff, spow, scrut2, bodycol, cosalpha, diffcont, scrut3, spec, cosalpha1, diffcont1, scrut4, element0$, element1$, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
     scrut = sphere.lightdirection(l, pos);
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       runtime.Tuple.get(scrut, 1);
-      ldir = element0$;
-      cosangle = sphere.vecdot(ldir, norm);
+      cosangle = sphere.vecdot(element0$, norm);
       tmp = sphere.lightcolour(l);
-      scrut1 = sphere.shadowed(pos, ldir, tmp);
+      scrut1 = sphere.shadowed(pos, element0$, tmp);
       if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
         element0$1 = runtime.Tuple.get(scrut1, 0);
         element1$ = runtime.Tuple.get(scrut1, 1);
-        lcolour = element1$;
         is_inshadow = element0$1;
         if (is_inshadow === true) {
           return globalThis.Object.freeze([
@@ -1190,11 +1101,11 @@ let sphere1;
         scrut2 = cosangle <= 0.0;
         if (scrut2 === true) {
           bodycol = sphere.bodysurf(surf);
-          tmp1 = sphere.vecdot(refl, ldir);
+          tmp1 = sphere.vecdot(refl, element0$);
           cosalpha = - tmp1;
           tmp2 = - cosangle;
           tmp3 = sphere.vecscale(diff, tmp2);
-          diffcont = sphere.vecmult(tmp3, lcolour);
+          diffcont = sphere.vecmult(tmp3, element1$);
           scrut3 = cosalpha <= 0.0;
           if (scrut3 === true) {
             tmp4 = globalThis.Object.freeze([
@@ -1202,18 +1113,17 @@ let sphere1;
               0.0,
               0.0
             ]);
-          } else {
-            tmp5 = NofibPrelude.power(cosalpha, spow);
-            tmp6 = sphere.vecscale(bodycol, tmp5);
-            tmp4 = sphere.vecmult(tmp6, lcolour);
+            return sphere.vecadd(diffcont, tmp4)
           }
-          speccont = tmp4;
-          return sphere.vecadd(diffcont, speccont)
+          tmp5 = NofibPrelude.power(cosalpha, spow);
+          tmp6 = sphere.vecscale(bodycol, tmp5);
+          tmp4 = sphere.vecmult(tmp6, element1$);
+          return sphere.vecadd(diffcont, tmp4);
         }
         spec = sphere.specularsurf(surf);
-        cosalpha1 = sphere.vecdot(refl, ldir);
+        cosalpha1 = sphere.vecdot(refl, element0$);
         tmp7 = sphere.vecscale(diff, cosangle);
-        diffcont1 = sphere.vecmult(tmp7, lcolour);
+        diffcont1 = sphere.vecmult(tmp7, element1$);
         scrut4 = cosalpha1 < 0.0;
         if (scrut4 === true) {
           tmp8 = globalThis.Object.freeze([
@@ -1221,20 +1131,19 @@ let sphere1;
             0.0,
             0.0
           ]);
-        } else {
-          tmp9 = NofibPrelude.power(cosalpha1, spow);
-          tmp10 = sphere.vecscale(spec, tmp9);
-          tmp8 = sphere.vecmult(tmp10, lcolour);
+          return sphere.vecadd(diffcont1, tmp8)
         }
-        speccont1 = tmp8;
-        return sphere.vecadd(diffcont1, speccont1);
+        tmp9 = NofibPrelude.power(cosalpha1, spow);
+        tmp10 = sphere.vecscale(spec, tmp9);
+        tmp8 = sphere.vecmult(tmp10, element1$);
+        return sphere.vecadd(diffcont1, tmp8);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static shade(lights, sp, lookpos, dir, dist, contrib) {
-    let hitpos, ambientlight, surf, amb, norm, refl, diff, transmitted, simple, trintensity, matchIdent_1, scrut, is_tir, trcol, reflsurf, reflectiv, rcol, scrut1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, lambda, tmp6, tmp7, tmp8, tmp9, element1$, element0$, tmp10, tmp11, tmp12, tmp13;
+    let hitpos, ambientlight, surf, amb, norm, refl, diff, transmitted, simple, trintensity, matchIdent_1, scrut, is_tir, reflsurf, scrut1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, lambda, tmp6, tmp7, tmp8, tmp9, element1$, element0$, tmp10, tmp11, tmp12, tmp13;
     tmp = sphere.vecscale(dir, dist);
     hitpos = sphere.vecadd(lookpos, tmp);
     ambientlight = globalThis.Object.freeze([
@@ -1272,9 +1181,8 @@ let sphere1;
     }
     matchIdent_1 = tmp8;
     if (runtime.Tuple.isArrayLike(matchIdent_1) && matchIdent_1.length === 2) {
-      element0$ = runtime.Tuple.get(matchIdent_1, 0);
-      element1$ = runtime.Tuple.get(matchIdent_1, 1);
-      trcol = element1$;
+      element0$ = runtime.Tuple.get(tmp8, 0);
+      element1$ = runtime.Tuple.get(tmp8, 1);
       is_tir = element0$;
       tmp10 = sphere.specularsurf(surf);
       tmp11 = sphere.reflectsurf(surf);
@@ -1284,42 +1192,36 @@ let sphere1;
       } else {
         tmp12 = reflsurf;
       }
-      reflectiv = tmp12;
-      scrut1 = sphere.is_zerovector(reflectiv);
+      scrut1 = sphere.is_zerovector(tmp12);
       if (scrut1 === true) {
-        tmp13 = trcol;
-      } else {
-        tmp13 = sphere.reflectray(hitpos, refl, lights, reflectiv, contrib, trcol);
+        tmp13 = element1$;
+        return element1$
       }
-      rcol = tmp13;
-      return rcol
+      tmp13 = sphere.reflectray(hitpos, refl, lights, tmp12, contrib, element1$);
+      return tmp13;
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static transmitray(lights, colour, pos, dir, index, intens, contrib, norm) {
-    let newcontrib, scrut, newdir, nearpos, scrut1, is_hit, dist, sp, newcol, scrut2, element1$, tmp, element2$, element1$1, element0$, tmp1, tmp2, tmp3;
+    let newcontrib, scrut, nearpos, scrut1, is_hit, scrut2, element1$, tmp, element2$, element1$1, element0$, tmp1, tmp2, tmp3;
     newcontrib = sphere.vecmult(intens, contrib);
     scrut = sphere.refractray(index, dir, norm);
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      newdir = element1$;
-      tmp = sphere.vecscale(newdir, sphere.epsilon);
+      tmp = sphere.vecscale(element1$, sphere.epsilon);
       nearpos = sphere.vecadd(pos, tmp);
-      scrut1 = sphere.trace(sphere.testspheres, nearpos, newdir);
+      scrut1 = sphere.trace(sphere.testspheres, nearpos, element1$);
       if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 3) {
         element0$ = runtime.Tuple.get(scrut1, 0);
         element1$1 = runtime.Tuple.get(scrut1, 1);
         element2$ = runtime.Tuple.get(scrut1, 2);
-        sp = element2$;
-        dist = element1$1;
         is_hit = element0$;
         if (is_hit === true) {
-          tmp1 = sphere.shade(lights, sp, nearpos, newdir, dist, newcontrib);
+          tmp1 = sphere.shade(lights, element2$, nearpos, element1$, element1$1, newcontrib);
         } else {
           tmp1 = sphere.background;
         }
-        newcol = tmp1;
         scrut2 = sphere.is_zerovector(newcontrib);
         if (scrut2 === true) {
           return globalThis.Object.freeze([
@@ -1327,7 +1229,7 @@ let sphere1;
             colour
           ])
         }
-        tmp2 = sphere.vecmult(newcol, intens);
+        tmp2 = sphere.vecmult(tmp1, intens);
         tmp3 = sphere.vecadd(tmp2, colour);
         return globalThis.Object.freeze([
           false,
@@ -1339,7 +1241,7 @@ let sphere1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static reflectray(pos, newdir, lights, intens, contrib, colour) {
-    let newcontrib, nearpos, scrut, is_hit, dist, sp, newcol, scrut1, tmp, element2$, element1$, element0$, tmp1, tmp2;
+    let newcontrib, nearpos, scrut, is_hit, scrut1, tmp, element2$, element1$, element0$, tmp1, tmp2;
     newcontrib = sphere.vecmult(intens, contrib);
     tmp = sphere.vecscale(newdir, sphere.epsilon);
     nearpos = sphere.vecadd(pos, tmp);
@@ -1348,26 +1250,23 @@ let sphere1;
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
       element2$ = runtime.Tuple.get(scrut, 2);
-      sp = element2$;
-      dist = element1$;
       is_hit = element0$;
       if (is_hit === true) {
-        tmp1 = sphere.shade(lights, sp, nearpos, newdir, dist, newcontrib);
+        tmp1 = sphere.shade(lights, element2$, nearpos, newdir, element1$, newcontrib);
       } else {
         tmp1 = sphere.background;
       }
-      newcol = tmp1;
       scrut1 = sphere.is_zerovector(newcontrib);
       if (scrut1 === true) {
         return colour
       }
-      tmp2 = sphere.vecmult(newcol, intens);
+      tmp2 = sphere.vecmult(tmp1, intens);
       return sphere.vecadd(colour, tmp2);
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static tracepixel(spheres, lights, x, y, firstray, scrnx, scrny) {
-    let pos, scrut, dir, hit, dist, sp, scrut1, element0$, element2$, element1$, element0$1, tmp, tmp1, tmp2, tmp3, tmp4;
+    let pos, scrut, hit, scrut1, element0$, element2$, element1$, element0$1, tmp, tmp1, tmp2, tmp3, tmp4;
     pos = sphere.lookfrom;
     tmp = sphere.vecscale(scrnx, x);
     tmp1 = sphere.vecadd(firstray, tmp);
@@ -1377,14 +1276,11 @@ let sphere1;
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       runtime.Tuple.get(scrut, 1);
-      dir = element0$;
-      scrut1 = sphere.trace(spheres, pos, dir);
+      scrut1 = sphere.trace(spheres, pos, element0$);
       if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 3) {
         element0$1 = runtime.Tuple.get(scrut1, 0);
         element1$ = runtime.Tuple.get(scrut1, 1);
         element2$ = runtime.Tuple.get(scrut1, 2);
-        sp = element2$;
-        dist = element1$;
         hit = element0$1;
         if (hit === true) {
           tmp4 = globalThis.Object.freeze([
@@ -1392,7 +1288,7 @@ let sphere1;
             1.0,
             1.0
           ]);
-          return sphere.shade(lights, sp, pos, dir, dist, tmp4)
+          return sphere.shade(lights, element2$, pos, element0$, element1$, tmp4)
         }
         return sphere.background;
       }
@@ -1412,20 +1308,17 @@ let sphere1;
       return sphere.z_of_int(tmp2)
     };
     lambda = (undefined, function (rgb, acc) {
-      let b, g, r, element2$, element1$, element0$, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+      let element2$, element1$, element0$, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
       if (runtime.Tuple.isArrayLike(rgb) && rgb.length === 3) {
         element0$ = runtime.Tuple.get(rgb, 0);
         element1$ = runtime.Tuple.get(rgb, 1);
         element2$ = runtime.Tuple.get(rgb, 2);
-        b = element2$;
-        g = element1$;
-        r = element0$;
-        tmp1 = u8(r);
-        tmp2 = u8(g);
+        tmp1 = u8(element0$);
+        tmp2 = u8(element1$);
         tmp3 = sphere.z_of_int(7);
         tmp4 = tmp2 * tmp3;
         tmp5 = tmp1 + tmp4;
-        tmp6 = u8(b);
+        tmp6 = u8(element2$);
         tmp7 = sphere.z_of_int(23);
         tmp8 = tmp6 * tmp7;
         tmp9 = tmp5 + tmp8;
@@ -1459,29 +1352,25 @@ let sphere1;
           t1 = arg$Cons$1$;
           i = arg$Cons$0$;
           lscomp2 = function lscomp2(ls2) {
-            let j, t2, arg$Cons$0$1, arg$Cons$1$1, tmp4, tmp5, tmp6, tmp7;
+            let arg$Cons$0$1, arg$Cons$1$1, tmp4, tmp5, tmp6;
             if (ls2 instanceof NofibPrelude.Nil.class) {
               return lscomp1(t1)
             } else if (ls2 instanceof NofibPrelude.Cons.class) {
-              let i1, j1, inlinedVal;
+              let i1, inlinedVal;
               arg$Cons$0$1 = ls2.head;
               arg$Cons$1$1 = ls2.tail;
-              t2 = arg$Cons$1$1;
-              j = arg$Cons$0$1;
               tmp4 = globalThis.Object.freeze([
                 i,
-                j
+                arg$Cons$0$1
               ]);
               i1 = i;
-              j1 = j;
-              inlinedVal = sphere.tracepixel(sphere.testspheres, lights, i1, j1, firstray, scrnx, scrny);
-              tmp5 = inlinedVal;
-              tmp6 = globalThis.Object.freeze([
+              inlinedVal = sphere.tracepixel(sphere.testspheres, lights, i1, arg$Cons$0$1, firstray, scrnx, scrny);
+              tmp5 = globalThis.Object.freeze([
                 tmp4,
-                tmp5
+                inlinedVal
               ]);
-              tmp7 = lscomp2(t2);
-              return NofibPrelude.Cons(tmp6, tmp7)
+              tmp6 = lscomp2(arg$Cons$1$1);
+              return NofibPrelude.Cons(tmp5, tmp6)
             }
             throw globalThis.Object.freeze(new globalThis.Error("match error"));
           };

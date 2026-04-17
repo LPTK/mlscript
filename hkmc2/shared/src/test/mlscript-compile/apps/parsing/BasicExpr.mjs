@@ -114,7 +114,7 @@ let BasicExpr1;
         tmp4 = false;
       }
       tmp5 = StrOps.parenthesizedIf(tmp3, tmp4);
-      tmp6 = BasicExpr.prettyPrint(right);
+      tmp6 = BasicExpr.prettyPrint(arg$Mul$1$);
       if (right instanceof BasicExpr.Add.class) {
         tmp7 = true;
       } else {

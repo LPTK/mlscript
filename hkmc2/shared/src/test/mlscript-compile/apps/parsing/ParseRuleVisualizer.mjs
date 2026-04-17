@@ -65,12 +65,11 @@ let ParseRuleVisualizer1;
         optional = false;
         nodes = [];
         lbl: while (true) {
-          let tail, scrut1, arg$Cons$0$, arg$Cons$1$, arg$Some$0$;
+          let scrut1, arg$Cons$0$, arg$Cons$1$, arg$Some$0$;
           if (rest instanceof Stack.Cons.class) {
-            let choice1, inlinedVal, optional1, scrut2, latterPart, rest1, kind, scrut3, arg$Ref$0$, arg$Ref$4$, arg$Siding$0$, arg$Siding$1$, arg$Siding$2$, arg$Keyword$0$, arg$Keyword$1$, tmp6, tmp7, tmp8, arg$Some$0$1, tmp9, tmp10, tmp11, tmp12, rcd, tmp13, tmp14, tmp15;
+            let choice1, inlinedVal, optional1, scrut2, latterPart, scrut3, arg$Ref$0$, arg$Ref$4$, arg$Siding$0$, arg$Siding$1$, arg$Siding$2$, arg$Keyword$0$, arg$Keyword$1$, tmp6, tmp7, tmp8, arg$Some$0$1, tmp9, tmp10, tmp11, tmp12, rcd, tmp13, tmp14, tmp15;
             arg$Cons$0$ = rest.head;
             arg$Cons$1$ = rest.tail;
-            tail = arg$Cons$1$;
             choice1 = arg$Cons$0$;
             if (choice1 instanceof ParseRule.Choice.End.class) {
               runtime.safeCall(ParseRuleVisualizer.tracer.print("found Choice.End"));
@@ -109,20 +108,18 @@ let ParseRuleVisualizer1;
             } else if (choice1 instanceof ParseRule.Choice.Ref.class) {
               arg$Ref$0$ = arg$Cons$0$.kind;
               arg$Ref$4$ = arg$Cons$0$.rest;
-              rest1 = arg$Ref$4$;
-              kind = arg$Ref$0$;
               tmp11 = "found Choice.Ref to " + arg$Ref$0$;
               runtime.safeCall(ParseRuleVisualizer.tracer.print(tmp11));
               scrut3 = runtime.safeCall(ParseRuleVisualizer.#renderedKinds.has(arg$Ref$0$));
               if (scrut3 === false) {
                 runtime.safeCall(referencedKinds.add(arg$Ref$0$));
               }
-              tmp12 = "#" + kind;
+              tmp12 = "#" + arg$Ref$0$;
               rcd = globalThis.Object.freeze({
                 href: tmp12
               });
-              tmp13 = rr.NonTerminal(kind, rcd);
-              tmp14 = renderRule(rest1);
+              tmp13 = rr.NonTerminal(arg$Ref$0$, rcd);
+              tmp14 = renderRule(arg$Ref$4$);
               tmp15 = sequence(tmp13, tmp14);
               inlinedVal = Option.Some(tmp15);
             } else {
@@ -135,7 +132,7 @@ let ParseRuleVisualizer1;
             } else if (scrut1 instanceof Option.None.class) {
               optional = true;
             }
-            rest = tail;
+            rest = arg$Cons$1$;
             continue lbl
           }
           break;

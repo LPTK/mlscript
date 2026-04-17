@@ -147,58 +147,49 @@ let cichelli1;
     return NofibPrelude.lazy(lambda)
   } 
   static last(ls) {
-    let go, t, h, arg$Cons$0$, arg$Cons$1$;
-    go = function go(h1, t1) {
-      let t2, head, arg$Cons$0$1, arg$Cons$1$1;
-      if (t1 instanceof NofibPrelude.Nil.class) {
-        return h1
-      } else if (t1 instanceof NofibPrelude.Cons.class) {
-        arg$Cons$0$1 = t1.head;
-        arg$Cons$1$1 = t1.tail;
-        t2 = arg$Cons$1$1;
-        head = arg$Cons$0$1;
-        return go(head, t2)
+    let go, arg$Cons$0$, arg$Cons$1$;
+    go = function go(h, t) {
+      let arg$Cons$0$1, arg$Cons$1$1;
+      if (t instanceof NofibPrelude.Nil.class) {
+        return h
+      } else if (t instanceof NofibPrelude.Cons.class) {
+        arg$Cons$0$1 = t.head;
+        arg$Cons$1$1 = t.tail;
+        return go(arg$Cons$0$1, arg$Cons$1$1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
-      t = arg$Cons$1$;
-      h = arg$Cons$0$;
-      return go(h, t)
+      return go(arg$Cons$0$, arg$Cons$1$)
     }
     throw runtime.safeCall(globalThis.Error("last: empty list"));
   } 
   static ends(k) {
-    let a, z, arg$K$1$, arg$K$2$, tmp;
+    let arg$K$1$, arg$K$2$, tmp;
     if (k instanceof cichelli.K.class) {
       arg$K$1$ = k.c1;
       arg$K$2$ = k.c2;
-      z = arg$K$2$;
-      a = arg$K$1$;
-      tmp = NofibPrelude.Cons(z, NofibPrelude.Nil);
-      return NofibPrelude.Cons(a, tmp)
+      tmp = NofibPrelude.Cons(arg$K$2$, NofibPrelude.Nil);
+      return NofibPrelude.Cons(arg$K$1$, tmp)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static assoc(x, yz) {
     loopLabel: while (true) {
-      let y, yzs, z, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
+      let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
       if (yz instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = yz.head;
         arg$Cons$1$ = yz.tail;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-          yzs = arg$Cons$1$;
-          z = element1$;
-          y = element0$;
-          scrut = x === y;
+          scrut = x === element0$;
           if (scrut === true) {
-            return z
+            return element1$
           }
-          yz = yzs;
+          yz = arg$Cons$1$;
           continue loopLabel;
         }
         throw runtime.safeCall(globalThis.Error("assoc: not found"));
@@ -208,21 +199,18 @@ let cichelli1;
   } 
   static assocm(x, yz) {
     loopLabel: while (true) {
-      let y, yzs, z, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
+      let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
       if (yz instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = yz.head;
         arg$Cons$1$ = yz.tail;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-          yzs = arg$Cons$1$;
-          z = element1$;
-          y = element0$;
-          scrut = x === y;
+          scrut = x === element0$;
           if (scrut === true) {
-            return NofibPrelude.Some(z)
+            return NofibPrelude.Some(element1$)
           }
-          yz = yzs;
+          yz = arg$Cons$1$;
           continue loopLabel;
         }
         return NofibPrelude.None;
@@ -231,30 +219,27 @@ let cichelli1;
     }
   } 
   static histins(x, yns) {
-    let n, y, yns1, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4;
+    let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4;
     if (yns instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = yns.head;
       arg$Cons$1$ = yns.tail;
       if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
         element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
         element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-        yns1 = arg$Cons$1$;
-        n = element1$;
-        y = element0$;
-        scrut = x === y;
+        scrut = x === element0$;
         if (scrut === true) {
-          tmp = n + 1;
+          tmp = element1$ + 1;
           tmp1 = globalThis.Object.freeze([
-            y,
+            element0$,
             tmp
           ]);
-          return NofibPrelude.Cons(tmp1, yns1)
+          return NofibPrelude.Cons(tmp1, arg$Cons$1$)
         }
         tmp2 = globalThis.Object.freeze([
-          y,
-          n
+          element0$,
+          element1$
         ]);
-        tmp3 = cichelli.histins(x, yns1);
+        tmp3 = cichelli.histins(x, arg$Cons$1$);
         return NofibPrelude.Cons(tmp2, tmp3);
       }
     }
@@ -277,21 +262,19 @@ let cichelli1;
   static union(xs, ys) {
     let lscomp, tmp;
     lscomp = function lscomp(ls) {
-      let t, h, scrut, arg$Cons$0$, arg$Cons$1$, tmp1, tmp2;
+      let scrut, arg$Cons$0$, arg$Cons$1$, tmp1, tmp2;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
-        h = arg$Cons$0$;
-        tmp1 = NofibPrelude.inList(h, xs);
+        tmp1 = NofibPrelude.inList(arg$Cons$0$, xs);
         scrut = ! tmp1;
         if (scrut === true) {
-          tmp2 = lscomp(t);
-          return NofibPrelude.Cons(h, tmp2)
+          tmp2 = lscomp(arg$Cons$1$);
+          return NofibPrelude.Cons(arg$Cons$0$, tmp2)
         }
-        return lscomp(t);
+        return lscomp(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -310,61 +293,54 @@ let cichelli1;
     return NofibPrelude.map(lambda, ks)
   } 
   static minm(x, y) {
-    let x1, arg$Some$0$;
+    let arg$Some$0$;
     if (x instanceof NofibPrelude.None.class) {
       return y
     } else if (x instanceof NofibPrelude.Some.class) {
       arg$Some$0$ = x.x;
-      x1 = arg$Some$0$;
-      return NofibPrelude.min(x1, y)
+      return NofibPrelude.min(arg$Some$0$, y)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static maxm(x, y) {
-    let x1, arg$Some$0$;
+    let arg$Some$0$;
     if (x instanceof NofibPrelude.None.class) {
       return y
     } else if (x instanceof NofibPrelude.Some.class) {
       arg$Some$0$ = x.x;
-      x1 = arg$Some$0$;
-      return NofibPrelude.max(x1, y)
+      return NofibPrelude.max(arg$Some$0$, y)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static hash(cvs, k) {
-    let n, a, z, arg$K$1$, arg$K$2$, arg$K$3$, tmp, tmp1, tmp2;
+    let arg$K$1$, arg$K$2$, arg$K$3$, tmp, tmp1, tmp2;
     if (k instanceof cichelli.K.class) {
       arg$K$1$ = k.c1;
       arg$K$2$ = k.c2;
       arg$K$3$ = k.i;
-      n = arg$K$3$;
-      z = arg$K$2$;
-      a = arg$K$1$;
-      tmp = cichelli.assoc(a, cvs);
-      tmp1 = n + tmp;
-      tmp2 = cichelli.assoc(z, cvs);
+      tmp = cichelli.assoc(arg$K$1$, cvs);
+      tmp1 = arg$K$3$ + tmp;
+      tmp2 = cichelli.assoc(arg$K$2$, cvs);
       return tmp1 + tmp2
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static select(p, x, ts_fs) {
-    let ts, fs, scrut, element1$, element0$, tmp, tmp1;
+    let scrut, element1$, element0$, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(ts_fs) && ts_fs.length === 2) {
       element0$ = runtime.Tuple.get(ts_fs, 0);
       element1$ = runtime.Tuple.get(ts_fs, 1);
-      fs = element1$;
-      ts = element0$;
       scrut = runtime.safeCall(p(x));
       if (scrut === true) {
-        tmp = NofibPrelude.Cons(x, ts);
+        tmp = NofibPrelude.Cons(x, element0$);
         return globalThis.Object.freeze([
           tmp,
-          fs
+          element1$
         ])
       }
-      tmp1 = NofibPrelude.Cons(x, fs);
+      tmp1 = NofibPrelude.Cons(x, element1$);
       return globalThis.Object.freeze([
-        ts,
+        element0$,
         tmp1
       ]);
     }
@@ -385,30 +361,26 @@ let cichelli1;
     return x
   } 
   static blocked_(ds, ls) {
-    let k, ks, ds_, scrut, det, rest, arg$Cons$0$, arg$Cons$1$, tmp, element1$, element0$, lambda, tmp1, tmp2;
+    let ds_, scrut, arg$Cons$0$, arg$Cons$1$, tmp, element1$, element0$, lambda, tmp1, tmp2;
     if (ls instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
-      ks = arg$Cons$1$;
-      k = arg$Cons$0$;
-      tmp = cichelli.ends(k);
+      tmp = cichelli.ends(arg$Cons$0$);
       ds_ = cichelli.union(ds, tmp);
       lambda = (undefined, function (x) {
         let tmp3;
         tmp3 = cichelli.ends(x);
         return cichelli.subset(tmp3, ds_)
       });
-      scrut = cichelli.partition_(lambda, ks);
+      scrut = cichelli.partition_(lambda, arg$Cons$1$);
       if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
         element0$ = runtime.Tuple.get(scrut, 0);
         element1$ = runtime.Tuple.get(scrut, 1);
-        rest = element1$;
-        det = element0$;
-        tmp1 = cichelli.blocked_(ds_, rest);
-        tmp2 = NofibPrelude.append(det, tmp1);
-        return NofibPrelude.Cons(k, tmp2)
+        tmp1 = cichelli.blocked_(ds_, element1$);
+        tmp2 = NofibPrelude.append(element0$, tmp1);
+        return NofibPrelude.Cons(arg$Cons$0$, tmp2)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
@@ -418,17 +390,14 @@ let cichelli1;
     return cichelli.blocked_(NofibPrelude.Nil, ls)
   } 
   static hinsert(h, hh) {
-    let lo, hs, hi, lo_, hi_, scrut, arg$H$0$, arg$H$1$, arg$H$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let lo_, hi_, scrut, arg$H$0$, arg$H$1$, arg$H$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     if (hh instanceof cichelli.H.class) {
       arg$H$0$ = hh.f;
       arg$H$1$ = hh.s;
       arg$H$2$ = hh.ls;
-      hs = arg$H$2$;
-      hi = arg$H$1$;
-      lo = arg$H$0$;
-      lo_ = cichelli.minm(lo, h);
-      hi_ = cichelli.maxm(hi, h);
-      tmp = NofibPrelude.inList(h, hs);
+      lo_ = cichelli.minm(arg$H$0$, h);
+      hi_ = cichelli.maxm(arg$H$1$, h);
+      tmp = NofibPrelude.inList(h, arg$H$2$);
       if (tmp === false) {
         tmp2 = 1 + hi_;
         tmp3 = tmp2 - lo_;
@@ -442,7 +411,7 @@ let cichelli1;
       }
       tmp4 = NofibPrelude.Some(lo_);
       tmp5 = NofibPrelude.Some(hi_);
-      tmp6 = NofibPrelude.Cons(h, hs);
+      tmp6 = NofibPrelude.Cons(h, arg$H$2$);
       tmp7 = cichelli.H(tmp4, tmp5, tmp6);
       return NofibPrelude.Some(tmp7);
     }
@@ -450,28 +419,24 @@ let cichelli1;
   } 
   static first(k, ls) {
     loopLabel: while (true) {
-      let scrut, a, l, leaves, y, leaves1, arg$LzCons$0$, arg$LzCons$1$, arg$NotEver$0$, arg$YesIts$0$, arg$YesIts$1$, tmp, tmp1;
+      let scrut, a, arg$LzCons$0$, arg$LzCons$1$, arg$NotEver$0$, arg$YesIts$0$, arg$YesIts$1$, tmp, tmp1;
       scrut = NofibPrelude.force(ls);
       if (scrut instanceof NofibPrelude.LzNil.class) {
         return cichelli.NotEver(k)
       } else if (scrut instanceof NofibPrelude.LzCons.class) {
         arg$LzCons$0$ = scrut.head;
         arg$LzCons$1$ = scrut.tail;
-        l = arg$LzCons$1$;
         a = arg$LzCons$0$;
         if (a instanceof cichelli.YesIts.class) {
-          arg$YesIts$0$ = a.i;
-          arg$YesIts$1$ = a.t;
-          y = arg$YesIts$1$;
-          leaves = arg$YesIts$0$;
-          tmp = k + leaves;
-          return cichelli.YesIts(tmp, y)
+          arg$YesIts$0$ = arg$LzCons$0$.i;
+          arg$YesIts$1$ = arg$LzCons$0$.t;
+          tmp = k + arg$YesIts$0$;
+          return cichelli.YesIts(tmp, arg$YesIts$1$)
         } else if (a instanceof cichelli.NotEver.class) {
-          arg$NotEver$0$ = a.i;
-          leaves1 = arg$NotEver$0$;
-          tmp1 = k + leaves1;
+          arg$NotEver$0$ = arg$LzCons$0$.i;
+          tmp1 = k + arg$NotEver$0$;
           k = tmp1;
-          ls = l;
+          ls = arg$LzCons$1$;
           continue loopLabel
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -502,7 +467,7 @@ let cichelli1;
         a = arg$K$1$;
         s = arg$K$0$;
         tryy = function tryy(newAssocs) {
-          let newCharAssocs, scrut2, newKeyHashSet, arg$Some$0$, tmp7, tmp8;
+          let newCharAssocs, scrut2, arg$Some$0$, tmp7, tmp8;
           newCharAssocs = NofibPrelude.append(newAssocs, charAssocs);
           tmp7 = cichelli.K(s, a, z, n);
           tmp8 = cichelli.hash(newCharAssocs, tmp7);
@@ -511,8 +476,7 @@ let cichelli1;
             return cichelli.NotEver(1)
           } else if (scrut2 instanceof NofibPrelude.Some.class) {
             arg$Some$0$ = scrut2.x;
-            newKeyHashSet = arg$Some$0$;
-            return cichelli.findhash_(newKeyHashSet, newCharAssocs, ks1)
+            return cichelli.findhash_(arg$Some$0$, newCharAssocs, ks1)
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         };
@@ -585,19 +549,17 @@ let cichelli1;
                 return NofibPrelude.lazy(lambda4)
               };
               lambda1 = (undefined, function (caseScrut) {
-                let n1, m, element1$1, element0$1, tmp7, tmp8, tmp9, tmp10;
+                let element1$1, element0$1, tmp7, tmp8, tmp9, tmp10;
                 if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
                   element0$1 = runtime.Tuple.get(caseScrut, 0);
                   element1$1 = runtime.Tuple.get(caseScrut, 1);
-                  n1 = element1$1;
-                  m = element0$1;
                   tmp7 = globalThis.Object.freeze([
                     a,
-                    m
+                    element0$1
                   ]);
                   tmp8 = globalThis.Object.freeze([
                     z,
-                    n1
+                    element1$1
                   ]);
                   tmp9 = NofibPrelude.Cons(tmp8, NofibPrelude.Nil);
                   tmp10 = NofibPrelude.Cons(tmp7, tmp9);
@@ -657,22 +619,18 @@ let cichelli1;
     return cichelli.assoc(c, cichelli.freqtab)
   } 
   static morefreq(k1, k2) {
-    let x, a, y, b, arg$K$1$, arg$K$2$, arg$K$1$1, arg$K$2$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+    let arg$K$1$, arg$K$2$, arg$K$1$1, arg$K$2$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
     if (k1 instanceof cichelli.K.class) {
       arg$K$1$ = k1.c1;
       arg$K$2$ = k1.c2;
-      x = arg$K$2$;
-      a = arg$K$1$;
       if (k2 instanceof cichelli.K.class) {
         arg$K$1$1 = k2.c1;
         arg$K$2$1 = k2.c2;
-        y = arg$K$2$1;
-        b = arg$K$1$1;
-        tmp = cichelli.freq(a);
-        tmp1 = cichelli.freq(x);
+        tmp = cichelli.freq(arg$K$1$);
+        tmp1 = cichelli.freq(arg$K$2$);
         tmp2 = tmp + tmp1;
-        tmp3 = cichelli.freq(b);
-        tmp4 = cichelli.freq(y);
+        tmp3 = cichelli.freq(arg$K$1$1);
+        tmp4 = cichelli.freq(arg$K$2$1);
         tmp5 = tmp3 + tmp4;
         return tmp2 > tmp5
       }

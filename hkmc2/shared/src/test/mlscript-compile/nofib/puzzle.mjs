@@ -206,38 +206,30 @@ let puzzle1;
     return false;
   } 
   static stateEq(s1, s2) {
-    let a, b, c, d, e, f, g, h, arg$State$0$, arg$State$1$, arg$State$2$, arg$State$3$, arg$State$0$1, arg$State$1$1, arg$State$2$1, arg$State$3$1, tmp, tmp1, tmp2;
+    let arg$State$0$, arg$State$1$, arg$State$2$, arg$State$3$, arg$State$0$1, arg$State$1$1, arg$State$2$1, arg$State$3$1, tmp, tmp1, tmp2;
     if (s1 instanceof puzzle.State.class) {
       arg$State$0$ = s1.b;
       arg$State$1$ = s1.e;
       arg$State$2$ = s1.l;
       arg$State$3$ = s1.a;
-      d = arg$State$3$;
-      c = arg$State$2$;
-      b = arg$State$1$;
-      a = arg$State$0$;
       if (s2 instanceof puzzle.State.class) {
         arg$State$0$1 = s2.b;
         arg$State$1$1 = s2.e;
         arg$State$2$1 = s2.l;
         arg$State$3$1 = s2.a;
-        h = arg$State$3$1;
-        g = arg$State$2$1;
-        f = arg$State$1$1;
-        e = arg$State$0$1;
-        tmp = puzzle.bankEq(a, e);
+        tmp = puzzle.bankEq(arg$State$0$, arg$State$0$1);
         if (tmp === true) {
-          tmp1 = puzzle.bankEq(b, f);
+          tmp1 = puzzle.bankEq(arg$State$1$, arg$State$1$1);
         } else {
           tmp1 = false;
         }
         if (tmp1 === true) {
-          tmp2 = puzzle.bankEq(c, g);
+          tmp2 = puzzle.bankEq(arg$State$2$, arg$State$2$1);
         } else {
           tmp2 = false;
         }
         if (tmp2 === true) {
-          return puzzle.bankEq(d, h)
+          return puzzle.bankEq(arg$State$3$, arg$State$3$1)
         }
         return false;
       }
@@ -246,38 +238,34 @@ let puzzle1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static bonoPos(s) {
-    let a, arg$State$0$;
+    let arg$State$0$;
     if (s instanceof puzzle.State.class) {
       arg$State$0$ = s.b;
-      a = arg$State$0$;
-      return a
+      return arg$State$0$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static edgePos(s) {
-    let b, arg$State$1$;
+    let arg$State$1$;
     if (s instanceof puzzle.State.class) {
       arg$State$1$ = s.e;
-      b = arg$State$1$;
-      return b
+      return arg$State$1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static larryPos(s) {
-    let c, arg$State$2$;
+    let arg$State$2$;
     if (s instanceof puzzle.State.class) {
       arg$State$2$ = s.l;
-      c = arg$State$2$;
-      return c
+      return arg$State$2$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static adamPos(s) {
-    let d, arg$State$3$;
+    let arg$State$3$;
     if (s instanceof puzzle.State.class) {
       arg$State$3$ = s.a;
-      d = arg$State$3$;
-      return d
+      return arg$State$3$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -294,24 +282,20 @@ let puzzle1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static updateState(s, i, pos) {
-    let a, b, c, d, arg$State$0$, arg$State$1$, arg$State$2$, arg$State$3$;
+    let arg$State$0$, arg$State$1$, arg$State$2$, arg$State$3$;
     if (s instanceof puzzle.State.class) {
       arg$State$0$ = s.b;
       arg$State$1$ = s.e;
       arg$State$2$ = s.l;
       arg$State$3$ = s.a;
-      d = arg$State$3$;
-      c = arg$State$2$;
-      b = arg$State$1$;
-      a = arg$State$0$;
       if (i instanceof puzzle.Bono.class) {
-        return puzzle.State(pos, b, c, d)
+        return puzzle.State(pos, arg$State$1$, arg$State$2$, arg$State$3$)
       } else if (i instanceof puzzle.Edge.class) {
-        return puzzle.State(a, pos, c, d)
+        return puzzle.State(arg$State$0$, pos, arg$State$2$, arg$State$3$)
       } else if (i instanceof puzzle.Larry.class) {
-        return puzzle.State(a, b, pos, d)
+        return puzzle.State(arg$State$0$, arg$State$1$, pos, arg$State$3$)
       } else if (i instanceof puzzle.Adam.class) {
-        return puzzle.State(a, b, c, pos)
+        return puzzle.State(arg$State$0$, arg$State$1$, arg$State$2$, pos)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
@@ -328,12 +312,11 @@ let puzzle1;
   static notSeen(state, states) {
     let lambda;
     lambda = (undefined, function (caseScrut) {
-      let s, element1$, tmp;
+      let element1$, tmp;
       if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
         runtime.Tuple.get(caseScrut, 0);
         element1$ = runtime.Tuple.get(caseScrut, 1);
-        s = element1$;
-        tmp = puzzle.stateEq(state, s);
+        tmp = puzzle.stateEq(state, element1$);
         return ! tmp
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -397,14 +380,13 @@ let puzzle1;
     return NofibPrelude.append(tmp, tmp10)
   } 
   static totalTime(history) {
-    let time, arg$Cons$0$, element0$;
+    let arg$Cons$0$, element0$;
     if (history instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = history.head;
       if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
         element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
         runtime.Tuple.get(arg$Cons$0$, 1);
-        time = element0$;
-        return time
+        return element0$
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
@@ -418,19 +400,17 @@ let puzzle1;
     lambda = (undefined, function (timestate, acc) {
       let lambda2;
       lambda2 = (undefined, function (s) {
-        let state, time, element1$, element0$, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
+        let element1$, element0$, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
         if (runtime.Tuple.isArrayLike(timestate) && timestate.length === 2) {
           element0$ = runtime.Tuple.get(timestate, 0);
           element1$ = runtime.Tuple.get(timestate, 1);
-          state = element1$;
-          time = element0$;
           tmp1 = NofibPrelude.nofibStringToList("Time: ");
           tmp2 = puzzle.totalTime(history);
-          tmp3 = tmp2 - time;
+          tmp3 = tmp2 - element0$;
           tmp4 = NofibPrelude.stringOfInt(tmp3);
           tmp5 = NofibPrelude.nofibStringToList(tmp4);
           tmp6 = runtime.safeCall(acc(s));
-          tmp7 = puzzle.writeState(state, tmp6);
+          tmp7 = puzzle.writeState(element1$, tmp6);
           tmp8 = NofibPrelude.Cons("\n", tmp7);
           tmp9 = NofibPrelude.append(tmp5, tmp8);
           return NofibPrelude.append(tmp1, tmp9)
@@ -446,20 +426,18 @@ let puzzle1;
     return runtime.safeCall(tmp(x));
   } 
   static writeSolutions(solutions, count, s) {
-    let next, item, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     if (solutions instanceof NofibPrelude.Nil.class) {
       return s
     } else if (solutions instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = solutions.head;
       arg$Cons$1$ = solutions.tail;
-      next = arg$Cons$1$;
-      item = arg$Cons$0$;
       tmp = NofibPrelude.nofibStringToList("Solution ");
       tmp1 = NofibPrelude.stringOfInt(count);
       tmp2 = NofibPrelude.nofibStringToList(tmp1);
       tmp3 = count + 1;
-      tmp4 = puzzle.writeSolutions(next, tmp3, s);
-      tmp5 = puzzle.writeHistory(item, tmp4);
+      tmp4 = puzzle.writeSolutions(arg$Cons$1$, tmp3, s);
+      tmp5 = puzzle.writeHistory(arg$Cons$0$, tmp4);
       tmp6 = NofibPrelude.Cons("\n", tmp5);
       tmp7 = NofibPrelude.append(tmp2, tmp6);
       return NofibPrelude.append(tmp, tmp7)
@@ -467,41 +445,37 @@ let puzzle1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static minSolutions(history) {
-    let minAcc, history1, next, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2;
+    let minAcc, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2;
     if (history instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (history instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = history.head;
       arg$Cons$1$ = history.tail;
-      next = arg$Cons$1$;
-      history1 = arg$Cons$0$;
       minAcc = function minAcc(minSoFar, mins, ls) {
-        let history2, next1, total, scrut, scrut1, arg$Cons$0$1, arg$Cons$1$1, tmp3, tmp4;
+        let total, scrut, scrut1, arg$Cons$0$1, arg$Cons$1$1, tmp3, tmp4;
         if (ls instanceof NofibPrelude.Nil.class) {
           return mins
         } else if (ls instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$1 = ls.head;
           arg$Cons$1$1 = ls.tail;
-          next1 = arg$Cons$1$1;
-          history2 = arg$Cons$0$1;
-          total = puzzle.totalTime(history2);
+          total = puzzle.totalTime(arg$Cons$0$1);
           scrut = minSoFar < total;
           if (scrut === true) {
-            return minAcc(minSoFar, mins, next1)
+            return minAcc(minSoFar, mins, arg$Cons$1$1)
           }
           scrut1 = minSoFar === total;
           if (scrut1 === true) {
-            tmp3 = NofibPrelude.Cons(history2, mins);
-            return minAcc(minSoFar, tmp3, next1)
+            tmp3 = NofibPrelude.Cons(arg$Cons$0$1, mins);
+            return minAcc(minSoFar, tmp3, arg$Cons$1$1)
           }
-          tmp4 = NofibPrelude.Cons(history2, NofibPrelude.Nil);
-          return minAcc(total, tmp4, next1);
+          tmp4 = NofibPrelude.Cons(arg$Cons$0$1, NofibPrelude.Nil);
+          return minAcc(total, tmp4, arg$Cons$1$1);
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       };
-      tmp = puzzle.totalTime(history1);
-      tmp1 = NofibPrelude.Cons(history1, NofibPrelude.Nil);
-      tmp2 = minAcc(tmp, tmp1, next);
+      tmp = puzzle.totalTime(arg$Cons$0$);
+      tmp1 = NofibPrelude.Cons(arg$Cons$0$, NofibPrelude.Nil);
+      tmp2 = minAcc(tmp, tmp1, arg$Cons$1$);
       return NofibPrelude.reverse(tmp2)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -530,29 +504,27 @@ let puzzle1;
       return NofibPrelude.Cons(tmp1, NofibPrelude.Nil)
     }
     lscomp1 = function lscomp1(ls) {
-      let xs, item, scrut1, newDest, scrut2, newTime, arg$Cons$0$, arg$Cons$1$, tmp7, tmp8, tmp9, tmp10;
+      let scrut1, newDest, scrut2, newTime, arg$Cons$0$, arg$Cons$1$, tmp7, tmp8, tmp9, tmp10;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        xs = arg$Cons$1$;
-        item = arg$Cons$0$;
-        tmp7 = puzzle.position(item, dest);
+        tmp7 = puzzle.position(arg$Cons$0$, dest);
         scrut1 = puzzle.bankEq(tmp7, location);
         if (scrut1 === true) {
-          newDest = puzzle.updateState(dest, item, newLocation);
+          newDest = puzzle.updateState(dest, arg$Cons$0$, newLocation);
           scrut2 = puzzle.notSeen(newDest, history);
           if (scrut2 === true) {
-            tmp8 = puzzle.u2times(item);
+            tmp8 = puzzle.u2times(arg$Cons$0$);
             newTime = countdown + tmp8;
             tmp9 = puzzle.transfer(source, newDest, newLocation, newTime, newHistory);
-            tmp10 = lscomp1(xs);
+            tmp10 = lscomp1(arg$Cons$1$);
             return NofibPrelude.Cons(tmp9, tmp10)
           }
-          return lscomp1(xs);
+          return lscomp1(arg$Cons$1$);
         }
-        return lscomp1(xs);
+        return lscomp1(arg$Cons$1$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
@@ -566,35 +538,33 @@ let puzzle1;
         xs = arg$Cons$1$;
         i = arg$Cons$0$;
         lscomp3 = function lscomp3(ls1) {
-          let ys, j, scrut1, newDest, scrut2, newTime, scrut3, arg$Cons$0$1, arg$Cons$1$1, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
+          let scrut1, newDest, scrut2, newTime, scrut3, arg$Cons$0$1, arg$Cons$1$1, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
           if (ls1 instanceof NofibPrelude.Nil.class) {
             return lscomp2(xs)
           } else if (ls1 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$1 = ls1.head;
             arg$Cons$1$1 = ls1.tail;
-            ys = arg$Cons$1$1;
-            j = arg$Cons$0$1;
             tmp9 = puzzle.position(i, dest);
             scrut1 = puzzle.bankEq(tmp9, location);
             if (scrut1 === true) {
-              tmp10 = puzzle.position(j, dest);
+              tmp10 = puzzle.position(arg$Cons$0$1, dest);
               scrut3 = puzzle.bankEq(tmp10, location);
               if (scrut3 === true) {
                 tmp11 = puzzle.updateState(dest, i, newLocation);
-                newDest = puzzle.updateState(tmp11, j, newLocation);
+                newDest = puzzle.updateState(tmp11, arg$Cons$0$1, newLocation);
                 scrut2 = puzzle.notSeen(newDest, history);
                 if (scrut2 === true) {
                   tmp12 = puzzle.u2times(i);
                   newTime = countdown + tmp12;
                   tmp13 = puzzle.transfer(source, newDest, newLocation, newTime, newHistory);
-                  tmp14 = lscomp3(ys);
+                  tmp14 = lscomp3(arg$Cons$1$1);
                   return NofibPrelude.Cons(tmp13, tmp14)
                 }
-                return lscomp3(ys);
+                return lscomp3(arg$Cons$1$1);
               }
-              return lscomp3(ys);
+              return lscomp3(arg$Cons$1$1);
             }
-            return lscomp3(ys);
+            return lscomp3(arg$Cons$1$1);
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         };
@@ -619,13 +589,11 @@ let puzzle1;
     return NofibPrelude.append(moveOne, moveTwo);
   } 
   static testPuzzle_nofib(x) {
-    let time, scrut, solutions, mins, tmp, tmp1;
+    let scrut, solutions, mins, tmp;
     tmp = NofibPrelude.listLen(x);
     scrut = tmp === 1;
     if (scrut === true) {
-      tmp1 = 0;
-      time = tmp1;
-      solutions = puzzle.transfer(puzzle.initialState, puzzle.finalState, puzzle.RightBank, time, NofibPrelude.Nil);
+      solutions = puzzle.transfer(puzzle.initialState, puzzle.finalState, puzzle.RightBank, 0, NofibPrelude.Nil);
       mins = puzzle.minSolutions(solutions);
       return puzzle.writeSolutions(mins, 1, NofibPrelude.Nil)
     }

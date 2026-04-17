@@ -874,14 +874,14 @@ let DnfCnf1;
   static isDnfOrCnf_optimized(t) {
     let matcher__DnfOrCnf$, matcher__DnfᐸDnfOrCnfᐳ$, matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$, matcher__ꓕ$, matcher__AtomsᐸDnfOrCnfᐳ$, matchSuccess, lambda, lambda1, lambda2, lambda3, lambda4;
     lambda = (undefined, function (input) {
-      let left, left1, right, result1$, result1$1, left2, left3, right1, result2$, result2$1, result3$, result3$1, name, name1, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
+      let left, right, result1$, result1$1, left1, right1, result2$, result2$1, result3$, result3$1, name, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
       if (input instanceof DnfCnf1.Or.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__DnfᐸDnfOrCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__DnfᐸDnfOrCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -896,7 +896,6 @@ let DnfCnf1;
             result: false
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
             right = input.right;
@@ -917,7 +916,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result1$1 = left.result;
+        result1$1 = tmp1.result;
         if (result1$1 === true) {
           result1$ = tmp3.result;
           if (result1$ === true) {
@@ -929,10 +928,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left3 = input.left;
-            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(left3));
+            left1 = input.left;
+            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(left1));
             tmp5 = globalThis.Object.freeze({
-              input: left3,
+              input: left1,
               result: tmp4
             });
           } else {
@@ -955,7 +954,6 @@ let DnfCnf1;
             result: tmp7
           });
         }
-        left2 = tmp5;
         if (input instanceof Object) {
           if ("right" in input) {
             right1 = input.right;
@@ -984,13 +982,13 @@ let DnfCnf1;
             result: tmp11
           });
         }
-        result2$1 = left2.result.p_2;
+        result2$1 = tmp5.result.p_2;
         if (result2$1 === true) {
           result2$ = tmp9.result.p_2;
           if (result2$ === true) {
             return true
           }
-          result3$1 = left2.result.p_3;
+          result3$1 = tmp5.result.p_3;
           if (result3$1 === true) {
             result3$ = tmp9.result.p_3;
             if (result3$ === true) {
@@ -1000,7 +998,7 @@ let DnfCnf1;
           }
           return false;
         }
-        result3$1 = left2.result.p_3;
+        result3$1 = tmp5.result.p_3;
         if (result3$1 === true) {
           result3$ = tmp9.result.p_3;
           if (result3$ === true) {
@@ -1012,10 +1010,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp12 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp12 = runtime.safeCall(matcher__ꓕ$(name));
             tmp13 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp12
             });
           } else {
@@ -1030,7 +1028,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp13;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -1051,7 +1048,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result4$ = name.result;
+        result4$ = tmp13.result;
         if (result4$ === true) {
           result0$ = tmp15.result;
           if (result0$ === true) {
@@ -1067,14 +1064,14 @@ let DnfCnf1;
     });
     matcher__DnfOrCnf$ = lambda;
     lambda1 = (undefined, function (input) {
-      let left, right, left1, right1, result2$, result2$1, result3$, result3$1, name, name1, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+      let left, right, result2$, result2$1, result3$, result3$1, name, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
       if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -1097,13 +1094,12 @@ let DnfCnf1;
             result: tmp3
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
-            right1 = input.right;
-            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(right1));
+            right = input.right;
+            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(right));
             tmp5 = globalThis.Object.freeze({
-              input: right1,
+              input: right,
               result: tmp4
             });
           } else {
@@ -1126,8 +1122,7 @@ let DnfCnf1;
             result: tmp7
           });
         }
-        right = tmp5;
-        result2$1 = left.result.p_2;
+        result2$1 = tmp1.result.p_2;
         if (result2$1 === true) {
           result2$ = tmp5.result.p_2;
           if (result2$ === true) {
@@ -1138,9 +1133,9 @@ let DnfCnf1;
         } else {
           tmp8 = false;
         }
-        result3$1 = left.result.p_3;
+        result3$1 = tmp1.result.p_3;
         if (result3$1 === true) {
-          result3$ = right.result.p_3;
+          result3$ = tmp5.result.p_3;
           if (result3$ === true) {
             return globalThis.Object.freeze({
               p_2: tmp8,
@@ -1159,10 +1154,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp9 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp9 = runtime.safeCall(matcher__ꓕ$(name));
             tmp10 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp9
             });
           } else {
@@ -1177,7 +1172,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp10;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -1198,7 +1192,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result4$ = name.result;
+        result4$ = tmp10.result;
         if (result4$ === true) {
           result0$ = tmp12.result;
           if (result0$ === true) {
@@ -1229,14 +1223,14 @@ let DnfCnf1;
     });
     matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$ = lambda1;
     lambda2 = (undefined, function (input) {
-      let left, left1, right, result2$, result2$1, name, name1, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+      let left, right, result2$, result2$1, name, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
       if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -1251,7 +1245,6 @@ let DnfCnf1;
             result: false
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
             right = input.right;
@@ -1272,7 +1265,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result2$1 = left.result;
+        result2$1 = tmp1.result;
         if (result2$1 === true) {
           result2$ = tmp3.result;
           if (result2$ === true) {
@@ -1284,10 +1277,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp4 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp4 = runtime.safeCall(matcher__ꓕ$(name));
             tmp5 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp4
             });
           } else {
@@ -1302,7 +1295,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp5;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -1323,7 +1315,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result4$ = name.result;
+        result4$ = tmp5.result;
         if (result4$ === true) {
           result0$ = tmp7.result;
           if (result0$ === true) {
@@ -1339,14 +1331,14 @@ let DnfCnf1;
     });
     matcher__AtomsᐸDnfOrCnfᐳ$ = lambda2;
     lambda3 = (undefined, function (input) {
-      let left, left1, right, result1$, result1$1, left2, left3, right1, result2$, result2$1, name, name1, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+      let left, right, result1$, result1$1, left1, right1, result2$, result2$1, name, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
       if (input instanceof DnfCnf1.Or.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__DnfᐸDnfOrCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__DnfᐸDnfOrCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -1361,7 +1353,6 @@ let DnfCnf1;
             result: false
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
             right = input.right;
@@ -1382,7 +1373,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result1$1 = left.result;
+        result1$1 = tmp1.result;
         if (result1$1 === true) {
           result1$ = tmp3.result;
           if (result1$ === true) {
@@ -1394,10 +1385,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left3 = input.left;
-            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ$(left3));
+            left1 = input.left;
+            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ$(left1));
             tmp5 = globalThis.Object.freeze({
-              input: left3,
+              input: left1,
               result: tmp4
             });
           } else {
@@ -1412,7 +1403,6 @@ let DnfCnf1;
             result: false
           });
         }
-        left2 = tmp5;
         if (input instanceof Object) {
           if ("right" in input) {
             right1 = input.right;
@@ -1433,7 +1423,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result2$1 = left2.result;
+        result2$1 = tmp5.result;
         if (result2$1 === true) {
           result2$ = tmp7.result;
           if (result2$ === true) {
@@ -1445,10 +1435,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp8 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp8 = runtime.safeCall(matcher__ꓕ$(name));
             tmp9 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp8
             });
           } else {
@@ -1463,7 +1453,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp9;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -1484,7 +1473,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result4$ = name.result;
+        result4$ = tmp9.result;
         if (result4$ === true) {
           result0$ = tmp11.result;
           if (result0$ === true) {
@@ -1516,14 +1505,14 @@ let DnfCnf1;
     });
     matcher__ꓕ$ = lambda4;
     lambda = (undefined, function (input) {
-      let left, left1, right, result1$, result1$1, left2, left3, right1, result2$, result2$1, result3$, result3$1, name, name1, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
+      let left, right, result1$, result1$1, left1, right1, result2$, result2$1, result3$, result3$1, name, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
       if (input instanceof DnfCnf1.Or.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__DnfᐸDnfOrCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__DnfᐸDnfOrCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -1538,7 +1527,6 @@ let DnfCnf1;
             result: false
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
             right = input.right;
@@ -1559,7 +1547,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result1$1 = left.result;
+        result1$1 = tmp1.result;
         if (result1$1 === true) {
           result1$ = tmp3.result;
           if (result1$ === true) {
@@ -1571,10 +1559,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left3 = input.left;
-            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(left3));
+            left1 = input.left;
+            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(left1));
             tmp5 = globalThis.Object.freeze({
-              input: left3,
+              input: left1,
               result: tmp4
             });
           } else {
@@ -1597,7 +1585,6 @@ let DnfCnf1;
             result: tmp7
           });
         }
-        left2 = tmp5;
         if (input instanceof Object) {
           if ("right" in input) {
             right1 = input.right;
@@ -1626,13 +1613,13 @@ let DnfCnf1;
             result: tmp11
           });
         }
-        result2$1 = left2.result.p_2;
+        result2$1 = tmp5.result.p_2;
         if (result2$1 === true) {
           result2$ = tmp9.result.p_2;
           if (result2$ === true) {
             return true
           }
-          result3$1 = left2.result.p_3;
+          result3$1 = tmp5.result.p_3;
           if (result3$1 === true) {
             result3$ = tmp9.result.p_3;
             if (result3$ === true) {
@@ -1642,7 +1629,7 @@ let DnfCnf1;
           }
           return false;
         }
-        result3$1 = left2.result.p_3;
+        result3$1 = tmp5.result.p_3;
         if (result3$1 === true) {
           result3$ = tmp9.result.p_3;
           if (result3$ === true) {
@@ -1654,10 +1641,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp12 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp12 = runtime.safeCall(matcher__ꓕ$(name));
             tmp13 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp12
             });
           } else {
@@ -1672,7 +1659,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp13;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -1693,7 +1679,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result4$ = name.result;
+        result4$ = tmp13.result;
         if (result4$ === true) {
           result0$ = tmp15.result;
           if (result0$ === true) {
@@ -1709,14 +1695,14 @@ let DnfCnf1;
     });
     matcher__DnfOrCnf$ = lambda;
     lambda1 = (undefined, function (input) {
-      let left, right, left1, right1, result2$, result2$1, result3$, result3$1, name, name1, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+      let left, right, result2$, result2$1, result3$, result3$1, name, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
       if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -1739,13 +1725,12 @@ let DnfCnf1;
             result: tmp3
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
-            right1 = input.right;
-            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(right1));
+            right = input.right;
+            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$(right));
             tmp5 = globalThis.Object.freeze({
-              input: right1,
+              input: right,
               result: tmp4
             });
           } else {
@@ -1768,8 +1753,7 @@ let DnfCnf1;
             result: tmp7
           });
         }
-        right = tmp5;
-        result2$1 = left.result.p_2;
+        result2$1 = tmp1.result.p_2;
         if (result2$1 === true) {
           result2$ = tmp5.result.p_2;
           if (result2$ === true) {
@@ -1780,9 +1764,9 @@ let DnfCnf1;
         } else {
           tmp8 = false;
         }
-        result3$1 = left.result.p_3;
+        result3$1 = tmp1.result.p_3;
         if (result3$1 === true) {
-          result3$ = right.result.p_3;
+          result3$ = tmp5.result.p_3;
           if (result3$ === true) {
             return globalThis.Object.freeze({
               p_2: tmp8,
@@ -1801,10 +1785,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp9 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp9 = runtime.safeCall(matcher__ꓕ$(name));
             tmp10 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp9
             });
           } else {
@@ -1819,7 +1803,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp10;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -1840,7 +1823,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result4$ = name.result;
+        result4$ = tmp10.result;
         if (result4$ === true) {
           result0$ = tmp12.result;
           if (result0$ === true) {
@@ -1871,14 +1854,14 @@ let DnfCnf1;
     });
     matcher__AtomsᐸDnfOrCnfᐳ_CnfᐸDnfOrCnfᐳ$ = lambda1;
     lambda2 = (undefined, function (input) {
-      let left, left1, right, result2$, result2$1, name, name1, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+      let left, right, result2$, result2$1, name, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
       if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -1893,7 +1876,6 @@ let DnfCnf1;
             result: false
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
             right = input.right;
@@ -1914,7 +1896,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result2$1 = left.result;
+        result2$1 = tmp1.result;
         if (result2$1 === true) {
           result2$ = tmp3.result;
           if (result2$ === true) {
@@ -1926,10 +1908,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp4 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp4 = runtime.safeCall(matcher__ꓕ$(name));
             tmp5 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp4
             });
           } else {
@@ -1944,7 +1926,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp5;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -1965,7 +1946,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result4$ = name.result;
+        result4$ = tmp5.result;
         if (result4$ === true) {
           result0$ = tmp7.result;
           if (result0$ === true) {
@@ -1981,14 +1962,14 @@ let DnfCnf1;
     });
     matcher__AtomsᐸDnfOrCnfᐳ$ = lambda2;
     lambda3 = (undefined, function (input) {
-      let left, left1, right, result1$, result1$1, left2, left3, right1, result2$, result2$1, name, name1, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+      let left, right, result1$, result1$1, left1, right1, result2$, result2$1, name, arg, result0$, result4$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
       if (input instanceof DnfCnf1.Or.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__DnfᐸDnfOrCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__DnfᐸDnfOrCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -2003,7 +1984,6 @@ let DnfCnf1;
             result: false
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
             right = input.right;
@@ -2024,7 +2004,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result1$1 = left.result;
+        result1$1 = tmp1.result;
         if (result1$1 === true) {
           result1$ = tmp3.result;
           if (result1$ === true) {
@@ -2036,10 +2016,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left3 = input.left;
-            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ$(left3));
+            left1 = input.left;
+            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfOrCnfᐳ$(left1));
             tmp5 = globalThis.Object.freeze({
-              input: left3,
+              input: left1,
               result: tmp4
             });
           } else {
@@ -2054,7 +2034,6 @@ let DnfCnf1;
             result: false
           });
         }
-        left2 = tmp5;
         if (input instanceof Object) {
           if ("right" in input) {
             right1 = input.right;
@@ -2075,7 +2054,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result2$1 = left2.result;
+        result2$1 = tmp5.result;
         if (result2$1 === true) {
           result2$ = tmp7.result;
           if (result2$ === true) {
@@ -2087,10 +2066,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp8 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp8 = runtime.safeCall(matcher__ꓕ$(name));
             tmp9 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp8
             });
           } else {
@@ -2105,7 +2084,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp9;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -2126,7 +2104,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result4$ = name.result;
+        result4$ = tmp9.result;
         if (result4$ === true) {
           result0$ = tmp11.result;
           if (result0$ === true) {
@@ -2160,16 +2138,16 @@ let DnfCnf1;
   static isDnfAndCnf_optimized(t) {
     let matcher__DnfAndCnf$, matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$, matcher__ꓕ$, matchSuccess, lambda, lambda1, lambda2;
     lambda = (undefined, function (input) {
-      let left, left1, right, result1$, result1$1, result2$, result2$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+      let left, right, result1$, result1$1, result2$, result2$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
       if (input instanceof DnfCnf1.Or.class) {
         return false
       } else if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -2192,7 +2170,6 @@ let DnfCnf1;
             result: tmp3
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
             right = input.right;
@@ -2221,11 +2198,11 @@ let DnfCnf1;
             result: tmp7
           });
         }
-        result1$1 = left.result.p_1;
+        result1$1 = tmp1.result.p_1;
         if (result1$1 === true) {
           result1$ = tmp5.result.p_1;
           if (result1$ === true) {
-            result2$1 = left.result.p_2;
+            result2$1 = tmp1.result.p_2;
             if (result2$1 === true) {
               result2$ = tmp5.result.p_2;
               if (result2$ === true) {
@@ -2247,14 +2224,14 @@ let DnfCnf1;
     });
     matcher__DnfAndCnf$ = lambda;
     lambda1 = (undefined, function (input) {
-      let left, right, left1, right1, result1$, result1$1, result2$, result2$1, name, name1, arg, result0$, result3$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+      let left, right, result1$, result1$1, result2$, result2$1, name, arg, result0$, result3$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
       if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -2277,13 +2254,12 @@ let DnfCnf1;
             result: tmp3
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
-            right1 = input.right;
-            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(right1));
+            right = input.right;
+            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(right));
             tmp5 = globalThis.Object.freeze({
-              input: right1,
+              input: right,
               result: tmp4
             });
           } else {
@@ -2306,8 +2282,7 @@ let DnfCnf1;
             result: tmp7
           });
         }
-        right = tmp5;
-        result1$1 = left.result.p_1;
+        result1$1 = tmp1.result.p_1;
         if (result1$1 === true) {
           result1$ = tmp5.result.p_1;
           if (result1$ === true) {
@@ -2318,9 +2293,9 @@ let DnfCnf1;
         } else {
           tmp8 = false;
         }
-        result2$1 = left.result.p_2;
+        result2$1 = tmp1.result.p_2;
         if (result2$1 === true) {
-          result2$ = right.result.p_2;
+          result2$ = tmp5.result.p_2;
           if (result2$ === true) {
             return globalThis.Object.freeze({
               p_1: tmp8,
@@ -2339,10 +2314,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp9 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp9 = runtime.safeCall(matcher__ꓕ$(name));
             tmp10 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp9
             });
           } else {
@@ -2357,7 +2332,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp10;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -2378,7 +2352,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result3$ = name.result;
+        result3$ = tmp10.result;
         if (result3$ === true) {
           result0$ = tmp12.result;
           if (result0$ === true) {
@@ -2421,16 +2395,16 @@ let DnfCnf1;
   static isDnfAndCnf_optimized_matchOnly(t) {
     let matcher__DnfAndCnf$, matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$, matcher__ꓕ$, matchSuccess, lambda, lambda1, lambda2;
     lambda = (undefined, function (input) {
-      let left, left1, right, result1$, result1$1, result2$, result2$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+      let left, right, result1$, result1$1, result2$, result2$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
       if (input instanceof DnfCnf1.Or.class) {
         return false
       } else if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -2453,7 +2427,6 @@ let DnfCnf1;
             result: tmp3
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
             right = input.right;
@@ -2482,11 +2455,11 @@ let DnfCnf1;
             result: tmp7
           });
         }
-        result1$1 = left.result.p_1;
+        result1$1 = tmp1.result.p_1;
         if (result1$1 === true) {
           result1$ = tmp5.result.p_1;
           if (result1$ === true) {
-            result2$1 = left.result.p_2;
+            result2$1 = tmp1.result.p_2;
             if (result2$1 === true) {
               result2$ = tmp5.result.p_2;
               if (result2$ === true) {
@@ -2508,14 +2481,14 @@ let DnfCnf1;
     });
     matcher__DnfAndCnf$ = lambda;
     lambda1 = (undefined, function (input) {
-      let left, right, left1, right1, result1$, result1$1, result2$, result2$1, name, name1, arg, result0$, result3$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+      let left, right, result1$, result1$1, result2$, result2$1, name, arg, result0$, result3$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
       if (input instanceof DnfCnf1.And.class) {
         if (input instanceof Object) {
           if ("left" in input) {
-            left1 = input.left;
-            tmp = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(left1));
+            left = input.left;
+            tmp = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(left));
             tmp1 = globalThis.Object.freeze({
-              input: left1,
+              input: left,
               result: tmp
             });
           } else {
@@ -2538,13 +2511,12 @@ let DnfCnf1;
             result: tmp3
           });
         }
-        left = tmp1;
         if (input instanceof Object) {
           if ("right" in input) {
-            right1 = input.right;
-            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(right1));
+            right = input.right;
+            tmp4 = runtime.safeCall(matcher__AtomsᐸDnfAndCnfᐳ_CnfᐸDnfAndCnfᐳ$(right));
             tmp5 = globalThis.Object.freeze({
-              input: right1,
+              input: right,
               result: tmp4
             });
           } else {
@@ -2567,8 +2539,7 @@ let DnfCnf1;
             result: tmp7
           });
         }
-        right = tmp5;
-        result1$1 = left.result.p_1;
+        result1$1 = tmp1.result.p_1;
         if (result1$1 === true) {
           result1$ = tmp5.result.p_1;
           if (result1$ === true) {
@@ -2579,9 +2550,9 @@ let DnfCnf1;
         } else {
           tmp8 = false;
         }
-        result2$1 = left.result.p_2;
+        result2$1 = tmp1.result.p_2;
         if (result2$1 === true) {
-          result2$ = right.result.p_2;
+          result2$ = tmp5.result.p_2;
           if (result2$ === true) {
             return globalThis.Object.freeze({
               p_1: tmp8,
@@ -2600,10 +2571,10 @@ let DnfCnf1;
       } else if (input instanceof DnfCnf1.Pred.class) {
         if (input instanceof Object) {
           if ("name" in input) {
-            name1 = input.name;
-            tmp9 = runtime.safeCall(matcher__ꓕ$(name1));
+            name = input.name;
+            tmp9 = runtime.safeCall(matcher__ꓕ$(name));
             tmp10 = globalThis.Object.freeze({
-              input: name1,
+              input: name,
               result: tmp9
             });
           } else {
@@ -2618,7 +2589,6 @@ let DnfCnf1;
             result: false
           });
         }
-        name = tmp10;
         if (input instanceof Object) {
           if ("arg" in input) {
             arg = input.arg;
@@ -2639,7 +2609,7 @@ let DnfCnf1;
             result: false
           });
         }
-        result3$ = name.result;
+        result3$ = tmp10.result;
         if (result3$ === true) {
           result0$ = tmp12.result;
           if (result0$ === true) {

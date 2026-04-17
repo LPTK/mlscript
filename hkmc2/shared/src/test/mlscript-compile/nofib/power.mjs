@@ -93,7 +93,7 @@ let power1;
     return NofibPrelude.lazy(lambda1);
   } 
   static extract(n, ps) {
-    let scrut, scrut1, x, ps1, arg$Pc$0$, arg$Pc$1$, tmp, tmp1;
+    let scrut, scrut1, arg$Pc$0$, arg$Pc$1$, tmp, tmp1;
     scrut = n == 0;
     if (scrut === true) {
       return NofibPrelude.Nil
@@ -104,28 +104,24 @@ let power1;
     } else if (scrut1 instanceof power.Pc.class) {
       arg$Pc$0$ = scrut1.f;
       arg$Pc$1$ = scrut1.s;
-      ps1 = arg$Pc$1$;
-      x = arg$Pc$0$;
       tmp = n - 1;
-      tmp1 = power.extract(tmp, ps1);
-      return NofibPrelude.Cons(x, tmp1)
+      tmp1 = power.extract(tmp, arg$Pc$1$);
+      return NofibPrelude.Cons(arg$Pc$0$, tmp1)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static dotMult(c, ps) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, f, fs_, arg$Pc$0$, arg$Pc$1$, tmp, tmp1;
+      let scrut, arg$Pc$0$, arg$Pc$1$, tmp, tmp1;
       scrut = NofibPrelude.force(ps);
       if (scrut instanceof power.Pz.class) {
         return power.Pz
       } else if (scrut instanceof power.Pc.class) {
         arg$Pc$0$ = scrut.f;
         arg$Pc$1$ = scrut.s;
-        fs_ = arg$Pc$1$;
-        f = arg$Pc$0$;
-        tmp = c * f;
-        tmp1 = power.dotMult(c, fs_);
+        tmp = c * arg$Pc$0$;
+        tmp1 = power.dotMult(c, arg$Pc$1$);
         return power.Pc(tmp, tmp1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -135,7 +131,7 @@ let power1;
   static dotMultSndLz(c, ps) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, f, fs_, arg$Pc$0$, arg$Pc$1$, tmp, tmp1, tmp2;
+      let scrut, arg$Pc$0$, arg$Pc$1$, tmp, tmp1, tmp2;
       tmp = NofibPrelude.force(ps);
       scrut = NofibPrelude.force(tmp);
       if (scrut instanceof power.Pz.class) {
@@ -143,10 +139,8 @@ let power1;
       } else if (scrut instanceof power.Pc.class) {
         arg$Pc$0$ = scrut.f;
         arg$Pc$1$ = scrut.s;
-        fs_ = arg$Pc$1$;
-        f = arg$Pc$0$;
-        tmp1 = c * f;
-        tmp2 = power.dotMult(c, fs_);
+        tmp1 = c * arg$Pc$0$;
+        tmp2 = power.dotMult(c, arg$Pc$1$);
         return power.Pc(tmp1, tmp2)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -156,17 +150,15 @@ let power1;
   static negatePs(ps) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, f, fs_, arg$Pc$0$, arg$Pc$1$, tmp, tmp1;
+      let scrut, arg$Pc$0$, arg$Pc$1$, tmp, tmp1;
       scrut = NofibPrelude.force(ps);
       if (scrut instanceof power.Pz.class) {
         return power.Pz
       } else if (scrut instanceof power.Pc.class) {
         arg$Pc$0$ = scrut.f;
         arg$Pc$1$ = scrut.s;
-        fs_ = arg$Pc$1$;
-        f = arg$Pc$0$;
-        tmp = - f;
-        tmp1 = power.negatePs(fs_);
+        tmp = - arg$Pc$0$;
+        tmp1 = power.negatePs(arg$Pc$1$);
         return power.Pc(tmp, tmp1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -176,25 +168,21 @@ let power1;
   static addPs(fss, gs) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, f, fs_, scrut1, gs1, g, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1;
+      let scrut, scrut1, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1;
       scrut = NofibPrelude.force(fss);
       if (scrut instanceof power.Pz.class) {
         return NofibPrelude.force(gs)
       } else if (scrut instanceof power.Pc.class) {
         arg$Pc$0$ = scrut.f;
         arg$Pc$1$ = scrut.s;
-        fs_ = arg$Pc$1$;
-        f = arg$Pc$0$;
         scrut1 = NofibPrelude.force(gs);
         if (scrut1 instanceof power.Pz.class) {
           return NofibPrelude.force(fss)
         } else if (scrut1 instanceof power.Pc.class) {
           arg$Pc$0$1 = scrut1.f;
           arg$Pc$1$1 = scrut1.s;
-          gs1 = arg$Pc$1$1;
-          g = arg$Pc$0$1;
-          tmp = f + g;
-          tmp1 = power.addPs(fs_, gs1);
+          tmp = arg$Pc$0$ + arg$Pc$0$1;
+          tmp1 = power.addPs(arg$Pc$1$, arg$Pc$1$1);
           return power.Pc(tmp, tmp1)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -211,30 +199,26 @@ let power1;
   static multPs(fss, gss) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, f, fs_, scrut1, gs, g, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+      let scrut, scrut1, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
       scrut = NofibPrelude.force(fss);
       if (scrut instanceof power.Pz.class) {
         return power.Pz
       } else if (scrut instanceof power.Pc.class) {
         arg$Pc$0$ = scrut.f;
         arg$Pc$1$ = scrut.s;
-        fs_ = arg$Pc$1$;
-        f = arg$Pc$0$;
         scrut1 = NofibPrelude.force(gss);
         if (scrut1 instanceof power.Pz.class) {
           return power.Pz
         } else if (scrut1 instanceof power.Pc.class) {
           arg$Pc$0$1 = scrut1.f;
           arg$Pc$1$1 = scrut1.s;
-          gs = arg$Pc$1$1;
-          g = arg$Pc$0$1;
-          tmp = f * g;
-          tmp1 = power.dotMult(f, gs);
-          tmp2 = power.dotMult(g, fs_);
+          tmp = arg$Pc$0$ * arg$Pc$0$1;
+          tmp1 = power.dotMult(arg$Pc$0$, arg$Pc$1$1);
+          tmp2 = power.dotMult(arg$Pc$0$1, arg$Pc$1$);
           tmp3 = power.addPs(tmp1, tmp2);
           tmp4 = power.x_();
-          tmp5 = power.multPs(tmp4, fs_);
-          tmp6 = power.multPs(tmp5, gs);
+          tmp5 = power.multPs(tmp4, arg$Pc$1$);
+          tmp6 = power.multPs(tmp5, arg$Pc$1$1);
           tmp7 = power.addPs(tmp3, tmp6);
           return power.Pc(tmp, tmp7)
         }
@@ -247,7 +231,7 @@ let power1;
   static multPsFstLz(fss, gss) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, f, fs_, scrut1, gs, g, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
+      let scrut, scrut1, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
       tmp = NofibPrelude.force(fss);
       scrut = NofibPrelude.force(tmp);
       if (scrut instanceof power.Pz.class) {
@@ -255,23 +239,19 @@ let power1;
       } else if (scrut instanceof power.Pc.class) {
         arg$Pc$0$ = scrut.f;
         arg$Pc$1$ = scrut.s;
-        fs_ = arg$Pc$1$;
-        f = arg$Pc$0$;
         scrut1 = NofibPrelude.force(gss);
         if (scrut1 instanceof power.Pz.class) {
           return power.Pz
         } else if (scrut1 instanceof power.Pc.class) {
           arg$Pc$0$1 = scrut1.f;
           arg$Pc$1$1 = scrut1.s;
-          gs = arg$Pc$1$1;
-          g = arg$Pc$0$1;
-          tmp1 = f * g;
-          tmp2 = power.dotMult(f, gs);
-          tmp3 = power.dotMult(g, fs_);
+          tmp1 = arg$Pc$0$ * arg$Pc$0$1;
+          tmp2 = power.dotMult(arg$Pc$0$, arg$Pc$1$1);
+          tmp3 = power.dotMult(arg$Pc$0$1, arg$Pc$1$);
           tmp4 = power.addPs(tmp2, tmp3);
           tmp5 = power.x_();
-          tmp6 = power.multPs(tmp5, fs_);
-          tmp7 = power.multPs(tmp6, gs);
+          tmp6 = power.multPs(tmp5, arg$Pc$1$);
+          tmp7 = power.multPs(tmp6, arg$Pc$1$1);
           tmp8 = power.addPs(tmp4, tmp7);
           return power.Pc(tmp1, tmp8)
         }
@@ -294,7 +274,7 @@ let power1;
   static divPs(fss, gss) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, scrut1, gs, fs_, scrut2, gs1, gs2, g, q, f, fs_1, scrut3, gs3, g1, q1, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, arg$Pc$0$2, arg$Pc$1$2, arg$Pc$0$3, arg$Pc$1$3, lambda1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, lambda2, tmp6, tmp7, tmp8, tmp9, tmp10, lambda3, tmp11, tmp12;
+      let scrut, scrut1, scrut2, gs, g, f, fs_, scrut3, gs1, g1, q, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, arg$Pc$0$2, arg$Pc$1$2, arg$Pc$0$3, arg$Pc$1$3, lambda1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, lambda2, tmp6, tmp7, tmp8, tmp9, tmp10, lambda3, tmp11, tmp12;
       split_default$: {
         scrut = NofibPrelude.force(fss);
         if (scrut instanceof power.Pz.class) {
@@ -305,12 +285,11 @@ let power1;
             arg$Pc$0$3 = scrut1.f;
             arg$Pc$1$3 = scrut1.s;
             if (arg$Pc$0$3 === 0) {
-              gs = arg$Pc$1$3;
               lambda1 = (undefined, function () {
                 return power.Pz
               });
               tmp = NofibPrelude.lazy(lambda1);
-              tmp1 = power.divPs(tmp, gs);
+              tmp1 = power.divPs(tmp, arg$Pc$1$3);
               return NofibPrelude.force(tmp1)
             }
             return power.Pz;
@@ -320,63 +299,60 @@ let power1;
           arg$Pc$0$ = scrut.f;
           arg$Pc$1$ = scrut.s;
           if (arg$Pc$0$ === 0) {
-            fs_ = arg$Pc$1$;
             scrut2 = NofibPrelude.force(gss);
             if (scrut2 instanceof power.Pc.class) {
               arg$Pc$0$2 = scrut2.f;
               arg$Pc$1$2 = scrut2.s;
               if (arg$Pc$0$2 === 0) {
-                gs1 = arg$Pc$1$2;
-                tmp2 = power.divPs(fs_, gs1);
+                tmp2 = power.divPs(arg$Pc$1$, arg$Pc$1$2);
                 return NofibPrelude.force(tmp2)
               }
-              gs2 = arg$Pc$1$2;
+              gs = arg$Pc$1$2;
               g = arg$Pc$0$2;
-              q = 0;
-              tmp3 = power.dotMult(q, gs2);
+              tmp3 = power.dotMult(0, gs);
               tmp4 = power.negatePs(tmp3);
-              tmp5 = power.addPs(fs_, tmp4);
+              tmp5 = power.addPs(arg$Pc$1$, tmp4);
               lambda2 = (undefined, function () {
-                return power.Pc(g, gs2)
+                return power.Pc(g, gs)
               });
               tmp6 = NofibPrelude.lazy(lambda2);
               tmp7 = power.divPs(tmp5, tmp6);
-              return power.Pc(q, tmp7);
+              return power.Pc(0, tmp7);
             }
-            fs_1 = arg$Pc$1$;
+            fs_ = arg$Pc$1$;
             f = arg$Pc$0$;
             scrut3 = NofibPrelude.force(gss);
             if (scrut3 instanceof power.Pc.class) {
               arg$Pc$0$1 = scrut3.f;
               arg$Pc$1$1 = scrut3.s;
-              gs3 = arg$Pc$1$1;
+              gs1 = arg$Pc$1$1;
               g1 = arg$Pc$0$1;
             } else {
               break split_default$
             }
           } else {
-            fs_1 = arg$Pc$1$;
+            fs_ = arg$Pc$1$;
             f = arg$Pc$0$;
             scrut3 = NofibPrelude.force(gss);
             if (scrut3 instanceof power.Pc.class) {
               arg$Pc$0$1 = scrut3.f;
               arg$Pc$1$1 = scrut3.s;
-              gs3 = arg$Pc$1$1;
+              gs1 = arg$Pc$1$1;
               g1 = arg$Pc$0$1;
             } else {
               break split_default$
             }
           }
-          q1 = f / g1;
-          tmp8 = power.dotMult(q1, gs3);
+          q = f / g1;
+          tmp8 = power.dotMult(q, gs1);
           tmp9 = power.negatePs(tmp8);
-          tmp10 = power.addPs(fs_1, tmp9);
+          tmp10 = power.addPs(fs_, tmp9);
           lambda3 = (undefined, function () {
-            return power.Pc(g1, gs3)
+            return power.Pc(g1, gs1)
           });
           tmp11 = NofibPrelude.lazy(lambda3);
           tmp12 = power.divPs(tmp10, tmp11);
-          return power.Pc(q1, tmp12)
+          return power.Pc(q, tmp12)
         }
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"))
@@ -386,14 +362,13 @@ let power1;
   static compose_(fss, gss) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, f, fs_, scrut1, gs, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, lambda1, tmp, lambda2, tmp1, tmp2, tmp3, lambda3, tmp4, tmp5, tmp6, tmp7;
+      let scrut, f, scrut1, gs, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, lambda1, tmp, lambda2, tmp1, tmp2, tmp3, lambda3, tmp4, tmp5, tmp6, tmp7;
       scrut = NofibPrelude.force(fss);
       if (scrut instanceof power.Pz.class) {
         return power.Pz
       } else if (scrut instanceof power.Pc.class) {
         arg$Pc$0$ = scrut.f;
         arg$Pc$1$ = scrut.s;
-        fs_ = arg$Pc$1$;
         f = arg$Pc$0$;
         scrut1 = NofibPrelude.force(gss);
         if (scrut1 instanceof power.Pz.class) {
@@ -411,7 +386,7 @@ let power1;
               return power.Pc(0, gs)
             });
             tmp1 = NofibPrelude.lazy(lambda2);
-            tmp2 = power.compose_(fs_, tmp1);
+            tmp2 = power.compose_(arg$Pc$1$, tmp1);
             tmp3 = power.multPs(gs, tmp2);
             return power.Pc(f, tmp3)
           }
@@ -425,7 +400,7 @@ let power1;
           return power.Pc(f, tmp8)
         });
         tmp4 = NofibPrelude.lazy(lambda3);
-        tmp5 = power.compose_(fs_, gss);
+        tmp5 = power.compose_(arg$Pc$1$, gss);
         tmp6 = power.multPs(gss, tmp5);
         tmp7 = power.addPs(tmp4, tmp6);
         return NofibPrelude.force(tmp7)
@@ -437,14 +412,13 @@ let power1;
   static composeSndLz_(fss, gss) {
     let lambda;
     lambda = (undefined, function () {
-      let scrut, f, fs_, scrut1, gs, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, lambda1, tmp1, lambda2, tmp2, tmp3, tmp4, lambda3, tmp5, tmp6, tmp7, tmp8;
+      let scrut, f, scrut1, gs, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, lambda1, tmp1, lambda2, tmp2, tmp3, tmp4, lambda3, tmp5, tmp6, tmp7, tmp8;
       scrut = NofibPrelude.force(fss);
       if (scrut instanceof power.Pz.class) {
         return power.Pz
       } else if (scrut instanceof power.Pc.class) {
         arg$Pc$0$ = scrut.f;
         arg$Pc$1$ = scrut.s;
-        fs_ = arg$Pc$1$;
         f = arg$Pc$0$;
         tmp = NofibPrelude.force(gss);
         scrut1 = NofibPrelude.force(tmp);
@@ -463,7 +437,7 @@ let power1;
               return power.Pc(0, gs)
             });
             tmp2 = NofibPrelude.lazy(lambda2);
-            tmp3 = power.compose_(fs_, tmp2);
+            tmp3 = power.compose_(arg$Pc$1$, tmp2);
             tmp4 = power.multPs(gs, tmp3);
             return power.Pc(f, tmp4)
           }
@@ -477,7 +451,7 @@ let power1;
           return power.Pc(f, tmp9)
         });
         tmp5 = NofibPrelude.lazy(lambda3);
-        tmp6 = power.composeSndLz_(fs_, gss);
+        tmp6 = power.composeSndLz_(arg$Pc$1$, gss);
         tmp7 = power.multPs(gss, tmp6);
         tmp8 = power.addPs(tmp5, tmp7);
         return NofibPrelude.force(tmp8)
@@ -489,7 +463,7 @@ let power1;
   static revert(fss) {
     let lambda;
     lambda = (undefined, function () {
-      let rs, scrut, fs_, kss, gss, f1, scrut1, scrut2, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1, tmp2, lambda1, tmp3;
+      let rs, scrut, fs_, f1, scrut1, scrut2, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1, tmp2, lambda1, tmp3;
       scrut = NofibPrelude.force(fss);
       if (scrut instanceof power.Pc.class) {
         arg$Pc$0$ = scrut.f;
@@ -511,14 +485,12 @@ let power1;
           tmp = rs();
           return NofibPrelude.force(tmp)
         }
-        kss = arg$Pc$1$;
-        scrut2 = NofibPrelude.force(kss);
+        scrut2 = NofibPrelude.force(arg$Pc$1$);
         if (scrut2 instanceof power.Pc.class) {
           arg$Pc$0$1 = scrut2.f;
           arg$Pc$1$1 = scrut2.s;
-          gss = arg$Pc$1$1;
           f1 = arg$Pc$0$1;
-          scrut1 = NofibPrelude.force(gss);
+          scrut1 = NofibPrelude.force(arg$Pc$1$1);
           if (scrut1 instanceof power.Pz.class) {
             tmp1 = 1 / f1;
             tmp2 = - tmp1;
@@ -534,7 +506,7 @@ let power1;
             tmp3 = NofibPrelude.lazy(lambda1);
             return power.Pc(tmp2, tmp3)
           }
-          throw globalThis.Object.freeze(new globalThis.Error("match error"))
+          throw globalThis.Object.freeze(new globalThis.Error("match error"));
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
@@ -545,35 +517,32 @@ let power1;
   static deriv(fss) {
     let lambda;
     lambda = (undefined, function () {
-      let deriv1, scrut, fs_, arg$Pc$1$, tmp;
+      let deriv1, scrut, arg$Pc$1$, tmp;
       scrut = NofibPrelude.force(fss);
       if (scrut instanceof power.Pz.class) {
         return power.Pz
       } else if (scrut instanceof power.Pc.class) {
         arg$Pc$1$ = scrut.s;
-        fs_ = arg$Pc$1$;
         deriv1 = function deriv1(gss, n) {
           let lambda1;
           lambda1 = (undefined, function () {
-            let scrut1, f, fs_1, arg$Pc$0$, arg$Pc$1$1, tmp1, tmp2, tmp3;
+            let scrut1, arg$Pc$0$, arg$Pc$1$1, tmp1, tmp2, tmp3;
             scrut1 = NofibPrelude.force(gss);
             if (scrut1 instanceof power.Pz.class) {
               return power.Pz
             } else if (scrut1 instanceof power.Pc.class) {
               arg$Pc$0$ = scrut1.f;
               arg$Pc$1$1 = scrut1.s;
-              fs_1 = arg$Pc$1$1;
-              f = arg$Pc$0$;
-              tmp1 = n * f;
+              tmp1 = n * arg$Pc$0$;
               tmp2 = n + 1;
-              tmp3 = deriv1(fs_1, tmp2);
+              tmp3 = deriv1(arg$Pc$1$1, tmp2);
               return power.Pc(tmp1, tmp3)
             }
             throw globalThis.Object.freeze(new globalThis.Error("match error"));
           });
           return NofibPrelude.lazy(lambda1)
         };
-        tmp = deriv1(fs_, 1);
+        tmp = deriv1(arg$Pc$1$, 1);
         return NofibPrelude.force(tmp)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -585,18 +554,16 @@ let power1;
     int1 = function int1(fss, n) {
       let lambda1;
       lambda1 = (undefined, function () {
-        let scrut, f, fs_1, arg$Pc$0$, arg$Pc$1$, tmp, tmp1, tmp2;
+        let scrut, arg$Pc$0$, arg$Pc$1$, tmp, tmp1, tmp2;
         scrut = NofibPrelude.force(fss);
         if (scrut instanceof power.Pz.class) {
           return power.Pz
         } else if (scrut instanceof power.Pc.class) {
           arg$Pc$0$ = scrut.f;
           arg$Pc$1$ = scrut.s;
-          fs_1 = arg$Pc$1$;
-          f = arg$Pc$0$;
-          tmp = f / n;
+          tmp = arg$Pc$0$ / n;
           tmp1 = n + 1;
-          tmp2 = int1(fs_1, tmp1);
+          tmp2 = int1(arg$Pc$1$, tmp1);
           return power.Pc(tmp, tmp2)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -615,18 +582,16 @@ let power1;
     int1 = function int1(fss, n) {
       let lambda1;
       lambda1 = (undefined, function () {
-        let scrut, f, fs_1, arg$Pc$0$, arg$Pc$1$, tmp, tmp1, tmp2;
+        let scrut, arg$Pc$0$, arg$Pc$1$, tmp, tmp1, tmp2;
         scrut = NofibPrelude.force(fss);
         if (scrut instanceof power.Pz.class) {
           return power.Pz
         } else if (scrut instanceof power.Pc.class) {
           arg$Pc$0$ = scrut.f;
           arg$Pc$1$ = scrut.s;
-          fs_1 = arg$Pc$1$;
-          f = arg$Pc$0$;
-          tmp = f / n;
+          tmp = arg$Pc$0$ / n;
           tmp1 = n + 1;
-          tmp2 = int1(fs_1, tmp1);
+          tmp2 = int1(arg$Pc$1$, tmp1);
           return power.Pc(tmp, tmp2)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -644,7 +609,7 @@ let power1;
   static sqrtPs(fss) {
     let lambda;
     lambda = (undefined, function () {
-      let qs, scrut, gss, fs_, scrut1, fs_1, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1, tmp2;
+      let qs, scrut, scrut1, fs_, arg$Pc$0$, arg$Pc$1$, arg$Pc$0$1, arg$Pc$1$1, tmp, tmp1, tmp2;
       scrut = NofibPrelude.force(fss);
       if (scrut instanceof power.Pz.class) {
         return power.Pz
@@ -653,28 +618,26 @@ let power1;
         arg$Pc$1$ = scrut.s;
         switch (arg$Pc$0$) {
           case 0:
-            gss = arg$Pc$1$;
-            scrut1 = NofibPrelude.force(gss);
+            scrut1 = NofibPrelude.force(arg$Pc$1$);
             if (scrut1 instanceof power.Pc.class) {
               arg$Pc$0$1 = scrut1.f;
               arg$Pc$1$1 = scrut1.s;
               if (arg$Pc$0$1 === 0) {
-                fs_ = arg$Pc$1$1;
-                tmp = power.sqrtPs(fs_);
+                tmp = power.sqrtPs(arg$Pc$1$1);
                 return power.Pc(0, tmp)
               }
-              throw globalThis.Object.freeze(new globalThis.Error("match error"))
+              throw globalThis.Object.freeze(new globalThis.Error("match error"));
             }
             throw globalThis.Object.freeze(new globalThis.Error("match error"));
           case 1:
-            fs_1 = arg$Pc$1$;
+            fs_ = arg$Pc$1$;
             qs = function qs() {
               let lambda1;
               lambda1 = (undefined, function () {
                 let tmp3, lambda2, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
                 tmp3 = power.fromIntegerPs(1);
                 lambda2 = (undefined, function () {
-                  return power.Pc(1, fs_1)
+                  return power.Pc(1, fs_)
                 });
                 tmp4 = NofibPrelude.lazy(lambda2);
                 tmp5 = power.deriv(tmp4);

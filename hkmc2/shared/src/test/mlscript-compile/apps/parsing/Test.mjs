@@ -137,7 +137,7 @@ let Test1;
     ])
   } 
   static example(...lines) {
-    let source, tokens, scrut, flags, tokens1, scrut1, trees, scrut2, rcd, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let source, tokens, scrut, scrut1, trees, scrut2, rcd, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     source = runtime.safeCall(lines.join("\n"));
     rcd = globalThis.Object.freeze({
       noWhitespace: true
@@ -147,19 +147,17 @@ let Test1;
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      tokens1 = element1$;
-      flags = element0$;
       scrut1 = runtime.safeCall(element0$.has("tokens"));
       if (scrut1 === true) {
         tmp = TokenHelpers.panorama(element1$);
         Predef.print(tmp);
       }
       runtime.safeCall(Parser.tracer.reset());
-      tmp1 = runtime.safeCall(flags.has("trace"));
+      tmp1 = runtime.safeCall(element0$.has("trace"));
       Parser.tracer.enabled = tmp1;
-      trees = Parser.parse(tokens1);
+      trees = Parser.parse(element1$);
       Parser.tracer.enabled = false;
-      scrut2 = runtime.safeCall(flags.has("tree"));
+      scrut2 = runtime.safeCall(element0$.has("tree"));
       if (scrut2 === true) {
         tmp2 = Iter.fromStack(trees);
         tmp3 = Iter.mapping(tmp2, TreeHelpers.showAsTree);

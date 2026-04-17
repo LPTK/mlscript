@@ -30,17 +30,15 @@ let secretary1;
   static simulate(n, m, proc) {
     let lscomp, lambda, tmp, tmp1, tmp2, tmp3;
     lscomp = function lscomp(ls) {
-      let seed, t, arg$Cons$0$, arg$Cons$1$, tmp4, tmp5, tmp6;
+      let arg$Cons$0$, arg$Cons$1$, tmp4, tmp5, tmp6;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
-        seed = arg$Cons$0$;
-        tmp4 = secretary.infRand(m, seed);
+        tmp4 = secretary.infRand(m, arg$Cons$0$);
         tmp5 = runtime.safeCall(proc(tmp4));
-        tmp6 = lscomp(t);
+        tmp6 = lscomp(arg$Cons$1$);
         return NofibPrelude.Cons(tmp5, tmp6)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -57,10 +55,9 @@ let secretary1;
   static sim(n, k) {
     let proc;
     proc = function proc(rs) {
-      let xs, best, bestk, afterk, tmp, tmp1, lambda, tmp2, tmp3, tmp4;
+      let xs, bestk, afterk, tmp, tmp1, lambda, tmp2, tmp3, tmp4;
       tmp = NofibPrelude.nub_lz(rs);
       xs = NofibPrelude.take_lz(100, tmp);
-      best = 100;
       tmp1 = NofibPrelude.take(k, xs);
       bestk = NofibPrelude.maximum(tmp1);
       lambda = (undefined, function (x) {
@@ -68,7 +65,7 @@ let secretary1;
       });
       tmp2 = NofibPrelude.leave(k, xs);
       afterk = NofibPrelude.leaveWhile(lambda, tmp2);
-      tmp3 = NofibPrelude.Cons(best, NofibPrelude.Nil);
+      tmp3 = NofibPrelude.Cons(100, NofibPrelude.Nil);
       tmp4 = NofibPrelude.take(1, afterk);
       return NofibPrelude.listEq(tmp3, tmp4)
     };
@@ -77,16 +74,14 @@ let secretary1;
   static testSecretary_nofib(n) {
     let listcomp, tmp;
     listcomp = function listcomp(ls) {
-      let t, h, arg$Cons$0$, arg$Cons$1$, tmp1, tmp2;
+      let arg$Cons$0$, arg$Cons$1$, tmp1, tmp2;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        t = arg$Cons$1$;
-        h = arg$Cons$0$;
-        tmp1 = secretary.sim(n, h);
-        tmp2 = listcomp(t);
+        tmp1 = secretary.sim(n, arg$Cons$0$);
+        tmp2 = listcomp(arg$Cons$1$);
         return NofibPrelude.Cons(tmp1, tmp2)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));

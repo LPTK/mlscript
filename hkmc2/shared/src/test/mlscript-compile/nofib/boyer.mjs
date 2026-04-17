@@ -822,7 +822,7 @@ let boyer1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let rhs, ls, lhs, subst, unified, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, element1$1, element0$1, tmp;
+          let unified, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, element1$1, element0$1, tmp;
           if (param1 instanceof NofibPrelude.Nil.class) {
             return param0
           } else if (param1 instanceof NofibPrelude.Cons.class) {
@@ -831,22 +831,18 @@ let boyer1;
             if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
               element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
               element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-              ls = arg$Cons$1$;
-              rhs = element1$;
-              lhs = element0$;
-              scrut = boyer.one_way_unify(param0, lhs);
+              scrut = boyer.one_way_unify(param0, element0$);
               if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
                 element0$1 = runtime.Tuple.get(scrut, 0);
                 element1$1 = runtime.Tuple.get(scrut, 1);
-                subst = element1$1;
                 unified = element0$1;
                 if (unified === true) {
-                  tmp = boyer.apply_subst(subst, rhs);
+                  tmp = boyer.apply_subst(element1$1, element1$);
                   param0 = tmp;
                   id = 2;
                   continue loopLabel
                 }
-                param1 = ls;
+                param1 = arg$Cons$1$;
                 id = 0;
                 continue loopLabel;
               }
@@ -862,22 +858,18 @@ let boyer1;
           id = 0;
           continue loopLabel;
         case 2:
-          let v, f, lemmas, args, arg$Fun$0$, arg$Fun$1$, arg$Fun$2$, arg$Var$0$, tmp2, tmp3;
+          let arg$Fun$0$, arg$Fun$1$, arg$Fun$2$, arg$Var$0$, tmp2, tmp3;
           if (param0 instanceof boyer.Var.class) {
             arg$Var$0$ = param0.i;
-            v = arg$Var$0$;
-            return boyer.Var(v)
+            return boyer.Var(arg$Var$0$)
           } else if (param0 instanceof boyer.Fun.class) {
             arg$Fun$0$ = param0.i;
             arg$Fun$1$ = param0.t;
             arg$Fun$2$ = param0.l;
-            lemmas = arg$Fun$2$;
-            args = arg$Fun$1$;
-            f = arg$Fun$0$;
-            tmp2 = NofibPrelude.map(boyer.rewrite, args);
-            tmp3 = boyer.Fun(f, tmp2, lemmas);
+            tmp2 = NofibPrelude.map(boyer.rewrite, arg$Fun$1$);
+            tmp3 = boyer.Fun(arg$Fun$0$, tmp2, arg$Fun$2$);
             param0 = tmp3;
-            param1 = lemmas;
+            param1 = arg$Fun$2$;
             id = 1;
             continue loopLabel
           }
@@ -890,21 +882,17 @@ let boyer1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let h1, t1, h2, t2, scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1;
+          let scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1;
           if (param0 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$ = param0.head;
             arg$Cons$1$ = param0.tail;
-            t1 = arg$Cons$1$;
-            h1 = arg$Cons$0$;
             if (param1 instanceof NofibPrelude.Cons.class) {
               arg$Cons$0$1 = param1.head;
               arg$Cons$1$1 = param1.tail;
-              t2 = arg$Cons$1$1;
-              h2 = arg$Cons$0$1;
-              scrut = boyer.termEq(h1, h2);
+              scrut = boyer.termEq(arg$Cons$0$, arg$Cons$0$1);
               if (scrut === true) {
-                param0 = t1;
-                param1 = t2;
+                param0 = arg$Cons$1$;
+                param1 = arg$Cons$1$1;
                 id = 0;
                 continue loopLabel
               }
@@ -914,29 +902,23 @@ let boyer1;
           }
           return true;
         case 1:
-          let i1, i2, f1, ts1, ts2, f2, scrut1, scrut2, arg$Fun$0$, arg$Fun$1$, arg$Fun$0$1, arg$Fun$1$1, arg$Var$0$, arg$Var$0$1;
+          let scrut1, scrut2, arg$Fun$0$, arg$Fun$1$, arg$Fun$0$1, arg$Fun$1$1, arg$Var$0$, arg$Var$0$1;
           if (param0 instanceof boyer.Var.class) {
             arg$Var$0$ = param0.i;
-            i1 = arg$Var$0$;
             if (param1 instanceof boyer.Var.class) {
               arg$Var$0$1 = param1.i;
-              i2 = arg$Var$0$1;
-              return i1 === i2
+              return arg$Var$0$ === arg$Var$0$1
             }
             return false;
           } else if (param0 instanceof boyer.Fun.class) {
             arg$Fun$0$ = param0.i;
             arg$Fun$1$ = param0.t;
-            ts1 = arg$Fun$1$;
-            f1 = arg$Fun$0$;
             if (param1 instanceof boyer.Fun.class) {
               arg$Fun$0$1 = param1.i;
               arg$Fun$1$1 = param1.t;
-              ts2 = arg$Fun$1$1;
-              f2 = arg$Fun$0$1;
-              scrut1 = f1 === f2;
+              scrut1 = arg$Fun$0$ === arg$Fun$0$1;
               if (scrut1 === true) {
-                scrut2 = boyer.termLsEq(ts1, ts2);
+                scrut2 = boyer.termLsEq(arg$Fun$1$, arg$Fun$1$1);
                 if (scrut2 === true) {
                   return true
                 }
@@ -955,25 +937,23 @@ let boyer1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let vid2, v2, found, scrut, f1, as1, as2, f2, scrut1, arg$Fun$0$, arg$Fun$1$, arg$Fun$0$1, arg$Fun$1$1, arg$Var$0$, element1$, element0$, tmp, tmp1, tmp2;
+          let found, scrut, scrut1, arg$Fun$0$, arg$Fun$1$, arg$Fun$0$1, arg$Fun$1$1, arg$Var$0$, element1$, element0$, tmp, tmp1, tmp2;
           if (param1 instanceof boyer.Var.class) {
             arg$Var$0$ = param1.i;
-            vid2 = arg$Var$0$;
-            scrut = boyer.find(vid2, param2);
+            scrut = boyer.find(arg$Var$0$, param2);
             if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
               element0$ = runtime.Tuple.get(scrut, 0);
               element1$ = runtime.Tuple.get(scrut, 1);
-              v2 = element1$;
               found = element0$;
               if (found === true) {
-                tmp = boyer.termEq(param0, v2);
+                tmp = boyer.termEq(param0, element1$);
                 return globalThis.Object.freeze([
                   tmp,
                   param2
                 ])
               }
               tmp1 = globalThis.Object.freeze([
-                vid2,
+                arg$Var$0$,
                 param0
               ]);
               tmp2 = NofibPrelude.Cons(tmp1, param2);
@@ -985,8 +965,6 @@ let boyer1;
             if (param0 instanceof boyer.Fun.class) {
               arg$Fun$0$ = param0.i;
               arg$Fun$1$ = param0.t;
-              as1 = arg$Fun$1$;
-              f1 = arg$Fun$0$;
               return globalThis.Object.freeze([
                 false,
                 NofibPrelude.Nil
@@ -1000,17 +978,13 @@ let boyer1;
           if (param0 instanceof boyer.Fun.class) {
             arg$Fun$0$ = param0.i;
             arg$Fun$1$ = param0.t;
-            as1 = arg$Fun$1$;
-            f1 = arg$Fun$0$;
             if (param1 instanceof boyer.Fun.class) {
               arg$Fun$0$1 = param1.i;
               arg$Fun$1$1 = param1.t;
-              as2 = arg$Fun$1$1;
-              f2 = arg$Fun$0$1;
-              scrut1 = f1 === f2;
+              scrut1 = arg$Fun$0$ === arg$Fun$0$1;
               if (scrut1 === true) {
-                param0 = as1;
-                param1 = as2;
+                param0 = arg$Fun$1$;
+                param1 = arg$Fun$1$1;
                 id = 1;
                 continue loopLabel
               }
@@ -1029,7 +1003,7 @@ let boyer1;
             NofibPrelude.Nil
           ]);
         case 1:
-          let ts1, t1, ts2, t2, subst_, hd_ok, subst__, tl_ok, scrut2, scrut3, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, element1$1, element0$1, element1$2, element0$2, tmp3;
+          let hd_ok, tl_ok, scrut2, scrut3, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, element1$1, element0$1, element1$2, element0$2;
           if (param0 instanceof NofibPrelude.Nil.class) {
             if (param1 instanceof NofibPrelude.Nil.class) {
               return globalThis.Object.freeze([
@@ -1044,43 +1018,34 @@ let boyer1;
           } else if (param0 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$ = param0.head;
             arg$Cons$1$ = param0.tail;
-            ts1 = arg$Cons$1$;
-            t1 = arg$Cons$0$;
             if (param1 instanceof NofibPrelude.Cons.class) {
               arg$Cons$0$1 = param1.head;
               arg$Cons$1$1 = param1.tail;
-              ts2 = arg$Cons$1$1;
-              t2 = arg$Cons$0$1;
-              scrut3 = boyer.one_way_unify1(t1, t2, param2);
+              scrut3 = boyer.one_way_unify1(arg$Cons$0$, arg$Cons$0$1, param2);
               if (runtime.Tuple.isArrayLike(scrut3) && scrut3.length === 2) {
                 element0$1 = runtime.Tuple.get(scrut3, 0);
                 element1$1 = runtime.Tuple.get(scrut3, 1);
-                subst_ = element1$1;
                 hd_ok = element0$1;
-                scrut2 = boyer.one_way_unify1_lst(ts1, ts2, subst_);
+                scrut2 = boyer.one_way_unify1_lst(arg$Cons$1$, arg$Cons$1$1, element1$1);
                 if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
                   element0$2 = runtime.Tuple.get(scrut2, 0);
                   element1$2 = runtime.Tuple.get(scrut2, 1);
-                  subst__ = element1$2;
                   tl_ok = element0$2;
                   if (hd_ok === true) {
                     if (tl_ok === true) {
-                      tmp3 = true;
                       return globalThis.Object.freeze([
-                        tmp3,
-                        subst__
+                        true,
+                        element1$2
                       ])
                     }
-                    tmp3 = false;
                     return globalThis.Object.freeze([
-                      tmp3,
-                      subst__
+                      false,
+                      element1$2
                     ]);
                   }
-                  tmp3 = false;
                   return globalThis.Object.freeze([
-                    tmp3,
-                    subst__
+                    false,
+                    element1$2
                   ]);
                 }
                 return globalThis.Object.freeze([
@@ -1114,17 +1079,15 @@ let boyer1;
   } 
   static termInList(term, ht) {
     loopLabel: while (true) {
-      let t, h, scrut, arg$Cons$0$, arg$Cons$1$;
+      let scrut, arg$Cons$0$, arg$Cons$1$;
       if (ht instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ht.head;
         arg$Cons$1$ = ht.tail;
-        t = arg$Cons$1$;
-        h = arg$Cons$0$;
-        scrut = boyer.termEq(term, h);
+        scrut = boyer.termEq(term, arg$Cons$0$);
         if (scrut === true) {
           return true
         }
-        ht = t;
+        ht = arg$Cons$1$;
         continue loopLabel;
       } else if (ht instanceof NofibPrelude.Nil.class) {
         return false
@@ -1134,7 +1097,7 @@ let boyer1;
   } 
   static find(vid, ls) {
     loopLabel: while (true) {
-      let bs, val2, vid2, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
+      let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$;
       if (ls instanceof NofibPrelude.Nil.class) {
         return globalThis.Object.freeze([
           false,
@@ -1146,17 +1109,14 @@ let boyer1;
         if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-          bs = arg$Cons$1$;
-          val2 = element1$;
-          vid2 = element0$;
-          scrut = vid === vid2;
+          scrut = vid === element0$;
           if (scrut === true) {
             return globalThis.Object.freeze([
               true,
-              val2
+              element1$
             ])
           }
-          ls = bs;
+          ls = arg$Cons$1$;
           continue loopLabel;
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -1174,34 +1134,29 @@ let boyer1;
     return boyer.one_way_unify1(term1, term2, NofibPrelude.Nil)
   } 
   static apply_subst(subst, t) {
-    let vid, found, value, scrut, ls, f, args, arg$Fun$0$, arg$Fun$1$, arg$Fun$2$, arg$Var$0$, element1$, element0$, lambda, tmp;
+    let found, scrut, arg$Fun$0$, arg$Fun$1$, arg$Fun$2$, arg$Var$0$, element1$, element0$, lambda, tmp;
     if (t instanceof boyer.Var.class) {
       arg$Var$0$ = t.i;
-      vid = arg$Var$0$;
-      scrut = boyer.find(vid, subst);
+      scrut = boyer.find(arg$Var$0$, subst);
       if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
         element0$ = runtime.Tuple.get(scrut, 0);
         element1$ = runtime.Tuple.get(scrut, 1);
-        value = element1$;
         found = element0$;
         if (found === true) {
-          return value
+          return element1$
         }
-        return boyer.Var(vid);
+        return boyer.Var(arg$Var$0$);
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     } else if (t instanceof boyer.Fun.class) {
       arg$Fun$0$ = t.i;
       arg$Fun$1$ = t.t;
       arg$Fun$2$ = t.l;
-      ls = arg$Fun$2$;
-      args = arg$Fun$1$;
-      f = arg$Fun$0$;
       lambda = (undefined, function (x) {
         return boyer.apply_subst(subst, x)
       });
-      tmp = NofibPrelude.map(lambda, args);
-      return boyer.Fun(f, tmp, ls)
+      tmp = NofibPrelude.map(lambda, arg$Fun$1$);
+      return boyer.Fun(arg$Fun$0$, tmp, arg$Fun$2$)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
@@ -1238,7 +1193,7 @@ let boyer1;
   } 
   static tautologyp(x, true_lst, false_lst) {
     loopLabel: while (true) {
-      let scrut, scrut1, e, t, cond, scrut2, scrut3, scrut4, scrut5, arg$Fun$0$, arg$Fun$1$, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1;
+      let scrut, scrut1, scrut2, scrut3, scrut4, scrut5, arg$Fun$0$, arg$Fun$1$, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, tmp, tmp1;
       scrut = boyer.truep(x, true_lst);
       if (scrut === true) {
         return true
@@ -1261,24 +1216,21 @@ let boyer1;
                 arg$Cons$0$2 = arg$Cons$1$1.head;
                 arg$Cons$1$2 = arg$Cons$1$1.tail;
                 if (arg$Cons$1$2 instanceof NofibPrelude.Nil.class) {
-                  e = arg$Cons$0$2;
-                  t = arg$Cons$0$1;
-                  cond = arg$Cons$0$;
-                  scrut2 = boyer.truep(cond, true_lst);
+                  scrut2 = boyer.truep(arg$Cons$0$, true_lst);
                   if (scrut2 === true) {
-                    x = t;
+                    x = arg$Cons$0$1;
                     continue loopLabel
                   }
-                  scrut3 = boyer.falsep(cond, false_lst);
+                  scrut3 = boyer.falsep(arg$Cons$0$, false_lst);
                   if (scrut3 === true) {
-                    x = e;
+                    x = arg$Cons$0$2;
                     continue loopLabel
                   }
-                  tmp = NofibPrelude.Cons(cond, true_lst);
-                  scrut4 = boyer.tautologyp(t, tmp, false_lst);
+                  tmp = NofibPrelude.Cons(arg$Cons$0$, true_lst);
+                  scrut4 = boyer.tautologyp(arg$Cons$0$1, tmp, false_lst);
                   if (scrut4 === true) {
-                    tmp1 = NofibPrelude.Cons(cond, false_lst);
-                    scrut5 = boyer.tautologyp(e, true_lst, tmp1);
+                    tmp1 = NofibPrelude.Cons(arg$Cons$0$, false_lst);
+                    scrut5 = boyer.tautologyp(arg$Cons$0$2, true_lst, tmp1);
                     if (scrut5 === true) {
                       return true
                     }

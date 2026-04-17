@@ -44,36 +44,30 @@ let mandel1;
     return mandel.Pixmap(width, height, max, colours)
   } 
   static comp_magnitude(c) {
-    let a, b, arg$Complex$0$, arg$Complex$1$, tmp, tmp1, tmp2;
+    let arg$Complex$0$, arg$Complex$1$, tmp, tmp1, tmp2;
     if (c instanceof mandel.Complex.class) {
       arg$Complex$0$ = c.r;
       arg$Complex$1$ = c.i;
-      b = arg$Complex$1$;
-      a = arg$Complex$0$;
-      tmp = a * a;
-      tmp1 = b * b;
+      tmp = arg$Complex$0$ * arg$Complex$0$;
+      tmp1 = arg$Complex$1$ * arg$Complex$1$;
       tmp2 = tmp + tmp1;
       return NofibPrelude.sqrt(tmp2)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static comp_times(x, y) {
-    let a, b, c, d, arg$Complex$0$, arg$Complex$1$, arg$Complex$0$1, arg$Complex$1$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+    let arg$Complex$0$, arg$Complex$1$, arg$Complex$0$1, arg$Complex$1$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
     if (x instanceof mandel.Complex.class) {
       arg$Complex$0$ = x.r;
       arg$Complex$1$ = x.i;
-      b = arg$Complex$1$;
-      a = arg$Complex$0$;
       if (y instanceof mandel.Complex.class) {
         arg$Complex$0$1 = y.r;
         arg$Complex$1$1 = y.i;
-        d = arg$Complex$1$1;
-        c = arg$Complex$0$1;
-        tmp = a * c;
-        tmp1 = b * d;
+        tmp = arg$Complex$0$ * arg$Complex$0$1;
+        tmp1 = arg$Complex$1$ * arg$Complex$1$1;
         tmp2 = tmp - tmp1;
-        tmp3 = a * d;
-        tmp4 = b * c;
+        tmp3 = arg$Complex$0$ * arg$Complex$1$1;
+        tmp4 = arg$Complex$1$ * arg$Complex$0$1;
         tmp5 = tmp3 + tmp4;
         return mandel.Complex(tmp2, tmp5)
       }
@@ -82,19 +76,15 @@ let mandel1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static comp_plus(x, y) {
-    let a, b, c, d, arg$Complex$0$, arg$Complex$1$, arg$Complex$0$1, arg$Complex$1$1, tmp, tmp1;
+    let arg$Complex$0$, arg$Complex$1$, arg$Complex$0$1, arg$Complex$1$1, tmp, tmp1;
     if (x instanceof mandel.Complex.class) {
       arg$Complex$0$ = x.r;
       arg$Complex$1$ = x.i;
-      b = arg$Complex$1$;
-      a = arg$Complex$0$;
       if (y instanceof mandel.Complex.class) {
         arg$Complex$0$1 = y.r;
         arg$Complex$1$1 = y.i;
-        d = arg$Complex$1$1;
-        c = arg$Complex$0$1;
-        tmp = a + c;
-        tmp1 = b + d;
+        tmp = arg$Complex$0$ + arg$Complex$0$1;
+        tmp1 = arg$Complex$1$ + arg$Complex$1$1;
         return mandel.Complex(tmp, tmp1)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -128,20 +118,18 @@ let mandel1;
   static whenDiverge(limit, radius, c) {
     let walkIt, tmp, tmp1;
     walkIt = function walkIt(ls) {
-      let scrut, x, xs, scrut1, arg$LzCons$0$, arg$LzCons$1$, tmp2;
+      let scrut, scrut1, arg$LzCons$0$, arg$LzCons$1$, tmp2;
       scrut = NofibPrelude.force(ls);
       if (scrut instanceof NofibPrelude.LzNil.class) {
         return 0
       } else if (scrut instanceof NofibPrelude.LzCons.class) {
         arg$LzCons$0$ = scrut.head;
         arg$LzCons$1$ = scrut.tail;
-        xs = arg$LzCons$1$;
-        x = arg$LzCons$0$;
-        scrut1 = mandel.diverge(x, radius);
+        scrut1 = mandel.diverge(arg$LzCons$0$, radius);
         if (scrut1 === true) {
           return 0
         }
-        tmp2 = walkIt(xs);
+        tmp2 = walkIt(arg$LzCons$1$);
         return 1 + tmp2;
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -178,29 +166,25 @@ let mandel1;
         t1 = arg$Cons$1$;
         t = arg$Cons$0$;
         lscomp2 = function lscomp2(ls2) {
-          let s, t2, arg$Cons$0$1, arg$Cons$1$1, tmp8, tmp9;
+          let arg$Cons$0$1, arg$Cons$1$1, tmp8;
           if (ls2 instanceof NofibPrelude.Nil.class) {
             return lscomp1(t1)
           } else if (ls2 instanceof NofibPrelude.Cons.class) {
-            let s1, t3, inlinedVal, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17;
+            let t2, inlinedVal, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
             arg$Cons$0$1 = ls2.head;
             arg$Cons$1$1 = ls2.tail;
-            t2 = arg$Cons$1$1;
-            s = arg$Cons$0$1;
-            s1 = s;
-            t3 = t;
-            tmp10 = x_ - x;
-            tmp11 = s1 * tmp10;
-            tmp12 = tmp11 / screenX;
-            tmp13 = x + tmp12;
-            tmp14 = y_ - y;
-            tmp15 = t3 * tmp14;
-            tmp16 = tmp15 / screenY;
-            tmp17 = y + tmp16;
-            inlinedVal = mandel.Complex(tmp13, tmp17);
-            tmp8 = inlinedVal;
-            tmp9 = lscomp2(t2);
-            return NofibPrelude.Cons(tmp8, tmp9)
+            t2 = t;
+            tmp9 = x_ - x;
+            tmp10 = arg$Cons$0$1 * tmp9;
+            tmp11 = tmp10 / screenX;
+            tmp12 = x + tmp11;
+            tmp13 = y_ - y;
+            tmp14 = t2 * tmp13;
+            tmp15 = tmp14 / screenY;
+            tmp16 = y + tmp15;
+            inlinedVal = mandel.Complex(tmp12, tmp16);
+            tmp8 = lscomp2(arg$Cons$1$1);
+            return NofibPrelude.Cons(inlinedVal, tmp8)
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         };
@@ -220,15 +204,10 @@ let mandel1;
     return mandel.createPixmap(screenX, screenY, lIMIT, tmp6)
   } 
   static testMandel_nofib(dummy) {
-    let minx, miny, maxx, maxy, screenX, screenY, limit;
+    let minx, miny;
     minx = - 2.0;
     miny = - 2.0;
-    maxx = 2.0;
-    maxy = 2.0;
-    screenX = 25;
-    screenY = 25;
-    limit = 75;
-    return mandel.mandelset(minx, miny, maxx, maxy, screenX, screenY, limit)
+    return mandel.mandelset(minx, miny, 2.0, 2.0, 25, 25, 75)
   } 
   static main() {
     return mandel.testMandel_nofib(0)
