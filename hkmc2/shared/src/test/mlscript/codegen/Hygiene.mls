@@ -221,7 +221,7 @@ Whoops.f()
 //│ = "Hello"
 
 Whoops.Whoops
-//│ = class Whoops { w: ref'1 } as ref'1
+//│ = class Whoops { w: ref'2 } as ref'2
 
 Whoops.Whoops.g()
 //│ = "Hello"
