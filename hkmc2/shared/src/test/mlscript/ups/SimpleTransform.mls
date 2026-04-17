@@ -178,6 +178,14 @@ Prefix("-", 10 +:+ 2 *:* 3) is EvaluatedTerm(-16)
 Infix("**", Literal(1), Literal(2)) is EvaluatedTerm
 //│ = false
 
+
+
+
+// FIXME: test below never finishes
+:exit
+====================================================================================================
+
+
 fun evaluate(term) = if term is
   (@compile EvaluatedTerm) as v then Some(v)
   else None
