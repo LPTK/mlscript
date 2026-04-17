@@ -35,7 +35,7 @@ CSV1 = function CSV(strDelimiter) {
       tmp
     ];
     lbl: while (true) {
-      let arrMatches, scrut, strMatchedDelimiter, scrut1, scrut2, strMatchedValue, scrut3, tmp1, tmp2, tmp3, tmp4, tmp5;
+      let arrMatches, scrut, strMatchedDelimiter, scrut1, scrut2, scrut3, tmp1, tmp2, tmp3, tmp4, tmp5;
       arrMatches = runtime.safeCall(this.objPattern.exec(strData));
       scrut = arrMatches !== null;
       if (scrut === true) {
@@ -55,10 +55,9 @@ CSV1 = function CSV(strDelimiter) {
         } else {
           tmp3 = arrMatches[3];
         }
-        strMatchedValue = tmp3;
         tmp4 = arrData.length - 1;
         tmp5 = runtime.safeCall(arrData.at(tmp4));
-        runtime.safeCall(tmp5.push(strMatchedValue));
+        runtime.safeCall(tmp5.push(tmp3));
         continue lbl
       }
       break;

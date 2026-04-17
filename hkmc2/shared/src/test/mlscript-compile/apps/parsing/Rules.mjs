@@ -23,14 +23,12 @@ let Rules1;
     this.extendedKinds = tmp;
     tmp1 = Rules.define("let-bindings");
     lambda = (undefined, function (lhs, rhsBindings) {
-      let rhs, bindings, element1$, element0$, tmp262;
+      let element1$, element0$, tmp262;
       if (runtime.Tuple.isArrayLike(rhsBindings) && rhsBindings.length === 2) {
         element0$ = runtime.Tuple.get(rhsBindings, 0);
         element1$ = runtime.Tuple.get(rhsBindings, 1);
-        bindings = element1$;
-        rhs = element0$;
-        tmp262 = Tree.Infix(Keywords._equal, lhs, rhs);
-        return Stack.Cons(tmp262, bindings)
+        tmp262 = Tree.Infix(Keywords._equal, lhs, element0$);
+        return Stack.Cons(tmp262, element1$)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
@@ -62,14 +60,12 @@ let Rules1;
     Rules.#letExpression = Rules.makeLetBindings(true);
     tmp13 = Rules.define("simple-matching");
     lambda1 = (undefined, function (lhs, rhsTail) {
-      let rhs, tail, element1$, element0$, tmp262;
+      let element1$, element0$, tmp262;
       if (runtime.Tuple.isArrayLike(rhsTail) && rhsTail.length === 2) {
         element0$ = runtime.Tuple.get(rhsTail, 0);
         element1$ = runtime.Tuple.get(rhsTail, 1);
-        tail = element1$;
-        rhs = element0$;
-        tmp262 = Tree.Infix(Keywords._thinArrow, lhs, rhs);
-        return Stack.Cons(tmp262, tail)
+        tmp262 = Tree.Infix(Keywords._thinArrow, lhs, element0$);
+        return Stack.Cons(tmp262, element1$)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
@@ -204,13 +200,11 @@ let Rules1;
     tmp66 = runtime.safeCall(tmp61(tmp65));
     tmp67 = ParseRule.Choice.keyword(Keywords._if);
     lambda5 = (undefined, function (tst, conAlt) {
-      let con, alt, element1$, element0$;
+      let element1$, element0$;
       if (runtime.Tuple.isArrayLike(conAlt) && conAlt.length === 2) {
         element0$ = runtime.Tuple.get(conAlt, 0);
         element1$ = runtime.Tuple.get(conAlt, 1);
-        alt = element1$;
-        con = element0$;
-        return Tree.Ternary(Keywords._if, tst, con, alt)
+        return Tree.Ternary(Keywords._if, tst, element0$, element1$)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
@@ -333,7 +327,7 @@ let Rules1;
         return Tree.Bracketed(Token.Square, tmp262)
       }
       tmp262 = tree;
-      return Tree.Bracketed(Token.Square, tmp262);
+      return Tree.Bracketed(Token.Square, tree);
     });
     rcd27 = globalThis.Object.freeze({
       opening: Keywords._leftSquare,
@@ -363,11 +357,10 @@ let Rules1;
     });
     tmp114 = Rules.makeBracketRule(rcd29);
     lambda11 = (undefined, function (lhs, rhs) {
-      let tail, arg$Tuple$0$, tmp262, tmp263, tmp264;
+      let arg$Tuple$0$, tmp262, tmp263, tmp264;
       if (rhs instanceof Tree.Tuple.class) {
         arg$Tuple$0$ = rhs.trees;
-        tail = arg$Tuple$0$;
-        tmp262 = Stack.Cons(lhs, tail);
+        tmp262 = Stack.Cons(lhs, arg$Tuple$0$);
         return Tree.Tuple(tmp262)
       }
       tmp263 = Stack.Cons(rhs, Stack.Nil);
@@ -376,11 +369,10 @@ let Rules1;
     });
     tmp115 = Rules.makeInfixChoice(Keywords._comma, "term", lambda11);
     lambda12 = (undefined, function (lhs, rhs) {
-      let tail, arg$Sequence$0$, tmp262, tmp263, tmp264;
+      let arg$Sequence$0$, tmp262, tmp263, tmp264;
       if (rhs instanceof Tree.Sequence.class) {
         arg$Sequence$0$ = rhs.trees;
-        tail = arg$Sequence$0$;
-        tmp262 = Stack.Cons(lhs, tail);
+        tmp262 = Stack.Cons(lhs, arg$Sequence$0$);
         return Tree.Sequence(tmp262)
       }
       tmp263 = Stack.Cons(rhs, Stack.Nil);
@@ -475,19 +467,16 @@ let Rules1;
     this.termRule = tmp135;
     tmp136 = ParseRule.Choice.keyword(Keywords._leftRound);
     lambda20 = (undefined, function (headArg, tailArgsCtor) {
-      let ctor, tailArgs, ctor1, arg$Some$0$, element1$, element0$, tmp262, tmp263;
+      let arg$Some$0$, element1$, element0$, tmp262, tmp263;
       if (runtime.Tuple.isArrayLike(tailArgsCtor) && tailArgsCtor.length === 2) {
         element0$ = runtime.Tuple.get(tailArgsCtor, 0);
         element1$ = runtime.Tuple.get(tailArgsCtor, 1);
-        ctor = element1$;
-        tailArgs = element0$;
-        tmp262 = Stack.Cons(headArg, tailArgs);
+        tmp262 = Stack.Cons(headArg, element0$);
         tmp263 = Tree.Tuple(tmp262);
-        return Tree.App(ctor, tmp263)
+        return Tree.App(element1$, tmp263)
       } else if (tailArgsCtor instanceof Option.Some.class) {
         arg$Some$0$ = tailArgsCtor.value;
-        ctor1 = arg$Some$0$;
-        return Tree.App(ctor1, headArg)
+        return Tree.App(arg$Some$0$, headArg)
       } else if (tailArgsCtor instanceof Option.None.class) {
         return headArg
       }
@@ -563,11 +552,10 @@ let Rules1;
     runtime.safeCall(tmp156(tmp159));
     tmp160 = Rules.define("constr-decl");
     lambda24 = (undefined, function (ctor, argOpt) {
-      let arg, arg$Some$0$;
+      let arg$Some$0$;
       if (argOpt instanceof Option.Some.class) {
         arg$Some$0$ = argOpt.value;
-        arg = arg$Some$0$;
-        return Tree.Infix(Keywords._of, ctor, arg)
+        return Tree.Infix(Keywords._of, ctor, arg$Some$0$)
       } else if (argOpt instanceof Option.None.class) {
         return ctor
       }
@@ -592,11 +580,10 @@ let Rules1;
     tmp167 = Rules.define("variants");
     tmp168 = ParseRule.Choice.reference("constr-decl");
     lambda25 = (undefined, function (lhs, rhsOpt) {
-      let rhs, arg$Some$0$;
+      let arg$Some$0$;
       if (rhsOpt instanceof Option.Some.class) {
         arg$Some$0$ = rhsOpt.value;
-        rhs = arg$Some$0$;
-        return Tree.Infix(Keywords._bar, lhs, rhs)
+        return Tree.Infix(Keywords._bar, lhs, arg$Some$0$)
       }
       return lhs;
     });
@@ -620,14 +607,12 @@ let Rules1;
     tmp176 = Rules.define("typedefs");
     tmp177 = ParseRule.Choice.reference("typedef-lhs");
     lambda26 = (undefined, function (lhs, rhsMore) {
-      let rhs, more, element1$, element0$, tmp262;
+      let element1$, element0$, tmp262;
       if (runtime.Tuple.isArrayLike(rhsMore) && rhsMore.length === 2) {
         element0$ = runtime.Tuple.get(rhsMore, 0);
         element1$ = runtime.Tuple.get(rhsMore, 1);
-        more = element1$;
-        rhs = element0$;
-        tmp262 = runtime.safeCall(rhs(lhs));
-        return Stack.Cons(tmp262, more)
+        tmp262 = runtime.safeCall(element0$(lhs));
+        return Stack.Cons(tmp262, element1$)
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
@@ -895,15 +880,14 @@ let Rules1;
       let tmp, lambda, tmp1;
       tmp = MutMap.updateWith(name);
       lambda = (undefined, function (caseScrut) {
-        let rule, arg$Some$0$, tmp2, tmp3, tmp4;
+        let arg$Some$0$, tmp2, tmp3, tmp4;
         if (caseScrut instanceof Option.None.class) {
           tmp2 = ParseRule.rule(name, ...choices);
           return Option.Some(tmp2)
         } else if (caseScrut instanceof Option.Some.class) {
           arg$Some$0$ = caseScrut.value;
-          rule = arg$Some$0$;
           tmp3 = Iter.toStack(choices);
-          tmp4 = runtime.safeCall(rule.extendChoices(tmp3));
+          tmp4 = runtime.safeCall(arg$Some$0$.extendChoices(tmp3));
           return Option.Some(tmp4)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -925,14 +909,13 @@ let Rules1;
     return Stack.Cons(value, Stack.Nil)
   } 
   static listLike(fields) {
-    let mkTail, scrut, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, rcd, tmp7, tmp8, tmp9, rcd1;
+    let scrut, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, rcd, tmp7, tmp8, tmp9, rcd1;
     scrut = fields["sep"];
     if (scrut === undefined) {
       tmp = Predef.id;
     } else {
       tmp = ParseRule.Choice.keyword(fields["sep"]);
     }
-    mkTail = tmp;
     tmp1 = ParseRule.Choice.reference(fields.head);
     tmp2 = "the first " + fields.name;
     tmp3 = ParseRule.Choice.end(Stack.Nil);
@@ -944,7 +927,7 @@ let Rules1;
       name: tmp6
     });
     tmp7 = runtime.safeCall(tmp4(rcd));
-    tmp8 = runtime.safeCall(mkTail(tmp7));
+    tmp8 = runtime.safeCall(tmp(tmp7));
     tmp9 = Predef.tuple(tmp3, tmp8);
     rcd1 = globalThis.Object.freeze({
       process: Stack.Cons,
@@ -954,15 +937,14 @@ let Rules1;
     return runtime.safeCall(tmp1(rcd1))
   } 
   static makeLetBindings(hasInClause) {
-    let intro, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, rcd, tmp6, tmp7, tmp8, tmp9, tmp10, rcd1, tmp11, rcd2, tmp12;
-    intro = "let binding: ";
+    let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, rcd, tmp6, tmp7, tmp8, tmp9, tmp10, rcd1, tmp11, rcd2, tmp12;
     tmp = ParseRule.Choice.keyword(Keywords._let);
     tmp1 = ParseRule.Choice.keyword(Keywords._rec);
     tmp2 = runtime.safeCall(tmp1());
     tmp3 = ParseRule.Choice.reference("let-bindings");
     if (hasInClause === true) {
       tmp4 = ParseRule.Choice.keyword(Keywords._in);
-      tmp5 = intro + "body";
+      tmp5 = "let binding: " + "body";
       rcd = globalThis.Object.freeze({
         process: Rules.someFirst,
         name: tmp5
@@ -1015,14 +997,13 @@ let Rules1;
     tmp = ParseRule.Choice.keyword(fields.opening);
     tmp1 = ParseRule.Choice.reference(fields.kind);
     lambda = (undefined, function (tree, next) {
-      let msg, arg$Error$0$, arg$Error$1$, tmp8;
+      let arg$Error$0$, arg$Error$1$, tmp8;
       if (next instanceof Tree.Error.class) {
         arg$Error$0$ = next.tree;
         arg$Error$1$ = next.message;
         if (arg$Error$0$ instanceof Tree.Empty.class) {
-          msg = arg$Error$1$;
           tmp8 = runtime.safeCall(fields.wrapContent(tree));
-          return Tree.Error(tmp8, msg)
+          return Tree.Error(tmp8, arg$Error$1$)
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       } else if (next instanceof Tree.Empty.class) {

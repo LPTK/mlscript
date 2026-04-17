@@ -35,19 +35,17 @@ let Main1;
     Main.#parseButton = runtime.safeCall(Main.#query("button#parse"));
     Main.#outputPanel = runtime.safeCall(Main.#query("#output"));
     lambda = (undefined, function (caseScrut) {
-      let key, example, option, scrut, element1$, element0$;
+      let option, scrut, element1$, element0$;
       if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
         element0$ = runtime.Tuple.get(caseScrut, 0);
         element1$ = runtime.Tuple.get(caseScrut, 1);
-        example = element1$;
-        key = element0$;
         option = runtime.safeCall(globalThis.document.createElement("option"));
-        option.value = key;
-        option.textContent = example.name;
+        option.value = element0$;
+        option.textContent = element1$.name;
         runtime.safeCall(Main.#selector.appendChild(option));
         scrut = Main.#editor.value;
         if (scrut === "") {
-          Main.#editor.value = example.source;
+          Main.#editor.value = element1$.source;
           return runtime.Unit
         }
         return runtime.Unit;
@@ -76,12 +74,11 @@ let Main1;
     });
     Main.#editor.addEventListener("keydown", lambda1);
     lambda2 = (undefined, function (event) {
-      let scrut, example, arg$Some$0$, tmp, tmp1;
+      let scrut, arg$Some$0$, tmp, tmp1;
       scrut = runtime.safeCall(Examples.examples.get(Main.#selector.value));
       if (scrut instanceof Option.Some.class) {
         arg$Some$0$ = scrut.value;
-        example = arg$Some$0$;
-        Main.#editor.value = example.source;
+        Main.#editor.value = arg$Some$0$.source;
         return runtime.Unit
       } else if (scrut instanceof Option.None.class) {
         tmp = "Example \"" + Main.#selector.value;
@@ -199,8 +196,8 @@ let Main1;
         if (this.#_error instanceof Option.Some.class) {
           arg$Some$0$ = this.#_error.value;
           error = arg$Some$0$;
-          stackLines = runtime.safeCall(error.stack.split("\n"));
-          scrut = runtime.safeCall(stackLines.at(0).startsWith(error.name));
+          stackLines = runtime.safeCall(arg$Some$0$.stack.split("\n"));
+          scrut = runtime.safeCall(stackLines.at(0).startsWith(arg$Some$0$.name));
           if (scrut === true) {
             runtime.safeCall(stackLines.shift());
           }
@@ -243,17 +240,15 @@ let Main1;
     Main.displayRules();
   }
   static parseIndentedText(text) {
-    let root, text1, children, stack, node, indent, tmp, tmp1, lambda, tmp2, lambda1;
-    text1 = "";
+    let root, children, stack, indent, tmp, tmp1, lambda, tmp2, lambda1;
     children = globalThis.Object.freeze([]);
     root = globalThis.Object.freeze({
-      text: text1,
+      text: "",
       children: children
     });
-    node = root;
     indent = - 1;
     tmp = globalThis.Object.freeze({
-      node: node,
+      node: root,
       indent: indent
     });
     stack = globalThis.Object.freeze([
@@ -267,10 +262,10 @@ let Main1;
     });
     tmp2 = Iter.filtering(tmp1, lambda);
     lambda1 = (undefined, function (line) {
-      let indent1, text2, newNode, text3, children1, tmp3, tmp4, rcd;
+      let indent1, text1, newNode, children1, tmp3, tmp4, rcd;
       tmp3 = runtime.safeCall(line.match(Main.#indentRegex));
       indent1 = tmp3.at(1).length;
-      text2 = runtime.safeCall(line.substring(indent1));
+      text1 = runtime.safeCall(line.substring(indent1));
       lbl: while (true) {
         let scrut, tmp5;
         tmp5 = stack.length - 1;
@@ -281,10 +276,9 @@ let Main1;
         }
         break;
       }
-      text3 = text2;
       children1 = globalThis.Object.freeze([]);
       newNode = globalThis.Object.freeze({
-        text: text3,
+        text: text1,
         children: children1
       });
       tmp4 = stack.length - 1;
@@ -301,16 +295,14 @@ let Main1;
   static makeFigures(entries) {
     let lambda, tmp;
     lambda = (undefined, function (caseScrut) {
-      let name, svg, element1$, element0$, tmp1, tmp2, tmp3;
+      let element1$, element0$, tmp1, tmp2, tmp3;
       if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
         element0$ = runtime.Tuple.get(caseScrut, 0);
         element1$ = runtime.Tuple.get(caseScrut, 1);
-        svg = element1$;
-        name = element0$;
         tmp1 = XML.elem("figure");
         tmp2 = XML.elem("figcaption");
-        tmp3 = runtime.safeCall(tmp2(name));
-        return runtime.safeCall(tmp1(tmp3, svg))
+        tmp3 = runtime.safeCall(tmp2(element0$));
+        return runtime.safeCall(tmp1(tmp3, element1$))
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });

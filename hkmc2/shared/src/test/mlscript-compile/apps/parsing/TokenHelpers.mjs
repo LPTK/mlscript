@@ -10,23 +10,21 @@ let TokenHelpers1;
     TokenHelpers1 = this
   }
   static display(tokens, limit) {
-    let i, values, tmp, tmp1;
+    let i, values, tmp;
     i = 0;
     values = [];
     lbl: while (true) {
-      let scrut, head, tail, arg$Cons$0$, arg$Cons$1$, tmp2, tmp3;
+      let scrut, arg$Cons$0$, arg$Cons$1$, tmp1, tmp2;
       scrut = i < limit;
       if (scrut === true) {
         if (tokens instanceof Stack.Cons.class) {
           arg$Cons$0$ = tokens.head;
           arg$Cons$1$ = tokens.tail;
-          tail = arg$Cons$1$;
-          head = arg$Cons$0$;
-          tmp2 = Token.summary(head);
-          runtime.safeCall(values.push(tmp2));
-          tokens = tail;
-          tmp3 = i + 1;
-          i = tmp3;
+          tmp1 = Token.summary(arg$Cons$0$);
+          runtime.safeCall(values.push(tmp1));
+          tokens = arg$Cons$1$;
+          tmp2 = i + 1;
+          i = tmp2;
           continue lbl
         }
       }
@@ -34,11 +32,9 @@ let TokenHelpers1;
     }
     tmp = runtime.safeCall(values.join("\u2502"));
     if (tokens instanceof Stack.Cons.class) {
-      tmp1 = "\u2502\u22EF";
-      return Predef.mkStr("\u2503", tmp, tmp1)
+      return Predef.mkStr("\u2503", tmp, "\u2502\u22EF")
     }
-    tmp1 = "\u2503";
-    return Predef.mkStr("\u2503", tmp, tmp1);
+    return Predef.mkStr("\u2503", tmp, "\u2503");
   } 
   static panorama(tokens) {
     return TokenHelpers.display(tokens, globalThis.Number.MAX_SAFE_INTEGER)

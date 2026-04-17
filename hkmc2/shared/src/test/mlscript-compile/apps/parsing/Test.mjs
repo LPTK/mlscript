@@ -79,7 +79,7 @@ let Test1;
     let result;
     result = globalThis.Object.freeze(new globalThis.Set());
     lbl: while (true) {
-      let tail, flag, tail1, flag1, arg$Cons$0$, arg$Cons$1$, arg$Identifier$0$, arg$Cons$0$1, arg$Cons$1$1, arg$Identifier$0$1, unapplyResult, output, arg$Cons$0$2, arg$Cons$1$2, arg$Identifier$0$2, unapplyResult1, output1;
+      let arg$Cons$0$, arg$Cons$1$, arg$Identifier$0$, arg$Cons$0$1, arg$Cons$1$1, arg$Identifier$0$1, unapplyResult, output, arg$Cons$0$2, arg$Cons$1$2, arg$Identifier$0$2, unapplyResult1, output1;
       if (tokens instanceof Stack.Cons.class) {
         arg$Cons$0$ = tokens.head;
         arg$Cons$1$ = tokens.tail;
@@ -99,10 +99,8 @@ let Test1;
                     if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
                       output1 = unapplyResult1.output;
                       unapplyResult1.bindings;
-                      tail = arg$Cons$1$2;
-                      flag = output1;
-                      runtime.safeCall(result.add(flag));
-                      tokens = tail;
+                      runtime.safeCall(result.add(output1));
+                      tokens = arg$Cons$1$2;
                       continue lbl
                     }
                   }
@@ -122,10 +120,8 @@ let Test1;
                 if (unapplyResult instanceof runtime.MatchSuccess.class) {
                   output = unapplyResult.output;
                   unapplyResult.bindings;
-                  tail1 = arg$Cons$1$1;
-                  flag1 = output;
-                  runtime.safeCall(result.add(flag1));
-                  tokens = tail1;
+                  runtime.safeCall(result.add(output));
+                  tokens = arg$Cons$1$1;
                   continue lbl
                 }
               }
@@ -153,9 +149,9 @@ let Test1;
       element1$ = runtime.Tuple.get(scrut, 1);
       tokens1 = element1$;
       flags = element0$;
-      scrut1 = runtime.safeCall(flags.has("tokens"));
+      scrut1 = runtime.safeCall(element0$.has("tokens"));
       if (scrut1 === true) {
-        tmp = TokenHelpers.panorama(tokens1);
+        tmp = TokenHelpers.panorama(element1$);
         Predef.print(tmp);
       }
       runtime.safeCall(Parser.tracer.reset());

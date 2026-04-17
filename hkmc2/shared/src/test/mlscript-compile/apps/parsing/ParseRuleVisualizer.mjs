@@ -34,23 +34,21 @@ let ParseRuleVisualizer1;
   static render(rr, title, rule) {
     let diagram, sequence, renderRule, referencedKinds, diagrams, tmp, tmp1, tmp2;
     sequence = function sequence(lhs, rhsOpt) {
-      let rhs, arg$Some$0$;
+      let arg$Some$0$;
       if (rhsOpt instanceof Option.Some.class) {
         arg$Some$0$ = rhsOpt.value;
-        rhs = arg$Some$0$;
-        return rr.Sequence(lhs, rhs)
+        return rr.Sequence(lhs, arg$Some$0$)
       } else if (rhsOpt instanceof Option.None.class) {
         return lhs
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     diagram = function diagram(choicesOpt) {
-      let choices, arg$Some$0$, tmp3;
+      let arg$Some$0$, tmp3;
       if (choicesOpt instanceof Option.Some.class) {
         arg$Some$0$ = choicesOpt.value;
-        choices = arg$Some$0$;
-        tmp3 = choices;
-        return runtime.safeCall(rr.Diagram(tmp3))
+        tmp3 = arg$Some$0$;
+        return runtime.safeCall(rr.Diagram(arg$Some$0$))
       }
       tmp3 = globalThis.Object.freeze([]);
       return runtime.safeCall(rr.Diagram(tmp3));
@@ -67,70 +65,64 @@ let ParseRuleVisualizer1;
         optional = false;
         nodes = [];
         lbl: while (true) {
-          let head, tail, scrut1, node, arg$Cons$0$, arg$Cons$1$, arg$Some$0$;
+          let tail, scrut1, arg$Cons$0$, arg$Cons$1$, arg$Some$0$;
           if (rest instanceof Stack.Cons.class) {
-            let choice1, inlinedVal, rest1, keyword, rest2, rule2, optional1, scrut2, latterPart, optionalPart, rest3, kind, scrut3, arg$Ref$0$, arg$Ref$4$, arg$Siding$0$, arg$Siding$1$, arg$Siding$2$, arg$Keyword$0$, arg$Keyword$1$, tmp6, tmp7, tmp8, arg$Some$0$1, tmp9, tmp10, tmp11, tmp12, rcd, tmp13, tmp14, tmp15;
+            let choice1, inlinedVal, optional1, scrut2, latterPart, rest1, kind, scrut3, arg$Ref$0$, arg$Ref$4$, arg$Siding$0$, arg$Siding$1$, arg$Siding$2$, arg$Keyword$0$, arg$Keyword$1$, tmp6, tmp7, tmp8, arg$Some$0$1, tmp9, tmp10, tmp11, tmp12, rcd, tmp13, tmp14, tmp15;
             arg$Cons$0$ = rest.head;
             arg$Cons$1$ = rest.tail;
             tail = arg$Cons$1$;
-            head = arg$Cons$0$;
-            choice1 = head;
+            choice1 = arg$Cons$0$;
             if (choice1 instanceof ParseRule.Choice.End.class) {
               runtime.safeCall(ParseRuleVisualizer.tracer.print("found Choice.End"));
               inlinedVal = Option.None;
             } else if (choice1 instanceof ParseRule.Choice.Keyword.class) {
-              arg$Keyword$0$ = choice1.keyword;
-              arg$Keyword$1$ = choice1.rest;
-              rest1 = arg$Keyword$1$;
-              keyword = arg$Keyword$0$;
+              arg$Keyword$0$ = arg$Cons$0$.keyword;
+              arg$Keyword$1$ = arg$Cons$0$.rest;
               runtime.safeCall(ParseRuleVisualizer.tracer.print("found Choice.Keyword"));
-              tmp6 = runtime.safeCall(rr.Terminal(keyword.name));
-              tmp7 = renderRule(rest1);
+              tmp6 = runtime.safeCall(rr.Terminal(arg$Keyword$0$.name));
+              tmp7 = renderRule(arg$Keyword$1$);
               tmp8 = sequence(tmp6, tmp7);
               inlinedVal = Option.Some(tmp8);
             } else if (choice1 instanceof ParseRule.Choice.Siding.class) {
-              arg$Siding$0$ = choice1.init;
-              arg$Siding$1$ = choice1.optional;
-              arg$Siding$2$ = choice1.rest;
-              rest2 = arg$Siding$2$;
+              arg$Siding$0$ = arg$Cons$0$.init;
+              arg$Siding$1$ = arg$Cons$0$.optional;
+              arg$Siding$2$ = arg$Cons$0$.rest;
               optional1 = arg$Siding$1$;
-              rule2 = arg$Siding$0$;
               runtime.safeCall(ParseRuleVisualizer.tracer.print("found Choice.Siding"));
-              scrut2 = renderRule(rule2);
-              latterPart = renderRule(rest2);
+              scrut2 = renderRule(arg$Siding$0$);
+              latterPart = renderRule(arg$Siding$2$);
               if (scrut2 instanceof Option.Some.class) {
                 arg$Some$0$1 = scrut2.value;
-                optionalPart = arg$Some$0$1;
                 if (optional1 === true) {
-                  tmp9 = runtime.safeCall(rr.Optional(optionalPart));
+                  tmp9 = runtime.safeCall(rr.Optional(arg$Some$0$1));
                   tmp10 = sequence(tmp9, latterPart);
                 } else {
-                  tmp10 = sequence(optionalPart, latterPart);
+                  tmp10 = sequence(arg$Some$0$1, latterPart);
                 }
                 inlinedVal = Option.Some(tmp10);
               } else if (scrut2 instanceof Option.None.class) {
                 tmp10 = latterPart;
-                inlinedVal = Option.Some(tmp10);
+                inlinedVal = Option.Some(latterPart);
               } else {
                 throw globalThis.Object.freeze(new globalThis.Error("match error"))
               }
             } else if (choice1 instanceof ParseRule.Choice.Ref.class) {
-              arg$Ref$0$ = choice1.kind;
-              arg$Ref$4$ = choice1.rest;
-              rest3 = arg$Ref$4$;
+              arg$Ref$0$ = arg$Cons$0$.kind;
+              arg$Ref$4$ = arg$Cons$0$.rest;
+              rest1 = arg$Ref$4$;
               kind = arg$Ref$0$;
-              tmp11 = "found Choice.Ref to " + kind;
+              tmp11 = "found Choice.Ref to " + arg$Ref$0$;
               runtime.safeCall(ParseRuleVisualizer.tracer.print(tmp11));
-              scrut3 = runtime.safeCall(ParseRuleVisualizer.#renderedKinds.has(kind));
+              scrut3 = runtime.safeCall(ParseRuleVisualizer.#renderedKinds.has(arg$Ref$0$));
               if (scrut3 === false) {
-                runtime.safeCall(referencedKinds.add(kind));
+                runtime.safeCall(referencedKinds.add(arg$Ref$0$));
               }
               tmp12 = "#" + kind;
               rcd = globalThis.Object.freeze({
                 href: tmp12
               });
               tmp13 = rr.NonTerminal(kind, rcd);
-              tmp14 = renderRule(rest3);
+              tmp14 = renderRule(rest1);
               tmp15 = sequence(tmp13, tmp14);
               inlinedVal = Option.Some(tmp15);
             } else {
@@ -138,9 +130,8 @@ let ParseRuleVisualizer1;
             }
             scrut1 = inlinedVal;
             if (scrut1 instanceof Option.Some.class) {
-              arg$Some$0$ = scrut1.value;
-              node = arg$Some$0$;
-              runtime.safeCall(nodes.push(node));
+              arg$Some$0$ = inlinedVal.value;
+              runtime.safeCall(nodes.push(arg$Some$0$));
             } else if (scrut1 instanceof Option.None.class) {
               optional = true;
             }

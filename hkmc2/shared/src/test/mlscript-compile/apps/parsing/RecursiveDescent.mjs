@@ -13,21 +13,18 @@ let RecursiveDescent1;
     RecursiveDescent1 = this
   }
   static parse(tokens) {
-    let addSeq, advance, expr, atom, product, mulSeq, consume, peek, result, token, arg$Some$0$, tmp, tmp1;
+    let addSeq, advance, expr, atom, product, mulSeq, consume, peek, result, arg$Some$0$, tmp, tmp1;
     advance = function advance() {
-      let tail, head, tail1, arg$Cons$0$, arg$Cons$1$;
+      let arg$Cons$0$, arg$Cons$1$;
       if (tokens instanceof Stack.Cons.class) {
         arg$Cons$0$ = tokens.head;
         arg$Cons$1$ = tokens.tail;
         if (arg$Cons$0$ instanceof Token.Space.class) {
-          tail = arg$Cons$1$;
-          tokens = tail;
+          tokens = arg$Cons$1$;
           return advance()
         }
-        tail1 = arg$Cons$1$;
-        head = arg$Cons$0$;
-        tokens = tail1;
-        return Option.Some(head);
+        tokens = arg$Cons$1$;
+        return Option.Some(arg$Cons$0$);
       } else if (tokens instanceof Stack.Nil.class) {
         return Option.None
       }
@@ -40,70 +37,64 @@ let RecursiveDescent1;
       return runtime.Unit
     };
     atom = function atom() {
-      let literal, name, token1, arg$Some$0$1, arg$Identifier$0$, arg$Identifier$1$, arg$Literal$0$, arg$Literal$1$, tmp2, tmp3, tmp4, tmp5, tmp6;
+      let token, arg$Some$0$1, arg$Identifier$0$, arg$Identifier$1$, arg$Literal$0$, arg$Literal$1$, tmp2, tmp3, tmp4, tmp5, tmp6;
       if (peek instanceof Option.Some.class) {
         arg$Some$0$1 = peek.value;
         if (arg$Some$0$1 instanceof Token.Literal.class) {
           arg$Literal$0$ = arg$Some$0$1.kind;
           arg$Literal$1$ = arg$Some$0$1.literal;
           if (arg$Literal$0$ instanceof Token.LiteralKind.Integer.class) {
-            literal = arg$Literal$1$;
             consume();
-            tmp2 = globalThis.parseInt(literal, 10);
+            tmp2 = globalThis.parseInt(arg$Literal$1$, 10);
             return BasicExpr.Lit(tmp2)
           }
-          token1 = arg$Some$0$1;
+          token = arg$Some$0$1;
         } else if (arg$Some$0$1 instanceof Token.Identifier.class) {
           arg$Identifier$0$ = arg$Some$0$1.name;
           arg$Identifier$1$ = arg$Some$0$1.symbolic;
           if (arg$Identifier$0$ === "(") {
             switch (arg$Identifier$1$) {
               case true:
-                let result1, expected, inlinedVal, actual, scrut, arg$Some$0$2, tmp7, tmp8, tmp9, tmp10, tmp11;
+                let inlinedVal, scrut, arg$Some$0$2, tmp7, tmp8, tmp9, tmp10, tmp11;
                 consume();
                 tmp3 = expr();
                 tmp4 = Token.Identifier(")", true);
-                result1 = tmp3;
-                expected = tmp4;
                 if (peek instanceof Option.Some.class) {
                   arg$Some$0$2 = peek.value;
-                  actual = arg$Some$0$2;
-                  scrut = Token.same(expected, actual);
+                  scrut = Token.same(tmp4, arg$Some$0$2);
                   if (scrut === true) {
                     consume();
-                    inlinedVal = result1;
+                    inlinedVal = tmp3;
                     return inlinedVal
                   }
-                  tmp7 = Token.summary(expected);
-                  tmp8 = Token.summary(actual);
+                  tmp7 = Token.summary(tmp4);
+                  tmp8 = Token.summary(arg$Some$0$2);
                   tmp9 = Predef.mkStr("Expected token ", tmp7, ", but found ", tmp8);
-                  inlinedVal = BasicExpr.withErr(result1, tmp9);
+                  inlinedVal = BasicExpr.withErr(tmp3, tmp9);
                   return inlinedVal;
                 } else if (peek instanceof Option.None.class) {
-                  tmp10 = Token.summary(expected);
+                  tmp10 = Token.summary(tmp4);
                   tmp11 = Predef.mkStr("Expected token ", tmp10, ", but found end of input");
-                  inlinedVal = BasicExpr.withErr(result1, tmp11);
+                  inlinedVal = BasicExpr.withErr(tmp3, tmp11);
                   return inlinedVal
                 }
                 throw globalThis.Object.freeze(new globalThis.Error("match error"));
               case false:
-                name = arg$Identifier$0$;
                 consume();
-                return BasicExpr.Var(name);
+                return BasicExpr.Var(arg$Identifier$0$);
             }
-            token1 = arg$Some$0$1;
+            token = arg$Some$0$1;
           } else {
             if (arg$Identifier$1$ === false) {
-              name = arg$Identifier$0$;
               consume();
-              return BasicExpr.Var(name)
+              return BasicExpr.Var(arg$Identifier$0$)
             }
-            token1 = arg$Some$0$1;
+            token = arg$Some$0$1;
           }
         } else {
-          token1 = arg$Some$0$1;
+          token = arg$Some$0$1;
         }
-        tmp5 = Token.summary(token1);
+        tmp5 = Token.summary(token);
         tmp6 = "Unexpected token " + tmp5;
         return BasicExpr.justErr(tmp6)
       } else if (peek instanceof Option.None.class) {
@@ -165,8 +156,7 @@ let RecursiveDescent1;
     result = expr();
     if (peek instanceof Option.Some.class) {
       arg$Some$0$ = peek.value;
-      token = arg$Some$0$;
-      tmp = Token.summary(token);
+      tmp = Token.summary(arg$Some$0$);
       tmp1 = "Expect end of input, but found " + tmp;
       return BasicExpr.withErr(result, tmp1)
     } else if (peek instanceof Option.None.class) {

@@ -167,12 +167,11 @@ let Token2;
         return this.#_location;
       } 
       get displayLocation() {
-        let location, start, end, arg$Some$0$, tmp, tmp1, tmp2, tmp3;
+        let start, end, arg$Some$0$, tmp, tmp1, tmp2, tmp3;
         if (this.#_location instanceof Option.Some.class) {
           arg$Some$0$ = this.#_location.value;
-          location = arg$Some$0$;
-          start = runtime.safeCall(location.lookupTable.lookup(location.start));
-          end = runtime.safeCall(location.lookupTable.lookup(location.end));
+          start = runtime.safeCall(arg$Some$0$.lookupTable.lookup(arg$Some$0$.start));
+          end = runtime.safeCall(arg$Some$0$.lookupTable.lookup(arg$Some$0$.end));
           tmp = runtime.safeCall(start[0].toString());
           tmp1 = runtime.safeCall(start[1].toString());
           tmp2 = runtime.safeCall(end[0].toString());
@@ -203,7 +202,7 @@ let Token2;
         }
         begin = 0;
         end = this.#lines.length;
-        tmp = begin + end;
+        tmp = 0 + end;
         tmp1 = tmp / 2;
         mid = runtime.safeCall(globalThis.Math.floor(tmp1));
         lbl: while (true) {
@@ -211,7 +210,7 @@ let Token2;
           scrut2 = begin < end;
           if (scrut2 === true) {
             tmp4 = runtime.safeCall(this.#lines.at(mid));
-            scrut3 = index <= tmp4;
+            scrut3 = 0 <= tmp4;
             if (scrut3 === true) {
               end = mid;
             } else {
@@ -234,7 +233,7 @@ let Token2;
           tmp3 = mid - 1;
           tmp2 = runtime.safeCall(this.#lines.at(tmp3));
         }
-        column = index - tmp2;
+        column = 0 - tmp2;
         return globalThis.Object.freeze([
           line,
           column
@@ -315,7 +314,7 @@ let Token2;
     });
   }
   static same(a, b) {
-    let c, c$_, s, n, n$_, s$_, scrut, scrut1, l, k, l$_, k$_, scrut2, scrut3, arg$Literal$0$, arg$Literal$1$, arg$Literal$0$1, arg$Literal$1$1, arg$Identifier$0$, arg$Identifier$1$, arg$Identifier$0$1, arg$Identifier$1$1, arg$Comment$0$, arg$Comment$0$1;
+    let scrut, scrut1, scrut2, scrut3, arg$Literal$0$, arg$Literal$1$, arg$Literal$0$1, arg$Literal$1$1, arg$Identifier$0$, arg$Identifier$1$, arg$Identifier$0$1, arg$Identifier$1$1, arg$Comment$0$, arg$Comment$0$1;
     if (a instanceof Token.Space.class) {
       if (b instanceof Token.Space.class) {
         return true
@@ -323,26 +322,20 @@ let Token2;
       return false;
     } else if (a instanceof Token.Comment.class) {
       arg$Comment$0$ = a.content;
-      c = arg$Comment$0$;
       if (b instanceof Token.Comment.class) {
         arg$Comment$0$1 = b.content;
-        c$_ = arg$Comment$0$1;
-        return c == c$_
+        return arg$Comment$0$ == arg$Comment$0$1
       }
       return false;
     } else if (a instanceof Token.Identifier.class) {
       arg$Identifier$0$ = a.name;
       arg$Identifier$1$ = a.symbolic;
-      s = arg$Identifier$1$;
-      n = arg$Identifier$0$;
       if (b instanceof Token.Identifier.class) {
         arg$Identifier$0$1 = b.name;
         arg$Identifier$1$1 = b.symbolic;
-        s$_ = arg$Identifier$1$1;
-        n$_ = arg$Identifier$0$1;
-        scrut = n == n$_;
+        scrut = arg$Identifier$0$ == arg$Identifier$0$1;
         if (scrut === true) {
-          scrut1 = s == s$_;
+          scrut1 = arg$Identifier$1$ == arg$Identifier$1$1;
           if (scrut1 === true) {
             return true
           }
@@ -354,16 +347,12 @@ let Token2;
     } else if (a instanceof Token.Literal.class) {
       arg$Literal$0$ = a.kind;
       arg$Literal$1$ = a.literal;
-      l = arg$Literal$1$;
-      k = arg$Literal$0$;
       if (b instanceof Token.Literal.class) {
         arg$Literal$0$1 = b.kind;
         arg$Literal$1$1 = b.literal;
-        l$_ = arg$Literal$1$1;
-        k$_ = arg$Literal$0$1;
-        scrut2 = k == k$_;
+        scrut2 = arg$Literal$0$ == arg$Literal$0$1;
         if (scrut2 === true) {
-          scrut3 = l == l$_;
+          scrut3 = arg$Literal$1$ == arg$Literal$1$1;
           if (scrut3 === true) {
             return true
           }
@@ -444,7 +433,7 @@ let Token2;
     }
   } 
   static summary(token) {
-    let name, literal, arg$Literal$1$, arg$Identifier$0$;
+    let arg$Literal$1$, arg$Identifier$0$;
     if (token instanceof Token.Space.class) {
       return "\u2420"
     } else if (token instanceof Token.Error.class) {
@@ -453,17 +442,15 @@ let Token2;
       return "\uD83D\uDCAC"
     } else if (token instanceof Token.Identifier.class) {
       arg$Identifier$0$ = token.name;
-      name = arg$Identifier$0$;
-      return name
+      return arg$Identifier$0$
     } else if (token instanceof Token.Literal.class) {
       arg$Literal$1$ = token.literal;
-      literal = arg$Literal$1$;
-      return literal
+      return arg$Literal$1$
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static display(token) {
-    let name, kind, value, arg$Literal$0$, arg$Literal$1$, arg$Identifier$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+    let arg$Literal$0$, arg$Literal$1$, arg$Identifier$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
     if (token instanceof Token.Space.class) {
       tmp = "space";
     } else if (token instanceof Token.Error.class) {
@@ -472,17 +459,14 @@ let Token2;
       tmp = "comment";
     } else if (token instanceof Token.Identifier.class) {
       arg$Identifier$0$ = token.name;
-      name = arg$Identifier$0$;
-      tmp1 = "identifier `" + name;
+      tmp1 = "identifier `" + arg$Identifier$0$;
       tmp = tmp1 + "`";
     } else if (token instanceof Token.Literal.class) {
       arg$Literal$0$ = token.kind;
       arg$Literal$1$ = token.literal;
-      value = arg$Literal$1$;
-      kind = arg$Literal$0$;
-      tmp2 = runtime.safeCall(kind.toString());
+      tmp2 = runtime.safeCall(arg$Literal$0$.toString());
       tmp3 = runtime.safeCall(tmp2.toLowerCase());
-      tmp4 = globalThis.JSON.stringify(value);
+      tmp4 = globalThis.JSON.stringify(arg$Literal$1$);
       tmp = Predef.mkStr(tmp3, " ", tmp4);
     } else {
       throw globalThis.Object.freeze(new globalThis.Error("match error"))

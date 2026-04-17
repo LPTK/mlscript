@@ -88,38 +88,34 @@ let BasicExpr1;
     return BasicExpr.Err(Option.None, msg)
   } 
   static prettyPrint(tree) {
-    let value, name, left, right, left1, right1, expr, msg, msg1, arg$Err$0$, arg$Err$1$, arg$Some$0$, arg$Mul$0$, arg$Mul$1$, arg$Add$0$, arg$Add$1$, arg$Var$0$, arg$Lit$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
+    let left, right, arg$Err$0$, arg$Err$1$, arg$Some$0$, arg$Mul$0$, arg$Mul$1$, arg$Add$0$, arg$Add$1$, arg$Var$0$, arg$Lit$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
     if (tree instanceof BasicExpr.Lit.class) {
       arg$Lit$0$ = tree.value;
-      value = arg$Lit$0$;
-      return runtime.safeCall(value.toString())
+      return runtime.safeCall(arg$Lit$0$.toString())
     } else if (tree instanceof BasicExpr.Var.class) {
       arg$Var$0$ = tree.name;
-      name = arg$Var$0$;
-      return name
+      return arg$Var$0$
     } else if (tree instanceof BasicExpr.Add.class) {
       arg$Add$0$ = tree.left;
       arg$Add$1$ = tree.right;
-      right = arg$Add$1$;
-      left = arg$Add$0$;
-      tmp = BasicExpr.prettyPrint(left);
+      tmp = BasicExpr.prettyPrint(arg$Add$0$);
       tmp1 = tmp + " + ";
-      tmp2 = BasicExpr.prettyPrint(right);
+      tmp2 = BasicExpr.prettyPrint(arg$Add$1$);
       return tmp1 + tmp2
     } else if (tree instanceof BasicExpr.Mul.class) {
       arg$Mul$0$ = tree.left;
       arg$Mul$1$ = tree.right;
-      right1 = arg$Mul$1$;
-      left1 = arg$Mul$0$;
-      tmp3 = BasicExpr.prettyPrint(left1);
-      if (left1 instanceof BasicExpr.Add.class) {
+      right = arg$Mul$1$;
+      left = arg$Mul$0$;
+      tmp3 = BasicExpr.prettyPrint(arg$Mul$0$);
+      if (left instanceof BasicExpr.Add.class) {
         tmp4 = true;
       } else {
         tmp4 = false;
       }
       tmp5 = StrOps.parenthesizedIf(tmp3, tmp4);
-      tmp6 = BasicExpr.prettyPrint(right1);
-      if (right1 instanceof BasicExpr.Add.class) {
+      tmp6 = BasicExpr.prettyPrint(right);
+      if (right instanceof BasicExpr.Add.class) {
         tmp7 = true;
       } else {
         tmp7 = false;
@@ -131,17 +127,14 @@ let BasicExpr1;
       arg$Err$1$ = tree.msg;
       if (arg$Err$0$ instanceof Option.Some.class) {
         arg$Some$0$ = arg$Err$0$.value;
-        msg = arg$Err$1$;
-        expr = arg$Some$0$;
-        tmp9 = BasicExpr.prettyPrint(expr);
+        tmp9 = BasicExpr.prettyPrint(arg$Some$0$);
         tmp10 = "{ " + tmp9;
         tmp11 = tmp10 + " | ";
-        tmp12 = globalThis.JSON.stringify(msg);
+        tmp12 = globalThis.JSON.stringify(arg$Err$1$);
         tmp13 = tmp11 + tmp12;
         return tmp13 + " }"
       } else if (arg$Err$0$ instanceof Option.None.class) {
-        msg1 = arg$Err$1$;
-        tmp14 = globalThis.JSON.stringify(msg1);
+        tmp14 = globalThis.JSON.stringify(arg$Err$1$);
         tmp15 = "{ " + tmp14;
         return tmp15 + " }"
       }

@@ -107,15 +107,13 @@ let Expr1;
     return Expr.Err(Option.None, msg)
   } 
   static prettyPrint(tree) {
-    let value, name, left, right, op, scrut, l, r, op$_, r$_, scrut1, scrut2, op$_1, l$_, scrut3, scrut4, expr, msg, msg1, arg$Err$0$, arg$Err$1$, arg$Some$0$, arg$Inf$0$, arg$Inf$1$, arg$Inf$2$, arg$Var$0$, arg$Lit$0$, element1$, element0$, tmp, arg$Inf$0$1, element1$1, tmp1, tmp2, tmp3, arg$Inf$0$2, element0$1, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+    let left, right, op, scrut, r, scrut1, scrut2, scrut3, scrut4, arg$Err$0$, arg$Err$1$, arg$Some$0$, arg$Inf$0$, arg$Inf$1$, arg$Inf$2$, arg$Var$0$, arg$Lit$0$, element1$, element0$, tmp, arg$Inf$0$1, element1$1, tmp1, tmp2, tmp3, arg$Inf$0$2, element0$1, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
     if (tree instanceof Expr.Lit.class) {
       arg$Lit$0$ = tree.value;
-      value = arg$Lit$0$;
-      return runtime.safeCall(value.toString())
+      return runtime.safeCall(arg$Lit$0$.toString())
     } else if (tree instanceof Expr.Var.class) {
       arg$Var$0$ = tree.name;
-      name = arg$Var$0$;
-      return name
+      return arg$Var$0$
     } else if (tree instanceof Expr.Inf.class) {
       arg$Inf$0$ = tree.op;
       arg$Inf$1$ = tree.left;
@@ -123,22 +121,19 @@ let Expr1;
       right = arg$Inf$2$;
       left = arg$Inf$1$;
       op = arg$Inf$0$;
-      scrut = runtime.safeCall(Expr.opPrec(op));
+      scrut = runtime.safeCall(Expr.opPrec(arg$Inf$0$));
       if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
         element0$ = runtime.Tuple.get(scrut, 0);
         element1$ = runtime.Tuple.get(scrut, 1);
         r = element1$;
-        l = element0$;
-        tmp = Expr.prettyPrint(left);
+        tmp = Expr.prettyPrint(arg$Inf$1$);
         if (left instanceof Expr.Inf.class) {
-          arg$Inf$0$1 = left.op;
-          op$_ = arg$Inf$0$1;
-          scrut2 = runtime.safeCall(Expr.opPrec(op$_));
+          arg$Inf$0$1 = arg$Inf$1$.op;
+          scrut2 = runtime.safeCall(Expr.opPrec(arg$Inf$0$1));
           if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
             runtime.Tuple.get(scrut2, 0);
             element1$1 = runtime.Tuple.get(scrut2, 1);
-            r$_ = element1$1;
-            scrut1 = r$_ < l;
+            scrut1 = element1$1 < element0$;
             if (scrut1 === true) {
               tmp1 = true;
             } else {
@@ -154,13 +149,11 @@ let Expr1;
         tmp3 = Expr.prettyPrint(right);
         if (right instanceof Expr.Inf.class) {
           arg$Inf$0$2 = right.op;
-          op$_1 = arg$Inf$0$2;
-          scrut4 = runtime.safeCall(Expr.opPrec(op$_1));
+          scrut4 = runtime.safeCall(Expr.opPrec(arg$Inf$0$2));
           if (runtime.Tuple.isArrayLike(scrut4) && scrut4.length === 2) {
             element0$1 = runtime.Tuple.get(scrut4, 0);
             runtime.Tuple.get(scrut4, 1);
-            l$_ = element0$1;
-            scrut3 = r > l$_;
+            scrut3 = r > element0$1;
             if (scrut3 === true) {
               tmp4 = true;
             } else {
@@ -181,17 +174,14 @@ let Expr1;
       arg$Err$1$ = tree.msg;
       if (arg$Err$0$ instanceof Option.Some.class) {
         arg$Some$0$ = arg$Err$0$.value;
-        msg = arg$Err$1$;
-        expr = arg$Some$0$;
-        tmp6 = Expr.prettyPrint(expr);
+        tmp6 = Expr.prettyPrint(arg$Some$0$);
         tmp7 = "{ " + tmp6;
         tmp8 = tmp7 + " | ";
-        tmp9 = globalThis.JSON.stringify(msg);
+        tmp9 = globalThis.JSON.stringify(arg$Err$1$);
         tmp10 = tmp8 + tmp9;
         return tmp10 + " }"
       } else if (arg$Err$0$ instanceof Option.None.class) {
-        msg1 = arg$Err$1$;
-        tmp11 = globalThis.JSON.stringify(msg1);
+        tmp11 = globalThis.JSON.stringify(arg$Err$1$);
         tmp12 = "{ " + tmp11;
         return tmp12 + " }"
       }

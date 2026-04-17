@@ -38,47 +38,43 @@ let Keywords1;
         this.rightPrec = rightPrec;
       }
       get leftPrecOrMin() {
-        let scrut, prec, arg$Some$0$;
+        let scrut, arg$Some$0$;
         scrut = this.leftPrec;
         if (scrut instanceof Option.Some.class) {
           arg$Some$0$ = scrut.value;
-          prec = arg$Some$0$;
-          return prec
+          return arg$Some$0$
         }
         return Keywords.INT_MIN;
       } 
       get rightPrecOrMin() {
-        let scrut, prec, arg$Some$0$;
+        let scrut, arg$Some$0$;
         scrut = this.rightPrec;
         if (scrut instanceof Option.Some.class) {
           arg$Some$0$ = scrut.value;
-          prec = arg$Some$0$;
-          return prec
+          return arg$Some$0$
         }
         return Keywords.INT_MIN;
       } 
       get leftPrecOrMax() {
-        let scrut, prec, arg$Some$0$;
+        let scrut, arg$Some$0$;
         scrut = this.leftPrec;
         if (scrut instanceof Option.Some.class) {
           arg$Some$0$ = scrut.value;
-          prec = arg$Some$0$;
-          return prec
+          return arg$Some$0$
         }
         return Keywords.INT_MAX;
       } 
       get rightPrecOrMax() {
-        let scrut, prec, arg$Some$0$;
+        let scrut, arg$Some$0$;
         scrut = this.rightPrec;
         if (scrut instanceof Option.Some.class) {
           arg$Some$0$ = scrut.value;
-          prec = arg$Some$0$;
-          return prec
+          return arg$Some$0$
         }
         return Keywords.INT_MAX;
       } 
       toString() {
-        let scrut, prec, scrut1, prec1, lambda, tmp59, arg$Some$0$, tmp60, arg$Some$0$1, tmp61;
+        let scrut, scrut1, lambda, tmp59, arg$Some$0$, tmp60, arg$Some$0$1, tmp61;
         lambda = (undefined, function (arg1, arg2) {
           return arg1 + arg2
         });
@@ -86,20 +82,18 @@ let Keywords1;
         scrut = this.leftPrec;
         if (scrut instanceof Option.Some.class) {
           arg$Some$0$ = scrut.value;
-          prec = arg$Some$0$;
-          tmp60 = runtime.safeCall(prec.toString());
+          tmp60 = runtime.safeCall(arg$Some$0$.toString());
         } else {
           tmp60 = "N/A";
         }
         scrut1 = this.rightPrec;
         if (scrut1 instanceof Option.Some.class) {
           arg$Some$0$1 = scrut1.value;
-          prec1 = arg$Some$0$1;
-          tmp61 = runtime.safeCall(prec1.toString());
+          tmp61 = runtime.safeCall(arg$Some$0$1.toString());
           return runtime.safeCall(tmp59("Keyword(`", this.name, "`, ", tmp60, ", ", tmp61, ")"))
         }
         tmp61 = "N/A";
-        return runtime.safeCall(tmp59("Keyword(`", this.name, "`, ", tmp60, ", ", tmp61, ")"));
+        return runtime.safeCall(tmp59("Keyword(`", this.name, "`, ", tmp60, ", ", "N/A", ")"));
       }
       [prettyPrint]() { return this.toString(); }
       static [definitionMetadata] = ["class", "Keyword", ["name", "leftPrec", "rightPrec"]]; 
@@ -527,12 +521,11 @@ let Keywords1;
   static get extended() {
     let lambda, tmp, tmp1;
     lambda = (undefined, function (caseScrut) {
-      let k, scrut, element0$;
+      let scrut, element0$;
       if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
         element0$ = runtime.Tuple.get(caseScrut, 0);
         runtime.Tuple.get(caseScrut, 1);
-        k = element0$;
-        scrut = runtime.safeCall(Keywords.#builtinKeywords.has(k));
+        scrut = runtime.safeCall(Keywords.#builtinKeywords.has(element0$));
         if (scrut === false) {
           return true
         }

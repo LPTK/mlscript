@@ -181,9 +181,9 @@ Infix("**", Literal(1), Literal(2)) is EvaluatedTerm
 
 
 
-// FIXME: test below never finishes
-:exit
-====================================================================================================
+// FIXME: the test case below never finishes
+// :exit
+// ====================================================================================================
 
 
 fun evaluate(term) = if term is
