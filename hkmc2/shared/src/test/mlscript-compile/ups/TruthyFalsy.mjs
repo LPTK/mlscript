@@ -352,16 +352,16 @@ let TruthyFalsy1;
   static isTruthy_optimized(t) {
     let matcher__Truthy$, matcher__Truthy_Falsy$, matcher__Falsy$, matchSuccess, lambda, lambda1, lambda2;
     lambda = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, lhs1, rhs1, result0$2, result0$3, result1$, result0$4, result0$5, result1$1, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      let lhs, lhs1, rhs, result0$, result0$1, lhs2, lhs3, rhs1, result0$2, result0$3, result1$, result0$4, result0$5, result1$1, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (input === true) {
         return true
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -376,6 +376,7 @@ let TruthyFalsy1;
             result: false
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs = input.rhs;
@@ -396,7 +397,7 @@ let TruthyFalsy1;
             result: false
           });
         }
-        result0$1 = tmp1.result;
+        result0$1 = lhs.result;
         if (result0$1 === true) {
           result0$ = tmp3.result;
           if (result0$ === true) {
@@ -408,10 +409,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
+            lhs3 = input.lhs;
+            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(lhs3));
             tmp5 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp4
             });
           } else {
@@ -434,6 +435,7 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
+        lhs2 = tmp5;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
@@ -462,19 +464,19 @@ let TruthyFalsy1;
             result: tmp11
           });
         }
-        result0$3 = tmp5.result.p_0;
+        result0$3 = lhs2.result.p_0;
         if (result0$3 === true) {
           result0$2 = tmp9.result.p_0;
           if (result0$2 === true) {
             return true
           }
-          result0$4 = tmp5.result.p_0;
+          result0$4 = lhs2.result.p_0;
           if (result0$4 === true) {
             result1$ = tmp9.result.p_1;
             if (result1$ === true) {
               return true
             }
-            result1$1 = tmp5.result.p_1;
+            result1$1 = lhs2.result.p_1;
             if (result1$1 === true) {
               result0$5 = tmp9.result.p_0;
               if (result0$5 === true) {
@@ -484,7 +486,7 @@ let TruthyFalsy1;
             }
             return false;
           }
-          result1$1 = tmp5.result.p_1;
+          result1$1 = lhs2.result.p_1;
           if (result1$1 === true) {
             result0$5 = tmp9.result.p_0;
             if (result0$5 === true) {
@@ -494,13 +496,13 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result0$4 = tmp5.result.p_0;
+        result0$4 = lhs2.result.p_0;
         if (result0$4 === true) {
           result1$ = tmp9.result.p_1;
           if (result1$ === true) {
             return true
           }
-          result1$1 = tmp5.result.p_1;
+          result1$1 = lhs2.result.p_1;
           if (result1$1 === true) {
             result0$5 = tmp9.result.p_0;
             if (result0$5 === true) {
@@ -510,7 +512,7 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result1$1 = tmp5.result.p_1;
+        result1$1 = lhs2.result.p_1;
         if (result1$1 === true) {
           result0$5 = tmp9.result.p_0;
           if (result0$5 === true) {
@@ -550,14 +552,14 @@ let TruthyFalsy1;
     });
     matcher__Truthy$ = lambda;
     lambda1 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, result1$2, result1$3, arg, result1$4, result0$4, lhs1, rhs1, result0$5, result0$6, result1$5, result1$6, result0$7, result1$7, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      let lhs, rhs, lhs1, rhs1, result0$, result0$1, result1$, result0$2, result0$3, result1$1, result1$2, result1$3, arg, arg1, result1$4, result0$4, lhs2, rhs2, lhs3, rhs3, result0$5, result0$6, result1$5, result1$6, result0$7, result1$7, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
       if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -580,12 +582,13 @@ let TruthyFalsy1;
             result: tmp3
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(rhs));
+            rhs1 = input.rhs;
+            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
             tmp5 = globalThis.Object.freeze({
-              input: rhs,
+              input: rhs1,
               result: tmp4
             });
           } else {
@@ -608,19 +611,20 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
-        result0$1 = tmp1.result.p_0;
+        rhs = tmp5;
+        result0$1 = lhs.result.p_0;
         if (result0$1 === true) {
           result0$ = tmp5.result.p_0;
           if (result0$ === true) {
             tmp8 = true;
           } else {
-            result0$2 = tmp1.result.p_0;
+            result0$2 = lhs.result.p_0;
             if (result0$2 === true) {
               result1$ = tmp5.result.p_1;
               if (result1$ === true) {
                 tmp8 = true;
               } else {
-                result1$1 = tmp1.result.p_1;
+                result1$1 = lhs.result.p_1;
                 if (result1$1 === true) {
                   result0$3 = tmp5.result.p_0;
                   if (result0$3 === true) {
@@ -633,7 +637,7 @@ let TruthyFalsy1;
                 }
               }
             } else {
-              result1$1 = tmp1.result.p_1;
+              result1$1 = lhs.result.p_1;
               if (result1$1 === true) {
                 result0$3 = tmp5.result.p_0;
                 if (result0$3 === true) {
@@ -647,13 +651,13 @@ let TruthyFalsy1;
             }
           }
         } else {
-          result0$2 = tmp1.result.p_0;
+          result0$2 = lhs.result.p_0;
           if (result0$2 === true) {
             result1$ = tmp5.result.p_1;
             if (result1$ === true) {
               tmp8 = true;
             } else {
-              result1$1 = tmp1.result.p_1;
+              result1$1 = lhs.result.p_1;
               if (result1$1 === true) {
                 result0$3 = tmp5.result.p_0;
                 if (result0$3 === true) {
@@ -666,7 +670,7 @@ let TruthyFalsy1;
               }
             }
           } else {
-            result1$1 = tmp1.result.p_1;
+            result1$1 = lhs.result.p_1;
             if (result1$1 === true) {
               result0$3 = tmp5.result.p_0;
               if (result0$3 === true) {
@@ -679,9 +683,9 @@ let TruthyFalsy1;
             }
           }
         }
-        result1$3 = tmp1.result.p_1;
+        result1$3 = lhs.result.p_1;
         if (result1$3 === true) {
-          result1$2 = tmp5.result.p_1;
+          result1$2 = rhs.result.p_1;
           if (result1$2 === true) {
             return globalThis.Object.freeze({
               p_0: tmp8,
@@ -705,10 +709,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Not.class) {
         if (input instanceof Object) {
           if ("arg" in input) {
-            arg = input.arg;
-            tmp9 = runtime.safeCall(matcher__Truthy_Falsy$(arg));
+            arg1 = input.arg;
+            tmp9 = runtime.safeCall(matcher__Truthy_Falsy$(arg1));
             tmp10 = globalThis.Object.freeze({
-              input: arg,
+              input: arg1,
               result: tmp9
             });
           } else {
@@ -731,13 +735,14 @@ let TruthyFalsy1;
             result: tmp12
           });
         }
+        arg = tmp10;
         result1$4 = tmp10.result.p_1;
         if (result1$4 === true) {
           tmp13 = true;
         } else {
           tmp13 = false;
         }
-        result0$4 = tmp10.result.p_0;
+        result0$4 = arg.result.p_0;
         if (result0$4 === true) {
           return globalThis.Object.freeze({
             p_0: tmp13,
@@ -751,10 +756,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp14 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
+            lhs3 = input.lhs;
+            tmp14 = runtime.safeCall(matcher__Truthy_Falsy$(lhs3));
             tmp15 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp14
             });
           } else {
@@ -777,12 +782,13 @@ let TruthyFalsy1;
             result: tmp17
           });
         }
+        lhs2 = tmp15;
         if (input instanceof Object) {
           if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp18 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
+            rhs3 = input.rhs;
+            tmp18 = runtime.safeCall(matcher__Truthy_Falsy$(rhs3));
             tmp19 = globalThis.Object.freeze({
-              input: rhs1,
+              input: rhs3,
               result: tmp18
             });
           } else {
@@ -805,7 +811,8 @@ let TruthyFalsy1;
             result: tmp21
           });
         }
-        result0$6 = tmp15.result.p_0;
+        rhs2 = tmp19;
+        result0$6 = lhs2.result.p_0;
         if (result0$6 === true) {
           result0$5 = tmp19.result.p_0;
           if (result0$5 === true) {
@@ -816,27 +823,27 @@ let TruthyFalsy1;
         } else {
           tmp22 = false;
         }
-        result1$6 = tmp15.result.p_1;
+        result1$6 = lhs2.result.p_1;
         if (result1$6 === true) {
-          result1$5 = tmp19.result.p_1;
+          result1$5 = rhs2.result.p_1;
           if (result1$5 === true) {
             return globalThis.Object.freeze({
               p_0: tmp22,
               p_1: true
             })
           }
-          result1$7 = tmp15.result.p_1;
+          result1$7 = lhs2.result.p_1;
           if (result1$7 === true) {
-            result0$7 = tmp19.result.p_0;
+            result0$7 = rhs2.result.p_0;
             if (result0$7 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp22,
                 p_1: true
               })
             }
-            result0$8 = tmp15.result.p_0;
+            result0$8 = lhs2.result.p_0;
             if (result0$8 === true) {
-              result1$8 = tmp19.result.p_1;
+              result1$8 = rhs2.result.p_1;
               if (result1$8 === true) {
                 return globalThis.Object.freeze({
                   p_0: tmp22,
@@ -853,9 +860,9 @@ let TruthyFalsy1;
               p_1: false
             });
           }
-          result0$8 = tmp15.result.p_0;
+          result0$8 = lhs2.result.p_0;
           if (result0$8 === true) {
-            result1$8 = tmp19.result.p_1;
+            result1$8 = rhs2.result.p_1;
             if (result1$8 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp22,
@@ -872,18 +879,18 @@ let TruthyFalsy1;
             p_1: false
           });
         }
-        result1$7 = tmp15.result.p_1;
+        result1$7 = lhs2.result.p_1;
         if (result1$7 === true) {
-          result0$7 = tmp19.result.p_0;
+          result0$7 = rhs2.result.p_0;
           if (result0$7 === true) {
             return globalThis.Object.freeze({
               p_0: tmp22,
               p_1: true
             })
           }
-          result0$8 = tmp15.result.p_0;
+          result0$8 = lhs2.result.p_0;
           if (result0$8 === true) {
-            result1$8 = tmp19.result.p_1;
+            result1$8 = rhs2.result.p_1;
             if (result1$8 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp22,
@@ -900,9 +907,9 @@ let TruthyFalsy1;
             p_1: false
           });
         }
-        result0$8 = tmp15.result.p_0;
+        result0$8 = lhs2.result.p_0;
         if (result0$8 === true) {
-          result1$8 = tmp19.result.p_1;
+          result1$8 = rhs2.result.p_1;
           if (result1$8 === true) {
             return globalThis.Object.freeze({
               p_0: tmp22,
@@ -931,16 +938,16 @@ let TruthyFalsy1;
     });
     matcher__Truthy_Falsy$ = lambda1;
     lambda2 = (undefined, function (input) {
-      let lhs, rhs, result1$, result1$1, result0$, result1$2, result1$3, result0$1, lhs1, rhs1, result1$4, result1$5, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      let lhs, lhs1, rhs, result1$, result1$1, result0$, result1$2, result1$3, result0$1, lhs2, lhs3, rhs1, result1$4, result1$5, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (input === false) {
         return true
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -963,6 +970,7 @@ let TruthyFalsy1;
             result: tmp3
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs = input.rhs;
@@ -991,19 +999,19 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
-        result1$1 = tmp1.result.p_1;
+        result1$1 = lhs.result.p_1;
         if (result1$1 === true) {
           result1$ = tmp5.result.p_1;
           if (result1$ === true) {
             return true
           }
-          result1$2 = tmp1.result.p_1;
+          result1$2 = lhs.result.p_1;
           if (result1$2 === true) {
             result0$ = tmp5.result.p_0;
             if (result0$ === true) {
               return true
             }
-            result0$1 = tmp1.result.p_0;
+            result0$1 = lhs.result.p_0;
             if (result0$1 === true) {
               result1$3 = tmp5.result.p_1;
               if (result1$3 === true) {
@@ -1013,7 +1021,7 @@ let TruthyFalsy1;
             }
             return false;
           }
-          result0$1 = tmp1.result.p_0;
+          result0$1 = lhs.result.p_0;
           if (result0$1 === true) {
             result1$3 = tmp5.result.p_1;
             if (result1$3 === true) {
@@ -1023,13 +1031,13 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result1$2 = tmp1.result.p_1;
+        result1$2 = lhs.result.p_1;
         if (result1$2 === true) {
           result0$ = tmp5.result.p_0;
           if (result0$ === true) {
             return true
           }
-          result0$1 = tmp1.result.p_0;
+          result0$1 = lhs.result.p_0;
           if (result0$1 === true) {
             result1$3 = tmp5.result.p_1;
             if (result1$3 === true) {
@@ -1039,7 +1047,7 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result0$1 = tmp1.result.p_0;
+        result0$1 = lhs.result.p_0;
         if (result0$1 === true) {
           result1$3 = tmp5.result.p_1;
           if (result1$3 === true) {
@@ -1051,10 +1059,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp8 = runtime.safeCall(matcher__Falsy$(lhs1));
+            lhs3 = input.lhs;
+            tmp8 = runtime.safeCall(matcher__Falsy$(lhs3));
             tmp9 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp8
             });
           } else {
@@ -1069,6 +1077,7 @@ let TruthyFalsy1;
             result: false
           });
         }
+        lhs2 = tmp9;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
@@ -1089,7 +1098,7 @@ let TruthyFalsy1;
             result: false
           });
         }
-        result1$5 = tmp9.result;
+        result1$5 = lhs2.result;
         if (result1$5 === true) {
           result1$4 = tmp11.result;
           if (result1$4 === true) {
@@ -1137,16 +1146,16 @@ let TruthyFalsy1;
   static isTruthy_optimized_matchOnly(t) {
     let matcher__Truthy$, matcher__Truthy_Falsy$, matcher__Falsy$, matchSuccess, lambda, lambda1, lambda2;
     lambda = (undefined, function (input) {
-      let lhs, rhs, result1$, result1$1, result0$, result1$2, result1$3, result0$1, lhs1, rhs1, result1$4, result1$5, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      let lhs, lhs1, rhs, result1$, result1$1, result0$, result1$2, result1$3, result0$1, lhs2, lhs3, rhs1, result1$4, result1$5, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (input === false) {
         return true
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -1169,6 +1178,7 @@ let TruthyFalsy1;
             result: tmp3
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs = input.rhs;
@@ -1197,19 +1207,19 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
-        result1$1 = tmp1.result.p_1;
+        result1$1 = lhs.result.p_1;
         if (result1$1 === true) {
           result1$ = tmp5.result.p_1;
           if (result1$ === true) {
             return true
           }
-          result1$2 = tmp1.result.p_1;
+          result1$2 = lhs.result.p_1;
           if (result1$2 === true) {
             result0$ = tmp5.result.p_0;
             if (result0$ === true) {
               return true
             }
-            result0$1 = tmp1.result.p_0;
+            result0$1 = lhs.result.p_0;
             if (result0$1 === true) {
               result1$3 = tmp5.result.p_1;
               if (result1$3 === true) {
@@ -1219,7 +1229,7 @@ let TruthyFalsy1;
             }
             return false;
           }
-          result0$1 = tmp1.result.p_0;
+          result0$1 = lhs.result.p_0;
           if (result0$1 === true) {
             result1$3 = tmp5.result.p_1;
             if (result1$3 === true) {
@@ -1229,13 +1239,13 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result1$2 = tmp1.result.p_1;
+        result1$2 = lhs.result.p_1;
         if (result1$2 === true) {
           result0$ = tmp5.result.p_0;
           if (result0$ === true) {
             return true
           }
-          result0$1 = tmp1.result.p_0;
+          result0$1 = lhs.result.p_0;
           if (result0$1 === true) {
             result1$3 = tmp5.result.p_1;
             if (result1$3 === true) {
@@ -1245,7 +1255,7 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result0$1 = tmp1.result.p_0;
+        result0$1 = lhs.result.p_0;
         if (result0$1 === true) {
           result1$3 = tmp5.result.p_1;
           if (result1$3 === true) {
@@ -1257,10 +1267,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp8 = runtime.safeCall(matcher__Falsy$(lhs1));
+            lhs3 = input.lhs;
+            tmp8 = runtime.safeCall(matcher__Falsy$(lhs3));
             tmp9 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp8
             });
           } else {
@@ -1275,6 +1285,7 @@ let TruthyFalsy1;
             result: false
           });
         }
+        lhs2 = tmp9;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
@@ -1295,7 +1306,7 @@ let TruthyFalsy1;
             result: false
           });
         }
-        result1$5 = tmp9.result;
+        result1$5 = lhs2.result;
         if (result1$5 === true) {
           result1$4 = tmp11.result;
           if (result1$4 === true) {
@@ -1335,16 +1346,16 @@ let TruthyFalsy1;
     });
     matcher__Falsy$ = lambda;
     lambda1 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, lhs1, rhs1, result0$2, result0$3, result1$, result0$4, result0$5, result1$1, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      let lhs, lhs1, rhs, result0$, result0$1, lhs2, lhs3, rhs1, result0$2, result0$3, result1$, result0$4, result0$5, result1$1, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (input === true) {
         return true
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -1359,6 +1370,7 @@ let TruthyFalsy1;
             result: false
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs = input.rhs;
@@ -1379,7 +1391,7 @@ let TruthyFalsy1;
             result: false
           });
         }
-        result0$1 = tmp1.result;
+        result0$1 = lhs.result;
         if (result0$1 === true) {
           result0$ = tmp3.result;
           if (result0$ === true) {
@@ -1391,10 +1403,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
+            lhs3 = input.lhs;
+            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(lhs3));
             tmp5 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp4
             });
           } else {
@@ -1417,6 +1429,7 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
+        lhs2 = tmp5;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
@@ -1445,19 +1458,19 @@ let TruthyFalsy1;
             result: tmp11
           });
         }
-        result0$3 = tmp5.result.p_0;
+        result0$3 = lhs2.result.p_0;
         if (result0$3 === true) {
           result0$2 = tmp9.result.p_0;
           if (result0$2 === true) {
             return true
           }
-          result0$4 = tmp5.result.p_0;
+          result0$4 = lhs2.result.p_0;
           if (result0$4 === true) {
             result1$ = tmp9.result.p_1;
             if (result1$ === true) {
               return true
             }
-            result1$1 = tmp5.result.p_1;
+            result1$1 = lhs2.result.p_1;
             if (result1$1 === true) {
               result0$5 = tmp9.result.p_0;
               if (result0$5 === true) {
@@ -1467,7 +1480,7 @@ let TruthyFalsy1;
             }
             return false;
           }
-          result1$1 = tmp5.result.p_1;
+          result1$1 = lhs2.result.p_1;
           if (result1$1 === true) {
             result0$5 = tmp9.result.p_0;
             if (result0$5 === true) {
@@ -1477,13 +1490,13 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result0$4 = tmp5.result.p_0;
+        result0$4 = lhs2.result.p_0;
         if (result0$4 === true) {
           result1$ = tmp9.result.p_1;
           if (result1$ === true) {
             return true
           }
-          result1$1 = tmp5.result.p_1;
+          result1$1 = lhs2.result.p_1;
           if (result1$1 === true) {
             result0$5 = tmp9.result.p_0;
             if (result0$5 === true) {
@@ -1493,7 +1506,7 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result1$1 = tmp5.result.p_1;
+        result1$1 = lhs2.result.p_1;
         if (result1$1 === true) {
           result0$5 = tmp9.result.p_0;
           if (result0$5 === true) {
@@ -1533,14 +1546,14 @@ let TruthyFalsy1;
     });
     matcher__Truthy$ = lambda1;
     lambda2 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, result1$2, result1$3, arg, result1$4, result0$4, lhs1, rhs1, result0$5, result0$6, result1$5, result1$6, result0$7, result1$7, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      let lhs, rhs, lhs1, rhs1, result0$, result0$1, result1$, result0$2, result0$3, result1$1, result1$2, result1$3, arg, arg1, result1$4, result0$4, lhs2, rhs2, lhs3, rhs3, result0$5, result0$6, result1$5, result1$6, result0$7, result1$7, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
       if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -1563,12 +1576,13 @@ let TruthyFalsy1;
             result: tmp3
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(rhs));
+            rhs1 = input.rhs;
+            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
             tmp5 = globalThis.Object.freeze({
-              input: rhs,
+              input: rhs1,
               result: tmp4
             });
           } else {
@@ -1591,19 +1605,20 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
-        result0$1 = tmp1.result.p_0;
+        rhs = tmp5;
+        result0$1 = lhs.result.p_0;
         if (result0$1 === true) {
           result0$ = tmp5.result.p_0;
           if (result0$ === true) {
             tmp8 = true;
           } else {
-            result0$2 = tmp1.result.p_0;
+            result0$2 = lhs.result.p_0;
             if (result0$2 === true) {
               result1$ = tmp5.result.p_1;
               if (result1$ === true) {
                 tmp8 = true;
               } else {
-                result1$1 = tmp1.result.p_1;
+                result1$1 = lhs.result.p_1;
                 if (result1$1 === true) {
                   result0$3 = tmp5.result.p_0;
                   if (result0$3 === true) {
@@ -1616,7 +1631,7 @@ let TruthyFalsy1;
                 }
               }
             } else {
-              result1$1 = tmp1.result.p_1;
+              result1$1 = lhs.result.p_1;
               if (result1$1 === true) {
                 result0$3 = tmp5.result.p_0;
                 if (result0$3 === true) {
@@ -1630,13 +1645,13 @@ let TruthyFalsy1;
             }
           }
         } else {
-          result0$2 = tmp1.result.p_0;
+          result0$2 = lhs.result.p_0;
           if (result0$2 === true) {
             result1$ = tmp5.result.p_1;
             if (result1$ === true) {
               tmp8 = true;
             } else {
-              result1$1 = tmp1.result.p_1;
+              result1$1 = lhs.result.p_1;
               if (result1$1 === true) {
                 result0$3 = tmp5.result.p_0;
                 if (result0$3 === true) {
@@ -1649,7 +1664,7 @@ let TruthyFalsy1;
               }
             }
           } else {
-            result1$1 = tmp1.result.p_1;
+            result1$1 = lhs.result.p_1;
             if (result1$1 === true) {
               result0$3 = tmp5.result.p_0;
               if (result0$3 === true) {
@@ -1662,9 +1677,9 @@ let TruthyFalsy1;
             }
           }
         }
-        result1$3 = tmp1.result.p_1;
+        result1$3 = lhs.result.p_1;
         if (result1$3 === true) {
-          result1$2 = tmp5.result.p_1;
+          result1$2 = rhs.result.p_1;
           if (result1$2 === true) {
             return globalThis.Object.freeze({
               p_0: tmp8,
@@ -1688,10 +1703,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Not.class) {
         if (input instanceof Object) {
           if ("arg" in input) {
-            arg = input.arg;
-            tmp9 = runtime.safeCall(matcher__Truthy_Falsy$(arg));
+            arg1 = input.arg;
+            tmp9 = runtime.safeCall(matcher__Truthy_Falsy$(arg1));
             tmp10 = globalThis.Object.freeze({
-              input: arg,
+              input: arg1,
               result: tmp9
             });
           } else {
@@ -1714,13 +1729,14 @@ let TruthyFalsy1;
             result: tmp12
           });
         }
+        arg = tmp10;
         result1$4 = tmp10.result.p_1;
         if (result1$4 === true) {
           tmp13 = true;
         } else {
           tmp13 = false;
         }
-        result0$4 = tmp10.result.p_0;
+        result0$4 = arg.result.p_0;
         if (result0$4 === true) {
           return globalThis.Object.freeze({
             p_0: tmp13,
@@ -1734,10 +1750,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp14 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
+            lhs3 = input.lhs;
+            tmp14 = runtime.safeCall(matcher__Truthy_Falsy$(lhs3));
             tmp15 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp14
             });
           } else {
@@ -1760,12 +1776,13 @@ let TruthyFalsy1;
             result: tmp17
           });
         }
+        lhs2 = tmp15;
         if (input instanceof Object) {
           if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp18 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
+            rhs3 = input.rhs;
+            tmp18 = runtime.safeCall(matcher__Truthy_Falsy$(rhs3));
             tmp19 = globalThis.Object.freeze({
-              input: rhs1,
+              input: rhs3,
               result: tmp18
             });
           } else {
@@ -1788,7 +1805,8 @@ let TruthyFalsy1;
             result: tmp21
           });
         }
-        result0$6 = tmp15.result.p_0;
+        rhs2 = tmp19;
+        result0$6 = lhs2.result.p_0;
         if (result0$6 === true) {
           result0$5 = tmp19.result.p_0;
           if (result0$5 === true) {
@@ -1799,27 +1817,27 @@ let TruthyFalsy1;
         } else {
           tmp22 = false;
         }
-        result1$6 = tmp15.result.p_1;
+        result1$6 = lhs2.result.p_1;
         if (result1$6 === true) {
-          result1$5 = tmp19.result.p_1;
+          result1$5 = rhs2.result.p_1;
           if (result1$5 === true) {
             return globalThis.Object.freeze({
               p_0: tmp22,
               p_1: true
             })
           }
-          result1$7 = tmp15.result.p_1;
+          result1$7 = lhs2.result.p_1;
           if (result1$7 === true) {
-            result0$7 = tmp19.result.p_0;
+            result0$7 = rhs2.result.p_0;
             if (result0$7 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp22,
                 p_1: true
               })
             }
-            result0$8 = tmp15.result.p_0;
+            result0$8 = lhs2.result.p_0;
             if (result0$8 === true) {
-              result1$8 = tmp19.result.p_1;
+              result1$8 = rhs2.result.p_1;
               if (result1$8 === true) {
                 return globalThis.Object.freeze({
                   p_0: tmp22,
@@ -1836,9 +1854,9 @@ let TruthyFalsy1;
               p_1: false
             });
           }
-          result0$8 = tmp15.result.p_0;
+          result0$8 = lhs2.result.p_0;
           if (result0$8 === true) {
-            result1$8 = tmp19.result.p_1;
+            result1$8 = rhs2.result.p_1;
             if (result1$8 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp22,
@@ -1855,18 +1873,18 @@ let TruthyFalsy1;
             p_1: false
           });
         }
-        result1$7 = tmp15.result.p_1;
+        result1$7 = lhs2.result.p_1;
         if (result1$7 === true) {
-          result0$7 = tmp19.result.p_0;
+          result0$7 = rhs2.result.p_0;
           if (result0$7 === true) {
             return globalThis.Object.freeze({
               p_0: tmp22,
               p_1: true
             })
           }
-          result0$8 = tmp15.result.p_0;
+          result0$8 = lhs2.result.p_0;
           if (result0$8 === true) {
-            result1$8 = tmp19.result.p_1;
+            result1$8 = rhs2.result.p_1;
             if (result1$8 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp22,
@@ -1883,9 +1901,9 @@ let TruthyFalsy1;
             p_1: false
           });
         }
-        result0$8 = tmp15.result.p_0;
+        result0$8 = lhs2.result.p_0;
         if (result0$8 === true) {
-          result1$8 = tmp19.result.p_1;
+          result1$8 = rhs2.result.p_1;
           if (result1$8 === true) {
             return globalThis.Object.freeze({
               p_0: tmp22,
@@ -1932,16 +1950,16 @@ let TruthyFalsy1;
   static isFalsy_optimized(t) {
     let matcher__Falsy$, matcher__Falsy_Truthy$, matcher__Truthy$, matchSuccess, lambda, lambda1, lambda2;
     lambda = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, lhs1, rhs1, result0$4, result0$5, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      let lhs, lhs1, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, lhs2, lhs3, rhs1, result0$4, result0$5, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (input === false) {
         return true
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -1964,6 +1982,7 @@ let TruthyFalsy1;
             result: tmp3
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs = input.rhs;
@@ -1992,19 +2011,19 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
-        result0$1 = tmp1.result.p_0;
+        result0$1 = lhs.result.p_0;
         if (result0$1 === true) {
           result0$ = tmp5.result.p_0;
           if (result0$ === true) {
             return true
           }
-          result0$2 = tmp1.result.p_0;
+          result0$2 = lhs.result.p_0;
           if (result0$2 === true) {
             result1$ = tmp5.result.p_1;
             if (result1$ === true) {
               return true
             }
-            result1$1 = tmp1.result.p_1;
+            result1$1 = lhs.result.p_1;
             if (result1$1 === true) {
               result0$3 = tmp5.result.p_0;
               if (result0$3 === true) {
@@ -2014,7 +2033,7 @@ let TruthyFalsy1;
             }
             return false;
           }
-          result1$1 = tmp1.result.p_1;
+          result1$1 = lhs.result.p_1;
           if (result1$1 === true) {
             result0$3 = tmp5.result.p_0;
             if (result0$3 === true) {
@@ -2024,13 +2043,13 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result0$2 = tmp1.result.p_0;
+        result0$2 = lhs.result.p_0;
         if (result0$2 === true) {
           result1$ = tmp5.result.p_1;
           if (result1$ === true) {
             return true
           }
-          result1$1 = tmp1.result.p_1;
+          result1$1 = lhs.result.p_1;
           if (result1$1 === true) {
             result0$3 = tmp5.result.p_0;
             if (result0$3 === true) {
@@ -2040,7 +2059,7 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result1$1 = tmp1.result.p_1;
+        result1$1 = lhs.result.p_1;
         if (result1$1 === true) {
           result0$3 = tmp5.result.p_0;
           if (result0$3 === true) {
@@ -2052,10 +2071,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp8 = runtime.safeCall(matcher__Falsy$(lhs1));
+            lhs3 = input.lhs;
+            tmp8 = runtime.safeCall(matcher__Falsy$(lhs3));
             tmp9 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp8
             });
           } else {
@@ -2070,6 +2089,7 @@ let TruthyFalsy1;
             result: false
           });
         }
+        lhs2 = tmp9;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
@@ -2090,7 +2110,7 @@ let TruthyFalsy1;
             result: false
           });
         }
-        result0$5 = tmp9.result;
+        result0$5 = lhs2.result;
         if (result0$5 === true) {
           result0$4 = tmp11.result;
           if (result0$4 === true) {
@@ -2130,14 +2150,14 @@ let TruthyFalsy1;
     });
     matcher__Falsy$ = lambda;
     lambda1 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result1$1, result0$2, result1$2, result1$3, result0$3, arg, result1$4, result0$4, lhs1, rhs1, result0$5, result0$6, result1$5, result0$7, result0$8, result1$6, result1$7, result1$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      let lhs, rhs, lhs1, rhs1, result0$, result0$1, result1$, result1$1, result0$2, result1$2, result1$3, result0$3, arg, arg1, result1$4, result0$4, lhs2, rhs2, lhs3, rhs3, result0$5, result0$6, result1$5, result0$7, result0$8, result1$6, result1$7, result1$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
       if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -2160,12 +2180,13 @@ let TruthyFalsy1;
             result: tmp3
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(rhs));
+            rhs1 = input.rhs;
+            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
             tmp5 = globalThis.Object.freeze({
-              input: rhs,
+              input: rhs1,
               result: tmp4
             });
           } else {
@@ -2188,7 +2209,8 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
-        result0$1 = tmp1.result.p_0;
+        rhs = tmp5;
+        result0$1 = lhs.result.p_0;
         if (result0$1 === true) {
           result0$ = tmp5.result.p_0;
           if (result0$ === true) {
@@ -2199,27 +2221,27 @@ let TruthyFalsy1;
         } else {
           tmp8 = false;
         }
-        result1$1 = tmp1.result.p_1;
+        result1$1 = lhs.result.p_1;
         if (result1$1 === true) {
-          result1$ = tmp5.result.p_1;
+          result1$ = rhs.result.p_1;
           if (result1$ === true) {
             return globalThis.Object.freeze({
               p_0: tmp8,
               p_1: true
             })
           }
-          result1$2 = tmp1.result.p_1;
+          result1$2 = lhs.result.p_1;
           if (result1$2 === true) {
-            result0$2 = tmp5.result.p_0;
+            result0$2 = rhs.result.p_0;
             if (result0$2 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp8,
                 p_1: true
               })
             }
-            result0$3 = tmp1.result.p_0;
+            result0$3 = lhs.result.p_0;
             if (result0$3 === true) {
-              result1$3 = tmp5.result.p_1;
+              result1$3 = rhs.result.p_1;
               if (result1$3 === true) {
                 return globalThis.Object.freeze({
                   p_0: tmp8,
@@ -2236,9 +2258,9 @@ let TruthyFalsy1;
               p_1: false
             });
           }
-          result0$3 = tmp1.result.p_0;
+          result0$3 = lhs.result.p_0;
           if (result0$3 === true) {
-            result1$3 = tmp5.result.p_1;
+            result1$3 = rhs.result.p_1;
             if (result1$3 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp8,
@@ -2255,18 +2277,18 @@ let TruthyFalsy1;
             p_1: false
           });
         }
-        result1$2 = tmp1.result.p_1;
+        result1$2 = lhs.result.p_1;
         if (result1$2 === true) {
-          result0$2 = tmp5.result.p_0;
+          result0$2 = rhs.result.p_0;
           if (result0$2 === true) {
             return globalThis.Object.freeze({
               p_0: tmp8,
               p_1: true
             })
           }
-          result0$3 = tmp1.result.p_0;
+          result0$3 = lhs.result.p_0;
           if (result0$3 === true) {
-            result1$3 = tmp5.result.p_1;
+            result1$3 = rhs.result.p_1;
             if (result1$3 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp8,
@@ -2283,9 +2305,9 @@ let TruthyFalsy1;
             p_1: false
           });
         }
-        result0$3 = tmp1.result.p_0;
+        result0$3 = lhs.result.p_0;
         if (result0$3 === true) {
-          result1$3 = tmp5.result.p_1;
+          result1$3 = rhs.result.p_1;
           if (result1$3 === true) {
             return globalThis.Object.freeze({
               p_0: tmp8,
@@ -2309,10 +2331,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Not.class) {
         if (input instanceof Object) {
           if ("arg" in input) {
-            arg = input.arg;
-            tmp9 = runtime.safeCall(matcher__Falsy_Truthy$(arg));
+            arg1 = input.arg;
+            tmp9 = runtime.safeCall(matcher__Falsy_Truthy$(arg1));
             tmp10 = globalThis.Object.freeze({
-              input: arg,
+              input: arg1,
               result: tmp9
             });
           } else {
@@ -2335,13 +2357,14 @@ let TruthyFalsy1;
             result: tmp12
           });
         }
+        arg = tmp10;
         result1$4 = tmp10.result.p_1;
         if (result1$4 === true) {
           tmp13 = true;
         } else {
           tmp13 = false;
         }
-        result0$4 = tmp10.result.p_0;
+        result0$4 = arg.result.p_0;
         if (result0$4 === true) {
           return globalThis.Object.freeze({
             p_0: tmp13,
@@ -2355,10 +2378,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp14 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
+            lhs3 = input.lhs;
+            tmp14 = runtime.safeCall(matcher__Falsy_Truthy$(lhs3));
             tmp15 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp14
             });
           } else {
@@ -2381,12 +2404,13 @@ let TruthyFalsy1;
             result: tmp17
           });
         }
+        lhs2 = tmp15;
         if (input instanceof Object) {
           if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp18 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
+            rhs3 = input.rhs;
+            tmp18 = runtime.safeCall(matcher__Falsy_Truthy$(rhs3));
             tmp19 = globalThis.Object.freeze({
-              input: rhs1,
+              input: rhs3,
               result: tmp18
             });
           } else {
@@ -2409,19 +2433,20 @@ let TruthyFalsy1;
             result: tmp21
           });
         }
-        result0$6 = tmp15.result.p_0;
+        rhs2 = tmp19;
+        result0$6 = lhs2.result.p_0;
         if (result0$6 === true) {
           result0$5 = tmp19.result.p_0;
           if (result0$5 === true) {
             tmp22 = true;
           } else {
-            result0$7 = tmp15.result.p_0;
+            result0$7 = lhs2.result.p_0;
             if (result0$7 === true) {
               result1$5 = tmp19.result.p_1;
               if (result1$5 === true) {
                 tmp22 = true;
               } else {
-                result1$6 = tmp15.result.p_1;
+                result1$6 = lhs2.result.p_1;
                 if (result1$6 === true) {
                   result0$8 = tmp19.result.p_0;
                   if (result0$8 === true) {
@@ -2434,7 +2459,7 @@ let TruthyFalsy1;
                 }
               }
             } else {
-              result1$6 = tmp15.result.p_1;
+              result1$6 = lhs2.result.p_1;
               if (result1$6 === true) {
                 result0$8 = tmp19.result.p_0;
                 if (result0$8 === true) {
@@ -2448,13 +2473,13 @@ let TruthyFalsy1;
             }
           }
         } else {
-          result0$7 = tmp15.result.p_0;
+          result0$7 = lhs2.result.p_0;
           if (result0$7 === true) {
             result1$5 = tmp19.result.p_1;
             if (result1$5 === true) {
               tmp22 = true;
             } else {
-              result1$6 = tmp15.result.p_1;
+              result1$6 = lhs2.result.p_1;
               if (result1$6 === true) {
                 result0$8 = tmp19.result.p_0;
                 if (result0$8 === true) {
@@ -2467,7 +2492,7 @@ let TruthyFalsy1;
               }
             }
           } else {
-            result1$6 = tmp15.result.p_1;
+            result1$6 = lhs2.result.p_1;
             if (result1$6 === true) {
               result0$8 = tmp19.result.p_0;
               if (result0$8 === true) {
@@ -2480,9 +2505,9 @@ let TruthyFalsy1;
             }
           }
         }
-        result1$8 = tmp15.result.p_1;
+        result1$8 = lhs2.result.p_1;
         if (result1$8 === true) {
-          result1$7 = tmp19.result.p_1;
+          result1$7 = rhs2.result.p_1;
           if (result1$7 === true) {
             return globalThis.Object.freeze({
               p_0: tmp22,
@@ -2511,16 +2536,16 @@ let TruthyFalsy1;
     });
     matcher__Falsy_Truthy$ = lambda1;
     lambda2 = (undefined, function (input) {
-      let lhs, rhs, result1$, result1$1, lhs1, rhs1, result1$2, result1$3, result0$, result1$4, result1$5, result0$1, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      let lhs, lhs1, rhs, result1$, result1$1, lhs2, lhs3, rhs1, result1$2, result1$3, result0$, result1$4, result1$5, result0$1, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (input === true) {
         return true
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -2535,6 +2560,7 @@ let TruthyFalsy1;
             result: false
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs = input.rhs;
@@ -2555,7 +2581,7 @@ let TruthyFalsy1;
             result: false
           });
         }
-        result1$1 = tmp1.result;
+        result1$1 = lhs.result;
         if (result1$1 === true) {
           result1$ = tmp3.result;
           if (result1$ === true) {
@@ -2567,10 +2593,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
+            lhs3 = input.lhs;
+            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(lhs3));
             tmp5 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp4
             });
           } else {
@@ -2593,6 +2619,7 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
+        lhs2 = tmp5;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
@@ -2621,19 +2648,19 @@ let TruthyFalsy1;
             result: tmp11
           });
         }
-        result1$3 = tmp5.result.p_1;
+        result1$3 = lhs2.result.p_1;
         if (result1$3 === true) {
           result1$2 = tmp9.result.p_1;
           if (result1$2 === true) {
             return true
           }
-          result1$4 = tmp5.result.p_1;
+          result1$4 = lhs2.result.p_1;
           if (result1$4 === true) {
             result0$ = tmp9.result.p_0;
             if (result0$ === true) {
               return true
             }
-            result0$1 = tmp5.result.p_0;
+            result0$1 = lhs2.result.p_0;
             if (result0$1 === true) {
               result1$5 = tmp9.result.p_1;
               if (result1$5 === true) {
@@ -2643,7 +2670,7 @@ let TruthyFalsy1;
             }
             return false;
           }
-          result0$1 = tmp5.result.p_0;
+          result0$1 = lhs2.result.p_0;
           if (result0$1 === true) {
             result1$5 = tmp9.result.p_1;
             if (result1$5 === true) {
@@ -2653,13 +2680,13 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result1$4 = tmp5.result.p_1;
+        result1$4 = lhs2.result.p_1;
         if (result1$4 === true) {
           result0$ = tmp9.result.p_0;
           if (result0$ === true) {
             return true
           }
-          result0$1 = tmp5.result.p_0;
+          result0$1 = lhs2.result.p_0;
           if (result0$1 === true) {
             result1$5 = tmp9.result.p_1;
             if (result1$5 === true) {
@@ -2669,7 +2696,7 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result0$1 = tmp5.result.p_0;
+        result0$1 = lhs2.result.p_0;
         if (result0$1 === true) {
           result1$5 = tmp9.result.p_1;
           if (result1$5 === true) {
@@ -2717,16 +2744,16 @@ let TruthyFalsy1;
   static isFalsy_optimized_matchOnly(t) {
     let matcher__Falsy$, matcher__Falsy_Truthy$, matcher__Truthy$, matchSuccess, lambda, lambda1, lambda2;
     lambda = (undefined, function (input) {
-      let lhs, rhs, result1$, result1$1, lhs1, rhs1, result1$2, result1$3, result0$, result1$4, result1$5, result0$1, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      let lhs, lhs1, rhs, result1$, result1$1, lhs2, lhs3, rhs1, result1$2, result1$3, result0$, result1$4, result1$5, result0$1, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (input === true) {
         return true
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -2741,6 +2768,7 @@ let TruthyFalsy1;
             result: false
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs = input.rhs;
@@ -2761,7 +2789,7 @@ let TruthyFalsy1;
             result: false
           });
         }
-        result1$1 = tmp1.result;
+        result1$1 = lhs.result;
         if (result1$1 === true) {
           result1$ = tmp3.result;
           if (result1$ === true) {
@@ -2773,10 +2801,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
+            lhs3 = input.lhs;
+            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(lhs3));
             tmp5 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp4
             });
           } else {
@@ -2799,6 +2827,7 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
+        lhs2 = tmp5;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
@@ -2827,19 +2856,19 @@ let TruthyFalsy1;
             result: tmp11
           });
         }
-        result1$3 = tmp5.result.p_1;
+        result1$3 = lhs2.result.p_1;
         if (result1$3 === true) {
           result1$2 = tmp9.result.p_1;
           if (result1$2 === true) {
             return true
           }
-          result1$4 = tmp5.result.p_1;
+          result1$4 = lhs2.result.p_1;
           if (result1$4 === true) {
             result0$ = tmp9.result.p_0;
             if (result0$ === true) {
               return true
             }
-            result0$1 = tmp5.result.p_0;
+            result0$1 = lhs2.result.p_0;
             if (result0$1 === true) {
               result1$5 = tmp9.result.p_1;
               if (result1$5 === true) {
@@ -2849,7 +2878,7 @@ let TruthyFalsy1;
             }
             return false;
           }
-          result0$1 = tmp5.result.p_0;
+          result0$1 = lhs2.result.p_0;
           if (result0$1 === true) {
             result1$5 = tmp9.result.p_1;
             if (result1$5 === true) {
@@ -2859,13 +2888,13 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result1$4 = tmp5.result.p_1;
+        result1$4 = lhs2.result.p_1;
         if (result1$4 === true) {
           result0$ = tmp9.result.p_0;
           if (result0$ === true) {
             return true
           }
-          result0$1 = tmp5.result.p_0;
+          result0$1 = lhs2.result.p_0;
           if (result0$1 === true) {
             result1$5 = tmp9.result.p_1;
             if (result1$5 === true) {
@@ -2875,7 +2904,7 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result0$1 = tmp5.result.p_0;
+        result0$1 = lhs2.result.p_0;
         if (result0$1 === true) {
           result1$5 = tmp9.result.p_1;
           if (result1$5 === true) {
@@ -2915,16 +2944,16 @@ let TruthyFalsy1;
     });
     matcher__Truthy$ = lambda;
     lambda1 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, lhs1, rhs1, result0$4, result0$5, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      let lhs, lhs1, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, lhs2, lhs3, rhs1, result0$4, result0$5, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (input === false) {
         return true
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -2947,6 +2976,7 @@ let TruthyFalsy1;
             result: tmp3
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs = input.rhs;
@@ -2975,19 +3005,19 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
-        result0$1 = tmp1.result.p_0;
+        result0$1 = lhs.result.p_0;
         if (result0$1 === true) {
           result0$ = tmp5.result.p_0;
           if (result0$ === true) {
             return true
           }
-          result0$2 = tmp1.result.p_0;
+          result0$2 = lhs.result.p_0;
           if (result0$2 === true) {
             result1$ = tmp5.result.p_1;
             if (result1$ === true) {
               return true
             }
-            result1$1 = tmp1.result.p_1;
+            result1$1 = lhs.result.p_1;
             if (result1$1 === true) {
               result0$3 = tmp5.result.p_0;
               if (result0$3 === true) {
@@ -2997,7 +3027,7 @@ let TruthyFalsy1;
             }
             return false;
           }
-          result1$1 = tmp1.result.p_1;
+          result1$1 = lhs.result.p_1;
           if (result1$1 === true) {
             result0$3 = tmp5.result.p_0;
             if (result0$3 === true) {
@@ -3007,13 +3037,13 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result0$2 = tmp1.result.p_0;
+        result0$2 = lhs.result.p_0;
         if (result0$2 === true) {
           result1$ = tmp5.result.p_1;
           if (result1$ === true) {
             return true
           }
-          result1$1 = tmp1.result.p_1;
+          result1$1 = lhs.result.p_1;
           if (result1$1 === true) {
             result0$3 = tmp5.result.p_0;
             if (result0$3 === true) {
@@ -3023,7 +3053,7 @@ let TruthyFalsy1;
           }
           return false;
         }
-        result1$1 = tmp1.result.p_1;
+        result1$1 = lhs.result.p_1;
         if (result1$1 === true) {
           result0$3 = tmp5.result.p_0;
           if (result0$3 === true) {
@@ -3035,10 +3065,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp8 = runtime.safeCall(matcher__Falsy$(lhs1));
+            lhs3 = input.lhs;
+            tmp8 = runtime.safeCall(matcher__Falsy$(lhs3));
             tmp9 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp8
             });
           } else {
@@ -3053,6 +3083,7 @@ let TruthyFalsy1;
             result: false
           });
         }
+        lhs2 = tmp9;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
@@ -3073,7 +3104,7 @@ let TruthyFalsy1;
             result: false
           });
         }
-        result0$5 = tmp9.result;
+        result0$5 = lhs2.result;
         if (result0$5 === true) {
           result0$4 = tmp11.result;
           if (result0$4 === true) {
@@ -3113,14 +3144,14 @@ let TruthyFalsy1;
     });
     matcher__Falsy$ = lambda1;
     lambda2 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result1$1, result0$2, result1$2, result1$3, result0$3, arg, result1$4, result0$4, lhs1, rhs1, result0$5, result0$6, result1$5, result0$7, result0$8, result1$6, result1$7, result1$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      let lhs, rhs, lhs1, rhs1, result0$, result0$1, result1$, result1$1, result0$2, result1$2, result1$3, result0$3, arg, arg1, result1$4, result0$4, lhs2, rhs2, lhs3, rhs3, result0$5, result0$6, result1$5, result0$7, result0$8, result1$6, result1$7, result1$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
       if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs));
+            lhs1 = input.lhs;
+            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
             tmp1 = globalThis.Object.freeze({
-              input: lhs,
+              input: lhs1,
               result: tmp
             });
           } else {
@@ -3143,12 +3174,13 @@ let TruthyFalsy1;
             result: tmp3
           });
         }
+        lhs = tmp1;
         if (input instanceof Object) {
           if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(rhs));
+            rhs1 = input.rhs;
+            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
             tmp5 = globalThis.Object.freeze({
-              input: rhs,
+              input: rhs1,
               result: tmp4
             });
           } else {
@@ -3171,7 +3203,8 @@ let TruthyFalsy1;
             result: tmp7
           });
         }
-        result0$1 = tmp1.result.p_0;
+        rhs = tmp5;
+        result0$1 = lhs.result.p_0;
         if (result0$1 === true) {
           result0$ = tmp5.result.p_0;
           if (result0$ === true) {
@@ -3182,27 +3215,27 @@ let TruthyFalsy1;
         } else {
           tmp8 = false;
         }
-        result1$1 = tmp1.result.p_1;
+        result1$1 = lhs.result.p_1;
         if (result1$1 === true) {
-          result1$ = tmp5.result.p_1;
+          result1$ = rhs.result.p_1;
           if (result1$ === true) {
             return globalThis.Object.freeze({
               p_0: tmp8,
               p_1: true
             })
           }
-          result1$2 = tmp1.result.p_1;
+          result1$2 = lhs.result.p_1;
           if (result1$2 === true) {
-            result0$2 = tmp5.result.p_0;
+            result0$2 = rhs.result.p_0;
             if (result0$2 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp8,
                 p_1: true
               })
             }
-            result0$3 = tmp1.result.p_0;
+            result0$3 = lhs.result.p_0;
             if (result0$3 === true) {
-              result1$3 = tmp5.result.p_1;
+              result1$3 = rhs.result.p_1;
               if (result1$3 === true) {
                 return globalThis.Object.freeze({
                   p_0: tmp8,
@@ -3219,9 +3252,9 @@ let TruthyFalsy1;
               p_1: false
             });
           }
-          result0$3 = tmp1.result.p_0;
+          result0$3 = lhs.result.p_0;
           if (result0$3 === true) {
-            result1$3 = tmp5.result.p_1;
+            result1$3 = rhs.result.p_1;
             if (result1$3 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp8,
@@ -3238,18 +3271,18 @@ let TruthyFalsy1;
             p_1: false
           });
         }
-        result1$2 = tmp1.result.p_1;
+        result1$2 = lhs.result.p_1;
         if (result1$2 === true) {
-          result0$2 = tmp5.result.p_0;
+          result0$2 = rhs.result.p_0;
           if (result0$2 === true) {
             return globalThis.Object.freeze({
               p_0: tmp8,
               p_1: true
             })
           }
-          result0$3 = tmp1.result.p_0;
+          result0$3 = lhs.result.p_0;
           if (result0$3 === true) {
-            result1$3 = tmp5.result.p_1;
+            result1$3 = rhs.result.p_1;
             if (result1$3 === true) {
               return globalThis.Object.freeze({
                 p_0: tmp8,
@@ -3266,9 +3299,9 @@ let TruthyFalsy1;
             p_1: false
           });
         }
-        result0$3 = tmp1.result.p_0;
+        result0$3 = lhs.result.p_0;
         if (result0$3 === true) {
-          result1$3 = tmp5.result.p_1;
+          result1$3 = rhs.result.p_1;
           if (result1$3 === true) {
             return globalThis.Object.freeze({
               p_0: tmp8,
@@ -3292,10 +3325,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.Not.class) {
         if (input instanceof Object) {
           if ("arg" in input) {
-            arg = input.arg;
-            tmp9 = runtime.safeCall(matcher__Falsy_Truthy$(arg));
+            arg1 = input.arg;
+            tmp9 = runtime.safeCall(matcher__Falsy_Truthy$(arg1));
             tmp10 = globalThis.Object.freeze({
-              input: arg,
+              input: arg1,
               result: tmp9
             });
           } else {
@@ -3318,13 +3351,14 @@ let TruthyFalsy1;
             result: tmp12
           });
         }
+        arg = tmp10;
         result1$4 = tmp10.result.p_1;
         if (result1$4 === true) {
           tmp13 = true;
         } else {
           tmp13 = false;
         }
-        result0$4 = tmp10.result.p_0;
+        result0$4 = arg.result.p_0;
         if (result0$4 === true) {
           return globalThis.Object.freeze({
             p_0: tmp13,
@@ -3338,10 +3372,10 @@ let TruthyFalsy1;
       } else if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp14 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
+            lhs3 = input.lhs;
+            tmp14 = runtime.safeCall(matcher__Falsy_Truthy$(lhs3));
             tmp15 = globalThis.Object.freeze({
-              input: lhs1,
+              input: lhs3,
               result: tmp14
             });
           } else {
@@ -3364,12 +3398,13 @@ let TruthyFalsy1;
             result: tmp17
           });
         }
+        lhs2 = tmp15;
         if (input instanceof Object) {
           if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp18 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
+            rhs3 = input.rhs;
+            tmp18 = runtime.safeCall(matcher__Falsy_Truthy$(rhs3));
             tmp19 = globalThis.Object.freeze({
-              input: rhs1,
+              input: rhs3,
               result: tmp18
             });
           } else {
@@ -3392,19 +3427,20 @@ let TruthyFalsy1;
             result: tmp21
           });
         }
-        result0$6 = tmp15.result.p_0;
+        rhs2 = tmp19;
+        result0$6 = lhs2.result.p_0;
         if (result0$6 === true) {
           result0$5 = tmp19.result.p_0;
           if (result0$5 === true) {
             tmp22 = true;
           } else {
-            result0$7 = tmp15.result.p_0;
+            result0$7 = lhs2.result.p_0;
             if (result0$7 === true) {
               result1$5 = tmp19.result.p_1;
               if (result1$5 === true) {
                 tmp22 = true;
               } else {
-                result1$6 = tmp15.result.p_1;
+                result1$6 = lhs2.result.p_1;
                 if (result1$6 === true) {
                   result0$8 = tmp19.result.p_0;
                   if (result0$8 === true) {
@@ -3417,7 +3453,7 @@ let TruthyFalsy1;
                 }
               }
             } else {
-              result1$6 = tmp15.result.p_1;
+              result1$6 = lhs2.result.p_1;
               if (result1$6 === true) {
                 result0$8 = tmp19.result.p_0;
                 if (result0$8 === true) {
@@ -3431,13 +3467,13 @@ let TruthyFalsy1;
             }
           }
         } else {
-          result0$7 = tmp15.result.p_0;
+          result0$7 = lhs2.result.p_0;
           if (result0$7 === true) {
             result1$5 = tmp19.result.p_1;
             if (result1$5 === true) {
               tmp22 = true;
             } else {
-              result1$6 = tmp15.result.p_1;
+              result1$6 = lhs2.result.p_1;
               if (result1$6 === true) {
                 result0$8 = tmp19.result.p_0;
                 if (result0$8 === true) {
@@ -3450,7 +3486,7 @@ let TruthyFalsy1;
               }
             }
           } else {
-            result1$6 = tmp15.result.p_1;
+            result1$6 = lhs2.result.p_1;
             if (result1$6 === true) {
               result0$8 = tmp19.result.p_0;
               if (result0$8 === true) {
@@ -3463,9 +3499,9 @@ let TruthyFalsy1;
             }
           }
         }
-        result1$8 = tmp15.result.p_1;
+        result1$8 = lhs2.result.p_1;
         if (result1$8 === true) {
-          result1$7 = tmp19.result.p_1;
+          result1$7 = rhs2.result.p_1;
           if (result1$7 === true) {
             return globalThis.Object.freeze({
               p_0: tmp22,

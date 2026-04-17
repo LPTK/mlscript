@@ -44,8 +44,10 @@ fun next() =
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let next⁰, emptyItemCount⁰;
 //│ define next⁰ as fun next¹() {
+//│   let emptyItemCount';
+//│   set emptyItemCount' = emptyItemCount⁰;
 //│   set emptyItemCount⁰ = 0;
-//│   return Predef⁰.print⁰(emptyItemCount⁰)
+//│   return Predef⁰.print⁰(emptyItemCount')
 //│ };
 //│ set emptyItemCount⁰ = 1;
 //│ end

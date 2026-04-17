@@ -71,7 +71,7 @@ new Array(4)
 //│ Applying block: Return(Instantiate(false,Select(Ref(globalThis:globalThis,None),Ident(Array)),List(Arg(None,Lit(IntLit(4))))),true) with map: Map()
 //│ |= Map()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = [<0 empty items>]
+//│ = [<4 empty items>]
 
 
 // TODO also sanity-check these accesses

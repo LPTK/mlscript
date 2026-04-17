@@ -597,7 +597,7 @@ let Rendering1;
       return runtime.safeCall(lambda());
     };
     renderValue = function renderValue(arg, level, keyLength, startPos) {
-      let scrut2, scrut3, scrut4, scrut5, scrut6, rendered, desc, head, scrut7, scrut8, scrut9, scrut10, scrut11, properties, scrut12, scrut13, scrut14, scrut15, scrut16, definitionMetadata1, kind, head1, body, head2, scrut17, scrut18, scrut19, result, scrut20, tmp4, tmp5, element1$, element0$1, element2$, tmp6, tmp7, element1$1, element0$2, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      let scrut2, scrut3, scrut4, scrut5, scrut6, index, rendered, desc, head, scrut7, scrut8, scrut9, scrut10, scrut11, properties, scrut12, scrut13, scrut14, scrut15, scrut16, definitionMetadata1, kind, head1, body, head2, scrut17, scrut18, scrut19, result, scrut20, tmp4, tmp5, element1$, element0$1, element2$, tmp6, tmp7, element1$1, element0$2, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
       split_1$: {
         if (arg === undefined) {
           return "undefined"
@@ -701,11 +701,12 @@ let Rendering1;
               return false;
             });
             lambda1 = (undefined, function (isFirst, prefixLength) {
-              let scrut21, scrut22, prefixLengthIfSameLine, scrut23, valueStr, tmp25, tmp26, tmp27, tmp28, tmp29;
+              let scrut21, emptyItemCount$_, scrut22, prefixLengthIfSameLine, scrut23, valueStr, tmp25, tmp26, tmp27, tmp28, tmp29;
               scrut21 = emptyItemCount > 0;
               if (scrut21 === true) {
+                emptyItemCount$_ = emptyItemCount;
                 emptyItemCount = 0;
-                tmp25 = "<" + emptyItemCount;
+                tmp25 = "<" + emptyItemCount$_;
                 return tmp25 + " empty items>"
               }
               scrut22 = i < length;
@@ -808,9 +809,9 @@ let Rendering1;
               peek = tmp26;
               if (last instanceof Object) {
                 if ("done" in last) {
-                  field_done$ = peek.done;
+                  field_done$ = last.done;
                   if ("value" in last) {
-                    field_value$ = peek.value;
+                    field_value$ = last.value;
                     if (field_done$ === false) {
                       if (runtime.Tuple.isArrayLike(field_value$) && field_value$.length === 2) {
                         element0$3 = runtime.Tuple.get(field_value$, 0);
@@ -1052,10 +1053,11 @@ let Rendering1;
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
+      index = circularCounter;
       tmp22 = circularCounter + 1;
       circularCounter = tmp22;
-      visitingObjects.set(arg, circularCounter);
-      return "ref'" + circularCounter
+      visitingObjects.set(arg, index);
+      return "ref'" + index
     };
     if (runtime.Tuple.isArrayLike(args) && args.length >= 1) {
       element0$ = runtime.Tuple.get(args, 0);

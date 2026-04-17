@@ -84,7 +84,7 @@ sliceHelper = function sliceHelper(beg, fin, arr) {
   if (scrut1 === true) {
     fin = len;
   }
-  scrut2 = fin <= tmp;
+  scrut2 = fin <= beg;
   if (scrut2 === true) {
     tmp3 = globalThis.Object.freeze([]);
     return View1(tmp3, 0, 0)
@@ -93,19 +93,19 @@ sliceHelper = function sliceHelper(beg, fin, arr) {
     arg$View$0$ = arr.underlying;
     arg$View$1$ = arr.start;
     arg$View$2$ = arr.end;
-    tmp4 = arg$View$1$ + tmp;
+    tmp4 = arg$View$1$ + beg;
     tmp5 = len - fin;
     tmp6 = arg$View$2$ + tmp5;
     return View1(arg$View$0$, tmp4, tmp6)
   } else if (arr instanceof Splice1.class) {
     tmp7 = runtime.safeCall(arr.materialize());
-    tmp8 = tmp7.slice(tmp, fin);
+    tmp8 = tmp7.slice(beg, fin);
     return View1(tmp8, 0, 0)
   }
   tmp9 = enforceArray();
   tmp10 = tmp9(arr);
   tmp11 = arr.length - fin;
-  return View1(tmp10, tmp, tmp11);
+  return View1(tmp10, beg, tmp11);
 };
 (class LazyArr extends Iter.IterableBase {
   static {

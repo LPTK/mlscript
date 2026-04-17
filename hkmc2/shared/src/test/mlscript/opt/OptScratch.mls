@@ -39,7 +39,7 @@ let y = x in print(y)
 //│ | | | | 2
 //│ | | | | 0
 //│ | | | | Analysis: litValue: false, unchanged vars: Set(Ref(member:x,Some(term:x)))
-//│ | | | | !! Change triggered { y⁰ ~> member:x¹‹term:x²› (via member:x¹‹term:x²›) } at BlockSimplifier.scala:685
+//│ | | | | !! Change triggered { y⁰ ~> member:x¹‹term:x²› (via member:x¹‹term:x²›) } at BlockSimplifier.scala:700
 //│ | | | |= Map(y -> Ref(member:x,Some(term:x))‹(Ref(member:x,Some(term:x)),?)›)
 //│ | | |= Map(y -> Ref(member:x,Some(term:x))‹(Ref(member:x,Some(term:x)),?)›)
 //│ | |= Map(y -> Ref(member:x,Some(term:x))‹(Ref(member:x,Some(term:x)),?)›)

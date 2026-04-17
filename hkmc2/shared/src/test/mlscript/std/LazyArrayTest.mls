@@ -278,8 +278,8 @@ dropLeftRight(1, 1)(uint8Arr)
 
 :re
 concat([1, 2, 3], "hello", uint8Arr, mm)
-//│ ═══[RUNTIME ERROR] Error: match error
+//│ ═══[RUNTIME ERROR] Error: Expected an Array, got: MutMap(Map(1) {"a" => 1})
 
 :re
 dropLeftRight(0, 0)(mm)
-//│ ═══[RUNTIME ERROR] Error: match error
+//│ ═══[RUNTIME ERROR] Error: Expected an Array, got: MutMap(Map(1) {"a" => 1})

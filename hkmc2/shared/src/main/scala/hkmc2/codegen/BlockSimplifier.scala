@@ -459,11 +459,26 @@ class BlockSimplifier
         */
         // assignedResults += lhs -> Vector.single(rhs)
         assignedResults += lhs -> Assigned(ass, rhs.match
+          /* 
           case r @ Value.Ref(sym: LocalVar, N) if !capturedVars(sym) =>
             val rhs2 = assignedResults(sym)
             S(r -> rhs2)
           case r @ Value.Ref(sym, _) =>
             S(r -> Unknown)
+          */
+          case r @ Value.Ref(sym: LocalVar, N) =>
+            if capturedVars(sym) then N
+            else
+              val rhs2 = assignedResults(sym)
+              S(r -> rhs2)
+          case r @ Value.Ref(sym, _) =>
+            S(r -> Unknown)
+          // case r @ Value.Ref(sym, _) if !capturedVars(sym) =>
+          //   sym match
+          //   case sym: LocalVar =>
+          //     val rhs2 = assignedResults(sym)
+          //     S(r -> rhs2)
+          //   case _ => S(r -> Unknown)
           case _ => N
             /* 
             if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
@@ -480,7 +495,7 @@ class BlockSimplifier
         log(s"NEW assignedResults: ${assignedResults}")
         super.applyBlock(b)
       case Assign(lhs, rhs, rst) =>
-        log(s"Not propagating ${rhs} := ${lhs}")
+        log(s"Not propagating ${lhs} := ${rhs}")
         invalidateRefsTo(lhs)
         super.applyBlock(b)
       // case Label(loop = true) =>

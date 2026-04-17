@@ -207,12 +207,13 @@ let Shape2;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static silh(p) {
-    let size, scrut, arg$Tup$0$, arg$Cls$0$, arg$Lit$0$, arg$Some$0$, tmp, tmp1, tmp2, tmp3, tmp4;
+    let size, sym, scrut, arg$Tup$0$, arg$Cls$0$, arg$Lit$0$, arg$Some$0$, tmp, tmp1, tmp2, tmp3, tmp4;
     if (p instanceof Block.Lit.class) {
       arg$Lit$0$ = p.lit;
       return Shape.Lit(arg$Lit$0$)
     } else if (p instanceof Block.Cls.class) {
       arg$Cls$0$ = p.cls;
+      sym = arg$Cls$0$;
       scrut = arg$Cls$0$.args;
       if (scrut instanceof Option.Some.class) {
         arg$Some$0$ = scrut.value;
@@ -223,7 +224,7 @@ let Shape2;
       size = tmp;
       tmp1 = runtime.safeCall(globalThis.Array(size));
       tmp2 = runtime.safeCall(tmp1.fill(Shape.Dyn));
-      return Shape.Class(arg$Cls$0$, tmp2)
+      return Shape.Class(sym, tmp2)
     } else if (p instanceof Block.Tup.class) {
       arg$Tup$0$ = p.len;
       tmp3 = runtime.safeCall(globalThis.Array(arg$Tup$0$));

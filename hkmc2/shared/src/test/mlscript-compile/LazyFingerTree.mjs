@@ -62,7 +62,7 @@ sliceHelper = function sliceHelper(beg, fin, arr) {
   if (scrut1 === true) {
     fin = len;
   }
-  scrut2 = fin <= tmp;
+  scrut2 = fin <= beg;
   if (scrut2 === true) {
     tmp3 = globalThis.Object.freeze([]);
     return View1(tmp3, 0, 0)
@@ -71,22 +71,22 @@ sliceHelper = function sliceHelper(beg, fin, arr) {
     arg$View$0$ = arr.underlying;
     arg$View$1$ = arr.start;
     arg$View$2$ = arr.end;
-    tmp4 = arg$View$1$ + tmp;
+    tmp4 = arg$View$1$ + beg;
     tmp5 = len - fin;
     tmp6 = arg$View$2$ + tmp5;
     return View1(arg$View$0$, tmp4, tmp6)
   } else if (arr instanceof Splice1.class) {
     tmp7 = runtime.safeCall(arr.materialize());
-    return tmp7.slice(tmp, fin)
+    return tmp7.slice(beg, fin)
   }
   scrut3 = FingerTreeList.isFingerTree(arr);
   if (scrut3 === true) {
     tmp8 = len - fin;
-    tmp9 = FingerTreeList.dropLeftRight(tmp, tmp8);
+    tmp9 = FingerTreeList.dropLeftRight(beg, tmp8);
     return runtime.safeCall(tmp9(arr))
   }
   tmp10 = len - fin;
-  return View1(arr, tmp, tmp10);
+  return View1(arr, beg, tmp10);
 };
 (class LazyFT extends Iter.IterableBase {
   static {

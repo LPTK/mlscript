@@ -40,20 +40,21 @@ let QuoteExample1;
   static power(x) {
     let lambda;
     lambda = (undefined, function (caseScrut) {
-      let tmp, tmp1, tmp2, arr, tmp3, tmp4;
+      let tmp, tmp1, tmp2, tmp3, arr, tmp4, tmp5;
       if (caseScrut === 0) {
         return globalThis.Object.freeze(new Term.Lit(1.0))
       }
-      tmp = QuoteExample.power(x);
-      tmp1 = caseScrut - 1;
-      tmp2 = runtime.safeCall(tmp(tmp1));
+      tmp = x;
+      tmp1 = QuoteExample.power(x);
+      tmp2 = caseScrut - 1;
+      tmp3 = runtime.safeCall(tmp1(tmp2));
       arr = globalThis.Object.freeze([
-        x,
-        tmp2
+        tmp,
+        tmp3
       ]);
-      tmp3 = globalThis.Object.freeze(new Term.Builtin("*"));
-      tmp4 = globalThis.Object.freeze(new Term.Tup(arr));
-      return globalThis.Object.freeze(new Term.App(tmp3, tmp4));
+      tmp4 = globalThis.Object.freeze(new Term.Builtin("*"));
+      tmp5 = globalThis.Object.freeze(new Term.Tup(arr));
+      return globalThis.Object.freeze(new Term.App(tmp4, tmp5));
     });
     return lambda
   } 
@@ -73,7 +74,7 @@ let QuoteExample1;
   static body(x, y) {
     let lambda;
     lambda = (undefined, function (caseScrut) {
-      let n, arr, tmp, tmp1, tmp2, lambda1;
+      let n, tmp, tmp1, arr, tmp2, tmp3, tmp4, lambda1;
       switch (caseScrut) {
         case 0:
           return x;
@@ -81,20 +82,22 @@ let QuoteExample1;
           return y;
       }
       n = caseScrut;
+      tmp = x;
+      tmp1 = y;
       arr = globalThis.Object.freeze([
-        x,
-        y
+        tmp,
+        tmp1
       ]);
-      tmp = globalThis.Object.freeze(new Term.Builtin("+"));
-      tmp1 = globalThis.Object.freeze(new Term.Tup(arr));
-      tmp2 = globalThis.Object.freeze(new Term.App(tmp, tmp1));
+      tmp2 = globalThis.Object.freeze(new Term.Builtin("+"));
+      tmp3 = globalThis.Object.freeze(new Term.Tup(arr));
+      tmp4 = globalThis.Object.freeze(new Term.App(tmp2, tmp3));
       lambda1 = (undefined, function (z) {
-        let tmp3, tmp4;
-        tmp3 = QuoteExample.body(y, z);
-        tmp4 = n - 1;
-        return runtime.safeCall(tmp3(tmp4))
+        let tmp5, tmp6;
+        tmp5 = QuoteExample.body(y, z);
+        tmp6 = n - 1;
+        return runtime.safeCall(tmp5(tmp6))
       });
-      return QuoteExample.bind(tmp2, lambda1)
+      return QuoteExample.bind(tmp4, lambda1)
     });
     return lambda
   } 
