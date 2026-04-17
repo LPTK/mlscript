@@ -1,0 +1,85 @@
+:js
+
+
+
+:deadParamElim
+:soir
+:dopt
+private fun f(a) =
+  let g = () => a
+  g()
+f(42)
+//│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet(a)
+//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g, g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Assign(g,Ref(member:g,Some(term:g)),Return(Call(Ref(g,None),List()),false))))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true))) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g, g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Assign(g,Ref(member:g,Some(term:g)),Return(Call(Ref(g,None),List()),false))))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true)) with map: Map()
+//│ | | Applying block: Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Assign(g,Ref(member:g,Some(term:g)),Return(Call(Ref(g,None),List()),false))) with map: Map(g -> ∅)
+//│ | | | Applying block: Return(Ref(a,None),false) with map: Map()
+//│ | | | |= Map()
+//│ | | | Applying block: Assign(g,Ref(member:g,Some(term:g)),Return(Call(Ref(g,None),List()),false)) with map: Map(g -> ∅)
+//│ | | | | Propagating g := Ref(member:g,Some(term:g)) (Some(∅))
+//│ | | | | NEW assignedResults: Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
+//│ | | | | Applying block: Return(Call(Ref(g,None),List()),false) with map: Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
+//│ | | | | | ?? g⁰ Some(Ref(member:g,Some(term:g))‹(member:g,?)›) true false
+//│ | | | | | 2
+//│ | | | | | 0
+//│ | | | | | Analysis: litValue: false, unchanged vars: Set(member:g)
+//│ | | | | | !! Change triggered { g⁰ ~> member:g¹ (via member:g¹) } at BlockSimplifier.scala:685
+//│ | | | | |= Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
+//│ | | | |= Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
+//│ | | |= Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
+//│ | | Applying block: Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true) with map: Map()
+//│ | | |= Map()
+//│ | |= Map()
+//│ |= Map()
+//│ ▶ VP:
+//│ >  let f⁰;
+//│ >  define f⁰ as fun f¹(a) {
+//│ >    let g, g1;
+//│ >    define g1 as fun g²() { return a };
+//│ >    set g = g²;
+//│ >    return g1()
+//│ >  };
+//│ >  f¹(42)
+//│ ⬤ Simplif. iter. 2
+//│ !! Change triggered { rm g⁰ = member:g¹‹term:g²› } at BlockSimplifier.scala:238
+//│ ▶ DCE:
+//│ >  let f⁰; define f⁰ as fun f¹(a) { let g; define g as fun g²() { return a }; return g() }; f¹(42)
+//│ Captured variables: HashSet(a)
+//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true))) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true)) with map: Map()
+//│ | | Applying block: Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)) with map: Map()
+//│ | | | Applying block: Return(Ref(a,None),false) with map: Map()
+//│ | | | |= Map()
+//│ | | | Applying block: Return(Call(Ref(member:g,None),List()),false) with map: Map()
+//│ | | | |= Map()
+//│ | | |= Map()
+//│ | | Applying block: Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true) with map: Map()
+//│ | | |= Map()
+//│ | |= Map()
+//│ |= Map()
+//│ ⬤ Simplif. iter. 3
+//│ Captured variables: HashSet(a)
+//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true))) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true)) with map: Map()
+//│ | | Applying block: Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)) with map: Map()
+//│ | | | Applying block: Return(Ref(a,None),false) with map: Map()
+//│ | | | |= Map()
+//│ | | | Applying block: Return(Call(Ref(member:g,None),List()),false) with map: Map()
+//│ | | | |= Map()
+//│ | | |= Map()
+//│ | | Applying block: Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true) with map: Map()
+//│ | | |= Map()
+//│ | |= Map()
+//│ |= Map()
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let f⁰; define f⁰ as fun f¹() { let g; define g as fun g²() { return undefined }; return g() }; f¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+
+
+

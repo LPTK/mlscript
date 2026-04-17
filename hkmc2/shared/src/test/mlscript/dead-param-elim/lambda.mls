@@ -68,6 +68,7 @@ pick(f)(g)(5)
 
 :deadParamElim
 :expect 42
+:soir
 private fun f(a) =
   let g = () => a
   g()
@@ -75,6 +76,9 @@ f(42)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
 //│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let f⁰; define f⁰ as fun f¹() { let g; define g as fun g⁰() { return undefined }; return g() }; f¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
 //│ ═══[RUNTIME ERROR] Expected: '42', got: '()'
@@ -102,7 +106,7 @@ main1()
 //│         ParamList:
 //│           params = Ls of 
 //│             Param:
-//│               sym = f⁰
+//│               sym = f²
 //│               modulefulness = Modulefulness of N
 //│             Param:
 //│               sym = x⁰
@@ -110,7 +114,7 @@ main1()
 //│       body = Return:
 //│         res = Call:
 //│           fun = Ref:
-//│             l = f⁰
+//│             l = f²
 //│           args = Ls of 
 //│             Arg:
 //│               value = Ref:
