@@ -6,25 +6,19 @@ let Splice1, sliceHelper, enforceArray, concatHelper, LazyArray1, View1, SpliceM
 enforceArray = function enforceArray() {
   let lambda;
   lambda = (undefined, function (caseScrut) {
-    let a, ow, tmp, tmp1;
+    let tmp, tmp1;
     if (caseScrut instanceof LazyArr1) {
-      a = caseScrut;
-      return a
+      return caseScrut
     } else if (caseScrut instanceof globalThis.Array) {
-      a = caseScrut;
-      return a
+      return caseScrut
     } else if (caseScrut instanceof globalThis.String) {
-      a = caseScrut;
-      return a
+      return caseScrut
     } else if (typeof caseScrut === 'string') {
-      a = caseScrut;
-      return a
+      return caseScrut
     } else if (globalThis.ArrayBuffer.isView(caseScrut) && !(caseScrut instanceof globalThis.DataView)) {
-      a = caseScrut;
-      return a
+      return caseScrut
     }
-    ow = caseScrut;
-    tmp = runtime.safeCall(ow.toString());
+    tmp = runtime.safeCall(caseScrut.toString());
     tmp1 = "Expected an Array, got: " + tmp;
     throw runtime.safeCall(globalThis.Error(tmp1));
   });
@@ -75,18 +69,18 @@ normIdxSlice = function normIdxSlice(i, len) {
   return i;
 };
 sliceHelper = function sliceHelper(beg, fin, arr) {
-  let len, scrut, scrut1, scrut2, itr, end, start, s, tmp, tmp1, tmp2, tmp3, arg$View$0$, arg$View$1$, arg$View$2$, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+  let len, scrut, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, arg$View$0$, arg$View$1$, arg$View$2$, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
   len = arr.length;
   tmp = normIdxSlice(beg, len);
   beg = tmp;
   tmp1 = normIdxSlice(fin, len);
   fin = tmp1;
-  scrut = beg >= len;
+  scrut = tmp >= len;
   if (scrut === true) {
     tmp2 = globalThis.Object.freeze([]);
     return View1(tmp2, 0, 0)
   }
-  scrut1 = fin >= len;
+  scrut1 = tmp1 >= len;
   if (scrut1 === true) {
     fin = len;
   }
@@ -99,16 +93,12 @@ sliceHelper = function sliceHelper(beg, fin, arr) {
     arg$View$0$ = arr.underlying;
     arg$View$1$ = arr.start;
     arg$View$2$ = arr.end;
-    end = arg$View$2$;
-    start = arg$View$1$;
-    itr = arg$View$0$;
-    tmp4 = start + beg;
+    tmp4 = arg$View$1$ + beg;
     tmp5 = len - fin;
-    tmp6 = end + tmp5;
-    return View1(itr, tmp4, tmp6)
+    tmp6 = arg$View$2$ + tmp5;
+    return View1(arg$View$0$, tmp4, tmp6)
   } else if (arr instanceof Splice1.class) {
-    s = arr;
-    tmp7 = runtime.safeCall(s.materialize());
+    tmp7 = runtime.safeCall(arr.materialize());
     tmp8 = tmp7.slice(beg, fin);
     return View1(tmp8, 0, 0)
   }
@@ -182,7 +172,7 @@ View1 = function View(underlying, start, end) {
     return this.underlying.slice(this.start, tmp)
   } 
   at(i) {
-    let scrut, tmp, tmp1, tmp2, tmp3, tmp4;
+    let scrut, tmp, tmp1, tmp2, tmp3;
     tmp = - this.length;
     tmp1 = i < tmp;
     if (tmp1 === false) {
@@ -194,18 +184,16 @@ View1 = function View(underlying, start, end) {
     if (scrut === true) {
       throw runtime.safeCall(globalThis.RangeError("View.at: Index out of bounds"))
     }
-    let i1, len, inlinedVal, scrut1;
-    i1 = i;
+    let len, inlinedVal, scrut1;
     len = this.length;
-    scrut1 = i1 < 0;
+    scrut1 = i < 0;
     if (scrut1 === true) {
-      inlinedVal = len + i1;
+      inlinedVal = len + i;
     } else {
-      inlinedVal = i1;
+      inlinedVal = i;
     }
-    tmp3 = inlinedVal;
-    tmp4 = tmp3 + this.start;
-    return runtime.safeCall(this.underlying.at(tmp4));
+    tmp3 = inlinedVal + this.start;
+    return runtime.safeCall(this.underlying.at(tmp3));
   } 
   slice(beg, fin) {
     return sliceHelper(beg, fin, this)
