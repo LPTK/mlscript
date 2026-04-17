@@ -80,6 +80,9 @@ lazy val hkmc2DiffTests = project.in(file("hkmc2DiffTests"))
     libraryDependencies += "org.scalatest" %%% "scalatest" % scalaTestVersion % "test",
     
     Test/run/fork := true, // so that CTRL+C actually terminates the watcher
+    
+    // Test/fork := true, // so that CTRL+C
+    // Test / testForkedParallel := false,
   )
 
 /** Helper to create test subprojects that compile `.mls` files then run diff tests.
