@@ -378,6 +378,8 @@ class BlockSimplifier
     
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
       mergeMap(ar1, ar2)((a, b) => if a is b then a else Merge(a, b)).withDefaultValue(Unknown)
+      // TODO:
+      // mergeMap(ar1, ar2)(merge).withDefaultValue(Unknown)
     
     
     override def applyDefn(defn: Defn)(k: Defn => Block): Block =
