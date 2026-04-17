@@ -2,28 +2,8 @@ const definitionMetadata = globalThis.Symbol.for("mlscript.definitionMetadata");
 const prettyPrint = globalThis.Symbol.for("mlscript.prettyPrint");
 import runtime from "./Runtime.mjs";
 import Iter from "./Iter.mjs";
-let Splice1, sliceHelper, enforceArray, concatHelper, LazyArray1, View1, SpliceMarker1, LazyArr1, normIdxSlice;
-enforceArray = function enforceArray() {
-  let lambda;
-  lambda = (undefined, function (caseScrut) {
-    let tmp, tmp1;
-    if (caseScrut instanceof LazyArr1) {
-      return caseScrut
-    } else if (caseScrut instanceof globalThis.Array) {
-      return caseScrut
-    } else if (caseScrut instanceof globalThis.String) {
-      return caseScrut
-    } else if (typeof caseScrut === 'string') {
-      return caseScrut
-    } else if (globalThis.ArrayBuffer.isView(caseScrut) && !(caseScrut instanceof globalThis.DataView)) {
-      return caseScrut
-    }
-    tmp = runtime.safeCall(caseScrut.toString());
-    tmp1 = "Expected an Array, got: " + tmp;
-    throw runtime.safeCall(globalThis.Error(tmp1));
-  });
-  return lambda
-};
+import FingerTreeList from "./FingerTreeList.mjs";
+let Splice1, sliceHelper, LazyFingerTree1, concatHelper, LazyFT1, normIdxSlice, View1, SpliceMarker1;
 concatHelper = function concatHelper(a, l, ...args) {
   let idx, init_len, tmp, tmp1;
   idx = 0;
@@ -32,7 +12,7 @@ concatHelper = function concatHelper(a, l, ...args) {
   tmp1 = init_len + tmp;
   a.length = tmp1;
   lbl: while (true) {
-    let scrut, x, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
+    let scrut, x, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
     scrut = idx < args.length;
     if (scrut === true) {
       x = args.at(idx);
@@ -42,13 +22,11 @@ concatHelper = function concatHelper(a, l, ...args) {
       tmp4 = idx * 2;
       tmp5 = init_len + tmp4;
       tmp6 = tmp5 + 1;
-      tmp7 = enforceArray();
-      tmp8 = tmp7(x);
-      a[tmp6] = tmp8;
-      tmp9 = l + x.length;
-      l = tmp9;
-      tmp10 = idx + 1;
-      idx = tmp10;
+      a[tmp6] = x;
+      tmp7 = l + x.length;
+      l = tmp7;
+      tmp8 = idx + 1;
+      idx = tmp8;
       continue lbl
     }
     break;
@@ -69,7 +47,7 @@ normIdxSlice = function normIdxSlice(i, len) {
   return i;
 };
 sliceHelper = function sliceHelper(beg, fin, arr) {
-  let len, scrut, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, arg$View$0$, arg$View$1$, arg$View$2$, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+  let len, scrut, scrut1, scrut2, scrut3, tmp, tmp1, tmp2, tmp3, arg$View$0$, arg$View$1$, arg$View$2$, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
   len = arr.length;
   tmp = normIdxSlice(beg, len);
   beg = tmp;
@@ -99,17 +77,20 @@ sliceHelper = function sliceHelper(beg, fin, arr) {
     return View1(arg$View$0$, tmp4, tmp6)
   } else if (arr instanceof Splice1.class) {
     tmp7 = runtime.safeCall(arr.materialize());
-    tmp8 = tmp7.slice(tmp, fin);
-    return View1(tmp8, 0, 0)
+    return tmp7.slice(tmp, fin)
   }
-  tmp9 = enforceArray();
-  tmp10 = tmp9(arr);
-  tmp11 = arr.length - fin;
-  return View1(tmp10, tmp, tmp11);
+  scrut3 = FingerTreeList.isFingerTree(arr);
+  if (scrut3 === true) {
+    tmp8 = len - fin;
+    tmp9 = FingerTreeList.dropLeftRight(tmp, tmp8);
+    return runtime.safeCall(tmp9(arr))
+  }
+  tmp10 = len - fin;
+  return View1(arr, tmp, tmp10);
 };
-(class LazyArr extends Iter.IterableBase {
+(class LazyFT extends Iter.IterableBase {
   static {
-    LazyArr1 = this
+    LazyFT1 = this
   }
   constructor() {
     super();
@@ -129,12 +110,12 @@ sliceHelper = function sliceHelper(beg, fin, arr) {
     return concatHelper(tmp, this.length, ...args)
   }
   [prettyPrint]() { return this.toString(); }
-  static [definitionMetadata] = ["class", "LazyArr"]; 
+  static [definitionMetadata] = ["class", "LazyFT"]; 
 });
 View1 = function View(underlying, start, end) {
   return globalThis.Object.freeze(new View.class(underlying, start, end));
 };
-(class View extends LazyArr1 {
+(class View extends LazyFT1 {
   static {
     View1.class = this
   }
@@ -227,7 +208,7 @@ View1 = function View(underlying, start, end) {
 Splice1 = function Splice(bits, len) {
   return globalThis.Object.freeze(new Splice.class(bits, len));
 };
-(class Splice extends LazyArr1 {
+(class Splice extends LazyFT1 {
   static {
     Splice1.class = this
   }
@@ -239,45 +220,13 @@ Splice1 = function Splice(bits, len) {
   }
   #materialized;
   iterator() {
-    let nextf, idx, uitr;
-    const this$Splice = this;
-    nextf = function nextf() {
-      let scrut, scrut1, scrut2, n, scrut3, value, tmp, tmp1, tmp2, tmp3;
-      scrut = idx < this$Splice.bits.length;
-      if (scrut === true) {
-        scrut1 = this$Splice.bits.at(idx);
-        if (scrut1 instanceof SpliceMarker1.class) {
-          scrut2 = uitr === null;
-          if (scrut2 === true) {
-            tmp = idx + 1;
-            tmp1 = runtime.safeCall(this$Splice.bits.at(tmp)[globalThis.Symbol.iterator]());
-            uitr = tmp1;
-          }
-          n = runtime.safeCall(uitr.next());
-          scrut3 = n.done;
-          if (scrut3 === true) {
-            uitr = null;
-            tmp2 = idx + 2;
-            idx = tmp2;
-            return nextf()
-          }
-          return n;
-        }
-        value = this$Splice.bits.at(idx);
-        tmp3 = idx + 1;
-        idx = tmp3;
-        return Iter.Result.Next(value);
-      }
-      return Iter.Result.Done;
-    };
-    idx = 0;
-    uitr = null;
-    return Iter.Iterator(nextf)
+    let tmp;
+    tmp = this.materialize();
+    return runtime.safeCall(tmp.iterator())
   } 
   get reify() {
-    let counter, arr, stack, tmp;
-    counter = 0;
-    arr = new globalThis.Array(this.len);
+    let acc, stack, tmp;
+    acc = FingerTreeList.mk();
     stack = [];
     tmp = globalThis.Object.freeze([
       0,
@@ -285,7 +234,7 @@ Splice1 = function Splice(bits, len) {
     ]);
     runtime.safeCall(stack.push(tmp));
     lbl: while (true) {
-      let scrut, e, idx, vals, scrut1, scrut2, scrut3, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+      let scrut, e, idx, vals, scrut1, scrut2, scrut3, next, scrut4, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
       scrut = stack.length > 0;
       if (scrut === true) {
         e = runtime.safeCall(stack.pop());
@@ -295,23 +244,23 @@ Splice1 = function Splice(bits, len) {
           vals = vals.bits;
         }
         lbl1: while (true) {
-          let scrut4, scrut5, scrut6, scrut7, scrut8, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
-          scrut4 = idx < vals.length;
-          if (scrut4 === true) {
-            scrut5 = runtime.safeCall(vals.at(idx));
-            if (scrut5 instanceof SpliceMarker1.class) {
+          let scrut5, scrut6, scrut7, scrut8, scrut9, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+          scrut5 = idx < vals.length;
+          if (scrut5 === true) {
+            scrut6 = runtime.safeCall(vals.at(idx));
+            if (scrut6 instanceof SpliceMarker1.class) {
               tmp7 = true;
             } else {
               tmp7 = false;
             }
-            scrut6 = tmp7;
-            if (scrut6 === false) {
+            scrut7 = tmp7;
+            if (scrut7 === false) {
               tmp8 = true;
             } else {
               tmp8 = false;
             }
-            scrut7 = tmp8;
-            if (scrut7 === true) {
+            scrut8 = tmp8;
+            if (scrut8 === true) {
               tmp9 = true;
             } else {
               tmp9 = false;
@@ -319,12 +268,11 @@ Splice1 = function Splice(bits, len) {
           } else {
             tmp9 = false;
           }
-          scrut8 = tmp9;
-          if (scrut8 === true) {
+          scrut9 = tmp9;
+          if (scrut9 === true) {
             tmp10 = runtime.safeCall(vals.at(idx));
-            arr[counter] = tmp10;
-            tmp11 = counter + 1;
-            counter = tmp11;
+            tmp11 = FingerTreeList.snoc(acc, tmp10);
+            acc = tmp11;
             tmp12 = idx + 1;
             idx = tmp12;
             continue lbl1
@@ -351,23 +299,29 @@ Splice1 = function Splice(bits, len) {
           ]);
           runtime.safeCall(stack.push(tmp3));
           tmp4 = idx + 1;
-          tmp5 = runtime.safeCall(vals.at(tmp4));
+          next = runtime.safeCall(vals.at(tmp4));
+          scrut4 = FingerTreeList.isFingerTree(next);
+          if (scrut4 === true) {
+            tmp5 = FingerTreeList.concat(acc, next);
+            acc = tmp5;
+            continue lbl
+          }
           tmp6 = globalThis.Object.freeze([
             0,
-            tmp5
+            next
           ]);
           runtime.safeCall(stack.push(tmp6));
-          continue lbl
+          continue lbl;
         }
         continue lbl;
       }
       break;
     }
-    return arr;
+    return acc;
   } 
   materialize() {
     let scrut;
-    scrut = this.#materialized === null;
+    scrut = this.#materialized == null;
     if (scrut === true) {
       this.#materialized = this.reify;
       return this.#materialized
@@ -411,15 +365,17 @@ Splice1 = function Splice(bits, len) {
   [prettyPrint]() { return this.toString(); }
   static [definitionMetadata] = ["class", "Splice", ["bits", "len"]]; 
 });
-(class LazyArray {
+(class LazyFingerTree {
   static {
-    LazyArray1 = this
+    LazyFingerTree1 = this
   }
   static {
     this.__split = SpliceMarker1;
   }
   static mk(...args) {
-    return View1(args, 0, 0)
+    let tmp;
+    tmp = FingerTreeList.mk(...args);
+    return View1(tmp, 0, 0)
   } 
   static concat(...args) {
     let tmp;
@@ -437,7 +393,7 @@ Splice1 = function Splice(bits, len) {
       }
       scrut = tmp1;
       if (scrut === true) {
-        throw runtime.safeCall(globalThis.RangeError("LazyArray.dropLeftRight: indices must be non-negative"))
+        throw runtime.safeCall(globalThis.RangeError("LazyFingerTree.dropLeftRight: indices must be non-negative"))
       }
       tmp2 = beg > xs.length;
       if (tmp2 === false) {
@@ -447,60 +403,59 @@ Splice1 = function Splice(bits, len) {
       }
       scrut1 = tmp3;
       if (scrut1 === true) {
-        throw runtime.safeCall(globalThis.RangeError("LazyArray.dropLeftRight: indices out of bounds"))
+        throw runtime.safeCall(globalThis.RangeError("LazyFingerTree.dropLeftRight: indices out of bounds"))
       }
       tmp4 = xs.length - fin;
       return sliceHelper(beg, tmp4, xs);
     }
   } 
   static equals(xs, ys) {
-    let idx, tmp;
-    tmp = xs.length === ys.length;
-    if (tmp === true) {
-      idx = 0;
-      lbl: while (true) {
-        let scrut, scrut1, tmp1, tmp2, tmp3;
-        scrut = idx < xs.length;
-        if (scrut === true) {
-          tmp1 = runtime.safeCall(xs.at(idx));
-          tmp2 = runtime.safeCall(ys.at(idx));
-          scrut1 = tmp1 !== tmp2;
-          if (scrut1 === true) {
-            return false
+    loopLabel: while (true) {
+      let middleElements, element0$, middleElements1, element0$1, tmp;
+      if (runtime.Tuple.isArrayLike(xs) && xs.length >= 1) {
+        element0$ = runtime.Tuple.get(xs, 0);
+        middleElements = runtime.Tuple.slice(xs, 1, 0);
+        if (runtime.Tuple.isArrayLike(ys) && ys.length >= 1) {
+          element0$1 = runtime.Tuple.get(ys, 0);
+          middleElements1 = runtime.Tuple.slice(ys, 1, 0);
+          tmp = element0$ == element0$1;
+          if (tmp === true) {
+            xs = middleElements;
+            ys = middleElements1;
+            continue loopLabel
           }
-          tmp3 = idx + 1;
-          idx = tmp3;
-          continue lbl;
+          return false;
+        } else if (runtime.Tuple.isArrayLike(ys) && ys.length === 0) {
+          return false
         }
-        break;
+        throw globalThis.Object.freeze(new globalThis.Error("match error"));
+      } else if (runtime.Tuple.isArrayLike(xs) && xs.length === 0) {
+        return ys.length === 0
       }
-      return true
+      throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
-    return false;
   } 
   static __concat(...args) {
     let len, idx;
     len = 0;
     idx = 0;
     lbl: while (true) {
-      let scrut, scrut1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+      let scrut, scrut1, tmp, tmp1, tmp2, tmp3, tmp4;
       scrut = idx < args.length;
       if (scrut === true) {
         scrut1 = args.at(idx);
         if (scrut1 instanceof SpliceMarker1.class) {
-          tmp = enforceArray();
-          tmp1 = idx + 1;
-          tmp2 = tmp(args.at(tmp1));
-          tmp3 = len + tmp2.length;
-          len = tmp3;
-          tmp4 = idx + 2;
-          idx = tmp4;
+          tmp = idx + 1;
+          tmp1 = len + args.at(tmp).length;
+          len = tmp1;
+          tmp2 = idx + 2;
+          idx = tmp2;
           continue lbl
         }
-        tmp5 = len + 1;
-        len = tmp5;
-        tmp6 = idx + 1;
-        idx = tmp6;
+        tmp3 = len + 1;
+        len = tmp3;
+        tmp4 = idx + 1;
+        idx = tmp4;
         continue lbl;
       }
       break;
@@ -508,6 +463,6 @@ Splice1 = function Splice(bits, len) {
     return Splice1(args, len)
   }
   toString() { return runtime.render(this); }
-  static [definitionMetadata] = ["class", "LazyArray"]; 
+  static [definitionMetadata] = ["class", "LazyFingerTree"]; 
 });
-let LazyArray = LazyArray1; export default LazyArray;
+let LazyFingerTree = LazyFingerTree1; export default LazyFingerTree;
