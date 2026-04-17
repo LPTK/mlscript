@@ -195,7 +195,7 @@ fun test2() =
 //│         throw new globalThis⁰.Error⁰("match error")
 //│     end
 //│   };
-//│   return lambda
+//│   return lambda¹
 //│ };
 //│ end
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————

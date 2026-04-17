@@ -367,7 +367,7 @@ class BlockSimplifier
       // case Assigned(asst: Assign)
       // case Variable(historicAsst: Assignment)
       // case Assigned(asst: Assign, varAsst: Opt[LocalVar -> Assignment])
-      case Assigned(asst: Assign, varAsst: Opt[Local -> Assignment])
+      case Assigned(asst: Assign, varAsst: Opt[Value.Ref -> Assignment])
       case Merge(asst1: Assignment, asst2: Assignment)
       
       override def toString: String = this match
@@ -459,11 +459,11 @@ class BlockSimplifier
         */
         // assignedResults += lhs -> Vector.single(rhs)
         assignedResults += lhs -> Assigned(ass, rhs.match
-          case Value.Ref(sym: LocalVar, N) if !capturedVars(sym) =>
+          case r @ Value.Ref(sym: LocalVar, N) if !capturedVars(sym) =>
             val rhs2 = assignedResults(sym)
-            S(sym -> rhs2)
-          case Value.Ref(sym, _) =>
-            S(sym -> Unknown)
+            S(r -> rhs2)
+          case r @ Value.Ref(sym, _) =>
+            S(r -> Unknown)
           case _ => N
             /* 
             if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
@@ -609,7 +609,7 @@ class BlockSimplifier
         var litValue: Bool | Value = true
         var emptyHanded = false
         // def getUnchangedVars(asst: Assignment): Set[LocalVar] =
-        def getUnchangedVars(asst: Assignment): Set[Local] =
+        def getUnchangedVars(asst: Assignment): Set[Value.Ref] =
           if emptyHanded && litValue === false then Set.empty
           else asst match
             case Unknown =>
@@ -653,9 +653,9 @@ class BlockSimplifier
                   litValue = false
               // Set.empty
               opt match
-              case S((lv: LocalVar) -> rhs) =>
+              case S((r @ Value.Ref(lv: LocalVar, N)) -> rhs) =>
                 if assignedResults(lv) is rhs
-                then Set.single(lv) ++ getUnchangedVars(rhs)
+                then Set.single(r) ++ getUnchangedVars(rhs)
                 else Set.empty
               case S(lv -> rhs) =>
                 Set.single(lv) ++ getUnchangedVars(rhs)
@@ -679,11 +679,12 @@ class BlockSimplifier
           registerChange(s"${loc.showDbg} ~> ${lit.showDbg}")
           return k(lit)
         case false =>
-          vars.minByOption(_.uid) match
+          vars.minByOption(_.l.uid) match
           case N => k(v)
           case S(v2) => 
             registerChange(s"${loc.showDbg} ~> ${v2.showDbg} (via ${vars.map(_.showDbg).mkString(", ")})")
-            k(Value.Ref(v2, N))
+            // k(Value.Ref(v2, N))
+            k(v2)
         
         /* 
         if rs.isEmpty then

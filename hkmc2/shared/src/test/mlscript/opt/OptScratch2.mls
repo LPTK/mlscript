@@ -18,16 +18,16 @@ f(42)
 //│ | | | |= Map()
 //│ | | | Applying block: Assign(g,Ref(member:g,Some(term:g)),Return(Call(Ref(g,None),List()),false)) with map: Map(g -> ∅)
 //│ | | | | Propagating g := Ref(member:g,Some(term:g)) (Some(∅))
-//│ | | | | NEW assignedResults: Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
-//│ | | | | Applying block: Return(Call(Ref(g,None),List()),false) with map: Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
-//│ | | | | | ?? g⁰ Some(Ref(member:g,Some(term:g))‹(member:g,?)›) true false
+//│ | | | | NEW assignedResults: Map(g -> Ref(member:g,Some(term:g))‹(Ref(member:g,Some(term:g)),?)›)
+//│ | | | | Applying block: Return(Call(Ref(g,None),List()),false) with map: Map(g -> Ref(member:g,Some(term:g))‹(Ref(member:g,Some(term:g)),?)›)
+//│ | | | | | ?? g⁰ Some(Ref(member:g,Some(term:g))‹(Ref(member:g,Some(term:g)),?)›) true false
 //│ | | | | | 2
 //│ | | | | | 0
-//│ | | | | | Analysis: litValue: false, unchanged vars: Set(member:g)
-//│ | | | | | !! Change triggered { g⁰ ~> member:g¹ (via member:g¹) } at BlockSimplifier.scala:685
-//│ | | | | |= Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
-//│ | | | |= Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
-//│ | | |= Map(g -> Ref(member:g,Some(term:g))‹(member:g,?)›)
+//│ | | | | | Analysis: litValue: false, unchanged vars: Set(Ref(member:g,Some(term:g)))
+//│ | | | | | !! Change triggered { g⁰ ~> member:g¹‹term:g²› (via member:g¹‹term:g²›) } at BlockSimplifier.scala:685
+//│ | | | | |= Map(g -> Ref(member:g,Some(term:g))‹(Ref(member:g,Some(term:g)),?)›)
+//│ | | | |= Map(g -> Ref(member:g,Some(term:g))‹(Ref(member:g,Some(term:g)),?)›)
+//│ | | |= Map(g -> Ref(member:g,Some(term:g))‹(Ref(member:g,Some(term:g)),?)›)
 //│ | | Applying block: Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true) with map: Map()
 //│ | | |= Map()
 //│ | |= Map()
@@ -38,46 +38,243 @@ f(42)
 //│ >    let g, g1;
 //│ >    define g1 as fun g²() { return a };
 //│ >    set g = g²;
-//│ >    return g1()
+//│ >    return g²()
+//│ >  };
+//│ >  f¹(42)
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:1097
+//│ Inline call for term:g, with args List()
+//│ ▶ INL:
+//│ >  let f⁰;
+//│ >  define f⁰ as fun f¹(a) {
+//│ >    let g, g1, inlinedVal;
+//│ >    define g1 as fun g²() {
+//│ >      return a
+//│ >    };
+//│ >    set g = g²;
+//│ >    block inlinedLbl:
+//│ >      set inlinedVal = a;
+//│ >      break inlinedLbl
+//│ >    return inlinedVal
 //│ >  };
 //│ >  f¹(42)
 //│ ⬤ Simplif. iter. 2
 //│ !! Change triggered { rm g⁰ = member:g¹‹term:g²› } at BlockSimplifier.scala:238
+//│ Break label:inlinedLbl is eliminated: current tail label list is HashSet(label:inlinedLbl)
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:278
 //│ ▶ DCE:
-//│ >  let f⁰; define f⁰ as fun f¹(a) { let g; define g as fun g²() { return a }; return g() }; f¹(42)
+//│ >  let f⁰;
+//│ >  define f⁰ as fun f¹(a) {
+//│ >    let g, inlinedVal;
+//│ >    define g as fun g²() {
+//│ >      return a
+//│ >    };
+//│ >    block inlinedLbl:
+//│ >      set inlinedVal = a;
+//│ >      end
+//│ >    return inlinedVal
+//│ >  };
+//│ >  f¹(42)
 //│ Captured variables: HashSet(a)
-//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true))) with map: Map()
-//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true)) with map: Map()
-//│ | | Applying block: Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)) with map: Map()
+//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g, tmp:inlinedVal),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Label(label:inlinedLbl,false,Assign(tmp:inlinedVal,Ref(a,None),End()),Return(Ref(tmp:inlinedVal,None),false))))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true))) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g, tmp:inlinedVal),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Label(label:inlinedLbl,false,Assign(tmp:inlinedVal,Ref(a,None),End()),Return(Ref(tmp:inlinedVal,None),false))))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true)) with map: Map()
+//│ | | Applying block: Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Label(label:inlinedLbl,false,Assign(tmp:inlinedVal,Ref(a,None),End()),Return(Ref(tmp:inlinedVal,None),false))) with map: Map(tmp:inlinedVal -> ∅)
 //│ | | | Applying block: Return(Ref(a,None),false) with map: Map()
 //│ | | | |= Map()
-//│ | | | Applying block: Return(Call(Ref(member:g,None),List()),false) with map: Map()
-//│ | | | |= Map()
+//│ | | | Applying block: Label(label:inlinedLbl,false,Assign(tmp:inlinedVal,Ref(a,None),End()),Return(Ref(tmp:inlinedVal,None),false)) with map: Map(tmp:inlinedVal -> ∅)
+//│ | | | | Applying block: Assign(tmp:inlinedVal,Ref(a,None),End()) with map: Map(tmp:inlinedVal -> ∅)
+//│ | | | | | Propagating tmp:inlinedVal := Ref(a,None) (Some(∅))
+//│ | | | | | NEW assignedResults: Map(tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),?)›)
+//│ | | | | | Applying block: End() with map: Map(tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),?)›)
+//│ | | | | | |= Map(tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),?)›)
+//│ | | | | |= Map(tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),?)›)
+//│ | | | | Applying block: Return(Ref(tmp:inlinedVal,None),false) with map: Map(tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),?)›)
+//│ | | | | | ?? tmp:inlinedVal⁰ Some(Ref(a,None)‹(Ref(a,None),?)›) true false
+//│ | | | | | 2
+//│ | | | | | 0
+//│ | | | | | Analysis: litValue: false, unchanged vars: Set(Ref(a,None))
+//│ | | | | | !! Change triggered { tmp:inlinedVal⁰ ~> a⁰ (via a⁰) } at BlockSimplifier.scala:685
+//│ | | | | |= Map(tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),?)›)
+//│ | | | |= Map(tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),?)›)
+//│ | | |= Map(tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),?)›)
+//│ | | Applying block: Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true) with map: Map()
+//│ | | |= Map()
+//│ | |= Map()
+//│ |= Map()
+//│ ▶ VP:
+//│ >  let f⁰;
+//│ >  define f⁰ as fun f¹(a) {
+//│ >    let g, inlinedVal;
+//│ >    define g as fun g²() { return a };
+//│ >    block inlinedLbl:
+//│ >      set inlinedVal = a;
+//│ >      end
+//│ >    return a
+//│ >  };
+//│ >  f¹(42)
+//│ Inline elimination: term:g
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:1060
+//│ ▶ INL:
+//│ >  let f⁰;
+//│ >  define f⁰ as fun f¹(a) {
+//│ >    let g, inlinedVal;
+//│ >    block inlinedLbl:
+//│ >      set inlinedVal = a;
+//│ >      end
+//│ >    return a
+//│ >  };
+//│ >  f¹(42)
+//│ ⬤ Simplif. iter. 3
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:272
+//│ !! Change triggered { rm tmp:inlinedVal⁰ = a⁰ } at BlockSimplifier.scala:238
+//│ ▶ DCE:
+//│ >  let f⁰; define f⁰ as fun f¹(a) { let g; return a }; f¹(42)
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true))) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true)) with map: Map()
+//│ | | Applying block: Return(Ref(a,None),false) with map: Map()
+//│ | | | ?? a⁰ None false false
+//│ | | | 0
+//│ | | | Analysis: litValue: false, unchanged vars: Set()
 //│ | | |= Map()
 //│ | | Applying block: Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true) with map: Map()
 //│ | | |= Map()
 //│ | |= Map()
 //│ |= Map()
-//│ ⬤ Simplif. iter. 3
-//│ Captured variables: HashSet(a)
-//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true))) with map: Map()
-//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)))),Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true)) with map: Map()
-//│ | | Applying block: Define(FunDefn(None,member:g,term:g,List(ParamList(‹›,List(),None)),Return(Ref(a,None),false)),Return(Call(Ref(member:g,None),List()),false)) with map: Map()
-//│ | | | Applying block: Return(Ref(a,None),false) with map: Map()
-//│ | | | |= Map()
-//│ | | | Applying block: Return(Call(Ref(member:g,None),List()),false) with map: Map()
-//│ | | | |= Map()
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:1097
+//│ Inline call for term:f, with args List(Arg(None,Lit(IntLit(42))))
+//│ ▶ INL:
+//│ >  let f⁰, a¹, inlinedVal;
+//│ >  define f⁰ as fun f¹(a) {
+//│ >    let g;
+//│ >    return a
+//│ >  };
+//│ >  set a¹ = 42;
+//│ >  block inlinedLbl:
+//│ >    let g;
+//│ >    set inlinedVal = a¹;
+//│ >    break inlinedLbl
+//│ >  inlinedVal
+//│ ⬤ Simplif. iter. 4
+//│ Break label:inlinedLbl is eliminated: current tail label list is HashSet(label:inlinedLbl)
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:278
+//│ ▶ DCE:
+//│ >  let f⁰, a¹, inlinedVal;
+//│ >  define f⁰ as fun f¹(a) {
+//│ >    let g;
+//│ >    return a
+//│ >  };
+//│ >  set a¹ = 42;
+//│ >  block inlinedLbl:
+//│ >    let g;
+//│ >    set inlinedVal = a¹;
+//│ >    end
+//│ >  inlinedVal
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:f, a, tmp:inlinedVal),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Assign(a,Lit(IntLit(42)),Label(label:inlinedLbl,false,Scoped(HashSet(member:g),Assign(tmp:inlinedVal,Ref(a,None),End())),Return(Ref(tmp:inlinedVal,None),true))))) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Assign(a,Lit(IntLit(42)),Label(label:inlinedLbl,false,Scoped(HashSet(member:g),Assign(tmp:inlinedVal,Ref(a,None),End())),Return(Ref(tmp:inlinedVal,None),true)))) with map: Map(a -> ∅, tmp:inlinedVal -> ∅)
+//│ | | Applying block: Return(Ref(a,None),false) with map: Map()
+//│ | | | ?? a⁰ None false false
+//│ | | | 0
+//│ | | | Analysis: litValue: false, unchanged vars: Set()
 //│ | | |= Map()
-//│ | | Applying block: Return(Call(Ref(member:f,Some(term:f)),List(Arg(None,Lit(IntLit(42))))),true) with map: Map()
+//│ | | Applying block: Assign(a,Lit(IntLit(42)),Label(label:inlinedLbl,false,Scoped(HashSet(member:g),Assign(tmp:inlinedVal,Ref(a,None),End())),Return(Ref(tmp:inlinedVal,None),true))) with map: Map(a -> ∅, tmp:inlinedVal -> ∅)
+//│ | | | Propagating a := Lit(IntLit(42)) (Some(∅))
+//│ | | | NEW assignedResults: Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> ∅)
+//│ | | | Applying block: Label(label:inlinedLbl,false,Scoped(HashSet(member:g),Assign(tmp:inlinedVal,Ref(a,None),End())),Return(Ref(tmp:inlinedVal,None),true)) with map: Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> ∅)
+//│ | | | | Applying block: Scoped(HashSet(member:g),Assign(tmp:inlinedVal,Ref(a,None),End())) with map: Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> ∅)
+//│ | | | | | Applying block: Assign(tmp:inlinedVal,Ref(a,None),End()) with map: Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> ∅)
+//│ | | | | | | Propagating tmp:inlinedVal := Ref(a,None) (Some(∅))
+//│ | | | | | | NEW assignedResults: Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ | | | | | | ?? a¹ Some(Lit(IntLit(42))) true false
+//│ | | | | | | Analysis: litValue: Lit(IntLit(42)), unchanged vars: Set()
+//│ | | | | | | !! Change triggered { a¹ ~> 42 } at BlockSimplifier.scala:679
+//│ | | | | | | Applying block: End() with map: Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ | | | | | | |= Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ | | | | | |= Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ | | | | |= Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ | | | | Applying block: Return(Ref(tmp:inlinedVal,None),true) with map: Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ | | | | | ?? tmp:inlinedVal¹ Some(Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›) true false
+//│ | | | | | 2
+//│ | | | | | Analysis: litValue: false, unchanged vars: Set(Ref(a,None))
+//│ | | | | | !! Change triggered { tmp:inlinedVal¹ ~> a¹ (via a¹) } at BlockSimplifier.scala:685
+//│ | | | | |= Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ | | | |= Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ | | |= Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ | |= Map(a -> Lit(IntLit(42)), tmp:inlinedVal -> Ref(a,None)‹(Ref(a,None),Lit(IntLit(42)))›)
+//│ |= Map(a -> ∅, tmp:inlinedVal -> ∅)
+//│ ▶ VP:
+//│ >  let f⁰, a¹, inlinedVal;
+//│ >  define f⁰ as fun f¹(a) {
+//│ >    let g;
+//│ >    return a
+//│ >  };
+//│ >  set a¹ = 42;
+//│ >  block inlinedLbl:
+//│ >    let g;
+//│ >    set inlinedVal = 42;
+//│ >    end
+//│ >  a¹
+//│ ⬤ Simplif. iter. 5
+//│ !! Change triggered { TODO } at BlockSimplifier.scala:272
+//│ !! Change triggered { rm tmp:inlinedVal¹ = 42 } at BlockSimplifier.scala:238
+//│ ▶ DCE:
+//│ >  let f⁰, a¹, g³; define f⁰ as fun f¹(a) { let g; return a }; set a¹ = 42; a¹
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:f, a, member:g),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Assign(a,Lit(IntLit(42)),Return(Ref(a,None),true)))) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Assign(a,Lit(IntLit(42)),Return(Ref(a,None),true))) with map: Map(a -> ∅)
+//│ | | Applying block: Return(Ref(a,None),false) with map: Map()
+//│ | | | ?? a⁰ None false false
+//│ | | | 0
+//│ | | | Analysis: litValue: false, unchanged vars: Set()
+//│ | | |= Map()
+//│ | | Applying block: Assign(a,Lit(IntLit(42)),Return(Ref(a,None),true)) with map: Map(a -> ∅)
+//│ | | | Propagating a := Lit(IntLit(42)) (Some(∅))
+//│ | | | NEW assignedResults: Map(a -> Lit(IntLit(42)))
+//│ | | | Applying block: Return(Ref(a,None),true) with map: Map(a -> Lit(IntLit(42)))
+//│ | | | | ?? a¹ Some(Lit(IntLit(42))) true false
+//│ | | | | Analysis: litValue: Lit(IntLit(42)), unchanged vars: Set()
+//│ | | | | !! Change triggered { a¹ ~> 42 } at BlockSimplifier.scala:679
+//│ | | | |= Map(a -> Lit(IntLit(42)))
+//│ | | |= Map(a -> Lit(IntLit(42)))
+//│ | |= Map(a -> Lit(IntLit(42)))
+//│ |= Map(a -> ∅)
+//│ ▶ VP:
+//│ >  let f⁰, a¹, g³; define f⁰ as fun f¹(a) { let g; return a }; set a¹ = 42; 42
+//│ ⬤ Simplif. iter. 6
+//│ !! Change triggered { rm a¹ = 42 } at BlockSimplifier.scala:238
+//│ ▶ DCE:
+//│ >  let f⁰, g³; define f⁰ as fun f¹(a) { let g; return a }; 42
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:f, member:g),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Return(Lit(IntLit(42)),true))) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Return(Lit(IntLit(42)),true)) with map: Map()
+//│ | | Applying block: Return(Ref(a,None),false) with map: Map()
+//│ | | | ?? a⁰ None false false
+//│ | | | 0
+//│ | | | Analysis: litValue: false, unchanged vars: Set()
+//│ | | |= Map()
+//│ | | Applying block: Return(Lit(IntLit(42)),true) with map: Map()
+//│ | | |= Map()
+//│ | |= Map()
+//│ |= Map()
+//│ ⬤ Simplif. iter. 7
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:f, member:g),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Return(Lit(IntLit(42)),true))) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,a,None,Modulefulness(None))),None)),Scoped(HashSet(member:g),Return(Ref(a,None),false))),Return(Lit(IntLit(42)),true)) with map: Map()
+//│ | | Applying block: Return(Ref(a,None),false) with map: Map()
+//│ | | | ?? a⁰ None false false
+//│ | | | 0
+//│ | | | Analysis: litValue: false, unchanged vars: Set()
+//│ | | |= Map()
+//│ | | Applying block: Return(Lit(IntLit(42)),true) with map: Map()
 //│ | | |= Map()
 //│ | |= Map()
 //│ |= Map()
 //│ dead-param-elim > >>> dead-param-elim results >>>
-//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
 //│ dead-param-elim > <<< dead-param-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let f⁰; define f⁰ as fun f¹() { let g; define g as fun g²() { return undefined }; return g() }; f¹()
+//│ let f⁰, g³; define f⁰ as fun f¹(a) { let g; return a }; 42
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 42
 
 
 

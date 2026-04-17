@@ -510,7 +510,7 @@ main
 //│ define main¹⁰ as fun main¹¹() {
 //│   let test, lambda;
 //│   define lambda as fun lambda⁰(x) { return x };
-//│   return lambda
+//│   return lambda⁰
 //│ };
 //│ main¹¹()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -526,7 +526,7 @@ main
 //│ define main¹² as fun main¹³() {
 //│   let test;
 //│   define test as fun test⁰(x) { return x };
-//│   return test
+//│   return test⁰
 //│ };
 //│ main¹³()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

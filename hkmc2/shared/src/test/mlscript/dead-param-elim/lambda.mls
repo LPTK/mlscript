@@ -74,14 +74,11 @@ private fun f(a) =
   g()
 f(42)
 //│ dead-param-elim > >>> dead-param-elim results >>>
-//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
 //│ dead-param-elim > <<< dead-param-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let f⁰; define f⁰ as fun f¹() { let g; define g as fun g⁰() { return undefined }; return g() }; f¹()
+//│ let f⁰, g⁰; define f⁰ as fun f¹(a) { let g; return a }; 42
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
-//│ ═══[RUNTIME ERROR] Expected: '42', got: '()'
+//│ = 42
 
 
 
