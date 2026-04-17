@@ -312,26 +312,13 @@ class BlockSimplifier
   
   
   /** Simple propagation of values inwards; does not require any merges at join points. */
-  // class ValuePropagation(definedVars: Set[LocalVar]) extends BlockTransformer(SymbolSubst.Id), Helper:
   class ValuePropagation(localVars: Set[LocalVar]) extends BlockTransformer(SymbolSubst.Id), Helper:
-    
-    // val definedVars = DefinedVars.analyze
     
     
     val capturedVars = MutSet.empty[LocalVar]
     // ^ TODO: technically, all we need to prevent is changes to `nonLocallyAssignedVars`,
     //    so we should compute that instead.
-    /* 
-    import java.util.IdentityHashMap
-    var assignedValue: IdentityHashMap[LocalVar, Opt[Value]] = new IdentityHashMap
     
-    def withAssignedValues[T](newAssigned: IdentityHashMap[LocalVar, Opt[Value]])(thunk: => T): T =
-      val oldAssigned = assignedValue
-      assignedValue = newAssigned
-      val res = thunk
-      assignedValue = oldAssigned
-      res
-    */
     
     def apply(prog: Program): Program =
       new BlockTraverser:
@@ -348,11 +335,6 @@ class BlockSimplifier
           capturedVars ++= lam.freeVars.iterator.collect { case v: LocalVar => v }
           super.applyLam(lam)
         
-        // override def applyBlock(b: Block): Block = b match
-        //   case Assign(lhs, rhs, rst) if !capturedVars(lhs) =>
-        //     applyResult(rhs)(r => Assign(lhs, r, applyBlock(rst)))
-        //   case _ => super.applyBlock(b)
-        
       end new
       
       log(s"Captured variables: ${capturedVars}")
@@ -364,9 +346,6 @@ class BlockSimplifier
     enum Assignment:
       case Unknown
       case Uninitialized
-      // case Assigned(asst: Assign)
-      // case Variable(historicAsst: Assignment)
-      // case Assigned(asst: Assign, varAsst: Opt[LocalVar -> Assignment])
       case Assigned(asst: Assign, varAsst: Opt[Value.Ref -> Assignment])
       case Merge(asst1: Assignment, asst2: Assignment)
       
@@ -381,15 +360,11 @@ class BlockSimplifier
     
     type AssignedResults = Map[LocalVar, Assignment]
     
-    // def initVector(sym: LocalVar): Vector[Result] =
-    //   if localVars(sym) then Vector.empty else Vector.single(Value.Ref(sym, N))
-    
-    // val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Vector.empty)
     val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Unknown)
     
     // *** ASSUMPTION: only LocalVar symbols can be Assign'ed ***
     var assignedResults: AssignedResults = emptyAssignedResults
-    var inDryRun = false // for traversing loops once before actually transforming the program
+    var inDryRun = false // for traversing loop bodies once before actually transforming the program
     
     def withFreshAssignedResults[T](thunk: => T): T =
       val oldAssignedResults = assignedResults
@@ -401,10 +376,6 @@ class BlockSimplifier
     val atLabelBegin: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     val atLabelEnd: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     
-    // def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
-    //   // mergeMap(ar1, ar2)(_ ++ _).withDefaultValue(Vector.empty)
-    //   // mergeMap(ar1, ar2)(_ ++ _).withDefault(initVector)
-    //   mergeMap(ar1, ar2)((a, b) => (a ++ b).distinct).withDefaultValue(Unknown)
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
       mergeMap(ar1, ar2)(Merge(_, _)).withDefaultValue(Unknown)
     
@@ -412,60 +383,21 @@ class BlockSimplifier
     override def applyDefn(defn: Defn)(k: Defn => Block): Block =
       defn match
       case _: ValDefn => super.applyDefn(defn)(k)
-      // case _: FunDefn | _: ClsLikeDefn =>
       case defn: (FunDefn | ClsLikeDefn) =>
-        // if inDryRun then k(defn)
-        // else withFreshAssignedResults:
-        //   super.applyDefn(defn)(k)
         if inDryRun then k(defn)
         else
           val oldAssignedResults = assignedResults
           assignedResults = emptyAssignedResults
-          // defn match
-          // case defn: FunDefn =>
-          //   defn.params.iterator.flatMap(_.paramSyms).foreach: sym =>
-          //     assignedResults += sym -> Vector.single(Value.Ref(sym, N))
-          // case defn: ClsLikeDefn => // TODO
           super.applyDefn(defn): res =>
             assignedResults = oldAssignedResults
             k(res)
     
-    /** Invalidate all `assignedResults` entries whose propagated value references `sym`.
-      * This is needed when a mutable variable is reassigned, so that other variables
-      * that were tracking its value are not incorrectly propagated.
-      * Invalidated entries are replaced with a self-reference, preventing propagation. */
-    def invalidateRefsTo(sym: Local): Unit =
-      // assignedResults = assignedResults.map: (key, values) =>
-      //   if values.exists:
-      //     case Value.Ref(s, _) => s === sym
-      //     case _ => false
-      //   then key -> Vector.single(Value.Ref(key, N))
-      //   else key -> values
-      // .withDefault(initVector)
-      ()
-    
     override def applyBlock(b: Block): Block = trace[Block](s"Applying block: ${b} with map: ${assignedResults}", res => s"|= ${assignedResults}"):
-      // println(s"Applying block: ${b} with assignedResults map: ${assignedResults} ${capturedVars}")
       // log(s"Applying block: ${b} with map: ${assignedResults}")
       b match
       case ass @ Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
         log(s"Propagating ${lhs} := ${rhs} (${assignedResults.get(lhs)})")
-        invalidateRefsTo(lhs)
-        /* 
-        assignedResults = assignedResults.updatedWith(lhs):
-          case S(old) =>
-            S(old :+ rhs)
-          case N => S(Vector.single(rhs))
-        */
-        // assignedResults += lhs -> Vector.single(rhs)
         assignedResults += lhs -> Assigned(ass, rhs.match
-          /* 
-          case r @ Value.Ref(sym: LocalVar, N) if !capturedVars(sym) =>
-            val rhs2 = assignedResults(sym)
-            S(r -> rhs2)
-          case r @ Value.Ref(sym, _) =>
-            S(r -> Unknown)
-          */
           case r @ Value.Ref(sym: LocalVar, N) =>
             if capturedVars(sym) then N
             else
@@ -473,60 +405,27 @@ class BlockSimplifier
               S(r -> rhs2)
           case r @ Value.Ref(sym, _) =>
             S(r -> Unknown)
-          // case r @ Value.Ref(sym, _) if !capturedVars(sym) =>
-          //   sym match
-          //   case sym: LocalVar =>
-          //     val rhs2 = assignedResults(sym)
-          //     S(r -> rhs2)
-          //   case _ => S(r -> Unknown)
           case _ => N
-            /* 
-            if rhs2.isEmpty then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
-            // if rhs2.isEmpty && localVars(sym) then Vector.single(Value.Lit(syntax.Tree.UnitLit(false)))
-            else if rhs2.sizeCompare(1) === 0 then
-              rhs2.head match
-              case _: Value.Lit | _: Value.Ref => rhs2
-              case _ => Vector.single(rhs)
-            else Vector.single(rhs)
-          // TODO: also handle Value.This
-          case _ => Vector.single(rhs)
-            */
         )
         log(s"NEW assignedResults: ${assignedResults}")
         super.applyBlock(b)
       case Assign(lhs, rhs, rst) =>
         log(s"Not propagating ${lhs} := ${rhs}")
-        invalidateRefsTo(lhs)
         super.applyBlock(b)
-      // case Label(loop = true) =>
-      //   // withAssignedValues(new IdentityHashMap):
-      //   //   super.applyBlock(b)
-      //   ???
       case Label(label, loop, body, rest) =>
         
         // TODO:
         // assert(!atLabelBegin.contains(label) && !atLabelEnd.contains(label))
         
-        
-        // if loop then println("TODO")
-        
-        // atLabelBegin.put(label, assignedResults)
-        
-        // val oldDryRun = inDryRun
-        // if loop then inDryRun = true
-        // if loop then applyBlock(body)
-        // inDryRun = oldDryRun
         if loop then
           atLabelBegin.put(label, assignedResults)
           val oldDryRun = inDryRun
           inDryRun = true
-          applyBlock(body) // FIXedME wrong complexity for nested loops
+          applyBlock(body)
           inDryRun = oldDryRun
-        // if loop then 
           assignedResults = merge(assignedResults, atLabelEnd(label))
         if !loop || !inDryRun then
           val newBody = applyBlock(body)
-          // atLabelEnd.put(label, assignedResults)
           assignedResults = merge(assignedResults, atLabelEnd(label))
           val newRest = applySubBlock(rest)
           if (newBody is body) && (newRest is rest) then b
@@ -542,7 +441,6 @@ class BlockSimplifier
         atLabelBegin.put(label, merge(assignedResults, atLabelBegin(label)))
         super.applyBlock(b)
       case Break(label) =>
-        // atLabelEnd.put(label, merge(atLabelEnd.getOrElse(label, Map.empty), assignedResults))
         atLabelEnd.put(label, merge(assignedResults, atLabelEnd(label)))
         super.applyBlock(b)
       case Match(scrut, arms, dflt, rest) =>
@@ -570,31 +468,8 @@ class BlockSimplifier
     
     // FIXME: refactor transformers so this is not so error-prone (adding this case to `applyBlock` doesn't work)
     override def applyScopedBlock(b: Block): Block =
-      // val res = super.applyScopedBlock(b)
-      // println(s"?!")
       b match
       case Scoped(syms, body) =>
-        // assignedResults = assignedResults.filterNot:
-        //   case (_, Value.Ref(sym)) => syms.contains(sym)
-        /* 
-        assignedResults = assignedResults
-          .flatMap:
-            // case (k, rs) => k -> rs.filterNot:
-            //   case Value.Ref(sym: LocalVar, N) => syms.contains(sym)
-            //   case _ => false
-            case (k, rs) if syms.contains(k) => N
-            // case (k, rs) => S(k -> rs.flatMap:
-            //   // case Value.Ref(sym: LocalVar, N) =>
-            //   //   if syms.contains(sym)
-            //   case ref @ Value.Ref(sym: LocalVar, N) =>
-            //     S(if syms.contains(sym) then Value.Ref(k, N) else ref)
-            //   case r => S(r))
-            case (k, rs) => S(k -> rs.map:
-              case ref @ Value.Ref(sym: LocalVar, N) =>
-                if syms.contains(sym) then Value.Ref(k, N) else ref
-              case r => r)
-          .withDefault(initVector)
-        */
         syms.foreach:
           case sym: LocalVar =>
             assignedResults += sym -> Uninitialized
@@ -602,87 +477,57 @@ class BlockSimplifier
         val res = super.applyScopedBlock(b)
         syms.foreach:
           case sym: LocalVar =>
-            // assignedResults += sym -> Unknown
             assignedResults += sym -> Uninitialized
           case _ =>
         res
       case _ =>
         super.applyScopedBlock(b)
-      // res
     
     override def applyValue(v: Value)(k: Value => Block): Block =
       // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
-      // println(s"Applying value: ${v} with assignedResults map: ${assignedResults} ${capturedVars}")
       v match
-      // case Value.Ref(loc, N) if !capturedVars(loc) && !inDryRun =>
-      // case Value.Ref(loc: LocalVar, N) if !inDryRun && !loc.isInstanceOf[BlockMemberSymbol] =>
       case Value.Ref(loc: LocalVar, N) if !inDryRun && !capturedVars(loc) =>
-      // case Value.Ref(loc: LocalVar, N) if !inDryRun && localVars(loc) =>
         log(s"?? ${loc.showDbg} ${assignedResults.get(loc)} ${localVars(loc)} ${capturedVars(loc)}")
         val rs = assignedResults(loc)
         
         var litValue: Bool | Value = true
         var emptyHanded = false
-        // def getUnchangedVars(asst: Assignment): Set[LocalVar] =
-        def getUnchangedVars(asst: Assignment): Set[Value.Ref] =
+        def analyzeValues(asst: Assignment): Set[Value.Ref] =
           if emptyHanded && litValue === false then Set.empty
           else asst match
             case Unknown =>
-              log(s"0")
+              // log(s"0")
               litValue = false
               Set.empty
             case Uninitialized => Set.empty
-              /* 
-            case Assigned(ass, N) =>
-              if litValue =/= false then
-                ass.rhs match
-                case Value.Lit(lit) =>
-                  // if litValue =/= true && litValue =/= lit then
-                  //   litValue = false
-                  if litValue === true then
-                    litValue = lit
-                  else if litValue =/= lit then
-                    litValue = false
-                case _ =>
-                  litValue = false
-              Set.empty
-            case Assigned(_, S(lv -> rhs)) =>
-              if assignedResults(lv) is rhs
-              then Set.single(lv) ++ getUnchangedVars(rhs)
-              else Set.empty
-              */ 
             case Assigned(ass, opt) =>
               if litValue =/= false then
                 ass.rhs match
                 case v @ Value.Lit(lit) =>
-                  // if litValue =/= true && litValue =/= lit then
-                  //   litValue = false
                   if litValue === true then
                     litValue = v
                   else if litValue =/= v then
-                    log(s"1 ${litValue} !== ${v}")
+                    // log(s"1 ${litValue} !== ${v}")
                     litValue = false
                 case _ =>
-                  // log(s"Unexpected value: ${v}")
-                  log(s"2")
+                  // log(s"2")
                   litValue = false
-              // Set.empty
               opt match
               case S((r @ Value.Ref(lv: LocalVar, N)) -> rhs) =>
                 if assignedResults(lv) is rhs
-                then Set.single(r) ++ getUnchangedVars(rhs)
+                then Set.single(r) ++ analyzeValues(rhs)
                 else Set.empty
               case S(lv -> rhs) =>
-                Set.single(lv) ++ getUnchangedVars(rhs)
+                Set.single(lv) ++ analyzeValues(rhs)
               case N => Set.empty
             case Merge(a1, a2) =>
-              val l = getUnchangedVars(a1)
+              val l = analyzeValues(a1)
               if l.isEmpty && litValue === false then
                 emptyHanded = true
                 Set.empty
-              else l & getUnchangedVars(a2)
+              else l & analyzeValues(a2)
         
-        val vars = getUnchangedVars(rs)
+        val vars = analyzeValues(rs)
         
         log(s"Analysis: litValue: ${litValue}, unchanged vars: ${vars}")
         
@@ -698,174 +543,9 @@ class BlockSimplifier
           case N => k(v)
           case S(v2) => 
             registerChange(s"${loc.showDbg} ~> ${v2.showDbg} (via ${vars.map(_.showDbg).mkString(", ")})")
-            // k(Value.Ref(v2, N))
             k(v2)
         
-        /* 
-        if rs.isEmpty then
-        // if rs.isEmpty && localVars(loc) then
-          registerChange(s"${loc.showDbg} ~> undefined")
-          k(Value.Lit(syntax.Tree.UnitLit(false)))
-        else
-          log(s"Assignments of ${loc.showDbg}: ${rs}")
-          // registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
-          var curRs = rs
-          var curLoc = loc
-          var value: Value | Bool = false
-          while curRs.nonEmpty do
-            // println(s">>> ${curRs} for ${curLoc}")
-            var r = curRs.head
-            curRs = curRs.tail
-            // r match
-            // case Value.Ref(loc2, N) if !capturedVars(loc2) =>
-            //   // assignedResults.get(loc2) match
-            //   // case S(rs2) => cur ++= rs2
-            //   // case N => ()
-            //   // curLoc = loc2
-            //   assignedResults.get(loc2) match
-            //   case N =>
-            //   case S(rs2) =>
-            // case _ =>
-            r match
-            case newValue @ (_: Value.Lit | _: Value.Ref) =>
-              if value === false then
-                value = newValue
-              else if value =/= newValue then
-                // return super.applyValue(v)(k)
-                value = true
-            case _ =>
-              // // return applyValue(r)(k)
-              // return super.applyValue(v)(k)
-              value = true
-          /* 
-          if value === false then
-            if curLoc is loc then super.applyValue(v)(k)
-            else
-              registerChange(s"${loc.showDbg} ~> ${curLoc.showDbg}")
-              k(Value.Ref(curLoc, N))
-          else
-            registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
-            k(value)
-          */
-          val resValue = value match
-            case false =>
-              // Value was never assigned
-              super.applyValue(Value.Lit(syntax.Tree.UnitLit(false)))(k)
-            case true =>
-              // Value was not assigned a singlular value
-              
-              // if curLoc is loc then super.applyValue(v)(k)
-              // else
-              //   registerChange(s"${loc.showDbg} ~> ${curLoc.showDbg}")
-              //   k(Value.Ref(curLoc, N))
-              
-              // k(Value.Ref(curLoc, N))
-              
-              super.applyValue(v)(k)
-            case Value.Ref(`loc`, N) =>
-              // Value was assigned to the same local variable
-              // k(Value.Ref(loc, N))
-              super.applyValue(v)(k)
-            case newValue: Value =>
-              registerChange(s"${loc.showDbg} ~> ${newValue.showDbg}")
-              k(newValue)
-          // if resValue is v then k(v) else resValue
-          resValue
-        */
-        // case _ => super.applyValue(v)(k)
       case _ => super.applyValue(v)(k)
-    
-    
-    /* 
-    override def applyBlock(b: Block): Block =
-      // log(s"Applying block: ${b} with assignedValue map: ${assignedValue} ${capturedVars}")
-      b match
-      case Assign(lhs, rhs: Value, rst) if !capturedVars(lhs) =>
-        // log(s"Propagating ${rhs} to reference of ${lhs} (${assignedValue.get(lhs)})")
-        assignedValue.get(lhs) match
-        case null => assignedValue.put(lhs, S(rhs))
-        case S(old) =>
-          if old =/= rhs then assignedValue.put(lhs, N)
-        case N =>
-        super.applyBlock(b)
-      case Label(loop = true) =>
-        withAssignedValues(new IdentityHashMap):
-          super.applyBlock(b)
-      case _ => 
-        super.applyBlock(b)
-    
-    override def applyFunDefn(fun: FunDefn): FunDefn =
-      withAssignedValues(new IdentityHashMap):
-        super.applyFunDefn(fun)
-    
-    override def applyClsLikeDefn(defn: ClsLikeDefn)(k: Defn => Block): Block =
-      withAssignedValues(new IdentityHashMap):
-        super.applyClsLikeDefn(defn)(k)
-    
-    // FIXME: refactor transformers so this is not so error-prone (adding this case to `applyBlock` doesn't work)
-    override def applyScopedBlock(b: Block): Block =
-      withAssignedValues(assignedValue.clone().asInstanceOf/* stupid Java */):
-        super.applyScopedBlock(b)
-    
-    override def applyValue(v: Value)(k: Value => Block): Block =
-      // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
-      v match
-      // /* 
-      case Value.Ref(loc, N) if !capturedVars(loc) =>
-        assignedValue.get(loc) match
-        case S(value) if value match { case Value.Ref(l, disamb) => l isnt loc; case _ => true} =>
-          // log(s"Propagating ${value} to reference of ${loc}")
-          registerChange(s"${loc.showDbg} ~> ${value.showDbg}")
-          // applyValue(value)(k) // SOF
-          // k(value)
-          val traversed = new IdentityHashMap[LocalVar, Unit]
-          def go(value: Value): Block = value match
-            // case Value.Ref(loc2, N) if !capturedVars(loc2) && !traversed.containsKey(loc2) =>
-            //   traversed.put(loc2, null)
-            case Value.Ref(loc2, N) if !capturedVars(loc2) && traversed.put(loc2, ()) === null =>
-              assignedValue.get(loc2) match
-              case S(value2) =>
-                go(value2)
-              case _ => k(value)
-            case _ => k(value)
-          go(value)
-        case _ => super.applyValue(v)(k)
-      // */
-      /* 
-      case Value.Ref(loc, N) =>
-        def go(value: Value): Block = value match
-          case Value.Ref(loc2, N) if (loc2 isnt loc) && !capturedVars(loc2) && traversed.put(loc2, ()) === null =>
-            assignedValue.get(loc2) match
-            case S(value2) =>
-              go(value2)
-            case _ => k(value)
-          case _ => k(value)
-        go(value)
-      */
-      case _ => super.applyValue(v)(k)
-    
-    override def applyResult(r: Result)(k: Result => Block): Block =
-      // super.applyResult(r)(k) match
-      // case Call(Value.Ref(stm: BuiltinSymbol, N), args) if args.forall(_._2.isInstanceOf[Value]) =>
-      //   ???
-      // case r => r
-      r match
-      case Call(Value.Ref(sym: BuiltinSymbol, N), args) if args.forall(_.value.isInstanceOf[Value]) =>
-        val argValues = args.map(_.value.asInstanceOf[Value])
-        args.foreach(a => assert(a.spread.isEmpty))
-        import syntax.Tree.*, Value.Lit
-        sym.nme match
-        case "+" => argValues match
-          case (lit @ Lit(IntLit(v1))) :: Nil =>
-            registerChange("TODO")
-            k(lit)
-          case Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil =>
-            registerChange("TODO")
-            k(Lit(IntLit(v1 + v2)))
-          case _ => super.applyResult(r)(k)
-        case _ => super.applyResult(r)(k)
-      case r => super.applyResult(r)(k)
-    */
     
   end ValuePropagation
   
