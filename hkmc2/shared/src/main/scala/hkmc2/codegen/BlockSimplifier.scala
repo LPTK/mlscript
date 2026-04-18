@@ -11,6 +11,7 @@ import hkmc2.utils.*
 import semantics.*
 import semantics.Elaborator.{State, Ctx, ctx}
 import mlscript.utils.algorithms.partitionScc
+import java.util.IdentityHashMap
 
 
 /** `symbolsToPreserve` is the set of local symbols we want to leave alone;
@@ -388,6 +389,9 @@ class BlockSimplifier
       mergeMap(ar1, ar2)(_.merge(_)).withDefaultValue(Unknown)
     
     
+    val liveAssignments: IdentityHashMap[Block, Unit] = new IdentityHashMap()
+    
+    
     override def applyDefn(defn: Defn)(k: Defn => Block): Block =
       defn match
       case _: ValDefn => super.applyDefn(defn)(k)
@@ -498,10 +502,21 @@ class BlockSimplifier
         log(s"?? ${loc.showDbg} ${assignedResults.get(loc)} ${localVars(loc)} ${capturedVars(loc)}")
         val rs = assignedResults(loc)
         
+        def analyzeAssignments(asst: Assignment): Unit =
+          asst match
+          case Unknown | Uninitialized => ()
+          case Merge(a1, a2) =>
+            analyzeAssignments(a1)
+            analyzeAssignments(a2)
+          case Assigned(ass, _) =>
+            liveAssignments.put(ass, ())
+        
         var litValue: Bool | Value = true
         var emptyHanded = false
         def analyzeValues(asst: Assignment): Set[Value.Ref] =
-          if emptyHanded && litValue === false then Set.empty
+          if emptyHanded && litValue === false then
+            analyzeAssignments(asst)
+            Set.empty
           else asst match
             case Unknown =>
               // log(s"0")
@@ -509,6 +524,7 @@ class BlockSimplifier
               Set.empty
             case Uninitialized => Set.empty
             case Assigned(ass, opt) =>
+              liveAssignments.put(ass, ())
               if litValue =/= false then
                 ass.rhs match
                 case v @ Value.Lit(lit) =>
@@ -532,6 +548,7 @@ class BlockSimplifier
               val l = analyzeValues(a1)
               if l.isEmpty && litValue === false then
                 emptyHanded = true
+                analyzeAssignments(a2)
                 Set.empty
               else l & analyzeValues(a2)
         

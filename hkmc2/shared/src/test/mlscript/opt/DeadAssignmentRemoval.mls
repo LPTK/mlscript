@@ -1,0 +1,62 @@
+:js
+
+
+:soir
+let x = 1
+in
+  set x = hide(2)
+  print(x)
+  set x = hide(3)
+  set x = hide(4)
+  set x += 1
+  print(x)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let tmp, tmp1, tmp2;
+//│ set tmp = Predef⁰.hide⁰(2);
+//│ do Predef⁰.print⁰(tmp);
+//│ do Predef⁰.hide⁰(3);
+//│ set tmp1 = Predef⁰.hide⁰(4);
+//│ set tmp2 = +⁰(tmp1, 1);
+//│ Predef⁰.print⁰(tmp2)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 2
+//│ > 5
+
+
+// TODO: rm dead assignment
+:dopt
+:soir
+fun f(x) =
+  x = 1
+  42
+//│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false))),End())) with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false))),End()) with map: Map()
+//│ | | Applying block: Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false)) with map: Map()
+//│ | | | Propagating x := Lit(IntLit(1)) (None)
+//│ | | | NEW assignedResults: Map(x -> Lit(IntLit(1)))
+//│ | | | Applying block: Return(Lit(IntLit(42)),false) with map: Map(x -> Lit(IntLit(1)))
+//│ | | | |= Map(x -> Lit(IntLit(1)))
+//│ | | |= Map(x -> Lit(IntLit(1)))
+//│ | | Applying block: End() with map: Map()
+//│ | | |= Map()
+//│ | |= Map()
+//│ |= Map()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let f⁰; define f⁰ as fun f¹(x) { set x = 1; return 42 }; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+// :dopt
+:soir
+fun main =
+  let x
+  x = 1
+  x = 2
+  x
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let main⁰; define main⁰ as fun main¹() { return 2 }; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
