@@ -457,7 +457,7 @@ class BlockSimplifier
         )
         log(s"NEW assignedResults: ${assignedResults}")
         super.applyBlock(b)
-        /* 
+        /* // Doesn't work because the previous pass may actually modify the Assign nodes
         val res = super.applyBlock(b)
         if inDryRun || !localVars(lhs) || symbolsToPreserve(lhs) || liveAssignments.containsKey(ass)
         then res
@@ -628,6 +628,28 @@ class BlockSimplifier
             k(v2)
         
       case _ => super.applyValue(v)(k)
+    
+    override def applyResult(r: Result)(k: Result => Block): Block =
+      // super.applyResult(r)(k) match
+      // case Call(Value.Ref(stm: BuiltinSymbol, N), args) if args.forall(_._2.isInstanceOf[Value]) =>
+      //   ???
+      // case r => r
+      r match
+      case Call(Value.Ref(sym: BuiltinSymbol, N), args) if args.forall(_.value.isInstanceOf[Value]) =>
+        val argValues = args.map(_.value.asInstanceOf[Value])
+        args.foreach(a => assert(a.spread.isEmpty))
+        import syntax.Tree.*, Value.Lit
+        sym.nme match
+        case "+" => argValues match
+          case (lit @ Lit(IntLit(v1))) :: Nil =>
+            registerChange("TODO")
+            k(lit)
+          case Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil =>
+            registerChange("TODO")
+            k(Lit(IntLit(v1 + v2)))
+          case _ => super.applyResult(r)(k)
+        case _ => super.applyResult(r)(k)
+      case r => super.applyResult(r)(k)
     
   end ValuePropagation
   
