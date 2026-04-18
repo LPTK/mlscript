@@ -1,0 +1,67 @@
+:js
+
+
+:soir
+if true then 1 else 0
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ match true true => 1 else 0 end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+
+
+:dopt
+:sir
+:soir
+let x = true in if x then 1 else 0
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let x⁰; set x⁰ = true; match x⁰ true => 1 else 0 end
+//│ ⬤ Simplif. iter. 1
+//│ Captured variables: HashSet()
+//│ Applying block: Scoped(Set(x),Assign(x,Lit(BoolLit(true)),Match(Ref(x,None),List((Lit(BoolLit(true)),Return(Lit(IntLit(1)),true))),Some(Return(Lit(IntLit(0)),true)),End(Rest moved to non-abortive branch(es))))) with map: Map()
+//│ | Applying block: Assign(x,Lit(BoolLit(true)),Match(Ref(x,None),List((Lit(BoolLit(true)),Return(Lit(IntLit(1)),true))),Some(Return(Lit(IntLit(0)),true)),End(Rest moved to non-abortive branch(es)))) with map: Map(x -> ∅)
+//│ | | Propagating x := Lit(BoolLit(true)) (Some(∅))
+//│ | | NEW assignedResults: Map(x -> Lit(BoolLit(true)))
+//│ | | Applying block: Match(Ref(x,None),List((Lit(BoolLit(true)),Return(Lit(IntLit(1)),true))),Some(Return(Lit(IntLit(0)),true)),End(Rest moved to non-abortive branch(es))) with map: Map(x -> Lit(BoolLit(true)))
+//│ | | | ?? x⁰ Some(Lit(BoolLit(true))) true false
+//│ | | | Analysis: litValue: Lit(BoolLit(true)), unchanged vars: Set()
+//│ | | | !! Change triggered { x⁰ ~> true } at BlockSimplifier.scala:611
+//│ | | | Applying block: Return(Lit(IntLit(1)),true) with map: Map(x -> Lit(BoolLit(true)))
+//│ | | | |= Map(x -> Lit(BoolLit(true)))
+//│ | | | Applying block: Return(Lit(IntLit(0)),true) with map: Map(x -> Lit(BoolLit(true)))
+//│ | | | |= Map(x -> Lit(BoolLit(true)))
+//│ | | | Applying block: End(Rest moved to non-abortive branch(es)) with map: Map(x -> Lit(BoolLit(true)))
+//│ | | | |= Map(x -> Lit(BoolLit(true)))
+//│ | | |= Map(x -> Lit(BoolLit(true)))
+//│ | |= Map(x -> Lit(BoolLit(true)))
+//│ |= Map(x -> ∅)
+//│ ▶ VP:
+//│ >  let x⁰; set x⁰ = true; match true true => 1 else 0 end
+//│ ⬤ Simplif. iter. 2
+//│ !! Change triggered { rm x⁰ = true } at BlockSimplifier.scala:239
+//│ ▶ DCE:
+//│ >  match true true => 1 else 0 end
+//│ Captured variables: HashSet()
+//│ Applying block: Match(Lit(BoolLit(true)),List((Lit(BoolLit(true)),Return(Lit(IntLit(1)),true))),Some(Return(Lit(IntLit(0)),true)),End(Rest moved to non-abortive branch(es))) with map: Map()
+//│ | Applying block: Return(Lit(IntLit(1)),true) with map: Map()
+//│ | |= Map()
+//│ | Applying block: Return(Lit(IntLit(0)),true) with map: Map()
+//│ | |= Map()
+//│ | Applying block: End(Rest moved to non-abortive branch(es)) with map: Map()
+//│ | |= Map()
+//│ |= Map()
+//│ ⬤ Simplif. iter. 3
+//│ Captured variables: HashSet()
+//│ Applying block: Match(Lit(BoolLit(true)),List((Lit(BoolLit(true)),Return(Lit(IntLit(1)),true))),Some(Return(Lit(IntLit(0)),true)),End(Rest moved to non-abortive branch(es))) with map: Map()
+//│ | Applying block: Return(Lit(IntLit(1)),true) with map: Map()
+//│ | |= Map()
+//│ | Applying block: Return(Lit(IntLit(0)),true) with map: Map()
+//│ | |= Map()
+//│ | Applying block: End(Rest moved to non-abortive branch(es)) with map: Map()
+//│ | |= Map()
+//│ |= Map()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ match true true => 1 else 0 end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+
+

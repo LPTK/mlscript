@@ -434,6 +434,7 @@ class BlockSimplifier
     override def applyBlock(b: Block): Block = trace[Block](s"Applying block: ${b} with map: ${assignedResults}", res => s"|= ${assignedResults}"):
       // log(s"Applying block: ${b} with map: ${assignedResults}")
       b match
+        
       case ass @ Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
         log(s"Propagating ${lhs} := ${rhs} (${assignedResults.get(lhs)})")
         assignedResults += lhs -> Assigned(ass, rhs.match
@@ -458,9 +459,11 @@ class BlockSimplifier
           registerChange(s"rm ass ${lhs.showDbg} = ${rhs.showDbg}")
           Assign.discard(rhs, rst)
         */
+        
       case Assign(lhs, rhs, rst) =>
         log(s"Not propagating ${lhs} := ${rhs}")
         super.applyBlock(b)
+        
       case Label(label, loop, body, rest) =>
         
         // TODO:
@@ -484,34 +487,41 @@ class BlockSimplifier
           // assignments and continues that may affect outer loop analysis.
           applyBlock(rest)
           b
+          
       case Continue(label) =>
         log(s"Continue to ${label} with map: ${assignedResults}")
         log(s"  atLabelBegin: ${atLabelBegin(label)}")
         atLabelBegin.put(label, merge(assignedResults, atLabelBegin(label)))
         super.applyBlock(b)
+        
       case Break(label) =>
         atLabelEnd.put(label, merge(assignedResults, atLabelEnd(label)))
         super.applyBlock(b)
+        
       case Match(scrut, arms, dflt, rest) =>
-        val oldAssigned = assignedResults
-        var curAssigned = oldAssigned
-        val newArms = arms.mapConserve:
-          case arm @ (cse, body) =>
-            val newBody = applyBlock(body)
-            curAssigned = merge(curAssigned, assignedResults)
-            assignedResults = oldAssigned
-            if newBody is body then arm else cse -> newBody
-        val newDflt = dflt.mapConserve:
-          case body =>
-            val newBody = applyBlock(body)
-            curAssigned = merge(curAssigned, assignedResults)
-            assignedResults = oldAssigned
-            if newBody is body then body else newBody
-        if newDflt.isEmpty then curAssigned = merge(curAssigned, assignedResults)
-        assignedResults = curAssigned
-        val restRewritten = applySubBlock(rest)
-        if (newArms is arms) && (newDflt is dflt) && (restRewritten is rest) then b
-        else Match(scrut, newArms, newDflt, restRewritten)
+        
+        applyPath(scrut): scrut2 =>
+          
+          val oldAssigned = assignedResults
+          var curAssigned = oldAssigned
+          val newArms = arms.mapConserve:
+            case arm @ (cse, body) =>
+              val newBody = applyBlock(body)
+              curAssigned = merge(curAssigned, assignedResults)
+              assignedResults = oldAssigned
+              if newBody is body then arm else cse -> newBody
+          val newDflt = dflt.mapConserve:
+            case body =>
+              val newBody = applyBlock(body)
+              curAssigned = merge(curAssigned, assignedResults)
+              assignedResults = oldAssigned
+              if newBody is body then body else newBody
+          if newDflt.isEmpty then curAssigned = merge(curAssigned, assignedResults)
+          assignedResults = curAssigned
+          val restRewritten = applySubBlock(rest)
+          if (scrut2 is scrut) && (newArms is arms) && (newDflt is dflt) && (restRewritten is rest) then b
+          else Match(scrut2, newArms, newDflt, restRewritten)
+          
       case _ => 
         super.applyBlock(b)
     
