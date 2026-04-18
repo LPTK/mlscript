@@ -715,7 +715,7 @@ let power1;
     return power.integral(tmp2)
   } 
   static testPower_nofib(p) {
-    let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26;
+    let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21;
     tmp = power.sinx();
     tmp1 = power.fromIntegerPs(1);
     tmp2 = power.cosx();
@@ -723,27 +723,25 @@ let power1;
     tmp4 = power.minusPs(tmp1, tmp3);
     tmp5 = power.sqrtPs(tmp4);
     tmp6 = power.minusPs(tmp, tmp5);
-    tmp7 = power.extract(p, tmp6);
-    tmp8 = power.sinx();
-    tmp9 = power.cosx();
-    tmp10 = power.divPs(tmp8, tmp9);
+    power.extract(p, tmp6);
+    tmp7 = power.sinx();
+    tmp8 = power.cosx();
+    tmp9 = power.divPs(tmp7, tmp8);
+    tmp10 = power.fromIntegerPs(1);
     tmp11 = power.fromIntegerPs(1);
-    tmp12 = power.fromIntegerPs(1);
-    tmp13 = power.x_();
-    tmp14 = power.powerPs(tmp13, 2);
-    tmp15 = power.addPs(tmp12, tmp14);
-    tmp16 = power.divPs(tmp11, tmp15);
-    tmp17 = power.integral(tmp16);
-    tmp18 = power.revert(tmp17);
-    tmp19 = power.minusPs(tmp10, tmp18);
-    tmp20 = power.extract(p, tmp19);
-    tmp21 = (tmp7 , tmp20);
-    tmp22 = power.ts();
-    tmp23 = power.extract(p, tmp22);
-    tmp24 = (tmp21 , tmp23);
-    tmp25 = power.tree();
-    tmp26 = power.extract(p, tmp25);
-    return (tmp24 , tmp26)
+    tmp12 = power.x_();
+    tmp13 = power.powerPs(tmp12, 2);
+    tmp14 = power.addPs(tmp11, tmp13);
+    tmp15 = power.divPs(tmp10, tmp14);
+    tmp16 = power.integral(tmp15);
+    tmp17 = power.revert(tmp16);
+    tmp18 = power.minusPs(tmp9, tmp17);
+    power.extract(p, tmp18);
+    tmp19 = power.ts();
+    power.extract(p, tmp19);
+    tmp20 = power.tree();
+    tmp21 = power.extract(p, tmp20);
+    return tmp21
   } 
   static main() {
     let tmp;

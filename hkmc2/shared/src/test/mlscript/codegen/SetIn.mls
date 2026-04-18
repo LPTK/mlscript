@@ -75,11 +75,9 @@ example()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let example2;
 //│ example2 = function example() {
-//│   let tmp3;
 //│   try {
-//│     tmp3 = 0 + 1;
-//│     Predef.print(tmp3);
-//│     Predef.print(tmp3);
+//│     Predef.print(1);
+//│     Predef.print(1);
 //│   } finally {}
 //│   Predef.print(0);
 //│   return Predef.print(0)
@@ -104,15 +102,10 @@ example()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let example3;
 //│ example3 = function example() {
-//│   let tmp3, tmp4, tmp5;
-//│   try {
-//│     tmp3 = 0 + 1;
-//│     tmp4 = Predef.print(tmp3);
-//│     tmp5 = (tmp4 , tmp3);
-//│   } finally {}
+//│   try { Predef.print(1); } finally {}
 //│   Predef.print(0);
 //│   Predef.print(0);
-//│   return tmp5
+//│   return 1
 //│ };
 //│ example3()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

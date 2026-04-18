@@ -744,13 +744,12 @@ let minimax1;
     return NofibPrelude.concat(tmp4)
   } 
   static eval(x) {
-    let scrut, scrut1, tmp;
+    let scrut, scrut1;
     scrut = x === 3;
     if (scrut === true) {
       return minimax.XWin
     }
-    tmp = - 3;
-    scrut1 = x === tmp;
+    scrut1 = x === -3;
     if (scrut1 === true) {
       return minimax.OWin
     }

@@ -187,11 +187,11 @@ let Shape2;
       if (typeof arg$Lit$0$ === 'string') {
         scrut = Block.isPrimitiveType(arg$Lit$0$);
         if (scrut === true) {
-          return ! true
+          return false
         }
-        return ! false;
+        return true;
       }
-      return ! false;
+      return true;
     } else if (s instanceof Shape.Class.class) {
       arg$Class$1$ = s.params;
       return runtime.safeCall(arg$Class$1$.every(Shape.static))

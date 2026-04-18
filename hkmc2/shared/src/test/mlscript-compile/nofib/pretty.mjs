@@ -587,7 +587,7 @@ let pretty1;
           tmp14 = pretty.cAppend(arg$MkPrettyRep$0$, tmp13);
           return pretty.MkPrettyRep(tmp14, arg$MkPrettyRep$1$2, false, false);
         }
-        throw globalThis.Object.freeze(new globalThis.Error("match error"))
+        throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
@@ -603,9 +603,7 @@ let pretty1;
     pretty_stuff = function pretty_stuff(a, b) {
       let lambda, lambda1, lambda2, tmp2, tmp3, tmp4, tmp5, lambda3, lambda4, tmp6, tmp7, tmp8;
       lambda = (undefined, function (a1, b1) {
-        let tmp9;
-        tmp9 = - 42;
-        return pretty.ppInt(tmp9, a1, b1)
+        return pretty.ppInt(-42, a1, b1)
       });
       lambda1 = (undefined, function (a1, b1) {
         return pretty.ppChar("@", a1, b1)

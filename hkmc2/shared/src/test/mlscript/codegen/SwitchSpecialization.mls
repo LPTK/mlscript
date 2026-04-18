@@ -197,12 +197,12 @@ fun f(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f3;
 //│ f3 = function f(x) {
-//│   let acc, tmp1;
+//│   let acc, tmp;
 //│   acc = "";
 //│   switch (x) {
 //│     case 0:
-//│       tmp1 = "" + "M";
-//│       acc = tmp1;
+//│       tmp = "" + "M";
+//│       acc = tmp;
 //│       x = 1;
 //│     case 1:
 //│       return acc + "1";
@@ -240,12 +240,12 @@ fun f(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f4;
 //│ f4 = function f(x) {
-//│   let acc, tmp1;
+//│   let acc, tmp;
 //│   acc = "";
 //│   switch (x) {
 //│     case 0:
-//│       tmp1 = "" + "M";
-//│       acc = tmp1;
+//│       tmp = "" + "M";
+//│       acc = tmp;
 //│       x = 1;
 //│     case 1:
 //│       return acc + "1";

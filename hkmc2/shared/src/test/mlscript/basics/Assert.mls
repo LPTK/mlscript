@@ -23,7 +23,7 @@ assert xs is Array
 assert(true); 123
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let scrut;
-//│ scrut = (true , 123);
+//│ scrut = 123;
 //│ if (scrut === true) { runtime.Unit } else { runtime.assertFail("Assert.mls", "24") }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] Error: Assertion failed (Assert.mls:24)

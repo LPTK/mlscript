@@ -9,7 +9,7 @@ let circsim1;
     circsim1 = this
   }
   static {
-    let tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+    let tmp, tmp1;
     (class BinTree {
       static {
         circsim.BinTree = this
@@ -242,15 +242,11 @@ let circsim1;
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["object", "T"]; 
     });
-    tmp = - 1;
-    tmp1 = - 1;
-    tmp2 = circsim.PS(tmp, circsim.None_, tmp1, NofibPrelude.Nil, NofibPrelude.Nil);
-    this.emptyState = tmp2;
-    tmp3 = - 1;
-    tmp4 = - 1;
-    tmp5 = globalThis.Object.freeze([
-      tmp3,
-      tmp4,
+    tmp = circsim.PS(-1, circsim.None_, -1, NofibPrelude.Nil, NofibPrelude.Nil);
+    this.emptyState = tmp;
+    tmp1 = globalThis.Object.freeze([
+      -1,
+      -1,
       circsim.F,
       false,
       0,
@@ -258,7 +254,7 @@ let circsim1;
       0,
       1
     ]);
-    this.emptyPacket = tmp5;
+    this.emptyPacket = tmp1;
   }
   static pid(p) {
     return p.pid

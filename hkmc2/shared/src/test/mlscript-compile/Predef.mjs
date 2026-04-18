@@ -111,14 +111,12 @@ let Predef1;
     return runtime.safeCall(f(x))
   } 
   static tap(x, f) {
-    let tmp;
-    tmp = runtime.safeCall(f(x));
-    return (tmp , x)
+    runtime.safeCall(f(x));
+    return x
   } 
   static pat(f, x) {
-    let tmp;
-    tmp = runtime.safeCall(f(x));
-    return (tmp , x)
+    runtime.safeCall(f(x));
+    return x
   } 
   static alsoDo(x, eff) {
     return x
@@ -295,15 +293,15 @@ let Predef1;
   static mkStr(...xs) {
     let lambda, tmp;
     lambda = (undefined, function (acc, x) {
-      let tmp1, tmp2, tmp3;
+      let tmp1, tmp2;
       if (typeof x === 'string') {
         tmp1 = true;
       } else {
         tmp1 = false;
       }
-      tmp2 = Predef.check(tmp1);
-      tmp3 = acc + x;
-      return (tmp2 , tmp3)
+      Predef.check(tmp1);
+      tmp2 = acc + x;
+      return tmp2
     });
     tmp = runtime.safeCall(Predef.fold(lambda));
     return runtime.safeCall(tmp(...xs))

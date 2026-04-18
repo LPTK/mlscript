@@ -791,19 +791,18 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
     n = text.length;
     ns = [];
     lbl: while (true) {
-      let scrut, i$_, scrut1, tmp, tmp1;
+      let scrut, i$_, scrut1, tmp;
       scrut = i < n;
       if (scrut === true) {
         i$_ = text.indexOf("\n", i);
-        tmp = - 1;
-        scrut1 = Predef.equals(i$_, tmp);
+        scrut1 = Predef.equals(i$_, -1);
         if (scrut1 === true) {
           i = n;
           runtime.safeCall(ns.push(n));
           continue lbl
         }
-        tmp1 = i$_ + 1;
-        i = tmp1;
+        tmp = i$_ + 1;
+        i = tmp;
         runtime.safeCall(ns.push(i$_));
         continue lbl;
       }

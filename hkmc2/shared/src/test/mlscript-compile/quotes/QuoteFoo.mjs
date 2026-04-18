@@ -7,7 +7,7 @@ let QuoteFoo1;
     QuoteFoo1 = this
   }
   static get res() {
-    return 1 + 1;
+    return 2;
   }
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "QuoteFoo"]; 

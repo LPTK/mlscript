@@ -107,7 +107,7 @@ let lcss1;
     }
   } 
   static algc(m, n, xs, ys) {
-    let x, scrut, m2, xs1, xs2, l1, l2, k, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
+    let x, scrut, m2, xs1, xs2, l1, l2, k, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
     if (ys instanceof NofibPrelude.Nil.class) {
       let lambda;
       lambda = (undefined, function (x1) {
@@ -143,16 +143,15 @@ let lcss1;
     tmp1 = NofibPrelude.reverse(ys);
     tmp2 = lcss.algb(tmp, tmp1);
     l2 = NofibPrelude.reverse(tmp2);
-    tmp3 = - 1;
-    tmp4 = NofibPrelude.zip(l1, l2);
-    k = lcss.findk(0, 0, tmp3, tmp4);
-    tmp5 = NofibPrelude.take(k, ys);
-    tmp6 = lcss.algc(m2, k, xs1, tmp5);
-    tmp7 = m - m2;
-    tmp8 = n - k;
-    tmp9 = NofibPrelude.leave(k, ys);
-    tmp10 = lcss.algc(tmp7, tmp8, xs2, tmp9);
-    return NofibPrelude.compose(tmp6, tmp10);
+    tmp3 = NofibPrelude.zip(l1, l2);
+    k = lcss.findk(0, 0, -1, tmp3);
+    tmp4 = NofibPrelude.take(k, ys);
+    tmp5 = lcss.algc(m2, k, xs1, tmp4);
+    tmp6 = m - m2;
+    tmp7 = n - k;
+    tmp8 = NofibPrelude.leave(k, ys);
+    tmp9 = lcss.algc(tmp6, tmp7, xs2, tmp8);
+    return NofibPrelude.compose(tmp5, tmp9);
   } 
   static lcss(xs, ys) {
     let tmp, tmp1, tmp2;

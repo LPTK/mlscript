@@ -228,7 +228,7 @@ let Token2;
         line = mid + 1;
         scrut1 = mid == 0;
         if (scrut1 === true) {
-          tmp2 = - 1;
+          tmp2 = -1;
         } else {
           tmp3 = mid - 1;
           tmp2 = runtime.safeCall(this.#lines.at(tmp3));

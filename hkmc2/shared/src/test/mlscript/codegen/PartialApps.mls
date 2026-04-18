@@ -234,12 +234,12 @@ _ - _ of 1, 2
 :sjs
 1 \ (_ - 2)()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let lambda40, tmp24;
+//│ let lambda40, tmp20;
 //│ lambda40 = (undefined, function (_0) {
 //│   return _0 - 2
 //│ });
-//│ tmp24 = Predef.passTo(1, lambda40);
-//│ runtime.safeCall(tmp24())
+//│ tmp20 = Predef.passTo(1, lambda40);
+//│ runtime.safeCall(tmp20())
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = -1
 

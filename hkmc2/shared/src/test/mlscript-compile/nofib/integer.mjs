@@ -77,13 +77,13 @@ let integer1;
     return lscomp1(tmp1)
   } 
   static runbench(jop, iop, opstr, astart, astep, alim, bstart, bstep, blim) {
-    let tmp, tmp1;
-    tmp = integer.intbench(iop, astart, astep, alim, astart, astep, alim);
-    tmp1 = integer.integerbench(jop, astart, astep, alim, astart, astep, alim);
-    return (tmp , tmp1)
+    let tmp;
+    integer.intbench(iop, astart, astep, alim, astart, astep, alim);
+    tmp = integer.integerbench(jop, astart, astep, alim, astart, astep, alim);
+    return tmp
   } 
   static runalltests(astart, astep, alim, bstart, bstep, blim) {
-    let lambda, lambda1, tmp, lambda2, lambda3, tmp1, tmp2, lambda4, lambda5, tmp3, tmp4, lambda6, lambda7, tmp5, tmp6, lambda8, lambda9, tmp7, tmp8, lambda10, lambda11, tmp9, tmp10, lambda12, lambda13, tmp11, tmp12, lambda14, lambda15, tmp13, tmp14, lambda16, lambda17, tmp15, tmp16, lambda18, lambda19, tmp17;
+    let lambda, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6, lambda7, lambda8, lambda9, lambda10, lambda11, lambda12, lambda13, lambda14, lambda15, lambda16, lambda17, lambda18, lambda19, tmp;
     lambda = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = a + b;
@@ -92,7 +92,7 @@ let integer1;
     lambda1 = (undefined, function (a, b) {
       return a + b
     });
-    tmp = integer.runbench(lambda, lambda1, "(+)", astart, astep, alim, astart, astep, alim);
+    integer.runbench(lambda, lambda1, "(+)", astart, astep, alim, astart, astep, alim);
     lambda2 = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = a - b;
@@ -101,8 +101,7 @@ let integer1;
     lambda3 = (undefined, function (a, b) {
       return a - b
     });
-    tmp1 = integer.runbench(lambda2, lambda3, "(-)", astart, astep, alim, astart, astep, alim);
-    tmp2 = (tmp , tmp1);
+    integer.runbench(lambda2, lambda3, "(-)", astart, astep, alim, astart, astep, alim);
     lambda4 = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = a * b;
@@ -111,8 +110,7 @@ let integer1;
     lambda5 = (undefined, function (a, b) {
       return a * b
     });
-    tmp3 = integer.runbench(lambda4, lambda5, "(*)", astart, astep, alim, astart, astep, alim);
-    tmp4 = (tmp2 , tmp3);
+    integer.runbench(lambda4, lambda5, "(*)", astart, astep, alim, astart, astep, alim);
     lambda6 = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = NofibPrelude.intDiv(a, b);
@@ -121,8 +119,7 @@ let integer1;
     lambda7 = (undefined, function (a, b) {
       return NofibPrelude.intDiv(a, b)
     });
-    tmp5 = integer.runbench(lambda6, lambda7, "div", astart, astep, alim, astart, astep, alim);
-    tmp6 = (tmp4 , tmp5);
+    integer.runbench(lambda6, lambda7, "div", astart, astep, alim, astart, astep, alim);
     lambda8 = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = NofibPrelude.intMod(a, b);
@@ -131,8 +128,7 @@ let integer1;
     lambda9 = (undefined, function (a, b) {
       return NofibPrelude.intMod(a, b)
     });
-    tmp7 = integer.runbench(lambda8, lambda9, "mod", astart, astep, alim, astart, astep, alim);
-    tmp8 = (tmp6 , tmp7);
+    integer.runbench(lambda8, lambda9, "mod", astart, astep, alim, astart, astep, alim);
     lambda10 = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = a == b;
@@ -141,8 +137,7 @@ let integer1;
     lambda11 = (undefined, function (a, b) {
       return a == b
     });
-    tmp9 = integer.runbench(lambda10, lambda11, "(==)", astart, astep, alim, astart, astep, alim);
-    tmp10 = (tmp8 , tmp9);
+    integer.runbench(lambda10, lambda11, "(==)", astart, astep, alim, astart, astep, alim);
     lambda12 = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = a < b;
@@ -151,8 +146,7 @@ let integer1;
     lambda13 = (undefined, function (a, b) {
       return a < b
     });
-    tmp11 = integer.runbench(lambda12, lambda13, "(<)", astart, astep, alim, astart, astep, alim);
-    tmp12 = (tmp10 , tmp11);
+    integer.runbench(lambda12, lambda13, "(<)", astart, astep, alim, astart, astep, alim);
     lambda14 = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = a <= b;
@@ -161,8 +155,7 @@ let integer1;
     lambda15 = (undefined, function (a, b) {
       return a <= b
     });
-    tmp13 = integer.runbench(lambda14, lambda15, "(<=)", astart, astep, alim, astart, astep, alim);
-    tmp14 = (tmp12 , tmp13);
+    integer.runbench(lambda14, lambda15, "(<=)", astart, astep, alim, astart, astep, alim);
     lambda16 = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = a > b;
@@ -171,8 +164,7 @@ let integer1;
     lambda17 = (undefined, function (a, b) {
       return a > b
     });
-    tmp15 = integer.runbench(lambda16, lambda17, "(>)", astart, astep, alim, astart, astep, alim);
-    tmp16 = (tmp14 , tmp15);
+    integer.runbench(lambda16, lambda17, "(>)", astart, astep, alim, astart, astep, alim);
     lambda18 = (undefined, function (a, b) {
       let inlinedVal;
       inlinedVal = a >= b;
@@ -181,15 +173,11 @@ let integer1;
     lambda19 = (undefined, function (a, b) {
       return a >= b
     });
-    tmp17 = integer.runbench(lambda18, lambda19, "(>=)", astart, astep, alim, astart, astep, alim);
-    return (tmp16 , tmp17)
+    tmp = integer.runbench(lambda18, lambda19, "(>=)", astart, astep, alim, astart, astep, alim);
+    return tmp
   } 
   static testInteger_nofib(n) {
-    let tmp, tmp1, tmp2;
-    tmp = - 2100000000;
-    tmp1 = - 2100000000;
-    tmp2 = - 2100000000;
-    return integer.runalltests(tmp, n, 2100000000, tmp1, n, tmp2)
+    return integer.runalltests(-2100000000, n, 2100000000, -2100000000, n, -2100000000)
   } 
   static main() {
     let tmp;

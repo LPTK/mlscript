@@ -425,7 +425,7 @@ let mate1;
         return 0
       } else if (op2 instanceof NofibPrelude.Some.class) {
         arg$Some$0$1 = op2.x;
-        return - 1
+        return -1
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     } else if (op1 instanceof NofibPrelude.Some.class) {
@@ -1567,7 +1567,7 @@ let mate1;
       if (c instanceof mate.White.class) {
         tmp = 1;
       } else {
-        tmp = - 1;
+        tmp = -1;
       }
       tmp1 = element1$ + tmp;
       on1 = globalThis.Object.freeze([

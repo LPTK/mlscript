@@ -1,38 +1,41 @@
 :js
-// :de
-// :sjs
-// :pt
-// :elt
-
-:global
-// :d
-// :todo
 
 
-// :dopt
-:soir
-let peek = hide(2 + 2)
-let last = peek
-set peek = 1
-last
-//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let peek⁰, last⁰; set peek⁰ = Predef⁰.hide⁰(4); set last⁰ = peek⁰; set peek⁰ = 1; last⁰
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 4
-//│ last = 4
-//│ peek = 1
-
+data class C(a)
 
 :soir
-val x = 1
-let y = x
-y
+if C(123) is
+  C(x) then print(x)
+  else print("?")
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let x⁰, y⁰; define x⁰ as val x¹ = 1; set y⁰ = x¹; x¹
+//│ let scrut, arg$C$0$;
+//│ set scrut = C⁰(123);
+//│ match scrut
+//│   C¹ =>
+//│     set arg$C$0$ = scrut.a⁰;
+//│     Predef⁰.print⁰(arg$C$0$)
+//│   else
+//│     Predef⁰.print⁰("?")
+//│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 1
-//│ x = 1
-//│ y = 1
+//│ > 123
 
+:soir
+let c = C(123)
+in if c is
+  C(x) then print(x)
+  else print("?")
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let c⁰, arg$C$0$;
+//│ set c⁰ = C⁰(123);
+//│ match c⁰
+//│   C¹ =>
+//│     set arg$C$0$ = c⁰.a⁰;
+//│     Predef⁰.print⁰(arg$C$0$)
+//│   else
+//│     Predef⁰.print⁰("?")
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 123
 
 

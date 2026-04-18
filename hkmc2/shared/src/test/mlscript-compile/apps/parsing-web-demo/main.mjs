@@ -239,16 +239,15 @@ let Main1;
     Main.displayRules();
   }
   static parseIndentedText(text) {
-    let root, children, stack, indent, tmp, tmp1, lambda, tmp2, lambda1;
+    let root, children, stack, tmp, tmp1, lambda, tmp2, lambda1;
     children = globalThis.Object.freeze([]);
     root = globalThis.Object.freeze({
       text: "",
       children: children
     });
-    indent = - 1;
     tmp = globalThis.Object.freeze({
       node: root,
-      indent: indent
+      indent: -1
     });
     stack = globalThis.Object.freeze([
       tmp
@@ -261,14 +260,14 @@ let Main1;
     });
     tmp2 = Iter.filtering(tmp1, lambda);
     lambda1 = (undefined, function (line) {
-      let indent1, text1, newNode, children1, tmp3, tmp4, rcd;
+      let indent, text1, newNode, children1, tmp3, tmp4, rcd;
       tmp3 = runtime.safeCall(line.match(Main.#indentRegex));
-      indent1 = tmp3.at(1).length;
-      text1 = runtime.safeCall(line.substring(indent1));
+      indent = tmp3.at(1).length;
+      text1 = runtime.safeCall(line.substring(indent));
       lbl: while (true) {
         let scrut, tmp5;
         tmp5 = stack.length - 1;
-        scrut = indent1 <= stack.at(tmp5).indent;
+        scrut = indent <= stack.at(tmp5).indent;
         if (scrut === true) {
           runtime.safeCall(stack.pop());
           continue lbl
@@ -284,7 +283,7 @@ let Main1;
       runtime.safeCall(stack.at(tmp4).node.children.push(newNode));
       rcd = globalThis.Object.freeze({
         node: newNode,
-        indent: indent1
+        indent: indent
       });
       return runtime.safeCall(stack.push(rcd))
     });

@@ -23,7 +23,7 @@ let ObjectBuffer2;
       }
       constructor(initLength) {
         super();
-        let tmp, tmp1, inlinedVal, scrut;
+        let tmp, inlinedVal, scrut;
         this.#initLength = initLength;
         scrut = 16 < this.#initLength;
         if (scrut === true) {
@@ -35,8 +35,7 @@ let ObjectBuffer2;
         this.buf = tmp;
         this.#freeListHead = 0;
         this.buf[0] = this.buf.length;
-        tmp1 = - 1;
-        this.buf[1] = tmp1;
+        this.buf[1] = -1;
       }
       #initLength;
       #freeListHead;
@@ -92,54 +91,51 @@ let ObjectBuffer2;
       } 
       _tryAlloc(sz) {
         let prev, cur;
-        prev = - 1;
+        prev = -1;
         cur = this.#freeListHead;
         lbl: while (true) {
-          let scrut, scrut1, scrut2, scrut3, scrut4, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
-          tmp = - 1;
-          scrut = cur !== tmp;
+          let scrut, scrut1, scrut2, scrut3, scrut4, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
+          scrut = cur !== -1;
           if (scrut === true) {
             scrut1 = this.buf.at(cur) === sz;
             if (scrut1 === true) {
-              tmp1 = - 1;
-              scrut2 = prev === tmp1;
+              scrut2 = prev === -1;
               if (scrut2 === true) {
-                tmp2 = cur + 1;
-                this.#freeListHead = this.buf.at(tmp2);
+                tmp = cur + 1;
+                this.#freeListHead = this.buf.at(tmp);
                 return cur
               }
-              tmp3 = cur + 1;
-              this.buf[prev] = this.buf.at(tmp3);
+              tmp1 = cur + 1;
+              this.buf[prev] = this.buf.at(tmp1);
               return cur;
             }
             scrut3 = this.buf.at(cur) > sz;
             if (scrut3 === true) {
+              tmp2 = cur + sz;
+              tmp3 = this.buf.at(cur) - sz;
+              this.buf[tmp2] = tmp3;
               tmp4 = cur + sz;
-              tmp5 = this.buf.at(cur) - sz;
-              this.buf[tmp4] = tmp5;
-              tmp6 = cur + sz;
-              tmp7 = tmp6 + 1;
-              tmp8 = cur + 1;
-              this.buf[tmp7] = this.buf.at(tmp8);
-              tmp9 = - 1;
-              scrut4 = prev === tmp9;
+              tmp5 = tmp4 + 1;
+              tmp6 = cur + 1;
+              this.buf[tmp5] = this.buf.at(tmp6);
+              scrut4 = prev === -1;
               if (scrut4 === true) {
-                tmp10 = cur + sz;
-                this.#freeListHead = tmp10;
+                tmp7 = cur + sz;
+                this.#freeListHead = tmp7;
                 return cur
               }
-              tmp11 = cur + sz;
-              this.buf[prev] = tmp11;
+              tmp8 = cur + sz;
+              this.buf[prev] = tmp8;
               return cur;
             }
             prev = cur;
-            tmp12 = cur + 1;
-            cur = this.buf.at(tmp12);
+            tmp9 = cur + 1;
+            cur = this.buf.at(tmp9);
             continue lbl;
           }
           break;
         }
-        return - 1
+        return -1
       } 
       alloc(sz) {
         let scrut, tmp;
@@ -151,10 +147,9 @@ let ObjectBuffer2;
         return this._alloc(tmp);
       } 
       _alloc(bsz) {
-        let res, scrut, tmp;
+        let res, scrut;
         res = this._tryAlloc(bsz);
-        tmp = - 1;
-        scrut = res !== tmp;
+        scrut = res !== -1;
         if (scrut === true) {
           return res
         }

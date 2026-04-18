@@ -9,7 +9,7 @@ let lambda1;
     lambda1 = this
   }
   static {
-    let lambda2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34;
+    let lambda2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33;
     this.MyState = function MyState(r) {
       return globalThis.Object.freeze(new MyState.class(r));
     };
@@ -190,27 +190,26 @@ let lambda1;
     this.fix = tmp14;
     tmp15 = NofibPrelude.nofibStringToList("n");
     tmp16 = lambda.Var(tmp15);
-    tmp17 = - 1;
-    tmp18 = lambda.Con(tmp17);
-    tmp19 = lambda.Add(tmp16, tmp18);
-    this.nMinus1 = tmp19;
-    tmp20 = NofibPrelude.nofibStringToList("sum");
+    tmp17 = lambda.Con(-1);
+    tmp18 = lambda.Add(tmp16, tmp17);
+    this.nMinus1 = tmp18;
+    tmp19 = NofibPrelude.nofibStringToList("sum");
+    tmp20 = NofibPrelude.nofibStringToList("n");
     tmp21 = NofibPrelude.nofibStringToList("n");
-    tmp22 = NofibPrelude.nofibStringToList("n");
-    tmp23 = lambda.Var(tmp22);
-    tmp24 = lambda.Con(0);
-    tmp25 = NofibPrelude.nofibStringToList("n");
-    tmp26 = lambda.Var(tmp25);
-    tmp27 = NofibPrelude.nofibStringToList("sum");
-    tmp28 = lambda.Var(tmp27);
-    tmp29 = lambda.App(tmp28, lambda.nMinus1);
-    tmp30 = lambda.Add(tmp26, tmp29);
-    tmp31 = lambda.IfZero(tmp23, tmp24, tmp30);
-    tmp32 = lambda.Lam(tmp21, tmp31);
-    tmp33 = lambda.Lam(tmp20, tmp32);
-    this.partialSum0 = tmp33;
-    tmp34 = lambda.App(lambda.fix, lambda.partialSum0);
-    this.sum0 = tmp34;
+    tmp22 = lambda.Var(tmp21);
+    tmp23 = lambda.Con(0);
+    tmp24 = NofibPrelude.nofibStringToList("n");
+    tmp25 = lambda.Var(tmp24);
+    tmp26 = NofibPrelude.nofibStringToList("sum");
+    tmp27 = lambda.Var(tmp26);
+    tmp28 = lambda.App(tmp27, lambda.nMinus1);
+    tmp29 = lambda.Add(tmp25, tmp28);
+    tmp30 = lambda.IfZero(tmp22, tmp23, tmp29);
+    tmp31 = lambda.Lam(tmp20, tmp30);
+    tmp32 = lambda.Lam(tmp19, tmp31);
+    this.partialSum0 = tmp32;
+    tmp33 = lambda.App(lambda.fix, lambda.partialSum0);
+    this.sum0 = tmp33;
   }
   static eqEnv_eqTerm(id, param0, param1) {
     loopLabel: while (true) {
@@ -745,7 +744,7 @@ let lambda1;
     return t;
   } 
   static ppn(n, ter) {
-    let arg$Thunk$0$, arg$Thunk$1$, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$App$0$, arg$App$1$, arg$Add$0$, arg$Add$1$, arg$Lam$0$, arg$Lam$1$, arg$Con$0$, arg$Var$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32;
+    let arg$Thunk$0$, arg$Thunk$1$, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$App$0$, arg$App$1$, arg$Add$0$, arg$Add$1$, arg$Lam$0$, arg$Lam$1$, arg$Con$0$, arg$Var$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31;
     if (ter instanceof lambda.Var.class) {
       arg$Var$0$ = ter.s;
       return arg$Var$0$
@@ -759,55 +758,54 @@ let lambda1;
       arg$Lam$0$ = ter.s;
       arg$Lam$1$ = ter.t;
       tmp1 = NofibPrelude.nofibStringToList(". ");
-      tmp2 = 0 - 1;
-      tmp3 = lambda.ppn(tmp2, arg$Lam$1$);
-      tmp4 = NofibPrelude.append(tmp1, tmp3);
-      tmp5 = NofibPrelude.append(arg$Lam$0$, tmp4);
-      tmp6 = NofibPrelude.Cons("@", tmp5);
-      return lambda.bracket(n, 0, tmp6)
+      tmp2 = lambda.ppn(-1, arg$Lam$1$);
+      tmp3 = NofibPrelude.append(tmp1, tmp2);
+      tmp4 = NofibPrelude.append(arg$Lam$0$, tmp3);
+      tmp5 = NofibPrelude.Cons("@", tmp4);
+      return lambda.bracket(n, 0, tmp5)
     } else if (ter instanceof lambda.Add.class) {
       arg$Add$0$ = ter.a;
       arg$Add$1$ = ter.b;
-      tmp7 = lambda.ppn(1, arg$Add$0$);
-      tmp8 = NofibPrelude.nofibStringToList(" + ");
-      tmp9 = lambda.ppn(1, arg$Add$1$);
-      tmp10 = NofibPrelude.append(tmp8, tmp9);
-      tmp11 = NofibPrelude.append(tmp7, tmp10);
-      return lambda.bracket(n, 1, tmp11)
+      tmp6 = lambda.ppn(1, arg$Add$0$);
+      tmp7 = NofibPrelude.nofibStringToList(" + ");
+      tmp8 = lambda.ppn(1, arg$Add$1$);
+      tmp9 = NofibPrelude.append(tmp7, tmp8);
+      tmp10 = NofibPrelude.append(tmp6, tmp9);
+      return lambda.bracket(n, 1, tmp10)
     } else if (ter instanceof lambda.App.class) {
       arg$App$0$ = ter.a;
       arg$App$1$ = ter.b;
-      tmp12 = lambda.ppn(2, arg$App$0$);
-      tmp13 = NofibPrelude.nofibStringToList(" ");
-      tmp14 = lambda.ppn(2, arg$App$1$);
-      tmp15 = NofibPrelude.append(tmp13, tmp14);
-      tmp16 = NofibPrelude.append(tmp12, tmp15);
-      return lambda.bracket(n, 2, tmp16)
+      tmp11 = lambda.ppn(2, arg$App$0$);
+      tmp12 = NofibPrelude.nofibStringToList(" ");
+      tmp13 = lambda.ppn(2, arg$App$1$);
+      tmp14 = NofibPrelude.append(tmp12, tmp13);
+      tmp15 = NofibPrelude.append(tmp11, tmp14);
+      return lambda.bracket(n, 2, tmp15)
     } else if (ter instanceof lambda.IfZero.class) {
       arg$IfZero$0$ = ter.a;
       arg$IfZero$1$ = ter.b;
       arg$IfZero$2$ = ter.c;
-      tmp17 = NofibPrelude.nofibStringToList("IF ");
-      tmp18 = lambda.ppn(0, arg$IfZero$0$);
-      tmp19 = NofibPrelude.nofibStringToList(" THEN ");
-      tmp20 = lambda.ppn(0, arg$IfZero$1$);
-      tmp21 = NofibPrelude.nofibStringToList(" ELSE ");
-      tmp22 = lambda.ppn(0, arg$IfZero$2$);
-      tmp23 = NofibPrelude.append(tmp21, tmp22);
-      tmp24 = NofibPrelude.append(tmp20, tmp23);
-      tmp25 = NofibPrelude.append(tmp19, tmp24);
-      tmp26 = NofibPrelude.append(tmp18, tmp25);
-      tmp27 = NofibPrelude.append(tmp17, tmp26);
-      return lambda.bracket(n, 0, tmp27)
+      tmp16 = NofibPrelude.nofibStringToList("IF ");
+      tmp17 = lambda.ppn(0, arg$IfZero$0$);
+      tmp18 = NofibPrelude.nofibStringToList(" THEN ");
+      tmp19 = lambda.ppn(0, arg$IfZero$1$);
+      tmp20 = NofibPrelude.nofibStringToList(" ELSE ");
+      tmp21 = lambda.ppn(0, arg$IfZero$2$);
+      tmp22 = NofibPrelude.append(tmp20, tmp21);
+      tmp23 = NofibPrelude.append(tmp19, tmp22);
+      tmp24 = NofibPrelude.append(tmp18, tmp23);
+      tmp25 = NofibPrelude.append(tmp17, tmp24);
+      tmp26 = NofibPrelude.append(tmp16, tmp25);
+      return lambda.bracket(n, 0, tmp26)
     } else if (ter instanceof lambda.Thunk.class) {
       arg$Thunk$0$ = ter.t;
       arg$Thunk$1$ = ter.e;
-      tmp28 = lambda.ppn(3, arg$Thunk$0$);
-      tmp29 = NofibPrelude.nofibStringToList("::");
-      tmp30 = lambda.ppenv(arg$Thunk$1$);
-      tmp31 = NofibPrelude.append(tmp29, tmp30);
-      tmp32 = NofibPrelude.append(tmp28, tmp31);
-      return lambda.bracket(n, 0, tmp32)
+      tmp27 = lambda.ppn(3, arg$Thunk$0$);
+      tmp28 = NofibPrelude.nofibStringToList("::");
+      tmp29 = lambda.ppenv(arg$Thunk$1$);
+      tmp30 = NofibPrelude.append(tmp28, tmp29);
+      tmp31 = NofibPrelude.append(tmp27, tmp30);
+      return lambda.bracket(n, 0, tmp31)
     }
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 

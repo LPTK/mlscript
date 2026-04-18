@@ -839,12 +839,11 @@ let Term2;
     return runtime.safeCall(globalThis.console.log(tmp3))
   } 
   static genImport(base, p) {
-    let tmp, tmp1, tmp2, tmp3;
+    let tmp, tmp1, tmp2;
     tmp = runtime.safeCall(url.fileURLToPath(p));
     tmp1 = path.relative(base, tmp);
-    tmp2 = - 4;
-    tmp3 = tmp1.slice(0, tmp2);
-    return StrOps.concat("import \"./", tmp3, ".mls\"")
+    tmp2 = tmp1.slice(0, -4);
+    return StrOps.concat("import \"./", tmp2, ".mls\"")
   } 
   static codegen(t, file) {
     let ctx, moduleName, fullpath, code, dependencies, scrut, originData, newData, scrut1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, lambda, tmp8, tmp9;

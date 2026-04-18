@@ -2265,7 +2265,7 @@ let Parser1;
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     };
     modCont = function modCont(acc) {
-      let arg$Cons$0$1, arg$Identifier$0$, tmp, tmp1, tmp2, tmp3, tmp4;
+      let arg$Cons$0$1, arg$Identifier$0$, tmp, tmp1, tmp2, tmp3;
       tmp = TokenHelpers.preview(tokens);
       tmp1 = ">>>>>> modCont <<<<<< " + tmp;
       Parser.tracer.print(tmp1, 271);
@@ -2274,13 +2274,13 @@ let Parser1;
         if (arg$Cons$0$1 instanceof Token.Identifier.class) {
           arg$Identifier$0$ = arg$Cons$0$1.name;
           if (arg$Identifier$0$ === ";;") {
-            tmp2 = consume();
-            tmp3 = mod(acc);
-            return (tmp2 , tmp3)
+            consume();
+            tmp2 = mod(acc);
+            return tmp2
           }
         }
-        tmp4 = parseRule(0, Rules.declRule);
-        return handleDirective(tmp4, acc)
+        tmp3 = parseRule(0, Rules.declRule);
+        return handleDirective(tmp3, acc)
       } else if (tokens instanceof Stack.Nil.class) {
         return Stack.reverse(acc)
       }

@@ -135,19 +135,19 @@ fun popByIndex(start, end, acc, lft) =
 //│ let popByIndex;
 //│ popByIndex = function popByIndex(start, end, acc, lft) {
 //│   loopLabel: while (true) {
-//│     let scrut, tmp34, tmp35, tmp36;
+//│     let scrut, tmp33, tmp34, tmp35;
 //│     scrut = start >= end;
 //│     if (scrut === true) {
 //│       return acc
 //│     }
-//│     tmp34 = start + 1;
-//│     tmp35 = runtime.safeCall(lft.at(start));
-//│     tmp36 = globalThis.Object.freeze([
+//│     tmp33 = start + 1;
+//│     tmp34 = runtime.safeCall(lft.at(start));
+//│     tmp35 = globalThis.Object.freeze([
 //│       ...acc,
-//│       tmp35
+//│       tmp34
 //│     ]);
-//│     start = tmp34;
-//│     acc = tmp36;
+//│     start = tmp33;
+//│     acc = tmp35;
 //│     continue loopLabel;
 //│   }
 //│ };

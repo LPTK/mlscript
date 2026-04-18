@@ -21,9 +21,8 @@ let Keywords1;
   static #bracketPrec;
   static #builtinKeywords;
   static {
-    let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, tmp55, tmp56, tmp57, tmp58;
-    tmp = - 2147483648;
-    this.INT_MIN = tmp;
+    let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, tmp55, tmp56, tmp57;
+    this.INT_MIN = -2147483648;
     this.INT_MAX = 2147483647;
     this.Keyword = function Keyword(name, leftPrec, rightPrec) {
       return globalThis.Object.freeze(new Keyword.class(name, leftPrec, rightPrec));
@@ -74,26 +73,26 @@ let Keywords1;
         return Keywords.INT_MAX;
       } 
       toString() {
-        let scrut, scrut1, lambda, tmp59, arg$Some$0$, tmp60, arg$Some$0$1, tmp61;
+        let scrut, scrut1, lambda, tmp58, arg$Some$0$, tmp59, arg$Some$0$1, tmp60;
         lambda = (undefined, function (arg1, arg2) {
           return arg1 + arg2
         });
-        tmp59 = runtime.safeCall(Predef.fold(lambda));
+        tmp58 = runtime.safeCall(Predef.fold(lambda));
         scrut = this.leftPrec;
         if (scrut instanceof Option.Some.class) {
           arg$Some$0$ = scrut.value;
-          tmp60 = runtime.safeCall(arg$Some$0$.toString());
+          tmp59 = runtime.safeCall(arg$Some$0$.toString());
         } else {
-          tmp60 = "N/A";
+          tmp59 = "N/A";
         }
         scrut1 = this.rightPrec;
         if (scrut1 instanceof Option.Some.class) {
           arg$Some$0$1 = scrut1.value;
-          tmp61 = runtime.safeCall(arg$Some$0$1.toString());
-          return runtime.safeCall(tmp59("Keyword(`", this.name, "`, ", tmp60, ", ", tmp61, ")"))
+          tmp60 = runtime.safeCall(arg$Some$0$1.toString());
+          return runtime.safeCall(tmp58("Keyword(`", this.name, "`, ", tmp59, ", ", tmp60, ")"))
         }
-        tmp61 = "N/A";
-        return runtime.safeCall(tmp59("Keyword(`", this.name, "`, ", tmp60, ", ", "N/A", ")"));
+        tmp60 = "N/A";
+        return runtime.safeCall(tmp58("Keyword(`", this.name, "`, ", tmp59, ", ", "N/A", ")"));
       }
       [prettyPrint]() { return this.toString(); }
       static [definitionMetadata] = ["class", "Keyword", ["name", "leftPrec", "rightPrec"]]; 
@@ -101,122 +100,122 @@ let Keywords1;
     this.all = MutMap.empty;
     Keywords.#prec = 0;
     Keywords.#basePrec = Keywords.currPrec;
-    tmp1 = Keywords.keyword(";;", Keywords.#basePrec, Keywords.#basePrec);
-    this._terminator = tmp1;
-    tmp2 = Keywords.keyword("class", Option.None, Keywords.#basePrec);
-    this._class = tmp2;
+    tmp = Keywords.keyword(";;", Keywords.#basePrec, Keywords.#basePrec);
+    this._terminator = tmp;
+    tmp1 = Keywords.keyword("class", Option.None, Keywords.#basePrec);
+    this._class = tmp1;
     Keywords.#semiPrec = Keywords.nextPrec;
     Keywords.#commaPrec = Keywords.nextPrec;
-    tmp3 = Keywords.keyword(";", Keywords.#semiPrec, Keywords.#basePrec);
-    this._semicolon = tmp3;
-    tmp4 = Keywords.keyword(",", Keywords.#commaPrec, Keywords.#semiPrec);
-    this._comma = tmp4;
+    tmp2 = Keywords.keyword(";", Keywords.#semiPrec, Keywords.#basePrec);
+    this._semicolon = tmp2;
+    tmp3 = Keywords.keyword(",", Keywords.#commaPrec, Keywords.#semiPrec);
+    this._comma = tmp3;
     Keywords.#eqPrec = Keywords.nextPrec;
     Keywords.#ascPrec = Keywords.nextPrec;
-    tmp5 = Keywords.keyword("=", Keywords.#eqPrec, Keywords.#eqPrec);
-    this._equal = tmp5;
-    tmp6 = Keywords.keyword("and", Option.None, Keywords.currPrec);
-    this._and = tmp6;
-    tmp7 = Keywords.keyword("|", Option.None, Option.None);
-    this._bar = tmp7;
-    tmp8 = Keywords.keyword("->", Keywords.nextPrec, Keywords.#eqPrec);
-    this._thinArrow = tmp8;
-    tmp9 = Keywords.keyword(":", Keywords.#ascPrec, Keywords.#eqPrec);
-    this._colon = tmp9;
-    tmp10 = Keywords.keyword("match", Keywords.nextPrec, Keywords.currPrec);
-    this._match = tmp10;
-    tmp11 = Keywords.keyword("while", Keywords.nextPrec, Keywords.currPrec);
-    this._while = tmp11;
-    tmp12 = Keywords.keyword("for", Keywords.nextPrec, Keywords.currPrec);
-    this._for = tmp12;
-    tmp13 = Keywords.keyword("to", Option.None, Option.None);
-    this._to = tmp13;
-    tmp14 = Keywords.keyword("downto", Option.None, Option.None);
-    this._downto = tmp14;
-    tmp15 = Keywords.keyword("do", Option.None, Option.None);
-    this._do = tmp15;
-    tmp16 = Keywords.keyword("done", Option.None, Option.None);
-    this._done = tmp16;
-    tmp17 = Keywords.keyword("of", Option.None, Option.None);
-    this._of = tmp17;
-    tmp18 = Keywords.keyword("with", Option.None, Keywords.currPrec);
-    this._with = tmp18;
-    tmp19 = Keywords.keyword("case", Option.None, Keywords.currPrec);
-    this._case = tmp19;
+    tmp4 = Keywords.keyword("=", Keywords.#eqPrec, Keywords.#eqPrec);
+    this._equal = tmp4;
+    tmp5 = Keywords.keyword("and", Option.None, Keywords.currPrec);
+    this._and = tmp5;
+    tmp6 = Keywords.keyword("|", Option.None, Option.None);
+    this._bar = tmp6;
+    tmp7 = Keywords.keyword("->", Keywords.nextPrec, Keywords.#eqPrec);
+    this._thinArrow = tmp7;
+    tmp8 = Keywords.keyword(":", Keywords.#ascPrec, Keywords.#eqPrec);
+    this._colon = tmp8;
+    tmp9 = Keywords.keyword("match", Keywords.nextPrec, Keywords.currPrec);
+    this._match = tmp9;
+    tmp10 = Keywords.keyword("while", Keywords.nextPrec, Keywords.currPrec);
+    this._while = tmp10;
+    tmp11 = Keywords.keyword("for", Keywords.nextPrec, Keywords.currPrec);
+    this._for = tmp11;
+    tmp12 = Keywords.keyword("to", Option.None, Option.None);
+    this._to = tmp12;
+    tmp13 = Keywords.keyword("downto", Option.None, Option.None);
+    this._downto = tmp13;
+    tmp14 = Keywords.keyword("do", Option.None, Option.None);
+    this._do = tmp14;
+    tmp15 = Keywords.keyword("done", Option.None, Option.None);
+    this._done = tmp15;
+    tmp16 = Keywords.keyword("of", Option.None, Option.None);
+    this._of = tmp16;
+    tmp17 = Keywords.keyword("with", Option.None, Keywords.currPrec);
+    this._with = tmp17;
+    tmp18 = Keywords.keyword("case", Option.None, Keywords.currPrec);
+    this._case = tmp18;
     Keywords.#thenPrec = Keywords.nextPrec;
-    tmp20 = Keywords.keyword("if", Keywords.nextPrec, Keywords.#thenPrec);
-    this._if = tmp20;
-    tmp21 = Keywords.keyword("<-", Keywords.#thenPrec, Keywords.#thenPrec);
-    this._leftArrow = tmp21;
-    tmp22 = Keywords.keyword("then", Keywords.#thenPrec, Keywords.#thenPrec);
-    this._then = tmp22;
-    tmp23 = Keywords.keyword("else", Keywords.#thenPrec, Keywords.#thenPrec);
-    this._else = tmp23;
-    tmp24 = Keywords.keyword("let", Keywords.#eqPrec, Keywords.#semiPrec);
-    this._let = tmp24;
-    tmp25 = Keywords.keyword("in", Keywords.#thenPrec, Keywords.#thenPrec);
-    this._in = tmp25;
-    tmp26 = Keywords.keyword("true", Option.None, Option.None);
-    this._true = tmp26;
-    tmp27 = Keywords.keyword("false", Option.None, Option.None);
-    this._false = tmp27;
-    tmp28 = Keywords.keyword("as", Keywords.nextPrec, Keywords.currPrec);
-    this._as = tmp28;
-    tmp29 = Keywords.keyword("fun", Keywords.currPrec, Keywords._thinArrow.leftPrec);
-    this._fun = tmp29;
-    tmp30 = Keywords.keyword("function", Keywords.currPrec, Keywords.#eqPrec);
-    this._function = tmp30;
-    tmp31 = Keywords.keyword("type", Keywords.currPrec, Option.None);
-    this._type = tmp31;
-    tmp32 = Keywords.keyword("exception", Keywords.currPrec, Option.None);
-    this._exception = tmp32;
-    tmp33 = Keywords.keyword("rec", Keywords.currPrec, Keywords.#eqPrec);
-    this._rec = tmp33;
-    tmp34 = Keywords.keyword("#", Option.None, Option.None);
-    this._hash = tmp34;
+    tmp19 = Keywords.keyword("if", Keywords.nextPrec, Keywords.#thenPrec);
+    this._if = tmp19;
+    tmp20 = Keywords.keyword("<-", Keywords.#thenPrec, Keywords.#thenPrec);
+    this._leftArrow = tmp20;
+    tmp21 = Keywords.keyword("then", Keywords.#thenPrec, Keywords.#thenPrec);
+    this._then = tmp21;
+    tmp22 = Keywords.keyword("else", Keywords.#thenPrec, Keywords.#thenPrec);
+    this._else = tmp22;
+    tmp23 = Keywords.keyword("let", Keywords.#eqPrec, Keywords.#semiPrec);
+    this._let = tmp23;
+    tmp24 = Keywords.keyword("in", Keywords.#thenPrec, Keywords.#thenPrec);
+    this._in = tmp24;
+    tmp25 = Keywords.keyword("true", Option.None, Option.None);
+    this._true = tmp25;
+    tmp26 = Keywords.keyword("false", Option.None, Option.None);
+    this._false = tmp26;
+    tmp27 = Keywords.keyword("as", Keywords.nextPrec, Keywords.currPrec);
+    this._as = tmp27;
+    tmp28 = Keywords.keyword("fun", Keywords.currPrec, Keywords._thinArrow.leftPrec);
+    this._fun = tmp28;
+    tmp29 = Keywords.keyword("function", Keywords.currPrec, Keywords.#eqPrec);
+    this._function = tmp29;
+    tmp30 = Keywords.keyword("type", Keywords.currPrec, Option.None);
+    this._type = tmp30;
+    tmp31 = Keywords.keyword("exception", Keywords.currPrec, Option.None);
+    this._exception = tmp31;
+    tmp32 = Keywords.keyword("rec", Keywords.currPrec, Keywords.#eqPrec);
+    this._rec = tmp32;
+    tmp33 = Keywords.keyword("#", Option.None, Option.None);
+    this._hash = tmp33;
     this.maxKeywordPrec = Keywords.#prec;
     Keywords.#precMap = Keywords.makePrecMap(Keywords.maxKeywordPrec, ",", "@", ":", "|", "&", "=", "/ \\", "^", "!", "< >", "+ -", "* %", "~", "", "", ".");
-    tmp35 = MutMap.get(".");
-    tmp36 = Predef.pipeInto(Keywords.#precMap, tmp35);
-    tmp37 = Predef.pipeInto(tmp36, Option.unsafe.get);
-    this.periodPrec = tmp37;
+    tmp34 = MutMap.get(".");
+    tmp35 = Predef.pipeInto(Keywords.#precMap, tmp34);
+    tmp36 = Predef.pipeInto(tmp35, Option.unsafe.get);
+    this.periodPrec = tmp36;
+    tmp37 = Option.Some(Keywords.periodPrec);
     tmp38 = Option.Some(Keywords.periodPrec);
-    tmp39 = Option.Some(Keywords.periodPrec);
-    tmp40 = Keywords.keyword(".", tmp38, tmp39);
-    this._period = tmp40;
+    tmp39 = Keywords.keyword(".", tmp37, tmp38);
+    this._period = tmp39;
     this.maxOperatorPrec = Keywords.periodPrec;
-    tmp41 = Keywords.maxOperatorPrec - 1;
-    this.appPrec = tmp41;
-    tmp42 = Keywords.appPrec - 1;
-    this.prefixPrec = tmp42;
+    tmp40 = Keywords.maxOperatorPrec - 1;
+    this.appPrec = tmp40;
+    tmp41 = Keywords.appPrec - 1;
+    this.prefixPrec = tmp41;
+    tmp42 = Keywords.charPrecOpt("*");
     tmp43 = Keywords.charPrecOpt("*");
-    tmp44 = Keywords.charPrecOpt("*");
-    tmp45 = Keywords.keyword("*", tmp43, tmp44);
-    this._asterisk = tmp45;
+    tmp44 = Keywords.keyword("*", tmp42, tmp43);
+    this._asterisk = tmp44;
+    tmp45 = Keywords.charPrecOpt("=");
     tmp46 = Keywords.charPrecOpt("=");
-    tmp47 = Keywords.charPrecOpt("=");
-    tmp48 = Keywords.keyword("==", tmp46, tmp47);
-    this._equalequal = tmp48;
-    tmp49 = Keywords.maxOperatorPrec + 1;
-    Keywords.#bracketPrec = Option.Some(tmp49);
-    tmp50 = Keywords.keyword("(", Keywords.#bracketPrec, Keywords.#basePrec);
-    this._leftRound = tmp50;
-    tmp51 = Keywords.keyword(")", Keywords.#basePrec, Option.None);
-    this._rightRound = tmp51;
-    tmp52 = Keywords.keyword("[", Keywords.#bracketPrec, Keywords.#basePrec);
-    this._leftSquare = tmp52;
-    tmp53 = Keywords.keyword("]", Keywords.#basePrec, Option.None);
-    this._rightSquare = tmp53;
-    tmp54 = Keywords.keyword("{", Keywords.#bracketPrec, Keywords.#basePrec);
-    this._leftCurly = tmp54;
-    tmp55 = Keywords.keyword("}", Keywords.#basePrec, Option.None);
-    this._rightCurly = tmp55;
-    tmp56 = Keywords.keyword("begin", Keywords.#bracketPrec, Keywords.#basePrec);
-    this._begin = tmp56;
-    tmp57 = Keywords.keyword("end", Keywords.#basePrec, Option.None);
-    this._end = tmp57;
-    tmp58 = Predef.pipeInto(Keywords.all, MutMap.keysIterator);
-    Keywords.#builtinKeywords = globalThis.Object.freeze(new globalThis.Set(tmp58));
+    tmp47 = Keywords.keyword("==", tmp45, tmp46);
+    this._equalequal = tmp47;
+    tmp48 = Keywords.maxOperatorPrec + 1;
+    Keywords.#bracketPrec = Option.Some(tmp48);
+    tmp49 = Keywords.keyword("(", Keywords.#bracketPrec, Keywords.#basePrec);
+    this._leftRound = tmp49;
+    tmp50 = Keywords.keyword(")", Keywords.#basePrec, Option.None);
+    this._rightRound = tmp50;
+    tmp51 = Keywords.keyword("[", Keywords.#bracketPrec, Keywords.#basePrec);
+    this._leftSquare = tmp51;
+    tmp52 = Keywords.keyword("]", Keywords.#basePrec, Option.None);
+    this._rightSquare = tmp52;
+    tmp53 = Keywords.keyword("{", Keywords.#bracketPrec, Keywords.#basePrec);
+    this._leftCurly = tmp53;
+    tmp54 = Keywords.keyword("}", Keywords.#basePrec, Option.None);
+    this._rightCurly = tmp54;
+    tmp55 = Keywords.keyword("begin", Keywords.#bracketPrec, Keywords.#basePrec);
+    this._begin = tmp55;
+    tmp56 = Keywords.keyword("end", Keywords.#basePrec, Option.None);
+    this._end = tmp56;
+    tmp57 = Predef.pipeInto(Keywords.all, MutMap.keysIterator);
+    Keywords.#builtinKeywords = globalThis.Object.freeze(new globalThis.Set(tmp57));
     (class Letter {
       static {
         new this
@@ -227,64 +226,47 @@ let Keywords1;
       }
       unapply(input) {
         let isGreaterThanLower, isLessThanUpper, isGreaterThanLower1, isLessThanUpper1;
-        split_1$: {
-          isGreaterThanLower1 = "a" <= input;
-          if (isGreaterThanLower1 === true) {
-            isLessThanUpper1 = input <= "z";
-            if (isLessThanUpper1 === true) {
-              break split_1$
-            }
-            isGreaterThanLower = "A" <= input;
-            if (isGreaterThanLower === true) {
-              isLessThanUpper = input <= "Z";
-              if (isLessThanUpper === true) {
-                break split_1$
-              }
-            }
-            return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
+        isGreaterThanLower1 = "a" <= input;
+        if (isGreaterThanLower1 === true) {
+          isLessThanUpper1 = input <= "z";
+          if (isLessThanUpper1 === true) {
+            return globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null))
           }
           isGreaterThanLower = "A" <= input;
           if (isGreaterThanLower === true) {
             isLessThanUpper = input <= "Z";
             if (isLessThanUpper === true) {
-              break split_1$
+              return globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null))
             }
-            return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+            return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
           }
           return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
         }
-        return globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null))
+        isGreaterThanLower = "A" <= input;
+        if (isGreaterThanLower === true) {
+          isLessThanUpper = input <= "Z";
+          if (isLessThanUpper === true) {
+            return globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null))
+          }
+          return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
+        }
+        return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
       } 
       unapplyStringPrefix(input) {
-        let stringHead, stringTail, nonEmpty, isGreaterThanLower, isLessThanUpper, stringHead1, stringTail1, nonEmpty1, isGreaterThanLower1, isLessThanUpper1, tmp59, tmp60;
-        split_1$: {
-          nonEmpty1 = 0 < input.length;
-          if (nonEmpty1 === true) {
-            stringHead1 = runtime.Str.get(input, 0);
-            stringTail1 = runtime.Str.leave(input, 1);
-            isGreaterThanLower1 = "a" <= stringHead1;
-            if (isGreaterThanLower1 === true) {
-              isLessThanUpper1 = stringHead1 <= "z";
-              if (isLessThanUpper1 === true) {
-                tmp59 = globalThis.Object.freeze([
-                  stringHead1,
-                  stringTail1
-                ]);
-                return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp59, null))
-              }
-              nonEmpty = 0 < input.length;
-              if (nonEmpty === true) {
-                stringHead = runtime.Str.get(input, 0);
-                stringTail = runtime.Str.leave(input, 1);
-                isGreaterThanLower = "A" <= stringHead;
-                if (isGreaterThanLower === true) {
-                  isLessThanUpper = stringHead <= "Z";
-                  if (isLessThanUpper === true) {
-                    break split_1$
-                  }
-                }
-              }
-              return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+        let stringHead, stringTail, nonEmpty, isGreaterThanLower, isLessThanUpper, stringHead1, stringTail1, nonEmpty1, isGreaterThanLower1, isLessThanUpper1, tmp58, tmp59;
+        nonEmpty1 = 0 < input.length;
+        if (nonEmpty1 === true) {
+          stringHead1 = runtime.Str.get(input, 0);
+          stringTail1 = runtime.Str.leave(input, 1);
+          isGreaterThanLower1 = "a" <= stringHead1;
+          if (isGreaterThanLower1 === true) {
+            isLessThanUpper1 = stringHead1 <= "z";
+            if (isLessThanUpper1 === true) {
+              tmp58 = globalThis.Object.freeze([
+                stringHead1,
+                stringTail1
+              ]);
+              return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp58, null))
             }
             nonEmpty = 0 < input.length;
             if (nonEmpty === true) {
@@ -293,13 +275,34 @@ let Keywords1;
               isGreaterThanLower = "A" <= stringHead;
               if (isGreaterThanLower === true) {
                 isLessThanUpper = stringHead <= "Z";
-                if (isLessThanUpper === true) {
-                  break split_1$
+                if (isLessThanUpper !== true) {
+                  return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
                 }
+              } else {
+                return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
               }
+            } else {
+              return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
             }
-            return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
+          } else {
+            nonEmpty = 0 < input.length;
+            if (nonEmpty === true) {
+              stringHead = runtime.Str.get(input, 0);
+              stringTail = runtime.Str.leave(input, 1);
+              isGreaterThanLower = "A" <= stringHead;
+              if (isGreaterThanLower === true) {
+                isLessThanUpper = stringHead <= "Z";
+                if (isLessThanUpper !== true) {
+                  return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+                }
+              } else {
+                return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+              }
+            } else {
+              return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+            }
           }
+        } else {
           nonEmpty = 0 < input.length;
           if (nonEmpty === true) {
             stringHead = runtime.Str.get(input, 0);
@@ -307,19 +310,21 @@ let Keywords1;
             isGreaterThanLower = "A" <= stringHead;
             if (isGreaterThanLower === true) {
               isLessThanUpper = stringHead <= "Z";
-              if (isLessThanUpper === true) {
-                break split_1$
+              if (isLessThanUpper !== true) {
+                return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
               }
+            } else {
+              return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
             }
+          } else {
             return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
           }
-          return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
         }
-        tmp60 = globalThis.Object.freeze([
+        tmp59 = globalThis.Object.freeze([
           stringHead,
           stringTail
         ]);
-        return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp60, null))
+        return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp59, null))
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["pattern", "Letter"]; 
@@ -346,46 +351,46 @@ let Keywords1;
         return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
       } 
       unapplyStringPrefix(input) {
-        let isLeading, consumed, remains, isLeading1, consumed1, remains1, isLeading2, consumed2, remains2, isLeading3, consumed3, remains3, tmp59, tmp60, tmp61, tmp62;
+        let isLeading, consumed, remains, isLeading1, consumed1, remains1, isLeading2, consumed2, remains2, isLeading3, consumed3, remains3, tmp58, tmp59, tmp60, tmp61;
         isLeading3 = runtime.Str.startsWith(input, "+.");
         if (isLeading3 === true) {
           consumed3 = runtime.Str.take(input, 2);
           remains3 = runtime.Str.leave(input, 2);
-          tmp59 = globalThis.Object.freeze([
+          tmp58 = globalThis.Object.freeze([
             consumed3,
             remains3
           ]);
-          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp59, null))
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp58, null))
         }
         isLeading2 = runtime.Str.startsWith(input, "-.");
         if (isLeading2 === true) {
           consumed2 = runtime.Str.take(input, 2);
           remains2 = runtime.Str.leave(input, 2);
-          tmp60 = globalThis.Object.freeze([
+          tmp59 = globalThis.Object.freeze([
             consumed2,
             remains2
           ]);
-          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp60, null))
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp59, null))
         }
         isLeading1 = runtime.Str.startsWith(input, "*.");
         if (isLeading1 === true) {
           consumed1 = runtime.Str.take(input, 2);
           remains1 = runtime.Str.leave(input, 2);
-          tmp61 = globalThis.Object.freeze([
+          tmp60 = globalThis.Object.freeze([
             consumed1,
             remains1
           ]);
-          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp61, null))
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp60, null))
         }
         isLeading = runtime.Str.startsWith(input, "/.");
         if (isLeading === true) {
           consumed = runtime.Str.take(input, 2);
           remains = runtime.Str.leave(input, 2);
-          tmp62 = globalThis.Object.freeze([
+          tmp61 = globalThis.Object.freeze([
             consumed,
             remains
           ]);
-          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp62, null))
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp61, null))
         }
         return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
       }
@@ -414,46 +419,46 @@ let Keywords1;
         return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
       } 
       unapplyStringPrefix(input) {
-        let isLeading, consumed, remains, isLeading1, consumed1, remains1, isLeading2, consumed2, remains2, isLeading3, consumed3, remains3, tmp59, tmp60, tmp61, tmp62;
+        let isLeading, consumed, remains, isLeading1, consumed1, remains1, isLeading2, consumed2, remains2, isLeading3, consumed3, remains3, tmp58, tmp59, tmp60, tmp61;
         isLeading3 = runtime.Str.startsWith(input, "@");
         if (isLeading3 === true) {
           consumed3 = runtime.Str.take(input, 1);
           remains3 = runtime.Str.leave(input, 1);
-          tmp59 = globalThis.Object.freeze([
+          tmp58 = globalThis.Object.freeze([
             consumed3,
             remains3
           ]);
-          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp59, null))
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp58, null))
         }
         isLeading2 = runtime.Str.startsWith(input, "/");
         if (isLeading2 === true) {
           consumed2 = runtime.Str.take(input, 1);
           remains2 = runtime.Str.leave(input, 1);
-          tmp60 = globalThis.Object.freeze([
+          tmp59 = globalThis.Object.freeze([
             consumed2,
             remains2
           ]);
-          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp60, null))
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp59, null))
         }
         isLeading1 = runtime.Str.startsWith(input, ",");
         if (isLeading1 === true) {
           consumed1 = runtime.Str.take(input, 1);
           remains1 = runtime.Str.leave(input, 1);
-          tmp61 = globalThis.Object.freeze([
+          tmp60 = globalThis.Object.freeze([
             consumed1,
             remains1
           ]);
-          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp61, null))
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp60, null))
         }
         isLeading = runtime.Str.startsWith(input, ":");
         if (isLeading === true) {
           consumed = runtime.Str.take(input, 1);
           remains = runtime.Str.leave(input, 1);
-          tmp62 = globalThis.Object.freeze([
+          tmp61 = globalThis.Object.freeze([
             consumed,
             remains
           ]);
-          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp62, null))
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp61, null))
         }
         return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
       }
@@ -552,7 +557,7 @@ let Keywords1;
     return Iter.some(s, lambda)
   } 
   static opPrec(opStr) {
-    let scrut, lastChar, unapplyResult, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, unapplyResult1, tmp8, tmp9;
+    let scrut, lastChar, unapplyResult, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, unapplyResult1, tmp7, tmp8;
     unapplyResult = runtime.safeCall(Keywords.FloatOperator.unapply(opStr));
     if (unapplyResult instanceof runtime.MatchSuccess.class) {
       unapplyResult.output;
@@ -567,25 +572,24 @@ let Keywords1;
     if (scrut === true) {
       return Predef.tuple(Keywords1.maxKeywordPrec, Keywords1.maxKeywordPrec)
     }
-    tmp4 = - 1;
-    lastChar = runtime.safeCall(opStr.at(tmp4));
+    lastChar = runtime.safeCall(opStr.at(-1));
     Keywords1.charPrec(lastChar);
-    tmp5 = runtime.safeCall(opStr.at(0));
-    tmp6 = Keywords1.charPrec(tmp5);
-    tmp7 = Keywords1.charPrec(lastChar);
+    tmp4 = runtime.safeCall(opStr.at(0));
+    tmp5 = Keywords1.charPrec(tmp4);
+    tmp6 = Keywords1.charPrec(lastChar);
     unapplyResult1 = runtime.safeCall(Keywords.RightAssociative.unapply(lastChar));
     if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
       unapplyResult1.output;
       unapplyResult1.bindings;
-      tmp8 = - 1;
+      tmp7 = -1;
     } else {
-      tmp8 = 0;
+      tmp7 = 0;
     }
-    tmp9 = tmp7 + tmp8;
-    return Predef.tuple(tmp6, tmp9);
+    tmp8 = tmp6 + tmp7;
+    return Predef.tuple(tmp5, tmp8);
   } 
   static opPrecOpt(opStr) {
-    let scrut, lastChar, scrut1, scrut2, arg$Some$0$, arg$Some$0$1, unapplyResult, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, unapplyResult1, tmp8, tmp9, tmp10;
+    let scrut, lastChar, scrut1, scrut2, arg$Some$0$, arg$Some$0$1, unapplyResult, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, unapplyResult1, tmp7, tmp8, tmp9;
     if (opStr === "") {
       return Option.None
     }
@@ -605,26 +609,25 @@ let Keywords1;
       tmp5 = Predef.tuple(Keywords1.maxKeywordPrec, Keywords1.maxKeywordPrec);
       return Option.Some(tmp5)
     }
-    tmp6 = - 1;
-    lastChar = runtime.safeCall(opStr.at(tmp6));
+    lastChar = runtime.safeCall(opStr.at(-1));
     scrut1 = Keywords1.charPrecOpt(lastChar);
     if (scrut1 instanceof Option.Some.class) {
       arg$Some$0$ = scrut1.value;
-      tmp7 = runtime.safeCall(opStr.at(0));
-      scrut2 = Keywords1.charPrecOpt(tmp7);
+      tmp6 = runtime.safeCall(opStr.at(0));
+      scrut2 = Keywords1.charPrecOpt(tmp6);
       if (scrut2 instanceof Option.Some.class) {
         arg$Some$0$1 = scrut2.value;
         unapplyResult1 = runtime.safeCall(Keywords.RightAssociative.unapply(lastChar));
         if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
           unapplyResult1.output;
           unapplyResult1.bindings;
-          tmp8 = - 1;
+          tmp7 = -1;
         } else {
-          tmp8 = 0;
+          tmp7 = 0;
         }
-        tmp9 = arg$Some$0$ + tmp8;
-        tmp10 = Predef.tuple(arg$Some$0$1, tmp9);
-        return Option.Some(tmp10)
+        tmp8 = arg$Some$0$ + tmp7;
+        tmp9 = Predef.tuple(arg$Some$0$1, tmp8);
+        return Option.Some(tmp9)
       }
       return Option.None;
     }
