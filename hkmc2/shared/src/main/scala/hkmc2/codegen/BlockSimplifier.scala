@@ -322,6 +322,9 @@ class BlockSimplifier
     
     
     def apply(prog: Program): Program =
+      
+      var cur = prog
+      
       new BlockTraverser:
         applyProgram(prog)
         
@@ -340,7 +343,31 @@ class BlockSimplifier
       
       log(s"Captured variables: ${capturedVars}")
       
-      applyProgram(prog)
+      cur = applyProgram(prog)
+      
+      /* 
+      cur =
+        (new BlockTransformer(SymbolSubst.Id):
+          
+          override def applyBlock(b: Block): Block =
+            b match
+            case ass @ Assign(lhs: LocalVar, rhs, rst)
+            if localVars(lhs) && !capturedVars(lhs) && !symbolsToPreserve(lhs) && !liveAssignments.containsKey(ass)
+            =>
+              import scala.jdk.CollectionConverters._
+              log(s"Live assignments: ${liveAssignments.keySet.asScala.toList.sortBy(_.toString)
+                  .map(a => a.showDbg + System.identityHashCode(a))
+                }")
+              registerChange(s"rm ass ${lhs.showDbg} = ${rhs.showDbg}")
+              registerChange(s"rm id ${System.identityHashCode(this)}")
+              Assign.discard(rhs, applyBlock(rst))
+            case _ => super.applyBlock(b)
+          
+        ).applyProgram(cur)
+      */
+      
+      cur
+      
     end apply
     
     
@@ -421,6 +448,16 @@ class BlockSimplifier
         )
         log(s"NEW assignedResults: ${assignedResults}")
         super.applyBlock(b)
+        /* 
+        val res = super.applyBlock(b)
+        if inDryRun || !localVars(lhs) || symbolsToPreserve(lhs) || liveAssignments.containsKey(ass)
+        then res
+        else
+          import scala.jdk.CollectionConverters._
+          log(s"Live assignments: ${liveAssignments.asScala.toList.sortBy(_.toString)}")
+          registerChange(s"rm ass ${lhs.showDbg} = ${rhs.showDbg}")
+          Assign.discard(rhs, rst)
+        */
       case Assign(lhs, rhs, rst) =>
         log(s"Not propagating ${lhs} := ${rhs}")
         super.applyBlock(b)
