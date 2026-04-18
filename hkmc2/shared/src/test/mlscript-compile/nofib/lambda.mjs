@@ -216,7 +216,7 @@ let lambda1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let b, scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, arg$Cons$0$1, arg$Cons$1$1, element1$1, element0$1;
+          let scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, arg$Cons$0$1, arg$Cons$1$1, element1$1, element0$1;
           if (param0 instanceof NofibPrelude.Nil.class) {
             if (param1 instanceof NofibPrelude.Nil.class) {
               return true
@@ -228,8 +228,7 @@ let lambda1;
             if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
               element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
               element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
-              b = arg$Cons$1$;
-              if (b instanceof NofibPrelude.Cons.class) {
+              if (arg$Cons$1$ instanceof NofibPrelude.Cons.class) {
                 arg$Cons$0$1 = arg$Cons$1$.head;
                 arg$Cons$1$1 = arg$Cons$1$.tail;
                 if (runtime.Tuple.isArrayLike(arg$Cons$0$1) && arg$Cons$0$1.length === 2) {
@@ -256,7 +255,7 @@ let lambda1;
           }
           return false;
         case 1:
-          let b1, b2, b3, b4, b5, arg$Thunk$0$, arg$Thunk$1$, arg$Thunk$0$1, arg$Thunk$1$1, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$IfZero$0$1, arg$IfZero$1$1, arg$IfZero$2$1, arg$App$0$, arg$App$1$, arg$App$0$1, arg$App$1$1, arg$Lam$0$, arg$Lam$1$, arg$Lam$0$1, arg$Lam$1$1, arg$Add$0$, arg$Add$1$, arg$Add$0$1, arg$Add$1$1, arg$Con$0$, arg$Con$0$1, arg$Var$0$, arg$Var$0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+          let arg$Thunk$0$, arg$Thunk$1$, arg$Thunk$0$1, arg$Thunk$1$1, arg$IfZero$0$, arg$IfZero$1$, arg$IfZero$2$, arg$IfZero$0$1, arg$IfZero$1$1, arg$IfZero$2$1, arg$App$0$, arg$App$1$, arg$App$0$1, arg$App$1$1, arg$Lam$0$, arg$Lam$1$, arg$Lam$0$1, arg$Lam$1$1, arg$Add$0$, arg$Add$1$, arg$Add$0$1, arg$Add$1$1, arg$Con$0$, arg$Con$0$1, arg$Var$0$, arg$Var$0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
           if (param0 instanceof lambda.Var.class) {
             arg$Var$0$ = param0.s;
             if (param1 instanceof lambda.Var.class) {
@@ -279,8 +278,7 @@ let lambda1;
           } else if (param0 instanceof lambda.Add.class) {
             arg$Add$0$ = param0.a;
             arg$Add$1$ = param0.b;
-            b1 = arg$Add$1$;
-            if (b1 instanceof lambda.Add.class) {
+            if (arg$Add$1$ instanceof lambda.Add.class) {
               arg$Add$0$1 = arg$Add$1$.a;
               arg$Add$1$1 = arg$Add$1$.b;
               tmp = lambda.eqTerm(arg$Add$0$, arg$Add$0$1);
@@ -296,8 +294,7 @@ let lambda1;
           } else if (param0 instanceof lambda.Lam.class) {
             arg$Lam$0$ = param0.s;
             arg$Lam$1$ = param0.t;
-            b2 = arg$Lam$1$;
-            if (b2 instanceof lambda.Lam.class) {
+            if (arg$Lam$1$ instanceof lambda.Lam.class) {
               arg$Lam$0$1 = arg$Lam$1$.s;
               arg$Lam$1$1 = arg$Lam$1$.t;
               tmp1 = NofibPrelude.listEq(arg$Lam$0$, arg$Lam$0$1);
@@ -313,8 +310,7 @@ let lambda1;
           } else if (param0 instanceof lambda.App.class) {
             arg$App$0$ = param0.a;
             arg$App$1$ = param0.b;
-            b3 = arg$App$1$;
-            if (b3 instanceof lambda.App.class) {
+            if (arg$App$1$ instanceof lambda.App.class) {
               arg$App$0$1 = arg$App$1$.a;
               arg$App$1$1 = arg$App$1$.b;
               tmp2 = lambda.eqTerm(arg$App$0$, arg$App$0$1);
@@ -331,8 +327,7 @@ let lambda1;
             arg$IfZero$0$ = param0.a;
             arg$IfZero$1$ = param0.b;
             arg$IfZero$2$ = param0.c;
-            b4 = arg$IfZero$1$;
-            if (b4 instanceof lambda.IfZero.class) {
+            if (arg$IfZero$1$ instanceof lambda.IfZero.class) {
               arg$IfZero$0$1 = arg$IfZero$1$.a;
               arg$IfZero$1$1 = arg$IfZero$1$.b;
               arg$IfZero$2$1 = arg$IfZero$1$.c;
@@ -354,8 +349,7 @@ let lambda1;
           } else if (param0 instanceof lambda.Thunk.class) {
             arg$Thunk$0$ = param0.t;
             arg$Thunk$1$ = param0.e;
-            b5 = arg$Thunk$1$;
-            if (b5 instanceof lambda.Thunk.class) {
+            if (arg$Thunk$1$ instanceof lambda.Thunk.class) {
               arg$Thunk$0$1 = arg$Thunk$1$.t;
               arg$Thunk$1$1 = arg$Thunk$1$.e;
               tmp5 = lambda.eqTerm(arg$Thunk$0$, arg$Thunk$0$1);

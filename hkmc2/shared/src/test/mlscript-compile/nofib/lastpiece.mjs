@@ -1531,7 +1531,7 @@ let lastpiece1;
           }
           return param0;
         case 1:
-          let scrut, p1, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Beside$0$1, arg$Beside$1$1, arg$Beside$2$1, arg$Nest$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
+          let scrut, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Beside$0$1, arg$Beside$1$1, arg$Beside$2$1, arg$Nest$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
           if (param0 instanceof lastpiece.NoDoc.class) {
             return lastpiece.NoDoc
           } else if (param0 instanceof lastpiece.Union.class) {
@@ -1577,8 +1577,7 @@ let lastpiece1;
           } else if (param0 instanceof lastpiece.TextBeside.class) {
             arg$TextBeside$0$ = param0.a;
             arg$TextBeside$1$ = param0.d;
-            p1 = arg$TextBeside$1$;
-            if (p1 instanceof lastpiece.Empty.class) {
+            if (arg$TextBeside$1$ instanceof lastpiece.Empty.class) {
               tmp10 = lastpiece.nilBeside(param1, param2);
               return lastpiece.TextBeside(arg$TextBeside$0$, tmp10)
             }
@@ -1910,7 +1909,7 @@ let lastpiece1;
     return lastpiece.insert(sq, id, bd)
   } 
   static extend_maybe(bd, sq, id) {
-    let scrut, scrut1, element1$, element0$, tmp, tmp1, tmp2, tmp3;
+    let scrut, element1$, element0$, tmp, tmp1, tmp2, tmp3;
     if (runtime.Tuple.isArrayLike(sq) && sq.length === 2) {
       element0$ = runtime.Tuple.get(sq, 0);
       element1$ = runtime.Tuple.get(sq, 1);
@@ -1925,14 +1924,13 @@ let lastpiece1;
       } else {
         tmp2 = true;
       }
-      scrut = tmp2;
-      if (scrut === true) {
+      if (tmp2 === true) {
         return NofibPrelude.None
       }
-      scrut1 = lastpiece.check(bd, sq);
-      if (scrut1 instanceof NofibPrelude.Some.class) {
+      scrut = lastpiece.check(bd, sq);
+      if (scrut instanceof NofibPrelude.Some.class) {
         return NofibPrelude.None
-      } else if (scrut1 instanceof NofibPrelude.None.class) {
+      } else if (scrut instanceof NofibPrelude.None.class) {
         tmp3 = lastpiece.extend(bd, sq, id);
         return NofibPrelude.Some(tmp3)
       }
@@ -2330,7 +2328,7 @@ let lastpiece1;
     }
   } 
   static aboveNest(p, g, k, q) {
-    let p1, k1, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Nest$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+    let k1, arg$TextBeside$0$, arg$TextBeside$1$, arg$NilAbove$0$, arg$Nest$0$, arg$Nest$1$, arg$Union$0$, arg$Union$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
     if (p instanceof lastpiece.NoDoc.class) {
       return lastpiece.NoDoc
     } else if (p instanceof lastpiece.Union.class) {
@@ -2354,10 +2352,9 @@ let lastpiece1;
     } else if (p instanceof lastpiece.TextBeside.class) {
       arg$TextBeside$0$ = p.a;
       arg$TextBeside$1$ = p.d;
-      p1 = arg$TextBeside$1$;
       tmp5 = lastpiece.annotSize(arg$TextBeside$0$);
       k1 = k - tmp5;
-      if (p1 instanceof lastpiece.Empty.class) {
+      if (arg$TextBeside$1$ instanceof lastpiece.Empty.class) {
         tmp6 = lastpiece.nilAboveNest(g, k1, q);
         return lastpiece.TextBeside(arg$TextBeside$0$, tmp6)
       }

@@ -121,7 +121,7 @@ let para1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lines(s) {
-    let scrut, s_, element1$, element0$, lambda, arg$Cons$1$, tmp;
+    let scrut, element1$, element0$, lambda, arg$Cons$1$, tmp;
     lambda = (undefined, function (x) {
       return x === "\n"
     });
@@ -129,11 +129,10 @@ let para1;
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      s_ = element1$;
-      if (s_ instanceof NofibPrelude.Nil.class) {
+      if (element1$ instanceof NofibPrelude.Nil.class) {
         tmp = NofibPrelude.Nil;
         return NofibPrelude.Cons(element0$, tmp)
-      } else if (s_ instanceof NofibPrelude.Cons.class) {
+      } else if (element1$ instanceof NofibPrelude.Cons.class) {
         arg$Cons$1$ = element1$.tail;
         tmp = para.lines(arg$Cons$1$);
         return NofibPrelude.Cons(element0$, tmp)
@@ -593,10 +592,9 @@ let para1;
       return NofibPrelude.Cons(NofibPrelude.Nil, NofibPrelude.Nil)
     }
     breakk = function breakk(a1, b, xs) {
-      let scrut, tmp, tmp1, tmp2, inlinedVal;
+      let tmp, tmp1, tmp2, inlinedVal;
       inlinedVal = a1 === b;
-      scrut = inlinedVal;
-      if (scrut === true) {
+      if (inlinedVal === true) {
         return NofibPrelude.Cons(NofibPrelude.Nil, xs)
       }
       tmp = NofibPrelude.head(xs);
@@ -745,7 +743,7 @@ let para1;
         return ps_p;
       };
       bf = function bf(p, q) {
-        let wqh, rqh, scrut1, scrut2, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20;
+        let wqh, rqh, scrut1, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20;
         wqh = width_hd(q);
         tmp8 = para.maxw - wqh;
         rqh = tmp8 + 1;
@@ -756,14 +754,13 @@ let para1;
         } else {
           tmp10 = false;
         }
-        scrut1 = tmp10;
-        if (scrut1 === true) {
+        if (tmp10 === true) {
           tmp12 = width_hd(p);
           tmp13 = para.optw - tmp12;
           return NofibPrelude.min(tmp13, rqh)
         }
-        scrut2 = single(q);
-        if (scrut2 === true) {
+        scrut1 = single(q);
+        if (scrut1 === true) {
           return rqh
         }
         tmp14 = cost(p);
@@ -776,15 +773,14 @@ let para1;
         return NofibPrelude.min(tmp20, rqh);
       };
       myAdd = function myAdd(p, qr_rs) {
-        let scrut1, q, r_rs, r, scrut2, tmp8, tmp9, tmp10, tmp11;
+        let q, r_rs, r, scrut1, tmp8, tmp9, tmp10, tmp11;
         tmp8 = para.single_(qr_rs);
         if (tmp8 === false) {
           tmp9 = para.null__(qr_rs);
         } else {
           tmp9 = true;
         }
-        scrut1 = tmp9;
-        if (scrut1 === true) {
+        if (tmp9 === true) {
           return para.cons_(p, qr_rs)
         }
         q = para.head_(qr_rs);
@@ -792,8 +788,8 @@ let para1;
         r = para.head_(r_rs);
         tmp10 = bf(p, q);
         tmp11 = bf(q, r);
-        scrut2 = tmp10 <= tmp11;
-        if (scrut2 === true) {
+        scrut1 = tmp10 <= tmp11;
+        if (scrut1 === true) {
           return myAdd(p, r_rs)
         }
         return para.cons_(p, qr_rs);

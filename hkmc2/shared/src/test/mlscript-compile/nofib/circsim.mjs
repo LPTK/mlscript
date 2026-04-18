@@ -476,15 +476,13 @@ let circsim1;
     });
     xs_ = NofibPrelude.map(lambda, xs);
     lambda1 = (undefined, function (a, b) {
-      let f1, g1, lxly, rxry, inlinedVal, element1$2, element0$2, element1$3, element0$3, tmp5, tmp6;
+      let f1, g1, inlinedVal, element1$2, element0$2, element1$3, element0$3, tmp5, tmp6;
       f1 = f;
       g1 = g;
-      lxly = a;
-      rxry = b;
-      if (runtime.Tuple.isArrayLike(lxly) && lxly.length === 2) {
+      if (runtime.Tuple.isArrayLike(a) && a.length === 2) {
         element0$2 = runtime.Tuple.get(a, 0);
         element1$2 = runtime.Tuple.get(a, 1);
-        if (runtime.Tuple.isArrayLike(rxry) && rxry.length === 2) {
+        if (runtime.Tuple.isArrayLike(b) && b.length === 2) {
           element0$3 = runtime.Tuple.get(b, 0);
           element1$3 = runtime.Tuple.get(b, 1);
           tmp5 = runtime.safeCall(f1(element0$2, element0$3));
@@ -500,19 +498,16 @@ let circsim1;
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
     lambda2 = (undefined, function (a, b, c) {
-      let f1, g1, lxly, rxry, ab, inlinedVal, element0$2, element1$2, element1$3, element0$3, tmp5, tmp6, tmp7, tmp8;
+      let f1, g1, inlinedVal, element0$2, element1$2, element1$3, element0$3, tmp5, tmp6, tmp7, tmp8;
       f1 = f;
       g1 = g;
-      lxly = a;
-      rxry = b;
-      ab = c;
-      if (runtime.Tuple.isArrayLike(lxly) && lxly.length === 2) {
+      if (runtime.Tuple.isArrayLike(a) && a.length === 2) {
         element0$2 = runtime.Tuple.get(a, 0);
         runtime.Tuple.get(a, 1);
-        if (runtime.Tuple.isArrayLike(rxry) && rxry.length === 2) {
+        if (runtime.Tuple.isArrayLike(b) && b.length === 2) {
           runtime.Tuple.get(b, 0);
           element1$2 = runtime.Tuple.get(b, 1);
-          if (runtime.Tuple.isArrayLike(ab) && ab.length === 2) {
+          if (runtime.Tuple.isArrayLike(c) && c.length === 2) {
             element0$3 = runtime.Tuple.get(c, 0);
             element1$3 = runtime.Tuple.get(c, 1);
             tmp5 = runtime.safeCall(g1(element1$2, element1$3));
@@ -605,29 +600,27 @@ let circsim1;
     return circsim.T;
   } 
   static and2(x, y) {
-    let scrut, tmp, tmp1;
+    let tmp, tmp1;
     tmp = x === circsim.T;
     if (tmp === true) {
       tmp1 = y === circsim.T;
     } else {
       tmp1 = false;
     }
-    scrut = tmp1;
-    if (scrut === true) {
+    if (tmp1 === true) {
       return circsim.T
     }
     return circsim.F;
   } 
   static or2(x, y) {
-    let scrut, tmp, tmp1;
+    let tmp, tmp1;
     tmp = x === circsim.T;
     if (tmp === false) {
       tmp1 = y === circsim.T;
     } else {
       tmp1 = true;
     }
-    scrut = tmp1;
-    if (scrut === true) {
+    if (tmp1 === true) {
       return circsim.T
     }
     return circsim.F;
@@ -641,7 +634,7 @@ let circsim1;
     return circsim.F;
   } 
   static send_right(a, b) {
-    let qra, scrut, element7$, element6$, element5$, element4$, element3$, element2$, element1$, element0$, element7$1, element6$1, element5$1, element4$1, element3$1, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
+    let scrut, element7$, element6$, element5$, element4$, element3$, element2$, element1$, element0$, element7$1, element6$1, element5$1, element4$1, element3$1, element2$1, element1$1, element0$1, tmp, tmp1, tmp2;
     if (runtime.Tuple.isArrayLike(a) && a.length === 8) {
       element0$ = runtime.Tuple.get(a, 0);
       element1$ = runtime.Tuple.get(a, 1);
@@ -651,7 +644,6 @@ let circsim1;
       element5$ = runtime.Tuple.get(a, 5);
       element6$ = runtime.Tuple.get(a, 6);
       element7$ = runtime.Tuple.get(a, 7);
-      qra = element5$;
       if (runtime.Tuple.isArrayLike(b) && b.length === 8) {
         element0$1 = runtime.Tuple.get(b, 0);
         element1$1 = runtime.Tuple.get(b, 1);
@@ -661,7 +653,7 @@ let circsim1;
         element5$1 = runtime.Tuple.get(b, 5);
         element6$1 = runtime.Tuple.get(b, 6);
         element7$1 = runtime.Tuple.get(b, 7);
-        if (qra === true) {
+        if (element5$ === true) {
           scrut = element6$ > element7$1;
           if (scrut === true) {
             tmp = element6$ - element7$1;
@@ -695,7 +687,7 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static send_left(a, b) {
-    let qlb, scrut, element7$, element6$, element5$, element4$, element3$, element2$, element1$, element0$, element7$1, element6$1, element5$1, element4$1, element3$1, element2$1, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
+    let element7$, element6$, element5$, element4$, element3$, element2$, element1$, element0$, element7$1, element6$1, element5$1, element4$1, element3$1, element2$1, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
     if (runtime.Tuple.isArrayLike(a) && a.length === 8) {
       element0$ = runtime.Tuple.get(a, 0);
       element1$ = runtime.Tuple.get(a, 1);
@@ -714,14 +706,12 @@ let circsim1;
         element5$1 = runtime.Tuple.get(b, 5);
         element6$1 = runtime.Tuple.get(b, 6);
         element7$1 = runtime.Tuple.get(b, 7);
-        qlb = element3$1;
-        if (qlb === true) {
+        if (element3$1 === true) {
           tmp = element4$1 > element7$;
         } else {
           tmp = false;
         }
-        scrut = tmp;
-        if (scrut === true) {
+        if (tmp === true) {
           tmp1 = element4$1 - element7$;
           tmp2 = element7$ + element7$1;
           return globalThis.Object.freeze([
@@ -757,14 +747,13 @@ let circsim1;
   static update_outports(state, value) {
     let lscomp, tmp, tmp1;
     lscomp = function lscomp(ls) {
-      let h, arg$Cons$0$, arg$Cons$1$, element5$, element4$, element3$, element2$, element0$, tmp2, tmp3;
+      let arg$Cons$0$, arg$Cons$1$, element5$, element4$, element3$, element2$, element0$, tmp2, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        h = arg$Cons$0$;
-        if (runtime.Tuple.isArrayLike(h) && h.length === 6) {
+        if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 6) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           runtime.Tuple.get(arg$Cons$0$, 1);
           element2$ = runtime.Tuple.get(arg$Cons$0$, 2);
@@ -811,11 +800,10 @@ let circsim1;
       element3$ = runtime.Tuple.get(tp4, 3);
       states = element3$;
       lambda = (undefined, function (p) {
-        let states1, label_p, lscomp, p1, element1$, tmp, tmp1;
+        let states1, lscomp, p1, element1$, tmp, tmp1;
         states1 = states;
-        label_p = p;
-        if (runtime.Tuple.isArrayLike(label_p) && label_p.length === 2) {
-          let tp3, element2$1;
+        if (runtime.Tuple.isArrayLike(p) && p.length === 2) {
+          let element2$1;
           runtime.Tuple.get(p, 0);
           element1$ = runtime.Tuple.get(p, 1);
           p1 = element1$;
@@ -840,8 +828,7 @@ let circsim1;
           };
           tmp = lscomp(states1);
           tmp1 = NofibPrelude.head(tmp);
-          tp3 = tmp1;
-          if (runtime.Tuple.isArrayLike(tp3) && tp3.length === 3) {
+          if (runtime.Tuple.isArrayLike(tmp1) && tmp1.length === 3) {
             runtime.Tuple.get(tmp1, 0);
             runtime.Tuple.get(tmp1, 1);
             element2$1 = runtime.Tuple.get(tmp1, 2);
@@ -863,14 +850,13 @@ let circsim1;
       if (arg$PS$1$ instanceof circsim.Inp.class) {
         pid_ = arg$PS$0$;
         lscomp = function lscomp(ls) {
-          let h, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, element1$1, tmp1, tmp2;
+          let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, element1$1, tmp1, tmp2;
           if (ls instanceof NofibPrelude.Nil.class) {
             return NofibPrelude.Nil
           } else if (ls instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$ = ls.head;
             arg$Cons$1$ = ls.tail;
-            h = arg$Cons$0$;
-            if (runtime.Tuple.isArrayLike(h) && h.length === 2) {
+            if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
               element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
               element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
               if (runtime.Tuple.isArrayLike(element0$) && element0$.length === 2) {
@@ -1037,14 +1023,13 @@ let circsim1;
   static update_requests(b, state) {
     let lscomp, tmp, tmp1;
     lscomp = function lscomp(ls) {
-      let h, arg$Cons$0$, arg$Cons$1$, element5$, element3$, element1$, element0$, tmp2, tmp3;
+      let arg$Cons$0$, arg$Cons$1$, element5$, element3$, element1$, element0$, tmp2, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        h = arg$Cons$0$;
-        if (runtime.Tuple.isArrayLike(h) && h.length === 6) {
+        if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 6) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
           runtime.Tuple.get(arg$Cons$0$, 2);
@@ -1082,7 +1067,7 @@ let circsim1;
   static acknowledge(d, states) {
     let check_lr_requests, states1, lambda, lambda1, tmp, tmp1;
     check_lr_requests = function check_lr_requests(pql) {
-      let ql, element4$, element2$;
+      let element4$, element2$;
       if (runtime.Tuple.isArrayLike(pql) && pql.length === 6) {
         runtime.Tuple.get(pql, 0);
         runtime.Tuple.get(pql, 1);
@@ -1090,8 +1075,7 @@ let circsim1;
         runtime.Tuple.get(pql, 3);
         element4$ = runtime.Tuple.get(pql, 4);
         runtime.Tuple.get(pql, 5);
-        ql = element2$;
-        if (ql === false) {
+        if (element2$ === false) {
           return element4$
         }
         return true;
@@ -1132,14 +1116,13 @@ let circsim1;
   static make_packet(state) {
     let lscomp, tmp;
     lscomp = function lscomp(ls) {
-      let h, arg$Cons$0$, arg$Cons$1$, element5$, element4$, element3$, element2$, element1$, element0$, tmp1, tmp2, tmp3;
+      let arg$Cons$0$, arg$Cons$1$, element5$, element4$, element3$, element2$, element1$, element0$, tmp1, tmp2, tmp3;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        h = arg$Cons$0$;
-        if (runtime.Tuple.isArrayLike(h) && h.length === 6) {
+        if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 6) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
           element2$ = runtime.Tuple.get(arg$Cons$0$, 2);
@@ -1241,7 +1224,7 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static check_left(a, b) {
-    let pqr, scrut, element6$, element5$, element5$1, element4$, element3$, element2$, element1$, element0$, tmp;
+    let element6$, element5$, element5$1, element4$, element3$, element2$, element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(a) && a.length === 8) {
       runtime.Tuple.get(a, 0);
       runtime.Tuple.get(a, 1);
@@ -1251,7 +1234,6 @@ let circsim1;
       element5$ = runtime.Tuple.get(a, 5);
       element6$ = runtime.Tuple.get(a, 6);
       runtime.Tuple.get(a, 7);
-      pqr = element5$;
       if (runtime.Tuple.isArrayLike(b) && b.length === 6) {
         element0$ = runtime.Tuple.get(b, 0);
         element1$ = runtime.Tuple.get(b, 1);
@@ -1259,13 +1241,12 @@ let circsim1;
         element3$ = runtime.Tuple.get(b, 3);
         element4$ = runtime.Tuple.get(b, 4);
         element5$1 = runtime.Tuple.get(b, 5);
-        if (pqr === true) {
+        if (element5$ === true) {
           tmp = element6$ > 0;
         } else {
           tmp = false;
         }
-        scrut = tmp;
-        if (scrut === true) {
+        if (tmp === true) {
           return globalThis.Object.freeze([
             element0$,
             element1$,
@@ -1289,7 +1270,7 @@ let circsim1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static check_right(a, b) {
-    let pql, scrut, element4$, element3$, element5$, element4$1, element3$1, element2$, element1$, element0$, tmp;
+    let element4$, element3$, element5$, element4$1, element3$1, element2$, element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(a) && a.length === 8) {
       runtime.Tuple.get(a, 0);
       runtime.Tuple.get(a, 1);
@@ -1299,7 +1280,6 @@ let circsim1;
       runtime.Tuple.get(a, 5);
       runtime.Tuple.get(a, 6);
       runtime.Tuple.get(a, 7);
-      pql = element3$;
       if (runtime.Tuple.isArrayLike(b) && b.length === 6) {
         element0$ = runtime.Tuple.get(b, 0);
         element1$ = runtime.Tuple.get(b, 1);
@@ -1307,13 +1287,12 @@ let circsim1;
         element3$1 = runtime.Tuple.get(b, 3);
         element4$1 = runtime.Tuple.get(b, 4);
         element5$ = runtime.Tuple.get(b, 5);
-        if (pql === true) {
+        if (element3$ === true) {
           tmp = element4$ > 0;
         } else {
           tmp = false;
         }
-        scrut = tmp;
-        if (scrut === true) {
+        if (tmp === true) {
           return globalThis.Object.freeze([
             element0$,
             element1$,
@@ -1396,14 +1375,13 @@ let circsim1;
   static simulate_component(d, state) {
     let lscomp, out_signals, new_value, scrut, scrut1, tmp, tmp1, arg$Some$0$, tmp2, tmp3;
     lscomp = function lscomp(ls) {
-      let h, arg$Cons$0$, arg$Cons$1$, element2$, tmp4;
+      let arg$Cons$0$, arg$Cons$1$, element2$, tmp4;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        h = arg$Cons$0$;
-        if (runtime.Tuple.isArrayLike(h) && h.length === 3) {
+        if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 3) {
           runtime.Tuple.get(arg$Cons$0$, 0);
           runtime.Tuple.get(arg$Cons$0$, 1);
           element2$ = runtime.Tuple.get(arg$Cons$0$, 2);

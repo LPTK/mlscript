@@ -479,7 +479,7 @@ let Block2;
     return false
   } 
   static isPrimitiveTypeOf(sym, l) {
-    let scrut, l1, i, n, b, element1$, element0$;
+    let scrut, element1$, element0$;
     scrut = globalThis.Object.freeze([
       sym.name,
       l
@@ -489,26 +489,22 @@ let Block2;
       element1$ = runtime.Tuple.get(scrut, 1);
       switch (element0$) {
         case "Str":
-          l1 = element1$;
-          if (typeof l1 === 'string') {
+          if (typeof element1$ === 'string') {
             return true
           }
           return false;
         case "Int":
-          i = element1$;
-          if (globalThis.Number.isInteger(i)) {
+          if (globalThis.Number.isInteger(element1$)) {
             return true
           }
           return false;
         case "Num":
-          n = element1$;
-          if (typeof n === 'number') {
+          if (typeof element1$ === 'number') {
             return true
           }
           return false;
         case "Bool":
-          b = element1$;
-          if (typeof b === 'boolean') {
+          if (typeof element1$ === 'boolean') {
             return true
           }
           return false;
@@ -648,18 +644,16 @@ let Block2;
     return runtime.safeCall(tmp.join(", "))
   } 
   static showResult(r) {
-    let fun_, args, scrut, arg$Tuple$0$, arg$Instantiate$0$, arg$Instantiate$1$, arg$Call$0$, arg$Call$1$, element1$, element0$, arg$ValueRef$0$, arg$Symbol$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
+    let scrut, arg$Tuple$0$, arg$Instantiate$0$, arg$Instantiate$1$, arg$Call$0$, arg$Call$1$, element1$, element0$, arg$ValueRef$0$, arg$Symbol$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
     if (r instanceof Block.Path) {
       return Block.showPath(r)
     } else if (r instanceof Block.Call.class) {
       arg$Call$0$ = r._fun;
       arg$Call$1$ = r.args;
-      args = arg$Call$1$;
-      fun_ = arg$Call$0$;
-      if (runtime.Tuple.isArrayLike(args) && args.length === 2) {
+      if (runtime.Tuple.isArrayLike(arg$Call$1$) && arg$Call$1$.length === 2) {
         element0$ = runtime.Tuple.get(arg$Call$1$, 0);
         element1$ = runtime.Tuple.get(arg$Call$1$, 1);
-        if (fun_ instanceof Block.ValueRef.class) {
+        if (arg$Call$0$ instanceof Block.ValueRef.class) {
           arg$ValueRef$0$ = arg$Call$0$.l;
           if (arg$ValueRef$0$ instanceof Block.Symbol.class) {
             arg$Symbol$0$ = arg$ValueRef$0$.name;
@@ -764,20 +758,19 @@ let Block2;
     return runtime.safeCall(tmp.join(""))
   } 
   static showDefn(d) {
-    let body, methods, arg$ValDefn$1$, arg$ValDefn$2$, arg$ClsLikeDefn$0$, arg$ClsLikeDefn$1$, arg$FunDefn$0$, arg$FunDefn$1$, arg$FunDefn$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23;
+    let arg$ValDefn$1$, arg$ValDefn$2$, arg$ClsLikeDefn$0$, arg$ClsLikeDefn$1$, arg$FunDefn$0$, arg$FunDefn$1$, arg$FunDefn$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23;
     if (d instanceof Block.FunDefn.class) {
       arg$FunDefn$0$ = d.sym;
       arg$FunDefn$1$ = d.params;
       arg$FunDefn$2$ = d.body;
-      body = arg$FunDefn$2$;
       tmp = Block.showSymbol(arg$FunDefn$0$);
       tmp1 = "fun " + tmp;
       tmp2 = Block.showParamList(arg$FunDefn$1$);
       tmp3 = tmp1 + tmp2;
       tmp4 = tmp3 + " =";
-      if (body instanceof Block.Return.class) {
+      if (arg$FunDefn$2$ instanceof Block.Return.class) {
         tmp5 = " ";
-      } else if (body instanceof Block.End.class) {
+      } else if (arg$FunDefn$2$ instanceof Block.End.class) {
         tmp5 = " ";
       } else {
         tmp5 = "\n  ";
@@ -789,12 +782,11 @@ let Block2;
     } else if (d instanceof Block.ClsLikeDefn.class) {
       arg$ClsLikeDefn$0$ = d.sym;
       arg$ClsLikeDefn$1$ = d.methods;
-      methods = arg$ClsLikeDefn$1$;
       tmp9 = Block.showSymbol(arg$ClsLikeDefn$0$);
       tmp10 = "class " + tmp9;
       tmp11 = Block.showParamsOpt(arg$ClsLikeDefn$0$.paramsOpt);
       tmp12 = tmp10 + tmp11;
-      if (runtime.Tuple.isArrayLike(methods) && methods.length === 0) {
+      if (runtime.Tuple.isArrayLike(arg$ClsLikeDefn$1$) && arg$ClsLikeDefn$1$.length === 0) {
         tmp13 = "";
       } else {
         tmp13 = " with\n";
@@ -818,13 +810,12 @@ let Block2;
     return tmp23 + " >";
   } 
   static showBlock(b) {
-    let lhs, dflt, db, arg$Scoped$0$, arg$Scoped$1$, arg$Match$0$, arg$Match$1$, arg$Match$2$, arg$Match$3$, arg$Return$0$, arg$Define$0$, arg$Define$1$, arg$Assign$0$, arg$Assign$1$, arg$Assign$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, arg$Some$0$, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27;
+    let arg$Scoped$0$, arg$Scoped$1$, arg$Match$0$, arg$Match$1$, arg$Match$2$, arg$Match$3$, arg$Return$0$, arg$Define$0$, arg$Define$1$, arg$Assign$0$, arg$Assign$1$, arg$Assign$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, arg$Some$0$, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27;
     if (b instanceof Block.Assign.class) {
       arg$Assign$0$ = b.lhs;
       arg$Assign$1$ = b.rhs;
       arg$Assign$2$ = b.rest;
-      lhs = arg$Assign$0$;
-      if (lhs instanceof Block.NoSymbol.class) {
+      if (arg$Assign$0$ instanceof Block.NoSymbol.class) {
         tmp = "";
       } else {
         tmp1 = Block.showSymbol(arg$Assign$0$);
@@ -848,7 +839,6 @@ let Block2;
       arg$Match$1$ = b.arms;
       arg$Match$2$ = b.dflt;
       arg$Match$3$ = b.rest;
-      dflt = arg$Match$2$;
       tmp7 = Block.showPath(arg$Match$0$);
       tmp8 = "if " + tmp7;
       tmp9 = tmp8 + " is";
@@ -857,10 +847,9 @@ let Block2;
       tmp12 = "\n" + tmp11;
       tmp13 = Block.indent(tmp12);
       tmp14 = tmp9 + tmp13;
-      if (dflt instanceof Option.Some.class) {
+      if (arg$Match$2$ instanceof Option.Some.class) {
         arg$Some$0$ = arg$Match$2$.value;
-        db = arg$Some$0$;
-        if (db instanceof Block.Return.class) {
+        if (arg$Some$0$ instanceof Block.Return.class) {
           tmp15 = " ";
         } else {
           tmp15 = "\n";

@@ -390,7 +390,7 @@ let cichelli1;
     return cichelli.blocked_(NofibPrelude.Nil, ls)
   } 
   static hinsert(h, hh) {
-    let lo_, hi_, scrut, arg$H$0$, arg$H$1$, arg$H$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let lo_, hi_, arg$H$0$, arg$H$1$, arg$H$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     if (hh instanceof cichelli.H.class) {
       arg$H$0$ = hh.f;
       arg$H$1$ = hh.s;
@@ -405,8 +405,7 @@ let cichelli1;
       } else {
         tmp1 = true;
       }
-      scrut = tmp1;
-      if (scrut === true) {
+      if (tmp1 === true) {
         return NofibPrelude.None
       }
       tmp4 = NofibPrelude.Some(lo_);
@@ -419,20 +418,19 @@ let cichelli1;
   } 
   static first(k, ls) {
     loopLabel: while (true) {
-      let scrut, a, arg$LzCons$0$, arg$LzCons$1$, arg$NotEver$0$, arg$YesIts$0$, arg$YesIts$1$, tmp, tmp1;
+      let scrut, arg$LzCons$0$, arg$LzCons$1$, arg$NotEver$0$, arg$YesIts$0$, arg$YesIts$1$, tmp, tmp1;
       scrut = NofibPrelude.force(ls);
       if (scrut instanceof NofibPrelude.LzNil.class) {
         return cichelli.NotEver(k)
       } else if (scrut instanceof NofibPrelude.LzCons.class) {
         arg$LzCons$0$ = scrut.head;
         arg$LzCons$1$ = scrut.tail;
-        a = arg$LzCons$0$;
-        if (a instanceof cichelli.YesIts.class) {
+        if (arg$LzCons$0$ instanceof cichelli.YesIts.class) {
           arg$YesIts$0$ = arg$LzCons$0$.i;
           arg$YesIts$1$ = arg$LzCons$0$.t;
           tmp = k + arg$YesIts$0$;
           return cichelli.YesIts(tmp, arg$YesIts$1$)
-        } else if (a instanceof cichelli.NotEver.class) {
+        } else if (arg$LzCons$0$ instanceof cichelli.NotEver.class) {
           arg$NotEver$0$ = arg$LzCons$0$.i;
           tmp1 = k + arg$NotEver$0$;
           k = tmp1;

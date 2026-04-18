@@ -429,15 +429,14 @@ let pretty1;
     return NofibPrelude.foldr1(lambda, ps);
   } 
   static ppBesideSP(p1, p2, width, is_vert) {
-    let scrut, emp1, scrut1, scrut2, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, tmp, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$2$1, arg$MkPrettyRep$3$1, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+    let scrut, scrut1, scrut2, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, tmp, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$2$1, arg$MkPrettyRep$3$1, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
     scrut = runtime.safeCall(p1(width, false));
     if (scrut instanceof pretty.MkPrettyRep.class) {
       arg$MkPrettyRep$0$ = scrut.cseq;
       arg$MkPrettyRep$1$ = scrut.n;
       arg$MkPrettyRep$2$ = scrut.b1;
       arg$MkPrettyRep$3$ = scrut.b2;
-      emp1 = arg$MkPrettyRep$2$;
-      if (emp1 === true) {
+      if (arg$MkPrettyRep$2$ === true) {
         tmp = 0;
       } else {
         tmp = arg$MkPrettyRep$1$ + 1;
@@ -449,7 +448,7 @@ let pretty1;
         arg$MkPrettyRep$1$1 = scrut1.n;
         arg$MkPrettyRep$2$1 = scrut1.b1;
         arg$MkPrettyRep$3$1 = scrut1.b2;
-        if (emp1 === true) {
+        if (arg$MkPrettyRep$2$ === true) {
           tmp2 = 0;
         } else {
           tmp2 = 1;
@@ -548,14 +547,13 @@ let pretty1;
     return runtime.safeCall(p(width, false));
   } 
   static ppHang(p1, n, p2, width, is_vert) {
-    let scrut, emp1, scrut1, scrut2, scrut3, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$3$1, arg$MkPrettyRep$0$2, arg$MkPrettyRep$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
+    let scrut, scrut1, scrut2, scrut3, arg$MkPrettyRep$0$, arg$MkPrettyRep$1$, arg$MkPrettyRep$2$, arg$MkPrettyRep$3$, arg$MkPrettyRep$0$1, arg$MkPrettyRep$1$1, arg$MkPrettyRep$3$1, arg$MkPrettyRep$0$2, arg$MkPrettyRep$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
     scrut = runtime.safeCall(p1(width, false));
     if (scrut instanceof pretty.MkPrettyRep.class) {
       arg$MkPrettyRep$0$ = scrut.cseq;
       arg$MkPrettyRep$1$ = scrut.n;
       arg$MkPrettyRep$2$ = scrut.b1;
       arg$MkPrettyRep$3$ = scrut.b2;
-      emp1 = arg$MkPrettyRep$2$;
       tmp = arg$MkPrettyRep$1$ + 1;
       tmp1 = width - tmp;
       scrut1 = runtime.safeCall(p2(tmp1, false));
@@ -568,7 +566,7 @@ let pretty1;
         if (scrut2 instanceof pretty.MkPrettyRep.class) {
           arg$MkPrettyRep$0$2 = scrut2.cseq;
           arg$MkPrettyRep$1$2 = scrut2.n;
-          if (emp1 === true) {
+          if (arg$MkPrettyRep$2$ === true) {
             return runtime.safeCall(p2(width, is_vert))
           }
           tmp3 = arg$MkPrettyRep$1$ <= n;

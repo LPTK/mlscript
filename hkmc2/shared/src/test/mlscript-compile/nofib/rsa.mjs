@@ -70,14 +70,13 @@ let rsa1;
   } 
   static and_(ls) {
     loopLabel: while (true) {
-      let h, arg$Cons$0$, arg$Cons$1$;
+      let arg$Cons$0$, arg$Cons$1$;
       if (ls instanceof NofibPrelude.Nil.class) {
         return true
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        h = arg$Cons$0$;
-        if (h === true) {
+        if (arg$Cons$0$ === true) {
           ls = arg$Cons$1$;
           continue loopLabel
         }

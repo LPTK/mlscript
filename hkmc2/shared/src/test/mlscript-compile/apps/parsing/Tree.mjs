@@ -365,7 +365,7 @@ let Tree1;
       return text;
     };
     prec = function prec(tree1, side) {
-      let callee, scrut, arg$Infix$0$, arg$App$0$, arg$Ident$0$, arg$Ident$1$, element1$, element0$, arg$Error$0$;
+      let scrut, arg$Infix$0$, arg$App$0$, arg$Ident$0$, arg$Ident$1$, element1$, element0$, arg$Error$0$;
       if (tree1 instanceof Tree.Empty.class) {
         return Keywords.INT_MAX
       } else if (tree1 instanceof Tree.Error.class) {
@@ -389,8 +389,7 @@ let Tree1;
         return 2
       } else if (tree1 instanceof Tree.App.class) {
         arg$App$0$ = tree1.callee;
-        callee = arg$App$0$;
-        if (callee instanceof Tree.Ident.class) {
+        if (arg$App$0$ instanceof Tree.Ident.class) {
           arg$Ident$0$ = arg$App$0$.name;
           arg$Ident$1$ = arg$App$0$.symbolic;
           if (arg$Ident$1$ === true) {
@@ -431,7 +430,7 @@ let Tree1;
       return go(something);
     };
     go = function go(tree1) {
-      let kind, scrut, scrutinee, scrut1, arg, op, callee, argument, scrut2, rhs, lhs, op1, items, kind1, body, body1, rhs1, scrut3, scrut4, trees, middleElements, arg$Some$0$, arg$Keyword$0$, arg$Lambda$0$, arg$Lambda$1$, arg$Ternary$0$, arg$Ternary$1$, arg$Ternary$2$, arg$Ternary$3$, arg$For$0$, arg$For$1$, arg$For$2$, arg$For$3$, arg$While$0$, arg$While$1$, arg$LetIn$0$, arg$LetIn$1$, arg$Define$0$, arg$Define$1$, arg$Cons$0$, arg$Cons$1$, element1$, element0$, arg$Infix$0$, arg$Infix$1$, arg$Infix$2$, arg$Keyword$0$1, arg$Ident$0$, arg$App$0$, arg$App$1$, arg$Ident$0$1, arg$Ident$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, arg$Match$0$, arg$Match$1$, arg$Literal$0$, arg$Literal$1$, arg$Sequence$0$, arg$Tuple$0$, arg$Modified$0$, arg$Modified$1$, arg$Ident$0$2, arg$Bracketed$0$, arg$Bracketed$1$, arg$Error$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, element1$1, element0$1, lambda, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, element0$2, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, arg$Some$0$1, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, lambda1, tmp55, tmp56, tmp57, arg$Some$0$2, tmp58, tmp59, arg$Some$0$3, tmp60, lambda2, tmp61, tmp62, tmp63, tmp64, tmp65, tmp66, tmp67, tmp68, tmp69, tmp70, arg$Let$0$, tmp71, tmp72, lambda3, tmp73, tmp74, lambda4, tmp75, tmp76, tmp77, tmp78, tmp79, tmp80, tmp81, tmp82, tmp83, tmp84, tmp85, tmp86, tmp87, tmp88, lambda5, tmp89, tmp90, tmp91;
+      let scrut, scrut1, arg, op, callee, argument, scrut2, rhs, lhs, op1, items, kind, scrut3, scrut4, trees, middleElements, arg$Some$0$, arg$Keyword$0$, arg$Lambda$0$, arg$Lambda$1$, arg$Ternary$0$, arg$Ternary$1$, arg$Ternary$2$, arg$Ternary$3$, arg$For$0$, arg$For$1$, arg$For$2$, arg$For$3$, arg$While$0$, arg$While$1$, arg$LetIn$0$, arg$LetIn$1$, arg$Define$0$, arg$Define$1$, arg$Cons$0$, arg$Cons$1$, element1$, element0$, arg$Infix$0$, arg$Infix$1$, arg$Infix$2$, arg$Keyword$0$1, arg$Ident$0$, arg$App$0$, arg$App$1$, arg$Ident$0$1, arg$Ident$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, arg$Match$0$, arg$Match$1$, arg$Literal$0$, arg$Literal$1$, arg$Sequence$0$, arg$Tuple$0$, arg$Modified$0$, arg$Modified$1$, arg$Ident$0$2, arg$Bracketed$0$, arg$Bracketed$1$, arg$Error$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, element1$1, element0$1, lambda, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, element0$2, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, arg$Some$0$1, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, lambda1, tmp55, tmp56, tmp57, arg$Some$0$2, tmp58, tmp59, arg$Some$0$3, tmp60, lambda2, tmp61, tmp62, tmp63, tmp64, tmp65, tmp66, tmp67, tmp68, tmp69, tmp70, arg$Let$0$, tmp71, tmp72, lambda3, tmp73, tmp74, lambda4, tmp75, tmp76, tmp77, tmp78, tmp79, tmp80, tmp81, tmp82, tmp83, tmp84, tmp85, tmp86, tmp87, tmp88, lambda5, tmp89, tmp90, tmp91;
       split_1$: {
         split_2$: {
           split_3$: {
@@ -448,20 +447,19 @@ let Tree1;
             } else if (tree1 instanceof Tree.Bracketed.class) {
               arg$Bracketed$0$ = tree1.kind;
               arg$Bracketed$1$ = tree1.tree;
-              kind = arg$Bracketed$0$;
-              if (kind instanceof Token.Round.class) {
+              if (arg$Bracketed$0$ instanceof Token.Round.class) {
                 tmp2 = go(arg$Bracketed$1$);
                 tmp3 = "(" + tmp2;
                 return tmp3 + ")"
-              } else if (kind instanceof Token.Square.class) {
+              } else if (arg$Bracketed$0$ instanceof Token.Square.class) {
                 tmp4 = go(arg$Bracketed$1$);
                 tmp5 = "[" + tmp4;
                 return tmp5 + "]"
-              } else if (kind instanceof Token.Curly.class) {
+              } else if (arg$Bracketed$0$ instanceof Token.Curly.class) {
                 tmp6 = go(arg$Bracketed$1$);
                 tmp7 = "{" + tmp6;
                 return tmp7 + "}"
-              } else if (kind instanceof Token.Angle.class) {
+              } else if (arg$Bracketed$0$ instanceof Token.Angle.class) {
                 tmp8 = go(arg$Bracketed$1$);
                 tmp9 = "<" + tmp8;
                 return tmp9 + ">"
@@ -514,8 +512,7 @@ let Tree1;
             } else if (tree1 instanceof Tree.Match.class) {
               arg$Match$0$ = tree1.scrutinee;
               arg$Match$1$ = tree1.branches;
-              scrutinee = arg$Match$0$;
-              if (scrutinee instanceof Tree.Empty.class) {
+              if (arg$Match$0$ instanceof Tree.Empty.class) {
                 tmp23 = "function ";
               } else {
                 tmp24 = go(arg$Match$0$);
@@ -642,21 +639,21 @@ let Tree1;
                       return StrOps.concat("#", tmp42, " ", tmp43)
                     }
                     items = arg$Define$1$;
-                    kind1 = arg$Define$0$;
+                    kind = arg$Define$0$;
                   } else {
                     items = arg$Define$1$;
-                    kind1 = arg$Define$0$;
+                    kind = arg$Define$0$;
                   }
                 } else {
                   items = arg$Define$1$;
-                  kind1 = arg$Define$0$;
+                  kind = arg$Define$0$;
                 }
               } else {
                 items = arg$Define$1$;
-                kind1 = arg$Define$0$;
+                kind = arg$Define$0$;
               }
-              if (kind1 instanceof Tree.DefineKind.Let.class) {
-                arg$Let$0$ = kind1.recursive;
+              if (kind instanceof Tree.DefineKind.Let.class) {
+                arg$Let$0$ = kind.recursive;
                 switch (arg$Let$0$) {
                   case true:
                     tmp71 = "let rec ";
@@ -667,9 +664,9 @@ let Tree1;
                   default:
                     throw globalThis.Object.freeze(new globalThis.Error("match error"));
                 }
-              } else if (kind1 instanceof Tree.DefineKind.Type.class) {
+              } else if (kind instanceof Tree.DefineKind.Type.class) {
                 tmp71 = "type ";
-              } else if (kind1 instanceof Tree.DefineKind.Exception.class) {
+              } else if (kind instanceof Tree.DefineKind.Exception.class) {
                 tmp71 = "exception ";
               } else {
                 throw globalThis.Object.freeze(new globalThis.Error("match error"))
@@ -695,11 +692,10 @@ let Tree1;
             } else if (tree1 instanceof Tree.LetIn.class) {
               arg$LetIn$0$ = tree1.bindings;
               arg$LetIn$1$ = tree1.body;
-              body = arg$LetIn$1$;
               tmp44 = Iter.fromStack(arg$LetIn$0$);
               tmp45 = Iter.mapping(tmp44, go);
               tmp46 = Iter.joined(tmp45, " and ");
-              if (body instanceof Option.Some.class) {
+              if (arg$LetIn$1$ instanceof Option.Some.class) {
                 arg$Some$0$1 = arg$LetIn$1$.value;
                 tmp47 = go(arg$Some$0$1);
                 tmp48 = globalThis.Object.freeze([
@@ -707,7 +703,7 @@ let Tree1;
                   tmp47
                 ]);
                 return Predef.mkStr("let ", tmp46, ...tmp48)
-              } else if (body instanceof Option.None.class) {
+              } else if (arg$LetIn$1$ instanceof Option.None.class) {
                 tmp48 = globalThis.Object.freeze([]);
                 return Predef.mkStr("let ", tmp46, ...tmp48)
               }
@@ -733,8 +729,6 @@ let Tree1;
               arg$Ternary$1$ = tree1.lhs;
               arg$Ternary$2$ = tree1.rhs;
               arg$Ternary$3$ = tree1.body;
-              body1 = arg$Ternary$3$;
-              rhs1 = arg$Ternary$2$;
               lambda1 = (undefined, function (arg1, arg2) {
                 return arg1 + arg2
               });
@@ -754,7 +748,7 @@ let Tree1;
                 default:
                   throw globalThis.Object.freeze(new globalThis.Error("match error"));
               }
-              if (rhs1 instanceof Option.Some.class) {
+              if (arg$Ternary$2$ instanceof Option.Some.class) {
                 arg$Some$0$2 = arg$Ternary$2$.value;
                 tmp58 = go(arg$Some$0$2);
               } else {
@@ -774,7 +768,7 @@ let Tree1;
                 default:
                   throw globalThis.Object.freeze(new globalThis.Error("match error"));
               }
-              if (body1 instanceof Option.Some.class) {
+              if (arg$Ternary$3$ instanceof Option.Some.class) {
                 arg$Some$0$3 = arg$Ternary$3$.value;
                 tmp60 = go(arg$Some$0$3);
                 return runtime.safeCall(tmp55(arg$Ternary$0$.name, " ", tmp56, tmp57, tmp58, tmp59, tmp60))

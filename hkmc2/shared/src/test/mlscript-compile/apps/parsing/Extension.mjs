@@ -197,7 +197,7 @@ let Extension1;
               arg$Cons$1$2 = arg$Cons$1$1.tail;
               if (arg$Cons$1$2 instanceof Stack.Nil.class) {
                 keyword = arg$Cons$0$;
-                if (keyword instanceof Tree.Literal.class) {
+                if (arg$Cons$0$ instanceof Tree.Literal.class) {
                   arg$Literal$0$ = arg$Cons$0$.kind;
                   arg$Literal$1$ = arg$Cons$0$.value;
                   if (arg$Literal$0$ instanceof Token.LiteralKind.String.class) {
@@ -243,14 +243,13 @@ let Extension1;
     return Predef.print(tmp4)
   } 
   static extendCategory(choiceBodyTree) {
-    let scrut, choice, scrut1, scrut2, arg$Some$0$, element1$, element0$, arg$Some$0$1, unapplyResult, unapplyResult1, arg$Ref$0$, arg$Ref$1$, arg$Ref$4$, arg$Some$0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
+    let scrut, scrut1, scrut2, arg$Some$0$, element1$, element0$, arg$Some$0$1, unapplyResult, unapplyResult1, arg$Ref$0$, arg$Ref$1$, arg$Ref$4$, arg$Some$0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
     scrut = Extension.parseChoiceTree(choiceBodyTree);
     if (scrut instanceof Option.Some.class) {
       arg$Some$0$ = scrut.value;
       if (runtime.Tuple.isArrayLike(arg$Some$0$) && arg$Some$0$.length === 2) {
         element0$ = runtime.Tuple.get(arg$Some$0$, 0);
         element1$ = runtime.Tuple.get(arg$Some$0$, 1);
-        choice = element1$;
         tmp = MutMap.get(element0$);
         scrut1 = Predef.pipeInto(Rules.syntaxKinds, tmp);
         if (scrut1 instanceof Option.Some.class) {
@@ -259,7 +258,7 @@ let Extension1;
           if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
             unapplyResult1.output;
             unapplyResult1.bindings;
-            if (choice instanceof ParseRule.Choice.Ref.class) {
+            if (element1$ instanceof ParseRule.Choice.Ref.class) {
               arg$Ref$0$ = element1$.kind;
               arg$Ref$1$ = element1$.process;
               arg$Ref$4$ = element1$.rest;
@@ -378,7 +377,7 @@ let Extension1;
                   funcIdent = arg$Cons$0$2;
                   choiceTree = arg$Cons$0$1;
                   categoryIdent = arg$Cons$0$;
-                  if (categoryIdent instanceof Tree.Literal.class) {
+                  if (arg$Cons$0$ instanceof Tree.Literal.class) {
                     arg$Literal$0$ = arg$Cons$0$.kind;
                     arg$Literal$1$ = arg$Cons$0$.value;
                     if (arg$Literal$0$ instanceof Token.LiteralKind.String.class) {
@@ -392,7 +391,7 @@ let Extension1;
                           });
                           return Iter.folded(tmp12, funcIdent, lambda)
                         };
-                        if (choiceTree instanceof Tree.Bracketed.class) {
+                        if (arg$Cons$0$1 instanceof Tree.Bracketed.class) {
                           arg$Bracketed$0$ = arg$Cons$0$1.kind;
                           arg$Bracketed$1$ = arg$Cons$0$1.tree;
                           if (arg$Bracketed$0$ instanceof Token.Square.class) {

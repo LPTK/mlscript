@@ -321,7 +321,7 @@ let boyer21;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let b, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2;
+          let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2;
           if (param1 instanceof NofibPrelude.Nil.class) {
             return param0
           } else if (param1 instanceof NofibPrelude.Cons.class) {
@@ -332,8 +332,7 @@ let boyer21;
             if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
               element0$ = runtime.Tuple.get(scrut, 0);
               element1$ = runtime.Tuple.get(scrut, 1);
-              b = element0$;
-              if (b === true) {
+              if (element0$ === true) {
                 tmp1 = boyer2.caddr(arg$Cons$0$);
                 tmp2 = boyer2.applysubst(element1$, tmp1);
                 param0 = tmp2;
@@ -413,7 +412,7 @@ let boyer21;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let scrut, b, element1$, element0$, tmp, tmp1, tmp2, tmp3;
+          let scrut, element1$, element0$, tmp, tmp1, tmp2, tmp3;
           if (param0 instanceof boyer2.Nill.class) {
             return globalThis.Object.freeze([
               true,
@@ -426,8 +425,7 @@ let boyer21;
           if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
             element0$ = runtime.Tuple.get(scrut, 0);
             element1$ = runtime.Tuple.get(scrut, 1);
-            b = element0$;
-            if (b === true) {
+            if (element0$ === true) {
               tmp2 = boyer2.cdr(param0);
               tmp3 = boyer2.cdr(param1);
               param0 = tmp2;
@@ -747,15 +745,14 @@ let boyer21;
   } 
   static tautologyp(f_truelst_falselst) {
     loopLabel: while (true) {
-      let f, x, scrut, scrut1, scrut2, scrut3, scrut4, scrut5, element2$, element1$, element0$, arg$Conss$0$, element1$1, element0$1, arg$Atom$0$, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Atom$0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25;
+      let scrut, scrut1, scrut2, scrut3, scrut4, scrut5, element2$, element1$, element0$, arg$Conss$0$, element1$1, element0$1, arg$Atom$0$, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Atom$0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25;
       if (runtime.Tuple.isArrayLike(f_truelst_falselst) && f_truelst_falselst.length === 3) {
         element0$ = runtime.Tuple.get(f_truelst_falselst, 0);
         element1$ = runtime.Tuple.get(f_truelst_falselst, 1);
         element2$ = runtime.Tuple.get(f_truelst_falselst, 2);
-        f = element0$;
-        if (f instanceof boyer2.Nill.class) {
+        if (element0$ instanceof boyer2.Nill.class) {
           return false
-        } else if (f instanceof boyer2.Atom.class) {
+        } else if (element0$ instanceof boyer2.Atom.class) {
           arg$Atom$0$1 = element0$.a;
           tmp = boyer2.Atom(arg$Atom$0$1);
           tmp1 = globalThis.Object.freeze([
@@ -763,12 +760,11 @@ let boyer21;
             element1$
           ]);
           return boyer2.truep(tmp1)
-        } else if (f instanceof boyer2.Conss.class) {
+        } else if (element0$ instanceof boyer2.Conss.class) {
           arg$Conss$0$ = element0$.a;
           if (runtime.Tuple.isArrayLike(arg$Conss$0$) && arg$Conss$0$.length === 2) {
             element0$1 = runtime.Tuple.get(arg$Conss$0$, 0);
             element1$1 = runtime.Tuple.get(arg$Conss$0$, 1);
-            x = element0$1;
             tmp2 = globalThis.Object.freeze([
               element0$1,
               element1$1
@@ -795,7 +791,7 @@ let boyer21;
             if (scrut1 === true) {
               return false
             }
-            if (x instanceof boyer2.Atom.class) {
+            if (element0$1 instanceof boyer2.Atom.class) {
               arg$Atom$0$ = element0$1.a;
               if (arg$Atom$0$ instanceof NofibPrelude.Cons.class) {
                 arg$Cons$0$ = arg$Atom$0$.head;
@@ -1018,7 +1014,7 @@ let boyer21;
     throw globalThis.Object.freeze(new globalThis.Error("match error"))
   } 
   static mkLispList(ls) {
-    let r, scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, element1$, element0$;
+    let scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, element1$, element0$;
     if (ls instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = ls.head;
       arg$Cons$1$ = ls.tail;
@@ -1031,8 +1027,7 @@ let boyer21;
             if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
               element0$ = runtime.Tuple.get(scrut, 0);
               element1$ = runtime.Tuple.get(scrut, 1);
-              r = element0$;
-              if (r instanceof NofibPrelude.Nil.class) {
+              if (element0$ instanceof NofibPrelude.Nil.class) {
                 return element1$
               }
               return boyer2.Nill;
@@ -1048,7 +1043,7 @@ let boyer21;
     return boyer2.Nill;
   } 
   static restOfToken(s) {
-    let scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4;
+    let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4;
     if (s instanceof NofibPrelude.Nil.class) {
       return globalThis.Object.freeze([
         NofibPrelude.Nil,
@@ -1068,18 +1063,17 @@ let boyer21;
       } else {
         tmp2 = true;
       }
-      scrut = tmp2;
-      if (scrut === true) {
+      if (tmp2 === true) {
         tmp3 = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
         return globalThis.Object.freeze([
           NofibPrelude.Nil,
           tmp3
         ])
       }
-      scrut1 = boyer2.restOfToken(arg$Cons$1$);
-      if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
-        element0$ = runtime.Tuple.get(scrut1, 0);
-        element1$ = runtime.Tuple.get(scrut1, 1);
+      scrut = boyer2.restOfToken(arg$Cons$1$);
+      if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
+        element0$ = runtime.Tuple.get(scrut, 0);
+        element1$ = runtime.Tuple.get(scrut, 1);
         tmp4 = NofibPrelude.Cons(arg$Cons$0$, element0$);
         return globalThis.Object.freeze([
           tmp4,
@@ -1092,7 +1086,7 @@ let boyer21;
   } 
   static getToken(s) {
     loopLabel: while (true) {
-      let scrut, scrut1, scrut2, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3;
+      let scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3;
       if (s instanceof NofibPrelude.Nil.class) {
         return globalThis.Object.freeze([
           NofibPrelude.Nil,
@@ -1112,18 +1106,17 @@ let boyer21;
         } else {
           tmp1 = true;
         }
-        scrut1 = tmp1;
-        if (scrut1 === true) {
+        if (tmp1 === true) {
           tmp2 = NofibPrelude.Cons(arg$Cons$0$, NofibPrelude.Nil);
           return globalThis.Object.freeze([
             tmp2,
             arg$Cons$1$
           ])
         }
-        scrut2 = boyer21.restOfToken(arg$Cons$1$);
-        if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
-          element0$ = runtime.Tuple.get(scrut2, 0);
-          element1$ = runtime.Tuple.get(scrut2, 1);
+        scrut1 = boyer21.restOfToken(arg$Cons$1$);
+        if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
+          element0$ = runtime.Tuple.get(scrut1, 0);
+          element1$ = runtime.Tuple.get(scrut1, 1);
           tmp3 = NofibPrelude.Cons(arg$Cons$0$, element0$);
           return globalThis.Object.freeze([
             tmp3,
@@ -1151,7 +1144,7 @@ let boyer21;
   } 
   static assoc(term_x_y) {
     loopLabel: while (true) {
-      let x, scrut, element1$, element0$, arg$Conss$0$, element1$1, element0$1, arg$Conss$0$1, element0$2, arg$Atom$0$, tmp, tmp1;
+      let scrut, element1$, element0$, arg$Conss$0$, element1$1, element0$1, arg$Conss$0$1, element0$2, arg$Atom$0$, tmp, tmp1;
       if (runtime.Tuple.isArrayLike(term_x_y) && term_x_y.length === 2) {
         element0$ = runtime.Tuple.get(term_x_y, 0);
         element1$ = runtime.Tuple.get(term_x_y, 1);
@@ -1160,8 +1153,7 @@ let boyer21;
           if (runtime.Tuple.isArrayLike(arg$Conss$0$) && arg$Conss$0$.length === 2) {
             element0$1 = runtime.Tuple.get(arg$Conss$0$, 0);
             element1$1 = runtime.Tuple.get(arg$Conss$0$, 1);
-            x = element0$1;
-            if (x instanceof boyer2.Conss.class) {
+            if (element0$1 instanceof boyer2.Conss.class) {
               arg$Conss$0$1 = element0$1.a;
               if (runtime.Tuple.isArrayLike(arg$Conss$0$1) && arg$Conss$0$1.length === 2) {
                 element0$2 = runtime.Tuple.get(arg$Conss$0$1, 0);

@@ -812,11 +812,15 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
     return Token.LineLookupTable(ns)
   } 
   static lex(str, options) {
-    let instance$Ident$_LineLookupTable$_, tmp, acc, id, param4, param5, param6, inlinedVal;
+    let instance$Ident$_LineLookupTable$_, tmp, acc, id, param0, param1, param2, param3, param4, param5, param6, inlinedVal;
     tmp = Lexer.makeLineLookupTable(str);
     instance$Ident$_LineLookupTable$_ = tmp;
     acc = Stack.Nil;
     id = 2;
+    param0 = instance$Ident$_LineLookupTable$_;
+    param1 = Lexer;
+    param2 = str;
+    param3 = options;
     param4 = 0;
     param5 = acc;
     param6 = undefined;
@@ -825,7 +829,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
         switch (id) {
           case 0:
             let scrut, tmp1;
-            scrut = options.noWhitespace;
+            scrut = param3.noWhitespace;
             if (scrut === true) {
               if (param6 instanceof Token.Comment.class) {
                 let param4_tmp;
@@ -856,8 +860,8 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
             id = 0;
             continue loopLabel;
           case 2:
-            let scrut1, ch, token, scrut2, scrut3, arg$Some$0$, unapplyResult, output, arg$Some$0$1, unapplyResult1, output1, element1$, element0$, arg$Identifier$0$, unapplyResult2, output2, unapplyResult3, output3, unapplyResult4, output4, unapplyResult5, output5, unapplyResult6, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28;
-            scrut1 = char1(str, param4);
+            let scrut1, ch, scrut2, scrut3, arg$Some$0$, unapplyResult, output, arg$Some$0$1, unapplyResult1, output1, element1$, element0$, arg$Identifier$0$, unapplyResult2, output2, unapplyResult3, output3, unapplyResult4, output4, unapplyResult5, output5, unapplyResult6, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28;
+            scrut1 = char1(param2, param4);
             if (scrut1 instanceof Option.None.class) {
               inlinedVal = Stack.reverse(param5);
               break inlinedLbl
@@ -866,13 +870,14 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
               ch = arg$Some$0$;
               unapplyResult6 = runtime.safeCall(Char.Whitespace.unapply(arg$Some$0$));
               if (unapplyResult6 instanceof runtime.MatchSuccess.class) {
-                let idx;
+                let str1, idx;
                 unapplyResult6.output;
                 unapplyResult6.bindings;
+                str1 = param2;
                 idx = param4;
                 lbl: while (true) {
                   let scrut4, arg$Some$0$2, unapplyResult7, tmp29;
-                  scrut4 = char1(str, idx);
+                  scrut4 = char1(str1, idx);
                   if (scrut4 instanceof Option.Some.class) {
                     arg$Some$0$2 = scrut4.value;
                     unapplyResult7 = runtime.safeCall(Char.Whitespace.unapply(arg$Some$0$2));
@@ -887,24 +892,26 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                   break;
                 }
                 tmp2 = Token.space(param4, idx);
-                tmp3 = runtime.safeCall(tmp2(instance$Ident$_LineLookupTable$_));
+                tmp3 = runtime.safeCall(tmp2(param0));
                 param4 = param5;
                 param5 = idx;
                 param6 = tmp3;
                 id = 0;
                 continue loopLabel
               }
-              if (ch === "\"") {
-                let idx, inlinedVal1, startIndex, content, terminated, tmp29, tmp30;
+              if (arg$Some$0$ === "\"") {
+                let instance$Ident$_LineLookupTable$_1, str1, idx, inlinedVal1, startIndex, content, terminated, tmp29, tmp30;
                 tmp4 = param4 + 1;
+                instance$Ident$_LineLookupTable$_1 = param0;
+                str1 = param2;
                 idx = tmp4;
                 startIndex = tmp4;
                 content = "";
                 terminated = false;
                 lbl: while (true) {
-                  let scrut4, scrut5, chOpt, arg$Some$0$2, tmp31, element1$1, element0$1, tmp32, arg$Some$0$3, tmp33, tmp34, tmp35;
+                  let scrut4, arg$Some$0$2, tmp31, element1$1, element0$1, tmp32, arg$Some$0$3, tmp33, tmp34, tmp35;
                   if (terminated === false) {
-                    scrut4 = char1(str, idx);
+                    scrut4 = char1(str1, idx);
                     if (scrut4 instanceof Option.Some.class) {
                       arg$Some$0$2 = scrut4.value;
                       switch (arg$Some$0$2) {
@@ -917,10 +924,10 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                           let inlinedVal2;
                           tmp32 = idx + 1;
                           inlinedLbl1: {
-                            let scrut6, scrut7, cnt, scrut8, scrut9, cnt1, scrut10, scrut11, cnt2, arg$Some$0$4, arg$Some$0$5, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, element2$, element1$2, element0$2, tmp52, tmp53, tmp54, tmp55, element2$1, element1$3, element0$3, tmp56, arg$Some$0$6, tmp57, tmp58, tmp59, tmp60, tmp61, element2$2, element1$4, element0$4, tmp62, tmp63, tmp64, tmp65;
-                            scrut6 = char1(str, tmp32);
-                            if (scrut6 instanceof Option.Some.class) {
-                              arg$Some$0$4 = scrut6.value;
+                            let scrut5, scrut6, scrut7, scrut8, scrut9, scrut10, arg$Some$0$4, arg$Some$0$5, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, element2$, element1$2, element0$2, tmp52, tmp53, tmp54, tmp55, element2$1, element1$3, element0$3, tmp56, arg$Some$0$6, tmp57, tmp58, tmp59, tmp60, tmp61, element2$2, element1$4, element0$4, tmp62, tmp63, tmp64, tmp65;
+                            scrut5 = char1(str1, tmp32);
+                            if (scrut5 instanceof Option.Some.class) {
+                              arg$Some$0$4 = scrut5.value;
                               switch (arg$Some$0$4) {
                                 case "n":
                                   tmp36 = tmp32 + 1;
@@ -988,13 +995,12 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                   break;
                                 case "x":
                                   tmp52 = tmp32 + 1;
-                                  scrut7 = scanHexDigits(str, tmp52, 2, 0, 0);
-                                  if (runtime.Tuple.isArrayLike(scrut7) && scrut7.length === 3) {
-                                    element0$2 = runtime.Tuple.get(scrut7, 0);
-                                    element1$2 = runtime.Tuple.get(scrut7, 1);
-                                    element2$ = runtime.Tuple.get(scrut7, 2);
-                                    cnt = element2$;
-                                    if (cnt === 0) {
+                                  scrut6 = scanHexDigits(str1, tmp52, 2, 0, 0);
+                                  if (runtime.Tuple.isArrayLike(scrut6) && scrut6.length === 3) {
+                                    element0$2 = runtime.Tuple.get(scrut6, 0);
+                                    element1$2 = runtime.Tuple.get(scrut6, 1);
+                                    element2$ = runtime.Tuple.get(scrut6, 2);
+                                    if (element2$ === 0) {
                                       tmp53 = Option.None;
                                       inlinedVal2 = Predef.tuple(element0$2, tmp53);
                                     } else {
@@ -1008,20 +1014,19 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                   break;
                                 case "u":
                                   tmp55 = tmp32 + 1;
-                                  scrut8 = char1(str, tmp55);
-                                  if (scrut8 instanceof Option.Some.class) {
-                                    arg$Some$0$5 = scrut8.value;
+                                  scrut7 = char1(str1, tmp55);
+                                  if (scrut7 instanceof Option.Some.class) {
+                                    arg$Some$0$5 = scrut7.value;
                                     if (arg$Some$0$5 === "{") {
                                       tmp56 = tmp32 + 2;
-                                      scrut9 = scanHexDigits(str, tmp56, 6, 0, 0);
-                                      if (runtime.Tuple.isArrayLike(scrut9) && scrut9.length === 3) {
-                                        element0$3 = runtime.Tuple.get(scrut9, 0);
-                                        element1$3 = runtime.Tuple.get(scrut9, 1);
-                                        element2$1 = runtime.Tuple.get(scrut9, 2);
-                                        cnt1 = element2$1;
-                                        scrut10 = char1(str, element0$3);
-                                        if (scrut10 instanceof Option.Some.class) {
-                                          arg$Some$0$6 = scrut10.value;
+                                      scrut8 = scanHexDigits(str1, tmp56, 6, 0, 0);
+                                      if (runtime.Tuple.isArrayLike(scrut8) && scrut8.length === 3) {
+                                        element0$3 = runtime.Tuple.get(scrut8, 0);
+                                        element1$3 = runtime.Tuple.get(scrut8, 1);
+                                        element2$1 = runtime.Tuple.get(scrut8, 2);
+                                        scrut9 = char1(str1, element0$3);
+                                        if (scrut9 instanceof Option.Some.class) {
+                                          arg$Some$0$6 = scrut9.value;
                                           if (arg$Some$0$6 === "}") {
                                             tmp57 = element0$3 + 1;
                                           } else {
@@ -1030,7 +1035,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                         } else {
                                           tmp57 = element0$3;
                                         }
-                                        if (cnt1 === 0) {
+                                        if (element2$1 === 0) {
                                           tmp58 = Option.None;
                                           inlinedVal2 = Predef.tuple(tmp57, tmp58);
                                           break inlinedLbl1
@@ -1044,13 +1049,12 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                     }
                                   }
                                   tmp62 = tmp32 + 1;
-                                  scrut11 = scanHexDigits(str, tmp62, 4, 0, 0);
-                                  if (runtime.Tuple.isArrayLike(scrut11) && scrut11.length === 3) {
-                                    element0$4 = runtime.Tuple.get(scrut11, 0);
-                                    element1$4 = runtime.Tuple.get(scrut11, 1);
-                                    element2$2 = runtime.Tuple.get(scrut11, 2);
-                                    cnt2 = element2$2;
-                                    if (cnt2 === 0) {
+                                  scrut10 = scanHexDigits(str1, tmp62, 4, 0, 0);
+                                  if (runtime.Tuple.isArrayLike(scrut10) && scrut10.length === 3) {
+                                    element0$4 = runtime.Tuple.get(scrut10, 0);
+                                    element1$4 = runtime.Tuple.get(scrut10, 1);
+                                    element2$2 = runtime.Tuple.get(scrut10, 2);
+                                    if (element2$2 === 0) {
                                       tmp63 = Option.None;
                                     } else {
                                       tmp64 = globalThis.String.fromCodePoint(element1$4);
@@ -1070,7 +1074,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                     tmp61
                                   ]);
                               }
-                            } else if (scrut6 instanceof Option.None.class) {
+                            } else if (scrut5 instanceof Option.None.class) {
                               inlinedVal2 = globalThis.Object.freeze([
                                 tmp32,
                                 Option.None
@@ -1079,13 +1083,11 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                               throw globalThis.Object.freeze(new globalThis.Error("match error"))
                             }
                           }
-                          scrut5 = inlinedVal2;
-                          if (runtime.Tuple.isArrayLike(scrut5) && scrut5.length === 2) {
+                          if (runtime.Tuple.isArrayLike(inlinedVal2) && inlinedVal2.length === 2) {
                             element0$1 = runtime.Tuple.get(inlinedVal2, 0);
                             element1$1 = runtime.Tuple.get(inlinedVal2, 1);
-                            chOpt = element1$1;
                             idx = element0$1;
-                            if (chOpt instanceof Option.Some.class) {
+                            if (element1$1 instanceof Option.Some.class) {
                               arg$Some$0$3 = element1$1.value;
                               tmp33 = content + arg$Some$0$3;
                               content = tmp33;
@@ -1109,7 +1111,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                   break;
                 }
                 tmp29 = Token.string(content, startIndex, idx);
-                tmp30 = runtime.safeCall(tmp29(instance$Ident$_LineLookupTable$_));
+                tmp30 = runtime.safeCall(tmp29(instance$Ident$_LineLookupTable$_1));
                 inlinedVal1 = globalThis.Object.freeze([
                   idx,
                   tmp30
@@ -1119,25 +1121,28 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                 id = 1;
                 continue loopLabel
               }
-              unapplyResult5 = runtime.safeCall(Lexer.Bracket.unapply(arg$Some$0$));
+              unapplyResult5 = runtime.safeCall(param1.Bracket.unapply(arg$Some$0$));
               if (unapplyResult5 instanceof runtime.MatchSuccess.class) {
                 output5 = unapplyResult5.output;
                 unapplyResult5.bindings;
                 tmp5 = param4 + 1;
                 tmp6 = Token.symbol(output5, param4);
-                tmp7 = runtime.safeCall(tmp6(instance$Ident$_LineLookupTable$_));
+                tmp7 = runtime.safeCall(tmp6(param0));
                 param4 = param5;
                 param5 = tmp5;
                 param6 = tmp7;
                 id = 0;
                 continue loopLabel
               }
-              if (ch === "/") {
-                let idx, inlinedVal1, content, scrut4, terminated, arg$Some$0$2, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36;
+              if (arg$Some$0$ === "/") {
+                let instance$Ident$_LineLookupTable$_1, str1, idx, inlinedVal1, start, content, scrut4, terminated, arg$Some$0$2, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36;
                 tmp8 = param4 + 1;
+                instance$Ident$_LineLookupTable$_1 = param0;
+                str1 = param2;
                 idx = tmp8;
+                start = tmp8;
                 content = "";
-                scrut4 = char1(str, tmp8);
+                scrut4 = char1(param2, tmp8);
                 if (scrut4 instanceof Option.Some.class) {
                   arg$Some$0$2 = scrut4.value;
                   switch (arg$Some$0$2) {
@@ -1146,7 +1151,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                       idx = tmp29;
                       lbl: while (true) {
                         let scrut5, scrut6, arg$Some$0$3, tmp37, tmp38;
-                        scrut5 = char1(str, idx);
+                        scrut5 = char1(str1, idx);
                         if (scrut5 instanceof Option.Some.class) {
                           arg$Some$0$3 = scrut5.value;
                           scrut6 = arg$Some$0$3 !== "\n";
@@ -1160,8 +1165,8 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                         }
                         break;
                       }
-                      tmp30 = Token.comment(content, tmp8, idx);
-                      tmp31 = runtime.safeCall(tmp30(instance$Ident$_LineLookupTable$_));
+                      tmp30 = Token.comment(content, start, idx);
+                      tmp31 = runtime.safeCall(tmp30(instance$Ident$_LineLookupTable$_1));
                       inlinedVal1 = globalThis.Object.freeze([
                         idx,
                         tmp31
@@ -1174,12 +1179,12 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                       lbl1: while (true) {
                         let scrut5, scrut6, ch1, arg$Some$0$3, arg$Some$0$4, tmp37, tmp38, tmp39, tmp40;
                         if (terminated === false) {
-                          scrut5 = char1(str, idx);
+                          scrut5 = char1(str1, idx);
                           if (scrut5 instanceof Option.Some.class) {
                             arg$Some$0$3 = scrut5.value;
                             if (arg$Some$0$3 === "*") {
                               tmp37 = idx + 1;
-                              scrut6 = char1(str, tmp37);
+                              scrut6 = char1(str1, tmp37);
                               if (scrut6 instanceof Option.Some.class) {
                                 arg$Some$0$4 = scrut6.value;
                                 if (arg$Some$0$4 === "/") {
@@ -1205,15 +1210,15 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                         break;
                       }
                       if (terminated === true) {
-                        tmp33 = Token.comment(content, tmp8, idx);
-                        tmp34 = runtime.safeCall(tmp33(instance$Ident$_LineLookupTable$_));
+                        tmp33 = Token.comment(content, start, idx);
+                        tmp34 = runtime.safeCall(tmp33(instance$Ident$_LineLookupTable$_1));
                         inlinedVal1 = globalThis.Object.freeze([
                           idx,
                           tmp34
                         ]);
                       } else {
-                        tmp35 = Token.error(tmp8, idx);
-                        tmp36 = runtime.safeCall(tmp35(instance$Ident$_LineLookupTable$_));
+                        tmp35 = Token.error(start, idx);
+                        tmp36 = runtime.safeCall(tmp35(instance$Ident$_LineLookupTable$_1));
                         inlinedVal1 = globalThis.Object.freeze([
                           idx,
                           tmp36
@@ -1221,22 +1226,22 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                       }
                       break;
                     default:
-                      inlinedVal1 = operator(instance$Ident$_LineLookupTable$_, Lexer, str, tmp8, "/");
+                      inlinedVal1 = operator(param0, param1, param2, tmp8, "/");
                   }
                 } else {
-                  inlinedVal1 = operator(instance$Ident$_LineLookupTable$_, Lexer, str, tmp8, "/");
+                  inlinedVal1 = operator(param0, param1, param2, tmp8, "/");
                 }
                 param4 = param5;
                 param5 = inlinedVal1;
                 id = 1;
                 continue loopLabel
               }
-              unapplyResult4 = runtime.safeCall(Lexer.Operator.unapply(arg$Some$0$));
+              unapplyResult4 = runtime.safeCall(param1.Operator.unapply(arg$Some$0$));
               if (unapplyResult4 instanceof runtime.MatchSuccess.class) {
                 output4 = unapplyResult4.output;
                 unapplyResult4.bindings;
                 tmp9 = param4 + 1;
-                tmp10 = operator(instance$Ident$_LineLookupTable$_, Lexer, str, tmp9, output4);
+                tmp10 = operator(param0, param1, param2, tmp9, output4);
                 param4 = param5;
                 param5 = tmp10;
                 id = 1;
@@ -1244,22 +1249,22 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
               }
               unapplyResult3 = runtime.safeCall(Char.Digit.unapply(arg$Some$0$));
               if (unapplyResult3 instanceof runtime.MatchSuccess.class) {
-                let idx, head, inlinedVal1;
+                let instance$Ident$_LineLookupTable$_1, idx, inlinedVal1;
                 output3 = unapplyResult3.output;
                 unapplyResult3.bindings;
                 tmp11 = param4 + 1;
+                instance$Ident$_LineLookupTable$_1 = param0;
                 idx = tmp11;
-                head = output3;
                 inlinedLbl1: {
                   let scrut4, scrut5, scrut6, scrut7, scrut8, idx$_, integer, scrut9, scrut10, idx$_1, integer1, scrut11, fraction, idx$_$_, scrut12, element1$1, element0$1, arg$Some$0$2, element1$2, element0$2, arg$Some$0$3, element1$3, element0$3, element1$4, element0$4, element1$5, element0$5, element1$6, element0$6, element1$7, element0$7, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, tmp55, tmp56, tmp57, tmp58, tmp59, tmp60, tmp61;
                   split_default$: {
                     split_1$: {
                       split_2$: {
-                        if (head === "0") {
-                          scrut4 = char1(str, tmp11);
+                        if (output3 === "0") {
+                          scrut4 = char1(param2, tmp11);
                           if (scrut4 instanceof Option.None.class) {
                             tmp29 = Token.integer("0", tmp11);
-                            tmp30 = runtime.safeCall(tmp29(instance$Ident$_LineLookupTable$_));
+                            tmp30 = runtime.safeCall(tmp29(param0));
                             inlinedVal1 = globalThis.Object.freeze([
                               tmp11,
                               tmp30
@@ -1270,20 +1275,20 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                             switch (arg$Some$0$3) {
                               case "b":
                                 tmp31 = tmp11 + 1;
-                                scrut5 = take(str, lambda, tmp31, "");
+                                scrut5 = take(param2, lambda, tmp31, "");
                                 if (runtime.Tuple.isArrayLike(scrut5) && scrut5.length === 2) {
                                   element0$7 = runtime.Tuple.get(scrut5, 0);
                                   element1$7 = runtime.Tuple.get(scrut5, 1);
                                   tmp32 = StrOps.concat2("0b", element1$7);
                                   tmp33 = Token.integer(tmp32, tmp11);
-                                  tmp34 = runtime.safeCall(tmp33(instance$Ident$_LineLookupTable$_));
+                                  tmp34 = runtime.safeCall(tmp33(param0));
                                   inlinedVal1 = globalThis.Object.freeze([
                                     element0$7,
                                     tmp34
                                   ]);
                                   break inlinedLbl1
                                 }
-                                scrut9 = digits(str, tmp11, output3);
+                                scrut9 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut9) && scrut9.length === 2) {
                                   element0$3 = runtime.Tuple.get(scrut9, 0);
                                   element1$3 = runtime.Tuple.get(scrut9, 1);
@@ -1291,18 +1296,18 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                   idx$_ = element0$3;
                                   break split_1$
                                 }
-                                scrut10 = digits(str, tmp11, output3);
+                                scrut10 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut10) && scrut10.length === 2) {
                                   element0$1 = runtime.Tuple.get(scrut10, 0);
                                   element1$1 = runtime.Tuple.get(scrut10, 1);
                                   integer1 = element1$1;
                                   idx$_1 = element0$1;
-                                  scrut11 = char1(str, element0$1);
+                                  scrut11 = char1(param2, element0$1);
                                   if (scrut11 instanceof Option.Some.class) {
                                     arg$Some$0$2 = scrut11.value;
                                     if (arg$Some$0$2 === ".") {
                                       tmp35 = element0$1 + 1;
-                                      scrut12 = digits(str, tmp35, "");
+                                      scrut12 = digits(param2, tmp35, "");
                                       if (runtime.Tuple.isArrayLike(scrut12) && scrut12.length === 2) {
                                         element0$2 = runtime.Tuple.get(scrut12, 0);
                                         element1$2 = runtime.Tuple.get(scrut12, 1);
@@ -1318,20 +1323,20 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                 break;
                               case "o":
                                 tmp36 = tmp11 + 1;
-                                scrut6 = take(str, lambda1, tmp36, "");
+                                scrut6 = take(param2, lambda1, tmp36, "");
                                 if (runtime.Tuple.isArrayLike(scrut6) && scrut6.length === 2) {
                                   element0$6 = runtime.Tuple.get(scrut6, 0);
                                   element1$6 = runtime.Tuple.get(scrut6, 1);
                                   tmp37 = StrOps.concat2("0o", element1$6);
                                   tmp38 = Token.integer(tmp37, tmp11);
-                                  tmp39 = runtime.safeCall(tmp38(instance$Ident$_LineLookupTable$_));
+                                  tmp39 = runtime.safeCall(tmp38(param0));
                                   inlinedVal1 = globalThis.Object.freeze([
                                     element0$6,
                                     tmp39
                                   ]);
                                   break inlinedLbl1
                                 }
-                                scrut9 = digits(str, tmp11, output3);
+                                scrut9 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut9) && scrut9.length === 2) {
                                   element0$3 = runtime.Tuple.get(scrut9, 0);
                                   element1$3 = runtime.Tuple.get(scrut9, 1);
@@ -1339,18 +1344,18 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                   idx$_ = element0$3;
                                   break split_1$
                                 }
-                                scrut10 = digits(str, tmp11, output3);
+                                scrut10 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut10) && scrut10.length === 2) {
                                   element0$1 = runtime.Tuple.get(scrut10, 0);
                                   element1$1 = runtime.Tuple.get(scrut10, 1);
                                   integer1 = element1$1;
                                   idx$_1 = element0$1;
-                                  scrut11 = char1(str, element0$1);
+                                  scrut11 = char1(param2, element0$1);
                                   if (scrut11 instanceof Option.Some.class) {
                                     arg$Some$0$2 = scrut11.value;
                                     if (arg$Some$0$2 === ".") {
                                       tmp40 = element0$1 + 1;
-                                      scrut12 = digits(str, tmp40, "");
+                                      scrut12 = digits(param2, tmp40, "");
                                       if (runtime.Tuple.isArrayLike(scrut12) && scrut12.length === 2) {
                                         element0$2 = runtime.Tuple.get(scrut12, 0);
                                         element1$2 = runtime.Tuple.get(scrut12, 1);
@@ -1366,20 +1371,20 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                 break;
                               case "x":
                                 tmp41 = tmp11 + 1;
-                                scrut7 = take(str, lambda2, tmp41, "");
+                                scrut7 = take(param2, lambda2, tmp41, "");
                                 if (runtime.Tuple.isArrayLike(scrut7) && scrut7.length === 2) {
                                   element0$5 = runtime.Tuple.get(scrut7, 0);
                                   element1$5 = runtime.Tuple.get(scrut7, 1);
                                   tmp42 = StrOps.concat2("0x", element1$5);
                                   tmp43 = Token.integer(tmp42, tmp11);
-                                  tmp44 = runtime.safeCall(tmp43(instance$Ident$_LineLookupTable$_));
+                                  tmp44 = runtime.safeCall(tmp43(param0));
                                   inlinedVal1 = globalThis.Object.freeze([
                                     element0$5,
                                     tmp44
                                   ]);
                                   break inlinedLbl1
                                 }
-                                scrut9 = digits(str, tmp11, output3);
+                                scrut9 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut9) && scrut9.length === 2) {
                                   element0$3 = runtime.Tuple.get(scrut9, 0);
                                   element1$3 = runtime.Tuple.get(scrut9, 1);
@@ -1387,18 +1392,18 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                   idx$_ = element0$3;
                                   break split_1$
                                 }
-                                scrut10 = digits(str, tmp11, output3);
+                                scrut10 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut10) && scrut10.length === 2) {
                                   element0$1 = runtime.Tuple.get(scrut10, 0);
                                   element1$1 = runtime.Tuple.get(scrut10, 1);
                                   integer1 = element1$1;
                                   idx$_1 = element0$1;
-                                  scrut11 = char1(str, element0$1);
+                                  scrut11 = char1(param2, element0$1);
                                   if (scrut11 instanceof Option.Some.class) {
                                     arg$Some$0$2 = scrut11.value;
                                     if (arg$Some$0$2 === ".") {
                                       tmp45 = element0$1 + 1;
-                                      scrut12 = digits(str, tmp45, "");
+                                      scrut12 = digits(param2, tmp45, "");
                                       if (runtime.Tuple.isArrayLike(scrut12) && scrut12.length === 2) {
                                         element0$2 = runtime.Tuple.get(scrut12, 0);
                                         element1$2 = runtime.Tuple.get(scrut12, 1);
@@ -1414,20 +1419,20 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                 break;
                               case ".":
                                 tmp46 = tmp11 + 1;
-                                scrut8 = digits(str, tmp46, ".");
+                                scrut8 = digits(param2, tmp46, ".");
                                 if (runtime.Tuple.isArrayLike(scrut8) && scrut8.length === 2) {
                                   element0$4 = runtime.Tuple.get(scrut8, 0);
                                   element1$4 = runtime.Tuple.get(scrut8, 1);
                                   tmp47 = StrOps.concat2("0.", element1$4);
                                   tmp48 = Token.decimal(tmp47, tmp11);
-                                  tmp49 = runtime.safeCall(tmp48(instance$Ident$_LineLookupTable$_));
+                                  tmp49 = runtime.safeCall(tmp48(param0));
                                   inlinedVal1 = globalThis.Object.freeze([
                                     element0$4,
                                     tmp49
                                   ]);
                                   break inlinedLbl1
                                 }
-                                scrut9 = digits(str, tmp11, output3);
+                                scrut9 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut9) && scrut9.length === 2) {
                                   element0$3 = runtime.Tuple.get(scrut9, 0);
                                   element1$3 = runtime.Tuple.get(scrut9, 1);
@@ -1435,18 +1440,18 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                   idx$_ = element0$3;
                                   break split_1$
                                 }
-                                scrut10 = digits(str, tmp11, output3);
+                                scrut10 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut10) && scrut10.length === 2) {
                                   element0$1 = runtime.Tuple.get(scrut10, 0);
                                   element1$1 = runtime.Tuple.get(scrut10, 1);
                                   integer1 = element1$1;
                                   idx$_1 = element0$1;
-                                  scrut11 = char1(str, element0$1);
+                                  scrut11 = char1(param2, element0$1);
                                   if (scrut11 instanceof Option.Some.class) {
                                     arg$Some$0$2 = scrut11.value;
                                     if (arg$Some$0$2 === ".") {
                                       tmp50 = element0$1 + 1;
-                                      scrut12 = digits(str, tmp50, "");
+                                      scrut12 = digits(param2, tmp50, "");
                                       if (runtime.Tuple.isArrayLike(scrut12) && scrut12.length === 2) {
                                         element0$2 = runtime.Tuple.get(scrut12, 0);
                                         element1$2 = runtime.Tuple.get(scrut12, 1);
@@ -1461,7 +1466,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                 }
                                 break;
                               default:
-                                scrut9 = digits(str, tmp11, output3);
+                                scrut9 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut9) && scrut9.length === 2) {
                                   element0$3 = runtime.Tuple.get(scrut9, 0);
                                   element1$3 = runtime.Tuple.get(scrut9, 1);
@@ -1469,18 +1474,18 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                   idx$_ = element0$3;
                                   break split_1$
                                 }
-                                scrut10 = digits(str, tmp11, output3);
+                                scrut10 = digits(param2, tmp11, output3);
                                 if (runtime.Tuple.isArrayLike(scrut10) && scrut10.length === 2) {
                                   element0$1 = runtime.Tuple.get(scrut10, 0);
                                   element1$1 = runtime.Tuple.get(scrut10, 1);
                                   integer1 = element1$1;
                                   idx$_1 = element0$1;
-                                  scrut11 = char1(str, element0$1);
+                                  scrut11 = char1(param2, element0$1);
                                   if (scrut11 instanceof Option.Some.class) {
                                     arg$Some$0$2 = scrut11.value;
                                     if (arg$Some$0$2 === ".") {
                                       tmp51 = element0$1 + 1;
-                                      scrut12 = digits(str, tmp51, "");
+                                      scrut12 = digits(param2, tmp51, "");
                                       if (runtime.Tuple.isArrayLike(scrut12) && scrut12.length === 2) {
                                         element0$2 = runtime.Tuple.get(scrut12, 0);
                                         element1$2 = runtime.Tuple.get(scrut12, 1);
@@ -1495,18 +1500,18 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                                 }
                             }
                           } else {
-                            scrut10 = digits(str, tmp11, output3);
+                            scrut10 = digits(param2, tmp11, output3);
                             if (runtime.Tuple.isArrayLike(scrut10) && scrut10.length === 2) {
                               element0$1 = runtime.Tuple.get(scrut10, 0);
                               element1$1 = runtime.Tuple.get(scrut10, 1);
                               integer1 = element1$1;
                               idx$_1 = element0$1;
-                              scrut11 = char1(str, element0$1);
+                              scrut11 = char1(param2, element0$1);
                               if (scrut11 instanceof Option.Some.class) {
                                 arg$Some$0$2 = scrut11.value;
                                 if (arg$Some$0$2 === ".") {
                                   tmp52 = element0$1 + 1;
-                                  scrut12 = digits(str, tmp52, "");
+                                  scrut12 = digits(param2, tmp52, "");
                                   if (runtime.Tuple.isArrayLike(scrut12) && scrut12.length === 2) {
                                     element0$2 = runtime.Tuple.get(scrut12, 0);
                                     element1$2 = runtime.Tuple.get(scrut12, 1);
@@ -1521,18 +1526,18 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                             }
                           }
                         } else {
-                          scrut10 = digits(str, tmp11, output3);
+                          scrut10 = digits(param2, tmp11, output3);
                           if (runtime.Tuple.isArrayLike(scrut10) && scrut10.length === 2) {
                             element0$1 = runtime.Tuple.get(scrut10, 0);
                             element1$1 = runtime.Tuple.get(scrut10, 1);
                             integer1 = element1$1;
                             idx$_1 = element0$1;
-                            scrut11 = char1(str, element0$1);
+                            scrut11 = char1(param2, element0$1);
                             if (scrut11 instanceof Option.Some.class) {
                               arg$Some$0$2 = scrut11.value;
                               if (arg$Some$0$2 === ".") {
                                 tmp53 = element0$1 + 1;
-                                scrut12 = digits(str, tmp53, "");
+                                scrut12 = digits(param2, tmp53, "");
                                 if (runtime.Tuple.isArrayLike(scrut12) && scrut12.length === 2) {
                                   element0$2 = runtime.Tuple.get(scrut12, 0);
                                   element1$2 = runtime.Tuple.get(scrut12, 1);
@@ -1547,7 +1552,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                           }
                         }
                         tmp54 = Token.integer(integer1, tmp11);
-                        tmp55 = runtime.safeCall(tmp54(instance$Ident$_LineLookupTable$_));
+                        tmp55 = runtime.safeCall(tmp54(param0));
                         inlinedVal1 = globalThis.Object.freeze([
                           idx$_1,
                           tmp55
@@ -1557,7 +1562,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                       tmp56 = StrOps.concat2(integer1, ".");
                       tmp57 = StrOps.concat2(tmp56, fraction);
                       tmp58 = Token.decimal(tmp57, idx);
-                      tmp59 = runtime.safeCall(tmp58(instance$Ident$_LineLookupTable$_));
+                      tmp59 = runtime.safeCall(tmp58(instance$Ident$_LineLookupTable$_1));
                       inlinedVal1 = globalThis.Object.freeze([
                         idx$_$_,
                         tmp59
@@ -1565,7 +1570,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                       break inlinedLbl1;
                     }
                     tmp60 = Token.integer(integer, idx);
-                    tmp61 = runtime.safeCall(tmp60(instance$Ident$_LineLookupTable$_));
+                    tmp61 = runtime.safeCall(tmp60(instance$Ident$_LineLookupTable$_1));
                     inlinedVal1 = globalThis.Object.freeze([
                       idx$_,
                       tmp61
@@ -1579,40 +1584,39 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                 id = 1;
                 continue loopLabel
               }
-              unapplyResult2 = runtime.safeCall(Lexer.IdentifierStart.unapply(arg$Some$0$));
+              unapplyResult2 = runtime.safeCall(param1.IdentifierStart.unapply(arg$Some$0$));
               if (unapplyResult2 instanceof runtime.MatchSuccess.class) {
                 output2 = unapplyResult2.output;
                 unapplyResult2.bindings;
                 tmp12 = param4 + 1;
-                tmp13 = identifier(instance$Ident$_LineLookupTable$_, Lexer, str, tmp12, output2);
+                tmp13 = identifier(param0, param1, param2, tmp12, output2);
                 param4 = param5;
                 param5 = tmp13;
                 id = 1;
                 continue loopLabel
               }
-              unapplyResult = runtime.safeCall(Lexer.IdentifierQuote.unapply(arg$Some$0$));
+              unapplyResult = runtime.safeCall(param1.IdentifierQuote.unapply(arg$Some$0$));
               if (unapplyResult instanceof runtime.MatchSuccess.class) {
                 output = unapplyResult.output;
                 unapplyResult.bindings;
                 tmp14 = param4 + 1;
-                scrut3 = char1(str, tmp14);
+                scrut3 = char1(param2, tmp14);
                 if (scrut3 instanceof Option.Some.class) {
                   arg$Some$0$1 = scrut3.value;
-                  unapplyResult1 = runtime.safeCall(Lexer.IdentifierStart.unapply(arg$Some$0$1));
+                  unapplyResult1 = runtime.safeCall(param1.IdentifierStart.unapply(arg$Some$0$1));
                   if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
                     output1 = unapplyResult1.output;
                     unapplyResult1.bindings;
                     tmp15 = param4 + 2;
                     tmp16 = output + output1;
-                    scrut2 = identifier(instance$Ident$_LineLookupTable$_, Lexer, str, tmp15, tmp16);
+                    scrut2 = identifier(param0, param1, param2, tmp15, tmp16);
                     if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
                       element0$ = runtime.Tuple.get(scrut2, 0);
                       element1$ = runtime.Tuple.get(scrut2, 1);
-                      token = element1$;
-                      if (token instanceof Token.Identifier.class) {
+                      if (element1$ instanceof Token.Identifier.class) {
                         arg$Identifier$0$ = element1$.name;
                         tmp17 = Token.identifier(arg$Identifier$0$, param4);
-                        tmp18 = runtime.safeCall(tmp17(instance$Ident$_LineLookupTable$_));
+                        tmp18 = runtime.safeCall(tmp17(param0));
                         param4 = param5;
                         param5 = element0$;
                         param6 = tmp18;
@@ -1622,7 +1626,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
                       tmp19 = param4 + 1;
                       tmp20 = param4 + 1;
                       tmp21 = Token.error(param4, tmp20);
-                      tmp22 = runtime.safeCall(tmp21(instance$Ident$_LineLookupTable$_));
+                      tmp22 = runtime.safeCall(tmp21(param0));
                       param4 = param5;
                       param5 = tmp19;
                       param6 = tmp22;
@@ -1638,7 +1642,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
               tmp25 = param4 + 1;
               tmp26 = param4 + 1;
               tmp27 = Token.error(param4, tmp26);
-              tmp28 = runtime.safeCall(tmp27(instance$Ident$_LineLookupTable$_));
+              tmp28 = runtime.safeCall(tmp27(param0));
               param4 = param5;
               param5 = tmp25;
               param6 = tmp28;

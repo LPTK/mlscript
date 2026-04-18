@@ -102,7 +102,7 @@ let Shape2;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static sel(s1, s2) {
-    let scrut, n, scrut1, scrut2, scrut3, n1, n2, n3, element1$, element0$, arg$Lit$0$, arg$Arr$0$, arg$Class$0$, arg$Class$1$, arg$Some$0$, lambda, tmp, tmp1, tmp2;
+    let scrut, n, scrut1, scrut2, scrut3, element1$, element0$, arg$Lit$0$, arg$Arr$0$, arg$Class$0$, arg$Class$1$, arg$Some$0$, lambda, tmp, tmp1, tmp2;
     scrut = globalThis.Object.freeze([
       s1,
       s2
@@ -140,15 +140,12 @@ let Shape2;
       } else if (element0$ instanceof Shape.Dyn.class) {
         if (element1$ instanceof Shape.Lit.class) {
           arg$Lit$0$ = element1$.l;
-          n1 = arg$Lit$0$;
-          if (typeof n1 === 'string') {
+          if (typeof arg$Lit$0$ === 'string') {
             tmp = Shape.Dyn();
             return globalThis.Object.freeze([
               tmp
             ])
-          }
-          n3 = arg$Lit$0$;
-          if (globalThis.Number.isInteger(n3)) {
+          } else if (globalThis.Number.isInteger(arg$Lit$0$)) {
             tmp1 = Shape.Dyn();
             return globalThis.Object.freeze([
               tmp1
@@ -166,8 +163,7 @@ let Shape2;
         arg$Arr$0$ = element0$.shapes;
         if (element1$ instanceof Shape.Lit.class) {
           arg$Lit$0$ = element1$.l;
-          n2 = arg$Lit$0$;
-          if (globalThis.Number.isInteger(n2)) {
+          if (globalThis.Number.isInteger(arg$Lit$0$)) {
             return globalThis.Object.freeze([
               arg$Arr$0$[arg$Lit$0$]
             ])
@@ -183,13 +179,12 @@ let Shape2;
     return globalThis.Object.freeze([]);
   } 
   static static(s) {
-    let l, scrut, arg$Arr$0$, arg$Class$1$, arg$Lit$0$;
+    let scrut, arg$Arr$0$, arg$Class$1$, arg$Lit$0$;
     if (s instanceof Shape.Dyn.class) {
       return false
     } else if (s instanceof Shape.Lit.class) {
       arg$Lit$0$ = s.l;
-      l = arg$Lit$0$;
-      if (typeof l === 'string') {
+      if (typeof arg$Lit$0$ === 'string') {
         scrut = Block.isPrimitiveType(arg$Lit$0$);
         if (scrut === true) {
           return ! true

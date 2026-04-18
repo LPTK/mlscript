@@ -699,14 +699,13 @@ let NofibPrelude1;
   } 
   static orList(ls) {
     loopLabel: while (true) {
-      let h, arg$Cons$0$, arg$Cons$1$;
+      let arg$Cons$0$, arg$Cons$1$;
       if (ls instanceof NofibPrelude.Nil.class) {
         return false
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        h = arg$Cons$0$;
-        if (h === true) {
+        if (arg$Cons$0$ === true) {
           return true
         }
         ls = arg$Cons$1$;
@@ -1000,14 +999,13 @@ let NofibPrelude1;
     loopLabel: while (true) {
       let lscomp, combine, scrut, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, element1$, element0$, tmp;
       lscomp = function lscomp(ls) {
-        let h, arg$Cons$0$2, arg$Cons$1$2, arg$Cons$0$3, arg$Cons$1$3, tmp1, tmp2;
+        let arg$Cons$0$2, arg$Cons$1$2, arg$Cons$0$3, arg$Cons$1$3, tmp1, tmp2;
         if (ls instanceof NofibPrelude.Nil.class) {
           return NofibPrelude.Nil
         } else if (ls instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$2 = ls.head;
           arg$Cons$1$2 = ls.tail;
-          h = arg$Cons$0$2;
-          if (h instanceof NofibPrelude.Cons.class) {
+          if (arg$Cons$0$2 instanceof NofibPrelude.Cons.class) {
             arg$Cons$0$3 = arg$Cons$0$2.head;
             arg$Cons$1$3 = arg$Cons$0$2.tail;
             tmp1 = globalThis.Object.freeze([

@@ -246,7 +246,7 @@ let sorting1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lines(s) {
-    let scrut, s_, element1$, element0$, lambda, arg$Cons$1$, tmp;
+    let scrut, element1$, element0$, lambda, arg$Cons$1$, tmp;
     if (s instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     }
@@ -257,11 +257,10 @@ let sorting1;
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      s_ = element1$;
-      if (s_ instanceof NofibPrelude.Nil.class) {
+      if (element1$ instanceof NofibPrelude.Nil.class) {
         tmp = NofibPrelude.Nil;
         return NofibPrelude.Cons(element0$, tmp)
-      } else if (s_ instanceof NofibPrelude.Cons.class) {
+      } else if (element1$ instanceof NofibPrelude.Cons.class) {
         arg$Cons$1$ = element1$.tail;
         tmp = sorting.lines(arg$Cons$1$);
         return NofibPrelude.Cons(element0$, tmp)
@@ -704,7 +703,7 @@ let sorting1;
   static mergeSort(param) {
     let runsplit, merge, merge_lists, tmp;
     runsplit = function runsplit(run, xs) {
-      let rs, scrut, scrut1, scrut2, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      let scrut, scrut1, scrut2, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (run instanceof NofibPrelude.Nil.class) {
         if (xs instanceof NofibPrelude.Nil.class) {
           return NofibPrelude.Nil
@@ -722,11 +721,10 @@ let sorting1;
       if (run instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = run.head;
         arg$Cons$1$ = run.tail;
-        rs = arg$Cons$1$;
         if (xs instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$1 = xs.head;
           arg$Cons$1$1 = xs.tail;
-          if (rs instanceof NofibPrelude.Nil.class) {
+          if (arg$Cons$1$ instanceof NofibPrelude.Nil.class) {
             scrut = sorting.gtList(arg$Cons$0$1, arg$Cons$0$);
             if (scrut === true) {
               tmp2 = NofibPrelude.Cons(arg$Cons$0$1, NofibPrelude.Nil);

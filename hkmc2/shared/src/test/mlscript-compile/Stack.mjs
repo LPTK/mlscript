@@ -106,19 +106,18 @@ let Stack1;
     go = function go(heads, tails) {
       let lambda;
       lambda = (undefined, function (caseScrut) {
-        let h, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
+        let arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
         if (caseScrut instanceof Stack.Cons.class) {
           arg$Cons$0$ = caseScrut.head;
           arg$Cons$1$ = caseScrut.tail;
-          h = arg$Cons$0$;
-          if (h instanceof Stack.Cons.class) {
+          if (arg$Cons$0$ instanceof Stack.Cons.class) {
             arg$Cons$0$1 = arg$Cons$0$.head;
             arg$Cons$1$1 = arg$Cons$0$.tail;
             tmp2 = Stack.Cons(arg$Cons$0$1, heads);
             tmp3 = Stack.Cons(arg$Cons$1$1, tails);
             tmp4 = go(tmp2, tmp3);
             return runtime.safeCall(tmp4(arg$Cons$1$))
-          } else if (h instanceof Stack.Nil.class) {
+          } else if (arg$Cons$0$ instanceof Stack.Nil.class) {
             tmp5 = go(heads, tails);
             return runtime.safeCall(tmp5(arg$Cons$1$))
           }

@@ -421,7 +421,7 @@ let constraints1;
           ]);
           return NofibPrelude.Some(tmp3)
         }
-        throw globalThis.Object.freeze(new globalThis.Error("match error"))
+        throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
@@ -652,7 +652,7 @@ let constraints1;
           tmp2 = lscomp1(tmp1);
           return NofibPrelude.zipWith(lambda, tbl, tmp2)
         }
-        throw globalThis.Object.freeze(new globalThis.Error("match error"))
+        throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
       throw globalThis.Object.freeze(new globalThis.Error("match error"));
     }
@@ -661,54 +661,49 @@ let constraints1;
   static lookupCache(csp, t) {
     let lambda;
     lambda = (undefined, function (x) {
-      let csp1, tp, inlinedVal;
+      let csp1, inlinedVal, tableEntry, scrut, element1$, element0$, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
       csp1 = csp;
-      tp = x;
-      inlinedLbl: {
-        let tableEntry, scrut, element1$, element0$, arg$Cons$0$, arg$Cons$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
-        if (runtime.Tuple.isArrayLike(tp) && tp.length === 2) {
-          element0$ = runtime.Tuple.get(x, 0);
-          element1$ = runtime.Tuple.get(x, 1);
-          if (element0$ instanceof NofibPrelude.Nil.class) {
-            tmp = globalThis.Object.freeze([
-              NofibPrelude.Nil,
-              constraints.Unknown
-            ]);
-            inlinedVal = globalThis.Object.freeze([
-              tmp,
-              element1$
-            ]);
-            break inlinedLbl
-          } else if (element0$ instanceof NofibPrelude.Cons.class) {
-            arg$Cons$0$ = element0$.head;
-            arg$Cons$1$ = element0$.tail;
-            tmp1 = constraints.value(arg$Cons$0$);
-            tmp2 = tmp1 - 1;
-            tmp3 = NofibPrelude.head(element1$);
-            tableEntry = NofibPrelude.atIndex(tmp2, tmp3);
-            scrut = tableEntry === constraints.Unknown;
-            if (scrut === true) {
-              tmp4 = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
-              tmp5 = constraints.checkComplete(csp1, tmp4);
-            } else {
-              tmp5 = tableEntry;
-            }
-            tmp6 = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
-            tmp7 = globalThis.Object.freeze([
-              tmp6,
-              tmp5
-            ]);
-            inlinedVal = globalThis.Object.freeze([
-              tmp7,
-              element1$
-            ]);
-            break inlinedLbl
+      if (runtime.Tuple.isArrayLike(x) && x.length === 2) {
+        element0$ = runtime.Tuple.get(x, 0);
+        element1$ = runtime.Tuple.get(x, 1);
+        if (element0$ instanceof NofibPrelude.Nil.class) {
+          tmp = globalThis.Object.freeze([
+            NofibPrelude.Nil,
+            constraints.Unknown
+          ]);
+          inlinedVal = globalThis.Object.freeze([
+            tmp,
+            element1$
+          ]);
+          return inlinedVal
+        } else if (element0$ instanceof NofibPrelude.Cons.class) {
+          arg$Cons$0$ = element0$.head;
+          arg$Cons$1$ = element0$.tail;
+          tmp1 = constraints.value(arg$Cons$0$);
+          tmp2 = tmp1 - 1;
+          tmp3 = NofibPrelude.head(element1$);
+          tableEntry = NofibPrelude.atIndex(tmp2, tmp3);
+          scrut = tableEntry === constraints.Unknown;
+          if (scrut === true) {
+            tmp4 = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
+            tmp5 = constraints.checkComplete(csp1, tmp4);
+          } else {
+            tmp5 = tableEntry;
           }
-          throw globalThis.Object.freeze(new globalThis.Error("match error"));
+          tmp6 = NofibPrelude.Cons(arg$Cons$0$, arg$Cons$1$);
+          tmp7 = globalThis.Object.freeze([
+            tmp6,
+            tmp5
+          ]);
+          inlinedVal = globalThis.Object.freeze([
+            tmp7,
+            element1$
+          ]);
+          return inlinedVal
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }
-      return inlinedVal
+      throw globalThis.Object.freeze(new globalThis.Error("match error"));
     });
     return constraints.mapTree(lambda, t)
   } 
@@ -763,7 +758,7 @@ let constraints1;
             acc = tmp1;
             continue loopLabel;
           }
-          throw globalThis.Object.freeze(new globalThis.Error("match error"))
+          throw globalThis.Object.freeze(new globalThis.Error("match error"));
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"));
       }

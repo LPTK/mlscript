@@ -61,7 +61,7 @@ let Parser1;
       return runtime.safeCall(Parser.tracer.print("consume: the end of input"));
     };
     parseKind = function parseKind(kind, prec) {
-      let scrut, token, scrut1, token1, scrut2, tree1, scrut3, shouldParse, scrut4, arg$Some$0$, arg$Cons$0$1, arg$Identifier$0$, arg$Identifier$1$, tmp, tmp1, arg$Cons$0$2, arg$Identifier$0$1, arg$Identifier$1$1, tmp2, tmp3, arg$Some$0$1, arg$Ref$0$, arg$Ref$1$, arg$Ref$2$, arg$Ref$3$, arg$Ref$4$, tmp4, tmp5;
+      let scrut, token, scrut1, token1, scrut2, tree1, scrut3, process, rest, shouldParse, scrut4, arg$Some$0$, arg$Cons$0$1, arg$Identifier$0$, arg$Identifier$1$, tmp, tmp1, arg$Cons$0$2, arg$Identifier$0$1, arg$Identifier$1$1, tmp2, tmp3, arg$Some$0$1, arg$Ref$0$, arg$Ref$1$, arg$Ref$2$, arg$Ref$3$, arg$Ref$4$, tmp4, tmp5;
       switch (kind) {
         case "type":
           return expr(prec, Parser.#typeOptions);
@@ -135,13 +135,15 @@ let Parser1;
             arg$Ref$4$ = arg$Some$0$1.rest;
             if (arg$Ref$2$ instanceof Option.None.class) {
               if (arg$Ref$3$ instanceof Option.None.class) {
+                rest = arg$Ref$4$;
+                process = arg$Ref$1$;
                 scrut4 = Predef.equals(kind, arg$Ref$0$);
                 if (scrut4 === true) {
                   shouldParse = true;
                   lbl: while (true) {
                     let tree$_, scrut5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
                     if (shouldParse === true) {
-                      tree$_ = parseRule(prec, arg$Ref$4$);
+                      tree$_ = parseRule(prec, rest);
                       scrut5 = Tree.nonEmpty(tree$_);
                       if (scrut5 === true) {
                         tmp6 = ">>> " + kind;
@@ -152,7 +154,7 @@ let Parser1;
                         tmp11 = tmp9 + tmp10;
                         tmp12 = tmp11 + " <<<";
                         Parser.tracer.print(tmp12, 76);
-                        tmp13 = runtime.safeCall(arg$Ref$1$(tree1, tree$_));
+                        tmp13 = runtime.safeCall(process(tree1, tree$_));
                         tree1 = tmp13;
                         continue lbl
                       }
@@ -522,13 +524,12 @@ let Parser1;
         return tmp5 + tmp6
       });
       lambda3 = (undefined, function () {
-        let symbolic, scrut, scrut1, scrut2, scrut3, scrut4, token, arg$Cons$0$1, arg$Literal$0$, arg$Literal$1$, arg$Identifier$0$, arg$Identifier$1$, arg$Some$0$, arg$Some$0$1, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
+        let scrut, scrut1, scrut2, scrut3, scrut4, token, arg$Cons$0$1, arg$Literal$0$, arg$Literal$1$, arg$Identifier$0$, arg$Identifier$1$, arg$Some$0$, arg$Some$0$1, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
         if (tokens instanceof Stack.Cons.class) {
           arg$Cons$0$1 = tokens.head;
           if (arg$Cons$0$1 instanceof Token.Identifier.class) {
             arg$Identifier$0$ = arg$Cons$0$1.name;
             arg$Identifier$1$ = arg$Cons$0$1.symbolic;
-            symbolic = arg$Identifier$1$;
             tmp5 = MutMap.get(arg$Identifier$0$);
             scrut = Predef.pipeInto(Keywords.all, tmp5);
             if (scrut instanceof Option.Some.class) {
@@ -556,7 +557,7 @@ let Parser1;
             } else if (scrut instanceof Option.None.class) {
               scrut3 = ! options.allowOperators;
               if (scrut3 === true) {
-                if (symbolic === true) {
+                if (arg$Identifier$1$ === true) {
                   tmp11 = "symbolic identifiers are disallowed in kind \"" + options.kind;
                   tmp12 = tmp11 + "\"";
                   return Tree.error(tmp12)
@@ -2164,7 +2165,7 @@ let Parser1;
       throw globalThis.Object.freeze(new globalThis.Error("match error"))
     };
     handleDirective = function handleDirective(tree1, acc) {
-      let name, tree2, tree3, arg$Define$0$, arg$Define$1$, arg$Cons$0$1, arg$Cons$1$, element1$, element0$, arg$Ident$0$, tmp, tmp1;
+      let tree2, tree3, arg$Define$0$, arg$Define$1$, arg$Cons$0$1, arg$Cons$1$, element1$, element0$, arg$Ident$0$, tmp, tmp1;
       split_1$: {
         if (tree1 instanceof Tree.Define.class) {
           arg$Define$0$ = tree1.kind;
@@ -2178,8 +2179,7 @@ let Parser1;
                 element1$ = runtime.Tuple.get(arg$Cons$0$1, 1);
                 if (arg$Cons$1$ instanceof Stack.Nil.class) {
                   tree2 = tree1;
-                  name = element0$;
-                  if (name instanceof Tree.Ident.class) {
+                  if (element0$ instanceof Tree.Ident.class) {
                     arg$Ident$0$ = element0$.name;
                     switch (arg$Ident$0$) {
                       case "newKeyword":

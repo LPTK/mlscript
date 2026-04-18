@@ -413,7 +413,15 @@ class BlockSimplifier
     val atLabelEnd: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
-      mergeMap(ar1, ar2)(_.merge(_)).withDefaultValue(Unknown)
+      // mergeMap(ar1, ar2)(_.merge(_)).withDefaultValue(Unknown)
+      ar1.iterator
+        .map: (k, v) =>
+          k -> v.merge(ar2(k))
+        .++(ar2.iterator.filterNot(ar1 contains _._1).map: (k, v) =>
+          k -> ar1(k).merge(v)
+        )
+        .toMap
+        .withDefaultValue(Unknown)
     
     
     val liveAssignments: IdentityHashMap[Block, Unit] = new IdentityHashMap()

@@ -236,7 +236,7 @@ let life1;
     return NofibPrelude.lazy(lambda)
   } 
   static elt(a_b_c, d_e_f, g_h_i) {
-    let tot, scrut, scrut1, element2$, element1$, element0$, element2$1, element1$1, element0$1, element2$2, element1$2, element0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+    let tot, scrut, element2$, element1$, element0$, element2$1, element1$1, element0$1, element2$2, element1$2, element0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
     if (runtime.Tuple.isArrayLike(a_b_c) && a_b_c.length === 3) {
       element0$ = runtime.Tuple.get(a_b_c, 0);
       element1$ = runtime.Tuple.get(a_b_c, 1);
@@ -262,12 +262,11 @@ let life1;
           } else {
             tmp7 = true;
           }
-          scrut = tmp7;
-          if (scrut === true) {
+          if (tmp7 === true) {
             return 0
           }
-          scrut1 = tot === 3;
-          if (scrut1 === true) {
+          scrut = tot === 3;
+          if (scrut === true) {
             return 1
           }
           return element1$1;

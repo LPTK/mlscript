@@ -246,14 +246,13 @@ let minimax1;
   }
   static andd(ls) {
     loopLabel: while (true) {
-      let b, arg$Cons$0$, arg$Cons$1$;
+      let arg$Cons$0$, arg$Cons$1$;
       if (ls instanceof NofibPrelude.Nil.class) {
         return true
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        b = arg$Cons$0$;
-        if (b === true) {
+        if (arg$Cons$0$ === true) {
           ls = arg$Cons$1$;
           continue loopLabel
         }

@@ -77,9 +77,7 @@ let Example1;
     return "other";
   } 
   static assertFail() {
-    let scrut;
-    scrut = false;
-    if (scrut === true) {
+    if (false === true) {
       return runtime.Unit
     }
     return runtime.assertFail("mlscript-compile/Example.mls", "27");

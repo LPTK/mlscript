@@ -57,7 +57,7 @@ let Wasm1;
     return runtime.safeCall(tmp3.then(lambda))
   } 
   static unwrapWasmException(err, tag) {
-    let scrut, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+    let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
     tmp = err !== null;
     if (tmp === true) {
       tmp1 = err !== undefined;
@@ -81,8 +81,7 @@ let Wasm1;
     } else {
       tmp6 = false;
     }
-    scrut = tmp6;
-    if (scrut === true) {
+    if (tmp6 === true) {
       return err.getArg(tag, 0)
     }
     return err;

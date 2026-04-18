@@ -57,7 +57,7 @@ fun next() =
 
 
 
-:dopt
+// :dopt
 :sir
 :soir
 fun f(x) =
@@ -83,97 +83,6 @@ fun f(x) =
 //│   end
 //│ };
 //│ end
-//│ ⬤ Simplif. iter. 1
-//│ Captured variables: HashSet(tmp:runtime)
-//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Match(Ref(x,None),List((Lit(IntLit(0)),Assign(x,Lit(IntLit(1)),End()))),None,Match(Ref(x,None),List((Lit(IntLit(1)),Begin(Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),End()),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)))),Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)),End(Rest moved to non-abortive branch(es))))),End())) with map: Map()
-//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Match(Ref(x,None),List((Lit(IntLit(0)),Assign(x,Lit(IntLit(1)),End()))),None,Match(Ref(x,None),List((Lit(IntLit(1)),Begin(Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),End()),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)))),Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)),End(Rest moved to non-abortive branch(es))))),End()) with map: Map()
-//│ | | Applying block: Match(Ref(x,None),List((Lit(IntLit(0)),Assign(x,Lit(IntLit(1)),End()))),None,Match(Ref(x,None),List((Lit(IntLit(1)),Begin(Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),End()),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)))),Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)),End(Rest moved to non-abortive branch(es)))) with map: Map()
-//│ | | | ?? x⁰ None false false
-//│ | | | Analysis: litValue: false, unchanged vars: Set()
-//│ | | | Applying block: Assign(x,Lit(IntLit(1)),End()) with map: Map()
-//│ | | | | Propagating x := Lit(IntLit(1)) (None)
-//│ | | | | NEW assignedResults: Map(x -> Lit(IntLit(1)))
-//│ | | | | Applying block: End() with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | Match: None
-//│ | | | After match: Map(x -> Lit(IntLit(1)))
-//│ | | | Applying block: Match(Ref(x,None),List((Lit(IntLit(1)),Begin(Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),End()),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)))),Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)),End(Rest moved to non-abortive branch(es))) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | ?? x⁰ Some(Lit(IntLit(1))) false false
-//│ | | | | Analysis: litValue: Lit(IntLit(1)), unchanged vars: Set()
-//│ | | | | !! Change triggered { x⁰ ~> 1 } at BlockSimplifier.scala:613
-//│ | | | | Applying block: Begin(Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),End()),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | | Applying block: Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),End()) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | | | Not propagating ‹no symbol› := Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!)))))
-//│ | | | | | | Applying block: End() with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | | | Applying block: Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | | Applying block: Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | | Match: Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false))
-//│ | | | | After match: Map(x -> Lit(IntLit(1)))
-//│ | | | | Applying block: End(Rest moved to non-abortive branch(es)) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | |= Map(x -> Lit(IntLit(1)))
-//│ | | Applying block: End() with map: Map()
-//│ | | |= Map()
-//│ | |= Map()
-//│ |= Map()
-//│ ▶ VP:
-//│ >  let f²;
-//│ >  define f² as fun f³(x) {
-//│ >    match x
-//│ >      0 =>
-//│ >        set x = 1;
-//│ >        end
-//│ >    match 1
-//│ >      1 =>
-//│ >        begin
-//│ >          do Predef⁰.print⁰("!");
-//│ >          end;
-//│ >        return runtime⁰.Unit⁰
-//│ >      else
-//│ >        return runtime⁰.Unit⁰
-//│ >    end
-//│ >  };
-//│ >  end
-//│ ⬤ Simplif. iter. 2
-//│ Captured variables: HashSet(tmp:runtime)
-//│ Applying block: Scoped(Set(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Match(Ref(x,None),List((Lit(IntLit(0)),Assign(x,Lit(IntLit(1)),End()))),None,Match(Lit(IntLit(1)),List((Lit(IntLit(1)),Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)))),Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)),End(Rest moved to non-abortive branch(es))))),End())) with map: Map()
-//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Match(Ref(x,None),List((Lit(IntLit(0)),Assign(x,Lit(IntLit(1)),End()))),None,Match(Lit(IntLit(1)),List((Lit(IntLit(1)),Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)))),Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)),End(Rest moved to non-abortive branch(es))))),End()) with map: Map()
-//│ | | Applying block: Match(Ref(x,None),List((Lit(IntLit(0)),Assign(x,Lit(IntLit(1)),End()))),None,Match(Lit(IntLit(1)),List((Lit(IntLit(1)),Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)))),Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)),End(Rest moved to non-abortive branch(es)))) with map: Map()
-//│ | | | ?? x⁰ None false false
-//│ | | | Analysis: litValue: false, unchanged vars: Set()
-//│ | | | Applying block: Assign(x,Lit(IntLit(1)),End()) with map: Map()
-//│ | | | | Propagating x := Lit(IntLit(1)) (None)
-//│ | | | | NEW assignedResults: Map(x -> Lit(IntLit(1)))
-//│ | | | | Applying block: End() with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | Match: None
-//│ | | | After match: Map(x -> Lit(IntLit(1)))
-//│ | | | Applying block: Match(Lit(IntLit(1)),List((Lit(IntLit(1)),Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)))),Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)),End(Rest moved to non-abortive branch(es))) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | Applying block: Assign(‹no symbol›,Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!))))),Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false)) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | | Not propagating ‹no symbol› := Call(Select(Ref(member:Predef,Some(module:Predef)),Ident(print)),List(Arg(None,Lit(StrLit(!)))))
-//│ | | | | | Applying block: Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | | Applying block: Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | | Match: Some(Return(Select(Ref(tmp:runtime,None),Ident(Unit)),false))
-//│ | | | | After match: Map(x -> Lit(IntLit(1)))
-//│ | | | | Applying block: End(Rest moved to non-abortive branch(es)) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | |= Map(x -> Lit(IntLit(1)))
-//│ | | Applying block: End() with map: Map()
-//│ | | |= Map()
-//│ | |= Map()
-//│ |= Map()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f²;
 //│ define f² as fun f³(x) {
@@ -181,7 +90,7 @@ fun f(x) =
 //│     0 =>
 //│       set x = 1;
 //│       end
-//│   match 1
+//│   match x
 //│     1 =>
 //│       do Predef⁰.print⁰("!");
 //│       return runtime⁰.Unit⁰

@@ -88,7 +88,7 @@ let BasicExpr1;
     return BasicExpr.Err(Option.None, msg)
   } 
   static prettyPrint(tree) {
-    let left, right, arg$Err$0$, arg$Err$1$, arg$Some$0$, arg$Mul$0$, arg$Mul$1$, arg$Add$0$, arg$Add$1$, arg$Var$0$, arg$Lit$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
+    let arg$Err$0$, arg$Err$1$, arg$Some$0$, arg$Mul$0$, arg$Mul$1$, arg$Add$0$, arg$Add$1$, arg$Var$0$, arg$Lit$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15;
     if (tree instanceof BasicExpr.Lit.class) {
       arg$Lit$0$ = tree.value;
       return runtime.safeCall(arg$Lit$0$.toString())
@@ -105,17 +105,15 @@ let BasicExpr1;
     } else if (tree instanceof BasicExpr.Mul.class) {
       arg$Mul$0$ = tree.left;
       arg$Mul$1$ = tree.right;
-      right = arg$Mul$1$;
-      left = arg$Mul$0$;
       tmp3 = BasicExpr.prettyPrint(arg$Mul$0$);
-      if (left instanceof BasicExpr.Add.class) {
+      if (arg$Mul$0$ instanceof BasicExpr.Add.class) {
         tmp4 = true;
       } else {
         tmp4 = false;
       }
       tmp5 = StrOps.parenthesizedIf(tmp3, tmp4);
       tmp6 = BasicExpr.prettyPrint(arg$Mul$1$);
-      if (right instanceof BasicExpr.Add.class) {
+      if (arg$Mul$1$ instanceof BasicExpr.Add.class) {
         tmp7 = true;
       } else {
         tmp7 = false;

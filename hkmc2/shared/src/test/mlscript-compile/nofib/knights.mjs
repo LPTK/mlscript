@@ -990,7 +990,7 @@ let knights1;
     return lscomp(tmp)
   } 
   static descendents(board) {
-    let scrut, singles, scrut1, scrut2, scrut3, h, tmp, tmp1, tmp2, tmp3, lambda, tmp4, tmp5, tmp6, arg$Cons$0$, arg$Cons$1$, lambda1, tmp7, lambda2;
+    let singles, scrut, scrut1, scrut2, h, tmp, tmp1, tmp2, tmp3, lambda, tmp4, tmp5, tmp6, arg$Cons$0$, arg$Cons$1$, lambda1, tmp7, lambda2;
     tmp = knights.canJumpFirst(board);
     if (tmp === true) {
       tmp2 = knights.firstPiece(board);
@@ -999,24 +999,23 @@ let knights1;
     } else {
       tmp1 = false;
     }
-    scrut = tmp1;
-    if (scrut === true) {
+    if (tmp1 === true) {
       lambda = (undefined, function () {
         return NofibPrelude.LzNil
       });
       return NofibPrelude.lazy(lambda)
     }
     singles = knights.singleDescend(board);
-    scrut1 = NofibPrelude.listLen(singles);
-    scrut2 = scrut1 === 0;
-    if (scrut2 === true) {
+    scrut = NofibPrelude.listLen(singles);
+    scrut1 = scrut === 0;
+    if (scrut1 === true) {
       tmp4 = knights.descAndNo(board);
       tmp5 = knights.quickSortIntChessSet(tmp4);
       tmp6 = NofibPrelude.map_lz(NofibPrelude.snd, tmp5);
       return tmp6
     }
-    scrut3 = scrut1 === 1;
-    if (scrut3 === true) {
+    scrut2 = scrut === 1;
+    if (scrut2 === true) {
       if (singles instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = singles.head;
         arg$Cons$1$ = singles.tail;
@@ -1262,23 +1261,22 @@ let knights1;
     throw runtime.safeCall(globalThis.Error("printTour error"));
   } 
   static testKnights_nofib(ss) {
-    let scrut, inlinedVal, tmp, tmp1, lambda;
+    let inlinedVal, tmp, tmp1, lambda;
     tmp = NofibPrelude.listLen(ss);
     tmp1 = tmp === 2;
     if (tmp1 === true) {
       lambda = (undefined, function (a, b) {
-        let tmp2, inlinedVal1, lambda1;
+        let inlinedVal1, lambda1;
         lambda1 = (undefined, function (a1, b1) {
-          let tmp3;
-          tmp3 = knights.myIsDigit(a1);
-          if (tmp3 === true) {
+          let tmp2;
+          tmp2 = knights.myIsDigit(a1);
+          if (tmp2 === true) {
             return b1
           }
           return false;
         });
         inlinedVal1 = NofibPrelude.foldr(lambda1, true, a);
-        tmp2 = inlinedVal1;
-        if (tmp2 === true) {
+        if (inlinedVal1 === true) {
           return b
         }
         return false;
@@ -1287,8 +1285,7 @@ let knights1;
     } else {
       inlinedVal = false;
     }
-    scrut = inlinedVal;
-    if (scrut === true) {
+    if (inlinedVal === true) {
       return knights.printTour(ss)
     }
     throw runtime.safeCall(globalThis.Error("\nUsage: knights <board size> <no solutions> \n"));

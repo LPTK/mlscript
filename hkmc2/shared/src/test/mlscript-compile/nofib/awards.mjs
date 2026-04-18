@@ -244,14 +244,13 @@ let awards1;
     return NofibPrelude.append(tmp2, tmp7)
   } 
   static findawards(scores) {
-    let scrut, head_, arg$Cons$0$, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
+    let scrut, arg$Cons$0$, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3;
     scrut = awards.awards(scores);
     if (scrut instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (scrut instanceof NofibPrelude.Cons.class) {
       arg$Cons$0$ = scrut.head;
-      head_ = arg$Cons$0$;
-      if (runtime.Tuple.isArrayLike(head_) && head_.length === 2) {
+      if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
         element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
         element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
         if (runtime.Tuple.isArrayLike(element1$) && element1$.length === 2) {

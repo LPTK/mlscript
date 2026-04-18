@@ -210,7 +210,7 @@ let Token2;
           scrut2 = begin < end;
           if (scrut2 === true) {
             tmp4 = runtime.safeCall(this.#lines.at(mid));
-            scrut3 = 0 <= tmp4;
+            scrut3 = index <= tmp4;
             if (scrut3 === true) {
               end = mid;
             } else {
@@ -233,7 +233,7 @@ let Token2;
           tmp3 = mid - 1;
           tmp2 = runtime.safeCall(this.#lines.at(tmp3));
         }
-        column = 0 - tmp2;
+        column = index - tmp2;
         return globalThis.Object.freeze([
           line,
           column

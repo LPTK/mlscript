@@ -619,7 +619,7 @@ let Term2;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let scrut, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+          let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
           if (param0 instanceof Term.Ref.class) {
             tmp = true;
           } else {
@@ -655,8 +655,7 @@ let Term2;
           } else {
             tmp5 = true;
           }
-          scrut = tmp5;
-          if (scrut === true) {
+          if (tmp5 === true) {
             id = 2;
             continue loopLabel
           }
@@ -701,7 +700,7 @@ let Term2;
           }
           throw globalThis.Object.freeze(new globalThis.Error("match error"));
         case 2:
-          let file, nest1, freshParams, nest2, arg$IfLike$0$, arg$IfLike$1$, arg$Blk$0$, arg$Blk$1$, arg$Lam$0$, arg$Lam$1$, arg$Tup$0$, arg$App$0$, arg$App$1$, arg$Sel$0$, arg$Sel$1$, arg$Builtin$0$, arg$Lit$0$, arg$CSRef$0$, arg$CSRef$1$, arg$CSRef$2$, arg$Symbol$0$, arg$Ref$0$, tmp15, tmp16, tmp17, tmp18, tmp19, lambda, tmp20, tmp21, lambda1, tmp22, tmp23, tmp24, lambda2, tmp25, tmp26, tmp27, tmp28, tmp29, ctx;
+          let nest1, freshParams, nest2, arg$IfLike$0$, arg$IfLike$1$, arg$Blk$0$, arg$Blk$1$, arg$Lam$0$, arg$Lam$1$, arg$Tup$0$, arg$App$0$, arg$App$1$, arg$Sel$0$, arg$Sel$1$, arg$Builtin$0$, arg$Lit$0$, arg$CSRef$0$, arg$CSRef$1$, arg$CSRef$2$, arg$Symbol$0$, arg$Ref$0$, tmp15, tmp16, tmp17, tmp18, tmp19, lambda, tmp20, tmp21, lambda1, tmp22, tmp23, tmp24, lambda2, tmp25, tmp26, tmp27, tmp28, tmp29, ctx;
           ctx = param1;
           if (param0 instanceof Term.Ref.class) {
             arg$Ref$0$ = param0.sym;
@@ -712,8 +711,7 @@ let Term2;
             arg$CSRef$2$ = param0.file;
             if (arg$CSRef$0$ instanceof Term.Symbol.class) {
               arg$Symbol$0$ = arg$CSRef$0$.name;
-              file = arg$CSRef$2$;
-              if (file === undefined) {
+              if (arg$CSRef$2$ === undefined) {
                 runtime.safeCall(ctx.depends(arg$CSRef$1$));
                 return arg$Symbol$0$
               }

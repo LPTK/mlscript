@@ -604,14 +604,13 @@ let banner1;
   static picChar(c) {
     let lscomp, scrut, scrut1, scrut2, scrut3, scrut4, scrut5, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
     lscomp = function lscomp(ls) {
-      let h, scrut6, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp13;
+      let scrut6, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp13;
       if (ls instanceof NofibPrelude.Nil.class) {
         return NofibPrelude.Nil
       } else if (ls instanceof NofibPrelude.Cons.class) {
         arg$Cons$0$ = ls.head;
         arg$Cons$1$ = ls.tail;
-        h = arg$Cons$0$;
-        if (runtime.Tuple.isArrayLike(h) && h.length === 2) {
+        if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {
           element0$ = runtime.Tuple.get(arg$Cons$0$, 0);
           element1$ = runtime.Tuple.get(arg$Cons$0$, 1);
           scrut6 = element0$ === c;

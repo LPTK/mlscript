@@ -24,11 +24,13 @@ let x = true in if x then 1 else 0
 //│ | | Applying block: Match(Ref(x,None),List((Lit(BoolLit(true)),Return(Lit(IntLit(1)),true))),Some(Return(Lit(IntLit(0)),true)),End(Rest moved to non-abortive branch(es))) with map: Map(x -> Lit(BoolLit(true)))
 //│ | | | ?? x⁰ Some(Lit(BoolLit(true))) true false
 //│ | | | Analysis: litValue: Lit(BoolLit(true)), unchanged vars: Set()
-//│ | | | !! Change triggered { x⁰ ~> true } at BlockSimplifier.scala:611
+//│ | | | !! Change triggered { x⁰ ~> true } at BlockSimplifier.scala:621
 //│ | | | Applying block: Return(Lit(IntLit(1)),true) with map: Map(x -> Lit(BoolLit(true)))
 //│ | | | |= Map(x -> Lit(BoolLit(true)))
 //│ | | | Applying block: Return(Lit(IntLit(0)),true) with map: Map(x -> Lit(BoolLit(true)))
 //│ | | | |= Map(x -> Lit(BoolLit(true)))
+//│ | | | Match: Some(Return(Lit(IntLit(0)),true))
+//│ | | | After match: Map(x -> Lit(BoolLit(true)))
 //│ | | | Applying block: End(Rest moved to non-abortive branch(es)) with map: Map(x -> Lit(BoolLit(true)))
 //│ | | | |= Map(x -> Lit(BoolLit(true)))
 //│ | | |= Map(x -> Lit(BoolLit(true)))
@@ -46,6 +48,8 @@ let x = true in if x then 1 else 0
 //│ | |= Map()
 //│ | Applying block: Return(Lit(IntLit(0)),true) with map: Map()
 //│ | |= Map()
+//│ | Match: Some(Return(Lit(IntLit(0)),true))
+//│ | After match: Map()
 //│ | Applying block: End(Rest moved to non-abortive branch(es)) with map: Map()
 //│ | |= Map()
 //│ |= Map()
@@ -56,6 +60,8 @@ let x = true in if x then 1 else 0
 //│ | |= Map()
 //│ | Applying block: Return(Lit(IntLit(0)),true) with map: Map()
 //│ | |= Map()
+//│ | Match: Some(Return(Lit(IntLit(0)),true))
+//│ | After match: Map()
 //│ | Applying block: End(Rest moved to non-abortive branch(es)) with map: Map()
 //│ | |= Map()
 //│ |= Map()

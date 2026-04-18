@@ -217,7 +217,7 @@ let mandel21;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static check_perim(x1y1, x2y2) {
-    let check_line, col1, y1, x1, x2, y2, scrut, col2, col3, col4, corners_diff, scrut1, scrut2, scrut3, scrut4, scrut5, scrut6, scrut7, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
+    let check_line, col1, y1, x1, x2, y2, scrut, col2, col3, col4, scrut1, scrut2, scrut3, scrut4, scrut5, scrut6, scrut7, element1$, element0$, element1$1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
     col1 = mandel2.point_colour(x1y1);
     if (runtime.Tuple.isArrayLike(x1y1) && x1y1.length === 2) {
       element0$ = runtime.Tuple.get(x1y1, 0);
@@ -230,7 +230,7 @@ let mandel21;
         y2 = element1$1;
         x2 = element0$1;
         check_line = function check_line(xcyc, xdyd) {
-          let finished, scrut8, scrut9, scrut10, scrut11, element1$2, element0$2, element1$3, element0$3, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17;
+          let scrut8, scrut9, scrut10, scrut11, element1$2, element0$2, element1$3, element0$3, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17;
           if (runtime.Tuple.isArrayLike(xcyc) && xcyc.length === 2) {
             element0$2 = runtime.Tuple.get(xcyc, 0);
             element1$2 = runtime.Tuple.get(xcyc, 1);
@@ -253,8 +253,7 @@ let mandel21;
                   }
                 }
               }
-              finished = tmp11;
-              if (finished === true) {
+              if (tmp11 === true) {
                 return true
               }
               tmp12 = mandel2.point_colour(xcyc);
@@ -310,8 +309,7 @@ let mandel21;
         } else {
           tmp2 = true;
         }
-        corners_diff = tmp2;
-        if (corners_diff === true) {
+        if (tmp2 === true) {
           return - 1
         }
         tmp3 = x1 + 1;

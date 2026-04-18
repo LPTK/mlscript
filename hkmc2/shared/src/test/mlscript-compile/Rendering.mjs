@@ -169,7 +169,7 @@ let Rendering1;
     }
   } 
   static render(target, ...args) {
-    let indentText, renderRecordLike, renderObject, renderValue, renderSequence, options, indent, indent1, scrut, breakLength, breakLength1, scrut1, padding, circularCounter, visitingObjects, visitedObjects, element0$, tmp, field_indent$, tmp1, field_breakLength$, tmp2, field_padding$, tmp3;
+    let indentText, renderRecordLike, renderObject, renderValue, renderSequence, indent, scrut, breakLength, scrut1, padding, circularCounter, visitingObjects, visitedObjects, element0$, tmp, field_indent$, tmp1, field_breakLength$, tmp2, field_padding$, tmp3;
     indentText = function indentText(text, currentLevel) {
       let indents, tmp4, tmp5, lambda, tmp6;
       if (indent === null) {
@@ -354,7 +354,7 @@ let Rendering1;
         return i >= length
       };
       lambda1 = (undefined, function (isFirst, prefixLength) {
-        let key, desc, scrut2, dryRunStartPos, scrut3, valueStr, setter, getter, tmp7, tmp8, field_set$, field_get$, field_value$, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
+        let key, desc, scrut2, dryRunStartPos, scrut3, valueStr, tmp7, tmp8, field_set$, field_get$, field_value$, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
         key = entries.at(i)[0];
         desc = entries.at(i)[1];
         runtime.safeCall(skipNonEnumerable());
@@ -395,15 +395,13 @@ let Rendering1;
               field_get$ = desc.get;
               if ("set" in desc) {
                 field_set$ = desc.set;
-                setter = field_set$;
-                getter = field_get$;
-                if (setter === undefined) {
+                if (field_set$ === undefined) {
                   return globalThis.Object.freeze([
                     tmp8,
                     "[Getter]"
                   ])
                 }
-                if (getter === undefined) {
+                if (field_get$ === undefined) {
                   return globalThis.Object.freeze([
                     tmp8,
                     "[Setter]"
@@ -433,15 +431,13 @@ let Rendering1;
             field_get$ = desc.get;
             if ("set" in desc) {
               field_set$ = desc.set;
-              setter = field_set$;
-              getter = field_get$;
-              if (setter === undefined) {
+              if (field_set$ === undefined) {
                 return globalThis.Object.freeze([
                   tmp8,
                   "[Getter]"
                 ])
               }
-              if (getter === undefined) {
+              if (field_get$ === undefined) {
                 return globalThis.Object.freeze([
                   tmp8,
                   "[Setter]"
@@ -594,7 +590,7 @@ let Rendering1;
       return runtime.safeCall(lambda());
     };
     renderValue = function renderValue(arg, level, keyLength, startPos) {
-      let scrut2, scrut3, scrut4, scrut5, scrut6, index, desc, scrut7, scrut8, scrut9, scrut10, scrut11, properties, scrut12, scrut13, scrut14, scrut15, scrut16, definitionMetadata1, kind, body, head, scrut17, scrut18, scrut19, result, scrut20, tmp4, tmp5, element1$, element0$1, element2$, tmp6, tmp7, element1$1, element0$2, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      let scrut2, scrut3, scrut4, scrut5, scrut6, index, desc, scrut7, scrut8, scrut9, scrut10, scrut11, properties, scrut12, scrut13, scrut14, scrut15, scrut16, definitionMetadata1, body, head, scrut17, scrut18, scrut19, result, scrut20, tmp4, tmp5, element1$, element0$1, element2$, tmp6, tmp7, element1$1, element0$2, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
       split_1$: {
         if (arg === undefined) {
           return "undefined"
@@ -983,8 +979,7 @@ let Rendering1;
                     } else if (runtime.Tuple.isArrayLike(definitionMetadata1) && definitionMetadata1.length === 2) {
                       element0$1 = runtime.Tuple.get(definitionMetadata1, 0);
                       element1$ = runtime.Tuple.get(definitionMetadata1, 1);
-                      kind = element0$1;
-                      switch (kind) {
+                      switch (element0$1) {
                         case "class":
                           tmp14 = element1$;
                           break;
@@ -1056,14 +1051,12 @@ let Rendering1;
     } else {
       tmp = Rendering.#emptyOptions;
     }
-    options = tmp;
-    if (options instanceof Object) {
-      if ("indent" in options) {
+    if (tmp instanceof Object) {
+      if ("indent" in tmp) {
         field_indent$ = tmp.indent;
-        indent1 = field_indent$;
-        if (indent1 === true) {
+        if (field_indent$ === true) {
           tmp1 = "  ";
-        } else if (globalThis.Number.isInteger(indent1)) {
+        } else if (globalThis.Number.isInteger(field_indent$)) {
           scrut = field_indent$ > 0;
           if (scrut === true) {
             tmp1 = runtime.safeCall((" ").repeat(field_indent$));
@@ -1083,11 +1076,10 @@ let Rendering1;
     if (indent === null) {
       tmp2 = globalThis.Number.POSITIVE_INFINITY;
     } else {
-      if (options instanceof Object) {
-        if ("breakLength" in options) {
+      if (tmp instanceof Object) {
+        if ("breakLength" in tmp) {
           field_breakLength$ = tmp.breakLength;
-          breakLength1 = field_breakLength$;
-          if (globalThis.Number.isInteger(breakLength1)) {
+          if (globalThis.Number.isInteger(field_breakLength$)) {
             scrut1 = field_breakLength$ > 0;
             if (scrut1 === true) {
               tmp2 = field_breakLength$;
@@ -1105,8 +1097,8 @@ let Rendering1;
       }
     }
     breakLength = tmp2;
-    if (options instanceof Object) {
-      if ("padding" in options) {
+    if (tmp instanceof Object) {
+      if ("padding" in tmp) {
         field_padding$ = tmp.padding;
         if (field_padding$ === true) {
           tmp3 = " ";

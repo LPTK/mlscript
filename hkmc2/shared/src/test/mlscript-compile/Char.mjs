@@ -16,7 +16,7 @@ let Char1;
         globalThis.Object.freeze(this);
       }
       unapply(input) {
-        let scrut, guardResult, tmp;
+        let scrut, tmp;
         if (typeof input === 'string') {
           scrut = input.length;
           if (scrut === 1) {
@@ -24,8 +24,7 @@ let Char1;
           } else {
             tmp = false;
           }
-          guardResult = tmp;
-          if (guardResult === true) {
+          if (tmp === true) {
             return globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null))
           }
           return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
@@ -33,7 +32,7 @@ let Char1;
         return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
       } 
       unapplyStringPrefix(input) {
-        let scrut, nonEmpty, stringHead, stringTail, guardResult, tmp, tmp1;
+        let scrut, nonEmpty, stringHead, stringTail, tmp, tmp1;
         nonEmpty = 0 < input.length;
         if (nonEmpty === true) {
           stringHead = runtime.Str.get(input, 0);
@@ -44,8 +43,7 @@ let Char1;
           } else {
             tmp = false;
           }
-          guardResult = tmp;
-          if (guardResult === true) {
+          if (tmp === true) {
             tmp1 = globalThis.Object.freeze([
               stringHead,
               stringTail
@@ -259,82 +257,66 @@ let Char1;
       }
       unapply(input) {
         let isGreaterThanLower, isLessThanUpper, isGreaterThanLower1, isLessThanUpper1, unapplyResult, output;
-        split_1$: {
-          unapplyResult = runtime.safeCall(Char.Digit.unapply(input));
-          if (unapplyResult instanceof runtime.MatchSuccess.class) {
-            output = unapplyResult.output;
-            unapplyResult.bindings;
-            return globalThis.Object.freeze(new runtime.MatchSuccess.class(output, null))
-          }
-          isGreaterThanLower1 = "a" <= input;
-          if (isGreaterThanLower1 === true) {
-            isLessThanUpper1 = input <= "f";
-            if (isLessThanUpper1 === true) {
-              break split_1$
-            }
-            isGreaterThanLower = "A" <= input;
-            if (isGreaterThanLower === true) {
-              isLessThanUpper = input <= "F";
-              if (isLessThanUpper === true) {
-                break split_1$
-              }
-            }
-            return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
+        unapplyResult = runtime.safeCall(Char.Digit.unapply(input));
+        if (unapplyResult instanceof runtime.MatchSuccess.class) {
+          output = unapplyResult.output;
+          unapplyResult.bindings;
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(output, null))
+        }
+        isGreaterThanLower1 = "a" <= input;
+        if (isGreaterThanLower1 === true) {
+          isLessThanUpper1 = input <= "f";
+          if (isLessThanUpper1 === true) {
+            return globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null))
           }
           isGreaterThanLower = "A" <= input;
           if (isGreaterThanLower === true) {
             isLessThanUpper = input <= "F";
-            if (isLessThanUpper === true) {
-              break split_1$
+            if (isLessThanUpper !== true) {
+              return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
             }
+          } else {
             return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
           }
-          return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null));
         }
-        return globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null))
+        isGreaterThanLower = "A" <= input;
+        if (isGreaterThanLower === true) {
+          isLessThanUpper = input <= "F";
+          if (isLessThanUpper !== true) {
+            return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+          }
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null))
+        }
+        return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
       } 
       unapplyStringPrefix(input) {
         let stringHead, stringTail, nonEmpty, isGreaterThanLower, isLessThanUpper, stringHead1, stringTail1, nonEmpty1, isGreaterThanLower1, isLessThanUpper1, output, remaining, unapplyResult, outputPair, tmp, tmp1, tmp2;
-        split_1$: {
-          unapplyResult = runtime.safeCall(Char.Digit.unapplyStringPrefix(input));
-          if (unapplyResult instanceof runtime.MatchSuccess.class) {
-            outputPair = unapplyResult.output;
-            unapplyResult.bindings;
-            output = runtime.Tuple.get(outputPair, 0);
-            remaining = runtime.Tuple.get(outputPair, 1);
-            tmp = globalThis.Object.freeze([
-              output,
-              remaining
-            ]);
-            return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp, null))
-          }
-          nonEmpty1 = 0 < input.length;
-          if (nonEmpty1 === true) {
-            stringHead1 = runtime.Str.get(input, 0);
-            stringTail1 = runtime.Str.leave(input, 1);
-            isGreaterThanLower1 = "a" <= stringHead1;
-            if (isGreaterThanLower1 === true) {
-              isLessThanUpper1 = stringHead1 <= "f";
-              if (isLessThanUpper1 === true) {
-                tmp1 = globalThis.Object.freeze([
-                  stringHead1,
-                  stringTail1
-                ]);
-                return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp1, null))
-              }
-              nonEmpty = 0 < input.length;
-              if (nonEmpty === true) {
-                stringHead = runtime.Str.get(input, 0);
-                stringTail = runtime.Str.leave(input, 1);
-                isGreaterThanLower = "A" <= stringHead;
-                if (isGreaterThanLower === true) {
-                  isLessThanUpper = stringHead <= "F";
-                  if (isLessThanUpper === true) {
-                    break split_1$
-                  }
-                }
-              }
-              return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+        unapplyResult = runtime.safeCall(Char.Digit.unapplyStringPrefix(input));
+        if (unapplyResult instanceof runtime.MatchSuccess.class) {
+          outputPair = unapplyResult.output;
+          unapplyResult.bindings;
+          output = runtime.Tuple.get(outputPair, 0);
+          remaining = runtime.Tuple.get(outputPair, 1);
+          tmp = globalThis.Object.freeze([
+            output,
+            remaining
+          ]);
+          return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp, null))
+        }
+        nonEmpty1 = 0 < input.length;
+        if (nonEmpty1 === true) {
+          stringHead1 = runtime.Str.get(input, 0);
+          stringTail1 = runtime.Str.leave(input, 1);
+          isGreaterThanLower1 = "a" <= stringHead1;
+          if (isGreaterThanLower1 === true) {
+            isLessThanUpper1 = stringHead1 <= "f";
+            if (isLessThanUpper1 === true) {
+              tmp1 = globalThis.Object.freeze([
+                stringHead1,
+                stringTail1
+              ]);
+              return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp1, null))
             }
             nonEmpty = 0 < input.length;
             if (nonEmpty === true) {
@@ -343,13 +325,34 @@ let Char1;
               isGreaterThanLower = "A" <= stringHead;
               if (isGreaterThanLower === true) {
                 isLessThanUpper = stringHead <= "F";
-                if (isLessThanUpper === true) {
-                  break split_1$
+                if (isLessThanUpper !== true) {
+                  return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
                 }
+              } else {
+                return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
               }
+            } else {
+              return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
             }
-            return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
+          } else {
+            nonEmpty = 0 < input.length;
+            if (nonEmpty === true) {
+              stringHead = runtime.Str.get(input, 0);
+              stringTail = runtime.Str.leave(input, 1);
+              isGreaterThanLower = "A" <= stringHead;
+              if (isGreaterThanLower === true) {
+                isLessThanUpper = stringHead <= "F";
+                if (isLessThanUpper !== true) {
+                  return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+                }
+              } else {
+                return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+              }
+            } else {
+              return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
+            }
           }
+        } else {
           nonEmpty = 0 < input.length;
           if (nonEmpty === true) {
             stringHead = runtime.Str.get(input, 0);
@@ -357,19 +360,21 @@ let Char1;
             isGreaterThanLower = "A" <= stringHead;
             if (isGreaterThanLower === true) {
               isLessThanUpper = stringHead <= "F";
-              if (isLessThanUpper === true) {
-                break split_1$
+              if (isLessThanUpper !== true) {
+                return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
               }
+            } else {
+              return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
             }
+          } else {
             return globalThis.Object.freeze(new runtime.MatchFailure.class(null))
           }
-          return globalThis.Object.freeze(new runtime.MatchFailure.class(null));
         }
         tmp2 = globalThis.Object.freeze([
           stringHead,
           stringTail
         ]);
-        return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp2, null))
+        return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp2, null));
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["pattern", "HexDigit"]; 

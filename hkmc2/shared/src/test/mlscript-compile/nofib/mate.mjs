@@ -570,7 +570,7 @@ let mate1;
     return NofibPrelude.concat(tmp)
   } 
   static lines(s) {
-    let scrut, s_, element1$, element0$, lambda, arg$Cons$1$, tmp;
+    let scrut, element1$, element0$, lambda, arg$Cons$1$, tmp;
     lambda = (undefined, function (x) {
       return x === "\n"
     });
@@ -578,11 +578,10 @@ let mate1;
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      s_ = element1$;
-      if (s_ instanceof NofibPrelude.Nil.class) {
+      if (element1$ instanceof NofibPrelude.Nil.class) {
         tmp = NofibPrelude.Nil;
         return NofibPrelude.Cons(element0$, tmp)
-      } else if (s_ instanceof NofibPrelude.Cons.class) {
+      } else if (element1$ instanceof NofibPrelude.Cons.class) {
         arg$Cons$1$ = element1$.tail;
         tmp = mate.lines(arg$Cons$1$);
         return NofibPrelude.Cons(element0$, tmp)
@@ -831,22 +830,21 @@ let mate1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static putPieceAt(sq, c_k, bd) {
-    let c, element1$, element0$, arg$Board$0$, arg$Board$1$, tmp, tmp1, tmp2, tmp3;
+    let element1$, element0$, arg$Board$0$, arg$Board$1$, tmp, tmp1, tmp2, tmp3;
     if (runtime.Tuple.isArrayLike(c_k) && c_k.length === 2) {
       element0$ = runtime.Tuple.get(c_k, 0);
       element1$ = runtime.Tuple.get(c_k, 1);
-      c = element0$;
       if (bd instanceof mate.Board.class) {
         arg$Board$0$ = bd.a;
         arg$Board$1$ = bd.b;
-        if (c instanceof mate.White.class) {
+        if (element0$ instanceof mate.White.class) {
           tmp = globalThis.Object.freeze([
             element1$,
             sq
           ]);
           tmp1 = NofibPrelude.Cons(tmp, arg$Board$0$);
           return mate.Board(tmp1, arg$Board$1$)
-        } else if (c instanceof mate.Black.class) {
+        } else if (element0$ instanceof mate.Black.class) {
           tmp2 = globalThis.Object.freeze([
             element1$,
             sq
@@ -922,7 +920,7 @@ let mate1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static onboard(p_q) {
-    let scrut, scrut1, scrut2, scrut3, scrut4, scrut5, element1$, element0$, tmp, tmp1;
+    let scrut, scrut1, scrut2, scrut3, element1$, element0$, tmp, tmp1;
     if (runtime.Tuple.isArrayLike(p_q) && p_q.length === 2) {
       element0$ = runtime.Tuple.get(p_q, 0);
       element1$ = runtime.Tuple.get(p_q, 1);
@@ -937,12 +935,11 @@ let mate1;
       } else {
         tmp = false;
       }
-      scrut2 = tmp;
-      if (scrut2 === true) {
-        scrut3 = element1$ >= 1;
-        if (scrut3 === true) {
-          scrut4 = element1$ <= 8;
-          if (scrut4 === true) {
+      if (tmp === true) {
+        scrut2 = element1$ >= 1;
+        if (scrut2 === true) {
+          scrut3 = element1$ <= 8;
+          if (scrut3 === true) {
             tmp1 = true;
           } else {
             tmp1 = false;
@@ -950,8 +947,7 @@ let mate1;
         } else {
           tmp1 = false;
         }
-        scrut5 = tmp1;
-        if (scrut5 === true) {
+        if (tmp1 === true) {
           return true
         }
         return false;
@@ -975,7 +971,7 @@ let mate1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static showMove(withPiece, m) {
-    let mcp, k, mpp, capt, scrut, scrut1, arg$MoveInFull$0$, arg$MoveInFull$1$, arg$MoveInFull$2$, element1$, element0$, arg$Move$0$, arg$Move$1$, arg$Move$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, lambda, tmp12, tmp13, lambda1, tmp14, tmp15, tmp16;
+    let scrut, arg$MoveInFull$0$, arg$MoveInFull$1$, arg$MoveInFull$2$, element1$, element0$, arg$Move$0$, arg$Move$1$, arg$Move$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, lambda, tmp12, tmp13, lambda1, tmp14, tmp15, tmp16;
     if (m instanceof mate.MoveInFull.class) {
       arg$MoveInFull$0$ = m.a;
       arg$MoveInFull$1$ = m.b;
@@ -987,16 +983,12 @@ let mate1;
           arg$Move$0$ = arg$MoveInFull$2$.a;
           arg$Move$1$ = arg$MoveInFull$2$.b;
           arg$Move$2$ = arg$MoveInFull$2$.c;
-          mpp = arg$Move$2$;
-          mcp = arg$Move$1$;
-          k = element1$;
-          if (mcp instanceof NofibPrelude.Some.class) {
+          if (arg$Move$1$ instanceof NofibPrelude.Some.class) {
             tmp = true;
           } else {
             tmp = false;
           }
-          capt = tmp;
-          if (mpp instanceof NofibPrelude.Some.class) {
+          if (arg$Move$2$ instanceof NofibPrelude.Some.class) {
             tmp1 = true;
           } else {
             tmp1 = false;
@@ -1009,8 +1001,8 @@ let mate1;
             tmp3 = mate.showPiece(tmp2);
             tmp4 = element1$ === mate.King;
             if (tmp4 === false) {
-              if (k instanceof mate.Pawn.class) {
-                if (capt === false) {
+              if (element1$ instanceof mate.Pawn.class) {
+                if (tmp === false) {
                   tmp6 = tmp1;
                 } else {
                   tmp6 = true;
@@ -1028,8 +1020,7 @@ let mate1;
             } else {
               tmp5 = true;
             }
-            scrut1 = tmp5;
-            if (scrut1 === true) {
+            if (tmp5 === true) {
               tmp8 = NofibPrelude.Nil;
             } else {
               tmp9 = mate.showSquare(element0$, arg$MoveInFull$1$);
@@ -1447,12 +1438,12 @@ let mate1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static pawnmoves(c, pq, bd) {
-    let promote, lscomp1, on1, on2, scrut, scrut1, scrut2, scrut3, scrut4, caps, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19;
+    let promote, lscomp1, on1, on2, scrut, scrut1, scrut2, scrut3, caps, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19;
     if (runtime.Tuple.isArrayLike(pq) && pq.length === 2) {
       element0$ = runtime.Tuple.get(pq, 0);
       element1$ = runtime.Tuple.get(pq, 1);
       promote = function promote(xy, mcp) {
-        let x, y, scrut5, scrut6, scrut7, scrut8, scrut9, element1$1, element0$1, tmp20, tmp21, tmp22, tmp23, tmp24, lambda, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34;
+        let x, y, scrut4, scrut5, element1$1, element0$1, tmp20, tmp21, tmp22, tmp23, tmp24, lambda, tmp25, tmp26, tmp27, tmp28, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34;
         if (runtime.Tuple.isArrayLike(xy) && xy.length === 2) {
           element0$1 = runtime.Tuple.get(xy, 0);
           element1$1 = runtime.Tuple.get(xy, 1);
@@ -1463,10 +1454,9 @@ let mate1;
           } else {
             tmp20 = false;
           }
-          scrut5 = tmp20;
-          if (scrut5 === true) {
-            scrut6 = y === 1;
-            if (scrut6 === true) {
+          if (tmp20 === true) {
+            scrut4 = y === 1;
+            if (scrut4 === true) {
               tmp21 = true;
             } else {
               tmp21 = false;
@@ -1480,10 +1470,9 @@ let mate1;
             } else {
               tmp23 = false;
             }
-            scrut7 = tmp23;
-            if (scrut7 === true) {
-              scrut8 = y === 8;
-              if (scrut8 === true) {
+            if (tmp23 === true) {
+              scrut5 = y === 8;
+              if (scrut5 === true) {
                 tmp24 = true;
               } else {
                 tmp24 = false;
@@ -1495,8 +1484,7 @@ let mate1;
           } else {
             tmp22 = true;
           }
-          scrut9 = tmp22;
-          if (scrut9 === true) {
+          if (tmp22 === true) {
             lambda = (undefined, function (param) {
               let tmp35, tmp36;
               tmp35 = globalThis.Object.freeze([
@@ -1547,19 +1535,18 @@ let mate1;
           sqs = arg$Cons$1$;
           sq = arg$Cons$0$;
           lscomp2 = function lscomp2(ls1) {
-            let h, scrut5, arg$Cons$0$1, arg$Cons$1$1, arg$Some$0$, tmp22, tmp23, tmp24, tmp25, tmp26;
+            let scrut4, arg$Cons$0$1, arg$Cons$1$1, arg$Some$0$, tmp22, tmp23, tmp24, tmp25, tmp26;
             if (ls1 instanceof NofibPrelude.Nil.class) {
               return lscomp1(sqs)
             } else if (ls1 instanceof NofibPrelude.Cons.class) {
               arg$Cons$0$1 = ls1.head;
               arg$Cons$1$1 = ls1.tail;
-              h = arg$Cons$0$1;
-              if (h instanceof NofibPrelude.Some.class) {
+              if (arg$Cons$0$1 instanceof NofibPrelude.Some.class) {
                 arg$Some$0$ = arg$Cons$0$1.x;
                 tmp22 = mate.colourOf(arg$Some$0$);
                 tmp23 = tmp22 === c;
-                scrut5 = ! tmp23;
-                if (scrut5 === true) {
+                scrut4 = ! tmp23;
+                if (scrut4 === true) {
                   tmp24 = NofibPrelude.Some(arg$Some$0$);
                   tmp25 = promote(sq, tmp24);
                   tmp26 = lscomp2(arg$Cons$1$1);
@@ -1621,10 +1608,9 @@ let mate1;
         } else {
           tmp6 = true;
         }
-        scrut3 = tmp6;
-        if (scrut3 === true) {
-          scrut4 = mate.pieceAt(bd, on2);
-          if (scrut4 instanceof NofibPrelude.None.class) {
+        if (tmp6 === true) {
+          scrut3 = mate.pieceAt(bd, on2);
+          if (scrut3 instanceof NofibPrelude.None.class) {
             tmp8 = mate.Move(on2, NofibPrelude.None, NofibPrelude.None);
             tmp9 = NofibPrelude.Cons(tmp8, NofibPrelude.Nil);
           } else {
@@ -1913,22 +1899,21 @@ let mate1;
     throw runtime.safeCall(globalThis.Error(m));
   } 
   static rawmoves(c, ksq, bd) {
-    let k, res, element1$, element0$, tmp;
+    let res, element1$, element0$, tmp;
     if (runtime.Tuple.isArrayLike(ksq) && ksq.length === 2) {
       element0$ = runtime.Tuple.get(ksq, 0);
       element1$ = runtime.Tuple.get(ksq, 1);
-      k = element0$;
-      if (k instanceof mate.King.class) {
+      if (element0$ instanceof mate.King.class) {
         tmp = mate.kingmoves;
-      } else if (k instanceof mate.Queen.class) {
+      } else if (element0$ instanceof mate.Queen.class) {
         tmp = mate.queenmoves;
-      } else if (k instanceof mate.Rook.class) {
+      } else if (element0$ instanceof mate.Rook.class) {
         tmp = mate.rookmoves;
-      } else if (k instanceof mate.Bishop.class) {
+      } else if (element0$ instanceof mate.Bishop.class) {
         tmp = mate.bishopmoves;
-      } else if (k instanceof mate.Knight.class) {
+      } else if (element0$ instanceof mate.Knight.class) {
         tmp = mate.knightmoves;
-      } else if (k instanceof mate.Pawn.class) {
+      } else if (element0$ instanceof mate.Pawn.class) {
         tmp = mate.pawnmoves;
       } else {
         throw globalThis.Object.freeze(new globalThis.Error("match error"))
@@ -2252,7 +2237,7 @@ let mate1;
     return NofibPrelude.Cons(" ", tmp1);
   } 
   static showReplies(rs, n) {
-    let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+    let arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
     if (rs instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (rs instanceof NofibPrelude.Cons.class) {
@@ -2270,8 +2255,7 @@ let mate1;
         } else {
           tmp3 = false;
         }
-        scrut = tmp3;
-        if (scrut === true) {
+        if (tmp3 === true) {
           tmp5 = NofibPrelude.nofibStringToList("others");
         } else {
           tmp6 = mate.showMoves(element0$);
@@ -2291,20 +2275,19 @@ let mate1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static showSoln(s, n) {
-    let rs, scrut, arg$Soln$0$, arg$Soln$1$, tmp, tmp1, tmp2, tmp3, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17;
+    let scrut, arg$Soln$0$, arg$Soln$1$, tmp, tmp1, tmp2, tmp3, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17;
     if (s instanceof mate.Soln.class) {
       arg$Soln$0$ = s.a;
       arg$Soln$1$ = s.b;
-      rs = arg$Soln$1$;
       tmp = NofibPrelude.stringOfInt(n);
       tmp1 = NofibPrelude.nofibStringToList(tmp);
       tmp2 = NofibPrelude.nofibStringToList(". ");
       tmp3 = mate.showMoveInFull(arg$Soln$0$);
       split_root$: {
-        if (rs instanceof NofibPrelude.Nil.class) {
+        if (arg$Soln$1$ instanceof NofibPrelude.Nil.class) {
           tmp4 = NofibPrelude.nofibStringToList("++\n");
           break split_root$
-        } else if (rs instanceof NofibPrelude.Cons.class) {
+        } else if (arg$Soln$1$ instanceof NofibPrelude.Cons.class) {
           arg$Cons$0$ = arg$Soln$1$.head;
           arg$Cons$1$ = arg$Soln$1$.tail;
           if (runtime.Tuple.isArrayLike(arg$Cons$0$) && arg$Cons$0$.length === 2) {

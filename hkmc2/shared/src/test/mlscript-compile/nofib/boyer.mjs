@@ -822,7 +822,7 @@ let boyer1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let unified, scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, element1$1, element0$1, tmp;
+          let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, element1$1, element0$1, tmp;
           if (param1 instanceof NofibPrelude.Nil.class) {
             return param0
           } else if (param1 instanceof NofibPrelude.Cons.class) {
@@ -835,8 +835,7 @@ let boyer1;
               if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
                 element0$1 = runtime.Tuple.get(scrut, 0);
                 element1$1 = runtime.Tuple.get(scrut, 1);
-                unified = element0$1;
-                if (unified === true) {
+                if (element0$1 === true) {
                   tmp = boyer.apply_subst(element1$1, element1$);
                   param0 = tmp;
                   id = 2;
@@ -937,15 +936,14 @@ let boyer1;
     loopLabel: while (true) {
       switch (id) {
         case 0:
-          let found, scrut, scrut1, arg$Fun$0$, arg$Fun$1$, arg$Fun$0$1, arg$Fun$1$1, arg$Var$0$, element1$, element0$, tmp, tmp1, tmp2;
+          let scrut, scrut1, arg$Fun$0$, arg$Fun$1$, arg$Fun$0$1, arg$Fun$1$1, arg$Var$0$, element1$, element0$, tmp, tmp1, tmp2;
           if (param1 instanceof boyer.Var.class) {
             arg$Var$0$ = param1.i;
             scrut = boyer.find(arg$Var$0$, param2);
             if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
               element0$ = runtime.Tuple.get(scrut, 0);
               element1$ = runtime.Tuple.get(scrut, 1);
-              found = element0$;
-              if (found === true) {
+              if (element0$ === true) {
                 tmp = boyer.termEq(param0, element1$);
                 return globalThis.Object.freeze([
                   tmp,
@@ -1003,7 +1001,7 @@ let boyer1;
             NofibPrelude.Nil
           ]);
         case 1:
-          let hd_ok, tl_ok, scrut2, scrut3, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, element1$1, element0$1, element1$2, element0$2;
+          let scrut2, scrut3, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, element1$1, element0$1, element1$2, element0$2;
           if (param0 instanceof NofibPrelude.Nil.class) {
             if (param1 instanceof NofibPrelude.Nil.class) {
               return globalThis.Object.freeze([
@@ -1025,14 +1023,12 @@ let boyer1;
               if (runtime.Tuple.isArrayLike(scrut3) && scrut3.length === 2) {
                 element0$1 = runtime.Tuple.get(scrut3, 0);
                 element1$1 = runtime.Tuple.get(scrut3, 1);
-                hd_ok = element0$1;
                 scrut2 = boyer.one_way_unify1_lst(arg$Cons$1$, arg$Cons$1$1, element1$1);
                 if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
                   element0$2 = runtime.Tuple.get(scrut2, 0);
                   element1$2 = runtime.Tuple.get(scrut2, 1);
-                  tl_ok = element0$2;
-                  if (hd_ok === true) {
-                    if (tl_ok === true) {
+                  if (element0$1 === true) {
+                    if (element0$2 === true) {
                       return globalThis.Object.freeze([
                         true,
                         element1$2
@@ -1134,15 +1130,14 @@ let boyer1;
     return boyer.one_way_unify1(term1, term2, NofibPrelude.Nil)
   } 
   static apply_subst(subst, t) {
-    let found, scrut, arg$Fun$0$, arg$Fun$1$, arg$Fun$2$, arg$Var$0$, element1$, element0$, lambda, tmp;
+    let scrut, arg$Fun$0$, arg$Fun$1$, arg$Fun$2$, arg$Var$0$, element1$, element0$, lambda, tmp;
     if (t instanceof boyer.Var.class) {
       arg$Var$0$ = t.i;
       scrut = boyer.find(arg$Var$0$, subst);
       if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
         element0$ = runtime.Tuple.get(scrut, 0);
         element1$ = runtime.Tuple.get(scrut, 1);
-        found = element0$;
-        if (found === true) {
+        if (element0$ === true) {
           return element1$
         }
         return boyer.Var(arg$Var$0$);

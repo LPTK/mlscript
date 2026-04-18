@@ -69,7 +69,7 @@ let primetest1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static lines(s) {
-    let scrut, s_, element1$, element0$, lambda, arg$Cons$1$, tmp;
+    let scrut, element1$, element0$, lambda, arg$Cons$1$, tmp;
     lambda = (undefined, function (x) {
       return x == "|"
     });
@@ -77,11 +77,10 @@ let primetest1;
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      s_ = element1$;
-      if (s_ instanceof NofibPrelude.Nil.class) {
+      if (element1$ instanceof NofibPrelude.Nil.class) {
         tmp = NofibPrelude.Nil;
         return NofibPrelude.Cons(element0$, tmp)
-      } else if (s_ instanceof NofibPrelude.Cons.class) {
+      } else if (element1$ instanceof NofibPrelude.Cons.class) {
         arg$Cons$1$ = element1$.tail;
         tmp = primetest.lines(arg$Cons$1$);
         return NofibPrelude.Cons(element0$, tmp)
@@ -363,23 +362,22 @@ let primetest1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static multiTest(k, rs, n) {
-    let mTest, scrut, tmp, tmp1, tmp2;
+    let mTest, tmp, tmp1, tmp2;
     mTest = function mTest(k1, rs1) {
-      let scrut1, scrut2, t, element1$, element0$, tmp3, tmp4;
-      scrut1 = k1 == 0;
-      if (scrut1 === true) {
+      let scrut, scrut1, element1$, element0$, tmp3, tmp4;
+      scrut = k1 == 0;
+      if (scrut === true) {
         return globalThis.Object.freeze([
           true,
           rs1
         ])
       }
       tmp3 = primetest.findKQ(n);
-      scrut2 = primetest.singleTest(n, tmp3, rs1);
-      if (runtime.Tuple.isArrayLike(scrut2) && scrut2.length === 2) {
-        element0$ = runtime.Tuple.get(scrut2, 0);
-        element1$ = runtime.Tuple.get(scrut2, 1);
-        t = element0$;
-        if (t === true) {
+      scrut1 = primetest.singleTest(n, tmp3, rs1);
+      if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
+        element0$ = runtime.Tuple.get(scrut1, 0);
+        element1$ = runtime.Tuple.get(scrut1, 1);
+        if (element0$ === true) {
           tmp4 = k1 - 1;
           return mTest(tmp4, element1$)
         }
@@ -396,8 +394,7 @@ let primetest1;
     } else {
       tmp1 = true;
     }
-    scrut = tmp1;
-    if (scrut === true) {
+    if (tmp1 === true) {
       tmp2 = n == 2;
       return globalThis.Object.freeze([
         tmp2,
@@ -407,14 +404,13 @@ let primetest1;
     return mTest(k, rs);
   } 
   static doLine(cs, cont, rs) {
-    let n, scrut, t, element1$, element0$, tmp, tmp1;
+    let n, scrut, element1$, element0$, tmp, tmp1;
     n = primetest.int_val_of_string(cs);
     scrut = primetest.multiTest(100, rs, n);
     if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
-      t = element0$;
-      if (t === true) {
+      if (element0$ === true) {
         tmp = runtime.safeCall(cont(element1$));
         return NofibPrelude.Cons("Probably prime", tmp)
       }

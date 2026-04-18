@@ -203,15 +203,14 @@ let calendar1;
     return NofibPrelude.append(tmp2, s)
   } 
   static date(ml, d) {
-    let scrut, tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
+    let tmp, tmp1, tmp2, tmp3, tmp4, tmp5;
     tmp = d < 1;
     if (tmp === false) {
       tmp1 = ml < d;
     } else {
       tmp1 = true;
     }
-    scrut = tmp1;
-    if (scrut === true) {
+    if (tmp1 === true) {
       tmp2 = NofibPrelude.nofibStringToList("   ");
       return NofibPrelude.Cons(tmp2, NofibPrelude.Nil)
     }
@@ -265,9 +264,8 @@ let calendar1;
     tmp11 = calendar.emptyPic(tmp10);
     inlinedVal = NofibPrelude.Cons(tmp9, tmp11);
     lambda = (undefined, function (x) {
-      let mnfdml, inlinedVal3, inlinedVal4, element2$, element1$, element0$, tmp12, tmp13;
-      mnfdml = x;
-      if (runtime.Tuple.isArrayLike(mnfdml) && mnfdml.length === 3) {
+      let inlinedVal3, inlinedVal4, element2$, element1$, element0$, tmp12, tmp13;
+      if (runtime.Tuple.isArrayLike(x) && x.length === 3) {
         let inlinedVal5, inlinedVal6, tmp14, inlinedVal7, tmp15;
         element0$ = runtime.Tuple.get(x, 0);
         element1$ = runtime.Tuple.get(x, 1);

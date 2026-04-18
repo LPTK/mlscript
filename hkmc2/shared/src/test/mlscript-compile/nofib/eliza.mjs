@@ -881,7 +881,7 @@ let eliza1;
     }
     tmp = NofibPrelude.map(conj, inlinedVal);
     cons = function cons(x, xs) {
-      let scrut1, tmp1, tmp2, tmp3, tmp4;
+      let tmp1, tmp2, tmp3, tmp4;
       tmp1 = NofibPrelude.nofibStringToList("I");
       tmp2 = NofibPrelude.listEq(x, tmp1);
       if (tmp2 === true) {
@@ -889,8 +889,7 @@ let eliza1;
       } else {
         tmp3 = false;
       }
-      scrut1 = tmp3;
-      if (scrut1 === true) {
+      if (tmp3 === true) {
         tmp4 = NofibPrelude.nofibStringToList("me");
         return NofibPrelude.Cons(tmp4, NofibPrelude.Nil)
       }
@@ -933,14 +932,13 @@ let eliza1;
             rs = eliza.replies(element0$1, l1);
             scrut1 = eliza.null_lz(rs);
             if (scrut1 === true) {
-              let r_es, inlinedVal, element1$2, element0$2, tmp8;
+              let inlinedVal, element1$2, element0$2, tmp8;
               tmp2 = globalThis.Object.freeze([
                 element0$1,
                 element1$1
               ]);
               tmp3 = ans(arg$Cons$1$, l1);
-              r_es = tmp3;
-              if (runtime.Tuple.isArrayLike(r_es) && r_es.length === 2) {
+              if (runtime.Tuple.isArrayLike(tmp3) && tmp3.length === 2) {
                 element0$2 = runtime.Tuple.get(tmp3, 0);
                 element1$2 = runtime.Tuple.get(tmp3, 1);
                 tmp8 = NofibPrelude.Cons(tmp2, element1$2);
@@ -984,7 +982,7 @@ let eliza1;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static session(rs, prev, ls) {
-    let scrut, scrut1, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3;
+    let scrut, arg$Cons$0$, arg$Cons$1$, element1$, element0$, tmp, tmp1, tmp2, tmp3;
     if (ls instanceof NofibPrelude.Nil.class) {
       return NofibPrelude.Nil
     } else if (ls instanceof NofibPrelude.Cons.class) {
@@ -996,8 +994,7 @@ let eliza1;
       } else {
         tmp = eliza.answer(rs, arg$Cons$0$);
       }
-      scrut1 = tmp;
-      if (runtime.Tuple.isArrayLike(scrut1) && scrut1.length === 2) {
+      if (runtime.Tuple.isArrayLike(tmp) && tmp.length === 2) {
         element0$ = runtime.Tuple.get(tmp, 0);
         element1$ = runtime.Tuple.get(tmp, 1);
         tmp1 = NofibPrelude.nofibStringToList("\n\n");

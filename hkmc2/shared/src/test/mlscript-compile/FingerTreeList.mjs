@@ -301,7 +301,7 @@ ithAffixElement = function ithAffixElement(idx, arr) {
 };
 ithNode = function ithNode(idx, node) {
   loopLabel: while (true) {
-    let scrut, scrut1, scrut2, scrut3, scrut4, scrut5, arg$Branch3$0$, arg$Branch3$1$, arg$Branch3$2$, arg$Branch3$3$, arg$Branch2$0$, arg$Branch2$1$, arg$Branch2$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
+    let scrut, scrut1, scrut2, scrut3, arg$Branch3$0$, arg$Branch3$1$, arg$Branch3$2$, arg$Branch3$3$, arg$Branch2$0$, arg$Branch2$1$, arg$Branch2$2$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
     if (node instanceof Branch21.class) {
       arg$Branch2$0$ = node.size;
       arg$Branch2$1$ = node.e1;
@@ -312,11 +312,10 @@ ithNode = function ithNode(idx, node) {
       } else {
         tmp1 = false;
       }
-      scrut = tmp1;
-      if (scrut === true) {
+      if (tmp1 === true) {
         tmp2 = getNodeSize(arg$Branch2$1$);
-        scrut1 = idx < tmp2;
-        if (scrut1 === true) {
+        scrut = idx < tmp2;
+        if (scrut === true) {
           node = arg$Branch2$1$;
           continue loopLabel
         }
@@ -338,19 +337,18 @@ ithNode = function ithNode(idx, node) {
       } else {
         tmp6 = false;
       }
-      scrut2 = tmp6;
-      if (scrut2 === true) {
+      if (tmp6 === true) {
         tmp7 = getNodeSize(arg$Branch3$1$);
-        scrut3 = idx < tmp7;
-        if (scrut3 === true) {
+        scrut1 = idx < tmp7;
+        if (scrut1 === true) {
           node = arg$Branch3$1$;
           continue loopLabel
         }
         tmp8 = getNodeSize(arg$Branch3$1$);
         tmp9 = getNodeSize(arg$Branch3$2$);
         tmp10 = tmp8 + tmp9;
-        scrut4 = idx < tmp10;
-        if (scrut4 === true) {
+        scrut2 = idx < tmp10;
+        if (scrut2 === true) {
           tmp11 = getNodeSize(arg$Branch3$1$);
           tmp12 = idx - tmp11;
           idx = tmp12;
@@ -367,8 +365,8 @@ ithNode = function ithNode(idx, node) {
       }
       return Option.None;
     }
-    scrut5 = idx == 0;
-    if (scrut5 === true) {
+    scrut3 = idx == 0;
+    if (scrut3 === true) {
       return Option.Some(node)
     }
     return Option.None;
@@ -766,7 +764,7 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
     return lambda;
   } 
   static popFront(ft) {
-    let scrut, ay, scrut1, arg$Deep$0$, arg$Deep$1$, arg$Deep$2$, arg$Deep$3$, middleElements, element0$, arg$Single$0$, arg$View$0$, arg$View$1$, lastElement1$, middleElements1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+    let scrut, scrut1, arg$Deep$0$, arg$Deep$1$, arg$Deep$2$, arg$Deep$3$, middleElements, element0$, arg$Single$0$, arg$View$0$, arg$View$1$, lastElement1$, middleElements1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
     scrut = FingerTreeList.toFingerTree(ft);
     if (scrut instanceof Empty1.class) {
       return Nil1
@@ -780,14 +778,13 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
       arg$Deep$3$ = scrut.suffix;
       if (runtime.Tuple.isArrayLike(arg$Deep$1$) && arg$Deep$1$.length === 1) {
         element0$ = runtime.Tuple.get(arg$Deep$1$, 0);
-        ay = arg$Deep$3$;
         scrut1 = FingerTreeList.popFront(arg$Deep$2$);
         if (scrut1 instanceof Nil1.class) {
-          if (runtime.Tuple.isArrayLike(ay) && ay.length === 1) {
+          if (runtime.Tuple.isArrayLike(arg$Deep$3$) && arg$Deep$3$.length === 1) {
             element0$1 = runtime.Tuple.get(arg$Deep$3$, 0);
             tmp = Single1(element0$1);
             return View1(element0$, tmp)
-          } else if (runtime.Tuple.isArrayLike(ay) && ay.length >= 1) {
+          } else if (runtime.Tuple.isArrayLike(arg$Deep$3$) && arg$Deep$3$.length >= 1) {
             middleElements1 = runtime.Tuple.slice(arg$Deep$3$, 0, 1);
             lastElement1$ = runtime.Tuple.get(arg$Deep$3$, -1);
             tmp1 = getNodeSize(element0$);
@@ -822,7 +819,7 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static popBack(ft) {
-    let scrut, ax, scrut1, arg$Deep$0$, arg$Deep$1$, arg$Deep$2$, arg$Deep$3$, lastElement1$, middleElements, element0$, arg$Single$0$, arg$View$0$, arg$View$1$, middleElements1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+    let scrut, scrut1, arg$Deep$0$, arg$Deep$1$, arg$Deep$2$, arg$Deep$3$, lastElement1$, middleElements, element0$, arg$Single$0$, arg$View$0$, arg$View$1$, middleElements1, element0$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
     scrut = FingerTreeList.toFingerTree(ft);
     if (scrut instanceof Empty1.class) {
       return Nil1
@@ -836,14 +833,13 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
       arg$Deep$3$ = scrut.suffix;
       if (runtime.Tuple.isArrayLike(arg$Deep$3$) && arg$Deep$3$.length === 1) {
         element0$ = runtime.Tuple.get(arg$Deep$3$, 0);
-        ax = arg$Deep$1$;
         scrut1 = FingerTreeList.popBack(arg$Deep$2$);
         if (scrut1 instanceof Nil1.class) {
-          if (runtime.Tuple.isArrayLike(ax) && ax.length === 1) {
+          if (runtime.Tuple.isArrayLike(arg$Deep$1$) && arg$Deep$1$.length === 1) {
             element0$1 = runtime.Tuple.get(arg$Deep$1$, 0);
             tmp = Single1(element0$1);
             return View1(element0$, tmp)
-          } else if (runtime.Tuple.isArrayLike(ax) && ax.length >= 1) {
+          } else if (runtime.Tuple.isArrayLike(arg$Deep$1$) && arg$Deep$1$.length >= 1) {
             element0$1 = runtime.Tuple.get(arg$Deep$1$, 0);
             middleElements1 = runtime.Tuple.slice(arg$Deep$1$, 1, 0);
             tmp1 = getNodeSize(element0$);
@@ -887,7 +883,7 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
   static ith(idx) {
     let lambda;
     lambda = (undefined, function (caseScrut) {
-      let scrut, scrut1, scrut2, arg$Deep$0$, arg$Deep$1$, arg$Deep$2$, arg$Deep$3$, arg$Single$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+      let scrut, scrut1, arg$Deep$0$, arg$Deep$1$, arg$Deep$2$, arg$Deep$3$, arg$Single$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
       if (caseScrut instanceof Empty1.class) {
         return Option.None
       } else if (caseScrut instanceof Single1.class) {
@@ -904,18 +900,17 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
         } else {
           tmp1 = false;
         }
-        scrut = tmp1;
-        if (scrut === true) {
+        if (tmp1 === true) {
           tmp2 = getAffixSize(arg$Deep$1$);
-          scrut1 = idx < tmp2;
-          if (scrut1 === true) {
+          scrut = idx < tmp2;
+          if (scrut === true) {
             return ithAffixElement(idx, arg$Deep$1$)
           }
           tmp3 = getAffixSize(arg$Deep$1$);
           tmp4 = FingerTreeList.length(arg$Deep$2$);
           tmp5 = tmp3 + tmp4;
-          scrut2 = idx < tmp5;
-          if (scrut2 === true) {
+          scrut1 = idx < tmp5;
+          if (scrut1 === true) {
             tmp6 = getAffixSize(arg$Deep$1$);
             tmp7 = idx - tmp6;
             tmp8 = FingerTreeList.ith(tmp7);
@@ -970,7 +965,7 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
   } 
   static dropLeftRight(beg, end) {
     return (und) => {
-      let scrut, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
+      let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
       tmp = beg < 0;
       if (tmp === false) {
         tmp1 = end < 0;
@@ -984,8 +979,7 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
       } else {
         tmp2 = true;
       }
-      scrut = tmp2;
-      if (scrut === true) {
+      if (tmp2 === true) {
         throw "dropLeftRight: index out of bounds"
       }
       tmp5 = repeatPopFront(beg);

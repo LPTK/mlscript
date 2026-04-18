@@ -153,7 +153,7 @@ View1 = function View(underlying, start, end) {
     return this.underlying.slice(this.start, tmp)
   } 
   at(i) {
-    let scrut, tmp, tmp1, tmp2, tmp3;
+    let tmp, tmp1, tmp2, tmp3;
     tmp = - this.length;
     tmp1 = i < tmp;
     if (tmp1 === false) {
@@ -161,14 +161,13 @@ View1 = function View(underlying, start, end) {
     } else {
       tmp2 = true;
     }
-    scrut = tmp2;
-    if (scrut === true) {
+    if (tmp2 === true) {
       throw runtime.safeCall(globalThis.RangeError("View.at: Index out of bounds"))
     }
-    let len, inlinedVal, scrut1;
+    let len, inlinedVal, scrut;
     len = this.length;
-    scrut1 = i < 0;
-    if (scrut1 === true) {
+    scrut = i < 0;
+    if (scrut === true) {
       inlinedVal = len + i;
     } else {
       inlinedVal = i;
@@ -234,7 +233,7 @@ Splice1 = function Splice(bits, len) {
     ]);
     runtime.safeCall(stack.push(tmp));
     lbl: while (true) {
-      let scrut, e, idx, vals, scrut1, scrut2, scrut3, next, scrut4, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
+      let scrut, e, idx, vals, scrut1, scrut2, next, scrut3, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
       scrut = stack.length > 0;
       if (scrut === true) {
         e = runtime.safeCall(stack.pop());
@@ -244,23 +243,21 @@ Splice1 = function Splice(bits, len) {
           vals = vals.bits;
         }
         lbl1: while (true) {
-          let scrut5, scrut6, scrut7, scrut8, scrut9, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
-          scrut5 = idx < vals.length;
-          if (scrut5 === true) {
-            scrut6 = runtime.safeCall(vals.at(idx));
-            if (scrut6 instanceof SpliceMarker1.class) {
+          let scrut4, scrut5, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+          scrut4 = idx < vals.length;
+          if (scrut4 === true) {
+            scrut5 = runtime.safeCall(vals.at(idx));
+            if (scrut5 instanceof SpliceMarker1.class) {
               tmp7 = true;
             } else {
               tmp7 = false;
             }
-            scrut7 = tmp7;
-            if (scrut7 === false) {
+            if (tmp7 === false) {
               tmp8 = true;
             } else {
               tmp8 = false;
             }
-            scrut8 = tmp8;
-            if (scrut8 === true) {
+            if (tmp8 === true) {
               tmp9 = true;
             } else {
               tmp9 = false;
@@ -268,8 +265,7 @@ Splice1 = function Splice(bits, len) {
           } else {
             tmp9 = false;
           }
-          scrut9 = tmp9;
-          if (scrut9 === true) {
+          if (tmp9 === true) {
             tmp10 = runtime.safeCall(vals.at(idx));
             tmp11 = FingerTreeList.snoc(acc, tmp10);
             acc = tmp11;
@@ -290,8 +286,7 @@ Splice1 = function Splice(bits, len) {
         } else {
           tmp1 = false;
         }
-        scrut3 = tmp1;
-        if (scrut3 === true) {
+        if (tmp1 === true) {
           tmp2 = idx + 2;
           tmp3 = globalThis.Object.freeze([
             tmp2,
@@ -300,8 +295,8 @@ Splice1 = function Splice(bits, len) {
           runtime.safeCall(stack.push(tmp3));
           tmp4 = idx + 1;
           next = runtime.safeCall(vals.at(tmp4));
-          scrut4 = FingerTreeList.isFingerTree(next);
-          if (scrut4 === true) {
+          scrut3 = FingerTreeList.isFingerTree(next);
+          if (scrut3 === true) {
             tmp5 = FingerTreeList.concat(acc, next);
             acc = tmp5;
             continue lbl
@@ -384,15 +379,14 @@ Splice1 = function Splice(bits, len) {
   } 
   static dropLeftRight(beg, fin) {
     return (xs) => {
-      let scrut, scrut1, tmp, tmp1, tmp2, tmp3, tmp4;
+      let tmp, tmp1, tmp2, tmp3, tmp4;
       tmp = beg < 0;
       if (tmp === false) {
         tmp1 = fin < 0;
       } else {
         tmp1 = true;
       }
-      scrut = tmp1;
-      if (scrut === true) {
+      if (tmp1 === true) {
         throw runtime.safeCall(globalThis.RangeError("LazyFingerTree.dropLeftRight: indices must be non-negative"))
       }
       tmp2 = beg > xs.length;
@@ -401,8 +395,7 @@ Splice1 = function Splice(bits, len) {
       } else {
         tmp3 = true;
       }
-      scrut1 = tmp3;
-      if (scrut1 === true) {
+      if (tmp3 === true) {
         throw runtime.safeCall(globalThis.RangeError("LazyFingerTree.dropLeftRight: indices out of bounds"))
       }
       tmp4 = xs.length - fin;

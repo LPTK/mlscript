@@ -231,7 +231,7 @@ let clausify1;
   } 
   static disin(p) {
     loopLabel: while (true) {
-      let dp, dq, scrut, arg$Con$0$, arg$Con$1$, arg$Dis$0$, arg$Dis$1$, arg$Con$0$1, arg$Con$1$1, arg$Con$0$2, arg$Con$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+      let dp, dq, arg$Con$0$, arg$Con$1$, arg$Dis$0$, arg$Dis$1$, arg$Con$0$1, arg$Con$1$1, arg$Con$0$2, arg$Con$1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
       if (p instanceof clausify.Dis.class) {
         arg$Dis$0$ = p.a;
         arg$Dis$1$ = p.b;
@@ -261,8 +261,7 @@ let clausify1;
         } else {
           tmp9 = true;
         }
-        scrut = tmp9;
-        if (scrut === true) {
+        if (tmp9 === true) {
           tmp10 = clausify.Dis(dp, dq);
           p = tmp10;
           continue loopLabel
@@ -508,7 +507,7 @@ let clausify1;
   } 
   static parseHelper(t, s) {
     loopLabel: while (true) {
-      let scrut, t1, c, scrut1, scrut2, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, arg$Lex$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29;
+      let scrut, t1, c, scrut1, arg$Cons$0$, arg$Cons$1$, arg$Cons$0$1, arg$Cons$1$1, arg$Cons$0$2, arg$Cons$1$2, arg$Lex$0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26, tmp27, tmp28, tmp29;
       split_1$: {
         split_2$: {
           if (t instanceof NofibPrelude.Nil.class) {
@@ -550,14 +549,13 @@ let clausify1;
                       } else {
                         tmp4 = false;
                       }
-                      scrut1 = tmp4;
-                      if (scrut1 === true) {
+                      if (tmp4 === true) {
                         break split_1$
                       }
                       tmp5 = clausify.spri(s);
                       tmp6 = clausify.opri(arg$Cons$0$);
-                      scrut2 = tmp5 > tmp6;
-                      if (scrut2 === true) {
+                      scrut1 = tmp5 > tmp6;
+                      if (scrut1 === true) {
                         break split_2$
                       }
                     } else {
@@ -569,14 +567,13 @@ let clausify1;
                       } else {
                         tmp8 = false;
                       }
-                      scrut1 = tmp8;
-                      if (scrut1 === true) {
+                      if (tmp8 === true) {
                         break split_1$
                       }
                       tmp9 = clausify.spri(s);
                       tmp10 = clausify.opri(arg$Cons$0$);
-                      scrut2 = tmp9 > tmp10;
-                      if (scrut2 === true) {
+                      scrut1 = tmp9 > tmp10;
+                      if (scrut1 === true) {
                         break split_2$
                       }
                     }
@@ -589,14 +586,13 @@ let clausify1;
                     } else {
                       tmp12 = false;
                     }
-                    scrut1 = tmp12;
-                    if (scrut1 === true) {
+                    if (tmp12 === true) {
                       break split_1$
                     }
                     tmp13 = clausify.spri(s);
                     tmp14 = clausify.opri(arg$Cons$0$);
-                    scrut2 = tmp13 > tmp14;
-                    if (scrut2 === true) {
+                    scrut1 = tmp13 > tmp14;
+                    if (scrut1 === true) {
                       break split_2$
                     }
                   }
@@ -609,14 +605,13 @@ let clausify1;
                   } else {
                     tmp16 = false;
                   }
-                  scrut1 = tmp16;
-                  if (scrut1 === true) {
+                  if (tmp16 === true) {
                     break split_1$
                   }
                   tmp17 = clausify.spri(s);
                   tmp18 = clausify.opri(arg$Cons$0$);
-                  scrut2 = tmp17 > tmp18;
-                  if (scrut2 === true) {
+                  scrut1 = tmp17 > tmp18;
+                  if (scrut1 === true) {
                     break split_2$
                   }
                 }
@@ -630,14 +625,13 @@ let clausify1;
                 } else {
                   tmp20 = false;
                 }
-                scrut1 = tmp20;
-                if (scrut1 === true) {
+                if (tmp20 === true) {
                   break split_1$
                 }
                 tmp21 = clausify.spri(s);
                 tmp22 = clausify.opri(arg$Cons$0$);
-                scrut2 = tmp21 > tmp22;
-                if (scrut2 === true) {
+                scrut1 = tmp21 > tmp22;
+                if (scrut1 === true) {
                   break split_2$
                 }
             }

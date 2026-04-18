@@ -549,7 +549,7 @@ let Runtime1;
     throw runtime.safeCall(globalThis.Error(tmp3))
   } 
   static checkArgs(functionName, expected, isUB, got) {
-    let scrut, scrut1, scrut2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
+    let scrut, scrut1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14;
     tmp = got < expected;
     if (tmp === false) {
       if (isUB === true) {
@@ -561,10 +561,9 @@ let Runtime1;
     } else {
       tmp1 = true;
     }
-    scrut = tmp1;
-    if (scrut === true) {
-      scrut1 = functionName.length > 0;
-      if (scrut1 === true) {
+    if (tmp1 === true) {
+      scrut = functionName.length > 0;
+      if (scrut === true) {
         tmp3 = " '" + functionName;
         tmp4 = tmp3 + "'";
       } else {
@@ -580,8 +579,8 @@ let Runtime1;
       tmp8 = tmp6 + tmp7;
       tmp9 = tmp8 + expected;
       tmp10 = tmp9 + " argument";
-      scrut2 = expected === 1;
-      if (scrut2 === true) {
+      scrut1 = expected === 1;
+      if (scrut1 === true) {
         tmp11 = "";
       } else {
         tmp11 = "s";
@@ -1060,15 +1059,14 @@ let Runtime1;
     }
   } 
   static checkDepth() {
-    let scrut, tmp, tmp1;
+    let tmp, tmp1;
     tmp = Runtime.stackDepth >= Runtime.stackLimit;
     if (tmp === true) {
       tmp1 = Runtime.stackHandler !== null;
     } else {
       tmp1 = false;
     }
-    scrut = tmp1;
-    if (scrut === true) {
+    if (tmp1 === true) {
       return runtime.safeCall(Runtime.stackHandler.delay())
     }
     return runtime.Unit;

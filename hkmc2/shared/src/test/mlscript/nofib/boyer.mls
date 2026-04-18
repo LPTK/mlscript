@@ -2,4 +2,4 @@
 
 import "../../mlscript-compile/nofib/boyer.mls"
 boyer.main()
-//│ = false
+//│ = true

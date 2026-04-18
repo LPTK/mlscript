@@ -65,16 +65,15 @@ let ParseRuleVisualizer1;
         optional = false;
         nodes = [];
         lbl: while (true) {
-          let scrut1, arg$Cons$0$, arg$Cons$1$, arg$Some$0$;
+          let arg$Cons$0$, arg$Cons$1$, arg$Some$0$;
           if (rest instanceof Stack.Cons.class) {
-            let choice1, inlinedVal, optional1, scrut2, latterPart, scrut3, arg$Ref$0$, arg$Ref$4$, arg$Siding$0$, arg$Siding$1$, arg$Siding$2$, arg$Keyword$0$, arg$Keyword$1$, tmp6, tmp7, tmp8, arg$Some$0$1, tmp9, tmp10, tmp11, tmp12, rcd, tmp13, tmp14, tmp15;
+            let inlinedVal, scrut1, latterPart, scrut2, arg$Ref$0$, arg$Ref$4$, arg$Siding$0$, arg$Siding$1$, arg$Siding$2$, arg$Keyword$0$, arg$Keyword$1$, tmp6, tmp7, tmp8, arg$Some$0$1, tmp9, tmp10, tmp11, tmp12, rcd, tmp13, tmp14, tmp15;
             arg$Cons$0$ = rest.head;
             arg$Cons$1$ = rest.tail;
-            choice1 = arg$Cons$0$;
-            if (choice1 instanceof ParseRule.Choice.End.class) {
+            if (arg$Cons$0$ instanceof ParseRule.Choice.End.class) {
               runtime.safeCall(ParseRuleVisualizer.tracer.print("found Choice.End"));
               inlinedVal = Option.None;
-            } else if (choice1 instanceof ParseRule.Choice.Keyword.class) {
+            } else if (arg$Cons$0$ instanceof ParseRule.Choice.Keyword.class) {
               arg$Keyword$0$ = arg$Cons$0$.keyword;
               arg$Keyword$1$ = arg$Cons$0$.rest;
               runtime.safeCall(ParseRuleVisualizer.tracer.print("found Choice.Keyword"));
@@ -82,36 +81,35 @@ let ParseRuleVisualizer1;
               tmp7 = renderRule(arg$Keyword$1$);
               tmp8 = sequence(tmp6, tmp7);
               inlinedVal = Option.Some(tmp8);
-            } else if (choice1 instanceof ParseRule.Choice.Siding.class) {
+            } else if (arg$Cons$0$ instanceof ParseRule.Choice.Siding.class) {
               arg$Siding$0$ = arg$Cons$0$.init;
               arg$Siding$1$ = arg$Cons$0$.optional;
               arg$Siding$2$ = arg$Cons$0$.rest;
-              optional1 = arg$Siding$1$;
               runtime.safeCall(ParseRuleVisualizer.tracer.print("found Choice.Siding"));
-              scrut2 = renderRule(arg$Siding$0$);
+              scrut1 = renderRule(arg$Siding$0$);
               latterPart = renderRule(arg$Siding$2$);
-              if (scrut2 instanceof Option.Some.class) {
-                arg$Some$0$1 = scrut2.value;
-                if (optional1 === true) {
+              if (scrut1 instanceof Option.Some.class) {
+                arg$Some$0$1 = scrut1.value;
+                if (arg$Siding$1$ === true) {
                   tmp9 = runtime.safeCall(rr.Optional(arg$Some$0$1));
                   tmp10 = sequence(tmp9, latterPart);
                 } else {
                   tmp10 = sequence(arg$Some$0$1, latterPart);
                 }
                 inlinedVal = Option.Some(tmp10);
-              } else if (scrut2 instanceof Option.None.class) {
+              } else if (scrut1 instanceof Option.None.class) {
                 tmp10 = latterPart;
                 inlinedVal = Option.Some(latterPart);
               } else {
                 throw globalThis.Object.freeze(new globalThis.Error("match error"))
               }
-            } else if (choice1 instanceof ParseRule.Choice.Ref.class) {
+            } else if (arg$Cons$0$ instanceof ParseRule.Choice.Ref.class) {
               arg$Ref$0$ = arg$Cons$0$.kind;
               arg$Ref$4$ = arg$Cons$0$.rest;
               tmp11 = "found Choice.Ref to " + arg$Ref$0$;
               runtime.safeCall(ParseRuleVisualizer.tracer.print(tmp11));
-              scrut3 = runtime.safeCall(ParseRuleVisualizer.#renderedKinds.has(arg$Ref$0$));
-              if (scrut3 === false) {
+              scrut2 = runtime.safeCall(ParseRuleVisualizer.#renderedKinds.has(arg$Ref$0$));
+              if (scrut2 === false) {
                 runtime.safeCall(referencedKinds.add(arg$Ref$0$));
               }
               tmp12 = "#" + arg$Ref$0$;
@@ -125,11 +123,10 @@ let ParseRuleVisualizer1;
             } else {
               throw globalThis.Object.freeze(new globalThis.Error("match error"))
             }
-            scrut1 = inlinedVal;
-            if (scrut1 instanceof Option.Some.class) {
+            if (inlinedVal instanceof Option.Some.class) {
               arg$Some$0$ = inlinedVal.value;
               runtime.safeCall(nodes.push(arg$Some$0$));
-            } else if (scrut1 instanceof Option.None.class) {
+            } else if (inlinedVal instanceof Option.None.class) {
               optional = true;
             }
             rest = arg$Cons$1$;
