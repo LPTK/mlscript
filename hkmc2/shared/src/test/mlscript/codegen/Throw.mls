@@ -63,7 +63,7 @@ f(false)
 if false then throw 0
 throw 1
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ if (false === true) { throw 0 } throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│ throw globalThis.Object.freeze(new globalThis.Error("match error"))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] Error: match error
 

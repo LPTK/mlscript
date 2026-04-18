@@ -24,7 +24,7 @@ null is @compile BitTree
 //│ = true
 
 Pair(null, null) is @compile BitTree
-//│ = true
+//│ = false
 
 pattern BitTreeAlt = null | Pair(BitTreeAlt | 0 | 1, BitTreeAlt | 0 | 1)
 
@@ -35,19 +35,34 @@ null is @compile BitTreeAlt
 //│ = true
 
 Pair(null, null) is @compile BitTreeAlt
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 Pair(0, null) is @compile BitTreeAlt
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 Pair(0, Pair(0, null)) is @compile BitTreeAlt
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 Pair(0, Pair(0, Pair(1, Pair(0, null)))) is @compile BitTreeAlt
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 Pair(0, Pair(0, Pair(1, Pair(1, null)))) is @compile BitTreeAlt
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 :global
 :expect false

@@ -55,8 +55,10 @@ if x is
 //│ deforest > Ref(member:A,Some(object:A)) ->
 //│ deforest > 	Ref(x,None)
 //│ deforest > <<< fusing <<<
-//│ = 1
-//│ x = fun tmp2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
+//│ x = undefined
 
 :expect A
 let x = if true then AA(A) else BB(B)
@@ -71,8 +73,10 @@ if x is
 //│ deforest > 	Ref(x,None)
 //│ deforest > 	Select(Ref(x,None),Ident(aa))
 //│ deforest > <<< fusing <<<
-//│ = A
-//│ x = fun tmp3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'A', got: 'undefined'
+//│ x = undefined
 
 
 :expect 1
@@ -95,8 +99,10 @@ if x is
 //│ deforest > Ref(member:A,Some(object:A)) ->
 //│ deforest > 	Ref(a,None)
 //│ deforest > <<< fusing <<<
-//│ = 1
-//│ x = fun tmp4
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
+//│ x = undefined
 
 
 // `x.x` is successfully fused
@@ -125,8 +131,10 @@ if x is
 //│ deforest > Ref(member:A,Some(object:A)) ->
 //│ deforest > 	Ref(a,None)
 //│ deforest > <<< fusing <<<
-//│ = 1
-//│ x = fun tmp5
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
+//│ x = undefined
 
 
 :expect 11
@@ -158,7 +166,9 @@ if x is
   B then 2
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 //│ x = B
 
 
@@ -535,8 +545,10 @@ test(p)
 //│ deforest > 	Ref(tmp:arg$AA$0$,None)
 //│ deforest > 	Select(Ref(tmp:arg$AA$0$,None),Ident(c))
 //│ deforest > <<< fusing <<<
-//│ = 141
-//│ p = fun tmp40
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: '141', got: 'undefined'
+//│ p = undefined
 
 
 :expect 141
@@ -557,8 +569,10 @@ test(p, id(CCC(123)))
 //│ deforest > 	Ref(x,None)
 //│ deforest > 	Select(Ref(x,None),Ident(aa))
 //│ deforest > <<< fusing <<<
-//│ = 141
-//│ p = fun tmp42
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: '141', got: 'undefined'
+//│ p = undefined
 
 
 :sir
@@ -762,7 +776,22 @@ f(AA(AA(3)))
 //│ deforest > 	Select(Ref(x,None),Ident(aa))
 //│ deforest > 	Select(Ref(x,None),Ident(aa))
 //│ deforest > <<< fusing <<<
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
+//│     at Runtime.checkCall (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:601:41)
+//│     at REPL135:1:502
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 
@@ -1067,7 +1096,7 @@ f1(one) + f2(one) + f3(two)
 //│ deforest > <<< fusing <<<
 //│ = 10
 //│ one = AA(1)
-//│ two = fun inlinedVal81
+//│ two = fun inlinedVal79
 
 
 :expect 4

@@ -49,7 +49,7 @@ let foo =
     ""
   else
     ""
-//│ foo = ""
+//│ foo = undefined
 
 if 0 is 0 then
   1

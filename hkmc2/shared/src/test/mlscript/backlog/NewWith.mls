@@ -70,10 +70,22 @@ obj.x
 let n =
   new with
     val x = 12
-//│ n = $anon { x: 12 }
+//│ n = undefined
 
 n.x
-//│ = 12
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
+//│     at REPL45:1:31
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 
 class Foo(x) with
@@ -88,8 +100,8 @@ new Foo(123) with { fun foo = 27 }
 :re
 new (Foo(123)) with { fun foo = 27 }
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found application of type Foo.
-//│ ║  l.89: 	new (Foo(123)) with { fun foo = 27 }
-//│ ║        	     ^^^^^^^^
+//│ ║  l.101: 	new (Foo(123)) with { fun foo = 27 }
+//│ ║         	     ^^^^^^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ > Foo 123 124
 //│ ═══[RUNTIME ERROR] TypeError: Class extends value [object Object] is not a constructor or null
@@ -97,15 +109,15 @@ new (Foo(123)) with { fun foo = 27 }
 :e
 new! (Foo(123)) with { fun foo = 27 }
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'with' here
-//│ ║  l.98: 	new! (Foo(123)) with { fun foo = 27 }
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.110: 	new! (Foo(123)) with { fun foo = 27 }
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :e
 :re
 new {Foo(123)} with { fun foo = 27 }
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found application of type Foo.
-//│ ║  l.106: 	new {Foo(123)} with { fun foo = 27 }
+//│ ║  l.118: 	new {Foo(123)} with { fun foo = 27 }
 //│ ║         	     ^^^^^^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ > Foo 123 124
@@ -122,7 +134,7 @@ new Foo(123) with
 :e
 new Foo(123) with 1
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'with' here
-//│ ║  l.123: 	new Foo(123) with 1
+//│ ║  l.135: 	new Foo(123) with 1
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

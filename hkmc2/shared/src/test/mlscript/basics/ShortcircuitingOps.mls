@@ -4,7 +4,7 @@
 :sjs
 1 && 2
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ if (1 === true) { 2 } else { false }
+//│ false
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = false
 
@@ -29,15 +29,14 @@ false && loudTrue
 :sjs
 print(1 && loudTrue)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let tmp;
-//│ if (1 === true) { tmp = loudTrue(); Predef.print(tmp) } else { tmp = false; Predef.print(false) }
+//│ Predef.print(false)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > false
 
 :sjs
 1 || 2
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ if (1 === false) { 2 } else { true }
+//│ true
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true
 
@@ -66,15 +65,15 @@ true || loudTrue
 :sjs
 fold(||)(0, false, 42, 123)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let lambda, tmp1;
+//│ let lambda, tmp;
 //│ lambda = (undefined, function (arg1, arg2) {
 //│   if (arg1 === false) {
 //│     return arg2
 //│   }
 //│   return true;
 //│ });
-//│ tmp1 = runtime.safeCall(Predef.fold(lambda));
-//│ runtime.safeCall(tmp1(0, false, 42, 123))
+//│ tmp = runtime.safeCall(Predef.fold(lambda));
+//│ runtime.safeCall(tmp(0, false, 42, 123))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true
 

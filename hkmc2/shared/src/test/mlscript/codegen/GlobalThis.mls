@@ -21,9 +21,7 @@ globalThis
 :re
 if false then 0
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ if (false === true) {
-//│   0
-//│ } else { throw globalThis.Object.freeze(new globalThis.Error("match error")) }
+//│ throw globalThis.Object.freeze(new globalThis.Error("match error"))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'freeze')
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'freeze')
@@ -38,12 +36,9 @@ foo()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let foo;
 //│ foo = function foo() {
-//│   if (false === true) {
-//│     return 0
-//│   }
-//│   throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│   throw globalThis.Object.freeze(new globalThis.Error("match error"))
 //│ };
-//│ foo()
+//│ throw globalThis.Object.freeze(new globalThis.Error("match error"))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'freeze')
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'freeze')

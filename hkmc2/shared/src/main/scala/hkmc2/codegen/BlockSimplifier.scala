@@ -12,6 +12,7 @@ import semantics.*
 import semantics.Elaborator.{State, Ctx, ctx}
 import mlscript.utils.algorithms.partitionScc
 import java.util.IdentityHashMap
+import hkmc2.syntax.Literal
 
 
 /** `symbolsToPreserve` is the set of local symbols we want to leave alone;
@@ -510,21 +511,128 @@ class BlockSimplifier
         
         applyPath(scrut): scrut2 =>
           
+          // * TODO: Tup and Field shapes...
+          // type Shape = Literal | ClassSymbol | ModuleOrObjectSymbol
+          type Shape = Literal | ClassLikeSymbol
+          var hopeless = false
+          def giveUp =
+            hopeless = true
+            Set.empty[Shape]
+          def getShapesA(a: Assignment): Set[Shape] =
+          trace[Set[Shape]](s"Getting shapes for assignment ${a}", r => s"= ${r}"):
+            a match
+            case Unknown => giveUp
+            case Uninitialized => Set.empty
+            case Merge(a1, a2) => getShapesA(a1) | getShapesA(a2)
+            case Assigned(asst, varAsst) =>
+              varAsst match
+              case S(Value.Ref(r, S(sym: ModuleOrObjectSymbol)) -> _) =>
+                Set.single(sym)
+              case S(_ -> ass) =>
+                getShapesA(ass)
+              case N =>
+                asst.rhs match
+                case p: Path => getShapes(p)
+                // case Instantiate(mut, cls, args) if cls.symbolOpt.exists(_.defn.exists{
+                //   case cls: ClassLikeDef => ???
+                //   case _ => false
+                // }) =>
+                //   Set.single(cls)
+                // /*
+                case Call(path, args) =>
+                  path.symbolOpt match
+                  case S(tsym: TermSymbol) =>
+                    tsym.owner match
+                    case S(sym: ClassSymbol) =>
+                      sym.defn match
+                      case S(cls: ClassLikeDef)
+                        // if the instantiation call is saturated
+                        if cls.auxParams.isEmpty
+                        =>
+                        Set.single(sym)
+                      case _ => giveUp
+                    case _ => giveUp
+                  case _ => giveUp
+                // */
+                case Instantiate(mut, cls, args) =>
+                  cls.symbolOpt match
+                  case S(sym: ClassSymbol) =>
+                    sym.defn match
+                    case S(cls: ClassLikeDef)
+                      // if the instantiation call is saturated
+                      if cls.auxParams.isEmpty || cls.paramsOpt.isEmpty && cls.auxParams.sizeCompare(1) <= 0
+                      =>
+                      Set.single(sym)
+                    case _ => giveUp
+                  case _ => giveUp
+                case _ => giveUp
+          def getShapes(p: Path): Set[Shape] =
+            if hopeless then Set.empty
+            else
+              p match
+              case Value.Ref(r: LocalVar, N) =>
+                assignedResults.get(r).fold(giveUp)(getShapesA)
+              // case Value.Ref(r: LocalVar, N) => assignedResults.get(r) match
+              //   case S(Unknown) | N =>
+              //     hopeless = true
+              //     Set.empty
+              //   case S(Uninitialized) => Set.empty
+              //   case S(Merge(a1, a2)) => getShapeA(a1) | getShapeA(a2)
+              //   case S(Assigned(asst, varAsst)) =>
+              //     ???
+              // case Value.Ref(r, S(sym: (ClassSymbol | ModuleOrObjectSymbol))) =>
+              case Value.Ref(r, S(sym: ModuleOrObjectSymbol)) =>
+                Set.single(sym)
+              case Value.Lit(lit) => Set.single(lit)
+              case _ =>
+                // Set.empty
+                giveUp
+          
+          // log(s"Analyzing shapes: ${{getShapes(scrut2)}}")
+          var shapes = getShapes(scrut2)
+          
           val oldAssigned = assignedResults
           var curAssigned = oldAssigned
-          val newArms = arms.mapConserve:
+          val arms2 = if hopeless then arms else arms.filterConserve: (pat, body) =>
+            pat match
+            // case Case.Lit(lit) if shapes.contains(lit) => 
+            //   shapes -= lit
+            //   true
+            case Case.Lit(lit) => 
+              // val res = shapes.contains(lit)
+              // shapes -= lit
+              // res
+              shapes.contains(lit) && { shapes -= lit; true }
+            case Case.Cls(sym, _) =>
+              
+              // FIXME: take inheritance into account
+              // FIXME: take lit <: virual-cls into account
+              
+              // val res = shapes.contains(sym)
+              // shapes -= sym
+              // res
+              shapes.contains(sym) && { shapes -= sym; true }
+            // case Case.Cls(sym, _) if shapes.contains(sym) =>
+            //   // FIXME: take inheritance into account
+            //   shapes -= sym
+            //   true
+            case _ => true
+          // log(s"Filtered arms: ${arms2.map(_._1)}")
+          val newArms = arms2.mapConserve:
             case arm @ (cse, body) =>
               val newBody = applyBlock(body)
               curAssigned = merge(curAssigned, assignedResults)
               assignedResults = oldAssigned
               if newBody is body then arm else cse -> newBody
-          val newDflt = dflt.mapConserve:
-            case body =>
-              val newBody = applyBlock(body)
-              curAssigned = merge(curAssigned, assignedResults)
-              assignedResults = oldAssigned
-              if newBody is body then body else newBody
-          log(s"Match: ${newDflt}")
+          val newDflt = if !hopeless && shapes.isEmpty
+            then S(Unreachable("exhaustive match"))
+            else dflt.mapConserve:
+              case body =>
+                val newBody = applyBlock(body)
+                curAssigned = merge(curAssigned, assignedResults)
+                assignedResults = oldAssigned
+                if newBody is body then body else newBody
+          // log(s"Match: ${newDflt}")
           if newDflt.isEmpty then curAssigned = merge(curAssigned, assignedResults)
           assignedResults = curAssigned
           log(s"After match: ${assignedResults}")

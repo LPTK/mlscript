@@ -7,7 +7,7 @@ fun f =
   if true then return 1 else return 2
   (???)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f; f = function f() { if (true === true) { return 1 } return 2; };
+//│ let f; f = function f() { return 1 };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // * Note: we now remove the call to `???` because
@@ -42,21 +42,7 @@ fun f =
 //│ };
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let f⁰;
-//│ define f⁰ as fun f¹() {
-//│   match true
-//│     true =>
-//│       match false
-//│         true =>
-//│           return runtime⁰.Unit⁰
-//│         else
-//│           throw new globalThis⁰.Error⁰("match error")
-//│       end
-//│     else
-//│       throw new globalThis⁰.Error⁰("match error")
-//│   end
-//│ };
-//│ end
+//│ let f⁰; define f⁰ as fun f¹() { throw new globalThis⁰.Error⁰("match error") }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :sir
@@ -91,17 +77,7 @@ fun f =
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f²;
 //│ define f² as fun f³() {
-//│   match true
-//│     true =>
-//│       match false
-//│         true =>
-//│           return "1"
-//│         else
-//│           return "2 long long long long long long long long long long long long long long"
-//│       end
-//│     else
-//│       return "2 long long long long long long long long long long long long long long"
-//│   end
+//│   return "2 long long long long long long long long long long long long long long"
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

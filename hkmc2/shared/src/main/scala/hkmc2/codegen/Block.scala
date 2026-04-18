@@ -454,6 +454,8 @@ object Match:
     val arms = if emptyDflt then _arms.filterNot(_._2.isEmpty) else _arms
     if arms.isEmpty && scrut.isPure then dflt.fold(rest)(Begin(_, rest))
     else dflt match
+    case S(Unreachable(_)) if scrut.isPure && arms.sizeCompare(1) === 0 =>
+      arms.head._2
     case S(Match(`scrut`, arms2, dflt2, _: End)) => // TODO: also handle non-End rest (may require a join point)
       // * Currently, this branch does not seem used often (or at all?),
       // * because the UCS and (especially) MergeMatchArmTransformer already do a good job at merging matches
@@ -864,6 +866,10 @@ sealed abstract class Path extends TrivialResult:
   def sel(id: Tree.Ident, sym: DefinitionSymbol[?]): Path = Select(this, id)(S(sym))
   def selSN(id: Str): Path = selN(new Tree.Ident(id))
   def asArg = Arg(spread = N, this)
+  def symbolOpt: Opt[DefinitionSymbol[?]] = this match
+    case ref: Value.Ref => ref.disamb
+    case sel: Select => sel.symbol
+    case _ => N
 
 /**
  * @param symbol The symbol representing the definition that the selection refers to, if known.

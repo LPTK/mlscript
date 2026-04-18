@@ -9,12 +9,7 @@ object None
 :sjs
 if Some(0) is Some(x) then x
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let scrut, arg$Some$0$;
-//│ scrut = Some1(0);
-//│ if (scrut instanceof Some1.class) {
-//│   arg$Some$0$ = scrut.value;
-//│   arg$Some$0$
-//│ } else { throw globalThis.Object.freeze(new globalThis.Error("match error")) }
+//│ let scrut, arg$Some$0$; scrut = Some1(0); arg$Some$0$ = scrut.value; arg$Some$0$
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 0
 

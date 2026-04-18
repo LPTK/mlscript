@@ -30,14 +30,8 @@ f(1, 2).get()
 //│ };
 //│ define f⁰ as fun f¹(used) {
 //│   let tmp1;
-//│   match false
-//│     true =>
-//│       set tmp1 = new mut C¹(used);
-//│       return tmp1
-//│     else
-//│       set tmp1 = new C¹(used);
-//│       return tmp1
-//│   end
+//│   set tmp1 = new C¹(used);
+//│   return tmp1
 //│ };
 //│ set tmp = f¹(1);
 //│ tmp.get﹖()

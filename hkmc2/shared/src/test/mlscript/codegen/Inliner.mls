@@ -156,7 +156,7 @@ fun f() =
   g(true)
 f()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f7; f7 = function f() { if (true === true) { return true } return false; }; f7()
+//│ let f7; f7 = function f() { return true }; true
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true
 
@@ -199,17 +199,10 @@ module A with
 fun f() = if false do f() + 1
 f()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let f¹⁴;
-//│ define f¹⁴ as fun f¹⁵() {
-//│   match false
-//│     true =>
-//│       do f¹⁵();
-//│       return runtime⁰.Unit⁰
-//│     else
-//│       return runtime⁰.Unit⁰
-//│   end
-//│ };
-//│ f¹⁵()
+//│ let f¹⁴, inlinedVal;
+//│ define f¹⁴ as fun f¹⁵() { return runtime⁰.Unit⁰ };
+//│ set inlinedVal = runtime⁰.Unit⁰;
+//│ inlinedVal
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

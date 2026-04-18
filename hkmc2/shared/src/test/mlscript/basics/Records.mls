@@ -95,7 +95,6 @@ let rcd = new with
 //│ ╔══[COMPILATION ERROR] Name not found: bar
 //│ ║  l.90: 	  bar =
 //│ ╙──      	  ^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ rcd = undefined
 
 
@@ -136,7 +135,7 @@ m0.get(41)
 :e
 {get(k): _}
 //│ ╔══[COMPILATION ERROR] Unexpected record key shape.
-//│ ║  l.137: 	{get(k): _}
+//│ ║  l.136: 	{get(k): _}
 //│ ╙──       	 ^^^^^^
 //│ = fun
 
@@ -191,14 +190,14 @@ display(x: 88, y: 99, i: 0)
 :todo
 t("group")
 //│ ╔══[COMPILATION ERROR] Expected 2 arguments, got 1
-//│ ║  l.192: 	t("group")
+//│ ║  l.191: 	t("group")
 //│ ╙──       	 ^^^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: Function 't' expected 2 arguments but got 1
 
 :todo
 t("group")
 //│ ╔══[COMPILATION ERROR] Expected 2 arguments, got 1
-//│ ║  l.199: 	t("group")
+//│ ║  l.198: 	t("group")
 //│ ╙──       	 ^^^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: Function 't' expected 2 arguments but got 1
 

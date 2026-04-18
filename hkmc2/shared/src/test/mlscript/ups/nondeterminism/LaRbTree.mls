@@ -31,22 +31,40 @@ B is @compile AnyTree
 //│ = true
 
 Pair(A, B) is @compile LaRbTree
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 Pair(Pair(A, A), Pair(B, B)) is @compile LaRbTree
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 Pair(Pair(A, B), B) is @compile LaRbTree
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 Pair(A, Pair(A, B)) is @compile LaRbTree
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 Pair(Pair(A, A), B) is @compile LaRbTree
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 Pair(A, Pair(B, B)) is @compile LaRbTree
-//│ = true
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
+//│ = false
 
 :global
 :expect false

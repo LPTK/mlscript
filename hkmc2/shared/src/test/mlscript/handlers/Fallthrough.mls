@@ -76,16 +76,12 @@ fun f() =
 //│         tmp1 = runtime.resumeValue;
 //│         return tmp1;
 //│       case 0:
-//│         if (0 === 0) {
-//│           runtime.resumeValue = g();
-//│           if (runtime.curEffect === null) {
-//│             pc = 7;
-//│             continue main
-//│           }
-//│           return runtime.unwind(f, 7, "Fallthrough.mls:11:13", null, null, 1, 0, 1, tmp);
+//│         runtime.resumeValue = g();
+//│         if (runtime.curEffect === null) {
+//│           pc = 7;
+//│           continue main
 //│         }
-//│         pc = 5;
-//│         continue main;
+//│         return runtime.unwind(f, 7, "Fallthrough.mls:11:13", null, null, 1, 0, 1, tmp);
 //│     }
 //│     break;
 //│   }

@@ -16,21 +16,21 @@ pattern SignBox = Box(Sign | SignBox)
   Box(0) is @compile SignBox,
   Box(1) is @compile SignBox
 ]
-//│ = [true, true, true]
+//│ = [false, false, false]
 
 [
   Box(Box(-1)) is @compile SignBox,
   Box(Box(0)) is @compile SignBox,
   Box(Box(1)) is @compile SignBox
 ]
-//│ = [true, true, true]
+//│ = [false, false, false]
 
 [
   Box(Box(Box(-1))) is @compile SignBox,
   Box(Box(Box(0))) is @compile SignBox,
   Box(Box(Box(1))) is @compile SignBox
 ]
-//│ = [true, true, true]
+//│ = [false, false, false]
 
 :expect [false, false, false]
 [

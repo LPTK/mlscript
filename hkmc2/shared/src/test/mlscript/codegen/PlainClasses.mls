@@ -24,9 +24,7 @@ Foo is Foo
 
 (new Foo) is Foo
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let scrut;
-//│ scrut = globalThis.Object.freeze(new Foo1());
-//│ if (scrut instanceof Foo1) { true } else { false }
+//│ let scrut; scrut = globalThis.Object.freeze(new Foo1()); true
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true
 
@@ -107,7 +105,7 @@ let t = test()
 :e
 new t
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found reference.
-//│ ║  l.108: 	new t
+//│ ║  l.106: 	new t
 //│ ║         	    ^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
@@ -126,7 +124,7 @@ new! t
 :e
 new t()
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found reference.
-//│ ║  l.127: 	new t()
+//│ ║  l.125: 	new t()
 //│ ║         	    ^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
@@ -252,10 +250,10 @@ class Foo with
   val x = 2
 //│ ╔══[COMPILATION ERROR] Multiple definitions of symbol 'x'
 //│ ╟── defined here
-//│ ║  l.251: 	  val x = 1
+//│ ║  l.249: 	  val x = 1
 //│ ║         	  ^^^^^^^^^
 //│ ╟── defined here
-//│ ║  l.252: 	  val x = 2
+//│ ║  l.250: 	  val x = 2
 //│ ╙──       	  ^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Foo12;
@@ -277,10 +275,10 @@ class Foo with
   val x = 1
   let x = 2
 //│ ╔══[COMPILATION ERROR] Name 'x' is already used
-//│ ║  l.278: 	  let x = 2
+//│ ║  l.276: 	  let x = 2
 //│ ║         	      ^^^^^
 //│ ╟── by a member declared in the same block
-//│ ║  l.277: 	  val x = 1
+//│ ║  l.275: 	  val x = 1
 //│ ╙──       	  ^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Foo14;
@@ -307,7 +305,7 @@ class Foo with
 :e
 class Foo with val x = 1
 //│ ╔══[COMPILATION ERROR] Illegal body of class definition (should be a block; found term definition).
-//│ ║  l.308: 	class Foo with val x = 1
+//│ ║  l.306: 	class Foo with val x = 1
 //│ ╙──       	               ^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Foo16;
