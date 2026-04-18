@@ -83,8 +83,22 @@ fun f() =
   else
     let b = 5
     b + 9
-//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f; f = function f() { if (true === true) { return 4 + 4 } return 5 + 9; };
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let f⁰;
+//│ define f⁰ as fun f¹() {
+//│   let scrut, b;
+//│   set scrut = true;
+//│   match scrut
+//│     true =>
+//│       let a;
+//│       set a = 4;
+//│       return +⁰(a, 4)
+//│     else
+//│       set b = 5;
+//│       return +⁰(b, 9)
+//│   end
+//│ };
+//│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -140,7 +154,7 @@ fun foo(x, y) =
 :ge
 scope.locally()
 //│ ╔══[COMPILATION ERROR] Unsupported form for scope.locally.
-//│ ║  l.141: 	scope.locally()
+//│ ║  l.155: 	scope.locally()
 //│ ╙──       	^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -148,7 +162,7 @@ scope.locally()
 :ge
 scope.locally of (let x = 1 in x), (let y = 2 in y)
 //│ ╔══[COMPILATION ERROR] Unsupported form for scope.locally.
-//│ ║  l.149: 	scope.locally of (let x = 1 in x), (let y = 2 in y)
+//│ ║  l.163: 	scope.locally of (let x = 1 in x), (let y = 2 in y)
 //│ ╙──       	^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -157,10 +171,10 @@ scope.locally of (let x = 1 in x), (let y = 2 in y)
 :ge
 scope.locally of (let x = 1 in x), (let y = 2 in x)
 //│ ╔══[COMPILATION ERROR] Name not found: x
-//│ ║  l.158: 	scope.locally of (let x = 1 in x), (let y = 2 in x)
+//│ ║  l.172: 	scope.locally of (let x = 1 in x), (let y = 2 in x)
 //│ ╙──       	                                                 ^
 //│ ╔══[COMPILATION ERROR] Unsupported form for scope.locally.
-//│ ║  l.158: 	scope.locally of (let x = 1 in x), (let y = 2 in x)
+//│ ║  l.172: 	scope.locally of (let x = 1 in x), (let y = 2 in x)
 //│ ╙──       	^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

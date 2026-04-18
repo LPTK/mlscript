@@ -516,8 +516,10 @@ class BlockSimplifier
               curAssigned = merge(curAssigned, assignedResults)
               assignedResults = oldAssigned
               if newBody is body then body else newBody
+          log(s"Match: ${newDflt}")
           if newDflt.isEmpty then curAssigned = merge(curAssigned, assignedResults)
           assignedResults = curAssigned
+          log(s"After match: ${assignedResults}")
           val restRewritten = applySubBlock(rest)
           if (scrut2 is scrut) && (newArms is arms) && (newDflt is dflt) && (restRewritten is rest) then b
           else Match(scrut2, newArms, newDflt, restRewritten)
