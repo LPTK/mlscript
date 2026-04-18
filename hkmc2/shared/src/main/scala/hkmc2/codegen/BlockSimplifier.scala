@@ -355,6 +355,14 @@ class BlockSimplifier
         case Assigned(asst, varAsst) => s"${asst.rhs}${varAsst.fold("")("‹"+_+"›")}"
         case Merge(a1, a2) => s"{${a1.toString} | ${a2.toString}}"
       
+      def merge(that: Assignment): Assignment =
+        if this is that then this
+        else that match
+          case Unknown => that
+          case Uninitialized => this
+          // case Merge(l, r) => Merge(merge(this, l), r)
+          case _: Assigned | _: Merge => Merge(this, that)
+      
     import Assignment.*
     
     
@@ -377,9 +385,7 @@ class BlockSimplifier
     val atLabelEnd: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
-      mergeMap(ar1, ar2)((a, b) => if a is b then a else Merge(a, b)).withDefaultValue(Unknown)
-      // TODO:
-      // mergeMap(ar1, ar2)(merge).withDefaultValue(Unknown)
+      mergeMap(ar1, ar2)(_.merge(_)).withDefaultValue(Unknown)
     
     
     override def applyDefn(defn: Defn)(k: Defn => Block): Block =
