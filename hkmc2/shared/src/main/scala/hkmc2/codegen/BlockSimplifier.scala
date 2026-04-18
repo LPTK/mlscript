@@ -590,6 +590,7 @@ class BlockSimplifier
           
           // log(s"Analyzing shapes: ${{getShapes(scrut2)}}")
           var shapes = getShapes(scrut2)
+          // TODO: if hopeless, make the shapes the set of cases of the patmat, to rm redundant arms
           
           val oldAssigned = assignedResults
           var curAssigned = oldAssigned

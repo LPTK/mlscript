@@ -23,7 +23,7 @@ fun foo(x) =
     B then 2
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
-//│ x = undefined
+//│ x = A
 
 // * We could make it work. But it's a special case that's probably not very important
 let x = if true then A else B
@@ -32,7 +32,7 @@ fun foo(x) =
   if x is B do print(456)
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
-//│ x = undefined
+//│ x = A
 
 :expect 1
 fun foo(k, x) =

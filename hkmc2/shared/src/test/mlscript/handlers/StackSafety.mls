@@ -243,19 +243,6 @@ fun f(n) =
     f(n-1)
   trivial()
 f(10000)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
-//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
-//│     at Runtime.checkCall (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:601:41)
-//│     at f (REPL56:1:1315)
-//│     at f (REPL56:1:1325)
-//│     at f (REPL56:1:1325)
-//│     at f (REPL56:1:1325)
-//│     at f (REPL56:1:1325)
-//│     at f (REPL56:1:1325)
-//│     at f (REPL56:1:1325)
-//│     at f (REPL56:1:1325)
-//│     at f (REPL56:1:1325)
 
 abstract class Eff with
   fun raise()

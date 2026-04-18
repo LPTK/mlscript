@@ -41,10 +41,8 @@ let h = if true then f else g
 h(5)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
-//│ ═══[RUNTIME ERROR] Expected: '5', got: 'undefined'
-//│ h = undefined
+//│ = 5
+//│ h = fun f
 
 
 

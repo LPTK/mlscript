@@ -66,12 +66,10 @@ let res3 = p(y) // y flows into this call-site result
 f1(res1) + f1(res2) + f2(res3)
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
-//│ ═══[RUNTIME ERROR] Expected: '5', got: 'undefined'
-//│ res1 = undefined
-//│ res2 = undefined
-//│ res3 = undefined
+//│ = 5
+//│ res1 = A(1)
+//│ res2 = A(1)
+//│ res3 = A(2)
 //│ x = A(1)
 //│ y = A(2)
 

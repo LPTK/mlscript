@@ -546,10 +546,7 @@ f(AA(3), 3, true, 10) + f(AA(5), 4, false, 20)
 //│ deforest > Call(Ref(member:AA,Some(term:AA/AA)),List(Arg(None,Lit(IntLit(3))))) ->
 //│ deforest > 	Ref(x,None)
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
-//│ ═══[RUNTIME ERROR] Expected: '41', got: 'NaN'
-//│ = NaN
+//│ = 41
 
 
 
@@ -568,7 +565,7 @@ test(p) + f(p)
 //│ deforest > 	Select(Ref(tmp:arg$AA$0$,None),Ident(x))
 //│ deforest > <<< fusing <<<
 //│ = 15
-//│ p = AA(AA(fun tmp68))
+//│ p = AA(AA(fun tmp70))
 
 
 :expect "()()"

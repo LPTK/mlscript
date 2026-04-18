@@ -455,7 +455,7 @@ object Match:
     if arms.isEmpty && scrut.isPure then dflt.fold(rest)(Begin(_, rest))
     else dflt match
     case S(Unreachable(_)) if scrut.isPure && arms.sizeCompare(1) === 0 =>
-      arms.head._2
+      Begin(arms.head._2, rest)
     case S(Match(`scrut`, arms2, dflt2, _: End)) => // TODO: also handle non-End rest (may require a join point)
       // * Currently, this branch does not seem used often (or at all?),
       // * because the UCS and (especially) MergeMatchArmTransformer already do a good job at merging matches
