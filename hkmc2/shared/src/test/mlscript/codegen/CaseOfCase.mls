@@ -17,7 +17,7 @@ fun test(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let test;
 //│ test = function test(x) {
-//│   let scrut, arg$Some$0$, arg$Some$0$1, tmp, tmp1;
+//│   let arg$Some$0$, arg$Some$0$1, tmp, tmp1;
 //│   if (x instanceof Some1.class) {
 //│     arg$Some$0$1 = x.value;
 //│     tmp = arg$Some$0$1 + 1;
@@ -27,11 +27,10 @@ fun test(x) =
 //│   } else {
 //│     throw globalThis.Object.freeze(new globalThis.Error("match error"))
 //│   }
-//│   scrut = tmp1;
-//│   if (scrut instanceof Some1.class) {
+//│   if (tmp1 instanceof Some1.class) {
 //│     arg$Some$0$ = tmp1.value;
 //│     return Predef.print(arg$Some$0$)
-//│   } else if (scrut instanceof None1.class) {
+//│   } else if (tmp1 instanceof None1.class) {
 //│     return Predef.print("none")
 //│   }
 //│   throw globalThis.Object.freeze(new globalThis.Error("match error"));

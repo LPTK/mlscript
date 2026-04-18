@@ -7,9 +7,7 @@
 while true do ???
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ loop lbl:
-//│   let scrut;
-//│   set scrut = true;
-//│   match scrut
+//│   match true
 //│     true =>
 //│       do Predef⁰.notImplementedError⁰;
 //│       continue lbl

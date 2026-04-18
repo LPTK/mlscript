@@ -7,9 +7,7 @@ while false do ???
 while false then ()
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
 //│ lbl1: while (true) {
-//│   let scrut;
-//│   scrut = false;
-//│   if (scrut === true) { continue lbl1 }
+//│   if (false === true) { continue lbl1 }
 //│   break;
 //│ }
 //│ block$res2 = runtime.Unit;
@@ -23,7 +21,7 @@ while false then ()
 () =>
   while true then 0
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.24: 	  while true then 0
+//│ ║  l.22: 	  while true then 0
 //│ ╙──      	                  ^
 //│ = fun
 
@@ -315,10 +313,10 @@ while print("Hello World"); false
   then 0(0)
   else 1
 //│ ╔══[PARSE ERROR] Unexpected 'then' keyword here
-//│ ║  l.315: 	  then 0(0)
+//│ ║  l.313: 	  then 0(0)
 //│ ╙──       	  ^^^^
 //│ ╔══[COMPILATION ERROR] Unrecognized term split (false literal)
-//│ ║  l.314: 	while print("Hello World"); false
+//│ ║  l.312: 	while print("Hello World"); false
 //│ ╙──       	                            ^^^^^
 //│ > Hello World
 
@@ -327,12 +325,12 @@ while { print("Hello World"), false }
   then 0(0)
   else 1
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'then' here
-//│ ║  l.326: 	while { print("Hello World"), false }
+//│ ║  l.324: 	while { print("Hello World"), false }
 //│ ║         	        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.327: 	  then 0(0)
+//│ ║  l.325: 	  then 0(0)
 //│ ╙──       	^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Illegal position for prefix keyword 'else'.
-//│ ║  l.328: 	  else 1
+//│ ║  l.326: 	  else 1
 //│ ╙──       	  ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -343,14 +341,14 @@ while
   then 0(0)
   else 1
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'then' here
-//│ ║  l.341: 	    print("Hello World")
+//│ ║  l.339: 	    print("Hello World")
 //│ ║         	    ^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.342: 	    false
+//│ ║  l.340: 	    false
 //│ ║         	^^^^^^^^^
-//│ ║  l.343: 	  then 0(0)
+//│ ║  l.341: 	  then 0(0)
 //│ ╙──       	^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Illegal position for prefix keyword 'else'.
-//│ ║  l.344: 	  else 1
+//│ ║  l.342: 	  else 1
 //│ ╙──       	  ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

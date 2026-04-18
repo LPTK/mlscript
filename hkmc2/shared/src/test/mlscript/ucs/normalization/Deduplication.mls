@@ -490,10 +490,7 @@ foo(A, B, B)
 :sjs
 let y = if true then 1 else 2
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let y1, scrut3, tmp3;
-//│ scrut3 = true;
-//│ if (scrut3 === true) { tmp3 = 1; } else { tmp3 = 2; }
-//│ y1 = tmp3;
+//│ let y1, tmp3; if (true === true) { tmp3 = 1; } else { tmp3 = 2; } y1 = tmp3;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ y = 1
 

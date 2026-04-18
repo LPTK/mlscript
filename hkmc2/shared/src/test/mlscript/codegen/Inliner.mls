@@ -161,7 +161,7 @@ fun f() =
   g(true)
 f()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f7; f7 = function f() { let x; x = true; if (x === true) { return true } return false; }; f7()
+//│ let f7; f7 = function f() { if (true === true) { return true } return false; }; f7()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true
 
@@ -206,9 +206,7 @@ f()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f¹⁴;
 //│ define f¹⁴ as fun f¹⁵() {
-//│   let scrut;
-//│   set scrut = false;
-//│   match scrut
+//│   match false
 //│     true =>
 //│       do f¹⁵();
 //│       return runtime⁰.Unit⁰

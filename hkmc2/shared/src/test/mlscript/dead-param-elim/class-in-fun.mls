@@ -29,9 +29,8 @@ f(1, 2).get()
 //│   }
 //│ };
 //│ define f⁰ as fun f¹(used) {
-//│   let isMut, tmp1;
-//│   set isMut = false;
-//│   match isMut
+//│   let tmp1;
+//│   match false
 //│     true =>
 //│       set tmp1 = new mut C¹(used);
 //│       return tmp1

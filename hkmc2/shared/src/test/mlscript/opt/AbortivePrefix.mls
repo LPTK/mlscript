@@ -7,7 +7,7 @@ fun f =
   if true then return 1 else return 2
   (???)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f; f = function f() { let scrut; scrut = true; if (scrut === true) { return 1 } return 2; };
+//│ let f; f = function f() { if (true === true) { return 1 } return 2; };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // * Note: we now remove the call to `???` because
@@ -44,12 +44,9 @@ fun f =
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f⁰;
 //│ define f⁰ as fun f¹() {
-//│   let scrut, scrut1;
-//│   set scrut = true;
-//│   match scrut
+//│   match true
 //│     true =>
-//│       set scrut1 = false;
-//│       match scrut1
+//│       match false
 //│         true =>
 //│           return runtime⁰.Unit⁰
 //│         else
@@ -94,12 +91,9 @@ fun f =
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f²;
 //│ define f² as fun f³() {
-//│   let scrut, scrut1;
-//│   set scrut = true;
-//│   match scrut
+//│   match true
 //│     true =>
-//│       set scrut1 = false;
-//│       match scrut1
+//│       match false
 //│         true =>
 //│           return "1"
 //│         else

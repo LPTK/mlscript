@@ -18,7 +18,7 @@ fun f() =
 //│ let f;
 //│ runtime.resetEffects();
 //│ f = function f() {
-//│   let scrut, tmp, tmp1, pc;
+//│   let tmp, tmp1, pc;
 //│   if (runtime.resumePc === -1) {
 //│     pc = 0;
 //│   } else {
@@ -76,8 +76,7 @@ fun f() =
 //│         tmp1 = runtime.resumeValue;
 //│         return tmp1;
 //│       case 0:
-//│         scrut = 0;
-//│         if (scrut === 0) {
+//│         if (0 === 0) {
 //│           runtime.resumeValue = g();
 //│           if (runtime.curEffect === null) {
 //│             pc = 7;

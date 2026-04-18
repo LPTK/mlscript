@@ -134,7 +134,7 @@ fun g(x, y, z) =
   @tailcall f(...[1, 1, 2])
 g(0, 0, 0)
 //│ ═══[COMPILATION ERROR] Spreads are not yet fully supported in calls marked @tailcall.
-//│ = 0
+//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
 
 :e
 :lift
