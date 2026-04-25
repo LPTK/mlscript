@@ -150,7 +150,6 @@ fun popByIndex(start, end, acc, lft) =
 //│     acc = tmp35;
 //│     continue loopLabel;
 //│   }
-//│   throw new Error("Reached 'unreachable' code (Rest of abortive labelled block)");
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

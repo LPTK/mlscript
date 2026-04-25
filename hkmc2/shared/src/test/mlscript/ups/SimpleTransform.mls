@@ -124,7 +124,7 @@ print of 42 is @compile LoggedInt
 if 42 is (@compile LoggedInt) as value then
   print("logged value: " + value)
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:265)
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:267)
 //│ ═══[RUNTIME ERROR] Error: match error
 //│     at REPL73:1:126
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
@@ -145,7 +145,7 @@ print of 42 is @compile LoggedIntWithSlot
 if 42 is (@compile LoggedIntWithSlot) as value then
   print("logged slot value: " + value)
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:265)
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:267)
 //│ ═══[RUNTIME ERROR] Error: match error
 //│     at REPL82:1:126
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)

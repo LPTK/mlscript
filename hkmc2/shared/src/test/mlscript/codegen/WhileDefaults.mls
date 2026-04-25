@@ -9,13 +9,7 @@
   _ do print(2)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let lambda;
-//│ lambda = (undefined, function () {
-//│   lbl: while (true) {
-//│     Predef.print(2);
-//│     continue lbl;
-//│   }
-//│   throw new Error("Reached 'unreachable' code (Rest of abortive labelled block)");
-//│ });
+//│ lambda = (undefined, function () { lbl: while (true) { Predef.print(2); continue lbl; } });
 //│ lambda
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun

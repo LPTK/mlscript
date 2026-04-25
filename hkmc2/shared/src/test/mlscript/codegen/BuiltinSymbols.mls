@@ -30,7 +30,7 @@ Bool
 //│ let lambda⁰, inlinedVal; throw new globalThis⁰.Error⁰("match error")
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:265)
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:267)
 //│ ═══[RUNTIME ERROR] Error: match error
 //│     at REPL19:1:49
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)

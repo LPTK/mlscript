@@ -30,10 +30,7 @@ fun test(x) =
 //│   if (tmp1 instanceof Some1.class) {
 //│     arg$Some$0$ = tmp1.value;
 //│     return Predef.print(arg$Some$0$)
-//│   } else if (tmp1 instanceof None1.class) {
-//│     return Predef.print("none")
-//│   }
-//│   throw new Error("Reached 'unreachable' code (exhaustive match)");
+//│   } else if (tmp1 instanceof None1.class) { return Predef.print("none") }
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

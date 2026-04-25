@@ -110,9 +110,10 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     val print = (p: codegen.Program) =>
       blockPrinter.worksheet(p)(using irPrintingScp).mkString(output.ColWidth)
     
-    val effectiveConfig = Config.extractConfigFromStats(blk)
-
-    if showJS.isSet then
+    // val effectiveConfig = 
+    Config.extractConfigFromStats(blk).givenIn {
+    
+    if showJS.isSet then config.copy(sanityChecks = N).givenIn:
       given Raise =
         case d @ ErrorReport(source = Source.Compilation) =>
           reportedMessages += d.mainMsg
@@ -120,9 +121,9 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         case d => outerRaise(d)
       given Elaborator.Ctx = curCtx
       val low = ltl.givenIn:
-        codegen.Lowering()(using effectiveConfig)
+        codegen.Lowering()
       val jsb = ltl.givenIn:
-        JSBuilder(using effectiveConfig)
+        new JSBuilder
       var lowered = low.program(blk)
       if noOptimizations.isUnset then
         lowered = BlockSimplifier(symbolsToPreserve, dtl, print)(lowered)
@@ -143,7 +144,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
             output(s"Skipping already reported diagnostic: ${e.mainMsg}")
         case d => outerRaise(d)
       val low = ltl.givenIn:
-        new codegen.Lowering()(using effectiveConfig)
+        new codegen.Lowering()
           with codegen.LoweringSelSanityChecks
           with codegen.LoweringTraceLog(traceJS.isSet)
       
@@ -207,6 +208,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       
       processIRBlock(optimized, definedValues)
       
+      }
   end processTerm
   
   type ComputeDefinedValues = (includeNonTerms: Bool) => Ls[(Str, Symbol, Opt[Str])]
