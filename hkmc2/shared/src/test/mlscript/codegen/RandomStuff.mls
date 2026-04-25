@@ -17,7 +17,13 @@ fun foo() = if false do return foo()
 :sjs
 fun foo() = foo()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let foo2; foo2 = function foo() { loopLabel: while (true) { continue loopLabel; } };
+//│ let foo2;
+//│ foo2 = function foo() {
+//│   loopLabel: while (true) {
+//│     continue loopLabel;
+//│   }
+//│   throw new Error("Reached 'unreachable' code (Rest of abortive labelled block)");
+//│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -73,7 +79,10 @@ do
 //│ let f, lambda;
 //│ f = 1;
 //│ lambda = (undefined, function () {
-//│   loopLabel: while (true) { continue loopLabel; }
+//│   loopLabel: while (true) {
+//│     continue loopLabel;
+//│   }
+//│   throw new Error("Reached 'unreachable' code (Rest of abortive labelled block)");
 //│ });
 //│ Predef.print(lambda);
 //│ runtime.Unit
@@ -86,10 +95,10 @@ do
 let foo = 1
 fun foo(x) = foo
 //│ ╔══[COMPILATION ERROR] Name 'foo' is already used
-//│ ║  l.86: 	let foo = 1
+//│ ║  l.95: 	let foo = 1
 //│ ║        	    ^^^^^^^
 //│ ╟── by a member declared in the same block
-//│ ║  l.87: 	fun foo(x) = foo
+//│ ║  l.96: 	fun foo(x) = foo
 //│ ╙──      	^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let foo4; foo4 = 1;

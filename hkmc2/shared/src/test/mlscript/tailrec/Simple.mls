@@ -5,7 +5,13 @@
 @tailrec
 fun f = f
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f; f = function f() { loopLabel: while (true) { continue loopLabel; } };
+//│ let f;
+//│ f = function f() {
+//│   loopLabel: while (true) {
+//│     continue loopLabel;
+//│   }
+//│   throw new Error("Reached 'unreachable' code (Rest of abortive labelled block)");
+//│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :fixme
@@ -13,7 +19,7 @@ module Foo with
   @tailrec
   fun bar = bar
 //│ ╔══[WARNING] This function does not directly self-recurse, but is marked @tailrec.
-//│ ║  l.14: 	  fun bar = bar
+//│ ║  l.20: 	  fun bar = bar
 //│ ╙──      	      ^^^
 
 @tailrec
@@ -37,6 +43,7 @@ fun f(x) = f(f(x) + 1)
 //│     x = tmp1;
 //│     continue loopLabel;
 //│   }
+//│   throw new Error("Reached 'unreachable' code (Rest of abortive labelled block)");
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -51,7 +58,7 @@ module A with
 module B with
   fun g(x) = A.f(x * 2)
 //│ ╔══[WARNING] This function does not directly self-recurse, but is marked @tailrec.
-//│ ║  l.50: 	  fun f(x) = B.g(x + 1)
+//│ ║  l.57: 	  fun f(x) = B.g(x + 1)
 //│ ╙──      	      ^
 
 

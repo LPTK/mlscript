@@ -568,6 +568,8 @@ class BlockSimplifier
             if hopeless then Set.empty
             else
               p match
+              case Value.Ref(r: LocalVar, N) if capturedVars(r) =>
+                giveUp
               case Value.Ref(r: LocalVar, N) =>
                 assignedResults.get(r).fold(giveUp)(getShapesA)
               // case Value.Ref(r: LocalVar, N) => assignedResults.get(r) match
@@ -589,6 +591,8 @@ class BlockSimplifier
           // log(s"Analyzing shapes: ${{getShapes(scrut2)}}")
           var shapes = getShapes(scrut2)
           // TODO: if hopeless, make the shapes the set of cases of the patmat, to rm redundant arms
+          
+          log(s"Initial shapes: ${shapes} – $hopeless")
           
           val oldAssigned = assignedResults
           var curAssigned = oldAssigned
@@ -616,6 +620,7 @@ class BlockSimplifier
             //   shapes -= sym
             //   true
             case _ => true
+          
           // log(s"Filtered arms: ${arms2.map(_._1)}")
           val newArms = arms2.mapConserve:
             case arm @ (cse, body) =>

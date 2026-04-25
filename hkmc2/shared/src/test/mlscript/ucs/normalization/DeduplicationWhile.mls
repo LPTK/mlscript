@@ -13,7 +13,13 @@ while true and false do print(1) else print(2)
 while true and true and false do print(1) else print(2)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let lambda1;
-//│ lambda1 = (undefined, function () { lbl: while (true) { Predef.print(2); continue lbl; } });
+//│ lambda1 = (undefined, function () {
+//│   lbl: while (true) {
+//│     Predef.print(2);
+//│     continue lbl;
+//│   }
+//│   throw new Error("Reached 'unreachable' code (Rest of abortive labelled block)");
+//│ });
 //│ lambda1
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun
