@@ -211,7 +211,6 @@ fun main =
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
-:sir
 // :dopt
 :soir
 fun main =
@@ -220,26 +219,6 @@ fun main =
     print(x)
     set x -= 1
 main
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let main⁶;
-//│ define main⁶ as fun main⁷() {
-//│   let x;
-//│   set x = 2;
-//│   loop lbl:
-//│     let scrut, tmp;
-//│     set scrut = >⁰(x, 0);
-//│     match scrut
-//│       true =>
-//│         do Predef⁰.print⁰(x);
-//│         set tmp = -⁰(x, 1);
-//│         set x = tmp;
-//│         continue lbl
-//│       else
-//│         end
-//│     end
-//│   return runtime⁰.Unit⁰
-//│ };
-//│ main⁷()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let main⁶;
 //│ define main⁶ as fun main⁷() {

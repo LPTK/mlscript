@@ -22,17 +22,6 @@ fun rank(t) = if t is
   Empty then 0
   Node(_, _, _, r) then r
 
-// :sir
-// :soir
-// :dopt
-// fun merge(t1: Tree[Num], t2: Tree[Num]): Tree[Num] =
-//   if
-//     t1 is Empty then t2
-//     t2 is Empty then t1
-//     t1 is Node then merge(t2, t1)
-
-:noOpt
-// :soir
 fun merge(t1: Tree[Num], t2: Tree[Num]): Tree[Num] =
   if
     t1 is Empty then t2

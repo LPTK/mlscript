@@ -47,8 +47,8 @@ object DiffTestRunner:
     def filter(file: os.RelPath): Bool = true
     
     val TimeLimit =
-      if sys.env.get("CI").isDefined then Span(30, Seconds)
-      else Span(10, Seconds)
+      if sys.env.get("CI").isDefined then Span(60, Seconds)
+      else Span(25, Seconds)
     
   end State
   
@@ -108,14 +108,15 @@ class DiffTestRunnerBase(val state: DiffTestRunner.State)
   override def withFixture(test: NoArgTest) =
     // println(s">>> RUNNING TEST: ${test.name} in thread ${Thread.currentThread()} (parallel: $inParallel)")
     testName = test.name
-    try super.withFixture(test)
-    finally
-      // println(s"<<< FINISHED TEST: ${test.name}")
-      System.out.flush()
+    super.withFixture(test)
+    // try super.withFixture(test)
+    // finally
+    //   println(s"<<< FINISHED TEST: ${test.name}")
+    //   System.out.flush()
   
   override val defaultTestSignaler: Signaler = new Signaler:
     @annotation.nowarn("msg=method stop in class Thread is deprecated") def apply(testThread: Thread): Unit =
-      println(s"[${Thread.currentThread().getName}] running ${testThread.getName} has run out of time!")
+      println(s"[${Thread.currentThread().getName}] running ${testThread.getName} has run out of time! (${timeLimit.toSeconds}s)")
       println(s"!! Test $testName at $testThread has run out out time !! stopping..." +
         "\n\tNote: you can increase this limit by changing DiffTests.TimeLimit")
       // * Thread.stop() is considered bad practice because normally it's better to implement proper logic

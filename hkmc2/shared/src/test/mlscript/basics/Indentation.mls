@@ -157,37 +157,16 @@ id(0
 //│ ═══[RUNTIME ERROR] TypeError: tmp18 is not a function
 
 
-:sir
 :soir
-:ssjs
 fun test2() =
   fun funny = (case
     0 then 1)
   funny
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let test2⁰;
-//│ define test2⁰ as fun test2¹() {
-//│   let funny;
-//│   define funny as fun funny⁰() {
-//│     let lambda;
-//│     define lambda as fun lambda⁰(caseScrut) {
-//│       match caseScrut
-//│         0 =>
-//│           return 1
-//│         else
-//│           throw new globalThis⁰.Error⁰("match error")
-//│       end
-//│     };
-//│     return lambda⁰
-//│   };
-//│   return funny⁰()
-//│ };
-//│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let test2⁰;
 //│ define test2⁰ as fun test2¹() {
 //│   let funny, lambda;
-//│   define lambda as fun lambda¹(caseScrut) {
+//│   define lambda as fun lambda⁰(caseScrut) {
 //│     match caseScrut
 //│       0 =>
 //│         return 1
@@ -195,23 +174,9 @@ fun test2() =
 //│         throw new globalThis⁰.Error⁰("match error")
 //│     end
 //│   };
-//│   return lambda¹
+//│   return lambda⁰
 //│ };
 //│ end
-//│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let test2;
-//│ test2 = function test2() {
-//│   runtime.checkArgs("test2", 0, true, arguments.length);
-//│   let lambda;
-//│   lambda = (undefined, function (caseScrut) {
-//│     runtime.checkArgs("", 1, true, arguments.length);
-//│     if (caseScrut === 0) {
-//│       return 1
-//│     }
-//│     throw globalThis.Object.freeze(new globalThis.Error("match error"));
-//│   });
-//│   return lambda
-//│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 test2()(0)

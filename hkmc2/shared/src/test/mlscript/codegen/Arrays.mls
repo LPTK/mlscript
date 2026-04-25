@@ -61,14 +61,7 @@ set Array.prototype.toString =
 [1, 2, 3]
 //│ = [1, 2, 3]
 
-:sir
-:dopt
 new Array(4)
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ new globalThis⁰.this.Array⁰(4)
-//│ ⬤ Simplif. iter. 1
-//│ Captured variables: HashSet()
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [<4 empty items>]
 
 

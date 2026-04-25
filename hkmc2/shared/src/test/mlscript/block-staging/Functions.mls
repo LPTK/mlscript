@@ -1,7 +1,7 @@
 :js
 :staging
 
-:noOpt
+:noOpt // To expose the problem
 :fixme // TODO: fix IR rebinding issue (each symbol should be bound at most once)
 :checkIR
 staged module Expressions with

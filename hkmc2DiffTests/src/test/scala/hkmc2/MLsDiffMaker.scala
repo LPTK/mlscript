@@ -129,6 +129,7 @@ abstract class MLsDiffMaker extends DiffMaker:
           debug = true,
           mono = deforest.get.exists(_.contains("mono"))),
       inlining = Opt.when(!noInlineOpt.isSet)(Config.Inliner(inlineThreshold.get.getOrElse(1))),
+      deadBranchRemoval = Config.default.deadBranchRemoval,
       qqEnabled = importQQ.isSet,
       funcToCls = funcToCls.isSet,
       commentGeneratedCode = debug.isSet,

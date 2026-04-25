@@ -64,3 +64,13 @@ if maybe
 //│ ═══[RUNTIME ERROR] Error: Not implemented
 
 // ——— ——— ———
+
+:w
+:fixme // * Should be a call of two arguments, not a sequenced expression
++(1,2)
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.70: 	+(1,2)
+//│ ╙──      	  ^
+//│ = 2
+
+// ——— ——— ———

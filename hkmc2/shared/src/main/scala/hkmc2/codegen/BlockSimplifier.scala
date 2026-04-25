@@ -19,12 +19,15 @@ import hkmc2.syntax.Literal
   * typically, these will be top-level symbols that are being exported from a diff-test block;
   * we don't want to eliminate these. */
 class BlockSimplifier
-    (symbolsToPreserve: Set[Local], tl: TL, printer: Program => Str, deadBranchElim: Bool = false)
+    (symbolsToPreserve: Set[Local], tl: TL, printer: Program => Str)
     (using DebugPrinter, State, Config, Raise, Ctx):
   import tl.*
   
   
+  val deadBranchRemoval = config.deadBranchRemoval
+  
   val MaxIterations = 10
+  
   
   def apply(prog: Program): Program =
     
@@ -72,8 +75,9 @@ class BlockSimplifier
     var changed = false
     
     def registerChange(dbg: => Str)(using Line) =
+      log(s"!! Change triggered { ${dbg} }")
       // * For debugging:
-      log(s"!! Change triggered { ${dbg} } at ${summon[FileName].value}:${summon[Line].value}")
+      // log(s"!! Change triggered { ${dbg} } at ${summon[FileName].value}:${summon[Line].value}")
       changed = true
     
   end Helper
@@ -204,7 +208,7 @@ class BlockSimplifier
     override def applyValue(v: Value)(k: Value => Block) = v match
       // * Replace with `undefined` those references to local variables that are never assigned
       case Value.Ref(loc, N) if localVars.contains(loc) && !definedVars.contains(loc) =>
-        registerChange("TODO")
+        registerChange("TODO: description")
         if !symbolsToPreserve(loc) then removedLocals += loc
         k(Value.Lit(syntax.Tree.UnitLit(false)))
       case _ => super.applyValue(v)(k)
@@ -225,14 +229,14 @@ class BlockSimplifier
         || symbolsToPreserve(defn.sym)
         then super.applyBlock(b)
         else
-          registerChange("TODO")
+          registerChange("TODO: description")
           removedLocals += defn.sym
           applyBlock(rest)
         
       // * Simplify labelled blocks
       case Label(lbl, loop, bod, rst) =>
         if !BrokenLabels.analyze(bod).contains(lbl) && AbortiveAnalysis.analyze(bod) && !rst.isInstanceOf[Unreachable] then
-          registerChange("TODO")
+          registerChange("TODO: description")
           val unr = Unreachable("Rest of abortive labelled block")
           if usedLabels.contains(lbl)
           then Label(lbl, loop, nestLabelCtx(applyBlock(bod)), unr)
@@ -247,13 +251,13 @@ class BlockSimplifier
             val rst2 = applySubBlock(rst)
             if (lbl2 is lbl) && (bod2 is bod) && (rst2 is rst) then b else Label(lbl2, loop, bod2, rst2)
           else
-            registerChange("TODO")
+            registerChange("TODO: description")
             Begin(nestLabelCtx(applyBlock(bod)), applyBlock(rst))
       
       // * Remove useless break
       case Break(label) if tailLabels.contains(label) =>
         log(s"Break ${label} is eliminated: current tail label list is ${tailLabels}")
-        registerChange("TODO")
+        registerChange("TODO: description")
         End()
       
       case x => super.applyBlock(x)
@@ -549,7 +553,7 @@ class BlockSimplifier
               case Value.Lit(lit) => Set.single(lit)
               case _ => giveUp
           
-          var shapes = if deadBranchElim then getShapes(scrut2) else giveUp
+          var shapes = if deadBranchRemoval then getShapes(scrut2) else giveUp
           // TODO: if analysis gave up, make the shapes the set of cases of the patmat, to rm redundant arms
           
           if !gaveUp then log(s"Initial shapes: ${shapes}")
@@ -939,7 +943,7 @@ class BlockSimplifier
           blk match
           case Define(defn: FunDefn, rest) if m(defn.dSym).canBeInlineEliminated =>
             log(s"Inline elimination: ${defn.dSym}")
-            registerChange("TODO")
+            registerChange("TODO: description")
             applyBlock(rest)
           case _ => super.applyBlock(blk)
         
@@ -976,7 +980,7 @@ class BlockSimplifier
                 case N =>
                   super.applyResult(r)(k)
                 case S(matchedArgs) =>
-                  registerChange("TODO")
+                  registerChange("TODO: description")
                   log(s"Inline call for ${ts}, with args ${args}")
                   def go(acc: Block => Block, args: List[(VarSymbol, Result)], mapping: Map[Symbol, Symbol]): Block =
                     args match

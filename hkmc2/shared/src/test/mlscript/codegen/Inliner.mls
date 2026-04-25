@@ -1,5 +1,8 @@
 :js
 
+#config(deadBranchRemoval: true)
+
+
 :soir
 fun f() = 0
 f()
@@ -156,7 +159,7 @@ fun f() =
   g(true)
 f()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f7; f7 = function f() { if (true === true) { return true } return false; }; f7()
+//│ let f7; f7 = function f() { return true }; true
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true
 
@@ -196,12 +199,14 @@ module A with
 // Inlining limits
 :soir
 :inlineThreshold 10
-fun f() = if false do f() + 1
+fun f() = if hide(false) do f() + 1
 f()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f¹⁴;
 //│ define f¹⁴ as fun f¹⁵() {
-//│   match false
+//│   let scrut;
+//│   set scrut = Predef⁰.hide⁰(false);
+//│   match scrut
 //│     true =>
 //│       do f¹⁵();
 //│       return runtime⁰.Unit⁰

@@ -110,7 +110,6 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     val print = (p: codegen.Program) =>
       blockPrinter.worksheet(p)(using irPrintingScp).mkString(output.ColWidth)
     
-    // val effectiveConfig = 
     Config.extractConfigFromStats(blk).givenIn {
     
     if showJS.isSet then config.copy(sanityChecks = N).givenIn:
@@ -168,10 +167,6 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         optimized = BlockSimplifier(symbolsToPreserve, dtl, print)(optimized)
         ltl.givenIn:
           optimized = DeadParamElim(optimized)
-      /* 
-      val lowered_2 = ltl.givenIn:
-        DeadParamElim(lowered_1)
-      */
       
       // TODO: Test that transformers retain object identity when there are no changes
       if (optimized isnt lowered) && (optimized === lowered) then
@@ -187,10 +182,6 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
             else false
           }
         rec(optimized.main, lowered.main)
-      /* 
-      val lowered_2 = ltl.givenIn:
-        DeadParamElim(lowered_1)
-      */
       if checkIR.isSet then
         BlockChecker().applyProgram(optimized)
       
