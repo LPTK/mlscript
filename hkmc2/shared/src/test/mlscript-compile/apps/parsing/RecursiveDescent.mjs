@@ -45,7 +45,7 @@ let RecursiveDescent1;
           arg$Literal$1$ = arg$Some$0$1.literal;
           if (arg$Literal$0$ instanceof Token.LiteralKind.Integer.class) {
             consume();
-            tmp2 = globalThis.parseInt(arg$Literal$1$, 10);
+            tmp2 = runtime.safeCall(globalThis.parseInt(arg$Literal$1$, 10));
             return BasicExpr.Lit(tmp2)
           }
           token = arg$Some$0$1;

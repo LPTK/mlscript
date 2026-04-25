@@ -440,7 +440,7 @@ let ParseRule2;
                   element0$ = runtime.Tuple.get(caseScrut1, 0);
                   element1$ = runtime.Tuple.get(caseScrut1, 1);
                   tmp8 = runtime.safeCall(element1$.map(Option.Some));
-                  tmp9 = tmp8.andThen(rest, process);
+                  tmp9 = runtime.safeCall(tmp8.andThen(rest, process));
                   return globalThis.Object.freeze([
                     element0$,
                     tmp9
@@ -514,7 +514,7 @@ let ParseRule2;
                     }
                     throw globalThis.Object.freeze(new globalThis.Error("match error"));
                   });
-                  rest$_$_ = arg$Ref$4$1.andThen(arg$Siding$2$, Predef.tuple);
+                  rest$_$_ = runtime.safeCall(arg$Ref$4$1.andThen(arg$Siding$2$, Predef.tuple));
                   tmp1 = ParseRule.Choice.Ref(arg$Ref$0$1, lambda4, arg$Ref$2$1, arg$Ref$3$1, rest$_$_);
                   return Option.Some(tmp1)
                 }

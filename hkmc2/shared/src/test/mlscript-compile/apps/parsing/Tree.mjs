@@ -500,9 +500,9 @@ let Tree1;
               if (arg$Literal$0$ instanceof Token.LiteralKind.String.class) {
                 scrut = arg$Literal$1$.length > 5;
                 if (scrut === true) {
-                  tmp19 = arg$Literal$1$.slice(0, 5);
+                  tmp19 = runtime.safeCall(arg$Literal$1$.slice(0, 5));
                   tmp20 = globalThis.JSON.stringify(tmp19);
-                  tmp21 = tmp20.slice(0, -1);
+                  tmp21 = runtime.safeCall(tmp20.slice(0, -1));
                   return tmp21 + "\u2026\""
                 }
                 return globalThis.JSON.stringify(arg$Literal$1$);

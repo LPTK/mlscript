@@ -127,7 +127,7 @@ let Stack1;
             if (tails instanceof Stack.Nil.class) {
               return Stack.Nil
             }
-            return runtime.assertFail("mlscript-compile/Stack.mls", "50");
+            return runtime.safeCall(runtime.assertFail("mlscript-compile/Stack.mls", "50"));
           }
           tmp6 = Stack.toArray(heads);
           tmp7 = go(Stack.Nil, Stack.Nil);

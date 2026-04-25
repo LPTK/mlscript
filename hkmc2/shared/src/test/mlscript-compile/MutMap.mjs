@@ -42,7 +42,7 @@ let MutMap2;
   } 
   static insert(key, value) {
     return (m) => {
-      m.underlying.set(key, value);
+      runtime.safeCall(m.underlying.set(key, value));
       return runtime.Unit
     }
   } 
@@ -61,7 +61,7 @@ let MutMap2;
         scrut = runtime.safeCall(op(tmp1));
         if (scrut instanceof Option.Some.class) {
           arg$Some$0$ = scrut.value;
-          return m.underlying.set(key, arg$Some$0$)
+          return runtime.safeCall(m.underlying.set(key, arg$Some$0$))
         } else if (scrut instanceof Option.None.class) {
           return runtime.safeCall(m.underlying.delete(key))
         }

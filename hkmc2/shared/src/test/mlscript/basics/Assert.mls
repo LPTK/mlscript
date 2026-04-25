@@ -7,12 +7,12 @@ let xs = [1, 2, 3]
 :sjs
 assert true
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ if (true === true) { runtime.Unit } else { runtime.assertFail("Assert.mls", "9") }
+//│ if (true === true) { runtime.Unit } else { runtime.safeCall(runtime.assertFail("Assert.mls", "9")) }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :re
 assert false
-//│ ═══[RUNTIME ERROR] Error: Assertion failed (Assert.mls:15)
+//│ ═══[RUNTIME ERROR] Error: Assertion failed (Assert.mls:28)
 
 assert xs is Array
 
@@ -24,9 +24,11 @@ assert(true); 123
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let scrut;
 //│ scrut = 123;
-//│ if (scrut === true) { runtime.Unit } else { runtime.assertFail("Assert.mls", "24") }
+//│ if (scrut === true) {
+//│   runtime.Unit
+//│ } else { runtime.safeCall(runtime.assertFail("Assert.mls", "44")) }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] Error: Assertion failed (Assert.mls:24)
+//│ ═══[RUNTIME ERROR] Error: Assertion failed (Assert.mls:44)
 
 // * FIXME: the `else` is parsed as part of the `assert`!
 :sjs

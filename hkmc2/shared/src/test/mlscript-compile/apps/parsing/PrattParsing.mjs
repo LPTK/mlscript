@@ -47,7 +47,7 @@ let PrattParsing1;
           arg$Literal$1$ = arg$Some$0$1.literal;
           if (arg$Literal$0$ instanceof Token.LiteralKind.Integer.class) {
             consume();
-            tmp2 = globalThis.parseInt(arg$Literal$1$, 10);
+            tmp2 = runtime.safeCall(globalThis.parseInt(arg$Literal$1$, 10));
             tmp3 = Expr.Lit(tmp2);
             return exprCont(tmp3, prec)
           }

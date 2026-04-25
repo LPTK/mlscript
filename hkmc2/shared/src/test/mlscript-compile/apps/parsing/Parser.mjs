@@ -153,7 +153,7 @@ let Parser1;
                         tmp10 = Tree.summary(tree1);
                         tmp11 = tmp9 + tmp10;
                         tmp12 = tmp11 + " <<<";
-                        Parser.tracer.print(tmp12, 76);
+                        runtime.safeCall(Parser.tracer.print(tmp12, 76));
                         tmp13 = runtime.safeCall(process(tree1, tree$_));
                         tree1 = tmp13;
                         continue lbl
@@ -204,13 +204,13 @@ let Parser1;
                       arg$Identifier$0$ = arg$Cons$0$1.name;
                       tmp3 = "found an identifier \"" + arg$Identifier$0$;
                       tmp4 = tmp3 + "\"";
-                      Parser.tracer.print(tmp4, 88);
+                      runtime.safeCall(Parser.tracer.print(tmp4, 88));
                       tmp5 = MutMap.get(arg$Identifier$0$);
                       scrut = Predef.pipeInto(Keywords.all, tmp5);
                       if (scrut instanceof Option.Some.class) {
                         arg$Some$0$4 = scrut.value;
                         tmp6 = runtime.safeCall(arg$Some$0$4.toString());
-                        Parser.tracer.print(tmp6, 90);
+                        runtime.safeCall(Parser.tracer.print(tmp6, 90));
                         lambda4 = (undefined, function (caseScrut) {
                           let element0$, tmp43;
                           if (runtime.Tuple.isArrayLike(caseScrut) && caseScrut.length === 2) {
@@ -223,22 +223,22 @@ let Parser1;
                         });
                         tmp7 = Iter.mapping(rule.keywordChoices, lambda4);
                         tmp8 = Iter.joined(tmp7, ", ");
-                        Parser.tracer.print("keyword choices: ", tmp8);
+                        runtime.safeCall(Parser.tracer.print("keyword choices: ", tmp8));
                         tmp9 = MutMap.get(arg$Identifier$0$);
                         scrut1 = Predef.pipeInto(rule.keywordChoices, tmp9);
                         if (scrut1 instanceof Option.Some.class) {
                           arg$Some$0$5 = scrut1.value;
                           tmp10 = "found a rule starting with `" + arg$Identifier$0$;
                           tmp11 = tmp10 + "`";
-                          Parser.tracer.print(tmp11, 96);
+                          runtime.safeCall(Parser.tracer.print(tmp11, 96));
                           tmp12 = "the rest of the rule: " + arg$Some$0$5.display;
-                          Parser.tracer.print(tmp12, 97);
+                          runtime.safeCall(Parser.tracer.print(tmp12, 97));
                           consume();
                           return parseRule(0, arg$Some$0$5)
                         }
                         tmp13 = "\"" + arg$Identifier$0$;
                         tmp14 = tmp13 + "\" is not a keyword";
-                        Parser.tracer.print(tmp14, 100);
+                        runtime.safeCall(Parser.tracer.print(tmp14, 100));
                         other = arg$Cons$0$1;
                         tmp15 = "the current rule is " + rule.display;
                         runtime.safeCall(Parser.tracer.print(tmp15));
@@ -256,7 +256,7 @@ let Parser1;
                             tmp17 = tmp16 + "\" at ";
                             tmp18 = TokenHelpers.preview(tokens);
                             tmp19 = tmp17 + tmp18;
-                            Parser.tracer.print(tmp19, 104);
+                            runtime.safeCall(Parser.tracer.print(tmp19, 104));
                             outerPrec$_ = Option.getOrElse(arg$Ref$2$, Keywords.maxKeywordPrec);
                             Option.getOrElse(arg$Ref$3$, prec);
                             scrut3 = outerPrec$_ > prec;
@@ -274,46 +274,46 @@ let Parser1;
                                 tree2 = scrut5;
                                 break split_2$;
                               }
-                              Parser.tracer.print("cannot parse more", 117);
+                              runtime.safeCall(Parser.tracer.print("cannot parse more", 117));
                               scrut6 = rule.endChoice;
                               if (scrut6 instanceof Option.Some.class) {
                                 arg$Some$0$3 = scrut6.value;
                                 value = arg$Some$0$3;
                                 break split_3$
                               }
-                              Parser.tracer.print("no end choice", 121);
+                              runtime.safeCall(Parser.tracer.print("no end choice", 121));
                               return acc;
                             }
                             tmp20 = "did not parse kind \"" + arg$Ref$0$;
                             tmp21 = tmp20 + "\" because of the precedence";
-                            Parser.tracer.print(tmp21, 123);
-                            Parser.tracer.print("no reference choice", 124);
+                            runtime.safeCall(Parser.tracer.print(tmp21, 123));
+                            runtime.safeCall(Parser.tracer.print("no reference choice", 124));
                             scrut7 = rule.endChoice;
                             if (scrut7 instanceof Option.Some.class) {
                               arg$Some$0$1 = scrut7.value;
                               value1 = arg$Some$0$1;
                               break split_4$
                             }
-                            Parser.tracer.print("no end choice", 128);
+                            runtime.safeCall(Parser.tracer.print("no end choice", 128));
                           } else {
-                            Parser.tracer.print("no reference choice", 124);
+                            runtime.safeCall(Parser.tracer.print("no reference choice", 124));
                             scrut7 = rule.endChoice;
                             if (scrut7 instanceof Option.Some.class) {
                               arg$Some$0$1 = scrut7.value;
                               value1 = arg$Some$0$1;
                               break split_4$
                             }
-                            Parser.tracer.print("no end choice", 128);
+                            runtime.safeCall(Parser.tracer.print("no end choice", 128));
                           }
                         } else {
-                          Parser.tracer.print("no reference choice", 124);
+                          runtime.safeCall(Parser.tracer.print("no reference choice", 124));
                           scrut7 = rule.endChoice;
                           if (scrut7 instanceof Option.Some.class) {
                             arg$Some$0$1 = scrut7.value;
                             value1 = arg$Some$0$1;
                             break split_4$
                           }
-                          Parser.tracer.print("no end choice", 128);
+                          runtime.safeCall(Parser.tracer.print("no end choice", 128));
                         }
                       } else {
                         other = arg$Cons$0$1;
@@ -333,7 +333,7 @@ let Parser1;
                             tmp24 = tmp23 + "\" at ";
                             tmp25 = TokenHelpers.preview(tokens);
                             tmp26 = tmp24 + tmp25;
-                            Parser.tracer.print(tmp26, 104);
+                            runtime.safeCall(Parser.tracer.print(tmp26, 104));
                             outerPrec$_ = Option.getOrElse(arg$Ref$2$, Keywords.maxKeywordPrec);
                             Option.getOrElse(arg$Ref$3$, prec);
                             scrut3 = outerPrec$_ > prec;
@@ -351,46 +351,46 @@ let Parser1;
                                 tree2 = scrut5;
                                 break split_2$;
                               }
-                              Parser.tracer.print("cannot parse more", 117);
+                              runtime.safeCall(Parser.tracer.print("cannot parse more", 117));
                               scrut6 = rule.endChoice;
                               if (scrut6 instanceof Option.Some.class) {
                                 arg$Some$0$3 = scrut6.value;
                                 value = arg$Some$0$3;
                                 break split_3$
                               }
-                              Parser.tracer.print("no end choice", 121);
+                              runtime.safeCall(Parser.tracer.print("no end choice", 121));
                               return acc;
                             }
                             tmp27 = "did not parse kind \"" + arg$Ref$0$;
                             tmp28 = tmp27 + "\" because of the precedence";
-                            Parser.tracer.print(tmp28, 123);
-                            Parser.tracer.print("no reference choice", 124);
+                            runtime.safeCall(Parser.tracer.print(tmp28, 123));
+                            runtime.safeCall(Parser.tracer.print("no reference choice", 124));
                             scrut7 = rule.endChoice;
                             if (scrut7 instanceof Option.Some.class) {
                               arg$Some$0$1 = scrut7.value;
                               value1 = arg$Some$0$1;
                               break split_4$
                             }
-                            Parser.tracer.print("no end choice", 128);
+                            runtime.safeCall(Parser.tracer.print("no end choice", 128));
                           } else {
-                            Parser.tracer.print("no reference choice", 124);
+                            runtime.safeCall(Parser.tracer.print("no reference choice", 124));
                             scrut7 = rule.endChoice;
                             if (scrut7 instanceof Option.Some.class) {
                               arg$Some$0$1 = scrut7.value;
                               value1 = arg$Some$0$1;
                               break split_4$
                             }
-                            Parser.tracer.print("no end choice", 128);
+                            runtime.safeCall(Parser.tracer.print("no end choice", 128));
                           }
                         } else {
-                          Parser.tracer.print("no reference choice", 124);
+                          runtime.safeCall(Parser.tracer.print("no reference choice", 124));
                           scrut7 = rule.endChoice;
                           if (scrut7 instanceof Option.Some.class) {
                             arg$Some$0$1 = scrut7.value;
                             value1 = arg$Some$0$1;
                             break split_4$
                           }
-                          Parser.tracer.print("no end choice", 128);
+                          runtime.safeCall(Parser.tracer.print("no end choice", 128));
                         }
                       }
                     } else {
@@ -411,7 +411,7 @@ let Parser1;
                           tmp31 = tmp30 + "\" at ";
                           tmp32 = TokenHelpers.preview(tokens);
                           tmp33 = tmp31 + tmp32;
-                          Parser.tracer.print(tmp33, 104);
+                          runtime.safeCall(Parser.tracer.print(tmp33, 104));
                           outerPrec$_ = Option.getOrElse(arg$Ref$2$, Keywords.maxKeywordPrec);
                           Option.getOrElse(arg$Ref$3$, prec);
                           scrut3 = outerPrec$_ > prec;
@@ -429,46 +429,46 @@ let Parser1;
                               tree2 = scrut5;
                               break split_2$;
                             }
-                            Parser.tracer.print("cannot parse more", 117);
+                            runtime.safeCall(Parser.tracer.print("cannot parse more", 117));
                             scrut6 = rule.endChoice;
                             if (scrut6 instanceof Option.Some.class) {
                               arg$Some$0$3 = scrut6.value;
                               value = arg$Some$0$3;
                               break split_3$
                             }
-                            Parser.tracer.print("no end choice", 121);
+                            runtime.safeCall(Parser.tracer.print("no end choice", 121));
                             return acc;
                           }
                           tmp34 = "did not parse kind \"" + arg$Ref$0$;
                           tmp35 = tmp34 + "\" because of the precedence";
-                          Parser.tracer.print(tmp35, 123);
-                          Parser.tracer.print("no reference choice", 124);
+                          runtime.safeCall(Parser.tracer.print(tmp35, 123));
+                          runtime.safeCall(Parser.tracer.print("no reference choice", 124));
                           scrut7 = rule.endChoice;
                           if (scrut7 instanceof Option.Some.class) {
                             arg$Some$0$1 = scrut7.value;
                             value1 = arg$Some$0$1;
                             break split_4$
                           }
-                          Parser.tracer.print("no end choice", 128);
+                          runtime.safeCall(Parser.tracer.print("no end choice", 128));
                         } else {
-                          Parser.tracer.print("no reference choice", 124);
+                          runtime.safeCall(Parser.tracer.print("no reference choice", 124));
                           scrut7 = rule.endChoice;
                           if (scrut7 instanceof Option.Some.class) {
                             arg$Some$0$1 = scrut7.value;
                             value1 = arg$Some$0$1;
                             break split_4$
                           }
-                          Parser.tracer.print("no end choice", 128);
+                          runtime.safeCall(Parser.tracer.print("no end choice", 128));
                         }
                       } else {
-                        Parser.tracer.print("no reference choice", 124);
+                        runtime.safeCall(Parser.tracer.print("no reference choice", 124));
                         scrut7 = rule.endChoice;
                         if (scrut7 instanceof Option.Some.class) {
                           arg$Some$0$1 = scrut7.value;
                           value1 = arg$Some$0$1;
                           break split_4$
                         }
-                        Parser.tracer.print("no end choice", 128);
+                        runtime.safeCall(Parser.tracer.print("no end choice", 128));
                       }
                     }
                     consume();
@@ -481,29 +481,29 @@ let Parser1;
                       arg$Some$0$ = scrut8.value;
                       return arg$Some$0$
                     } else if (scrut8 instanceof Option.None.class) {
-                      Parser.tracer.print("no end choice but found the end of input", 135);
+                      runtime.safeCall(Parser.tracer.print("no end choice but found the end of input", 135));
                       return Tree.error("unexpected end of input")
                     }
                     break split_default$;
                   }
                   break split_default$;
                 }
-                Parser.tracer.print("found end choice", 126);
+                runtime.safeCall(Parser.tracer.print("found end choice", 126));
                 return value1;
               }
-              Parser.tracer.print("found end choice", 119);
+              runtime.safeCall(Parser.tracer.print("found end choice", 119));
               return value;
             }
             tmp38 = Tree.summary(acc);
             tmp39 = "acc: " + tmp38;
-            Parser.tracer.print(tmp39, 114);
+            runtime.safeCall(Parser.tracer.print(tmp39, 114));
             tmp40 = Tree.summary(tree2);
             tmp41 = "parsed from rest rule: " + tmp40;
-            Parser.tracer.print(tmp41, 115);
+            runtime.safeCall(Parser.tracer.print(tmp41, 115));
             return runtime.safeCall(process(acc, tree2));
           }
           tmp42 = "cannot parse due to error: " + message1;
-          Parser.tracer.print(tmp42, 111);
+          runtime.safeCall(Parser.tracer.print(tmp42, 111));
           return tree1;
         }
         throw globalThis.Object.freeze(new globalThis.Error("match error"))
@@ -546,11 +546,11 @@ let Parser1;
                 }
                 tmp8 = "the left precedence of \"" + arg$Identifier$0$;
                 tmp9 = tmp8 + "\" is less";
-                Parser.tracer.print(tmp9, 150);
+                runtime.safeCall(Parser.tracer.print(tmp9, 150));
                 return Tree.empty;
               } else if (scrut1 instanceof Option.None.class) {
                 tmp10 = "no rule starting with " + arg$Identifier$0$;
-                Parser.tracer.print(tmp10, 153);
+                runtime.safeCall(Parser.tracer.print(tmp10, 153));
                 return Tree.empty
               }
               token = arg$Cons$0$1;
@@ -631,10 +631,10 @@ let Parser1;
                   tmp4 = Tree.summary(acc);
                   tmp5 = tmp3 + tmp4;
                   tmp6 = tmp5 + " <<<";
-                  Parser.tracer.print(tmp6, 175);
+                  runtime.safeCall(Parser.tracer.print(tmp6, 175));
                   tmp7 = TokenHelpers.preview(tokens);
                   tmp8 = "check keyword " + tmp7;
-                  Parser.tracer.print(tmp8, 177);
+                  runtime.safeCall(Parser.tracer.print(tmp8, 177));
                   if (tokens instanceof Stack.Cons.class) {
                     arg$Cons$0$1 = tokens.head;
                     if (arg$Cons$0$1 instanceof Token.Identifier.class) {
@@ -645,14 +645,14 @@ let Parser1;
                       if (scrut4 instanceof Option.Some.class) {
                         arg$Some$0$2 = scrut4.value;
                         tmp10 = "found a keyword: " + arg$Identifier$0$;
-                        Parser.tracer.print(tmp10, 179);
+                        runtime.safeCall(Parser.tracer.print(tmp10, 179));
                         tmp11 = MutMap.get(arg$Identifier$0$);
                         scrut = Predef.pipeInto(infix.rule.keywordChoices, tmp11);
                         if (scrut instanceof Option.Some.class) {
                           arg$Some$0$3 = scrut.value;
                           tmp12 = "keyword `" + arg$Identifier$0$;
                           tmp13 = tmp12 + "` is found in infix rules";
-                          Parser.tracer.print(tmp13, 181);
+                          runtime.safeCall(Parser.tracer.print(tmp13, 181));
                           scrut1 = arg$Some$0$2.leftPrecOrMin > prec;
                           if (scrut1 === true) {
                             scrut2 = arg$Some$0$3.refChoice;
@@ -668,7 +668,7 @@ let Parser1;
                                 tmp15 = tmp14 + "\" at ";
                                 tmp16 = TokenHelpers.preview(tokens);
                                 tmp17 = tmp15 + tmp16;
-                                Parser.tracer.print(tmp17, 184);
+                                runtime.safeCall(Parser.tracer.print(tmp17, 184));
                                 outerPrec$_ = Option.getOrElse(arg$Ref$2$1, Keywords.maxOperatorPrec);
                                 innerPrec$_ = Option.getOrElse(arg$Ref$3$1, outerPrec$_);
                                 scrut3 = outerPrec$_ > prec;
@@ -677,12 +677,12 @@ let Parser1;
                                   rhs = parseKind(arg$Ref$0$1, arg$Some$0$2.rightPrecOrMin);
                                   restRes = parseRule(innerPrec$_, arg$Ref$4$1);
                                   tmp18 = runtime.safeCall(arg$Ref$1$1(rhs, restRes));
-                                  tmp19 = infix.process(acc, tmp18);
+                                  tmp19 = runtime.safeCall(infix.process(acc, tmp18));
                                   return exprCont(tmp19, prec, options)
                                 }
                                 tmp20 = "keyword `" + arg$Identifier$0$;
                                 tmp21 = tmp20 + "` does not have infix rules";
-                                Parser.tracer.print(tmp21, 193);
+                                runtime.safeCall(Parser.tracer.print(tmp21, 193));
                                 if (arg$Identifier$1$ === true) {
                                   name = arg$Identifier$0$;
                                   tmp22 = MutMap.get(arg$Identifier$0$);
@@ -692,7 +692,7 @@ let Parser1;
                                     if (scrut7 === true) {
                                       tmp23 = "found an operator \"" + arg$Identifier$0$;
                                       tmp24 = tmp23 + "\"";
-                                      Parser.tracer.print(tmp24, 196);
+                                      runtime.safeCall(Parser.tracer.print(tmp24, 196));
                                       scrut5 = Keywords.opPrecOpt(arg$Identifier$0$);
                                       if (scrut5 instanceof Option.Some.class) {
                                         arg$Some$0$1 = scrut5.value;
@@ -703,14 +703,14 @@ let Parser1;
                                           tmp25 = "leftPrec = " + element0$;
                                           tmp26 = tmp25 + "; rightPrec = ";
                                           tmp27 = tmp26 + element1$;
-                                          Parser.tracer.print(tmp27, 198);
+                                          runtime.safeCall(Parser.tracer.print(tmp27, 198));
                                           scrut6 = element0$ > prec;
                                           if (scrut6 === true) {
                                             break split_1$
                                           }
                                           break split_2$;
                                         }
-                                        Parser.tracer.print("not a keyword", 207);
+                                        runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                         token = arg$Cons$0$1;
                                         scrut9 = infix.rule.refChoice;
                                         if (scrut9 instanceof Option.Some.class) {
@@ -726,7 +726,7 @@ let Parser1;
                                             tmp28 = "found reference to " + arg$Ref$0$;
                                             tmp29 = tmp28 + " with outerPrec = ";
                                             tmp30 = tmp29 + arg$Ref$2$;
-                                            Parser.tracer.print(tmp30, 210);
+                                            runtime.safeCall(Parser.tracer.print(tmp30, 210));
                                             outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                             innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                             scrut10 = outerPrec$_1 > prec;
@@ -742,7 +742,7 @@ let Parser1;
                                               break split_5$;
                                             }
                                             tmp32 = "the outer precedence is less than " + prec;
-                                            Parser.tracer.print(tmp32, 225);
+                                            runtime.safeCall(Parser.tracer.print(tmp32, 225));
                                             break split_2$;
                                           }
                                           break split_default$;
@@ -750,7 +750,7 @@ let Parser1;
                                           break split_default$
                                         }
                                       } else {
-                                        Parser.tracer.print("not a keyword", 207);
+                                        runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                         token = arg$Cons$0$1;
                                         scrut9 = infix.rule.refChoice;
                                         if (scrut9 instanceof Option.Some.class) {
@@ -766,7 +766,7 @@ let Parser1;
                                             tmp33 = "found reference to " + arg$Ref$0$;
                                             tmp34 = tmp33 + " with outerPrec = ";
                                             tmp35 = tmp34 + arg$Ref$2$;
-                                            Parser.tracer.print(tmp35, 210);
+                                            runtime.safeCall(Parser.tracer.print(tmp35, 210));
                                             outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                             innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                             scrut10 = outerPrec$_1 > prec;
@@ -782,7 +782,7 @@ let Parser1;
                                               break split_5$;
                                             }
                                             tmp37 = "the outer precedence is less than " + prec;
-                                            Parser.tracer.print(tmp37, 225);
+                                            runtime.safeCall(Parser.tracer.print(tmp37, 225));
                                             break split_2$;
                                           }
                                           break split_default$;
@@ -791,7 +791,7 @@ let Parser1;
                                         }
                                       }
                                     } else {
-                                      Parser.tracer.print("not a keyword", 207);
+                                      runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                       token = arg$Cons$0$1;
                                       scrut9 = infix.rule.refChoice;
                                       if (scrut9 instanceof Option.Some.class) {
@@ -807,7 +807,7 @@ let Parser1;
                                           tmp38 = "found reference to " + arg$Ref$0$;
                                           tmp39 = tmp38 + " with outerPrec = ";
                                           tmp40 = tmp39 + arg$Ref$2$;
-                                          Parser.tracer.print(tmp40, 210);
+                                          runtime.safeCall(Parser.tracer.print(tmp40, 210));
                                           outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                           innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                           scrut10 = outerPrec$_1 > prec;
@@ -823,7 +823,7 @@ let Parser1;
                                             break split_5$;
                                           }
                                           tmp42 = "the outer precedence is less than " + prec;
-                                          Parser.tracer.print(tmp42, 225);
+                                          runtime.safeCall(Parser.tracer.print(tmp42, 225));
                                           break split_2$;
                                         }
                                         break split_default$;
@@ -832,7 +832,7 @@ let Parser1;
                                       }
                                     }
                                   } else {
-                                    Parser.tracer.print("not a keyword", 207);
+                                    runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                     token = arg$Cons$0$1;
                                     scrut9 = infix.rule.refChoice;
                                     if (scrut9 instanceof Option.Some.class) {
@@ -848,7 +848,7 @@ let Parser1;
                                         tmp43 = "found reference to " + arg$Ref$0$;
                                         tmp44 = tmp43 + " with outerPrec = ";
                                         tmp45 = tmp44 + arg$Ref$2$;
-                                        Parser.tracer.print(tmp45, 210);
+                                        runtime.safeCall(Parser.tracer.print(tmp45, 210));
                                         outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                         innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                         scrut10 = outerPrec$_1 > prec;
@@ -864,7 +864,7 @@ let Parser1;
                                           break split_5$;
                                         }
                                         tmp47 = "the outer precedence is less than " + prec;
-                                        Parser.tracer.print(tmp47, 225);
+                                        runtime.safeCall(Parser.tracer.print(tmp47, 225));
                                         break split_2$;
                                       }
                                       break split_default$;
@@ -873,7 +873,7 @@ let Parser1;
                                     }
                                   }
                                 } else {
-                                  Parser.tracer.print("not a keyword", 207);
+                                  runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                   token = arg$Cons$0$1;
                                   scrut9 = infix.rule.refChoice;
                                   if (scrut9 instanceof Option.Some.class) {
@@ -889,7 +889,7 @@ let Parser1;
                                       tmp48 = "found reference to " + arg$Ref$0$;
                                       tmp49 = tmp48 + " with outerPrec = ";
                                       tmp50 = tmp49 + arg$Ref$2$;
-                                      Parser.tracer.print(tmp50, 210);
+                                      runtime.safeCall(Parser.tracer.print(tmp50, 210));
                                       outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                       innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                       scrut10 = outerPrec$_1 > prec;
@@ -905,7 +905,7 @@ let Parser1;
                                         break split_5$;
                                       }
                                       tmp52 = "the outer precedence is less than " + prec;
-                                      Parser.tracer.print(tmp52, 225);
+                                      runtime.safeCall(Parser.tracer.print(tmp52, 225));
                                       break split_2$;
                                     }
                                     break split_default$;
@@ -916,7 +916,7 @@ let Parser1;
                               } else {
                                 tmp53 = "keyword `" + arg$Identifier$0$;
                                 tmp54 = tmp53 + "` does not have infix rules";
-                                Parser.tracer.print(tmp54, 193);
+                                runtime.safeCall(Parser.tracer.print(tmp54, 193));
                                 if (arg$Identifier$1$ === true) {
                                   name = arg$Identifier$0$;
                                   tmp55 = MutMap.get(arg$Identifier$0$);
@@ -926,7 +926,7 @@ let Parser1;
                                     if (scrut7 === true) {
                                       tmp56 = "found an operator \"" + arg$Identifier$0$;
                                       tmp57 = tmp56 + "\"";
-                                      Parser.tracer.print(tmp57, 196);
+                                      runtime.safeCall(Parser.tracer.print(tmp57, 196));
                                       scrut5 = Keywords.opPrecOpt(arg$Identifier$0$);
                                       if (scrut5 instanceof Option.Some.class) {
                                         arg$Some$0$1 = scrut5.value;
@@ -937,14 +937,14 @@ let Parser1;
                                           tmp58 = "leftPrec = " + element0$;
                                           tmp59 = tmp58 + "; rightPrec = ";
                                           tmp60 = tmp59 + element1$;
-                                          Parser.tracer.print(tmp60, 198);
+                                          runtime.safeCall(Parser.tracer.print(tmp60, 198));
                                           scrut6 = element0$ > prec;
                                           if (scrut6 === true) {
                                             break split_1$
                                           }
                                           break split_2$;
                                         }
-                                        Parser.tracer.print("not a keyword", 207);
+                                        runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                         token = arg$Cons$0$1;
                                         scrut9 = infix.rule.refChoice;
                                         if (scrut9 instanceof Option.Some.class) {
@@ -960,7 +960,7 @@ let Parser1;
                                             tmp61 = "found reference to " + arg$Ref$0$;
                                             tmp62 = tmp61 + " with outerPrec = ";
                                             tmp63 = tmp62 + arg$Ref$2$;
-                                            Parser.tracer.print(tmp63, 210);
+                                            runtime.safeCall(Parser.tracer.print(tmp63, 210));
                                             outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                             innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                             scrut10 = outerPrec$_1 > prec;
@@ -976,7 +976,7 @@ let Parser1;
                                               break split_5$;
                                             }
                                             tmp65 = "the outer precedence is less than " + prec;
-                                            Parser.tracer.print(tmp65, 225);
+                                            runtime.safeCall(Parser.tracer.print(tmp65, 225));
                                             break split_2$;
                                           }
                                           break split_default$;
@@ -984,7 +984,7 @@ let Parser1;
                                           break split_default$
                                         }
                                       } else {
-                                        Parser.tracer.print("not a keyword", 207);
+                                        runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                         token = arg$Cons$0$1;
                                         scrut9 = infix.rule.refChoice;
                                         if (scrut9 instanceof Option.Some.class) {
@@ -1000,7 +1000,7 @@ let Parser1;
                                             tmp66 = "found reference to " + arg$Ref$0$;
                                             tmp67 = tmp66 + " with outerPrec = ";
                                             tmp68 = tmp67 + arg$Ref$2$;
-                                            Parser.tracer.print(tmp68, 210);
+                                            runtime.safeCall(Parser.tracer.print(tmp68, 210));
                                             outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                             innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                             scrut10 = outerPrec$_1 > prec;
@@ -1016,7 +1016,7 @@ let Parser1;
                                               break split_5$;
                                             }
                                             tmp70 = "the outer precedence is less than " + prec;
-                                            Parser.tracer.print(tmp70, 225);
+                                            runtime.safeCall(Parser.tracer.print(tmp70, 225));
                                             break split_2$;
                                           }
                                           break split_default$;
@@ -1025,7 +1025,7 @@ let Parser1;
                                         }
                                       }
                                     } else {
-                                      Parser.tracer.print("not a keyword", 207);
+                                      runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                       token = arg$Cons$0$1;
                                       scrut9 = infix.rule.refChoice;
                                       if (scrut9 instanceof Option.Some.class) {
@@ -1041,7 +1041,7 @@ let Parser1;
                                           tmp71 = "found reference to " + arg$Ref$0$;
                                           tmp72 = tmp71 + " with outerPrec = ";
                                           tmp73 = tmp72 + arg$Ref$2$;
-                                          Parser.tracer.print(tmp73, 210);
+                                          runtime.safeCall(Parser.tracer.print(tmp73, 210));
                                           outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                           innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                           scrut10 = outerPrec$_1 > prec;
@@ -1057,7 +1057,7 @@ let Parser1;
                                             break split_5$;
                                           }
                                           tmp75 = "the outer precedence is less than " + prec;
-                                          Parser.tracer.print(tmp75, 225);
+                                          runtime.safeCall(Parser.tracer.print(tmp75, 225));
                                           break split_2$;
                                         }
                                         break split_default$;
@@ -1066,7 +1066,7 @@ let Parser1;
                                       }
                                     }
                                   } else {
-                                    Parser.tracer.print("not a keyword", 207);
+                                    runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                     token = arg$Cons$0$1;
                                     scrut9 = infix.rule.refChoice;
                                     if (scrut9 instanceof Option.Some.class) {
@@ -1082,7 +1082,7 @@ let Parser1;
                                         tmp76 = "found reference to " + arg$Ref$0$;
                                         tmp77 = tmp76 + " with outerPrec = ";
                                         tmp78 = tmp77 + arg$Ref$2$;
-                                        Parser.tracer.print(tmp78, 210);
+                                        runtime.safeCall(Parser.tracer.print(tmp78, 210));
                                         outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                         innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                         scrut10 = outerPrec$_1 > prec;
@@ -1098,7 +1098,7 @@ let Parser1;
                                           break split_5$;
                                         }
                                         tmp80 = "the outer precedence is less than " + prec;
-                                        Parser.tracer.print(tmp80, 225);
+                                        runtime.safeCall(Parser.tracer.print(tmp80, 225));
                                         break split_2$;
                                       }
                                       break split_default$;
@@ -1107,7 +1107,7 @@ let Parser1;
                                     }
                                   }
                                 } else {
-                                  Parser.tracer.print("not a keyword", 207);
+                                  runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                   token = arg$Cons$0$1;
                                   scrut9 = infix.rule.refChoice;
                                   if (scrut9 instanceof Option.Some.class) {
@@ -1123,7 +1123,7 @@ let Parser1;
                                       tmp81 = "found reference to " + arg$Ref$0$;
                                       tmp82 = tmp81 + " with outerPrec = ";
                                       tmp83 = tmp82 + arg$Ref$2$;
-                                      Parser.tracer.print(tmp83, 210);
+                                      runtime.safeCall(Parser.tracer.print(tmp83, 210));
                                       outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                       innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                       scrut10 = outerPrec$_1 > prec;
@@ -1139,7 +1139,7 @@ let Parser1;
                                         break split_5$;
                                       }
                                       tmp85 = "the outer precedence is less than " + prec;
-                                      Parser.tracer.print(tmp85, 225);
+                                      runtime.safeCall(Parser.tracer.print(tmp85, 225));
                                       break split_2$;
                                     }
                                     break split_default$;
@@ -1153,7 +1153,7 @@ let Parser1;
                             } else {
                               tmp86 = "keyword `" + arg$Identifier$0$;
                               tmp87 = tmp86 + "` does not have infix rules";
-                              Parser.tracer.print(tmp87, 193);
+                              runtime.safeCall(Parser.tracer.print(tmp87, 193));
                               if (arg$Identifier$1$ === true) {
                                 name = arg$Identifier$0$;
                                 tmp88 = MutMap.get(arg$Identifier$0$);
@@ -1163,7 +1163,7 @@ let Parser1;
                                   if (scrut7 === true) {
                                     tmp89 = "found an operator \"" + arg$Identifier$0$;
                                     tmp90 = tmp89 + "\"";
-                                    Parser.tracer.print(tmp90, 196);
+                                    runtime.safeCall(Parser.tracer.print(tmp90, 196));
                                     scrut5 = Keywords.opPrecOpt(arg$Identifier$0$);
                                     if (scrut5 instanceof Option.Some.class) {
                                       arg$Some$0$1 = scrut5.value;
@@ -1174,14 +1174,14 @@ let Parser1;
                                         tmp91 = "leftPrec = " + element0$;
                                         tmp92 = tmp91 + "; rightPrec = ";
                                         tmp93 = tmp92 + element1$;
-                                        Parser.tracer.print(tmp93, 198);
+                                        runtime.safeCall(Parser.tracer.print(tmp93, 198));
                                         scrut6 = element0$ > prec;
                                         if (scrut6 === true) {
                                           break split_1$
                                         }
                                         break split_2$;
                                       }
-                                      Parser.tracer.print("not a keyword", 207);
+                                      runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                       token = arg$Cons$0$1;
                                       scrut9 = infix.rule.refChoice;
                                       if (scrut9 instanceof Option.Some.class) {
@@ -1197,7 +1197,7 @@ let Parser1;
                                           tmp94 = "found reference to " + arg$Ref$0$;
                                           tmp95 = tmp94 + " with outerPrec = ";
                                           tmp96 = tmp95 + arg$Ref$2$;
-                                          Parser.tracer.print(tmp96, 210);
+                                          runtime.safeCall(Parser.tracer.print(tmp96, 210));
                                           outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                           innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                           scrut10 = outerPrec$_1 > prec;
@@ -1213,7 +1213,7 @@ let Parser1;
                                             break split_5$;
                                           }
                                           tmp98 = "the outer precedence is less than " + prec;
-                                          Parser.tracer.print(tmp98, 225);
+                                          runtime.safeCall(Parser.tracer.print(tmp98, 225));
                                           break split_2$;
                                         }
                                         break split_default$;
@@ -1221,7 +1221,7 @@ let Parser1;
                                         break split_default$
                                       }
                                     } else {
-                                      Parser.tracer.print("not a keyword", 207);
+                                      runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                       token = arg$Cons$0$1;
                                       scrut9 = infix.rule.refChoice;
                                       if (scrut9 instanceof Option.Some.class) {
@@ -1237,7 +1237,7 @@ let Parser1;
                                           tmp99 = "found reference to " + arg$Ref$0$;
                                           tmp100 = tmp99 + " with outerPrec = ";
                                           tmp101 = tmp100 + arg$Ref$2$;
-                                          Parser.tracer.print(tmp101, 210);
+                                          runtime.safeCall(Parser.tracer.print(tmp101, 210));
                                           outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                           innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                           scrut10 = outerPrec$_1 > prec;
@@ -1253,7 +1253,7 @@ let Parser1;
                                             break split_5$;
                                           }
                                           tmp103 = "the outer precedence is less than " + prec;
-                                          Parser.tracer.print(tmp103, 225);
+                                          runtime.safeCall(Parser.tracer.print(tmp103, 225));
                                           break split_2$;
                                         }
                                         break split_default$;
@@ -1262,7 +1262,7 @@ let Parser1;
                                       }
                                     }
                                   } else {
-                                    Parser.tracer.print("not a keyword", 207);
+                                    runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                     token = arg$Cons$0$1;
                                     scrut9 = infix.rule.refChoice;
                                     if (scrut9 instanceof Option.Some.class) {
@@ -1278,7 +1278,7 @@ let Parser1;
                                         tmp104 = "found reference to " + arg$Ref$0$;
                                         tmp105 = tmp104 + " with outerPrec = ";
                                         tmp106 = tmp105 + arg$Ref$2$;
-                                        Parser.tracer.print(tmp106, 210);
+                                        runtime.safeCall(Parser.tracer.print(tmp106, 210));
                                         outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                         innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                         scrut10 = outerPrec$_1 > prec;
@@ -1294,7 +1294,7 @@ let Parser1;
                                           break split_5$;
                                         }
                                         tmp108 = "the outer precedence is less than " + prec;
-                                        Parser.tracer.print(tmp108, 225);
+                                        runtime.safeCall(Parser.tracer.print(tmp108, 225));
                                         break split_2$;
                                       }
                                       break split_default$;
@@ -1303,7 +1303,7 @@ let Parser1;
                                     }
                                   }
                                 } else {
-                                  Parser.tracer.print("not a keyword", 207);
+                                  runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                   token = arg$Cons$0$1;
                                   scrut9 = infix.rule.refChoice;
                                   if (scrut9 instanceof Option.Some.class) {
@@ -1319,7 +1319,7 @@ let Parser1;
                                       tmp109 = "found reference to " + arg$Ref$0$;
                                       tmp110 = tmp109 + " with outerPrec = ";
                                       tmp111 = tmp110 + arg$Ref$2$;
-                                      Parser.tracer.print(tmp111, 210);
+                                      runtime.safeCall(Parser.tracer.print(tmp111, 210));
                                       outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                       innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                       scrut10 = outerPrec$_1 > prec;
@@ -1335,7 +1335,7 @@ let Parser1;
                                         break split_5$;
                                       }
                                       tmp113 = "the outer precedence is less than " + prec;
-                                      Parser.tracer.print(tmp113, 225);
+                                      runtime.safeCall(Parser.tracer.print(tmp113, 225));
                                       break split_2$;
                                     }
                                     break split_default$;
@@ -1344,7 +1344,7 @@ let Parser1;
                                   }
                                 }
                               } else {
-                                Parser.tracer.print("not a keyword", 207);
+                                runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                 token = arg$Cons$0$1;
                                 scrut9 = infix.rule.refChoice;
                                 if (scrut9 instanceof Option.Some.class) {
@@ -1360,7 +1360,7 @@ let Parser1;
                                     tmp114 = "found reference to " + arg$Ref$0$;
                                     tmp115 = tmp114 + " with outerPrec = ";
                                     tmp116 = tmp115 + arg$Ref$2$;
-                                    Parser.tracer.print(tmp116, 210);
+                                    runtime.safeCall(Parser.tracer.print(tmp116, 210));
                                     outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                     innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                     scrut10 = outerPrec$_1 > prec;
@@ -1376,7 +1376,7 @@ let Parser1;
                                       break split_5$;
                                     }
                                     tmp118 = "the outer precedence is less than " + prec;
-                                    Parser.tracer.print(tmp118, 225);
+                                    runtime.safeCall(Parser.tracer.print(tmp118, 225));
                                     break split_2$;
                                   }
                                   break split_default$;
@@ -1388,7 +1388,7 @@ let Parser1;
                           } else {
                             tmp119 = "keyword `" + arg$Identifier$0$;
                             tmp120 = tmp119 + "` does not have infix rules";
-                            Parser.tracer.print(tmp120, 193);
+                            runtime.safeCall(Parser.tracer.print(tmp120, 193));
                             if (arg$Identifier$1$ === true) {
                               name = arg$Identifier$0$;
                               tmp121 = MutMap.get(arg$Identifier$0$);
@@ -1398,7 +1398,7 @@ let Parser1;
                                 if (scrut7 === true) {
                                   tmp122 = "found an operator \"" + arg$Identifier$0$;
                                   tmp123 = tmp122 + "\"";
-                                  Parser.tracer.print(tmp123, 196);
+                                  runtime.safeCall(Parser.tracer.print(tmp123, 196));
                                   scrut5 = Keywords.opPrecOpt(arg$Identifier$0$);
                                   if (scrut5 instanceof Option.Some.class) {
                                     arg$Some$0$1 = scrut5.value;
@@ -1409,14 +1409,14 @@ let Parser1;
                                       tmp124 = "leftPrec = " + element0$;
                                       tmp125 = tmp124 + "; rightPrec = ";
                                       tmp126 = tmp125 + element1$;
-                                      Parser.tracer.print(tmp126, 198);
+                                      runtime.safeCall(Parser.tracer.print(tmp126, 198));
                                       scrut6 = element0$ > prec;
                                       if (scrut6 === true) {
                                         break split_1$
                                       }
                                       break split_2$;
                                     }
-                                    Parser.tracer.print("not a keyword", 207);
+                                    runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                     token = arg$Cons$0$1;
                                     scrut9 = infix.rule.refChoice;
                                     if (scrut9 instanceof Option.Some.class) {
@@ -1432,7 +1432,7 @@ let Parser1;
                                         tmp127 = "found reference to " + arg$Ref$0$;
                                         tmp128 = tmp127 + " with outerPrec = ";
                                         tmp129 = tmp128 + arg$Ref$2$;
-                                        Parser.tracer.print(tmp129, 210);
+                                        runtime.safeCall(Parser.tracer.print(tmp129, 210));
                                         outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                         innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                         scrut10 = outerPrec$_1 > prec;
@@ -1448,7 +1448,7 @@ let Parser1;
                                           break split_5$;
                                         }
                                         tmp131 = "the outer precedence is less than " + prec;
-                                        Parser.tracer.print(tmp131, 225);
+                                        runtime.safeCall(Parser.tracer.print(tmp131, 225));
                                         break split_2$;
                                       }
                                       break split_default$;
@@ -1456,7 +1456,7 @@ let Parser1;
                                       break split_default$
                                     }
                                   } else {
-                                    Parser.tracer.print("not a keyword", 207);
+                                    runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                     token = arg$Cons$0$1;
                                     scrut9 = infix.rule.refChoice;
                                     if (scrut9 instanceof Option.Some.class) {
@@ -1472,7 +1472,7 @@ let Parser1;
                                         tmp132 = "found reference to " + arg$Ref$0$;
                                         tmp133 = tmp132 + " with outerPrec = ";
                                         tmp134 = tmp133 + arg$Ref$2$;
-                                        Parser.tracer.print(tmp134, 210);
+                                        runtime.safeCall(Parser.tracer.print(tmp134, 210));
                                         outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                         innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                         scrut10 = outerPrec$_1 > prec;
@@ -1488,7 +1488,7 @@ let Parser1;
                                           break split_5$;
                                         }
                                         tmp136 = "the outer precedence is less than " + prec;
-                                        Parser.tracer.print(tmp136, 225);
+                                        runtime.safeCall(Parser.tracer.print(tmp136, 225));
                                         break split_2$;
                                       }
                                       break split_default$;
@@ -1497,7 +1497,7 @@ let Parser1;
                                     }
                                   }
                                 } else {
-                                  Parser.tracer.print("not a keyword", 207);
+                                  runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                   token = arg$Cons$0$1;
                                   scrut9 = infix.rule.refChoice;
                                   if (scrut9 instanceof Option.Some.class) {
@@ -1513,7 +1513,7 @@ let Parser1;
                                       tmp137 = "found reference to " + arg$Ref$0$;
                                       tmp138 = tmp137 + " with outerPrec = ";
                                       tmp139 = tmp138 + arg$Ref$2$;
-                                      Parser.tracer.print(tmp139, 210);
+                                      runtime.safeCall(Parser.tracer.print(tmp139, 210));
                                       outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                       innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                       scrut10 = outerPrec$_1 > prec;
@@ -1529,7 +1529,7 @@ let Parser1;
                                         break split_5$;
                                       }
                                       tmp141 = "the outer precedence is less than " + prec;
-                                      Parser.tracer.print(tmp141, 225);
+                                      runtime.safeCall(Parser.tracer.print(tmp141, 225));
                                       break split_2$;
                                     }
                                     break split_default$;
@@ -1538,7 +1538,7 @@ let Parser1;
                                   }
                                 }
                               } else {
-                                Parser.tracer.print("not a keyword", 207);
+                                runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                 token = arg$Cons$0$1;
                                 scrut9 = infix.rule.refChoice;
                                 if (scrut9 instanceof Option.Some.class) {
@@ -1554,7 +1554,7 @@ let Parser1;
                                     tmp142 = "found reference to " + arg$Ref$0$;
                                     tmp143 = tmp142 + " with outerPrec = ";
                                     tmp144 = tmp143 + arg$Ref$2$;
-                                    Parser.tracer.print(tmp144, 210);
+                                    runtime.safeCall(Parser.tracer.print(tmp144, 210));
                                     outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                     innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                     scrut10 = outerPrec$_1 > prec;
@@ -1570,7 +1570,7 @@ let Parser1;
                                       break split_5$;
                                     }
                                     tmp146 = "the outer precedence is less than " + prec;
-                                    Parser.tracer.print(tmp146, 225);
+                                    runtime.safeCall(Parser.tracer.print(tmp146, 225));
                                     break split_2$;
                                   }
                                   break split_default$;
@@ -1579,7 +1579,7 @@ let Parser1;
                                 }
                               }
                             } else {
-                              Parser.tracer.print("not a keyword", 207);
+                              runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                               token = arg$Cons$0$1;
                               scrut9 = infix.rule.refChoice;
                               if (scrut9 instanceof Option.Some.class) {
@@ -1595,7 +1595,7 @@ let Parser1;
                                   tmp147 = "found reference to " + arg$Ref$0$;
                                   tmp148 = tmp147 + " with outerPrec = ";
                                   tmp149 = tmp148 + arg$Ref$2$;
-                                  Parser.tracer.print(tmp149, 210);
+                                  runtime.safeCall(Parser.tracer.print(tmp149, 210));
                                   outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                   innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                   scrut10 = outerPrec$_1 > prec;
@@ -1611,7 +1611,7 @@ let Parser1;
                                     break split_5$;
                                   }
                                   tmp151 = "the outer precedence is less than " + prec;
-                                  Parser.tracer.print(tmp151, 225);
+                                  runtime.safeCall(Parser.tracer.print(tmp151, 225));
                                   break split_2$;
                                 }
                                 break split_default$;
@@ -1623,7 +1623,7 @@ let Parser1;
                         } else {
                           tmp152 = "keyword `" + arg$Identifier$0$;
                           tmp153 = tmp152 + "` does not have infix rules";
-                          Parser.tracer.print(tmp153, 193);
+                          runtime.safeCall(Parser.tracer.print(tmp153, 193));
                           if (arg$Identifier$1$ === true) {
                             name = arg$Identifier$0$;
                             tmp154 = MutMap.get(arg$Identifier$0$);
@@ -1633,7 +1633,7 @@ let Parser1;
                               if (scrut7 === true) {
                                 tmp155 = "found an operator \"" + arg$Identifier$0$;
                                 tmp156 = tmp155 + "\"";
-                                Parser.tracer.print(tmp156, 196);
+                                runtime.safeCall(Parser.tracer.print(tmp156, 196));
                                 scrut5 = Keywords.opPrecOpt(arg$Identifier$0$);
                                 if (scrut5 instanceof Option.Some.class) {
                                   arg$Some$0$1 = scrut5.value;
@@ -1644,14 +1644,14 @@ let Parser1;
                                     tmp157 = "leftPrec = " + element0$;
                                     tmp158 = tmp157 + "; rightPrec = ";
                                     tmp159 = tmp158 + element1$;
-                                    Parser.tracer.print(tmp159, 198);
+                                    runtime.safeCall(Parser.tracer.print(tmp159, 198));
                                     scrut6 = element0$ > prec;
                                     if (scrut6 === true) {
                                       break split_1$
                                     }
                                     break split_2$;
                                   }
-                                  Parser.tracer.print("not a keyword", 207);
+                                  runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                   token = arg$Cons$0$1;
                                   scrut9 = infix.rule.refChoice;
                                   if (scrut9 instanceof Option.Some.class) {
@@ -1667,7 +1667,7 @@ let Parser1;
                                       tmp160 = "found reference to " + arg$Ref$0$;
                                       tmp161 = tmp160 + " with outerPrec = ";
                                       tmp162 = tmp161 + arg$Ref$2$;
-                                      Parser.tracer.print(tmp162, 210);
+                                      runtime.safeCall(Parser.tracer.print(tmp162, 210));
                                       outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                       innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                       scrut10 = outerPrec$_1 > prec;
@@ -1683,7 +1683,7 @@ let Parser1;
                                         break split_5$;
                                       }
                                       tmp164 = "the outer precedence is less than " + prec;
-                                      Parser.tracer.print(tmp164, 225);
+                                      runtime.safeCall(Parser.tracer.print(tmp164, 225));
                                       break split_2$;
                                     }
                                     break split_default$;
@@ -1691,7 +1691,7 @@ let Parser1;
                                     break split_default$
                                   }
                                 } else {
-                                  Parser.tracer.print("not a keyword", 207);
+                                  runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                   token = arg$Cons$0$1;
                                   scrut9 = infix.rule.refChoice;
                                   if (scrut9 instanceof Option.Some.class) {
@@ -1707,7 +1707,7 @@ let Parser1;
                                       tmp165 = "found reference to " + arg$Ref$0$;
                                       tmp166 = tmp165 + " with outerPrec = ";
                                       tmp167 = tmp166 + arg$Ref$2$;
-                                      Parser.tracer.print(tmp167, 210);
+                                      runtime.safeCall(Parser.tracer.print(tmp167, 210));
                                       outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                       innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                       scrut10 = outerPrec$_1 > prec;
@@ -1723,7 +1723,7 @@ let Parser1;
                                         break split_5$;
                                       }
                                       tmp169 = "the outer precedence is less than " + prec;
-                                      Parser.tracer.print(tmp169, 225);
+                                      runtime.safeCall(Parser.tracer.print(tmp169, 225));
                                       break split_2$;
                                     }
                                     break split_default$;
@@ -1732,7 +1732,7 @@ let Parser1;
                                   }
                                 }
                               } else {
-                                Parser.tracer.print("not a keyword", 207);
+                                runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                 token = arg$Cons$0$1;
                                 scrut9 = infix.rule.refChoice;
                                 if (scrut9 instanceof Option.Some.class) {
@@ -1748,7 +1748,7 @@ let Parser1;
                                     tmp170 = "found reference to " + arg$Ref$0$;
                                     tmp171 = tmp170 + " with outerPrec = ";
                                     tmp172 = tmp171 + arg$Ref$2$;
-                                    Parser.tracer.print(tmp172, 210);
+                                    runtime.safeCall(Parser.tracer.print(tmp172, 210));
                                     outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                     innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                     scrut10 = outerPrec$_1 > prec;
@@ -1764,7 +1764,7 @@ let Parser1;
                                       break split_5$;
                                     }
                                     tmp174 = "the outer precedence is less than " + prec;
-                                    Parser.tracer.print(tmp174, 225);
+                                    runtime.safeCall(Parser.tracer.print(tmp174, 225));
                                     break split_2$;
                                   }
                                   break split_default$;
@@ -1773,7 +1773,7 @@ let Parser1;
                                 }
                               }
                             } else {
-                              Parser.tracer.print("not a keyword", 207);
+                              runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                               token = arg$Cons$0$1;
                               scrut9 = infix.rule.refChoice;
                               if (scrut9 instanceof Option.Some.class) {
@@ -1789,7 +1789,7 @@ let Parser1;
                                   tmp175 = "found reference to " + arg$Ref$0$;
                                   tmp176 = tmp175 + " with outerPrec = ";
                                   tmp177 = tmp176 + arg$Ref$2$;
-                                  Parser.tracer.print(tmp177, 210);
+                                  runtime.safeCall(Parser.tracer.print(tmp177, 210));
                                   outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                   innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                   scrut10 = outerPrec$_1 > prec;
@@ -1805,7 +1805,7 @@ let Parser1;
                                     break split_5$;
                                   }
                                   tmp179 = "the outer precedence is less than " + prec;
-                                  Parser.tracer.print(tmp179, 225);
+                                  runtime.safeCall(Parser.tracer.print(tmp179, 225));
                                   break split_2$;
                                 }
                                 break split_default$;
@@ -1814,7 +1814,7 @@ let Parser1;
                               }
                             }
                           } else {
-                            Parser.tracer.print("not a keyword", 207);
+                            runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                             token = arg$Cons$0$1;
                             scrut9 = infix.rule.refChoice;
                             if (scrut9 instanceof Option.Some.class) {
@@ -1830,7 +1830,7 @@ let Parser1;
                                 tmp180 = "found reference to " + arg$Ref$0$;
                                 tmp181 = tmp180 + " with outerPrec = ";
                                 tmp182 = tmp181 + arg$Ref$2$;
-                                Parser.tracer.print(tmp182, 210);
+                                runtime.safeCall(Parser.tracer.print(tmp182, 210));
                                 outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                 innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                 scrut10 = outerPrec$_1 > prec;
@@ -1846,7 +1846,7 @@ let Parser1;
                                   break split_5$;
                                 }
                                 tmp184 = "the outer precedence is less than " + prec;
-                                Parser.tracer.print(tmp184, 225);
+                                runtime.safeCall(Parser.tracer.print(tmp184, 225));
                                 break split_2$;
                               }
                               break split_default$;
@@ -1865,7 +1865,7 @@ let Parser1;
                             if (scrut7 === true) {
                               tmp186 = "found an operator \"" + arg$Identifier$0$;
                               tmp187 = tmp186 + "\"";
-                              Parser.tracer.print(tmp187, 196);
+                              runtime.safeCall(Parser.tracer.print(tmp187, 196));
                               scrut5 = Keywords.opPrecOpt(arg$Identifier$0$);
                               if (scrut5 instanceof Option.Some.class) {
                                 arg$Some$0$1 = scrut5.value;
@@ -1876,14 +1876,14 @@ let Parser1;
                                   tmp188 = "leftPrec = " + element0$;
                                   tmp189 = tmp188 + "; rightPrec = ";
                                   tmp190 = tmp189 + element1$;
-                                  Parser.tracer.print(tmp190, 198);
+                                  runtime.safeCall(Parser.tracer.print(tmp190, 198));
                                   scrut6 = element0$ > prec;
                                   if (scrut6 === true) {
                                     break split_1$
                                   }
                                   break split_2$;
                                 }
-                                Parser.tracer.print("not a keyword", 207);
+                                runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                 token = arg$Cons$0$1;
                                 scrut9 = infix.rule.refChoice;
                                 if (scrut9 instanceof Option.Some.class) {
@@ -1899,7 +1899,7 @@ let Parser1;
                                     tmp191 = "found reference to " + arg$Ref$0$;
                                     tmp192 = tmp191 + " with outerPrec = ";
                                     tmp193 = tmp192 + arg$Ref$2$;
-                                    Parser.tracer.print(tmp193, 210);
+                                    runtime.safeCall(Parser.tracer.print(tmp193, 210));
                                     outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                     innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                     scrut10 = outerPrec$_1 > prec;
@@ -1915,7 +1915,7 @@ let Parser1;
                                       break split_5$;
                                     }
                                     tmp195 = "the outer precedence is less than " + prec;
-                                    Parser.tracer.print(tmp195, 225);
+                                    runtime.safeCall(Parser.tracer.print(tmp195, 225));
                                     break split_2$;
                                   }
                                   break split_default$;
@@ -1923,7 +1923,7 @@ let Parser1;
                                   break split_default$
                                 }
                               } else {
-                                Parser.tracer.print("not a keyword", 207);
+                                runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                                 token = arg$Cons$0$1;
                                 scrut9 = infix.rule.refChoice;
                                 if (scrut9 instanceof Option.Some.class) {
@@ -1939,7 +1939,7 @@ let Parser1;
                                     tmp196 = "found reference to " + arg$Ref$0$;
                                     tmp197 = tmp196 + " with outerPrec = ";
                                     tmp198 = tmp197 + arg$Ref$2$;
-                                    Parser.tracer.print(tmp198, 210);
+                                    runtime.safeCall(Parser.tracer.print(tmp198, 210));
                                     outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                     innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                     scrut10 = outerPrec$_1 > prec;
@@ -1955,7 +1955,7 @@ let Parser1;
                                       break split_5$;
                                     }
                                     tmp200 = "the outer precedence is less than " + prec;
-                                    Parser.tracer.print(tmp200, 225);
+                                    runtime.safeCall(Parser.tracer.print(tmp200, 225));
                                     break split_2$;
                                   }
                                   break split_default$;
@@ -1964,7 +1964,7 @@ let Parser1;
                                 }
                               }
                             } else {
-                              Parser.tracer.print("not a keyword", 207);
+                              runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                               token = arg$Cons$0$1;
                               scrut9 = infix.rule.refChoice;
                               if (scrut9 instanceof Option.Some.class) {
@@ -1980,7 +1980,7 @@ let Parser1;
                                   tmp201 = "found reference to " + arg$Ref$0$;
                                   tmp202 = tmp201 + " with outerPrec = ";
                                   tmp203 = tmp202 + arg$Ref$2$;
-                                  Parser.tracer.print(tmp203, 210);
+                                  runtime.safeCall(Parser.tracer.print(tmp203, 210));
                                   outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                   innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                   scrut10 = outerPrec$_1 > prec;
@@ -1996,7 +1996,7 @@ let Parser1;
                                     break split_5$;
                                   }
                                   tmp205 = "the outer precedence is less than " + prec;
-                                  Parser.tracer.print(tmp205, 225);
+                                  runtime.safeCall(Parser.tracer.print(tmp205, 225));
                                   break split_2$;
                                 }
                                 break split_default$;
@@ -2005,7 +2005,7 @@ let Parser1;
                               }
                             }
                           } else {
-                            Parser.tracer.print("not a keyword", 207);
+                            runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                             token = arg$Cons$0$1;
                             scrut9 = infix.rule.refChoice;
                             if (scrut9 instanceof Option.Some.class) {
@@ -2021,7 +2021,7 @@ let Parser1;
                                 tmp206 = "found reference to " + arg$Ref$0$;
                                 tmp207 = tmp206 + " with outerPrec = ";
                                 tmp208 = tmp207 + arg$Ref$2$;
-                                Parser.tracer.print(tmp208, 210);
+                                runtime.safeCall(Parser.tracer.print(tmp208, 210));
                                 outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                                 innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                                 scrut10 = outerPrec$_1 > prec;
@@ -2037,7 +2037,7 @@ let Parser1;
                                   break split_5$;
                                 }
                                 tmp210 = "the outer precedence is less than " + prec;
-                                Parser.tracer.print(tmp210, 225);
+                                runtime.safeCall(Parser.tracer.print(tmp210, 225));
                                 break split_2$;
                               }
                               break split_default$;
@@ -2046,7 +2046,7 @@ let Parser1;
                             }
                           }
                         } else {
-                          Parser.tracer.print("not a keyword", 207);
+                          runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                           token = arg$Cons$0$1;
                           scrut9 = infix.rule.refChoice;
                           if (scrut9 instanceof Option.Some.class) {
@@ -2062,7 +2062,7 @@ let Parser1;
                               tmp211 = "found reference to " + arg$Ref$0$;
                               tmp212 = tmp211 + " with outerPrec = ";
                               tmp213 = tmp212 + arg$Ref$2$;
-                              Parser.tracer.print(tmp213, 210);
+                              runtime.safeCall(Parser.tracer.print(tmp213, 210));
                               outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                               innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                               scrut10 = outerPrec$_1 > prec;
@@ -2078,7 +2078,7 @@ let Parser1;
                                 break split_5$;
                               }
                               tmp215 = "the outer precedence is less than " + prec;
-                              Parser.tracer.print(tmp215, 225);
+                              runtime.safeCall(Parser.tracer.print(tmp215, 225));
                               break split_2$;
                             }
                             break split_default$;
@@ -2088,7 +2088,7 @@ let Parser1;
                         }
                       }
                     } else {
-                      Parser.tracer.print("not a keyword", 207);
+                      runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                       token = arg$Cons$0$1;
                       scrut9 = infix.rule.refChoice;
                       if (scrut9 instanceof Option.Some.class) {
@@ -2104,7 +2104,7 @@ let Parser1;
                           tmp216 = "found reference to " + arg$Ref$0$;
                           tmp217 = tmp216 + " with outerPrec = ";
                           tmp218 = tmp217 + arg$Ref$2$;
-                          Parser.tracer.print(tmp218, 210);
+                          runtime.safeCall(Parser.tracer.print(tmp218, 210));
                           outerPrec$_1 = Option.getOrElse(arg$Ref$2$, Keywords.maxOperatorPrec);
                           innerPrec$_1 = Option.getOrElse(arg$Ref$3$, outerPrec$_1);
                           scrut10 = outerPrec$_1 > prec;
@@ -2120,7 +2120,7 @@ let Parser1;
                             break split_5$;
                           }
                           tmp220 = "the outer precedence is less than " + prec;
-                          Parser.tracer.print(tmp220, 225);
+                          runtime.safeCall(Parser.tracer.print(tmp220, 225));
                           break split_2$;
                         }
                         break split_default$;
@@ -2129,10 +2129,10 @@ let Parser1;
                       }
                     }
                     tmp221 = "cannot consume " + token;
-                    Parser.tracer.print(tmp221, 228);
+                    runtime.safeCall(Parser.tracer.print(tmp221, 228));
                     return acc
                   }
-                  Parser.tracer.print("not a keyword", 207);
+                  runtime.safeCall(Parser.tracer.print("not a keyword", 207));
                   if (tokens instanceof Stack.Nil.class) {
                     break split_2$
                   }
@@ -2140,16 +2140,16 @@ let Parser1;
                 }
                 tmp222 = Tree.summary(rhs2);
                 tmp223 = "parsed " + tmp222;
-                Parser.tracer.print(tmp223, 222);
+                runtime.safeCall(Parser.tracer.print(tmp223, 222));
                 restRes1 = parseRule(innerPrec$_1, rest);
                 tmp224 = runtime.safeCall(process(rhs2, restRes1));
-                tmp225 = infix.process(acc, tmp224);
+                tmp225 = runtime.safeCall(infix.process(acc, tmp224));
                 return exprCont(tmp225, prec, options);
               }
-              Parser.tracer.print("cannot parse more", 219);
+              runtime.safeCall(Parser.tracer.print("cannot parse more", 219));
               return acc;
             }
-            Parser.tracer.print("nothing was parsed", 216);
+            runtime.safeCall(Parser.tracer.print("nothing was parsed", 216));
             return acc;
           }
           return acc;
@@ -2217,7 +2217,7 @@ let Parser1;
     };
     mod = function mod(acc) {
       let scrut, scrut1, tree1, scrut2, arg$Cons$0$1, arg$Identifier$0$, arg$Some$0$, tmp, tmp1, arg$LetIn$0$, arg$LetIn$1$, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
-      Parser.tracer.print(">>>>>> mod <<<<<<", 249);
+      runtime.safeCall(Parser.tracer.print(">>>>>> mod <<<<<<", 249));
       if (tokens instanceof Stack.Cons.class) {
         arg$Cons$0$1 = tokens.head;
         if (arg$Cons$0$1 instanceof Token.Identifier.class) {
@@ -2268,7 +2268,7 @@ let Parser1;
       let arg$Cons$0$1, arg$Identifier$0$, tmp, tmp1, tmp2, tmp3;
       tmp = TokenHelpers.preview(tokens);
       tmp1 = ">>>>>> modCont <<<<<< " + tmp;
-      Parser.tracer.print(tmp1, 271);
+      runtime.safeCall(Parser.tracer.print(tmp1, 271));
       if (tokens instanceof Stack.Cons.class) {
         arg$Cons$0$1 = tokens.head;
         if (arg$Cons$0$1 instanceof Token.Identifier.class) {
@@ -2299,7 +2299,7 @@ let Parser1;
     if (tokens instanceof Stack.Cons.class) {
       arg$Cons$0$ = tokens.head;
       message = "expect EOF instead of " + arg$Cons$0$;
-      Parser.tracer.print(message, 284);
+      runtime.safeCall(Parser.tracer.print(message, 284));
       return Tree.Error(tree, message)
     } else if (tokens instanceof Stack.Nil.class) {
       return tree

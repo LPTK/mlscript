@@ -105,7 +105,7 @@ let Rendering1;
     }
   } 
   static passing(f, ...args) {
-    return f.bind(null, ...args)
+    return runtime.safeCall(f.bind(null, ...args))
   } 
   static map(f) {
     return (...xs) => {
@@ -644,7 +644,7 @@ let Rendering1;
             break split_1$;
           }
         }
-        visitingObjects.set(arg, null);
+        runtime.safeCall(visitingObjects.set(arg, null));
         split_root$: {
           if (arg instanceof globalThis.Array) {
             let array, level1, inlinedVal, i, length, emptyItemCount, itemIndentationLength, tmp23, tmp24, lambda, lambda1;
@@ -1031,7 +1031,7 @@ let Rendering1;
           result = tmp6 + tmp21;
           scrut20 = tmp21.length > 0;
           if (scrut20 === true) {
-            visitedObjects.set(arg, result);
+            runtime.safeCall(visitedObjects.set(arg, result));
           }
           runtime.safeCall(visitingObjects.delete(arg));
           return result
@@ -1041,7 +1041,7 @@ let Rendering1;
       index = circularCounter;
       tmp22 = circularCounter + 1;
       circularCounter = tmp22;
-      visitingObjects.set(arg, index);
+      runtime.safeCall(visitingObjects.set(arg, index));
       return "ref'" + index
     };
     if (runtime.Tuple.isArrayLike(args) && args.length >= 1) {

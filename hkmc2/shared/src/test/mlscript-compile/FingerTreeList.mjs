@@ -732,7 +732,7 @@ Deep1 = function Deep(size, prefix, middle, suffix) {
     lambda = (undefined, function (acc, x) {
       return FingerTreeList.snoc(acc, x)
     });
-    return args.reduce(lambda, Empty1)
+    return runtime.safeCall(args.reduce(lambda, Empty1))
   } 
   static get isEmpty() {
     let lambda;

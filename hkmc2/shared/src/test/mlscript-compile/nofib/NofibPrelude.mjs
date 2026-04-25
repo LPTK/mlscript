@@ -326,7 +326,7 @@ let NofibPrelude1;
     return runtime.safeCall(tmp(x))
   } 
   static power(a, n) {
-    return globalThis.Math.pow(a, n)
+    return runtime.safeCall(globalThis.Math.pow(a, n))
   } 
   static intDiv(a, b) {
     let tmp;
@@ -369,10 +369,10 @@ let NofibPrelude1;
     ])
   } 
   static max(a, b) {
-    return globalThis.Math.max(a, b)
+    return runtime.safeCall(globalThis.Math.max(a, b))
   } 
   static min(a, b) {
-    return globalThis.Math.min(a, b)
+    return runtime.safeCall(globalThis.Math.min(a, b))
   } 
   static abs(x) {
     return runtime.safeCall(globalThis.Math.abs(x))

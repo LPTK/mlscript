@@ -142,11 +142,11 @@ let Runtime1;
       static slice(xs, i, j) {
         let tmp;
         tmp = xs.length - j;
-        return xs.slice(i, tmp)
+        return runtime.safeCall(xs.slice(i, tmp))
       } 
       static lazySlice(xs, i, j) {
         let tmp;
-        tmp = LazyArray.dropLeftRight(i, j);
+        tmp = runtime.safeCall(LazyArray.dropLeftRight(i, j));
         return runtime.safeCall(tmp(xs))
       } 
       static lazyConcat(...args) {
@@ -187,7 +187,7 @@ let Runtime1;
         return runtime.safeCall(string.at(i));
       } 
       static take(string, n) {
-        return string.slice(0, n)
+        return runtime.safeCall(string.slice(0, n))
       } 
       static leave(string, n) {
         return runtime.safeCall(string.slice(n))
@@ -237,7 +237,7 @@ let Runtime1;
           tmp = runtime.safeCall(("| ").repeat(TraceLogger.indentLvl));
           tmp1 = runtime.safeCall(("  ").repeat(TraceLogger.indentLvl));
           tmp2 = "\n" + tmp1;
-          tmp3 = msg.replaceAll("\n", tmp2);
+          tmp3 = runtime.safeCall(msg.replaceAll("\n", tmp2));
           tmp4 = tmp + tmp3;
           return runtime.safeCall(globalThis.console.log(tmp4))
         }
@@ -312,8 +312,8 @@ let Runtime1;
             tmp7 = currentArgList + 1;
             tmp8 = currentArgList + 1;
             tmp9 = tmp8 + argListLength1;
-            tmp10 = this.saved.slice(tmp7, tmp9);
-            tmp11 = f.apply(this.saved.at(4), tmp10);
+            tmp10 = runtime.safeCall(this.saved.slice(tmp7, tmp9));
+            tmp11 = runtime.safeCall(f.apply(this.saved.at(4), tmp10));
             f = tmp11;
             tmp12 = argListLength1 + 1;
             tmp13 = currentArgList + tmp12;
@@ -331,8 +331,8 @@ let Runtime1;
         tmp2 = currentArgList + 1;
         tmp3 = currentArgList + 1;
         tmp4 = tmp3 + argListLength;
-        tmp5 = this.saved.slice(tmp2, tmp4);
-        return f.apply(this.saved.at(4), tmp5)
+        tmp5 = runtime.safeCall(this.saved.slice(tmp2, tmp4));
+        return runtime.safeCall(f.apply(this.saved.at(4), tmp5))
       } 
       get getLocals() {
         let debugInfo, i, cur, res, i1;
@@ -522,14 +522,14 @@ let Runtime1;
       #v;
       zext() {
         let tmp, tmp1;
-        tmp = Runtime.shl(1, 31);
+        tmp = runtime.safeCall(Runtime.shl(1, 31));
         tmp1 = runtime.safeCall(Runtime.bitnot(tmp));
-        return Runtime.bitand(this.#v, tmp1)
+        return runtime.safeCall(Runtime.bitand(this.#v, tmp1))
       } 
       sext() {
         let tmp;
-        tmp = Runtime.shl(1, 31);
-        return Runtime.bitor(this.#v, tmp)
+        tmp = runtime.safeCall(Runtime.shl(1, 31));
+        return runtime.safeCall(Runtime.bitor(this.#v, tmp))
       }
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "Int31", [null]]; 
@@ -627,7 +627,7 @@ let Runtime1;
       indent: 2,
       breakLength: 76
     });
-    tmp = Runtime.render(x, rcd);
+    tmp = runtime.safeCall(Runtime.render(x, rcd));
     return runtime.safeCall(globalThis.console.log(tmp))
   } 
   static resetEffects() {
@@ -844,7 +844,7 @@ let Runtime1;
   static debugContTrace(contTrace) {
     let scrut, scrut1, vis, hl, cur, tmp, tmp1, tmp2, tmp3, tmp4;
     if (contTrace instanceof Runtime.ContTrace.class) {
-      globalThis.console.log("resumed: ", contTrace.resumed);
+      runtime.safeCall(globalThis.console.log("resumed: ", contTrace.resumed));
       scrut = contTrace.last === contTrace;
       if (scrut === true) {
         runtime.safeCall(globalThis.console.log("<last is self>"));
@@ -859,12 +859,12 @@ let Runtime1;
         contTrace.last
       ]);
       tmp1 = globalThis.Object.freeze(new globalThis.Set(tmp));
-      hl.set("last", tmp1);
+      runtime.safeCall(hl.set("last", tmp1));
       tmp2 = globalThis.Object.freeze([
         contTrace.lastHandler
       ]);
       tmp3 = globalThis.Object.freeze(new globalThis.Set(tmp2));
-      hl.set("last-handler", tmp3);
+      runtime.safeCall(hl.set("last-handler", tmp3));
       tmp4 = Runtime.showFunctionContChain(contTrace.next, hl, vis, 0);
       runtime.safeCall(globalThis.console.log(tmp4));
       cur = contTrace.nextHandler;
@@ -887,8 +887,8 @@ let Runtime1;
   static debugEff(eff) {
     if (eff instanceof Runtime.EffectSig.class) {
       runtime.safeCall(globalThis.console.log("Debug EffectSig:"));
-      globalThis.console.log("handler: ", eff.handler.constructor.name);
-      globalThis.console.log("handlerFun: ", eff.handlerFun);
+      runtime.safeCall(globalThis.console.log("handler: ", eff.handler.constructor.name));
+      runtime.safeCall(globalThis.console.log("handlerFun: ", eff.handlerFun));
       return Runtime.debugContTrace(eff.contTrace)
     }
     runtime.safeCall(globalThis.console.log("Not an effect:"));

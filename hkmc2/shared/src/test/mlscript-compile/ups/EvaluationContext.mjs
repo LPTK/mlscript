@@ -277,7 +277,7 @@ let EvaluationContext1;
               unapply: lambda,
               unapplyStringPrefix: lambda1
             });
-            unapplyResult2 = EvaluationContext.Ctx.unapply(patternArgument0$1, arg$App$1$);
+            unapplyResult2 = runtime.safeCall(EvaluationContext.Ctx.unapply(patternArgument0$1, arg$App$1$));
             if (unapplyResult2 instanceof runtime.MatchSuccess.class) {
               output1 = unapplyResult2.output;
               unapplyResult2.bindings;
@@ -317,7 +317,7 @@ let EvaluationContext1;
               unapply: lambda2,
               unapplyStringPrefix: lambda3
             });
-            unapplyResult = EvaluationContext.Ctx.unapply(patternArgument0$, arg$App$0$);
+            unapplyResult = runtime.safeCall(EvaluationContext.Ctx.unapply(patternArgument0$, arg$App$0$));
             if (unapplyResult instanceof runtime.MatchSuccess.class) {
               output = unapplyResult.output;
               unapplyResult.bindings;
@@ -359,7 +359,7 @@ let EvaluationContext1;
             unapply: lambda4,
             unapplyStringPrefix: lambda5
           });
-          unapplyResult = EvaluationContext.Ctx.unapply(patternArgument0$, arg$App$0$);
+          unapplyResult = runtime.safeCall(EvaluationContext.Ctx.unapply(patternArgument0$, arg$App$0$));
           if (unapplyResult instanceof runtime.MatchSuccess.class) {
             output = unapplyResult.output;
             unapplyResult.bindings;
@@ -440,7 +440,7 @@ let EvaluationContext1;
       unapply(input) {
         let patternArgument0$, unapplyResult, output;
         patternArgument0$ = EvaluationContext1.Redex;
-        unapplyResult = EvaluationContext.Ctx.unapply(patternArgument0$, input);
+        unapplyResult = runtime.safeCall(EvaluationContext.Ctx.unapply(patternArgument0$, input));
         if (unapplyResult instanceof runtime.MatchSuccess.class) {
           output = unapplyResult.output;
           unapplyResult.bindings;
@@ -451,7 +451,7 @@ let EvaluationContext1;
       unapplyStringPrefix(input) {
         let output, remaining, patternArgument0$, unapplyResult, outputPair, tmp;
         patternArgument0$ = EvaluationContext1.Redex;
-        unapplyResult = EvaluationContext.Ctx.unapplyStringPrefix(patternArgument0$, input);
+        unapplyResult = runtime.safeCall(EvaluationContext.Ctx.unapplyStringPrefix(patternArgument0$, input));
         if (unapplyResult instanceof runtime.MatchSuccess.class) {
           outputPair = unapplyResult.output;
           unapplyResult.bindings;

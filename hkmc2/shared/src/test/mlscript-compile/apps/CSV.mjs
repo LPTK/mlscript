@@ -51,7 +51,7 @@ CSV1 = function CSV(strDelimiter) {
         scrut3 = Predef.nequals(arrMatches[2], undefined);
         if (scrut3 === true) {
           tmp2 = new globalThis.RegExp("\"\"", "g");
-          tmp3 = arrMatches[2].replace(tmp2, "\"");
+          tmp3 = runtime.safeCall(arrMatches[2].replace(tmp2, "\""));
         } else {
           tmp3 = arrMatches[3];
         }

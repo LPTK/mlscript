@@ -15,14 +15,14 @@ let Wasm1;
     if (scrut === true) {
       return globalThis.WebAssembly.instantiate(modBuf, importObject)
     }
-    return runtime.assertFail("mlscript-compile/wasm/Wasm.mls", "10");
+    return runtime.safeCall(runtime.assertFail("mlscript-compile/wasm/Wasm.mls", "10"));
   } 
   static dumpWasmImpExp(wasmMod) {
     let tmp, tmp1;
     tmp = globalThis.WebAssembly.Module.imports(wasmMod.module);
-    globalThis.console.log("Imports: %s", tmp);
+    runtime.safeCall(globalThis.console.log("Imports: %s", tmp));
     tmp1 = globalThis.WebAssembly.Module.exports(wasmMod.module);
-    return globalThis.console.log("Exports: %s", tmp1)
+    return runtime.safeCall(globalThis.console.log("Exports: %s", tmp1))
   } 
   static binaryenFmtWat(wat, foldExprs) {
     let mod, fmtWat, tmp, tmp1, tmp2;
@@ -82,7 +82,7 @@ let Wasm1;
       tmp6 = false;
     }
     if (tmp6 === true) {
-      return err.getArg(tag, 0)
+      return runtime.safeCall(err.getArg(tag, 0))
     }
     return err;
   } 
@@ -98,7 +98,7 @@ let Wasm1;
       lambda2 = (undefined, function (err) {
         throw Wasm.unwrapWasmException(err, exnTag)
       });
-      return Runtime.try_catch(lambda1, lambda2)
+      return runtime.safeCall(Runtime.try_catch(lambda1, lambda2))
     });
     return runtime.safeCall(tmp.then(lambda))
   } 

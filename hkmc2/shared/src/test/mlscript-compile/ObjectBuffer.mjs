@@ -48,7 +48,7 @@ let ObjectBuffer2;
         tmp = this.getBlockSize(cls.size);
         tmp1 = this._alloc(tmp);
         idx = tmp1;
-        return cls.ctor(this, idx);
+        return runtime.safeCall(cls.ctor(this, idx));
       } 
       del(cls, inst) {
         let scrut, tmp;
@@ -83,7 +83,7 @@ let ObjectBuffer2;
           tmp1 = runtime.safeCall(globalThis.Math.log2(needed));
           tmp2 = runtime.safeCall(globalThis.Math.ceil(tmp1));
           tmp3 = tmp2 + 1;
-          tmp = globalThis.Math.pow(2, tmp3);
+          tmp = runtime.safeCall(globalThis.Math.pow(2, tmp3));
         }
         this.buf.length = tmp;
         tmp4 = tmp - oldLen;

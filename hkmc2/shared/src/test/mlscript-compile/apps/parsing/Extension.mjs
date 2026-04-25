@@ -168,7 +168,7 @@ let Extension1;
             arg$Literal$0$ = arg$App$1$.kind;
             arg$Literal$1$ = arg$App$1$.value;
             if (arg$Literal$0$ instanceof Token.LiteralKind.Integer.class) {
-              tmp = globalThis.parseInt(arg$Literal$1$, 10);
+              tmp = runtime.safeCall(globalThis.parseInt(arg$Literal$1$, 10));
               return Option.Some(tmp)
             }
             throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -266,7 +266,7 @@ let Extension1;
               scrut2 = Predef.pipeInto(Rules.syntaxKinds, tmp1);
               if (scrut2 instanceof Option.Some.class) {
                 arg$Some$0$2 = scrut2.value;
-                tmp2 = arg$Some$0$2.andThen(arg$Ref$4$, arg$Ref$1$);
+                tmp2 = runtime.safeCall(arg$Some$0$2.andThen(arg$Ref$4$, arg$Ref$1$));
                 return runtime.safeCall(arg$Some$0$1.extendChoices(tmp2.choices))
               }
               tmp3 = "Unknown referenced syntax category: " + arg$Ref$0$;

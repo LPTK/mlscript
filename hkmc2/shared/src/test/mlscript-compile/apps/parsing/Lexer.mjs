@@ -169,7 +169,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
         if (scrut1 === true) {
           tmp = idx + 1;
           tmp1 = acc * 16;
-          tmp2 = globalThis.parseInt(output, 16);
+          tmp2 = runtime.safeCall(globalThis.parseInt(output, 16));
           tmp3 = tmp1 + tmp2;
           tmp4 = cnt + 1;
           idx = tmp;
@@ -785,7 +785,7 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
       let scrut, i$_, scrut1, tmp;
       scrut = i < n;
       if (scrut === true) {
-        i$_ = text.indexOf("\n", i);
+        i$_ = runtime.safeCall(text.indexOf("\n", i));
         scrut1 = Predef.equals(i$_, -1);
         if (scrut1 === true) {
           i = n;

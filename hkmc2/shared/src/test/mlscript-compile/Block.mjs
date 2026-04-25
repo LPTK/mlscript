@@ -546,7 +546,7 @@ let Block2;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static indent(s) {
-    return s.replaceAll("\n", "\n  ")
+    return runtime.safeCall(s.replaceAll("\n", "\n  "))
   } 
   static showLiteral(l) {
     let tmp, tmp1;
@@ -562,7 +562,7 @@ let Block2;
     return runtime.safeCall(l.toString());
   } 
   static showSymbol(s) {
-    return s.name.replaceAll("$", "_")
+    return runtime.safeCall(s.name.replaceAll("$", "_"))
   } 
   static showPath(p) {
     let name, qual, arg$ValueLit$0$, arg$ValueRef$0$, arg$DynSelect$0$, arg$DynSelect$1$, arg$DynSelect$2$, arg$Select$0$, arg$Select$1$, arg$ValueRef$0$1, arg$Symbol$0$, arg$ModuleSymbol$0$, arg$ModuleSymbol$1$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;

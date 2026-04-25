@@ -77,7 +77,7 @@ sliceHelper = function sliceHelper(beg, fin, arr) {
     return View1(arg$View$0$, tmp4, tmp6)
   } else if (arr instanceof Splice1.class) {
     tmp7 = runtime.safeCall(arr.materialize());
-    return tmp7.slice(tmp, fin)
+    return runtime.safeCall(tmp7.slice(tmp, fin))
   }
   scrut3 = FingerTreeList.isFingerTree(arr);
   if (scrut3 === true) {
@@ -150,7 +150,7 @@ View1 = function View(underlying, start, end) {
   materialize() {
     let tmp;
     tmp = this.underlying.length - this.end;
-    return this.underlying.slice(this.start, tmp)
+    return runtime.safeCall(this.underlying.slice(this.start, tmp))
   } 
   at(i) {
     let tmp, tmp1, tmp2, tmp3;

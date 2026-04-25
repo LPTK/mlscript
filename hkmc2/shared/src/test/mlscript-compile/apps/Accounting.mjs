@@ -78,15 +78,15 @@ let Accounting1;
       }
       constructor(fileName) {
         this.fileName = fileName;
-        fs.writeFileSync(this.fileName, "# Accounting\n");
+        runtime.safeCall(fs.writeFileSync(this.fileName, "# Accounting\n"));
       }
       w(txt) {
-        return fs.appendFileSync(this.fileName, txt)
+        return runtime.safeCall(fs.appendFileSync(this.fileName, txt))
       } 
       wln(txt) {
         let tmp2;
         tmp2 = StrOps.concat2(txt, "\n");
-        return fs.appendFileSync(this.fileName, tmp2)
+        return runtime.safeCall(fs.appendFileSync(this.fileName, tmp2))
       } 
       init() {
         let tmp2, tmp3, lambda, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, lambda1, tmp10, tmp11, tmp12, tmp13;
@@ -156,7 +156,7 @@ let Accounting1;
         lambda3 = (undefined, function (a, b) {
           return a + b
         });
-        tmp10 = tmp9.reduce(lambda3, 0);
+        tmp10 = runtime.safeCall(tmp9.reduce(lambda3, 0));
         tmp11 = this$Accounting.display(tmp10);
         tmp12 = StrOps.concat2(tmp7, tmp11);
         tmp13 = StrOps.concat2(tmp12, "|");
@@ -174,7 +174,7 @@ let Accounting1;
         lambda6 = (undefined, function (a, b) {
           return a + b
         });
-        tmp18 = tmp17.reduce(lambda6, 0);
+        tmp18 = runtime.safeCall(tmp17.reduce(lambda6, 0));
         tmp19 = this$Accounting.display(tmp18);
         tmp20 = StrOps.concat2(tmp15, tmp19);
         tmp21 = StrOps.concat2(tmp20, "|");

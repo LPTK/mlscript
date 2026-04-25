@@ -37,7 +37,7 @@ let ParseRuleVisualizer1;
       let arg$Some$0$;
       if (rhsOpt instanceof Option.Some.class) {
         arg$Some$0$ = rhsOpt.value;
-        return rr.Sequence(lhs, arg$Some$0$)
+        return runtime.safeCall(rr.Sequence(lhs, arg$Some$0$))
       } else if (rhsOpt instanceof Option.None.class) {
         return lhs
       }
@@ -116,7 +116,7 @@ let ParseRuleVisualizer1;
               rcd = globalThis.Object.freeze({
                 href: tmp12
               });
-              tmp13 = rr.NonTerminal(arg$Ref$0$, rcd);
+              tmp13 = runtime.safeCall(rr.NonTerminal(arg$Ref$0$, rcd));
               tmp14 = renderRule(arg$Ref$4$);
               tmp15 = sequence(tmp13, tmp14);
               inlinedVal = Option.Some(tmp15);
@@ -135,12 +135,12 @@ let ParseRuleVisualizer1;
           break;
         }
         tmp4 = runtime.safeCall(nodes.length.toString());
-        ParseRuleVisualizer.tracer.print("nodes: ", tmp4);
+        runtime.safeCall(ParseRuleVisualizer.tracer.print("nodes: ", tmp4));
         scrut = nodes.length;
         if (scrut === 0) {
           return Option.None
         }
-        choice = rr.Choice(0, ...nodes);
+        choice = runtime.safeCall(rr.Choice(0, ...nodes));
         if (optional === true) {
           tmp5 = runtime.safeCall(rr.Optional(choice));
           return Option.Some(tmp5)

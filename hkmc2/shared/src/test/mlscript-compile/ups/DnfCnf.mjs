@@ -119,7 +119,7 @@ let DnfCnf1;
             unapply: lambda,
             unapplyStringPrefix: lambda1
           });
-          unapplyResult1 = DnfCnf.Dnf.unapply(patternArgument0$1, arg$Or$0$);
+          unapplyResult1 = runtime.safeCall(DnfCnf.Dnf.unapply(patternArgument0$1, arg$Or$0$));
           if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
             output1 = unapplyResult1.output;
             unapplyResult1.bindings;
@@ -156,7 +156,7 @@ let DnfCnf1;
               unapply: lambda2,
               unapplyStringPrefix: lambda3
             });
-            unapplyResult2 = DnfCnf.Dnf.unapply(patternArgument0$2, arg$Or$1$);
+            unapplyResult2 = runtime.safeCall(DnfCnf.Dnf.unapply(patternArgument0$2, arg$Or$1$));
             if (unapplyResult2 instanceof runtime.MatchSuccess.class) {
               output2 = unapplyResult2.output;
               unapplyResult2.bindings;
@@ -196,7 +196,7 @@ let DnfCnf1;
               unapply: lambda4,
               unapplyStringPrefix: lambda5
             });
-            unapplyResult = DnfCnf.Atoms.unapply(patternArgument0$, input);
+            unapplyResult = runtime.safeCall(DnfCnf.Atoms.unapply(patternArgument0$, input));
             if (unapplyResult instanceof runtime.MatchSuccess.class) {
               output = unapplyResult.output;
               unapplyResult.bindings;
@@ -238,7 +238,7 @@ let DnfCnf1;
             unapply: lambda6,
             unapplyStringPrefix: lambda7
           });
-          unapplyResult = DnfCnf.Atoms.unapply(patternArgument0$, input);
+          unapplyResult = runtime.safeCall(DnfCnf.Atoms.unapply(patternArgument0$, input));
           if (unapplyResult instanceof runtime.MatchSuccess.class) {
             output = unapplyResult.output;
             unapplyResult.bindings;
@@ -280,7 +280,7 @@ let DnfCnf1;
           unapply: lambda8,
           unapplyStringPrefix: lambda9
         });
-        unapplyResult = DnfCnf.Atoms.unapply(patternArgument0$, input);
+        unapplyResult = runtime.safeCall(DnfCnf.Atoms.unapply(patternArgument0$, input));
         if (unapplyResult instanceof runtime.MatchSuccess.class) {
           output = unapplyResult.output;
           unapplyResult.bindings;
@@ -323,7 +323,7 @@ let DnfCnf1;
           unapply: lambda,
           unapplyStringPrefix: lambda1
         });
-        unapplyResult = DnfCnf.Atoms.unapplyStringPrefix(patternArgument0$, input);
+        unapplyResult = runtime.safeCall(DnfCnf.Atoms.unapplyStringPrefix(patternArgument0$, input));
         if (unapplyResult instanceof runtime.MatchSuccess.class) {
           outputPair = unapplyResult.output;
           unapplyResult.bindings;
@@ -386,7 +386,7 @@ let DnfCnf1;
             unapply: lambda,
             unapplyStringPrefix: lambda1
           });
-          unapplyResult1 = DnfCnf.Atoms.unapply(patternArgument0$1, arg$And$0$);
+          unapplyResult1 = runtime.safeCall(DnfCnf.Atoms.unapply(patternArgument0$1, arg$And$0$));
           if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
             output1 = unapplyResult1.output;
             unapplyResult1.bindings;
@@ -423,7 +423,7 @@ let DnfCnf1;
               unapply: lambda2,
               unapplyStringPrefix: lambda3
             });
-            unapplyResult2 = DnfCnf.Atoms.unapply(patternArgument0$2, arg$And$1$);
+            unapplyResult2 = runtime.safeCall(DnfCnf.Atoms.unapply(patternArgument0$2, arg$And$1$));
             if (unapplyResult2 instanceof runtime.MatchSuccess.class) {
               output2 = unapplyResult2.output;
               unapplyResult2.bindings;
@@ -463,7 +463,7 @@ let DnfCnf1;
               unapply: lambda4,
               unapplyStringPrefix: lambda5
             });
-            unapplyResult = DnfCnf.Atom.unapply(patternArgument0$, input);
+            unapplyResult = runtime.safeCall(DnfCnf.Atom.unapply(patternArgument0$, input));
             if (unapplyResult instanceof runtime.MatchSuccess.class) {
               output = unapplyResult.output;
               unapplyResult.bindings;
@@ -505,7 +505,7 @@ let DnfCnf1;
             unapply: lambda6,
             unapplyStringPrefix: lambda7
           });
-          unapplyResult = DnfCnf.Atom.unapply(patternArgument0$, input);
+          unapplyResult = runtime.safeCall(DnfCnf.Atom.unapply(patternArgument0$, input));
           if (unapplyResult instanceof runtime.MatchSuccess.class) {
             output = unapplyResult.output;
             unapplyResult.bindings;
@@ -547,7 +547,7 @@ let DnfCnf1;
           unapply: lambda8,
           unapplyStringPrefix: lambda9
         });
-        unapplyResult = DnfCnf.Atom.unapply(patternArgument0$, input);
+        unapplyResult = runtime.safeCall(DnfCnf.Atom.unapply(patternArgument0$, input));
         if (unapplyResult instanceof runtime.MatchSuccess.class) {
           output = unapplyResult.output;
           unapplyResult.bindings;
@@ -590,7 +590,7 @@ let DnfCnf1;
           unapply: lambda,
           unapplyStringPrefix: lambda1
         });
-        unapplyResult = DnfCnf.Atom.unapplyStringPrefix(patternArgument0$, input);
+        unapplyResult = runtime.safeCall(DnfCnf.Atom.unapplyStringPrefix(patternArgument0$, input));
         if (unapplyResult instanceof runtime.MatchSuccess.class) {
           outputPair = unapplyResult.output;
           unapplyResult.bindings;
@@ -685,7 +685,7 @@ let DnfCnf1;
             unapply: lambda,
             unapplyStringPrefix: lambda1
           });
-          unapplyResult = DnfCnf.Cnf.unapply(patternArgument0$, arg$And$0$);
+          unapplyResult = runtime.safeCall(DnfCnf.Cnf.unapply(patternArgument0$, arg$And$0$));
           if (unapplyResult instanceof runtime.MatchSuccess.class) {
             unapplyResult.output;
             unapplyResult.bindings;
@@ -722,7 +722,7 @@ let DnfCnf1;
               unapply: lambda2,
               unapplyStringPrefix: lambda3
             });
-            unapplyResult1 = DnfCnf.Cnf.unapply(patternArgument0$1, arg$And$1$);
+            unapplyResult1 = runtime.safeCall(DnfCnf.Cnf.unapply(patternArgument0$1, arg$And$1$));
             if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
               unapplyResult1.output;
               unapplyResult1.bindings;
@@ -751,14 +751,14 @@ let DnfCnf1;
       unapply(input) {
         let patternArgument0$, unapplyResult, output, patternArgument0$1, unapplyResult1, output1;
         patternArgument0$1 = DnfCnf1.DnfOrCnf;
-        unapplyResult1 = DnfCnf.Dnf.unapply(patternArgument0$1, input);
+        unapplyResult1 = runtime.safeCall(DnfCnf.Dnf.unapply(patternArgument0$1, input));
         if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
           output1 = unapplyResult1.output;
           unapplyResult1.bindings;
           return globalThis.Object.freeze(new runtime.MatchSuccess.class(output1, null))
         }
         patternArgument0$ = DnfCnf1.DnfOrCnf;
-        unapplyResult = DnfCnf.Cnf.unapply(patternArgument0$, input);
+        unapplyResult = runtime.safeCall(DnfCnf.Cnf.unapply(patternArgument0$, input));
         if (unapplyResult instanceof runtime.MatchSuccess.class) {
           output = unapplyResult.output;
           unapplyResult.bindings;
@@ -769,7 +769,7 @@ let DnfCnf1;
       unapplyStringPrefix(input) {
         let output, remaining, patternArgument0$, unapplyResult, outputPair, output1, remaining1, patternArgument0$1, unapplyResult1, outputPair1, tmp, tmp1;
         patternArgument0$1 = DnfCnf1.DnfOrCnf;
-        unapplyResult1 = DnfCnf.Dnf.unapplyStringPrefix(patternArgument0$1, input);
+        unapplyResult1 = runtime.safeCall(DnfCnf.Dnf.unapplyStringPrefix(patternArgument0$1, input));
         if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
           outputPair1 = unapplyResult1.output;
           unapplyResult1.bindings;
@@ -782,7 +782,7 @@ let DnfCnf1;
           return globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp, null))
         }
         patternArgument0$ = DnfCnf1.DnfOrCnf;
-        unapplyResult = DnfCnf.Cnf.unapplyStringPrefix(patternArgument0$, input);
+        unapplyResult = runtime.safeCall(DnfCnf.Cnf.unapplyStringPrefix(patternArgument0$, input));
         if (unapplyResult instanceof runtime.MatchSuccess.class) {
           outputPair = unapplyResult.output;
           unapplyResult.bindings;
@@ -810,12 +810,12 @@ let DnfCnf1;
       unapply(input) {
         let patternArgument0$, unapplyResult, output, patternArgument0$1, unapplyResult1, output1, output2;
         patternArgument0$ = DnfCnf1.DnfAndCnf;
-        unapplyResult = DnfCnf.Dnf.unapply(patternArgument0$, input);
+        unapplyResult = runtime.safeCall(DnfCnf.Dnf.unapply(patternArgument0$, input));
         if (unapplyResult instanceof runtime.MatchSuccess.class) {
           output = unapplyResult.output;
           unapplyResult.bindings;
           patternArgument0$1 = DnfCnf1.DnfAndCnf;
-          unapplyResult1 = DnfCnf.Cnf.unapply(patternArgument0$1, input);
+          unapplyResult1 = runtime.safeCall(DnfCnf.Cnf.unapply(patternArgument0$1, input));
           if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
             output1 = unapplyResult1.output;
             unapplyResult1.bindings;
@@ -832,14 +832,14 @@ let DnfCnf1;
       unapplyStringPrefix(input) {
         let output, remaining, patternArgument0$, unapplyResult, output1, product, patternArgument0$1, unapplyResult1, outputPair, tmp;
         patternArgument0$1 = DnfCnf1.DnfAndCnf;
-        unapplyResult1 = DnfCnf.Dnf.unapplyStringPrefix(patternArgument0$1, input);
+        unapplyResult1 = runtime.safeCall(DnfCnf.Dnf.unapplyStringPrefix(patternArgument0$1, input));
         if (unapplyResult1 instanceof runtime.MatchSuccess.class) {
           outputPair = unapplyResult1.output;
           unapplyResult1.bindings;
           output = runtime.Tuple.get(outputPair, 0);
           remaining = runtime.Tuple.get(outputPair, 1);
           patternArgument0$ = DnfCnf1.DnfAndCnf;
-          unapplyResult = DnfCnf.Cnf.unapply(patternArgument0$, input);
+          unapplyResult = runtime.safeCall(DnfCnf.Cnf.unapply(patternArgument0$, input));
           if (unapplyResult instanceof runtime.MatchSuccess.class) {
             output1 = unapplyResult.output;
             unapplyResult.bindings;

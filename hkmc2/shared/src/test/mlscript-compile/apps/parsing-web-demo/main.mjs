@@ -60,7 +60,7 @@ let Main1;
         runtime.safeCall(event.preventDefault());
         start = Main.#editor.selectionStart;
         end = Main.#editor.selectionEnd;
-        tmp = Main.#editor.value.substring(0, start);
+        tmp = runtime.safeCall(Main.#editor.value.substring(0, start));
         tmp1 = tmp + "  ";
         tmp2 = runtime.safeCall(Main.#editor.value.substring(end));
         tmp3 = tmp1 + tmp2;
@@ -72,7 +72,7 @@ let Main1;
       }
       return runtime.Unit;
     });
-    Main.#editor.addEventListener("keydown", lambda1);
+    runtime.safeCall(Main.#editor.addEventListener("keydown", lambda1));
     lambda2 = (undefined, function (event) {
       let scrut, arg$Some$0$, tmp, tmp1;
       scrut = runtime.safeCall(Examples.examples.get(Main.#selector.value));
@@ -87,7 +87,7 @@ let Main1;
       }
       return runtime.Unit;
     });
-    Main.#selector.addEventListener("change", lambda2);
+    runtime.safeCall(Main.#selector.addEventListener("change", lambda2));
     lambda3 = (undefined, function (event) {
       let tokens, rcd, lambda4, lambda5;
       rcd = globalThis.Object.freeze({
@@ -118,9 +118,9 @@ let Main1;
         runtime.safeCall(errorDisplay.setError(error));
         return runtime.safeCall(Main.#outputPanel.appendChild(errorDisplay))
       });
-      return Runtime.try_catch(lambda4, lambda5)
+      return runtime.safeCall(Runtime.try_catch(lambda4, lambda5))
     });
-    Main.#parseButton.addEventListener("click", lambda3);
+    runtime.safeCall(Main.#parseButton.addEventListener("click", lambda3));
     Main.#indentRegex = globalThis.Object.freeze(new globalThis.RegExp("^(\\s*)"));
     Main.#errorDisplayStyle = "\n.error-container {\n  background-color: #fdd;\n  padding: 0.375rem 0.75rem 0.5rem;\n  font-family: var(--monospace);\n  color: #991b1bff;\n  display: flex;\n  flex-direction: column;\n  gap: 0.25rem;\n}\n.error-message {\n  margin: 0;\n  font-weight: bold;\n  font-size: 1.125rem;\n}\n.stack-trace {\n  font-size: 0.875rem;\n  margin: 0;\n  list-style-type: none;\n  padding-left: 0.5rem;\n}";
     (class CollapsibleTree extends globalThis.HTMLElement {
@@ -145,7 +145,7 @@ let Main1;
         lambda4 = (undefined, function (node) {
           let details, summary, scrut, rule, tmp;
           details = runtime.safeCall(globalThis.document.createElement("details"));
-          details.setAttribute("open", "");
+          runtime.safeCall(details.setAttribute("open", ""));
           summary = runtime.safeCall(globalThis.document.createElement("summary"));
           summary.textContent = node.text;
           runtime.safeCall(details.appendChild(summary));
@@ -154,7 +154,7 @@ let Main1;
             tmp = this$CollapsibleTree.createDetailsTree(node.children);
             runtime.safeCall(details.appendChild(tmp));
           } else {
-            details.setAttribute("leaf", "");
+            runtime.safeCall(details.setAttribute("leaf", ""));
           }
           runtime.safeCall(fragment.appendChild(details));
           rule = runtime.safeCall(globalThis.document.createElement("rule"));
@@ -167,7 +167,7 @@ let Main1;
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "CollapsibleTree"]; 
     });
-    globalThis.customElements.define("collapsible-tree", Main.CollapsibleTree);
+    runtime.safeCall(globalThis.customElements.define("collapsible-tree", Main.CollapsibleTree));
     (class ErrorDisplay extends globalThis.HTMLElement {
       static {
         Main.ErrorDisplay = this
@@ -235,7 +235,7 @@ let Main1;
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "ErrorDisplay"]; 
     });
-    globalThis.customElements.define("error-display", Main.ErrorDisplay);
+    runtime.safeCall(globalThis.customElements.define("error-display", Main.ErrorDisplay));
     Main.displayRules();
   }
   static parseIndentedText(text) {

@@ -592,7 +592,7 @@ let Term2;
       add(sym) {
         let fn;
         fn = this.freshName(sym.name);
-        this.bindings.set(sym, fn);
+        runtime.safeCall(this.bindings.set(sym, fn));
         return fn
       } 
       depends(d) {
@@ -603,11 +603,11 @@ let Term2;
         tmp = runtime.safeCall(this.names.has(name));
         scrut = ! tmp;
         if (scrut === true) {
-          this.names.set(name, 0);
+          runtime.safeCall(this.names.set(name, 0));
         }
         i = runtime.safeCall(this.names.get(name));
         tmp1 = i + 1;
-        this.names.set(name, tmp1);
+        runtime.safeCall(this.names.set(name, tmp1));
         tmp2 = runtime.safeCall(i.toString());
         return StrOps.concat(name, "_", tmp2)
       }
@@ -716,7 +716,7 @@ let Term2;
                 return arg$Symbol$0$
               }
               tmp15 = runtime.safeCall(path.dirname(arg$CSRef$1$));
-              tmp16 = path.join(tmp15, arg$CSRef$2$);
+              tmp16 = runtime.safeCall(path.join(tmp15, arg$CSRef$2$));
               runtime.safeCall(ctx.depends(tmp16));
               return arg$Symbol$0$;
             }
@@ -841,8 +841,8 @@ let Term2;
   static genImport(base, p) {
     let tmp, tmp1, tmp2;
     tmp = runtime.safeCall(url.fileURLToPath(p));
-    tmp1 = path.relative(base, tmp);
-    tmp2 = tmp1.slice(0, -4);
+    tmp1 = runtime.safeCall(path.relative(base, tmp));
+    tmp2 = runtime.safeCall(tmp1.slice(0, -4));
     return StrOps.concat("import \"./", tmp2, ".mls\"")
   } 
   static codegen(t, file) {
@@ -854,7 +854,7 @@ let Term2;
     tmp3 = runtime.safeCall(path.parse(file));
     moduleName = tmp3.name;
     tmp4 = runtime.safeCall(process.cwd());
-    fullpath = path.join(tmp4, file);
+    fullpath = runtime.safeCall(path.join(tmp4, file));
     tmp5 = Term.show(t, ctx);
     tmp6 = Term.indent(tmp5, "  ", true);
     code = StrOps.concat("module ", moduleName, " with ...\nfun res =\n", tmp6, "\n");
@@ -870,7 +870,7 @@ let Term2;
     if (scrut === true) {
       runtime.safeCall(fs.writeFileSync(file, "", "utf8"));
     }
-    originData = fs.readFileSync(file, "utf8");
+    originData = runtime.safeCall(fs.readFileSync(file, "utf8"));
     tmp9 = runtime.safeCall(dependencies.join("\n"));
     newData = StrOps.concat(tmp9, "\n", code);
     scrut1 = Predef.nequals(newData, originData);
