@@ -9,6 +9,7 @@ import hkmc2.Message.MessageContext
 
 extension [A](a: A)
   infix inline def givenIn[R](inline k: A ?=> R) = k(using a)
+  def abbreviate: Str = a.toString.truncate(100, "[...]")
 
 
 // * Valid identifiers for the members of module and class-like definitions

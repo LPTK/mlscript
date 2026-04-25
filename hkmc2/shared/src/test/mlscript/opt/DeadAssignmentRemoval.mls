@@ -50,18 +50,6 @@ fun f(x) =
   42
 //│ ⬤ Simplif. iter. 1
 //│ Captured variables: HashSet()
-//│ Applying block: Scoped(HashSet(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false))),End())) with map: Map()
-//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false))),End()) with map: Map()
-//│ | | Applying block: Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false)) with map: Map()
-//│ | | | Propagating x := Lit(IntLit(1)) (None)
-//│ | | | NEW assignedResults: Map(x -> Lit(IntLit(1)))
-//│ | | | Applying block: Return(Lit(IntLit(42)),false) with map: Map(x -> Lit(IntLit(1)))
-//│ | | | |= Map(x -> Lit(IntLit(1)))
-//│ | | |= Map(x -> Lit(IntLit(1)))
-//│ | | Applying block: End() with map: Map()
-//│ | | |= Map()
-//│ | |= Map()
-//│ |= Map()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f⁰; define f⁰ as fun f¹(x) { set x = 1; return 42 }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

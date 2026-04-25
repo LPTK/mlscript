@@ -57,7 +57,7 @@ class BlockSimplifier
       
       // val vp = new ValuePropagation()
       // val vp = new ValuePropagation(DefinedVars.analyze(res.main))
-      val vp = new ValuePropagation(LocalVars.analyze(res.main))
+      val vp = new DataFlowAnalysis(LocalVars.analyze(res.main))
       res = vp.apply(res)
       changed ||= vp.changed
       if vp.changed then log("▶ VP:\n" + printRes)
@@ -117,6 +117,8 @@ class BlockSimplifier
   // ——————————————————————————————————————————————————————————————————————————————————————————— //
   
   
+  /** A simple pass to eliminate the most obvious kind of dead code;
+    * hopefully allows more expensive passes such as DataFlowAnalysis to do less work. */
   class DeadCodeElim() extends BlockTransformer(SymbolSubst.Id), Helper:
     
     val usedLabels = MutSet.empty[LabelSymbol]
@@ -310,19 +312,27 @@ class BlockSimplifier
   // ——————————————————————————————————————————————————————————————————————————————————————————— //
   
   
-  /** Simple propagation of values inwards; does not require any merges at join points. */
-  class ValuePropagation(localVars: Set[LocalVar]) extends BlockTransformer(SymbolSubst.Id), Helper:
+  /** Basic intraprocedural flow-sensitive analysis of which assignments may flow into which variables at each point.
+    * For loops, it is enough to pass through the loop body once without transforming it ("dry run")
+    * to get the data flow information from loop-back edges, and then to actually transform the loop.
+    * Wehn in dry-run mode, nested loops are also traversed in dry-run mode.
+    * We keep track of a tree of assignments where, if the RHS was a local variable, we also store the analysis value
+    * that was in effect at this point, which allows us to eliminate useless transitive assignments. */
+  class DataFlowAnalysis(localVars: Set[LocalVar]) extends BlockTransformer(SymbolSubst.Id), Helper:
     
     
     val capturedVars = MutSet.empty[LocalVar]
     // ^ TODO: technically, all we need to prevent is changes to `nonLocallyAssignedVars`,
-    //    so we should compute that instead.
+    //    so we should compute that instead in the future.
+    //    Note that the capturing definitions won't see the assignments of the captured variable anyway
+    //    because that variable will be treated as unknown, since nested definitions start from an empty environment.
     
     
     def apply(prog: Program): Program =
       
       var cur = prog
       
+      // * Collect captured variables
       new BlockTraverser:
         applyProgram(prog)
         
@@ -343,8 +353,10 @@ class BlockSimplifier
       
       cur = applyProgram(prog)
       
+      // * [Future: dead assignment removal]
+      // * Technically, if nothing in the program changed, we could remove dead assignments using a simple flag.
       /* 
-      cur =
+      if !changed then cur =
         (new BlockTransformer(SymbolSubst.Id):
           
           override def applyBlock(b: Block): Block =
@@ -369,11 +381,11 @@ class BlockSimplifier
     end apply
     
     
-    enum Assignment:
+    enum AssignInfo:
       case Unknown
       case Uninitialized
-      case Assigned(asst: Assign, varAsst: Opt[Value.Ref -> Assignment])
-      case Merge(asst1: Assignment, asst2: Assignment)
+      case Assigned(asst: Assign, varAsst: Opt[Value.Ref -> AssignInfo])
+      case Merge(asst1: AssignInfo, asst2: AssignInfo)
       
       override def toString: String = this match
         case Unknown => "?"
@@ -381,7 +393,7 @@ class BlockSimplifier
         case Assigned(asst, varAsst) => s"${asst.rhs}${varAsst.fold("")("‹"+_+"›")}"
         case Merge(a1, a2) => s"{${a1.toString} | ${a2.toString}}"
       
-      def merge(that: Assignment): Assignment =
+      def merge(that: AssignInfo): AssignInfo =
         if this is that then this
         else that match
           case Unknown => that
@@ -389,14 +401,14 @@ class BlockSimplifier
           // case Merge(l, r) => Merge(merge(this, l), r)
           case _: Assigned | _: Merge => Merge(this, that)
       
-    import Assignment.*
+    import AssignInfo.*
     
     
-    type AssignedResults = Map[LocalVar, Assignment]
+    type AssignedResults = Map[LocalVar, AssignInfo]
     
     val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Unknown)
     
-    // *** ASSUMPTION: only LocalVar symbols can be Assign'ed ***
+    // *** ASSUMPTION (should be an invariant of the IR): only LocalVar symbols can be Assign'ed ***
     var assignedResults: AssignedResults = emptyAssignedResults
     var inDryRun = false // for traversing loop bodies once before actually transforming the program
     
@@ -410,8 +422,9 @@ class BlockSimplifier
     val atLabelBegin: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     val atLabelEnd: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     
+    // * Careful: can't use `mergeMap` because we need to retain values defined in only one of the maps,
+    // * merging them with `Unknown` (instead of just dropping them).
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
-      // mergeMap(ar1, ar2)(_.merge(_)).withDefaultValue(Unknown)
       ar1.iterator
         .map: (k, v) =>
           k -> v.merge(ar2(k))
@@ -422,7 +435,8 @@ class BlockSimplifier
         .withDefaultValue(Unknown)
     
     
-    val liveAssignments: IdentityHashMap[Block, Unit] = new IdentityHashMap()
+    // * [Future: dead assignment removal]
+    // val liveAssignments: IdentityHashMap[Block, Unit] = new IdentityHashMap()
     
     
     override def applyDefn(defn: Defn)(k: Defn => Block): Block =
@@ -437,12 +451,13 @@ class BlockSimplifier
             assignedResults = oldAssignedResults
             k(res)
     
-    override def applyBlock(b: Block): Block = trace[Block](s"Applying block: ${b} with map: ${assignedResults}", res => s"|= ${assignedResults}"):
-      // log(s"Applying block: ${b} with map: ${assignedResults}")
+    override def applyBlock(b: Block): Block =
+    // trace[Block](s"Applying block: ${b.abbreviate} with map: ${assignedResults}", res => s"|= ${assignedResults}"):
       b match
         
       case ass @ Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
-        log(s"Propagating ${lhs} := ${rhs} (${assignedResults.get(lhs)})")
+        // log(s"Propagating ${lhs} := ${rhs} (${assignedResults.get(lhs)})")
+        
         assignedResults += lhs -> Assigned(ass, rhs.match
           case r @ Value.Ref(sym: LocalVar, N) =>
             if capturedVars(sym) then N
@@ -453,26 +468,16 @@ class BlockSimplifier
             S(r -> Unknown)
           case _ => N
         )
-        log(s"NEW assignedResults: ${assignedResults}")
         super.applyBlock(b)
-        /* // Doesn't work because the previous pass may actually modify the Assign nodes
-        val res = super.applyBlock(b)
-        if inDryRun || !localVars(lhs) || symbolsToPreserve(lhs) || liveAssignments.containsKey(ass)
-        then res
-        else
-          import scala.jdk.CollectionConverters._
-          log(s"Live assignments: ${liveAssignments.asScala.toList.sortBy(_.toString)}")
-          registerChange(s"rm ass ${lhs.showDbg} = ${rhs.showDbg}")
-          Assign.discard(rhs, rst)
-        */
         
       case Assign(lhs, rhs, rst) =>
-        log(s"Not propagating ${lhs} := ${rhs}")
+        // log(s"Not propagating ${lhs} := ${rhs}")
+        
         super.applyBlock(b)
         
       case Label(label, loop, body, rest) =>
         
-        // TODO:
+        // TODO: fix the rest of the compiler so this invariant actually holds
         // assert(!atLabelBegin.contains(label) && !atLabelEnd.contains(label))
         
         if loop then
@@ -495,8 +500,8 @@ class BlockSimplifier
           b
           
       case Continue(label) =>
-        log(s"Continue to ${label} with map: ${assignedResults}")
-        log(s"  atLabelBegin: ${atLabelBegin(label)}")
+        // log(s"Continue to ${label} with map: ${assignedResults}")
+        // log(s"  atLabelBegin: ${atLabelBegin(label)}")
         atLabelBegin.put(label, merge(assignedResults, atLabelBegin(label)))
         super.applyBlock(b)
         
@@ -516,8 +521,8 @@ class BlockSimplifier
           def giveUp =
             gaveUp = true
             Set.empty[Shape]
-          def getShapesA(a: Assignment): Set[Shape] =
-          trace[Set[Shape]](s"Getting shapes for assignment ${a}", r => s"= ${r}"):
+          def getShapesA(a: AssignInfo): Set[Shape] =
+          // trace[Set[Shape]](s"Getting shapes for assignment ${a}", r => s"= ${r}"):
             a match
             case Unknown => giveUp
             case Uninitialized => Set.empty
@@ -531,12 +536,6 @@ class BlockSimplifier
               case N =>
                 asst.rhs match
                 case p: Path => getShapes(p)
-                // case Instantiate(mut, cls, args) if cls.symbolOpt.exists(_.defn.exists{
-                //   case cls: ClassLikeDef => ???
-                //   case _ => false
-                // }) =>
-                //   Set.single(cls)
-                // /*
                 case Call(path, args) =>
                   path.symbolOpt match
                   case S(tsym: TermSymbol) =>
@@ -544,14 +543,11 @@ class BlockSimplifier
                     case S(sym: ClassSymbol) =>
                       sym.defn match
                       case S(cls: ClassLikeDef)
-                        // if the instantiation call is saturated
                         if cls.auxParams.isEmpty
-                        =>
-                        Set.single(sym)
+                        => Set.single(sym)
                       case _ => giveUp
                     case _ => giveUp
                   case _ => giveUp
-                // */
                 case Instantiate(mut, cls, args) =>
                   cls.symbolOpt match
                   case S(sym: ClassSymbol) =>
@@ -559,8 +555,7 @@ class BlockSimplifier
                     case S(cls: ClassLikeDef)
                       // if the instantiation call is saturated
                       if cls.auxParams.isEmpty || cls.paramsOpt.isEmpty && cls.auxParams.sizeCompare(1) <= 0
-                      =>
-                      Set.single(sym)
+                      => Set.single(sym)
                     case _ => giveUp
                   case _ => giveUp
                 case _ => giveUp
@@ -572,56 +567,36 @@ class BlockSimplifier
                 giveUp
               case Value.Ref(r: LocalVar, N) =>
                 assignedResults.get(r).fold(giveUp)(getShapesA)
-              // case Value.Ref(r: LocalVar, N) => assignedResults.get(r) match
-              //   case S(Unknown) | N =>
-              //     hopeless = true
-              //     Set.empty
-              //   case S(Uninitialized) => Set.empty
-              //   case S(Merge(a1, a2)) => getShapeA(a1) | getShapeA(a2)
-              //   case S(Assigned(asst, varAsst)) =>
-              //     ???
-              // case Value.Ref(r, S(sym: (ClassSymbol | ModuleOrObjectSymbol))) =>
               case Value.Ref(r, S(sym: ModuleOrObjectSymbol)) =>
                 Set.single(sym)
               case Value.Lit(lit) => Set.single(lit)
-              case _ =>
-                // Set.empty
-                giveUp
+              case _ => giveUp
           
-          // log(s"Analyzing shapes: ${{getShapes(scrut2)}}")
           var shapes = if deadBranchElim then getShapes(scrut2) else giveUp
           // TODO: if analysis gave up, make the shapes the set of cases of the patmat, to rm redundant arms
           
-          log(s"Initial shapes: ${shapes} – $gaveUp")
+          if !gaveUp then log(s"Initial shapes: ${shapes}")
           
           val oldAssigned = assignedResults
           var curAssigned = oldAssigned
+          
           val arms2 = if gaveUp then arms else arms.filterConserve: (pat, body) =>
+            @inline def regChange =
+              registerChange(s"Arm ${pat.showDbg} is unreachable because")
+              false
             pat match
-            // case Case.Lit(lit) if shapes.contains(lit) => 
-            //   shapes -= lit
-            //   true
             case Case.Lit(lit) => 
-              // val res = shapes.contains(lit)
-              // shapes -= lit
-              // res
-              shapes.contains(lit) && { shapes -= lit; true }
+              shapes.contains(lit) && { shapes -= lit; true } || regChange
             case Case.Cls(sym, _) =>
               
               // FIXME: take inheritance into account
-              // FIXME: take lit <: virual-cls into account
+              // FIXME: take lit <: virual-cls into account (such as true <: Bool)
               
-              // val res = shapes.contains(sym)
-              // shapes -= sym
-              // res
-              shapes.contains(sym) && { shapes -= sym; true }
-            // case Case.Cls(sym, _) if shapes.contains(sym) =>
-            //   // FIXME: take inheritance into account
-            //   shapes -= sym
-            //   true
+              shapes.contains(sym) && { shapes -= sym; true } || regChange
             case _ => true
           
-          // log(s"Filtered arms: ${arms2.map(_._1)}")
+          if !gaveUp then log(s"Filtered arms: ${arms2.map(_._1)}")
+          
           val newArms = arms2.mapConserve:
             case arm @ (cse, body) =>
               val newBody = applyBlock(body)
@@ -636,11 +611,12 @@ class BlockSimplifier
                 curAssigned = merge(curAssigned, assignedResults)
                 assignedResults = oldAssigned
                 if newBody is body then body else newBody
-          // log(s"Match: ${newDflt}")
           if newDflt.isEmpty then curAssigned = merge(curAssigned, assignedResults)
           assignedResults = curAssigned
-          log(s"After match: ${assignedResults}")
+          
+          // log(s"After match: ${assignedResults}")
           val restRewritten = applySubBlock(rest)
+          
           if (scrut2 is scrut) && (newArms is arms) && (newDflt is dflt) && (restRewritten is rest) then b
           else Match(scrut2, newArms, newDflt, restRewritten)
           
@@ -665,45 +641,46 @@ class BlockSimplifier
         super.applyScopedBlock(b)
     
     override def applyValue(v: Value)(k: Value => Block): Block =
-      // log(s"Applying value: ${v} with assignedValue map: ${assignedValue}")
       v match
       case Value.Ref(loc: LocalVar, N) if !inDryRun && !capturedVars(loc) =>
-        log(s"?? ${loc.showDbg} ${assignedResults.get(loc)} ${localVars(loc)} ${capturedVars(loc)}")
-        val rs = assignedResults(loc)
         
-        def analyzeAssignments(asst: Assignment): Unit =
+        val rs = assignedResults(loc)
+        // log(s"Ref ${loc.showDbg} ${rs} ${localVars(loc)} ${capturedVars(loc)}")
+        
+        def analyzeAssignments(asst: AssignInfo): Unit =
           asst match
           case Unknown | Uninitialized => ()
           case Merge(a1, a2) =>
             analyzeAssignments(a1)
             analyzeAssignments(a2)
           case Assigned(ass, _) =>
-            liveAssignments.put(ass, ())
+            // * [Future: dead assignment removal]
+            // liveAssignments.put(ass, ())
         
         var litValue: Bool | Value = true
         var emptyHanded = false
-        def analyzeValues(asst: Assignment): Set[Value.Ref] =
+        
+        def analyzeValues(asst: AssignInfo): Set[Value.Ref] =
           if emptyHanded && litValue === false then
             analyzeAssignments(asst)
             Set.empty
           else asst match
             case Unknown =>
-              // log(s"0")
               litValue = false
               Set.empty
             case Uninitialized => Set.empty
             case Assigned(ass, opt) =>
-              liveAssignments.put(ass, ())
+              // * [Future: dead assignment removal]
+              // liveAssignments.put(ass, ())
+              
               if litValue =/= false then
                 ass.rhs match
                 case v @ Value.Lit(lit) =>
                   if litValue === true then
                     litValue = v
                   else if litValue =/= v then
-                    // log(s"1 ${litValue} !== ${v}")
                     litValue = false
                 case _ =>
-                  // log(s"2")
                   litValue = false
               opt match
               case S((r @ Value.Ref(lv: LocalVar, N)) -> rhs) =>
@@ -714,6 +691,9 @@ class BlockSimplifier
                 Set.single(lv) ++ analyzeValues(rhs)
               case N => Set.empty
             case Merge(a1, a2) =>
+              // * [Future: dead assignment removal]
+              // FIXME: this currently short-circuits, which will miss some live assignments...
+              
               val l = analyzeValues(a1)
               if l.isEmpty && litValue === false then
                 emptyHanded = true
@@ -723,7 +703,7 @@ class BlockSimplifier
         
         val vars = analyzeValues(rs)
         
-        log(s"Analysis: litValue: ${litValue}, unchanged vars: ${vars}")
+        // log(s"Analysis: litValue: ${litValue}, unchanged vars: ${vars}")
         
         litValue match
         case true =>
@@ -742,10 +722,7 @@ class BlockSimplifier
       case _ => super.applyValue(v)(k)
     
     override def applyResult(r: Result)(k: Result => Block): Block =
-      // super.applyResult(r)(k) match
-      // case Call(Value.Ref(stm: BuiltinSymbol, N), args) if args.forall(_._2.isInstanceOf[Value]) =>
-      //   ???
-      // case r => r
+      // Some partial evaluation – TODO: move to IR smart constructors
       r match
       case Call(Value.Ref(sym: BuiltinSymbol, N), arg1 :: arg2 :: Nil)
         if sym.nme === "," && arg1.spread.isEmpty && arg2.spread.isEmpty
@@ -754,24 +731,6 @@ class BlockSimplifier
       case Call(Value.Ref(sym: BuiltinSymbol, N), args) if args.forall(_.value.isInstanceOf[Value]) =>
         val argValues = args.map(_.value.asInstanceOf[Value])
         args.foreach(a => assert(a.spread.isEmpty))
-        /* 
-        import syntax.Tree.*, Value.Lit
-        sym.nme match
-        case "+" => argValues match
-          case (lit @ Lit(IntLit(v1))) :: Nil =>
-            registerChange("TODO")
-            k(lit)
-          case Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil =>
-            registerChange("TODO")
-            k(Lit(IntLit(v1 + v2)))
-          case _ => super.applyResult(r)(k)
-        case _ => super.applyResult(r)(k)
-        */
-        // builtinEval.applyOrElse((sym.nme, argValues)) match
-        // case S(v) =>
-        //   registerChange(s"Evaluating builtin ${sym.nme} with args ${argValues.map(_.showDbg).mkString(", ")} ~> ${v.showDbg}")
-        //   k(v)
-        // case N => super.applyResult(r)(k)
         builtinEval.lift((sym.nme, argValues)) match
         case S(v) =>
           registerChange(s"Evaluating builtin ${sym.nme} with args ${argValues.map(_.showDbg).mkString(", ")} ~> ${v.showDbg}")
@@ -781,8 +740,6 @@ class BlockSimplifier
     
     // TODO: mv to smart ctor of Call
     import syntax.Tree.*, Value.Lit
-    // val builtinEval: PartialFunction[(BuiltinSymbol, List[Value]), Value] =
-    //   case (BuiltinSymbol(nme = "+"), (lit @ Lit(IntLit(v1))) :: Nil) => lit
     val builtinEval: PartialFunction[(Str, List[Value]), Value] =
       case ("+", (lit @ Lit(IntLit(v1))) :: Nil) => lit
       case ("+", Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil) => Lit(IntLit(v1 + v2))
@@ -800,9 +757,8 @@ class BlockSimplifier
       case ("&&", Lit(BoolLit(v1)) :: Lit(BoolLit(v2)) :: Nil) => Lit(BoolLit(v1 && v2))
       case ("||", Lit(BoolLit(v1)) :: Lit(BoolLit(v2)) :: Nil) => Lit(BoolLit(v1 || v2))
       case ("!", Lit(BoolLit(v)) :: Nil) => Lit(BoolLit(!v))
-      // case (",", 
-  
-  end ValuePropagation
+    
+  end DataFlowAnalysis
   
   
   // ——————————————————————————————————————————————————————————————————————————————————————————— //
@@ -1003,7 +959,6 @@ class BlockSimplifier
           super.applyMainBlock(main).flattened
         
         override def applyBlock(blk: Block) =
-          // println(s"!?")
           blk match
           case Define(defn: FunDefn, rest) if m(defn.dSym).canBeInlineEliminated =>
             log(s"Inline elimination: ${defn.dSym}")

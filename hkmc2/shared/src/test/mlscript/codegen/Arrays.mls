@@ -68,8 +68,6 @@ new Array(4)
 //│ new globalThis⁰.this.Array⁰(4)
 //│ ⬤ Simplif. iter. 1
 //│ Captured variables: HashSet()
-//│ Applying block: Return(Instantiate(false,Select(Ref(globalThis:globalThis,None),Ident(Array)),List(Arg(None,Lit(IntLit(4))))),true) with map: Map()
-//│ |= Map()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [<4 empty items>]
 
