@@ -11,37 +11,24 @@ if x is 0 do print()
 //│ match x⁰ 0 => do Predef⁰.print⁰(); runtime⁰.Unit⁰ else runtime⁰.Unit⁰ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
-// :dopt
+// // :dopt
+// :sir
+// :soir
+// // :ssjs
+// let n =
+//   new with {}
+
+
 :sir
 :soir
-// :ssjs
-let n =
-  new with {}
+true is Bool
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let n⁰, selRes, $anon⁰;
-//│ set selRes = globalThis⁰.this.Object﹖;
-//│ do globalThis⁰.this.Object$__checkNotMethod﹖;
-//│ match selRes
-//│   undefined =>
-//│     throw new globalThis⁰.Error﹖("Access to required field 'Object' yielded 'undefined'")
-//│   else
-//│     define $anon⁰ as class $anon¹ {};
-//│     set n⁰ = new $anon¹();
-//│     end
-//│ end
+//│ let scrut; set scrut = true; match scrut Bool⁰ => true else false end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let n⁰, selRes, $anon⁰;
-//│ set selRes = globalThis⁰.this.Object﹖;
-//│ do globalThis⁰.this.Object$__checkNotMethod﹖;
-//│ match selRes
-//│   undefined =>
-//│     throw new globalThis⁰.Error﹖("Access to required field 'Object' yielded 'undefined'")
-//│   else
-//│     define $anon⁰ as class $anon¹ {};
-//│     set n⁰ = new $anon¹();
-//│     end
-//│ end
+//│ false
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ n = $anon
+//│ = false
+
+
 
 
