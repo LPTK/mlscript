@@ -29,7 +29,6 @@ sealed abstract class Block extends Product:
     case _: End => true
     case _ => false
   
-  // def showDbg(using DebugPrinter): Str = "this match"
   def showDbg(using DebugPrinter): Str = this match
     case End(msg) => s"End(${msg})"
     case Unreachable(msg) => s"Unreachable(${msg})"
@@ -785,9 +784,6 @@ sealed abstract class Result extends AutoLocated:
 //   def extraInfo: Str = toLoc.toString
   
   def showDbg(using DebugPrinter): Str = this match
-    // case Value.Ref(l, disamb) => s"Ref($l, $disamb)"
-    // case Value.This(sym) => s"This($sym)"
-    // case Value.Lit(lit) => s"Lit($lit)"
     case Value.Ref(l, disamb) => s"${l.showAsPlain}${disamb.fold("")(s => s"‹${s.showAsPlain}›")}"
     case Value.This(sym) => s"this[${sym.showAsPlain}]"
     case Value.Lit(lit) => lit.idStr
@@ -914,14 +910,6 @@ enum Value extends Path with ProductWithExtraInfo:
   case Ref(l: Local, disamb: Opt[DefinitionSymbol[?]])
   case This(sym: InnerSymbol) // TODO rm – just use Ref
   case Lit(lit: Literal)
-  
-  // def showDbg(using DebugPrinter): Str = this match
-  //   // case Ref(l, disamb) => s"Ref(${l.showAsPlain}${disamb.map(s => s", disamb=${s.showAsPlain}").getOrElse("")})"
-  //   // case This(sym) => s"This(${sym.showAsPlain})"
-  //   // case Lit(lit) => s"Lit(${lit.showAsPlain})"
-  //   case Ref(l, disamb) => s"${l.showAsPlain}${disamb.fold("")(s => s"‹${s.showAsPlain}›")}"
-  //   case This(sym) => s"this[${sym.showAsPlain}]"
-  //   case Lit(lit) => lit.idStr
   
   override def extraInfo(using DebugPrinter): Str = this match
     case Ref(l, disamb) => disamb.map(s => s"disamb=${s.showAsPlain}").mkString

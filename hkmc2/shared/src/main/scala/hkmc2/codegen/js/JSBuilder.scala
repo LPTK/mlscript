@@ -159,8 +159,6 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         case S(ds) if ds.shouldBeLifted => doc".class"
         case _ => doc""
       val name = id.name
-      // val q = result(qual)
-      // doc"${if qual.isInstanceOf[Value.Lit] then doc"($q)" else q}${
       doc"${resultQual(qual)}${
         if isValidFieldName(name)
         then doc".$name"

@@ -24,12 +24,6 @@ class BlockSimplifier
   import tl.*
   
   
-  // private var changed = true
-  // def registerChange = changed = true
-  
-  // * For debugging:
-  // def registerChange(using line: Line) = { println(s"Change at line ${line.value}"); changed = true }
-  
   val MaxIterations = 10
   
   def apply(prog: Program): Program =
@@ -48,15 +42,12 @@ class BlockSimplifier
         return res
       
       log(s"⬤ Simplif. iter. $iteration")
-      // println(s"Current program:\n${printRes}")
       
       val dce = new DeadCodeElim()
       res = dce.apply(res)
       changed ||= dce.changed
       if dce.changed then log("▶ DCE:\n" + printRes)
       
-      // val vp = new ValuePropagation()
-      // val vp = new ValuePropagation(DefinedVars.analyze(res.main))
       val vp = new DataFlowAnalysis(LocalVars.analyze(res.main))
       res = vp.apply(res)
       changed ||= vp.changed
@@ -65,11 +56,9 @@ class BlockSimplifier
       summon[Config].inlining.foreach: cfg =>
         val inl = new Inliner(using cfg)
         res = inl.apply(res)
-        // println(s"!!!")
         changed ||= inl.changed
         if inl.changed then log("▶ INL:\n" + printRes)
       
-      // println(s"? ${changed}")
       // TODO: other simplifications, such as partial evaluation?
       
     end while
@@ -81,7 +70,9 @@ class BlockSimplifier
   trait Helper:
     
     var changed = false
+    
     def registerChange(dbg: => Str)(using Line) =
+      // * For debugging:
       log(s"!! Change triggered { ${dbg} } at ${summon[FileName].value}:${summon[Line].value}")
       changed = true
     
@@ -90,23 +81,9 @@ class BlockSimplifier
   
   type LocalVar = LocalVarSymbol
   
-  /* 
-  object DefinedVars extends CachedAnalysis[Block, Set[LocalVar]]:
-    
-    def analyzeUncached(block: Block): Set[LocalVar] = block match
-      case Assign(lhs: LocalVar, rhs, rst) =>
-        // TODO techni
-        rst.analyze ++ rhs.subBlocks.iterator.flatMap(analyze) + lhs
-      case _ => block.subBlocks.iterator.flatMap(analyze).toSet
-    
-  end DefinedVars
-  */
   object LocalVars extends CachedAnalysis[Block, Set[LocalVar]]:
     
     def analyzeUncached(block: Block): Set[LocalVar] = block match
-      // case Assign(lhs: LocalVar, rhs, rst) =>
-      //   // TODO techni
-      //   rst.analyze ++ rhs.subBlocks.iterator.flatMap(analyze) + lhs
       case Scoped(syms, rest) =>
         rest.analyze ++ syms.iterator.collect { case v: LocalVar => v }
       case _ => block.subBlocks.iterator.flatMap(analyze).toSet

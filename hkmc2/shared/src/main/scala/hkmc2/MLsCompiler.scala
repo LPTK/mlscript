@@ -117,19 +117,6 @@ class MLsCompiler
       var optimized = lowered
       val nme = file.baseName
       val exportedSymbol = parsed.definedSymbols.find(_._1 === nme).map(_._2)
-      /* 
-      lazy val blockPrinter =
-        given ShowCfg = ShowCfg(
-          showExpansionMappings = false,
-          showFlowSymbols = true,
-          debug = false, // TODO
-        )
-        codegen.Printer()
-      val le_1 =
-        val printer = (p: codegen.Program) => blockPrinter.worksheet(p)(using irPrintingScp).mkString(output.ColWidth)
-        // (p: Program) => Printer().worksheet
-        codegen.BlockSimplifier(exportedSymbol.toSet, dtl, printer)(le_0)
-      */
       optimized =
         val printer = (p: codegen.Program) => p.showAsTree // TODO: proper printing like in diff-tests
         codegen.BlockSimplifier(exportedSymbol.toSet, dtl, printer)(optimized)
