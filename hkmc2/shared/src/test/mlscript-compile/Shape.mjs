@@ -102,7 +102,7 @@ let Shape2;
     throw globalThis.Object.freeze(new globalThis.Error("match error"));
   } 
   static sel(s1, s2) {
-    let scrut, n, scrut1, scrut2, scrut3, element1$, element0$, arg$Lit$0$, arg$Arr$0$, arg$Class$0$, arg$Class$1$, arg$Some$0$, lambda, tmp, tmp1, tmp2;
+    let scrut, element1$, element0$, arg$Lit$0$, arg$Arr$0$, tmp, tmp1, tmp2;
     scrut = globalThis.Object.freeze([
       s1,
       s2
@@ -111,31 +111,7 @@ let Shape2;
       element0$ = runtime.Tuple.get(scrut, 0);
       element1$ = runtime.Tuple.get(scrut, 1);
       if (element0$ instanceof Shape.Class.class) {
-        arg$Class$0$ = element0$.sym;
-        arg$Class$1$ = element0$.params;
-        if (element1$ instanceof Shape.Lit.class) {
-          arg$Lit$0$ = element1$.l;
-          n = arg$Lit$0$;
-          if (typeof n === 'string') {
-            scrut3 = arg$Class$0$.args;
-            if (scrut3 instanceof Option.Some.class) {
-              arg$Some$0$ = scrut3.value;
-              lambda = (undefined, function (_0) {
-                return _0 == n
-              });
-              scrut1 = runtime.safeCall(arg$Some$0$.find(lambda));
-              scrut2 = scrut1 == runtime.Unit;
-              if (scrut2 === true) {
-                return globalThis.Object.freeze([])
-              }
-              return globalThis.Object.freeze([
-                arg$Class$1$[scrut1]
-              ]);
-            }
-            return globalThis.Object.freeze([]);
-          }
-          return globalThis.Object.freeze([]);
-        }
+        if (element1$ instanceof Shape.Lit.class) {}
         return globalThis.Object.freeze([]);
       } else if (element0$ instanceof Shape.Dyn.class) {
         if (element1$ instanceof Shape.Lit.class) {

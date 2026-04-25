@@ -77,10 +77,7 @@ let Example1;
     return "other";
   } 
   static assertFail() {
-    if (false === true) {
-      return runtime.Unit
-    }
-    return runtime.assertFail("mlscript-compile/Example.mls", "27");
+    return runtime.assertFail("mlscript-compile/Example.mls", "27")
   }
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Example"]; 

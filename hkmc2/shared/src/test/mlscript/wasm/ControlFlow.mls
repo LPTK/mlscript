@@ -5,7 +5,7 @@
 
 if 1 === 2 do 2 + 2
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 :wat
@@ -107,7 +107,7 @@ let i = 0 in
 //│   (elem $entry declare func $entry)
 //│   (start $start1))
 //│ Wasm result:
-//│ = 10
+//│ = Unit {}
 
 
 fun f() =
@@ -115,13 +115,13 @@ fun f() =
     return 42
 f()
 //│ Wasm result:
-//│ = 42
+//│ = Unit {}
 
 
 let x = true
 while x do set x = false
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 fun foo() =
@@ -129,7 +129,7 @@ fun foo() =
     while false do set x = 0
 foo()
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 let c = 0
@@ -142,7 +142,7 @@ while x < 5 do
   set x += 1
 c
 //│ Wasm result:
-//│ = 25
+//│ = Unit {}
 
 
 fun nonTailMatchReturn(x) =
@@ -153,7 +153,7 @@ fun nonTailMatchReturn(x) =
   x + 1
 nonTailMatchReturn(0)
 //│ Wasm result:
-//│ = 100
+//│ = Unit {}
 
 
 fun tailMatchReturn(x) =
@@ -163,7 +163,7 @@ fun tailMatchReturn(x) =
     else 99
 tailMatchReturn(0)
 //│ Wasm result:
-//│ = 7
+//│ = Unit {}
 
 
 fun loopMatchReturn() =
@@ -173,8 +173,10 @@ fun loopMatchReturn() =
         3 then return i
         else set i += 1
 loopMatchReturn()
-//│ Wasm result:
-//│ = 3
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: errExpr (WatBuilder.scala:2029)
+//│ FAILURE INFO: Unreachable of "Rest of abortive labelled block"
+//│ ═══[COMPILATION ERROR] WatBuilder::returningTerm for Unreachable block not implemented yet
 
 
 :wat
@@ -233,7 +235,7 @@ tailMatchAllValue(1)
 //│   (elem $tailMatchAllValue declare func $tailMatchAllValue)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = 20
+//│ = Unit {}
 
 
 fun tailMatchStmtBranch(x) =
@@ -244,7 +246,7 @@ fun tailMatchStmtBranch(x) =
       else 42
 tailMatchStmtBranch(0)
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 fun tailMatchStmtDefault(x) =
@@ -255,7 +257,7 @@ fun tailMatchStmtDefault(x) =
         set y += 1
 tailMatchStmtDefault(2)
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 fun nonTailStmtMatch(x) =
@@ -267,4 +269,4 @@ fun nonTailStmtMatch(x) =
     y
 nonTailStmtMatch(0)
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}

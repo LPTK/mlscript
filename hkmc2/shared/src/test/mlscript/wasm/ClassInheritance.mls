@@ -8,14 +8,14 @@ class B(val y) extends A(y + 1)
 let b = B(1)
 b.A#x
 //│ Wasm result:
-//│ = 2
+//│ = Unit {}
 
 
 class A(val x)
 class B(val y) extends A(1)
 B(2).A#x
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 
 :wat
@@ -120,7 +120,7 @@ c.Parent#x
 //│   (elem $Child_ctor declare func $Child_ctor)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = 3
+//│ = Unit {}
 
 
 class A(val x)
@@ -129,14 +129,14 @@ class C(val z) extends B(z + 1)
 let c = C(1)
 c.A#x
 //│ Wasm result:
-//│ = 3
+//│ = Unit {}
 
 
 class A()
 class B() extends A()
 B() is A
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 
 class B() extends A()
@@ -144,21 +144,21 @@ class A()
 let b = B()
 if b is A then 1 else 0
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 
 class A(val x)
 class B(val y) extends A(1)
 if B(2) is A(a) then a else 0
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 
 class Bar(val a)
 class Foo(val x, val y) extends Bar(x + y)
 if Foo(1,2) is Foo(x,y) then Foo(1,2).Bar#a
 //│ Wasm result:
-//│ = 3
+//│ = Unit {}
 
 
 class Bar(val a)
@@ -166,7 +166,7 @@ class Foo(val x) extends Bar(x * 2)
 fun getXor(f) = if f is Foo(z) then f.Bar#a else 0
 getXor(Foo(42))
 //│ Wasm result:
-//│ = 84
+//│ = Unit {}
 
 
 class Foo(val x)
@@ -178,7 +178,7 @@ if Baz(10) is
   Baz(c) then c
   else 0
 //│ Wasm result:
-//│ = 18
+//│ = Unit {}
 
 
 class Bar(val y)
@@ -188,14 +188,14 @@ if Baz(true) is
   Baz(b) then b
   else 2
 //│ Wasm result:
-//│ = 0
+//│ = Unit {}
 
 
 class A()
 class B()
 B() is A
 //│ Wasm result:
-//│ = 0
+//│ = Unit {}
 
 
 // Unrelated top-level classes preserve their source order in type declaration.
@@ -300,7 +300,7 @@ class B
 //│   (elem $entry declare func $entry)
 //│   (start $start1))
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 :ge

@@ -74,7 +74,7 @@ let n =
 
 n.x
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:265)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'x')
 //│     at REPL45:1:31
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)

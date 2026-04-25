@@ -98,59 +98,6 @@ m()
 [1,2,3].map((x, i, a) => x + 1)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
-//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
-//│ /!\ Offending subblock: Scoped:
-//│   syms = Set(tmp:tmp, member:lambda)
-//│   body = Assign:
-//│     lhs = tmp:tmp⁰
-//│     rhs = Tuple:
-//│       mut = false
-//│       elems = Ls of 
-//│         Arg:
-//│           value = Lit of IntLit of 1
-//│         Arg:
-//│           value = Lit of IntLit of 2
-//│         Arg:
-//│           value = Lit of IntLit of 3
-//│     rest = Define: \
-//│     defn = FunDefn:
-//│       sym = member:lambda⁰
-//│       dSym = term:lambda¹
-//│       params = Ls of 
-//│         ParamList:
-//│           params = Ls of 
-//│             Param:
-//│               sym = x⁰
-//│               modulefulness = Modulefulness of N
-//│             Param:
-//│               sym = i⁰
-//│               modulefulness = Modulefulness of N
-//│             Param:
-//│               sym = a⁰
-//│               modulefulness = Modulefulness of N
-//│       body = Return:
-//│         res = Call:
-//│           fun = Ref:
-//│             l = builtin:+⁰
-//│           args = Ls of 
-//│             Arg:
-//│               value = Ref:
-//│                 l = x⁰
-//│             Arg:
-//│               value = Lit of IntLit of 1
-//│         implct = false
-//│     rest = Return: \
-//│     res = Call:
-//│       fun = Select:
-//│         qual = Ref:
-//│           l = tmp:tmp⁰
-//│         name = Ident of "map"
-//│       args = Ls of 
-//│         Arg:
-//│           value = Ref{disamb=term:lambda¹}:
-//│             l = member:lambda⁰
-//│             disamb = S of term:lambda¹
-//│     implct = true
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let tmp, lambda⁰;
 //│ set tmp = [1, 2, 3];

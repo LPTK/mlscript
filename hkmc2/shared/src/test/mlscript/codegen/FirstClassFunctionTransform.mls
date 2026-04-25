@@ -99,29 +99,13 @@ let f = foo in bar(f)
 bar([foo].0)
 bar([foo, x => x].1)
 //│ ╔══[COMPILATION ERROR] Cannot determine if 0 is a function.
-<<<<<<< HEAD
-//│ ║  l.101: 	bar([foo].0)
-//│ ╙──       	         ^^
-||||||| cfbbfe1aa
-//│ ║  l.98: 	bar([foo].0)
+//│ ║  l.99: 	bar([foo].0)
 //│ ╙──      	         ^^
-=======
-//│ ║  l.96: 	bar([foo].0)
-//│ ╙──      	         ^^
->>>>>>> hkmc2
 //│ ═══[COMPILATION ERROR] Cannot determine if 0$__checkNotMethod is a function.
 //│ ═══[COMPILATION ERROR] Cannot determine if Error is a function.
 //│ ╔══[COMPILATION ERROR] Cannot determine if 1 is a function.
-<<<<<<< HEAD
-//│ ║  l.102: 	bar([foo, x => x].1)
+//│ ║  l.100: 	bar([foo, x => x].1)
 //│ ╙──       	                 ^^
-||||||| cfbbfe1aa
-//│ ║  l.99: 	bar([foo, x => x].1)
-//│ ╙──      	                 ^^
-=======
-//│ ║  l.97: 	bar([foo, x => x].1)
-//│ ╙──      	                 ^^
->>>>>>> hkmc2
 //│ ═══[COMPILATION ERROR] Cannot determine if 1$__checkNotMethod is a function.
 //│ ═══[COMPILATION ERROR] Cannot determine if Error is a function.
 //│ = 0
@@ -137,13 +121,7 @@ bar([foo, x => x].(i))
 :ge
 [foo, x => x].(i)(0)
 //│ ╔══[COMPILATION ERROR] Cannot determine if the dynamic selection is a function object.
-<<<<<<< HEAD
-//│ ║  l.124: 	[foo, x => x].(i)(0)
-||||||| cfbbfe1aa
-//│ ║  l.121: 	[foo, x => x].(i)(0)
-=======
-//│ ║  l.119: 	[foo, x => x].(i)(0)
->>>>>>> hkmc2
+//│ ║  l.122: 	[foo, x => x].(i)(0)
 //│ ╙──       	               ^
 
 
@@ -157,22 +135,10 @@ let foo = Foo()
 foo.("f")(0)
 foo.("h")(1)
 //│ ╔══[COMPILATION ERROR] Cannot determine if the dynamic selection is a function object.
-<<<<<<< HEAD
-//│ ║  l.137: 	foo.("f")(0)
-||||||| cfbbfe1aa
-//│ ║  l.134: 	foo.("f")(0)
-=======
-//│ ║  l.132: 	foo.("f")(0)
->>>>>>> hkmc2
+//│ ║  l.135: 	foo.("f")(0)
 //│ ╙──       	^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Cannot determine if the dynamic selection is a function object.
-<<<<<<< HEAD
-//│ ║  l.138: 	foo.("h")(1)
-||||||| cfbbfe1aa
-//│ ║  l.135: 	foo.("h")(1)
-=======
-//│ ║  l.133: 	foo.("h")(1)
->>>>>>> hkmc2
+//│ ║  l.136: 	foo.("h")(1)
 //│ ╙──       	^^^^^^^^
 //│ = 0
 //│ foo = Foo()
@@ -411,13 +377,7 @@ foo.Foo#x
 :ge
 foo.f(0)
 //│ ╔══[COMPILATION ERROR] Cannot determine if f is a function object.
-<<<<<<< HEAD
-//│ ║  l.403: 	foo.f(0)
-||||||| cfbbfe1aa
-//│ ║  l.400: 	foo.f(0)
-=======
-//│ ║  l.375: 	foo.f(0)
->>>>>>> hkmc2
+//│ ║  l.378: 	foo.f(0)
 //│ ╙──       	^^^^^
 //│ = 1
 
@@ -435,13 +395,7 @@ foo.Foo#f(0)
 :ge
 foo.x(0)
 //│ ╔══[COMPILATION ERROR] Cannot determine if x is a function object.
-<<<<<<< HEAD
-//│ ║  l.421: 	foo.x(0)
-||||||| cfbbfe1aa
-//│ ║  l.418: 	foo.x(0)
-=======
-//│ ║  l.393: 	foo.x(0)
->>>>>>> hkmc2
+//│ ║  l.396: 	foo.x(0)
 //│ ╙──       	^^^^^
 
 

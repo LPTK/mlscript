@@ -5,23 +5,23 @@
 
 let x = 0
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 class Foo(val x)
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 object Bar with
     val x = 1
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 fun foo() = 42
 //│ Wasm result:
-//│ = {}
+//│ = Unit {}
 
 
 :re

@@ -18,7 +18,7 @@
 //│         (i32.const 2))))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = 3
+//│ = Unit {}
 
 :wat
 -2
@@ -34,27 +34,27 @@
 //│         (i32.const 2))))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = -2
+//│ = Unit {}
 
 not true
 //│ Wasm result:
-//│ = 0
+//│ = Unit {}
 
 2 - 1
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 3 * 4
 //│ Wasm result:
-//│ = 12
+//│ = Unit {}
 
 4 / 2
 //│ Wasm result:
-//│ = 2
+//│ = Unit {}
 
 4 % 3
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 :wat
 1 === 1
@@ -72,84 +72,84 @@ not true
 //│         (i32.const 1))))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 1 === 2
 //│ Wasm result:
-//│ = 0
+//│ = Unit {}
 
 1 !== 1
 //│ Wasm result:
-//│ = 0
+//│ = Unit {}
 
 1 !== 2
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 1 < 1
 //│ Wasm result:
-//│ = 0
+//│ = Unit {}
 
 1 <= 1
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 1 < 2
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 1 <=2
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 2 > 1
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 2 >= 1
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 2 > 2
 //│ Wasm result:
-//│ = 0
+//│ = Unit {}
 
 2 >= 2
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 +3
 //│ Wasm result:
-//│ = 3
+//│ = Unit {}
 
 -1 + 2
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 -1 - 2
 //│ Wasm result:
-//│ = -3
+//│ = Unit {}
 
 -6 / 3
 //│ Wasm result:
-//│ = -2
+//│ = Unit {}
 
 -6 % 4
 //│ Wasm result:
-//│ = -2
+//│ = Unit {}
 
 -1 > 2
 //│ Wasm result:
-//│ = 0
+//│ = Unit {}
 
 -1 > -3
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 - 1>= -1
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}
 
 not false
 //│ Wasm result:
-//│ = 1
+//│ = Unit {}

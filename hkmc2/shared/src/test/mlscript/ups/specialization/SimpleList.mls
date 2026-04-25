@@ -84,7 +84,7 @@ pattern F_0 = Pair(Box, Bowl)
 :expect true
 Pair(Box(42), Bowl(42)) is @compile F_0
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:304)
 //│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
 //│ = false
 
@@ -93,14 +93,14 @@ pattern F_1 = Pair(Box, Box) | Pair(Box, Bowl)
 :expect true
 Pair(Box(42), Box(42)) is @compile F_1
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:304)
 //│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
 //│ = false
 
 :expect true
 Pair(Box(42), Bowl(42)) is @compile F_1
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:298)
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:304)
 //│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
 //│ = false
 

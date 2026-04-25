@@ -70,7 +70,7 @@ print of Some(1) is @compile LoggedBiasedOr
 if Some(Some(1)) is (@compile LoggedBiasedOr) as output then
   print("logged biased: " + output)
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:265)
 //│ ═══[RUNTIME ERROR] Error: match error
 //│     at REPL70:1:1872
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)

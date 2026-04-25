@@ -5257,6 +5257,24 @@ let EvenOddTree1;
   static isEvenTree_optimized_matchOnly(t) {
     let matcher__EvenTree_OddTree$, matcher__A_B$, lambda, lambda1, inlinedVal, left, value, right, result1$, result2$, result0$, result0$1, result2$1, result1$1, result0$2, result3$, result0$3, result1$2, result3$1, result1$3, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
     lambda = (undefined, function (input) {
+      if (input instanceof EvenOddTree1.A.class) {
+        return globalThis.Object.freeze({
+          p_2: true,
+          p_3: false
+        })
+      } else if (input instanceof EvenOddTree1.B.class) {
+        return globalThis.Object.freeze({
+          p_2: false,
+          p_3: true
+        })
+      }
+      return globalThis.Object.freeze({
+        p_2: false,
+        p_3: false
+      });
+    });
+    matcher__A_B$ = lambda;
+    lambda1 = (undefined, function (input) {
       let left1, value1, right1, left2, value2, right2, p_0$, result1$4, result2$2, result0$4, result0$5, result2$3, result1$5, result0$6, result3$2, result0$7, result1$6, result3$3, result1$7, result0$8, result2$4, result0$9, result1$8, result2$5, result1$9, result1$10, result3$4, result0$10, result0$11, result3$5, result1$11, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22, tmp23, tmp24, tmp25, tmp26;
       if (input instanceof EvenOddTree1.B.class) {
         return globalThis.Object.freeze({
@@ -6233,25 +6251,7 @@ let EvenOddTree1;
         p_1: false
       });
     });
-    matcher__EvenTree_OddTree$ = lambda;
-    lambda1 = (undefined, function (input) {
-      if (input instanceof EvenOddTree1.A.class) {
-        return globalThis.Object.freeze({
-          p_2: true,
-          p_3: false
-        })
-      } else if (input instanceof EvenOddTree1.B.class) {
-        return globalThis.Object.freeze({
-          p_2: false,
-          p_3: true
-        })
-      }
-      return globalThis.Object.freeze({
-        p_2: false,
-        p_3: false
-      });
-    });
-    matcher__A_B$ = lambda1;
+    matcher__EvenTree_OddTree$ = lambda1;
     if (t instanceof EvenOddTree1.B.class) {
       inlinedVal = true;
     } else if (t instanceof EvenOddTree1.Node.class) {

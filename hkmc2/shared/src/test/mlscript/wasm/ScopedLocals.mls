@@ -31,7 +31,7 @@ topA + topB
 //│             (i32.const 2))))))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = 3
+//│ = Unit {}
 
 
 :wat
@@ -76,7 +76,7 @@ chain(1)
 //│   (elem $chain declare func $chain)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = 5
+//│ = Unit {}
 
 
 fun ifLocals(flag) =
@@ -89,7 +89,7 @@ fun ifLocals(flag) =
 ifLocals(true)
 ifLocals(false)
 //│ Wasm result:
-//│ = 22
+//│ = Unit {}
 
 
 fun litMatch(x) =
@@ -107,7 +107,7 @@ litMatch(0)
 litMatch(1)
 litMatch(9)
 //│ Wasm result:
-//│ = 30
+//│ = Unit {}
 
 
 fun nestedInArm(x) =
@@ -123,7 +123,7 @@ fun nestedInArm(x) =
       0
 nestedInArm(0)
 //│ Wasm result:
-//│ = 42
+//│ = Unit {}
 
 
 :wat
@@ -186,4 +186,4 @@ class Foo(val a, val b)
 //│   (elem $Foo_ctor declare func $Foo_ctor)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = 42
+//│ = Unit {}

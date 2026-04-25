@@ -9,4 +9,63 @@
 // :todo
 
 
+:soir
+:ssjs
+:showRepl
+1
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ 1
+//│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
+//│ block$res1 = 1; undefined
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ REPL> Sending: block$res1 = undefined
+//│ REPL> Collected:
+//│ >  undefined
+//│ REPL> Sending: try { block$res1 = 1; undefined; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ REPL> Collected:
+//│ >  undefined
+//│ REPL> Parsed:
+//│ >  undefined
+//│ REPL> Sending: try { runtime.checkCall(runtime.printRaw(block$res1)); undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ REPL> Collected:
+//│ >  1
+//│ >  undefined
+//│ REPL> Parsed:
+//│ >  1
+//│ >  undefined
+//│ = 1
+
+:ssjs
+print(1)
+//│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
+//│ block$res2 = runtime.checkCall(Predef.print(1)); undefined
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 1
+
+
+import "../mlscript-compile/Rendering.mjs"
+//│ Rendering = class Rendering
+
+:showRepl
+Rendering.render("Hello, world!")
+//│ REPL> Sending: block$res4 = undefined
+//│ REPL> Collected:
+//│ >  undefined
+//│ REPL> Sending: try { block$res4 = runtime.safeCall(Rendering.render("Hello, world!")); undefined; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ REPL> Collected:
+//│ >  undefined
+//│ REPL> Parsed:
+//│ >  undefined
+//│ REPL> Sending: try { runtime.checkCall(runtime.printRaw(block$res4)); undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ REPL> Collected:
+//│ >  "\"Hello, world!\""
+//│ >  undefined
+//│ REPL> Parsed:
+//│ >  "\"Hello, world!\""
+//│ >  undefined
+//│ = "\"Hello, world!\""
+
+
+
+
 

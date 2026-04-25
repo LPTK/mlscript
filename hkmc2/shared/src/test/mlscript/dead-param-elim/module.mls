@@ -34,56 +34,6 @@ module M with
 M.main()
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
-//│ /!\ Warning: object identity between equal objects was not preserved by BlockSimplifier
-//│ /!\ Offending subblock: Scoped:
-//│   syms = Set(member:M)
-//│   body = Define:
-//│     defn = ClsLikeDefn:
-//│       isym = class:M⁰
-//│       sym = member:M¹
-//│       k = Cls
-//│       companion = S of ClsLikeBody:
-//│         isym = module:M²
-//│         methods = Ls of 
-//│           FunDefn:
-//│             owner = S of module:M²
-//│             sym = member:f⁰
-//│             dSym = term:M²/f¹
-//│             params = Ls of 
-//│               ParamList:
-//│                 params = Ls of 
-//│                   Param:
-//│                     sym = a⁰
-//│                     modulefulness = Modulefulness of N
-//│             body = Return:
-//│               res = Ref:
-//│                 l = a⁰
-//│               implct = false
-//│           FunDefn:
-//│             owner = S of module:M²
-//│             sym = member:main⁰
-//│             dSym = term:M²/main¹
-//│             params = Ls of 
-//│               ParamList: ‹empty›
-//│             body = Return:
-//│               res = Call:
-//│                 fun = Select{sym=term:M²/f¹}:
-//│                   qual = Ref{disamb=module:M²}:
-//│                     l = member:M¹
-//│                     disamb = S of module:M²
-//│                   name = Ident of "f"
-//│                 args = Ls of 
-//│                   Arg:
-//│                     value = Lit of IntLit of 42
-//│               implct = false
-//│     rest = Return: \
-//│     res = Call:
-//│       fun = Select{sym=term:M²/main¹}:
-//│         qual = Ref{disamb=module:M²}:
-//│           l = member:M¹
-//│           disamb = S of module:M²
-//│         name = Ident of "main"
-//│     implct = true
 //│ = 42
 
 

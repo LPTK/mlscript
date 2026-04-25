@@ -352,791 +352,6 @@ let TruthyFalsy1;
   static isTruthy_optimized(t) {
     let matcher__Truthy$, matcher__Truthy_Falsy$, matcher__Falsy$, matchSuccess, lambda, lambda1, lambda2;
     lambda = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, lhs1, rhs1, result0$2, result0$3, result1$, result0$4, result0$5, result1$1, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
-      if (input === true) {
-        return true
-      } else if (input instanceof TruthyFalsy1.And.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy$(lhs));
-            tmp1 = globalThis.Object.freeze({
-              input: lhs,
-              result: tmp
-            });
-          } else {
-            tmp1 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp1 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp2 = runtime.safeCall(matcher__Truthy$(rhs));
-            tmp3 = globalThis.Object.freeze({
-              input: rhs,
-              result: tmp2
-            });
-          } else {
-            tmp3 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp3 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        result0$1 = tmp1.result;
-        if (result0$1 === true) {
-          result0$ = tmp3.result;
-          if (result0$ === true) {
-            return true
-          }
-          return false;
-        }
-        return false;
-      } else if (input instanceof TruthyFalsy1.Or.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
-            tmp5 = globalThis.Object.freeze({
-              input: lhs1,
-              result: tmp4
-            });
-          } else {
-            tmp6 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp5 = globalThis.Object.freeze({
-              input: null,
-              result: tmp6
-            });
-          }
-        } else {
-          tmp7 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp5 = globalThis.Object.freeze({
-            input: null,
-            result: tmp7
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp8 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
-            tmp9 = globalThis.Object.freeze({
-              input: rhs1,
-              result: tmp8
-            });
-          } else {
-            tmp10 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp9 = globalThis.Object.freeze({
-              input: null,
-              result: tmp10
-            });
-          }
-        } else {
-          tmp11 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp9 = globalThis.Object.freeze({
-            input: null,
-            result: tmp11
-          });
-        }
-        result0$3 = tmp5.result.p_0;
-        if (result0$3 === true) {
-          result0$2 = tmp9.result.p_0;
-          if (result0$2 === true) {
-            return true
-          }
-          result0$4 = tmp5.result.p_0;
-          if (result0$4 === true) {
-            result1$ = tmp9.result.p_1;
-            if (result1$ === true) {
-              return true
-            }
-            result1$1 = tmp5.result.p_1;
-            if (result1$1 === true) {
-              result0$5 = tmp9.result.p_0;
-              if (result0$5 === true) {
-                return true
-              }
-              return false;
-            }
-            return false;
-          }
-          result1$1 = tmp5.result.p_1;
-          if (result1$1 === true) {
-            result0$5 = tmp9.result.p_0;
-            if (result0$5 === true) {
-              return true
-            }
-            return false;
-          }
-          return false;
-        }
-        result0$4 = tmp5.result.p_0;
-        if (result0$4 === true) {
-          result1$ = tmp9.result.p_1;
-          if (result1$ === true) {
-            return true
-          }
-          result1$1 = tmp5.result.p_1;
-          if (result1$1 === true) {
-            result0$5 = tmp9.result.p_0;
-            if (result0$5 === true) {
-              return true
-            }
-            return false;
-          }
-          return false;
-        }
-        result1$1 = tmp5.result.p_1;
-        if (result1$1 === true) {
-          result0$5 = tmp9.result.p_0;
-          if (result0$5 === true) {
-            return true
-          }
-          return false;
-        }
-        return false;
-      } else if (input instanceof TruthyFalsy1.Not.class) {
-        if (input instanceof Object) {
-          if ("arg" in input) {
-            arg = input.arg;
-            tmp12 = runtime.safeCall(matcher__Falsy$(arg));
-            tmp13 = globalThis.Object.freeze({
-              input: arg,
-              result: tmp12
-            });
-          } else {
-            tmp13 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp13 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        result1$2 = tmp13.result;
-        if (result1$2 === true) {
-          return true
-        }
-        return false;
-      }
-      return false;
-    });
-    matcher__Truthy$ = lambda;
-    lambda1 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, result1$2, result1$3, arg, result1$4, result0$4, lhs1, rhs1, result0$5, result0$6, result1$5, result1$6, result0$7, result1$7, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
-      if (input instanceof TruthyFalsy1.Or.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs));
-            tmp1 = globalThis.Object.freeze({
-              input: lhs,
-              result: tmp
-            });
-          } else {
-            tmp2 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp1 = globalThis.Object.freeze({
-              input: null,
-              result: tmp2
-            });
-          }
-        } else {
-          tmp3 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp1 = globalThis.Object.freeze({
-            input: null,
-            result: tmp3
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(rhs));
-            tmp5 = globalThis.Object.freeze({
-              input: rhs,
-              result: tmp4
-            });
-          } else {
-            tmp6 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp5 = globalThis.Object.freeze({
-              input: null,
-              result: tmp6
-            });
-          }
-        } else {
-          tmp7 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp5 = globalThis.Object.freeze({
-            input: null,
-            result: tmp7
-          });
-        }
-        result0$1 = tmp1.result.p_0;
-        if (result0$1 === true) {
-          result0$ = tmp5.result.p_0;
-          if (result0$ === true) {
-            tmp8 = true;
-          } else {
-            result0$2 = tmp1.result.p_0;
-            if (result0$2 === true) {
-              result1$ = tmp5.result.p_1;
-              if (result1$ === true) {
-                tmp8 = true;
-              } else {
-                result1$1 = tmp1.result.p_1;
-                if (result1$1 === true) {
-                  result0$3 = tmp5.result.p_0;
-                  if (result0$3 === true) {
-                    tmp8 = true;
-                  } else {
-                    tmp8 = false;
-                  }
-                } else {
-                  tmp8 = false;
-                }
-              }
-            } else {
-              result1$1 = tmp1.result.p_1;
-              if (result1$1 === true) {
-                result0$3 = tmp5.result.p_0;
-                if (result0$3 === true) {
-                  tmp8 = true;
-                } else {
-                  tmp8 = false;
-                }
-              } else {
-                tmp8 = false;
-              }
-            }
-          }
-        } else {
-          result0$2 = tmp1.result.p_0;
-          if (result0$2 === true) {
-            result1$ = tmp5.result.p_1;
-            if (result1$ === true) {
-              tmp8 = true;
-            } else {
-              result1$1 = tmp1.result.p_1;
-              if (result1$1 === true) {
-                result0$3 = tmp5.result.p_0;
-                if (result0$3 === true) {
-                  tmp8 = true;
-                } else {
-                  tmp8 = false;
-                }
-              } else {
-                tmp8 = false;
-              }
-            }
-          } else {
-            result1$1 = tmp1.result.p_1;
-            if (result1$1 === true) {
-              result0$3 = tmp5.result.p_0;
-              if (result0$3 === true) {
-                tmp8 = true;
-              } else {
-                tmp8 = false;
-              }
-            } else {
-              tmp8 = false;
-            }
-          }
-        }
-        result1$3 = tmp1.result.p_1;
-        if (result1$3 === true) {
-          result1$2 = tmp5.result.p_1;
-          if (result1$2 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: true
-            })
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp8,
-            p_1: false
-          });
-        }
-        return globalThis.Object.freeze({
-          p_0: tmp8,
-          p_1: false
-        });
-      } else if (input === false) {
-        return globalThis.Object.freeze({
-          p_0: false,
-          p_1: true
-        })
-      } else if (input instanceof TruthyFalsy1.Not.class) {
-        if (input instanceof Object) {
-          if ("arg" in input) {
-            arg = input.arg;
-            tmp9 = runtime.safeCall(matcher__Truthy_Falsy$(arg));
-            tmp10 = globalThis.Object.freeze({
-              input: arg,
-              result: tmp9
-            });
-          } else {
-            tmp11 = globalThis.Object.freeze({
-              p_1: false,
-              p_0: false
-            });
-            tmp10 = globalThis.Object.freeze({
-              input: null,
-              result: tmp11
-            });
-          }
-        } else {
-          tmp12 = globalThis.Object.freeze({
-            p_1: false,
-            p_0: false
-          });
-          tmp10 = globalThis.Object.freeze({
-            input: null,
-            result: tmp12
-          });
-        }
-        result1$4 = tmp10.result.p_1;
-        if (result1$4 === true) {
-          tmp13 = true;
-        } else {
-          tmp13 = false;
-        }
-        result0$4 = tmp10.result.p_0;
-        if (result0$4 === true) {
-          return globalThis.Object.freeze({
-            p_0: tmp13,
-            p_1: true
-          })
-        }
-        return globalThis.Object.freeze({
-          p_0: tmp13,
-          p_1: false
-        });
-      } else if (input instanceof TruthyFalsy1.And.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp14 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
-            tmp15 = globalThis.Object.freeze({
-              input: lhs1,
-              result: tmp14
-            });
-          } else {
-            tmp16 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp15 = globalThis.Object.freeze({
-              input: null,
-              result: tmp16
-            });
-          }
-        } else {
-          tmp17 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp15 = globalThis.Object.freeze({
-            input: null,
-            result: tmp17
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp18 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
-            tmp19 = globalThis.Object.freeze({
-              input: rhs1,
-              result: tmp18
-            });
-          } else {
-            tmp20 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp19 = globalThis.Object.freeze({
-              input: null,
-              result: tmp20
-            });
-          }
-        } else {
-          tmp21 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp19 = globalThis.Object.freeze({
-            input: null,
-            result: tmp21
-          });
-        }
-        result0$6 = tmp15.result.p_0;
-        if (result0$6 === true) {
-          result0$5 = tmp19.result.p_0;
-          if (result0$5 === true) {
-            tmp22 = true;
-          } else {
-            tmp22 = false;
-          }
-        } else {
-          tmp22 = false;
-        }
-        result1$6 = tmp15.result.p_1;
-        if (result1$6 === true) {
-          result1$5 = tmp19.result.p_1;
-          if (result1$5 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: true
-            })
-          }
-          result1$7 = tmp15.result.p_1;
-          if (result1$7 === true) {
-            result0$7 = tmp19.result.p_0;
-            if (result0$7 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp22,
-                p_1: true
-              })
-            }
-            result0$8 = tmp15.result.p_0;
-            if (result0$8 === true) {
-              result1$8 = tmp19.result.p_1;
-              if (result1$8 === true) {
-                return globalThis.Object.freeze({
-                  p_0: tmp22,
-                  p_1: true
-                })
-              }
-              return globalThis.Object.freeze({
-                p_0: tmp22,
-                p_1: false
-              });
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: false
-            });
-          }
-          result0$8 = tmp15.result.p_0;
-          if (result0$8 === true) {
-            result1$8 = tmp19.result.p_1;
-            if (result1$8 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp22,
-                p_1: true
-              })
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: false
-            });
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp22,
-            p_1: false
-          });
-        }
-        result1$7 = tmp15.result.p_1;
-        if (result1$7 === true) {
-          result0$7 = tmp19.result.p_0;
-          if (result0$7 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: true
-            })
-          }
-          result0$8 = tmp15.result.p_0;
-          if (result0$8 === true) {
-            result1$8 = tmp19.result.p_1;
-            if (result1$8 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp22,
-                p_1: true
-              })
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: false
-            });
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp22,
-            p_1: false
-          });
-        }
-        result0$8 = tmp15.result.p_0;
-        if (result0$8 === true) {
-          result1$8 = tmp19.result.p_1;
-          if (result1$8 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: true
-            })
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp22,
-            p_1: false
-          });
-        }
-        return globalThis.Object.freeze({
-          p_0: tmp22,
-          p_1: false
-        });
-      } else if (input === true) {
-        return globalThis.Object.freeze({
-          p_0: true,
-          p_1: false
-        })
-      }
-      return globalThis.Object.freeze({
-        p_0: false,
-        p_1: false
-      });
-    });
-    matcher__Truthy_Falsy$ = lambda1;
-    lambda2 = (undefined, function (input) {
-      let lhs, rhs, result1$, result1$1, result0$, result1$2, result1$3, result0$1, lhs1, rhs1, result1$4, result1$5, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
-      if (input === false) {
-        return true
-      } else if (input instanceof TruthyFalsy1.And.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs));
-            tmp1 = globalThis.Object.freeze({
-              input: lhs,
-              result: tmp
-            });
-          } else {
-            tmp2 = globalThis.Object.freeze({
-              p_1: false,
-              p_0: false
-            });
-            tmp1 = globalThis.Object.freeze({
-              input: null,
-              result: tmp2
-            });
-          }
-        } else {
-          tmp3 = globalThis.Object.freeze({
-            p_1: false,
-            p_0: false
-          });
-          tmp1 = globalThis.Object.freeze({
-            input: null,
-            result: tmp3
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(rhs));
-            tmp5 = globalThis.Object.freeze({
-              input: rhs,
-              result: tmp4
-            });
-          } else {
-            tmp6 = globalThis.Object.freeze({
-              p_1: false,
-              p_0: false
-            });
-            tmp5 = globalThis.Object.freeze({
-              input: null,
-              result: tmp6
-            });
-          }
-        } else {
-          tmp7 = globalThis.Object.freeze({
-            p_1: false,
-            p_0: false
-          });
-          tmp5 = globalThis.Object.freeze({
-            input: null,
-            result: tmp7
-          });
-        }
-        result1$1 = tmp1.result.p_1;
-        if (result1$1 === true) {
-          result1$ = tmp5.result.p_1;
-          if (result1$ === true) {
-            return true
-          }
-          result1$2 = tmp1.result.p_1;
-          if (result1$2 === true) {
-            result0$ = tmp5.result.p_0;
-            if (result0$ === true) {
-              return true
-            }
-            result0$1 = tmp1.result.p_0;
-            if (result0$1 === true) {
-              result1$3 = tmp5.result.p_1;
-              if (result1$3 === true) {
-                return true
-              }
-              return false;
-            }
-            return false;
-          }
-          result0$1 = tmp1.result.p_0;
-          if (result0$1 === true) {
-            result1$3 = tmp5.result.p_1;
-            if (result1$3 === true) {
-              return true
-            }
-            return false;
-          }
-          return false;
-        }
-        result1$2 = tmp1.result.p_1;
-        if (result1$2 === true) {
-          result0$ = tmp5.result.p_0;
-          if (result0$ === true) {
-            return true
-          }
-          result0$1 = tmp1.result.p_0;
-          if (result0$1 === true) {
-            result1$3 = tmp5.result.p_1;
-            if (result1$3 === true) {
-              return true
-            }
-            return false;
-          }
-          return false;
-        }
-        result0$1 = tmp1.result.p_0;
-        if (result0$1 === true) {
-          result1$3 = tmp5.result.p_1;
-          if (result1$3 === true) {
-            return true
-          }
-          return false;
-        }
-        return false;
-      } else if (input instanceof TruthyFalsy1.Or.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp8 = runtime.safeCall(matcher__Falsy$(lhs1));
-            tmp9 = globalThis.Object.freeze({
-              input: lhs1,
-              result: tmp8
-            });
-          } else {
-            tmp9 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp9 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp10 = runtime.safeCall(matcher__Falsy$(rhs1));
-            tmp11 = globalThis.Object.freeze({
-              input: rhs1,
-              result: tmp10
-            });
-          } else {
-            tmp11 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp11 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        result1$5 = tmp9.result;
-        if (result1$5 === true) {
-          result1$4 = tmp11.result;
-          if (result1$4 === true) {
-            return true
-          }
-          return false;
-        }
-        return false;
-      } else if (input instanceof TruthyFalsy1.Not.class) {
-        if (input instanceof Object) {
-          if ("arg" in input) {
-            arg = input.arg;
-            tmp12 = runtime.safeCall(matcher__Truthy$(arg));
-            tmp13 = globalThis.Object.freeze({
-              input: arg,
-              result: tmp12
-            });
-          } else {
-            tmp13 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp13 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        result0$2 = tmp13.result;
-        if (result0$2 === true) {
-          return true
-        }
-        return false;
-      }
-      return false;
-    });
-    matcher__Falsy$ = lambda2;
-    matchSuccess = runtime.safeCall(matcher__Truthy$(t));
-    if (matchSuccess === true) {
-      return t
-    }
-    return runtime.Unit;
-  } 
-  static isTruthy_optimized_matchOnly(t) {
-    let matcher__Truthy$, matcher__Truthy_Falsy$, matcher__Falsy$, matchSuccess, lambda, lambda1, lambda2;
-    lambda = (undefined, function (input) {
       let lhs, rhs, result1$, result1$1, result0$, result1$2, result1$3, result0$1, lhs1, rhs1, result1$4, result1$5, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
       if (input === false) {
         return true
@@ -1533,8 +748,8 @@ let TruthyFalsy1;
     });
     matcher__Truthy$ = lambda1;
     lambda2 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, result1$2, result1$3, arg, result1$4, result0$4, lhs1, rhs1, result0$5, result0$6, result1$5, result1$6, result0$7, result1$7, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
-      if (input instanceof TruthyFalsy1.Or.class) {
+      let lhs, rhs, result0$, result0$1, result1$, result1$1, result0$2, result1$2, result1$3, result0$3, lhs1, rhs1, result0$4, result0$5, result1$4, result0$6, result0$7, result1$5, result1$6, result1$7, arg, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
             lhs = input.lhs;
@@ -1567,6 +782,1190 @@ let TruthyFalsy1;
           if ("rhs" in input) {
             rhs = input.rhs;
             tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(rhs));
+            tmp5 = globalThis.Object.freeze({
+              input: rhs,
+              result: tmp4
+            });
+          } else {
+            tmp6 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp5 = globalThis.Object.freeze({
+              input: null,
+              result: tmp6
+            });
+          }
+        } else {
+          tmp7 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp5 = globalThis.Object.freeze({
+            input: null,
+            result: tmp7
+          });
+        }
+        result0$1 = tmp1.result.p_0;
+        if (result0$1 === true) {
+          result0$ = tmp5.result.p_0;
+          if (result0$ === true) {
+            tmp8 = true;
+          } else {
+            tmp8 = false;
+          }
+        } else {
+          tmp8 = false;
+        }
+        result1$1 = tmp1.result.p_1;
+        if (result1$1 === true) {
+          result1$ = tmp5.result.p_1;
+          if (result1$ === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: true
+            })
+          }
+          result1$2 = tmp1.result.p_1;
+          if (result1$2 === true) {
+            result0$2 = tmp5.result.p_0;
+            if (result0$2 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp8,
+                p_1: true
+              })
+            }
+            result0$3 = tmp1.result.p_0;
+            if (result0$3 === true) {
+              result1$3 = tmp5.result.p_1;
+              if (result1$3 === true) {
+                return globalThis.Object.freeze({
+                  p_0: tmp8,
+                  p_1: true
+                })
+              }
+              return globalThis.Object.freeze({
+                p_0: tmp8,
+                p_1: false
+              });
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: false
+            });
+          }
+          result0$3 = tmp1.result.p_0;
+          if (result0$3 === true) {
+            result1$3 = tmp5.result.p_1;
+            if (result1$3 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp8,
+                p_1: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: false
+            });
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp8,
+            p_1: false
+          });
+        }
+        result1$2 = tmp1.result.p_1;
+        if (result1$2 === true) {
+          result0$2 = tmp5.result.p_0;
+          if (result0$2 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: true
+            })
+          }
+          result0$3 = tmp1.result.p_0;
+          if (result0$3 === true) {
+            result1$3 = tmp5.result.p_1;
+            if (result1$3 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp8,
+                p_1: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: false
+            });
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp8,
+            p_1: false
+          });
+        }
+        result0$3 = tmp1.result.p_0;
+        if (result0$3 === true) {
+          result1$3 = tmp5.result.p_1;
+          if (result1$3 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: true
+            })
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp8,
+            p_1: false
+          });
+        }
+        return globalThis.Object.freeze({
+          p_0: tmp8,
+          p_1: false
+        });
+      } else if (input === false) {
+        return globalThis.Object.freeze({
+          p_0: false,
+          p_1: true
+        })
+      } else if (input instanceof TruthyFalsy1.Or.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs1 = input.lhs;
+            tmp9 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
+            tmp10 = globalThis.Object.freeze({
+              input: lhs1,
+              result: tmp9
+            });
+          } else {
+            tmp11 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp10 = globalThis.Object.freeze({
+              input: null,
+              result: tmp11
+            });
+          }
+        } else {
+          tmp12 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp10 = globalThis.Object.freeze({
+            input: null,
+            result: tmp12
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs1 = input.rhs;
+            tmp13 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
+            tmp14 = globalThis.Object.freeze({
+              input: rhs1,
+              result: tmp13
+            });
+          } else {
+            tmp15 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp14 = globalThis.Object.freeze({
+              input: null,
+              result: tmp15
+            });
+          }
+        } else {
+          tmp16 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp14 = globalThis.Object.freeze({
+            input: null,
+            result: tmp16
+          });
+        }
+        result0$5 = tmp10.result.p_0;
+        if (result0$5 === true) {
+          result0$4 = tmp14.result.p_0;
+          if (result0$4 === true) {
+            tmp17 = true;
+          } else {
+            result0$6 = tmp10.result.p_0;
+            if (result0$6 === true) {
+              result1$4 = tmp14.result.p_1;
+              if (result1$4 === true) {
+                tmp17 = true;
+              } else {
+                result1$5 = tmp10.result.p_1;
+                if (result1$5 === true) {
+                  result0$7 = tmp14.result.p_0;
+                  if (result0$7 === true) {
+                    tmp17 = true;
+                  } else {
+                    tmp17 = false;
+                  }
+                } else {
+                  tmp17 = false;
+                }
+              }
+            } else {
+              result1$5 = tmp10.result.p_1;
+              if (result1$5 === true) {
+                result0$7 = tmp14.result.p_0;
+                if (result0$7 === true) {
+                  tmp17 = true;
+                } else {
+                  tmp17 = false;
+                }
+              } else {
+                tmp17 = false;
+              }
+            }
+          }
+        } else {
+          result0$6 = tmp10.result.p_0;
+          if (result0$6 === true) {
+            result1$4 = tmp14.result.p_1;
+            if (result1$4 === true) {
+              tmp17 = true;
+            } else {
+              result1$5 = tmp10.result.p_1;
+              if (result1$5 === true) {
+                result0$7 = tmp14.result.p_0;
+                if (result0$7 === true) {
+                  tmp17 = true;
+                } else {
+                  tmp17 = false;
+                }
+              } else {
+                tmp17 = false;
+              }
+            }
+          } else {
+            result1$5 = tmp10.result.p_1;
+            if (result1$5 === true) {
+              result0$7 = tmp14.result.p_0;
+              if (result0$7 === true) {
+                tmp17 = true;
+              } else {
+                tmp17 = false;
+              }
+            } else {
+              tmp17 = false;
+            }
+          }
+        }
+        result1$7 = tmp10.result.p_1;
+        if (result1$7 === true) {
+          result1$6 = tmp14.result.p_1;
+          if (result1$6 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: true
+            })
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp17,
+            p_1: false
+          });
+        }
+        return globalThis.Object.freeze({
+          p_0: tmp17,
+          p_1: false
+        });
+      } else if (input instanceof TruthyFalsy1.Not.class) {
+        if (input instanceof Object) {
+          if ("arg" in input) {
+            arg = input.arg;
+            tmp18 = runtime.safeCall(matcher__Truthy_Falsy$(arg));
+            tmp19 = globalThis.Object.freeze({
+              input: arg,
+              result: tmp18
+            });
+          } else {
+            tmp20 = globalThis.Object.freeze({
+              p_1: false,
+              p_0: false
+            });
+            tmp19 = globalThis.Object.freeze({
+              input: null,
+              result: tmp20
+            });
+          }
+        } else {
+          tmp21 = globalThis.Object.freeze({
+            p_1: false,
+            p_0: false
+          });
+          tmp19 = globalThis.Object.freeze({
+            input: null,
+            result: tmp21
+          });
+        }
+        result1$8 = tmp19.result.p_1;
+        if (result1$8 === true) {
+          tmp22 = true;
+        } else {
+          tmp22 = false;
+        }
+        result0$8 = tmp19.result.p_0;
+        if (result0$8 === true) {
+          return globalThis.Object.freeze({
+            p_0: tmp22,
+            p_1: true
+          })
+        }
+        return globalThis.Object.freeze({
+          p_0: tmp22,
+          p_1: false
+        });
+      } else if (input === true) {
+        return globalThis.Object.freeze({
+          p_0: true,
+          p_1: false
+        })
+      }
+      return globalThis.Object.freeze({
+        p_0: false,
+        p_1: false
+      });
+    });
+    matcher__Truthy_Falsy$ = lambda2;
+    matchSuccess = runtime.safeCall(matcher__Truthy$(t));
+    if (matchSuccess === true) {
+      return t
+    }
+    return runtime.Unit;
+  } 
+  static isTruthy_optimized_matchOnly(t) {
+    let matcher__Truthy$, matcher__Truthy_Falsy$, matcher__Falsy$, matchSuccess, lambda, lambda1, lambda2;
+    lambda = (undefined, function (input) {
+      let lhs, rhs, result0$, result0$1, lhs1, rhs1, result0$2, result0$3, result1$, result0$4, result0$5, result1$1, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      if (input === true) {
+        return true
+      } else if (input instanceof TruthyFalsy1.And.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy$(lhs));
+            tmp1 = globalThis.Object.freeze({
+              input: lhs,
+              result: tmp
+            });
+          } else {
+            tmp1 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp1 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs = input.rhs;
+            tmp2 = runtime.safeCall(matcher__Truthy$(rhs));
+            tmp3 = globalThis.Object.freeze({
+              input: rhs,
+              result: tmp2
+            });
+          } else {
+            tmp3 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp3 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        result0$1 = tmp1.result;
+        if (result0$1 === true) {
+          result0$ = tmp3.result;
+          if (result0$ === true) {
+            return true
+          }
+          return false;
+        }
+        return false;
+      } else if (input instanceof TruthyFalsy1.Or.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs1 = input.lhs;
+            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
+            tmp5 = globalThis.Object.freeze({
+              input: lhs1,
+              result: tmp4
+            });
+          } else {
+            tmp6 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp5 = globalThis.Object.freeze({
+              input: null,
+              result: tmp6
+            });
+          }
+        } else {
+          tmp7 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp5 = globalThis.Object.freeze({
+            input: null,
+            result: tmp7
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs1 = input.rhs;
+            tmp8 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
+            tmp9 = globalThis.Object.freeze({
+              input: rhs1,
+              result: tmp8
+            });
+          } else {
+            tmp10 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp9 = globalThis.Object.freeze({
+              input: null,
+              result: tmp10
+            });
+          }
+        } else {
+          tmp11 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp9 = globalThis.Object.freeze({
+            input: null,
+            result: tmp11
+          });
+        }
+        result0$3 = tmp5.result.p_0;
+        if (result0$3 === true) {
+          result0$2 = tmp9.result.p_0;
+          if (result0$2 === true) {
+            return true
+          }
+          result0$4 = tmp5.result.p_0;
+          if (result0$4 === true) {
+            result1$ = tmp9.result.p_1;
+            if (result1$ === true) {
+              return true
+            }
+            result1$1 = tmp5.result.p_1;
+            if (result1$1 === true) {
+              result0$5 = tmp9.result.p_0;
+              if (result0$5 === true) {
+                return true
+              }
+              return false;
+            }
+            return false;
+          }
+          result1$1 = tmp5.result.p_1;
+          if (result1$1 === true) {
+            result0$5 = tmp9.result.p_0;
+            if (result0$5 === true) {
+              return true
+            }
+            return false;
+          }
+          return false;
+        }
+        result0$4 = tmp5.result.p_0;
+        if (result0$4 === true) {
+          result1$ = tmp9.result.p_1;
+          if (result1$ === true) {
+            return true
+          }
+          result1$1 = tmp5.result.p_1;
+          if (result1$1 === true) {
+            result0$5 = tmp9.result.p_0;
+            if (result0$5 === true) {
+              return true
+            }
+            return false;
+          }
+          return false;
+        }
+        result1$1 = tmp5.result.p_1;
+        if (result1$1 === true) {
+          result0$5 = tmp9.result.p_0;
+          if (result0$5 === true) {
+            return true
+          }
+          return false;
+        }
+        return false;
+      } else if (input instanceof TruthyFalsy1.Not.class) {
+        if (input instanceof Object) {
+          if ("arg" in input) {
+            arg = input.arg;
+            tmp12 = runtime.safeCall(matcher__Falsy$(arg));
+            tmp13 = globalThis.Object.freeze({
+              input: arg,
+              result: tmp12
+            });
+          } else {
+            tmp13 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp13 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        result1$2 = tmp13.result;
+        if (result1$2 === true) {
+          return true
+        }
+        return false;
+      }
+      return false;
+    });
+    matcher__Truthy$ = lambda;
+    lambda1 = (undefined, function (input) {
+      let lhs, rhs, result0$, result0$1, result1$, result1$1, result0$2, result1$2, result1$3, result0$3, lhs1, rhs1, result0$4, result0$5, result1$4, result0$6, result0$7, result1$5, result1$6, result1$7, arg, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      if (input instanceof TruthyFalsy1.And.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs));
+            tmp1 = globalThis.Object.freeze({
+              input: lhs,
+              result: tmp
+            });
+          } else {
+            tmp2 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp1 = globalThis.Object.freeze({
+              input: null,
+              result: tmp2
+            });
+          }
+        } else {
+          tmp3 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp1 = globalThis.Object.freeze({
+            input: null,
+            result: tmp3
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs = input.rhs;
+            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(rhs));
+            tmp5 = globalThis.Object.freeze({
+              input: rhs,
+              result: tmp4
+            });
+          } else {
+            tmp6 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp5 = globalThis.Object.freeze({
+              input: null,
+              result: tmp6
+            });
+          }
+        } else {
+          tmp7 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp5 = globalThis.Object.freeze({
+            input: null,
+            result: tmp7
+          });
+        }
+        result0$1 = tmp1.result.p_0;
+        if (result0$1 === true) {
+          result0$ = tmp5.result.p_0;
+          if (result0$ === true) {
+            tmp8 = true;
+          } else {
+            tmp8 = false;
+          }
+        } else {
+          tmp8 = false;
+        }
+        result1$1 = tmp1.result.p_1;
+        if (result1$1 === true) {
+          result1$ = tmp5.result.p_1;
+          if (result1$ === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: true
+            })
+          }
+          result1$2 = tmp1.result.p_1;
+          if (result1$2 === true) {
+            result0$2 = tmp5.result.p_0;
+            if (result0$2 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp8,
+                p_1: true
+              })
+            }
+            result0$3 = tmp1.result.p_0;
+            if (result0$3 === true) {
+              result1$3 = tmp5.result.p_1;
+              if (result1$3 === true) {
+                return globalThis.Object.freeze({
+                  p_0: tmp8,
+                  p_1: true
+                })
+              }
+              return globalThis.Object.freeze({
+                p_0: tmp8,
+                p_1: false
+              });
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: false
+            });
+          }
+          result0$3 = tmp1.result.p_0;
+          if (result0$3 === true) {
+            result1$3 = tmp5.result.p_1;
+            if (result1$3 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp8,
+                p_1: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: false
+            });
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp8,
+            p_1: false
+          });
+        }
+        result1$2 = tmp1.result.p_1;
+        if (result1$2 === true) {
+          result0$2 = tmp5.result.p_0;
+          if (result0$2 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: true
+            })
+          }
+          result0$3 = tmp1.result.p_0;
+          if (result0$3 === true) {
+            result1$3 = tmp5.result.p_1;
+            if (result1$3 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp8,
+                p_1: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: false
+            });
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp8,
+            p_1: false
+          });
+        }
+        result0$3 = tmp1.result.p_0;
+        if (result0$3 === true) {
+          result1$3 = tmp5.result.p_1;
+          if (result1$3 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp8,
+              p_1: true
+            })
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp8,
+            p_1: false
+          });
+        }
+        return globalThis.Object.freeze({
+          p_0: tmp8,
+          p_1: false
+        });
+      } else if (input === false) {
+        return globalThis.Object.freeze({
+          p_0: false,
+          p_1: true
+        })
+      } else if (input instanceof TruthyFalsy1.Or.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs1 = input.lhs;
+            tmp9 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
+            tmp10 = globalThis.Object.freeze({
+              input: lhs1,
+              result: tmp9
+            });
+          } else {
+            tmp11 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp10 = globalThis.Object.freeze({
+              input: null,
+              result: tmp11
+            });
+          }
+        } else {
+          tmp12 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp10 = globalThis.Object.freeze({
+            input: null,
+            result: tmp12
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs1 = input.rhs;
+            tmp13 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
+            tmp14 = globalThis.Object.freeze({
+              input: rhs1,
+              result: tmp13
+            });
+          } else {
+            tmp15 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp14 = globalThis.Object.freeze({
+              input: null,
+              result: tmp15
+            });
+          }
+        } else {
+          tmp16 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp14 = globalThis.Object.freeze({
+            input: null,
+            result: tmp16
+          });
+        }
+        result0$5 = tmp10.result.p_0;
+        if (result0$5 === true) {
+          result0$4 = tmp14.result.p_0;
+          if (result0$4 === true) {
+            tmp17 = true;
+          } else {
+            result0$6 = tmp10.result.p_0;
+            if (result0$6 === true) {
+              result1$4 = tmp14.result.p_1;
+              if (result1$4 === true) {
+                tmp17 = true;
+              } else {
+                result1$5 = tmp10.result.p_1;
+                if (result1$5 === true) {
+                  result0$7 = tmp14.result.p_0;
+                  if (result0$7 === true) {
+                    tmp17 = true;
+                  } else {
+                    tmp17 = false;
+                  }
+                } else {
+                  tmp17 = false;
+                }
+              }
+            } else {
+              result1$5 = tmp10.result.p_1;
+              if (result1$5 === true) {
+                result0$7 = tmp14.result.p_0;
+                if (result0$7 === true) {
+                  tmp17 = true;
+                } else {
+                  tmp17 = false;
+                }
+              } else {
+                tmp17 = false;
+              }
+            }
+          }
+        } else {
+          result0$6 = tmp10.result.p_0;
+          if (result0$6 === true) {
+            result1$4 = tmp14.result.p_1;
+            if (result1$4 === true) {
+              tmp17 = true;
+            } else {
+              result1$5 = tmp10.result.p_1;
+              if (result1$5 === true) {
+                result0$7 = tmp14.result.p_0;
+                if (result0$7 === true) {
+                  tmp17 = true;
+                } else {
+                  tmp17 = false;
+                }
+              } else {
+                tmp17 = false;
+              }
+            }
+          } else {
+            result1$5 = tmp10.result.p_1;
+            if (result1$5 === true) {
+              result0$7 = tmp14.result.p_0;
+              if (result0$7 === true) {
+                tmp17 = true;
+              } else {
+                tmp17 = false;
+              }
+            } else {
+              tmp17 = false;
+            }
+          }
+        }
+        result1$7 = tmp10.result.p_1;
+        if (result1$7 === true) {
+          result1$6 = tmp14.result.p_1;
+          if (result1$6 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: true
+            })
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp17,
+            p_1: false
+          });
+        }
+        return globalThis.Object.freeze({
+          p_0: tmp17,
+          p_1: false
+        });
+      } else if (input instanceof TruthyFalsy1.Not.class) {
+        if (input instanceof Object) {
+          if ("arg" in input) {
+            arg = input.arg;
+            tmp18 = runtime.safeCall(matcher__Truthy_Falsy$(arg));
+            tmp19 = globalThis.Object.freeze({
+              input: arg,
+              result: tmp18
+            });
+          } else {
+            tmp20 = globalThis.Object.freeze({
+              p_1: false,
+              p_0: false
+            });
+            tmp19 = globalThis.Object.freeze({
+              input: null,
+              result: tmp20
+            });
+          }
+        } else {
+          tmp21 = globalThis.Object.freeze({
+            p_1: false,
+            p_0: false
+          });
+          tmp19 = globalThis.Object.freeze({
+            input: null,
+            result: tmp21
+          });
+        }
+        result1$8 = tmp19.result.p_1;
+        if (result1$8 === true) {
+          tmp22 = true;
+        } else {
+          tmp22 = false;
+        }
+        result0$8 = tmp19.result.p_0;
+        if (result0$8 === true) {
+          return globalThis.Object.freeze({
+            p_0: tmp22,
+            p_1: true
+          })
+        }
+        return globalThis.Object.freeze({
+          p_0: tmp22,
+          p_1: false
+        });
+      } else if (input === true) {
+        return globalThis.Object.freeze({
+          p_0: true,
+          p_1: false
+        })
+      }
+      return globalThis.Object.freeze({
+        p_0: false,
+        p_1: false
+      });
+    });
+    matcher__Truthy_Falsy$ = lambda1;
+    lambda2 = (undefined, function (input) {
+      let lhs, rhs, result1$, result1$1, result0$, result1$2, result1$3, result0$1, lhs1, rhs1, result1$4, result1$5, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      if (input === false) {
+        return true
+      } else if (input instanceof TruthyFalsy1.And.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy_Falsy$(lhs));
+            tmp1 = globalThis.Object.freeze({
+              input: lhs,
+              result: tmp
+            });
+          } else {
+            tmp2 = globalThis.Object.freeze({
+              p_1: false,
+              p_0: false
+            });
+            tmp1 = globalThis.Object.freeze({
+              input: null,
+              result: tmp2
+            });
+          }
+        } else {
+          tmp3 = globalThis.Object.freeze({
+            p_1: false,
+            p_0: false
+          });
+          tmp1 = globalThis.Object.freeze({
+            input: null,
+            result: tmp3
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs = input.rhs;
+            tmp4 = runtime.safeCall(matcher__Truthy_Falsy$(rhs));
+            tmp5 = globalThis.Object.freeze({
+              input: rhs,
+              result: tmp4
+            });
+          } else {
+            tmp6 = globalThis.Object.freeze({
+              p_1: false,
+              p_0: false
+            });
+            tmp5 = globalThis.Object.freeze({
+              input: null,
+              result: tmp6
+            });
+          }
+        } else {
+          tmp7 = globalThis.Object.freeze({
+            p_1: false,
+            p_0: false
+          });
+          tmp5 = globalThis.Object.freeze({
+            input: null,
+            result: tmp7
+          });
+        }
+        result1$1 = tmp1.result.p_1;
+        if (result1$1 === true) {
+          result1$ = tmp5.result.p_1;
+          if (result1$ === true) {
+            return true
+          }
+          result1$2 = tmp1.result.p_1;
+          if (result1$2 === true) {
+            result0$ = tmp5.result.p_0;
+            if (result0$ === true) {
+              return true
+            }
+            result0$1 = tmp1.result.p_0;
+            if (result0$1 === true) {
+              result1$3 = tmp5.result.p_1;
+              if (result1$3 === true) {
+                return true
+              }
+              return false;
+            }
+            return false;
+          }
+          result0$1 = tmp1.result.p_0;
+          if (result0$1 === true) {
+            result1$3 = tmp5.result.p_1;
+            if (result1$3 === true) {
+              return true
+            }
+            return false;
+          }
+          return false;
+        }
+        result1$2 = tmp1.result.p_1;
+        if (result1$2 === true) {
+          result0$ = tmp5.result.p_0;
+          if (result0$ === true) {
+            return true
+          }
+          result0$1 = tmp1.result.p_0;
+          if (result0$1 === true) {
+            result1$3 = tmp5.result.p_1;
+            if (result1$3 === true) {
+              return true
+            }
+            return false;
+          }
+          return false;
+        }
+        result0$1 = tmp1.result.p_0;
+        if (result0$1 === true) {
+          result1$3 = tmp5.result.p_1;
+          if (result1$3 === true) {
+            return true
+          }
+          return false;
+        }
+        return false;
+      } else if (input instanceof TruthyFalsy1.Or.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs1 = input.lhs;
+            tmp8 = runtime.safeCall(matcher__Falsy$(lhs1));
+            tmp9 = globalThis.Object.freeze({
+              input: lhs1,
+              result: tmp8
+            });
+          } else {
+            tmp9 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp9 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs1 = input.rhs;
+            tmp10 = runtime.safeCall(matcher__Falsy$(rhs1));
+            tmp11 = globalThis.Object.freeze({
+              input: rhs1,
+              result: tmp10
+            });
+          } else {
+            tmp11 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp11 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        result1$5 = tmp9.result;
+        if (result1$5 === true) {
+          result1$4 = tmp11.result;
+          if (result1$4 === true) {
+            return true
+          }
+          return false;
+        }
+        return false;
+      } else if (input instanceof TruthyFalsy1.Not.class) {
+        if (input instanceof Object) {
+          if ("arg" in input) {
+            arg = input.arg;
+            tmp12 = runtime.safeCall(matcher__Truthy$(arg));
+            tmp13 = globalThis.Object.freeze({
+              input: arg,
+              result: tmp12
+            });
+          } else {
+            tmp13 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp13 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        result0$2 = tmp13.result;
+        if (result0$2 === true) {
+          return true
+        }
+        return false;
+      }
+      return false;
+    });
+    matcher__Falsy$ = lambda2;
+    matchSuccess = runtime.safeCall(matcher__Truthy$(t));
+    if (matchSuccess === true) {
+      return true
+    }
+    return false;
+  } 
+  static isFalsy_naive(t) {
+    let unapplyResult;
+    unapplyResult = runtime.safeCall(TruthyFalsy.Falsy.unapply(t));
+    if (unapplyResult instanceof runtime.MatchSuccess.class) {
+      unapplyResult.output;
+      unapplyResult.bindings;
+      return true
+    }
+    return false;
+  } 
+  static isFalsy_optimized(t) {
+    let matcher__Falsy$, matcher__Falsy_Truthy$, matcher__Truthy$, matchSuccess, lambda, lambda1, lambda2;
+    lambda = (undefined, function (input) {
+      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, result1$2, result1$3, lhs1, rhs1, result0$4, result0$5, result1$4, result1$5, result0$6, result1$6, result1$7, result0$7, arg, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      if (input instanceof TruthyFalsy1.And.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs = input.lhs;
+            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs));
+            tmp1 = globalThis.Object.freeze({
+              input: lhs,
+              result: tmp
+            });
+          } else {
+            tmp2 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp1 = globalThis.Object.freeze({
+              input: null,
+              result: tmp2
+            });
+          }
+        } else {
+          tmp3 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp1 = globalThis.Object.freeze({
+            input: null,
+            result: tmp3
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs = input.rhs;
+            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(rhs));
             tmp5 = globalThis.Object.freeze({
               input: rhs,
               result: tmp4
@@ -1682,22 +2081,22 @@ let TruthyFalsy1;
         });
       } else if (input === false) {
         return globalThis.Object.freeze({
-          p_0: false,
-          p_1: true
+          p_0: true,
+          p_1: false
         })
-      } else if (input instanceof TruthyFalsy1.Not.class) {
+      } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
-          if ("arg" in input) {
-            arg = input.arg;
-            tmp9 = runtime.safeCall(matcher__Truthy_Falsy$(arg));
+          if ("lhs" in input) {
+            lhs1 = input.lhs;
+            tmp9 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
             tmp10 = globalThis.Object.freeze({
-              input: arg,
+              input: lhs1,
               result: tmp9
             });
           } else {
             tmp11 = globalThis.Object.freeze({
-              p_1: false,
-              p_0: false
+              p_0: false,
+              p_1: false
             });
             tmp10 = globalThis.Object.freeze({
               input: null,
@@ -1706,72 +2105,168 @@ let TruthyFalsy1;
           }
         } else {
           tmp12 = globalThis.Object.freeze({
-            p_1: false,
-            p_0: false
+            p_0: false,
+            p_1: false
           });
           tmp10 = globalThis.Object.freeze({
             input: null,
             result: tmp12
           });
         }
-        result1$4 = tmp10.result.p_1;
-        if (result1$4 === true) {
-          tmp13 = true;
-        } else {
-          tmp13 = false;
-        }
-        result0$4 = tmp10.result.p_0;
-        if (result0$4 === true) {
-          return globalThis.Object.freeze({
-            p_0: tmp13,
-            p_1: true
-          })
-        }
-        return globalThis.Object.freeze({
-          p_0: tmp13,
-          p_1: false
-        });
-      } else if (input instanceof TruthyFalsy1.And.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp14 = runtime.safeCall(matcher__Truthy_Falsy$(lhs1));
-            tmp15 = globalThis.Object.freeze({
-              input: lhs1,
-              result: tmp14
-            });
-          } else {
-            tmp16 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp15 = globalThis.Object.freeze({
-              input: null,
-              result: tmp16
-            });
-          }
-        } else {
-          tmp17 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp15 = globalThis.Object.freeze({
-            input: null,
-            result: tmp17
-          });
-        }
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
-            tmp18 = runtime.safeCall(matcher__Truthy_Falsy$(rhs1));
-            tmp19 = globalThis.Object.freeze({
+            tmp13 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
+            tmp14 = globalThis.Object.freeze({
               input: rhs1,
+              result: tmp13
+            });
+          } else {
+            tmp15 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp14 = globalThis.Object.freeze({
+              input: null,
+              result: tmp15
+            });
+          }
+        } else {
+          tmp16 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp14 = globalThis.Object.freeze({
+            input: null,
+            result: tmp16
+          });
+        }
+        result0$5 = tmp10.result.p_0;
+        if (result0$5 === true) {
+          result0$4 = tmp14.result.p_0;
+          if (result0$4 === true) {
+            tmp17 = true;
+          } else {
+            tmp17 = false;
+          }
+        } else {
+          tmp17 = false;
+        }
+        result1$5 = tmp10.result.p_1;
+        if (result1$5 === true) {
+          result1$4 = tmp14.result.p_1;
+          if (result1$4 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: true
+            })
+          }
+          result1$6 = tmp10.result.p_1;
+          if (result1$6 === true) {
+            result0$6 = tmp14.result.p_0;
+            if (result0$6 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp17,
+                p_1: true
+              })
+            }
+            result0$7 = tmp10.result.p_0;
+            if (result0$7 === true) {
+              result1$7 = tmp14.result.p_1;
+              if (result1$7 === true) {
+                return globalThis.Object.freeze({
+                  p_0: tmp17,
+                  p_1: true
+                })
+              }
+              return globalThis.Object.freeze({
+                p_0: tmp17,
+                p_1: false
+              });
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: false
+            });
+          }
+          result0$7 = tmp10.result.p_0;
+          if (result0$7 === true) {
+            result1$7 = tmp14.result.p_1;
+            if (result1$7 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp17,
+                p_1: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: false
+            });
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp17,
+            p_1: false
+          });
+        }
+        result1$6 = tmp10.result.p_1;
+        if (result1$6 === true) {
+          result0$6 = tmp14.result.p_0;
+          if (result0$6 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: true
+            })
+          }
+          result0$7 = tmp10.result.p_0;
+          if (result0$7 === true) {
+            result1$7 = tmp14.result.p_1;
+            if (result1$7 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp17,
+                p_1: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: false
+            });
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp17,
+            p_1: false
+          });
+        }
+        result0$7 = tmp10.result.p_0;
+        if (result0$7 === true) {
+          result1$7 = tmp14.result.p_1;
+          if (result1$7 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: true
+            })
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp17,
+            p_1: false
+          });
+        }
+        return globalThis.Object.freeze({
+          p_0: tmp17,
+          p_1: false
+        });
+      } else if (input instanceof TruthyFalsy1.Not.class) {
+        if (input instanceof Object) {
+          if ("arg" in input) {
+            arg = input.arg;
+            tmp18 = runtime.safeCall(matcher__Falsy_Truthy$(arg));
+            tmp19 = globalThis.Object.freeze({
+              input: arg,
               result: tmp18
             });
           } else {
             tmp20 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
+              p_1: false,
+              p_0: false
             });
             tmp19 = globalThis.Object.freeze({
               input: null,
@@ -1780,122 +2275,26 @@ let TruthyFalsy1;
           }
         } else {
           tmp21 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
+            p_1: false,
+            p_0: false
           });
           tmp19 = globalThis.Object.freeze({
             input: null,
             result: tmp21
           });
         }
-        result0$6 = tmp15.result.p_0;
-        if (result0$6 === true) {
-          result0$5 = tmp19.result.p_0;
-          if (result0$5 === true) {
-            tmp22 = true;
-          } else {
-            tmp22 = false;
-          }
+        result1$8 = tmp19.result.p_1;
+        if (result1$8 === true) {
+          tmp22 = true;
         } else {
           tmp22 = false;
         }
-        result1$6 = tmp15.result.p_1;
-        if (result1$6 === true) {
-          result1$5 = tmp19.result.p_1;
-          if (result1$5 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: true
-            })
-          }
-          result1$7 = tmp15.result.p_1;
-          if (result1$7 === true) {
-            result0$7 = tmp19.result.p_0;
-            if (result0$7 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp22,
-                p_1: true
-              })
-            }
-            result0$8 = tmp15.result.p_0;
-            if (result0$8 === true) {
-              result1$8 = tmp19.result.p_1;
-              if (result1$8 === true) {
-                return globalThis.Object.freeze({
-                  p_0: tmp22,
-                  p_1: true
-                })
-              }
-              return globalThis.Object.freeze({
-                p_0: tmp22,
-                p_1: false
-              });
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: false
-            });
-          }
-          result0$8 = tmp15.result.p_0;
-          if (result0$8 === true) {
-            result1$8 = tmp19.result.p_1;
-            if (result1$8 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp22,
-                p_1: true
-              })
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: false
-            });
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp22,
-            p_1: false
-          });
-        }
-        result1$7 = tmp15.result.p_1;
-        if (result1$7 === true) {
-          result0$7 = tmp19.result.p_0;
-          if (result0$7 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: true
-            })
-          }
-          result0$8 = tmp15.result.p_0;
-          if (result0$8 === true) {
-            result1$8 = tmp19.result.p_1;
-            if (result1$8 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp22,
-                p_1: true
-              })
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: false
-            });
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp22,
-            p_1: false
-          });
-        }
-        result0$8 = tmp15.result.p_0;
+        result0$8 = tmp19.result.p_0;
         if (result0$8 === true) {
-          result1$8 = tmp19.result.p_1;
-          if (result1$8 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: true
-            })
-          }
           return globalThis.Object.freeze({
             p_0: tmp22,
-            p_1: false
-          });
+            p_1: true
+          })
         }
         return globalThis.Object.freeze({
           p_0: tmp22,
@@ -1903,8 +2302,8 @@ let TruthyFalsy1;
         });
       } else if (input === true) {
         return globalThis.Object.freeze({
-          p_0: true,
-          p_1: false
+          p_0: false,
+          p_1: true
         })
       }
       return globalThis.Object.freeze({
@@ -1912,24 +2311,410 @@ let TruthyFalsy1;
         p_1: false
       });
     });
-    matcher__Truthy_Falsy$ = lambda2;
-    matchSuccess = runtime.safeCall(matcher__Truthy$(t));
+    matcher__Falsy_Truthy$ = lambda;
+    lambda1 = (undefined, function (input) {
+      let lhs, rhs, result1$, result1$1, lhs1, rhs1, result1$2, result1$3, result0$, result1$4, result1$5, result0$1, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      if (input === true) {
+        return true
+      } else if (input instanceof TruthyFalsy1.And.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs = input.lhs;
+            tmp = runtime.safeCall(matcher__Truthy$(lhs));
+            tmp1 = globalThis.Object.freeze({
+              input: lhs,
+              result: tmp
+            });
+          } else {
+            tmp1 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp1 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs = input.rhs;
+            tmp2 = runtime.safeCall(matcher__Truthy$(rhs));
+            tmp3 = globalThis.Object.freeze({
+              input: rhs,
+              result: tmp2
+            });
+          } else {
+            tmp3 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp3 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        result1$1 = tmp1.result;
+        if (result1$1 === true) {
+          result1$ = tmp3.result;
+          if (result1$ === true) {
+            return true
+          }
+          return false;
+        }
+        return false;
+      } else if (input instanceof TruthyFalsy1.Or.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs1 = input.lhs;
+            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
+            tmp5 = globalThis.Object.freeze({
+              input: lhs1,
+              result: tmp4
+            });
+          } else {
+            tmp6 = globalThis.Object.freeze({
+              p_1: false,
+              p_0: false
+            });
+            tmp5 = globalThis.Object.freeze({
+              input: null,
+              result: tmp6
+            });
+          }
+        } else {
+          tmp7 = globalThis.Object.freeze({
+            p_1: false,
+            p_0: false
+          });
+          tmp5 = globalThis.Object.freeze({
+            input: null,
+            result: tmp7
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs1 = input.rhs;
+            tmp8 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
+            tmp9 = globalThis.Object.freeze({
+              input: rhs1,
+              result: tmp8
+            });
+          } else {
+            tmp10 = globalThis.Object.freeze({
+              p_1: false,
+              p_0: false
+            });
+            tmp9 = globalThis.Object.freeze({
+              input: null,
+              result: tmp10
+            });
+          }
+        } else {
+          tmp11 = globalThis.Object.freeze({
+            p_1: false,
+            p_0: false
+          });
+          tmp9 = globalThis.Object.freeze({
+            input: null,
+            result: tmp11
+          });
+        }
+        result1$3 = tmp5.result.p_1;
+        if (result1$3 === true) {
+          result1$2 = tmp9.result.p_1;
+          if (result1$2 === true) {
+            return true
+          }
+          result1$4 = tmp5.result.p_1;
+          if (result1$4 === true) {
+            result0$ = tmp9.result.p_0;
+            if (result0$ === true) {
+              return true
+            }
+            result0$1 = tmp5.result.p_0;
+            if (result0$1 === true) {
+              result1$5 = tmp9.result.p_1;
+              if (result1$5 === true) {
+                return true
+              }
+              return false;
+            }
+            return false;
+          }
+          result0$1 = tmp5.result.p_0;
+          if (result0$1 === true) {
+            result1$5 = tmp9.result.p_1;
+            if (result1$5 === true) {
+              return true
+            }
+            return false;
+          }
+          return false;
+        }
+        result1$4 = tmp5.result.p_1;
+        if (result1$4 === true) {
+          result0$ = tmp9.result.p_0;
+          if (result0$ === true) {
+            return true
+          }
+          result0$1 = tmp5.result.p_0;
+          if (result0$1 === true) {
+            result1$5 = tmp9.result.p_1;
+            if (result1$5 === true) {
+              return true
+            }
+            return false;
+          }
+          return false;
+        }
+        result0$1 = tmp5.result.p_0;
+        if (result0$1 === true) {
+          result1$5 = tmp9.result.p_1;
+          if (result1$5 === true) {
+            return true
+          }
+          return false;
+        }
+        return false;
+      } else if (input instanceof TruthyFalsy1.Not.class) {
+        if (input instanceof Object) {
+          if ("arg" in input) {
+            arg = input.arg;
+            tmp12 = runtime.safeCall(matcher__Falsy$(arg));
+            tmp13 = globalThis.Object.freeze({
+              input: arg,
+              result: tmp12
+            });
+          } else {
+            tmp13 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp13 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        result0$2 = tmp13.result;
+        if (result0$2 === true) {
+          return true
+        }
+        return false;
+      }
+      return false;
+    });
+    matcher__Truthy$ = lambda1;
+    lambda2 = (undefined, function (input) {
+      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, lhs1, rhs1, result0$4, result0$5, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
+      if (input === false) {
+        return true
+      } else if (input instanceof TruthyFalsy1.And.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs = input.lhs;
+            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs));
+            tmp1 = globalThis.Object.freeze({
+              input: lhs,
+              result: tmp
+            });
+          } else {
+            tmp2 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp1 = globalThis.Object.freeze({
+              input: null,
+              result: tmp2
+            });
+          }
+        } else {
+          tmp3 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp1 = globalThis.Object.freeze({
+            input: null,
+            result: tmp3
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs = input.rhs;
+            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(rhs));
+            tmp5 = globalThis.Object.freeze({
+              input: rhs,
+              result: tmp4
+            });
+          } else {
+            tmp6 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp5 = globalThis.Object.freeze({
+              input: null,
+              result: tmp6
+            });
+          }
+        } else {
+          tmp7 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp5 = globalThis.Object.freeze({
+            input: null,
+            result: tmp7
+          });
+        }
+        result0$1 = tmp1.result.p_0;
+        if (result0$1 === true) {
+          result0$ = tmp5.result.p_0;
+          if (result0$ === true) {
+            return true
+          }
+          result0$2 = tmp1.result.p_0;
+          if (result0$2 === true) {
+            result1$ = tmp5.result.p_1;
+            if (result1$ === true) {
+              return true
+            }
+            result1$1 = tmp1.result.p_1;
+            if (result1$1 === true) {
+              result0$3 = tmp5.result.p_0;
+              if (result0$3 === true) {
+                return true
+              }
+              return false;
+            }
+            return false;
+          }
+          result1$1 = tmp1.result.p_1;
+          if (result1$1 === true) {
+            result0$3 = tmp5.result.p_0;
+            if (result0$3 === true) {
+              return true
+            }
+            return false;
+          }
+          return false;
+        }
+        result0$2 = tmp1.result.p_0;
+        if (result0$2 === true) {
+          result1$ = tmp5.result.p_1;
+          if (result1$ === true) {
+            return true
+          }
+          result1$1 = tmp1.result.p_1;
+          if (result1$1 === true) {
+            result0$3 = tmp5.result.p_0;
+            if (result0$3 === true) {
+              return true
+            }
+            return false;
+          }
+          return false;
+        }
+        result1$1 = tmp1.result.p_1;
+        if (result1$1 === true) {
+          result0$3 = tmp5.result.p_0;
+          if (result0$3 === true) {
+            return true
+          }
+          return false;
+        }
+        return false;
+      } else if (input instanceof TruthyFalsy1.Or.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs1 = input.lhs;
+            tmp8 = runtime.safeCall(matcher__Falsy$(lhs1));
+            tmp9 = globalThis.Object.freeze({
+              input: lhs1,
+              result: tmp8
+            });
+          } else {
+            tmp9 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp9 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs1 = input.rhs;
+            tmp10 = runtime.safeCall(matcher__Falsy$(rhs1));
+            tmp11 = globalThis.Object.freeze({
+              input: rhs1,
+              result: tmp10
+            });
+          } else {
+            tmp11 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp11 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        result0$5 = tmp9.result;
+        if (result0$5 === true) {
+          result0$4 = tmp11.result;
+          if (result0$4 === true) {
+            return true
+          }
+          return false;
+        }
+        return false;
+      } else if (input instanceof TruthyFalsy1.Not.class) {
+        if (input instanceof Object) {
+          if ("arg" in input) {
+            arg = input.arg;
+            tmp12 = runtime.safeCall(matcher__Truthy$(arg));
+            tmp13 = globalThis.Object.freeze({
+              input: arg,
+              result: tmp12
+            });
+          } else {
+            tmp13 = globalThis.Object.freeze({
+              input: null,
+              result: false
+            });
+          }
+        } else {
+          tmp13 = globalThis.Object.freeze({
+            input: null,
+            result: false
+          });
+        }
+        result1$2 = tmp13.result;
+        if (result1$2 === true) {
+          return true
+        }
+        return false;
+      }
+      return false;
+    });
+    matcher__Falsy$ = lambda2;
+    matchSuccess = runtime.safeCall(matcher__Falsy$(t));
     if (matchSuccess === true) {
-      return true
+      return t
     }
-    return false;
+    return runtime.Unit;
   } 
-  static isFalsy_naive(t) {
-    let unapplyResult;
-    unapplyResult = runtime.safeCall(TruthyFalsy.Falsy.unapply(t));
-    if (unapplyResult instanceof runtime.MatchSuccess.class) {
-      unapplyResult.output;
-      unapplyResult.bindings;
-      return true
-    }
-    return false;
-  } 
-  static isFalsy_optimized(t) {
+  static isFalsy_optimized_matchOnly(t) {
     let matcher__Falsy$, matcher__Falsy_Truthy$, matcher__Truthy$, matchSuccess, lambda, lambda1, lambda2;
     lambda = (undefined, function (input) {
       let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, lhs1, rhs1, result0$4, result0$5, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
@@ -2130,8 +2915,8 @@ let TruthyFalsy1;
     });
     matcher__Falsy$ = lambda;
     lambda1 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result1$1, result0$2, result1$2, result1$3, result0$3, arg, result1$4, result0$4, lhs1, rhs1, result0$5, result0$6, result1$5, result0$7, result0$8, result1$6, result1$7, result1$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
-      if (input instanceof TruthyFalsy1.Or.class) {
+      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, result1$2, result1$3, lhs1, rhs1, result0$4, result0$5, result1$4, result1$5, result0$6, result1$6, result1$7, result0$7, arg, result1$8, result0$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
+      if (input instanceof TruthyFalsy1.And.class) {
         if (input instanceof Object) {
           if ("lhs" in input) {
             lhs = input.lhs;
@@ -2194,99 +2979,75 @@ let TruthyFalsy1;
           if (result0$ === true) {
             tmp8 = true;
           } else {
-            tmp8 = false;
+            result0$2 = tmp1.result.p_0;
+            if (result0$2 === true) {
+              result1$ = tmp5.result.p_1;
+              if (result1$ === true) {
+                tmp8 = true;
+              } else {
+                result1$1 = tmp1.result.p_1;
+                if (result1$1 === true) {
+                  result0$3 = tmp5.result.p_0;
+                  if (result0$3 === true) {
+                    tmp8 = true;
+                  } else {
+                    tmp8 = false;
+                  }
+                } else {
+                  tmp8 = false;
+                }
+              }
+            } else {
+              result1$1 = tmp1.result.p_1;
+              if (result1$1 === true) {
+                result0$3 = tmp5.result.p_0;
+                if (result0$3 === true) {
+                  tmp8 = true;
+                } else {
+                  tmp8 = false;
+                }
+              } else {
+                tmp8 = false;
+              }
+            }
           }
         } else {
-          tmp8 = false;
-        }
-        result1$1 = tmp1.result.p_1;
-        if (result1$1 === true) {
-          result1$ = tmp5.result.p_1;
-          if (result1$ === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: true
-            })
-          }
-          result1$2 = tmp1.result.p_1;
-          if (result1$2 === true) {
-            result0$2 = tmp5.result.p_0;
-            if (result0$2 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp8,
-                p_1: true
-              })
-            }
-            result0$3 = tmp1.result.p_0;
-            if (result0$3 === true) {
-              result1$3 = tmp5.result.p_1;
-              if (result1$3 === true) {
-                return globalThis.Object.freeze({
-                  p_0: tmp8,
-                  p_1: true
-                })
-              }
-              return globalThis.Object.freeze({
-                p_0: tmp8,
-                p_1: false
-              });
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: false
-            });
-          }
-          result0$3 = tmp1.result.p_0;
-          if (result0$3 === true) {
-            result1$3 = tmp5.result.p_1;
-            if (result1$3 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp8,
-                p_1: true
-              })
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: false
-            });
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp8,
-            p_1: false
-          });
-        }
-        result1$2 = tmp1.result.p_1;
-        if (result1$2 === true) {
-          result0$2 = tmp5.result.p_0;
+          result0$2 = tmp1.result.p_0;
           if (result0$2 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: true
-            })
-          }
-          result0$3 = tmp1.result.p_0;
-          if (result0$3 === true) {
-            result1$3 = tmp5.result.p_1;
-            if (result1$3 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp8,
-                p_1: true
-              })
+            result1$ = tmp5.result.p_1;
+            if (result1$ === true) {
+              tmp8 = true;
+            } else {
+              result1$1 = tmp1.result.p_1;
+              if (result1$1 === true) {
+                result0$3 = tmp5.result.p_0;
+                if (result0$3 === true) {
+                  tmp8 = true;
+                } else {
+                  tmp8 = false;
+                }
+              } else {
+                tmp8 = false;
+              }
             }
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: false
-            });
+          } else {
+            result1$1 = tmp1.result.p_1;
+            if (result1$1 === true) {
+              result0$3 = tmp5.result.p_0;
+              if (result0$3 === true) {
+                tmp8 = true;
+              } else {
+                tmp8 = false;
+              }
+            } else {
+              tmp8 = false;
+            }
           }
-          return globalThis.Object.freeze({
-            p_0: tmp8,
-            p_1: false
-          });
         }
-        result0$3 = tmp1.result.p_0;
-        if (result0$3 === true) {
-          result1$3 = tmp5.result.p_1;
-          if (result1$3 === true) {
+        result1$3 = tmp1.result.p_1;
+        if (result1$3 === true) {
+          result1$2 = tmp5.result.p_1;
+          if (result1$2 === true) {
             return globalThis.Object.freeze({
               p_0: tmp8,
               p_1: true
@@ -2306,19 +3067,19 @@ let TruthyFalsy1;
           p_0: true,
           p_1: false
         })
-      } else if (input instanceof TruthyFalsy1.Not.class) {
+      } else if (input instanceof TruthyFalsy1.Or.class) {
         if (input instanceof Object) {
-          if ("arg" in input) {
-            arg = input.arg;
-            tmp9 = runtime.safeCall(matcher__Falsy_Truthy$(arg));
+          if ("lhs" in input) {
+            lhs1 = input.lhs;
+            tmp9 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
             tmp10 = globalThis.Object.freeze({
-              input: arg,
+              input: lhs1,
               result: tmp9
             });
           } else {
             tmp11 = globalThis.Object.freeze({
-              p_1: false,
-              p_0: false
+              p_0: false,
+              p_1: false
             });
             tmp10 = globalThis.Object.freeze({
               input: null,
@@ -2327,72 +3088,168 @@ let TruthyFalsy1;
           }
         } else {
           tmp12 = globalThis.Object.freeze({
-            p_1: false,
-            p_0: false
+            p_0: false,
+            p_1: false
           });
           tmp10 = globalThis.Object.freeze({
             input: null,
             result: tmp12
           });
         }
-        result1$4 = tmp10.result.p_1;
-        if (result1$4 === true) {
-          tmp13 = true;
-        } else {
-          tmp13 = false;
-        }
-        result0$4 = tmp10.result.p_0;
-        if (result0$4 === true) {
-          return globalThis.Object.freeze({
-            p_0: tmp13,
-            p_1: true
-          })
-        }
-        return globalThis.Object.freeze({
-          p_0: tmp13,
-          p_1: false
-        });
-      } else if (input instanceof TruthyFalsy1.And.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp14 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
-            tmp15 = globalThis.Object.freeze({
-              input: lhs1,
-              result: tmp14
-            });
-          } else {
-            tmp16 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp15 = globalThis.Object.freeze({
-              input: null,
-              result: tmp16
-            });
-          }
-        } else {
-          tmp17 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp15 = globalThis.Object.freeze({
-            input: null,
-            result: tmp17
-          });
-        }
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
-            tmp18 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
-            tmp19 = globalThis.Object.freeze({
+            tmp13 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
+            tmp14 = globalThis.Object.freeze({
               input: rhs1,
+              result: tmp13
+            });
+          } else {
+            tmp15 = globalThis.Object.freeze({
+              p_0: false,
+              p_1: false
+            });
+            tmp14 = globalThis.Object.freeze({
+              input: null,
+              result: tmp15
+            });
+          }
+        } else {
+          tmp16 = globalThis.Object.freeze({
+            p_0: false,
+            p_1: false
+          });
+          tmp14 = globalThis.Object.freeze({
+            input: null,
+            result: tmp16
+          });
+        }
+        result0$5 = tmp10.result.p_0;
+        if (result0$5 === true) {
+          result0$4 = tmp14.result.p_0;
+          if (result0$4 === true) {
+            tmp17 = true;
+          } else {
+            tmp17 = false;
+          }
+        } else {
+          tmp17 = false;
+        }
+        result1$5 = tmp10.result.p_1;
+        if (result1$5 === true) {
+          result1$4 = tmp14.result.p_1;
+          if (result1$4 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: true
+            })
+          }
+          result1$6 = tmp10.result.p_1;
+          if (result1$6 === true) {
+            result0$6 = tmp14.result.p_0;
+            if (result0$6 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp17,
+                p_1: true
+              })
+            }
+            result0$7 = tmp10.result.p_0;
+            if (result0$7 === true) {
+              result1$7 = tmp14.result.p_1;
+              if (result1$7 === true) {
+                return globalThis.Object.freeze({
+                  p_0: tmp17,
+                  p_1: true
+                })
+              }
+              return globalThis.Object.freeze({
+                p_0: tmp17,
+                p_1: false
+              });
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: false
+            });
+          }
+          result0$7 = tmp10.result.p_0;
+          if (result0$7 === true) {
+            result1$7 = tmp14.result.p_1;
+            if (result1$7 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp17,
+                p_1: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: false
+            });
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp17,
+            p_1: false
+          });
+        }
+        result1$6 = tmp10.result.p_1;
+        if (result1$6 === true) {
+          result0$6 = tmp14.result.p_0;
+          if (result0$6 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: true
+            })
+          }
+          result0$7 = tmp10.result.p_0;
+          if (result0$7 === true) {
+            result1$7 = tmp14.result.p_1;
+            if (result1$7 === true) {
+              return globalThis.Object.freeze({
+                p_0: tmp17,
+                p_1: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: false
+            });
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp17,
+            p_1: false
+          });
+        }
+        result0$7 = tmp10.result.p_0;
+        if (result0$7 === true) {
+          result1$7 = tmp14.result.p_1;
+          if (result1$7 === true) {
+            return globalThis.Object.freeze({
+              p_0: tmp17,
+              p_1: true
+            })
+          }
+          return globalThis.Object.freeze({
+            p_0: tmp17,
+            p_1: false
+          });
+        }
+        return globalThis.Object.freeze({
+          p_0: tmp17,
+          p_1: false
+        });
+      } else if (input instanceof TruthyFalsy1.Not.class) {
+        if (input instanceof Object) {
+          if ("arg" in input) {
+            arg = input.arg;
+            tmp18 = runtime.safeCall(matcher__Falsy_Truthy$(arg));
+            tmp19 = globalThis.Object.freeze({
+              input: arg,
               result: tmp18
             });
           } else {
             tmp20 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
+              p_1: false,
+              p_0: false
             });
             tmp19 = globalThis.Object.freeze({
               input: null,
@@ -2401,98 +3258,26 @@ let TruthyFalsy1;
           }
         } else {
           tmp21 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
+            p_1: false,
+            p_0: false
           });
           tmp19 = globalThis.Object.freeze({
             input: null,
             result: tmp21
           });
         }
-        result0$6 = tmp15.result.p_0;
-        if (result0$6 === true) {
-          result0$5 = tmp19.result.p_0;
-          if (result0$5 === true) {
-            tmp22 = true;
-          } else {
-            result0$7 = tmp15.result.p_0;
-            if (result0$7 === true) {
-              result1$5 = tmp19.result.p_1;
-              if (result1$5 === true) {
-                tmp22 = true;
-              } else {
-                result1$6 = tmp15.result.p_1;
-                if (result1$6 === true) {
-                  result0$8 = tmp19.result.p_0;
-                  if (result0$8 === true) {
-                    tmp22 = true;
-                  } else {
-                    tmp22 = false;
-                  }
-                } else {
-                  tmp22 = false;
-                }
-              }
-            } else {
-              result1$6 = tmp15.result.p_1;
-              if (result1$6 === true) {
-                result0$8 = tmp19.result.p_0;
-                if (result0$8 === true) {
-                  tmp22 = true;
-                } else {
-                  tmp22 = false;
-                }
-              } else {
-                tmp22 = false;
-              }
-            }
-          }
-        } else {
-          result0$7 = tmp15.result.p_0;
-          if (result0$7 === true) {
-            result1$5 = tmp19.result.p_1;
-            if (result1$5 === true) {
-              tmp22 = true;
-            } else {
-              result1$6 = tmp15.result.p_1;
-              if (result1$6 === true) {
-                result0$8 = tmp19.result.p_0;
-                if (result0$8 === true) {
-                  tmp22 = true;
-                } else {
-                  tmp22 = false;
-                }
-              } else {
-                tmp22 = false;
-              }
-            }
-          } else {
-            result1$6 = tmp15.result.p_1;
-            if (result1$6 === true) {
-              result0$8 = tmp19.result.p_0;
-              if (result0$8 === true) {
-                tmp22 = true;
-              } else {
-                tmp22 = false;
-              }
-            } else {
-              tmp22 = false;
-            }
-          }
-        }
-        result1$8 = tmp15.result.p_1;
+        result1$8 = tmp19.result.p_1;
         if (result1$8 === true) {
-          result1$7 = tmp19.result.p_1;
-          if (result1$7 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: true
-            })
-          }
+          tmp22 = true;
+        } else {
+          tmp22 = false;
+        }
+        result0$8 = tmp19.result.p_0;
+        if (result0$8 === true) {
           return globalThis.Object.freeze({
             p_0: tmp22,
-            p_1: false
-          });
+            p_1: true
+          })
         }
         return globalThis.Object.freeze({
           p_0: tmp22,
@@ -2708,791 +3493,6 @@ let TruthyFalsy1;
       return false;
     });
     matcher__Truthy$ = lambda2;
-    matchSuccess = runtime.safeCall(matcher__Falsy$(t));
-    if (matchSuccess === true) {
-      return t
-    }
-    return runtime.Unit;
-  } 
-  static isFalsy_optimized_matchOnly(t) {
-    let matcher__Falsy$, matcher__Falsy_Truthy$, matcher__Truthy$, matchSuccess, lambda, lambda1, lambda2;
-    lambda = (undefined, function (input) {
-      let lhs, rhs, result1$, result1$1, lhs1, rhs1, result1$2, result1$3, result0$, result1$4, result1$5, result0$1, arg, result0$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
-      if (input === true) {
-        return true
-      } else if (input instanceof TruthyFalsy1.And.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Truthy$(lhs));
-            tmp1 = globalThis.Object.freeze({
-              input: lhs,
-              result: tmp
-            });
-          } else {
-            tmp1 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp1 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp2 = runtime.safeCall(matcher__Truthy$(rhs));
-            tmp3 = globalThis.Object.freeze({
-              input: rhs,
-              result: tmp2
-            });
-          } else {
-            tmp3 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp3 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        result1$1 = tmp1.result;
-        if (result1$1 === true) {
-          result1$ = tmp3.result;
-          if (result1$ === true) {
-            return true
-          }
-          return false;
-        }
-        return false;
-      } else if (input instanceof TruthyFalsy1.Or.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
-            tmp5 = globalThis.Object.freeze({
-              input: lhs1,
-              result: tmp4
-            });
-          } else {
-            tmp6 = globalThis.Object.freeze({
-              p_1: false,
-              p_0: false
-            });
-            tmp5 = globalThis.Object.freeze({
-              input: null,
-              result: tmp6
-            });
-          }
-        } else {
-          tmp7 = globalThis.Object.freeze({
-            p_1: false,
-            p_0: false
-          });
-          tmp5 = globalThis.Object.freeze({
-            input: null,
-            result: tmp7
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp8 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
-            tmp9 = globalThis.Object.freeze({
-              input: rhs1,
-              result: tmp8
-            });
-          } else {
-            tmp10 = globalThis.Object.freeze({
-              p_1: false,
-              p_0: false
-            });
-            tmp9 = globalThis.Object.freeze({
-              input: null,
-              result: tmp10
-            });
-          }
-        } else {
-          tmp11 = globalThis.Object.freeze({
-            p_1: false,
-            p_0: false
-          });
-          tmp9 = globalThis.Object.freeze({
-            input: null,
-            result: tmp11
-          });
-        }
-        result1$3 = tmp5.result.p_1;
-        if (result1$3 === true) {
-          result1$2 = tmp9.result.p_1;
-          if (result1$2 === true) {
-            return true
-          }
-          result1$4 = tmp5.result.p_1;
-          if (result1$4 === true) {
-            result0$ = tmp9.result.p_0;
-            if (result0$ === true) {
-              return true
-            }
-            result0$1 = tmp5.result.p_0;
-            if (result0$1 === true) {
-              result1$5 = tmp9.result.p_1;
-              if (result1$5 === true) {
-                return true
-              }
-              return false;
-            }
-            return false;
-          }
-          result0$1 = tmp5.result.p_0;
-          if (result0$1 === true) {
-            result1$5 = tmp9.result.p_1;
-            if (result1$5 === true) {
-              return true
-            }
-            return false;
-          }
-          return false;
-        }
-        result1$4 = tmp5.result.p_1;
-        if (result1$4 === true) {
-          result0$ = tmp9.result.p_0;
-          if (result0$ === true) {
-            return true
-          }
-          result0$1 = tmp5.result.p_0;
-          if (result0$1 === true) {
-            result1$5 = tmp9.result.p_1;
-            if (result1$5 === true) {
-              return true
-            }
-            return false;
-          }
-          return false;
-        }
-        result0$1 = tmp5.result.p_0;
-        if (result0$1 === true) {
-          result1$5 = tmp9.result.p_1;
-          if (result1$5 === true) {
-            return true
-          }
-          return false;
-        }
-        return false;
-      } else if (input instanceof TruthyFalsy1.Not.class) {
-        if (input instanceof Object) {
-          if ("arg" in input) {
-            arg = input.arg;
-            tmp12 = runtime.safeCall(matcher__Falsy$(arg));
-            tmp13 = globalThis.Object.freeze({
-              input: arg,
-              result: tmp12
-            });
-          } else {
-            tmp13 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp13 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        result0$2 = tmp13.result;
-        if (result0$2 === true) {
-          return true
-        }
-        return false;
-      }
-      return false;
-    });
-    matcher__Truthy$ = lambda;
-    lambda1 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result0$2, result0$3, result1$1, lhs1, rhs1, result0$4, result0$5, arg, result1$2, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13;
-      if (input === false) {
-        return true
-      } else if (input instanceof TruthyFalsy1.And.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs));
-            tmp1 = globalThis.Object.freeze({
-              input: lhs,
-              result: tmp
-            });
-          } else {
-            tmp2 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp1 = globalThis.Object.freeze({
-              input: null,
-              result: tmp2
-            });
-          }
-        } else {
-          tmp3 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp1 = globalThis.Object.freeze({
-            input: null,
-            result: tmp3
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(rhs));
-            tmp5 = globalThis.Object.freeze({
-              input: rhs,
-              result: tmp4
-            });
-          } else {
-            tmp6 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp5 = globalThis.Object.freeze({
-              input: null,
-              result: tmp6
-            });
-          }
-        } else {
-          tmp7 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp5 = globalThis.Object.freeze({
-            input: null,
-            result: tmp7
-          });
-        }
-        result0$1 = tmp1.result.p_0;
-        if (result0$1 === true) {
-          result0$ = tmp5.result.p_0;
-          if (result0$ === true) {
-            return true
-          }
-          result0$2 = tmp1.result.p_0;
-          if (result0$2 === true) {
-            result1$ = tmp5.result.p_1;
-            if (result1$ === true) {
-              return true
-            }
-            result1$1 = tmp1.result.p_1;
-            if (result1$1 === true) {
-              result0$3 = tmp5.result.p_0;
-              if (result0$3 === true) {
-                return true
-              }
-              return false;
-            }
-            return false;
-          }
-          result1$1 = tmp1.result.p_1;
-          if (result1$1 === true) {
-            result0$3 = tmp5.result.p_0;
-            if (result0$3 === true) {
-              return true
-            }
-            return false;
-          }
-          return false;
-        }
-        result0$2 = tmp1.result.p_0;
-        if (result0$2 === true) {
-          result1$ = tmp5.result.p_1;
-          if (result1$ === true) {
-            return true
-          }
-          result1$1 = tmp1.result.p_1;
-          if (result1$1 === true) {
-            result0$3 = tmp5.result.p_0;
-            if (result0$3 === true) {
-              return true
-            }
-            return false;
-          }
-          return false;
-        }
-        result1$1 = tmp1.result.p_1;
-        if (result1$1 === true) {
-          result0$3 = tmp5.result.p_0;
-          if (result0$3 === true) {
-            return true
-          }
-          return false;
-        }
-        return false;
-      } else if (input instanceof TruthyFalsy1.Or.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp8 = runtime.safeCall(matcher__Falsy$(lhs1));
-            tmp9 = globalThis.Object.freeze({
-              input: lhs1,
-              result: tmp8
-            });
-          } else {
-            tmp9 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp9 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp10 = runtime.safeCall(matcher__Falsy$(rhs1));
-            tmp11 = globalThis.Object.freeze({
-              input: rhs1,
-              result: tmp10
-            });
-          } else {
-            tmp11 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp11 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        result0$5 = tmp9.result;
-        if (result0$5 === true) {
-          result0$4 = tmp11.result;
-          if (result0$4 === true) {
-            return true
-          }
-          return false;
-        }
-        return false;
-      } else if (input instanceof TruthyFalsy1.Not.class) {
-        if (input instanceof Object) {
-          if ("arg" in input) {
-            arg = input.arg;
-            tmp12 = runtime.safeCall(matcher__Truthy$(arg));
-            tmp13 = globalThis.Object.freeze({
-              input: arg,
-              result: tmp12
-            });
-          } else {
-            tmp13 = globalThis.Object.freeze({
-              input: null,
-              result: false
-            });
-          }
-        } else {
-          tmp13 = globalThis.Object.freeze({
-            input: null,
-            result: false
-          });
-        }
-        result1$2 = tmp13.result;
-        if (result1$2 === true) {
-          return true
-        }
-        return false;
-      }
-      return false;
-    });
-    matcher__Falsy$ = lambda1;
-    lambda2 = (undefined, function (input) {
-      let lhs, rhs, result0$, result0$1, result1$, result1$1, result0$2, result1$2, result1$3, result0$3, arg, result1$4, result0$4, lhs1, rhs1, result0$5, result0$6, result1$5, result0$7, result0$8, result1$6, result1$7, result1$8, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20, tmp21, tmp22;
-      if (input instanceof TruthyFalsy1.Or.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs = input.lhs;
-            tmp = runtime.safeCall(matcher__Falsy_Truthy$(lhs));
-            tmp1 = globalThis.Object.freeze({
-              input: lhs,
-              result: tmp
-            });
-          } else {
-            tmp2 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp1 = globalThis.Object.freeze({
-              input: null,
-              result: tmp2
-            });
-          }
-        } else {
-          tmp3 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp1 = globalThis.Object.freeze({
-            input: null,
-            result: tmp3
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs = input.rhs;
-            tmp4 = runtime.safeCall(matcher__Falsy_Truthy$(rhs));
-            tmp5 = globalThis.Object.freeze({
-              input: rhs,
-              result: tmp4
-            });
-          } else {
-            tmp6 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp5 = globalThis.Object.freeze({
-              input: null,
-              result: tmp6
-            });
-          }
-        } else {
-          tmp7 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp5 = globalThis.Object.freeze({
-            input: null,
-            result: tmp7
-          });
-        }
-        result0$1 = tmp1.result.p_0;
-        if (result0$1 === true) {
-          result0$ = tmp5.result.p_0;
-          if (result0$ === true) {
-            tmp8 = true;
-          } else {
-            tmp8 = false;
-          }
-        } else {
-          tmp8 = false;
-        }
-        result1$1 = tmp1.result.p_1;
-        if (result1$1 === true) {
-          result1$ = tmp5.result.p_1;
-          if (result1$ === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: true
-            })
-          }
-          result1$2 = tmp1.result.p_1;
-          if (result1$2 === true) {
-            result0$2 = tmp5.result.p_0;
-            if (result0$2 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp8,
-                p_1: true
-              })
-            }
-            result0$3 = tmp1.result.p_0;
-            if (result0$3 === true) {
-              result1$3 = tmp5.result.p_1;
-              if (result1$3 === true) {
-                return globalThis.Object.freeze({
-                  p_0: tmp8,
-                  p_1: true
-                })
-              }
-              return globalThis.Object.freeze({
-                p_0: tmp8,
-                p_1: false
-              });
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: false
-            });
-          }
-          result0$3 = tmp1.result.p_0;
-          if (result0$3 === true) {
-            result1$3 = tmp5.result.p_1;
-            if (result1$3 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp8,
-                p_1: true
-              })
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: false
-            });
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp8,
-            p_1: false
-          });
-        }
-        result1$2 = tmp1.result.p_1;
-        if (result1$2 === true) {
-          result0$2 = tmp5.result.p_0;
-          if (result0$2 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: true
-            })
-          }
-          result0$3 = tmp1.result.p_0;
-          if (result0$3 === true) {
-            result1$3 = tmp5.result.p_1;
-            if (result1$3 === true) {
-              return globalThis.Object.freeze({
-                p_0: tmp8,
-                p_1: true
-              })
-            }
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: false
-            });
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp8,
-            p_1: false
-          });
-        }
-        result0$3 = tmp1.result.p_0;
-        if (result0$3 === true) {
-          result1$3 = tmp5.result.p_1;
-          if (result1$3 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp8,
-              p_1: true
-            })
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp8,
-            p_1: false
-          });
-        }
-        return globalThis.Object.freeze({
-          p_0: tmp8,
-          p_1: false
-        });
-      } else if (input === false) {
-        return globalThis.Object.freeze({
-          p_0: true,
-          p_1: false
-        })
-      } else if (input instanceof TruthyFalsy1.Not.class) {
-        if (input instanceof Object) {
-          if ("arg" in input) {
-            arg = input.arg;
-            tmp9 = runtime.safeCall(matcher__Falsy_Truthy$(arg));
-            tmp10 = globalThis.Object.freeze({
-              input: arg,
-              result: tmp9
-            });
-          } else {
-            tmp11 = globalThis.Object.freeze({
-              p_1: false,
-              p_0: false
-            });
-            tmp10 = globalThis.Object.freeze({
-              input: null,
-              result: tmp11
-            });
-          }
-        } else {
-          tmp12 = globalThis.Object.freeze({
-            p_1: false,
-            p_0: false
-          });
-          tmp10 = globalThis.Object.freeze({
-            input: null,
-            result: tmp12
-          });
-        }
-        result1$4 = tmp10.result.p_1;
-        if (result1$4 === true) {
-          tmp13 = true;
-        } else {
-          tmp13 = false;
-        }
-        result0$4 = tmp10.result.p_0;
-        if (result0$4 === true) {
-          return globalThis.Object.freeze({
-            p_0: tmp13,
-            p_1: true
-          })
-        }
-        return globalThis.Object.freeze({
-          p_0: tmp13,
-          p_1: false
-        });
-      } else if (input instanceof TruthyFalsy1.And.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp14 = runtime.safeCall(matcher__Falsy_Truthy$(lhs1));
-            tmp15 = globalThis.Object.freeze({
-              input: lhs1,
-              result: tmp14
-            });
-          } else {
-            tmp16 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp15 = globalThis.Object.freeze({
-              input: null,
-              result: tmp16
-            });
-          }
-        } else {
-          tmp17 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp15 = globalThis.Object.freeze({
-            input: null,
-            result: tmp17
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp18 = runtime.safeCall(matcher__Falsy_Truthy$(rhs1));
-            tmp19 = globalThis.Object.freeze({
-              input: rhs1,
-              result: tmp18
-            });
-          } else {
-            tmp20 = globalThis.Object.freeze({
-              p_0: false,
-              p_1: false
-            });
-            tmp19 = globalThis.Object.freeze({
-              input: null,
-              result: tmp20
-            });
-          }
-        } else {
-          tmp21 = globalThis.Object.freeze({
-            p_0: false,
-            p_1: false
-          });
-          tmp19 = globalThis.Object.freeze({
-            input: null,
-            result: tmp21
-          });
-        }
-        result0$6 = tmp15.result.p_0;
-        if (result0$6 === true) {
-          result0$5 = tmp19.result.p_0;
-          if (result0$5 === true) {
-            tmp22 = true;
-          } else {
-            result0$7 = tmp15.result.p_0;
-            if (result0$7 === true) {
-              result1$5 = tmp19.result.p_1;
-              if (result1$5 === true) {
-                tmp22 = true;
-              } else {
-                result1$6 = tmp15.result.p_1;
-                if (result1$6 === true) {
-                  result0$8 = tmp19.result.p_0;
-                  if (result0$8 === true) {
-                    tmp22 = true;
-                  } else {
-                    tmp22 = false;
-                  }
-                } else {
-                  tmp22 = false;
-                }
-              }
-            } else {
-              result1$6 = tmp15.result.p_1;
-              if (result1$6 === true) {
-                result0$8 = tmp19.result.p_0;
-                if (result0$8 === true) {
-                  tmp22 = true;
-                } else {
-                  tmp22 = false;
-                }
-              } else {
-                tmp22 = false;
-              }
-            }
-          }
-        } else {
-          result0$7 = tmp15.result.p_0;
-          if (result0$7 === true) {
-            result1$5 = tmp19.result.p_1;
-            if (result1$5 === true) {
-              tmp22 = true;
-            } else {
-              result1$6 = tmp15.result.p_1;
-              if (result1$6 === true) {
-                result0$8 = tmp19.result.p_0;
-                if (result0$8 === true) {
-                  tmp22 = true;
-                } else {
-                  tmp22 = false;
-                }
-              } else {
-                tmp22 = false;
-              }
-            }
-          } else {
-            result1$6 = tmp15.result.p_1;
-            if (result1$6 === true) {
-              result0$8 = tmp19.result.p_0;
-              if (result0$8 === true) {
-                tmp22 = true;
-              } else {
-                tmp22 = false;
-              }
-            } else {
-              tmp22 = false;
-            }
-          }
-        }
-        result1$8 = tmp15.result.p_1;
-        if (result1$8 === true) {
-          result1$7 = tmp19.result.p_1;
-          if (result1$7 === true) {
-            return globalThis.Object.freeze({
-              p_0: tmp22,
-              p_1: true
-            })
-          }
-          return globalThis.Object.freeze({
-            p_0: tmp22,
-            p_1: false
-          });
-        }
-        return globalThis.Object.freeze({
-          p_0: tmp22,
-          p_1: false
-        });
-      } else if (input === true) {
-        return globalThis.Object.freeze({
-          p_0: false,
-          p_1: true
-        })
-      }
-      return globalThis.Object.freeze({
-        p_0: false,
-        p_1: false
-      });
-    });
-    matcher__Falsy_Truthy$ = lambda2;
     matchSuccess = runtime.safeCall(matcher__Falsy$(t));
     if (matchSuccess === true) {
       return true

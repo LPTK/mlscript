@@ -93,7 +93,7 @@ foo(C("a"))
 
 if C(1) is {:a} & C then a
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:265)
 //│ ═══[RUNTIME ERROR] Error: match error
 //│     at REPL64:1:70
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)
@@ -108,7 +108,7 @@ if C(1) is {:a} & C then a
 
 if C(1) is C & {:a} then a
 //│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:265)
 //│ ═══[RUNTIME ERROR] Error: match error
 //│     at REPL67:1:71
 //│     at ContextifyScript.runInThisContext (node:vm:137:12)

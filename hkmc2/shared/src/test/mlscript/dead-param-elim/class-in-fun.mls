@@ -28,31 +28,7 @@ f(1, 2).get()
 //│     return used⁰
 //│   }
 //│ };
-<<<<<<< HEAD
-//│ define f⁰ as fun f¹(used) {
-//│   let tmp1;
-//│   set tmp1 = new C¹(used);
-//│   return tmp1
-//│ };
-||||||| cfbbfe1aa
-//│ define f⁰ as fun f¹(used) {
-//│   let isMut, used1, inlinedVal, tmp1;
-//│   set isMut = false;
-//│   set used1 = used;
-//│   match isMut
-//│     true =>
-//│       set tmp1 = new mut C¹(used1);
-//│       set inlinedVal = tmp1;
-//│       return inlinedVal
-//│     else
-//│       set tmp1 = new C¹(used1);
-//│       set inlinedVal = tmp1;
-//│       return inlinedVal
-//│   end
-//│ };
-=======
 //│ define f⁰ as fun f¹(used) { return new C¹(used) };
->>>>>>> hkmc2
 //│ set tmp = f¹(1);
 //│ tmp.get﹖()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

@@ -523,13 +523,237 @@ let EvaluationContext1;
     lambda = (undefined, function (input) {
       let tmp29, tmp30;
       tmp29 = globalThis.Object.freeze({
+        m: input
+      });
+      tmp30 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, tmp29));
+      return tmp30
+    });
+    matcher4$ = lambda;
+    lambda1 = (undefined, function (input) {
+      let lhs1, rhs1, lhs2, rhs2, p_4$, result4$1, output4$1, fieldBindings1, result1$1, result3$2, output3$, result2$1, result5$1, result3$3, output3$1, bindings4, bindings5, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, tmp55, tmp56, tmp57, tmp58, tmp59, tmp60, tmp61;
+      if (input instanceof EvaluationContext1.Abs.class) {
+        tmp29 = globalThis.Object.freeze({
+          n: input
+        });
+        tmp30 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, tmp29));
+        tmp31 = globalThis.Object.freeze(new runtime.MatchFailure.class("never"));
+        tmp32 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null));
+        return globalThis.Object.freeze({
+          p_4: tmp30,
+          p_3: tmp31,
+          p_5: tmp32
+        })
+      } else if (input instanceof EvaluationContext1.App.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs2 = input.lhs;
+            tmp33 = runtime.safeCall(matcher1$(lhs2));
+            tmp34 = globalThis.Object.freeze({
+              input: lhs2,
+              result: tmp33
+            });
+          } else {
+            tmp35 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+            tmp36 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+            tmp37 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+            tmp38 = globalThis.Object.freeze({
+              p_1: tmp35,
+              p_2: tmp36,
+              p_3: tmp37
+            });
+            tmp34 = globalThis.Object.freeze({
+              input: null,
+              result: tmp38
+            });
+          }
+        } else {
+          tmp39 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+          tmp40 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+          tmp41 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+          tmp42 = globalThis.Object.freeze({
+            p_1: tmp39,
+            p_2: tmp40,
+            p_3: tmp41
+          });
+          tmp34 = globalThis.Object.freeze({
+            input: null,
+            result: tmp42
+          });
+        }
+        lhs1 = tmp34;
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs2 = input.rhs;
+            tmp43 = runtime.safeCall(matcher2$(rhs2));
+            tmp44 = globalThis.Object.freeze({
+              input: rhs2,
+              result: tmp43
+            });
+          } else {
+            tmp45 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+            tmp46 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+            tmp47 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+            tmp48 = globalThis.Object.freeze({
+              p_4: tmp45,
+              p_3: tmp46,
+              p_5: tmp47
+            });
+            tmp44 = globalThis.Object.freeze({
+              input: null,
+              result: tmp48
+            });
+          }
+        } else {
+          tmp49 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+          tmp50 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+          tmp51 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
+          tmp52 = globalThis.Object.freeze({
+            p_4: tmp49,
+            p_3: tmp50,
+            p_5: tmp51
+          });
+          tmp44 = globalThis.Object.freeze({
+            input: null,
+            result: tmp52
+          });
+        }
+        rhs1 = tmp44;
+        tmp53 = globalThis.Object.freeze(new runtime.MatchFailure.class("never"));
+        p_4$ = tmp53;
+        split_root$: {
+          split_1$: {
+            split_2$: {
+              result1$1 = tmp34.result.p_1;
+              if (result1$1 instanceof runtime.MatchSuccess.class) {
+                result1$1.output;
+                bindings4 = result1$1.bindings;
+                result4$1 = tmp44.result.p_4;
+                if (result4$1 instanceof runtime.MatchSuccess.class) {
+                  let inlinedVal1, x, n, m;
+                  output4$1 = result4$1.output;
+                  bindings5 = result4$1.bindings;
+                  fieldBindings1 = globalThis.Object.freeze({
+                    n: output4$1
+                  });
+                  tmp54 = globalThis.Object.freeze({
+                    ...bindings4,
+                    ...fieldBindings1,
+                    ...bindings5
+                  });
+                  x = tmp54.x;
+                  m = tmp54.m;
+                  n = tmp54.n;
+                  inlinedVal1 = EvaluationContext.subst(m, x, n);
+                  tmp55 = globalThis.Object.freeze(new runtime.MatchSuccess.class(inlinedVal1, null));
+                  break split_root$
+                }
+                result2$1 = tmp34.result.p_2;
+                if (result2$1 instanceof runtime.MatchSuccess.class) {
+                  result2$1.output;
+                  result2$1.bindings;
+                  result3$2 = tmp44.result.p_3;
+                  if (result3$2 instanceof runtime.MatchSuccess.class) {
+                    output3$ = result3$2.output;
+                    result3$2.bindings;
+                    break split_1$
+                  }
+                  result3$3 = tmp34.result.p_3;
+                  if (result3$3 instanceof runtime.MatchSuccess.class) {
+                    output3$1 = result3$3.output;
+                    result3$3.bindings;
+                    result5$1 = tmp44.result.p_5;
+                    if (result5$1 instanceof runtime.MatchSuccess.class) {
+                      result5$1.output;
+                      result5$1.bindings;
+                      break split_2$
+                    }
+                  }
+                } else {
+                  result3$3 = tmp34.result.p_3;
+                  if (result3$3 instanceof runtime.MatchSuccess.class) {
+                    output3$1 = result3$3.output;
+                    result3$3.bindings;
+                    result5$1 = tmp44.result.p_5;
+                    if (result5$1 instanceof runtime.MatchSuccess.class) {
+                      result5$1.output;
+                      result5$1.bindings;
+                      break split_2$
+                    }
+                  }
+                }
+              } else {
+                result2$1 = tmp34.result.p_2;
+                if (result2$1 instanceof runtime.MatchSuccess.class) {
+                  result2$1.output;
+                  result2$1.bindings;
+                  result3$2 = tmp44.result.p_3;
+                  if (result3$2 instanceof runtime.MatchSuccess.class) {
+                    output3$ = result3$2.output;
+                    result3$2.bindings;
+                    break split_1$
+                  }
+                  result3$3 = tmp34.result.p_3;
+                  if (result3$3 instanceof runtime.MatchSuccess.class) {
+                    output3$1 = result3$3.output;
+                    result3$3.bindings;
+                    result5$1 = tmp44.result.p_5;
+                    if (result5$1 instanceof runtime.MatchSuccess.class) {
+                      result5$1.output;
+                      result5$1.bindings;
+                      break split_2$
+                    }
+                  }
+                } else {
+                  result3$3 = tmp34.result.p_3;
+                  if (result3$3 instanceof runtime.MatchSuccess.class) {
+                    output3$1 = result3$3.output;
+                    result3$3.bindings;
+                    result5$1 = tmp44.result.p_5;
+                    if (result5$1 instanceof runtime.MatchSuccess.class) {
+                      result5$1.output;
+                      result5$1.bindings;
+                      break split_2$
+                    }
+                  }
+                }
+              }
+              tmp55 = globalThis.Object.freeze(new runtime.MatchFailure.class("topmost"));
+              break split_root$;
+            }
+            tmp56 = globalThis.Object.freeze(new EvaluationContext1.App.class(output3$1, rhs1.input));
+            tmp55 = globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp56, null));
+            break split_root$;
+          }
+          tmp57 = globalThis.Object.freeze(new EvaluationContext1.App.class(lhs1.input, output3$));
+          tmp55 = globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp57, null));
+        }
+        tmp58 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null));
+        return globalThis.Object.freeze({
+          p_4: p_4$,
+          p_3: tmp55,
+          p_5: tmp58
+        })
+      }
+      tmp59 = globalThis.Object.freeze(new runtime.MatchFailure.class("never"));
+      tmp60 = globalThis.Object.freeze(new runtime.MatchFailure.class("never"));
+      tmp61 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null));
+      return globalThis.Object.freeze({
+        p_4: tmp59,
+        p_3: tmp60,
+        p_5: tmp61
+      });
+    });
+    matcher2$ = lambda1;
+    lambda2 = (undefined, function (input) {
+      let tmp29, tmp30;
+      tmp29 = globalThis.Object.freeze({
         x: input
       });
       tmp30 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, tmp29));
       return tmp30
     });
-    matcher5$ = lambda;
-    lambda1 = (undefined, function (input) {
+    matcher5$ = lambda2;
+    lambda3 = (undefined, function (input) {
       let lhs1, rhs1, result7$, output7$, fieldBindings1, result6$, bindings4, bindings5, lhs2, rhs2, lhs3, rhs3, p_1$, p_2$, result4$1, output4$1, fieldBindings2, result1$1, result3$2, output3$, result2$1, result5$1, result3$3, output3$1, bindings6, bindings7, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, tmp55, tmp56, tmp57, tmp58, tmp59, tmp60, tmp61, tmp62, tmp63, tmp64, tmp65, tmp66, tmp67, tmp68, tmp69;
       if (input instanceof EvaluationContext1.Abs.class) {
         if (input instanceof Object) {
@@ -807,8 +1031,8 @@ let EvaluationContext1;
         p_3: tmp69
       });
     });
-    matcher1$ = lambda1;
-    lambda2 = (undefined, function (input) {
+    matcher1$ = lambda3;
+    lambda4 = (undefined, function (input) {
       let name, result8$, output8$, fieldBindings1, bindings4, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35;
       if (input instanceof EvaluationContext1.Var.class) {
         if (input instanceof Object) {
@@ -853,231 +1077,7 @@ let EvaluationContext1;
       tmp35 = globalThis.Object.freeze(new runtime.MatchFailure.class("never"));
       return tmp35;
     });
-    matcher3$ = lambda2;
-    lambda3 = (undefined, function (input) {
-      let tmp29, tmp30;
-      tmp29 = globalThis.Object.freeze({
-        m: input
-      });
-      tmp30 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, tmp29));
-      return tmp30
-    });
-    matcher4$ = lambda3;
-    lambda4 = (undefined, function (input) {
-      let lhs1, rhs1, lhs2, rhs2, p_4$, result4$1, output4$1, fieldBindings1, result1$1, result3$2, output3$, result2$1, result5$1, result3$3, output3$1, bindings4, bindings5, tmp29, tmp30, tmp31, tmp32, tmp33, tmp34, tmp35, tmp36, tmp37, tmp38, tmp39, tmp40, tmp41, tmp42, tmp43, tmp44, tmp45, tmp46, tmp47, tmp48, tmp49, tmp50, tmp51, tmp52, tmp53, tmp54, tmp55, tmp56, tmp57, tmp58, tmp59, tmp60, tmp61;
-      if (input instanceof EvaluationContext1.Abs.class) {
-        tmp29 = globalThis.Object.freeze({
-          n: input
-        });
-        tmp30 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, tmp29));
-        tmp31 = globalThis.Object.freeze(new runtime.MatchFailure.class("never"));
-        tmp32 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null));
-        return globalThis.Object.freeze({
-          p_4: tmp30,
-          p_3: tmp31,
-          p_5: tmp32
-        })
-      } else if (input instanceof EvaluationContext1.App.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs2 = input.lhs;
-            tmp33 = runtime.safeCall(matcher1$(lhs2));
-            tmp34 = globalThis.Object.freeze({
-              input: lhs2,
-              result: tmp33
-            });
-          } else {
-            tmp35 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-            tmp36 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-            tmp37 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-            tmp38 = globalThis.Object.freeze({
-              p_1: tmp35,
-              p_2: tmp36,
-              p_3: tmp37
-            });
-            tmp34 = globalThis.Object.freeze({
-              input: null,
-              result: tmp38
-            });
-          }
-        } else {
-          tmp39 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-          tmp40 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-          tmp41 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-          tmp42 = globalThis.Object.freeze({
-            p_1: tmp39,
-            p_2: tmp40,
-            p_3: tmp41
-          });
-          tmp34 = globalThis.Object.freeze({
-            input: null,
-            result: tmp42
-          });
-        }
-        lhs1 = tmp34;
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs2 = input.rhs;
-            tmp43 = runtime.safeCall(matcher2$(rhs2));
-            tmp44 = globalThis.Object.freeze({
-              input: rhs2,
-              result: tmp43
-            });
-          } else {
-            tmp45 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-            tmp46 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-            tmp47 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-            tmp48 = globalThis.Object.freeze({
-              p_4: tmp45,
-              p_3: tmp46,
-              p_5: tmp47
-            });
-            tmp44 = globalThis.Object.freeze({
-              input: null,
-              result: tmp48
-            });
-          }
-        } else {
-          tmp49 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-          tmp50 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-          tmp51 = globalThis.Object.freeze(new runtime.MatchFailure.class("empty"));
-          tmp52 = globalThis.Object.freeze({
-            p_4: tmp49,
-            p_3: tmp50,
-            p_5: tmp51
-          });
-          tmp44 = globalThis.Object.freeze({
-            input: null,
-            result: tmp52
-          });
-        }
-        rhs1 = tmp44;
-        tmp53 = globalThis.Object.freeze(new runtime.MatchFailure.class("never"));
-        p_4$ = tmp53;
-        split_root$: {
-          split_1$: {
-            split_2$: {
-              result1$1 = tmp34.result.p_1;
-              if (result1$1 instanceof runtime.MatchSuccess.class) {
-                result1$1.output;
-                bindings4 = result1$1.bindings;
-                result4$1 = tmp44.result.p_4;
-                if (result4$1 instanceof runtime.MatchSuccess.class) {
-                  let inlinedVal1, x, n, m;
-                  output4$1 = result4$1.output;
-                  bindings5 = result4$1.bindings;
-                  fieldBindings1 = globalThis.Object.freeze({
-                    n: output4$1
-                  });
-                  tmp54 = globalThis.Object.freeze({
-                    ...bindings4,
-                    ...fieldBindings1,
-                    ...bindings5
-                  });
-                  x = tmp54.x;
-                  m = tmp54.m;
-                  n = tmp54.n;
-                  inlinedVal1 = EvaluationContext.subst(m, x, n);
-                  tmp55 = globalThis.Object.freeze(new runtime.MatchSuccess.class(inlinedVal1, null));
-                  break split_root$
-                }
-                result2$1 = tmp34.result.p_2;
-                if (result2$1 instanceof runtime.MatchSuccess.class) {
-                  result2$1.output;
-                  result2$1.bindings;
-                  result3$2 = tmp44.result.p_3;
-                  if (result3$2 instanceof runtime.MatchSuccess.class) {
-                    output3$ = result3$2.output;
-                    result3$2.bindings;
-                    break split_1$
-                  }
-                  result3$3 = tmp34.result.p_3;
-                  if (result3$3 instanceof runtime.MatchSuccess.class) {
-                    output3$1 = result3$3.output;
-                    result3$3.bindings;
-                    result5$1 = tmp44.result.p_5;
-                    if (result5$1 instanceof runtime.MatchSuccess.class) {
-                      result5$1.output;
-                      result5$1.bindings;
-                      break split_2$
-                    }
-                  }
-                } else {
-                  result3$3 = tmp34.result.p_3;
-                  if (result3$3 instanceof runtime.MatchSuccess.class) {
-                    output3$1 = result3$3.output;
-                    result3$3.bindings;
-                    result5$1 = tmp44.result.p_5;
-                    if (result5$1 instanceof runtime.MatchSuccess.class) {
-                      result5$1.output;
-                      result5$1.bindings;
-                      break split_2$
-                    }
-                  }
-                }
-              } else {
-                result2$1 = tmp34.result.p_2;
-                if (result2$1 instanceof runtime.MatchSuccess.class) {
-                  result2$1.output;
-                  result2$1.bindings;
-                  result3$2 = tmp44.result.p_3;
-                  if (result3$2 instanceof runtime.MatchSuccess.class) {
-                    output3$ = result3$2.output;
-                    result3$2.bindings;
-                    break split_1$
-                  }
-                  result3$3 = tmp34.result.p_3;
-                  if (result3$3 instanceof runtime.MatchSuccess.class) {
-                    output3$1 = result3$3.output;
-                    result3$3.bindings;
-                    result5$1 = tmp44.result.p_5;
-                    if (result5$1 instanceof runtime.MatchSuccess.class) {
-                      result5$1.output;
-                      result5$1.bindings;
-                      break split_2$
-                    }
-                  }
-                } else {
-                  result3$3 = tmp34.result.p_3;
-                  if (result3$3 instanceof runtime.MatchSuccess.class) {
-                    output3$1 = result3$3.output;
-                    result3$3.bindings;
-                    result5$1 = tmp44.result.p_5;
-                    if (result5$1 instanceof runtime.MatchSuccess.class) {
-                      result5$1.output;
-                      result5$1.bindings;
-                      break split_2$
-                    }
-                  }
-                }
-              }
-              tmp55 = globalThis.Object.freeze(new runtime.MatchFailure.class("topmost"));
-              break split_root$;
-            }
-            tmp56 = globalThis.Object.freeze(new EvaluationContext1.App.class(output3$1, rhs1.input));
-            tmp55 = globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp56, null));
-            break split_root$;
-          }
-          tmp57 = globalThis.Object.freeze(new EvaluationContext1.App.class(lhs1.input, output3$));
-          tmp55 = globalThis.Object.freeze(new runtime.MatchSuccess.class(tmp57, null));
-        }
-        tmp58 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null));
-        return globalThis.Object.freeze({
-          p_4: p_4$,
-          p_3: tmp55,
-          p_5: tmp58
-        })
-      }
-      tmp59 = globalThis.Object.freeze(new runtime.MatchFailure.class("never"));
-      tmp60 = globalThis.Object.freeze(new runtime.MatchFailure.class("never"));
-      tmp61 = globalThis.Object.freeze(new runtime.MatchSuccess.class(input, null));
-      return globalThis.Object.freeze({
-        p_4: tmp59,
-        p_3: tmp60,
-        p_5: tmp61
-      });
-    });
-    matcher2$ = lambda4;
+    matcher3$ = lambda4;
     if (t instanceof EvaluationContext1.App.class) {
       if (t instanceof Object) {
         if ("lhs" in t) {
@@ -1307,206 +1307,12 @@ let EvaluationContext1;
   static isStep_optimized_matchOnly(t) {
     let matcher1$, matcher2$, matcher3$, matcher4$, matcher5$, lambda, lambda1, lambda2, lambda3, lambda4, inlinedVal, lhs, rhs, result4$, result1$, result3$, result2$, result5$, result3$1, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
     lambda = (undefined, function (input) {
-      let lhs1, rhs1, result4$1, result1$1, result3$2, result2$1, result5$1, result3$3, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
-      if (input instanceof EvaluationContext1.Abs.class) {
-        return globalThis.Object.freeze({
-          p_4: true,
-          p_3: false,
-          p_5: true
-        })
-      } else if (input instanceof EvaluationContext1.App.class) {
-        if (input instanceof Object) {
-          if ("lhs" in input) {
-            lhs1 = input.lhs;
-            tmp9 = runtime.safeCall(matcher1$(lhs1));
-            tmp10 = globalThis.Object.freeze({
-              input: lhs1,
-              result: tmp9
-            });
-          } else {
-            tmp11 = globalThis.Object.freeze({
-              p_1: false,
-              p_2: false,
-              p_3: false
-            });
-            tmp10 = globalThis.Object.freeze({
-              input: null,
-              result: tmp11
-            });
-          }
-        } else {
-          tmp12 = globalThis.Object.freeze({
-            p_1: false,
-            p_2: false,
-            p_3: false
-          });
-          tmp10 = globalThis.Object.freeze({
-            input: null,
-            result: tmp12
-          });
-        }
-        if (input instanceof Object) {
-          if ("rhs" in input) {
-            rhs1 = input.rhs;
-            tmp13 = runtime.safeCall(matcher2$(rhs1));
-            tmp14 = globalThis.Object.freeze({
-              input: rhs1,
-              result: tmp13
-            });
-          } else {
-            tmp15 = globalThis.Object.freeze({
-              p_4: false,
-              p_3: false,
-              p_5: false
-            });
-            tmp14 = globalThis.Object.freeze({
-              input: null,
-              result: tmp15
-            });
-          }
-        } else {
-          tmp16 = globalThis.Object.freeze({
-            p_4: false,
-            p_3: false,
-            p_5: false
-          });
-          tmp14 = globalThis.Object.freeze({
-            input: null,
-            result: tmp16
-          });
-        }
-        result1$1 = tmp10.result.p_1;
-        if (result1$1 === true) {
-          result4$1 = tmp14.result.p_4;
-          if (result4$1 === true) {
-            return globalThis.Object.freeze({
-              p_4: false,
-              p_3: true,
-              p_5: true
-            })
-          }
-          result2$1 = tmp10.result.p_2;
-          if (result2$1 === true) {
-            result3$2 = tmp14.result.p_3;
-            if (result3$2 === true) {
-              return globalThis.Object.freeze({
-                p_4: false,
-                p_3: true,
-                p_5: true
-              })
-            }
-            result3$3 = tmp10.result.p_3;
-            if (result3$3 === true) {
-              result5$1 = tmp14.result.p_5;
-              if (result5$1 === true) {
-                return globalThis.Object.freeze({
-                  p_4: false,
-                  p_3: true,
-                  p_5: true
-                })
-              }
-              return globalThis.Object.freeze({
-                p_4: false,
-                p_3: false,
-                p_5: true
-              });
-            }
-            return globalThis.Object.freeze({
-              p_4: false,
-              p_3: false,
-              p_5: true
-            });
-          }
-          result3$3 = tmp10.result.p_3;
-          if (result3$3 === true) {
-            result5$1 = tmp14.result.p_5;
-            if (result5$1 === true) {
-              return globalThis.Object.freeze({
-                p_4: false,
-                p_3: true,
-                p_5: true
-              })
-            }
-            return globalThis.Object.freeze({
-              p_4: false,
-              p_3: false,
-              p_5: true
-            });
-          }
-          return globalThis.Object.freeze({
-            p_4: false,
-            p_3: false,
-            p_5: true
-          });
-        }
-        result2$1 = tmp10.result.p_2;
-        if (result2$1 === true) {
-          result3$2 = tmp14.result.p_3;
-          if (result3$2 === true) {
-            return globalThis.Object.freeze({
-              p_4: false,
-              p_3: true,
-              p_5: true
-            })
-          }
-          result3$3 = tmp10.result.p_3;
-          if (result3$3 === true) {
-            result5$1 = tmp14.result.p_5;
-            if (result5$1 === true) {
-              return globalThis.Object.freeze({
-                p_4: false,
-                p_3: true,
-                p_5: true
-              })
-            }
-            return globalThis.Object.freeze({
-              p_4: false,
-              p_3: false,
-              p_5: true
-            });
-          }
-          return globalThis.Object.freeze({
-            p_4: false,
-            p_3: false,
-            p_5: true
-          });
-        }
-        result3$3 = tmp10.result.p_3;
-        if (result3$3 === true) {
-          result5$1 = tmp14.result.p_5;
-          if (result5$1 === true) {
-            return globalThis.Object.freeze({
-              p_4: false,
-              p_3: true,
-              p_5: true
-            })
-          }
-          return globalThis.Object.freeze({
-            p_4: false,
-            p_3: false,
-            p_5: true
-          });
-        }
-        return globalThis.Object.freeze({
-          p_4: false,
-          p_3: false,
-          p_5: true
-        });
-      }
-      return globalThis.Object.freeze({
-        p_4: false,
-        p_3: false,
-        p_5: true
-      });
-    });
-    matcher2$ = lambda;
-    lambda1 = (undefined, function (input) {
       let name, result8$, tmp9, tmp10;
       if (input instanceof EvaluationContext1.Var.class) {
         if (input instanceof Object) {
           if ("name" in input) {
             name = input.name;
-            tmp9 = runtime.safeCall(matcher5$(name));
+            tmp9 = runtime.safeCall(matcher5$());
             tmp10 = globalThis.Object.freeze({
               input: name,
               result: tmp9
@@ -1531,8 +1337,8 @@ let EvaluationContext1;
       }
       return false;
     });
-    matcher3$ = lambda1;
-    lambda2 = (undefined, function (input) {
+    matcher3$ = lambda;
+    lambda1 = (undefined, function (input) {
       let lhs1, rhs1, result7$, result6$, lhs2, rhs2, result4$1, result1$1, result3$2, result2$1, result5$1, result3$3, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16, tmp17, tmp18, tmp19, tmp20;
       if (input instanceof EvaluationContext1.Abs.class) {
         if (input instanceof Object) {
@@ -1558,7 +1364,7 @@ let EvaluationContext1;
         if (input instanceof Object) {
           if ("rhs" in input) {
             rhs1 = input.rhs;
-            tmp11 = runtime.safeCall(matcher4$(rhs1));
+            tmp11 = runtime.safeCall(matcher4$());
             tmp12 = globalThis.Object.freeze({
               input: rhs1,
               result: tmp11
@@ -1781,15 +1587,209 @@ let EvaluationContext1;
         p_3: false
       });
     });
-    matcher1$ = lambda2;
-    lambda3 = (undefined, function (input) {
+    matcher1$ = lambda1;
+    lambda3 = (undefined, function () {
       return true
     });
     matcher4$ = lambda3;
-    lambda4 = (undefined, function (input) {
+    lambda4 = (undefined, function () {
       return true
     });
     matcher5$ = lambda4;
+    lambda2 = (undefined, function (input) {
+      let lhs1, rhs1, result4$1, result1$1, result3$2, result2$1, result5$1, result3$3, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15, tmp16;
+      if (input instanceof EvaluationContext1.Abs.class) {
+        return globalThis.Object.freeze({
+          p_4: true,
+          p_3: false,
+          p_5: true
+        })
+      } else if (input instanceof EvaluationContext1.App.class) {
+        if (input instanceof Object) {
+          if ("lhs" in input) {
+            lhs1 = input.lhs;
+            tmp9 = runtime.safeCall(matcher1$(lhs1));
+            tmp10 = globalThis.Object.freeze({
+              input: lhs1,
+              result: tmp9
+            });
+          } else {
+            tmp11 = globalThis.Object.freeze({
+              p_1: false,
+              p_2: false,
+              p_3: false
+            });
+            tmp10 = globalThis.Object.freeze({
+              input: null,
+              result: tmp11
+            });
+          }
+        } else {
+          tmp12 = globalThis.Object.freeze({
+            p_1: false,
+            p_2: false,
+            p_3: false
+          });
+          tmp10 = globalThis.Object.freeze({
+            input: null,
+            result: tmp12
+          });
+        }
+        if (input instanceof Object) {
+          if ("rhs" in input) {
+            rhs1 = input.rhs;
+            tmp13 = runtime.safeCall(matcher2$(rhs1));
+            tmp14 = globalThis.Object.freeze({
+              input: rhs1,
+              result: tmp13
+            });
+          } else {
+            tmp15 = globalThis.Object.freeze({
+              p_4: false,
+              p_3: false,
+              p_5: false
+            });
+            tmp14 = globalThis.Object.freeze({
+              input: null,
+              result: tmp15
+            });
+          }
+        } else {
+          tmp16 = globalThis.Object.freeze({
+            p_4: false,
+            p_3: false,
+            p_5: false
+          });
+          tmp14 = globalThis.Object.freeze({
+            input: null,
+            result: tmp16
+          });
+        }
+        result1$1 = tmp10.result.p_1;
+        if (result1$1 === true) {
+          result4$1 = tmp14.result.p_4;
+          if (result4$1 === true) {
+            return globalThis.Object.freeze({
+              p_4: false,
+              p_3: true,
+              p_5: true
+            })
+          }
+          result2$1 = tmp10.result.p_2;
+          if (result2$1 === true) {
+            result3$2 = tmp14.result.p_3;
+            if (result3$2 === true) {
+              return globalThis.Object.freeze({
+                p_4: false,
+                p_3: true,
+                p_5: true
+              })
+            }
+            result3$3 = tmp10.result.p_3;
+            if (result3$3 === true) {
+              result5$1 = tmp14.result.p_5;
+              if (result5$1 === true) {
+                return globalThis.Object.freeze({
+                  p_4: false,
+                  p_3: true,
+                  p_5: true
+                })
+              }
+              return globalThis.Object.freeze({
+                p_4: false,
+                p_3: false,
+                p_5: true
+              });
+            }
+            return globalThis.Object.freeze({
+              p_4: false,
+              p_3: false,
+              p_5: true
+            });
+          }
+          result3$3 = tmp10.result.p_3;
+          if (result3$3 === true) {
+            result5$1 = tmp14.result.p_5;
+            if (result5$1 === true) {
+              return globalThis.Object.freeze({
+                p_4: false,
+                p_3: true,
+                p_5: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_4: false,
+              p_3: false,
+              p_5: true
+            });
+          }
+          return globalThis.Object.freeze({
+            p_4: false,
+            p_3: false,
+            p_5: true
+          });
+        }
+        result2$1 = tmp10.result.p_2;
+        if (result2$1 === true) {
+          result3$2 = tmp14.result.p_3;
+          if (result3$2 === true) {
+            return globalThis.Object.freeze({
+              p_4: false,
+              p_3: true,
+              p_5: true
+            })
+          }
+          result3$3 = tmp10.result.p_3;
+          if (result3$3 === true) {
+            result5$1 = tmp14.result.p_5;
+            if (result5$1 === true) {
+              return globalThis.Object.freeze({
+                p_4: false,
+                p_3: true,
+                p_5: true
+              })
+            }
+            return globalThis.Object.freeze({
+              p_4: false,
+              p_3: false,
+              p_5: true
+            });
+          }
+          return globalThis.Object.freeze({
+            p_4: false,
+            p_3: false,
+            p_5: true
+          });
+        }
+        result3$3 = tmp10.result.p_3;
+        if (result3$3 === true) {
+          result5$1 = tmp14.result.p_5;
+          if (result5$1 === true) {
+            return globalThis.Object.freeze({
+              p_4: false,
+              p_3: true,
+              p_5: true
+            })
+          }
+          return globalThis.Object.freeze({
+            p_4: false,
+            p_3: false,
+            p_5: true
+          });
+        }
+        return globalThis.Object.freeze({
+          p_4: false,
+          p_3: false,
+          p_5: true
+        });
+      }
+      return globalThis.Object.freeze({
+        p_4: false,
+        p_3: false,
+        p_5: true
+      });
+    });
+    matcher2$ = lambda2;
     if (t instanceof EvaluationContext1.App.class) {
       if (t instanceof Object) {
         if ("lhs" in t) {
