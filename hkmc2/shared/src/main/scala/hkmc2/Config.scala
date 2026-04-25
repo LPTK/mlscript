@@ -79,7 +79,7 @@ object Config:
   object default:
     val patMatConsequentSharingThreshold = S(15)
   
-  case class SanityChecks(light: Bool)
+  case class SanityChecks(light: Bool, checkUnreachable: Bool)
   
   case class EffectHandlers(
     debug: Bool,
@@ -317,7 +317,7 @@ object ConfigParser:
           case S(v) => cfg.copy(deadParamElim = v)
           case N => cfg
     case "sanityChecks" =>
-      parseOpt(value)(_ => S(Config.SanityChecks(light = true))) match
+      parseOpt(value)(_ => S(Config.SanityChecks(light = true, checkUnreachable = true))) match
         case S(v) => _.copy(sanityChecks = v)
         case N => identity
     case "patMatConsequentSharingThreshold" =>

@@ -95,7 +95,7 @@ abstract class MLsDiffMaker extends DiffMaker:
       output(s"$errMarker Option ':noInline' conflicts with option ':inlineThreshold'")
     Config(
       baseDir = wd,
-      sanityChecks = Opt.when(noSanityCheck.isUnset)(SanityChecks(light = true)),
+      sanityChecks = Opt.when(noSanityCheck.isUnset)(SanityChecks(light = true, checkUnreachable = true)),
       effectHandlers = Opt.when(effectHandlers.isSet)(EffectHandlers(
         debug = effectHandlers.get.contains("debug"),
         stackSafety = stackSafe.get.flatMap:

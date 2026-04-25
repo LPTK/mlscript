@@ -628,6 +628,8 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       doc" # /* $msg */"
     case End(_) => doc""
     
+    case Unreachable(msg) if config.sanityChecks.exists(_.checkUnreachable) =>
+      doc" # throw new Error(${makeStringLiteral(s"Reached 'unreachable' code ($msg)")});"
     case Unreachable(msg) if config.commentGeneratedCode =>
       if msg.isEmpty then doc" # /* Unreachable */"
       else doc" # /* Unreachable: $msg */"
