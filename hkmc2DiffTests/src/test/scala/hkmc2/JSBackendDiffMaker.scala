@@ -110,6 +110,8 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     val print = (p: codegen.Program) =>
       blockPrinter.worksheet(p)(using irPrintingScp).mkString(output.ColWidth)
     
+    val effectiveConfig = Config.extractConfigFromStats(blk)
+
     if showJS.isSet then
       given Raise =
         case d @ ErrorReport(source = Source.Compilation) =>
@@ -118,9 +120,9 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         case d => outerRaise(d)
       given Elaborator.Ctx = curCtx
       val low = ltl.givenIn:
-        codegen.Lowering()
+        codegen.Lowering()(using effectiveConfig)
       val jsb = ltl.givenIn:
-        JSBuilder()
+        JSBuilder(using effectiveConfig)
       var lowered = low.program(blk)
       if noOptimizations.isUnset then
         lowered = BlockSimplifier(symbolsToPreserve, dtl, print)(lowered)
@@ -141,7 +143,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
             output(s"Skipping already reported diagnostic: ${e.mainMsg}")
         case d => outerRaise(d)
       val low = ltl.givenIn:
-        new codegen.Lowering()
+        new codegen.Lowering()(using effectiveConfig)
           with codegen.LoweringSelSanityChecks
           with codegen.LoweringTraceLog(traceJS.isSet)
       
@@ -165,10 +167,14 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         optimized = BlockSimplifier(symbolsToPreserve, dtl, print)(optimized)
         ltl.givenIn:
           optimized = DeadParamElim(optimized)
+      /* 
+      val lowered_2 = ltl.givenIn:
+        DeadParamElim(lowered_1)
+      */
       
       // TODO: Test that transformers retain object identity when there are no changes
       if (optimized isnt lowered) && (optimized === lowered) then
-        output("/!\\ Warning: object identity between equal objects was not preserved by BlockSimplifier")
+        output("/!\\ Warning: object identity between equal objects was not preserved by BlockSimplifier or DeadParamElim")
         def rec(lhs: Block, rhs: Block): Bool =
           (lhs is rhs) || {
             if

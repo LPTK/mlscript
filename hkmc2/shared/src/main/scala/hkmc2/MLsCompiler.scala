@@ -107,11 +107,12 @@ class MLsCompiler
             blk0.stats),
         blk0.res
       )
+      val effectiveConfig = Config.extractConfigFromStats(blk)
       val low = ltl.givenIn:
-        new codegen.Lowering()
+        new codegen.Lowering()(using effectiveConfig)
           with codegen.LoweringSelSanityChecks
       val jsb = ltl.givenIn:
-        codegen.js.JSBuilder()
+        codegen.js.JSBuilder(using effectiveConfig)
       val lowered = low.program(blk)
       var optimized = lowered
       val nme = file.baseName

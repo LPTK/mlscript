@@ -1,11 +1,11 @@
 :js
 :noInline
+:deadParamElim debug
 
 
 
 
 // g has dead param `b`, but f has live param `a`
-:deadParamElim
 :expect 0
 private fun f(a) = a
 private fun g(b) = 0
@@ -20,7 +20,6 @@ m()
 
 
 
-:deadParamElim
 :expect 3
 private fun f(a)(b) = 0
 private fun g(a)(b) = a + b
@@ -33,7 +32,6 @@ m1()
 //│ = 3
 
 
-:deadParamElim
 :expect 5
 private fun f(a) = a
 private fun g(b) = 0
@@ -47,7 +45,6 @@ h(5)
 
 
 // f, g, h all flow to the same call site
-:deadParamElim
 :expect 0
 private fun f(a) = a
 private fun g(b) = 0
@@ -67,7 +64,6 @@ m()
 
 
 
-:deadParamElim
 :expect 1
 private fun f(a)(b) = 0
 private fun g(a)(b) = a
@@ -83,7 +79,6 @@ m()
 
 
 
-:deadParamElim
 :expect 1
 private fun f(a, b) = 0
 private fun g(a, b) = a
@@ -99,7 +94,6 @@ m()
 
 
 
-:deadParamElim
 :soir
 [1,2,3].map((x, i, a) => x + 1)
 //│ dead-param-elim > >>> dead-param-elim results >>>
@@ -167,7 +161,6 @@ m()
 
 
 
-:deadParamElim
 :expect [4, 5]
 private fun f(a, b, ...rest) = rest
 private fun g(a, b, c, ...rest) = rest
@@ -178,7 +171,6 @@ private fun g(a, b, c, ...rest) = rest
 //│ = [4, 5]
 
 
-:deadParamElim
 :expect [3, 4, 5]
 private fun f(a, b, ...rest) = rest
 private fun g(a, b, c, ...rest) = rest
@@ -189,7 +181,6 @@ private fun g(a, b, c, ...rest) = rest
 //│ = [3, 4, 5]
 
 
-:deadParamElim
 :expect [3, 4, 5]
 public fun f(a, b, ...rest) = rest
 public fun g(a, b, c, ...rest) = rest
@@ -200,8 +191,12 @@ public fun g(a, b, c, ...rest) = rest
 
 :expect [4, 5]
 (if false then f else g)(1,2,3,4,5)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
 //│ = [4, 5]
 
 :expect [3, 4, 5]
 (if true then f else g)(1,2,3,4,5)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
 //│ = [3, 4, 5]

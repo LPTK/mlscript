@@ -216,8 +216,6 @@ class BlockSimplifier
         case _: Throw | Return(_, false) | _: Unreachable | _: Continue | _: Break => true
         case Return(_, true) => false
         case _: End => false
-        case HandleBlock(lhs, res, par, args, cls, handlers, body, rest) =>
-          body.analyze || rest.analyze
         
     end AbortiveAnalysis
     

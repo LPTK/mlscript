@@ -31,13 +31,43 @@ fun foo(h): module M =
 //│ runtime.checkCall(runtime.resetEffects());
 //│ foo = function foo(h) {
 //│   runtime.checkArgs("foo", 1, true, arguments.length);
+<<<<<<< HEAD
 //│   let A1;
 //│   globalThis.Object.freeze(class A {
+||||||| cfbbfe1aa
+//│   let A2, A3, scrut;
+//│   scrut = false;
+//│   if (scrut === true) {
+//│     globalThis.Object.freeze(class A {
+//│       static {
+//│         A2 = this
+//│       }
+//│       static #A_mod$cap;
+//│       #A$cap;
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "A"]; 
+//│     });
+//│     return A2
+//│   }
+//│   globalThis.Object.freeze(class A1 {
+=======
+//│   let A2, A3, scrut;
+//│   scrut = false;
+//│   if (scrut === true) {
+//│     globalThis.Object.freeze(class A {
+//│       static {
+//│         A2 = this
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "A"]; 
+//│     });
+//│     return A2
+//│   }
+//│   globalThis.Object.freeze(class A1 {
+>>>>>>> hkmc2
 //│     static {
 //│       A1 = this
 //│     }
-//│     static #A_mod$cap;
-//│     #A$cap;
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "A"]; 
 //│   });
