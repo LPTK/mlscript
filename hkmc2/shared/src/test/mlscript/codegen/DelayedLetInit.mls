@@ -112,7 +112,10 @@ else foo = 1
 //│ ╙──       	         ^
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
 //│ let foo1;
-//│ block$res14 = undefined; undefined
+//│ if (true === true) {
+//│   block$res14 = undefined;
+//│   undefined
+//│ } else { throw globalThis.Object.freeze(new globalThis.Error("match error")) }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ foo = undefined
 
@@ -124,7 +127,11 @@ else
   foo = 1
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
 //│ let foo2;
-//│ foo2 = 0; block$res15 = runtime.Unit; undefined
+//│ if (true === true) {
+//│   foo2 = 0;
+//│   block$res15 = runtime.Unit;
+//│   undefined
+//│ } else { foo2 = 1; block$res15 = runtime.Unit; undefined }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ foo = 0
 
@@ -155,7 +162,7 @@ foo
 :fixme
 fun f() = foo = 0
 //│ ╔══[PARSE ERROR] Expected end of input; found '=' keyword instead
-//│ ║  l.156: 	fun f() = foo = 0
+//│ ║  l.163: 	fun f() = foo = 0
 //│ ╙──       	              ^
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
 //│ let f4;

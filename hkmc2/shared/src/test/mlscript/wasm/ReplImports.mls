@@ -10,15 +10,15 @@ val step = 2
 let counter = 1
 let unit = ()
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}
 
 inc(Foo.x)
 //│ Wasm result:
-//│ = Unit {}
+//│ = 2
 
 if C(7) is C(v) then v else 0
 //│ Wasm result:
-//│ = Unit {}
+//│ = 7
 
 :wat
 set counter += step
@@ -44,11 +44,11 @@ counter
 //│         (local.get $tmp))))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 3
 
 unit
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}
 
 :wat
 ()
@@ -62,4 +62,4 @@ unit
 //│     (global.get $Unit))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}

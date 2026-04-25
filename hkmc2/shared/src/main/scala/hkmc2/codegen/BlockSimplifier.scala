@@ -19,8 +19,7 @@ import hkmc2.syntax.Literal
   * typically, these will be top-level symbols that are being exported from a diff-test block;
   * we don't want to eliminate these. */
 class BlockSimplifier
-    (symbolsToPreserve: Set[Local], tl: TL, printer: Program => Str)
-    // (using DebugPrinter, State, Config, Raise, Ctx, ShowCfg, SymbolPrinter):
+    (symbolsToPreserve: Set[Local], tl: TL, printer: Program => Str, deadBranchElim: Bool = false)
     (using DebugPrinter, State, Config, Raise, Ctx):
   import tl.*
   
@@ -509,12 +508,13 @@ class BlockSimplifier
         
         applyPath(scrut): scrut2 =>
           
-          // * TODO: Tup and Field shapes...
+          // * TODO: Support Tup and Field shapes; ModuleOrObjectSymbol
+          // * TODO: Support class inheritance reasoning (using a tree of hierarchical shapes)
           // type Shape = Literal | ClassSymbol | ModuleOrObjectSymbol
           type Shape = Literal | ClassLikeSymbol
-          var hopeless = false
+          var gaveUp = false
           def giveUp =
-            hopeless = true
+            gaveUp = true
             Set.empty[Shape]
           def getShapesA(a: Assignment): Set[Shape] =
           trace[Set[Shape]](s"Getting shapes for assignment ${a}", r => s"= ${r}"):
@@ -565,7 +565,7 @@ class BlockSimplifier
                   case _ => giveUp
                 case _ => giveUp
           def getShapes(p: Path): Set[Shape] =
-            if hopeless then Set.empty
+            if gaveUp then Set.empty
             else
               p match
               case Value.Ref(r: LocalVar, N) if capturedVars(r) =>
@@ -589,14 +589,14 @@ class BlockSimplifier
                 giveUp
           
           // log(s"Analyzing shapes: ${{getShapes(scrut2)}}")
-          var shapes = getShapes(scrut2)
-          // TODO: if hopeless, make the shapes the set of cases of the patmat, to rm redundant arms
+          var shapes = if deadBranchElim then getShapes(scrut2) else giveUp
+          // TODO: if analysis gave up, make the shapes the set of cases of the patmat, to rm redundant arms
           
-          log(s"Initial shapes: ${shapes} – $hopeless")
+          log(s"Initial shapes: ${shapes} – $gaveUp")
           
           val oldAssigned = assignedResults
           var curAssigned = oldAssigned
-          val arms2 = if hopeless then arms else arms.filterConserve: (pat, body) =>
+          val arms2 = if gaveUp then arms else arms.filterConserve: (pat, body) =>
             pat match
             // case Case.Lit(lit) if shapes.contains(lit) => 
             //   shapes -= lit
@@ -628,7 +628,7 @@ class BlockSimplifier
               curAssigned = merge(curAssigned, assignedResults)
               assignedResults = oldAssigned
               if newBody is body then arm else cse -> newBody
-          val newDflt = if !hopeless && shapes.isEmpty
+          val newDflt = if !gaveUp && shapes.isEmpty
             then S(Unreachable("exhaustive match"))
             else dflt.mapConserve:
               case body =>

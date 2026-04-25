@@ -5,28 +5,28 @@
 
 false
 //│ Wasm result:
-//│ = Unit {}
+//│ = 0
 
 
 true
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1
 
 
 2
 //│ Wasm result:
-//│ = Unit {}
+//│ = 2
 
 
 1 + 1
 //│ Wasm result:
-//│ = Unit {}
+//│ = 2
 
 
 let x = 0
 x
 //│ Wasm result:
-//│ = Unit {}
+//│ = 0
 
 
 :ge
@@ -48,7 +48,7 @@ let f = Foo
 fun foo() = 42
 foo()
 //│ Wasm result:
-//│ = Unit {}
+//│ = 42
 
 
 :wat
@@ -77,19 +77,19 @@ foo() + foo()
 //│   (elem $foo declare func $foo)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 84
 
 
 fun foo(x) = x + 1
 foo(41)
 //│ Wasm result:
-//│ = Unit {}
+//│ = 42
 
 
 class Foo(val x)
 new Foo(0)
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}
 
 
 :wat
@@ -144,13 +144,13 @@ class Foo(val a)
 //│   (elem $Foo_ctor declare func $Foo_ctor)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 42
 
 class Foo(val x)
 fun getX(f: Foo) = f.x
 getX(Foo(42))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 42
 
 
 :wat
@@ -213,7 +213,7 @@ class Foo(val x) with
 //│   (elem $Foo_ctor declare func $Foo_ctor)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 42
 
 
 :wat
@@ -280,7 +280,7 @@ O.y
 //│   (elem $entry declare func $entry)
 //│   (start $start1))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1
 
 
 :ge

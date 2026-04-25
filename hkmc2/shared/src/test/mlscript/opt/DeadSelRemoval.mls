@@ -7,9 +7,14 @@
 while true do ???
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ loop lbl:
-//│   do Predef⁰.notImplementedError⁰;
-//│   continue lbl
-//│ unreachable /* Rest of abortive labelled block */
+//│   match true
+//│     true =>
+//│       do Predef⁰.notImplementedError⁰;
+//│       continue lbl
+//│     else
+//│       end
+//│   end
+//│ runtime⁰.Unit⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] Error: Not implemented
 

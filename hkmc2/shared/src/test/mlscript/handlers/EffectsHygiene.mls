@@ -31,15 +31,25 @@ fun foo(h): module M =
 //│ runtime.checkCall(runtime.resetEffects());
 //│ foo = function foo(h) {
 //│   runtime.checkArgs("foo", 1, true, arguments.length);
-//│   let A1;
-//│   globalThis.Object.freeze(class A {
+//│   let A2, A3;
+//│   if (false === true) {
+//│     globalThis.Object.freeze(class A {
+//│       static {
+//│         A2 = this
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "A"]; 
+//│     });
+//│     return A2
+//│   }
+//│   globalThis.Object.freeze(class A1 {
 //│     static {
-//│       A1 = this
+//│       A3 = this
 //│     }
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "A"]; 
 //│   });
-//│   return A1
+//│   return A3;
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

@@ -4,26 +4,26 @@
 
 if true then 0 else 2
 //│ Wasm result:
-//│ = Unit {}
+//│ = 0
 
 if false then 1 else 0
 //│ Wasm result:
-//│ = Unit {}
+//│ = 0
 
 class Foo(val x)
 if Foo(42) is Foo(a) then 0 else 1
 //│ Wasm result:
-//│ = Unit {}
+//│ = 0
 
 class Foo(val x)
 if Foo(42) is Foo(a) then a else 1
 //│ Wasm result:
-//│ = Unit {}
+//│ = 42
 
 class Foo(val x)
 if 1 is Foo(a) then a else 1
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1
 
 class Bar(val y)
 class Baz(val z)
@@ -32,7 +32,7 @@ if Baz(10) is
   Baz(b) then 1
   else 0
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1
 
 :wat
 class Bar(val y)
@@ -105,8 +105,10 @@ if Bar(true) is
 //│         (local.get $this))))
 //│   (func $entry (export "entry") (type $entry1) (result (ref null any))
 //│     (local $scrut (ref null any))
+//│     (local $arg$Baz$0$ (ref null any))
 //│     (local $arg$Bar$0$ (ref null any))
 //│     (local $matchRes (ref null any))
+//│     (local $matchRes1 (ref null any))
 //│     (block (result (ref null any))
 //│       (nop)
 //│       (block (result (ref null any))
@@ -117,55 +119,87 @@ if Bar(true) is
 //│               (ref.i31
 //│                 (i32.const 1))))
 //│           (block (result (ref null any))
-//│             (local.set $arg$Bar$0$
-//│               (struct.get $Bar $y
-//│                 (ref.cast (ref $Bar)
-//│                   (local.get $scrut))))
-//│             (block (result (ref null any))
-//│               (block $match
-//│                 (local.set $matchRes
-//│                   (ref.null any))
-//│                 (if
-//│                   (i32.eq
-//│                     (i31.get_s
-//│                       (ref.cast (ref null i31)
-//│                         (local.get $arg$Bar$0$)))
-//│                     (i32.const 1))
-//│                   (then
-//│                     (block $arm
-//│                       (local.set $matchRes
-//│                         (ref.i31
-//│                           (i32.const 3)))
-//│                       (br $match))))
-//│                 (local.set $matchRes
-//│                   (ref.i31
-//│                     (i32.const 4))))
-//│               (local.get $matchRes)))))))
+//│             (block $match
+//│               (local.set $matchRes
+//│                 (ref.null any))
+//│               (if
+//│                 (ref.test (ref null $Object)
+//│                   (local.get $scrut))
+//│                 (then
+//│                   (if
+//│                     (i32.eq
+//│                       (struct.get $Object $$tag
+//│                         (ref.cast (ref $Object)
+//│                           (local.get $scrut)))
+//│                       (i32.const 1))
+//│                     (then
+//│                       (block $arm
+//│                         (local.set $matchRes
+//│                           (block (result (ref null any))
+//│                             (local.set $arg$Bar$0$
+//│                               (struct.get $Bar $y
+//│                                 (ref.cast (ref $Bar)
+//│                                   (local.get $scrut))))
+//│                             (block (result (ref null any))
+//│                               (block $match1
+//│                                 (local.set $matchRes1
+//│                                   (ref.null any))
+//│                                 (if
+//│                                   (i32.eq
+//│                                     (i31.get_s
+//│                                       (ref.cast (ref null i31)
+//│                                         (local.get $arg$Bar$0$)))
+//│                                     (i32.const 1))
+//│                                   (then
+//│                                     (block $arm
+//│                                       (local.set $matchRes1
+//│                                         (ref.i31
+//│                                           (i32.const 3)))
+//│                                       (br $match1))))
+//│                                 (local.set $matchRes1
+//│                                   (ref.i31
+//│                                     (i32.const 4))))
+//│                               (local.get $matchRes1))))
+//│                         (br $match))))))
+//│               (if
+//│                 (ref.test (ref null $Object)
+//│                   (local.get $scrut))
+//│                 (then
+//│                   (if
+//│                     (i32.eq
+//│                       (struct.get $Object $$tag
+//│                         (ref.cast (ref $Object)
+//│                           (local.get $scrut)))
+//│                       (i32.const 2))
+//│                     (then
+//│                       (block $arm
+//│                         (local.set $matchRes
+//│                           (block (result (ref null any))
+//│                             (local.set $arg$Baz$0$
+//│                               (struct.get $Baz $z
+//│                                 (ref.cast (ref $Baz)
+//│                                   (local.get $scrut))))
+//│                             (local.get $arg$Baz$0$)))
+//│                         (br $match))))))
+//│               (local.set $matchRes
+//│                 (ref.i31
+//│                   (i32.const 2))))
+//│             (local.get $matchRes))))))
 //│   (elem $Bar_init declare func $Bar_init)
 //│   (elem $Baz_init declare func $Baz_init)
 //│   (elem $Bar_ctor declare func $Bar_ctor)
 //│   (elem $Baz_ctor declare func $Baz_ctor)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 3
 
 :re
 class Bar(val y)
 class Baz(val z)
 if Baz(10) is
   Bar(a) then 0
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.UnsupportedOperationException: UnreachableType is a compiler-internal type and cannot be converted to WAT
-//│ 	at: hkmc2.codegen.wasm.text.UnreachableType$.toWat(Wasm.scala:51)
-//│ 	at: hkmc2.codegen.wasm.text.Type.asValType_$bang$$anonfun$1(Wasm.scala:37)
-//│ 	at: scala.Option.getOrElse(Option.scala:203)
-//│ 	at: hkmc2.codegen.wasm.text.Type.asValType_$bang(Wasm.scala:37)
-//│ 	at: hkmc2.codegen.wasm.text.WatBuilder.returningTerm$$anonfun$1(WatBuilder.scala:1347)
-//│ 	at: scala.collection.immutable.List.map(List.scala:240)
-//│ 	at: scala.collection.immutable.List.map(List.scala:238)
-//│ 	at: hkmc2.codegen.wasm.text.WatBuilder.returningTerm(WatBuilder.scala:1347)
-//│ 	at: hkmc2.codegen.wasm.text.WatBuilder.returningTerm(WatBuilder.scala:1725)
-//│ 	at: hkmc2.codegen.wasm.text.WatBuilder.returningTerm(WatBuilder.scala:1725)
+//│ Wasm result:
+//│ ═══[RUNTIME ERROR] match error
 
 :re
 if false then 1
@@ -175,10 +209,10 @@ if false then 1
 class Foo(val x, val y)
 if Foo(1,2) is Foo(a,b) then 0
 //│ Wasm result:
-//│ = Unit {}
+//│ = 0
 
 class Foo(val x)
 fun getXor(f) = if f is Foo(a) then a else false
 getXor(Foo(42))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 42

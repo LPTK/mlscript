@@ -23,7 +23,7 @@ Number(0) is Number
 //│ = false
 
 (new Number(0)) is Object
-//│ = false
+//│ = true
 
 (new Number(0)) is Number
 //│ = true

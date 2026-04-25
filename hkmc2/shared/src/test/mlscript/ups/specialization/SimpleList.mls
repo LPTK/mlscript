@@ -30,12 +30,12 @@ Box(0) is @compile A
 pattern BoxedAnswer = Box(42)
 
 Box(42) is @compile BoxedAnswer
-//│ = false
+//│ = true
 
 pattern A_0 = Box(_) | Box(_)
 
 Box(0) is @compile A_0
-//│ = false
+//│ = true
 
 pattern A_1 = Box | Bowl
 
@@ -83,26 +83,17 @@ pattern F_0 = Pair(Box, Bowl)
 
 :expect true
 Pair(Box(42), Bowl(42)) is @compile F_0
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:306)
-//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
-//│ = false
+//│ = true
 
 pattern F_1 = Pair(Box, Box) | Pair(Box, Bowl)
 
 :expect true
 Pair(Box(42), Box(42)) is @compile F_1
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:306)
-//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
-//│ = false
+//│ = true
 
 :expect true
 Pair(Box(42), Bowl(42)) is @compile F_1
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:306)
-//│ ═══[RUNTIME ERROR] Expected: 'true', got: 'false'
-//│ = false
+//│ = true
 
 :expect false
 Pair(Box(42), Basket(42)) is @compile F_1
@@ -160,10 +151,10 @@ fun (::) cons(head, tail) = Pair(head, tail)
 :e
 pattern List(a) = null | Pair(a, List)
 //│ ╔══[COMPILATION ERROR] Found an inconsistent variable in disjunction patterns.
-//│ ║  l.161: 	pattern List(a) = null | Pair(a, List)
+//│ ║  l.152: 	pattern List(a) = null | Pair(a, List)
 //│ ║         	                              ^
 //│ ╟── The variable is missing from this sub-pattern.
-//│ ║  l.161: 	pattern List(a) = null | Pair(a, List)
+//│ ║  l.152: 	pattern List(a) = null | Pair(a, List)
 //│ ╙──       	                  ^^^^
 
 null is @compile List

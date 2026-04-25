@@ -19,15 +19,18 @@ if x is 0 do print()
 //   new with {}
 
 
+
+
+:expect true
 :sir
 :soir
 true is Bool
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let scrut; set scrut = true; match scrut Bool⁰ => true else false end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ false
+//│ match true Bool⁰ => true else false end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = false
+//│ = true
 
 
 

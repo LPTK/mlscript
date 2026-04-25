@@ -200,7 +200,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
   static {
     Lexer1 = this
   }
-  static #Lexer_mod$cap;
   static {
     this.Location = function Location(start, end) {
       return globalThis.Object.freeze(new Location.class(start, end));
@@ -209,7 +208,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
       static {
         Lexer.Location.class = this
       }
-      #Location$cap;
       #start;
       #end;
       toString() { return runtime.render(this); }
@@ -222,7 +220,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
       static {
         Lexer.Message.class = this
       }
-      #Message$cap;
       #description;
       #location;
       toString() { return runtime.render(this); }
@@ -235,7 +232,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
       static {
         Lexer.Report.class = this
       }
-      #Report$cap;
       #messages;
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "Report", [null]]; 
@@ -248,7 +244,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
         Lexer.IdentifierStart = this;
         globalThis.Object.freeze(this);
       }
-      #IdentifierStart$cap;
       unapply(input) {
         let unapplyResult, output;
         unapplyResult = runtime.safeCall(Char.Letter.unapply(input));
@@ -299,7 +294,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
         Lexer.IdentifierBody = this;
         globalThis.Object.freeze(this);
       }
-      #IdentifierBody$cap;
       unapply(input) {
         let unapplyResult, output, unapplyResult1, output1;
         unapplyResult1 = runtime.safeCall(Char.Letter.unapply(input));
@@ -381,7 +375,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
         Lexer.Operator = this;
         globalThis.Object.freeze(this);
       }
-      #Operator$cap;
       unapply(input) {
         switch (input) {
           case ",":
@@ -654,7 +647,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
         Lexer.Bracket = this;
         globalThis.Object.freeze(this);
       }
-      #Bracket$cap;
       unapply(input) {
         switch (input) {
           case "(":
@@ -747,7 +739,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
         Lexer.IdentifierQuote = this;
         globalThis.Object.freeze(this);
       }
-      #IdentifierQuote$cap;
       unapply(input) {
         switch (input) {
           case "'":
@@ -1655,7 +1646,6 @@ scanHexDigits = function scanHexDigits(str, idx, lim, acc, cnt) {
     }
     return inlinedVal
   }
-  #Lexer$cap;
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Lexer"]; 
 });

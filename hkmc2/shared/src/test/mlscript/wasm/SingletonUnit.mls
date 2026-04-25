@@ -46,36 +46,36 @@
 //│   (elem $entry declare func $entry)
 //│   (start $start1))
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}
 
 
 if true then () else 0
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}
 
 
 fun foo() = ()
 foo()
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}
 
 
 let x = 1
 ()
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}
 
 
 [(), 1].[0]
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}
 
 
 object O with
     val unit = ()
 O.unit
 //│ Wasm result:
-//│ = Unit {}
+//│ = {}
 
 
 // confirms no start function when singletons are not present
@@ -96,4 +96,4 @@ x
 //│         (i32.const 1))))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1

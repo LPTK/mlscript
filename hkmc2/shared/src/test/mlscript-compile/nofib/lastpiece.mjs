@@ -1979,7 +1979,7 @@ let lastpiece1;
   } 
   static search(row_col, sey, bd, ps) {
     loopLabel: while (true) {
-      let lscomp1, scrut, scrut1, choices, scrut2, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, lambda, sey1, row_col1, bd1;
+      let lscomp1, scrut, scrut1, choices, scrut2, element1$, element0$, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, lambda, sey1, bd1, row_col1;
       row_col1 = row_col;
       sey1 = sey;
       bd1 = bd;

@@ -98,7 +98,7 @@ Bar.y
 //│   (elem $entry declare func $entry)
 //│   (start $start1))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 2
 
 
 
@@ -106,7 +106,7 @@ object Example with
   val a = [10, 20]
 Example.a.[1]
 //│ Wasm result:
-//│ = Unit {}
+//│ = 20
 
 
 object O with
@@ -114,4 +114,4 @@ object O with
   val gy = x
 O.gy
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1

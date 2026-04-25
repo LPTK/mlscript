@@ -9,7 +9,16 @@
   _ do print(2)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let lambda;
-//│ lambda = (undefined, function () { lbl: while (true) { Predef.print(2); continue lbl; } });
+//│ lambda = (undefined, function () {
+//│   lbl: while (true) {
+//│     if (false === true) {
+//│       Predef.print(1);
+//│       continue lbl
+//│     }
+//│     Predef.print(2);
+//│     continue lbl;
+//│   }
+//│ });
 //│ lambda
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun

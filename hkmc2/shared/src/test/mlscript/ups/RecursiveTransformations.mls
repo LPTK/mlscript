@@ -39,20 +39,10 @@ pattern Find(pattern P) =
   | (h :: (Find(P) as [res, t])) => [res, h :: t]
 
 assert arr is Find(1) as res, res
+//│ = [1, Cons(2, Cons(3, Nil))]
 assert arr is Find(2) as res, res
+//│ = [2, Cons(1, Cons(3, Nil))]
 assert arr is Find(0) as res else "oops", res
-//│ FAILURE: Unexpected warning
-//│ FAILURE LOCATION: warnPureExprInStmtPos (Lowering.scala:415)
-//│ FAILURE INFO: Ref{sym=res⁰} of res⁰
-//│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.41: 	assert arr is Find(1) as res, res
-//│ ╙──      	                              ^^^
-//│ FAILURE: Unexpected warning
-//│ FAILURE LOCATION: warnPureExprInStmtPos (Lowering.scala:415)
-//│ FAILURE INFO: Ref{sym=res¹} of res¹
-//│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.42: 	assert arr is Find(2) as res, res
-//│ ╙──      	                              ^^^
 //│ = "oops"
 
 
@@ -70,14 +60,14 @@ arr is MultiSet(3, MultiSet(0, _))
 :fixme
 assert arr is MultiSet(1, rest), rest
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'rest'
-//│ ║  l.71: 	assert arr is MultiSet(1, rest), rest
+//│ ║  l.61: 	assert arr is MultiSet(1, rest), rest
 //│ ╙──      	                                 ^^^^
 //│ ═══[RUNTIME ERROR] ReferenceError: rest is not defined
 
 :e
 assert arr is MultiSet as res, res
 //│ ═══[COMPILATION ERROR] Expected two pattern arguments, but found only zero pattern arguments.
-//│ ═══[RUNTIME ERROR] Error: Assertion failed (RecursiveTransformations.mls:79)
+//│ ═══[RUNTIME ERROR] Error: Assertion failed (RecursiveTransformations.mls:69)
 
 
 pattern Id = _
@@ -88,7 +78,7 @@ if [1, 2, 3] is
 //│ ═══[COMPILATION ERROR] No definition found in scope for member 'arg$Id$0$'
 //│ ═══[COMPILATION ERROR] No definition found in scope for member 'arg$Id$0$'
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
-//│ ║  l.87: 	  MultiSet(2, MultiSet(1, Id(x))) do print(x)
+//│ ║  l.77: 	  MultiSet(2, MultiSet(1, Id(x))) do print(x)
 //│ ╙──      	                                           ^
 
 

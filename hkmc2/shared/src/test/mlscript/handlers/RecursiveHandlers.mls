@@ -313,9 +313,11 @@ str
 //│   }
 //│ });
 //│ str = "";
-//│ h11 = new Handler$h1$3();
-//│ runtime.enterHandleBlock(h11, handleBlock$10);
-//│ if (runtime.curEffect === null) { str } else { runtime.topLevelEffect(false); str }
+//│ if (true === true) {
+//│   h11 = new Handler$h1$3();
+//│   runtime.enterHandleBlock(h11, handleBlock$10);
+//│   if (runtime.curEffect === null) { str } else { runtime.topLevelEffect(false); str }
+//│ } else { str }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = "BABABA"
 //│ str = "BABABA"

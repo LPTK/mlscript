@@ -4,11 +4,11 @@
 
 "Hello World!"
 //│ Wasm result:
-//│ = Unit {}
+//│ = "Hello World!"
 
 ""
 //│ Wasm result:
-//│ = Unit {}
+//│ = ""
 
 :wat
 let dup1 = "dup"
@@ -72,24 +72,24 @@ let dup2 = "dup"
 //│   (data $dup (i32.const 0) "\64\00\75\00\70\00")
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = "dup"
 
 let s = "mlx"
 s
 //│ Wasm result:
-//│ = Unit {}
+//│ = "mlx"
 
 let t = ["a", "b", "c"]
 t.[1]
 //│ Wasm result:
-//│ = Unit {}
+//│ = "b"
 
 // For testing that function indices are stable
 fun id(x) = x
 let s2 = "hello"
 if true then id(1) else s2
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1
 
 
 // Identifier Truncation
@@ -111,4 +111,4 @@ if true then id(1) else s2
 //│   (data $abcdefghijklmnop (i32.const 0) "\61\00\62\00\63\00\64\00\65\00\66\00\67\00\68\00\69\00\6a\00\6b\00\6c\00\6d\00\6e\00\6f\00\70\00\71\00\72\00\73\00\74\00\75\00\76\00\77\00\78\00\79\00\7a\00")
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = "abcdefghijklmnopqrstuvwxyz"

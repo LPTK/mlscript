@@ -7,7 +7,7 @@ let xs = [1, 2, 3]
 :sjs
 assert true
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ runtime.Unit
+//│ if (true === true) { runtime.Unit } else { runtime.assertFail("Assert.mls", "9") }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :re
@@ -35,7 +35,11 @@ if 1 is
   2 then assert true
   else 3
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ throw globalThis.Object.freeze(new globalThis.Error("match error"))
+//│ if (1 === 2) {
+//│   if (true === true) {
+//│     runtime.Unit
+//│   } else { 3 }
+//│ } else { throw globalThis.Object.freeze(new globalThis.Error("match error")) }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] Error: match error
 

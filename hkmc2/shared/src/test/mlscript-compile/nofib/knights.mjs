@@ -1163,7 +1163,7 @@ let knights1;
   } 
   static depthSearch(q, growFn, finFn) {
     loopLabel: while (true) {
-      let scrut, scrut1, lambda, tmp, lambda1, tmp1, tmp2, tmp3, tmp4, finFn1, q1, growFn1;
+      let scrut, scrut1, lambda, tmp, lambda1, tmp1, tmp2, tmp3, tmp4, finFn1, growFn1, q1;
       q1 = q;
       growFn1 = growFn;
       finFn1 = finFn;

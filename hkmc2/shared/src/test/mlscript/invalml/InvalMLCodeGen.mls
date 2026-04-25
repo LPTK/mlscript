@@ -130,9 +130,9 @@ if 1 == 2 then 0 else 42
 :sjs
 if 1 is Int then 1 else 0
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ 0
+//│ if (globalThis.Number.isInteger(1)) { 1 } else { 0 }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 0
+//│ = 1
 //│ Type: Int
 
 
@@ -144,7 +144,9 @@ data class Foo()
 let foo = new Foo()
 if foo is Foo then 1 else 0
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let foo1; foo1 = globalThis.Object.freeze(new Foo3.class()); 1
+//│ let foo1;
+//│ foo1 = globalThis.Object.freeze(new Foo3.class());
+//│ if (foo1 instanceof Foo3.class) { 1 } else { 0 }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 //│ foo = Foo()

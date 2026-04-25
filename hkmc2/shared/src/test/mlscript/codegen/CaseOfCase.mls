@@ -30,7 +30,10 @@ fun test(x) =
 //│   if (tmp1 instanceof Some1.class) {
 //│     arg$Some$0$ = tmp1.value;
 //│     return Predef.print(arg$Some$0$)
-//│   } else if (tmp1 instanceof None1.class) { return Predef.print("none") }
+//│   } else if (tmp1 instanceof None1.class) {
+//│     return Predef.print("none")
+//│   }
+//│   throw globalThis.Object.freeze(new globalThis.Error("match error"));
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

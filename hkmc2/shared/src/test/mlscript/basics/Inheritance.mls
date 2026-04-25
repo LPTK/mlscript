@@ -22,7 +22,7 @@ let b = id(Bar) in [b.x, b.foo]
 //│ = [10, 11]
 
 Bar is Foo
-//│ = false
+//│ = true
 
 Bar is String
 //│ = false
@@ -91,7 +91,7 @@ abstract class Option[out T]: Some[T] | None
 object None extends Option[Nothing]
 data class Some[out T](x: T) extends Option[T]
 [Some(123) is Option, None is Option, Some(123) is String, None is String]
-//│ = [false, false, false, false]
+//│ = [true, true, false, false]
 
 
 data class Barr(x: Int)(y: Int) with

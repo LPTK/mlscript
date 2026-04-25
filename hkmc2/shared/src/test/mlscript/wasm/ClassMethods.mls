@@ -82,7 +82,7 @@ a.A#get() + A(2).get()
 //│   (elem $A_get declare func $A_get)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
-//│ = Unit {}
+//│ = 3
 
 
 class A(val x) with
@@ -90,14 +90,14 @@ class A(val x) with
 let a = A(1)
 a.A#get
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1
 
 
 class A(val x) with
   fun add(y) = x + y
 A(1).add(2)
 //│ Wasm result:
-//│ = Unit {}
+//│ = 3
 
 
 class C(val x) with
@@ -105,7 +105,7 @@ class C(val x) with
   fun double = x + this.x
 C(2).get()
 //│ Wasm result:
-//│ = Unit {}
+//│ = 4
 
 
 class SumDown() with
@@ -115,7 +115,7 @@ class SumDown() with
         else n + sum(n - 1)
 SumDown().sum(5)
 //│ Wasm result:
-//│ = Unit {}
+//│ = 15
 
 
 class Parity() with
@@ -125,7 +125,7 @@ class Parity() with
     if n === 0 then false else even(n - 1)
 Parity().even(6)
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1
 
 
 class Box(val x) with
@@ -133,7 +133,7 @@ class Box(val x) with
     fun inc() = Box(x + 1).get()
 Box(2).inc()
 //│ Wasm result:
-//│ = Unit {}
+//│ = 3
 
 
 class Counter(val x) with
@@ -143,7 +143,7 @@ class Counter(val x) with
 let c = Counter(1)
 c.Counter#inc().Counter#double().Counter#get()
 //│ Wasm result:
-//│ = Unit {}
+//│ = 4
 
 
 class Box(val x) with
@@ -152,7 +152,7 @@ class Next(val y) with
     fun get() = y
 Box(41).mk()
 //│ Wasm result:
-//│ = Unit {}
+//│ = 42
 
 
 class Counter(val x) with
@@ -166,7 +166,7 @@ class Counter(val x) with
 let c = Counter(1)
 c.Counter#inc().Counter#double().Counter#get()
 //│ Wasm result:
-//│ = Unit {}
+//│ = 4
 
 :todo
 let d = Counter(c.Counter#get())
@@ -188,7 +188,7 @@ class GetterOnly() with
   fun f = 1
 GetterOnly().f()
 //│ Wasm result:
-//│ = Unit {}
+//│ = 1
 
 
 :ge

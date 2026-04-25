@@ -105,16 +105,16 @@ open Option { Some, None }
 open Stack
 
 Some(42) is { value: 42 }
-//│ = false
+//│ = true
 
 1 :: 2 :: 3 :: Nil is { tail: { tail: Nil } }
 //│ = false
 
 1 :: 2 :: 3 :: Nil is { tail: { tail: _ } }
-//│ = false
+//│ = true
 
 1 :: 2 :: 3 :: Nil is { tail: { tail: { tail: Nil } } }
-//│ = false
+//│ = true
 
 1 :: 2 :: 3 :: Nil is { head: 42 }
 //│ = false
