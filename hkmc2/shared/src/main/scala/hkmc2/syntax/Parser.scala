@@ -86,7 +86,7 @@ object Parser:
       (precOf(opStr.head), precOf(r) - (if r === ',' || r === ':' then 1 else 0))
   }
   val prefixOps: Set[Str] = Set("!", "+", "-", "~", "@", "|", "&")
-  private val callCompatiblePrefixOps: Set[Str] = Set("+", "-")
+  private val multiArgCallablePrefixOps: Set[Str] = Set("+", "-")
   
   type Indent_Curly = Curly.type | Indent.type
   
@@ -653,7 +653,7 @@ abstract class Parser(
           yeetSpaces match
           case Nil => id
           case (BRACKETS(Round, toks), _) :: _
-          if callCompatiblePrefixOps(nme) && toks.exists(_._1 === COMMA) =>
+          if multiArgCallablePrefixOps(nme) && toks.exists(_._1 === COMMA) =>
             exprCont(id, prec, allowNewlines = allowNewlines)
           case _ =>
             val newPrec =

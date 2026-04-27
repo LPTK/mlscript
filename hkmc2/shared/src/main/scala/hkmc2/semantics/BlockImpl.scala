@@ -12,17 +12,20 @@ trait BlockImpl(using Elaborator.State):
   
   val desugStmts =
     def desug(stmts: Ls[Tree]): Ls[Tree] =
-      // A dedented multiline `in` body should stay attached to the surrounding `let`
-      // rather than to an inner `let`/`set` RHS. We detect that layout by checking
-      // that the body starts on a later line and at or to the left of the inner RHS.
+      /** A dedented multiline `in` body should stay attached to the surrounding `let`
+        * rather than to an inner `let`/`set` RHS.
+        *
+        * We detect that layout by checking that the body starts on a later line and
+        * at or to the left of the inner RHS start column.
+        */
       def bodyBelongsToOuter(inner: LetLike, body: Tree): Bool =
         (for
           innerLoc <- inner.toLoc
           bodyLoc <- body.toLoc
           if innerLoc.origin is bodyLoc.origin
         yield
-          val (innerLine, _, innerCol) = innerLoc.origin.fph.getLineColAt(innerLoc.spanStart)
-          val (bodyLine, _, bodyCol) = bodyLoc.origin.fph.getLineColAt(bodyLoc.spanStart)
+          val (innerLine, _ /* source line text */, innerCol) = innerLoc.origin.fph.getLineColAt(innerLoc.spanStart)
+          val (bodyLine, _ /* source line text */, bodyCol) = bodyLoc.origin.fph.getLineColAt(bodyLoc.spanStart)
           bodyLine > innerLine && bodyCol <= innerCol
         ).getOrElse(false)
       stmts match
