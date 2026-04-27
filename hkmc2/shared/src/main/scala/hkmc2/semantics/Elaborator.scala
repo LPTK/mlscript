@@ -925,8 +925,6 @@ extends Importer with ucs.SplitElaborator:
   
   def unit: Term.UnitVal = Term.UnitVal()
   
-  
-  
   def block(sts: Ls[Tree], hasResult: Bool)(using UnderCtx): Ctxl[(Blk, Ctx)] =
     block(new Block(sts), hasResult)
   

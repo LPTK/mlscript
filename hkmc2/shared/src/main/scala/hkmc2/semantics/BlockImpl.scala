@@ -15,6 +15,10 @@ trait BlockImpl(using Elaborator.State):
       stmts match
       case syntax.Desugared(PossiblyAnnotated(anns, Assert(kw, cond, N, els))) :: stmts =>
         PossiblyAnnotated(anns, Assert(kw, cond, S(Block(stmts)), els)) :: Nil
+      case syntax.Desugared(PossiblyAnnotated(anns, LetLike(kw @ Keywrd(syntax.Keyword.`let`), lhs, rhs, N)))
+          :: syntax.Desugared(Modified(Keywrd(syntax.Keyword.`in`), body))
+          :: stmts =>
+        PossiblyAnnotated(anns, LetLike(kw, lhs, rhs, S(body))) :: desug(stmts)
       case syntax.Desugared(PossiblyAnnotated(anns, td: TypeDef)) :: stmts =>
         val ctors = td.withPart.toList.flatMap:
           case Block(sts) => sts.flatMap:
@@ -104,5 +108,4 @@ trait BlockImpl(using Elaborator.State):
       .toArray.sortBy(_._1)
   
 end BlockImpl
-
 

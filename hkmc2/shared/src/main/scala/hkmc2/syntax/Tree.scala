@@ -587,4 +587,3 @@ trait TypeDefImpl(using State) extends TypeOrTermDef:
       .toList
     
   lazy val allSymbols = definedSymbols ++ clsParams.flatten.map(s => s.nme -> s).toMap
-
