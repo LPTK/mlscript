@@ -5,16 +5,6 @@
 
 // ——— ——— ———
 
-:fixme // `in` is taken as part of the `set`, as in `set..in`, instead of the `let`
-:expect 42
-let emptyItemCount = 0
-let c() = set emptyItemCount += 1
-in 42
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
-//│ c = fun
-//│ emptyItemCount = 0
-
-// ——— ——— ———
 // Bug: `pattern do body` inside `is` expression is not handled.
 // The root cause is at the parser level: in `Some of [process, rest] do "hi"`,
 // the `of` keyword greedily includes `do "hi"` inside the constructor argument,
@@ -32,7 +22,7 @@ class Some(val v)
 Some(1) is
   Some of [process, rest] do "hi"
 //│ ╔══[COMPILATION ERROR] Unrecognized pattern (infix operator 'do').
-//│ ║  l.33: 	  Some of [process, rest] do "hi"
+//│ ║  l.23: 	  Some of [process, rest] do "hi"
 //│ ╙──      	          ^^^^^^^^^^^^^^^^^^^^^^^
 //│ = true
 

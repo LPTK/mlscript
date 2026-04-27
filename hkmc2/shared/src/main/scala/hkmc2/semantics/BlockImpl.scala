@@ -12,6 +12,16 @@ trait BlockImpl(using Elaborator.State):
   
   val desugStmts =
     def desug(stmts: Ls[Tree]): Ls[Tree] =
+      def bodyBelongsToOuter(inner: LetLike, body: Tree): Bool =
+        (for
+          innerLoc <- inner.toLoc
+          bodyLoc <- body.toLoc
+          if innerLoc.origin is bodyLoc.origin
+        yield
+          val (innerLine, _, innerCol) = innerLoc.origin.fph.getLineColAt(innerLoc.spanStart)
+          val (bodyLine, _, bodyCol) = bodyLoc.origin.fph.getLineColAt(bodyLoc.spanStart)
+          bodyLine > innerLine && bodyCol <= innerCol
+        ).getOrElse(false)
       stmts match
       case syntax.Desugared(PossiblyAnnotated(anns, Assert(kw, cond, N, els))) :: stmts =>
         PossiblyAnnotated(anns, Assert(kw, cond, S(Block(stmts)), els)) :: Nil
@@ -19,6 +29,13 @@ trait BlockImpl(using Elaborator.State):
           :: syntax.Desugared(Modified(Keywrd(syntax.Keyword.`in`), body))
           :: stmts =>
         PossiblyAnnotated(anns, LetLike(kw, lhs, rhs, S(body))) :: desug(stmts)
+      case syntax.Desugared(PossiblyAnnotated(anns,
+            LetLike(kw @ Keywrd(syntax.Keyword.`let`), syntax.Apps(lhs, tups),
+              S(inner @ LetLike(innerKw, innerLhs, innerRhs, S(body))), N)
+          )) :: stmts
+          if tups.nonEmpty && bodyBelongsToOuter(inner, body) =>
+        val normalizedInner = LetLike(innerKw, innerLhs, innerRhs, N).withLocOf(inner)
+        PossiblyAnnotated(anns, LetLike(kw, syntax.Apps(lhs, tups), S(normalizedInner), S(body))) :: desug(stmts)
       case syntax.Desugared(PossiblyAnnotated(anns, td: TypeDef)) :: stmts =>
         val ctors = td.withPart.toList.flatMap:
           case Block(sts) => sts.flatMap:
@@ -108,4 +125,3 @@ trait BlockImpl(using Elaborator.State):
       .toArray.sortBy(_._1)
   
 end BlockImpl
-
