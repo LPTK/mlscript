@@ -651,7 +651,8 @@ abstract class Parser(
         then
           yeetSpaces match
           case Nil => id
-          case (BRACKETS(Round, _), _) :: _ =>
+          case (BRACKETS(Round, toks), _) :: _
+          if (nme === "+" || nme === "-") && toks.exists(_._1 === COMMA) =>
             exprCont(id, prec, allowNewlines = allowNewlines)
           case _ =>
             val newPrec =
@@ -1172,5 +1173,4 @@ abstract class Parser(
     case Nil =>
       printDbg(s"stops at the end of input")
       acc  
-
 

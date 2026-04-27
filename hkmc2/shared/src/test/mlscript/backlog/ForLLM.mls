@@ -28,7 +28,16 @@ Some(1) is
 
 // ——— ——— ———
 
-// Parses as a prefix `do` in a split instead of an infix `do` that's part of the `if` expression!
+// Bug: `do` on a new line after an `if` condition is parsed as a prefix split arm
+// instead of the infix `do` that should attach to the condition.
+// The parser currently excludes `do` from its generic newline-infix recovery so that
+// UCS-style splits like
+//   0 then "null"
+//   do print("non-null")
+// keep parsing as separate arms. Fixing this case properly would require making that
+// newline handling context-sensitive so `if`/`while` conditions can keep `do` while
+// ordinary splits still treat a leading `do` as a separate arm. That is a larger
+// parser refactoring, so the compiler is left unchanged here.
 :fixme
 if maybe
   do 1
