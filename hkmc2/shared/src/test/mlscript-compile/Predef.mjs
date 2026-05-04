@@ -240,10 +240,10 @@ let Predef1;
     return ! tmp
   } 
   static print(...xs) {
-    let callPrefix, tmp;
-    callPrefix = runtime.safeCall(Predef.map(Predef.renderAsStr));
-    tmp = runtime.safeCall(callPrefix(...xs));
-    return runtime.safeCall(globalThis.console.log(...tmp))
+    let tmp, tmp1;
+    tmp = runtime.safeCall(Predef.map(Predef.renderAsStr));
+    tmp1 = runtime.safeCall(tmp(...xs));
+    return runtime.safeCall(globalThis.console.log(...tmp1))
   } 
   static renderAsStr(arg) {
     if (typeof arg === 'string') {
@@ -295,20 +295,20 @@ let Predef1;
     }
   } 
   static mkStr(...xs) {
-    let lambda, callPrefix;
+    let lambda, tmp;
     lambda = (undefined, function (acc, x) {
-      let tmp, tmp1, tmp2;
+      let tmp1, tmp2, tmp3;
       if (typeof x === 'string') {
-        tmp = true;
+        tmp1 = true;
       } else {
-        tmp = false;
+        tmp1 = false;
       }
-      tmp1 = Predef.check(tmp);
-      tmp2 = acc + x;
-      return (tmp1 , tmp2)
+      tmp2 = Predef.check(tmp1);
+      tmp3 = acc + x;
+      return (tmp2 , tmp3)
     });
-    callPrefix = runtime.safeCall(Predef.fold(lambda));
-    return runtime.safeCall(callPrefix(...xs))
+    tmp = runtime.safeCall(Predef.fold(lambda));
+    return runtime.safeCall(tmp(...xs))
   } 
   static use(instance) {
     return instance

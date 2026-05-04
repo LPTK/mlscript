@@ -132,9 +132,9 @@ staged module BadArguments with
   fun f() = Arguments.g(1)(2, 3)
 //│ > fun ctor_() = ()
 //│ > fun f() =
-//│ >   let {callPrefix}
-//│ >   callPrefix = Arguments.g_gen(1)
-//│ >   callPrefix(2, 3)
+//│ >   let {tmp}
+//│ >   tmp = Arguments.g_gen(1)
+//│ >   tmp(2, 3)
 
 
 staged module OtherBlocks with

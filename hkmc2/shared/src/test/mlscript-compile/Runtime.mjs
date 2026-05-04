@@ -144,9 +144,9 @@ let Runtime1;
         return runtime.safeCall(xs.slice(i, tmp1))
       } 
       static lazySlice(xs, i, j) {
-        let callPrefix;
-        callPrefix = runtime.safeCall(LazyArray.dropLeftRight(i, j));
-        return runtime.safeCall(callPrefix(xs))
+        let tmp1;
+        tmp1 = runtime.safeCall(LazyArray.dropLeftRight(i, j));
+        return runtime.safeCall(tmp1(xs))
       } 
       static lazyConcat(...args) {
         return runtime.safeCall(LazyArray.__concat(...args))
