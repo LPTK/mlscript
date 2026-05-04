@@ -237,6 +237,21 @@ x => let x = 1
 //│ Parsed:
 //│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x))))
 
+:pe
+fun test = let x = 1
+in x
+//│ ╔══[PARSE ERROR] Expected end of input; found 'in' keyword instead
+//│ ║  l.243: 	in x
+//│ ╙──       	^^
+//│ Parsed:
+//│ 	Def(Ident(test),LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),None))
+//│ 	Modified(Keywrd(keyword 'in'),Ident(x))
+
+fun test = let x = 1
+  in x
+//│ Parsed:
+//│ 	Def(Ident(test),LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x))))
+
 x =>
   let x = 1
   in x
@@ -262,7 +277,6 @@ if
 //│ ╙──       	  ^
 //│ Parsed:
 //│ 	Error()
-
 
 
 

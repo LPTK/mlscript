@@ -499,7 +499,7 @@ abstract class Parser(
                   exprCont(tree, prec, allowNewlines = allowNewlines)
                 case _ =>
                   exprCont(
-                    parseRule(kw.rightPrecOrMin, subRule, allowNewlines = allowNewlines)
+                    parseRule(kw.rightPrecOrMin, subRule, allowNewlines = false)
                       .getOrElse(errExpr), prec, allowNewlines = allowNewlines)
               parseRule(prec, exprAlt.rest, allowNewlines = allowNewlines).map(res => exprAlt.k(e, res))
             case N =>

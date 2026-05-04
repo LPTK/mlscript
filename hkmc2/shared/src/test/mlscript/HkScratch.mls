@@ -1,10 +1,12 @@
 :js
-:p
+:js
+// :de
+// :sjs
+// :pt
+// :elt
 
-// should work (indented)
-fun test = let x = 1
-  in x
+:global
+// :d
+// :todo
 
-// should fail (no indent)
-fun test2 = let x = 1
-in x
+
