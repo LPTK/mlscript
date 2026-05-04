@@ -434,7 +434,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
   
   /** Lower an instantiation with multiple argument lists into `Instantiate` and `Call` nodes,
     * trying to group as many as possible into a single `Instantiate`
-    * when they correspond to constructor parameter lists of the same class. */
+    * when they correspond to constructor parameter lists of the same class.
+    * If fewer argument lists are provided than constructor parameter lists, eta-expands
+    * the missing ones with fresh lambdas (avoiding reliance on mutable JS class curry semantics). */
   def lowerMultiInstantiate(mut: Bool, cls: Path, args: Ls[Term])(k: Result => Block)(using LoweringCtx): Block =
     // Nullary instantiations are represented with one empty argument list, matching existing `Instantiate` usage.
     def buildInstantiate(argss: Ls[Ls[Arg]]): Instantiate =
@@ -464,6 +466,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           val tmp = loweringCtx.registerTempSymbol(N)
           Assign(tmp, call,
             lowerRemainingCalls(Value.Ref(tmp), args, remainingArgss)(k))
+    // * Zip constructor param lists with argument lists, accumulating lowered args.
+    // * Consumes one argument list per constructor param list; when all ctor params are
+    // * consumed but extra args remain, falls back to `Call` nodes on the result.
+    // * When args run out before ctor params are consumed, eta-expands the remaining ones.
     def zipArgs(remainingCtorParamss: Ls[ParamList], remainingArgss: Ls[Term], acc: Ls[Ls[Arg]]): Block =
       (remainingCtorParamss, remainingArgss) match
       case (ps :: remainingParams, args :: remainingArgs) =>
@@ -475,7 +481,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         Assign(tmp, buildInstantiate(acc.reverse),
           lowerRemainingCalls(Value.Ref(tmp), args, remainingArgss)(k))
       case (remainingParamss, Nil) =>
-        // Eta-expand missing argument lists by creating lambdas for each remaining param list
+        // * Eta-expand missing argument lists by creating lambdas for each remaining param list.
+        // * This makes partial `new C(args...)` explicit instead of relying on the JS class curry.
         def etaExpand(remainingParamss: Ls[ParamList], accArgss: Ls[Ls[Arg]]): Result =
           remainingParamss match
           case Nil => buildInstantiate(accArgss)
@@ -486,6 +493,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
             val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
             Lambda(freshParamList, Return(etaExpand(rest, accArgss :+ freshArgs), implct = false))
         k(etaExpand(remainingParamss, acc.reverse))
+    // * Resolve the class definition to get the constructor param lists.
+    // * The class path typically resolves to a TermSymbol (the constructor function),
+    // * so we also look up the companion ClassSymbol via TermDefinition.companionClass.
     val ctorParamLists: Ls[ParamList] = cls.targetSymbol.flatMap: sym =>
       sym.asClsOrMod.flatMap(_.defn) orElse
       sym.asTrm.flatMap(_.defn).flatMap(_.companionClass).flatMap(_.defn)
