@@ -436,9 +436,22 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     * trying to group as many as possible into a single `Instantiate`
     * when they correspond to constructor parameter lists of the same class. */
   def lowerMultiInstantiate(mut: Bool, cls: Path, args: Ls[Term])(k: Result => Block)(using LoweringCtx): Block =
+    // Nullary instantiations are represented with one empty argument list, matching existing `Instantiate` usage.
     def instantiate(argss: Ls[Ls[Arg]]): Instantiate =
       Instantiate(mut, cls, if argss.isEmpty then Nil :: Nil else argss)
-    def wrapUp(base: Path, args: Term, remainingArgss: Ls[Term])(k: Result => Block): Block =
+    def lowerDefault: Block = args match
+      case Nil =>
+        k(instantiate(Nil))
+      case args :: remainingArgss =>
+        lowerArgs(args): as =>
+          remainingArgss match
+          case Nil =>
+            k(instantiate(as :: Nil))
+          case remainingArgss =>
+            val tmp = loweringCtx.registerTempSymbol(N)
+            Assign(tmp, instantiate(as :: Nil),
+              lowerRemainingCalls(Value.Ref(tmp), remainingArgss.head, remainingArgss.tail)(k))
+    def lowerRemainingCalls(base: Path, args: Term, remainingArgss: Ls[Term])(k: Result => Block): Block =
       lowerArgs(args): as =>
         val call = Call(base, as ne_:: Nil)(true, true, false)
         remainingArgss match
@@ -446,7 +459,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         case args :: remainingArgss =>
           val tmp = loweringCtx.registerTempSymbol(N)
           Assign(tmp, call,
-            wrapUp(Value.Ref(tmp), args, remainingArgss)(k))
+            lowerRemainingCalls(Value.Ref(tmp), args, remainingArgss)(k))
     def zipArgs(remainingParamss: Ls[Unit], remainingArgss: Ls[Term], acc: Ls[Ls[Arg]]): Block =
       (remainingParamss, remainingArgss) match
       case (_ :: remainingParams, args :: remainingArgs) =>
@@ -456,11 +469,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       case (Nil, args :: remainingArgss) =>
         val tmp = loweringCtx.registerTempSymbol(N)
         Assign(tmp, instantiate(acc.reverse),
-          wrapUp(Value.Ref(tmp), args, remainingArgss)(k))
-    val ctorParamss = cls.targetSymbol.flatMap(_.asClsOrMod) match
-      case Some(clsSym) => clsSym.tree.paramLists.map(_ => ())
-      case None => if args.isEmpty then Nil else () :: Nil
-    zipArgs(ctorParamss, args, Nil)
+          lowerRemainingCalls(Value.Ref(tmp), args, remainingArgss)(k))
+    val ctorParamss = cls.targetSymbol.flatMap(_.asClsOrMod).flatMap(_.defn).fold(Nil: Ls[Unit]):
+      clsDef =>
+        (clsDef.paramsOpt.toList ::: clsDef.auxParams) match
+        case _ :: _ :: ctorParamss => ctorParamss.map(_ => ())
+        case _ => Nil
+    if ctorParamss.isEmpty then lowerDefault
+    else zipArgs(ctorParamss, args, Nil)
   
   def lowerArgs(arg: Term)(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     arg match
