@@ -43,8 +43,9 @@ fun matchOne(xs, fn, fh) =
 // fun matchTwo: [T, R, E1, E2, E3, S] -> (Array[out T, out R], Array[out T, out R] ->{E1} S, T ->{E2} S, (T, T, Array[out T, out R]) ->{E3} S) ->{E1 | E2 | E3 | R} S
 fun matchTwo(xs, fn, f1, f2) =
   if len(xs) is 0 then fn(xs)
-  else if len(xs) is 1 then f1(at(xs, 0))
-  else f2(at(xs, 0), at(xs, 1), slice(xs, 2))
+  else
+    if len(xs) is 1 then f1(at(xs, 0))
+    else f2(at(xs, 0), at(xs, 1), slice(xs, 2))
 
 fun (;) seq(_, res) = res
 

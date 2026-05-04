@@ -202,6 +202,9 @@ abstract class Parser(
     allowKeywordNewlines = allow
     try body
     finally allowKeywordNewlines = previous
+
+  private def withKeywordNewlinesDisabled[R](body: => R): R =
+    withAllowKeywordNewlines(false)(body)
   
   final def rec(tokens: Ls[Stroken -> Loc], fallbackLoc: Opt[Loc], description: Str): Parser =
     new Parser(origin, tokens, rules, raiseFun, dbg
@@ -505,7 +508,7 @@ abstract class Parser(
                     case multiple => Block(multiple)
                   exprCont(tree, prec, allowNewlines = allowNewlines)
                 case _ =>
-                  withAllowKeywordNewlines(false):
+                  withKeywordNewlinesDisabled:
                     exprCont(
                       parseRule(kw.rightPrecOrMin, subRule, allowNewlines = allowNewlines)
                         .getOrElse(errExpr), prec, allowNewlines = allowNewlines)
@@ -1134,6 +1137,7 @@ abstract class Parser(
             printDbg(s"!! REDUCING BRACKET")
             cur = (NEWLINE, l.left) :: rest ::: cur
           case _ =>
+        allowKeywordNewlines = true
         exprCont(res, prec, allowNewlines = allowNewlines)
         
       

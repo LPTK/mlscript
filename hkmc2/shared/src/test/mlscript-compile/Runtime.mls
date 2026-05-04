@@ -270,10 +270,11 @@ fun showFunctionContChain(cont, hl, vis, reps) =
     else
       vis.add(cont)
     result + ") -> " + showFunctionContChain(cont.next, hl, vis, reps)
-  else if cont === null then
-    "(null)"
   else
-    "(NOT CONT)"
+    if cont === null then
+      "(null)"
+    else
+      "(NOT CONT)"
 
 fun showHandlerContChain(cont, hl, vis, reps) =
   if cont is HandlerContFrame then
@@ -287,10 +288,11 @@ fun showHandlerContChain(cont, hl, vis, reps) =
     else
       vis.add(cont)
     result + " -> " + showFunctionContChain(cont.next, hl, vis, reps)
-  else if cont === null then
-    "(null)"
   else
-    "(NOT HANDLER CONT)"
+    if cont === null then
+      "(null)"
+    else
+      "(NOT HANDLER CONT)"
 
 fun debugCont(cont) = console.log(showFunctionContChain(cont, new Map(), new Set(), 0))
 fun debugHandler(cont) = console.log(showHandlerContChain(cont, new Map(), new Set(), 0))

@@ -146,8 +146,11 @@ fun render(target, ...args) =
         let
           // The starting column if the current item is placed on the same line.
           prefixLengthIfSameLine = prefixLength + (if isFirst then 0 else 2)
-          valueStartLength = if prefixLengthIfSameLine <= breakLength
-            then prefixLengthIfSameLine else itemIndentationLength
+          valueStartLength =
+            if prefixLengthIfSameLine <= breakLength then
+              prefixLengthIfSameLine
+            else
+              itemIndentationLength
           valueStr = renderValue(array.[i], level + 1, 0, valueStartLength)
         set i += 1
         valueStr
@@ -168,8 +171,11 @@ fun render(target, ...args) =
         let
           // The starting column if the current item is placed on the same line.
           prefixLengthIfSameLine = prefixLength + (if isFirst then 0 else 2)
-          valueStartLength = if prefixLengthIfSameLine > breakLength
-            then itemIndentationLength else prefixLengthIfSameLine
+          valueStartLength =
+            if prefixLengthIfSameLine > breakLength then
+              itemIndentationLength
+            else
+              prefixLengthIfSameLine
         renderValue(value, level + 1, 0, valueStartLength)
       set peek = iterator.next()
       result
@@ -189,8 +195,11 @@ fun render(target, ...args) =
         let
           value = instance.(key)
           prefixLengthIfSameLine = prefixLength + (if isFirst then 0 else 2)
-          valueStartLength = if prefixLengthIfSameLine > breakLength
-            then itemIndentationLength else prefixLengthIfSameLine
+          valueStartLength =
+            if prefixLengthIfSameLine > breakLength then
+              itemIndentationLength
+            else
+              prefixLengthIfSameLine
         renderValue(value, level + 1, 0, valueStartLength)
     renderSequence of done, next, level, keyLength, startPos, symbolsForClass(constructorName)
   fun renderSequence(done, next, level: Int, keyLength: Int, startPos: Int, symbols) =
@@ -256,8 +265,11 @@ fun render(target, ...args) =
             dryRunStartPos = prefixLength + // base length
               (if isFirst then 0 else 2) + // ", "
               keyStr.length + 2 // "key: "
-            valueStartPos = if dryRunStartPos > breakLength
-              then itemIndentationLength else dryRunStartPos
+            valueStartPos =
+              if dryRunStartPos > breakLength then
+                itemIndentationLength
+              else
+                dryRunStartPos
             valueStr = renderValue(value, level + 1, keyStr.length + 2, valueStartPos)
           [keyStr, valueStr]
         (get: getter, "set": setter) then
@@ -287,16 +299,24 @@ fun render(target, ...args) =
         let
           // The starting column if the key is placed on the same line.
           keyPrefixLengthIfSameLine = prefixLength + (if isFirst then 0 else 2)
-          keyPrefixLength = if keyPrefixLengthIfSameLine > breakLength
-            then itemIndentationLength else keyPrefixLengthIfSameLine
+          keyPrefixLength =
+            if keyPrefixLengthIfSameLine > breakLength then
+              itemIndentationLength
+            else
+              keyPrefixLengthIfSameLine
           keyStr = renderValue(key, level + 1, 0, keyPrefixLength)
           // The starting column if the value is placed on the same line.
-          valuePrefixLengthIfSameLine = if keyStr.indexOf("\n") >= 0
-            then itemIndentationLength + keyStr.length - keyStr.lastIndexOf("\n") + 5
-            else keyPrefixLength + keyStr.length + 5
+          valuePrefixLengthIfSameLine =
+            if keyStr.indexOf("\n") >= 0 then
+              itemIndentationLength + keyStr.length - keyStr.lastIndexOf("\n") + 5
+            else
+              keyPrefixLength + keyStr.length + 5
         let
-          valuePrefixLength = if valuePrefixLengthIfSameLine > breakLength
-            then itemIndentationLength else valuePrefixLengthIfSameLine
+          valuePrefixLength =
+            if valuePrefixLengthIfSameLine > breakLength then
+              itemIndentationLength
+            else
+              valuePrefixLengthIfSameLine
           valueStr = renderValue(value, level + 1, 0, valuePrefixLengthIfSameLine)
         [keyStr, valueStr]
     renderRecordLike of

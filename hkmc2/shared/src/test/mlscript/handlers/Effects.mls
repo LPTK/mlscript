@@ -333,11 +333,12 @@ handle h = StackDelay with
     // console.trace("Stack unwinded!")
     k(10)
 fun sum(depth, x) =
-  let new_depth = if depth > 70 then
-    // console.trace("Too deep, heapifying the stack")
-    h.raise()
-  else
-    depth + 1
+  let new_depth =
+    if depth > 70 then
+      // console.trace("Too deep, heapifying the stack")
+      h.raise()
+    else
+      depth + 1
   if x != 0 then
     x + sum(new_depth, x - 1)
   else 0
@@ -397,22 +398,24 @@ foo(h)
 fun foo(h) =
   h.perform()
   fun A() = 1
-  let a = if true then
-    class A() with
-      fun f() = 2
-    A().f()
-  else
-    class A() with
-      fun f() = 3
-    A().f()
-  let b = if false then
-    class A() with
-      fun f() = 2
-    A().f()
-  else
-    class A() with
-      fun f() = 3
-    A().f()
+  let a =
+    if true then
+      class A() with
+        fun f() = 2
+      A().f()
+    else
+      class A() with
+        fun f() = 3
+      A().f()
+  let b =
+    if false then
+      class A() with
+        fun f() = 2
+      A().f()
+    else
+      class A() with
+        fun f() = 3
+      A().f()
   A() * 100 + a * 10 + b
 handle h = Eff with
   fun perform()(k) = k(())
@@ -424,50 +427,52 @@ foo(h)
 fun foo(h) =
   h.perform()
   fun A() = 1
-  let a = if true then
-    module A with
-      fun f() = 2
-    A.f()
-  else
-    module A with
-      fun f() = 3
-    A.f()
-  let b = if false then
-    module A with
-      fun f() = 2
-    A.f()
-  else
-    module A with
-      fun f() = 3
-    A.f()
+  let a =
+    if true then
+      module A with
+        fun f() = 2
+      A.f()
+    else
+      module A with
+        fun f() = 3
+      A.f()
+  let b =
+    if false then
+      module A with
+        fun f() = 2
+      A.f()
+    else
+      module A with
+        fun f() = 3
+      A.f()
   A() * 100 + a * 10 + b
 handle h = Eff with
   fun perform()(k) = k(())
 foo(h)
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.440: 	    module A with
-//│ ╙──       	           ^
+//│ ║  l.445: 	      module A with
+//│ ╙──       	             ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.436: 	    module A with
-//│ ╙──       	           ^
+//│ ║  l.441: 	      module A with
+//│ ╙──       	             ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.432: 	    module A with
-//│ ╙──       	           ^
+//│ ║  l.436: 	      module A with
+//│ ╙──       	             ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.428: 	    module A with
-//│ ╙──       	           ^
+//│ ║  l.432: 	      module A with
+//│ ╙──       	             ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.428: 	    module A with
-//│ ╙──       	           ^
+//│ ║  l.432: 	      module A with
+//│ ╙──       	             ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.432: 	    module A with
-//│ ╙──       	           ^
+//│ ║  l.436: 	      module A with
+//│ ╙──       	             ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.436: 	    module A with
-//│ ╙──       	           ^
+//│ ║  l.441: 	      module A with
+//│ ╙──       	             ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.440: 	    module A with
-//│ ╙──       	           ^
+//│ ║  l.445: 	      module A with
+//│ ╙──       	             ^
 //│ = 123
 
 // Access superclass fields

@@ -5,14 +5,17 @@
 fun f(x) =
   if x is 0 then
     "a"
-  else if x is 1 then
-    "b"
-  else if x is 2 then
-    "c"
-  else if x is 3 then
-    "d"
   else
-    "e"
+    if x is 1 then
+      "b"
+    else
+      if x is 2 then
+        "c"
+      else
+        if x is 3 then
+          "d"
+        else
+          "e"
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f;
 //│ f = function f(x) {
@@ -339,4 +342,3 @@ f(0, 0)
 :expect "x = 1"
 f(1, 0)
 //│ = "x = 1"
-
