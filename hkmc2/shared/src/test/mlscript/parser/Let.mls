@@ -240,17 +240,19 @@ x => let x = 1
 :pe
 fun test = let x = 1
 in x
-//│ ╔══[PARSE ERROR] Expected end of input; found 'in' keyword instead
-//│ ║  l.243: 	in x
-//│ ╙──       	^^
+//│ ╔══[PARSE ERROR] Expected 'in' keyword or end of input after 'let' binding right-hand side; found new line instead
+//│ ║  l.241: 	fun test = let x = 1
+//│ ║         	                    ^
+//│ ║  l.242: 	in x
+//│ ╙──       	
 //│ Parsed:
-//│ 	Def(Ident(test),LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),None))
+//│ 	TermDef(Fun,Ident(test),Some(Error()))
 //│ 	Modified(Keywrd(keyword 'in'),Ident(x))
 
 fun test = let x = 1
   in x
 //│ Parsed:
-//│ 	Def(Ident(test),LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x))))
+//│ 	TermDef(Fun,Ident(test),Some(LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x)))))
 
 x =>
   let x = 1
@@ -273,7 +275,7 @@ x => let x = 1
 :pe
 if
 //│ ╔══[PARSE ERROR] Expected expression or block after 'if' keyword; found end of input instead
-//│ ║  l.259: 	if
+//│ ║  l.276: 	if
 //│ ╙──       	  ^
 //│ Parsed:
 //│ 	Error()

@@ -159,6 +159,7 @@ abstract class Parser(
   
   protected var indent = 0
   private var _cur: Ls[TokLoc] = preprocessTokens(tokens)
+  private var allowKeywordNewlines = true
   
   private def preprocessTokens(tokens: Ls[TokLoc]): Ls[TokLoc] = tokens match
     case (IDENT("new", false), l1) :: (IDENT("!", true), l2) :: rest =>
@@ -195,6 +196,12 @@ abstract class Parser(
     finally indent -= 1
     printDbg(s"= $res")
     res
+
+  private def withAllowKeywordNewlines[R](allow: Bool)(body: => R): R =
+    val previous = allowKeywordNewlines
+    allowKeywordNewlines = allow
+    try body
+    finally allowKeywordNewlines = previous
   
   final def rec(tokens: Ls[Stroken -> Loc], fallbackLoc: Opt[Loc], description: Str): Parser =
     new Parser(origin, tokens, rules, raiseFun, dbg
@@ -498,17 +505,23 @@ abstract class Parser(
                     case multiple => Block(multiple)
                   exprCont(tree, prec, allowNewlines = allowNewlines)
                 case _ =>
-                  exprCont(
-                    parseRule(kw.rightPrecOrMin, subRule, allowNewlines = false)
-                      .getOrElse(errExpr), prec, allowNewlines = allowNewlines)
+                  withAllowKeywordNewlines(false):
+                    exprCont(
+                      parseRule(kw.rightPrecOrMin, subRule, allowNewlines = allowNewlines)
+                        .getOrElse(errExpr), prec, allowNewlines = allowNewlines)
               parseRule(prec, exprAlt.rest, allowNewlines = allowNewlines).map(res => exprAlt.k(e, res))
             case N =>
               tryEmpty(tok, loc)
           case N =>
             tryEmpty(tok, loc)
-    case (tok @ (_: NEWLINE_COMMA), l0) :: (id: IDENT, l1) :: _ if allowNewlines && rule.kwAlts.contains(id.name) =>
+    case (tok @ (_: NEWLINE_COMMA), l0) :: (id: IDENT, l1) :: _
+    if allowNewlines && allowKeywordNewlines && rule.kwAlts.contains(id.name) =>
       consume
       parseRule(prec, rule, allowNewlines = allowNewlines)
+    case (tok @ (_: NEWLINE_COMMA), l0) :: (id: IDENT, l1) :: _
+    if allowNewlines && !allowKeywordNewlines && rule.kwAlts.contains(id.name) =>
+      err(msg"Expected ${rule.whatComesAfter} ${rule.mkAfterStr}; found ${tok.describe} instead" -> S(l0) :: Nil)
+      N
     case (tok @ (_: NEWLINE_COMMA), l0) :: _ =>
       // TODO(cur)
       rule.emptyAlt match

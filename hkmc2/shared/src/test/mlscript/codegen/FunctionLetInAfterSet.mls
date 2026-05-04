@@ -3,6 +3,8 @@
 let emptyItemCount = 0
 let c() = set emptyItemCount += 1
 in 42
-//│ ╔══[PARSE ERROR] Expected end of input; found 'in' keyword instead
+//│ ╔══[PARSE ERROR] Expected '=' keyword, 'in' keyword, or end of input after 'set' binding head; found new line instead
+//│ ║  l.4: 	let c() = set emptyItemCount += 1
+//│ ║       	                                 ^
 //│ ║  l.5: 	in 42
-//│ ╙──      	^^
+//│ ╙──     	
