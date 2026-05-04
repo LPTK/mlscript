@@ -453,7 +453,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
               lowerRemainingCalls(Value.Ref(tmp), remainingArgss.head, remainingArgss.tail)(k))
     def lowerRemainingCalls(base: Path, args: Term, remainingArgss: Ls[Term])(k: Result => Block): Block =
       lowerArgs(args): as =>
-        val call = Call(base, as ne_:: Nil)(true, true, false)
+        val call = Call(base, as ne_:: Nil)(
+          isMlsFun = true,
+          mayRaiseEffects = true,
+          explicitTailCall = false,
+        )
         remainingArgss match
         case Nil => k(call)
         case args :: remainingArgss =>
@@ -473,7 +477,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     val ctorParamss = cls.targetSymbol.flatMap(_.asClsOrMod).flatMap(_.defn).fold(Nil: Ls[Unit]):
       clsDef =>
         (clsDef.paramsOpt.toList ::: clsDef.auxParams) match
-        case _ :: _ :: ctorParamss => ctorParamss.map(_ => ())
+        case _ :: _ :: remainingCtorParamss => remainingCtorParamss.map(_ => ())
         case _ => Nil
     if ctorParamss.isEmpty then lowerDefault
     else zipArgs(ctorParamss, args, Nil)
