@@ -23,38 +23,45 @@ new Foo(1, 2)(3)
 :sir
 new Foo(1, 2)(3)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp; set tmp = new Foo⁰(1, 2); tmp(3)
+//│ new Foo⁰(1, 2)(3)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = Foo(1, 2)
+
+:sir
+new Foo(1, 2)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let lambda⁰; define lambda⁰ as fun lambda¹(z) { return new Foo⁰(1, 2)(z) }; lambda¹
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun
 
 
 :todo
 data class Foo with
   constructor(x, y)
 //│ ╔══[PARSE ERROR] Expected block after constructor keyword; found parenthesis section instead
-//│ ║  l.33: 	  constructor(x, y)
+//│ ║  l.40: 	  constructor(x, y)
 //│ ╙──      	             ^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: x
-//│ ║  l.33: 	  constructor(x, y)
+//│ ║  l.40: 	  constructor(x, y)
 //│ ╙──      	              ^
 //│ ╔══[COMPILATION ERROR] Name not found: y
-//│ ║  l.33: 	  constructor(x, y)
+//│ ║  l.40: 	  constructor(x, y)
 //│ ╙──      	                 ^
 
 :todo
 data class Foo with
   constructor(x, y)(z)
 //│ ╔══[PARSE ERROR] Expected block after constructor keyword; found parenthesis section instead
-//│ ║  l.46: 	  constructor(x, y)(z)
+//│ ║  l.53: 	  constructor(x, y)(z)
 //│ ╙──      	             ^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: x
-//│ ║  l.46: 	  constructor(x, y)(z)
+//│ ║  l.53: 	  constructor(x, y)(z)
 //│ ╙──      	              ^
 //│ ╔══[COMPILATION ERROR] Name not found: y
-//│ ║  l.46: 	  constructor(x, y)(z)
+//│ ║  l.53: 	  constructor(x, y)(z)
 //│ ╙──      	                 ^
 //│ ╔══[COMPILATION ERROR] Name not found: z
-//│ ║  l.46: 	  constructor(x, y)(z)
+//│ ║  l.53: 	  constructor(x, y)(z)
 //│ ╙──      	                    ^
 
 

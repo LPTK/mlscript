@@ -464,24 +464,37 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
           val tmp = loweringCtx.registerTempSymbol(N)
           Assign(tmp, call,
             lowerRemainingCalls(Value.Ref(tmp), args, remainingArgss)(k))
-    def zipArgs(remainingCtorLists: Int, remainingArgss: Ls[Term], acc: Ls[Ls[Arg]]): Block =
-      (remainingCtorLists, remainingArgss) match
-      case (n, args :: remainingArgs) if n > 0 =>
-        lowerArgs(args)(as => zipArgs(n - 1, remainingArgs, as :: acc))
-      case (_, Nil) =>
+    def zipArgs(remainingCtorParamss: Ls[ParamList], remainingArgss: Ls[Term], acc: Ls[Ls[Arg]]): Block =
+      (remainingCtorParamss, remainingArgss) match
+      case (ps :: remainingParams, args :: remainingArgs) =>
+        lowerArgs(args)(as => zipArgs(remainingParams, remainingArgs, as :: acc))
+      case (Nil, Nil) =>
         k(buildInstantiate(acc.reverse))
-      case (0, args :: remainingArgss) =>
+      case (Nil, args :: remainingArgss) =>
         val tmp = loweringCtx.registerTempSymbol(N)
         Assign(tmp, buildInstantiate(acc.reverse),
           lowerRemainingCalls(Value.Ref(tmp), args, remainingArgss)(k))
-      case _ => lowerDefault
-    val ctorParamListCount = cls.targetSymbol.flatMap(_.asClsOrMod).flatMap(_.defn).fold(0):
-      clsDef =>
-        (clsDef.paramsOpt.toList ::: clsDef.auxParams) match
-        case ctorParamLists if ctorParamLists.lengthCompare(2) >= 0 => ctorParamLists.length
-        case _ => 0
-    if ctorParamListCount == 0 then lowerDefault
-    else zipArgs(ctorParamListCount, args, Nil)
+      case (remainingParamss, Nil) =>
+        // Eta-expand missing argument lists by creating lambdas for each remaining param list
+        def etaExpand(remainingParamss: Ls[ParamList], accArgss: Ls[Ls[Arg]]): Result =
+          remainingParamss match
+          case Nil => buildInstantiate(accArgss)
+          case ps :: rest =>
+            val freshSyms = ps.params.map(p => new VarSymbol(new Tree.Ident(p.sym.nme)))
+            val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
+            val freshParamList = ParamList(ps.flags, freshParams, N)
+            val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
+            Lambda(freshParamList, Return(etaExpand(rest, accArgss :+ freshArgs), implct = false))
+        k(etaExpand(remainingParamss, acc.reverse))
+    val ctorParamLists: Ls[ParamList] = cls.targetSymbol.flatMap: sym =>
+      sym.asClsOrMod.flatMap(_.defn) orElse
+      sym.asTrm.flatMap(_.defn).flatMap(_.companionClass).flatMap(_.defn)
+    .fold(Nil: Ls[ParamList]): clsDef =>
+      (clsDef.paramsOpt.toList ::: clsDef.auxParams) match
+      case ctorParamLists if ctorParamLists.lengthCompare(2) >= 0 => ctorParamLists
+      case _ => Nil
+    if ctorParamLists.isEmpty then lowerDefault
+    else zipArgs(ctorParamLists, args, Nil)
   
   def lowerArgs(arg: Term)(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     arg match
