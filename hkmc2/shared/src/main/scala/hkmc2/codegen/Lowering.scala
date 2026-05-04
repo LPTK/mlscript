@@ -432,6 +432,36 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       case _ => zipArgs(Nil, args, Nil)
     case _ => zipArgs(Nil, args, Nil)
   
+  /** Lower an instantiation with multiple argument lists into `Instantiate` and `Call` nodes,
+    * trying to group as many as possible into a single `Instantiate`
+    * when they correspond to constructor parameter lists of the same class. */
+  def lowerMultiInstantiate(mut: Bool, cls: Path, args: Ls[Term])(k: Result => Block)(using LoweringCtx): Block =
+    def instantiate(argss: Ls[Ls[Arg]]): Instantiate =
+      Instantiate(mut, cls, if argss.isEmpty then Nil :: Nil else argss)
+    def wrapUp(base: Path, args: Term, remainingArgss: Ls[Term])(k: Result => Block): Block =
+      lowerArgs(args): as =>
+        val call = Call(base, as ne_:: Nil)(true, true, false)
+        remainingArgss match
+        case Nil => k(call)
+        case args :: remainingArgss =>
+          val tmp = loweringCtx.registerTempSymbol(N)
+          Assign(tmp, call,
+            wrapUp(Value.Ref(tmp), args, remainingArgss)(k))
+    def zipArgs(remainingParamss: Ls[Unit], remainingArgss: Ls[Term], acc: Ls[Ls[Arg]]): Block =
+      (remainingParamss, remainingArgss) match
+      case (_ :: remainingParams, args :: remainingArgs) =>
+        lowerArgs(args)(as => zipArgs(remainingParams, remainingArgs, as :: acc))
+      case (_, Nil) =>
+        k(instantiate(acc.reverse))
+      case (Nil, args :: remainingArgss) =>
+        val tmp = loweringCtx.registerTempSymbol(N)
+        Assign(tmp, instantiate(acc.reverse),
+          wrapUp(Value.Ref(tmp), args, remainingArgss)(k))
+    val ctorParamss = cls.targetSymbol.flatMap(_.asClsOrMod) match
+      case Some(clsSym) => clsSym.tree.paramLists.map(_ => ())
+      case None => if args.isEmpty then Nil else () :: Nil
+    zipArgs(ctorParamss, args, Nil)
+  
   def lowerArgs(arg: Term)(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     arg match
     case Tup(fs) =>
@@ -807,20 +837,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
         case _ => spuriousWarning
       subTerm(cls): sr =>
         rft match
-        case N =>
-          as match
-          case Nil =>
-            k(Instantiate(mut, sr, Nil :: Nil))
-          case a :: Nil => lowerArgs(a): asr =>
-            k(Instantiate(mut, sr, asr :: Nil))
-          case a :: as => lowerArgs(a): asr =>
-            val z = as.foldLeft[Path => Block](k): (acc, arg) => 
-              inner =>
-                lowerArgs(arg): asr2 =>
-                  val ts = loweringCtx.registerTempSymbol(N)
-                  Assign(ts, Call(inner, asr2 ne_:: Nil)(true, true, false), acc(Value.Ref(ts)))
-            val ts = loweringCtx.registerTempSymbol(N)
-            Assign(ts, Instantiate(mut, sr, asr ne_:: Nil), z(Value.Ref(ts)))
+        case N => lowerMultiInstantiate(mut, sr, as)(k)
         case S((isym, rft)) =>
           val sym = new BlockMemberSymbol(isym.name, Nil)
           loweringCtx.collectScopedSym(sym)
@@ -1414,4 +1431,3 @@ object MergeMatchArmTransformer extends BlockTransformer(SymbolSubst.Id):
               dfltRewritten.fold(restRewritten)(Begin(_, restRewritten)) |> some, rest)
       case _ => m
     case b => b
-
