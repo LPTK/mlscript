@@ -159,7 +159,7 @@ abstract class Parser(
   
   protected var indent = 0
   private var _cur: Ls[TokLoc] = preprocessTokens(tokens)
-  private var allowKeywordNewlines = true
+  private var allowUnindentedKeywordContinuations = true
   
   private def preprocessTokens(tokens: Ls[TokLoc]): Ls[TokLoc] = tokens match
     case (IDENT("new", false), l1) :: (IDENT("!", true), l2) :: rest =>
@@ -198,10 +198,10 @@ abstract class Parser(
     res
 
   private def withAllowKeywordNewlines[R](allow: Bool)(body: => R): R =
-    val previous = allowKeywordNewlines
-    allowKeywordNewlines = allow
+    val previous = allowUnindentedKeywordContinuations
+    allowUnindentedKeywordContinuations = allow
     try body
-    finally allowKeywordNewlines = previous
+    finally allowUnindentedKeywordContinuations = previous
 
   private def withKeywordNewlinesDisabled[R](body: => R): R =
     withAllowKeywordNewlines(false)(body)
@@ -518,11 +518,11 @@ abstract class Parser(
           case N =>
             tryEmpty(tok, loc)
     case (tok @ (_: NEWLINE_COMMA), l0) :: (id: IDENT, l1) :: _
-    if allowNewlines && allowKeywordNewlines && rule.kwAlts.contains(id.name) =>
+    if allowNewlines && allowUnindentedKeywordContinuations && rule.kwAlts.contains(id.name) =>
       consume
       parseRule(prec, rule, allowNewlines = allowNewlines)
     case (tok @ (_: NEWLINE_COMMA), l0) :: (id: IDENT, l1) :: _
-    if allowNewlines && !allowKeywordNewlines && rule.kwAlts.contains(id.name) =>
+    if allowNewlines && !allowUnindentedKeywordContinuations && rule.kwAlts.contains(id.name) =>
       err(msg"Expected ${rule.whatComesAfter} ${rule.mkAfterStr}; found ${tok.describe} instead" -> S(l0) :: Nil)
       N
     case (tok @ (_: NEWLINE_COMMA), l0) :: _ =>
@@ -1137,7 +1137,7 @@ abstract class Parser(
             printDbg(s"!! REDUCING BRACKET")
             cur = (NEWLINE, l.left) :: rest ::: cur
           case _ =>
-        allowKeywordNewlines = true
+        allowUnindentedKeywordContinuations = true
         exprCont(res, prec, allowNewlines = allowNewlines)
         
       
