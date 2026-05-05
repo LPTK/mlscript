@@ -1096,47 +1096,36 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     val isTrivial = auxParams.isEmpty
     
     val cls = obj.cls
+    private val ctorParamLists = cls.paramsOpt.toList ::: cls.auxParams
     
     val flattenedSym = BlockMemberSymbol(obj.cls.sym.nme + "$", Nil, true)
     val flattenedDSym = TermSymbol.fromFunBms(flattenedSym, N)
     
     def mkFlattenedDefn: FunDefn =
       val auxSyms = auxParams.map(p => VarSymbol(Tree.Ident(p.sym.nme)))
-      val main = obj.cls.paramsOpt match
-        case Some(value) => dupParamList(value)
-        case None => obj.cls.auxParams.headOption match
-          case Some(value) => dupParamList(value)
-          case None => PlainParamList(Nil)
-      val mainSyms = main.params.map(_.sym)
-      val restSym = main.restParam.map(_.sym)
-      val argList1_ = (restSym match
-          case Some(value) => mainSyms.appended(value)
-          case None => mainSyms
-        ).map(s => s.asPath.asArg)
-      val argList2_ = auxSyms.map(s => s.asPath.asArg)
+      val originalParamLists = ctorParamLists.map(dupParamList)
+      val originalArgss = originalParamLists.map: paramList =>
+        val syms = paramList.restParam match
+          case Some(value) => paramList.params.map(_.sym).appended(value.sym)
+          case None => paramList.params.map(_.sym)
+        syms.map(_.asPath.asArg)
+      val argList2_ = auxSyms.map(_.asPath.asArg)
       
       val clsIsParamless = cls.paramsOpt.isEmpty && cls.auxParams.length == 0
-      
-      val argList1 =
-        if clsIsParamless then argList2_
-        else argList1_
-      val argList2 = argList2_
       
       val auxParamList = ParamList(
         ParamListFlags.empty,
         auxSyms.map(Param.simple(_)),
         N
       )
-      val tmp = TempSymbol(N)
       val ref = Value.Ref(obj.cls.sym, S(obj.cls.isym))
-      val ret = 
-        if clsIsParamless then Return(tmp.asPath, false)
-        else Return(Call(tmp.asPath, argList2 ne_:: Nil)(true, config.checkInstantiateEffect, false), false)
-      val bod = Scoped(Set(tmp), Assign(tmp, Instantiate(false, ref, argList1 ne_:: Nil), ret))
-      // Curried via multiple param lists: C$(auxArgs)(mainArgs) = new C(mainArgs)(auxArgs)
       val paramLists =
         if clsIsParamless then auxParamList :: Nil
-        else auxParamList :: main :: Nil
+        else auxParamList :: originalParamLists
+      val instArgss =
+        if clsIsParamless then argList2_ :: Nil
+        else originalArgss.head :: argList2_ :: originalArgss.tail
+      val bod = Return(Instantiate(false, ref, instArgss), false)
       
       FunDefn(N, flattenedSym, flattenedDSym, paramLists, bod)(N, annotations = Nil)
     
@@ -1161,19 +1150,45 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     def rewriteInstantiate(inst: Instantiate, argss: List[List[Arg]])(k: Result => Block): Block =
       if obj.isObj then lastWords("tried to rewrite instantiate for an object")
       val path = Value.Ref(cls.sym, S(cls.isym))
+      def buildInstantiate(argss: List[List[Arg]]): Instantiate =
+        if cls.paramsOpt.isEmpty && cls.auxParams.isEmpty then
+          Instantiate(inst.mut, path, (formatArgs ::: argss.head) :: argss.tail)
+        else
+          Instantiate(inst.mut, path, argss.head :: formatArgs :: argss.tail)
+      def etaExpandCtor(argss: List[List[Arg]], remainingParamss: List[ParamList]): Result =
+        remainingParamss match
+          case Nil => buildInstantiate(argss).withLoc(inst.toLoc)
+          case ps :: rest =>
+            val freshSyms = ps.params.map(p => new VarSymbol(new Tree.Ident(p.sym.nme)))
+            softTODO(ps.restParam.isEmpty, "Eta expanding rest parameters in constructor definitions is not yet supported")
+            val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
+            val freshParamList = ParamList(ps.flags, freshParams, N)
+            val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
+            Lambda(freshParamList, Return(etaExpandCtor(argss :+ freshArgs, rest), implct = false)).withLoc(inst.toLoc)
       if isTrivial then
         if (inst.cls === path) && (inst.argss is argss) then k(inst)
         else k(inst.copy(cls = path, argss = argss).withLocOf(inst))
       else if cls.paramsOpt.isEmpty && cls.auxParams.isEmpty then
         // Paramless class: lifter args go directly into the Instantiate constructor
-        k(Instantiate(inst.mut, path, (formatArgs ::: argss.head) :: argss.tail).withLoc(inst.toLoc))
+        k(buildInstantiate(argss).withLoc(inst.toLoc))
       else
-        // Parameterized class: use Instantiate with original args + lifter args inserted after the first list
-        k(Instantiate(inst.mut, path, argss.head :: formatArgs :: argss.tail).withLoc(inst.toLoc))
+        k(etaExpandCtor(argss, ctorParamLists.drop(argss.length)))
     
     def rewriteCall(c: Call, argss: NELs[List[Arg]])(k: Result => Block)(using ctx: LifterCtxNew): Block =
       if obj.isObj then lastWords("tried to rewrite instantiate for an object")
       val path = Value.Ref(cls.sym, S(cls.isym))
+      def buildInstantiate(argss: List[List[Arg]]): Instantiate =
+        Instantiate(false, path, argss.head :: formatArgs :: argss.tail)
+      def etaExpandCtor(argss: List[List[Arg]], remainingParamss: List[ParamList]): Result =
+        remainingParamss match
+          case Nil => buildInstantiate(argss).withLoc(c.toLoc)
+          case ps :: rest =>
+            val freshSyms = ps.params.map(p => new VarSymbol(new Tree.Ident(p.sym.nme)))
+            softTODO(ps.restParam.isEmpty, "Eta expanding rest parameters in constructor definitions is not yet supported")
+            val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
+            val freshParamList = ParamList(ps.flags, freshParams, N)
+            val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
+            Lambda(freshParamList, Return(etaExpandCtor(argss :+ freshArgs, rest), implct = false)).withLoc(c.toLoc)
       if isTrivial then
         if c.argss is argss then k(c)
         else k(c.copy(argss = argss)(c.isMlsFun, c.mayRaiseEffects, c.explicitTailCall).withLocOf(c))
@@ -1181,8 +1196,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         // Paramless class: unreachable
         lastWords("Call to paramless class")
       else
-        // Parameterized class: Same as Instantiate case
-        k(Instantiate(false, path, argss.head :: formatArgs :: argss.tail).withLoc(c.toLoc))
+        k(etaExpandCtor(argss, ctorParamLists.drop(argss.length)))
     
     def rewriteImpl: LifterResult[ClsLikeDefn] =
       val rewriterCtor = new BlockRewriter
