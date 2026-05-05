@@ -391,62 +391,46 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
   /** Lower a call with multiple argument lists into `Call` nodes,
     * trying to group as many as possible into a single one
     * when they correspond to parameter lists of the same callee. */
-  /** Apply a sequence of argument lists to a base `Path` result via `Call` nodes.
-    * When multiple arg lists remain, assigns intermediate results to temp symbols. */
-  def lowerCallChain(base: Path, argss: Ls[Term], isMlsFun: Bool, isTailCall: Bool, loc: Opt[Loc])
-      (k: Result => Block)(using LoweringCtx): Block =
-    argss match
-    case Nil => k(base)
-    case args :: remainingArgss =>
+  def lowerMultiCall(fr: Path, isMlsFun: Bool, isTailCall: Bool, args: Ls[Term], loc: Opt[Loc])(k: Result => Block)(using LoweringCtx): Block =
+    def zipArgs(remainingParamss: Ls[ParamList], remainingArgss: Ls[Term], acc: Ls[Ls[Arg]]): Block =
+      (remainingParamss, remainingArgss) match
+      case (ps :: remainingParams, args :: remainingArgs) =>
+        lowerArgs(args)(as => zipArgs(remainingParams, remainingArgs, as :: acc))
+      case (Nil, Nil) =>
+        k(Call(fr, acc.reverse.ne_!)(isMlsFun, true, isTailCall).withLoc(loc))
+      case (Nil, args :: remainingArgss) =>
+        acc.reverse match
+        case Nil => wrapUp(fr, args, remainingArgss)(k)
+        case acc: NELs[Ls[Arg]] =>
+          val tmp = loweringCtx.registerTempSymbol(N, "callPrefix")
+          val call = Call(fr, acc)(isMlsFun, true, isTailCall).withLoc(loc)
+          Assign(tmp, call, wrapUp(Value.Ref(tmp), args, remainingArgss)(k))
+      case _ =>
+        def wrapUp(base: Result, remainingArgss: Ls[Term])(k: Result => Block): Block =
+          remainingArgss match
+          case Nil => k(base)
+          case args :: remainingArgss =>
+            val tmp = loweringCtx.registerTempSymbol(N, "callPrefix")
+            Assign(tmp, base,
+              lowerArgs(args): as =>
+                wrapUp(Call(Value.Ref(tmp), as ne_:: Nil)(isMlsFun, true, isTailCall).withLoc(loc), remainingArgss)(k))
+        wrapUp(Call(fr, acc.reverse.ne_!)(isMlsFun, true, isTailCall).withLoc(loc), remainingArgss)(k)
+    def wrapUp(base: Path, args: Term, remainingArgss: Ls[Term])(k: Result => Block): Block =
       lowerArgs(args): as =>
-        val call = Call(base, as ne_:: Nil)(isMlsFun, mayRaiseEffects = true, isTailCall).withLoc(loc)
+        val call = Call(base, as ne_:: Nil)(isMlsFun = false, true, isTailCall).withLoc(loc)
         remainingArgss match
         case Nil => k(call)
-        case _ =>
-          val tmp = loweringCtx.registerTempSymbol(N)
-          Assign(tmp, call, lowerCallChain(Value.Ref(tmp), remainingArgss, isMlsFun, isTailCall, loc)(k))
-  
-  /** Zip parameter lists against argument lists, lowering each arg list in turn and accumulating results.
-    * @param whenDone    called with `(acc, remainingArgss)` when all param lists are consumed
-    * @param whenUnder   called with `(remainingParamss, acc)` when all arg lists are consumed before params */
-  def zipAndLowerArgs(
-    remainingParamss: Ls[ParamList],
-    remainingArgss: Ls[Term],
-    acc: Ls[Ls[Arg]],
-    whenDone: (Ls[Ls[Arg]], Ls[Term]) => Block,
-    whenUnder: (Ls[ParamList], Ls[Ls[Arg]]) => Block,
-  )(using LoweringCtx): Block =
-    (remainingParamss, remainingArgss) match
-    case (ps :: remainingParams, args :: remainingArgs) =>
-      lowerArgs(args)(as => zipAndLowerArgs(remainingParams, remainingArgs, as :: acc, whenDone, whenUnder))
-    case (Nil, remainingArgss) =>
-      whenDone(acc.reverse, remainingArgss)
-    case (remainingParamss, Nil) =>
-      whenUnder(remainingParamss, acc.reverse)
-  
-  def lowerMultiCall(fr: Path, isMlsFun: Bool, isTailCall: Bool, args: Ls[Term], loc: Opt[Loc])(k: Result => Block)(using LoweringCtx): Block =
-    val paramss = fr.targetSymbol match
-      case S(fs: TermSymbol) => fs.defn match
-        case S(td: TermDefinition) => td.params
-        case _ => Nil
-      case _ => Nil
-    zipAndLowerArgs(paramss, args, Nil,
-      whenDone = (acc, remaining) =>
-        acc match
-        case Nil =>
-          // * No params were registered for this function; apply args directly as calls.
-          lowerCallChain(fr, remaining, isMlsFun = false, isTailCall, loc)(k)
-        case acc: NELs[Ls[Arg]] =>
-          val call = Call(fr, acc)(isMlsFun, mayRaiseEffects = true, isTailCall).withLoc(loc)
-          remaining match
-          case Nil => k(call)
-          case _ =>
-            val tmp = loweringCtx.registerTempSymbol(N, "callPrefix")
-            Assign(tmp, call, lowerCallChain(Value.Ref(tmp), remaining, isMlsFun = false, isTailCall, loc)(k)),
-      whenUnder = (_, acc) =>
-        // * Params remain but no more args: partial application — just make the call with what we have.
-        k(Call(fr, acc.ne_!)(isMlsFun, mayRaiseEffects = true, isTailCall).withLoc(loc)),
-    )
+        case args :: remainingArgss =>
+          val tmp = loweringCtx.registerTempSymbol(N, "callPrefix")
+          Assign(tmp, call,
+            wrapUp(Value.Ref(tmp), args, remainingArgss)(k))
+    fr.targetSymbol match
+    case S(fs: TermSymbol) =>
+      fs.defn match
+      case S(td: TermDefinition) =>
+        zipArgs(td.params, args, Nil)
+      case _ => zipArgs(Nil, args, Nil)
+    case _ => zipArgs(Nil, args, Nil)
   
   /** Lower an instantiation with multiple argument lists into `Instantiate` and `Call` nodes,
     * trying to group as many as possible into a single `Instantiate`
@@ -454,20 +438,61 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
     * If fewer argument lists are provided than constructor parameter lists, eta-expands
     * the missing ones with fresh lambdas (avoiding reliance on mutable JS class curry semantics). */
   def lowerMultiInstantiate(mut: Bool, cls: Path, args: Ls[Term])(k: Result => Block)(using LoweringCtx): Block =
-    // * Nullary instantiations are represented with one empty argument list, matching existing `Instantiate` usage.
+    // Nullary instantiations are represented with one empty argument list, matching existing `Instantiate` usage.
     def buildInstantiate(argss: Ls[Ls[Arg]]): Instantiate =
       Instantiate(mut, cls, if argss.isEmpty then Nil :: Nil else argss)
-    // * Eta-expand missing argument lists by creating lambdas for each remaining param list.
-    // * This makes partial `new C(args...)` explicit instead of relying on the JS class curry.
-    def etaExpand(remainingParamss: Ls[ParamList], accArgss: Ls[Ls[Arg]]): Result =
-      remainingParamss match
-      case Nil => buildInstantiate(accArgss)
-      case ps :: rest =>
-        val freshSyms = ps.params.map(p => new VarSymbol(new Tree.Ident(p.sym.nme)))
-        val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
-        val freshParamList = ParamList(ps.flags, freshParams, N)
-        val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
-        Lambda(freshParamList, Return(etaExpand(rest, accArgss :+ freshArgs), implct = false))
+    def lowerDefault: Block = args match
+      case Nil =>
+        k(buildInstantiate(Nil))
+      case args :: remainingArgss =>
+        lowerArgs(args): as =>
+          remainingArgss match
+          case Nil =>
+            k(buildInstantiate(as :: Nil))
+          case remainingArgss =>
+            val tmp = loweringCtx.registerTempSymbol(N)
+            Assign(tmp, buildInstantiate(as :: Nil),
+              lowerRemainingCalls(Value.Ref(tmp), remainingArgss.head, remainingArgss.tail)(k))
+    def lowerRemainingCalls(base: Path, args: Term, remainingArgss: Ls[Term])(k: Result => Block): Block =
+      lowerArgs(args): as =>
+        val call = Call(base, as ne_:: Nil)(
+          isMlsFun = true,
+          mayRaiseEffects = true,
+          explicitTailCall = false,
+        )
+        remainingArgss match
+        case Nil => k(call)
+        case args :: remainingArgss =>
+          val tmp = loweringCtx.registerTempSymbol(N)
+          Assign(tmp, call,
+            lowerRemainingCalls(Value.Ref(tmp), args, remainingArgss)(k))
+    // * Zip constructor param lists with argument lists, accumulating lowered args.
+    // * Consumes one argument list per constructor param list; when all ctor params are
+    // * consumed but extra args remain, falls back to `Call` nodes on the result.
+    // * When args run out before ctor params are consumed, eta-expands the remaining ones.
+    def zipArgs(remainingCtorParamss: Ls[ParamList], remainingArgss: Ls[Term], acc: Ls[Ls[Arg]]): Block =
+      (remainingCtorParamss, remainingArgss) match
+      case (ps :: remainingParams, args :: remainingArgs) =>
+        lowerArgs(args)(as => zipArgs(remainingParams, remainingArgs, as :: acc))
+      case (Nil, Nil) =>
+        k(buildInstantiate(acc.reverse))
+      case (Nil, args :: remainingArgss) =>
+        val tmp = loweringCtx.registerTempSymbol(N)
+        Assign(tmp, buildInstantiate(acc.reverse),
+          lowerRemainingCalls(Value.Ref(tmp), args, remainingArgss)(k))
+      case (remainingParamss, Nil) =>
+        // * Eta-expand missing argument lists by creating lambdas for each remaining param list.
+        // * This makes partial `new C(args...)` explicit instead of relying on the JS class curry.
+        def etaExpand(remainingParamss: Ls[ParamList], accArgss: Ls[Ls[Arg]]): Result =
+          remainingParamss match
+          case Nil => buildInstantiate(accArgss)
+          case ps :: rest =>
+            val freshSyms = ps.params.map(p => new VarSymbol(new Tree.Ident(p.sym.nme)))
+            val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
+            val freshParamList = ParamList(ps.flags, freshParams, N)
+            val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
+            Lambda(freshParamList, Return(etaExpand(rest, accArgss :+ freshArgs), implct = false))
+        k(etaExpand(remainingParamss, acc.reverse))
     // * Resolve the class definition to get the constructor param lists.
     // * The class path typically resolves to a TermSymbol (the constructor function),
     // * so we also look up the companion ClassSymbol via TermDefinition.companionClass.
@@ -478,31 +503,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx):
       (clsDef.paramsOpt.toList ::: clsDef.auxParams) match
       case ctorParamLists if ctorParamLists.lengthCompare(2) >= 0 => ctorParamLists
       case _ => Nil
-    if ctorParamLists.isEmpty then
-      // * No multi-param-list constructor; lower the first arg list as an `Instantiate` and
-      // * apply any further arg lists as `Call` nodes.
-      args match
-      case Nil => k(buildInstantiate(Nil))
-      case args :: remainingArgss =>
-        lowerArgs(args): as =>
-          val inst = buildInstantiate(as :: Nil)
-          remainingArgss match
-          case Nil => k(inst)
-          case _ =>
-            val tmp = loweringCtx.registerTempSymbol(N)
-            Assign(tmp, inst, lowerCallChain(Value.Ref(tmp), remainingArgss, isMlsFun = true, isTailCall = false, loc = N)(k))
-    else
-      zipAndLowerArgs(ctorParamLists, args, Nil,
-        whenDone = (acc, remaining) =>
-          val inst = buildInstantiate(acc)
-          remaining match
-          case Nil => k(inst)
-          case _ =>
-            val tmp = loweringCtx.registerTempSymbol(N)
-            Assign(tmp, inst, lowerCallChain(Value.Ref(tmp), remaining, isMlsFun = true, isTailCall = false, loc = N)(k)),
-        whenUnder = (remainingParams, acc) =>
-          k(etaExpand(remainingParams, acc)),
-      )
+    if ctorParamLists.isEmpty then lowerDefault
+    else zipArgs(ctorParamLists, args, Nil)
   
   def lowerArgs(arg: Term)(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     arg match
