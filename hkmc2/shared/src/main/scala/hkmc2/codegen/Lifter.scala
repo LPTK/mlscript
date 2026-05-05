@@ -1147,6 +1147,21 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         explicitTailCall = false
       )
     
+    private def etaExpandCtor(
+      argss: List[List[Arg]],
+      remainingParamss: List[ParamList],
+      loco: Opt[Loc]
+    )(buildResult: List[List[Arg]] => Result): Result =
+      remainingParamss match
+        case Nil => buildResult(argss).withLoc(loco)
+        case ps :: rest =>
+          val freshSyms = ps.params.map(p => new VarSymbol(new Tree.Ident(p.sym.nme)))
+          softTODO(ps.restParam.isEmpty, "Eta expanding rest parameters in constructor definitions is not yet supported")
+          val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
+          val freshParamList = ParamList(ps.flags, freshParams, N)
+          val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
+          Lambda(freshParamList, Return(etaExpandCtor(argss :+ freshArgs, rest, loco)(buildResult), implct = false)).withLoc(loco)
+    
     def rewriteInstantiate(inst: Instantiate, argss: List[List[Arg]])(k: Result => Block): Block =
       if obj.isObj then lastWords("tried to rewrite instantiate for an object")
       val path = Value.Ref(cls.sym, S(cls.isym))
@@ -1155,16 +1170,6 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           Instantiate(inst.mut, path, (formatArgs ::: argss.head) :: argss.tail)
         else
           Instantiate(inst.mut, path, argss.head :: formatArgs :: argss.tail)
-      def etaExpandCtor(argss: List[List[Arg]], remainingParamss: List[ParamList]): Result =
-        remainingParamss match
-          case Nil => buildInstantiate(argss).withLoc(inst.toLoc)
-          case ps :: rest =>
-            val freshSyms = ps.params.map(p => new VarSymbol(new Tree.Ident(p.sym.nme)))
-            softTODO(ps.restParam.isEmpty, "Eta expanding rest parameters in constructor definitions is not yet supported")
-            val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
-            val freshParamList = ParamList(ps.flags, freshParams, N)
-            val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
-            Lambda(freshParamList, Return(etaExpandCtor(argss :+ freshArgs, rest), implct = false)).withLoc(inst.toLoc)
       if isTrivial then
         if (inst.cls === path) && (inst.argss is argss) then k(inst)
         else k(inst.copy(cls = path, argss = argss).withLocOf(inst))
@@ -1172,23 +1177,13 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         // Paramless class: lifter args go directly into the Instantiate constructor
         k(buildInstantiate(argss).withLoc(inst.toLoc))
       else
-        k(etaExpandCtor(argss, constructorParamLists.drop(argss.length)))
+        k(etaExpandCtor(argss, constructorParamLists.drop(argss.length), inst.toLoc)(buildInstantiate))
     
     def rewriteCall(c: Call, argss: NELs[List[Arg]])(k: Result => Block)(using ctx: LifterCtxNew): Block =
       if obj.isObj then lastWords("tried to rewrite instantiate for an object")
       val path = Value.Ref(cls.sym, S(cls.isym))
       def buildInstantiate(argss: List[List[Arg]]): Instantiate =
         Instantiate(false, path, argss.head :: formatArgs :: argss.tail)
-      def etaExpandCtor(argss: List[List[Arg]], remainingParamss: List[ParamList]): Result =
-        remainingParamss match
-          case Nil => buildInstantiate(argss).withLoc(c.toLoc)
-          case ps :: rest =>
-            val freshSyms = ps.params.map(p => new VarSymbol(new Tree.Ident(p.sym.nme)))
-            softTODO(ps.restParam.isEmpty, "Eta expanding rest parameters in constructor definitions is not yet supported")
-            val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
-            val freshParamList = ParamList(ps.flags, freshParams, N)
-            val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
-            Lambda(freshParamList, Return(etaExpandCtor(argss :+ freshArgs, rest), implct = false)).withLoc(c.toLoc)
       if isTrivial then
         if c.argss is argss then k(c)
         else k(c.copy(argss = argss)(c.isMlsFun, c.mayRaiseEffects, c.explicitTailCall).withLocOf(c))
@@ -1196,7 +1191,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         // Paramless class: unreachable
         lastWords("Call to paramless class")
       else
-        k(etaExpandCtor(argss, constructorParamLists.drop(argss.length)))
+        k(etaExpandCtor(argss, constructorParamLists.drop(argss.length), c.toLoc)(buildInstantiate))
     
     def rewriteImpl: LifterResult[ClsLikeDefn] =
       val rewriterCtor = new BlockRewriter
