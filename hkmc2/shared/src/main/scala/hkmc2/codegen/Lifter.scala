@@ -295,9 +295,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         val body2 = applySubBlockAndReset(lam.body)
         val reduced = body2 match
           case Return(res, false) =>
-            ctx.liftedScopes.valuesIterator.collectFirst(Function.unlift:
-              case cls: LiftedClass => cls.etaReduceCtorLambda(lam.params, res, lam.toLoc)
-              case _ => N)
+            ctx.liftedScopes.valuesIterator
+              .collect { case cls: LiftedClass => cls }
+              .collectFirst(Function.unlift(_.etaReduceCtorLambda(lam.params, res, lam.toLoc)))
           case _ => N
         reduced match
           case S(res) => k(res)
@@ -1113,15 +1113,15 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     val isTrivial = auxParams.isEmpty
     
     val cls = obj.cls
-    private val constructorParamLists = cls.paramsOpt.toList ::: cls.auxParams
+    private val allConstructorParamLists = cls.paramsOpt.toList ::: cls.auxParams
     
     val flattenedSym = BlockMemberSymbol(obj.cls.sym.nme + "$", Nil, true)
     val flattenedDSym = TermSymbol.fromFunBms(flattenedSym, N)
     
     def mkFlattenedDefn: FunDefn =
       val auxSyms = auxParams.map(p => VarSymbol(Tree.Ident(p.sym.nme)))
-      val originalParamLists = constructorParamLists.map(dupParamList)
-      val originalArgumentLists = originalParamLists.map: paramList =>
+      val duplicatedParamLists = allConstructorParamLists.map(dupParamList)
+      val derivedArgumentLists = duplicatedParamLists.map: paramList =>
         val syms = paramList.restParam match
           case Some(value) => paramList.params.map(_.sym).appended(value.sym)
           case None => paramList.params.map(_.sym)
@@ -1138,10 +1138,10 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val ref = Value.Ref(obj.cls.sym, S(obj.cls.isym))
       val paramLists =
         if clsIsParamless then auxParamList :: Nil
-        else auxParamList :: originalParamLists
+        else auxParamList :: duplicatedParamLists
       val instArgss =
         if clsIsParamless then argList2_ :: Nil
-        else originalArgumentLists.head :: argList2_ :: originalArgumentLists.tail
+        else derivedArgumentLists.head :: argList2_ :: derivedArgumentLists.tail
       val bod = Return(Instantiate(false, ref, instArgss), false)
       
       FunDefn(N, flattenedSym, flattenedDSym, paramLists, bod)(N, annotations = Nil)
@@ -1182,7 +1182,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     /** True when the argument list just forwards this lambda's parameters unchanged. */
     private def isEtaParamList(args: List[Arg], params: ParamList): Bool =
       params.restParam.isEmpty &&
-      args.sizeCompare(params.params.size) === 0 &&
+      args.size == params.params.size &&
       args.zip(params.params).forall:
         case (arg, param) =>
           arg.spread.isEmpty && (arg.value match
@@ -1227,7 +1227,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         k(buildInstantiate(argss).withLoc(inst.toLoc))
       else
         k(
-          if argss.lengthCompare(constructorParamLists.length) >= 0 then buildInstantiate(argss).withLoc(inst.toLoc)
+          if argss.lengthCompare(allConstructorParamLists.length) >= 0 then buildInstantiate(argss).withLoc(inst.toLoc)
           else rewritePartialCtorApp(argss, inst.toLoc)
         )
     
@@ -1244,7 +1244,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         lastWords("Call to paramless class")
       else
         k(
-          if argss.lengthCompare(constructorParamLists.length) >= 0 then buildInstantiate(argss).withLoc(c.toLoc)
+          if argss.lengthCompare(allConstructorParamLists.length) >= 0 then buildInstantiate(argss).withLoc(c.toLoc)
           else rewritePartialCtorApp(argss, c.toLoc)
         )
     
