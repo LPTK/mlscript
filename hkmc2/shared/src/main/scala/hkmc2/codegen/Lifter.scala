@@ -288,6 +288,8 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val ret = applyBlock(b)
       Scoped(extraLocals, ret)
     
+    // Reduce lambda results that only forward their parameters into a lifted constructor application,
+    // so the block can reuse the existing curried constructor wrapper instead.
     override def applyResult(r: Result)(k: Result => Block): Block = r match
       case lam: Lambda =>
         val body2 = applySubBlockAndReset(lam.body)
@@ -1119,7 +1121,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     def mkFlattenedDefn: FunDefn =
       val auxSyms = auxParams.map(p => VarSymbol(Tree.Ident(p.sym.nme)))
       val originalParamLists = constructorParamLists.map(dupParamList)
-      val originalArgss = originalParamLists.map: paramList =>
+      val originalArgumentLists = originalParamLists.map: paramList =>
         val syms = paramList.restParam match
           case Some(value) => paramList.params.map(_.sym).appended(value.sym)
           case None => paramList.params.map(_.sym)
@@ -1139,7 +1141,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         else auxParamList :: originalParamLists
       val instArgss =
         if clsIsParamless then argList2_ :: Nil
-        else originalArgss.head :: argList2_ :: originalArgss.tail
+        else originalArgumentLists.head :: argList2_ :: originalArgumentLists.tail
       val bod = Return(Instantiate(false, ref, instArgss), false)
       
       FunDefn(N, flattenedSym, flattenedDSym, paramLists, bod)(N, annotations = Nil)
@@ -1177,6 +1179,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         explicitTailCall = false
       ).withLoc(loco)
     
+    /** True when the argument list just forwards this lambda's parameters unchanged. */
     private def isEtaParamList(args: List[Arg], params: ParamList): Bool =
       params.restParam.isEmpty &&
       args.sizeCompare(params.params.size) === 0 &&
@@ -1186,6 +1189,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
             case Value.Ref(sym, _) => sym is param.sym
             case _ => false)
     
+    /** Replace lambda wrappers around lifted constructor calls with direct partial applications of `A$...`. */
     def etaReduceCtorLambda(
       params: ParamList,
       res: Result,
