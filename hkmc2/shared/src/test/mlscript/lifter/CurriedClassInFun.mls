@@ -30,11 +30,35 @@ fun f(x) =
       set x += 1
       x
     fun getX() = x
-  [new A(x + 1)(x + 2), A, A(x + 1), A(x + 1)(x + 2)]
+  [new A(x + 1)(x + 2), new A(x + 1), new A, A, A(x + 1), A(x + 1)(x + 2)]
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let A⁰, f⁰, Capture$f⁰, A$⁰;
+//│ let A⁰, f⁰, lambda⁰, lambda¹, lambda², Capture$f⁰, lambda$⁰, lambda$¹, A$⁰, lambda$²;
 //│ define A$⁰ as fun A$¹(f$cap)(y)(z) {
 //│   return new A¹(y)(f$cap)(z)
+//│ };
+//│ define lambda$¹ as fun lambda$³(f$cap, tmp)(z) {
+//│   let f$cap1, tmp1, z1, inlinedVal;
+//│   set f$cap1 = f$cap;
+//│   set tmp1 = tmp;
+//│   set z1 = z;
+//│   set inlinedVal = new A¹(tmp1)(f$cap1)(z1);
+//│   return inlinedVal
+//│ };
+//│ define lambda$² as fun lambda$⁴(f$cap, y)(z) {
+//│   let f$cap1, y1, z1, inlinedVal;
+//│   set f$cap1 = f$cap;
+//│   set y1 = y;
+//│   set z1 = z;
+//│   set inlinedVal = new A¹(y1)(f$cap1)(z1);
+//│   return inlinedVal
+//│ };
+//│ define lambda$⁰ as fun lambda$⁵(f$cap)(y) {
+//│   let f$cap1, y1, inlinedVal, lambda$here;
+//│   set f$cap1 = f$cap;
+//│   set y1 = y;
+//│   set lambda$here = lambda$⁴(f$cap1, y1);
+//│   set inlinedVal = lambda$here;
+//│   return inlinedVal
 //│ };
 //│ define A⁰ as class A¹(y) {
 //│   private val f$cap⁰;
@@ -69,26 +93,30 @@ fun f(x) =
 //│   }
 //│ };
 //│ define f⁰ as fun f¹(x) {
-//│   let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, f$cap, A$here;
+//│   let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, f$cap, lambda$here, lambda$here1, A$here;
 //│   set f$cap = new mut Capture$f²(x);
 //│   set tmp = +⁰(f$cap.x$0⁰, 1);
 //│   set tmp1 = +⁰(f$cap.x$0⁰, 2);
 //│   set tmp2 = new A¹(tmp)(f$cap)(tmp1);
 //│   set tmp3 = +⁰(f$cap.x$0⁰, 1);
-//│   set tmp4 = (z) => {
-//│     return new A¹(tmp3)(f$cap)(z)
+//│   set tmp4 = +⁰(f$cap.x$0⁰, 1);
+//│   set tmp5 = (z) => {
+//│     return new A¹(tmp4)(f$cap)(z)
 //│   };
-//│   set tmp5 = +⁰(f$cap.x$0⁰, 1);
-//│   set tmp6 = +⁰(f$cap.x$0⁰, 2);
-//│   set tmp7 = new A¹(tmp5)(f$cap)(tmp6);
+//│   set tmp6 = +⁰(f$cap.x$0⁰, 1);
+//│   set tmp7 = +⁰(f$cap.x$0⁰, 2);
+//│   set tmp8 = new A¹(tmp6)(f$cap)(tmp7);
+//│   set lambda$here = lambda$³(f$cap, tmp3);
+//│   set lambda$here1 = lambda$⁵(f$cap);
 //│   set A$here = A$¹(f$cap);
-//│   return [tmp2, A$here, tmp4, tmp7]
+//│   return [tmp2, lambda$here, lambda$here1, A$here, tmp5, tmp8]
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 let res = f(0)
-//│ res = [A(1), fun, fun tmp4, A(1)]
+//│ res = [A(1), fun, fun, fun, fun tmp5, A(1)]
+
 
 :expect [2, 2]
 let a = res.0
@@ -100,10 +128,31 @@ b.foo()
 //│ a = A(1)
 //│ b = A(2)
 
-res.1(10)(20).foo()
+let mkA1 = res.1
+//│ mkA1 = fun
+
+let a1 = mkA1(10)
+//│ a1 = A(1)
+
+let a2 = mkA1(20)
+//│ a2 = A(1)
+
+:expect [10, 20]
+[a1.z, a2.z]
+//│ = [10, 20]
+
+let mkA2 = res.2
+//│ mkA2 = fun
+
+mkA2(10)(20) !> (_.z |> print)
+//│ > 20
+//│ = A(10)
+
+
+res.3(10)(20).foo()
 //│ = 3
 
-let a1 = res.2(20)
+let a1 = res.4(20)
 //│ a1 = A(1)
 
 a1.foo()
@@ -113,7 +162,7 @@ a1.foo()
 a1.z
 //│ = 20
 
-let a2 = res.2(30)
+let a2 = res.4(30)
 //│ a2 = A(1)
 
 a2.z
