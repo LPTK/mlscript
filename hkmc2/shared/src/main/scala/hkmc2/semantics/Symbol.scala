@@ -417,7 +417,6 @@ sealed trait InnerSymbol(using State) extends Symbol:
   def subst(using SymbolSubst): InnerSymbol
   def asDefnSym: DefinitionSymbol[? <: ClassLikeDef] & InnerSymbol = this match
     case d: DefinitionSymbol[? <: ClassLikeDef] => d
-  // def defn: Opt[ClassLikeDef] = asDefnSym.defn
 
 trait IdentifiedSymbol extends Symbol:
   val id: Tree.Ident
