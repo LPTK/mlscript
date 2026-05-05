@@ -288,6 +288,21 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val ret = applyBlock(b)
       Scoped(extraLocals, ret)
     
+    override def applyResult(r: Result)(k: Result => Block): Block = r match
+      case lam: Lambda =>
+        val body2 = applySubBlockAndReset(lam.body)
+        val reduced = body2 match
+          case Return(res, false) =>
+            ctx.liftedScopes.valuesIterator.collectFirst(Function.unlift:
+              case cls: LiftedClass => cls.etaReduceCtorLambda(lam.params, res, lam.toLoc)
+              case _ => N)
+          case _ => N
+        reduced match
+          case S(res) => k(res)
+          case N if body2 is lam.body => k(lam)
+          case N => k(Lambda(lam.params, body2).withLoc(lam.toLoc))
+      case _ => super.applyResult(r)(k)
+    
     // Replaces references to BlockMemberSymbols as needed with fresh variables, and
     // returns the mapping from the symbol to the required variable. When possible,
     // it also directly rewrites Results (Calls and Instantiates).
@@ -1147,20 +1162,50 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         explicitTailCall = false
       )
     
-    private def etaExpandCtor(
+    private def rewritePartialCtorApp(
       argss: List[List[Arg]],
-      remainingParamss: List[ParamList],
       loco: Opt[Loc]
-    )(buildResult: List[List[Arg]] => Result): Result =
-      remainingParamss match
-        case Nil => buildResult(argss).withLoc(loco)
-        case ps :: rest =>
-          val freshSyms = ps.params.map(p => new VarSymbol(new Tree.Ident(p.sym.nme)))
-          softTODO(ps.restParam.isEmpty, "Eta expanding rest parameters in constructor definitions is not yet supported")
-          val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
-          val freshParamList = ParamList(ps.flags, freshParams, N)
-          val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
-          Lambda(freshParamList, Return(etaExpandCtor(argss :+ freshArgs, rest, loco)(buildResult), implct = false)).withLoc(loco)
+    ): Call =
+      if isTrivial then lastWords("tried to rewrite a partial app of a trivial class ctor")
+      flat.force
+      Call(
+        Value.Ref(flattenedSym, S(flattenedDSym)),
+        formatArgs ne_:: argss
+      )(
+        isMlsFun = true,
+        mayRaiseEffects = false,
+        explicitTailCall = false
+      ).withLoc(loco)
+    
+    private def isEtaParamList(args: List[Arg], params: ParamList): Bool =
+      params.restParam.isEmpty &&
+      args.sizeCompare(params.params.size) === 0 &&
+      args.zip(params.params).forall:
+        case (arg, param) =>
+          arg.spread.isEmpty && (arg.value match
+            case Value.Ref(sym, _) => sym is param.sym
+            case _ => false)
+    
+    def etaReduceCtorLambda(
+      params: ParamList,
+      res: Result,
+      loco: Opt[Loc]
+    ): Opt[Result] =
+      def fromProvidedArgss(providedArgss: List[List[Arg]]): Opt[Result] =
+        providedArgss.lastOption.filter(isEtaParamList(_, params)).map: _ =>
+          rewritePartialCtorApp(providedArgss.init, loco)
+      res match
+        case Instantiate(false, Value.Ref(sym, S(isym)), argss) if (sym is cls.sym) && (isym is cls.isym) =>
+          argss match
+            case first :: captures :: rest if captures === formatArgs =>
+              fromProvidedArgss(first :: rest)
+            case _ => N
+        case c @ Call(Value.Ref(sym, S(dsym)), argss) if (sym is flattenedSym) && (dsym is flattenedDSym) && c.isMlsFun =>
+          argss match
+            case captures :: providedArgss if captures === formatArgs =>
+              fromProvidedArgss(providedArgss)
+            case _ => N
+        case _ => N
     
     def rewriteInstantiate(inst: Instantiate, argss: List[List[Arg]])(k: Result => Block): Block =
       if obj.isObj then lastWords("tried to rewrite instantiate for an object")
@@ -1177,7 +1222,10 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         // Paramless class: lifter args go directly into the Instantiate constructor
         k(buildInstantiate(argss).withLoc(inst.toLoc))
       else
-        k(etaExpandCtor(argss, constructorParamLists.drop(argss.length), inst.toLoc)(buildInstantiate))
+        k(
+          if argss.lengthCompare(constructorParamLists.length) >= 0 then buildInstantiate(argss).withLoc(inst.toLoc)
+          else rewritePartialCtorApp(argss, inst.toLoc)
+        )
     
     def rewriteCall(c: Call, argss: NELs[List[Arg]])(k: Result => Block)(using ctx: LifterCtxNew): Block =
       if obj.isObj then lastWords("tried to rewrite instantiate for an object")
@@ -1191,7 +1239,10 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         // Paramless class: unreachable
         lastWords("Call to paramless class")
       else
-        k(etaExpandCtor(argss, constructorParamLists.drop(argss.length), c.toLoc)(buildInstantiate))
+        k(
+          if argss.lengthCompare(constructorParamLists.length) >= 0 then buildInstantiate(argss).withLoc(c.toLoc)
+          else rewritePartialCtorApp(argss, c.toLoc)
+        )
     
     def rewriteImpl: LifterResult[ClsLikeDefn] =
       val rewriterCtor = new BlockRewriter

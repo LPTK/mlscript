@@ -22,7 +22,7 @@ a.getX()
 
 
 // * Notice how the capture parameter `f$cap` is inserted before the aux param `z` but after the main param `y`
-:soir
+:sir
 fun f(x) =
   class A(val y)(val z) with
     fun newA() = new A(y + 1)(z + 1)
@@ -31,34 +31,22 @@ fun f(x) =
       x
     fun getX() = x
   [new A(x + 1)(x + 2), new A(x + 1), new A, A, A(x + 1), A(x + 1)(x + 2)]
-//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let A⁰, f⁰, lambda⁰, lambda¹, lambda², Capture$f⁰, lambda$⁰, lambda$¹, A$⁰, lambda$²;
 //│ define A$⁰ as fun A$¹(f$cap)(y)(z) {
 //│   return new A¹(y)(f$cap)(z)
 //│ };
 //│ define lambda$¹ as fun lambda$³(f$cap, tmp)(z) {
-//│   let f$cap1, tmp1, z1, inlinedVal;
-//│   set f$cap1 = f$cap;
-//│   set tmp1 = tmp;
-//│   set z1 = z;
-//│   set inlinedVal = new A¹(tmp1)(f$cap1)(z1);
-//│   return inlinedVal
+//│   return lambda³(f$cap, tmp, z)
 //│ };
 //│ define lambda$² as fun lambda$⁴(f$cap, y)(z) {
-//│   let f$cap1, y1, z1, inlinedVal;
-//│   set f$cap1 = f$cap;
-//│   set y1 = y;
-//│   set z1 = z;
-//│   set inlinedVal = new A¹(y1)(f$cap1)(z1);
-//│   return inlinedVal
+//│   return lambda⁴(f$cap, y, z)
+//│ };
+//│ define lambda² as fun lambda⁴(f$cap, y, z) {
+//│   return new A¹(y)(f$cap)(z)
 //│ };
 //│ define lambda$⁰ as fun lambda$⁵(f$cap)(y) {
-//│   let f$cap1, y1, inlinedVal, lambda$here;
-//│   set f$cap1 = f$cap;
-//│   set y1 = y;
-//│   set lambda$here = lambda$⁴(f$cap1, y1);
-//│   set inlinedVal = lambda$here;
-//│   return inlinedVal
+//│   return lambda⁵(f$cap, y)
 //│ };
 //│ define A⁰ as class A¹(y) {
 //│   private val f$cap⁰;
@@ -86,6 +74,14 @@ fun f(x) =
 //│     return f$cap⁰.x$0⁰
 //│   }
 //│ };
+//│ define lambda⁰ as fun lambda³(f$cap, tmp, z) {
+//│   return new A¹(tmp)(f$cap)(z)
+//│ };
+//│ define lambda¹ as fun lambda⁵(f$cap, y) {
+//│   let lambda$here;
+//│   set lambda$here = lambda$⁴(f$cap, y);
+//│   return lambda$here
+//│ };
 //│ define Capture$f⁰ as class Capture$f² {
 //│   constructor Capture$f¹(x$0) {
 //│     define x$0¹ as val x$0⁰ = x$0;
@@ -100,9 +96,7 @@ fun f(x) =
 //│   set tmp2 = new A¹(tmp)(f$cap)(tmp1);
 //│   set tmp3 = +⁰(f$cap.x$0⁰, 1);
 //│   set tmp4 = +⁰(f$cap.x$0⁰, 1);
-//│   set tmp5 = (z) => {
-//│     return new A¹(tmp4)(f$cap)(z)
-//│   };
+//│   set tmp5 = A$¹(f$cap)(tmp4);
 //│   set tmp6 = +⁰(f$cap.x$0⁰, 1);
 //│   set tmp7 = +⁰(f$cap.x$0⁰, 2);
 //│   set tmp8 = new A¹(tmp6)(f$cap)(tmp7);
@@ -115,7 +109,7 @@ fun f(x) =
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 let res = f(0)
-//│ res = [A(1), fun, fun, fun, fun tmp5, A(1)]
+//│ res = [A(1), fun, fun, fun, fun, A(1)]
 
 
 :expect [2, 2]
@@ -174,4 +168,3 @@ a1.z
 
 a.getX()
 //│ = 4
-
