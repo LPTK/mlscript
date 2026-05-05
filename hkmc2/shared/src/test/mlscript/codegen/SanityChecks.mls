@@ -79,18 +79,18 @@ id(f)(2)
 fun f(x)(y, z) = x + y + z
 id(f)(3)(4)
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let f3, callPrefix2, tmp;
+//│ let f3, callPrefix2, callPrefix3;
 //│ f3 = function f(x1) {
 //│   runtime.checkArgs("f", 1, true, arguments.length);
 //│   return (y1, z) => {
-//│     let tmp1;
-//│     tmp1 = x1 + y1;
-//│     return tmp1 + z
+//│     let tmp;
+//│     tmp = x1 + y1;
+//│     return tmp + z
 //│   }
 //│ };
 //│ callPrefix2 = runtime.checkCall(Predef.id(f3));
-//│ tmp = runtime.safeCall(callPrefix2(3));
-//│ block$res7 = runtime.safeCall(tmp(4));
+//│ callPrefix3 = runtime.safeCall(callPrefix2(3));
+//│ block$res7 = runtime.safeCall(callPrefix3(4));
 //│ undefined
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = NaN
@@ -133,7 +133,7 @@ data class Cls(x, y) with
   fun f(z, p)(q, s) = x + y + z + p + q + s
 id(Cls(1, 2)).f(3, 4)(5)
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let Cls5, tmp5, tmp6, tmp7;
+//│ let Cls5, tmp4, tmp5, callPrefix4;
 //│ Cls5 = function Cls(x1, y1) {
 //│   return globalThis.Object.freeze(new Cls.class(x1, y1));
 //│ };
@@ -149,21 +149,21 @@ id(Cls(1, 2)).f(3, 4)(5)
 //│   f(z, p) {
 //│     runtime.checkArgs("f", 2, true, arguments.length);
 //│     return (q, s) => {
-//│       let tmp8, tmp9, tmp10, tmp11;
-//│       tmp8 = this.x + this.y;
-//│       tmp9 = tmp8 + z;
-//│       tmp10 = tmp9 + p;
-//│       tmp11 = tmp10 + q;
-//│       return tmp11 + s
+//│       let tmp6, tmp7, tmp8, tmp9;
+//│       tmp6 = this.x + this.y;
+//│       tmp7 = tmp6 + z;
+//│       tmp8 = tmp7 + p;
+//│       tmp9 = tmp8 + q;
+//│       return tmp9 + s
 //│     }
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Cls", ["x", "y"]]; 
 //│ });
-//│ tmp5 = runtime.checkCall(Cls5(1, 2));
-//│ tmp6 = runtime.checkCall(Predef.id(tmp5));
-//│ tmp7 = runtime.safeCall(tmp6.f(3, 4));
-//│ block$res12 = runtime.safeCall(tmp7(5));
+//│ tmp4 = runtime.checkCall(Cls5(1, 2));
+//│ tmp5 = runtime.checkCall(Predef.id(tmp4));
+//│ callPrefix4 = runtime.safeCall(tmp5.f(3, 4));
+//│ block$res12 = runtime.safeCall(callPrefix4(5));
 //│ undefined
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = NaN
@@ -198,10 +198,10 @@ if M.A(1).y is
   x and x == 1 then x
   else 0
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let scrut, x1, scrut1, tmp8, selRes1;
-//│ tmp8 = runtime.checkCall(M1.A(1));
-//│ selRes1 = tmp8.y;
-//│ tmp8.y$__checkNotMethod;
+//│ let scrut, x1, scrut1, tmp6, selRes1;
+//│ tmp6 = runtime.checkCall(M1.A(1));
+//│ selRes1 = tmp6.y;
+//│ tmp6.y$__checkNotMethod;
 //│ if (selRes1 === undefined) {
 //│   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'y' yielded 'undefined'"))
 //│ }
@@ -240,7 +240,7 @@ M.A(2).y > 1
 // :ssjs
 :re
 M.A(1).g(0)
-//│ ═══[RUNTIME ERROR] TypeError: tmp13.g is not a function
+//│ ═══[RUNTIME ERROR] TypeError: tmp11.g is not a function
 
 
 

@@ -116,14 +116,14 @@ fun foo(x)(y) =
 :sir
 foo(loudly(1))(loudly(2))(loudly(3))(loudly(4))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp, tmp1, callPrefix, tmp2, tmp3, tmp4;
+//│ let tmp, tmp1, callPrefix, tmp2, callPrefix1, tmp3;
 //│ set tmp = loudly⁰(1);
 //│ set tmp1 = loudly⁰(2);
 //│ set callPrefix = foo²(tmp)(tmp1);
 //│ set tmp2 = loudly⁰(3);
-//│ set tmp3 = callPrefix(tmp2);
-//│ set tmp4 = loudly⁰(4);
-//│ tmp3(tmp4)
+//│ set callPrefix1 = callPrefix(tmp2);
+//│ set tmp3 = loudly⁰(4);
+//│ callPrefix1(tmp3)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > hi 1
 //│ > hi 2
