@@ -1096,14 +1096,14 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     val isTrivial = auxParams.isEmpty
     
     val cls = obj.cls
-    private val ctorParamLists = cls.paramsOpt.toList ::: cls.auxParams
+    private val constructorParamLists = cls.paramsOpt.toList ::: cls.auxParams
     
     val flattenedSym = BlockMemberSymbol(obj.cls.sym.nme + "$", Nil, true)
     val flattenedDSym = TermSymbol.fromFunBms(flattenedSym, N)
     
     def mkFlattenedDefn: FunDefn =
       val auxSyms = auxParams.map(p => VarSymbol(Tree.Ident(p.sym.nme)))
-      val originalParamLists = ctorParamLists.map(dupParamList)
+      val originalParamLists = constructorParamLists.map(dupParamList)
       val originalArgss = originalParamLists.map: paramList =>
         val syms = paramList.restParam match
           case Some(value) => paramList.params.map(_.sym).appended(value.sym)
@@ -1172,7 +1172,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         // Paramless class: lifter args go directly into the Instantiate constructor
         k(buildInstantiate(argss).withLoc(inst.toLoc))
       else
-        k(etaExpandCtor(argss, ctorParamLists.drop(argss.length)))
+        k(etaExpandCtor(argss, constructorParamLists.drop(argss.length)))
     
     def rewriteCall(c: Call, argss: NELs[List[Arg]])(k: Result => Block)(using ctx: LifterCtxNew): Block =
       if obj.isObj then lastWords("tried to rewrite instantiate for an object")
@@ -1196,7 +1196,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         // Paramless class: unreachable
         lastWords("Call to paramless class")
       else
-        k(etaExpandCtor(argss, ctorParamLists.drop(argss.length)))
+        k(etaExpandCtor(argss, constructorParamLists.drop(argss.length)))
     
     def rewriteImpl: LifterResult[ClsLikeDefn] =
       val rewriterCtor = new BlockRewriter
