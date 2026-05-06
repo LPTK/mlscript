@@ -162,14 +162,14 @@ fun pow(x) = case
 //│ pow = function pow(x) {
 //│   let lambda2;
 //│   lambda2 = (undefined, function (caseScrut) {
-//│     let tmp, tmp1, tmp2;
+//│     let baseCall, tmp, tmp1;
 //│     if (caseScrut === 0) {
 //│       return 1
 //│     }
-//│     tmp = pow(x);
-//│     tmp1 = caseScrut - 1;
-//│     tmp2 = runtime.safeCall(tmp(tmp1));
-//│     return x * tmp2;
+//│     baseCall = pow(x);
+//│     tmp = caseScrut - 1;
+//│     tmp1 = runtime.safeCall(baseCall(tmp));
+//│     return x * tmp1;
 //│   });
 //│   return lambda2
 //│ };
@@ -202,7 +202,7 @@ fun nott = case
 :sjs
 nott of false
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let tmp; tmp = nott(); tmp(false)
+//│ let tmp; tmp = nott(); runtime.safeCall(tmp(false))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true
 //│ Type: Bool
@@ -223,7 +223,7 @@ fun fact = case
 //│     }
 //│     tmp1 = fact();
 //│     tmp2 = caseScrut - 1;
-//│     tmp3 = tmp1(tmp2);
+//│     tmp3 = runtime.safeCall(tmp1(tmp2));
 //│     return caseScrut * tmp3;
 //│   });
 //│   return lambda2
@@ -303,7 +303,7 @@ fun zs: [E] -> LsAlg[in Int | E, E] -> E
 fun zs(x) = x cons(xs(x), x cons(ys(x),x nil()))
 
 mk() zs()
-//│ = Cons(Cons(1, Nil()), Cons(Nil(), Nil()))
+//│ = Cons(Cons(1, fun), Cons(fun, fun))
 //│ Type: Nil ∨ Cons['A, 'B]
 //│ Where:
 //│   ('E ∨ Cons['A, 'B]) ∨ Nil <: 'B

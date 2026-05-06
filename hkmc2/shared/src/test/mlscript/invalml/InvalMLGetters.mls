@@ -68,8 +68,8 @@ test2()
 :ssjs
 test2()(5)
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let tmp;
-//│ tmp = test21(); block$res8 = runtime.safeCall(tmp(5)); undefined
+//│ let baseCall;
+//│ baseCall = test21(); block$res8 = runtime.safeCall(baseCall(5)); undefined
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 5
 //│ Type: Int
@@ -94,11 +94,11 @@ fun test2() =
 //│   funny = function funny() {
 //│     let lambda1;
 //│     lambda1 = (undefined, function (caseScrut) {
-//│       let tmp1, tmp2, tmp3;
-//│       tmp1 = funny();
-//│       tmp2 = caseScrut - 1;
-//│       tmp3 = tmp1(tmp2);
-//│       return tmp3 + 1
+//│       let tmp, tmp1, tmp2;
+//│       tmp = funny();
+//│       tmp1 = caseScrut - 1;
+//│       tmp2 = runtime.safeCall(tmp(tmp1));
+//│       return tmp2 + 1
 //│     });
 //│     return lambda1
 //│   };

@@ -1,0 +1,56 @@
+:js
+
+// * TODO: take `private` into accoutn and inline these single-use functions regardless of threshold
+
+
+// Test: Curried function with two parameter lists. Properly fully inlined.
+:soir
+private fun add(x)(y) = x + y
+add(1)(2)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let add⁰; define add⁰ as fun add¹(x)(y) { return +⁰(x, y) }; 3
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3
+
+// Test: Function returning a lambda, called with 2 arg lists at use site.
+// We properly inline the outer function, but not yet the inner lambda.
+:inlineThreshold 100
+:soir
+private fun mkAdder(x) =
+  (y) => x + y
+mkAdder(10)(20)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let mkAdder⁰, lambda⁰;
+//│ define mkAdder⁰ as fun mkAdder¹(x) {
+//│   let lambda;
+//│   define lambda as fun lambda¹(y) { return +⁰(x, y) };
+//│   return lambda¹
+//│ };
+//│ 30
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 30
+
+// Test: Partial application — call with fewer arg lists than param lists
+:soir
+private fun add2(x)(y) = x + y
+let f = add2(10)
+f(5)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let add2⁰, f⁰; define add2⁰ as fun add2¹(x)(y) { return +⁰(x, y) }; set f⁰ = add2¹(10); f⁰(5)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 15
+//│ f = fun
+
+// Test: Three parameter lists — all properly inlined
+:inlineThreshold 100
+:soir
+private fun triple(x)(y)(z) = x + y + z
+triple(1)(2)(3)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let triple⁰;
+//│ define triple⁰ as fun triple¹(x)(y)(z) { let tmp; set tmp = +⁰(x, y); return +⁰(tmp, z) };
+//│ 6
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 6
+
+

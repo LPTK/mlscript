@@ -27,7 +27,7 @@ fun buildPalindrome = case
 //│     }
 //│     tmp3 = buildPalindrome();
 //│     tmp4 = caseScrut - 1;
-//│     tmp5 = tmp3(tmp4);
+//│     tmp5 = runtime.safeCall(tmp3(tmp4));
 //│     return globalThis.Object.freeze(runtime.Tuple.lazyConcat(caseScrut, runtime.Tuple.split, tmp5, caseScrut));
 //│   });
 //│   return lambda
@@ -60,7 +60,7 @@ fun sum2 = case
 //│       lastElement1$3 = runtime.Tuple.get(caseScrut, -1);
 //│       tmp5 = element0$ + lastElement1$3;
 //│       tmp6 = sum2();
-//│       tmp7 = tmp6(middleElements3);
+//│       tmp7 = runtime.safeCall(tmp6(middleElements3));
 //│       return tmp5 + tmp7
 //│     }
 //│     throw globalThis.Object.freeze(new globalThis.Error("match error"));
