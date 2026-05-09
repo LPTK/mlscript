@@ -92,45 +92,12 @@ class DiffTestRunner
   override protected def excludedDiffDirs: Ls[os.Path] =
     TestFolders.mainExcludedDiffDirs(state.workingDir)
 
-class DiffTestRunnerBase(val state: DiffTestRunner.State)
-  extends funsuite.AnyFunSuite
-  with TimeLimitedTests
-:
+class DiffTestRunnerBase(val state: DiffTestRunner.State) extends TimeOutTests:
   import state.*
   
   private val inParallel = isInstanceOf[ParallelTestExecution]
   
   val timeLimit = TimeLimit
-  
-  
-  var testName: Str = "‹unknown›"
-  
-  override def withFixture(test: NoArgTest) =
-    // println(s">>> RUNNING TEST: ${test.name} in thread ${Thread.currentThread()} (parallel: $inParallel)")
-    testName = test.name
-    super.withFixture(test)
-    // try super.withFixture(test)
-    // finally
-    //   println(s"<<< FINISHED TEST: ${test.name}")
-    //   System.out.flush()
-  
-  override val defaultTestSignaler: Signaler = new Signaler:
-    @annotation.nowarn("msg=method stop in class Thread is deprecated") def apply(testThread: Thread): Unit =
-      println(s"[${Thread.currentThread().getName}] running ${testThread.getName} has run out of time! (${timeLimit.toSeconds}s)")
-      println(s"!! Test $testName at $testThread has run out out time !! stopping..." +
-        "\n\tNote: you can increase this limit by changing DiffTests.TimeLimit")
-      // * Thread.stop() is considered bad practice because normally it's better to implement proper logic
-      // * to terminate threads gracefully, avoiding leaving applications in a bad state.
-      // * But here we DGAF since all the test is doing is running a type checker and some Node REPL,
-      // * which would be a much bigger pain to make receptive to "gentle" interruption.
-      // * It would feel extremely wrong to intersperse the pure type checker algorithms
-      // * with ugly `Thread.isInterrupted` checks everywhere...
-      try testThread.stop()
-      catch _ =>
-        // * Thread.stop() is no longer supported in recent JVMs,
-        // * and unfortunately there is no good alternative other than terminating the entire process.
-        // * (Perhaps using Futures might be a viable alternative in the *future*, though.)
-        System.exit(-1)
   
   protected def excludedDiffDirs: Ls[os.Path] =
     TestFolders.alwaysExcludedDiffDirs(state.workingDir)

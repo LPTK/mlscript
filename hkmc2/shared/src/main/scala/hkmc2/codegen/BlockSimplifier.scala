@@ -294,12 +294,15 @@ class BlockSimplifier
   // ——————————————————————————————————————————————————————————————————————————————————————————— //
   
   
-  /** Basic intraprocedural flow-sensitive analysis of which assignments may flow into which variables at each point.
+  /** Basic intraprocedural flow-sensitive analysis to figure out which assignments may flow into which variables,
+    * at each point of the program.
     * For loops, it is enough to pass through the loop body once without transforming it ("dry run")
     * to get the data flow information from loop-back edges, and then to actually transform the loop.
-    * Wehn in dry-run mode, nested loops are also traversed in dry-run mode.
-    * We keep track of a tree of assignments where, if the RHS was a local variable, we also store the analysis value
-    * that was in effect at this point, which allows us to eliminate useless transitive assignments. */
+    * When in dry-run mode, nested loops are also traversed in dry-run mode,
+    * so overall each Block is traversed at most twice.
+    * We keep track of a tree of assignments where, if the RHS was a local variable, we also store its analysis value
+    * that was in effect at this point, which allows us to eliminate useless transitive assignments.
+    * We keep track of variables going out of scope to avoid using them afterwards. */
   class DataFlowAnalysis(localVars: Set[LocalVar]) extends BlockTransformer(SymbolSubst.Id), Helper:
     
     
@@ -519,7 +522,7 @@ class BlockSimplifier
                 asst.rhs match
                 case p: Path => getShapes(p)
                 case Call(path, args) =>
-                  path.symbolOpt match
+                  path.targetSymbol match
                   case S(tsym: TermSymbol) =>
                     tsym.owner match
                     case S(sym: ClassSymbol) =>
@@ -531,7 +534,7 @@ class BlockSimplifier
                     case _ => giveUp
                   case _ => giveUp
                 case Instantiate(mut, cls, args) =>
-                  cls.symbolOpt match
+                  cls.targetSymbol match
                   case S(sym: ClassSymbol) =>
                     sym.defn match
                     case S(cls: ClassLikeDef)
