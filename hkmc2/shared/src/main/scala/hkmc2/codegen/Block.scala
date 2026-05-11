@@ -698,7 +698,7 @@ final case class ClsLikeDefn(
     owner: Opt[InnerSymbol],
     isym: DefinitionSymbol[? <: ClassLikeDef] & InnerSymbol,
     sym: BlockMemberSymbol,
-    ctorSym: Opt[TermSymbol],
+    ctorSym: Opt[ClassCtorSymbol],
     k: syntax.ClsLikeKind,
     paramsOpt: Opt[ParamList],
     auxParams: List[ParamList],
