@@ -38,7 +38,19 @@ test(AA(AA(10)))
 //│ deforest > 	match: arg$AA$0$⁰
 //│ deforest > 	fields: arg$AA$0$⁰.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 20
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL13:1:692
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
 
 
 
@@ -53,8 +65,23 @@ if x is
 //│ deforest > A⁰ ->
 //│ deforest > 	match: x¹
 //│ deforest > <<< fusing <<<
-//│ = 1
-//│ x = fun tmp2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL16:1:71
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
+//│ x = undefined
 
 :expect A
 let x = if true then AA(A) else BB(B)
@@ -69,8 +96,23 @@ if x is
 //│ deforest > 	match: x²
 //│ deforest > 	fields: x².aa⁰
 //│ deforest > <<< fusing <<<
-//│ = A
-//│ x = fun tmp3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL20:1:83
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: 'A', got: 'undefined'
+//│ x = undefined
 
 
 :expect 1
@@ -93,8 +135,23 @@ if x is
 //│ deforest > A⁰ ->
 //│ deforest > 	match: a⁰
 //│ deforest > <<< fusing <<<
-//│ = 1
-//│ x = fun tmp4
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL24:1:370
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
+//│ x = undefined
 
 
 // `x.x` is successfully fused
@@ -123,8 +180,23 @@ if x is
 //│ deforest > A⁰ ->
 //│ deforest > 	match: a²
 //│ deforest > <<< fusing <<<
-//│ = 1
-//│ x = fun tmp5
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL28:1:727
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
+//│ x = undefined
 
 
 :expect 11
@@ -141,7 +213,22 @@ c(g(true))
 //│ deforest > 	match: x⁵
 //│ deforest > 	fields: x⁵.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 11
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL32:1:618
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '11', got: 'undefined'
 
 
 
@@ -174,7 +261,22 @@ if y is
 //│ deforest > A⁰ ->
 //│ deforest > 	match: x⁶
 //│ deforest > <<< fusing <<<
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL39:1:193
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 //│ x = fun x9
 //│ y = fun y1
 
@@ -193,9 +295,22 @@ c(A) + c(B)
 //│ deforest > A⁰ ->
 //│ deforest > 	match: a³
 //│ deforest > <<< fusing <<<
-//│ > 1
-//│ > 2
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL44:1:424
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 
@@ -224,7 +339,22 @@ f(A, B)
 //│ deforest > B⁰ ->
 //│ deforest > 	match: b⁰
 //│ deforest > <<< fusing <<<
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL50:1:409
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 :expect 0
@@ -241,7 +371,22 @@ f(Some(2))
 //│ deforest > 	fields: x⁷.value⁰
 //│ deforest > 	fields: x⁷.value⁰
 //│ deforest > <<< fusing <<<
-//│ = 0
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL53:1:1208
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '0', got: 'undefined'
 
 
 
@@ -258,7 +403,22 @@ if y is
 //│ deforest > A⁰ ->
 //│ deforest > 	match: x⁸
 //│ deforest > <<< fusing <<<
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL56:1:198
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 //│ x = fun x10
 //│ y = fun y2
 
@@ -289,7 +449,22 @@ f(AAA(1, 3), 1) + f(BBB(2, 3), 2) + f(AAA(3, 2), 4) + f(BBB(4, 6), 0)
 //│ deforest > 	fields: x⁹.x¹¹
 //│ deforest > 	fields: x⁹.y³
 //│ deforest > <<< fusing <<<
-//│ = 21
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL61:1:766
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '21', got: 'undefined'
 
 
 :expect 2
@@ -309,7 +484,22 @@ p(AA(1))
 //│ deforest > A⁰ ->
 //│ deforest > 	match: A⁰
 //│ deforest > <<< fusing <<<
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL64:1:1061
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 
 
 
@@ -326,7 +516,22 @@ c(AA(2), A)
 //│ deforest > 	match: x¹²
 //│ deforest > 	fields: x¹².aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL67:1:467
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 
 
 :expect 24
@@ -352,7 +557,22 @@ f(AAA(1, 3), 1) + f(CCC(2), 2) + f(AAA(3, 2), 4) + f(CCC(4), 0)
 //│ deforest > 	fields: x¹³.x¹¹
 //│ deforest > 	fields: x¹³.y³
 //│ deforest > <<< fusing <<<
-//│ = 24
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL70:1:688
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '24', got: 'undefined'
 
 
 
@@ -375,7 +595,22 @@ f(AAA(1, 3), 1) + f(CCC(2), 2) + f(AAA(3, 2), 4)
 //│ deforest > 	match: x¹⁴
 //│ deforest > 	fields: x¹⁴.y³
 //│ deforest > <<< fusing <<<
-//│ = 22
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL73:1:525
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '22', got: 'undefined'
 
 
 :expect 0
@@ -387,7 +622,22 @@ c(BB(3), 0)
 //│ deforest > BB⁰(3) ->
 //│ deforest > 	match: x¹⁵
 //│ deforest > <<< fusing <<<
-//│ = 0
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL76:1:285
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '0', got: 'undefined'
 
 
 
@@ -406,7 +656,22 @@ f(AA(AA(0)))
 //│ deforest > 	match: b¹
 //│ deforest > 	fields: b¹.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 1
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL79:1:633
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
 
 
 
@@ -444,7 +709,22 @@ outer1(p, 1, 2) + outer2(p, 3, 4) + inner(AA(5), 6)
 //│ deforest > 	match: x¹⁷
 //│ deforest > 	fields: x¹⁷.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 103
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL85:1:1659
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '103', got: 'undefined'
 //│ p = AA(AA(3))
 
 
@@ -458,7 +738,22 @@ mapHead(x => x, AAA(1, AAA(2, None)))
 //│ deforest > 	fields: x¹⁸.x¹¹
 //│ deforest > 	fields: x¹⁸.y³
 //│ deforest > <<< fusing <<<
-//│ = 1
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL89:1:550
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
 
 
 :expect 5
@@ -471,8 +766,23 @@ k + 2
 //│ deforest > A⁰ ->
 //│ deforest > 	match: A⁰
 //│ deforest > <<< fusing <<<
-//│ = 5
-//│ k = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL92:1:60
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '5', got: 'undefined'
+//│ k = undefined
 
 :expect 4
 fun test(a) = if a is
@@ -485,7 +795,22 @@ test(B) + test(C)
 //│ deforest > B⁰ ->
 //│ deforest > 	match: a⁵
 //│ deforest > <<< fusing <<<
-//│ = 4
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL96:1:252
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '4', got: 'undefined'
 
 
 
@@ -507,7 +832,22 @@ test(AA(1), AA(2), AA(3))
 //│ deforest > 	match: x¹⁹
 //│ deforest > 	fields: x¹⁹.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = "2AA(3)NaN"
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL99:1:778
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '"2AA(3)NaN"', got: 'undefined'
 
 
 :expect 141
@@ -533,8 +873,23 @@ test(p)
 //│ deforest > 	match: arg$AA$0$¹
 //│ deforest > 	fields: arg$AA$0$¹.c⁰
 //│ deforest > <<< fusing <<<
-//│ = 141
-//│ p = fun tmp40
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL102:1:1177
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '141', got: 'undefined'
+//│ p = undefined
 
 
 :expect 141
@@ -555,8 +910,23 @@ test(p, id(CCC(123)))
 //│ deforest > 	match: x²¹
 //│ deforest > 	fields: x²¹.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 141
-//│ p = fun tmp42
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL106:1:949
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '141', got: 'undefined'
+//│ p = undefined
 
 
 :sir
@@ -593,7 +963,22 @@ f(id(A)) + f(A)
 //│ set tmp2 = f_7$f¹(deforest$lam);
 //│ +⁰(tmp1, tmp2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 2
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL110:1:356
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
 
 
 
@@ -613,7 +998,22 @@ f(g(AA(1)))
 //│ deforest > AA⁰(1) ->
 //│ deforest > 	match: x²⁴
 //│ deforest > <<< fusing <<<
-//│ = 0
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL113:1:627
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '0', got: 'undefined'
 
 
 :expect 1
@@ -627,7 +1027,22 @@ f(A, B)
 //│ deforest > B⁰ ->
 //│ deforest > 	match: b²
 //│ deforest > <<< fusing <<<
-//│ = 1
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL116:1:297
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
 
 
 
@@ -650,7 +1065,22 @@ c1(app(AA)) + c1(AA(2)) + c2(AA(3)) + c2(A)
 //│ deforest > 	match: x1⁰
 //│ deforest > 	fields: x1⁰.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 6
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL119:1:1018
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '6', got: 'undefined'
 
 :re
 fun p(x) = if x
@@ -686,8 +1116,7 @@ c(B)
 //│ deforest > 	match: x²⁶
 //│ deforest > 	fields: x²⁶.aa⁰
 //│ deforest > <<< fusing <<<
-//│ > 5
-//│ ═══[RUNTIME ERROR] Error: e1
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
 
 
 :expect 3
@@ -701,7 +1130,22 @@ f(AA(1), BB(2))
 //│ deforest > 	match: a⁷
 //│ deforest > 	fields: a⁷.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL125:1:339
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 :deforest
@@ -713,7 +1157,22 @@ g(A, AA(3))
 //│ deforest > A⁰ ->
 //│ deforest > 	match: k⁰
 //│ deforest > <<< fusing <<<
-//│ = 9
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL128:1:359
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '9', got: 'undefined'
 
 
 // multi parameter list
@@ -740,7 +1199,22 @@ outer1(p)(1, 2) + outer2(p, 3)(4) + inner(AA(5))(6)
 //│ deforest > 	match: x²⁷
 //│ deforest > 	fields: x²⁷.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 103
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL131:1:1813
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '103', got: 'undefined'
 //│ p = AA(AA(3))
 
 
@@ -758,7 +1232,22 @@ f(AA(AA(3)))
 //│ deforest > 	fields: x²⁸.aa⁰
 //│ deforest > 	fields: x²⁸.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL135:1:471
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 
@@ -774,7 +1263,22 @@ f1(id(AA(1))) + f2(id(AA(2)))
 //│ deforest > AA⁰(1) ->
 //│ deforest > 	match: a1⁰
 //│ deforest > <<< fusing <<<
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL138:1:598
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 
@@ -793,7 +1297,22 @@ c1(1 :: Nil)
 //│ deforest > Nil⁰ ->
 //│ deforest > 	match: t¹
 //│ deforest > <<< fusing <<<
-//│ = 0
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL141:1:485
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '0', got: 'undefined'
 
 
 :expect 0
@@ -815,7 +1334,22 @@ apply(f)
 //│ deforest > AA⁰(0) ->
 //│ deforest > 	match: y1⁰
 //│ deforest > <<< fusing <<<
-//│ = 0
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL144:1:1096
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '0', got: 'undefined'
 
 
 :expect 3
@@ -831,7 +1365,22 @@ f1(wrap(1)) + f2(wrap(2))
 //│ deforest > AA⁰(x³¹) ->
 //│ deforest > 	match: a1¹
 //│ deforest > <<< fusing <<<
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL147:1:1059
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 :expect 0
@@ -899,7 +1448,22 @@ f([])
 //│ deforest > [] ->
 //│ deforest > 	match: ls⁰
 //│ deforest > <<< fusing <<<
-//│ = 4
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL156:1:614
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '4', got: 'undefined'
 
 
 :expect 0
@@ -912,7 +1476,22 @@ f(Nil, false)
 //│ deforest > Nil⁰ ->
 //│ deforest > 	match: x³³
 //│ deforest > <<< fusing <<<
-//│ = 0
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL159:1:506
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '0', got: 'undefined'
 
 
 :expect 4
@@ -940,7 +1519,22 @@ c1(p(1)) + c2(p(2))
 //│ deforest > AA⁰(3) ->
 //│ deforest > 	match: x³⁵
 //│ deforest > <<< fusing <<<
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL165:1:634
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 :expect 15
@@ -968,7 +1562,22 @@ f1(p(1)) + f2(p(2)) + f3(p(3)) + f4(p(4)) + f5(p(5))
 //│ deforest > 	match: a1²
 //│ deforest > 	fields: a1².aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 15
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL168:1:1594
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '15', got: 'undefined'
 
 
 // calls to `to` should be able to be duplicated
@@ -1045,7 +1654,22 @@ f1(wrap(true)) + f2(g2(false))
 //│ deforest > 	match: p¹
 //│ deforest > 	fields: p¹.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 8
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL174:1:1612
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '8', got: 'undefined'
 
 
 :expect 10
@@ -1061,9 +1685,24 @@ f1(one) + f2(one) + f3(two)
 //│ deforest > 	match: p²
 //│ deforest > 	fields: p².aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 10
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at f1 (REPL177:1:454)
+//│     at REPL177:1:1114
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '10', got: 'undefined'
 //│ one = AA(1)
-//│ two = fun inlinedVal82
+//│ two = undefined
 
 
 :expect 4
@@ -1079,7 +1718,22 @@ f1(id(AA(1))) + f2(id(AA(2)))
 //│ deforest > 	match: a¹⁰
 //│ deforest > 	fields: a¹⁰.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 4
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL182:1:703
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '4', got: 'undefined'
 
 
 
@@ -1098,4 +1752,19 @@ f1(wrap(p(2))) + f2(p(1))
 //│ deforest > 	match: a1³
 //│ deforest > 	fields: a1³.aa⁰
 //│ deforest > <<< fusing <<<
-//│ = 6
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL185:1:854
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
+//│ ═══[RUNTIME ERROR] Expected: '6', got: 'undefined'

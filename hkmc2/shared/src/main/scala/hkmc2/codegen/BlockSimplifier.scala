@@ -76,9 +76,9 @@ class BlockSimplifier
     var changed = false
     
     def registerChange(dbg: => Str)(using Line) =
-      log(s"!! Change triggered { ${dbg} }")
+      // log(s"!! Change triggered { ${dbg} }")
       // * For debugging:
-      // log(s"!! Change triggered { ${dbg} } at ${summon[FileName].value}:${summon[Line].value}")
+      log(s"!! Change triggered { ${dbg} } at ${summon[FileName].value}:${summon[Line].value}")
       changed = true
     
   end Helper
@@ -384,7 +384,11 @@ class BlockSimplifier
           case Unknown => that
           case Uninitialized => this
           // case Merge(l, r) => Merge(merge(this, l), r)
-          case _: Assigned | _: Merge => Merge(this, that)
+          case _: Assigned | _: Merge =>
+            this match
+              case Unknown => this
+              case Uninitialized => that
+              case _: Assigned | _: Merge => Merge(this, that)
       
     import AssignInfo.*
     
@@ -392,6 +396,13 @@ class BlockSimplifier
     type AssignedResults = Map[LocalVar, AssignInfo]
     
     val emptyAssignedResults: AssignedResults = Map.empty.withDefaultValue(Unknown)
+    
+    def impossible: AssignedResults =
+      assignedResults.view.mapValues(_ => Uninitialized).toMap.withDefaultValue(Unknown)
+    inline def makeImpossibleAfter[R](inline code: => R) =
+      val res = code
+      assignedResults = impossible
+      res
     
     // *** ASSUMPTION (should be an invariant of the IR): only LocalVar symbols can be Assign'ed ***
     var assignedResults: AssignedResults = emptyAssignedResults
@@ -437,7 +448,7 @@ class BlockSimplifier
             k(res)
     
     override def applyBlock(b: Block): Block =
-    // trace[Block](s"Applying block: ${b.abbreviate} with map: ${assignedResults}", res => s"|= ${assignedResults}"):
+    trace[Block](s"Applying block: ${b.abbreviate} with map: ${assignedResults}", res => s"|= ${assignedResults}"):
       b match
         
       case ass @ Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
@@ -465,13 +476,21 @@ class BlockSimplifier
         // TODO: fix the rest of the compiler so this invariant actually holds
         // assert(!atLabelBegin.contains(label) && !atLabelEnd.contains(label))
         
+        
+        
+        // FIXME: prevent retraversal!
+        
+        
+        
         if loop then
           atLabelBegin.put(label, assignedResults)
+          atLabelEnd.put(label, impossible)
           val oldDryRun = inDryRun
           inDryRun = true
           applyBlock(body)
           inDryRun = oldDryRun
-          assignedResults = merge(assignedResults, atLabelEnd(label))
+          // assignedResults = merge(assignedResults, atLabelEnd(label))
+          assignedResults = merge(assignedResults, atLabelBegin(label))
         if !loop || !inDryRun then
           val newBody = applyBlock(body)
           assignedResults = merge(assignedResults, atLabelEnd(label))
@@ -488,11 +507,17 @@ class BlockSimplifier
         // log(s"Continue to ${label} with map: ${assignedResults}")
         // log(s"  atLabelBegin: ${atLabelBegin(label)}")
         atLabelBegin.put(label, merge(assignedResults, atLabelBegin(label)))
-        super.applyBlock(b)
+        makeImpossibleAfter:
+          super.applyBlock(b)
         
       case Break(label) =>
         atLabelEnd.put(label, merge(assignedResults, atLabelEnd(label)))
-        super.applyBlock(b)
+        makeImpossibleAfter:
+          super.applyBlock(b)
+        
+      case _: Return =>
+        makeImpossibleAfter:
+          super.applyBlock(b)
         
       case Match(scrut, arms, dflt, rest) =>
         
@@ -587,14 +612,18 @@ class BlockSimplifier
               val newBody = applyBlock(body)
               curAssigned = merge(curAssigned, assignedResults)
               assignedResults = oldAssigned
+              // log(s"After arm: ${assignedResults}")
               if newBody is body then arm else cse -> newBody
           val newDflt = if !gaveUp && shapes.isEmpty
             then S(Unreachable("exhaustive match"))
             else dflt.mapConserve:
               case body =>
+                // log(s"Before default: ${assignedResults} cur: $curAssigned")
                 val newBody = applyBlock(body)
                 curAssigned = merge(curAssigned, assignedResults)
+                // log(s"merge: ${assignedResults}")
                 assignedResults = oldAssigned
+                // log(s"After default: ${assignedResults}")
                 if newBody is body then body else newBody
           if newDflt.isEmpty then curAssigned = merge(curAssigned, assignedResults)
           assignedResults = curAssigned

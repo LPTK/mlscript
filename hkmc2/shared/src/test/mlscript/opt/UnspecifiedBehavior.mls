@@ -1,0 +1,33 @@
+:js
+
+
+// * Accesses to variables that were not initialized may return arbitrary values.
+// * (Perhaps we should only allow this to happen when aggressive optimizations are enabled?)
+
+// * Note: We observe the value `2` even though the branch where the assignment occurs is dead
+:expect 2
+let x
+let y = 1
+if hide(false) then
+  x = 2
+else
+  print('hi)
+hide of hide of hide of hide of hide of x // big expression so it's not folded into the `else`
+//│ > hi
+//│ = 2
+//│ x = undefined
+//│ y = 1
+
+:expect undefined
+let x
+let y = 1
+if hide(false) then
+  x = 2
+else
+  print('hi)
+x // folded into the `else`; no longer observe the value `2`
+//│ > hi
+//│ x = undefined
+//│ y = 1
+
+

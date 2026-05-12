@@ -50,6 +50,16 @@ fun f(x) =
   42
 //│ ⬤ Simplif. iter. 1
 //│ Captured variables: HashSet()
+//│ Applying block: Scoped(HashSet(member:f),Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,[...] with map: Map()
+//│ | Applying block: Define(FunDefn(None,member:f,term:f,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),Non[...] with map: Map()
+//│ | | Applying block: Assign(x,Lit(IntLit(1)),Return(Lit(IntLit(42)),false)) with map: Map()
+//│ | | | Applying block: Return(Lit(IntLit(42)),false) with map: Map(x -> Lit(IntLit(1)))
+//│ | | | |= Map(x -> ∅)
+//│ | | |= Map(x -> ∅)
+//│ | | Applying block: End() with map: Map()
+//│ | | |= Map()
+//│ | |= Map()
+//│ |= Map()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let f⁰; define f⁰ as fun f¹(x) { set x = 1; return 42 }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

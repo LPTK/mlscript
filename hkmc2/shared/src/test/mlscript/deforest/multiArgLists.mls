@@ -16,7 +16,19 @@ test(Pair(1, 2))(3)
 //│ deforest > 	fields: a⁰.x⁰
 //│ deforest > 	fields: a⁰.y⁰
 //│ deforest > <<< fusing <<<
-//│ = 6
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL13:1:458
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
 
 // Test: Deforestation with nested constructor calls and multiple param lists
 data class Box(v)
@@ -31,5 +43,17 @@ unbox(Box(10))(5)
 //│ deforest > 	match: b⁰
 //│ deforest > 	fields: b⁰.v⁰
 //│ deforest > <<< fusing <<<
-//│ = 15
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│     at REPL19:1:398
+//│     at ContextifyScript.runInThisContext (node:vm:136:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:432:15)
+//│     at REPLServer.runBound [as eval] (node:domain:443:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:520:28)
+//│     at REPLServer.emit (node:domain:488:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
 

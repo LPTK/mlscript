@@ -163,6 +163,20 @@ f()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true
 
+:inlineThreshold 10
+:soir
+:expect true
+fun f() =
+  fun g(x) =
+    if x is true do return true
+    return false
+  g(g(true))
+f()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let f¹²; define f¹² as fun f¹³() { return true }; true
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = true
+
 
 // Methods (not implemented currently)
 // NOTE: only final (ie, non-virtual) method may be inlined, as they could be overriden
@@ -191,7 +205,7 @@ module A with
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let A⁰;
 //│ define A⁰ as class A¹
-//│ module A² { method f¹² = fun f¹³() { return 1 } method g⁰ = fun g¹() { return A².f¹³() } };
+//│ module A² { method f¹⁴ = fun f¹⁵() { return 1 } method g⁰ = fun g¹() { return A².f¹⁵() } };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -202,19 +216,19 @@ module A with
 fun f() = if hide(false) do f() + 1
 f()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let f¹⁴;
-//│ define f¹⁴ as fun f¹⁵() {
+//│ let f¹⁶;
+//│ define f¹⁶ as fun f¹⁷() {
 //│   let scrut;
 //│   set scrut = Predef⁰.hide⁰(false);
 //│   match scrut
 //│     true =>
-//│       do f¹⁵();
+//│       do f¹⁷();
 //│       return runtime⁰.Unit⁰
 //│     else
 //│       return runtime⁰.Unit⁰
 //│   end
 //│ };
-//│ f¹⁵()
+//│ f¹⁷()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -224,7 +238,7 @@ fun g() =
   fun f() = f()
   f()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let g²; define g² as fun g³() { let f; define f as fun f¹⁶() { return f¹⁶() }; return f¹⁶() }; end
+//│ let g²; define g² as fun g³() { let f; define f as fun f¹⁸() { return f¹⁸() }; return f¹⁸() }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
