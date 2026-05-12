@@ -12,14 +12,12 @@
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let lambda⁰;
 //│ define lambda⁰ as fun lambda¹() {
-//│   let x;
-//│   set x = 1;
 //│   loop lbl:
 //│     let scrut;
-//│     set scrut = Predef⁰.nequals⁰(x, 0);
+//│     set scrut = Predef⁰.nequals⁰(1, 0);
 //│     match scrut
 //│       true =>
-//│         do Predef⁰.print⁰(x);
+//│         do Predef⁰.print⁰(1);
 //│         continue lbl
 //│       else
 //│         end
