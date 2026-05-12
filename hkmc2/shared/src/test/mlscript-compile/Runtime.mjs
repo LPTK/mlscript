@@ -1084,7 +1084,7 @@ let Runtime1;
     return runtime.Unit;
   } 
   static runStackSafe(limit, f) {
-    let old, old1, old2, result, scrut, tmp;
+    let old, old1, old2, result, scrut;
     old = Runtime.stackLimit;
     try {
       Runtime.stackLimit = limit;
@@ -1100,14 +1100,14 @@ let Runtime1;
             throw globalThis.Object.freeze(new globalThis.Error("Effect crossed through stack safe boundary"))
           }
           lbl: while (true) {
-            let scrut1, saved, scrut2, tmp1;
+            let scrut1, saved, scrut2, tmp;
             scrut1 = Runtime.stackResume !== null;
             if (scrut1 === true) {
               saved = Runtime.stackResume;
               Runtime.stackResume = null;
               Runtime.stackDepth = 1;
-              tmp1 = runtime.safeCall(saved(runtime.Unit));
-              result = tmp1;
+              tmp = runtime.safeCall(saved(runtime.Unit));
+              result = tmp;
               scrut2 = Runtime.curEffect !== null;
               if (scrut2 === true) {
                 throw globalThis.Object.freeze(new globalThis.Error("Effect crossed through stack safe boundary"))
@@ -1116,7 +1116,6 @@ let Runtime1;
             }
             break;
           }
-          tmp = result;
         } finally {
           Runtime.stackHandler = old2;
         }
@@ -1128,7 +1127,7 @@ let Runtime1;
     } finally {
       Runtime.stackLimit = old;
     }
-    return tmp
+    return result
   } 
   static plus_impl(lhs, rhs) {
     if (lhs instanceof Runtime.Int31.class) {

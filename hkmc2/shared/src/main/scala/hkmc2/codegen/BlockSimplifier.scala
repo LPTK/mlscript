@@ -487,7 +487,7 @@ class BlockSimplifier
         
         if loop then
           atLabelBegin.put(label, assignedResults)
-          atLabelEnd.put(label, impossible)
+          atLabelEnd.put(label, emptyAssignedResults)
           val oldDryRun = inDryRun
           inDryRun = true
           applyBlock(body)
