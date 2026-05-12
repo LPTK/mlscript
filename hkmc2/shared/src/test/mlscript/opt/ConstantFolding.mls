@@ -15,87 +15,37 @@
 2 + 2 * 3 > 0
 //│ ⬤ Simplif. iter. 1
 //│ Captured variables: HashSet()
-//│ Applying block: Scoped(HashSet(tmp:tmp, tmp:tmp),Assign(tmp:tmp,Call(Ref(builtin:*,None),List(List(Arg(None,Lit(IntL[...] with map: Map()
-//│ | Applying block: Assign(tmp:tmp,Call(Ref(builtin:*,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(3)))[...] with map: Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
-//│ | | !! Change triggered { Evaluating builtin * with args 2, 3 ~> 6 } at BlockSimplifier.scala:755
-//│ | | Applying block: Assign(tmp:tmp,Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,Non[...] with map: Map(tmp:tmp -> Call(Ref(builtin:*,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(3)))))), tmp:tmp -> ∅)
-//│ | | | Ref tmp:tmp⁰ Call(Ref(builtin:*,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(3)))))) true false
-//│ | | | AR Map(tmp:tmp -> Call(Ref(builtin:*,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(3)))))), tmp:tmp -> Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,None))))))
-//│ | | | Analysis: litValue: false, unchanged vars: Set()
-//│ | | | Applying block: Return(Call(Ref(builtin:>,None),List(List(Arg(None,Ref(tmp:tmp,None)), Arg(None,Lit(IntLit(0)))))),t[...] with map: Map(tmp:tmp -> Call(Ref(builtin:*,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(3)))))), tmp:tmp -> Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,None))))))
-//│ | | | | Ref tmp:tmp¹ Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,None))))) true false
-//│ | | | | AR Map(tmp:tmp -> Call(Ref(builtin:*,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(3)))))), tmp:tmp -> Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,None))))))
-//│ | | | | Analysis: litValue: false, unchanged vars: Set()
-//│ | | | |= Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
-//│ | | |= Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
-//│ | |= Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
-//│ |= Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
+//│ !! Change triggered { Evaluating builtin * with args 2, 3 ~> 6 }
 //│ ▶ VP:
 //│ >  let tmp, tmp1; set tmp = 6; set tmp1 = +⁰(2, tmp); >⁰(tmp1, 0)
 //│ ⬤ Simplif. iter. 2
 //│ Captured variables: HashSet()
-//│ Applying block: Scoped(HashSet(tmp:tmp, tmp:tmp),Assign(tmp:tmp,Lit(IntLit(6)),Assign(tmp:tmp,Call(Ref(builtin:+,Non[...] with map: Map()
-//│ | Applying block: Assign(tmp:tmp,Lit(IntLit(6)),Assign(tmp:tmp,Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit([...] with map: Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
-//│ | | Applying block: Assign(tmp:tmp,Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,Non[...] with map: Map(tmp:tmp -> Lit(IntLit(6)), tmp:tmp -> ∅)
-//│ | | | Ref tmp:tmp⁰ Lit(IntLit(6)) true false
-//│ | | | AR Map(tmp:tmp -> Lit(IntLit(6)), tmp:tmp -> Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,None))))))
-//│ | | | Analysis: litValue: Lit(IntLit(6)), unchanged vars: Set()
-//│ | | | !! Change triggered { tmp:tmp⁰ ~> 6 } at BlockSimplifier.scala:732
-//│ | | | Applying block: Return(Call(Ref(builtin:>,None),List(List(Arg(None,Ref(tmp:tmp,None)), Arg(None,Lit(IntLit(0)))))),t[...] with map: Map(tmp:tmp -> Lit(IntLit(6)), tmp:tmp -> Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,None))))))
-//│ | | | | Ref tmp:tmp¹ Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,None))))) true false
-//│ | | | | AR Map(tmp:tmp -> Lit(IntLit(6)), tmp:tmp -> Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Ref(tmp:tmp,None))))))
-//│ | | | | Analysis: litValue: false, unchanged vars: Set()
-//│ | | | |= Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
-//│ | | |= Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
-//│ | |= Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
-//│ |= Map(tmp:tmp -> ∅, tmp:tmp -> ∅)
+//│ !! Change triggered { tmp:tmp⁰ ~> 6 }
 //│ ▶ VP:
 //│ >  let tmp, tmp1; set tmp = 6; set tmp1 = +⁰(2, 6); >⁰(tmp1, 0)
 //│ ⬤ Simplif. iter. 3
-//│ !! Change triggered { rm tmp:tmp⁰ = 6 } at BlockSimplifier.scala:221
+//│ !! Change triggered { rm tmp:tmp⁰ = 6 }
 //│ ▶ DCE:
 //│ >  let tmp; set tmp = +⁰(2, 6); >⁰(tmp, 0)
 //│ Captured variables: HashSet()
-//│ Applying block: Scoped(HashSet(tmp:tmp),Assign(tmp:tmp,Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), [...] with map: Map()
-//│ | Applying block: Assign(tmp:tmp,Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(6)))[...] with map: Map(tmp:tmp -> ∅)
-//│ | | !! Change triggered { Evaluating builtin + with args 2, 6 ~> 8 } at BlockSimplifier.scala:755
-//│ | | Applying block: Return(Call(Ref(builtin:>,None),List(List(Arg(None,Ref(tmp:tmp,None)), Arg(None,Lit(IntLit(0)))))),t[...] with map: Map(tmp:tmp -> Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(6)))))))
-//│ | | | Ref tmp:tmp¹ Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(6)))))) true false
-//│ | | | AR Map(tmp:tmp -> Call(Ref(builtin:+,None),List(List(Arg(None,Lit(IntLit(2))), Arg(None,Lit(IntLit(6)))))))
-//│ | | | Analysis: litValue: false, unchanged vars: Set()
-//│ | | |= Map(tmp:tmp -> ∅)
-//│ | |= Map(tmp:tmp -> ∅)
-//│ |= Map(tmp:tmp -> ∅)
+//│ !! Change triggered { Evaluating builtin + with args 2, 6 ~> 8 }
 //│ ▶ VP:
 //│ >  let tmp; set tmp = 8; >⁰(tmp, 0)
 //│ ⬤ Simplif. iter. 4
 //│ Captured variables: HashSet()
-//│ Applying block: Scoped(HashSet(tmp:tmp),Assign(tmp:tmp,Lit(IntLit(8)),Return(Call(Ref(builtin:>,None),List(List(Arg([...] with map: Map()
-//│ | Applying block: Assign(tmp:tmp,Lit(IntLit(8)),Return(Call(Ref(builtin:>,None),List(List(Arg(None,Ref(tmp:tmp,None)),[...] with map: Map(tmp:tmp -> ∅)
-//│ | | Applying block: Return(Call(Ref(builtin:>,None),List(List(Arg(None,Ref(tmp:tmp,None)), Arg(None,Lit(IntLit(0)))))),t[...] with map: Map(tmp:tmp -> Lit(IntLit(8)))
-//│ | | | Ref tmp:tmp¹ Lit(IntLit(8)) true false
-//│ | | | AR Map(tmp:tmp -> Lit(IntLit(8)))
-//│ | | | Analysis: litValue: Lit(IntLit(8)), unchanged vars: Set()
-//│ | | | !! Change triggered { tmp:tmp¹ ~> 8 } at BlockSimplifier.scala:732
-//│ | | |= Map(tmp:tmp -> ∅)
-//│ | |= Map(tmp:tmp -> ∅)
-//│ |= Map(tmp:tmp -> ∅)
+//│ !! Change triggered { tmp:tmp¹ ~> 8 }
 //│ ▶ VP:
 //│ >  let tmp; set tmp = 8; >⁰(8, 0)
 //│ ⬤ Simplif. iter. 5
-//│ !! Change triggered { rm tmp:tmp¹ = 8 } at BlockSimplifier.scala:221
+//│ !! Change triggered { rm tmp:tmp¹ = 8 }
 //│ ▶ DCE:
 //│ >  >⁰(8, 0)
 //│ Captured variables: HashSet()
-//│ Applying block: Return(Call(Ref(builtin:>,None),List(List(Arg(None,Lit(IntLit(8))), Arg(None,Lit(IntLit(0)))))),true[...] with map: Map()
-//│ | !! Change triggered { Evaluating builtin > with args 8, 0 ~> true } at BlockSimplifier.scala:755
-//│ |= Map()
+//│ !! Change triggered { Evaluating builtin > with args 8, 0 ~> true }
 //│ ▶ VP:
 //│ >  true
 //│ ⬤ Simplif. iter. 6
 //│ Captured variables: HashSet()
-//│ Applying block: Return(Lit(BoolLit(true)),true) with map: Map()
-//│ |= Map()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ true
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

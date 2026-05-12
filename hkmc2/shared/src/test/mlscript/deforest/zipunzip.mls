@@ -45,22 +45,7 @@ testUnzipZip(3)
 //│ deforest > Nil⁰ ->
 //│ deforest > 	match: ls_unzip⁰
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
-//│ ═══[RUNTIME ERROR] TypeError: Cons_h1 is not a function
-//│     at REPL13:1:3189
-//│     at REPL13:1:7192
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
-//│ ═══[RUNTIME ERROR] Expected: 'Pair(Cons(1, Cons(2, Nil)), Cons(2, Cons(3, Nil)))', got: 'undefined'
+//│ = Pair(Cons(1, Cons(2, Nil)), Cons(2, Cons(3, Nil)))
 
 
 
@@ -101,22 +86,7 @@ testZipUnzip(3)
 //│ deforest > 	fields: ys_zip⁰.h⁰
 //│ deforest > 	fields: ys_zip⁰.t⁰
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
-//│ ═══[RUNTIME ERROR] TypeError: arg$Pair$0$ is not a function
-//│     at REPL16:1:5423
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
-//│ ═══[RUNTIME ERROR] Expected: 'Cons(Pair(3, 4), Cons(Pair(2, 3), Cons(Pair(1, 2), Nil)))', got: 'undefined'
+//│ = Cons(Pair(3, 4), Cons(Pair(2, 3), Cons(Pair(1, 2), Nil)))
 
 
 
@@ -186,16 +156,7 @@ testZipMapBothUnzip(4)
 //│ deforest > Nil⁰ ->
 //│ deforest > 	match: ys_zip¹
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
-//│ ═══[RUNTIME ERROR] TypeError: arg$Pair$0$1 is not a function
-//│     at REPL19:1:7205
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ = Cons(
+//│   Pair(5, 25),
+//│   Cons(Pair(4, 16), Cons(Pair(3, 9), Cons(Pair(2, 4), Nil)))
+//│ )

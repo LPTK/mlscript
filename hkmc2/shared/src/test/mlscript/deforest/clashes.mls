@@ -45,24 +45,9 @@ f1(one) + f2(one) + f2(two)
 //│ deforest > 	match: p⁰
 //│ deforest > 	fields: p⁰.x¹
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
-//│ ═══[RUNTIME ERROR] Error: match error
-//│     at f1 (REPL19:1:423)
-//│     at REPL19:1:812
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
-//│ ═══[RUNTIME ERROR] Expected: '9', got: 'undefined'
+//│ = 9
 //│ one = A(1)
-//│ two = undefined
+//│ two = fun inlinedVal1
 
 
 

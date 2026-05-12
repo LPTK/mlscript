@@ -39,22 +39,7 @@ classMethodSibling()
 //│ deforest > 	match: scrut¹
 //│ deforest > 	fields: scrut¹.x⁰
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at REPL14:1:380
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
-//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
+//│ = 3
 
 
 :deforest
@@ -69,19 +54,7 @@ if AA(1) is
 //│ deforest > 	match: scrut²
 //│ deforest > 	fields: scrut².x⁰
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at REPL17:1:113
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
+//│ = 1
 //│ r = {a: 0, value: 1}
 
 
@@ -96,22 +69,7 @@ if AA(1) is
 //│ deforest > 	match: scrut³
 //│ deforest > 	fields: scrut³.x⁰
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│     at REPL21:1:61
-//│     at ContextifyScript.runInThisContext (node:vm:136:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:432:15)
-//│     at REPLServer.runBound [as eval] (node:domain:443:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:520:28)
-//│     at REPLServer.emit (node:domain:488:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:416:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:610:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:297)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 
 
@@ -170,8 +128,8 @@ c.get() + c.get()
 //│ deforest > 	match: scrut⁶
 //│ deforest > 	fields: scrut⁶.x⁰
 //│ deforest > <<< fusing <<<
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
-//│ ═══[RUNTIME ERROR] Expected: '5', got: 'undefined'
+//│ ═══[RUNTIME ERROR] Expected: '5', got: '4'
+//│ = 4
 //│ c = C(_)
 
 
@@ -192,8 +150,8 @@ M.f()
 //│ deforest > 	match: scrut⁷
 //│ deforest > 	fields: scrut⁷.x⁰
 //│ deforest > <<< fusing <<<
-//│ > let M1, f_7$scrut_AA, f_6$f, f_6$scrut_AA, inlinedVal1;try { globalThis.Object.freeze(class M {   static {     M1 = this   }   static #_private;   static {     M.#_private = 3;   }   static f() {     runtime.checkArgs("f", 0, true, arguments.length);     return runtime.checkCall(undefined(M.#_private, undefined, undefined))   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "M"];  }); inlinedVal1 = runtime.checkCall(undefined(M.#_private, undefined, undefined)); block$res6 = inlinedVal1; undefined; undefined } catch (e) { console.log('\u200B' + e + '\u200B'); }
-//│ >                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ^
+//│ > let M1, f_7$scrut_AA, f_6$f, f_6$scrut_AA, inlinedVal1, scrut3, AA_x3;try { globalThis.Object.freeze(class M {   static {     M1 = this   }   static #_private;   static {     M.#_private = 3;   }   static f() {     runtime.checkArgs("f", 0, true, arguments.length);     let scrut4, AA_x4;     AA_x4 = 1;     scrut4 = (fv_ctorLam__private) => {       let AA_x5, inlinedVal2;       AA_x5 = AA_x4;       inlinedVal2 = AA_x5 + fv_ctorLam__private;       return inlinedVal2     };     return runtime.checkCall(scrut4(M.#_private))   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "M"];  }); AA_x3 = 1; scrut3 = (fv_ctorLam__private) => {   let AA_x4, inlinedVal2;   AA_x4 = AA_x3;   inlinedVal2 = AA_x4 + fv_ctorLam__private;   return inlinedVal2 }; inlinedVal1 = runtime.checkCall(scrut3(M.#_private)); block$res6 = inlinedVal1; undefined; undefined } catch (e) { console.log('\u200B' + e + '\u200B'); }
+//│ >                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ^
 //│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Private field '#_private' must be declared in an enclosing class
 
 
@@ -216,4 +174,4 @@ M.MM.f()
 //│ deforest > 	match: scrut⁸
 //│ deforest > 	fields: scrut⁸.x⁰
 //│ deforest > <<< fusing <<<
-//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+//│ ═══[RUNTIME ERROR] ReferenceError: MM is not defined
