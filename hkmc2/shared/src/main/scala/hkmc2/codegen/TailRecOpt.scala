@@ -376,7 +376,7 @@ class TailRecOpt(using State, TL, Raise):
                       // Adding this to `requiredTmps` will make sure we set the temporary variable
                       // to the current variable at the start of the rewritten call.
                       requiredTmps += (l, tmpSym)
-                      k(Value.Ref(tmpSym, disamb))
+                      k(Value.SimpleRef(tmpSym))
                     case _ => super.applyValue(v)(k)
                   case _ => super.applyValue(v)(k)
               

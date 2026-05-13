@@ -281,8 +281,13 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
             import codegen.*
             Return(
               Call(
-                Value.Ref(Elaborator.State.runtimeSymbol).selSN("printRaw"),
-                (Arg(N, Value.Ref(sym, N)) :: Nil) ne_:: Nil)(true, false, false),
+                Value.SimpleRef(Elaborator.State.runtimeSymbol).selSN("printRaw"),
+                (Arg(
+                  N,
+                  sym match
+                    case sym: TempSymbol => Value.SimpleRef(sym)
+                    case sym => Value.Ref(sym, N),
+                ) :: Nil) ne_:: Nil)(true, false, false),
             implct = true)
           val je = nestedScp.givenIn:
             jsb.block(le, endSemi = false)

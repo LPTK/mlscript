@@ -44,7 +44,7 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
         val clsDef = generateFCFunctionClass(ref, params)
         val tmp = new TempSymbol(None)
         val cls = Value.Ref(clsDef.sym, Some(clsDef.isym))
-        Scoped(Set(clsDef.sym, tmp), Define(clsDef, Assign(tmp, Instantiate(false, cls, Nil :: Nil), k(Value.Ref(tmp, None)))))
+        Scoped(Set(clsDef.sym, tmp), Define(clsDef, Assign(tmp, Instantiate(false, cls, Nil :: Nil), k(Value.SimpleRef(tmp)))))
       case Some(_) => k(p)
       case None => lastWords(s"${l.nme}'s disamb cannot be empty.")
     case sel: Select => sel.symbol match
@@ -53,7 +53,7 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
         val clsDef = generateFCFunctionClass(sel, params)
         val tmp = new TempSymbol(None)
         val cls = Value.Ref(clsDef.sym, Some(clsDef.isym))
-        Scoped(Set(clsDef.sym, tmp), Define(clsDef, Assign(tmp, Instantiate(false, cls, Nil :: Nil), k(Value.Ref(tmp, None)))))
+        Scoped(Set(clsDef.sym, tmp), Define(clsDef, Assign(tmp, Instantiate(false, cls, Nil :: Nil), k(Value.SimpleRef(tmp)))))
       case Some(_) => k(p)
       case _ =>
         raise(ErrorReport(msg"Cannot determine if ${sel.name.name} is a function." -> sel.toLoc :: Nil,
@@ -63,6 +63,7 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
 
   private def pathStartsWith(p: Path, symbol: Local): Bool = p match
     case Value.Ref(l, _) => l is symbol
+    case Value.SimpleRef(l) => l is symbol
     case Select(p, _) => pathStartsWith(p, symbol)
     case DynSelect(p, _, _) => pathStartsWith(p, symbol)
     case _ => false
@@ -72,6 +73,9 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
       def call(f: Path) = Call(f, argss2.ne_!)(c.isMlsFun, c.mayRaiseEffects, c.explicitTailCall)
       fun match
         case ref @ Value.Ref(sym, _) => sym match
+          case _: VarSymbol |  _: TempSymbol => k(call(ref.selSN("call")))
+          case _ => k(call(fun))
+        case ref @ Value.SimpleRef(sym) => sym match
           case _: VarSymbol |  _: TempSymbol => k(call(ref.selSN("call")))
           case _ => k(call(fun))
         case sel: Select => sel.symbol match

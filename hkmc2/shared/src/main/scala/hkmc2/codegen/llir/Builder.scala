@@ -224,6 +224,9 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
         val funcs = methods.map(bMethodDef)
         def parentFromPath(p: Path): Ls[Local] = p match
           case Value.Ref(l, disamb) => fromMemToClass(l.orElseDisamb(disamb)) :: Nil
+          case Value.SimpleRef(l) => 
+            // TODO(Derppening): Check if this assertion holds
+            bErrStop(msg"Expected parent to be a MemberRef")
           case _ => bErrStop(msg"Unsupported parent path ${p.toString()}")
         ClassInfo(
           uid.make,

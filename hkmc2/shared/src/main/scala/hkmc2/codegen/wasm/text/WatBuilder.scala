@@ -1239,6 +1239,15 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             ctx.getFunc(l) match
               case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
               case N => getVar(l, r.toLoc)
+    case Value.SimpleRef(l) =>
+      if (l is State.unitSymbol) then
+        RegisterUnitSingleton()
+      singletonInfoFor(l) match
+        case S(info) => singletonGlobalGet(info)
+        case N =>
+          ctx.getFunc(l) match
+            case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
+            case N => getVar(l, r.toLoc)
 
     case Call(Value.Ref(l: BuiltinSymbol, _), lhs :: rhs :: Nil) if !l.functionLike =>
       if l.binary then
@@ -1303,6 +1312,26 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             case Value.Ref(l, _) =>
               val base = fun match
                 case Value.Ref(l, _) => ctx.getFunc(l)
+                case Value.SimpleRef(l) => ctx.getFunc(l)
+                case _ => N
+              val baseFuncIdx = base match
+                case S(idx) => idx
+                case N => return errExpr(
+                    Ls(msg"Expected static function reference in Call(...) expression" -> fun.toLoc),
+                    extraInfo = S(fun.toString),
+                  )
+              val baseTypeInfo = ctx.getTypeInfo_!(ctx.getFuncTypeUse_!(baseFuncIdx).typeIdx)
+              val wasmArgs = args.map(argument)
+
+              call(
+                funcidx = baseFuncIdx,
+                operands = wasmArgs.toSeq,
+                returnTypes = baseTypeInfo.compType.asInstanceOf[FunctionType].sigType.results,
+              )
+            case Value.SimpleRef(l) =>
+              val base = fun match
+                case Value.Ref(l, _) => ctx.getFunc(l)
+                case Value.SimpleRef(l) => ctx.getFunc(l)
                 case _ => N
               val baseFuncIdx = base match
                 case S(idx) => idx
@@ -1487,6 +1516,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     */
   private def wasmIntrinsicName(path: Path): Opt[Str] = path match
     case Select(Value.Ref(sym, _), ident) if (sym eq State.wasmSymbol) && wasmIntrinsicNameSet.contains(ident.name) =>
+      S(ident.name)
+    case Select(Value.SimpleRef(sym), ident) if (sym eq State.wasmSymbol) && wasmIntrinsicNameSet.contains(ident.name) =>
       S(ident.name)
     case _ => N
 
@@ -2132,7 +2163,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           if tailMode then S(mkTempLocal("matchRes"))
           else N
         val scrutLocalResult = scrut match
-          case Value.Ref(_, _) | Value.This(_) | Value.Lit(_) => N
+          case Value.Ref(_, _) | Value.SimpleRef(_) | Value.This(_) | Value.Lit(_) => N
           case _ => S(mkTempLocal("scrut"))
 
         val scrutInitExpr = scrutLocalResult.map: scrutLocal =>

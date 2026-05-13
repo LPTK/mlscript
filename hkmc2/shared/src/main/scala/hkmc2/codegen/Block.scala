@@ -885,6 +885,12 @@ sealed abstract class Result extends AutoLocated:
       case _ => Set(l)
     case Value.Ref(l, disamb) => Set(l)
     case Value.SimpleRef(l: BuiltinSymbol) => Set.empty
+    case Value.SimpleRef(l: (TopLevelSymbol | ClassSymbol | TermSymbol)) => Set.empty
+    case Value.SimpleRef(l: DefinitionSymbol[?]) => l.defn match
+      case Some(d: ClassLikeDef) => Set.empty
+      case Some(d: TermDefinition) if d.companionClass.isDefined => Set.empty
+      case _ => Set(l)
+    case Value.SimpleRef(l) => Set(l)
     case Value.This(sym) => Set.empty
     case Value.Lit(lit) => Set.empty
     case DynSelect(qual, fld, arrayIdx) => qual.freeVarsLLIR ++ fld.freeVarsLLIR
@@ -938,7 +944,7 @@ enum Value extends Path with ProductWithExtraInfo:
 
   // TODO(Derppening): Remove once fully migrated to SimpleRef/MemberRef/This
   this match
-    case Ref(l: BuiltinSymbol, _) =>
+    case Ref(l: (BuiltinSymbol | TempSymbol), _) =>
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.SimpleRef instead") 
     case Ref(l: TopLevelSymbol, _) => 
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.This instead")
@@ -949,6 +955,7 @@ enum Value extends Path with ProductWithExtraInfo:
     case _ => ""
 
 object Value:
+  @deprecated("Use Value.SimpleRef, Value.MemberRef, or Value.This instead.")
   object Ref:
     // * Some helper constructors that allow omitting the disambiguation symbol.
     // * If the ref itself is a DefinitionSymbol, then disambiguating it results in itself.
@@ -990,7 +997,8 @@ def blockBuilder: Block => Block = identity
 
 extension (l: Local)
   def asPath(using State): Path = l match 
-    case l: BuiltinSymbol => Value.SimpleRef(l)
+    case l: (BuiltinSymbol | TempSymbol) => Value.SimpleRef(l)
     case sym: TopLevelSymbol if sym === State.globalThisSymbol => Value.This(sym)
+    case tls: TopLevelSymbol => Value.This(tls)
     case _ => Value.Ref(l, N)
 

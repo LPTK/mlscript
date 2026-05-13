@@ -34,6 +34,7 @@ object FlowAnalysis:
       def getReferredSym: Symbol =
         resultId.getResult match
         case Value.Ref(s, _) => s
+        case Value.SimpleRef(s) => s
         case e => lastWords(s"assumption failed: $e is not a Value.Ref")
       def getReferredFun(using Elaborator.State): Option[TermSymbol] =
         resultId.getResult match
@@ -128,11 +129,23 @@ object TrackableFieldSelect:
     case _ => N
 
 object PossibleTrackableTupleSelect:
-  def unapply(s: Result)(using eState: Elaborator.State): Opt[Value.Ref -> Int] =
+  def unapply(s: Result)(using eState: Elaborator.State): Opt[(Value.Ref | Value.SimpleRef) -> Int] =
     s match
     case Call(
       Select(Select(Value.Ref(runtimeSym, N), Tree.Ident("Tuple")), Tree.Ident("get")),
       (Arg(N, ref@Value.Ref(scrut, N)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
+    ) if runtimeSym is eState.runtimeSymbol => S(ref -> n.toInt)
+    case Call(
+      Select(Select(Value.Ref(runtimeSym, N), Tree.Ident("Tuple")), Tree.Ident("get")),
+      (Arg(N, ref@Value.SimpleRef(scrut)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
+    ) if runtimeSym is eState.runtimeSymbol => S(ref -> n.toInt)
+    case Call(
+      Select(Select(Value.SimpleRef(runtimeSym), Tree.Ident("Tuple")), Tree.Ident("get")),
+      (Arg(N, ref@Value.Ref(scrut, N)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
+    ) if runtimeSym is eState.runtimeSymbol => S(ref -> n.toInt)
+    case Call(
+      Select(Select(Value.SimpleRef(runtimeSym), Tree.Ident("Tuple")), Tree.Ident("get")),
+      (Arg(N, ref@Value.SimpleRef(scrut)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
     ) if runtimeSym is eState.runtimeSymbol => S(ref -> n.toInt)
     case _ => N
 
@@ -141,6 +154,10 @@ object TrackableSelect:
     given fState: FlowAnalysis.State = pre.fState
     s match
     case sel@PossibleTrackableTupleSelect((ref@Value.Ref(scrut, N)) -> ith) =>
+      pre.res.getEnclosingMatchesForSel(sel.uid).find(_._1.getReferredSym is scrut).flatMap:
+        case (_, Some(tupSize: Int)) => S(ref, ith, tupSize)
+        case _ => N
+    case sel@PossibleTrackableTupleSelect((ref@Value.SimpleRef(scrut)) -> ith) =>
       pre.res.getEnclosingMatchesForSel(sel.uid).find(_._1.getReferredSym is scrut).flatMap:
         case (_, Some(tupSize: Int)) => S(ref, ith, tupSize)
         case _ => N
@@ -411,6 +428,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       ctx.exists:
         case InCtx.MtchBody(m, _) => m.scrut match
           case Value.Ref(s, disamb) => disamb.getOrElse(s) is sym
+          case Value.SimpleRef(s) => s is sym
           case _ => false
         case _ => false
     
@@ -593,6 +611,9 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       case v@Value.Ref(l, disamb)
         if ctxTracker.isEnclosingMatchScrutSym(disamb.getOrElse(l)) =>
           applyValueRef(v, recordAffinity = false)
+      case v@Value.SimpleRef(l)
+        if ctxTracker.isEnclosingMatchScrutSym(l) =>
+          applyValueSimpleRef(v, recordAffinity = false)
       case _ => applyPath(qual)
     case p: Select =>
       super.applyPath(p)

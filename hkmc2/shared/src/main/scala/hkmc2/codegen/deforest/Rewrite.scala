@@ -262,6 +262,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
       override def applyValue(v: Value): Unit =
         v match
         case Value.Ref(l, disamb) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
+        case Value.SimpleRef(l) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
         case _ => super.applyValue(v)
       
       override def applyResult(r: Result): Unit =
@@ -354,6 +355,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
     extension (a: Symbol) def toValueRef =
       a match
       case bms: BlockMemberSymbol => Value.Ref(bms, bms.tsym)
+      case sym: TempSymbol => Value.SimpleRef(sym)
       case _ => Value.Ref(a, N)
     def mkReturnCall(target: (BlockMemberSymbol, TermSymbol), args: Ls[Symbol]): Block =
       Return(Call(
@@ -402,7 +404,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
             val ctorInfo = solver.fusingCtorInfo(ctor.uid.concreteId)
             val idx = ctorInfo.args.unzip._1.indexOf(field)
             val fieldSyms = mkCtorFieldSyms(ctor.uid.concreteId)
-            args.zip(fieldSyms).foldRight(k(Value.Ref(fieldSyms(idx)))):
+            args.zip(fieldSyms).foldRight(k(Value.SimpleRef(fieldSyms(idx)))):
               case (Arg(N, a) -> s, rest) =>
                 applyPath(a): fusedField =>
                   Scoped(Set.single(s), Assign(s, fusedField, rest))
@@ -439,7 +441,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
               Lambda(
                 ctorLamParams.asParamList,
                 mkReturnCall((branchBms, branchTermSym), ctorLamParams)),
-              k(Value.Ref(lambdaSym, N)))
+              k(Value.SimpleRef(lambdaSym)))
           )
         case s@TrackableSelect(from, _, _) =>
           if branchSelSyms.isDefinedAt(s.uid.concreteId) then
@@ -492,6 +494,12 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
           pre.res.modSymToBms.get(l) match
             case Some(bms) =>
               k(Value.Ref(bms, l.asMod))
+            case None => super.applyValue(v)(k)
+        case Value.SimpleRef(l) =>
+          pre.res.modSymToBms.get(l) match
+            case Some(bms) =>
+              // TODO(Derppening): Check if this assertion holds
+              lastWords("SimpleRef should not refresh into a MemberRef")
             case None => super.applyValue(v)(k)
         case _ => super.applyValue(v)(k)
     end RefreshSymbol

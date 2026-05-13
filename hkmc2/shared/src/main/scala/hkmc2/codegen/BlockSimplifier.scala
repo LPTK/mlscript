@@ -1122,7 +1122,7 @@ class BlockSimplifier
                       val copier = Copier(resSym, mapping)
                       val newBlk = copier.applyBlock(blk)
                       if extraArgss.isEmpty then
-                        acc(Scoped(Set.single(resSym), newBlk(k(Value.Ref(resSym)))))
+                        acc(Scoped(Set.single(resSym), newBlk(k(Value.SimpleRef(resSym)))))
                       else
                         acc(Scoped(Set(resSym), newBlk(
                           k(Call(resSym.asPath, extraArgss.ne_!)(c.isMlsFun, c.mayRaiseEffects, false)))))

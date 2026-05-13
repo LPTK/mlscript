@@ -372,7 +372,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
                   case Some(value) =>
                     syms.addOne(FunSyms(l, d) -> value)
                     value
-                k(Value.Ref(newSym, N))
+                newSym match
+                  case newSym: TempSymbol => k(Value.SimpleRef(newSym))
+                  case _ => k(Value.Ref(newSym, N))
             
             // Naked reference to a parameterized class constructor (used as a first-class function).
             // Replace with a partially applied curried C$ wrapper.
@@ -389,7 +391,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
                   case Some(value) =>
                     syms.addOne(FunSyms(l, d) -> value)
                     value
-                k(Value.Ref(newSym, N))
+                newSym match
+                  case newSym: TempSymbol => k(Value.SimpleRef(newSym))
+                  case _ => k(Value.Ref(newSym, N))
               case _ =>
                 resolveDefnRef(l, d, ctor) match
                 case Some(value) => k(value)
@@ -493,6 +497,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     override def applyPath(p: Path)(k: Path => Block): Block = p match
       // This rewrites naked references to locals,
       case Value.Ref(l, _) => ctx.symbolsMap.get(l) match
+        case Some(value) => k(value.read)
+        case _ => super.applyPath(p)(k)
+      case Value.SimpleRef(l) => ctx.symbolsMap.get(l) match
         case Some(value) => k(value.read)
         case _ => super.applyPath(p)(k)
       

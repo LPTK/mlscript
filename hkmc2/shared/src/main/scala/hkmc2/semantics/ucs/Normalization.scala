@@ -448,7 +448,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State) e
           then mainBlock
           else Label(rootBreakLabel, false, mainBlock, End()))
       // Embed the `body` into `Label` if the term is a `while`.
-      lazy val rest = if usesResTmp then k(Value.Ref(l)) else k(lowering.unit)
+      lazy val rest = if usesResTmp then k(Value.SimpleRef(l)) else k(lowering.unit)
       val block =
         if form === IfLikeForm.While then
           // NOTE: `shouldRewriteWhile` is not the same as `config.rewriteWhileLoops`
@@ -459,7 +459,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State) e
             outerCtx.collectScopedSym(loopResult)
             outerCtx.collectScopedSym(isReturned)
             val loopEnd: Path =
-              Select(Value.Ref(State.runtimeSymbol), Tree.Ident("LoopEnd"))(S(State.loopEndSymbol))
+              Select(Value.SimpleRef(State.runtimeSymbol), Tree.Ident("LoopEnd"))(S(State.loopEndSymbol))
             val blk = blockBuilder
               .define(FunDefn(N, f, tSym, PlainParamList(Nil) :: Nil, Begin(body, Return(loopEnd, false)))(configOverride = N, annotations = Nil))
               .assign(loopResult, Call(Value.Ref(f, S(tSym)), Nil ne_:: Nil)(true, true, false))
@@ -467,8 +467,8 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State) e
               blk
                 .assign(isReturned, Call(Value.SimpleRef(State.builtinOpsMap("!==")),
                   (loopResult.asPath.asArg :: loopEnd.asArg :: Nil) ne_:: Nil)(true, false, false))
-                .ifthen(Value.Ref(isReturned), Case.Lit(Tree.BoolLit(true)),
-                  Return(Value.Ref(loopResult), false),
+                .ifthen(Value.SimpleRef(isReturned), Case.Lit(Tree.BoolLit(true)),
+                  Return(Value.SimpleRef(loopResult), false),
                   N
                 )
                 .rest(rest)

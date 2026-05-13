@@ -138,18 +138,18 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
   object StateTransition:
     private val transitionSymbol = freshTmp("transition")
     def apply(uid: StateId) =
-      Return(PureCall(Value.Ref(transitionSymbol), List(Value.Lit(Tree.IntLit(uid)))), false)
+      Return(PureCall(Value.SimpleRef(transitionSymbol), List(Value.Lit(Tree.IntLit(uid)))), false)
     def unapply(blk: Block) = blk match
-      case Return(PureCall(Value.Ref(`transitionSymbol`, _), List(Value.Lit(Tree.IntLit(uid)))), false) =>
+      case Return(PureCall(Value.SimpleRef(`transitionSymbol`), List(Value.Lit(Tree.IntLit(uid)))), false) =>
         S(uid)
       case _ => N
 
   object Unwind:
     private val unwindSymbol = freshTmp("unwind")
     def apply(uid: StateId, loc: Value) =
-      Return(PureCall(Value.Ref(unwindSymbol), List(Value.Lit(Tree.IntLit(uid)), loc)), false)
+      Return(PureCall(Value.SimpleRef(unwindSymbol), List(Value.Lit(Tree.IntLit(uid)), loc)), false)
     def unapply(blk: Block) = blk match
-      case Return(PureCall(Value.Ref(`unwindSymbol`, _), List(Value.Lit(Tree.IntLit(uid)), loc: Value)), false) =>
+      case Return(PureCall(Value.SimpleRef(`unwindSymbol`), List(Value.Lit(Tree.IntLit(uid)), loc: Value)), false) =>
         S(uid, loc)
       case _ => N
 
@@ -665,7 +665,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
           val headTransformed = segmentTailTransform.applyBlock(parts.states(head).blk)
           val initial: Block => Block = blk =>
             Match(
-              Value.Ref(pcVar),
+              Value.SimpleRef(pcVar),
               Case.Lit(Tree.IntLit(head)) -> headTransformed :: Nil,
               N,
               blk
@@ -677,7 +677,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
               val transformed = transformState(uid)
               blk =>
               Match(
-                Value.Ref(pcVar),
+                Value.SimpleRef(pcVar),
                 Case.Lit(Tree.IntLit(uid)) -> transformed :: Nil,
                 N,
                 acc(blk)
@@ -744,7 +744,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         case EffectfulResult(r) =>
           // Fallback case, this may lead to unnecessary assignments if it is assign-like
           val l = freshTmp()
-          Scoped(Set(l), effectCheck(l, r, k(Value.Ref(l))))
+          Scoped(Set(l), effectCheck(l, r, k(Value.SimpleRef(l))))
         case _ => super.applyResult(r)(k)
     topLevelTransform.applyBlock(b)
 
