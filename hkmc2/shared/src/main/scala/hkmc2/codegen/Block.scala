@@ -924,6 +924,7 @@ enum Value extends Path with ProductWithExtraInfo:
    * @param disamb The symbol disambiguating the definition that the reference refers to. This
    * exists if and only if l is a BlockMemberSymbol.
    */
+  @deprecated("Use Value.SimpleRef, Value.MemberRef, or Value.This instead.")
   case Ref(l: Local, disamb: Opt[DefinitionSymbol[?]])
   case This(sym: InnerSymbol) // TODO rm – just use Ref
   case Lit(lit: Literal)
