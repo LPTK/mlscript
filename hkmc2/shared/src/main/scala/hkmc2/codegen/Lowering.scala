@@ -155,7 +155,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           source = Diagnostic.Source.Compilation
         )
     lowerSuperCtorCall(
-      Value.Ref(State.builtinOpsMap("super")),
+      Value.SimpleRef(State.builtinOpsMap("super")),
       isMlsFun = true,
       isTailCall = false,
       args.headOption,
@@ -645,7 +645,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             source = Diagnostic.Source.Compilation)
         subTerm(arg): ar =>
           val target = wasmIntrinsicPath(sym, unary = true)
-            .getOrElse(Value.Ref(sym).withLocOf(ref))
+            .getOrElse(Value.SimpleRef(sym).withLocOf(ref))
           k(Call(target, (Arg(N, ar) :: Nil) ne_:: Nil)(true, false, false))
       case st.Tup(Fld(FldFlags.benign(), arg1, N) :: Fld(FldFlags.benign(), arg2, N) :: Nil) =>
         if !sym.binary then raise:
@@ -675,7 +675,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           case _ =>
             subTerm_nonTail(arg2): ar2 =>
               val target = wasmIntrinsicPath(sym, unary = false)
-                .getOrElse(Value.Ref(sym).withLocOf(ref))
+                .getOrElse(Value.SimpleRef(sym).withLocOf(ref))
               k(Call(target, (Arg(N, ar1) :: Arg(N, ar2) :: Nil) ne_:: Nil)(true, false, false))
       case _ => fail:
         ErrorReport(

@@ -172,6 +172,10 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
         case Value.Ref(l, disamb) =>
           transformSymbol(disamb.getOrElse(l)): sym =>
             blockCtor("ValueRef", Ls(sym), "var")(k)
+        case Value.SimpleRef(l) =>
+          transformSymbol(l): sym =>
+            // TODO(Derppening): "ValueRef" or "ValueSimpleRef"?
+            blockCtor("ValueRef", Ls(sym), "var")(k)
         case l: Value.Lit =>
           blockCtor("ValueLit", Ls(l), "lit")(k)
         case s @ Select(p, Tree.Ident(name)) =>

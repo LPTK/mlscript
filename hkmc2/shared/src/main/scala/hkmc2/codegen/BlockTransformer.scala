@@ -181,6 +181,12 @@ class BlockTransformer(subst: SymbolSubst):
     case Value.Ref(l, disamb) =>
       val l2 = applyLocal(l)
       k(if (l2 is l) then v else Value.Ref(l2, disamb).withLocOf(v))
+    case Value.SimpleRef(l) =>
+      val l2 = applyLocal(l) match
+        case l: BuiltinSymbol => l
+        case l2 =>
+          lastWords(s"Expected applyValue on `$l` (${l.getClass.getSimpleName}) to create a symbol of the same type, but got `$l2` (${l2.getClass.getSimpleName})")
+      k(if (l2 is l) then v else Value.SimpleRef(l2).withLocOf(v))
     case Value.This(sym) =>
       val sym2 = sym.subst
       k(if (sym2 is sym) then v else Value.This(sym2).withLocOf(v))

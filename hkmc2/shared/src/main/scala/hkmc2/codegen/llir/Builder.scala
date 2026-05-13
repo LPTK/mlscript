@@ -376,6 +376,11 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
           case args: Ls[TrivialExpr] =>
             val v: Local = newTemp
             Node.LetExpr(v, Expr.BasicOp(sym, args), k(v |> sr))
+      case Call(Value.SimpleRef(sym: BuiltinSymbol), argss) =>
+        bArgs(argss.flatten):
+          case args: Ls[TrivialExpr] =>
+            val v: Local = newTemp
+            Node.LetExpr(v, Expr.BasicOp(sym, args), k(v |> sr))
       case Call(Value.Ref(sym, S(disamb)), argss) if disamb.defn.exists(defn => defn match
         case cls: ClassLikeDef => true
         case trm: TermDefinition => trm.companionClass.isDefined

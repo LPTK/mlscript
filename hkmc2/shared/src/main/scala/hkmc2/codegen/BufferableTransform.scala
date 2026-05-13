@@ -71,6 +71,10 @@ class BufferableTransform()(using Ctx, State, Raise):
                     fieldMap.get(l).fold(super.applyPath(p)(k)): off =>
                       getOffset(off): res =>
                         k(res)
+                  case Value.SimpleRef(l) =>
+                    fieldMap.get(l).fold(super.applyPath(p)(k)): off =>
+                      getOffset(off): res =>
+                        k(res)
                   case _ => super.applyPath(p)(k)
             def transformFunDefn(f: FunDefn, isCtor: Bool): FunDefn =
               val buf = VarSymbol(new Tree.Ident("buf"))

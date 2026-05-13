@@ -289,7 +289,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State) e
             for (_, s) <- entries do LoweringCtx.loweringCtx.collectScopedSym(s)
             val objectSym = ctx.builtins.Object
             mkMatch( // checking that we have an object
-              Case.Cls(objectSym, Value.Ref(BuiltinSymbol(objectSym.nme, false, false, true, false))),
+              Case.Cls(objectSym, Value.SimpleRef(BuiltinSymbol(objectSym.nme, false, false, true, false))),
               entries.foldRight(lowerSplit(tail, cont)):
                 case ((fieldName, fieldSymbol), blk) =>
                   mkMatch(
@@ -465,7 +465,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State) e
               .assign(loopResult, Call(Value.Ref(f, S(tSym)), Nil ne_:: Nil)(true, true, false))
             if summon[LoweringCtx].mayRet then
               blk
-                .assign(isReturned, Call(Value.Ref(State.builtinOpsMap("!==")),
+                .assign(isReturned, Call(Value.SimpleRef(State.builtinOpsMap("!==")),
                   (loopResult.asPath.asArg :: loopEnd.asArg :: Nil) ne_:: Nil)(true, false, false))
                 .ifthen(Value.Ref(isReturned), Case.Lit(Tree.BoolLit(true)),
                   Return(Value.Ref(loopResult), false),

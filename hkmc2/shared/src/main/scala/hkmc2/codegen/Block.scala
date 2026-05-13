@@ -523,7 +523,7 @@ object HandleBlock:
       N, Nil,
       S(par), handlerMtds, Nil, Nil,
       // Apparently, the lifter is not happy with any assignment in the preCtor...
-      Return(Call(Value.Ref(State.builtinOpsMap("super")), args.map(_.asArg) ne_:: Nil)(true, true, false), true),
+      Return(Call(Value.SimpleRef(State.builtinOpsMap("super")), args.map(_.asArg) ne_:: Nil)(true, true, false), true),
       End(),
       N,
       N,
@@ -800,6 +800,7 @@ sealed abstract class Result extends AutoLocated:
   
   def showDbg(using DebugPrinter): Str = this match
     case Value.Ref(l, disamb) => s"${l.showAsPlain}${disamb.fold("")(s => s"‹${s.showAsPlain}›")}"
+    case Value.SimpleRef(l) => l.showAsPlain
     case Value.This(sym) => s"this[${sym.showAsPlain}]"
     case Value.Lit(lit) => lit.idStr
     case Select(q, n) => s"Select(${q.showDbg}, ${n.showDbg})"
@@ -817,6 +818,8 @@ sealed abstract class Result extends AutoLocated:
     case sel @ Select(q, n) =>
       q.isPure && sel.symbol.exists(_.isPure)
     case Call(Value.Ref(bs: BuiltinSymbol, _), ass) if bs.isPure =>
+      ass.forall(_.forall(_.value.isPure))
+    case Call(Value.SimpleRef(bs: BuiltinSymbol), ass) if bs.isPure =>
       ass.forall(_.forall(_.value.isPure))
     case Record(mut, args) => args.forall(_.value.isPure)
     case Tuple(mut, elems) => elems.forall(_.value.isPure)
@@ -836,6 +839,7 @@ sealed abstract class Result extends AutoLocated:
     case Tuple(mut, elems) => elems.iterator.map(_.value).toVector
     case Record(mut, elems) => elems.iterator.map(_.value).toVector
     case Value.Ref(l, disamb) => Vector.empty
+    case Value.SimpleRef(l) => Vector.empty
     case Value.This(sym) => Vector.empty
     case Value.Lit(lit) => Vector.single(lit)
   
@@ -857,6 +861,7 @@ sealed abstract class Result extends AutoLocated:
     case Record(mut, args) =>
       args.flatMap(arg => arg.idx.fold(Set.empty)(_.freeVars) ++ arg.value.freeVars).toSet
     case Value.Ref(l, disamb) => Set(l)
+    case Value.SimpleRef(l) => Set(l)
     case Value.This(sym) => Set.empty
     case Value.Lit(lit) => Set.empty
     case DynSelect(qual, fld, arrayIdx) => qual.freeVars ++ fld.freeVars
@@ -879,6 +884,7 @@ sealed abstract class Result extends AutoLocated:
       case Some(d: TermDefinition) if d.companionClass.isDefined => Set.empty
       case _ => Set(l)
     case Value.Ref(l, disamb) => Set(l)
+    case Value.SimpleRef(l: BuiltinSymbol) => Set.empty
     case Value.This(sym) => Set.empty
     case Value.Lit(lit) => Set.empty
     case DynSelect(qual, fld, arrayIdx) => qual.freeVarsLLIR ++ fld.freeVarsLLIR
@@ -926,11 +932,14 @@ enum Value extends Path with ProductWithExtraInfo:
    */
   @deprecated("Use Value.SimpleRef, Value.MemberRef, or Value.This instead.")
   case Ref(l: Local, disamb: Opt[DefinitionSymbol[?]])
+  case SimpleRef(l: LocalSymbol | BuiltinSymbol)
   case This(sym: InnerSymbol)
   case Lit(lit: Literal)
 
   // TODO(Derppening): Remove once fully migrated to SimpleRef/MemberRef/This
   this match
+    case Ref(l: BuiltinSymbol, _) =>
+      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.SimpleRef instead") 
     case Ref(l: TopLevelSymbol, _) => 
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.This instead")
     case _ =>
@@ -981,6 +990,7 @@ def blockBuilder: Block => Block = identity
 
 extension (l: Local)
   def asPath(using State): Path = l match 
+    case l: BuiltinSymbol => Value.SimpleRef(l)
     case sym: TopLevelSymbol if sym === State.globalThisSymbol => Value.This(sym)
     case _ => Value.Ref(l, N)
 

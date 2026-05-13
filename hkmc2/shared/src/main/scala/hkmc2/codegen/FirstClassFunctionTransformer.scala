@@ -29,7 +29,7 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
       Return(Call(p, params.params.map(_.sym.asPath.asArg) ne_:: Nil)(true, false, false), false))(N, annotations = Nil)
     ClsLikeDefn(None, clsSym, defSym, None, syntax.Cls, None, Nil,
       Some(Select(Value.This(State.globalThisSymbol), Tree.Ident("Function"))(Some(ctx.builtins.Function))),
-      callDef :: Nil, Nil, Nil, Return(Call(Value.Ref(State.builtinOpsMap("super")), Nil ne_:: Nil)(false, false, false), true), End(), None, None)(N, annotations = Nil)
+      callDef :: Nil, Nil, Nil, Return(Call(Value.SimpleRef(State.builtinOpsMap("super")), Nil ne_:: Nil)(false, false, false), true), End(), None, None)(N, annotations = Nil)
 
   private def getParamList(l: BlockMemberSymbol): Option[ParamList] = funDefns.get(l) match
     case Some(fd) => fd.params.headOption

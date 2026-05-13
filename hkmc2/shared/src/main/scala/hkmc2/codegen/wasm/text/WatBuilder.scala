@@ -915,6 +915,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       case End(_) => N
       case Return(Call(Value.Ref(bs: BuiltinSymbol, _), argss), true) if bs eq State.builtinOpsMap("super") =>
         S(End("") -> argss.flatten)
+      case Return(Call(Value.SimpleRef(bs: BuiltinSymbol), argss), true) if bs eq State.builtinOpsMap("super") =>
+        S(End("") -> argss.flatten)
       case b: NonBlockTail =>
         splitSuperTail(b.rest).map: (prefix, args) =>
           withRest(b, prefix) -> args
@@ -1239,6 +1241,19 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
               case N => getVar(l, r.toLoc)
 
     case Call(Value.Ref(l: BuiltinSymbol, _), lhs :: rhs :: Nil) if !l.functionLike =>
+      if l.binary then
+        errExpr(
+          Ls(
+            msg"WatBuilder::result encountered builtin '${
+                l.nme
+              }' which should be lowered to an intrinsic function" ->
+              r.toLoc,
+          ),
+          extraInfo = S(r.toString),
+        )
+      else
+        errExpr(Ls(msg"Cannot call non-binary builtin symbol '${l.nme}'" -> r.toLoc))
+    case Call(Value.SimpleRef(l: BuiltinSymbol), lhs :: rhs :: Nil) if !l.functionLike =>
       if l.binary then
         errExpr(
           Ls(

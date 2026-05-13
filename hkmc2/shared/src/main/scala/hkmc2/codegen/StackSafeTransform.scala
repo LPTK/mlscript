@@ -47,6 +47,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
   def transform(b: Block, curDepth: => Symbol, isTopLevel: Bool = false): Block =
     def usesStack(r: Result) = r match
       case Call(Value.Ref(_: BuiltinSymbol, _), _) => false
+      case Call(Value.SimpleRef(_: BuiltinSymbol), _) => false
       case c: Call if !c.mayRaiseEffects => false // a call can only trigger a stack delay if it can raise effects
       case _: Call | _: Instantiate => true
       case _ => false
@@ -95,6 +96,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
       applyBlock(b)
       override def applyResult(r: Result): Unit = r match
         case Call(Value.Ref(_: BuiltinSymbol, _), _) => ()
+        case Call(Value.SimpleRef(_: BuiltinSymbol), _) => ()
         case _: Call | _: Instantiate => trivial = false
         case _ => ()
     trivial

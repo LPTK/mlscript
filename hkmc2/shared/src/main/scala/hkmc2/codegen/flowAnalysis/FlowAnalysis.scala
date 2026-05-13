@@ -97,8 +97,10 @@ object RefLike:
       yield
         cls
   
-  def unapply(p: Value.Ref | Select)(using Elaborator.State): Opt[Symbol] =
+  def unapply(p: Value.Ref | Value.SimpleRef | Select)(using Elaborator.State): Opt[Symbol] =
     p match
+      case Value.SimpleRef(sym) =>
+        classCtorSymbol(sym) orElse S(sym)
       case Value.Ref(l, disamb) =>
         val sym = disamb.getOrElse(l)
         classCtorSymbol(sym) orElse S(sym)
@@ -570,6 +572,17 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       recordRefInCaptures(s)
       if recordAffinity then recordAffinityUse(s)
     case _ => ()
+
+  private def applyValueSimpleRef(v: Value.SimpleRef, recordAffinity: Bool) =
+    val Value.SimpleRef(l) = v
+    l match
+    case s: TermSymbol =>
+      recordRefInCaptures(s)
+      if recordAffinity then recordAffinityUse(s)
+    case s: BlockLocalSymbol =>
+      recordRefInCaptures(s)
+      if recordAffinity then recordAffinityUse(s)
+    case _ => ()
   
   override def applyPath(p: Path): Unit = p match
     case DynSelect(qual, fld, arrayIdx) =>
@@ -587,6 +600,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
   
   override def applyValue(v: Value): Unit = v match
     case v@Value.Ref(l, disamb) => applyValueRef(v, recordAffinity = true)
+    case v@Value.SimpleRef(l) => applyValueSimpleRef(v, recordAffinity = true)
     case Value.This(sym) => ()
     case Value.Lit(lit) => ()
   
@@ -1012,7 +1026,7 @@ class FlowConstraintsCollector(
               case Select(p, _) => cc.constrain(processResult(p), UnknownCons)
               case _ => ()
             generatedProdVars(sym).asProdStrat
-          case _: Value.Ref => lastWords("already handled in `RefLike` case")
+          case _: (Value.Ref | Value.SimpleRef) => lastWords("already handled in `RefLike` case")
           case Select(qual, name) =>
             cc.constrain(processResult(qual), UnknownCons)
             UnknownProd
