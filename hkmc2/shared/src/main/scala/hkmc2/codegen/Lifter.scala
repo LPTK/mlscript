@@ -550,7 +550,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         val vd = ValDefn(
           tSym,
           fldSym,
-          Value.Ref(varSym)
+          Value.SimpleRef(varSym)
         )(N, Nil)
         
         (sym -> varSym, p, vd)

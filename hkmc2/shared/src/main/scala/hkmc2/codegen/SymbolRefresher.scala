@@ -213,6 +213,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
                 case _ => newBms.tsym.orElse(x)
             case None => newBms.tsym
           k(Value.Ref(newBms, newDisamb))
+        case Some(newSym: VarSymbol) => k(Value.SimpleRef(newSym))
         case Some(newSym) => k(Value.Ref(newSym, N))
     case Value.SimpleRef(l) =>
       mapping.get(l) match
@@ -220,9 +221,10 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
         case Some(newBms: BlockMemberSymbol) =>
           val newDisamb = newBms.tsym
           k(Value.Ref(newBms, newDisamb))
-        case Some(newSym) => 
+        case Some(newSym) =>
           newSym match
             case newSym: TempSymbol => k(Value.SimpleRef(newSym))
+            case newSym: VarSymbol => k(Value.SimpleRef(newSym))
             case newSym => k(Value.Ref(newSym, N))
     case Value.This(sym) =>
       mapping.get(sym) match

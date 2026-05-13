@@ -370,7 +370,7 @@ class TailRecOpt(using State, TL, Raise):
                   // `assignedSyms` contains all of the param symbols that have been assigned to
                   // before the current assignment, and thus references to them must be rewritten
                   // to point to a temporary variable.
-                  case Value.Ref(l: VarSymbol, disamb) => assignedSyms.get(l) match
+                  case Value.SimpleRef(l: VarSymbol) => assignedSyms.get(l) match
                     case S(v) =>
                       val tmpSym = v.force_!
                       // Adding this to `requiredTmps` will make sure we set the temporary variable
@@ -387,7 +387,7 @@ class TailRecOpt(using State, TL, Raise):
               val selfAssigns = argListResults.flatMap: (_, thisParamSyms, args, argsRes) =>
                 argsRes match
                   case CallArgsResult.Success(res) => thisParamSyms.zip(res).collect:
-                    case (sym1, Value.Ref(sym2, _)) if sym1 === sym2 => sym1
+                    case (sym1, Value.SimpleRef(sym2)) if sym1 === sym2 => sym1
                   case CallArgsResult.ForceSpread => List.empty
               assignedSyms --= selfAssigns
               
@@ -413,7 +413,7 @@ class TailRecOpt(using State, TL, Raise):
                       // in `rewrite`. Also note that `paramRewriter` will add all encountered rewritten variables
                       // to `requiredTmps`.
                       val ret = paramRewriter.applyResult(res)(Assign(sym, _, acc)) match
-                        case Assign(sym, Value.Ref(sym1, _), rest) if sym === sym1 => rest // avoid useless assignments
+                        case Assign(sym, Value.SimpleRef(sym1), rest) if sym === sym1 => rest // avoid useless assignments
                         case x => x
                       ret
                   case CallArgsResult.ForceSpread =>
@@ -466,7 +466,7 @@ class TailRecOpt(using State, TL, Raise):
               Scoped(
                 requiredTmps.values.toSet,
                 requiredTmps.toList.foldRight(assignments):
-                  case ((v, l), acc) => Assign(l, Value.Ref(v), acc))
+                  case ((v, l), acc) => Assign(l, Value.SimpleRef(v), acc))
         // Not a tail call
         case _ => super.applyBlock(b)
       

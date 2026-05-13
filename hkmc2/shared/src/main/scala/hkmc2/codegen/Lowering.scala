@@ -463,7 +463,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             softTODO(ps.restParam.isEmpty, "Eta expanding rest parameters in constructor definitions is not yet supported")
             val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness))
             val freshParamList = ParamList(ps.flags, freshParams, N)
-            val freshArgs = freshSyms.map(s => Arg(N, Value.Ref(s)))
+            val freshArgs = freshSyms.map(s => Arg(N, Value.SimpleRef(s)))
             Lambda(freshParamList, Return(etaExpand(rest, accArgss :+ freshArgs), implct = false))
         k(etaExpand(remainingParamss, acc.reverse))
     // * Resolve the class definition to get the constructor param lists.
@@ -590,6 +590,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case (sym: TopLevelSymbol, _) =>
         k(loweringCtx(Value.This(sym).withLocOf(ref)))
       case (sym: TempSymbol, _) =>
+        k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
+      case (sym: VarSymbol, _) =>
         k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
       case (sym, disamb) =>
         k(loweringCtx(Value.Ref(sym, disamb).withLocOf(ref)))
@@ -984,7 +986,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
 
   lazy val setupFilename: Path =
     val state = summon[State]
-    Value.Ref(state.importSymbol).selSN("meta").selSN("url")
+    Value.SimpleRef(state.importSymbol).selSN("meta").selSN("url")
 
   def quote(t: st)(k: Result => Block)(using LoweringCtx): Block = t match
     case Lit(lit) =>
@@ -997,6 +999,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case Ref(sym) =>
       sym match
         case sym: TempSymbol => k(Value.SimpleRef(sym))
+        case sym: VarSymbol => k(Value.SimpleRef(sym))
         case sym => k(Value.Ref(sym, N))
     case SynthSel(Ref(sym: ModuleOrObjectSymbol), name) => // Local cross-stage references
       setupSymbol(sym): r1 =>
@@ -1394,7 +1397,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
     val tmp1, tmp2, tmp3 = loweringCtx.registerTempSymbol(N)
     
     assignStmts(psInspectedSyms.map: (pInspectedSym, pSym) =>
-      pInspectedSym -> pureCall(inspectFn, Arg(N, Value.Ref(pSym)) :: Nil)
+      pInspectedSym -> pureCall(inspectFn, Arg(N, Value.SimpleRef(pSym)) :: Nil)
     *) |>:
     assignStmts(
       enterMsgSym -> pureCall(

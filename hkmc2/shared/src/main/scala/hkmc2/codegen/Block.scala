@@ -944,9 +944,9 @@ enum Value extends Path with ProductWithExtraInfo:
 
   // TODO(Derppening): Remove once fully migrated to SimpleRef/MemberRef/This
   this match
-    case Ref(l: (BuiltinSymbol | TempSymbol), _) =>
-      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.SimpleRef instead") 
-    case Ref(l: TopLevelSymbol, _) => 
+    case Ref(l: (BuiltinSymbol | TempSymbol | VarSymbol), _) =>
+      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.SimpleRef instead")
+    case Ref(l: TopLevelSymbol, _) =>
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.This instead")
     case _ =>
   
@@ -997,7 +997,7 @@ def blockBuilder: Block => Block = identity
 
 extension (l: Local)
   def asPath(using State): Path = l match 
-    case l: (BuiltinSymbol | TempSymbol) => Value.SimpleRef(l)
+    case l: (BuiltinSymbol | TempSymbol | VarSymbol) => Value.SimpleRef(l)
     case sym: TopLevelSymbol if sym === State.globalThisSymbol => Value.This(sym)
     case tls: TopLevelSymbol => Value.This(tls)
     case _ => Value.Ref(l, N)

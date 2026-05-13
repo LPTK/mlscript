@@ -239,7 +239,7 @@ class Rewrite(val deadParamElimSolver: DeadParamElimSolver)(using Raise):
       case _ => super.applyPath(p)(k)
 
     override def applyValue(v: Value)(k: Value => Block): Block = v match
-      case ref@Value.Ref(l: VarSymbol, _) if activeEliminatedParams(l) =>
+      case ref@Value.SimpleRef(l: VarSymbol) if activeEliminatedParams(l) =>
         k(Value.Lit(Tree.UnitLit(false)).withLocOf(ref))
       case _ => super.applyValue(v)(k)
 

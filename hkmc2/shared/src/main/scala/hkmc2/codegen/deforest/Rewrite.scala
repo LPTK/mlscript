@@ -356,6 +356,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
       a match
       case bms: BlockMemberSymbol => Value.Ref(bms, bms.tsym)
       case sym: TempSymbol => Value.SimpleRef(sym)
+      case sym: VarSymbol => Value.SimpleRef(sym)
       case _ => Value.Ref(a, N)
     def mkReturnCall(target: (BlockMemberSymbol, TermSymbol), args: Ls[Symbol]): Block =
       Return(Call(
@@ -385,7 +386,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
         r match
         case s@TrackableSelect(from, _, _) =>
           if branchSelSyms.isDefinedAt(s.uid.concreteId) then
-            k(Value.Ref(branchSelSyms(s.uid.concreteId)))
+            k(Value.SimpleRef(branchSelSyms(s.uid.concreteId)))
           else if solver.finalDtorSrcs.contains(s.uid.concreteId) then
             applyPath(from)(k)
           else
@@ -445,7 +446,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
           )
         case s@TrackableSelect(from, _, _) =>
           if branchSelSyms.isDefinedAt(s.uid.concreteId) then
-            k(Value.Ref(branchSelSyms(s.uid.concreteId)))
+            k(Value.SimpleRef(branchSelSyms(s.uid.concreteId)))
           else if solver.finalDtorSrcs.contains(s.uid.concreteId) then
             applyPath(from)(k)
           else

@@ -34,8 +34,7 @@ x + 1
 //│         argss = Ls of 
 //│           Ls of 
 //│             Arg:
-//│               value = Ref:
-//│                 l = x⁰
+//│               value = SimpleRef of x⁰
 //│             Arg:
 //│               value = Lit of IntLit of 1
 //│       implct = true
