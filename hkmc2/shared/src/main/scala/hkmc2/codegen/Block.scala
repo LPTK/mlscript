@@ -967,6 +967,8 @@ enum Value extends Path with ProductWithExtraInfo:
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.This instead")
     case Ref(l: BlockMemberSymbol, _) =>
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.MemberRef instead")
+    case Ref(l: (TypeAliasSymbol | ErrorSymbol), _) =>
+      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should not appear in value position")
     case _ =>
 
   override def extraInfo(using DebugPrinter): Str = this match
