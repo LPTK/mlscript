@@ -595,6 +595,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
       case (sym: BlockMemberSymbol, _) =>
         k(loweringCtx(Value.MemberRef(sym, disamb.orElse(sym.defaultDisamb)).withLocOf(ref)))
+      case (sym: (LocalSymbol | BuiltinSymbol), _) =>
+        k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
       case (sym, disamb) =>
         k(loweringCtx(Value.Ref(sym, disamb).withLocOf(ref)))
   
@@ -999,12 +1001,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case Resolved(Ref(sym), disamb) =>
       sym match
         case sym: BlockMemberSymbol => k(Value.MemberRef(sym, S(disamb)))
+        case sym: (LocalSymbol | BuiltinSymbol) => k(Value.SimpleRef(sym))
         case sym => k(Value.Ref(sym, S(disamb)))
     case Ref(sym) =>
       sym match
         case sym: TempSymbol => k(Value.SimpleRef(sym))
         case sym: VarSymbol => k(Value.SimpleRef(sym))
         case sym: BlockMemberSymbol => k(Value.MemberRef(sym, sym.defaultDisamb))
+        case sym: (LocalSymbol | BuiltinSymbol) => k(Value.SimpleRef(sym))
         case sym => k(Value.Ref(sym, N))
     case SynthSel(Ref(sym: ModuleOrObjectSymbol), name) => // Local cross-stage references
       setupSymbol(sym): r1 =>
