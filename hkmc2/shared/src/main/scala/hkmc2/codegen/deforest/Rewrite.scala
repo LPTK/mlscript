@@ -358,6 +358,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
       case bms: BlockMemberSymbol => Value.MemberRef(bms, bms.defaultDisamb)
       case sym: TempSymbol => Value.SimpleRef(sym)
       case sym: VarSymbol => Value.SimpleRef(sym)
+      case sym: InnerSymbol => Value.InnerRef(sym)
       case _ => Value.Ref(a, N)
     def mkReturnCall(target: (BlockMemberSymbol, TermSymbol), args: Ls[Symbol]): Block =
       Return(Call(

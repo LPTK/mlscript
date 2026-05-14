@@ -191,6 +191,9 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
           transformPath(qual): x =>
             transformPath(fld): y =>
               blockCtor("DynSelect", Ls(x, y, toValue(arrayIdx)), "dynsel")(k)
+        case Value.InnerRef(sym) =>
+          transformSymbol(sym): s =>
+            blockCtor("ValueRef", Ls(s), "var")(k)
         case _: Value.This =>
           raise(ErrorReport(msg"Value.This not supported in staged module." -> p.toLoc :: Nil))
           End()

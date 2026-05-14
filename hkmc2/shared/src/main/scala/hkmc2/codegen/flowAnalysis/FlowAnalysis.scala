@@ -36,6 +36,7 @@ object FlowAnalysis:
         case Value.Ref(s, _) => s
         case Value.SimpleRef(s) => s
         case Value.MemberRef(bms, _) => bms
+        case Value.InnerRef(sym) => sym
         case e => lastWords(s"assumption failed: $e is not a Value.Ref")
       def getReferredFun(using Elaborator.State): Option[TermSymbol] =
         resultId.getResult match
@@ -640,6 +641,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     case v@Value.SimpleRef(l) => applyValueSimpleRef(v, recordAffinity = true)
     case v@Value.MemberRef(_, _) => applyValueMemberRef(v, recordAffinity = true)
     case Value.This(sym) => ()
+    case Value.InnerRef(sym) => ()
     case Value.Lit(lit) => ()
   
   override def applyFunDefn(fun: FunDefn): Unit =
@@ -1073,6 +1075,11 @@ class FlowConstraintsCollector(
             cc.constrain(processResult(fld), UnknownCons)
             UnknownProd
           case Value.This(sym) => UnknownProd
+          case Value.InnerRef(sym) =>
+            // Mirror old Value.Ref(innerSym, N) behavior via RefLike → CtorRef chain:
+            // if classCtorSymbol(sym) is Some, CtorRef would match → UnknownProd;
+            // otherwise RefLike falls through → generatedProdVars(sym).asProdStrat
+            (sym.asCls orElse sym.asObj).fold(generatedProdVars(sym).asProdStrat)(_ => UnknownProd)
           case Value.Lit(lit) => UnknownProd
   }
 end FlowConstraintsCollector

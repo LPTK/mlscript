@@ -804,6 +804,7 @@ sealed abstract class Result extends AutoLocated:
     case Value.Ref(l, disamb) => s"${l.showAsPlain}${disamb.fold("")(s => s"‹${s.showAsPlain}›")}"
     case Value.SimpleRef(l) => l.showAsPlain
     case Value.MemberRef(l, disamb) => s"${l.showAsPlain}${disamb.fold("")(s => s"‹${s.showAsPlain}›")}"
+    case Value.InnerRef(l) => l.showAsPlain
     case Value.This(sym) => s"this[${sym.showAsPlain}]"
     case Value.Lit(lit) => lit.idStr
     case Select(q, n) => s"Select(${q.showDbg}, ${n.showDbg})"
@@ -845,6 +846,7 @@ sealed abstract class Result extends AutoLocated:
     case Value.SimpleRef(l) => Vector.empty
     case Value.MemberRef(bms, disamb) => Vector.empty
     case Value.This(sym) => Vector.empty
+    case Value.InnerRef(sym) => Vector.empty
     case Value.Lit(lit) => Vector.single(lit)
   
   // TODO rm Lam from values and thus the need for this method
@@ -868,6 +870,7 @@ sealed abstract class Result extends AutoLocated:
     case Value.SimpleRef(l) => Set(l)
     case Value.MemberRef(bms, _) => Set(bms)
     case Value.This(sym) => Set.empty
+    case Value.InnerRef(sym) => Set(sym)
     case Value.Lit(lit) => Set.empty
     case DynSelect(qual, fld, arrayIdx) => qual.freeVars ++ fld.freeVars
   
@@ -903,6 +906,7 @@ sealed abstract class Result extends AutoLocated:
       case _ => Set(l)
     case Value.MemberRef(l, N) => Set(l)
     case Value.This(sym) => Set.empty
+    case Value.InnerRef(sym) => Set.empty
     case Value.Lit(lit) => Set.empty
     case DynSelect(qual, fld, arrayIdx) => qual.freeVarsLLIR ++ fld.freeVarsLLIR
   
@@ -948,7 +952,7 @@ enum Value extends Path with ProductWithExtraInfo:
    * @param disamb The symbol disambiguating the definition that the reference refers to. This
    * exists if and only if l is a BlockMemberSymbol.
    */
-  @deprecated("Use Value.SimpleRef, Value.MemberRef, or Value.This instead.")
+  @deprecated("Use Value.SimpleRef, Value.MemberRef, Value.This, or Value.InnerRef instead.")
   case Ref(l: Local, disamb: Opt[DefinitionSymbol[?]])
   case SimpleRef(l: LocalSymbol | BuiltinSymbol)
   /**
@@ -957,9 +961,12 @@ enum Value extends Path with ProductWithExtraInfo:
     // TODO(Derppening): Make `disamb` non-optional once all call sites can reliably provide one.
   case MemberRef(bms: BlockMemberSymbol, disamb: Opt[DefinitionSymbol[?]])
   case This(sym: InnerSymbol)
+  /** Reference to an [[InnerSymbol]] accessed by its bound variable name from outside its scope,
+    * as opposed to [[This]] which is a `findThis_!`-based "current object" reference. */
+  case InnerRef(sym: InnerSymbol)
   case Lit(lit: Literal)
 
-  // TODO(Derppening): Remove once fully migrated to SimpleRef/MemberRef/This
+  // TODO(Derppening): Remove once fully migrated to SimpleRef/MemberRef/This/InnerRef
   this match
     case Ref(l: (BuiltinSymbol | TempSymbol | VarSymbol), _) =>
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.SimpleRef instead")
@@ -968,7 +975,7 @@ enum Value extends Path with ProductWithExtraInfo:
     case Ref(l: BlockMemberSymbol, _) =>
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.MemberRef instead")
     case _ =>
-  
+
   override def extraInfo(using DebugPrinter): Str = this match
     case Ref(l, disamb) => disamb.map(s => s"disamb=${s.showAsPlain}").mkString
     case MemberRef(bms, disamb) => disamb.map(s => s"disamb=${s.showAsPlain}").mkString
@@ -1026,5 +1033,6 @@ extension (l: Local)
     case sym: TopLevelSymbol if sym === State.globalThisSymbol => Value.This(sym)
     case tls: TopLevelSymbol => Value.This(tls)
     case bms: BlockMemberSymbol => Value.MemberRef(bms, bms.defaultDisamb)
+    case sym: InnerSymbol => Value.InnerRef(sym)
     case _ => Value.Ref(l, N)
 

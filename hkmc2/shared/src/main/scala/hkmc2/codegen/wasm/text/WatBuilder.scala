@@ -969,7 +969,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     if expr.resultTypes.isEmpty && !isAbortive then
       blockInstr(
         label = N,
-        children = Seq(expr, result(Value.Ref(State.unitSymbol))),
+        children = Seq(expr, result(Value.MemberRef(State.unitBlockMemberSymbol, S(State.unitSymbol)))),
         resultTypes = Seq(Result(RefType.anyref)),
       )
     else
@@ -1263,6 +1263,13 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             ctx.getFunc(bms) match
               case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(bms).typeIdx, nullable = false))
               case N => getVar(bms, r.toLoc)
+    case Value.InnerRef(sym) =>
+      singletonInfoFor(sym) match
+        case S(info) => singletonGlobalGet(info)
+        case N =>
+          ctx.getFunc(sym) match
+            case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(sym).typeIdx, nullable = false))
+            case N => getVar(sym, r.toLoc)
 
     case Call(Value.Ref(l: BuiltinSymbol, _), lhs :: rhs :: Nil) if !l.functionLike =>
       if l.binary then
@@ -2215,7 +2222,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                   label = N,
                   children = Seq(
                     expr,
-                    local.set(target, result(Value.Ref(State.unitSymbol))),
+                    local.set(target, result(Value.MemberRef(State.unitBlockMemberSymbol, S(State.unitSymbol)))),
                   ),
                   resultTypes = Seq.empty,
                 )

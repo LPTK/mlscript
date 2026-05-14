@@ -224,6 +224,10 @@ class BlockSimplifier
         registerChange(s"${loc.showDbg} is never assigned; replacing read with undefined")
         if !symbolsToPreserve(loc) then removedLocals += loc
         k(Value.Lit(syntax.Tree.UnitLit(false)))
+      case Value.InnerRef(loc) if localVars.contains(loc) && !definedVars.contains(loc) =>
+        registerChange(s"${loc.showDbg} is never assigned; replacing read with undefined")
+        if !symbolsToPreserve(loc) then removedLocals += loc
+        k(Value.Lit(syntax.Tree.UnitLit(false)))
       case _ => super.applyValue(v)(k)
     
     override def applyBlock(b: Block): Block = b match
@@ -381,7 +385,7 @@ class BlockSimplifier
     enum AssignInfo:
       case Unknown
       case Uninitialized
-      case Assigned(asst: Assign, varAsst: Opt[(Value.Ref | Value.SimpleRef | Value.MemberRef) -> AssignInfo])
+      case Assigned(asst: Assign, varAsst: Opt[(Value.Ref | Value.SimpleRef | Value.MemberRef | Value.InnerRef) -> AssignInfo])
       case Merge(asst1: AssignInfo, asst2: AssignInfo)
       
       override def toString: String = this match
@@ -496,6 +500,13 @@ class BlockSimplifier
               val rhs2 = assignedResults(sym)
               S(r -> rhs2)
           case r @ Value.MemberRef(sym, _) =>
+            S(r -> Unknown)
+          case r @ Value.InnerRef(sym: LocalVar) =>
+            if capturedVars(sym) then N
+            else
+              val rhs2 = assignedResults(sym)
+              S(r -> rhs2)
+          case r @ Value.InnerRef(sym) =>
             S(r -> Unknown)
           case _ => N
         )
@@ -638,6 +649,10 @@ class BlockSimplifier
                 assignedResults.get(r).fold(giveUp)(getShapesA)
               case Value.MemberRef(r, S(sym: ModuleOrObjectSymbol)) =>
                 Set.single(sym)
+              case Value.InnerRef(r: LocalVar) if capturedVars(r) =>
+                giveUp
+              case Value.InnerRef(r: LocalVar) =>
+                assignedResults.get(r).fold(giveUp)(getShapesA)
               case Value.Lit(lit) => Set.single(lit)
               case _ => giveUp
           
@@ -726,7 +741,7 @@ class BlockSimplifier
       var litValue: Bool | Value = true
       var emptyHanded = false
       
-      def analyzeValues(asst: AssignInfo): Set[Value.Ref | Value.SimpleRef | Value.MemberRef] =
+      def analyzeValues(asst: AssignInfo): Set[Value.Ref | Value.SimpleRef | Value.MemberRef | Value.InnerRef] =
         if emptyHanded && litValue === false then
           analyzeAssignments(asst)
           Set.empty
@@ -798,6 +813,7 @@ class BlockSimplifier
               case Value.Ref(l, _) => l.uid
               case Value.SimpleRef(l) => l.uid
               case Value.MemberRef(l, _) => l.uid
+              case Value.InnerRef(l) => l.uid
           match
           case N => k(v)
           case S(v2) => 
@@ -826,6 +842,7 @@ class BlockSimplifier
               case Value.Ref(l, _) => l.uid
               case Value.SimpleRef(l) => l.uid
               case Value.MemberRef(l, _) => l.uid
+              case Value.InnerRef(l) => l.uid
           match
           case N => k(v)
           case S(v2) => 
@@ -854,6 +871,36 @@ class BlockSimplifier
               case Value.Ref(l, _) => l.uid
               case Value.SimpleRef(l) => l.uid
               case Value.MemberRef(l, _) => l.uid
+              case Value.InnerRef(l) => l.uid
+          match
+          case N => k(v)
+          case S(v2) => 
+            registerChange(s"${loc.showDbg} ~> ${v2.showDbg} (via ${vars.map(_.showDbg).mkString(", ")})")
+            k(v2)
+
+      case Value.InnerRef(loc: LocalVar) if !inDryRun && !capturedVars(loc) =>
+        
+        val rs = assignedResults(loc)
+        // log(s"InnerRef ${loc.showDbg} ${rs} ${localVars(loc)} ${capturedVars(loc)}")
+        
+        val vars = analyzeValues(rs)
+        
+        // log(s"Analysis: litValue: ${litValue}, unchanged vars: ${vars}")
+        
+        litValue match
+        case true =>
+          registerChange(s"${loc.showDbg} ~> undefined")
+          return k(Value.Lit(syntax.Tree.UnitLit(false)))
+        case lit: Value =>
+          registerChange(s"${loc.showDbg} ~> ${lit.showDbg}")
+          return k(lit)
+        case false =>
+          vars.minByOption: v => 
+            v match 
+              case Value.Ref(l, _) => l.uid
+              case Value.SimpleRef(l) => l.uid
+              case Value.MemberRef(l, _) => l.uid
+              case Value.InnerRef(l) => l.uid
           match
           case N => k(v)
           case S(v2) => 

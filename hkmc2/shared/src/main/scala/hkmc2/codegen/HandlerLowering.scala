@@ -558,12 +558,8 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
     // transform inner function/class and effect handler intrinsics to the runtime functions.
     val preTransform = new BlockTransformer(SymbolSubst.Id):
       override def applyResult(r: Result)(k: Result => Block): Block = r match
-        case Call(Value.Ref(sym, _), args) if sym is Elaborator.ctx.builtins.runtime.suspend =>
-          k(Call(paths.mkEffectPath, args)(true, true, false))
         case Call(Value.MemberRef(sym, _), args) if sym is Elaborator.ctx.builtins.runtime.suspend =>
           k(Call(paths.mkEffectPath, args)(true, true, false))
-        case Call(Value.Ref(sym, _), args) if sym is Elaborator.ctx.builtins.runtime.handle_suspension =>
-          k(Call(paths.enterHandleBlockPath, args)(true, true, false))
         case Call(Value.MemberRef(sym, _), args) if sym is Elaborator.ctx.builtins.runtime.handle_suspension =>
           k(Call(paths.enterHandleBlockPath, args)(true, true, false))
         case _ => super.applyResult(r)(k)
@@ -578,14 +574,14 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
             raise(lifterReport(msg"Unexpected nested class: lambdas may not function correctly." -> isym.toLoc :: Nil))
           val debugInfos = mutable.ArrayBuffer.empty[(Local, List[Arg])]
           val newMtds = methods.map: f =>
-            val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, Value.Ref(isym).sel(new Tree.Ident(f.sym.nme), f.dSym),
-              S(Value.Ref(isym)), s"${sym.nme}#${f.sym.nme}")
+            val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, Value.This(isym).sel(new Tree.Ident(f.sym.nme), f.dSym),
+              S(Value.This(isym)), s"${sym.nme}#${f.sym.nme}")
             debugInfos += debugInfoSym -> debugInfo
             fun2
           val companion2 = companion.map: bod =>
             val newMtds = bod.methods.map: f =>
-              val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, Value.Ref(bod.isym).sel(new Tree.Ident(f.sym.nme), f.dSym),
-                S(Value.Ref(bod.isym)), s"${sym.nme}.${f.sym.nme}")
+              val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, Value.This(bod.isym).sel(new Tree.Ident(f.sym.nme), f.dSym),
+                S(Value.This(bod.isym)), s"${sym.nme}.${f.sym.nme}")
               debugInfos += debugInfoSym -> debugInfo
               fun2
             // We cannot use this bc there is no subblock transform...

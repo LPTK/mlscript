@@ -225,6 +225,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
         def parentFromPath(p: Path): Ls[Local] = p match
           case Value.Ref(l, disamb) => fromMemToClass(l.orElseDisamb(disamb)) :: Nil
           case Value.MemberRef(bms, disamb) => fromMemToClass(bms.orElseDisamb(disamb)) :: Nil
+          case Value.InnerRef(sym) => fromMemToClass(sym) :: Nil
           case Value.SimpleRef(l) =>
             // TODO(Derppening): Check if this assertion holds
             bErrStop(msg"Expected parent to be a MemberRef")
@@ -323,6 +324,10 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
           case None =>
             k(ctx.findName(l) |> sr)
       case Value.This(sym) => bErrStop(msg"Unsupported value: This")
+      case Value.InnerRef(sym) =>
+        ctx.fn_ctx.get(sym) match
+          case None => k(ctx.findName(sym) |> sr)
+          case Some(_) => bErrStop(msg"Unsupported value: InnerRef with function context")
       case Value.Lit(lit) => k(Expr.Literal(lit))
         
   

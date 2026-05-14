@@ -214,6 +214,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
             case None => newBms.tsym
           k(Value.MemberRef(newBms, newDisamb))
         case Some(newSym: VarSymbol) => k(Value.SimpleRef(newSym))
+        case Some(newSym: InnerSymbol) => k(Value.InnerRef(newSym))
         case Some(newSym) => k(Value.Ref(newSym, N))
     case Value.SimpleRef(l) =>
       mapping.get(l) match
@@ -225,6 +226,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
           newSym match
             case newSym: TempSymbol => k(Value.SimpleRef(newSym))
             case newSym: VarSymbol => k(Value.SimpleRef(newSym))
+            case newSym: InnerSymbol => k(Value.InnerRef(newSym))
             case newSym => k(Value.Ref(newSym, N))
     case Value.MemberRef(bms, disamb) =>
       mapping.get(bms) match
@@ -242,6 +244,10 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
     case Value.This(sym) =>
       mapping.get(sym) match
         case Some(inner: InnerSymbol) => k(Value.This(inner).withLocOf(v))
+        case _ => super.applyValue(v)(k)
+    case Value.InnerRef(sym) =>
+      mapping.get(sym) match
+        case Some(inner: InnerSymbol) => k(Value.InnerRef(inner).withLocOf(v))
         case _ => super.applyValue(v)(k)
     case _ => super.applyValue(v)(k)
   
