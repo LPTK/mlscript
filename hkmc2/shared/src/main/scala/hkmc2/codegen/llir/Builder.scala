@@ -407,11 +407,6 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
       r match
       case Call(_, argss) if argss.sizeIs > 1 =>
         bErrStop(msg"Calls with multiple argument lists are not yet supported in LLIR")
-      case Call(Value.Ref(sym: BuiltinSymbol, _), argss) =>
-        bArgs(argss.flatten):
-          case args: Ls[TrivialExpr] =>
-            val v: Local = newTemp
-            Node.LetExpr(v, Expr.BasicOp(sym, args), k(v |> sr))
       case Call(Value.SimpleRef(sym: BuiltinSymbol), argss) =>
         bArgs(argss.flatten):
           case args: Ls[TrivialExpr] =>
@@ -470,17 +465,17 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
                 bArgs(argss.flatten):
                   case args: Ls[TrivialExpr] =>
                     Node.LetMethodCall(Ls(v), builtinCallable, builtinApply(args.length), f :: args, k(v |> sr))
-      case Call(Select(Value.Ref(_: TopLevelSymbol, _), Tree.Ident("builtin")), argss) =>
+      case Call(Select(Value.This(_: TopLevelSymbol), Tree.Ident("builtin")), argss) =>
         bArgs(argss.flatten):
           case args: Ls[TrivialExpr] =>
             val v: Local = newTemp
             Node.LetCall(Ls(v), builtin, args, k(v |> sr))
-      case Call(Select(Select(Value.Ref(_: TopLevelSymbol, _), Tree.Ident("console")), Tree.Ident("log")), argss) =>
+      case Call(Select(Select(Value.This(_: TopLevelSymbol), Tree.Ident("console")), Tree.Ident("log")), argss) =>
         bArgs(argss.flatten):
           case args: Ls[TrivialExpr] =>
             val v: Local = newTemp
             Node.LetCall(Ls(v), builtin, Expr.Literal(Tree.StrLit("println")) :: args, k(v |> sr))
-      case Call(Select(Select(Value.Ref(_: TopLevelSymbol, _), Tree.Ident("Math")), Tree.Ident(mathPrimitive)), argss) =>
+      case Call(Select(Select(Value.This(_: TopLevelSymbol), Tree.Ident("Math")), Tree.Ident(mathPrimitive)), argss) =>
         bArgs(argss.flatten):
           case args: Ls[TrivialExpr] =>
             val v: Local = newTemp

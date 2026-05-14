@@ -821,8 +821,6 @@ sealed abstract class Result extends AutoLocated:
     case _: Value => true
     case sel @ Select(q, n) =>
       q.isPure && sel.symbol.exists(_.isPure)
-    case Call(Value.Ref(bs: BuiltinSymbol, _), ass) if bs.isPure =>
-      ass.forall(_.forall(_.value.isPure))
     case Call(Value.SimpleRef(bs: BuiltinSymbol), ass) if bs.isPure =>
       ass.forall(_.forall(_.value.isPure))
     case Record(mut, args) => args.forall(_.value.isPure)
@@ -882,18 +880,13 @@ sealed abstract class Result extends AutoLocated:
     case Tuple(mut, elems) => elems.flatMap(_.value.freeVarsLLIR).toSet
     case Record(mut, args) =>
       args.flatMap(arg => arg.idx.fold(Set.empty)(_.freeVarsLLIR) ++ arg.value.freeVarsLLIR).toSet
-    case Value.Ref(l: (BuiltinSymbol | TopLevelSymbol | ClassSymbol | TermSymbol), disamb) => Set.empty
-    case Value.Ref(l: BlockMemberSymbol, S(disamb)) => disamb.defn match
+    case Value.Ref(l: DefinitionSymbol[?], _) => l.defn match
       case Some(d: ClassLikeDef) => Set.empty
       case Some(d: TermDefinition) if d.companionClass.isDefined => Set.empty
       case _ => Set(l)
-    case Value.Ref(l: DefinitionSymbol[?], N) => l.defn match
-      case Some(d: ClassLikeDef) => Set.empty
-      case Some(d: TermDefinition) if d.companionClass.isDefined => Set.empty
-      case _ => Set(l)
-    case Value.Ref(l, disamb) => Set(l)
+    case Value.Ref(l, _) => Set(l)
     case Value.SimpleRef(l: BuiltinSymbol) => Set.empty
-    case Value.SimpleRef(l: (TopLevelSymbol | ClassSymbol | TermSymbol)) => Set.empty
+    case Value.SimpleRef(l: TermSymbol) => Set.empty
     case Value.SimpleRef(l: DefinitionSymbol[?]) => l.defn match
       case Some(d: ClassLikeDef) => Set.empty
       case Some(d: TermDefinition) if d.companionClass.isDefined => Set.empty

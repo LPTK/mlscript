@@ -116,9 +116,6 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Value.This(sym) => scope.findThis_!(sym)
     case Value.Lit(Tree.StrLit(value)) => makeStringLiteral(value)
     case Value.Lit(lit) => lit.idStr
-    case Value.Ref(l: BuiltinSymbol, _) =>
-      if l.nullary then l.nme
-      else errExpr(msg"Illegal reference to builtin symbol '${l.nme}'")
     case Value.Ref(l, disamb) => l match
       case l: BlockMemberSymbol if disamb.exists(_.shouldBeLifted) =>
         doc"${getVar(l, l.toLoc)}.class"
@@ -132,21 +129,6 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       else errExpr(msg"Illegal reference to builtin symbol '${l.nme}'")
     case Value.SimpleRef(l) => getVar(l, r.toLoc)
     case Value.InnerRef(sym) => getVar(sym, r.toLoc)
-    case Call(Value.Ref(l: BuiltinSymbol, _), (lhs :: rhs :: Nil) :: Nil) if !l.functionLike =>
-      if l.binary then
-        val res = doc"${operand(lhs)} ${l.nme} ${operand(rhs)}"
-        if needsParens(l.nme) then doc"(${res})" else res
-      else errExpr(msg"Cannot call non-binary builtin symbol '${l.nme}'")
-    case Call(Value.Ref(l: BuiltinSymbol, _), (rhs :: Nil) :: Nil) if !l.functionLike =>
-      if l.unary then
-        val res = doc"${l.nme} ${operand(rhs)}"
-        if needsParens(l.nme) then doc"(${res})" else res
-      else errExpr(msg"Cannot call non-unary builtin symbol '${l.nme}'")
-    case Call(Value.Ref(l: BuiltinSymbol, _), args :: Nil) =>
-      if l.functionLike then
-        val argsDoc = args.map(argument).mkDocument(", ")
-        doc"${l.nme}(${argsDoc})"
-      else errExpr(msg"Illegal arity for builtin symbol '${l.nme}'")
     case Call(Value.SimpleRef(l: BuiltinSymbol), (lhs :: rhs :: Nil) :: Nil) if !l.functionLike =>
       if l.binary then
         val res = doc"${operand(lhs)} ${l.nme} ${operand(rhs)}"
@@ -266,15 +248,15 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     
     @tailrec
     private def unapplyImpl(
-      b: Block, 
+      b: Block,
       acc: List[(BigInt, Block)],
-      scrut: Opt[Value.Ref],
+      scrut: Opt[Value.SimpleRef],
       curVal: Opt[BigInt]
-    ): Opt[(Value.Ref, List[(BigInt, Block)], Block)] = 
+    ): Opt[(Value.SimpleRef, List[(BigInt, Block)], Block)] =
       val scrutSym = scrut.map(_.l)
       b match
       case Match(
-        scrut_ @ Value.Ref(scrutSym_, _),                   // The scrutinee is a ref.
+        scrut_ @ Value.SimpleRef(scrutSym_),                // The scrutinee is a ref.
         (Case.Lit(Tree.IntLit(curVal_)), b) :: Nil,         // There is only one case matching an int literal.
         S(End(_)) | N, rest                                 // Default case exists and does nothing.
       )
@@ -291,7 +273,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         case Some(value) => S((value, acc, b))
         case None => N
     
-    def unapply(b: Block): Opt[(scrut: Value.Ref, cases: List[(BigInt, Block)], rest: Block)] =
+    def unapply(b: Block): Opt[(scrut: Value.SimpleRef, cases: List[(BigInt, Block)], rest: Block)] =
       unapplyImpl(b, Nil, N, N) match
         case Some(value) if value._2.length > 1 => S(value)
         case _ => N
