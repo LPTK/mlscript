@@ -35,6 +35,7 @@ object FlowAnalysis:
         resultId.getResult match
         case Value.Ref(s, _) => s
         case Value.SimpleRef(s) => s
+        case Value.MemberRef(bms, _) => bms
         case e => lastWords(s"assumption failed: $e is not a Value.Ref")
       def getReferredFun(using Elaborator.State): Option[TermSymbol] =
         resultId.getResult match
@@ -98,12 +99,15 @@ object RefLike:
       yield
         cls
   
-  def unapply(p: Value.Ref | Value.SimpleRef | Select)(using Elaborator.State): Opt[Symbol] =
+  def unapply(p: Value.Ref | Value.SimpleRef | Value.MemberRef | Select)(using Elaborator.State): Opt[Symbol] =
     p match
       case Value.SimpleRef(sym) =>
         classCtorSymbol(sym) orElse S(sym)
       case Value.Ref(l, disamb) =>
         val sym = disamb.getOrElse(l)
+        classCtorSymbol(sym) orElse S(sym)
+      case Value.MemberRef(bms, disamb) =>
+        val sym: Symbol = disamb.getOrElse(bms)
         classCtorSymbol(sym) orElse S(sym)
       case s: Select =>
         s.symbol.flatMap: selSym =>
@@ -429,6 +433,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
         case InCtx.MtchBody(m, _) => m.scrut match
           case Value.Ref(s, disamb) => disamb.getOrElse(s) is sym
           case Value.SimpleRef(s) => s is sym
+          case Value.MemberRef(bms, disamb) => disamb.getOrElse(bms) is sym
           case _ => false
         case _ => false
     
@@ -601,6 +606,14 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       recordRefInCaptures(s)
       if recordAffinity then recordAffinityUse(s)
     case _ => ()
+
+  private def applyValueMemberRef(v: Value.MemberRef, recordAffinity: Bool) =
+    val Value.MemberRef(_, disamb) = v
+    disamb match
+    case S(s: TermSymbol) =>
+      recordRefInCaptures(s)
+      if recordAffinity then recordAffinityUse(s)
+    case _ => ()
   
   override def applyPath(p: Path): Unit = p match
     case DynSelect(qual, fld, arrayIdx) =>
@@ -614,6 +627,9 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       case v@Value.SimpleRef(l)
         if ctxTracker.isEnclosingMatchScrutSym(l) =>
           applyValueSimpleRef(v, recordAffinity = false)
+      case v@Value.MemberRef(bms, disamb)
+        if ctxTracker.isEnclosingMatchScrutSym(disamb.getOrElse(bms)) =>
+          applyValueMemberRef(v, recordAffinity = false)
       case _ => applyPath(qual)
     case p: Select =>
       super.applyPath(p)
@@ -622,6 +638,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
   override def applyValue(v: Value): Unit = v match
     case v@Value.Ref(l, disamb) => applyValueRef(v, recordAffinity = true)
     case v@Value.SimpleRef(l) => applyValueSimpleRef(v, recordAffinity = true)
+    case v@Value.MemberRef(_, _) => applyValueMemberRef(v, recordAffinity = true)
     case Value.This(sym) => ()
     case Value.Lit(lit) => ()
   
@@ -789,7 +806,7 @@ class FlowConstraintsCollector(
         for (funSym, fun) <- preAnalyzer.res.rootFunDefns do
           val pScheme = funsToProdStratScheme(funSym)
           val synthesizedRefUid =
-            Value.Ref(preAnalyzer.res.funSymToFunDefn(funSym).sym, S(funSym)).uid
+            Value.MemberRef(preAnalyzer.res.funSymToFunDefn(funSym).sym, S(funSym)).uid
           val selfProd = pScheme.instantiate(synthesizedRefUid, funSym)
           cc.constrain(selfProd, UnknownCons)
           val selfInstId = synthesizedRefUid :: Nil
@@ -1047,7 +1064,7 @@ class FlowConstraintsCollector(
               case Select(p, _) => cc.constrain(processResult(p), UnknownCons)
               case _ => ()
             generatedProdVars(sym).asProdStrat
-          case _: (Value.Ref | Value.SimpleRef) => lastWords("already handled in `RefLike` case")
+          case _: (Value.Ref | Value.SimpleRef | Value.MemberRef) => lastWords("already handled in `RefLike` case")
           case Select(qual, name) =>
             cc.constrain(processResult(qual), UnknownCons)
             UnknownProd

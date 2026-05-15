@@ -263,6 +263,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
         v match
         case Value.Ref(l, disamb) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
         case Value.SimpleRef(l) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
+        case Value.MemberRef(bms, _) if !inCtx(bms) && bms.asClsLike.isEmpty => freeVars.add(bms)
         case _ => super.applyValue(v)
       
       override def applyResult(r: Result): Unit =
@@ -354,13 +355,13 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
     
     extension (a: Symbol) def toValueRef =
       a match
-      case bms: BlockMemberSymbol => Value.Ref(bms, bms.tsym)
+      case bms: BlockMemberSymbol => Value.MemberRef(bms, bms.defaultDisamb)
       case sym: TempSymbol => Value.SimpleRef(sym)
       case sym: VarSymbol => Value.SimpleRef(sym)
       case _ => Value.Ref(a, N)
     def mkReturnCall(target: (BlockMemberSymbol, TermSymbol), args: Ls[Symbol]): Block =
       Return(Call(
-        Value.Ref(target._1, S(target._2)),
+        Value.MemberRef(target._1, S(target._2)),
         args.map(a => Arg(N, a.toValueRef)) ne_:: Nil
       )(true, false, false), false)
     
@@ -429,7 +430,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
         p match
         case ref@FunRef(f) if newPolyFnSyms.isDefinedAt(newRefId(ref.uid, f)) =>
           val (bms, tSym) = newPolyFnSyms(newRefId(ref.uid, f))(f)
-          k(Value.Ref(bms, S(tSym)))
+          k(Value.MemberRef(bms, S(tSym)))
         case ctor@CtorCall(_, args) if solver.finalCtorDests.isDefinedAt(ctor.uid.concreteId) =>
           assert(args.isEmpty)
           val (branchBms, branchTermSym) = branchFunSyms(ctorWhichBranch(ctor.uid.concreteId))
@@ -494,7 +495,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
         case Value.Ref(l, x) =>
           pre.res.modSymToBms.get(l) match
             case Some(bms) =>
-              k(Value.Ref(bms, l.asMod))
+              k(Value.MemberRef(bms, l.asMod.map[DefinitionSymbol[?]](identity).orElse(bms.defaultDisamb)))
             case None => super.applyValue(v)(k)
         case Value.SimpleRef(l) =>
           pre.res.modSymToBms.get(l) match

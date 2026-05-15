@@ -226,6 +226,19 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
             case newSym: TempSymbol => k(Value.SimpleRef(newSym))
             case newSym: VarSymbol => k(Value.SimpleRef(newSym))
             case newSym => k(Value.Ref(newSym, N))
+    case Value.MemberRef(bms, disamb) =>
+      mapping.get(bms) match
+        case None => super.applyValue(v)(k)
+        case Some(newBms: BlockMemberSymbol) =>
+          val newDisamb: Opt[DefinitionSymbol[?]] = disamb match
+            case Some(d) => mapping.get(d) match
+              case Some(nd: DefinitionSymbol[?]) => S(nd)
+              case _ => newBms.tsym.orElse(disamb)
+            case None => newBms.tsym
+          k(Value.MemberRef(newBms, newDisamb))
+        case Some(newSym: VarSymbol) => k(Value.SimpleRef(newSym))
+        case Some(newSym: TempSymbol) => k(Value.SimpleRef(newSym))
+        case _ => super.applyValue(v)(k)
     case Value.This(sym) =>
       mapping.get(sym) match
         case Some(inner: InnerSymbol) => k(Value.This(inner).withLocOf(v))

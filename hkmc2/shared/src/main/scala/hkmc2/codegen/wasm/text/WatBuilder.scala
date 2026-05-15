@@ -321,6 +321,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       case N => N
       case S(Value.Ref(sym, _)) =>
         sym.asCls.flatMap(_.asBlkMember).orElse(unsupportedParent())
+      case S(Value.MemberRef(sym, _)) =>
+        sym.asCls.flatMap(_.asBlkMember).orElse(unsupportedParent())
       case S(sel: Select) =>
         sel.symbol.flatMap(_.asCls).flatMap(_.asBlkMember).orElse(unsupportedParent())
       case S(_) =>
@@ -1248,6 +1250,19 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           ctx.getFunc(l) match
             case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
             case N => getVar(l, r.toLoc)
+    case Value.MemberRef(bms, disamb) =>
+      if (bms is State.unitSymbol) || disamb.exists(_ is State.unitSymbol) then
+        RegisterUnitSingleton()
+      singletonInfoFor(bms) match
+        case S(info) => singletonGlobalGet(info)
+        case N =>
+          if disamb.exists(_.isInstanceOf[ClassSymbol]) then
+            errExpr:
+              Ls(msg"Plain class references are not supported in Wasm; instantiate the class instead." -> r.toLoc)
+          else
+            ctx.getFunc(bms) match
+              case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(bms).typeIdx, nullable = false))
+              case N => getVar(bms, r.toLoc)
 
     case Call(Value.Ref(l: BuiltinSymbol, _), lhs :: rhs :: Nil) if !l.functionLike =>
       if l.binary then
@@ -1313,6 +1328,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
               val base = fun match
                 case Value.Ref(l, _) => ctx.getFunc(l)
                 case Value.SimpleRef(l) => ctx.getFunc(l)
+                case Value.MemberRef(l, _) => ctx.getFunc(l)
                 case _ => N
               val baseFuncIdx = base match
                 case S(idx) => idx
@@ -1332,7 +1348,24 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
               val base = fun match
                 case Value.Ref(l, _) => ctx.getFunc(l)
                 case Value.SimpleRef(l) => ctx.getFunc(l)
+                case Value.MemberRef(l, _) => ctx.getFunc(l)
                 case _ => N
+              val baseFuncIdx = base match
+                case S(idx) => idx
+                case N => return errExpr(
+                    Ls(msg"Expected static function reference in Call(...) expression" -> fun.toLoc),
+                    extraInfo = S(fun.toString),
+                  )
+              val baseTypeInfo = ctx.getTypeInfo_!(ctx.getFuncTypeUse_!(baseFuncIdx).typeIdx)
+              val wasmArgs = args.map(argument)
+
+              call(
+                funcidx = baseFuncIdx,
+                operands = wasmArgs.toSeq,
+                returnTypes = baseTypeInfo.compType.asInstanceOf[FunctionType].sigType.results,
+              )
+            case Value.MemberRef(l, _) =>
+              val base = ctx.getFunc(l)
               val baseFuncIdx = base match
                 case S(idx) => idx
                 case N => return errExpr(
@@ -1475,6 +1508,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       end match
       val ctorClsSymOpt = cls match
         case ref: Value.Ref => ref.disamb
+        case ref: Value.MemberRef => ref.disamb
         case sel: Select => sel.symbol
         case cls => return errExpr(
             Ls(
@@ -2163,7 +2197,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           if tailMode then S(mkTempLocal("matchRes"))
           else N
         val scrutLocalResult = scrut match
-          case Value.Ref(_, _) | Value.SimpleRef(_) | Value.This(_) | Value.Lit(_) => N
+          case Value.Ref(_, _) | Value.SimpleRef(_) | Value.MemberRef(_, _) | Value.This(_) | Value.Lit(_) => N
           case _ => S(mkTempLocal("scrut"))
 
         val scrutInitExpr = scrutLocalResult.map: scrutLocal =>

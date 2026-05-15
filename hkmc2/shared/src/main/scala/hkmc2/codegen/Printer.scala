@@ -157,6 +157,10 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
     case Value.Ref(l: InnerSymbol, N) => doc"${print(l)}.this"
     case Value.Ref(l, N) => print(l)
     case Value.Ref(l, disamb) => showSymbol(l.nme, disamb)
+    case Value.SimpleRef(l: InnerSymbol) => doc"${print(l)}.this"
+    case Value.SimpleRef(l) => print(l)
+    case Value.MemberRef(bms, N) => print(bms)
+    case Value.MemberRef(bms, disamb) => showSymbol(bms.nme, disamb)
     case Value.This(sym) if sym === State.globalThisSymbol => showSymbol(sym.nme, S(sym.asDefnSym))
     case Value.This(sym) => doc"this"
     case Value.Lit(lit) => doc"${lit.idStr}"

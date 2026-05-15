@@ -580,7 +580,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         // * (non-local functions are compiled into getter methods selected on some prefix)
         if td.params.isEmpty then
           return k(Call(
-              Value.Ref(bs, disamb).withLocOf(ref), Nil ne_:: Nil
+              Value.MemberRef(bs, disamb.orElse(bs.defaultDisamb)).withLocOf(ref), Nil ne_:: Nil
             )(isMlsFun = true, true, annots.contains(Annot.TailCall)))
       case S(_) => ()
       case N => () // TODO panic here; can only lower refs to elab'd symbols
@@ -593,6 +593,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
       case (sym: VarSymbol, _) =>
         k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
+      case (sym: BlockMemberSymbol, _) =>
+        k(loweringCtx(Value.MemberRef(sym, disamb.orElse(sym.defaultDisamb)).withLocOf(ref)))
       case (sym, disamb) =>
         k(loweringCtx(Value.Ref(sym, disamb).withLocOf(ref)))
   
@@ -995,11 +997,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val l = loweringCtx.registerTempSymbol(N)
       setupTerm("Builtin", Value.Lit(Tree.StrLit(sym.nme)) :: Nil)(k)
     case Resolved(Ref(sym), disamb) =>
-      k(Value.Ref(sym, S(disamb)))
+      sym match
+        case sym: BlockMemberSymbol => k(Value.MemberRef(sym, S(disamb)))
+        case sym => k(Value.Ref(sym, S(disamb)))
     case Ref(sym) =>
       sym match
         case sym: TempSymbol => k(Value.SimpleRef(sym))
         case sym: VarSymbol => k(Value.SimpleRef(sym))
+        case sym: BlockMemberSymbol => k(Value.MemberRef(sym, sym.defaultDisamb))
         case sym => k(Value.Ref(sym, N))
     case SynthSel(Ref(sym: ModuleOrObjectSymbol), name) => // Local cross-stage references
       setupSymbol(sym): r1 =>

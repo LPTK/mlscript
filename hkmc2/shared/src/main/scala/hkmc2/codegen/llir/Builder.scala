@@ -224,7 +224,8 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
         val funcs = methods.map(bMethodDef)
         def parentFromPath(p: Path): Ls[Local] = p match
           case Value.Ref(l, disamb) => fromMemToClass(l.orElseDisamb(disamb)) :: Nil
-          case Value.SimpleRef(l) => 
+          case Value.MemberRef(bms, disamb) => fromMemToClass(bms.orElseDisamb(disamb)) :: Nil
+          case Value.SimpleRef(l) =>
             // TODO(Derppening): Check if this assertion holds
             bErrStop(msg"Expected parent to be a MemberRef")
           case _ => bErrStop(msg"Unsupported parent path ${p.toString()}")
@@ -282,10 +283,24 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
       v match
       case Value.Ref(l: TermSymbol, _) if l.owner.nonEmpty =>
         k(l |> sr)
+      case Value.MemberRef(bms, disamb) if bms.nme.isCapitalized =>
+        val v: Local = newTemp
+        Node.LetExpr(v, Expr.CtorApp(fromMemToClass(bms.orElseDisamb(disamb)), Ls()), k(v |> sr))
       case Value.Ref(sym, disamb) if sym.nme.isCapitalized =>
         val v: Local = newTemp
         Node.LetExpr(v, Expr.CtorApp(fromMemToClass(sym.orElseDisamb(disamb)), Ls()), k(v |> sr))
-      case Value.Ref(l, _) => 
+      case Value.MemberRef(bms, _) =>
+        ctx.fn_ctx.get(bms) match
+          case Some(f) =>
+            val tempSymbols = (0 until f.paramsSize).map(x => newNamed("arg"))
+            val paramsList = PlainParamList(
+              (0 until f.paramsSize).zip(tempSymbols).map((_n, sym) =>
+                Param(FldFlags.empty, sym, N, Modulefulness.none)).toList)
+            val app = Call(v, tempSymbols.map(x => Arg(N, Value.SimpleRef(x))).toList ne_:: Nil)(true, false, false)
+            bLam(Lambda(paramsList, Return(app, false)), S(bms.nme), N)(k)
+          case None =>
+            k(ctx.findName(bms) |> sr)
+      case Value.Ref(l, _) =>
         ctx.fn_ctx.get(l) match
           case Some(f) =>
             val tempSymbols = (0 until f.paramsSize).map(x => newNamed("arg"))
@@ -293,6 +308,17 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
               (0 until f.paramsSize).zip(tempSymbols).map((_n, sym) =>
                 Param(FldFlags.empty, sym, N, Modulefulness.none)).toList)
             val app = Call(v, tempSymbols.map(x => Arg(N, Value.Ref(x))).toList ne_:: Nil)(true, false, false)
+            bLam(Lambda(paramsList, Return(app, false)), S(l.nme), N)(k)
+          case None =>
+            k(ctx.findName(l) |> sr)
+      case Value.SimpleRef(l) =>
+        ctx.fn_ctx.get(l) match
+          case Some(f) =>
+            val tempSymbols = (0 until f.paramsSize).map(x => newNamed("arg"))
+            val paramsList = PlainParamList(
+              (0 until f.paramsSize).zip(tempSymbols).map((_n, sym) =>
+                Param(FldFlags.empty, sym, N, Modulefulness.none)).toList)
+            val app = Call(v, tempSymbols.map(x => Arg(N, Value.SimpleRef(x))).toList ne_:: Nil)(true, false, false)
             bLam(Lambda(paramsList, Return(app, false)), S(l.nme), N)(k)
           case None =>
             k(ctx.findName(l) |> sr)
@@ -329,6 +355,8 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
     trace[Node](s"bPath { $p } begin", x => s"bPath end: ${x.show}"):
       p match
       case s @ Select(Value.Ref(sym, _), Tree.Ident("Unit")) if sym is ctx.builtinSym.runtimeSym.get =>
+        bPath(Value.Lit(Tree.UnitLit(false)))(k)
+      case s @ Select(Value.MemberRef(sym, _), Tree.Ident("Unit")) if sym is ctx.builtinSym.runtimeSym.get =>
         bPath(Value.Lit(Tree.UnitLit(false)))(k)
       case s @ Select(Value.Ref(cls: ClassSymbol, _), name) if ctx.method_class.contains(cls) =>
         s.symbol match
@@ -393,6 +421,15 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
           case args: Ls[TrivialExpr] =>
             val v: Local = newTemp
             Node.LetExpr(v, Expr.CtorApp(fromMemToClass(disamb), args), k(v |> sr))
+      case Call(Value.MemberRef(_, S(disamb)), argss) if disamb.defn.exists(defn => defn match
+        case cls: ClassLikeDef => true
+        case trm: TermDefinition => trm.companionClass.isDefined
+        case _ => false
+      ) =>
+        bArgs(argss.flatten):
+          case args: Ls[TrivialExpr] =>
+            val v: Local = newTemp
+            Node.LetExpr(v, Expr.CtorApp(fromMemToClass(disamb), args), k(v |> sr))
       case Call(Value.Ref(sym: DefinitionSymbol[?], _), argss) if sym.defn.exists(defn => defn match
         case cls: ClassLikeDef => true
         case trm: TermDefinition => trm.companionClass.isDefined
@@ -409,6 +446,19 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
             bArgs(argss.flatten):
               case args: Ls[TrivialExpr] =>
                 Node.LetCall(Ls(v), sym, args, k(v |> sr))
+          case None =>
+            bPath(s):
+              case f: TrivialExpr =>
+                bArgs(argss.flatten):
+                  case args: Ls[TrivialExpr] =>
+                    Node.LetMethodCall(Ls(v), builtinCallable, builtinApply(args.length), f :: args, k(v |> sr))
+      case Call(s @ Value.MemberRef(bms, _), argss) =>
+        val v: Local = newTemp
+        ctx.fn_ctx.get(bms) match
+          case Some(f) =>
+            bArgs(argss.flatten):
+              case args: Ls[TrivialExpr] =>
+                Node.LetCall(Ls(v), bms, args, k(v |> sr))
           case None =>
             bPath(s):
               case f: TrivialExpr =>

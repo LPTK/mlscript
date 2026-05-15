@@ -124,6 +124,9 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         doc"${getVar(l, l.toLoc)}.class"
       case _ =>
         getVar(l, r.toLoc)
+    case Value.MemberRef(bms, disamb) =>
+      if disamb.exists(_.shouldBeLifted) then doc"${getVar(bms, bms.toLoc)}.class"
+      else getVar(bms, r.toLoc)
     case Value.SimpleRef(l: BuiltinSymbol) =>
       if l.nullary then l.nme
       else errExpr(msg"Illegal reference to builtin symbol '${l.nme}'")

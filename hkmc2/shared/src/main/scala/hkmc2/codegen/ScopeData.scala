@@ -67,7 +67,7 @@ object ScopeData:
   type LiftedSym = DefinitionSymbol[?]
   
   extension (d: DefinitionSymbol[?])
-    def asBmsRef = Value.Ref(d.asBlkMember.get, S(d))
+    def asBmsRef = Value.MemberRef(d.asBlkMember.get, S(d))
   
   enum MethodKind:
     case ClsMethod

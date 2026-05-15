@@ -73,6 +73,7 @@ object Lifter:
   object RefOfBms:
     def unapply(p: Path): Opt[(BlockMemberSymbol, Opt[DefinitionSymbol[?]], Bool)] = p match
       case Value.Ref(l: BlockMemberSymbol, disamb) => S((l, disamb, false))
+      case Value.MemberRef(bms, disamb) => S((bms, disamb, false))
       case s @ Select(_, _) => s.symbol match
         case Some(value) => value.asBlkMember.map((_, S(value), true))
         case _ => N
@@ -102,7 +103,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     def read(using ctx: LifterCtxNew): Path = this match
       case Sym(l) => l.asPath
-      case BmsRef(l, d) => Value.Ref(l, S(d))
+      case BmsRef(l, d) => Value.MemberRef(l, S(d))
       case InCapture(path, field) => Select(path, field.id)(S(field))
       
     def asArg(using ctx: LifterCtxNew) = read.asArg
@@ -119,13 +120,13 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
   
     def read(using ctx: LifterCtxNew): Path = this match
       case Sym(l) => l.asPath
-      case InScope(l, d) => Value.Ref(l, S(d))
+      case InScope(l, d) => Value.MemberRef(l, S(d))
       case Field(isym, l, d) => Select(ctx.symbolsMap(isym).read, Tree.Ident(l.nme))(S(d))
     
     def asArg(using ctx: LifterCtxNew) = read.asArg
   
   case class FunSyms[T <: DefinitionSymbol[?]](b: BlockMemberSymbol, d: T):
-    def asPath = Value.Ref(b, S(d))
+    def asPath = Value.MemberRef(b, S(d))
   object FunSyms:
     def fromFun(b: BlockMemberSymbol, owner: Opt[InnerSymbol] = N) =
       FunSyms(b, TermSymbol.fromFunBms(b, owner))
@@ -374,7 +375,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
                     value
                 newSym match
                   case newSym: TempSymbol => k(Value.SimpleRef(newSym))
-                  case _ => k(Value.Ref(newSym, N))
+                  case _ => k(newSym.asPath)
             
             // Naked reference to a parameterized class constructor (used as a first-class function).
             // Replace with a partially applied curried C$ wrapper.
@@ -393,7 +394,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
                     value
                 newSym match
                   case newSym: TempSymbol => k(Value.SimpleRef(newSym))
-                  case _ => k(Value.Ref(newSym, N))
+                  case _ => k(newSym.asPath)
               case _ =>
                 resolveDefnRef(l, d, ctor) match
                 case Some(value) => k(value)
@@ -502,7 +503,10 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       case Value.SimpleRef(l) => ctx.symbolsMap.get(l) match
         case Some(value) => k(value.read)
         case _ => super.applyPath(p)(k)
-      
+      case Value.MemberRef(bms, _) => ctx.symbolsMap.get(bms) match
+        case Some(value) => k(value.read)
+        case _ => super.applyPath(p)(k)
+
       case _ => super.applyPath(p)(k)
   
   case class LifterResult[+T](liftedDefn: T, extraDefns: List[Lazy[Defn] | Defn])
@@ -644,7 +648,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         val undef = Value.Lit(Tree.UnitLit(false)).asArg
         val inst = Instantiate(
           true,
-          Value.Ref(captureClass.sym, S(captureClass.isym)),
+          Value.MemberRef(captureClass.sym, S(captureClass.isym)),
           captureInfo._2.map(
             (sym, _) => sym.asPath.asArg) :: Nil
         )
@@ -1010,7 +1014,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
             case (acc, sym) => Arg(N, sym.asPath) :: acc
         case None => syms.map(s => Arg(N, s.asPath))
       
-      val call = Call(Value.Ref(fun.sym, S(fun.dSym)), args ne_:: Nil)(true, true, false)
+      val call = Call(Value.MemberRef(fun.sym, S(fun.dSym)), args ne_:: Nil)(true, true, false)
       val bod = Return(call, false)
       
       FunDefn(
@@ -1029,7 +1033,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         else c.copy(argss = argss)(c.isMlsFun, c.mayRaiseEffects, c.explicitTailCall).withLocOf(c)
       else
         Call(
-          Value.Ref(mainSym, S(mainDsym)),
+          Value.MemberRef(mainSym, S(mainDsym)),
           (formatArgs ::: argss.head) ne_:: argss.tail
         )(
           isMlsFun = true,
@@ -1041,7 +1045,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       if isTrivial then lastWords("tried to rewrite a ref to a trivial function")
       aux.force // forces computation
       Call(
-        Value.Ref(auxSym, S(auxDsym)),
+        Value.MemberRef(auxSym, S(auxDsym)),
         formatArgs ne_:: Nil
       )(
         isMlsFun = true,
@@ -1140,7 +1144,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       // or aux :: clsAuxArgs
       val argsList = appliedMainAndAuxArgs(appliedClsAuxArgs)
       
-      val ref = Value.Ref(obj.cls.sym, S(obj.cls.isym))
+      val ref = Value.MemberRef(obj.cls.sym, S(obj.cls.isym))
       val inst = Instantiate(false, ref, argsList)
       val bod = Return(inst, false)
       
@@ -1148,7 +1152,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     private val flat = Lazy[Defn](mkFlattenedDefn)
     
-    def instObject = Instantiate(false, Value.Ref(cls.sym, S(cls.isym)), formatArgs :: Nil)
+    def instObject = Instantiate(false, Value.MemberRef(cls.sym, S(cls.isym)), formatArgs :: Nil)
     
     // Rewrite a naked reference to a parameterized class constructor.
     // Returns a Call to the curried C$ wrapper partially applied with formatArgs.
@@ -1156,7 +1160,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       if isTrivial then lastWords("tried to rewrite a ref to a trivial class ctor")
       flat.force
       Call(
-        Value.Ref(flattenedSym, S(flattenedDSym)),
+        Value.MemberRef(flattenedSym, S(flattenedDSym)),
         formatArgs ne_:: Nil
       )(
         isMlsFun = true,
@@ -1166,7 +1170,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     def rewriteInstantiate(inst: Instantiate, argss: List[List[Arg]])(k: Result => Block): Block =
       if obj.isObj then lastWords("tried to rewrite instantiate for an object")
-      val path = Value.Ref(cls.sym, S(cls.isym))
+      val path = Value.MemberRef(cls.sym, S(cls.isym))
       if isTrivial then
         if (inst.cls === path) && (inst.argss is argss) then k(inst)
         else k(inst.copy(cls = path, argss = argss).withLocOf(inst))
@@ -1179,7 +1183,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     def rewriteCall(c: Call, argss: NELs[List[Arg]])(k: Result => Block)(using ctx: LifterCtxNew): Block =
       if obj.isObj then lastWords("tried to rewrite instantiate for an object")
-      val path = Value.Ref(cls.sym, S(cls.isym))
+      val path = Value.MemberRef(cls.sym, S(cls.isym))
       if isTrivial then
         if c.argss is argss then k(c)
         else k(c.copy(argss = argss)(c.isMlsFun, c.mayRaiseEffects, c.explicitTailCall).withLocOf(c))

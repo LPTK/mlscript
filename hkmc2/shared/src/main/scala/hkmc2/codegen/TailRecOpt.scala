@@ -75,15 +75,17 @@ class TailRecOpt(using State, TL, Raise):
   object CallToFun:
     def unapply(c: Call): Opt[TermSymbol] = c match
       case Call(fun = Value.Ref(b, S(r: TermSymbol))) => S(r)
+      case Call(fun = Value.MemberRef(_, S(r: TermSymbol))) => S(r)
       case Call(fun = s: Select) => s.symbol match
         case Some(r: TermSymbol) => S(r)
         case _ => N
       case _ => N
-  
+
   object TailCallShape:
     def unapply(b: Block): Opt[(TermSymbol, Call)] = b match
       case Return(c @ CallToFun(r), _) => S((r, c))
       case Assign(a, c @ CallToFun(r), Return(Value.Ref(b, _), _)) if a === b => S((r, c))
+      case Assign(a, c @ CallToFun(r), Return(Value.MemberRef(b, _), _)) if a === b => S((r, c))
       case _ => N
     
   
@@ -488,7 +490,7 @@ class TailRecOpt(using State, TL, Raise):
     
     val sel = owner match
       case Some(value) => Select(Value.Ref(value, N), Tree.Ident(bms.nme))(S(dSym))
-      case None => Value.Ref(bms, S(dSym))
+      case None => Value.MemberRef(bms, S(dSym))
     
     val rewrittenFuns =
       if funs.size === 1 then Nil
@@ -529,7 +531,7 @@ class TailRecOpt(using State, TL, Raise):
         val paramArgs = getParamSyms(f).map(_.asPath.asArg)
         val internalSel = owner match
           case Some(value) => Select(Value.Ref(value, N), Tree.Ident(loopBms.nme))(S(loopDSym))
-          case None => Value.Ref(loopBms, S(loopDSym))
+          case None => Value.MemberRef(loopBms, S(loopDSym))
         val wrapperBod = Return(
           Call(internalSel, paramArgs ne_:: Nil)(true, false, false),
           false
