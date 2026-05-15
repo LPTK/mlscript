@@ -310,7 +310,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State) e
     * match failure in the future.
     */
   private def throwMatchErrorBlock =
-    Throw(Instantiate(mut = false, Select(Value.Ref(State.globalThisSymbol), Tree.Ident("Error"))(S(ctx.builtins.Error)),
+    Throw(Instantiate(mut = false, Select(Value.This(State.globalThisSymbol), Tree.Ident("Error"))(S(ctx.builtins.Error)),
         (Value.Lit(syntax.Tree.StrLit("match error")).asArg :: Nil) :: Nil)) // TODO add failed-match scrutinee info
   
   import syntax.Keyword.{`if`, `while`}

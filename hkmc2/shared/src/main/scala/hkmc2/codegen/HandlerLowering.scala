@@ -61,7 +61,7 @@ object HandlerLowering:
   // currentFun: path to the current function for resumption
   // thisPath: path to `this` binding if the function is a method, `this` will be rebinded on resumption
   private case class FunctionCtx(currentFun: Path, thisPath: Option[Path], resumeInfo: ResumeInfo, debugInfo: DebugInfo, inGetter: Bool):
-    def doUnwind(loc: Value, stateId: BigInt, restoreList: List[Local])(using paths: HandlerPaths) =
+    def doUnwind(loc: Value, stateId: BigInt, restoreList: List[Local])(using paths: HandlerPaths)(using State) =
       Return(Call(paths.unwindPath, (
         currentFun ::
         intLit(stateId) ::

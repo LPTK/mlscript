@@ -17,7 +17,7 @@ import hkmc2.document.Document.{braced, bracedbk}
 
 /** `SymbolPrinter` is used for printing symbols that are not locally bound, so that they are consistent
   * with the debug-printed names shown in other parts of the compiler, such as showAsTreee. */
-class Printer(using Raise, ShowCfg, SymbolPrinter, Config):
+class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
   
   val showPurity =
     false
@@ -155,6 +155,7 @@ class Printer(using Raise, ShowCfg, SymbolPrinter, Config):
     case Value.Ref(l: InnerSymbol, N) => doc"${print(l)}.this"
     case Value.Ref(l, N) => print(l)
     case Value.Ref(l, disamb) => showSymbol(l.nme, disamb)
+    case Value.This(sym) if sym === State.globalThisSymbol => showSymbol(sym.nme, S(sym.asDefnSym))
     case Value.This(sym) => doc"this"
     case Value.Lit(lit) => doc"${lit.idStr}"
   

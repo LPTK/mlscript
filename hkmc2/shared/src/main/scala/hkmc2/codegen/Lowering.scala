@@ -585,7 +585,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case N => () // TODO panic here; can only lower refs to elab'd symbols
     case _ => ()
     warnStmt
-    k(loweringCtx(Value.Ref(sym, disamb).withLocOf(ref)))
+    (sym, disamb) match
+      case (sym: TopLevelSymbol, _) =>
+        k(loweringCtx(Value.This(sym).withLocOf(ref)))
+      case (sym, disamb) =>
+        k(loweringCtx(Value.Ref(sym, disamb).withLocOf(ref)))
   
   @tailrec
   final def term(t: st, inStmtPos: Bool = false)(k: Result => Block)(using LoweringCtx): Block =
@@ -895,11 +899,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       setupSelection(prefix, proj, S(sym))(k)
     case Region(reg, body) =>
       loweringCtx.collectScopedSym(reg)
-      Assign(reg, Instantiate(mut = true, Select(Value.Ref(State.globalThisSymbol), Tree.Ident("Region"))(N), Nil :: Nil),
+      Assign(reg, Instantiate(mut = true, Select(Value.This(State.globalThisSymbol), Tree.Ident("Region"))(N), Nil :: Nil),
         term_nonTail(body)(k))
     case RegRef(reg, value) =>
       plainArgs(reg :: value :: Nil): args =>
-        k(Instantiate(mut = true, Select(Value.Ref(State.globalThisSymbol), Tree.Ident("Ref"))(N), args :: Nil))
+        k(Instantiate(mut = true, Select(Value.This(State.globalThisSymbol), Tree.Ident("Ref"))(N), args :: Nil))
     case Drop(ref) =>
       subTerm(ref): _ =>
         k(unit)
@@ -1320,7 +1324,7 @@ trait LoweringSelSanityChecks(using Config, TL, Raise, State)
         .assign(State.noSymbol, Select(p, Tree.Ident(nme.name+"$__checkNotMethod"))(N))
           .ifthen(selRes.asPath,
             Case.Lit(syntax.Tree.UnitLit(false)),
-            Throw(Instantiate(mut = false, Select(Value.Ref(State.globalThisSymbol), Tree.Ident("Error"))(N),
+            Throw(Instantiate(mut = false, Select(Value.This(State.globalThisSymbol), Tree.Ident("Error"))(N),
               (Value.Lit(syntax.Tree.StrLit(s"Access to required field '${nme.name}' yielded 'undefined'")).asArg :: Nil) :: Nil))
           )
           .rest(k(selRes.asPath))
@@ -1331,7 +1335,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
     extends Lowering:
   
   private def selFromGlobalThis(path: Str*): Path =
-      path.foldLeft[Path](Value.Ref(State.globalThisSymbol)):
+      path.foldLeft[Path](Value.This(State.globalThisSymbol)):
         (qual, name) => Select(qual, Tree.Ident(name))(N)
     
   private def assignStmts(stmts: (Local, Result)*)(rest: Block) =

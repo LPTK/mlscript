@@ -926,8 +926,14 @@ enum Value extends Path with ProductWithExtraInfo:
    */
   @deprecated("Use Value.SimpleRef, Value.MemberRef, or Value.This instead.")
   case Ref(l: Local, disamb: Opt[DefinitionSymbol[?]])
-  case This(sym: InnerSymbol) // TODO rm – just use Ref
+  case This(sym: InnerSymbol)
   case Lit(lit: Literal)
+
+  // TODO(Derppening): Remove once fully migrated to SimpleRef/MemberRef/This
+  this match
+    case Ref(l: TopLevelSymbol, _) => 
+      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.This instead")
+    case _ =>
   
   override def extraInfo(using DebugPrinter): Str = this match
     case Ref(l, disamb) => disamb.map(s => s"disamb=${s.showAsPlain}").mkString
@@ -974,5 +980,7 @@ extension (k: Block => Block)
 def blockBuilder: Block => Block = identity
 
 extension (l: Local)
-  def asPath: Path = Value.Ref(l, N)
+  def asPath(using State): Path = l match 
+    case sym: TopLevelSymbol if sym === State.globalThisSymbol => Value.This(sym)
+    case _ => Value.Ref(l, N)
 

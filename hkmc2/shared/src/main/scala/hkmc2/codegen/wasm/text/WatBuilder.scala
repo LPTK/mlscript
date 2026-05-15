@@ -1410,8 +1410,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       val as = argss.flatten
       cls match
         // TODO: Implement proper lowering for Errors with unit payloads.
-        case Select(Value.Ref(sym, _), id)
-            if (sym eq State.globalThisSymbol) && id.name == "Error" =>
+        case Select(Value.This(sym), id) if (sym eq State.globalThisSymbol) && id.name == "Error" =>
           return as.headOption match
             case S(arg) => arg.value match
                 case Value.Lit(BoolLit(value)) => ref.i31(i32.const(if value then 1 else 0))
