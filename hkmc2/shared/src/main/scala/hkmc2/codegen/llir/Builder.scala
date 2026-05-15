@@ -224,7 +224,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
         val funcs = methods.map(bMethodDef)
         def parentFromPath(p: Path): Ls[Local] = p match
           case Value.Ref(l, disamb) => fromMemToClass(l.orElseDisamb(disamb)) :: Nil
-          case Value.MemberRef(bms, disamb) => fromMemToClass(bms.orElseDisamb(disamb)) :: Nil
+          case Value.MemberRef(bms, disamb) => fromMemToClass(bms.orElseDisamb(S(disamb))) :: Nil
           case Value.InnerRef(sym) => fromMemToClass(sym) :: Nil
           case Value.SimpleRef(l) =>
             // TODO(Derppening): Check if this assertion holds
@@ -286,7 +286,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
         k(l |> sr)
       case Value.MemberRef(bms, disamb) if bms.nme.isCapitalized =>
         val v: Local = newTemp
-        Node.LetExpr(v, Expr.CtorApp(fromMemToClass(bms.orElseDisamb(disamb)), Ls()), k(v |> sr))
+        Node.LetExpr(v, Expr.CtorApp(fromMemToClass(bms.orElseDisamb(S(disamb))), Ls()), k(v |> sr))
       case Value.Ref(sym, disamb) if sym.nme.isCapitalized =>
         val v: Local = newTemp
         Node.LetExpr(v, Expr.CtorApp(fromMemToClass(sym.orElseDisamb(disamb)), Ls()), k(v |> sr))
@@ -421,7 +421,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
           case args: Ls[TrivialExpr] =>
             val v: Local = newTemp
             Node.LetExpr(v, Expr.CtorApp(fromMemToClass(disamb), args), k(v |> sr))
-      case Call(Value.MemberRef(_, S(disamb)), argss) if disamb.defn.exists(defn => defn match
+      case Call(Value.MemberRef(_, disamb), argss) if disamb.defn.exists(defn => defn match
         case cls: ClassLikeDef => true
         case trm: TermDefinition => trm.companionClass.isDefined
         case _ => false

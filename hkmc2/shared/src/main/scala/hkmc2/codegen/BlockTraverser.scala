@@ -77,7 +77,7 @@ class BlockTraverser:
     case Value.SimpleRef(l) => l.traverse
     case Value.MemberRef(bms, disamb) =>
       bms.traverse
-      disamb.foreach(_.traverse)
+      disamb.traverse
     case Value.This(sym) => sym.traverse
     case Value.InnerRef(sym) => sym.traverse
     case Value.Lit(lit) => ()

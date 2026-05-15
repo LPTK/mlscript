@@ -969,7 +969,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     if expr.resultTypes.isEmpty && !isAbortive then
       blockInstr(
         label = N,
-        children = Seq(expr, result(Value.MemberRef(State.unitBlockMemberSymbol, S(State.unitSymbol)))),
+        children = Seq(expr, result(Value.MemberRef(State.unitBlockMemberSymbol, State.unitSymbol))),
         resultTypes = Seq(Result(RefType.anyref)),
       )
     else
@@ -1251,12 +1251,12 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
             case N => getVar(l, r.toLoc)
     case Value.MemberRef(bms, disamb) =>
-      if (bms is State.unitSymbol) || disamb.exists(_ is State.unitSymbol) then
+      if (bms is State.unitSymbol) || (disamb is State.unitSymbol) then
         RegisterUnitSingleton()
       singletonInfoFor(bms) match
         case S(info) => singletonGlobalGet(info)
         case N =>
-          if disamb.exists(_.isInstanceOf[ClassSymbol]) then
+          if disamb.isInstanceOf[ClassSymbol] then
             errExpr:
               Ls(msg"Plain class references are not supported in Wasm; instantiate the class instead." -> r.toLoc)
           else
@@ -1515,7 +1515,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       end match
       val ctorClsSymOpt = cls match
         case ref: Value.Ref => ref.disamb
-        case ref: Value.MemberRef => ref.disamb
+        case ref: Value.MemberRef => S(ref.disamb)
         case sel: Select => sel.symbol
         case cls => return errExpr(
             Ls(
@@ -2222,7 +2222,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                   label = N,
                   children = Seq(
                     expr,
-                    local.set(target, result(Value.MemberRef(State.unitBlockMemberSymbol, S(State.unitSymbol)))),
+                    local.set(target, result(Value.MemberRef(State.unitBlockMemberSymbol, State.unitSymbol))),
                   ),
                   resultTypes = Seq.empty,
                 )

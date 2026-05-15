@@ -212,7 +212,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
                 case Some(nd: DefinitionSymbol[?]) => Some(nd)
                 case _ => newBms.tsym.orElse(x)
             case None => newBms.tsym
-          k(Value.MemberRef(newBms, newDisamb))
+          k(Value.MemberRef(newBms, newDisamb.get))
         case Some(newSym: VarSymbol) => k(Value.SimpleRef(newSym))
         case Some(newSym: (LocalSymbol | BuiltinSymbol)) => k(Value.SimpleRef(newSym))
         case Some(newSym: InnerSymbol) => k(Value.InnerRef(newSym))
@@ -222,7 +222,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
         case None => super.applyValue(v)(k)
         case Some(newBms: BlockMemberSymbol) =>
           val newDisamb = newBms.tsym
-          k(Value.MemberRef(newBms, newDisamb))
+          k(Value.MemberRef(newBms, newDisamb.get))
         case Some(newSym) =>
           newSym match
             case newSym: TempSymbol => k(Value.SimpleRef(newSym))
@@ -234,11 +234,10 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
       mapping.get(bms) match
         case None => super.applyValue(v)(k)
         case Some(newBms: BlockMemberSymbol) =>
-          val newDisamb: Opt[DefinitionSymbol[?]] = disamb match
-            case Some(d) => mapping.get(d) match
-              case Some(nd: DefinitionSymbol[?]) => S(nd)
-              case _ => newBms.tsym.orElse(disamb)
-            case None => newBms.tsym
+          val newDisamb = disamb match
+            case d => mapping.get(d) match
+              case Some(nd: DefinitionSymbol[?]) => nd
+              case _ => newBms.tsym.getOrElse(disamb)
           k(Value.MemberRef(newBms, newDisamb))
         case Some(newSym: VarSymbol) => k(Value.SimpleRef(newSym))
         case Some(newSym: TempSymbol) => k(Value.SimpleRef(newSym))

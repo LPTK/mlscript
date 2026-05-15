@@ -50,7 +50,7 @@ print("Hi")
 //│       fun = Select{sym=term:Predef⁰/print⁰}:
 //│         qual = MemberRef{disamb=module:Predef⁰}:
 //│           bms = member:Predef¹
-//│           disamb = S of module:Predef⁰
+//│           disamb = module:Predef⁰
 //│         name = Ident of "print"
 //│       argss = Ls of 
 //│         Ls of 

@@ -189,7 +189,7 @@ class BlockTransformer(subst: SymbolSubst):
       k(if (l2 is l) then v else Value.SimpleRef(l2).withLocOf(v))
     case Value.MemberRef(bms, disamb) =>
       val bms2 = bms.subst
-      val disamb2 = disamb.mapConserve(_.subst)
+      val disamb2 = disamb.subst
       k(if (bms2 is bms) && (disamb2 is disamb) then v else Value.MemberRef(bms2, disamb2).withLocOf(v))
     case Value.This(sym) =>
       val sym2 = sym.subst

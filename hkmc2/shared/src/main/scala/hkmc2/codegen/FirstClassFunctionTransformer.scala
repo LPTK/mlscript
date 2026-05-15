@@ -39,11 +39,11 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
 
   override def applyPath(p: Path)(k: Path => Block): Block = p match
     case ref @ Value.MemberRef(l, disamb) => disamb match
-      case S(s: TermSymbol) if s.k is syntax.Fun =>
+      case s: TermSymbol if s.k is syntax.Fun =>
         val params = getParamList(l).getOrElse(lastWords(s"Cannot get ${l.nme}'s parameter list."))
         val clsDef = generateFCFunctionClass(ref, params)
         val tmp = new TempSymbol(None)
-        val cls = Value.MemberRef(clsDef.sym, S(clsDef.isym))
+        val cls = Value.MemberRef(clsDef.sym, clsDef.isym)
         Scoped(Set(clsDef.sym, tmp), Define(clsDef, Assign(tmp, Instantiate(false, cls, Nil :: Nil), k(Value.SimpleRef(tmp)))))
       case _ => k(p)
     case sel: Select => sel.symbol match
@@ -51,7 +51,7 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
         val params = getParamList(s).getOrElse(lastWords(s"Cannot get ${s.nme}'s parameter list."))
         val clsDef = generateFCFunctionClass(sel, params)
         val tmp = new TempSymbol(None)
-        val cls = Value.MemberRef(clsDef.sym, S(clsDef.isym))
+        val cls = Value.MemberRef(clsDef.sym, clsDef.isym)
         Scoped(Set(clsDef.sym, tmp), Define(clsDef, Assign(tmp, Instantiate(false, cls, Nil :: Nil), k(Value.SimpleRef(tmp)))))
       case Some(_) => k(p)
       case _ =>
@@ -105,7 +105,7 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
             val newBody = rec(rest)
             val funSym = new BlockMemberSymbol("lambda$", Nil, false)
             val funDef = FunDefn.withFreshSymbol(None, funSym, head :: Nil, newBody)(N, annotations = Nil)
-            Scoped(Set(funSym), Define(funDef, Return(Value.MemberRef(funDef.sym, S(funDef.dSym)), false)))
+            Scoped(Set(funSym), Define(funDef, Return(Value.MemberRef(funDef.sym, funDef.dSym), false)))
           case Nil => fd.body
         FunDefn.withFreshSymbol(fd.owner, fd.sym, head :: Nil, rec(tail))(fd.configOverride, fd.annotations)
   

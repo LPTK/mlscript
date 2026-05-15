@@ -287,7 +287,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
                   sym match
                     case sym: TempSymbol => Value.SimpleRef(sym)
                     case sym: VarSymbol => Value.SimpleRef(sym)
-                    case sym: BlockMemberSymbol => Value.MemberRef(sym, sym.defaultDisamb)
+                    case sym: BlockMemberSymbol => Value.MemberRef(sym, sym.defaultDisamb.get)
                     case sym: (LocalSymbol | BuiltinSymbol) => Value.SimpleRef(sym)
                     case sym: InnerSymbol => Value.InnerRef(sym)
                     case sym => Value.Ref(sym, N),

@@ -220,10 +220,6 @@ class BlockSimplifier
         registerChange(s"${loc.showDbg} is never assigned; replacing read with undefined")
         if !symbolsToPreserve(loc) then removedLocals += loc
         k(Value.Lit(syntax.Tree.UnitLit(false)))
-      case Value.MemberRef(loc, N) if localVars.contains(loc) && !definedVars.contains(loc) =>
-        registerChange(s"${loc.showDbg} is never assigned; replacing read with undefined")
-        if !symbolsToPreserve(loc) then removedLocals += loc
-        k(Value.Lit(syntax.Tree.UnitLit(false)))
       case Value.InnerRef(loc) if localVars.contains(loc) && !definedVars.contains(loc) =>
         registerChange(s"${loc.showDbg} is never assigned; replacing read with undefined")
         if !symbolsToPreserve(loc) then removedLocals += loc
@@ -494,11 +490,6 @@ class BlockSimplifier
               S(r -> rhs2)
           case r @ Value.SimpleRef(sym) =>
             S(r -> Unknown)
-          case r @ Value.MemberRef(sym: LocalVar, N) =>
-            if capturedVars(sym) then N
-            else
-              val rhs2 = assignedResults(sym)
-              S(r -> rhs2)
           case r @ Value.MemberRef(sym, _) =>
             S(r -> Unknown)
           case r @ Value.InnerRef(sym: LocalVar) =>
@@ -599,7 +590,7 @@ class BlockSimplifier
               varAsst match
               case S(Value.Ref(r, S(sym: ModuleOrObjectSymbol)) -> _) =>
                 Set.single(sym)
-              case S(Value.MemberRef(r, S(sym: ModuleOrObjectSymbol)) -> _) =>
+              case S(Value.MemberRef(r, sym: ModuleOrObjectSymbol) -> _) =>
                 Set.single(sym)
               case S(_ -> ass) =>
                 getShapesA(ass)
@@ -643,11 +634,7 @@ class BlockSimplifier
                 giveUp
               case Value.SimpleRef(r: LocalVar) =>
                 assignedResults.get(r).fold(giveUp)(getShapesA)
-              case Value.MemberRef(r: LocalVar, N) if capturedVars(r) =>
-                giveUp
-              case Value.MemberRef(r: LocalVar, N) =>
-                assignedResults.get(r).fold(giveUp)(getShapesA)
-              case Value.MemberRef(r, S(sym: ModuleOrObjectSymbol)) =>
+              case Value.MemberRef(r, sym: ModuleOrObjectSymbol) =>
                 Set.single(sym)
               case Value.InnerRef(r: LocalVar) if capturedVars(r) =>
                 giveUp
@@ -772,10 +759,6 @@ class BlockSimplifier
               if assignedResults(lv) is rhs
               then Set.single(r) ++ analyzeValues(rhs)
               else Set.empty
-            case S((r @ Value.MemberRef(lv: LocalVar, N)) -> rhs) =>
-              if assignedResults(lv) is rhs
-              then Set.single(r) ++ analyzeValues(rhs)
-              else Set.empty
             case S(lv -> rhs) =>
               Set.single(lv) ++ analyzeValues(rhs)
             case N => Set.empty
@@ -824,35 +807,6 @@ class BlockSimplifier
         
         val rs = assignedResults(loc)
         // log(s"SimpleRef ${loc.showDbg} ${rs} ${localVars(loc)} ${capturedVars(loc)}")
-        
-        val vars = analyzeValues(rs)
-        
-        // log(s"Analysis: litValue: ${litValue}, unchanged vars: ${vars}")
-        
-        litValue match
-        case true =>
-          registerChange(s"${loc.showDbg} ~> undefined")
-          return k(Value.Lit(syntax.Tree.UnitLit(false)))
-        case lit: Value =>
-          registerChange(s"${loc.showDbg} ~> ${lit.showDbg}")
-          return k(lit)
-        case false =>
-          vars.minByOption: v => 
-            v match 
-              case Value.Ref(l, _) => l.uid
-              case Value.SimpleRef(l) => l.uid
-              case Value.MemberRef(l, _) => l.uid
-              case Value.InnerRef(l) => l.uid
-          match
-          case N => k(v)
-          case S(v2) => 
-            registerChange(s"${loc.showDbg} ~> ${v2.showDbg} (via ${vars.map(_.showDbg).mkString(", ")})")
-            k(v2)
-            
-      case Value.MemberRef(loc: LocalVar, N) if !inDryRun && !capturedVars(loc) =>
-        
-        val rs = assignedResults(loc)
-        // log(s"MemberRef ${loc.showDbg} ${rs} ${localVars(loc)} ${capturedVars(loc)}")
         
         val vars = analyzeValues(rs)
         
@@ -976,7 +930,7 @@ class BlockSimplifier
       object TermSymbolPath:
         def unapply(p: Path) = p match
           case Value.Ref(l, S(ts: TermSymbol)) => S(ts)
-          case Value.MemberRef(_, S(ts: TermSymbol)) => S(ts)
+          case Value.MemberRef(_, ts: TermSymbol) => S(ts)
           case s: Select => s.symbol match
             case S(ts: TermSymbol) => S(ts)
             case _ => N

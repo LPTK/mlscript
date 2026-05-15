@@ -355,7 +355,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
     
     extension (a: Symbol) def toValueRef =
       a match
-      case bms: BlockMemberSymbol => Value.MemberRef(bms, bms.defaultDisamb)
+      case bms: BlockMemberSymbol => Value.MemberRef(bms, bms.defaultDisamb.get)
       case sym: TempSymbol => Value.SimpleRef(sym)
       case sym: VarSymbol => Value.SimpleRef(sym)
       case sym: (LocalSymbol | BuiltinSymbol) => Value.SimpleRef(sym)
@@ -363,7 +363,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
       case _ => Value.Ref(a, N)
     def mkReturnCall(target: (BlockMemberSymbol, TermSymbol), args: Ls[Symbol]): Block =
       Return(Call(
-        Value.MemberRef(target._1, S(target._2)),
+        Value.MemberRef(target._1, target._2),
         args.map(a => Arg(N, a.toValueRef)) ne_:: Nil
       )(true, false, false), false)
     
@@ -432,7 +432,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
         p match
         case ref@FunRef(f) if newPolyFnSyms.isDefinedAt(newRefId(ref.uid, f)) =>
           val (bms, tSym) = newPolyFnSyms(newRefId(ref.uid, f))(f)
-          k(Value.MemberRef(bms, S(tSym)))
+          k(Value.MemberRef(bms, tSym))
         case ctor@CtorCall(_, args) if solver.finalCtorDests.isDefinedAt(ctor.uid.concreteId) =>
           assert(args.isEmpty)
           val (branchBms, branchTermSym) = branchFunSyms(ctorWhichBranch(ctor.uid.concreteId))
@@ -497,7 +497,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
         case Value.Ref(l, x) =>
           pre.res.modSymToBms.get(l) match
             case Some(bms) =>
-              k(Value.MemberRef(bms, l.asMod.map[DefinitionSymbol[?]](identity).orElse(bms.defaultDisamb)))
+              k(Value.MemberRef(bms, l.asMod.getOrElse(bms.defaultDisamb.get)))
             case None => super.applyValue(v)(k)
         case Value.SimpleRef(l) =>
           pre.res.modSymToBms.get(l) match

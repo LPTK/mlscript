@@ -108,7 +108,7 @@ object RefLike:
         val sym = disamb.getOrElse(l)
         classCtorSymbol(sym) orElse S(sym)
       case Value.MemberRef(bms, disamb) =>
-        val sym: Symbol = disamb.getOrElse(bms)
+        val sym: Symbol = disamb
         classCtorSymbol(sym) orElse S(sym)
       case s: Select =>
         s.symbol.flatMap: selSym =>
@@ -434,7 +434,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
         case InCtx.MtchBody(m, _) => m.scrut match
           case Value.Ref(s, disamb) => disamb.getOrElse(s) is sym
           case Value.SimpleRef(s) => s is sym
-          case Value.MemberRef(bms, disamb) => disamb.getOrElse(bms) is sym
+          case Value.MemberRef(bms, disamb) => disamb is sym
           case _ => false
         case _ => false
     
@@ -611,7 +611,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
   private def applyValueMemberRef(v: Value.MemberRef, recordAffinity: Bool) =
     val Value.MemberRef(_, disamb) = v
     disamb match
-    case S(s: TermSymbol) =>
+    case s: TermSymbol =>
       recordRefInCaptures(s)
       if recordAffinity then recordAffinityUse(s)
     case _ => ()
@@ -629,7 +629,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
         if ctxTracker.isEnclosingMatchScrutSym(l) =>
           applyValueSimpleRef(v, recordAffinity = false)
       case v@Value.MemberRef(bms, disamb)
-        if ctxTracker.isEnclosingMatchScrutSym(disamb.getOrElse(bms)) =>
+        if ctxTracker.isEnclosingMatchScrutSym(disamb) =>
           applyValueMemberRef(v, recordAffinity = false)
       case _ => applyPath(qual)
     case p: Select =>
@@ -808,7 +808,7 @@ class FlowConstraintsCollector(
         for (funSym, fun) <- preAnalyzer.res.rootFunDefns do
           val pScheme = funsToProdStratScheme(funSym)
           val synthesizedRefUid =
-            Value.MemberRef(preAnalyzer.res.funSymToFunDefn(funSym).sym, S(funSym)).uid
+            Value.MemberRef(preAnalyzer.res.funSymToFunDefn(funSym).sym, funSym).uid
           val selfProd = pScheme.instantiate(synthesizedRefUid, funSym)
           cc.constrain(selfProd, UnknownCons)
           val selfInstId = synthesizedRefUid :: Nil

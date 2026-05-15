@@ -481,11 +481,11 @@ object HandleBlock:
 
   def suspend(tag: Path, handlerFun: Path)(using Elaborator.Ctx): Result =
     val bms = Elaborator.ctx.builtins.runtime.suspend
-    Call(Value.MemberRef(bms, bms.defaultDisamb), (tag.asArg :: handlerFun.asArg :: Nil) ne_:: Nil)(true, true, false)
+    Call(Value.MemberRef(bms, bms.defaultDisamb.get), (tag.asArg :: handlerFun.asArg :: Nil) ne_:: Nil)(true, true, false)
 
   def handleSuspension(tag: Path, bodyFun: Path)(using Elaborator.Ctx): Result =
     val bms = Elaborator.ctx.builtins.runtime.handle_suspension
-    Call(Value.MemberRef(bms, bms.defaultDisamb), (tag.asArg :: bodyFun.asArg :: Nil) ne_:: Nil)(true, true, false)
+    Call(Value.MemberRef(bms, bms.defaultDisamb.get), (tag.asArg :: bodyFun.asArg :: Nil) ne_:: Nil)(true, true, false)
   
   private def create(
       lhs: Local,
@@ -514,7 +514,7 @@ object HandleBlock:
         handler.params,
         Scoped(Set(sym, rSym), Define(
           fDef,
-          Return(suspend(cls.asPath, Value.MemberRef(sym, S(fDef.dSym))), false))))(N, annotations = Nil)
+          Return(suspend(cls.asPath, Value.MemberRef(sym, fDef.dSym)), false))))(N, annotations = Nil)
 
     val clsDefn = ClsLikeDefn(
       N, // no owner
@@ -534,9 +534,9 @@ object HandleBlock:
     blockBuilder
       .scopedVars(Set(clsDefn.sym, sym))
       .define(clsDefn)
-      .assign(lhs, Instantiate(mut = true, Value.MemberRef(clsDefn.sym, S(cls)), Nil :: Nil))
+      .assign(lhs, Instantiate(mut = true, Value.MemberRef(clsDefn.sym, cls), Nil :: Nil))
       .define(bodyDefn)
-      .assign(res, handleSuspension(lhs.asPath, Value.MemberRef(bodyDefn.sym, S(bodyDefn.dSym))))
+      .assign(res, handleSuspension(lhs.asPath, Value.MemberRef(bodyDefn.sym, bodyDefn.dSym)))
       .rest(rest)
   
   def apply(
@@ -625,7 +625,7 @@ final case class FunDefn(
     val annotations: Ls[Annot],
 ) extends Defn:
   val innerSym = N
-  val asPath = Value.MemberRef(sym, S(dSym))
+  val asPath = Value.MemberRef(sym, dSym)
   lazy val forceTailRec: Bool = annotations.contains(Annot.TailRec)
   lazy val visibility: Visibility = annotations.collectFirst:
     case Annot.Modifier(Keyword.`private`) => Visibility.Private
@@ -803,7 +803,7 @@ sealed abstract class Result extends AutoLocated:
   def showDbg(using DebugPrinter): Str = this match
     case Value.Ref(l, disamb) => s"${l.showAsPlain}${disamb.fold("")(s => s"‹${s.showAsPlain}›")}"
     case Value.SimpleRef(l) => l.showAsPlain
-    case Value.MemberRef(l, disamb) => s"${l.showAsPlain}${disamb.fold("")(s => s"‹${s.showAsPlain}›")}"
+    case Value.MemberRef(l, disamb) => s"${l.showAsPlain}${s"‹${disamb.showAsPlain}›"}"
     case Value.InnerRef(l) => l.showAsPlain
     case Value.This(sym) => s"this[${sym.showAsPlain}]"
     case Value.Lit(lit) => lit.idStr
@@ -893,11 +893,10 @@ sealed abstract class Result extends AutoLocated:
       case _ => Set(l)
     case Value.SimpleRef(l) => Set(l)
     case Value.MemberRef(l: (ClassSymbol | TermSymbol), disamb) => Set.empty
-    case Value.MemberRef(l, S(disamb)) => disamb.defn match
+    case Value.MemberRef(l, disamb) => disamb.defn match
       case Some(d: ClassLikeDef) => Set.empty
       case Some(d: TermDefinition) if d.companionClass.isDefined => Set.empty
       case _ => Set(l)
-    case Value.MemberRef(l, N) => Set(l)
     case Value.This(sym) => Set.empty
     case Value.InnerRef(sym) => Set.empty
     case Value.Lit(lit) => Set.empty
@@ -928,7 +927,7 @@ sealed abstract class Path extends TrivialResult:
   def asArg = Arg(spread = N, this)
   def targetSymbol: Opt[DefinitionSymbol[?]] = this match
     case ref: Value.Ref => ref.disamb
-    case ref: Value.MemberRef => ref.disamb
+    case ref: Value.MemberRef => S(ref.disamb)
     case sel: Select => sel.symbol
     case _ => N
 
@@ -952,7 +951,7 @@ enum Value extends Path with ProductWithExtraInfo:
     * @param disamb The symbol disambiguating the definition that the reference refers to.
     */
     // TODO(Derppening): Make `disamb` non-optional once all call sites can reliably provide one.
-  case MemberRef(bms: BlockMemberSymbol, disamb: Opt[DefinitionSymbol[?]])
+  case MemberRef(bms: BlockMemberSymbol, disamb: DefinitionSymbol[?])
   case This(sym: InnerSymbol)
   /** Reference to an [[InnerSymbol]] accessed by its bound variable name from outside its scope,
     * as opposed to [[This]] which is a `findThis_!`-based "current object" reference. */
@@ -965,6 +964,8 @@ enum Value extends Path with ProductWithExtraInfo:
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.SimpleRef instead")
     case Ref(l: TopLevelSymbol, _) =>
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.This instead")
+    case Ref(l: BlockMemberSymbol, N) =>
+      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should have an associated disamb symbol")
     case Ref(l: BlockMemberSymbol, _) =>
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.MemberRef instead")
     case Ref(l: (TypeAliasSymbol | ErrorSymbol), _) =>
@@ -973,7 +974,7 @@ enum Value extends Path with ProductWithExtraInfo:
 
   override def extraInfo(using DebugPrinter): Str = this match
     case Ref(l, disamb) => disamb.map(s => s"disamb=${s.showAsPlain}").mkString
-    case MemberRef(bms, disamb) => disamb.map(s => s"disamb=${s.showAsPlain}").mkString
+    case MemberRef(bms, disamb) => s"disamb=${disamb.showAsPlain}"
     case _ => ""
 
 object Value:
@@ -1020,14 +1021,14 @@ def blockBuilder: Block => Block = identity
 extension (bms: BlockMemberSymbol)
   /** Best-effort default disambiguation for a `BlockMemberSymbol` reference. */
   def defaultDisamb: Opt[DefinitionSymbol[?]] =
-    bms.tsym.orElse(bms.asCls).orElse(bms.asModOrObj).orElse(bms.asPat).orElse(bms.asAls)
+    bms.asTrm.orElse(bms.asClsOrMod).orElse(bms.asPat)
 
 extension (l: Local)
   def asPath(using State): Path = l match 
     case l: (LocalSymbol | BuiltinSymbol) => Value.SimpleRef(l)
     case sym: TopLevelSymbol if sym === State.globalThisSymbol => Value.This(sym)
     case tls: TopLevelSymbol => Value.This(tls)
-    case bms: BlockMemberSymbol => Value.MemberRef(bms, bms.defaultDisamb)
+    case bms: BlockMemberSymbol => Value.MemberRef(bms, bms.defaultDisamb.getOrElse(lastWords(s"Cannot disambiguate overloaded member symbol ${bms.nme}: no disambiguation provided")))
     case sym: InnerSymbol => Value.InnerRef(sym)
     case _ => Value.Ref(l, N)
 

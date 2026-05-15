@@ -367,7 +367,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State) e
       // NOTE: `shouldRewriteWhile` is not the same as `config.rewriteWhileLoops`
       // as shouldRewriteWhile is always true when effect handler lowering is on
       lazy val loopCont = if config.shouldRewriteWhile
-        then Return(Call(Value.MemberRef(f, S(tSym)), Nil ne_:: Nil)(true, true, false), false)
+        then Return(Call(Value.MemberRef(f, tSym), Nil ne_:: Nil)(true, true, false), false)
         else Continue(loopLabel)
       val cont =
         form match
@@ -462,7 +462,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State) e
               Select(Value.SimpleRef(State.runtimeSymbol), Tree.Ident("LoopEnd"))(S(State.loopEndSymbol))
             val blk = blockBuilder
               .define(FunDefn(N, f, tSym, PlainParamList(Nil) :: Nil, Begin(body, Return(loopEnd, false)))(configOverride = N, annotations = Nil))
-              .assign(loopResult, Call(Value.MemberRef(f, S(tSym)), Nil ne_:: Nil)(true, true, false))
+              .assign(loopResult, Call(Value.MemberRef(f, tSym), Nil ne_:: Nil)(true, true, false))
             if summon[LoweringCtx].mayRet then
               blk
                 .assign(isReturned, Call(Value.SimpleRef(State.builtinOpsMap("!==")),

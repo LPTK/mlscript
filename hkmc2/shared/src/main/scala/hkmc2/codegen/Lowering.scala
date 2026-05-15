@@ -580,7 +580,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         // * (non-local functions are compiled into getter methods selected on some prefix)
         if td.params.isEmpty then
           return k(Call(
-              Value.MemberRef(bs, disamb.orElse(bs.defaultDisamb)).withLocOf(ref), Nil ne_:: Nil
+              Value.MemberRef(bs, disamb.orElse(bs.defaultDisamb).get).withLocOf(ref), Nil ne_:: Nil
             )(isMlsFun = true, true, annots.contains(Annot.TailCall)))
       case S(_) => ()
       case N => () // TODO panic here; can only lower refs to elab'd symbols
@@ -594,7 +594,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case (sym: VarSymbol, _) =>
         k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
       case (sym: BlockMemberSymbol, _) =>
-        k(loweringCtx(Value.MemberRef(sym, disamb.orElse(sym.defaultDisamb)).withLocOf(ref)))
+        k(loweringCtx(Value.MemberRef(sym, disamb.orElse(sym.defaultDisamb).get).withLocOf(ref)))
       case (sym: (LocalSymbol | BuiltinSymbol), _) =>
         k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
       case (sym, disamb) =>
@@ -1000,14 +1000,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       setupTerm("Builtin", Value.Lit(Tree.StrLit(sym.nme)) :: Nil)(k)
     case Resolved(Ref(sym), disamb) =>
       sym match
-        case sym: BlockMemberSymbol => k(Value.MemberRef(sym, S(disamb)))
+        case sym: BlockMemberSymbol => k(Value.MemberRef(sym, disamb))
         case sym: (LocalSymbol | BuiltinSymbol) => k(Value.SimpleRef(sym))
         case sym => k(Value.Ref(sym, S(disamb)))
     case Ref(sym) =>
       sym match
         case sym: TempSymbol => k(Value.SimpleRef(sym))
         case sym: VarSymbol => k(Value.SimpleRef(sym))
-        case sym: BlockMemberSymbol => k(Value.MemberRef(sym, sym.defaultDisamb))
+        case sym: BlockMemberSymbol => k(Value.MemberRef(sym, sym.defaultDisamb.get))
         case sym: (LocalSymbol | BuiltinSymbol) => k(Value.SimpleRef(sym))
         case sym => k(Value.Ref(sym, N))
     case SynthSel(Ref(sym: ModuleOrObjectSymbol), name) => // Local cross-stage references
