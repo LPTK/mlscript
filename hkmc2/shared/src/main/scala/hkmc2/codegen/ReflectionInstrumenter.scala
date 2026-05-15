@@ -112,7 +112,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
 
       val path: ArgWrappable = pOpt.getOrElse(owner match
         case S(owner) => owner.asPath.selSN(sym.nme)
-        case N => bsym)
+        case N => Value.MemberRef(bsym.asBlkMember.get, S(sym.asClsOrMod.get)))
       baseSym match
         case _: ClassSymbol =>
           transformParamsOpt(paramsOpt): paramsOpt =>
