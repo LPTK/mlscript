@@ -264,6 +264,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
         case Value.Ref(l, disamb) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
         case Value.SimpleRef(l) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
         case Value.MemberRef(bms, _) if !inCtx(bms) && bms.asClsLike.isEmpty => freeVars.add(bms)
+        case Value.InnerRef(l) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
         case _ => super.applyValue(v)
       
       override def applyResult(r: Result): Unit =
@@ -504,6 +505,11 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
             case Some(bms) =>
               // TODO(Derppening): Check if this assertion holds
               lastWords("SimpleRef should not refresh into a MemberRef")
+            case None => super.applyValue(v)(k)
+        case Value.InnerRef(l) =>
+          pre.res.modSymToBms.get(l) match
+            case Some(bms) =>
+              k(Value.MemberRef(bms, l.asMod.getOrElse(bms.defaultDisamb.get)))
             case None => super.applyValue(v)(k)
         case _ => super.applyValue(v)(k)
     end RefreshSymbol
