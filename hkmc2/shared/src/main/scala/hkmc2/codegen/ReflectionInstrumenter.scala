@@ -169,9 +169,6 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
     // rulePath
     ctx.get(p).map(k).getOrElse:
       p match
-        case Value.Ref(l, disamb) =>
-          transformSymbol(disamb.getOrElse(l)): sym =>
-            blockCtor("ValueRef", Ls(sym), "var")(k)
         case Value.SimpleRef(l) =>
           transformSymbol(l): sym =>
             blockCtor("ValueSimpleRef", Ls(sym), "var")(k)

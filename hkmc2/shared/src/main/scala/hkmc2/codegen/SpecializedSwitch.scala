@@ -168,7 +168,7 @@ private object LitCases:
     case (S(acc), Case.Lit(litVal) -> b) => S((litVal -> b) :: acc)
     case _ => N
 
-private case class MatchChain(scrut: Value.Ref | Value.SimpleRef, cases: List[MatchType], dflt: Opt[Block], rest: Block)
+private case class MatchChain(scrut: Value.SimpleRef, cases: List[MatchType], dflt: Opt[Block], rest: Block)
 
 // Helper that determines whether a default branch is empty
 private def isEmptyDflt(dflt: Opt[Block]) = dflt match
@@ -180,7 +180,7 @@ private def isEmptyDflt(dflt: Opt[Block]) = dflt match
 @tailrec
 private def findMatchChainRec(
   b: Block,
-  scrutRef: Value.Ref | Value.SimpleRef,
+  scrutRef: Value.SimpleRef,
   acc: List[MatchType]
 ): MatchChain =
   object TailAssign:
@@ -188,7 +188,6 @@ private def findMatchChainRec(
       if b.isAbortive then N
       else PostCondAnalysis.analyze(b).get(
         scrutRef match
-          case Value.Ref(l, _) => l
           case Value.SimpleRef(l) => l
       ) match
         case S(value) => S(value)
@@ -266,7 +265,7 @@ private def findMatchChainRec(
     case S(_: MatchType.MAbortive) | N => join // OK
     case S(_) => fail
 
-private case class SwitchLike(scrut: Value.Ref | Value.SimpleRef, cases: List[SwitchCase], dflt: Opt[Block], rest: Block)
+private case class SwitchLike(scrut: Value.SimpleRef, cases: List[SwitchCase], dflt: Opt[Block], rest: Block)
 
 // Converts a match chain to a switch.
 private def matchChainToSwitch(m: MatchChain): SwitchLike =
@@ -283,12 +282,6 @@ private def matchChainToSwitch(m: MatchChain): SwitchLike =
 
 object SpecializedSwitch:
   def unapply(b: Block) = b match
-    case m @ Match(scrut = r @ Value.Ref(l, _)) =>
-      val chain = findMatchChainRec(m, r, Nil)
-      val SwitchLike(scrut, cases, dflt, rest) = matchChainToSwitch(chain)
-      if cases.size < 2 then N
-      else
-        S((scrut, cases.reverse, dflt, rest))
     case m @ Match(scrut = r @ Value.SimpleRef(l)) =>
       val chain = findMatchChainRec(m, r, Nil)
       val SwitchLike(scrut, cases, dflt, rest) = matchChainToSwitch(chain)

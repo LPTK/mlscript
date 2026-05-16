@@ -33,7 +33,6 @@ object FlowAnalysis:
       def getResult = resultIdToResult(resultId)
       def getReferredSym: Symbol =
         resultId.getResult match
-        case Value.Ref(s, _) => s
         case Value.SimpleRef(s) => s
         case Value.MemberRef(bms, _) => bms
         case Value.InnerRef(sym) => sym
@@ -100,12 +99,10 @@ object RefLike:
       yield
         cls
   
-  def unapply(p: Value.Ref | Value.SimpleRef | Value.MemberRef | Select)(using Elaborator.State): Opt[Symbol] =
+  def unapply(p: Value.SimpleRef | Value.MemberRef | Select)(using Elaborator.State): Opt[Symbol] =
     p match
       case Value.SimpleRef(sym) =>
         classCtorSymbol(sym) orElse S(sym)
-      case Value.Ref(l, disamb) =>
-        val sym = disamb.getOrElse(l)
         classCtorSymbol(sym) orElse S(sym)
       case Value.MemberRef(bms, disamb) =>
         val sym: Symbol = disamb
@@ -134,20 +131,8 @@ object TrackableFieldSelect:
     case _ => N
 
 object PossibleTrackableTupleSelect:
-  def unapply(s: Result)(using eState: Elaborator.State): Opt[(Value.Ref | Value.SimpleRef) -> Int] =
+  def unapply(s: Result)(using eState: Elaborator.State): Opt[Value.SimpleRef -> Int] =
     s match
-    case Call(
-      Select(Select(Value.Ref(runtimeSym, N), Tree.Ident("Tuple")), Tree.Ident("get")),
-      (Arg(N, ref@Value.Ref(scrut, N)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
-    ) if runtimeSym is eState.runtimeSymbol => S(ref -> n.toInt)
-    case Call(
-      Select(Select(Value.Ref(runtimeSym, N), Tree.Ident("Tuple")), Tree.Ident("get")),
-      (Arg(N, ref@Value.SimpleRef(scrut)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
-    ) if runtimeSym is eState.runtimeSymbol => S(ref -> n.toInt)
-    case Call(
-      Select(Select(Value.SimpleRef(runtimeSym), Tree.Ident("Tuple")), Tree.Ident("get")),
-      (Arg(N, ref@Value.Ref(scrut, N)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
-    ) if runtimeSym is eState.runtimeSymbol => S(ref -> n.toInt)
     case Call(
       Select(Select(Value.SimpleRef(runtimeSym), Tree.Ident("Tuple")), Tree.Ident("get")),
       (Arg(N, ref@Value.SimpleRef(scrut)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
@@ -158,10 +143,6 @@ object TrackableSelect:
   def unapply(s: Result)(using pre: FlowPreAnalyzer, eState: Elaborator.State): Opt[(from: Path, field: SelField, owner: CtorCls)] =
     given fState: FlowAnalysis.State = pre.fState
     s match
-    case sel@PossibleTrackableTupleSelect((ref@Value.Ref(scrut, N)) -> ith) =>
-      pre.res.getEnclosingMatchesForSel(sel.uid).find(_._1.getReferredSym is scrut).flatMap:
-        case (_, Some(tupSize: Int)) => S(ref, ith, tupSize)
-        case _ => N
     case sel@PossibleTrackableTupleSelect((ref@Value.SimpleRef(scrut)) -> ith) =>
       pre.res.getEnclosingMatchesForSel(sel.uid).find(_._1.getReferredSym is scrut).flatMap:
         case (_, Some(tupSize: Int)) => S(ref, ith, tupSize)
@@ -432,7 +413,6 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     def isEnclosingMatchScrutSym(sym: Symbol): Boolean =
       ctx.exists:
         case InCtx.MtchBody(m, _) => m.scrut match
-          case Value.Ref(s, disamb) => disamb.getOrElse(s) is sym
           case Value.SimpleRef(s) => s is sym
           case Value.MemberRef(bms, disamb) => disamb is sym
           case _ => false
@@ -583,20 +563,6 @@ class FlowPreAnalyzer(val pgrm: Program)(using
         case RcdArg(idx, value) => idx.foreach(applyPath); applyPath(value)
     case p: Path => applyPath(p)
   
-  private def applyValueRef(v: Value.Ref, recordAffinity: Bool) =
-    val Value.Ref(l, disamb) = v
-    (l, disamb) match
-    case (_: BlockMemberSymbol, S(s: TermSymbol)) =>
-      recordRefInCaptures(s)
-      if recordAffinity then recordAffinityUse(s)
-    case (s: TermSymbol, N) =>
-      recordRefInCaptures(s)
-      if recordAffinity then recordAffinityUse(s)
-    case (s: BlockLocalSymbol, N) =>
-      recordRefInCaptures(s)
-      if recordAffinity then recordAffinityUse(s)
-    case _ => ()
-
   private def applyValueSimpleRef(v: Value.SimpleRef, recordAffinity: Bool) =
     val Value.SimpleRef(l) = v
     l match
@@ -622,9 +588,6 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     case p@TrackableFieldSelect(qual, _ -> _) =>
       res.selToCtxOfSel.addOne(p.uid -> ctxTracker.getAllCtx)
       qual match
-      case v@Value.Ref(l, disamb)
-        if ctxTracker.isEnclosingMatchScrutSym(disamb.getOrElse(l)) =>
-          applyValueRef(v, recordAffinity = false)
       case v@Value.SimpleRef(l)
         if ctxTracker.isEnclosingMatchScrutSym(l) =>
           applyValueSimpleRef(v, recordAffinity = false)
@@ -637,7 +600,6 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     case v: Value => applyValue(v)
   
   override def applyValue(v: Value): Unit = v match
-    case v@Value.Ref(l, disamb) => applyValueRef(v, recordAffinity = true)
     case v@Value.SimpleRef(l) => applyValueSimpleRef(v, recordAffinity = true)
     case v@Value.MemberRef(_, _) => applyValueMemberRef(v, recordAffinity = true)
     case Value.This(sym) => ()
@@ -1066,7 +1028,7 @@ class FlowConstraintsCollector(
               case Select(p, _) => cc.constrain(processResult(p), UnknownCons)
               case _ => ()
             generatedProdVars(sym).asProdStrat
-          case _: (Value.Ref | Value.SimpleRef | Value.MemberRef) => lastWords("already handled in `RefLike` case")
+          case _: (Value.SimpleRef | Value.MemberRef) => lastWords("already handled in `RefLike` case")
           case Select(qual, name) =>
             cc.constrain(processResult(qual), UnknownCons)
             UnknownProd

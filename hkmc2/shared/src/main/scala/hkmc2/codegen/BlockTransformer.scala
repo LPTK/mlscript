@@ -178,9 +178,6 @@ class BlockTransformer(subst: SymbolSubst):
     case v: Value => applyValue(v)(k)
   
   def applyValue(v: Value)(k: Value => Block) = v match
-    case Value.Ref(l, disamb) =>
-      val l2 = applyLocal(l)
-      k(if (l2 is l) then v else Value.Ref(l2, disamb).withLocOf(v))
     case Value.SimpleRef(l) =>
       val l2 = applyLocal(l) match
         case l: (LocalSymbol | BuiltinSymbol) => l

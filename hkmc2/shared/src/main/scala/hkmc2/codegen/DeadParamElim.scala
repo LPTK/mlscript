@@ -110,7 +110,6 @@ class DeadParamElimSolver(val constraintSolver: FlowConstraintSolver):
       resultId.getReferredFun match
         case Some(fun) => s"${fun.nme}@$resultId"
         case None => resultId.getResult match
-          case Value.Ref(sym, _) => s"${sym.nme}@$resultId"
           case res => s"$res@$resultId"
     end showRefSite
 
@@ -322,11 +321,6 @@ class Rewrite(val deadParamElimSolver: DeadParamElimSolver)(using Raise):
     
     class RefreshSymbol(existingMapping: Map[Symbol, Symbol]) extends SymbolRefresher(existingMapping):
       override def applyValue(v: Value)(k: Value => Block): Block = v match
-        case Value.Ref(l, x) =>
-          pre.res.modSymToBms.get(l) match
-            case Some(bms) =>
-              k(Value.MemberRef(bms, l.asMod.getOrElse(bms.defaultDisamb.get)))
-            case None => super.applyValue(v)(k)
         case Value.SimpleRef(l) =>
           pre.res.modSymToBms.get(l) match
             case Some(bms) =>

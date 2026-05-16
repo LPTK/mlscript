@@ -72,7 +72,6 @@ object Lifter:
 
   object RefOfBms:
     def unapply(p: Path): Opt[(BlockMemberSymbol, Opt[DefinitionSymbol[?]], Bool)] = p match
-      case Value.Ref(l: BlockMemberSymbol, disamb) => S((l, disamb, false))
       case Value.MemberRef(bms, disamb) => S((bms, S(disamb), false))
       case s @ Select(_, _) => s.symbol match
         case Some(value) => value.asBlkMember.map((_, S(value), true))
@@ -497,9 +496,6 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     override def applyPath(p: Path)(k: Path => Block): Block = p match
       // This rewrites naked references to locals,
-      case Value.Ref(l, _) => ctx.symbolsMap.get(l) match
-        case Some(value) => k(value.read)
-        case _ => super.applyPath(p)(k)
       case Value.SimpleRef(l) => ctx.symbolsMap.get(l) match
         case Some(value) => k(value.read)
         case _ => super.applyPath(p)(k)

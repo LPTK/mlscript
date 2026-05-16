@@ -67,10 +67,6 @@ class BufferableTransform()(using Ctx, State, Raise):
                       fieldMap.get(sym).orElse(pubFieldMap.get(sym).flatMap(fieldMap.get(_))).fold(super.applyPath(p)(k)): off =>
                         getOffset(off): res =>
                           k(res)
-                  case Value.Ref(l, _) =>
-                    fieldMap.get(l).fold(super.applyPath(p)(k)): off =>
-                      getOffset(off): res =>
-                        k(res)
                   case Value.SimpleRef(l) =>
                     fieldMap.get(l).fold(super.applyPath(p)(k)): off =>
                       getOffset(off): res =>

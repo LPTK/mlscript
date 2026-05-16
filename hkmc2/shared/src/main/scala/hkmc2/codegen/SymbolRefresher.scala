@@ -202,21 +202,6 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
     case _ => super.applyPath(p)(k)
 
   override def applyValue(v: Value)(k: Value => Block): Block = v match
-    case Value.Ref(l, x) =>
-      mapping.get(l) match
-        case None => super.applyValue(v)(k)
-        case Some(newBms: BlockMemberSymbol) =>
-          val newDisamb = x match
-            case Some(oldDisamb) =>
-              mapping.get(oldDisamb) match
-                case Some(nd: DefinitionSymbol[?]) => Some(nd)
-                case _ => newBms.tsym.orElse(x)
-            case None => newBms.tsym
-          k(Value.MemberRef(newBms, newDisamb.get))
-        case Some(newSym: VarSymbol) => k(Value.SimpleRef(newSym))
-        case Some(newSym: (LocalSymbol | BuiltinSymbol)) => k(Value.SimpleRef(newSym))
-        case Some(newSym: InnerSymbol) => k(Value.InnerRef(newSym))
-        case Some(newSym) => k(Value.Ref(newSym, N))
     case Value.SimpleRef(l) =>
       mapping.get(l) match
         case None => super.applyValue(v)(k)

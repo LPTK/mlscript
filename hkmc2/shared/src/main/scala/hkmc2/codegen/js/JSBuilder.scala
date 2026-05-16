@@ -116,11 +116,6 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Value.This(sym) => scope.findThis_!(sym)
     case Value.Lit(Tree.StrLit(value)) => makeStringLiteral(value)
     case Value.Lit(lit) => lit.idStr
-    case Value.Ref(l, disamb) => l match
-      case l: BlockMemberSymbol if disamb.exists(_.shouldBeLifted) =>
-        doc"${getVar(l, l.toLoc)}.class"
-      case _ =>
-        getVar(l, r.toLoc)
     case Value.MemberRef(bms, disamb) =>
       if disamb.shouldBeLifted then doc"${getVar(bms, bms.toLoc)}.class"
       else getVar(bms, r.toLoc)

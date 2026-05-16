@@ -57,7 +57,6 @@ class LoweringCtx(
     Subst(map + kv)
   */
   def apply(v: Value): Value = v match
-    case Value.Ref(l, _) => map.getOrElse(l, v)
     case Value.SimpleRef(l) => map.getOrElse(l, v)
     case _ => v
 object LoweringCtx:

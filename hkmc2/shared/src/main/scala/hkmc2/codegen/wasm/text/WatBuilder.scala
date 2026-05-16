@@ -319,8 +319,6 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
     defn.parentPath match
       case N => N
-      case S(Value.Ref(sym, _)) =>
-        sym.asCls.flatMap(_.asBlkMember).orElse(unsupportedParent())
       case S(Value.MemberRef(sym, _)) =>
         sym.asCls.flatMap(_.asBlkMember).orElse(unsupportedParent())
       case S(sel: Select) =>
@@ -915,8 +913,6 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
     def splitSuperTail(block: Block): Opt[Block -> Ls[Arg]] = block match
       case End(_) => N
-      case Return(Call(Value.Ref(bs: BuiltinSymbol, _), argss), true) if bs eq State.builtinOpsMap("super") =>
-        S(End("") -> argss.flatten)
       case Return(Call(Value.SimpleRef(bs: BuiltinSymbol), argss), true) if bs eq State.builtinOpsMap("super") =>
         S(End("") -> argss.flatten)
       case b: NonBlockTail =>
@@ -1228,19 +1224,6 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         operands = Seq(ref.i31(i32.const(lit.offset)), ref.i31(i32.const(lit.byteLen))),
         returnTypes = Seq(Result(RefType.anyref)),
       )
-    case Value.Ref(l, disamb) =>
-      if (l is State.unitSymbol) || disamb.contains(State.unitSymbol) then
-        RegisterUnitSingleton()
-      singletonInfoFor(l) match
-        case S(info) => singletonGlobalGet(info)
-        case N =>
-          if disamb.exists(_.isInstanceOf[ClassSymbol]) then
-            errExpr:
-              Ls(msg"Plain class references are not supported in Wasm; instantiate the class instead." -> r.toLoc)
-          else
-            ctx.getFunc(l) match
-              case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
-              case N => getVar(l, r.toLoc)
     case Value.SimpleRef(l) =>
       if (l is State.unitSymbol) then
         RegisterUnitSingleton()
@@ -1271,19 +1254,6 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(sym).typeIdx, nullable = false))
             case N => getVar(sym, r.toLoc)
 
-    case Call(Value.Ref(l: BuiltinSymbol, _), lhs :: rhs :: Nil) if !l.functionLike =>
-      if l.binary then
-        errExpr(
-          Ls(
-            msg"WatBuilder::result encountered builtin '${
-                l.nme
-              }' which should be lowered to an intrinsic function" ->
-              r.toLoc,
-          ),
-          extraInfo = S(r.toString),
-        )
-      else
-        errExpr(Ls(msg"Cannot call non-binary builtin symbol '${l.nme}'" -> r.toLoc))
     case Call(Value.SimpleRef(l: BuiltinSymbol), lhs :: rhs :: Nil) if !l.functionLike =>
       if l.binary then
         errExpr(
@@ -1331,29 +1301,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           )
         case N =>
           fun match
-            case Value.Ref(l, _) =>
-              val base = fun match
-                case Value.Ref(l, _) => ctx.getFunc(l)
-                case Value.SimpleRef(l) => ctx.getFunc(l)
-                case Value.MemberRef(l, _) => ctx.getFunc(l)
-                case _ => N
-              val baseFuncIdx = base match
-                case S(idx) => idx
-                case N => return errExpr(
-                    Ls(msg"Expected static function reference in Call(...) expression" -> fun.toLoc),
-                    extraInfo = S(fun.toString),
-                  )
-              val baseTypeInfo = ctx.getTypeInfo_!(ctx.getFuncTypeUse_!(baseFuncIdx).typeIdx)
-              val wasmArgs = args.map(argument)
-
-              call(
-                funcidx = baseFuncIdx,
-                operands = wasmArgs.toSeq,
-                returnTypes = baseTypeInfo.compType.asInstanceOf[FunctionType].sigType.results,
-              )
             case Value.SimpleRef(l) =>
               val base = fun match
-                case Value.Ref(l, _) => ctx.getFunc(l)
                 case Value.SimpleRef(l) => ctx.getFunc(l)
                 case Value.MemberRef(l, _) => ctx.getFunc(l)
                 case _ => N
@@ -1514,7 +1463,6 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         case _ => ()
       end match
       val ctorClsSymOpt = cls match
-        case ref: Value.Ref => ref.disamb
         case ref: Value.MemberRef => S(ref.disamb)
         case sel: Select => sel.symbol
         case cls => return errExpr(
@@ -1556,8 +1504,6 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   /** Returns the intrinsic name if `path` refers to a builtin under `wasm`, or `N` otherwise.
     */
   private def wasmIntrinsicName(path: Path): Opt[Str] = path match
-    case Select(Value.Ref(sym, _), ident) if (sym eq State.wasmSymbol) && wasmIntrinsicNameSet.contains(ident.name) =>
-      S(ident.name)
     case Select(Value.SimpleRef(sym), ident) if (sym eq State.wasmSymbol) && wasmIntrinsicNameSet.contains(ident.name) =>
       S(ident.name)
     case _ => N
@@ -2204,7 +2150,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           if tailMode then S(mkTempLocal("matchRes"))
           else N
         val scrutLocalResult = scrut match
-          case Value.Ref(_, _) | Value.SimpleRef(_) | Value.MemberRef(_, _) | Value.This(_) | Value.Lit(_) => N
+          case Value.SimpleRef(_) | Value.MemberRef(_, _) | Value.This(_) | Value.Lit(_) => N
           case _ => S(mkTempLocal("scrut"))
 
         val scrutInitExpr = scrutLocalResult.map: scrutLocal =>

@@ -74,7 +74,6 @@ class TailRecOpt(using State, TL, Raise):
   
   object CallToFun:
     def unapply(c: Call): Opt[TermSymbol] = c match
-      case Call(fun = Value.Ref(b, S(r: TermSymbol))) => S(r)
       case Call(fun = Value.MemberRef(_, r: TermSymbol)) => S(r)
       case Call(fun = s: Select) => s.symbol match
         case Some(r: TermSymbol) => S(r)
@@ -84,7 +83,6 @@ class TailRecOpt(using State, TL, Raise):
   object TailCallShape:
     def unapply(b: Block): Opt[(TermSymbol, Call)] = b match
       case Return(c @ CallToFun(r), _) => S((r, c))
-      case Assign(a, c @ CallToFun(r), Return(Value.Ref(b, _), _)) if a === b => S((r, c))
       case Assign(a, c @ CallToFun(r), Return(Value.MemberRef(b, _), _)) if a === b => S((r, c))
       case _ => N
     

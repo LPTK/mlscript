@@ -261,7 +261,6 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
       
       override def applyValue(v: Value): Unit =
         v match
-        case Value.Ref(l, disamb) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
         case Value.SimpleRef(l) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
         case Value.MemberRef(bms, _) if !inCtx(bms) && bms.asClsLike.isEmpty => freeVars.add(bms)
         case Value.InnerRef(l) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
@@ -495,11 +494,6 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
         case _ =>
         super.applyBlock(b)
       override def applyValue(v: Value)(k: Value => Block): Block = v match
-        case Value.Ref(l, x) =>
-          pre.res.modSymToBms.get(l) match
-            case Some(bms) =>
-              k(Value.MemberRef(bms, l.asMod.getOrElse(bms.defaultDisamb.get)))
-            case None => super.applyValue(v)(k)
         case Value.SimpleRef(l) =>
           pre.res.modSymToBms.get(l) match
             case Some(bms) =>

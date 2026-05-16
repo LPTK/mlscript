@@ -61,7 +61,6 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
     case _ => k(p)
 
   private def pathStartsWith(p: Path, symbol: Local): Bool = p match
-    case Value.Ref(l, _) => l is symbol
     case Value.SimpleRef(l) => l is symbol
     case Value.MemberRef(bms, _) => bms is symbol
     case Select(p, _) => pathStartsWith(p, symbol)
@@ -72,9 +71,6 @@ class FirstClassFunctionTransformer(using Elaborator.State, Elaborator.Ctx, Rais
     case c @ Call(fun, argss) => applyListOf(argss, (args, k2) => applyArgs(args)(k2)): argss2 =>
       def call(f: Path) = Call(f, argss2.ne_!)(c.isMlsFun, c.mayRaiseEffects, c.explicitTailCall)
       fun match
-        case ref @ Value.Ref(sym, _) => sym match
-          case _: VarSymbol |  _: TempSymbol => k(call(ref.selSN("call")))
-          case _ => k(call(fun))
         case ref @ Value.SimpleRef(sym) => sym match
           case _: VarSymbol |  _: TempSymbol => k(call(ref.selSN("call")))
           case _ => k(call(fun))
