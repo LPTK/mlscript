@@ -950,7 +950,6 @@ enum Value extends Path with ProductWithExtraInfo:
   /**
     * @param disamb The symbol disambiguating the definition that the reference refers to.
     */
-    // TODO(Derppening): Make `disamb` non-optional once all call sites can reliably provide one.
   case MemberRef(bms: BlockMemberSymbol, disamb: DefinitionSymbol[?])
   case This(sym: InnerSymbol)
   /** Reference to an [[InnerSymbol]] accessed by its bound variable name from outside its scope,
