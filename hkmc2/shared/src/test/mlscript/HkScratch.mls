@@ -4,9 +4,162 @@
 // :pt
 // :elt
 
-:global
-// :d
-// :todo
+// Testing for binaryen
+:silent
+import "binaryen"
 
 
+:silent
+"Binaryen Type Mapping:" |> print
+("    binaryen.none: " + binaryen.none) |> print
+("    binaryen.unreachable: " + binaryen.unreachable) |> print
+("    binaryen.i32: " + binaryen.i32) |> print
+("    binaryen.i64: " + binaryen.i64) |> print
+("    binaryen.i31ref: " + binaryen.i31ref) |> print
+("    binaryen.stringref: " + binaryen.stringref) |> print
+"Binaryen Packed Type Mapping:" |> print
+("    binaryen.notPacked: " + binaryen.notPacked) |> print
+("    binaryen.i8: " + binaryen.i8) |> print
+("    binaryen.i16: " + binaryen.i16) |> print
+"" |> print
+let mod = new! binaryen.Module()
+mod.setFeatures(binaryen.Features.All)
+//val instr = mod.ref.cast(mod.local.get(0, binaryen.anyref), binaryen.i31ref)
+//val instrType = binaryen.getExpressionType(instr)
+//mod.addFunction(
+//    "foo",
+//    binaryen.createType([binaryen.anyref]),
+//    binaryen.i31ref,
+//    [],
+//    instr,
+//)
+// !! Stringref !!
+//mod.addGlobal("str", binaryen.stringref, 0, mod.string.const("hello world"))
+// !! TypeBuilder - SignatureType !!
+//let funcTb = new binaryen.TypeBuilder(1)
+//funcTb.setSignatureType(0, binaryen.anyref, binaryen.i31ref)
+//let sigTy = funcTb.buildAndDispose()
+//let refFuncInstr = mod.ref.func("foo", sigTy[0])
+//mod.addGlobal("foo", sigTy[0], 0, refFuncInstr)
+//let refFuncInstrTy = binaryen.getExpressionType(refFuncInstr)
+//mod.addGlobal("foo_expr", refFuncInstrTy, 0, refFuncInstr)
+// !! TypeBuilder - StructType !!
+//let structTb = new! binaryen.TypeBuilder(1)
+//structTb.setStructType(
+//    0, 
+//    [
+//        { 
+//            "type": binaryen.i31ref,
+//            "packedType": binaryen.notPacked,
+//            "mutable": true,
+//        },
+//        { 
+//            "type": binaryen.i32,
+//            "packedType": binaryen.notPacked,
+//            "mutable": false,
+//        },
+//    ]
+//)
+//let structTy = structTb.buildAndDispose()
+//val structNewInstr = mod.struct.new([mod.ref.i31(mod.i32.const(0)), mod.i32.const(1)], structTy)
+//mod.addGlobal("foo", structTy[0], 0, structNewInstr)
+mod.emitText() |> print
+assert mod.validate() != false
+//mod.emitStackIR() |> print
+//│ > Binaryen Type Mapping:
+//│ >     binaryen.none: 0
+//│ >     binaryen.unreachable: 1
+//│ >     binaryen.i32: 2
+//│ >     binaryen.i64: 3
+//│ >     binaryen.i31ref: 50
+//│ >     binaryen.stringref: 82
+//│ > Binaryen Packed Type Mapping:
+//│ >     binaryen.notPacked: 0
+//│ >     binaryen.i8: 1
+//│ >     binaryen.i16: 2
+//│ > 
+//│ > (module
+//│ > )
+//│ > 
 
+
+:lot
+:sir
+:wasm
+:wat
+(42 as Int31)
+//│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Return:
+//│     res = Lit of IntLit of 42
+//│     implct = true
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ 42
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 42
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $entry (func (result (ref null any))))
+//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│     (ref.i31
+//│       (i32.const 42)))
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 42
+
+
+:lot
+:sir
+:wasm
+:wat
+:todo
+if 1 is Int then 2 else 3
+//│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Scoped(syms = {tmp:scrut⁰}): 
+//│     body = Assign:
+//│       lhs = tmp:scrut⁰
+//│       rhs = Lit of IntLit of 1
+//│       rest = Match: \
+//│       scrut = SimpleRef of tmp:scrut⁰
+//│       arms = Ls of 
+//│         Tuple2:
+//│           _1 = Cls:
+//│             cls = class:Int⁰
+//│             path = Select{sym=term:unreachable⁰}:
+//│               qual = SimpleRef of tmp:runtime⁰
+//│               name = Ident of "unreachable"
+//│           _2 = Return:
+//│             res = Lit of IntLit of 2
+//│             implct = true
+//│       dflt = S of Return:
+//│         res = Lit of IntLit of 3
+//│         implct = true
+//│       rest = End of "Rest moved to non-abortive branch(es)"
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let scrut; set scrut = 1; match scrut Int⁰ => 2 else 3 end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 2
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: None.get
+
+
+//:sir
+//:wasm
+:wat
+:todo
+// wasm.test()
+wasm.plus_impl(1, 2)
+//│ ╔══[COMPILATION ERROR] Module 'wasm' is virtual (i.e., "compiler fiction"); cannot be used directly
+//│ ║  l.153: 	wasm.plus_impl(1, 2)
+//│ ╙──       	^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+//:lot
+//:slot
+//val i31 = new (wasm.Int31)(-1)
+//val i31 = new Int31(-1)
+//val i31Zext = i31.zext()
+//val i31Sext = i31.sext()

@@ -71,7 +71,9 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
         case Assign(lhs, r, rest) =>
           if usesStack(r) then
             super.applyResult(r): r =>
-              extract(r, false, _ => applyBlock(rest), lhs, curDepth)
+              lhs match
+                case _: NoSymbol => blockBuilder.assign(lhs, r).rest(applyBlock(rest))
+                case _ => extract(r, false, _ => applyBlock(rest), lhs, curDepth)
           else
             super.applyBlock(b)
         

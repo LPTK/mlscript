@@ -959,16 +959,8 @@ enum Value extends Path with ProductWithExtraInfo:
 
   // TODO(Derppening): Remove once fully migrated to SimpleRef/MemberRef/This/InnerRef
   this match
-    case Ref(l: (LocalSymbol | BuiltinSymbol), _) =>
-      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.SimpleRef instead")
-    case Ref(l: TopLevelSymbol, _) =>
-      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.This instead")
-    case Ref(l: BlockMemberSymbol, N) =>
-      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should have an associated disamb symbol")
-    case Ref(l: BlockMemberSymbol, _) =>
-      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.MemberRef instead")
-    case Ref(l: (FlowSymbol | TypeAliasSymbol | ErrorSymbol), _) =>
-      lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should not appear in value position")
+    // TODO(Derppening): Uncomment for final verification after migration
+    case Ref(sym, disamb) => lastWords(s"Value.Ref(`$sym` (${sym.getClass.getSimpleName}), _) should be replaced with Value.SimpleRef, Value.MemberRef, Value.This, or Value.InnerRef")
     case _ =>
 
   override def extraInfo(using DebugPrinter): Str = this match
@@ -1029,5 +1021,6 @@ extension (l: Local)
     case tls: TopLevelSymbol => Value.This(tls)
     case bms: BlockMemberSymbol => Value.MemberRef(bms, bms.defaultDisamb.getOrElse(lastWords(s"Cannot disambiguate overloaded member symbol ${bms.nme}: no disambiguation provided")))
     case sym: InnerSymbol => Value.InnerRef(sym)
+    case _: NoSymbol => lastWords("NoSymbol should not be used as a Path/Value")
     case _ => Value.Ref(l, N)
 

@@ -293,7 +293,9 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
         transformSymbol(x): xSym =>
           blockCtor("ValueRef", Ls(xSym)): xStaged =>
             (Assign(x, xStaged, _)):
-              given Context = ctx.clone() += x.asPath -> xStaged
+              given Context = x match
+                case _: NoSymbol => ctx.clone()
+                case _ => ctx.clone() += x.asPath -> xStaged
               transformBlock(b): (z, ctx) =>
                 blockCtor("Assign", Ls(xSym, y, z), "assign")(k(_, ctx))
     case Define(cls: ClsLikeDefn, rest) =>
