@@ -959,7 +959,8 @@ enum Value extends Path with ProductWithExtraInfo:
 
   // TODO(Derppening): Remove once fully migrated to SimpleRef/MemberRef/This/InnerRef
   this match
-    case Ref(sym, disamb) => lastWords(s"Value.Ref(`$sym` (${sym.getClass.getSimpleName}), _) should be replaced with Value.SimpleRef, Value.MemberRef, Value.This, or Value.InnerRef")
+    case Ref(sym, disamb) => 
+      lastWords(s"Value.Ref(`$sym` (${sym.getClass.getSimpleName}), _) should be replaced with Value.SimpleRef, Value.MemberRef, Value.This, or Value.InnerRef")
     case _ =>
 
   override def extraInfo(using DebugPrinter): Str = this match
@@ -968,7 +969,7 @@ enum Value extends Path with ProductWithExtraInfo:
     case _ => ""
 
 object Value:
-  @deprecated("Use Value.SimpleRef, Value.MemberRef, or Value.This instead.")
+  @deprecated("Use Value.SimpleRef, Value.MemberRef, Value.This, or Value.InnerRef instead.")
   object Ref:
     // * Some helper constructors that allow omitting the disambiguation symbol.
     // * If the ref itself is a DefinitionSymbol, then disambiguating it results in itself.
