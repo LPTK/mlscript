@@ -599,7 +599,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case (sym: InnerSymbol, _) =>
         k(loweringCtx(Value.InnerRef(sym).withLocOf(ref)))
       case (sym, disamb) =>
-        k(loweringCtx(Value.Ref(sym, disamb).withLocOf(ref)))
+        lastWords(s"Unexpected symbol kind ${sym.getClass.getSimpleName}: $sym")
   
   @tailrec
   final def term(t: st, inStmtPos: Bool = false)(k: Result => Block)(using LoweringCtx): Block =
@@ -1003,14 +1003,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       sym match
         case sym: BlockMemberSymbol => k(Value.MemberRef(sym, disamb))
         case sym: (LocalSymbol | BuiltinSymbol) => k(Value.SimpleRef(sym))
-        case sym => k(Value.Ref(sym, S(disamb)))
+        case sym => lastWords(s"Unexpected symbol kind ${sym.getClass.getSimpleName}: $sym")
     case Ref(sym) =>
       sym match
         case sym: TempSymbol => k(Value.SimpleRef(sym))
         case sym: VarSymbol => k(Value.SimpleRef(sym))
         case sym: BlockMemberSymbol => k(Value.MemberRef(sym, sym.defaultDisamb.get))
         case sym: (LocalSymbol | BuiltinSymbol) => k(Value.SimpleRef(sym))
-        case sym => k(Value.Ref(sym, N))
+        case sym => lastWords(s"Unexpected symbol kind ${sym.getClass.getSimpleName}: $sym")
     case SynthSel(Ref(sym: ModuleOrObjectSymbol), name) => // Local cross-stage references
       setupSymbol(sym): r1 =>
         val l1, l2 = loweringCtx.registerTempSymbol(N)

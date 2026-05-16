@@ -360,7 +360,8 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
       case sym: VarSymbol => Value.SimpleRef(sym)
       case sym: (LocalSymbol | BuiltinSymbol) => Value.SimpleRef(sym)
       case sym: InnerSymbol => Value.InnerRef(sym)
-      case _ => Value.Ref(a, N)
+      case sym => 
+        lastWords(s"Unexpected symbol kind ${sym.getClass.getSimpleName}: $sym")
     def mkReturnCall(target: (BlockMemberSymbol, TermSymbol), args: Ls[Symbol]): Block =
       Return(Call(
         Value.MemberRef(target._1, target._2),

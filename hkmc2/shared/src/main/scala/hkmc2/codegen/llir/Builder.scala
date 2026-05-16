@@ -422,7 +422,23 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
           case args: Ls[TrivialExpr] =>
             val v: Local = newTemp
             Node.LetCall(Ls(v), builtin, Expr.Literal(Tree.StrLit(mathPrimitive)) :: args, k(v |> sr))
-      case Call(s @ Select(r @ Value.Ref(sym, _), Tree.Ident(fld)), argss) if s.symbol.isDefined =>
+      case Call(s @ Select(r @ Value.SimpleRef(sym), Tree.Ident(fld)), argss) if s.symbol.isDefined =>
+        bPath(r):
+          case r =>
+            bArgs(argss.flatten):
+              case args: Ls[TrivialExpr] =>
+                val v: Local = newTemp
+                log(s"Method Call Select: $r.$fld with ${s.symbol}")
+                Node.LetMethodCall(Ls(v), getClassOfField(s.symbol.get), s.symbol.get, r :: args, k(v |> sr))
+      case Call(s @ Select(r @ Value.MemberRef(sym, _), Tree.Ident(fld)), argss) if s.symbol.isDefined =>
+        bPath(r):
+          case r =>
+            bArgs(argss.flatten):
+              case args: Ls[TrivialExpr] =>
+                val v: Local = newTemp
+                log(s"Method Call Select: $r.$fld with ${s.symbol}")
+                Node.LetMethodCall(Ls(v), getClassOfField(s.symbol.get), s.symbol.get, r :: args, k(v |> sr))
+      case Call(s @ Select(r @ Value.InnerRef(sym), Tree.Ident(fld)), argss) if s.symbol.isDefined =>
         bPath(r):
           case r =>
             bArgs(argss.flatten):
@@ -488,7 +504,15 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
             summon[Ctx].def_acc += jpdef
             Node.Case(e, casesList, defaultCase)
       case Return(res, implct) => bResult(res)(x => Node.Result(Ls(x)))
-      case Throw(Instantiate(false, Select(Value.Ref(_, _), ident),
+      case Throw(Instantiate(false, Select(Value.SimpleRef(_), ident),
+          Ls(Arg(N, Value.Lit(Tree.StrLit(e)))) :: Nil))
+      if ident.name === "Error" =>
+        Node.Panic(e)
+      case Throw(Instantiate(false, Select(Value.MemberRef(_, _), ident),
+          Ls(Arg(N, Value.Lit(Tree.StrLit(e)))) :: Nil))
+      if ident.name === "Error" =>
+        Node.Panic(e)
+      case Throw(Instantiate(false, Select(Value.InnerRef(_), ident),
           Ls(Arg(N, Value.Lit(Tree.StrLit(e)))) :: Nil))
       if ident.name === "Error" =>
         Node.Panic(e)

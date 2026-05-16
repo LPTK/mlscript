@@ -967,10 +967,8 @@ object Value:
     
     // * Some helper constructors that allow omitting the disambiguation symbol.
     // * If the ref itself is a DefinitionSymbol, then disambiguating it results in itself.
-    // TODO(Derppening): Refine this to a specific type of Value
     def apply(l: DefinitionSymbol[?])(using State): Value = Ref(l, S(l))
     // * If the ref is a symbol that does not refer to a definition, then there is no disambiguation.
-    // TODO(Derppening): Refine this to a specific type of Value
     def apply(l: TempSymbol | VarSymbol | BuiltinSymbol)(using State): Value = Ref(l, N)
 
     def unapply(v: Value)(using State): Opt[(Local, Opt[DefinitionSymbol[?]])] = v match

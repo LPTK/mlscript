@@ -214,7 +214,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
             case newSym: VarSymbol => k(Value.SimpleRef(newSym))
             case newSym: (LocalSymbol | BuiltinSymbol) => k(Value.SimpleRef(newSym))
             case newSym: InnerSymbol => k(Value.InnerRef(newSym))
-            case newSym => k(Value.Ref(newSym, N))
+            case newSym => lastWords(s"Unexpected symbol kind ${newSym.getClass.getSimpleName}: $newSym")
     case Value.MemberRef(bms, disamb) =>
       mapping.get(bms) match
         case None => super.applyValue(v)(k)
