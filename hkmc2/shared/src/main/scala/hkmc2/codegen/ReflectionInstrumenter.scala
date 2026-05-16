@@ -174,11 +174,13 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
             blockCtor("ValueRef", Ls(sym), "var")(k)
         case Value.SimpleRef(l) =>
           transformSymbol(l): sym =>
-            // TODO(Derppening): "ValueRef" or "ValueSimpleRef"?
-            blockCtor("ValueRef", Ls(sym), "var")(k)
+            blockCtor("ValueSimpleRef", Ls(sym), "var")(k)
         case Value.MemberRef(bms, disamb) =>
           transformSymbol(disamb): sym =>
-            blockCtor("ValueRef", Ls(sym), "var")(k)
+            blockCtor("ValueMemberRef", Ls(sym), "var")(k)
+        case Value.InnerRef(sym) =>
+          transformSymbol(sym): s =>
+            blockCtor("ValueInnerRef", Ls(s), "var")(k)
         case l: Value.Lit =>
           blockCtor("ValueLit", Ls(l), "lit")(k)
         case s @ Select(p, Tree.Ident(name)) =>
@@ -191,9 +193,6 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
           transformPath(qual): x =>
             transformPath(fld): y =>
               blockCtor("DynSelect", Ls(x, y, toValue(arrayIdx)), "dynsel")(k)
-        case Value.InnerRef(sym) =>
-          transformSymbol(sym): s =>
-            blockCtor("ValueRef", Ls(s), "var")(k)
         case _: Value.This =>
           raise(ErrorReport(msg"Value.This not supported in staged module." -> p.toLoc :: Nil))
           End()

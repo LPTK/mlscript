@@ -46,7 +46,7 @@ staged module LiftedNested with
 //│   method f_instr⁰ = fun f_instr¹() {
 //│     let sym, var1, tmp, app, return1, tmp1, tmp2, tmp3, tmp4;
 //│     set sym = Block⁰.Symbol﹖("g");
-//│     set var1 = Block⁰.ValueRef﹖(sym);
+//│     set var1 = Block⁰.ValueMemberRef﹖(sym);
 //│     set tmp = [];
 //│     set app = Block⁰.Call﹖(var1, tmp);
 //│     set return1 = Block⁰.Return﹖(app, false);
@@ -110,14 +110,14 @@ staged module LiftedLambda with
 //│     set sym = Block⁰.Symbol﹖("tmp");
 //│     set tmp1 = [sym];
 //│     set sym1 = Block⁰.Symbol﹖("x");
-//│     set var1 = Block⁰.ValueRef﹖(sym1);
+//│     set var1 = Block⁰.ValueSimpleRef﹖(sym1);
 //│     set tmp2 = Block⁰.Arg﹖(var1);
 //│     set tmp3 = option⁰.None﹖;
 //│     set sym2 = Block⁰.Symbol﹖("x1");
 //│     set tmp4 = [sym2];
 //│     set tmp5 = [tmp4];
 //│     set sym3 = Block⁰.ConcreteClassSymbol﹖("Function$", Function$¹, tmp3, tmp5);
-//│     set var2 = Block⁰.ValueRef﹖(sym3);
+//│     set var2 = Block⁰.ValueMemberRef﹖(sym3);
 //│     set tmp6 = [tmp2];
 //│     set inst = Block⁰.Instantiate﹖(var2, tmp6);
 //│     set sym4 = Block⁰.Symbol﹖("tmp");
@@ -190,14 +190,14 @@ staged module LiftedMultParams with
 //│     set sym = Block⁰.Symbol﹖("tmp");
 //│     set tmp1 = [sym];
 //│     set sym1 = Block⁰.Symbol﹖("x");
-//│     set var1 = Block⁰.ValueRef﹖(sym1);
+//│     set var1 = Block⁰.ValueSimpleRef﹖(sym1);
 //│     set tmp2 = Block⁰.Arg﹖(var1);
 //│     set tmp3 = option⁰.None﹖;
 //│     set sym2 = Block⁰.Symbol﹖("x1");
 //│     set tmp4 = [sym2];
 //│     set tmp5 = [tmp4];
 //│     set sym3 = Block⁰.ConcreteClassSymbol﹖("Function$", Function$³, tmp3, tmp5);
-//│     set var2 = Block⁰.ValueRef﹖(sym3);
+//│     set var2 = Block⁰.ValueMemberRef﹖(sym3);
 //│     set tmp6 = [tmp2];
 //│     set inst = Block⁰.Instantiate﹖(var2, tmp6);
 //│     set sym4 = Block⁰.Symbol﹖("tmp");
