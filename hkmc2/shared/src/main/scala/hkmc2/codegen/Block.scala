@@ -959,7 +959,6 @@ enum Value extends Path with ProductWithExtraInfo:
 
   // TODO(Derppening): Remove once fully migrated to SimpleRef/MemberRef/This/InnerRef
   this match
-    // TODO(Derppening): Uncomment for final verification after migration
     case Ref(sym, disamb) => lastWords(s"Value.Ref(`$sym` (${sym.getClass.getSimpleName}), _) should be replaced with Value.SimpleRef, Value.MemberRef, Value.This, or Value.InnerRef")
     case _ =>
 

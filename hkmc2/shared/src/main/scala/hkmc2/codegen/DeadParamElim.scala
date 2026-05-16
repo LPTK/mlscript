@@ -330,7 +330,6 @@ class Rewrite(val deadParamElimSolver: DeadParamElimSolver)(using Raise):
         case Value.SimpleRef(l) =>
           pre.res.modSymToBms.get(l) match
             case Some(bms) =>
-              // TODO(Derppening): Check if this assertion holds
               lastWords("SimpleRef should not refresh into a MemberRef")
             case None => super.applyValue(v)(k)
         case Value.InnerRef(l) =>
