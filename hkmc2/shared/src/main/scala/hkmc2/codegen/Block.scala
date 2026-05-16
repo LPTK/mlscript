@@ -968,7 +968,7 @@ enum Value extends Path with ProductWithExtraInfo:
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should have an associated disamb symbol")
     case Ref(l: BlockMemberSymbol, _) =>
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should use Value.MemberRef instead")
-    case Ref(l: (TypeAliasSymbol | ErrorSymbol), _) =>
+    case Ref(l: (FlowSymbol | TypeAliasSymbol | ErrorSymbol), _) =>
       lastWords(s"Value.Ref(`$l`: ${l.getClass.getSimpleName}, _) should not appear in value position")
     case _ =>
 
