@@ -261,7 +261,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
       
       override def applyValue(v: Value): Unit =
         v match
-        case Value.SimpleRef(l) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
+        case Value.SimpleRef(l) if !inCtx(l) => freeVars.add(l)
         case Value.MemberRef(bms, _) if !inCtx(bms) && bms.asClsLike.isEmpty => freeVars.add(bms)
         case Value.InnerRef(l) if !inCtx(l) && l.asClsLike.isEmpty => freeVars.add(l)
         case _ => super.applyValue(v)
