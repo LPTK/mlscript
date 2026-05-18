@@ -588,14 +588,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     (sym, disamb) match
       case (sym: TopLevelSymbol, _) =>
         k(loweringCtx(Value.This(sym).withLocOf(ref)))
-      case (sym: TempSymbol, _) =>
-        k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
-      case (sym: VarSymbol, _) =>
+      case (sym: (LocalSymbol | BuiltinSymbol), _) =>
         k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
       case (sym: BlockMemberSymbol, _) =>
         k(loweringCtx(Value.MemberRef(sym, disamb.orElse(sym.defaultDisamb).get).withLocOf(ref)))
-      case (sym: (LocalSymbol | BuiltinSymbol), _) =>
-        k(loweringCtx(Value.SimpleRef(sym).withLocOf(ref)))
       case (sym: InnerSymbol, _) =>
         k(loweringCtx(Value.InnerRef(sym).withLocOf(ref)))
       case (sym, disamb) =>
