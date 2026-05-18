@@ -958,7 +958,6 @@ object Value:
     def apply(l: Local, disamb: Opt[DefinitionSymbol[?]])(using State): Value = 
       l match
         case l: (LocalSymbol | BuiltinSymbol) => Value.SimpleRef(l)
-        case sym: TopLevelSymbol if sym === State.globalThisSymbol => Value.This(sym)
         case tls: TopLevelSymbol => Value.This(tls)
         case bms: BlockMemberSymbol => Value.MemberRef(bms, disamb.getOrElse(lastWords(s"Cannot disambiguate overloaded member symbol ${bms.nme}: no disambiguation provided")))
         case sym: InnerSymbol => Value.InnerRef(sym)
@@ -1018,7 +1017,6 @@ extension (bms: BlockMemberSymbol)
 extension (l: Local)
   def asPath(using State): Path = l match 
     case l: (LocalSymbol | BuiltinSymbol) => Value.SimpleRef(l)
-    case sym: TopLevelSymbol if sym === State.globalThisSymbol => Value.This(sym)
     case tls: TopLevelSymbol => Value.This(tls)
     case bms: BlockMemberSymbol => Value.MemberRef(bms, bms.defaultDisamb.getOrElse(lastWords(s"Cannot disambiguate overloaded member symbol ${bms.nme}: no disambiguation provided")))
     case sym: InnerSymbol => Value.InnerRef(sym)
