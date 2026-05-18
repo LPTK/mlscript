@@ -205,16 +205,14 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
     case Value.SimpleRef(l) =>
       mapping.get(l) match
         case None => super.applyValue(v)(k)
-        case Some(newBms: BlockMemberSymbol) =>
-          val newDisamb = newBms.tsym
-          k(Value.MemberRef(newBms, newDisamb.get))
+        case Some(newSym: BlockMemberSymbol) =>
+          lastWords(s"SimpleRef $l should not refresh into a MemberRef $newSym")
+        case Some(newSym: (LocalSymbol | BuiltinSymbol)) =>
+          k(Value.SimpleRef(newSym))
+        case Some(newSym: InnerSymbol) =>
+          k(Value.InnerRef(newSym))
         case Some(newSym) =>
-          newSym match
-            case newSym: TempSymbol => k(Value.SimpleRef(newSym))
-            case newSym: VarSymbol => k(Value.SimpleRef(newSym))
-            case newSym: (LocalSymbol | BuiltinSymbol) => k(Value.SimpleRef(newSym))
-            case newSym: InnerSymbol => k(Value.InnerRef(newSym))
-            case newSym => lastWords(s"Unexpected symbol kind ${newSym.getClass.getSimpleName}: $newSym")
+          lastWords(s"Unexpected symbol kind ${newSym.getClass.getSimpleName}: $newSym")
     case Value.MemberRef(bms, disamb) =>
       mapping.get(bms) match
         case None => super.applyValue(v)(k)
