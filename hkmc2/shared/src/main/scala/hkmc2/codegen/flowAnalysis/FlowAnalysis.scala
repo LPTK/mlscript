@@ -36,7 +36,7 @@ object FlowAnalysis:
         case Value.SimpleRef(s) => s
         case Value.MemberRef(bms, _) => bms
         case Value.InnerRef(sym) => sym
-        case e => lastWords(s"assumption failed: $e is not a Value.Ref")
+        case e => lastWords(s"assumption failed: $e is not a SimpleRef, MemberRef, or InnerRef")
       def getReferredFun(using Elaborator.State): Option[TermSymbol] =
         resultId.getResult match
         case FunRef(f) => Some(f)

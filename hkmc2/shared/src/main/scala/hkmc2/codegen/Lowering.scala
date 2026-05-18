@@ -51,7 +51,7 @@ class LoweringCtx(
   /*
   def +(kv: (Local, Value)): Subst =
     kv match
-    case (ns: NamedSymbol, Value.Ref(ts: TempSymbol)) =>
+    case (ns: NamedSymbol, Value.SimpleRef(ts: TempSymbol)) =>
       ts.nameHints += ns.name
     case _ =>
     Subst(map + kv)
@@ -642,12 +642,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 isContinue,
                 Call(
                   State.builtinOpsMap("===").asPath,
-                  (Value.Ref(bodyResult).asArg :: Value.Ref(State.runtimeSymbol).selSN("Continue").asArg :: Nil) ne_:: Nil,
+                  (Value.SimpleRef(bodyResult).asArg :: Value.SimpleRef(State.runtimeSymbol).selSN("Continue").asArg :: Nil) ne_:: Nil,
                 )(true, false, false),
                 Match(
-                  Value.Ref(isContinue),
+                  Value.SimpleRef(isContinue),
                   (Case.Lit(Tree.BoolLit(true)) -> Continue(label)) :: Nil,
-                  S(Assign(result, Value.Ref(bodyResult), Break(label))),
+                  S(Assign(result, Value.SimpleRef(bodyResult), Break(label))),
                   End("label continue-sentinel dispatch")
                 )
               )
@@ -656,7 +656,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         label,
         loop = hasLocalContinue(body),
         bodyBlock,
-        k(Value.Ref(result))
+        k(Value.SimpleRef(result))
       )
     case st.Break(label, result, value) =>
       value match
