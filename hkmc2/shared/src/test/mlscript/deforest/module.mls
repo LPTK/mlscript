@@ -21,7 +21,22 @@ M.f(M.p())
 //│ deforest > 	match: arg$XX$0$⁰
 //│ deforest > 	fields: arg$XX$0$⁰.b⁰
 //│ deforest > <<< fusing <<<
-//│ = 123
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] ReferenceError: M is not defined
+//│     at tmp (REPL10:1:2454)
+//│     at inlinedVal (REPL10:1:2595)
+//│     at REPL10:1:2661
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:305)
+//│ ═══[RUNTIME ERROR] Expected: '123', got: 'undefined'
 
 
 
@@ -121,7 +136,22 @@ MMM.f()
 //│ deforest > MMM⁰.this.A⁰ ->
 //│ deforest > 	match: scrut⁰
 //│ deforest > <<< fusing <<<
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] ReferenceError: MMM is not defined
+//│     at scrut (REPL19:1:1122)
+//│     at REPL19:1:1199
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:305)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 
@@ -141,7 +171,22 @@ M.f(M.X)
 //│ deforest > M¹.X⁰ ->
 //│ deforest > 	match: k⁰
 //│ deforest > <<< fusing <<<
-//│ = X
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] ReferenceError: M2 is not defined
+//│     at deforest$lam (REPL22:1:1462)
+//│     at REPL22:1:1686
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:305)
+//│ ═══[RUNTIME ERROR] Expected: 'X', got: 'undefined'
 
 
 :deforest

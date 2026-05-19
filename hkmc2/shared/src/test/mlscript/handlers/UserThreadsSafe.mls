@@ -11,6 +11,43 @@ class ThreadEffect with
       tasks.pop()()
   fun fork(thread: () -> ()): ()
   fun yld(): ()
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, tmp:while$debugInfo -> while$debugInfo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res1, member:while -> while1, tmp:block$res -> block$res)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:ThreadEffect
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, tmp:while$debugInfo -> while$debugInfo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res1, member:while -> while1, tmp:block$res -> block$res)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:ThreadEffect
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, tmp:while$debugInfo -> while$debugInfo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res1, member:while -> while1, tmp:block$res -> block$res)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:ThreadEffect
+//│ > let ThreadEffect1, while1, while$debugInfo, ThreadEffect$_drain$debugInfo;try { runtime.checkCall(runtime.resetEffects()); while$debugInfo = globalThis.Object.freeze([   "while" ]); while1 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   loopLabel: while (true) {     let scrut, selRes, callPrefix, pc;     if (runtime.resumePc === -1) {       pc = 0;     } else {       let saveOffset;       pc = runtime.resumePc;       saveOffset = runtime.resumeIdx;       scrut = runtime.resumeArr.at(saveOffset);       saveOffset = saveOffset + 1;       selRes = runtime.resumeArr.at(saveOffset);       saveOffset = saveOffset + 1;       callPrefix = runtime.resumeArr.at(saveOffset);       runtime.resumePc = -1;     }     main: while (true) {       switch (pc) {         case 0:           selRes = ‹MISSING_THIS›.tasks.length;           ‹MISSING_THIS›.tasks.length$__checkNotMethod;           if (selRes === undefined) {             throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'length' yielded 'undefined'"))           }           runtime.resumeValue = runtime.checkCall(Predef.nequals(selRes, 0));           if (runtime.curEffect === null) {             pc = 4;           } else {             return runtime.checkCall(runtime.unwind(while1, 4, "UserThreadsSafe.mls:10:11", while$debugInfo, null, 1, 0, 3, scrut, selRes, callPrefix))           }         case 4:           scrut = runtime.resumeValue;           if (scrut === true) {             runtime.resumeValue = runtime.safeCall(‹MISSING_THIS›.tasks.pop());             if (runtime.curEffect === null) {               pc = 2;               continue main             }             return runtime.checkCall(runtime.unwind(while1, 2, "UserThreadsSafe.mls:11:7", while$debugInfo, null, 1, 0, 3, scrut, selRes, callPrefix));           }           pc = 3;           continue main;         case 3:           return runtime.LoopEnd;         case 2:           callPrefix = runtime.resumeValue;           runtime.resumeValue = runtime.safeCall(callPrefix());           if (runtime.curEffect === null) {             pc = 1;             if (1 === 1) {               runtime.resumeValue;               continue loopLabel             }           } else {             return runtime.checkCall(runtime.unwind(while1, 1, "UserThreadsSafe.mls:11:7", while$debugInfo, null, 1, 0, 3, scrut, selRes, callPrefix))           }           break;         case 1:           runtime.resumeValue;           continue loopLabel;       }       break;     }     break;   } }); ThreadEffect$_drain$debugInfo = globalThis.Object.freeze([   "ThreadEffect#drain" ]); globalThis.Object.freeze(class ThreadEffect {   static {     ThreadEffect1 = this   }   constructor() {     let tmp;     tmp = [];     this.tasks = tmp;   }   get drain$__checkNotMethod() { runtime.deboundMethod("drain", "ThreadEffect"); }   drain() {     runtime.checkArgs("drain", 0, true, arguments.length);     let tmp, tmp1, pc;     if (runtime.resumePc === -1) {       pc = 0;     } else {       let saveOffset;       pc = runtime.resumePc;       saveOffset = runtime.resumeIdx;       tmp = runtime.resumeArr.at(saveOffset);       saveOffset = saveOffset + 1;       tmp1 = runtime.resumeArr.at(saveOffset);       runtime.resumePc = -1;     }     switch (pc) {       case 0:         runtime.resumeValue = runtime.checkCall(while1());         if (runtime.curEffect === null) {           pc = 1;         } else {           return runtime.checkCall(runtime.unwind(this.drain, 1, null, ThreadEffect$_drain$debugInfo, this, 1, 0, 2, tmp, tmp1))         }       case 1:         tmp = runtime.resumeValue;         tmp1 = tmp !== runtime.LoopEnd;         if (tmp1 === true) {           return tmp         }         return runtime.Unit;     }   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "ThreadEffect"];  });; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:254)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
 
 
 fun f(h, x)() =
@@ -40,15 +77,77 @@ handle h = ThreadEffect with
     this.drain()
 in
   main(h)
-//│ > main start
-//│ > main end
-//│ > f 2
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
-//│ 	at f (UserThreadsSafe.mls:18:3)
-//│ 	at while (UserThreadsSafe.mls:11:7)
-//│ 	at ThreadEffect#drain (pc=1)
-//│ 	at Handler$h$fork (UserThreadsSafe.mls:36:5)
-//│ 	at Handler$h$fork (UserThreadsSafe.mls:36:5)
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:main$debugInfo -> main$debugInfo, tmp:block$res -> block$res1, member:f -> f, tmp:block$res -> block$res, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:block$res -> block$res4, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:main$debugInfo -> main$debugInfo, tmp:block$res -> block$res1, member:f -> f, tmp:block$res -> block$res, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:block$res -> block$res4, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:main$debugInfo -> main$debugInfo, tmp:block$res -> block$res1, member:f -> f, tmp:block$res -> block$res, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:block$res -> block$res4, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:main$debugInfo -> main$debugInfo, tmp:block$res -> block$res1, member:f -> f, tmp:block$res -> block$res, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:block$res -> block$res4, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:main$debugInfo -> main$debugInfo, tmp:block$res -> block$res1, member:f -> f, tmp:block$res -> block$res, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:block$res -> block$res4, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:main$debugInfo -> main$debugInfo, tmp:block$res -> block$res1, member:f -> f, tmp:block$res -> block$res, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:block$res -> block$res4, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ > let h, tmp, handleBlock$, Handler$h$fork, Handler$h$yld, Handler$h$1, Handler$h$fork$, Handler$h$yld$debugInfo, Handler$h$fork$debugInfo;try { runtime.checkCall(runtime.resetEffects()); Handler$h$yld$debugInfo = globalThis.Object.freeze([   "Handler$h$yld" ]); Handler$h$yld = function Handler$h$yld(k) {   runtime.checkArgs("Handler$h$yld", 1, true, arguments.length);   let selRes, pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     let saveOffset;     pc = runtime.resumePc;     saveOffset = runtime.resumeIdx;     selRes = runtime.resumeArr.at(saveOffset);     runtime.resumePc = -1;   }   switch (pc) {     case 0:       selRes = ‹MISSING_THIS›.tasks;       ‹MISSING_THIS›.tasks$__checkNotMethod;       if (selRes === undefined) {         throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'tasks' yielded 'undefined'"))       }       runtime.resumeValue = runtime.safeCall(selRes.unshift(k));       if (runtime.curEffect === null) {         pc = 1;       } else {         return runtime.checkCall(runtime.unwind(Handler$h$yld, 1, "UserThreadsSafe.mls:76:5", Handler$h$yld$debugInfo, null, 1, 1, k, 1, selRes))       }     case 1:       runtime.resumeValue;       return runtime.safeCall(‹MISSING_THIS›.drain());   } }; Handler$h$fork$ = function Handler$h$fork$(thread) {   runtime.checkArgs("Handler$h$fork$", 1, true, arguments.length);   return (k) => {     return runtime.checkCall(Handler$h$fork(thread, k))   } }; Handler$h$fork$debugInfo = globalThis.Object.freeze([   "Handler$h$fork" ]); Handler$h$fork = function Handler$h$fork(thread, k) {   runtime.checkArgs("Handler$h$fork", 2, true, arguments.length);   let selRes, pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     let saveOffset;     pc = runtime.resumePc;     saveOffset = runtime.resumeIdx;     selRes = runtime.resumeArr.at(saveOffset);     runtime.resumePc = -1;   }   switch (pc) {     case 0:       selRes = ‹MISSING_THIS›.tasks;       ‹MISSING_THIS›.tasks$__checkNotMethod;       if (selRes === undefined) {         throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'tasks' yielded 'undefined'"))       }       runtime.resumeValue = runtime.safeCall(selRes.push(thread));       if (runtime.curEffect === null) {         pc = 2;       } else {         return runtime.checkCall(runtime.unwind(Handler$h$fork, 2, "UserThreadsSafe.mls:72:5", Handler$h$fork$debugInfo, null, 1, 2, thread, k, 1, selRes))       }     case 2:       runtime.resumeValue;       runtime.resumeValue = runtime.safeCall(k());       if (runtime.curEffect === null) {         pc = 1;       } else {         return runtime.checkCall(runtime.unwind(Handler$h$fork, 1, "UserThreadsSafe.mls:73:5", Handler$h$fork$debugInfo, null, 1, 2, thread, k, 1, selRes))       }     case 1:       runtime.resumeValue;       return runtime.safeCall(‹MISSING_THIS›.drain());   } }; globalThis.Object.freeze(class Handler$h$ extends ThreadEffect1 {   static {     Handler$h$1 = this   }   constructor() {     let tmp1;     tmp1 = super();     if (runtime.curEffect === null) {       tmp1     } else {       tmp1 = runtime.checkCall(runtime.illegalEffect("in a constructor"));       tmp1     }   }   get fork$__checkNotMethod() { runtime.deboundMethod("fork", "Handler$h$"); }    get yld$__checkNotMethod() { runtime.deboundMethod("yld", "Handler$h$"); }   fork(thread) {     runtime.checkArgs("fork", 1, true, arguments.length);     let Handler$h$fork$here;     Handler$h$fork$here = runtime.checkCall(Handler$h$fork$(thread));     return runtime.checkCall(runtime.mkEffect(this, Handler$h$fork$here))   }    yld() {     runtime.checkArgs("yld", 0, true, arguments.length);     return runtime.checkCall(runtime.mkEffect(this, Handler$h$yld))   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Handler$h$"];  }); h = new Handler$h$1(); handleBlock$ = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   return runtime.checkCall(main(h)) }); tmp = runtime.checkCall(runtime.enterHandleBlock(h, handleBlock$)); if (runtime.curEffect === null) {   block$res4 = tmp;   undefined } else { tmp = runtime.checkCall(runtime.topLevelEffect(true)); block$res4 = tmp; undefined }; undefined } catch (e) { console.log('\u200B' + e + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:254)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
+//│ FAILURE: Unexpected lack of runtime error
 
 
 // FIFO
@@ -63,14 +162,76 @@ handle h = ThreadEffect with
     this.drain()
 in
   main(h)
-//│ > main start
-//│ > main end
-//│ > f 0
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$2
-//│ 	at f (UserThreadsSafe.mls:18:3)
-//│ 	at while (UserThreadsSafe.mls:11:7)
-//│ 	at ThreadEffect#drain (pc=1)
-//│ 	at Handler$h$fork (UserThreadsSafe.mls:59:5)
-//│ 	at Handler$h$fork (UserThreadsSafe.mls:59:5)
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:block$res -> block$res5, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:main$debugInfo -> main$debugInfo, member:handleBlock$ -> handleBlock$1, member:Handler$h$fork -> Handler$h$fork1, tmp:block$res -> block$res1, member:f -> f, member:Handler$h$yld -> Handler$h$yld1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$3, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:Handler$h$fork$ -> Handler$h$fork$1, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo1, tmp:block$res -> block$res4, h -> h1, class:Handler$h$ -> Handler$h$2, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo1, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:block$res -> block$res5, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:main$debugInfo -> main$debugInfo, member:handleBlock$ -> handleBlock$1, member:Handler$h$fork -> Handler$h$fork1, tmp:block$res -> block$res1, member:f -> f, member:Handler$h$yld -> Handler$h$yld1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$3, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:Handler$h$fork$ -> Handler$h$fork$1, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo1, tmp:block$res -> block$res4, h -> h1, class:Handler$h$ -> Handler$h$2, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo1, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:block$res -> block$res5, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:main$debugInfo -> main$debugInfo, member:handleBlock$ -> handleBlock$1, member:Handler$h$fork -> Handler$h$fork1, tmp:block$res -> block$res1, member:f -> f, member:Handler$h$yld -> Handler$h$yld1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$3, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:Handler$h$fork$ -> Handler$h$fork$1, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo1, tmp:block$res -> block$res4, h -> h1, class:Handler$h$ -> Handler$h$2, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo1, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:block$res -> block$res5, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:main$debugInfo -> main$debugInfo, member:handleBlock$ -> handleBlock$1, member:Handler$h$fork -> Handler$h$fork1, tmp:block$res -> block$res1, member:f -> f, member:Handler$h$yld -> Handler$h$yld1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$3, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:Handler$h$fork$ -> Handler$h$fork$1, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo1, tmp:block$res -> block$res4, h -> h1, class:Handler$h$ -> Handler$h$2, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo1, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:block$res -> block$res5, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:main$debugInfo -> main$debugInfo, member:handleBlock$ -> handleBlock$1, member:Handler$h$fork -> Handler$h$fork1, tmp:block$res -> block$res1, member:f -> f, member:Handler$h$yld -> Handler$h$yld1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$3, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:Handler$h$fork$ -> Handler$h$fork$1, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo1, tmp:block$res -> block$res4, h -> h1, class:Handler$h$ -> Handler$h$2, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo1, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:block$res -> block$res5, member:Handler$h$fork -> Handler$h$fork, tmp:while$debugInfo -> while$debugInfo, member:Handler$h$yld -> Handler$h$yld, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:ThreadEffect#drain$debugInfo -> ThreadEffect$_drain$debugInfo, member:Handler$h$fork$ -> Handler$h$fork$, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:main$debugInfo -> main$debugInfo, member:handleBlock$ -> handleBlock$1, member:Handler$h$fork -> Handler$h$fork1, tmp:block$res -> block$res1, member:f -> f, member:Handler$h$yld -> Handler$h$yld1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$3, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo, tmp:block$res -> block$res3, member:Handler$h$fork$ -> Handler$h$fork$1, member:ThreadEffect -> ThreadEffect1, class:ThreadEffect -> ThreadEffect, h -> h, class:Handler$h$ -> Handler$h$, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:Handler$h$yld$debugInfo -> Handler$h$yld$debugInfo1, tmp:block$res -> block$res4, h -> h1, class:Handler$h$ -> Handler$h$2, tmp:Handler$h$fork$debugInfo -> Handler$h$fork$debugInfo1, member:while -> while1, tmp:block$res -> block$res2, member:main -> main)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ > let h1, tmp1, handleBlock$1, Handler$h$fork1, Handler$h$yld1, Handler$h$3, Handler$h$fork$1, Handler$h$yld$debugInfo1, Handler$h$fork$debugInfo1;try { runtime.checkCall(runtime.resetEffects()); Handler$h$yld$debugInfo1 = globalThis.Object.freeze([   "Handler$h$yld" ]); Handler$h$yld1 = function Handler$h$yld(k) {   runtime.checkArgs("Handler$h$yld", 1, true, arguments.length);   let selRes, pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     let saveOffset;     pc = runtime.resumePc;     saveOffset = runtime.resumeIdx;     selRes = runtime.resumeArr.at(saveOffset);     runtime.resumePc = -1;   }   switch (pc) {     case 0:       selRes = ‹MISSING_THIS›.tasks;       ‹MISSING_THIS›.tasks$__checkNotMethod;       if (selRes === undefined) {         throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'tasks' yielded 'undefined'"))       }       runtime.resumeValue = runtime.safeCall(selRes.unshift(k));       if (runtime.curEffect === null) {         pc = 1;       } else {         return runtime.checkCall(runtime.unwind(Handler$h$yld1, 1, "UserThreadsSafe.mls:161:5", Handler$h$yld$debugInfo1, null, 1, 1, k, 1, selRes))       }     case 1:       runtime.resumeValue;       return runtime.safeCall(‹MISSING_THIS›.drain());   } }; Handler$h$fork$1 = function Handler$h$fork$(thread) {   runtime.checkArgs("Handler$h$fork$", 1, true, arguments.length);   return (k) => {     return runtime.checkCall(Handler$h$fork1(thread, k))   } }; Handler$h$fork$debugInfo1 = globalThis.Object.freeze([   "Handler$h$fork" ]); Handler$h$fork1 = function Handler$h$fork(thread, k) {   runtime.checkArgs("Handler$h$fork", 2, true, arguments.length);   let selRes, pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     let saveOffset;     pc = runtime.resumePc;     saveOffset = runtime.resumeIdx;     selRes = runtime.resumeArr.at(saveOffset);     runtime.resumePc = -1;   }   switch (pc) {     case 0:       selRes = ‹MISSING_THIS›.tasks;       ‹MISSING_THIS›.tasks$__checkNotMethod;       if (selRes === undefined) {         throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'tasks' yielded 'undefined'"))       }       runtime.resumeValue = runtime.safeCall(selRes.unshift(thread));       if (runtime.curEffect === null) {         pc = 2;       } else {         return runtime.checkCall(runtime.unwind(Handler$h$fork1, 2, "UserThreadsSafe.mls:157:5", Handler$h$fork$debugInfo1, null, 1, 2, thread, k, 1, selRes))       }     case 2:       runtime.resumeValue;       runtime.resumeValue = runtime.safeCall(k());       if (runtime.curEffect === null) {         pc = 1;       } else {         return runtime.checkCall(runtime.unwind(Handler$h$fork1, 1, "UserThreadsSafe.mls:158:5", Handler$h$fork$debugInfo1, null, 1, 2, thread, k, 1, selRes))       }     case 1:       runtime.resumeValue;       return runtime.safeCall(‹MISSING_THIS›.drain());   } }; globalThis.Object.freeze(class Handler$h$2 extends ThreadEffect1 {   static {     Handler$h$3 = this   }   constructor() {     let tmp2;     tmp2 = super();     if (runtime.curEffect === null) {       tmp2     } else {       tmp2 = runtime.checkCall(runtime.illegalEffect("in a constructor"));       tmp2     }   }   get fork$__checkNotMethod() { runtime.deboundMethod("fork", "Handler$h$"); }    get yld$__checkNotMethod() { runtime.deboundMethod("yld", "Handler$h$"); }   fork(thread) {     runtime.checkArgs("fork", 1, true, arguments.length);     let Handler$h$fork$here;     Handler$h$fork$here = runtime.checkCall(Handler$h$fork$1(thread));     return runtime.checkCall(runtime.mkEffect(this, Handler$h$fork$here))   }    yld() {     runtime.checkArgs("yld", 0, true, arguments.length);     return runtime.checkCall(runtime.mkEffect(this, Handler$h$yld1))   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Handler$h$"];  }); h1 = new Handler$h$3(); handleBlock$1 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   return runtime.checkCall(main(h1)) }); tmp1 = runtime.checkCall(runtime.enterHandleBlock(h1, handleBlock$1)); if (runtime.curEffect === null) {   block$res5 = tmp1;   undefined } else { tmp1 = runtime.checkCall(runtime.topLevelEffect(true)); block$res5 = tmp1; undefined }; undefined } catch (e) { console.log('\u200B' + e + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:254)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
+//│ FAILURE: Unexpected lack of runtime error
 
 

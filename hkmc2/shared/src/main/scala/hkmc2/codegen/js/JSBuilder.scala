@@ -67,6 +67,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       source = Diagnostic.Source.Compilation))
     doc" # ${mkErr(errMsg)};"
   
+  // TODO: replace getVar with specialized logic for each case
   def getVar(l: Local, loc: Opt[Loc])(using Raise, Scope): Document = l match
     case ts: semantics.TermSymbol =>
       ts.owner match
@@ -113,6 +114,9 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     if r.isInstanceOf[Value.Lit] then doc"(${res})" else res
   
   def result(r: Result)(using Raise, Scope): Document = r match
+    case Value.This(ts: semantics.ModuleOrObjectSymbol) if ts.asMod.isDefined => // FIXME: currently, objects have a ModuleSymbol...
+      // * Module self-references use the module name itself instead of `this`
+      scope.lookup_!(ts, r.toLoc)
     case Value.This(sym) => scope.findThis_!(sym)
     case Value.Lit(Tree.StrLit(value)) => makeStringLiteral(value)
     case Value.Lit(lit) => lit.idStr

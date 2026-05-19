@@ -173,7 +173,22 @@ module A with
     else n + f(n-1)
   val x = f(10000)
 A.x
-//│ = 50005000
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
+//│     at A.lambda4 [as f] (REPL37:1:688)
+//│     at globalThis.Object.freeze.$_stack$_safe$_body$_9 (REPL37:1:1461)
+//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:1024:28)
+//│     at Runtime.runStackSafe (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:1113:28)
+//│     at <static_initializer> (REPL37:1:1516)
+//│     at REPL37:1:2001
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:305)
+//│ ═══[RUNTIME ERROR] Expected: '50005000', got: 'undefined'
 
 :re
 fun foo(h) = h.perform(2)
@@ -219,8 +234,48 @@ handle h = Object with
       set depth += 1
       enterHandleBlock(this, () => whoops())
 h.whoops()
-//│ = 0
-//│ depth = 50000
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:block$res -> block$res10, tmp:runtime -> runtime, member:max -> max, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:‹stack safe body› -> $_stack$_safe$_body$_5, tmp:option -> option, member:‹stack safe body› -> $_stack$_safe$_body$_6, tmp:block$res -> block$res7, member:foo -> foo4, h -> h1, class:Handler$h$ -> Handler$h$2, tmp:block$res -> block$res11, member:bad -> bad, member:sum -> sum1, tmp:tmp -> tmp1, member:‹stack safe body› -> $_stack$_safe$_body$_1, tmp:block$res -> block$res2, member:ctr -> ctr, member:dummy -> dummy, member:foo -> foo, member:lambda -> lambda3, tmp:tmp -> tmp6, member:handleBlock$ -> handleBlock$1, member:Handler$h$perform -> Handler$h$perform1, member:Handler$h$ -> Handler$h$3, class:Capture$scope2 -> Capture$scope2, tmp:tmp -> tmp8, member:Capture$scope2 -> Capture$scope21, member:lambda$ -> lambda$1, tmp:tmp -> tmp2, member:‹stack safe body› -> $_stack$_safe$_body$_9, tmp:block$res -> block$res12, member:‹stack safe body› -> $_stack$_safe$_body$_2, depth -> depth, h -> h3, class:Handler$h$ -> Handler$h$6, tmp:block$res -> block$res3, member:f -> f, member:foo -> foo1, member:lambda -> lambda6, tmp:tmp -> tmp9, member:lambda -> lambda, member:handleBlock$ -> handleBlock$3, tmp:tmp -> tmp3, member:Handler$h$whoops -> Handler$h$whoops, member:Handler$h$ -> Handler$h$7, member:‹stack safe body› -> $_stack$_safe$_body$_3, member:‹stack safe body› -> $_stack$_safe$_body$_7, tmp:block$res -> block$res4, member:‹stack safe body› -> $_stack$_safe$_body$_8, member:f -> f1, tmp:block$res -> block$res8, member:foo -> foo2, member:A -> A1, module:A -> A, member:‹stack safe body› -> $_stack$_safe$_body$_10, member:‹stack safe body› -> $_stack$_safe$_body$_11, member:Predef -> Predef, tmp:block$res -> block$res13, member:lambda -> lambda1, tmp:tmp -> tmp4, class:A -> A, member:lambda -> lambda4, member:‹stack safe body› -> $_stack$_safe$_body$_4, tmp:block$res -> block$res5, member:Eff -> Eff1, class:Eff -> Eff, tmp:block$res -> block$res6, member:foo -> foo3, tmp:block$res -> block$res9, h -> h, member:foo -> foo5, class:Handler$h$ -> Handler$h$, h -> h2, class:Handler$h$ -> Handler$h$4, member:lambda -> lambda2, tmp:tmp -> tmp5, member:handleBlock$ -> handleBlock$, member:Handler$h$perform -> Handler$h$perform, member:lambda -> lambda5, member:Handler$h$ -> Handler$h$1, tmp:tmp -> tmp7, member:handleBlock$ -> handleBlock$2, member:Handler$h$perform -> Handler$h$perform2, tmp:block$res -> block$res, class:Capture$scope1 -> Capture$scope1, member:hi -> hi, member:Handler$h$ -> Handler$h$5, member:Capture$scope1 -> Capture$scope11, class:Capture$scope1 -> Capture$scope12, member:lambda$ -> lambda$, member:Capture$scope1 -> Capture$scope13, member:lambda$ -> lambda$2, tmp:tmp -> tmp, member:‹stack safe body› -> $_stack$_safe$_body$_, tmp:block$res -> block$res1, member:sum -> sum)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:51)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Left of Cfg:
+//│     escapeChars = true
+//│     useSuperscripts = false
+//│     includeZero = false
+//│     defaultName = "tmp"
+//│   curThis = S of S of globalThis:globalThis⁰
+//│   bindings = HashMap(tmp:block$res -> block$res10, tmp:runtime -> runtime, member:max -> max, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:‹stack safe body› -> $_stack$_safe$_body$_5, tmp:option -> option, member:‹stack safe body› -> $_stack$_safe$_body$_6, tmp:block$res -> block$res7, member:foo -> foo4, h -> h1, class:Handler$h$ -> Handler$h$2, tmp:block$res -> block$res11, member:bad -> bad, member:sum -> sum1, tmp:tmp -> tmp1, member:‹stack safe body› -> $_stack$_safe$_body$_1, tmp:block$res -> block$res2, member:ctr -> ctr, member:dummy -> dummy, member:foo -> foo, member:lambda -> lambda3, tmp:tmp -> tmp6, member:handleBlock$ -> handleBlock$1, member:Handler$h$perform -> Handler$h$perform1, member:Handler$h$ -> Handler$h$3, class:Capture$scope2 -> Capture$scope2, tmp:tmp -> tmp8, member:Capture$scope2 -> Capture$scope21, member:lambda$ -> lambda$1, tmp:tmp -> tmp2, member:‹stack safe body› -> $_stack$_safe$_body$_9, tmp:block$res -> block$res12, member:‹stack safe body› -> $_stack$_safe$_body$_2, depth -> depth, h -> h3, class:Handler$h$ -> Handler$h$6, tmp:block$res -> block$res3, member:f -> f, member:foo -> foo1, member:lambda -> lambda6, tmp:tmp -> tmp9, member:lambda -> lambda, member:handleBlock$ -> handleBlock$3, tmp:tmp -> tmp3, member:Handler$h$whoops -> Handler$h$whoops, member:Handler$h$ -> Handler$h$7, member:‹stack safe body› -> $_stack$_safe$_body$_3, member:‹stack safe body› -> $_stack$_safe$_body$_7, tmp:block$res -> block$res4, member:‹stack safe body› -> $_stack$_safe$_body$_8, member:f -> f1, tmp:block$res -> block$res8, member:foo -> foo2, member:A -> A1, module:A -> A, member:‹stack safe body› -> $_stack$_safe$_body$_10, member:‹stack safe body› -> $_stack$_safe$_body$_11, member:Predef -> Predef, tmp:block$res -> block$res13, member:lambda -> lambda1, tmp:tmp -> tmp4, class:A -> A, member:lambda -> lambda4, member:‹stack safe body› -> $_stack$_safe$_body$_4, tmp:block$res -> block$res5, member:Eff -> Eff1, class:Eff -> Eff, tmp:block$res -> block$res6, member:foo -> foo3, tmp:block$res -> block$res9, h -> h, member:foo -> foo5, class:Handler$h$ -> Handler$h$, h -> h2, class:Handler$h$ -> Handler$h$4, member:lambda -> lambda2, tmp:tmp -> tmp5, member:handleBlock$ -> handleBlock$, member:Handler$h$perform -> Handler$h$perform, member:lambda -> lambda5, member:Handler$h$ -> Handler$h$1, tmp:tmp -> tmp7, member:handleBlock$ -> handleBlock$2, member:Handler$h$perform -> Handler$h$perform2, tmp:block$res -> block$res, class:Capture$scope1 -> Capture$scope1, member:hi -> hi, member:Handler$h$ -> Handler$h$5, member:Capture$scope1 -> Capture$scope11, class:Capture$scope1 -> Capture$scope12, member:lambda$ -> lambda$, member:Capture$scope1 -> Capture$scope13, member:lambda$ -> lambda$2, tmp:tmp -> tmp, member:‹stack safe body› -> $_stack$_safe$_body$_, tmp:block$res -> block$res1, member:sum -> sum)
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ > let depth, h3, lambda6, tmp9, handleBlock$3, Handler$h$whoops, Handler$h$7, $_stack$_safe$_body$_10, $_stack$_safe$_body$_11;try { runtime.checkCall(runtime.resetEffects()); lambda6 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   runtime.stackDepth = runtime.stackDepth + 1;   runtime.checkCall(runtime.checkDepth());   if (runtime.curEffect === null) {     return runtime.safeCall(‹MISSING_THIS›.whoops())   }   return runtime.checkCall(runtime.unwind(lambda6, -1, null, null, null, 1, 0, 0)); }); Handler$h$whoops = function Handler$h$whoops(k) {   runtime.checkArgs("Handler$h$whoops", 1, true, arguments.length);   runtime.stackDepth = runtime.stackDepth + 1;   runtime.checkCall(runtime.checkDepth());   if (runtime.curEffect === null) {     let scrut, tmp10;     scrut = depth >= 50000;     if (scrut === true) {       return 0     }     {       tmp10 = depth + 1;       depth = tmp10;       return runtime.checkCall(Predef.enterHandleBlock(‹MISSING_THIS›, lambda6));     }   }   return runtime.checkCall(runtime.unwind(Handler$h$whoops, -1, null, null, null, 1, 1, k, 0)); }; depth = 0; globalThis.Object.freeze(class Handler$h$6 extends globalThis.Object {   static {     Handler$h$7 = this   }   constructor() {     let tmp10;     tmp10 = super();     if (runtime.curEffect === null) {       tmp10     } else {       tmp10 = runtime.checkCall(runtime.illegalEffect("in a constructor"));       tmp10     }   }   get whoops$__checkNotMethod() { runtime.deboundMethod("whoops", "Handler$h$"); }   whoops() {     runtime.checkArgs("whoops", 0, true, arguments.length);     runtime.stackDepth = runtime.stackDepth + 1;     runtime.checkCall(runtime.checkDepth());     if (runtime.curEffect === null) {       return runtime.checkCall(runtime.mkEffect(this, Handler$h$whoops))     }     return runtime.checkCall(runtime.unwind(this.whoops, -1, "StackSafety.mls:231:3", null, this, 1, 0, 0));   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Handler$h$"];  }); $_stack$_safe$_body$_11 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   return new Handler$h$7() }); h3 = runtime.checkCall(runtime.runStackSafe(100, $_stack$_safe$_body$_11)); handleBlock$3 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   runtime.stackDepth = runtime.stackDepth + 1;   runtime.checkCall(runtime.checkDepth());   if (runtime.curEffect === null) {     return runtime.safeCall(h3.whoops())   }   return runtime.checkCall(runtime.unwind(handleBlock$3, -1, null, null, null, 1, 0, 0)); }); $_stack$_safe$_body$_10 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   return runtime.checkCall(runtime.enterHandleBlock(h3, handleBlock$3)) }); tmp9 = runtime.checkCall(runtime.runStackSafe(100, $_stack$_safe$_body$_10)); if (runtime.curEffect === null) {   block$res13 = tmp9;   undefined } else { tmp9 = runtime.checkCall(runtime.topLevelEffect(false)); block$res13 = tmp9; undefined }; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:254)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:305)
+//│ ═══[RUNTIME ERROR] Expected: '0', got: 'undefined'
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] ReferenceError: depth is not defined
+//│     at REPL51:1:42
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 // TODO: the stack depth is not accurately tracked in the runtime functions
 // for now this works, but it's not very safe

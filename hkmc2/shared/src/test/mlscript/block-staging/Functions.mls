@@ -89,13 +89,29 @@ staged module ClassInstrumentation with
   fun inst2() = new NoArg
   fun app1() = Outside(1)
   fun app2() = Inside(1, 2)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: transformPath (ReflectionInstrumenter.scala:194)
+//│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: transformPath (ReflectionInstrumenter.scala:194)
+//│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
 //│ > fun ctor_() =
 //│ >   class Inside(a1, b)
 //│ >   class NoArg
 //│ > fun inst1() = new Outside(1)
-//│ > fun inst2() = new ClassInstrumentation.NoArg
-//│ > fun app1() = Outside(1)
-//│ > fun app2() = ClassInstrumentation.Inside(1, 2)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
+//│     at Runtime.checkCall (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:703:41)
+//│     at <static_initializer> (REPL19:1:1347)
+//│     at REPL19:1:6014
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
 
 module Nonstaged with
   fun f() = 1
@@ -149,18 +165,50 @@ staged module OtherBlocks with
       2 then 0
       3 then 0
       else 0
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: transformPath (ReflectionInstrumenter.scala:194)
+//│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:131)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = a⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(member:Nonstaged -> Nonstaged1, tmp:block$res -> block$res2, member:CallSubst -> CallSubst1, member:OtherBlocks -> OtherBlocks1, module:Nonstaged -> Nonstaged, module:OtherBlocks -> OtherBlocks, tmp:block$res -> block$res1, module:Staged -> Staged, member:ClassInstrumentation -> ClassInstrumentation1, member:Outside -> Outside1, class:Outside -> Outside, member:Expressions -> Expressions3, module:CallSubst -> CallSubst, tmp:runtime -> runtime, x -> x, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, module:Expressions -> Expressions2, tmp:prettyPrint -> prettyPrint, class:OtherBlocks -> OtherBlocks, tmp:Term -> Term, tmp:Block -> Block, module:ClassInstrumentation -> ClassInstrumentation, tmp:option -> option, class:Inside -> Inside, class:Nonstaged -> Nonstaged, class:Staged -> Staged, class:CallSubst -> CallSubst, class:NoArg -> NoArg, class:Expressions -> Expressions2, class:ClassInstrumentation -> ClassInstrumentation, tmp:block$res -> block$res7, tmp:block$res -> block$res5, member:BadArguments -> BadArguments1, module:BadArguments -> BadArguments, class:BadArguments -> BadArguments, tmp:block$res -> block$res4, member:Arguments -> Arguments1, module:Arguments -> Arguments, tmp:block$res -> block$res, member:Expressions -> Expressions1, module:Expressions -> Expressions, class:Arguments -> Arguments, class:Expressions -> Expressions, member:lambda$ -> lambda$, member:lambda$ -> lambda$1, class:Function$ -> Function$, member:Function$ -> Function$2, class:Function$ -> Function$1, member:Function$ -> Function$3, tmp:block$res -> block$res3, tmp:block$res -> block$res6, member:Staged -> Staged1)
+//│         curThis = S of S of module:OtherBlocks⁰
+//│         bindings = HashMap()
+//│       bindings = HashMap()
+//│     bindings = HashMap(tmp:sym -> sym, tmp:tmp -> tmp)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'a'
+//│ ║  l.160: 	      let a = 1
+//│ ║         	          ^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.160: 	      let a = 1
+//│ ╙──       	          ^
 //│ > fun ctor_() = ()
-//│ > fun scope() =
-//│ >   let {a}
-//│ >   a = 1
-//│ >   OtherBlocks.scope.locally(a)
-//│ > fun breakAndLabel() =
-//│ >   let {scrut}
-//│ >   scrut = 1
-//│ >   if scrut is
-//│ >     2 then 0
-//│ >     3 then 0
-//│ >     else 0
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] ReferenceError: a is not defined
+//│     at OtherBlocks.scope_instr (REPL31:1:1540)
+//│     at <static_initializer> (REPL31:1:288)
+//│     at REPL31:1:3398
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
 
 staged module ClassDefs with
   class A
@@ -176,13 +224,25 @@ staged module ClassFunctions with
   class InnerClass() with
     fun f() = 1 + Arguments.f(1)
     fun g() = f()
-//│ > fun ctor_() =
-//│ >   class InnerClass() with
-//│ >     fun f() =
-//│ >       let {tmp}
-//│ >       tmp = Arguments.f_gen(1)
-//│ >       1 + tmp
-//│ >     fun g() = InnerClass.f()
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: transformPath (ReflectionInstrumenter.scala:194)
+//│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: transformPath (ReflectionInstrumenter.scala:194)
+//│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:258)
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
+//│     at Runtime.checkCall (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:703:41)
+//│     at <static_initializer> (REPL40:1:3138)
+//│     at REPL40:1:5301
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
 
 staged module RetUnit with
   fun f() = ()
@@ -224,10 +284,10 @@ staged module LabelBreak with
     else 2
 //│ ═══[COMPILATION ERROR] Other Blocks not supported in staged module: class hkmc2.codegen.Label.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
-//│ ║  l.218: 	    let x = 1
+//│ ║  l.278: 	    let x = 1
 //│ ║         	        ^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.218: 	    let x = 1
+//│ ║  l.278: 	    let x = 1
 //│ ╙──       	        ^
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
@@ -240,7 +300,7 @@ staged module A with
   fun g() = {1 : 2}
 //│ ═══[COMPILATION ERROR] Other Blocks not supported in staged module: class hkmc2.codegen.AssignField
 //│ ╔══[COMPILATION ERROR] Other Results not supported in staged module: class hkmc2.codegen.Record
-//│ ║  l.240: 	  fun g() = {1 : 2}
+//│ ║  l.300: 	  fun g() = {1 : 2}
 //│ ╙──       	                 ^
 //│ > fun ctor_() =
 //│ >   x = C(1)
