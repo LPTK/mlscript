@@ -94,6 +94,22 @@ sealed abstract class Block extends Product:
       s"""|Define(${defn.showDbg})
           |${rest.showDbg}""".stripMargin
   
+  lazy val alwaysReturns: Bool = this match
+    case _: Return => true
+    case _: Throw => true
+    case _: Unreachable => true
+    case Match(_, arms, dflt, rst) =>
+      rst.alwaysReturns || arms.forall(_._2.alwaysReturns) && dflt.exists(_.alwaysReturns)
+    case Label(_, _, body, rest) => body.alwaysReturns || rest.alwaysReturns
+    case TryBlock(sub, finallyDo, rest) => sub.alwaysReturns || finallyDo.alwaysReturns || rest.alwaysReturns
+    case Begin(sub, rest) => sub.alwaysReturns || rest.alwaysReturns
+    case Assign(_, _, rest) => rest.alwaysReturns
+    case AssignField(_, _, _, rest) => rest.alwaysReturns
+    case AssignDynField(_, _, _, _, rest) => rest.alwaysReturns
+    case Define(_, rest) => rest.alwaysReturns
+    case Scoped(_, body) => body.alwaysReturns
+    case _: End | _: Break | _: Continue => false
+  
   lazy val isAbortive: Bool = this match
     case _: End => false
     case _: Throw | _: Break | _: Continue | _: Unreachable => true

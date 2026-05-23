@@ -500,15 +500,23 @@ class BlockSimplifier
     // trace[Block](s"Applying block: ${b.abbreviate} with map: ${assignedResults}", res => s"|= ${assignedResults}"):
       b match
       
-      // * Discard local variables that are assigned just to be returned
-      // * Note: the reason we do this here and not in DeadCodeElim is that we need to check `capturedVars`
-      case Assign(lhs: LocalVar, rhs, Return(Value.Ref(ret, N), implct))
-        if !inDryRun && (ret is lhs) && !capturedVars(lhs) && !symbolsToPreserve(lhs)
-      =>
-        registerChange(s"tail-return ${lhs.showDbg} ~> ${rhs.showDbg}")
-        applyBlock(Return(rhs, implct))
-      
       case ass @ Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
+        
+        // * EARLY RETURNS IN HERE
+        if !inDryRun && !symbolsToPreserve(lhs) && localVars(lhs) then
+          rst match
+          // * Discard local variables that are assigned just to be returned
+          // * Note: the reason we do this here and not in DeadCodeElim is that we need to check `capturedVars`
+          case Return(Value.Ref(ret, N), implct) if (ret is lhs) =>
+            registerChange(s"tail-return ${lhs.showDbg} ~> ${rhs.showDbg}")
+            return applyBlock(Return(rhs, implct))
+          // * Discard local variables that are assigned but never read
+          // * because the rest of the block always returns/throws
+          case _ if rst.alwaysReturns && !rst.freeVars.contains(lhs) =>
+            registerChange(s"TODO ${lhs.showDbg} ~> ${rhs.showDbg}")
+            return Assign.discard(rhs, applyBlock(rst))
+          case _ =>
+        
         // log(s"Propagating ${lhs} := ${rhs} (${assignedResults.get(lhs)})")
         
         assignedResults += lhs -> Assigned(ass, rhs.match

@@ -81,7 +81,7 @@ fun main =
   let x
   x = const(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let main⁰; define main⁰ as fun main¹() { let x; set x = const⁰(x); return runtime⁰.Unit⁰ }; end
+//│ let main⁰; define main⁰ as fun main¹() { return runtime⁰.Unit⁰ }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

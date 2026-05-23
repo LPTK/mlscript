@@ -779,18 +779,18 @@ let Runtime1;
     throw Runtime.CustomStackError(tmp4)
   }
   static showStackTrace(header, tr, debug, showLocals) {
-    let msg, curHandler, atTail, tmp;
+    let msg, curHandler, atTail;
     msg = header;
     curHandler = tr.contTrace;
     atTail = true;
     if (debug === true) {
       lbl: while (true) {
-        let scrut, cur, scrut1, tmp1, tmp2;
+        let scrut, cur, scrut1, tmp, tmp1;
         scrut = curHandler !== null;
         if (scrut === true) {
           cur = curHandler.next;
           lbl1: while (true) {
-            let scrut2, curLocals, loc, scrut3, lambda, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+            let scrut2, curLocals, loc, scrut3, lambda, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10;
             scrut2 = cur !== null;
             if (scrut2 === true) {
               curLocals = cur.getLocals;
@@ -799,28 +799,28 @@ let Runtime1;
                 scrut3 = curLocals.length > 0;
                 if (scrut3 === true) {
                   lambda = (undefined, function (l) {
-                    let tmp12, tmp13;
-                    tmp12 = l.localName + "=";
-                    tmp13 = Rendering.render(l.value);
-                    return tmp12 + tmp13
+                    let tmp11, tmp12;
+                    tmp11 = l.localName + "=";
+                    tmp12 = Rendering.render(l.value);
+                    return tmp11 + tmp12
                   });
-                  tmp3 = runtime.safeCall(curLocals.map(lambda));
-                  tmp4 = runtime.safeCall(tmp3.join(", "));
-                  tmp5 = " with locals: " + tmp4;
+                  tmp2 = runtime.safeCall(curLocals.map(lambda));
+                  tmp3 = runtime.safeCall(tmp2.join(", "));
+                  tmp4 = " with locals: " + tmp3;
                 } else {
-                  tmp5 = "";
+                  tmp4 = "";
                 }
               } else {
-                tmp5 = "";
+                tmp4 = "";
               }
-              tmp6 = "\n\tat " + cur.getNme;
-              tmp7 = tmp6 + " (";
-              tmp8 = tmp7 + loc;
-              tmp9 = tmp8 + ")";
-              tmp10 = msg + tmp9;
+              tmp5 = "\n\tat " + cur.getNme;
+              tmp6 = tmp5 + " (";
+              tmp7 = tmp6 + loc;
+              tmp8 = tmp7 + ")";
+              tmp9 = msg + tmp8;
+              msg = tmp9;
+              tmp10 = tmp9 + tmp4;
               msg = tmp10;
-              tmp11 = tmp10 + tmp5;
-              msg = tmp11;
               cur = cur.next;
               atTail = false;
               continue lbl1
@@ -830,9 +830,9 @@ let Runtime1;
           curHandler = curHandler.nextHandler;
           scrut1 = curHandler !== null;
           if (scrut1 === true) {
-            tmp1 = "\n\twith handler " + curHandler.handler.constructor.name;
-            tmp2 = msg + tmp1;
-            msg = tmp2;
+            tmp = "\n\twith handler " + curHandler.handler.constructor.name;
+            tmp1 = msg + tmp;
+            msg = tmp1;
             atTail = false;
             continue lbl
           }
@@ -841,9 +841,7 @@ let Runtime1;
         break;
       }
       if (atTail === true) {
-        tmp = msg + "\n\tat tail position";
-        msg = tmp;
-        return tmp
+        return msg + "\n\tat tail position"
       }
       return msg;
     }

@@ -79,7 +79,6 @@ fun f(x) =
 //│       x = 4;
 //│     case 4:
 //│       tmp4 = acc + "e";
-//│       acc = tmp4;
 //│       return globalThis.Object.freeze([ tmp4, x ]);
 //│   }
 //│   return globalThis.Object.freeze([ acc, x ])
