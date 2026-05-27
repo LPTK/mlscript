@@ -27,7 +27,9 @@ x + 1
 //│   main = Scoped(syms = {x⁰}): 
 //│     body = Assign:
 //│       lhs = x⁰
-//│       rhs = Lit of IntLit of 1
+//│       rhs = Lit:
+//│         lit = IntLit of 1
+//│         erasedType = Primitive of Int
 //│       rest = Return of Call:
 //│         fun = SimpleRef of builtin:+⁰
 //│         argss = Ls of 
@@ -35,7 +37,9 @@ x + 1
 //│             Arg:
 //│               value = SimpleRef of x⁰
 //│             Arg:
-//│               value = Lit of IntLit of 1
+//│               value = Lit:
+//│                 lit = IntLit of 1
+//│                 erasedType = Primitive of Int
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let x⁰; set x⁰ = 1; return +⁰(x⁰, 1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

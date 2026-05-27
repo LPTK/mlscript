@@ -553,7 +553,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
               transformedOgBody,
               mkReturnCall(parentFunSym, parentFunFvs))
           case None =>
-            Begin(transformedOgBody, Return(Value.Lit(Tree.UnitLit(true))))
+            Begin(transformedOgBody, Return(Value.UnitLit(true)))
         val refreshedFvSymbols = restFnFvs(restFunId).map(s => s -> new VarSymbol(Tree.Ident(s"fv_${s.nme}")))
         val bodyWithCorrectSymbols = new RefreshSymbol(refreshedFvSymbols.toMap).applyBlock(actualBody)
         FunDefn(tsym.owner, bms, tsym, refreshedFvSymbols.unzip._2.asParamList :: Nil, bodyWithCorrectSymbols)(N, annotations = PrivateModifier :: Nil)

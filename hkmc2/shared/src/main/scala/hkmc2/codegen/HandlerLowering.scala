@@ -24,12 +24,12 @@ object HandlerLowering:
   private val nextIdent: Tree.Ident = Tree.Ident("next")
   private val lastIdent: Tree.Ident = Tree.Ident("last")
   private val contTraceIdent: Tree.Ident = Tree.Ident("contTrace")
-  private def unit = Value.Lit(Tree.UnitLit(true))
-  private def intLit(i: BigInt) = Value.Lit(Tree.IntLit(i))
+  private def unit = Value.UnitLit(true)
+  private def intLit(i: BigInt) = Value.IntLit(i)
 
   private def locToStr(loc: Loc) =
     val (line, _, col) = loc.origin.fph.getLineColAt(loc.spanStart)
-    Value.Lit(Tree.StrLit(s"${loc.origin.fileName.last}:${line + loc.origin.startLineNum - 1}:$col"))
+    Value.StrLit(s"${loc.origin.fileName.last}:${line + loc.origin.startLineNum - 1}:$col")
   
   extension (p: Path)
     def pc = p.selN(pcIdent)
@@ -121,7 +121,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
   
   private def rtThrowMsg(msg: Str) = Throw(
     Instantiate(mut = false, State.globalThisSymbol.asThis.selN(Tree.Ident("Error")),
-    (Value.Lit(Tree.StrLit(msg)).asArg :: Nil) :: Nil)
+    (Value.StrLit(msg).asArg :: Nil) :: Nil)
   )
   
   object PureCall:
@@ -138,18 +138,18 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
   object StateTransition:
     private val transitionSymbol = freshTmp("transition")
     def apply(uid: StateId) =
-      Return(PureCall(transitionSymbol.asSimpleRef, List(Value.Lit(Tree.IntLit(uid)))))
+      Return(PureCall(transitionSymbol.asSimpleRef, List(Value.IntLit(uid))))
     def unapply(blk: Block) = blk match
-      case Return(PureCall(Value.SimpleRef(`transitionSymbol`), List(Value.Lit(Tree.IntLit(uid))))) =>
+      case Return(PureCall(Value.SimpleRef(`transitionSymbol`), List(Value.Lit(Tree.IntLit(uid), _)))) =>
         S(uid)
       case _ => N
 
   object Unwind:
     private val unwindSymbol = freshTmp("unwind")
     def apply(uid: StateId, loc: Value) =
-      Return(PureCall(unwindSymbol.asSimpleRef, List(Value.Lit(Tree.IntLit(uid)), loc)))
+      Return(PureCall(unwindSymbol.asSimpleRef, List(Value.IntLit(uid), loc)))
     def unapply(blk: Block) = blk match
-      case Return(PureCall(Value.SimpleRef(`unwindSymbol`), List(Value.Lit(Tree.IntLit(uid)), loc: Value))) =>
+      case Return(PureCall(Value.SimpleRef(`unwindSymbol`), List(Value.Lit(Tree.IntLit(uid), _), loc: Value))) =>
         S(uid, loc)
       case _ => N
 
@@ -533,9 +533,9 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         case Scoped(syms, body) => syms
         case _ => Set()
       val varList = scopedVars.toList.sortBy(_.uid)
-      val debugInfo = Value.Lit(Tree.StrLit(debugNme)).asArg :: varList.zipWithIndex.filter(_._1.isInstanceOf[VarSymbol])
+      val debugInfo = Value.StrLit(debugNme).asArg :: varList.zipWithIndex.filter(_._1.isInstanceOf[VarSymbol])
         .flatMap: (sym, idx) =>
-          List(intLit(idx), Value.Lit(Tree.StrLit(sym.nme)))
+          List(intLit(idx), Value.StrLit(sym.nme))
         .map(_.asArg)
       val debugInfoSym = freshTmp(s"$debugNme$$debugInfo")
       // TODO: properly support spread argument by calculating the correct length.
@@ -595,12 +595,12 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         case _ => super.applyDefn(defn)(k)
     val b = preTransform.applyBlock(blk)
     if h.inCtor then
-      return translateIllegalEffectCtx(b, Call(paths.illegalEffectPath, (Value.Lit(Tree.StrLit("in a constructor")).asArg :: Nil) ne_:: Nil)(true, true, false))
+      return translateIllegalEffectCtx(b, Call(paths.illegalEffectPath, (Value.StrLit("in a constructor").asArg :: Nil) ne_:: Nil)(true, true, false))
     if h.inTopLevel then
-      return translateIllegalEffectCtx(b, Call(paths.topLevelEffectPath, (Value.Lit(Tree.BoolLit(opt.debug)).asArg :: Nil) ne_:: Nil)(true, false, false))
+      return translateIllegalEffectCtx(b, Call(paths.topLevelEffectPath, (Value.BoolLit(opt.debug).asArg :: Nil) ne_:: Nil)(true, false, false))
     val ctx = h.asInstanceOf[HandlerCtx.FunctionLike].ctx
     if ctx.inGetter then
-      return translateIllegalEffectCtx(b, Call(paths.illegalEffectPath, (Value.Lit(Tree.StrLit("in a getter")).asArg :: Nil) ne_:: Nil)(true, false, false))
+      return translateIllegalEffectCtx(b, Call(paths.illegalEffectPath, (Value.StrLit("in a getter").asArg :: Nil) ne_:: Nil)(true, false, false))
     given FunctionCtx = ctx
     val parts = partitionBlock(b)
     stackSafetyMap += ctx.resumeInfo.currentStackSafetySym ->
@@ -621,7 +621,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
     val segmentTailTransform = new BlockTransformerShallow(SymbolSubst.Id):
       override def applyBlock(b: Block) = b match
         case StateTransition(uid) =>
-          Assign(pcVar, Value.Lit(Tree.IntLit(uid)), Continue(mainLoopLbl))
+          Assign(pcVar, Value.IntLit(uid), Continue(mainLoopLbl))
         case Unwind(uid, loc) =>
           ctx.doUnwind(loc, uid, vars)(using paths)
         case _ => super.applyBlock(b)
@@ -641,7 +641,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
             case StateTransition(uid) =>
               assert(uid === nextState)
               if isSimple then
-                Assign(pcVar, Value.Lit(Tree.IntLit(uid)), End())
+                Assign(pcVar, Value.IntLit(uid), End())
               else
                 Break(lblSym)
             case Unwind(uid, loc) =>
@@ -651,7 +651,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         if isSimple then transformed
         else Label(
           lblSym, false, transformed,
-          Assign(pcVar, Value.Lit(Tree.IntLit(nextState)), End())
+          Assign(pcVar, Value.IntLit(nextState), End())
         )
       line match
         case head :: next =>
@@ -711,7 +711,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         Case.Lit(Tree.IntLit(-1)) ->
           Assign(pcVar, intLit(parts.entry), End()) :: Nil,
         S(restoreVars
-            .assignFieldN(paths.runtimePath, new Tree.Ident("resumePc"), Value.Lit(Tree.IntLit(-1))).end),
+            .assignFieldN(paths.runtimePath, new Tree.Ident("resumePc"), Value.IntLit(-1)).end),
         mainLoop))
   
   private def translateCtorLike(b: Block, thisPath: Path, isModCtor: Bool)(using h: HandlerCtx): Block =

@@ -17,7 +17,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
   private val runStackSafePath: Path = runtimePath.selN(Tree.Ident("runStackSafe"))
   private val stackDepthPath: Path = runtimePath.selN(STACK_DEPTH_IDENT)
 
-  private def intLit(n: BigInt) = Value.Lit(Tree.IntLit(n))
+  private def intLit(n: BigInt) = Value.IntLit(n)
   
   private def op(op: String, a: Path, b: Path) =
     Call(State.builtinOpsMap(op).asSimpleRef, (a.asArg :: b.asArg :: Nil) ne_:: Nil)(true, false, false)

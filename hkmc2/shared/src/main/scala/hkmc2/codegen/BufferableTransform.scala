@@ -38,11 +38,11 @@ class BufferableTransform()(using Ctx, State, Raise):
             def mkFieldReplacer(buf: VarSymbol, baseIdx: VarSymbol, symMap: Map[Symbol, Symbol]) =
               def getOffset(off: Int)(k: Path => Block): Block =
                 val idxSymbol = new TempSymbol(N, "idx")
-                Scoped(Set.single(idxSymbol), Assign(idxSymbol, Call(State.builtinOpsMap("+").asSimpleRef, (baseIdx.asSimpleRef.asArg :: Value.Lit(Tree.IntLit(off)).asArg :: Nil) ne_:: Nil)(true, false, false),
+                Scoped(Set.single(idxSymbol), Assign(idxSymbol, Call(State.builtinOpsMap("+").asSimpleRef, (baseIdx.asSimpleRef.asArg :: Value.IntLit(off).asArg :: Nil) ne_:: Nil)(true, false, false),
                   k(DynSelect(buf.asSimpleRef.selSN("buf"), idxSymbol.asSimpleRef, true))))
               def assignToOffset(off: Int, r: Result, rst: Block) =
                 val idxSymbol = new TempSymbol(N, "idx")
-                Scoped(Set.single(idxSymbol), Assign(idxSymbol, Call(State.builtinOpsMap("+").asSimpleRef, (baseIdx.asSimpleRef.asArg :: Value.Lit(Tree.IntLit(off)).asArg :: Nil) ne_:: Nil)(true, false, false),
+                Scoped(Set.single(idxSymbol), Assign(idxSymbol, Call(State.builtinOpsMap("+").asSimpleRef, (baseIdx.asSimpleRef.asArg :: Value.IntLit(off).asArg :: Nil) ne_:: Nil)(true, false, false),
                   AssignDynField(buf.asSimpleRef.selSN("buf"), idxSymbol.asSimpleRef, true, r, applyBlock(rst))))
               new BlockTransformer(SymbolSubst.Id):
                 override def applyLocal(sym: Local): Local = symMap.getOrElse(sym, sym)
@@ -91,7 +91,7 @@ class BufferableTransform()(using Ctx, State, Raise):
               fakeCtor :: cls.methods.map(transformFunDefn(_, false)),
               Nil,
               clsSizeSym -> clsSizeTermSym :: Nil,
-              Define(ValDefn(clsSizeTermSym, clsSizeSym, Value.Lit(Tree.IntLit(fields.size)))(N, Nil), End()),
+              Define(ValDefn(clsSizeTermSym, clsSizeSym, Value.IntLit(fields.size))(N, Nil), End()),
               annotations = Nil,
             )
             k:

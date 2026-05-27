@@ -29,7 +29,7 @@ object Ret extends TailOp:
 object ImplctRet extends TailOp:
   def apply(r: Result): Block =
     r match
-    case Value.Lit(Tree.UnitLit(false)) => End()
+    case Value.Lit(Tree.UnitLit(false), _) => End()
     case _ => Return(r)
 object Thrw extends TailOp:
   def apply(r: Result): Block = Throw(r)
@@ -75,7 +75,7 @@ import LoweringCtx.loweringCtx
 object Lowering:
   
   def compError: Block =
-    Throw(Value.Lit(Tree.StrLit("This code cannot be run as its compilation yielded an error.")))
+    Throw(Value.StrLit("This code cannot be run as its compilation yielded an error."))
   
   def fail(err: ErrorReport)(using Raise): Block =
     raise(err)
@@ -636,7 +636,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case st.UnitVal() => k(unit)
     case st.Lit(lit) =>
       if lit =/= Tree.UnitLit(false) then warnStmt
-      k(Value.Lit(lit))
+      k(Value.Lit(lit, lit.erasedType))
     case st.Ret(res) =>
       returnedTerm(res)
     case st.Throw(res) =>
@@ -679,7 +679,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case st.Break(label, result, value) =>
       value match
         case S(v) => term(v)(r => Assign(result, r, Break(label)))
-        case N => Assign(result, Value.Lit(Tree.UnitLit(false)), Break(label))
+        case N => Assign(result, Value.UnitLit(false), Break(label))
     case st.Continue(label) =>
       Continue(label)
     case st.Asc(lhs, rhs) =>
@@ -724,14 +724,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             if k.isInstanceOf[TailOp] then Match(
               ar1,
               (Case.Lit(posLit) -> term_nonTail(arg2)(k)) :: Nil,
-              S(k(Value.Lit(negLit))),
+              S(k(Value.Lit(negLit, negLit.erasedType))),
               Unreachable("tail operation in branches"),
             ) else
               val ts = loweringCtx.registerTempSymbol(N)
               Match(
                 ar1,
                 (Case.Lit(posLit) -> term_nonTail(arg2)(Assign(ts, _, End()))) :: Nil,
-                S(Assign(ts, Value.Lit(negLit), End())),
+                S(Assign(ts, Value.Lit(negLit, negLit.erasedType), End())),
                 k(ts.asSimpleRef),
               )
           sym match
@@ -1010,10 +1010,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
 
   def setupSymbol(symbol: Local)(k: Result => Block)(using LoweringCtx): Block =
     k(Instantiate(mut = false, State.termSymbol.asSimpleRef.selSN("Symbol"),
-      (Value.Lit(Tree.StrLit(symbol.nme)).asArg :: Nil) :: Nil))
+      (Value.StrLit(symbol.nme).asArg :: Nil) :: Nil))
 
   def quotePattern(p: FlatPattern)(k: Result => Block)(using LoweringCtx): Block = p match
-    case FlatPattern.Lit(lit) => setupTerm("LitPattern", Value.Lit(lit) :: Nil)(k)
+    case FlatPattern.Lit(lit) => setupTerm("LitPattern", Value.Lit(lit, lit.erasedType) :: Nil)(k)
     case _ => // TODO
       fail:
         ErrorReport(
@@ -1050,10 +1050,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
 
   def quote(t: st)(k: Result => Block)(using LoweringCtx): Block = t match
     case Lit(lit) =>
-      setupTerm("Lit", Value.Lit(lit) :: Nil)(k)
+      setupTerm("Lit", Value.Lit(lit, lit.erasedType) :: Nil)(k)
     case Ref(sym) if Elaborator.binaryOps.contains(sym.nme) => // builtin symbols
       val l = loweringCtx.registerTempSymbol(N)
-      setupTerm("Builtin", Value.Lit(Tree.StrLit(sym.nme)) :: Nil)(k)
+      setupTerm("Builtin", Value.StrLit(sym.nme) :: Nil)(k)
     case Resolved(Ref(sym), disamb) =>
       sym match
         case sym: BlockMemberSymbol => k(sym.asMemberRef(disamb))
@@ -1063,8 +1063,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case SynthSel(Ref(sym: ModuleOrObjectSymbol), name) => // Local cross-stage references
       setupSymbol(sym): r1 =>
         val l1, l2 = loweringCtx.registerTempSymbol(N)
-        Assign(l1, r1, setupTerm("CSRef", l1.asSimpleRef :: setupFilename :: Value.Lit(syntax.Tree.UnitLit(false)) :: Nil)(r2 =>
-          Assign(l2, r2, setupTerm("Sel", l2.asSimpleRef :: Value.Lit(syntax.Tree.StrLit(name.name)) :: Nil)(k))
+        Assign(l1, r1, setupTerm("CSRef", l1.asSimpleRef :: setupFilename :: Value.UnitLit(false) :: Nil)(r2 =>
+          Assign(l2, r2, setupTerm("Sel", l2.asSimpleRef :: Value.StrLit(name.name) :: Nil)(k))
         ))
     case SynthSel(Ref(sym: BlockMemberSymbol), name) => // Multi-file cross-stage references
       if config.qqEnabled then fail:
@@ -1079,8 +1079,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           val basePath = base.up
           val targetPath = filename
           val relPath = targetPath.relativeTo(basePath).map(_.toString).getOrElse(targetPath.toString)
-          Assign(l1, r1, setupTerm("CSRef", l1.asSimpleRef :: setupFilename :: Value.Lit(syntax.Tree.StrLit(relPath)) :: Nil)(r2 =>
-            Assign(l2, r2, setupTerm("Sel", l2.asSimpleRef :: Value.Lit(syntax.Tree.StrLit(name.name)) :: Nil)(k))
+          Assign(l1, r1, setupTerm("CSRef", l1.asSimpleRef :: setupFilename :: Value.StrLit(relPath) :: Nil)(r2 =>
+            Assign(l2, r2, setupTerm("Sel", l2.asSimpleRef :: Value.StrLit(name.name) :: Nil)(k))
           ))
         case _ => fail:
           ErrorReport(
@@ -1399,7 +1399,7 @@ trait LoweringSelSanityChecks(using Config, TL, Raise, State)
           .ifthen(selRes.asSimpleRef,
             Case.Lit(syntax.Tree.UnitLit(false)),
             Throw(Instantiate(mut = false, Select(State.globalThisSymbol.asThis, Tree.Ident("Error"))(N),
-              (Value.Lit(syntax.Tree.StrLit(s"Access to required field '${nme.name}' yielded 'undefined'")).asArg :: Nil) :: Nil))
+              (Value.StrLit(s"Access to required field '${nme.name}' yielded 'undefined'").asArg :: Nil) :: Nil))
           )
           .rest(k(selRes.asSimpleRef))
 
@@ -1455,10 +1455,10 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
     val resInspectedSym = loweringCtx.registerTempSymbol(N, dbgNme = "traceLogResInspected")
     
     
-    val psSymArgs = psInspectedSyms.zipWithIndex.foldRight[Ls[Arg]](Arg(N, Value.Lit(Tree.StrLit(")"))) :: Nil):
+    val psSymArgs = psInspectedSyms.zipWithIndex.foldRight[Ls[Arg]](Arg(N, Value.StrLit(")")) :: Nil):
       case (((s, p), i), acc) => if i == psInspectedSyms.length - 1
         then Arg(N, s.asSimpleRef) :: acc
-        else Arg(N, s.asSimpleRef) :: Arg(N, Value.Lit(Tree.StrLit(", "))) :: acc
+        else Arg(N, s.asSimpleRef) :: Arg(N, Value.StrLit(", ")) :: acc
     
     val tmp1, tmp2, tmp3 = loweringCtx.registerTempSymbol(N)
     
@@ -1468,7 +1468,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
     assignStmts(
       enterMsgSym -> pureCall(
         strConcatFn,
-        Arg(N, Value.Lit(Tree.StrLit(s"CALL ${name.getOrElse("[arrow function]")}("))) :: psSymArgs
+        Arg(N, Value.StrLit(s"CALL ${name.getOrElse("[arrow function]")}(")) :: psSymArgs
       ),
       tmp1 -> pureCall(traceLogFn, Arg(N, enterMsgSym.asSimpleRef) :: Nil),
       prevIndentLvlSym -> pureCall(traceLogIndentFn, Nil)
@@ -1479,7 +1479,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
       resInspectedSym -> pureCall(inspectFn, Arg(N, resSym.asSimpleRef) :: Nil),
       retMsgSym -> pureCall(
         strConcatFn,
-        Arg(N, Value.Lit(Tree.StrLit("=> "))) :: Arg(N, resInspectedSym.asSimpleRef) :: Nil
+        Arg(N, Value.StrLit("=> ")) :: Arg(N, resInspectedSym.asSimpleRef) :: Nil
       ),
       tmp2 -> pureCall(traceLogResetFn, Arg(N, prevIndentLvlSym.asSimpleRef) :: Nil),
       tmp3 -> pureCall(traceLogFn, Arg(N, retMsgSym.asSimpleRef) :: Nil)

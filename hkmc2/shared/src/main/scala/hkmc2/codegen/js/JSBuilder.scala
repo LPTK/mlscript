@@ -57,7 +57,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Operand(prec: Int)
   
   def mkErr(errMsg: Message)(using Raise, Scope): Document =
-    doc"throw globalThis.Error(${result(Value.Lit(syntax.Tree.StrLit(errMsg.show)))})"
+    doc"throw globalThis.Error(${result(Value.StrLit(errMsg.show))})"
   
   def errExpr(errMsg: Message)(using Raise, Scope): Document =
     raise(ErrorReport(errMsg -> N :: Nil,
@@ -174,8 +174,8 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       // * Module self-references use the module name itself instead of `this`
       scope.lookup_!(ts, r.toLoc)
     case Value.This(sym) => scope.findThis_!(sym)
-    case Value.Lit(Tree.StrLit(value)) => makeStringLiteral(value)
-    case Value.Lit(lit) => lit.idStr
+    case Value.Lit(Tree.StrLit(value), _) => makeStringLiteral(value)
+    case Value.Lit(lit, _) => lit.idStr
     case Value.MemberRef(bms, disamb) =>
       if disamb.shouldBeLifted then doc"${scope.lookup_!(bms, bms.toLoc)}.class"
       else scope.lookup_!(bms, r.toLoc)
@@ -257,9 +257,9 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Record(mut, flds) =>
       val inner = bracketed(pre = "{", post = "}", insertBreak = true):
         flds.map:
-          case RcdArg(S(Value.Lit(IntLit(idx))), v) =>
+          case RcdArg(S(Value.Lit(IntLit(idx), _)), v) =>
             doc"${idx.toString}: ${result(v)}"
-          case RcdArg(S(Value.Lit(StrLit(idx))), v) =>
+          case RcdArg(S(Value.Lit(StrLit(idx), _)), v) =>
             doc"${if isValidIdentifier(idx) then idx else s"\"$idx\""}: ${result(v)}"
           case RcdArg(S(idx), v) =>
             doc"[${result(idx)}]: ${result(v)}"
@@ -326,7 +326,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         =>
           lastBlkAssign(b) match
           // the one branch ends by assigning `nextInt` to `scrutSym`
-          case S(Assign(`scrutSym_`, Value.Lit(Tree.IntLit(nextInt)), _)) =>
+          case S(Assign(`scrutSym_`, Value.Lit(Tree.IntLit(nextInt), _), _)) =>
             unapplyImpl(rest, (curVal_, b) :: acc, S(scrut_), S(nextInt))
           case _ =>
             S((scrut_, (curVal_, b) :: acc, rest))
@@ -650,7 +650,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       
       doc" # $resJS"
       
-    case Return(Value.Lit(UnitLit(false))) => doc" # return${mkSemi}"
+    case Return(Value.Lit(UnitLit(false), _)) => doc" # return${mkSemi}"
     case Return(res) => doc" # return ${result(res)}${mkSemi}"
     
     case Match(scrut, Nil, els, rest) =>
@@ -665,7 +665,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case SpecializedSwitch(scrut, cases, dflt, rest) =>
       val switchBod = cases.foldLeft(doc""): (acc, arm) =>
         val needsBreak = arm.isInstanceOf[SwitchCase.ExplicitBreak]
-        acc :: doc" # case ${result(Value.Lit(arm.litValue))}: #{ ${
+        acc :: doc" # case ${result(Value.Lit(arm.litValue, arm.litValue.erasedType))}: #{ ${
           // * Note: we use `block` here so that Scoped nodes will create proper brace sections,
           // * necessary since `case` clauses do not create a new scope,
           // * so something like `switch (x) { case 1: let y = 1; break; case 2: let y = 2 }` is ill-formed!

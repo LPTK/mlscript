@@ -24,7 +24,9 @@
 //│ ╙──      	^
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
-//│   main = Return of Lit of IntLit of 2
+//│   main = Return of Lit:
+//│     lit = IntLit of 2
+//│     erasedType = Primitive of Int
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
 
@@ -53,8 +55,12 @@ print("Hi")
 //│       argss = Ls of 
 //│         Ls of 
 //│           Arg:
-//│             value = Lit of StrLit of "Hi"
-//│     rest = Return of Lit of IntLit of 2
+//│             value = Lit:
+//│               lit = StrLit of "Hi"
+//│               erasedType = Primitive of Str
+//│     rest = Return of Lit:
+//│       lit = IntLit of 2
+//│       erasedType = Primitive of Int
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > Hi
 //│ = 2

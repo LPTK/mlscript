@@ -38,7 +38,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
       case b: Bool => Tree.BoolLit(b)
       case s: Str => Tree.StrLit(s)
       case n: BigDecimal => Tree.DecLit(n)
-    Value.Lit(l)
+    Value.Lit(l, l.erasedType)
 
   extension [A, B](ls: Ls[(A => B) => B])
     def collectApply(f: Ls[A] => B): B =
@@ -213,7 +213,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
           raise(ErrorReport(msg"Instantiate with multiple argument lists not supported in staged module." -> r.toLoc :: Nil))
           End()
     // desugar Runtime.Tuple.get into Select
-    case Call(fun, Ls(Arg(_, scrut), Arg(_, Value.Lit(Tree.IntLit(idx)))) :: _) if fun == Value.SimpleRef(State.runtimeSymbol).selSN("Tuple").selSN("get") =>
+    case Call(fun, Ls(Arg(_, scrut), Arg(_, Value.Lit(Tree.IntLit(idx), _))) :: _) if fun == Value.SimpleRef(State.runtimeSymbol).selSN("Tuple").selSN("get") =>
       transformPath(Select(scrut, Tree.Ident(idx.toString()))(N))(k)
     case Call(fun, argss) =>
       val stagedFunPath = fun match
@@ -261,7 +261,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
     transformOption(pOpt, transformParamList)(k)
 
   def transformCase(cse: Case)(using Context)(k: Path => Block): Block = cse match
-    case Case.Lit(lit) => blockCtor("Lit", Ls(Value.Lit(lit)))(k)
+    case Case.Lit(lit) => blockCtor("Lit", Ls(Value.Lit(lit, lit.erasedType)))(k)
     case Case.Cls(cls, path) =>
       transformSymbol(cls): cls =>
         transformPath(path): path =>

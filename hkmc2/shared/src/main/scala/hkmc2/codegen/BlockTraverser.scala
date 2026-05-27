@@ -76,7 +76,7 @@ class BlockTraverser:
       bms.traverse
       disamb.traverse
     case Value.This(sym) => sym.traverse
-    case Value.Lit(lit) => ()
+    case Value.Lit(lit, _) => ()
   
   def applyLocal(sym: Local): Unit = sym.traverse
   
