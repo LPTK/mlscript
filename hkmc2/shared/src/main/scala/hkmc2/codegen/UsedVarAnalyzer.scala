@@ -312,7 +312,9 @@ class UsedVarAnalyzer(b: Block, scopeData: ScopeData)(using State):
         override def applyBlock(b: Block): Unit = b match
           // Note that we traverse directly into scoped blocks without using handleCalledScope
           case s: Scoped =>
-            rec(s.body)(using linearVars = linearVars ++ s.syms) |> merge
+            rec(s.body)(using linearVars = linearVars ++ s.syms.collect:
+              case sym: ScopedValueSymbol => sym: ScopeLocalSymbol
+            ) |> merge
           case l: Label if l.loop =>
             rec(l.body)(using linearVars = Set.empty) |> merge
             applySubBlock(l.rest)
@@ -498,7 +500,7 @@ class UsedVarAnalyzer(b: Block, scopeData: ScopeData)(using State):
     case (acc, node) => acc ++ reqdCaptureLocals(node)
   
   // For local inside a capture, finds the node to which this local belongs.
-  lazy val capturesMap =
+  lazy val capturesMap: Map[ScopeLocalSymbol, ScopedInfo] =
     for
       case (info -> reqCap) <- reqdCaptures
       s <- reqCap

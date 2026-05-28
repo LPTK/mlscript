@@ -201,6 +201,7 @@ class BlockTransformer(subst: SymbolSubst):
     case sym: NoSymbol => sym.subst
     case sym: TempSymbol => sym.subst
     case sym: VarSymbol => sym.subst
+    case sym: TermSymbol => sym.subst
   
   def applyFunDefn(fun: FunDefn): FunDefn =
     val own2 = fun.owner.mapConserve(_.subst)

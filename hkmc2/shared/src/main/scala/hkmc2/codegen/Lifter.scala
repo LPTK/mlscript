@@ -87,7 +87,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     * their own `LocalPath` cases so lifting cannot accidentally treat them as
     * assignable block-local variables.
     */
-  type LocalPathSymbol = BlockLocalSymbol | BuiltinSymbol
+  type LocalPathSymbol = LocalVarSymbol | BuiltinSymbol
   
   extension (l: LocalPathSymbol)
     def asLocalPath: LocalPath = LocalPath.Sym(l)
@@ -702,26 +702,14 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       * to locals that have been moved to a capture.
       */
     protected final def pathsFromThisObj: Map[ScopeLocalSymbol, LocalPath] =
-      // Remove child BlockMemberSymbols; we will use their definition symbols instead
-      
       // Locals introduced by this object
-      val fromThisObj: Map[ScopeLocalSymbol, LocalPath] = node.localsWithoutBms
+      val fromThisObj: Map[ScopeLocalSymbol, LocalPath] = node.localSyms
         .map: s =>
           s -> (s match
-            case s: LocalPathSymbol => s.asLocalPath
+            case s: LocalVarSymbol => s.asLocalPath
             case s: InnerSymbol => LocalPath.ThisPath(s)
           )
         .toMap
-      // BMS from using clauses (BMS in definedLocals that are not child Referencable BMS)
-      val childBms = node.children.collect:
-        case ScopeNode(obj = r: ScopedObject.Referencable[?]) => r.bsym
-      .toSet
-      val fromUsingBms: Map[ScopeLocalSymbol, LocalPath] = node.obj.definedLocals.collect:
-        case bms: BlockMemberSymbol if !childBms.contains(bms) =>
-          bms -> LocalPath.BmsRef(bms, bms.asPrincipal.getOrElse:
-            lastWords(s"Cannot resolve using-clause member symbol ${bms.nme}: no principal disambiguation found")
-          )
-      .toMap
       // Locals introduced by this object that are inside this object's capture
       val fromCap: Map[ScopeLocalSymbol, LocalPath] = thisCapturedLocals
         .map: s =>
@@ -742,7 +730,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         .toMap
       // Note: the order here is important, as fromCap must override keys from
       // fromThisObj.
-      isyms ++ fromThisObj ++ fromUsingBms ++ fromCap
+      isyms ++ fromThisObj ++ fromCap
     
     lazy val capturePaths =
       if thisCapturedLocals.isEmpty then Map.empty

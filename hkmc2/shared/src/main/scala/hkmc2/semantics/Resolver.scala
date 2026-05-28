@@ -47,7 +47,8 @@ object Resolver:
   case class ICtx(
     parent: Opt[ICtx], 
     iEnv: Map[Type, Ls[(Type, ICtx.Instance)]],
-    tEnv: Map[VarSymbol, Type]
+    tEnv: Map[VarSymbol, Type],
+    isTopLevel: Bool,
   ):
     
     def +(typ: Type, ins: Symbol): ICtx = typ match
@@ -60,6 +61,9 @@ object Resolver:
     def withTypeArg(param: VarSymbol, arg: Type): ICtx =
       copy(tEnv = tEnv + (param -> arg))
     
+    def nested: ICtx =
+      copy(isTopLevel = false)
+
     extension (t: Type)
       private def key: Type = t match
         case Type.Ref(base, _) => Type.Ref(base, Nil)
@@ -163,7 +167,7 @@ object Resolver:
     
     case class Instance(sym: Symbol)
     
-    val empty = ICtx(N, Map.empty, Map.empty)
+    val empty = ICtx(N, Map.empty, Map.empty, isTopLevel = true)
     
   def ictx(using ICtx) = summon[ICtx]
   
@@ -292,9 +296,9 @@ class Resolver(tl: TraceLogger)
     
     t match
       case blk: Term.Blk =>
-        traverseBlock(blk)
+        traverseBlock(blk)(using ictx.nested)
       case Term.Rcd(mut, stats) =>
-        traverseStmts(stats)
+        traverseStmts(stats)(using ictx.nested)
       
       case t: Term.IfLike =>
         def simpleSplit(s: SimpleSplit): Unit = s match
@@ -422,7 +426,7 @@ class Resolver(tl: TraceLogger)
     defn match
     
     // Case: instance definition. Add the instance to the context.
-    case defn @ TermDefinition(k = Ins, sym = sym, flags = TermDefFlags(isMethod), sign = sign) =>
+    case defn @ TermDefinition(k = Ins, sym = sym, tsym = tsym, flags = TermDefFlags(isMethod), sign = sign) =>
       log(s"Resolving instance definition ${defn.showDbg}")
       traverseTermDef(defn)
       sign match
@@ -430,7 +434,7 @@ class Resolver(tl: TraceLogger)
           // By the syntax of instance defintiion, the type signature should be present.
           lastWords(s"No type signature for instance definition ${defn.showDbg} at ${defn.toLoc}")
         case S(sign) => 
-          ictx + (resolveSign(sign, expect = Any), sym)
+          ictx + (resolveSign(sign, expect = Any), if defn.owner.isEmpty && !ictx.isTopLevel then tsym else sym)
     
     // Case: Fun/Val definition. 
     case defn @ TermDefinition(k = Fun | ImmutVal | MutVal) =>

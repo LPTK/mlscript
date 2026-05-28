@@ -312,13 +312,22 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
 end BlockMemberSymbol
 
 
+/** Value-level symbols that `Scoped` introduces as block-local bindings.
+  *
+  * Unlike `BlockMemberSymbol`s, these are represented as ordinary local
+  * variables in generated code. Ownerless `TermSymbol`s are included here for
+  * definitions that should behave like local values rather than members, such
+  * as local `using` clauses.
+  */
+type ScopedValueSymbol = BlockLocalSymbol | TermSymbol
+
 /** Symbols that `Scoped` introduces as block-local bindings.
   *
   * This deliberately excludes source/private fields (`TermSymbol`s with owners):
   * those are stored on the owning class/module/object and must be accessed
   * through `Select`/`AssignField`, not by binding a local variable in the IR.
   */
-type ScopedSymbol = BlockLocalSymbol | BlockMemberSymbol
+type ScopedSymbol = ScopedValueSymbol | BlockMemberSymbol
 
 /** Symbols bound by `Program.imports`.
   *
@@ -351,8 +360,12 @@ type FreeSymbol = ValueSymbol | LabelSymbol
 
 /** Symbols that may be introduced by a scoped source object and later tracked
   * by the lifter/used-variable analysis.
+  *
+  * Block members are intentionally excluded. Nested definitions are tracked
+  * through `ScopedInfo`/definition references, while actual source locals are
+  * value-level symbols or `this`-like inner symbols.
   */
-type ScopeLocalSymbol = ScopedSymbol | InnerSymbol
+type ScopeLocalSymbol = ScopedValueSymbol | InnerSymbol
 
 /** Symbols that can appear as a direct local-like `LocalPath.Sym` in the lifter.
   *

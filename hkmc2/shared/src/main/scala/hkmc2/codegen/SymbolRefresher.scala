@@ -28,6 +28,12 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
         assert(!mapping.isDefinedAt(s), s"already defined: $s")
         val newS = s match
           case tmpSym: TempSymbol => new TempSymbol(N, tmpSym.nme)
+          case termSym: TermSymbol =>
+            val newOwner: Opt[InnerSymbol] = termSym.owner.map: o =>
+              existingMapping.get(o) match
+                case Some(inner: InnerSymbol) => inner
+                case _ => o
+            new TermSymbol(termSym.k, newOwner, termSym.id)
           case bms: BlockMemberSymbol =>
             val newBms = new BlockMemberSymbol(bms.nme, Nil, bms.nameIsMeaningful)
             newBms.tsym = bms.tsym.map: t =>

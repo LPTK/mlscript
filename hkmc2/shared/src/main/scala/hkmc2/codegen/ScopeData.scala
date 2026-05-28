@@ -118,7 +118,10 @@ object ScopeData:
         case Func(fun, _) => fun.params.flatMap: p =>
             p.restParam.map(_.sym) ++ p.params.map(_.sym)
           .toSet
-        case ScopedBlock(_, block) => block.syms.toSet
+        case ScopedBlock(_, block) =>
+          block.syms.collect:
+            case sym: ScopedValueSymbol => sym: ScopeLocalSymbol
+          .toSet
         case _: Loop => Set.empty
     
       def contents: T = this match
@@ -234,19 +237,7 @@ object ScopeData:
           case _ => false
         case None => true
       
-      // Scoped blocks include the BlockMemberSymbols of their nested definitions. This removes them.
-      // Non-ScopedBlock cases never contain BMS in definedLocals, but the collect ensures
-      // the narrower return type is enforced uniformly.
-      lazy val localsWithoutBms: Set[BlockLocalSymbol | InnerSymbol] =
-        obj match
-          case _: ScopedObject.ScopedBlock => ()
-          case _ => softAssert(
-            !obj.definedLocals.exists(_.isInstanceOf[BlockMemberSymbol]),
-            s"Non-ScopedBlock ${obj.nme} unexpectedly contains BlockMemberSymbols in definedLocals"
-          )
-        obj.definedLocals.collect:
-          case s: BlockLocalSymbol => s
-          case s: InnerSymbol => s
+      lazy val localSyms: Set[ScopedValueSymbol | InnerSymbol] = obj.definedLocals
       
       lazy val nestedModObjSyms: Set[InnerSymbol] = children.collect:
           case ScopeNode(obj = c: ScopedObject.Class) if c.isObj => c.cls.isym
