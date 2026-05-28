@@ -1058,6 +1058,10 @@ enum Value extends Path with ProductWithExtraInfo:
 
   /** Returns the [[`ErasedType`]] of this value. */
   def erasedType(using Ctx): ErasedType = this match
+    case MemberRef(_, disamb: (ClassSymbol | ModuleOrObjectSymbol)) => ErasedType.AnyRef(false, disamb)
+    case MemberRef(_, disamb: TypeAliasSymbol) => 
+      // TODO(Derppening): Do we preserve the `TypeAliasSymbol` here?
+      disamb.irClsLikeDefn.flatMap(_.sym.asClsOrMod).fold(ErasedType.objectRef)(ErasedType.AnyRef(false, _))
     case This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => ErasedType.AnyRef(false, clsOrMod)
     case Lit(lit) => lit.erasedType
     case _ => ErasedType.objectRef
