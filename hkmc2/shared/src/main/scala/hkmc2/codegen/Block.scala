@@ -1055,6 +1055,12 @@ enum Value extends Path with ProductWithExtraInfo:
   case MemberRef(bms: BlockMemberSymbol, disamb: DefinitionSymbol[?])
   case This(sym: InnerSymbol)
   case Lit(lit: Literal, erasedType: ErasedType)
+
+  /** Returns the [[`ErasedType`]] of this value. */
+  def erasedType(using Ctx): ErasedType = this match
+    case This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => ErasedType.AnyRef(false, clsOrMod)
+    case Lit(lit, et) => et
+    case _ => ErasedType.objectRef
   
   override def extraInfo(using DebugPrinter): Str = this match
     case MemberRef(bms, disamb) => s"disamb=${disamb.showAsPlain}"
