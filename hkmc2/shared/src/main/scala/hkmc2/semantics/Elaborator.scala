@@ -302,7 +302,11 @@ object Elaborator:
       def ref(id: Ident)(using Elaborator.State, Ctx): Resolvable =
         // * Note: due to symbolic ops, we may have `id.name =/= nme`;
         // * e.g., we can have `id.name = "|>"` and `nme = "pipe"`.
-        Term.Ref(sym)(id, 666, N) // FIXME: 666 is a temporary placeholder
+        val refSym = sym match
+          case bms: BlockMemberSymbol =>
+            bms.tsym.filter(_.useAsLocalValue).getOrElse(sym)
+          case _ => sym
+        Term.Ref(refSym)(id, 666, N) // FIXME: 666 is a temporary placeholder
       def symbol = S(sym)
       def isImport: Bool = false
     final case class SelElem(base: Elem, nme: Str, symOpt: Opt[MemberSymbol], isImport: Bool) extends Elem:

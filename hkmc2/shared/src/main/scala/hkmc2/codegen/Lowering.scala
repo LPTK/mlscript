@@ -38,8 +38,7 @@ object Thrw extends TailOp:
 class LoweringCtx(
   initMap: Map[ValueSymbol, Value], // No longer in meaningful use and could be removed if we don't find a use for it
   val mayRet: Bool, // For rewriting while loop into tail recursive function, represent whether an explicit return is legal in the current block
-  private val definedSymsDuringLowering: collection.mutable.Set[ScopedSymbol], // used to create Scoped blocks
-  val isTopLevelScope: Bool,
+  private val definedSymsDuringLowering: collection.mutable.Set[ScopedSymbol] // used to create Scoped blocks
 ):
   val map = initMap
   def collectScopedSym(s: ScopedSymbol) = definedSymsDuringLowering.add(s)
@@ -63,13 +62,11 @@ class LoweringCtx(
 object LoweringCtx:
   def loweringCtx(using sub: LoweringCtx): LoweringCtx = sub
   val empty =
-    LoweringCtx(Map.empty, mayRet = false, collection.mutable.Set.empty, isTopLevelScope = true)
+    LoweringCtx(Map.empty, mayRet = false, collection.mutable.Set.empty)
   def nestFunc(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.map, mayRet = true, sub.definedSymsDuringLowering, isTopLevelScope = false)
+    LoweringCtx(sub.map, mayRet = true, sub.definedSymsDuringLowering)
   def nestScoped(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.map, sub.mayRet, collection.mutable.Set.empty, isTopLevelScope = false)
-  def nestTopLevelScoped(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.map, sub.mayRet, collection.mutable.Set.empty, isTopLevelScope = true)
+    LoweringCtx(sub.map, sub.mayRet, collection.mutable.Set.empty)
 end LoweringCtx
 
 import LoweringCtx.loweringCtx
@@ -149,6 +146,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       lastWords(s"tried to collect field-backed term symbol ${sym.showDbg}")
     case sym: ScopedValueSymbol => loweringCtx.collectScopedSym(sym)
     case sym => lastWords(s"tried to collect non-scoped local symbol ${sym.showDbg}")
+
+  private def scopedDefSym(td: TermDefinition): ScopedSymbol =
+    if td.tsym.useAsLocalValue then td.tsym else td.sym
 
   
   // type Rcd = (mut: Bool, args: List[RcdArg]) // * Better, but Scala's patmat exhaustiveness chokes on it
@@ -239,8 +239,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case td: TermDefinition =>
           reportAnnotations(td, td.extraAnnotations)
           if td.owner.isEmpty && td.hasDeclareModifier.isEmpty then
-            loweringCtx.collectScopedSym:
-              if (td.k is syntax.Ins) && !loweringCtx.isTopLevelScope then td.tsym else td.sym
+            loweringCtx.collectScopedSym(scopedDefSym(td))
           td.body match
           case N => // abstract declarations have no lowering
             blockImpl(stats, res)
@@ -261,18 +260,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 case Annot.Config(modify) => modify(config)
               Define(FunDefn(td.owner, td.sym, td.tsym, paramLists, bodyBlock)(cfgOverride, td.annotations),
                 blockImpl(stats, res))
-            case syntax.Ins =>
-              // Implicit instances are not parameterized for now.
-              assert(td.params.isEmpty)
-              if loweringCtx.isTopLevelScope then
-                val cfgOverride = td.extraAnnotations.collectFirst:
-                  case Annot.Config(modify) => modify(config)
-                subTerm(bod)(r =>
-                  Define(ValDefn(td.tsym, td.sym, r)(cfgOverride, td.annotations),
-                    blockImpl(stats, res)))
-              else
-                subTerm(bod)(r =>
-                  defineSymbol(td.tsym, r, blockImpl(stats, res)))
             case syntax.LetBind | syntax.HandlerBind => fail:
               ErrorReport(
                 msg"Unexpected declaration kind '${td.k.str}' in lowering" -> td.toLoc :: Nil,
@@ -649,6 +636,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         return k(Lambda(paramLists.head, bodyBlock)(Nil).withLocOf(ref))
     case bs: BlockMemberSymbol =>
       disamb.flatMap(_.defn) match
+      case S(td: TermDefinition) if td.tsym.useAsLocalValue =>
+        warnStmt
+        return k(td.tsym.asSimpleRef.withLocOf(ref))
       case S(d) if d.hasDeclareModifier.isDefined =>
         val sel = SynthSel(State.globalThisSymbol.ref().resolve, ref.tree)(S(bs), FlowSymbol.synthSel(ref.tree.name), N, N).withLocOf(ref).resolve
         return disamb.fold(term(sel)(k))(d => term(st.Resolved(sel, d)(N))(k))
@@ -670,6 +660,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case N => ()
       case S(_) => ()
       case N => () // TODO panic here; can only lower refs to elab'd symbols
+      bs.tsym match
+      case S(tsym) if tsym.useAsLocalValue =>
+        warnStmt
+        return k(tsym.asSimpleRef.withLocOf(ref))
+      case _ => ()
     case sym: TermSymbol =>
       privateFieldSelfSelection(sym) match
         case S(sel) =>
@@ -1339,7 +1334,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     val (imps, funs, rest) = splitBlock(main.stats, Nil, Nil, Nil)
     
     val blk =
-      inTopLevelScopedBlock(using LoweringCtx.empty):
+      inScopedBlock(using LoweringCtx.empty):
         block(funs ::: rest, R(main.res))(ImplctRet)
     
     val desug = LambdaRewriter.desugar(blk)
@@ -1416,12 +1411,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val scopedSyms = loweringCtx.getCollectedSym
       Scoped(scopedSyms, body)
 
-  def inTopLevelScopedBlock(using LoweringCtx)(mkBlock: LoweringCtx ?=> Block): Block =
-    LoweringCtx.nestTopLevelScoped.givenIn:
-      val body = mkBlock
-      val scopedSyms = loweringCtx.getCollectedSym
-      Scoped(scopedSyms, body)
-  
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =
     val scopedBody = inScopedBlock(returnedTerm(bodyTerm))

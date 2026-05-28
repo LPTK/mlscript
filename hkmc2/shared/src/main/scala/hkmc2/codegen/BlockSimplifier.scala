@@ -75,6 +75,10 @@ class BlockSimplifier
     
     var changed = false
     
+    def definedValueSym(defn: Defn): ValueSymbol = defn match
+      case ValDefn(tsym, sym, _) if tsym.useAsLocalValue => tsym
+      case _ => defn.sym
+
     def registerChange(dbg: => Str)(using Line) =
       log(s"!! Change triggered { ${dbg} }")
       // * For debugging:
@@ -144,7 +148,7 @@ class BlockSimplifier
         override def applyBlock(b: Block): Unit =
           b match
             case Define(defn, rst) =>
-              definedVars += defn.sym
+              definedVars += definedValueSym(defn)
             case Scoped(syms, _) =>
               localVars ++= syms
             case Break(lbl) => usedLabels += lbl
@@ -240,13 +244,14 @@ class BlockSimplifier
 
       // * Remove local pure definitions that are never read (and are not preserved)
       case Define(defn, rest) =>
+        val defnSym = definedValueSym(defn)
         if !defn.isPure
-        || !localVars(defn.sym)
-        || usedVars(defn.sym)
-        || symbolsToPreserve(defn.sym)
+        || !localVars(defnSym)
+        || usedVars(defnSym)
+        || symbolsToPreserve(defnSym)
         then super.applyBlock(b)
         else
-          registerChange(s"rm unused pure defn ${defn.sym.showDbg}")
+          registerChange(s"rm unused pure defn ${defnSym.showDbg}")
           applyBlock(rest)
       
       // * Simplify labelled blocks
@@ -457,6 +462,18 @@ class BlockSimplifier
     val atLabelBegin: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     val atLabelEnd: MutMap[LabelSymbol, AssignedResults] = MutMap.empty.withDefaultValue(emptyAssignedResults)
     
+    def recordAssignment(lhs: LocalVar, rhs: Result, ass: Assign): Unit =
+      assignedResults += lhs -> Assigned(ass, rhs.match
+        case r @ Value.SimpleRef(sym: LocalVar) =>
+          if capturedVars(sym) then N
+          else
+            val rhs2 = assignedResults(sym)
+            S(r -> rhs2)
+        case r: Value.RefLike =>
+          S(r -> Unknown)
+        case _ => N
+      )
+
     // * Careful: can't use `mergeMap` because we need to retain values defined in only one of the maps,
     // * merging them with `Unknown` (instead of just dropping them).
     def merge(ar1: AssignedResults, ar2: AssignedResults): AssignedResults =
@@ -512,16 +529,7 @@ class BlockSimplifier
       case ass @ Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
         // log(s"Propagating ${lhs} := ${rhs} (${assignedResults.get(lhs)})")
         
-        assignedResults += lhs -> Assigned(ass, rhs.match
-          case r @ Value.SimpleRef(sym: LocalVar) =>
-            if capturedVars(sym) then N
-            else
-              val rhs2 = assignedResults(sym)
-              S(r -> rhs2)
-          case r: Value.RefLike =>
-            S(r -> Unknown)
-          case _ => N
-        )
+        recordAssignment(lhs, rhs, ass)
         super.applyBlock(b)
         
       case Assign(lhs, rhs, rst) =>
@@ -529,6 +537,15 @@ class BlockSimplifier
         
         super.applyBlock(b)
         
+      case Define(defn: ValDefn, rst) =>
+        applyValDefn(defn): defn2 =>
+          definedValueSym(defn2) match
+          case loc: LocalVar if !capturedVars(loc) =>
+            recordAssignment(loc, defn2.rhs, new Assign(loc, defn2.rhs, End()))
+          case _ =>
+          val rst2 = applySubBlock(rst)
+          if (defn2 is defn) && (rst2 is rst) then b else Define(defn2, rst2)
+
       case Label(label, loop, body, rest) =>
         
         // TODO: fix the rest of the compiler so this invariant actually holds

@@ -614,7 +614,9 @@ sealed abstract class Defn:
   lazy val freeVars: Set[FreeSymbol] = this match
     case FunDefn(own, sym, dSym, params, body) =>
       body.freeVars -- params.flatMap(_.paramSyms) ++ sym.optionIf(own.isEmpty)
-    case ValDefn(tsym, sym, rhs) => rhs.freeVars ++ sym.optionIf(tsym.owner.isEmpty)
+    case ValDefn(tsym, sym, rhs) =>
+      val target: FreeSymbol = if tsym.useAsLocalValue then tsym else sym
+      rhs.freeVars ++ target.optionIf(tsym.owner.isEmpty)
     case ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentSym, 
         methods, privateFields, publicFields, preCtor, ctor, stat, bufferable) =>
       preCtor.freeVars
@@ -1097,9 +1099,13 @@ extension (l: ValueSymbol)
   // TODO(Derppening): Inline `Value.Ref.apply` into this function once that function is removed
   @annotation.nowarn("cat=deprecation")
   def asPath: Value.RefLike =
-    Value.Ref(l, l match
-      case bms: BlockMemberSymbol => S(bms.asPrincipal.getOrElse:
-        lastWords(s"Cannot resolve overloaded member symbol ${bms.nme}: no principal disambiguation found")
-      )
-      case _ => N
-    )
+    l match
+      case bms: BlockMemberSymbol =>
+        bms.asPrincipal.getOrElse:
+          lastWords(s"Cannot resolve overloaded member symbol ${bms.nme}: no principal disambiguation found")
+        match
+          case tsym: TermSymbol if tsym.useAsLocalValue =>
+            tsym.asSimpleRef
+          case disamb =>
+            Value.Ref(bms, S(disamb))
+      case _ => Value.Ref(l, N)

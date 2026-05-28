@@ -9,6 +9,7 @@ class Baz
 fun foo[A](using Foo[A], A) = 42
 
 using Foo[Baz] = new Foo
+//│ instance$App(Ident(Foo),TyTup(List(Ident(Baz)))) = Foo
 
 
 // FIXME: error message refers to `A`
@@ -17,7 +18,7 @@ using Foo[Baz] = new Foo
 :re
 foo[Baz]
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type Baz (type parameter A) for call: 
-//│ ║  l.18: 	foo[Baz]
+//│ ║  l.19: 	foo[Baz]
 //│ ║        	^^^^^^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  l.9: 	fun foo[A](using Foo[A], A) = 42
@@ -29,7 +30,7 @@ foo[Baz]
 :re
 foo
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter A) for call: 
-//│ ║  l.30: 	foo
+//│ ║  l.31: 	foo
 //│ ║        	^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  l.9: 	fun foo[A](using Foo[A], A) = 42
@@ -39,11 +40,12 @@ foo
 
 
 using Baz = new Baz
+//│ instance$Ident(Baz) = Baz
 
 :todo
 foo
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter A) for call: 
-//│ ║  l.44: 	foo
+//│ ║  l.46: 	foo
 //│ ║        	^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  l.9: 	fun foo[A](using Foo[A], A) = 42
@@ -57,10 +59,10 @@ fun foo[A](using Foo[A])(using A) = 42
 :todo
 foo
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter A) for call: 
-//│ ║  l.58: 	foo
+//│ ║  l.60: 	foo
 //│ ║        	^^^
 //│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.55: 	fun foo[A](using Foo[A])(using A) = 42
+//│ ║  l.57: 	fun foo[A](using Foo[A])(using A) = 42
 //│ ║        	                               ^
 //│ ╙── Illegal query for an unspecified type variable A.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -71,66 +73,70 @@ fun foo[A](using A)(using Foo[A]) = 42
 :todo
 foo
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter A) for call: 
-//│ ║  l.72: 	foo
+//│ ║  l.74: 	foo
 //│ ║        	^^^
 //│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.69: 	fun foo[A](using A)(using Foo[A]) = 42
+//│ ║  l.71: 	fun foo[A](using A)(using Foo[A]) = 42
 //│ ║        	                 ^
 //│ ╙── Illegal query for an unspecified type variable A.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 using Foo[Bar[Baz]] = new Foo
+//│ instance$App(Ident(Foo),TyTup(List(App(Ident(Bar),TyTup(List(Ident(Baz))))))) = Foo
 
 :e
 :re
 foo
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter A) for call: 
-//│ ║  l.87: 	foo
+//│ ║  l.90: 	foo
 //│ ║        	^^^
 //│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.69: 	fun foo[A](using A)(using Foo[A]) = 42
+//│ ║  l.71: 	fun foo[A](using A)(using Foo[A]) = 42
 //│ ║        	                 ^
 //│ ╙── Illegal query for an unspecified type variable A.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 using Bar[Baz] = new Bar
+//│ instance$App(Ident(Bar),TyTup(List(Ident(Baz)))) = Bar
 
 :e
 :re
 foo
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter A) for call: 
-//│ ║  l.101: 	foo
+//│ ║  l.105: 	foo
 //│ ║         	^^^
 //│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.69: 	fun foo[A](using A)(using Foo[A]) = 42
+//│ ║  l.71: 	fun foo[A](using A)(using Foo[A]) = 42
 //│ ║        	                 ^
 //│ ╙── Illegal query for an unspecified type variable A.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 using Bar[Int] = new Bar
+//│ instance$App(Ident(Bar),TyTup(List(Ident(Int)))) = Bar
 
 :e
 :re
 foo
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter A) for call: 
-//│ ║  l.115: 	foo
+//│ ║  l.120: 	foo
 //│ ║         	^^^
 //│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.69: 	fun foo[A](using A)(using Foo[A]) = 42
+//│ ║  l.71: 	fun foo[A](using A)(using Foo[A]) = 42
 //│ ║        	                 ^
 //│ ╙── Illegal query for an unspecified type variable A.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 using Bar[Baz] = new Bar
+//│ instance$App(Ident(Bar),TyTup(List(Ident(Baz)))) = Bar
 
 :todo
 foo
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter A) for call: 
-//│ ║  l.128: 	foo
+//│ ║  l.134: 	foo
 //│ ║         	^^^
 //│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.69: 	fun foo[A](using A)(using Foo[A]) = 42
+//│ ║  l.71: 	fun foo[A](using A)(using Foo[A]) = 42
 //│ ║        	                 ^
 //│ ╙── Illegal query for an unspecified type variable A.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

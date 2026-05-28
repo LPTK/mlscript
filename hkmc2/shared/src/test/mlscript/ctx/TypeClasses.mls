@@ -3,8 +3,10 @@
 // Syntaxes
 
 using Int = 42
+//│ instance$Ident(Int) = 42
 
 using Int as someInt = 42
+//│ someInt = 42
 
 module M with
   fun f(using Int) = 42
@@ -52,10 +54,13 @@ module M with
   fun tFoo[T](using someFoo: Foo[T]): T = someFoo.foo()
 
 using Int as i = 24
+//│ i = 24
 
 using Foo[Int] = new IntFoo()
+//│ instance$App(Ident(Foo),TyTup(List(Ident(Int)))) = IntFoo
 
 using Foo[Str] = new StrFoo()
+//│ instance$App(Ident(Foo),TyTup(List(Ident(Str)))) = StrFoo
 
 // should resolve to foo(i)
 :expect 24
@@ -91,6 +96,7 @@ module N with
 using Num = 3.14
 N.g
 //│ = 3.14
+//│ instance$Ident(Num) = 3.14
 
 
 // Parameterized Type Resolution
@@ -118,6 +124,8 @@ module M with
 
 using Bar[Int, Str] = new IntStrBar()
 using Bar[Str, Int] = new StrIntBar()
+//│ instance$App(Ident(Bar),TyTup(List(Ident(Int), Ident(Str)))) = IntStrBar
+//│ instance$App(Ident(Bar),TyTup(List(Ident(Str), Ident(Int)))) = StrIntBar
 
 // should resolve to tFoo1(new IntStrBar())
 :expect "IntStr"
@@ -164,21 +172,25 @@ module M with
 using Monoid[Int] = IntAddMonoid
 M.foldInt(2, 3, 4)
 //│ = 9
+//│ instance$App(Ident(Monoid),TyTup(List(Ident(Int)))) = IntAddMonoid
 
 :expect 24
 using Monoid[Int] = IntMulMonoid
 M.foldInt(2, 3, 4)
 //│ = 24
+//│ instance$App(Ident(Monoid),TyTup(List(Ident(Int)))) = IntMulMonoid
 
 :expect 6
 using Monoid[Int] = IntAddMonoid
 M.fold(1, 2, 3)
 //│ = 6
+//│ instance$App(Ident(Monoid),TyTup(List(Ident(Int)))) = IntAddMonoid
 
 
 // Generalized Module Methods
 
 using Int = 42
+//│ instance$Ident(Int) = 42
 
 :expect 42
 fun foo()(using i: Int) = i

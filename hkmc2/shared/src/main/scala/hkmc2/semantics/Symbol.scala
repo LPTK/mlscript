@@ -386,6 +386,14 @@ class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.I
     with DefinitionSymbol[TermDefinition]
     with LocalVarSymbol
     with NamedSymbol:
+  /** True when this term should be represented as a direct block-local value
+    * rather than via its enclosing `BlockMemberSymbol`.
+    *
+    * Resolver sets this for ownerless contextual instances. After that point,
+    * downstream passes follow the symbol invariant instead of reinterpreting
+    * the source-level definition kind.
+    */
+  var useAsLocalValue: Bool = false
   def nme: Str = id.name
   def name: Str = nme
   

@@ -208,19 +208,13 @@ R.bar
 //│           sym = term:R⁰/bar²
 //│         rhs = Tup of Ls of 
 //│           Fld:
-//│             term = Resolved{sym=term:instance$Ident(Int)⁰,typ=class:Int⁰}:
-//│               t = Ref{sym=member:instance$Ident(Int)¹} of member:instance$Ident(Int)¹
-//│               sym = term:instance$Ident(Int)⁰
+//│             term = Ref{sym=term:instance$Ident(Int)⁰,typ=class:Int⁰} of term:instance$Ident(Int)⁰
 //│       rhs = Tup of Ls of 
 //│         Fld:
-//│           term = Resolved{sym=term:instance$Ident(Num)⁰,typ=class:Num⁰}:
-//│             t = Ref{sym=member:instance$Ident(Num)¹} of member:instance$Ident(Num)¹
-//│             sym = term:instance$Ident(Num)⁰
+//│           term = Ref{sym=term:instance$Ident(Num)⁰,typ=class:Num⁰} of term:instance$Ident(Num)⁰
 //│     rhs = Tup of Ls of 
 //│       Fld:
-//│         term = Resolved{sym=term:instance$Ident(Str)⁰,typ=class:Str⁰}:
-//│           t = Ref{sym=member:instance$Ident(Str)¹} of member:instance$Ident(Str)¹
-//│           sym = term:instance$Ident(Str)⁰
+//│         term = Ref{sym=term:instance$Ident(Str)⁰,typ=class:Str⁰} of term:instance$Ident(Str)⁰
 
 // the symbol of this Ref should be M because of the implicit application
 foo
@@ -234,19 +228,13 @@ foo
 //│           sym = term:foo⁴
 //│         rhs = Tup of Ls of 
 //│           Fld:
-//│             term = Resolved{sym=term:instance$Ident(Int)⁰,typ=class:Int⁰}:
-//│               t = Ref{sym=member:instance$Ident(Int)¹} of member:instance$Ident(Int)¹
-//│               sym = term:instance$Ident(Int)⁰
+//│             term = Ref{sym=term:instance$Ident(Int)⁰,typ=class:Int⁰} of term:instance$Ident(Int)⁰
 //│       rhs = Tup of Ls of 
 //│         Fld:
-//│           term = Resolved{sym=term:instance$Ident(Num)⁰,typ=class:Num⁰}:
-//│             t = Ref{sym=member:instance$Ident(Num)¹} of member:instance$Ident(Num)¹
-//│             sym = term:instance$Ident(Num)⁰
+//│           term = Ref{sym=term:instance$Ident(Num)⁰,typ=class:Num⁰} of term:instance$Ident(Num)⁰
 //│     rhs = Tup of Ls of 
 //│       Fld:
-//│         term = Resolved{sym=term:instance$Ident(Str)⁰,typ=class:Str⁰}:
-//│           t = Ref{sym=member:instance$Ident(Str)¹} of member:instance$Ident(Str)¹
-//│           sym = term:instance$Ident(Str)⁰
+//│         term = Ref{sym=term:instance$Ident(Str)⁰,typ=class:Str⁰} of term:instance$Ident(Str)⁰
 
 // the symbol of this TyApp should be M because of the implicit application
 // note that the resolved symbol for implicit application is on TyApp instead of on Sel
@@ -270,19 +258,13 @@ R.bar[Int]
 //│               sym = class:Int⁰
 //│         rhs = Tup of Ls of 
 //│           Fld:
-//│             term = Resolved{sym=term:instance$Ident(Int)⁰,typ=class:Int⁰}:
-//│               t = Ref{sym=member:instance$Ident(Int)¹} of member:instance$Ident(Int)¹
-//│               sym = term:instance$Ident(Int)⁰
+//│             term = Ref{sym=term:instance$Ident(Int)⁰,typ=class:Int⁰} of term:instance$Ident(Int)⁰
 //│       rhs = Tup of Ls of 
 //│         Fld:
-//│           term = Resolved{sym=term:instance$Ident(Num)⁰,typ=class:Num⁰}:
-//│             t = Ref{sym=member:instance$Ident(Num)¹} of member:instance$Ident(Num)¹
-//│             sym = term:instance$Ident(Num)⁰
+//│           term = Ref{sym=term:instance$Ident(Num)⁰,typ=class:Num⁰} of term:instance$Ident(Num)⁰
 //│     rhs = Tup of Ls of 
 //│       Fld:
-//│         term = Resolved{sym=term:instance$Ident(Str)⁰,typ=class:Str⁰}:
-//│           t = Ref{sym=member:instance$Ident(Str)¹} of member:instance$Ident(Str)¹
-//│           sym = term:instance$Ident(Str)⁰
+//│         term = Ref{sym=term:instance$Ident(Str)⁰,typ=class:Str⁰} of term:instance$Ident(Str)⁰
 
 // the symbol of this TyApp should be M because of the implicit application
 // note that the resolved symbol for implicit application is on TyApp instead of on Ref
@@ -302,16 +284,10 @@ foo[Int]
 //│               sym = class:Int⁰
 //│         rhs = Tup of Ls of 
 //│           Fld:
-//│             term = Resolved{sym=term:instance$Ident(Int)⁰,typ=class:Int⁰}:
-//│               t = Ref{sym=member:instance$Ident(Int)¹} of member:instance$Ident(Int)¹
-//│               sym = term:instance$Ident(Int)⁰
+//│             term = Ref{sym=term:instance$Ident(Int)⁰,typ=class:Int⁰} of term:instance$Ident(Int)⁰
 //│       rhs = Tup of Ls of 
 //│         Fld:
-//│           term = Resolved{sym=term:instance$Ident(Num)⁰,typ=class:Num⁰}:
-//│             t = Ref{sym=member:instance$Ident(Num)¹} of member:instance$Ident(Num)¹
-//│             sym = term:instance$Ident(Num)⁰
+//│           term = Ref{sym=term:instance$Ident(Num)⁰,typ=class:Num⁰} of term:instance$Ident(Num)⁰
 //│     rhs = Tup of Ls of 
 //│       Fld:
-//│         term = Resolved{sym=term:instance$Ident(Str)⁰,typ=class:Str⁰}:
-//│           t = Ref{sym=member:instance$Ident(Str)¹} of member:instance$Ident(Str)¹
-//│           sym = term:instance$Ident(Str)⁰
+//│         term = Ref{sym=term:instance$Ident(Str)⁰,typ=class:Str⁰} of term:instance$Ident(Str)⁰

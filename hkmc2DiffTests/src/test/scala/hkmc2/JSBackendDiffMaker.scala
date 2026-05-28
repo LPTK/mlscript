@@ -91,8 +91,11 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         case (nme, e @ (_: RefElem | SelElem(base = RefElem(_: InnerSymbol)))) =>
           e.symbol match
           case S(ts: TermSymbol) if ts.k.isInstanceOf[syntax.ValLike] => S((nme, ts, N))
-          case S(ts: BlockMemberSymbol)
-            if includeNonTerms || ts.trmImplTree.exists(_.k.isInstanceOf[syntax.ValLike]) => S((nme, ts, N))
+          case S(bms: BlockMemberSymbol) =>
+            bms.tsym match
+            case S(tsym) if tsym.useAsLocalValue => S((nme, tsym, N))
+            case _ if includeNonTerms || bms.trmImplTree.exists(_.k.isInstanceOf[syntax.ValLike]) => S((nme, bms, N))
+            case _ => N
           case S(vs: VarSymbol) => S((nme, vs, N))
           case _ => N
         case _ => N

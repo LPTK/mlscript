@@ -3,6 +3,8 @@
 
 using Int = 42
 using Str = "42"
+//│ instance$Ident(Int) = 42
+//│ instance$Ident(Str) = "42"
 
 :expect 42
 use[Int]
@@ -16,7 +18,7 @@ use[Str]
 :re
 use[Num]
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type Num (type parameter T) for call: 
-//│ ║  l.17: 	use[Num]
+//│ ║  l.19: 	use[Num]
 //│ ║        	^^^^^^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  l.130: 	fun use[T](using instance: T) = instance
@@ -42,17 +44,19 @@ fun f(using Int) = use[Int]
 using Int = -42
 f
 //│ = -42
+//│ instance$Ident(Int) = -42
 
 :expect "42"
 fun f(using Int) = use[Str]
 using Str = "-42"
 f
 //│ = "42"
+//│ instance$Ident(Str) = "-42"
 
 :e
 fun f(using Int) = use[Num]
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type Num (type parameter T) for call: 
-//│ ║  l.53: 	fun f(using Int) = use[Num]
+//│ ║  l.57: 	fun f(using Int) = use[Num]
 //│ ║        	                   ^^^^^^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  l.130: 	fun use[T](using instance: T) = instance
@@ -68,15 +72,16 @@ fun f[T](using Some[T]) = use[Some[T]].value
 using Some[Int] = Some(42)
 f
 //│ = 42
+//│ instance$App(Ident(Some),TyTup(List(Ident(Int)))) = Some(42)
 
 :e
 :re
 use{[Some[Int]].value}
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (selection).
-//│ ║  l.74: 	use{[Some[Int]].value}
+//│ ║  l.79: 	use{[Some[Int]].value}
 //│ ╙──      	    ^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter T) for call: 
-//│ ║  l.74: 	use{[Some[Int]].value}
+//│ ║  l.79: 	use{[Some[Int]].value}
 //│ ║        	^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  l.130: 	fun use[T](using instance: T) = instance
@@ -88,7 +93,7 @@ use{[Some[Int]].value}
 :re
 use([Some[Int]].value)
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter T) for call: 
-//│ ║  l.89: 	use([Some[Int]].value)
+//│ ║  l.94: 	use([Some[Int]].value)
 //│ ║        	^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  l.130: 	fun use[T](using instance: T) = instance
@@ -102,15 +107,16 @@ fun f[T](using T) = use[T]
 using Int = 42
 f[Int]
 //│ = 42
+//│ instance$Ident(Int) = 42
 
 :e
 :re
 f
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter T) for call: 
-//│ ║  l.108: 	f
+//│ ║  l.114: 	f
 //│ ║         	^
 //│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.101: 	fun f[T](using T) = use[T]
+//│ ║  l.106: 	fun f[T](using T) = use[T]
 //│ ║         	               ^
 //│ ╙── Illegal query for an unspecified type variable T.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

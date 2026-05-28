@@ -1,6 +1,7 @@
 :js
 
 using Int = 42
+//│ instance$Ident(Int) = 42
 
 fun foo()(using Int) = [use[Int]]
 
@@ -12,16 +13,17 @@ fun baz(x)(using Int)(y)(using Num) = [x, use[Int], y, use[Num]]
 :e
 baz
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type Num for call: 
-//│ ║  l.13: 	baz
+//│ ║  l.14: 	baz
 //│ ║        	^^^
 //│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.9: 	fun baz(x)(using Int)(y)(using Num) = [x, use[Int], y, use[Num]]
-//│ ║       	                               ^^^
+//│ ║  l.10: 	fun baz(x)(using Int)(y)(using Num) = [x, use[Int], y, use[Num]]
+//│ ║        	                               ^^^
 //│ ╙── Missing instance: Expected: Num; Available: Int
 //│ = fun
 
 
 using Num = 0.42
+//│ instance$Ident(Num) = 0.42
 
 // foo
 // should be expanded to

@@ -12,9 +12,13 @@ fun foo[A](using f: Foo[A], b: Bar[A]): A
 
 using Foo[Str] = new Foo
 using Foo[Int] = new Foo
+//│ instance$App(Ident(Foo),TyTup(List(Ident(Int)))) = Foo
+//│ instance$App(Ident(Foo),TyTup(List(Ident(Str)))) = Foo
 
 using Bar[Int] = new Bar
 using Bar[Str] = new Bar
+//│ instance$App(Ident(Bar),TyTup(List(Ident(Int)))) = Bar
+//│ instance$App(Ident(Bar),TyTup(List(Ident(Str)))) = Bar
 
 
 // * Probably picks A = Int due to the Foo constraint, picking up the latest-defined Foo instance,
