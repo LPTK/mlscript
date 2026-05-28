@@ -219,7 +219,7 @@ class BlockSimplifier
       case Value.SimpleRef(loc) if localVars.contains(loc) && !definedVars.contains(loc) =>
         registerChange(s"${loc.showDbg} is never assigned; replacing read with undefined")
         // if !symbolsToPreserve(loc) then removedLocals += loc
-        k(Value.UnitLit(false))
+        k(Value.Lit(syntax.Tree.UnitLit(false)))
       case _ => super.applyValue(v)(k)
     
     override def applyBlock(b: Block): Block = b match
@@ -646,7 +646,7 @@ class BlockSimplifier
                 assignedResults.get(r).fold(giveUp)(getShapesA)
               case Value.MemberRef(r, sym: ModuleOrObjectSymbol) =>
                 Set.single(sym)
-              case Value.Lit(lit, _) => Set.single(lit)
+              case Value.Lit(lit) => Set.single(lit)
               case _ => giveUp
           
           var shapes = if deadBranchRemoval then getShapes(scrut2) else giveUp
@@ -757,7 +757,7 @@ class BlockSimplifier
               
               if litValue =/= false then
                 ass.rhs match
-                case v @ Value.Lit(lit, _) =>
+                case v @ Value.Lit(lit) =>
                   if litValue === true then
                     litValue = v
                   else if litValue =/= v then
@@ -790,7 +790,7 @@ class BlockSimplifier
         litValue match
         case true =>
           registerChange(s"${loc.showDbg} ~> undefined")
-          return k(Value.UnitLit(false))
+          return k(Value.Lit(syntax.Tree.UnitLit(false)))
         case lit: Value =>
           registerChange(s"${loc.showDbg} ~> ${lit.showDbg}")
           return k(lit)
@@ -871,22 +871,22 @@ class BlockSimplifier
     // TODO: mv to smart ctor of Call
     import syntax.Tree.*, Value.Lit
     val builtinEval: PartialFunction[(Str, List[Value]), Value] =
-      case ("+", (lit @ Lit(IntLit(v1), _)) :: Nil) => lit
-      case ("+", Lit(IntLit(v1), _) :: Lit(IntLit(v2), _) :: Nil) => Value.IntLit(v1 + v2)
-      case ("-", Lit(IntLit(v1), _) :: Nil) => Value.IntLit(-v1)
-      case ("-", Lit(IntLit(v1), _) :: Lit(IntLit(v2), _) :: Nil) => Value.IntLit(v1 - v2)
-      case ("*", Lit(IntLit(v1), _) :: Lit(IntLit(v2), _) :: Nil) => Value.IntLit(v1 * v2)
+      case ("+", (lit @ Lit(IntLit(v1))) :: Nil) => lit
+      case ("+", Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil) => Lit(IntLit(v1 + v2))
+      case ("-", Lit(IntLit(v1)) :: Nil) => Lit(IntLit(-v1))
+      case ("-", Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil) => Lit(IntLit(v1 - v2))
+      case ("*", Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil) => Lit(IntLit(v1 * v2))
       // * For "/", should check for 0 and return a DecLit
-      case ("%", Lit(IntLit(v1), _) :: Lit(IntLit(v2), _) :: Nil) => Value.IntLit(v1 % v2)
-      case ("===", Lit(l1, _) :: Lit(l2, _) :: Nil) => Value.BoolLit(l1 == l2)
-      case ("!==", Lit(l1, _) :: Lit(l2, _) :: Nil) => Value.BoolLit(l1 != l2)
-      case ("<", Lit(IntLit(v1), _) :: Lit(IntLit(v2), _) :: Nil) => Value.BoolLit(v1 < v2)
-      case ("<=", Lit(IntLit(v1), _) :: Lit(IntLit(v2), _) :: Nil) => Value.BoolLit(v1 <= v2)
-      case (">", Lit(IntLit(v1), _) :: Lit(IntLit(v2), _) :: Nil) => Value.BoolLit(v1 > v2)
-      case (">=", Lit(IntLit(v1), _) :: Lit(IntLit(v2), _) :: Nil) => Value.BoolLit(v1 >= v2)
-      case ("&&", Lit(BoolLit(v1), _) :: Lit(BoolLit(v2), _) :: Nil) => Value.BoolLit(v1 && v2)
-      case ("||", Lit(BoolLit(v1), _) :: Lit(BoolLit(v2), _) :: Nil) => Value.BoolLit(v1 || v2)
-      case ("!", Lit(BoolLit(v), _) :: Nil) => Value.BoolLit(!v)
+      case ("%", Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil) => Lit(IntLit(v1 % v2))
+      case ("===", Lit(l1) :: Lit(l2) :: Nil) => Lit(BoolLit(l1 == l2))
+      case ("!==", Lit(l1) :: Lit(l2) :: Nil) => Lit(BoolLit(l1 != l2))
+      case ("<", Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil) => Lit(BoolLit(v1 < v2))
+      case ("<=", Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil) => Lit(BoolLit(v1 <= v2))
+      case (">", Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil) => Lit(BoolLit(v1 > v2))
+      case (">=", Lit(IntLit(v1)) :: Lit(IntLit(v2)) :: Nil) => Lit(BoolLit(v1 >= v2))
+      case ("&&", Lit(BoolLit(v1)) :: Lit(BoolLit(v2)) :: Nil) => Lit(BoolLit(v1 && v2))
+      case ("||", Lit(BoolLit(v1)) :: Lit(BoolLit(v2)) :: Nil) => Lit(BoolLit(v1 || v2))
+      case ("!", Lit(BoolLit(v)) :: Nil) => Lit(BoolLit(!v))
     
   end DataFlowAnalysis
   

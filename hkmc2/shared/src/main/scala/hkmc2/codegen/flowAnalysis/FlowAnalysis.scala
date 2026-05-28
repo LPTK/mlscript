@@ -117,7 +117,7 @@ object PossibleTrackableTupleSelect:
     s match
     case Call(
       Select(Select(Value.SimpleRef(runtimeSym), Tree.Ident("Tuple")), Tree.Ident("get")),
-      (Arg(N, ref@Value.SimpleRef(scrut)) :: Arg(N, Value.Lit(Tree.IntLit(n), _)) :: Nil) :: Nil
+      (Arg(N, ref@Value.SimpleRef(scrut)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
     ) if runtimeSym is eState.runtimeSymbol => S(ref -> n.toInt)
     case _ => N
 
@@ -598,7 +598,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     case v@Value.SimpleRef(l) => applyValueSimpleRef(v, recordAffinity = true)
     case v@Value.MemberRef(_, _) => applyValueMemberRef(v, recordAffinity = true)
     case Value.This(sym) => ()
-    case Value.Lit(lit, _) => ()
+    case Value.Lit(lit) => ()
   
   override def applyFunDefn(fun: FunDefn): Unit =
     ctxTracker.inFun(fun):
@@ -1030,7 +1030,7 @@ class FlowConstraintsCollector(
             cc.constrain(processResult(qual), UnknownCons)
             cc.constrain(processResult(fld), UnknownCons)
             UnknownProd
-          case Value.Lit(lit, _) => UnknownProd
+          case Value.Lit(lit) => UnknownProd
   }
 end FlowConstraintsCollector
 

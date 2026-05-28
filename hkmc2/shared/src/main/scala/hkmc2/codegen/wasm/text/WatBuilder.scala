@@ -1030,7 +1030,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       errExtra: => Str,
   )(using Ctx, FunctionCtx, Raise, SessionExportCtx): Expr => Expr =
     fld match
-      case Value.Lit(IntLit(value), _) if value.isValidInt =>
+      case Value.Lit(IntLit(value)) if value.isValidInt =>
         val idx = value.toInt
         tupleRef =>
           if idx >= 0 then i32.const(idx)
@@ -1191,11 +1191,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         )
 
   def result(r: codegen.Result)(using Ctx, FunctionCtx, Raise, SessionExportCtx): Expr = r match
-    case Value.Lit(BoolLit(value), _) =>
+    case Value.Lit(BoolLit(value)) =>
       ref.i31(i32.const(if value then 1 else 0))
-    case Value.Lit(IntLit(value), _) =>
+    case Value.Lit(IntLit(value)) =>
       withValidIntLit(value, r.toLoc)(intVal => ref.i31(i32.const(intVal)))
-    case Value.Lit(StrLit(value), _) =>
+    case Value.Lit(StrLit(value)) =>
       val lit = internStringLiteral(value)
       val stringCtor = getOrLoadStrCtorFunction
       call(
@@ -1428,10 +1428,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         case Select(Value.This(sym), id) if (sym eq State.globalThisSymbol) && id.name == "Error" =>
           return as.headOption match
             case S(arg) => arg.value match
-                case Value.Lit(BoolLit(value), _) => ref.i31(i32.const(if value then 1 else 0))
-                case Value.Lit(IntLit(value), _) =>
+                case Value.Lit(BoolLit(value)) => ref.i31(i32.const(if value then 1 else 0))
+                case Value.Lit(IntLit(value)) =>
                   withValidIntLit(value, arg.value.toLoc)(intVal => ref.i31(i32.const(intVal)))
-                case Value.Lit(StrLit(_), _) => result(arg.value)
+                case Value.Lit(StrLit(_)) => result(arg.value)
                 case unsupported =>
                   warnExpr(
                     msg"WatBuilder::result for Instantiate(...) of `globalThis.Error(...)` with payload `${

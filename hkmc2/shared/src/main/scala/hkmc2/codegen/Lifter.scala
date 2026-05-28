@@ -648,7 +648,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     protected final def addExtraSyms(b: Block, captureSym: Local, objSyms: Iterable[Local], define: Bool): Block =
       if hasCapture then
-        val undef = Value.UnitLit(false).asArg
+        val undef = Value.Lit(Tree.UnitLit(false)).asArg
         val inst = Instantiate(
           true,
           captureClass.sym.asMemberRef(captureClass.isym),

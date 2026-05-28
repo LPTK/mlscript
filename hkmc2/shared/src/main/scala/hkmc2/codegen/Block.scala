@@ -902,7 +902,7 @@ sealed abstract class Result extends AutoLocated:
     case Value.SimpleRef(l) => l.showAsPlain
     case Value.MemberRef(l, disamb) => s"${l.showAsPlain}${s"‹${disamb.showAsPlain}›"}"
     case Value.This(sym) => s"this[${sym.showAsPlain}]"
-    case Value.Lit(lit, _) => lit.idStr
+    case Value.Lit(lit) => lit.idStr
     case Select(q, n) => s"Select(${q.showDbg}, ${n.showDbg})"
     case DynSelect(q, fld, arrayIdx) => s"DynSelect(${q.showDbg}, ${fld.showDbg}, $arrayIdx)"
     case Call(fun, argss) => s"Call(${fun.showDbg}, [${
@@ -941,7 +941,7 @@ sealed abstract class Result extends AutoLocated:
     case Value.SimpleRef(l) => Vector.empty
     case Value.MemberRef(bms, disamb) => Vector.empty
     case Value.This(sym) => Vector.empty
-    case Value.Lit(lit, _) => Vector.single(lit)
+    case Value.Lit(lit) => Vector.single(lit)
   
   // TODO rm Lam from values and thus the need for this method
   def subBlocks: Ls[Block] = this match
@@ -963,7 +963,7 @@ sealed abstract class Result extends AutoLocated:
     case Value.SimpleRef(l) => Set(l)
     case Value.MemberRef(bms, _) => Set(bms)
     case Value.This(sym) => Set.empty
-    case Value.Lit(lit, _) => Set.empty
+    case Value.Lit(lit) => Set.empty
     case DynSelect(qual, fld, arrayIdx) => qual.freeVars ++ fld.freeVars
   
   lazy val freeVarsLLIR: Set[Local] = this match
@@ -986,7 +986,7 @@ sealed abstract class Result extends AutoLocated:
       case Some(d: TermDefinition) if d.companionClass.isDefined => Set.empty
       case _ => Set(l)
     case Value.This(sym) => Set.empty
-    case Value.Lit(lit, _) => Set.empty
+    case Value.Lit(lit) => Set.empty
     case DynSelect(qual, fld, arrayIdx) => qual.freeVarsLLIR ++ fld.freeVarsLLIR
   
   lazy val size: Int = this match
@@ -997,8 +997,8 @@ sealed abstract class Result extends AutoLocated:
     case Tuple(mut, elems) => elems.iterator.map(_.value.size).sum
     case Record(mut, args) => args.iterator.map(arg => arg.idx.fold(0)(_.size) + arg.value.size).sum
     case _: Value.RefLike => 0
-    case Value.Lit(l: Tree.StrLit, _) => l.value.length / 4
-    case Value.Lit(lit, _) => 0
+    case Value.Lit(l: Tree.StrLit) => l.value.length / 4
+    case Value.Lit(lit) => 0
     case DynSelect(qual, fld, arrayIdx) => qual.size + fld.size
 
 // * TODO: refine this very loose type
@@ -1054,12 +1054,12 @@ enum Value extends Path with ProductWithExtraInfo:
     */
   case MemberRef(bms: BlockMemberSymbol, disamb: DefinitionSymbol[?])
   case This(sym: InnerSymbol)
-  case Lit(lit: Literal, erasedType: ErasedType)
+  case Lit(lit: Literal)
 
   /** Returns the [[`ErasedType`]] of this value. */
   def erasedType(using Ctx): ErasedType = this match
     case This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => ErasedType.AnyRef(false, clsOrMod)
-    case Lit(lit, et) => et
+    case Lit(lit) => lit.erasedType
     case _ => ErasedType.objectRef
   
   override def extraInfo(using DebugPrinter): Str = this match
@@ -1078,27 +1078,7 @@ object Value:
       case SimpleRef(l) => l
       case MemberRef(bms, _) => bms
       case This(sym) => sym
-
-  object IntLit:
-    def apply(i: BigInt): Value.Lit = 
-      Value.Lit(Tree.IntLit(i), ErasedType.Primitive(PrimitiveType.Int))
-
-  object DecLit:
-    def apply(d: BigDecimal): Value.Lit =
-      Value.Lit(Tree.DecLit(d), ErasedType.Primitive(PrimitiveType.Num))
-    
-  object StrLit:
-    def apply(s: Str): Value.Lit = 
-      Value.Lit(Tree.StrLit(s), ErasedType.Primitive(PrimitiveType.Str))
   
-  object UnitLit:
-    def apply(isNullNotUndefined: Bool): Value.Lit = 
-      Value.Lit(Tree.UnitLit(isNullNotUndefined), ErasedType.Primitive(PrimitiveType.Unit))
-
-  object BoolLit:
-    def apply(b: Bool): Value.Lit = 
-      Value.Lit(Tree.BoolLit(b), ErasedType.Primitive(PrimitiveType.Bool))
-
   @deprecated("Use Value.SimpleRef, Value.MemberRef, or Value.This instead.")
   object Ref:
     def apply(l: Local, disamb: Opt[DefinitionSymbol[?]]): Value.RefLike = 

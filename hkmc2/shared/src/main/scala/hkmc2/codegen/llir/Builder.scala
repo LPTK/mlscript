@@ -312,7 +312,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
         ctx.fn_ctx.get(sym) match
           case None => k(ctx.findName(sym) |> sr)
           case Some(_) => bErrStop(msg"Unsupported value: This with function context")
-      case Value.Lit(lit, _) => k(Expr.Literal(lit))
+      case Value.Lit(lit) => k(Expr.Literal(lit))
         
   
   private def getClassOfField(p: DefinitionSymbol[?])(using ctx: Ctx)(using Raise, Scope): Local =
@@ -344,7 +344,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
     trace[Node](s"bPath { $p } begin", x => s"bPath end: ${x.show}"):
       p match
       case s @ Select(Value.MemberRef(sym, _), Tree.Ident("Unit")) if sym is ctx.builtinSym.runtimeSym.get =>
-        bPath(Value.UnitLit(false))(k)
+        bPath(Value.Lit(Tree.UnitLit(false)))(k)
       case s @ DynSelect(qual, fld, arrayIdx) =>
         bErrStop(msg"Unsupported dynamic selection")
       case s @ Select(qual, name) =>
@@ -504,15 +504,15 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
             Node.Case(e, casesList, defaultCase)
       case Return(res) => bResult(res)(x => Node.Result(Ls(x)))
       case Throw(Instantiate(false, Select(Value.SimpleRef(_), ident),
-          Ls(Arg(N, Value.Lit(Tree.StrLit(e), _))) :: Nil))
+          Ls(Arg(N, Value.Lit(Tree.StrLit(e)))) :: Nil))
       if ident.name === "Error" =>
         Node.Panic(e)
       case Throw(Instantiate(false, Select(Value.MemberRef(_, _), ident),
-          Ls(Arg(N, Value.Lit(Tree.StrLit(e), _))) :: Nil))
+          Ls(Arg(N, Value.Lit(Tree.StrLit(e)))) :: Nil))
       if ident.name === "Error" =>
         Node.Panic(e)
       case Throw(Instantiate(false, Select(Value.This(_), ident),
-          Ls(Arg(N, Value.Lit(Tree.StrLit(e), _))) :: Nil))
+          Ls(Arg(N, Value.Lit(Tree.StrLit(e)))) :: Nil))
       if ident.name === "Error" =>
         Node.Panic(e)
       case Label(label, loop, body, rest) => TODO("Label not supported")

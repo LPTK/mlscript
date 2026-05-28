@@ -350,7 +350,7 @@ class TailRecOpt(using State, TL, Raise):
               // The code used to continute the loop.
               val cont =
                 if scc.funs.size === 1 then Continue(loopSym)
-                else Assign(curIdSym, Value.IntLit(dSymIds(calleeSym)), Continue(loopSym))
+                else Assign(curIdSym, Value.Lit(Tree.IntLit(dSymIds(calleeSym))), Continue(loopSym))
               // In some cases, we could have assignments like this:
               // param0 = whatever
               // param1 = <a result containing param0>
@@ -433,7 +433,7 @@ class TailRecOpt(using State, TL, Raise):
                       
                       // Main args
                       def mainArgs(rest: List[Path]) = (0 until paramList.size).toList.foldRight(rest):
-                        case (n, acc) => DynSelect(tupleSym.asSimpleRef, Value.IntLit(n), true) :: acc
+                        case (n, acc) => DynSelect(tupleSym.asSimpleRef, Value.Lit(Tree.IntLit(n)), true) :: acc
                       
                       // If the rest param exists, append a slice
                       val (initialBlk: (Block => Block), pathList: List[Path]) =
@@ -445,8 +445,8 @@ class TailRecOpt(using State, TL, Raise):
                               .sel(Tree.Ident("Tuple"), State.tupleSymbol)
                               .sel(Tree.Ident("slice"), State.tupleSliceSymbol),
                             (tupleSym.asSimpleRef.asArg
-                              :: Value.IntLit(paramList.length).asArg
-                              :: Value.IntLit(0).asArg
+                              :: Value.Lit(Tree.IntLit(paramList.length)).asArg
+                              :: Value.Lit(Tree.IntLit(0)).asArg
                               :: Nil) ne_:: Nil
                           )(true, false, false)
                           val blk = blockBuilder
@@ -495,9 +495,9 @@ class TailRecOpt(using State, TL, Raise):
       else funs.map: f =>
         val paramArgs = getParamSyms(f).map(s => s.asSimpleRef.asArg)
         val args = 
-          Value.IntLit(dSymIds(f.dSym)).asArg
+          Value.Lit(Tree.IntLit(dSymIds(f.dSym))).asArg
             :: paramArgs
-            ::: List.fill(maxParamLen - paramArgs.length)(Value.UnitLit(false).asArg)
+            ::: List.fill(maxParamLen - paramArgs.length)(Value.Lit(Tree.UnitLit(false)).asArg)
         val newBod = Return(
           Call(sel, args ne_:: Nil)(true, false, false),
         )

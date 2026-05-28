@@ -168,7 +168,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
     case Value.MemberRef(bms, disamb) => showSymbol(bms.nme, S(disamb))
     case Value.This(sym) if sym === State.globalThisSymbol => showSymbol(sym.nme, S(sym.asDefnSym))
     case Value.This(sym) => doc"${print(sym)}.this"
-    case Value.Lit(lit, _) => doc"${lit.idStr}"
+    case Value.Lit(lit) => doc"${lit.idStr}"
   
   def print(path: Path)(using Scope): Document = path match
     case sel @ Select(qual, name) =>

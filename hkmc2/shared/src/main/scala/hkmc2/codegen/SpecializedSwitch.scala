@@ -118,7 +118,7 @@ private object PostCondAnalysisImpl extends CachedAnalysis[Block, PostCondRes]:
   private def res(lhs: Opt[Local], rhs: Result, rest: Block) =
     if rhs.isPure then lhs match
       case Some(lhs) => rhs match
-        case Value.Lit(lit, _) => PostCondRes(false, false, Map(lhs -> lit)) >=> analyze(rest)
+        case Value.Lit(lit) => PostCondRes(false, false, Map(lhs -> lit)) >=> analyze(rest)
         case _ => analyze(rest)
       case None => analyze(rest)
     else analyze(rest).markImpure
