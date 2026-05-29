@@ -65,7 +65,6 @@ fun Foo(using z: Int) = new mut Foo0 !> res =>
   set res.z = z
 
 using Int = 123
-//│ instance$Ident(Int) = 123
 
 Foo
 //│ = Foo0 { z: 123 }

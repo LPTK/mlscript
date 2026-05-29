@@ -85,6 +85,10 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     val outerRaise: Raise = summon
     val reportedMessages = mutable.Set.empty[Str]
     
+    val importAliases = blk.stats.collect:
+        case Import(sym = sym: VarSymbol) => sym
+      .toSet
+    
     def definedValues(includeNonTerms: Bool): Ls[(Str, BoundSymbol, N)] =
       import Elaborator.Ctx.*
       curCtx.env.iterator.flatMap:
@@ -92,8 +96,10 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
           e.symbol match
           case S(ts: TermSymbol) if ts.k.isInstanceOf[syntax.ValLike] => S((nme, ts, N))
           case S(ts: BlockMemberSymbol)
-            if includeNonTerms || ts.trmImplTree.exists(_.k.isInstanceOf[syntax.ValLike]) => S((nme, ts, N))
-          case S(vs: VarSymbol) => S((nme, vs, N))
+            if includeNonTerms
+            || ts.trmImplTree.exists(t => t.k.isInstanceOf[syntax.ValLike] && (t.k isnt syntax.Ins))
+          => S((nme, ts, N))
+          case S(vs: VarSymbol) if !importAliases(vs) => S((nme, vs, N))
           case _ => N
         case _ => N
       .toList
