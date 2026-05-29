@@ -39,11 +39,11 @@ fun get(using Int) = use[Int]
 using Int = 1
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
-//│   main = Scoped(syms = {term:instance$Ident(Int)⁰}): 
+//│   main = Scoped(syms = {member:instance$Ident(Int)⁰}): 
 //│     body = Define:
 //│       defn = ValDefn:
-//│         tsym = term:instance$Ident(Int)⁰
-//│         sym = member:instance$Ident(Int)¹
+//│         tsym = term:instance$Ident(Int)¹
+//│         sym = member:instance$Ident(Int)⁰
 //│         rhs = Lit of IntLit of 1
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ instance$Ident(Int) = 1
@@ -59,9 +59,9 @@ get
 //│       sym = term:get⁰
 //│     rhs = Tup of Ls of 
 //│       Fld:
-//│         term = Resolved{sym=term:instance$Ident(Int)⁰,typ=class:Int⁰}:
-//│           t = Ref{sym=member:instance$Ident(Int)¹} of member:instance$Ident(Int)¹
-//│           sym = term:instance$Ident(Int)⁰
+//│         term = Resolved{sym=term:instance$Ident(Int)¹,typ=class:Int⁰}:
+//│           t = Ref{sym=member:instance$Ident(Int)⁰} of member:instance$Ident(Int)⁰
+//│           sym = term:instance$Ident(Int)¹
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
 //│   main = Return of Call:
@@ -71,9 +71,9 @@ get
 //│     argss = Ls of 
 //│       Ls of 
 //│         Arg:
-//│           value = MemberRef{disamb=term:instance$Ident(Int)⁰}:
-//│             bms = member:instance$Ident(Int)¹
-//│             disamb = term:instance$Ident(Int)⁰
+//│           value = MemberRef{disamb=term:instance$Ident(Int)¹}:
+//│             bms = member:instance$Ident(Int)⁰
+//│             disamb = term:instance$Ident(Int)¹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -102,7 +102,7 @@ object Ex with
 //│           Tuple2:
 //│             _1 = member:instance$Ident(Int)²
 //│             _2 = term:instance$Ident(Int)³
-//│         ctor = Scoped(syms = {term:instance$Ident(Int)³}): 
+//│         ctor = Scoped(syms = {member:instance$Ident(Int)²}): 
 //│           body = Define:
 //│             defn = ValDefn:
 //│               tsym = term:instance$Ident(Int)³
@@ -171,7 +171,7 @@ module Ex with
 //│             Tuple2:
 //│               _1 = member:instance$Ident(Int)⁴
 //│               _2 = term:instance$Ident(Int)⁵
-//│           ctor = Scoped(syms = {term:instance$Ident(Int)⁵}): 
+//│           ctor = Scoped(syms = {member:instance$Ident(Int)⁴}): 
 //│             body = Define:
 //│               defn = ValDefn:
 //│                 tsym = term:instance$Ident(Int)⁵
