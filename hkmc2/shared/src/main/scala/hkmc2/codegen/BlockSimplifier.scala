@@ -20,7 +20,7 @@ import hkmc2.{codegen => argss}
   * typically, these will be top-level symbols that are being exported from a diff-test block;
   * we don't want to eliminate these. */
 class BlockSimplifier
-    (symbolsToPreserve: Set[Symbol], tl: TL, printer: Program => Str)
+    (symbolsToPreserve: Set[BoundSymbol], tl: TL, printer: Program => Str)
     (using DebugPrinter, State, Config, Raise, Ctx):
   import tl.*
   
@@ -533,16 +533,7 @@ class BlockSimplifier
         // log(s"Not propagating ${lhs} := ${rhs}")
         
         super.applyBlock(b)
-        
-      case Define(defn: ValDefn, rst) =>
-        applyValDefn(defn): defn2 =>
-          defn.sym match
-          case loc: LocalVar if !capturedVars(loc) =>
-            recordAssignment(loc, defn2.rhs, new Assign(loc, defn2.rhs, End()))
-          case _ =>
-          val rst2 = applySubBlock(rst)
-          if (defn2 is defn) && (rst2 is rst) then b else Define(defn2, rst2)
-
+      
       case Label(label, loop, body, rest) =>
         
         // TODO: fix the rest of the compiler so this invariant actually holds

@@ -86,11 +86,11 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     * their own `LocalPath` cases so lifting cannot accidentally treat them as
     * assignable block-local variables.
     */
-  type LocalPathSymbol = BlockLocalSymbol | BuiltinSymbol
+  type LocalPathSymbol = LocalVarSymbol | BuiltinSymbol
   
   extension (l: LocalPathSymbol)
     def asLocalPath: LocalPath = LocalPath.Sym(l)
-  extension (l: BlockLocalSymbol)
+  extension (l: LocalVarSymbol)
     def asDefnRef: DefnRef = DefnRef.Sym(l)
   
   enum LocalPath:
@@ -139,7 +139,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
   end LocalPath
   
   enum DefnRef:
-    case Sym(l: BlockLocalSymbol)
+    case Sym(l: LocalVarSymbol)
     case PathRef(path: Path)
     case InScope(l: BlockMemberSymbol, d: DefinitionSymbol[?])
     case Field(isym: InnerSymbol, l: BlockMemberSymbol, d: DefinitionSymbol[?])
@@ -670,7 +670,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         )
       else lastWords("tried to instantiate an empty capture")
     
-    protected final def addExtraSyms(b: Block, captureSym: BlockLocalSymbol, objSyms: Iterable[ScopedSymbol]): Block =
+    protected final def addExtraSyms(b: Block, captureSym: LocalVarSymbol, objSyms: Iterable[ScopedSymbol]): Block =
       if hasCapture then
         Scoped(
           objSyms.toSet + captureSym,

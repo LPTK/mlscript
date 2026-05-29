@@ -119,7 +119,7 @@ sealed abstract class Block extends Product:
     case Begin(sub, rst) => sub.definedVars ++ rst.definedVars
     case Assign(_: NoSymbol, r, rst) => rst.definedVars
     case Assign(l: TermSymbol, r, rst) => rst.definedVars + l
-    case Assign(l: BlockLocalSymbol, r, rst) => rst.definedVars + l
+    case Assign(l: LocalVarSymbol, r, rst) => rst.definedVars + l
     case AssignField(l, n, r, rst) => rst.definedVars
     case AssignDynField(l, n, ai, r, rst) => rst.definedVars
     case Match(scrut, arms, dflt, rst) =>
@@ -1011,7 +1011,7 @@ extension (k: Block => Block)
   def transform(f: (Block => Block) => (Block => Block)) = f(k)
   
   def assign(l: AssignableSymbol, r: Result) = k.chain(Assign(l, r, _))
-  def assignScoped(l: BlockLocalSymbol, r: Result) = k.scopedVars(Set.single(l)).assign(l, r)
+  def assignScoped(l: LocalVarSymbol, r: Result) = k.scopedVars(Set.single(l)).assign(l, r)
   def assignFieldN(lhs: Path, nme: Tree.Ident, rhs: Result) = k.chain(AssignField(lhs, nme, rhs, _)(N))
   def break(l: LabelSymbol): Block = k.rest(Break(l))
   def continue(l: LabelSymbol): Block = k.rest(Continue(l))

@@ -959,7 +959,7 @@ class Resolver(tl: TraceLogger)
             disambBms match
             case S(disambBms) => disambBms.defn
             case N => bms.asPrincipal.flatMap(_.defn)
-          case S(bls: BlockLocalSymbol) => bls.decl
+          case S(bls: LocalVarSymbol) => bls.decl
           case S(ds: DefinitionSymbol[?]) => ds.defn
           case _ => N
         log(s"Declaration: ${decl}")
@@ -1211,7 +1211,7 @@ object ModuleChecker:
     
     def checkSym(sym: Symbol): Bool = sym match
       case sym: BuiltinSymbol => false
-      case sym: BlockLocalSymbol => sym.decl.exists(checkDecl)
+      case sym: LocalVarSymbol => sym.decl.exists(checkDecl)
       case sym: MemberSymbol => prefer match
         case Expect.Module(_) => sym.existsModuleful
         case _ => !sym.existsNonModuleful

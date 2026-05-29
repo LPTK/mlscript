@@ -188,9 +188,7 @@ end FlowSymbol
 type SimpleSymbol = LocalVarSymbol | BuiltinSymbol
 type AssignableSymbol = LocalVarSymbol | TermSymbol | NoSymbol
 
-sealed trait LocalVarSymbol extends LocalSymbol
-sealed trait LocalSymbol extends Symbol/* :
-  def subst(using s: SymbolSubst): LocalSymbol */
+sealed trait LocalSymbol extends Symbol
 sealed trait NamedSymbol extends Symbol:
   def name: Str
   def id: Ident
@@ -212,11 +210,11 @@ class SplitSymbol(val body: Split, name: Str = "split")(using State) extends Loc
   def toLoc = body.toLoc
   override def prefix: Str = "split:"
 
-sealed abstract class BlockLocalSymbol(name: Str)(using State) extends FlowSymbol(name) with LocalVarSymbol:
+sealed abstract class LocalVarSymbol(name: Str)(using State) extends FlowSymbol(name) with LocalSymbol:
   self: LocalSymbol => // * using `with LocalSymbol` in the `extends` clause makes Scala think there's a bad override
   var decl: Opt[Declaration] = N
 
-class TempSymbol(val trm: Opt[Term], dbgNme: Str = "tmp")(using State) extends BlockLocalSymbol(dbgNme):
+class TempSymbol(val trm: Opt[Term], dbgNme: Str = "tmp")(using State) extends LocalVarSymbol(dbgNme):
   // val nameHints: MutSet[Str] = MutSet.empty // * May be useful later?
   override def toLoc: Option[Loc] = trm.flatMap(_.toLoc)
   override def prefix: Str = "tmp:"
@@ -232,7 +230,7 @@ class InstSymbol(val origin: Symbol)(using State) extends LocalSymbol:
   def subst(using sub: SymbolSubst): InstSymbol = sub.mapInstSym(this)
 
 
-class VarSymbol(val id: Ident)(using State) extends BlockLocalSymbol(id.name) with NamedSymbol:
+class VarSymbol(val id: Ident)(using State) extends LocalVarSymbol(id.name) with NamedSymbol:
   val name: Str = id.name
   override def toLoc: Opt[Loc] = id.toLoc
   // override def toString: Str = s"$name@$uid"
@@ -312,69 +310,30 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
 end BlockMemberSymbol
 
 
-/** Value-level symbols that `Scoped` introduces as block-local bindings.
-  *
-  * Unlike `BlockMemberSymbol`s, these are represented as ordinary local
-  * variables in generated code. Ownerless `TermSymbol`s are included here for
-  * definitions that should behave like local values rather than members, such
-  * as local `using` clauses.
-  */
-// type ScopedValueSymbol = BlockLocalSymbol | TermSymbol
-
 /** Symbols that `Scoped` introduces as block-local bindings.
-  *
-  * This deliberately excludes source/private fields (`TermSymbol`s with owners):
-  * those are stored on the owning class/module/object and must be accessed
-  * through `Select`/`AssignField`, not by binding a local variable in the IR.
+  * This deliberately excludes things like `TermSymbol`s, which never need to be scoped.
   */
-type ScopedSymbol = BlockLocalSymbol | BlockMemberSymbol
-type ScopedOrInnerSymbol = ScopedSymbol | InnerSymbol
+type ScopedSymbol = LocalVarSymbol | BlockMemberSymbol
 
 /** Symbols bound by `Program.imports`.
   *
-  * User-facing imports bind member symbols, while compiler-generated imports
+  * User-facing imports bind variable or member symbols, while compiler-generated imports
   * such as prelude/runtime imports may bind temporary term values directly.
   */
 type ImportSymbol = TempSymbol | VarSymbol | BlockMemberSymbol
 
-/** Symbols that can be represented as a value-level IR path without a qualifier.
-  *
-  * `SimpleSymbol`s become `Value.SimpleRef`, overloaded block members become
-  * `Value.MemberRef`, and `InnerSymbol`s become `Value.This`. Field-backed
-  * terms are intentionally not singled out here: they are still symbols, but
-  * owner-sensitive lowering/lifting must choose `Select`/`AssignField` when a
-  * direct value reference would be wrong.
+/** A "catch-all" symbol for value-like things.
+  * Slightly better than just `Symbol`, but we should still try migrating away to more specific symbol types.
   */
 type ValueSymbol = SimpleSymbol | TermSymbol | BlockMemberSymbol | InnerSymbol
 
-/** Symbols that may be bound by MIR binding forms such as `Scoped` or direct
-  * local assignments. This excludes private/source fields and `NoSymbol`.
+/** Symbols that may be bound by MIR binding forms such as `Scoped`.
   */
 type BoundSymbol = ScopedSymbol | TermSymbol
 
 /** Symbols that may occur in MIR free-variable sets.
-  *
-  * This includes value-level references and label targets. It deliberately
-  * excludes `NoSymbol`, which is only a discard sink for assignments.
   */
 type FreeSymbol = ValueSymbol | LabelSymbol
-
-/** Symbols that may be introduced by a scoped source object and later tracked
-  * by the lifter/used-variable analysis.
-  *
-  * Block members are intentionally excluded. Nested definitions are tracked
-  * through `ScopedInfo`/definition references, while actual source locals are
-  * value-level symbols or `this`-like inner symbols.
-  */
-// type ScopeLocalSymbol = ScopedValueSymbol | InnerSymbol
-
-/** Symbols that can appear as a direct local-like `LocalPath.Sym` in the lifter.
-  *
-  * More structured references, such as block members, `this`, and fields, have
-  * their own `LocalPath` cases so lifting cannot accidentally treat them as
-  * assignable block-local variables.
-  */
-type LocalPathSymbol = BlockLocalSymbol | BuiltinSymbol | NoSymbol
 
 
 sealed abstract class MemberSymbol(using State) extends Symbol:
@@ -385,7 +344,6 @@ sealed abstract class MemberSymbol(using State) extends Symbol:
 class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.Ident)(using State)
     extends MemberSymbol
     with DefinitionSymbol[TermDefinition]
-    // with LocalVarSymbol
     with NamedSymbol:
   def nme: Str = id.name
   def name: Str = nme

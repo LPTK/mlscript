@@ -85,7 +85,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     val outerRaise: Raise = summon
     val reportedMessages = mutable.Set.empty[Str]
     
-    def definedValues(includeNonTerms: Bool) =
+    def definedValues(includeNonTerms: Bool): Ls[(Str, BoundSymbol, N)] =
       import Elaborator.Ctx.*
       curCtx.env.iterator.flatMap:
         case (nme, e @ (_: RefElem | SelElem(base = RefElem(_: InnerSymbol)))) =>
