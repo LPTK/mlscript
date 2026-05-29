@@ -279,7 +279,7 @@ private def matchChainToSwitch(m: MatchChain): SwitchLike =
 
 object SpecializedSwitch:
   def unapply(b: Block) = b match
-    case m @ Match(scrut = r @ Value.SimpleRef(l, _)) =>
+    case m @ Match(scrut = r @ Value.SimpleRef(l)) =>
       val chain = findMatchChainRec(m, r, Nil)
       val SwitchLike(scrut, cases, dflt, rest) = matchChainToSwitch(chain)
       if cases.size < 2 then N

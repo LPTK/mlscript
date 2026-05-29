@@ -28,11 +28,11 @@ class FirstClassFunctionTransformer
     )
     val defSym = new BlockMemberSymbol("Function$", Nil, false)
     val callDef = FunDefn.withFreshSymbol(Some(clsSym), new BlockMemberSymbol("call", Nil, true), params :: Nil,
-      Return(Call(p, params.params.map(_.sym.asSimpleRef(N).asArg) ne_:: Nil)(true, false, false)))(N, annotations = Nil)
+      Return(Call(p, params.params.map(_.sym.asSimpleRef.asArg) ne_:: Nil)(true, false, false)))(N, annotations = Nil)
     ClsLikeDefn(None, clsSym, defSym, None, syntax.Cls, None, Nil,
       Some(Select(State.globalThisSymbol.asThis, Tree.Ident("Function"))(Some(ctx.builtins.Function))),
       callDef :: Nil, Nil, Nil, Assign.discard(
-        Call(State.builtinOpsMap("super").asSimpleRef(N), Nil ne_:: Nil)(false, false, false),
+        Call(State.builtinOpsMap("super").asSimpleRef, Nil ne_:: Nil)(false, false, false),
         End()), End(), None, None)(N, annotations = Nil)
 
   private def getParamList(l: BlockMemberSymbol): Option[ParamList] = funDefns.get(l) match
@@ -56,7 +56,7 @@ class FirstClassFunctionTransformer
             Assign(
               tmp,
               Instantiate(false, cls, Nil :: Nil),
-              k(tmp.asSimpleRef(ErasedType.AnyRef(rsc = false, clsDef.isym.asClsOrMod.get))),
+              k(tmp.asSimpleRef),
             )
           )
         )
@@ -79,7 +79,7 @@ class FirstClassFunctionTransformer
             Assign(
               tmp,
               Instantiate(false, cls, Nil :: Nil),
-              k(tmp.asSimpleRef(ErasedType.AnyRef(rsc = false, clsDef.isym.asClsOrMod.get))),
+              k(tmp.asSimpleRef),
             )
           )
         )
@@ -100,7 +100,7 @@ class FirstClassFunctionTransformer
     case c @ Call(fun, argss) => applyListOf(argss, (args, k2) => applyArgs(args)(k2)): argss2 =>
       def call(f: Path) = Call(f, argss2.ne_!)(c.isMlsFun, c.mayRaiseEffects, c.explicitTailCall)
       fun match
-        case ref @ Value.SimpleRef(sym, N) => sym match
+        case ref @ Value.SimpleRef(sym) => sym match
           case _: VarSymbol |  _: TempSymbol => k(call(ref.selSN("call")))
           case _ => k(call(fun))
         case ref @ Value.MemberRef(_, _) => k(call(fun))

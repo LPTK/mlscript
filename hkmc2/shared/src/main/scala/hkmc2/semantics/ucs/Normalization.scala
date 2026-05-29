@@ -367,7 +367,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
             for (_, s) <- entries do LoweringCtx.loweringCtx.collectScopedSym(s)
             val objectSym = ctx.builtins.Object
             mkMatch( // checking that we have an object
-              Case.Cls(objectSym, BuiltinSymbol(objectSym.nme, false, false, true, false).asSimpleRef(codegen.ErasedType.AnyRef(false, objectSym))),
+              Case.Cls(objectSym, BuiltinSymbol(objectSym.nme, false, false, true, false).asSimpleRef),
               entries.foldRight(lowerSplit(tail, cont)):
                 case ((fieldName, fieldSymbol), blk) =>
                   mkMatch(
@@ -490,7 +490,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
           if useNestedScoped then LoweringCtx.loweringCtx.getCollectedSym else Set.empty,
           mainBlock)
       // Embed the `body` into `Label` if the term is a `while`.
-      lazy val rest = if usesResTmp then k(l.asSimpleRef(N)) else k(lowering.unit)
+      lazy val rest = if usesResTmp then k(l.asSimpleRef) else k(lowering.unit)
       val block =
         if form === IfLikeForm.While then
           // NOTE: `shouldRewriteWhile` is not the same as `config.rewriteWhileLoops`
@@ -501,16 +501,16 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
             outerCtx.collectScopedSym(loopResult)
             outerCtx.collectScopedSym(isReturned)
             val loopEnd: Path =
-              Select(State.runtimeSymbol.asSimpleRef(N), Tree.Ident("LoopEnd"))(S(State.loopEndSymbol))
+              Select(State.runtimeSymbol.asSimpleRef, Tree.Ident("LoopEnd"))(S(State.loopEndSymbol))
             val blk = blockBuilder
               .define(FunDefn(N, f, tSym, PlainParamList(Nil) :: Nil, Begin(body, Return(loopEnd)))(configOverride = N, annotations = Nil))
               .assign(loopResult, Call(f.asMemberRef(tSym), Nil ne_:: Nil)(true, true, false))
             if summon[LoweringCtx].mayRet then
               blk
-                .assign(isReturned, Call(State.builtinOpsMap("!==").asSimpleRef(N),
+                .assign(isReturned, Call(State.builtinOpsMap("!==").asSimpleRef,
                   (loopResult.asPath.asArg :: loopEnd.asArg :: Nil) ne_:: Nil)(true, false, false))
-                .ifthen(isReturned.asSimpleRef(codegen.ErasedType.Primitive(codegen.PrimitiveType.Bool)), Case.Lit(Tree.BoolLit(true)),
-                  Return(loopResult.asSimpleRef(N)),
+                .ifthen(isReturned.asSimpleRef, Case.Lit(Tree.BoolLit(true)),
+                  Return(loopResult.asSimpleRef),
                   N
                 )
                 .rest(rest)

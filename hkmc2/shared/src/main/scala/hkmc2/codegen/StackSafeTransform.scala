@@ -12,7 +12,7 @@ import hkmc2.codegen.HandlerLowering.FnOrCls
 class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: StackSafetyMap)(using State, Config):
   private val STACK_DEPTH_IDENT: Tree.Ident = Tree.Ident("stackDepth")
 
-  private val runtimePath: Path = State.runtimeSymbol.asSimpleRef(N)
+  private val runtimePath: Path = State.runtimeSymbol.asSimpleRef
   private val checkDepthPath: Path = runtimePath.selN(Tree.Ident("checkDepth"))
   private val runStackSafePath: Path = runtimePath.selN(Tree.Ident("runStackSafe"))
   private val stackDepthPath: Path = runtimePath.selN(STACK_DEPTH_IDENT)
@@ -20,7 +20,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
   private def intLit(n: BigInt) = Value.Lit(Tree.IntLit(n))
   
   private def op(op: String, a: Path, b: Path) =
-    Call(State.builtinOpsMap(op).asSimpleRef(N), (a.asArg :: b.asArg :: Nil) ne_:: Nil)(true, false, false)
+    Call(State.builtinOpsMap(op).asSimpleRef, (a.asArg :: b.asArg :: Nil) ne_:: Nil)(true, false, false)
 
   // Increases the stack depth, assigns the call to a value, then decreases the stack depth
   // then binds that value to a desired block
@@ -30,7 +30,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
     else
       blockBuilder
         .assign(sym, res)
-        .assignFieldN(runtimePath, STACK_DEPTH_IDENT, curDepth.asSimpleRef(ErasedType.Primitive(PrimitiveType.Int)))
+        .assignFieldN(runtimePath, STACK_DEPTH_IDENT, curDepth.asSimpleRef)
         .rest(f(sym.asPath))
   
   def wrapStackSafe(body: Block, resSym: Local, rest: Block) =
@@ -48,7 +48,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
   // Rewrites anything that can contain a Call to increase the stack depth
   def transform(b: Block, curDepth: => LocalVarSymbol, isTopLevel: Bool = false): Block =
     def usesStack(r: Result) = r match
-      case Call(Value.SimpleRef(_: BuiltinSymbol, _), _) => false
+      case Call(Value.SimpleRef(_: BuiltinSymbol), _) => false
       case c: Call if !c.mayRaiseEffects => false // a call can only trigger a stack delay if it can raise effects
       case _: Call | _: Instantiate => true
       case _ => false
@@ -98,7 +98,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
     new BlockTraverserShallow:
       applyBlock(b)
       override def applyResult(r: Result): Unit = r match
-        case Call(Value.SimpleRef(_: BuiltinSymbol, _), _) => ()
+        case Call(Value.SimpleRef(_: BuiltinSymbol), _) => ()
         case _: Call | _: Instantiate => trivial = false
         case _ => ()
     trivial
