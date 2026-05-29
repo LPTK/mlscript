@@ -1106,12 +1106,13 @@ extension (sym: TermSymbol)
     * symbol that scopes, captures, and code generation track.
     */
   def isLocalTermValue: Bool =
-    sym.owner.isEmpty
-    && sym.k.isInstanceOf[syntax.Val]
-    && (
-      sym.defn.exists(_.body.isDefined)
-      || sym.irDefn.exists(_.isInstanceOf[ValDefn])
-    )
+    false
+    // sym.owner.isEmpty
+    // && sym.k.isInstanceOf[syntax.Val]
+    // && (
+    //   sym.defn.exists(_.body.isDefined)
+    //   || sym.irDefn.exists(_.isInstanceOf[ValDefn])
+    // )
 
   def localTermValue: Opt[TermSymbol] =
     sym.optionIf(sym.isLocalTermValue)
@@ -1128,7 +1129,7 @@ extension (sym: DefinitionSymbol[?])
 
 extension (defn: Defn)
   def localStorageSym: ScopedSymbol = defn match
-    case vd: ValDefn if vd.tsym.isLocalTermValue => vd.tsym
+    // case vd: ValDefn if vd.tsym.isLocalTermValue => vd.tsym
     case _ => defn.sym
 
 extension (l: ValueSymbol)

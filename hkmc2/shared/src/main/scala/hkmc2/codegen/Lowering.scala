@@ -142,7 +142,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     Select(State.runtimeSymbol.asSimpleRef, Tree.Ident("Unit"))(S(State.unitSymbol))
   
   private def collectScopedLocal(sym: LocalSymbol | TermSymbol)(using LoweringCtx): Unit = sym match
-    case sym: TermSymbol if sym.owner.isDefined =>
+    // case sym: TermSymbol if sym.owner.isDefined =>
+    case sym: TermSymbol =>
       lastWords(s"tried to collect field-backed term symbol ${sym.showDbg}")
     case sym: ScopedValueSymbol => loweringCtx.collectScopedSym(sym)
     case sym => lastWords(s"tried to collect non-scoped local symbol ${sym.showDbg}")
