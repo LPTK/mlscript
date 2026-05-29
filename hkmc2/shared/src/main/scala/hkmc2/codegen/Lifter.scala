@@ -96,6 +96,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
   
   enum LocalPath:
     case Sym(l: LocalPathSymbol)
+    case LocalTerm(l: TermSymbol)
     case ThisPath(sym: InnerSymbol)
     case BmsRef(l: BlockMemberSymbol, d: DefinitionSymbol[?])
     /** A source local whose storage has been moved to a field while lifting.
@@ -110,6 +111,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     def read(using ctx: LifterCtxNew): Path = this match
       case Sym(l) => l.asSimpleRef
+      case LocalTerm(l) => l.asLocalTermPath
       case ThisPath(sym) => sym.asThis
       case BmsRef(l, d) => l.asMemberRef(d)
       case Field(path, field) => Select(path, field.id)(S(field))
@@ -119,6 +121,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     def assign(value: Result, rest: Block)(using ctx: LifterCtxNew): Block = this match
       case Sym(l: AssignableSymbol) => Assign(l, value, rest)
       case Sym(l) => lastWords(s"Tried to assign to non-variable local ${l.nme}")
+      case LocalTerm(l) => Assign(l, value, rest)
       case ThisPath(sym) => lastWords(s"Tried to assign to this-path ${sym.nme}")
       case BmsRef(l, d) => lastWords("Tried to assign to a BlockMemberSymbol")
       case Field(path, field) => AssignField(path, field.id, value, rest)(S(field))
@@ -707,6 +710,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         .map: s =>
           s -> (s match
             case s: LocalVarSymbol => s.asLocalPath
+            case s: TermSymbol => LocalPath.LocalTerm(s)
             case s: InnerSymbol => LocalPath.ThisPath(s)
           )
         .toMap

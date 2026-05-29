@@ -148,7 +148,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case sym => lastWords(s"tried to collect non-scoped local symbol ${sym.showDbg}")
 
   private def scopedDefSym(td: TermDefinition): ScopedSymbol =
-    td.sym
+    if td.tsym.isLocalTermValue then td.tsym else td.sym
 
   
   // type Rcd = (mut: Bool, args: List[RcdArg]) // * Better, but Scala's patmat exhaustiveness chokes on it

@@ -176,16 +176,14 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Value.This(sym) => scope.findThis_!(sym)
     case Value.Lit(Tree.StrLit(value)) => makeStringLiteral(value)
     case Value.Lit(lit) => lit.idStr
+    case Value.MemberRef(_, disamb: semantics.TermSymbol) if disamb.isLocalTermValue =>
+      scope.lookup_!(disamb, r.toLoc)
     case Value.MemberRef(bms, disamb) =>
       if disamb.shouldBeLifted then doc"${scope.lookup_!(bms, bms.toLoc)}.class"
       else scope.lookup_!(bms, r.toLoc)
     case Value.SimpleRef(l: BuiltinSymbol) =>
       if l.nullary then l.nme
       else errExpr(msg"Illegal reference to builtin symbol '${l.nme}'")
-    case Value.SimpleRef(l: semantics.TermSymbol) =>
-      l.owner match
-      case S(owner) => lastWords(s"Unexpected SimpleRef of TermSymbol with owner: `$l` (owner: `$owner`)")
-      case N => scope.lookup_!(l, r.toLoc)
     case Value.SimpleRef(l) => scope.lookup_!(l, r.toLoc)
     case Call(Value.SimpleRef(l: BuiltinSymbol), (lhs :: rhs :: Nil) :: Nil) if !l.functionLike =>
       if l.binary then
@@ -347,8 +345,8 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Assign(l, r, rst) =>
       doc" # ${
           l match
-          case sym: InnerSymbol => lastWords(s"Inner symbol should not be used as the target of an assignment: $sym")
           case l: ValueSymbol => result(l.asPath.withLoc(N)) // TODO: improve location
+          case _: NoSymbol => lastWords("NoSymbol assignment should have been handled as a discard")
         } = ${result(r)};${returningTerm(rst, endSemi)}"
     case assign @ AssignField(p, n, r, rst) =>
       val field = assign.symbol match
@@ -362,12 +360,11 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         result(sym.asThis)
       val resJS = defn match
       case ValDefn(tsym, sym, p) =>
-        val sym = defn.sym
         // * Currently we allow `val` outside of object/module scopes,
         // * in which case it has no owner and is just a glorified local variable rather than a field.
         tsym.owner match
         case N =>
-          val target = sym
+          val target = defn.localStorageSym
           doc"${scope.lookup_!(target, target.toLoc)} = ${result(p)};${returningTerm(rst, endSemi)}"
         case S(owner) =>
           val thisDoc = mkThis(owner)
@@ -824,7 +821,9 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     :/: nonNestedScoped(p.main)(block(_, endSemi = false)).stripBreaks
     :: locally:
       exprt match
-      case S(sym) => doc"\nlet ${sym.nme} = ${scope.lookup_!(sym, sym.toLoc)}; export default ${sym.nme};\n"
+      case S(sym) =>
+        val target = sym.tsym.filter(_.isLocalTermValue).getOrElse(sym)
+        doc"\nlet ${sym.nme} = ${scope.lookup_!(target, target.toLoc)}; export default ${sym.nme};\n"
       case N => doc""
   
   def worksheet(p: Program)(using Raise, Scope): (Document, Document) =

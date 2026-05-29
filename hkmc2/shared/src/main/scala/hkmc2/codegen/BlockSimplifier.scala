@@ -131,6 +131,8 @@ class BlockSimplifier
                 case _ =>
             case Value.SimpleRef(loc) =>
               usedVars += loc
+            case Value.MemberRef(_, loc: TermSymbol) if loc.isLocalTermValue =>
+              usedVars += loc
             case Value.MemberRef(loc, _) =>
               usedVars += loc
             case _ =>
@@ -144,7 +146,7 @@ class BlockSimplifier
         override def applyBlock(b: Block): Unit =
           b match
             case Define(defn, rst) =>
-              definedVars += defn.sym
+              definedVars += defn.localStorageSym
             case Scoped(syms, _) =>
               localVars ++= syms
             case Break(lbl) => usedLabels += lbl
@@ -240,11 +242,12 @@ class BlockSimplifier
 
       // * Remove local pure definitions that are never read (and are not preserved)
       case Define(defn, rest) =>
-        val defnSym = defn.sym
+        val defnSym = defn.localStorageSym
+        val preserved = symbolsToPreserve(defnSym) || symbolsToPreserve(defn.sym)
         if !defn.isPure
         || !localVars(defnSym)
         || usedVars(defnSym)
-        || symbolsToPreserve(defnSym)
+        || preserved
         then super.applyBlock(b)
         else
           registerChange(s"rm unused pure defn ${defnSym.showDbg}")

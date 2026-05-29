@@ -121,7 +121,7 @@ module Foo
 //│ ╟── with module of the same name
 //│ ║  l.117: 	module Foo
 //│ ╙──       	^^^^^^^^^^
-//│ Foo = class Foo
+//│ Foo = 1
 
 
 :e

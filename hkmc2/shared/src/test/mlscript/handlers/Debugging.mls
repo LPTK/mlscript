@@ -151,47 +151,81 @@ fun get(using Debugger) = 1
 
 :rt
 :lot
-handle h = Debugger with {}
-using Debugger = h
-() => Test.main()
+let res =
+  handle h = Debugger with
+    fun break(payload)(resume) = resume
+  using Debugger = h
+  Runtime.try(() => Test.main())
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
-//│   res = Handle:
-//│     lhs = h⁰
-//│     rhs = Resolved{sym=class:Debugger⁰}:
-//│       t = Ref{sym=member:Debugger¹} of member:Debugger¹
-//│       sym = class:Debugger⁰
-//│     derivedClsSym = class:Handler$h$⁰
-//│     body = Blk:
-//│       stats = Ls of 
-//│         TermDefinition:
-//│           k = Ins
-//│           sym = member:instance$Ident(Debugger)⁰
-//│           tsym = term:instance$Ident(Debugger)¹
-//│           sign = S of Resolved{sym=class:Debugger⁰}:
-//│             t = Ref{sym=member:Debugger¹} of member:Debugger¹
-//│             sym = class:Debugger⁰
-//│           body = S of Ref{sym=h⁰} of h⁰
-//│           modulefulness = Modulefulness of N
-//│       res = Lam:
-//│         body = App:
-//│           lhs = App:
-//│             lhs = Resolved{sym=term:Test⁰/main⁰}:
-//│               t = Sel{sym=member:main¹}:
-//│                 prefix = Resolved{sym=module:Test⁰,typ=module:Test⁰}:
-//│                   t = Ref{sym=member:Test¹} of member:Test¹
-//│                   sym = module:Test⁰
-//│                 nme = Ident of "main"
-//│               sym = term:Test⁰/main⁰
-//│             rhs = Tup of Nil
-//│           rhs = Tup of Ls of 
-//│             Fld:
-//│               term = Resolved{sym=term:instance$Ident(Debugger)¹,typ=class:Debugger⁰}:
-//│                 t = Ref{sym=member:instance$Ident(Debugger)⁰} of member:instance$Ident(Debugger)⁰
-//│                 sym = term:instance$Ident(Debugger)¹
+//│   stats = Ls of 
+//│     LetDecl:
+//│       sym = res⁰
+//│     DefineVar:
+//│       sym = res⁰
+//│       rhs = Handle:
+//│         lhs = h⁰
+//│         rhs = Resolved{sym=class:Debugger⁰}:
+//│           t = Ref{sym=member:Debugger¹} of member:Debugger¹
+//│           sym = class:Debugger⁰
+//│         derivedClsSym = class:Handler$h$⁰
+//│         defs = Ls of 
+//│           HandlerTermDefinition:
+//│             resumeSym = resume⁰
+//│             td = TermDefinition:
+//│               k = Fun
+//│               sym = member:break⁰
+//│               tsym = term:Handler$h$⁰/break¹
+//│               params = Ls of 
+//│                 ParamList:
+//│                   params = Ls of 
+//│                     Param:
+//│                       sym = payload⁰
+//│                       modulefulness = Modulefulness of N
+//│               body = S of Ref{sym=resume⁰} of resume⁰
+//│               flags = (method)
+//│               modulefulness = Modulefulness of N
+//│         body = Blk:
+//│           stats = Ls of 
+//│             TermDefinition:
+//│               k = Ins
+//│               sym = member:instance$Ident(Debugger)⁰
+//│               tsym = term:instance$Ident(Debugger)¹
+//│               sign = S of Resolved{sym=class:Debugger⁰}:
+//│                 t = Ref{sym=member:Debugger¹} of member:Debugger¹
+//│                 sym = class:Debugger⁰
+//│               body = S of Ref{sym=h⁰} of h⁰
+//│               modulefulness = Modulefulness of N
+//│           res = App:
+//│             lhs = Resolved{sym=term:Runtime⁰/try⁰}:
+//│               t = Sel{sym=member:try¹}:
+//│                 prefix = Resolved{sym=module:Runtime⁰,typ=module:Runtime⁰}:
+//│                   t = Ref{sym=member:Runtime¹} of member:Runtime¹
+//│                   sym = module:Runtime⁰
+//│                 nme = Ident of "try"
+//│               sym = term:Runtime⁰/try⁰
+//│             rhs = Tup of Ls of 
+//│               Fld:
+//│                 term = Lam:
+//│                   body = App:
+//│                     lhs = App:
+//│                       lhs = Resolved{sym=term:Test⁰/main⁰}:
+//│                         t = Sel{sym=member:main¹}:
+//│                           prefix = Resolved{sym=module:Test⁰,typ=module:Test⁰}:
+//│                             t = Ref{sym=member:Test¹} of member:Test¹
+//│                             sym = module:Test⁰
+//│                           nme = Ident of "main"
+//│                         sym = term:Test⁰/main⁰
+//│                       rhs = Tup of Nil
+//│                     rhs = Tup of Ls of 
+//│                       Fld:
+//│                         term = Resolved{sym=term:instance$Ident(Debugger)¹,typ=class:Debugger⁰}:
+//│                           t = Ref{sym=member:instance$Ident(Debugger)⁰} of member:instance$Ident(Debugger)⁰
+//│                           sym = term:instance$Ident(Debugger)¹
+//│   res = Lit of UnitLit of false
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
-//│   main = Scoped(syms = {h⁰, tmp:tmp⁰, member:handleBlock$⁰, member:Handler$h$¹, member:lambda⁰, tmp:lambda$debugInfo⁰, tmp:handleBlock$$debugInfo⁰}): 
+//│   main = Scoped(syms = {res⁰, h⁰, tmp:tmp⁰, member:lambda⁰, member:handleBlock$⁰, member:Handler$h$break⁰, member:Handler$h$¹, member:lambda$⁰, tmp:lambda$$debugInfo⁰, tmp:lambda$debugInfo⁰, tmp:Handler$h$break$debugInfo⁰, tmp:Handler$h$#break$debugInfo⁰, tmp:handleBlock$$debugInfo⁰}): 
 //│     body = Assign:
 //│       lhs = ‹no symbol›⁰
 //│       rhs = Call:
@@ -200,6 +234,32 @@ using Debugger = h
 //│           name = Ident of "resetEffects"
 //│         argss = Ls of 
 //│           Nil
+//│       rest = Assign: \
+//│       lhs = tmp:lambda$$debugInfo⁰
+//│       rhs = Tuple:
+//│         mut = false
+//│         elems = Ls of 
+//│           Arg:
+//│             value = Lit of StrLit of "lambda$"
+//│       rest = Define: \
+//│       defn = FunDefn:
+//│         sym = member:lambda$⁰
+//│         dSym = term:lambda$¹
+//│         params = Ls of 
+//│           ParamList:
+//│             params = Ls of 
+//│               Param:
+//│                 sym = instance$Ident(Debugger)²
+//│                 modulefulness = Modulefulness of N
+//│           ParamList: ‹empty›
+//│         body = Return of Call:
+//│           fun = MemberRef{disamb=term:lambda¹}:
+//│             bms = member:lambda⁰
+//│             disamb = term:lambda¹
+//│           argss = Ls of 
+//│             Ls of 
+//│               Arg:
+//│                 value = SimpleRef of instance$Ident(Debugger)²
 //│       rest = Assign: \
 //│       lhs = tmp:lambda$debugInfo⁰
 //│       rhs = Tuple:
@@ -212,7 +272,11 @@ using Debugger = h
 //│         sym = member:lambda⁰
 //│         dSym = term:lambda¹
 //│         params = Ls of 
-//│           ParamList: ‹empty›
+//│           ParamList:
+//│             params = Ls of 
+//│               Param:
+//│                 sym = instance$Ident(Debugger)³
+//│                 modulefulness = Modulefulness of N
 //│         body = Return of Call:
 //│           fun = Select{sym=term:Test⁰/main⁰}:
 //│             qual = MemberRef{disamb=module:Test⁰}:
@@ -223,9 +287,32 @@ using Debugger = h
 //│             Nil
 //│             Ls of 
 //│               Arg:
-//│                 value = MemberRef{disamb=term:instance$Ident(Debugger)¹}:
-//│                   bms = member:instance$Ident(Debugger)⁰
-//│                   disamb = term:instance$Ident(Debugger)¹
+//│                 value = SimpleRef of instance$Ident(Debugger)³
+//│       rest = Assign: \
+//│       lhs = tmp:Handler$h$break$debugInfo⁰
+//│       rhs = Tuple:
+//│         mut = false
+//│         elems = Ls of 
+//│           Arg:
+//│             value = Lit of StrLit of "Handler$h$break"
+//│       rest = Define: \
+//│       defn = FunDefn:
+//│         sym = member:Handler$h$break⁰
+//│         dSym = term:Handler$h$break¹
+//│         params = Ls of 
+//│           ParamList:
+//│             params = Ls of 
+//│               Param:
+//│                 sym = resume⁰
+//│                 modulefulness = Modulefulness of N
+//│         body = Return of SimpleRef of resume⁰
+//│       rest = Assign: \
+//│       lhs = tmp:Handler$h$#break$debugInfo⁰
+//│       rhs = Tuple:
+//│         mut = false
+//│         elems = Ls of 
+//│           Arg:
+//│             value = Lit of StrLit of "Handler$h$#break"
 //│       rest = Define: \
 //│       defn = ClsLikeDefn:
 //│         isym = class:Handler$h$⁰
@@ -236,6 +323,30 @@ using Debugger = h
 //│         parentPath = S of MemberRef{disamb=class:Debugger⁰}:
 //│           bms = member:Debugger¹
 //│           disamb = class:Debugger⁰
+//│         methods = Ls of 
+//│           FunDefn:
+//│             owner = S of class:Handler$h$⁰
+//│             sym = member:break⁰
+//│             dSym = term:Handler$h$⁰/break²
+//│             params = Ls of 
+//│               ParamList:
+//│                 params = Ls of 
+//│                   Param:
+//│                     sym = payload⁰
+//│                     modulefulness = Modulefulness of N
+//│             body = Scoped(syms = {tmp:suspendRes⁰}): 
+//│               body = Return of Call:
+//│                 fun = Select:
+//│                   qual = SimpleRef of tmp:runtime⁰
+//│                   name = Ident of "mkEffect"
+//│                 argss = Ls of 
+//│                   Ls of 
+//│                     Arg:
+//│                       value = This of class:Handler$h$⁰
+//│                     Arg:
+//│                       value = MemberRef{disamb=term:Handler$h$break¹}:
+//│                         bms = member:Handler$h$break⁰
+//│                         disamb = term:Handler$h$break¹
 //│         preCtor = Assign:
 //│           lhs = ‹no symbol›⁰
 //│           rhs = Call:
@@ -282,15 +393,34 @@ using Debugger = h
 //│         dSym = term:handleBlock$¹
 //│         params = Ls of 
 //│           ParamList: ‹empty›
-//│         body = Scoped(syms = {member:instance$Ident(Debugger)⁰}): 
+//│         body = Scoped(syms = {term:instance$Ident(Debugger)¹, tmp:lambda$here⁰}): 
 //│           body = Define:
 //│             defn = ValDefn:
 //│               tsym = term:instance$Ident(Debugger)¹
 //│               sym = member:instance$Ident(Debugger)⁰
 //│               rhs = SimpleRef of h⁰
-//│             rest = Return of MemberRef{disamb=term:lambda¹}:
-//│               bms = member:lambda⁰
-//│               disamb = term:lambda¹
+//│             rest = Assign: \
+//│             lhs = tmp:lambda$here⁰
+//│             rhs = Call:
+//│               fun = MemberRef{disamb=term:lambda$¹}:
+//│                 bms = member:lambda$⁰
+//│                 disamb = term:lambda$¹
+//│               argss = Ls of 
+//│                 Ls of 
+//│                   Arg:
+//│                     value = MemberRef{disamb=term:instance$Ident(Debugger)¹}:
+//│                       bms = member:instance$Ident(Debugger)⁰
+//│                       disamb = term:instance$Ident(Debugger)¹
+//│             rest = Return of Call:
+//│               fun = Select{sym=term:Runtime⁰/try⁰}:
+//│                 qual = MemberRef{disamb=module:Runtime⁰}:
+//│                   bms = member:Runtime¹
+//│                   disamb = module:Runtime⁰
+//│                 name = Ident of "try"
+//│               argss = Ls of 
+//│                 Ls of 
+//│                   Arg:
+//│                     value = SimpleRef of tmp:lambda$here⁰
 //│       rest = Assign: \
 //│       lhs = tmp:tmp⁰
 //│       rhs = Call:
@@ -312,7 +442,6 @@ using Debugger = h
 //│       arms = Ls of 
 //│         Tuple2:
 //│           _1 = Lit of UnitLit of true
-//│           _2 = Return of SimpleRef of tmp:tmp⁰
 //│       dflt = S of Assign:
 //│         lhs = tmp:tmp⁰
 //│         rhs = Call:
@@ -323,75 +452,29 @@ using Debugger = h
 //│             Ls of 
 //│               Arg:
 //│                 value = Lit of BoolLit of true
-//│         rest = Return of SimpleRef of tmp:tmp⁰
-//│       rest = End of "Rest moved to non-abortive branch(es)"
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:instance$Ident(Debugger)⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Left of Cfg:
-//│         escapeChars = true
-//│         useSuperscripts = false
-//│         includeZero = false
-//│         defaultName = "tmp"
-//│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(tmp:Test.test$debugInfo -> Test$_test$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:Test.main$debugInfo -> Test$_main$debugInfo, tmp:runtime -> runtime, tmp:block$res -> block$res11, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res2, tmp:prettyPrint -> prettyPrint, member:get -> get, tmp:Term -> Term, tmp:Block -> Block, tmp:tmp -> tmp1, tmp:option -> option, tmp:block$res -> block$res3, member:lambda_test -> lambda_test, tmp:block$res -> block$res12, h -> h, class:Handler$h$ -> Handler$h$, member:lambda -> lambda, tmp:lambda_test$debugInfo -> lambda_test$debugInfo, tmp:tmp -> tmp5, member:handleBlock$ -> handleBlock$, member:Handler$h$ -> Handler$h$1, member:lambda -> lambda1, tmp:lambda$debugInfo -> lambda$debugInfo, tmp:tmp -> tmp2, tmp:block$res -> block$res4, tmp:block$res -> block$res5, tmp:block$res -> block$res13, res -> res, tmp:block$res -> block$res6, member:Runtime -> Runtime, tmp:selRes -> selRes, tmp:selRes -> selRes1, tmp:selRes -> selRes2, tmp:selRes -> selRes3, tmp:block$res -> block$res7, tmp:selRes -> selRes4, tmp:tmp -> tmp3, tmp:block$res -> block$res8, tmp:tmp -> tmp4, tmp:block$res -> block$res9, member:Debugger -> Debugger1, class:Debugger -> Debugger, tmp:block$res -> block$res10, member:Test -> Test1, module:Test -> Test, tmp:block$res -> block$res, tmp:tmp -> tmp, tmp:block$res -> block$res1, member:f -> f, class:Test -> Test)
-//│     curThis = S of N
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'instance$Ident(Debugger)'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.155: 	using Debugger = h
-//│ ╙──       	^^^^^^^^^^^^^^^^^^
+//│       rest = Assign: \
+//│       lhs = res⁰
+//│       rhs = SimpleRef of tmp:tmp⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = fun
+//│ res = EffectHandle(_)
 
 :re
 res.raise()
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect FatalEffect
-//│ 	at f (Debugging.mls:18:14)
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
+//│ 	at Test.test (Debugging.mls:145:15)
+//│ 	at Test.main (Debugging.mls:148:5)
 
 set res = res.resumeWith(42)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
-//│ ═══[RUNTIME ERROR] Error: Multiple resumption
-//│     at Runtime.handleEffects_handleEffect_resume (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:628:49)
-//│     at file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:1039:22
-//│     at lambda (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:109:69)
-//│     at Runtime.try (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:717:28)
-//│     at EffectHandle.resumeWith (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:111:28)
-//│     at REPL51:1:87
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
 
 :re
 res.raise()
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect FatalEffect
-//│ 	at f (Debugging.mls:18:14)
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
+//│ 	at Test.test (Debugging.mls:145:15)
+//│ 	at Test.main (Debugging.mls:148:16)
 
 :expect 0.33676533676533676
 res.resumeWith(666)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
-//│ ═══[RUNTIME ERROR] Error: Multiple resumption
-//│     at Runtime.handleEffects_handleEffect_resume (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:628:49)
-//│     at file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:1039:22
-//│     at lambda (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:109:69)
-//│     at Runtime.try (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:717:28)
-//│     at EffectHandle.resumeWith (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:111:28)
-//│     at REPL57:1:87
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:303)
-//│ ═══[RUNTIME ERROR] Expected: '0.33676533676533676', got: 'undefined'
+//│ = 0.33676533676533676
 
 let i = 100
 fun f() =
@@ -407,8 +490,8 @@ fun f() =
 
 f()
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:401:3) with locals: j=200
+//│ > 	at f (Debugging.mls:484:3) with locals: j=200
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:403:3)
+//│ > 	at f (Debugging.mls:486:3)
 //│ > Stack Trace:
 //│ > 	at tail position

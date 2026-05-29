@@ -282,8 +282,8 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
   private def bValue(v: Value)(k: TrivialExpr => Ctx ?=> Node)(using ctx: Ctx)(using Raise, Scope) : Node =
     trace[Node](s"bValue { $v } begin", x => s"bValue end: ${x.show}"):
       v match
-      case Value.SimpleRef(l: TermSymbol) if l.owner.nonEmpty =>
-        k(l |> sr)
+      case Value.SimpleRef(l: TermSymbol) =>
+        lastWords(s"TermSymbol should not be referenced directly through SimpleRef: ${l.nme}")
       case Value.MemberRef(bms, disamb) if bms.nme.isCapitalized =>
         val v: Local = newTemp
         Node.LetExpr(v, Expr.CtorApp(fromMemToClass(disamb), Ls()), k(v |> sr))
@@ -634,4 +634,3 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
     ctx.def_acc.clear()
     
     (prog, ctx)
-

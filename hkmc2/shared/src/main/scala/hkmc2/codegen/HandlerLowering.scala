@@ -390,6 +390,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
             applyResult(rhs)
             lhs match
             case lhs: LocalVarSymbol => assignToSym(lhs)
+            case _: TermSymbol =>
             case _: NoSymbol =>
             applyBlock(rest)
           case Define(defn: ValDefn, rest) =>

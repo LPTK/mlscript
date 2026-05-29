@@ -597,8 +597,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         recur(body)
       case Begin(sub, rst) =>
         recur(sub) ++ recur(rst)
-      case Define(ValDefn(_, sym, _), rst) if sessionExportCtx.shouldExport(sym) =>
-        recur(rst) + sym
+      case Define(defn: ValDefn, rst) if sessionExportCtx.shouldExport(defn.sym) =>
+        recur(rst) + defn.localStorageSym
       case Define(_, rst) =>
         recur(rst)
       case Assign(sym: ValueSymbol, _, rst) if sessionExportCtx.shouldExport(sym) =>
@@ -1088,7 +1088,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     unreachable
 
   def getVar(l: ValueSymbol, loc: Opt[Loc])(using Ctx, FunctionCtx, Raise): Expr = l match
-    case ts: (semantics.TermSymbol | semantics.InnerSymbol) =>
+    case ts: semantics.TermSymbol if !ts.isLocalTermValue =>
+      lastWords(s"ValueSymbol `$ts` (${ts.getClass.getSimpleName}) cannot be resolved as a variable")
+    case ts: semantics.InnerSymbol =>
       lastWords(s"ValueSymbol `$ts` (${ts.getClass.getSimpleName}) cannot be resolved as a variable")
     case l =>
       funcCtx.lookupLocal(l) match
@@ -1129,7 +1131,6 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   private def fieldOwner(sym: MemberSymbol): Opt[BlockMemberSymbol] = sym match
     case ts: TermSymbol => ts.owner.flatMap(_.asBlkMember)
     case ms: MemberSymbol => ms.asTrm.flatMap(_.owner.flatMap(_.asBlkMember))
-    case _ => N
 
   def fieldSelect(thisSym: BlockMemberSymbol, sym: DefinitionSymbol[?])(using Ctx, Raise): FieldIdx =
     val structInfo = ctx.getTypeInfo_!(thisSym)
@@ -1216,13 +1217,16 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       singletonInfoFor(bms) match
         case S(info) => singletonGlobalGet(info)
         case N =>
+          val storageSym: ValueSymbol = disamb.localTermValue match
+            case S(term) => term
+            case N => bms
           if disamb.isInstanceOf[ClassSymbol] then
             errExpr:
               Ls(msg"Plain class references are not supported in Wasm; instantiate the class instead." -> r.toLoc)
           else
             ctx.getFunc(bms) match
               case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(bms).typeIdx, nullable = false))
-              case N => getVar(bms, r.toLoc)
+              case N => getVar(storageSym, r.toLoc)
     case Value.This(sym) =>
       singletonInfoFor(sym) match
         case S(info) => singletonGlobalGet(info)
@@ -1747,7 +1751,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             // * in which case it has no owner and is just a glorified local variable rather than a field
             tsym.owner match
               case N =>
-                val symExpr = getVar(sym, sym.toLoc)
+                val localStorageSym = defn.localStorageSym
+                val symExpr = getVar(localStorageSym, localStorageSym.toLoc)
                 val defineExpr = symExpr.mnemonicPrefix match
                   case S("global") =>
                     global.set(symExpr.instrargs(0).asInstanceOf[GlobalIdx], result(p))

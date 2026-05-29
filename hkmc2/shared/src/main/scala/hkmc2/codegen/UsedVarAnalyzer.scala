@@ -77,6 +77,8 @@ class UsedVarAnalyzer(b: Block, scopeData: ScopeData)(using State):
       
       override def applyPath(p: Path): Unit = p match
         case Value.SimpleRef(_: BuiltinSymbol) => super.applyPath(p)
+        case Value.MemberRef(_, sym: TermSymbol) if sym.isLocalTermValue =>
+          accessed.accessed.add(sym)
         case RefOfBms(_, SDSym(dSym), _) =>
           val node = scopeData.getNode(dSym)
           node.obj match
