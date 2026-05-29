@@ -99,17 +99,17 @@ object ScopeData:
         case ScopedBlock(uid, block) => "scope" + uid
       
       // Locals defined by a scoped object.
-      lazy val definedLocals: Set[ScopeLocalSymbol] = this match
+      lazy val definedLocals: Set[ScopedOrInnerSymbol] = this match
         // we want definedLocals for the top level scope to be empty, because otherwise,
         // the lifter may try to capture those locals.
         case Top(b) => Set.empty
         case Class(cls, _) =>
           // Public/private fields are not included, as they are accessed using
           // a field selection rather than directly using the symbol.
-          val paramsSet: Set[ScopeLocalSymbol] = cls.paramsOpt match
+          val paramsSet: Set[ScopedSymbol] = cls.paramsOpt match
             case Some(value) => value.params.map(_.sym).toSet
             case None => Set.empty
-          val auxSet: Set[ScopeLocalSymbol] = cls.auxParams.flatMap: p =>
+          val auxSet: Set[ScopedOrInnerSymbol] = cls.auxParams.flatMap: p =>
               p.params.map(_.sym)
             .toSet
           paramsSet ++ auxSet + cls.isym
@@ -120,7 +120,7 @@ object ScopeData:
           .toSet
         case ScopedBlock(_, block) =>
           block.syms.collect:
-            case sym: ScopedValueSymbol => sym: ScopeLocalSymbol
+            case sym: ScopedSymbol => sym: ScopedSymbol
           .toSet
         case _: Loop => Set.empty
     
@@ -226,7 +226,7 @@ object ScopeData:
       lazy val allChildren: List[ScopedObject] = allChildNodes.map(_.obj)
       
       // does not include variables introduced by itself
-      lazy val existingVars: Set[ScopeLocalSymbol] = ancestor match
+      lazy val existingVars: Set[ScopedSymbol | InnerSymbol] = ancestor match
         case Some(value) => value.existingVars ++ value.obj.definedLocals ++ value.nestedModObjSyms
         case None => Set.empty
       
@@ -237,7 +237,8 @@ object ScopeData:
           case _ => false
         case None => true
       
-      lazy val localSyms: Set[ScopedValueSymbol | InnerSymbol] = obj.definedLocals
+      // lazy val localSyms: Set[ScopedSymbol | InnerSymbol] = obj.definedLocals.map(identity)
+      lazy val localSyms: Set[ScopedOrInnerSymbol] = obj.definedLocals
       
       lazy val nestedModObjSyms: Set[InnerSymbol] = children.collect:
           case ScopeNode(obj = c: ScopedObject.Class) if c.isObj => c.cls.isym

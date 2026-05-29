@@ -34,8 +34,8 @@ object Lifter:
     * @param refdDefns Previously defined definitions which could possibly be used by this definition.
     */
   case class AccessInfo(
-      accessed: Set[ScopeLocalSymbol], 
-      mutated: Set[ScopeLocalSymbol], 
+      accessed: Set[ScopedOrInnerSymbol], 
+      mutated: Set[ScopedSymbol], 
       refdDefns: Set[ScopedInfo]
     ):
     def ++(that: AccessInfo) = AccessInfo(
@@ -43,18 +43,19 @@ object Lifter:
         mutated ++ that.mutated,
         refdDefns ++ that.refdDefns
       )
-    def withoutLocals(locals: Set[ScopeLocalSymbol]) = AccessInfo(
+    def withoutLocals(locals: Set[ScopedOrInnerSymbol]) = AccessInfo(
         accessed -- locals,
-        mutated -- locals,
+        mutated.filterNot(locals),
         refdDefns
       )
-    def intersectLocals(locals: Set[ScopeLocalSymbol]) = AccessInfo(
+    def intersectLocals(locals: Set[ScopedOrInnerSymbol]) = AccessInfo(
         accessed.intersect(locals),
-        mutated.intersect(locals),
+        // mutated.intersect(locals),
+        mutated.filter(locals),
         refdDefns
       )
-    def addAccess(l: ScopeLocalSymbol) = copy(accessed = accessed + l)
-    def addMutated(l: ScopeLocalSymbol) = copy(accessed = accessed + l, mutated = mutated + l)
+    def addAccess(l: ScopedSymbol) = copy(accessed = accessed + l)
+    def addMutated(l: ScopedSymbol) = copy(accessed = accessed + l, mutated = mutated + l)
     def addRefdScopedObj(l: ScopedInfo) = copy(refdDefns = refdDefns + l)
     
   object AccessInfo:
@@ -704,9 +705,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     /** The path to access locals defined by this object. The primary purpose of this is to rewrite accesses
       * to locals that have been moved to a capture.
       */
-    protected final def pathsFromThisObj: Map[ScopeLocalSymbol, LocalPath] =
+    protected final def pathsFromThisObj: Map[ScopedOrInnerSymbol, LocalPath] =
       // Locals introduced by this object
-      val fromThisObj: Map[ScopeLocalSymbol, LocalPath] = node.localSyms
+      val fromThisObj: Map[ScopedOrInnerSymbol, LocalPath] = node.localSyms
         .map: s =>
           s -> (s match
             case s: LocalVarSymbol => s.asLocalPath
@@ -715,13 +716,13 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           )
         .toMap
       // Locals introduced by this object that are inside this object's capture
-      val fromCap: Map[ScopeLocalSymbol, LocalPath] = thisCapturedLocals
+      val fromCap: Map[ScopedSymbol, LocalPath] = thisCapturedLocals
         .map: s =>
           val tSym = captureMap(s)
           s -> LocalPath.Field(capturePath, tSym)
         .toMap
       // Inner symbols of nested modules and objects
-      val isyms: Map[ScopeLocalSymbol, LocalPath] = node.children
+      val isyms: Map[ScopedOrInnerSymbol, LocalPath] = node.children
         .collect:
           case ScopeNode(obj = c: ScopedObject.Companion) =>
             c.clsBody.isym -> LocalPath.BmsRef(c.bsym, c.clsBody.isym)
@@ -730,7 +731,6 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
               case Some(value) => value // lifted
               case None => LocalPath.BmsRef(c.bsym, c.cls.isym) // not lifted
             )
-          
         .toMap
       // Note: the order here is important, as fromCap must override keys from
       // fromThisObj.
@@ -756,7 +756,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     lazy val defnPaths: Map[DefinitionSymbol[?], DefnRef] = defnPathsFromThisObj
     
-    lazy val symbolsMap: Map[ScopeLocalSymbol, LocalPath] = pathsFromThisObj
+    lazy val symbolsMap: Map[ScopedOrInnerSymbol, LocalPath] = pathsFromThisObj
   
   /** Represents a scoped object that is to be rewritten and lifted. */
   sealed abstract class LiftedScope[T <: Defn](override val obj: ScopedObject.Liftable[T])(using ctx: LifterCtxNew) extends RewrittenScope[T](obj):
@@ -782,7 +782,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           case None => L(s)
     
     /** Locals that are directly passed to this object, i.e. not via a capture. */
-    final val passedSyms: Set[ScopeLocalSymbol] = reqPassedSymbols
+    final val passedSyms: Set[ScopedOrInnerSymbol] = reqPassedSymbols
     /** Maps locals to the scope where they were defined. */
     final val capturesOrigin: Map[ValueSymbol, ScopedInfo] = captures.toMap
     /** Locals that are inside captures. */
@@ -798,14 +798,14 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       .toSet.intersect(refdDSyms)
     
     /** Maps directly passed locals to the path representing that local within this object. */
-    protected val passedSymsMap: Map[ValueSymbol, LocalPath]
+    protected val passedSymsMap: Map[ScopedOrInnerSymbol, LocalPath]
     /** Maps scopes to the path representing their captures within this object. */
     protected val capSymsMap: Map[ScopedInfo, Path]
     /** Maps definition symbols to the path representing that definition. */
     protected val passedDefnsMap: Map[DefinitionSymbol[?], DefnRef]
     
     protected lazy val capturesOrdered: List[ScopedInfo] = reqCaptures.toList.sorted
-    protected final lazy val passedSymsOrdered: List[ValueSymbol] = reqPassedSymbols.toList.sortBy(_.uid)
+    protected final lazy val passedSymsOrdered: List[ScopedOrInnerSymbol] = reqPassedSymbols.toList.sortBy(_.uid)
     protected final lazy val reqDefnsOrdered: List[DefinitionSymbol[?]] = reqDefns.toList.sortBy(_.uid)
     
     override lazy val capturePaths: Map[ScopedInfo, Path] =
@@ -819,8 +819,8 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     /** Maps symbols to the path representing that local within this object.
       * Includes locals defined by this object's parents, and this object's own defined locals.
       */
-    override lazy val symbolsMap: Map[ScopeLocalSymbol, LocalPath] = 
-      val fromParents = reqSymbols
+    override lazy val symbolsMap: Map[ScopedOrInnerSymbol, LocalPath] = 
+      val fromParents: Map[ScopedOrInnerSymbol, LocalPath] = reqSymbols
         .map: s =>
           passedSymsMap.get(s) match
             // The symbol is passed directly
@@ -977,9 +977,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         methods = newMtds
       )
       LifterResult(newComp, rewriterCtor.extraDefns.toList ::: extras)
-   
+  
   class LiftedFunc(override val obj: ScopedObject.Func)(using ctx: LifterCtxNew) extends LiftedScope[FunDefn](obj) with GenericRewrittenScope[FunDefn]:
-    private val passedSymsMap_ : Map[ValueSymbol, VarSymbol] = passedSymsOrdered.map: s =>
+    private val passedSymsMap_ : Map[ScopedOrInnerSymbol, VarSymbol] = passedSymsOrdered.map: s =>
         s -> VarSymbol(Tree.Ident(s.nme))
       .toMap
     private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = capturesOrdered.map: i =>
@@ -1093,7 +1093,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     private val captureSym = TermSymbol(syntax.ImmutVal, S(obj.cls.isym), Tree.Ident(obj.nme + "$cap"))
     override lazy val capturePath: Path = Select(Value.This(obj.cls.isym), captureSym.id)(S(captureSym))
     
-    private val passedSymsMap_ : Map[ValueSymbol, (vs: VarSymbol, ts: TermSymbol)] = passedSymsOrdered.map: s =>
+    private val passedSymsMap_ : Map[ScopedOrInnerSymbol, (vs: VarSymbol, ts: TermSymbol)] = passedSymsOrdered.map: s =>
         s -> 
           (
             VarSymbol(Tree.Ident(s.nme)),

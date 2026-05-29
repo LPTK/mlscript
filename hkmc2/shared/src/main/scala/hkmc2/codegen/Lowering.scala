@@ -145,11 +145,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     // case sym: TermSymbol if sym.owner.isDefined =>
     case sym: TermSymbol =>
       lastWords(s"tried to collect field-backed term symbol ${sym.showDbg}")
-    case sym: ScopedValueSymbol => loweringCtx.collectScopedSym(sym)
+    case sym: ScopedSymbol => loweringCtx.collectScopedSym(sym)
     case sym => lastWords(s"tried to collect non-scoped local symbol ${sym.showDbg}")
 
-  private def scopedDefSym(td: TermDefinition): ScopedSymbol =
-    if td.tsym.isLocalTermValue then td.tsym else td.sym
+  // private def scopedDefSym(td: TermDefinition): ScopedSymbol =
+  //   if td.tsym.isLocalTermValue then td.tsym else td.sym
 
   
   // type Rcd = (mut: Bool, args: List[RcdArg]) // * Better, but Scala's patmat exhaustiveness chokes on it
@@ -240,7 +240,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case td: TermDefinition =>
           reportAnnotations(td, td.extraAnnotations)
           if td.owner.isEmpty && td.hasDeclareModifier.isEmpty then
-            loweringCtx.collectScopedSym(scopedDefSym(td))
+            // loweringCtx.collectScopedSym(scopedDefSym(td))
+            loweringCtx.collectScopedSym(td.sym)
           td.body match
           case N => // abstract declarations have no lowering
             blockImpl(stats, res)

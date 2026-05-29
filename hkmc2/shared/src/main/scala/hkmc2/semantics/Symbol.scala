@@ -319,7 +319,7 @@ end BlockMemberSymbol
   * definitions that should behave like local values rather than members, such
   * as local `using` clauses.
   */
-type ScopedValueSymbol = BlockLocalSymbol | TermSymbol
+// type ScopedValueSymbol = BlockLocalSymbol | TermSymbol
 
 /** Symbols that `Scoped` introduces as block-local bindings.
   *
@@ -327,7 +327,8 @@ type ScopedValueSymbol = BlockLocalSymbol | TermSymbol
   * those are stored on the owning class/module/object and must be accessed
   * through `Select`/`AssignField`, not by binding a local variable in the IR.
   */
-type ScopedSymbol = ScopedValueSymbol | BlockMemberSymbol
+type ScopedSymbol = BlockLocalSymbol | BlockMemberSymbol
+type ScopedOrInnerSymbol = ScopedSymbol | InnerSymbol
 
 /** Symbols bound by `Program.imports`.
   *
@@ -349,7 +350,7 @@ type ValueSymbol = SimpleSymbol | TermSymbol | BlockMemberSymbol | InnerSymbol
 /** Symbols that may be bound by MIR binding forms such as `Scoped` or direct
   * local assignments. This excludes private/source fields and `NoSymbol`.
   */
-type BoundSymbol = ScopedSymbol
+type BoundSymbol = ScopedSymbol | TermSymbol
 
 /** Symbols that may occur in MIR free-variable sets.
   *
@@ -365,7 +366,7 @@ type FreeSymbol = ValueSymbol | LabelSymbol
   * through `ScopedInfo`/definition references, while actual source locals are
   * value-level symbols or `this`-like inner symbols.
   */
-type ScopeLocalSymbol = ScopedValueSymbol | InnerSymbol
+// type ScopeLocalSymbol = ScopedValueSymbol | InnerSymbol
 
 /** Symbols that can appear as a direct local-like `LocalPath.Sym` in the lifter.
   *
