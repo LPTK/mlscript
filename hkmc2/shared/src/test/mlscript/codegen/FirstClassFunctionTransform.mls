@@ -203,11 +203,43 @@ Bar().bar()(42)
 
 class Baz(b) with
   fun baz() = x => x + b
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:55)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:tmp -> tmp6, member:Function$ -> Function$39, tmp:block$res -> block$res2, class:Function$ -> Function$20, member:Function$ -> Function$22, member:lambda -> lambda, class:Function$ -> Function$2, tmp:tmp -> tmp7, class:Function$ -> Function$21, member:Function$ -> Function$3, member:Function$ -> Function$23, tmp:tmp -> tmp8, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res3, tmp:Term -> Term, tmp:Block -> Block, member:f -> f, tmp:block$res -> block$res21, tmp:option -> option, tmp:b$accessorSymbol -> b$accessorSymbol, f -> f1, tmp:block$res -> block$res12, tmp:tmp -> tmp9, class:Function$ -> Function$24, member:Function$ -> Function$26, class:Function$ -> Function$4, tmp:tmp -> tmp10, member:Function$ -> Function$6, class:Function$ -> Function$25, member:Function$ -> Function$27, class:Function$ -> Function$5, tmp:tmp -> tmp11, member:Function$ -> Function$7, tmp:block$res -> block$res13, member:Foo -> Foo1, class:Foo -> Foo, tmp:block$res -> block$res4, class:Function$ -> Function$28, member:Function$ -> Function$30, tmp:block$res -> block$res5, class:Function$ -> Function$29, member:Function$ -> Function$31, tmp:block$res -> block$res6, tmp:block$res -> block$res7, member:bar -> bar, member:foo -> foo, tmp:block$res -> block$res14, foo -> foo2, class:Function$ -> Function$8, tmp:block$res -> block$res15, member:Function$ -> Function$9, member:Foo -> Foo3, tmp:tmp -> tmp, class:Foo -> Foo2, tmp:block$res -> block$res8, member:Predef -> Predef, tmp:block$res -> block$res16, class:Function$ -> Function$10, member:Function$ -> Function$11, tmp:tmp -> tmp1, tmp:tmp -> tmp12, class:Function$ -> Function$32, member:Function$ -> Function$33, tmp:block$res -> block$res9, tmp:tmp -> tmp13, member:bar -> bar1, member:foo -> foo1, tmp:block$res -> block$res17, member:foo -> foo3, class:Function$ -> Function$12, member:Function$ -> Function$13, class:Function$ -> Function$34, tmp:tmp -> tmp2, member:Function$ -> Function$35, tmp:block$res -> block$res10, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp3, tmp:selRes -> selRes, tmp:block$res -> block$res18, tmp:tmp -> tmp4, member:Bar -> Bar1, tmp:selRes -> selRes1, class:Bar -> Bar, class:Function$ -> Function$16, member:Function$ -> Function$17, tmp:tmp -> tmp5, class:Function$ -> Function$14, member:Function$ -> Function$18, class:Function$ -> Function$36, member:Function$ -> Function$37, class:Function$ -> Function$15, member:Function$ -> Function$19, tmp:block$res -> block$res, member:aux -> aux, tmp:block$res -> block$res19, tmp:tmp -> tmp14, tmp:baseCall -> baseCall, tmp:block$res -> block$res20, tmp:block$res -> block$res1, member:Baz -> Baz1, class:Baz -> Baz, class:Function$ -> Function$, member:Function$ -> Function$1, tmp:block$res -> block$res11, i -> i, class:Function$ -> Function$38)
+//│   _2 = class:Baz⁰
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Baz
+//│ > let Baz1, Function$39;try { const b$accessorSymbol = globalThis.Symbol("b"); globalThis.Object.freeze(class Function$38 extends globalThis.Function {   static {     Function$39 = this   }   constructor() {     super();   }   get call$__checkNotMethod() { runtime.deboundMethod("call", "Function$"); }   call(x) {     runtime.checkArgs("call", 1, true, arguments.length);     return x + ‹MISSING_THIS›[b$accessorSymbol]   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Function$"]; }); Baz1 = function Baz(b) {   return globalThis.Object.freeze(new Baz.class(b)); }; globalThis.Object.freeze(class Baz {   static {     Baz1.class = this   }   constructor(b) {     this.#b = b;   }   #b;   get [b$accessorSymbol]() { return this.#b; }   set [b$accessorSymbol](value) { this.#b = value; }   get baz$__checkNotMethod() { runtime.deboundMethod("baz", "Baz"); }   baz() {     runtime.checkArgs("baz", 0, true, arguments.length);     return globalThis.Object.freeze(new Function$39())   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Baz", [null]]; });; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
 
 
 :expect 42
 Baz(42).baz()(0)
-//│ = 42
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
+//│ ═══[RUNTIME ERROR] ReferenceError: Baz1 is not defined
+//│     at REPL75:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:303)
+//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
 
 
 module Foo with
@@ -228,50 +260,76 @@ module Foo with
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let Foo¹, lambda⁸, Function$⁸;
 //│ @private
-//│ define lambda⁸ as fun lambda⁹(Bar, z, x) {
+//│ define lambda⁸ as fun lambda⁹(z, x) {
 //│   let tmp;
-//│   set tmp = +⁰(x, Bar.y⁰);
+//│   set tmp = +⁰(x, Bar⁰.this.y⁰);
 //│   return +⁰(tmp, z)
 //│ };
 //│ define Function$⁸ as class extends globalThis⁰.Function⁰ Function$⁹ {
-//│   private val Bar⁰;
 //│   private val z⁰;
-//│   constructor(Bar, z) {
+//│   constructor(z) {
 //│     do super⁰();
 //│     end;
-//│     set Function$⁹.this.Bar = Bar;
 //│     set Function$⁹.this.z = z;
 //│     end
 //│   }
 //│   method call⁸ = fun call⁹(x) {
-//│     return lambda⁹(Function$⁹.this.Bar⁰, Function$⁹.this.z⁰, x)
+//│     return lambda⁹(Function$⁹.this.z⁰, x)
 //│   }
 //│ };
 //│ define Foo¹ as class Foo²
 //│ module Foo³ {
 //│   constructor {
-//│     define Bar¹ as class Bar³ {
+//│     define Bar¹ as class Bar⁰ {
 //│       private val y⁰;
 //│       constructor Bar²(y) {
-//│         set Bar³.this.y = y;
+//│         set Bar⁰.this.y = y;
 //│         end
 //│       }
-//│       method bar² = fun bar³(z) {
-//│         let tmp;
-//│         set tmp = new Function$⁹(Bar³.this, z);
-//│         return tmp
-//│       }
+//│       method bar² = fun bar³(z) { let tmp; set tmp = new Function$⁹(z); return tmp }
 //│     };
 //│     end
 //│   }
 //│ };
 //│ end
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:55)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:tmp -> tmp6, member:Function$ -> Function$39, tmp:block$res -> block$res2, class:Function$ -> Function$20, member:Function$ -> Function$22, member:lambda -> lambda, class:Function$ -> Function$2, tmp:tmp -> tmp7, class:Function$ -> Function$21, member:Function$ -> Function$3, member:Function$ -> Function$23, tmp:tmp -> tmp8, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res3, tmp:Term -> Term, tmp:Block -> Block, member:f -> f, tmp:block$res -> block$res21, tmp:option -> option, tmp:b$accessorSymbol -> b$accessorSymbol, f -> f1, tmp:tmp -> tmp15, tmp:baseCall -> baseCall1, tmp:block$res -> block$res22, tmp:block$res -> block$res12, member:Foo -> Foo5, module:Foo -> Foo4, tmp:tmp -> tmp9, class:Function$ -> Function$24, member:Function$ -> Function$26, class:Function$ -> Function$4, tmp:tmp -> tmp10, member:Function$ -> Function$6, class:Function$ -> Function$25, member:Function$ -> Function$27, class:Function$ -> Function$5, tmp:tmp -> tmp11, member:Function$ -> Function$7, class:Foo -> Foo4, tmp:block$res -> block$res13, member:Foo -> Foo1, class:Foo -> Foo, class:Function$ -> Function$40, member:Function$ -> Function$42, class:Function$ -> Function$41, member:Function$ -> Function$43, tmp:block$res -> block$res4, class:Function$ -> Function$28, member:Function$ -> Function$30, tmp:block$res -> block$res5, class:Function$ -> Function$29, member:Function$ -> Function$31, tmp:block$res -> block$res6, tmp:block$res -> block$res7, member:bar -> bar, member:foo -> foo, tmp:block$res -> block$res23, tmp:block$res -> block$res14, tmp:block$res -> block$res24, foo -> foo2, class:Function$ -> Function$8, member:Foo -> Foo7, tmp:block$res -> block$res15, module:Foo -> Foo6, member:Function$ -> Function$9, class:Bar -> Bar2, member:Foo -> Foo3, tmp:tmp -> tmp, class:Foo -> Foo2, tmp:block$res -> block$res8, class:Foo -> Foo6, member:Predef -> Predef, tmp:block$res -> block$res16, class:Function$ -> Function$10, member:Function$ -> Function$11, class:Function$ -> Function$44, member:Function$ -> Function$45, tmp:tmp -> tmp1, tmp:tmp -> tmp12, class:Function$ -> Function$32, member:Function$ -> Function$33, tmp:block$res -> block$res9, tmp:tmp -> tmp13, member:bar -> bar1, member:foo -> foo1, tmp:block$res -> block$res17, member:foo -> foo3, tmp:block$res -> block$res25, class:Function$ -> Function$12, tmp:y$accessorSymbol -> y$accessorSymbol, member:Function$ -> Function$13, class:Function$ -> Function$34, tmp:tmp -> tmp2, member:Function$ -> Function$35, tmp:block$res -> block$res10, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp3, tmp:selRes -> selRes, tmp:block$res -> block$res18, tmp:tmp -> tmp4, member:Bar -> Bar1, tmp:selRes -> selRes1, class:Bar -> Bar, class:Function$ -> Function$16, member:Function$ -> Function$17, tmp:tmp -> tmp5, class:Function$ -> Function$14, member:Function$ -> Function$18, class:Function$ -> Function$36, member:Function$ -> Function$37, class:Function$ -> Function$15, member:Function$ -> Function$19, tmp:block$res -> block$res, member:aux -> aux, tmp:block$res -> block$res19, tmp:tmp -> tmp14, tmp:baseCall -> baseCall, tmp:block$res -> block$res20, tmp:block$res -> block$res1, member:Baz -> Baz1, class:Baz -> Baz, class:Function$ -> Function$, member:Function$ -> Function$1, tmp:block$res -> block$res11, i -> i, class:Function$ -> Function$38)
+//│   _2 = class:Bar⁰
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Bar
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > let Foo7, Function$45;try { const y$accessorSymbol = globalThis.Symbol("y"); globalThis.Object.freeze(class Function$44 extends globalThis.Function {   static {     Function$45 = this   }   constructor(z) {     super();     this.#z = z;   }   #z;   get call$__checkNotMethod() { runtime.deboundMethod("call", "Function$"); }   call(x) {     runtime.checkArgs("call", 1, true, arguments.length);     let z1, tmp16;     z1 = this.#z;     tmp16 = x + ‹MISSING_THIS›[y$accessorSymbol];     return tmp16 + z1   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Function$"]; }); globalThis.Object.freeze(class Foo6 {   static {     Foo7 = this   }   static {     Foo6.Bar = function Bar(y) {       return globalThis.Object.freeze(new Bar.class(y));     };     globalThis.Object.freeze(class Bar2 {       static {         Foo6.Bar.class = this       }       constructor(y) {         this.#y = y;       }       #y;       get [y$accessorSymbol]() { return this.#y; }       set [y$accessorSymbol](value) { this.#y = value; }       get bar$__checkNotMethod() { runtime.deboundMethod("bar", "Bar"); }       bar(z) {         runtime.checkArgs("bar", 1, true, arguments.length);         return globalThis.Object.freeze(new Function$45(z))       }       toString() { return runtime.render(this); }       static [definitionMetadata] = ["class", "Bar", [null]];     });   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Foo"]; });; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
 
 
 :expect 3
 Foo.Bar(1).bar(1)(1)
-//│ = 3
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
+//│ ═══[RUNTIME ERROR] ReferenceError: Foo7 is not defined
+//│     at REPL87:1:54
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:303)
+//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 
 let x = 1
@@ -381,7 +439,7 @@ foo.Foo#x
 :ge
 foo.f(0)
 //│ ╔══[COMPILATION ERROR] Cannot determine if f is a function object.
-//│ ║  l.382: 	foo.f(0)
+//│ ║  l.440: 	foo.f(0)
 //│ ╙──       	^^^^^
 //│ = 1
 
@@ -399,7 +457,7 @@ foo.Foo#f(0)
 :ge
 foo.x(0)
 //│ ╔══[COMPILATION ERROR] Cannot determine if x is a function object.
-//│ ║  l.400: 	foo.x(0)
+//│ ║  l.458: 	foo.x(0)
 //│ ╙──       	^^^^^
 
 
@@ -443,7 +501,19 @@ module Bar with
   fun f(x) = w(h) + x
 
 Bar.f(0)
-//│ = 1
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
+//│ ═══[RUNTIME ERROR] ReferenceError: Bar5 is not defined
+//│     at Function$66.call (REPL202:1:353)
+//│     at Bar5.w (REPL202:1:741)
+//│     at Bar5.f (REPL202:1:940)
+//│     at REPL205:1:44
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
 
 module Foo with
   fun f(x) = x + 1
@@ -517,7 +587,7 @@ print("abc")
 :e
 foo(print)
 //│ ╔══[COMPILATION ERROR] Cannot get print's parameter list.
-//│ ║  l.518: 	foo(print)
+//│ ║  l.588: 	foo(print)
 //│ ╙──       	    ^^^^^
 //│ ═══[RUNTIME ERROR] Error: Function 'call' expected 0 arguments but got 1
 
@@ -529,7 +599,7 @@ foo(print(_))
 :expect ["abc"]
 foo(tuple)
 //│ ╔══[COMPILATION ERROR] Cannot get tuple's parameter list.
-//│ ║  l.530: 	foo(tuple)
+//│ ║  l.600: 	foo(tuple)
 //│ ╙──       	    ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let Function$¹⁴, tmp;

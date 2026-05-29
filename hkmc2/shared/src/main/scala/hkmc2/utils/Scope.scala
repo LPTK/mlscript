@@ -53,7 +53,7 @@ case class Scope
   private def thisError(thisSym: InnerSymbol)(using Raise): Str =
     raise:
       InternalError(msg"`this` not in scope: ${thisSym.toString}" -> N :: Nil,
-        extraInfo = Some(this),
+        extraInfo = Some(this, thisSym),
         source = Diagnostic.Source.Compilation)
     "‹MISSING_THIS›"
   

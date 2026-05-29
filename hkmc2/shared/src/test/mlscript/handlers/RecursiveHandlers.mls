@@ -37,7 +37,24 @@ handle h = Object with
     [x, k(())]
 h.write(1)
 h.write(2)
-//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:55)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:tmp -> tmp, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$, member:handleBlock$ -> handleBlock$1, member:Handler$h1$perform -> Handler$h1$perform, member:Handler$h$write -> Handler$h$write, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$ -> Handler$h$1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform$ -> Handler$h1$perform$, tmp:prettyPrint -> prettyPrint, member:Handler$h$write$ -> Handler$h$write$, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res2, tmp:block$res -> block$res5, tmp:block$res -> block$res3, tmp:block$res -> block$res1, tmp:block$res -> block$res4, h1 -> h1, h -> h, class:Handler$h1$ -> Handler$h1$, class:Handler$h$ -> Handler$h$)
+//│   _2 = class:Handler$h$⁰
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ > let h, tmp1, handleBlock$1, Handler$h$write, Handler$h$1, Handler$h$write$;try { runtime.checkCall(runtime.resetEffects()); Handler$h$write$ = function Handler$h$write$(x) {   runtime.checkArgs("Handler$h$write$", 1, true, arguments.length);   return (k) => {     return runtime.checkCall(Handler$h$write(x, k))   } }; Handler$h$write = function Handler$h$write(x, k) {   runtime.checkArgs("Handler$h$write", 2, true, arguments.length);   let scrut, tmp2, pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     pc = runtime.resumePc;     runtime.resumePc = -1;   }   main: while (true) {     switch (pc) {       case 4:         runtime.resumeValue;         pc = 3;       case 3:         runtime.resumeValue = runtime.safeCall(k(runtime.Unit));         if (runtime.curEffect === null) {           pc = 2;         } else {           return runtime.checkCall(runtime.unwind(Handler$h$write, 2, "RecursiveHandlers.mls:37:9", null, null, 1, 2, x, k, 0))         }       case 2:         tmp2 = runtime.resumeValue;         pc = 1;       case 1:         return globalThis.Object.freeze([           x,           tmp2         ]);       case 0:         scrut = x < 10;         if (scrut === true) {           runtime.resumeValue = runtime.safeCall(‹MISSING_THIS›.write(10));           if (runtime.curEffect === null) {             pc = 4;             continue main           }           return runtime.checkCall(runtime.unwind(Handler$h$write, 4, "RecursiveHandlers.mls:36:18", null, null, 1, 2, x, k, 0));         }         pc = 3;         continue main;     }     break;   } }; globalThis.Object.freeze(class Handler$h$ extends globalThis.Object {   static {     Handler$h$1 = this   }   constructor() {     super();     if (runtime.curEffect !== null) {       runtime.checkCall(runtime.illegalEffect("in a constructor"));     }   }   get write$__checkNotMethod() { runtime.deboundMethod("write", "Handler$h$"); }   write(x) {     runtime.checkArgs("write", 1, true, arguments.length);     let Handler$h$write$here;     Handler$h$write$here = runtime.checkCall(Handler$h$write$(x));     return runtime.checkCall(runtime.mkEffect(this, Handler$h$write$here))   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Handler$h$"]; }); h = new Handler$h$1(); handleBlock$1 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   let pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     pc = runtime.resumePc;     runtime.resumePc = -1;   }   switch (pc) {     case 0:       runtime.resumeValue = runtime.safeCall(h.write(1));       if (runtime.curEffect === null) {         pc = 1;       } else {         return runtime.checkCall(runtime.unwind(handleBlock$1, 1, "RecursiveHandlers.mls:38:1", null, null, 1, 0, 0))       }     case 1:       runtime.resumeValue;       return runtime.safeCall(h.write(2));   } }); tmp1 = runtime.checkCall(runtime.enterHandleBlock(h, handleBlock$1)); if (runtime.curEffect === null) {   block$res5 = tmp1; } else { block$res5 = runtime.checkCall(runtime.topLevelEffect(false)); }; undefined } catch (e) { console.log('\u200B' + e + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
+//│ FAILURE: Unexpected lack of runtime error
 
 handle h = Object with
   fun write(x)(k) =
@@ -46,9 +63,36 @@ handle h = Object with
     [x, k(())]
 h.write(1)
 h.write(2)
-//│ > [10, ()]
-//│ > [10, ()]
-//│ = [1, [2, ()]]
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:55)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(member:lambda -> lambda, tmp:tmp -> tmp, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$, tmp:tmp -> tmp2, member:handleBlock$ -> handleBlock$1, member:Handler$h1$perform -> Handler$h1$perform, member:handleBlock$ -> handleBlock$2, member:Handler$h$write -> Handler$h$write, member:Handler$h$write -> Handler$h$write1, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$ -> Handler$h$1, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$3, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform$ -> Handler$h1$perform$, tmp:prettyPrint -> prettyPrint, member:Handler$h$write$ -> Handler$h$write$, tmp:Term -> Term, member:Handler$h$write$ -> Handler$h$write$1, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res2, tmp:block$res -> block$res5, tmp:block$res -> block$res3, h -> h2, class:Handler$h$ -> Handler$h$2, tmp:block$res -> block$res1, tmp:block$res -> block$res4, tmp:block$res -> block$res6, h1 -> h1, h -> h, class:Handler$h1$ -> Handler$h1$, class:Handler$h$ -> Handler$h$)
+//│   _2 = class:Handler$h$¹
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:55)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(member:lambda -> lambda, tmp:tmp -> tmp, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$, tmp:tmp -> tmp2, member:handleBlock$ -> handleBlock$1, member:Handler$h1$perform -> Handler$h1$perform, member:handleBlock$ -> handleBlock$2, member:Handler$h$write -> Handler$h$write, member:Handler$h$write -> Handler$h$write1, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$ -> Handler$h$1, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$3, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform$ -> Handler$h1$perform$, tmp:prettyPrint -> prettyPrint, member:Handler$h$write$ -> Handler$h$write$, tmp:Term -> Term, member:Handler$h$write$ -> Handler$h$write$1, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res2, tmp:block$res -> block$res5, tmp:block$res -> block$res3, h -> h2, class:Handler$h$ -> Handler$h$2, tmp:block$res -> block$res1, tmp:block$res -> block$res4, tmp:block$res -> block$res6, h1 -> h1, h -> h, class:Handler$h1$ -> Handler$h1$, class:Handler$h$ -> Handler$h$)
+//│   _2 = class:Handler$h$¹
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ > let h2, lambda, tmp2, handleBlock$2, Handler$h$write1, Handler$h$3, Handler$h$write$1;try { runtime.checkCall(runtime.resetEffects()); lambda = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   return runtime.safeCall(‹MISSING_THIS›.write(10)) }); Handler$h$write$1 = function Handler$h$write$(x) {   runtime.checkArgs("Handler$h$write$", 1, true, arguments.length);   return (k) => {     return runtime.checkCall(Handler$h$write1(x, k))   } }; Handler$h$write1 = function Handler$h$write(x, k) {   runtime.checkArgs("Handler$h$write", 2, true, arguments.length);   let scrut, tmp3, tmp4, pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     pc = runtime.resumePc;     runtime.resumePc = -1;   }   main: while (true) {     switch (pc) {       case 6:         tmp3 = runtime.resumeValue;         pc = 5;       case 5:         runtime.resumeValue = runtime.checkCall(Predef.print(tmp3));         if (runtime.curEffect === null) {           pc = 4;         } else {           return runtime.checkCall(runtime.unwind(Handler$h$write1, 4, "RecursiveHandlers.mls:62:7", null, null, 1, 2, x, k, 0))         }       case 4:         runtime.resumeValue;         pc = 3;       case 3:         runtime.resumeValue = runtime.safeCall(k(runtime.Unit));         if (runtime.curEffect === null) {           pc = 2;         } else {           return runtime.checkCall(runtime.unwind(Handler$h$write1, 2, "RecursiveHandlers.mls:63:9", null, null, 1, 2, x, k, 0))         }       case 2:         tmp4 = runtime.resumeValue;         pc = 1;       case 1:         return globalThis.Object.freeze([           x,           tmp4         ]);       case 0:         scrut = x < 10;         if (scrut === true) {           runtime.resumeValue = runtime.checkCall(Predef.enterHandleBlock(‹MISSING_THIS›, lambda));           if (runtime.curEffect === null) {             pc = 6;             continue main           }           return runtime.checkCall(runtime.unwind(Handler$h$write1, 6, "RecursiveHandlers.mls:62:13", null, null, 1, 2, x, k, 0));         }         pc = 3;         continue main;     }     break;   } }; globalThis.Object.freeze(class Handler$h$2 extends globalThis.Object {   static {     Handler$h$3 = this   }   constructor() {     super();     if (runtime.curEffect !== null) {       runtime.checkCall(runtime.illegalEffect("in a constructor"));     }   }   get write$__checkNotMethod() { runtime.deboundMethod("write", "Handler$h$"); }   write(x) {     runtime.checkArgs("write", 1, true, arguments.length);     let Handler$h$write$here;     Handler$h$write$here = runtime.checkCall(Handler$h$write$1(x));     return runtime.checkCall(runtime.mkEffect(this, Handler$h$write$here))   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Handler$h$"]; }); h2 = new Handler$h$3(); handleBlock$2 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   let pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     pc = runtime.resumePc;     runtime.resumePc = -1;   }   switch (pc) {     case 0:       runtime.resumeValue = runtime.safeCall(h2.write(1));       if (runtime.curEffect === null) {         pc = 1;       } else {         return runtime.checkCall(runtime.unwind(handleBlock$2, 1, "RecursiveHandlers.mls:64:1", null, null, 1, 0, 0))       }     case 1:       runtime.resumeValue;       return runtime.safeCall(h2.write(2));   } }); tmp2 = runtime.checkCall(runtime.enterHandleBlock(h2, handleBlock$2)); if (runtime.curEffect === null) {   block$res6 = tmp2; } else { block$res6 = runtime.checkCall(runtime.topLevelEffect(false)); }; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
 
 handle h = Object with
   fun write(x)(k) = enterHandleBlock of this, () =>
@@ -56,7 +100,36 @@ handle h = Object with
     [x, k(())]
 h.write(1)
 h.write(2)
-//│ = [10, [1, [10, [2, ()]]]]
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:55)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(member:lambda -> lambda, tmp:tmp -> tmp, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$, tmp:tmp -> tmp2, member:handleBlock$ -> handleBlock$1, member:lambda -> lambda1, member:Handler$h1$perform -> Handler$h1$perform, member:handleBlock$ -> handleBlock$2, member:Handler$h$write -> Handler$h$write, tmp:tmp -> tmp3, member:Handler$h$write -> Handler$h$write1, member:handleBlock$ -> handleBlock$3, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$ -> Handler$h$1, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$3, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform$ -> Handler$h1$perform$, tmp:prettyPrint -> prettyPrint, member:Handler$h$write$ -> Handler$h$write$, tmp:Term -> Term, member:Handler$h$write$ -> Handler$h$write$1, member:Handler$h$ -> Handler$h$5, tmp:Block -> Block, tmp:option -> option, member:Handler$h$write$ -> Handler$h$write$2, member:lambda$ -> lambda$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res2, tmp:block$res -> block$res5, tmp:block$res -> block$res3, h -> h2, class:Handler$h$ -> Handler$h$2, tmp:block$res -> block$res1, tmp:block$res -> block$res4, tmp:block$res -> block$res6, h1 -> h1, h -> h, h -> h3, class:Handler$h1$ -> Handler$h1$, class:Handler$h$ -> Handler$h$, class:Handler$h$ -> Handler$h$4, tmp:block$res -> block$res7)
+//│   _2 = class:Handler$h$²
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: thisError (Scope.scala:55)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(member:lambda -> lambda, tmp:tmp -> tmp, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$, tmp:tmp -> tmp2, member:handleBlock$ -> handleBlock$1, member:lambda -> lambda1, member:Handler$h1$perform -> Handler$h1$perform, member:handleBlock$ -> handleBlock$2, member:Handler$h$write -> Handler$h$write, tmp:tmp -> tmp3, member:Handler$h$write -> Handler$h$write1, member:handleBlock$ -> handleBlock$3, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$ -> Handler$h$1, tmp:runtime -> runtime, member:Handler$h$ -> Handler$h$3, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform$ -> Handler$h1$perform$, tmp:prettyPrint -> prettyPrint, member:Handler$h$write$ -> Handler$h$write$, tmp:Term -> Term, member:Handler$h$write$ -> Handler$h$write$1, member:Handler$h$ -> Handler$h$5, tmp:Block -> Block, tmp:option -> option, member:Handler$h$write$ -> Handler$h$write$2, member:lambda$ -> lambda$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res2, tmp:block$res -> block$res5, tmp:block$res -> block$res3, h -> h2, class:Handler$h$ -> Handler$h$2, tmp:block$res -> block$res1, tmp:block$res -> block$res4, tmp:block$res -> block$res6, h1 -> h1, h -> h, h -> h3, class:Handler$h1$ -> Handler$h1$, class:Handler$h$ -> Handler$h$, class:Handler$h$ -> Handler$h$4, tmp:block$res -> block$res7)
+//│   _2 = class:Handler$h$²
+//│ ═══[INTERNAL ERROR] `this` not in scope: class:Handler$h$
+//│ > let h3, lambda1, tmp3, handleBlock$3, Handler$h$5, Handler$h$write$2, lambda$;try { runtime.checkCall(runtime.resetEffects()); lambda$ = (undefined, function (x, k) {   runtime.checkArgs("", 2, true, arguments.length);   return () => {     return runtime.checkCall(lambda1(x, k))   } }); lambda1 = (undefined, function (x, k) {   runtime.checkArgs("", 2, true, arguments.length);   let scrut, tmp4, pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     pc = runtime.resumePc;     runtime.resumePc = -1;   }   main: while (true) {     switch (pc) {       case 4:         runtime.resumeValue;         pc = 3;       case 3:         runtime.resumeValue = runtime.safeCall(k(runtime.Unit));         if (runtime.curEffect === null) {           pc = 2;         } else {           return runtime.checkCall(runtime.unwind(lambda1, 2, "RecursiveHandlers.mls:100:9", null, null, 1, 2, x, k, 0))         }       case 2:         tmp4 = runtime.resumeValue;         pc = 1;       case 1:         return globalThis.Object.freeze([           x,           tmp4         ]);       case 0:         scrut = x < 10;         if (scrut === true) {           runtime.resumeValue = runtime.safeCall(‹MISSING_THIS›.write(10));           if (runtime.curEffect === null) {             pc = 4;             continue main           }           return runtime.checkCall(runtime.unwind(lambda1, 4, "RecursiveHandlers.mls:99:18", null, null, 1, 2, x, k, 0));         }         pc = 3;         continue main;     }     break;   } }); Handler$h$write$2 = function Handler$h$write$(x) {   runtime.checkArgs("Handler$h$write$", 1, true, arguments.length);   return (k) => {     let lambda$here;     lambda$here = runtime.checkCall(lambda$(x, k));     return runtime.checkCall(Predef.enterHandleBlock(‹MISSING_THIS›, lambda$here))   } }; globalThis.Object.freeze(class Handler$h$4 extends globalThis.Object {   static {     Handler$h$5 = this   }   constructor() {     super();     if (runtime.curEffect !== null) {       runtime.checkCall(runtime.illegalEffect("in a constructor"));     }   }   get write$__checkNotMethod() { runtime.deboundMethod("write", "Handler$h$"); }   write(x) {     runtime.checkArgs("write", 1, true, arguments.length);     let Handler$h$write$here;     Handler$h$write$here = runtime.checkCall(Handler$h$write$2(x));     return runtime.checkCall(runtime.mkEffect(this, Handler$h$write$here))   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "Handler$h$"]; }); h3 = new Handler$h$5(); handleBlock$3 = (undefined, function () {   runtime.checkArgs("", 0, true, arguments.length);   let pc;   if (runtime.resumePc === -1) {     pc = 0;   } else {     pc = runtime.resumePc;     runtime.resumePc = -1;   }   switch (pc) {     case 0:       runtime.resumeValue = runtime.safeCall(h3.write(1));       if (runtime.curEffect === null) {         pc = 1;       } else {         return runtime.checkCall(runtime.unwind(handleBlock$3, 1, "RecursiveHandlers.mls:101:1", null, null, 1, 0, 0))       }     case 1:       runtime.resumeValue;       return runtime.safeCall(h3.write(2));   } }); tmp3 = runtime.checkCall(runtime.enterHandleBlock(h3, handleBlock$3)); if (runtime.curEffect === null) {   block$res7 = tmp3; } else { block$res7 = runtime.checkCall(runtime.topLevelEffect(false)); }; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
 
 // deep handler
 :todo
@@ -73,11 +146,11 @@ handle h2 = Effect with
   h2.perform(3)
 ]
 //│ ╔══[COMPILATION ERROR] Name not found: h2
-//│ ║  l.67: 	      then h2.perform(arg - 1) + " " + arg
-//│ ╙──      	           ^^
+//│ ║  l.140: 	      then h2.perform(arg - 1) + " " + arg
+//│ ╙──       	           ^^
 //│ ╔══[COMPILATION ERROR] Illegal position for prefix keyword 'else'.
-//│ ║  l.68: 	      else "0"
-//│ ╙──      	      ^^^^
+//│ ║  l.141: 	      else "0"
+//│ ╙──       	      ^^^^
 //│ > –––
 //│ > performing 2
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -178,7 +251,7 @@ str
 //│       if (runtime.curEffect === null) {
 //│         pc = 1;
 //│       } else {
-//│         return runtime.unwind(Handler$h1$perform1, 1, "RecursiveHandlers.mls:147:7", null, null, 1, 2, arg, k, 0)
+//│         return runtime.unwind(Handler$h1$perform1, 1, "RecursiveHandlers.mls:220:7", null, null, 1, 2, arg, k, 0)
 //│       }
 //│     case 1:
 //│       runtime.resumeValue;
@@ -209,7 +282,7 @@ str
 //│       if (runtime.curEffect === null) {
 //│         pc = 1;
 //│       } else {
-//│         return runtime.unwind(Handler$h2$perform1, 1, "RecursiveHandlers.mls:152:7", null, null, 1, 2, arg, k, 0)
+//│         return runtime.unwind(Handler$h2$perform1, 1, "RecursiveHandlers.mls:225:7", null, null, 1, 2, arg, k, 0)
 //│       }
 //│     case 1:
 //│       runtime.resumeValue;
@@ -256,7 +329,7 @@ str
 //│       if (runtime.curEffect === null) {
 //│         pc = 1;
 //│       } else {
-//│         return runtime.unwind(handleBlock$9, 1, "RecursiveHandlers.mls:154:3", null, null, 1, 1, h22, 0)
+//│         return runtime.unwind(handleBlock$9, 1, "RecursiveHandlers.mls:227:3", null, null, 1, 1, h22, 0)
 //│       }
 //│     case 1:
 //│       runtime.resumeValue;

@@ -120,7 +120,8 @@ object ScopeData:
           .toSet
         case ScopedBlock(_, block) =>
           block.syms.collect:
-            case sym: ScopedSymbol => sym: ScopedSymbol
+            // case sym: ScopedSymbol => sym: ScopedSymbol
+            case sym: BlockLocalSymbol => sym: ScopedSymbol
           .toSet
         case _: Loop => Set.empty
     

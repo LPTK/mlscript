@@ -291,7 +291,7 @@ A.f(10000)
 //│ ╔══[COMPILATION ERROR] This tail call exits the current scope and is not optimized.
 //│ ║  l.286: 	    @tailcall g(x - 1)
 //│ ╙──       	              ^^^^^^^^
-//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
+//│ ═══[RUNTIME ERROR] ReferenceError: A3 is not defined
 
 // These calls are represented as field selections and don't yet have the explicitTailCall parameter.
 :breakme

@@ -711,8 +711,10 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         .map: s =>
           s -> (s match
             case s: LocalVarSymbol => s.asLocalPath
-            case s: TermSymbol => LocalPath.LocalTerm(s)
+            // case s: TermSymbol => LocalPath.LocalTerm(s)
             case s: InnerSymbol => LocalPath.ThisPath(s)
+            // case bms: BlockMemberSymbol => LocalPath.BmsRef(bms, bms.asPrincipal.getOrElse(wat(bms))) // FIXME
+            // case bms: BlockMemberSymbol => LocalPath.BmsRef(bms, bms.tsym.getOrElse(wat(bms))) // FIXME
           )
         .toMap
       // Locals introduced by this object that are inside this object's capture
