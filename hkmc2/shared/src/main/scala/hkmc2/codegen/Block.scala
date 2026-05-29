@@ -129,7 +129,7 @@ sealed abstract class Block extends Product:
     case Continue(_) => Set.empty
     case Define(defn, rst) =>
       val rest = rst.definedVars
-      if defn.isOwned then rest else rest + defn.localStorageSym
+      if defn.isOwned then rest else rest + defn.sym
     case TryBlock(sub, fin, rst) => sub.definedVars ++ fin.definedVars ++ rst.definedVars
     case Label(lbl, _, bod, rst) => bod.definedVars ++ rst.definedVars
     case Scoped(syms, body) => body.definedVars ++ syms
@@ -359,7 +359,6 @@ case class Begin(sub: Block, rest: Block) extends Block with ProductWithTail wit
 case class TryBlock(sub: Block, finallyDo: Block, rest: Block) extends Block with ProductWithTail with NonBlockTail
 
 case class Assign(lhs: AssignableSymbol, rhs: Result, rest: Block) extends Block with ProductWithTail with NonBlockTail
-// case class Assign(lhs: Path, rhs: Result, rest: Block) extends Block with ProductWithTail
 
 case class AssignField(lhs: Path, nme: Tree.Ident, rhs: Result, rest: Block)(val symbol: Opt[MemberSymbol])
   extends Block with ProductWithTail with NonBlockTail
@@ -590,14 +589,14 @@ sealed abstract class Defn:
   
   // * Note that `privateFields` abd `publicFields` can't possibly be free since they are never
   // * referred to directly (they are only accessed through selections).
-  // * At some point we'll want to make this more specific than `Symbol` to express this
-  // * in the type system.
   lazy val freeVars: Set[FreeSymbol] = this match
     case FunDefn(own, sym, dSym, params, body) =>
       body.freeVars -- params.flatMap(_.paramSyms) ++ sym.optionIf(own.isEmpty)
     case vd @ ValDefn(tsym, sym, rhs) =>
-      val target: FreeSymbol = vd.localStorageSym
-      rhs.freeVars ++ target.optionIf(tsym.owner.isEmpty)
+      rhs.freeVars ++
+        // * Value definitions without an owner are simialr to local variables;
+        // * they need to be declared with `let` in JS, which is why we add them here.
+        vd.sym.optionIf(tsym.owner.isEmpty)
     case ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentSym, 
         methods, privateFields, publicFields, preCtor, ctor, stat, bufferable) =>
       preCtor.freeVars
@@ -883,7 +882,7 @@ sealed abstract class Result extends AutoLocated:
     case Record(mut, args) =>
       args.flatMap(arg => arg.idx.fold(Set.empty[FreeSymbol])(_.freeVars) ++ arg.value.freeVars).toSet
     case Value.SimpleRef(l) => Set.single(l)
-    case Value.MemberRef(bms, disamb) => Set.single(disamb.localTermValue.getOrElse(bms))
+    case Value.MemberRef(bms, disamb) => Set.single(bms)
     case Value.This(sym) => Set.empty
     case Value.Lit(lit) => Set.empty
     case DynSelect(qual, fld, arrayIdx) => qual.freeVars ++ fld.freeVars
@@ -967,7 +966,7 @@ object Value:
   extension (r: RefLike)
     def symbol: ValueSymbol = r match
       case SimpleRef(l) => l
-      case MemberRef(bms, disamb) => disamb.localTermValue.getOrElse(bms)
+      case MemberRef(bms, disamb) => bms
       case This(sym) => sym
 
   @deprecated("Use Value.SimpleRef, Value.MemberRef, or Value.This instead.")
@@ -1037,47 +1036,11 @@ extension (bms: BlockMemberSymbol)
 extension (sym: InnerSymbol)
   inline def asThis: Value.This = Value.This(sym)
 
-extension (sym: TermSymbol)
-  /** Ownerless value definitions are represented as local terms in MIR.
-    *
-    * They are still referenced through their block-member symbol so overload
-    * disambiguation remains explicit, but the `TermSymbol` is the local storage
-    * symbol that scopes, captures, and code generation track.
-    */
-  def isLocalTermValue: Bool =
-    false
-    // sym.owner.isEmpty
-    // && sym.k.isInstanceOf[syntax.Val]
-    // && (
-    //   sym.defn.exists(_.body.isDefined)
-    //   || sym.irDefn.exists(_.isInstanceOf[ValDefn])
-    // )
-
-  def localTermValue: Opt[TermSymbol] =
-    sym.optionIf(sym.isLocalTermValue)
-
-  def asLocalTermPath: Value.MemberRef =
-    val bms = sym.asBlkMember.getOrElse:
-      lastWords(s"Cannot resolve local term symbol ${sym.nme}: no block member found")
-    bms.asMemberRef(sym)
-
-extension (sym: DefinitionSymbol[?])
-  def localTermValue: Opt[TermSymbol] = sym match
-    case sym: TermSymbol => sym.localTermValue
-    case _ => N
-
-extension (defn: Defn)
-  def localStorageSym: ScopedSymbol = defn match
-    // case vd: ValDefn if vd.tsym.isLocalTermValue => vd.tsym
-    case _ => defn.sym
-
 extension (l: ValueSymbol)
   // TODO(Derppening): Inline `Value.Ref.apply` into this function once that function is removed
   @annotation.nowarn("cat=deprecation")
   def asPath: Value.RefLike =
     l match
-      case tsym: TermSymbol if tsym.isLocalTermValue =>
-        tsym.asLocalTermPath
       case tsym: TermSymbol =>
         lastWords(s"Cannot make a direct path for non-local term symbol ${tsym.nme}")
       case bms: BlockMemberSymbol =>

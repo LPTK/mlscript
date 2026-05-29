@@ -176,8 +176,6 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Value.This(sym) => scope.findThis_!(sym)
     case Value.Lit(Tree.StrLit(value)) => makeStringLiteral(value)
     case Value.Lit(lit) => lit.idStr
-    case Value.MemberRef(_, disamb: semantics.TermSymbol) if disamb.isLocalTermValue =>
-      scope.lookup_!(disamb, r.toLoc)
     case Value.MemberRef(bms, disamb) =>
       if disamb.shouldBeLifted then doc"${scope.lookup_!(bms, bms.toLoc)}.class"
       else scope.lookup_!(bms, r.toLoc)
@@ -364,7 +362,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         // * in which case it has no owner and is just a glorified local variable rather than a field.
         tsym.owner match
         case N =>
-          val target = defn.localStorageSym
+          val target = defn.sym
           doc"${scope.lookup_!(target, target.toLoc)} = ${result(p)};${returningTerm(rst, endSemi)}"
         case S(owner) =>
           val thisDoc = mkThis(owner)
@@ -822,8 +820,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     :: locally:
       exprt match
       case S(sym) =>
-        val target = sym.tsym.filter(_.isLocalTermValue).getOrElse(sym)
-        doc"\nlet ${sym.nme} = ${scope.lookup_!(target, target.toLoc)}; export default ${sym.nme};\n"
+        doc"\nlet ${sym.nme} = ${scope.lookup_!(sym, sym.toLoc)}; export default ${sym.nme};\n"
       case N => doc""
   
   def worksheet(p: Program)(using Raise, Scope): (Document, Document) =

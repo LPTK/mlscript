@@ -33,8 +33,8 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
         .rest:
           sym match
           case sym: LocalVarSymbol => f(sym.asSimpleRef)
-          case sym: TermSymbol if sym.isLocalTermValue => f(sym.asLocalTermPath)
-          case sym: TermSymbol => lastWords(s"non-local term cannot be used as a stack-safe result variable: ${sym.nme}")
+          case sym: TermSymbol =>
+            lastWords(s"non-local term cannot be used as a stack-safe result variable: ${sym.nme}")
           case _: NoSymbol => f(Value.Lit(Tree.UnitLit(false)))
   
   def wrapStackSafe(body: Block, resSym: LocalVarSymbol, rest: Block) =
@@ -78,13 +78,8 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
               lhs match
               case _: NoSymbol => blockBuilder.assign(lhs, r).rest(applyBlock(rest))
               case lhs: LocalVarSymbol => extract(r, false, _ => applyBlock(rest), lhs, curDepth)
-              case lhs: TermSymbol if lhs.isLocalTermValue =>
-                if isTopLevel then
-                  val tmp = TempSymbol(N, "stackDelayRes")
-                  Scoped(Set.single(tmp), extractResTopLevel(r, false, Assign(lhs, _, applyBlock(rest)), tmp, curDepth))
-                else
-                  extractRes(r, false, _ => applyBlock(rest), lhs, curDepth)
-              case lhs: TermSymbol => lastWords(s"non-local term cannot be used as a stack-safe result variable: ${lhs.nme}")
+              case lhs: TermSymbol =>
+                lastWords(s"non-local term cannot be used as a stack-safe result variable: ${lhs.nme}")
           else
             super.applyBlock(b)
         
