@@ -225,7 +225,7 @@ let res =
 //│   res = Lit of UnitLit of false
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
-//│   main = Scoped(syms = {res⁰, h⁰, tmp:tmp⁰, member:lambda⁰, member:handleBlock$⁰, member:Handler$h$break⁰, member:Handler$h$¹, tmp:lambda$debugInfo⁰, tmp:Handler$h$break$debugInfo⁰, tmp:Handler$h$#break$debugInfo⁰, tmp:handleBlock$$debugInfo⁰}): 
+//│   main = Scoped(syms = {res⁰, h⁰, tmp:tmp⁰, member:lambda⁰, member:handleBlock$⁰, member:Handler$h$break⁰, member:Handler$h$¹, member:lambda$⁰, tmp:lambda$$debugInfo⁰, tmp:lambda$debugInfo⁰, tmp:Handler$h$break$debugInfo⁰, tmp:Handler$h$#break$debugInfo⁰, tmp:handleBlock$$debugInfo⁰}): 
 //│     body = Assign:
 //│       lhs = ‹no symbol›⁰
 //│       rhs = Call:
@@ -234,6 +234,32 @@ let res =
 //│           name = Ident of "resetEffects"
 //│         argss = Ls of 
 //│           Nil
+//│       rest = Assign: \
+//│       lhs = tmp:lambda$$debugInfo⁰
+//│       rhs = Tuple:
+//│         mut = false
+//│         elems = Ls of 
+//│           Arg:
+//│             value = Lit of StrLit of "lambda$"
+//│       rest = Define: \
+//│       defn = FunDefn:
+//│         sym = member:lambda$⁰
+//│         dSym = term:lambda$¹
+//│         params = Ls of 
+//│           ParamList:
+//│             params = Ls of 
+//│               Param:
+//│                 sym = instance$Ident(Debugger)²
+//│                 modulefulness = Modulefulness of N
+//│           ParamList: ‹empty›
+//│         body = Return of Call:
+//│           fun = MemberRef{disamb=term:lambda¹}:
+//│             bms = member:lambda⁰
+//│             disamb = term:lambda¹
+//│           argss = Ls of 
+//│             Ls of 
+//│               Arg:
+//│                 value = SimpleRef of instance$Ident(Debugger)²
 //│       rest = Assign: \
 //│       lhs = tmp:lambda$debugInfo⁰
 //│       rhs = Tuple:
@@ -246,7 +272,11 @@ let res =
 //│         sym = member:lambda⁰
 //│         dSym = term:lambda¹
 //│         params = Ls of 
-//│           ParamList: ‹empty›
+//│           ParamList:
+//│             params = Ls of 
+//│               Param:
+//│                 sym = instance$Ident(Debugger)³
+//│                 modulefulness = Modulefulness of N
 //│         body = Return of Call:
 //│           fun = Select{sym=term:Test⁰/main⁰}:
 //│             qual = MemberRef{disamb=module:Test⁰}:
@@ -257,9 +287,7 @@ let res =
 //│             Nil
 //│             Ls of 
 //│               Arg:
-//│                 value = MemberRef{disamb=term:instance$Ident(Debugger)¹}:
-//│                   bms = member:instance$Ident(Debugger)⁰
-//│                   disamb = term:instance$Ident(Debugger)¹
+//│                 value = SimpleRef of instance$Ident(Debugger)³
 //│       rest = Assign: \
 //│       lhs = tmp:Handler$h$break$debugInfo⁰
 //│       rhs = Tuple:
@@ -365,12 +393,24 @@ let res =
 //│         dSym = term:handleBlock$¹
 //│         params = Ls of 
 //│           ParamList: ‹empty›
-//│         body = Scoped(syms = {member:instance$Ident(Debugger)⁰}): 
+//│         body = Scoped(syms = {member:instance$Ident(Debugger)⁰, tmp:lambda$here⁰}): 
 //│           body = Define:
 //│             defn = ValDefn:
 //│               tsym = term:instance$Ident(Debugger)¹
 //│               sym = member:instance$Ident(Debugger)⁰
 //│               rhs = SimpleRef of h⁰
+//│             rest = Assign: \
+//│             lhs = tmp:lambda$here⁰
+//│             rhs = Call:
+//│               fun = MemberRef{disamb=term:lambda$¹}:
+//│                 bms = member:lambda$⁰
+//│                 disamb = term:lambda$¹
+//│               argss = Ls of 
+//│                 Ls of 
+//│                   Arg:
+//│                     value = MemberRef{disamb=term:instance$Ident(Debugger)¹}:
+//│                       bms = member:instance$Ident(Debugger)⁰
+//│                       disamb = term:instance$Ident(Debugger)¹
 //│             rest = Return of Call:
 //│               fun = Select{sym=term:Runtime⁰/try⁰}:
 //│                 qual = MemberRef{disamb=module:Runtime⁰}:
@@ -380,9 +420,7 @@ let res =
 //│               argss = Ls of 
 //│                 Ls of 
 //│                   Arg:
-//│                     value = MemberRef{disamb=term:lambda¹}:
-//│                       bms = member:lambda⁰
-//│                       disamb = term:lambda¹
+//│                     value = SimpleRef of tmp:lambda$here⁰
 //│       rest = Assign: \
 //│       lhs = tmp:tmp⁰
 //│       rhs = Call:
@@ -417,84 +455,26 @@ let res =
 //│       rest = Assign: \
 //│       lhs = res⁰
 //│       rhs = SimpleRef of tmp:tmp⁰
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:instance$Ident(Debugger)⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Left of Cfg:
-//│         escapeChars = true
-//│         useSuperscripts = false
-//│         includeZero = false
-//│         defaultName = "tmp"
-//│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(tmp:Test.test$debugInfo -> Test$_test$debugInfo, tmp:f$debugInfo -> f$debugInfo, tmp:Test.main$debugInfo -> Test$_main$debugInfo, tmp:runtime -> runtime, tmp:block$res -> block$res11, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res2, tmp:prettyPrint -> prettyPrint, member:get -> get, tmp:Term -> Term, tmp:Block -> Block, tmp:tmp -> tmp1, tmp:option -> option, tmp:block$res -> block$res3, member:lambda_test -> lambda_test, tmp:block$res -> block$res12, res -> res1, h -> h, class:Handler$h$ -> Handler$h$, member:lambda -> lambda, tmp:lambda_test$debugInfo -> lambda_test$debugInfo, tmp:lambda$debugInfo -> lambda$debugInfo, tmp:tmp -> tmp2, tmp:tmp -> tmp5, tmp:block$res -> block$res4, member:lambda -> lambda1, tmp:block$res -> block$res5, member:handleBlock$ -> handleBlock$, res -> res, member:Handler$h$break -> Handler$h$break, tmp:block$res -> block$res6, member:Handler$h$ -> Handler$h$1, member:Runtime -> Runtime, tmp:selRes -> selRes, tmp:selRes -> selRes1, tmp:selRes -> selRes2, tmp:selRes -> selRes3, tmp:block$res -> block$res7, tmp:selRes -> selRes4, tmp:tmp -> tmp3, tmp:block$res -> block$res8, tmp:block$res -> block$res13, tmp:tmp -> tmp4, tmp:block$res -> block$res9, member:Debugger -> Debugger1, class:Debugger -> Debugger, tmp:block$res -> block$res10, member:Test -> Test1, module:Test -> Test, tmp:block$res -> block$res, tmp:tmp -> tmp, tmp:block$res -> block$res1, member:f -> f, class:Test -> Test)
-//│     curThis = S of N
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'instance$Ident(Debugger)'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.157: 	  using Debugger = h
-//│ ╙──       	  ^^^^^^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
-//│ ═══[RUNTIME ERROR] ReferenceError: instance$Ident is not defined
-//│     at lambda1 (REPL45:1:242)
-//│     at Runtime.try (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:717:28)
-//│     at handleBlock$ (REPL45:1:1234)
-//│     at Runtime.enterHandleBlock (file:///Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:1024:28)
-//│     at REPL45:1:1282
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│ res = undefined
+//│ res = EffectHandle(_)
 
 :re
 res.raise()
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'raise')
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
+//│ 	at Test.test (Debugging.mls:145:15)
+//│ 	at Test.main (Debugging.mls:148:5)
 
 set res = res.resumeWith(42)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'resumeWith')
-//│     at REPL52:1:88
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 :re
 res.raise()
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'raise')
+//│ ═══[RUNTIME ERROR] Error: Unhandled effect Handler$h$
+//│ 	at Test.test (Debugging.mls:145:15)
+//│ 	at Test.main (Debugging.mls:148:16)
 
 :expect 0.33676533676533676
 res.resumeWith(666)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'resumeWith')
-//│     at REPL58:1:88
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:303)
-//│ ═══[RUNTIME ERROR] Expected: '0.33676533676533676', got: 'undefined'
+//│ = 0.33676533676533676
 
 let i = 100
 fun f() =
@@ -510,8 +490,8 @@ fun f() =
 
 f()
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:504:3) with locals: j=200
+//│ > 	at f (Debugging.mls:484:3) with locals: j=200
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:506:3)
+//│ > 	at f (Debugging.mls:486:3)
 //│ > Stack Trace:
 //│ > 	at tail position

@@ -164,22 +164,7 @@ module M with
     fun g() = x
     g
 M.f()()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
-//│ ═══[RUNTIME ERROR] ReferenceError: M7 is not defined
-//│     at g (REPL59:1:101)
-//│     at REPL59:1:464
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:303)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 :expect 2
 object M with
@@ -188,22 +173,7 @@ object M with
     fun get = x
   val hi = A()
 M.hi.get
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
-//│ ═══[RUNTIME ERROR] TypeError: this.A is not a function
-//│     at new M9 (REPL62:1:186)
-//│     at <static_initializer> (REPL62:1:75)
-//│     at REPL62:1:375
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:303)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 :expect 2
 object M with
@@ -212,26 +182,7 @@ object M with
     fun g() = x
     g
 M.f()()
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: thisError (Scope.scala:55)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Scope:
-//│     parentOrCfg = Left of Cfg:
-//│       escapeChars = true
-//│       useSuperscripts = false
-//│       includeZero = false
-//│       defaultName = "tmp"
-//│     curThis = S of S of globalThis:globalThis⁰
-//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res2, member:M -> M10, object:M -> M9, member:M -> M2, member:foo -> foo1, class:M -> M1, tmp:block$res -> block$res11, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res12, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, member:A -> A1, class:A -> A, tmp:selRes -> selRes6, object:M -> M4, tmp:block$res -> block$res3, tmp:block$res -> block$res17, member:C -> C1, member:foo -> foo2, member:g -> g1, class:C -> C, member:M -> M12, object:M -> M11, class:Capture$foo -> Capture$foo, member:Capture$foo -> Capture$foo1, tmp:baseCall -> baseCall1, tmp:block$res -> block$res13, tmp:tmp -> tmp, tmp:block$res -> block$res14, tmp:block$res -> block$res18, tmp:block$res -> block$res4, cc -> cc, c0 -> c0, member:M -> M6, c1 -> c1, module:M -> M5, tmp:selRes -> selRes, tmp:selRes -> selRes1, tmp:block$res -> block$res5, class:A -> A2, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, class:M -> M5, object:O -> O, tmp:selRes -> selRes5, tmp:block$res -> block$res15, member:g -> g, tmp:block$res -> block$res, tmp:block$res -> block$res8, member:M -> M8, o -> o, module:M -> M7, tmp:block$res -> block$res9, member:foo -> foo, tmp:selRes -> selRes4, object:M -> M, tmp:block$res -> block$res10, member:foo -> foo4, class:M -> M7, object:M -> M3, tmp:baseCall -> baseCall, tmp:block$res -> block$res16)
-//│   _2 = object:M³
-//│ ═══[INTERNAL ERROR] `this` not in scope: object:M
-//│ > let g1, M12, baseCall1;try { g1 = function g() {   runtime.checkArgs("g", 0, true, arguments.length);   return ‹MISSING_THIS›.x }; globalThis.Object.freeze(class M11 {   static {     new this   }   constructor() {     M12 = this;     this.x = 2;     Object.defineProperty(this, "class", {       value: M11     });     globalThis.Object.freeze(this);   }   get f$__checkNotMethod() { runtime.deboundMethod("f", "M"); }   f() {     runtime.checkArgs("f", 0, true, arguments.length);     return g1   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["object", "M"]; }); baseCall1 = runtime.checkCall(M12.f()); block$res18 = runtime.safeCall(baseCall1());; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
-//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:303)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 // unlifted objects
 :lift
@@ -245,7 +196,7 @@ fun f =
   foo
 f.a
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.241: 	  object A with
+//│ ║  l.192: 	  object A with
 //│ ╙──       	         ^
 //│ = 2
 
@@ -256,18 +207,18 @@ module M with
   val x = if A() is A then 2 else 3
 M.A().get
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let M⁴, tmp;
-//│ define M⁴ as class M⁵
-//│ module M⁶ {
+//│ let M³, tmp;
+//│ define M³ as class M⁴
+//│ module M⁵ {
 //│   val x⁰;
 //│   constructor {
 //│     let scrut, tmp1;
 //│     define A⁰ as class A¹ {
 //│       method get⁰ = fun get¹ {
-//│         return +⁰(M⁶.this.x¹, M⁶.this.x¹)
+//│         return +⁰(M⁵.this.x¹, M⁵.this.x¹)
 //│       }
 //│     };
-//│     set scrut = M⁶.this.A²();
+//│     set scrut = M⁵.this.A²();
 //│     match scrut
 //│       A¹ =>
 //│         set tmp1 = 2;
@@ -279,7 +230,7 @@ M.A().get
 //│     end
 //│   }
 //│ };
-//│ set tmp = M⁶.A²();
+//│ set tmp = M⁵.A²();
 //│ return tmp.get¹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 4
@@ -307,19 +258,7 @@ module M with
     fun newB = B()
   0 is A
 M.A(2).newB.newA_B(3).newB.get
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
-//│ ═══[RUNTIME ERROR] TypeError: this.B is not a function
-//│     at get newB (REPL77:1:484)
-//│     at REPL77:1:782
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = 3
 
 module M with
   class A
@@ -335,7 +274,7 @@ fun foo(x) =
     val baz = x
   [x === O.bar, set x += 1 in [x === O.bar, x === O.baz], x === O.bar]
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.333: 	  object O with
+//│ ║  l.272: 	  object O with
 //│ ╙──       	         ^
 
 foo(123)
@@ -345,19 +284,6 @@ module A with
   fun g = 1
   fun f = () => g
   f()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:263)
-//│ ═══[RUNTIME ERROR] ReferenceError: A8 is not defined
-//│     at A8.lambda (REPL89:1:111)
-//│     at <static_initializer> (REPL89:1:227)
-//│     at REPL89:1:372
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
 
 module A with
   val a = (() => 1)()
@@ -397,13 +323,13 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.394: 	  object A with
+//│ ║  l.320: 	  object A with
 //│ ╙──       	         ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.395: 	    object B with
+//│ ║  l.321: 	    object B with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.396: 	      object C
+//│ ║  l.322: 	      object C
 //│ ╙──       	             ^
 //│ = C
 
@@ -416,10 +342,10 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.413: 	  module A with
+//│ ║  l.339: 	  module A with
 //│ ╙──       	         ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.415: 	      object C
+//│ ║  l.341: 	      object C
 //│ ╙──       	             ^
 //│ = C
 
@@ -432,7 +358,7 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.429: 	  module A with
+//│ ║  l.355: 	  module A with
 //│ ╙──       	         ^
 //│ = C
 
