@@ -302,11 +302,7 @@ object Elaborator:
       def ref(id: Ident)(using Elaborator.State, Ctx): Resolvable =
         // * Note: due to symbolic ops, we may have `id.name =/= nme`;
         // * e.g., we can have `id.name = "|>"` and `nme = "pipe"`.
-        val refSym = sym match
-          case bms: BlockMemberSymbol =>
-            bms.tsym.filter(_.useAsLocalValue).getOrElse(sym)
-          case _ => sym
-        Term.Ref(refSym)(id, 666, N) // FIXME: 666 is a temporary placeholder
+        Term.Ref(sym)(id, 666, N) // FIXME: 666 is a temporary placeholder
       def symbol = S(sym)
       def isImport: Bool = false
     final case class SelElem(base: Elem, nme: Str, symOpt: Opt[MemberSymbol], isImport: Bool) extends Elem:
@@ -458,7 +454,7 @@ extends Importer with ucs.SplitElaborator:
     msg"Member names must start with a letter or underscore, followed by letters, digits, or underscores." -> N
     :: Nil
   
-  def mkLetBinding(kw: Tree.Keywrd[?], sym: LocalSymbol, rhs: Term, annotations: Ls[Annot]): Ls[Statement] =
+  def mkLetBinding(kw: Tree.Keywrd[?], sym: LocalSymbol | TermSymbol, rhs: Term, annotations: Ls[Annot]): Ls[Statement] =
     LetDecl(sym, annotations).mkLocWith(kw, sym) :: DefineVar(sym, rhs) :: Nil
   
   def resolveField(srcTree: Tree, base: Opt[Symbol], nme: Ident): Opt[MemberSymbol] =
@@ -1441,7 +1437,7 @@ extends Importer with ucs.SplitElaborator:
           ctx.get(id.name) match
           case S(elem) =>
             elem.symbol match
-            case S(sym: LocalSymbol) => go(sts, Nil, DefineVar(sym, r) :: acc)
+            case S(sym: (LocalSymbol | TermSymbol)) => go(sts, Nil, DefineVar(sym, r) :: acc)
           case N =>
             // TODO lookup in members? inherited/refined stuff?
             raise(ErrorReport(msg"Name not found: ${id.name}" -> id.toLoc :: Nil))
@@ -1460,7 +1456,10 @@ extends Importer with ucs.SplitElaborator:
         td.name match
           case R(id) =>
             val sym = members.getOrElse(id.name, die)
-            val owner = ctx.outer.inner
+            val owner =
+              // * Instance declarations are not meant to be exported externally-available members,
+              // * even when declared within some class or module.
+              if (k is Ins) then N else ctx.outer.inner
             if (k is MutVal) && owner.isEmpty then
               raise:
                 ErrorReport:
@@ -1470,7 +1469,7 @@ extends Importer with ucs.SplitElaborator:
             if owner.isDefined && !identifierPattern.matches(id.name) then
               raise:
                 ErrorReport:
-                  msg"Illegal member ${k.desc} name: '${id.name}'" -> nme.toLoc
+                  msg"Illegal ${k.desc} member name: '${id.name}'" -> nme.toLoc
                   :: illegalMemberNameTail
               return go(sts, Nil, acc)
             val isMethod = owner.exists(_.isInstanceOf[ClassSymbol])
@@ -1550,7 +1549,7 @@ extends Importer with ucs.SplitElaborator:
         if owner.isDefined && !identifierPattern.matches(nme.name) then
           raise:
             ErrorReport:
-              msg"Illegal member ${k.desc} name: '${nme.name}'" -> nme.toLoc
+              msg"Illegal ${k.desc} member name: '${nme.name}'" -> nme.toLoc
               :: illegalMemberNameTail
           return go(sts, Nil, acc)
         

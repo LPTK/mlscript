@@ -75,10 +75,6 @@ class BlockSimplifier
     
     var changed = false
     
-    def definedValueSym(defn: Defn): ValueSymbol = defn match
-      case ValDefn(tsym, sym, _) if tsym.useAsLocalValue => tsym
-      case _ => defn.sym
-
     def registerChange(dbg: => Str)(using Line) =
       log(s"!! Change triggered { ${dbg} }")
       // * For debugging:
@@ -148,7 +144,7 @@ class BlockSimplifier
         override def applyBlock(b: Block): Unit =
           b match
             case Define(defn, rst) =>
-              definedVars += definedValueSym(defn)
+              definedVars += defn.sym
             case Scoped(syms, _) =>
               localVars ++= syms
             case Break(lbl) => usedLabels += lbl
@@ -244,7 +240,7 @@ class BlockSimplifier
 
       // * Remove local pure definitions that are never read (and are not preserved)
       case Define(defn, rest) =>
-        val defnSym = definedValueSym(defn)
+        val defnSym = defn.sym
         if !defn.isPure
         || !localVars(defnSym)
         || usedVars(defnSym)
@@ -539,7 +535,7 @@ class BlockSimplifier
         
       case Define(defn: ValDefn, rst) =>
         applyValDefn(defn): defn2 =>
-          definedValueSym(defn2) match
+          defn.sym match
           case loc: LocalVar if !capturedVars(loc) =>
             recordAssignment(loc, defn2.rhs, new Assign(loc, defn2.rhs, End()))
           case _ =>

@@ -141,14 +141,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   def unit: Path =
     Select(State.runtimeSymbol.asSimpleRef, Tree.Ident("Unit"))(S(State.unitSymbol))
   
-  private def collectScopedLocal(sym: LocalSymbol)(using LoweringCtx): Unit = sym match
+  private def collectScopedLocal(sym: LocalSymbol | TermSymbol)(using LoweringCtx): Unit = sym match
     case sym: TermSymbol if sym.owner.isDefined =>
       lastWords(s"tried to collect field-backed term symbol ${sym.showDbg}")
     case sym: ScopedValueSymbol => loweringCtx.collectScopedSym(sym)
     case sym => lastWords(s"tried to collect non-scoped local symbol ${sym.showDbg}")
 
   private def scopedDefSym(td: TermDefinition): ScopedSymbol =
-    if td.tsym.useAsLocalValue then td.tsym else td.sym
+    td.sym
 
   
   // type Rcd = (mut: Bool, args: List[RcdArg]) // * Better, but Scala's patmat exhaustiveness chokes on it
@@ -636,9 +636,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         return k(Lambda(paramLists.head, bodyBlock)(Nil).withLocOf(ref))
     case bs: BlockMemberSymbol =>
       disamb.flatMap(_.defn) match
-      case S(td: TermDefinition) if td.tsym.useAsLocalValue =>
-        warnStmt
-        return k(td.tsym.asSimpleRef.withLocOf(ref))
       case S(d) if d.hasDeclareModifier.isDefined =>
         val sel = SynthSel(State.globalThisSymbol.ref().resolve, ref.tree)(S(bs), FlowSymbol.synthSel(ref.tree.name), N, N).withLocOf(ref).resolve
         return disamb.fold(term(sel)(k))(d => term(st.Resolved(sel, d)(N))(k))
@@ -660,11 +657,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case N => ()
       case S(_) => ()
       case N => () // TODO panic here; can only lower refs to elab'd symbols
-      bs.tsym match
-      case S(tsym) if tsym.useAsLocalValue =>
-        warnStmt
-        return k(tsym.asSimpleRef.withLocOf(ref))
-      case _ => ()
     case sym: TermSymbol =>
       privateFieldSelfSelection(sym) match
         case S(sel) =>

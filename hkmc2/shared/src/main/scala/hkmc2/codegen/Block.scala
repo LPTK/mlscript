@@ -615,7 +615,7 @@ sealed abstract class Defn:
     case FunDefn(own, sym, dSym, params, body) =>
       body.freeVars -- params.flatMap(_.paramSyms) ++ sym.optionIf(own.isEmpty)
     case ValDefn(tsym, sym, rhs) =>
-      val target: FreeSymbol = if tsym.useAsLocalValue then tsym else sym
+      val target: FreeSymbol = sym
       rhs.freeVars ++ target.optionIf(tsym.owner.isEmpty)
     case ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentSym, 
         methods, privateFields, publicFields, preCtor, ctor, stat, bufferable) =>
@@ -918,8 +918,8 @@ sealed abstract class Result extends AutoLocated:
     case Tuple(mut, elems) => elems.flatMap(_.value.freeVars).toSet
     case Record(mut, args) =>
       args.flatMap(arg => arg.idx.fold(Set.empty[FreeSymbol])(_.freeVars) ++ arg.value.freeVars).toSet
-    case Value.SimpleRef(l) => Set(l)
-    case Value.MemberRef(bms, _) => Set(bms)
+    case Value.SimpleRef(l) => Set.single(l)
+    case Value.MemberRef(bms, _) => Set.single(bms)
     case Value.This(sym) => Set.empty
     case Value.Lit(lit) => Set.empty
     case DynSelect(qual, fld, arrayIdx) => qual.freeVars ++ fld.freeVars
@@ -1009,6 +1009,12 @@ enum Value extends Path with ProductWithExtraInfo:
   case MemberRef(bms: BlockMemberSymbol, disamb: DefinitionSymbol[?])
   case This(sym: InnerSymbol)
   case Lit(lit: Literal)
+  
+  // TODO: rm
+  this match
+    case SimpleRef(l: TermSymbol) =>
+      assert(false, s"Creating SimpleRef to ${l} with defn ${l.defn.map(_.getClass.getSimpleName).getOrElse("None")}")
+    case _ =>
   
   override def extraInfo(using DebugPrinter): Str = this match
     case MemberRef(bms, disamb) => s"disamb=${disamb.showAsPlain}"
@@ -1104,8 +1110,6 @@ extension (l: ValueSymbol)
         bms.asPrincipal.getOrElse:
           lastWords(s"Cannot resolve overloaded member symbol ${bms.nme}: no principal disambiguation found")
         match
-          case tsym: TermSymbol if tsym.useAsLocalValue =>
-            tsym.asSimpleRef
           case disamb =>
             Value.Ref(bms, S(disamb))
       case _ => Value.Ref(l, N)

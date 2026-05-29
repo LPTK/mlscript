@@ -186,7 +186,7 @@ object FlowSymbol:
 end FlowSymbol
 
 type SimpleSymbol = LocalVarSymbol | BuiltinSymbol
-type AssignableSymbol = LocalVarSymbol | NoSymbol
+type AssignableSymbol = LocalVarSymbol | TermSymbol | NoSymbol
 
 sealed trait LocalVarSymbol extends LocalSymbol
 sealed trait LocalSymbol extends Symbol/* :
@@ -334,7 +334,7 @@ type ScopedSymbol = ScopedValueSymbol | BlockMemberSymbol
   * User-facing imports bind member symbols, while compiler-generated imports
   * such as prelude/runtime imports may bind temporary term values directly.
   */
-type ImportSymbol = TempSymbol | MemberSymbol
+type ImportSymbol = TempSymbol | VarSymbol | BlockMemberSymbol
 
 /** Symbols that can be represented as a value-level IR path without a qualifier.
   *
@@ -344,7 +344,7 @@ type ImportSymbol = TempSymbol | MemberSymbol
   * owner-sensitive lowering/lifting must choose `Select`/`AssignField` when a
   * direct value reference would be wrong.
   */
-type ValueSymbol = SimpleSymbol | BlockMemberSymbol | InnerSymbol
+type ValueSymbol = SimpleSymbol | TermSymbol | BlockMemberSymbol | InnerSymbol
 
 /** Symbols that may be bound by MIR binding forms such as `Scoped` or direct
   * local assignments. This excludes private/source fields and `NoSymbol`.
@@ -384,7 +384,7 @@ sealed abstract class MemberSymbol(using State) extends Symbol:
 class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.Ident)(using State)
     extends MemberSymbol
     with DefinitionSymbol[TermDefinition]
-    with LocalVarSymbol
+    // with LocalVarSymbol
     with NamedSymbol:
   /** True when this term should be represented as a direct block-local value
     * rather than via its enclosing `BlockMemberSymbol`.
@@ -393,7 +393,6 @@ class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.I
     * downstream passes follow the symbol invariant instead of reinterpreting
     * the source-level definition kind.
     */
-  var useAsLocalValue: Bool = false
   def nme: Str = id.name
   def name: Str = nme
   

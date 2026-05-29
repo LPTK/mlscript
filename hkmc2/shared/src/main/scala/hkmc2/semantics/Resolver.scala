@@ -423,15 +423,15 @@ class Resolver(tl: TraceLogger)
     
     // Case: instance definition. Add the instance to the context.
     case defn @ TermDefinition(k = Ins, sym = sym, tsym = tsym, flags = TermDefFlags(isMethod), sign = sign) =>
+      softAssert(defn.owner.isEmpty)
       log(s"Resolving instance definition ${defn.showDbg}")
       traverseTermDef(defn)
       sign match
         case N =>
           // By the syntax of instance defintiion, the type signature should be present.
           lastWords(s"No type signature for instance definition ${defn.showDbg} at ${defn.toLoc}")
-        case S(sign) => 
-          if defn.owner.isEmpty then tsym.useAsLocalValue = true
-          ictx + (resolveSign(sign, expect = Any), if defn.owner.isEmpty then tsym else sym)
+        case S(sign) =>
+          ictx + (resolveSign(sign, expect = Any), sym)
     
     // Case: Fun/Val definition. 
     case defn @ TermDefinition(k = Fun | ImmutVal | MutVal) =>

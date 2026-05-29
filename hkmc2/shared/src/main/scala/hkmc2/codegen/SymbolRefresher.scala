@@ -19,11 +19,6 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
   // valid `cleanupStack.head` to add to (the bottom frame is never popped).
   private var toRemoveSymbols: List[MutSet[Symbol]] = MutSet.empty[Symbol] :: Nil
 
-  private def freshTermSymbol(tsym: TermSymbol, owner: Opt[InnerSymbol], id: Tree.Ident): TermSymbol =
-    val res = new TermSymbol(tsym.k, owner, id)
-    res.useAsLocalValue = tsym.useAsLocalValue
-    res
-
   override def applyScopedBlock(b: Block): Block =
     toRemoveSymbols = MutSet.empty[Symbol] :: toRemoveSymbols
     val res = b match
@@ -39,7 +34,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
               existingMapping.get(o) match
                 case Some(inner: InnerSymbol) => inner
                 case _ => o
-            freshTermSymbol(termSym, newOwner, termSym.id)
+            new TermSymbol(termSym.k, newOwner, termSym.id)
           case bms: BlockMemberSymbol =>
             val newBms = new BlockMemberSymbol(bms.nme, Nil, bms.nameIsMeaningful)
             newBms.tsym = bms.tsym.map: t =>
@@ -47,7 +42,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
                 existingMapping.get(o) match
                   case Some(inner: InnerSymbol) => inner
                   case _ => o
-              val nt = freshTermSymbol(t, newOwner, t.id)
+              val nt = new TermSymbol(t.k, newOwner, t.id)
               mapping(t) = nt
               oldSyms.add(t)
               nt
@@ -106,7 +101,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
           val newBms = new BlockMemberSymbol(fun.sym.nme, fun.sym.trees, fun.sym.nameIsMeaningful)
           val newDsym = fun.sym.tsym.map: tsym =>
             assert(tsym.owner.isEmpty)
-            freshTermSymbol(tsym, N, tsym.id)
+            new TermSymbol(tsym.k, N, tsym.id)
           newBms.tsym = S(newDsym.get)
           // Keep the definition symbol in sync with the freshly-created member symbol.
           // Self-recursive references use the disambiguating TermSymbol, and later passes
@@ -138,7 +133,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
       val (tsym2, sym2) = mapping.get(sym) match
         case None =>
           val newBms = new BlockMemberSymbol(sym.nme, sym.trees, sym.nameIsMeaningful)
-          val newTsym = freshTermSymbol(tsym, tsym.owner, tsym.id)
+          val newTsym = new TermSymbol(tsym.k, N, tsym.id)
           newBms.tsym = S(newTsym)
           (newTsym, newBms)
         case S(bms: BlockMemberSymbol) =>

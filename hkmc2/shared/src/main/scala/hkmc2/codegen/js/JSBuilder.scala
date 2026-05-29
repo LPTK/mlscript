@@ -367,8 +367,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         // * in which case it has no owner and is just a glorified local variable rather than a field.
         tsym.owner match
         case N =>
-          val target =
-            if tsym.useAsLocalValue then tsym else sym
+          val target = sym
           doc"${scope.lookup_!(target, target.toLoc)} = ${result(p)};${returningTerm(rst, endSemi)}"
         case S(owner) =>
           val thisDoc = mkThis(owner)
