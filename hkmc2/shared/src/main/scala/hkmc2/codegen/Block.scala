@@ -41,6 +41,13 @@ case class Program(
 )
 
 
+/** Symbol that can be used in a `SimpleRef`. */
+type SimpleSymbol = LocalVarSymbol | BuiltinSymbol
+
+/** Symbol that can be used as the left-hand side of an `Assign`. */
+type AssignableSymbol = LocalVarSymbol | TermSymbol | NoSymbol
+
+
 sealed abstract class Block extends Product:
   
   def ~(that: Block): Block = Begin(this, that)

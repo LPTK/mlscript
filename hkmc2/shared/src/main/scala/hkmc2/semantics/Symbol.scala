@@ -185,7 +185,10 @@ object FlowSymbol:
   
 end FlowSymbol
 
+/** Symbol that can be used in a `SimpleRef`. */
 type SimpleSymbol = LocalVarSymbol | BuiltinSymbol
+
+/** Symbol that can be used as the left-hand side of an `Assign`. */
 type AssignableSymbol = LocalVarSymbol | TermSymbol | NoSymbol
 
 sealed trait LocalSymbol extends Symbol
@@ -333,7 +336,7 @@ type BoundSymbol = ScopedSymbol | TermSymbol
 
 /** Symbols that may occur in MIR free-variable sets.
   */
-type FreeSymbol = ValueSymbol | LabelSymbol
+type FreeSymbol = SimpleSymbol | BlockMemberSymbol | LabelSymbol
 
 
 sealed abstract class MemberSymbol(using State) extends Symbol:

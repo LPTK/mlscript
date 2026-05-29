@@ -925,7 +925,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case Missing => "missing"
     case LeadingDotSel(nme) => s"_?_.${nme.name}"
 
-final case class LetDecl(sym: LocalSymbol | TermSymbol, annotations: Ls[Annot]) extends Statement
+final case class LetDecl(sym: LocalVarSymbol | TermSymbol, annotations: Ls[Annot]) extends Statement
 
 final case class RcdField(field: Term, rhs: Term) extends Statement
 final case class RcdSpread(rcd: Term) extends Statement
@@ -1061,8 +1061,7 @@ case class ObjBody(blk: Term.Blk):
 end ObjBody
 
 
-/** `sym` is a 
-  * `BlockMemberSymbol` or a `VarSymbol` when the import is made by the user
+/** `sym` is a `BlockMemberSymbol` or a `VarSymbol` when the import is made by the user
   * and can be referred to by name (it's either the BMS of the imported module
   * or the VarSymbol of the alias, in an aliased import `import "..." as alias`),
   * in which case it is a `BlockMemberSymbol` when importing files explicitly

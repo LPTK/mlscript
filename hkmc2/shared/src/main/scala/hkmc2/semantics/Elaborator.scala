@@ -454,7 +454,7 @@ extends Importer with ucs.SplitElaborator:
     msg"Member names must start with a letter or underscore, followed by letters, digits, or underscores." -> N
     :: Nil
   
-  def mkLetBinding(kw: Tree.Keywrd[?], sym: LocalSymbol | TermSymbol, rhs: Term, annotations: Ls[Annot]): Ls[Statement] =
+  def mkLetBinding(kw: Tree.Keywrd[?], sym: LocalVarSymbol | TermSymbol, rhs: Term, annotations: Ls[Annot]): Ls[Statement] =
     LetDecl(sym, annotations).mkLocWith(kw, sym) :: DefineVar(sym, rhs) :: Nil
   
   def resolveField(srcTree: Tree, base: Opt[Symbol], nme: Ident): Opt[MemberSymbol] =
@@ -1457,7 +1457,7 @@ extends Importer with ucs.SplitElaborator:
           case R(id) =>
             val sym = members.getOrElse(id.name, die)
             val owner =
-              // * Instance declarations are not meant to be exported externally-available members,
+              // * Instance declarations are not meant to be exported as externally-available members,
               // * even when declared within some class or module.
               if (k is Ins) then N else ctx.outer.inner
             if (k is MutVal) && owner.isEmpty then

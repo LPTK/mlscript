@@ -338,13 +338,11 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
   def returningTerm(t: Block, endSemi: Bool)(using Raise, Scope): Document =
     def mkSemi = if endSemi then ";" else ""
     t match
-    case Assign(l, r, rst) if l is State.noSymbol =>
+    case Assign(l: NoSymbol, r, rst) =>
       doc" # ${result(r)};${returningTerm(rst, endSemi)}"
-    case Assign(l, r, rst) =>
+    case Assign(l: (LocalVarSymbol | TermSymbol), r, rst) =>
       doc" # ${
-          l match
-          case l: ValueSymbol => result(l.asPath.withLoc(N)) // TODO: improve location
-          case _: NoSymbol => lastWords("NoSymbol assignment should have been handled as a discard")
+          result(l.asPath.withLoc(N)) // TODO: improve location
         } = ${result(r)};${returningTerm(rst, endSemi)}"
     case assign @ AssignField(p, n, r, rst) =>
       val field = assign.symbol match
@@ -362,8 +360,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         // * in which case it has no owner and is just a glorified local variable rather than a field.
         tsym.owner match
         case N =>
-          val target = defn.sym
-          doc"${scope.lookup_!(target, target.toLoc)} = ${result(p)};${returningTerm(rst, endSemi)}"
+          doc"${scope.lookup_!(sym, sym.toLoc)} = ${result(p)};${returningTerm(rst, endSemi)}"
         case S(owner) =>
           val thisDoc = mkThis(owner)
           val nme = sym.nme

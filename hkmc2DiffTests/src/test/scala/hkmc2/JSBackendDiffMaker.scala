@@ -92,7 +92,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
           e.symbol match
           case S(ts: TermSymbol) if ts.k.isInstanceOf[syntax.ValLike] => S((nme, ts, N))
           case S(ts: BlockMemberSymbol)
-              if includeNonTerms || ts.trmImplTree.exists(_.k.isInstanceOf[syntax.ValLike]) => S((nme, ts, N))
+            if includeNonTerms || ts.trmImplTree.exists(_.k.isInstanceOf[syntax.ValLike]) => S((nme, ts, N))
           case S(vs: VarSymbol) => S((nme, vs, N))
           case _ => N
         case _ => N
@@ -203,14 +203,16 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         outputSeparator("Optimized IR Tree")
         output(optimized.showAsTree)
       
-      processIRBlock(optimized, definedValues)
+      processIRBlock(optimized, definedValues, symbolsToPreserve)
       
       }
   end processTerm
   
   type ComputeDefinedValues = (includeNonTerms: Bool) => Ls[(Str, ValueSymbol, Opt[Str])]
   
-  def processIRBlock(pgrm: Program, definedValues: ComputeDefinedValues)(using Config, Raise, Elaborator.Ctx): Unit =
+  def processIRBlock
+        (pgrm: Program, definedValues: ComputeDefinedValues, symbolsToPreserve: Set[BoundSymbol])
+        (using Config, Raise, Elaborator.Ctx): Unit =
     
     if js.isSet then
       

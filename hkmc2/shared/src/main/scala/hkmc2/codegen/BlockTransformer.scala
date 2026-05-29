@@ -194,10 +194,12 @@ class BlockTransformer(subst: SymbolSubst):
     case Value.Lit(lit) => k(v)
   
   def applyLocal(sym: Symbol): Symbol = sym.subst
+  
   def applyImportSymbol(sym: ImportSymbol): ImportSymbol = sym match
     case sym: TempSymbol => sym.subst
     case sym: VarSymbol => sym.subst
     case sym: BlockMemberSymbol => sym.subst
+  
   def applyAssignLhs(sym: AssignableSymbol): AssignableSymbol = sym match
     case sym: NoSymbol => sym.subst
     case sym: TempSymbol => sym.subst

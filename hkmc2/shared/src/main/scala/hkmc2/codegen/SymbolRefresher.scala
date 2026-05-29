@@ -8,7 +8,6 @@ import hkmc2.utils.*
 
 import semantics.*
 import semantics.Elaborator.State
-import syntax.Tree
 
 class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends BlockTransformer(SymbolSubst.Id):
   val mapping = MutMap.from(existingMapping)
@@ -27,14 +26,8 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
       val oldSyms = MutSet.empty[Symbol]
       for s <- syms.toList.sortBy(_.uid) do
         assert(!mapping.isDefinedAt(s), s"already defined: $s")
-        val newS = s match
+        val new_s: ScopedSymbol = s match
           case tmpSym: TempSymbol => new TempSymbol(N, tmpSym.nme)
-          // case termSym: TermSymbol =>
-          //   val newOwner: Opt[InnerSymbol] = termSym.owner.map: o =>
-          //     existingMapping.get(o) match
-          //       case Some(inner: InnerSymbol) => inner
-          //       case _ => o
-          //   new TermSymbol(termSym.k, newOwner, termSym.id)
           case bms: BlockMemberSymbol =>
             val newBms = new BlockMemberSymbol(bms.nme, Nil, bms.nameIsMeaningful)
             newBms.tsym = bms.tsym.map: t =>
@@ -48,12 +41,9 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
               nt
             newBms
           case varSym: VarSymbol => new VarSymbol(varSym.id)
-        val newScopedSym: ScopedSymbol = newS match
-          case s: ScopedSymbol => s
-          case s => lastWords(s"refreshed scoped symbol has unexpected kind: ${s.nme}")
-        mapping(s) = newScopedSym
+        mapping(s) = new_s
         oldSyms.add(s)
-        newSyms.add(newScopedSym)
+        newSyms.add(new_s)
       val r = Scoped(newSyms, applyBlock(body))
       for s <- oldSyms do mapping.remove(s)
       r
@@ -137,7 +127,11 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
       val (tsym2, sym2) = mapping.get(sym) match
         case None =>
           val newBms = new BlockMemberSymbol(sym.nme, sym.trees, sym.nameIsMeaningful)
-          val newTsym = new TermSymbol(tsym.k, N, tsym.id)
+          val newOwner = tsym.owner.map: o =>
+            existingMapping.get(o) match
+              case Some(inner: InnerSymbol) => inner
+              case _ => o
+          val newTsym = new TermSymbol(tsym.k, newOwner, tsym.id)
           newBms.tsym = S(newTsym)
           (newTsym, newBms)
         case S(bms: BlockMemberSymbol) =>

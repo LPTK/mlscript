@@ -2295,7 +2295,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       exprt: Opt[BlockMemberSymbol],
       wd: io.Path,
       sessionImports: Seq[SessionBinding],
-      preservedSessionSymbols: Set[ValueSymbol],
+      preservedSessionSymbols: Set[BoundSymbol],
   )(using Raise): CompiledWasmModule =
     for imprt <- p.imports do
       raise(

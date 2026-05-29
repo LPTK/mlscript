@@ -141,17 +141,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   def unit: Path =
     Select(State.runtimeSymbol.asSimpleRef, Tree.Ident("Unit"))(S(State.unitSymbol))
   
-  private def collectScopedLocal(sym: LocalSymbol | TermSymbol)(using LoweringCtx): Unit = sym match
-    // case sym: TermSymbol if sym.owner.isDefined =>
-    case sym: TermSymbol =>
-      lastWords(s"tried to collect field-backed term symbol ${sym.showDbg}")
-    case sym: ScopedSymbol => loweringCtx.collectScopedSym(sym)
-    case sym => lastWords(s"tried to collect non-scoped local symbol ${sym.showDbg}")
-
-  // private def scopedDefSym(td: TermDefinition): ScopedSymbol =
-  //   if td.tsym.isLocalTermValue then td.tsym else td.sym
-
-  
   // type Rcd = (mut: Bool, args: List[RcdArg]) // * Better, but Scala's patmat exhaustiveness chokes on it
   type Rcd = (Bool, List[RcdArg])
   
@@ -221,7 +210,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               blockImpl(stats, L((mut, RcdArg(S(l), r) :: flds)))
       case (decl @ LetDecl(sym, annotations)) :: stats =>
         reportAnnotations(decl, annotations)
-        if sym.asTrm.forall(_.owner.isEmpty) then collectScopedLocal(sym)
+        if sym.asTrm.forall(_.owner.isEmpty) then
+          sym match
+          case sym: ScopedSymbol => loweringCtx.collectScopedSym(sym)
+          case sym => lastWords(s"tried to collect non-scoped local symbol ${sym.showDbg}")
         blockImpl(stats, res)
       case DefineVar(sym, rhs) :: stats =>
         term(rhs): r =>
@@ -240,7 +232,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case td: TermDefinition =>
           reportAnnotations(td, td.extraAnnotations)
           if td.owner.isEmpty && td.hasDeclareModifier.isEmpty then
-            // loweringCtx.collectScopedSym(scopedDefSym(td))
             loweringCtx.collectScopedSym(td.sym)
           td.body match
           case N => // abstract declarations have no lowering
@@ -524,11 +515,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     raise:
       WarningReport(msg"Pure expression in statement position" -> loc :: Nil, extraInfo,
         source = Diagnostic.Source.Compilation)
-  
-  private def privateFieldSelfSelection(sym: TermSymbol)(using LoweringCtx): Opt[Select] =
-    sym.owner.collect:
-      case owner if sym.isPrivate =>
-        Select(owner.asThis, sym.id)(S(sym))
 
   private def assignSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
     sym match
@@ -560,8 +546,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           ErrorReport(
             msg"Cannot assign to $desc '${sym.nme}'" -> sym.toLoc :: Nil,
             source = Diagnostic.Source.Compilation)
-    case sym: NoSymbol =>
-      Assign(sym, rhs, rest)
     case sym =>
       lastWords(s"tried to assign to non-variable symbol ${sym.showDbg}")
   
@@ -572,8 +556,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
       case N => Assign(sym, rhs, rest)
     case sym: LocalVarSymbol =>
-      Assign(sym, rhs, rest)
-    case sym: NoSymbol =>
       Assign(sym, rhs, rest)
     case sym =>
       lastWords(s"tried to define non-variable symbol ${sym.showDbg}")
@@ -652,7 +634,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           return k(Call(
               bs.asMemberRef(disamb.get).withLocOf(ref), Nil ne_:: Nil
             )(isMlsFun = true, true, annots.contains(Annot.TailCall)))
-      case S(td: TermDefinition) if (td.k is syntax.MutVal) || (td.k is syntax.LetBind) =>
+      case S(td: TermDefinition) =>
         td.tsym.owner match
         case S(owner) =>
           return k(Select(owner.asThis, td.tsym.id)(S(td.tsym)).withLocOf(ref))
@@ -660,11 +642,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case S(_) => ()
       case N => () // TODO panic here; can only lower refs to elab'd symbols
     case sym: TermSymbol =>
-      privateFieldSelfSelection(sym) match
-        case S(sel) =>
-          warnStmt
-          return k(sel.withLocOf(ref))
-        case N => ()
+      sym.owner match
+      case S(owner) =>
+        warnStmt
+        val sel = Select(owner.asThis, sym.id)(S(sym))
+        return k(sel.withLocOf(ref))
+      case N => ()
     case _ => ()
     warnStmt
     (sym, disamb) match
@@ -914,7 +897,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))      
             S(Handler(td.sym, resumeSym, paramLists, bodyBlock))
       }.collect{ case Some(v) => v }
-      collectScopedLocal(lhs)
+      loweringCtx.collectScopedSym(lhs)
       val resSym = loweringCtx.registerTempSymbol(S(t))
       subTerm(rhs): par =>
         subTerms(as): asr =>
@@ -1205,7 +1188,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       rec(rhs, Nil)(k)
     case Blk(LetDecl(sym: LocalVarSymbol, _) :: DefineVar(sym2, rhs) :: Nil, res) => // Let bindings
       require(sym2 is sym)
-      collectScopedLocal(sym)
+      loweringCtx.collectScopedSym(sym)
       setupSymbol(sym){r1 =>
         val l1, l2, l3, l4, l5 = loweringCtx.registerTempSymbol(N)
         val arrSym = loweringCtx.registerTempSymbol(N, "arr")
@@ -1404,7 +1387,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val body = mkBlock
       val scopedSyms = loweringCtx.getCollectedSym
       Scoped(scopedSyms, body)
-
+  
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =
     val scopedBody = inScopedBlock(returnedTerm(bodyTerm))
