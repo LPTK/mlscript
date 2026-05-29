@@ -53,7 +53,7 @@ class Foo(x, val y, mut val z) with
 //│   val y²;
 //│   val z²;
 //│   constructor Foo⁴(x, y, z) {
-//│     set Foo⁵.this.x = x;
+//│     set Foo⁵.this.x⁰ = x;
 //│     define y² as val y³ = y;
 //│     define z² as val z³ = z;
 //│     do Predef⁰.print⁰(Foo⁵.this.x⁰);

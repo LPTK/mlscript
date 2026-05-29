@@ -359,6 +359,10 @@ class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.I
   
   def subst(using sub: SymbolSubst): TermSymbol = sub.mapTermSym(this)
 
+object TermSymbol:
+  def fromFunBms(b: BlockMemberSymbol, owner: Opt[InnerSymbol])(using State) =
+    TermSymbol(syntax.Fun, owner, Tree.Ident(b.nme))
+
 
 class ClassCtorSymbol(
   override val k: syntax.Fun.type,
@@ -366,11 +370,6 @@ class ClassCtorSymbol(
   id: Tree.Ident
 )(using State) extends TermSymbol(k, owner, id):
   override def subst(using sub: SymbolSubst): ClassCtorSymbol = sub.mapClassCtorSym(this)
-
-
-object TermSymbol:
-  def fromFunBms(b: BlockMemberSymbol, owner: Opt[InnerSymbol])(using State) =
-    TermSymbol(syntax.Fun, owner, Tree.Ident(b.nme))
 
 
 sealed trait CtorSymbol extends Symbol:
@@ -421,8 +420,7 @@ sealed trait ClassLikeSymbol extends IdentifiedSymbol:
  * overloaded definitions. In contrast, a `DefinitionSymbol` corresponds to only one specific
  * definition.
  */
-sealed trait DefinitionSymbol[Defn <: Definition] extends Symbol:
-  this: MemberSymbol =>
+sealed trait DefinitionSymbol[Defn <: Definition] extends MemberSymbol:
   
   var defn: Opt[Defn] = N
   var decl: Opt[Declaration] = N // NOTE: currently only assigned for class params and only used by deforestation; may want to just remove it once deforestation is improved
