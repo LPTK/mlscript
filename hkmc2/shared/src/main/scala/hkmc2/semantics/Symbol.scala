@@ -13,16 +13,21 @@ import Tree.Ident
 import hkmc2.utils.SymbolSubst
 
 
-abstract class Symbol(using State) extends Located:
+sealed abstract class MaybeSymbol:
   
   def nme: Str
+  
+  def showDbg(using DebugPrinter): Str =
+    this.showAsPlain
+
+end MaybeSymbol
+
+
+abstract class Symbol(using State) extends MaybeSymbol with Located:
   
   def getState: State = summon
   
   val uid: Uid[Symbol] = State.suid.nextUid
-  
-  def showDbg(using DebugPrinter): Str =
-    this.showAsPlain
   
   def showPlainName(using scp: Scope): hkmc2.document.Document =
     import hkmc2.document.*
@@ -149,10 +154,9 @@ end Symbol
 
 
 // * Used, eg, as the Assign receiver of intermediate computations whose result is not used
-final class NoSymbol(using State) extends Symbol:
+final class NoSymbol(using State) extends MaybeSymbol:
   def nme: Str = "‹no symbol›"
-  def toLoc: Option[Loc] = N
-  def subst(using s: SymbolSubst): NoSymbol = this
+  override def toString: Str = nme
 
 
 abstract class FlowSymbol(label: Str)(using State) extends Symbol:
@@ -195,7 +199,7 @@ class ConcreteFlowSymbol(label: Str)(using State) extends FlowSymbol(label):
 type SimpleSymbol = LocalVarSymbol | BuiltinSymbol
 
 /** Symbol that can be used as the left-hand side of an `Assign`. */
-type AssignableSymbol = LocalVarSymbol | TermSymbol | NoSymbol
+type Assignable = LocalVarSymbol | TermSymbol | NoSymbol
 
 sealed trait LocalSymbol extends Symbol
 sealed trait NamedSymbol extends Symbol:

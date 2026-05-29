@@ -56,7 +56,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
     b match
     case Assign(lhs, rhs, rest) =>
       applyResult(rhs): newRhs =>
-        val newLhs: AssignableSymbol = lhs match
+        val newLhs: Assignable = lhs match
           case lhs: NoSymbol => lhs
           case lhs: LocalVarSymbol =>
             mapping.get(lhs) match

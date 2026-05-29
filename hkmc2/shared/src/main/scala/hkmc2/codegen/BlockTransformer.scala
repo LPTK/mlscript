@@ -199,8 +199,8 @@ class BlockTransformer(subst: SymbolSubst):
     case sym: VarSymbol => sym.subst
     case sym: BlockMemberSymbol => sym.subst
   
-  def applyAssignLhs(sym: AssignableSymbol): AssignableSymbol = sym match
-    case sym: NoSymbol => sym.subst
+  def applyAssignLhs(sym: Assignable): Assignable = sym match
+    case sym: NoSymbol => sym
     case sym: TempSymbol => sym.subst
     case sym: VarSymbol => sym.subst
     case sym: TermSymbol => sym.subst

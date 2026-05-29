@@ -1473,7 +1473,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
       path.foldLeft[Path](State.globalThisSymbol.asThis):
         (qual, name) => Select(qual, Tree.Ident(name))(N)
     
-  private def assignStmts(stmts: (AssignableSymbol, Result)*)(rest: Block) =
+  private def assignStmts(stmts: (Assignable, Result)*)(rest: Block) =
     stmts.foldRight(rest):
       case ((sym, res), acc) => Assign(sym, res, acc)
   
