@@ -155,7 +155,7 @@ final class NoSymbol(using State) extends Symbol:
   def subst(using s: SymbolSubst): NoSymbol = this
 
 
-class FlowSymbol(label: Str)(using State) extends Symbol:
+abstract class FlowSymbol(label: Str)(using State) extends Symbol:
   def nme: Str = label
   def toLoc: Option[Loc] = N // TODO track source trees of flows
   import flow.*
@@ -164,9 +164,11 @@ class FlowSymbol(label: Str)(using State) extends Symbol:
   val producers: mutable.Buffer[ConcreteProd] = mutable.Buffer.empty
   def showDbg: Str =
     label + s"‹$uid›"
-  def subst(using s: SymbolSubst): FlowSymbol = s.mapFlowSym(this)
 
 object FlowSymbol:
+  
+  def apply(label: Str)(using State): FlowSymbol =
+    ConcreteFlowSymbol(label)
   
   def app()(using State) =
     // FlowSymbol("‹app-res›")
@@ -184,6 +186,10 @@ object FlowSymbol:
     FlowSymbol(s"Ɛ⋅$nme")
   
 end FlowSymbol
+
+class ConcreteFlowSymbol(label: Str)(using State) extends FlowSymbol(label):
+  def subst(using s: SymbolSubst): FlowSymbol = s.mapFlowSym(this)
+
 
 /** Symbol that can be used in a `SimpleRef`. */
 type SimpleSymbol = LocalVarSymbol | BuiltinSymbol
@@ -216,6 +222,7 @@ class SplitSymbol(val body: Split, name: Str = "split")(using State) extends Loc
 sealed abstract class LocalVarSymbol(name: Str)(using State) extends FlowSymbol(name) with LocalSymbol:
   self: LocalSymbol => // * using `with LocalSymbol` in the `extends` clause makes Scala think there's a bad override
   var decl: Opt[Declaration] = N
+  def subst(using s: SymbolSubst): LocalVarSymbol
 
 class TempSymbol(val trm: Opt[Term], dbgNme: Str = "tmp")(using State) extends LocalVarSymbol(dbgNme):
   // val nameHints: MutSet[Str] = MutSet.empty // * May be useful later?
