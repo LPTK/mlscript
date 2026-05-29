@@ -36,14 +36,17 @@ class BufferableTransform()(using Ctx, State, Raise):
                 Param(p.flags, varMap(p.sym), p.sign, p.modulefulness)
               (params.map(pl => ParamList(pl.flags, pl.params.map(mapParam), pl.restParam.map(mapParam))), varMap.toMap)
             def mkFieldReplacer(buf: VarSymbol, baseIdx: VarSymbol, symMap: Map[Symbol, Symbol]) =
+              val baseIdxRef = baseIdx.asSimpleRef(ErasedType.Primitive(PrimitiveType.Int)) 
               def getOffset(off: Int)(k: Path => Block): Block =
                 val idxSymbol = new TempSymbol(N, "idx")
-                Scoped(Set.single(idxSymbol), Assign(idxSymbol, Call(State.builtinOpsMap("+").asSimpleRef, (baseIdx.asSimpleRef.asArg :: Value.Lit(Tree.IntLit(off)).asArg :: Nil) ne_:: Nil)(true, false, false),
-                  k(DynSelect(buf.asSimpleRef.selSN("buf"), idxSymbol.asSimpleRef, true))))
+                val idxSymbolRef = idxSymbol.asSimpleRef(ErasedType.Primitive(PrimitiveType.Int)) 
+                Scoped(Set.single(idxSymbol), Assign(idxSymbol, Call(State.builtinOpsMap("+").asSimpleRef(N), (baseIdxRef.asArg :: Value.Lit(Tree.IntLit(off)).asArg :: Nil) ne_:: Nil)(true, false, false),
+                  k(DynSelect(buf.asSimpleRef(N).selSN("buf"), idxSymbolRef, true))))
               def assignToOffset(off: Int, r: Result, rst: Block) =
                 val idxSymbol = new TempSymbol(N, "idx")
-                Scoped(Set.single(idxSymbol), Assign(idxSymbol, Call(State.builtinOpsMap("+").asSimpleRef, (baseIdx.asSimpleRef.asArg :: Value.Lit(Tree.IntLit(off)).asArg :: Nil) ne_:: Nil)(true, false, false),
-                  AssignDynField(buf.asSimpleRef.selSN("buf"), idxSymbol.asSimpleRef, true, r, applyBlock(rst))))
+                val idxSymbolRef = idxSymbol.asSimpleRef(ErasedType.Primitive(PrimitiveType.Int)) 
+                Scoped(Set.single(idxSymbol), Assign(idxSymbol, Call(State.builtinOpsMap("+").asSimpleRef(N), (baseIdxRef.asArg :: Value.Lit(Tree.IntLit(off)).asArg :: Nil) ne_:: Nil)(true, false, false),
+                  AssignDynField(buf.asSimpleRef(N).selSN("buf"), idxSymbolRef, true, r, applyBlock(rst))))
               new BlockTransformer(SymbolSubst.Id):
                 override def applyLocal(sym: Local): Local = symMap.getOrElse(sym, sym)
                 override def applyBlock(b: Block): Block = b match
@@ -79,7 +82,7 @@ class BufferableTransform()(using Ctx, State, Raise):
               val blk = mkFieldReplacer(buf, idx, symMap).applyBlock(f.body)
               FunDefn(f.owner, f.sym, TermSymbol(f.dSym.k, f.dSym.owner, f.dSym.id), PlainParamList(
                 Param(FldFlags.empty, buf, N, Modulefulness.none) :: Param(FldFlags.empty, idx, N, Modulefulness.none) :: Nil) :: newParams,
-                if isCtor then Begin(blk, Return(idx.asSimpleRef)) else blk)(configOverride = f.configOverride, annotations = f.annotations)
+                if isCtor then Begin(blk, Return(idx.asSimpleRef(ErasedType.Primitive(PrimitiveType.Int)))) else blk)(configOverride = f.configOverride, annotations = f.annotations)
             val fakeCtor = transformFunDefn(FunDefn.withFreshSymbol(
                 S(companionSym), 
                 BlockMemberSymbol("ctor", Nil, false), 

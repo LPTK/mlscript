@@ -206,10 +206,10 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
     case _ => super.applyPath(p)(k)
 
   override def applyValue(v: Value)(k: Value => Block): Block = v match
-    case Value.SimpleRef(l) =>
+    case Value.SimpleRef(l, _) =>
       mapping.get(l) match
         case Some(newSym: (LocalVarSymbol | BuiltinSymbol)) =>
-          k(newSym.asSimpleRef)
+          k(newSym.asSimpleRef(N))
         case _ => super.applyValue(v)(k)
     case Value.MemberRef(bms, disamb) =>
       mapping.get(bms) match
@@ -219,7 +219,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
             case Some(nd) => lastWords(s"unexpected symbol kind for disamb: ${nd}")
             case N => lastWords(s"unexpected lack of refreshed disamb symbol for $disamb")
           k(newBms.asMemberRef(newDisamb))
-        case Some(newSym: (LocalVarSymbol | TempSymbol)) => k(newSym.asSimpleRef)
+        case Some(newSym: (LocalVarSymbol | TempSymbol)) => k(newSym.asSimpleRef(N))
         case _ => super.applyValue(v)(k)
     case Value.This(sym) =>
       mapping.get(sym) match

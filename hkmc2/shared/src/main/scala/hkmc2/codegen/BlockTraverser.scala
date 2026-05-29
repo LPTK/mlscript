@@ -71,7 +71,7 @@ class BlockTraverser:
     case v: Value => applyValue(v)
   
   def applyValue(v: Value): Unit = v match
-    case Value.SimpleRef(l) => l.traverse
+    case Value.SimpleRef(l, _) => l.traverse
     case Value.MemberRef(bms, disamb) =>
       bms.traverse
       disamb.traverse

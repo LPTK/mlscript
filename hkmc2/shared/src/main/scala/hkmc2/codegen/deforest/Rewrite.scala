@@ -272,7 +272,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
       
       override def applyValue(v: Value): Unit =
         v match
-        case Value.SimpleRef(l) if !inCtx(l) => freeVars.add(l)
+        case Value.SimpleRef(l, _) if !inCtx(l) => freeVars.add(l)
         case Value.MemberRef(bms, _) if !inCtx(bms) && bms.asClsLike.isEmpty => freeVars.add(bms)
         case _ => super.applyValue(v)
       
@@ -395,7 +395,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
         r match
         case s@TrackableSelect(from, _, _) =>
           if branchSelSyms.isDefinedAt(s.uid.concreteId) then
-            k(branchSelSyms(s.uid.concreteId).asSimpleRef)
+            k(branchSelSyms(s.uid.concreteId).asSimpleRef(N))
           else if solver.finalDtorSrcs.contains(s.uid.concreteId) then
             applyPath(from)(k)
           else
@@ -414,7 +414,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
             val ctorInfo = solver.fusingCtorInfo(ctor.uid.concreteId)
             val idx = ctorInfo.args.unzip._1.indexOf(field)
             val fieldSyms = mkCtorFieldSyms(ctor.uid.concreteId)
-            args.zip(fieldSyms).foldRight(k(fieldSyms(idx).asSimpleRef)):
+            args.zip(fieldSyms).foldRight(k(fieldSyms(idx).asSimpleRef(N))):
               case (Arg(N, a) -> s, rest) =>
                 applyPath(a): fusedField =>
                   Scoped(Set.single(s), Assign(s, fusedField, rest))
@@ -443,11 +443,11 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
             Assign(
               lambdaSym,
               callBranchFun,
-              k(lambdaSym.asSimpleRef))
+              k(lambdaSym.asSimpleRef(N)))
           )
         case s@TrackableSelect(from, _, _) =>
           if branchSelSyms.isDefinedAt(s.uid.concreteId) then
-            k(branchSelSyms(s.uid.concreteId).asSimpleRef)
+            k(branchSelSyms(s.uid.concreteId).asSimpleRef(N))
           else if solver.finalDtorSrcs.contains(s.uid.concreteId) then
             applyPath(from)(k)
           else

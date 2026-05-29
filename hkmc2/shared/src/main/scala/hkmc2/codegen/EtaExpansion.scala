@@ -175,7 +175,7 @@ class EtaExpansionRewrite(val etaExpansionSolver: EtaExpansionSolver)(using Rais
                 Param.simple(new VarSymbol(new Tree.Ident(s"eta$$$idx$$$i")))
               EtaParamList(
                 ParamList(ParamListFlags.empty, params, N),
-                params.map(p => Arg(N, p.sym.asSimpleRef)),
+                params.map(p => Arg(N, p.sym.asSimpleRef(N))),
               )
         else
           lastWords("not the same shape?")

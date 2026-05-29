@@ -55,7 +55,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
   def assign(res: Result, symName: Str = "tmp")(k: Path => Block): Block =
     // TODO: skip assignment if res: Path?
     val sym = new TempSymbol(N, symName)
-    Scoped(Set(sym), Assign(sym, res, k(sym.asSimpleRef)))
+    Scoped(Set(sym), Assign(sym, res, k(sym.asSimpleRef(N))))
 
   def tuple(elems: Ls[ArgWrappable], symName: Str = "tmp")(k: Path => Block): Block =
     assign(Tuple(false, elems.map(asArg)), symName)(k)
@@ -66,8 +66,8 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
 
   // helpers for instrumenting Block
 
-  def blockMod(name: Str) = summon[State].blockSymbol.asSimpleRef.selSN(name)
-  def optionMod(name: Str) = summon[State].optionSymbol.asSimpleRef.selSN(name)
+  def blockMod(name: Str) = summon[State].blockSymbol.asSimpleRef(N).selSN(name)
+  def optionMod(name: Str) = summon[State].optionSymbol.asSimpleRef(N).selSN(name)
 
   def blockCtor(name: Str, args: Ls[ArgWrappable], symName: Str = "tmp")(k: Path => Block): Block =
     call(blockMod(name), args, true, symName)(k)
@@ -169,7 +169,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
     // rulePath
     ctx.get(p).map(k).getOrElse:
       p match
-        case Value.SimpleRef(l) =>
+        case Value.SimpleRef(l, _) =>
           transformSymbol(l): sym =>
             blockCtor("ValueSimpleRef", Ls(sym), "var")(k)
         case Value.MemberRef(bms, disamb) =>
@@ -213,7 +213,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
           raise(ErrorReport(msg"Instantiate with multiple argument lists not supported in staged module." -> r.toLoc :: Nil))
           End()
     // desugar Runtime.Tuple.get into Select
-    case Call(fun, Ls(Arg(_, scrut), Arg(_, Value.Lit(Tree.IntLit(idx)))) :: _) if fun == Value.SimpleRef(State.runtimeSymbol).selSN("Tuple").selSN("get") =>
+    case Call(fun, Ls(Arg(_, scrut), Arg(_, Value.Lit(Tree.IntLit(idx)))) :: _) if fun == Value.SimpleRef(State.runtimeSymbol, N).selSN("Tuple").selSN("get") =>
       transformPath(Select(scrut, Tree.Ident(idx.toString()))(N))(k)
     case Call(fun, argss) =>
       val stagedFunPath = fun match

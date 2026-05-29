@@ -545,7 +545,7 @@ object HandleBlock:
       N, Nil,
       S(par), handlerMtds, Nil, Nil,
       // Apparently, the lifter is not happy with any assignment in the preCtor...
-      Assign(State.noSymbol, Call(State.builtinOpsMap("super").asSimpleRef, args.map(_.asArg) ne_:: Nil)(true, true, false), End()),
+      Assign(State.noSymbol, Call(State.builtinOpsMap("super").asSimpleRef(N), args.map(_.asArg) ne_:: Nil)(true, true, false), End()),
       End(),
       N,
       N,
@@ -556,7 +556,7 @@ object HandleBlock:
       .define(clsDefn)
       .assign(lhs, Instantiate(mut = true, clsDefn.sym.asMemberRef(cls), Nil :: Nil))
       .define(bodyDefn)
-      .assign(res, handleSuspension(lhs.asSimpleRef, bodyDefn.sym.asMemberRef(bodyDefn.dSym)))
+      .assign(res, handleSuspension(lhs.asSimpleRef(ErasedType.AnyRef(false, cls)), bodyDefn.sym.asMemberRef(bodyDefn.dSym)))
       .rest(rest)
   
   def apply(
@@ -878,7 +878,7 @@ enum ErasedType:
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:
   /** The [[`ErasedType`]] of this element, or `N` if the erased type is not known. */
-  def erasedType: Opt[ErasedType]
+  val erasedType: Opt[ErasedType]
 
   /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known. */
   def erasedType_!(using Ctx): ErasedType = erasedType.getOrElse(ErasedType.objectRef)
@@ -899,7 +899,7 @@ sealed abstract class Result extends AutoLocated:
 //   def extraInfo: Str = toLoc.toString
   
   def showDbg(using DebugPrinter): Str = this match
-    case Value.SimpleRef(l) => l.showAsPlain
+    case Value.SimpleRef(l, _) => l.showAsPlain
     case Value.MemberRef(l, disamb) => s"${l.showAsPlain}${s"‹${disamb.showAsPlain}›"}"
     case Value.This(sym) => s"this[${sym.showAsPlain}]"
     case Value.Lit(lit) => lit.idStr
@@ -919,7 +919,7 @@ sealed abstract class Result extends AutoLocated:
       q.isPure && sel.symbol.exists(_.isPure)
     case c @ Call(fun, ass) if c.isKnownUnsaturatedCall =>
       fun.isPure && ass.forall(_.forall(a => a.spread.isEmpty && a.value.isPure))
-    case Call(Value.SimpleRef(bs: BuiltinSymbol), ass) if bs.isPure =>
+    case Call(Value.SimpleRef(bs: BuiltinSymbol, _), ass) if bs.isPure =>
       ass.forall(_.forall(_.value.isPure))
     case Record(mut, args) => args.forall(_.value.isPure)
     case Tuple(mut, elems) => elems.forall(_.value.isPure)
@@ -938,7 +938,7 @@ sealed abstract class Result extends AutoLocated:
     case Lambda(params, body) => Vector.single(params)
     case Tuple(mut, elems) => elems.iterator.map(_.value).toVector
     case Record(mut, elems) => elems.iterator.map(_.value).toVector
-    case Value.SimpleRef(l) => Vector.empty
+    case Value.SimpleRef(l, _) => Vector.empty
     case Value.MemberRef(bms, disamb) => Vector.empty
     case Value.This(sym) => Vector.empty
     case Value.Lit(lit) => Vector.single(lit)
@@ -960,7 +960,7 @@ sealed abstract class Result extends AutoLocated:
     case Tuple(mut, elems) => elems.flatMap(_.value.freeVars).toSet
     case Record(mut, args) =>
       args.flatMap(arg => arg.idx.fold(Set.empty)(_.freeVars) ++ arg.value.freeVars).toSet
-    case Value.SimpleRef(l) => Set(l)
+    case Value.SimpleRef(l, _) => Set(l)
     case Value.MemberRef(bms, _) => Set(bms)
     case Value.This(sym) => Set.empty
     case Value.Lit(lit) => Set.empty
@@ -974,12 +974,12 @@ sealed abstract class Result extends AutoLocated:
     case Tuple(mut, elems) => elems.flatMap(_.value.freeVarsLLIR).toSet
     case Record(mut, args) =>
       args.flatMap(arg => arg.idx.fold(Set.empty)(_.freeVarsLLIR) ++ arg.value.freeVarsLLIR).toSet
-    case Value.SimpleRef(l: (BuiltinSymbol | TermSymbol)) => Set.empty
-    case Value.SimpleRef(l: DefinitionSymbol[?]) => l.defn match
+    case Value.SimpleRef(l: (BuiltinSymbol | TermSymbol), _) => Set.empty
+    case Value.SimpleRef(l: DefinitionSymbol[?], _) => l.defn match
       case Some(d: ClassLikeDef) => Set.empty
       case Some(d: TermDefinition) if d.companionClass.isDefined => Set.empty
       case _ => Set(l)
-    case Value.SimpleRef(l) => Set(l)
+    case Value.SimpleRef(l, _) => Set(l)
     case Value.MemberRef(l: (ClassSymbol | TermSymbol), disamb) => Set.empty
     case Value.MemberRef(l, disamb) => disamb.defn match
       case Some(d: ClassLikeDef) => Set.empty
@@ -1047,8 +1047,8 @@ case class Select(qual: Path, name: Tree.Ident)(val symbol: Opt[DefinitionSymbol
 
 case class DynSelect(qual: Path, fld: Path, arrayIdx: Bool) extends Path
 
-enum Value extends Path with ProductWithExtraInfo:
-  case SimpleRef(sym: LocalVarSymbol | BuiltinSymbol)
+enum Value extends Path with HasErasedType with ProductWithExtraInfo:
+  case SimpleRef(sym: LocalVarSymbol | BuiltinSymbol, _erasedType: Opt[ErasedType])
   /**
     * @param disamb The symbol disambiguating the definition that the reference refers to.
     */
@@ -1056,15 +1056,16 @@ enum Value extends Path with ProductWithExtraInfo:
   case This(sym: InnerSymbol)
   case Lit(lit: Literal)
 
-  /** Returns the [[`ErasedType`]] of this value. */
-  def erasedType(using Ctx): ErasedType = this match
-    case MemberRef(_, disamb: (ClassSymbol | ModuleOrObjectSymbol)) => ErasedType.AnyRef(false, disamb)
+  /** The [[`ErasedType`]] of this value. */
+  val erasedType: Opt[ErasedType] = this match
+    case SimpleRef(_, erasedType) => erasedType
+    case MemberRef(_, disamb: (ClassSymbol | ModuleOrObjectSymbol)) => S(ErasedType.AnyRef(false, disamb))
     case MemberRef(_, disamb: TypeAliasSymbol) => 
       // TODO(Derppening): Do we preserve the `TypeAliasSymbol` here?
-      disamb.irClsLikeDefn.flatMap(_.sym.asClsOrMod).fold(ErasedType.objectRef)(ErasedType.AnyRef(false, _))
-    case This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => ErasedType.AnyRef(false, clsOrMod)
-    case Lit(lit) => lit.erasedType
-    case _ => ErasedType.objectRef
+      disamb.irClsLikeDefn.flatMap(_.sym.asClsOrMod).map(ErasedType.AnyRef(false, _))
+    case This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => S(ErasedType.AnyRef(false, clsOrMod))
+    case Lit(lit) => S(lit.erasedType)
+    case _ => N
   
   override def extraInfo(using DebugPrinter): Str = this match
     case MemberRef(bms, disamb) => s"disamb=${disamb.showAsPlain}"
@@ -1079,7 +1080,7 @@ object Value:
 
   extension (r: RefLike)
     def symbol: Symbol = r match
-      case SimpleRef(l) => l
+      case SimpleRef(l, _) => l
       case MemberRef(bms, _) => bms
       case This(sym) => sym
   
@@ -1087,7 +1088,7 @@ object Value:
   object Ref:
     def apply(l: Local, disamb: Opt[DefinitionSymbol[?]]): Value.RefLike = 
       l match
-        case l: (LocalVarSymbol | BuiltinSymbol) => l.asSimpleRef
+        case l: (LocalVarSymbol | BuiltinSymbol) => l.asSimpleRef(N)
         case bms: BlockMemberSymbol => bms.asMemberRef:
           disamb.getOrElse:
             lastWords(s"Cannot disambiguate overloaded member symbol ${bms.nme}: no disambiguation provided")
@@ -1102,7 +1103,7 @@ object Value:
     def apply(l: TempSymbol | VarSymbol | BuiltinSymbol): Value.RefLike = Ref(l, N)
 
     def unapply(v: Value): Opt[(Local, Opt[DefinitionSymbol[?]])] = v match
-      case SimpleRef(l) => S(l -> N)
+      case SimpleRef(l, _) => S(l -> N)
       case MemberRef(bms, disamb) => S(bms -> S(disamb))
       case This(sym) => S(sym -> N)
       case _ => N
@@ -1140,7 +1141,10 @@ extension (k: Block => Block)
 def blockBuilder: Block => Block = identity
 
 extension (s: (LocalVarSymbol | BuiltinSymbol))
-  inline def asSimpleRef: Value.SimpleRef = Value.SimpleRef(s)
+  @deprecated("Use the overload accepting `Opt[ErasedType]` instead.")
+  inline def asSimpleRef: Value.SimpleRef = Value.SimpleRef(s, N)
+  inline def asSimpleRef(erasedType: ErasedType): Value.SimpleRef = Value.SimpleRef(s, S(erasedType))
+  inline def asSimpleRef(erasedType: Opt[ErasedType]): Value.SimpleRef = Value.SimpleRef(s, erasedType)
 
 extension (bms: BlockMemberSymbol)
   inline def asMemberRef(disamb: DefinitionSymbol[?]): Value.MemberRef = Value.MemberRef(bms, disamb)

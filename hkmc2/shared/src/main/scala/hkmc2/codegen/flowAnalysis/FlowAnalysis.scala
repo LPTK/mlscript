@@ -33,7 +33,7 @@ object FlowAnalysis:
       def getResult = resultIdToResult(resultId)
       def getReferredSym: Symbol =
         resultId.getResult match
-        case Value.SimpleRef(s) => s
+        case Value.SimpleRef(s, _) => s
         case Value.MemberRef(bms, _) => bms
         case Value.This(sym) => sym
         case e => lastWords(s"assumption failed: $e is not a SimpleRef, MemberRef, or ThisRef")
@@ -90,7 +90,7 @@ type OriginId = ResultId | FunId
 /** Extracts the underlying symbol of a variable-like reference, for flow-tracking use. */
 object TrackedSymOf:
   def unapply(p: Value.RefLike | Select)(using Elaborator.State): Opt[Symbol] = p match
-    case Value.SimpleRef(sym) => S(sym)
+    case Value.SimpleRef(sym, _) => S(sym)
     case Value.MemberRef(_, disamb) => S(disamb)
     case Value.This(sym) => S(sym)
     case s: Select => s.symbol.flatMap: selSym =>
@@ -116,8 +116,8 @@ object PossibleTrackableTupleSelect:
   def unapply(s: Result)(using eState: Elaborator.State): Opt[Value.SimpleRef -> Int] =
     s match
     case Call(
-      Select(Select(Value.SimpleRef(runtimeSym), Tree.Ident("Tuple")), Tree.Ident("get")),
-      (Arg(N, ref@Value.SimpleRef(scrut)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
+      Select(Select(Value.SimpleRef(runtimeSym, _), Tree.Ident("Tuple")), Tree.Ident("get")),
+      (Arg(N, ref@Value.SimpleRef(scrut, _)) :: Arg(N, Value.Lit(Tree.IntLit(n))) :: Nil) :: Nil
     ) if runtimeSym is eState.runtimeSymbol => S(ref -> n.toInt)
     case _ => N
 
@@ -125,7 +125,7 @@ object TrackableSelect:
   def unapply(s: Result)(using pre: FlowPreAnalyzer, eState: Elaborator.State): Opt[(from: Path, field: SelField, owner: CtorCls)] =
     given fState: FlowAnalysis.State = pre.fState
     s match
-    case sel@PossibleTrackableTupleSelect((ref@Value.SimpleRef(scrut)) -> ith) =>
+    case sel@PossibleTrackableTupleSelect((ref@Value.SimpleRef(scrut, _)) -> ith) =>
       pre.res.getEnclosingMatchesForSel(sel.uid).find(_._1.getReferredSym is scrut).flatMap:
         case (_, Some(tupSize: Int)) => S(ref, ith, tupSize)
         case _ => N
@@ -146,7 +146,7 @@ object CtorRef:
       yield cls
 
   def unapply(p: Path)(using Elaborator.State): Opt[ClassSymbol | ModuleOrObjectSymbol] = p match
-    case Value.SimpleRef(sym) => classCtorSymbol(sym)
+    case Value.SimpleRef(sym, _) => classCtorSymbol(sym)
     case Value.MemberRef(_, disamb) => classCtorSymbol(disamb) orElse disamb.asCls orElse disamb.asObj
     case Value.This(sym) => classCtorSymbol(sym) orElse sym.asCls
     case s: Select => s.symbol.flatMap(classCtorSymbol)
@@ -408,7 +408,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     def isEnclosingMatchScrutSym(sym: Symbol): Boolean =
       ctx.exists:
         case InCtx.MtchBody(m, _) => m.scrut match
-          case Value.SimpleRef(s) => s is sym
+          case Value.SimpleRef(s, _) => s is sym
           case Value.MemberRef(bms, disamb) => disamb is sym
           case _ => false
         case _ => false
@@ -559,7 +559,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     case p: Path => applyPath(p)
   
   private def applyValueSimpleRef(v: Value.SimpleRef, recordAffinity: Bool) =
-    val Value.SimpleRef(l) = v
+    val Value.SimpleRef(l, _) = v
     l match
     case s: TermSymbol =>
       recordRefInCaptures(s)
@@ -583,7 +583,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     case p@TrackableFieldSelect(qual, _ -> _) =>
       res.selToCtxOfSel.addOne(p.uid -> ctxTracker.getAllCtx)
       qual match
-      case v@Value.SimpleRef(l)
+      case v@Value.SimpleRef(l, _)
         if ctxTracker.isEnclosingMatchScrutSym(l) =>
           applyValueSimpleRef(v, recordAffinity = false)
       case v@Value.MemberRef(bms, disamb)
@@ -595,7 +595,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     case v: Value => applyValue(v)
   
   override def applyValue(v: Value): Unit = v match
-    case v@Value.SimpleRef(l) => applyValueSimpleRef(v, recordAffinity = true)
+    case v@Value.SimpleRef(l, _) => applyValueSimpleRef(v, recordAffinity = true)
     case v@Value.MemberRef(_, _) => applyValueMemberRef(v, recordAffinity = true)
     case Value.This(sym) => ()
     case Value.Lit(lit) => ()

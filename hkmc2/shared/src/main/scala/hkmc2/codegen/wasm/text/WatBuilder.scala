@@ -926,7 +926,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
     def splitSuperTail(block: Block): Opt[Block -> Ls[Arg]] = block match
       case End(_) => N
-      case Assign(lhs, Call(Value.SimpleRef(bs: BuiltinSymbol), argss), _: End)
+      case Assign(lhs, Call(Value.SimpleRef(bs: BuiltinSymbol, _), argss), _: End)
         if (lhs is State.noSymbol) && (bs is State.superSymbol)
       =>
         S(End("") -> argss.flatten)
@@ -1203,7 +1203,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         operands = Seq(ref.i31(i32.const(lit.offset)), ref.i31(i32.const(lit.byteLen))),
         returnTypes = Seq(Result(RefType.anyref)),
       )
-    case Value.SimpleRef(l) =>
+    case Value.SimpleRef(l, _) =>
       singletonInfoFor(l) match
         case S(info) => singletonGlobalGet(info)
         case N =>
@@ -1236,7 +1236,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             ),
           )
 
-    case Call(Value.SimpleRef(l: BuiltinSymbol), lhs :: rhs :: Nil) if !l.functionLike =>
+    case Call(Value.SimpleRef(l: BuiltinSymbol, _), lhs :: rhs :: Nil) if !l.functionLike =>
       if l.binary then
         errExpr(
           Ls(
@@ -1283,9 +1283,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           )
         case N =>
           fun match
-            case Value.SimpleRef(l) =>
+            case Value.SimpleRef(l, _) =>
               val base = fun match
-                case Value.SimpleRef(l) => ctx.getFunc(l)
+                case Value.SimpleRef(l, _) => ctx.getFunc(l)
                 case Value.MemberRef(l, _) => ctx.getFunc(l)
                 case _ => N
               val baseFuncIdx = base match
@@ -1486,7 +1486,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   /** Returns the intrinsic name if `path` refers to a builtin under `wasm`, or `N` otherwise.
     */
   private def wasmIntrinsicName(path: Path): Opt[Str] = path match
-    case Select(Value.SimpleRef(sym), ident) if (sym eq State.wasmSymbol) && wasmIntrinsicNameSet.contains(ident.name) =>
+    case Select(Value.SimpleRef(sym, _), ident) if (sym eq State.wasmSymbol) && wasmIntrinsicNameSet.contains(ident.name) =>
       S(ident.name)
     case _ => N
 

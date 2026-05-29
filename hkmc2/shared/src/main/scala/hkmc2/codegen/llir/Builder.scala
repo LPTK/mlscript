@@ -225,7 +225,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
         def parentFromPath(p: Path): Ls[Local] = p match
           case Value.MemberRef(bms, disamb) => fromMemToClass(disamb) :: Nil
           case Value.This(sym) => fromMemToClass(sym) :: Nil
-          case Value.SimpleRef(l) =>
+          case Value.SimpleRef(l, _) =>
             // TODO(Derppening): Check if this assertion holds
             bErrStop(msg"Expected parent to be a MemberRef")
           case _ => bErrStop(msg"Unsupported parent path ${p.toString()}")
@@ -281,7 +281,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
   private def bValue(v: Value)(k: TrivialExpr => Ctx ?=> Node)(using ctx: Ctx)(using Raise, Scope) : Node =
     trace[Node](s"bValue { $v } begin", x => s"bValue end: ${x.show}"):
       v match
-      case Value.SimpleRef(l: TermSymbol) if l.owner.nonEmpty =>
+      case Value.SimpleRef(l: TermSymbol, _) if l.owner.nonEmpty =>
         k(l |> sr)
       case Value.MemberRef(bms, disamb) if bms.nme.isCapitalized =>
         val v: Local = newTemp
@@ -293,18 +293,18 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
             val paramsList = PlainParamList(
               (0 until f.paramsSize).zip(tempSymbols).map((_n, sym) =>
                 Param(FldFlags.empty, sym, N, Modulefulness.none)).toList)
-            val app = Call(v, tempSymbols.map(x => Arg(N, x.asSimpleRef)).toList ne_:: Nil)(true, false, false)
+            val app = Call(v, tempSymbols.map(x => Arg(N, x.asSimpleRef(N))).toList ne_:: Nil)(true, false, false)
             bLam(Lambda(paramsList, Return(app))(Nil), S(bms.nme), N)(k)
           case None =>
             k(ctx.findName(bms) |> sr)
-      case Value.SimpleRef(l) =>
+      case Value.SimpleRef(l, _) =>
         ctx.fn_ctx.get(l) match
           case Some(f) =>
             val tempSymbols = (0 until f.paramsSize).map(x => newNamed("arg"))
             val paramsList = PlainParamList(
               (0 until f.paramsSize).zip(tempSymbols).map((_n, sym) =>
                 Param(FldFlags.empty, sym, N, Modulefulness.none)).toList)
-            val app = Call(v, tempSymbols.map(x => Arg(N, x.asSimpleRef)).toList ne_:: Nil)(true, false, false)
+            val app = Call(v, tempSymbols.map(x => Arg(N, x.asSimpleRef(N))).toList ne_:: Nil)(true, false, false)
             bLam(Lambda(paramsList, Return(app))(Nil), S(l.nme), N)(k)
           case None =>
             k(ctx.findName(l) |> sr)
@@ -379,7 +379,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
       r match
       case Call(_, argss) if argss.sizeIs > 1 =>
         bErrStop(msg"Calls with multiple argument lists are not yet supported in LLIR")
-      case Call(Value.SimpleRef(sym: BuiltinSymbol), argss) =>
+      case Call(Value.SimpleRef(sym: BuiltinSymbol, _), argss) =>
         bArgs(argss.flatten):
           case args: Ls[TrivialExpr] =>
             val v: Local = newTemp
@@ -421,7 +421,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
           case args: Ls[TrivialExpr] =>
             val v: Local = newTemp
             Node.LetCall(Ls(v), builtin, Expr.Literal(Tree.StrLit(mathPrimitive)) :: args, k(v |> sr))
-      case Call(s @ Select(r @ Value.SimpleRef(sym), Tree.Ident(fld)), argss) if s.symbol.isDefined =>
+      case Call(s @ Select(r @ Value.SimpleRef(sym, _), Tree.Ident(fld)), argss) if s.symbol.isDefined =>
         bPath(r):
           case r =>
             bArgs(argss.flatten):
@@ -503,7 +503,7 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
             summon[Ctx].def_acc += jpdef
             Node.Case(e, casesList, defaultCase)
       case Return(res) => bResult(res)(x => Node.Result(Ls(x)))
-      case Throw(Instantiate(false, Select(Value.SimpleRef(_), ident),
+      case Throw(Instantiate(false, Select(Value.SimpleRef(_, _), ident),
           Ls(Arg(N, Value.Lit(Tree.StrLit(e)))) :: Nil))
       if ident.name === "Error" =>
         Node.Panic(e)

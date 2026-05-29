@@ -179,25 +179,25 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Value.MemberRef(bms, disamb) =>
       if disamb.shouldBeLifted then doc"${scope.lookup_!(bms, bms.toLoc)}.class"
       else scope.lookup_!(bms, r.toLoc)
-    case Value.SimpleRef(l: BuiltinSymbol) =>
+    case Value.SimpleRef(l: BuiltinSymbol, _) =>
       if l.nullary then l.nme
       else errExpr(msg"Illegal reference to builtin symbol '${l.nme}'")
-    case Value.SimpleRef(l: semantics.TermSymbol) =>
+    case Value.SimpleRef(l: semantics.TermSymbol, _) =>
       l.owner match
       case S(owner) => lastWords(s"Unexpected SimpleRef of TermSymbol with owner: `$l` (owner: `$owner`)")
       case N => scope.lookup_!(l, r.toLoc)
-    case Value.SimpleRef(l) => scope.lookup_!(l, r.toLoc)
-    case Call(Value.SimpleRef(l: BuiltinSymbol), (lhs :: rhs :: Nil) :: Nil) if !l.functionLike =>
+    case Value.SimpleRef(l, _) => scope.lookup_!(l, r.toLoc)
+    case Call(Value.SimpleRef(l: BuiltinSymbol, _), (lhs :: rhs :: Nil) :: Nil) if !l.functionLike =>
       if l.binary then
         val res = doc"${operand(lhs)} ${l.nme} ${operand(rhs)}"
         if needsParens(l.nme) then doc"(${res})" else res
       else errExpr(msg"Cannot call non-binary builtin symbol '${l.nme}'")
-    case Call(Value.SimpleRef(l: BuiltinSymbol), (rhs :: Nil) :: Nil) if !l.functionLike =>
+    case Call(Value.SimpleRef(l: BuiltinSymbol, _), (rhs :: Nil) :: Nil) if !l.functionLike =>
       if l.unary then
         val res = doc"${l.nme} ${operand(rhs)}"
         if needsParens(l.nme) then doc"(${res})" else res
       else errExpr(msg"Cannot call non-unary builtin symbol '${l.nme}'")
-    case Call(Value.SimpleRef(l: BuiltinSymbol), args :: Nil) =>
+    case Call(Value.SimpleRef(l: BuiltinSymbol, _), args :: Nil) =>
       if l.functionLike then
         val argsDoc = args.map(argument).mkDocument(", ")
         doc"${l.nme}(${argsDoc})"
@@ -317,7 +317,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       val scrutSym = scrut.map(_.sym)
       b match
       case Match(
-        scrut_ @ Value.SimpleRef(scrutSym_),                // The scrutinee is a ref.
+        scrut_ @ Value.SimpleRef(scrutSym_, _),             // The scrutinee is a ref.
         (Case.Lit(Tree.IntLit(curVal_)), b) :: Nil,         // There is only one case matching an int literal.
         S(End(_)) | N, rest                                 // Default case exists and does nothing.
       )
