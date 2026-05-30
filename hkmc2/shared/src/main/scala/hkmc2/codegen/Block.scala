@@ -887,7 +887,7 @@ enum ErasedType:
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:
   /** The [[`ErasedType`]] of this element, or `N` if the erased type is not known. */
-  val erasedType: Opt[ErasedType]
+  def erasedType: Opt[ErasedType]
 
   /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known. */
   def erasedType_! : ErasedType = erasedType.getOrElse(ErasedType.ObjectRef)
@@ -902,7 +902,7 @@ extension (lit: Literal)
 
 sealed trait TrivialResult extends Result
 
-sealed abstract class Result extends AutoLocated:
+sealed abstract class Result extends AutoLocated, HasErasedType:
 // // * Used for debugging locations:
 // sealed abstract class Result extends AutoLocated with ProductWithExtraInfo:
 //   def extraInfo: Str = toLoc.toString
@@ -1010,6 +1010,16 @@ sealed abstract class Result extends AutoLocated:
     case Value.Lit(lit) => 0
     case DynSelect(qual, fld, arrayIdx) => qual.size + fld.size
 
+  lazy val erasedType: Opt[ErasedType] = this match
+    case Tuple(_, _) => S(ErasedType.Primitive(PrimitiveType.Array))
+    case Record(_, _) => S(ErasedType.ObjectRef)
+    case Instantiate(_, cls, _) => cls.targetSymbol.flatMap(_.asClsOrMod).map(ErasedType.AnyRef(rsc = false, _))
+    case Value.SimpleRef(sym) => sym.erasedType
+    case Value.MemberRef(_, disamb: (ClassSymbol | ModuleOrObjectSymbol | TypeAliasSymbol)) => disamb.erasedType
+    case Value.This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => clsOrMod.erasedType
+    case Value.Lit(lit) => S(lit.erasedType)
+    case _ => N
+
 // * TODO: refine this very loose type
 // type Local = LocalSymbol
 type Local = Symbol
@@ -1056,7 +1066,7 @@ case class Select(qual: Path, name: Tree.Ident)(val symbol: Opt[DefinitionSymbol
 
 case class DynSelect(qual: Path, fld: Path, arrayIdx: Bool) extends Path
 
-enum Value extends Path with HasErasedType with ProductWithExtraInfo:
+enum Value extends Path with ProductWithExtraInfo:
   case SimpleRef(sym: LocalVarSymbol | BuiltinSymbol)
   /**
     * @param disamb The symbol disambiguating the definition that the reference refers to.
@@ -1064,14 +1074,6 @@ enum Value extends Path with HasErasedType with ProductWithExtraInfo:
   case MemberRef(bms: BlockMemberSymbol, disamb: DefinitionSymbol[?])
   case This(sym: InnerSymbol)
   case Lit(lit: Literal)
-
-  /** The [[`ErasedType`]] of this value. */
-  val erasedType: Opt[ErasedType] = this match
-    case SimpleRef(sym) => sym.erasedType
-    case MemberRef(_, disamb: (ClassSymbol | ModuleOrObjectSymbol | TypeAliasSymbol)) => disamb.erasedType
-    case This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => clsOrMod.erasedType
-    case Lit(lit) => S(lit.erasedType)
-    case _ => N
   
   override def extraInfo(using DebugPrinter): Str = this match
     case MemberRef(bms, disamb) => s"disamb=${disamb.showAsPlain}"
