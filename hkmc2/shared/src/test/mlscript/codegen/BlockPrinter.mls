@@ -29,13 +29,11 @@ x + 1
 //│       lhs = x⁰
 //│       rhs = Lit of IntLit of 1
 //│       rest = Return of Call:
-//│         fun = SimpleRef:
-//│           sym = builtin:+⁰
+//│         fun = SimpleRef of builtin:+⁰
 //│         argss = Ls of 
 //│           Ls of 
 //│             Arg:
-//│               value = SimpleRef:
-//│                 sym = x⁰
+//│               value = SimpleRef of x⁰
 //│             Arg:
 //│               value = Lit of IntLit of 1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————

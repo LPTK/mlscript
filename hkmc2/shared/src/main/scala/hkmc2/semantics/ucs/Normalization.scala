@@ -367,7 +367,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
             for (_, s) <- entries do LoweringCtx.loweringCtx.collectScopedSym(s)
             val objectSym = ctx.builtins.Object
             mkMatch( // checking that we have an object
-              Case.Cls(objectSym, BuiltinSymbol(objectSym.nme, false, false, true, false).asSimpleRef),
+              Case.Cls(objectSym, BuiltinSymbol(objectSym.nme, false, false, true, false, erasedType = S(ErasedType.objectRef)).asSimpleRef),
               entries.foldRight(lowerSplit(tail, cont)):
                 case ((fieldName, fieldSymbol), blk) =>
                   mkMatch(
@@ -399,7 +399,8 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
         // the Label body into the rest. Wrap with an exit label and temp variable so every path stores its
         // result, breaks to exitLabel, then the original cont runs once.
         val exitLabel = new LabelSymbol(N, sym.nme + "$x")
-        val tmp = new TempSymbol(N)
+        // TODO(Derppening): Change this to `r.erasedType` when `Result.erasedType` is implemented
+        val tmp = new TempSymbol(N, erasedType = N)
         LoweringCtx.loweringCtx.collectScopedSym(tmp)
         val exitCont: Result => Block = r => Assign(tmp, r, Break(exitLabel))
         val bodyBlock = lowerSplit(sym.body, exitCont)
@@ -446,7 +447,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
       // 3. The term is a `while` and the result is used.
       lazy val l =
         usesResTmp = true
-        val res = new TempSymbol(t)
+        val res = new TempSymbol(t, erasedType = N)
         outerCtx.collectScopedSym(res)
         res
       // The symbol for the loop label if the term is a `while`.
@@ -496,8 +497,8 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
           // NOTE: `shouldRewriteWhile` is not the same as `config.rewriteWhileLoops`
           // as shouldRewriteWhile is always true when effect handler lowering is on
           if config.shouldRewriteWhile then
-            val loopResult = TempSymbol(N)
-            val isReturned = TempSymbol(N)
+            val loopResult = TempSymbol(N, erasedType = N)
+            val isReturned = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)))
             outerCtx.collectScopedSym(loopResult)
             outerCtx.collectScopedSym(isReturned)
             val loopEnd: Path =

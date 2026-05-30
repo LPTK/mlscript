@@ -149,12 +149,12 @@ trait SplitElaborator:
   private def branch(using Ctx): Cfg[PartialFunction[Tree, (Ctx, SimpleSplit)]] =
     // Interleaved-`let` bindings like `{ x is A then 0; let x = 1; ... }`.
     case LetLike(Keywrd(`let`), ident: Ident, S(rhsTree), N) =>
-      val symbol = VarSymbol(ident)
+      val symbol = VarSymbol(ident, erasedType = N)
       val head = Head.Let(symbol, term(rhsTree)) 
       ((ctx + (ident.name -> symbol)), head ~: End)
     // Interleaved-`do` statements like `{ x is A then 0; do log(1); ... }`.
     case PrefixApp(Keywrd(`do`), rhsTree) =>
-      (ctx, Head.Let(TempSymbol(N, "unused"), term(rhsTree)) ~: End)
+      (ctx, Head.Let(TempSymbol(N, erasedType = N, "unused"), term(rhsTree)) ~: End)
     // Although the `else`-clause marks the end of the split, we cannot
     // stop and still have to elaborate the remaining trees.
     case PrefixApp(kwTree @ Keywrd(`else`), elseTree) =>
@@ -254,7 +254,7 @@ trait SplitElaborator:
         case Term.Ref(symbol) => continuation(() => symbol.ref())
         // Otherwise, we need to create a temporary symbol holding the term.
         case term: Term =>
-          val symbol = TempSymbol(N, "scrut")
+          val symbol = TempSymbol(N, erasedType = N, "scrut")
           Head.Let(symbol, term) ~: continuation(() => symbol.ref())
   
   private type TT = (Tree, Tree)

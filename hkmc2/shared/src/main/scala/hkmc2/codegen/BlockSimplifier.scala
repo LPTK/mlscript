@@ -1179,7 +1179,7 @@ class BlockSimplifier
                   def go(acc: Block => Block, args: List[(VarSymbol, Result)], mapping: Map[Symbol, Symbol]): Block =
                     args match
                     case Nil =>
-                      val resSym = TempSymbol(N, "inlinedVal")
+                      val resSym = TempSymbol(N, erasedType = N, "inlinedVal")
                       val copier = Copier(resSym, mapping)
                       val newBlk = copier.applyBlock(blk)
                       if extraArgss.isEmpty then
@@ -1188,7 +1188,7 @@ class BlockSimplifier
                         acc(Scoped(Set(resSym), newBlk(
                           k(Call(resSym.asSimpleRef, extraArgss.ne_!)(c.isMlsFun, c.mayRaiseEffects, false)))))
                     case (sym, value) :: argRest =>
-                      val newSym = VarSymbol(sym.id)
+                      val newSym = VarSymbol(sym.id, erasedType = N)
                       go(acc.assignScoped(newSym, value), argRest, mapping + (sym -> newSym))
                   go(blockBuilder, matchedArgs, Map.empty)
           case _ => super.applyResult(r)(k)

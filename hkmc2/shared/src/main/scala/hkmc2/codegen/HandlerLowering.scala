@@ -116,7 +116,7 @@ type StackSafetyMap = collection.Map[FnOrCls, (Int, Block)]
 
 class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise, Elaborator.State, Elaborator.Ctx):
   
-  private def freshTmp(dbgNme: Str = "tmp") = new TempSymbol(N, dbgNme)
+  private def freshTmp(erasedType: Opt[ErasedType], dbgNme: Str = "tmp") = new TempSymbol(N, erasedType, dbgNme)
   private def freshLabel(nme: Str) = new LabelSymbol(N, nme)
   
   private def rtThrowMsg(msg: Str) = Throw(
@@ -136,7 +136,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       case _ => N
   
   object StateTransition:
-    private val transitionSymbol = freshTmp("transition")
+    private val transitionSymbol = freshTmp(erasedType = N, "transition")
     def apply(uid: StateId) =
       Return(PureCall(transitionSymbol.asSimpleRef, List(Value.Lit(Tree.IntLit(uid)))))
     def unapply(blk: Block) = blk match
@@ -145,7 +145,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       case _ => N
 
   object Unwind:
-    private val unwindSymbol = freshTmp("unwind")
+    private val unwindSymbol = freshTmp(erasedType = N, "unwind")
     def apply(uid: StateId, loc: Value) =
       Return(PureCall(unwindSymbol.asSimpleRef, List(Value.Lit(Tree.IntLit(uid)), loc)))
     def unapply(blk: Block) = blk match
@@ -537,7 +537,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         .flatMap: (sym, idx) =>
           List(intLit(idx), Value.Lit(Tree.StrLit(sym.nme)))
         .map(_.asArg)
-      val debugInfoSym = freshTmp(s"$debugNme$$debugInfo")
+      val debugInfoSym = freshTmp(erasedType = N, s"$debugNme$$debugInfo")
       // TODO: properly support spread argument by calculating the correct length.
       val rtArgLists = intLit(fun.params.length) :: fun.params.flatMap: pl =>
         intLit(pl.params.length) :: pl.params.map(p => p.sym.asSimpleRef)
@@ -612,7 +612,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       return b
     val vars = if opt.debug then ctx.resumeInfo.currentLocals else computeRestoreList(parts)
 
-    val pcVar = freshTmp("pc")
+    val pcVar = freshTmp(erasedType = S(ErasedType.Primitive(PrimitiveType.Int)), "pc")
     val mainLoopLbl = freshLabel("main")
 
     val edges = computeEdges(parts)
@@ -687,7 +687,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
           case (acc, f) => f(acc)
         Label(mainLoopLbl, true, matches, End())
         
-    val getSavedTmp = freshTmp("saveOffset")
+    val getSavedTmp = freshTmp(erasedType = S(ErasedType.Primitive(PrimitiveType.Int)), "saveOffset")
     def getSaved(off: BigInt): (Block => Block, Path) =
       if off == 0 then
         return (id, DynSelect(paths.runtimePath.selSN("resumeArr"), paths.runtimePath.selSN("resumeIdx"), true))
@@ -736,7 +736,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       override def applyResult(r: Result)(k: Result => Block) = r match
         case EffectfulResult(r) =>
           // Fallback case, this may lead to unnecessary assignments if it is assign-like
-          val l = freshTmp()
+          val l = freshTmp(erasedType = N)
           Scoped(Set(l), effectCheck(l, r, k(l.asSimpleRef)))
         case _ => super.applyResult(r)(k)
     topLevelTransform.applyBlock(b)

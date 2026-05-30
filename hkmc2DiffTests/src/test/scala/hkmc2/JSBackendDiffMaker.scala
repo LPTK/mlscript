@@ -219,7 +219,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       val nestedScp = baseScp
       // val nestedScp = codegen.js.Scope(S(baseScp), curCtx.outer, collection.mutable.Map.empty) // * not needed
       
-      val resSym = new TempSymbol(N, "block$res")
+      val resSym = new TempSymbol(N, erasedType = N, "block$res")
       
       val resNme = nestedScp.allocateName(resSym)
       

@@ -266,7 +266,7 @@ class TailRecOpt(using State, TL, Raise):
     val paramSyms =
         if funs.length === 1 then (getParamSyms(funs.head))
         else
-          for i <- 0 until maxParamLen yield VarSymbol(Tree.Ident("param" + i))
+          for i <- 0 until maxParamLen yield VarSymbol(Tree.Ident("param" + i), erasedType = N)
       .toList
     val paramSymsArr = ArrayBuffer.from(paramSyms)
     // Function -> param -> param symbol in the rewritten function
@@ -286,9 +286,9 @@ class TailRecOpt(using State, TL, Raise):
       else BlockMemberSymbol(funs.map(_.sym.nme).mkString("_"), Nil, true)
     val dSym =
       if funs.size === 1 then funs.head.dSym
-      else TermSymbol(syntax.Fun, owner, Tree.Ident(bms.nme))
+      else TermSymbol(syntax.Fun, owner, Tree.Ident(bms.nme), erasedType = N)
     val loopSym = LabelSymbol(N, "loopLabel")
-    val curIdSym = VarSymbol(Tree.Ident("id"))
+    val curIdSym = VarSymbol(Tree.Ident("id"), erasedType = S(ErasedType.Primitive(PrimitiveType.Int)))
     
     class FunRewriter(f: FunDefn) extends BlockTransformerShallow(SymbolSubst.Id):
       val params = getParamSyms(f)
@@ -323,7 +323,7 @@ class TailRecOpt(using State, TL, Raise):
           .toSet
       
       val copiedParamSyms = copiedParams.map: x =>
-          x -> VarSymbol(x.id)
+          x -> VarSymbol(x.id, erasedType = N)
         .toMap
       
       val subst = new SymbolSubst:
@@ -358,7 +358,7 @@ class TailRecOpt(using State, TL, Raise):
               // We should thus assign the params to temporary symbols
               // if they are needed for a subsequent assignment.
               var assignedSyms: Map[VarSymbol, Lazy[TempSymbol]] = paramSyms.map: sym =>
-                  sym -> Lazy(TempSymbol(N, sym.nme + "_tmp")) // Use `Lazy` to avoid generating useless symbols
+                  sym -> Lazy(TempSymbol(N, erasedType = sym.erasedType, sym.nme + "_tmp")) // Use `Lazy` to avoid generating useless symbols
                 .toMap
               var requiredTmps: Set[(VarSymbol, TempSymbol)] = Set.empty
               
@@ -422,7 +422,7 @@ class TailRecOpt(using State, TL, Raise):
                     val paramList = ogParamList.params
                     val restParam = ogParamList.restParam
                     
-                    val tupleSym = TempSymbol(N, "argList")
+                    val tupleSym = TempSymbol(N, erasedType = N, "argList")
                     
                     // We can safely remove all of the symbols from this parameter list from `assignedSyms` at this stage,
                     // because the RHS of every parameter will be computed when spreading them in the tuple, which happens
@@ -438,7 +438,7 @@ class TailRecOpt(using State, TL, Raise):
                       // If the rest param exists, append a slice
                       val (initialBlk: (Block => Block), pathList: List[Path]) =
                         if restParam.isDefined then
-                          val sliceResSym = TempSymbol(N, "sliceRes")
+                          val sliceResSym = TempSymbol(N, erasedType = N, "sliceRes")
                           // runtime.Tuple.slice(tupleSym, paramList.length, 0)
                           val sliceRes = Call(
                             State.runtimeSymbol.asSimpleRef
@@ -520,7 +520,7 @@ class TailRecOpt(using State, TL, Raise):
         // param list for the internal loop. We need a wrapper function that preserves the
         // original multi-param-list interface and delegates to the flattened internal loop.
         val loopBms = BlockMemberSymbol(bms.nme + "$tailrec", Nil, true)
-        val loopDSym = TermSymbol(syntax.Fun, owner, Tree.Ident(loopBms.nme))
+        val loopDSym = TermSymbol(syntax.Fun, owner, Tree.Ident(loopBms.nme), erasedType = N)
         val internalLoopDefn = FunDefn(
           owner, loopBms, loopDSym,
           PlainParamList(params) :: Nil,

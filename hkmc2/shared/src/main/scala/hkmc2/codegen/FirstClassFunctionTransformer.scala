@@ -47,7 +47,7 @@ class FirstClassFunctionTransformer
       case s: TermSymbol if s.k is syntax.Fun =>
         val params = getParamList(l).getOrElse(lastWords(s"Cannot get ${l.nme}'s parameter list."))
         val clsDef = generateFCFunctionClass(ref, params)
-        val tmp = new TempSymbol(None)
+        val tmp = new TempSymbol(None, erasedType = S(ErasedType.AnyRef(rsc = false, clsDef.isym.asClsOrMod.get)))
         val cls = clsDef.sym.asMemberRef(clsDef.isym)
         Scoped(
           syms = Set(clsDef.sym, tmp),
@@ -70,7 +70,7 @@ class FirstClassFunctionTransformer
               source = Diagnostic.Source.Compilation)
           PlainParamList(Nil)
         val clsDef = generateFCFunctionClass(sel, params)
-        val tmp = new TempSymbol(None)
+        val tmp = new TempSymbol(None, erasedType = S(ErasedType.AnyRef(rsc = false, clsDef.isym.asClsOrMod.get)))
         val cls = clsDef.sym.asMemberRef(clsDef.isym)
         Scoped(
           Set(clsDef.sym, tmp),

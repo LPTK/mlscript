@@ -104,17 +104,17 @@ final class LlirBuilder(using Elaborator.State)(tl: TraceLogger, uid: FreshInt):
   private def symMap(s: Local)(using ctx: Ctx)(using Raise, Scope) =
     ctx.findName(s)
 
-  private def newTemp = TempSymbol(N, "x")
-  private def newNamedTemp(name: Str) = TempSymbol(N, name)
+  private def newTemp = TempSymbol(N, erasedType = N, "x")
+  private def newNamedTemp(name: Str) = TempSymbol(N, erasedType = N, name)
   private def newNamedBlockMem(name: Str) = BlockMemberSymbol(name, Nil)
-  private def newNamed(name: Str) = VarSymbol(Tree.Ident(name))
+  private def newNamed(name: Str) = VarSymbol(Tree.Ident(name), erasedType = N)
   private def newClassSym(name: Str) =
     ClassSymbol(Tree.TypeDef(hkmc2.syntax.Cls, Tree.Empty(), N), Tree.Ident(name))
   private def newTupleSym(len: Int) =
     ClassSymbol(Tree.TypeDef(hkmc2.syntax.Cls, Tree.Empty(), N), Tree.Ident(s"Tuple$len"))
-  private def newVarSym(name: Str) = VarSymbol(Tree.Ident(name))
+  private def newVarSym(name: Str) = VarSymbol(Tree.Ident(name), erasedType = N)
   private def newFunSym(name: Str) = BlockMemberSymbol(name, Nil)
-  private def newBuiltinSym(name: Str) = BuiltinSymbol(name, false, false, false, false)
+  private def newBuiltinSym(name: Str) = BuiltinSymbol(name, false, false, false, false, erasedType = N)
   private def builtinField(n: Int)(using Ctx) = summon[Ctx].builtinSym.fieldSym.getOrElseUpdate(n, newVarSym(s"field$n"))
   private def builtinApply(n: Int)(using Ctx) = summon[Ctx].builtinSym.applySym.getOrElseUpdate(n, newFunSym(s"apply$n"))
   private def builtinTuple(n: Int)(using Ctx) = summon[Ctx].builtinSym.tupleSym.getOrElseUpdate(n, newTupleSym(n))

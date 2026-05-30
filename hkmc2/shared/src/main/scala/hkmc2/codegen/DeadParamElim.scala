@@ -166,7 +166,7 @@ class Rewrite(val deadParamElimSolver: DeadParamElimSolver)(using Raise):
             val name = instId.mkFunName + s"$$${f.nme}"
             f -> (
               new BlockMemberSymbol(name, Nil, true),
-              new TermSymbol(Fun, N, Tree.Ident(name)))
+              new TermSymbol(Fun, N, Tree.Ident(name), erasedType = N))
           .toMap)
     end mkNewPolyFnSyms
     
@@ -334,12 +334,12 @@ class Rewrite(val deadParamElimSolver: DeadParamElimSolver)(using Raise):
         case ParamList(flags, params, restParam) =>
           val params2 = params.map:
             case p =>
-              val newSym = new VarSymbol(Tree.Ident(p.sym.name))
+              val newSym = new VarSymbol(Tree.Ident(p.sym.name), erasedType = N)
               refreshParamMap(p.sym) = newSym
               Param(p.flags, newSym, p.sign, p.modulefulness)
           val rest2 = restParam.map:
             case p =>
-              val newSym = new VarSymbol(Tree.Ident(p.sym.name))
+              val newSym = new VarSymbol(Tree.Ident(p.sym.name), erasedType = N)
               refreshParamMap(p.sym) = newSym
               Param(p.flags, newSym, p.sign, p.modulefulness)
           ParamList(flags, params2, rest2)

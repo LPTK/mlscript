@@ -65,7 +65,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
 
       override def applyBlock(b: Block): Block = b match
         case Return(res) if usesStack(res) =>
-          val tmp = TempSymbol(N, "res")
+          val tmp = TempSymbol(N, erasedType = N, "res")
           super.applyResult(res): res =>
             Scoped(Set.single(tmp), extract(res, true, Return(_), tmp, curDepth))
         // Optimization to avoid generation of unnecessary variables
@@ -84,7 +84,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
       
       override def applyResult(r: Result)(k: Result => Block): Block =
         if usesStack(r) then
-          val tmp = TempSymbol(N, "res")
+          val tmp = TempSymbol(N, erasedType = N, "res")
           Scoped(Set.single(tmp), extract(r, false, k, tmp, curDepth))
         else
           super.applyResult(r)(k)
@@ -138,9 +138,9 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
       var usedDepth = false
       lazy val curDepth =
         usedDepth = true
-        TempSymbol(None, "curDepth")
+        TempSymbol(None, erasedType = S(ErasedType.Primitive(PrimitiveType.Int)), "curDepth")
       val newBody = transform(blk, curDepth)
-      val resSym = TempSymbol(None, "stackDelayRes")
+      val resSym = TempSymbol(None, erasedType = N, "stackDelayRes")
       val addStackSafeEffect = blk => blockBuilder
         .assignFieldN(runtimePath, STACK_DEPTH_IDENT, op("+", stackDepthPath, intLit(increment)))
         .staticif(usedDepth, _.assignScoped(curDepth, stackDepthPath))
@@ -160,4 +160,4 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
   def rewriteFn(defn: FunDefn) = 
     FunDefn(defn.owner, defn.sym, defn.dSym, defn.params, rewriteBlk(defn.body, L(defn.sym)))(defn.configOverride, defn.annotations)
 
-  def transformTopLevel(b: Block) = transform(b, TempSymbol(N), true)
+  def transformTopLevel(b: Block) = transform(b, TempSymbol(N, erasedType = N), true)

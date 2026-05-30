@@ -527,7 +527,7 @@ object HandleBlock:
         N, sym, PlainParamList(Param(FldFlags.empty, handler.resumeSym, N, Modulefulness.none) :: Nil) :: Nil,
         handler.body
         )(N, annotations = Nil)
-      val rSym = TempSymbol(N, "suspendRes")
+      val rSym = TempSymbol(N, erasedType = N, "suspendRes")
       FunDefn.withFreshSymbol(
         S(cls),
         handler.sym,
@@ -680,7 +680,7 @@ final case class FunDefn(
 
 object FunDefn:
   def withFreshSymbol(owner: Opt[InnerSymbol], sym: BlockMemberSymbol, params: Ls[ParamList], body: Block)(configOverride: Opt[Config], annotations: Ls[Annot])(using State) =
-    val tSym = TermSymbol(syntax.Fun, owner, Tree.Ident(sym.nme))
+    val tSym = TermSymbol(syntax.Fun, owner, Tree.Ident(sym.nme), erasedType = N)
     sym.tsym = S(tSym)
     FunDefn(owner, sym, tSym, params, body)(configOverride, annotations)
 
@@ -706,7 +706,8 @@ object ValDefn:
       annotations: Ls[Annot],
     )(using State)
     : ValDefn =
-      ValDefn(tsym = TermSymbol(k, owner, Tree.Ident(sym.nme)), sym = sym, rhs = rhs)(configOverride, annotations)
+      // TODO(Derppening): We can probably use the erasedType from `rhs` once Path implements `HasErasedType`
+      ValDefn(tsym = TermSymbol(k, owner, Tree.Ident(sym.nme), erasedType = N), sym = sym, rhs = rhs)(configOverride, annotations)
 
 
 /*
@@ -1058,12 +1059,9 @@ enum Value extends Path with HasErasedType with ProductWithExtraInfo:
 
   /** The [[`ErasedType`]] of this value. */
   val erasedType: Opt[ErasedType] = this match
-    case SimpleRef(_, erasedType) => erasedType
-    case MemberRef(_, disamb: (ClassSymbol | ModuleOrObjectSymbol)) => S(ErasedType.AnyRef(false, disamb))
-    case MemberRef(_, disamb: TypeAliasSymbol) => 
-      // TODO(Derppening): Do we preserve the `TypeAliasSymbol` here?
-      disamb.irClsLikeDefn.flatMap(_.sym.asClsOrMod).map(ErasedType.AnyRef(false, _))
-    case This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => S(ErasedType.AnyRef(false, clsOrMod))
+    case SimpleRef(sym) => sym.erasedType
+    case MemberRef(_, disamb: (ClassSymbol | ModuleOrObjectSymbol | TypeAliasSymbol)) => disamb.erasedType
+    case This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => clsOrMod.erasedType
     case Lit(lit) => S(lit.erasedType)
     case _ => N
   

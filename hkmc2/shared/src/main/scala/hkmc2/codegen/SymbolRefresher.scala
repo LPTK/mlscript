@@ -27,7 +27,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
       for s <- syms.toList.sortBy(_.uid) do
         assert(!mapping.isDefinedAt(s), s"already defined: $s")
         val newS = s match
-          case tmpSym: TempSymbol => new TempSymbol(N, tmpSym.nme)
+          case tmpSym: TempSymbol => new TempSymbol(N, erasedType = tmpSym.erasedType, tmpSym.nme)
           case bms: BlockMemberSymbol =>
             val newBms = new BlockMemberSymbol(bms.nme, Nil, bms.nameIsMeaningful)
             newBms.tsym = bms.tsym.map: t =>
@@ -35,12 +35,12 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
                 existingMapping.get(o) match
                   case Some(inner: InnerSymbol) => inner
                   case _ => o
-              val nt = new TermSymbol(t.k, newOwner, t.id)
+              val nt = new TermSymbol(t.k, newOwner, t.id, erasedType = t.erasedType)
               mapping(t) = nt
               oldSyms.add(t)
               nt
             newBms
-          case varSym: VarSymbol => new VarSymbol(varSym.id)
+          case varSym: VarSymbol => new VarSymbol(varSym.id, erasedType = varSym.erasedType)
           case _ => lastWords(s"unexpected symbol kind: $s")
         mapping(s) = newS
         oldSyms.add(s)
@@ -85,7 +85,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
           val newBms = new BlockMemberSymbol(fun.sym.nme, fun.sym.trees, fun.sym.nameIsMeaningful)
           val newDsym = fun.sym.tsym.map: tsym =>
             assert(tsym.owner.isEmpty)
-            new TermSymbol(tsym.k, N, tsym.id)
+            new TermSymbol(tsym.k, N, tsym.id, erasedType = tsym.erasedType)
           newBms.tsym = S(newDsym.get)
           // Keep the definition symbol in sync with the freshly-created member symbol.
           // Self-recursive references use the disambiguating TermSymbol, and later passes
@@ -100,7 +100,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
           def handleSingleParam(p: Param) =
             val Param(flags, sym, sign, modulefulness) = p
             oldParamSyms.append(sym)
-            val newSym = new VarSymbol(sym.id)
+            val newSym = new VarSymbol(sym.id, erasedType = sym.erasedType)
             assert(!mapping.isDefinedAt(sym))
             mapping(sym) = newSym
             Param(flags, newSym, sign, modulefulness)
@@ -117,7 +117,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
       val (tsym2, sym2) = mapping.get(sym) match
         case None =>
           val newBms = new BlockMemberSymbol(sym.nme, sym.trees, sym.nameIsMeaningful)
-          val newTsym = new TermSymbol(tsym.k, tsym.owner, tsym.id)
+          val newTsym = new TermSymbol(tsym.k, tsym.owner, tsym.id, erasedType = tsym.erasedType)
           newBms.tsym = S(newTsym)
           (newTsym, newBms)
         case S(bms: BlockMemberSymbol) =>
@@ -164,7 +164,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
 
       def freshenParamList(pl: ParamList): ParamList =
         def handleParam(p: Param) =
-          val ns = new VarSymbol(p.sym.id)
+          val ns = new VarSymbol(p.sym.id, erasedType = p.sym.erasedType)
           assert(!mapping.isDefinedAt(p.sym))
           mapping(p.sym) = ns
           hd += p.sym
@@ -231,7 +231,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
     fields: Ls[TermSymbol], ownerIsym: InnerSymbol
   ): Ls[TermSymbol] = fields.map: ts =>
     assert(!mapping.isDefinedAt(ts))
-    val nts = new TermSymbol(ts.k, S(ownerIsym), ts.id)
+    val nts = new TermSymbol(ts.k, S(ownerIsym), ts.id, erasedType = ts.erasedType)
     mapping(ts) = nts
     toRemoveSymbols.head += ts
     nts
@@ -243,7 +243,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
       assert(!mapping.isDefinedAt(bms))
       assert(!mapping.isDefinedAt(ts))
       val nbms = new BlockMemberSymbol(bms.nme, Nil, bms.nameIsMeaningful)
-      val nts = new TermSymbol(ts.k, S(ownerIsym), ts.id)
+      val nts = new TermSymbol(ts.k, S(ownerIsym), ts.id, erasedType = ts.erasedType)
       nbms.tsym = S(nts)
       mapping(bms) = nbms
       mapping(ts) = nts
@@ -258,7 +258,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
       assert(!mapping.isDefinedAt(m.sym))
       assert(!mapping.isDefinedAt(m.dSym))
       val newMsym = new BlockMemberSymbol(m.sym.nme, Nil, m.sym.nameIsMeaningful)
-      val newDsym = new TermSymbol(m.dSym.k, S(newIsym), m.dSym.id)
+      val newDsym = new TermSymbol(m.dSym.k, S(newIsym), m.dSym.id, erasedType = m.dSym.erasedType)
       newMsym.tsym = S(newDsym)
       mapping(m.sym) = newMsym
       mapping(m.dSym) = newDsym
@@ -268,7 +268,7 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
       val methodParamOlds = MutSet.empty[VarSymbol]
       val newParams = m.params.map: pl =>
         def handleParam(p: Param) =
-          val ns = new VarSymbol(p.sym.id)
+          val ns = new VarSymbol(p.sym.id, erasedType = p.sym.erasedType)
           assert(!mapping.isDefinedAt(p.sym))
           mapping(p.sym) = ns
           methodParamOlds += p.sym
