@@ -666,7 +666,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     protected def rewriteImpl: LifterResult[T]
     
-    private final def instantiateCapture: Instantiate =
+    protected final def instantiateCapture: Instantiate =
       if hasCapture then
         Instantiate(
           true,
@@ -684,13 +684,6 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         )
       else
         Scoped(objSyms.toSet, b)
-    
-    protected final def initCaptureField(b: Block, captureSym: TermSymbol): Block =
-      if hasCapture then
-        captureSym.owner match
-        case S(owner) => AssignField(owner.asThis, captureSym.id, instantiateCapture, b)(S(captureSym))
-        case N => lastWords(s"tried to assign lifted capture to ownerless field ${captureSym.nme}")
-      else b
     
     /**
       * Rewrites the contents of this scoped object to reference the lifted versions of variables.
@@ -905,6 +898,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           case r: RewrittenFunc if r.obj.isMethod.isDefined => r 
       val (liftedMtds, extras) = mtds.map(liftNestedScopes).unzip(using l => (l.liftedDefn, l.extraDefns))
       LifterResult(liftedMtds, extras.flatten)
+    protected final def initCaptureField(b: Block, captureSym: TermSymbol): Block =
+      if hasCapture then AssignField(sym.asThis, captureSym.id, instantiateCapture, b)(S(captureSym))
+      else b
   
   // some helpers
   private def dupParam(p: Param): Param = p.copy(sym = VarSymbol(Tree.Ident(p.sym.nme)))
