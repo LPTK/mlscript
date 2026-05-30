@@ -898,7 +898,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           case r: RewrittenFunc if r.obj.isMethod.isDefined => r 
       val (liftedMtds, extras) = mtds.map(liftNestedScopes).unzip(using l => (l.liftedDefn, l.extraDefns))
       LifterResult(liftedMtds, extras.flatten)
-    protected final def initCaptureField(b: Block, captureSym: TermSymbol): Block =
+    protected final def initCaptureField(b: Block): Block =
       if hasCapture then AssignField(sym.asThis, captureSym.id, instantiateCapture, b)(S(captureSym))
       else b
   
@@ -958,7 +958,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val rewriterPreCtor = new BlockRewriter
       val rewrittenCtor = rewriterCtor.rewrite(obj.cls.ctor)
       val rewrittenPrector = rewriterPreCtor.rewrite(obj.cls.preCtor)
-      val ctorWithCap = initCaptureField(rewrittenCtor, captureSym)
+      val ctorWithCap = initCaptureField(rewrittenCtor)
       
       val LifterResult(newMtds, extras) = rewriteMethods(node, obj.cls.methods)
       val newCls = obj.cls.copy(
@@ -979,7 +979,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     override def rewriteImpl: LifterResult[ClsLikeBody] =
       val rewriterCtor = new BlockRewriter
       val rewrittenCtor = rewriterCtor.rewrite(obj.clsBody.ctor)
-      val ctorWithCap = initCaptureField(rewrittenCtor, captureSym)
+      val ctorWithCap = initCaptureField(rewrittenCtor)
       val LifterResult(newMtds, extras) = rewriteMethods(node, obj.clsBody.methods)
       val newComp = obj.clsBody.copy(
         ctor = ctorWithCap,
@@ -1255,7 +1255,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val rewrittenCtor = rewriterCtor.rewrite(obj.cls.ctor)
       val rewrittenPrector = rewriterPreCtor.rewrite(obj.cls.preCtor)
       
-      val ctorWithCap = initCaptureField(rewrittenCtor, captureSym)
+      val ctorWithCap = initCaptureField(rewrittenCtor)
       
       // Assign passed locals and captures
       val ctorWithPassed = passedSymsOrdered.foldRight(ctorWithCap):
