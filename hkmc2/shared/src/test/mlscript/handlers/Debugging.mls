@@ -147,8 +147,6 @@ module Test with
   fun main()(using Debugger) =
     test(12) + test(34)
 
-fun get(using Debugger) = 1
-
 // :rt
 // :lot
 let res =
@@ -190,8 +188,8 @@ fun f() =
 
 f()
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:184:3) with locals: j=200
+//│ > 	at f (Debugging.mls:182:3) with locals: j=200
 //│ > Stack Trace:
-//│ > 	at f (Debugging.mls:186:3)
+//│ > 	at f (Debugging.mls:184:3)
 //│ > Stack Trace:
 //│ > 	at tail position
