@@ -618,7 +618,7 @@ sealed abstract class Defn:
       body.freeVars -- params.flatMap(_.paramSyms) ++ sym.optionIf(own.isEmpty)
     case vd @ ValDefn(tsym, sym, rhs) =>
       rhs.freeVars ++
-        // * Value definitions without an owner are simialr to local variables;
+        // * Value definitions without an owner are similar to local variables;
         // * they need to be declared with `let` in JS, which is why we add them here.
         vd.sym.optionIf(tsym.owner.isEmpty)
     case ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentSym, 

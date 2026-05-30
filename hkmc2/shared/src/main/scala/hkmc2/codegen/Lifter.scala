@@ -511,7 +511,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         
         // Assignment to variables
         case Assign(_: NoSymbol, _, _) => super.applyBlock(rewritten)
-        case Assign(lhs: ValueSymbol, rhs, rest) => ctx.symbolsMap.get(lhs) match
+        case Assign(lhs: LocalVarSymbol, rhs, rest) => ctx.symbolsMap.get(lhs) match
           case Some(path) => applyResult(rhs): rhs2 =>
             path.assign(rhs2, applySubBlock(rest))
           case _ => super.applyBlock(rewritten)
