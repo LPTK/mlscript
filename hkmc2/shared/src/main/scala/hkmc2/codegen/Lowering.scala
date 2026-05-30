@@ -516,45 +516,32 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       WarningReport(msg"Pure expression in statement position" -> loc :: Nil, extraInfo,
         source = Diagnostic.Source.Compilation)
 
-  private def assignSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
+  private def assignSymbol(sym: Symbol, rhs: Result, rest: Block, loco: Opt[Loc])(using LoweringCtx): Block =
+    def nope = fail:
+      ErrorReport(
+        msg"Cannot assign to ${sym match
+            case sym: BlockMemberSymbol => sym.describe
+            case sym => "symbol"
+          } '${sym.nme}'" -> loco
+          :: sym.toLoc.match
+            case s @ S(_) => msg"Defined here:" -> s :: Nil
+            case N => Nil,
+        source = Diagnostic.Source.Compilation,
+        extraInfo = S(sym.getClass))
     sym match
     case sym: TermSymbol if (sym.k is MutVal) || (sym.k is LetBind) =>
       sym.owner match
       case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
-      case N => fail:
-        ErrorReport(
-          msg"Mutable value '${sym.nme}' is missing an owner" -> sym.toLoc :: Nil,
-          source = Diagnostic.Source.Compilation)
-    case sym: TermSymbol => fail:
-      ErrorReport(
-        msg"Cannot assign to ${sym.k.desc} '${sym.nme}'" -> sym.toLoc :: Nil,
-        source = Diagnostic.Source.Compilation)
-    case sym: LocalVarSymbol =>
-      Assign(sym, rhs, rest)
-    case sym: BlockMemberSymbol =>
-      sym.tsym match
-      case S(tsym) if (tsym.k is MutVal) || (tsym.k is LetBind) =>
-        tsym.owner match
-        case S(owner) => AssignField(owner.asThis, tsym.id, rhs, rest)(S(tsym))
-        case N => fail:
-          ErrorReport(
-            msg"Mutable value '${sym.nme}' is missing an owner" -> sym.toLoc :: Nil,
-            source = Diagnostic.Source.Compilation)
-      case _ =>
-        val desc = sym.tsym.fold(sym.describe)(_.k.desc)
-        fail:
-          ErrorReport(
-            msg"Cannot assign to $desc '${sym.nme}'" -> sym.toLoc :: Nil,
-            source = Diagnostic.Source.Compilation)
-    case sym =>
-      lastWords(s"tried to assign to non-variable symbol ${sym.showDbg}")
+      case N => nope
+    case sym: LocalVarSymbol => Assign(sym, rhs, rest)
+    case sym => nope
   
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
     sym match
     case sym: TermSymbol =>
       sym.owner match
       case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
-      case N => Assign(sym, rhs, rest)
+      case N => lastWords(s"tried to define top-level symbol ${sym.showDbg} in a local scope")
     case sym: LocalVarSymbol =>
       Assign(sym, rhs, rest)
     case sym =>
@@ -909,7 +896,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       lhs match
       case Ref(sym) =>
         subTerm(rhs): r =>
-          assignSymbol(sym, r, k(unit))
+          assignSymbol(sym, r, k(unit), trm.toLoc)
       case sel @ SynthSel(prefix, nme) =>
         subTerm(prefix): p =>
           subTerm_nonTail(rhs): r =>

@@ -10,7 +10,7 @@ import document.*
 import document.Document
 import semantics.{
   BlockMemberSymbol, Elaborator,
-  InnerSymbol, LabelSymbol, ModuleOrObjectSymbol, ParamList, ValueSymbol, TempSymbol, BoundSymbol,
+  InnerSymbol, LabelSymbol, ModuleOrObjectSymbol, ParamList, TempSymbol,
 },
   Elaborator.State
 import text.Param as WasmParam

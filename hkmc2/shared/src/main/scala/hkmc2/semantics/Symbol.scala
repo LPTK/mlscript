@@ -159,6 +159,14 @@ final class NoSymbol(using State) extends MaybeSymbol:
   override def toString: Str = nme
 
 
+/** Symbols bound by `Program.imports`.
+  *
+  * User-facing imports bind variable or member symbols, while compiler-generated imports
+  * such as prelude/runtime imports may bind temporary term values directly.
+  */
+type ImportSymbol = TempSymbol | VarSymbol | BlockMemberSymbol
+
+
 abstract class FlowSymbol(label: Str)(using State) extends Symbol:
   def nme: Str = label
   def toLoc: Option[Loc] = N // TODO track source trees of flows
@@ -194,12 +202,6 @@ end FlowSymbol
 class ConcreteFlowSymbol(label: Str)(using State) extends FlowSymbol(label):
   def subst(using s: SymbolSubst): FlowSymbol = s.mapFlowSym(this)
 
-
-/** Symbol that can be used in a `SimpleRef`. */
-type SimpleSymbol = LocalVarSymbol | BuiltinSymbol
-
-/** Symbol that can be used as the left-hand side of an `Assign`. */
-type Assignable = LocalVarSymbol | TermSymbol | NoSymbol
 
 sealed trait LocalSymbol extends Symbol
 sealed trait NamedSymbol extends Symbol:
@@ -292,9 +294,13 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
   def toLoc: Option[Loc] = Loc(trees)
   
   def describe: Str =
-    trees match
-    case td :: Nil => td.describe
-    case _ => trees.iterator.map(_.describe).mkString("overloaded ", ", ", "symbol")
+    val symbols = tsym.toList ::: trees.collect:
+      case t: Tree.TypeDef => t.symbol
+    symbols match
+    case Nil => s"symbol"
+    case sym :: Nil => s"${sym.describeKind}"
+    case sym1 :: sym2 :: Nil => s"overloaded ${sym1.describeKind} and ${sym2.describeKind}"
+    case _ => s"overloaded ${enumerate(symbols.map(_.describeKind).ne_!, "and")}"
   
   def clsTree: Opt[Tree.TypeDef] = trees.collectFirst:
     case t: Tree.TypeDef if t.k is Cls => t
@@ -322,32 +328,6 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
   lazy val flow: FlowSymbol = FlowSymbol(s"flow:$nme")(using getState)
   
 end BlockMemberSymbol
-
-
-/** Symbols that `Scoped` introduces as block-local bindings.
-  * This deliberately excludes things like `TermSymbol`s, which never need to be scoped.
-  */
-type ScopedSymbol = LocalVarSymbol | BlockMemberSymbol
-
-/** Symbols bound by `Program.imports`.
-  *
-  * User-facing imports bind variable or member symbols, while compiler-generated imports
-  * such as prelude/runtime imports may bind temporary term values directly.
-  */
-type ImportSymbol = TempSymbol | VarSymbol | BlockMemberSymbol
-
-/** A "catch-all" symbol for value-like things.
-  * Slightly better than just `Symbol`, but we should still try migrating away to more specific symbol types.
-  */
-type ValueSymbol = SimpleSymbol | TermSymbol | BlockMemberSymbol | InnerSymbol
-
-/** Symbols that may be bound by MIR binding forms such as `Scoped`.
-  */
-type BoundSymbol = ScopedSymbol | TermSymbol
-
-/** Symbols that may occur in MIR free-variable sets.
-  */
-type FreeSymbol = SimpleSymbol | BlockMemberSymbol | LabelSymbol
 
 
 sealed abstract class MemberSymbol(using State) extends Symbol:
@@ -458,6 +438,15 @@ sealed trait DefinitionSymbol[Defn <: Definition] extends MemberSymbol:
         case _ => false
   
   def subst(using sub: SymbolSubst): DefinitionSymbol[Defn]
+  
+  def describeKind: Str =
+    this match
+    case sym: ClassSymbol => s"class"
+    case sym: ModuleOrObjectSymbol => if sym.tree.k is Mod then "module" else "object"
+    case sym: TypeAliasSymbol => "type alias"
+    case sym: PatternSymbol => "pattern"
+    case sym: TermSymbol => sym.k.desc
+    case top: TopLevelSymbol => "top-level"
   
 end DefinitionSymbol
 

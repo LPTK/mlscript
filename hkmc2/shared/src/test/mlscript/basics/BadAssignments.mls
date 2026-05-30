@@ -5,6 +5,9 @@ fun x = 1
 :ge
 set x = 0
 //│ ╔══[COMPILATION ERROR] Cannot assign to function 'x'
+//│ ║  l.6: 	set x = 0
+//│ ║       	    ^^^^^
+//│ ╟── Defined here:
 //│ ║  l.3: 	fun x = 1
 //│ ╙──     	^^^^^^^^^
 
@@ -14,20 +17,74 @@ val x = 1
 :ge
 set x = 0
 //│ ╔══[COMPILATION ERROR] Cannot assign to value 'x'
-//│ ║  l.12: 	val x = 1
+//│ ║  l.18: 	set x = 0
+//│ ║        	    ^^^^^
+//│ ╟── Defined here:
+//│ ║  l.15: 	val x = 1
 //│ ╙──      	^^^^^^^^^
 
 
 :ge
 mut val x = 1
 //│ ╔══[COMPILATION ERROR] Mutable value definitions must have an owner
-//│ ║  l.22: 	mut val x = 1
+//│ ║  l.28: 	mut val x = 1
 //│ ╙──      	    ^^^^^^^^^
 
 :ge
 set x = 0
-//│ ╔══[COMPILATION ERROR] Cannot assign to term definition 'x'
-//│ ║  l.22: 	mut val x = 1
+//│ ╔══[COMPILATION ERROR] Cannot assign to symbol 'x'
+//│ ║  l.34: 	set x = 0
+//│ ║        	    ^^^^^
+//│ ╟── Defined here:
+//│ ║  l.28: 	mut val x = 1
 //│ ╙──      	    ^^^^^^^^^
+
+
+:ge
+fun foo() =
+  val x = 1
+  set x = 2
+//│ ╔══[COMPILATION ERROR] Cannot assign to value 'x'
+//│ ║  l.46: 	  set x = 2
+//│ ║        	      ^^^^^
+//│ ╟── Defined here:
+//│ ║  l.45: 	  val x = 1
+//│ ╙──      	  ^^^^^^^^^
+
+:ge
+fun foo() =
+  mut val x = 1
+  set x = 2
+//│ ╔══[COMPILATION ERROR] Mutable value definitions must have an owner
+//│ ║  l.56: 	  mut val x = 1
+//│ ╙──      	      ^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Cannot assign to symbol 'x'
+//│ ║  l.57: 	  set x = 2
+//│ ║        	      ^^^^^
+//│ ╟── Defined here:
+//│ ║  l.56: 	  mut val x = 1
+//│ ╙──      	      ^^^^^^^^^
+
+
+class X
+module X
+
+:ge
+set X = 2
+//│ ╔══[COMPILATION ERROR] Cannot assign to overloaded class and module 'X'
+//│ ║  l.73: 	set X = 2
+//│ ║        	    ^^^^^
+//│ ╟── Defined here:
+//│ ║  l.69: 	class X
+//│ ║        	^^^^^^^
+//│ ║  l.70: 	module X
+//│ ╙──      	^^^^^^^^
+
+
+:ge
+set globalThis = 0
+//│ ╔══[COMPILATION ERROR] Cannot assign to symbol 'globalThis'
+//│ ║  l.85: 	set globalThis = 0
+//│ ╙──      	    ^^^^^^^^^^^^^^
 
 

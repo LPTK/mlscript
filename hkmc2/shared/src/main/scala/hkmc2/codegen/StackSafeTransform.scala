@@ -24,7 +24,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
 
   // Increases the stack depth, assigns the call to a value, then decreases the stack depth
   // then binds that value to a desired block
-  def extractRes(res: Result, isTailCall: Bool, f: Result => Block, sym: AssignableSymbol, curDepth: => LocalVarSymbol): Block =
+  def extractRes(res: Result, isTailCall: Bool, f: Result => Block, sym: Assignable, curDepth: => LocalVarSymbol): Block =
     if isTailCall then Return(res)
     else
       blockBuilder
@@ -33,8 +33,6 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
         .rest:
           sym match
           case sym: LocalVarSymbol => f(sym.asSimpleRef)
-          case sym: TermSymbol =>
-            lastWords(s"non-local term cannot be used as a stack-safe result variable: ${sym.nme}")
           case _: NoSymbol => f(Value.Lit(Tree.UnitLit(false)))
   
   def wrapStackSafe(body: Block, resSym: LocalVarSymbol, rest: Block) =
@@ -78,8 +76,6 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
               lhs match
               case _: NoSymbol => blockBuilder.assign(lhs, r).rest(applyBlock(rest))
               case lhs: LocalVarSymbol => extract(r, false, _ => applyBlock(rest), lhs, curDepth)
-              case lhs: TermSymbol =>
-                lastWords(s"non-local term cannot be used as a stack-safe result variable: ${lhs.nme}")
           else
             super.applyBlock(b)
         

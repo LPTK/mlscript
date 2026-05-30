@@ -6,7 +6,7 @@ package text
 import mlscript.utils.*, shorthands.*
 
 import document.*
-import semantics.{DefinitionSymbol, Elaborator, ValueSymbol, TempSymbol}, Elaborator.State
+import semantics.{DefinitionSymbol, Elaborator, TempSymbol}, Elaborator.State
 import utils.Scope
 
 import scala.collection.Map

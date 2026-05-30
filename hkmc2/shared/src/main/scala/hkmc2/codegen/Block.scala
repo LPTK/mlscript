@@ -45,7 +45,25 @@ case class Program(
 type SimpleSymbol = LocalVarSymbol | BuiltinSymbol
 
 /** Symbol that can be used as the left-hand side of an `Assign`. */
-type AssignableSymbol = LocalVarSymbol | TermSymbol | NoSymbol
+type Assignable = LocalVarSymbol | NoSymbol
+
+/** Symbols that `Scoped` introduces as block-local bindings.
+  * This deliberately excludes things like `TermSymbol`s, which never need to be scoped.
+  */
+type ScopedSymbol = LocalVarSymbol | BlockMemberSymbol
+
+/** A "catch-all" symbol for value-like things.
+  * Slightly better than just `Symbol`, but we should still try migrating away to more specific symbol types.
+  */
+type ValueSymbol = SimpleSymbol | TermSymbol | BlockMemberSymbol | InnerSymbol
+
+/** Symbols that may be bound by MIR binding forms such as `Scoped`.
+  */
+type BoundSymbol = ScopedSymbol | TermSymbol
+
+/** Symbols that may occur in MIR free-variable sets.
+  */
+type FreeSymbol = SimpleSymbol | BlockMemberSymbol | LabelSymbol
 
 
 sealed abstract class Block extends Product:
@@ -125,7 +143,6 @@ sealed abstract class Block extends Product:
     case _: Return | _: Throw | _: Unreachable => Set.empty
     case Begin(sub, rst) => sub.definedVars ++ rst.definedVars
     case Assign(_: NoSymbol, r, rst) => rst.definedVars
-    case Assign(l: TermSymbol, r, rst) => rst.definedVars + l
     case Assign(l: LocalVarSymbol, r, rst) => rst.definedVars + l
     case AssignField(l, n, r, rst) => rst.definedVars
     case AssignDynField(l, n, ai, r, rst) => rst.definedVars
@@ -365,7 +382,7 @@ case class Begin(sub: Block, rest: Block) extends Block with ProductWithTail wit
 
 case class TryBlock(sub: Block, finallyDo: Block, rest: Block) extends Block with ProductWithTail with NonBlockTail
 
-case class Assign(lhs: AssignableSymbol, rhs: Result, rest: Block) extends Block with ProductWithTail with NonBlockTail
+case class Assign(lhs: Assignable, rhs: Result, rest: Block) extends Block with ProductWithTail with NonBlockTail
 
 case class AssignField(lhs: Path, nme: Tree.Ident, rhs: Result, rest: Block)(val symbol: Opt[MemberSymbol])
   extends Block with ProductWithTail with NonBlockTail
@@ -406,7 +423,7 @@ object TryBlock:
       case Scoped(syms, innerRest) => Scoped(syms, TryBlock(body, finallyDo, innerRest))
       case _ => new TryBlock(body, finallyDo, rest)
 object Assign:
-  def apply(lhs: AssignableSymbol, rhs: Result, rest: Block): Block = rest match
+  def apply(lhs: Assignable, rhs: Result, rest: Block): Block = rest match
     case _: Unreachable =>
       if rhs.isPure then rest else new Assign(lhs, rhs, rest)
     case Scoped(syms, body) => Scoped(syms, Assign(lhs, rhs, body))
@@ -1017,7 +1034,7 @@ extension (k: Block => Block)
   def rest(b: Block): Block = k(b)
   def transform(f: (Block => Block) => (Block => Block)) = f(k)
   
-  def assign(l: AssignableSymbol, r: Result) = k.chain(Assign(l, r, _))
+  def assign(l: Assignable, r: Result) = k.chain(Assign(l, r, _))
   def assignScoped(l: LocalVarSymbol, r: Result) = k.scopedVars(Set.single(l)).assign(l, r)
   def assignFieldN(lhs: Path, nme: Tree.Ident, rhs: Result) = k.chain(AssignField(lhs, nme, rhs, _)(N))
   def break(l: LabelSymbol): Block = k.rest(Break(l))

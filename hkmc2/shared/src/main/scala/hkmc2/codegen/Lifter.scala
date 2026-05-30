@@ -122,7 +122,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     def asArg(using ctx: LifterCtxNew) = read.asArg
     
     def assign(value: Result, rest: Block)(using ctx: LifterCtxNew): Block = this match
-      case Sym(l: AssignableSymbol) => Assign(l, value, rest)
+      case Sym(l: Assignable) => Assign(l, value, rest)
       case Sym(l) => lastWords(s"Tried to assign to non-variable local ${l.nme}")
       case ThisPath(sym) => lastWords(s"Tried to assign to this-path ${sym.nme}")
       case BmsRef(l, d) => lastWords("Tried to assign to a BlockMemberSymbol")
