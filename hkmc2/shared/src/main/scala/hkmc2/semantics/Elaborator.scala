@@ -1463,7 +1463,7 @@ extends Importer with ucs.SplitElaborator:
             if (k is MutVal) && owner.isEmpty then
               raise:
                 ErrorReport:
-                  msg"Mutable value definitions must have an owner" -> td.toLoc
+                  msg"Mutable 'val' definitions are only valid as members of a module, object, or class definition" -> td.toLoc
                   :: Nil
               return go(sts, Nil, acc)
             if owner.isDefined && !identifierPattern.matches(id.name) then

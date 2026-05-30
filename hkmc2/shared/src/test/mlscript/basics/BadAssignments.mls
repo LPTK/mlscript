@@ -26,7 +26,7 @@ set x = 0
 
 :ge
 mut val x = 1
-//│ ╔══[COMPILATION ERROR] Mutable value definitions must have an owner
+//│ ╔══[COMPILATION ERROR] Mutable 'val' definitions are only valid as members of a module, object, or class definition
 //│ ║  l.28: 	mut val x = 1
 //│ ╙──      	    ^^^^^^^^^
 
@@ -55,7 +55,7 @@ fun foo() =
 fun foo() =
   mut val x = 1
   set x = 2
-//│ ╔══[COMPILATION ERROR] Mutable value definitions must have an owner
+//│ ╔══[COMPILATION ERROR] Mutable 'val' definitions are only valid as members of a module, object, or class definition
 //│ ║  l.56: 	  mut val x = 1
 //│ ╙──      	      ^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Cannot assign to symbol 'x'

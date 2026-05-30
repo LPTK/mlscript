@@ -720,6 +720,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           s match
             case s: BlockMemberSymbol =>
               // * This use of `s.asPrincipal` is incorrect – we can't just assume this is the correct disambiguation!
+              // softTODO(false, s"disambiguation symbol for ${s.nme} picked arbitrarily") // * uncomment to see where this happens; commented by default because too noisy
               S(s -> LocalPath.BmsRef(s, s.asPrincipal.getOrElse:
                 lastWords(s"Cannot resolve overloaded member symbol ${s.nme}: no principal disambiguation found")
               ))
@@ -990,7 +991,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         methods = newMtds
       )
       LifterResult(newComp, rewriterCtor.extraDefns.toList ::: extras)
-   
+  
   class LiftedFunc(override val obj: ScopedObject.Func)(using ctx: LifterCtxNew) extends LiftedScope[FunDefn](obj) with GenericRewrittenScope[FunDefn]:
     private val passedSymsMap_ : Map[ValueSymbol, VarSymbol] = passedSymsOrdered.map: s =>
         s -> VarSymbol(Tree.Ident(s.nme))
