@@ -849,23 +849,25 @@ enum Case:
 
 /** A primitive type of the block IR. */
 enum PrimitiveType:
-  case Unit, Int, Int31, Num, Str, Bool
+  case Unit, Int, Int31, Num, Str, Bool, Array
 
-  /** The symbol for this primitive type, if available. */
-  def sym(using Ctx, State): Opt[ClassLikeSymbol] = this match
-    case Unit => S(summon[State].unitSymbol)
-    case Int => S(ctx.builtins.Int)
-    case Int31 => S(ctx.builtins.Int31)
-    case Num => S(ctx.builtins.Num)
-    case Str => S(ctx.builtins.Str)
-    case Bool => S(ctx.builtins.Bool)
+  /** The symbol for this primitive type. */
+  def sym(using Ctx, State): ClassLikeSymbol = this match
+    case Unit => summon[State].unitSymbol
+    case Int => ctx.builtins.Int
+    case Int31 => ctx.builtins.Int31
+    case Num => ctx.builtins.Num
+    case Str => ctx.builtins.Str
+    case Bool => ctx.builtins.Bool
+    case Array => ctx.builtins.Array
     
-
-object ErasedType:
-  def objectRef(using Ctx): ErasedType = ErasedType.AnyRef(rsc = false, ctx.builtins.Object)
-
 /** A generics-erased type of the Block IR. */
 enum ErasedType:
+  /** A reference to the Object (top) type. */
+  // Implementation Note: This is not collapsed into `AnyRef` to avoid the need to pass `Elaborator.Ctx` around just to
+  // recover `ctx.builtins.Object`
+  case ObjectRef
+
   /** 
     * An reference to a class-like symbol.
     *
@@ -876,13 +878,19 @@ enum ErasedType:
   /** An primitive type. */
   case Primitive(prim: PrimitiveType)
 
+  /** The symbol for this erased type. */
+  def sym(using Ctx, State): ClassLikeSymbol = this match
+      case ObjectRef => ctx.builtins.Object
+      case AnyRef(_, csym) => csym
+      case Primitive(prim) => prim.sym
+
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:
   /** The [[`ErasedType`]] of this element, or `N` if the erased type is not known. */
   val erasedType: Opt[ErasedType]
 
   /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known. */
-  def erasedType_!(using Ctx): ErasedType = erasedType.getOrElse(ErasedType.objectRef)
+  def erasedType_! : ErasedType = erasedType.getOrElse(ErasedType.ObjectRef)
 
 extension (lit: Literal) 
   def erasedType: ErasedType = lit match

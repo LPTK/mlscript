@@ -367,7 +367,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
             for (_, s) <- entries do LoweringCtx.loweringCtx.collectScopedSym(s)
             val objectSym = ctx.builtins.Object
             mkMatch( // checking that we have an object
-              Case.Cls(objectSym, BuiltinSymbol(objectSym.nme, false, false, true, false, erasedType = S(ErasedType.objectRef)).asSimpleRef),
+              Case.Cls(objectSym, BuiltinSymbol(objectSym.nme, false, false, true, false, erasedType = S(ErasedType.ObjectRef)).asSimpleRef),
               entries.foldRight(lowerSplit(tail, cont)):
                 case ((fieldName, fieldSymbol), blk) =>
                   mkMatch(
