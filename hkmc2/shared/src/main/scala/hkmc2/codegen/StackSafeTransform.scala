@@ -35,16 +35,17 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
           case sym: LocalVarSymbol => f(sym.asSimpleRef)
           case _: NoSymbol => f(Value.Lit(Tree.UnitLit(false)))
   
-  def wrapStackSafe(body: Block, resSym: LocalVarSymbol, rest: Block) =
+  def wrapStackSafe(body: Block, resSym: Assignable, rest: Block) =
     val bodSym = BlockMemberSymbol("‹stack safe body›", Nil, false)
     val bodFun = FunDefn.withFreshSymbol(N, bodSym, ParamList(ParamListFlags.empty, Nil, N) :: Nil, body)(configOverride = N, annotations = Nil)
     Scoped(Set.single(bodSym),
       Define(bodFun, Assign(resSym, Call(runStackSafePath, (intLit(depthLimit).asArg :: bodSym.asMemberRef(bodSym.asPrincipal.get).asArg :: Nil) ne_:: Nil)(true, true, false), rest))
     )
 
-  def extractResTopLevel(res: Result, isTailCall: Bool, f: Result => Block, sym: LocalVarSymbol, curDepth: => LocalVarSymbol) =
-    val resSym = sym
-    wrapStackSafe(Ret(res), resSym, f(resSym.asSimpleRef))
+  def extractResTopLevel(res: Result, isTailCall: Bool, f: Result => Block, sym: Assignable, curDepth: => LocalVarSymbol) =
+    sym match
+    case sym: LocalVarSymbol => wrapStackSafe(Ret(res), sym, f(sym.asSimpleRef))
+    case _: NoSymbol => wrapStackSafe(Ret(res), sym, f(Value.Lit(Tree.UnitLit(false))))
 
   // Rewrites anything that can contain a Call to increase the stack depth
   def transform(b: Block, curDepth: => LocalVarSymbol, isTopLevel: Bool = false): Block =
@@ -73,9 +74,7 @@ class StackSafeTransform(depthLimit: Int, paths: HandlerPaths, stackSafetyMap: S
         case Assign(lhs, r, rest) =>
           if usesStack(r) then
             super.applyResult(r): r =>
-              lhs match
-              case _: NoSymbol => blockBuilder.assign(lhs, r).rest(applyBlock(rest))
-              case lhs: LocalVarSymbol => extract(r, false, _ => applyBlock(rest), lhs, curDepth)
+              extract(r, false, _ => applyBlock(rest), lhs, curDepth)
           else
             super.applyBlock(b)
         
