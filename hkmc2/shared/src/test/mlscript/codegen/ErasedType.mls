@@ -3,6 +3,7 @@
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ import Predef; end
 
+
 // Literals: Int / Str / Num / Bool.
 :siret
 let i = 1
@@ -11,6 +12,7 @@ let s = "str"
 let b = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let i⁰, f⁰, s⁰, b⁰; set i⁰: ? = 1; set f⁰: ? = 1.5; set s⁰: ? = "str"; set b⁰: ? = true; end
+
 
 // Tuple -> Array; record -> Object (the `NoSymbol` top case).
 :siret
@@ -23,6 +25,7 @@ let r = {x: i, y: s}
 //│ set y⁰: ? = s⁰;
 //│ set r⁰: ? = { "x": x⁰, "y": y⁰ };
 //│ end
+
 
 // Instantiation -> the class symbol.
 :siret
@@ -37,6 +40,7 @@ let foo = new Foo(123)
 //│ set foo⁰: ? = new Foo²(123);
 //│ end
 
+
 // Instantiation on class with `val` param -> the class symbol.
 :siret
 class Foo(val x: Str)
@@ -49,6 +53,7 @@ let foo = new Foo(123)
 //│ };
 //│ set foo¹: ? = new Foo⁵(123);
 //│ end
+
 
 // Call return / field selection
 :siret
@@ -71,11 +76,13 @@ let sel = made.x
 //│     end
 //│ end
 
+
 // Parameter annotations
 :siret
 fun add(x: Int, y: Int) = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int) { return +⁰(x, y) }; end
+
 
 // Optimized IR with erased types: surfaces where a type relaxes to `: ?`
 // through a transform (the relaxation gap `:soir` makes visible).
