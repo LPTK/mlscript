@@ -575,6 +575,7 @@ extension (self: Blk)
 
 
 case class ShowCfg(
+  showErasedTypes: Bool,
   showExpansionMappings: Bool,
   showFlowSymbols: Bool,
   debug: Bool,
@@ -586,6 +587,7 @@ end ShowCfg
 object ShowCfg:
   // * For use when displaying things for internal use (not for end users)
   val internal = ShowCfg(
+    showErasedTypes = true,
     showFlowSymbols = true,
     showExpansionMappings = false,
     debug = false,

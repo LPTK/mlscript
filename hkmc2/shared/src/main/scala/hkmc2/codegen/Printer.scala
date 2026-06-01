@@ -30,6 +30,15 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
       case S(str) => str
       case N => summon[SymbolPrinter].printSymbol(l)
   
+  def print(et: ErasedType)(using Scope): Document = et match
+    case ErasedType.AnyRef(rsc, csym: ClassLikeSymbol) => doc"${if rsc then "rsc " else ""}${print(csym)}"
+    case ErasedType.AnyRef(rsc, _: NoSymbol) => doc"${if rsc then "rsc " else ""}Object"
+    case ErasedType.Primitive(prim) => doc"${prim.toString}"
+  
+  def erasedTypeAnnot(x: HasErasedType)(using Scope): Document =
+    if !summon[ShowCfg].showErasedTypes then doc""
+    else doc": ${x.erasedType.fold(doc"?")(print)}"
+  
   def print(blk: Block)(using Scope): Document = blk match
     case Match(scrut, arms, dflt, rest) =>
       def case_doc(c: Case) = c match
@@ -59,7 +68,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
     case Assign(_: NoSymbol, rhs, rest) =>
       doc"do ${print(rhs)}; # ${print(rest)}"
     case Assign(lhs: (LocalVarSymbol | TermSymbol), rhs, rest) =>
-      doc"set ${print(lhs)} = ${print(rhs)}; # ${print(rest)}"
+      doc"set ${print(lhs)}${erasedTypeAnnot(lhs)} = ${print(rhs)}; # ${print(rest)}"
     case asf @ AssignField(lhs, nme, rhs, rest) =>
       doc"set ${print(lhs)}.${showMemberSymbol(nme.name, asf.symbol)} = ${print(rhs)}; # ${print(rest)}"
     case AssignDynField(lhs, fld, arrayIdx, rhs, rest) =>
@@ -97,8 +106,8 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
       ctor: Block,
       ctorSym: Opt[TermSymbol],
   )(using Scope): Document =
-    val privFields = privateFields.map(x => doc"private val ${print(x)};").mkDocument(sep = doc" # ")
-    val pubFields = publicFields.map(x => doc"val ${print(x._1)};").mkDocument(sep = doc" # ")
+    val privFields = privateFields.map(x => doc"private val ${print(x)}${erasedTypeAnnot(x)};").mkDocument(sep = doc" # ")
+    val pubFields = publicFields.map(x => doc"val ${print(x._1)}${erasedTypeAnnot(x._2)};").mkDocument(sep = doc" # ")
     val docPrivFlds = if privateFields.isEmpty then doc"" else doc" # ${privFields}"
     val docPubFlds = if publicFields.isEmpty then doc"" else doc" # ${pubFields}"
     val docPreCtor = preCtor match
@@ -127,8 +136,8 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
     paramss
       .map: pl =>
         val allParams =
-          pl.params.map(x => scope.allocateName(x.sym)) ++
-          pl.restParam.map(x => "..." + scope.allocateName(x.sym))
+          pl.params.map(x => doc"${scope.allocateName(x.sym)}${erasedTypeAnnot(x.sym)}") ++
+          pl.restParam.map(x => doc"...${scope.allocateName(x.sym)}${erasedTypeAnnot(x.sym)}")
         allParams.mkDocument("(", ", ", ")")
       .mkDocument("")
   
@@ -140,7 +149,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
         val docStaged = if fun.isStaged then doc"staged " else doc""
         doc"${docStaged}fun ${print(dSym)}${docParams} ${bracedbk(docBody)}"
     case ValDefn(tsym, sym, rhs) =>
-      doc"val ${print(tsym)} = ${print(rhs)}"
+      doc"val ${print(tsym)}${erasedTypeAnnot(tsym)} = ${print(rhs)}"
     case cls @ ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentSym, methods,
         privateFields, publicFields, preCtor, ctor, mod, bufferable)
     => scope.nest.givenIn:
@@ -195,8 +204,8 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
     case Lambda(params, body) =>
       scope.nest.givenIn:
         val allParams =
-          params.params.map(x => scope.allocateName(x.sym)) ++
-          params.restParam.map(x => "..." + scope.allocateName(x.sym))
+          params.params.map(x => doc"${scope.allocateName(x.sym)}${erasedTypeAnnot(x.sym)}") ++
+          params.restParam.map(x => doc"...${scope.allocateName(x.sym)}${erasedTypeAnnot(x.sym)}")
         val docParams = allParams.mkDocument("(", ", ", ")")
         doc"$docParams => ${bracedbk(print(body))}"
     case Tuple(mut, elems) =>

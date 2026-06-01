@@ -1,0 +1,76 @@
+:sir
+
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ import Predef; end
+
+// Literals: Int / Str / Num / Bool.
+:siret
+let i = 1
+let f = 1.5
+let s = "str"
+let b = true
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let i⁰, f⁰, s⁰, b⁰; set i⁰: ? = 1; set f⁰: ? = 1.5; set s⁰: ? = "str"; set b⁰: ? = true; end
+
+// Tuple -> Array; record -> Object (the `NoSymbol` top case).
+:siret
+let t = [i, s]
+let r = {x: i, y: s}
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let t⁰, r⁰, x⁰, y⁰;
+//│ set t⁰: ? = [i⁰, s⁰];
+//│ set x⁰: ? = i⁰;
+//│ set y⁰: ? = s⁰;
+//│ set r⁰: ? = { "x": x⁰, "y": y⁰ };
+//│ end
+
+// Instantiation -> the class symbol.
+:siret
+class Foo(x: Int)
+let foo = new Foo(123)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let Foo⁰, foo⁰;
+//│ define Foo⁰ as class Foo² {
+//│   private val x¹: ?;
+//│   constructor Foo¹(x: ?) { set Foo².this.x¹ = x; end }
+//│ };
+//│ set foo⁰: ? = new Foo²(123);
+//│ end
+
+// Call return / field selection
+:siret
+fun mk(a) = new Foo(a)
+let made = mk(1)
+let sel = made.x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let mk⁰, made⁰, sel⁰, selRes;
+//│ define mk⁰ as fun mk¹(a: ?) {
+//│   return new Foo²(a)
+//│ };
+//│ set made⁰: ? = mk¹(1);
+//│ set selRes: ? = made⁰.x﹖;
+//│ do made⁰.x$__checkNotMethod﹖;
+//│ match selRes
+//│   undefined =>
+//│     throw new globalThis⁰.Error﹖("Access to required field 'x' yielded 'undefined'")
+//│   else
+//│     set sel⁰: ? = selRes;
+//│     end
+//│ end
+
+// Parameter annotations
+:siret
+fun add(x: Int, y: Int) = x + y
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let add⁰; define add⁰ as fun add¹(x: ?, y: ?) { return +⁰(x, y) }; end
+
+// Optimized IR with erased types: surfaces where a type relaxes to `: ?`
+// through a transform (the relaxation gap `:soir` makes visible).
+:soir
+:siret
+fun id(a) = a
+id(new Foo(1))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let id⁰, tmp; define id⁰ as fun id¹(a: ?) { return a }; set tmp: Foo² = new Foo²(1); return id¹(tmp)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let id⁰; define id⁰ as fun id¹(a: ?) { return a }; return new Foo²(1)

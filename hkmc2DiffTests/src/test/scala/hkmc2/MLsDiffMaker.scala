@@ -46,6 +46,10 @@ abstract class MLsDiffMaker extends DiffMaker:
   val showOptimizedTree = NullaryCommand("olot")
   val debugOptimizations = NullaryCommand("dopt")
   val noOptimizations = NullaryCommand("noOpt")
+  val showIRErasedTypes = NullaryCommand("siret", () => 
+    if showIR.isUnset && showOptimizedIR.isUnset then 
+      output("Option ':siret' only has an effect if ':sir' or ':soir' is also set")
+  )
   val showContext = NullaryCommand("ctx")
   val parseOnly = NullaryCommand("parseOnly")
   val funcToCls = NullaryCommand("ftc")
@@ -453,6 +457,7 @@ abstract class MLsDiffMaker extends DiffMaker:
       if showFlows.isSet then
         import semantics.ShowCfg
         given ShowCfg = ShowCfg(
+          showErasedTypes = showIRErasedTypes.isSet,
           showExpansionMappings = true,
           showFlowSymbols = true,
           debug = debug.isSet,

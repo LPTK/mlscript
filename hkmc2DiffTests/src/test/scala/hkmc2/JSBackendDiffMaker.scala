@@ -108,6 +108,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     
     lazy val blockPrinter =
       given ShowCfg = ShowCfg(
+        showErasedTypes = showIRErasedTypes.isSet,
         showExpansionMappings = false,
         showFlowSymbols = true,
         debug = debug.isSet,
@@ -162,6 +163,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       
       if showIR.isSet || showIRLines.isSet then
         given ShowCfg = ShowCfg(
+          showErasedTypes = showIRErasedTypes.isSet,
           showExpansionMappings = false,
           showFlowSymbols = true,
           debug = debug.isSet,
@@ -200,6 +202,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       if showOptimizedIR.isSet then
         outputSeparator("Optimized IR")
         given ShowCfg = ShowCfg(
+          showErasedTypes = showIRErasedTypes.isSet,
           showExpansionMappings = false,
           showFlowSymbols = true,
           debug = debug.isSet,
