@@ -706,8 +706,7 @@ object ValDefn:
       annotations: Ls[Annot],
     )(using State)
     : ValDefn =
-      // TODO(Derppening): We can probably use the erasedType from `rhs` once Path implements `HasErasedType`
-      ValDefn(tsym = TermSymbol(k, owner, Tree.Ident(sym.nme), erasedType = N), sym = sym, rhs = rhs)(configOverride, annotations)
+      ValDefn(tsym = TermSymbol(k, owner, Tree.Ident(sym.nme), erasedType = rhs.erasedType), sym, rhs)(configOverride, annotations)
 
 
 /*
