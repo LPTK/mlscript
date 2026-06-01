@@ -962,6 +962,13 @@ class BlockSimplifier
         
         inline def isLoopBreaker = _isLoopBreaker
         
+        // Whether this method belongs to a module/object (as opposed to a class).
+        // Only module methods can be safely inlined, since class methods may access
+        // private fields via `this.#x` which are not accessible from outside the class.
+        def isModuleMethod: Bool = defn.dSym.owner match
+          case S(_: ModuleOrObjectSymbol) => true
+          case _ => false
+        
         // Whether this function can be inlined without causing any code duplication,
         // i.e. the original definition can be removed and there is only one usage.
         def canBeInlineEliminated: Bool =
