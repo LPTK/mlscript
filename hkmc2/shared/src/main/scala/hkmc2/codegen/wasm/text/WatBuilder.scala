@@ -26,6 +26,17 @@ extension (instr: FoldedInstr)
   private def mnemonicPrefix: Opt[Str] =
     instr.mnemonic.split('.').optionUnless(_.size == 1).map(_.head)
 
+extension (et: ErasedType)
+  /** Returns the corresponding Wasm type for this [[`ErasedType`]]. */
+  private def wasmType(using Ctx): Opt[RefType] = 
+    import Ctx.ctx
+    et match
+      case ErasedType.Primitive(PrimitiveType.Int | PrimitiveType.Int31 | PrimitiveType.Bool) =>
+        S(RefType.i31ref)
+      case ErasedType.AnyRef(_, csym: ClassLikeSymbol) =>
+        csym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
+      case _ => N
+
 object WatBuilder:
   /** The maximum number of characters taken to be part of the identifier asscoiated with string constants. */
   val StringConstantIdentMaxLength = 16
