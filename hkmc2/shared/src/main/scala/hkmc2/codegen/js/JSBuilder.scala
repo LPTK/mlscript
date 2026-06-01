@@ -317,7 +317,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       val scrutSym = scrut.map(_.sym)
       b match
       case Match(
-        scrut_ @ Value.SimpleRef(scrutSym_),             // The scrutinee is a ref.
+        scrut_ @ Value.SimpleRef(scrutSym_),                // The scrutinee is a ref.
         (Case.Lit(Tree.IntLit(curVal_)), b) :: Nil,         // There is only one case matching an int literal.
         S(End(_)) | N, rest                                 // Default case exists and does nothing.
       )
