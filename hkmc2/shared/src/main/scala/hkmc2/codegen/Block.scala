@@ -13,6 +13,7 @@ import syntax.{Literal, Tree, SpreadKind, Keyword}
 import semantics.*
 import semantics.Term.*
 import sem.Elaborator.{Ctx, State, ctx}
+import sourcecode.{FileName, Line}
 
 
 /* Important design notes.
@@ -880,6 +881,20 @@ trait HasErasedType:
 
   /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known. */
   def erasedType_! : ErasedType = erasedType.getOrElse(ErasedType.ObjectRef)
+
+/** A [[`HasErasedType`]] that can have its erased type refined post-construction. */
+trait HasRefinableErasedType extends HasErasedType:
+  // Implementation Note: Provided for overriding classes to implement `erasedType` directly as an `override var`
+  def erasedType_=(newType: Opt[ErasedType]): Unit
+
+  /** Refines the erased type if it was not previously refined, but allowing for idempotent refinements to the same
+    * type.
+    *
+    * A soft assert will be raised if the erased type was already refined to a different type.
+    */
+  def refineErasedType(newType: ErasedType)(using Line, FileName, Raise): Unit =
+    softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
+    if erasedType.isEmpty then erasedType = S(newType)
 
 extension (lit: Literal) 
   def erasedType: ErasedType = lit match

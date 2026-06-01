@@ -12,6 +12,7 @@ import Elaborator.State
 import Tree.Ident
 import hkmc2.codegen.{ErasedType, HasErasedType, erasedType}
 import hkmc2.utils.SymbolSubst
+import hkmc2.codegen.HasRefinableErasedType
 
 
 sealed abstract class MaybeSymbol:
@@ -248,7 +249,10 @@ class InstSymbol(val origin: Symbol)(using State) extends LocalSymbol:
   def subst(using sub: SymbolSubst): InstSymbol = sub.mapInstSym(this)
 
 
-class VarSymbol(val id: Ident, override val erasedType: Opt[ErasedType])(using State) extends LocalVarSymbol(id.name) with NamedSymbol:
+class VarSymbol(val id: Ident, override var erasedType: Opt[ErasedType])(using State)
+    extends LocalVarSymbol(id.name)
+    with HasRefinableErasedType
+    with NamedSymbol:
   val name: Str = id.name
   override def toLoc: Opt[Loc] = id.toLoc
   // override def toString: Str = s"$name@$uid"
@@ -337,10 +341,10 @@ sealed abstract class MemberSymbol(using State) extends Symbol:
   def subst(using SymbolSubst): MemberSymbol
 
 
-class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.Ident, override val erasedType: Opt[ErasedType])(using State)
+class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.Ident, override var erasedType: Opt[ErasedType])(using State)
     extends MemberSymbol
     with DefinitionSymbol[TermDefinition]
-    with HasErasedType
+    with HasRefinableErasedType
     with NamedSymbol:
   def nme: Str = id.name
   def name: Str = nme
