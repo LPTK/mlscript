@@ -853,6 +853,13 @@ enum PrimitiveType:
 
 object ErasedType:
   def ObjectRef: ErasedType.AnyRef = AnyRef(rsc = false, NoSymbol())
+
+  /** Maps a [[`ClassLikeSymbol`]] into the canonical [[`ErasedType`]]. */
+  def fromClsLikeSymbol(csym: ClassLikeSymbol, rsc: Bool)(using Ctx, State): ErasedType = 
+    PrimitiveType.values.find(_.sym === csym) match 
+      case _ if csym === ctx.builtins.Object => ObjectRef
+      case S(prim) => ErasedType.Primitive(prim)
+      case _ => ErasedType.AnyRef(rsc, csym)
     
 /** A generics-erased type of the Block IR. */
 enum ErasedType:

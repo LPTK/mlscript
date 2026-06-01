@@ -1377,8 +1377,15 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val scopedSyms = loweringCtx.getCollectedSym
       Scoped(scopedSyms, body)
   
+  /** Erases a type-annotated term to an [[`ErasedType`]]. */
+  private def eraseSign(sign: Term): Opt[ErasedType] = 
+    sign.symbol.flatMap(_.asClsOrMod).map(sym => ErasedType.fromClsLikeSymbol(sym, rsc = false))
+  
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =
+    paramLists.foreach: pl =>
+      pl.params.foreach: p =>
+        p.sign.flatMap(eraseSign).foreach(p.sym.refineErasedType)
     val scopedBody = inScopedBlock(returnedTerm(bodyTerm))
     (paramLists, scopedBody)
   

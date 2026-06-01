@@ -62,7 +62,7 @@ let sel = made.x
 :siret
 fun add(x: Int, y: Int) = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let add⁰; define add⁰ as fun add¹(x: ?, y: ?) { return +⁰(x, y) }; end
+//│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int) { return +⁰(x, y) }; end
 
 // Optimized IR with erased types: surfaces where a type relaxes to `: ?`
 // through a transform (the relaxation gap `:soir` makes visible).
