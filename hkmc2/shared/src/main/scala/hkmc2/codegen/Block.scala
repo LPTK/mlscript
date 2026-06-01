@@ -849,28 +849,28 @@ enum PrimitiveType:
     case Str => ctx.builtins.Str
     case Bool => ctx.builtins.Bool
     case Array => ctx.builtins.Array
+
+object ErasedType:
+  def ObjectRef: ErasedType.AnyRef = AnyRef(rsc = false, NoSymbol())
     
 /** A generics-erased type of the Block IR. */
 enum ErasedType:
-  /** A reference to the Object (top) type. */
-  // Implementation Note: This is not collapsed into `AnyRef` to avoid the need to pass `Elaborator.Ctx` around just to
-  // recover `ctx.builtins.Object`
-  case ObjectRef
-
   /** 
     * An reference to a class-like symbol.
     *
+    * If `csym` is `NoSymbol`, this represents the top type (`Object`).
+    *
     * - `rsc` is true if this reference is a resource class.
     */
-  case AnyRef(rsc: Bool, csym: ClassLikeSymbol)
+  case AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol)
 
   /** An primitive type. */
   case Primitive(prim: PrimitiveType)
 
   /** The symbol for this erased type. */
   def sym(using Ctx, State): ClassLikeSymbol = this match
-      case ObjectRef => ctx.builtins.Object
-      case AnyRef(_, csym) => csym
+      case AnyRef(_, csym: ClassLikeSymbol) => csym
+      case AnyRef(_, _: NoSymbol) => ctx.builtins.Object
       case Primitive(prim) => prim.sym
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
