@@ -290,6 +290,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 )
             case _ => _defn
           reportAnnotations(defn, defn.extraAnnotations)
+          (defn.paramsOpt.iterator ++ defn.auxParams.iterator).flatMap(_.params).foreach(refineClassParam)
           val bufferableAnnots = defn.annotations.flatMap:
             case Annot.Trm(trm: SynthSel) =>
               if trm.sym.contains(ctx.builtins.annotations.buffered) then
@@ -1380,6 +1381,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   /** Erases a type-annotated term to an [[`ErasedType`]]. */
   private def eraseSign(sign: Term): Opt[ErasedType] = 
     sign.symbol.flatMap(_.asClsOrMod).map(sym => ErasedType.fromClsLikeSymbol(sym, rsc = false))
+  
+  private def refineClassParam(p: Param): Unit = 
+    p.sign.flatMap(eraseSign).foreach: et =>
+      p.sym.refineErasedType(et)
+      p.fldSym.foreach:
+        case fld: TermSymbol => fld.refineErasedType(et)
+        case bms: BlockMemberSymbol => bms.tsym.foreach(_.refineErasedType(et))
+        case _ =>
   
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =
