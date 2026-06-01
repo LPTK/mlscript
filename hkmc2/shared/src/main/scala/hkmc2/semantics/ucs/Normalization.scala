@@ -318,7 +318,8 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
       (split: Split, cont: Result => Block)
       (using form: IfLikeForm)
       (using LoweringCtx)
-      : Block = split match
+      : Block =
+    split match
     case Split.Let(sym, trm, tl) =>
       LoweringCtx.loweringCtx.collectScopedSym(sym)
       term_nonTail(trm): r =>
@@ -340,7 +341,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
               // Normalization should reject cases where the user provides
               // more sub-patterns than there are actual class parameters.
               assert(argsOpt.isEmpty || args.length <= clsParams.length, (argsOpt, clsParams))
-              def mkArgs(args: Ls[TermSymbol -> BlockLocalSymbol])(using LoweringCtx): Case -> Block = args match
+              def mkArgs(args: Ls[TermSymbol -> LocalVarSymbol])(using LoweringCtx): Case -> Block = args match
                 case Nil =>
                   Case.Cls(ctorSym, st) -> lowerSplit(tail, cont)
                 case (param, arg) :: args =>
@@ -405,7 +406,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
         val exitCont: Result => Block = r => Assign(tmp, r, Break(exitLabel))
         val bodyBlock = lowerSplit(sym.body, exitCont)
         val tailBlock = lowerSplit(tail, exitCont)
-        Label(exitLabel, false, Label(joinLabel, false, tailBlock, bodyBlock), cont(Value.Ref(tmp)))
+        Label(exitLabel, false, Label(joinLabel, false, tailBlock, bodyBlock), cont(Value.SimpleRef(tmp)))
     case Split.UseSplit(sym) =>
       sym.label match
         case S(label) => Break(label)
@@ -456,7 +457,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
         val res = new BlockMemberSymbol("while", Nil, false)
         outerCtx.collectScopedSym(res)
         res
-      lazy val tSym = TermSymbol.fromFunBms(f, N)
+      lazy val tSym = TermSymbol.fromFunBms(f, N, erasedType = N)
       val normalized = tl.scoped("ucs:normalize"):
         normalize(inputSplit)(using VarSet())
       tl.scoped("ucs:normalized"):
@@ -619,9 +620,9 @@ object Normalization:
         case N => false)
     go(child, Set.empty)
 
-  final case class VarSet(declared: Set[BlockLocalSymbol]):
-    def +(nme: BlockLocalSymbol): VarSet = copy(declared + nme)
-    infix def has(nme: BlockLocalSymbol): Bool = declared.contains(nme)
+  final case class VarSet(declared: Set[LocalVarSymbol]):
+    def +(nme: LocalVarSymbol): VarSet = copy(declared + nme)
+    infix def has(nme: LocalVarSymbol): Bool = declared.contains(nme)
     def showDbg: Str = declared.iterator.mkString("{", ", ", "}")
 
   object VarSet:
