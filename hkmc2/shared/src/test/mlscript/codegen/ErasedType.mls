@@ -11,7 +11,7 @@ let f = 1.5
 let s = "str"
 let b = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let i⁰, f⁰, s⁰, b⁰; set i⁰: ? = 1; set f⁰: ? = 1.5; set s⁰: ? = "str"; set b⁰: ? = true; end
+//│ let i⁰: ?, f⁰: ?, s⁰: ?, b⁰: ?; set i⁰ = 1; set f⁰ = 1.5; set s⁰ = "str"; set b⁰ = true; end
 
 
 // Tuple -> Array; record -> Object (the `NoSymbol` top case).
@@ -19,11 +19,11 @@ let b = true
 let t = [i, s]
 let r = {x: i, y: s}
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let t⁰, r⁰, x⁰, y⁰;
-//│ set t⁰: ? = [i⁰, s⁰];
-//│ set x⁰: ? = i⁰;
-//│ set y⁰: ? = s⁰;
-//│ set r⁰: ? = { "x": x⁰, "y": y⁰ };
+//│ let t⁰: ?, r⁰: ?, x⁰: ?, y⁰: ?;
+//│ set t⁰ = [i⁰, s⁰];
+//│ set x⁰ = i⁰;
+//│ set y⁰ = s⁰;
+//│ set r⁰ = { "x": x⁰, "y": y⁰ };
 //│ end
 
 
@@ -32,12 +32,12 @@ let r = {x: i, y: s}
 class Foo(x: Int)
 let foo = new Foo(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Foo⁰, foo⁰;
+//│ let Foo⁰: ?, foo⁰: ?;
 //│ define Foo⁰ as class Foo² {
 //│   private val x¹: Int;
 //│   constructor Foo¹(x: Int) { set Foo².this.x¹ = x; end }
 //│ };
-//│ set foo⁰: ? = new Foo²(123);
+//│ set foo⁰ = new Foo²(123);
 //│ end
 
 
@@ -46,12 +46,12 @@ let foo = new Foo(123)
 class Foo(val x: Str)
 let foo = new Foo(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Foo³, foo¹;
+//│ let Foo³: ?, foo¹: ?;
 //│ define Foo³ as class Foo⁵ {
 //│   val x²: Str;
 //│   constructor Foo⁴(x: Str) { define x² as val x³: Str = x; end }
 //│ };
-//│ set foo¹: ? = new Foo⁵(123);
+//│ set foo¹ = new Foo⁵(123);
 //│ end
 
 
@@ -61,18 +61,18 @@ fun mk(a) = new Foo(a)
 let made = mk(1)
 let sel = made.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let mk⁰, made⁰, sel⁰, selRes;
+//│ let mk⁰: ?, made⁰: ?, sel⁰: ?, selRes: ?;
 //│ define mk⁰ as fun mk¹(a: ?) {
 //│   return new Foo⁵(a)
 //│ };
-//│ set made⁰: ? = mk¹(1);
-//│ set selRes: ? = made⁰.x﹖;
+//│ set made⁰ = mk¹(1);
+//│ set selRes = made⁰.x﹖;
 //│ do made⁰.x$__checkNotMethod﹖;
 //│ match selRes
 //│   undefined =>
 //│     throw new globalThis⁰.Error﹖("Access to required field 'x' yielded 'undefined'")
 //│   else
-//│     set sel⁰: ? = selRes;
+//│     set sel⁰ = selRes;
 //│     end
 //│ end
 
@@ -81,7 +81,7 @@ let sel = made.x
 :siret
 fun add(x: Int, y: Int) = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int) { return +⁰(x, y) }; end
+//│ let add⁰: ?; define add⁰ as fun add¹(x: Int, y: Int) { return +⁰(x, y) }; end
 
 
 // Optimized IR with erased types: surfaces where a type relaxes to `: ?`
@@ -91,6 +91,9 @@ fun add(x: Int, y: Int) = x + y
 fun id(a) = a
 id(new Foo(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let id⁰, tmp; define id⁰ as fun id¹(a: ?) { return a }; set tmp: Foo⁵ = new Foo⁵(1); return id¹(tmp)
+//│ let id⁰: ?, tmp: Foo⁵;
+//│ define id⁰ as fun id¹(a: ?) { return a };
+//│ set tmp = new Foo⁵(1);
+//│ return id¹(tmp)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let id⁰; define id⁰ as fun id¹(a: ?) { return a }; return new Foo⁵(1)
+//│ let id⁰: ?; define id⁰ as fun id¹(a: ?) { return a }; return new Foo⁵(1)

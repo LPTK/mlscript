@@ -68,7 +68,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
     case Assign(_: NoSymbol, rhs, rest) =>
       doc"do ${print(rhs)}; # ${print(rest)}"
     case Assign(lhs: (LocalVarSymbol | TermSymbol), rhs, rest) =>
-      doc"set ${print(lhs)}${erasedTypeAnnot(lhs)} = ${print(rhs)}; # ${print(rest)}"
+      doc"set ${print(lhs)} = ${print(rhs)}; # ${print(rest)}"
     case asf @ AssignField(lhs, nme, rhs, rest) =>
       doc"set ${print(lhs)}.${showMemberSymbol(nme.name, asf.symbol)} = ${print(rhs)}; # ${print(rest)}"
     case AssignDynField(lhs, fld, arrayIdx, rhs, rest) =>
@@ -78,7 +78,9 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
     case Scoped(syms, body) =>
       scope.nest.givenIn:
         import hkmc2.given_Ordering_Uid // Not sure why needed...
-        val names = syms.toList.sortBy(_.uid).map(s => scope.allocateName(s))
+        val names = syms.toList.sortBy(_.uid).map:
+          case sym: LocalVarSymbol => doc"${scope.allocateName(sym)}${erasedTypeAnnot(sym)}"
+          case bms: BlockMemberSymbol => doc"${scope.allocateName(bms)}${bms.tsym.fold(doc"")(erasedTypeAnnot(_))}"
         doc"let ${names.mkDocument(", ")}; # ${print(body)}"
     case End(msg) if msg.nonEmpty && config.commentGeneratedCode => doc"end /* ${msg} */"
     case End(_) => doc"end"
@@ -235,10 +237,12 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
         // * therefore, we want to avoid printing them with fresh names but use their `dbgName`s instead.
         scope.nest.givenIn:
           import hkmc2.given_Ordering_Uid // Not sure why needed...
+          val symPrinter = summon[SymbolPrinter]
           val names = syms.toList.sortBy(_.uid).map:
-            case s: TempSymbol => scope.allocateName(s)
-            case s => summon[SymbolPrinter].printSymbol(s)
-          doc"let ${names.mkString(", ")}; # ${print(body)}"
+            case s: TempSymbol => doc"${scope.allocateName(s)}${erasedTypeAnnot(s)}"
+            case s: LocalVarSymbol => doc"${symPrinter.printSymbol(s)}${erasedTypeAnnot(s)}"
+            case s: BlockMemberSymbol => doc"${symPrinter.printSymbol(s)}${s.tsym.fold(doc"")(erasedTypeAnnot(_))}"
+          doc"let ${names.mkDocument(", ")}; # ${print(body)}"
       case m => print(m)
     }"
   
