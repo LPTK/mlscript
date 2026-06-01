@@ -115,16 +115,26 @@ class Foo(using T) with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", [null]];
 //│ });
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: softAssert (Lowering.scala:1387)
+//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1387': Cannot refine already-refined erased type Some(AnyRef(false,class:T)) to AnyRef(false,class:T)
+//│ ╟── The compilation result may be incorrect.
+//│ ╙── This is a compiler bug; please report it to the maintainers.
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: softAssert (Lowering.scala:1389)
+//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1389': Cannot refine already-refined erased type Some(AnyRef(false,class:T)) to AnyRef(false,class:T)
+//│ ╟── The compilation result may be incorrect.
+//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :todo
 :sjs
 x => x.Foo#S
 //│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'S'.
-//│ ║  l.122: 	x => x.Foo#S
+//│ ║  l.132: 	x => x.Foo#S
 //│ ╙──       	           ^
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type T for call: 
-//│ ║  l.122: 	x => x.Foo#S
+//│ ║  l.132: 	x => x.Foo#S
 //│ ║         	      ^^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  l.101: 	class Foo(using T) with

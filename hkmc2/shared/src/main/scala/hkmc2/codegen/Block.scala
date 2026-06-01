@@ -894,13 +894,9 @@ trait HasRefinableErasedType extends HasErasedType:
   // Implementation Note: Provided for overriding classes to implement `erasedType` directly as an `override var`
   def erasedType_=(newType: Opt[ErasedType]): Unit
 
-  /** Refines the erased type if it was not previously refined, but allowing for idempotent refinements to the same
-    * type.
-    *
-    * A soft assert will be raised if the erased type was already refined to a different type.
-    */
+  /** Refines the erased type, or raises a soft assertion if the type was already previously refined. */
   def refineErasedType(newType: ErasedType)(using Line, FileName, Raise): Unit =
-    softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
+    softAssert(erasedType.isEmpty, s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
 
 extension (lit: Literal) 
