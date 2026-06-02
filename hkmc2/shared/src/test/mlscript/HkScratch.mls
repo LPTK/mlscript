@@ -8,5 +8,71 @@
 // :d
 // :todo
 
+open annotations { inline }
+
+
+:sir
+:soir
+:lot
+class Foo()
+Foo()
+//│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Scoped(syms = {member:Foo⁰}): 
+//│     body = Define:
+//│       defn = ClsLikeDefn:
+//│         isym = class:Foo¹
+//│         sym = member:Foo⁰
+//│         ctorSym = S of term:Foo¹/Foo²
+//│         k = Cls
+//│         auxParams = Ls of 
+//│           ParamList: ‹empty›
+//│       rest = Return of Call:
+//│         fun = MemberRef{disamb=term:Foo¹/Foo²}:
+//│           bms = member:Foo⁰
+//│           disamb = term:Foo¹/Foo²
+//│         argss = Ls of 
+//│           Nil
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let Foo⁰; define Foo⁰ as class Foo¹ { constructor Foo² }; return Foo²()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let Foo⁰; define Foo⁰ as class Foo¹ { constructor Foo² }; return Foo²()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = Foo()
+
+
+@inline
+fun test() =
+  class Foo()
+  Foo()
+
+:sir
+:soir
+:olot
+test()
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ return test⁰()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let Foo³; define Foo³ as class Foo⁵ { constructor Foo⁴ }; return Foo⁶()
+//│ ————————————| Optimized IR Tree |———————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Scoped(syms = {member:Foo³}): 
+//│     body = Define:
+//│       defn = ClsLikeDefn:
+//│         isym = class:Foo⁵
+//│         sym = member:Foo³
+//│         ctorSym = S of term:Foo⁵/Foo⁴
+//│         k = Cls
+//│         auxParams = Ls of 
+//│           ParamList: ‹empty›
+//│       rest = Return of Call:
+//│         fun = MemberRef{disamb=term:Foo⁷/Foo⁶}:
+//│           bms = member:Foo³
+//│           disamb = term:Foo⁷/Foo⁶
+//│         argss = Ls of 
+//│           Nil
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = Foo()
+
 
 
