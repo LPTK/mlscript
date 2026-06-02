@@ -667,8 +667,8 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Match(scrut, arms @ hd :: tl, els, rest) =>
       val sd = result(scrut)
       // * Parenthesize the scrutinee for property access when it's a numeric literal,
-      // * since `12.length` is invalid JS (the `.` is parsed as a decimal point).
-      val sdProp = scrut match
+      // * since things like `12.length` are invalid JS (the `.` is parsed as a decimal point).
+      def sdProp = scrut match
         case Value.Lit(Tree.IntLit(_) | Tree.DecLit(_)) => doc"($sd)"
         case _ => sd
       def cond(cse: Case) = cse match
