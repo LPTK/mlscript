@@ -30,15 +30,20 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
           case tmpSym: TempSymbol => new TempSymbol(N, tmpSym.nme)
           case bms: BlockMemberSymbol =>
             val newBms = new BlockMemberSymbol(bms.nme, Nil, bms.nameIsMeaningful)
-            newBms.tsym = bms.tsym.map: t =>
-              val newOwner: Opt[InnerSymbol] = t.owner.map: o =>
-                existingMapping.get(o) match
-                  case Some(inner: InnerSymbol) => inner
-                  case _ => o
-              val nt = new TermSymbol(t.k, newOwner, t.id)
-              mapping(t) = nt
-              oldSyms.add(t)
-              nt
+            newBms.tsym = bms.tsym.flatMap:
+              case _: ClassCtorSymbol =>
+                // A refreshed constructor must be owned by the refreshed class symbol,
+                // which is not available until we visit the corresponding ClsLikeDefn.
+                N
+              case t =>
+                val newOwner: Opt[InnerSymbol] = t.owner.map: o =>
+                  existingMapping.get(o) match
+                    case Some(inner: InnerSymbol) => inner
+                    case _ => o
+                val nt = new TermSymbol(t.k, newOwner, t.id)
+                mapping(t) = nt
+                oldSyms.add(t)
+                S(nt)
             newBms
           case varSym: VarSymbol => new VarSymbol(varSym.id)
         mapping(s) = new_s
@@ -162,28 +167,16 @@ class SymbolRefresher(existingMapping: Map[Symbol, Symbol])(using State) extends
         case _ => die
 
       val newCtorSym: Opt[ClassCtorSymbol] = defn.ctorSym.map: cs =>
-        mapping.get(cs) match
-          case Some(existing: ClassCtorSymbol) => existing
-          case Some(existing: TermSymbol) =>
-            // The ctor symbol was already mapped to a TermSymbol by the FunDefn case
-            // (for the data-class wrapper function, whose dSym IS the ClassCtorSymbol).
-            // Create a fresh ClassCtorSymbol for the ClsLikeDefn, but do NOT overwrite
-            // the mapping or bms.tsym: the wrapper function needs the TermSymbol mapping
-            // for correct MemberRef disambiguation and JS code generation.
-            val newOwner = newIsym match
-              case cls: ClassSymbol => cls
-              case _ => lastWords(s"ClassCtorSymbol for non-class: $newIsym")
-            new ClassCtorSymbol(cs.k, S(newOwner), cs.id)
-          case None =>
-            val newOwner = newIsym match
-              case cls: ClassSymbol => cls
-              case _ => lastWords(s"ClassCtorSymbol for non-class: $newIsym")
-            val ncs = new ClassCtorSymbol(cs.k, S(newOwner), cs.id)
-            mapping(cs) = ncs
-            hd += cs
-            ncs
-          case Some(other) =>
-            lastWords(s"Class ctor ${cs.nme} mapped to unexpected symbol kind ${other.getClass.getSimpleName}")
+        assert(!mapping.isDefinedAt(cs), s"ctor symbol already in mapping: $cs")
+        assert(newSym.tsym.isEmpty, s"class member already has a term symbol: ${newSym.tsym}")
+        val newOwner = newIsym match
+          case cls: ClassSymbol => cls
+          case _ => lastWords(s"ClassCtorSymbol for non-class: $newIsym")
+        val ncs = new ClassCtorSymbol(cs.k, S(newOwner), cs.id)
+        newSym.tsym = S(ncs)
+        mapping(cs) = ncs
+        hd += cs
+        ncs
 
       val newOwn: Opt[InnerSymbol] = defn.owner.map: o =>
         mapping.get(o) match
