@@ -80,7 +80,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
         import hkmc2.given_Ordering_Uid // Not sure why needed...
         val names = syms.toList.sortBy(_.uid).map:
           case sym: LocalVarSymbol => doc"${scope.allocateName(sym)}${erasedTypeAnnot(sym)}"
-          case bms: BlockMemberSymbol => doc"${scope.allocateName(bms)}${bms.tsym.fold(doc"")(erasedTypeAnnot(_))}"
+          case bms: BlockMemberSymbol => doc"${scope.allocateName(bms)}"
         doc"let ${names.mkDocument(", ")}; # ${print(body)}"
     case End(msg) if msg.nonEmpty && config.commentGeneratedCode => doc"end /* ${msg} */"
     case End(_) => doc"end"
@@ -241,7 +241,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
           val names = syms.toList.sortBy(_.uid).map:
             case s: TempSymbol => doc"${scope.allocateName(s)}${erasedTypeAnnot(s)}"
             case s: LocalVarSymbol => doc"${symPrinter.printSymbol(s)}${erasedTypeAnnot(s)}"
-            case s: BlockMemberSymbol => doc"${symPrinter.printSymbol(s)}${s.tsym.fold(doc"")(erasedTypeAnnot(_))}"
+            case s: BlockMemberSymbol => doc"${symPrinter.printSymbol(s)}"
           doc"let ${names.mkDocument(", ")}; # ${print(body)}"
       case m => print(m)
     }"

@@ -32,7 +32,7 @@ let r = {x: i, y: s}
 class Foo(x: Int)
 let foo = new Foo(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Foo⁰: ?, foo⁰: ?;
+//│ let Foo⁰, foo⁰: ?;
 //│ define Foo⁰ as class Foo² {
 //│   private val x¹: Int;
 //│   constructor Foo¹(x: Int) { set Foo².this.x¹ = x; end }
@@ -46,7 +46,7 @@ let foo = new Foo(123)
 class Foo(val x: Str)
 let foo = new Foo(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Foo³: ?, foo¹: ?;
+//│ let Foo³, foo¹: ?;
 //│ define Foo³ as class Foo⁵ {
 //│   val x²: Str;
 //│   constructor Foo⁴(x: Str) { define x² as val x³: Str = x; end }
@@ -61,7 +61,7 @@ fun mk(a) = new Foo(a)
 let made = mk(1)
 let sel = made.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let mk⁰: ?, made⁰: ?, sel⁰: ?, selRes: ?;
+//│ let mk⁰, made⁰: ?, sel⁰: ?, selRes: ?;
 //│ define mk⁰ as fun mk¹(a: ?) {
 //│   return new Foo⁵(a)
 //│ };
@@ -81,7 +81,7 @@ let sel = made.x
 :siret
 fun add(x: Int, y: Int) = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let add⁰: ?; define add⁰ as fun add¹(x: Int, y: Int) { return +⁰(x, y) }; end
+//│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int) { return +⁰(x, y) }; end
 
 
 // Optimized IR with erased types: surfaces where a type relaxes to `: ?`
@@ -91,9 +91,6 @@ fun add(x: Int, y: Int) = x + y
 fun id(a) = a
 id(new Foo(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let id⁰: ?, tmp: Foo⁵;
-//│ define id⁰ as fun id¹(a: ?) { return a };
-//│ set tmp = new Foo⁵(1);
-//│ return id¹(tmp)
+//│ let id⁰, tmp: Foo⁵; define id⁰ as fun id¹(a: ?) { return a }; set tmp = new Foo⁵(1); return id¹(tmp)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let id⁰: ?; define id⁰ as fun id¹(a: ?) { return a }; return new Foo⁵(1)
+//│ let id⁰; define id⁰ as fun id¹(a: ?) { return a }; return new Foo⁵(1)
