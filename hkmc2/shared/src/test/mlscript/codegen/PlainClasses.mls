@@ -228,9 +228,9 @@ class Foo with
 //│     return this.x + y
 //│   }
 //│   bar(z) {
-//│     let inlinedVal;
-//│     inlinedVal = this.x + z;
-//│     return inlinedVal + 1
+//│     let tmp;
+//│     tmp = this.foo(z);
+//│     return tmp + 1
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"];

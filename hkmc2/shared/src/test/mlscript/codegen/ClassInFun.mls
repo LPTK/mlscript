@@ -34,15 +34,15 @@ test(3)
 //│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed
 //│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:13)
-//│ 	at: hkmc2.codegen.SymbolRefresher.$anonfun$10(SymbolRefresher.scala:160)
+//│ 	at: hkmc2.codegen.SymbolRefresher.$anonfun$11(SymbolRefresher.scala:160)
 //│ 	at: scala.Option.map(Option.scala:244)
 //│ 	at: hkmc2.codegen.SymbolRefresher.applyDefn(SymbolRefresher.scala:159)
 //│ 	at: hkmc2.codegen.BlockTransformer.applyBlock(BlockTransformer.scala:95)
-//│ 	at: hkmc2.codegen.SymbolRefresher.applyBlock(SymbolRefresher.scala:82)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier$Copier$.applyBlock(BlockSimplifier.scala:1140)
-//│ 	at: hkmc2.codegen.SymbolRefresher.applyScopedBlock(SymbolRefresher.scala:51)
+//│ 	at: hkmc2.codegen.SymbolRefresher.applyBlock(SymbolRefresher.scala:78)
+//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier$Copier$.applyBlock(BlockSimplifier.scala:1108)
+//│ 	at: hkmc2.codegen.SymbolRefresher.applyScopedBlock(SymbolRefresher.scala:47)
 //│ 	at: hkmc2.codegen.BlockTransformer.applyBlock(BlockTransformer.scala:106)
-//│ 	at: hkmc2.codegen.SymbolRefresher.applyBlock(SymbolRefresher.scala:82)
+//│ 	at: hkmc2.codegen.SymbolRefresher.applyBlock(SymbolRefresher.scala:78)
 
 :sjs
 fun test(x) =
@@ -76,15 +76,15 @@ test(123)
 //│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed
 //│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:13)
-//│ 	at: hkmc2.codegen.SymbolRefresher.$anonfun$10(SymbolRefresher.scala:160)
+//│ 	at: hkmc2.codegen.SymbolRefresher.$anonfun$11(SymbolRefresher.scala:160)
 //│ 	at: scala.Option.map(Option.scala:244)
 //│ 	at: hkmc2.codegen.SymbolRefresher.applyDefn(SymbolRefresher.scala:159)
 //│ 	at: hkmc2.codegen.BlockTransformer.applyBlock(BlockTransformer.scala:95)
-//│ 	at: hkmc2.codegen.SymbolRefresher.applyBlock(SymbolRefresher.scala:82)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier$Copier$.applyBlock(BlockSimplifier.scala:1140)
-//│ 	at: hkmc2.codegen.SymbolRefresher.applyScopedBlock(SymbolRefresher.scala:51)
+//│ 	at: hkmc2.codegen.SymbolRefresher.applyBlock(SymbolRefresher.scala:78)
+//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier$Copier$.applyBlock(BlockSimplifier.scala:1108)
+//│ 	at: hkmc2.codegen.SymbolRefresher.applyScopedBlock(SymbolRefresher.scala:47)
 //│ 	at: hkmc2.codegen.BlockTransformer.applyBlock(BlockTransformer.scala:106)
-//│ 	at: hkmc2.codegen.SymbolRefresher.applyBlock(SymbolRefresher.scala:82)
+//│ 	at: hkmc2.codegen.SymbolRefresher.applyBlock(SymbolRefresher.scala:78)
 
 
 // * Forgot to pass the arg:

@@ -67,8 +67,8 @@ class Baz(a, b) with
 :fixme
 :expect 21
 Baz(1, 2)(3, 4)(5, 6).total()
-//│ ═══[RUNTIME ERROR] Expected: '21', got: 'NaN'
-//│ = NaN
+//│ = 21
+//│ FAILURE: Unexpected lack of error to fix
 
 let mk = Baz(1, 2)(3, 4)
 //│ mk = fun
@@ -84,7 +84,7 @@ data class Point(label) with
   fun coords() = [x, y]
 
 Point("A")(1, 2).coords()
-//│ = [undefined, undefined]
+//│ = [1, 2]
 
 
 // === Single aux param list on class with main params ===
@@ -96,7 +96,7 @@ class Qux(a) with
 :fixme
 :expect 133
 Qux(10)(123).both()
-//│ ═══[RUNTIME ERROR] Expected: '133', got: 'NaN'
-//│ = NaN
+//│ = 133
+//│ FAILURE: Unexpected lack of error to fix
 
 
