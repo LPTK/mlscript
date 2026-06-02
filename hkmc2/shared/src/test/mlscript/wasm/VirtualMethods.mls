@@ -54,7 +54,7 @@ callF(B())
 //│       (return
 //│         (local.get $this))))
 //│   (func $A_ctor (export "A") (type $A_ctor) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $A))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $A
@@ -81,7 +81,7 @@ callF(B())
 //│       (return
 //│         (local.get $this))))
 //│   (func $B_ctor (export "B") (type $B_ctor) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $B))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $B

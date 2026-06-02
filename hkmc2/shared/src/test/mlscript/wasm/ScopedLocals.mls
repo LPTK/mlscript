@@ -162,7 +162,7 @@ class Foo(val a, val b)
 //│       (return
 //│         (local.get $this))))
 //│   (func $Foo_ctor (export "Foo") (type $Foo_ctor) (param $a (ref null any)) (param $b (ref null any)) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $Foo))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $Foo

@@ -121,7 +121,7 @@ class Foo(val a)
 //│       (return
 //│         (local.get $this))))
 //│   (func $Foo_ctor (export "Foo") (type $Foo_ctor) (param $a (ref null any)) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $Foo))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $Foo
@@ -194,7 +194,7 @@ class Foo(val x) with
 //│       (return
 //│         (local.get $this))))
 //│   (func $Foo_ctor (export "Foo") (type $Foo_ctor) (param $x (ref null any)) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $Foo))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $Foo
@@ -266,7 +266,7 @@ O.y
 //│       (return
 //│         (local.get $this))))
 //│   (func $O_ctor (type $O_ctor) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $O))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $O

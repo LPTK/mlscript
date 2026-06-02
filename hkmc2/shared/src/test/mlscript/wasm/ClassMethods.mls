@@ -36,7 +36,7 @@ a.A#get() + A(2).get()
 //│       (return
 //│         (local.get $this))))
 //│   (func $A_ctor (export "A") (type $A_ctor) (param $x (ref null any)) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $A))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $A

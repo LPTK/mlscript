@@ -28,7 +28,7 @@ extension (instr: FoldedInstr)
 
 extension (et: ErasedType)
   /** Returns the corresponding Wasm type for this [[`ErasedType`]]. */
-  private def wasmType(using Ctx): Opt[RefType] = 
+  private def wasmType(using Ctx): Opt[RefType] =
     import Ctx.ctx
     et match
       case ErasedType.Primitive(PrimitiveType.Int | PrimitiveType.Int31 | PrimitiveType.Bool) =>
@@ -36,6 +36,22 @@ extension (et: ErasedType)
       case ErasedType.AnyRef(_, csym: ClassLikeSymbol) =>
         csym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
       case _ => N
+
+extension (sym: ValueSymbol)
+  /** The Wasm reference type a *local* slot for `sym` should be declared with.
+    *
+    * Use [[FunctionCtx.slowRefType]] for parameter slots, which handles `anyref` widening due to virtual dispatch
+    * calling conventions.
+    */
+  private[text] def localRefType(using Ctx, State): RefType =
+    import Ctx.ctx
+    sym match
+      case isym: InnerSymbol =>
+        val structSym = isym.asBlkMember orElse:
+          Option.when(isym eq State.unitSymbol):
+            State.unitBlockMemberSymbol
+        structSym.flatMap(ctx.getType).map(RefType(_, nullable = false)).getOrElse(RefType.anyref)
+      case _ => RefType.anyref
 
 object WatBuilder:
   /** The maximum number of characters taken to be part of the identifier asscoiated with string constants. */
@@ -1103,7 +1119,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       lastWords(s"ValueSymbol `$ts` (${ts.getClass.getSimpleName}) cannot be resolved as a variable")
     case l =>
       funcCtx.lookupLocal(l) match
-        case S(localIdx) => local.get(localIdx, RefType.anyref)
+        case S(localIdx) => local.get(localIdx, funcCtx.slotRefType(l))
         case N if ctx.containsGlobal(l) =>
           global.get(ctx.getGlobal_!(l), ctx.getGlobalType_!(l).globalType.valType)
         case _ =>
@@ -1237,9 +1253,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       singletonInfoFor(sym) match
         case S(info) => singletonGlobalGet(info)
         case N =>
-          // TODO(Derppening): Remove `ref.cast` once erased-typed IR is implemented
-          ref.cast(
-            local.get(funcCtx.lookupLocal_!(sym, sym.toLoc), RefType.anyref),
+          // The cast is necessary if `$this` is a parameter rather than a local, since `$this` parameters are typed as
+          // `anyref` to support virtual dispatch
+          castConserve(
+            local.get(funcCtx.lookupLocal_!(sym, sym.toLoc), funcCtx.slotRefType(sym)),
             RefType(
               sym.asBlkMember.fold(baseObjectTypeIdx)(ctx.getType_!(_)),
               nullable = false,

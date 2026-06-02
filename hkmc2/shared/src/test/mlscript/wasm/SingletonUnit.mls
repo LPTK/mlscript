@@ -25,7 +25,7 @@
 //│       (return
 //│         (local.get $this))))
 //│   (func $Unit_Unit (type $Unit_ctor) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $Unit))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $Unit

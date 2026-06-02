@@ -44,7 +44,7 @@ Bar.y
 //│       (return
 //│         (local.get $this))))
 //│   (func $Foo_ctor (type $Foo_ctor) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $Foo))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $Foo
@@ -68,7 +68,7 @@ Bar.y
 //│       (return
 //│         (local.get $this))))
 //│   (func $Bar_ctor (type $Bar_ctor) (result (ref null any))
-//│     (local $this (ref null any))
+//│     (local $this (ref $Bar))
 //│     (block (result (ref null any))
 //│       (local.set $this
 //│         (struct.new $Bar

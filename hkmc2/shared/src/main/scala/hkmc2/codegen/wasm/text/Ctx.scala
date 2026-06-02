@@ -201,7 +201,7 @@ class FuncInfo(
     val body: Expr,
     val exportName: Opt[Str],
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
-)(using Ctx, Raise) extends ToWat:
+)(using Ctx, Raise, State) extends ToWat:
 
   /** Symbolic identifier for the function. */
   val id = SymIdx(summon[Ctx].funcScp.allocateOrGetNameWrapped(sym, wrapId))
@@ -220,7 +220,7 @@ class FuncInfo(
         getSignatureType.toWat.surroundUnlessEmpty(doc" ")
       } #{ ${
         locals.map: p =>
-          doc"(local ${p._2.toWat} ${RefType.anyref.toWat})"
+          doc"(local ${p._2.toWat} ${p._1.localRefType.toWat})"
         .mkDocument(doc" # ").surroundUnlessEmpty(doc" # ")
       } # ${body.toWat} #} )"""
 end FuncInfo
@@ -403,6 +403,17 @@ class FunctionCtx(_params: Ls[ParamList], thisSym: Opt[InnerSymbol])(using Raise
     * identifier.
     */
   def locals: Seq[ValueSymbol -> SymIdx] = _locals.map(l => l -> SymIdx(localScp.lookup_!(l, N))).toSeq
+
+  /** The declared Wasm reference type of the param/local slot for `sym`.
+    *
+    * Parameters are uniformly `anyref`: their declared type is fixed by the shared call/vtable
+    * calling convention, independent of `sym.erasedType` (e.g. a virtually-dispatched method's
+    * `this` must stay `anyref` to match the shared vtable signature even when its erased type names
+    * a concrete class). Local slots derive their type from the symbol's erased type via
+    * [[localRefType]].
+    */
+  def slotRefType(sym: ValueSymbol)(using Ctx): RefType =
+    if params.exists(_._1 == sym) then RefType.anyref else sym.localRefType
 
   /** Pushes a label target for the dynamic extent of `body` and pops it afterwards.
     *
