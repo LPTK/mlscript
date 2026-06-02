@@ -64,11 +64,9 @@ class Baz(a, b) with
   constructor(x, y)(u, v)
   fun total() = a + b + x + y + u + v
 
-:fixme
 :expect 21
 Baz(1, 2)(3, 4)(5, 6).total()
 //│ = 21
-//│ FAILURE: Unexpected lack of error to fix
 
 let mk = Baz(1, 2)(3, 4)
 //│ mk = fun
@@ -93,10 +91,8 @@ class Qux(a) with
   constructor(extra)
   fun both() = a + extra
 
-:fixme
 :expect 133
 Qux(10)(123).both()
 //│ = 133
-//│ FAILURE: Unexpected lack of error to fix
 
 
