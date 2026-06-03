@@ -10,3 +10,185 @@
 
 
 
+:soir
+fun foo(x)(y) = x + y
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let foo⁰; @inline define foo⁰ as fun foo¹(x)(y) { return +⁰(x, y) }; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+:sir
+:soir
+let f
+if true then
+  let x = hide(0)
+  f = foo(x)
+f(2)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let f⁰, scrut, x⁰, tmp;
+//│ set scrut = true;
+//│ match scrut
+//│   true =>
+//│     begin
+//│       set x⁰ = Predef⁰.hide⁰(0);
+//│       set f⁰ = foo¹(x⁰);
+//│       set tmp = runtime⁰.Unit⁰;
+//│       end;
+//│     return f⁰(2)
+//│   else
+//│     throw new globalThis⁰.Error⁰("match error")
+//│ end
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let f⁰, x⁰;
+//│ match true
+//│   true =>
+//│     set x⁰ = Predef⁰.hide⁰(0);
+//│     set f⁰ = foo¹(x⁰);
+//│     return +⁰(x⁰, 2)
+//│   else
+//│     throw new globalThis⁰.Error⁰("match error")
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 2
+//│ f = fun
+
+
+:sir
+:soir
+fun bar =
+  let f
+  let i = 2
+  while i > 0 do
+    set i -= 1
+    let x = hide(i)
+    f = foo(x)
+  else throw 0
+  f(2)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let bar⁰;
+//│ define bar⁰ as fun bar¹() {
+//│   let f, i;
+//│   set i = 2;
+//│   loop lbl:
+//│     let scrut, x, tmp;
+//│     set scrut = >⁰(i, 0);
+//│     match scrut
+//│       true =>
+//│         set tmp = -⁰(i, 1);
+//│         set i = tmp;
+//│         set x = Predef⁰.hide⁰(i);
+//│         set f = foo¹(x);
+//│         continue lbl
+//│       else
+//│         throw 0
+//│     end
+//│   return f(2)
+//│ };
+//│ end
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let bar⁰;
+//│ define bar⁰ as fun bar¹() {
+//│   let i;
+//│   set i = 2;
+//│   loop lbl:
+//│     let scrut, tmp;
+//│     set scrut = >⁰(i, 0);
+//│     match scrut
+//│       true =>
+//│         set tmp = -⁰(i, 1);
+//│         set i = tmp;
+//│         do Predef⁰.hide⁰(tmp);
+//│         continue lbl
+//│       else
+//│         throw 0
+//│     end
+//│   unreachable /* Rest of abortive labelled block */
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:sir
+:soir
+() =>
+  let f
+  if maybe is
+    false then 0
+    true then
+      scope.locally of (
+        let x = hide(0)
+        f = foo(x)
+      )
+  print of
+    "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello"
+  f(2)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let lambda⁰;
+//│ @private
+//│ define lambda⁰ as fun lambda¹() {
+//│   let f, scrut, tmp;
+//│   set scrut = Predef⁰.maybe⁰;
+//│   match scrut
+//│     false =>
+//│       set tmp = 0;
+//│       end
+//│     true =>
+//│       let x;
+//│       set x = Predef⁰.hide⁰(0);
+//│       set f = foo¹(x);
+//│       set tmp = runtime⁰.Unit⁰;
+//│       end
+//│     else
+//│       throw new globalThis⁰.Error⁰("match error")
+//│   do Predef⁰.print⁰("Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello");
+//│   return f(2)
+//│ };
+//│ return lambda¹
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let lambda⁰;
+//│ @private
+//│ define lambda⁰ as fun lambda¹() {
+//│   let scrut, x;
+//│   set scrut = Predef⁰.maybe⁰;
+//│   match scrut
+//│     false =>
+//│       end
+//│     true =>
+//│       let x1;
+//│       set x1 = Predef⁰.hide⁰(0);
+//│       end
+//│     else
+//│       throw new globalThis⁰.Error⁰("match error")
+//│   do Predef⁰.print⁰("Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello", "Hello");
+//│   set x = x¹;
+//│   return +⁰(x, 2)
+//│ };
+//│ return lambda¹
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = x¹
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Left of Cfg:
+//│           escapeChars = true
+//│           useSuperscripts = false
+//│           includeZero = false
+//│           defaultName = "tmp"
+//│         curThis = S of S of globalThis:globalThis⁰
+//│         bindings = HashMap(tmp:block$res -> block$res4, tmp:block$res -> block$res, member:foo -> foo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res1, tmp:block$res -> block$res3, tmp:Term -> Term, tmp:Block -> Block, f -> f, tmp:option -> option, x -> x, tmp:block$res -> block$res2, member:lambda -> lambda, member:bar -> bar)
+//│       curThis = S of N
+//│       bindings = HashMap()
+//│     bindings = HashMap(tmp:scrut -> scrut, x -> x1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
+//│ ║  l.119: 	        f = foo(x)
+//│ ║         	                ^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.118: 	        let x = hide(0)
+//│ ╙──       	            ^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun
+
+
