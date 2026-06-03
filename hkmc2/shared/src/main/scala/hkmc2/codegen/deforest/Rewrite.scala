@@ -507,7 +507,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
                   refreshParamMap(p.sym) = newSym
                   Param(p.flags, newSym, p.sign, p.modulefulness),
                 pl.restParam)
-            val bodyWithCorrectSymbols = new RefreshSymbol(refreshParamMap.toMap).applyBlock(transformedBody)
+            val bodyWithCorrectSymbols = new RefreshSymbol(refreshParamMap.toMap).apply(transformedBody)
             FunDefn(
               N, bms, tSym, refreshedParams,
               bodyWithCorrectSymbols)(N, PrivateModifier :: fDefn.annotations)
@@ -524,7 +524,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
               new Rewriter(instId).applyBlock(ogBody),
               Return(mkCall(restFunSym, restFunArgs)))
             val refreshedFvSymbols = dtorBranchFnFvs(branchId._1).map(s => s -> new VarSymbol(Tree.Ident(s"fv_${s.nme}")))
-            val bodyWithCorrectSymbols = new RefreshSymbol(refreshedFvSymbols.toMap).applyBlock(actualBody)
+            val bodyWithCorrectSymbols = new RefreshSymbol(refreshedFvSymbols.toMap).apply(actualBody)
             FunDefn(N, bms, tSym,
               branchFunParamFieldSyms(branchId).asParamList :: refreshedFvSymbols.unzip._2.asParamList :: Nil,
               bodyWithCorrectSymbols
@@ -548,7 +548,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
               case None =>
                 Begin(transformedOgBody, Return(Value.Lit(Tree.UnitLit(true))))
             val refreshedFvSymbols = restFnFvs(restFunId).map(s => s -> new VarSymbol(Tree.Ident(s"fv_${s.nme}")))
-            val bodyWithCorrectSymbols = new RefreshSymbol(refreshedFvSymbols.toMap).applyBlock(actualBody)
+            val bodyWithCorrectSymbols = new RefreshSymbol(refreshedFvSymbols.toMap).apply(actualBody)
             FunDefn(N, bms, tsym, refreshedFvSymbols.unzip._2.asParamList :: Nil, bodyWithCorrectSymbols)(N, annotations = PrivateModifier :: Nil)
         end newRestFuns
 
