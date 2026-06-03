@@ -113,7 +113,8 @@ class SymbolRefresherWalker(mapping: SymbolRefreshMap)(using State) extends Bloc
     privateFields.foreach(refreshTermSymbol)
     publicFields.foreach: p =>
       refreshBlockMemberSymbol(p._1)
-      refreshTermSymbol(p._2)
+      // For public fields, we have ValDefn for defining the variable
+      // refreshTermSymbol(p._2)
     applyBlock(preCtor)
     applyBlock(ctor)
     companion.foreach(applyClsLikeBody)
