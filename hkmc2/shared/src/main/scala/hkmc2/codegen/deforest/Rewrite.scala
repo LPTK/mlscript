@@ -485,6 +485,12 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
                 case Some(bms) =>
                   k(bms.asMemberRef(l.asMod.get))
                 case None => super.applyValue(v)(k)
+            // We may generate bms -> VarSymbol replacement, which require change of IR
+            case Value.MemberRef(bms, disamb) if existingMapping.contains(bms) =>
+              val sym = existingMapping(bms)
+              sym match
+              case s: VarSymbol => k(Value.SimpleRef(s))
+              case _ => super.applyValue(v)(k)
             case _ => super.applyValue(v)(k)
         end RefreshSymbol
         

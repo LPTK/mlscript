@@ -192,7 +192,18 @@ concatMap(f1, Pair(5, 10) :: Nil)
 //│ deforest > 	fields: a1⁰.a¹
 //│ deforest > 	fields: a1⁰.b⁰
 //│ deforest > <<< fusing <<<
-//│ = Cons(Pair(5, 1), Cons(Pair(5, 2), Cons(Pair(5, 5), Nil)))
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:f2 for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:74)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:70)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:33)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:50)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:70)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:33)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:50)
 
 
 
@@ -289,20 +300,16 @@ h()
 //│ deforest > Nil⁰ ->
 //│ deforest > 	match: ls²
 //│ deforest > <<< fusing <<<
-//│ = Cons(
-//│   [1, 1],
-//│   Cons(
-//│     [1, 2],
-//│     Cons(
-//│       [1, 3],
-//│       Cons(
-//│         [2, 1],
-//│         Cons(
-//│           [2, 2],
-//│           Cons([2, 3], Cons([3, 1], Cons([3, 2], Cons([3, 3], Nil))))
-//│         )
-//│       )
-//│     )
-//│   )
-//│ )
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Cannot resolve overloaded member symbol lscomp2: no principal disambiguation found
+//│ 	at: mlscript.utils.package$.lastWords(package.scala:239)
+//│ 	at: hkmc2.Lifter.hkmc2$Lifter$RewrittenScope$$_$$anonfun$14$$anonfun$1(Lifter.scala:718)
+//│ 	at: scala.Option.getOrElse(Option.scala:203)
+//│ 	at: hkmc2.Lifter$RewrittenScope.$anonfun$14(Lifter.scala:718)
+//│ 	at: scala.collection.StrictOptimizedIterableOps.strictOptimizedFlatMap(StrictOptimizedIterableOps.scala:120)
+//│ 	at: scala.collection.StrictOptimizedIterableOps.strictOptimizedFlatMap$(StrictOptimizedIterableOps.scala:29)
+//│ 	at: scala.collection.immutable.HashSet.strictOptimizedFlatMap(HashSet.scala:37)
+//│ 	at: scala.collection.StrictOptimizedIterableOps.flatMap(StrictOptimizedIterableOps.scala:108)
+//│ 	at: scala.collection.StrictOptimizedIterableOps.flatMap$(StrictOptimizedIterableOps.scala:29)
+//│ 	at: scala.collection.immutable.HashSet.flatMap(HashSet.scala:37)
 

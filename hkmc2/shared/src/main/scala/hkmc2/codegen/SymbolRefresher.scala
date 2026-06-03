@@ -16,7 +16,7 @@ class SymbolRefresherWalker(mapping: MutMap[Symbol, Symbol])(using State) extend
     mapping(k) = v
   
   private def refreshTempSymbol(s: TempSymbol) =
-    assertUpdate(s, new TempSymbol(s.trm))
+    assertUpdate(s, new TempSymbol(s.trm, s.nme))
 
   private def refreshVarSymbol(s: VarSymbol) =
     assertUpdate(s, new VarSymbol(s.id))
@@ -157,5 +157,4 @@ private class SymbolRefresherInternal(m: MutMap[Symbol, Symbol])(using State) ex
     case s: NoSymbol => s
     case s: LocalVarSymbol => m.getOrElse(s, s).asInstanceOf[LocalVarSymbol]
   
-
 class SymbolRefresher(m: Map[Symbol, Symbol])(using State) extends SymbolRefresherInternal(MutMap.from(m))
