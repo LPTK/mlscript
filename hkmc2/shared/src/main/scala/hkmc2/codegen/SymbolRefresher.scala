@@ -74,7 +74,7 @@ class SymbolRefresherWalker(mapping: SymbolRefreshMap)(using State) extends Bloc
           case s: TempSymbol => refreshTempSymbol(s)
           case s: VarSymbol => refreshVarSymbol(s)
           case s: BlockMemberSymbol => refreshBlockMemberSymbol(s)
-        applyBlock(body)
+      applyBlock(body)
     case Label(label, loop, body, rest) =>
       refreshLabelSymbol(label)
       applyBlock(body)
@@ -173,7 +173,7 @@ object SymbolRefresher:
       override def mapLabelSym(s: LabelSymbol): LabelSymbol = m.getOrElse(s, s)
 
 // An internal class so that the actual map can be used
-class SymbolRefresherInternal(m: SymbolRefreshMap)(using State) extends BlockTransformer(SymbolRefresher.initSymbolSubst(m)):
+private class SymbolRefresherInternal(m: SymbolRefreshMap)(using State) extends BlockTransformer(SymbolRefresher.initSymbolSubst(m)):
   // We have a pretty weird setup here, where we store a mutable state inside the SymbolRefresher and we must initialize the SymbolRefresher for the correct behaviour
   def apply(b: Block) =
     SymbolRefresherWalker(m).applyBlock(b)
