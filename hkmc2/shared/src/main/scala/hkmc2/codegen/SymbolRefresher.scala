@@ -46,6 +46,8 @@ class SymbolRefresherWalker(mapping: SymbolRefreshMap)(using State) extends Bloc
 
   private def refreshClassSymbol(s: ClassSymbol) =
     assertUpdate[ClassSymbol](mapping, s, new ClassSymbol(s.tree, s.id))
+    // defn is relied by JSBuilder to identify whether a class should be lifted
+    mapping(s).defn = s.defn
 
   private def refreshModuleOrObjectSymbol(s: ModuleOrObjectSymbol) =
     assertUpdate[ModuleOrObjectSymbol](mapping, s, new ModuleOrObjectSymbol(s.tree, s.id))
@@ -81,14 +83,14 @@ class SymbolRefresherWalker(mapping: SymbolRefreshMap)(using State) extends Bloc
   
   override def applyFunDefn(fun: FunDefn): Unit =
     val FunDefn(owner, sym, dSym, params, body) = fun
-    assert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} is free variable for this block")
+    assert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} for FunDefn is a free variable for this block")
     refreshTermSymbol(dSym)
     params.foreach(refreshParamList)
     applyBlock(body)
   
   override def applyValDefn(defn: ValDefn): Unit =
     val ValDefn(tsym, sym, result) = defn
-    assert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} is free variable for this block")
+    assert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} for ValDefn is a free variable for this block")
     refreshTermSymbol(tsym)
     applyResult(result)
   
@@ -97,7 +99,7 @@ class SymbolRefresherWalker(mapping: SymbolRefreshMap)(using State) extends Bloc
       owner, isym, sym, ctorSym, k, paramsOpt, auxParams, parentPath,
       methods, privateFields, publicFields, preCtor, ctor, companion,
       bufferable) = defn
-    assert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} is free variable for this block")
+    assert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} for ClsLikeDefn is a free variable for this block")
     isym match
       case s: ClassSymbol => refreshClassSymbol(s)
       case s: ModuleOrObjectSymbol => refreshModuleOrObjectSymbol(s)
@@ -126,11 +128,15 @@ class SymbolRefresherWalker(mapping: SymbolRefreshMap)(using State) extends Bloc
     isym match
       case s: ModuleOrObjectSymbol => refreshModuleOrObjectSymbol(s)
       case s: TopLevelSymbol => refreshTopLevelSymbol(s)
-    methods.foreach(applyFunDefn)
+    methods.foreach: mtd =>
+      // For methods, the BlockMemberSymbol is owned by the class itself
+      refreshBlockMemberSymbol(mtd.sym)
+      applyFunDefn(mtd)
     privateFields.foreach(refreshTermSymbol)
     publicFields.foreach: p =>
       refreshBlockMemberSymbol(p._1)
-      refreshTermSymbol(p._2)
+      // For public fields, we have ValDefn for defining the variable
+      // refreshTermSymbol(p._2)
     applyBlock(ctor)
 
 object SymbolRefresher:
