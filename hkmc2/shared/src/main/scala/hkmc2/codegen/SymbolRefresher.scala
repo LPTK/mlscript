@@ -150,6 +150,7 @@ private class SymbolRefresherInternal(m: MutMap[Symbol, Symbol])(using State) ex
     SymbolRefresherWalker(m).applyBlock(b)
     applyBlock(b)
 
+  // Although the types created during walking can always be symbol substituted, the user may pass in extra symbol that map across different types
   override def applySimpleSymbol(s: SimpleSymbol): SimpleSymbol = m.getOrElse(s, s).asInstanceOf[SimpleSymbol]
 
   override def applyImportSymbol(s: ImportSymbol): ImportSymbol = m.getOrElse(s, s).asInstanceOf[ImportSymbol]
