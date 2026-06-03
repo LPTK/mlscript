@@ -1,0 +1,15 @@
+:ctml
+
+type ChurchInt = [A] -> (A -> A) -> (A -> A)
+//│ ChurchInt = ∀A. (A → A) → A → A
+
+val z = (f, x) => x
+val s = (n, f, x) => f(n(f, x))
+//│ z: ∀α. ⊤ → α → α
+//│ s: ∀β, γ, δ, ε. {ε ≤ (∀ζ, η. {β ≤ ε → η, η ≤ γ → ζ} ⟹ ζ) → δ} ⟹ β → ε → γ → δ
+
+val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
+//│ toChurch: ∀α, β, γ, δ. {β ≤ (∀ε, ζ. {∀η. {Int → ((⊤ → γ → γ) ∨ (β → δ → α)) ≤ Int → η} ⟹ η ≤ β → ζ, ζ ≤ δ → ε} ⟹ ε) → α} ⟹ Int → ((⊤ → γ → γ) ∨ (β → δ → α))
+
+val g8a = toChurch as ((Int) -> ChurchInt)
+//│ g8a: Int → ChurchInt

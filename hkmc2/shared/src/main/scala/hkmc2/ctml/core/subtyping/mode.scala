@@ -19,3 +19,20 @@ extension (var_ : TypeVar)(using ctx: Context, mode: ConstraintMode)
         var_.isFlex
       case ConstraintMode.Reconstruct =>
         var_.isRigid
+
+extension (mode: ConstraintMode)
+  /** Type variable kind that is refinable in this constraint mode. */
+  def flexKind: TypeVarKind =
+    mode match
+      case ConstraintMode.Solve =>
+        TypeVarKind.Flex
+      case ConstraintMode.Reconstruct =>
+        TypeVarKind.Rigid
+
+  /** Type variable kind that is non-refinable in this constraint mode. */
+  def rigidKind: TypeVarKind =
+    mode match
+      case ConstraintMode.Solve =>
+        TypeVarKind.Rigid
+      case ConstraintMode.Reconstruct =>
+        TypeVarKind.Flex

@@ -155,6 +155,31 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode):
       return subtypeFlexVar(sup, sub, Direction.Super)
     case (_, _) =>
 
+  // Expand rigid aliases before decomposing compound types, so shared structure is checked
+  // against a single expansion. Fresh skolems have implicit extremal bounds and are handled
+  // by the rigid-variable fallback below.
+
+  (sub, sup) match
+    case (TVar(sub), _) if sub.isRigidMode && sub.upperBound != TTop =>
+      return subtype(sub.upperBound, sup)
+    case (_, TVar(sup)) if sup.isRigidMode && sup.lowerBound != TBot =>
+      return subtype(sub, sup.lowerBound)
+    case (_, _) =>
+
+  // Right constrained and universal types scope over the whole subtype being checked. Handle
+  // them before decomposing unions/intersections on the left so all branches share the same
+  // assumptions or skolem variables.
+
+  sup match
+    case sup: TConstrained =>
+      return subtypeConstrainedSup(sup, sub)
+    case _ =>
+
+  sup match
+    case sup: TUniv =>
+      return subtypeUnivSup(sub, sup)
+    case _ =>
+
   // Subtyping of union and intersection types.
 
   sub.splitUnion(Polarity.Negative) match
@@ -197,6 +222,20 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode):
           )
     case _ =>
 
+  // Subtyping of constrained types.
+
+  sub match
+    case sub: TConstrained =>
+      return subtypeConstrainedSub(sub, sup)
+    case _ =>
+
+  // Subtyping of universal types.
+
+  sub match
+    case sub: TUniv =>
+      return subtypeUnivSub(sub, sup)
+    case _ =>
+
   // Subtyping of rigid type variables.
 
   (sub, sup) match
@@ -207,33 +246,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode):
     case (_, TVar(sup)) if sup.isRigidMode =>
       return subtype(sub, sup.lowerBound)
     case (_, _) =>
-
-  // Subtyping of constrained types.
-
-  // The right constrained type comes first so that the left constraint (which must be solvable)
-  // may be solved using the assumptions of the right constraint (which may not be solvable).
-
-  sup match
-    case sup: TConstrained =>
-      return subtypeConstrainedSup(sup, sub)
-    case _ =>
-
-  sub match
-    case sub: TConstrained =>
-      return subtypeConstrainedSub(sub, sup)
-    case _ =>
-
-  // Subtyping of universal types.
-
-  sup match
-    case sup: TUniv =>
-      return subtypeUnivSup(sub, sup)
-    case _ =>
-
-  sub match
-    case sub: TUniv =>
-      return subtypeUnivSub(sub, sup)
-    case _ =>
 
   // Subtyping of class type variables.
 
@@ -319,7 +331,7 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Const
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
   val (univVars, univBody) = sub.getUnivComponents
   ctx.withSubtypingLevel2((level) =>
-    val (instanceBody, cache, outs) = instantiateUniv(level, univVars, univBody, TypeVarKind.Flex)
+    val (instanceBody, cache, outs) = instantiateUniv(level, univVars, univBody, mode.flexKind)
     subtypeSeq(instanceBody, sup, outs)(using ctx.mapCache((_) => cache), mode)
   )
 
@@ -327,7 +339,7 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMo
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode): Clauses =
   val (univVars, univBody) = sup.getUnivComponents
   ctx.withSubtypingLevel2((level) =>
-    val (instanceBody, cache, outs) = instantiateUniv(level, univVars, univBody, TypeVarKind.Rigid)
+    val (instanceBody, cache, outs) = instantiateUniv(level, univVars, univBody, mode.rigidKind)
     subtypeSeq(sub, instanceBody, outs)(using ctx.mapCache((_) => cache), mode)
   )
 
