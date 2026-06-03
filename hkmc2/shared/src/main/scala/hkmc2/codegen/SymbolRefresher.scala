@@ -144,7 +144,8 @@ object SymbolRefresher:
 
 // An internal class so that the actual map can be used
 private class SymbolRefresherInternal(m: MutMap[Symbol, Symbol])(using State) extends BlockTransformer(SymbolRefresher.initSymbolSubst(m)):
-  // We have a pretty weird setup here, where we store a mutable state inside the SymbolRefresher and we must initialize the SymbolRefresher for the correct behaviour
+  // We have a pretty weird setup here, where we store a mutable state inside the SymbolRefresher
+  // We must initialize the SymbolRefresher by walking before applyBlock
   def apply(b: Block) =
     SymbolRefresherWalker(m).applyBlock(b)
     applyBlock(b)
