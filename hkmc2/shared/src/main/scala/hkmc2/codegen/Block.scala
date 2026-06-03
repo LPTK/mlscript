@@ -896,7 +896,8 @@ trait HasRefinableErasedType extends HasErasedType:
 
   /** Refines the erased type, or raises a soft assertion if the type was already previously refined. */
   def refineErasedType(newType: ErasedType)(using Line, FileName, Raise): Unit =
-    softAssert(erasedType.isEmpty, s"Cannot refine already-refined erased type $erasedType to $newType")
+    // TODO(Derppening): Restore `erasedType.isEmpty` once JS sanitization is converted into a pass
+    softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
 
 extension (lit: Literal) 

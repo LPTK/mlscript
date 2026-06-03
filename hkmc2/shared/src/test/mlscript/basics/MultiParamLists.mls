@@ -7,11 +7,6 @@
 fun f(n1: Int): Int = n1
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f; f = function f(n1) { return n1 };
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 f(42)
@@ -27,16 +22,6 @@ f(42)
 fun f(n1: Int)(n2: Int): Int =  (10 * n1 + n2)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f1; f1 = function f(n1) { return (n2) => { let tmp; tmp = 10 * n1; return tmp + n2 } };
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // TODO compile this to
@@ -62,21 +47,6 @@ fun f(n1: Int)(n2: Int)(n3: Int): Int = 10 * (10 * n1 + n2) + n3
 //│     }
 //│   }
 //│ };
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 f(4)(2)(0)
@@ -103,26 +73,6 @@ fun f(n1: Int)(n2: Int)(n3: Int)(n4: Int): Int = 10 * (10 * (10 * n1 + n2) + n3)
 //│     }
 //│   }
 //│ };
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 f(3)(0)(3)(1)

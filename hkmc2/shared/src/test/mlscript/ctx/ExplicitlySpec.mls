@@ -72,18 +72,13 @@ f(using 32)
 //│ ║  l.63: 	fun f(using i: Int)(j: Int)(using k: Int)(l: Num): Int = i + j + k + l
 //│ ║        	                                  ^^^^^^
 //│ ╙── Missing instance: Expected: Int; Available: ‹none available›
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1397)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1397': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ = fun
 
 :e
 :re
 f(using 32)(8)
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type Int for call: 
-//│ ║  l.84: 	f(using 32)(8)
+//│ ║  l.79: 	f(using 32)(8)
 //│ ║        	^^^^^^^^^^^^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  l.63: 	fun f(using i: Int)(j: Int)(using k: Int)(l: Num): Int = i + j + k + l

@@ -81,16 +81,6 @@ data class Foo(x: Int)
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", ["x"]];
 //│ });
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1387)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1387': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:1390)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:1390': Cannot refine already-refined erased type Some(Primitive(Int)) to Primitive(Int)
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
