@@ -9,57 +9,45 @@ import hkmc2.utils.*
 import semantics.*
 import semantics.Elaborator.State
 
-type SymbolRefreshMap =
-  MutMap[TempSymbol, TempSymbol] &
-  MutMap[VarSymbol, VarSymbol] &
-  MutMap[BlockMemberSymbol, BlockMemberSymbol] &
-  MutMap[LabelSymbol, LabelSymbol] &
-  MutMap[TermSymbol, TermSymbol] &
-  MutMap[InnerSymbol, InnerSymbol] &
-  MutMap[ClassSymbol, ClassSymbol] &
-  MutMap[ModuleOrObjectSymbol, ModuleOrObjectSymbol] &
-  MutMap[PatternSymbol, PatternSymbol] &
-  MutMap[TopLevelSymbol, TopLevelSymbol] &
-  MutMap[ClassCtorSymbol, ClassCtorSymbol]
+class SymbolRefresherWalker(mapping: MutMap[Symbol, Symbol])(using State) extends BlockTraverser:
 
-class SymbolRefresherWalker(mapping: SymbolRefreshMap)(using State) extends BlockTraverser:
-
-  private def assertUpdate[T](map: MutMap[T, T], k: T, v: T) =
-    assert(!map.isDefinedAt(k), s"already defined: $k")
-    map(k) = v
+  private def assertUpdate[T <: Symbol](k: T, v: T) =
+    assert(!mapping.isDefinedAt(k), s"already defined: $k")
+    mapping(k) = v
   
   private def refreshTempSymbol(s: TempSymbol) =
-    assertUpdate[TempSymbol](mapping, s, new TempSymbol(s.trm))
+    assertUpdate(s, new TempSymbol(s.trm))
 
   private def refreshVarSymbol(s: VarSymbol) =
-    assertUpdate[VarSymbol](mapping, s, new VarSymbol(s.id))
+    assertUpdate(s, new VarSymbol(s.id))
   
   private def refreshBlockMemberSymbol(s: BlockMemberSymbol) =
-    assertUpdate[BlockMemberSymbol](mapping, s, new BlockMemberSymbol(s.nme, s.trees, s.nameIsMeaningful))
+    assertUpdate(s, new BlockMemberSymbol(s.nme, s.trees, s.nameIsMeaningful))
 
   private def refreshLabelSymbol(s: LabelSymbol) =
-    assertUpdate[LabelSymbol](mapping, s, new LabelSymbol(s.trm, s.nme))
+    assertUpdate(s, new LabelSymbol(s.trm, s.nme))
 
   private def refreshTermSymbol(s: TermSymbol) =
     // Inner symbol (if present) must be traversed at this point.
-    assertUpdate[TermSymbol](mapping, s, new TermSymbol(s.k, s.owner.map(o => mapping.getOrElse(o, o)), s.id))
+    assertUpdate(s, new TermSymbol(s.k, s.owner.map(o => mapping.getOrElse(o, o).asInstanceOf[InnerSymbol]), s.id))
 
   private def refreshClassSymbol(s: ClassSymbol) =
-    assertUpdate[ClassSymbol](mapping, s, new ClassSymbol(s.tree, s.id))
+    val ns = new ClassSymbol(s.tree, s.id)
+    assertUpdate(s, ns)
     // defn is relied by JSBuilder to identify whether a class should be lifted
-    mapping(s).defn = s.defn
+    ns.defn = s.defn
 
   private def refreshModuleOrObjectSymbol(s: ModuleOrObjectSymbol) =
-    assertUpdate[ModuleOrObjectSymbol](mapping, s, new ModuleOrObjectSymbol(s.tree, s.id))
+    assertUpdate(s, new ModuleOrObjectSymbol(s.tree, s.id))
 
   private def refreshPatternSymbol(s: PatternSymbol) =
-    assertUpdate[PatternSymbol](mapping, s, new PatternSymbol(s.id, s.params, s.body))
+    assertUpdate(s, new PatternSymbol(s.id, s.params, s.body))
 
   private def refreshTopLevelSymbol(s: TopLevelSymbol) =
-    assertUpdate[TopLevelSymbol](mapping, s, new TopLevelSymbol(s.nme))
+    assertUpdate(s, new TopLevelSymbol(s.nme))
 
   private def refreshClassCtorSymbol(s: ClassCtorSymbol) =
-    assertUpdate[ClassCtorSymbol](mapping, s, new ClassCtorSymbol(s.k, S(mapping.getOrElse(s.owner.value, s.owner.value)), s.id))
+    assertUpdate(s, new ClassCtorSymbol(s.k, S(mapping.getOrElse(s.owner.value, s.owner.value).asInstanceOf[ClassSymbol]), s.id))
 
   private def refreshParamList(pl: ParamList) =
     for
@@ -140,43 +128,34 @@ class SymbolRefresherWalker(mapping: SymbolRefreshMap)(using State) extends Bloc
     applyBlock(ctor)
 
 object SymbolRefresher:
-
-  def initMap(m: Map[Symbol, Symbol]) =
-    val result = MutMap.empty[Symbol, Symbol].asInstanceOf[SymbolRefreshMap]
-    m.foreach: (p) =>
-      p match
-        case (s1: TempSymbol, s2: TempSymbol) => result(s1) = s2
-        case (s1: VarSymbol, s2: VarSymbol) => result(s1) = s2
-        case (s1: LabelSymbol, s2: LabelSymbol) => result(s1) = s2
-        case (s1: ClassCtorSymbol, s2: ClassCtorSymbol) => result(s1) = s2
-        case (s1: TopLevelSymbol, s2: TopLevelSymbol) => result(s1) = s2
-        case (s1: PatternSymbol, s2: PatternSymbol) => result(s1) = s2
-        case (s1: ClassSymbol, s2: ClassSymbol) => result(s1) = s2
-        case (s1: BlockMemberSymbol, s2: BlockMemberSymbol) => result(s1) = s2
-        case (s1: TermSymbol, s2: TermSymbol) => result(s1) = s2
-        case (s1: ModuleOrObjectSymbol, s2: ModuleOrObjectSymbol) => result(s1) = s2
-        case (s1: InnerSymbol, s2: InnerSymbol) => result(s1) = s2
-        case _ => lastWords("Unknown symbol type present for SymbolRefresher")
-    result
   
-  def initSymbolSubst(m: SymbolRefreshMap) =
+  def initSymbolSubst(m: collection.Map[Symbol, Symbol]) =
     new SymbolSubst:
-      override def mapBlockMemberSym(s: BlockMemberSymbol): BlockMemberSymbol = m.getOrElse(s, s)
-      override def mapTempSym(s: TempSymbol): TempSymbol = m.getOrElse(s, s)
-      override def mapVarSym(s: VarSymbol): VarSymbol = m.getOrElse(s, s)
-      override def mapTermSym(s: TermSymbol): TermSymbol = m.getOrElse(s, s)
-      override def mapClassCtorSym(s: ClassCtorSymbol): ClassCtorSymbol = m.getOrElse(s, s)
-      override def mapClsSym(s: ClassSymbol): ClassSymbol = m.getOrElse(s, s)
-      override def mapModuleSym(s: ModuleOrObjectSymbol): ModuleOrObjectSymbol = m.getOrElse(s, s)
-      override def mapPatSym(s: PatternSymbol): PatternSymbol = m.getOrElse(s, s)
-      override def mapTopLevelSym(s: TopLevelSymbol): TopLevelSymbol = m.getOrElse(s, s)
-      override def mapLabelSym(s: LabelSymbol): LabelSymbol = m.getOrElse(s, s)
+      override def mapBlockMemberSym(s: BlockMemberSymbol): BlockMemberSymbol = m.getOrElse(s, s).asInstanceOf[BlockMemberSymbol]
+      override def mapTempSym(s: TempSymbol): TempSymbol = m.getOrElse(s, s).asInstanceOf[TempSymbol]
+      override def mapVarSym(s: VarSymbol): VarSymbol = m.getOrElse(s, s).asInstanceOf[VarSymbol]
+      override def mapTermSym(s: TermSymbol): TermSymbol = m.getOrElse(s, s).asInstanceOf[TermSymbol]
+      override def mapClassCtorSym(s: ClassCtorSymbol): ClassCtorSymbol = m.getOrElse(s, s).asInstanceOf[ClassCtorSymbol]
+      override def mapClsSym(s: ClassSymbol): ClassSymbol = m.getOrElse(s, s).asInstanceOf[ClassSymbol]
+      override def mapModuleSym(s: ModuleOrObjectSymbol): ModuleOrObjectSymbol = m.getOrElse(s, s).asInstanceOf[ModuleOrObjectSymbol]
+      override def mapPatSym(s: PatternSymbol): PatternSymbol = m.getOrElse(s, s).asInstanceOf[PatternSymbol]
+      override def mapTopLevelSym(s: TopLevelSymbol): TopLevelSymbol = m.getOrElse(s, s).asInstanceOf[TopLevelSymbol]
+      override def mapLabelSym(s: LabelSymbol): LabelSymbol = m.getOrElse(s, s).asInstanceOf[LabelSymbol]
 
 // An internal class so that the actual map can be used
-private class SymbolRefresherInternal(m: SymbolRefreshMap)(using State) extends BlockTransformer(SymbolRefresher.initSymbolSubst(m)):
+private class SymbolRefresherInternal(m: MutMap[Symbol, Symbol])(using State) extends BlockTransformer(SymbolRefresher.initSymbolSubst(m)):
   // We have a pretty weird setup here, where we store a mutable state inside the SymbolRefresher and we must initialize the SymbolRefresher for the correct behaviour
   def apply(b: Block) =
     SymbolRefresherWalker(m).applyBlock(b)
     applyBlock(b)
 
-class SymbolRefresher(m: Map[Symbol, Symbol])(using State) extends SymbolRefresherInternal(SymbolRefresher.initMap(m))
+  override def applySimpleSymbol(s: SimpleSymbol): SimpleSymbol = m.getOrElse(s, s).asInstanceOf[SimpleSymbol]
+
+  override def applyImportSymbol(s: ImportSymbol): ImportSymbol = m.getOrElse(s, s).asInstanceOf[ImportSymbol]
+  
+  override def applyAssignLhs(s: Assignable): Assignable = s match
+    case s: NoSymbol => s
+    case s: LocalVarSymbol => m.getOrElse(s, s).asInstanceOf[LocalVarSymbol]
+  
+
+class SymbolRefresher(m: Map[Symbol, Symbol])(using State) extends SymbolRefresherInternal(MutMap.from(m))
