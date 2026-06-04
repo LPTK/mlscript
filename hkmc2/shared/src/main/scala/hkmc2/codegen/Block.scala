@@ -872,6 +872,9 @@ enum ErasedType:
     */
   case AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol)
 
+  /** A reference to a function of a possibly-known shape. */
+  case FuncRef(sig: Opt[Ls[Opt[ErasedType]] -> Opt[ErasedType]])
+
   /** An primitive type. */
   case Primitive(prim: PrimitiveType)
 
@@ -879,6 +882,7 @@ enum ErasedType:
   def sym(using Ctx, State): ClassLikeSymbol = this match
       case AnyRef(_, csym: ClassLikeSymbol) => csym
       case AnyRef(_, _: NoSymbol) => ctx.builtins.Object
+      case FuncRef(_) => ctx.builtins.Function
       case Primitive(prim) => prim.sym
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */

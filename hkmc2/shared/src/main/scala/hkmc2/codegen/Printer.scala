@@ -33,11 +33,22 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
   def print(et: ErasedType)(using Scope): Document = et match
     case ErasedType.AnyRef(rsc, csym: ClassLikeSymbol) => doc"${if rsc then "rsc " else ""}${print(csym)}"
     case ErasedType.AnyRef(rsc, _: NoSymbol) => doc"${if rsc then "rsc " else ""}Object"
+    case ErasedType.FuncRef(N) => doc"Function"
+    case ErasedType.FuncRef(S(params -> ret)) =>
+      doc"(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
   
   def erasedTypeAnnot(x: HasErasedType)(using Scope): Document =
     if !summon[ShowCfg].showErasedTypes then doc""
     else doc": ${x.erasedType.fold(doc"?")(print)}"
+
+  /** Renders a function's return type, projected from the `FuncRef` carried by its
+    * definition symbol. Nothing is rendered when the symbol carries no `FuncRef`. */
+  def returnTypeAnnot(dSym: TermSymbol)(using Scope): Document =
+    if !summon[ShowCfg].showErasedTypes then doc""
+    else dSym.erasedType match
+      case S(ErasedType.FuncRef(sig)) => doc": ${sig.flatMap(_._2).fold(doc"?")(print)}"
+      case _ => doc""
   
   def print(blk: Block)(using Scope): Document = blk match
     case Match(scrut, arms, dflt, rest) =>
@@ -149,7 +160,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
         val docParams = printParamLists(paramss)
         val docBody = print(body)
         val docStaged = if fun.isStaged then doc"staged " else doc""
-        doc"${docStaged}fun ${print(dSym)}${docParams} ${bracedbk(docBody)}"
+        doc"${docStaged}fun ${print(dSym)}${docParams}${returnTypeAnnot(dSym)} ${bracedbk(docBody)}"
     case ValDefn(tsym, sym, rhs) =>
       doc"val ${print(tsym)}${erasedTypeAnnot(tsym)} = ${print(rhs)}"
     case cls @ ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentSym, methods,

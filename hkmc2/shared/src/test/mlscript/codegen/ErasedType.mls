@@ -62,7 +62,7 @@ let made = mk(1)
 let sel = made.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let mk⁰, made⁰: ?, sel⁰: ?, selRes: ?;
-//│ define mk⁰ as fun mk¹(a: ?) {
+//│ define mk⁰ as fun mk¹(a: ?): ? {
 //│   return new Foo⁵(a)
 //│ };
 //│ set made⁰ = mk¹(1);
@@ -77,11 +77,43 @@ let sel = made.x
 //│ end
 
 
-// Parameter annotations
+// Parameter annotations. The return type is unannotated, so it stays `: ?`
+// (residual inference is a later phase).
 :siret
 fun add(x: Int, y: Int) = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int) { return +⁰(x, y) }; end
+//│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int): ? { return +⁰(x, y) }; end
+
+
+// Return-type annotations are rendered at the `fun ...: T` definition site,
+// for both primitive and class return types.
+:siret
+fun addUp(x: Int, y: Int): Int = x + y
+fun makeFoo(n: Int): Foo = new Foo(n)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let makeFoo⁰, addUp⁰;
+//│ define addUp⁰ as fun addUp¹(x: Int, y: Int): Int {
+//│   return +⁰(x, y)
+//│ };
+//│ define makeFoo⁰ as fun makeFoo¹(n: Int): Foo⁵ { return new Foo⁵(n) };
+//│ end
+
+
+// Method return-type annotations are rendered the same way as free functions.
+:siret
+class Calc() with
+  fun twice(x: Int): Int = x + x
+  fun whatever(a) = a
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let Calc⁰;
+//│ define Calc⁰ as class Calc² {
+//│   constructor Calc¹
+//│   method twice⁰ = fun twice¹(x: Int): Int {
+//│     return +⁰(x, x)
+//│   }
+//│   method whatever⁰ = fun whatever¹(a: ?): ? { return a }
+//│ };
+//│ end
 
 
 // Optimized IR with erased types: surfaces where a type relaxes to `: ?`
@@ -91,6 +123,9 @@ fun add(x: Int, y: Int) = x + y
 fun id(a) = a
 id(new Foo(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let id⁰, tmp: Foo⁵; define id⁰ as fun id¹(a: ?) { return a }; set tmp = new Foo⁵(1); return id¹(tmp)
+//│ let id⁰, tmp: Foo⁵;
+//│ define id⁰ as fun id¹(a: ?): ? { return a };
+//│ set tmp = new Foo⁵(1);
+//│ return id¹(tmp)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let id⁰; define id⁰ as fun id¹(a: ?) { return a }; return new Foo⁵(1)
+//│ let id⁰; define id⁰ as fun id¹(a: ?): ? { return a }; return new Foo⁵(1)

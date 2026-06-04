@@ -249,6 +249,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                   blockImpl(stats, res)))(using LoweringCtx.nestFunc)
             case syntax.Fun =>
               val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))
+              refineFunDefnType(td.tsym, paramLists, td.sign)
               val cfgOverride = td.extraAnnotations.collectFirst:
                 case Annot.Config(modify) => modify(config)
               Define(FunDefn(td.owner, td.sym, td.tsym, paramLists, bodyBlock)(cfgOverride, td.annotations),
@@ -1208,6 +1209,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       .flatMap: td =>
         td.body.map: bod =>
           val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
+          refineFunDefnType(td.tsym, paramLists, td.sign)
           reportAnnotations(td, td.extraAnnotations)
           val cfgOverride = td.extraAnnotations.collectFirst:
             case Annot.Config(modify) => modify(config)
@@ -1390,6 +1392,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case bms: BlockMemberSymbol => bms.tsym.foreach(_.refineErasedType(et))
         case _ =>
   
+  /** Populates a function definition symbol's erased type with a [[`ErasedType.FuncRef`]]
+    * derived from its (already-refined) parameter symbols and return-type annotation.
+    *
+    * The parameters of curried functions are flattened into a single list: this is lossy
+    * for the arrow shape but does not affect the rendered return type, the only consumer
+    * today. An unannotated return remains `N` (refined in a later phase). */
+  private def refineFunDefnType(tsym: TermSymbol, paramLists: Ls[ParamList], sign: Opt[Term]): Unit =
+    val params = paramLists.flatMap(_.params).map(_.sym.erasedType)
+    val ret = sign.flatMap(eraseSign)
+    tsym.refineErasedType(ErasedType.FuncRef(S(params -> ret)))
+
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =
     paramLists.foreach: pl =>
