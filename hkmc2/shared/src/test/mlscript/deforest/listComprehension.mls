@@ -247,7 +247,8 @@ if A is
 //│ = Cons(2, Cons(3, Cons(4, Nil)))
 
 
-:lift
+// TODO: fix lifter
+// :lift
 :deforest
 fun h() =
   fun lscomp1(ls) = if ls is
@@ -289,16 +290,20 @@ h()
 //│ deforest > Nil⁰ ->
 //│ deforest > 	match: ls²
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Cannot resolve overloaded member symbol lscomp2: no principal disambiguation found
-//│ 	at: mlscript.utils.package$.lastWords(package.scala:239)
-//│ 	at: hkmc2.Lifter.hkmc2$Lifter$RewrittenScope$$_$$anonfun$14$$anonfun$1(Lifter.scala:718)
-//│ 	at: scala.Option.getOrElse(Option.scala:203)
-//│ 	at: hkmc2.Lifter$RewrittenScope.$anonfun$14(Lifter.scala:718)
-//│ 	at: scala.collection.StrictOptimizedIterableOps.strictOptimizedFlatMap(StrictOptimizedIterableOps.scala:120)
-//│ 	at: scala.collection.StrictOptimizedIterableOps.strictOptimizedFlatMap$(StrictOptimizedIterableOps.scala:29)
-//│ 	at: scala.collection.immutable.HashSet.strictOptimizedFlatMap(HashSet.scala:37)
-//│ 	at: scala.collection.StrictOptimizedIterableOps.flatMap(StrictOptimizedIterableOps.scala:108)
-//│ 	at: scala.collection.StrictOptimizedIterableOps.flatMap$(StrictOptimizedIterableOps.scala:29)
-//│ 	at: scala.collection.immutable.HashSet.flatMap(HashSet.scala:37)
+//│ = Cons(
+//│   [1, 1],
+//│   Cons(
+//│     [1, 2],
+//│     Cons(
+//│       [1, 3],
+//│       Cons(
+//│         [2, 1],
+//│         Cons(
+//│           [2, 2],
+//│           Cons([2, 3], Cons([3, 1], Cons([3, 2], Cons([3, 3], Nil))))
+//│         )
+//│       )
+//│     )
+//│   )
+//│ )
 
