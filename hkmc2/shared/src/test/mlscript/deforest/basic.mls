@@ -361,18 +361,9 @@ f()
 //│ deforest > A⁰(0) ->
 //│ deforest > 	match: scrut³
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:f for FunDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:74)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:70)
-//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:33)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:50)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:70)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:149)
-//│ 	at: hkmc2.codegen.deforest.DeforestRewriter.$anonfun$28(Rewrite.scala:557)
+//│ = 1
+//│ f = fun f
+//│ x = 1
 
 
 :expect B(0)

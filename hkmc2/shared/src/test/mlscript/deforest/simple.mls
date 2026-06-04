@@ -902,18 +902,7 @@ f([])
 //│ deforest > [] ->
 //│ deforest > 	match: ls⁰
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:h for FunDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:74)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:70)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:149)
-//│ 	at: hkmc2.codegen.deforest.DeforestRewriter.$anonfun$26(Rewrite.scala:533)
-//│ 	at: scala.collection.StrictOptimizedIterableOps.strictOptimizedMap(StrictOptimizedIterableOps.scala:102)
-//│ 	at: scala.collection.StrictOptimizedIterableOps.strictOptimizedMap$(StrictOptimizedIterableOps.scala:29)
-//│ 	at: scala.collection.mutable.LinkedHashMap.strictOptimizedMap(LinkedHashMap.scala:38)
+//│ = 4
 
 
 :expect 0
