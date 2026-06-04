@@ -494,7 +494,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
             case _ => super.applyValue(v)(k)
         end RefreshSymbol
 
-        // TODO: it may cause BMS to malfunction if both class and function refer to same BMS and disamb is really needed
+        // TODO: it may cause BMS to malfunction if both class and function refer to same BMS and they are split apart
         def refreshExtractedBody(mapping: Map[Symbol, Symbol], body: Block): Block =
           val defined = MutSet.empty[ScopedSymbol]
           val missing = MutSet.empty[ScopedSymbol]
@@ -506,6 +506,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
               case Define(defn: FunDefn, rest) =>
                 if !defined(defn.sym) then
                   missing.add(defn.sym)
+                  defined.add(defn.sym)
                 applyBlock(rest)
               case _ => super.applyBlock(b)
           walker.applyBlock(body)
