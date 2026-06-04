@@ -1007,6 +1007,8 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Value.MemberRef(_, disamb: (ClassSymbol | ModuleOrObjectSymbol | TypeAliasSymbol)) => disamb.erasedType
     case Value.This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => clsOrMod.erasedType
     case Value.Lit(lit) => S(lit.erasedType)
+    case Call(Value.SimpleRef(bs: BuiltinSymbol), argss) =>
+      bs.resultErasedType(argss.head.map(_.value.erasedType))
     case _ => N
 
 /* mayRaiseEffects indicates whether this call may raise effect (algebraic effect),

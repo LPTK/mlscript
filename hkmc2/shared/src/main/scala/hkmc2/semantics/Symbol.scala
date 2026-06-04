@@ -10,7 +10,7 @@ import hkmc2.utils.*
 
 import Elaborator.State
 import Tree.Ident
-import hkmc2.codegen.{ErasedType, HasErasedType, erasedType}
+import hkmc2.codegen.{ErasedType, PrimitiveType, HasErasedType, erasedType}
 import hkmc2.utils.SymbolSubst
 import hkmc2.codegen.HasRefinableErasedType
 
@@ -285,6 +285,33 @@ class BuiltinSymbol
       case (_, _, true) => nullaryType
       case _ => Bot
     semantics.flow.Producer.Typ(typ)
+
+  /** The result [[`ErasedType`]] of applying this builtin operator to operands of the
+    * given erased types, or `N` if this symbol is not a recognized operator. Context-free;
+    * surfaces the result-type knowledge already implicit in `BlockSimplifier.builtinEval`. */
+  def resultErasedType(args: Ls[Opt[ErasedType]]): Opt[ErasedType] =
+    import ErasedType.Primitive
+    def isStr(t: Opt[ErasedType]) = t.contains(Primitive(PrimitiveType.Str))
+    def isInt(t: Opt[ErasedType]) = t.contains(Primitive(PrimitiveType.Int))
+    def isNum(t: Opt[ErasedType]) = isInt(t) || t.contains(Primitive(PrimitiveType.Num))
+    nme match
+      case "==" | "!=" | "<" | "<=" | ">" | ">=" | "===" | "!==" | "&&" | "||" | "!" =>
+        S(Primitive(PrimitiveType.Bool))
+      case "typeof" => S(Primitive(PrimitiveType.Str))
+      // * `+` is overloaded (numeric add / string concat): only commit when the operands
+      // * decide it, otherwise leave it unknown (an unknown operand could be a `Str`).
+      case "+" =>
+        if args.exists(isStr) then S(Primitive(PrimitiveType.Str))
+        else if args.forall(isInt) then S(Primitive(PrimitiveType.Int))
+        else if args.forall(isNum) then S(Primitive(PrimitiveType.Num))
+        else N
+      // * The remaining arithmetic operators are numeric-only, so the result is always a
+      // * number; it is an `Int` only when every operand is known to be an `Int`.
+      case "-" | "*" | "%" =>
+        if args.forall(isInt) then S(Primitive(PrimitiveType.Int)) else S(Primitive(PrimitiveType.Num))
+      case "/" => S(Primitive(PrimitiveType.Num))
+      case "~" => S(Primitive(PrimitiveType.Int))
+      case _ => N
 
 
 /** This is the outside-facing symbol associated to a possibly-overloaded

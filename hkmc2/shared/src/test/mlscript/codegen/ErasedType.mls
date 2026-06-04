@@ -62,7 +62,7 @@ let made = mk(1)
 let sel = made.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let mk⁰, made⁰: ?, sel⁰: ?, selRes: ?;
-//│ define mk⁰ as fun mk¹(a: ?): ? {
+//│ define mk⁰ as fun mk¹(a: ?): Foo⁵ {
 //│   return new Foo⁵(a)
 //│ };
 //│ set made⁰ = mk¹(1);
@@ -77,12 +77,12 @@ let sel = made.x
 //│ end
 
 
-// Parameter annotations. The return type is unannotated, so it stays `: ?`
-// (residual inference is a later phase).
+// Parameter annotations. The return type is unannotated but inferred from the
+// body: `Int + Int` yields `Int`.
 :siret
 fun add(x: Int, y: Int) = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int): ? { return +⁰(x, y) }; end
+//│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int): Int { return +⁰(x, y) }; end
 
 
 // Return-type annotations are rendered at the `fun ...: T` definition site,
@@ -96,6 +96,26 @@ fun makeFoo(n: Int): Foo = new Foo(n)
 //│   return +⁰(x, y)
 //│ };
 //│ define makeFoo⁰ as fun makeFoo¹(n: Int): Foo⁵ { return new Foo⁵(n) };
+//│ end
+
+
+// Inferred returns from the body terminal: a builtin comparison yields `Bool`
+// (regardless of operand types), an instantiation yields the class, and an
+// unconstrained identity return stays `: ?`. (Equality `==` lowers to a
+// `Predef.equals` member call, not a builtin operator, so it stays `: ?`.)
+:siret
+fun lt(a, b) = a < b
+fun mkFoo(a) = new Foo(a)
+fun ident(a) = a
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let ident⁰, lt⁰, mkFoo⁰;
+//│ define lt⁰ as fun lt¹(a: ?, b: ?): Bool {
+//│   return <⁰(a, b)
+//│ };
+//│ define mkFoo⁰ as fun mkFoo¹(a: ?): Foo⁵ {
+//│   return new Foo⁵(a)
+//│ };
+//│ define ident⁰ as fun ident¹(a: ?): ? { return a };
 //│ end
 
 

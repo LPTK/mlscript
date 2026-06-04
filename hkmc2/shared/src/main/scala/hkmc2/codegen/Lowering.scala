@@ -249,7 +249,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                   blockImpl(stats, res)))(using LoweringCtx.nestFunc)
             case syntax.Fun =>
               val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))
-              refineFunDefnType(td.tsym, paramLists, td.sign)
+              refineFunDefnType(td.tsym, paramLists, td.sign, bodyBlock)
               val cfgOverride = td.extraAnnotations.collectFirst:
                 case Annot.Config(modify) => modify(config)
               Define(FunDefn(td.owner, td.sym, td.tsym, paramLists, bodyBlock)(cfgOverride, td.annotations),
@@ -1209,7 +1209,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       .flatMap: td =>
         td.body.map: bod =>
           val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
-          refineFunDefnType(td.tsym, paramLists, td.sign)
+          refineFunDefnType(td.tsym, paramLists, td.sign, bodyBlock)
           reportAnnotations(td, td.extraAnnotations)
           val cfgOverride = td.extraAnnotations.collectFirst:
             case Annot.Config(modify) => modify(config)
@@ -1392,15 +1392,31 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case bms: BlockMemberSymbol => bms.tsym.foreach(_.refineErasedType(et))
         case _ =>
   
+  /** Infers a function's return type from its body's `return`s, but only when every
+    * `return` agrees on a single known type (a conservative equal-or-`N` join); a body
+    * with conflicting or unknown returns stays `N`. Nested function/lambda bodies are not
+    * descended into. */
+  private def inferReturn(body: Block): Opt[ErasedType] =
+    var rets: Ls[Opt[ErasedType]] = Nil
+    new BlockTraverserShallow:
+      override def applyBlock(b: Block): Unit = b match
+        case Return(res) => rets ::= res.erasedType
+        case _ => super.applyBlock(b)
+    .applyBlock(body)
+    rets match
+      case head :: tail if tail.forall(_ == head) => head
+      case _ => N
+
   /** Populates a function definition symbol's erased type with a [[`ErasedType.FuncRef`]]
-    * derived from its (already-refined) parameter symbols and return-type annotation.
+    * derived from its (already-refined) parameter symbols and return type. The return type
+    * comes from the explicit annotation when present, otherwise it is inferred from the body.
     *
     * The parameters of curried functions are flattened into a single list: this is lossy
     * for the arrow shape but does not affect the rendered return type, the only consumer
-    * today. An unannotated return remains `N` (refined in a later phase). */
-  private def refineFunDefnType(tsym: TermSymbol, paramLists: Ls[ParamList], sign: Opt[Term]): Unit =
+    * today. */
+  private def refineFunDefnType(tsym: TermSymbol, paramLists: Ls[ParamList], sign: Opt[Term], body: Block): Unit =
     val params = paramLists.flatMap(_.params).map(_.sym.erasedType)
-    val ret = sign.flatMap(eraseSign)
+    val ret = sign.flatMap(eraseSign) orElse inferReturn(body)
     tsym.refineErasedType(ErasedType.FuncRef(S(params -> ret)))
 
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
