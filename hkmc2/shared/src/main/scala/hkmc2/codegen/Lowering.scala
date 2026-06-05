@@ -291,7 +291,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 )
             case _ => _defn
           reportAnnotations(defn, defn.extraAnnotations)
-          (defn.paramsOpt.iterator ++ defn.auxParams.iterator).flatMap(_.params).foreach(refineClassParam)
+          (defn.paramsOpt.iterator ++ defn.auxParams.iterator).foreach: pl =>
+            pl.params.foreach(refineClassParam)
+            pl.restParam.foreach(refineRestParam)
           val bufferableAnnots = defn.annotations.flatMap:
             case Annot.Trm(trm: SynthSel) =>
               if trm.sym.contains(ctx.builtins.annotations.buffered) then
@@ -1401,6 +1403,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case bms: BlockMemberSymbol => bms.tsym.foreach(_.refineErasedType(et))
         case _ =>
   
+  /** A rest parameter always binds an array of the collected arguments, regardless of any
+    * element annotation, so its erased type is always `Array`. */
+  private def refineRestParam(p: Param): Unit =
+    p.sym.refineErasedType(ErasedType.Primitive(PrimitiveType.Array))
+
   /** Infers a function's return type from its body's `return`s, but only when every
     * `return` agrees on a single known type (a conservative equal-or-`N` join); a body
     * with conflicting or unknown returns stays `N`. Nested function/lambda bodies are not
@@ -1439,6 +1446,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     paramLists.foreach: pl =>
       pl.params.foreach: p =>
         p.sign.flatMap(eraseSign).foreach(p.sym.refineErasedType)
+      pl.restParam.foreach(refineRestParam)
     val scopedBody = inScopedBlock(returnedTerm(bodyTerm))
     (paramLists, scopedBody)
   

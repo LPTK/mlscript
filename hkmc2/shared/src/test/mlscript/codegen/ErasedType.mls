@@ -145,6 +145,14 @@ fun makeFoo(n: Int): Foo = new Foo(n)
 //│ end
 
 
+// A rest parameter binds an array of the collected arguments, so it is typed
+// `Array` regardless of any element annotation.
+:siret
+fun rest(a, ...xs) = xs
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let rest⁰; define rest⁰ as fun rest¹(a: ?, ...xs: Array): Array { return xs }; end
+
+
 // Inferred returns from the body terminal: a builtin comparison yields `Bool`
 // (regardless of operand types), an instantiation yields the class, and an
 // unconstrained identity return stays `: ?`. (Equality `==` lowers to a
