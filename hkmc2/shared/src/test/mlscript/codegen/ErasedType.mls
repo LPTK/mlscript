@@ -289,3 +289,22 @@ fun resetCounter() =
 //│   return scope0$cap.n$0³
 //│ };
 //│ end
+
+
+// A read-only capture is lifted into a by-value parameter rather than a capture
+// field; that parameter inherits the captured local's erased type (`k: Int`).
+// (`rd`'s return stays `?`: the hoisted closure body is lowered before `k` is
+// seeded, so the return-type inference cannot yet see `k`'s type.)
+:siret
+:lift
+fun reader() =
+  let k = 0
+  fun rd() = k
+  rd()
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let rd⁰, reader⁰;
+//│ define rd⁰ as fun rd¹(k: Int): ? {
+//│   return k
+//│ };
+//│ define reader⁰ as fun reader¹(): ? { let k: Int; set k = 0; return rd¹(k) };
+//│ end

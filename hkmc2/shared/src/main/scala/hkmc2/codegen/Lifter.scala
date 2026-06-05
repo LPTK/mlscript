@@ -1002,7 +1002,10 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
   
   class LiftedFunc(override val obj: ScopedObject.Func)(using ctx: LifterCtxNew) extends LiftedScope[FunDefn](obj) with GenericRewrittenScope[FunDefn]:
     private val passedSymsMap_ : Map[ValueSymbol, VarSymbol] = passedSymsOrdered.map: s =>
-        s -> VarSymbol(Tree.Ident(s.nme), erasedType = N)
+        val erasedType = s match
+          case h: HasErasedType => h.erasedType
+          case _ => N
+        s -> VarSymbol(Tree.Ident(s.nme), erasedType)
       .toMap
     private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = capturesOrdered.map: i =>
         val nme = data.getNode(i).obj.nme
