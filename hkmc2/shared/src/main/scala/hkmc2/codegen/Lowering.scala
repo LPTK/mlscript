@@ -5,6 +5,7 @@ import scala.language.implicitConversions
 import scala.annotation.tailrec
 import os.{Path as AbsPath, RelPath}
 import sourcecode.Line
+import collection.mutable.{Map as MutMap, Set as MutSet}
 
 import mlscript.utils.*, shorthands.*
 import utils.*
@@ -38,16 +39,30 @@ object Thrw extends TailOp:
 class LoweringCtx(
   initMap: Map[ValueSymbol, Value], // No longer in meaningful use and could be removed if we don't find a use for it
   val mayRet: Bool, // For rewriting while loop into tail recursive function, represent whether an explicit return is legal in the current block
-  private val definedSymsDuringLowering: collection.mutable.Set[ScopedSymbol] // used to create Scoped blocks
+  private val definedSymsDuringLowering: collection.mutable.Set[ScopedSymbol], // used to create Scoped blocks
+  private val symbolRemappingForCurrentScope: collection.mutable.Map[ScopedSymbol, ScopedSymbol],
+  private val globalAlreadyScopedSymbols: collection.mutable.Set[ScopedSymbol]
 ):
   val map = initMap
-  def collectScopedSym(s: ScopedSymbol) = definedSymsDuringLowering.add(s)
-  def collectScopedSyms(s: ScopedSymbol*) = definedSymsDuringLowering.addAll(s)
+  def collectScopedSym(s: ScopedSymbol)(using Elaborator.State) =
+    // definedSymsDuringLowering.add(s)
+    if !globalAlreadyScopedSymbols.contains(s) then
+      definedSymsDuringLowering.add(s)
+      globalAlreadyScopedSymbols.add(s)
+    else
+      val newSym: ScopedSymbol = s match
+        case tmpSym: TempSymbol => new TempSymbol(tmpSym.trm, tmpSym.nme)
+        case varSym: VarSymbol => new VarSymbol(varSym.id)
+        case bms: BlockMemberSymbol => ???
+      symbolRemappingForCurrentScope(s) = newSym
+      definedSymsDuringLowering.add(newSym)
+      globalAlreadyScopedSymbols.add(newSym)
   def registerTempSymbol(trm: Option[Term], dbgNme: Str = "tmp")(using State) =
     val tmp = new TempSymbol(trm, dbgNme)
     definedSymsDuringLowering.add(tmp)
     tmp
   def getCollectedSym: collection.Set[ScopedSymbol] = definedSymsDuringLowering
+  def lowerSymOf(s: ScopedSymbol) = symbolRemappingForCurrentScope.getOrElse(s, s)
   /*
   def +(kv: (Symbol, Value)): Subst =
     kv match
@@ -62,11 +77,29 @@ class LoweringCtx(
 object LoweringCtx:
   def loweringCtx(using sub: LoweringCtx): LoweringCtx = sub
   val empty =
-    LoweringCtx(Map.empty, mayRet = false, collection.mutable.Set.empty)
+    LoweringCtx(
+      Map.empty,
+      mayRet = false,
+      MutSet.empty,
+      MutMap.empty,
+      MutSet.empty
+    )
   def nestFunc(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.map, mayRet = true, sub.definedSymsDuringLowering)
+    LoweringCtx(
+      sub.map,
+      mayRet = true,
+      sub.definedSymsDuringLowering,
+      sub.symbolRemappingForCurrentScope,
+      sub.globalAlreadyScopedSymbols
+    )
   def nestScoped(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.map, sub.mayRet, collection.mutable.Set.empty)
+    LoweringCtx(
+      sub.map,
+      sub.mayRet,
+      MutSet.empty,
+      sub.symbolRemappingForCurrentScope.clone(),
+      sub.globalAlreadyScopedSymbols
+    )
 end LoweringCtx
 
 import LoweringCtx.loweringCtx
@@ -91,6 +124,21 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         tl.trace[Term](s"Expanding term ${r}", post = t => s"~> ${t}"):
           r.expanded
       case t => t
+  
+  extension (s: SimpleSymbol)
+    inline def asSimpleRefToRefreshedSym(using LoweringCtx): Value.SimpleRef =
+      // Value.SimpleRef(s)
+      s match
+        case s: (TempSymbol | VarSymbol) => Value.SimpleRef:
+          LoweringCtx.loweringCtx.lowerSymOf(s) match
+            case s: (TempSymbol | VarSymbol) => s
+            case _: BlockMemberSymbol => lastWords("expect SimpleSymbol, but got bms")
+        case _: BuiltinSymbol => Value.SimpleRef(s)
+
+  extension (bms: BlockMemberSymbol)
+    inline def asMemberRefToRefreshedSym(disamb: DefinitionSymbol[?])(using LoweringCtx): Value.MemberRef =
+      Value.MemberRef(bms, disamb)
+  
   
   val lowerHandlers: Bool = config.effectHandlers.isDefined
   val lift: Bool = config.liftDefns.isDefined
@@ -551,7 +599,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       sym.owner match
       case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
       case N => nope
-    case sym: LocalVarSymbol => Assign(sym, rhs, rest)
+    case sym: LocalVarSymbol => Assign(LoweringCtx.loweringCtx.lowerSymOf(sym).asInstanceOf[Assignable], rhs, rest)
     case sym => nope
   
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
@@ -561,7 +609,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
       case N => lastWords(s"tried to define top-level symbol ${sym.showDbg} in a local scope")
     case sym: LocalVarSymbol =>
-      Assign(sym, rhs, rest)
+      Assign(LoweringCtx.loweringCtx.lowerSymOf(sym).asInstanceOf[Assignable], rhs, rest)
     case sym =>
       lastWords(s"tried to define non-variable symbol ${sym.showDbg}")
   
@@ -657,7 +705,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     warnStmt
     (sym, disamb) match
       case (sym: SimpleSymbol, _) =>
-        k(loweringCtx(sym.asSimpleRef.withLocOf(ref)))
+        k(loweringCtx(sym.asSimpleRefToRefreshedSym.withLocOf(ref)))
+        // k(loweringCtx(sym.asSimpleRef.withLocOf(ref)))
       case (sym: BlockMemberSymbol, _) =>
         k(loweringCtx(sym.asMemberRef(disamb.orElse(sym.asPrincipal).get).withLocOf(ref)))
       case (sym: InnerSymbol, _) =>
@@ -698,7 +747,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       loweringCtx.collectScopedSym(result)
       val bodyBlock =
         if !hasNonLocalContinueDispatch then
-          term_nonTail(body)(r => Assign(result, r, Break(label)))
+          term_nonTail(body)(r => Assign(
+            LoweringCtx.loweringCtx.lowerSymOf(result).asInstanceOf[Assignable], r, Break(label))
+          )
+          // term_nonTail(body)(r => Assign(result, r, Break(label)))
         else
           val bodyResult = loweringCtx.registerTempSymbol(N, "labelBodyResult")
           val isContinue = loweringCtx.registerTempSymbol(N, "labelContinueDispatch")
@@ -715,7 +767,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 Match(
                   isContinue.asSimpleRef,
                   (Case.Lit(Tree.BoolLit(true)) -> Continue(label)) :: Nil,
-                  S(Assign(result, bodyResult.asSimpleRef, Break(label))),
+                  S(Assign(LoweringCtx.loweringCtx.lowerSymOf(result).asInstanceOf[Assignable], bodyResult.asSimpleRef, Break(label))),
                   End("label continue-sentinel dispatch")
                 )
               )
@@ -725,11 +777,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         loop = hasLocalContinue(body),
         bodyBlock,
         k(result.asSimpleRef)
+        // k(result.asSimpleRefToRefreshedSym)
       )
     case st.Break(label, result, value) =>
       value match
-        case S(v) => term(v)(r => Assign(result, r, Break(label)))
-        case N => Assign(result, Value.Lit(Tree.UnitLit(false)), Break(label))
+        case S(v) => term(v)(r => Assign( LoweringCtx.loweringCtx.lowerSymOf(result).asInstanceOf[Assignable], r, Break(label)))
+        case N => Assign( LoweringCtx.loweringCtx.lowerSymOf(result).asInstanceOf[Assignable], Value.Lit(Tree.UnitLit(false)), Break(label))
     case st.Continue(label) =>
       Continue(label)
     case st.Asc(lhs, rhs) =>
@@ -1000,7 +1053,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case Try(sub, finallyDo) =>
       val l = loweringCtx.registerTempSymbol(S(sub))
       TryBlock(
-        subTerm_nonTail(sub)(p => Assign(l, p, End())),
+        subTerm_nonTail(sub)(p => Assign(LoweringCtx.loweringCtx.lowerSymOf(l).asInstanceOf[Assignable], p, End())),
         subTerm_nonTail(finallyDo)(_ => End()),
         k(l.asSimpleRef)
       )

@@ -11,8 +11,36 @@
 
 data class Node(l, v, r)
 
+// :sir
+:ucs normalized
 :sir
 pattern P = 1 | Node(P, 1, P) | Node(P, 2, P)
+//│ Normalized:
+//│ >  ‹if|while›
+//│ >    input is 1 then new (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(input⁰, null)
+//│ >    input is Node(arg$Node$0$, arg$Node$1$, arg$Node$2$) and
+//│ >      let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$0$⁰)
+//│ >      let-split σ =
+//│ >        let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$0$⁰)
+//│ >        tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) and
+//│ >          tmp:arg$Node$1$ is 2 and
+//│ >            let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$2$⁰)
+//│ >            tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) then new (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(input⁰, null)
+//│ >            else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
+//│ >          else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
+//│ >        else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
+//│ >      tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) and
+//│ >        tmp:arg$Node$1$ is 1 and
+//│ >          let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$2$⁰)
+//│ >          tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) then new (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(input⁰, null)
+//│ >          let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$0$⁰)
+//│ >          tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) then new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
+//│ >          else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
+//│ >        $σ
+//│ >      $σ
+//│ >    else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
+//│ Normalized:
+//│ >  ‹if|while› else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let P⁰;
 //│ define P⁰ as pattern P¹ {
@@ -35,20 +63,20 @@ pattern P = 1 | Node(P, 1, P) | Node(P, 2, P)
 //│               match arg$Node$1$
 //│                 1 =>
 //│                   let unapplyResult2, unapplyResult3;
-//│                   set unapplyResult3 = P¹.unapply﹖(arg$Node$2$);
-//│                   match unapplyResult3
+//│                   set unapplyResult2 = P¹.unapply﹖(arg$Node$2$);
+//│                   match unapplyResult2
 //│                     MatchSuccess⁰ =>
 //│                       let output1, bindings1;
-//│                       set output1 = unapplyResult3.output⁰;
-//│                       set bindings1 = unapplyResult3.bindings⁰;
+//│                       set output1 = unapplyResult2.output⁰;
+//│                       set bindings1 = unapplyResult2.bindings⁰;
 //│                       return new runtime⁰.MatchSuccess⁰(input, null)
 //│                     else
-//│                       set unapplyResult2 = P¹.unapply﹖(arg$Node$0$);
-//│                       match unapplyResult2
+//│                       set unapplyResult3 = P¹.unapply﹖(arg$Node$0$);
+//│                       match unapplyResult3
 //│                         MatchSuccess⁰ =>
 //│                           let output1, bindings1;
-//│                           set output1 = unapplyResult2.output⁰;
-//│                           set bindings1 = unapplyResult2.bindings⁰;
+//│                           set output¹ = unapplyResult3.output⁰;
+//│                           set bindings¹ = unapplyResult3.bindings⁰;
 //│                           return new runtime⁰.MatchFailure⁰(null)
 //│                         else
 //│                           return new runtime⁰.MatchFailure⁰(null)

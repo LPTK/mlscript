@@ -323,13 +323,16 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
     case Split.Let(sym, trm, tl) =>
       LoweringCtx.loweringCtx.collectScopedSym(sym)
       term_nonTail(trm): r =>
-        Assign(sym, r, lowerSplit(tl, cont))
+        Assign(
+          LoweringCtx.loweringCtx.lowerSymOf(sym).asInstanceOf[Assignable],
+          r, lowerSplit(tl, cont))
     case Split.Cons(Branch(scrut, pat, tail), restSplit) =>
       def freshenScopedBranch(block: Block): Block =
         // Split normalization can duplicate fallback fragments before lowering.
         // Once a duplicated fragment is emitted as a branch-local Scoped block,
         // refresh its MIR binders so it cannot shadow the shared fallback/rest.
-        new SymbolRefresher(Map.empty[Symbol, Symbol]).apply(block)
+        // new SymbolRefresher(Map.empty[Symbol, Symbol]).apply(block)
+        block
       end freshenScopedBranch
       inline def scopedBranch(inline body: LoweringCtx ?=> Block): Block =
         LoweringCtx.nestScoped.givenIn:
