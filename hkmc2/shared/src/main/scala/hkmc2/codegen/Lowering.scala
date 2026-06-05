@@ -249,7 +249,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                   blockImpl(stats, res)))(using LoweringCtx.nestFunc)
             case syntax.Fun =>
               val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))
-              refineFunDefnType(td.tsym, paramLists, td.sign, bodyBlock)
+              populateFunDefnType(td.tsym, paramLists, td.sign, bodyBlock)
               val cfgOverride = td.extraAnnotations.collectFirst:
                 case Annot.Config(modify) => modify(config)
               Define(FunDefn(td.owner, td.sym, td.tsym, paramLists, bodyBlock)(cfgOverride, td.annotations),
@@ -292,8 +292,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             case _ => _defn
           reportAnnotations(defn, defn.extraAnnotations)
           (defn.paramsOpt.iterator ++ defn.auxParams.iterator).foreach: pl =>
-            pl.params.foreach(refineClassParam)
-            pl.restParam.foreach(refineRestParam)
+            pl.params.foreach(populateClassParam)
+            pl.restParam.foreach(populateRestParam)
           val bufferableAnnots = defn.annotations.flatMap:
             case Annot.Trm(trm: SynthSel) =>
               if trm.sym.contains(ctx.builtins.annotations.buffered) then
@@ -547,7 +547,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   /** Joins the erased type of a local variable's RHS into its (refinable) symbol. Only `VarSymbol`s
     * are refinable; compiler-generated `TempSymbol`s carry their type from creation, so they are skipped. */
   private def observeLocalErasedType(sym: LocalVarSymbol, rhs: Result): Unit = sym match
-    case sym: HasRefinableErasedType => sym.observeErasedType(rhs.erasedType)
+    case sym: HasMutableErasedType => sym.observeErasedType(rhs.erasedType)
     case _ =>
 
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
@@ -1220,7 +1220,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       .flatMap: td =>
         td.body.map: bod =>
           val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
-          refineFunDefnType(td.tsym, paramLists, td.sign, bodyBlock)
+          populateFunDefnType(td.tsym, paramLists, td.sign, bodyBlock)
           reportAnnotations(td, td.extraAnnotations)
           val cfgOverride = td.extraAnnotations.collectFirst:
             case Annot.Config(modify) => modify(config)
@@ -1395,18 +1395,18 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   private def eraseSign(sign: Term): Opt[ErasedType] = 
     sign.symbol.flatMap(_.asClsOrMod).map(sym => ErasedType.fromClsLikeSymbol(sym, rsc = false))
   
-  private def refineClassParam(p: Param): Unit = 
+  private def populateClassParam(p: Param): Unit = 
     p.sign.flatMap(eraseSign).foreach: et =>
-      p.sym.refineErasedType(et)
+      p.sym.populateErasedType(et)
       p.fldSym.foreach:
-        case fld: TermSymbol => fld.refineErasedType(et)
-        case bms: BlockMemberSymbol => bms.tsym.foreach(_.refineErasedType(et))
+        case fld: TermSymbol => fld.populateErasedType(et)
+        case bms: BlockMemberSymbol => bms.tsym.foreach(_.populateErasedType(et))
         case _ =>
   
   /** A rest parameter always binds an array of the collected arguments, regardless of any
     * element annotation, so its erased type is always `Array`. */
-  private def refineRestParam(p: Param): Unit =
-    p.sym.refineErasedType(ErasedType.Primitive(PrimitiveType.Array))
+  private def populateRestParam(p: Param): Unit =
+    p.sym.populateErasedType(ErasedType.Primitive(PrimitiveType.Array))
 
   /** Infers a function's return type from its body's `return`s, but only when every
     * `return` agrees on a single known type (a conservative equal-or-`N` join); a body
@@ -1430,12 +1430,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     * This is a derived type that may be recomputed when a definition is lowered more than once
     * (e.g. under `:lift`/`:effectHandlers`); since a later pass can infer a different return type,
     * the result is recorded only the first time and left untouched afterwards (rather than going
-    * through the asserting [[`refineErasedType`]], which is meant for one-shot annotations).
+    * through the asserting [[`populateErasedType`]], which is meant for one-shot annotations).
     *
     * The parameters of curried functions are flattened into a single list: this is lossy
     * for the arrow shape but does not affect the rendered return type, the only consumer
     * today. */
-  private def refineFunDefnType(tsym: TermSymbol, paramLists: Ls[ParamList], sign: Opt[Term], body: Block): Unit =
+  private def populateFunDefnType(tsym: TermSymbol, paramLists: Ls[ParamList], sign: Opt[Term], body: Block): Unit =
     if tsym.erasedType.isEmpty then
       val params = paramLists.flatMap(_.params).map(_.sym.erasedType)
       val ret = sign.flatMap(eraseSign) orElse inferReturn(body)
@@ -1445,8 +1445,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       (using LoweringCtx): (List[ParamList], Block) =
     paramLists.foreach: pl =>
       pl.params.foreach: p =>
-        p.sign.flatMap(eraseSign).foreach(p.sym.refineErasedType)
-      pl.restParam.foreach(refineRestParam)
+        p.sign.flatMap(eraseSign).foreach(p.sym.populateErasedType)
+      pl.restParam.foreach(populateRestParam)
     val scopedBody = inScopedBlock(returnedTerm(bodyTerm))
     (paramLists, scopedBody)
   

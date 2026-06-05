@@ -894,12 +894,12 @@ trait HasErasedType:
   def erasedType_! : ErasedType = erasedType.getOrElse(ErasedType.ObjectRef)
 
 /** A [[`HasErasedType`]] that can have its erased type refined post-construction. */
-trait HasRefinableErasedType extends HasErasedType:
+trait HasMutableErasedType extends HasErasedType:
   // Implementation Note: Provided for overriding classes to implement `erasedType` directly as an `override var`
   def erasedType_=(newType: Opt[ErasedType]): Unit
 
   /** Refines the erased type, or raises a soft assertion if the type was already previously refined. */
-  def refineErasedType(newType: ErasedType)(using Line, FileName, Raise): Unit =
+  def populateErasedType(newType: ErasedType)(using Line, FileName, Raise): Unit =
     // TODO(Derppening): Restore `erasedType.isEmpty` once JS sanitization is converted into a pass
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
@@ -909,7 +909,7 @@ trait HasRefinableErasedType extends HasErasedType:
 
   /**
     * Observes an assignment of `observed` to this (possibly reassignable) symbol, joining it with
-    * any previously known type. Unlike [[`refineErasedType`]], which expects a single authoritative
+    * any previously known type. Unlike [[`populateErasedType`]], which expects a single authoritative
     * write, this tolerates multiple assignments of differing types: the first observation of an
     * otherwise-unknown symbol is recorded exactly (so a single assignment of an unknown type keeps
     * `N`), and any later disagreement — including with a type already set by an annotation — widens to

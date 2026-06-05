@@ -681,7 +681,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         val inst = instantiateCapture
         // * The capture symbol holds an instance of the capture class, so it takes that type.
         captureSym match
-          case s: HasRefinableErasedType => s.erasedType = inst.erasedType
+          case s: HasMutableErasedType => s.erasedType = inst.erasedType
           case _ =>
         Scoped(
           objSyms.toSet + captureSym,
