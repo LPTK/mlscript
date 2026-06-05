@@ -537,9 +537,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       sym.owner match
       case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
       case N => nope
-    case sym: LocalVarSymbol => Assign(sym, rhs, rest)
+    case sym: LocalVarSymbol =>
+      observeLocalErasedType(sym, rhs)
+      Assign(sym, rhs, rest)
     case sym => nope
   
+  /** Joins the erased type of a local variable's RHS into its (refinable) symbol. Only `VarSymbol`s
+    * are refinable; compiler-generated `TempSymbol`s carry their type from creation, so they are skipped. */
+  private def observeLocalErasedType(sym: LocalVarSymbol, rhs: Result): Unit = sym match
+    case sym: HasRefinableErasedType => sym.observeErasedType(rhs.erasedType)
+    case _ =>
+
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
     sym match
     case sym: TermSymbol =>
@@ -547,6 +555,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
       case N => lastWords(s"tried to define top-level symbol ${sym.showDbg} in a local scope")
     case sym: LocalVarSymbol =>
+      observeLocalErasedType(sym, rhs)
       Assign(sym, rhs, rest)
     case sym =>
       lastWords(s"tried to define non-variable symbol ${sym.showDbg}")

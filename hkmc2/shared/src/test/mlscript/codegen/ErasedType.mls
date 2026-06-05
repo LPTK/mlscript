@@ -4,14 +4,39 @@
 //│ import Predef; end
 
 
-// Literals: Int / Str / Num / Bool.
+// Literals: Int / Str / Num / Bool. A local picks up its initializer's type.
 :siret
 let i = 1
 let f = 1.5
 let s = "str"
 let b = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let i⁰: ?, f⁰: ?, s⁰: ?, b⁰: ?; set i⁰ = 1; set f⁰ = 1.5; set s⁰ = "str"; set b⁰ = true; end
+//│ let i⁰: Int, f⁰: Num, s⁰: Str, b⁰: Bool;
+//│ set i⁰ = 1;
+//│ set f⁰ = 1.5;
+//│ set s⁰ = "str";
+//│ set b⁰ = true;
+//│ end
+
+
+// Local reassignment join: a local keeps its type while assignments agree, and
+// widens to `Object` on a type conflict. A declared-then-assigned local (no
+// initializer) is still typed from its assignment.
+:siret
+let consistent = 1
+set consistent = 2
+let conflicting = 1
+set conflicting = "two"
+let declared
+set declared = 3
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let consistent⁰: Int, conflicting⁰: Object, declared⁰: Int;
+//│ set consistent⁰ = 1;
+//│ set consistent⁰ = 2;
+//│ set conflicting⁰ = 1;
+//│ set conflicting⁰ = "two";
+//│ set declared⁰ = 3;
+//│ return runtime⁰.Unit⁰
 
 
 // Tuple -> Array; record -> Object (the `NoSymbol` top case).
@@ -19,7 +44,7 @@ let b = true
 let t = [i, s]
 let r = {x: i, y: s}
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let t⁰: ?, r⁰: ?, x⁰: ?, y⁰: ?;
+//│ let t⁰: Array, r⁰: Object, x⁰: Int, y⁰: Str;
 //│ set t⁰ = [i⁰, s⁰];
 //│ set x⁰ = i⁰;
 //│ set y⁰ = s⁰;
@@ -32,12 +57,12 @@ let r = {x: i, y: s}
 class Foo(x: Int)
 let foo = new Foo(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Foo⁰, foo⁰: ?;
-//│ define Foo⁰ as class Foo² {
+//│ let Foo⁰, foo⁰: Foo¹;
+//│ define Foo⁰ as class Foo¹ {
 //│   private val x¹: Int;
-//│   constructor Foo¹(x: Int) { set Foo².this.x¹ = x; end }
+//│   constructor Foo²(x: Int) { set Foo¹.this.x¹ = x; end }
 //│ };
-//│ set foo⁰ = new Foo²(123);
+//│ set foo⁰ = new Foo¹(123);
 //│ end
 
 
@@ -46,12 +71,12 @@ let foo = new Foo(123)
 class Foo(val x: Str)
 let foo = new Foo(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Foo³, foo¹: ?;
-//│ define Foo³ as class Foo⁵ {
+//│ let Foo³, foo¹: Foo⁴;
+//│ define Foo³ as class Foo⁴ {
 //│   val x²: Str;
-//│   constructor Foo⁴(x: Str) { define x² as val x³: Str = x; end }
+//│   constructor Foo⁵(x: Str) { define x² as val x³: Str = x; end }
 //│ };
-//│ set foo¹ = new Foo⁵(123);
+//│ set foo¹ = new Foo⁴(123);
 //│ end
 
 
@@ -62,8 +87,8 @@ let made = mk(1)
 let sel = made.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let mk⁰, made⁰: ?, sel⁰: ?, selRes: ?;
-//│ define mk⁰ as fun mk¹(a: ?): Foo⁵ {
-//│   return new Foo⁵(a)
+//│ define mk⁰ as fun mk¹(a: ?): Foo⁴ {
+//│   return new Foo⁴(a)
 //│ };
 //│ set made⁰ = mk¹(1);
 //│ set selRes = made⁰.x﹖;
@@ -85,6 +110,26 @@ fun add(x: Int, y: Int) = x + y
 //│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int): Int { return +⁰(x, y) }; end
 
 
+// A reassigned parameter joins with its annotation: a conflicting `set` widens
+// the annotated type (and the inferred return) to `Object`; a consistent `set`
+// keeps it.
+:siret
+fun widen(x: Int) =
+  set x = "s"
+  x
+fun keep(x: Int) =
+  set x = 5
+  x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let widen⁰, keep⁰;
+//│ define widen⁰ as fun widen¹(x: Object): Object {
+//│   set x = "s";
+//│   return x
+//│ };
+//│ define keep⁰ as fun keep¹(x: Int): Int { set x = 5; return x };
+//│ end
+
+
 // Return-type annotations are rendered at the `fun ...: T` definition site,
 // for both primitive and class return types.
 :siret
@@ -95,7 +140,7 @@ fun makeFoo(n: Int): Foo = new Foo(n)
 //│ define addUp⁰ as fun addUp¹(x: Int, y: Int): Int {
 //│   return +⁰(x, y)
 //│ };
-//│ define makeFoo⁰ as fun makeFoo¹(n: Int): Foo⁵ { return new Foo⁵(n) };
+//│ define makeFoo⁰ as fun makeFoo¹(n: Int): Foo⁴ { return new Foo⁴(n) };
 //│ end
 
 
@@ -112,8 +157,8 @@ fun ident(a) = a
 //│ define lt⁰ as fun lt¹(a: ?, b: ?): Bool {
 //│   return <⁰(a, b)
 //│ };
-//│ define mkFoo⁰ as fun mkFoo¹(a: ?): Foo⁵ {
-//│   return new Foo⁵(a)
+//│ define mkFoo⁰ as fun mkFoo¹(a: ?): Foo⁴ {
+//│   return new Foo⁴(a)
 //│ };
 //│ define ident⁰ as fun ident¹(a: ?): ? { return a };
 //│ end
@@ -143,9 +188,9 @@ class Calc() with
 fun id(a) = a
 id(new Foo(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let id⁰, tmp: Foo⁵;
+//│ let id⁰, tmp: Foo⁴;
 //│ define id⁰ as fun id¹(a: ?): ? { return a };
-//│ set tmp = new Foo⁵(1);
+//│ set tmp = new Foo⁴(1);
 //│ return id¹(tmp)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let id⁰; define id⁰ as fun id¹(a: ?): ? { return a }; return new Foo⁵(1)
+//│ let id⁰; define id⁰ as fun id¹(a: ?): ? { return a }; return new Foo⁴(1)

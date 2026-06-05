@@ -904,6 +904,25 @@ trait HasRefinableErasedType extends HasErasedType:
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
 
+  /** Tracks whether [[`observeErasedType`]] has seen at least one assignment to this symbol. */
+  private var erasedTypeObserved: Bool = false
+
+  /**
+    * Observes an assignment of `observed` to this (possibly reassignable) symbol, joining it with
+    * any previously known type. Unlike [[`refineErasedType`]], which expects a single authoritative
+    * write, this tolerates multiple assignments of differing types: the first observation of an
+    * otherwise-unknown symbol is recorded exactly (so a single assignment of an unknown type keeps
+    * `N`), and any later disagreement — including with a type already set by an annotation — widens to
+    * the top type [[`ErasedType.ObjectRef`]]. The join is monotone (`N` → known → top), so it never
+    * re-narrows; a bare `N` therefore means "never observed".
+    */
+  def observeErasedType(observed: Opt[ErasedType]): Unit =
+    if !erasedTypeObserved && erasedType.isEmpty then
+      erasedType = observed
+    else if erasedType != observed then
+      erasedType = S(ErasedType.ObjectRef)
+    erasedTypeObserved = true
+
 extension (lit: Literal) 
   def erasedType: ErasedType = lit match
     case Tree.UnitLit(_) => ErasedType.Primitive(PrimitiveType.Unit)
