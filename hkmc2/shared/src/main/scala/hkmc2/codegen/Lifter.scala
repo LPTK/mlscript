@@ -678,9 +678,14 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     protected final def addExtraSyms(b: Block, captureSym: LocalVarSymbol, objSyms: Iterable[ScopedSymbol]): Block =
       if hasCapture then
+        val inst = instantiateCapture
+        // * The capture symbol holds an instance of the capture class, so it takes that type.
+        captureSym match
+          case s: HasRefinableErasedType => s.erasedType = inst.erasedType
+          case _ =>
         Scoped(
           objSyms.toSet + captureSym,
-          Assign(captureSym, instantiateCapture, b)
+          Assign(captureSym, inst, b)
         )
       else
         Scoped(objSyms.toSet, b)
@@ -899,7 +904,11 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val (liftedMtds, extras) = mtds.map(liftNestedScopes).unzip(using l => (l.liftedDefn, l.extraDefns))
       LifterResult(liftedMtds, extras.flatten)
     protected final def initCaptureField(b: Block): Block =
-      if hasCapture then AssignField(sym.asThis, captureSym.id, instantiateCapture, b)(S(captureSym))
+      if hasCapture then
+        val inst = instantiateCapture
+        // * The capture field holds an instance of the capture class, so it takes that type.
+        captureSym.erasedType = inst.erasedType
+        AssignField(sym.asThis, captureSym.id, inst, b)(S(captureSym))
       else b
   
   // some helpers

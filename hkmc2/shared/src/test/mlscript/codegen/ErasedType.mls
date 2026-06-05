@@ -221,3 +221,36 @@ id(new Foo(1))
 //│ return id¹(tmp)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let id⁰; define id⁰ as fun id¹(a: ?): ? { return a }; return new Foo⁴(1)
+
+
+// Closure capture (`:lift`): the symbol holding the capture object is typed as
+// the generated capture class.
+:siret
+:lift
+fun counter() =
+  let n = 0
+  fun bump() = set n = n + 1
+  bump()
+  n
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let bump⁰, counter⁰, Capture$scope0⁰;
+//│ define Capture$scope0⁰ as class Capture$scope0² {
+//│   constructor Capture$scope0¹(n$0: ?) {
+//│     define n$0⁰ as val n$0¹: ? = n$0;
+//│     end
+//│   }
+//│ };
+//│ define bump⁰ as fun bump¹(scope0$cap: ?): Unit⁰ {
+//│   let tmp: ?;
+//│   set tmp = +⁰(scope0$cap.n$0¹, 1);
+//│   set scope0$cap.n$0¹ = tmp;
+//│   return runtime⁰.Unit⁰
+//│ };
+//│ define counter⁰ as fun counter¹(): Object {
+//│   let n: Object, scope0$cap: Capture$scope0²;
+//│   set scope0$cap = new mut Capture$scope0²(n);
+//│   set scope0$cap.n$0¹ = 0;
+//│   do bump¹(scope0$cap);
+//│   return scope0$cap.n$0¹
+//│ };
+//│ end
