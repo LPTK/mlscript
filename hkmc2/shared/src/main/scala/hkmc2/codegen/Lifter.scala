@@ -567,9 +567,12 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         val nme = sym.nme + "$" + id
         
         val ident = new Tree.Ident(nme)
-        val varSym = VarSymbol(ident, erasedType = N)
+        val capturedType = sym match
+          case s: HasErasedType => s.erasedType
+          case _ => N
+        val varSym = VarSymbol(ident, erasedType = capturedType)
         val fldSym = BlockMemberSymbol(nme, Nil)
-        val tSym = TermSymbol(syntax.MutVal, S(clsSym), ident, erasedType = N)
+        val tSym = TermSymbol(syntax.MutVal, S(clsSym), ident, erasedType = capturedType)
         
         val p = Param(FldFlags.empty.copy(isVal = true), varSym, N, Modulefulness.none)
         varSym.decl = S(p) // * Currently this is only accessed to create the class' toString method

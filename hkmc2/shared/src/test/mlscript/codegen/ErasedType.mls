@@ -224,7 +224,10 @@ id(new Foo(1))
 
 
 // Closure capture (`:lift`): the symbol holding the capture object is typed as
-// the generated capture class.
+// the generated capture class. The capture field inherits the captured local's
+// erased type — but here `n` is reassigned from `n + 1`, whose operand type is
+// not yet known when the (hoisted) closure body is lowered, so the local (and
+// hence the field) widens to `?`.
 :siret
 :lift
 fun counter() =
@@ -252,5 +255,37 @@ fun counter() =
 //│   set scope0$cap.n$0¹ = 0;
 //│   do bump¹(scope0$cap);
 //│   return scope0$cap.n$0¹
+//│ };
+//│ end
+
+
+// When the captured local keeps a definite erased type (here `n` is only ever
+// assigned `Int` literals), the generated capture field inherits it: both the
+// constructor parameter `n$0` and the `val n$0` field are typed `Int`.
+:siret
+:lift
+fun resetCounter() =
+  let n = 0
+  fun reset() = set n = 100
+  reset()
+  n
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let reset⁰, resetCounter⁰, Capture$scope0³;
+//│ define Capture$scope0³ as class Capture$scope0⁵ {
+//│   constructor Capture$scope0⁴(n$0: Int) {
+//│     define n$0² as val n$0³: Int = n$0;
+//│     end
+//│   }
+//│ };
+//│ define reset⁰ as fun reset¹(scope0$cap: ?): Unit⁰ {
+//│   set scope0$cap.n$0³ = 100;
+//│   return runtime⁰.Unit⁰
+//│ };
+//│ define resetCounter⁰ as fun resetCounter¹(): Int {
+//│   let n: Int, scope0$cap: Capture$scope0⁵;
+//│   set scope0$cap = new mut Capture$scope0⁵(n);
+//│   set scope0$cap.n$0³ = 0;
+//│   do reset¹(scope0$cap);
+//│   return scope0$cap.n$0³
 //│ };
 //│ end
