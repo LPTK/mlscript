@@ -246,8 +246,8 @@ fun counter() =
 //│   set scope0$cap.n$0¹ = tmp;
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ define counter⁰ as fun counter¹(): Object {
-//│   let n: Object, scope0$cap: Capture$scope0²;
+//│ define counter⁰ as fun counter¹(): ? {
+//│   let n: ?, scope0$cap: Capture$scope0²;
 //│   set scope0$cap = new mut Capture$scope0²(n);
 //│   set scope0$cap.n$0¹ = 0;
 //│   do bump¹(scope0$cap);

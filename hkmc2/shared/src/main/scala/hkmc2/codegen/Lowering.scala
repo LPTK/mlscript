@@ -1427,9 +1427,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   private def populateRestParamErasedType(p: Param): Unit =
     p.sym.populateErasedType(ErasedType.Primitive(PrimitiveType.Array))
 
-  /** Infers the [[`ErasedType`]] of a function's return type, by inspecting the erased type of all return values. */
-  // TODO(Derppening): This should return `N` only if any return value is `N` - Conflicting known return types should
-  //                   be joined to `AnyRef` (or common ancestor)
+  /** Infers the [[`ErasedType`]] of a function's return type by joining the erased types of all return values
+    * via [[`ErasedType.join`]]. 
+    */
   private def inferReturn(body: Block): Opt[ErasedType] =
     var rets: Ls[Opt[ErasedType]] = Nil
     new BlockTraverserShallow:
@@ -1438,8 +1438,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case _ => super.applyBlock(b)
     .applyBlock(body)
     rets match
-      case head :: tail if tail.forall(_ == head) => head
-      case _ => N
+      case head :: tail => tail.foldLeft(head)(ErasedType.join)
+      case Nil => N
 
   /** Populates a function definition symbol's erased type with a [[`ErasedType.FuncRef`]] derived from its 
     * (already-populated) parameter symbols and return type. 

@@ -865,6 +865,18 @@ object ErasedType:
       case _ if csym === ctx.builtins.Object => ObjectRef
       case S(prim) => ErasedType.Primitive(prim)
       case _ => ErasedType.AnyRef(rsc, csym)
+
+  /** Joins two possibly-unknown erased types and returning the result.
+    *
+    * - If both sides are known and equal, returns that known type.
+    * - If both sides are known and unequal, returns the top type [[`ErasedType.ObjectRef`]].
+    * - If either side is unknown (`N`), returns `N` - Representing a possibly-unknown type.
+    */
+  // TODO(Derppening): Widen conflicting knowns to their common ancestor once erased types track subtyping,
+  //                   rather than going directly to the top type.
+  def join(lhs: Opt[ErasedType], rhs: Opt[ErasedType]): Opt[ErasedType] = (lhs, rhs) match
+    case (N, _) | (_, N) => N
+    case (S(l), S(r)) => if l == r then S(l) else S(ObjectRef)
     
 /** A generics-erased type of the Block IR. */
 enum ErasedType:
@@ -910,25 +922,28 @@ trait HasOnceMutableErasedType extends HasErasedType:
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
 
-/** A [[`HasOnceMutableErasedType`]] whose erased type can additionally be assigned multiple times, joining the
-  * observed types into the top type on disagreement. */
+/** A [[`HasOnceMutableErasedType`]] whose erased type can additionally be assigned multiple times, joining each
+  * observed type into the running erased type via [[`ErasedType.join`]]. */
 trait HasManyMutableErasedType extends HasOnceMutableErasedType:
-  /** Tracks whether [[`observeErasedTypeAssign`]] has seen at least one assignment to this symbol. */
+  /** Tracks whether [[`observeErasedTypeAssign`]] has seen at least one assignment to this symbol. Needed to
+    * distinguish a never-observed symbol (whose `N` erased type is the join unit, to be seeded by the first
+    * observation) from an observed-but-poisoned one (whose `N` erased type is the absorbing top). */
   private var erasedTypeObserved: Bool = false
 
   /**
     * Observes an assignment of a value with type `observed` to this symbol.
     *
-    * Some symbols (e.g. [[`LocalVarSymbol`]]) can be assigned to multiple times with different types of values. This
-    * method tracks multiple assignments by coercing the type of the symbol to the top type if a subsequent assignemnt
-    * does not share the same type as the previously populated type.
+    * Some symbols (e.g. [[`LocalVarSymbol`]]) can be assigned multiple times with values of differing types. The
+    * first observation of an otherwise-unset symbol seeds the erased type directly; every subsequent observation
+    * (and any observation joining an annotation-populated type) is folded in with [[`ErasedType.join`]]. Under that
+    * join an unknown (`N`) assignment is "poison": it widens the symbol to the unknown top type and is absorbing,
+    * while two differing known types widen to the definitive top type [[`ErasedType.ObjectRef`]].
     */
-  // TODO(Derppening): We should probably coerce to the common supertype rather than directly to the top type
   def observeErasedTypeAssign(observed: Opt[ErasedType]): Unit =
     if !erasedTypeObserved && erasedType.isEmpty then
       erasedType = observed
-    else if erasedType != observed then
-      erasedType = S(ErasedType.ObjectRef)
+    else
+      erasedType = ErasedType.join(erasedType, observed)
     erasedTypeObserved = true
 
 extension (lit: Literal) 
