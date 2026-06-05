@@ -1411,13 +1411,19 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     * derived from its (already-refined) parameter symbols and return type. The return type
     * comes from the explicit annotation when present, otherwise it is inferred from the body.
     *
+    * This is a derived type that may be recomputed when a definition is lowered more than once
+    * (e.g. under `:lift`/`:effectHandlers`); since a later pass can infer a different return type,
+    * the result is recorded only the first time and left untouched afterwards (rather than going
+    * through the asserting [[`refineErasedType`]], which is meant for one-shot annotations).
+    *
     * The parameters of curried functions are flattened into a single list: this is lossy
     * for the arrow shape but does not affect the rendered return type, the only consumer
     * today. */
   private def refineFunDefnType(tsym: TermSymbol, paramLists: Ls[ParamList], sign: Opt[Term], body: Block): Unit =
-    val params = paramLists.flatMap(_.params).map(_.sym.erasedType)
-    val ret = sign.flatMap(eraseSign) orElse inferReturn(body)
-    tsym.refineErasedType(ErasedType.FuncRef(S(params -> ret)))
+    if tsym.erasedType.isEmpty then
+      val params = paramLists.flatMap(_.params).map(_.sym.erasedType)
+      val ret = sign.flatMap(eraseSign) orElse inferReturn(body)
+      tsym.erasedType = S(ErasedType.FuncRef(S(params -> ret)))
 
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =
