@@ -890,7 +890,7 @@ enum ErasedType:
   case AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol)
 
   /** A reference to a function of a possibly-known shape. */
-  case FuncRef(sig: Opt[Ls[Opt[ErasedType]] -> Opt[ErasedType]])
+  case FuncRef(params: Ls[Opt[ErasedType]], ret: Opt[ErasedType])
 
   /** An primitive type. */
   case Primitive(prim: PrimitiveType)
@@ -899,7 +899,7 @@ enum ErasedType:
   def sym(using Ctx, State): ClassLikeSymbol = this match
     case AnyRef(_, csym: ClassLikeSymbol) => csym
     case AnyRef(_, _: NoSymbol) => ctx.builtins.Object
-    case FuncRef(_) => ctx.builtins.Function
+    case FuncRef(_, _) => ctx.builtins.Function
     case Primitive(prim) => prim.sym
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
@@ -1052,9 +1052,8 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Call(Value.SimpleRef(bs: BuiltinSymbol), argss) =>
       bs.resultErasedType(argss.head.map(_.value.erasedType))
     case Call(fun, _) => fun.targetSymbol match
-      // * A call's result is the callee's return type, recovered from its `FuncRef` (Phase F.2).
       case S(ts: TermSymbol) => ts.erasedType match
-        case S(ErasedType.FuncRef(sig)) => sig.flatMap(_._2)
+        case S(ErasedType.FuncRef(_, ret)) => ret
         case _ => N
       case _ => N
     // * A resolved selection has the type of the member it refers to (e.g. `this.field`); an
