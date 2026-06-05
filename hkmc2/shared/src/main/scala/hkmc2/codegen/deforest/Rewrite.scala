@@ -494,6 +494,10 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
             case _ => super.applyValue(v)(k)
         end RefreshSymbol
 
+        // FIXME: This is a temporary workaround for the deforestation problem discussed at
+        //          https://discord.com/channels/884326249617559653/935507764384501760/1512041398520774832
+        //        It should be fixed after we fix Lowering; then, this function should be removed,
+        //        and its uses replaced back by `new RefreshSymbol(refreshParamMap.toMap).apply`
         // TODO: it may cause BMS to malfunction if both class and function refer to same BMS and they are split apart
         def refreshExtractedBody(mapping: Map[Symbol, Symbol], body: Block): Block =
           val defined = MutSet.empty[ScopedSymbol]
