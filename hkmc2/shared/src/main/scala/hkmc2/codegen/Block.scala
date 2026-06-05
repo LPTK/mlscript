@@ -1028,6 +1028,12 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Value.Lit(lit) => S(lit.erasedType)
     case Call(Value.SimpleRef(bs: BuiltinSymbol), argss) =>
       bs.resultErasedType(argss.head.map(_.value.erasedType))
+    case Call(fun, _) => fun.targetSymbol match
+      // * A call's result is the callee's return type, recovered from its `FuncRef` (Phase F.2).
+      case S(ts: TermSymbol) => ts.erasedType match
+        case S(ErasedType.FuncRef(sig)) => sig.flatMap(_._2)
+        case _ => N
+      case _ => N
     case _ => N
 
 /* mayRaiseEffects indicates whether this call may raise effect (algebraic effect),

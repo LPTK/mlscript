@@ -80,13 +80,14 @@ let foo = new Foo(123)
 //│ end
 
 
-// Call return / field selection
+// Call return is inferred from the callee's return type; field selection stays
+// `: ?` (resolved in a later phase).
 :siret
 fun mk(a) = new Foo(a)
 let made = mk(1)
 let sel = made.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let mk⁰, made⁰: ?, sel⁰: ?, selRes: ?;
+//│ let mk⁰, made⁰: Foo⁴, sel⁰: ?, selRes: ?;
 //│ define mk⁰ as fun mk¹(a: ?): Foo⁴ {
 //│   return new Foo⁴(a)
 //│ };
