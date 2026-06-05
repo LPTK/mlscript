@@ -37,13 +37,13 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
     case ErasedType.FuncRef(S(params -> ret)) =>
       doc"(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
-  
+
+  /** Renders the type annotation for a symbol with an [[`ErasedType`]]. */
   def erasedTypeAnnot(x: HasErasedType)(using Scope): Document =
     if !summon[ShowCfg].showErasedTypes then doc""
     else doc": ${x.erasedType.fold(doc"?")(print)}"
 
-  /** Renders a function's return type, projected from the `FuncRef` carried by its
-    * definition symbol. Nothing is rendered when the symbol carries no `FuncRef`. */
+  /** Renders a function's return type, projected from the `FuncRef` carried by its definition symbol. */
   def returnTypeAnnot(dSym: TermSymbol)(using Scope): Document =
     if !summon[ShowCfg].showErasedTypes then doc""
     else dSym.erasedType match

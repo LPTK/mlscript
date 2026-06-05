@@ -286,9 +286,11 @@ class BuiltinSymbol
       case _ => Bot
     semantics.flow.Producer.Typ(typ)
 
-  /** The result [[`ErasedType`]] of applying this builtin operator to operands of the
-    * given erased types, or `N` if this symbol is not a recognized operator. Context-free;
-    * surfaces the result-type knowledge already implicit in `BlockSimplifier.builtinEval`. */
+  /** The result [[`ErasedType`]] of applying this builtin operator to operands of the given erased types.
+    *
+    * Returns `N` if the operator is not recognized or the arguments to the operator is not sufficient to determine the
+    * result type.
+    */
   def resultErasedType(args: Ls[Opt[ErasedType]]): Opt[ErasedType] =
     import ErasedType.Primitive
     def isStr(t: Opt[ErasedType]) = t.contains(Primitive(PrimitiveType.Str))

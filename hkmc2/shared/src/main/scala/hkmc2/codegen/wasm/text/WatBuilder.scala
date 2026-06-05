@@ -40,7 +40,7 @@ extension (et: ErasedType)
 extension (sym: ValueSymbol)
   /** The Wasm reference type a *local* slot for `sym` should be declared with.
     *
-    * Use [[FunctionCtx.slowRefType]] for parameter slots, which handles `anyref` widening due to virtual dispatch
+    * Use [[`FunctionCtx.slotRefType`]] for parameter slots, which handles `anyref` widening due to virtual dispatch
     * calling conventions.
     */
   private[text] def localRefType(using Ctx, State): RefType =

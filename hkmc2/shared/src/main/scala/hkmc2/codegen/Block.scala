@@ -885,10 +885,10 @@ enum ErasedType:
 
   /** The symbol for this erased type. */
   def sym(using Ctx, State): ClassLikeSymbol = this match
-      case AnyRef(_, csym: ClassLikeSymbol) => csym
-      case AnyRef(_, _: NoSymbol) => ctx.builtins.Object
-      case FuncRef(_) => ctx.builtins.Function
-      case Primitive(prim) => prim.sym
+    case AnyRef(_, csym: ClassLikeSymbol) => csym
+    case AnyRef(_, _: NoSymbol) => ctx.builtins.Object
+    case FuncRef(_) => ctx.builtins.Function
+    case Primitive(prim) => prim.sym
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:
@@ -903,25 +903,25 @@ trait HasMutableErasedType extends HasErasedType:
   // Implementation Note: Provided for overriding classes to implement `erasedType` directly as an `override var`
   def erasedType_=(newType: Opt[ErasedType]): Unit
 
-  /** Refines the erased type, or raises a soft assertion if the type was already previously refined. */
+  /** Populates the erased type, or raises a soft assertion if the type was already populated. */
   def populateErasedType(newType: ErasedType)(using Line, FileName, Raise): Unit =
-    // TODO(Derppening): Restore `erasedType.isEmpty` once JS sanitization is converted into a pass
+    // TODO(Derppening): Restore `erasedType.isEmpty` once JS sanitization is converted into a pass, allowing us to
+    //                   only lower each program once
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
 
-  /** Tracks whether [[`observeErasedType`]] has seen at least one assignment to this symbol. */
+  /** Tracks whether [[`observeErasedTypeAssign`]] has seen at least one assignment to this symbol. */
   private var erasedTypeObserved: Bool = false
 
   /**
-    * Observes an assignment of `observed` to this (possibly reassignable) symbol, joining it with
-    * any previously known type. Unlike [[`populateErasedType`]], which expects a single authoritative
-    * write, this tolerates multiple assignments of differing types: the first observation of an
-    * otherwise-unknown symbol is recorded exactly (so a single assignment of an unknown type keeps
-    * `N`), and any later disagreement — including with a type already set by an annotation — widens to
-    * the top type [[`ErasedType.ObjectRef`]]. The join is monotone (`N` → known → top), so it never
-    * re-narrows; a bare `N` therefore means "never observed".
+    * Observes an assignment of a value with type `observed` to this symbol.
+    *
+    * Some symbols (e.g. [[`LocalVarSymbol`]]) can be assigned to multiple times with different types of values. This
+    * method tracks multiple assignments by coercing the type of the symbol to the top type if a subsequent assignemnt
+    * does not share the same type as the previously populated type.
     */
-  def observeErasedType(observed: Opt[ErasedType]): Unit =
+  // TODO(Derppening): We should probably coerce to the common supertype rather than directly to the top type
+  def observeErasedTypeAssign(observed: Opt[ErasedType]): Unit =
     if !erasedTypeObserved && erasedType.isEmpty then
       erasedType = observed
     else if erasedType != observed then
