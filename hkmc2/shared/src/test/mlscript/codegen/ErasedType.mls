@@ -182,6 +182,24 @@ class Calc() with
 //│ end
 
 
+// A selection resolved to a member (`this.v`) carries that member's type, so a
+// field getter's return is inferred.
+:siret
+class Box(val v: Int) with
+  fun get() = v
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let Box⁰;
+//│ define Box⁰ as class Box² {
+//│   val v⁰: Int;
+//│   constructor Box¹(v: Int) {
+//│     define v⁰ as val v¹: Int = v;
+//│     end
+//│   }
+//│   method get⁰ = fun get¹(): Int { return Box².this.v¹ }
+//│ };
+//│ end
+
+
 // Optimized IR with erased types: surfaces where a type relaxes to `: ?`
 // through a transform (the relaxation gap `:soir` makes visible).
 :soir

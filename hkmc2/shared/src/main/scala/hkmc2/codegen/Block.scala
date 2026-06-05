@@ -1034,6 +1034,12 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
         case S(ErasedType.FuncRef(sig)) => sig.flatMap(_._2)
         case _ => N
       case _ => N
+    // * A resolved selection has the type of the member it refers to (e.g. `this.field`); an
+    // * unresolved selection (dynamic field access) stays unknown.
+    case sel @ Select(_, _) => sel.symbol match
+      case S(ts: TermSymbol) => ts.erasedType
+      case S(d: (ClassSymbol | ModuleOrObjectSymbol | TypeAliasSymbol)) => d.erasedType
+      case _ => N
     case _ => N
 
 /* mayRaiseEffects indicates whether this call may raise effect (algebraic effect),
