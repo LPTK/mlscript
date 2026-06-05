@@ -155,7 +155,7 @@ end Symbol
 
 
 // * Used, eg, as the Assign receiver of intermediate computations whose result is not used
-case object NoSymbol extends MaybeSymbol:
+object NoSymbol extends MaybeSymbol:
   def nme: Str = "‹no symbol›"
   override def toString: Str = nme
 

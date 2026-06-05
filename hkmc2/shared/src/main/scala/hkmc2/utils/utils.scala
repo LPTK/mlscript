@@ -93,7 +93,6 @@ class DebugPrinter:
         val symsStr = "{" + syms.toArray.sortBy(_.uid).map(_.showAsPlain).mkString(", ") + "}"
         s"Scoped(syms = $symsStr): \n" + s"body = ${printProduct(false, body)}".indent("  ")
 
-      case semantics.NoSymbol => printPlain(semantics.NoSymbol)
       case t: Product => printProduct(inTailPos, t)
       case v => printPlain(v)
     
