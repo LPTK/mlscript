@@ -10,9 +10,8 @@ import hkmc2.utils.*
 
 import Elaborator.State
 import Tree.Ident
-import hkmc2.codegen.{ErasedType, PrimitiveType, HasErasedType, erasedType}
+import hkmc2.codegen.{ErasedType, HasErasedType, HasManyMutableErasedType, HasOnceMutableErasedType, PrimitiveType, erasedType}
 import hkmc2.utils.SymbolSubst
-import hkmc2.codegen.HasMutableErasedType
 
 
 sealed abstract class MaybeSymbol:
@@ -251,7 +250,7 @@ class InstSymbol(val origin: Symbol)(using State) extends LocalSymbol:
 
 class VarSymbol(val id: Ident, override var erasedType: Opt[ErasedType])(using State)
     extends LocalVarSymbol(id.name)
-    with HasMutableErasedType
+    with HasManyMutableErasedType
     with NamedSymbol:
   val name: Str = id.name
   override def toLoc: Opt[Loc] = id.toLoc
@@ -373,7 +372,7 @@ sealed abstract class MemberSymbol(using State) extends Symbol:
 class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.Ident, override var erasedType: Opt[ErasedType])(using State)
     extends MemberSymbol
     with DefinitionSymbol[TermDefinition]
-    with HasMutableErasedType
+    with HasOnceMutableErasedType
     with NamedSymbol:
   def nme: Str = id.name
   def name: Str = nme

@@ -898,8 +898,8 @@ trait HasErasedType:
   /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known. */
   def erasedType_! : ErasedType = erasedType.getOrElse(ErasedType.ObjectRef)
 
-/** A [[`HasErasedType`]] that can have its erased type refined post-construction. */
-trait HasMutableErasedType extends HasErasedType:
+/** A [[`HasErasedType`]] whose erased type can be populated exactly once post-construction. */
+trait HasOnceMutableErasedType extends HasErasedType:
   // Implementation Note: Provided for overriding classes to implement `erasedType` directly as an `override var`
   def erasedType_=(newType: Opt[ErasedType]): Unit
 
@@ -910,6 +910,9 @@ trait HasMutableErasedType extends HasErasedType:
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
 
+/** A [[`HasOnceMutableErasedType`]] whose erased type can additionally be assigned multiple times, joining the
+  * observed types into the top type on disagreement. */
+trait HasManyMutableErasedType extends HasOnceMutableErasedType:
   /** Tracks whether [[`observeErasedTypeAssign`]] has seen at least one assignment to this symbol. */
   private var erasedTypeObserved: Bool = false
 

@@ -564,10 +564,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   /** Observes an assignment of `rhs` to `sym`, populating or updating its erased type where applicable.
     *
-    * See [[`HasMutableErasedType.observeErasedTypeAssign`]].
+    * See [[`HasManyMutableErasedType.observeErasedTypeAssign`]].
     */
   private def observeLocalErasedType(sym: LocalVarSymbol, rhs: Result): Unit = sym match
-    case sym: HasMutableErasedType => sym.observeErasedTypeAssign(rhs.erasedType)
+    case sym: HasManyMutableErasedType => sym.observeErasedTypeAssign(rhs.erasedType)
     case _ =>
 
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
