@@ -466,7 +466,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
         form match
         case IfLikeForm.ReturningIf => if (k is Ret) || (k is Thrw) then k(r) else Assign(l, r, End())
         case IfLikeForm.ImperativeIf => Assign.discard(r, End())
-        case IfLikeForm.While => Assign(State.noSymbol, r, loopCont)
+        case IfLikeForm.While => Assign(NoSymbol, r, loopCont)
       // NOTE: `shouldRewriteWhile` is not the same as `config.rewriteWhileLoops`
       // as shouldRewriteWhile is always true when effect handler lowering is on
       lazy val loopCont = if config.shouldRewriteWhile

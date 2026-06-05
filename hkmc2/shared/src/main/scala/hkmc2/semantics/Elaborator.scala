@@ -336,6 +336,7 @@ object Elaborator:
     val strSymbol = ModuleOrObjectSymbol(DummyTypeDef(syntax.Mod), Ident("Str"))
     // In JavaScript, `import` can be used for getting current file path, as `import.meta`
     val importSymbol = new VarSymbol(Ident("import"), erasedType = N)
+    @deprecated("Use the `NoSymbol` singleton instead.")
     val noSymbol = NoSymbol
     val runtimeSymbol = TempSymbol(N, erasedType = N, "runtime")
     val definitionMetadataSymbol = TempSymbol(N, erasedType = N, "definitionMetadata")

@@ -296,7 +296,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
           val le =
             import codegen.*
             Assign(
-              Elaborator.State.noSymbol,
+              NoSymbol,
               Call(
                 Elaborator.State.runtimeSymbol.asSimpleRef.selSN("printRaw"),
                 (Arg(N, sym.asPath) :: Nil) ne_:: Nil)(true, false, false),
