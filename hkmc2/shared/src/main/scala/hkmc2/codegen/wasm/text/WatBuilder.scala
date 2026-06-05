@@ -954,7 +954,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     def splitSuperTail(block: Block): Opt[Block -> Ls[Arg]] = block match
       case End(_) => N
       case Assign(lhs, Call(Value.SimpleRef(bs: BuiltinSymbol), argss), _: End)
-        if (lhs is State.noSymbol) && (bs is State.superSymbol)
+        if (lhs is NoSymbol) && (bs is State.superSymbol)
       =>
         S(End("") -> argss.flatten)
       case b: NonBlockTail =>
