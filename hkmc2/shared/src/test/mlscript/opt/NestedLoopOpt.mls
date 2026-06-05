@@ -17,16 +17,18 @@ fun innerUpdatesOuterCondition() =
 //│   let x;
 //│   set x = 2;
 //│   loop lbl:
-//│     let scrut, y;
+//│     let scrut;
 //│     set scrut = >⁰(x, 0);
 //│     match scrut
 //│       true =>
+//│         let y;
 //│         set y = 1;
 //│         loop lbl1:
-//│           let scrut1, tmp, tmp1;
+//│           let scrut1;
 //│           set scrut1 = >⁰(y, 0);
 //│           match scrut1
 //│             true =>
+//│               let tmp, tmp1;
 //│               set tmp = -⁰(x, 1);
 //│               set x = tmp;
 //│               set tmp1 = -⁰(y, 1);
@@ -66,9 +68,9 @@ fun nestedLoopBackPost(flag) =
 //│   let x;
 //│   set x = 1;
 //│   loop lbl:
-//│     let inner;
 //│     match flag
 //│       true =>
+//│         let inner;
 //│         set inner = flag;
 //│         loop lbl1:
 //│           match inner
@@ -197,7 +199,7 @@ fun labelContinueFiltersPath(limit) =
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let labelContinueFiltersPath⁰;
 //│ define labelContinueFiltersPath⁰ as fun labelContinueFiltersPath¹(limit) {
-//│   let i, acc, loop$result, scrut, scrut1, tmp, tmp1, tmp2, tmp3;
+//│   let i, acc, loop$result, scrut, scrut1, tmp, tmp1, tmp2;
 //│   set i = 0;
 //│   set acc = 0;
 //│   loop loop:
@@ -211,14 +213,15 @@ fun labelContinueFiltersPath(limit) =
 //│         set scrut1 = Predef⁰.equals⁰(tmp, 0);
 //│         match scrut1
 //│           true =>
-//│             set tmp1 = +⁰(i, 1);
-//│             set i = tmp1;
-//│             continue loop
-//│           else
-//│             set tmp2 = +⁰(acc, 10);
-//│             set acc = tmp2;
+//│             let tmp3;
 //│             set tmp3 = +⁰(i, 1);
 //│             set i = tmp3;
+//│             continue loop
+//│           else
+//│             set tmp1 = +⁰(acc, 10);
+//│             set acc = tmp1;
+//│             set tmp2 = +⁰(i, 1);
+//│             set i = tmp2;
 //│             continue loop
 //│         end
 //│     end

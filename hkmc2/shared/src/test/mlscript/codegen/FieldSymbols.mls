@@ -79,9 +79,9 @@ case
 //│ let lambda⁰;
 //│ @private
 //│ define lambda⁰ as fun lambda¹(caseScrut) {
-//│   let a, arg$Foo$0$;
 //│   match caseScrut
 //│     Foo¹ =>
+//│       let a, arg$Foo$0$;
 //│       set arg$Foo$0$ = caseScrut.x⁰;
 //│       set a = arg$Foo$0$;
 //│       return a

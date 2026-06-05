@@ -55,8 +55,8 @@ let i = 0 in
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $i (ref null any))
 //│     (local $scrut (ref null any))
-//│     (local $tmp (ref null any))
 //│     (local $matchRes (ref null any))
+//│     (local $tmp (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $i
 //│         (ref.i31

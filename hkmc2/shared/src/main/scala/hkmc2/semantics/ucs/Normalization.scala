@@ -325,6 +325,17 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
       term_nonTail(trm): r =>
         Assign(sym, r, lowerSplit(tl, cont))
     case Split.Cons(Branch(scrut, pat, tail), restSplit) =>
+      def freshenScopedBranch(block: Block): Block =
+        // Split normalization can duplicate fallback fragments before lowering.
+        // Once a duplicated fragment is emitted as a branch-local Scoped block,
+        // refresh its MIR binders so it cannot shadow the shared fallback/rest.
+        new SymbolRefresher(Map.empty[Symbol, Symbol]).apply(block)
+      end freshenScopedBranch
+      inline def scopedBranch(inline body: LoweringCtx ?=> Block): Block =
+        LoweringCtx.nestScoped.givenIn:
+          val loweredBody = body
+          freshenScopedBranch(Scoped(LoweringCtx.loweringCtx.getCollectedSym, loweredBody))
+      end scopedBranch
       subTerm_nonTail(scrut): sr =>
         tl.log(s"Binding scrut $scrut to $sr (${summon[LoweringCtx].map})") 
         def mkMatch(cse: Case -> Block) = Match(sr, cse :: Nil,
@@ -332,22 +343,22 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
             End()
           )
         pat match
-          case FlatPattern.Lit(lit) => mkMatch(Case.Lit(lit) -> lowerSplit(tail, cont))
+          case FlatPattern.Lit(lit) => mkMatch(Case.Lit(lit) -> scopedBranch(lowerSplit(tail, cont)))
           case FlatPattern.ClassLike(ctor, symbol, argsOpt, _refined) =>
-            for args <- argsOpt; (arg, _) <- args do LoweringCtx.loweringCtx.collectScopedSym(arg)
+            // for args <- argsOpt; (arg, _) <- args do LoweringCtx.loweringCtx.collectScopedSym(arg)
             /** Make a continuation that creates the match. */
             def k(ctorSym: ClassLikeSymbol, clsParams: Ls[TermSymbol])(st: Path): Block =
               val args = argsOpt.map(_.map(_._1)).getOrElse(Nil)
               // Normalization should reject cases where the user provides
               // more sub-patterns than there are actual class parameters.
               assert(argsOpt.isEmpty || args.length <= clsParams.length, (argsOpt, clsParams))
-              def mkArgs(args: Ls[TermSymbol -> LocalVarSymbol])(using LoweringCtx): Case -> Block = args match
-                case Nil =>
-                  Case.Cls(ctorSym, st) -> lowerSplit(tail, cont)
-                case (param, arg) :: args =>
-                  val (cse, blk) = mkArgs(args)
-                  (cse, Assign(arg, Select(sr, new Tree.Ident(param.id.name).withLocOf(arg))(S(param)), blk))
-              mkMatch(mkArgs(clsParams.iterator.zip(args).toList))
+              mkMatch:
+                Case.Cls(ctorSym, st) ->
+                scopedBranch:
+                  for args <- argsOpt; (arg, _) <- args do LoweringCtx.loweringCtx.collectScopedSym(arg)
+                  clsParams.iterator.zip(args).foldRight(lowerSplit(tail, cont)):
+                    case (param, arg) -> res =>
+                      Assign(arg, Select(sr, new Tree.Ident(param.id.name).withLocOf(arg))(S(param)), res)
             symbol match
               case cls: ClassSymbol if ctx.builtins.virtualClasses contains cls =>
                 // [invariant:0] Some classes (e.g., `Int`) from `Prelude` do
@@ -363,18 +374,19 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
                   ))
               case mod: ModuleOrObjectSymbol =>
                 subTerm_nonTail(ctor)(k(mod, Nil))
-          case FlatPattern.Tuple(len, inf) => mkMatch(Case.Tup(len, inf) -> lowerSplit(tail, cont))
+          case FlatPattern.Tuple(len, inf) => mkMatch(Case.Tup(len, inf) -> scopedBranch(lowerSplit(tail, cont)))
           case FlatPattern.Record(entries) =>
-            for (_, s) <- entries do LoweringCtx.loweringCtx.collectScopedSym(s)
             val objectSym = ctx.builtins.Object
             mkMatch( // checking that we have an object
               Case.Cls(objectSym, BuiltinSymbol(objectSym.nme, false, false, true, false).asSimpleRef),
-              entries.foldRight(lowerSplit(tail, cont)):
-                case ((fieldName, fieldSymbol), blk) =>
-                  mkMatch(
-                    Case.Field(fieldName, safe = true), // we know we have an object, no need to check again
-                    Assign(fieldSymbol, Select(sr, fieldName)(N), blk)
-                  )
+              scopedBranch:
+                for (_, s) <- entries do LoweringCtx.loweringCtx.collectScopedSym(s)
+                entries.foldRight(lowerSplit(tail, cont)):
+                  case ((fieldName, fieldSymbol), blk) =>
+                    mkMatch(
+                      Case.Field(fieldName, safe = true), // we know we have an object, no need to check again
+                      Assign(fieldSymbol, Select(sr, fieldName)(N), blk)
+                    )
             )
     case Split.Else(els) =>
       term_nonTail(els, inStmtPos = form.isImperative)(cont)

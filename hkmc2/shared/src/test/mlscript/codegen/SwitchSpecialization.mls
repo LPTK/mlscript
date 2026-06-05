@@ -58,29 +58,47 @@ fun f(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f1;
 //│ f1 = function f(x) {
-//│   let acc, tmp, tmp1, tmp2, tmp3, tmp4;
+//│   let acc;
 //│   acc = "";
 //│   switch (x) {
 //│     case 0:
-//│       tmp = "" + "a";
-//│       acc = tmp;
-//│       x = 1;
+//│       {
+//│         let tmp;
+//│         tmp = "" + "a";
+//│         acc = tmp;
+//│         x = 1;
+//│       }
 //│     case 1:
-//│       tmp1 = acc + "b";
-//│       acc = tmp1;
-//│       x = 2;
+//│       {
+//│         let tmp;
+//│         tmp = acc + "b";
+//│         acc = tmp;
+//│         x = 2;
+//│       }
 //│     case 2:
-//│       tmp2 = acc + "c";
-//│       acc = tmp2;
-//│       x = 3;
+//│       {
+//│         let tmp;
+//│         tmp = acc + "c";
+//│         acc = tmp;
+//│         x = 3;
+//│       }
 //│     case 3:
-//│       tmp3 = acc + "d";
-//│       acc = tmp3;
-//│       x = 4;
+//│       {
+//│         let tmp;
+//│         tmp = acc + "d";
+//│         acc = tmp;
+//│         x = 4;
+//│       }
 //│     case 4:
-//│       tmp4 = acc + "e";
-//│       acc = tmp4;
-//│       return globalThis.Object.freeze([ tmp4, x ]);
+//│       {
+//│         let tmp;
+//│         tmp = acc + "e";
+//│         acc = tmp;
+//│         return globalThis.Object.freeze([
+//│           tmp,
+//│           x
+//│         ]);
+//│       }
 //│   }
 //│   return globalThis.Object.freeze([ acc, x ])
 //│ };
@@ -122,27 +140,39 @@ fun f(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f2;
 //│ f2 = function f(x) {
-//│   let acc, tmp, tmp1, tmp2, tmp3;
+//│   let acc;
 //│   acc = "";
 //│   switch (x) {
 //│     case 0:
-//│       tmp = "" + "a";
-//│       acc = tmp;
-//│       x = 1;
+//│       {
+//│         let tmp;
+//│         tmp = "" + "a";
+//│         acc = tmp;
+//│         x = 1;
+//│       }
 //│     case 1:
-//│       tmp1 = acc + "b";
-//│       acc = tmp1;
-//│       x = 2;
+//│       {
+//│         let tmp;
+//│         tmp = acc + "b";
+//│         acc = tmp;
+//│         x = 2;
+//│       }
 //│     case 2:
 //│       return acc + "c";
 //│     case 3:
-//│       tmp2 = acc + "A";
-//│       acc = tmp2;
-//│       x = 4;
+//│       {
+//│         let tmp;
+//│         tmp = acc + "A";
+//│         acc = tmp;
+//│         x = 4;
+//│       }
 //│     case 4:
-//│       tmp3 = acc + "B";
-//│       acc = tmp3;
-//│       x = 5;
+//│       {
+//│         let tmp;
+//│         tmp = acc + "B";
+//│         acc = tmp;
+//│         x = 5;
+//│       }
 //│     case 5:
 //│       return acc + "C";
 //│     case 6:
@@ -193,13 +223,16 @@ fun f(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f3;
 //│ f3 = function f(x) {
-//│   let acc, tmp;
+//│   let acc;
 //│   acc = "";
 //│   switch (x) {
 //│     case 0:
-//│       tmp = "" + "M";
-//│       acc = tmp;
-//│       x = 1;
+//│       {
+//│         let tmp;
+//│         tmp = "" + "M";
+//│         acc = tmp;
+//│         x = 1;
+//│       }
 //│     case 1:
 //│       return acc + "1";
 //│     case 2:
@@ -236,13 +269,16 @@ fun f(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f4;
 //│ f4 = function f(x) {
-//│   let acc, tmp;
+//│   let acc;
 //│   acc = "";
 //│   switch (x) {
 //│     case 0:
-//│       tmp = "" + "M";
-//│       acc = tmp;
-//│       x = 1;
+//│       {
+//│         let tmp;
+//│         tmp = "" + "M";
+//│         acc = tmp;
+//│         x = 1;
+//│       }
 //│     case 1:
 //│       return acc + "1";
 //│     case 2:
@@ -274,8 +310,8 @@ fun f(x, y) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f5;
 //│ f5 = function f(x, y) {
-//│   let scrut;
 //│   if (x === 0) {
+//│     let scrut;
 //│     x = 1;
 //│     scrut = Predef.equals(y, 0);
 //│     if (scrut === true) {
@@ -312,15 +348,17 @@ fun f(x, y) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f6;
 //│ f6 = function f(x, y) {
-//│   let scrut;
 //│   switch (x) {
 //│     case 0:
-//│       x = 1;
-//│       scrut = Predef.equals(y, 0);
-//│       if (scrut === true) {
-//│         x = 1000;
+//│       {
+//│         let scrut;
 //│         x = 1;
-//│       } else { x = 1; }
+//│         scrut = Predef.equals(y, 0);
+//│         if (scrut === true) {
+//│           x = 1000;
+//│           x = 1;
+//│         } else { x = 1; }
+//│       }
 //│     case 1:
 //│       return "x = 1";
 //│   }

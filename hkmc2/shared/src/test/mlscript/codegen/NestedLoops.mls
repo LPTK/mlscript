@@ -18,16 +18,18 @@ c
 //│ set c⁰ = 0;
 //│ set x⁰ = 0;
 //│ loop lbl:
-//│   let scrut, y, tmp;
+//│   let scrut;
 //│   set scrut = <⁰(x⁰, 5);
 //│   match scrut
 //│     true =>
+//│       let y, tmp;
 //│       set y = 0;
 //│       loop lbl1:
-//│         let scrut1, tmp1, tmp2;
+//│         let scrut1;
 //│         set scrut1 = <⁰(y, 5);
 //│         match scrut1
 //│           true =>
+//│             let tmp1, tmp2;
 //│             set tmp1 = +⁰(c⁰, 1);
 //│             set c⁰ = tmp1;
 //│             set tmp2 = +⁰(y, 1);

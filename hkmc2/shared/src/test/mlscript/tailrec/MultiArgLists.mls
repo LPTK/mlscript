@@ -147,10 +147,11 @@ fun g(n)(m) =
 //│   loop loopLabel:
 //│     match id
 //│       0 =>
-//│         let scrut, tmp;
+//│         let scrut;
 //│         set scrut = >⁰(param0, 0);
 //│         match scrut
 //│           true =>
+//│             let tmp;
 //│             set tmp = +⁰(param6, 1);
 //│             set param1 = tmp;
 //│             set id = 1;

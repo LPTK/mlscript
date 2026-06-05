@@ -371,22 +371,24 @@ fun foo(x, y, z) = if x is
 //│   let value;
 //│   match x
 //│     0 =>
+//│       let value1;
 //│       match y
 //│         0 =>
+//│           let value2;
 //│           match z
 //│             0 =>
 //│               return "000"
 //│             1 =>
 //│               return "001"
 //│             else
-//│               set value = "hello";
-//│               return expensive_call⁰(value)
+//│               set value2 = "hello";
+//│               return expensive_call⁰(value2)
 //│           end
 //│         1 =>
 //│           return "01"
 //│         else
-//│           set value = "hello";
-//│           return expensive_call⁰(value)
+//│           set value1 = "hello";
+//│           return expensive_call⁰(value1)
 //│       end
 //│     1 =>
 //│       return "1"

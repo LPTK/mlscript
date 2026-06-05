@@ -202,8 +202,8 @@ fun f(ls) =
 //│ let f6;
 //│ f6 = function f(ls) {
 //│   lbl9: while (true) {
-//│     let arg$Cons$0$, arg$Cons$1$;
 //│     if (ls instanceof Cons1.class) {
+//│       let arg$Cons$0$, arg$Cons$1$;
 //│       arg$Cons$0$ = ls.hd;
 //│       arg$Cons$1$ = ls.tl;
 //│       ls = arg$Cons$1$;

@@ -45,9 +45,9 @@ if s is
   Some(1) then 0
   None then 1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let arg$Some$0$;
 //│ match s⁰
 //│   Some⁰ =>
+//│     let arg$Some$0$;
 //│     set arg$Some$0$ = s⁰.value⁰;
 //│     match arg$Some$0$
 //│       1 =>
@@ -61,9 +61,9 @@ if s is
 //│     throw new globalThis⁰.Error⁰("match error")
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let arg$Some$0$;
 //│ match s⁰
 //│   Some⁰ =>
+//│     let arg$Some$0$;
 //│     set arg$Some$0$ = s⁰.value⁰;
 //│     match arg$Some$0$
 //│       1 =>
@@ -154,10 +154,10 @@ fun f(x) = if x is
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f4;
 //│ f4 = function f(x2) {
-//│   let scrut1, arg$Some$0$1;
 //│   if (x2 instanceof Some1.class) {
-//│     arg$Some$0$1 = x2.value;
-//│     scrut1 = arg$Some$0$1 > 0;
+//│     let scrut1, arg$Some$0$;
+//│     arg$Some$0$ = x2.value;
+//│     scrut1 = arg$Some$0$ > 0;
 //│     if (scrut1 === true) {
 //│       return 42
 //│     }
@@ -190,10 +190,10 @@ fun f(x) = if x is
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f5;
 //│ f5 = function f(x2) {
-//│   let arg$Pair$0$, arg$Pair$1$;
 //│   if (x2 instanceof Some1.class) {
 //│     return x2.value
 //│   } else if (x2 instanceof Pair1.class) {
+//│     let arg$Pair$0$, arg$Pair$1$;
 //│     arg$Pair$0$ = x2.fst;
 //│     arg$Pair$1$ = x2.snd;
 //│     return arg$Pair$0$ + arg$Pair$1$
@@ -218,10 +218,10 @@ fun f(x) = print of if x is
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f6;
 //│ f6 = function f(x2) {
-//│   let arg$Some$0$1;
 //│   if (x2 instanceof Some1.class) {
-//│     arg$Some$0$1 = x2.value;
-//│     if (arg$Some$0$1 === 0) {
+//│     let arg$Some$0$;
+//│     arg$Some$0$ = x2.value;
+//│     if (arg$Some$0$ === 0) {
 //│       return Predef.print("0")
 //│     }
 //│     return Predef.print("oops");

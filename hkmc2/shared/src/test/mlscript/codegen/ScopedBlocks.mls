@@ -29,7 +29,7 @@ fun g(x, y, z) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let g;
 //│ g = function g(x1, y, z) {
-//│   let a, tmp, tmp1;
+//│   let tmp, tmp1;
 //│   if (x1 === true) {
 //│     tmp = 0;
 //│   } else {
@@ -37,7 +37,7 @@ fun g(x, y, z) =
 //│       tmp = 0;
 //│     } else {
 //│       if (z === true) {
-//│         let lambda;
+//│         let a, lambda;
 //│         a = 1;
 //│         lambda = (undefined, function (_0) {
 //│           return _0 + a

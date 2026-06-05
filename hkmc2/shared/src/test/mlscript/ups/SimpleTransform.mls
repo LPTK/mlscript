@@ -14,7 +14,7 @@ pattern SumPair = Pair(a, b) => a + b
 //│ let SumPair⁰;
 //│ define SumPair⁰ as pattern SumPair¹ {
 //│   method unapply⁰ = fun unapply¹(input) {
-//│     let transform, arg$Pair$0$, arg$Pair$1$, transformResult, lambda;
+//│     let transform, lambda;
 //│     @private
 //│     define lambda as fun lambda⁰(a, b) {
 //│       return +⁰(a, b)
@@ -22,6 +22,7 @@ pattern SumPair = Pair(a, b) => a + b
 //│     set transform = lambda⁰;
 //│     match input
 //│       Pair⁰ =>
+//│         let arg$Pair$0$, arg$Pair$1$, transformResult;
 //│         set arg$Pair$0$ = input.first⁰;
 //│         set arg$Pair$1$ = input.second⁰;
 //│         set transformResult = transform(arg$Pair$0$, arg$Pair$1$);
@@ -154,7 +155,7 @@ pattern EvaluatedTerm =
   | Infix("/", EvaluatedTerm as left, EvaluatedTerm as right) => left / right
   | Prefix("-", EvaluatedTerm as operand) => -operand
   | Prefix("+", EvaluatedTerm as operand) => +operand
-//│ Lines of IR: 298
+//│ Lines of IR: 314
 
 // Some helper functions to create `Term`s.
 fun wrapLiteral(value) = if value is Int then Literal(value) else value
@@ -185,32 +186,296 @@ Infix("**", Literal(1), Literal(2)) is EvaluatedTerm
 // * NOTE: `@compile EvaluatedTerm` seems to generate a ginormous amount of code...
 // * We should try to find ways of reducing that, perhaps by sharing and optimizing more (?)
 :sirl
+:sir
 fun evaluate(term) = if term is
   (@compile EvaluatedTerm) as v then Some(v)
   else None
-//│ Lines of IR: 3624
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: already defined: value
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.assertUpdate(SymbolRefresher.scala:15)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.refreshVarSymbol(SymbolRefresher.scala:22)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock$$anonfun$2(SymbolRefresher.scala:63)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.collection.immutable.List.foreach(List.scala:327)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:60)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:33)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyLam(BlockTraverser.scala:150)
 
 
 evaluate of Literal(1)
-//│ = Some(1)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res13, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res23, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res5, member:foo -> foo, tmp:block$res -> block$res6, tmp:block$res -> block$res27, member:div -> div, tmp:block$res -> block$res15, member:mul -> mul, member:sub -> sub, member:add -> add, tmp:tmp -> tmp, member:wrapLiteral -> wrapLiteral, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:unapplyResult -> unapplyResult, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, tmp:block$res -> block$res16, tmp:unapplyResult -> unapplyResult1, tmp:inlinedVal -> inlinedVal2, tmp:block$res -> block$res17, tmp:unapplyResult -> unapplyResult2, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:block$res -> block$res24, tmp:block$res -> block$res18, member:observeInt -> observeInt, member:Option -> Option, tmp:block$res -> block$res19, member:LoggedInt -> LoggedInt1, pattern:LoggedInt -> LoggedInt, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:block$res -> block$res20, tmp:unapplyResult -> unapplyResult3, member:Predef -> Predef, tmp:block$res -> block$res29, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal3, tmp:unapplyResult -> unapplyResult4, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp2, tmp:block$res -> block$res21, tmp:block$res -> block$res30, tmp:block$res -> block$res25, tmp:scrut -> scrut2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:unapplyResult -> unapplyResult5, class:Term -> Term1, class:Literal -> Literal, tmp:tmp -> tmp3, tmp:tmp -> tmp4, class:Infix -> Infix, tmp:block$res -> block$res31, tmp:tmp -> tmp12, tmp:block$res -> block$res35, tmp:scrut -> scrut3, tmp:unapplyResult -> unapplyResult6, class:Prefix -> Prefix, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:block$res -> block$res32, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:scrut -> scrut4, tmp:unapplyResult -> unapplyResult7, tmp:tmp -> tmp7, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:block$res -> block$res33, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res11, tmp:scrut -> scrut5, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:unapplyResult -> unapplyResult8, tmp:block$res -> block$res2, tmp:block$res -> block$res12, tmp:block$res -> block$res3, tmp:tmp -> tmp10, member:get_output_through_param -> get_output_through_param, tmp:tmp -> tmp11, member:Pair -> Pair1, class:Pair -> Pair, tmp:block$res -> block$res34, tmp:block$res -> block$res22, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.207: 	evaluate of Literal(1)
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.190: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.191: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.192: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:271)
+//│ ═══[RUNTIME ERROR] ReferenceError: evaluate is not defined
+//│     at REPL112:1:79
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
 
 evaluate of Literal(1)
-//│ = Some(1)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res13, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res23, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res5, member:foo -> foo, tmp:block$res -> block$res6, tmp:block$res -> block$res27, member:div -> div, tmp:block$res -> block$res15, member:mul -> mul, member:sub -> sub, member:add -> add, tmp:tmp -> tmp, member:wrapLiteral -> wrapLiteral, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:unapplyResult -> unapplyResult, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, tmp:block$res -> block$res16, tmp:unapplyResult -> unapplyResult1, tmp:inlinedVal -> inlinedVal2, tmp:block$res -> block$res17, tmp:unapplyResult -> unapplyResult2, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:block$res -> block$res24, tmp:block$res -> block$res18, member:observeInt -> observeInt, member:Option -> Option, tmp:block$res -> block$res19, member:LoggedInt -> LoggedInt1, pattern:LoggedInt -> LoggedInt, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:block$res -> block$res20, tmp:unapplyResult -> unapplyResult3, member:Predef -> Predef, tmp:block$res -> block$res29, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal3, tmp:unapplyResult -> unapplyResult4, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp2, tmp:block$res -> block$res21, tmp:block$res -> block$res30, tmp:block$res -> block$res25, tmp:scrut -> scrut2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:unapplyResult -> unapplyResult5, class:Term -> Term1, class:Literal -> Literal, tmp:tmp -> tmp3, tmp:tmp -> tmp4, class:Infix -> Infix, tmp:block$res -> block$res31, tmp:tmp -> tmp12, tmp:block$res -> block$res35, tmp:scrut -> scrut3, tmp:tmp -> tmp13, tmp:unapplyResult -> unapplyResult6, tmp:block$res -> block$res36, class:Prefix -> Prefix, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:block$res -> block$res32, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:scrut -> scrut4, tmp:unapplyResult -> unapplyResult7, tmp:tmp -> tmp7, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:block$res -> block$res33, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res11, tmp:scrut -> scrut5, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:unapplyResult -> unapplyResult8, tmp:block$res -> block$res2, tmp:block$res -> block$res12, tmp:block$res -> block$res3, tmp:tmp -> tmp10, member:get_output_through_param -> get_output_through_param, tmp:tmp -> tmp11, member:Pair -> Pair1, class:Pair -> Pair, tmp:block$res -> block$res34, tmp:block$res -> block$res22, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.246: 	evaluate of Literal(1)
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.190: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.191: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.192: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:271)
+//│ ═══[RUNTIME ERROR] ReferenceError: evaluate is not defined
+//│     at REPL115:1:79
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
 
 evaluate of 2 *:* 3 +:+ 1
-//│ = Some(7)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res13, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res23, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res5, member:foo -> foo, tmp:block$res -> block$res6, tmp:block$res -> block$res27, member:div -> div, tmp:block$res -> block$res15, member:mul -> mul, member:sub -> sub, member:add -> add, tmp:tmp -> tmp, member:wrapLiteral -> wrapLiteral, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:unapplyResult -> unapplyResult, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, tmp:block$res -> block$res16, tmp:unapplyResult -> unapplyResult1, tmp:inlinedVal -> inlinedVal2, tmp:block$res -> block$res17, tmp:unapplyResult -> unapplyResult2, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:block$res -> block$res24, tmp:block$res -> block$res18, member:observeInt -> observeInt, member:Option -> Option, tmp:block$res -> block$res19, member:LoggedInt -> LoggedInt1, pattern:LoggedInt -> LoggedInt, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:block$res -> block$res20, tmp:unapplyResult -> unapplyResult3, member:Predef -> Predef, tmp:block$res -> block$res29, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal3, tmp:unapplyResult -> unapplyResult4, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp2, tmp:block$res -> block$res21, tmp:block$res -> block$res30, tmp:block$res -> block$res25, tmp:scrut -> scrut2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:unapplyResult -> unapplyResult5, class:Term -> Term1, class:Literal -> Literal, tmp:tmp -> tmp3, tmp:tmp -> tmp4, class:Infix -> Infix, tmp:block$res -> block$res31, tmp:tmp -> tmp12, tmp:block$res -> block$res35, tmp:scrut -> scrut3, tmp:tmp -> tmp13, tmp:unapplyResult -> unapplyResult6, tmp:block$res -> block$res36, class:Prefix -> Prefix, tmp:tmp -> tmp5, tmp:tmp -> tmp14, tmp:tmp -> tmp6, tmp:tmp -> tmp15, tmp:block$res -> block$res37, tmp:block$res -> block$res32, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:scrut -> scrut4, tmp:unapplyResult -> unapplyResult7, tmp:tmp -> tmp7, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:block$res -> block$res33, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res11, tmp:scrut -> scrut5, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:unapplyResult -> unapplyResult8, tmp:block$res -> block$res2, tmp:block$res -> block$res12, tmp:block$res -> block$res3, tmp:tmp -> tmp10, member:get_output_through_param -> get_output_through_param, tmp:tmp -> tmp11, member:Pair -> Pair1, class:Pair -> Pair, tmp:block$res -> block$res34, tmp:block$res -> block$res22, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.285: 	evaluate of 2 *:* 3 +:+ 1
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.190: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.191: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.192: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:271)
+//│ ═══[RUNTIME ERROR] ReferenceError: evaluate is not defined
+//│     at REPL118:1:126
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
 
 evaluate of (4 +:+ 5) *:* (6 -:- 2)
-//│ = Some(36)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res13, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res23, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res5, member:foo -> foo, tmp:block$res -> block$res6, tmp:block$res -> block$res27, member:div -> div, tmp:block$res -> block$res15, member:mul -> mul, member:sub -> sub, member:add -> add, tmp:tmp -> tmp, member:wrapLiteral -> wrapLiteral, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:unapplyResult -> unapplyResult, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, tmp:block$res -> block$res16, tmp:unapplyResult -> unapplyResult1, tmp:inlinedVal -> inlinedVal2, tmp:block$res -> block$res17, tmp:unapplyResult -> unapplyResult2, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:block$res -> block$res24, tmp:block$res -> block$res18, member:observeInt -> observeInt, member:Option -> Option, tmp:block$res -> block$res19, member:LoggedInt -> LoggedInt1, pattern:LoggedInt -> LoggedInt, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:block$res -> block$res20, tmp:unapplyResult -> unapplyResult3, member:Predef -> Predef, tmp:block$res -> block$res29, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal3, tmp:unapplyResult -> unapplyResult4, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp2, tmp:block$res -> block$res21, tmp:block$res -> block$res30, tmp:block$res -> block$res25, tmp:scrut -> scrut2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:unapplyResult -> unapplyResult5, class:Term -> Term1, class:Literal -> Literal, tmp:tmp -> tmp3, tmp:tmp -> tmp4, class:Infix -> Infix, tmp:block$res -> block$res31, tmp:tmp -> tmp12, tmp:block$res -> block$res35, tmp:scrut -> scrut3, tmp:tmp -> tmp13, tmp:unapplyResult -> unapplyResult6, tmp:block$res -> block$res36, class:Prefix -> Prefix, tmp:tmp -> tmp5, tmp:tmp -> tmp14, tmp:tmp -> tmp6, tmp:tmp -> tmp15, tmp:block$res -> block$res37, tmp:block$res -> block$res32, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, tmp:tmp -> tmp16, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:scrut -> scrut4, tmp:block$res -> block$res38, tmp:unapplyResult -> unapplyResult7, tmp:tmp -> tmp7, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:block$res -> block$res33, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res11, tmp:scrut -> scrut5, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:unapplyResult -> unapplyResult8, tmp:block$res -> block$res2, tmp:block$res -> block$res12, tmp:block$res -> block$res3, tmp:tmp -> tmp10, member:get_output_through_param -> get_output_through_param, tmp:tmp -> tmp11, member:Pair -> Pair1, class:Pair -> Pair, tmp:block$res -> block$res34, tmp:block$res -> block$res22, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.324: 	evaluate of (4 +:+ 5) *:* (6 -:- 2)
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.190: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.191: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.192: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:271)
+//│ ═══[RUNTIME ERROR] ReferenceError: evaluate is not defined
+//│     at REPL121:1:175
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
 
 evaluate of Prefix("-", 10 +:+ 2 *:* 3)
-//│ = Some(-16)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res13, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res23, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res5, member:foo -> foo, tmp:block$res -> block$res6, tmp:block$res -> block$res27, member:div -> div, tmp:block$res -> block$res15, member:mul -> mul, member:sub -> sub, member:add -> add, tmp:tmp -> tmp, member:wrapLiteral -> wrapLiteral, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:unapplyResult -> unapplyResult, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, tmp:block$res -> block$res16, tmp:unapplyResult -> unapplyResult1, tmp:inlinedVal -> inlinedVal2, tmp:block$res -> block$res17, tmp:unapplyResult -> unapplyResult2, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:block$res -> block$res24, tmp:block$res -> block$res18, member:observeInt -> observeInt, member:Option -> Option, tmp:block$res -> block$res19, member:LoggedInt -> LoggedInt1, pattern:LoggedInt -> LoggedInt, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:block$res -> block$res20, tmp:unapplyResult -> unapplyResult3, member:Predef -> Predef, tmp:block$res -> block$res29, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal3, tmp:unapplyResult -> unapplyResult4, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp2, tmp:block$res -> block$res21, tmp:block$res -> block$res30, tmp:block$res -> block$res25, tmp:scrut -> scrut2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:unapplyResult -> unapplyResult5, class:Term -> Term1, class:Literal -> Literal, tmp:tmp -> tmp3, tmp:tmp -> tmp4, class:Infix -> Infix, tmp:block$res -> block$res31, tmp:tmp -> tmp12, tmp:block$res -> block$res35, tmp:scrut -> scrut3, tmp:tmp -> tmp13, tmp:unapplyResult -> unapplyResult6, tmp:block$res -> block$res36, class:Prefix -> Prefix, tmp:tmp -> tmp5, tmp:tmp -> tmp14, tmp:tmp -> tmp6, tmp:tmp -> tmp15, tmp:block$res -> block$res37, tmp:block$res -> block$res32, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, tmp:tmp -> tmp16, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:scrut -> scrut4, tmp:block$res -> block$res38, tmp:unapplyResult -> unapplyResult7, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:tmp -> tmp21, tmp:tmp -> tmp7, tmp:block$res -> block$res39, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:block$res -> block$res33, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res11, tmp:scrut -> scrut5, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:unapplyResult -> unapplyResult8, tmp:block$res -> block$res2, tmp:block$res -> block$res12, tmp:block$res -> block$res3, tmp:tmp -> tmp10, member:get_output_through_param -> get_output_through_param, tmp:tmp -> tmp11, member:Pair -> Pair1, class:Pair -> Pair, tmp:block$res -> block$res34, tmp:block$res -> block$res22, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.363: 	evaluate of Prefix("-", 10 +:+ 2 *:* 3)
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.190: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.191: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.192: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:271)
+//│ ═══[RUNTIME ERROR] ReferenceError: evaluate is not defined
+//│     at REPL124:1:182
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
 
 evaluate of (8 /:/ 2) +:+ (3 *:* 4) -:- 5
-//│ = Some(11)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res13, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res23, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res5, member:foo -> foo, tmp:block$res -> block$res6, tmp:block$res -> block$res27, member:div -> div, tmp:block$res -> block$res15, member:mul -> mul, member:sub -> sub, member:add -> add, tmp:tmp -> tmp, member:wrapLiteral -> wrapLiteral, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:unapplyResult -> unapplyResult, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, tmp:block$res -> block$res16, tmp:unapplyResult -> unapplyResult1, tmp:inlinedVal -> inlinedVal2, tmp:block$res -> block$res17, tmp:unapplyResult -> unapplyResult2, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:block$res -> block$res24, tmp:block$res -> block$res18, member:observeInt -> observeInt, member:Option -> Option, tmp:block$res -> block$res19, member:LoggedInt -> LoggedInt1, pattern:LoggedInt -> LoggedInt, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:block$res -> block$res20, tmp:unapplyResult -> unapplyResult3, member:Predef -> Predef, tmp:block$res -> block$res29, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal3, tmp:unapplyResult -> unapplyResult4, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp2, tmp:block$res -> block$res21, tmp:block$res -> block$res30, tmp:block$res -> block$res25, tmp:scrut -> scrut2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:unapplyResult -> unapplyResult5, class:Term -> Term1, class:Literal -> Literal, tmp:tmp -> tmp3, tmp:tmp -> tmp4, class:Infix -> Infix, tmp:block$res -> block$res31, tmp:tmp -> tmp12, tmp:block$res -> block$res35, tmp:scrut -> scrut3, tmp:tmp -> tmp13, tmp:unapplyResult -> unapplyResult6, tmp:block$res -> block$res36, class:Prefix -> Prefix, tmp:tmp -> tmp5, tmp:tmp -> tmp14, tmp:tmp -> tmp6, tmp:tmp -> tmp15, tmp:block$res -> block$res37, tmp:block$res -> block$res32, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, tmp:tmp -> tmp16, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:scrut -> scrut4, tmp:block$res -> block$res38, tmp:unapplyResult -> unapplyResult7, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:tmp -> tmp21, tmp:tmp -> tmp7, tmp:block$res -> block$res39, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:block$res -> block$res33, tmp:tmp -> tmp22, tmp:inlinedVal -> inlinedVal1, tmp:tmp -> tmp23, tmp:tmp -> tmp24, tmp:block$res -> block$res11, tmp:tmp -> tmp25, tmp:scrut -> scrut5, tmp:block$res -> block$res40, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:unapplyResult -> unapplyResult8, tmp:block$res -> block$res2, tmp:block$res -> block$res12, tmp:block$res -> block$res3, tmp:tmp -> tmp10, member:get_output_through_param -> get_output_through_param, tmp:tmp -> tmp11, member:Pair -> Pair1, class:Pair -> Pair, tmp:block$res -> block$res34, tmp:block$res -> block$res22, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.402: 	evaluate of (8 /:/ 2) +:+ (3 *:* 4) -:- 5
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.190: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.191: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.192: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:271)
+//│ ═══[RUNTIME ERROR] ReferenceError: evaluate is not defined
+//│     at REPL127:1:224
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
 
 evaluate of Infix("**", Literal(1), Literal(2))
-//│ = None
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:evaluate⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res13, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res23, tmp:block$res -> block$res14, member:TrueLike -> TrueLike1, pattern:TrueLike -> TrueLike, tmp:block$res -> block$res5, member:foo -> foo, tmp:block$res -> block$res6, tmp:block$res -> block$res27, member:div -> div, tmp:block$res -> block$res15, member:mul -> mul, member:sub -> sub, member:add -> add, tmp:tmp -> tmp, member:wrapLiteral -> wrapLiteral, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:unapplyResult -> unapplyResult, member:BoolLike -> BoolLike1, pattern:BoolLike -> BoolLike, tmp:block$res -> block$res16, tmp:unapplyResult -> unapplyResult1, tmp:inlinedVal -> inlinedVal2, tmp:block$res -> block$res17, tmp:unapplyResult -> unapplyResult2, tmp:block$res -> block$res8, member:get_output_using_as -> get_output_using_as, tmp:block$res -> block$res24, tmp:block$res -> block$res18, member:observeInt -> observeInt, member:Option -> Option, tmp:block$res -> block$res19, member:LoggedInt -> LoggedInt1, pattern:LoggedInt -> LoggedInt, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:get_output_using_as' -> get_output_using_as$_, tmp:block$res -> block$res28, tmp:scrut -> scrut, tmp:block$res -> block$res20, tmp:unapplyResult -> unapplyResult3, member:Predef -> Predef, tmp:block$res -> block$res29, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal3, tmp:unapplyResult -> unapplyResult4, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp2, tmp:block$res -> block$res21, tmp:block$res -> block$res30, tmp:block$res -> block$res25, tmp:scrut -> scrut2, member:Literal -> Literal1, member:Infix -> Infix1, member:Prefix -> Prefix1, member:Term -> Term2, tmp:unapplyResult -> unapplyResult5, class:Term -> Term1, class:Literal -> Literal, tmp:tmp -> tmp3, tmp:tmp -> tmp4, class:Infix -> Infix, tmp:block$res -> block$res31, tmp:tmp -> tmp12, tmp:block$res -> block$res35, tmp:scrut -> scrut3, tmp:tmp -> tmp13, tmp:unapplyResult -> unapplyResult6, tmp:block$res -> block$res36, class:Prefix -> Prefix, tmp:tmp -> tmp5, tmp:tmp -> tmp14, tmp:tmp -> tmp6, tmp:tmp -> tmp15, tmp:block$res -> block$res37, tmp:block$res -> block$res32, tmp:block$res -> block$res26, member:EvaluatedTerm -> EvaluatedTerm1, tmp:tmp -> tmp16, pattern:EvaluatedTerm -> EvaluatedTerm, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:scrut -> scrut4, tmp:block$res -> block$res38, tmp:unapplyResult -> unapplyResult7, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:tmp -> tmp21, tmp:tmp -> tmp7, tmp:block$res -> block$res39, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:block$res -> block$res33, tmp:tmp -> tmp22, tmp:inlinedVal -> inlinedVal1, tmp:tmp -> tmp23, tmp:tmp -> tmp24, tmp:block$res -> block$res11, tmp:tmp -> tmp25, tmp:scrut -> scrut5, tmp:block$res -> block$res40, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:unapplyResult -> unapplyResult8, tmp:block$res -> block$res2, tmp:block$res -> block$res12, tmp:tmp -> tmp26, tmp:block$res -> block$res3, tmp:tmp -> tmp10, tmp:tmp -> tmp27, member:get_output_through_param -> get_output_through_param, tmp:tmp -> tmp11, tmp:tmp -> tmp28, member:Pair -> Pair1, tmp:block$res -> block$res41, class:Pair -> Pair, tmp:block$res -> block$res34, tmp:block$res -> block$res22, member:LoggedIntWithSlot -> LoggedIntWithSlot1, pattern:LoggedIntWithSlot -> LoggedIntWithSlot, tmp:block$res -> block$res4, member:SumPair -> SumPair1, pattern:SumPair -> SumPair)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'evaluate'
+//│ ║  l.441: 	evaluate of Infix("**", Literal(1), Literal(2))
+//│ ║         	^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.190: 	fun evaluate(term) = if term is
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.191: 	  (@compile EvaluatedTerm) as v then Some(v)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.192: 	  else None
+//│ ╙──       	^^^^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:271)
+//│ ═══[RUNTIME ERROR] ReferenceError: evaluate is not defined
+//│     at REPL130:1:188
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:593:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:922:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:419:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:613:22)
 
 pattern DropZ = ((:x, :y, :z)) => (x: x, y: y)
 

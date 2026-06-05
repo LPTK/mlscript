@@ -79,11 +79,11 @@ case
 //│ let lambda⁰;
 //│ @private
 //│ define lambda⁰ as fun lambda¹(caseScrut) {
-//│   let x, xs, middleElements, element0$;
 //│   match caseScrut
 //│     Array(0) =>
 //│       return Predef⁰.print⁰("empty")
 //│     Array(1+) =>
+//│       let x, xs, middleElements, element0$;
 //│       set element0$ = runtime⁰.Tuple﹖.get⁰(caseScrut, 0);
 //│       set middleElements = runtime⁰.Tuple﹖.slice⁰(caseScrut, 1, 0);
 //│       set xs = middleElements;

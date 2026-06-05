@@ -9,4 +9,89 @@
 // :todo
 
 
+data class Node(l, v, r)
 
+:sir
+pattern P = 1 | Node(P, 1, P) | Node(P, 2, P)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let P⁰;
+//│ define P⁰ as pattern P¹ {
+//│   method unapply⁰ = fun unapply¹(input) {
+//│     match input
+//│       1 =>
+//│         return new runtime⁰.MatchSuccess⁰(input, null)
+//│       Node⁰ =>
+//│         let arg$Node$0$, arg$Node$1$, arg$Node$2$, unapplyResult, unapplyResult1;
+//│         set arg$Node$0$ = input.l⁰;
+//│         set arg$Node$1$ = input.v⁰;
+//│         set arg$Node$2$ = input.r⁰;
+//│         set unapplyResult1 = P¹.unapply﹖(arg$Node$0$);
+//│         block σ:
+//│           match unapplyResult1
+//│             MatchSuccess⁰ =>
+//│               let output, bindings;
+//│               set output = unapplyResult1.output⁰;
+//│               set bindings = unapplyResult1.bindings⁰;
+//│               match arg$Node$1$
+//│                 1 =>
+//│                   let unapplyResult2, unapplyResult3;
+//│                   set unapplyResult3 = P¹.unapply﹖(arg$Node$2$);
+//│                   match unapplyResult3
+//│                     MatchSuccess⁰ =>
+//│                       let output1, bindings1;
+//│                       set output1 = unapplyResult3.output⁰;
+//│                       set bindings1 = unapplyResult3.bindings⁰;
+//│                       return new runtime⁰.MatchSuccess⁰(input, null)
+//│                     else
+//│                       set unapplyResult2 = P¹.unapply﹖(arg$Node$0$);
+//│                       match unapplyResult2
+//│                         MatchSuccess⁰ =>
+//│                           let output1, bindings1;
+//│                           set output1 = unapplyResult2.output⁰;
+//│                           set bindings1 = unapplyResult2.bindings⁰;
+//│                           return new runtime⁰.MatchFailure⁰(null)
+//│                         else
+//│                           return new runtime⁰.MatchFailure⁰(null)
+//│                       end
+//│                   end
+//│                 else
+//│                   break σ
+//│               end
+//│             else
+//│               break σ
+//│           end
+//│         set unapplyResult = P¹.unapply﹖(arg$Node$0$);
+//│         match unapplyResult
+//│           MatchSuccess⁰ =>
+//│             let output, bindings;
+//│             set output = unapplyResult.output⁰;
+//│             set bindings = unapplyResult.bindings⁰;
+//│             match arg$Node$1$
+//│               2 =>
+//│                 let unapplyResult2;
+//│                 set unapplyResult2 = P¹.unapply﹖(arg$Node$2$);
+//│                 match unapplyResult2
+//│                   MatchSuccess⁰ =>
+//│                     let output1, bindings1;
+//│                     set output1 = unapplyResult2.output⁰;
+//│                     set bindings1 = unapplyResult2.bindings⁰;
+//│                     return new runtime⁰.MatchSuccess⁰(input, null)
+//│                   else
+//│                     return new runtime⁰.MatchFailure⁰(null)
+//│                 end
+//│               else
+//│                 return new runtime⁰.MatchFailure⁰(null)
+//│             end
+//│           else
+//│             return new runtime⁰.MatchFailure⁰(null)
+//│         end
+//│       else
+//│         return new runtime⁰.MatchFailure⁰(null)
+//│     end
+//│   }
+//│   method unapplyStringPrefix⁰ = fun unapplyStringPrefix¹(input) {
+//│     return new runtime⁰.MatchFailure⁰(null)
+//│   }
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

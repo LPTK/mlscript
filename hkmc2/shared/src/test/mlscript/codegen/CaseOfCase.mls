@@ -17,20 +17,22 @@ fun test(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let test;
 //│ test = function test(x) {
-//│   let arg$Some$0$, arg$Some$0$1, tmp, tmp1;
+//│   let tmp;
 //│   if (x instanceof Some1.class) {
-//│     arg$Some$0$1 = x.value;
-//│     tmp = arg$Some$0$1 + 1;
-//│     tmp1 = Some1(tmp);
+//│     let arg$Some$0$, tmp1;
+//│     arg$Some$0$ = x.value;
+//│     tmp1 = arg$Some$0$ + 1;
+//│     tmp = Some1(tmp1);
 //│   } else if (x instanceof None1.class) {
-//│     tmp1 = None1;
+//│     tmp = None1;
 //│   } else {
 //│     throw globalThis.Object.freeze(new globalThis.Error("match error"))
 //│   }
-//│   if (tmp1 instanceof Some1.class) {
-//│     arg$Some$0$ = tmp1.value;
+//│   if (tmp instanceof Some1.class) {
+//│     let arg$Some$0$;
+//│     arg$Some$0$ = tmp.value;
 //│     return Predef.print(arg$Some$0$)
-//│   } else if (tmp1 instanceof None1.class) {
+//│   } else if (tmp instanceof None1.class) {
 //│     return Predef.print("none")
 //│   }
 //│   throw globalThis.Object.freeze(new globalThis.Error("match error"));

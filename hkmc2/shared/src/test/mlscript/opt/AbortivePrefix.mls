@@ -21,10 +21,11 @@ fun f =
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let f⁰;
 //│ define f⁰ as fun f¹() {
-//│   let scrut, scrut1;
+//│   let scrut;
 //│   set scrut = true;
 //│   match scrut
 //│     true =>
+//│       let scrut1;
 //│       set scrut1 = false;
 //│       match scrut1
 //│         true =>
@@ -77,12 +78,13 @@ fun f =
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let f²;
 //│ define f² as fun f³() {
-//│   let scrut, scrut1, tmp, tmp1;
+//│   let scrut, tmp, tmp1;
 //│   set scrut = true;
 //│   block σ$x:
 //│     block σ:
 //│       match scrut
 //│         true =>
+//│           let scrut1;
 //│           set scrut1 = false;
 //│           match scrut1
 //│             true =>

@@ -62,18 +62,19 @@ staged module Expressions with
 //│ >     Int then 3
 //│ >     else 0
 //│ > fun match2() =
-//│ >   let {a, element1_, element0_}
 //│ >   if x1 is
 //│ >     [] then 1
 //│ >     [_, _] then
+//│ >       let {a, element1_, element0_}
 //│ >       element0_ = x1.0
 //│ >       element1_ = x1.1
 //│ >       if element0_ is
 //│ >         1 then
+//│ >           let {a1}
 //│ >           if element1_ is
 //│ >             2 then 2
 //│ >             else
-//│ >               a = element0_
+//│ >               a1 = element0_
 //│ >               3
 //│ >         else
 //│ >           a = element0_
@@ -182,7 +183,7 @@ staged module OtherBlocks with
 //│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'a'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.174: 	      let a = 1
+//│ ║  l.175: 	      let a = 1
 //│ ╙──       	          ^
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] ReferenceError: a is not defined
@@ -247,7 +248,7 @@ staged module LabelBreak with
 //│ ═══[COMPILATION ERROR] Other Blocks not supported in staged module: class hkmc2.codegen.Label.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.240: 	    let x = 1
+//│ ║  l.241: 	    let x = 1
 //│ ╙──       	        ^
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
@@ -260,7 +261,7 @@ staged module A with
   fun g() = {1 : 2}
 //│ ═══[COMPILATION ERROR] Field assignment is not supported in staged modules: a
 //│ ╔══[COMPILATION ERROR] Other Results not supported in staged module: class hkmc2.codegen.Record
-//│ ║  l.260: 	  fun g() = {1 : 2}
+//│ ║  l.261: 	  fun g() = {1 : 2}
 //│ ╙──       	                 ^
 //│ > fun ctor_() =
 //│ >   x = C(1)

@@ -225,10 +225,11 @@ main
 //│   let x;
 //│   set x = 2;
 //│   loop lbl:
-//│     let scrut, tmp;
+//│     let scrut;
 //│     set scrut = >⁰(x, 0);
 //│     match scrut
 //│       true =>
+//│         let tmp;
 //│         do Predef⁰.print⁰(x);
 //│         set tmp = -⁰(x, 1);
 //│         set x = tmp;
