@@ -1664,7 +1664,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
   def returningTerm(t: Block)(using Ctx, FunctionCtx, Raise, SessionExportCtx): Expr =
     t match
-      case Assign(l: NoSymbol, r, rst) =>
+      case Assign(NoSymbol, r, rst) =>
         val rExpr = result(r)
         val evalExpr = rExpr.resultType match
           case S(_) => drop(rExpr)

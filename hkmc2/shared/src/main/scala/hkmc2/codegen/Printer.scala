@@ -32,7 +32,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
   
   def print(et: ErasedType)(using Scope): Document = et match
     case ErasedType.AnyRef(rsc, csym: ClassLikeSymbol) => doc"${if rsc then "rsc " else ""}${print(csym)}"
-    case ErasedType.AnyRef(rsc, _: NoSymbol) => doc"${if rsc then "rsc " else ""}Object"
+    case ErasedType.AnyRef(rsc, NoSymbol) => doc"${if rsc then "rsc " else ""}Object"
     case ErasedType.FuncRef(params, ret) =>
       doc"(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
@@ -75,7 +75,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
       doc"begin #{  # ${print(sub)}; #}  # ${print(rest)}"
     case TryBlock(sub, finallyDo, rest) =>
       doc"try #{  # ${print(sub)} #}  # finally #{  # ${print(finallyDo)}; #  #} ${print(rest)}"
-    case Assign(_: NoSymbol, rhs, rest) =>
+    case Assign(NoSymbol, rhs, rest) =>
       doc"do ${print(rhs)}; # ${print(rest)}"
     case Assign(lhs: (LocalVarSymbol | TermSymbol), rhs, rest) =>
       doc"set ${print(lhs)} = ${print(rhs)}; # ${print(rest)}"
