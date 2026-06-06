@@ -327,18 +327,6 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
           LoweringCtx.loweringCtx.lowerSymOf(sym).asInstanceOf[Assignable],
           r, lowerSplit(tl, cont))
     case Split.Cons(Branch(scrut, pat, tail), restSplit) =>
-      def freshenScopedBranch(block: Block): Block =
-        // Split normalization can duplicate fallback fragments before lowering.
-        // Once a duplicated fragment is emitted as a branch-local Scoped block,
-        // refresh its MIR binders so it cannot shadow the shared fallback/rest.
-        // new SymbolRefresher(Map.empty[Symbol, Symbol]).apply(block)
-        block
-      end freshenScopedBranch
-      inline def scopedBranch(inline body: LoweringCtx ?=> Block): Block =
-        LoweringCtx.nestScoped.givenIn:
-          val loweredBody = body
-          freshenScopedBranch(Scoped(LoweringCtx.loweringCtx.getCollectedSym, loweredBody))
-      end scopedBranch
       subTerm_nonTail(scrut): sr =>
         tl.log(s"Binding scrut $scrut to $sr (${summon[LoweringCtx].map})") 
         def mkMatch(cse: Case -> Block) = Match(sr, cse :: Nil,
@@ -346,7 +334,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
             End()
           )
         pat match
-          case FlatPattern.Lit(lit) => mkMatch(Case.Lit(lit) -> scopedBranch(lowerSplit(tail, cont)))
+          case FlatPattern.Lit(lit) => mkMatch(Case.Lit(lit) -> lowering.inScopedBlock(lowerSplit(tail, cont)))
           case FlatPattern.ClassLike(ctor, symbol, argsOpt, _refined) =>
             // for args <- argsOpt; (arg, _) <- args do LoweringCtx.loweringCtx.collectScopedSym(arg)
             /** Make a continuation that creates the match. */
@@ -357,7 +345,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
               assert(argsOpt.isEmpty || args.length <= clsParams.length, (argsOpt, clsParams))
               mkMatch:
                 Case.Cls(ctorSym, st) ->
-                scopedBranch:
+                lowering.inScopedBlock:
                   for args <- argsOpt; (arg, _) <- args do LoweringCtx.loweringCtx.collectScopedSym(arg)
                   clsParams.iterator.zip(args).foldRight(lowerSplit(tail, cont)):
                     case (param, arg) -> res =>
@@ -377,12 +365,12 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
                   ))
               case mod: ModuleOrObjectSymbol =>
                 subTerm_nonTail(ctor)(k(mod, Nil))
-          case FlatPattern.Tuple(len, inf) => mkMatch(Case.Tup(len, inf) -> scopedBranch(lowerSplit(tail, cont)))
+          case FlatPattern.Tuple(len, inf) => mkMatch(Case.Tup(len, inf) -> lowering.inScopedBlock(lowerSplit(tail, cont)))
           case FlatPattern.Record(entries) =>
             val objectSym = ctx.builtins.Object
             mkMatch( // checking that we have an object
               Case.Cls(objectSym, BuiltinSymbol(objectSym.nme, false, false, true, false).asSimpleRef),
-              scopedBranch:
+              lowering.inScopedBlock:
                 for (_, s) <- entries do LoweringCtx.loweringCtx.collectScopedSym(s)
                 entries.foldRight(lowerSplit(tail, cont)):
                   case ((fieldName, fieldSymbol), blk) =>

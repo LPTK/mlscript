@@ -40,30 +40,47 @@ class LoweringCtx(
   initMap: Map[ValueSymbol, Value], // No longer in meaningful use and could be removed if we don't find a use for it
   val mayRet: Bool, // For rewriting while loop into tail recursive function, represent whether an explicit return is legal in the current block
   private val definedSymsDuringLowering: collection.mutable.Set[ScopedSymbol], // used to create Scoped blocks
-  private val symbolRemappingForCurrentScope: collection.mutable.Map[ScopedSymbol, ScopedSymbol],
-  private val globalAlreadyScopedSymbols: collection.mutable.Set[ScopedSymbol]
+  // All the symbols that have been bound by Scoped blocks.
+  // This is needed to ensure the invariant that no symbol is bound more than once in the IR.
+  private val globalAlreadyScopedSymbols: collection.mutable.Set[ScopedSymbol],
+  // type ScopedSymbol = LocalVarSymbol | BlockMemberSymbol.
+  // this map only handles LocalVarSymbols because only they can be refreshed easily on the fly during lowering,
+  // but not BlockMemberSymbols. If we find that a bms needs to be
+  // refreshed, we refresh the whole Scoped block using symbol refresher
+  private val symbolRemappingForCurrentScope: collection.mutable.Map[LocalVarSymbol, LocalVarSymbol],
 ):
   val map = initMap
+  
+  var currentScopedBlkNeedsRefreshing = false
+  
   def collectScopedSym(s: ScopedSymbol)(using Elaborator.State) =
-    // definedSymsDuringLowering.add(s)
     if !globalAlreadyScopedSymbols.contains(s) then
       definedSymsDuringLowering.add(s)
       globalAlreadyScopedSymbols.add(s)
     else
-      val newSym: ScopedSymbol = s match
-        case tmpSym: TempSymbol => new TempSymbol(tmpSym.trm, tmpSym.nme)
-        case varSym: VarSymbol => new VarSymbol(varSym.id)
-        case bms: BlockMemberSymbol =>
-          new BlockMemberSymbol(bms.nme, bms.trees, bms.nameIsMeaningful)
-      symbolRemappingForCurrentScope(s) = newSym
-      definedSymsDuringLowering.add(newSym)
-      globalAlreadyScopedSymbols.add(newSym)
+      s match
+      case tmpSym: TempSymbol =>
+        val newSymbol = new TempSymbol(tmpSym.trm, tmpSym.nme)
+        symbolRemappingForCurrentScope(tmpSym) = newSymbol
+        definedSymsDuringLowering.add(newSymbol)
+      case varSym: VarSymbol =>
+        val newSymbol = new VarSymbol(varSym.id)
+        symbolRemappingForCurrentScope(varSym) = newSymbol 
+        definedSymsDuringLowering.add(newSymbol)  
+      case bms: BlockMemberSymbol =>
+        definedSymsDuringLowering.add(bms)
+        currentScopedBlkNeedsRefreshing = true
+        
   def registerTempSymbol(trm: Option[Term], dbgNme: Str = "tmp")(using State) =
     val tmp = new TempSymbol(trm, dbgNme)
     definedSymsDuringLowering.add(tmp)
     tmp
   def getCollectedSym: collection.Set[ScopedSymbol] = definedSymsDuringLowering
-  def lowerSymOf(s: ScopedSymbol) = symbolRemappingForCurrentScope.getOrElse(s, s)
+  def lowerSymOf(s: ScopedSymbol) =
+    s match
+    case _: BlockMemberSymbol => s
+    case s: LocalVarSymbol => symbolRemappingForCurrentScope.getOrElse(s, s)
+  
   /*
   def +(kv: (Symbol, Value)): Subst =
     kv match
@@ -82,24 +99,24 @@ object LoweringCtx:
       Map.empty,
       mayRet = false,
       MutSet.empty,
+      MutSet.empty,
       MutMap.empty,
-      MutSet.empty
     )
   def nestFunc(using sub: LoweringCtx): LoweringCtx =
     LoweringCtx(
       sub.map,
       mayRet = true,
       sub.definedSymsDuringLowering,
+      sub.globalAlreadyScopedSymbols,
       sub.symbolRemappingForCurrentScope,
-      sub.globalAlreadyScopedSymbols
     )
   def nestScoped(using sub: LoweringCtx): LoweringCtx =
     LoweringCtx(
       sub.map,
       sub.mayRet,
       MutSet.empty,
+      sub.globalAlreadyScopedSymbols,
       sub.symbolRemappingForCurrentScope.clone(),
-      sub.globalAlreadyScopedSymbols
     )
 end LoweringCtx
 
@@ -275,12 +292,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         d match
         case td: TermDefinition =>
           reportAnnotations(td, td.extraAnnotations)
-          if td.owner.isEmpty && td.hasDeclareModifier.isEmpty then
-            loweringCtx.collectScopedSym(td.sym)
           td.body match
           case N => // abstract declarations have no lowering
             blockImpl(stats, res)
           case S(bod) =>
+            if td.owner.isEmpty && td.hasDeclareModifier.isEmpty then
+              loweringCtx.collectScopedSym(td.sym)
             td.k match
             case knd: syntax.Val =>
               assert(td.params.isEmpty)
@@ -914,11 +931,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         else
           arg match
           case Tup(Fld(FldFlags.benign(), body, N) :: Nil) =>
-            LoweringCtx.nestScoped.givenIn:
-              val res = block(Nil, R(body))(k)
-              val scopedSyms = loweringCtx.getCollectedSym
-              // Put the Scoped in the rest, so that the returned result can be found correctly
-              Scoped(scopedSyms, res)
+            inScopedBlock(block(Nil, R(body))(k))
           case _ => return fail:
             ErrorReport(
               msg"Unsupported form for scope.locally." ->
@@ -1440,11 +1453,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case ps => ps
     setupFunctionDef(physicalParams, bodyTerm, name)
   
-  def inScopedBlock(using LoweringCtx)(mkBlock: LoweringCtx ?=> Block): Block =
+  inline def inScopedBlock(using LoweringCtx)(inline mkBlock: LoweringCtx ?=> Block): Block =
     LoweringCtx.nestScoped.givenIn:
       val body = mkBlock
       val scopedSyms = loweringCtx.getCollectedSym
-      Scoped(scopedSyms, body)
+      val needRefresh = loweringCtx.currentScopedBlkNeedsRefreshing
+      if needRefresh then new SymbolRefresher(Map.empty).apply(Scoped(scopedSyms, body))
+      else Scoped(scopedSyms, body)
   
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =

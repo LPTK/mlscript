@@ -89,9 +89,22 @@ f
 //│ = 42
 
 :sjs
+:fixme
 fun f: module TrmMod = TrmMod
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'TrmMod'
+//│ ║  l.14: 	fun TrmMod = 42
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ║  l.15: 	module TrmMod with
+//│ ║        	^^^^^^^^^^^^^^^^^^
+//│ ║  l.16: 	  val whoami = "module"
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.15: 	module TrmMod with
+//│ ║        	       ^^^^^^^^^^^
+//│ ║  l.16: 	  val whoami = "module"
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f6; f6 = function f() { return TrmMod1.class };
+//│ let f6; f6 = function f() { return TrmMod.class };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 fun assertModule(module m: ClsMod): module ClsMod = m
@@ -105,7 +118,15 @@ assertModule(TypMod).whoami
 :fixme
 :noInline
 print(assertModule(TrmMod).whoami)
-//│ ═══[RUNTIME ERROR] TypeError: Class constructor TrmMod cannot be invoked without 'new'
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'TrmMod'
+//│ ║  l.120: 	print(assertModule(TrmMod).whoami)
+//│ ║         	                   ^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.15: 	module TrmMod with
+//│ ║        	       ^^^^^^^^^^^
+//│ ║  l.16: 	  val whoami = "module"
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] ReferenceError: TrmMod is not defined
 
 // TODO: handle
 print(assertModule(TrmMod).whoami)
@@ -138,10 +159,10 @@ module Foo
 :e
 fun f(x: Foo): Foo = x
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.139: 	fun f(x: Foo): Foo = x
+//│ ║  l.160: 	fun f(x: Foo): Foo = x
 //│ ╙──       	         ^^^
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.139: 	fun f(x: Foo): Foo = x
+//│ ║  l.160: 	fun f(x: Foo): Foo = x
 //│ ╙──       	               ^^^
 
 fun f(x: Foo[Int]): Foo[Int] = x
@@ -151,10 +172,10 @@ fun f(module x: Foo): module Foo = x
 :e
 fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.152: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.173: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.152: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.173: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                                  ^^^^^^^^
 
 
