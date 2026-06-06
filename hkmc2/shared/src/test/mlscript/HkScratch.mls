@@ -10,116 +10,147 @@
 
 
 data class Node(l, v, r)
+data class Box1(b)
+data class Box2(b)
 
-// :sir
-:ucs normalized
+
 :sir
-pattern P = 1 | Node(P, 1, P) | Node(P, 2, P)
-//│ Normalized:
-//│ >  ‹if|while›
-//│ >    input is 1 then new (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(input⁰, null)
-//│ >    input is Node(arg$Node$0$, arg$Node$1$, arg$Node$2$) and
-//│ >      let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$0$⁰)
-//│ >      let-split σ =
-//│ >        let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$0$⁰)
-//│ >        tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) and
-//│ >          tmp:arg$Node$1$ is 2 and
-//│ >            let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$2$⁰)
-//│ >            tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) then new (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(input⁰, null)
-//│ >            else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
-//│ >          else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
-//│ >        else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
-//│ >      tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) and
-//│ >        tmp:arg$Node$1$ is 1 and
-//│ >          let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$2$⁰)
-//│ >          tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) then new (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(input⁰, null)
-//│ >          let tmp:unapplyResult = (member:P⁰.)unapply(tmp:arg$Node$0$⁰)
-//│ >          tmp:unapplyResult is (tmp:runtime⁰.)MatchSuccess‹class:MatchSuccess›(output, bindings) then new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
-//│ >          else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
-//│ >        $σ
-//│ >      $σ
-//│ >    else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
-//│ Normalized:
-//│ >  ‹if|while› else new (tmp:runtime⁰.)MatchFailure‹class:MatchFailure›(null)
+fun f(x) = if x is
+  1 then 2
+  else 1 + 2 + 2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let P⁰;
-//│ define P⁰ as pattern P¹ {
-//│   method unapply⁰ = fun unapply¹(input) {
-//│     match input
-//│       1 =>
-//│         return new runtime⁰.MatchSuccess⁰(input, null)
-//│       Node⁰ =>
-//│         let arg$Node$0$, arg$Node$1$, arg$Node$2$, unapplyResult, unapplyResult1;
-//│         set arg$Node$0$ = input.l⁰;
-//│         set arg$Node$1$ = input.v⁰;
-//│         set arg$Node$2$ = input.r⁰;
-//│         set unapplyResult1 = P¹.unapply﹖(arg$Node$0$);
-//│         block σ:
-//│           match unapplyResult1
-//│             MatchSuccess⁰ =>
-//│               let output, bindings;
-//│               set output = unapplyResult1.output⁰;
-//│               set bindings = unapplyResult1.bindings⁰;
-//│               match arg$Node$1$
-//│                 1 =>
-//│                   let unapplyResult2, unapplyResult3;
-//│                   set unapplyResult2 = P¹.unapply﹖(arg$Node$2$);
-//│                   match unapplyResult2
-//│                     MatchSuccess⁰ =>
-//│                       let output1, bindings1;
-//│                       set output1 = unapplyResult2.output⁰;
-//│                       set bindings1 = unapplyResult2.bindings⁰;
-//│                       return new runtime⁰.MatchSuccess⁰(input, null)
-//│                     else
-//│                       set unapplyResult3 = P¹.unapply﹖(arg$Node$0$);
-//│                       match unapplyResult3
-//│                         MatchSuccess⁰ =>
-//│                           let output1, bindings1;
-//│                           set output¹ = unapplyResult3.output⁰;
-//│                           set bindings¹ = unapplyResult3.bindings⁰;
-//│                           return new runtime⁰.MatchFailure⁰(null)
-//│                         else
-//│                           return new runtime⁰.MatchFailure⁰(null)
-//│                       end
-//│                   end
-//│                 else
-//│                   break σ
-//│               end
-//│             else
-//│               break σ
-//│           end
-//│         set unapplyResult = P¹.unapply﹖(arg$Node$0$);
-//│         match unapplyResult
-//│           MatchSuccess⁰ =>
-//│             let output, bindings;
-//│             set output = unapplyResult.output⁰;
-//│             set bindings = unapplyResult.bindings⁰;
-//│             match arg$Node$1$
-//│               2 =>
-//│                 let unapplyResult2;
-//│                 set unapplyResult2 = P¹.unapply﹖(arg$Node$2$);
-//│                 match unapplyResult2
-//│                   MatchSuccess⁰ =>
-//│                     let output1, bindings1;
-//│                     set output1 = unapplyResult2.output⁰;
-//│                     set bindings1 = unapplyResult2.bindings⁰;
-//│                     return new runtime⁰.MatchSuccess⁰(input, null)
-//│                   else
-//│                     return new runtime⁰.MatchFailure⁰(null)
-//│                 end
-//│               else
-//│                 return new runtime⁰.MatchFailure⁰(null)
-//│             end
-//│           else
-//│             return new runtime⁰.MatchFailure⁰(null)
-//│         end
-//│       else
-//│         return new runtime⁰.MatchFailure⁰(null)
-//│     end
-//│   }
-//│   method unapplyStringPrefix⁰ = fun unapplyStringPrefix¹(input) {
-//│     return new runtime⁰.MatchFailure⁰(null)
-//│   }
+//│ let f⁰;
+//│ define f⁰ as fun f¹(x) {
+//│   match x
+//│     1 =>
+//│       return 2
+//│     else
+//│       let tmp;
+//│       set tmp = +⁰(1, 2);
+//│       return +⁰(tmp, 2)
+//│   end
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+// :sir
+// fun f(x, y, z) = 
+//   if x is
+//     0 and y is
+//       0 and z is
+//         0 then 0
+//         1 then 0
+//       1 then 1
+//     1 then 1
+//     else
+//       fun foo = 1
+//       class Foo with
+//         fun bar = foo
+
+
+// :sjs
+// let x = [1,2]
+
+
+
+
+:sir
+:sjs
+if [Box1(4),Box2(3)] is
+  [Box1(a), Box2(b)] then b + a
+  [Box2(a), Box2(b)] then b - a
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let scrut, tmp, tmp1;
+//│ tmp = Box11(4);
+//│ tmp1 = Box21(3);
+//│ scrut = globalThis.Object.freeze([
+//│   tmp,
+//│   tmp1
+//│ ]);
+//│ if (runtime.Tuple.isArrayLike(scrut) && scrut.length === 2) {
+//│   let element1$, element0$;
+//│   element0$ = runtime.Tuple.get(scrut, 0);
+//│   element1$ = runtime.Tuple.get(scrut, 1);
+//│   if (element0$ instanceof Box11.class) {
+//│     let arg$Box1$0$;
+//│     arg$Box1$0$ = element0$.b;
+//│     if (element1$ instanceof Box21.class) {
+//│       let arg$Box2$0$;
+//│       arg$Box2$0$ = element1$.b;
+//│       return arg$Box2$0$ + arg$Box1$0$
+//│     }
+//│     throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│   } else if (element0$ instanceof Box21.class) {
+//│     let arg$Box2$0$;
+//│     arg$Box2$0$ = element0$.b;
+//│     if (element1$ instanceof Box21.class) {
+//│       let arg$Box2$0$1;
+//│       arg$Box2$0$1 = element1$.b;
+//│       return arg$Box2$0$1 - arg$Box2$0$
+//│     }
+//│     throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│   }
+//│   throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│ }
+//│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let scrut, tmp, tmp1;
+//│ set tmp = Box1⁰(4);
+//│ set tmp1 = Box2⁰(3);
+//│ set scrut = [tmp, tmp1];
+//│ match scrut
+//│   Array(2) =>
+//│     let element1$, element0$;
+//│     set element0$ = runtime⁰.Tuple﹖.get⁰(scrut, 0);
+//│     set element1$ = runtime⁰.Tuple﹖.get⁰(scrut, 1);
+//│     match element0$
+//│       Box1¹ =>
+//│         let arg$Box1$0$;
+//│         set arg$Box1$0$ = element0$.b⁰;
+//│         match element1$
+//│           Box2¹ =>
+//│             let a, b, arg$Box2$0$;
+//│             set arg$Box2$0$ = element1$.b¹;
+//│             set b = arg$Box2$0$;
+//│             set a = arg$Box1$0$;
+//│             return +⁰(b, a)
+//│           else
+//│             throw new globalThis⁰.Error⁰("match error")
+//│         end
+//│       Box2¹ =>
+//│         let arg$Box2$0$;
+//│         set arg$Box2$0$ = element0$.b¹;
+//│         match element1$
+//│           Box2¹ =>
+//│             let a, b, arg$Box2$0$1;
+//│             set arg$Box2$0$1 = element1$.b¹;
+//│             set b = arg$Box2$0$1;
+//│             set a = arg$Box2$0$;
+//│             return -⁰(b, a)
+//│           else
+//│             throw new globalThis⁰.Error⁰("match error")
+//│         end
+//│       else
+//│         throw new globalThis⁰.Error⁰("match error")
+//│     end
+//│   else
+//│     throw new globalThis⁰.Error⁰("match error")
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 7
+
+
+
+
+
+
+
+
+
+
+
+// data class Node(l, v, r)
+
+// :sir
+// pattern P = 1 | Node(P, 1, P) | Node(P, 2, P)

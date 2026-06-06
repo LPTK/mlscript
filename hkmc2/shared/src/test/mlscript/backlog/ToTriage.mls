@@ -317,14 +317,14 @@ module Foo(x) with
 //│   }
 //│   static #x;
 //│   static {
-//│     Foo4.#x = x;
+//│     Foo4.#x = x_ERROR;
 //│     Predef.print(Foo4.#x);
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"];
 //│ });
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ > 1
+//│ ═══[RUNTIME ERROR] ReferenceError: x_ERROR is not defined
 
 :fixme // proper compilation error
 :sjs
@@ -340,19 +340,20 @@ module Foo(val x)
 //│     Foo7 = this
 //│   }
 //│   static {
-//│     Foo6.x = x;
+//│     Foo6.x = x_ERROR;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"];
 //│ });
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] ReferenceError: x_ERROR is not defined
 
 // ——— ——— ———
 
 // TODO support syntax?
 data class Foo(mut x)
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found 'mut'-modified identifier
-//│ ║  l.353: 	data class Foo(mut x)
+//│ ║  l.354: 	data class Foo(mut x)
 //│ ╙──       	                   ^
 
 // ——— ——— ———
@@ -372,7 +373,7 @@ class Foo
 :e
 class Id(name: UnboundName)
 //│ ╔══[COMPILATION ERROR] Name not found: UnboundName
-//│ ║  l.373: 	class Id(name: UnboundName)
+//│ ║  l.374: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
 //│ ═══[COMPILATION ERROR] Expected a type, got ‹error›

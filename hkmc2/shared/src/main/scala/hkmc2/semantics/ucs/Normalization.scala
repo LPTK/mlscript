@@ -361,7 +361,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
                   for args <- argsOpt; (arg, _) <- args do LoweringCtx.loweringCtx.collectScopedSym(arg)
                   clsParams.iterator.zip(args).foldRight(lowerSplit(tail, cont)):
                     case (param, arg) -> res =>
-                      Assign(arg, Select(sr, new Tree.Ident(param.id.name).withLocOf(arg))(S(param)), res)
+                      Assign(LoweringCtx.loweringCtx.lowerSymOf(arg).asInstanceOf[Assignable], Select(sr, new Tree.Ident(param.id.name).withLocOf(arg))(S(param)), res)
             symbol match
               case cls: ClassSymbol if ctx.builtins.virtualClasses contains cls =>
                 // [invariant:0] Some classes (e.g., `Int`) from `Prelude` do
@@ -388,11 +388,14 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
                   case ((fieldName, fieldSymbol), blk) =>
                     mkMatch(
                       Case.Field(fieldName, safe = true), // we know we have an object, no need to check again
-                      Assign(fieldSymbol, Select(sr, fieldName)(N), blk)
+                      Assign(LoweringCtx.loweringCtx.lowerSymOf(fieldSymbol).asInstanceOf[Assignable], Select(sr, fieldName)(N), blk)
                     )
             )
     case Split.Else(els) =>
-      term_nonTail(els, inStmtPos = form.isImperative)(cont)
+      LoweringCtx.nestScoped.givenIn:
+        Scoped(
+          LoweringCtx.loweringCtx.getCollectedSym,
+          term_nonTail(els, inStmtPos = form.isImperative)(cont))
     case Split.End =>
       // * See comment [comment:1] above
       if form is IfLikeForm.While then End()

@@ -107,15 +107,20 @@ print(x)
 //│   tmp = 2;
 //│ } else if (a instanceof C1.class) {
 //│   tmp = 3;
-//│ } else if (a instanceof D1.class) {
-//│   if (a instanceof A1.class) {} else if (a instanceof B1.class) {} else {
+//│ } else {
+//│   if (a instanceof D1.class) {
+//│     if (a instanceof A1.class) {
+//│       /* Rest moved to non-abortive branch(es) */
+//│     } else if (a instanceof B1.class) {
+//│       /* Rest moved to non-abortive branch(es) */
+//│     } else {
+//│       throw globalThis.Object.freeze(new globalThis.Error("match error"))
+//│     }
+//│     /* Rest moved to non-abortive branch(es) */
+//│   } else if (a instanceof E1.class) {} else {
 //│     throw globalThis.Object.freeze(new globalThis.Error("match error"))
 //│   }
 //│   tmp = Predef.print("done");
-//│ } else if (a instanceof E1.class) {
-//│   tmp = Predef.print("done");
-//│ } else {
-//│   throw globalThis.Object.freeze(new globalThis.Error("match error"))
 //│ }
 //│ x = tmp;
 //│ return Predef.print(tmp)
@@ -203,22 +208,24 @@ if a is
     print(x + 1)
     print(x + 2)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let tmp1, tmp2, tmp3;
 //│ if (a instanceof B1.class) {
 //│   return 1
 //│ }
-//│ if (a instanceof A1.class) {
-//│   tmp1 = 2;
-//│ } else if (a instanceof C1.class) {
-//│   tmp1 = 3;
-//│ } else {
-//│   throw globalThis.Object.freeze(new globalThis.Error("match error"))
+//│ {
+//│   let tmp1, tmp2, tmp3;
+//│   if (a instanceof A1.class) {
+//│     tmp1 = 2;
+//│   } else if (a instanceof C1.class) {
+//│     tmp1 = 3;
+//│   } else {
+//│     throw globalThis.Object.freeze(new globalThis.Error("match error"))
+//│   }
+//│   Predef.print(tmp1);
+//│   tmp2 = tmp1 + 1;
+//│   Predef.print(tmp2);
+//│   tmp3 = tmp1 + 2;
+//│   return Predef.print(tmp3);
 //│ }
-//│ Predef.print(tmp1);
-//│ tmp2 = tmp1 + 1;
-//│ Predef.print(tmp2);
-//│ tmp3 = tmp1 + 2;
-//│ return Predef.print(tmp3);
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 2
 //│ > 3
@@ -242,12 +249,14 @@ fun f(x) =
 //│   match x
 //│     5 =>
 //│       return ""
-//│     8 =>
-//│       do Predef⁰.print⁰("8");
-//│       do Predef⁰.print⁰("hi");
-//│       return ""
 //│     else
-//│       do Predef⁰.print⁰("?");
+//│       match x
+//│         8 =>
+//│           do Predef⁰.print⁰("8");
+//│           end
+//│         else
+//│           do Predef⁰.print⁰("?");
+//│           end
 //│       do Predef⁰.print⁰("hi");
 //│       return ""
 //│   end

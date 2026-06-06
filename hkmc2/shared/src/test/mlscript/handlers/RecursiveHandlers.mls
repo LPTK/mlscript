@@ -155,7 +155,7 @@ if true do
   h1.perform(())
 str
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let str, handleBlock$9, Handler$h1$3, Handler$h1$perform1, handleBlock$10, Handler$h2$3, Handler$h2$perform1, handleBlock$$2, handleBlock$$3, Handler$h2$perform$1, Handler$h1$perform$1;
+//│ let str, handleBlock$9, Handler$h2$perform1, Handler$h2$3, handleBlock$10, Handler$h1$perform1, Handler$h1$3, handleBlock$$2, handleBlock$$3, Handler$h2$perform$1, Handler$h1$perform$1;
 //│ runtime.resetEffects();
 //│ Handler$h1$perform$1 = function Handler$h1$perform$(arg) {
 //│   return (k) => {
@@ -221,7 +221,7 @@ str
 //│ };
 //│ handleBlock$$3 = (undefined, function (h11, h22) {
 //│   return () => {
-//│     return handleBlock$10(h11, h22)
+//│     return handleBlock$9(h11, h22)
 //│   }
 //│ });
 //│ (class Handler$h2$2 extends Effect1 {
@@ -242,7 +242,7 @@ str
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Handler$h2$"];
 //│ });
-//│ handleBlock$10 = (undefined, function (h11, h22) {
+//│ handleBlock$9 = (undefined, function (h11, h22) {
 //│   let pc;
 //│   if (runtime.resumePc === -1) {
 //│     pc = 0;
@@ -256,7 +256,7 @@ str
 //│       if (runtime.curEffect === null) {
 //│         pc = 1;
 //│       } else {
-//│         return runtime.unwind(handleBlock$10, 1, "RecursiveHandlers.mls:154:3", null, null, 1, 2, h11, h22, 0)
+//│         return runtime.unwind(handleBlock$9, 1, "RecursiveHandlers.mls:154:3", null, null, 1, 2, h11, h22, 0)
 //│       }
 //│     case 1:
 //│       runtime.resumeValue;
@@ -265,7 +265,7 @@ str
 //│ });
 //│ handleBlock$$2 = (undefined, function (h11) {
 //│   return () => {
-//│     return handleBlock$9(h11)
+//│     return handleBlock$10(h11)
 //│   }
 //│ });
 //│ (class Handler$h1$2 extends Effect1 {
@@ -286,7 +286,7 @@ str
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Handler$h1$"];
 //│ });
-//│ handleBlock$9 = (undefined, function (h11) {
+//│ handleBlock$10 = (undefined, function (h11) {
 //│   let h22, handleBlock$$here, pc;
 //│   if (runtime.resumePc === -1) {
 //│     pc = 0;
@@ -302,7 +302,7 @@ str
 //│       if (runtime.curEffect === null) {
 //│         pc = 1;
 //│       } else {
-//│         return runtime.unwind(handleBlock$9, 1, null, null, null, 1, 1, h11, 0)
+//│         return runtime.unwind(handleBlock$10, 1, null, null, null, 1, 1, h11, 0)
 //│       }
 //│     case 1:
 //│       return runtime.resumeValue;

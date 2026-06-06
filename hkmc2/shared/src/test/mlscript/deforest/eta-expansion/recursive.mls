@@ -36,25 +36,26 @@ sum(enum(5), 0)
 //│ let sum⁰, enum⁰, enum_13$enum$worker⁰;
 //│ @private
 //│ define enum_13$enum$worker⁰ as fun enum_13$enum$worker¹(x, eta$0$0) {
-//│   let scrut, tmp;
+//│   let scrut;
 //│   set scrut = <⁰(x, 0);
 //│   match scrut
 //│     true =>
 //│       return eta$0$0
 //│     else
-//│       let tmp1;
+//│       let tmp, tmp1;
 //│       set tmp = -⁰(x, 1);
 //│       set tmp1 = +⁰(x, eta$0$0);
 //│       return enum_13$enum$worker¹(tmp, tmp1)
 //│   end
 //│ };
 //│ define enum⁰ as fun enum¹(x) {
-//│   let scrut, tmp, tmp1;
+//│   let scrut;
 //│   set scrut = <⁰(x, 0);
 //│   match scrut
 //│     true =>
 //│       return Nil⁰
 //│     else
+//│       let tmp, tmp1;
 //│       set tmp = -⁰(x, 1);
 //│       set tmp1 = enum¹(tmp);
 //│       return Cons⁰(x, tmp1)

@@ -53,7 +53,8 @@ class LoweringCtx(
       val newSym: ScopedSymbol = s match
         case tmpSym: TempSymbol => new TempSymbol(tmpSym.trm, tmpSym.nme)
         case varSym: VarSymbol => new VarSymbol(varSym.id)
-        case bms: BlockMemberSymbol => ???
+        case bms: BlockMemberSymbol =>
+          new BlockMemberSymbol(bms.nme, bms.trees, bms.nameIsMeaningful)
       symbolRemappingForCurrentScope(s) = newSym
       definedSymsDuringLowering.add(newSym)
       globalAlreadyScopedSymbols.add(newSym)
@@ -76,7 +77,7 @@ class LoweringCtx(
     case _ => v
 object LoweringCtx:
   def loweringCtx(using sub: LoweringCtx): LoweringCtx = sub
-  val empty =
+  def empty =
     LoweringCtx(
       Map.empty,
       mayRet = false,
@@ -208,7 +209,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   final def term_nonTail(t: st, inStmtPos: Bool = false)(k: Result => Block)(using LoweringCtx): Block =
     term(t, inStmtPos = inStmtPos)(k)
   
-
+  
   @tailrec
   final def splitBlock(stats: Ls[Statement], imps: Ls[Import], funs: Ls[TermDefinition], rest: Ls[Statement])
       : (Ls[Import], Ls[TermDefinition], Ls[Statement])

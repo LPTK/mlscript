@@ -77,14 +77,14 @@ fun next(it) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let next;
 //│ next = function next(it) {
-//│   let i, scrut, res, tmp;
+//│   let i, scrut;
 //│   i = it.i.value;
 //│   scrut = i == it.end;
 //│   if (scrut === true) {
 //│     return None1()
 //│   }
 //│   {
-//│     let xs, inlinedVal;
+//│     let res, tmp, xs, inlinedVal;
 //│     xs = it.arr;
 //│     inlinedVal = runtime.safeCall(xs.at(i));
 //│     res = Some1(inlinedVal);

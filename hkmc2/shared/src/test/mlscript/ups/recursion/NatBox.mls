@@ -26,43 +26,44 @@ nat(0) is @compile NatBox
 //│ let scrut, matcher__NatBox$, matchSuccess, lambda⁰;
 //│ set scrut = nat⁰(0);
 //│ define lambda⁰ as fun lambda¹(input) {
-//│   let p_0$, tmp;
 //│   match input
 //│     null =>
-//│       let p_0$1, tmp1;
-//│       set tmp1 = true;
-//│       set p_0$1 = tmp1;
-//│       return p_0$1
+//│       let p_0$, tmp;
+//│       set tmp = true;
+//│       set p_0$ = tmp;
+//│       return p_0$
 //│     Box⁰ =>
-//│       let value, p_0$1, result0$, tmp1, tmp2;
+//│       let value, p_0$, result0$, tmp, tmp1;
 //│       match input
 //│         Object⁰ =>
-//│           let value1, tmp3;
+//│           let value1;
 //│           match input
 //│             { value } =>
+//│               let tmp2;
 //│               set value1 = input.value﹖;
-//│               set tmp3 = matcher__NatBox$(value1);
-//│               set tmp1 = { "input": value1, "result": tmp3 };
+//│               set tmp2 = matcher__NatBox$(value1);
+//│               set tmp = { "input": value1, "result": tmp2 };
 //│               end
 //│             else
-//│               set tmp1 = { "input": null, "result": false };
+//│               set tmp = { "input": null, "result": false };
 //│               end
 //│           end
 //│         else
-//│           set tmp1 = { "input": null, "result": false };
+//│           set tmp = { "input": null, "result": false };
 //│           end
-//│       set value = tmp1;
+//│       set value = tmp;
 //│       set result0$ = value.result﹖;
 //│       match result0$
 //│         true =>
-//│           set tmp2 = true;
+//│           set tmp1 = true;
 //│           end
 //│         else
-//│           set tmp2 = false;
+//│           set tmp1 = false;
 //│           end
-//│       set p_0$1 = tmp2;
-//│       return p_0$1
+//│       set p_0$ = tmp1;
+//│       return p_0$
 //│     else
+//│       let p_0$, tmp;
 //│       set tmp = false;
 //│       set p_0$ = tmp;
 //│       return p_0$

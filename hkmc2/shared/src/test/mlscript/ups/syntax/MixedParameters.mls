@@ -44,7 +44,7 @@ if [0, 0] is P(a, Bit, b) then "values: " + a + ", " + b
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'a'
 //│ ║  l.43: 	if [0, 0] is P(a, Bit, b) then "values: " + a + ", " + b
 //│ ╙──      	                                            ^
-//│ ═══[RUNTIME ERROR] ReferenceError: a is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: a_ERROR is not defined
 
 pattern S(a, pattern Q, b) = [Q as a, Q as b]
 
@@ -62,7 +62,7 @@ fun f(x) = if x is S(Bit, a, b) then [a, b]
 
 :re
 f([0, 0])
-//│ ═══[RUNTIME ERROR] ReferenceError: a is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: a_ERROR is not defined
 
 // The last thing to note is that if there is only one pattern parameter, it
 // will not be put into a tuple.

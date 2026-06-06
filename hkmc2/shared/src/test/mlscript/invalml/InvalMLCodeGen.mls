@@ -163,14 +163,16 @@ fun pow(x) = case
 //│ pow = function pow(x) {
 //│   let lambda2;
 //│   lambda2 = (undefined, function (caseScrut) {
-//│     let baseCall, tmp, tmp1;
 //│     if (caseScrut === 0) {
 //│       return 1
 //│     }
-//│     baseCall = pow(x);
-//│     tmp = caseScrut - 1;
-//│     tmp1 = runtime.safeCall(baseCall(tmp));
-//│     return x * tmp1;
+//│     {
+//│       let baseCall, tmp, tmp1;
+//│       baseCall = pow(x);
+//│       tmp = caseScrut - 1;
+//│       tmp1 = runtime.safeCall(baseCall(tmp));
+//│       return x * tmp1;
+//│     }
 //│   });
 //│   return lambda2
 //│ };
@@ -223,14 +225,16 @@ fun fact = case
 //│ fact = function fact() {
 //│   let lambda2;
 //│   lambda2 = (undefined, function (caseScrut) {
-//│     let tmp, tmp1, tmp2;
 //│     if (caseScrut === 0) {
 //│       return 1
 //│     }
-//│     tmp = fact();
-//│     tmp1 = caseScrut - 1;
-//│     tmp2 = runtime.safeCall(tmp(tmp1));
-//│     return caseScrut * tmp2;
+//│     {
+//│       let tmp, tmp1, tmp2;
+//│       tmp = fact();
+//│       tmp1 = caseScrut - 1;
+//│       tmp2 = runtime.safeCall(tmp(tmp1));
+//│       return caseScrut * tmp2;
+//│     }
 //│   });
 //│   return lambda2
 //│ };

@@ -14,7 +14,7 @@ fun go(x) = if x is
 //│ let go⁰;
 //│ define go⁰ as fun go¹(x) {
 //│   loop loopLabel:
-//│     let n, tmp;
+//│     let n;
 //│     match x
 //│       Cons⁰ =>
 //│         let arg$Cons$0$, arg$Cons$1$;
@@ -22,6 +22,7 @@ fun go(x) = if x is
 //│         set arg$Cons$1$ = x.tail⁰;
 //│         return "Z"
 //│       else
+//│         let tmp;
 //│         set n = x;
 //│         set tmp = [];
 //│         set x = tmp;
@@ -41,22 +42,24 @@ fun go(x) = if x is
 //│ let go²;
 //│ define go² as fun go³(x) {
 //│   loop loopLabel:
-//│     let n, tmp;
+//│     let n;
 //│     match x
 //│       Cons⁰ =>
-//│         let n1, arg$Cons$0$, arg$Cons$1$, tmp1;
+//│         let n1, arg$Cons$0$, arg$Cons$1$;
 //│         set arg$Cons$0$ = x.head⁰;
 //│         set arg$Cons$1$ = x.tail⁰;
 //│         match arg$Cons$1$
 //│           Nil⁰ =>
 //│             return "Z"
 //│           else
+//│             let tmp;
 //│             set n1 = x;
-//│             set tmp1 = [];
-//│             set x = tmp1;
+//│             set tmp = [];
+//│             set x = tmp;
 //│             continue loopLabel
 //│         end
 //│       else
+//│         let tmp;
 //│         set n = x;
 //│         set tmp = [];
 //│         set x = tmp;

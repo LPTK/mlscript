@@ -868,15 +868,14 @@ let Runtime1;
     return header;
   }
   static showFunctionContChain(cont, hl, vis, reps) {
-    let scrut;
     if (cont instanceof Runtime.FunctionContFrame.class) {
-      let result, scrut1, tmp, lambda, tmp1, tmp2;
+      let result, scrut, tmp, lambda, tmp1, tmp2;
       tmp = cont.constructor.name + "(pc=";
       result = tmp + cont.saved.at(1);
       lambda = (undefined, function (m, marker) {
-        let scrut2;
-        scrut2 = runtime.safeCall(m.has(cont));
-        if (scrut2 === true) {
+        let scrut1;
+        scrut1 = runtime.safeCall(m.has(cont));
+        if (scrut1 === true) {
           let tmp3, tmp4;
           tmp3 = ", " + marker;
           tmp4 = result + tmp3;
@@ -886,13 +885,13 @@ let Runtime1;
         return runtime.Unit;
       });
       runtime.safeCall(hl.forEach(lambda));
-      scrut1 = runtime.safeCall(vis.has(cont));
-      if (scrut1 === true) {
-        let scrut2, tmp3, tmp4;
+      scrut = runtime.safeCall(vis.has(cont));
+      if (scrut === true) {
+        let scrut1, tmp3, tmp4;
         tmp3 = reps + 1;
         reps = tmp3;
-        scrut2 = tmp3 > 10;
-        if (scrut2 === true) {
+        scrut1 = tmp3 > 10;
+        if (scrut1 === true) {
           throw runtime.safeCall(globalThis.Error("10 repeated continuation frame (loop?)"))
         }
         tmp4 = result + ", REPEAT";
@@ -904,21 +903,23 @@ let Runtime1;
       tmp2 = Runtime.showFunctionContChain(cont.next, hl, vis, reps);
       return tmp1 + tmp2
     }
-    scrut = cont === null;
-    if (scrut === true) {
-      return "(null)"
+    {
+      let scrut;
+      scrut = cont === null;
+      if (scrut === true) {
+        return "(null)"
+      }
+      return "(NOT CONT)";
     }
-    return "(NOT CONT)";
   }
   static showHandlerContChain(cont, hl, vis, reps) {
-    let scrut;
     if (cont instanceof Runtime.HandlerContFrame.class) {
-      let result, scrut1, lambda, tmp, tmp1;
+      let result, scrut, lambda, tmp, tmp1;
       result = cont.handler.constructor.name;
       lambda = (undefined, function (m, marker) {
-        let scrut2;
-        scrut2 = runtime.safeCall(m.has(cont));
-        if (scrut2 === true) {
+        let scrut1;
+        scrut1 = runtime.safeCall(m.has(cont));
+        if (scrut1 === true) {
           let tmp2, tmp3;
           tmp2 = ", " + marker;
           tmp3 = result + tmp2;
@@ -928,13 +929,13 @@ let Runtime1;
         return runtime.Unit;
       });
       runtime.safeCall(hl.forEach(lambda));
-      scrut1 = runtime.safeCall(vis.has(cont));
-      if (scrut1 === true) {
-        let scrut2, tmp2, tmp3;
+      scrut = runtime.safeCall(vis.has(cont));
+      if (scrut === true) {
+        let scrut1, tmp2, tmp3;
         tmp2 = reps + 1;
         reps = tmp2;
-        scrut2 = tmp2 > 10;
-        if (scrut2 === true) {
+        scrut1 = tmp2 > 10;
+        if (scrut1 === true) {
           throw runtime.safeCall(globalThis.Error("10 repeated continuation frame (loop?)"))
         }
         tmp3 = result + ", REPEAT";
@@ -946,11 +947,14 @@ let Runtime1;
       tmp1 = Runtime.showFunctionContChain(cont.next, hl, vis, reps);
       return tmp + tmp1
     }
-    scrut = cont === null;
-    if (scrut === true) {
-      return "(null)"
+    {
+      let scrut;
+      scrut = cont === null;
+      if (scrut === true) {
+        return "(null)"
+      }
+      return "(NOT HANDLER CONT)";
     }
-    return "(NOT HANDLER CONT)";
   }
   static debugCont(cont) {
     let tmp, tmp1, tmp2;

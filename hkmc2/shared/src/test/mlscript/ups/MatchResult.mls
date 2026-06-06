@@ -51,14 +51,14 @@ fun isCompiledCross(x) = x is @compile Cross
 //│ define isCompiledCross⁰ as fun isCompiledCross¹(x) {
 //│   let matcher__Cross$, matchSuccess, lambda;
 //│   define lambda as fun lambda⁰(input) {
-//│     let p_0$, tmp;
 //│     match input
 //│       "X" =>
-//│         let p_0$1, tmp1;
-//│         set tmp1 = true;
-//│         set p_0$1 = tmp1;
-//│         return p_0$1
+//│         let p_0$, tmp;
+//│         set tmp = true;
+//│         set p_0$ = tmp;
+//│         return p_0$
 //│       else
+//│         let p_0$, tmp;
 //│         set tmp = false;
 //│         set p_0$ = tmp;
 //│         return p_0$

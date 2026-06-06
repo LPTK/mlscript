@@ -151,84 +151,88 @@ let Predef1;
     }
   }
   static equals(a, b) {
-    let scrut, scrut1;
+    let scrut;
     scrut = a === b;
     if (scrut === true) {
       return true
     }
-    if (a instanceof globalThis.Array) {
-      if (b instanceof globalThis.Array) {
-        let scrut2;
-        scrut2 = a.length === b.length;
-        if (scrut2 === true) {
-          let lambda;
-          lambda = (undefined, function (a1, i) {
-            let tmp;
-            tmp = runtime.safeCall(b.at(i));
-            return Predef.equals(a1, tmp)
-          });
-          return runtime.safeCall(a.every(lambda))
+    {
+      let scrut1;
+      if (a instanceof globalThis.Array) {
+        if (b instanceof globalThis.Array) {
+          let scrut2;
+          scrut2 = a.length === b.length;
+          if (scrut2 === true) {
+            let lambda;
+            lambda = (undefined, function (a1, i) {
+              let tmp;
+              tmp = runtime.safeCall(b.at(i));
+              return Predef.equals(a1, tmp)
+            });
+            return runtime.safeCall(a.every(lambda))
+          }
         }
       }
-    }
-    scrut1 = a !== undefined;
-    if (scrut1 === true) {
-      let scrut2;
-      scrut2 = a !== null;
-      if (scrut2 === true) {
-        let scrut3;
-        scrut3 = b !== undefined;
-        if (scrut3 === true) {
-          let scrut4;
-          scrut4 = b !== null;
-          if (scrut4 === true) {
-            let ac, scrut5, tmp;
-            ac = a.constructor;
-            scrut5 = ac !== undefined;
-            if (scrut5 === true) {
-              let scrut6;
-              scrut6 = ac === b.constructor;
-              if (scrut6 === true) {
-                let md, scrut7, tmp1;
-                md = ac[Predef.Symbols.definitionMetadata];
-                scrut7 = md !== undefined;
-                if (scrut7 === true) {
-                  let scrut8, lambda;
-                  lambda = (undefined, function (field) {
-                    let scrut9;
-                    scrut9 = field !== null;
-                    if (scrut9 === true) {
-                      let scrut10;
-                      scrut10 = Predef.equals(a[field], b[field]);
-                      if (scrut10 === true) {
-                        return true
+      scrut1 = a !== undefined;
+      if (scrut1 === true) {
+        let scrut2;
+        scrut2 = a !== null;
+        if (scrut2 === true) {
+          let scrut3;
+          scrut3 = b !== undefined;
+          if (scrut3 === true) {
+            let scrut4;
+            scrut4 = b !== null;
+            if (scrut4 === true) {
+              let ac, scrut5, tmp;
+              ac = a.constructor;
+              scrut5 = ac !== undefined;
+              if (scrut5 === true) {
+                let scrut6;
+                scrut6 = ac === b.constructor;
+                if (scrut6 === true) {
+                  let md, scrut7, tmp1;
+                  md = ac[Predef.Symbols.definitionMetadata];
+                  scrut7 = md !== undefined;
+                  if (scrut7 === true) {
+                    let scrut8, lambda;
+                    lambda = (undefined, function (field) {
+                      let scrut9;
+                      scrut9 = field !== null;
+                      if (scrut9 === true) {
+                        let scrut10;
+                        scrut10 = Predef.equals(a[field], b[field]);
+                        if (scrut10 === true) {
+                          return true
+                        }
+                        return false;
                       }
                       return false;
+                    });
+                    scrut8 = runtime.safeCall(md[2].every(lambda));
+                    if (scrut8 === true) {
+                      tmp1 = true;
+                    } else {
+                      tmp1 = false;
                     }
-                    return false;
-                  });
-                  scrut8 = runtime.safeCall(md[2].every(lambda));
-                  if (scrut8 === true) {
-                    tmp1 = true;
                   } else {
                     tmp1 = false;
                   }
-                } else {
-                  tmp1 = false;
-                }
-                if (tmp1 === true) {
-                  tmp = true;
+                  if (tmp1 === true) {
+                    tmp = true;
+                  } else {
+                    tmp = false;
+                  }
                 } else {
                   tmp = false;
                 }
               } else {
                 tmp = false;
               }
-            } else {
-              tmp = false;
-            }
-            if (tmp === true) {
-              return true
+              if (tmp === true) {
+                return true
+              }
+              return false;
             }
             return false;
           }
@@ -238,7 +242,6 @@ let Predef1;
       }
       return false;
     }
-    return false;
   }
   static nequals(a, b) {
     let tmp;
@@ -276,29 +279,32 @@ let Predef1;
   }
   static foldr(f) {
     return (first, ...rest) => {
-      let len, scrut, i, init;
+      let len, scrut;
       len = rest.length;
       scrut = len === 0;
       if (scrut === true) {
         return first
       }
-      i = len - 1;
-      init = runtime.safeCall(rest.at(i));
-      lbl: while (true) {
-        let scrut1;
-        scrut1 = i > 0;
-        if (scrut1 === true) {
-          let tmp, tmp1, tmp2;
-          tmp = i - 1;
-          i = tmp;
-          tmp1 = runtime.safeCall(rest.at(tmp));
-          tmp2 = runtime.safeCall(f(tmp1, init));
-          init = tmp2;
-          continue lbl
+      {
+        let i, init;
+        i = len - 1;
+        init = runtime.safeCall(rest.at(i));
+        lbl: while (true) {
+          let scrut1;
+          scrut1 = i > 0;
+          if (scrut1 === true) {
+            let tmp, tmp1, tmp2;
+            tmp = i - 1;
+            i = tmp;
+            tmp1 = runtime.safeCall(rest.at(tmp));
+            tmp2 = runtime.safeCall(f(tmp1, init));
+            init = tmp2;
+            continue lbl
+          }
+          break;
         }
-        break;
+        return runtime.safeCall(f(first, init));
       }
-      return runtime.safeCall(f(first, init));
     }
   }
   static mkStr(...xs) {

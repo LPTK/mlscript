@@ -20,9 +20,12 @@ declare fun p: Int
 // :re
 p
 
-
+:sir
 fun q: Int
 fun q = 1
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let q⁰, q¹; define q⁰ as fun q²() { return 1 }; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 q
 //│ = 1
@@ -65,18 +68,18 @@ M.D
 :fixme // FIXME: Should report a proper error about lack of declared C companion module
 C.oops
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'C'
-//│ ║  l.66: 	C.oops
+//│ ║  l.69: 	C.oops
 //│ ║        	^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.37: 	declare class C
+//│ ║  l.40: 	declare class C
 //│ ╙──      	              ^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'C'
-//│ ║  l.66: 	C.oops
+//│ ║  l.69: 	C.oops
 //│ ║        	^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.37: 	declare class C
+//│ ║  l.40: 	declare class C
 //│ ╙──      	              ^
-//│ ═══[RUNTIME ERROR] ReferenceError: C is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: C_ERROR is not defined
 
 :re
 M.D.oops

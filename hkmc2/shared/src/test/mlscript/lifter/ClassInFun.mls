@@ -261,7 +261,7 @@ res.b
 //│ ╟── which references the symbol introduced here
 //│ ║  l.242: 	  class A(...r) with
 //│ ╙──       	             ^
-//│ ═══[RUNTIME ERROR] ReferenceError: r is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: r_ERROR is not defined
 //│ res = A()
 
 

@@ -88,18 +88,7 @@ lscomp1(zip(enumFromTo(1, 3), enumFromTo(2, 4)))
 //│ deforest > 	fields: xs_zip⁰.h⁰
 //│ deforest > 	fields: xs_zip⁰.t⁰
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Cannot resolve overloaded member symbol lscomp2: no principal disambiguation found
-//│ 	at: mlscript.utils.package$.lastWords(package.scala:239)
-//│ 	at: hkmc2.codegen.Block$package$.asPath$$anonfun$1(Block.scala:1072)
-//│ 	at: scala.Option.getOrElse(Option.scala:203)
-//│ 	at: hkmc2.codegen.Block$package$.asPath(Block.scala:1072)
-//│ 	at: hkmc2.codegen.deforest.DeforestRewriter.$anonfun$23(Rewrite.scala:450)
-//│ 	at: scala.collection.immutable.List.map(List.scala:240)
-//│ 	at: hkmc2.codegen.deforest.DeforestRewriter.hkmc2$codegen$deforest$DeforestRewriter$Rewriter$1$$_$applyBlock$$anonfun$5(Rewrite.scala:450)
-//│ 	at: hkmc2.codegen.BlockTransformer.applyValue(BlockTransformer.scala:196)
-//│ 	at: hkmc2.codegen.BlockTransformer.applyPath(BlockTransformer.scala:191)
-//│ 	at: hkmc2.codegen.deforest.DeforestRewriter$Rewriter$1.applyPath(Rewrite.scala:440)
+//│ = Cons(Pair(1, 3), Cons(Pair(2, 4), Cons(Pair(3, 5), Nil)))
 
 
 :expect Cons(Pair(5, 1), Cons(Pair(5, 2), Cons(Pair(5, 5), Nil)))
@@ -259,7 +248,7 @@ if A is
 
 
 // TODO: fix lifter
-:fixme
+// :fixme
 :lift
 :deforest
 fun h() =
@@ -302,7 +291,22 @@ h()
 //│ deforest > Nil⁰ ->
 //│ deforest > 	match: ls²
 //│ deforest > <<< fusing <<<
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Cannot resolve overloaded member symbol lscomp2: no principal disambiguation found
+//│ = Cons(
+//│   [1, 1],
+//│   Cons(
+//│     [1, 2],
+//│     Cons(
+//│       [1, 3],
+//│       Cons(
+//│         [2, 1],
+//│         Cons(
+//│           [2, 2],
+//│           Cons([2, 3], Cons([3, 1], Cons([3, 2], Cons([3, 3], Nil))))
+//│         )
+//│       )
+//│     )
+//│   )
+//│ )
 
 // Same but without lifting:
 :deforest
@@ -346,16 +350,20 @@ h()
 //│ deforest > Nil⁰ ->
 //│ deforest > 	match: ls³
 //│ deforest > <<< fusing <<<
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Cannot resolve overloaded member symbol lscomp2: no principal disambiguation found
-//│ 	at: mlscript.utils.package$.lastWords(package.scala:239)
-//│ 	at: hkmc2.codegen.Block$package$.asPath$$anonfun$1(Block.scala:1072)
-//│ 	at: scala.Option.getOrElse(Option.scala:203)
-//│ 	at: hkmc2.codegen.Block$package$.asPath(Block.scala:1072)
-//│ 	at: hkmc2.codegen.deforest.DeforestRewriter.$anonfun$23(Rewrite.scala:450)
-//│ 	at: scala.collection.immutable.List.map(List.scala:244)
-//│ 	at: hkmc2.codegen.deforest.DeforestRewriter.hkmc2$codegen$deforest$DeforestRewriter$Rewriter$1$$_$applyBlock$$anonfun$5(Rewrite.scala:450)
-//│ 	at: hkmc2.codegen.BlockTransformer.applyValue(BlockTransformer.scala:196)
-//│ 	at: hkmc2.codegen.BlockTransformer.applyPath(BlockTransformer.scala:191)
-//│ 	at: hkmc2.codegen.deforest.DeforestRewriter$Rewriter$1.applyPath(Rewrite.scala:440)
+//│ = Cons(
+//│   [1, 1],
+//│   Cons(
+//│     [1, 2],
+//│     Cons(
+//│       [1, 3],
+//│       Cons(
+//│         [2, 1],
+//│         Cons(
+//│           [2, 2],
+//│           Cons([2, 3], Cons([3, 1], Cons([3, 2], Cons([3, 3], Nil))))
+//│         )
+//│       )
+//│     )
+//│   )
+//│ )
 

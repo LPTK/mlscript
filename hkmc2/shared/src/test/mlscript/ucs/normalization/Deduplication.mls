@@ -368,31 +368,31 @@ fun foo(x, y, z) = if x is
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let foo²;
 //│ define foo² as fun foo³(x, y, z) {
-//│   let value;
 //│   match x
 //│     0 =>
-//│       let value1;
 //│       match y
 //│         0 =>
-//│           let value2;
 //│           match z
 //│             0 =>
 //│               return "000"
 //│             1 =>
 //│               return "001"
 //│             else
-//│               set value2 = "hello";
-//│               return expensive_call⁰(value2)
+//│               let value;
+//│               set value = "hello";
+//│               return expensive_call⁰(value)
 //│           end
 //│         1 =>
 //│           return "01"
 //│         else
-//│           set value1 = "hello";
-//│           return expensive_call⁰(value1)
+//│           let value;
+//│           set value = "hello";
+//│           return expensive_call⁰(value)
 //│       end
 //│     1 =>
 //│       return "1"
 //│     else
+//│       let value;
 //│       set value = "hello";
 //│       return expensive_call⁰(value)
 //│   end

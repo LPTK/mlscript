@@ -23,12 +23,13 @@ loop(1000)(0)
 //│ @private
 //│ define loop$tailrec⁰ as fun loop$tailrec¹(x, y) {
 //│   loop loopLabel:
-//│     let scrut, tmp, tmp1;
+//│     let scrut;
 //│     set scrut = Predef⁰.equals⁰(x, 0);
 //│     match scrut
 //│       true =>
 //│         return y
 //│       else
+//│         let tmp, tmp1;
 //│         set tmp = -⁰(x, 1);
 //│         set tmp1 = +⁰(y, x);
 //│         set x = tmp;
@@ -55,12 +56,13 @@ count(0)(100)
 //│ @private
 //│ define count$tailrec⁰ as fun count$tailrec¹(start, stop) {
 //│   loop loopLabel:
-//│     let scrut, tmp;
+//│     let scrut;
 //│     set scrut = Predef⁰.equals⁰(start, stop);
 //│     match scrut
 //│       true =>
 //│         return start
 //│       else
+//│         let tmp;
 //│         set tmp = +⁰(start, 1);
 //│         set start = tmp;
 //│         continue loopLabel
@@ -84,12 +86,13 @@ fun odd(n)(dummy) = if n == 0 then [false, dummy] else even(n - 1)(dummy + 1)
 //│   loop loopLabel:
 //│     match id
 //│       0 =>
-//│         let scrut, tmp, tmp1;
+//│         let scrut;
 //│         set scrut = Predef⁰.equals⁰(param0, 0);
 //│         match scrut
 //│           true =>
 //│             return [true, param1]
 //│           else
+//│             let tmp, tmp1;
 //│             set tmp = -⁰(param0, 1);
 //│             set tmp1 = +⁰(param1, 1);
 //│             set param0 = tmp;
@@ -98,12 +101,13 @@ fun odd(n)(dummy) = if n == 0 then [false, dummy] else even(n - 1)(dummy + 1)
 //│             continue loopLabel
 //│         end
 //│       1 =>
-//│         let scrut, tmp, tmp1;
+//│         let scrut;
 //│         set scrut = Predef⁰.equals⁰(param0, 0);
 //│         match scrut
 //│           true =>
 //│             return [false, param1]
 //│           else
+//│             let tmp, tmp1;
 //│             set tmp = -⁰(param0, 1);
 //│             set tmp1 = +⁰(param1, 1);
 //│             set param0 = tmp;

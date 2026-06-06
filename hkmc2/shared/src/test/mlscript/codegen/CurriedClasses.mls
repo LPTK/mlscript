@@ -147,9 +147,9 @@ class A(x1, x2, ...xs)(y1, ...ys) with
 //│     return globalThis.Object.freeze([
 //│       this.#x1,
 //│       this.#x2,
-//│       xs,
+//│       xs_ERROR,
 //│       this.#y1,
-//│       ys
+//│       ys_ERROR
 //│     ]);
 //│   }
 //│   toString() { return runtime.render(this); }
@@ -159,6 +159,6 @@ class A(x1, x2, ...xs)(y1, ...ys) with
 
 :todo
 new A(1, 2, 3)(4, 5, 6).fields
-//│ ═══[RUNTIME ERROR] ReferenceError: xs is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: xs_ERROR is not defined
 
 
