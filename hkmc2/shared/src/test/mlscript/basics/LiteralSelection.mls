@@ -131,7 +131,7 @@ let obj = "¯\_(ツ)_/¯": 2
 //│ ╟── which references the symbol introduced here
 //│ ║  l.119: 	let obj = "¯\_(ツ)_/¯": 2
 //│ ╙──       	    ^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: obj_ERROR is not defined
+//│ obj = {a: 1}
 :fixme
 obj."¯\_(ツ)_/¯"
 //│ ╔══[WARNING] Found invalid escape character
@@ -143,7 +143,6 @@ obj."¯\_(ツ)_/¯"
 //│ ╟── which references the symbol introduced here
 //│ ║  l.119: 	let obj = "¯\_(ツ)_/¯": 2
 //│ ╙──       	    ^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: obj_ERROR is not defined
 
 :fixme
 :expect ¯\\_(ツ)_/¯

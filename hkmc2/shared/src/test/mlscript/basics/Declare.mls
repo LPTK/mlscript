@@ -79,7 +79,7 @@ C.oops
 //│ ╟── which references the symbol introduced here
 //│ ║  l.40: 	declare class C
 //│ ╙──      	              ^
-//│ ═══[RUNTIME ERROR] ReferenceError: C_ERROR is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: C is not defined
 
 :re
 M.D.oops

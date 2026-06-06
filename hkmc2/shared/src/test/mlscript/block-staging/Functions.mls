@@ -186,7 +186,7 @@ staged module OtherBlocks with
 //│ ║  l.175: 	      let a = 1
 //│ ╙──       	          ^
 //│ > fun ctor_() = ()
-//│ ═══[RUNTIME ERROR] ReferenceError: a_ERROR is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: a is not defined
 
 staged module ClassDefs with
   class A
@@ -251,7 +251,7 @@ staged module LabelBreak with
 //│ ║  l.241: 	    let x = 1
 //│ ╙──       	        ^
 //│ > fun ctor_() = ()
-//│ ═══[RUNTIME ERROR] ReferenceError: x_ERROR is not defined
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 
 :e
 class C(val a)
@@ -273,4 +273,4 @@ staged module Spread with
 //│ ═══[COMPILATION ERROR] Spread parameters are not supported in staged module: Arg(Some(Lazy),SimpleRef(tmp:tmp))
 //│ ═══[COMPILATION ERROR] No definition found in scope for member 'tmp'
 //│ > fun ctor_() = ()
-//│ ═══[RUNTIME ERROR] ReferenceError: tmp_ERROR is not defined
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.

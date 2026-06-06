@@ -79,5 +79,5 @@ new A(1, 2, 3).getR
 //│ ╟── which references the symbol introduced here
 //│ ║  l.70: 	data class A(...r) with
 //│ ╙──      	                ^
-//│ ═══[RUNTIME ERROR] ReferenceError: r_ERROR is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: r is not defined
 //│ ═══[RUNTIME ERROR] Expected: '[1, 2, 3]', got: 'undefined'

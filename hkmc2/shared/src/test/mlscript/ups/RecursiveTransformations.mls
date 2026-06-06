@@ -66,7 +66,7 @@ assert arr is MultiSet(1, rest), rest
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'rest'
 //│ ║  l.65: 	assert arr is MultiSet(1, rest), rest
 //│ ╙──      	                                 ^^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: rest_ERROR is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: rest is not defined
 
 :e
 assert arr is MultiSet as res, res

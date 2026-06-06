@@ -5,7 +5,67 @@ import RuntimeJS from "./RuntimeJS.mjs";
 import Runtime from "./Runtime.mjs";
 import Rendering from "./Rendering.mjs";
 import Term from "./Term.mjs";
-let Predef1;
+let Predef1, lambda, lambda1, lambda$, Capture$scope101, Capture$scope121, lambda$1, lambda$2;
+lambda$2 = (undefined, function (Predef2) {
+  return (acc, x) => {
+    return lambda1(Predef2, acc, x)
+  }
+});
+lambda1 = (undefined, function (Predef2, acc, x) {
+  let tmp;
+  if (typeof x === 'string') {
+    tmp = true;
+  } else {
+    tmp = false;
+  }
+  Predef2.check(tmp);
+  return acc + x
+});
+lambda$1 = (undefined, function (Predef2, a, b) {
+  return (field) => {
+    return lambda(Predef2, a, b, field)
+  }
+});
+lambda = (undefined, function (Predef2, a, b, field) {
+  let scrut;
+  scrut = field !== null;
+  if (scrut === true) {
+    let scrut1;
+    scrut1 = Predef2.equals(a[field], b[field]);
+    if (scrut1 === true) {
+      return true
+    }
+    return false;
+  }
+  return false;
+});
+(class Capture$scope12 {
+  static {
+    Capture$scope121 = this
+  }
+  constructor(tmp$0) {
+    this.tmp$0 = tmp$0;
+  }
+  toString() { return runtime.render(this); }
+  static [definitionMetadata] = ["class", "Capture$scope12"];
+});
+(class Capture$scope10 {
+  static {
+    Capture$scope101 = this
+  }
+  constructor(tmp$0) {
+    this.tmp$0 = tmp$0;
+  }
+  toString() { return runtime.render(this); }
+  static [definitionMetadata] = ["class", "Capture$scope10"];
+});
+lambda$ = (undefined, function (Predef2, b) {
+  return (a, i) => {
+    let tmp;
+    tmp = runtime.safeCall(b.at(i));
+    return Predef2.equals(a, tmp)
+  }
+});
 (class Predef {
   static {
     Predef1 = this
@@ -163,13 +223,9 @@ let Predef1;
           let scrut2;
           scrut2 = a.length === b.length;
           if (scrut2 === true) {
-            let lambda;
-            lambda = (undefined, function (a1, i) {
-              let tmp;
-              tmp = runtime.safeCall(b.at(i));
-              return Predef.equals(a1, tmp)
-            });
-            return runtime.safeCall(a.every(lambda))
+            let lambda$here;
+            lambda$here = lambda$(Predef, b);
+            return runtime.safeCall(a.every(lambda$here))
           }
         }
       }
@@ -184,52 +240,44 @@ let Predef1;
             let scrut4;
             scrut4 = b !== null;
             if (scrut4 === true) {
-              let ac, scrut5, tmp;
+              let ac, scrut5, scrut6, scope10$cap;
+              scope10$cap = new Capture$scope101(undefined);
               ac = a.constructor;
               scrut5 = ac !== undefined;
               if (scrut5 === true) {
-                let scrut6;
-                scrut6 = ac === b.constructor;
-                if (scrut6 === true) {
-                  let md, scrut7, tmp1;
+                let scrut7;
+                scrut7 = ac === b.constructor;
+                if (scrut7 === true) {
+                  let md, scrut8, scrut9, scope12$cap;
+                  scope12$cap = new Capture$scope121(undefined);
                   md = ac[Predef.Symbols.definitionMetadata];
-                  scrut7 = md !== undefined;
-                  if (scrut7 === true) {
-                    let scrut8, lambda;
-                    lambda = (undefined, function (field) {
-                      let scrut9;
-                      scrut9 = field !== null;
-                      if (scrut9 === true) {
-                        let scrut10;
-                        scrut10 = Predef.equals(a[field], b[field]);
-                        if (scrut10 === true) {
-                          return true
-                        }
-                        return false;
-                      }
-                      return false;
-                    });
-                    scrut8 = runtime.safeCall(md[2].every(lambda));
-                    if (scrut8 === true) {
-                      tmp1 = true;
+                  scrut8 = md !== undefined;
+                  if (scrut8 === true) {
+                    let scrut10, lambda$here;
+                    lambda$here = lambda$1(Predef, a, b);
+                    scrut10 = runtime.safeCall(md[2].every(lambda$here));
+                    if (scrut10 === true) {
+                      scope12$cap.tmp$0 = true;
                     } else {
-                      tmp1 = false;
+                      scope12$cap.tmp$0 = false;
                     }
                   } else {
-                    tmp1 = false;
+                    scope12$cap.tmp$0 = false;
                   }
-                  if (tmp1 === true) {
-                    tmp = true;
+                  scrut9 = scope12$cap.tmp$0;
+                  if (scrut9 === true) {
+                    scope10$cap.tmp$0 = true;
                   } else {
-                    tmp = false;
+                    scope10$cap.tmp$0 = false;
                   }
                 } else {
-                  tmp = false;
+                  scope10$cap.tmp$0 = false;
                 }
               } else {
-                tmp = false;
+                scope10$cap.tmp$0 = false;
               }
-              if (tmp === true) {
+              scrut6 = scope10$cap.tmp$0;
+              if (scrut6 === true) {
                 return true
               }
               return false;
@@ -308,18 +356,9 @@ let Predef1;
     }
   }
   static mkStr(...xs) {
-    let lambda, callPrefix;
-    lambda = (undefined, function (acc, x) {
-      let tmp;
-      if (typeof x === 'string') {
-        tmp = true;
-      } else {
-        tmp = false;
-      }
-      Predef.check(tmp);
-      return acc + x
-    });
-    callPrefix = runtime.safeCall(Predef.fold(lambda));
+    let callPrefix, lambda$here;
+    lambda$here = lambda$2(Predef);
+    callPrefix = runtime.safeCall(Predef.fold(lambda$here));
     return runtime.safeCall(callPrefix(...xs))
   }
   static use(instance) {

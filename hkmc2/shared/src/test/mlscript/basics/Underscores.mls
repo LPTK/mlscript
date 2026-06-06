@@ -148,7 +148,7 @@ let mkObj = x: _, y: _, z: 3
 //│ ╟── which references the symbol introduced here
 //│ ║  l.140: 	let mkObj = x: _, y: _, z: 3
 //│ ╙──       	                        ^
-//│ ═══[RUNTIME ERROR] ReferenceError: z_ERROR is not defined
+//│ ═══[RUNTIME ERROR] ReferenceError: z is not defined
 
 // mkObj(1, 2)
 
