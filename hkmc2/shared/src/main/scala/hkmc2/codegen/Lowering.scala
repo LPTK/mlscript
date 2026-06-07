@@ -1458,8 +1458,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val body = mkBlock
       val scopedSyms = loweringCtx.getCollectedSym
       val needRefresh = loweringCtx.currentScopedBlkNeedsRefreshing
-      if needRefresh then new SymbolRefresher(Map.empty).apply(Scoped(scopedSyms, body))
-      else Scoped(scopedSyms, body)
+      val scopedBody = Scoped(scopedSyms, body)
+      if needRefresh then
+        new SymbolRefresher(Map.empty).apply(scopedBody)
+      else scopedBody
   
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =

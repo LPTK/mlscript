@@ -380,10 +380,8 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
                     )
             )
     case Split.Else(els) =>
-      LoweringCtx.nestScoped.givenIn:
-        Scoped(
-          LoweringCtx.loweringCtx.getCollectedSym,
-          term_nonTail(els, inStmtPos = form.isImperative)(cont))
+      lowering.inScopedBlock:
+        term_nonTail(els, inStmtPos = form.isImperative)(cont)
     case Split.End =>
       // * See comment [comment:1] above
       if form is IfLikeForm.While then End()
