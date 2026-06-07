@@ -158,6 +158,7 @@ end Symbol
 object NoSymbol extends MaybeSymbol:
   def nme: Str = "‹no symbol›"
   override def toString: Str = nme
+type NoSymbol = NoSymbol.type
 
 
 /** Symbols bound by `Program.imports`.

@@ -1,7 +1,7 @@
 :sir
 
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ import Predef; end
+//│ import "..." as Predef; end
 
 
 // Literals: Int / Str / Num / Bool. A local picks up its initializer's type.
@@ -11,12 +11,7 @@ let f = 1.5
 let s = "str"
 let b = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let i⁰: Int, f⁰: Num, s⁰: Str, b⁰: Bool;
-//│ set i⁰ = 1;
-//│ set f⁰ = 1.5;
-//│ set s⁰ = "str";
-//│ set b⁰ = true;
-//│ end
+//│ set i⁰ = 1; set f⁰ = 1.5; set s⁰ = "str"; set b⁰ = true; end
 
 
 // Local reassignment join: a local keeps its type while assignments agree, and
@@ -30,7 +25,6 @@ set conflicting = "two"
 let declared
 set declared = 3
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let consistent⁰: Int, conflicting⁰: Object, declared⁰: Int;
 //│ set consistent⁰ = 1;
 //│ set consistent⁰ = 2;
 //│ set conflicting⁰ = 1;
@@ -44,12 +38,7 @@ set declared = 3
 let t = [i, s]
 let r = {x: i, y: s}
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let t⁰: Array, r⁰: Object, x⁰: Int, y⁰: Str;
-//│ set t⁰ = [i⁰, s⁰];
-//│ set x⁰ = i⁰;
-//│ set y⁰ = s⁰;
-//│ set r⁰ = { "x": x⁰, "y": y⁰ };
-//│ end
+//│ let x: Int, y: Str; set t⁰ = [i⁰, s⁰]; set x = i⁰; set y = s⁰; set r⁰ = { "x": x, "y": y }; end
 
 
 // Instantiation -> the class symbol.
@@ -57,12 +46,11 @@ let r = {x: i, y: s}
 class Foo(x: Int)
 let foo = new Foo(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Foo⁰, foo⁰: Foo¹;
-//│ define Foo⁰ as class Foo¹ {
-//│   private val x¹: Int;
-//│   constructor Foo²(x: Int) { set Foo¹.this.x¹ = x; end }
+//│ define Foo⁰ as class Foo² {
+//│   private val x⁰: Int;
+//│   constructor Foo¹(x: Int) { set Foo².this.x⁰ = x; end }
 //│ };
-//│ set foo⁰ = new Foo¹(123);
+//│ set foo⁰ = new Foo²(123);
 //│ end
 
 
@@ -71,12 +59,11 @@ let foo = new Foo(123)
 class Foo(val x: Str)
 let foo = new Foo(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Foo³, foo¹: Foo⁴;
-//│ define Foo³ as class Foo⁴ {
-//│   val x²: Str;
-//│   constructor Foo⁵(x: Str) { define x² as val x³: Str = x; end }
+//│ define Foo³ as class Foo⁵ {
+//│   val x¹: Str;
+//│   constructor Foo⁴(x: Str) { define x¹ as val x²: Str = x; end }
 //│ };
-//│ set foo¹ = new Foo⁴(123);
+//│ set foo¹ = new Foo⁵(123);
 //│ end
 
 
@@ -87,9 +74,9 @@ fun mk(a) = new Foo(a)
 let made = mk(1)
 let sel = made.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let mk⁰, made⁰: Foo⁴, sel⁰: ?, selRes: ?;
-//│ define mk⁰ as fun mk¹(a: ?): Foo⁴ {
-//│   return new Foo⁴(a)
+//│ let selRes: ?;
+//│ define mk⁰ as fun mk¹(a: ?): Foo⁵ {
+//│   return new Foo⁵(a)
 //│ };
 //│ set made⁰ = mk¹(1);
 //│ set selRes = made⁰.x﹖;
@@ -108,7 +95,7 @@ let sel = made.x
 :siret
 fun add(x: Int, y: Int) = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let add⁰; define add⁰ as fun add¹(x: Int, y: Int): Int { return +⁰(x, y) }; end
+//│ define add⁰ as fun add¹(x: Int, y: Int): Int { return +⁰(x, y) }; end
 
 
 // A reassigned parameter joins with its annotation: a conflicting `set` widens
@@ -122,7 +109,6 @@ fun keep(x: Int) =
   set x = 5
   x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let widen⁰, keep⁰;
 //│ define widen⁰ as fun widen¹(x: Object): Object {
 //│   set x = "s";
 //│   return x
@@ -137,11 +123,10 @@ fun keep(x: Int) =
 fun addUp(x: Int, y: Int): Int = x + y
 fun makeFoo(n: Int): Foo = new Foo(n)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let makeFoo⁰, addUp⁰;
 //│ define addUp⁰ as fun addUp¹(x: Int, y: Int): Int {
 //│   return +⁰(x, y)
 //│ };
-//│ define makeFoo⁰ as fun makeFoo¹(n: Int): Foo⁴ { return new Foo⁴(n) };
+//│ define makeFoo⁰ as fun makeFoo¹(n: Int): Foo⁵ { return new Foo⁵(n) };
 //│ end
 
 
@@ -150,7 +135,7 @@ fun makeFoo(n: Int): Foo = new Foo(n)
 :siret
 fun rest(a, ...xs) = xs
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let rest⁰; define rest⁰ as fun rest¹(a: ?, ...xs: Array): Array { return xs }; end
+//│ define rest⁰ as fun rest¹(a: ?, ...xs: Array): Array { return xs }; end
 
 
 // Inferred returns from the body terminal: a builtin comparison yields `Bool`
@@ -162,12 +147,11 @@ fun lt(a, b) = a < b
 fun mkFoo(a) = new Foo(a)
 fun ident(a) = a
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let ident⁰, lt⁰, mkFoo⁰;
 //│ define lt⁰ as fun lt¹(a: ?, b: ?): Bool {
 //│   return <⁰(a, b)
 //│ };
-//│ define mkFoo⁰ as fun mkFoo¹(a: ?): Foo⁴ {
-//│   return new Foo⁴(a)
+//│ define mkFoo⁰ as fun mkFoo¹(a: ?): Foo⁵ {
+//│   return new Foo⁵(a)
 //│ };
 //│ define ident⁰ as fun ident¹(a: ?): ? { return a };
 //│ end
@@ -179,7 +163,6 @@ class Calc() with
   fun twice(x: Int): Int = x + x
   fun whatever(a) = a
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Calc⁰;
 //│ define Calc⁰ as class Calc² {
 //│   constructor Calc¹
 //│   method twice⁰ = fun twice¹(x: Int): Int {
@@ -196,7 +179,6 @@ class Calc() with
 class Box(val v: Int) with
   fun get() = v
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let Box⁰;
 //│ define Box⁰ as class Box² {
 //│   val v⁰: Int;
 //│   constructor Box¹(v: Int) {
@@ -215,12 +197,9 @@ class Box(val v: Int) with
 fun id(a) = a
 id(new Foo(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let id⁰, tmp: Foo⁴;
-//│ define id⁰ as fun id¹(a: ?): ? { return a };
-//│ set tmp = new Foo⁴(1);
-//│ return id¹(tmp)
+//│ let tmp: Foo⁵; define id⁰ as fun id¹(a: ?): ? { return a }; set tmp = new Foo⁵(1); return id¹(tmp)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let id⁰; define id⁰ as fun id¹(a: ?): ? { return a }; return new Foo⁴(1)
+//│ define id⁰ as fun id¹(a: ?): ? { return a }; return new Foo⁵(1)
 
 
 // Closure capture (`:lift`): the symbol holding the capture object is typed as
@@ -236,24 +215,24 @@ fun counter() =
   bump()
   n
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let bump⁰, counter⁰, Capture$scope0⁰;
-//│ define Capture$scope0⁰ as class Capture$scope0² {
-//│   constructor Capture$scope0¹(n$0: ?) {
+//│ let bump, Capture$scope0;
+//│ define Capture$scope0 as class Capture$scope0¹ {
+//│   constructor Capture$scope0⁰(n$0: ?) {
 //│     define n$0⁰ as val n$0¹: ? = n$0;
 //│     end
 //│   }
 //│ };
-//│ define bump⁰ as fun bump¹(scope0$cap: ?): Unit⁰ {
+//│ define bump as fun bump⁰(scope0$cap: ?): Unit⁰ {
 //│   let tmp: ?;
 //│   set tmp = +⁰(scope0$cap.n$0¹, 1);
 //│   set scope0$cap.n$0¹ = tmp;
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define counter⁰ as fun counter¹(): ? {
-//│   let n: ?, scope0$cap: Capture$scope0²;
-//│   set scope0$cap = new mut Capture$scope0²(n);
+//│   let n: ?, scope0$cap: Capture$scope0¹;
+//│   set scope0$cap = new mut Capture$scope0¹(n);
 //│   set scope0$cap.n$0¹ = 0;
-//│   do bump¹(scope0$cap);
+//│   do bump⁰(scope0$cap);
 //│   return scope0$cap.n$0¹
 //│ };
 //│ end
@@ -270,22 +249,22 @@ fun resetCounter() =
   reset()
   n
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let reset⁰, resetCounter⁰, Capture$scope0³;
-//│ define Capture$scope0³ as class Capture$scope0⁵ {
-//│   constructor Capture$scope0⁴(n$0: Int) {
+//│ let reset, Capture$scope0;
+//│ define Capture$scope0 as class Capture$scope0³ {
+//│   constructor Capture$scope0²(n$0: Int) {
 //│     define n$0² as val n$0³: Int = n$0;
 //│     end
 //│   }
 //│ };
-//│ define reset⁰ as fun reset¹(scope0$cap: ?): Unit⁰ {
+//│ define reset as fun reset⁰(scope0$cap: ?): Unit⁰ {
 //│   set scope0$cap.n$0³ = 100;
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define resetCounter⁰ as fun resetCounter¹(): Int {
-//│   let n: Int, scope0$cap: Capture$scope0⁵;
-//│   set scope0$cap = new mut Capture$scope0⁵(n);
+//│   let n: Int, scope0$cap: Capture$scope0³;
+//│   set scope0$cap = new mut Capture$scope0³(n);
 //│   set scope0$cap.n$0³ = 0;
-//│   do reset¹(scope0$cap);
+//│   do reset⁰(scope0$cap);
 //│   return scope0$cap.n$0³
 //│ };
 //│ end
@@ -302,9 +281,9 @@ fun reader() =
   fun rd() = k
   rd()
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let rd⁰, reader⁰;
-//│ define rd⁰ as fun rd¹(k: Int): ? {
+//│ let rd;
+//│ define rd as fun rd⁰(k: Int): ? {
 //│   return k
 //│ };
-//│ define reader⁰ as fun reader¹(): ? { let k: Int; set k = 0; return rd¹(k) };
+//│ define reader⁰ as fun reader¹(): ? { let k: Int; set k = 0; return rd⁰(k) };
 //│ end
