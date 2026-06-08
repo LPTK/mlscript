@@ -733,7 +733,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         lastWords(s"Unexpected symbol kind ${sym.getClass.getSimpleName}: $sym")
   
   @tailrec
-  final def term(t: st, inStmtPos: Bool = false)(k: Result => Block)(using LoweringCtx): Block =
+  final def term(t: st, inStmtPos: Bool = false)(k: LoweringCtx ?=> Result => Block)(using LoweringCtx): Block =
     tl.log(s"Lowering.term ${t.showDbg.truncate(100, "[...]")}${
       if inStmtPos then " (in stmt)" else ""}${
       t.resolvedSym.fold("")(" – symbol " + _)}")
@@ -1018,9 +1018,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           k(lamDef.asPath))
     
     
-    case iftrm: st.IfLike => ucs.Normalization(this)(iftrm)(k)
+    case iftrm: st.IfLike => ucs.Normalization(this)(iftrm): r =>
+      inScopedBlock(k(r))
     
-    case iftrm: st.SynthIf => ucs.Normalization(this)(iftrm)(k)
+    case iftrm: st.SynthIf => ucs.Normalization(this)(iftrm): r =>
+      inScopedBlock(k(r))
       
     case sel @ Sel(prefix, nme) =>
       setupSelection(prefix, nme, N)(k)

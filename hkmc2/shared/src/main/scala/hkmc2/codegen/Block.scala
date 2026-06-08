@@ -407,7 +407,7 @@ object Label:
     case _: Unreachable => body
     case _ =>
       rest match
-      case Scoped(syms, rest) => Scoped(syms, Label(label, loop, body, rest))
+      // case Scoped(syms, rest) => Scoped(syms, Label(label, loop, body, rest))
       case _ => new Label(label, loop, body, rest)
 object Scoped:
   def apply(syms: collection.Set[ScopedSymbol], body: Block): Block = body match
@@ -487,8 +487,9 @@ object Match:
           // * ie no longer in tail position of the label (trying to treat it as such is unsound).
           End("Rest moved to non-abortive branch(es)"))
       else rest match
-        case Scoped(syms, body) => Scoped(syms, Match(scrut, arms, dflt, body))
-        case _ => new Match(scrut, arms, dflt, rest)
+        // case Scoped(syms, body) => Scoped(syms, Match(scrut, arms, dflt, body))
+        case _ =>
+          new Match(scrut, arms, dflt, rest)
 
 object Begin:
   def apply(sub: Block, rest: Block): Block =
@@ -503,6 +504,7 @@ object Begin:
             "overlapping symbols when trying to merge Scoped blocks")
         Scoped(symsSub ++ symsRest, Begin(bodySub, bodyRest))
       case (Scoped(symsSub, bodySub), _) => Scoped(symsSub, Begin(bodySub, rest))
+      case (sub: (Match | Label | TryBlock), rest) => new Begin(sub, rest)
       case (_, Scoped(symsRest, bodyRest)) => Scoped(symsRest, Begin(sub, bodyRest))
       case _ => new Begin(sub, rest)
 
