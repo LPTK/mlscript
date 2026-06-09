@@ -436,26 +436,25 @@ fun render(target, ...args) =
     if postfix.length > 0 do visitedObjects.set(arg, result)
     visitingObjects.delete(arg)
     result
-  set
-    options = if args is [options, ...] then options else emptyOptions
-    indent = if
-      options is (:indent) and indent is
-        true then "  " // The default indentation is of two spaces.
-        // A positive integer will be interpreted as the number of spaces for a
-        // single level of indentation.
-        Int and indent > 0 then " ".repeat(indent)
-        // `null` to indicate no indentation and put all the content on a single line.
-      else null
-    // If the joined string is less than or equal `breakLength`, it stays on one
-    // line; otherwise it becomes multiline and each item is prefixed with `\n`
-    // plus `indent`.
-    breakLength = if
-      indent is null then Number.POSITIVE_INFINITY
-      options is (:breakLength) and breakLength is Int and breakLength > 0 then breakLength
-      else DEFAULT_BREAK_LENGTH
-    // Should we add padding after "["/"{" and before "]"/"}".
-    padding = if options is (padding: true) then " " else ""
-    circularCounter = 1
-    visitingObjects = new WeakMap // Object -> null | Int
-    visitedObjects = new WeakMap // Object -> Str
+  options = if args is [options, ...] then options else emptyOptions
+  indent = if
+    options is (:indent) and indent is
+      true then "  " // The default indentation is of two spaces.
+      // A positive integer will be interpreted as the number of spaces for a
+      // single level of indentation.
+      Int and indent > 0 then " ".repeat(indent)
+      // `null` to indicate no indentation and put all the content on a single line.
+    else null
+  // If the joined string is less than or equal `breakLength`, it stays on one
+  // line; otherwise it becomes multiline and each item is prefixed with `\n`
+  // plus `indent`.
+  breakLength = if
+    indent is null then Number.POSITIVE_INFINITY
+    options is (:breakLength) and breakLength is Int and breakLength > 0 then breakLength
+    else DEFAULT_BREAK_LENGTH
+  // Should we add padding after "["/"{" and before "]"/"}".
+  padding = if options is (padding: true) then " " else ""
+  circularCounter = 1
+  visitingObjects = new WeakMap // Object -> null | Int
+  visitedObjects = new WeakMap // Object -> Str
   renderValue(target, 0, 0, 0)
