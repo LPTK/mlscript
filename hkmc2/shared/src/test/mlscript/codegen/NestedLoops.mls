@@ -21,23 +21,22 @@ c
 //│   set scrut = <⁰(x⁰, 5);
 //│   match scrut
 //│     true =>
-//│       let y;
+//│       let y, tmp;
 //│       set y = 0;
 //│       loop lbl1:
 //│         let scrut1;
 //│         set scrut1 = <⁰(y, 5);
 //│         match scrut1
 //│           true =>
-//│             let tmp, tmp1;
-//│             set tmp = +⁰(c⁰, 1);
-//│             set c⁰ = tmp;
-//│             set tmp1 = +⁰(y, 1);
-//│             set y = tmp1;
+//│             let tmp1, tmp2;
+//│             set tmp1 = +⁰(c⁰, 1);
+//│             set c⁰ = tmp1;
+//│             set tmp2 = +⁰(y, 1);
+//│             set y = tmp2;
 //│             continue lbl1
 //│           else
 //│             end
 //│         end
-//│       let tmp;
 //│       set tmp = +⁰(x⁰, 1);
 //│       set x⁰ = tmp;
 //│       continue lbl

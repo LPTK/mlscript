@@ -45,21 +45,18 @@ if s is
   Some(1) then 0
   None then 1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp;
 //│ match s⁰
 //│   Some⁰ =>
 //│     let arg$Some$0$;
 //│     set arg$Some$0$ = s⁰.value⁰;
 //│     match arg$Some$0$
 //│       1 =>
-//│         set tmp = 0;
-//│         return tmp
+//│         return 0
 //│       else
 //│         throw new globalThis⁰.Error⁰("match error")
 //│     end
 //│   None⁰ =>
-//│     set tmp = 1;
-//│     return tmp
+//│     return 1
 //│   else
 //│     throw new globalThis⁰.Error⁰("match error")
 //│ end

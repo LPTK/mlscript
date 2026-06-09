@@ -54,27 +54,16 @@ staged module Expressions with
 //│ >   tmp = [1]
 //│ >   tmp.(0)
 //│ > fun match1() =
-//│ >   let {scrut, tmp1}
+//│ >   let {scrut}
 //│ >   scrut = 9
 //│ >   if scrut is
-//│ >     Bool then
-//│ >       tmp1 = 1
-//│ >       tmp1
-//│ >     8 then
-//│ >       tmp1 = 2
-//│ >       tmp1
-//│ >     Int then
-//│ >       tmp1 = 3
-//│ >       tmp1
-//│ >     else
-//│ >       tmp1 = 0
-//│ >       tmp1
+//│ >     Bool then 1
+//│ >     8 then 2
+//│ >     Int then 3
+//│ >     else 0
 //│ > fun match2() =
-//│ >   let {tmp2}
 //│ >   if x1 is
-//│ >     [] then
-//│ >       tmp2 = 1
-//│ >       tmp2
+//│ >     [] then 1
 //│ >     [_, _] then
 //│ >       let {element1_, element0_, a}
 //│ >       element0_ = x1.0
@@ -83,20 +72,14 @@ staged module Expressions with
 //│ >         1 then
 //│ >           let {a1}
 //│ >           if element1_ is
-//│ >             2 then
-//│ >               tmp2 = 2
-//│ >               tmp2
+//│ >             2 then 2
 //│ >             else
 //│ >               a1 = element0_
-//│ >               tmp2 = 3
-//│ >               tmp2
+//│ >               3
 //│ >         else
 //│ >           a = element0_
-//│ >           tmp2 = 3
-//│ >           tmp2
-//│ >     else
-//│ >       tmp2 = 0
-//│ >       tmp2
+//│ >           3
+//│ >     else 0
 //│ x = [1, 2, 3]
 
 // * LetSplit lowers to a Label/Break pair, which the staged-module
@@ -200,7 +183,7 @@ staged module OtherBlocks with
 //│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'a'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.192: 	      let a = 1
+//│ ║  l.175: 	      let a = 1
 //│ ╙──       	          ^
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] ReferenceError: a is not defined
@@ -265,7 +248,7 @@ staged module LabelBreak with
 //│ ═══[COMPILATION ERROR] Other Blocks not supported in staged module: class hkmc2.codegen.Label.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.258: 	    let x = 1
+//│ ║  l.241: 	    let x = 1
 //│ ╙──       	        ^
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
@@ -278,7 +261,7 @@ staged module A with
   fun g() = {1 : 2}
 //│ ═══[COMPILATION ERROR] Field assignment is not supported in staged modules: a
 //│ ╔══[COMPILATION ERROR] Other Results not supported in staged module: class hkmc2.codegen.Record
-//│ ║  l.278: 	  fun g() = {1 : 2}
+//│ ║  l.261: 	  fun g() = {1 : 2}
 //│ ╙──       	                 ^
 //│ > fun ctor_() =
 //│ >   x = C(1)

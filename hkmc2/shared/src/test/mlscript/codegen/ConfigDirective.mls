@@ -6,18 +6,20 @@
 fun test_before(n, acc) = if n == 0 then acc else test_before(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define test_before⁰ as fun test_before¹(n, acc) {
-//│   let scrut, tmp;
-//│   set scrut = Predef⁰.equals⁰(n, 0);
-//│   match scrut
-//│     true =>
-//│       set tmp = acc;
-//│       return tmp
-//│     else
-//│       let tmp1, tmp2;
-//│       set tmp1 = -⁰(n, 1);
-//│       set tmp2 = +⁰(n, acc);
-//│       set tmp = test_before¹(tmp1, tmp2);
-//│       return tmp
+//│   loop loopLabel:
+//│     let scrut;
+//│     set scrut = Predef⁰.equals⁰(n, 0);
+//│     match scrut
+//│       true =>
+//│         return acc
+//│       else
+//│         let tmp, tmp1;
+//│         set tmp = -⁰(n, 1);
+//│         set tmp1 = +⁰(n, acc);
+//│         set n = tmp;
+//│         set acc = tmp1;
+//│         continue loopLabel
+//│     end
 //│   end
 //│ };
 //│ end
@@ -30,18 +32,16 @@ fun test_before(n, acc) = if n == 0 then acc else test_before(n - 1, n + acc)
 fun test_after(n, acc) = if n == 0 then acc else test_after(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define test_after⁰ as fun test_after¹(n, acc) {
-//│   let scrut, tmp;
+//│   let scrut;
 //│   set scrut = Predef⁰.equals⁰(n, 0);
 //│   match scrut
 //│     true =>
-//│       set tmp = acc;
-//│       return tmp
+//│       return acc
 //│     else
-//│       let tmp1, tmp2;
-//│       set tmp1 = -⁰(n, 1);
-//│       set tmp2 = +⁰(n, acc);
-//│       set tmp = test_after¹(tmp1, tmp2);
-//│       return tmp
+//│       let tmp, tmp1;
+//│       set tmp = -⁰(n, 1);
+//│       set tmp1 = +⁰(n, acc);
+//│       return test_after¹(tmp, tmp1)
 //│   end
 //│ };
 //│ end
@@ -54,18 +54,20 @@ fun test_after(n, acc) = if n == 0 then acc else test_after(n - 1, n + acc)
 fun test_reenabled(n, acc) = if n == 0 then acc else test_reenabled(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define test_reenabled⁰ as fun test_reenabled¹(n, acc) {
-//│   let scrut, tmp;
-//│   set scrut = Predef⁰.equals⁰(n, 0);
-//│   match scrut
-//│     true =>
-//│       set tmp = acc;
-//│       return tmp
-//│     else
-//│       let tmp1, tmp2;
-//│       set tmp1 = -⁰(n, 1);
-//│       set tmp2 = +⁰(n, acc);
-//│       set tmp = test_reenabled¹(tmp1, tmp2);
-//│       return tmp
+//│   loop loopLabel:
+//│     let scrut;
+//│     set scrut = Predef⁰.equals⁰(n, 0);
+//│     match scrut
+//│       true =>
+//│         return acc
+//│       else
+//│         let tmp, tmp1;
+//│         set tmp = -⁰(n, 1);
+//│         set tmp1 = +⁰(n, acc);
+//│         set n = tmp;
+//│         set acc = tmp1;
+//│         continue loopLabel
+//│     end
 //│   end
 //│ };
 //│ end
@@ -78,18 +80,16 @@ fun foo(n, acc) = if n == 0 then acc else foo(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ @config(...)
 //│ define foo⁰ as fun foo¹(n, acc) {
-//│   let scrut, tmp;
+//│   let scrut;
 //│   set scrut = Predef⁰.equals⁰(n, 0);
 //│   match scrut
 //│     true =>
-//│       set tmp = acc;
-//│       return tmp
+//│       return acc
 //│     else
-//│       let tmp1, tmp2;
-//│       set tmp1 = -⁰(n, 1);
-//│       set tmp2 = +⁰(n, acc);
-//│       set tmp = foo¹(tmp1, tmp2);
-//│       return tmp
+//│       let tmp, tmp1;
+//│       set tmp = -⁰(n, 1);
+//│       set tmp1 = +⁰(n, acc);
+//│       return foo¹(tmp, tmp1)
 //│   end
 //│ };
 //│ end
@@ -100,18 +100,20 @@ fun foo(n, acc) = if n == 0 then acc else foo(n - 1, n + acc)
 fun bar(n, acc) = if n == 0 then acc else bar(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define bar⁰ as fun bar¹(n, acc) {
-//│   let scrut, tmp;
-//│   set scrut = Predef⁰.equals⁰(n, 0);
-//│   match scrut
-//│     true =>
-//│       set tmp = acc;
-//│       return tmp
-//│     else
-//│       let tmp1, tmp2;
-//│       set tmp1 = -⁰(n, 1);
-//│       set tmp2 = +⁰(n, acc);
-//│       set tmp = bar¹(tmp1, tmp2);
-//│       return tmp
+//│   loop loopLabel:
+//│     let scrut;
+//│     set scrut = Predef⁰.equals⁰(n, 0);
+//│     match scrut
+//│       true =>
+//│         return acc
+//│       else
+//│         let tmp, tmp1;
+//│         set tmp = -⁰(n, 1);
+//│         set tmp1 = +⁰(n, acc);
+//│         set n = tmp;
+//│         set acc = tmp1;
+//│         continue loopLabel
+//│     end
 //│   end
 //│ };
 //│ end
@@ -197,12 +199,12 @@ fun fst(p) = if p is Pair(x, y) then x
 fun applyTwice(f, x) = f(x) + f(x)
 applyTwice(fst, Pair(1, 2))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > cap_ub_(term:fst,0)_for_fst@36
-//│ deforest > f_for_applyTwice@25
-//│ deforest > f_for_applyTwice@58
-//│ deforest > fst_for_fst@33
+//│ deforest > cap_ub_(term:fst,0)_for_fst@35
+//│ deforest > f_for_applyTwice@24
+//│ deforest > f_for_applyTwice@55
+//│ deforest > fst_for_fst@32
 //│ deforest > tmp@1
-//│ deforest > x_for_applyTwice@24
-//│ deforest > x_for_applyTwice@57
+//│ deforest > x_for_applyTwice@23
+//│ deforest > x_for_applyTwice@54
 //│ deforest > <<< non-affine syms <<<
 //│ = 2

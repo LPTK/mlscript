@@ -30,7 +30,7 @@ sum(enum(5), 0)
 //│ deforest > 	match: ls⁰
 //│ deforest > <<< fusing <<<
 //│ eta-expansion > >>> eta-expansion targets shapes >>>
-//│ eta-expansion > enum_13$enum: [1, 3]
+//│ eta-expansion > enum_13$enum: [1, 2]
 //│ eta-expansion > <<< eta-expansion targets shapes <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let enum_13$enum$worker;
@@ -62,18 +62,22 @@ sum(enum(5), 0)
 //│   end
 //│ };
 //│ define sum⁰ as fun sum¹(ls, acc) {
-//│   match ls
-//│     Nil⁰ =>
-//│       return acc
-//│     Cons¹ =>
-//│       let arg$Cons$0$, arg$Cons$1$, tmp;
-//│       set arg$Cons$0$ = ls.h⁰;
-//│       set arg$Cons$1$ = ls.t⁰;
-//│       set tmp = +⁰(arg$Cons$0$, acc);
-//│       return sum¹(arg$Cons$1$, tmp)
-//│     else
-//│       throw new globalThis⁰.Error⁰("match error")
-//│   end
+//│   loop loopLabel:
+//│     match ls
+//│       Nil⁰ =>
+//│         return acc
+//│       Cons¹ =>
+//│         let arg$Cons$0$, arg$Cons$1$, tmp;
+//│         set arg$Cons$0$ = ls.h⁰;
+//│         set arg$Cons$1$ = ls.t⁰;
+//│         set tmp = +⁰(arg$Cons$0$, acc);
+//│         set ls = arg$Cons$1$;
+//│         set acc = tmp;
+//│         continue loopLabel
+//│       else
+//│         throw new globalThis⁰.Error⁰("match error")
+//│     end
+//│   unreachable /* Rest of abortive labelled block */
 //│ };
 //│ return enum_13$enum$worker⁰(5, 0)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -101,8 +105,8 @@ len(flatten(id((1 :: 2 :: Nil) :: (3 :: Nil) :: Nil)))
 //│ deforest > 	fields: ls¹.t⁰
 //│ deforest > <<< fusing <<<
 //│ eta-expansion > >>> eta-expansion targets shapes >>>
-//│ eta-expansion > flatten_31_append_19$append: [2, 2]
-//│ eta-expansion > flatten_31$flatten: [1, 2]
+//│ eta-expansion > flatten_31_append_19$append: [2, 1]
+//│ eta-expansion > flatten_31$flatten: [1, 1]
 //│ eta-expansion > <<< eta-expansion targets shapes <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, flatten_31$flatten, flatten_31_append_19$append$worker, flatten_31$flatten$worker;

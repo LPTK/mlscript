@@ -36,16 +36,13 @@ let f = case
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let lambda;
 //│ define lambda as fun lambda⁰(caseScrut) {
-//│   let tmp;
 //│   match caseScrut
 //│     A⁰ =>
 //│       match caseScrut
 //│         B⁰ =>
-//│           set tmp = "A & B";
-//│           return tmp
+//│           return "A & B"
 //│         else
-//│           set tmp = "A";
-//│           return tmp
+//│           return "A"
 //│       end
 //│     else
 //│       throw new globalThis⁰.Error⁰("match error")

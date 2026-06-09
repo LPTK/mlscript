@@ -12,20 +12,21 @@ fun go(x) = if x is
   n then go([])
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define go⁰ as fun go¹(x) {
-//│   let n, tmp;
-//│   match x
-//│     Cons⁰ =>
-//│       let arg$Cons$0$, arg$Cons$1$;
-//│       set arg$Cons$0$ = x.head⁰;
-//│       set arg$Cons$1$ = x.tail⁰;
-//│       set tmp = "Z";
-//│       return tmp
-//│     else
-//│       let tmp1;
-//│       set n = x;
-//│       set tmp1 = [];
-//│       set tmp = go¹(tmp1);
-//│       return tmp
+//│   loop loopLabel:
+//│     let n;
+//│     match x
+//│       Cons⁰ =>
+//│         let arg$Cons$0$, arg$Cons$1$;
+//│         set arg$Cons$0$ = x.head⁰;
+//│         set arg$Cons$1$ = x.tail⁰;
+//│         return "Z"
+//│       else
+//│         let tmp;
+//│         set n = x;
+//│         set tmp = [];
+//│         set x = tmp;
+//│         continue loopLabel
+//│     end
 //│   end
 //│ };
 //│ end
@@ -38,29 +39,30 @@ fun go(x) = if x is
   n then go([])
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define go² as fun go³(x) {
-//│   let tmp, n;
-//│   match x
-//│     Cons⁰ =>
-//│       let n1, arg$Cons$0$, arg$Cons$1$;
-//│       set arg$Cons$0$ = x.head⁰;
-//│       set arg$Cons$1$ = x.tail⁰;
-//│       match arg$Cons$1$
-//│         Nil⁰ =>
-//│           set tmp = "Z";
-//│           return tmp
-//│         else
-//│           let tmp1;
-//│           set n1 = x;
-//│           set tmp1 = [];
-//│           set tmp = go³(tmp1);
-//│           return tmp
-//│       end
-//│     else
-//│       let tmp1;
-//│       set n = x;
-//│       set tmp1 = [];
-//│       set tmp = go³(tmp1);
-//│       return tmp
+//│   loop loopLabel:
+//│     let n;
+//│     match x
+//│       Cons⁰ =>
+//│         let n1, arg$Cons$0$, arg$Cons$1$;
+//│         set arg$Cons$0$ = x.head⁰;
+//│         set arg$Cons$1$ = x.tail⁰;
+//│         match arg$Cons$1$
+//│           Nil⁰ =>
+//│             return "Z"
+//│           else
+//│             let tmp;
+//│             set n1 = x;
+//│             set tmp = [];
+//│             set x = tmp;
+//│             continue loopLabel
+//│         end
+//│       else
+//│         let tmp;
+//│         set n = x;
+//│         set tmp = [];
+//│         set x = tmp;
+//│         continue loopLabel
+//│     end
 //│   end
 //│ };
 //│ end
@@ -75,8 +77,8 @@ fun go(x) = if x is
   n then go([])
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define go⁴ as fun go⁵(x) {
-//│   let n, tmp, tmp1;
-//│   block σ$x:
+//│   loop loopLabel:
+//│     let n;
 //│     block σ:
 //│       match x
 //│         Cons⁰ =>
@@ -85,21 +87,19 @@ fun go(x) = if x is
 //│           set arg$Cons$1$ = x.tail⁰;
 //│           match arg$Cons$1$
 //│             Nil⁰ =>
-//│               set tmp = "Z";
-//│               break σ$x
+//│               return "Z"
 //│             else
 //│               break σ
 //│           end
 //│         else
 //│           break σ
 //│       end
-//│     let tmp2;
+//│     let tmp;
 //│     set n = x;
-//│     set tmp2 = [];
-//│     set tmp = go⁵(tmp2);
-//│     break σ$x
-//│   set tmp1 = tmp;
-//│   return tmp1
+//│     set tmp = [];
+//│     set x = tmp;
+//│     continue loopLabel
+//│   end
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

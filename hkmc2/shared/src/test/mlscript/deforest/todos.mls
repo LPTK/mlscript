@@ -55,67 +55,65 @@ test(p) + f(p) + test(AA(AA(AA(10)))) + test(B)
 //│ let tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, test_28$test, test_28$x_dflt, test_28$x_rest, test_25$test, test_25$x_AA, test_25$x_rest, test_25$arg$AA$0$_AA, test_25$arg$AA$0$_rest, test_25$arg$AA$0$_AA1, test_25$arg$AA$0$_rest1, AA_x, AA_x1, AA_x2, deforest$lam;
 //│ @private
 //│ define test_28$test as fun test_28$test⁰(x) {
-//│   let t, tmp11;
-//│   return x(tmp11, t, tmp11)
+//│   let t, tmp11, tmp12, tmp13, tmp14;
+//│   return x(tmp11, t, tmp11, tmp12, tmp13, tmp14)
 //│ };
 //│ @private
 //│ define test_25$test as fun test_25$test⁰(x) {
-//│   let t, tmp11;
-//│   return x(t, tmp11, t, tmp11)
+//│   let t, tmp11, tmp12, tmp13, tmp14;
+//│   return x(t, tmp11, tmp12, tmp13, tmp14, t, tmp11, tmp12, tmp13, tmp14)
 //│ };
 //│ @affine(1) @private
-//│ define test_28$x_dflt as fun test_28$x_dflt⁰()(fv_tmp, fv_t, fv_tmp1) {
+//│ define test_28$x_dflt as fun test_28$x_dflt⁰()(fv_tmp, fv_t, fv_tmp1, fv_tmp2, fv_tmp3, fv_tmp4) {
 //│   set fv_tmp1 = 4;
-//│   return test_28$x_rest⁰(fv_t, fv_tmp1)
+//│   return test_28$x_rest⁰(fv_t, fv_tmp1, fv_tmp2, fv_tmp3, fv_tmp4)
 //│ };
 //│ @affine(1) @private
-//│ define test_25$x_AA as fun test_25$x_AA⁰(AA_x3)(fv_t, fv_tmp, fv_t1, fv_tmp1) {
+//│ define test_25$x_AA as fun test_25$x_AA⁰(AA_x3)(fv_t, fv_tmp, fv_tmp1, fv_tmp2, fv_tmp3, fv_t1, fv_tmp4, fv_tmp5, fv_tmp6, fv_tmp7) {
 //│   let arg$AA$0$;
 //│   set arg$AA$0$ = AA_x3;
-//│   return arg$AA$0$(fv_t1, fv_tmp1, fv_t1, fv_tmp1)
+//│   return arg$AA$0$(fv_t1, fv_tmp4, fv_tmp5, fv_tmp6, fv_tmp7, fv_t1, fv_tmp4, fv_tmp5, fv_tmp6, fv_tmp7)
 //│ };
 //│ @affine(1) @private
-//│ define test_25$arg$AA$0$_AA as fun test_25$arg$AA$0$_AA⁰(AA_x3)(fv_t, fv_tmp, fv_t1, fv_tmp1) {
+//│ define test_25$arg$AA$0$_AA as fun test_25$arg$AA$0$_AA⁰(AA_x3)(fv_t, fv_tmp, fv_tmp1, fv_tmp2, fv_tmp3, fv_t1, fv_tmp4, fv_tmp5, fv_tmp6, fv_tmp7) {
 //│   let arg$AA$0$;
 //│   set arg$AA$0$ = AA_x3;
-//│   return arg$AA$0$(fv_tmp1, fv_t1, fv_tmp1)
+//│   return arg$AA$0$(fv_tmp4, fv_t1, fv_tmp4, fv_tmp5, fv_tmp6, fv_tmp7)
 //│ };
 //│ @affine(1) @private
-//│ define test_25$arg$AA$0$_AA1 as fun test_25$arg$AA$0$_AA¹(AA_x3)(fv_tmp, fv_t, fv_tmp1) {
+//│ define test_25$arg$AA$0$_AA1 as fun test_25$arg$AA$0$_AA¹(AA_x3)(fv_tmp, fv_t, fv_tmp1, fv_tmp2, fv_tmp3, fv_tmp4) {
 //│   let a, arg$AA$0$;
 //│   set arg$AA$0$ = AA_x3;
 //│   set a = arg$AA$0$;
 //│   set fv_tmp1 = a;
-//│   return test_25$arg$AA$0$_rest⁰(fv_t, fv_tmp1)
+//│   return test_25$arg$AA$0$_rest⁰(fv_t, fv_tmp1, fv_tmp2, fv_tmp3, fv_tmp4)
 //│ };
 //│ @private
-//│ define test_28$x_rest as fun test_28$x_rest⁰(fv_t, fv_tmp) {
-//│   let tmp11, tmp12, tmp13;
+//│ define test_28$x_rest as fun test_28$x_rest⁰(fv_t, fv_tmp, fv_tmp1, fv_tmp2, fv_tmp3) {
 //│   set fv_t = fv_tmp;
-//│   set tmp11 = +⁰(fv_t, 20);
-//│   set tmp12 = -⁰(tmp11, 3);
-//│   set tmp13 = +⁰(tmp12, 2);
-//│   return -⁰(tmp13, 1)
+//│   set fv_tmp1 = +⁰(fv_t, 20);
+//│   set fv_tmp2 = -⁰(fv_tmp1, 3);
+//│   set fv_tmp3 = +⁰(fv_tmp2, 2);
+//│   return -⁰(fv_tmp3, 1)
 //│ };
 //│ @private
-//│ define test_25$x_rest as fun test_25$x_rest⁰(fv_t, fv_tmp) {
-//│   let tmp11, tmp12, tmp13;
+//│ define test_25$x_rest as fun test_25$x_rest⁰(fv_t, fv_tmp, fv_tmp1, fv_tmp2, fv_tmp3) {
 //│   set fv_t = fv_tmp;
-//│   set tmp11 = +⁰(fv_t, 20);
-//│   set tmp12 = -⁰(tmp11, 3);
-//│   set tmp13 = +⁰(tmp12, 2);
-//│   return -⁰(tmp13, 1)
+//│   set fv_tmp1 = +⁰(fv_t, 20);
+//│   set fv_tmp2 = -⁰(fv_tmp1, 3);
+//│   set fv_tmp3 = +⁰(fv_tmp2, 2);
+//│   return -⁰(fv_tmp3, 1)
 //│ };
 //│ @private
-//│ define test_25$arg$AA$0$_rest as fun test_25$arg$AA$0$_rest¹(fv_t, fv_tmp) {
-//│   return test_25$x_rest⁰(fv_t, fv_tmp)
+//│ define test_25$arg$AA$0$_rest as fun test_25$arg$AA$0$_rest¹(fv_t, fv_tmp, fv_tmp1, fv_tmp2, fv_tmp3) {
+//│   return test_25$x_rest⁰(fv_t, fv_tmp, fv_tmp1, fv_tmp2, fv_tmp3)
 //│ };
 //│ @private
-//│ define test_25$arg$AA$0$_rest1 as fun test_25$arg$AA$0$_rest⁰(fv_t, fv_tmp) {
-//│   return test_25$arg$AA$0$_rest¹(fv_t, fv_tmp)
+//│ define test_25$arg$AA$0$_rest1 as fun test_25$arg$AA$0$_rest⁰(fv_t, fv_tmp, fv_tmp1, fv_tmp2, fv_tmp3) {
+//│   return test_25$arg$AA$0$_rest¹(fv_t, fv_tmp, fv_tmp1, fv_tmp2, fv_tmp3)
 //│ };
 //│ define test⁰ as fun test¹(x) {
-//│   let t, tmp11;
+//│   let t, tmp11, tmp12, tmp13, tmp14;
 //│   match x
 //│     AA¹ =>
 //│       let arg$AA$0$;
@@ -142,7 +140,6 @@ test(p) + f(p) + test(AA(AA(AA(10)))) + test(B)
 //│     else
 //│       set tmp11 = 4;
 //│       end
-//│   let tmp12, tmp13, tmp14;
 //│   set t = tmp11;
 //│   set tmp12 = +⁰(t, 20);
 //│   set tmp13 = -⁰(tmp12, 3);
@@ -150,15 +147,13 @@ test(p) + f(p) + test(AA(AA(AA(10)))) + test(B)
 //│   return -⁰(tmp14, 1)
 //│ };
 //│ define f⁰ as fun f¹(a) {
-//│   let tmp11;
 //│   match a
 //│     AA¹ =>
 //│       let arg$AA$0$;
 //│       set arg$AA$0$ = a.x¹;
 //│       match arg$AA$0$
 //│         AA¹ =>
-//│           set tmp11 = 0;
-//│           return tmp11
+//│           return 0
 //│         else
 //│           throw new globalThis⁰.Error⁰("match error")
 //│       end

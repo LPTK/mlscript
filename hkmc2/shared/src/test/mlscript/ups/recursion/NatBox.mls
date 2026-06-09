@@ -23,66 +23,59 @@ int(nat(42))
 :expect true
 nat(0) is @compile NatBox
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let scrut, matcher__NatBox$, matchSuccess, lambda, tmp;
+//│ let scrut, matcher__NatBox$, matchSuccess, lambda;
 //│ set scrut = nat⁰(0);
 //│ define lambda as fun lambda⁰(input) {
-//│   let tmp1;
 //│   match input
 //│     null =>
-//│       let p_0$, tmp2;
-//│       set tmp2 = true;
-//│       set p_0$ = tmp2;
-//│       set tmp1 = p_0$;
-//│       return tmp1
+//│       let p_0$, tmp;
+//│       set tmp = true;
+//│       set p_0$ = tmp;
+//│       return p_0$
 //│     Box⁰ =>
-//│       let value, tmp2;
+//│       let value, p_0$, result0$, tmp, tmp1;
 //│       match input
 //│         Object⁰ =>
 //│           let value1;
 //│           match input
 //│             { value } =>
-//│               let tmp3;
+//│               let tmp2;
 //│               set value1 = input.value﹖;
-//│               set tmp3 = matcher__NatBox$(value1);
-//│               set tmp2 = { "input": value1, "result": tmp3 };
+//│               set tmp2 = matcher__NatBox$(value1);
+//│               set tmp = { "input": value1, "result": tmp2 };
 //│               end
 //│             else
-//│               set tmp2 = { "input": null, "result": false };
+//│               set tmp = { "input": null, "result": false };
 //│               end
 //│           end
 //│         else
-//│           set tmp2 = { "input": null, "result": false };
+//│           set tmp = { "input": null, "result": false };
 //│           end
-//│       let p_0$, result0$, tmp3;
-//│       set value = tmp2;
+//│       set value = tmp;
 //│       set result0$ = value.result﹖;
 //│       match result0$
 //│         true =>
-//│           set tmp3 = true;
+//│           set tmp1 = true;
 //│           end
 //│         else
-//│           set tmp3 = false;
+//│           set tmp1 = false;
 //│           end
-//│       set p_0$ = tmp3;
-//│       set tmp1 = p_0$;
-//│       return tmp1
+//│       set p_0$ = tmp1;
+//│       return p_0$
 //│     else
-//│       let p_0$, tmp2;
-//│       set tmp2 = false;
-//│       set p_0$ = tmp2;
-//│       set tmp1 = p_0$;
-//│       return tmp1
+//│       let p_0$, tmp;
+//│       set tmp = false;
+//│       set p_0$ = tmp;
+//│       return p_0$
 //│   end
 //│ };
 //│ set matcher__NatBox$ = lambda⁰;
 //│ set matchSuccess = matcher__NatBox$(scrut);
 //│ match matchSuccess
 //│   true =>
-//│     set tmp = true;
-//│     return tmp
+//│     return true
 //│   else
-//│     set tmp = false;
-//│     return tmp
+//│     return false
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true

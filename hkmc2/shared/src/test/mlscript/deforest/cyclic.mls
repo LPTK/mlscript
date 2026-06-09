@@ -87,11 +87,10 @@ modSome(Some(17), 3)
 //│ let tmp, modSome_12$modSome, modSome_12$x_Some, modSome_12$x_rest, Some_x;
 //│ @private
 //│ define modSome_12$modSome as fun modSome_12$modSome⁰(x, m) {
-//│   let tmp1;
-//│   return x(modSome⁰, m, tmp1)
+//│   return x(modSome⁰, m)
 //│ };
 //│ @affine(1) @private
-//│ define modSome_12$x_Some as fun modSome_12$x_Some⁰(Some_x1)(fv_modSome, fv_m, fv_tmp) {
+//│ define modSome_12$x_Some as fun modSome_12$x_Some⁰(Some_x1)(fv_modSome, fv_m) {
 //│   let n, scrut, arg$Some$0$;
 //│   set arg$Some$0$ = Some_x1;
 //│   set n = arg$Some$0$;
@@ -102,11 +101,9 @@ modSome(Some(17), 3)
 //│       set tmp1 = -⁰(n, fv_m);
 //│       set Some_x2 = tmp1;
 //│       set tmp2 = modSome_12$x_Some⁰(Some_x2);
-//│       set fv_tmp = modSome_12$modSome⁰(tmp2, fv_m);
-//│       return fv_tmp
+//│       return modSome_12$modSome⁰(tmp2, fv_m)
 //│     else
-//│       set fv_tmp = Some⁰(n);
-//│       return fv_tmp
+//│       return Some⁰(n)
 //│   end
 //│ };
 //│ @private
@@ -114,29 +111,28 @@ modSome(Some(17), 3)
 //│   return null
 //│ };
 //│ define modSome¹ as fun modSome⁰(x, m) {
-//│   let tmp1;
-//│   match x
-//│     Some¹ =>
-//│       let n, scrut, arg$Some$0$;
-//│       set arg$Some$0$ = x.x¹;
-//│       set n = arg$Some$0$;
-//│       set scrut = >=⁰(n, m);
-//│       match scrut
-//│         true =>
-//│           let tmp2, tmp3;
-//│           set tmp2 = -⁰(n, m);
-//│           set tmp3 = Some⁰(tmp2);
-//│           set tmp1 = modSome⁰(tmp3, m);
-//│           return tmp1
-//│         else
-//│           set tmp1 = Some⁰(n);
-//│           return tmp1
-//│       end
-//│     None⁰ =>
-//│       set tmp1 = None⁰;
-//│       return tmp1
-//│     else
-//│       throw new globalThis⁰.Error⁰("match error")
+//│   loop loopLabel:
+//│     match x
+//│       Some¹ =>
+//│         let n, scrut, arg$Some$0$;
+//│         set arg$Some$0$ = x.x¹;
+//│         set n = arg$Some$0$;
+//│         set scrut = >=⁰(n, m);
+//│         match scrut
+//│           true =>
+//│             let tmp1, tmp2;
+//│             set tmp1 = -⁰(n, m);
+//│             set tmp2 = Some⁰(tmp1);
+//│             set x = tmp2;
+//│             continue loopLabel
+//│           else
+//│             return Some⁰(n)
+//│         end
+//│       None⁰ =>
+//│         return None⁰
+//│       else
+//│         throw new globalThis⁰.Error⁰("match error")
+//│     end
 //│   end
 //│ };
 //│ set Some_x = 17;

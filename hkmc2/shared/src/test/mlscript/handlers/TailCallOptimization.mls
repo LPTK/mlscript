@@ -36,41 +36,20 @@ hi(0)
 //│ let hi, tmp1, $_stack$_safe$_body$_;
 //│ runtime.resetEffects();
 //│ hi = function hi(n) {
-//│   let curDepth;
-//│   runtime.stackDepth = runtime.stackDepth + 1;
-//│   curDepth = runtime.stackDepth;
-//│   runtime.checkDepth();
-//│   if (runtime.curEffect === null) {
-//│     let scrut, tmp2, pc;
-//│     if (runtime.resumePc === -1) {
-//│       pc = 0;
-//│     } else {
-//│       pc = runtime.resumePc;
-//│       runtime.resumePc = -1;
+//│   loopLabel: while (true) {
+//│     runtime.stackDepth = runtime.stackDepth + 1;
+//│     runtime.checkDepth();
+//│     if (runtime.curEffect === null) {
+//│       let scrut, tmp2;
+//│       scrut = n === 0;
+//│       if (scrut === true) {
+//│         return 0
+//│       }
+//│       tmp2 = n - 1;
+//│       n = tmp2;
+//│       continue loopLabel;
 //│     }
-//│     switch (pc) {
-//│       case 0:
-//│         scrut = n === 0;
-//│         if (scrut === true) {
-//│           return 0
-//│         }
-//│         {
-//│           let res;
-//│           tmp2 = n - 1;
-//│           res = hi(tmp2);
-//│           runtime.stackDepth = curDepth;
-//│           runtime.resumeValue = res;
-//│           if (runtime.curEffect === null) {
-//│             pc = 1;
-//│           } else {
-//│             return runtime.unwind(hi, 1, "TailCallOptimization.mls:33:8", null, null, 1, 1, n, 0)
-//│           }
-//│         }
-//│       case 1:
-//│         return runtime.resumeValue;
-//│     }
-//│   } else {
-//│     return runtime.unwind(hi, -1, "TailCallOptimization.mls:31:1", null, null, 1, 1, n, 0)
+//│     return runtime.unwind(hi, -1, "TailCallOptimization.mls:31:1", null, null, 1, 1, n, 0);
 //│   }
 //│ };
 //│ $_stack$_safe$_body$_ = (undefined, function () {

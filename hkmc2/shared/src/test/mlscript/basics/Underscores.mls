@@ -109,7 +109,7 @@ _ is Int
 let f = _ is Int
 [f(1), f("1")]
 //│ = [true, false]
-//│ f = fun
+//│ f = fun f
 
 [1, "a", 3, true] filtering(_ is Int) toArray()
 //│ = [1, 3]

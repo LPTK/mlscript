@@ -380,13 +380,12 @@ f(0)
 //│   return x
 //│ };
 //│ define f⁷ as fun f⁸(x) {
-//│   let scrut;
+//│   let scrut, tmp;
 //│   set scrut = true;
 //│   match scrut
 //│     true =>
 //│       return g⁵(x)
 //│     else
-//│       let tmp;
 //│       set tmp = +⁰(x, 1);
 //│       set x = tmp;
 //│       return x
@@ -422,19 +421,17 @@ fun f(x) =
 //│   return y
 //│ };
 //│ define f⁹ as fun f¹⁰(x) {
-//│   let y, scrut, tmp, g$here;
+//│   let y, scrut, g$here;
 //│   set scrut = <⁰(x, 0);
 //│   match scrut
 //│     true =>
 //│       set y = 1;
 //│       set g$here = g$¹(y);
-//│       set tmp = [g$here, g$here];
-//│       return tmp
+//│       return [g$here, g$here]
 //│     else
 //│       set y = 2;
 //│       set g$here = g$¹(y);
-//│       set tmp = [g$here, g$here];
-//│       return tmp
+//│       return [g$here, g$here]
 //│   end
 //│ };
 //│ end

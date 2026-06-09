@@ -76,31 +76,29 @@ f(p())
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp, p_8$p, f_10$f, f_10$x_X, f_10$x_rest, f_10$arg$X$0$_Y, f_10$arg$X$0$_rest;
 //│ @private
-//│ define p_8$p as fun p_8$p⁰()(eta$0$0) {
+//│ define p_8$p as fun p_8$p⁰()() {
 //│   let tmp1, Y_b, X_a;
 //│   set Y_b = O⁰;
 //│   set tmp1 = f_10$arg$X$0$_Y⁰(Y_b);
 //│   set X_a = tmp1;
-//│   return f_10$x_X⁰(X_a)(eta$0$0)
+//│   return f_10$x_X⁰(X_a)()
 //│ };
 //│ @private
 //│ define f_10$f as fun f_10$f⁰(x) {
-//│   let tmp1;
-//│   return x(tmp1)
+//│   return x()
 //│ };
 //│ @affine(1) @private
-//│ define f_10$x_X as fun f_10$x_X⁰(X_a)(fv_tmp) {
+//│ define f_10$x_X as fun f_10$x_X⁰(X_a)() {
 //│   let arg$X$0$;
 //│   set arg$X$0$ = X_a;
-//│   return arg$X$0$(fv_tmp)
+//│   return arg$X$0$()
 //│ };
 //│ @affine(1) @private
-//│ define f_10$arg$X$0$_Y as fun f_10$arg$X$0$_Y⁰(Y_b)(fv_tmp) {
+//│ define f_10$arg$X$0$_Y as fun f_10$arg$X$0$_Y⁰(Y_b)() {
 //│   let y, arg$Y$0$;
 //│   set arg$Y$0$ = Y_b;
 //│   set y = arg$Y$0$;
-//│   set fv_tmp = y;
-//│   return fv_tmp
+//│   return y
 //│ };
 //│ @private
 //│ define f_10$x_rest as fun f_10$x_rest⁰() {
@@ -116,7 +114,6 @@ f(p())
 //│   return X⁰(tmp1)
 //│ };
 //│ define f⁰ as fun f¹(x) {
-//│   let tmp1;
 //│   match x
 //│     X¹ =>
 //│       let arg$X$0$;
@@ -126,8 +123,7 @@ f(p())
 //│           let y, arg$Y$0$;
 //│           set arg$Y$0$ = arg$X$0$.b⁰;
 //│           set y = arg$Y$0$;
-//│           set tmp1 = y;
-//│           return tmp1
+//│           return y
 //│         else
 //│           throw new globalThis⁰.Error⁰("match error")
 //│       end
@@ -224,7 +220,7 @@ if [1, 2] is
 //│ deforest > 	fields: runtime⁰.Tuple⁰.get⁰(scrut⁰, 1)
 //│ deforest > <<< fusing <<<
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let scrut, tmp, $scrut_tup2, $scrut_rest, tup2_0, tup2_1;
+//│ let scrut, $scrut_tup2, $scrut_rest, tup2_0, tup2_1;
 //│ @affine(1) @private
 //│ define $scrut_tup2 as fun $scrut_tup2⁰(tup2_01, tup2_11)() {
 //│   let a, b, element1$, element0$;
@@ -232,8 +228,7 @@ if [1, 2] is
 //│   set element1$ = tup2_11;
 //│   set b = element1$;
 //│   set a = element0$;
-//│   set tmp = +⁰(a, b);
-//│   return tmp
+//│   return +⁰(a, b)
 //│ };
 //│ @private
 //│ define $scrut_rest as fun $scrut_rest⁰() {

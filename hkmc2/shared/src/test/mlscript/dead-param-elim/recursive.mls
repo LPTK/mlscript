@@ -41,18 +41,20 @@ countdown(5)
 //│ dead-param-elim > >>> dead-param-elim results >>>
 //│ dead-param-elim > <<< dead-param-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ @private
 //│ define countdown² as fun countdown³(n) {
-//│   let scrut;
-//│   set scrut = Predef⁰.equals⁰(n, 0);
-//│   match scrut
-//│     true =>
-//│       return 0
-//│     else
-//│       let tmp;
-//│       set tmp = -⁰(n, 1);
-//│       return countdown³(tmp)
-//│   end
+//│   loop loopLabel:
+//│     let scrut;
+//│     set scrut = Predef⁰.equals⁰(n, 0);
+//│     match scrut
+//│       true =>
+//│         return 0
+//│       else
+//│         let tmp;
+//│         set tmp = -⁰(n, 1);
+//│         set n = tmp;
+//│         continue loopLabel
+//│     end
+//│   unreachable /* Rest of abortive labelled block */
 //│ };
 //│ return countdown³(5)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
