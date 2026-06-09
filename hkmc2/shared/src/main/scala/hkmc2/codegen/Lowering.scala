@@ -70,7 +70,7 @@ class LoweringCtx(
       case bms: BlockMemberSymbol =>
         definedSymsDuringLowering.add(bms)
         currentScopedBlkNeedsRefreshing = true
-        
+  
   def registerTempSymbol(trm: Option[Term], dbgNme: Str = "tmp")(using State) =
     val tmp = new TempSymbol(trm, dbgNme)
     definedSymsDuringLowering.add(tmp)
@@ -228,24 +228,39 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   
   @tailrec
-  final def splitBlock(stats: Ls[Statement], imps: Ls[Import], funs: Ls[TermDefinition], rest: Ls[Statement])
-      : (Ls[Import], Ls[TermDefinition], Ls[Statement])
+  // final def splitBlock(stats: Ls[Statement], imps: Ls[Import], funs: Ls[TermDefinition], letValSyms: Ls[ScopedSymbol], rest: Ls[Statement])
+  final def splitBlock(stats: Ls[Statement], imps: Ls[Import], funs: Ls[TermDefinition], letValClsSyms: Ls[BlockMemberSymbol | LetDecl], rest: Ls[Statement])
+      : (Ls[Import], Ls[TermDefinition], Ls[BlockMemberSymbol | LetDecl], Ls[Statement])
       =
     stats match
     case (imp: Import) :: stats =>
-      splitBlock(stats, imp :: imps, funs, rest)
+      splitBlock(stats, imp :: imps, funs, letValClsSyms, rest)
     case (fun: TermDefinition) :: stats if fun.k is syntax.Fun =>
-      splitBlock(stats, imps, fun :: funs, rest)
+      splitBlock(stats, imps, fun :: funs, letValClsSyms, rest)
+    case (vl: TermDefinition) :: stats if vl.k.isInstanceOf[syntax.Val] =>
+      splitBlock(stats, imps, funs, vl.sym :: letValClsSyms, vl :: rest)
+    case (cd: ClassDef) :: stats =>
+      splitBlock(stats, imps, funs, cd.bsym :: letValClsSyms, cd :: rest)
+    case (ld: LetDecl) :: stats =>
+      splitBlock(stats, imps, funs, ld :: letValClsSyms, rest)
     case stat :: stats =>
-      splitBlock(stats, imps, funs, stat :: rest)
+      splitBlock(stats, imps, funs, letValClsSyms, stat :: rest)
     case Nil =>
-      (imps.reverse, funs.reverse, rest.reverse)
+      (imps.reverse, funs.reverse, letValClsSyms.reverse, rest.reverse)
   
   
   def block(stats: Ls[Statement], res: Rcd \/ Term, inStmtPos: Bool = false)
         (k: Result => Block)(using LoweringCtx): Block =
     // TODO we should also isolate and reorder classes by inheritance topological sort
-    val (imps, funs, rest) = splitBlock(stats, Nil, Nil, Nil)
+    val (imps, funs, letValClsSyms, rest) = splitBlock(stats, Nil, Nil, Nil, Nil)
+    
+    funs.foreach: fun =>
+      loweringCtx.collectScopedSym(fun.sym)
+    val lets = letValClsSyms.flatMap:
+      case sym: BlockMemberSymbol =>
+        loweringCtx.collectScopedSym(sym)
+        N
+      case ld: LetDecl => S(ld)
     
     def blockImpl(stats: Ls[Statement], res: Rcd \/ Term)(using LoweringCtx): Block =
       stats match
@@ -296,8 +311,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           case N => // abstract declarations have no lowering
             blockImpl(stats, res)
           case S(bod) =>
-            if td.owner.isEmpty && td.hasDeclareModifier.isEmpty then
-              loweringCtx.collectScopedSym(td.sym)
+            // if td.owner.isEmpty && td.hasDeclareModifier.isEmpty then
+            //   loweringCtx.collectScopedSym(td.sym)
             td.k match
             case knd: syntax.Val =>
               assert(td.params.isEmpty)
@@ -329,7 +344,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           reportAnnotations(cls, cls.extraAnnotations)
           blockImpl(stats, res)
         case _defn: ClassLikeDef =>
-          if _defn.owner.isEmpty then loweringCtx.collectScopedSym(_defn.bsym)
+          // if _defn.owner.isEmpty then loweringCtx.collectScopedSym(_defn.bsym)
           val defn = _defn match
             case cls: ClassDef => cls
             case mod: ModuleOrObjectDef if mod.kind is syntax.Mod => // * Currently, both objects and modules are represented as `ModuleOrObjectDef`s
@@ -442,7 +457,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case td: TypeDef => // * Type definitions are erased
           blockImpl(stats, res)
     
-    blockImpl(imps ::: funs ::: rest, res)
+    blockImpl(imps ::: lets ::: funs ::: rest, res)
   
   def getCtorParamLists(cls: Path): Ls[ParamList] =
     cls.targetSymbol.flatMap: sym =>
@@ -1007,9 +1022,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       warnStmt
       val (paramLists, bodyBlock) = setupFunctionDef(params :: Nil, body, N)
       if k.isInstanceOf[TailOp] || bodyBlock.size <= 5
-      then k(Lambda(paramLists.head, bodyBlock)(Nil))
+      then
+        assert(paramLists.length === 1)
+        k(Lambda(paramLists.head, bodyBlock)(Nil))
       else
-        val lamSym = new BlockMemberSymbol("lambda", Nil, false)
+        val lamSym = new BlockMemberSymbol("lambda", Nil, nameIsMeaningful = false)
         loweringCtx.collectScopedSym(lamSym)
         val lamDef = FunDefn.withFreshSymbol(N, lamSym, paramLists, bodyBlock)(configOverride = N, annotations = Nil)
         Define(
@@ -1380,7 +1397,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   def program(main: st.Blk, symbolsToPreserve: Set[BoundSymbol]): Program =
     
-    val (imps, funs, rest) = splitBlock(main.stats, Nil, Nil, Nil)
+    val (imps, funs, letValSyms, rest) = splitBlock(main.stats, Nil, Nil, Nil, Nil)
     
     val blk =
       inScopedBlockExcept(symbolsToPreserve)(using LoweringCtx.empty):
