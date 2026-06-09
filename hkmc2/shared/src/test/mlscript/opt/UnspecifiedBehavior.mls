@@ -15,7 +15,7 @@ else
   print('hi)
 hide of hide of hide of hide of hide of x // big expression so it's not folded into the `else`
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let scrut, tmp, tmp1, tmp2, tmp3;
+//│ let scrut;
 //│ set scrut = Predef⁰.hide⁰(false);
 //│ match scrut
 //│   true =>
@@ -23,6 +23,7 @@ hide of hide of hide of hide of hide of x // big expression so it's not folded i
 //│   else
 //│     do Predef⁰.print⁰("hi");
 //│     end
+//│ let tmp, tmp1, tmp2, tmp3;
 //│ set tmp = Predef⁰.hide⁰(2);
 //│ set tmp1 = Predef⁰.hide⁰(tmp);
 //│ set tmp2 = Predef⁰.hide⁰(tmp1);

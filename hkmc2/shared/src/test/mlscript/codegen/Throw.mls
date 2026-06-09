@@ -46,17 +46,22 @@ fun f(x) =
   throw (if x then Error("x") else Error("y"))
 f(false)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f3;
+//│ let f3, tmp;
 //│ f3 = function f(x) {
+//│   let tmp1;
 //│   if (x === true) {
-//│     throw runtime.safeCall(globalThis.Error("x"))
+//│     tmp1 = runtime.safeCall(globalThis.Error("x"));
+//│     throw tmp1
 //│   }
-//│   throw runtime.safeCall(globalThis.Error("y"));
+//│   tmp1 = runtime.safeCall(globalThis.Error("y"));
+//│   throw tmp1;
 //│ };
 //│ if (false === true) {
-//│   throw runtime.safeCall(globalThis.Error("x"))
+//│   tmp = runtime.safeCall(globalThis.Error("x"));
+//│   throw tmp
 //│ }
-//│ throw runtime.safeCall(globalThis.Error("y"));
+//│ tmp = runtime.safeCall(globalThis.Error("y"));
+//│ throw tmp;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] Error: y
 

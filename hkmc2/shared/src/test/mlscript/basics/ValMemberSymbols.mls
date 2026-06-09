@@ -46,12 +46,14 @@ case A(x) then x
 //│ let lambda;
 //│ @private
 //│ define lambda as fun lambda¹(caseScrut) {
+//│   let tmp;
 //│   match caseScrut
 //│     A² =>
 //│       let x, arg$A$0$;
 //│       set arg$A$0$ = caseScrut.x¹;
 //│       set x = arg$A$0$;
-//│       return x
+//│       set tmp = x;
+//│       return tmp
 //│     else
 //│       throw new globalThis⁰.Error⁰("match error")
 //│   end
@@ -101,11 +103,13 @@ case A as a then a.x
 //│ let lambda;
 //│ @private
 //│ define lambda as fun lambda³(caseScrut) {
+//│   let tmp;
 //│   match caseScrut
 //│     A⁵ =>
 //│       let a;
 //│       set a = caseScrut;
-//│       return a.x﹖
+//│       set tmp = a.x﹖;
+//│       return tmp
 //│     else
 //│       throw new globalThis⁰.Error⁰("match error")
 //│   end

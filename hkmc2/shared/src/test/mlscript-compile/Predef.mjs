@@ -5,7 +5,7 @@ import RuntimeJS from "./RuntimeJS.mjs";
 import Runtime from "./Runtime.mjs";
 import Rendering from "./Rendering.mjs";
 import Term from "./Term.mjs";
-let Predef1, lambda, lambda1, lambda$, Capture$scope101, Capture$scope121, lambda$1, lambda$2;
+let Predef1, lambda, lambda1, Capture$scope41, lambda$, Capture$scope61, Capture$scope101, Capture$scope121, lambda$1, lambda$2;
 lambda$2 = (undefined, function (Predef2) {
   return (acc, x) => {
     return lambda1(Predef2, acc, x)
@@ -59,12 +59,32 @@ lambda = (undefined, function (Predef2, a, b, field) {
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Capture$scope10"];
 });
+(class Capture$scope6 {
+  static {
+    Capture$scope61 = this
+  }
+  constructor(tmp$0) {
+    this.tmp$0 = tmp$0;
+  }
+  toString() { return runtime.render(this); }
+  static [definitionMetadata] = ["class", "Capture$scope6"];
+});
 lambda$ = (undefined, function (Predef2, b) {
   return (a, i) => {
     let tmp;
     tmp = runtime.safeCall(b.at(i));
     return Predef2.equals(a, tmp)
   }
+});
+(class Capture$scope4 {
+  static {
+    Capture$scope41 = this
+  }
+  constructor(tmp$0) {
+    this.tmp$0 = tmp$0;
+  }
+  toString() { return runtime.render(this); }
+  static [definitionMetadata] = ["class", "Capture$scope4"];
 });
 (class Predef {
   static {
@@ -211,85 +231,97 @@ lambda$ = (undefined, function (Predef2, b) {
     }
   }
   static equals(a, b) {
-    let scrut;
+    let scrut, scope4$cap;
+    scope4$cap = new Capture$scope41(undefined);
     scrut = a === b;
     if (scrut === true) {
       return true
     }
-    if (a instanceof globalThis.Array) {
-      if (b instanceof globalThis.Array) {
-        let scrut1;
-        scrut1 = a.length === b.length;
-        if (scrut1 === true) {
-          let lambda$here;
-          lambda$here = lambda$(Predef, b);
-          return runtime.safeCall(a.every(lambda$here))
+    σ$x: {
+      if (a instanceof globalThis.Array) {
+        if (b instanceof globalThis.Array) {
+          let scrut1;
+          scrut1 = a.length === b.length;
+          if (scrut1 === true) {
+            let lambda$here;
+            lambda$here = lambda$(Predef, b);
+            scope4$cap.tmp$0 = runtime.safeCall(a.every(lambda$here));
+            break σ$x
+          }
         }
       }
-    }
-    {
-      let scrut1;
-      scrut1 = a !== undefined;
-      if (scrut1 === true) {
-        let scrut2;
-        scrut2 = a !== null;
-        if (scrut2 === true) {
-          let scrut3;
-          scrut3 = b !== undefined;
-          if (scrut3 === true) {
-            let scrut4;
-            scrut4 = b !== null;
-            if (scrut4 === true) {
-              let ac, scrut5, scrut6, scope10$cap;
-              scope10$cap = new Capture$scope101(undefined);
-              ac = a.constructor;
-              scrut5 = ac !== undefined;
-              if (scrut5 === true) {
-                let scrut7;
-                scrut7 = ac === b.constructor;
-                if (scrut7 === true) {
-                  let md, scrut8, scrut9, scope12$cap;
-                  scope12$cap = new Capture$scope121(undefined);
-                  md = ac[Predef.Symbols.definitionMetadata];
-                  scrut8 = md !== undefined;
-                  if (scrut8 === true) {
-                    let scrut10, lambda$here;
-                    lambda$here = lambda$1(Predef, a, b);
-                    scrut10 = runtime.safeCall(md[2].every(lambda$here));
-                    if (scrut10 === true) {
-                      scope12$cap.tmp$0 = true;
+      {
+        let scrut1, scope6$cap;
+        scope6$cap = new Capture$scope61(undefined);
+        scrut1 = a !== undefined;
+        if (scrut1 === true) {
+          let scrut2;
+          scrut2 = a !== null;
+          if (scrut2 === true) {
+            let scrut3;
+            scrut3 = b !== undefined;
+            if (scrut3 === true) {
+              let scrut4;
+              scrut4 = b !== null;
+              if (scrut4 === true) {
+                let ac, scrut5, scrut6, scope10$cap;
+                scope10$cap = new Capture$scope101(undefined);
+                ac = a.constructor;
+                scrut5 = ac !== undefined;
+                if (scrut5 === true) {
+                  let scrut7;
+                  scrut7 = ac === b.constructor;
+                  if (scrut7 === true) {
+                    let md, scrut8, scrut9, scope12$cap;
+                    scope12$cap = new Capture$scope121(undefined);
+                    md = ac[Predef.Symbols.definitionMetadata];
+                    scrut8 = md !== undefined;
+                    if (scrut8 === true) {
+                      let scrut10, lambda$here;
+                      lambda$here = lambda$1(Predef, a, b);
+                      scrut10 = runtime.safeCall(md[2].every(lambda$here));
+                      if (scrut10 === true) {
+                        scope12$cap.tmp$0 = true;
+                      } else {
+                        scope12$cap.tmp$0 = false;
+                      }
                     } else {
                       scope12$cap.tmp$0 = false;
                     }
-                  } else {
-                    scope12$cap.tmp$0 = false;
-                  }
-                  scrut9 = scope12$cap.tmp$0;
-                  if (scrut9 === true) {
-                    scope10$cap.tmp$0 = true;
+                    scrut9 = scope12$cap.tmp$0;
+                    if (scrut9 === true) {
+                      scope10$cap.tmp$0 = true;
+                    } else {
+                      scope10$cap.tmp$0 = false;
+                    }
                   } else {
                     scope10$cap.tmp$0 = false;
                   }
                 } else {
                   scope10$cap.tmp$0 = false;
                 }
+                scrut6 = scope10$cap.tmp$0;
+                if (scrut6 === true) {
+                  scope6$cap.tmp$0 = true;
+                } else {
+                  scope6$cap.tmp$0 = false;
+                }
               } else {
-                scope10$cap.tmp$0 = false;
+                scope6$cap.tmp$0 = false;
               }
-              scrut6 = scope10$cap.tmp$0;
-              if (scrut6 === true) {
-                return true
-              }
-              return false;
+            } else {
+              scope6$cap.tmp$0 = false;
             }
-            return false;
+          } else {
+            scope6$cap.tmp$0 = false;
           }
-          return false;
+        } else {
+          scope6$cap.tmp$0 = false;
         }
-        return false;
+        scope4$cap.tmp$0 = scope6$cap.tmp$0;
       }
-      return false;
     }
+    return scope4$cap.tmp$0;
   }
   static nequals(a, b) {
     let tmp;

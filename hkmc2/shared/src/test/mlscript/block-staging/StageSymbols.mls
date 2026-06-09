@@ -31,17 +31,22 @@ staged module D with
 //│ >   A.f_gen()
 //│ >   B.f()
 //│ > fun matching() =
-//│ >   let {scrut, scrut1, tmp}
+//│ >   let {scrut, tmp}
 //│ >   scrut = 1
 //│ >   if scrut is
 //│ >     Int then
 //│ >       tmp = true
 //│ >     else
 //│ >       tmp = false
+//│ >   let {scrut1, tmp1}
 //│ >   scrut1 = 1
 //│ >   if scrut1 is
-//│ >     C then true
-//│ >     else false
+//│ >     C then
+//│ >       tmp1 = true
+//│ >       tmp1
+//│ >     else
+//│ >       tmp1 = false
+//│ >       tmp1
 
 :fixme
 module A with
@@ -63,7 +68,7 @@ staged module M with
 staged module M with
   fun g()() = 1
 //│ ╔══[COMPILATION ERROR] :ftc must be enabled to desugar functions with multiple parameter lists.
-//│ ║  l.64: 	  fun g()() = 1
+//│ ║  l.69: 	  fun g()() = 1
 //│ ╙──      	  ^^^^^^^^^^^^^
 //│ > fun ctor_() = ()
 //│ > fun g()() = 1

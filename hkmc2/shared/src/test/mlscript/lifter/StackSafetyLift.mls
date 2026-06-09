@@ -27,20 +27,54 @@ hi(0)
 //│ let tmp, ‹stack safe body›;
 //│ do runtime⁰.resetEffects﹖();
 //│ define hi⁰ as fun hi¹(n) {
-//│   let stackDelayRes;
+//│   let curDepth, stackDelayRes;
 //│   set runtime⁰.stackDepth﹖ = +⁰(runtime⁰.stackDepth﹖, 1);
+//│   set curDepth = runtime⁰.stackDepth﹖;
 //│   set stackDelayRes = runtime⁰.checkDepth﹖();
 //│   match runtime⁰.curEffect﹖
 //│     null =>
-//│       let scrut, tmp1;
-//│       set scrut = ===⁰(n, 0);
-//│       match scrut
-//│         true =>
-//│           return 0
+//│       let scrut, tmp1, tmp2, pc;
+//│       match runtime⁰.resumePc﹖
+//│         -1 =>
+//│           set pc = 0;
+//│           end
 //│         else
-//│           let res;
-//│           set tmp1 = -⁰(n, 1);
-//│           return hi¹(tmp1)
+//│           let saveOffset;
+//│           set pc = runtime⁰.resumePc﹖;
+//│           set runtime⁰.resumePc﹖ = -1;
+//│           end
+//│       loop main:
+//│         match pc
+//│           0 =>
+//│             block brk0:
+//│               set scrut = ===⁰(n, 0);
+//│               match scrut
+//│                 true =>
+//│                   set tmp1 = 0;
+//│                   return tmp1
+//│                 else
+//│                   let res;
+//│                   set tmp2 = -⁰(n, 1);
+//│                   set res = hi¹(tmp2);
+//│                   set runtime⁰.stackDepth﹖ = curDepth;
+//│                   set runtime⁰.resumeValue﹖ = res;
+//│                   match runtime⁰.curEffect﹖
+//│                     null =>
+//│                       break brk0
+//│                     else
+//│                       let res1;
+//│                       return runtime⁰.unwind﹖(hi¹, 1, "StackSafetyLift.mls:24:8", null, null, 1, 1, n, 0)
+//│                   end
+//│               end
+//│             set pc = 1;
+//│             end
+//│         match pc
+//│           1 =>
+//│             set tmp1 = runtime⁰.resumeValue﹖;
+//│             return tmp1
+//│           else
+//│             end
+//│         end
 //│       end
 //│     else
 //│       return runtime⁰.unwind﹖(hi¹, -1, "StackSafetyLift.mls:22:1", null, null, 1, 1, n, 0)
@@ -79,7 +113,7 @@ sum(10000)
 //│   set stackDelayRes = runtime⁰.checkDepth﹖();
 //│   match runtime⁰.curEffect﹖
 //│     null =>
-//│       let scrut, tmp1, tmp2, pc;
+//│       let scrut, tmp1, tmp2, tmp3, pc;
 //│       match runtime⁰.resumePc﹖
 //│         -1 =>
 //│           set pc = 0;
@@ -96,11 +130,12 @@ sum(10000)
 //│               set scrut = ===⁰(n, 0);
 //│               match scrut
 //│                 true =>
-//│                   return 0
+//│                   set tmp1 = 0;
+//│                   return tmp1
 //│                 else
 //│                   let res;
-//│                   set tmp1 = -⁰(n, 1);
-//│                   set res = sum¹(tmp1);
+//│                   set tmp2 = -⁰(n, 1);
+//│                   set res = sum¹(tmp2);
 //│                   set runtime⁰.stackDepth﹖ = curDepth;
 //│                   set runtime⁰.resumeValue﹖ = res;
 //│                   match runtime⁰.curEffect﹖
@@ -108,21 +143,22 @@ sum(10000)
 //│                       break brk0
 //│                     else
 //│                       let res1;
-//│                       return runtime⁰.unwind﹖(sum¹, 1, "StackSafetyLift.mls:70:9", null, null, 1, 1, n, 0)
+//│                       return runtime⁰.unwind﹖(sum¹, 1, "StackSafetyLift.mls:104:9", null, null, 1, 1, n, 0)
 //│                   end
 //│               end
 //│             set pc = 1;
 //│             end
 //│         match pc
 //│           1 =>
-//│             set tmp2 = runtime⁰.resumeValue﹖;
-//│             return +⁰(n, tmp2)
+//│             set tmp3 = runtime⁰.resumeValue﹖;
+//│             set tmp1 = +⁰(n, tmp3);
+//│             return tmp1
 //│           else
 //│             end
 //│         end
 //│       end
 //│     else
-//│       return runtime⁰.unwind﹖(sum¹, -1, "StackSafetyLift.mls:67:1", null, null, 1, 1, n, 0)
+//│       return runtime⁰.unwind﹖(sum¹, -1, "StackSafetyLift.mls:101:1", null, null, 1, 1, n, 0)
 //│   end
 //│ };
 //│ define ‹stack safe body› as fun ‹stack safe body›¹() {
@@ -237,13 +273,15 @@ fun max(a, b) = if a < b then b else a
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ do runtime⁰.resetEffects﹖();
 //│ define max⁰ as fun max¹(a, b) {
-//│   let scrut;
+//│   let scrut, tmp;
 //│   set scrut = <⁰(a, b);
 //│   match scrut
 //│     true =>
-//│       return b
+//│       set tmp = b;
+//│       return tmp
 //│     else
-//│       return a
+//│       set tmp = a;
+//│       return tmp
 //│   end
 //│ };
 //│ end

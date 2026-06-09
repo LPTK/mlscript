@@ -194,7 +194,7 @@ fun labelContinueFiltersPath(limit) =
     loop.continue
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define labelContinueFiltersPath⁰ as fun labelContinueFiltersPath¹(limit) {
-//│   let i, acc, loop$result, scrut, scrut1, tmp, tmp1, tmp2;
+//│   let i, acc, loop$result, scrut;
 //│   set i = 0;
 //│   set acc = 0;
 //│   loop loop:
@@ -204,15 +204,17 @@ fun labelContinueFiltersPath(limit) =
 //│         set loop$result = acc;
 //│         end
 //│       else
+//│         let scrut1, tmp;
 //│         set tmp = %⁰(i, 2);
 //│         set scrut1 = Predef⁰.equals⁰(tmp, 0);
 //│         match scrut1
 //│           true =>
-//│             let tmp3;
-//│             set tmp3 = +⁰(i, 1);
-//│             set i = tmp3;
+//│             let tmp1;
+//│             set tmp1 = +⁰(i, 1);
+//│             set i = tmp1;
 //│             continue loop
 //│           else
+//│             let tmp1, tmp2;
 //│             set tmp1 = +⁰(acc, 10);
 //│             set acc = tmp1;
 //│             set tmp2 = +⁰(i, 1);

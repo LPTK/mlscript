@@ -1017,9 +1017,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           k(lamDef.asPath))
     
     
-    case iftrm: st.IfLike => ucs.Normalization(this)(iftrm)(k)
+    case iftrm: st.IfLike => ucs.Normalization(this)(iftrm): r =>
+      inScopedBlock(k(r))
     
-    case iftrm: st.SynthIf => ucs.Normalization(this)(iftrm)(k)
+    case iftrm: st.SynthIf => ucs.Normalization(this)(iftrm): r =>
+      inScopedBlock(k(r))
       
     case sel @ Sel(prefix, nme) =>
       setupSelection(prefix, nme, N)(k)

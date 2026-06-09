@@ -78,19 +78,22 @@ case
 //│ let lambda;
 //│ @private
 //│ define lambda as fun lambda⁰(caseScrut) {
+//│   let tmp;
 //│   match caseScrut
 //│     Array(0) =>
-//│       return Predef⁰.print⁰("empty")
+//│       set tmp = Predef⁰.print⁰("empty");
+//│       return tmp
 //│     Array(1+) =>
 //│       let x, xs, middleElements, element0$;
 //│       set element0$ = runtime⁰.Tuple⁰.get⁰(caseScrut, 0);
 //│       set middleElements = runtime⁰.Tuple⁰.slice⁰(caseScrut, 1, 0);
 //│       set xs = middleElements;
 //│       set x = element0$;
-//│       return Predef⁰.print⁰("non-empty", x)
+//│       set tmp = Predef⁰.print⁰("non-empty", x);
+//│       return tmp
 //│     else
 //│       throw new globalThis⁰.Error⁰("match error")
-//│   end
+//│   end /* Rest moved to non-abortive branch(es) */
 //│ };
 //│ return lambda⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -134,11 +137,43 @@ let x = x + 1
 //│   else
 //│     set tmp = 0;
 //│     end
+//│ let x2;
 //│ set x1 = tmp;
-//│ set x⁴ = +⁰(x1, 1);
+//│ set x2 = +⁰(x1, 1);
 //│ end
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: vars (JSBuilder.scala:858)
+//│ FAILURE INFO: Scope:
+//│   parentOrCfg = Right of Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, member:lambda -> lambda, tmp:block$res -> block$res7, member:f -> f, tmp:block$res -> block$res8, member:f -> f1, tmp:block$res -> block$res9, member:incr -> incr, tmp:block$res -> block$res, member:pipe -> pipe, tmp:block$res -> block$res1, tmp:block$res -> block$res2, x -> x, tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res10, x -> x1, tmp:block$res -> block$res5, member:x -> x2, tmp:scrut -> scrut, x -> x3, tmp:tmp -> tmp, tmp:block$res -> block$res11, tmp:block$res -> block$res6)
+//│   bindings = HashMap()
+//│ ╔══[INTERNAL ERROR] `x` is already in scope
+//│ ║  l.128: 	let x = x + 1
+//│ ╙──       	    ^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ x = 1
+//│ > let scrut, x3, tmp;try { scrut = runtime.checkCall(Predef.equals(1, 0)); if (scrut === true) { tmp = 1; } else { tmp = 0; } { let x4‹BAD_SHADOW›; x4‹BAD_SHADOW› = tmp + 1; }; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:272)
+//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: x3 is not defined
+//│     at REPL45:1:42
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 
 class C(x)
@@ -146,8 +181,8 @@ C(123)
 new C(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define C⁰ as class C² {
-//│   private val x⁵;
-//│   constructor C¹(x) { set C².this.x⁵ = x; end }
+//│   private val x⁴;
+//│   constructor C¹(x) { set C².this.x⁴ = x; end }
 //│ };
 //│ do C¹(123);
 //│ return new C²(123)
@@ -165,14 +200,14 @@ A.x
 //│ define A⁰ as class A¹
 //│ module A² {
 //│   private val y⁰;
-//│   val x⁶;
+//│   val x⁵;
 //│   constructor {
-//│     define x⁶ as val x⁷ = 2;
+//│     define x⁵ as val x⁶ = 2;
 //│     set A².this.y⁰ = 3;
 //│     define C³ as class C⁵ {
-//│       private val x⁸;
+//│       private val x⁷;
 //│       constructor C⁴(x) {
-//│         set C⁵.this.x⁸ = x;
+//│         set C⁵.this.x⁷ = x;
 //│         end
 //│       }
 //│       method f⁴ = fun f⁵(x1) {
@@ -183,7 +218,7 @@ A.x
 //│   }
 //│   method g⁰ = fun g¹(x) { return 3 }
 //│ };
-//│ return A².x⁷
+//│ return A².x⁶
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
 
@@ -192,8 +227,8 @@ module A with
 A.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define A³ as class A⁴
-//│ module A⁵ { val x⁹; constructor { define x⁹ as val x¹⁰ = 3; end } };
-//│ return A⁵.x¹⁰
+//│ module A⁵ { val x⁸; constructor { define x⁸ as val x⁹ = 3; end } };
+//│ return A⁵.x⁹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 
@@ -203,9 +238,9 @@ class B(x) extends A with
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define A⁶ as class A⁷;
 //│ define B⁰ as class extends A⁷ B² {
-//│   private val x¹¹;
+//│   private val x¹⁰;
 //│   val y¹;
-//│   constructor B¹(x) { do super⁰(); end; set B².this.x¹¹ = x; define y¹ as val y² = 2; end }
+//│   constructor B¹(x) { do super⁰(); end; set B².this.x¹⁰ = x; define y¹ as val y² = 2; end }
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -238,9 +273,9 @@ let x = [1, 2, 3]
 x.0
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let selRes;
-//│ set x¹² = [1, 2, 3];
-//│ set selRes = x¹².0﹖;
-//│ do x¹².0$__checkNotMethod﹖;
+//│ set x¹¹ = [1, 2, 3];
+//│ set selRes = x¹¹.0﹖;
+//│ do x¹¹.0$__checkNotMethod﹖;
 //│ match selRes
 //│   undefined =>
 //│     throw new globalThis⁰.Error﹖("Access to required field '0' yielded 'undefined'")

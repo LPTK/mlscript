@@ -34,7 +34,7 @@ fun id(y) = y
 //│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
 //│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:70)
 //│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:150)
-//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1464)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1466)
 //│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
 //│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
 //│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)

@@ -19,7 +19,18 @@ fun f(x) = if x is
   1 then 2
   else 1 + 2 + 2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define f⁰ as fun f¹(x) { match x 1 => return 2 else return 5 end }; end
+//│ define f⁰ as fun f¹(x) {
+//│   let tmp;
+//│   match x
+//│     1 =>
+//│       set tmp = 2;
+//│       return tmp
+//│     else
+//│       set tmp = 5;
+//│       return tmp
+//│   end
+//│ };
+//│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -84,7 +95,7 @@ if [Box1(4),Box2(3)] is
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let scrut, tmp, tmp1;
+//│ let scrut, tmp, tmp1, tmp2;
 //│ set tmp = Box1⁰(4);
 //│ set tmp1 = Box2⁰(3);
 //│ set scrut = [tmp, tmp1];
@@ -103,7 +114,8 @@ if [Box1(4),Box2(3)] is
 //│             set arg$Box2$0$ = element1$.b¹;
 //│             set b = arg$Box2$0$;
 //│             set a = arg$Box1$0$;
-//│             return +⁰(b, a)
+//│             set tmp2 = +⁰(b, a);
+//│             return tmp2
 //│           else
 //│             throw new globalThis⁰.Error⁰("match error")
 //│         end
@@ -116,7 +128,8 @@ if [Box1(4),Box2(3)] is
 //│             set arg$Box2$0$1 = element1$.b¹;
 //│             set b = arg$Box2$0$1;
 //│             set a = arg$Box2$0$;
-//│             return -⁰(b, a)
+//│             set tmp2 = -⁰(b, a);
+//│             return tmp2
 //│           else
 //│             throw new globalThis⁰.Error⁰("match error")
 //│         end
