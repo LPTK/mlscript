@@ -8,7 +8,7 @@ import hkmc2.codegen.*
 import hkmc2.semantics.*
 import hkmc2.Message.*
 import hkmc2.ScopeData.*
-import hkmc2.semantics.Elaborator.State
+import hkmc2.semantics.Elaborator.{State,Ctx,ctx}
 import hkmc2.syntax.Tree
 
 import scala.collection.mutable.LinkedHashMap
@@ -81,7 +81,7 @@ object Lifter:
   * Lifts classes and functions to the top-level. Also automatically rewrites lambdas.
   * Assumes the input block does not have any `HandleBlock`s.
   */
-class Lifter(topLevelBlk: Block)(using State, Raise, Config):
+class Lifter(topLevelBlk: Block)(using State, Raise, Config, Ctx):
   // TODO: implement tracing debug system
 
   import Lifter.*
@@ -240,8 +240,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           // If it's just a class, add it to an graph where edges are class extensions.
           // If B extends A, then A -> B is an edge
           parentPath match
-            case None => ()
-            case Some(RefOfDefn(S(s: (ClassSymbol | ModuleOrObjectSymbol)), _)) =>
+            case RefOfDefn(S(s: (ClassSymbol | ModuleOrObjectSymbol)), _) =>
               if nestedScopes.contains(s) then inheritanceTree += (s -> isym)
             case _ if !ignored.contains(isym) =>
               raise(WarningReport(
@@ -588,7 +587,8 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       S(ClassCtorSymbol(syntax.Fun, S(clsSym), clsSym.id)),
       syntax.Cls,
       N,
-      PlainParamList(sortedVars.iterator.map(_.param).toList) :: Nil, None, Nil, Nil, 
+      PlainParamList(sortedVars.iterator.map(_.param).toList) :: Nil,
+        ctx.builtins.Object.asPath, Nil, Nil,
       Nil,
       End(),
       sortedVars.iterator.foldLeft[Block](End()):
@@ -948,7 +948,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     override lazy val capturePath: Path = Select(Value.This(obj.cls.isym), captureSym.id)(S(captureSym))
     
     override def rewriteImpl: LifterResult[ClsLikeDefn] =
-      val liftedSuper = obj.cls.parentPath.flatMap:
+      val liftedSuper = obj.cls.parentPath match
         case RefOfDefn(S(dSym),_) => ctx.rewrittenScopes.get(dSym).collect:
           case c: LiftedClass => c
         case _ => N
@@ -1263,10 +1263,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         k(callFlattenedCtor)
     
     def rewriteImpl: LifterResult[ClsLikeDefn] =
-      val liftedSuper = obj.cls.parentPath.flatMap:
+      val liftedSuper = obj.cls.parentPath match
         case RefOfDefn(S(dSym),_) => ctx.rewrittenScopes.get(dSym).collect:
           case c: LiftedClass => c
-        case _ => N
       
       val rewriterCtor = new BlockRewriter(liftedSuper)
       val rewriterPreCtor = new BlockRewriter(liftedSuper)

@@ -404,6 +404,18 @@ sealed trait ClassLikeSymbol extends IdentifiedSymbol:
   self: MemberSymbol & DefinitionSymbol[? <: ClassDef | ModuleOrObjectDef] =>
   val tree: Tree.TypeDef
   def subst(using sub: SymbolSubst): ClassLikeSymbol
+  // lazy val parents = defn match
+  //   case S(defn: ClassDef) => defn.ext
+  //   case S(defn: ModuleOrObjectDef) => defn.parents.flatMap(_.tpe.symbol.asClsLike)
+  //   case N => die
+  lazy val parents: Opt[ClassLikeSymbol] = irDefn match
+    // case S(defn: codegen.ClsLikeDefn) => defn.parentPath.fold(BuiltinSymbol)(_.targetSymbol)
+    case S(defn: codegen.ClsLikeDefn) => defn.parentPath.targetSymbol match
+      case S(sym: ClassLikeSymbol) => S(sym)
+      case _ => N
+    case N => die
+
+// sealed class ObjectSymbol(using State) extends ClassSymbol(Tree.DummyTypeDef(k = Cls), Tree.Ident("Object"))
 
 
 /**

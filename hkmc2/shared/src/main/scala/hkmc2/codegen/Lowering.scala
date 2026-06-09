@@ -350,7 +350,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             val cfgOverride = defn.extraAnnotations.collectFirst:
               case Annot.Config(modify) => modify(config)
             Define(
-              ClsLikeDefn(defn.owner, defn.sym, defn.bsym, defn.ctorSym, defn.kind, defn.paramsOpt, defn.auxParams, N,
+              ClsLikeDefn(defn.owner, defn.sym, defn.bsym, defn.ctorSym, defn.kind, defn.paramsOpt, defn.auxParams, ctx.builtins.Object.asPath,
                 mtds,
                 privateFlds,
                 publicFlds,
@@ -368,7 +368,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               val pctor = inScopedBlock(parentConstructor(clsp, ext.cls, ext.args))
               Define(
                 ClsLikeDefn(
-                  defn.owner, defn.sym, defn.bsym, defn.ctorSym, defn.kind, defn.paramsOpt, defn.auxParams, S(clsp),
+                  defn.owner, defn.sym, defn.bsym, defn.ctorSym, defn.kind, defn.paramsOpt, defn.auxParams, clsp,
                   mtds, privateFlds, publicFlds, pctor, ctor, mod, bufferable,
                 )(cfgOverride, defn.annotations),
                 blockImpl(stats, res)
@@ -991,7 +991,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           loweringCtx.collectScopedSym(sym)
           val (mtds, publicFlds, privateFlds, ctor) = gatherMembers(rft)
           val pctor = parentConstructor(sr, cls, as)
-          val clsDef = ClsLikeDefn(N, isym, sym, N, syntax.Cls, N, Nil, S(sr),
+          val clsDef = ClsLikeDefn(N, isym, sym, N, syntax.Cls, N, Nil, sr,
             mtds, privateFlds, publicFlds, pctor, ctor, N, N)(N, Nil)
           val inner = new New(sym.ref().resolved(isym), Nil, N)(N)
           Define(clsDef, term_nonTail(if mut then Mut(inner) else inner)(k))

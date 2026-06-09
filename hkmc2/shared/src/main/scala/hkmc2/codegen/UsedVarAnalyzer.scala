@@ -113,10 +113,10 @@ class UsedVarAnalyzer(b: Block, scopeData: ScopeData)(using State):
         case _ => super.applyPath(p)
     accessed.toIMut
   
-  def getParentCls(c: ClsLikeDefn) = c.parentPath.flatMap:
+  def getParentCls(c: ClsLikeDefn) = c.parentPath match
     case RefOfDefn(SDSym(parentCls), _) => S(parentCls)
     case _ => N
-    
+  
   /**
     * Finds the variables belonging to a parent scope which this scoped object could possibly 
     * access or mutate, excluding mutations through calls to other functions and mutations 

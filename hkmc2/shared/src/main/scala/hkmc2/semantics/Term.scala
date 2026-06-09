@@ -1212,6 +1212,7 @@ sealed abstract class ClassDef extends ClassLikeDef:
   val tparams: Ls[TyParam]
   val paramsOpt: Opt[ParamList]
   val auxParams: Ls[ParamList]
+  val ext: Opt[New]
   val body: ObjBody
   val companion: Opt[ClassCompanionSymbol]
   val annotations: Ls[Annot]

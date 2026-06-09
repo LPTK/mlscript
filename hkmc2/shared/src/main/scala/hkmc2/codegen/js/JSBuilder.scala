@@ -129,7 +129,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       override def applyDefn(defn: Defn): Unit = defn match
         case cls: ClsLikeDefn =>
           withOwner(cls.isym):
-            cls.parentPath.foreach(applyPath)
+            applyPath(cls.parentPath)
             applyBlock(cls.preCtor)
             applyBlock(cls.ctor)
             cls.methods.foreach(applyDefn)
@@ -521,7 +521,10 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
             
             val ctorCode = scope.nest.givenIn:
               val preCtorCode = nonNestedScoped(preCtor)(bd => block(bd, true))
-              val defaultSuperCall = if par.isDefined && preCtor.isEmpty then doc" # super();" else doc""
+              
+              // TODO: if Object, no super()
+              val defaultSuperCall = if preCtor.isEmpty then doc" # super();" else doc""
+              
               doc"$defaultSuperCall$preCtorCode$singletonInit${nonNestedScoped(ctor)(bd => block(bd, endSemi = true))}${
                   kind match
                   case syntax.Obj =>
@@ -547,9 +550,10 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
               )
             
             val clsJS = doc"class ${scope.lookup_!(isym, isym.toLoc)}${
-                par.map(p => doc" extends ${
-                  result(p)
-                }").getOrElse("")
+                
+                // TODO: if Object, no super()
+                doc" extends ${ result(par) }"
+                
               } " :: braced:
                 
                 ctorBod :: modDoc :: privs :: {

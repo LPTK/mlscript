@@ -553,7 +553,7 @@ object HandleBlock:
       N,
       syntax.Cls,
       N, Nil,
-      S(par), handlerMtds, Nil, Nil,
+      par, handlerMtds, Nil, Nil,
       // Apparently, the lifter is not happy with any assignment in the preCtor...
       Assign(State.noSymbol, Call(State.builtinOpsMap("super").asSimpleRef, args.map(_.asArg) ne_:: Nil)(true, true, false), End()),
       End(),
@@ -633,7 +633,7 @@ sealed abstract class Defn:
         -- auxParams.flatMap(_.paramSyms)
         ++ stat.iterator.flatMap(_.freeVars)
         ++ sym.optionIf(own.isEmpty)
-        ++ parentSym.iterator.flatMap(_.freeVars)
+        ++ parentSym.freeVars
   
   lazy val size: Int = this match
     case FunDefn(_, _, _, params, body) => 1 + body.size
@@ -754,7 +754,7 @@ final case class ClsLikeDefn(
     k: syntax.ClsLikeKind,
     paramsOpt: Opt[ParamList],
     auxParams: List[ParamList],
-    parentPath: Opt[Path],
+    parentPath: Path,
     methods: Ls[FunDefn],
     privateFields: Ls[TermSymbol],
     publicFields: Ls[BlockMemberSymbol -> TermSymbol],

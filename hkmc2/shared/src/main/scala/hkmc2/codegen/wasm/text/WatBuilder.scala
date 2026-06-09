@@ -9,7 +9,7 @@ import hkmc2.utils.*
 import document.*
 import document.Document
 import js.CodeBuilder
-import semantics.*, Elaborator.State
+import semantics.*, Elaborator.{State,Ctx=>ECtx,ctx=>ectx}
 import syntax.Tree.{BoolLit, IntLit, StrLit, Ident}
 import text.{Import as WasmImport, Param as WasmParam}
 import Message.MessageContext
@@ -36,7 +36,7 @@ object WatBuilder:
     val StringFromUtf16ImportName = "mlx_str_from_utf16"
     val WasmPageSizeBytes = 65536
 
-class WatBuilder(using TraceLogger, State) extends CodeBuilder:
+class WatBuilder(using TraceLogger, State, ECtx) extends CodeBuilder:
   import Ctx.ctx
   import Ctx.{SingletonInfo, binaryOps, unaryOps, wasmIntrinsicArities, wasmIntrinsicNameSet}
   import FunctionCtx.funcCtx
@@ -188,7 +188,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   private def isSupportedTopLevelClass(defn: ClsLikeDefn): Bool =
     defn.owner.isEmpty
       && ((defn.k is syntax.Cls) || (defn.k is syntax.Obj))
-      && (!(defn.k is syntax.Obj) || defn.parentPath.isEmpty)
+      && (!(defn.k is syntax.Obj) || defn.parentPath.targetSymbol.contains(ectx.builtins.Object))
       && (!(defn.k is syntax.Obj) || defn.methods.isEmpty)
       && defn.companion.isEmpty
 
@@ -210,7 +210,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       k = syntax.Obj,
       paramsOpt = N,
       auxParams = PlainParamList(Nil) :: Nil,
-      parentPath = N,
+      parentPath = ectx.builtins.Object.asPath,
       methods = Nil,
       privateFields = Nil,
       publicFields = Nil,
@@ -315,19 +315,18 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     def unsupportedParent(): Opt[BlockMemberSymbol] =
       raise(ErrorReport(
         msg"Wasm inheritance ordering only supports direct resolved parent class references." ->
-          defn.parentPath.flatMap(_.toLoc) :: Nil,
+          defn.parentPath.toLoc :: Nil,
         extraInfo = S(defn.showAsTree),
         source = Diagnostic.Source.Compilation,
       ))
       N
 
     defn.parentPath match
-      case N => N
-      case S(Value.MemberRef(sym, _)) =>
+      case Value.MemberRef(sym, _) =>
         sym.asCls.flatMap(_.asBlkMember).orElse(unsupportedParent())
-      case S(sel: Select) =>
+      case sel: Select =>
         sel.symbol.flatMap(_.asCls).flatMap(_.asBlkMember).orElse(unsupportedParent())
-      case S(_) =>
+      case _ =>
         unsupportedParent()
 
   /** Orders top-level classes using a Kahn topological sort. */
@@ -341,7 +340,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       indegrees(defn.sym) = 0
 
     defns.foreach: defn =>
-      if defn.parentPath.nonEmpty then
+      if defn.parentPath.targetSymbol isnt ectx.builtins.Object then
         val parentSym = resolveParentSym(defn).getOrElse(lastWords("unreachable"))
         if defnsBySym.contains(parentSym) then
           childrenBySym(parentSym) += defn.sym
@@ -349,7 +348,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         else
           raise(ErrorReport(
             msg"Wasm inheritance ordering requires parent classes to be supported top-level classes." ->
-              defn.parentPath.flatMap(_.toLoc) :: Nil,
+              defn.parentPath.toLoc :: Nil,
             extraInfo = S(s"${defn.sym.nme} extends ${parentSym.nme}"),
             source = Diagnostic.Source.Compilation,
           ))
@@ -443,7 +442,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   /** Declares one supported top-level class type for early wasm registration. */
   private def predeclareClassType(defn: ClsLikeDefn)(using Ctx, Raise): Unit =
     val parentTypeIdx =
-      if defn.parentPath.isEmpty then baseObjectTypeIdx
+      if defn.parentPath.targetSymbol isnt ectx.builtins.Object then baseObjectTypeIdx
       else
         ctx.getType_!(
           resolveParentSym(defn) getOrElse:
@@ -701,7 +700,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   /** Predeclares the per-class `typeinfo` struct type for one supported top-level class. */
   private def predeclareClassTypeInfoType(defn: ClsLikeDefn)(using Ctx, Raise): Unit =
     val parentTypeInfoIdx =
-      if defn.parentPath.isEmpty then ctx.getType_!(typeInfoBaseSym)
+      if defn.parentPath.targetSymbol isnt ectx.builtins.Object then ctx.getType_!(typeInfoBaseSym)
       else typeInfoTypeIdxs(resolveParentSym(defn).get)
 
     val inheritedFields = ctx.getTypeInfo_!(parentTypeInfoIdx).compType match
@@ -738,7 +737,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     val typeInfoTypeIdx = typeInfoTypeIdxs(defn.sym)
     val tagValue = ctx.getTypeInfo_!(defn.sym).objectTag.get
     val parentTypeInfo =
-      if defn.parentPath.isEmpty then ref.`null`(typeInfoBaseTypeIdx)
+      if defn.parentPath.targetSymbol isnt ectx.builtins.Object then ref.`null`(typeInfoBaseTypeIdx)
       else getClassTypeInfoGlobal(resolveParentSym(defn).get).get
     val virtualMethods = ctx.getVirtualTable(defn.sym).fold(Nil)(_.virtualMethods)
     val initFields = Seq[Expr](
@@ -1858,7 +1857,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                   val ctorParamList = classCtorParamList(clsLikeDefn)
                   if isSingletonObj && ctorParamList.params.nonEmpty then
                     break(errUnimplExpr("constructor parameters for object"))
-                  if isSingletonObj && clsLikeDefn.parentPath.nonEmpty then
+                  if isSingletonObj && !clsLikeDefn.parentPath.targetSymbol.contains(ectx.builtins.Object) then
                     break(errUnimplExpr("parentPath.nonEmpty for object"))
                   if isSingletonObj && clsLikeDefn.methods.nonEmpty then
                     break(errUnimplExpr("methods.nonEmpty for object"))

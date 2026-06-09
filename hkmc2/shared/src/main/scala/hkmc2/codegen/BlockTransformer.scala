@@ -260,13 +260,13 @@ class BlockTransformer(subst: SymbolSubst):
     val ctorSym2 = ctorSym.mapConserve(_.subst)
     val paramsOpt2 = paramsOpt.mapConserve(applyParamList)
     val auxParams2 = auxParams.mapConserve(applyParamList)
-    def helper(parentPath2: Opt[Path]) =
-      val methods2 = methods.mapConserve(applyFunDefn)
-      val privateFields2 = privateFields.mapConserve(_.subst)
-      val publicFields2 = publicFields.mapConserve(applyPublicField)
-      val preCtor2 = applyFunBodyLikeBlock(preCtor)
-      val ctor2 = applyFunBodyLikeBlock(ctor)
-      val mod2 = mod.mapConserve(applyObjBody)
+    val methods2 = methods.mapConserve(applyFunDefn)
+    val privateFields2 = privateFields.mapConserve(_.subst)
+    val publicFields2 = publicFields.mapConserve(applyPublicField)
+    val preCtor2 = applyFunBodyLikeBlock(preCtor)
+    val ctor2 = applyFunBodyLikeBlock(ctor)
+    val mod2 = mod.mapConserve(applyObjBody)
+    applyPath(parentPath): parentPath2 =>
       k:
         if (own2 is own) && (isym2 is isym) && (sym2 is sym) && (ctorSym2 is ctorSym) &&
             (paramsOpt2 is paramsOpt) &&
@@ -279,11 +279,6 @@ class BlockTransformer(subst: SymbolSubst):
             (mod2 is mod)
           then defn else ClsLikeDefn(own2, isym2, sym2, ctorSym2, kind, paramsOpt2, 
             auxParams2, parentPath2, methods2, privateFields2, publicFields2, preCtor2, ctor2, mod2, bufferable)(defn.configOverride, defn.annotations)
-    parentPath match
-    case Some(pp) => applyPath(pp): pp2 =>
-      helper:
-        if pp2 is pp then parentPath else Some(pp2)
-    case None => helper(parentPath)
   
   def applyDefn(defn: Defn)(k: Defn => Block): Block = defn match
     case defn: FunDefn => k(applyFunDefn(defn))

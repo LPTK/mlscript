@@ -102,7 +102,7 @@ class BlockTraverser:
     ctorSym.foreach(_.traverse)
     paramsOpt.foreach(applyParamList)
     auxParams.foreach(applyParamList)
-    parentPath.foreach(applyPath)
+    applyPath(parentPath)
     methods.foreach(applyFunDefn)
     privateFields.foreach(_.traverse)
     publicFields.foreach: f =>

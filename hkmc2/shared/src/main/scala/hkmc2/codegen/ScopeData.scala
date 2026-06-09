@@ -196,7 +196,7 @@ object ScopeData:
         ctorSym.foreach(_.traverse)
         paramsOpt.foreach(traverser.applyParamList)
         auxParams.foreach(traverser.applyParamList)
-        parentPath.foreach(traverser.applyPath)
+        traverser.applyPath(parentPath)
         methods.foreach(traverser.applyFunDefn)
         privateFields.foreach(_.traverse)
         publicFields.foreach: f =>
