@@ -17,18 +17,42 @@ hi(0)
 //│ let hi, tmp, $_stack$_safe$_body$_;
 //│ runtime.resetEffects();
 //│ hi = function hi(n) {
+//│   let curDepth;
 //│   runtime.stackDepth = runtime.stackDepth + 1;
+//│   curDepth = runtime.stackDepth;
 //│   runtime.checkDepth();
 //│   if (runtime.curEffect === null) {
-//│     let scrut, tmp1;
-//│     scrut = n === 0;
-//│     if (scrut === true) {
-//│       return 0
+//│     let scrut, tmp1, pc;
+//│     if (runtime.resumePc === -1) {
+//│       pc = 0;
+//│     } else {
+//│       pc = runtime.resumePc;
+//│       runtime.resumePc = -1;
 //│     }
-//│     tmp1 = n - 1;
-//│     return hi(tmp1);
+//│     switch (pc) {
+//│       case 0:
+//│         scrut = n === 0;
+//│         if (scrut === true) {
+//│           return 0
+//│         }
+//│         {
+//│           let res;
+//│           tmp1 = n - 1;
+//│           res = hi(tmp1);
+//│           runtime.stackDepth = curDepth;
+//│           runtime.resumeValue = res;
+//│           if (runtime.curEffect === null) {
+//│             pc = 1;
+//│           } else {
+//│             return runtime.unwind(hi, 1, "StackSafety.mls:14:8", null, null, 1, 1, n, 0)
+//│           }
+//│         }
+//│       case 1:
+//│         return runtime.resumeValue;
+//│     }
+//│   } else {
+//│     return runtime.unwind(hi, -1, "StackSafety.mls:12:1", null, null, 1, 1, n, 0)
 //│   }
-//│   return runtime.unwind(hi, -1, "StackSafety.mls:12:1", null, null, 1, 1, n, 0);
 //│ };
 //│ $_stack$_safe$_body$_ = (undefined, function () {
 //│   return hi(0)
@@ -78,7 +102,7 @@ sum(10000)
 //│           if (runtime.curEffect === null) {
 //│             pc = 1;
 //│           } else {
-//│             return runtime.unwind(sum, 1, "StackSafety.mls:48:9", null, null, 1, 1, n, 0)
+//│             return runtime.unwind(sum, 1, "StackSafety.mls:72:9", null, null, 1, 1, n, 0)
 //│           }
 //│         }
 //│       case 1:
@@ -86,7 +110,7 @@ sum(10000)
 //│         return n + tmp3;
 //│     }
 //│   } else {
-//│     return runtime.unwind(sum, -1, "StackSafety.mls:45:1", null, null, 1, 1, n, 0)
+//│     return runtime.unwind(sum, -1, "StackSafety.mls:69:1", null, null, 1, 1, n, 0)
 //│   }
 //│ };
 //│ $_stack$_safe$_body$_1 = (undefined, function () {

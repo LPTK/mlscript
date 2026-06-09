@@ -18,28 +18,28 @@ fun loop(x)(y) =
   if x == 0 then y
   else loop(x - 1)(y + x)
 loop(1000)(0)
+//│ FAILURE: Unexpected warning
+//│ FAILURE LOCATION: optScc (TailRecOpt.scala:250)
+//│ ╔══[WARNING] This function does not directly self-recurse, but is marked @tailrec.
+//│ ║  l.17: 	fun loop(x)(y) =
+//│ ╙──      	    ^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let loop⁰, loop$tailrec⁰;
-//│ @private
-//│ define loop$tailrec⁰ as fun loop$tailrec¹(x, y) {
-//│   loop loopLabel:
-//│     let scrut;
-//│     set scrut = Predef⁰.equals⁰(x, 0);
-//│     match scrut
-//│       true =>
-//│         return y
-//│       else
-//│         let tmp, tmp1;
-//│         set tmp = -⁰(x, 1);
-//│         set tmp1 = +⁰(y, x);
-//│         set x = tmp;
-//│         set y = tmp1;
-//│         continue loopLabel
-//│     end
+//│ @tailrec
+//│ define loop⁰ as fun loop¹(x)(y) {
+//│   let scrut, tmp;
+//│   set scrut = Predef⁰.equals⁰(x, 0);
+//│   match scrut
+//│     true =>
+//│       set tmp = y;
+//│       return tmp
+//│     else
+//│       let tmp1, tmp2;
+//│       set tmp1 = -⁰(x, 1);
+//│       set tmp2 = +⁰(y, x);
+//│       set tmp = loop¹(tmp1)(tmp2);
+//│       return tmp
 //│   end
 //│ };
-//│ @tailrec
-//│ define loop⁰ as fun loop¹(x)(y) { return loop$tailrec¹(x, y) };
 //│ return loop¹(1000)(0)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 500500
@@ -52,25 +52,19 @@ fun count(start)(stop) =
   else count(start + 1)(stop)
 count(0)(100)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let count⁰, count$tailrec⁰;
-//│ @private
-//│ define count$tailrec⁰ as fun count$tailrec¹(start, stop) {
-//│   loop loopLabel:
-//│     let scrut;
-//│     set scrut = Predef⁰.equals⁰(start, stop);
-//│     match scrut
-//│       true =>
-//│         return start
-//│       else
-//│         let tmp;
-//│         set tmp = +⁰(start, 1);
-//│         set start = tmp;
-//│         continue loopLabel
-//│     end
-//│   end
-//│ };
 //│ define count⁰ as fun count¹(start)(stop) {
-//│   return count$tailrec¹(start, stop)
+//│   let scrut, tmp;
+//│   set scrut = Predef⁰.equals⁰(start, stop);
+//│   match scrut
+//│     true =>
+//│       set tmp = start;
+//│       return tmp
+//│     else
+//│       let tmp1;
+//│       set tmp1 = +⁰(start, 1);
+//│       set tmp = count¹(tmp1)(stop);
+//│       return tmp
+//│   end
 //│ };
 //│ return count¹(0)(100)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -81,49 +75,36 @@ count(0)(100)
 fun even(n)(dummy) = if n == 0 then [true, dummy] else odd(n - 1)(dummy + 1)
 fun odd(n)(dummy) = if n == 0 then [false, dummy] else even(n - 1)(dummy + 1)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let even⁰, odd⁰, even_odd⁰;
-//│ define even_odd⁰ as fun even_odd¹(id, param0, param1) {
-//│   loop loopLabel:
-//│     match id
-//│       0 =>
-//│         let scrut;
-//│         set scrut = Predef⁰.equals⁰(param0, 0);
-//│         match scrut
-//│           true =>
-//│             return [true, param1]
-//│           else
-//│             let tmp, tmp1;
-//│             set tmp = -⁰(param0, 1);
-//│             set tmp1 = +⁰(param1, 1);
-//│             set param0 = tmp;
-//│             set param1 = tmp1;
-//│             set id = 1;
-//│             continue loopLabel
-//│         end
-//│       1 =>
-//│         let scrut;
-//│         set scrut = Predef⁰.equals⁰(param0, 0);
-//│         match scrut
-//│           true =>
-//│             return [false, param1]
-//│           else
-//│             let tmp, tmp1;
-//│             set tmp = -⁰(param0, 1);
-//│             set tmp1 = +⁰(param1, 1);
-//│             set param0 = tmp;
-//│             set param1 = tmp1;
-//│             set id = 0;
-//│             continue loopLabel
-//│         end
-//│       else
-//│         end
-//│     end
+//│ define even⁰ as fun even¹(n)(dummy) {
+//│   let scrut, tmp;
+//│   set scrut = Predef⁰.equals⁰(n, 0);
+//│   match scrut
+//│     true =>
+//│       set tmp = [true, dummy];
+//│       return tmp
+//│     else
+//│       let tmp1, tmp2;
+//│       set tmp1 = -⁰(n, 1);
+//│       set tmp2 = +⁰(dummy, 1);
+//│       set tmp = odd⁰(tmp1)(tmp2);
+//│       return tmp
 //│   end
 //│ };
-//│ define even⁰ as fun even¹(n)(dummy) {
-//│   return even_odd¹(0, n, dummy)
+//│ define odd¹ as fun odd⁰(n)(dummy) {
+//│   let scrut, tmp;
+//│   set scrut = Predef⁰.equals⁰(n, 0);
+//│   match scrut
+//│     true =>
+//│       set tmp = [false, dummy];
+//│       return tmp
+//│     else
+//│       let tmp1, tmp2;
+//│       set tmp1 = -⁰(n, 1);
+//│       set tmp2 = +⁰(dummy, 1);
+//│       set tmp = even¹(tmp1)(tmp2);
+//│       return tmp
+//│   end
 //│ };
-//│ define odd⁰ as fun odd¹(n)(dummy) { return even_odd¹(1, n, dummy) };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -145,23 +126,28 @@ fun f(n)(a, b, c, d, ...e)(m) =
   else [e, m]
 fun g(n)(m) =
   @tailcall f(n - 1)(...[1, 2], 3, ...[3, 4], ...[5, n], 7, n)(m)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: applyResult (TailRecOpt.scala:133)
+//│ ╔══[COMPILATION ERROR] This call is not in tail position.
+//│ ║  l.125: 	  if n > 0 then @tailcall g(n)(m + 1)
+//│ ╙──       	                          ^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let f⁰, g⁰, f_g⁰;
-//│ define f_g⁰ as fun f_g¹(id, param0, param1, param2, param3, param4, param5, param6) {
+//│ let f_g;
+//│ define f_g as fun f_g⁰(id, param0, param1, param2, param3, param4, param5, param6) {
 //│   loop loopLabel:
 //│     match id
 //│       0 =>
-//│         let scrut;
+//│         let scrut, tmp;
 //│         set scrut = >⁰(param0, 0);
 //│         match scrut
 //│           true =>
-//│             let tmp;
-//│             set tmp = +⁰(param6, 1);
-//│             set param1 = tmp;
-//│             set id = 1;
-//│             continue loopLabel
+//│             let tmp1;
+//│             set tmp1 = +⁰(param6, 1);
+//│             set tmp = g⁰(param0)(tmp1);
+//│             return tmp
 //│           else
-//│             return [param5, param6]
+//│             set tmp = [param5, param6];
+//│             return tmp
 //│         end
 //│       1 =>
 //│         let tmp, tmp1, tmp2, tmp3, param1_tmp, argList, param0_tmp, sliceRes;
@@ -188,10 +174,10 @@ fun g(n)(m) =
 //│   end
 //│ };
 //│ define f⁰ as fun f¹(n)(a, b, c, d, ...e)(m) {
-//│   return f_g¹(0, n, a, b, c, d, e, m)
+//│   return f_g⁰(0, n, a, b, c, d, e, m)
 //│ };
-//│ define g⁰ as fun g¹(n)(m) {
-//│   return f_g¹(1, n, m, undefined, undefined, undefined, undefined, undefined)
+//│ define g¹ as fun g⁰(n)(m) {
+//│   return f_g⁰(1, n, m, undefined, undefined, undefined, undefined, undefined)
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

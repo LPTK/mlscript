@@ -4,7 +4,7 @@ package codegen
 import scala.annotation.tailrec
 import scala.collection.mutable.{Map as MutMap, Set as MutSet}
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import utils.*
 
 import hkmc2.codegen.flowAnalysis.*
@@ -181,7 +181,7 @@ class EtaExpansionRewrite(val etaExpansionSolver: EtaExpansionSolver)(using Rais
         else
           lastWords("not the same shape?")
     
-    private def etaCall(base: Path): Call =
+    private def etaCall(base: Path): Result =
       Call(base, activeEtaArgss.ne_!)(isMlsFun = true, mayRaiseEffects = true, explicitTailCall = false)
     
     override def applyBlock(b: Block): Block = b match

@@ -22,6 +22,7 @@ module TrmMod with
 //│ ║        	^^^^^^^^^^^^^^^^^^
 //│ ║  l.16: 	  val whoami = "module"
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:TrmMod for FunDefn is a free variable for this block
 
 fun f: ClsMod = 42
 
@@ -74,7 +75,7 @@ f
 :e
 fun f: TrmMod = 42
 //│ ╔══[COMPILATION ERROR] Expected a non-module type; found reference of type TrmMod denoting module 'TrmMod'.
-//│ ║  l.75: 	fun f: TrmMod = 42
+//│ ║  l.76: 	fun f: TrmMod = 42
 //│ ║        	       ^^^^^^
 //│ ╙── Function must be marked as returning a 'module' in order to have a module return type.
 
@@ -119,7 +120,7 @@ assertModule(TypMod).whoami
 :noInline
 print(assertModule(TrmMod).whoami)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'TrmMod'
-//│ ║  l.120: 	print(assertModule(TrmMod).whoami)
+//│ ║  l.121: 	print(assertModule(TrmMod).whoami)
 //│ ║         	                   ^^^^^^
 //│ ╟── which references the symbol introduced here
 //│ ║  l.15: 	module TrmMod with
@@ -159,10 +160,10 @@ module Foo
 :e
 fun f(x: Foo): Foo = x
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.160: 	fun f(x: Foo): Foo = x
+//│ ║  l.161: 	fun f(x: Foo): Foo = x
 //│ ╙──       	         ^^^
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.160: 	fun f(x: Foo): Foo = x
+//│ ║  l.161: 	fun f(x: Foo): Foo = x
 //│ ╙──       	               ^^^
 
 fun f(x: Foo[Int]): Foo[Int] = x
@@ -172,10 +173,10 @@ fun f(module x: Foo): module Foo = x
 :e
 fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.173: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.174: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.173: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.174: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                                  ^^^^^^^^
 
 

@@ -26,12 +26,24 @@ fun id(y) = y
 //│ ╟── defined here
 //│ ║  l.21: 	fun id(y) = y
 //│ ╙──      	^^^^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:id for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:74)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:70)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:150)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1466)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 :e
 fun bar: Str -> Str
 fun bar(x) = let t = x + 1 in "aaa"
 //│ ╔══[COMPILATION ERROR] Type error in reference with expected type Int
-//│ ║  l.32: 	fun bar(x) = let t = x + 1 in "aaa"
+//│ ║  l.44: 	fun bar(x) = let t = x + 1 in "aaa"
 //│ ║        	                     ^
 //│ ╙── because: cannot constrain  Str  <:  Int
 
@@ -39,7 +51,7 @@ fun bar(x) = let t = x + 1 in "aaa"
 fun baz: Int -> Int
 fun baz(x) = "bbb"
 //│ ╔══[COMPILATION ERROR] Type error in string literal with expected type Int
-//│ ║  l.40: 	fun baz(x) = "bbb"
+//│ ║  l.52: 	fun baz(x) = "bbb"
 //│ ║        	             ^^^^^
 //│ ╙── because: cannot constrain  Str  <:  Int
 
@@ -53,7 +65,7 @@ add(1, 2) as Int
 :e
 add(0, 0) as Str
 //│ ╔══[COMPILATION ERROR] Type error in application of type ‹not implemented› with expected type Str
-//│ ║  l.54: 	add(0, 0) as Str
+//│ ║  l.66: 	add(0, 0) as Str
 //│ ║        	^^^^^^^^^
 //│ ╙── because: cannot constrain  Int  <:  Str
 //│ Type: Str
@@ -61,7 +73,7 @@ add(0, 0) as Str
 :e
 fun errAdd(x: Int) = x + "1"
 //│ ╔══[COMPILATION ERROR] Type error in string literal with expected type Int
-//│ ║  l.62: 	fun errAdd(x: Int) = x + "1"
+//│ ║  l.74: 	fun errAdd(x: Int) = x + "1"
 //│ ║        	                         ^^^
 //│ ╙── because: cannot constrain  Str  <:  Int
 
@@ -81,11 +93,11 @@ high(x => x)
 :e
 high(x => x + 1)
 //│ ╔══[COMPILATION ERROR] Type error in reference with expected type Int
-//│ ║  l.82: 	high(x => x + 1)
+//│ ║  l.94: 	high(x => x + 1)
 //│ ║        	          ^
 //│ ╙── because: cannot constrain  A  <:  Int
 //│ ╔══[COMPILATION ERROR] Type error in application with expected type A
-//│ ║  l.82: 	high(x => x + 1)
+//│ ║  l.94: 	high(x => x + 1)
 //│ ║        	          ^^^^^
 //│ ╙── because: cannot constrain  Int  <:  A
 //│ Type: Int
@@ -109,7 +121,7 @@ fun baz(z) =
 :e
 baz as Int -> (([A] -> A -> A), Int) -> Int
 //│ ╔══[COMPILATION ERROR] Cannot type non-function term Ref(member:baz) as (Int) ->{⊥} ([outer, 'A] -> ('A) ->{⊥} 'A, Int) ->{⊥} Int
-//│ ║  l.110: 	baz as Int -> (([A] -> A -> A), Int) -> Int
+//│ ║  l.122: 	baz as Int -> (([A] -> A -> A), Int) -> Int
 //│ ╙──       	^^^
 //│ Type: ⊥
 
@@ -120,7 +132,7 @@ baz(42)
 :e
 baz(42) as (([A] -> A -> A), Int) -> Int
 //│ ╔══[COMPILATION ERROR] Cannot type non-function term App(Ref(member:baz),Tup(List(Fld(‹›,Lit(IntLit(42)),None)))) as ([outer, 'A] -> ('A) ->{⊥} 'A, Int) ->{⊥} Int
-//│ ║  l.121: 	baz(42) as (([A] -> A -> A), Int) -> Int
+//│ ║  l.133: 	baz(42) as (([A] -> A -> A), Int) -> Int
 //│ ╙──       	^^^^^^^
 //│ Type: ⊥
 
@@ -165,7 +177,7 @@ foo
 :e
 foo(42, 1)
 //│ ╔══[COMPILATION ERROR] Type error in integer literal with expected type ¬'A
-//│ ║  l.166: 	foo(42, 1)
+//│ ║  l.178: 	foo(42, 1)
 //│ ║         	        ^
 //│ ╟── because: cannot constrain  Int  <:  ¬'A
 //│ ╟── because: cannot constrain  'A  <:  ¬{Int}

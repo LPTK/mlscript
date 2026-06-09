@@ -19,37 +19,22 @@ val x
 
 :e
 x
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
-//│ ║  l.21: 	x
-//│ ║        	^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.18: 	val x
-//│ ╙──      	^^^^^
+//│ FAILURE: Unexpected lack of compilation or type error
 
 
 val x: Int
 
 :e
 x
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
-//│ ║  l.33: 	x
-//│ ║        	^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.30: 	val x: Int
-//│ ╙──      	^^^^^^^^^^
+//│ FAILURE: Unexpected lack of compilation or type error
 
 
 fun p: Int
 
 :e
 p
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'p'
-//│ ║  l.45: 	p
-//│ ║        	^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.42: 	fun p: Int
-//│ ╙──      	^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: p is not defined
+//│ ═══[RUNTIME ERROR] TypeError: p is not a function
+//│ FAILURE: Unexpected lack of compilation or type error
 
 
 // :ctx
@@ -57,27 +42,17 @@ fun (++) test: (Int, Int) -> Int
 
 :e
 test(1, 2)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'test'
-//│ ║  l.59: 	test(1, 2)
-//│ ║        	^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.56: 	fun (++) test: (Int, Int) -> Int
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: test is not defined
+//│ ═══[RUNTIME ERROR] TypeError: test is not a function
+//│ FAILURE: Unexpected lack of compilation or type error
 
 :sjs
 :e
 1 ++ 1
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'test'
-//│ ║  l.70: 	1 ++ 1
-//│ ║        	  ^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.56: 	fun (++) test: (Int, Int) -> Int
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let tmp1; tmp1 = test(); return runtime.safeCall(tmp1(1, 1))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] ReferenceError: test is not defined
+//│ ═══[RUNTIME ERROR] TypeError: test is not a function
+//│ FAILURE: Unexpected lack of compilation or type error
 
 
 declare class C

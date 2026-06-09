@@ -4,7 +4,7 @@ package semantics
 import scala.collection.mutable
 import scala.collection.mutable.{Set => MutSet}
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import syntax.*
 import hkmc2.utils.*
 
@@ -154,9 +154,10 @@ end Symbol
 
 
 // * Used, eg, as the Assign receiver of intermediate computations whose result is not used
-final class NoSymbol(using State) extends MaybeSymbol:
+object NoSymbol extends MaybeSymbol:
   def nme: Str = "‹no symbol›"
   override def toString: Str = nme
+type NoSymbol = NoSymbol.type
 
 
 /** Symbols bound by `Program.imports`.
@@ -174,8 +175,6 @@ abstract class FlowSymbol(label: Str)(using State) extends Symbol:
   val outFlows: mutable.Buffer[FlowSymbol] = mutable.Buffer.empty
   val consumers: mutable.Buffer[Consumer] = mutable.Buffer.empty
   val producers: mutable.Buffer[ConcreteProd] = mutable.Buffer.empty
-  def showDbg: Str =
-    label + s"‹$uid›"
 
 object FlowSymbol:
   
@@ -349,6 +348,8 @@ class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.I
   def isPrivate: Bool = (k is LetBind) && owner.exists(!_.isInstanceOf[TopLevelSymbol])
   
   def subst(using sub: SymbolSubst): TermSymbol = sub.mapTermSym(this)
+  def mayRaiseEffects(using Config) =
+    defn.forall(_.mayRaiseEffects)
 
 object TermSymbol:
   def fromFunBms(b: BlockMemberSymbol, owner: Opt[InnerSymbol])(using State) =
@@ -361,6 +362,8 @@ class ClassCtorSymbol(
   id: Tree.Ident
 )(using State) extends TermSymbol(k, owner, id):
   override def subst(using sub: SymbolSubst): ClassCtorSymbol = sub.mapClassCtorSym(this)
+  override def mayRaiseEffects(using Config) =
+    super.mayRaiseEffects || config.checkInstantiateEffect
 
 
 sealed trait CtorSymbol extends Symbol:

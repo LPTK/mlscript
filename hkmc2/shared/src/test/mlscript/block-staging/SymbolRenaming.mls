@@ -24,13 +24,17 @@ staged module Selection with
     C(1).x is Bool
 //│ > fun ctor_() = ()
 //│ > fun f(x) =
-//│ >   let {scrut, tmp}
+//│ >   let {scrut, tmp, tmp1}
 //│ >   x.call()
 //│ >   tmp = C(1)
 //│ >   scrut = tmp.x
 //│ >   if scrut is
-//│ >     Bool then true
-//│ >     else false
+//│ >     Bool then
+//│ >       tmp1 = true
+//│ >       tmp1
+//│ >     else
+//│ >       tmp1 = false
+//│ >       tmp1
 
 :fixme
 staged module DupeClass with

@@ -53,40 +53,47 @@ fun crazy(v) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let crazy;
 //│ crazy = function crazy(v) {
-//│   let tmp, tmp1, tmp2, tmp3, tmp4;
-//│   if (v instanceof S1.class) {
-//│     let arg$S$0$;
-//│     arg$S$0$ = v.value;
-//│     if (arg$S$0$ instanceof S1.class) {
-//│       let arg$S$0$1;
-//│       arg$S$0$1 = arg$S$0$.value;
-//│       if (arg$S$0$1 instanceof S1.class) {
-//│         let arg$S$0$2;
-//│         arg$S$0$2 = arg$S$0$1.value;
-//│         if (arg$S$0$2 instanceof S1.class) {
-//│           let arg$S$0$3;
-//│           arg$S$0$3 = arg$S$0$2.value;
-//│           if (arg$S$0$3 instanceof S1.class) {
-//│             let arg$S$0$4;
-//│             arg$S$0$4 = arg$S$0$3.value;
-//│             if (arg$S$0$4 instanceof S1.class) {
-//│               let arg$S$0$5;
-//│               arg$S$0$5 = arg$S$0$4.value;
-//│               if (arg$S$0$5 === 0) {
-//│                 return "bruh!"
+//│   let tmp;
+//│   σ$x: {
+//│     if (v instanceof S1.class) {
+//│       let arg$S$0$;
+//│       arg$S$0$ = v.value;
+//│       if (arg$S$0$ instanceof S1.class) {
+//│         let arg$S$0$1;
+//│         arg$S$0$1 = arg$S$0$.value;
+//│         if (arg$S$0$1 instanceof S1.class) {
+//│           let arg$S$0$2;
+//│           arg$S$0$2 = arg$S$0$1.value;
+//│           if (arg$S$0$2 instanceof S1.class) {
+//│             let arg$S$0$3;
+//│             arg$S$0$3 = arg$S$0$2.value;
+//│             if (arg$S$0$3 instanceof S1.class) {
+//│               let arg$S$0$4;
+//│               arg$S$0$4 = arg$S$0$3.value;
+//│               if (arg$S$0$4 instanceof S1.class) {
+//│                 let arg$S$0$5;
+//│                 arg$S$0$5 = arg$S$0$4.value;
+//│                 if (arg$S$0$5 === 0) {
+//│                   tmp = "bruh!";
+//│                   break σ$x
+//│                 }
 //│               }
 //│             }
 //│           }
 //│         }
 //│       }
 //│     }
+//│     {
+//│       let tmp1, tmp2, tmp3, tmp4, tmp5;
+//│       tmp1 = S1(0);
+//│       tmp2 = S1(tmp1);
+//│       tmp3 = S1(tmp2);
+//│       tmp4 = S1(tmp3);
+//│       tmp5 = S1(tmp4);
+//│       tmp = S1(tmp5);
+//│     }
 //│   }
-//│   tmp = S1(0);
-//│   tmp1 = S1(tmp);
-//│   tmp2 = S1(tmp1);
-//│   tmp3 = S1(tmp2);
-//│   tmp4 = S1(tmp3);
-//│   return S1(tmp4)
+//│   return tmp
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

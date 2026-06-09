@@ -13,11 +13,12 @@ module Foo with { val x = 1 }
 //│ ╟── with module of the same name
 //│ ║  l.9: 	module Foo with { val x = 1 }
 //│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for FunDefn is a free variable for this block
 
 :fixme
 Foo
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
-//│ ║  l.18: 	Foo
+//│ ║  l.19: 	Foo
 //│ ║        	^^^
 //│ ╟── which references the symbol introduced here
 //│ ║  l.9: 	module Foo with { val x = 1 }
@@ -31,7 +32,7 @@ Foo()
 :noInline
 Foo()
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
-//│ ║  l.32: 	Foo()
+//│ ║  l.33: 	Foo()
 //│ ║        	^^^
 //│ ╟── which references the symbol introduced here
 //│ ║  l.9: 	module Foo with { val x = 1 }

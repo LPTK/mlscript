@@ -84,13 +84,14 @@ modSome(Some(17), 3)
 //│ deforest > 	fields: x⁰.x¹
 //│ deforest > <<< fusing <<<
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let modSome⁰, tmp, modSome_12$modSome⁰, modSome_12$x_Some⁰, modSome_12$x_rest⁰, Some_x;
+//│ let tmp, modSome_12$modSome, modSome_12$x_Some, modSome_12$x_rest, Some_x;
 //│ @private
-//│ define modSome_12$modSome⁰ as fun modSome_12$modSome¹(x, m) {
-//│   return x(m)
+//│ define modSome_12$modSome as fun modSome_12$modSome⁰(x, m) {
+//│   let tmp1;
+//│   return x(modSome⁰, m, tmp1)
 //│ };
 //│ @affine(1) @private
-//│ define modSome_12$x_Some⁰ as fun modSome_12$x_Some¹(Some_x1)(fv_m) {
+//│ define modSome_12$x_Some as fun modSome_12$x_Some⁰(Some_x1)(fv_modSome, fv_m, fv_tmp) {
 //│   let n, scrut, arg$Some$0$;
 //│   set arg$Some$0$ = Some_x1;
 //│   set n = arg$Some$0$;
@@ -100,44 +101,47 @@ modSome(Some(17), 3)
 //│       let tmp1, tmp2, Some_x2;
 //│       set tmp1 = -⁰(n, fv_m);
 //│       set Some_x2 = tmp1;
-//│       set tmp2 = modSome_12$x_Some¹(Some_x2);
-//│       return modSome_12$modSome¹(tmp2, fv_m)
+//│       set tmp2 = modSome_12$x_Some⁰(Some_x2);
+//│       set fv_tmp = modSome_12$modSome⁰(tmp2, fv_m);
+//│       return fv_tmp
 //│     else
-//│       return Some⁰(n)
+//│       set fv_tmp = Some⁰(n);
+//│       return fv_tmp
 //│   end
 //│ };
 //│ @private
-//│ define modSome_12$x_rest⁰ as fun modSome_12$x_rest¹() {
+//│ define modSome_12$x_rest as fun modSome_12$x_rest⁰() {
 //│   return null
 //│ };
-//│ define modSome⁰ as fun modSome¹(x, m) {
-//│   loop loopLabel:
-//│     match x
-//│       Some¹ =>
-//│         let n, scrut, arg$Some$0$;
-//│         set arg$Some$0$ = x.x¹;
-//│         set n = arg$Some$0$;
-//│         set scrut = >=⁰(n, m);
-//│         match scrut
-//│           true =>
-//│             let tmp1, tmp2;
-//│             set tmp1 = -⁰(n, m);
-//│             set tmp2 = Some⁰(tmp1);
-//│             set x = tmp2;
-//│             continue loopLabel
-//│           else
-//│             return Some⁰(n)
-//│         end
-//│       None⁰ =>
-//│         return None⁰
-//│       else
-//│         throw new globalThis⁰.Error⁰("match error")
-//│     end
+//│ define modSome¹ as fun modSome⁰(x, m) {
+//│   let tmp1;
+//│   match x
+//│     Some¹ =>
+//│       let n, scrut, arg$Some$0$;
+//│       set arg$Some$0$ = x.x¹;
+//│       set n = arg$Some$0$;
+//│       set scrut = >=⁰(n, m);
+//│       match scrut
+//│         true =>
+//│           let tmp2, tmp3;
+//│           set tmp2 = -⁰(n, m);
+//│           set tmp3 = Some⁰(tmp2);
+//│           set tmp1 = modSome⁰(tmp3, m);
+//│           return tmp1
+//│         else
+//│           set tmp1 = Some⁰(n);
+//│           return tmp1
+//│       end
+//│     None⁰ =>
+//│       set tmp1 = None⁰;
+//│       return tmp1
+//│     else
+//│       throw new globalThis⁰.Error⁰("match error")
 //│   end
 //│ };
 //│ set Some_x = 17;
-//│ set tmp = modSome_12$x_Some¹(Some_x);
-//│ return modSome_12$modSome¹(tmp, 3)
+//│ set tmp = modSome_12$x_Some⁰(Some_x);
+//│ return modSome_12$modSome⁰(tmp, 3)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = Some(2)
 
@@ -165,11 +169,11 @@ zipWith([id(Nil), id(Nil)], (x, y) => x)
 //│ deforest > >>> fusing >>>
 //│ deforest > [tx⁰, ty⁰] ->
 //│ deforest > 	match: xsys⁰
-//│ deforest > 	fields: runtime⁰.Tuple﹖.get⁰(xsys⁰, 0)
-//│ deforest > 	fields: runtime⁰.Tuple﹖.get⁰(xsys⁰, 1)
+//│ deforest > 	fields: runtime⁰.Tuple⁰.get⁰(xsys⁰, 0)
+//│ deforest > 	fields: runtime⁰.Tuple⁰.get⁰(xsys⁰, 1)
 //│ deforest > [tmp¹, tmp²] ->
 //│ deforest > 	match: xsys⁰
-//│ deforest > 	fields: runtime⁰.Tuple﹖.get⁰(xsys⁰, 0)
-//│ deforest > 	fields: runtime⁰.Tuple﹖.get⁰(xsys⁰, 1)
+//│ deforest > 	fields: runtime⁰.Tuple⁰.get⁰(xsys⁰, 0)
+//│ deforest > 	fields: runtime⁰.Tuple⁰.get⁰(xsys⁰, 1)
 //│ deforest > <<< fusing <<<
 //│ = Nil

@@ -101,7 +101,7 @@ fun
 //│ ╔══[WARNING] This annotation has no effect.
 //│ ║  l.95: 	@inline let
 //│ ╙──      	^^^^^^^
-//│ abs = fun abs
+//│ abs = fun
 //│ clamp = fun clamp
 
 :w

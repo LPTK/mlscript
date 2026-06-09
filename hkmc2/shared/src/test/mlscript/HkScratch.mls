@@ -19,15 +19,15 @@ fun f(x) = if x is
   1 then 2
   else 1 + 2 + 2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let f⁰;
 //│ define f⁰ as fun f¹(x) {
+//│   let tmp;
 //│   match x
 //│     1 =>
-//│       return 2
+//│       set tmp = 2;
+//│       return tmp
 //│     else
-//│       let tmp;
-//│       set tmp = +⁰(1, 2);
-//│       return +⁰(tmp, 2)
+//│       set tmp = 5;
+//│       return tmp
 //│   end
 //│ };
 //│ end
@@ -95,15 +95,15 @@ if [Box1(4),Box2(3)] is
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let scrut, tmp, tmp1;
+//│ let scrut, tmp, tmp1, tmp2;
 //│ set tmp = Box1⁰(4);
 //│ set tmp1 = Box2⁰(3);
 //│ set scrut = [tmp, tmp1];
 //│ match scrut
 //│   Array(2) =>
 //│     let element1$, element0$;
-//│     set element0$ = runtime⁰.Tuple﹖.get⁰(scrut, 0);
-//│     set element1$ = runtime⁰.Tuple﹖.get⁰(scrut, 1);
+//│     set element0$ = runtime⁰.Tuple⁰.get⁰(scrut, 0);
+//│     set element1$ = runtime⁰.Tuple⁰.get⁰(scrut, 1);
 //│     match element0$
 //│       Box1¹ =>
 //│         let arg$Box1$0$;
@@ -114,7 +114,8 @@ if [Box1(4),Box2(3)] is
 //│             set arg$Box2$0$ = element1$.b¹;
 //│             set b = arg$Box2$0$;
 //│             set a = arg$Box1$0$;
-//│             return +⁰(b, a)
+//│             set tmp2 = +⁰(b, a);
+//│             return tmp2
 //│           else
 //│             throw new globalThis⁰.Error⁰("match error")
 //│         end
@@ -127,7 +128,8 @@ if [Box1(4),Box2(3)] is
 //│             set arg$Box2$0$1 = element1$.b¹;
 //│             set b = arg$Box2$0$1;
 //│             set a = arg$Box2$0$;
-//│             return -⁰(b, a)
+//│             set tmp2 = -⁰(b, a);
+//│             return tmp2
 //│           else
 //│             throw new globalThis⁰.Error⁰("match error")
 //│         end

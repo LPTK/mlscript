@@ -85,39 +85,40 @@ pattern BiasedOr2 =
 :sir
 fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let biasedOr2__compiled⁰;
 //│ define biasedOr2__compiled⁰ as fun biasedOr2__compiled¹(x) {
-//│   let matcher__BiasedOr2$, matcher1$, matcher2$, matchRecord, lambda, lambda1, lambda2;
+//│   let matcher__BiasedOr2$, matcher1$, matcher2$, matchRecord, lambda, lambda1, tmp, lambda2;
 //│   define lambda as fun lambda²(input) {
+//│     let tmp1;
 //│     match input
 //│       Some⁰ =>
-//│         let value, p_0$, transform, result1$, transform1, result2$, tmp, tmp1, lambda3;
+//│         let value, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let value1;
 //│             match input
 //│               { value } =>
-//│                 let tmp2;
+//│                 let tmp3;
 //│                 set value1 = input.value﹖;
-//│                 set tmp2 = matcher1$(value1);
-//│                 set tmp = { "input": value1, "result": tmp2 };
+//│                 set tmp3 = matcher1$(value1);
+//│                 set tmp2 = { "input": value1, "result": tmp3 };
 //│                 end
 //│               else
-//│                 let tmp2, tmp3, tmp4;
-//│                 set tmp2 = new runtime⁰.MatchFailure⁰("empty");
+//│                 let tmp3, tmp4, tmp5;
 //│                 set tmp3 = new runtime⁰.MatchFailure⁰("empty");
-//│                 set tmp4 = { "p_1": tmp2, "p_2": tmp3 };
-//│                 set tmp = { "input": null, "result": tmp4 };
+//│                 set tmp4 = new runtime⁰.MatchFailure⁰("empty");
+//│                 set tmp5 = { "p_1": tmp3, "p_2": tmp4 };
+//│                 set tmp2 = { "input": null, "result": tmp5 };
 //│                 end
 //│             end
 //│           else
-//│             let tmp2, tmp3, tmp4;
-//│             set tmp2 = new runtime⁰.MatchFailure⁰("empty");
+//│             let tmp3, tmp4, tmp5;
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("empty");
-//│             set tmp4 = { "p_1": tmp2, "p_2": tmp3 };
-//│             set tmp = { "input": null, "result": tmp4 };
+//│             set tmp4 = new runtime⁰.MatchFailure⁰("empty");
+//│             set tmp5 = { "p_1": tmp3, "p_2": tmp4 };
+//│             set tmp2 = { "input": null, "result": tmp5 };
 //│             end
-//│         set value = tmp;
+//│         let p_0$, transform, result1$, transform1, result2$, tmp3, lambda3;
+//│         set value = tmp2;
 //│         @private
 //│         define lambda3 as fun lambda⁰(args) {
 //│           let res;
@@ -128,14 +129,14 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│         set result1$ = value.result﹖.p_1﹖;
 //│         match result1$
 //│           MatchSuccess⁰ =>
-//│             let output1$, fieldBindings, bindings, transformResult, bindings1, tmp2;
+//│             let output1$, fieldBindings, bindings, transformResult, bindings1, tmp4;
 //│             set output1$ = result1$.output⁰;
 //│             set bindings = result1$.bindings⁰;
 //│             set fieldBindings = { "res": output1$ };
-//│             set tmp2 = { ...fieldBindings, ...bindings };
-//│             set transformResult = transform(tmp2);
+//│             set tmp4 = { ...fieldBindings, ...bindings };
+//│             set transformResult = transform(tmp4);
 //│             set bindings1 = null;
-//│             set tmp1 = new runtime⁰.MatchSuccess⁰(transformResult, bindings1);
+//│             set tmp3 = new runtime⁰.MatchSuccess⁰(transformResult, bindings1);
 //│             end
 //│           else
 //│             let lambda4;
@@ -149,55 +150,59 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│             set result2$ = value.result﹖.p_2﹖;
 //│             match result2$
 //│               MatchSuccess⁰ =>
-//│                 let output2$, fieldBindings, bindings, transformResult, bindings1, tmp2;
+//│                 let output2$, fieldBindings, bindings, transformResult, bindings1, tmp4;
 //│                 set output2$ = result2$.output⁰;
 //│                 set bindings = result2$.bindings⁰;
 //│                 set fieldBindings = { "res": output2$ };
-//│                 set tmp2 = { ...fieldBindings, ...bindings };
-//│                 set transformResult = transform1(tmp2);
+//│                 set tmp4 = { ...fieldBindings, ...bindings };
+//│                 set transformResult = transform1(tmp4);
 //│                 set bindings1 = null;
-//│                 set tmp1 = new runtime⁰.MatchSuccess⁰(transformResult, bindings1);
+//│                 set tmp3 = new runtime⁰.MatchSuccess⁰(transformResult, bindings1);
 //│                 end
 //│               else
-//│                 set tmp1 = new runtime⁰.MatchFailure⁰("topmost");
+//│                 set tmp3 = new runtime⁰.MatchFailure⁰("topmost");
 //│                 end
 //│             end
-//│         set p_0$ = tmp1;
-//│         return p_0$
+//│         set p_0$ = tmp3;
+//│         set tmp1 = p_0$;
+//│         return tmp1
 //│       else
-//│         let p_0$, tmp;
-//│         set tmp = new runtime⁰.MatchFailure⁰("never");
-//│         set p_0$ = tmp;
-//│         return p_0$
+//│         let p_0$, tmp2;
+//│         set tmp2 = new runtime⁰.MatchFailure⁰("never");
+//│         set p_0$ = tmp2;
+//│         set tmp1 = p_0$;
+//│         return tmp1
 //│     end
 //│   };
 //│   set matcher__BiasedOr2$ = lambda²;
 //│   define lambda1 as fun lambda⁶(input) {
+//│     let tmp1;
 //│     match input
 //│       Some⁰ =>
-//│         let value, p_1$, transform, result3$, p_2$, transform1, transformResult, bindings, tmp, tmp1, tmp2, tmp3, lambda3, lambda4;
+//│         let value, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let value1;
 //│             match input
 //│               { value } =>
-//│                 let tmp4;
+//│                 let tmp3;
 //│                 set value1 = input.value﹖;
-//│                 set tmp4 = matcher2$(value1);
-//│                 set tmp = { "input": value1, "result": tmp4 };
+//│                 set tmp3 = matcher2$(value1);
+//│                 set tmp2 = { "input": value1, "result": tmp3 };
 //│                 end
 //│               else
-//│                 let tmp4;
-//│                 set tmp4 = new runtime⁰.MatchFailure⁰("empty");
-//│                 set tmp = { "input": null, "result": tmp4 };
+//│                 let tmp3;
+//│                 set tmp3 = new runtime⁰.MatchFailure⁰("empty");
+//│                 set tmp2 = { "input": null, "result": tmp3 };
 //│                 end
 //│             end
 //│           else
-//│             let tmp4;
-//│             set tmp4 = new runtime⁰.MatchFailure⁰("empty");
-//│             set tmp = { "input": null, "result": tmp4 };
+//│             let tmp3;
+//│             set tmp3 = new runtime⁰.MatchFailure⁰("empty");
+//│             set tmp2 = { "input": null, "result": tmp3 };
 //│             end
-//│         set value = tmp;
+//│         let p_1$, transform, result3$, tmp3, lambda3;
+//│         set value = tmp2;
 //│         @private
 //│         define lambda3 as fun lambda³(args) {
 //│           let x1;
@@ -208,19 +213,20 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│         set result3$ = value.result﹖;
 //│         match result3$
 //│           MatchSuccess⁰ =>
-//│             let output3$, fieldBindings, bindings1, transformResult1, bindings2, tmp4;
+//│             let output3$, fieldBindings, bindings, transformResult, bindings1, tmp4;
 //│             set output3$ = result3$.output⁰;
-//│             set bindings1 = result3$.bindings⁰;
+//│             set bindings = result3$.bindings⁰;
 //│             set fieldBindings = { "x": output3$ };
-//│             set tmp4 = { ...fieldBindings, ...bindings1 };
-//│             set transformResult1 = transform(tmp4);
-//│             set bindings2 = { "res": transformResult1 };
-//│             set tmp1 = new runtime⁰.MatchSuccess⁰(transformResult1, bindings2);
+//│             set tmp4 = { ...fieldBindings, ...bindings };
+//│             set transformResult = transform(tmp4);
+//│             set bindings1 = { "res": transformResult };
+//│             set tmp3 = new runtime⁰.MatchSuccess⁰(transformResult, bindings1);
 //│             end
 //│           else
-//│             set tmp1 = new runtime⁰.MatchFailure⁰("topmost");
+//│             set tmp3 = new runtime⁰.MatchFailure⁰("topmost");
 //│             end
-//│         set p_1$ = tmp1;
+//│         let p_2$, transform1, transformResult, bindings, tmp4, tmp5, lambda4;
+//│         set p_1$ = tmp3;
 //│         @private
 //│         define lambda4 as fun lambda⁴(args) {
 //│           let x1;
@@ -228,16 +234,17 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│           return +⁰(x1, 2)
 //│         };
 //│         set transform1 = lambda⁴;
-//│         set tmp2 = { "x": input };
-//│         set transformResult = transform1(tmp2);
+//│         set tmp4 = { "x": input };
+//│         set transformResult = transform1(tmp4);
 //│         set bindings = { "res": transformResult };
-//│         set tmp3 = new runtime⁰.MatchSuccess⁰(transformResult, bindings);
-//│         set p_2$ = tmp3;
-//│         return { "p_1": p_1$, "p_2": p_2$ }
+//│         set tmp5 = new runtime⁰.MatchSuccess⁰(transformResult, bindings);
+//│         set p_2$ = tmp5;
+//│         set tmp1 = { "p_1": p_1$, "p_2": p_2$ };
+//│         return tmp1
 //│       else
-//│         let p_1$, p_2$, transform, transformResult, bindings, tmp, tmp1, tmp2, lambda3;
-//│         set tmp = new runtime⁰.MatchFailure⁰("never");
-//│         set p_1$ = tmp;
+//│         let p_1$, p_2$, transform, transformResult, bindings, tmp2, tmp3, tmp4, lambda3;
+//│         set tmp2 = new runtime⁰.MatchFailure⁰("never");
+//│         set p_1$ = tmp2;
 //│         @private
 //│         define lambda3 as fun lambda⁵(args) {
 //│           let x1;
@@ -245,21 +252,24 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│           return +⁰(x1, 2)
 //│         };
 //│         set transform = lambda⁵;
-//│         set tmp1 = { "x": input };
-//│         set transformResult = transform(tmp1);
+//│         set tmp3 = { "x": input };
+//│         set transformResult = transform(tmp3);
 //│         set bindings = { "res": transformResult };
-//│         set tmp2 = new runtime⁰.MatchSuccess⁰(transformResult, bindings);
-//│         set p_2$ = tmp2;
-//│         return { "p_1": p_1$, "p_2": p_2$ }
+//│         set tmp4 = new runtime⁰.MatchSuccess⁰(transformResult, bindings);
+//│         set p_2$ = tmp4;
+//│         set tmp1 = { "p_1": p_1$, "p_2": p_2$ };
+//│         return tmp1
 //│     end
 //│   };
 //│   set matcher1$ = lambda⁶;
+//│   @private
 //│   define lambda2 as fun lambda⁷(input) {
-//│     let p_3$, tmp, tmp1;
-//│     set tmp = { "x": input };
-//│     set tmp1 = new runtime⁰.MatchSuccess⁰(input, tmp);
-//│     set p_3$ = tmp1;
-//│     return p_3$
+//│     let p_3$, tmp1, tmp2, tmp3;
+//│     set tmp1 = { "x": input };
+//│     set tmp2 = new runtime⁰.MatchSuccess⁰(input, tmp1);
+//│     set p_3$ = tmp2;
+//│     set tmp3 = p_3$;
+//│     return tmp3
 //│   };
 //│   set matcher2$ = lambda⁷;
 //│   set matchRecord = matcher__BiasedOr2$(x);
@@ -269,7 +279,8 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│       set patternOutput = matchRecord.output⁰;
 //│       set bindings = matchRecord.bindings⁰;
 //│       set output = patternOutput;
-//│       return output
+//│       set tmp = output;
+//│       return tmp
 //│     else
 //│       throw new globalThis⁰.Error⁰("match error")
 //│   end

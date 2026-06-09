@@ -1,7 +1,7 @@
 package hkmc2
 package codegen
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import hkmc2.utils.*
 
 import semantics.*
@@ -213,7 +213,7 @@ class BlockTransformer(subst: SymbolSubst):
     case sym: BlockMemberSymbol => sym.subst
   
   def applyAssignLhs(sym: Assignable): Assignable = sym match
-    case sym: NoSymbol => sym
+    case NoSymbol => NoSymbol
     case sym: TempSymbol => sym.subst
     case sym: VarSymbol => sym.subst
   

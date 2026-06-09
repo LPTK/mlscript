@@ -32,6 +32,7 @@ if a is
 //│   return 4
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│ /* Rest moved to non-abortive branch(es) */
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -53,6 +54,7 @@ if a is
 //│   return 3
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│ /* Rest moved to non-abortive branch(es) */
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -72,12 +74,14 @@ if a is
 //│     return 2
 //│   }
 //│   throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│   /* Rest moved to non-abortive branch(es) */
 //│ } else if (a instanceof B1.class) {
 //│   return 2
 //│ } else if (a instanceof C1.class) {
 //│   return 3
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│ /* Rest moved to non-abortive branch(es) */
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
 
@@ -143,6 +147,7 @@ if a is
 //│   return 4
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│ /* Rest moved to non-abortive branch(es) */
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -167,6 +172,8 @@ if a is
 //│   return 5
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│ /* Rest moved to non-abortive branch(es) */
+//│ /* Rest moved to non-abortive branch(es) */
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -190,6 +197,7 @@ if a is
 //│   return Predef.print(3)
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
+//│ /* Rest moved to non-abortive branch(es) */
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -212,7 +220,7 @@ if a is
 //│   return 1
 //│ }
 //│ {
-//│   let tmp1, tmp2, tmp3;
+//│   let tmp1;
 //│   if (a instanceof A1.class) {
 //│     tmp1 = 2;
 //│   } else if (a instanceof C1.class) {
@@ -220,12 +228,16 @@ if a is
 //│   } else {
 //│     throw globalThis.Object.freeze(new globalThis.Error("match error"))
 //│   }
-//│   Predef.print(tmp1);
-//│   tmp2 = tmp1 + 1;
-//│   Predef.print(tmp2);
-//│   tmp3 = tmp1 + 2;
-//│   return Predef.print(tmp3);
+//│   {
+//│     let tmp2, tmp3;
+//│     Predef.print(tmp1);
+//│     tmp2 = tmp1 + 1;
+//│     Predef.print(tmp2);
+//│     tmp3 = tmp1 + 2;
+//│     return Predef.print(tmp3);
+//│   }
 //│ }
+//│ /* Rest moved to non-abortive branch(es) */
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 2
 //│ > 3
@@ -244,7 +256,6 @@ fun f(x) =
     print("hi")
     acc
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let f⁰;
 //│ define f⁰ as fun f¹(x) {
 //│   match x
 //│     5 =>
@@ -259,7 +270,7 @@ fun f(x) =
 //│           end
 //│       do Predef⁰.print⁰("hi");
 //│       return ""
-//│   end
+//│   end /* (Unreachable:) rest of abortive match */
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

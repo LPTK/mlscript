@@ -12,9 +12,9 @@ while true and false do print(1) else print(2)
 () =>
 while true and true and false do print(1) else print(2)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let lambda⁰;
+//│ let lambda;
 //│ @private
-//│ define lambda⁰ as fun lambda¹() {
+//│ define lambda as fun lambda⁰() {
 //│   loop lbl:
 //│     let scrut, tmp;
 //│     set scrut = true;
@@ -46,7 +46,7 @@ while true and true and false do print(1) else print(2)
 //│     continue lbl
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ return lambda¹
+//│ return lambda⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun
 
@@ -68,9 +68,9 @@ while x > 0 and x ===
   3 do print("B")
   4 do print("B")
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let lambda²;
+//│ let lambda;
 //│ @private
-//│ define lambda² as fun lambda³(x) {
+//│ define lambda as fun lambda¹(x) {
 //│   loop lbl:
 //│     let scrut;
 //│     set scrut = >⁰(x, 0);
@@ -111,7 +111,7 @@ while x > 0 and x ===
 //│     end
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ return lambda³
+//│ return lambda¹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun
 
@@ -121,9 +121,9 @@ while x > 0 and x ===
   1 and false and false do print("A")
   2 and false do print("B")
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let lambda⁴;
+//│ let lambda;
 //│ @private
-//│ define lambda⁴ as fun lambda⁵(x) {
+//│ define lambda as fun lambda²(x) {
 //│   loop lbl:
 //│     let scrut;
 //│     set scrut = >⁰(x, 0);
@@ -175,7 +175,7 @@ while x > 0 and x ===
 //│     end
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ return lambda⁵
+//│ return lambda²
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun
 
