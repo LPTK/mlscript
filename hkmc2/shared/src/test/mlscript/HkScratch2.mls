@@ -1,0 +1,83 @@
+:js
+// :de
+// :sjs
+// :pt
+// :elt
+
+:global
+// :d
+// :todo
+
+
+
+// :lot
+:sir
+fun f(x) =
+  let y = if x() is
+    1 then 3
+    2 then 4
+  let z = y + 1 + 2 + 3 + 4 + 5
+  z + 5 + 5
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define f⁰ as fun f¹(x) {
+//│   let y, scrut, tmp;
+//│   set scrut = x();
+//│   match scrut
+//│     1 =>
+//│       set tmp = 3;
+//│       end
+//│     2 =>
+//│       set tmp = 4;
+//│       end
+//│     else
+//│       throw new globalThis⁰.Error⁰("match error")
+//│   let z, tmp1, tmp2, tmp3, tmp4, tmp5;
+//│   set y = tmp;
+//│   set tmp1 = +⁰(y, 1);
+//│   set tmp2 = +⁰(tmp1, 2);
+//│   set tmp3 = +⁰(tmp2, 3);
+//│   set tmp4 = +⁰(tmp3, 4);
+//│   set z = +⁰(tmp4, 5);
+//│   set tmp5 = +⁰(z, 5);
+//│   return +⁰(tmp5, 5)
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+// :lot
+:sir
+fun f(x) =
+  let y = if x is
+    1 then 3
+    2 then 4
+  let z = y + 1 + 2 + 3 + 4 + 5
+  z + 5 + 5
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define f² as fun f³(x) {
+//│   let y, tmp;
+//│   match x
+//│     1 =>
+//│       set tmp = 3;
+//│       end
+//│     2 =>
+//│       set tmp = 4;
+//│       end
+//│     else
+//│       throw new globalThis⁰.Error⁰("match error")
+//│   let z, tmp1, tmp2, tmp3, tmp4, tmp5;
+//│   set y = tmp;
+//│   set tmp1 = +⁰(y, 1);
+//│   set tmp2 = +⁰(tmp1, 2);
+//│   set tmp3 = +⁰(tmp2, 3);
+//│   set tmp4 = +⁰(tmp3, 4);
+//│   set z = +⁰(tmp4, 5);
+//│   set tmp5 = +⁰(z, 5);
+//│   return +⁰(tmp5, 5)
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+
+
