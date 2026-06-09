@@ -9,9 +9,9 @@ sum(20000)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
 //│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
-//│     at new Capture$scope4 (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Predef.mjs:83:14)
-//│     at Predef.equals (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Predef.mjs:235:18)
-//│     at sum_impl (REPL13:1:172)
+//│     at sum_impl (REPL13:1:53)
+//│     at sum_impl (REPL13:1:319)
+//│     at sum_impl (REPL13:1:319)
 //│     at sum_impl (REPL13:1:319)
 //│     at sum_impl (REPL13:1:319)
 //│     at sum_impl (REPL13:1:319)
@@ -79,7 +79,6 @@ f(10000, 20000, 0)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
 //│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
-//│     at Runtime.checkArgs (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:744:19)
 //│     at g (REPL16:1:868)
 //│     at g_f (REPL16:1:540)
 //│     at g (REPL16:1:938)
@@ -89,6 +88,7 @@ f(10000, 20000, 0)
 //│     at g (REPL16:1:938)
 //│     at g_f (REPL16:1:540)
 //│     at g (REPL16:1:938)
+//│     at g_f (REPL16:1:540)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:316)
 //│ ═══[RUNTIME ERROR] Expected: '50000', got: 'undefined'
@@ -134,7 +134,7 @@ A.sum(20000)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
 //│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
-//│     at A.sum_impl (REPL19:1:118)
+//│     at A.sum_impl (REPL19:1:95)
 //│     at A.sum_impl (REPL19:1:385)
 //│     at A.sum_impl (REPL19:1:385)
 //│     at A.sum_impl (REPL19:1:385)
@@ -166,9 +166,9 @@ sumOf(x, n - 1, 0)
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
 //│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
-//│     at Runtime.checkArgs (file:///Users/parreaux/work/Research/code/mlscript-forks/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:744:19)
-//│     at sumOf (REPL22:1:196)
-//│     at sumOf (REPL22:1:496)
+//│     at Runtime.checkArgs (file:///Users/parreaux/work/Research/experiments/hkmc2/hkmc2/shared/src/test/mlscript-compile/Runtime.mjs:744:19)
+//│     at lambda (REPL22:1:90)
+//│     at sumOf (REPL22:1:439)
 //│     at sumOf (REPL22:1:496)
 //│     at sumOf (REPL22:1:496)
 //│     at sumOf (REPL22:1:496)

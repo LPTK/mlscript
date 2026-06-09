@@ -1,0 +1,73 @@
+:js
+
+
+:fixme // FIXME: reject with clean compilation error
+:sir
+fun main =
+  let g() = f(42)
+  let x = if maybe then if maybe then 0 else 1 else 2
+  print("hello")
+  let h(z) = f(z + 1)
+  fun f(y) = h(x + y)
+  g
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define main⁰ as fun main¹() {
+//│   let f, g, x, scrut, tmp, g1;
+//│   define f as fun f⁰(y) {
+//│     let tmp1;
+//│     set tmp1 = +⁰(x, y);
+//│     return h⁰(tmp1)
+//│   };
+//│   @private
+//│   define g1 as fun g⁰() {
+//│     return f⁰(42)
+//│   };
+//│   set g = g⁰;
+//│   set scrut = Predef⁰.maybe⁰;
+//│   match scrut
+//│     true =>
+//│       let scrut1, tmp1;
+//│       set scrut1 = Predef⁰.maybe⁰;
+//│       match scrut1
+//│         true =>
+//│           set tmp1 = 0;
+//│           end
+//│         else
+//│           set tmp1 = 1;
+//│           end
+//│       set tmp = tmp1;
+//│       end
+//│     else
+//│       set tmp = 2;
+//│       end
+//│   let h, h1;
+//│   set x = tmp;
+//│   do Predef⁰.print⁰("hello");
+//│   @private
+//│   define h1 as fun h¹(z) {
+//│     let tmp1;
+//│     set tmp1 = +⁰(z, 1);
+//│     return f⁰(tmp1)
+//│   };
+//│   set h = h¹;
+//│   return g
+//│ };
+//│ end
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'h'
+//│ ║  l.11: 	  fun f(y) = h(x + y)
+//│ ║        	             ^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.10: 	  let h(z) = f(z + 1)
+//│ ╙──      	      ^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:fixme
+main()
+//│ > hello
+//│ ═══[RUNTIME ERROR] ReferenceError: h is not defined
+
+
+
+
+
+
