@@ -232,6 +232,18 @@ fun getOrElse(m, k, d) =
   if m is
     Empty then d
     Pair(k', v, r) then (if k == k' then v else getOrElse(r, k, d))
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:getOrElse for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 let incMap1 = newMap(1, 2)
 incMap1
@@ -242,7 +254,12 @@ incMap2
 //│ Type: MyMap[in ⊤ out Int, in ⊤ out Int]
 
 getOrElse(incMap2, 3, 4)
-//│ Type: Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: getOrElse
+//│ ║  l.256: 	getOrElse(incMap2, 3, 4)
+//│ ╙──       	^^^^^^^^^
+//│ Type: ⊥
 
 
 fun toString: Any -> Str
@@ -258,6 +275,18 @@ fun print(e) =
     Lam(f) then
       let v = Var("arg") in concat(print(v), concat(" => ", print(f(v))))
     App(f, a) then concat(print(f), concat(" ", print(a)))
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:print for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 let p = Lam(x => Add(x, Lit(1)))
 p
@@ -269,7 +298,17 @@ a
 
 print(p)
 print(a)
-//│ Type: Str
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: print
+//│ ║  l.299: 	print(p)
+//│ ╙──       	^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: print
+//│ ║  l.300: 	print(a)
+//│ ╙──       	^^^^^
+//│ Type: ⊥
 
 
 :e
@@ -279,7 +318,7 @@ fun foo(x) =
     None then 0
     42 then 42
 //│ ╔══[COMPILATION ERROR] Mixing ADT pattern matching and general matching is not supported yet.
-//│ ║  l.280: 	    42 then 42
+//│ ║  l.319: 	    42 then 42
 //│ ╙──       	    ^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] Variable not found: arg$Some$0$
 

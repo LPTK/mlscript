@@ -11,8 +11,28 @@ f(2)
 
 :sjs
 let f = foo(1, _, _)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = f⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res3, tmp:block$res -> block$res, member:foo -> foo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res1, f -> f, member:f -> f1, tmp:block$res -> block$res2)
+//│     bindings = HashMap(member:f -> f2)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.13: 	let f = foo(1, _, _)
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f2, f3; f3 = function f(_0, _1) { return globalThis.Object.freeze([ 1, _0, _1 ]) }; f2 = f3;
+//│ let f2; f2 = function f(_0, _1) { return globalThis.Object.freeze([ 1, _0, _1 ]) }; f = f2;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = fun f
 
@@ -79,8 +99,28 @@ h(1)
 
 :sjs
 let i = _(0, 1, _)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = i⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res3, f -> f2, tmp:block$res -> block$res12, f -> f4, member:f -> f5, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:f -> f3, tmp:block$res -> block$res13, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, f -> f6, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res4, member:lambda -> lambda1, tmp:block$res -> block$res14, tmp:block$res -> block$res5, f -> f7, g -> g, member:g -> g1, tmp:tmp -> tmp, member:f -> f8, tmp:block$res -> block$res6, tmp:block$res -> block$res7, tmp:block$res -> block$res15, f -> f9, tmp:tmp -> tmp1, member:lambda -> lambda, member:f -> f10, tmp:block$res -> block$res16, tmp:block$res -> block$res8, f -> f11, tmp:tmp -> tmp2, member:f -> f12, tmp:block$res -> block$res17, h -> h, member:h -> h1, tmp:block$res -> block$res18, tmp:block$res -> block$res19, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:foo2 -> foo2, tmp:block$res -> block$res11, tmp:block$res -> block$res, member:foo -> foo, tmp:block$res -> block$res1, f -> f, member:f -> f1, tmp:block$res -> block$res2)
+//│     bindings = HashMap(member:i -> i)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'i'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.101: 	let i = _(0, 1, _)
+//│ ╙──       	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let i, i1; i1 = function i(_0, _1) { return runtime.safeCall(_0(0, 1, _1)) }; i = i1;
+//│ let i; i = function i(_0, _1) { return runtime.safeCall(_0(0, 1, _1)) }; i = i;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ i = fun i
 
@@ -201,7 +241,7 @@ _ - _ of 1, 2
 :pe
 |> 1
 //│ ╔══[PARSE ERROR] Expected end of input; found literal instead
-//│ ║  l.202: 	|> 1
+//│ ║  l.242: 	|> 1
 //│ ╙──       	   ^
 //│ = fun pipeInto
 
@@ -209,7 +249,7 @@ _ - _ of 1, 2
 :re
 |> (1)
 //│ ╔══[COMPILATION ERROR] Expected 2 arguments, got 1
-//│ ║  l.210: 	|> (1)
+//│ ║  l.250: 	|> (1)
 //│ ╙──       	   ^^^
 //│ ═══[RUNTIME ERROR] TypeError: f is not a function
 
@@ -251,13 +291,33 @@ _ - _ of 1, 2
 :w
 let f = if _ then 1 else 0
 //│ ╔══[WARNING] This catch-all clause makes the following branches unreachable.
-//│ ║  l.252: 	let f = if _ then 1 else 0
+//│ ║  l.292: 	let f = if _ then 1 else 0
 //│ ║         	             ^^^^^^
 //│ ╟── This branch is unreachable.
-//│ ║  l.252: 	let f = if _ then 1 else 0
+//│ ║  l.292: 	let f = if _ then 1 else 0
 //│ ╙──       	                    ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = f¹
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res3, f -> f2, member:lambda -> lambda6, member:lambda -> lambda19, member:lambda -> lambda7, tmp:tmp -> tmp13, tmp:tmp -> tmp3, tmp:block$res -> block$res44, tmp:runtime -> runtime, tmp:block$res -> block$res27, tmp:definitionMetadata -> definitionMetadata, member:f -> f3, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res4, tmp:block$res -> block$res5, member:lambda -> lambda8, g -> g, tmp:block$res -> block$res28, member:lambda -> lambda20, member:g -> g1, tmp:tmp -> tmp14, tmp:block$res -> block$res6, member:lambda -> lambda21, tmp:tmp -> tmp15, tmp:block$res -> block$res7, member:lambda -> lambda22, tmp:block$res -> block$res45, member:lambda -> lambda, member:lambda -> lambda23, tmp:block$res -> block$res29, tmp:tmp -> tmp16, tmp:block$res -> block$res46, tmp:block$res -> block$res8, member:lambda -> lambda24, tmp:tmp -> tmp17, tmp:block$res -> block$res47, tmp:block$res -> block$res30, tmp:block$res -> block$res9, tmp:block$res -> block$res48, member:lambda -> lambda9, tmp:tmp -> tmp4, member:lambda -> lambda10, member:lambda -> lambda25, tmp:block$res -> block$res31, tmp:block$res -> block$res49, member:lambda -> lambda26, tmp:block$res -> block$res50, member:lambda -> lambda11, member:lambda -> lambda12, tmp:block$res -> block$res10, tmp:tmp -> tmp5, member:lambda -> lambda27, member:foo2 -> foo2, tmp:block$res -> block$res32, tmp:block$res -> block$res51, member:lambda -> lambda28, tmp:block$res -> block$res11, tmp:block$res -> block$res52, member:lambda -> lambda13, member:lambda -> lambda14, tmp:block$res -> block$res53, tmp:tmp -> tmp6, tmp:block$res -> block$res33, tmp:block$res -> block$res54, member:lambda -> lambda29, tmp:rcd -> rcd, tmp:block$res -> block$res55, tmp:selRes -> selRes, tmp:block$res -> block$res34, member:lambda -> lambda30, tmp:block$res -> block$res56, tmp:rcd -> rcd1, tmp:block$res -> block$res12, member:lambda -> lambda31, f -> f4, tmp:block$res -> block$res57, member:f -> f5, tmp:block$res -> block$res35, member:Predef -> Predef, tmp:block$res -> block$res13, member:lambda -> lambda32, f -> f6, tmp:block$res -> block$res58, x -> x, tmp:tmp -> tmp7, member:lambda -> lambda1, tmp:block$res -> block$res14, f -> f7, member:lambda -> lambda33, tmp:block$res -> block$res36, tmp:block$res -> block$res59, tmp:tmp -> tmp, member:f -> f8, tmp:block$res -> block$res15, x -> x1, member:lambda -> lambda34, tmp:tmp -> tmp8, f -> f9, tmp:block$res -> block$res60, tmp:tmp -> tmp1, member:f -> f10, tmp:block$res -> block$res37, tmp:block$res -> block$res16, f -> f11, tmp:tmp -> tmp2, member:f -> f12, y -> y, x -> x2, tmp:block$res -> block$res17, tmp:tmp -> tmp9, h -> h, member:h -> h1, tmp:selRes -> selRes1, tmp:block$res -> block$res18, tmp:block$res -> block$res38, member:C -> C1, tmp:block$res -> block$res19, class:C -> C, i -> i, member:i -> i1, tmp:block$res -> block$res20, tmp:block$res -> block$res39, tmp:block$res -> block$res21, tmp:callPrefix -> callPrefix, tmp:block$res -> block$res22, member:lambda -> lambda15, tmp:block$res -> block$res40, member:lambda -> lambda2, tmp:block$res -> block$res23, member:lambda -> lambda16, tmp:tmp -> tmp10, tmp:block$res -> block$res41, tmp:block$res -> block$res, member:foo -> foo, member:lambda -> lambda3, tmp:block$res -> block$res24, member:lambda -> lambda17, tmp:block$res -> block$res1, member:lambda -> lambda4, tmp:tmp -> tmp11, f -> f, tmp:block$res -> block$res42, tmp:block$res -> block$res25, member:f -> f1, member:lambda -> lambda5, member:lambda -> lambda18, tmp:block$res -> block$res2, tmp:block$res -> block$res26, tmp:tmp -> tmp12, tmp:block$res -> block$res43)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.292: 	let f = if _ then 1 else 0
+//│ ╙──       	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f13; f13 = 1;
+//│ f = 1;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = 1
 

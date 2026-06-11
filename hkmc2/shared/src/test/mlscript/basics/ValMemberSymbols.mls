@@ -6,7 +6,7 @@
 :sir
 class A(val x)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define A⁰ as class A² { val x⁰; constructor A¹(x) { define x⁰ as val x¹ = x; end } }; end
+//│ define A⁰ as class A² { val x⁰; constructor A¹(x) { let x1; define x1 as val x¹ = x; end } }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 let a = A(1)
@@ -66,7 +66,7 @@ case A(x) then x
 :sir
 class A()(val x)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define A³ as class A⁵ { val x²; constructor A⁴(x) { define x² as val x³ = x; end } }; end
+//│ define A³ as class A⁵ { val x²; constructor A⁴(x) { let x1; define x1 as val x³ = x; end } }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 let a = A()(1)
@@ -135,9 +135,10 @@ fun foo(x, y) =
 //│   val u⁰;
 //│   val v⁰;
 //│   constructor A⁶(u, y) {
+//│     let v, u1;
 //│     set A⁷.this.y⁰ = y;
-//│     define u⁰ as val u¹ = u;
-//│     define v⁰ as val v¹ = A⁷.this.y⁰;
+//│     define u1 as val u¹ = u;
+//│     define v as val v¹ = A⁷.this.y⁰;
 //│     end
 //│   }
 //│ };

@@ -1,8 +1,81 @@
 :js
 
 
-// :fixme // FIXME: reject with clean compilation error
-:ssjs
+// TODO: reject with compilation error, as such code violates the IR's local-Define invariant
+//  (the `val`'s Define node is placed in a Match's rest continuation)
+:sir
+fun main =
+  let x = if maybe then 0 else 1
+  let tmp = print("hello")
+  val y = tmp
+  y
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define main⁰ as fun main¹() {
+//│   let y, x, scrut, tmp, tmp1;
+//│   set scrut = Predef⁰.maybe⁰;
+//│   match scrut
+//│     true =>
+//│       set tmp1 = 0;
+//│       end
+//│     else
+//│       set tmp1 = 1;
+//│       end
+//│   set x = tmp1;
+//│   set tmp = Predef⁰.print⁰("hello");
+//│   define y as val y⁰ = tmp;
+//│   return y⁰
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+// TODO: reject as well
+:sir
+fun main =
+  let g() = get
+  let x = if maybe then if maybe then 0 else 1 else 2
+  let tmp = print("hello")
+  fun get = y
+  val y = tmp
+  g
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define main² as fun main³() {
+//│   let get, y, g, x, scrut, tmp, tmp1, g1;
+//│   define get as fun get⁰() {
+//│     return y¹
+//│   };
+//│   @private
+//│   define g1 as fun g⁰() {
+//│     return get⁰()
+//│   };
+//│   set g = g⁰;
+//│   set scrut = Predef⁰.maybe⁰;
+//│   match scrut
+//│     true =>
+//│       let scrut1, tmp2;
+//│       set scrut1 = Predef⁰.maybe⁰;
+//│       match scrut1
+//│         true =>
+//│           set tmp2 = 0;
+//│           end
+//│         else
+//│           set tmp2 = 1;
+//│           end
+//│       set tmp1 = tmp2;
+//│       end
+//│     else
+//│       set tmp1 = 2;
+//│       end
+//│   set x = tmp1;
+//│   set tmp = Predef⁰.print⁰("hello");
+//│   define y as val y¹ = tmp;
+//│   return g
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+
+// TODO: move this test case to another file; these defs are good
 :sir
 fun main =
   let g() = f(42)
@@ -12,7 +85,7 @@ fun main =
   fun f(y) = h(x + y)
   g
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define main⁰ as fun main¹() {
+//│ define main⁴ as fun main⁵() {
 //│   let f, g, x, scrut, h, tmp, g1;
 //│   define f as fun f⁰(y) {
 //│     let tmp1;
@@ -20,10 +93,10 @@ fun main =
 //│     return h(tmp1)
 //│   };
 //│   @private
-//│   define g1 as fun g⁰() {
+//│   define g1 as fun g¹() {
 //│     return f⁰(42)
 //│   };
-//│   set g = g⁰;
+//│   set g = g¹;
 //│   set scrut = Predef⁰.maybe⁰;
 //│   match scrut
 //│     true =>
@@ -54,54 +127,12 @@ fun main =
 //│   return g
 //│ };
 //│ end
-//│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let main;
-//│ main = function main() {
-//│   runtime.checkArgs("main", 0, true, arguments.length);
-//│   let x, scrut, h, tmp, g;
-//│   g = function g() {
-//│     runtime.checkArgs("g", 0, true, arguments.length);
-//│     let tmp1;
-//│     tmp1 = x + 42;
-//│     return runtime.safeCall(h(tmp1))
-//│   };
-//│   scrut = Predef.maybe;
-//│   if (scrut === true) {
-//│     let scrut1, tmp1;
-//│     scrut1 = Predef.maybe;
-//│     if (scrut1 === true) {
-//│       tmp1 = 0;
-//│     } else {
-//│       tmp1 = 1;
-//│     }
-//│     tmp = tmp1;
-//│   } else {
-//│     tmp = 2;
-//│   }
-//│   {
-//│     let h1;
-//│     x = tmp;
-//│     runtime.checkCall(Predef.print("hello"));
-//│     const proxy$h = h; h1 = function h(z) {
-//│       runtime.checkArgs("h", 1, true, arguments.length);
-//│       let tmp1, tmp2;
-//│       tmp1 = z + 1;
-//│       tmp2 = x + tmp1;
-//│       return runtime.safeCall(proxy$h(tmp2))
-//│     };
-//│     h = h1;
-//│     return g
-//│   }
-//│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
-:fixme
+:re
 main()
 //│ > hello
-//│ ═══[RUNTIME ERROR] TypeError: proxy$h is not a function
-
-
-
+//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
 
 
 

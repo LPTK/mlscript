@@ -205,5 +205,16 @@ evalInst(compileAExp(IfThenElse(True, Cst(1), Cst(2))), Nil)
 evalInst(compileAExp(IfThenElse(Neq(Cst(1), Cst(2)), Cst(42), Cst(21))), Nil)
 evalInst(compileAExp(IfThenElse(Eq(Cst(1), Cst(2)), Cst(42), Times(Cst(21), Cst(82)))), Nil)
 
-//│ Type: Int
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:seq for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:67)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
 //│ ————————————————————————————————————————————————————————————————————————————————

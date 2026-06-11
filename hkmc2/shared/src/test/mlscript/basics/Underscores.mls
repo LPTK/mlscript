@@ -61,10 +61,28 @@ print(_)
 
 :sjs
 let test = _.f(0, _, 2)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = test⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(member:lambda -> lambda3, tmp:block$res -> block$res5, inc -> inc, member:inc -> inc1, tmp:block$res -> block$res6, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res7, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, member:lambda -> lambda4, tmp:block$res -> block$res8, f -> f, member:f -> f1, tmp:block$res -> block$res9, tmp:block$res -> block$res10, tmp:block$res -> block$res11, member:Iter -> Iter, tmp:block$res -> block$res, tmp:tmp -> tmp, member:lambda -> lambda5, tmp:block$res -> block$res12, member:lambda -> lambda, tmp:block$res -> block$res1, member:lambda -> lambda6, member:lambda -> lambda1, tmp:block$res -> block$res13, tmp:block$res -> block$res2, y -> y, tmp:block$res -> block$res3, member:lambda -> lambda2, tmp:block$res -> block$res4)
+//│     bindings = HashMap(member:test -> test)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'test'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.63: 	let test = _.f(0, _, 2)
+//│ ╙──      	    ^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let test, test1;
-//│ test1 = function test(_0, _1) { return runtime.safeCall(_0.f(0, _1, 2)) };
-//│ test = test1;
+//│ let test; test = function test(_0, _1) { return runtime.safeCall(_0.f(0, _1, 2)) }; test = test;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ test = fun test
 
@@ -139,7 +157,7 @@ mkObj(1, 2)
 :re
 let mkObj = x: _, y: _, z: 3
 //│ ╔══[COMPILATION ERROR] Illegal position for '_' placeholder.
-//│ ║  l.140: 	let mkObj = x: _, y: _, z: 3
+//│ ║  l.158: 	let mkObj = x: _, y: _, z: 3
 //│ ╙──       	                     ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ mkObj = fun mkObj

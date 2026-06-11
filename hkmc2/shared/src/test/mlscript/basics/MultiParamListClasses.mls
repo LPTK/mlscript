@@ -84,9 +84,29 @@ Foo(1, 2)
 
 :sjs
 let f = Foo // should compile to `(x, y) => Foo(x, y)(use[Int])`
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = f⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res4, tmp:baseCall -> baseCall, tmp:block$res -> block$res5, member:lambda -> lambda, tmp:block$res -> block$res6, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res7, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:baseInst -> baseInst, tmp:Block -> Block, tmp:block$res -> block$res8, tmp:option -> option, tmp:block$res -> block$res9, member:lambda -> lambda1, tmp:block$res -> block$res10, member:Foo -> Foo3, class:Foo -> Foo2, tmp:block$res -> block$res11, member:Foo -> Foo5, class:Foo -> Foo4, tmp:block$res -> block$res12, member:Foo -> Foo6, member:Foo0 -> Foo01, class:Foo0 -> Foo0, tmp:block$res -> block$res13, member:instance$Ident(Int) -> instance$Ident$_Int$_, tmp:block$res -> block$res14, z -> z, tmp:tmp -> tmp, member:lambda -> lambda2, tmp:block$res -> block$res15, member:Foo -> Foo7, member:Foo0 -> Foo03, class:Foo0 -> Foo02, tmp:block$res -> block$res16, x -> x, tmp:block$res -> block$res, y -> y, z -> z1, member:Foo -> Foo1, class:Foo -> Foo, tmp:tmp -> tmp1, member:lambda -> lambda3, tmp:block$res -> block$res17, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3)
+//│     bindings = HashMap(member:f -> f)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.86: 	let f = Foo // should compile to `(x, y) => Foo(x, y)(use[Int])`
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f, f1;
-//│ f1 = function f(x1, y1) {
+//│ let f;
+//│ f = function f(x1, y1) {
 //│   let x2, y2, z2, tmp2, lambda4;
 //│   x2 = x1;
 //│   y2 = y1;
@@ -100,7 +120,7 @@ let f = Foo // should compile to `(x, y) => Foo(x, y)(use[Int])`
 //│   });
 //│   return Predef.tap(tmp2, lambda4)
 //│ };
-//│ f = f1;
+//│ f = f;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = fun f
 

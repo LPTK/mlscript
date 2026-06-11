@@ -7,8 +7,28 @@
 
 
 let discard = drop _
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = discard⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│     bindings = HashMap(member:discard -> discard)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'discard'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.9: 	let discard = drop _
+//│ ╙──     	    ^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let discard, discard1; discard1 = function discard(_0) { return runtime.Unit }; discard = discard1;
+//│ let discard; discard = function discard(_0) { return runtime.Unit }; discard = discard;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ discard = fun discard
 

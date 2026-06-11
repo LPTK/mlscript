@@ -76,12 +76,33 @@ fun foo(r1) =
       wield(r1)
     )
 foo
-//│ Type: [outer, 'R] -> (Region['R]) ->{outer} ()
-//│ Where:
-//│   'R <: outer
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun foo': [outer] -> Region[outer] ->{outer} ()
 fun foo'(r) = foo(r)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo' for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun foo: [outer] -> Region[outer] ->{outer} ()
 fun foo(r1) =
@@ -90,7 +111,18 @@ fun foo(r1) =
       wield(r1)
     )
 foo
-//│ Type: [outer] -> (Region[outer]) ->{outer} ()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun foo: [outer, R extends outer] -> Region[R] ->{outer} ()
 fun foo'(r) = foo(r)
@@ -159,7 +191,7 @@ region r in
   region s in
     foo(r, s, (x, y) => (if rand() then x.ref 0 else y.ref 0))
 //│ ╔══[COMPILATION ERROR] Type error in function literal with expected type 'f
-//│ ║  l.160: 	    foo(r, s, (x, y) => (if rand() then x.ref 0 else y.ref 0))
+//│ ║  l.192: 	    foo(r, s, (x, y) => (if rand() then x.ref 0 else y.ref 0))
 //│ ║         	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── because: cannot constrain  ('x, 'y) ->{'reg ∨ 'reg1} (Ref[Int, in ⊥ out 'reg] ∨ Ref[Int, in ⊥ out 'reg1])  <:  'f
 //│ ╟── because: cannot constrain  ('x, 'y) ->{'reg ∨ 'reg1} (Ref[Int, in ⊥ out 'reg] ∨ Ref[Int, in ⊥ out 'reg1])  <:  ('r1, 'r2) ->{'eff} ('app)

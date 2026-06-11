@@ -3,8 +3,28 @@
 
 :sjs
 let t = [0, 1, 2]
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = t⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 't'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.5: 	let t = [0, 1, 2]
+//│ ╙──     	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let t; t = globalThis.Object.freeze([ 0, 1, 2 ]);
+//│ t = globalThis.Object.freeze([ 0, 1, 2 ]);
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ t = [0, 1, 2]
 
@@ -21,8 +41,28 @@ t
 
 :sjs
 let t = mut [0, 1, 2]
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = t¹
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res, t -> t, tmp:block$res -> block$res1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:block$res -> block$res2, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res3, tmp:block$res -> block$res4)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 't'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.43: 	let t = mut [0, 1, 2]
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let t1; t1 = [ 0, 1, 2 ];
+//│ t = [ 0, 1, 2 ];
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ t = [0, 1, 2]
 

@@ -70,8 +70,124 @@ in
   h.perform("4")
   h.perform("5")
 result
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = result⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(class:Handler$h$ -> Handler$h$8, tmp:tmp -> tmp6, member:Handler$h$perform -> Handler$h$perform, member:lambda -> lambda, member:handleBlock$ -> handleBlock$6, member:Handler$h$ -> Handler$h$1, member:Handler$h$perform -> Handler$h$perform4, member:Handler$h$ -> Handler$h$13, tmp:runtime -> runtime, tmp:tmp -> tmp4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:handleBlock$ -> handleBlock$4, member:Handler$h$perform$ -> Handler$h$perform$3, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res2, tmp:option -> option, h -> h1, member:Handler$h$ -> Handler$h$9, class:Handler$h$ -> Handler$h$2, member:Handler$h$perform$ -> Handler$h$perform$1, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$1, member:Handler$h$perform -> Handler$h$perform1, member:Handler$h$ -> Handler$h$3, tmp:block$res -> block$res6, member:foo -> foo, tmp:block$res -> block$res9, tmp:block$res -> block$res3, h -> h5, class:Handler$h$ -> Handler$h$10, h -> h2, class:Handler$h$ -> Handler$h$4, tmp:tmp -> tmp5, tmp:tmp -> tmp2, member:handleBlock$ -> handleBlock$5, member:handleBlock$ -> handleBlock$2, member:Handler$h$perform -> Handler$h$perform3, member:Handler$h$perform -> Handler$h$perform2, member:Handler$h$ -> Handler$h$11, member:Handler$h$ -> Handler$h$5, member:Handler$h$perform$ -> Handler$h$perform$2, tmp:block$res -> block$res4, h -> h3, class:Handler$h$ -> Handler$h$6, tmp:tmp -> tmp3, tmp:block$res -> block$res7, member:handleBlock$ -> handleBlock$3, member:foo -> foo1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$7, member:Effect -> Effect1, member:Handler$h$perform$ -> Handler$h$perform$, class:Effect -> Effect, tmp:block$res -> block$res8, h -> h6, class:Handler$h$ -> Handler$h$12, tmp:block$res -> block$res1, h -> h, class:Handler$h$ -> Handler$h$, tmp:block$res -> block$res5, tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, h -> h4)
+//│         bindings = HashMap(member:handleBlock$ -> handleBlock$7, member:Handler$h$perform -> Handler$h$perform5, member:Handler$h$ -> Handler$h$15, h -> h7, class:Handler$h$ -> Handler$h$14, member:Handler$h$perform$ -> Handler$h$perform$4)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(v -> v, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'result'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.60: 	let result = ""
+//│ ╙──      	    ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = result⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(class:Handler$h$ -> Handler$h$8, tmp:tmp -> tmp6, member:Handler$h$perform -> Handler$h$perform, member:lambda -> lambda, member:handleBlock$ -> handleBlock$6, member:Handler$h$ -> Handler$h$1, member:Handler$h$perform -> Handler$h$perform4, member:Handler$h$ -> Handler$h$13, tmp:runtime -> runtime, tmp:tmp -> tmp4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:handleBlock$ -> handleBlock$4, member:Handler$h$perform$ -> Handler$h$perform$3, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res2, tmp:option -> option, h -> h1, member:Handler$h$ -> Handler$h$9, class:Handler$h$ -> Handler$h$2, member:Handler$h$perform$ -> Handler$h$perform$1, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$1, member:Handler$h$perform -> Handler$h$perform1, member:Handler$h$ -> Handler$h$3, tmp:block$res -> block$res6, member:foo -> foo, tmp:block$res -> block$res9, tmp:block$res -> block$res3, h -> h5, class:Handler$h$ -> Handler$h$10, h -> h2, class:Handler$h$ -> Handler$h$4, tmp:tmp -> tmp5, tmp:tmp -> tmp2, member:handleBlock$ -> handleBlock$5, member:handleBlock$ -> handleBlock$2, member:Handler$h$perform -> Handler$h$perform3, member:Handler$h$perform -> Handler$h$perform2, member:Handler$h$ -> Handler$h$11, member:Handler$h$ -> Handler$h$5, member:Handler$h$perform$ -> Handler$h$perform$2, tmp:block$res -> block$res4, h -> h3, class:Handler$h$ -> Handler$h$6, tmp:tmp -> tmp3, tmp:block$res -> block$res7, member:handleBlock$ -> handleBlock$3, member:foo -> foo1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$7, member:Effect -> Effect1, member:Handler$h$perform$ -> Handler$h$perform$, class:Effect -> Effect, tmp:block$res -> block$res8, h -> h6, class:Handler$h$ -> Handler$h$12, tmp:block$res -> block$res1, h -> h, class:Handler$h$ -> Handler$h$, tmp:block$res -> block$res5, tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, h -> h4)
+//│         bindings = HashMap(member:handleBlock$ -> handleBlock$7, member:Handler$h$perform -> Handler$h$perform5, member:Handler$h$ -> Handler$h$15, h -> h7, class:Handler$h$ -> Handler$h$14, member:Handler$h$perform$ -> Handler$h$perform$4)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(v -> v, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'result'
+//│ ║  l.64: 	    result = result + arg
+//│ ║        	             ^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.60: 	let result = ""
+//│ ╙──      	    ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = result⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(class:Handler$h$ -> Handler$h$8, tmp:tmp -> tmp6, member:Handler$h$perform -> Handler$h$perform, member:lambda -> lambda, member:handleBlock$ -> handleBlock$6, member:Handler$h$ -> Handler$h$1, member:Handler$h$perform -> Handler$h$perform4, member:Handler$h$ -> Handler$h$13, tmp:runtime -> runtime, tmp:tmp -> tmp4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:handleBlock$ -> handleBlock$4, member:Handler$h$perform$ -> Handler$h$perform$3, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res2, tmp:option -> option, h -> h1, member:Handler$h$ -> Handler$h$9, class:Handler$h$ -> Handler$h$2, member:Handler$h$perform$ -> Handler$h$perform$1, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$1, member:Handler$h$perform -> Handler$h$perform1, member:Handler$h$ -> Handler$h$3, tmp:block$res -> block$res6, member:foo -> foo, tmp:block$res -> block$res9, tmp:block$res -> block$res3, h -> h5, class:Handler$h$ -> Handler$h$10, h -> h2, class:Handler$h$ -> Handler$h$4, tmp:tmp -> tmp5, tmp:tmp -> tmp2, member:handleBlock$ -> handleBlock$5, member:handleBlock$ -> handleBlock$2, member:Handler$h$perform -> Handler$h$perform3, member:Handler$h$perform -> Handler$h$perform2, member:Handler$h$ -> Handler$h$11, member:Handler$h$ -> Handler$h$5, member:Handler$h$perform$ -> Handler$h$perform$2, tmp:block$res -> block$res4, h -> h3, class:Handler$h$ -> Handler$h$6, tmp:tmp -> tmp3, tmp:block$res -> block$res7, member:handleBlock$ -> handleBlock$3, member:foo -> foo1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$7, member:Effect -> Effect1, member:Handler$h$perform$ -> Handler$h$perform$, class:Effect -> Effect, tmp:block$res -> block$res8, h -> h6, class:Handler$h$ -> Handler$h$12, tmp:block$res -> block$res1, h -> h, class:Handler$h$ -> Handler$h$, tmp:block$res -> block$res5, tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, h -> h4)
+//│     bindings = HashMap(member:handleBlock$ -> handleBlock$7, member:Handler$h$perform -> Handler$h$perform5, member:Handler$h$ -> Handler$h$15, h -> h7, class:Handler$h$ -> Handler$h$14, member:Handler$h$perform$ -> Handler$h$perform$4)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'result'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.60: 	let result = ""
+//│ ╙──      	    ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = result⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(class:Handler$h$ -> Handler$h$8, tmp:tmp -> tmp6, member:Handler$h$perform -> Handler$h$perform, member:lambda -> lambda, member:handleBlock$ -> handleBlock$6, member:Handler$h$ -> Handler$h$1, member:Handler$h$perform -> Handler$h$perform4, member:Handler$h$ -> Handler$h$13, tmp:runtime -> runtime, tmp:tmp -> tmp4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:handleBlock$ -> handleBlock$4, member:Handler$h$perform$ -> Handler$h$perform$3, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res2, tmp:option -> option, h -> h1, member:Handler$h$ -> Handler$h$9, class:Handler$h$ -> Handler$h$2, member:Handler$h$perform$ -> Handler$h$perform$1, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$1, member:Handler$h$perform -> Handler$h$perform1, member:Handler$h$ -> Handler$h$3, tmp:block$res -> block$res6, member:foo -> foo, tmp:block$res -> block$res9, tmp:block$res -> block$res3, h -> h5, class:Handler$h$ -> Handler$h$10, h -> h2, class:Handler$h$ -> Handler$h$4, tmp:tmp -> tmp5, tmp:tmp -> tmp2, member:handleBlock$ -> handleBlock$5, member:handleBlock$ -> handleBlock$2, member:Handler$h$perform -> Handler$h$perform3, member:Handler$h$perform -> Handler$h$perform2, member:Handler$h$ -> Handler$h$11, member:Handler$h$ -> Handler$h$5, member:Handler$h$perform$ -> Handler$h$perform$2, tmp:block$res -> block$res4, h -> h3, class:Handler$h$ -> Handler$h$6, tmp:tmp -> tmp3, tmp:block$res -> block$res7, member:handleBlock$ -> handleBlock$3, member:foo -> foo1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$7, member:Effect -> Effect1, member:Handler$h$perform$ -> Handler$h$perform$, class:Effect -> Effect, tmp:block$res -> block$res8, h -> h6, class:Handler$h$ -> Handler$h$12, tmp:block$res -> block$res1, h -> h, class:Handler$h$ -> Handler$h$, tmp:block$res -> block$res5, tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, h -> h4)
+//│     bindings = HashMap(member:handleBlock$ -> handleBlock$7, member:Handler$h$perform -> Handler$h$perform5, member:Handler$h$ -> Handler$h$15, h -> h7, class:Handler$h$ -> Handler$h$14, member:Handler$h$perform$ -> Handler$h$perform$4)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'result'
+//│ ║  l.72: 	result
+//│ ║        	^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.60: 	let result = ""
+//│ ╙──      	    ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = result⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(class:Handler$h$ -> Handler$h$8, tmp:tmp -> tmp6, member:Handler$h$perform -> Handler$h$perform, member:lambda -> lambda, member:handleBlock$ -> handleBlock$6, member:Handler$h$ -> Handler$h$1, member:Handler$h$perform -> Handler$h$perform4, member:Handler$h$ -> Handler$h$13, tmp:runtime -> runtime, tmp:tmp -> tmp4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:handleBlock$ -> handleBlock$4, member:Handler$h$perform$ -> Handler$h$perform$3, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res2, tmp:option -> option, h -> h1, member:Handler$h$ -> Handler$h$9, class:Handler$h$ -> Handler$h$2, member:Handler$h$perform$ -> Handler$h$perform$1, tmp:tmp -> tmp1, member:handleBlock$ -> handleBlock$1, member:Handler$h$perform -> Handler$h$perform1, member:Handler$h$ -> Handler$h$3, tmp:block$res -> block$res6, member:foo -> foo, tmp:block$res -> block$res9, tmp:block$res -> block$res3, h -> h5, class:Handler$h$ -> Handler$h$10, h -> h2, class:Handler$h$ -> Handler$h$4, tmp:tmp -> tmp5, tmp:tmp -> tmp2, member:handleBlock$ -> handleBlock$5, member:handleBlock$ -> handleBlock$2, member:Handler$h$perform -> Handler$h$perform3, member:Handler$h$perform -> Handler$h$perform2, member:Handler$h$ -> Handler$h$11, member:Handler$h$ -> Handler$h$5, member:Handler$h$perform$ -> Handler$h$perform$2, tmp:block$res -> block$res4, h -> h3, class:Handler$h$ -> Handler$h$6, tmp:tmp -> tmp3, tmp:block$res -> block$res7, member:handleBlock$ -> handleBlock$3, member:foo -> foo1, tmp:block$res -> block$res, member:Handler$h$ -> Handler$h$7, member:Effect -> Effect1, member:Handler$h$perform$ -> Handler$h$perform$, class:Effect -> Effect, tmp:block$res -> block$res8, h -> h6, class:Handler$h$ -> Handler$h$12, tmp:block$res -> block$res1, h -> h, class:Handler$h$ -> Handler$h$, tmp:block$res -> block$res5, tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, h -> h4)
+//│     bindings = HashMap(member:handleBlock$ -> handleBlock$7, member:Handler$h$perform -> Handler$h$perform5, member:Handler$h$ -> Handler$h$15, h -> h7, class:Handler$h$ -> Handler$h$14, member:Handler$h$perform$ -> Handler$h$perform$4)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'result'
+//│ ║  l.72: 	result
+//│ ║        	^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.60: 	let result = ""
+//│ ╙──      	    ^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let result, h7, handleBlock$7, Handler$h$perform5, Handler$h$15, Handler$h$perform$4;
+//│ let h7, handleBlock$7, Handler$h$perform5, Handler$h$15, Handler$h$perform$4;
 //│ runtime.resetEffects();
 //│ Handler$h$perform$4 = function Handler$h$perform$(arg) {
 //│   return (k) => {
@@ -306,7 +422,19 @@ module A with
 handle h = A.Effect(3) with
   fun perform()(k) = 0
 h.perform()
-//│ = 0
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'class')
+//│     at REPL62:1:315
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 fun f(perform) =
   handle h = Effect with
@@ -468,30 +596,95 @@ handle h = Eff with
   fun perform()(k) = k(())
 foo(h)
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.463: 	    module A with
+//│ ║  l.591: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.459: 	    module A with
+//│ ║  l.587: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.455: 	    module A with
+//│ ║  l.583: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.451: 	    module A with
+//│ ║  l.579: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.451: 	    module A with
+//│ ║  l.579: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.455: 	    module A with
+//│ ║  l.583: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.459: 	    module A with
+//│ ║  l.587: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.463: 	    module A with
+//│ ║  l.591: 	    module A with
 //│ ╙──       	           ^
-//│ = 123
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ║  l.579: 	    module A with
+//│ ║         	    ^^^^^^^^^^^^^
+//│ ║  l.580: 	      fun f() = 2
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.579: 	    module A with
+//│ ║         	           ^^^^^^
+//│ ║  l.580: 	      fun f() = 2
+//│ ╙──       	^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.579: 	    module A with
+//│ ║         	           ^^^^^^
+//│ ║  l.580: 	      fun f() = 2
+//│ ╙──       	^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ║  l.583: 	    module A with
+//│ ║         	    ^^^^^^^^^^^^^
+//│ ║  l.584: 	      fun f() = 3
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.583: 	    module A with
+//│ ║         	           ^^^^^^
+//│ ║  l.584: 	      fun f() = 3
+//│ ╙──       	^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.583: 	    module A with
+//│ ║         	           ^^^^^^
+//│ ║  l.584: 	      fun f() = 3
+//│ ╙──       	^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ║  l.587: 	    module A with
+//│ ║         	    ^^^^^^^^^^^^^
+//│ ║  l.588: 	      fun f() = 2
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.587: 	    module A with
+//│ ║         	           ^^^^^^
+//│ ║  l.588: 	      fun f() = 2
+//│ ╙──       	^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.587: 	    module A with
+//│ ║         	           ^^^^^^
+//│ ║  l.588: 	      fun f() = 2
+//│ ╙──       	^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ║  l.591: 	    module A with
+//│ ║         	    ^^^^^^^^^^^^^
+//│ ║  l.592: 	      fun f() = 3
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.591: 	    module A with
+//│ ║         	           ^^^^^^
+//│ ║  l.592: 	      fun f() = 3
+//│ ╙──       	^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.591: 	    module A with
+//│ ║         	           ^^^^^^
+//│ ║  l.592: 	      fun f() = 3
+//│ ╙──       	^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
+//│ ═══[RUNTIME ERROR] Expected: '123', got: 'undefined'
 
 // Access superclass fields
 handle h1 = Object with

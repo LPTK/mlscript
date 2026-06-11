@@ -178,14 +178,28 @@ fun annohelper(r1) =
   region r2 in
     fork((_ => r1.ref 1), (_ => r2.ref 2))
 annohelper
-//│ Type: [outer, 'T] -> (Region[out 'T]) ->{'T} Pair[out Ref[Int, out 'T], out Ref[Int, out ¬outer]]
-//│ Where:
-//│   'T <: outer
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:annohelper for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 region x in
   annohelper(x)
-//│ Type: Pair[out Ref[Int, ?], out Ref[Int, ?]]
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: annohelper
+//│ ║  l.196: 	  annohelper(x)
+//│ ╙──       	  ^^^^^^^^^^
+//│ Type: ⊥
 
 
 fun annohelper: [outer, T] -> Region[out T & outer] ->{T & outer} Pair[out Ref[Int, out T & outer], out Ref[Int, out ~outer]]
@@ -193,14 +207,28 @@ fun annohelper(r1) =
   region r2 in
     fork((_ => r1.ref 1), (_ => r2.ref 2))
 annohelper
-//│ Type: [outer, 'T] -> (Region[out 'T ∧ outer]) ->{'T ∧ outer} Pair[out Ref[Int, out 'T ∧ outer], out Ref[Int, out ¬outer]]
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:annohelper for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 region x in
   annohelper(x)
-//│ Type: Pair[out Ref[Int, out 'env], out Ref[Int, ?]]
-//│ Where:
-//│   ⊤ <: 'env
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: annohelper
+//│ ║  l.225: 	  annohelper(x)
+//│ ╙──       	  ^^^^^^^^^^
+//│ Type: ⊥
 
 
 // Cannot type check since foo: 'foo <: Region[T] ->{'eff} 'app 
@@ -211,13 +239,13 @@ fun foo(r1) =
     fork((_ => r1.ref 1), (_ => r2.ref 2))
     foo(r2)
 //│ ╔══[COMPILATION ERROR] Type error in function literal
-//│ ║  l.209: 	fun foo(r1) =
+//│ ║  l.237: 	fun foo(r1) =
 //│ ║         	       ^^^^^^
-//│ ║  l.210: 	  region r2 in
+//│ ║  l.238: 	  region r2 in
 //│ ║         	^^^^^^^^^^^^^^
-//│ ║  l.211: 	    fork((_ => r1.ref 1), (_ => r2.ref 2))
+//│ ║  l.239: 	    fork((_ => r1.ref 1), (_ => r2.ref 2))
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.212: 	    foo(r2)
+//│ ║  l.240: 	    foo(r2)
 //│ ║         	^^^^^^^^^^^
 //│ ╟── because: cannot constrain  ('r1) ->{'eff} ('app)  <:  'foo
 //│ ╟── because: cannot constrain  ('r1) ->{'eff} ('app)  <:  (Region[in ⊥ out 'r2]) ->{'eff1} ('app1)
@@ -235,9 +263,18 @@ fun foo(r1) =
   region r2 in
     foo(r2)
 foo
-//│ Type: [outer S, 'T] -> (Region[out 'T]) ->{'T} ⊥
-//│ Where:
-//│   'T <: S
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 fun foo: [outer To, T extends To] -> Region[out T] ->{T} ([outer So, S extends So] -> Region[S]->{S} Pair[out Ref[Int, out S], out Ref[Int, out Any]])
@@ -245,6 +282,18 @@ fun foo(r1) =
   r3 =>
     region r4 in
       fork((_ => r3.ref 3), (_ => r4.ref 4))
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 fun bar: [outer S, T extends S] -> Region[out T] ->{T} Int
@@ -259,10 +308,18 @@ bar as [outer Q, P extends Q] -> Region[P] ->{P} Int
 fun foo: [outer To, T extends To] -> Region[out T] ->{T} ([outer So, S extends So] -> Region[out S]->{S} Int)
 fun foo(r1) = bar
 foo
-//│ Type: [outer To, 'T] -> (Region[out 'T]) ->{'T} [outer So, 'S] -> (Region[out 'S]) ->{'S} Int
-//│ Where:
-//│   'T <: To
-//│   'S <: So
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 fun borrow: [S, T, E extends ~S] -> Region[out S] -> ([P] -> Region[out P] ->{E | P} T) ->{E} T

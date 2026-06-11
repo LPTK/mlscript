@@ -26,30 +26,49 @@ fun foo(h): module M =
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
 //│ ║  l.15: 	    module A
 //│ ╙──      	           ^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ║  l.12: 	    module A
+//│ ║        	    ^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.12: 	    module A
+//│ ╙──      	           ^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.12: 	    module A
+//│ ╙──      	           ^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ║  l.15: 	    module A
+//│ ║        	    ^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.15: 	    module A
+//│ ╙──      	           ^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.15: 	    module A
+//│ ╙──      	           ^
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
 //│ let foo;
 //│ runtime.checkCall(runtime.resetEffects());
 //│ foo = function foo(h) {
 //│   runtime.checkArgs("foo", 1, true, arguments.length);
-//│   let A2, A3;
 //│   if (false === true) {
 //│     globalThis.Object.freeze(class A {
 //│       static {
-//│         A2 = this
+//│         A = this
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "A"];
 //│     });
-//│     return A2
+//│     return A
 //│   }
 //│   globalThis.Object.freeze(class A1 {
 //│     static {
-//│       A3 = this
+//│       A = this
 //│     }
 //│     toString() { return runtime.render(this); }
 //│     static [definitionMetadata] = ["class", "A"];
 //│   });
-//│   return A3;
+//│   return A;
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

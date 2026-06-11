@@ -58,22 +58,39 @@ fun (;) seq(_, res) = res
 fun foo: [R1, R2] -> (Region[R1], Region[R2], Int ->{R1 & ~R2} (), Int ->{R2 & ~R1} ()) ->{R1 | R2} () 
 fun foo(r1, r2, f, g) =
   f(123); g(456)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 foo
-//│ Type: ['R1, 'R2] -> (Region['R1], Region['R2], (Int) ->{'R1 ∧ ¬'R2} (), (Int) ->{'R2 ∧ ¬'R1} ()) ->{'R1 ∨ 'R2} ()
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: foo
+//│ ║  l.74: 	foo
+//│ ╙──      	^^^
+//│ Type: ⊥
 
 
 :e
 fun foo[outer, R <: outer](r1: Region[R]) =
   region r2 in 42
 //│ ╔══[COMPILATION ERROR] Unsupported type parameter outer binding
-//│ ║  l.67: 	fun foo[outer, R <: outer](r1: Region[R]) =
+//│ ║  l.84: 	fun foo[outer, R <: outer](r1: Region[R]) =
 //│ ╙──      	        ^^^^^
 //│ ╔══[COMPILATION ERROR] Unsupported type parameter operator application
-//│ ║  l.67: 	fun foo[outer, R <: outer](r1: Region[R]) =
+//│ ║  l.84: 	fun foo[outer, R <: outer](r1: Region[R]) =
 //│ ╙──      	               ^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: R
-//│ ║  l.67: 	fun foo[outer, R <: outer](r1: Region[R]) =
+//│ ║  l.84: 	fun foo[outer, R <: outer](r1: Region[R]) =
 //│ ╙──      	                                      ^
 //│ ═══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
 //│ ═══[COMPILATION ERROR] Expected a type, got ‹error›

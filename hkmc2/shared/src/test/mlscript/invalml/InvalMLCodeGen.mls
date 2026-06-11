@@ -143,10 +143,49 @@ data class Foo()
 :sjs
 let foo = new Foo()
 if foo is Foo then 1 else 0
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = foo⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Function -> Function, tmp:block$res -> block$res1, member:* -> $_, member:Error -> Error, member:scope -> scope, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, tmp:block$res -> block$res2, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, member:annotations -> annotations, tmp:block$res -> block$res3, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, tmp:block$res -> block$res4, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:&& -> $_$_9, tmp:block$res -> block$res5, member:Bool -> Bool, member:Any -> Any, tmp:block$res -> block$res6, member:log -> log, member:/ -> $_4, tmp:block$res -> block$res7, member:runtime -> runtime1, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:lambda -> lambda1, tmp:block$res -> block$res8, member:Foo -> Foo1, class:Foo -> Foo, tmp:block$res -> block$res9, tmp:block$res -> block$res10, foo -> foo, tmp:block$res -> block$res11, member:inc -> inc, class:CodeBase -> CodeBase, class:Region -> Region, tmp:block$res -> block$res12, class:Ref -> Ref, tmp:block$res -> block$res13, tmp:block$res -> block$res, tmp:scrut -> scrut, tmp:block$res -> block$res14, tmp:block$res -> block$res15, member:Foo -> Foo3, class:Foo -> Foo2, tmp:block$res -> block$res16)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'foo'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.144: 	let foo = new Foo()
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = foo⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Function -> Function, tmp:block$res -> block$res1, member:* -> $_, member:Error -> Error, member:scope -> scope, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, tmp:block$res -> block$res2, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, member:annotations -> annotations, tmp:block$res -> block$res3, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, tmp:block$res -> block$res4, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:&& -> $_$_9, tmp:block$res -> block$res5, member:Bool -> Bool, member:Any -> Any, tmp:block$res -> block$res6, member:log -> log, member:/ -> $_4, tmp:block$res -> block$res7, member:runtime -> runtime1, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:lambda -> lambda1, tmp:block$res -> block$res8, member:Foo -> Foo1, class:Foo -> Foo, tmp:block$res -> block$res9, tmp:block$res -> block$res10, foo -> foo, tmp:block$res -> block$res11, member:inc -> inc, class:CodeBase -> CodeBase, class:Region -> Region, tmp:block$res -> block$res12, class:Ref -> Ref, tmp:block$res -> block$res13, tmp:block$res -> block$res, tmp:scrut -> scrut, tmp:block$res -> block$res14, tmp:block$res -> block$res15, member:Foo -> Foo3, class:Foo -> Foo2, tmp:block$res -> block$res16)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'foo'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.144: 	let foo = new Foo()
+//│ ╙──       	    ^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let foo1;
-//│ foo1 = globalThis.Object.freeze(new Foo3.class());
-//│ if (foo1 instanceof Foo3.class) { return 1 }
+//│ foo = globalThis.Object.freeze(new Foo3.class());
+//│ if (foo instanceof Foo3.class) { return 1 }
 //│ return 0;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
@@ -308,15 +347,39 @@ fun xs(x) = x cons(1, x nil())
 
 fun ys: [E] -> LsAlg[in Nothing, E] -> E
 fun ys(x) = x nil()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:ys for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun zs: [E] -> LsAlg[in Int | E, E] -> E
 fun zs(x) = x cons(xs(x), x cons(ys(x),x nil()))
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:zs for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 mk() zs()
 //│ = Cons(Cons(1, fun), Cons(fun, fun))
-//│ Type: Nil ∨ Cons['A, 'B]
-//│ Where:
-//│   ('E ∨ Cons['A, 'B]) ∨ Nil <: 'B
-//│   Nil <: 'E
-//│   Cons['A, 'B] <: 'E
-//│   'E ∨ Int <: 'A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: zs
+//│ ║  l.378: 	mk() zs()
+//│ ╙──       	     ^^
+//│ Type: ⊥

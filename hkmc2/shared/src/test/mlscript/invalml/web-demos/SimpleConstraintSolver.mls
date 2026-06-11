@@ -401,6 +401,18 @@ region r in
   printRes(lhs, rhs)
 
 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:nt for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:67)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
 //│ ————————————————————————————————————————————————————————————————————————————————
 
 
@@ -412,9 +424,35 @@ fun test(x) = case
   FunctionType(l1, r1) then ()
   RecordType(f) then ()
   TypeVariable(id, lvl, lbs, ubs) then clear(ubs)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ═══[COMPILATION ERROR] Variable not found: arg$FunctionType$1$
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ═══[COMPILATION ERROR] Variable not found: arg$FunctionType$0$
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ═══[COMPILATION ERROR] Variable not found: arg$RecordType$0$
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ═══[COMPILATION ERROR] Variable not found: arg$TypeVariable$3$
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ═══[COMPILATION ERROR] Variable not found: arg$TypeVariable$2$
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ═══[COMPILATION ERROR] Variable not found: arg$TypeVariable$1$
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ═══[COMPILATION ERROR] Variable not found: arg$TypeVariable$0$
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: clear
+//│ ║  l.426: 	  TypeVariable(id, lvl, lbs, ubs) then clear(ubs)
+//│ ╙──       	                                       ^^^^^
 
 // FIXME: why is this not simplified more? (((Type[out 'TypeVariable] ∧ Type[?]) ∧ Type[?]) ∧ Type[?])
 test
-//│ Type: ['TypeVariable] -> ⊤ -> ((((Type[out 'TypeVariable] ∧ Type[?]) ∧ Type[?]) ∧ Type[?]) ->{'TypeVariable} ())
+//│ Type: ⊤ -> ((((((((¬TypeVariable[?] ∨ TypeVariable[?]) ∨ RecordType[?]) ∨ FunctionType[?]) ∨ IntType[?]) ∧ (((¬RecordType[?] ∨ RecordType[?]) ∨ FunctionType[?]) ∨ IntType[?])) ∧ ((¬FunctionType[?] ∨ FunctionType[?]) ∨ IntType[?])) ∧ (¬IntType[?] ∨ IntType[?])) -> ())
 
 

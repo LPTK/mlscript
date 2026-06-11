@@ -25,8 +25,50 @@ console.log("b")
 
 let l = console.log
 l(123)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = l⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res2, tmp:block$res -> block$res, member:console -> console, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res1, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'l'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.26: 	let l = console.log
+//│ ╙──      	    ^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = l⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res2, tmp:block$res -> block$res, member:console -> console, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res1, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'l'
+//│ ║  l.27: 	l(123)
+//│ ║        	^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.26: 	let l = console.log
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let l; l = globalThis.console.log; return runtime.safeCall(l(123))
+//│ l = globalThis.console.log; return runtime.safeCall(l(123))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 123
 //│ l = fun log
@@ -52,8 +94,47 @@ console.log("b")
 let y = x + 1
 console.log("c")
 y * 2
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = x⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res4, tmp:block$res -> block$res5, tmp:block$res -> block$res, member:console -> console, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res1, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res2, l -> l, tmp:selRes -> selRes, tmp:block$res -> block$res3)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.90: 	let x =
+//│ ╙──      	    ^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = y⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res4, tmp:block$res -> block$res5, tmp:block$res -> block$res, member:console -> console, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res1, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res2, l -> l, tmp:selRes -> selRes, tmp:block$res -> block$res3)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'y'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.94: 	let y = x + 1
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let x, y;
 //│ runtime.safeCall(globalThis.console.log("a"));
 //│ x = 123;
 //│ runtime.safeCall(globalThis.console.log("b"));

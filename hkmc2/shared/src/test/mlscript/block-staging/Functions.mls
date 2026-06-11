@@ -139,6 +139,7 @@ staged module ClassInstrumentation with
 //│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
 //│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
 //│ > fun ctor_() =
+//│ >   let {Inside, NoArg}
 //│ >   class Inside(a1, b)
 //│ >   class NoArg
 //│ > fun inst1() = new Outside(1)
@@ -200,7 +201,7 @@ staged module OtherBlocks with
 //│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'a'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.192: 	      let a = 1
+//│ ║  l.193: 	      let a = 1
 //│ ╙──       	          ^
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] ReferenceError: a is not defined
@@ -208,11 +209,13 @@ staged module OtherBlocks with
 staged module ClassDefs with
   class A
 //│ > fun ctor_() =
+//│ >   let {A}
 //│ >   class A
 
 staged module ValClass with
   class A(val a)
 //│ > fun ctor_() =
+//│ >   let {A}
 //│ >   class A(a)
 
 :fixme
@@ -265,7 +268,7 @@ staged module LabelBreak with
 //│ ═══[COMPILATION ERROR] Other Blocks not supported in staged module: class hkmc2.codegen.Label.
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.258: 	    let x = 1
+//│ ║  l.261: 	    let x = 1
 //│ ╙──       	        ^
 //│ > fun ctor_() = ()
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
@@ -278,7 +281,7 @@ staged module A with
   fun g() = {1 : 2}
 //│ ═══[COMPILATION ERROR] Field assignment is not supported in staged modules: a
 //│ ╔══[COMPILATION ERROR] Other Results not supported in staged module: class hkmc2.codegen.Record
-//│ ║  l.278: 	  fun g() = {1 : 2}
+//│ ║  l.281: 	  fun g() = {1 : 2}
 //│ ╙──       	                 ^
 //│ > fun ctor_() =
 //│ >   x = C(1)

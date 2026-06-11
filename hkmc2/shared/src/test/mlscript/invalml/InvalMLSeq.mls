@@ -18,6 +18,18 @@ fun mapi: [A, E] -> Seq[out A, out E] -> ((Int, A) ->{E} A) ->{Nothing} Seq[out 
 fun mapi = s => f =>
   region r in
     map(s) of x => f(0, x)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mapi for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 // * Should be an error. This definition would not be referentially transparent.
 // * The error message needs improvement, though.
@@ -29,21 +41,18 @@ fun mapi = s => f =>
     map(s) of x =>
       i := !(i) + 1
       f(!(i), x)
-//│ ╔══[COMPILATION ERROR] Type error in region expression with expected type Seq[out A, out E]
-//│ ║  l.28: 	    let i = r.ref 0
-//│ ║        	            ^^^^^^^
-//│ ║  l.29: 	    map(s) of x =>
-//│ ║        	^^^^^^^^^^^^^^^^^^
-//│ ║  l.30: 	      i := !(i) + 1
-//│ ║        	^^^^^^^^^^^^^^^^^^^
-//│ ║  l.31: 	      f(!(i), x)
-//│ ║        	^^^^^^^^^^^^^^^^
-//│ ╟── because: cannot constrain  Seq[in ⊥ out 'B, in ⊥ out 'E1]  <:  Seq[in ⊥ out A, in ⊥ out E]
-//│ ╟── because: cannot constrain  'E1  <:  E
-//│ ╟── because: cannot constrain  'reg  <:  E
-//│ ╟── because: cannot constrain  'r ∧ ¬outer  <:  E
-//│ ╟── because: cannot constrain  'r  <:  E ∨ outer
-//│ ╙── because: cannot constrain  ¬outer  <:  E ∨ outer
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mapi for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 // * Notice the inferred type, which produces an unusable Sequence (of effect `?` ie `Any`)
 fun mapi = s => f =>
@@ -63,6 +72,18 @@ fun mapi_force = s => f =>
     force_cache of map(s) of x =>
       i := !(i) + 1
       f(!(i), x)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mapi_force for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 // * An alternative version that takes an existing region in parameter
 fun mapi: [A, R, E] -> (Seq[out A, out E], Region[out R]) -> ((Int, A) ->{E} A) ->{R} Seq[out A, out E | R]
@@ -71,6 +92,18 @@ fun mapi = (s, r) => f =>
   map(s) of x =>
     i := !(i) + 1
     f(!(i), x)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mapi for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 // * Simpler; should be equivalent when Region is covariant
 fun mapi: [A, E] -> (Seq[out A, out E], Region[out E]) -> ((Int, A) ->{E} A) ->{E} Seq[out A, out E]
@@ -79,6 +112,18 @@ fun mapi = (s, r) => f =>
   map(s) of x =>
     i := !(i) + 1
     f(!(i), x)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mapi for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 // * Example usage
@@ -93,6 +138,11 @@ region r in
     !(sum)
   let s2 = mapi(s1, r) of (x, i) => x * i
   !(sum) + head(s2)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: mapi
+//│ ║  l.139: 	  let s2 = mapi(s1, r) of (x, i) => x * i
+//│ ╙──       	           ^^^^
 //│ Type: Int
 
 
@@ -106,12 +156,12 @@ r := 1
 r := 1
 ! r // because of the space, this is a NL-op
 //│ ╔══[COMPILATION ERROR] Builtin '!' is not a binary operator
-//│ ║  l.106: 	r := 1
+//│ ║  l.156: 	r := 1
 //│ ║         	^^^^^^
-//│ ║  l.107: 	! r // because of the space, this is a NL-op
+//│ ║  l.157: 	! r // because of the space, this is a NL-op
 //│ ╙──       	^^^
 //│ ╔══[COMPILATION ERROR] Variable not found: !
-//│ ║  l.107: 	! r // because of the space, this is a NL-op
+//│ ║  l.157: 	! r // because of the space, this is a NL-op
 //│ ╙──       	^
 //│ Type: ⊥
 

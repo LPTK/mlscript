@@ -287,7 +287,8 @@ fun main() =
 //│ define C as class C² {
 //│   val a⁰;
 //│   constructor C¹(a) {
-//│     define a⁰ as val a¹ = a;
+//│     let a1;
+//│     define a1 as val a¹ = a;
 //│     end
 //│   }
 //│ };
@@ -344,8 +345,9 @@ fun main(x) =
 //│   private val x²;
 //│   val a²;
 //│   constructor C³(a, x) {
+//│     let a1;
 //│     set C⁴.this.x² = x;
-//│     define a² as val a³ = a;
+//│     define a1 as val a³ = a;
 //│     end
 //│   }
 //│   method get⁰ = fun get¹ {
@@ -441,9 +443,10 @@ fun f(x, y, z) =
 //│   private val x³;
 //│   val a⁴;
 //│   constructor C⁵(a, f$cap, x) {
+//│     let a1;
 //│     set C⁶.this.f$cap⁰ = f$cap;
 //│     set C⁶.this.x³ = x;
-//│     define a⁴ as val a⁵ = a;
+//│     define a1 as val a⁵ = a;
 //│     end
 //│   }
 //│   method getX⁰ = fun getX¹ {
@@ -527,9 +530,10 @@ fun f(x, y, z) =
 //│   private val x⁶;
 //│   val a⁶;
 //│   constructor C⁷(a, f$cap, x) {
+//│     let a1;
 //│     set C⁸.this.f$cap³ = f$cap;
 //│     set C⁸.this.x⁶ = x;
-//│     define a⁶ as val a⁷ = a;
+//│     define a1 as val a⁷ = a;
 //│     end
 //│   }
 //│   method getX² = fun getX³ {

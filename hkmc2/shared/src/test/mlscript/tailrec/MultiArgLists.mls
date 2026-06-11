@@ -143,7 +143,7 @@ fun g(n)(m) =
 //│           true =>
 //│             let tmp1;
 //│             set tmp1 = +⁰(param6, 1);
-//│             set tmp = g⁰(param0)(tmp1);
+//│             set tmp = @tailcall g⁰(param0)(tmp1);
 //│             return tmp
 //│           else
 //│             set tmp = [param5, param6];

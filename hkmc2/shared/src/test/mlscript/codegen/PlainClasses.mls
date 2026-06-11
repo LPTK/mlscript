@@ -99,8 +99,28 @@ fun test() =
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 let t = test()
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = t⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(member:Foo -> Foo3, class:Foo -> Foo2, tmp:block$res -> block$res8, member:test -> test, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, class:Foo -> Foo4, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res9, tmp:block$res -> block$res, member:Foo -> Foo1, class:Foo -> Foo, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:scrut -> scrut, tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res5, tmp:block$res -> block$res6, tmp:block$res -> block$res7)
+//│     bindings = HashMap(member:Foo -> Foo6, class:Foo -> Foo5)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 't'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.101: 	let t = test()
+//│ ╙──       	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let t, Foo6;
+//│ let Foo6;
 //│ (class Foo5 {
 //│   static {
 //│     Foo6 = this
@@ -120,7 +140,7 @@ let t = test()
 :e
 new t
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found reference.
-//│ ║  l.121: 	new t
+//│ ║  l.141: 	new t
 //│ ║         	    ^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
@@ -139,7 +159,7 @@ new! t
 :e
 new t()
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found reference.
-//│ ║  l.140: 	new t()
+//│ ║  l.160: 	new t()
 //│ ║         	    ^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
@@ -241,8 +261,94 @@ let a = new Foo
 print(a.x)
 print(a.foo(1))
 print(a.bar(1))
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = a⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(member:Foo -> Foo3, class:Foo -> Foo2, member:Foo -> Foo10, class:Foo -> Foo9, tmp:block$res -> block$res8, member:test -> test, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, class:Foo -> Foo4, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res9, tmp:block$res -> block$res16, t -> t, member:Foo -> Foo12, class:Foo -> Foo11, member:Foo -> Foo6, class:Foo -> Foo5, tmp:block$res -> block$res10, tmp:block$res -> block$res11, tmp:block$res -> block$res12, tmp:block$res -> block$res, tmp:block$res -> block$res13, member:Foo -> Foo1, class:Foo -> Foo, tmp:block$res -> block$res14, tmp:block$res -> block$res1, member:Foo -> Foo8, class:Foo -> Foo7, tmp:block$res -> block$res17, tmp:block$res -> block$res2, tmp:scrut -> scrut, tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res5, tmp:block$res -> block$res6, tmp:block$res -> block$res15, tmp:block$res -> block$res7)
+//│     bindings = HashMap(tmp:tmp -> tmp, tmp:tmp -> tmp1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'a'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.260: 	let a = new Foo
+//│ ╙──       	    ^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = a⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(member:Foo -> Foo3, class:Foo -> Foo2, member:Foo -> Foo10, class:Foo -> Foo9, tmp:block$res -> block$res8, member:test -> test, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, class:Foo -> Foo4, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res9, tmp:block$res -> block$res16, t -> t, member:Foo -> Foo12, class:Foo -> Foo11, member:Foo -> Foo6, class:Foo -> Foo5, tmp:block$res -> block$res10, tmp:block$res -> block$res11, tmp:block$res -> block$res12, tmp:block$res -> block$res, tmp:block$res -> block$res13, member:Foo -> Foo1, class:Foo -> Foo, tmp:block$res -> block$res14, tmp:block$res -> block$res1, member:Foo -> Foo8, class:Foo -> Foo7, tmp:block$res -> block$res17, tmp:block$res -> block$res2, tmp:scrut -> scrut, tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res5, tmp:block$res -> block$res6, tmp:block$res -> block$res15, tmp:block$res -> block$res7)
+//│     bindings = HashMap(tmp:tmp -> tmp, tmp:tmp -> tmp1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'a'
+//│ ║  l.261: 	print(a.x)
+//│ ║         	      ^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.260: 	let a = new Foo
+//│ ╙──       	    ^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = a⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(member:Foo -> Foo3, class:Foo -> Foo2, member:Foo -> Foo10, class:Foo -> Foo9, tmp:block$res -> block$res8, member:test -> test, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, class:Foo -> Foo4, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res9, tmp:block$res -> block$res16, t -> t, member:Foo -> Foo12, class:Foo -> Foo11, member:Foo -> Foo6, class:Foo -> Foo5, tmp:block$res -> block$res10, tmp:block$res -> block$res11, tmp:block$res -> block$res12, tmp:block$res -> block$res, tmp:block$res -> block$res13, member:Foo -> Foo1, class:Foo -> Foo, tmp:block$res -> block$res14, tmp:block$res -> block$res1, member:Foo -> Foo8, class:Foo -> Foo7, tmp:block$res -> block$res17, tmp:block$res -> block$res2, tmp:scrut -> scrut, tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res5, tmp:block$res -> block$res6, tmp:block$res -> block$res15, tmp:block$res -> block$res7)
+//│     bindings = HashMap(tmp:tmp -> tmp, tmp:tmp -> tmp1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'a'
+//│ ║  l.262: 	print(a.foo(1))
+//│ ║         	      ^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.260: 	let a = new Foo
+//│ ╙──       	    ^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = a⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(member:Foo -> Foo3, class:Foo -> Foo2, member:Foo -> Foo10, class:Foo -> Foo9, tmp:block$res -> block$res8, member:test -> test, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, class:Foo -> Foo4, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res9, tmp:block$res -> block$res16, t -> t, member:Foo -> Foo12, class:Foo -> Foo11, member:Foo -> Foo6, class:Foo -> Foo5, tmp:block$res -> block$res10, tmp:block$res -> block$res11, tmp:block$res -> block$res12, tmp:block$res -> block$res, tmp:block$res -> block$res13, member:Foo -> Foo1, class:Foo -> Foo, tmp:block$res -> block$res14, tmp:block$res -> block$res1, member:Foo -> Foo8, class:Foo -> Foo7, tmp:block$res -> block$res17, tmp:block$res -> block$res2, tmp:scrut -> scrut, tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res5, tmp:block$res -> block$res6, tmp:block$res -> block$res15, tmp:block$res -> block$res7)
+//│     bindings = HashMap(tmp:tmp -> tmp, tmp:tmp -> tmp1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'a'
+//│ ║  l.263: 	print(a.bar(1))
+//│ ║         	      ^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.260: 	let a = new Foo
+//│ ╙──       	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let a, tmp, tmp1;
+//│ let tmp, tmp1;
 //│ a = globalThis.Object.freeze(new Foo12());
 //│ Predef.print(a.x);
 //│ tmp = runtime.safeCall(a.foo(1));
@@ -263,10 +369,10 @@ class Foo with
   val x = 2
 //│ ╔══[COMPILATION ERROR] Multiple definitions of symbol 'x'
 //│ ╟── defined here
-//│ ║  l.262: 	  val x = 1
+//│ ║  l.368: 	  val x = 1
 //│ ║         	  ^^^^^^^^^
 //│ ╟── defined here
-//│ ║  l.263: 	  val x = 2
+//│ ║  l.369: 	  val x = 2
 //│ ╙──       	  ^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Foo14;
@@ -288,10 +394,10 @@ class Foo with
   val x = 1
   let x = 2
 //│ ╔══[COMPILATION ERROR] Name 'x' is already used
-//│ ║  l.289: 	  let x = 2
+//│ ║  l.395: 	  let x = 2
 //│ ║         	      ^^^^^
 //│ ╟── by a member declared in the same block
-//│ ║  l.288: 	  val x = 1
+//│ ║  l.394: 	  val x = 1
 //│ ╙──       	  ^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Foo16;
@@ -317,7 +423,7 @@ class Foo with
 :e
 class Foo with val x = 1
 //│ ╔══[COMPILATION ERROR] Illegal body of class definition (should be a block; found term definition).
-//│ ║  l.318: 	class Foo with val x = 1
+//│ ║  l.424: 	class Foo with val x = 1
 //│ ╙──       	               ^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Foo18;

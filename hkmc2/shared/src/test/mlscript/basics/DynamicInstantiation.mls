@@ -79,8 +79,28 @@ let f = new! C()
 // * on the constructor function, not on the class!
 :sjs
 let f = new! C
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = f⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res7, tmp:tmp -> tmp, tmp:block$res -> block$res8, tmp:block$res -> block$res9, tmp:runtime -> runtime, tmp:tmp -> tmp1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res10, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:C -> C3, tmp:Block -> Block, class:C -> C2, tmp:option -> option, tmp:block$res -> block$res11, f -> f2, tmp:block$res -> block$res12, tmp:block$res -> block$res, member:C -> C1, class:C -> C, tmp:block$res -> block$res1, tmp:block$res -> block$res2, c -> c, tmp:block$res -> block$res3, tmp:block$res -> block$res4, f -> f, member:f -> f1, tmp:block$res -> block$res5, tmp:block$res -> block$res6)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.81: 	let f = new! C
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f3; f3 = globalThis.Object.freeze(new C3());
+//│ f = globalThis.Object.freeze(new C3());
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = C(undefined, undefined)
 

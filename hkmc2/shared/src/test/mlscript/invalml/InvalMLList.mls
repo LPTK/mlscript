@@ -12,6 +12,18 @@ fun mapi: [A, E] -> List[out A] -> ((Int, A) ->{E} A) ->{E} List[out A]
 fun mapi = s => f =>
   region r in
     map(s) of x => f(0, x)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mapi for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun mapi: [A, E] -> List[out A] -> ((Int, A) ->{E} A) ->{E} List[out A]
 fun mapi = s => f =>
@@ -20,6 +32,18 @@ fun mapi = s => f =>
     map(s) of x =>
       i := !(i) + 1
       f(!(i), x)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mapi for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 // * Example usage
 
@@ -31,6 +55,11 @@ region r in
   let s1 = mkList of !(sum)
   let s2 = mapi(s1) of (x, i) => x * i
   !(sum) + head(s2)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: mapi
+//│ ║  l.56: 	  let s2 = mapi(s1) of (x, i) => x * i
+//│ ╙──      	           ^^^^
 //│ Type: Int
 
 
@@ -44,21 +73,18 @@ fun mapi = s =>
     f => map(s) of x =>
       i := !(i) + 1
       f(!(i), x)
-//│ ╔══[COMPILATION ERROR] Type error in region expression with expected type ((Int, A) ->{E} A) ->{E} List[out A]
-//│ ║  l.43: 	    let i = r.ref 0
-//│ ║        	            ^^^^^^^
-//│ ║  l.44: 	    f => map(s) of x =>
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.45: 	      i := !(i) + 1
-//│ ║        	^^^^^^^^^^^^^^^^^^^
-//│ ║  l.46: 	      f(!(i), x)
-//│ ║        	^^^^^^^^^^^^^^^^
-//│ ╟── because: cannot constrain  ('f) ->{'E1} (List[in ⊥ out 'B])  <:  ((Int, A) ->{E} (A)) ->{E} (List[in ⊥ out A])
-//│ ╟── because: cannot constrain  'E1  <:  E
-//│ ╟── because: cannot constrain  'reg  <:  E
-//│ ╟── because: cannot constrain  'r ∧ ¬outer  <:  E
-//│ ╟── because: cannot constrain  'r  <:  E ∨ outer
-//│ ╙── because: cannot constrain  ¬outer  <:  E ∨ outer
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mapi for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 

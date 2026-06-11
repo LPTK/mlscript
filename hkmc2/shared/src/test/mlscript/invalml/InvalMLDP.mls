@@ -8,15 +8,63 @@ declare class Array[T]
 
 fun mkArray: [T] -> () -> Array[T]
 fun mkArray() = @untyped globalThis.Array()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mkArray for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun mkArrayWith: [T] -> (T, Int) -> Array[T]
 fun mkArrayWith(iv, size) = @untyped globalThis.Array(size).fill(iv)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:mkArrayWith for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun at: [T] -> (Array[T], Int) -> T
 fun at(xs, i) = @untyped xs.at(i)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:at for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun splice: [T] -> (Array[T], Int, T) -> ()
 fun splice(xs, i, v) = @untyped xs.splice(i, 1, v); ()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:splice for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 class Option[A] with
   constructor
@@ -35,35 +83,143 @@ class Interviewee with
 
 fun debug: Any -> ()
 fun debug(s) = @untyped print(s)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:debug for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 fun (;) seq(_, res) = res
 
 fun toString: Any -> Str
 fun toString(x) = @untyped x.toString()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:toString for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun concat: (Str, Str) -> Str
 fun concat(x, y) = @untyped x + y
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:concat for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun println: Str -> ()
 fun println(s) = @untyped print(s)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:println for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun empty: [A, R] -> Region[out R] ->{R} ArrayList[A, R]
 fun empty(r) = new ArrayList(mkArray())
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:empty for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun push: [A, R] -> (ArrayList[A, R], A) ->{R} ()
 fun push(arr, e) = @untyped arr.ArrayList#d.push(e); ()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:push for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun len: [A, R] -> (ArrayList[A, R]) ->{R} Int
 fun len(arr) = @untyped arr.ArrayList#d.length
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:len for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun iter: [Res, R, E extends ~R, T] -> (ArrayList[T, R], [S] -> Iter[T, S] ->{S | E} Res) ->{E | R} Res
 fun iter(arr, f) =
   region r in f(new Iter(arr.ArrayList#d, (r.ref 0), 1, len(arr)))
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:iter for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun revIter: [Res, R, E extends ~R, T] -> (ArrayList[T, R], [S] -> Iter[T, S] ->{S | E} Res) ->{E | R} Res
 fun revIter(arr, f) =
   region r in f(new Iter(arr.ArrayList#d, (r.ref (len(arr) - 1)), 0 - 1, 0 - 1))
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:revIter for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 :sjs
 fun next: [T, S] -> Iter[T, S] ->{S} Option[T]
@@ -75,29 +231,35 @@ fun next(it) =
     it.Iter#i := i + it.Iter#step
     res
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let next;
-//│ next = function next(it) {
-//│   let i, scrut;
-//│   i = it.i.value;
-//│   scrut = i == it.end;
-//│   if (scrut === true) {
-//│     return None1()
-//│   }
-//│   {
-//│     let res, tmp, xs, inlinedVal;
-//│     xs = it.arr;
-//│     inlinedVal = runtime.safeCall(xs.at(i));
-//│     res = Some1(inlinedVal);
-//│     tmp = i + it.step;
-//│     it.i.value = tmp;
-//│     return res;
-//│   }
-//│ };
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:next for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun whileDo: [R] -> (() ->{R} Bool) ->{R} ()
 fun whileDo(f) =
   if f() then whileDo(f) else ()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:whileDo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun init: [A, R] -> (Region[out R], Int, Int, A) ->{R} Array2D[A, R]
 fun init(r, d1, d2, iv) =
@@ -114,17 +276,78 @@ fun init(r, d1, d2, iv) =
     
 fun update: [A, R] -> (Array2D[A, R], Int, Int, A) ->{R} ()
 fun update(arr, d1, d2, v) = splice(at(arr.Array2D#d, d1), d2, v)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:init for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun get: [A, R] -> (Array2D[A, R], Int, Int) ->{R} A
 fun get(arr, d1, d2) = at(at(arr.Array2D#d, d1), d2)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:get for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun max: (Int, Int) -> Int
 fun max(x, y) = if x > y then x else y
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:max for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 fun format(it) =
   if it is Itv(score, salary) then
     concat("interviewee score: ", concat(toString(score), concat(", salary: ", toString(salary))))
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: concat
+//│ ║  l.325: 	    concat("interviewee score: ", concat(toString(score), concat(", salary: ", toString(salary))))
+//│ ╙──       	    ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: concat
+//│ ║  l.325: 	    concat("interviewee score: ", concat(toString(score), concat(", salary: ", toString(salary))))
+//│ ╙──       	                                  ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: toString
+//│ ║  l.325: 	    concat("interviewee score: ", concat(toString(score), concat(", salary: ", toString(salary))))
+//│ ╙──       	                                         ^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: concat
+//│ ║  l.325: 	    concat("interviewee score: ", concat(toString(score), concat(", salary: ", toString(salary))))
+//│ ╙──       	                                                          ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: toString
+//│ ║  l.325: 	    concat("interviewee score: ", concat(toString(score), concat(", salary: ", toString(salary))))
+//│ ╙──       	                                                                               ^^^^^^^^
 
 fun printAll(arr) =
   iter of arr, it =>
@@ -132,6 +355,115 @@ fun printAll(arr) =
       if next(it) is
         Some(x) then println(format(x)); false
         None then false
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:next⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Left of Cfg:
+//│               escapeChars = true
+//│               useSuperscripts = false
+//│               includeZero = false
+//│               defaultName = "tmp"
+//│             curThis = S of S of globalThis:globalThis⁰
+//│             bindings = HashMap(class:Iter -> Iter, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, class:Array2D -> Array2D, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, tmp:block$res -> block$res4, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Interviewee -> Interviewee1, member:Function -> Function, tmp:block$res -> block$res1, member:Itv -> Itv1, member:* -> $_, class:Interviewee -> Interviewee, member:Error -> Error, member:scope -> scope, class:Itv -> Itv, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, tmp:block$res -> block$res5, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:seq -> seq, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, tmp:block$res -> block$res6, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:format -> format, class:CodeBase -> CodeBase, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, tmp:block$res -> block$res, class:Some -> Some, class:None -> None, tmp:block$res -> block$res7, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, member:printAll -> printAll)
+//│           curThis = S of N
+//│           bindings = HashMap(arr -> arr)
+//│         bindings = HashMap(tmp:inlinedVal -> inlinedVal, r -> r, tmp:tmp -> tmp, tmp:tmp -> tmp1, it -> it, member:lambda -> lambda1, tmp:scrut -> scrut)
+//│       curThis = S of N
+//│       bindings = HashMap()
+//│     bindings = HashMap(tmp:scrut -> scrut1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'next'
+//│ ║  l.355: 	      if next(it) is
+//│ ║         	         ^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.225: 	fun next: [T, S] -> Iter[T, S] ->{S} Option[T]
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.226: 	fun next(it) =
+//│ ║         	^^^^^^^^^^^^^^
+//│ ║  l.227: 	  let i = !(it.Iter#i)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.228: 	  if i == it.Iter#end then None()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.229: 	... (more lines omitted) ...
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:whileDo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Right of Scope:
+//│               parentOrCfg = Right of Scope:
+//│                 parentOrCfg = Right of Scope:
+//│                   parentOrCfg = Right of Scope:
+//│                     parentOrCfg = Right of Scope:
+//│                       parentOrCfg = Right of Scope:
+//│                         parentOrCfg = Right of Scope:
+//│                           parentOrCfg = Right of Scope:
+//│                             parentOrCfg = Right of Scope:
+//│                               parentOrCfg = Left of Cfg:
+//│                                 escapeChars = true
+//│                                 useSuperscripts = false
+//│                                 includeZero = false
+//│                                 defaultName = "tmp"
+//│                               curThis = S of S of globalThis:globalThis⁰
+//│                               bindings = HashMap(class:Iter -> Iter, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, class:Array2D -> Array2D, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, tmp:block$res -> block$res4, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Interviewee -> Interviewee1, member:Function -> Function, tmp:block$res -> block$res1, member:Itv -> Itv1, member:* -> $_, class:Interviewee -> Interviewee, member:Error -> Error, member:scope -> scope, class:Itv -> Itv, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, tmp:block$res -> block$res5, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:seq -> seq, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, tmp:block$res -> block$res6, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:format -> format, class:CodeBase -> CodeBase, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, tmp:block$res -> block$res, class:Some -> Some, class:None -> None, tmp:block$res -> block$res7, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, member:printAll -> printAll)
+//│                             curThis = S of N
+//│                             bindings = HashMap(arr -> arr)
+//│                           bindings = HashMap(tmp:inlinedVal -> inlinedVal, r -> r, tmp:tmp -> tmp, tmp:tmp -> tmp1, it -> it, member:lambda -> lambda1, tmp:scrut -> scrut)
+//│                         bindings = HashMap(tmp:scrut -> scrut1)
+//│                       bindings = HashMap(tmp:scrut -> scrut2, tmp:tmp -> tmp2)
+//│                     bindings = HashMap(tmp:inlinedVal -> inlinedVal1, tmp:scrut -> scrut3, tmp:tmp -> tmp3)
+//│                   bindings = HashMap(tmp:inlinedVal -> inlinedVal2, tmp:scrut -> scrut4, tmp:tmp -> tmp4)
+//│                 bindings = HashMap(tmp:scrut -> scrut5, tmp:tmp -> tmp5, tmp:inlinedVal -> inlinedVal3)
+//│               bindings = HashMap(tmp:inlinedVal -> inlinedVal4, tmp:scrut -> scrut6, tmp:tmp -> tmp6)
+//│             bindings = HashMap(tmp:inlinedVal -> inlinedVal5, tmp:scrut -> scrut7, tmp:tmp -> tmp7)
+//│           bindings = HashMap(f -> f, tmp:inlinedVal -> inlinedVal6, label:inlinedLbl -> inlinedLbl)
+//│         bindings = HashMap(tmp:tmp -> tmp8, tmp:scrut -> scrut8)
+//│       bindings = HashMap(f -> f1, tmp:inlinedVal -> inlinedVal7, label:inlinedLbl -> inlinedLbl1)
+//│     bindings = HashMap(tmp:scrut -> scrut9, tmp:tmp -> tmp9)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'whileDo'
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ║         	              ^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.248: 	fun whileDo: [R] -> (() ->{R} Bool) ->{R} ()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.249: 	fun whileDo(f) =
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: iter
+//│ ║  l.353: 	  iter of arr, it =>
+//│ ╙──       	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: whileDo
+//│ ║  l.354: 	    whileDo of () =>
+//│ ╙──       	    ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: next
+//│ ║  l.355: 	      if next(it) is
+//│ ╙──       	         ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: println
+//│ ║  l.356: 	        Some(x) then println(format(x)); false
+//│ ╙──       	                     ^^^^^^^
 
 
 // fun select: [outer, R1 extends outer, R2 extends ~R1] -> (ArrayList[Interviewee, R1], Int, ArrayList[Interviewee, R2]) ->{R1 | R2} Int
@@ -165,17 +497,376 @@ fun select(interviewees, budget, results) =
             true
           None then false
     get(dp, size, budget)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:init⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Left of Cfg:
+//│           escapeChars = true
+//│           useSuperscripts = false
+//│           includeZero = false
+//│           defaultName = "tmp"
+//│         curThis = S of S of globalThis:globalThis⁰
+//│         bindings = HashMap(class:Iter -> Iter, tmp:block$res -> block$res9, tmp:runtime -> runtime, member:select -> select, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, class:Array2D -> Array2D, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, tmp:block$res -> block$res4, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Interviewee -> Interviewee1, member:Function -> Function, tmp:block$res -> block$res1, member:Itv -> Itv1, member:* -> $_, class:Interviewee -> Interviewee, member:Error -> Error, member:scope -> scope, class:Itv -> Itv, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, tmp:block$res -> block$res5, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:seq -> seq, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, tmp:block$res -> block$res6, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:format -> format, class:CodeBase -> CodeBase, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, tmp:block$res -> block$res, class:Some -> Some, class:None -> None, tmp:block$res -> block$res7, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, member:printAll -> printAll)
+//│       curThis = S of N
+//│       bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│     bindings = HashMap(member:lambda -> lambda2, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp, tmp:tmp -> tmp1, it -> it, r -> r, size -> size, i -> i, dp -> dp, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal2, r -> r2, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:tmp -> tmp8, arr -> arr, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:inlinedVal -> inlinedVal1, tmp:inlinedVal -> inlinedVal3)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'init'
+//│ ║  l.473: 	    let dp = init(r, size + 1, budget + 1, 0)
+//│ ║         	             ^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.264: 	fun init: [A, R] -> (Region[out R], Int, Int, A) ->{R} Array2D[A, R]
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.265: 	fun init(r, d1, d2, iv) =
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.266: 	  let res = new Array2D(mkArrayWith(mkArrayWith(iv, d2), d1))
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.267: 	  region r in
+//│ ║         	^^^^^^^^^^^^^
+//│ ║  l.268: 	... (more lines omitted) ...
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:next⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Left of Cfg:
+//│               escapeChars = true
+//│               useSuperscripts = false
+//│               includeZero = false
+//│               defaultName = "tmp"
+//│             curThis = S of S of globalThis:globalThis⁰
+//│             bindings = HashMap(class:Iter -> Iter, tmp:block$res -> block$res9, tmp:runtime -> runtime, member:select -> select, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, class:Array2D -> Array2D, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, tmp:block$res -> block$res4, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Interviewee -> Interviewee1, member:Function -> Function, tmp:block$res -> block$res1, member:Itv -> Itv1, member:* -> $_, class:Interviewee -> Interviewee, member:Error -> Error, member:scope -> scope, class:Itv -> Itv, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, tmp:block$res -> block$res5, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:seq -> seq, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, tmp:block$res -> block$res6, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:format -> format, class:CodeBase -> CodeBase, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, tmp:block$res -> block$res, class:Some -> Some, class:None -> None, tmp:block$res -> block$res7, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, member:printAll -> printAll)
+//│           curThis = S of N
+//│           bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│         bindings = HashMap(member:lambda -> lambda2, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp, tmp:tmp -> tmp1, it -> it, r -> r, size -> size, i -> i, dp -> dp, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal2, r -> r2, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:tmp -> tmp8, arr -> arr, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:inlinedVal -> inlinedVal1, tmp:inlinedVal -> inlinedVal3)
+//│       curThis = S of N
+//│       bindings = HashMap()
+//│     bindings = HashMap(tmp:scrut -> scrut2)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'next'
+//│ ║  l.475: 	      if next(it) is
+//│ ║         	         ^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.225: 	fun next: [T, S] -> Iter[T, S] ->{S} Option[T]
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.226: 	fun next(it) =
+//│ ║         	^^^^^^^^^^^^^^
+//│ ║  l.227: 	  let i = !(it.Iter#i)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.228: 	  if i == it.Iter#end then None()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.229: 	... (more lines omitted) ...
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:whileDo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Right of Scope:
+//│               parentOrCfg = Right of Scope:
+//│                 parentOrCfg = Right of Scope:
+//│                   parentOrCfg = Right of Scope:
+//│                     parentOrCfg = Right of Scope:
+//│                       parentOrCfg = Right of Scope:
+//│                         parentOrCfg = Right of Scope:
+//│                           parentOrCfg = Right of Scope:
+//│                             parentOrCfg = Right of Scope:
+//│                               parentOrCfg = Right of Scope:
+//│                                 parentOrCfg = Right of Scope:
+//│                                   parentOrCfg = Right of Scope:
+//│                                     parentOrCfg = Right of Scope:
+//│                                       parentOrCfg = Left of Cfg:
+//│                                         escapeChars = true
+//│                                         useSuperscripts = false
+//│                                         includeZero = false
+//│                                         defaultName = "tmp"
+//│                                       curThis = S of S of globalThis:globalThis⁰
+//│                                       bindings = HashMap(class:Iter -> Iter, tmp:block$res -> block$res9, tmp:runtime -> runtime, member:select -> select, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, class:Array2D -> Array2D, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, tmp:block$res -> block$res4, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Interviewee -> Interviewee1, member:Function -> Function, tmp:block$res -> block$res1, member:Itv -> Itv1, member:* -> $_, class:Interviewee -> Interviewee, member:Error -> Error, member:scope -> scope, class:Itv -> Itv, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, tmp:block$res -> block$res5, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:seq -> seq, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, tmp:block$res -> block$res6, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:format -> format, class:CodeBase -> CodeBase, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, tmp:block$res -> block$res, class:Some -> Some, class:None -> None, tmp:block$res -> block$res7, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, member:printAll -> printAll)
+//│                                     curThis = S of N
+//│                                     bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│                                   bindings = HashMap(member:lambda -> lambda2, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp, tmp:tmp -> tmp1, it -> it, r -> r, size -> size, i -> i, dp -> dp, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal2, r -> r2, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:tmp -> tmp8, arr -> arr, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:inlinedVal -> inlinedVal1, tmp:inlinedVal -> inlinedVal3)
+//│                                 curThis = S of N
+//│                                 bindings = HashMap()
+//│                               bindings = HashMap(tmp:scrut -> scrut2)
+//│                             bindings = HashMap(tmp:arg$Some$0$ -> arg$Some$0$)
+//│                           bindings = HashMap(tmp:scrut -> scrut3, score -> score, salary -> salary, j -> j, tmp:arg$Itv$0$ -> arg$Itv$0$, tmp:arg$Itv$1$ -> arg$Itv$1$, member:lambda -> lambda3, tmp:tmp -> tmp9)
+//│                         bindings = HashMap(tmp:scrut -> scrut4)
+//│                       bindings = HashMap(tmp:scrut -> scrut5)
+//│                     bindings = HashMap(tmp:scrut -> scrut6)
+//│                   bindings = HashMap(tmp:scrut -> scrut7, tmp:tmp -> tmp10)
+//│                 bindings = HashMap(tmp:inlinedVal -> inlinedVal4, tmp:scrut -> scrut8, tmp:tmp -> tmp11)
+//│               bindings = HashMap(tmp:tmp -> tmp12, tmp:inlinedVal -> inlinedVal5, tmp:scrut -> scrut9)
+//│             bindings = HashMap(tmp:inlinedVal -> inlinedVal6, tmp:scrut -> scrut10, tmp:tmp -> tmp13)
+//│           bindings = HashMap(f -> f, tmp:inlinedVal -> inlinedVal7, label:inlinedLbl -> inlinedLbl)
+//│         bindings = HashMap(tmp:scrut -> scrut11, tmp:tmp -> tmp14)
+//│       bindings = HashMap(f -> f1, tmp:inlinedVal -> inlinedVal8, label:inlinedLbl -> inlinedLbl1)
+//│     bindings = HashMap(tmp:scrut -> scrut12, tmp:tmp -> tmp15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'whileDo'
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ║         	              ^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.248: 	fun whileDo: [R] -> (() ->{R} Bool) ->{R} ()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.249: 	fun whileDo(f) =
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:whileDo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Right of Scope:
+//│               parentOrCfg = Right of Scope:
+//│                 parentOrCfg = Right of Scope:
+//│                   parentOrCfg = Right of Scope:
+//│                     parentOrCfg = Right of Scope:
+//│                       parentOrCfg = Right of Scope:
+//│                         parentOrCfg = Right of Scope:
+//│                           parentOrCfg = Right of Scope:
+//│                             parentOrCfg = Right of Scope:
+//│                               parentOrCfg = Left of Cfg:
+//│                                 escapeChars = true
+//│                                 useSuperscripts = false
+//│                                 includeZero = false
+//│                                 defaultName = "tmp"
+//│                               curThis = S of S of globalThis:globalThis⁰
+//│                               bindings = HashMap(class:Iter -> Iter, tmp:block$res -> block$res9, tmp:runtime -> runtime, member:select -> select, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, class:Array2D -> Array2D, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, tmp:block$res -> block$res4, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Interviewee -> Interviewee1, member:Function -> Function, tmp:block$res -> block$res1, member:Itv -> Itv1, member:* -> $_, class:Interviewee -> Interviewee, member:Error -> Error, member:scope -> scope, class:Itv -> Itv, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, tmp:block$res -> block$res5, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:seq -> seq, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, tmp:block$res -> block$res6, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:format -> format, class:CodeBase -> CodeBase, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, tmp:block$res -> block$res, class:Some -> Some, class:None -> None, tmp:block$res -> block$res7, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, member:printAll -> printAll)
+//│                             curThis = S of N
+//│                             bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│                           bindings = HashMap(member:lambda -> lambda2, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp, tmp:tmp -> tmp1, it -> it, r -> r, size -> size, i -> i, dp -> dp, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal2, r -> r2, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:tmp -> tmp8, arr -> arr, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:inlinedVal -> inlinedVal1, tmp:inlinedVal -> inlinedVal3)
+//│                         bindings = HashMap(tmp:scrut -> scrut2)
+//│                       bindings = HashMap(tmp:scrut -> scrut3)
+//│                     bindings = HashMap(tmp:scrut -> scrut4, tmp:tmp -> tmp9)
+//│                   bindings = HashMap(tmp:inlinedVal -> inlinedVal4, tmp:scrut -> scrut5, tmp:tmp -> tmp10)
+//│                 bindings = HashMap(tmp:scrut -> scrut6, tmp:tmp -> tmp11, tmp:inlinedVal -> inlinedVal5)
+//│               bindings = HashMap(tmp:inlinedVal -> inlinedVal6, tmp:scrut -> scrut7, tmp:tmp -> tmp12)
+//│             bindings = HashMap(tmp:inlinedVal -> inlinedVal7, tmp:scrut -> scrut8, tmp:tmp -> tmp13)
+//│           bindings = HashMap(f -> f, tmp:inlinedVal -> inlinedVal8, label:inlinedLbl -> inlinedLbl)
+//│         bindings = HashMap(tmp:scrut -> scrut9, tmp:tmp -> tmp14)
+//│       bindings = HashMap(f -> f1, tmp:inlinedVal -> inlinedVal9, label:inlinedLbl -> inlinedLbl1)
+//│     bindings = HashMap(tmp:scrut -> scrut10, tmp:tmp -> tmp15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'whileDo'
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ║         	              ^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.248: 	fun whileDo: [R] -> (() ->{R} Bool) ->{R} ()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.249: 	fun whileDo(f) =
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:next⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Left of Cfg:
+//│               escapeChars = true
+//│               useSuperscripts = false
+//│               includeZero = false
+//│               defaultName = "tmp"
+//│             curThis = S of S of globalThis:globalThis⁰
+//│             bindings = HashMap(class:Iter -> Iter, tmp:block$res -> block$res9, tmp:runtime -> runtime, member:select -> select, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, class:Array2D -> Array2D, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, tmp:block$res -> block$res4, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Interviewee -> Interviewee1, member:Function -> Function, tmp:block$res -> block$res1, member:Itv -> Itv1, member:* -> $_, class:Interviewee -> Interviewee, member:Error -> Error, member:scope -> scope, class:Itv -> Itv, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, tmp:block$res -> block$res5, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:seq -> seq, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, tmp:block$res -> block$res6, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:format -> format, class:CodeBase -> CodeBase, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, tmp:block$res -> block$res, class:Some -> Some, class:None -> None, tmp:block$res -> block$res7, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, member:printAll -> printAll)
+//│           curThis = S of N
+//│           bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│         bindings = HashMap(member:lambda -> lambda2, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp, tmp:tmp -> tmp1, it -> it, r -> r, size -> size, i -> i, dp -> dp, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal2, r -> r2, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:tmp -> tmp8, arr -> arr, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:inlinedVal -> inlinedVal1, tmp:inlinedVal -> inlinedVal3)
+//│       curThis = S of N
+//│       bindings = HashMap()
+//│     bindings = HashMap(tmp:scrut -> scrut2)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'next'
+//│ ║  l.491: 	        if next(it) is
+//│ ║         	           ^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.225: 	fun next: [T, S] -> Iter[T, S] ->{S} Option[T]
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.226: 	fun next(it) =
+//│ ║         	^^^^^^^^^^^^^^
+//│ ║  l.227: 	  let i = !(it.Iter#i)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.228: 	  if i == it.Iter#end then None()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.229: 	... (more lines omitted) ...
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:whileDo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Right of Scope:
+//│               parentOrCfg = Right of Scope:
+//│                 parentOrCfg = Right of Scope:
+//│                   parentOrCfg = Right of Scope:
+//│                     parentOrCfg = Right of Scope:
+//│                       parentOrCfg = Right of Scope:
+//│                         parentOrCfg = Right of Scope:
+//│                           parentOrCfg = Right of Scope:
+//│                             parentOrCfg = Right of Scope:
+//│                               parentOrCfg = Left of Cfg:
+//│                                 escapeChars = true
+//│                                 useSuperscripts = false
+//│                                 includeZero = false
+//│                                 defaultName = "tmp"
+//│                               curThis = S of S of globalThis:globalThis⁰
+//│                               bindings = HashMap(class:Iter -> Iter, tmp:block$res -> block$res9, tmp:runtime -> runtime, member:select -> select, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:+. -> $_$_, class:Array2D -> Array2D, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, member:source -> source, tmp:block$res -> block$res4, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Interviewee -> Interviewee1, member:Function -> Function, tmp:block$res -> block$res1, member:Itv -> Itv1, member:* -> $_, class:Interviewee -> Interviewee, member:Error -> Error, member:scope -> scope, class:Itv -> Itv, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, tmp:block$res -> block$res5, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:seq -> seq, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, tmp:block$res -> block$res6, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, member:format -> format, class:CodeBase -> CodeBase, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, tmp:block$res -> block$res, class:Some -> Some, class:None -> None, tmp:block$res -> block$res7, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, member:printAll -> printAll)
+//│                             curThis = S of N
+//│                             bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│                           bindings = HashMap(member:lambda -> lambda2, tmp:scrut -> scrut1, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp, tmp:tmp -> tmp1, it -> it, r -> r, size -> size, i -> i, dp -> dp, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal2, r -> r2, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:tmp -> tmp8, arr -> arr, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:inlinedVal -> inlinedVal1, tmp:inlinedVal -> inlinedVal3)
+//│                         bindings = HashMap(tmp:scrut -> scrut2)
+//│                       bindings = HashMap(tmp:scrut -> scrut3)
+//│                     bindings = HashMap(tmp:scrut -> scrut4, tmp:tmp -> tmp9)
+//│                   bindings = HashMap(tmp:scrut -> scrut5, tmp:tmp -> tmp10, tmp:inlinedVal -> inlinedVal4)
+//│                 bindings = HashMap(tmp:inlinedVal -> inlinedVal5, tmp:scrut -> scrut6, tmp:tmp -> tmp11)
+//│               bindings = HashMap(tmp:inlinedVal -> inlinedVal6, tmp:scrut -> scrut7, tmp:tmp -> tmp12)
+//│             bindings = HashMap(tmp:inlinedVal -> inlinedVal7, tmp:scrut -> scrut8, tmp:tmp -> tmp13)
+//│           bindings = HashMap(label:inlinedLbl -> inlinedLbl, f -> f, tmp:inlinedVal -> inlinedVal8)
+//│         bindings = HashMap(tmp:scrut -> scrut9, tmp:tmp -> tmp14)
+//│       bindings = HashMap(f -> f1, tmp:inlinedVal -> inlinedVal9, label:inlinedLbl -> inlinedLbl1)
+//│     bindings = HashMap(tmp:scrut -> scrut10, tmp:tmp -> tmp15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'whileDo'
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ║         	              ^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.248: 	fun whileDo: [R] -> (() ->{R} Bool) ->{R} ()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.249: 	fun whileDo(f) =
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: len
+//│ ║  l.472: 	    let size = len(interviewees), let i = r.ref 1
+//│ ╙──       	               ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: init
+//│ ║  l.473: 	    let dp = init(r, size + 1, budget + 1, 0)
+//│ ╙──       	             ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: iter
+//│ ║  l.474: 	    iter of interviewees, it => whileDo of () =>
+//│ ╙──       	    ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: whileDo
+//│ ║  l.474: 	    iter of interviewees, it => whileDo of () =>
+//│ ╙──       	                                ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: next
+//│ ║  l.475: 	      if next(it) is
+//│ ╙──       	         ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: whileDo
+//│ ║  l.478: 	          whileDo of () =>
+//│ ╙──       	          ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: update
+//│ ║  l.479: 	            if !(j) < salary then update(dp, !(i), !(j), get(dp, !(i) - 1, !(j)))
+//│ ╙──       	                                  ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.479: 	            if !(j) < salary then update(dp, !(i), !(j), get(dp, !(i) - 1, !(j)))
+//│ ╙──       	                                                         ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.481: 	              let p = get(dp, !(i) - 1, !(j) - salary), let np = get(dp, !(i) - 1, !(j))
+//│ ╙──       	                      ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.481: 	              let p = get(dp, !(i) - 1, !(j) - salary), let np = get(dp, !(i) - 1, !(j))
+//│ ╙──       	                                                                 ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: update
+//│ ║  l.482: 	              update(dp, !(i), !(j), max of np, p + score)
+//│ ╙──       	              ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: max
+//│ ║  l.482: 	              update(dp, !(i), !(j), max of np, p + score)
+//│ ╙──       	                                     ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: revIter
+//│ ║  l.489: 	    revIter of interviewees, it =>
+//│ ╙──       	    ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: whileDo
+//│ ║  l.490: 	      whileDo of () =>
+//│ ╙──       	      ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: next
+//│ ║  l.491: 	        if next(it) is
+//│ ╙──       	           ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.493: 	            if get(dp, !(i), !(rest)) == get(dp, !(i) - 1, !(rest) - salary) + score then
+//│ ╙──       	               ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.493: 	            if get(dp, !(i), !(rest)) == get(dp, !(i) - 1, !(rest) - salary) + score then
+//│ ╙──       	                                         ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.494: 	              push(results, itv); rest := !(rest) - salary
+//│ ╙──       	              ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.499: 	    get(dp, size, budget)
+//│ ╙──       	    ^^^
 
 select
 //│ = fun select
-//│ Type: [outer, 'A, 'R, 'T, 'R1, 'T1, 'T2, 'R2, 'A1, 'R3] -> ((ArrayList[in 'T1 out 'T2, out 'R2] ∧ ArrayList[in 'T out Interviewee ∧ 'T, out 'R1]) ∧ ArrayList['A, out 'R], Int, ArrayList['A1, out 'R3]) ->{(('R2 ∨ 'R3) ∨ 'R1) ∨ 'R} Int
-//│ Where:
-//│   'T <: Interviewee
-//│   'T <: 'T1
-//│   'R <: outer
-//│   'R1 <: outer
-//│   'T <: 'A
-//│   'R2 <: ¬'R
+//│ Type: (⊤, Int, ⊤) -> ⊥
 
 region r in
   let interviewees = empty(r)
@@ -191,11 +882,55 @@ region r in
     printAll(results)
     m
 //│ > all interviewees:
-//│ > interviewee score: 20, salary: 3
-//│ > candidates:
-//│ > interviewee score: 30, salary: 1
-//│ = 80
-//│ Type: Int
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: next is not defined
+//│     at lambda1 (REPL31:1:352)
+//│     at printAll (REPL31:1:763)
+//│     at REPL40:1:482
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.872: 	  let interviewees = empty(r)
+//│ ╙──       	                     ^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.873: 	  push(interviewees, Itv(20, 3))
+//│ ╙──       	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.874: 	  push(interviewees, Itv(50, 1))
+//│ ╙──       	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.875: 	  push(interviewees, Itv(30, 1))
+//│ ╙──       	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: println
+//│ ║  l.876: 	  println("all interviewees:")
+//│ ╙──       	  ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.879: 	    let results = empty(r2)
+//│ ╙──       	                  ^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: println
+//│ ║  l.881: 	    println("candidates:")
+//│ ╙──       	    ^^^^^^^
+//│ Type: ⊥
 
 
 region r in
@@ -212,11 +947,55 @@ region r in
     printAll(results)
     m
 //│ > all interviewees:
-//│ > interviewee score: 100, salary: 71
-//│ > candidates:
-//│ > interviewee score: 2, salary: 1
-//│ = 3
-//│ Type: Int
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: next is not defined
+//│     at lambda1 (REPL31:1:352)
+//│     at printAll (REPL31:1:763)
+//│     at REPL43:1:492
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.937: 	  let interviewees = empty(r)
+//│ ╙──       	                     ^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.938: 	  push(interviewees, Itv(100, 71))
+//│ ╙──       	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.939: 	  push(interviewees, Itv(1, 69))
+//│ ╙──       	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.940: 	  push(interviewees, Itv(2, 1))
+//│ ╙──       	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: println
+//│ ║  l.941: 	  println("all interviewees:")
+//│ ╙──       	  ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.944: 	    let results = empty(r2)
+//│ ╙──       	                  ^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: println
+//│ ║  l.946: 	    println("candidates:")
+//│ ╙──       	    ^^^^^^^
+//│ Type: ⊥
 
 
 region r in
@@ -234,11 +1013,60 @@ region r in
     printAll(results)
     m
 //│ > all interviewees:
-//│ > interviewee score: 40, salary: 10
-//│ > candidates:
-//│ > interviewee score: 70, salary: 20
-//│ = 230
-//│ Type: Int
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: next is not defined
+//│     at lambda1 (REPL31:1:352)
+//│     at printAll (REPL31:1:763)
+//│     at REPL46:1:570
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.1002: 	  let interviewees = empty(r)
+//│ ╙──        	                     ^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1003: 	  push(interviewees, Itv(40, 10))
+//│ ╙──        	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1004: 	  push(interviewees, Itv(60, 20))
+//│ ╙──        	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1005: 	  push(interviewees, Itv(120, 30))
+//│ ╙──        	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1006: 	  push(interviewees, Itv(70, 20))
+//│ ╙──        	  ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: println
+//│ ║  l.1007: 	  println("all interviewees:")
+//│ ╙──        	  ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.1010: 	    let results = empty(r2)
+//│ ╙──        	                  ^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: println
+//│ ║  l.1012: 	    println("candidates:")
+//│ ╙──        	    ^^^^^^^
+//│ Type: ⊥
 
 
 :e
@@ -266,23 +1094,26 @@ region r in
 // //│ ╟── because: cannot constrain  'R3  <:  ¬r
 // //│ ╙── because: cannot constrain  r  <:  ¬r
 // //│ Type: Int
-//│ > candidates:
-//│ > interviewee score: 30, salary: 1
-//│ = 80
-//│ ╔══[COMPILATION ERROR] Type error in reference with expected type 'results
-//│ ║  l.251: 	  let m = select(interviewees, 4, results)
-//│ ║         	                                  ^^^^^^^
-//│ ╟── because: cannot constrain  ArrayList['A, in ⊥ out 'R]  <:  'results
-//│ ╟── because: cannot constrain  ArrayList['A, in ⊥ out 'R]  <:  ArrayList['A1, in ⊥ out 'R1]
-//│ ╟── because: cannot constrain  'R  <:  'R1
-//│ ╟── because: cannot constrain  'R  <:  ¬'R2
-//│ ╟── because: cannot constrain  'R2  <:  ¬'R
-//│ ╟── because: cannot constrain  'R3  <:  ¬'R
-//│ ╟── because: cannot constrain  'R  <:  ¬'R3
-//│ ╟── because: cannot constrain  r  <:  ¬'R3
-//│ ╟── because: cannot constrain  'R3  <:  ¬r
-//│ ╙── because: cannot constrain  r  <:  ¬r
-//│ Type: Int
+//│ ═══[RUNTIME ERROR] ReferenceError: init is not defined
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.1074: 	  let interviewees = empty(r)
+//│ ╙──        	                     ^^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1075: 	  push(interviewees, Itv(20, 3))
+//│ ╙──        	  ^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1076: 	  push(interviewees, Itv(50, 1))
+//│ ╙──        	  ^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1077: 	  push(interviewees, Itv(30, 1))
+//│ ╙──        	  ^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.1078: 	  let results = empty(r)
+//│ ╙──        	                ^^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: println
+//│ ║  l.1080: 	  println("candidates:")
+//│ ╙──        	  ^^^^^^^
+//│ Type: ⊥
 
 
 fun wrongSelect(interviewees, budget, results) =
@@ -316,6 +1147,372 @@ fun wrongSelect(interviewees, budget, results) =
             true
           None then false
     get(dp, size, budget)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:init⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Left of Cfg:
+//│           escapeChars = true
+//│           useSuperscripts = false
+//│           includeZero = false
+//│           defaultName = "tmp"
+//│         curThis = S of S of globalThis:globalThis⁰
+//│         bindings = HashMap(tmp:block$res -> block$res9, tmp:inlinedVal -> inlinedVal6, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:wrongSelect -> wrongSelect, member:+. -> $_$_, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, tmp:inlinedVal -> inlinedVal7, member:source -> source, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Function -> Function, tmp:block$res -> block$res1, member:* -> $_, tmp:block$res -> block$res12, member:Error -> Error, member:scope -> scope, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, m -> m2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, class:CodeBase -> CodeBase, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:inlinedVal -> inlinedVal8, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, class:Some -> Some, tmp:block$res -> block$res10, tmp:inlinedVal -> inlinedVal9, class:None -> None, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, m -> m, tmp:inlinedVal -> inlinedVal10, tmp:tmp -> tmp, tmp:tmp -> tmp1, tmp:tmp -> tmp2, class:Iter -> Iter, tmp:inlinedVal -> inlinedVal, member:select -> select, tmp:block$res -> block$res15, member:Predef -> Predef, tmp:inlinedVal -> inlinedVal11, class:Array2D -> Array2D, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res13, tmp:block$res -> block$res4, member:Interviewee -> Interviewee1, member:Itv -> Itv1, class:Interviewee -> Interviewee, tmp:inlinedVal -> inlinedVal2, class:Itv -> Itv, tmp:block$res -> block$res5, tmp:inlinedVal -> inlinedVal3, member:seq -> seq, tmp:block$res -> block$res11, tmp:block$res -> block$res6, m -> m3, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:inlinedVal -> inlinedVal12, member:format -> format, tmp:inlinedVal -> inlinedVal13, m -> m1, tmp:inlinedVal -> inlinedVal14, tmp:block$res -> block$res, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:inlinedVal -> inlinedVal4, tmp:block$res -> block$res7, tmp:inlinedVal -> inlinedVal15, tmp:block$res -> block$res14, tmp:inlinedVal -> inlinedVal5, member:printAll -> printAll)
+//│       curThis = S of N
+//│       bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│     bindings = HashMap(tmp:inlinedVal -> inlinedVal17, tmp:inlinedVal -> inlinedVal19, member:lambda -> lambda2, tmp:scrut -> scrut1, arr -> arr1, arr -> arr, tmp:inlinedVal -> inlinedVal16, tmp:tmp -> tmp13, tmp:tmp -> tmp14, it -> it, r -> r, size -> size, i -> i, dp -> dp, arr -> arr3, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal18, r -> r2, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:tmp -> tmp21, arr -> arr2, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp15, tmp:tmp -> tmp16)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'init'
+//│ ║  l.1122: 	    let dp = init(r, size + 1, budget + 1, 0)
+//│ ║          	             ^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.264: 	fun init: [A, R] -> (Region[out R], Int, Int, A) ->{R} Array2D[A, R]
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.265: 	fun init(r, d1, d2, iv) =
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.266: 	  let res = new Array2D(mkArrayWith(mkArrayWith(iv, d2), d1))
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.267: 	  region r in
+//│ ║         	^^^^^^^^^^^^^
+//│ ║  l.268: 	... (more lines omitted) ...
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:next⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Left of Cfg:
+//│               escapeChars = true
+//│               useSuperscripts = false
+//│               includeZero = false
+//│               defaultName = "tmp"
+//│             curThis = S of S of globalThis:globalThis⁰
+//│             bindings = HashMap(tmp:block$res -> block$res9, tmp:inlinedVal -> inlinedVal6, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:wrongSelect -> wrongSelect, member:+. -> $_$_, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, tmp:inlinedVal -> inlinedVal7, member:source -> source, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Function -> Function, tmp:block$res -> block$res1, member:* -> $_, tmp:block$res -> block$res12, member:Error -> Error, member:scope -> scope, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, m -> m2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, class:CodeBase -> CodeBase, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:inlinedVal -> inlinedVal8, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, class:Some -> Some, tmp:block$res -> block$res10, tmp:inlinedVal -> inlinedVal9, class:None -> None, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, m -> m, tmp:inlinedVal -> inlinedVal10, tmp:tmp -> tmp, tmp:tmp -> tmp1, tmp:tmp -> tmp2, class:Iter -> Iter, tmp:inlinedVal -> inlinedVal, member:select -> select, tmp:block$res -> block$res15, member:Predef -> Predef, tmp:inlinedVal -> inlinedVal11, class:Array2D -> Array2D, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res13, tmp:block$res -> block$res4, member:Interviewee -> Interviewee1, member:Itv -> Itv1, class:Interviewee -> Interviewee, tmp:inlinedVal -> inlinedVal2, class:Itv -> Itv, tmp:block$res -> block$res5, tmp:inlinedVal -> inlinedVal3, member:seq -> seq, tmp:block$res -> block$res11, tmp:block$res -> block$res6, m -> m3, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:inlinedVal -> inlinedVal12, member:format -> format, tmp:inlinedVal -> inlinedVal13, m -> m1, tmp:inlinedVal -> inlinedVal14, tmp:block$res -> block$res, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:inlinedVal -> inlinedVal4, tmp:block$res -> block$res7, tmp:inlinedVal -> inlinedVal15, tmp:block$res -> block$res14, tmp:inlinedVal -> inlinedVal5, member:printAll -> printAll)
+//│           curThis = S of N
+//│           bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│         bindings = HashMap(tmp:inlinedVal -> inlinedVal17, tmp:inlinedVal -> inlinedVal19, member:lambda -> lambda2, tmp:scrut -> scrut1, arr -> arr1, arr -> arr, tmp:inlinedVal -> inlinedVal16, tmp:tmp -> tmp13, tmp:tmp -> tmp14, it -> it, r -> r, size -> size, i -> i, dp -> dp, arr -> arr3, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal18, r -> r2, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:tmp -> tmp21, arr -> arr2, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp15, tmp:tmp -> tmp16)
+//│       curThis = S of N
+//│       bindings = HashMap()
+//│     bindings = HashMap(tmp:scrut -> scrut2)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'next'
+//│ ║  l.1125: 	        if next(it) is
+//│ ║          	           ^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.225: 	fun next: [T, S] -> Iter[T, S] ->{S} Option[T]
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.226: 	fun next(it) =
+//│ ║         	^^^^^^^^^^^^^^
+//│ ║  l.227: 	  let i = !(it.Iter#i)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.228: 	  if i == it.Iter#end then None()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.229: 	... (more lines omitted) ...
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:whileDo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Right of Scope:
+//│               parentOrCfg = Right of Scope:
+//│                 parentOrCfg = Right of Scope:
+//│                   parentOrCfg = Right of Scope:
+//│                     parentOrCfg = Right of Scope:
+//│                       parentOrCfg = Right of Scope:
+//│                         parentOrCfg = Right of Scope:
+//│                           parentOrCfg = Right of Scope:
+//│                             parentOrCfg = Right of Scope:
+//│                               parentOrCfg = Right of Scope:
+//│                                 parentOrCfg = Right of Scope:
+//│                                   parentOrCfg = Right of Scope:
+//│                                     parentOrCfg = Right of Scope:
+//│                                       parentOrCfg = Left of Cfg:
+//│                                         escapeChars = true
+//│                                         useSuperscripts = false
+//│                                         includeZero = false
+//│                                         defaultName = "tmp"
+//│                                       curThis = S of S of globalThis:globalThis⁰
+//│                                       bindings = HashMap(tmp:block$res -> block$res9, tmp:inlinedVal -> inlinedVal6, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:wrongSelect -> wrongSelect, member:+. -> $_$_, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, tmp:inlinedVal -> inlinedVal7, member:source -> source, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Function -> Function, tmp:block$res -> block$res1, member:* -> $_, tmp:block$res -> block$res12, member:Error -> Error, member:scope -> scope, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, m -> m2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, class:CodeBase -> CodeBase, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:inlinedVal -> inlinedVal8, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, class:Some -> Some, tmp:block$res -> block$res10, tmp:inlinedVal -> inlinedVal9, class:None -> None, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, m -> m, tmp:inlinedVal -> inlinedVal10, tmp:tmp -> tmp, tmp:tmp -> tmp1, tmp:tmp -> tmp2, class:Iter -> Iter, tmp:inlinedVal -> inlinedVal, member:select -> select, tmp:block$res -> block$res15, member:Predef -> Predef, tmp:inlinedVal -> inlinedVal11, class:Array2D -> Array2D, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res13, tmp:block$res -> block$res4, member:Interviewee -> Interviewee1, member:Itv -> Itv1, class:Interviewee -> Interviewee, tmp:inlinedVal -> inlinedVal2, class:Itv -> Itv, tmp:block$res -> block$res5, tmp:inlinedVal -> inlinedVal3, member:seq -> seq, tmp:block$res -> block$res11, tmp:block$res -> block$res6, m -> m3, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:inlinedVal -> inlinedVal12, member:format -> format, tmp:inlinedVal -> inlinedVal13, m -> m1, tmp:inlinedVal -> inlinedVal14, tmp:block$res -> block$res, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:inlinedVal -> inlinedVal4, tmp:block$res -> block$res7, tmp:inlinedVal -> inlinedVal15, tmp:block$res -> block$res14, tmp:inlinedVal -> inlinedVal5, member:printAll -> printAll)
+//│                                     curThis = S of N
+//│                                     bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│                                   bindings = HashMap(tmp:inlinedVal -> inlinedVal17, tmp:inlinedVal -> inlinedVal19, member:lambda -> lambda2, tmp:scrut -> scrut1, arr -> arr1, arr -> arr, tmp:inlinedVal -> inlinedVal16, tmp:tmp -> tmp13, tmp:tmp -> tmp14, it -> it, r -> r, size -> size, i -> i, dp -> dp, arr -> arr3, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal18, r -> r2, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:tmp -> tmp21, arr -> arr2, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp15, tmp:tmp -> tmp16)
+//│                                 curThis = S of N
+//│                                 bindings = HashMap()
+//│                               bindings = HashMap(tmp:scrut -> scrut2)
+//│                             bindings = HashMap(tmp:arg$Some$0$ -> arg$Some$0$)
+//│                           bindings = HashMap(j -> j, tmp:arg$Itv$0$ -> arg$Itv$0$, tmp:arg$Itv$1$ -> arg$Itv$1$, member:lambda -> lambda3, tmp:tmp -> tmp22, tmp:scrut -> scrut3, score -> score, salary -> salary)
+//│                         bindings = HashMap(tmp:scrut -> scrut4)
+//│                       bindings = HashMap(tmp:scrut -> scrut5)
+//│                     bindings = HashMap(tmp:scrut -> scrut6)
+//│                   bindings = HashMap(tmp:scrut -> scrut7, tmp:tmp -> tmp23)
+//│                 bindings = HashMap(tmp:scrut -> scrut8, tmp:tmp -> tmp24, tmp:inlinedVal -> inlinedVal20)
+//│               bindings = HashMap(tmp:inlinedVal -> inlinedVal21, tmp:scrut -> scrut9, tmp:tmp -> tmp25)
+//│             bindings = HashMap(tmp:inlinedVal -> inlinedVal22, tmp:scrut -> scrut10, tmp:tmp -> tmp26)
+//│           bindings = HashMap(f -> f, tmp:inlinedVal -> inlinedVal23, label:inlinedLbl -> inlinedLbl)
+//│         bindings = HashMap(tmp:scrut -> scrut11, tmp:tmp -> tmp27)
+//│       bindings = HashMap(f -> f1, tmp:inlinedVal -> inlinedVal24, label:inlinedLbl -> inlinedLbl1)
+//│     bindings = HashMap(tmp:scrut -> scrut12, tmp:tmp -> tmp28)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'whileDo'
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ║         	              ^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.248: 	fun whileDo: [R] -> (() ->{R} Bool) ->{R} ()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.249: 	fun whileDo(f) =
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:whileDo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Right of Scope:
+//│               parentOrCfg = Right of Scope:
+//│                 parentOrCfg = Right of Scope:
+//│                   parentOrCfg = Right of Scope:
+//│                     parentOrCfg = Right of Scope:
+//│                       parentOrCfg = Right of Scope:
+//│                         parentOrCfg = Right of Scope:
+//│                           parentOrCfg = Right of Scope:
+//│                             parentOrCfg = Right of Scope:
+//│                               parentOrCfg = Left of Cfg:
+//│                                 escapeChars = true
+//│                                 useSuperscripts = false
+//│                                 includeZero = false
+//│                                 defaultName = "tmp"
+//│                               curThis = S of S of globalThis:globalThis⁰
+//│                               bindings = HashMap(tmp:block$res -> block$res9, tmp:inlinedVal -> inlinedVal6, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:wrongSelect -> wrongSelect, member:+. -> $_$_, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, tmp:inlinedVal -> inlinedVal7, member:source -> source, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Function -> Function, tmp:block$res -> block$res1, member:* -> $_, tmp:block$res -> block$res12, member:Error -> Error, member:scope -> scope, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, m -> m2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, class:CodeBase -> CodeBase, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:inlinedVal -> inlinedVal8, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, class:Some -> Some, tmp:block$res -> block$res10, tmp:inlinedVal -> inlinedVal9, class:None -> None, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, m -> m, tmp:inlinedVal -> inlinedVal10, tmp:tmp -> tmp, tmp:tmp -> tmp1, tmp:tmp -> tmp2, class:Iter -> Iter, tmp:inlinedVal -> inlinedVal, member:select -> select, tmp:block$res -> block$res15, member:Predef -> Predef, tmp:inlinedVal -> inlinedVal11, class:Array2D -> Array2D, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res13, tmp:block$res -> block$res4, member:Interviewee -> Interviewee1, member:Itv -> Itv1, class:Interviewee -> Interviewee, tmp:inlinedVal -> inlinedVal2, class:Itv -> Itv, tmp:block$res -> block$res5, tmp:inlinedVal -> inlinedVal3, member:seq -> seq, tmp:block$res -> block$res11, tmp:block$res -> block$res6, m -> m3, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:inlinedVal -> inlinedVal12, member:format -> format, tmp:inlinedVal -> inlinedVal13, m -> m1, tmp:inlinedVal -> inlinedVal14, tmp:block$res -> block$res, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:inlinedVal -> inlinedVal4, tmp:block$res -> block$res7, tmp:inlinedVal -> inlinedVal15, tmp:block$res -> block$res14, tmp:inlinedVal -> inlinedVal5, member:printAll -> printAll)
+//│                             curThis = S of N
+//│                             bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│                           bindings = HashMap(tmp:inlinedVal -> inlinedVal17, tmp:inlinedVal -> inlinedVal19, member:lambda -> lambda2, tmp:scrut -> scrut1, arr -> arr1, arr -> arr, tmp:inlinedVal -> inlinedVal16, tmp:tmp -> tmp13, tmp:tmp -> tmp14, it -> it, r -> r, size -> size, i -> i, dp -> dp, arr -> arr3, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal18, r -> r2, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:tmp -> tmp21, arr -> arr2, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp15, tmp:tmp -> tmp16)
+//│                         bindings = HashMap(tmp:scrut -> scrut2)
+//│                       bindings = HashMap(tmp:scrut -> scrut3)
+//│                     bindings = HashMap(tmp:scrut -> scrut4, tmp:tmp -> tmp22)
+//│                   bindings = HashMap(tmp:scrut -> scrut5, tmp:tmp -> tmp23, tmp:inlinedVal -> inlinedVal20)
+//│                 bindings = HashMap(tmp:inlinedVal -> inlinedVal21, tmp:scrut -> scrut6, tmp:tmp -> tmp24)
+//│               bindings = HashMap(tmp:inlinedVal -> inlinedVal22, tmp:scrut -> scrut7, tmp:tmp -> tmp25)
+//│             bindings = HashMap(tmp:inlinedVal -> inlinedVal23, tmp:scrut -> scrut8, tmp:tmp -> tmp26)
+//│           bindings = HashMap(label:inlinedLbl -> inlinedLbl, f -> f, tmp:inlinedVal -> inlinedVal24)
+//│         bindings = HashMap(tmp:scrut -> scrut9, tmp:tmp -> tmp27)
+//│       bindings = HashMap(f -> f1, tmp:inlinedVal -> inlinedVal25, label:inlinedLbl -> inlinedLbl1)
+//│     bindings = HashMap(tmp:scrut -> scrut10, tmp:tmp -> tmp28)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'whileDo'
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ║         	              ^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.248: 	fun whileDo: [R] -> (() ->{R} Bool) ->{R} ()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.249: 	fun whileDo(f) =
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:next⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Left of Cfg:
+//│               escapeChars = true
+//│               useSuperscripts = false
+//│               includeZero = false
+//│               defaultName = "tmp"
+//│             curThis = S of S of globalThis:globalThis⁰
+//│             bindings = HashMap(tmp:block$res -> block$res9, tmp:inlinedVal -> inlinedVal6, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:wrongSelect -> wrongSelect, member:+. -> $_$_, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, tmp:inlinedVal -> inlinedVal7, member:source -> source, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Function -> Function, tmp:block$res -> block$res1, member:* -> $_, tmp:block$res -> block$res12, member:Error -> Error, member:scope -> scope, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, m -> m2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, class:CodeBase -> CodeBase, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:inlinedVal -> inlinedVal8, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, class:Some -> Some, tmp:block$res -> block$res10, tmp:inlinedVal -> inlinedVal9, class:None -> None, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, m -> m, tmp:inlinedVal -> inlinedVal10, tmp:tmp -> tmp, tmp:tmp -> tmp1, tmp:tmp -> tmp2, class:Iter -> Iter, tmp:inlinedVal -> inlinedVal, member:select -> select, tmp:block$res -> block$res15, member:Predef -> Predef, tmp:inlinedVal -> inlinedVal11, class:Array2D -> Array2D, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res13, tmp:block$res -> block$res4, member:Interviewee -> Interviewee1, member:Itv -> Itv1, class:Interviewee -> Interviewee, tmp:inlinedVal -> inlinedVal2, class:Itv -> Itv, tmp:block$res -> block$res5, tmp:inlinedVal -> inlinedVal3, member:seq -> seq, tmp:block$res -> block$res11, tmp:block$res -> block$res6, m -> m3, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:inlinedVal -> inlinedVal12, member:format -> format, tmp:inlinedVal -> inlinedVal13, m -> m1, tmp:inlinedVal -> inlinedVal14, tmp:block$res -> block$res, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:inlinedVal -> inlinedVal4, tmp:block$res -> block$res7, tmp:inlinedVal -> inlinedVal15, tmp:block$res -> block$res14, tmp:inlinedVal -> inlinedVal5, member:printAll -> printAll)
+//│           curThis = S of N
+//│           bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│         bindings = HashMap(tmp:inlinedVal -> inlinedVal17, tmp:inlinedVal -> inlinedVal19, member:lambda -> lambda2, tmp:scrut -> scrut1, arr -> arr1, arr -> arr, tmp:inlinedVal -> inlinedVal16, tmp:tmp -> tmp13, tmp:tmp -> tmp14, it -> it, r -> r, size -> size, i -> i, dp -> dp, arr -> arr3, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal18, r -> r2, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:tmp -> tmp21, arr -> arr2, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp15, tmp:tmp -> tmp16)
+//│       curThis = S of N
+//│       bindings = HashMap()
+//│     bindings = HashMap(tmp:scrut -> scrut2)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'next'
+//│ ║  l.1141: 	        if next(it) is
+//│ ║          	           ^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.225: 	fun next: [T, S] -> Iter[T, S] ->{S} Option[T]
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.226: 	fun next(it) =
+//│ ║         	^^^^^^^^^^^^^^
+//│ ║  l.227: 	  let i = !(it.Iter#i)
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.228: 	  if i == it.Iter#end then None()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.229: 	... (more lines omitted) ...
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:whileDo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Right of Scope:
+//│               parentOrCfg = Right of Scope:
+//│                 parentOrCfg = Right of Scope:
+//│                   parentOrCfg = Right of Scope:
+//│                     parentOrCfg = Right of Scope:
+//│                       parentOrCfg = Right of Scope:
+//│                         parentOrCfg = Right of Scope:
+//│                           parentOrCfg = Right of Scope:
+//│                             parentOrCfg = Right of Scope:
+//│                               parentOrCfg = Left of Cfg:
+//│                                 escapeChars = true
+//│                                 useSuperscripts = false
+//│                                 includeZero = false
+//│                                 defaultName = "tmp"
+//│                               curThis = S of S of globalThis:globalThis⁰
+//│                               bindings = HashMap(tmp:block$res -> block$res9, tmp:inlinedVal -> inlinedVal6, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, member:CodeBase -> CodeBase1, tmp:option -> option, member:Num -> Num, member:wrongSelect -> wrongSelect, member:+. -> $_$_, member:Region -> Region1, member:Array -> Array, member:!== -> $_$_$_, member:/. -> $_$_1, member:error -> error, member:Unit -> Unit, member:*. -> $_$_2, tmp:inlinedVal -> inlinedVal7, member:source -> source, member:-. -> $_$_3, member:lambda -> lambda, member:<= -> $_$_4, member:Function -> Function, tmp:block$res -> block$res1, member:* -> $_, tmp:block$res -> block$res12, member:Error -> Error, member:scope -> scope, member:print -> print, member:< -> $_1, member:run -> run, member:|| -> $_$_5, member:>= -> $_$_6, member:Array -> Array1, member:Nothing -> Nothing, member:debug -> debug, member:- -> $_2, member:Int -> Int, tmp:block$res -> block$res2, member:annotations -> annotations, member:Object -> Object, member:BigInt -> BigInt, member:== -> $_$_7, member:wasm -> wasm, member:Symbol -> Symbol, member:=== -> $_$_$_1, member:Int31 -> Int31, member:+ -> $_3, member:!= -> $_$_8, member:js -> js, member:&& -> $_$_9, member:Bool -> Bool, member:Any -> Any, member:log -> log, member:/ -> $_4, member:runtime -> runtime1, member:> -> $_5, member:Ref -> Ref1, member:TypedArray -> TypedArray, member:String -> String, member:Str -> Str, m -> m2, tmp:tmp -> tmp6, tmp:tmp -> tmp7, class:CodeBase -> CodeBase, tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:inlinedVal -> inlinedVal8, class:Region -> Region, class:Ref -> Ref, member:Some -> Some1, member:Option -> Option1, member:None -> None1, class:Option -> Option, class:Some -> Some, tmp:block$res -> block$res10, tmp:inlinedVal -> inlinedVal9, class:None -> None, tmp:block$res -> block$res3, member:ArrayList -> ArrayList1, tmp:block$res -> block$res8, member:Iter -> Iter1, member:Array2D -> Array2D1, class:ArrayList -> ArrayList, m -> m, tmp:inlinedVal -> inlinedVal10, tmp:tmp -> tmp, tmp:tmp -> tmp1, tmp:tmp -> tmp2, class:Iter -> Iter, tmp:inlinedVal -> inlinedVal, member:select -> select, tmp:block$res -> block$res15, member:Predef -> Predef, tmp:inlinedVal -> inlinedVal11, class:Array2D -> Array2D, tmp:inlinedVal -> inlinedVal1, tmp:block$res -> block$res13, tmp:block$res -> block$res4, member:Interviewee -> Interviewee1, member:Itv -> Itv1, class:Interviewee -> Interviewee, tmp:inlinedVal -> inlinedVal2, class:Itv -> Itv, tmp:block$res -> block$res5, tmp:inlinedVal -> inlinedVal3, member:seq -> seq, tmp:block$res -> block$res11, tmp:block$res -> block$res6, m -> m3, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:tmp -> tmp12, tmp:inlinedVal -> inlinedVal12, member:format -> format, tmp:inlinedVal -> inlinedVal13, m -> m1, tmp:inlinedVal -> inlinedVal14, tmp:block$res -> block$res, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:tmp -> tmp5, tmp:inlinedVal -> inlinedVal4, tmp:block$res -> block$res7, tmp:inlinedVal -> inlinedVal15, tmp:block$res -> block$res14, tmp:inlinedVal -> inlinedVal5, member:printAll -> printAll)
+//│                             curThis = S of N
+//│                             bindings = HashMap(interviewees -> interviewees, budget -> budget, results -> results)
+//│                           bindings = HashMap(tmp:inlinedVal -> inlinedVal17, tmp:inlinedVal -> inlinedVal19, member:lambda -> lambda2, tmp:scrut -> scrut1, arr -> arr1, arr -> arr, tmp:inlinedVal -> inlinedVal16, tmp:tmp -> tmp13, tmp:tmp -> tmp14, it -> it, r -> r, size -> size, i -> i, dp -> dp, arr -> arr3, it -> it1, xs -> xs, member:lambda -> lambda1, tmp:scrut -> scrut, tmp:inlinedVal -> inlinedVal18, r -> r2, tmp:tmp -> tmp17, tmp:tmp -> tmp18, tmp:tmp -> tmp19, tmp:tmp -> tmp20, tmp:tmp -> tmp21, arr -> arr2, d2 -> d2, rest -> rest, r -> r1, tmp:tmp -> tmp15, tmp:tmp -> tmp16)
+//│                         bindings = HashMap(tmp:scrut -> scrut2)
+//│                       bindings = HashMap(tmp:scrut -> scrut3)
+//│                     bindings = HashMap(tmp:scrut -> scrut4, tmp:tmp -> tmp22)
+//│                   bindings = HashMap(tmp:inlinedVal -> inlinedVal20, tmp:scrut -> scrut5, tmp:tmp -> tmp23)
+//│                 bindings = HashMap(tmp:inlinedVal -> inlinedVal21, tmp:scrut -> scrut6, tmp:tmp -> tmp24)
+//│               bindings = HashMap(tmp:inlinedVal -> inlinedVal22, tmp:scrut -> scrut7, tmp:tmp -> tmp25)
+//│             bindings = HashMap(tmp:inlinedVal -> inlinedVal23, tmp:scrut -> scrut8, tmp:tmp -> tmp26)
+//│           bindings = HashMap(f -> f, tmp:inlinedVal -> inlinedVal24, label:inlinedLbl -> inlinedLbl)
+//│         bindings = HashMap(tmp:scrut -> scrut9, tmp:tmp -> tmp27)
+//│       bindings = HashMap(f -> f1, tmp:inlinedVal -> inlinedVal25, label:inlinedLbl -> inlinedLbl1)
+//│     bindings = HashMap(tmp:scrut -> scrut10, tmp:tmp -> tmp28)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'whileDo'
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ║         	              ^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.248: 	fun whileDo: [R] -> (() ->{R} Bool) ->{R} ()
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.249: 	fun whileDo(f) =
+//│ ║         	^^^^^^^^^^^^^^^^
+//│ ║  l.250: 	  if f() then whileDo(f) else ()
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: len
+//│ ║  l.1121: 	    let size = len(interviewees), let i = r.ref 1
+//│ ╙──        	               ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: init
+//│ ║  l.1122: 	    let dp = init(r, size + 1, budget + 1, 0)
+//│ ╙──        	             ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: iter
+//│ ║  l.1123: 	    iter of interviewees, it =>
+//│ ╙──        	    ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: whileDo
+//│ ║  l.1124: 	      whileDo of () =>
+//│ ╙──        	      ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: next
+//│ ║  l.1125: 	        if next(it) is
+//│ ╙──        	           ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: whileDo
+//│ ║  l.1128: 	            whileDo of () =>
+//│ ╙──        	            ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: update
+//│ ║  l.1129: 	              if !(j) < salary then update(dp, !(i), !(j), get(dp, !(i) - 1, !(j)))
+//│ ╙──        	                                    ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.1129: 	              if !(j) < salary then update(dp, !(i), !(j), get(dp, !(i) - 1, !(j)))
+//│ ╙──        	                                                           ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.1131: 	                let p = get(dp, !(i) - 1, !(j) - salary), let np = get(dp, !(i) - 1, !(j))
+//│ ╙──        	                        ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.1131: 	                let p = get(dp, !(i) - 1, !(j) - salary), let np = get(dp, !(i) - 1, !(j))
+//│ ╙──        	                                                                   ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: update
+//│ ║  l.1132: 	                update(dp, !(i), !(j), max of np, p + score)
+//│ ╙──        	                ^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: max
+//│ ║  l.1132: 	                update(dp, !(i), !(j), max of np, p + score)
+//│ ╙──        	                                       ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: revIter
+//│ ║  l.1139: 	    revIter of interviewees, it =>
+//│ ╙──        	    ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: whileDo
+//│ ║  l.1140: 	      whileDo of () =>
+//│ ╙──        	      ^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: next
+//│ ║  l.1141: 	        if next(it) is
+//│ ╙──        	           ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.1143: 	            if get(dp, !(i), !(rest)) == get(dp, !(i) - 1, !(rest) - salary) + score then
+//│ ╙──        	               ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.1143: 	            if get(dp, !(i), !(rest)) == get(dp, !(i) - 1, !(rest) - salary) + score then
+//│ ╙──        	                                         ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1144: 	              push(interviewees, itv); rest := !(rest) - salary
+//│ ╙──        	              ^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: get
+//│ ║  l.1149: 	    get(dp, size, budget)
+//│ ╙──        	    ^^^
 
 :e
 region r in
@@ -329,16 +1526,24 @@ region r in
     println("candidates:")
     printAll(results)
     m
-//│ > candidates:
-//│ = 80
-//│ ╔══[COMPILATION ERROR] Type error in reference with expected type 'interviewees
-//│ ║  l.328: 	    let m = wrongSelect(interviewees, 4000, results)
-//│ ║         	                        ^^^^^^^^^^^^
-//│ ╟── because: cannot constrain  ArrayList['A, in ⊥ out 'R]  <:  'interviewees
-//│ ╟── because: cannot constrain  ArrayList['A, in ⊥ out 'R]  <:  ArrayList[in 'T out 'T1, in ⊥ out 'R1]
-//│ ╟── because: cannot constrain  'R  <:  'R1
-//│ ╟── because: cannot constrain  'R  <:  ¬'R
-//│ ╟── because: cannot constrain  'R  <:  ⊥
-//│ ╙── because: cannot constrain  r  <:  ⊥
-//│ Type: Int
+//│ ═══[RUNTIME ERROR] ReferenceError: init is not defined
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.1519: 	  let interviewees = empty(r)
+//│ ╙──        	                     ^^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1520: 	  push(interviewees, Itv(20, 3000))
+//│ ╙──        	  ^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1521: 	  push(interviewees, Itv(50, 1000))
+//│ ╙──        	  ^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: push
+//│ ║  l.1522: 	  push(interviewees, Itv(30, 1000))
+//│ ╙──        	  ^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: empty
+//│ ║  l.1524: 	    let results = empty(r2)
+//│ ╙──        	                  ^^^^^
+//│ ╔══[COMPILATION ERROR] Variable not found: println
+//│ ║  l.1526: 	    println("candidates:")
+//│ ╙──        	    ^^^^^^^
+//│ Type: ⊥
 

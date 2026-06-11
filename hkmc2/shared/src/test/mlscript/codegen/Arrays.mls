@@ -10,8 +10,28 @@ empty.0
 
 :sjs
 let single = [1]
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = single⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res, empty -> empty, tmp:block$res -> block$res1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes, tmp:Term -> Term, tmp:block$res -> block$res2, tmp:Block -> Block, tmp:option -> option)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'single'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.12: 	let single = [1]
+//│ ╙──      	    ^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let single; single = globalThis.Object.freeze([ 1 ]);
+//│ single = globalThis.Object.freeze([ 1 ]);
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ single = [1]
 

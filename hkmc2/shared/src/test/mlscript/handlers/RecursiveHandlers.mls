@@ -154,8 +154,360 @@ if true do
   h2.perform(())
   h1.perform(())
 str
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ║  l.146: 	      set str += "A"
+//│ ║         	          ^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ║  l.148: 	      set str += "A"
+//│ ║         	          ^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ║  l.151: 	      set str += str + "B"
+//│ ║         	                 ^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ║  l.151: 	      set str += str + "B"
+//│ ║         	          ^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ║  l.153: 	      set str += str + "B"
+//│ ║         	                 ^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ║  l.153: 	      set str += str + "B"
+//│ ║         	          ^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│         bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│       curThis = S of N
+//│       bindings = HashMap(k -> k, arg -> arg)
+//│     bindings = HashMap(tmp:tmp -> tmp8, tmp:tmp -> tmp9, tmp:tmp -> tmp10, tmp:tmp -> tmp11, tmp:pc -> pc)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│     bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Left of Cfg:
+//│           escapeChars = true
+//│           useSuperscripts = false
+//│           includeZero = false
+//│           defaultName = "tmp"
+//│         curThis = S of S of globalThis:globalThis⁰
+//│         bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│       bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│     bindings = HashMap(h1 -> h11, tmp:handleBlock$$here -> handleBlock$$here)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ║  l.156: 	str
+//│ ║         	^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Left of Cfg:
+//│           escapeChars = true
+//│           useSuperscripts = false
+//│           includeZero = false
+//│           defaultName = "tmp"
+//│         curThis = S of S of globalThis:globalThis⁰
+//│         bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│       bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│     bindings = HashMap(h1 -> h11, tmp:handleBlock$$here -> handleBlock$$here)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ║  l.156: 	str
+//│ ║         	^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = str⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:tmp -> tmp, member:handleBlock$ -> handleBlock$, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Handler$h1$perform -> Handler$h1$perform, tmp:tmp -> tmp2, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:handleBlock$ -> handleBlock$2, tmp:Block -> Block, tmp:option -> option, member:Handler$h1$ -> Handler$h1$1, member:Handler$h$write -> Handler$h$write1, tmp:block$res -> block$res7, class:Handler$g2$ -> Handler$g2$, member:Handler$h1$perform$ -> Handler$h1$perform$, h2 -> h21, member:Handler$h$ -> Handler$h$3, class:Handler$h2$ -> Handler$h2$, member:Handler$h$write$ -> Handler$h$write$1, member:handleBlock$ -> handleBlock$5, member:Handler$g$perform -> Handler$g$perform, tmp:block$res -> block$res10, member:Handler$g$ -> Handler$g$1, tmp:tmp -> tmp5, member:lambda$ -> lambda$, member:handleBlock$ -> handleBlock$6, member:Handler$h$perform -> Handler$h$perform, member:Handler$h$ -> Handler$h$7, tmp:tmp -> tmp6, member:Handler$h$perform$ -> Handler$h$perform$, tmp:block$res -> block$res2, tmp:tmp -> tmp7, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:handleBlock$$ -> handleBlock$$, tmp:tmp -> tmp4, member:lambda -> lambda1, h -> h, class:Handler$h$ -> Handler$h$, member:handleBlock$ -> handleBlock$7, member:Handler$g2$perform -> Handler$g2$perform, member:handleBlock$ -> handleBlock$4, member:Handler$h2$perform -> Handler$h2$perform, tmp:block$res -> block$res6, member:Handler$g2$ -> Handler$g2$1, member:lambda -> lambda2, h -> h3, member:Handler$h2$ -> Handler$h2$1, class:Handler$h$ -> Handler$h$4, member:Handler$g$perform$ -> Handler$g$perform$, member:handleBlock$ -> handleBlock$8, member:Handler$h2$perform$ -> Handler$h2$perform$, member:Handler$g$perform -> Handler$g$perform1, member:Handler$g$ -> Handler$g$3, tmp:tmp -> tmp1, member:Handler$g$perform$ -> Handler$g$perform$1, member:handleBlock$ -> handleBlock$1, member:Handler$h$write -> Handler$h$write, member:Handler$h$ -> Handler$h$1, member:Handler$h$write$ -> Handler$h$write$, member:lambda -> lambda, member:handleBlock$$ -> handleBlock$$1, tmp:tmp -> tmp3, member:handleBlock$ -> handleBlock$3, tmp:block$res -> block$res8, member:Handler$h$ -> Handler$h$5, member:Handler$h$write$ -> Handler$h$write$2, h -> h4, class:Handler$h$ -> Handler$h$6, member:Handler$g2$perform$ -> Handler$g2$perform$, tmp:block$res -> block$res, member:Effect -> Effect1, class:Effect -> Effect, tmp:block$res -> block$res5, member:lambda$ -> lambda$1, class:Handler$g$ -> Handler$g$, h -> h2, tmp:block$res -> block$res9, tmp:block$res -> block$res1, class:Handler$h$ -> Handler$h$2, h1 -> h1, class:Handler$h1$ -> Handler$h1$, g -> g, class:Handler$g$ -> Handler$g$2)
+//│     bindings = HashMap(class:Handler$h1$ -> Handler$h1$2, member:handleBlock$$ -> handleBlock$$3, member:handleBlock$ -> handleBlock$9, member:Handler$h2$perform -> Handler$h2$perform1, member:Handler$h2$perform$ -> Handler$h2$perform$1, class:Handler$h2$ -> Handler$h2$2, member:Handler$h2$ -> Handler$h2$3, member:handleBlock$ -> handleBlock$10, member:Handler$h1$perform -> Handler$h1$perform1, member:Handler$h1$ -> Handler$h1$3, member:handleBlock$$ -> handleBlock$$2, member:Handler$h1$perform$ -> Handler$h1$perform$1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'str'
+//│ ║  l.156: 	str
+//│ ║         	^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.142: 	let str = ""
+//│ ╙──       	    ^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let str, handleBlock$9, Handler$h2$perform1, Handler$h2$3, handleBlock$10, Handler$h1$perform1, Handler$h1$3, handleBlock$$2, handleBlock$$3, Handler$h2$perform$1, Handler$h1$perform$1;
+//│ let handleBlock$9, Handler$h2$perform1, Handler$h2$3, handleBlock$10, Handler$h1$perform1, Handler$h1$3, handleBlock$$2, handleBlock$$3, Handler$h2$perform$1, Handler$h1$perform$1;
 //│ runtime.resetEffects();
 //│ Handler$h1$perform$1 = function Handler$h1$perform$(arg) {
 //│   return (k) => {

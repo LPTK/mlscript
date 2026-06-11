@@ -91,7 +91,7 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│     let tmp1;
 //│     match input
 //│       Some⁰ =>
-//│         let value, tmp2;
+//│         let value, p_0$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let value1;
@@ -117,7 +117,7 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│             set tmp5 = { "p_1": tmp3, "p_2": tmp4 };
 //│             set tmp2 = { "input": null, "result": tmp5 };
 //│             end
-//│         let p_0$, transform, result1$, transform1, result2$, tmp3, lambda3;
+//│         let transform, result1$, transform1, result2$, tmp3, lambda3;
 //│         set value = tmp2;
 //│         @private
 //│         define lambda3 as fun lambda⁰(args) {
@@ -179,7 +179,7 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│     let tmp1;
 //│     match input
 //│       Some⁰ =>
-//│         let value, tmp2;
+//│         let value, p_1$, p_2$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let value1;
@@ -201,7 +201,7 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("empty");
 //│             set tmp2 = { "input": null, "result": tmp3 };
 //│             end
-//│         let p_1$, transform, result3$, tmp3, lambda3;
+//│         let transform, result3$, tmp3, lambda3;
 //│         set value = tmp2;
 //│         @private
 //│         define lambda3 as fun lambda³(args) {
@@ -225,7 +225,7 @@ fun biasedOr2__compiled(x) = if x is (@compile BiasedOr2) as output then output
 //│           else
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("topmost");
 //│             end
-//│         let p_2$, transform1, transformResult, bindings, tmp4, tmp5, lambda4;
+//│         let transform1, transformResult, bindings, tmp4, tmp5, lambda4;
 //│         set p_1$ = tmp3;
 //│         @private
 //│         define lambda4 as fun lambda⁴(args) {

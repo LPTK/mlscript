@@ -103,8 +103,28 @@ let x = if a is
       E then 5
     print("done")
 print(x)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = x⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res4, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res6, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:block$res -> block$res1, member:E -> E1, member:A -> A1, member:B -> B1, member:C -> C1, member:D -> D1, object:A -> A, object:B -> B, object:C -> C, object:D -> D, object:E -> E, tmp:block$res -> block$res2, a -> a, b -> b, tmp:block$res -> block$res3)
+//│     bindings = HashMap(tmp:tmp -> tmp)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.92: 	let x = if a is
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let x, tmp;
+//│ let tmp;
 //│ if (a instanceof A1.class) {
 //│   tmp = 1;
 //│ } else if (a instanceof B1.class) {

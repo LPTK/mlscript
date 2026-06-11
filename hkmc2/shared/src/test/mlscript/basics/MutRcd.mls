@@ -45,8 +45,28 @@ r.foo
 
 :sjs
 let r = {}
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = r⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res6, tmp:selRes -> selRes2, tmp:block$res -> block$res7, tmp:selRes -> selRes3, tmp:block$res -> block$res8, r -> r2, tmp:block$res -> block$res9, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res10, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:selRes -> selRes4, tmp:block$res -> block$res11, tmp:block$res -> block$res, r -> r, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:selRes -> selRes, tmp:block$res -> block$res3, tmp:selRes -> selRes1, tmp:block$res -> block$res4, r -> r1, tmp:block$res -> block$res5)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'r'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.47: 	let r = {}
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let r3; r3 = runtime.Unit;
+//│ r = runtime.Unit;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ r = ()
 
@@ -77,7 +97,7 @@ r.foo
 :e
 mut()
 //│ ╔══[COMPILATION ERROR] Illegal position for 'mut' modifier.
-//│ ║  l.78: 	mut()
+//│ ║  l.98: 	mut()
 //│ ╙──      	^^^
 
 

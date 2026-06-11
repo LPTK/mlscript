@@ -35,7 +35,7 @@ nat(0) is @compile NatBox
 //│       set tmp1 = p_0$;
 //│       return tmp1
 //│     Box⁰ =>
-//│       let value, tmp2;
+//│       let value, p_0$, tmp2;
 //│       match input
 //│         Object⁰ =>
 //│           let value1;
@@ -53,7 +53,7 @@ nat(0) is @compile NatBox
 //│         else
 //│           set tmp2 = { "input": null, "result": false };
 //│           end
-//│       let p_0$, result0$, tmp3;
+//│       let result0$, tmp3;
 //│       set value = tmp2;
 //│       set result0$ = value.result﹖;
 //│       match result0$

@@ -65,12 +65,148 @@ fun test() =
     fun bar = 1
     fun foo() = Test.bar + 1
   [Test]
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Test⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Left of Cfg:
+//│           escapeChars = true
+//│           useSuperscripts = false
+//│           includeZero = false
+//│           defaultName = "tmp"
+//│         curThis = S of S of globalThis:globalThis⁰
+//│         bindings = HashMap(f -> f1, tmp:tmp -> tmp, tmp:selRes -> selRes, tmp:block$res -> block$res4, f -> f2, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, g -> g, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:block$res -> block$res8, member:Test -> Test3, object:Test -> Test2, tmp:block$res -> block$res9, f -> f3, tmp:block$res -> block$res, tmp:block$res -> block$res10, tmp:block$res -> block$res11, member:Test -> Test1, object:Test -> Test, member:test -> test, object:Test -> Test4, tmp:block$res -> block$res1, f -> f, tmp:block$res -> block$res2, tmp:block$res -> block$res3, tmp:block$res -> block$res12)
+//│       curThis = S of N
+//│       bindings = HashMap()
+//│     curThis = S of S of object:Test¹
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Test'
+//│ ║  l.64: 	  object Test with
+//│ ║        	  ^^^^^^^^^^^^^^^^
+//│ ║  l.65: 	    fun bar = 1
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ║  l.66: 	    fun foo() = Test.bar + 1
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.64: 	  object Test with
+//│ ║        	         ^^^^^^^^^
+//│ ║  l.65: 	    fun bar = 1
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ║  l.66: 	    fun foo() = Test.bar + 1
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Test⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(f -> f1, tmp:tmp -> tmp, tmp:selRes -> selRes, tmp:block$res -> block$res4, f -> f2, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, g -> g, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:block$res -> block$res8, member:Test -> Test3, object:Test -> Test2, tmp:block$res -> block$res9, f -> f3, tmp:block$res -> block$res, tmp:block$res -> block$res10, tmp:block$res -> block$res11, member:Test -> Test1, object:Test -> Test, member:test -> test, object:Test -> Test4, tmp:block$res -> block$res1, f -> f, tmp:block$res -> block$res2, tmp:block$res -> block$res3, tmp:block$res -> block$res12)
+//│         curThis = S of N
+//│         bindings = HashMap()
+//│       curThis = S of S of object:Test¹
+//│       bindings = HashMap()
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Test'
+//│ ║  l.66: 	    fun foo() = Test.bar + 1
+//│ ║        	                ^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.64: 	  object Test with
+//│ ║        	         ^^^^^^^^^
+//│ ║  l.65: 	    fun bar = 1
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ║  l.66: 	    fun foo() = Test.bar + 1
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Test⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(f -> f1, tmp:tmp -> tmp, tmp:selRes -> selRes, tmp:block$res -> block$res4, f -> f2, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, g -> g, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:block$res -> block$res8, member:Test -> Test3, object:Test -> Test2, tmp:block$res -> block$res9, f -> f3, tmp:block$res -> block$res, tmp:block$res -> block$res10, tmp:block$res -> block$res11, member:Test -> Test1, object:Test -> Test, member:test -> test, object:Test -> Test4, tmp:block$res -> block$res1, f -> f, tmp:block$res -> block$res2, tmp:block$res -> block$res3, tmp:block$res -> block$res12)
+//│     curThis = S of N
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Test'
+//│ ║  l.67: 	  [Test]
+//│ ║        	   ^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.64: 	  object Test with
+//│ ║        	         ^^^^^^^^^
+//│ ║  l.65: 	    fun bar = 1
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ║  l.66: 	    fun foo() = Test.bar + 1
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 let f = test().0.("foo")
-//│ f = fun foo
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Test for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier.applyBlock$$anonfun$14(BlockSimplifier.scala:1167)
+//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.go$1(BlockSimplifier.scala:1244)
+//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.applyResult$$anonfun$6(BlockSimplifier.scala:1254)
+//│ 	at: scala.Option.fold(Option.scala:265)
 
 f()
-//│ = 2
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = f⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(f -> f1, tmp:tmp -> tmp, tmp:selRes -> selRes, tmp:block$res -> block$res4, f -> f2, tmp:block$res -> block$res13, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, g -> g, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:tmp -> tmp1, tmp:block$res -> block$res7, tmp:block$res -> block$res8, member:Test -> Test3, object:Test -> Test2, tmp:block$res -> block$res9, f -> f3, tmp:block$res -> block$res, tmp:block$res -> block$res10, tmp:block$res -> block$res11, member:Test -> Test1, object:Test -> Test, member:test -> test, object:Test -> Test4, tmp:block$res -> block$res1, f -> f, tmp:block$res -> block$res2, tmp:block$res -> block$res3, tmp:block$res -> block$res12)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
+//│ ║  l.176: 	f()
+//│ ║         	^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.162: 	let f = test().0.("foo")
+//│ ╙──       	    ^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'bar')
+//│     at foo (REPL10:1:414)
+//│     at REPL51:1:38
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 
 // * However, it would disable open recursion upon object inheritance (eg `class C extends Test with ...`).

@@ -6,8 +6,68 @@
 let x = 1
 set x += 1 in print(x)
 x
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = x⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│     bindings = HashMap(tmp:old -> old)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.6: 	let x = 1
+//│ ╙──     	    ^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = x⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│     bindings = HashMap(tmp:old -> old)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.6: 	let x = 1
+//│ ╙──     	    ^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = x⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│     bindings = HashMap(tmp:old -> old)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.6: 	let x = 1
+//│ ╙──     	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let x, old; x = 1; old = 1; try { x = 2; Predef.print(2); } finally { x = old; } return old
+//│ let old; x = 1; old = 1; try { x = 2; Predef.print(2); } finally { x = old; } return old
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 2
 //│ = 1
@@ -33,15 +93,15 @@ set x += 1 in
   print("end")
 x
 //│ ╔══[COMPILATION ERROR] Backtracking assignment is not supported with effect handlers enabled
-//│ ║  l.29: 	set x += 1 in
+//│ ║  l.89: 	set x += 1 in
 //│ ║        	    ^^^^^^^^^
-//│ ║  l.30: 	  print("init")
+//│ ║  l.90: 	  print("init")
 //│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.31: 	  print(h.test())
+//│ ║  l.91: 	  print(h.test())
 //│ ║        	^^^^^^^^^^^^^^^^^
-//│ ║  l.32: 	  print(x)
+//│ ║  l.92: 	  print(x)
 //│ ║        	^^^^^^^^^^
-//│ ║  l.33: 	... (more lines omitted) ...
+//│ ║  l.93: 	... (more lines omitted) ...
 //│ ╙──      	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ x = 1

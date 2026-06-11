@@ -263,7 +263,7 @@ fun evaluate(term) = if term is
 //│     let tmp1;
 //│     match input
 //│       Literal⁰ =>
-//│         let value, tmp2;
+//│         let value, p_6$, p_7$, p_8$, p_9$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let value1;
@@ -285,7 +285,7 @@ fun evaluate(term) = if term is
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("empty");
 //│             set tmp2 = { "input": null, "result": tmp3 };
 //│             end
-//│         let p_6$, transform, result1$, tmp3, lambda7;
+//│         let transform, result1$, tmp3, lambda7;
 //│         set value = tmp2;
 //│         @private
 //│         define lambda7 as fun lambda²⁸(args) {
@@ -309,7 +309,7 @@ fun evaluate(term) = if term is
 //│           else
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("topmost");
 //│             end
-//│         let p_7$, transform1, result1$1, tmp4, lambda8;
+//│         let transform1, result1$1, tmp4, lambda8;
 //│         set p_6$ = tmp3;
 //│         @private
 //│         define lambda8 as fun lambda²⁹(args) {
@@ -333,7 +333,7 @@ fun evaluate(term) = if term is
 //│           else
 //│             set tmp4 = new runtime⁰.MatchFailure⁰("topmost");
 //│             end
-//│         let p_8$, transform2, result1$2, tmp5, lambda9;
+//│         let transform2, result1$2, tmp5, lambda9;
 //│         set p_7$ = tmp4;
 //│         @private
 //│         define lambda9 as fun lambda³⁰(args) {
@@ -357,7 +357,7 @@ fun evaluate(term) = if term is
 //│           else
 //│             set tmp5 = new runtime⁰.MatchFailure⁰("topmost");
 //│             end
-//│         let p_9$, transform3, result1$3, tmp6, lambda10;
+//│         let transform3, result1$3, tmp6, lambda10;
 //│         set p_8$ = tmp5;
 //│         @private
 //│         define lambda10 as fun lambda³¹(args) {
@@ -385,7 +385,7 @@ fun evaluate(term) = if term is
 //│         set tmp1 = { "p_6": p_6$, "p_7": p_7$, "p_8": p_8$, "p_9": p_9$ };
 //│         return tmp1
 //│       Infix⁰ =>
-//│         let op, tmp2;
+//│         let op, left, right, p_6$, p_7$, p_8$, p_9$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let op1;
@@ -415,7 +415,7 @@ fun evaluate(term) = if term is
 //│             set tmp7 = { "p_2": tmp3, "p_3": tmp4, "p_4": tmp5, "p_5": tmp6 };
 //│             set tmp2 = { "input": null, "result": tmp7 };
 //│             end
-//│         let left, tmp3;
+//│         let tmp3;
 //│         set op = tmp2;
 //│         match input
 //│           Object⁰ =>
@@ -446,7 +446,7 @@ fun evaluate(term) = if term is
 //│             set tmp8 = { "p_6": tmp4, "p_7": tmp5, "p_8": tmp6, "p_9": tmp7 };
 //│             set tmp3 = { "input": null, "result": tmp8 };
 //│             end
-//│         let right, tmp4;
+//│         let tmp4;
 //│         set left = tmp3;
 //│         match input
 //│           Object⁰ =>
@@ -477,7 +477,7 @@ fun evaluate(term) = if term is
 //│             set tmp9 = { "p_10": tmp5, "p_11": tmp6, "p_12": tmp7, "p_13": tmp8 };
 //│             set tmp4 = { "input": null, "result": tmp9 };
 //│             end
-//│         let p_6$, transform, result2$, transform1, result3$, transform2, result4$, transform3, result5$, tmp5, tmp6, tmp7, tmp8, lambda7;
+//│         let transform, result2$, transform1, result3$, transform2, result4$, transform3, result5$, tmp5, tmp6, tmp7, tmp8, lambda7;
 //│         set right = tmp4;
 //│         @private
 //│         define lambda7 as fun lambda³²(args) {
@@ -663,7 +663,7 @@ fun evaluate(term) = if term is
 //│             break σ$x1
 //│           set tmp5 = tmp6;
 //│           break σ$x
-//│         let p_7$, transform4, result2$1, transform5, result3$1, transform6, result4$1, transform7, result5$1, tmp9, tmp10, tmp11, tmp12, lambda8;
+//│         let transform4, result2$1, transform5, result3$1, transform6, result4$1, transform7, result5$1, tmp9, tmp10, tmp11, tmp12, lambda8;
 //│         set tmp8 = tmp5;
 //│         set p_6$ = tmp8;
 //│         @private
@@ -850,7 +850,7 @@ fun evaluate(term) = if term is
 //│             break σ$x2
 //│           set tmp9 = tmp10;
 //│           break σ$x1
-//│         let p_8$, transform8, result2$2, transform9, result3$2, transform10, result4$2, transform11, result5$2, tmp13, tmp14, tmp15, tmp16, lambda9;
+//│         let transform8, result2$2, transform9, result3$2, transform10, result4$2, transform11, result5$2, tmp13, tmp14, tmp15, tmp16, lambda9;
 //│         set tmp12 = tmp9;
 //│         set p_7$ = tmp12;
 //│         @private
@@ -1037,7 +1037,7 @@ fun evaluate(term) = if term is
 //│             break σ$x3
 //│           set tmp13 = tmp14;
 //│           break σ$x2
-//│         let p_9$, transform12, result2$3, transform13, result3$3, transform14, result4$3, transform15, result5$3, tmp17, tmp18, tmp19, tmp20, lambda10;
+//│         let transform12, result2$3, transform13, result3$3, transform14, result4$3, transform15, result5$3, tmp17, tmp18, tmp19, tmp20, lambda10;
 //│         set tmp16 = tmp13;
 //│         set p_8$ = tmp16;
 //│         @private
@@ -1229,7 +1229,7 @@ fun evaluate(term) = if term is
 //│         set tmp1 = { "p_6": p_6$, "p_7": p_7$, "p_8": p_8$, "p_9": p_9$ };
 //│         return tmp1
 //│       Prefix⁰ =>
-//│         let op, tmp2;
+//│         let op, right, p_6$, p_7$, p_8$, p_9$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let op1;
@@ -1255,7 +1255,7 @@ fun evaluate(term) = if term is
 //│             set tmp5 = { "p_3": tmp3, "p_2": tmp4 };
 //│             set tmp2 = { "input": null, "result": tmp5 };
 //│             end
-//│         let right, tmp3;
+//│         let tmp3;
 //│         set op = tmp2;
 //│         match input
 //│           Object⁰ =>
@@ -1282,7 +1282,7 @@ fun evaluate(term) = if term is
 //│             set tmp6 = { "p_14": tmp4, "p_15": tmp5 };
 //│             set tmp3 = { "input": null, "result": tmp6 };
 //│             end
-//│         let p_6$, transform, result3$, transform1, result2$, tmp4, tmp5, lambda7;
+//│         let transform, result3$, transform1, result2$, tmp4, tmp5, lambda7;
 //│         set right = tmp3;
 //│         @private
 //│         define lambda7 as fun lambda⁴⁸(args) {
@@ -1351,7 +1351,7 @@ fun evaluate(term) = if term is
 //│               set tmp4 = new runtime⁰.MatchFailure⁰("topmost");
 //│               break σ$x
 //│           end
-//│         let p_7$, transform2, result3$1, transform3, result2$1, tmp6, tmp7, lambda8;
+//│         let transform2, result3$1, transform3, result2$1, tmp6, tmp7, lambda8;
 //│         set tmp5 = tmp4;
 //│         set p_6$ = tmp5;
 //│         @private
@@ -1421,7 +1421,7 @@ fun evaluate(term) = if term is
 //│               set tmp6 = new runtime⁰.MatchFailure⁰("topmost");
 //│               break σ$x1
 //│           end
-//│         let p_8$, transform4, result3$2, transform5, result2$2, tmp8, tmp9, lambda9;
+//│         let transform4, result3$2, transform5, result2$2, tmp8, tmp9, lambda9;
 //│         set tmp7 = tmp6;
 //│         set p_7$ = tmp7;
 //│         @private
@@ -1491,7 +1491,7 @@ fun evaluate(term) = if term is
 //│               set tmp8 = new runtime⁰.MatchFailure⁰("topmost");
 //│               break σ$x2
 //│           end
-//│         let p_9$, transform6, result3$3, transform7, result2$3, tmp10, tmp11, lambda10;
+//│         let transform6, result3$3, transform7, result2$3, tmp10, tmp11, lambda10;
 //│         set tmp9 = tmp8;
 //│         set p_8$ = tmp9;
 //│         @private
@@ -1614,7 +1614,7 @@ fun evaluate(term) = if term is
 //│     let tmp1;
 //│     match input
 //│       Literal⁰ =>
-//│         let value, tmp2;
+//│         let value, p_10$, p_11$, p_12$, p_13$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let value1;
@@ -1636,7 +1636,7 @@ fun evaluate(term) = if term is
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("empty");
 //│             set tmp2 = { "input": null, "result": tmp3 };
 //│             end
-//│         let p_10$, transform, result1$, tmp3, lambda7;
+//│         let transform, result1$, tmp3, lambda7;
 //│         set value = tmp2;
 //│         @private
 //│         define lambda7 as fun lambda⁵⁸(args) {
@@ -1660,7 +1660,7 @@ fun evaluate(term) = if term is
 //│           else
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("topmost");
 //│             end
-//│         let p_11$, transform1, result1$1, tmp4, lambda8;
+//│         let transform1, result1$1, tmp4, lambda8;
 //│         set p_10$ = tmp3;
 //│         @private
 //│         define lambda8 as fun lambda⁵⁹(args) {
@@ -1684,7 +1684,7 @@ fun evaluate(term) = if term is
 //│           else
 //│             set tmp4 = new runtime⁰.MatchFailure⁰("topmost");
 //│             end
-//│         let p_12$, transform2, result1$2, tmp5, lambda9;
+//│         let transform2, result1$2, tmp5, lambda9;
 //│         set p_11$ = tmp4;
 //│         @private
 //│         define lambda9 as fun lambda⁶⁰(args) {
@@ -1708,7 +1708,7 @@ fun evaluate(term) = if term is
 //│           else
 //│             set tmp5 = new runtime⁰.MatchFailure⁰("topmost");
 //│             end
-//│         let p_13$, transform3, result1$3, tmp6, lambda10;
+//│         let transform3, result1$3, tmp6, lambda10;
 //│         set p_12$ = tmp5;
 //│         @private
 //│         define lambda10 as fun lambda⁶¹(args) {
@@ -1736,7 +1736,7 @@ fun evaluate(term) = if term is
 //│         set tmp1 = { "p_10": p_10$, "p_11": p_11$, "p_12": p_12$, "p_13": p_13$ };
 //│         return tmp1
 //│       Infix⁰ =>
-//│         let op, tmp2;
+//│         let op, left, right, p_10$, p_11$, p_12$, p_13$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let op1;
@@ -1766,7 +1766,7 @@ fun evaluate(term) = if term is
 //│             set tmp7 = { "p_2": tmp3, "p_3": tmp4, "p_4": tmp5, "p_5": tmp6 };
 //│             set tmp2 = { "input": null, "result": tmp7 };
 //│             end
-//│         let left, tmp3;
+//│         let tmp3;
 //│         set op = tmp2;
 //│         match input
 //│           Object⁰ =>
@@ -1797,7 +1797,7 @@ fun evaluate(term) = if term is
 //│             set tmp8 = { "p_6": tmp4, "p_7": tmp5, "p_8": tmp6, "p_9": tmp7 };
 //│             set tmp3 = { "input": null, "result": tmp8 };
 //│             end
-//│         let right, tmp4;
+//│         let tmp4;
 //│         set left = tmp3;
 //│         match input
 //│           Object⁰ =>
@@ -1828,7 +1828,7 @@ fun evaluate(term) = if term is
 //│             set tmp9 = { "p_10": tmp5, "p_11": tmp6, "p_12": tmp7, "p_13": tmp8 };
 //│             set tmp4 = { "input": null, "result": tmp9 };
 //│             end
-//│         let p_10$, transform, result2$, transform1, result3$, transform2, result4$, transform3, result5$, tmp5, tmp6, tmp7, tmp8, lambda7;
+//│         let transform, result2$, transform1, result3$, transform2, result4$, transform3, result5$, tmp5, tmp6, tmp7, tmp8, lambda7;
 //│         set right = tmp4;
 //│         @private
 //│         define lambda7 as fun lambda⁶²(args) {
@@ -2014,7 +2014,7 @@ fun evaluate(term) = if term is
 //│             break σ$x1
 //│           set tmp5 = tmp6;
 //│           break σ$x
-//│         let p_11$, transform4, result2$1, transform5, result3$1, transform6, result4$1, transform7, result5$1, tmp9, tmp10, tmp11, tmp12, lambda8;
+//│         let transform4, result2$1, transform5, result3$1, transform6, result4$1, transform7, result5$1, tmp9, tmp10, tmp11, tmp12, lambda8;
 //│         set tmp8 = tmp5;
 //│         set p_10$ = tmp8;
 //│         @private
@@ -2201,7 +2201,7 @@ fun evaluate(term) = if term is
 //│             break σ$x2
 //│           set tmp9 = tmp10;
 //│           break σ$x1
-//│         let p_12$, transform8, result2$2, transform9, result3$2, transform10, result4$2, transform11, result5$2, tmp13, tmp14, tmp15, tmp16, lambda9;
+//│         let transform8, result2$2, transform9, result3$2, transform10, result4$2, transform11, result5$2, tmp13, tmp14, tmp15, tmp16, lambda9;
 //│         set tmp12 = tmp9;
 //│         set p_11$ = tmp12;
 //│         @private
@@ -2388,7 +2388,7 @@ fun evaluate(term) = if term is
 //│             break σ$x3
 //│           set tmp13 = tmp14;
 //│           break σ$x2
-//│         let p_13$, transform12, result2$3, transform13, result3$3, transform14, result4$3, transform15, result5$3, tmp17, tmp18, tmp19, tmp20, lambda10;
+//│         let transform12, result2$3, transform13, result3$3, transform14, result4$3, transform15, result5$3, tmp17, tmp18, tmp19, tmp20, lambda10;
 //│         set tmp16 = tmp13;
 //│         set p_12$ = tmp16;
 //│         @private
@@ -2580,7 +2580,7 @@ fun evaluate(term) = if term is
 //│         set tmp1 = { "p_10": p_10$, "p_11": p_11$, "p_12": p_12$, "p_13": p_13$ };
 //│         return tmp1
 //│       Prefix⁰ =>
-//│         let op, tmp2;
+//│         let op, right, p_10$, p_11$, p_12$, p_13$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let op1;
@@ -2606,7 +2606,7 @@ fun evaluate(term) = if term is
 //│             set tmp5 = { "p_3": tmp3, "p_2": tmp4 };
 //│             set tmp2 = { "input": null, "result": tmp5 };
 //│             end
-//│         let right, tmp3;
+//│         let tmp3;
 //│         set op = tmp2;
 //│         match input
 //│           Object⁰ =>
@@ -2633,7 +2633,7 @@ fun evaluate(term) = if term is
 //│             set tmp6 = { "p_14": tmp4, "p_15": tmp5 };
 //│             set tmp3 = { "input": null, "result": tmp6 };
 //│             end
-//│         let p_10$, transform, result3$, transform1, result2$, tmp4, tmp5, lambda7;
+//│         let transform, result3$, transform1, result2$, tmp4, tmp5, lambda7;
 //│         set right = tmp3;
 //│         @private
 //│         define lambda7 as fun lambda⁷⁸(args) {
@@ -2702,7 +2702,7 @@ fun evaluate(term) = if term is
 //│               set tmp4 = new runtime⁰.MatchFailure⁰("topmost");
 //│               break σ$x
 //│           end
-//│         let p_11$, transform2, result3$1, transform3, result2$1, tmp6, tmp7, lambda8;
+//│         let transform2, result3$1, transform3, result2$1, tmp6, tmp7, lambda8;
 //│         set tmp5 = tmp4;
 //│         set p_10$ = tmp5;
 //│         @private
@@ -2772,7 +2772,7 @@ fun evaluate(term) = if term is
 //│               set tmp6 = new runtime⁰.MatchFailure⁰("topmost");
 //│               break σ$x1
 //│           end
-//│         let p_12$, transform4, result3$2, transform5, result2$2, tmp8, tmp9, lambda9;
+//│         let transform4, result3$2, transform5, result2$2, tmp8, tmp9, lambda9;
 //│         set tmp7 = tmp6;
 //│         set p_11$ = tmp7;
 //│         @private
@@ -2842,7 +2842,7 @@ fun evaluate(term) = if term is
 //│               set tmp8 = new runtime⁰.MatchFailure⁰("topmost");
 //│               break σ$x2
 //│           end
-//│         let p_13$, transform6, result3$3, transform7, result2$3, tmp10, tmp11, lambda10;
+//│         let transform6, result3$3, transform7, result2$3, tmp10, tmp11, lambda10;
 //│         set tmp9 = tmp8;
 //│         set p_12$ = tmp9;
 //│         @private
@@ -2935,7 +2935,7 @@ fun evaluate(term) = if term is
 //│     let tmp1;
 //│     match input
 //│       Literal⁰ =>
-//│         let value, tmp2;
+//│         let value, p_14$, p_15$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let value1;
@@ -2957,7 +2957,7 @@ fun evaluate(term) = if term is
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("empty");
 //│             set tmp2 = { "input": null, "result": tmp3 };
 //│             end
-//│         let p_14$, transform, result1$, tmp3, lambda7;
+//│         let transform, result1$, tmp3, lambda7;
 //│         set value = tmp2;
 //│         @private
 //│         define lambda7 as fun lambda⁸⁷(args) {
@@ -2981,7 +2981,7 @@ fun evaluate(term) = if term is
 //│           else
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("topmost");
 //│             end
-//│         let p_15$, transform1, result1$1, tmp4, lambda8;
+//│         let transform1, result1$1, tmp4, lambda8;
 //│         set p_14$ = tmp3;
 //│         @private
 //│         define lambda8 as fun lambda⁸⁸(args) {
@@ -3009,7 +3009,7 @@ fun evaluate(term) = if term is
 //│         set tmp1 = { "p_14": p_14$, "p_15": p_15$ };
 //│         return tmp1
 //│       Infix⁰ =>
-//│         let op, tmp2;
+//│         let op, left, right, p_14$, p_15$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let op1;
@@ -3039,7 +3039,7 @@ fun evaluate(term) = if term is
 //│             set tmp7 = { "p_2": tmp3, "p_3": tmp4, "p_4": tmp5, "p_5": tmp6 };
 //│             set tmp2 = { "input": null, "result": tmp7 };
 //│             end
-//│         let left, tmp3;
+//│         let tmp3;
 //│         set op = tmp2;
 //│         match input
 //│           Object⁰ =>
@@ -3070,7 +3070,7 @@ fun evaluate(term) = if term is
 //│             set tmp8 = { "p_6": tmp4, "p_7": tmp5, "p_8": tmp6, "p_9": tmp7 };
 //│             set tmp3 = { "input": null, "result": tmp8 };
 //│             end
-//│         let right, tmp4;
+//│         let tmp4;
 //│         set left = tmp3;
 //│         match input
 //│           Object⁰ =>
@@ -3101,7 +3101,7 @@ fun evaluate(term) = if term is
 //│             set tmp9 = { "p_10": tmp5, "p_11": tmp6, "p_12": tmp7, "p_13": tmp8 };
 //│             set tmp4 = { "input": null, "result": tmp9 };
 //│             end
-//│         let p_14$, transform, result2$, transform1, result3$, transform2, result4$, transform3, result5$, tmp5, tmp6, tmp7, tmp8, lambda7;
+//│         let transform, result2$, transform1, result3$, transform2, result4$, transform3, result5$, tmp5, tmp6, tmp7, tmp8, lambda7;
 //│         set right = tmp4;
 //│         @private
 //│         define lambda7 as fun lambda⁸⁹(args) {
@@ -3287,7 +3287,7 @@ fun evaluate(term) = if term is
 //│             break σ$x1
 //│           set tmp5 = tmp6;
 //│           break σ$x
-//│         let p_15$, transform4, result2$1, transform5, result3$1, transform6, result4$1, transform7, result5$1, tmp9, tmp10, tmp11, tmp12, lambda8;
+//│         let transform4, result2$1, transform5, result3$1, transform6, result4$1, transform7, result5$1, tmp9, tmp10, tmp11, tmp12, lambda8;
 //│         set tmp8 = tmp5;
 //│         set p_14$ = tmp8;
 //│         @private
@@ -3479,7 +3479,7 @@ fun evaluate(term) = if term is
 //│         set tmp1 = { "p_14": p_14$, "p_15": p_15$ };
 //│         return tmp1
 //│       Prefix⁰ =>
-//│         let op, tmp2;
+//│         let op, right, p_14$, p_15$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let op1;
@@ -3505,7 +3505,7 @@ fun evaluate(term) = if term is
 //│             set tmp5 = { "p_3": tmp3, "p_2": tmp4 };
 //│             set tmp2 = { "input": null, "result": tmp5 };
 //│             end
-//│         let right, tmp3;
+//│         let tmp3;
 //│         set op = tmp2;
 //│         match input
 //│           Object⁰ =>
@@ -3532,7 +3532,7 @@ fun evaluate(term) = if term is
 //│             set tmp6 = { "p_14": tmp4, "p_15": tmp5 };
 //│             set tmp3 = { "input": null, "result": tmp6 };
 //│             end
-//│         let p_14$, transform, result3$, transform1, result2$, tmp4, tmp5, lambda7;
+//│         let transform, result3$, transform1, result2$, tmp4, tmp5, lambda7;
 //│         set right = tmp3;
 //│         @private
 //│         define lambda7 as fun lambda⁹⁷(args) {
@@ -3601,7 +3601,7 @@ fun evaluate(term) = if term is
 //│               set tmp4 = new runtime⁰.MatchFailure⁰("topmost");
 //│               break σ$x
 //│           end
-//│         let p_15$, transform2, result3$1, transform3, result2$1, tmp6, tmp7, lambda8;
+//│         let transform2, result3$1, transform3, result2$1, tmp6, tmp7, lambda8;
 //│         set tmp5 = tmp4;
 //│         set p_14$ = tmp5;
 //│         @private
@@ -3690,7 +3690,7 @@ fun evaluate(term) = if term is
 //│     let tmp1;
 //│     match input
 //│       Literal⁰ =>
-//│         let value, tmp2;
+//│         let value, p_0$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let value1;
@@ -3712,7 +3712,7 @@ fun evaluate(term) = if term is
 //│             set tmp3 = new runtime⁰.MatchFailure⁰("empty");
 //│             set tmp2 = { "input": null, "result": tmp3 };
 //│             end
-//│         let p_0$, transform, result1$, tmp3, lambda7;
+//│         let transform, result1$, tmp3, lambda7;
 //│         set value = tmp2;
 //│         @private
 //│         define lambda7 as fun lambda¹⁰²(args) {
@@ -3740,7 +3740,7 @@ fun evaluate(term) = if term is
 //│         set tmp1 = p_0$;
 //│         return tmp1
 //│       Infix⁰ =>
-//│         let op, tmp2;
+//│         let op, left, right, p_0$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let op1;
@@ -3770,7 +3770,7 @@ fun evaluate(term) = if term is
 //│             set tmp7 = { "p_2": tmp3, "p_3": tmp4, "p_4": tmp5, "p_5": tmp6 };
 //│             set tmp2 = { "input": null, "result": tmp7 };
 //│             end
-//│         let left, tmp3;
+//│         let tmp3;
 //│         set op = tmp2;
 //│         match input
 //│           Object⁰ =>
@@ -3801,7 +3801,7 @@ fun evaluate(term) = if term is
 //│             set tmp8 = { "p_6": tmp4, "p_7": tmp5, "p_8": tmp6, "p_9": tmp7 };
 //│             set tmp3 = { "input": null, "result": tmp8 };
 //│             end
-//│         let right, tmp4;
+//│         let tmp4;
 //│         set left = tmp3;
 //│         match input
 //│           Object⁰ =>
@@ -3832,7 +3832,7 @@ fun evaluate(term) = if term is
 //│             set tmp9 = { "p_10": tmp5, "p_11": tmp6, "p_12": tmp7, "p_13": tmp8 };
 //│             set tmp4 = { "input": null, "result": tmp9 };
 //│             end
-//│         let p_0$, transform, result2$, transform1, result3$, transform2, result4$, transform3, result5$, tmp5, tmp6, tmp7, tmp8, lambda7;
+//│         let transform, result2$, transform1, result3$, transform2, result4$, transform3, result5$, tmp5, tmp6, tmp7, tmp8, lambda7;
 //│         set right = tmp4;
 //│         @private
 //│         define lambda7 as fun lambda¹⁰³(args) {
@@ -4023,7 +4023,7 @@ fun evaluate(term) = if term is
 //│         set tmp1 = p_0$;
 //│         return tmp1
 //│       Prefix⁰ =>
-//│         let op, tmp2;
+//│         let op, right, p_0$, tmp2;
 //│         match input
 //│           Object⁰ =>
 //│             let op1;
@@ -4049,7 +4049,7 @@ fun evaluate(term) = if term is
 //│             set tmp5 = { "p_3": tmp3, "p_2": tmp4 };
 //│             set tmp2 = { "input": null, "result": tmp5 };
 //│             end
-//│         let right, tmp3;
+//│         let tmp3;
 //│         set op = tmp2;
 //│         match input
 //│           Object⁰ =>
@@ -4076,7 +4076,7 @@ fun evaluate(term) = if term is
 //│             set tmp6 = { "p_14": tmp4, "p_15": tmp5 };
 //│             set tmp3 = { "input": null, "result": tmp6 };
 //│             end
-//│         let p_0$, transform, result3$, transform1, result2$, tmp4, tmp5, lambda7;
+//│         let transform, result3$, transform1, result2$, tmp4, tmp5, lambda7;
 //│         set right = tmp3;
 //│         @private
 //│         define lambda7 as fun lambda¹⁰⁷(args) {

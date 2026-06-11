@@ -3,6 +3,18 @@
 
 fun add: (Int, Int) -> Int
 fun add(x, y) = x + y
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:add for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 // FIXME locations
 :e
@@ -10,10 +22,10 @@ fun foo: Int -> Int
 fun foo: Int -> Int
 //│ ╔══[COMPILATION ERROR] Multiple declarations of symbol 'foo'
 //│ ╟── declared here
-//│ ║  l.9: 	fun foo: Int -> Int
-//│ ║       	^^^^^^^^^^^^^^^^^^^
+//│ ║  l.21: 	fun foo: Int -> Int
+//│ ║        	^^^^^^^^^^^^^^^^^^^
 //│ ╟── declared here
-//│ ║  l.10: 	fun foo: Int -> Int
+//│ ║  l.22: 	fun foo: Int -> Int
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
 
 :e
@@ -21,20 +33,20 @@ fun id(x) = x
 fun id(y) = y
 //│ ╔══[COMPILATION ERROR] Multiple definitions of symbol 'id'
 //│ ╟── defined here
-//│ ║  l.20: 	fun id(x) = x
+//│ ║  l.32: 	fun id(x) = x
 //│ ║        	^^^^^^^^^^^^^
 //│ ╟── defined here
-//│ ║  l.21: 	fun id(y) = y
+//│ ║  l.33: 	fun id(y) = y
 //│ ╙──      	^^^^^^^^^^^^^
 //│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:id for FunDefn is a free variable for this block
 //│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:74)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
 //│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:70)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:150)
-//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1466)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
 //│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
 //│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
 //│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
@@ -42,65 +54,112 @@ fun id(y) = y
 :e
 fun bar: Str -> Str
 fun bar(x) = let t = x + 1 in "aaa"
-//│ ╔══[COMPILATION ERROR] Type error in reference with expected type Int
-//│ ║  l.44: 	fun bar(x) = let t = x + 1 in "aaa"
-//│ ║        	                     ^
-//│ ╙── because: cannot constrain  Str  <:  Int
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:bar for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 :e
 fun baz: Int -> Int
 fun baz(x) = "bbb"
-//│ ╔══[COMPILATION ERROR] Type error in string literal with expected type Int
-//│ ║  l.52: 	fun baz(x) = "bbb"
-//│ ║        	             ^^^^^
-//│ ╙── because: cannot constrain  Str  <:  Int
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:baz for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 add(1, 2)
-//│ Type: Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: add
+//│ ║  l.86: 	add(1, 2)
+//│ ╙──      	^^^
+//│ Type: ⊥
 
 add(1, 2) as Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: add
+//│ ║  l.94: 	add(1, 2) as Int
+//│ ╙──      	^^^
 //│ Type: Int
 
 
 :e
 add(0, 0) as Str
-//│ ╔══[COMPILATION ERROR] Type error in application of type ‹not implemented› with expected type Str
-//│ ║  l.66: 	add(0, 0) as Str
-//│ ║        	^^^^^^^^^
-//│ ╙── because: cannot constrain  Int  <:  Str
+//│ ╔══[COMPILATION ERROR] Variable not found: add
+//│ ║  l.104: 	add(0, 0) as Str
+//│ ╙──       	^^^
 //│ Type: Str
 
 :e
 fun errAdd(x: Int) = x + "1"
 //│ ╔══[COMPILATION ERROR] Type error in string literal with expected type Int
-//│ ║  l.74: 	fun errAdd(x: Int) = x + "1"
-//│ ║        	                         ^^^
+//│ ║  l.111: 	fun errAdd(x: Int) = x + "1"
+//│ ║         	                         ^^^
 //│ ╙── because: cannot constrain  Str  <:  Int
 
 fun high: ([A] -> A -> A) -> Int
 fun high(f) = f(42)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:high for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 high
-//│ Type: (['A] -> ('A) ->{⊥} 'A) ->{⊥} Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: high
+//│ ║  l.132: 	high
+//│ ╙──       	^^^^
+//│ Type: ⊥
 
 
 high((x => x) as [A] -> A -> A)
-//│ Type: Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: high
+//│ ║  l.141: 	high((x => x) as [A] -> A -> A)
+//│ ╙──       	^^^^
+//│ Type: ⊥
 
 high(x => x)
-//│ Type: Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: high
+//│ ║  l.149: 	high(x => x)
+//│ ╙──       	^^^^
+//│ Type: ⊥
 
 :e
 high(x => x + 1)
-//│ ╔══[COMPILATION ERROR] Type error in reference with expected type Int
-//│ ║  l.94: 	high(x => x + 1)
-//│ ║        	          ^
-//│ ╙── because: cannot constrain  A  <:  Int
-//│ ╔══[COMPILATION ERROR] Type error in application with expected type A
-//│ ║  l.94: 	high(x => x + 1)
-//│ ║        	          ^^^^^
-//│ ╙── because: cannot constrain  Int  <:  A
-//│ Type: Int
+//│ ╔══[COMPILATION ERROR] Variable not found: high
+//│ ║  l.158: 	high(x => x + 1)
+//│ ╙──       	^^^^
+//│ Type: ⊥
 
 (let a = 0 in x => x) as [A] -> A -> A
 //│ Type: ['A] -> ('A) ->{⊥} 'A
@@ -113,41 +172,108 @@ high(x => x + 1)
 fun baz: Int -> (([A] -> A -> A), Int) -> Int
 fun baz(z) =
   ((f, x) => f(x))
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:baz for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun baz: Int -> (([A] -> A -> A), Int) -> Int
 fun baz(z) =
   ((f, x) => f(x)) as (([A] -> A -> A), Int) -> Int
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:baz for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 :e
 baz as Int -> (([A] -> A -> A), Int) -> Int
+//│ ╔══[COMPILATION ERROR] Variable not found: baz
+//│ ║  l.205: 	baz as Int -> (([A] -> A -> A), Int) -> Int
+//│ ╙──       	^^^
 //│ ╔══[COMPILATION ERROR] Cannot type non-function term Ref(member:baz) as (Int) ->{⊥} ([outer, 'A] -> ('A) ->{⊥} 'A, Int) ->{⊥} Int
-//│ ║  l.122: 	baz as Int -> (([A] -> A -> A), Int) -> Int
+//│ ║  l.205: 	baz as Int -> (([A] -> A -> A), Int) -> Int
 //│ ╙──       	^^^
 //│ Type: ⊥
 
 
 baz(42)
-//│ Type: (['A] -> ('A) ->{⊥} 'A, Int) ->{⊥} Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: baz
+//│ ║  l.215: 	baz(42)
+//│ ╙──       	^^^
+//│ Type: ⊥
 
 :e
 baz(42) as (([A] -> A -> A), Int) -> Int
+//│ ╔══[COMPILATION ERROR] Variable not found: baz
+//│ ║  l.224: 	baz(42) as (([A] -> A -> A), Int) -> Int
+//│ ╙──       	^^^
 //│ ╔══[COMPILATION ERROR] Cannot type non-function term App(Ref(member:baz),Tup(List(Fld(‹›,Lit(IntLit(42)),None)))) as ([outer, 'A] -> ('A) ->{⊥} 'A, Int) ->{⊥} Int
-//│ ║  l.133: 	baz(42) as (([A] -> A -> A), Int) -> Int
+//│ ║  l.224: 	baz(42) as (([A] -> A -> A), Int) -> Int
 //│ ╙──       	^^^^^^^
 //│ Type: ⊥
 
 (z => (f, x) => baz(z)(f, x)) as Int -> (([A] -> A -> A), Int) -> Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: baz
+//│ ║  l.233: 	(z => (f, x) => baz(z)(f, x)) as Int -> (([A] -> A -> A), Int) -> Int
+//│ ╙──       	                ^^^
 //│ Type: (Int) ->{⊥} (['A] -> ('A) ->{⊥} 'A, Int) ->{⊥} Int
 
 
 fun id: [A] -> A -> A
 fun id(x) = x
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:id for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 id as [A] -> A -> A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.257: 	id as [A] -> A -> A
+//│ ╙──       	^^
 //│ Type: ['A] -> ('A) ->{⊥} 'A
 
 
 (id as [A] -> A -> A) as [A] -> A -> A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.266: 	(id as [A] -> A -> A) as [A] -> A -> A
+//│ ╙──       	 ^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.266: 	(id as [A] -> A -> A) as [A] -> A -> A
+//│ ╙──       	 ^^
 //│ Type: ['A] -> ('A) ->{⊥} 'A
 
 42 as Int | Num
@@ -177,7 +303,7 @@ foo
 :e
 foo(42, 1)
 //│ ╔══[COMPILATION ERROR] Type error in integer literal with expected type ¬'A
-//│ ║  l.178: 	foo(42, 1)
+//│ ║  l.304: 	foo(42, 1)
 //│ ║         	        ^
 //│ ╟── because: cannot constrain  Int  <:  ¬'A
 //│ ╟── because: cannot constrain  'A  <:  ¬{Int}

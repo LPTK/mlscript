@@ -11,27 +11,76 @@ f
 
 fun foo: [A] -> A -> Int
 fun foo(x) = 0
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 foo
-//│ Type: (⊤) ->{⊥} Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: foo
+//│ ║  l.27: 	foo
+//│ ╙──      	^^^
+//│ Type: ⊥
 
 f(foo)
-//│ Type: ⊤ -> Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: foo
+//│ ║  l.35: 	f(foo)
+//│ ╙──      	  ^^^
+//│ Type: ⊥
 
 fun g: ([A] -> A -> Int) -> ([A] -> A -> Int)
 fun g(y) =
   let local = ((x => y(x) + 1) as ([A] -> A -> Int)) in y
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:g for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 g
-//│ Type: ((⊤) ->{⊥} Int) ->{⊥} (⊤) ->{⊥} Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: g
+//│ ║  l.59: 	g
+//│ ╙──      	^
+//│ Type: ⊥
 
 g(foo)
-//│ Type: (⊤) ->{⊥} Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: g
+//│ ║  l.67: 	g(foo)
+//│ ╙──      	^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: foo
+//│ ║  l.67: 	g(foo)
+//│ ╙──      	  ^^^
+//│ Type: ⊥
 
 :e
 y `=> (let t = run(x `=> x `+ y) in y)
 //│ ╔══[COMPILATION ERROR] Type error in quoted term with expected type CodeBase[out 'T, ⊥, ?]
-//│ ║  l.32: 	y `=> (let t = run(x `=> x `+ y) in y)
+//│ ║  l.81: 	y `=> (let t = run(x `=> x `+ y) in y)
 //│ ║        	                   ^^^^^^^^^^^^
 //│ ╟── because: cannot constrain  CodeBase[in ⊥ out ('x) ->{⊥} ('cde), in ⊥ out 'ctx, in ⊥ out ⊤]  <:  CodeBase[in ⊥ out 'T, ⊥, in ⊥ out ⊤]
 //│ ╟── because: cannot constrain  'ctx  <:  ⊥
@@ -71,8 +120,8 @@ f(g)(foo)
 :fixme // ???
 f(g)(bar)
 //│ ╔══[COMPILATION ERROR] Type error in reference of type C[‹not implemented›] with expected type 'A
-//│ ║  l.72: 	f(g)(bar)
-//│ ║        	     ^^^
+//│ ║  l.121: 	f(g)(bar)
+//│ ║         	     ^^^
 //│ ╟── because: cannot constrain  C[Int]  <:  'A
 //│ ╟── because: cannot constrain  C[Int]  <:  ¬{C[in ⊥ out ¬⊥ ∧ 'B]} ∨ C[in Int out 'D]
 //│ ╟── because: cannot constrain  Int ∧ 'B  <:  'D
@@ -91,8 +140,8 @@ k
 :e
 k(_ => "")
 //│ ╔══[COMPILATION ERROR] Type error in function literal with expected type 'x
-//│ ║  l.92: 	k(_ => "")
-//│ ║        	  ^^^^^^^
+//│ ║  l.141: 	k(_ => "")
+//│ ║         	  ^^^^^^^
 //│ ╟── because: cannot constrain  ('_) ->{⊥} (Str)  <:  'x
 //│ ╟── because: cannot constrain  ('_) ->{⊥} (Str)  <:  (Int) ->{'eff} (Int)
 //│ ╙── because: cannot constrain  Str  <:  Int
@@ -113,7 +162,7 @@ k
 :e
 k(_ => "")
 //│ ╔══[COMPILATION ERROR] Type error in function literal with expected type 'x
-//│ ║  l.114: 	k(_ => "")
+//│ ║  l.163: 	k(_ => "")
 //│ ║         	  ^^^^^^^
 //│ ╟── because: cannot constrain  ('_) ->{⊥} (Str)  <:  'x
 //│ ╟── because: cannot constrain  ('_) ->{⊥} (Str)  <:  (⊤) ->{⊥} ⊥
@@ -123,7 +172,7 @@ k(_ => "")
 :e
 k(_ => 42)
 //│ ╔══[COMPILATION ERROR] Type error in function literal with expected type 'x
-//│ ║  l.124: 	k(_ => 42)
+//│ ║  l.173: 	k(_ => 42)
 //│ ║         	  ^^^^^^^
 //│ ╟── because: cannot constrain  ('_) ->{⊥} (Int)  <:  'x
 //│ ╟── because: cannot constrain  ('_) ->{⊥} (Int)  <:  (⊤) ->{⊥} ⊥

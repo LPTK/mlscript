@@ -22,7 +22,6 @@ module TrmMod with
 //│ ║        	^^^^^^^^^^^^^^^^^^
 //│ ║  l.16: 	  val whoami = "module"
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:TrmMod for FunDefn is a free variable for this block
 
 fun f: ClsMod = 42
 
@@ -75,7 +74,7 @@ f
 :e
 fun f: TrmMod = 42
 //│ ╔══[COMPILATION ERROR] Expected a non-module type; found reference of type TrmMod denoting module 'TrmMod'.
-//│ ║  l.76: 	fun f: TrmMod = 42
+//│ ║  l.75: 	fun f: TrmMod = 42
 //│ ║        	       ^^^^^^
 //│ ╙── Function must be marked as returning a 'module' in order to have a module return type.
 
@@ -92,21 +91,10 @@ f
 :sjs
 :fixme
 fun f: module TrmMod = TrmMod
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'TrmMod'
-//│ ║  l.14: 	fun TrmMod = 42
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.15: 	module TrmMod with
-//│ ║        	^^^^^^^^^^^^^^^^^^
-//│ ║  l.16: 	  val whoami = "module"
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.15: 	module TrmMod with
-//│ ║        	       ^^^^^^^^^^^
-//│ ║  l.16: 	  val whoami = "module"
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f6; f6 = function f() { return TrmMod.class };
+//│ let f6; f6 = function f() { return TrmMod1.class };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ FAILURE: Unexpected lack of error to fix
 
 fun assertModule(module m: ClsMod): module ClsMod = m
 
@@ -119,15 +107,7 @@ assertModule(TypMod).whoami
 :fixme
 :noInline
 print(assertModule(TrmMod).whoami)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'TrmMod'
-//│ ║  l.121: 	print(assertModule(TrmMod).whoami)
-//│ ║         	                   ^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.15: 	module TrmMod with
-//│ ║        	       ^^^^^^^^^^^
-//│ ║  l.16: 	  val whoami = "module"
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: TrmMod is not defined
+//│ ═══[RUNTIME ERROR] TypeError: Class constructor TrmMod cannot be invoked without 'new'
 
 // TODO: handle
 print(assertModule(TrmMod).whoami)
@@ -160,10 +140,10 @@ module Foo
 :e
 fun f(x: Foo): Foo = x
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.161: 	fun f(x: Foo): Foo = x
+//│ ║  l.141: 	fun f(x: Foo): Foo = x
 //│ ╙──       	         ^^^
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.161: 	fun f(x: Foo): Foo = x
+//│ ║  l.141: 	fun f(x: Foo): Foo = x
 //│ ╙──       	               ^^^
 
 fun f(x: Foo[Int]): Foo[Int] = x
@@ -173,10 +153,10 @@ fun f(module x: Foo): module Foo = x
 :e
 fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.174: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.154: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.174: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.154: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                                  ^^^^^^^^
 
 

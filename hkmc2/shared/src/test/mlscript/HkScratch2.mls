@@ -20,7 +20,7 @@ fun f(x) =
   z + 5 + 5
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define f⁰ as fun f¹(x) {
-//│   let y, scrut, tmp;
+//│   let y, scrut, z, tmp;
 //│   set scrut = x();
 //│   match scrut
 //│     1 =>
@@ -31,7 +31,7 @@ fun f(x) =
 //│       end
 //│     else
 //│       throw new globalThis⁰.Error⁰("match error")
-//│   let z, tmp1, tmp2, tmp3, tmp4, tmp5;
+//│   let tmp1, tmp2, tmp3, tmp4, tmp5;
 //│   set y = tmp;
 //│   set tmp1 = +⁰(y, 1);
 //│   set tmp2 = +⁰(tmp1, 2);
@@ -55,7 +55,7 @@ fun f(x) =
   z + 5 + 5
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define f² as fun f³(x) {
-//│   let y, tmp;
+//│   let y, z, tmp;
 //│   match x
 //│     1 =>
 //│       set tmp = 3;
@@ -65,7 +65,7 @@ fun f(x) =
 //│       end
 //│     else
 //│       throw new globalThis⁰.Error⁰("match error")
-//│   let z, tmp1, tmp2, tmp3, tmp4, tmp5;
+//│   let tmp1, tmp2, tmp3, tmp4, tmp5;
 //│   set y = tmp;
 //│   set tmp1 = +⁰(y, 1);
 //│   set tmp2 = +⁰(tmp1, 2);

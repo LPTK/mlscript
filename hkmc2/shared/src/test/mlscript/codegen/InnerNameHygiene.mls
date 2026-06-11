@@ -32,29 +32,109 @@ f1(41)
 :sjs
 let k(x) = f(x)
 fun f(x) = if x > 0 then k(x - 1) + 1 else x
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = k⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Left of Cfg:
+//│               escapeChars = true
+//│               useSuperscripts = false
+//│               includeZero = false
+//│               defaultName = "tmp"
+//│             curThis = S of S of globalThis:globalThis⁰
+//│             bindings = HashMap(tmp:block$res -> block$res, tmp:block$res -> block$res3, member:f -> f, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:block$res -> block$res1, tmp:Block -> Block, tmp:option -> option, member:f -> f1, member:f1 -> f11, tmp:block$res -> block$res2)
+//│           bindings = HashMap(member:f -> f2, member:k -> k)
+//│         curThis = S of N
+//│         bindings = HashMap(x -> x)
+//│       bindings = HashMap(tmp:scrut -> scrut)
+//│     bindings = HashMap(tmp:tmp -> tmp, tmp:tmp -> tmp1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'k'
+//│ ║  l.34: 	fun f(x) = if x > 0 then k(x - 1) + 1 else x
+//│ ║        	                         ^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.33: 	let k(x) = f(x)
+//│ ╙──      	    ^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = k⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Left of Cfg:
+//│               escapeChars = true
+//│               useSuperscripts = false
+//│               includeZero = false
+//│               defaultName = "tmp"
+//│             curThis = S of S of globalThis:globalThis⁰
+//│             bindings = HashMap(tmp:block$res -> block$res, tmp:block$res -> block$res3, member:f -> f, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:block$res -> block$res1, tmp:Block -> Block, tmp:option -> option, member:f -> f1, member:f1 -> f11, tmp:block$res -> block$res2)
+//│           bindings = HashMap(member:f -> f2, member:k -> k)
+//│         curThis = S of N
+//│         bindings = HashMap(x -> x)
+//│       bindings = HashMap(tmp:scrut -> scrut)
+//│     bindings = HashMap(tmp:tmp -> tmp, tmp:tmp -> tmp1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'k'
+//│ ║  l.34: 	fun f(x) = if x > 0 then k(x - 1) + 1 else x
+//│ ║        	                         ^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.33: 	let k(x) = f(x)
+//│ ╙──      	    ^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = k⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res, tmp:block$res -> block$res3, member:f -> f, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:block$res -> block$res1, tmp:Block -> Block, tmp:option -> option, member:f -> f1, member:f1 -> f11, tmp:block$res -> block$res2)
+//│     bindings = HashMap(member:f -> f2, member:k -> k)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'k'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.33: 	let k(x) = f(x)
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f2, k, k1;
+//│ let f2, k;
 //│ f2 = function f(x) {
-//│   let scrut, tmp, tmp1;
+//│   let scrut;
 //│   scrut = x > 0;
 //│   if (scrut === true) {
+//│     let tmp, tmp1;
 //│     tmp = x - 1;
 //│     tmp1 = runtime.safeCall(k(tmp));
 //│     return tmp1 + 1
 //│   }
 //│   return x;
 //│ };
-//│ k1 = function (x) {
-//│   let scrut, tmp, tmp1;
+//│ k = function k(x) {
+//│   let scrut;
 //│   scrut = x > 0;
 //│   if (scrut === true) {
+//│     let tmp, tmp1;
 //│     tmp = x - 1;
 //│     tmp1 = runtime.safeCall(k(tmp));
 //│     return tmp1 + 1
 //│   }
 //│   return x;
 //│ };
-//│ k = k1;
+//│ k = k;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ k = fun k1
 // * Where we would generate the incorrect:
@@ -82,7 +162,7 @@ f(2)
 :sjs
 fun g(x) = g(x) + 1
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let g; g = function g(x) { let tmp1; tmp1 = g(x); return tmp1 + 1 };
+//│ let g; g = function g(x) { let tmp; tmp = g(x); return tmp + 1 };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -118,12 +198,7 @@ fun g() =
 //│ };
 //│ g2 = function g() {
 //│   let h1;
-//│   h1 = function h1(x) {
-//│     let tmp1, tmp2;
-//│     tmp1 = h(x);
-//│     tmp2 = h1(x);
-//│     return tmp1 + tmp2
-//│   };
+//│   h1 = function h1(x) { let tmp, tmp1; tmp = h(x); tmp1 = h1(x); return tmp + tmp1 };
 //│   return h1
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -137,23 +212,10 @@ class C with
   class C with
     new C
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let C2;
+//│ let C1;
 //│ (class C {
 //│   static {
-//│     C2 = this
-//│   }
-//│   constructor() {
-//│     const this$C = this;
-//│     (class C1 {
-//│       static {
-//│         this$C.C = this
-//│       }
-//│       constructor() {
-//│         globalThis.Object.freeze(new this$C.C());
-//│       }
-//│       toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["class", "C"];
-//│     });
+//│     C1 = this
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "C"];

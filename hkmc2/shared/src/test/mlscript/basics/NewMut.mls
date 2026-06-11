@@ -9,8 +9,28 @@ class Foo with
 
 :sjs
 let f = new Foo
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = f⁰
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:runtime -> runtime, member:Foo -> Foo1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, class:Foo -> Foo, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.11: 	let f = new Foo
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f; f = globalThis.Object.freeze(new Foo1());
+//│ f = globalThis.Object.freeze(new Foo1());
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo { x: 0 }
 
@@ -38,8 +58,28 @@ f.y
 :sjs
 // :elt
 let f = new mut Foo
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = f¹
+//│     _2 = class hkmc2.semantics.VarSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res3, tmp:selRes -> selRes, tmp:block$res -> block$res4, tmp:selRes -> selRes1, tmp:block$res -> block$res, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:runtime -> runtime, member:Foo -> Foo1, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, class:Foo -> Foo, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:selRes -> selRes3, tmp:Block -> Block, tmp:block$res -> block$res7, tmp:option -> option, tmp:block$res -> block$res1, f -> f, tmp:block$res -> block$res2)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.60: 	let f = new mut Foo
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f1; f1 = new Foo1();
+//│ f = new Foo1();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo { x: 0 }
 
@@ -61,16 +101,16 @@ f.y
 :e
 let f = mut new Foo
 //│ ╔══[COMPILATION ERROR] Illegal position for 'mut' modifier.
-//│ ║  l.62: 	let f = mut new Foo
-//│ ╙──      	        ^^^
+//│ ║  l.102: 	let f = mut new Foo
+//│ ╙──       	        ^^^
 //│ f = Foo { x: 0 }
 
 :e
 :re
 new mut Foo.x
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found selection.
-//│ ║  l.70: 	new mut Foo.x
-//│ ║        	        ^^^^^
+//│ ║  l.110: 	new mut Foo.x
+//│ ║         	        ^^^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ═══[RUNTIME ERROR] Error: Access to required field 'x' yielded 'undefined'
 

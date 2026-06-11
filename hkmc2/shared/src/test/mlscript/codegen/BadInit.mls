@@ -12,14 +12,86 @@ object Bar with
   val x = 1
   module Baz with
     val a = Bar.x
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Bar⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Left of Cfg:
+//│           escapeChars = true
+//│           useSuperscripts = false
+//│           includeZero = false
+//│           defaultName = "tmp"
+//│         curThis = S of S of globalThis:globalThis⁰
+//│         bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│       bindings = HashMap(module:Baz -> Baz, class:Baz -> Baz, object:Bar -> Bar)
+//│     curThis = S of S of object:Bar¹
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Bar'
+//│ ║  l.11: 	object Bar with
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ║  l.12: 	  val x = 1
+//│ ║        	^^^^^^^^^^^
+//│ ║  l.13: 	  module Baz with
+//│ ║        	^^^^^^^^^^^^^^^^^
+//│ ║  l.14: 	    val a = Bar.x
+//│ ║        	^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.11: 	object Bar with
+//│ ║        	       ^^^^^^^^
+//│ ║  l.12: 	  val x = 1
+//│ ║        	^^^^^^^^^^^
+//│ ║  l.13: 	  module Baz with
+//│ ║        	^^^^^^^^^^^^^^^^^
+//│ ║  l.14: 	    val a = Bar.x
+//│ ╙──      	^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Bar⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Right of Scope:
+//│             parentOrCfg = Left of Cfg:
+//│               escapeChars = true
+//│               useSuperscripts = false
+//│               includeZero = false
+//│               defaultName = "tmp"
+//│             curThis = S of S of globalThis:globalThis⁰
+//│             bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│           bindings = HashMap(module:Baz -> Baz, class:Baz -> Baz, object:Bar -> Bar)
+//│         curThis = S of S of object:Bar¹
+//│         bindings = HashMap()
+//│       bindings = HashMap()
+//│     curThis = S of S of module:Baz⁰
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Bar'
+//│ ║  l.14: 	    val a = Bar.x
+//│ ║        	            ^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.11: 	object Bar with
+//│ ║        	       ^^^^^^^^
+//│ ║  l.12: 	  val x = 1
+//│ ║        	^^^^^^^^^^^
+//│ ║  l.13: 	  module Baz with
+//│ ║        	^^^^^^^^^^^^^^^^^
+//│ ║  l.14: 	    val a = Bar.x
+//│ ╙──      	^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let Bar1;
 //│ (class Bar {
 //│   static {
 //│     new this
 //│   }
 //│   constructor() {
-//│     Bar1 = this;
+//│     Bar = this;
 //│     this.x = 1;
 //│     const this$Bar = this;
 //│     (class Baz {
@@ -27,7 +99,7 @@ object Bar with
 //│         this$Bar.Baz = this
 //│       }
 //│       static {
-//│         Baz.a = Bar1.x;
+//│         Baz.a = Bar.x;
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Baz"];
@@ -51,11 +123,81 @@ module Bar with
   val x = 1
   module Baz with
     val a = Bar.x
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Bar²
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Right of Scope:
+//│           parentOrCfg = Left of Cfg:
+//│             escapeChars = true
+//│             useSuperscripts = false
+//│             includeZero = false
+//│             defaultName = "tmp"
+//│           curThis = S of S of globalThis:globalThis⁰
+//│           bindings = HashMap(tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Bar -> Bar1, tmp:prettyPrint -> prettyPrint, object:Bar -> Bar, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, module:Baz -> Baz, class:Baz -> Baz, tmp:block$res -> block$res1)
+//│         bindings = HashMap(class:Baz -> Baz1, module:Bar -> Bar2, module:Baz -> Baz1, class:Bar -> Bar2)
+//│       curThis = S of S of module:Bar³
+//│       bindings = HashMap()
+//│     curThis = S of S of module:Baz¹
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Bar'
+//│ ║  l.125: 	    val a = Bar.x
+//│ ║         	            ^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.122: 	module Bar with
+//│ ║         	       ^^^^^^^^
+//│ ║  l.123: 	  val x = 1
+//│ ║         	^^^^^^^^^^^
+//│ ║  l.124: 	  module Baz with
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ║  l.125: 	    val a = Bar.x
+//│ ╙──       	^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Bar²
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Right of Scope:
+//│         parentOrCfg = Left of Cfg:
+//│           escapeChars = true
+//│           useSuperscripts = false
+//│           includeZero = false
+//│           defaultName = "tmp"
+//│         curThis = S of S of globalThis:globalThis⁰
+//│         bindings = HashMap(tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:Bar -> Bar1, tmp:prettyPrint -> prettyPrint, object:Bar -> Bar, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, module:Baz -> Baz, class:Baz -> Baz, tmp:block$res -> block$res1)
+//│       bindings = HashMap(class:Baz -> Baz1, module:Bar -> Bar2, module:Baz -> Baz1, class:Bar -> Bar2)
+//│     curThis = S of S of class:Bar⁴
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Bar'
+//│ ║  l.122: 	module Bar with
+//│ ║         	^^^^^^^^^^^^^^^
+//│ ║  l.123: 	  val x = 1
+//│ ║         	^^^^^^^^^^^
+//│ ║  l.124: 	  module Baz with
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ║  l.125: 	    val a = Bar.x
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.122: 	module Bar with
+//│ ║         	       ^^^^^^^^
+//│ ║  l.123: 	  val x = 1
+//│ ║         	^^^^^^^^^^^
+//│ ║  l.124: 	  module Baz with
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ║  l.125: 	    val a = Bar.x
+//│ ╙──       	^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let Bar3;
 //│ (class Bar2 {
 //│   static {
-//│     Bar3 = this
+//│     Bar = this
 //│   }
 //│   static {
 //│     Bar2.x = 1;
@@ -64,7 +206,7 @@ module Bar with
 //│         Bar2.Baz = this
 //│       }
 //│       static {
-//│         Baz1.a = Bar3.x;
+//│         Baz1.a = Bar.x;
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Baz"];

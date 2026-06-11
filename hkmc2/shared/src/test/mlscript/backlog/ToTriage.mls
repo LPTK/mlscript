@@ -309,11 +309,20 @@ module Foo(x) with
 //│ ╟── which references the symbol introduced here
 //│ ║  l.306: 	module Foo(x) with
 //│ ╙──       	           ^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
+//│ ║  l.306: 	module Foo(x) with
+//│ ║         	^^^^^^^^^^^^^^^^^^
+//│ ║  l.307: 	  print(x)
+//│ ║         	^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.306: 	module Foo(x) with
+//│ ║         	       ^^^^^^^^^^^
+//│ ║  l.307: 	  print(x)
+//│ ╙──       	^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let Foo5;
 //│ (class Foo4 {
 //│   static {
-//│     Foo5 = this
+//│     Foo = this
 //│   }
 //│   static #x;
 //│   static {
@@ -331,13 +340,18 @@ module Foo(x) with
 module Foo(val x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.331: 	module Foo(val x)
+//│ ║  l.340: 	module Foo(val x)
 //│ ╙──       	               ^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
+//│ ║  l.340: 	module Foo(val x)
+//│ ║         	^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.340: 	module Foo(val x)
+//│ ╙──       	       ^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let Foo7;
 //│ (class Foo6 {
 //│   static {
-//│     Foo7 = this
+//│     Foo = this
 //│   }
 //│   static {
 //│     Foo6.x = x;
@@ -352,7 +366,7 @@ module Foo(val x)
 // TODO support syntax?
 data class Foo(mut x)
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found 'mut'-modified identifier
-//│ ║  l.353: 	data class Foo(mut x)
+//│ ║  l.367: 	data class Foo(mut x)
 //│ ╙──       	                   ^
 
 // ——— ——— ———
@@ -361,10 +375,7 @@ data class Foo(mut x)
 :e
 fun Foo
 class Foo
-//│ ╔══[INTERNAL ERROR] Compiler reached an unsupported state: None.isDefined =/= true
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a known compiler limitation; if it is a blocker for you, please report it to the maintainers.
-//│ ═══[RUNTIME ERROR] TypeError: Cannot set properties of undefined (setting 'class')
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for ClsLikeDefn is a free variable for this block
 
 // ——— ——— ———
 
@@ -372,7 +383,7 @@ class Foo
 :e
 class Id(name: UnboundName)
 //│ ╔══[COMPILATION ERROR] Name not found: UnboundName
-//│ ║  l.373: 	class Id(name: UnboundName)
+//│ ║  l.384: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
 //│ ═══[COMPILATION ERROR] Expected a type, got ‹error›

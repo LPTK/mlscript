@@ -74,6 +74,18 @@ foo
 fun foo: [R1, R2] -> (Region[out R1], Region[out R2], Int ->{R1 & ~R2} (), Int ->{R2 & ~R1} ()) ->{R1 | R2} () 
 fun foo(r1, r2, f, g) =
   f(123); g(456)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 fun foo(r1, r2, f, g) =
   freeze(r1, () => f(123)); freeze(r2, () => g(456))
@@ -97,8 +109,8 @@ foo
 region r in
   foo(r, r, wield, wield)
 //│ ╔══[COMPILATION ERROR] Type error in reference with expected type 'r2
-//│ ║  l.98: 	  foo(r, r, wield, wield)
-//│ ║        	         ^
+//│ ║  l.110: 	  foo(r, r, wield, wield)
+//│ ║         	         ^
 //│ ╟── because: cannot constrain  Region[in ⊥ out r]  <:  'r2
 //│ ╟── because: cannot constrain  Region[in ⊥ out r]  <:  Region[in ⊥ out 'R]
 //│ ╟── because: cannot constrain  r  <:  'R
@@ -106,8 +118,8 @@ region r in
 //│ ╟── because: cannot constrain  'R1  <:  ¬r
 //│ ╙── because: cannot constrain  r  <:  ¬r
 //│ ╔══[COMPILATION ERROR] Type error in reference of type ‹not implemented› with expected type 'f
-//│ ║  l.98: 	  foo(r, r, wield, wield)
-//│ ║        	            ^^^^^
+//│ ║  l.110: 	  foo(r, r, wield, wield)
+//│ ║         	            ^^^^^
 //│ ╟── because: cannot constrain  (Region[in ⊥ out 'R2]) ->{'R2} (())  <:  'f
 //│ ╟── because: cannot constrain  (Region[in ⊥ out 'R2]) ->{'R2} (())  <:  ('r2) ->{¬'R ∧ ¬'R1 ∧ 'E} (⊤)
 //│ ╟── because: cannot constrain  'R2  <:  ¬'R ∧ ¬'R1 ∧ 'E
@@ -116,8 +128,8 @@ region r in
 //│ ╟── because: cannot constrain  'R1  <:  ¬r
 //│ ╙── because: cannot constrain  r  <:  ¬r
 //│ ╔══[COMPILATION ERROR] Type error in reference of type ‹not implemented› with expected type 'g
-//│ ║  l.98: 	  foo(r, r, wield, wield)
-//│ ║        	                   ^^^^^
+//│ ║  l.110: 	  foo(r, r, wield, wield)
+//│ ║         	                   ^^^^^
 //│ ╟── because: cannot constrain  (Region[in ⊥ out 'R3]) ->{'R3} (())  <:  'g
 //│ ╟── because: cannot constrain  (Region[in ⊥ out 'R3]) ->{'R3} (())  <:  ('r1) ->{¬'R ∧ ¬'R1 ∧ 'E} ('T)
 //│ ╟── because: cannot constrain  'R3  <:  ¬'R ∧ ¬'R1 ∧ 'E
@@ -131,7 +143,7 @@ region r in
   region s in
     foo(r, s, wield, wield)
 //│ ╔══[COMPILATION ERROR] Type error in reference of type ‹not implemented› with expected type 'f
-//│ ║  l.132: 	    foo(r, s, wield, wield)
+//│ ║  l.144: 	    foo(r, s, wield, wield)
 //│ ║         	              ^^^^^
 //│ ╟── because: cannot constrain  (Region[in ⊥ out 'R]) ->{'R} (())  <:  'f
 //│ ╟── because: cannot constrain  (Region[in ⊥ out 'R]) ->{'R} (())  <:  ('r2) ->{¬'R1 ∧ ¬'R2 ∧ 'E} (⊤)
@@ -141,7 +153,7 @@ region r in
 //│ ╟── because: cannot constrain  'R1  <:  ¬s ∨ r
 //│ ╙── because: cannot constrain  s ∧ ¬r  <:  ¬s ∨ r
 //│ ╔══[COMPILATION ERROR] Type error in reference of type ‹not implemented› with expected type 'g
-//│ ║  l.132: 	    foo(r, s, wield, wield)
+//│ ║  l.144: 	    foo(r, s, wield, wield)
 //│ ║         	                     ^^^^^
 //│ ╟── because: cannot constrain  (Region[in ⊥ out 'R3]) ->{'R3} (())  <:  'g
 //│ ╟── because: cannot constrain  (Region[in ⊥ out 'R3]) ->{'R3} (())  <:  ('r1) ->{¬'R1 ∧ ¬'R2 ∧ 'E} ('T)
@@ -165,13 +177,13 @@ fun foo[outer, R <: outer](r1: Region[R]) =
       wield(r1)
     )
 //│ ╔══[COMPILATION ERROR] Unsupported type parameter outer binding
-//│ ║  l.162: 	fun foo[outer, R <: outer](r1: Region[R]) =
+//│ ║  l.174: 	fun foo[outer, R <: outer](r1: Region[R]) =
 //│ ╙──       	        ^^^^^
 //│ ╔══[COMPILATION ERROR] Unsupported type parameter operator application
-//│ ║  l.162: 	fun foo[outer, R <: outer](r1: Region[R]) =
+//│ ║  l.174: 	fun foo[outer, R <: outer](r1: Region[R]) =
 //│ ╙──       	               ^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: R
-//│ ║  l.162: 	fun foo[outer, R <: outer](r1: Region[R]) =
+//│ ║  l.174: 	fun foo[outer, R <: outer](r1: Region[R]) =
 //│ ╙──       	                                      ^
 //│ ═══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
 //│ ═══[COMPILATION ERROR] Expected a type, got ‹error›
@@ -182,7 +194,7 @@ fun foo[outer, R <: outer](r1: Region[R]) =
 :fixme
 fun foo: [outer, R <: outer] -> Region[R] -> ()
 //│ ╔══[COMPILATION ERROR] Illegal forall annotation.
-//│ ║  l.183: 	fun foo: [outer, R <: outer] -> Region[R] -> ()
+//│ ║  l.195: 	fun foo: [outer, R <: outer] -> Region[R] -> ()
 //│ ╙──       	         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] Expected a type, got ‹error›
 //│ ═══[COMPILATION ERROR] Invalid type
@@ -216,7 +228,7 @@ region s in
   foo of () =>
     freeze(s, () => wield(s))
 //│ ╔══[COMPILATION ERROR] Type error in function literal with expected type () ->{¬'R ∧ 'E} 'T
-//│ ║  l.217: 	    freeze(s, () => wield(s))
+//│ ║  l.229: 	    freeze(s, () => wield(s))
 //│ ║         	              ^^^^^^^^^^^^^^
 //│ ╟── because: cannot constrain  'R1  <:  ¬'R ∧ 'E
 //│ ╟── because: cannot constrain  'R1  <:  ¬'R

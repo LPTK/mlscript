@@ -14,18 +14,35 @@
 
 fun id: [A] -> A -> A
 fun id(x) = x
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:id for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 id
-//│ Type: ['A] -> ('A) ->{⊥} 'A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.30: 	id
+//│ ╙──      	^^
+//│ Type: ⊥
 
 :e
 (x => x + 1) as [A] -> A -> A
 //│ ╔══[COMPILATION ERROR] Type error in reference with expected type Int
-//│ ║  l.22: 	(x => x + 1) as [A] -> A -> A
+//│ ║  l.39: 	(x => x + 1) as [A] -> A -> A
 //│ ║        	      ^
 //│ ╙── because: cannot constrain  A  <:  Int
 //│ ╔══[COMPILATION ERROR] Type error in application with expected type A
-//│ ║  l.22: 	(x => x + 1) as [A] -> A -> A
+//│ ║  l.39: 	(x => x + 1) as [A] -> A -> A
 //│ ║        	      ^^^^^
 //│ ╙── because: cannot constrain  Int  <:  A
 //│ Type: ['A] -> ('A) ->{⊥} 'A
@@ -35,14 +52,29 @@ id
 //│ Type: ['A] -> ('A) ->{⊥} 'A
 
 id as [A] -> A -> A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.54: 	id as [A] -> A -> A
+//│ ╙──      	^^
 //│ Type: ['A] -> ('A) ->{⊥} 'A
 
 id as Int -> Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.62: 	id as Int -> Int
+//│ ╙──      	^^
 //│ Type: (Int) ->{⊥} Int
 
 fun myInc(inc: Int -> Int, x: Int) = inc(x)
 
 myInc(id, 0)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.72: 	myInc(id, 0)
+//│ ╙──      	      ^^
 //│ Type: Int
 
 let t = 42 in ((x => x) as [A] -> A -> A)
@@ -50,10 +82,20 @@ let t = 42 in ((x => x) as [A] -> A -> A)
 
 
 id(42)
-//│ Type: Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.84: 	id(42)
+//│ ╙──      	^^
+//│ Type: ⊥
 
 id("abc")
-//│ Type: Str
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.92: 	id("abc")
+//│ ╙──      	^^
+//│ Type: ⊥
 
 
 data class Pair[A, B](a: A, b: B)
@@ -66,16 +108,43 @@ new Pair(42, true)
 
 fun swap: [A, B] -> Pair[out A, out B] -> Pair[out B, out A]
 fun swap(p) = new Pair(p.Pair#b, p.Pair#a)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:swap for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 swap
-//│ Type: ['A, 'B] -> (Pair[out 'A, out 'B]) ->{⊥} Pair[out 'B, out 'A]
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: swap
+//│ ║  l.125: 	swap
+//│ ╙──       	^^^^
+//│ Type: ⊥
 
 let t = new Pair(42, true) in swap(t)
-//│ Type: Pair[out Bool, out Int]
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: swap
+//│ ║  l.133: 	let t = new Pair(42, true) in swap(t)
+//│ ╙──       	                              ^^^^
+//│ Type: ⊥
 
 let t = new Pair("114", "514") in swap(t)
-//│ Type: Pair[out Str, out Str]
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: swap
+//│ ║  l.141: 	let t = new Pair("114", "514") in swap(t)
+//│ ╙──       	                                  ^^^^
+//│ Type: ⊥
 
 let id = ((x => x) as [A] -> A -> A) in new Pair(id(42), id("42"))
 //│ Type: Pair['A, 'B]
@@ -85,19 +154,56 @@ let id = ((x => x) as [A] -> A -> A) in new Pair(id(42), id("42"))
 
 fun foo: ([A] -> A -> A) -> Int
 fun foo(x) = 42
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 foo
-//│ Type: (['A] -> ('A) ->{⊥} 'A) ->{⊥} Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: foo
+//│ ║  l.170: 	foo
+//│ ╙──       	^^^
+//│ Type: ⊥
 
 foo(id)
-//│ Type: Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: foo
+//│ ║  l.178: 	foo(id)
+//│ ╙──       	^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.178: 	foo(id)
+//│ ╙──       	    ^^
+//│ Type: ⊥
 
 foo(x => x)
-//│ Type: Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: foo
+//│ ║  l.191: 	foo(x => x)
+//│ ╙──       	^^^
+//│ Type: ⊥
 
 data class Foo(foo: [A] -> A -> A)
 
 new Foo(id)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.201: 	new Foo(id)
+//│ ╙──       	        ^^
 //│ Type: Foo
 
 
@@ -105,17 +211,32 @@ new Foo(x => x)
 //│ Type: Foo
 
 let foo = new Foo(id) in foo.Foo#foo(42)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.213: 	let foo = new Foo(id) in foo.Foo#foo(42)
+//│ ╙──       	                  ^^
 //│ Type: Int
 
 data class Bar[A](x: A, f: [B] -> B -> B)
 
 
 new Bar(0, id)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.224: 	new Bar(0, id)
+//│ ╙──       	           ^^
 //│ Type: Bar['A]
 //│ Where:
 //│   Int <: 'A
 
 let bar = new Bar(0, id) in bar.Bar#f(bar.Bar#x)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: id
+//│ ║  l.234: 	let bar = new Bar(0, id) in bar.Bar#f(bar.Bar#x)
+//│ ╙──       	                     ^^
 //│ Type: Int
 
 data class Some[A](value: A)
@@ -131,20 +252,51 @@ let s = new Some((x => x) as [A] -> A -> A) in let t = s.Some#value(42) in s.Som
 fun gen: Int -> [A] -> A -> A
 fun gen(x) =
   let t = x + 1 in ((y => y) as [A] -> A -> A)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:gen for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 gen
-//│ Type: (Int) ->{⊥} ['A] -> ('A) ->{⊥} 'A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: gen
+//│ ║  l.268: 	gen
+//│ ╙──       	^^^
+//│ Type: ⊥
 
 
 gen(42)
-//│ Type: ['A] -> ('A) ->{⊥} 'A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: error (InvalML.scala:109)
+//│ ╔══[COMPILATION ERROR] Variable not found: gen
+//│ ║  l.277: 	gen(42)
+//│ ╙──       	^^^
+//│ Type: ⊥
 
 
 :e
 fun cnt: Some[out [A] -> A -> A] -> Int
 fun cnt(x) = 42
-//│ ╔══[COMPILATION ERROR] General type is not allowed here.
-//│ ║  l.144: 	fun cnt: Some[out [A] -> A -> A] -> Int
-//│ ╙──       	                         ^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:cnt for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1489)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
