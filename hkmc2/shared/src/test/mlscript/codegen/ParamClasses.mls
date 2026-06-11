@@ -29,27 +29,27 @@ object Foo with
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Foo³ as object Foo⁴ {
 //│   constructor() {
-//│     let C;
-//│     define C as class C¹ { constructor C⁰ };
-//│     do Predef⁰.print⁰(Foo⁴.this.C⁰);
+//│     define C⁰ as class C² { constructor C¹ };
+//│     do Predef⁰.print⁰(Foo⁴.this.C¹);
 //│     end
 //│   }
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ > undefined
+//│ > fun C { class: class C }
 
 // * The owner of the C¹ constructor function is correctly identified as Foo
 :lot
 Foo.C
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
-//│   main = Return of Select{sym=term:Foo⁴/C⁰}:
+//│   main = Return of Select{sym=term:Foo⁴/C¹}:
 //│     qual = MemberRef{disamb=object:Foo⁴}:
 //│       bms = member:Foo³
 //│       disamb = object:Foo⁴
 //│     name = Ident of "C"
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun C { class: class C }
 
 
 data class Foo(a)

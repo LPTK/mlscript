@@ -227,9 +227,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   
   @tailrec
-  // final def splitBlock(stats: Ls[Statement], imps: Ls[Import], funs: Ls[TermDefinition], letValSyms: Ls[ScopedSymbol], rest: Ls[Statement])
-  final def splitBlock(stats: Ls[Statement], imps: Ls[Import], funs: Ls[TermDefinition], letValClsSyms: Ls[BlockMemberSymbol | LetDecl], rest: Ls[Statement])
-      : (Ls[Import], Ls[TermDefinition], Ls[BlockMemberSymbol | LetDecl], Ls[Statement])
+  final def splitBlock(stats: Ls[Statement], imps: Ls[Import],
+          funs: Ls[TermDefinition], letValClsSyms: Ls[LetDecl | ClassDef | TermDefinition], rest: Ls[Statement])
+      : (Ls[Import], Ls[TermDefinition], Ls[LetDecl | ClassDef | TermDefinition], Ls[Statement])
       =
     stats match
     case (imp: Import) :: stats =>
@@ -237,9 +237,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case (fun: TermDefinition) :: stats if fun.k is syntax.Fun =>
       splitBlock(stats, imps, fun :: funs, letValClsSyms, rest)
     case (vl: TermDefinition) :: stats if vl.k.isInstanceOf[syntax.Val] =>
-      splitBlock(stats, imps, funs, vl.sym :: letValClsSyms, vl :: rest)
+      splitBlock(stats, imps, funs, vl :: letValClsSyms, vl :: rest)
     case (cd: ClassDef) :: stats =>
-      splitBlock(stats, imps, funs, cd.bsym :: letValClsSyms, cd :: rest)
+      splitBlock(stats, imps, funs, cd :: letValClsSyms, cd :: rest)
     case (ld: LetDecl) :: stats =>
       splitBlock(stats, imps, funs, ld :: letValClsSyms, rest)
     case stat :: stats =>
@@ -254,10 +254,16 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     val (imps, funs, letValClsSyms, rest) = splitBlock(stats, Nil, Nil, Nil, Nil)
     
     funs.foreach: fun =>
-      loweringCtx.collectScopedSym(fun.sym)
+      if fun.owner.isEmpty then
+        loweringCtx.collectScopedSym(fun.sym)
     val lets = letValClsSyms.flatMap:
-      case sym: BlockMemberSymbol =>
-        loweringCtx.collectScopedSym(sym)
+      case cls: ClassDef =>
+        if cls.owner.isEmpty then
+          loweringCtx.collectScopedSym(cls.bsym)
+        N
+      case vl: TermDefinition =>
+        if vl.owner.isEmpty then
+          loweringCtx.collectScopedSym(vl.sym)
         N
       case ld: LetDecl => S(ld)
     

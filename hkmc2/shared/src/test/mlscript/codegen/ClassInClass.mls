@@ -26,6 +26,32 @@ data class Outer(a, b) with
 //│     let tmp, tmp1;
 //│     this.a = a;
 //│     this.b = b;
+//│     const this$Outer = this;
+//│     this.Inner = function Inner(c) {
+//│       return globalThis.Object.freeze(new Inner.class(c));
+//│     };
+//│     (class Inner {
+//│       static {
+//│         this$Outer.Inner.class = this
+//│       }
+//│       constructor(c) {
+//│         let tmp2;
+//│         this.c = c;
+//│         Predef.print(this$Outer.a);
+//│         Predef.print(this.c);
+//│         tmp2 = this.i1(this$Outer.a);
+//│         Predef.print(tmp2);
+//│       }
+//│       i1(d) {
+//│         return globalThis.Object.freeze([
+//│           this$Outer.b,
+//│           this.c,
+//│           d
+//│         ])
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "Inner", ["c"]];
+//│     });
 //│     tmp = this.Inner(this.a);
 //│     this.i = tmp;
 //│     Predef.print(this.i.c);
@@ -47,64 +73,26 @@ data class Outer(a, b) with
 
 
 val o = Outer(100, 200)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: this.Inner is not a function
-//│     at new Outer (REPL10:1:303)
-//│     at Outer (REPL10:1:84)
-//│     at REPL13:1:42
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│ o = undefined
+//│ > 100
+//│ > 100
+//│ > [200, 100, 100]
+//│ > 100
+//│ > [200, 100, 1]
+//│ o = Outer(100, 200)
 
 o.o1(30)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'o1')
-//│     at REPL17:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > 100
+//│ > 30
+//│ > [200, 30, 100]
+//│ = Inner(30)
 
 o.o2(30, 40)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'o2')
-//│     at REPL20:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > 100
+//│ > 30
+//│ > [200, 30, 100]
+//│ = [200, 30, 40]
 
 o.i
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'i')
-//│     at REPL23:1:29
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = Inner(100)
 
 

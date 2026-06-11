@@ -40,6 +40,17 @@ data class Foo(x) with
 //│   }
 //│   constructor(x) {
 //│     this.x = x;
+//│     const this$Foo = this;
+//│     (class Bar {
+//│       static {
+//│         this$Foo.Bar = this
+//│       }
+//│       constructor() {
+//│         this.y = this$Foo.x;
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "Bar"];
+//│     });
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", ["x"]];
@@ -76,11 +87,11 @@ do
 //│         includeZero = false
 //│         defaultName = "tmp"
 //│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(tmp:block$res -> block$res5, tmp:block$res -> block$res3, tmp:block$res -> block$res, member:foo -> foo, member:Foo -> Foo1, tmp:runtime -> runtime, class:Foo -> Foo, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res1, tmp:option -> option, member:foo -> foo1, tmp:block$res -> block$res4, member:foo -> foo3, tmp:block$res -> block$res2, member:foo -> foo2)
+//│       bindings = HashMap(tmp:block$res -> block$res5, tmp:block$res -> block$res3, tmp:block$res -> block$res, member:foo -> foo, member:Foo -> Foo1, tmp:runtime -> runtime, class:Foo -> Foo, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res1, tmp:option -> option, member:foo -> foo1, class:Bar -> Bar, tmp:block$res -> block$res4, member:foo -> foo3, tmp:block$res -> block$res2, member:foo -> foo2)
 //│     bindings = HashMap(member:lambda -> lambda)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.60: 	let f = 1
+//│ ║  l.71: 	let f = 1
 //│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let lambda;
@@ -99,15 +110,15 @@ do
 let foo = 1
 fun foo(x) = foo
 //│ ╔══[COMPILATION ERROR] Name 'foo' is already used
-//│ ║  l.99: 	let foo = 1
-//│ ║        	    ^^^^^^^
+//│ ║  l.110: 	let foo = 1
+//│ ║         	    ^^^^^^^
 //│ ╟── by a member declared in the same block
-//│ ║  l.100: 	fun foo(x) = foo
+//│ ║  l.111: 	fun foo(x) = foo
 //│ ╙──       	^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'foo'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.99: 	let foo = 1
-//│ ╙──      	    ^^^
+//│ ║  l.110: 	let foo = 1
+//│ ╙──       	    ^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ foo = 1;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

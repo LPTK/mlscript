@@ -42,6 +42,5 @@ staged module DupeClass with
   fun f() = C(1).y
 //│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
 //│ > fun ctor_() =
-//│ >   let {C}
 //│ >   class C(y)
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.

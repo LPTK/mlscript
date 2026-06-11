@@ -26,7 +26,6 @@ staged module D with
 //│ > fun ctor_() = ()
 //│ > fun f() = 1
 //│ > fun ctor_() =
-//│ >   let {E}
 //│ >   class E
 //│ > fun f() =
 //│ >   A.f_gen()
@@ -62,7 +61,6 @@ staged module M with
     E
 //│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
 //│ > fun ctor_() =
-//│ >   let {E}
 //│ >   class E
 //│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
 
@@ -70,7 +68,7 @@ staged module M with
 staged module M with
   fun g()() = 1
 //│ ╔══[COMPILATION ERROR] :ftc must be enabled to desugar functions with multiple parameter lists.
-//│ ║  l.71: 	  fun g()() = 1
+//│ ║  l.69: 	  fun g()() = 1
 //│ ╙──      	  ^^^^^^^^^^^^^
 //│ > fun ctor_() = ()
 //│ > fun g()() = 1

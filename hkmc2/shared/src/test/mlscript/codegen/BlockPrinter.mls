@@ -206,16 +206,15 @@ A.x
 //│   private val y⁰;
 //│   val x⁸;
 //│   constructor {
-//│     let C, x;
-//│     define x as val x⁹ = 2;
+//│     define x⁸ as val x⁹ = 2;
 //│     set A².this.y⁰ = 3;
-//│     define C as class C⁴ {
+//│     define C³ as class C⁵ {
 //│       private val x¹⁰;
-//│       constructor C³(x1) {
-//│         set C⁴.this.x¹⁰ = x1;
+//│       constructor C⁴(x) {
+//│         set C⁵.this.x¹⁰ = x;
 //│         end
 //│       }
-//│       method f⁴ = fun f⁵(x2) {
+//│       method f⁴ = fun f⁵(x1) {
 //│         return 2
 //│       }
 //│     };
@@ -232,7 +231,7 @@ module A with
 A.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define A³ as class A⁴
-//│ module A⁵ { val x¹¹; constructor { let x; define x as val x¹² = 3; end } };
+//│ module A⁵ { val x¹¹; constructor { define x¹¹ as val x¹² = 3; end } };
 //│ return A⁵.x¹²
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
@@ -245,14 +244,7 @@ class B(x) extends A with
 //│ define B⁰ as class B² extends A⁷ {
 //│   private val x¹³;
 //│   val y¹;
-//│   constructor B¹(x) {
-//│     do super⁰();
-//│     end;
-//│     let y;
-//│     set B².this.x¹³ = x;
-//│     define y as val y² = 2;
-//│     end
-//│   }
+//│   constructor B¹(x) { do super⁰(); end; set B².this.x¹³ = x; define y¹ as val y² = 2; end }
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

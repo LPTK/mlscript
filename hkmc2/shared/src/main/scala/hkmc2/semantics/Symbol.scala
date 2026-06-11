@@ -481,14 +481,12 @@ class ClassSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
     with DefinitionSymbol[ClassDef]
     with InnerSymbol
     with NamedSymbol:
-
   def name: Str = nme
   def nme = id.name
   def toLoc: Option[Loc] = id.toLoc // TODO track source tree of classe here
   override def prefix: Str = "class:"
   /** Compute the arity. */
   def arity: Int = tree.paramLists.headOption.fold(0)(_.fields.length)
-  
   override def subst(using sub: SymbolSubst): ClassSymbol = sub.mapClsSym(this)
 
 class ModuleOrObjectSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)

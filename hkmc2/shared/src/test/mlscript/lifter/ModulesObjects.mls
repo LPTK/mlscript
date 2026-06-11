@@ -191,7 +191,7 @@ o.x
 //│       includeZero = false
 //│       defaultName = "tmp"
 //│     curThis = S of S of globalThis:globalThis⁰
-//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res4, cc -> cc, tmp:block$res -> block$res2, c0 -> c0, tmp:runtime -> runtime, member:M -> M2, c1 -> c1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:foo -> foo1, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes, tmp:Term -> Term, tmp:selRes -> selRes1, tmp:Block -> Block, class:M -> M1, tmp:option -> option, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, tmp:tmp -> tmp, tmp:block$res -> block$res3, object:O -> O, tmp:block$res -> block$res, member:C -> C1, member:foo -> foo2, member:foo -> foo, class:C -> C, object:M -> M, tmp:block$res -> block$res8, class:Capture$foo -> Capture$foo, tmp:selRes -> selRes4, tmp:block$res -> block$res9, member:Capture$foo -> Capture$foo1)
+//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res4, cc -> cc, tmp:block$res -> block$res2, c0 -> c0, member:M -> M2, c1 -> c1, tmp:runtime -> runtime, member:foo -> foo1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:selRes -> selRes, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes1, tmp:Term -> Term, class:M -> M1, tmp:Block -> Block, tmp:inlinedVal -> inlinedVal, tmp:option -> option, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, tmp:tmp -> tmp, tmp:block$res -> block$res3, object:O -> O, tmp:block$res -> block$res, member:C -> C1, member:foo -> foo2, member:foo -> foo, class:C -> C, tmp:block$res -> block$res8, object:M -> M, class:Capture$foo -> Capture$foo, tmp:selRes -> selRes4, tmp:block$res -> block$res9, member:Capture$foo -> Capture$foo1)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'o'
 //│ ║  l.179: 	set o.x = 1
 //│ ║         	    ^
@@ -211,7 +211,7 @@ o.x
 //│       includeZero = false
 //│       defaultName = "tmp"
 //│     curThis = S of S of globalThis:globalThis⁰
-//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res4, cc -> cc, tmp:block$res -> block$res2, c0 -> c0, tmp:runtime -> runtime, member:M -> M2, c1 -> c1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:foo -> foo1, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes, tmp:Term -> Term, tmp:selRes -> selRes1, tmp:Block -> Block, class:M -> M1, tmp:option -> option, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, tmp:tmp -> tmp, tmp:block$res -> block$res3, object:O -> O, tmp:block$res -> block$res, member:C -> C1, member:foo -> foo2, member:foo -> foo, class:C -> C, object:M -> M, tmp:block$res -> block$res8, class:Capture$foo -> Capture$foo, tmp:selRes -> selRes4, tmp:block$res -> block$res9, member:Capture$foo -> Capture$foo1)
+//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res4, cc -> cc, tmp:block$res -> block$res2, c0 -> c0, member:M -> M2, c1 -> c1, tmp:runtime -> runtime, member:foo -> foo1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:selRes -> selRes, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes1, tmp:Term -> Term, class:M -> M1, tmp:Block -> Block, tmp:inlinedVal -> inlinedVal, tmp:option -> option, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, tmp:tmp -> tmp, tmp:block$res -> block$res3, object:O -> O, tmp:block$res -> block$res, member:C -> C1, member:foo -> foo2, member:foo -> foo, class:C -> C, tmp:block$res -> block$res8, object:M -> M, class:Capture$foo -> Capture$foo, tmp:selRes -> selRes4, tmp:block$res -> block$res9, member:Capture$foo -> Capture$foo1)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'o'
 //│ ║  l.180: 	o.x
 //│ ║         	^
@@ -231,7 +231,7 @@ o.x
 //│       includeZero = false
 //│       defaultName = "tmp"
 //│     curThis = S of S of globalThis:globalThis⁰
-//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res4, cc -> cc, tmp:block$res -> block$res2, c0 -> c0, tmp:runtime -> runtime, member:M -> M2, c1 -> c1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:foo -> foo1, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes, tmp:Term -> Term, tmp:selRes -> selRes1, tmp:Block -> Block, class:M -> M1, tmp:option -> option, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, tmp:tmp -> tmp, tmp:block$res -> block$res3, object:O -> O, tmp:block$res -> block$res, member:C -> C1, member:foo -> foo2, member:foo -> foo, class:C -> C, object:M -> M, tmp:block$res -> block$res8, class:Capture$foo -> Capture$foo, tmp:selRes -> selRes4, tmp:block$res -> block$res9, member:Capture$foo -> Capture$foo1)
+//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res4, cc -> cc, tmp:block$res -> block$res2, c0 -> c0, member:M -> M2, c1 -> c1, tmp:runtime -> runtime, member:foo -> foo1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:selRes -> selRes, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes1, tmp:Term -> Term, class:M -> M1, tmp:Block -> Block, tmp:inlinedVal -> inlinedVal, tmp:option -> option, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, tmp:tmp -> tmp, tmp:block$res -> block$res3, object:O -> O, tmp:block$res -> block$res, member:C -> C1, member:foo -> foo2, member:foo -> foo, class:C -> C, tmp:block$res -> block$res8, object:M -> M, class:Capture$foo -> Capture$foo, tmp:selRes -> selRes4, tmp:block$res -> block$res9, member:Capture$foo -> Capture$foo1)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'o'
 //│ ║  l.180: 	o.x
 //│ ║         	^
@@ -335,22 +335,7 @@ module M with
     fun get = x
   val hi = A()
 M.hi.get
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: M5.A is not a function
-//│     at <static_initializer> (REPL49:1:159)
-//│     at REPL49:1:243
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:316)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 :expect 2
 module M with
@@ -368,33 +353,7 @@ object M with
     fun get = x
   val hi = A()
 M.hi.get
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: vars (JSBuilder.scala:856)
-//│ FAILURE INFO: Scope:
-//│   parentOrCfg = Right of Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Left of Cfg:
-//│         escapeChars = true
-//│         useSuperscripts = false
-//│         includeZero = false
-//│         defaultName = "tmp"
-//│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(member:foo -> foo4, object:M -> M3, tmp:block$res -> block$res1, class:M -> M7, tmp:block$res -> block$res2, tmp:baseCall -> baseCall, tmp:runtime -> runtime, member:M -> M2, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:foo -> foo1, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:g$ -> g$, tmp:Block -> Block, class:M -> M1, tmp:option -> option, tmp:block$res -> block$res14, tmp:block$res -> block$res10, member:A -> A3, member:M -> M10, object:M -> M9, class:A -> A2, tmp:tmp -> tmp, tmp:block$res -> block$res3, member:A -> A1, class:A -> A, member:C -> C1, member:foo -> foo2, class:C -> C, object:M -> M4, tmp:selRes -> selRes6, class:Capture$foo -> Capture$foo, member:Capture$foo -> Capture$foo1, tmp:block$res -> block$res15, tmp:block$res -> block$res4, cc -> cc, c0 -> c0, tmp:block$res -> block$res11, c1 -> c1, tmp:selRes -> selRes, tmp:selRes -> selRes1, tmp:tmp -> tmp3, tmp:block$res -> block$res12, tmp:inlinedVal -> inlinedVal, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, member:M -> M6, module:M -> M5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, object:O -> O, tmp:block$res -> block$res, class:M -> M5, member:foo -> foo, tmp:selRes -> selRes5, object:M -> M, tmp:block$res -> block$res8, tmp:block$res -> block$res13, member:M -> M8, module:M -> M7, tmp:selRes -> selRes4, tmp:block$res -> block$res9)
-//│     curThis = S of S of object:M³
-//│     bindings = HashMap()
-//│   bindings = HashMap()
-//│ ╔══[INTERNAL ERROR] `member:A` is already in scope
-//│ ║  l.367: 	  class A() with
-//│ ║         	  ^^^^^^^^^^^^^^
-//│ ║  l.368: 	    fun get = x
-//│ ╙──       	^^^^^^^^^^^^^^^
-//│ > let A3, M10, selRes6;try { A3 = function A() {   return globalThis.Object.freeze(new A.class()); }; globalThis.Object.freeze(class A2 {   static {     A3.class = this   }   constructor(M11) {     this.#M = M11;   }   #M;   get get() {     return this.#M.x;   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["class", "A", []]; }); globalThis.Object.freeze(class M9 {   static {     new this   }   constructor() {     M10 = this;     let A4‹BAD_SHADOW›, tmp4;     this.x = 2;     tmp4 = globalThis.Object.freeze(new A4‹BAD_SHADOW›.class(this));     this.hi = tmp4;     Object.defineProperty(this, "class", {       value: M9     });     globalThis.Object.freeze(this);   }   toString() { return runtime.render(this); }   static [definitionMetadata] = ["object", "M"]; }); selRes6 = M10.hi.get; M10.hi.get$__checkNotMethod; if (selRes6 === undefined) {   throw globalThis.Object.freeze(new globalThis.Error("Access to required field 'get' yielded 'undefined'")) } block$res15 = selRes6;; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:272)
-//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] Invalid or unexpected token
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:316)
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
+//│ = 2
 
 :expect 2
 object M with
@@ -417,7 +376,7 @@ fun f =
   foo
 f.a
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.413: 	  object A with
+//│ ║  l.372: 	  object A with
 //│ ╙──       	         ^
 //│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:A for ClsLikeDefn is a free variable for this block
@@ -440,45 +399,33 @@ module M with
 M.A().get
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp;
-//│ define M⁴ as class M⁵
-//│ module M⁶ {
+//│ define M³ as class M⁴
+//│ module M⁵ {
 //│   val x⁰;
 //│   constructor {
-//│     let A, x, scrut, tmp1;
-//│     define A as class A¹ {
-//│       constructor A⁰
+//│     let scrut, tmp1;
+//│     define A⁰ as class A² {
+//│       constructor A¹
 //│       method get⁰ = fun get¹ {
-//│         return +⁰(M⁶.this.x¹, M⁶.this.x¹)
+//│         return +⁰(M⁵.this.x¹, M⁵.this.x¹)
 //│       }
 //│     };
-//│     set scrut = M⁶.this.A⁰();
+//│     set scrut = M⁵.this.A¹();
 //│     match scrut
-//│       A¹ =>
+//│       A² =>
 //│         set tmp1 = 2;
 //│         end
 //│       else
 //│         set tmp1 = 3;
 //│         end
-//│     define x as val x¹ = tmp1;
+//│     define x⁰ as val x¹ = tmp1;
 //│     end
 //│   }
 //│ };
-//│ set tmp = M⁶.A⁰();
+//│ set tmp = M⁵.A¹();
 //│ return tmp.get¹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: M13.A is not a function
-//│     at <static_initializer> (REPL61:1:154)
-//│     at REPL61:1:329
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = 4
 
 module M with
   val x = 2
@@ -486,19 +433,7 @@ module M with
     fun get = x
   class B() extends A
 M.B().get
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: M16.B is not a function
-//│     at REPL64:1:254
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 2
 
 /// Top Level Modules ///
 
@@ -515,36 +450,11 @@ module M with
     fun newB = B()
   0 is A
 M.A(2).newB.newA_B(3).newB.get
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: M18.A is not a function
-//│     at REPL67:1:239
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 3
 
 module M with
   class A
   object B extends A
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Class extends value undefined is not a constructor or null
-//│     at <static_initializer> (REPL70:1:437)
-//│     at REPL70:1:544
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
 
 
 :todo
@@ -556,53 +466,53 @@ fun foo(x) =
     val baz = x
   [x === O.bar, set x += 1 in [x === O.bar, x === O.baz], x === O.bar]
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.554: 	  object O with
+//│ ║  l.464: 	  object O with
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
-//│ ║  l.554: 	  object O with
+//│ ║  l.464: 	  object O with
 //│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.555: 	    fun bar = x
+//│ ║  l.465: 	    fun bar = x
 //│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.556: 	    val baz = x
+//│ ║  l.466: 	    val baz = x
 //│ ║         	^^^^^^^^^^^^^^^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.554: 	  object O with
+//│ ║  l.464: 	  object O with
 //│ ║         	         ^^^^^^
-//│ ║  l.555: 	    fun bar = x
+//│ ║  l.465: 	    fun bar = x
 //│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.556: 	    val baz = x
+//│ ║  l.466: 	    val baz = x
 //│ ╙──       	^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.554: 	  object O with
+//│ ║  l.464: 	  object O with
 //│ ║         	         ^^^^^^
-//│ ║  l.555: 	    fun bar = x
+//│ ║  l.465: 	    fun bar = x
 //│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.556: 	    val baz = x
+//│ ║  l.466: 	    val baz = x
 //│ ╙──       	^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.554: 	  object O with
+//│ ║  l.464: 	  object O with
 //│ ║         	         ^^^^^^
-//│ ║  l.555: 	    fun bar = x
+//│ ║  l.465: 	    fun bar = x
 //│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.556: 	    val baz = x
+//│ ║  l.466: 	    val baz = x
 //│ ╙──       	^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.554: 	  object O with
+//│ ║  l.464: 	  object O with
 //│ ║         	         ^^^^^^
-//│ ║  l.555: 	    fun bar = x
+//│ ║  l.465: 	    fun bar = x
 //│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.556: 	    val baz = x
+//│ ║  l.466: 	    val baz = x
 //│ ╙──       	^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.554: 	  object O with
+//│ ║  l.464: 	  object O with
 //│ ║         	         ^^^^^^
-//│ ║  l.555: 	    fun bar = x
+//│ ║  l.465: 	    fun bar = x
 //│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.556: 	    val baz = x
+//│ ║  l.466: 	    val baz = x
 //│ ╙──       	^^^^^^^^^^^^^^^
 
 foo(123)
@@ -663,35 +573,35 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.660: 	  object A with
+//│ ║  l.570: 	  object A with
 //│ ╙──       	         ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.661: 	    object B with
+//│ ║  l.571: 	    object B with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.662: 	      object C
+//│ ║  l.572: 	      object C
 //│ ╙──       	             ^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.660: 	  object A with
+//│ ║  l.570: 	  object A with
 //│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.661: 	    object B with
+//│ ║  l.571: 	    object B with
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.662: 	      object C
+//│ ║  l.572: 	      object C
 //│ ║         	^^^^^^^^^^^^^^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.660: 	  object A with
+//│ ║  l.570: 	  object A with
 //│ ║         	         ^^^^^^
-//│ ║  l.661: 	    object B with
+//│ ║  l.571: 	    object B with
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.662: 	      object C
+//│ ║  l.572: 	      object C
 //│ ╙──       	^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.660: 	  object A with
+//│ ║  l.570: 	  object A with
 //│ ║         	         ^^^^^^
-//│ ║  l.661: 	    object B with
+//│ ║  l.571: 	    object B with
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.662: 	      object C
+//│ ║  l.572: 	      object C
 //│ ╙──       	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
 
@@ -704,32 +614,32 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.701: 	  module A with
+//│ ║  l.611: 	  module A with
 //│ ╙──       	         ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.703: 	      object C
+//│ ║  l.613: 	      object C
 //│ ╙──       	             ^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.701: 	  module A with
+//│ ║  l.611: 	  module A with
 //│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.702: 	    object B with
+//│ ║  l.612: 	    object B with
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.703: 	      object C
+//│ ║  l.613: 	      object C
 //│ ║         	^^^^^^^^^^^^^^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.701: 	  module A with
+//│ ║  l.611: 	  module A with
 //│ ║         	         ^^^^^^
-//│ ║  l.702: 	    object B with
+//│ ║  l.612: 	    object B with
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.703: 	      object C
+//│ ║  l.613: 	      object C
 //│ ╙──       	^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.701: 	  module A with
+//│ ║  l.611: 	  module A with
 //│ ║         	         ^^^^^^
-//│ ║  l.702: 	    object B with
+//│ ║  l.612: 	    object B with
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.703: 	      object C
+//│ ║  l.613: 	      object C
 //│ ╙──       	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
 
@@ -742,29 +652,29 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.739: 	  module A with
+//│ ║  l.649: 	  module A with
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.739: 	  module A with
+//│ ║  l.649: 	  module A with
 //│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.740: 	    module B with
+//│ ║  l.650: 	    module B with
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.741: 	      object C
+//│ ║  l.651: 	      object C
 //│ ║         	^^^^^^^^^^^^^^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.739: 	  module A with
+//│ ║  l.649: 	  module A with
 //│ ║         	         ^^^^^^
-//│ ║  l.740: 	    module B with
+//│ ║  l.650: 	    module B with
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.741: 	      object C
+//│ ║  l.651: 	      object C
 //│ ╙──       	^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.739: 	  module A with
+//│ ║  l.649: 	  module A with
 //│ ║         	         ^^^^^^
-//│ ║  l.740: 	    module B with
+//│ ║  l.650: 	    module B with
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.741: 	      object C
+//│ ║  l.651: 	      object C
 //│ ╙──       	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
 

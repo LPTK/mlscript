@@ -212,10 +212,23 @@ class C with
   class C with
     new C
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let C1;
+//│ let C2;
 //│ (class C {
 //│   static {
-//│     C1 = this
+//│     C2 = this
+//│   }
+//│   constructor() {
+//│     const this$C = this;
+//│     (class C1 {
+//│       static {
+//│         this$C.C = this
+//│       }
+//│       constructor() {
+//│         globalThis.Object.freeze(new this$C.C());
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "C"];
+//│     });
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "C"];

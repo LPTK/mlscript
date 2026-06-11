@@ -8,136 +8,39 @@ module M with
 
 
 let foo = M.Foo(123)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: M1.Foo is not a function
-//│     at REPL13:1:42
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
-//│ foo = undefined
+//│ foo = Foo(123)
 
 
 foo.m()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'm')
-//│     at REPL17:1:41
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 124
 
 foo.n(1)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'n')
-//│     at REPL20:1:41
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 124
 
 
 foo M.Foo::m()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'm')
-//│     at REPL23:1:62
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 124
 
 foo M.Foo::n(2)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'n')
-//│     at REPL26:1:67
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 125
 
 M.Foo::n(foo, 2)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'n')
-//│     at REPL29:1:67
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 125
 
 M.Foo ::n(foo, 2)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'n')
-//│     at REPL32:1:67
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 125
 
 M.Foo ::n (foo, 2)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'n')
-//│     at REPL35:1:67
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 125
 
 :e
 M.Foo:: n(foo, 2)
 //│ ╔══[COMPILATION ERROR] Name not found: ::
-//│ ║  l.134: 	M.Foo:: n(foo, 2)
-//│ ╙──       	     ^^
+//│ ║  l.37: 	M.Foo:: n(foo, 2)
+//│ ╙──      	     ^^
 //│ ╔══[COMPILATION ERROR] Name not found: n
-//│ ║  l.134: 	M.Foo:: n(foo, 2)
-//│ ╙──       	        ^
+//│ ║  l.37: 	M.Foo:: n(foo, 2)
+//│ ╙──      	        ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
@@ -157,129 +60,57 @@ let m = M.Foo::m
 //│         includeZero = false
 //│         defaultName = "tmp"
 //│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(class:M -> M, tmp:block$res -> block$res1, foo -> foo, args -> args3, tmp:block$res -> block$res2, tmp:block$res -> block$res8, tmp:runtime -> runtime, tmp:block$res -> block$res3, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res4, tmp:option -> option, args -> args4, tmp:block$res -> block$res9, args -> args, tmp:block$res -> block$res10, tmp:block$res -> block$res5, tmp:block$res -> block$res, args -> args1, tmp:block$res -> block$res6, member:M -> M1, module:M -> M, args -> args2, tmp:block$res -> block$res7)
+//│       bindings = HashMap(class:M -> M, tmp:block$res -> block$res1, foo -> foo, args -> args3, tmp:block$res -> block$res2, tmp:block$res -> block$res8, tmp:runtime -> runtime, tmp:block$res -> block$res3, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res4, tmp:option -> option, args -> args4, tmp:block$res -> block$res9, args -> args, tmp:block$res -> block$res10, tmp:block$res -> block$res5, tmp:block$res -> block$res, args -> args1, tmp:block$res -> block$res6, member:M -> M1, module:M -> M, class:Foo -> Foo, args -> args2, tmp:block$res -> block$res7)
 //│     bindings = HashMap(member:m -> m)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'm'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.145: 	let m = M.Foo::m
-//│ ╙──       	    ^
+//│ ║  l.48: 	let m = M.Foo::m
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let m; m = function m(self, ...args5) { return self.m(...args5) }; m = m;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ m = fun m
 
 m(foo)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'm')
-//│     at m (REPL41:1:137)
-//│     at REPL45:1:38
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = 124
 
 foo m()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'm')
-//│     at m (REPL41:1:137)
-//│     at REPL48:1:38
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│ = 124
 
 
 M.{foo Foo::m()}
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'm')
-//│     at REPL51:1:65
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 124
 
 M.{foo.Foo#m()}
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'm')
-//│     at REPL54:1:43
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 124
 
 do
   open M
   print of foo M.Foo::m()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'm')
-//│     at REPL57:1:76
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > 124
 
 do
   open M
   print of foo.Foo#m()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'm')
-//│     at REPL60:1:43
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ > 124
 
 // * This one still succeeds at runtime because the JS backend discards the class info
 :e
 foo.Foo#m()
 //│ ╔══[COMPILATION ERROR] Name not found: Foo
-//│ ║  l.268: 	foo.Foo#m()
-//│ ╙──       	   ^^^^
+//│ ║  l.99: 	foo.Foo#m()
+//│ ╙──      	   ^^^^
 //│ ╔══[COMPILATION ERROR] Identifier `Foo` does not name a known class symbol.
-//│ ║  l.268: 	foo.Foo#m()
-//│ ╙──       	   ^^^^
+//│ ║  l.99: 	foo.Foo#m()
+//│ ╙──      	   ^^^^
 //│ ═══[COMPILATION ERROR] Expected a statically known class; found ‹error›.
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'm')
+//│ = 124
 
 :e
 :re
 foo.M.Foo::m()
 //│ ╔══[COMPILATION ERROR] Selection is not a known class.
-//│ ║  l.280: 	foo.M.Foo::m()
+//│ ║  l.111: 	foo.M.Foo::m()
 //│ ║         	^^^^^^^^^
 //│ ╟── Note: any expression of the form `‹expression›::‹identifier›` is a member projection;
 //│ ╙──   add a space before ‹identifier› to make it an operator application.
@@ -289,21 +120,21 @@ foo.M.Foo::m()
 :re
 foo.M.Foo#m()
 //│ ╔══[COMPILATION ERROR] Name not found: Foo
-//│ ║  l.290: 	foo.M.Foo#m()
+//│ ║  l.121: 	foo.M.Foo#m()
 //│ ╙──       	     ^^^^
 //│ ╔══[COMPILATION ERROR] Identifier `Foo` does not name a known class symbol.
-//│ ║  l.290: 	foo.M.Foo#m()
+//│ ║  l.121: 	foo.M.Foo#m()
 //│ ╙──       	     ^^^^
 //│ ═══[COMPILATION ERROR] Expected a statically known class; found ‹error›.
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'M')
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'M' yielded 'undefined'
 
 :e
 Foo::m
 //│ ╔══[COMPILATION ERROR] Name not found: Foo
-//│ ║  l.301: 	Foo::m
+//│ ║  l.132: 	Foo::m
 //│ ╙──       	^^^
 //│ ╔══[COMPILATION ERROR] Identifier is not a known class.
-//│ ║  l.301: 	Foo::m
+//│ ║  l.132: 	Foo::m
 //│ ║         	^^^
 //│ ╟── Note: any expression of the form `‹expression›::‹identifier›` is a member projection;
 //│ ╙──   add a space before ‹identifier› to make it an operator application.
@@ -315,10 +146,10 @@ Foo::m
 :noInline
 Foo::n(foo, 2)
 //│ ╔══[COMPILATION ERROR] Name not found: Foo
-//│ ║  l.316: 	Foo::n(foo, 2)
+//│ ║  l.147: 	Foo::n(foo, 2)
 //│ ╙──       	^^^
 //│ ╔══[COMPILATION ERROR] Identifier is not a known class.
-//│ ║  l.316: 	Foo::n(foo, 2)
+//│ ║  l.147: 	Foo::n(foo, 2)
 //│ ║         	^^^
 //│ ╟── Note: any expression of the form `‹expression›::‹identifier›` is a member projection;
 //│ ╙──   add a space before ‹identifier› to make it an operator application.
@@ -330,6 +161,6 @@ Foo::n(foo, 2)
 //│ });
 //│ return runtime.safeCall(lambda2(foo, 2))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'n')
+//│ = 125
 
 

@@ -8,27 +8,6 @@ data class A(x) with
   data class B(y) with
     fun getB() = x + y
   fun getA() = B(2).getB()
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: names (Printer.scala:72)
-//│ FAILURE INFO: Scope:
-//│   parentOrCfg = Right of Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = false
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap()
-//│       bindings = HashMap(member:B -> B)
-//│     bindings = HashMap(x -> x)
-//│   bindings = HashMap()
-//│ ╔══[INTERNAL ERROR] `member:B` is already in scope
-//│ ║  l.8: 	  data class B(y) with
-//│ ║       	       ^^^^^^^^^^^^^^^
-//│ ║  l.9: 	    fun getB() = x + y
-//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let B;
 //│ @data
@@ -36,9 +15,8 @@ data class A(x) with
 //│   private val A⁰;
 //│   val y⁰;
 //│   constructor B⁰(y, A) {
-//│     let y1;
 //│     set B¹.this.A⁰ = A;
-//│     define y1 as val y¹ = y;
+//│     define y⁰ as val y¹ = y;
 //│     end
 //│   }
 //│   method getB⁰ = fun getB¹() {
@@ -49,8 +27,7 @@ data class A(x) with
 //│ define A¹ as class A³ {
 //│   val x¹;
 //│   constructor A²(x) {
-//│     let B1‹BAD_SHADOW›, x1;
-//│     define x1 as val x⁰ = x;
+//│     define x¹ as val x⁰ = x;
 //│     end
 //│   }
 //│   method getA⁰ = fun getA¹() { let tmp; set tmp = new B¹(2, A³.this); return tmp.getB¹() }
@@ -84,7 +61,7 @@ class A with
 //│ };
 //│ define A⁴ as class A⁵ {
 //│   val x²;
-//│   constructor() { let x; define x as val x³ = g⁰; end }
+//│   constructor() { define x² as val x³ = g⁰; end }
 //│ };
 //│ set tmp = new A⁵();
 //│ return tmp.x³()

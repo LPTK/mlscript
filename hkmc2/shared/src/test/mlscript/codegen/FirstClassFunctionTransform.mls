@@ -249,16 +249,15 @@ module Foo with
 //│ define Foo¹ as class Foo²
 //│ module Foo³ {
 //│   constructor {
-//│     let Bar;
-//│     define Bar as class Bar² {
+//│     define Bar¹ as class Bar³ {
 //│       private val y⁰;
-//│       constructor Bar¹(y) {
-//│         set Bar².this.y⁰ = y;
+//│       constructor Bar²(y) {
+//│         set Bar³.this.y⁰ = y;
 //│         end
 //│       }
 //│       method bar² = fun bar³(z) {
 //│         let tmp;
-//│         set tmp = new Function$⁴(Bar².this, z);
+//│         set tmp = new Function$⁴(Bar³.this, z);
 //│         return tmp
 //│       }
 //│     };
@@ -271,22 +270,7 @@ module Foo with
 
 :expect 3
 Foo.Bar(1).bar(1)(1)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Foo7.Bar is not a function
-//│     at REPL87:1:59
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:316)
-//│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
+//│ = 3
 
 
 let x = 1
@@ -396,7 +380,7 @@ foo.Foo#x
 :ge
 foo.f(0)
 //│ ╔══[COMPILATION ERROR] Cannot determine if f is a function object.
-//│ ║  l.397: 	foo.f(0)
+//│ ║  l.381: 	foo.f(0)
 //│ ╙──       	^^^^^
 //│ = 1
 
@@ -414,7 +398,7 @@ foo.Foo#f(0)
 :ge
 foo.x(0)
 //│ ╔══[COMPILATION ERROR] Cannot determine if x is a function object.
-//│ ║  l.415: 	foo.x(0)
+//│ ║  l.399: 	foo.x(0)
 //│ ╙──       	^^^^^
 
 
@@ -532,7 +516,7 @@ print("abc")
 :e
 foo(print)
 //│ ╔══[COMPILATION ERROR] Cannot get print's parameter list.
-//│ ║  l.533: 	foo(print)
+//│ ║  l.517: 	foo(print)
 //│ ╙──       	    ^^^^^
 //│ ═══[RUNTIME ERROR] Error: Function 'call' expected 0 arguments but got 1
 
@@ -544,7 +528,7 @@ foo(print(_))
 :expect ["abc"]
 foo(tuple)
 //│ ╔══[COMPILATION ERROR] Cannot get tuple's parameter list.
-//│ ║  l.545: 	foo(tuple)
+//│ ║  l.529: 	foo(tuple)
 //│ ╙──       	    ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let Function$, tmp;
