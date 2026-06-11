@@ -9,124 +9,14 @@ object Test with
   fun foo() =
     print(Test)
     Test.x
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Test⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
-//│       bindings = HashMap(object:Test -> Test)
-//│     curThis = S of S of object:Test¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Test'
-//│ ║  l.7: 	object Test with
-//│ ║       	^^^^^^^^^^^^^^^^
-//│ ║  l.8: 	  val x = 12
-//│ ║       	^^^^^^^^^^^^
-//│ ║  l.9: 	  fun foo() =
-//│ ║       	^^^^^^^^^^^^^
-//│ ║  l.10: 	    print(Test)
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.11: 	... (more lines omitted) ...
-//│ ║        	^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.7: 	object Test with
-//│ ║       	       ^^^^^^^^^
-//│ ║  l.8: 	  val x = 12
-//│ ║       	^^^^^^^^^^^^
-//│ ║  l.9: 	  fun foo() =
-//│ ║       	^^^^^^^^^^^^^
-//│ ║  l.10: 	    print(Test)
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.11: 	... (more lines omitted) ...
-//│ ╙──      	^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Test⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Right of Scope:
-//│           parentOrCfg = Left of Cfg:
-//│             escapeChars = true
-//│             useSuperscripts = false
-//│             includeZero = false
-//│             defaultName = "tmp"
-//│           curThis = S of S of globalThis:globalThis⁰
-//│           bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
-//│         bindings = HashMap(object:Test -> Test)
-//│       curThis = S of S of object:Test¹
-//│       bindings = HashMap()
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Test'
-//│ ║  l.10: 	    print(Test)
-//│ ║        	          ^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.7: 	object Test with
-//│ ║       	       ^^^^^^^^^
-//│ ║  l.8: 	  val x = 12
-//│ ║       	^^^^^^^^^^^^
-//│ ║  l.9: 	  fun foo() =
-//│ ║       	^^^^^^^^^^^^^
-//│ ║  l.10: 	    print(Test)
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.11: 	... (more lines omitted) ...
-//│ ╙──      	^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Test⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Right of Scope:
-//│           parentOrCfg = Left of Cfg:
-//│             escapeChars = true
-//│             useSuperscripts = false
-//│             includeZero = false
-//│             defaultName = "tmp"
-//│           curThis = S of S of globalThis:globalThis⁰
-//│           bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
-//│         bindings = HashMap(object:Test -> Test)
-//│       curThis = S of S of object:Test¹
-//│       bindings = HashMap()
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Test'
-//│ ║  l.11: 	    Test.x
-//│ ║        	    ^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.7: 	object Test with
-//│ ║       	       ^^^^^^^^^
-//│ ║  l.8: 	  val x = 12
-//│ ║       	^^^^^^^^^^^^
-//│ ║  l.9: 	  fun foo() =
-//│ ║       	^^^^^^^^^^^^^
-//│ ║  l.10: 	    print(Test)
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.11: 	... (more lines omitted) ...
-//│ ╙──      	^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Test1;
 //│ (class Test {
 //│   static {
 //│     new this
 //│   }
 //│   constructor() {
-//│     Test = this;
+//│     Test1 = this;
 //│     this.x = 12;
 //│     Object.defineProperty(this, "class", {
 //│       value: Test
@@ -134,8 +24,8 @@ object Test with
 //│     globalThis.Object.freeze(this);
 //│   }
 //│   foo() {
-//│     Predef.print(Test);
-//│     return Test.x
+//│     Predef.print(Test1);
+//│     return Test1.x
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["object", "Test"];
@@ -191,8 +81,8 @@ f()
 //│     bindings = HashMap(member:f -> f)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.172: 	let x = 1
-//│ ╙──       	    ^
+//│ ║  l.62: 	let x = 1
+//│ ╙──      	    ^
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: lookup_! (Scope.scala:135)
 //│ FAILURE INFO: Tuple2:
@@ -213,11 +103,11 @@ f()
 //│     curThis = S of N
 //│     bindings = HashMap()
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
-//│ ║  l.173: 	let f = () => x
-//│ ║         	              ^
+//│ ║  l.63: 	let f = () => x
+//│ ║        	              ^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.172: 	let x = 1
-//│ ╙──       	    ^
+//│ ║  l.62: 	let x = 1
+//│ ╙──      	    ^
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: lookup_! (Scope.scala:135)
 //│ FAILURE INFO: Tuple2:
@@ -236,8 +126,8 @@ f()
 //│     bindings = HashMap(member:f -> f)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'f'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.173: 	let f = () => x
-//│ ╙──       	    ^
+//│ ║  l.63: 	let f = () => x
+//│ ╙──      	    ^
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: lookup_! (Scope.scala:135)
 //│ FAILURE INFO: Tuple2:
@@ -256,8 +146,8 @@ f()
 //│     bindings = HashMap(member:f -> f)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.174: 	let x = 2
-//│ ╙──       	    ^
+//│ ║  l.64: 	let x = 2
+//│ ╙──      	    ^
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: lookup_! (Scope.scala:135)
 //│ FAILURE INFO: Tuple2:
@@ -275,11 +165,11 @@ f()
 //│       bindings = HashMap(tmp:block$res -> block$res4, member:Test -> Test2, tmp:block$res -> block$res, tmp:block$res -> block$res5, tmp:runtime -> runtime, member:Test -> Test1, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, object:Test -> Test, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3)
 //│     bindings = HashMap(member:f -> f)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
-//│ ║  l.173: 	let f = () => x
-//│ ║         	              ^
+//│ ║  l.63: 	let f = () => x
+//│ ║        	              ^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.172: 	let x = 1
-//│ ╙──       	    ^
+//│ ║  l.62: 	let x = 1
+//│ ╙──      	    ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f; x = 1; f = function f() { return x }; f = f; x = 2; return x
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -294,10 +184,10 @@ module Test with
   val x = 1
   let x = 2
 //│ ╔══[COMPILATION ERROR] Name 'x' is already used
-//│ ║  l.295: 	  let x = 2
+//│ ║  l.185: 	  let x = 2
 //│ ║         	      ^^^^^
 //│ ╟── by a member declared in the same block
-//│ ║  l.294: 	  val x = 1
+//│ ║  l.184: 	  val x = 1
 //│ ╙──       	  ^^^^^^^^^
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
 //│ let Test4;
@@ -385,119 +275,9 @@ fun foo(): module M =
   else
     module A
     A
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:A⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:block$res -> block$res4, member:Test -> Test2, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, f -> f, tmp:Block -> Block, x -> x, tmp:option -> option, member:f -> f1, tmp:block$res -> block$res7, member:Test -> Test4, module:Test -> Test3, class:Test -> Test3, tmp:block$res -> block$res8, tmp:block$res -> block$res9, member:Test -> Test6, module:Test -> Test5, class:Test -> Test5, tmp:block$res -> block$res10, member:Cls -> Cls1, class:Cls -> Cls, tmp:block$res -> block$res11, cls -> cls, tmp:block$res -> block$res12, tmp:selRes -> selRes, tmp:block$res -> block$res13, tmp:selRes -> selRes1, tmp:block$res -> block$res14, tmp:selRes -> selRes2, tmp:block$res -> block$res15, member:M -> M1, module:M -> M, class:M -> M, tmp:block$res -> block$res, tmp:block$res -> block$res16, member:Test -> Test1, object:Test -> Test, member:foo -> foo, module:A -> A, module:A -> A1, class:A -> A, tmp:block$res -> block$res1, class:A -> A1, tmp:block$res -> block$res2, tmp:block$res -> block$res17, tmp:block$res -> block$res3)
-//│       curThis = S of N
-//│       bindings = HashMap()
-//│     curThis = S of S of class:A¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.383: 	    module A
-//│ ║         	    ^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.383: 	    module A
-//│ ╙──       	           ^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:A⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Left of Cfg:
-//│         escapeChars = true
-//│         useSuperscripts = false
-//│         includeZero = false
-//│         defaultName = "tmp"
-//│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(tmp:block$res -> block$res4, member:Test -> Test2, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, f -> f, tmp:Block -> Block, x -> x, tmp:option -> option, member:f -> f1, tmp:block$res -> block$res7, member:Test -> Test4, module:Test -> Test3, class:Test -> Test3, tmp:block$res -> block$res8, tmp:block$res -> block$res9, member:Test -> Test6, module:Test -> Test5, class:Test -> Test5, tmp:block$res -> block$res10, member:Cls -> Cls1, class:Cls -> Cls, tmp:block$res -> block$res11, cls -> cls, tmp:block$res -> block$res12, tmp:selRes -> selRes, tmp:block$res -> block$res13, tmp:selRes -> selRes1, tmp:block$res -> block$res14, tmp:selRes -> selRes2, tmp:block$res -> block$res15, member:M -> M1, module:M -> M, class:M -> M, tmp:block$res -> block$res, tmp:block$res -> block$res16, member:Test -> Test1, object:Test -> Test, member:foo -> foo, module:A -> A, module:A -> A1, class:A -> A, tmp:block$res -> block$res1, class:A -> A1, tmp:block$res -> block$res2, tmp:block$res -> block$res17, tmp:block$res -> block$res3)
-//│     curThis = S of N
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.384: 	    A
-//│ ║         	    ^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.383: 	    module A
-//│ ╙──       	           ^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:A²
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:block$res -> block$res4, member:Test -> Test2, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, f -> f, tmp:Block -> Block, x -> x, tmp:option -> option, member:f -> f1, tmp:block$res -> block$res7, member:Test -> Test4, module:Test -> Test3, class:Test -> Test3, tmp:block$res -> block$res8, tmp:block$res -> block$res9, member:Test -> Test6, module:Test -> Test5, class:Test -> Test5, tmp:block$res -> block$res10, member:Cls -> Cls1, class:Cls -> Cls, tmp:block$res -> block$res11, cls -> cls, tmp:block$res -> block$res12, tmp:selRes -> selRes, tmp:block$res -> block$res13, tmp:selRes -> selRes1, tmp:block$res -> block$res14, tmp:selRes -> selRes2, tmp:block$res -> block$res15, member:M -> M1, module:M -> M, class:M -> M, tmp:block$res -> block$res, tmp:block$res -> block$res16, member:Test -> Test1, object:Test -> Test, member:foo -> foo, module:A -> A, module:A -> A1, class:A -> A, tmp:block$res -> block$res1, class:A -> A1, tmp:block$res -> block$res2, tmp:block$res -> block$res17, tmp:block$res -> block$res3)
-//│       curThis = S of N
-//│       bindings = HashMap()
-//│     curThis = S of S of class:A³
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.386: 	    module A
-//│ ║         	    ^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.386: 	    module A
-//│ ╙──       	           ^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:A²
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Left of Cfg:
-//│         escapeChars = true
-//│         useSuperscripts = false
-//│         includeZero = false
-//│         defaultName = "tmp"
-//│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(tmp:block$res -> block$res4, member:Test -> Test2, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, f -> f, tmp:Block -> Block, x -> x, tmp:option -> option, member:f -> f1, tmp:block$res -> block$res7, member:Test -> Test4, module:Test -> Test3, class:Test -> Test3, tmp:block$res -> block$res8, tmp:block$res -> block$res9, member:Test -> Test6, module:Test -> Test5, class:Test -> Test5, tmp:block$res -> block$res10, member:Cls -> Cls1, class:Cls -> Cls, tmp:block$res -> block$res11, cls -> cls, tmp:block$res -> block$res12, tmp:selRes -> selRes, tmp:block$res -> block$res13, tmp:selRes -> selRes1, tmp:block$res -> block$res14, tmp:selRes -> selRes2, tmp:block$res -> block$res15, member:M -> M1, module:M -> M, class:M -> M, tmp:block$res -> block$res, tmp:block$res -> block$res16, member:Test -> Test1, object:Test -> Test, member:foo -> foo, module:A -> A, module:A -> A1, class:A -> A, tmp:block$res -> block$res1, class:A -> A1, tmp:block$res -> block$res2, tmp:block$res -> block$res17, tmp:block$res -> block$res3)
-//│     curThis = S of N
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.387: 	    A
-//│ ║         	    ^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.386: 	    module A
-//│ ╙──       	           ^
 
 foo()
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
-//│     at <static_initializer> (REPL62:1:382)
-//│     at foo (REPL62:1:455)
-//│     at REPL65:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
+//│ = class A
 
 
 :sjs
@@ -507,51 +287,11 @@ module Whoops with
   module Whoops with
     val w: module Whoops = this
     fun g() = f()
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Whoops⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:block$res -> block$res4, member:Test -> Test2, tmp:block$res -> block$res5, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, f -> f, tmp:Block -> Block, x -> x, tmp:option -> option, member:f -> f1, tmp:block$res -> block$res7, member:Test -> Test4, module:Test -> Test3, class:Test -> Test3, tmp:block$res -> block$res8, tmp:block$res -> block$res9, member:Test -> Test6, module:Test -> Test5, class:Test -> Test5, tmp:block$res -> block$res10, member:Cls -> Cls1, class:Cls -> Cls, tmp:block$res -> block$res11, cls -> cls, tmp:block$res -> block$res12, tmp:selRes -> selRes, tmp:block$res -> block$res13, tmp:selRes -> selRes1, tmp:block$res -> block$res14, tmp:selRes -> selRes2, tmp:block$res -> block$res15, member:M -> M1, module:M -> M, class:M -> M, tmp:block$res -> block$res, tmp:block$res -> block$res16, member:Test -> Test1, object:Test -> Test, member:foo -> foo, module:A -> A, module:A -> A1, class:A -> A, tmp:block$res -> block$res1, class:A -> A1, tmp:block$res -> block$res2, tmp:block$res -> block$res17, tmp:block$res -> block$res3, tmp:block$res -> block$res18)
-//│       bindings = HashMap(module:Whoops -> Whoops, class:Whoops -> Whoops, module:Whoops -> Whoops1, class:Whoops -> Whoops1)
-//│     curThis = S of S of class:Whoops¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Whoops'
-//│ ║  l.504: 	module Whoops with
-//│ ║         	^^^^^^^^^^^^^^^^^^
-//│ ║  l.505: 	  val v: module Whoops = this
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.506: 	  fun f() = "Hello"
-//│ ║         	^^^^^^^^^^^^^^^^^^^
-//│ ║  l.507: 	  module Whoops with
-//│ ║         	^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.508: 	... (more lines omitted) ...
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.504: 	module Whoops with
-//│ ║         	       ^^^^^^^^^^^
-//│ ║  l.505: 	  val v: module Whoops = this
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.506: 	  fun f() = "Hello"
-//│ ║         	^^^^^^^^^^^^^^^^^^^
-//│ ║  l.507: 	  module Whoops with
-//│ ║         	^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.508: 	... (more lines omitted) ...
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Whoops2;
 //│ (class Whoops {
 //│   static {
-//│     Whoops = this
+//│     Whoops2 = this
 //│   }
 //│   static {
 //│     Whoops.v = Whoops;
@@ -590,7 +330,7 @@ Whoops.Whoops.g()
 :e
 Runtime
 //│ ╔══[COMPILATION ERROR] Name not found: Runtime
-//│ ║  l.591: 	Runtime
+//│ ║  l.331: 	Runtime
 //│ ╙──       	^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -602,51 +342,11 @@ module AA with
     fun test =
       let BB = "oops"
       y
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:AA⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:block$res -> block$res4, member:Test -> Test2, member:Whoops -> Whoops2, module:Whoops -> Whoops, tmp:block$res -> block$res5, module:Whoops -> Whoops1, tmp:runtime -> runtime, tmp:block$res -> block$res6, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, f -> f, tmp:Block -> Block, x -> x, tmp:option -> option, member:f -> f1, tmp:block$res -> block$res7, member:Test -> Test4, module:Test -> Test3, class:Whoops -> Whoops, class:Whoops -> Whoops1, tmp:block$res -> block$res19, class:Test -> Test3, tmp:block$res -> block$res8, tmp:block$res -> block$res20, tmp:block$res -> block$res9, tmp:block$res -> block$res21, member:Test -> Test6, module:Test -> Test5, tmp:block$res -> block$res22, tmp:block$res -> block$res23, class:Test -> Test5, tmp:block$res -> block$res10, member:Cls -> Cls1, class:Cls -> Cls, tmp:block$res -> block$res11, cls -> cls, tmp:block$res -> block$res12, tmp:selRes -> selRes, tmp:block$res -> block$res13, tmp:selRes -> selRes1, tmp:block$res -> block$res14, tmp:selRes -> selRes2, tmp:block$res -> block$res15, member:M -> M1, module:M -> M, class:M -> M, tmp:block$res -> block$res, tmp:block$res -> block$res16, member:Test -> Test1, object:Test -> Test, member:foo -> foo, module:A -> A, module:A -> A1, class:A -> A, tmp:block$res -> block$res1, class:A -> A1, tmp:block$res -> block$res2, tmp:block$res -> block$res17, tmp:block$res -> block$res3, tmp:block$res -> block$res18)
-//│       bindings = HashMap(class:AA -> AA, class:BB -> BB, module:AA -> AA, module:BB -> BB)
-//│     curThis = S of S of class:AA¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'AA'
-//│ ║  l.599: 	module AA with
-//│ ║         	^^^^^^^^^^^^^^
-//│ ║  l.600: 	  module BB with
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ║  l.601: 	    val y = 2
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.602: 	    fun test =
-//│ ║         	^^^^^^^^^^^^^^
-//│ ║  l.603: 	... (more lines omitted) ...
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.599: 	module AA with
-//│ ║         	       ^^^^^^^
-//│ ║  l.600: 	  module BB with
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ║  l.601: 	    val y = 2
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.602: 	    fun test =
-//│ ║         	^^^^^^^^^^^^^^
-//│ ║  l.603: 	... (more lines omitted) ...
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let AA1;
 //│ (class AA {
 //│   static {
-//│     AA = this
+//│     AA1 = this
 //│   }
 //│   static {
 //│     (class BB {

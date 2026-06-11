@@ -104,69 +104,11 @@ A.sum(20000)
 //│ ╔══[COMPILATION ERROR] This call is not in tail position.
 //│ ║  l.99: 	  fun sum_impl(n, acc) = if n == 0 then acc else @tailcall sum_impl(n - 1, n + acc)
 //│ ╙──      	                                                           ^^^^^^^^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:A⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:block$res -> block$res2, member:f -> f, tmp:block$res -> block$res, member:g -> g, member:g_f -> g_f, tmp:block$res -> block$res1, tmp:runtime -> runtime, member:sum_impl -> sum_impl, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:sum -> sum, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res3)
-//│       bindings = HashMap(module:A -> A, class:A -> A)
-//│     curThis = S of S of class:A¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.98: 	module A with
-//│ ║        	^^^^^^^^^^^^^
-//│ ║  l.99: 	  fun sum_impl(n, acc) = if n == 0 then acc else @tailcall sum_impl(n - 1, n + acc)
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.100: 	  fun sum(n) = sum_impl(n, 0)
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.98: 	module A with
-//│ ║        	       ^^^^^^
-//│ ║  l.99: 	  fun sum_impl(n, acc) = if n == 0 then acc else @tailcall sum_impl(n - 1, n + acc)
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.100: 	  fun sum(n) = sum_impl(n, 0)
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:A⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Left of Cfg:
-//│         escapeChars = true
-//│         useSuperscripts = false
-//│         includeZero = false
-//│         defaultName = "tmp"
-//│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(tmp:block$res -> block$res2, member:f -> f, tmp:block$res -> block$res, member:g -> g, member:g_f -> g_f, tmp:block$res -> block$res1, tmp:runtime -> runtime, member:sum_impl -> sum_impl, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, member:sum -> sum, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res3)
-//│     bindings = HashMap(module:A -> A, class:A -> A)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.101: 	A.sum(20000)
-//│ ║         	^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.98: 	module A with
-//│ ║        	       ^^^^^^
-//│ ║  l.99: 	  fun sum_impl(n, acc) = if n == 0 then acc else @tailcall sum_impl(n - 1, n + acc)
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.100: 	  fun sum(n) = sum_impl(n, 0)
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let A1;
 //│ (class A {
 //│   static {
-//│     A = this
+//│     A1 = this
 //│   }
 //│   static sum_impl(n, acc) {
 //│     let scrut;
@@ -187,7 +129,7 @@ A.sum(20000)
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"];
 //│ });
-//│ return A.sum(20000)
+//│ return A1.sum(20000)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
@@ -251,7 +193,7 @@ fun f(n, x, y, z) =
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: applyResult (TailRecOpt.scala:133)
 //│ ╔══[COMPILATION ERROR] This call is not in tail position.
-//│ ║  l.250: 	  if n > 0 then @tailcall f(n - 1, ...[1, 2], 3) else y
+//│ ║  l.192: 	  if n > 0 then @tailcall f(n - 1, ...[1, 2], 3) else y
 //│ ╙──       	                          ^^^^^^^^^^^^^^^^^^^^^^
 
 :expect 2
@@ -267,7 +209,7 @@ fun g(n) =
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: applyResult (TailRecOpt.scala:133)
 //│ ╔══[COMPILATION ERROR] This call is not in tail position.
-//│ ║  l.263: 	  if n > 0 then @tailcall g(n - 1)
+//│ ║  l.205: 	  if n > 0 then @tailcall g(n - 1)
 //│ ╙──       	                          ^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let f_g;
@@ -328,7 +270,7 @@ fun f(x) =
     @tailcall f(x)
   @tailcall g()
 //│ ╔══[COMPILATION ERROR] This call is not in tail position.
-//│ ║  l.327: 	    @tailcall f(x)
+//│ ║  l.269: 	    @tailcall f(x)
 //│ ╙──       	              ^^^^
 
 :lift
@@ -412,10 +354,10 @@ module A with
     @tailcall g(x - 1)
 A.f(10000)
 //│ ╔══[COMPILATION ERROR] This call is not in tail position.
-//│ ║  l.411: 	    fun g(x) = if x < 0 then 0 else @tailcall f(x)
+//│ ║  l.353: 	    fun g(x) = if x < 0 then 0 else @tailcall f(x)
 //│ ╙──       	                                              ^^^^
 //│ ╔══[COMPILATION ERROR] This tail call exits the current scope and is not optimized.
-//│ ║  l.412: 	    @tailcall g(x - 1)
+//│ ║  l.354: 	    @tailcall g(x - 1)
 //│ ╙──       	              ^^^^^^^^
 //│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
 
@@ -436,12 +378,12 @@ A.f(10)
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: applyResult (TailRecOpt.scala:133)
 //│ ╔══[COMPILATION ERROR] This call is not in tail position.
-//│ ║  l.433: 	  fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
+//│ ║  l.375: 	  fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
 //│ ╙──       	                                             ^^^^^^^^
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: applyResult (TailRecOpt.scala:133)
 //│ ╔══[COMPILATION ERROR] This call is not in tail position.
-//│ ║  l.434: 	  fun g(x) = if x == 0 then 1 else @tailcall f(x - 1)
+//│ ║  l.376: 	  fun g(x) = if x == 0 then 1 else @tailcall f(x - 1)
 //│ ╙──       	                                             ^^^^^^^^
 //│ = 0
 
@@ -452,12 +394,12 @@ class A with
   fun g(x) = if x == 0 then 1 else @tailcall f(x - 1)
 (new A).f(10)
 //│ ╔══[COMPILATION ERROR] Calls from class methods cannot yet be marked @tailcall.
-//│ ║  l.451: 	  @tailrec fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
+//│ ║  l.393: 	  @tailrec fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
 //│ ╙──       	                                                      ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Class methods may not yet be marked @tailrec.
-//│ ║  l.451: 	  @tailrec fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
+//│ ║  l.393: 	  @tailrec fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
 //│ ╙──       	               ^
 //│ ╔══[COMPILATION ERROR] Calls from class methods cannot yet be marked @tailcall.
-//│ ║  l.452: 	  fun g(x) = if x == 0 then 1 else @tailcall f(x - 1)
+//│ ║  l.394: 	  fun g(x) = if x == 0 then 1 else @tailcall f(x - 1)
 //│ ╙──       	                                             ^^^^^^^^
 //│ = 0

@@ -6,39 +6,11 @@ import "../../mlscript-compile/Option.mls"
 :sjs
 module A with
   fun f(x) = x is Option.Some
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:A⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:Block -> Block, member:Option -> Option, tmp:option -> option, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
-//│       bindings = HashMap(class:A -> A, module:A -> A)
-//│     curThis = S of S of class:A¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.7: 	module A with
-//│ ║       	^^^^^^^^^^^^^
-//│ ║  l.8: 	  fun f(x) = x is Option.Some
-//│ ║       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.7: 	module A with
-//│ ║       	       ^^^^^^
-//│ ║  l.8: 	  fun f(x) = x is Option.Some
-//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let A1;
 //│ (class A {
 //│   static {
-//│     A = this
+//│     A1 = this
 //│   }
 //│   static f(x) {
 //│     if (x instanceof Option.Some.class) {

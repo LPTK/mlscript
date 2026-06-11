@@ -12,90 +12,9 @@ test(Foo)
 fun foo() =
   object Foo
   Foo is Foo
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Foo⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(object:Foo -> Foo2, tmp:block$res -> block$res4, tmp:block$res -> block$res, member:Foo -> Foo1, object:Foo -> Foo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res1, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:test -> test, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:foo -> foo)
-//│       curThis = S of N
-//│       bindings = HashMap()
-//│     curThis = S of S of object:Foo¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
-//│ ║  l.13: 	  object Foo
-//│ ║        	  ^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.13: 	  object Foo
-//│ ╙──      	         ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Foo⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Left of Cfg:
-//│         escapeChars = true
-//│         useSuperscripts = false
-//│         includeZero = false
-//│         defaultName = "tmp"
-//│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(object:Foo -> Foo2, tmp:block$res -> block$res4, tmp:block$res -> block$res, member:Foo -> Foo1, object:Foo -> Foo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res1, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:test -> test, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:foo -> foo)
-//│     curThis = S of N
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.13: 	  object Foo
-//│ ╙──      	         ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Foo⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Left of Cfg:
-//│         escapeChars = true
-//│         useSuperscripts = false
-//│         includeZero = false
-//│         defaultName = "tmp"
-//│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(object:Foo -> Foo2, tmp:block$res -> block$res4, tmp:block$res -> block$res, member:Foo -> Foo1, object:Foo -> Foo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res1, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:test -> test, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:foo -> foo)
-//│     curThis = S of N
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
-//│ ║  l.14: 	  Foo is Foo
-//│ ║        	         ^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.13: 	  object Foo
-//│ ╙──      	         ^^^
 
 foo()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for ClsLikeDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier.applyBlock$$anonfun$14(BlockSimplifier.scala:1167)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.go$1(BlockSimplifier.scala:1244)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.applyResult$$anonfun$6(BlockSimplifier.scala:1254)
-//│ 	at: scala.Option.fold(Option.scala:265)
+//│ = true
 
 
 fun foo() =

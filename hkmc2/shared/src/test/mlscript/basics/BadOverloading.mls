@@ -33,38 +33,58 @@ object Foo
 //│ ╟── with object of the same name
 //│ ║  l.29: 	object Foo
 //│ ╙──      	^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 :e
 object Foo
 class Foo
 //│ ╔══[COMPILATION ERROR] Illegal overloading of class 'Foo'
-//│ ║  l.39: 	class Foo
+//│ ║  l.51: 	class Foo
 //│ ║        	^^^^^^^^^
 //│ ╟── with object of the same name
-//│ ║  l.38: 	object Foo
+//│ ║  l.50: 	object Foo
 //│ ╙──      	^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 :todo // TODO: silence such internal errors when a compilation error is already reported?
 :e
 fun Foo = 1
 object Foo
 //│ ╔══[COMPILATION ERROR] Illegal overloading of function 'Foo'
-//│ ║  l.49: 	fun Foo = 1
+//│ ║  l.73: 	fun Foo = 1
 //│ ║        	^^^^^^^^^^^
 //│ ╟── with object of the same name
-//│ ║  l.50: 	object Foo
+//│ ║  l.74: 	object Foo
 //│ ╙──      	^^^^^^^^^^
-//│ ╔══[INTERNAL ERROR] Compiler reached an unsupported state: None.isDefined =/= true
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a known compiler limitation; if it is a blocker for you, please report it to the maintainers.
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for FunDefn is a free variable for this block
 
 :fixme
 // * Note that this does not report an error at the moment:
 fun Foo: Int
 object Foo
-//│ ╔══[INTERNAL ERROR] Compiler reached an unsupported state: None.isDefined =/= true
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a known compiler limitation; if it is a blocker for you, please report it to the maintainers.
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for ClsLikeDefn is a free variable for this block
 
 :todo
 :e
@@ -72,22 +92,22 @@ fun Foo = 1
 object Foo
 class Foo
 //│ ╔══[COMPILATION ERROR] Illegal overloading of function 'Foo'
-//│ ║  l.71: 	fun Foo = 1
+//│ ║  l.91: 	fun Foo = 1
 //│ ║        	^^^^^^^^^^^
 //│ ╟── with object of the same name
-//│ ║  l.72: 	object Foo
+//│ ║  l.92: 	object Foo
 //│ ╙──      	^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Not yet supported: overloading of function 'Foo'
-//│ ║  l.71: 	fun Foo = 1
+//│ ║  l.91: 	fun Foo = 1
 //│ ║        	^^^^^^^^^^^
 //│ ╟── with class of the same name
-//│ ║  l.73: 	class Foo
+//│ ║  l.93: 	class Foo
 //│ ╙──      	^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Illegal overloading of class 'Foo'
-//│ ║  l.73: 	class Foo
+//│ ║  l.93: 	class Foo
 //│ ║        	^^^^^^^^^
 //│ ╟── with object of the same name
-//│ ║  l.72: 	object Foo
+//│ ║  l.92: 	object Foo
 //│ ╙──      	^^^^^^^^^^
 //│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for FunDefn is a free variable for this block
 
@@ -97,11 +117,11 @@ class Foo
 class Foo
 fun Foo = 1
 //│ ╔══[COMPILATION ERROR] Not yet supported: overloading of function 'Foo'
-//│ ║  l.98: 	fun Foo = 1
-//│ ║        	^^^^^^^^^^^
+//│ ║  l.118: 	fun Foo = 1
+//│ ║         	^^^^^^^^^^^
 //│ ╟── with class of the same name
-//│ ║  l.97: 	class Foo
-//│ ╙──      	^^^^^^^^^
+//│ ║  l.117: 	class Foo
+//│ ╙──       	^^^^^^^^^
 //│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for FunDefn is a free variable for this block
 
 // TODO: support
@@ -109,33 +129,56 @@ fun Foo = 1
 fun Foo = 1
 module Foo
 //│ ╔══[COMPILATION ERROR] Not yet supported: overloading of function 'Foo'
-//│ ║  l.109: 	fun Foo = 1
+//│ ║  l.129: 	fun Foo = 1
 //│ ║         	^^^^^^^^^^^
 //│ ╟── with module of the same name
-//│ ║  l.110: 	module Foo
+//│ ║  l.130: 	module Foo
 //│ ╙──       	^^^^^^^^^^
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for FunDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyFunDefn(SymbolRefresher.scala:76)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:115)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 // TODO: support
 :e
 val Foo = 1
 module Foo
 //│ ╔══[COMPILATION ERROR] Not yet supported: overloading of value 'Foo'
-//│ ║  l.120: 	val Foo = 1
+//│ ║  l.152: 	val Foo = 1
 //│ ║         	^^^^^^^^^^^
 //│ ╟── with module of the same name
-//│ ║  l.121: 	module Foo
+//│ ║  l.153: 	module Foo
 //│ ╙──       	^^^^^^^^^^
-//│ Foo = class Foo
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for ValDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyValDefn(SymbolRefresher.scala:83)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:116)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 
 :e
 fun (**) f1(a, b) = "[" + a + " * " + b + "]"
 fun (**) f2(a, b) = "(" + a + " + " + b + ")"
 //│ ╔══[COMPILATION ERROR] Symbolic name '**' of definition 'f1' is already used
-//│ ║  l.132: 	fun (**) f1(a, b) = "[" + a + " * " + b + "]"
+//│ ║  l.175: 	fun (**) f1(a, b) = "[" + a + " * " + b + "]"
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── by sibling member 'f2'
-//│ ║  l.133: 	fun (**) f2(a, b) = "(" + a + " + " + b + ")"
+//│ ║  l.176: 	fun (**) f2(a, b) = "(" + a + " + " + b + ")"
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1 ** 2
@@ -146,10 +189,10 @@ fun (**) t() = 0
 fun (++) t() = 1
 //│ ╔══[COMPILATION ERROR] Multiple definitions of symbol 't'
 //│ ╟── defined here
-//│ ║  l.145: 	fun (**) t() = 0
+//│ ║  l.188: 	fun (**) t() = 0
 //│ ║         	^^^^^^^^^^^^^^^^
 //│ ╟── defined here
-//│ ║  l.146: 	fun (++) t() = 1
+//│ ║  l.189: 	fun (++) t() = 1
 //│ ╙──       	^^^^^^^^^^^^^^^^
 //│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:t for FunDefn is a free variable for this block

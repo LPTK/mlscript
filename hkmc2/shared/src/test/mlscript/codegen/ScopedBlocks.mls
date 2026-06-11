@@ -115,6 +115,18 @@ class Foo() with // the class definition is moved to the location of its compani
 set state += 1
 module Foo with
   val res = Foo().foo()
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:33)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:50)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.BlockTraverser.applySubBlock(BlockTraverser.scala:33)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:50)
 
 
 
@@ -165,7 +177,7 @@ fun f(x) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f7;
 //│ f7 = function f(x1) {
-//│   let while1, tmp1, tmp2;
+//│   let while1, tmp, tmp1;
 //│   while1 = (undefined, function () {
 //│     if (x1 === true) {
 //│       Predef.print(x1);
@@ -173,9 +185,9 @@ fun f(x) =
 //│     }
 //│     return runtime.LoopEnd;
 //│   });
-//│   tmp1 = while1();
-//│   tmp2 = tmp1 !== runtime.LoopEnd;
-//│   if (tmp2 === true) { return tmp1 }
+//│   tmp = while1();
+//│   tmp1 = tmp !== runtime.LoopEnd;
+//│   if (tmp1 === true) { return tmp }
 //│   return runtime.Unit;
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -199,9 +211,9 @@ data class Baz(z) extends Bar(z * 1) with
 //│     Baz1.class = this
 //│   }
 //│   constructor(z) {
-//│     let tmp1;
-//│     tmp1 = z * 1;
-//│     super(tmp1);
+//│     let tmp;
+//│     tmp = z * 1;
+//│     super(tmp);
 //│     this.z = z;
 //│     this.k = 6;
 //│   }

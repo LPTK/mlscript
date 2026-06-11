@@ -75,7 +75,7 @@ class LoweringCtx(
     val tmp = new TempSymbol(trm, dbgNme)
     definedSymsDuringLowering.add(tmp)
     tmp
-  def getCollectedSym: collection.Set[ScopedSymbol] = definedSymsDuringLowering
+  def getCollectedSyms: collection.Set[ScopedSymbol] = definedSymsDuringLowering
   def lowerSymOf(s: ScopedSymbol) =
     s match
     case _: BlockMemberSymbol => s
@@ -228,8 +228,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   @tailrec
   final def splitBlock(stats: Ls[Statement], imps: Ls[Import],
-          funs: Ls[TermDefinition], letValClsSyms: Ls[LetDecl | ClassDef | TermDefinition], rest: Ls[Statement])
-      : (Ls[Import], Ls[TermDefinition], Ls[LetDecl | ClassDef | TermDefinition], Ls[Statement])
+          funs: Ls[TermDefinition], letValClsSyms: Ls[LetDecl | ClassLikeDef | TermDefinition], rest: Ls[Statement])
+      : (Ls[Import], Ls[TermDefinition], Ls[LetDecl | ClassLikeDef | TermDefinition], Ls[Statement])
       =
     stats match
     case (imp: Import) :: stats =>
@@ -238,7 +238,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       splitBlock(stats, imps, fun :: funs, letValClsSyms, rest)
     case (vl: TermDefinition) :: stats if vl.k.isInstanceOf[syntax.Val] =>
       splitBlock(stats, imps, funs, vl :: letValClsSyms, vl :: rest)
-    case (cd: ClassDef) :: stats =>
+    case (cd: ClassLikeDef) :: stats =>
       splitBlock(stats, imps, funs, cd :: letValClsSyms, cd :: rest)
     case (ld: LetDecl) :: stats =>
       splitBlock(stats, imps, funs, ld :: letValClsSyms, rest)
@@ -257,12 +257,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       if fun.owner.isEmpty then
         loweringCtx.collectScopedSym(fun.sym)
     val lets = letValClsSyms.flatMap:
-      case cls: ClassDef =>
-        if cls.owner.isEmpty then
+      case cls: ClassLikeDef =>
+        if cls.owner.isEmpty && cls.hasDeclareModifier.isEmpty then
           loweringCtx.collectScopedSym(cls.bsym)
         N
       case vl: TermDefinition =>
-        if vl.owner.isEmpty then
+        if vl.owner.isEmpty && vl.hasDeclareModifier.isEmpty then
           loweringCtx.collectScopedSym(vl.sym)
         N
       case ld: LetDecl => S(ld)
@@ -1488,7 +1488,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   inline def inScopedBlockExcept(syms: Set[BoundSymbol])(using LoweringCtx)(inline mkBlock: LoweringCtx ?=> Block): Block =
     LoweringCtx.nestScoped.givenIn:
       val body = mkBlock
-      val scopedSyms = loweringCtx.getCollectedSym.filterNot(syms)
+      val scopedSyms = loweringCtx.getCollectedSyms.filterNot(syms)
       val needRefresh = loweringCtx.currentScopedBlkNeedsRefreshing
       val scopedBody = Scoped(scopedSyms, body)
       if needRefresh then

@@ -8,18 +8,12 @@ fun f() =
   object A
   42
 f()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:A for ClsLikeDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier.applyBlock$$anonfun$14(BlockSimplifier.scala:1167)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.go$1(BlockSimplifier.scala:1244)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.applyResult$$anonfun$6(BlockSimplifier.scala:1254)
-//│ 	at: scala.Option.fold(Option.scala:265)
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let f; f = function f() { return 42 }; return 42
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define f⁰ as fun f¹() { return 42 }; return 42
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 42
 
 // * Do not remove objects with non-trivial constructors
 :soir
@@ -29,17 +23,59 @@ fun f() =
     print("Hello")
   42
 f()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:A for ClsLikeDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier.applyBlock$$anonfun$14(BlockSimplifier.scala:1167)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.go$1(BlockSimplifier.scala:1244)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.applyResult$$anonfun$6(BlockSimplifier.scala:1254)
-//│ 	at: scala.Option.fold(Option.scala:265)
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let f1, A2;
+//│ f1 = function f() {
+//│   let A3;
+//│   (class A {
+//│     static {
+//│       new this
+//│     }
+//│     constructor() {
+//│       A3 = this;
+//│       Predef.print("Hello");
+//│       Object.defineProperty(this, "class", {
+//│         value: A
+//│       });
+//│       globalThis.Object.freeze(this);
+//│     }
+//│     toString() { return runtime.render(this); }
+//│     static [definitionMetadata] = ["object", "A"];
+//│   });
+//│   return 42
+//│ };
+//│ (class A1 {
+//│   static {
+//│     new this
+//│   }
+//│   constructor() {
+//│     A2 = this;
+//│     Predef.print("Hello");
+//│     Object.defineProperty(this, "class", {
+//│       value: A1
+//│     });
+//│     globalThis.Object.freeze(this);
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["object", "A"];
+//│ });
+//│ return 42
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let A;
+//│ define f² as fun f³() {
+//│   let A1;
+//│   define A1 as object A⁰ {
+//│     constructor() {
+//│       do Predef⁰.print⁰("Hello");
+//│       end
+//│     }
+//│   };
+//│   return 42
+//│ };
+//│ define A as object A¹ { constructor() { do Predef⁰.print⁰("Hello"); end } };
+//│ return 42
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > Hello
+//│ = 42
 
 

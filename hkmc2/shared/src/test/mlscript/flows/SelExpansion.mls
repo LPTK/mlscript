@@ -21,7 +21,18 @@ module Foo with
 //│     x⁰  <~  type Foo
 //│     flow:a⁰  <~  123
 //│     flow:foo⁰  <~  ((type Foo) -> flow:a⁰)
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:Foo for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 let f = new Foo()
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
@@ -29,8 +40,43 @@ let f = new Foo()
 //│   f⁰ = new Foo⁰()
 //│ where
 //│     f⁰  <~  Foo()
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Foo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, f -> f, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res1, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
+//│ ║  l.37: 	let f = new Foo()
+//│ ║        	            ^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.9: 	class Foo with
+//│ ║       	      ^^^^^^^^
+//│ ║  l.10: 	  val a = 123
+//│ ╙──      	^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ f = Foo { a: 123 }
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: Foo is not defined
+//│     at REPL10:1:46
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ f = undefined
 
 f.a
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
@@ -38,14 +84,26 @@ f.a
 //│ where
 //│     
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 123
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'a')
+//│     at REPL14:1:29
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 :e
 :re
 f.a.b
 //│ ╔══[COMPILATION ERROR] Unresolved selection:
-//│ ║  l.45: 	f.a.b
-//│ ║        	^^^^^
+//│ ║  l.103: 	f.a.b
+//│ ║         	^^^^^
 //│ ╟── Type `123` does not contain member 'b'
 //│ ║  l.10: 	  val a = 123
 //│ ╙──      	          ^^^
@@ -54,7 +112,7 @@ f.a.b
 //│ where
 //│     
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'b' yielded 'undefined'
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'a')
 
 :sjs
 f.foo
@@ -63,10 +121,44 @@ f.foo
 //│ where
 //│     f⁰  <~  Foo()
 //│     f⁰  ~>  {a: ⋅a⁰}  {a: ⋅a¹}  {foo: ⋅foo⁰}
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Foo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:selRes -> selRes, tmp:block$res -> block$res2, tmp:selRes -> selRes1, tmp:selRes -> selRes2, tmp:block$res -> block$res3, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, f -> f, tmp:block$res -> block$res1)
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.9: 	class Foo with
+//│ ║       	      ^^^^^^^^
+//│ ║  l.10: 	  val a = 123
+//│ ╙──      	^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ return runtime.safeCall(Foo1.foo(f))
+//│ return runtime.safeCall(Foo.foo(f))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 123
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: Foo is not defined
+//│     at REPL20:1:37
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 
 fun id(x) = x
@@ -85,8 +177,40 @@ id(f).foo
 //│     f⁰  ->  x¹
 //│     app¹  <~  Foo()
 //│     app¹  ~>  {foo: ⋅foo¹}
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Foo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:selRes -> selRes, tmp:block$res -> block$res2, tmp:selRes -> selRes1, tmp:selRes -> selRes2, tmp:block$res -> block$res3, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:block$res -> block$res4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, member:id -> id, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res5, f -> f, tmp:block$res -> block$res1, tmp:block$res -> block$res6)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.9: 	class Foo with
+//│ ║       	      ^^^^^^^^
+//│ ║  l.10: 	  val a = 123
+//│ ╙──      	^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 123
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: Foo is not defined
+//│     at REPL26:1:37
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 
 let id(x) = x
@@ -109,8 +233,40 @@ id(f).foo
 //│     id¹  ~>  ((f⁰) -> app³)
 //│     app³  <~  Foo()
 //│     app³  ~>  {foo: ⋅foo²}
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Foo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:selRes -> selRes, tmp:block$res -> block$res2, tmp:selRes -> selRes1, tmp:selRes -> selRes2, tmp:block$res -> block$res3, tmp:runtime -> runtime, tmp:block$res -> block$res4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, member:id -> id, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res5, tmp:block$res -> block$res6, id -> id1, member:id -> id2, tmp:block$res -> block$res7, tmp:block$res -> block$res, tmp:tmp -> tmp, tmp:block$res -> block$res8, f -> f, tmp:block$res -> block$res1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.9: 	class Foo with
+//│ ║       	      ^^^^^^^^
+//│ ║  l.10: 	  val a = 123
+//│ ╙──      	^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 123
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: Foo is not defined
+//│     at REPL33:1:77
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 
 fun id(x) = x
@@ -132,10 +288,10 @@ id(0)
 :e
 id(f).foo
 //│ ╔══[COMPILATION ERROR] Unresolved selection:
-//│ ║  l.133: 	id(f).foo
+//│ ║  l.289: 	id(f).foo
 //│ ║         	^^^^^^^^^
 //│ ╟── Type `0` does not contain member 'foo'
-//│ ║  l.123: 	id(0)
+//│ ║  l.279: 	id(0)
 //│ ╙──       	   ^
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
 //│   id²{ ~> id² }(f⁰)‹app⁶›.foo‹?›{ ~> Foo⁰.foo⁰(id²(f⁰)‹app⁶›)‹app⁷› }
@@ -145,14 +301,20 @@ id(f).foo
 //│     f⁰  ->  x¹  x²  x³
 //│     app⁶  <~  0  Foo()
 //│     app⁶  ~>  {foo: ⋅foo³}
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.9: 	class Foo with
+//│ ║       	      ^^^^^^^^
+//│ ║  l.10: 	  val a = 123
+//│ ╙──      	^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 123
+//│ ═══[RUNTIME ERROR] ReferenceError: Foo is not defined
 
 
 :e
 fun test(g) = g.foo
 //│ ╔══[COMPILATION ERROR] Cannot resolve selection
-//│ ║  l.153: 	fun test(g) = g.foo
+//│ ║  l.315: 	fun test(g) = g.foo
 //│ ╙──       	              ^^^^^
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
 //│   fun test⁰(g⁰) ‹flow:test⁰› = g⁰.foo‹?›
@@ -170,7 +332,7 @@ test(f)
 //│     f⁰  ~>  {a: ⋅a⁰}  {a: ⋅a¹}  {foo: ⋅foo⁰}
 //│     f⁰  ->  x¹  x²  x³  g⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'foo' yielded 'undefined'
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'foo')
 
 
 fun test(g) = g.foo
@@ -186,8 +348,63 @@ test(f)
 //│     g¹  ~>  {foo: ⋅foo⁵}
 //│     flow:test¹  <~  ((g¹) -> ⋅foo⁵)
 //│     flow:test¹  ~>  ((f⁰) -> app¹⁰)
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Foo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:selRes -> selRes, tmp:block$res -> block$res2, tmp:block$res -> block$res11, tmp:selRes -> selRes1, tmp:selRes -> selRes2, member:test -> test, tmp:block$res -> block$res3, tmp:runtime -> runtime, tmp:block$res -> block$res4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, member:id -> id, tmp:block$res -> block$res12, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res13, member:test -> test1, tmp:block$res -> block$res5, tmp:block$res -> block$res6, id -> id1, tmp:block$res -> block$res14, member:id -> id2, tmp:block$res -> block$res7, tmp:block$res -> block$res, tmp:tmp -> tmp, tmp:block$res -> block$res8, member:id -> id3, tmp:block$res -> block$res9, tmp:block$res -> block$res10, f -> f, tmp:block$res -> block$res1)
+//│     curThis = S of N
+//│     bindings = HashMap(g -> g)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.9: 	class Foo with
+//│ ║       	      ^^^^^^^^
+//│ ║  l.10: 	  val a = 123
+//│ ╙──      	^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:Foo⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:selRes -> selRes, tmp:block$res -> block$res2, tmp:block$res -> block$res11, tmp:selRes -> selRes1, tmp:selRes -> selRes2, member:test -> test, tmp:block$res -> block$res3, tmp:runtime -> runtime, tmp:block$res -> block$res4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, member:id -> id, tmp:block$res -> block$res12, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res13, member:test -> test1, tmp:block$res -> block$res5, tmp:block$res -> block$res6, id -> id1, tmp:block$res -> block$res14, member:id -> id2, tmp:block$res -> block$res7, tmp:block$res -> block$res, tmp:tmp -> tmp, tmp:block$res -> block$res8, member:id -> id3, tmp:block$res -> block$res9, tmp:block$res -> block$res10, f -> f, tmp:block$res -> block$res1)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.9: 	class Foo with
+//│ ║       	      ^^^^^^^^
+//│ ║  l.10: 	  val a = 123
+//│ ╙──      	^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 123
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: Foo is not defined
+//│     at REPL51:1:172
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 module AA with
   module BB with
@@ -263,7 +480,7 @@ let foo =
 :re
 foo.test
 //│ ╔══[COMPILATION ERROR] Cannot access companion A from the context of this selection
-//│ ║  l.264: 	foo.test
+//│ ║  l.481: 	foo.test
 //│ ╙──       	^^^^^^^^
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
 //│   foo¹.test‹?›
@@ -302,7 +519,7 @@ let foo =
 :re
 foo.test
 //│ ╔══[COMPILATION ERROR] Cannot access companion A from the context of this selection
-//│ ║  l.303: 	foo.test
+//│ ║  l.520: 	foo.test
 //│ ╙──       	^^^^^^^^
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
 //│   foo².test‹?›
@@ -329,7 +546,18 @@ module CC with
 //│     self¹  <~  type CC
 //│     flow:x¹  <~  type Int
 //│     flow:getX¹  <~  ((type CC) -> flow:x¹)
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:CC for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 :fixme // TODO: handle lifted class defs: the JS is missing the `.class` access to get the static member `CC2.class.getX`
 CC(123).getX
@@ -337,8 +565,18 @@ CC(123).getX
 //│   CC¹(123)‹app¹³›.getX‹?›{ ~> CC¹.getX¹(CC¹(123)‹app¹³›)‹app¹⁴› }
 //│ where
 //│     
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'CC'
+//│ ║  l.563: 	CC(123).getX
+//│ ║         	^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.533: 	class CC(val x: Int)
+//│ ╙──       	      ^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'CC'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.533: 	class CC(val x: Int)
+//│ ╙──       	      ^^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] TypeError: CC2.getX is not a function
+//│ ═══[RUNTIME ERROR] ReferenceError: CC is not defined
 
 
 :breakme // TODO: warn when this happens (accidental infinite recursion)
@@ -357,7 +595,18 @@ module CC with
 //│     x⁷  ~>  {oops: ⋅oops⁰}
 //│     flow:oops⁰  <~  ((type CC) -> ⋅oops⁰)
 //│     flow:oops⁰  ~>  ((CC) -> ⋅oops⁰)
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:CC for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 :re
 new CC().oops
@@ -365,8 +614,46 @@ new CC().oops
 //│   new CC²().oops‹?›{ ~> CC².oops⁰(new CC²())‹app¹⁶› }
 //│ where
 //│     
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:CC⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:selRes -> selRes, tmp:block$res -> block$res2, tmp:selRes -> selRes1, tmp:tmp -> tmp1, tmp:selRes -> selRes2, tmp:block$res -> block$res16, tmp:block$res -> block$res3, tmp:runtime -> runtime, tmp:block$res -> block$res4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, member:id -> id, tmp:Term -> Term, tmp:Block -> Block, tmp:selRes -> selRes3, tmp:option -> option, tmp:selRes -> selRes4, tmp:tmp -> tmp2, tmp:block$res -> block$res17, tmp:block$res -> block$res5, foo -> foo, tmp:block$res -> block$res6, id -> id1, member:id -> id2, member:A -> A1, class:A -> A, tmp:block$res -> block$res7, module:A -> A, tmp:tmp -> tmp, tmp:block$res -> block$res18, tmp:block$res -> block$res8, member:id -> id3, tmp:selRes -> selRes5, tmp:block$res -> block$res19, foo -> foo1, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:A -> A3, tmp:tmp -> tmp3, class:A -> A2, tmp:block$res -> block$res11, module:A -> A2, member:test -> test, tmp:block$res -> block$res20, tmp:selRes -> selRes6, tmp:block$res -> block$res12, tmp:block$res -> block$res21, tmp:block$res -> block$res13, member:test -> test1, tmp:block$res -> block$res14, member:AA -> AA1, tmp:tmp -> tmp4, module:AA -> AA, tmp:block$res -> block$res22, tmp:block$res -> block$res, module:BB -> BB, class:CC -> CC, module:CC -> CC, class:AA -> AA, tmp:tmp -> tmp5, f -> f, tmp:block$res -> block$res23, tmp:block$res -> block$res1, class:BB -> BB, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'CC'
+//│ ║  l.612: 	new CC().oops
+//│ ║         	    ^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.583: 	class CC
+//│ ╙──       	      ^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:CC⁰
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:selRes -> selRes, tmp:block$res -> block$res2, tmp:selRes -> selRes1, tmp:tmp -> tmp1, tmp:selRes -> selRes2, tmp:block$res -> block$res16, tmp:block$res -> block$res3, tmp:runtime -> runtime, tmp:block$res -> block$res4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, member:id -> id, tmp:Term -> Term, tmp:Block -> Block, tmp:selRes -> selRes3, tmp:option -> option, tmp:selRes -> selRes4, tmp:tmp -> tmp2, tmp:block$res -> block$res17, tmp:block$res -> block$res5, foo -> foo, tmp:block$res -> block$res6, id -> id1, member:id -> id2, member:A -> A1, class:A -> A, tmp:block$res -> block$res7, module:A -> A, tmp:tmp -> tmp, tmp:block$res -> block$res18, tmp:block$res -> block$res8, member:id -> id3, tmp:selRes -> selRes5, tmp:block$res -> block$res19, foo -> foo1, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:A -> A3, tmp:tmp -> tmp3, class:A -> A2, tmp:block$res -> block$res11, module:A -> A2, member:test -> test, tmp:block$res -> block$res20, tmp:selRes -> selRes6, tmp:block$res -> block$res12, tmp:block$res -> block$res21, tmp:block$res -> block$res13, member:test -> test1, tmp:block$res -> block$res14, member:AA -> AA1, tmp:tmp -> tmp4, module:AA -> AA, tmp:block$res -> block$res22, tmp:block$res -> block$res, module:BB -> BB, class:CC -> CC, module:CC -> CC, class:AA -> AA, tmp:tmp -> tmp5, f -> f, tmp:block$res -> block$res23, tmp:block$res -> block$res1, class:BB -> BB, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'CC'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.583: 	class CC
+//│ ╙──       	      ^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
+//│ ═══[RUNTIME ERROR] ReferenceError: CC is not defined
 
 
 class CC with
@@ -384,15 +671,60 @@ module CC with
 //│     x⁸  <~  type CC
 //│     flow:okay⁰  <~  123
 //│     flow:okay¹  <~  ((type CC) -> flow:okay⁰)
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:CC for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 new CC().okay
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
 //│   new CC³().okay‹?›{ ~> new CC³().okay⁰ }
 //│ where
 //│     
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:CC¹
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:selRes -> selRes, tmp:block$res -> block$res2, tmp:selRes -> selRes1, tmp:tmp -> tmp1, tmp:selRes -> selRes2, tmp:block$res -> block$res16, tmp:block$res -> block$res3, tmp:runtime -> runtime, tmp:block$res -> block$res4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, member:id -> id, tmp:Term -> Term, tmp:Block -> Block, tmp:selRes -> selRes3, tmp:option -> option, tmp:selRes -> selRes4, tmp:tmp -> tmp6, tmp:tmp -> tmp2, tmp:block$res -> block$res24, tmp:block$res -> block$res17, tmp:block$res -> block$res5, foo -> foo, tmp:block$res -> block$res6, id -> id1, member:id -> id2, member:A -> A1, class:A -> A, tmp:block$res -> block$res7, module:A -> A, tmp:tmp -> tmp, tmp:block$res -> block$res18, tmp:block$res -> block$res8, member:id -> id3, tmp:selRes -> selRes5, tmp:block$res -> block$res19, foo -> foo1, tmp:block$res -> block$res9, tmp:block$res -> block$res10, member:A -> A3, tmp:tmp -> tmp3, class:A -> A2, tmp:block$res -> block$res11, module:A -> A2, member:test -> test, tmp:block$res -> block$res20, tmp:selRes -> selRes6, tmp:block$res -> block$res12, tmp:block$res -> block$res21, tmp:block$res -> block$res13, member:test -> test1, tmp:block$res -> block$res14, member:AA -> AA1, tmp:tmp -> tmp4, module:AA -> AA, tmp:block$res -> block$res22, tmp:block$res -> block$res, module:BB -> BB, class:CC -> CC, module:CC -> CC, class:AA -> AA, tmp:tmp -> tmp5, f -> f, tmp:block$res -> block$res23, tmp:block$res -> block$res1, class:BB -> BB, tmp:block$res -> block$res15)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'CC'
+//│ ║  l.687: 	new CC().okay
+//│ ║         	    ^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.659: 	class CC with
+//│ ║         	      ^^^^^^^
+//│ ║  l.660: 	  val okay = 123
+//│ ╙──       	^^^^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 123
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: CC is not defined
+//│     at REPL83:1:52
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 
 module Example with

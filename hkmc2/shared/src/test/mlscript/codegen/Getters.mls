@@ -67,51 +67,11 @@ module T with
   val b = this.t
   val c = p
   val d = this.p
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:T⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res, member:test -> test, member:t -> t, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:block$res -> block$res1, tmp:Term -> Term, tmp:Block -> Block, tmp:block$res -> block$res2, tmp:option -> option, member:main -> main, tmp:block$res -> block$res5, tmp:block$res -> block$res6)
-//│       bindings = HashMap(module:T -> T, class:T -> T)
-//│     curThis = S of S of class:T¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'T'
-//│ ║  l.63: 	module T with
-//│ ║        	^^^^^^^^^^^^^
-//│ ║  l.64: 	  fun t() = 1
-//│ ║        	^^^^^^^^^^^^^
-//│ ║  l.65: 	  fun p = 2
-//│ ║        	^^^^^^^^^^^
-//│ ║  l.66: 	  val a = t
-//│ ║        	^^^^^^^^^^^
-//│ ║  l.67: 	... (more lines omitted) ...
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.63: 	module T with
-//│ ║        	       ^^^^^^
-//│ ║  l.64: 	  fun t() = 1
-//│ ║        	^^^^^^^^^^^^^
-//│ ║  l.65: 	  fun p = 2
-//│ ║        	^^^^^^^^^^^
-//│ ║  l.66: 	  val a = t
-//│ ║        	^^^^^^^^^^^
-//│ ║  l.67: 	... (more lines omitted) ...
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let T1;
 //│ (class T {
 //│   static {
-//│     T = this
+//│     T1 = this
 //│   }
 //│   static {
 //│     T.a = T.t;
@@ -147,39 +107,11 @@ T.d
 :sjs
 module M with
   fun t = 0
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:M⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:block$res -> block$res8, tmp:block$res -> block$res3, tmp:block$res -> block$res9, tmp:block$res -> block$res4, tmp:block$res -> block$res10, member:test -> test, tmp:block$res -> block$res11, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res5, tmp:block$res -> block$res6, member:T -> T1, module:T -> T, tmp:block$res -> block$res, member:t -> t, tmp:block$res -> block$res1, tmp:block$res -> block$res2, member:main -> main, class:T -> T, tmp:block$res -> block$res7)
-//│       bindings = HashMap(class:M -> M, module:M -> M)
-//│     curThis = S of S of class:M¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ║  l.148: 	module M with
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.149: 	  fun t = 0
-//│ ║         	^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.148: 	module M with
-//│ ║         	       ^^^^^^
-//│ ║  l.149: 	  fun t = 0
-//│ ╙──       	^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let M1;
 //│ (class M {
 //│   static {
-//│     M = this
+//│     M1 = this
 //│   }
 //│   static get t() {
 //│     return 0;

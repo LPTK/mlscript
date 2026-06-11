@@ -8,52 +8,5 @@ fun foo() =
   pattern P = Int
   x => x is P
 //│ ═══[WARNING] Cannot yet lift class `P` as it is used as a first-class class.
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:P⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(member:lambda -> lambda, tmp:block$res -> block$res, member:lambda$ -> lambda$, member:foo -> foo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, pattern:P -> P, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res1)
-//│       curThis = S of N
-//│       bindings = HashMap()
-//│     curThis = S of S of pattern:P¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'P'
-//│ ║  l.8: 	  pattern P = Int
-//│ ║       	  ^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.8: 	  pattern P = Int
-//│ ╙──     	          ^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:P⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Left of Cfg:
-//│         escapeChars = true
-//│         useSuperscripts = false
-//│         includeZero = false
-//│         defaultName = "tmp"
-//│       curThis = S of S of globalThis:globalThis⁰
-//│       bindings = HashMap(member:lambda -> lambda, tmp:block$res -> block$res, member:lambda$ -> lambda$, member:foo -> foo, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, pattern:P -> P, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res1)
-//│     curThis = S of N
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'P'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.8: 	  pattern P = Int
-//│ ╙──     	          ^
 
 

@@ -18,59 +18,10 @@ fun foo(x, y) =
 //│ ╔══[WARNING] Objects are not yet lifted.
 //│ ║  l.12: 	  object M with
 //│ ╙──      	         ^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ║  l.12: 	  object M with
-//│ ║        	  ^^^^^^^^^^^^^
-//│ ║  l.13: 	    val test = 2
-//│ ║        	^^^^^^^^^^^^^^^^
-//│ ║  l.14: 	    fun foo() =
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.15: 	      set y = 2
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.16: 	... (more lines omitted) ...
-//│ ║        	^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.12: 	  object M with
-//│ ║        	         ^^^^^^
-//│ ║  l.13: 	    val test = 2
-//│ ║        	^^^^^^^^^^^^^^^^
-//│ ║  l.14: 	    fun foo() =
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.15: 	      set y = 2
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.16: 	... (more lines omitted) ...
-//│ ╙──      	^^^^^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.12: 	  object M with
-//│ ║        	         ^^^^^^
-//│ ║  l.13: 	    val test = 2
-//│ ║        	^^^^^^^^^^^^^^^^
-//│ ║  l.14: 	    fun foo() =
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.15: 	      set y = 2
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ║  l.16: 	... (more lines omitted) ...
-//│ ╙──      	^^^^^^^^^^^^^^^^^^
 
 :expect 14
 foo(10, 0)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] TypeError: Assignment to constant variable.
-//│     at new M (REPL10:1:196)
-//│     at <static_initializer> (REPL10:1:153)
-//│     at foo (REPL10:1:624)
-//│     at REPL13:1:38
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:316)
-//│ ═══[RUNTIME ERROR] Expected: '14', got: 'undefined'
+//│ = 14
 
 // * This works the same with classes.
 // * Note that we currently generate accessors, which is not ideal;
@@ -136,109 +87,16 @@ fun foo(y) =
       set y = 2
   O
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.134: 	  object O with
-//│ ╙──       	         ^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
-//│ ║  l.134: 	  object O with
-//│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.135: 	    fun foo() =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.136: 	      set y = 2
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.134: 	  object O with
-//│ ║         	         ^^^^^^
-//│ ║  l.135: 	    fun foo() =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.136: 	      set y = 2
-//│ ╙──       	^^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.134: 	  object O with
-//│ ║         	         ^^^^^^
-//│ ║  l.135: 	    fun foo() =
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.136: 	      set y = 2
-//│ ╙──       	^^^^^^^^^^^^^^^
+//│ ║  l.85: 	  object O with
+//│ ╙──      	         ^
 
 let o = foo(10)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:O for ClsLikeDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier.applyBlock$$anonfun$14(BlockSimplifier.scala:1167)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.go$1(BlockSimplifier.scala:1244)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.applyResult$$anonfun$6(BlockSimplifier.scala:1254)
-//│ 	at: scala.Option.fold(Option.scala:265)
+//│ o = O
 
 :re
 set o.x = 1
 o.x
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = o⁰
-//│     _2 = class hkmc2.semantics.VarSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Left of Cfg:
-//│       escapeChars = true
-//│       useSuperscripts = false
-//│       includeZero = false
-//│       defaultName = "tmp"
-//│     curThis = S of S of globalThis:globalThis⁰
-//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res4, cc -> cc, tmp:block$res -> block$res2, c0 -> c0, member:M -> M2, c1 -> c1, tmp:runtime -> runtime, member:foo -> foo1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:selRes -> selRes, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes1, tmp:Term -> Term, class:M -> M1, tmp:Block -> Block, tmp:inlinedVal -> inlinedVal, tmp:option -> option, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, tmp:tmp -> tmp, tmp:block$res -> block$res3, object:O -> O, tmp:block$res -> block$res, member:C -> C1, member:foo -> foo2, member:foo -> foo, class:C -> C, tmp:block$res -> block$res8, object:M -> M, class:Capture$foo -> Capture$foo, tmp:selRes -> selRes4, tmp:block$res -> block$res9, member:Capture$foo -> Capture$foo1)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'o'
-//│ ║  l.179: 	set o.x = 1
-//│ ║         	    ^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.164: 	let o = foo(10)
-//│ ╙──       	    ^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = o⁰
-//│     _2 = class hkmc2.semantics.VarSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Left of Cfg:
-//│       escapeChars = true
-//│       useSuperscripts = false
-//│       includeZero = false
-//│       defaultName = "tmp"
-//│     curThis = S of S of globalThis:globalThis⁰
-//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res4, cc -> cc, tmp:block$res -> block$res2, c0 -> c0, member:M -> M2, c1 -> c1, tmp:runtime -> runtime, member:foo -> foo1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:selRes -> selRes, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes1, tmp:Term -> Term, class:M -> M1, tmp:Block -> Block, tmp:inlinedVal -> inlinedVal, tmp:option -> option, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, tmp:tmp -> tmp, tmp:block$res -> block$res3, object:O -> O, tmp:block$res -> block$res, member:C -> C1, member:foo -> foo2, member:foo -> foo, class:C -> C, tmp:block$res -> block$res8, object:M -> M, class:Capture$foo -> Capture$foo, tmp:selRes -> selRes4, tmp:block$res -> block$res9, member:Capture$foo -> Capture$foo1)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'o'
-//│ ║  l.180: 	o.x
-//│ ║         	^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.164: 	let o = foo(10)
-//│ ╙──       	    ^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = o⁰
-//│     _2 = class hkmc2.semantics.VarSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Left of Cfg:
-//│       escapeChars = true
-//│       useSuperscripts = false
-//│       includeZero = false
-//│       defaultName = "tmp"
-//│     curThis = S of S of globalThis:globalThis⁰
-//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res4, cc -> cc, tmp:block$res -> block$res2, c0 -> c0, member:M -> M2, c1 -> c1, tmp:runtime -> runtime, member:foo -> foo1, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:selRes -> selRes, tmp:prettyPrint -> prettyPrint, tmp:selRes -> selRes1, tmp:Term -> Term, class:M -> M1, tmp:Block -> Block, tmp:inlinedVal -> inlinedVal, tmp:option -> option, tmp:tmp -> tmp1, tmp:tmp -> tmp2, foo$cap -> foo$cap, tmp:block$res -> block$res5, tmp:selRes -> selRes2, tmp:block$res -> block$res6, tmp:selRes -> selRes3, tmp:block$res -> block$res7, member:foo -> foo3, tmp:tmp -> tmp, tmp:block$res -> block$res3, object:O -> O, tmp:block$res -> block$res, member:C -> C1, member:foo -> foo2, member:foo -> foo, class:C -> C, tmp:block$res -> block$res8, object:M -> M, class:Capture$foo -> Capture$foo, tmp:selRes -> selRes4, tmp:block$res -> block$res9, member:Capture$foo -> Capture$foo1)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'o'
-//│ ║  l.180: 	o.x
-//│ ║         	^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.164: 	let o = foo(10)
-//│ ╙──       	    ^
-//│ ═══[RUNTIME ERROR] ReferenceError: o is not defined
+//│ ═══[RUNTIME ERROR] Error: Access to required field 'x' yielded 'undefined'
 
 :todo
 :w
@@ -251,7 +109,7 @@ fun foo(x, y) =
   fun foo3 = M.foo2()
   foo3
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.247: 	  object M with
+//│ ║  l.105: 	  object M with
 //│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let foo3;
@@ -259,56 +117,18 @@ fun foo(x, y) =
 //│   return M.foo2⁰()
 //│ };
 //│ define foo⁴ as fun foo⁵(x, y) {
-//│   define M¹ as object M² {
+//│   let M;
+//│   define M as object M¹ {
 //│     method foo2¹ = fun foo2⁰() { set y = 2; return +⁰(x, y) }
 //│   };
-//│   return foo3⁰(M²)
+//│   return foo3⁰(M¹)
 //│ };
 //│ end
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ║  l.247: 	  object M with
-//│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.248: 	    fun foo2() =
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ║  l.249: 	      set y = 2
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.250: 	      x + y
-//│ ║         	^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.247: 	  object M with
-//│ ║         	         ^^^^^^
-//│ ║  l.248: 	    fun foo2() =
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ║  l.249: 	      set y = 2
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.250: 	      x + y
-//│ ╙──       	^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.247: 	  object M with
-//│ ║         	         ^^^^^^
-//│ ║  l.248: 	    fun foo2() =
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ║  l.249: 	      set y = 2
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.250: 	      x + y
-//│ ╙──       	^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :expect 12
 foo(10, 0)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:M for ClsLikeDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier.applyBlock$$anonfun$14(BlockSimplifier.scala:1167)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.go$1(BlockSimplifier.scala:1244)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.applyResult$$anonfun$6(BlockSimplifier.scala:1254)
-//│ 	at: scala.Option.fold(Option.scala:265)
+//│ = 12
 
 :todo
 :w
@@ -319,7 +139,7 @@ data class A(x) with
     fun bar = M.getB()
     bar
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.316: 	  object M with
+//│ ║  l.136: 	  object M with
 //│ ╙──       	         ^
 
 :expect 2
@@ -376,20 +196,9 @@ fun f =
   foo
 f.a
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.372: 	  object A with
+//│ ║  l.192: 	  object A with
 //│ ╙──       	         ^
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:A for ClsLikeDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier.applyBlock$$anonfun$14(BlockSimplifier.scala:1167)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.go$1(BlockSimplifier.scala:1244)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.applyResult$$anonfun$6(BlockSimplifier.scala:1254)
-//│ 	at: scala.Option.fold(Option.scala:265)
+//│ = 2
 
 :sir
 module M with
@@ -399,18 +208,18 @@ module M with
 M.A().get
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp;
-//│ define M³ as class M⁴
-//│ module M⁵ {
+//│ define M² as class M³
+//│ module M⁴ {
 //│   val x⁰;
 //│   constructor {
 //│     let scrut, tmp1;
 //│     define A⁰ as class A² {
 //│       constructor A¹
 //│       method get⁰ = fun get¹ {
-//│         return +⁰(M⁵.this.x¹, M⁵.this.x¹)
+//│         return +⁰(M⁴.this.x¹, M⁴.this.x¹)
 //│       }
 //│     };
-//│     set scrut = M⁵.this.A¹();
+//│     set scrut = M⁴.this.A¹();
 //│     match scrut
 //│       A² =>
 //│         set tmp1 = 2;
@@ -422,7 +231,7 @@ M.A().get
 //│     end
 //│   }
 //│ };
-//│ set tmp = M⁵.A¹();
+//│ set tmp = M⁴.A¹();
 //│ return tmp.get¹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 4
@@ -466,69 +275,11 @@ fun foo(x) =
     val baz = x
   [x === O.bar, set x += 1 in [x === O.bar, x === O.baz], x === O.bar]
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.464: 	  object O with
+//│ ║  l.273: 	  object O with
 //│ ╙──       	         ^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
-//│ ║  l.464: 	  object O with
-//│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.465: 	    fun bar = x
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.466: 	    val baz = x
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.464: 	  object O with
-//│ ║         	         ^^^^^^
-//│ ║  l.465: 	    fun bar = x
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.466: 	    val baz = x
-//│ ╙──       	^^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.464: 	  object O with
-//│ ║         	         ^^^^^^
-//│ ║  l.465: 	    fun bar = x
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.466: 	    val baz = x
-//│ ╙──       	^^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.464: 	  object O with
-//│ ║         	         ^^^^^^
-//│ ║  l.465: 	    fun bar = x
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.466: 	    val baz = x
-//│ ╙──       	^^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.464: 	  object O with
-//│ ║         	         ^^^^^^
-//│ ║  l.465: 	    fun bar = x
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.466: 	    val baz = x
-//│ ╙──       	^^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'O'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.464: 	  object O with
-//│ ║         	         ^^^^^^
-//│ ║  l.465: 	    fun bar = x
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.466: 	    val baz = x
-//│ ╙──       	^^^^^^^^^^^^^^^
 
 foo(123)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] ReferenceError: O is not defined
-//│     at new O1 (REPL73:1:550)
-//│     at <static_initializer> (REPL73:1:507)
-//│     at foo (REPL73:1:815)
-//│     at REPL76:1:39
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
+//│ = [true, [true, false], true]
 
 module A with
   fun g = 1
@@ -573,37 +324,15 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.570: 	  object A with
+//│ ║  l.321: 	  object A with
 //│ ╙──       	         ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.571: 	    object B with
+//│ ║  l.322: 	    object B with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.572: 	      object C
+//│ ║  l.323: 	      object C
 //│ ╙──       	             ^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.570: 	  object A with
-//│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.571: 	    object B with
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.572: 	      object C
-//│ ║         	^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.570: 	  object A with
-//│ ║         	         ^^^^^^
-//│ ║  l.571: 	    object B with
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.572: 	      object C
-//│ ╙──       	^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.570: 	  object A with
-//│ ║         	         ^^^^^^
-//│ ║  l.571: 	    object B with
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.572: 	      object C
-//│ ╙──       	^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
+//│ = C
 
 :todo
 :w
@@ -614,34 +343,12 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.611: 	  module A with
+//│ ║  l.340: 	  module A with
 //│ ╙──       	         ^
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.613: 	      object C
+//│ ║  l.342: 	      object C
 //│ ╙──       	             ^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.611: 	  module A with
-//│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.612: 	    object B with
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.613: 	      object C
-//│ ║         	^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.611: 	  module A with
-//│ ║         	         ^^^^^^
-//│ ║  l.612: 	    object B with
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.613: 	      object C
-//│ ╙──       	^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.611: 	  module A with
-//│ ║         	         ^^^^^^
-//│ ║  l.612: 	    object B with
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.613: 	      object C
-//│ ╙──       	^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
+//│ = C
 
 :todo
 :w
@@ -652,31 +359,9 @@ fun f =
   A.B.C
 f
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.649: 	  module A with
+//│ ║  l.356: 	  module A with
 //│ ╙──       	         ^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.649: 	  module A with
-//│ ║         	  ^^^^^^^^^^^^^
-//│ ║  l.650: 	    module B with
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.651: 	      object C
-//│ ║         	^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.649: 	  module A with
-//│ ║         	         ^^^^^^
-//│ ║  l.650: 	    module B with
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.651: 	      object C
-//│ ╙──       	^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ╟── which references the symbol introduced here
-//│ ║  l.649: 	  module A with
-//│ ║         	         ^^^^^^
-//│ ║  l.650: 	    module B with
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.651: 	      object C
-//│ ╙──       	^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] ReferenceError: A is not defined
+//│ = C
 
 module X with
   object A

@@ -15,39 +15,11 @@ module M with
 :sjs
 module M with
   val name = "Student"
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:M⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:block$res -> block$res, member:M -> M1, module:M -> M, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, class:M -> M, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:block$res -> block$res1, tmp:Block -> Block, tmp:option -> option)
-//│       bindings = HashMap(module:M -> M2, class:M -> M2)
-//│     curThis = S of S of class:M¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ║  l.16: 	module M with
-//│ ║        	^^^^^^^^^^^^^
-//│ ║  l.17: 	  val name = "Student"
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.16: 	module M with
-//│ ║        	       ^^^^^^
-//│ ║  l.17: 	  val name = "Student"
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let M3;
 //│ (class M2 {
 //│   static {
-//│     M = this
+//│     M3 = this
 //│   }
 //│   static {
 //│     Object.defineProperty(M2, "name", { configurable: true, enumerable: true, writable: true, value: "Student" });

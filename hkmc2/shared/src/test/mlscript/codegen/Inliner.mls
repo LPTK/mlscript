@@ -286,87 +286,24 @@ foo(1)(2)(3)
 module A with
   fun f() = 1
   fun g() = A.f()
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:A⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Right of Scope:
-//│           parentOrCfg = Left of Cfg:
-//│             escapeChars = true
-//│             useSuperscripts = false
-//│             includeZero = false
-//│             defaultName = "tmp"
-//│           curThis = S of S of globalThis:globalThis⁰
-//│           bindings = HashMap(member:f -> f2, tmp:block$res -> block$res4, member:lam$ -> lam$, member:f -> f3, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, member:foo$worker -> foo$worker, tmp:tmp -> tmp, tmp:block$res -> block$res10, tmp:tmp -> tmp1, member:f -> f9, tmp:block$res -> block$res5, member:f -> f4, us -> us, v -> v, tmp:block$res -> block$res6, member:f -> f5, tmp:block$res -> block$res11, tmp:block$res -> block$res12, member:f -> f10, member:f1 -> f11, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:block$res -> block$res7, member:f -> f6, tmp:block$res -> block$res14, member:f -> f12, tmp:block$res -> block$res15, member:f -> f13, member:g -> g, c -> c, c -> c1, tmp:block$res -> block$res16, c -> c2, tmp:block$res -> block$res8, member:f -> f7, tmp:block$res -> block$res, tmp:block$res -> block$res1, member:f -> f, tmp:block$res -> block$res13, member:foo -> foo, tmp:block$res -> block$res2, member:f -> f1, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:block$res -> block$res9, tmp:block$res -> block$res3, member:f -> f8)
-//│         bindings = HashMap(class:A -> A, module:A -> A)
-//│       curThis = S of S of module:A¹
-//│       bindings = HashMap()
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.288: 	  fun g() = A.f()
-//│ ║         	            ^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.286: 	module A with
-//│ ║         	       ^^^^^^
-//│ ║  l.287: 	  fun f() = 1
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.288: 	  fun g() = A.f()
-//│ ╙──       	^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:A⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(member:f -> f2, tmp:block$res -> block$res4, member:lam$ -> lam$, member:f -> f3, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, member:foo$worker -> foo$worker, tmp:tmp -> tmp, tmp:block$res -> block$res10, tmp:tmp -> tmp1, member:f -> f9, tmp:block$res -> block$res5, member:f -> f4, us -> us, v -> v, tmp:block$res -> block$res6, member:f -> f5, tmp:block$res -> block$res11, tmp:block$res -> block$res12, member:f -> f10, member:f1 -> f11, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:tmp -> tmp4, tmp:block$res -> block$res7, member:f -> f6, tmp:block$res -> block$res14, member:f -> f12, tmp:block$res -> block$res15, member:f -> f13, member:g -> g, c -> c, c -> c1, tmp:block$res -> block$res16, c -> c2, tmp:block$res -> block$res8, member:f -> f7, tmp:block$res -> block$res, tmp:block$res -> block$res1, member:f -> f, tmp:block$res -> block$res13, member:foo -> foo, tmp:block$res -> block$res2, member:f -> f1, tmp:tmp -> tmp5, tmp:tmp -> tmp6, tmp:tmp -> tmp7, tmp:block$res -> block$res9, tmp:block$res -> block$res3, member:f -> f8)
-//│       bindings = HashMap(class:A -> A, module:A -> A)
-//│     curThis = S of S of class:A²
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'A'
-//│ ║  l.286: 	module A with
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.287: 	  fun f() = 1
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.288: 	  fun g() = A.f()
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.286: 	module A with
-//│ ║         	       ^^^^^^
-//│ ║  l.287: 	  fun f() = 1
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.288: 	  fun g() = A.f()
-//│ ╙──       	^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let A1;
 //│ (class A {
 //│   static {
-//│     A = this
+//│     A1 = this
 //│   }
 //│   static f() {
 //│     return 1
 //│   }
 //│   static g() {
-//│     return A.f()
+//│     return A1.f()
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"];
 //│ });
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ define A⁰ as class A³
-//│ module A¹ { method f²⁰ = fun f²¹() { return 1 } method g² = fun g³() { return A¹.f²¹() } };
+//│ define A⁰ as class A¹
+//│ module A² { method f²⁰ = fun f²¹() { return 1 } method g² = fun g³() { return A².f²¹() } };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -435,18 +372,25 @@ scope.locally of (
     () => A.foo
   test()
 )
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:A for ClsLikeDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:67)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier.applyBlock$$anonfun$14(BlockSimplifier.scala:1167)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.go$1(BlockSimplifier.scala:1244)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.applyResult$$anonfun$6(BlockSimplifier.scala:1254)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let A, B, lambda;
+//│ define A as class A³
+//│ module A⁴ {
+//│   method foo² = fun foo³ {
+//│     return B⁰.bar⁰()
+//│   }
+//│ };
+//│ define B as class B¹
+//│ module B⁰ {
+//│   method bar¹ = fun bar⁰() {
+//│     return A⁴.foo³
+//│   }
+//│ };
+//│ @private
+//│ define lambda as fun lambda⁰() { return A⁴.foo³ };
+//│ return lambda⁰
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun
 
 
 :expect [124, fun]
@@ -458,17 +402,7 @@ scope.locally of (
   () => A.foo
 let x = test()()
 x.1()
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:A for ClsLikeDefn is a free variable for this block
-//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
-//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
-//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:67)
-//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Copier.applyBlock$$anonfun$14(BlockSimplifier.scala:1167)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.go$1(BlockSimplifier.scala:1244)
-//│ 	at: hkmc2.codegen.BlockSimplifier$Inliner$InlinerReplacer$Transformer.applyResult$$anonfun$6(BlockSimplifier.scala:1254)
+//│ = [124, fun]
+//│ x = [124, fun]
 
 

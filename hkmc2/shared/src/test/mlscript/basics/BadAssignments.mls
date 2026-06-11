@@ -74,11 +74,23 @@ fun foo() =
 
 class X
 module X
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:X for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 :ge
 set X = 2
 //│ ╔══[COMPILATION ERROR] Cannot assign to overloaded class and module 'X'
-//│ ║  l.79: 	set X = 2
+//│ ║  l.91: 	set X = 2
 //│ ║        	    ^^^^^
 //│ ╟── Defined here:
 //│ ║  l.75: 	class X
@@ -90,7 +102,7 @@ set X = 2
 :ge
 set globalThis = 0
 //│ ╔══[COMPILATION ERROR] Cannot assign to symbol 'globalThis'
-//│ ║  l.91: 	set globalThis = 0
-//│ ╙──      	    ^^^^^^^^^^^^^^
+//│ ║  l.103: 	set globalThis = 0
+//│ ╙──       	    ^^^^^^^^^^^^^^
 
 

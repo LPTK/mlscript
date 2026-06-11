@@ -3,35 +3,11 @@
 
 :sjs
 module None
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:None⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
-//│       bindings = HashMap(module:None -> None, class:None -> None)
-//│     curThis = S of S of class:None¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'None'
-//│ ║  l.5: 	module None
-//│ ║       	^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.5: 	module None
-//│ ╙──     	       ^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let None1;
 //│ (class None {
 //│   static {
-//│     None = this
+//│     None1 = this
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "None"];
@@ -56,7 +32,7 @@ None()
 :e
 new None
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found reference of type None.
-//│ ║  l.57: 	new None
+//│ ║  l.33: 	new None
 //│ ║        	    ^^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = None
@@ -65,7 +41,7 @@ new None
 :e
 new! None
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type None.
-//│ ║  l.66: 	new! None
+//│ ║  l.42: 	new! None
 //│ ╙──      	     ^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ return globalThis.Object.freeze(new None1())
@@ -79,51 +55,11 @@ module M with
   class D()
   val x = 1
   val y = x + 1
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:M⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:block$res -> block$res, member:None -> None1, module:None -> None, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, class:None -> None, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res5)
-//│       bindings = HashMap(class:M -> M, module:M -> M, class:C -> C, class:D -> D)
-//│     curThis = S of S of class:M¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ║  l.77: 	module M with
-//│ ║        	^^^^^^^^^^^^^
-//│ ║  l.78: 	  class C
-//│ ║        	^^^^^^^^^
-//│ ║  l.79: 	  class D()
-//│ ║        	^^^^^^^^^^^
-//│ ║  l.80: 	  val x = 1
-//│ ║        	^^^^^^^^^^^
-//│ ║  l.81: 	... (more lines omitted) ...
-//│ ║        	^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.77: 	module M with
-//│ ║        	       ^^^^^^
-//│ ║  l.78: 	  class C
-//│ ║        	^^^^^^^^^
-//│ ║  l.79: 	  class D()
-//│ ║        	^^^^^^^^^^^
-//│ ║  l.80: 	  val x = 1
-//│ ║        	^^^^^^^^^^^
-//│ ║  l.81: 	... (more lines omitted) ...
-//│ ╙──      	^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let M1;
 //│ (class M {
 //│   static {
-//│     M = this
+//│     M1 = this
 //│   }
 //│   static {
 //│     let tmp;
@@ -172,7 +108,7 @@ M.y
 :re
 M.oops
 //│ ╔══[COMPILATION ERROR] Module 'M' does not contain member 'oops'
-//│ ║  l.173: 	M.oops
+//│ ║  l.109: 	M.oops
 //│ ╙──       	 ^^^^^
 //│ ═══[RUNTIME ERROR] Error: Access to required field 'oops' yielded 'undefined'
 
@@ -181,69 +117,14 @@ M.oops
 :sjs
 module M with
   val m: module M = M
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:M²
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(member:M -> M1, module:M -> M, class:C -> C, class:D -> D, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, class:M -> M, tmp:block$res -> block$res6, tmp:block$res -> block$res7, tmp:block$res -> block$res8, tmp:block$res -> block$res9, tmp:block$res -> block$res10, tmp:block$res -> block$res11, tmp:block$res -> block$res, member:None -> None1, tmp:selRes -> selRes, module:None -> None, tmp:block$res -> block$res12, class:None -> None, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res5)
-//│       bindings = HashMap(class:M -> M2, module:M -> M2)
-//│     curThis = S of S of module:M³
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ║  l.183: 	  val m: module M = M
-//│ ║         	                    ^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.182: 	module M with
-//│ ║         	       ^^^^^^
-//│ ║  l.183: 	  val m: module M = M
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:M²
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(member:M -> M1, module:M -> M, class:C -> C, class:D -> D, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, class:M -> M, tmp:block$res -> block$res6, tmp:block$res -> block$res7, tmp:block$res -> block$res8, tmp:block$res -> block$res9, tmp:block$res -> block$res10, tmp:block$res -> block$res11, tmp:block$res -> block$res, member:None -> None1, tmp:selRes -> selRes, module:None -> None, tmp:block$res -> block$res12, class:None -> None, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, tmp:block$res -> block$res4, tmp:block$res -> block$res5)
-//│       bindings = HashMap(class:M -> M2, module:M -> M2)
-//│     curThis = S of S of class:M⁴
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ║  l.182: 	module M with
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.183: 	  val m: module M = M
-//│ ║         	^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.182: 	module M with
-//│ ║         	       ^^^^^^
-//│ ║  l.183: 	  val m: module M = M
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let M3;
 //│ (class M2 {
 //│   static {
-//│     M = this
+//│     M3 = this
 //│   }
 //│   static {
-//│     M2.m = M;
+//│     M2.m = M3;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"];
@@ -268,51 +149,11 @@ module AA with
   module BB with
     val y = 2
     [x, y]
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:AA⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(member:M -> M1, class:M -> M4, module:M -> M, tmp:block$res -> block$res15, class:C -> C, class:D -> D, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, class:M -> M, tmp:block$res -> block$res6, tmp:block$res -> block$res7, tmp:block$res -> block$res8, tmp:block$res -> block$res9, tmp:block$res -> block$res10, tmp:block$res -> block$res11, tmp:block$res -> block$res, member:None -> None1, tmp:selRes -> selRes, module:None -> None, tmp:block$res -> block$res12, member:M -> M3, class:None -> None, module:M -> M2, tmp:block$res -> block$res1, tmp:block$res -> block$res2, tmp:block$res -> block$res3, class:M -> M2, tmp:block$res -> block$res4, tmp:block$res -> block$res13, tmp:block$res -> block$res5, tmp:block$res -> block$res14, member:M -> M5, module:M -> M4)
-//│       bindings = HashMap(class:AA -> AA, class:BB -> BB, module:AA -> AA, module:BB -> BB)
-//│     curThis = S of S of class:AA¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'AA'
-//│ ║  l.266: 	module AA with
-//│ ║         	^^^^^^^^^^^^^^
-//│ ║  l.267: 	  val x = 1
-//│ ║         	^^^^^^^^^^^
-//│ ║  l.268: 	  module BB with
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ║  l.269: 	    val y = 2
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.270: 	... (more lines omitted) ...
-//│ ║         	^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.266: 	module AA with
-//│ ║         	       ^^^^^^^
-//│ ║  l.267: 	  val x = 1
-//│ ║         	^^^^^^^^^^^
-//│ ║  l.268: 	  module BB with
-//│ ║         	^^^^^^^^^^^^^^^^
-//│ ║  l.269: 	    val y = 2
-//│ ║         	^^^^^^^^^^^^^
-//│ ║  l.270: 	... (more lines omitted) ...
-//│ ╙──       	^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let AA1;
 //│ (class AA {
 //│   static {
-//│     AA = this
+//│     AA1 = this
 //│   }
 //│   static {
 //│     AA.x = 1;

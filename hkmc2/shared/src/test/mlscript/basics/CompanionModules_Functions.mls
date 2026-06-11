@@ -14,6 +14,7 @@ module foo with
 //│ ║       	^^^^^^^^^^^^^^^
 //│ ║  l.8: 	  val zero = foo(0)
 //│ ╙──     	^^^^^^^^^^^^^^^^^^^
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:foo for FunDefn is a free variable for this block
 
 foo(123)
 //│ = 124
@@ -21,6 +22,14 @@ foo(123)
 :fixme
 :noInline
 foo(123)
-//│ ═══[RUNTIME ERROR] TypeError: Class constructor foo cannot be invoked without 'new'
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'foo'
+//│ ║  l.24: 	foo(123)
+//│ ║        	^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.7: 	module foo with
+//│ ║       	       ^^^^^^^^
+//│ ║  l.8: 	  val zero = foo(0)
+//│ ╙──     	^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] ReferenceError: foo is not defined
 
 

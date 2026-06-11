@@ -4,69 +4,14 @@
 :sjs
 module Foo with
   val self: module Foo = Foo
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Foo⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
-//│       bindings = HashMap(class:Foo -> Foo, module:Foo -> Foo)
-//│     curThis = S of S of module:Foo¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
-//│ ║  l.6: 	  val self: module Foo = Foo
-//│ ║       	                         ^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.5: 	module Foo with
-//│ ║       	       ^^^^^^^^
-//│ ║  l.6: 	  val self: module Foo = Foo
-//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Foo⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term)
-//│       bindings = HashMap(class:Foo -> Foo, module:Foo -> Foo)
-//│     curThis = S of S of class:Foo²
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
-//│ ║  l.5: 	module Foo with
-//│ ║       	^^^^^^^^^^^^^^^
-//│ ║  l.6: 	  val self: module Foo = Foo
-//│ ║       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.5: 	module Foo with
-//│ ║       	       ^^^^^^^^
-//│ ║  l.6: 	  val self: module Foo = Foo
-//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Foo1;
 //│ (class Foo {
 //│   static {
-//│     Foo = this
+//│     Foo1 = this
 //│   }
 //│   static {
-//│     Foo.self = Foo;
+//│     Foo.self = Foo1;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"];
@@ -88,7 +33,7 @@ Foo.self
 module Foo with
   val self = this
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type Foo.
-//│ ║  l.89: 	  val self = this
+//│ ║  l.34: 	  val self = this
 //│ ║        	             ^^^^
 //│ ╙── Value must be marked as returning a 'module' in order to return a module.
 
@@ -112,73 +57,16 @@ module Foo with
 :sjs
 object Foo with
   val self = id(Foo)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Foo³
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Left of Cfg:
-//│           escapeChars = true
-//│           useSuperscripts = false
-//│           includeZero = false
-//│           defaultName = "tmp"
-//│         curThis = S of S of globalThis:globalThis⁰
-//│         bindings = HashMap(class:Foo -> Foo2, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:Foo -> Foo5, module:Foo -> Foo4, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, class:Foo -> Foo4, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res5, tmp:block$res -> block$res6, member:Foo -> Foo7, object:Foo -> Foo6, tmp:block$res -> block$res7, tmp:block$res -> block$res8, member:Foo -> Foo9, module:Foo -> Foo8, tmp:block$res -> block$res, member:Foo -> Foo1, module:Foo -> Foo, class:Foo -> Foo8, tmp:block$res -> block$res9, class:Foo -> Foo, tmp:block$res -> block$res1, tmp:block$res -> block$res2, member:Foo -> Foo3, module:Foo -> Foo2)
-//│       bindings = HashMap(object:Foo -> Foo10)
-//│     curThis = S of S of object:Foo⁴
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
-//│ ║  l.113: 	object Foo with
-//│ ║         	^^^^^^^^^^^^^^^
-//│ ║  l.114: 	  val self = id(Foo)
-//│ ║         	^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.113: 	object Foo with
-//│ ║         	       ^^^^^^^^
-//│ ║  l.114: 	  val self = id(Foo)
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Foo³
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Right of Scope:
-//│           parentOrCfg = Left of Cfg:
-//│             escapeChars = true
-//│             useSuperscripts = false
-//│             includeZero = false
-//│             defaultName = "tmp"
-//│           curThis = S of S of globalThis:globalThis⁰
-//│           bindings = HashMap(class:Foo -> Foo2, tmp:block$res -> block$res3, tmp:block$res -> block$res4, member:Foo -> Foo5, module:Foo -> Foo4, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, class:Foo -> Foo4, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res5, tmp:block$res -> block$res6, member:Foo -> Foo7, object:Foo -> Foo6, tmp:block$res -> block$res7, tmp:block$res -> block$res8, member:Foo -> Foo9, module:Foo -> Foo8, tmp:block$res -> block$res, member:Foo -> Foo1, module:Foo -> Foo, class:Foo -> Foo8, tmp:block$res -> block$res9, class:Foo -> Foo, tmp:block$res -> block$res1, tmp:block$res -> block$res2, member:Foo -> Foo3, module:Foo -> Foo2)
-//│         bindings = HashMap(object:Foo -> Foo10)
-//│       curThis = S of S of object:Foo⁴
-//│       bindings = HashMap()
-//│     bindings = HashMap(tmp:tmp -> tmp)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Foo'
-//│ ║  l.114: 	  val self = id(Foo)
-//│ ║         	                ^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.113: 	object Foo with
-//│ ║         	       ^^^^^^^^
-//│ ║  l.114: 	  val self = id(Foo)
-//│ ╙──       	^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Foo11;
 //│ (class Foo10 {
 //│   static {
 //│     new this
 //│   }
 //│   constructor() {
-//│     Foo = this;
+//│     Foo11 = this;
 //│     let tmp;
-//│     tmp = Predef.id(Foo);
+//│     tmp = Predef.id(Foo11);
 //│     this.self = tmp;
 //│     Object.defineProperty(this, "class", {
 //│       value: Foo10

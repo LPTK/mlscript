@@ -5,6 +5,18 @@ class ClsMod with
   val whoami = "class"
 module ClsMod with
   val whoami = "module"
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:ClsMod for ClsLikeDefn is a free variable for this block
+//│ 	at: scala.runtime.Scala3RunTime$.assertFailed(Scala3RunTime.scala:10)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyClsLikeDefn(SymbolRefresher.scala:92)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyDefn(BlockTraverser.scala:117)
+//│ 	at: hkmc2.codegen.BlockTraverser.applyBlock(BlockTraverser.scala:53)
+//│ 	at: hkmc2.codegen.SymbolRefresherWalker.applyBlock(SymbolRefresher.scala:72)
+//│ 	at: hkmc2.codegen.SymbolRefresherInternal.apply(SymbolRefresher.scala:152)
+//│ 	at: hkmc2.codegen.Lowering.program(Lowering.scala:1495)
+//│ 	at: hkmc2.JSBackendDiffMaker.processTerm(JSBackendDiffMaker.scala:156)
+//│ 	at: hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:36)
+//│ 	at: hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:433)
 
 type TypMod = Int
 module TypMod with
@@ -15,13 +27,14 @@ fun TrmMod = 42
 module TrmMod with
   val whoami = "module"
 //│ ╔══[COMPILATION ERROR] Not yet supported: overloading of function 'TrmMod'
-//│ ║  l.14: 	fun TrmMod = 42
+//│ ║  l.26: 	fun TrmMod = 42
 //│ ║        	^^^^^^^^^^^^^^^
 //│ ╟── with module of the same name
-//│ ║  l.15: 	module TrmMod with
+//│ ║  l.27: 	module TrmMod with
 //│ ║        	^^^^^^^^^^^^^^^^^^
-//│ ║  l.16: 	  val whoami = "module"
+//│ ║  l.28: 	  val whoami = "module"
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
+//│ /!!!\ Uncaught error: java.lang.AssertionError: assertion failed: BlockMemberSymbol member:TrmMod for FunDefn is a free variable for this block
 
 fun f: ClsMod = 42
 
@@ -36,16 +49,75 @@ f
 //│ = 42
 
 fun f: module ClsMod = ClsMod
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:ClsMod¹
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Right of Scope:
+//│       parentOrCfg = Left of Cfg:
+//│         escapeChars = true
+//│         useSuperscripts = false
+//│         includeZero = false
+//│         defaultName = "tmp"
+//│       curThis = S of S of globalThis:globalThis⁰
+//│       bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:f -> f, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:TypMod -> TypMod1, member:f -> f1, module:TypMod -> TypMod, tmp:block$res -> block$res4, class:TypMod -> TypMod)
+//│     curThis = S of N
+//│     bindings = HashMap()
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'ClsMod'
+//│ ║  l.51: 	fun f: module ClsMod = ClsMod
+//│ ║        	                       ^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.4: 	class ClsMod with
+//│ ║       	      ^^^^^^^^^^^
+//│ ║  l.5: 	  val whoami = "class"
+//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^
 
 :rt
 f
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
-//│   res = Resolved{sym=term:f²,typ=module:ClsMod¹}:
+//│   res = Resolved{sym=term:f²,typ=module:ClsMod²}:
 //│     t = Ref{sym=member:f³} of member:f³
 //│     sym = term:f²
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:ClsMod¹
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res5, tmp:block$res -> block$res, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:f -> f, tmp:Block -> Block, tmp:option -> option, tmp:block$res -> block$res2, tmp:block$res -> block$res3, member:TypMod -> TypMod1, member:f -> f1, module:TypMod -> TypMod, tmp:block$res -> block$res4, class:TypMod -> TypMod)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'ClsMod'
+//│ ║  l.51: 	fun f: module ClsMod = ClsMod
+//│ ║        	                       ^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.4: 	class ClsMod with
+//│ ║       	      ^^^^^^^^^^^
+//│ ║  l.5: 	  val whoami = "class"
+//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = class ClsMod { whoami: "module" }
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: ClsMod is not defined
+//│     at REPL22:1:7
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 fun f: TypMod = 42
 
@@ -74,8 +146,8 @@ f
 :e
 fun f: TrmMod = 42
 //│ ╔══[COMPILATION ERROR] Expected a non-module type; found reference of type TrmMod denoting module 'TrmMod'.
-//│ ║  l.75: 	fun f: TrmMod = 42
-//│ ║        	       ^^^^^^
+//│ ║  l.147: 	fun f: TrmMod = 42
+//│ ║         	       ^^^^^^
 //│ ╙── Function must be marked as returning a 'module' in order to have a module return type.
 
 :sjs
@@ -91,15 +163,60 @@ f
 :sjs
 :fixme
 fun f: module TrmMod = TrmMod
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'TrmMod'
+//│ ║  l.26: 	fun TrmMod = 42
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ║  l.27: 	module TrmMod with
+//│ ║        	^^^^^^^^^^^^^^^^^^
+//│ ║  l.28: 	  val whoami = "module"
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.27: 	module TrmMod with
+//│ ║        	       ^^^^^^^^^^^
+//│ ║  l.28: 	  val whoami = "module"
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f6; f6 = function f() { return TrmMod1.class };
+//│ let f6; f6 = function f() { return TrmMod.class };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected lack of error to fix
 
 fun assertModule(module m: ClsMod): module ClsMod = m
 
 assertModule(ClsMod).whoami
-//│ = "module"
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:ClsMod¹
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res11, tmp:block$res -> block$res12, member:f -> f6, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:f -> f, tmp:block$res -> block$res13, tmp:Block -> Block, tmp:option -> option, member:assertModule -> assertModule, tmp:block$res -> block$res2, tmp:block$res -> block$res14, tmp:block$res -> block$res3, member:f -> f1, tmp:block$res -> block$res4, tmp:block$res -> block$res15, tmp:block$res -> block$res5, member:f -> f2, tmp:block$res -> block$res6, tmp:block$res -> block$res, tmp:block$res -> block$res7, member:f -> f3, tmp:block$res -> block$res8, tmp:block$res -> block$res9, member:f -> f4, member:TypMod -> TypMod1, module:TypMod -> TypMod, tmp:block$res -> block$res10, member:f -> f5, class:TypMod -> TypMod)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'ClsMod'
+//│ ║  l.184: 	assertModule(ClsMod).whoami
+//│ ║         	             ^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.4: 	class ClsMod with
+//│ ║       	      ^^^^^^^^^^^
+//│ ║  l.5: 	  val whoami = "class"
+//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: ClsMod is not defined
+//│     at REPL52:1:7
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 assertModule(TypMod).whoami
 //│ = "module"
@@ -107,7 +224,15 @@ assertModule(TypMod).whoami
 :fixme
 :noInline
 print(assertModule(TrmMod).whoami)
-//│ ═══[RUNTIME ERROR] TypeError: Class constructor TrmMod cannot be invoked without 'new'
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'TrmMod'
+//│ ║  l.226: 	print(assertModule(TrmMod).whoami)
+//│ ║         	                   ^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.27: 	module TrmMod with
+//│ ║        	       ^^^^^^^^^^^
+//│ ║  l.28: 	  val whoami = "module"
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] ReferenceError: TrmMod is not defined
 
 // TODO: handle
 print(assertModule(TrmMod).whoami)
@@ -119,7 +244,63 @@ fun assertNonModule(m) = m
 // FIXME: should not resolve to module's `.whoami`, hence should be an error
 :breakme
 assertNonModule(ClsMod).whoami
-//│ = "module"
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:ClsMod¹
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res19, tmp:block$res -> block$res11, tmp:selRes -> selRes, tmp:block$res -> block$res12, member:f -> f6, tmp:block$res -> block$res20, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:f -> f, tmp:block$res -> block$res13, tmp:Block -> Block, tmp:option -> option, member:assertModule -> assertModule, tmp:block$res -> block$res2, tmp:block$res -> block$res14, tmp:block$res -> block$res3, member:f -> f1, tmp:block$res -> block$res4, tmp:block$res -> block$res15, tmp:block$res -> block$res5, member:f -> f2, tmp:block$res -> block$res16, tmp:block$res -> block$res6, tmp:block$res -> block$res, tmp:block$res -> block$res7, tmp:tmp -> tmp, member:f -> f3, tmp:tmp -> tmp1, tmp:block$res -> block$res17, tmp:block$res -> block$res8, tmp:block$res -> block$res9, member:f -> f4, member:TypMod -> TypMod1, module:TypMod -> TypMod, tmp:block$res -> block$res10, tmp:block$res -> block$res18, member:f -> f5, member:assertNonModule -> assertNonModule, class:TypMod -> TypMod)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'ClsMod'
+//│ ║  l.246: 	assertNonModule(ClsMod).whoami
+//│ ║         	                ^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.4: 	class ClsMod with
+//│ ║       	      ^^^^^^^^^^^
+//│ ║  l.5: 	  val whoami = "class"
+//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
+//│ FAILURE INFO: Tuple2:
+//│   _1 = Tuple2:
+//│     _1 = member:ClsMod¹
+//│     _2 = class hkmc2.semantics.BlockMemberSymbol
+//│   _2 = Scope:
+//│     parentOrCfg = Left of Cfg:
+//│       escapeChars = true
+//│       useSuperscripts = false
+//│       includeZero = false
+//│       defaultName = "tmp"
+//│     curThis = S of S of globalThis:globalThis⁰
+//│     bindings = HashMap(tmp:block$res -> block$res1, tmp:block$res -> block$res19, tmp:block$res -> block$res11, tmp:selRes -> selRes, tmp:block$res -> block$res12, member:f -> f6, tmp:block$res -> block$res20, tmp:runtime -> runtime, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, member:f -> f, tmp:block$res -> block$res13, tmp:Block -> Block, tmp:option -> option, member:assertModule -> assertModule, tmp:block$res -> block$res2, tmp:block$res -> block$res14, tmp:block$res -> block$res3, member:f -> f1, tmp:block$res -> block$res4, tmp:block$res -> block$res15, tmp:block$res -> block$res5, member:f -> f2, tmp:block$res -> block$res16, tmp:block$res -> block$res6, tmp:block$res -> block$res, tmp:block$res -> block$res7, tmp:tmp -> tmp, member:f -> f3, tmp:tmp -> tmp1, tmp:block$res -> block$res17, tmp:block$res -> block$res8, tmp:block$res -> block$res9, member:f -> f4, member:TypMod -> TypMod1, module:TypMod -> TypMod, tmp:block$res -> block$res10, tmp:block$res -> block$res18, member:f -> f5, member:assertNonModule -> assertNonModule, class:TypMod -> TypMod)
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'ClsMod'
+//│ ║  l.246: 	assertNonModule(ClsMod).whoami
+//│ ║         	                ^^^^^^
+//│ ╟── which references the symbol introduced here
+//│ ║  l.4: 	class ClsMod with
+//│ ║       	      ^^^^^^^^^^^
+//│ ║  l.5: 	  val whoami = "class"
+//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
+//│ ═══[RUNTIME ERROR] ReferenceError: ClsMod is not defined
+//│     at REPL67:1:18
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
 
 // FIXME: should not resolve to module's `.whoami`, hence should be an error
 :breakme
@@ -140,10 +321,10 @@ module Foo
 :e
 fun f(x: Foo): Foo = x
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.141: 	fun f(x: Foo): Foo = x
+//│ ║  l.322: 	fun f(x: Foo): Foo = x
 //│ ╙──       	         ^^^
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.141: 	fun f(x: Foo): Foo = x
+//│ ║  l.322: 	fun f(x: Foo): Foo = x
 //│ ╙──       	               ^^^
 
 fun f(x: Foo[Int]): Foo[Int] = x
@@ -153,10 +334,10 @@ fun f(module x: Foo): module Foo = x
 :e
 fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.154: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.335: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.154: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.335: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                                  ^^^^^^^^
 
 

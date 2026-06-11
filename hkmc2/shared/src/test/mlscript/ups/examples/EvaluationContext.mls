@@ -85,69 +85,6 @@ fun (<~>) alphaEquivalent(lhs, rhs) =
       equal
     else false
   go(lhs, rhs)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Var'⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Right of Scope:
-//│           parentOrCfg = Right of Scope:
-//│             parentOrCfg = Left of Cfg:
-//│               escapeChars = true
-//│               useSuperscripts = false
-//│               includeZero = false
-//│               defaultName = "tmp"
-//│             curThis = S of S of globalThis:globalThis⁰
-//│             bindings = HashMap(tmp:block$res -> block$res7, class:Abs -> Abs, tmp:tmp -> tmp1, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:block$res -> block$res5, tmp:runtime -> runtime, class:App -> App, tmp:tmp -> tmp4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res6, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, member:alphaEquivalent -> alphaEquivalent, pattern:Var' -> Var$_, member:Option -> Option, member:MutMap -> MutMap, class:Var -> Var, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:block$res -> block$res2, member:App -> App1, member:Abs -> Abs1, member:Var -> Var1, member:Term -> Term2, class:Term -> Term1, tmp:block$res -> block$res3, tmp:tmp -> tmp, tmp:block$res -> block$res4)
-//│           curThis = S of N
-//│           bindings = HashMap(lhs -> lhs, rhs -> rhs)
-//│         bindings = HashMap(varMap -> varMap, member:go -> go)
-//│       curThis = S of N
-//│       bindings = HashMap(lhs -> lhs1, rhs -> rhs1)
-//│     bindings = HashMap(tmp:arg$Var$0$ -> arg$Var$0$, tmp:unapplyResult -> unapplyResult)
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Var''
-//│ ║  l.76: 	    Var(n) and rhs is Var' as n' then n === n'
-//│ ║        	                      ^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.74: 	  pattern Var' = Var(n) => varMap |> MutMap.get(n) |. Option.getOrElse(n)
-//│ ╙──      	          ^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: lookup_! (Scope.scala:135)
-//│ FAILURE INFO: Tuple2:
-//│   _1 = Tuple2:
-//│     _1 = member:Var'⁰
-//│     _2 = class hkmc2.semantics.BlockMemberSymbol
-//│   _2 = Scope:
-//│     parentOrCfg = Right of Scope:
-//│       parentOrCfg = Right of Scope:
-//│         parentOrCfg = Right of Scope:
-//│           parentOrCfg = Left of Cfg:
-//│             escapeChars = true
-//│             useSuperscripts = false
-//│             includeZero = false
-//│             defaultName = "tmp"
-//│           curThis = S of S of globalThis:globalThis⁰
-//│           bindings = HashMap(tmp:block$res -> block$res7, class:Abs -> Abs, tmp:tmp -> tmp1, tmp:tmp -> tmp2, tmp:tmp -> tmp3, tmp:block$res -> block$res5, tmp:runtime -> runtime, class:App -> App, tmp:tmp -> tmp4, tmp:definitionMetadata -> definitionMetadata, member:Predef -> Predef, tmp:block$res -> block$res6, tmp:prettyPrint -> prettyPrint, tmp:Term -> Term, tmp:Block -> Block, tmp:option -> option, member:alphaEquivalent -> alphaEquivalent, pattern:Var' -> Var$_, member:Option -> Option, member:MutMap -> MutMap, class:Var -> Var, tmp:block$res -> block$res, tmp:block$res -> block$res1, tmp:block$res -> block$res2, member:App -> App1, member:Abs -> Abs1, member:Var -> Var1, member:Term -> Term2, class:Term -> Term1, tmp:block$res -> block$res3, tmp:tmp -> tmp, tmp:block$res -> block$res4)
-//│         curThis = S of N
-//│         bindings = HashMap(lhs -> lhs, rhs -> rhs)
-//│       bindings = HashMap(varMap -> varMap, member:go -> go)
-//│     curThis = S of S of pattern:Var'¹
-//│     bindings = HashMap()
-//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'Var''
-//│ ║  l.74: 	  pattern Var' = Var(n) => varMap |> MutMap.get(n) |. Option.getOrElse(n)
-//│ ║        	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── which references the symbol introduced here
-//│ ║  l.74: 	  pattern Var' = Var(n) => varMap |> MutMap.get(n) |. Option.getOrElse(n)
-//│ ╙──      	          ^^^^
-//│ > let alphaEquivalent;try { alphaEquivalent = function alphaEquivalent(lhs, rhs) {   runtime.checkArgs("alphaEquivalent", 2, true, arguments.length);   let go, varMap;   go = function go(lhs1, rhs1) {     runtime.checkArgs("go", 2, true, arguments.length);     if (lhs1 instanceof Var1.class) {       let arg$Var$0$, unapplyResult;       arg$Var$0$ = lhs1.name;       unapplyResult = runtime.safeCall(Var'.unapply(rhs1));       if (unapplyResult instanceof runtime.MatchSuccess.class) {         let output;         output = unapplyResult.output;         unapplyResult.bindings;         return arg$Var$0$ === output       }       return false;     } else if (lhs1 instanceof App1.class) {       let arg$App$0$, arg$App$1$;       arg$App$0$ = lhs1.lhs;       arg$App$1$ = lhs1.rhs;       if (arg$App$1$ instanceof App1.class) {         let scrut, arg$App$0$1, arg$App$1$1;         arg$App$0$1 = arg$App$1$.lhs;         arg$App$1$1 = arg$App$1$.rhs;         scrut = runtime.checkCall(go(arg$App$0$, arg$App$0$1));         if (scrut === true) {           let scrut1;           scrut1 = runtime.checkCall(go(arg$App$1$, arg$App$1$1));           if (scrut1 === true) {             return true           }           return false;         }         return false;       }       return false;     } else if (lhs1 instanceof Abs1.class) {       let arg$Abs$0$, arg$Abs$1$;       arg$Abs$0$ = lhs1.lhs;       arg$Abs$1$ = lhs1.rhs;       if (arg$Abs$0$ instanceof Var1.class) {         let arg$Var$0$;         arg$Var$0$ = arg$Abs$0$.name;         if (rhs1 instanceof Abs1.class) {           let arg$Abs$0$1, arg$Abs$1$1;           arg$Abs$0$1 = rhs1.lhs;           arg$Abs$1$1 = rhs1.rhs;           if (arg$Abs$0$1 instanceof Var1.class) {             let prev, equal, arg$Var$0$1, tmp5, tmp6, tmp7;             arg$Var$0$1 = arg$Abs$0$1.name;             tmp5 = runtime.checkCall(MutMap.get(arg$Var$0$));             prev = runtime.checkCall(Predef.pipeInto(varMap, tmp5));             tmp6 = runtime.checkCall(MutMap.insert(arg$Var$0$1, arg$Var$0$));             runtime.checkCall(Predef.pipeInto(varMap, tmp6));             equal = runtime.checkCall(go(arg$Abs$1$, arg$Abs$1$1));             if (prev instanceof Option.Some.class) {               let arg$Some$0$;               arg$Some$0$ = prev.value;               tmp7 = runtime.checkCall(MutMap.insert(arg$Var$0$1, arg$Some$0$));             } else if (prev instanceof Option.None.class) {               tmp7 = runtime.checkCall(MutMap.delete(arg$Var$0$1));             } else {               throw globalThis.Object.freeze(new globalThis.Error("match error"))             }             runtime.checkCall(Predef.pipeInto(varMap, tmp7));             return equal           }           return false;         }         return false;       }       return false;     }     return false;   };   varMap = MutMap.empty;   globalThis.Object.freeze(class Var$_ {     static {       new this     }     constructor() {       Var' = this;       globalThis.Object.freeze(this);     }     get unapply$__checkNotMethod() { runtime.deboundMethod("unapply", "Var'"); }      get unapplyStringPrefix$__checkNotMethod() { runtime.deboundMethod("unapplyStringPrefix", "Var'"); }     unapply(input) {       runtime.checkArgs("unapply", 1, true, arguments.length);       if (input instanceof Var1.class) {         let arg$Var$0$, inlinedVal, tmp5, tmp6;         arg$Var$0$ = input.name;         tmp5 = runtime.checkCall(MutMap.get(arg$Var$0$));         tmp6 = runtime.checkCall(Predef.pipeInto(varMap, tmp5));         inlinedVal = runtime.checkCall(Predef.passToLo(tmp6, Option.getOrElse)(arg$Var$0$));         return globalThis.Object.freeze(new runtime.MatchSuccess.class(inlinedVal, null))       }       return globalThis.Object.freeze(new runtime.MatchFailure.class(null));     }     unapplyStringPrefix(input) {       runtime.checkArgs("unapplyStringPrefix", 1, true, arguments.length);       return globalThis.Object.freeze(new runtime.MatchFailure.class(null))     }     toString() { return runtime.render(this); }     static [definitionMetadata] = ["pattern", "Var'"];   });   return runtime.checkCall(go(lhs, rhs)) };; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
-//│ >                                                                                                                                                                                                                                                                                                                                                                                                                ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:272)
-//│ ═══[COMPILATION ERROR] [Uncaught SyntaxError] missing ) after argument list
 
 :silent
 // A few frequently used terms.
@@ -201,64 +138,16 @@ print of or_.show
 //│ > λp. λq. p p q
 
 id_x <~> id_y
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] ReferenceError: alphaEquivalent is not defined
-//│     at REPL36:1:29
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = true
 
 id_x <~> id_a
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] ReferenceError: alphaEquivalent is not defined
-//│     at REPL39:1:29
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = true
 
 id_x <~> succ
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] ReferenceError: alphaEquivalent is not defined
-//│     at REPL42:1:29
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = false
 
 zero <~> false_
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:276)
-//│ ═══[RUNTIME ERROR] ReferenceError: alphaEquivalent is not defined
-//│     at REPL45:1:29
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = true
 
 fun subst(term, name, target) = if term is
   Var(name') and
@@ -392,16 +281,16 @@ fun evalByValue'(term) =
       set term = remake(subterm)
     else term
 //│ ╔══[COMPILATION ERROR] Pattern chaining is not supported in pattern compilation.
-//│ ║  l.325: 	      App(Abs as lhs, Context(Hole) as [rhs, remake]) =>
+//│ ║  l.214: 	      App(Abs as lhs, Context(Hole) as [rhs, remake]) =>
 //│ ╙──       	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Pattern chaining is not supported in pattern compilation.
-//│ ║  l.328: 	      App(Context(Hole) as [lhs, remake], Term as rhs) =>
+//│ ║  l.217: 	      App(Context(Hole) as [lhs, remake], Term as rhs) =>
 //│ ╙──       	          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.393: 	    else term
+//│ ║  l.282: 	    else term
 //│ ╙──       	         ^^^^
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.393: 	    else term
+//│ ║  l.282: 	    else term
 //│ ╙──       	         ^^^^
 
 object ByName with

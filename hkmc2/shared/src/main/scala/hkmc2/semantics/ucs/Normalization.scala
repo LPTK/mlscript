@@ -492,7 +492,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
         lowerSplit(normalized, cont)
       val body =
         Scoped(
-          if useNestedScoped then LoweringCtx.loweringCtx.getCollectedSym else Set.empty,
+          if useNestedScoped then LoweringCtx.loweringCtx.getCollectedSyms else Set.empty,
           mainBlock)
       // Embed the `body` into `Label` if the term is a `while`.
       lazy val rest = if usesResTmp then k(l.asSimpleRef) else k(lowering.unit)
