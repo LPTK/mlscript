@@ -1,0 +1,172 @@
+#config(noFreeze: true, noModuleCheck: true, liftDefns: None, disableDataFlowAnalysis: true, deadParamElim: Some(DeadParamElim(debug: false, mono: true)))
+import "../SmallExample.mls" as SmallExample__Legacy
+module SmallExample with
+    class Some(val x)
+    class None
+    class Cons(val x, val xs)
+    class Nil
+    class RegExp() with
+      ()
+    class Empty() extends RegExp() with
+      ()
+      fun derive(c) = new Empty()
+      fun startsWith(c) = false
+    class In(val chars) extends RegExp() with
+      ()
+      fun derive(c) =
+        let {scrut, tmp}
+        scrut = startsWith(c)
+        if scrut is
+          true then new Empty()
+          else
+            tmp = ["t"]
+            new In(tmp)
+      fun startsWith(c) = In."SeqHelper$In".has(chars, c)
+    class Concat(val p1, val p2) extends RegExp() with
+      ()
+      fun derive(c) =
+        let {p1__, p2__}
+        p1__ = p1.derive(c)
+        p2__ = p2.derive(c)
+        new Concat(p1__, p2__)
+      fun startsWith(c) = p1.startsWith(c)
+    fun go(email, s, i) =
+      let {scrut1, tmp1, tmp2}
+      scrut1 = i > 0
+      if scrut1 is
+        true then
+          tmp1 = email.derive(s, i)
+          tmp2 = i - 1
+          go(tmp1, s, tmp2)
+        else new None()
+    fun matchEmail(s) =
+      let {p, email1, tmp3, tmp4, tmp5, tmp6, tmp7, tup_1, tup_2}
+      tup_1 = ["a", "b"]
+      tmp3 = tup_1
+      tmp4 = ["-", "."]
+      tup_2 = ["a", "b", "-", "."]
+      tmp5 = tup_2
+      p = new In(tmp5)
+      tmp6 = new Empty()
+      tmp7 = new Concat(p, tmp6)
+      email1 = new Concat(p, tmp7)
+      go_SmallExample_sp_0(email1, s, s.length)
+open SmallExample
+fun go_SmallExample_sp_0(email, s, i) =
+  let {scrut1, tmp1, tmp2}
+  scrut1 = i > 0
+  if scrut1 is
+    true then
+      tmp1 = derive_Concat_sp_0(email, s, i)
+      tmp2 = i - 1
+      go_SmallExample_sp_1(tmp1, s, tmp2)
+    else new None()
+fun go_SmallExample_sp_1(email, s, i) =
+  let {scrut1, tmp1, tmp2}
+  scrut1 = i > 0
+  if scrut1 is
+    true then
+      if email is
+        Concat(Empty, _) then
+          tmp1 = derive_Concat_sp_2(email, s, i)
+          tmp2 = i - 1
+          go_SmallExample_sp_2(tmp1, s, tmp2)
+        Concat(In, _) then
+          tmp1 = derive_Concat_sp_6(email, s, i)
+          tmp2 = i - 1
+          go_SmallExample_sp_3(tmp1, s, tmp2)
+    else new None()
+fun go_SmallExample_sp_2(email, s, i) =
+  let {scrut1, tmp1, tmp2}
+  scrut1 = i > 0
+  if scrut1 is
+    true then
+      tmp1 = derive_Concat_sp_4(email, s, i)
+      tmp2 = i - 1
+      go_SmallExample_sp_2(tmp1, s, tmp2)
+    else new None()
+fun go_SmallExample_sp_3(email, s, i) =
+  let {scrut1, tmp1, tmp2}
+  scrut1 = i > 0
+  if scrut1 is
+    true then
+      if email is
+        Concat(Empty, _) then
+          tmp1 = derive_Concat_sp_4(email, s, i)
+          tmp2 = i - 1
+          go_SmallExample_sp_2(tmp1, s, tmp2)
+        Concat(In, _) then
+          tmp1 = derive_Concat_sp_7(email, s, i)
+          tmp2 = i - 1
+          go_SmallExample_sp_3(tmp1, s, tmp2)
+    else new None()
+fun derive_Empty_sp_0(self, c) = new Empty()
+fun derive_Empty_sp_1(self, c) = new Empty()
+fun derive_In_sp_0(self, c) =
+  let {scrut, tmp}
+  scrut = startsWith_In_sp_0(self, c)
+  if scrut is
+    true then new Empty()
+    else
+      tmp = ["t"]
+      new In(tmp)
+fun derive_In_sp_1(self, c) =
+  let {scrut, tmp}
+  scrut = startsWith_In_sp_1(self, c)
+  if scrut is
+    true then new Empty()
+    else
+      tmp = ["t"]
+      new In(tmp)
+fun startsWith_In_sp_0(self, c) = In."SeqHelper$In".has(self.chars, c)
+fun startsWith_In_sp_1(self, c) = In."SeqHelper$In".has(self.chars, c)
+fun derive_Concat_sp_0(self, c) =
+  let {p1__, p2__}
+  p1__ = derive_In_sp_0(self.p1, c)
+  p2__ = derive_Concat_sp_1(self.p2, c)
+  new Concat(p1__, p2__)
+fun derive_Concat_sp_1(self, c) =
+  let {p1__, p2__}
+  p1__ = derive_In_sp_0(self.p1, c)
+  p2__ = derive_Empty_sp_0(self.p2, c)
+  new Concat(p1__, p2__)
+fun derive_Concat_sp_2(self, c) =
+  let {p1__, p2__}
+  p1__ = derive_Empty_sp_1(self.p1, c)
+  if self.p2 is
+    Concat(Empty, _) then
+      p2__ = derive_Concat_sp_3(self.p2, c)
+      new Concat(p1__, p2__)
+    Concat(In, _) then
+      p2__ = derive_Concat_sp_3(self.p2, c)
+      new Concat(p1__, p2__)
+fun derive_Concat_sp_3(self, c) =
+  let {p1__, p2__}
+  p1__ = self.p1.derive(c)
+  p2__ = self.p2.derive(c)
+  new Concat(p1__, p2__)
+fun derive_Concat_sp_4(self, c) =
+  let {p1__, p2__}
+  p1__ = derive_Empty_sp_1(self.p1, c)
+  p2__ = derive_Concat_sp_5(self.p2, c)
+  new Concat(p1__, p2__)
+fun derive_Concat_sp_5(self, c) =
+  let {p1__, p2__}
+  p1__ = self.p1.derive(c)
+  p2__ = self.p2.derive(c)
+  new Concat(p1__, p2__)
+fun derive_Concat_sp_6(self, c) =
+  let {p1__, p2__}
+  p1__ = derive_In_sp_1(self.p1, c)
+  if self.p2 is
+    Concat(Empty, _) then
+      p2__ = derive_Concat_sp_3(self.p2, c)
+      new Concat(p1__, p2__)
+    Concat(In, _) then
+      p2__ = derive_Concat_sp_3(self.p2, c)
+      new Concat(p1__, p2__)
+fun derive_Concat_sp_7(self, c) =
+  let {p1__, p2__}
+  p1__ = derive_In_sp_1(self.p1, c)
+  p2__ = derive_Concat_sp_5(self.p2, c)
+  new Concat(p1__, p2__)

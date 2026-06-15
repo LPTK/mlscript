@@ -104,7 +104,7 @@ def hkmc2TestSubproject(dirName: String, compileRunner: Option[String], diffRunn
       
       Test / test := testTask.value,
       
-      Test/run/fork := true, // so that CTRL+C actually terminates the watcher
+      // Test/run/fork := true, // so that CTRL+C actually terminates the watcher
     )
 }
 

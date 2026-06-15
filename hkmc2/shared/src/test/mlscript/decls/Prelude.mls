@@ -34,7 +34,9 @@ declare class BigInt
 declare module BigInt
 declare class Function
 declare module Function
-declare class String
+declare class String with
+  fun
+    length()
 declare module String with
   fun
     fromCharCode
@@ -103,7 +105,10 @@ declare class Class
 //    declare class Array[T](val length: Int): Array[T]
 // but this made instance checks wrongly use `Array.class`;
 // TODO: handle Array and other JS classes that can be instantiated without `new` specially in codegen.
-declare class Array[T]
+declare class Array[T] with
+  fun
+    includes
+    concat
 declare module Array with
   fun
     from

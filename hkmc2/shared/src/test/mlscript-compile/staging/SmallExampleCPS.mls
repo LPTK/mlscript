@@ -1,0 +1,66 @@
+#config(noFreeze: true)
+#config(funcToCls: true)
+
+open annotations { special, specialize }
+
+module CharSet with
+  fun alphabet() = [
+    "a", "b"
+  ]
+
+module SeqHelper with
+  // fun push(arr, ele) =
+  //   arr.push(ele)
+  //   arr
+  fun concat(lhs, rhs) = lhs.Array#concat(rhs)
+  fun has(arr, ele) = arr.Array#includes(ele)
+  // fun len(s) = s.length
+  // fun eq(arr1, arr2) =
+  //   arr1.length == arr2.length and arr1.every((v, i) => v == arr2.(i))
+
+staged module SmallExampleCPS with
+  class Some(val x)
+  class None
+
+  class Cons(val x, val xs)
+  class Nil
+
+  staged class RegExp() with
+    fun derive(c, k)
+    fun startsWith(c)
+  
+  staged class Empty() extends RegExp() with
+    fun derive(c, k) = k(new Empty())
+    fun startsWith(c) = false
+  
+  staged class In(val chars) extends RegExp() with
+    fun derive(c, k) =
+      if startsWith(c) then k(new Empty()) else k(new In(["t"]))
+    fun startsWith(c) = SeqHelper.has(chars, c)
+  
+  staged class Concat(val p1, val p2) extends RegExp() with
+    fun derive(c, k) =
+      p1.RegExp#derive(c, p1' =>
+        p2.RegExp#derive(c, p2' =>
+          k(@special new Concat(p1', p2'))))
+    fun startsWith(c) = p1.RegExp#startsWith(c)
+  
+  @specialize
+  fun go(email, s, i, k) =
+    if i > 0 then
+      email.RegExp#derive(s.(i), d =>
+        go(d, s, i - 1, k))
+    else
+      k(new None)
+  fun matchEmail(s) =
+    let p = new In(SeqHelper.concat(CharSet.alphabet(), ["-", "."]))
+    let email = (@special new Concat(p, @special new Concat(p, (@special new Empty()))))
+    go(email, s, s.String#length(), (result) => result)
+
+
+
+
+
+
+
+

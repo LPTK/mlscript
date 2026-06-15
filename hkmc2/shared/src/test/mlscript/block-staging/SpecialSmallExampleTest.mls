@@ -1,0 +1,14 @@
+:js
+:staging
+:noModuleCheck
+
+import "../../mlscript-compile/staging/SmallExample.mls"
+
+SmallExample."generate"("../SmallExample.mls", "./hkmc2/shared/src/test/mlscript-compile/staging/out/SmallExample.mls")
+
+
+import "../../mlscript-compile/staging/out/SmallExample.mls"
+
+open SmallExample
+
+
