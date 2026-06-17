@@ -56,7 +56,7 @@ abstract class Symbol(using State) extends MaybeSymbol with Located:
   def ref(id: Tree.Ident =
     Tree.Ident("") // FIXME hack
   ): Term.Ref =
-    val res = new Term.Ref(this)(id, directRefs.size, N)
+    val res = new Term.Ref(this)(id, directRefs.size, N).withLocOf(id)
     directRefs += res
     res
   def refsNumber: Int = directRefs.size
@@ -176,8 +176,6 @@ abstract class FlowSymbol(label: Str)(using State) extends Symbol:
   val outFlows: mutable.Buffer[FlowSymbol] = mutable.Buffer.empty
   val consumers: mutable.Buffer[Consumer] = mutable.Buffer.empty
   val producers: mutable.Buffer[ConcreteProd] = mutable.Buffer.empty
-  def showDbg: Str =
-    label + s"‹$uid›"
 
 object FlowSymbol:
   
@@ -393,11 +391,14 @@ object TermSymbol:
     TermSymbol(syntax.Fun, owner, Tree.Ident(b.nme), erasedType)
 
 
+/** Represents the companion constructor function of parameterized classes,
+  * which is the one that is accessed on plain `C` references for a definition like `class C(...)`.
+  * Note that the owner of this function is NOT the class; it is the same as the class's own owner. */
 class ClassCtorSymbol(
   override val k: syntax.Fun.type,
-  override val owner: S[ClassSymbol],
-  id: Tree.Ident
-)(using State) extends TermSymbol(k, owner, id, N):
+  override val owner: Opt[InnerSymbol],
+  val associatedCls: ClassSymbol,
+)(using State) extends TermSymbol(k, owner, associatedCls.id, N):
   override def subst(using sub: SymbolSubst): ClassCtorSymbol = sub.mapClassCtorSym(this)
   override def mayRaiseEffects(using Config) =
     super.mayRaiseEffects || config.checkInstantiateEffect

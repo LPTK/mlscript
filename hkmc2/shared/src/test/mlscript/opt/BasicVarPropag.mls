@@ -29,7 +29,7 @@ x
 :soir
 +1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ return +⁰(1)
+//│ return 1
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ return 1
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -45,6 +45,12 @@ fun main =
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define main⁰ as fun main¹() { return 3 }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+// :dopt
+let x = 1 in
+  let y = x
+  y
+//│ = 1
 
 // :dopt
 :sir
@@ -102,14 +108,7 @@ print(x)
 let x = if maybe then 1 else 1
 in print(x)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let scrut;
-//│ set scrut = Predef⁰.maybe⁰;
-//│ match scrut
-//│   true =>
-//│     return Predef⁰.print⁰(1)
-//│   else
-//│     return Predef⁰.print⁰(1)
-//│ end
+//│ do Predef⁰.maybe⁰; return Predef⁰.print⁰(1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 
@@ -250,7 +249,7 @@ let {x,y}
 x = y
 y = x
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ set x⁶ = y⁰; set y⁰ = x⁶; end
+//│ set x⁶ = y⁰; set y⁰ = y⁰; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -275,7 +274,7 @@ x = y
 y = x
 z = y
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ set x⁸ = y²; set y² = x⁸; set z¹ = x⁸; end
+//│ set x⁸ = y²; set y² = y²; set z¹ = y²; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ x = undefined
 //│ y = undefined
@@ -332,15 +331,11 @@ print(res)
 //│ match scrut
 //│   true =>
 //│     let y;
-//│     begin
-//│       set y = Predef⁰.hide⁰(1);
-//│       set res¹ = y;
-//│       end;
+//│     set y = Predef⁰.hide⁰(1);
+//│     set res¹ = y;
 //│     return Predef⁰.print⁰(res¹)
 //│   else
-//│     begin
-//│       do Predef⁰.notImplementedError⁰;
-//│       end;
+//│     do Predef⁰.notImplementedError⁰;
 //│     return Predef⁰.print⁰(res¹)
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
@@ -397,9 +392,9 @@ hide of print(res)
 //│ set tmp = Predef⁰.print⁰(res²);
 //│ return Predef⁰.hide⁰(tmp)
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let res2, scrut6, tmp3;
-//│ scrut6 = Predef.maybe;
-//│ if (scrut6 === true) {
+//│ let res2, scrut5, tmp3;
+//│ scrut5 = Predef.maybe;
+//│ if (scrut5 === true) {
 //│   let y3;
 //│   y3 = runtime.checkCall(Predef.hide(1));
 //│   res2 = y3;
@@ -407,7 +402,7 @@ hide of print(res)
 //│   Predef.notImplementedError;
 //│ }
 //│ tmp3 = runtime.checkCall(Predef.print(res2));
-//│ block$res22 = runtime.checkCall(Predef.hide(tmp3));
+//│ block$res23 = runtime.checkCall(Predef.hide(tmp3));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 //│ res = 1

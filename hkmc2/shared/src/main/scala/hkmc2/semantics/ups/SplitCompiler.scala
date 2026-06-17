@@ -1228,7 +1228,7 @@ class SplitCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynthesiz
       val inputSymbol = VarSymbol(Ident("input"), erasedType = N)
       val topmost = makeMatchSplit(inputSymbol.toScrut, pd.pattern, true)(
         makeConsequent = (output, bindings) =>
-          def getBinding(p: Param) = bindings.get(p.sym).fold(Term.Error)(_())
+          def getBinding(p: Param) = bindings.get(p.sym).fold(Term.Error().withLocOf(p))(_())
           pd.extractionParams match
             case Nil =>
               // If the pattern doesn't have any extraction parameters, we take
