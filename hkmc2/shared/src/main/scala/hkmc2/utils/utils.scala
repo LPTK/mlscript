@@ -2,7 +2,7 @@ package hkmc2
 
 import scala.util.chaining.scalaUtilChainingOps
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 
 given utils.TraceLogger => DebugPrinter =
   summon[utils.TraceLogger].debugPrinter
@@ -91,7 +91,7 @@ class DebugPrinter:
         s"Loc at :$sl:$sc-$el:$ec"
       case codegen.Scoped(syms, body) =>
         val symsStr = "{" + syms.toArray.sortBy(_.uid).map(_.showAsPlain).mkString(", ") + "}"
-        s"Scoped(syms = $symsStr): \n" + s"body = ${printProduct(false, body)}".indent("  ")
+        s"Scoped(syms = $symsStr):\n" + s"body = ${printProduct(false, body)}".indent("  ")
       
       case t: Product => printProduct(inTailPos, t)
       case v => printPlain(v)
@@ -151,6 +151,10 @@ extension [A](ls: Ls[A])
   def foldSingleton[B](no: Ls[A] => B)(yes: A => B): B = ls match
     case x :: Nil => yes(x)
     case Nil | _ :: _ => no(ls)
+  def filterConserve(p: A => Bool): Ls[A] =
+    var same = true
+    val res = ls.filter(a => p(a) || { same = false; false })
+    if same then ls else res
 
 extension (n: Int)
   /** Converts a number to its English word representation. */
@@ -193,5 +197,11 @@ extension (str: Str)
   /** Formats a number and a noun as a human-readable string. */
   infix def countBy(n: Int): Str =
     s"${n.spelled} ${if n === 1 then str else str.toLowerCase.pluralize}"
+
+def enumerate(strs: NELs[Str], connective: Str): Str =
+  strs match
+  case str :: Nil => str
+  case str1 :: str2 :: Nil => s"$str1, $connective $str2"
+  case str :: rest => s"$str, ${enumerate(rest.ne_!, connective)}"
 
 

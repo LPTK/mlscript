@@ -1,0 +1,425 @@
+:js
+:noInline
+:deadParamElim debug
+
+
+:soir
+private fun f(a) = 0
+f(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f⁰ as fun f¹() { return 0 }; return f¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+:soir
+private fun f(a, b) = 0
+f(1, 2)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0, 1}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f² as fun f³() { return 0 }; return f³()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+:soir
+private fun f(a)(b) = 0
+f(1)(2)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f⁴ as fun f⁵()(b) { return 0 }; return f⁵()(2)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+
+
+:soir
+private fun f(a) = a
+f(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f⁶ as fun f⁷(a) { return a }; return f⁷(42)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 42
+
+:soir
+private fun f(a, b) = a + b
+f(1, 2)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f⁸ as fun f⁹(a, b) { return +⁰(a, b) }; return f⁹(1, 2)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3
+
+
+:soir
+private fun f(a, b) = a
+f(1, 2)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {1}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f¹⁰ as fun f¹¹(a) { return a }; return f¹¹(1)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+
+:soir
+private fun f(a, b) = b
+f(1, 2)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f¹² as fun f¹³(b) { return b }; return f¹³(2)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 2
+
+
+
+:soir
+private fun f(a)(b) = a
+f(1)(2)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f¹⁴ as fun f¹⁵(a)(b) { return a }; return f¹⁵(1)(2)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+
+:soir
+private fun f(a)(b) = b
+f(1)(2)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f¹⁶ as fun f¹⁷()(b) { return b }; return f¹⁷()(2)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 2
+
+
+
+:soir
+private fun f(a) = 0
+f(1)
+f(2)
+f(3)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define f¹⁸ as fun f¹⁹() { return 0 }; do f¹⁹(); do f¹⁹(); return f¹⁹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+
+:soir
+private fun g() =
+  fun f(a) = 3
+  f(4)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define g⁰ as fun g¹() { let f; define f as fun f²⁰() { return 3 }; return f²⁰() }; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+
+
+:soir
+class Foo(x) with
+  fun bar(a) = x
+let foo = Foo(1)
+foo.bar(99)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define Foo⁰ as class Foo² {
+//│   private val x⁰;
+//│   constructor Foo¹(x) {
+//│     set Foo².this.x⁰ = x;
+//│     end
+//│   }
+//│   method bar⁰ = fun bar¹(a) { return Foo².this.x⁰ }
+//│ };
+//│ set foo⁰ = Foo¹(1);
+//│ return foo⁰.bar﹖(99)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+//│ foo = Foo(_)
+
+
+class Foo(x) with
+  fun bar(a) = a
+let foo = Foo(1)
+foo.bar(99)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 99
+//│ foo = Foo(_)
+
+
+
+:expect 1
+class Foo(x) with
+  fun get() = x
+Foo(1).get()
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 1
+
+
+
+
+:expect 1
+data class Pair(a, b)
+private fun fst(p) = if p is Pair(a, b) then a
+fst(Pair(1, 2))
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 1
+
+
+
+:expect 2
+data class Pair(a, b)
+private fun snd(p) = if p is Pair(a, b) then b
+snd(Pair(1, 2))
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 2
+
+
+
+
+:expect 43
+private fun g(x) = x + 1
+private fun f(a) = g(a)
+f(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 43
+
+
+
+
+
+
+:expect 42
+private fun f(a) =
+  let x = a
+  x
+f(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 42
+
+
+
+
+
+:expect 1
+private fun apply(f) = f(0)
+private fun inc(x) = x + 1
+apply(inc)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 1
+
+
+
+
+:expect 1
+data class Pair(a, b)
+private fun f(p) = p.Pair#a
+f(Pair(1, 2))
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 1
+
+
+// The usage of runtime.Tuple.get(c, 1) will cause all enclosing match to be searched, but
+// not all scrutinee shapes of match are correctly handled.
+:lift
+:sir
+:effectHandlers
+:stackSafe 100
+fun f() = case [...x, y, z] then x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let lambda;
+//│ do runtime⁰.resetEffects﹖();
+//│ @private
+//│ define lambda as fun lambda⁰(caseScrut) {
+//│   let stackDelayRes;
+//│   set runtime⁰.stackDepth﹖ = +⁰(runtime⁰.stackDepth﹖, 1);
+//│   set stackDelayRes = runtime⁰.checkDepth﹖();
+//│   match runtime⁰.curEffect﹖
+//│     null =>
+//│       let x, y, z, lastElement1$, lastElement2$, middleElements;
+//│       match caseScrut
+//│         Array(2+) =>
+//│           set middleElements = runtime⁰.Tuple⁰.slice⁰(caseScrut, 0, 2);
+//│           set lastElement2$ = runtime⁰.Tuple⁰.get⁰(caseScrut, -2);
+//│           set lastElement1$ = runtime⁰.Tuple⁰.get⁰(caseScrut, -1);
+//│           set y = lastElement1$;
+//│           set z = lastElement2$;
+//│           set x = middleElements;
+//│           return x
+//│         else
+//│           throw new globalThis⁰.Error⁰("match error")
+//│       end
+//│     else
+//│       return runtime⁰.unwind﹖(lambda⁰, -1, null, null, null, 1, 1, caseScrut, 0)
+//│   end
+//│ };
+//│ define f²¹ as fun f²²() { return lambda⁰ };
+//│ end
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+// FIXME: Currently, Runtime⁰.Tuple¹.get¹ below resolves differently from runtime⁰.Tuple⁰.get⁰ above
+//  This is because the latter is currently created in Elaborator's `createFunSymbolInMod` shim.
+:lift
+:sir
+:effectHandlers
+:stackSafe 100
+import "../../mlscript-compile/Runtime.mls"
+fun f(c) = Runtime.Tuple.get(c, 1) + 1
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ import "..." as Runtime;
+//│ do runtime⁰.resetEffects﹖();
+//│ define f²³ as fun f²⁴(c) {
+//│   let stackDelayRes;
+//│   set runtime⁰.stackDepth﹖ = +⁰(runtime⁰.stackDepth﹖, 1);
+//│   set stackDelayRes = runtime⁰.checkDepth﹖();
+//│   match runtime⁰.curEffect﹖
+//│     null =>
+//│       let tmp;
+//│       set tmp = Runtime⁰.Tuple¹.get¹(c, 1);
+//│       return +⁰(tmp, 1)
+//│     else
+//│       return runtime⁰.unwind﹖(f²⁴, -1, "basic.mls:296:1", null, null, 1, 1, c, 0)
+//│   end
+//│ };
+//│ end
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+private fun f(a) = g(a)
+private fun g(x) = 3
+f(1)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > prodfun g#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 3
+
+:deadParamElim debug poly
+fun f(a) = g(a)
+fun g(x) = 3
+f(1)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun f#0 @ f@3 -> eliminable: {0}
+//│ dead-param-elim > prodfun g#0 @ f@3.g@1 -> eliminable: {0}
+//│ dead-param-elim > prodfun g#0 @ f@4.g@1 -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 3
+
+f(2)
+g(1)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 3
+
+
+:deadParamElim debug mono
+:expect [3, 4]
+private fun f(x) =
+  fun g(a, b, ...rest) = 
+    print(x)
+    rest
+  g(1, 2, 3, 4)
+f(2)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun g#0 @ <root> -> eliminable: {0, 1}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ > 2
+//│ = [3, 4]
+
+
+
+// DPE is on by default, no debug output
+:soir
+private fun noFlag(a) = 0
+noFlag(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun noFlag#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define noFlag⁰ as fun noFlag¹() { return 0 }; return noFlag¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+
+:deadParamElim
+private fun bareFlag(a) = 0
+bareFlag(42)
+//│ = 0
+
+
+:deadParamElim mono debug
+private fun monoDebug(a) = 0
+monoDebug(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun monoDebug#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 0
+
+
+:deadParamElim debug mono
+:soir
+private fun debugMono(a) = 0
+debugMono(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun debugMono#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define debugMono⁰ as fun debugMono¹() { return 0 }; return debugMono¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+
+:deadParamElim mono poly
+private fun conflictTest(a) = 0
+conflictTest(42)
+//│ /!!!\ ':deadParamElim' flags 'mono' and 'poly' conflict
+//│ = 0
+
+// :deadParamElim off — disable DPE, dead param should NOT be eliminated
+:deadParamElim off
+:soir
+private fun dpeOff(a) = 0
+dpeOff(42)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private define dpeOff⁰ as fun dpeOff¹(a) { return 0 }; return dpeOff¹(42)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+
+
+:deadParamElim foo
+private fun unknownFlag(a) = 0
+unknownFlag(42)
+//│ /!!!\ Unknown ':deadParamElim' flags: foo
+//│ = 0

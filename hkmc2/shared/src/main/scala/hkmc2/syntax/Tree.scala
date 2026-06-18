@@ -5,7 +5,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import sourcecode.Line
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import hkmc2.utils.*
 
 import hkmc2.Message.MessageContext
@@ -226,6 +226,7 @@ enum Tree extends AutoLocated:
     case SplitPoint() => "split point"
     case OpSplit(lhs, ops_rhss) => "operator split"
     case OpenIn(opened, body) => "open-in"
+    case Assert(_, _, _, _) => "assertion"
     
   def deparenthesized: Tree = this match
     case Bra(BracketKind.Round, inner) => inner.deparenthesized
@@ -233,12 +234,69 @@ enum Tree extends AutoLocated:
   
   def showDbg: Str = toString // TODO
   
-  lazy val desugared: Tree = this match
+  lazy val desugared: Tree =
     
+    object LabelClause:
+      def unapply(tree: Tree): Opt[(Ident, Tree)] = tree match
+        case InfixApp(labelId: Ident, Keywrd(Keyword.`:`), body) => S(labelId -> body)
+        case _ => N
+    
+    def rewriteImplicitSplitLabels(tree: Tree): Tree = tree match
+      case stmt @ InfixApp(lhs, kw @ Keywrd(Keyword.`do`), rhs) =>
+        def mkImplicitDoLabel(tree: Tree): Tree =
+          PrefixApp(new Keywrd(Keyword.`do`).withLocOf(kw), tree)
+        val rhs2 = rhs match
+          case LabelClause(_, _) =>
+            mkImplicitDoLabel(rhs)
+          case block @ Block(stmts) =>
+            block.withStmts(stmts.mapConserve:
+              case labelClause @ LabelClause(_, _) => mkImplicitDoLabel(labelClause)
+              case stmt => stmt
+            )
+          case _ => return stmt
+        InfixApp(lhs, kw, rhs2).withLocOf(stmt)
+      case block @ Block(stmts) =>
+        block.withStmts(stmts.mapConserve:
+          case stmt @ InfixApp(_, kw, _) => rewriteImplicitSplitLabels(stmt)
+          case stmt => stmt
+        )
+      case _ => tree
+    
+    this match
     case Ident(name) if name.startsWith("'") =>
       StrLit(name.drop(1)).withLocOf(this)
+    case IfLike(kw, split) =>
+      val split2 = rewriteImplicitSplitLabels(split)
+      if split2 is split then this else IfLike(kw, split2).withLocOf(this)
     case InfixApp(lhs, Keywrd(Keyword.`:`), rhs) =>
       InfixApp(lhs.desugared, Keywrd(Keyword.`:`), rhs.desugared)
+    case PrefixApp(kw @ Keywrd(Keyword.`do`), Block(sts))
+    if sts.nonEmpty
+    =>
+      def collectAll[A](opts: Ls[Opt[A]]): Opt[Ls[A]] =
+        if opts.forall(_.nonEmpty) then S(opts.map(_.get)) else N
+      val labelClauseOpts = sts.map:
+        case LabelClause(labelId, body) => S(labelId -> body)
+        case _ => N
+      collectAll(labelClauseOpts) match
+      case S(clauses) =>
+        // Only prefix clauses need to host an additional nested `do`; the last clause is the innermost.
+        val prefixClauseOpts = clauses.dropRight(1).map:
+          case (labelId, labelBody: Block) => S(labelId -> labelBody)
+          case _ => N
+        collectAll(prefixClauseOpts) match
+        case S(prefix) =>
+          val (lastId, lastBody) = clauses.last
+          // Build `label1: ...; label2: ...; label3: ...` into nested implicit form where
+          // each prefix label body appends `do labelNext: ...` as its final statement.
+          val nestedClause = prefix.foldRight[Tree](InfixApp(lastId, Keywrd(Keyword.`:`), lastBody)):
+            case ((labelId, labelBody), innerClause) =>
+              val nestedDo = PrefixApp(new Keywrd(Keyword.`do`).withLocOf(kw), innerClause)
+              val newLabelBody = labelBody :+ nestedDo
+              InfixApp(labelId, Keywrd(Keyword.`:`), newLabelBody)
+          PrefixApp(kw, nestedClause).withLocOf(this)
+        case N => this
+      case N => this
     case Sel(pre, nme) if nme.name.startsWith("'") =>
       DynAccess(pre.desugared, StrLit(nme.name.drop(1)).withLocOf(nme)).withLocOf(this)
     
@@ -259,6 +317,12 @@ enum Tree extends AutoLocated:
         case Modified(kw @ Keywrd(Keyword.`abstract`), s) =>
           Annotated(kw, s.desugared)
         case Modified(kw @ Keywrd(Keyword.`staged`), s) =>
+          Annotated(kw, s.desugared)
+        case Modified(kw @ Keywrd(Keyword.`virtual`), s) =>
+          Annotated(kw, s.desugared)
+        case Modified(kw @ Keywrd(Keyword.`public`), s) =>
+          Annotated(kw, s.desugared)
+        case Modified(kw @ Keywrd(Keyword.`private`), s) =>
           Annotated(kw, s.desugared)
         case Modified(kw @ Keywrd(Keyword.`mut`), TermDef(ImmutVal, anme, rhs)) =>
           TermDef(MutVal, anme, rhs).withLocOf(this).desugared
@@ -437,7 +501,7 @@ case object MutVal extends Val("mut val", "mutable value")
 case object LetBind extends ValLike("let", "let binding")
 case object HandlerBind extends TermDefKind("handler", "handler binding")
 case object Fun extends TermDefKind("fun", "function")
-case object Ins extends TermDefKind("using", "implicit instance")
+case object Ins extends Val("using", "implicit instance")
 sealed abstract class TypeDefKind(str: Str, desc: Str)(using Line) extends DeclKind(str, desc)
 sealed trait ObjDefKind
 sealed trait ClsLikeKind extends ObjDefKind:
@@ -575,12 +639,11 @@ trait TypeDefImpl(using State) extends TypeOrTermDef:
     this.paramLists.map: tup =>
       val pts = tup.fields
       val inUsing = pts.headOption.exists(_.isModified(Ins))
-      pts.flatMap(_.desugared.asParam(inUsing = inUsing).toOption).map:
-        // case ParamTree(spd = S(_)) => lastWords("spreads are not allowed in class parameters") // TODO: properly report this in Elaborator
-        case pt @ ParamTree(ident = id) =>
+      pts.flatMap(_.desugared.asParam(inUsing = inUsing).toOption).collect:
+        case pt @ ParamTree(ident = id, spd = N) =>
           val k = if pt.flags.mut then MutVal else ImmutVal
           TermSymbol(k, symbol.asClsLike, id)
       .toList
     
-  lazy val allSymbols = definedSymbols ++ clsParams.flatten.map(s => s.nme -> s).toMap
-
+  lazy val allSymbols = definedSymbols ++
+    clsParams.iterator.flatMap(_.iterator.map(s => s.nme -> s)).toMap

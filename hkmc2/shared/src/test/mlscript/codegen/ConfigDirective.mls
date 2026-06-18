@@ -5,7 +5,6 @@
 :sir
 fun test_before(n, acc) = if n == 0 then acc else test_before(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let test_before⁰;
 //│ define test_before⁰ as fun test_before¹(n, acc) {
 //│   loop loopLabel:
 //│     let scrut, tmp, tmp1;
@@ -31,7 +30,6 @@ fun test_before(n, acc) = if n == 0 then acc else test_before(n - 1, n + acc)
 :sir
 fun test_after(n, acc) = if n == 0 then acc else test_after(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let test_after⁰;
 //│ define test_after⁰ as fun test_after¹(n, acc) {
 //│   let scrut, tmp, tmp1;
 //│   set scrut = Predef⁰.equals⁰(n, 0);
@@ -53,7 +51,6 @@ fun test_after(n, acc) = if n == 0 then acc else test_after(n - 1, n + acc)
 :sir
 fun test_reenabled(n, acc) = if n == 0 then acc else test_reenabled(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let test_reenabled⁰;
 //│ define test_reenabled⁰ as fun test_reenabled¹(n, acc) {
 //│   loop loopLabel:
 //│     let scrut, tmp, tmp1;
@@ -78,7 +75,7 @@ fun test_reenabled(n, acc) = if n == 0 then acc else test_reenabled(n - 1, n + a
 @config(tailRecOpt: false)
 fun foo(n, acc) = if n == 0 then acc else foo(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let foo⁰;
+//│ @config(...)
 //│ define foo⁰ as fun foo¹(n, acc) {
 //│   let scrut, tmp, tmp1;
 //│   set scrut = Predef⁰.equals⁰(n, 0);
@@ -98,7 +95,6 @@ fun foo(n, acc) = if n == 0 then acc else foo(n - 1, n + acc)
 :sir
 fun bar(n, acc) = if n == 0 then acc else bar(n - 1, n + acc)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let bar⁰;
 //│ define bar⁰ as fun bar¹(n, acc) {
 //│   loop loopLabel:
 //│     let scrut, tmp, tmp1;
@@ -125,7 +121,7 @@ fun bar(n, acc) = if n == 0 then acc else bar(n - 1, n + acc)
 :sir
 fun foo(x) = { x.call(), print(42) }
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let foo²; define foo² as fun foo³(x) { do x.call﹖(); return Predef⁰.print⁰(42) }; end
+//│ define foo² as fun foo³(x) { do x.call﹖(); return Predef⁰.print⁰(42) }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -153,3 +149,57 @@ print(42)
 //│ > 42
 
 
+#config(deadParamElim: Some(DeadParamElim(debug: true, mono: true)), inlining: None)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > <<< dead-param-elim results <<<
+
+private fun deadParamConfig(a) = 0
+deadParamConfig(42)
+//│ dead-param-elim > >>> dead-param-elim results >>>
+//│ dead-param-elim > prodfun deadParamConfig#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > <<< dead-param-elim results <<<
+//│ = 0
+
+#config(deadParamElim: None)
+
+
+#config(deforest: Some(Deforest(mono: false)))
+#config(effectHandlers: Some(EffectHandlers(stackSafety: None)))
+//│ deforest > >>> fusing >>>
+//│ deforest > <<< fusing <<<
+
+data class Pair(a, b)
+fun fstConfig(p) = if p is Pair(x, y) then x
+fstConfig(Pair(1, 2))
+//│ deforest > >>> fusing >>>
+//│ deforest > Pair⁰(1, 2) ->
+//│ deforest > 	match: p⁰
+//│ deforest > 	fields: p⁰.a⁰
+//│ deforest > 	fields: p⁰.b⁰
+//│ deforest > <<< fusing <<<
+//│ = 1
+
+#config(deforest: None)
+
+fun fstConfig(p) = if p is Pair(x, y) then x
+fstConfig(Pair(1, 2))
+//│ = 1
+
+
+#config(deforest: Some(Deforest(debug: false, logNonAffine: true)))
+//│ deforest > >>> non-affine syms >>>
+//│ deforest > <<< non-affine syms <<<
+
+fun fst(p) = if p is Pair(x, y) then x
+fun applyTwice(f, x) = f(x) + f(x)
+applyTwice(fst, Pair(1, 2))
+//│ deforest > >>> non-affine syms >>>
+//│ deforest > cap_ub_(term:fst,0)_for_fst@35
+//│ deforest > f_for_applyTwice@23
+//│ deforest > f_for_applyTwice@54
+//│ deforest > fst_for_fst@32
+//│ deforest > tmp@1
+//│ deforest > x_for_applyTwice@24
+//│ deforest > x_for_applyTwice@55
+//│ deforest > <<< non-affine syms <<<
+//│ = 2

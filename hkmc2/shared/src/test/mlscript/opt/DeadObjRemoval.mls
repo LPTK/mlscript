@@ -9,9 +9,9 @@ fun f() =
   42
 f()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f, inlinedVal; f = function f() { return 42 }; inlinedVal = 42; inlinedVal
+//│ let f; f = function f() { return 42 }; return 42
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let f⁰, inlinedVal; define f⁰ as fun f¹() { return 42 }; set inlinedVal = 42; inlinedVal
+//│ define f⁰ as fun f¹() { return 42 }; return 42
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 
@@ -24,15 +24,15 @@ fun f() =
   42
 f()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f1;
+//│ let f1, A2;
 //│ f1 = function f() {
-//│   let A1;
+//│   let A3;
 //│   (class A {
 //│     static {
 //│       new this
 //│     }
 //│     constructor() {
-//│       A1 = this;
+//│       A3 = this;
 //│       Predef.print("Hello");
 //│       Object.defineProperty(this, "class", {
 //│         value: A
@@ -40,19 +40,40 @@ f()
 //│       globalThis.Object.freeze(this);
 //│     }
 //│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["object", "A"]; 
+//│     static [definitionMetadata] = ["object", "A"];
 //│   });
 //│   return 42
 //│ };
-//│ f1()
+//│ (class A1 {
+//│   static {
+//│     new this
+//│   }
+//│   constructor() {
+//│     A2 = this;
+//│     Predef.print("Hello");
+//│     Object.defineProperty(this, "class", {
+//│       value: A1
+//│     });
+//│     globalThis.Object.freeze(this);
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["object", "A"];
+//│ });
+//│ return 42
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let f²;
+//│ let A;
 //│ define f² as fun f³() {
-//│   let A;
-//│   define A as object A⁰ { constructor { do Predef⁰.print⁰("Hello"); end } };
+//│   let A1;
+//│   define A1 as object A⁰ {
+//│     constructor() {
+//│       do Predef⁰.print⁰("Hello");
+//│       end
+//│     }
+//│   };
 //│   return 42
 //│ };
-//│ f³()
+//│ define A as object A¹ { constructor() { do Predef⁰.print⁰("Hello"); end } };
+//│ return 42
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > Hello
 //│ = 42

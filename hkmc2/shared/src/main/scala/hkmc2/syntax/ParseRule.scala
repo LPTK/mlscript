@@ -3,7 +3,7 @@ package syntax
 
 import sourcecode.{Name, Line}
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import hkmc2.Message._
 
 import BracketKind._
@@ -174,9 +174,8 @@ class ParseRules(using State):
           case (lhs, (rhs, body)) => (lhs, rhs, body)
         }
       )
-    ).map {
+    ).map:
       case (kw, (lhs, rhs, body)) => LetLike(kw, lhs, rhs, body)
-    }
   
   def ifLike(kw: Keyword.IfLike): Alt[Tree] =
     Kw(kw)(
@@ -222,9 +221,8 @@ class ParseRules(using State):
             end(N),
           )
         ) { (lhs, rhs) => TypeDef(kind, lhs, rhs) }
-    .map {
+    .map:
       case (kw, t) => t.mkLocWith(kw)
-    }
   
   val prefixRules: ParseRule[Tree] = ParseRule("start of expression", omitAltsStr = true)(
     letLike(`let`),
@@ -256,8 +254,10 @@ class ParseRules(using State):
     keepKw(`new`):
       val withRefinement = discardKw(`with`)(
           ParseRule("'new' body")(
-            Blk(ParseRule("'new' expression")(end(()))) { case (res: Block // FIXME: can it be something else?
-              , ()) => S(res) }
+            Blk(ParseRule("'new' expression")(end(()))) {
+              case (res: Block, ()) => S(res) // FIXME: can it be something else?
+              case (res, ()) => lastWords(s"expected a Block from the block parse rule; got ${res.describe}")
+            }
           )
         )
       ParseRule("`new` keyword")(
@@ -341,10 +341,11 @@ class ParseRules(using State):
     .map { case (kw, o) => o.mkLocWith(kw) }
     ,
     keepKw(`constructor`):
-      ParseRule("constructor keyword"):
-        Blk(
+      ParseRule("constructor keyword")(
+        exprOrBlk(
           ParseRule(s"constructor block")(end(()))
-        ) { case (body, _) => Constructor(body) }
+        ) { case (body, _) => Constructor(body) }*
+      )
     .map { case (kw, c) => c.mkLocWith(kw) }
     ,
     Kw(`fun`)(termDefBody(Fun))(extendLoc),
@@ -383,11 +384,13 @@ class ParseRules(using State):
           discard
         *)
     ) { case (kw, body) => Tree.PrefixApp(kw, body) },
+    prefixed(`|`),
+    prefixed(`&`),
     prefixed(`drop`),
     prefixed(`not`),
     prefixed(`new!`),
     prefixed(`throw`),
-    prefixed(`import`), // TODO improve – only allow strings
+    prefixed(`import`),
     modified(`virtual`),
     modified(`override`),
     modified(`declare`),
@@ -468,6 +471,8 @@ class ParseRules(using State):
     makeInfixRule(`or`),
     makeInfixRule(`is`),
     makeInfixRule(`as`),
+    makeInfixRule(`|`),
+    makeInfixRule(`&`),
     makeInfixRule(`then`),
     makeInfixRule(`:`),
     makeInfixRule(`extends`),

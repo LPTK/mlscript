@@ -71,14 +71,14 @@ in
   h.perform("5")
 result
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let result, h7, handleBlock$7, Handler$h$perform7, Handler$h$15, Handler$h$perform$4;
+//│ let result, h7, handleBlock$7, Handler$h$perform5, Handler$h$15, Handler$h$perform$4;
 //│ runtime.resetEffects();
 //│ Handler$h$perform$4 = function Handler$h$perform$(arg) {
 //│   return (k) => {
-//│     return Handler$h$perform7(arg, k)
+//│     return Handler$h$perform5(arg, k)
 //│   }
 //│ };
-//│ Handler$h$perform7 = function Handler$h$perform(arg, k) {
+//│ Handler$h$perform5 = function Handler$h$perform(arg, k) {
 //│   let v, pc;
 //│   if (runtime.resumePc === -1) {
 //│     pc = 0;
@@ -86,21 +86,18 @@ result
 //│     pc = runtime.resumePc;
 //│     runtime.resumePc = -1;
 //│   }
-//│   main: while (true) {
-//│     switch (pc) {
-//│       case 0:
-//│         runtime.resumeValue = runtime.safeCall(k(arg));
-//│         if (runtime.curEffect === null) {
-//│           pc = 1;
-//│           continue main
-//│         }
-//│         return runtime.unwind(Handler$h$perform7, 1, "Effects.mls:63:13", null, null, 1, 2, arg, k, 0);
-//│       case 1:
-//│         v = runtime.resumeValue;
-//│         result = result + arg;
-//│         return v;
-//│     }
-//│     break;
+//│   switch (pc) {
+//│     case 0:
+//│       runtime.resumeValue = runtime.safeCall(k(arg));
+//│       if (runtime.curEffect === null) {
+//│         pc = 1;
+//│       } else {
+//│         return runtime.unwind(Handler$h$perform5, 1, "Effects.mls:63:13", null, null, 1, 2, arg, k, 0)
+//│       }
+//│     case 1:
+//│       v = runtime.resumeValue;
+//│       result = result + arg;
+//│       return v;
 //│   }
 //│ };
 //│ result = "";
@@ -109,23 +106,18 @@ result
 //│     Handler$h$15 = this
 //│   }
 //│   constructor() {
-//│     let tmp7;
-//│     tmp7 = super();
-//│     if (runtime.curEffect === null) {
-//│       tmp7
-//│     } else {
-//│       tmp7 = runtime.illegalEffect("in a constructor");
-//│       tmp7
+//│     super();
+//│     if (runtime.curEffect !== null) {
+//│       runtime.illegalEffect("in a constructor");
 //│     }
 //│   }
-//│   #Handler$h$$cap;
 //│   perform(arg) {
 //│     let Handler$h$perform$here;
 //│     Handler$h$perform$here = Handler$h$perform$4(arg);
 //│     return runtime.mkEffect(this, Handler$h$perform$here)
 //│   }
 //│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Handler$h$"]; 
+//│   static [definitionMetadata] = ["class", "Handler$h$"];
 //│ });
 //│ h7 = new Handler$h$15();
 //│ handleBlock$7 = (undefined, function () {
@@ -136,51 +128,75 @@ result
 //│     pc = runtime.resumePc;
 //│     runtime.resumePc = -1;
 //│   }
-//│   main: while (true) {
-//│     switch (pc) {
-//│       case 0:
-//│         runtime.resumeValue = runtime.safeCall(h7.perform("1"));
-//│         if (runtime.curEffect === null) {
-//│           pc = 4;
-//│           continue main
-//│         }
-//│         return runtime.unwind(handleBlock$7, 4, "Effects.mls:67:3", null, null, 1, 0, 0);
-//│       case 1:
-//│         runtime.resumeValue;
-//│         return runtime.safeCall(h7.perform("5"));
-//│       case 2:
-//│         runtime.resumeValue;
-//│         runtime.resumeValue = runtime.safeCall(h7.perform("4"));
-//│         if (runtime.curEffect === null) {
-//│           pc = 1;
-//│           continue main
-//│         }
-//│         return runtime.unwind(handleBlock$7, 1, "Effects.mls:70:3", null, null, 1, 0, 0);
-//│       case 3:
-//│         runtime.resumeValue;
-//│         runtime.resumeValue = runtime.safeCall(h7.perform("3"));
-//│         if (runtime.curEffect === null) {
-//│           pc = 2;
-//│           continue main
-//│         }
-//│         return runtime.unwind(handleBlock$7, 2, "Effects.mls:69:3", null, null, 1, 0, 0);
-//│       case 4:
-//│         runtime.resumeValue;
-//│         runtime.resumeValue = runtime.safeCall(h7.perform("2"));
-//│         if (runtime.curEffect === null) {
-//│           pc = 3;
-//│           continue main
-//│         }
-//│         return runtime.unwind(handleBlock$7, 3, "Effects.mls:68:3", null, null, 1, 0, 0);
-//│     }
-//│     break;
+//│   switch (pc) {
+//│     case 0:
+//│       runtime.resumeValue = runtime.safeCall(h7.perform("1"));
+//│       if (runtime.curEffect === null) {
+//│         pc = 4;
+//│       } else {
+//│         return runtime.unwind(handleBlock$7, 4, "Effects.mls:67:3", null, null, 1, 0, 0)
+//│       }
+//│     case 4:
+//│       runtime.resumeValue;
+//│       runtime.resumeValue = runtime.safeCall(h7.perform("2"));
+//│       if (runtime.curEffect === null) {
+//│         pc = 3;
+//│       } else {
+//│         return runtime.unwind(handleBlock$7, 3, "Effects.mls:68:3", null, null, 1, 0, 0)
+//│       }
+//│     case 3:
+//│       runtime.resumeValue;
+//│       runtime.resumeValue = runtime.safeCall(h7.perform("3"));
+//│       if (runtime.curEffect === null) {
+//│         pc = 2;
+//│       } else {
+//│         return runtime.unwind(handleBlock$7, 2, "Effects.mls:69:3", null, null, 1, 0, 0)
+//│       }
+//│     case 2:
+//│       runtime.resumeValue;
+//│       runtime.resumeValue = runtime.safeCall(h7.perform("4"));
+//│       if (runtime.curEffect === null) {
+//│         pc = 1;
+//│       } else {
+//│         return runtime.unwind(handleBlock$7, 1, "Effects.mls:70:3", null, null, 1, 0, 0)
+//│       }
+//│     case 1:
+//│       runtime.resumeValue;
+//│       return runtime.safeCall(h7.perform("5"));
 //│   }
 //│ });
 //│ runtime.enterHandleBlock(h7, handleBlock$7);
-//│ if (runtime.curEffect === null) { result } else { runtime.topLevelEffect(false); result }
+//│ if (runtime.curEffect === null) { return result }
+//│ runtime.topLevelEffect(false);
+//│ return result;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = "54321"
 //│ result = "54321"
+
+
+// Tuple matches will not be instrumented
+:soir
+:effectHandlers
+fun f() = case [...x, y, z] then x
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let lambda;
+//│ do runtime⁰.resetEffects﹖();
+//│ @private
+//│ define lambda as fun lambda⁰(caseScrut) {
+//│   let middleElements;
+//│   match caseScrut
+//│     Array(2+) =>
+//│       set middleElements = runtime⁰.Tuple⁰.slice⁰(caseScrut, 0, 2);
+//│       do runtime⁰.Tuple⁰.get⁰(caseScrut, -2);
+//│       do runtime⁰.Tuple⁰.get⁰(caseScrut, -1);
+//│       return middleElements
+//│     else
+//│       throw new globalThis⁰.Error⁰("match error")
+//│   end
+//│ };
+//│ define f⁰ as fun f¹() { return lambda⁰ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :expect "b"
 handle h = Effect with
@@ -452,28 +468,28 @@ handle h = Eff with
   fun perform()(k) = k(())
 foo(h)
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.447: 	    module A with
+//│ ║  l.463: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.443: 	    module A with
+//│ ║  l.459: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.439: 	    module A with
+//│ ║  l.455: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.435: 	    module A with
+//│ ║  l.451: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.435: 	    module A with
+//│ ║  l.451: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.439: 	    module A with
+//│ ║  l.455: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.443: 	    module A with
+//│ ║  l.459: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.447: 	    module A with
+//│ ║  l.463: 	    module A with
 //│ ╙──       	           ^
 //│ = 123
 

@@ -3,7 +3,7 @@ package hkmc2
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 
 import better.files.*
 import _root_.io.methvin
@@ -78,7 +78,7 @@ class Watcher(dirs: Ls[File]):
         completionTime(event.path) = LocalDateTime.now()
       catch ex =>
         // System.err.println("Unexpected error in watcher: " + ex)
-        // ex.printStackTrace()
+        ex.printStackTrace()
         System.err.println("Unexpected error in watcher (" + ex.getClass() + ")")
         watcher.close()
         throw ex

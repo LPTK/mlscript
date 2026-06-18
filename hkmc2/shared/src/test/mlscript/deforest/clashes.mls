@@ -1,8 +1,6 @@
 :js
 :deforest
 
-//│ deforest > >>> fusing >>>
-//│ deforest > <<< fusing <<<
 
 data class A(x)
 //│ deforest > >>> fusing >>>
@@ -37,19 +35,17 @@ f1(badWrap(4)) + f2(badWrap(5))
 
 :expect 9
 fun p(x) = A(x)
-let one = p(1)
+let one = p(1) in...
 let two = p(2)
 fun f1(p) = if p is A(a) then a + 1
 fun f2(p) = if p is A(b) then b + 2
 f1(one) + f2(one) + f2(two)
 //│ deforest > >>> fusing >>>
-//│ deforest > Call(Ref(member:A,Some(term:A/A)),List(Arg(None,Ref(x,None)))) ->
-//│ deforest > 	Ref(p,None)
-//│ deforest > 	Select(Ref(p,None),Ident(x))
+//│ deforest > A⁰(x⁰) ->
+//│ deforest > 	match: p⁰
+//│ deforest > 	fields: p⁰.x¹
 //│ deforest > <<< fusing <<<
 //│ = 9
-//│ one = A(1)
-//│ two = fun inlinedVal1
 
 
 

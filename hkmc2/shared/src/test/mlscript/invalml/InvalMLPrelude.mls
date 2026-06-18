@@ -1,15 +1,9 @@
-:ignore
-// ^ Ignore the silly warnings below, which are due to `untyped` not being treated as THE `untyped` builtin
 
+open annotations
 
 declare class Any
 declare class Nothing
 declare class Object
-
-declare class untyped
-
-declare class tailrec
-declare class tailcall
 
 declare class Unit
 declare class Bool
@@ -34,24 +28,6 @@ set
   globalThis.CodeBase = CodeBase
   globalThis.Region = Region
   globalThis.Ref = (r, v) => new mut Ref(r, v)
-//│ ╔══[WARNING] This annotation has no effect.
-//│ ║  l.32: 	@untyped
-//│ ║        	^^^^^^^^
-//│ ╟── This annotation is not supported on assignment terms.
-//│ ║  l.34: 	  globalThis.CodeBase = CodeBase
-//│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╔══[WARNING] This annotation has no effect.
-//│ ║  l.32: 	@untyped
-//│ ║        	^^^^^^^^
-//│ ╟── This annotation is not supported on assignment terms.
-//│ ║  l.35: 	  globalThis.Region = Region
-//│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╔══[WARNING] This annotation has no effect.
-//│ ║  l.32: 	@untyped
-//│ ║        	^^^^^^^^
-//│ ╟── This annotation is not supported on assignment terms.
-//│ ║  l.36: 	  globalThis.Ref = (r, v) => new mut Ref(r, v)
-//│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 declare class Function
 
@@ -68,7 +44,8 @@ declare module source with
 
 declare class Array[T](val length: Int): Array[T]
 
-declare object Symbol with
+declare class Symbol
+declare module Symbol with
   // The `TermDef` needs `rhs` to be defined to be recognized as `isMLsFun`.
   // Otherwise, it would be wrapped in `runtime.safeCall`, which accesses the
   // uninitialized `runtime` in the `Rendering` module.
@@ -104,12 +81,22 @@ declare module debug with
   fun printStack
 
 declare module annotations with
+  object untyped
+  object tailrec
+  object tailcall
+  object inline
   object compile
   object buffered
   object bufferable
+  object mayNotRaiseEffects
 
 declare module scope with
   fun locally
+
+declare module runtime with
+  fun
+    suspend
+    handle_suspension
 
 
 declare fun run: [T] -> CodeBase[out T, out Nothing, out Any] -> T
@@ -139,11 +126,5 @@ declare fun (||): (Bool, Bool) -> Bool
 
 
 fun print(x) = @untyped globalThis.console.log(x)
-//│ ╔══[WARNING] This annotation has no effect.
-//│ ║  l.141: 	fun print(x) = @untyped globalThis.console.log(x)
-//│ ║         	               ^^^^^^^^
-//│ ╟── This annotation is not supported on application terms.
-//│ ║  l.141: 	fun print(x) = @untyped globalThis.console.log(x)
-//│ ╙──       	                        ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 

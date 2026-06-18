@@ -8,7 +8,7 @@ open StrOps
 :sjs
 "a" is Str
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let scrut; scrut = "a"; if (typeof scrut === 'string') { true } else { false }
+//│ if (typeof "a" === 'string') { return true } return false;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = true
 
@@ -65,7 +65,9 @@ concat of
 //│ ╔══[PARSE ERROR] Expected end of input; found literal instead
 //│ ║  l.61: 	~ of "a", "b"
 //│ ╙──      	     ^^^
-//│ ═══[COMPILATION ERROR] Unexpected term form in expression position (negation type)
+//│ ╔══[COMPILATION ERROR] Unexpected term form in expression position (negation type)
+//│ ║  l.61: 	~ of "a", "b"
+//│ ╙──      	     ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 (~) of "a", "b"

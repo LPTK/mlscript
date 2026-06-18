@@ -31,17 +31,14 @@ fun foo(h): module M =
 //│ runtime.checkCall(runtime.resetEffects());
 //│ foo = function foo(h) {
 //│   runtime.checkArgs("foo", 1, true, arguments.length);
-//│   let A2, A3, scrut;
-//│   scrut = false;
-//│   if (scrut === true) {
+//│   let A2, A3;
+//│   if (false === true) {
 //│     globalThis.Object.freeze(class A {
 //│       static {
 //│         A2 = this
 //│       }
-//│       static #A_mod$cap;
-//│       #A$cap;
 //│       toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["class", "A"]; 
+//│       static [definitionMetadata] = ["class", "A"];
 //│     });
 //│     return A2
 //│   }
@@ -49,10 +46,8 @@ fun foo(h): module M =
 //│     static {
 //│       A3 = this
 //│     }
-//│     static #A_mod$cap;
-//│     #A$cap;
 //│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "A"]; 
+//│     static [definitionMetadata] = ["class", "A"];
 //│   });
 //│   return A3;
 //│ };

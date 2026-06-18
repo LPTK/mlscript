@@ -29,7 +29,7 @@ data class A(x) with
     let t = this
     t.B(2).getB()
 A(1).getA()
-//│ ═══[RUNTIME ERROR] TypeError: t.B is not a function
+//│ ═══[RUNTIME ERROR] TypeError: this.B is not a function
 //│ ═══[RUNTIME ERROR] Expected: '3', got: 'undefined'
 
 // This is due to the order of classes after lifting
@@ -39,54 +39,7 @@ fun hello() =
   new Test2
 //│ ═══[RUNTIME ERROR] TypeError: Class extends value undefined is not a constructor or null
 
-// This is due to subclasses not calling `super` with the required locals. The analysis to
-// determine which locals are required is not in place yet.
-:expect 2
-fun test(x) =
-  class A with
-    fun get = x
-  class B() extends A
-  B().get
-test(2)
-//│ ═══[RUNTIME ERROR] Error: Access to required field 'get' yielded 'undefined'
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'
-
-// This is due to `super` not being called with multiple parameter lists.
-:expect "B()"
-fun test(x) =
-  class A() with
-    fun get = x
-  class B() extends A() with
-    fun bar = x
-  B()
-test(0).toString()
-//│ ═══[RUNTIME ERROR] Expected: '"B()"', got: '"(x) => {       this.#x = x;       return this;     }"'
-//│ = "(x) => {       this.#x = x;       return this;     }"
-
-// In fact, the correct way (using the current "constructor returns a lambda" hack) is this:
-// return (params) => {
-//   let ret = super(parentMainParams)(parentAuxParams);
-//   // ctor
-//   return ret;
-// }
-
 /// The following are related to first-class classes, instance checks, and private fields. ///
-
-:w
-:expect 1
-fun f(used1, unused1) =
-  fun g(g_arg) =
-    let used3 = 2
-    fun h = used3
-    used1 + h
-  let unused2 = 2
-  class Test(a) with
-    fun get() = used1
-  let foo = Test
-  foo(unused1)
-f(1, 2).get()
-//│ ═══[WARNING] Cannot yet lift class `Test` as it is used as a first-class class.
-//│ = 1
 
 
 :todo
@@ -97,17 +50,14 @@ fun foo1(x, n) =
   if n > 0 then res + foo1(C(), n - 1) else ""
 //│ ═══[WARNING] Cannot yet lift class/module `C` as it is used in an instance check.
 
-:todo // should return the function that creates C instances
-:w
 fun foo2() =
   class C()
   C
-//│ ═══[WARNING] Cannot yet lift class `C` as it is used as a first-class class.
 
 :w
 fun foo3() =
-  class C()
-  fun f = C()
+  class C
+  fun f = new C
   C
 //│ ═══[WARNING] Cannot yet lift class `C` as it is used as a first-class class.
 
@@ -139,8 +89,8 @@ fun foo(x, y) =
       x + y + test
   M.foo()
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.135: 	  module M with
-//│ ╙──       	         ^
+//│ ║  l.85: 	  module M with
+//│ ╙──      	         ^
 
 :expect 14
 foo(10, 0)
@@ -154,7 +104,7 @@ fun foo(x, y) =
   fun foo = M.foo()
   foo
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.150: 	  module M with
+//│ ║  l.100: 	  module M with
 //│ ╙──       	         ^
 
 :expect 12
@@ -167,7 +117,7 @@ data class A(x) with
     fun getB() = x
   fun getA() = M.getB()
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.166: 	  module M with
+//│ ║  l.116: 	  module M with
 //│ ╙──       	         ^
 
 :expect 2
@@ -183,13 +133,13 @@ fun foo(x) =
   (new Bar).self2
 foo(2)
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found reference of type Foo.
-//│ ║  l.182: 	  class Bar extends Foo
+//│ ║  l.132: 	  class Bar extends Foo
 //│ ║         	                    ^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.179: 	  object Foo with
+//│ ║  l.129: 	  object Foo with
 //│ ╙──       	         ^^^
-//│ ═══[WARNING] Cannot yet lift definition `Bar` as it extends an expression.
+//│ ═══[WARNING] Cannot yet lift definition `Bar` as it extends an unliftable class.
 //│ ═══[RUNTIME ERROR] TypeError: Class extends value [object Object] is not a constructor or null
 
 // `h` is lifted out, but then cannot access the BlockMemberSymbol M.
@@ -203,19 +153,19 @@ fun f =
       h
   M.g
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.200: 	  module M with
+//│ ║  l.150: 	  module M with
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'M'
-//│ ║  l.202: 	      fun h = M.g
+//│ ║  l.152: 	      fun h = M.g
 //│ ║         	              ^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.200: 	  module M with
+//│ ║  l.150: 	  module M with
 //│ ║         	         ^^^^^^
-//│ ║  l.201: 	    fun g =
+//│ ║  l.151: 	    fun g =
 //│ ║         	^^^^^^^^^^^
-//│ ║  l.202: 	      fun h = M.g
+//│ ║  l.152: 	      fun h = M.g
 //│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.203: 	      h
+//│ ║  l.153: 	      h
 //│ ╙──       	^^^^^^^
 
 

@@ -1,7 +1,7 @@
 package hkmc2
 package semantics
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import syntax.Tree
 import syntax.Tree.*
 import hkmc2.syntax.{PossiblyAnnotated, TypeOrTermDef}
@@ -9,6 +9,12 @@ import hkmc2.syntax.{PossiblyAnnotated, TypeOrTermDef}
 
 trait BlockImpl(using Elaborator.State):
   self: Block =>
+  
+  def withStmts(newStmts: Ls[Tree]): Block =
+    if newStmts is stmts then this else Block(newStmts).withLocOf(this)
+  
+  def :+(stmt: Tree): Block =
+    Block(stmts :+ stmt).withLocOf(self.mkLocWith(stmt))
   
   val desugStmts =
     def desug(stmts: Ls[Tree]): Ls[Tree] =
@@ -27,6 +33,7 @@ trait BlockImpl(using Elaborator.State):
         lazy val (headId, headPs) = td.baseHead match
           case id: Ident => (id, Nil)
           case App(id: Ident, TyTup(ps)) => (id, ps)
+          case _ => TODO(s"unexpected ADT head shape: ${td.baseHead}")
         // Temporarily use `data` annotation to distinguish the following ctors:
         // - Ctor(...)
         // - Ctor[...](...) extends ADT[...]

@@ -4,11 +4,6 @@ declare type Any
 declare type Anything
 declare type Nothing
 
-declare type untyped
-
-declare type tailrec
-declare type tailcall
-
 declare class Object
 declare module Object with
   fun
@@ -116,7 +111,8 @@ declare module Array with
     isArray
     prototype
 
-declare object Symbol with
+declare class Symbol
+declare module Symbol with
   // The `TermDef` needs `rhs` to be defined to be recognized as `isMLsFun`.
   // Otherwise, it would be wrapped in `runtime.safeCall`, which accesses the
   // uninitialized `runtime` in the `Rendering` module.
@@ -216,8 +212,10 @@ declare val Infinity
 declare class Promise
 declare val Promise
 declare object WebAssembly with
+  declare class Instance
   declare class Memory
-  declare object Module with
+  declare class Module
+  declare module Module with
     fun
       exports
       imports
@@ -267,12 +265,22 @@ declare module debug with
   fun printStack
 
 declare module annotations with
+  object untyped
+  object tailrec
+  object tailcall
+  object inline
   object compile
   object buffered
   object bufferable
+  object mayNotRaiseEffects
 
 declare module scope with
   fun locally
+
+declare module runtime with
+  fun
+    suspend
+    handle_suspension
 
 
 // HTML DOM API definitions.

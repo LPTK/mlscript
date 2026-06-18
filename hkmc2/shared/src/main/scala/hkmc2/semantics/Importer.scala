@@ -4,7 +4,7 @@ package semantics
 import scala.collection.mutable
 import scala.annotation.tailrec
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import hkmc2.utils.*
 import hkmc2.Message.MessageContext
 import hkmc2.io
@@ -18,7 +18,7 @@ class Importer:
   self: Elaborator =>
   import tl.*
   
-  def importPath(path: Str)(using cfg: Config): Import =
+  def importPath(path: Str, alias: Opt[syntax.Tree.Ident])(using cfg: Config): Import =
     // log(s"pwd: ${os.pwd}")
     // log(s"wd: ${wd}")
     
@@ -28,9 +28,9 @@ class Importer:
       else wd / io.RelPath(path)
     
     val nme = file.baseName
-    val id = new syntax.Tree.Ident(nme) // TODO loc
+    val id = alias.getOrElse(new syntax.Tree.Ident(nme)) // TODO loc
     
-    lazy val sym = TermSymbol(LetBind, N, id)
+    lazy val sym = VarSymbol(id)
     
     if path.startsWith(".") || path.startsWith("/") then // leave alone imports like "fs"
       log(s"importing $file")
@@ -52,12 +52,14 @@ class Importer:
           false
       } =>
         
-        val sym = tl.trace(s">>> Importing $file"):
+        val importedSym = tl.trace(s">>> Importing $file"):
           given TL = tl
           val artifact = cctx.getElaboratedBlock(file, prelude)
           artifact.tree.definedSymbols.find(_._1 === nme) match
           case Some(nme -> imsym) => imsym
           case None => lastWords(s"File $file does not define a symbol named $nme")
+        val sym: VarSymbol | BlockMemberSymbol = alias.fold(importedSym): alias =>
+          VarSymbol(alias)
         
         val jsFile = file.up / io.RelPath(file.baseName + ".mjs")
         Import(sym, jsFile.toString, jsFile)

@@ -6,7 +6,7 @@ import scala.collection.mutable
 import scala.util.boundary
 import sourcecode.{ Line, FileName, Name }
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import hkmc2.utils.*
 import hkmc2.utils.SymbolSubst
 import hkmc2.Message.MessageContext
@@ -38,8 +38,6 @@ object HandlerLowering:
     def last = p.selN(lastIdent)
     def contTrace = p.selN(contTraceIdent)
   
-  private case class LinkState(res: Local, cls: Path, uid: Path)
-  
   type FnOrCls = Either[BlockMemberSymbol, DefinitionSymbol[? <: ClassLikeDef] & InnerSymbol]
 
   private enum HandlerCtx:
@@ -61,7 +59,7 @@ object HandlerLowering:
   // currentFun: path to the current function for resumption
   // thisPath: path to `this` binding if the function is a method, `this` will be rebinded on resumption
   private case class FunctionCtx(currentFun: Path, thisPath: Option[Path], resumeInfo: ResumeInfo, debugInfo: DebugInfo, inGetter: Bool):
-    def doUnwind(loc: Value, stateId: BigInt, restoreList: List[Local])(using paths: HandlerPaths) =
+    def doUnwind(loc: Value, stateId: BigInt, restoreList: List[LocalVarSymbol])(using paths: HandlerPaths) =
       Return(Call(paths.unwindPath, (
         currentFun ::
         intLit(stateId) ::
@@ -71,14 +69,14 @@ object HandlerLowering:
         resumeInfo.argLists ++:
         (intLit(restoreList.length) ::
         restoreList.map(_.asPath))
-      ).map(_.asArg))(true, true, false), false)
+      ).map(_.asArg) ne_:: Nil)(CallMetadata.mlsFunWithEffect))
   
   // argLists: length-encoded argument list used for resumption.
   // currentLocals: All locals to be saved and reloaded, this cannot include any variables in outer scopes
   // currentStackSafetySym: The symbol to be used for stack safety
   private case class ResumeInfo(
     argLists: List[Path],
-    currentLocals: List[Local],
+    currentLocals: List[LocalVarSymbol],
     currentStackSafetySym: FnOrCls,
   )
   
@@ -86,13 +84,19 @@ object HandlerLowering:
     debugNme: Str,
     debugInfoPath: Path,
   )
+
+  object EffectfulResult:
+    def unapply(r: Result)(using Config): Bool = r match
+      case c: Call if c.metadata.mayRaiseEffects => true
+      case _: Instantiate if config.checkInstantiateEffect => true
+      case _ => false
   
   type StateId = BigInt
 
 import HandlerLowering.*
 
 class HandlerPaths(using Elaborator.State):
-  val runtimePath: Path = State.runtimeSymbol.asPath
+  val runtimePath: Path = State.runtimeSymbol.asSimpleRef
   val contClsPath: Path = runtimePath.selSN("FunctionContFrame").selSN("class")
   val mkEffectPath: Path = runtimePath.selSN("mkEffect")
   val handleBlockImplPath: Path = runtimePath.selSN("handleBlockImpl")
@@ -114,20 +118,20 @@ class HandlerPaths(using Elaborator.State):
 
 type StackSafetyMap = collection.Map[FnOrCls, (Int, Block)]
 
-class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise, Elaborator.State, Elaborator.Ctx):
+class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise, Elaborator.State, Elaborator.Ctx, Config):
   
   private def freshTmp(dbgNme: Str = "tmp") = new TempSymbol(N, dbgNme)
   private def freshLabel(nme: Str) = new LabelSymbol(N, nme)
   
   private def rtThrowMsg(msg: Str) = Throw(
-    Instantiate(mut = false, State.globalThisSymbol.asPath.selN(Tree.Ident("Error")),
-    Value.Lit(Tree.StrLit(msg)).asArg :: Nil)
+    Instantiate(mut = false, State.globalThisSymbol.asThis.selN(Tree.Ident("Error")),
+    (Value.Lit(Tree.StrLit(msg)).asArg :: Nil) :: Nil)(InstantiateMetadata.empty)
   )
   
   object PureCall:
-    def apply(fun: Path, args: List[Path]) = Call(fun, args.map(Arg(N, _)))(true, false, false)
+    def apply(fun: Path, args: List[Path]) = Call(fun, args.map(Arg(N, _)) ne_:: Nil)(CallMetadata.defaultMlsFun)
     def unapply(res: Result) = res match
-      case Call(fun, args) => args.foldRight[Opt[List[Path]]](S(Nil)): (arg, acc) =>
+      case Call(fun, args :: Nil) => args.foldRight[Opt[List[Path]]](S(Nil)): (arg, acc) =>
           acc.flatMap: acc =>
             arg match
               case Arg(N, p) => S(p :: acc)
@@ -138,18 +142,18 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
   object StateTransition:
     private val transitionSymbol = freshTmp("transition")
     def apply(uid: StateId) =
-      Return(PureCall(Value.Ref(transitionSymbol), List(Value.Lit(Tree.IntLit(uid)))), false)
+      Return(PureCall(transitionSymbol.asSimpleRef, List(Value.Lit(Tree.IntLit(uid)))))
     def unapply(blk: Block) = blk match
-      case Return(PureCall(Value.Ref(`transitionSymbol`, _), List(Value.Lit(Tree.IntLit(uid)))), false) =>
+      case Return(PureCall(Value.SimpleRef(`transitionSymbol`), List(Value.Lit(Tree.IntLit(uid))))) =>
         S(uid)
       case _ => N
 
   object Unwind:
     private val unwindSymbol = freshTmp("unwind")
     def apply(uid: StateId, loc: Value) =
-      Return(PureCall(Value.Ref(unwindSymbol), List(Value.Lit(Tree.IntLit(uid)), loc)), false)
+      Return(PureCall(unwindSymbol.asSimpleRef, List(Value.Lit(Tree.IntLit(uid)), loc)))
     def unapply(blk: Block) = blk match
-      case Return(PureCall(Value.Ref(`unwindSymbol`, _), List(Value.Lit(Tree.IntLit(uid)), loc: Value)), false) =>
+      case Return(PureCall(Value.SimpleRef(`unwindSymbol`), List(Value.Lit(Tree.IntLit(uid)), loc: Value))) =>
         S(uid, loc)
       case _ => N
 
@@ -174,12 +178,6 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
     containsCall: Bool,
     containsError: Bool
   )
-
-  object EffectfulResult:
-    def unapply(r: Result) = r match
-      case c: Call if c.mayRaiseEffects => S(r)
-      case _: Instantiate if opt.checkInstantiateEffect => S(r)
-      case _ => N
   
   private def partitionBlock(blk: Block): PartitionedBlock =
     val result = mutable.HashMap.empty[StateId, BlockPartition]
@@ -227,12 +225,12 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       val nonTrivialBlockChecker = new BlockDataTransformer(SymbolSubst.Id):
         override def applyBlock(b: Block) = b match
           // Special handling for tail calls
-          case Return(c @ Call(fun, args), false) =>
+          case Return(c @ Call(fun, args)) =>
             containsCall = true
             b // Prevents the recursion into applyResult
           case _ => super.applyBlock(b)
         override def applyResult(r: Result)(k: Result => Block) = r match
-          case EffectfulResult(r) =>
+          case r @ EffectfulResult() =>
             containsCall = true
             doNewEffectPartition(r, k(paths.resumeValue))
           case _ => super.applyResult(r)(k)
@@ -303,13 +301,6 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         else
           blk
 
-      // Currently, implicit returns are only used in top level and tail call of constructor
-      // The former case never enters the partitioning function, so it must be the later case here.
-      // We no longer handle the later case, hence we can ignore this case.
-      // case Return(_, true) => afterEnd match
-      //   case None => End()
-      //   case Some(id) => StateTransition(id)
-
       // identity cases
 
       case Define(defn, rest) => Define(defn, go(rest))
@@ -327,7 +318,6 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
           source = Diagnostic.Source.Compilation))
       case Throw(_) => blk
       case Scoped(_, body) => go(body) // PreHandlerLowering
-      case _: HandleBlock => lastWords("unexpected handleBlock") // already translated at this point
 
     val initId = allocId()
     // Note: initial part will only be resumed if stack safety is on.
@@ -343,7 +333,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       id -> BlockPartition(replaceStaleLabels.applyBlock(part.blk), part.resumable))
     PartitionedBlock(initId, newMap, allocId, containsCall, containsError)
 
-  private def computeRestoreList(parts: PartitionedBlock)(using ctx: FunctionCtx): List[Local] =
+  private def computeRestoreList(parts: PartitionedBlock)(using ctx: FunctionCtx): List[LocalVarSymbol] =
     // We compute the restore list by taking the union of live variables at each resumption point
     // The live variable analysis uses a classic work list approach
     val locals = ctx.resumeInfo.currentLocals
@@ -367,7 +357,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       val used = mutable.BitSet.empty
       val outgoing = mutable.HashSet.empty[StateId]
 
-      def assignToSym(l: Local) =
+      def assignToSym(l: LocalVarSymbol) =
         localSetMap.get(l).foreach: idx =>
           assigned += idx
 
@@ -398,20 +388,23 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
             outgoing += labelMap(label)._1
           case Assign(lhs, rhs, rest) =>
             applyResult(rhs)
-            assignToSym(lhs)
+            lhs match
+            case lhs: LocalVarSymbol => assignToSym(lhs)
+            case NoSymbol =>
             applyBlock(rest)
           case Define(defn: ValDefn, rest) =>
             applyPath(defn.rhs)
-            assignToSym(defn.sym)
             applyBlock(rest)
           case Define(defn, rest) =>
-            assignToSym(defn.sym)
             applyBlock(rest)
           case _ => super.applyBlock(b)
         override def applySymbol(sym: Symbol): Unit =
-          localSetMap.get(sym).foreach: idx =>
-            if !assigned.contains(idx) then
-              used += idx
+          sym match
+          case sym: LocalVarSymbol =>
+            localSetMap.get(sym).foreach: idx =>
+              if !assigned.contains(idx) then
+                used += idx
+          case _ =>
 
       (used, assigned, outgoing.toList)
 
@@ -455,6 +448,69 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       .toList
       .map(locals(_))
 
+  private def computeEdges(parts: PartitionedBlock): Map[StateId, List[StateId]] =
+    val edges = mutable.ListBuffer.empty[(StateId, StateId)]
+    def findEdges(uid: StateId, b: Block) =
+      new BlockTraverser:
+        override def applyBlock(b: Block): Unit = b match
+          case StateTransition(uid2) => edges.addOne((uid, uid2))
+          case _ => super.applyBlock(b)
+        applyBlock(b)
+    for (uid, blk) <- parts.states do
+      findEdges(uid, blk.blk)
+    edges.groupBy(_._1).map:
+      case uid -> ids => uid -> ids.map:
+          case (a, b) => b
+        .toList
+        .distinct
+  
+  // Denotes whether a block transitions to another state only on the outer level,
+  // i.e. should return false iff there is a state transition within an if, label, etc.
+  // A precondition is that the state corresponding to the input block has an out-degree
+  // of 1. This means if a state transition cannot be found on the outer level, there
+  // must be a state transition within another construct and should return false.
+  @tailrec
+  private def isSimpleTransition(b: Block): Bool = b match
+    case StateTransition(uid) => true
+    case b: NonBlockTail => isSimpleTransition(b.rest)
+    case _: BlockTail => false
+
+  // Given a directed graph, computes the "straight line" segments of the graph, i.e. partitions it
+  // into segments such that the out-degree of all elements in each segment is 1, except
+  // for the last element. Note that the partitioning is not necessarily unique and this does
+  // not necessarily produce a "maximal" partitioning. (I actually suspect that producing a
+  // maximal partitioning is NP-hard...)
+  //
+  // I do have some ideas to improve this though, but those can be done later.
+  private def computeStraightLines(entry: StateId, edges: Map[StateId, List[StateId]]): List[List[StateId]] =
+    val visited = mutable.HashSet.empty[StateId]
+    val ret = mutable.ListBuffer.empty[List[StateId]]
+    // Algorithm: Perform a DFS and accumulate the current straight-line segment as we visit nodes.
+    // Once we reach a node that has an out degree of != 1, we end the current straight line segment.
+    def dfs(state: StateId, acc: List[StateId]): Unit =
+      var curAcc = acc
+      def concludeSegment =
+        ret.addOne(curAcc)
+        curAcc = List.empty
+      if !visited.contains(state) then
+        // Not yet visited: Add this node to the current segment.
+        curAcc = state :: curAcc
+        visited.add(state)
+        edges.get(state) match
+        case Some(nexts) =>
+          // If this state has an out degree of != 1, then end the current segment.
+          if nexts.size != 1 then
+            concludeSegment
+          for n <- nexts do dfs(n, curAcc)
+        case None => concludeSegment
+      // If this state was visited from a node u with an out-degree of 1, but this state
+      // has already been previously visited, then we must conclude the current segment,
+      // ending at the node u.
+      else if !curAcc.isEmpty then
+        concludeSegment
+    dfs(entry, List.empty)
+    ret.sortBy(x => x.headOption.getOrElse(BigInt(-1))).toList
+
   val stackSafetyMap: mutable.Map[FnOrCls, (Int, Block)] = mutable.HashMap.empty
   
   private def lifterReport(using Line, FileName)(msgs: Ls[Message -> Opt[Loc]])(using Name) =
@@ -465,54 +521,63 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
 
   /**
    * The actual translation:
-   * 1. rewrite handler blocks in terms of classes and functions
+   * 1. rewrite handler blocks in terms of classes and functions (directly during Lowering)
    * 2. class lifter
-   * 3. state machine transformation of all functions
+   * 3. state machine transformation of all functions (HandlerLowering, this class)
    */
 
-  private def translateBlock(blk: Block, h: HandlerCtx, scopedVars: collection.Set[Local]): Block =
+  private def translateBlock(blk: Block, h: HandlerCtx, scopedVars: collection.Set[ScopedSymbol]): Block =
     given HandlerCtx = h
 
     def translateFunLike(fun: FunDefn, funcPath: Path, thisPath: Option[Path], debugNme: Str) =
       val scopedVars = fun.body match
         case Scoped(syms, body) => syms
         case _ => Set()
-      val varList = scopedVars.toList.sortBy(_.uid)
-      val debugInfo = Value.Lit(Tree.StrLit(debugNme)).asArg :: varList.zipWithIndex.filter(_._1.isInstanceOf[VarSymbol])
+      val varList = scopedVars.collect:
+        case sym: LocalVarSymbol => sym
+      val sortedVars = varList.toList.sortBy(_.uid)
+      val debugInfo = Value.Lit(Tree.StrLit(debugNme)).asArg :: sortedVars.zipWithIndex.filter(_._1.isInstanceOf[VarSymbol])
         .flatMap: (sym, idx) =>
           List(intLit(idx), Value.Lit(Tree.StrLit(sym.nme)))
         .map(_.asArg)
       val debugInfoSym = freshTmp(s"$debugNme$$debugInfo")
       // TODO: properly support spread argument by calculating the correct length.
       val rtArgLists = intLit(fun.params.length) :: fun.params.flatMap: pl =>
-        intLit(pl.params.length) :: pl.params.map(_.sym.asPath)
-      val newCtx = HandlerCtx.FunctionLike(FunctionCtx(funcPath, thisPath, ResumeInfo(rtArgLists, varList, L(fun.sym)),
-        DebugInfo(debugNme, if opt.debug then debugInfoSym.asPath else unit), thisPath.isDefined && fun.params.isEmpty))
+        intLit(pl.params.length) :: pl.params.map(p => p.sym.asSimpleRef)
+      val newCtx = HandlerCtx.FunctionLike(FunctionCtx(funcPath, thisPath, ResumeInfo(rtArgLists, sortedVars, L(fun.sym)),
+        DebugInfo(debugNme, if opt.debug then debugInfoSym.asSimpleRef else unit), thisPath.isDefined && fun.params.isEmpty))
       val bod2 = translateBlock(fun.body, newCtx, scopedVars)
       val fun2 = if fun.body is bod2 then fun else
-        FunDefn(fun.owner, fun.sym, fun.dSym, fun.params, bod2)(fun.forceTailRec, fun.configOverride)
+        FunDefn(fun.owner, fun.sym, fun.dSym, fun.params, bod2)(fun.configOverride, fun.annotations)
       (debugInfoSym, debugInfo, fun2)
 
-    val subblockTransform = new BlockTransformer(SymbolSubst.Id):
+    // transform inner function/class and effect handler intrinsics to the runtime functions.
+    val preTransform = new BlockTransformer(SymbolSubst.Id):
+      override def applyResult(r: Result)(k: Result => Block): Block = r match
+        case Call(Value.MemberRef(sym, _), args) if sym is Elaborator.ctx.builtins.runtime.suspend =>
+          k(Call(paths.mkEffectPath, args)(CallMetadata.mlsFunWithEffect))
+        case Call(Value.MemberRef(sym, _), args) if sym is Elaborator.ctx.builtins.runtime.handle_suspension =>
+          k(Call(paths.enterHandleBlockPath, args)(CallMetadata.mlsFunWithEffect))
+        case _ => super.applyResult(r)(k)
       override def applyDefn(defn: Defn)(k: Defn => Block): Block = defn match
         case fun: FunDefn =>
           if !h.allowDefn then
             raise(lifterReport(msg"Unexpected nested function: lambdas may not function correctly." -> fun.sym.toLoc :: Nil))
-          val (debugInfoSym, debugInfo, fun2) = translateFunLike(fun, Value.Ref(fun.sym, S(fun.dSym)), N, fun.sym.nme)
+          val (debugInfoSym, debugInfo, fun2) = translateFunLike(fun, fun.sym.asMemberRef(fun.dSym), N, fun.sym.nme)
           if opt.debug then Scoped(Set.single(debugInfoSym), Assign(debugInfoSym, Tuple(false, debugInfo), k(fun2))) else k(fun2)
         case defn @ ClsLikeDefn(owner, isym, sym, ctorSym, kind, paramsOpt, auxParams, parentPath, methods, privateFields, publicFields, preCtor, ctor, companion, bufferable) =>
           if !h.allowDefn then
             raise(lifterReport(msg"Unexpected nested class: lambdas may not function correctly." -> isym.toLoc :: Nil))
-          val debugInfos = mutable.ArrayBuffer.empty[(Local, List[Arg])]
+          val debugInfos = mutable.ArrayBuffer.empty[(TempSymbol, List[Arg])]
           val newMtds = methods.map: f =>
-            val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, Value.Ref(isym).sel(new Tree.Ident(f.sym.nme), f.dSym),
-              S(Value.Ref(isym)), s"${sym.nme}#${f.sym.nme}")
+            val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, isym.asThis.sel(new Tree.Ident(f.sym.nme), f.dSym),
+              S(isym.asThis), s"${sym.nme}#${f.sym.nme}")
             debugInfos += debugInfoSym -> debugInfo
             fun2
           val companion2 = companion.map: bod =>
             val newMtds = bod.methods.map: f =>
-              val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, Value.Ref(bod.isym).sel(new Tree.Ident(f.sym.nme), f.dSym),
-                S(Value.Ref(bod.isym)), s"${sym.nme}.${f.sym.nme}")
+              val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, bod.isym.asThis.sel(new Tree.Ident(f.sym.nme), f.dSym),
+                S(bod.isym.asThis), s"${sym.nme}.${f.sym.nme}")
               debugInfos += debugInfoSym -> debugInfo
               fun2
             // We cannot use this bc there is no subblock transform...
@@ -521,24 +586,24 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
             // However, JSBuilder inserts extra statements between preCtor and ctor and it's not possible to replicate the exact behavior
             // without many special handling.
             val newCtor = if opt.doNotInstrumentTopLevelModCtor && !h.innerDefIsTrulyNested then bod.ctor else
-              translateCtorLike(bod.ctor, bod.isym.asPath, true)
+              translateCtorLike(bod.ctor, bod.isym.asThis, true)
             tl.log(s"companion name: ${bod.isym.nme}")
-            ClsLikeBody(bod.isym, newMtds, bod.privateFields, bod.publicFields, newCtor)
+            ClsLikeBody(bod.isym, newMtds, bod.privateFields, bod.publicFields, newCtor, bod.annotations)
           val c2 = ClsLikeDefn(owner, isym, sym, ctorSym, kind, paramsOpt, auxParams, parentPath, newMtds, privateFields, publicFields,
-            translateCtorLike(preCtor, isym.asPath, false), translateCtorLike(ctor, isym.asPath, false), companion2, bufferable)(defn.configOverride)
+            translateCtorLike(preCtor, isym.asThis, false), translateCtorLike(ctor, isym.asThis, false), companion2, bufferable)(defn.configOverride, defn.annotations)
           if opt.debug then
             Scoped(debugInfos.map(_._1).toSet, debugInfos.foldRight(k(c2)): (elem, blk) =>
               Assign(elem._1, Tuple(false, elem._2), blk))
           else k(c2)
         case _ => super.applyDefn(defn)(k)
-    val b = subblockTransform.applyBlock(blk)
+    val b = preTransform.applyBlock(blk)
     if h.inCtor then
-      return translateIllegalEffectCtx(b, Call(paths.illegalEffectPath, Value.Lit(Tree.StrLit("in a constructor")).asArg :: Nil)(true, true, false))
+      return translateIllegalEffectCtx(b, Call.raw(paths.illegalEffectPath, (Value.Lit(Tree.StrLit("in a constructor")).asArg :: Nil) ne_:: Nil)(CallMetadata.mlsFunWithEffect))
     if h.inTopLevel then
-      return translateIllegalEffectCtx(b, Call(paths.topLevelEffectPath, Value.Lit(Tree.BoolLit(opt.debug)).asArg :: Nil)(true, false, false))
+      return translateIllegalEffectCtx(b, Call.raw(paths.topLevelEffectPath, (Value.Lit(Tree.BoolLit(opt.debug)).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultMlsFun))
     val ctx = h.asInstanceOf[HandlerCtx.FunctionLike].ctx
     if ctx.inGetter then
-      return translateIllegalEffectCtx(b, Call(paths.illegalEffectPath, Value.Lit(Tree.StrLit("in a getter")).asArg :: Nil)(true, false, false))
+      return translateIllegalEffectCtx(b, Call.raw(paths.illegalEffectPath, (Value.Lit(Tree.StrLit("in a getter")).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultMlsFun))
     given FunctionCtx = ctx
     val parts = partitionBlock(b)
     stackSafetyMap += ctx.resumeInfo.currentStackSafetySym ->
@@ -553,7 +618,10 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
     val pcVar = freshTmp("pc")
     val mainLoopLbl = freshLabel("main")
 
-    val postTransform = new BlockTransformerShallow(SymbolSubst.Id):
+    val edges = computeEdges(parts)
+    val straightLines = computeStraightLines(parts.entry, edges)
+
+    val segmentTailTransform = new BlockTransformerShallow(SymbolSubst.Id):
       override def applyBlock(b: Block) = b match
         case StateTransition(uid) =>
           Assign(pcVar, Value.Lit(Tree.IntLit(uid)), Continue(mainLoopLbl))
@@ -561,31 +629,82 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
           ctx.doUnwind(loc, uid, vars)(using paths)
         case _ => super.applyBlock(b)
 
-    val arms = parts.states.toList.map: (id, part) =>
-      Case.Lit(Tree.IntLit(id)) ->
-        postTransform.applyBlock(part.blk)
+    // Note: `line` has the last state as the head, and the first state at the end
+    def straightLineToArms(line: List[StateId]): Block => Block =
+      def transformState(state: StateId) =
+        val blk = parts.states(state)
+        // If the state transition does not appear in tail position on the outer level,
+        // we must wrap the transformed state in a label, and jump to that label when
+        // encountering a state transition
+        val isSimple = isSimpleTransition(blk.blk)
+        lazy val lblSym = LabelSymbol(N, "brk" + state.toString())
+        val nextState = edges(state).head
+        val transform = new BlockTransformerShallow(SymbolSubst.Id):
+          override def applyBlock(b: Block) = b match
+            case StateTransition(uid) =>
+              assert(uid === nextState)
+              if isSimple then
+                Assign(pcVar, Value.Lit(Tree.IntLit(uid)), End())
+              else
+                Break(lblSym)
+            case Unwind(uid, loc) =>
+              ctx.doUnwind(loc, uid, vars)(using paths)
+            case _ => super.applyBlock(b)
+        val transformed = transform.applyBlock(blk.blk)
+        if isSimple then transformed
+        else Label(
+          lblSym, false, transformed,
+          Assign(pcVar, Value.Lit(Tree.IntLit(nextState)), End())
+        )
+      line match
+        case head :: next =>
+          val headTransformed = segmentTailTransform.applyBlock(parts.states(head).blk)
+          val initial: Block => Block = blk =>
+            Match(
+              pcVar.asSimpleRef,
+              Case.Lit(Tree.IntLit(head)) -> headTransformed :: Nil,
+              N,
+              blk
+            )
+          next.foldLeft(initial):
+            // Applying this function to a block b will result in b appearing in the tail
+            // of the sequence of match blocks
+            case (acc, uid) => 
+              val transformed = transformState(uid)
+              blk =>
+              Match(
+                pcVar.asSimpleRef,
+                Case.Lit(Tree.IntLit(uid)) -> transformed :: Nil,
+                N,
+                acc(blk)
+              )
+        case Nil => id
+      
+      
 
     val mainLoop =
       if parts.states.size <= 1 then
-        postTransform.applyBlock(parts.states.head._2.blk)
+        segmentTailTransform.applyBlock(parts.states.head._2.blk)
       else
-        Label(mainLoopLbl, true, Match(Value.Ref(pcVar), arms, N, End()), End())
-
+        val matches = straightLines.map(straightLineToArms).foldLeft[Block](End()):
+          case (acc, f) => f(acc)
+        Label(mainLoopLbl, true, matches, End())
+        
     val getSavedTmp = freshTmp("saveOffset")
     def getSaved(off: BigInt): (Block => Block, Path) =
       if off == 0 then
         return (id, DynSelect(paths.runtimePath.selSN("resumeArr"), paths.runtimePath.selSN("resumeIdx"), true))
-      val addOne = Assign(getSavedTmp, Call(State.builtinOpsMap("+").asPath, paths.runtimePath.selSN("resumeIdx").asArg :: intLit(off).asArg :: Nil)(false, false, false), _)
-      (addOne, DynSelect(paths.runtimePath.selSN("resumeArr"), getSavedTmp.asPath, true))
+      val addOne = Assign(getSavedTmp, Call(State.builtinOpsMap("+").asSimpleRef, (paths.runtimePath.selSN("resumeIdx").asArg :: intLit(off).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultFun), _)
+      (addOne, DynSelect(paths.runtimePath.selSN("resumeArr"), getSavedTmp.asSimpleRef, true))
 
-    val resumeArrIndexed = DynSelect(paths.runtimePath.selSN("resumeArr"), getSavedTmp.asPath, true)
-    val plus = State.builtinOpsMap("+").asPath
+    val resumeArrIndexed = DynSelect(paths.runtimePath.selSN("resumeArr"), getSavedTmp.asSimpleRef, true)
+    val plus = State.builtinOpsMap("+").asSimpleRef
     val preRestore = blockBuilder
         .assign(pcVar, paths.resumePc)
         .scopedVars(Set(getSavedTmp))
     val restoreVars = vars.zipWithIndex.foldLeft(preRestore):
       case (builder, (local, idx)) => builder
-        .assign(getSavedTmp, if idx == 0 then paths.resumeIdx else Call(plus, getSavedTmp.asPath.asArg :: intLit(1).asArg :: Nil)(false, false, false))
+        .assign(getSavedTmp, if idx == 0 then paths.resumeIdx else Call(plus, (getSavedTmp.asSimpleRef.asArg :: intLit(1).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultFun))
         .assign(local, resumeArrIndexed)
 
     Scoped(
@@ -602,7 +721,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
     translateBlock(b, if isModCtor then HandlerCtx.ModCtor(h.innerDefIsTrulyNested) else HandlerCtx.Ctor, Set.empty)
 
   private def translateIllegalEffectCtx(b: Block, onEffect: Call)(using HandlerCtx): Block =
-    def effectCheck(l: Local, r: Result, rst: Block): Block =
+    def effectCheck(l: Assignable, r: Result, rst: Block): Block =
       blockBuilder
         .assign(l, r)
         .ifthen(
@@ -613,81 +732,28 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         .rest(rst)
     val topLevelTransform = new BlockTransformerShallow(SymbolSubst.Id):
       override def applyBlock(b: Block) = b match
-        case Assign(lhs, EffectfulResult(r), rest) =>
+        case Assign(lhs, r @ EffectfulResult(), rest) =>
           // Optimization to reuse lhs instead of fresh local
           effectCheck(lhs, r, applyBlock(rest))
         case _ => super.applyBlock(b)
       override def applyResult(r: Result)(k: Result => Block) = r match
-        case EffectfulResult(r) =>
+        case r @ EffectfulResult() =>
           // Fallback case, this may lead to unnecessary assignments if it is assign-like
           val l = freshTmp()
-          Scoped(Set(l), effectCheck(l, r, k(Value.Ref(l))))
+          Scoped(Set(l), effectCheck(l, r, k(l.asSimpleRef)))
         case _ => super.applyResult(r)(k)
     topLevelTransform.applyBlock(b)
-  
-  // Handle block is rewritten into:
-  // 1. Instantiation of the handler
-  // 2. An effectful call to enterHandleBlock
-  private def translateHandleBlockShallow(h: HandleBlock): Block =
-    val sym = new BlockMemberSymbol("handleBlock$", Nil, false)
 
-    val bodyDefn = FunDefn.withFreshSymbol(N, sym, PlainParamList(Nil) :: Nil, h.body)(false, N)
-    
-    val handlerMtds = h.handlers.map: handler =>
-      val sym = BlockMemberSymbol(h.cls.nme + handler.sym.nme, Nil, true)
-      val fDef = FunDefn.withFreshSymbol(
-        N, sym, PlainParamList(Param(FldFlags.empty, handler.resumeSym, N, Modulefulness.none) :: Nil) :: Nil,
-        handler.body
-        )(false, N)
-      FunDefn.withFreshSymbol(
-        S(h.cls),
-        handler.sym,
-        handler.params,
-        Scoped(Set(sym), Define(
-          fDef,
-          Return(PureCall(paths.mkEffectPath, h.cls.asPath :: Value.Ref(sym, S(fDef.dSym)) :: Nil), false))))(false, N)
-
-    val clsDefn = ClsLikeDefn(
-      N, // no owner
-      h.cls,
-      BlockMemberSymbol(h.cls.id.name, Nil),
-      N,
-      syntax.Cls,
-      N, Nil,
-      S(h.par), handlerMtds, Nil, Nil,
-      // Apparently, the lifter is not happy with any assignment in the preCtor...
-      Return(Call(Value.Ref(State.builtinOpsMap("super")), h.args.map(_.asArg))(true, true, false), true),
-      End(),
-      N,
-      N,
-    )(N)
-
-    blockBuilder
-      .scopedVars(Set(clsDefn.sym, sym))
-      .define(clsDefn)
-      .assign(h.lhs, Instantiate(mut = true, Value.Ref(clsDefn.sym, S(h.cls)), Nil))
-      .define(bodyDefn)
-      .assign(h.res, Call(paths.enterHandleBlockPath, List(h.lhs.asPath.asArg, Value.Ref(sym, S(bodyDefn.dSym)).asArg))(true, true, false))
-      .rest(h.rest)
-  
-  def translateHandleBlocks(b: Block): Block =
-
-    val transform = new BlockTransformer(SymbolSubst.Id):
-      override def applyBlock(b: Block) = b match
-        case HandleBlock(lhs, res, par, args, cls, hdr, bod, rst) =>
-          val hdr2 = hdr.map(applyHandler)
-          val bod2 = applySubBlock(bod)
-          val rst2 = applySubBlock(rst)
-          translateHandleBlockShallow(new HandleBlock(lhs, res, par, args, cls, hdr2, bod2, rst2))
-        case _ => super.applyBlock(b)
-    transform.applyBlock(b)
 
   def translateTopLevel(b: Block): (Block, StackSafetyMap) =
     val preTransformed = new ScopeFlattener().applyBlock(b)
     val ctx = HandlerCtx.TopLevel
     val transformed = translateBlock(preTransformed, ctx, Set.empty)
     val blk = blockBuilder
-      .assign(State.noSymbol, Call(paths.resetEffects, Nil)(true, false, false))
+      .staticif(
+        !opt.doNotInstrumentTopLevelModCtor,
+        _.assign(NoSymbol, Call(paths.resetEffects, Nil ne_:: Nil)(CallMetadata.defaultMlsFun))
+      )
       .rest(transformed)
     (blk, stackSafetyMap)
     

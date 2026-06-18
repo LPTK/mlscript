@@ -1,6 +1,6 @@
 package hkmc2
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 
 opaque type Uid[T] = Int
 
@@ -14,10 +14,11 @@ object Uid:
       def reset = curUid = -1
   object Symbol extends Handler[semantics.Symbol]
   object Result extends Handler[codegen.Result]
-  object StratVar extends Handler[codegen.deforest.StratVar]
+  object StratVar extends Handler[codegen.flowAnalysis.StratVar]
 
 extension [T] (x: Uid[T])
   def <=(rhs: Uid[T]) = x <= rhs
+  def asInt: Int = x
 
 private val ord = Ordering.Int
 given [A]: Ordering[Uid[A]] = ord

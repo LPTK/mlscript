@@ -13,7 +13,7 @@ fun t = 42
 :sjs
 t
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ t()
+//│ return t()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 
@@ -74,19 +74,19 @@ module T with
 //│     T1 = this
 //│   }
 //│   static {
-//│     this.a = T.t;
-//│     this.b = T.t;
-//│     this.c = T.p;
-//│     this.d = T.p;
+//│     T.a = T.t;
+//│     T.b = T.t;
+//│     T.c = T.p;
+//│     T.d = T.p;
 //│   }
 //│   static t() {
 //│     return 1
-//│   } 
+//│   }
 //│   static get p() {
 //│     return 2;
 //│   }
 //│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "T"]; 
+//│   static [definitionMetadata] = ["class", "T"];
 //│ });
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -117,7 +117,7 @@ module M with
 //│     return 0;
 //│   }
 //│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "M"]; 
+//│   static [definitionMetadata] = ["class", "M"];
 //│ });
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -125,7 +125,7 @@ module M with
 :sjs
 M.t
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ M1.t
+//│ return M1.t
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 0
 
@@ -210,11 +210,11 @@ fun a() =
 //│     return 1
 //│   };
 //│   c = function c() {
-//│     let d, tmp1, tmp2;
+//│     let d, tmp, tmp1;
 //│     d = function d() { return 2 };
-//│     tmp1 = b();
-//│     tmp2 = d();
-//│     return tmp1 + tmp2
+//│     tmp = b();
+//│     tmp1 = d();
+//│     return tmp + tmp1
 //│   };
 //│   return c
 //│ };
@@ -261,11 +261,11 @@ fun c() =
 //│     return 1
 //│   };
 //│   d = function d() {
-//│     let e, tmp3, tmp4;
+//│     let e, tmp, tmp1;
 //│     e = function e() { return 1 };
-//│     tmp3 = e();
-//│     tmp4 = f();
-//│     return tmp3 + tmp4
+//│     tmp = e();
+//│     tmp1 = f();
+//│     return tmp + tmp1
 //│   };
 //│   return d()
 //│ };
@@ -295,7 +295,7 @@ data class Foo(x) with
 //│     return this.x;
 //│   }
 //│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Foo", ["x"]]; 
+//│   static [definitionMetadata] = ["class", "Foo", ["x"]];
 //│ });
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -319,6 +319,6 @@ foo(Foo(42))
 
 :re
 foo(Foo(42))()
-//│ ═══[RUNTIME ERROR] TypeError: tmp6 is not a function
+//│ ═══[RUNTIME ERROR] TypeError: baseCall3 is not a function
 
 

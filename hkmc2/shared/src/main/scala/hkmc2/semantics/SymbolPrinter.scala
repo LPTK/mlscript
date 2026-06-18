@@ -1,12 +1,12 @@
 package hkmc2
 package semantics
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import syntax.*
 import hkmc2.utils.*
 
 
-class SymbolPrinter(dbgScp: Scope) extends DebugPrinter:
+class SymbolPrinter(val dbgScp: Scope) extends DebugPrinter:
   
   override def printPlain(v: Any): Str = v match
     case sym: Symbol =>

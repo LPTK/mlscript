@@ -39,20 +39,17 @@ fun test(a) =
 //│         this.b,
 //│         c
 //│       ])
-//│     } 
+//│     }
 //│     g(d) {
-//│       let e, inlinedVal;
-//│       e = d;
-//│       inlinedVal = globalThis.Object.freeze([
+//│       return globalThis.Object.freeze([
 //│         a,
 //│         this.b,
 //│         d,
-//│         e
-//│       ]);
-//│       return inlinedVal
+//│         d
+//│       ])
 //│     }
 //│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "Inner", ["b"]]; 
+//│     static [definitionMetadata] = ["class", "Inner", ["b"]];
 //│   });
 //│   return Inner1(42)
 //│ };
@@ -79,48 +76,48 @@ fun test(a) =
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let test2;
 //│ test2 = function test(a) {
-//│   let C11, C21, tmp, tmp1;
-//│   C11 = function C1(b) {
+//│   let C12, C22, tmp1, tmp2;
+//│   C12 = function C1(b) {
 //│     return globalThis.Object.freeze(new C1.class(b));
 //│   };
-//│   (class C1 {
+//│   (class C11 {
 //│     static {
-//│       C11.class = this
+//│       C12.class = this
 //│     }
 //│     constructor(b) {
-//│       let tmp2;
+//│       let tmp3;
 //│       this.b = b;
-//│       tmp2 = globalThis.Object.freeze([
+//│       tmp3 = globalThis.Object.freeze([
 //│         a,
 //│         this.b
 //│       ]);
-//│       Predef.print(tmp2);
+//│       Predef.print(tmp3);
 //│     }
 //│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "C1", ["b"]]; 
+//│     static [definitionMetadata] = ["class", "C1", ["b"]];
 //│   });
-//│   C21 = function C2(b) {
+//│   C22 = function C2(b) {
 //│     return globalThis.Object.freeze(new C2.class(b));
 //│   };
-//│   (class C2 {
+//│   (class C21 {
 //│     static {
-//│       C21.class = this
+//│       C22.class = this
 //│     }
 //│     constructor(b) {
-//│       let tmp2;
+//│       let tmp3;
 //│       this.b = b;
-//│       tmp2 = globalThis.Object.freeze([
+//│       tmp3 = globalThis.Object.freeze([
 //│         a,
 //│         this.b
 //│       ]);
-//│       Predef.print(tmp2);
+//│       Predef.print(tmp3);
 //│     }
 //│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "C2", ["b"]]; 
+//│     static [definitionMetadata] = ["class", "C2", ["b"]];
 //│   });
-//│   tmp = C11(1);
-//│   tmp1 = C21(2);
-//│   return globalThis.Object.freeze([ tmp, tmp1 ])
+//│   tmp1 = C12(1);
+//│   tmp2 = C22(2);
+//│   return globalThis.Object.freeze([ tmp1, tmp2 ])
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -167,9 +164,9 @@ Foo(123)
 //│     return baz()
 //│   }
 //│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Foo", ["a"]]; 
+//│   static [definitionMetadata] = ["class", "Foo", ["a"]];
 //│ });
-//│ Foo1(123)
+//│ return Foo1(123)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = Foo(123)
 
@@ -191,21 +188,17 @@ Bar(1)
 //│     Bar1.class = this
 //│   }
 //│   constructor(x) {
-//│     let tmp;
 //│     this.x = x;
-//│     tmp = this.foo();
-//│     runtime.safeCall(tmp());
+//│     this.foo()();
 //│   }
 //│   foo() {
 //│     return () => {
-//│       let inlinedVal;
-//│       inlinedVal = this.x;
-//│       return inlinedVal
+//│       return this.x
 //│     }
 //│   }
 //│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "Bar", ["x"]]; 
+//│   static [definitionMetadata] = ["class", "Bar", ["x"]];
 //│ });
-//│ Bar1(1)
+//│ return Bar1(1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = Bar(1)

@@ -4,7 +4,7 @@ import org.scalatest.{funsuite, ParallelTestExecution}
 import org.scalatest.time._
 import org.scalatest.concurrent.{TimeLimitedTests, Signaler}
 
-import mlscript.utils._, shorthands._
+import hkmc2.utils.*, shorthands.*
 import io.PlatformPath.given
 
 
@@ -15,10 +15,11 @@ import io.PlatformPath.given
 abstract class CompileTestRunnerBase(
   compileDirs: Ls[os.Path],
   excludedDirs: Ls[os.Path] = Nil,
-)
-  extends funsuite.AnyFunSuite
-  with ParallelTestExecution
-:
+) extends TimeOutTests, ParallelTestExecution:
+  
+  
+  val timeLimit = Span(15, Seconds)
+  
   
   given CompilerCtx = cctx
   

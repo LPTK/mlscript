@@ -1,7 +1,7 @@
 package hkmc2
 package codegen
 
-import mlscript.utils.*, shorthands.*
+import hkmc2.utils.*, shorthands.*
 import hkmc2.utils.*
 
 import semantics.*
@@ -20,9 +20,13 @@ class BlockTraverser:
     prog.imports.foreach(applyImport)
     applyBlock(prog.main)
   
-  def applyImport(imp: Local -> Str): Unit =
-    applyLocal(imp._1)
+  def applyImport(imp: ImportSymbol -> Str): Unit =
+    applySymbol(imp._1)
   
+  
+  def applyMaybeSymbol(sym: MaybeSymbol): Unit = sym match
+    case NoSymbol => ()
+    case sym: Symbol => applySymbol(sym)
   
   def applySymbol(sym: Symbol): Unit = ()
   
@@ -30,9 +34,9 @@ class BlockTraverser:
   
   def applyBlock(b: Block): Unit = b match
     case _: End | _: Unreachable => ()
-    case Break(lbl) => applyLocal(lbl)
-    case Continue(lbl) => applyLocal(lbl)
-    case Return(res, implct) => applyResult(res)
+    case Break(lbl) => applySymbol(lbl)
+    case Continue(lbl) => applySymbol(lbl)
+    case Return(res) => applyResult(res)
     case Throw(exc) => applyResult(exc)
     case Match(scrut, arms, dflt, rst) =>
       val scrut2 = applyPath(scrut)
@@ -40,21 +44,13 @@ class BlockTraverser:
         applyCase(arm._1); applySubBlock(arm._2)
       dflt.foreach(applySubBlock)
       applySubBlock(rst)
-    case Label(lbl, loop, bod, rst) => applyLocal(lbl); applySubBlock(bod); applySubBlock(rst)
+    case Label(lbl, loop, bod, rst) => applySymbol(lbl); applySubBlock(bod); applySubBlock(rst)
     case Begin(sub, rst) => applySubBlock(sub); applySubBlock(rst)
     case TryBlock(sub, fin, rst) => applySubBlock(sub); applySubBlock(fin); applySubBlock(rst)
-    case Assign(l, r, rst) => applyLocal(l); applyResult(r); applySubBlock(rst)
+    case Assign(l, r, rst) => applyMaybeSymbol(l); applyResult(r); applySubBlock(rst)
     case b @ AssignField(l, n, r, rst) =>
       applyPath(l); applyResult(r); applySubBlock(rst); b.symbol.foreach(_.traverse)
     case Define(defn, rst) => applyDefn(defn); applySubBlock(rst)
-    case HandleBlock(l, res, par, args, cls, hdr, bod, rst) =>
-      applyLocal(l)
-      applyLocal(res)
-      applyPath(par)
-      args.foreach(applyPath)
-      hdr.foreach(applyHandler)
-      applySubBlock(bod)
-      applySubBlock(rst)
     case AssignDynField(lhs, fld, arrayIdx, rhs, rest) =>
       applyPath(lhs)
       applyResult(rhs)
@@ -63,8 +59,8 @@ class BlockTraverser:
     case Scoped(_, body) => applySubBlock(body)
   
   def applyResult(r: Result): Unit = r match
-    case r @ Call(fun, args) => applyPath(fun); args.foreach(applyArg)
-    case Instantiate(mut, cls, args) => applyPath(cls); args.foreach(applyArg)
+    case r @ Call(fun, argss) => applyPath(fun); argss.foreach(_.foreach(applyArg))
+    case Instantiate(mut, cls, argss) => applyPath(cls); argss.foreach(_.foreach(applyArg))
     case l @ Lambda(params, body) => applyLam(l)
     case Tuple(mut, elems) => elems.foreach(applyArg)
     case Record(mut, fields) => fields.foreach:
@@ -79,13 +75,12 @@ class BlockTraverser:
     case v: Value => applyValue(v)
   
   def applyValue(v: Value): Unit = v match
-    case Value.Ref(l, disamb) =>
-      l.traverse
-      disamb.foreach(_.traverse)
+    case Value.SimpleRef(l) => l.traverse
+    case Value.MemberRef(bms, disamb) =>
+      bms.traverse
+      disamb.traverse
     case Value.This(sym) => sym.traverse
     case Value.Lit(lit) => ()
-  
-  def applyLocal(sym: Local): Unit = sym.traverse
   
   def applyFunDefn(fun: FunDefn): Unit =
     fun.owner.foreach(_.traverse)
@@ -98,26 +93,28 @@ class BlockTraverser:
     val ValDefn(tsym, sym, rhs) = defn
     tsym.owner.foreach(_.traverse); sym.traverse; applyPath(rhs)
   
+  def applyClsLikeDefn(defn: ClsLikeDefn): Unit =
+    val ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentPath, methods,
+      privateFields, publicFields, preCtor, ctor, mod, bufferable) = defn
+    own.foreach(_.traverse)
+    isym.traverse
+    sym.traverse
+    ctorSym.foreach(_.traverse)
+    paramsOpt.foreach(applyParamList)
+    auxParams.foreach(applyParamList)
+    parentPath.foreach(applyPath)
+    methods.foreach(applyFunDefn)
+    privateFields.foreach(_.traverse)
+    publicFields.foreach: f =>
+      f._1.traverse; f._2.traverse
+    applySubBlock(preCtor)
+    applySubBlock(ctor)
+    mod.foreach(applyCompanionModule)
+  
   def applyDefn(defn: Defn): Unit = defn match
     case defn: FunDefn => applyFunDefn(defn)
     case defn: ValDefn => applyValDefn(defn)
-    case ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentPath, methods,
-        privateFields, publicFields, preCtor, ctor, mod, bufferable)
-    =>
-      own.foreach(_.traverse)
-      isym.traverse
-      sym.traverse
-      ctorSym.foreach(_.traverse)
-      paramsOpt.foreach(applyParamList)
-      auxParams.foreach(applyParamList)
-      parentPath.foreach(applyPath)
-      methods.foreach(applyFunDefn)
-      privateFields.foreach(_.traverse)
-      publicFields.foreach: f =>
-        f._1.traverse; f._2.traverse
-      applySubBlock(preCtor)
-      applySubBlock(ctor)
-      mod.foreach(applyCompanionModule)
+    case defn: ClsLikeDefn => applyClsLikeDefn(defn)
   
   def applyCompanionModule(b: ClsLikeBody): Unit =
     b.isym.traverse
@@ -160,17 +157,6 @@ class BlockTraverserShallow extends BlockTraverser:
     case _: ValDefn => super.applyDefn(defn)
   
   override def applyHandler(hdr: Handler): Unit = ()
-  
-  override def applyBlock(b: Block): Unit = b match
-    case HandleBlock(l, res, par, args, cls, hdr, bod, rst) =>
-      applyLocal(l)
-      applyLocal(res)
-      applyPath(par)
-      args.foreach(applyPath)
-      cls.traverse
-      hdr.foreach(applyHandler)
-      applySubBlock(rst)
-    case _ => super.applyBlock(b)
 
 class BlockDataTraverser extends BlockTraverserShallow:
   override def applySubBlock(b: Block): Unit = ()

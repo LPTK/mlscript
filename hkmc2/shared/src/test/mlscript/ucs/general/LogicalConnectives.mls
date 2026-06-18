@@ -25,12 +25,12 @@ fun test(x) =
 :sjs
 true and test(42)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let scrut4, scrut5;
-//│ scrut4 = true;
-//│ if (scrut4 === true) {
-//│   scrut5 = test(42);
-//│   if (scrut5 === true) { true } else { false }
-//│ } else { false }
+//│ if (true === true) {
+//│   Predef.print(42);
+//│   if (42 === true) { return true }
+//│   return false;
+//│ }
+//│ return false;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 42
 //│ = false
