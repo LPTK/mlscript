@@ -688,6 +688,20 @@ class BlockSimplifier
     // trace[Block](s"Applying block: ${b.showDbg.abbreviate} with map:\n${showMap}", res => s"|= ${showMap}"):
       b match
       
+      // * Collapse immediately-invoked ANF path aliases without assuming that evaluating the
+      // * path is pure. Since there is no intervening statement and the local has no other use,
+      // * this preserves both the number and order of evaluations. This notably removes
+      // * forwarding temporaries introduced when inlining getters that return a JS selection.
+      case Assign(lhs: LocalVar, path: Path, Assign(nextLhs, call @ Call(Value.SimpleRef(fun: LocalVar), argss), rst))
+        if !inDryRun && (fun is lhs) && !capturedVars(lhs) && !symbolsToPreserve(lhs)
+          && !path.freeVars(lhs)
+          && !argss.iterator.flatten.exists(_.value.freeVars(lhs))
+          && !rst.freeVars(lhs)
+        =>
+          registerChange(s"immediate call prefix ${lhs.showDbg} ~> ${path.showDbg}")
+          val combined = Call(path, argss)(call.metadata).withLocOf(call)
+          applyBlock(Assign(nextLhs, combined, rst))
+
       // * Discard local variables that are assigned just to be returned
       // * Note: the reason we do this here and not in DeadCodeElim is that we need to check `capturedVars`
       case Assign(lhs: LocalVar, rhs, Return(Value.SimpleRef(ret)))
@@ -842,7 +856,27 @@ class BlockSimplifier
           if !gaveUp then log(s"Initial shapes: ${shapes}")
           
           val oldAssigned = assignedResults
-          var curAssigned = oldAssigned
+          var branchAssigneds = List.empty[AssignedResults]
+          def recordBranch(newBody: Block): Unit =
+            if !newBody.isAbortive then
+              branchAssigneds ::= assignedResults
+            assignedResults = oldAssigned
+          def canEscapeBranch(info: AssignInfo): Bool = info match
+            case Unknown => false
+            case Uninitialized => true
+            case Assigned(_, rhs, _, _) =>
+              rhs.freeVars.forall:
+                case sym: LocalVar => oldAssigned.contains(sym)
+                case _ => true
+            case Merge(asst1, asst2) =>
+              canEscapeBranch(asst1) && canEscapeBranch(asst2)
+          def mergeBranchInfos(infos: List[AssignInfo]): AssignInfo =
+            if infos.exists(_ is Unknown) then Unknown
+            else if infos.exists(_ is Uninitialized) && !infos.forall(_ is Uninitialized) then
+              val initializedInfos = infos.filterNot(_ is Uninitialized)
+              if initializedInfos.forall(canEscapeBranch) then initializedInfos.reduce(_.merge(_))
+              else Unknown
+            else infos.reduce(_.merge(_))
           
           val arms2 = if gaveUp then arms else arms.filterConserve: (pat, body) =>
             @inline def regChange(reason: Str) =
@@ -864,19 +898,23 @@ class BlockSimplifier
           val newArms = arms2.mapConserve:
             case arm @ (cse, body) =>
               val newBody = applyBlock(body)
-              curAssigned = merge(curAssigned, assignedResults)
-              assignedResults = oldAssigned
+              recordBranch(newBody)
               if newBody is body then arm else cse -> newBody
           val newDflt = if !gaveUp && shapes.isEmpty
             then S(Unreachable("exhaustive match"))
             else dflt.mapConserve:
               case body =>
                 val newBody = applyBlock(body)
-                curAssigned = merge(curAssigned, assignedResults)
-                assignedResults = oldAssigned
+                recordBranch(newBody)
                 if newBody is body then body else newBody
-          if newDflt.isEmpty then curAssigned = merge(curAssigned, assignedResults)
-          assignedResults = curAssigned
+          if newDflt.isEmpty then branchAssigneds ::= oldAssigned
+          val branchKeys = branchAssigneds.iterator.flatMap(_.keysIterator).toSet
+          assignedResults =
+            branchKeys.iterator
+              .map: key =>
+                key -> mergeBranchInfos(branchAssigneds.map(_(key)))
+              .toMap
+              .withDefaultValue(Unknown)
           
           // log(s"After match: ${assignedResults}")
           val restRewritten = applySubBlock(rest)

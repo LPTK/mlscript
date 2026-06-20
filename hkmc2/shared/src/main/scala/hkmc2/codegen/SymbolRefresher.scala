@@ -9,10 +9,10 @@ import hkmc2.utils.*
 import semantics.*
 import semantics.Elaborator.State
 
-class SymbolRefresherWalker(mapping: MutMap[Symbol, Symbol])(using State) extends BlockTraverser:
+class SymbolRefresherWalker(mapping: MutMap[Symbol, Symbol])(using State, Raise) extends BlockTraverser:
 
   private def assertUpdate[T <: Symbol](k: T, v: T) =
-    assert(!mapping.isDefinedAt(k), s"already defined: $k")
+    softAssert(!mapping.isDefinedAt(k), s"symbol '$k' was bound more than once")
     mapping(k) = v
   
   private def refreshTempSymbol(s: TempSymbol) =
@@ -73,14 +73,14 @@ class SymbolRefresherWalker(mapping: MutMap[Symbol, Symbol])(using State) extend
   
   override def applyFunDefn(fun: FunDefn): Unit =
     val FunDefn(owner, sym, dSym, params, body) = fun
-    assert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} for FunDefn is a free variable for this block")
+    softAssert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} for FunDefn is a free variable for this block")
     refreshTermSymbol(dSym)
     params.foreach(refreshParamList)
     applyBlock(body)
   
   override def applyValDefn(defn: ValDefn): Unit =
     val ValDefn(tsym, sym, result) = defn
-    assert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} for ValDefn is a free variable for this block")
+    softAssert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} for ValDefn is a free variable for this block")
     refreshTermSymbol(tsym)
     applyResult(result)
   
@@ -89,7 +89,7 @@ class SymbolRefresherWalker(mapping: MutMap[Symbol, Symbol])(using State) extend
       owner, isym, sym, ctorSym, k, paramsOpt, auxParams, parentPath,
       methods, privateFields, publicFields, preCtor, ctor, companion,
       bufferable) = defn
-    assert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} for ClsLikeDefn is a free variable for this block")
+    softAssert(mapping.isDefinedAt(sym), s"BlockMemberSymbol ${sym} for ClsLikeDefn is a free variable for this block")
     isym match
       case s: ClassSymbol => refreshClassSymbol(s)
       case s: ModuleOrObjectSymbol => refreshModuleOrObjectSymbol(s)
@@ -145,7 +145,7 @@ object SymbolRefresher:
       override def mapLabelSym(s: LabelSymbol): LabelSymbol = m.getOrElse(s, s).asInstanceOf[LabelSymbol]
 
 // An internal class so that the actual map can be used
-private class SymbolRefresherInternal(m: MutMap[Symbol, Symbol])(using State) extends BlockTransformer(SymbolRefresher.initSymbolSubst(m)):
+private class SymbolRefresherInternal(m: MutMap[Symbol, Symbol])(using State, Raise) extends BlockTransformer(SymbolRefresher.initSymbolSubst(m)):
   // We have a pretty weird setup here, where we store a mutable state inside the SymbolRefresher
   // We must initialize the SymbolRefresher by walking before applyBlock
   def apply(b: Block) =
@@ -161,4 +161,4 @@ private class SymbolRefresherInternal(m: MutMap[Symbol, Symbol])(using State) ex
     case NoSymbol => NoSymbol
     case s: LocalVarSymbol => m.getOrElse(s, s).asInstanceOf[LocalVarSymbol]
   
-class SymbolRefresher(m: Map[Symbol, Symbol])(using State) extends SymbolRefresherInternal(MutMap.from(m))
+class SymbolRefresher(m: Map[Symbol, Symbol])(using State, Raise) extends SymbolRefresherInternal(MutMap.from(m))
