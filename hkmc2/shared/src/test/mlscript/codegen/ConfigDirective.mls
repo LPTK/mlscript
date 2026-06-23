@@ -194,13 +194,13 @@ fun fst(p) = if p is Pair(x, y) then x
 fun applyTwice(f, x) = f(x) + f(x)
 applyTwice(fst, Pair(1, 2))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > cap_ub_(term:fst,0)_for_fst⁰⁰
-//│ deforest > fst⁰_for_fst⁰⁰
-//│ deforest > f⁰_for_applyTwice⁰¹
-//│ deforest > f⁰_for_applyTwice⁰⁰
-//│ deforest > tmp⁰⁰
-//│ deforest > x⁰_for_applyTwice⁰¹
-//│ deforest > x⁰_for_applyTwice⁰⁰
+//│ deforest > cap_ub_(term:fst,0)_for_fst_for_fst⁰
+//│ deforest > f_for_applyTwice¹
+//│ deforest > f_for_applyTwice⁰
+//│ deforest > fst_for_fst⁰
+//│ deforest > tmp⁰
+//│ deforest > x_for_applyTwice¹
+//│ deforest > x_for_applyTwice⁰
 //│ deforest > <<< non-affine syms <<<
 //│ = 2
 

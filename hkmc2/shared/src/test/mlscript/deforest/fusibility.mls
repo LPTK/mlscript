@@ -58,15 +58,15 @@ fun c(p) =
   cl() + cl()
 c(AA(7))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > cap_ub_(term:lambda,0)_for_c⁰¹
-//│ deforest > cap_ub_(term:lambda,0)_for_c⁰⁰
-//│ deforest > cl⁰_for_c⁰¹
-//│ deforest > cl⁰_for_c⁰⁰
-//│ deforest > lambda⁰_for_c⁰¹
-//│ deforest > lambda⁰_for_c⁰⁰
-//│ deforest > p¹_for_c⁰¹
-//│ deforest > p¹_for_c⁰⁰
-//│ deforest > tmp⁰⁰
+//│ deforest > cap_ub_(term:lambda,0)_for_c_for_c¹
+//│ deforest > cap_ub_(term:lambda,0)_for_c_for_c⁰
+//│ deforest > cl_for_c¹
+//│ deforest > cl_for_c⁰
+//│ deforest > lambda_for_c¹
+//│ deforest > lambda_for_c⁰
+//│ deforest > p_for_c¹
+//│ deforest > p_for_c⁰
+//│ deforest > tmp⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
@@ -97,7 +97,7 @@ fun c(x) = if x is AA(_) then 0
 let p = AA(10) in
   c(p) + c(p)
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > p²⁰
+//│ deforest > p¹
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
@@ -108,13 +108,13 @@ fun c(p) = if p is AA(v) then v
 fun apply(f, x) = f(x) + f(x)
 apply(c, AA(3))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > cap_ub_(term:c,0)_for_c¹⁰
-//│ deforest > c¹_for_c¹⁰
-//│ deforest > f⁰_for_apply⁰¹
-//│ deforest > f⁰_for_apply⁰⁰
-//│ deforest > tmp¹⁰
-//│ deforest > x³_for_apply⁰¹
-//│ deforest > x³_for_apply⁰⁰
+//│ deforest > c_for_c⁰
+//│ deforest > cap_ub_(term:c,0)_for_c_for_c⁰
+//│ deforest > f_for_apply¹
+//│ deforest > f_for_apply⁰
+//│ deforest > tmp⁰
+//│ deforest > x_for_apply¹
+//│ deforest > x_for_apply⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
@@ -125,9 +125,9 @@ apply(c, AA(3))
 fun c(k, x) = if k is AA(_) then x.AA#x + x.AA#x + x.AA#x
 c(AA(0), AA(3))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > tmp²⁰
-//│ deforest > x⁴_for_c²¹
-//│ deforest > x⁴_for_c²⁰
+//│ deforest > tmp⁰
+//│ deforest > x_for_c¹
+//│ deforest > x_for_c⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > AA⁰(0) ->
@@ -146,9 +146,9 @@ fun c(y) = if y is AA(_) then
   0
 c(AA(1))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > tmp³⁰
-//│ deforest > y¹_for_c³¹
-//│ deforest > y¹_for_c³⁰
+//│ deforest > tmp⁰
+//│ deforest > y_for_c¹
+//│ deforest > y_for_c⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
@@ -161,9 +161,9 @@ fun c2(x) = if x is AA(AA(_)) then 1 else 0
 let p = AA(AA(AA(10))) in
   c1(p) + c2(p)
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > p³⁰
-//│ deforest > tmp⁴⁰
-//│ deforest > tmp⁵⁰
+//│ deforest > p¹
+//│ deforest > tmp¹
+//│ deforest > tmp⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
@@ -178,10 +178,10 @@ fun c2(p) = if p is Many(Once(v)) then v
 fun apply(f, g, p) = f(p) + g(p)
 apply(c1, c2, Many(Once(10)))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > p⁴_for_apply¹¹
-//│ deforest > p⁴_for_apply¹⁰
-//│ deforest > tmp⁶⁰
-//│ deforest > tmp⁷⁰
+//│ deforest > p_for_apply¹
+//│ deforest > p_for_apply⁰
+//│ deforest > tmp¹
+//│ deforest > tmp⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
@@ -195,18 +195,18 @@ fun nest_consume(f, p) = if p is AA(i) then f(i) + f(i)
 fun nest_pickB(p) = if p is BB(b) then b + 1
 nest_consume(nest_pickB, nest_prod(10))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > arg$AA$0$⁰_for_nest_consume⁰¹
-//│ deforest > arg$AA$0$⁰_for_nest_consume⁰⁰
-//│ deforest > cap_ub_(term:nest_pickB,0)_for_nest_pickB⁰⁰
-//│ deforest > f¹_for_nest_consume⁰¹
-//│ deforest > f¹_for_nest_consume⁰⁰
-//│ deforest > i⁰_for_nest_consume⁰¹
-//│ deforest > i⁰_for_nest_consume⁰⁰
-//│ deforest > nest_pickB⁰_for_nest_pickB⁰⁰
-//│ deforest > sel_res_for_nest_consume⁰¹
-//│ deforest > sel_res_for_nest_consume⁰⁰
-//│ deforest > tmp⁸_for_nest_prod⁰⁰
-//│ deforest > x⁵_for_nest_prod⁰⁰
+//│ deforest > arg$AA$0$_for_nest_consume¹
+//│ deforest > arg$AA$0$_for_nest_consume⁰
+//│ deforest > cap_ub_(term:nest_pickB,0)_for_nest_pickB_for_nest_pickB⁰
+//│ deforest > f_for_nest_consume¹
+//│ deforest > f_for_nest_consume⁰
+//│ deforest > i_for_nest_consume¹
+//│ deforest > i_for_nest_consume⁰
+//│ deforest > nest_pickB_for_nest_pickB⁰
+//│ deforest > sel_res_for_nest_consume_for_nest_consume¹
+//│ deforest > sel_res_for_nest_consume_for_nest_consume⁰
+//│ deforest > tmp_for_nest_prod⁰
+//│ deforest > x_for_nest_prod⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > AA⁰(tmp⁰) ->
@@ -224,16 +224,16 @@ fun length(ls) = if ls is
 fun from(n, acc) = if n == 0 then acc else from(n - 1, n :: acc)
 length(from(5, Nil))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > call_res_for_from⁰¹
-//│ deforest > call_res_for_from⁰⁰
-//│ deforest > n⁰_for_from⁰¹
-//│ deforest > n⁰_for_from⁰⁰
-//│ deforest > tmp⁹_for_from⁰¹
-//│ deforest > tmp⁹_for_from⁰⁰
+//│ deforest > call_res_for_from_for_from¹
+//│ deforest > call_res_for_from_for_from⁰
+//│ deforest > n_for_from¹
+//│ deforest > n_for_from⁰
+//│ deforest > tmp_for_from¹
+//│ deforest > tmp_for_from⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> accumulator syms >>>
-//│ deforest > acc⁰_for_from⁰¹
-//│ deforest > acc⁰_for_from⁰⁰
+//│ deforest > acc_for_from¹
+//│ deforest > acc_for_from⁰
 //│ deforest > <<< accumulator syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
@@ -349,8 +349,8 @@ length(flatten(id((1 :: Nil) :: Nil)))
 //│ deforest > >>> non-affine syms >>>
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> accumulator syms >>>
-//│ deforest > ys⁰_for_flatten⁰¹
-//│ deforest > ys⁰_for_flatten⁰⁰
+//│ deforest > ys_for_flatten¹
+//│ deforest > ys_for_flatten⁰
 //│ deforest > <<< accumulator syms <<<
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
@@ -364,9 +364,9 @@ fun alias_then_patmat(x) =
   if x is Cons(a, b) then a + b + y.Cons#h
 alias_then_patmat(Cons(12, 13))
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > tmp¹¹⁰
-//│ deforest > x⁶_for_alias_then_patmat⁰¹
-//│ deforest > x⁶_for_alias_then_patmat⁰⁰
+//│ deforest > tmp⁴
+//│ deforest > x_for_alias_then_patmat¹
+//│ deforest > x_for_alias_then_patmat⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> accumulator syms >>>
 //│ deforest > <<< accumulator syms <<<
@@ -402,12 +402,12 @@ fun foo(a) =
       f() + f()
 foo of AA of () => 1
 //│ deforest > >>> non-affine syms >>>
-//│ deforest > cap_ub_(term:lambda,0)_for_lambda¹⁰
-//│ deforest > f²_for_foo⁰¹
-//│ deforest > f²_for_foo⁰⁰
-//│ deforest > lambda¹_for_lambda¹⁰
-//│ deforest > sel_res_for_foo⁰¹
-//│ deforest > sel_res_for_foo⁰⁰
+//│ deforest > cap_ub_(term:lambda,0)_for_lambda_for_lambda⁰
+//│ deforest > f_for_foo¹
+//│ deforest > f_for_foo⁰
+//│ deforest > lambda_for_lambda⁰
+//│ deforest > sel_res_for_foo_for_foo¹
+//│ deforest > sel_res_for_foo_for_foo⁰
 //│ deforest > <<< non-affine syms <<<
 //│ deforest > >>> accumulator syms >>>
 //│ deforest > <<< accumulator syms <<<

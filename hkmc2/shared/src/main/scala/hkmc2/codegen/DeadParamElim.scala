@@ -19,7 +19,7 @@ class DeadParamElimSolver(val constraintSolver: FlowConstraintSolver):
   given fState: FlowAnalysis.State = constraintSolver.fState
   given eState: Elaborator.State = constraintSolver.eState
   given raise: Raise = constraintSolver.preAnalyzer.raise
-  given symbolPrinter: SymbolPrinter = constraintSolver.preAnalyzer.symbolPrinter
+  given symbolPrinter: SymbolPrinter = constraintSolver.preAnalyzer.traceSymbolPrinter
 
   val collector: FlowConstraintsCollector = constraintSolver.collector
   val funDests: collection.Map[ProdFun, Set[ConsFun | MarkerConsStrat]] =
@@ -49,7 +49,7 @@ class DeadParamElimSolver(val constraintSolver: FlowConstraintSolver):
       else
         prodFun.params.zipWithIndex.foreach:
           case (ConsVar(s), i) =>
-            val ubs = constraintSolver.upperBounds(s.uid)
+            val ubs = constraintSolver.upperBounds(s)
             if ubs.exists:
               case _: ConsVar => false
               case _: IntoParam => false
@@ -108,17 +108,13 @@ class DeadParamElimSolver(val constraintSolver: FlowConstraintSolver):
       case S(existing) => assert(existing.toList.sorted === eliminable)
   
   if tl.doTrace then
+    given ShowCfg = ShowCfg.internal
+
     def showTermSymbol(sym: TermSymbol): Str =
-      symbolPrinter.printSyntheticSymbol(sym, sym.nme)
+      symbolPrinter.printSymbol(sym)
 
     def showRefSite(resultId: ResultId): Str =
-      resultId.getReferredFun match
-        case Some(fun) => symbolPrinter.printSyntheticSymbol(resultId, showTermSymbol(fun))
-        case None =>
-          val name = resultId.getResult match
-            case Lambda(_, _) => "lambda"
-            case other => other.toString
-          symbolPrinter.printSyntheticSymbol(resultId, name)
+      symbolPrinter.printSymbol(resultId)
     end showRefSite
 
     def showInstId(instId: InstantiationId): Str =
@@ -128,9 +124,7 @@ class DeadParamElimSolver(val constraintSolver: FlowConstraintSolver):
     def showProdFun(prodFun: ProdFun): Str =
       def showFunId(funId: FunId): Str = funId match
         case (funSym: TermSymbol, whichParamList) => s"${showTermSymbol(funSym)}#$whichParamList"
-        case exprId: ResultId => exprId.getResult match
-          case Lambda(_, _) => symbolPrinter.printSyntheticSymbol(exprId, "lambda")
-          case _ => showRefSite(exprId)
+        case exprId: ResultId => showRefSite(exprId)
       val inst = prodFun.instantiationId.fold("")(instId => s" @ ${showInstId(instId)}")
       s"prodfun ${showFunId(prodFun.exprId)}$inst"
     end showProdFun
