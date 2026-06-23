@@ -153,20 +153,31 @@ object FunRef:
 
 type StratVarId = Uid[StratVar]
 
-class StratVarState(val uid: StratVarId, val name: Str, val generatedForFun: Opt[TermSymbol]):
+class StratVarState(val uid: StratVarId, val name: Str, val sourceSymbol: Opt[Symbol], val generatedForFun: Opt[TermSymbol]):
   lazy val asProdStrat = ProdVar(this)
   lazy val asConsStrat = ConsVar(this)
+  def displayBase(using Raise, SymbolPrinter): Str =
+    val ownName = sourceSymbol match
+      case S(sym) => summon[SymbolPrinter].printSyntheticSymbol(sym, sym.nme)
+      case N => if name.isEmpty() then "$stratvar" else name
+    generatedForFun match
+      case S(fun) => s"${ownName}_for_${summon[SymbolPrinter].printSyntheticSymbol(fun, fun.nme)}"
+      case N => ownName
+  def show(using Raise, SymbolPrinter): Str =
+    summon[SymbolPrinter].printSyntheticSymbol(this, displayBase)
   override def toString(): String = s"${if name.isEmpty() then "$stratvar" else name}@${uid}@$generatedForFun"
 
 object StratVarState:
   def freshVar(nme: String)(using vuid: Uid.StratVar.State, fState: FlowAnalysis.State): StratVarState =
     val newId = vuid.nextUid
-    val stratVar = StratVarState(newId, nme, N)
+    val stratVar = StratVarState(newId, nme, N, N)
     fState.stratVarIdToState(newId) = stratVar
     stratVar
   def freshVar(nme: String, generatedForFun: TermSymbol)(using vuid: Uid.StratVar.State, fState: FlowAnalysis.State): StratVarState =
+    freshVar(nme, N, S(generatedForFun))
+  def freshVar(nme: String, sourceSymbol: Opt[Symbol], generatedForFun: Opt[TermSymbol])(using vuid: Uid.StratVar.State, fState: FlowAnalysis.State): StratVarState =
     val newId = vuid.nextUid
-    val stratVar = StratVarState(newId, s"${nme}_for_${generatedForFun.nme}", S(generatedForFun))
+    val stratVar = StratVarState(newId, nme, sourceSymbol, generatedForFun)
     fState.stratVarIdToState(newId) = stratVar
     stratVar
   def freshVar(nme: String, forFunOpt: Opt[TermSymbol])(using vuid: Uid.StratVar.State, fState: FlowAnalysis.State): StratVarState =
@@ -357,7 +368,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     def registerStratVar(sym: Symbol, nme: String): Unit =
       val currentRootFun = ctx.tails.collectFirst:
         case InCtx.Fn(fun) :: tl if isTopLvlLikeFunCtx(tl) => fun.dSym
-      res.generatedProdVars.getOrElseUpdate(sym, freshVar(nme, currentRootFun))
+      res.generatedProdVars.getOrElseUpdate(sym, freshVar(nme, S(sym), currentRootFun))
     
     private inline def withCtx(newCtx: InCtx)(inline body: => Any)(after: => Unit = ()): Unit =
       ctx = newCtx :: ctx
@@ -764,7 +775,7 @@ class FlowConstraintsCollector(
       def duplicateVarState(s: StratVarState) =
         if s.generatedForFun.fold(false):
           forFun => funToSccRep(forFun).fold(false)(_ is groupRep)
-        then stratVarMap.getOrElseUpdate(s, freshVar(s.name, cc.forFunGroup))
+        then stratVarMap.getOrElseUpdate(s, freshVar(s.name, s.sourceSymbol, cc.forFunGroup.orElse(s.generatedForFun)))
         else s
       def duplicateProdStrat(s: ProdStrat): ProdStrat = s match
         case ProdVar(s) => duplicateVarState(s).asProdStrat
@@ -1026,6 +1037,7 @@ class FlowConstraintSolver(val collector: FlowConstraintsCollector):
   given eState: Elaborator.State = collector.eState
   given preAnalyzer: FlowPreAnalyzer = collector.preAnalyzer
   given Raise = preAnalyzer.raise
+  given SymbolPrinter = preAnalyzer.symbolPrinter
   
   
   val ctorDests = LinkedHashMap.empty[ConcreteProducer, Set[ConcreteConsumer | MarkerConsStrat]].withDefaultValue(Set.empty)
@@ -1044,7 +1056,7 @@ class FlowConstraintSolver(val collector: FlowConstraintsCollector):
           case (uid, bounds) <- upperBounds
           if bounds.contains(NonAffine)
           stratVar <- fState.stratVarIdToState.get(uid)
-        yield s"${stratVar.name}@$uid"
+        yield stratVar.show
       for nonAffine <- outputRes.toSortedSet do
         tl.log(nonAffine)
       tl.log("<<< non-affine syms <<<")
@@ -1055,10 +1067,9 @@ class FlowConstraintSolver(val collector: FlowConstraintsCollector):
       def showAccumulatorSym(uid: StratVarId, bounds: Ls[ConsStrat]): Opt[Str] =
         bounds
           .collectFirst:
-            case PossibleAccumulator(s) if s.uid === uid => s.name
-            case IntoParam(s) if s.uid === uid => s.name
-          .map: nme =>
-            s"$nme@$uid"
+            case PossibleAccumulator(s) if s.uid === uid => s
+            case IntoParam(s) if s.uid === uid => s
+          .map(_.show)
       val outputRes =
         for
           case (uid, bounds) <- upperBounds

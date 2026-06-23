@@ -66,7 +66,7 @@ fun wrapper(val1, dead) =
   (new A).makeB().getVal()
 wrapper(42, 0)
 //│ dead-param-elim > >>> dead-param-elim results >>>
-//│ dead-param-elim > prodfun wrapper#0 @ wrapper@3 -> eliminable: {1}
+//│ dead-param-elim > prodfun wrapper⁰#0 @ wrapper⁰⁰ -> eliminable: {1}
 //│ dead-param-elim > <<< dead-param-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let wrapper_3$wrapper;

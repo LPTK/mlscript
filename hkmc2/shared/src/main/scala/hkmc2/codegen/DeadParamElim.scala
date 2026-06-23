@@ -18,6 +18,8 @@ class DeadParamElimSolver(val constraintSolver: FlowConstraintSolver):
   given tl: TraceLogger = constraintSolver.tl
   given fState: FlowAnalysis.State = constraintSolver.fState
   given eState: Elaborator.State = constraintSolver.eState
+  given raise: Raise = constraintSolver.preAnalyzer.raise
+  given symbolPrinter: SymbolPrinter = constraintSolver.preAnalyzer.symbolPrinter
 
   val collector: FlowConstraintsCollector = constraintSolver.collector
   val funDests: collection.Map[ProdFun, Set[ConsFun | MarkerConsStrat]] =
@@ -106,10 +108,17 @@ class DeadParamElimSolver(val constraintSolver: FlowConstraintSolver):
       case S(existing) => assert(existing.toList.sorted === eliminable)
   
   if tl.doTrace then
+    def showTermSymbol(sym: TermSymbol): Str =
+      symbolPrinter.printSyntheticSymbol(sym, sym.nme)
+
     def showRefSite(resultId: ResultId): Str =
       resultId.getReferredFun match
-        case Some(fun) => s"${fun.nme}@$resultId"
-        case None => s"${resultId.getResult}@$resultId"
+        case Some(fun) => symbolPrinter.printSyntheticSymbol(resultId, showTermSymbol(fun))
+        case None =>
+          val name = resultId.getResult match
+            case Lambda(_, _) => "lambda"
+            case other => other.toString
+          symbolPrinter.printSyntheticSymbol(resultId, name)
     end showRefSite
 
     def showInstId(instId: InstantiationId): Str =
@@ -118,9 +127,9 @@ class DeadParamElimSolver(val constraintSolver: FlowConstraintSolver):
 
     def showProdFun(prodFun: ProdFun): Str =
       def showFunId(funId: FunId): Str = funId match
-        case (funSym: Symbol, whichParamList) => s"${funSym.nme}#$whichParamList"
+        case (funSym: TermSymbol, whichParamList) => s"${showTermSymbol(funSym)}#$whichParamList"
         case exprId: ResultId => exprId.getResult match
-          case Lambda(_, _) => s"lambda@$exprId"
+          case Lambda(_, _) => symbolPrinter.printSyntheticSymbol(exprId, "lambda")
           case _ => showRefSite(exprId)
       val inst = prodFun.instantiationId.fold("")(instId => s" @ ${showInstId(instId)}")
       s"prodfun ${showFunId(prodFun.exprId)}$inst"
@@ -411,5 +420,3 @@ object DeadParamElim:
           else
             val rewrite = new Rewrite(deadParamElimSolver)
             rewrite()
-
-
