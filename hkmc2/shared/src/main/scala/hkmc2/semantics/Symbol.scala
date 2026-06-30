@@ -252,6 +252,7 @@ class VarSymbol(val id: Ident, override var erasedType: Opt[ErasedType])(using S
     with HasManyMutableErasedType
     with NamedSymbol:
   val name: Str = id.name
+  var sourceAliases: Ls[Str] = Nil
   override def toLoc: Opt[Loc] = id.toLoc
   // override def toString: Str = s"$name@$uid"
   override def subst(using s: SymbolSubst): VarSymbol = s.mapVarSym(this)
@@ -323,6 +324,7 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
   
   // * This is a hack for that `TermDef` currently doesn't have a symbol. 
   var tsym: Opt[TermSymbol] = N
+  var sourceAliases: Ls[Str] = Nil
   
   def toLoc: Option[Loc] = Loc(trees)
   
@@ -373,6 +375,7 @@ class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.I
     with DefinitionSymbol[TermDefinition]
     with HasOnceMutableErasedType
     with NamedSymbol:
+  var sourceAliases: Ls[Str] = Nil
   def nme: Str = id.name
   def name: Str = nme
   
@@ -380,7 +383,14 @@ class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.I
   override def prefix: Str = s"term:${owner.map(o => s"${o.nme}/").getOrElse("")}"
   override def showPrefix(using Scope, ShowCfg, Raise): Str =
     "term:" + owner.map(_.showName + "/").getOrElse("")
-  def isPrivate: Bool = (k is LetBind) && owner.exists(!_.isInstanceOf[TopLevelSymbol])
+  def isExplicitlyPrivate: Bool = defn.exists(_.visibility is Visibility.Private)
+  lazy val isPrivate: Bool =
+    // Top-level term symbols have `owner = None`, but the synthetic global
+    // object itself is represented by a `TopLevelSymbol`; excluding it here
+    // keeps global definitions and builtins out of JS `#` private lowering if a
+    // generated symbol is ever attached to the global owner.
+    owner.exists(!_.isInstanceOf[TopLevelSymbol]) &&
+      ((k is LetBind) || isExplicitlyPrivate)
   
   def subst(using sub: SymbolSubst): TermSymbol = sub.mapTermSym(this)
   def mayRaiseEffects(using Config) =
@@ -570,7 +580,12 @@ class PatternSymbol(val id: Tree.Ident, val params: Opt[Tree.Tup], val body: Tre
   def nme = id.name
   def toLoc: Option[Loc] = id.toLoc // TODO track source tree of pattern here
   override def prefix: Str = "pattern:"
-  
+
+  /** The fixed-point machine compiled from this definition, paired with
+    * whether a failed run must be retried with the naive translation;
+    * memoized across `@compile` match sites (see `ups.FixedPointCompiler`). */
+  var fixedPointMachine: Opt[(ups.FixedPointCompiler.Machine, Bool)] = N
+
   override def subst(using sub: SymbolSubst): PatternSymbol = sub.mapPatSym(this)
 
 class TopLevelSymbol(blockNme: Str)(using State)
