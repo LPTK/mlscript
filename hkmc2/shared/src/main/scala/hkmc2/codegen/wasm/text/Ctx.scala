@@ -191,6 +191,10 @@ final class SessionExportCtx(
   *   The expression of the function body.
   * @param exportName
   *   Optional export name.
+  * @param typedParams
+  *   Whether parameter slots should be declared with their `erasedType`-derived Wasm type (via
+  *   `ValueSymbol.paramRefType`) rather than uniformly `anyref`. Only safe for top-level free functions, which are not
+  *   subject to the shared vtable calling convention; `false` for everything else (methods, ctors, `init`).
   */
 class FuncInfo(
     val sym: BlockMemberSymbol | TempSymbol,
@@ -201,6 +205,7 @@ class FuncInfo(
     val body: Expr,
     val exportName: Opt[Str],
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
+    val typedParams: Bool = false,
 )(using Ctx, Raise, State) extends ToWat:
 
   /** Symbolic identifier for the function. */
@@ -208,7 +213,7 @@ class FuncInfo(
 
   /** Returns the type of this function as a [[SignatureType]]. */
   def getSignatureType: SignatureType = SignatureType(
-    params = params.map((_, paramIdx) => WasmParam(paramIdx, RefType.anyref)),
+    params = params.map((sym, paramIdx) => WasmParam(paramIdx, if typedParams then sym.paramRefType else RefType.anyref)),
     results = resultTypes,
   )
 
@@ -360,8 +365,11 @@ object FunctionCtx:
   *   The parameters of this function.
   * @param thisSym
   *   The implicit `this` parameter symbol if this function is generated from a non-static method, or `N` otherwise.
+  * @param typedParams
+  *   Whether parameter slots should be declared/loaded with their `erasedType`-derived Wasm type rather than uniformly
+  *   `anyref`.
   */
-class FunctionCtx(_params: Ls[ParamList], thisSym: Opt[InnerSymbol])(using Raise, State):
+class FunctionCtx(_params: Ls[ParamList], thisSym: Opt[InnerSymbol], typedParams: Bool = false)(using Raise, State):
 
   /** [[Scope]] for generating WAT identifiers of locals. */
   private[text] val localScp = Scope.empty(Scope.Cfg.default)
@@ -406,14 +414,18 @@ class FunctionCtx(_params: Ls[ParamList], thisSym: Opt[InnerSymbol])(using Raise
 
   /** The declared Wasm reference type of the param/local slot for `sym`.
     *
-    * Parameters are uniformly `anyref`: their declared type is fixed by the shared call/vtable
-    * calling convention, independent of `sym.erasedType` (e.g. a virtually-dispatched method's
-    * `this` must stay `anyref` to match the shared vtable signature even when its erased type names
-    * a concrete class). Local slots derive their type from the symbol's erased type via
-    * [[localRefType]].
+    * Parameters are `anyref` by default: their declared type is fixed by the shared call/vtable
+    * calling convention. 
+    * 
+    * When `typedParams` is set (e.g. when compiling free functions), parameter slots instead derive their type from
+    * [[ValueSymbol.paramRefType]].
+    *
+    * Local slots always derive their type from the symbol's erased type via [[localRefType]].
     */
   def slotRefType(sym: ValueSymbol)(using Ctx): RefType =
-    if params.exists(_._1 == sym) then RefType.anyref else sym.localRefType
+    if params.exists(_._1 == sym) then
+      if typedParams then sym.paramRefType else RefType.anyref
+    else sym.localRefType
 
   /** Pushes a label target for the dynamic extent of `body` and pops it afterwards.
     *
@@ -455,8 +467,9 @@ end FunctionCtx
 def genFuncBody[T](
     params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
+    typedParams: Bool = false,
 )(mkBody: FunctionCtx ?=> T)(using Raise, State): T -> FunctionCtx =
-  val funcCtx = FunctionCtx(params, thisSym)
+  val funcCtx = FunctionCtx(params, thisSym, typedParams)
   val result = mkBody(using funcCtx)
   result -> funcCtx
 

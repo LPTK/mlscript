@@ -85,6 +85,57 @@ foo(41)
 //│ = 42
 
 
+// Tests whether cast elision and insertion works correctly:
+// - `addOne(41)` in the top-level elides a cast since `41: i31` and `(ref i31) <: (ref null i31)`
+// - `addOne(v)` in `useIt` inserts a cast since `v: anyref` and `(ref null any) :> (ref null i31)`
+:noInline
+:wat
+fun addOne(x: Int) = x + 1
+fun useIt(v) = addOne(v)
+addOne(41) + useIt(41)
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $plus_impl (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
+//│   (type $addOne (func (param $x (ref null i31)) (result (ref null any))))
+//│   (type $useIt (func (param $v (ref null any)) (result (ref null any))))
+//│   (type $entry (func (result (ref null any))))
+//│   (import "system" "plus_impl" (func $plus_impl (type $plus_impl)))
+//│   (func $addOne (export "addOne") (type $addOne) (param $x (ref null i31)) (result (ref null any))
+//│     (return
+//│       (call $plus_impl
+//│         (local.get $x)
+//│         (ref.i31
+//│           (i32.const 1)))))
+//│   (func $useIt (export "useIt") (type $useIt) (param $v (ref null any)) (result (ref null any))
+//│     (return
+//│       (call $addOne
+//│         (ref.cast (ref null i31)
+//│           (local.get $v)))))
+//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│     (local $tmp (ref null any))
+//│     (local $tmp1 (ref null any))
+//│     (block (result (ref null any))
+//│       (local.set $tmp
+//│         (call $addOne
+//│           (ref.i31
+//│             (i32.const 41))))
+//│       (local.set $tmp1
+//│         (call $useIt
+//│           (ref.i31
+//│             (i32.const 41))))
+//│       (return
+//│         (call $plus_impl
+//│           (local.get $tmp)
+//│           (local.get $tmp1)))))
+//│   (elem $addOne declare func $addOne)
+//│   (elem $useIt declare func $useIt)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 84
+
+
 class Foo(val x)
 new Foo(0)
 //│ Wasm result:
@@ -283,5 +334,5 @@ fun bar() = 42
 fun foo() = bar
 foo()()
 //│ ╔══[COMPILATION ERROR] Returning function instances is not supported
-//│ ║  l.283: 	fun foo() = bar
+//│ ║  l.334: 	fun foo() = bar
 //│ ╙──       	            ^^^

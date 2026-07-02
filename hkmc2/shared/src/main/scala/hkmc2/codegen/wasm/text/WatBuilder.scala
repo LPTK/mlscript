@@ -28,7 +28,7 @@ extension (instr: FoldedInstr)
 
 extension (et: ErasedType)
   /** Returns the corresponding Wasm type for this [[`ErasedType`]]. */
-  private def wasmType(using Ctx): Opt[RefType] =
+  private[text] def wasmType(using Ctx): Opt[RefType] =
     import Ctx.ctx
     et match
       case ErasedType.Primitive(PrimitiveType.Int | PrimitiveType.Int31 | PrimitiveType.Bool) =>
@@ -51,6 +51,13 @@ extension (sym: ValueSymbol)
           Option.when(isym eq State.unitSymbol):
             State.unitBlockMemberSymbol
         structSym.flatMap(ctx.getType).map(RefType(_, nullable = false)).getOrElse(RefType.anyref)
+      case _ => RefType.anyref
+
+  /** The Wasm reference type a parameter slot for `sym` should be declared with, if typed parameters are enabed. */
+  private[text] def paramRefType(using Ctx, State): RefType =
+    sym match
+      case s: HasErasedType =>
+        s.erasedType.collect { case p: ErasedType.Primitive => p }.flatMap(_.wasmType).getOrElse(RefType.anyref)
       case _ => RefType.anyref
 
 extension (exprs: Seq[Expr])
@@ -164,6 +171,20 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   private def castConserve(expr: Expr, target: RefType): Expr =
     require(expr.resultTypes.size == 1, "expected single-result expression for cast")
     if expr.resultType.contains(target) then expr else ref.cast(expr, target)
+
+  /** Casts each argument in `wasmArgs` down to the corresponding declared parameter type read from `funcTypeInfo`,
+    * narrowing `anyref` -> a concrete typed parameter.
+    * 
+    * Note that this function does not cast an argument that is already narrower than the declared parameter type,
+    * since it is illegal to upcast using `ref.cast`.
+    */
+  private def castArgsToParams(wasmArgs: Seq[Expr], funcTypeInfo: TypeInfo): Seq[Expr] =
+    val declParams = funcTypeInfo.compType.asInstanceOf[FunctionType].sigType.params
+    wasmArgs.zip(declParams).map: (arg, p) =>
+      p.valtype match
+        case rt: RefType if rt.heapType =/= HeapType.Any && arg.resultType.contains(RefType.anyref) =>
+          castConserve(arg, rt)
+        case _ => arg
 
   /** Returns the default Wasm value for one struct field when eagerly constructing an object instance. */
   private def defaultStructFieldValue(field: Field)(using Ctx, Raise): Expr = field.ty match
@@ -1318,7 +1339,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     extraInfo = S(fun.toString),
                   )
               val baseTypeInfo = ctx.getTypeInfo_!(ctx.getFuncTypeUse_!(baseFuncIdx).typeIdx)
-              val wasmArgs = args.map(argument)
+              val wasmArgs = castArgsToParams(args.map(argument), baseTypeInfo)
 
               call(
                 funcidx = baseFuncIdx,
@@ -1334,7 +1355,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     extraInfo = S(fun.toString),
                   )
               val baseTypeInfo = ctx.getTypeInfo_!(ctx.getFuncTypeUse_!(baseFuncIdx).typeIdx)
-              val wasmArgs = args.map(argument)
+              val wasmArgs = castArgsToParams(args.map(argument), baseTypeInfo)
 
               call(
                 funcidx = baseFuncIdx,
@@ -1800,13 +1821,13 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                   val result = pss.foldRight(bod):
                     case (ps, block) =>
                       Return(Lambda(ps, block)(Nil))
-                  val (bodyWat, fnCtx) = setupFunction(N, ps, result)
+                  val (bodyWat, fnCtx) = setupFunction(N, ps, result, typedParams = true)
                   if sym.nameIsMeaningful then
                     val funcTy = ctx.addType(
                       TypeInfo(
                         sym = TempSymbol(N, erasedType = N, sym.nme),
                         compType = FunctionType(
-                          params = fnCtx.params.map(p => WasmParam(p._2, RefType.anyref)),
+                          params = fnCtx.params.map(p => WasmParam(p._2, p._1.paramRefType)),
                           results = Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref)),
                         ),
                         objectTag = N,
@@ -1821,6 +1842,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       locals = fnCtx.locals,
                       body = bodyWat,
                       exportName = sym.optionIf(_.nameIsMeaningful).map(_.nme),
+                      typedParams = true,
                     )
                     ctx.addFunc(funcInfo)
                     if summon[SessionExportCtx].shouldExport(defn.sym) then
@@ -2422,8 +2444,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       thisParam: Opt[InnerSymbol],
       params: ParamList,
       body: Block,
+      typedParams: Bool = false,
   )(using Ctx, Raise, SessionExportCtx): (Expr, FunctionCtx) =
-    genFuncBody(params :: Nil, thisSym = thisParam):
+    genFuncBody(params :: Nil, thisSym = thisParam, typedParams = typedParams):
       block(body).mergeAsBlock.getOrElse(nop)
 
 end WatBuilder
