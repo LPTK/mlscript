@@ -53,11 +53,11 @@ extension (sym: ValueSymbol)
         structSym.flatMap(ctx.getType).map(RefType(_, nullable = false)).getOrElse(RefType.anyref)
       case _ => RefType.anyref
 
-  /** The Wasm reference type a parameter slot for `sym` should be declared with, if typed parameters are enabed. */
+  /** The Wasm reference type a parameter slot for `sym` should be declared with, if typed parameters are enabled. */
   private[text] def paramRefType(using Ctx, State): RefType =
     sym match
       case s: HasErasedType =>
-        s.erasedType.collect { case p: ErasedType.Primitive => p }.flatMap(_.wasmType).getOrElse(RefType.anyref)
+        s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
       case _ => RefType.anyref
 
 extension (exprs: Seq[Expr])
