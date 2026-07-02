@@ -108,11 +108,11 @@ if Bar(true) is
 //│     (local $matchRes (ref null any))
 //│     (local $currentTypeInfo (ref null any))
 //│     (local $targetTypeInfo (ref null any))
-//│     (local $typeInfoMatch (ref null any))
+//│     (local $typeInfoMatch (ref null i31))
 //│     (local $matchRes1 (ref null any))
 //│     (local $currentTypeInfo1 (ref null any))
 //│     (local $targetTypeInfo1 (ref null any))
-//│     (local $typeInfoMatch1 (ref null any))
+//│     (local $typeInfoMatch1 (ref null i31))
 //│     (block (result (ref null any))
 //│       (local.set $scrut
 //│         (call $Bar_ctor

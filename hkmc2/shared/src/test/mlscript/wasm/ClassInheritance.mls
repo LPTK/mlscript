@@ -103,7 +103,7 @@ c.Parent#x + (c is Parent)
 //│     (local $matchRes (ref null any))
 //│     (local $currentTypeInfo (ref null any))
 //│     (local $targetTypeInfo (ref null any))
-//│     (local $typeInfoMatch (ref null any))
+//│     (local $typeInfoMatch (ref null i31))
 //│     (block (result (ref null any))
 //│       (global.set $c
 //│         (call $Child_ctor

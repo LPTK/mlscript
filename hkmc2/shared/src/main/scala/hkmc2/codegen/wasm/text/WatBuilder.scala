@@ -51,6 +51,8 @@ extension (sym: ValueSymbol)
           if isym eq State.unitSymbol then S(State.unitBlockMemberSymbol)
           else isym.asBlkMember
         structSym.flatMap(ctx.getType).map(RefType(_, nullable = false)).getOrElse(RefType.anyref)
+      case s: HasErasedType =>
+        s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
       case _ => RefType.anyref
 
   /** The Wasm reference type a parameter slot for `sym` should be declared with, if typed parameters are enabled. */
@@ -171,6 +173,14 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   private def castConserve(expr: Expr, target: RefType): Expr =
     require(expr.resultTypes.size == 1, "expected single-result expression for cast")
     if expr.resultType.contains(target) then expr else ref.cast(expr, target)
+
+  /** Casts an expression to `target` type if the result type is a supertype of `target`. */
+  private def downcastConserve(expr: Expr, target: RefType): Expr =
+    require(expr.resultTypes.size == 1, "expected single-result expression for cast")
+    target match
+      case rt: RefType if rt.heapType =/= HeapType.Any && expr.resultType.contains(RefType.anyref) =>
+        castConserve(expr, rt)
+      case _ => expr
 
   /** Casts each argument in `wasmArgs` down to the corresponding declared parameter type read from `funcTypeInfo`,
     * narrowing `anyref` -> a concrete typed parameter.
@@ -1700,11 +1710,14 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       case Assign(l: ValueSymbol, r, rst) =>
         val lExpr = getVar(l, l.toLoc)
         val rExpr = result(r)
+        val rExprCasted = lExpr.resultType match
+          case S(rt: RefType) => downcastConserve(rExpr, rt)
+          case _ => rExpr
         val assignExpr = lExpr.mnemonicPrefix match
           case S("global") =>
-            global.set(lExpr.instrargs(0).asInstanceOf[GlobalIdx], rExpr)
+            global.set(lExpr.instrargs(0).asInstanceOf[GlobalIdx], rExprCasted)
           case S("local") =>
-            local.set(lExpr.instrargs(0).asInstanceOf[LocalIdx], rExpr)
+            local.set(lExpr.instrargs(0).asInstanceOf[LocalIdx], rExprCasted)
           case _ =>
             lastWords(
               s"Expected `global.*` or `local.*` when compiling instruction for `$l`, but got ${lExpr.mnemonic}",
@@ -1786,11 +1799,15 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
               case N =>
                 val localStorageSym = defn.sym
                 val symExpr = getVar(localStorageSym, localStorageSym.toLoc)
+                val pExpr = result(p)
+                val pExprCasted = symExpr.resultType match
+                  case S(rt: RefType) => downcastConserve(pExpr, rt)
+                  case _ => pExpr
                 val defineExpr = symExpr.mnemonicPrefix match
                   case S("global") =>
-                    global.set(symExpr.instrargs(0).asInstanceOf[GlobalIdx], result(p))
+                    global.set(symExpr.instrargs(0).asInstanceOf[GlobalIdx], pExprCasted)
                   case S("local") =>
-                    local.set(symExpr.instrargs(0).asInstanceOf[LocalIdx], result(p))
+                    local.set(symExpr.instrargs(0).asInstanceOf[LocalIdx], pExprCasted)
                   case _ =>
                     lastWords(
                       s"Expected `global.*` or `local.*` when compiling definition for `$sym`, but got ${symExpr.mnemonic}",
