@@ -528,7 +528,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
     val classFields = (defn.publicFields.map(_._2) ++ defn.privateFields)
       .map: f =>
-        f -> Field(RefType.anyref, mutable = true, id = f.nme)
+        val fieldType = f.erasedType match
+          case S(ErasedType.AnyRef(_, csym: ClassLikeSymbol)) =>
+            csym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = true)).getOrElse(RefType.anyref)
+          case _ => RefType.anyref
+        f -> Field(fieldType, mutable = true, id = f.nme)
 
     val allFields = inheritedFields ++ classFields
     val runtimeTag = ctx.getFreshObjectTag()
@@ -1448,11 +1452,19 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                 )}",
             )
           val fieldidx = fieldSelect(selCls, selSym)
-          struct.get(
+          val structInfo = ctx.getTypeInfo_!(selCls)
+          val fieldTy = structInfo.compType match
+            case st: StructType => st.fieldsBySym(selSym).ty
+            case other => lastWords(s"Expected struct type for $selCls, found ${other.toWat.mkString()}")
+          val getExpr = struct.get(
             fieldidx,
             ref = castConserve(qualRes, RefType(ctx.getType_!(selCls), nullable = false)),
-            ty = RefType.anyref,
+            ty = fieldTy,
           )
+          fieldTy match
+            case rt: RefType if rt.nullable && rt.heapType != HeapType.Any => 
+              castConserve(getExpr, rt.copy(nullable = false))
+            case _ => getExpr
         case N =>
           errExpr(
             Ls(
@@ -1747,7 +1759,14 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                   )
                 val fieldidx = fieldSelect(selCls, fieldSym)
                 val objRef = castConserve(lhsExpr, RefType(ctx.getType_!(selCls), nullable = false))
-                struct.set(fieldidx, objRef, rhsExpr)
+                val structInfo = ctx.getTypeInfo_!(selCls)
+                val fieldType = structInfo.compType match
+                  case st: StructType => st.fieldsBySym(fieldSym).ty
+                  case other => lastWords(s"Expected struct type for $selCls, found ${other.toWat.mkString()}")
+                val rhsCasted = fieldType match
+                  case rt: RefType => downcastConserve(rhsExpr, rt)
+                  case _ => rhsExpr
+                struct.set(fieldidx, objRef, rhsCasted)
               case N =>
                 lastWords(
                   s"Expected resolved AssignField(...) expression to be a TermSymbol, but got $selSym (${
@@ -1820,10 +1839,19 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                 defineExpr +: rstWat
               case S(owner) =>
                 val ownerBlkMem = owner.asBlkMember.get
+                val fieldIdx = fieldSelect(ownerBlkMem, tsym)
+                val structInfo = ctx.getTypeInfo_!(ownerBlkMem)
+                val fieldType = structInfo.compType match
+                  case st: StructType => st.fieldsBySym(tsym).ty
+                  case other => lastWords(s"Expected struct type for $ownerBlkMem, found ${other.toWat.mkString()}")
+                val pExpr = result(p)
+                val pCasted = fieldType match
+                  case rt: RefType => downcastConserve(pExpr, rt)
+                  case _ => pExpr
                 val assignInstr = struct.set(
-                  index = fieldSelect(ownerBlkMem, tsym),
+                  index = fieldIdx,
                   ref = mkThis(owner),
-                  value = result(p),
+                  value = pCasted,
                 )
                 val rstWat = returningTerm(rst)
                 assignInstr +: rstWat
