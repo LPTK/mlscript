@@ -629,11 +629,12 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
   /** Declares one top-level class init function. */
   private def predeclareClassInit(defn: ClsLikeDefn)(using Ctx, Raise): Unit =
+    val typeIdx = ctx.getType_!(defn.sym)
     val pl = classCtorParamList(defn)
     val initParams = (defn.isym -> SymIdx("this")) +:
       pl.params.map: p =>
         p.sym -> SymIdx(p.sym.nme)
-    predeclareClassFunc(defn, "init", initParams, Seq(Result(RefType.anyref)), initFuncSym(defn.sym), N)
+    predeclareClassFunc(defn, "init", initParams, Seq(Result(RefType(typeIdx, nullable = false))), initFuncSym(defn.sym), N)
 
   /** Declares one top-level class constructor. */
   private def predeclareClassConstructor(defn: ClsLikeDefn)(using Ctx, Raise): Unit =
@@ -979,9 +980,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   )(using Ctx, Raise, SessionExportCtx): (Expr, FunctionCtx) =
     genFuncBody(classCtorParamList(clsLikeDefn) :: Nil, thisSym = S(clsLikeDefn.isym)):
       val thisVar = funcCtx.lookupLocal_!(clsLikeDefn.isym, N)
+      val typeref = ctx.getType_!(clsLikeDefn.sym)
       val preCtorWat = compilePreCtor(clsLikeDefn, thisVar)
       val ctorWat = block(clsLikeDefn.ctor)
-      (preCtorWat ++ ctorWat :+ `return`(S(local.get(thisVar, RefType.anyref)))).mergeAsBlock_!
+      val retWat = `return`(S(ref.cast(local.get(thisVar, RefType.anyref), RefType(typeref, nullable = false))))
+      (preCtorWat ++ ctorWat :+ retWat).mergeAsBlock_!
 
   /** Lowers an inherited pre-constructor by preserving its setup code and rewriting the final `super(...)` into
     * `Parent_init(this, ...)`.
@@ -1018,11 +1021,12 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             val prefixWat = block(prefixBlock)
             resolveParentSym(clsLikeDefn) match
               case S(parentSym) =>
+                val parentTypeRef = ctx.getType_!(parentSym)
                 val parentInitFunc = initFuncSym(parentSym)
                 val superCall = call(
                   funcidx = ctx.getFunc_!(parentInitFunc),
-                  operands = local.get(thisVar, RefType.anyref) +: args.map(argument),
-                  returnTypes = Seq(Result(RefType.anyref)),
+                  operands = local.get(thisVar, RefType(parentTypeRef, nullable = false)) +: args.map(argument),
+                  returnTypes = Seq(Result(RefType(parentTypeRef, nullable = false))),
                 )
                 prefixWat :+ drop(superCall)
               case N => Vector.empty
@@ -1935,9 +1939,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     val thisVar = bindCtorThis(clsLikeDefn.isym)
                     val initCall = call(
                       funcidx = ctx.getFunc_!(initFuncRef),
-                      operands = local.get(thisVar, RefType.anyref) +:
+                      operands = local.get(thisVar, RefType(typeref, nullable = false)) +:
                         funcCtx.params.map((_, nme) => getLocalAnyref(LocalIdx(nme))),
-                      returnTypes = Seq(Result(RefType.anyref)),
+                      returnTypes = Seq(Result(RefType(typeref, nullable = false))),
                     )
                     Seq(
                       local.set(thisVar, struct.`new`(typeref, instanceFields)),
