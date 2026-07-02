@@ -47,9 +47,9 @@ extension (sym: ValueSymbol)
     import Ctx.ctx
     sym match
       case isym: InnerSymbol =>
-        val structSym = isym.asBlkMember orElse:
-          Option.when(isym eq State.unitSymbol):
-            State.unitBlockMemberSymbol
+        val structSym =
+          if isym eq State.unitSymbol then S(State.unitBlockMemberSymbol)
+          else isym.asBlkMember
         structSym.flatMap(ctx.getType).map(RefType(_, nullable = false)).getOrElse(RefType.anyref)
       case _ => RefType.anyref
 
@@ -351,9 +351,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     val ctorCall = call(
       funcidx = ctx.getFunc_!(clsLikeDefn.sym),
       operands = Seq.empty,
-      returnTypes = Seq(Result(RefType.anyref)),
+      returnTypes = Seq(Result(globalTy)),
     )
-    ctx.addSingletonInitAction(global.set(globalIdx, ref.cast(ctorCall, globalTy)))
+    ctx.addSingletonInitAction(global.set(globalIdx, ctorCall))
   end registerSingletonInit
 
   /** Collects only top-level class definitions in `block`. */
@@ -535,12 +535,13 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       defn: ClsLikeDefn,
       suffix: Str,
       params: Seq[ValueSymbol -> SymIdx],
+      results: Seq[Result],
   )(using Ctx, Raise): TypeIdx =
     ctx.addType(TypeInfo(
       sym = TempSymbol(N, erasedType = N, defn.sym.nme),
       FunctionType(
         params = params.map(p => WasmParam(p._2, RefType.anyref)),
-        results = Seq(Result(RefType.anyref)),
+        results = results,
       ),
       objectTag = N,
       wrapId = N -> S(suffix),
@@ -573,17 +574,19 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       defn: ClsLikeDefn,
       suffix: Str,
       params: Seq[ValueSymbol -> SymIdx],
+      results: Seq[Result],
       sym: BlockMemberSymbol,
       exportName: Opt[Str],
   )(using Ctx, Raise): Unit =
-    val funcTy = declareClassFuncType(defn, suffix, params)
-    predeclareClassFuncWithType(defn, suffix, params, sym, exportName, funcTy)
+    val funcTy = declareClassFuncType(defn, suffix, params, results)
+    predeclareClassFuncWithType(defn, suffix, params, results, sym, exportName, funcTy)
 
   /** Registers a placeholder class-associated function using a predeclared Wasm function type. */
   private def predeclareClassFuncWithType(
       defn: ClsLikeDefn,
       suffix: Str,
       params: Seq[ValueSymbol -> SymIdx],
+      resultTypes: Seq[Result],
       sym: BlockMemberSymbol,
       exportName: Opt[Str],
       funcTy: TypeIdx,
@@ -593,7 +596,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       wrapId = if sym.asClsOrMod.isDefined then (N -> S("ctor")) else (S(defn.sym.nme) -> N),
       typeUse = TypeUse(funcTy),
       params = params,
-      resultTypes = Seq(Result(RefType.anyref)),
+      resultTypes = resultTypes,
       locals = Seq.empty,
       body = ref.`null`(ctx.getType_!(defn.sym)),
       exportName = exportName,
@@ -620,17 +623,18 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     val initParams = (defn.isym -> SymIdx("this")) +:
       pl.params.map: p =>
         p.sym -> SymIdx(p.sym.nme)
-    predeclareClassFunc(defn, "init", initParams, initFuncSym(defn.sym), N)
+    predeclareClassFunc(defn, "init", initParams, Seq(Result(RefType.anyref)), initFuncSym(defn.sym), N)
 
   /** Declares one top-level class constructor. */
   private def predeclareClassConstructor(defn: ClsLikeDefn)(using Ctx, Raise): Unit =
+    val typeIdx = ctx.getType_!(defn.sym)
     val ctorParams = classCtorParamList(defn).params.map: p =>
       p.sym -> SymIdx(p.sym.nme)
     val ctorExportName = defn.sym
       .optionIf: sym =>
         !(defn.k is syntax.Obj) && sym.nameIsMeaningful
       .map(_.nme)
-    predeclareClassFunc(defn, "ctor", ctorParams, defn.sym, ctorExportName)
+    predeclareClassFunc(defn, "ctor", ctorParams, Seq(Result(RefType(typeIdx, nullable = false))), defn.sym, ctorExportName)
 
   /** Registers all Wasm pre-declarations needed for one top-level class, in dependency order. */
   private def predeclareClass(defn: ClsLikeDefn)(using Ctx, Raise, SessionExportCtx): Unit =
@@ -844,12 +848,13 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           ownerCls,
           methodDefn.sym.nme,
           methodParams,
+          Seq(Result(RefType.anyref)),
           methodDefn.sym,
           N,
           virtualMethodFuncType(methodParams.size),
         )
       case N =>
-        predeclareClassFunc(ownerCls, methodDefn.sym.nme, methodParams, methodDefn.sym, N)
+        predeclareClassFunc(ownerCls, methodDefn.sym.nme, methodParams, Seq(Result(RefType.anyref)), methodDefn.sym, N)
 
   /** Declares placeholders for all methods on one top-level class. */
   private def predeclareClassMethods(defn: ClsLikeDefn)(using Ctx, Raise): Unit =
@@ -1505,17 +1510,16 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             Ls(msg"Class path for an Instantiate(...) expression must be resolved" -> cls.toLoc),
             extraInfo = S(s"Block IR of `cls` expression: ${cls.toString}"),
           )
-      val ctorClsBlkSym = ctorClsSym.asBlkMember match
-        case S(sym) => sym
-        case N => lastWords(
-            s"Expected resolved class for an Instantiate(...) expression to be a BlockMemberSymbol, but got ${
-                ctorClsSym.getClass.getName
-              }",
-          )
-      val ctorFuncIdx = ctx.getFunc(ctorClsBlkSym) match
-        case S(idx) => idx
-        case N => lastWords(s"Missing constructor definition for class ${ctorClsBlkSym.toString}")
-      call(funcidx = ctorFuncIdx, as.map(argument), Seq(Result(RefType.anyref)))
+      val ctorClsBlkSym = ctorClsSym.asBlkMember.getOrElse:
+        lastWords:
+          s"Expected resolved class for an Instantiate(...) expression to be a BlockMemberSymbol, but got ${
+              ctorClsSym.getClass.getName
+            }"
+      val ctorFuncIdx = ctx.getFunc(ctorClsBlkSym).getOrElse:
+        lastWords(s"Missing constructor definition for class ${ctorClsBlkSym.toString}")
+      val ctorClsTypeIdx = ctx.getType(ctorClsBlkSym).getOrElse:
+        lastWords(s"Missing class definition for class ${ctorClsBlkSym.toString}")
+      call(funcidx = ctorFuncIdx, as.map(argument), Seq(Result(RefType(ctorClsTypeIdx, nullable = false))))
 
     case Tuple(mut, elems) =>
       val tupleValues = elems.map(argument)
@@ -1921,9 +1925,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     Seq(
                       local.set(thisVar, struct.`new`(typeref, instanceFields)),
                       drop(initCall),
-                      // TODO(Derppening): Restore once we fix custom reftypes
-                      // `return`(S(local.get(thisVar, RefType(typeref, nullable = false)))),
-                      `return`(S(local.get(thisVar, RefType.anyref))),
+                      `return`(S(local.get(thisVar, RefType(typeref, nullable = false)))),
                     ).mergeAsBlock_!
 
                   val predeclaredInit = ctx.getFuncInfo_!(initFuncRef)
@@ -2001,7 +2003,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                         funcType = FunctionType(
                           SignatureType(
                             params = ctorFnCtx.params.map(p => WasmParam(p._2, RefType.anyref)),
-                            results = Seq(Result(RefType.anyref)),
+                            results = ctorCode.resultTypes.map(ty => Result(ty.asValType_!)),
                           ),
                         ),
                       ))

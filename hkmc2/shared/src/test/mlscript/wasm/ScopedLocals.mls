@@ -149,7 +149,7 @@ class Foo(val a, val b)
 //│   (type $Foo_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Foo (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $a (mut (ref null any))) (field $b (mut (ref null any))))))
 //│   (type $Foo_init (func (param $this (ref null any)) (param $a (ref null any)) (param $b (ref null any)) (result (ref null any))))
-//│   (type $Foo_ctor (func (param $a (ref null any)) (param $b (ref null any)) (result (ref null any))))
+//│   (type $Foo_ctor (func (param $a (ref null any)) (param $b (ref null any)) (result (ref $Foo))))
 //│   (type $entry (func (result (ref null any))))
 //│   (global $Foo_typeinfo (export "Foo_typeinfo") (ref $Foo_typeinfo) (struct.new $Foo_typeinfo
 //│     (i32.const 1)
@@ -166,9 +166,9 @@ class Foo(val a, val b)
 //│         (local.get $b))
 //│       (return
 //│         (local.get $this))))
-//│   (func $Foo_ctor (export "Foo") (type $Foo_ctor) (param $a (ref null any)) (param $b (ref null any)) (result (ref null any))
+//│   (func $Foo_ctor (export "Foo") (type $Foo_ctor) (param $a (ref null any)) (param $b (ref null any)) (result (ref $Foo))
 //│     (local $this (ref $Foo))
-//│     (block (result (ref null any))
+//│     (block (result (ref $Foo))
 //│       (local.set $this
 //│         (struct.new $Foo
 //│           (global.get $Foo_typeinfo)

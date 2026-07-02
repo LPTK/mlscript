@@ -16,11 +16,11 @@ Bar.y
 //│   (type $Foo_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Foo (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $x (mut (ref null any))))))
 //│   (type $Foo_init (func (param $this (ref null any)) (result (ref null any))))
-//│   (type $Foo_ctor (func (result (ref null any))))
+//│   (type $Foo_ctor (func (result (ref $Foo))))
 //│   (type $Bar_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Bar (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $y (mut (ref null any))))))
 //│   (type $Bar_init (func (param $this (ref null any)) (result (ref null any))))
-//│   (type $Bar_ctor (func (result (ref null any))))
+//│   (type $Bar_ctor (func (result (ref $Bar))))
 //│   (type $entry (func (result (ref null any))))
 //│   (type $start (func))
 //│   (global $Foo_typeinfo (export "Foo_typeinfo") (ref $Foo_typeinfo) (struct.new $Foo_typeinfo
@@ -40,9 +40,9 @@ Bar.y
 //│           (i32.const 1)))
 //│       (return
 //│         (local.get $this))))
-//│   (func $Foo_ctor (type $Foo_ctor) (result (ref null any))
+//│   (func $Foo_ctor (type $Foo_ctor) (result (ref $Foo))
 //│     (local $this (ref $Foo))
-//│     (block (result (ref null any))
+//│     (block (result (ref $Foo))
 //│       (local.set $this
 //│         (struct.new $Foo
 //│           (global.get $Foo_typeinfo)
@@ -61,9 +61,9 @@ Bar.y
 //│           (i32.const 2)))
 //│       (return
 //│         (local.get $this))))
-//│   (func $Bar_ctor (type $Bar_ctor) (result (ref null any))
+//│   (func $Bar_ctor (type $Bar_ctor) (result (ref $Bar))
 //│     (local $this (ref $Bar))
-//│     (block (result (ref null any))
+//│     (block (result (ref $Bar))
 //│       (local.set $this
 //│         (struct.new $Bar
 //│           (global.get $Bar_typeinfo)
@@ -76,11 +76,9 @@ Bar.y
 //│   (func $start (type $start)
 //│     (block
 //│       (global.set $Foo$inst
-//│         (ref.cast (ref null $Foo)
-//│           (call $Foo_ctor)))
+//│         (call $Foo_ctor))
 //│       (global.set $Bar$inst
-//│         (ref.cast (ref null $Bar)
-//│           (call $Bar_ctor)))))
+//│         (call $Bar_ctor))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (return
 //│       (struct.get $Bar $y
