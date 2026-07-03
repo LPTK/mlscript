@@ -195,6 +195,8 @@ final class SessionExportCtx(
   *   Whether parameter slots should be declared with their `erasedType`-derived Wasm type (via
   *   `ValueSymbol.paramRefType`) rather than uniformly `anyref`. Only safe for top-level free functions, which are not
   *   subject to the shared vtable calling convention; `false` for everything else (methods, ctors, `init`).
+  * @param thisRefType
+  *   When set, overrides the declared type of the `this` param (index 0), independent of `typedParams`.
   */
 class FuncInfo(
     val sym: BlockMemberSymbol | TempSymbol,
@@ -206,6 +208,7 @@ class FuncInfo(
     val exportName: Opt[Str],
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
     val typedParams: Bool = false,
+    val thisRefType: Opt[RefType] = N,
 )(using Ctx, Raise, State) extends ToWat:
 
   /** Symbolic identifier for the function. */
@@ -213,7 +216,10 @@ class FuncInfo(
 
   /** Returns the type of this function as a [[SignatureType]]. */
   def getSignatureType: SignatureType = SignatureType(
-    params = params.map((sym, paramIdx) => WasmParam(paramIdx, if typedParams then sym.paramRefType else RefType.anyref)),
+    params = params.zipWithIndex.map:
+      case ((sym, paramIdx), idx) =>
+        val default = if typedParams then sym.paramRefType else RefType.anyref
+        WasmParam(paramIdx, if idx == 0 then thisRefType.getOrElse(default) else default),
     results = resultTypes,
   )
 
@@ -330,8 +336,10 @@ end TagInfo
 
 enum WasmIntrinsicType:
   case TupleArray(mutable: Bool)
-  /** Shared erased Wasm function type for virtual methods with the given arity, including `this`. */
-  case VirtualMethod(arity: Int)
+  /** Shared erased Wasm function type for virtual methods with the given arity introduced by `baseSym`,
+    * including a concretely-typed `this`.
+    */
+  case VirtualMethod(baseSym: BlockMemberSymbol, arity: Int)
 
 /** Class containing identifiers of labels to jump to when breaking or continuing from a control flow structure.
   *
@@ -364,12 +372,17 @@ object FunctionCtx:
   * @param _params
   *   The parameters of this function.
   * @param thisSym
-  *   The implicit `this` parameter symbol if this function is generated from a non-static method, or `N` otherwise.
+  *   The implicit `this` parameter symbol and its concrete type if this function is generated from a non-static
+  *   method, or `N` otherwise.
   * @param typedParams
   *   Whether parameter slots should be declared/loaded with their `erasedType`-derived Wasm type rather than uniformly
   *   `anyref`.
   */
-class FunctionCtx(_params: Ls[ParamList], thisSym: Opt[InnerSymbol], typedParams: Bool = false)(using Raise, State):
+class FunctionCtx(
+    _params: Ls[ParamList],
+    thisRef: Opt[InnerSymbol -> RefType],
+    typedParams: Bool = false,
+)(using Raise, State):
 
   /** [[Scope]] for generating WAT identifiers of locals. */
   private[text] val localScp = Scope.empty(Scope.Cfg.default)
@@ -380,8 +393,8 @@ class FunctionCtx(_params: Ls[ParamList], thisSym: Opt[InnerSymbol], typedParams
   val params: Seq[ValueSymbol -> SymIdx] =
     if _params.length > 1 then
       lastWords("Multiple parameter lists are not yet supported")
-    val thisParam = thisSym.map: dis =>
-      dis -> SymIdx(localScp.addToBindings(dis, "this", shadow = false))
+    val thisParam = thisRef.map: dis =>
+      dis._1 -> SymIdx(localScp.addToBindings(dis._1, "this", shadow = false))
     thisParam.toSeq ++ _params.flatMap(_.paramSyms).map(p => p -> SymIdx(localScp.allocateName(p)))
   private val _locals = ArrayBuf.empty[ValueSymbol]
   private var labels = ListMap.empty[LabelSymbol, FunctionCtx.ControlFlowCtx]
@@ -415,15 +428,19 @@ class FunctionCtx(_params: Ls[ParamList], thisSym: Opt[InnerSymbol], typedParams
   /** The declared Wasm reference type of the param/local slot for `sym`.
     *
     * Parameters are `anyref` by default: their declared type is fixed by the shared call/vtable
-    * calling convention. 
-    * 
+    * calling convention.
+    *
     * When `typedParams` is set (e.g. when compiling free functions), parameter slots instead derive their type from
     * [[ValueSymbol.paramRefType]].
+    *
+    * When `thisRefType` is set, the `this` slot uses it instead (independent of `typedParams`).
     *
     * Local slots always derive their type from the symbol's erased type via [[localRefType]].
     */
   def slotRefType(sym: ValueSymbol)(using Ctx): RefType =
-    if params.exists(_._1 == sym) then
+    if thisRef.exists(_._1 == sym) then
+      thisRef.fold(if typedParams then sym.paramRefType else RefType.anyref)(_._2)
+    else if params.exists(_._1 == sym) then
       if typedParams then sym.paramRefType else RefType.anyref
     else sym.localRefType
 
@@ -466,10 +483,10 @@ end FunctionCtx
   */
 def genFuncBody[T](
     params: Ls[ParamList],
-    thisSym: Opt[InnerSymbol],
+    thisRef: Opt[InnerSymbol -> RefType],
     typedParams: Bool = false,
 )(mkBody: FunctionCtx ?=> T)(using Raise, State): T -> FunctionCtx =
-  val funcCtx = FunctionCtx(params, thisSym, typedParams)
+  val funcCtx = FunctionCtx(params, thisRef, typedParams)
   val result = mkBody(using funcCtx)
   result -> funcCtx
 
@@ -485,10 +502,15 @@ object Ctx:
     *   Slot-ordered method symbols, used when declaring and initializing RTTI slot fields.
     * @param virtualMethodSlots
     *   Reverse lookup from a resolved method symbol to its virtual slot index.
+    * @param slotOwners
+    *   Slot-ordered class symbols recording the class that *introduced* each slot (as opposed to `virtualMethods`,
+    *   which tracks the most-derived occupant). Used for deriving the type of the `this` param for each slot's
+    *   function type.
     */
   case class VirtualTable(
       virtualMethods: List[BlockMemberSymbol],
       virtualMethodSlots: Map[BlockMemberSymbol, Int],
+      slotOwners: List[BlockMemberSymbol],
   )
 
   val binaryOps: Map[Str, (Expr, Expr) => Expr] = Map(

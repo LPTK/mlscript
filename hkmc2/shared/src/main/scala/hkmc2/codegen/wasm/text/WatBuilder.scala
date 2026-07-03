@@ -50,7 +50,7 @@ extension (sym: ValueSymbol)
         val structSym =
           if isym eq State.unitSymbol then S(State.unitBlockMemberSymbol)
           else isym.asBlkMember
-        structSym.flatMap(ctx.getType).map(RefType(_, nullable = false)).getOrElse(RefType.anyref)
+        structSym.flatMap(ctx.getType).fold(RefType.anyref)(RefType(_, nullable = false))
       case s: HasErasedType =>
         s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
       case _ => RefType.anyref
@@ -487,9 +487,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   /** Computes one derived virtual-table layout for one top-level class. */
   private def predeclareClassVirtualTable(defn: ClsLikeDefn)(using Ctx, Raise): Unit =
     val parentVirtualTable = resolveParentSym(defn).flatMap(ctx.getVirtualTable)
-      .getOrElse(Ctx.VirtualTable(Nil, Map.empty))
+      .getOrElse(Ctx.VirtualTable(Nil, Map.empty, Nil))
     val virtualMethods = ArrayBuf.from(parentVirtualTable.virtualMethods)
     val virtualMethodSlots = LinkedHashMap.from(parentVirtualTable.virtualMethodSlots)
+    val slotOwners = ArrayBuf.from(parentVirtualTable.slotOwners)
 
     // FIXME: LP: why do we need to access elaborated Term methods, here?! We should just be able to look at the IR definitions, and if that's not enough, we should put the required info there...
     semanticMethodDefs(defn).foreach: methodDef =>
@@ -502,6 +503,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           val slot = virtualMethods.size
           virtualMethods += methodDef.sym
           virtualMethodSlots(methodDef.sym) = slot
+          slotOwners += defn.sym
         case N => ()
 
     ctx.registerVirtualTable(
@@ -509,6 +511,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       Ctx.VirtualTable(
         virtualMethods = virtualMethods.toList,
         virtualMethodSlots = virtualMethodSlots.toMap,
+        slotOwners = slotOwners.toList,
       ),
     )
   end predeclareClassVirtualTable
@@ -561,20 +564,23 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       wrapId = N -> S(suffix),
     ))
 
-  /** Returns the shared erased Wasm function signature for a virtual method arity, including `this`. */
-  private def virtualMethodSignature(arity: Int): FunctionType =
+  /** Returns the shared erased Wasm function signature for a virtual method arity introduced by `baseSym`,
+    * including a concretely-typed `this`. Non-`this` params and the result stay `anyref`.
+    */
+  private def virtualMethodSignature(baseSym: BlockMemberSymbol, arity: Int)(using Ctx, Raise): FunctionType =
+    val thisTy = RefType(ctx.getType_!(baseSym), nullable = false)
     FunctionType(
       params = (0 until arity).map: idx =>
-        WasmParam(SymIdx(if idx == 0 then "this" else s"arg$idx"), RefType.anyref),
+        WasmParam(SymIdx(if idx == 0 then "this" else s"arg$idx"), if idx == 0 then thisTy else RefType.anyref),
       results = Seq(Result(RefType.anyref)),
     )
 
-  /** Declares (and caches) the shared Wasm function type for a virtual method arity, including `this`. */
-  private def virtualMethodFuncType(arity: Int)(using Ctx, Raise): TypeIdx =
-    ctx.getOrCreateWasmIntrinsicType(WasmIntrinsicType.VirtualMethod(arity)):
+  /** Declares (and caches) the shared Wasm function type for a virtual method arity introduced by `baseSym`. */
+  private def virtualMethodFuncType(baseSym: BlockMemberSymbol, arity: Int)(using Ctx, Raise): TypeIdx =
+    ctx.getOrCreateWasmIntrinsicType(WasmIntrinsicType.VirtualMethod(baseSym, arity)):
       ctx.addType(TypeInfo(
         sym = TempSymbol(N, erasedType = N, s"virtual$arity"),
-        compType = virtualMethodSignature(arity),
+        compType = virtualMethodSignature(baseSym, arity),
         objectTag = N,
       ))
   end virtualMethodFuncType
@@ -654,8 +660,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   /** Registers all Wasm pre-declarations needed for one top-level class, in dependency order. */
   private def predeclareClass(defn: ClsLikeDefn)(using Ctx, Raise, SessionExportCtx): Unit =
     predeclareClassVirtualTable(defn)
-    predeclareClassTypeInfoType(defn)
+    // Note: `predeclareClassType` must run before `predeclareClassTypeInfoType`, since virtual slots in `typeinfo`
+    // needs to type `this` as the class's own type.
     predeclareClassType(defn)
+    predeclareClassTypeInfoType(defn)
     predeclareClassInit(defn)
     predeclareClassConstructor(defn)
     predeclareClassMethods(defn)
@@ -807,7 +815,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       val arity = 1 + methodDefn.params.headOption.fold(0)(_.params.size)
       val fieldSym = TermSymbol(syntax.MutVal, owner = N, Ident(s"slot$slot"), erasedType = N)
       fieldSym -> Field(
-        RefType(virtualMethodFuncType(arity), nullable = true),
+        RefType(virtualMethodFuncType(defn.sym, arity), nullable = true),
         mutable = true,
         id = s"slot$slot",
       )
@@ -857,8 +865,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       methodDefn.params.headOption.fold(Nil): ps =>
         ps.params.map: p =>
           p.sym -> SymIdx(p.sym.nme)
-    ctx.getVirtualTable(ownerCls.sym).flatMap(_.virtualMethodSlots.get(methodDefn.sym)) match
-      case S(_) =>
+    ctx.getVirtualTable(ownerCls.sym).flatMap(vt => vt.virtualMethodSlots.get(methodDefn.sym).map(slot => vt.slotOwners(slot))) match
+      case S(baseSym) =>
         predeclareClassFuncWithType(
           ownerCls,
           methodDefn.sym.nme,
@@ -866,7 +874,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           Seq(Result(RefType.anyref)),
           methodDefn.sym,
           N,
-          virtualMethodFuncType(methodParams.size),
+          virtualMethodFuncType(baseSym, methodParams.size),
         )
       case N =>
         predeclareClassFunc(ownerCls, methodDefn.sym.nme, methodParams, Seq(Result(RefType.anyref)), methodDefn.sym, N)
@@ -982,7 +990,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   private def setupInitLocals(
       clsLikeDefn: ClsLikeDefn,
   )(using Ctx, Raise, SessionExportCtx): (Expr, FunctionCtx) =
-    genFuncBody(classCtorParamList(clsLikeDefn) :: Nil, thisSym = S(clsLikeDefn.isym)):
+    genFuncBody(classCtorParamList(clsLikeDefn) :: Nil, thisRef = S(clsLikeDefn.isym -> RefType.anyref)):
       val thisVar = funcCtx.lookupLocal_!(clsLikeDefn.isym, N)
       val typeref = ctx.getType_!(clsLikeDefn.sym)
       val preCtorWat = compilePreCtor(clsLikeDefn, thisVar)
@@ -1223,8 +1231,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       args: Seq[Arg],
   )(using Ctx, FunctionCtx, Raise, SessionExportCtx): Ls[Expr] =
     val ownerCls = fieldOwner(methodSym).get
-    ctx.getVirtualTable(ownerCls).flatMap(_.virtualMethodSlots.get(methodSym)) match
-      case S(slot) =>
+    ctx.getVirtualTable(ownerCls).flatMap(vt => vt.virtualMethodSlots.get(methodSym).map(slot => (vt, slot))) match
+      case S((vt, slot)) =>
+        val baseSym = vt.slotOwners(slot)
         val ownerTypeInfoIdx = typeInfoTypeIdxs(ownerCls)
         val receiverTmp = mkTempLocal("receiver", erasedType = N)
         val receiverExpr = local.set(receiverTmp, result(qual))
@@ -1234,17 +1243,18 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           RefType(ownerTypeInfoIdx, nullable = false),
         )
         val virtualArity = 1 + args.size
-        val virtualMethodTypeIdx = virtualMethodFuncType(virtualArity)
+        val virtualMethodTypeIdx = virtualMethodFuncType(baseSym, virtualArity)
         val methodRef = struct.get(
           FieldIdx(SymIdx(s"slot$slot")),
           ownerTypeInfoRef,
           RefType(virtualMethodTypeIdx, nullable = true),
         )
+        val typedReceiver = downcastConserve(receiverRef, RefType(ctx.getType_!(baseSym), nullable = false))
         val virtualCall = call_ref(
           target = methodRef,
-          operands = receiverRef +: args.map(argument),
+          operands = typedReceiver +: args.map(argument),
           typeIdx = virtualMethodTypeIdx,
-          funcType = virtualMethodSignature(virtualArity),
+          funcType = virtualMethodSignature(baseSym, virtualArity),
         )
         Ls(receiverExpr, virtualCall)
       case N =>
@@ -1293,8 +1303,6 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       singletonInfoFor(sym) match
         case S(info) => singletonGlobalGet(info)
         case N =>
-          // The cast is necessary if `$this` is a parameter rather than a local, since `$this` parameters are typed as
-          // `anyref` to support virtual dispatch
           castConserve(
             local.get(funcCtx.lookupLocal_!(sym, sym.toLoc), funcCtx.slotRefType(sym)),
             RefType(
@@ -1963,7 +1971,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       lastWords(s"Expected struct type for ${clsLikeDefn.sym}, found ${other.toWat.mkString()}")
 
                   val initFuncRef = initFuncSym(clsLikeDefn.sym)
-                  val (ctorCode, ctorFnCtx) = genFuncBody(ctorParamList :: Nil, thisSym = N):
+                  val (ctorCode, ctorFnCtx) = genFuncBody(ctorParamList :: Nil, thisRef = N):
                     val thisVar = bindCtorThis(clsLikeDefn.isym)
                     val initCall = call(
                       funcidx = ctx.getFunc_!(initFuncRef),
@@ -2007,7 +2015,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       ps: ParamList,
                       bod: Block,
                   ): Unit =
-                    val (bodyWat, fnCtx) = setupFunction(S(clsLikeDefn.isym), ps, bod)
+                    val thisRefType = ctx.getVirtualTable(clsLikeDefn.sym).flatMap: vt =>
+                      vt.virtualMethodSlots.get(sym).map: slot =>
+                        RefType(ctx.getType_!(vt.slotOwners(slot)), nullable = false)
+                    val (bodyWat, fnCtx) = setupFunction(S(clsLikeDefn.isym -> RefType.anyref), ps, bod)
                     val predeclaredMethod = ctx.getFuncInfo_!(sym)
                     ctx.addFunc(FuncInfo(
                       sym,
@@ -2018,6 +2029,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       locals = fnCtx.locals,
                       body = bodyWat,
                       exportName = predeclaredMethod.exportName,
+                      thisRefType = thisRefType,
                     ))
 
                   clsLikeDefn.methods.foreach:
@@ -2419,7 +2431,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
       // Compile the entry function under a dedicated local scope so that any temp locals introduced
       // during codegen (e.g., via `local.tee`) are declared in the entry function.
-      val (entryFnExpr, entryFnCtx) = genFuncBody(Nil, thisSym = N):
+      val (entryFnExpr, entryFnCtx) = genFuncBody(Nil, thisRef = N):
         normalizeValueExprs(block(p.main), p.main.isAbortive).mergeAsBlock.getOrElse(nop)
 
       val entrySym = BlockMemberSymbol("entry", Nil)
@@ -2492,12 +2504,12 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     nonNestedScoped(t)(returningTerm)
 
   def setupFunction(
-      thisParam: Opt[InnerSymbol],
+      thisParam: Opt[InnerSymbol -> RefType],
       params: ParamList,
       body: Block,
       typedParams: Bool = false,
   )(using Ctx, Raise, SessionExportCtx): (Expr, FunctionCtx) =
-    genFuncBody(params :: Nil, thisSym = thisParam, typedParams = typedParams):
+    genFuncBody(params :: Nil, thisRef = thisParam, typedParams = typedParams):
       block(body).mergeAsBlock.getOrElse(nop)
 
 end WatBuilder
