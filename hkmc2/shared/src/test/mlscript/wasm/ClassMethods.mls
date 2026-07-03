@@ -14,7 +14,7 @@ a.A#get() + A(2).get()
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
 //│   (type $A (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $x (mut (ref null any))))))
 //│   (type $A_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
-//│   (type $A_init (func (param $this (ref null any)) (param $x (ref null any)) (result (ref $A))))
+//│   (type $A_init (func (param $this (ref $A)) (param $x (ref null any)) (result (ref $A))))
 //│   (type $A_ctor (func (param $x (ref null any)) (result (ref $A))))
 //│   (type $A_get (func (param $this (ref null any)) (result (ref null any))))
 //│   (type $plus_impl (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
@@ -24,11 +24,10 @@ a.A#get() + A(2).get()
 //│   (global $A_typeinfo (export "A_typeinfo") (ref $A_typeinfo) (struct.new $A_typeinfo
 //│     (i32.const 1)
 //│     (ref.null $TypeInfoBase)))
-//│   (func $A_init (type $A_init) (param $this (ref null any)) (param $x (ref null any)) (result (ref $A))
+//│   (func $A_init (type $A_init) (param $this (ref $A)) (param $x (ref null any)) (result (ref $A))
 //│     (block (result (ref $A))
 //│       (struct.set $A $x
-//│         (ref.cast (ref $A)
-//│           (local.get $this))
+//│         (local.get $this)
 //│         (local.get $x))
 //│       (return
 //│         (ref.cast (ref $A)
@@ -181,7 +180,7 @@ let d = Counter(c.Counter#get())
 :todo
 d.Counter#inc().Counter#double().Counter#get()
 //│ ╔══[COMPILATION ERROR] Cannot find variable `d` (VarSymbol) in local or global scope.
-//│ ║  l.178: 	let d = Counter(c.Counter#get())
+//│ ║  l.177: 	let d = Counter(c.Counter#get())
 //│ ╙──       	    ^
 //│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Missing type definition for symbol `member:Counter`
 
@@ -202,5 +201,5 @@ class A(val x) with
   fun get() = x
 A(1).get
 //│ ╔══[COMPILATION ERROR] `member:get` is neither a field access nor a callable method
-//│ ║  l.203: 	A(1).get
+//│ ║  l.202: 	A(1).get
 //│ ╙──       	    ^^^^

@@ -547,17 +547,23 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     ))
   end predeclareClassType
   
-  /** Declares the shared Wasm function type used by a class-associated function placeholder. */
+  /** Declares the shared Wasm function type used by a class-associated function placeholder.
+    *
+    * @param thisRefType
+    *   When set, overrides the type of param index 0 (`this`) instead of `anyref`.
+    */
   private def declareClassFuncType(
       defn: ClsLikeDefn,
       suffix: Str,
       params: Seq[ValueSymbol -> SymIdx],
       results: Seq[Result],
+      thisRefType: Opt[RefType] = N,
   )(using Ctx, Raise): TypeIdx =
     ctx.addType(TypeInfo(
       sym = TempSymbol(N, erasedType = N, defn.sym.nme),
       FunctionType(
-        params = params.map(p => WasmParam(p._2, RefType.anyref)),
+        params = params.zipWithIndex.map: (p, idx) =>
+          WasmParam(p._2, if idx == 0 then thisRefType.getOrElse(RefType.anyref) else RefType.anyref),
         results = results,
       ),
       objectTag = N,
@@ -597,8 +603,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       results: Seq[Result],
       sym: BlockMemberSymbol,
       exportName: Opt[Str],
+      thisRefType: Opt[RefType] = N,
   )(using Ctx, Raise): Unit =
-    val funcTy = declareClassFuncType(defn, suffix, params, results)
+    val funcTy = declareClassFuncType(defn, suffix, params, results, thisRefType)
     predeclareClassFuncWithType(defn, suffix, params, results, sym, exportName, funcTy)
 
   /** Registers a placeholder class-associated function using a predeclared Wasm function type. */
@@ -644,7 +651,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     val initParams = (defn.isym -> SymIdx("this")) +:
       pl.params.map: p =>
         p.sym -> SymIdx(p.sym.nme)
-    predeclareClassFunc(defn, "init", initParams, Seq(Result(RefType(typeIdx, nullable = false))), initFuncSym(defn.sym), N)
+    predeclareClassFunc(
+      defn, "init", initParams, Seq(Result(RefType(typeIdx, nullable = false))), initFuncSym(defn.sym), N,
+      thisRefType = S(RefType(typeIdx, nullable = false)),
+    )
 
   /** Declares one top-level class constructor. */
   private def predeclareClassConstructor(defn: ClsLikeDefn)(using Ctx, Raise): Unit =
@@ -990,7 +1000,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   private def setupInitLocals(
       clsLikeDefn: ClsLikeDefn,
   )(using Ctx, Raise, SessionExportCtx): (Expr, FunctionCtx) =
-    genFuncBody(classCtorParamList(clsLikeDefn) :: Nil, thisRef = S(clsLikeDefn.isym -> RefType.anyref)):
+    genFuncBody(
+      classCtorParamList(clsLikeDefn) :: Nil,
+      thisRef = S(clsLikeDefn.isym -> RefType(ctx.getType_!(clsLikeDefn.sym), nullable = false)),
+    ):
       val thisVar = funcCtx.lookupLocal_!(clsLikeDefn.isym, N)
       val typeref = ctx.getType_!(clsLikeDefn.sym)
       val preCtorWat = compilePreCtor(clsLikeDefn, thisVar)
@@ -1995,6 +2008,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     locals = initFnCtx.locals,
                     body = initWat,
                     exportName = predeclaredInit.exportName,
+                    thisRefType = S(RefType(typeref, nullable = false)),
                   ))
 
                   val predeclaredCtor = ctx.getFuncInfo_!(clsLikeDefn.sym)
