@@ -61,6 +61,7 @@ extension (sym: ValueSymbol)
       case s: HasErasedType =>
         s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
       case _ => RefType.anyref
+end extension
 
 extension (exprs: Seq[Expr])
   /** Merges a sequence of expressions to a single `block` expression if needed. */
@@ -112,7 +113,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   private val typeInfoFieldSym: TermSymbol = TermSymbol(syntax.MutVal, owner = N, Ident("$typeinfo"), erasedType = N)
 
   /** Synthetic field symbol for the runtime class tag stored in RTTI. */
-  private val tagFieldSym: TermSymbol = TermSymbol(syntax.MutVal, owner = N, Ident("$tag"), erasedType = S(ErasedType.Primitive(PrimitiveType.Int)))
+  private val tagFieldSym: TermSymbol =
+    TermSymbol(syntax.MutVal, owner = N, Ident("$tag"), erasedType = S(ErasedType.Primitive(PrimitiveType.Int)))
 
   /** Synthetic field symbol for the direct-parent RTTI reference used by runtime subtype checks. */
   private val parentFieldSym: TermSymbol = TermSymbol(syntax.MutVal, owner = N, Ident("$parent"), erasedType = N)
@@ -184,9 +186,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
   /** Casts each argument in `wasmArgs` down to the corresponding declared parameter type read from `funcTypeInfo`,
     * narrowing `anyref` -> a concrete typed parameter.
-    * 
-    * Note that this function does not cast an argument that is already narrower than the declared parameter type,
-    * since it is illegal to upcast using `ref.cast`.
+    *
+    * Note that this function does not cast an argument that is already narrower than the declared parameter type, since
+    * it is illegal to upcast using `ref.cast`.
     */
   private def castArgsToParams(wasmArgs: Seq[Expr], funcTypeInfo: TypeInfo): Seq[Expr] =
     val declParams = funcTypeInfo.compType.asInstanceOf[FunctionType].sigType.params
@@ -570,8 +572,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       wrapId = N -> S(suffix),
     ))
 
-  /** Returns the shared erased Wasm function signature for a virtual method arity introduced by `baseSym`,
-    * including a concretely-typed `this`. Non-`this` params and the result stay `anyref`.
+  /** Returns the shared erased Wasm function signature for a virtual method arity introduced by `baseSym`, including a
+    * concretely-typed `this`. Non-`this` params and the result stay `anyref`.
     */
   private def virtualMethodSignature(baseSym: BlockMemberSymbol, arity: Int)(using Ctx, Raise): FunctionType =
     val thisTy = RefType(ctx.getType_!(baseSym), nullable = false)
@@ -652,7 +654,12 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       pl.params.map: p =>
         p.sym -> SymIdx(p.sym.nme)
     predeclareClassFunc(
-      defn, "init", initParams, Seq(Result(RefType(typeIdx, nullable = false))), initFuncSym(defn.sym), N,
+      defn,
+      "init",
+      initParams,
+      Seq(Result(RefType(typeIdx, nullable = false))),
+      initFuncSym(defn.sym),
+      N,
       thisRefType = S(RefType(typeIdx, nullable = false)),
     )
 
@@ -665,7 +672,14 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       .optionIf: sym =>
         !(defn.k is syntax.Obj) && sym.nameIsMeaningful
       .map(_.nme)
-    predeclareClassFunc(defn, "ctor", ctorParams, Seq(Result(RefType(typeIdx, nullable = false))), defn.sym, ctorExportName)
+    predeclareClassFunc(
+      defn,
+      "ctor",
+      ctorParams,
+      Seq(Result(RefType(typeIdx, nullable = false))),
+      defn.sym,
+      ctorExportName,
+    )
 
   /** Registers all Wasm pre-declarations needed for one top-level class, in dependency order. */
   private def predeclareClass(defn: ClsLikeDefn)(using Ctx, Raise, SessionExportCtx): Unit =
@@ -875,7 +889,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       methodDefn.params.headOption.fold(Nil): ps =>
         ps.params.map: p =>
           p.sym -> SymIdx(p.sym.nme)
-    ctx.getVirtualTable(ownerCls.sym).flatMap(vt => vt.virtualMethodSlots.get(methodDefn.sym).map(slot => vt.slotOwners(slot))) match
+    ctx.getVirtualTable(ownerCls.sym).flatMap(vt =>
+      vt.virtualMethodSlots.get(methodDefn.sym).map(slot => vt.slotOwners(slot)),
+    ) match
       case S(baseSym) =>
         predeclareClassFuncWithType(
           ownerCls,
@@ -888,6 +904,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         )
       case N =>
         predeclareClassFunc(ownerCls, methodDefn.sym.nme, methodParams, Seq(Result(RefType.anyref)), methodDefn.sym, N)
+  end predeclareMethod
 
   /** Declares placeholders for all methods on one top-level class. */
   private def predeclareClassMethods(defn: ClsLikeDefn)(using Ctx, Raise): Unit =
@@ -1483,7 +1500,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             ty = fieldTy,
           )
           fieldTy match
-            case rt: RefType if rt.nullable && rt.heapType != HeapType.Any => 
+            case rt: RefType if rt.nullable && rt.heapType != HeapType.Any =>
               castConserve(getExpr, rt.copy(nullable = false))
             case _ => getExpr
         case N =>
@@ -1597,7 +1614,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     ctx.addFunctionImport(WasmImport(
       ExternIntrinsics.SystemModule,
       name,
-      ExternType.Func(TypeUse(typeIdx), TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), name), wrapId = N -> N),
+      ExternType.Func(
+        TypeUse(typeIdx),
+        TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), name),
+        wrapId = N -> N,
+      ),
     ))
 
   /** Creates the intrinsic definition for `name`.
@@ -2045,6 +2066,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       exportName = predeclaredMethod.exportName,
                       thisRefType = thisRefType,
                     ))
+                  end overwriteMethod
 
                   clsLikeDefn.methods.foreach:
                     case FunDefn(_, sym, _, Nil, bod) =>
@@ -2472,7 +2494,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
               offset = i32.const(lit.offset),
               bytes = Seq(lit.watBytes),
               memuse = N,
-              sym = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), s.take(WatBuilder.StringConstantIdentMaxLength)),
+              sym = TempSymbol(
+                N,
+                erasedType = S(ErasedType.Primitive(PrimitiveType.Str)),
+                s.take(WatBuilder.StringConstantIdentMaxLength),
+              ),
             ))
 
       val initActions = ctx.getSingletonInitActions

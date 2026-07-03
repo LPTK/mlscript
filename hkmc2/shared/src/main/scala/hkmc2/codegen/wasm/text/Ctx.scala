@@ -336,8 +336,9 @@ end TagInfo
 
 enum WasmIntrinsicType:
   case TupleArray(mutable: Bool)
-  /** Shared erased Wasm function type for virtual methods with the given arity introduced by `baseSym`,
-    * including a concretely-typed `this`.
+  
+  /** Shared erased Wasm function type for virtual methods with the given arity introduced by `baseSym`, including a
+    * concretely-typed `this`.
     */
   case VirtualMethod(baseSym: BlockMemberSymbol, arity: Int)
 
@@ -372,8 +373,8 @@ object FunctionCtx:
   * @param _params
   *   The parameters of this function.
   * @param thisSym
-  *   The implicit `this` parameter symbol and its concrete type if this function is generated from a non-static
-  *   method, or `N` otherwise.
+  *   The implicit `this` parameter symbol and its concrete type if this function is generated from a non-static method,
+  *   or `N` otherwise.
   * @param typedParams
   *   Whether parameter slots should be declared/loaded with their `erasedType`-derived Wasm type rather than uniformly
   *   `anyref`.
@@ -427,8 +428,7 @@ class FunctionCtx(
 
   /** The declared Wasm reference type of the param/local slot for `sym`.
     *
-    * Parameters are `anyref` by default: their declared type is fixed by the shared call/vtable
-    * calling convention.
+    * Parameters are `anyref` by default: their declared type is fixed by the shared call/vtable calling convention.
     *
     * When `typedParams` is set (e.g. when compiling free functions), parameter slots instead derive their type from
     * [[ValueSymbol.paramRefType]].
@@ -504,8 +504,8 @@ object Ctx:
     *   Reverse lookup from a resolved method symbol to its virtual slot index.
     * @param slotOwners
     *   Slot-ordered class symbols recording the class that *introduced* each slot (as opposed to `virtualMethods`,
-    *   which tracks the most-derived occupant). Used for deriving the type of the `this` param for each slot's
-    *   function type.
+    *   which tracks the most-derived occupant). Used for deriving the type of the `this` param for each slot's function
+    *   type.
     */
   case class VirtualTable(
       virtualMethods: List[BlockMemberSymbol],
