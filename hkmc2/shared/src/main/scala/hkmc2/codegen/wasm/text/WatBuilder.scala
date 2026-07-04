@@ -63,6 +63,25 @@ extension (sym: ValueSymbol)
       case _ => RefType.anyref
 end extension
 
+/** The declared Wasm reference type of the parameter slot for `sym` at position `idx`, honoring an optional
+  * per-position override (index 0 = `this`). Falls back to `sym.paramRefType` if no override is given.
+  */
+private[text] def resolveParamRefType(
+  sym: ValueSymbol,
+  idx: Int,
+  overrides: Opt[Seq[RefType]],
+)(using Ctx, State): RefType =
+  overrides.flatMap(_.lift(idx)).getOrElse(sym.paramRefType)
+
+extension (param: ValueSymbol -> SymIdx)
+  /** Resolves the parameter slot to the declared Wasm type from its own symbol's `paramRefType` (no override).
+    *
+    * For [[FuncInfo]]s built without a [[FunctionCtx]]; those built from one should pass its `resolvedParams`, which
+    * additionally honors the slot overrides.
+    */
+  private[text] def resolvedParam(using Ctx, State): ValueSymbol -> WasmParam =
+    param._1 -> WasmParam(param._2, param._1.paramRefType)
+
 extension (exprs: Seq[Expr])
   /** Merges a sequence of expressions to a single `block` expression if needed. */
   def mergeAsBlock: Opt[Expr] =
@@ -568,7 +587,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       sym = TempSymbol(N, erasedType = N, defn.sym.nme),
       FunctionType(
         params = params.zipWithIndex.map: (p, idx) =>
-          WasmParam(p._2, thisRefType.filter(_ => idx == 0).getOrElse(p._1.paramRefType)),
+          WasmParam(p._2, resolveParamRefType(p._1, idx, thisRefType.map(Seq(_)))),
         results = results,
       ),
       objectTag = N,
@@ -629,7 +648,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       sym,
       wrapId = if sym.asClsOrMod.isDefined then (N -> S("ctor")) else (S(defn.sym.nme) -> N),
       typeUse = TypeUse(funcTy),
-      params = params,
+      params = params.map(_.resolvedParam),
       resultTypes = resultTypes,
       locals = Seq.empty,
       body = ref.`null`(ctx.getType_!(defn.sym)),
@@ -1723,7 +1742,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     val funcInfo = FuncInfo(
       sym = TempSymbol(N, erasedType = N, name),
       typeUse = TypeUse(funcTy),
-      params = params,
+      params = params.map(_.resolvedParam),
       locals = Seq.empty,
       body = body,
       resultTypes = Seq(Result(RefType.anyref)),
@@ -1950,7 +1969,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     val funcInfo = FuncInfo(
                       sym,
                       typeUse = TypeUse(funcTy),
-                      params = ps.params.zip(fnCtx.params.map(_._2)).map((p, idx) => p.sym -> idx),
+                      params = ps.params.zip(fnCtx.params.map(_._2)).map((p, idx) => (p.sym -> idx).resolvedParam),
                       resultTypes = Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref)),
                       locals = fnCtx.locals,
                       body = bodyWat,
@@ -2041,12 +2060,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     sym = initFuncRef,
                     wrapId = S(clsLikeDefn.sym.nme) -> N,
                     typeUse = predeclaredInit.typeUse,
-                    params = initFnCtx.params,
+                    params = initFnCtx.resolvedParams,
                     resultTypes = initWat.resultTypes.map(ty => Result(ty.asValType_!)),
                     locals = initFnCtx.locals,
                     body = initWat,
                     exportName = predeclaredInit.exportName,
-                    paramRefTypes = S(Seq(RefType(typeref, nullable = false))),
                   ))
 
                   val predeclaredCtor = ctx.getFuncInfo_!(clsLikeDefn.sym)
@@ -2054,7 +2072,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     sym = clsLikeDefn.sym,
                     wrapId = S(clsLikeDefn.sym.nme) -> N,
                     typeUse = predeclaredCtor.typeUse,
-                    params = ctorFnCtx.params,
+                    params = ctorFnCtx.resolvedParams,
                     resultTypes = ctorCode.resultTypes.map(ty => Result(ty.asValType_!)),
                     locals = ctorFnCtx.locals,
                     body = ctorCode,
@@ -2076,12 +2094,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       sym,
                       wrapId = S(clsLikeDefn.sym.nme) -> N,
                       typeUse = predeclaredMethod.typeUse,
-                      params = fnCtx.params,
+                      params = fnCtx.resolvedParams,
                       resultTypes = Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref)),
                       locals = fnCtx.locals,
                       body = bodyWat,
                       exportName = predeclaredMethod.exportName,
-                      paramRefTypes = paramRefTypes,
                     ))
                   end overwriteMethod
 

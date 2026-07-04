@@ -173,16 +173,12 @@ final class SessionExportCtx(
 
 /** A Wasm function and its associated information.
   *
-  * Each instance of [[FuncInfo]] represents a single function definition in a WebAssembly module.
-  *
   * @param sym
   *   The source [[ValueSymbol]] which this function is generated from.
-  * @param wrapId
-  *   An pair of optional strings for adding a prefix and suffix to the generated identifier of this function.
   * @param typeUse
   *   [[TypeUse]] of the function's type in the module's type section.
   * @param params
-  *   [[Seq]] of parameter local variables and their names.
+  *   [[Seq]] of parameter local variables with their identifiers and resolved Wasm parameter types.
   * @param resultTypes
   *   The result types of the function.
   * @param locals
@@ -191,19 +187,18 @@ final class SessionExportCtx(
   *   The expression of the function body.
   * @param exportName
   *   Optional export name.
-  * @param paramRefTypes
-  *   When set, overrides the declared type of each param at its position (index 0 = `this`).
+  * @param wrapId
+  *   An pair of optional strings for adding a prefix and suffix to the generated identifier of this function.
   */
 class FuncInfo(
     val sym: BlockMemberSymbol | TempSymbol,
     val typeUse: TypeUse,
-    val params: Seq[ValueSymbol -> SymIdx],
+    val params: Seq[ValueSymbol -> WasmParam],
     val resultTypes: Seq[Result],
     val locals: Seq[ValueSymbol -> SymIdx],
     val body: Expr,
     val exportName: Opt[Str],
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
-    val paramRefTypes: Opt[Seq[RefType]] = N,
 )(using Ctx, Raise, State) extends ToWat:
 
   /** Symbolic identifier for the function. */
@@ -211,9 +206,7 @@ class FuncInfo(
 
   /** Returns the type of this function as a [[SignatureType]]. */
   def getSignatureType: SignatureType = SignatureType(
-    params = params.zipWithIndex.map:
-      case ((sym, paramIdx), idx) =>
-        WasmParam(paramIdx, paramRefTypes.flatMap(_.lift(idx)).getOrElse(sym.paramRefType)),
+    params = params.map(_._2),
     results = resultTypes,
   )
 
@@ -376,7 +369,7 @@ class FunctionCtx(
     _params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
     paramRefTypes: Opt[Seq[RefType]] = N,
-)(using Raise, State):
+)(using Ctx, Raise, State):
 
   /** [[Scope]] for generating WAT identifiers of locals. */
   private[text] val localScp = Scope.empty(Scope.Cfg.default)
@@ -390,6 +383,19 @@ class FunctionCtx(
     val thisParam = thisSym.map: dis =>
       dis -> SymIdx(localScp.addToBindings(dis, "this", shadow = false))
     thisParam.toSeq ++ _params.flatMap(_.paramSyms).map(p => p -> SymIdx(localScp.allocateName(p)))
+
+  /** The declared Wasm reference type of each parameter slot (including implicit `$this`), resolved eagerly at
+    * construction (index 0 = `this`).
+    */
+  private val resolvedParamTypes: Map[ValueSymbol, RefType] =
+    params.zipWithIndex.map:
+      case ((sym, _), idx) => sym -> resolveParamRefType(sym, idx, paramRefTypes)
+    .toMap
+
+  /** The parameters of this function with their identifiers and resolved Wasm types, ready to hand to a [[FuncInfo]]. */
+  val resolvedParams: Seq[ValueSymbol -> WasmParam] =
+    params.map:
+      case (sym, idx) => sym -> WasmParam(idx, resolvedParamTypes(sym))
   private val _locals = ArrayBuf.empty[ValueSymbol]
   private var labels = ListMap.empty[LabelSymbol, FunctionCtx.ControlFlowCtx]
 
@@ -421,16 +427,12 @@ class FunctionCtx(
 
   /** The declared Wasm reference type of the param/local slot for `sym`.
     *
-    * Parameters are `anyref` by default: their declared type is fixed by the shared call/vtable calling convention.
-    * When `paramRefTypes` is set, the slot at that position uses it instead.
-    *
-    * Local slots always derive their type from the symbol's erased type via [[localRefType]].
+    * Parameter slot types are resolved eagerly at construction (see [[resolvedParamTypes]]): each comes from the
+    * slot's `paramRefTypes` override if present, otherwise from the symbol's erased type via [[paramRefType]]. Local
+    * slots derive their type from the symbol's erased type via [[localRefType]].
     */
   def slotRefType(sym: ValueSymbol)(using Ctx): RefType =
-    val idx = params.indexWhere(_._1 == sym)
-    if idx >= 0 then
-      paramRefTypes.flatMap(_.lift(idx)).getOrElse(sym.paramRefType)
-    else sym.localRefType
+    resolvedParamTypes.getOrElse(sym, sym.localRefType)
 
   /** Pushes a label target for the dynamic extent of `body` and pops it afterwards.
     *
@@ -473,7 +475,7 @@ def genFuncBody[T](
     params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
     paramRefTypes: Opt[Seq[RefType]] = N,
-)(mkBody: FunctionCtx ?=> T)(using Raise, State): T -> FunctionCtx =
+)(mkBody: FunctionCtx ?=> T)(using Ctx, Raise, State): T -> FunctionCtx =
   val funcCtx = FunctionCtx(params, thisSym, paramRefTypes)
   val result = mkBody(using funcCtx)
   result -> funcCtx
