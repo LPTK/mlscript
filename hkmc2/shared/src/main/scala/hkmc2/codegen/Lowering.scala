@@ -224,6 +224,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         blockImpl(stats, res)
       case DefineVar(sym, rhs) :: stats =>
         term(rhs): r =>
+          // Seed the binding's erased type before lowering the continuation, so that a later use of
+          // `sym` does not force an unseeded (and thus permanently poisoned) erased type;
+          observeLocalErasedType(sym, r)
           defineSymbol(sym, r, blockImpl(stats, res))
       case (_: SetConfig) :: stats =>
         // Config changes are handled at the program level; skip during block lowering
@@ -392,6 +395,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case td: TypeDef => // * Type definitions are erased
           blockImpl(stats, res)
     
+    // TODO(Derppening): Functions are hoisted ahead of `rest` so mutually-recursive definitions resolve. A consequence
+    //                   is that a hoisted closure body may observe a `rest`-bound local before its initializer seeds
+    //                   it, permanently poisoning its erased type
     blockImpl(imps ::: funs ::: rest, res)
   
   def getClassParamLists(cls: Path): Ls[ParamList] =
@@ -568,15 +574,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
       case N => nope
     case sym: LocalVarSymbol =>
-      observeLocalErasedType(sym, rhs)
       Assign(sym, rhs, rest)
     case sym => nope
   
   /** Observes an assignment of `rhs` to `sym`, populating or updating its erased type where applicable.
     *
+    * This function should be run before continuation lowering, otherwise a subsequent read of `sym` permanently
+    * memoizes the still-unknown erased type before the initializer seeds it.
+    *
     * See [[`HasManyMutableErasedType.observeErasedTypeAssign`]].
     */
-  private def observeLocalErasedType(sym: LocalVarSymbol, rhs: Result): Unit = sym match
+  private def observeLocalErasedType(sym: Symbol, rhs: Result): Unit = sym match
     case sym: HasManyMutableErasedType => sym.observeErasedTypeAssign(rhs.erasedType)
     case _ =>
 
@@ -587,7 +595,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
       case N => lastWords(s"tried to define top-level symbol ${sym.showDbg} in a local scope")
     case sym: LocalVarSymbol =>
-      observeLocalErasedType(sym, rhs)
       Assign(sym, rhs, rest)
     case sym =>
       lastWords(s"tried to define non-variable symbol ${sym.showDbg}")
@@ -957,6 +964,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       target match
       case Ref(sym) =>
         subTerm(rhs): r =>
+          // Seed the target's erased type before building the continuation `k(unit)`
+          observeLocalErasedType(resolvedSelectionSymbol.getOrElse(sym), r)
           assignSymbol(resolvedSelectionSymbol.getOrElse(sym), sym, r, k(unit), trm.toLoc)
       case sel @ Sel(prefix, nme) =>
         subTerm(prefix): p =>

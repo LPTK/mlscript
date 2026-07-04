@@ -194,6 +194,41 @@ id(new Foo(1))
 //│ define id⁰ as fun id¹(a: ?): ? { return a }; return new Foo⁵(1)
 
 
+// A local consumed by a *later* statement in the same (non-hoisted) block is
+// seeded before that statement is lowered, so its erased type survives: both `n`
+// and the forward use `m` stay `Int`, and the inferred return is `Int`.
+:siret
+fun laterUse() =
+  let n = 0
+  let m = n + 1
+  m
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define laterUse⁰ as fun laterUse¹(): Int {
+//│   let n: Int, m: Int;
+//│   set n = 0;
+//│   set m = +⁰(n, 1);
+//│   return m
+//│ };
+//│ end
+
+// The same holds for self-reassignment: `set n = n + 1` reads `n`, but `n` is
+// already seeded from its initializer, so it keeps `Int`.
+:siret
+fun reassign() =
+  let n = 0
+  set n = n + 1
+  n
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define reassign⁰ as fun reassign¹(): Int {
+//│   let n: Int, tmp: Int;
+//│   set n = 0;
+//│   set tmp = +⁰(n, 1);
+//│   set n = tmp;
+//│   return n
+//│ };
+//│ end
+
+
 // Closure capture (`:lift`): the symbol holding the capture object is typed as
 // the generated capture class. The capture field inherits the captured local's
 // erased type — but here `n` is reassigned from `n + 1`, whose operand type is
