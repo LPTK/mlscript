@@ -191,14 +191,8 @@ final class SessionExportCtx(
   *   The expression of the function body.
   * @param exportName
   *   Optional export name.
-  * @param typedParams
-  *   Whether parameter slots should be declared with their `erasedType`-derived Wasm type (via
-  *   `ValueSymbol.paramRefType`) rather than uniformly `anyref`. Only safe for top-level free functions, which are not
-  *   subject to the shared vtable calling convention; `false` for everything else (methods, ctors, `init`).
   * @param paramRefTypes
-  *   When set, overrides the declared type of each param at its position (index 0 = `this`), independent of
-  *   `typedParams`. Positions beyond the vector's length fall through to the `typedParams`-gated default. Used by
-  *   `init` (`this`-only) and virtual methods (`this` + shared param types).
+  *   When set, overrides the declared type of each param at its position (index 0 = `this`).
   */
 class FuncInfo(
     val sym: BlockMemberSymbol | TempSymbol,
@@ -209,7 +203,6 @@ class FuncInfo(
     val body: Expr,
     val exportName: Opt[Str],
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
-    val typedParams: Bool = false,
     val paramRefTypes: Opt[Seq[RefType]] = N,
 )(using Ctx, Raise, State) extends ToWat:
 
@@ -220,8 +213,7 @@ class FuncInfo(
   def getSignatureType: SignatureType = SignatureType(
     params = params.zipWithIndex.map:
       case ((sym, paramIdx), idx) =>
-        val default = if typedParams then sym.paramRefType else RefType.anyref
-        WasmParam(paramIdx, paramRefTypes.flatMap(_.lift(idx)).getOrElse(default)),
+        WasmParam(paramIdx, paramRefTypes.flatMap(_.lift(idx)).getOrElse(sym.paramRefType)),
     results = resultTypes,
   )
 
@@ -377,17 +369,12 @@ object FunctionCtx:
   *   The parameters of this function.
   * @param thisSym
   *   The implicit `this` parameter symbol if this function is generated from a non-static method, or `N` otherwise.
-  * @param typedParams
-  *   Whether parameter slots should be declared/loaded with their `erasedType`-derived Wasm type rather than uniformly
-  *   `anyref`.
   * @param paramRefTypes
-  *   When set, overrides the loaded type of each param slot at its position (index 0 = `this`), independent of
-  *   `typedParams`. Positions beyond the vector's length fall through to the `typedParams`-gated default.
+  *   When set, overrides the loaded type of each param slot at its position (index 0 = `this`).
   */
 class FunctionCtx(
     _params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
-    typedParams: Bool = false,
     paramRefTypes: Opt[Seq[RefType]] = N,
 )(using Raise, State):
 
@@ -435,18 +422,14 @@ class FunctionCtx(
   /** The declared Wasm reference type of the param/local slot for `sym`.
     *
     * Parameters are `anyref` by default: their declared type is fixed by the shared call/vtable calling convention.
-    *
-    * When `typedParams` is set (e.g. when compiling free functions), parameter slots instead derive their type from
-    * [[ValueSymbol.paramRefType]].
-    *
-    * When `paramRefTypes` is set, the slot at that position uses it instead (independent of `typedParams`).
+    * When `paramRefTypes` is set, the slot at that position uses it instead.
     *
     * Local slots always derive their type from the symbol's erased type via [[localRefType]].
     */
   def slotRefType(sym: ValueSymbol)(using Ctx): RefType =
     val idx = params.indexWhere(_._1 == sym)
     if idx >= 0 then
-      paramRefTypes.flatMap(_.lift(idx)).getOrElse(if typedParams then sym.paramRefType else RefType.anyref)
+      paramRefTypes.flatMap(_.lift(idx)).getOrElse(sym.paramRefType)
     else sym.localRefType
 
   /** Pushes a label target for the dynamic extent of `body` and pops it afterwards.
@@ -489,10 +472,9 @@ end FunctionCtx
 def genFuncBody[T](
     params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
-    typedParams: Bool = false,
     paramRefTypes: Opt[Seq[RefType]] = N,
 )(mkBody: FunctionCtx ?=> T)(using Raise, State): T -> FunctionCtx =
-  val funcCtx = FunctionCtx(params, thisSym, typedParams, paramRefTypes)
+  val funcCtx = FunctionCtx(params, thisSym, paramRefTypes)
   val result = mkBody(using funcCtx)
   result -> funcCtx
 

@@ -219,8 +219,8 @@ getX(Foo(Bar(42)))
 //│   (type $Bar_ctor (func (param $x (ref null any)) (result (ref $Bar))))
 //│   (type $Foo (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $bar (mut (ref null $Bar))))))
 //│   (type $Foo_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
-//│   (type $Foo_init (func (param $this (ref $Foo)) (param $bar (ref null any)) (result (ref $Foo))))
-//│   (type $Foo_ctor (func (param $bar (ref null any)) (result (ref $Foo))))
+//│   (type $Foo_init (func (param $this (ref $Foo)) (param $bar (ref $Bar)) (result (ref $Foo))))
+//│   (type $Foo_ctor (func (param $bar (ref $Bar)) (result (ref $Foo))))
 //│   (type $getX (func (param $f (ref $Foo)) (result (ref null any))))
 //│   (type $entry (func (result (ref null any))))
 //│   (global $Bar_typeinfo (export "Bar_typeinfo") (ref $Bar_typeinfo) (struct.new $Bar_typeinfo
@@ -250,16 +250,15 @@ getX(Foo(Bar(42)))
 //│           (local.get $x)))
 //│       (return
 //│         (local.get $this))))
-//│   (func $Foo_init (type $Foo_init) (param $this (ref $Foo)) (param $bar (ref null any)) (result (ref $Foo))
+//│   (func $Foo_init (type $Foo_init) (param $this (ref $Foo)) (param $bar (ref $Bar)) (result (ref $Foo))
 //│     (block (result (ref $Foo))
 //│       (struct.set $Foo $bar
 //│         (local.get $this)
-//│         (ref.cast (ref null $Bar)
-//│           (local.get $bar)))
+//│         (local.get $bar))
 //│       (return
 //│         (ref.cast (ref $Foo)
 //│           (local.get $this)))))
-//│   (func $Foo_ctor (export "Foo") (type $Foo_ctor) (param $bar (ref null any)) (result (ref $Foo))
+//│   (func $Foo_ctor (export "Foo") (type $Foo_ctor) (param $bar (ref $Bar)) (result (ref $Foo))
 //│     (local $this (ref $Foo))
 //│     (block (result (ref $Foo))
 //│       (local.set $this
@@ -288,7 +287,8 @@ getX(Foo(Bar(42)))
 //│             (i32.const 42))))
 //│       (local.set $tmp1
 //│         (call $Foo_ctor
-//│           (local.get $tmp)))
+//│           (ref.cast (ref $Bar)
+//│             (local.get $tmp))))
 //│       (return
 //│         (call $getX
 //│           (ref.cast (ref $Foo)

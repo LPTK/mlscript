@@ -16,7 +16,7 @@ a.A#get() + A(2).get()
 //│   (type $A_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $A_init (func (param $this (ref $A)) (param $x (ref null any)) (result (ref $A))))
 //│   (type $A_ctor (func (param $x (ref null any)) (result (ref $A))))
-//│   (type $A_get (func (param $this (ref null any)) (result (ref null any))))
+//│   (type $A_get (func (param $this (ref $A)) (result (ref null any))))
 //│   (type $plus_impl (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
 //│   (type $entry (func (result (ref null any))))
 //│   (import "system" "plus_impl" (func $plus_impl (type $plus_impl)))
@@ -45,11 +45,10 @@ a.A#get() + A(2).get()
 //│           (local.get $x)))
 //│       (return
 //│         (local.get $this))))
-//│   (func $A_get (type $A_get) (param $this (ref null any)) (result (ref null any))
+//│   (func $A_get (type $A_get) (param $this (ref $A)) (result (ref null any))
 //│     (return
 //│       (struct.get $A $x
-//│         (ref.cast (ref $A)
-//│           (local.get $this)))))
+//│         (local.get $this))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null any))
 //│     (local $tmp1 (ref null any))
@@ -61,14 +60,16 @@ a.A#get() + A(2).get()
 //│             (i32.const 1))))
 //│       (local.set $tmp
 //│         (call $A_get
-//│           (global.get $a)))
+//│           (ref.cast (ref $A)
+//│             (global.get $a))))
 //│       (local.set $tmp1
 //│         (call $A_ctor
 //│           (ref.i31
 //│             (i32.const 2))))
 //│       (local.set $tmp2
 //│         (call $A_get
-//│           (local.get $tmp1)))
+//│           (ref.cast (ref $A)
+//│             (local.get $tmp1))))
 //│       (return
 //│         (call $plus_impl
 //│           (local.get $tmp)
@@ -180,7 +181,7 @@ let d = Counter(c.Counter#get())
 :todo
 d.Counter#inc().Counter#double().Counter#get()
 //│ ╔══[COMPILATION ERROR] Cannot find variable `d` (VarSymbol) in local or global scope.
-//│ ║  l.177: 	let d = Counter(c.Counter#get())
+//│ ║  l.178: 	let d = Counter(c.Counter#get())
 //│ ╙──       	    ^
 //│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Missing type definition for symbol `member:Counter`
 
@@ -201,5 +202,5 @@ class A(val x) with
   fun get() = x
 A(1).get
 //│ ╔══[COMPILATION ERROR] `member:get` is neither a field access nor a callable method
-//│ ║  l.202: 	A(1).get
+//│ ║  l.203: 	A(1).get
 //│ ╙──       	    ^^^^

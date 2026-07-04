@@ -182,6 +182,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     target match
       case rt: RefType if rt.heapType =/= HeapType.Any && expr.resultType.contains(RefType.anyref) =>
         castConserve(expr, rt)
+      case rt: RefType if !rt.nullable && expr.resultType.contains(RefType(rt.heapType, nullable = true)) =>
+        castConserve(expr, rt)
       case _ => expr
 
   /** Casts each argument in `wasmArgs` down to the corresponding declared parameter type read from `funcTypeInfo`,
@@ -566,7 +568,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       sym = TempSymbol(N, erasedType = N, defn.sym.nme),
       FunctionType(
         params = params.zipWithIndex.map: (p, idx) =>
-          WasmParam(p._2, if idx == 0 then thisRefType.getOrElse(RefType.anyref) else RefType.anyref),
+          WasmParam(p._2, thisRefType.filter(_ => idx == 0).getOrElse(p._1.paramRefType)),
         results = results,
       ),
       objectTag = N,
@@ -740,9 +742,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   )(using Ctx, Raise, SessionExportCtx): Unit =
     if ctx.containsGlobal(sym) then return
     val exportName = sym.nme
+    val refType = sym.localRefType.copy(nullable = true)
     val globalInfo = GlobalInfo(
-      globalType = GlobalType(RefType.anyref, mutable = true),
-      init = ref.`null`(HeapType.Any),
+      globalType = GlobalType(refType, mutable = true),
+      init = ref.`null`(refType.heapType),
       exportName = S(exportName),
       sym,
     )
@@ -752,7 +755,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       wrapId = globalInfo.wrapId,
       moduleName = SessionBinding.ReplModuleName,
       exportName = exportName,
-      globalType = GlobalType(RefType.anyref, mutable = true),
+      globalType = GlobalType(refType, mutable = true),
     ))
   end registerSessionGlobal
 
@@ -905,7 +908,15 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           virtualMethodFuncType(baseSym, paramTypes),
         )
       case N =>
-        predeclareClassFunc(ownerCls, methodDefn.sym.nme, methodParams, Seq(Result(RefType.anyref)), methodDefn.sym, N)
+        predeclareClassFunc(
+          ownerCls,
+          methodDefn.sym.nme,
+          methodParams,
+          Seq(Result(RefType.anyref)),
+          methodDefn.sym,
+          exportName = N,
+          thisRefType = S(RefType(ctx.getType_!(ownerCls.sym), nullable = false)),
+        )
   end predeclareMethod
 
   /** Declares placeholders for all methods on one top-level class. */
@@ -1197,24 +1208,52 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     raise(ErrorReport(errMsgs, source = Diagnostic.Source.Compilation, extraInfo = extraInfo))
     unreachable
 
-  def getVar(l: ValueSymbol, loc: Opt[Loc])(using Ctx, FunctionCtx, Raise): Expr = l match
+  /** Returns the local or global index for a given symbol `l`. */
+  def varIndex(l: ValueSymbol, loc: Opt[Loc])(using Ctx, FunctionCtx, Raise): Opt[LocalIdx | GlobalIdx] = l match
     case ts: semantics.InnerSymbol =>
       lastWords(s"ValueSymbol `$ts` (${ts.getClass.getSimpleName}) cannot be resolved as a variable")
     case l =>
       funcCtx.lookupLocal(l) match
-        case S(localIdx) => local.get(localIdx, funcCtx.slotRefType(l))
-        case N if ctx.containsGlobal(l) =>
-          global.get(ctx.getGlobal_!(l), ctx.getGlobalType_!(l).globalType.valType)
-        case _ =>
-          errExpr(
-            Ls(
-              msg"Cannot find variable `${l.toString}` (${l.getClass.getSimpleName}) in local or global scope." ->
-                l.toLoc,
-            ),
-            extraInfo = S(
-              s"Locals: ${(funcCtx.params ++ funcCtx.locals).toString}\nGlobals: ${ctx.getGlobals.toString}",
-            ),
-          )
+        case S(localIdx) => S(localIdx)
+        case _ => ctx.getGlobal(l)
+
+  def getVar(l: ValueSymbol, loc: Opt[Loc])(using Ctx, FunctionCtx, Raise): Expr = varIndex(l, loc) match
+    case S(localIdx: LocalIdx) => local.get(localIdx, funcCtx.slotRefType(l))
+    case S(globalIdx: GlobalIdx) => downcastConserve(
+      global.get(globalIdx, ctx.getGlobalType_!(globalIdx).globalType.valType),
+      l.localRefType,
+    )
+    case N =>
+      errExpr(
+        Ls(
+          msg"Cannot find variable `${l.toString}` (${l.getClass.getSimpleName}) in local or global scope." ->
+            l.toLoc,
+        ),
+        extraInfo = S(
+          s"Locals: ${(funcCtx.params ++ funcCtx.locals).toString}\nGlobals: ${ctx.getGlobals.toString}",
+        ),
+      )
+
+  /** Stores `value` into the local or global slot for `l`, narrowing it to the slot's declared type. The write-side
+    * dual of [[getVar]].
+    */
+  def setVar(l: ValueSymbol, value: Expr, loc: Opt[Loc])(using Ctx, FunctionCtx, Raise): Expr = varIndex(l, loc) match
+    case S(localIdx: LocalIdx) => local.set(localIdx, downcastConserve(value, funcCtx.slotRefType(l)))
+    case S(globalIdx: GlobalIdx) =>
+      val casted = ctx.getGlobalType_!(globalIdx).globalType.valType match
+        case rt: RefType => downcastConserve(value, rt)
+        case _ => value
+      global.set(globalIdx, casted)
+    case N =>
+      errExpr(
+        Ls(
+          msg"Cannot find variable `${l.toString}` (${l.getClass.getSimpleName}) in local or global scope." ->
+            l.toLoc,
+        ),
+        extraInfo = S(
+          s"Locals: ${(funcCtx.params ++ funcCtx.locals).toString}\nGlobals: ${ctx.getGlobals.toString}",
+        ),
+      )
 
   def argument(a: Arg)(using Ctx, FunctionCtx, Raise, SessionExportCtx): Expr =
     if a.spread.nonEmpty then
@@ -1292,9 +1331,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         )
         Ls(receiverExpr, virtualCall)
       case N =>
+        val funcTypeInfo = ctx.getTypeInfo_!(ctx.getFuncTypeUse_!(methodSym).typeIdx)
+        val operands = castArgsToParams(result(qual) +: args.map(argument), funcTypeInfo)
         Ls(call(
           funcidx = ctx.getFunc_!(methodSym),
-          operands = result(qual) +: args.map(argument),
+          operands = operands,
           returnTypes = Seq(Result(RefType.anyref)),
         ))
     end match
@@ -1770,21 +1811,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         evalExpr +: rstBlk
 
       case Assign(l: ValueSymbol, r, rst) =>
-        val lExpr = getVar(l, l.toLoc)
-        val rExpr = result(r)
-        val rExprCasted = lExpr.resultType match
-          case S(rt: RefType) => downcastConserve(rExpr, rt)
-          case _ => rExpr
-        val assignExpr = lExpr.mnemonicPrefix match
-          case S("global") =>
-            global.set(lExpr.instrargs(0).asInstanceOf[GlobalIdx], rExprCasted)
-          case S("local") =>
-            local.set(lExpr.instrargs(0).asInstanceOf[LocalIdx], rExprCasted)
-          case _ =>
-            lastWords(
-              s"Expected `global.*` or `local.*` when compiling instruction for `$l`, but got ${lExpr.mnemonic}",
-            )
-
+        val assignExpr = setVar(l, result(r), l.toLoc)
         val rstBlk = returningTerm(rst)
         assignExpr +: rstBlk
 
@@ -1867,20 +1894,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             tsym.owner match
               case N =>
                 val localStorageSym = defn.sym
-                val symExpr = getVar(localStorageSym, localStorageSym.toLoc)
-                val pExpr = result(p)
-                val pExprCasted = symExpr.resultType match
-                  case S(rt: RefType) => downcastConserve(pExpr, rt)
-                  case _ => pExpr
-                val defineExpr = symExpr.mnemonicPrefix match
-                  case S("global") =>
-                    global.set(symExpr.instrargs(0).asInstanceOf[GlobalIdx], pExprCasted)
-                  case S("local") =>
-                    local.set(symExpr.instrargs(0).asInstanceOf[LocalIdx], pExprCasted)
-                  case _ =>
-                    lastWords(
-                      s"Expected `global.*` or `local.*` when compiling definition for `$sym`, but got ${symExpr.mnemonic}",
-                    )
+                val defineExpr = setVar(localStorageSym, result(p), localStorageSym.toLoc)
                 val rstWat = returningTerm(rst)
                 defineExpr +: rstWat
               case S(owner) =>
@@ -1920,7 +1934,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                   val result = pss.foldRight(bod):
                     case (ps, block) =>
                       Return(Lambda(ps, block)(Nil))
-                  val (bodyWat, fnCtx) = setupFunction(N, ps, result, typedParams = true)
+                  val (bodyWat, fnCtx) = setupFunction(N, ps, result)
                   if sym.nameIsMeaningful then
                     val funcTy = ctx.addType(
                       TypeInfo(
@@ -1941,7 +1955,6 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       locals = fnCtx.locals,
                       body = bodyWat,
                       exportName = sym.optionIf(_.nameIsMeaningful).map(_.nme),
-                      typedParams = true,
                     )
                     ctx.addFunc(funcInfo)
                     if summon[SessionExportCtx].shouldExport(defn.sym) then
@@ -2551,10 +2564,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       thisSym: Opt[InnerSymbol],
       params: ParamList,
       body: Block,
-      typedParams: Bool = false,
       paramRefTypes: Opt[Seq[RefType]] = N,
   )(using Ctx, Raise, SessionExportCtx): (Expr, FunctionCtx) =
-    genFuncBody(params :: Nil, thisSym = thisSym, typedParams = typedParams, paramRefTypes = paramRefTypes):
+    genFuncBody(params :: Nil, thisSym = thisSym, paramRefTypes = paramRefTypes):
       block(body).mergeAsBlock.getOrElse(nop)
 
 end WatBuilder
