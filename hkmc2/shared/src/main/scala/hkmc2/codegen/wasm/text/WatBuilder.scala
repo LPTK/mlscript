@@ -1955,12 +1955,23 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       Return(Lambda(ps, block)(Nil))
                   val (bodyWat, fnCtx) = setupFunction(N, ps, result)
                   if sym.nameIsMeaningful then
+                    // Cross-check the erased type of the function with the WAT type of the body.
+                    // They may disagree if the WAT body contains control transfer, which keeps the WAT type from
+                    // being inferred correctly.
+                    val resultTypes: Seq[Result] =
+                      defn.sym.asTrm.flatMap(_.erasedType) match
+                        case S(ErasedType.FuncRef(_, S(ret))) =>
+                          val retType = ret.wasmType.getOrElse(RefType.anyref)
+                          if bodyWat.resultTypes == Seq(retType) then Seq(Result(retType))
+                          else Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref))
+                        case _ =>
+                          Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref))
                     val funcTy = ctx.addType(
                       TypeInfo(
                         sym = TempSymbol(N, erasedType = N, sym.nme),
                         compType = FunctionType(
                           params = fnCtx.params.map(p => WasmParam(p._2, p._1.paramRefType)),
-                          results = Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref)),
+                          results = resultTypes,
                         ),
                         objectTag = N,
                       ),
@@ -1970,7 +1981,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       sym,
                       typeUse = TypeUse(funcTy),
                       params = ps.params.zip(fnCtx.params.map(_._2)).map((p, idx) => (p.sym -> idx).resolvedParam),
-                      resultTypes = Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref)),
+                      resultTypes = resultTypes,
                       locals = fnCtx.locals,
                       body = bodyWat,
                       exportName = sym.optionIf(_.nameIsMeaningful).map(_.nme),
