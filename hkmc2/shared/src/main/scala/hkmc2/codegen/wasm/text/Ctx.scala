@@ -324,9 +324,9 @@ end TagInfo
 enum WasmIntrinsicType:
   case TupleArray(mutable: Bool)
   
-  /** Shared erased Wasm function type for a virtual method slot introduced by `baseSym` with the given non-`this`
-    * param types, including a concretely-typed `this`. Keyed on the full param-type vector (not just arity) so
-    * distinct virtual methods of the same arity on the same base class don't collide.
+  /** Shared erased Wasm function type for a virtual method slot introduced by `baseSym` with the given non-`this` param
+    * types, including a concretely-typed `this`. Keyed on the full param-type vector (not just arity) so distinct
+    * virtual methods of the same arity on the same base class don't collide.
     */
   case VirtualMethod(baseSym: BlockMemberSymbol, paramTypes: List[RefType])
 
@@ -392,7 +392,8 @@ class FunctionCtx(
       case ((sym, _), idx) => sym -> resolveParamRefType(sym, idx, paramRefTypes)
     .toMap
 
-  /** The parameters of this function with their identifiers and resolved Wasm types, ready to hand to a [[FuncInfo]]. */
+  /** The parameters of this function with their identifiers and resolved Wasm types, ready to hand to a [[FuncInfo]].
+    */
   val resolvedParams: Seq[ValueSymbol -> WasmParam] =
     params.map:
       case (sym, idx) => sym -> WasmParam(idx, resolvedParamTypes(sym))
@@ -427,9 +428,9 @@ class FunctionCtx(
 
   /** The declared Wasm reference type of the param/local slot for `sym`.
     *
-    * Parameter slot types are resolved eagerly at construction (see [[resolvedParamTypes]]): each comes from the
-    * slot's `paramRefTypes` override if present, otherwise from the symbol's erased type via [[paramRefType]]. Local
-    * slots derive their type from the symbol's erased type via [[localRefType]].
+    * Parameter slot types are resolved eagerly at construction (see [[resolvedParamTypes]]): each comes from the slot's
+    * `paramRefTypes` override if present, otherwise from the symbol's erased type via [[paramRefType]]. Local slots
+    * derive their type from the symbol's erased type via [[localRefType]].
     */
   def slotRefType(sym: ValueSymbol)(using Ctx): RefType =
     resolvedParamTypes.getOrElse(sym, sym.localRefType)
@@ -496,9 +497,9 @@ object Ctx:
     *   The non-`this` parameter types of the method that introduced this slot.
     */
   case class VirtualMethodInfo(
-    sym: BlockMemberSymbol,
-    owner: BlockMemberSymbol,
-    paramTypes: Seq[RefType],
+      sym: BlockMemberSymbol,
+      owner: BlockMemberSymbol,
+      paramTypes: Seq[RefType],
   )
 
   /** Derived virtual-dispatch layout for one class.
@@ -509,8 +510,8 @@ object Ctx:
     *   Reverse lookup from a resolved method symbol to its virtual slot index.
     */
   case class VirtualTable(
-    slots: List[VirtualMethodInfo],
-    slotOf: Map[BlockMemberSymbol, Int],
+      slots: List[VirtualMethodInfo],
+      slotOf: Map[BlockMemberSymbol, Int],
   )
 
   val binaryOps: Map[Str, (Expr, Expr) => Expr] = Map(

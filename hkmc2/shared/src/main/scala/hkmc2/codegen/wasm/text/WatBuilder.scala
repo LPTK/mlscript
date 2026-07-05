@@ -67,9 +67,9 @@ end extension
   * per-position override (index 0 = `this`). Falls back to `sym.paramRefType` if no override is given.
   */
 private[text] def resolveParamRefType(
-  sym: ValueSymbol,
-  idx: Int,
-  overrides: Opt[Seq[RefType]],
+    sym: ValueSymbol,
+    idx: Int,
+    overrides: Opt[Seq[RefType]],
 )(using Ctx, State): RefType =
   overrides.flatMap(_.lift(idx)).getOrElse(sym.paramRefType)
 
@@ -597,7 +597,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   /** Returns the shared erased Wasm function signature for a virtual method slot introduced by `baseSym`, with the
     * given non-`this` param types, including a concretely-typed `this`. The result stays `anyref`.
     */
-  private def virtualMethodSignature(baseSym: BlockMemberSymbol, paramTypes: Seq[RefType])(using Ctx, Raise): FunctionType =
+  private def virtualMethodSignature(
+      baseSym: BlockMemberSymbol,
+      paramTypes: Seq[RefType],
+  )(using Ctx, Raise): FunctionType =
     val thisTy = RefType(ctx.getType_!(baseSym), nullable = false)
     FunctionType(
       params = WasmParam(SymIdx("this"), thisTy) +: paramTypes.zipWithIndex.map: (ty, idx) =>
@@ -936,6 +939,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           exportName = N,
           thisRefType = S(RefType(ctx.getType_!(ownerCls.sym), nullable = false)),
         )
+    end match
   end predeclareMethod
 
   /** Declares placeholders for all methods on one top-level class. */
@@ -1238,10 +1242,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
   def getVar(l: ValueSymbol, loc: Opt[Loc])(using Ctx, FunctionCtx, Raise): Expr = varIndex(l, loc) match
     case S(localIdx: LocalIdx) => local.get(localIdx, funcCtx.slotRefType(l))
-    case S(globalIdx: GlobalIdx) => downcastConserve(
-      global.get(globalIdx, ctx.getGlobalType_!(globalIdx).globalType.valType),
-      l.localRefType,
-    )
+    case S(globalIdx: GlobalIdx) => 
+      downcastConserve(
+        global.get(globalIdx, ctx.getGlobalType_!(globalIdx).globalType.valType),
+        l.localRefType,
+      )
     case N =>
       errExpr(
         Ls(
@@ -1326,7 +1331,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       case S((vt, slot)) =>
         val baseSym = vt.slots(slot).owner
         val paramTypes = vt.slots(slot).paramTypes
-        softAssert(args.size == paramTypes.size, s"Virtual call arity mismatch for $methodSym: ${args.size} args vs ${paramTypes.size} declared params")
+        softAssert(
+          args.size == paramTypes.size,
+          s"Virtual call arity mismatch for $methodSym: ${args.size} args vs ${paramTypes.size} declared params",
+        )
         val ownerTypeInfoIdx = typeInfoTypeIdxs(ownerCls)
         val receiverTmp = mkTempLocal("receiver", erasedType = N)
         val receiverExpr = local.set(receiverTmp, result(qual))
