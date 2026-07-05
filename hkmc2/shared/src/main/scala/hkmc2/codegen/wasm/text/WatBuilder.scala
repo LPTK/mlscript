@@ -581,7 +581,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       suffix: Str,
       params: Seq[ValueSymbol -> SymIdx],
       results: Seq[Result],
-      thisRefType: Opt[RefType] = N,
+      thisRefType: Opt[RefType],
   )(using Ctx, Raise): TypeIdx =
     ctx.addType(TypeInfo(
       sym = TempSymbol(N, erasedType = N, defn.sym.nme),
@@ -632,7 +632,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       results: Seq[Result],
       sym: BlockMemberSymbol,
       exportName: Opt[Str],
-      thisRefType: Opt[RefType] = N,
+      thisRefType: Opt[RefType],
   )(using Ctx, Raise): Unit =
     val funcTy = declareClassFuncType(defn, suffix, params, results, thisRefType)
     predeclareClassFuncWithType(defn, suffix, params, results, sym, exportName, funcTy)
@@ -706,6 +706,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       Seq(Result(RefType(typeIdx, nullable = false))),
       defn.sym,
       ctorExportName,
+      thisRefType = N,
     )
 
   /** Registers all Wasm pre-declarations needed for one top-level class, in dependency order. */
