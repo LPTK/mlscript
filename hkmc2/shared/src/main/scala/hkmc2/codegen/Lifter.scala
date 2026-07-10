@@ -568,12 +568,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         val nme = sym.nme + "$" + id
         
         val ident = new Tree.Ident(nme)
-        val capturedType = sym match
-          case s: HasErasedType => s.erasedType
-          case _ => N
-        val varSym = VarSymbol(ident, erasedType = capturedType)
+        val varSym = VarSymbol(ident, erasedType = N)
         val fldSym = BlockMemberSymbol(nme, Nil)
-        val tSym = TermSymbol(syntax.MutVal, S(clsSym), ident, erasedType = capturedType)
+        val tSym = TermSymbol(syntax.MutVal, S(clsSym), ident, erasedType = N)
         
         val p = Param(FldFlags.empty.copy(isVal = true), varSym, N, Modulefulness.none)
         varSym.decl = S(p) // * Currently this is only accessed to create the class' toString method
@@ -683,10 +680,6 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     protected final def addExtraSyms(b: Block, captureSym: LocalVarSymbol, objSyms: Iterable[ScopedSymbol]): Block =
       if hasCapture then
         val inst = instantiateCapture
-        // * The capture symbol holds an instance of the capture class, so it takes that type.
-        captureSym match
-          case s: HasOnceMutableErasedType => s.erasedType = inst.erasedType
-          case _ =>
         Scoped(
           objSyms.toSet + captureSym,
           Assign(captureSym, inst, b)
@@ -897,8 +890,6 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     protected final def initCaptureField(b: Block): Block =
       if hasCapture then
         val inst = instantiateCapture
-        // * The capture field holds an instance of the capture class, so it takes that type.
-        captureSym.erasedType = inst.erasedType
         AssignField(sym.asThis, captureSym.id, inst, b)(S(captureSym))
       else b
   
@@ -1017,10 +1008,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
   
   class LiftedFunc(override val obj: ScopedObject.Func)(using ctx: LifterCtxNew) extends LiftedScope[FunDefn](obj) with GenericRewrittenScope[FunDefn]:
     private val passedSymsMap_ : Map[ValueSymbol, VarSymbol] = passedSymsOrdered.map: s =>
-        val erasedType = s match
-          case h: HasErasedType => h.erasedType
-          case _ => N
-        s -> VarSymbol(Tree.Ident(s.nme), erasedType)
+        s -> VarSymbol(Tree.Ident(s.nme), erasedType = N)
       .toMap
     private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = capturesOrdered.map: i =>
         val nme = data.getNode(i).obj.nme

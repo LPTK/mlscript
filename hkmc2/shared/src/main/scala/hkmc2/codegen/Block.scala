@@ -882,18 +882,6 @@ object ErasedType:
       case S(prim) => ErasedType.Primitive(prim)
       case _ => ErasedType.AnyRef(rsc, csym)
 
-  /** Joins two possibly-unknown erased types and returning the result.
-    *
-    * - If both sides are known and equal, returns that known type.
-    * - If both sides are known and unequal, returns the top type [[`ErasedType.ObjectRef`]].
-    * - If either side is unknown (`N`), returns `N` - Representing a possibly-unknown type.
-    */
-  // TODO(Derppening): Widen conflicting knowns to their common ancestor once erased types track subtyping,
-  //                   rather than going directly to the top type.
-  def join(lhs: Opt[ErasedType], rhs: Opt[ErasedType]): Opt[ErasedType] = (lhs, rhs) match
-    case (N, _) | (_, N) => N
-    case (S(l), S(r)) => if l == r then S(l) else S(ObjectRef)
-    
 /** A generics-erased type of the Block IR. */
 enum ErasedType:
   /** 
@@ -937,38 +925,6 @@ trait HasOnceMutableErasedType extends HasErasedType:
     //                   only lower each program once
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
-
-/** A [[`HasOnceMutableErasedType`]] whose erased type can additionally be assigned multiple times, joining each
-  * observed type into the running erased type via [[`ErasedType.join`]]. */
-trait HasManyMutableErasedType extends HasOnceMutableErasedType:
-  /** Tracks whether [[`observeErasedTypeAssign`]] has seen at least one assignment to this symbol. Needed to
-    * distinguish a never-observed symbol (whose `N` erased type is the join unit, to be seeded by the first
-    * observation) from an observed-but-poisoned one (whose `N` erased type is the absorbing top). */
-  private var erasedTypeObserved: Bool = false
-
-  /**
-    * Observes an assignment of a value with type `observed` to this symbol.
-    *
-    * Some symbols (e.g. [[`LocalVarSymbol`]]) can be assigned multiple times with values of differing types. The
-    * first observation of an otherwise-unset symbol seeds the erased type directly; every subsequent observation
-    * (and any observation joining an annotation-populated type) is folded in with [[`ErasedType.join`]]. Under that
-    * join an unknown (`N`) assignment is "poison": it widens the symbol to the unknown top type and is absorbing,
-    * while two differing known types widen to the definitive top type [[`ErasedType.ObjectRef`]].
-    */
-  def observeErasedTypeAssign(observed: Opt[ErasedType]): Unit =
-    if !erasedTypeObserved && erasedType.isEmpty then
-      erasedType = observed
-    else
-      erasedType = ErasedType.join(erasedType, observed)
-    erasedTypeObserved = true
-
-extension (lit: Literal) 
-  def erasedType: ErasedType = lit match
-    case Tree.UnitLit(_) => ErasedType.Primitive(PrimitiveType.Unit)
-    case Tree.IntLit(_) => ErasedType.Primitive(PrimitiveType.Int)
-    case Tree.DecLit(_) => ErasedType.Primitive(PrimitiveType.Num)
-    case Tree.StrLit(_) => ErasedType.Primitive(PrimitiveType.Str)
-    case Tree.BoolLit(_) => ErasedType.Primitive(PrimitiveType.Bool)
 
 sealed trait TrivialResult extends Result
 
@@ -1058,15 +1014,9 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case DynSelect(qual, fld, arrayIdx) => qual.size + fld.size
 
   lazy val erasedType: Opt[ErasedType] = this match
-    case Tuple(_, _) => S(ErasedType.Primitive(PrimitiveType.Array))
-    case Record(_, _) => S(ErasedType.ObjectRef)
-    case Instantiate(_, cls, _) => cls.targetSymbol.flatMap(_.asClsOrMod).map(ErasedType.AnyRef(rsc = false, _))
     case Value.SimpleRef(sym) => sym.erasedType
     case Value.MemberRef(_, disamb: (ClassSymbol | ModuleOrObjectSymbol | TypeAliasSymbol)) => disamb.erasedType
     case Value.This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => clsOrMod.erasedType
-    case Value.Lit(lit) => S(lit.erasedType)
-    case Call(Value.SimpleRef(bs: BuiltinSymbol), argss) =>
-      bs.resultErasedType(argss.head.map(_.value.erasedType))
     case Call(fun, _) => fun.targetSymbol match
       case S(ts: TermSymbol) => ts.erasedType match
         case S(ErasedType.FuncRef(_, ret)) => ret

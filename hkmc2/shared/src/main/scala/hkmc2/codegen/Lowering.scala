@@ -224,9 +224,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         blockImpl(stats, res)
       case DefineVar(sym, rhs) :: stats =>
         term(rhs): r =>
-          // Seed the binding's erased type before lowering the continuation, so that a later use of
-          // `sym` does not force an unseeded (and thus permanently poisoned) erased type;
-          observeLocalErasedType(sym, r)
           defineSymbol(sym, r, blockImpl(stats, res))
       case (_: SetConfig) :: stats =>
         // Config changes are handled at the program level; skip during block lowering
@@ -259,7 +256,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                   blockImpl(stats, res)))(using LoweringCtx.nestFunc)
             case syntax.Fun =>
               val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))
-              populateFunDefnType(td.tsym, paramLists, td.sign, bodyBlock)
+              populateFunDefnType(td.tsym, paramLists, td.sign)
               val cfgOverride = td.extraAnnotations.collectFirst:
                 case Annot.Config(modify) => modify(config)
               Define(FunDefn(td.owner, td.sym, td.tsym, paramLists, bodyBlock)(cfgOverride, td.annotations),
@@ -302,7 +299,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           reportAnnotations(defn, defn.extraAnnotations)
           (defn.paramsOpt.iterator ++ defn.auxParams.iterator).foreach: pl =>
             pl.params.foreach(populateClassParamErasedType)
-            pl.restParam.foreach(populateRestParamErasedType)
           val bufferableAnnots = defn.annotations.flatMap:
             case Annot.Trm(trm: SynthSel) =>
               if trm.sym.contains(ctx.builtins.annotations.buffered) then
@@ -576,17 +572,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case sym: LocalVarSymbol =>
       Assign(sym, rhs, rest)
     case sym => nope
-  
-  /** Observes an assignment of `rhs` to `sym`, populating or updating its erased type where applicable.
-    *
-    * This function should be run before continuation lowering, otherwise a subsequent read of `sym` permanently
-    * memoizes the still-unknown erased type before the initializer seeds it.
-    *
-    * See [[`HasManyMutableErasedType.observeErasedTypeAssign`]].
-    */
-  private def observeLocalErasedType(sym: Symbol, rhs: Result): Unit = sym match
-    case sym: HasManyMutableErasedType => sym.observeErasedTypeAssign(rhs.erasedType)
-    case _ =>
 
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
     sym match
@@ -964,8 +949,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       target match
       case Ref(sym) =>
         subTerm(rhs): r =>
-          // Seed the target's erased type before building the continuation `k(unit)`
-          observeLocalErasedType(resolvedSelectionSymbol.getOrElse(sym), r)
           assignSymbol(resolvedSelectionSymbol.getOrElse(sym), sym, r, k(unit), trm.toLoc)
       case sel @ Sel(prefix, nme) =>
         subTerm(prefix): p =>
@@ -1289,7 +1272,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       .flatMap: td =>
         td.body.map: bod =>
           val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
-          populateFunDefnType(td.tsym, paramLists, td.sign, bodyBlock)
+          populateFunDefnType(td.tsym, paramLists, td.sign)
           reportAnnotations(td, td.extraAnnotations)
           val cfgOverride = td.extraAnnotations.collectFirst:
             case Annot.Config(modify) => modify(config)
@@ -1432,34 +1415,16 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case bms: BlockMemberSymbol => bms.tsym.foreach(_.populateErasedType(et))
         case _ =>
   
-  /** Populates the [[`ErasedType`]] of the `rest` parameter. */
-  private def populateRestParamErasedType(p: Param): Unit =
-    p.sym.populateErasedType(ErasedType.Primitive(PrimitiveType.Array))
-
-  /** Infers the [[`ErasedType`]] of a function's return type by joining the erased types of all return values
-    * via [[`ErasedType.join`]]. 
-    */
-  private def inferReturn(body: Block): Opt[ErasedType] =
-    var rets: Ls[Opt[ErasedType]] = Nil
-    new BlockTraverserShallow:
-      override def applyBlock(b: Block): Unit = b match
-        case Return(res) => rets ::= res.erasedType
-        case _ => super.applyBlock(b)
-    .applyBlock(body)
-    rets match
-      case head :: tail => tail.foldLeft(head)(ErasedType.join)
-      case Nil => N
-
-  /** Populates a function definition symbol's erased type with a [[`ErasedType.FuncRef`]] derived from its 
-    * (already-populated) parameter symbols and return type. 
-    * 
-    * The return type comes from the explicit annotation when present, otherwise it is inferred from the body.
+  /** Populates a function definition symbol's erased type with a [[`ErasedType.FuncRef`]] derived from its
+    * (already-populated) parameter symbols and return type.
+    *
+    * Both the parameter and return types come from explicit annotations; unannotated positions stay unknown.
     */
   // TODO(Derppening): Parameters of curried functions are currently flattened - Should we preserve the curried shape?
-  private def populateFunDefnType(tsym: TermSymbol, paramLists: Ls[ParamList], sign: Opt[Term], body: Block): Unit =
+  private def populateFunDefnType(tsym: TermSymbol, paramLists: Ls[ParamList], sign: Opt[Term]): Unit =
     if tsym.erasedType.isEmpty then
       val params = paramLists.flatMap(_.params).map(_.sym.erasedType)
-      val ret = sign.flatMap(eraseSign) orElse inferReturn(body)
+      val ret = sign.flatMap(eraseSign)
       tsym.erasedType = S(ErasedType.FuncRef(params, ret))
 
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
@@ -1467,7 +1432,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     paramLists.foreach: pl =>
       pl.params.foreach: p =>
         p.sign.flatMap(eraseSign).foreach(p.sym.populateErasedType)
-      pl.restParam.foreach(populateRestParamErasedType)
     val scopedBody = inScopedBlock(returnedTerm(bodyTerm))
     (paramLists, scopedBody)
   

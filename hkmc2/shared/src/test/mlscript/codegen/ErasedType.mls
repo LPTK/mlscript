@@ -3,8 +3,8 @@
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ import "..." as Predef; end
 
-
-// Literals: Int / Str / Num / Bool. A local picks up its initializer's type.
+// Erased types come only from explicit type annotations. An unannotated local —
+// even one bound to a literal — carries no erased type.
 :siret
 let i = 1
 let f = 1.5
@@ -14,34 +14,17 @@ let b = true
 //│ set i⁰ = 1; set f⁰ = 1.5; set s⁰ = "str"; set b⁰ = true; end
 
 
-// Local reassignment join: a local keeps its type while assignments agree, and
-// widens to `Object` on a type conflict. A declared-then-assigned local (no
-// initializer) is still typed from its assignment.
-:siret
-let consistent = 1
-set consistent = 2
-let conflicting = 1
-set conflicting = "two"
-let declared
-set declared = 3
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ set consistent⁰ = 1;
-//│ set consistent⁰ = 2;
-//│ set conflicting⁰ = 1;
-//│ set conflicting⁰ = "two";
-//│ set declared⁰ = 3;
-//│ return runtime⁰.Unit⁰
-
-
-// Tuple -> Array; record -> Object (the `NoSymbol` top case).
+// Tuple and record bindings are unannotated too, so they stay `: ?`.
 :siret
 let t = [i, s]
 let r = {x: i, y: s}
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let x: Int, y: Str; set t⁰ = [i⁰, s⁰]; set x = i⁰; set y = s⁰; set r⁰ = { "x": x, "y": y }; end
+//│ let x: ?, y: ?; set t⁰ = [i⁰, s⁰]; set x = i⁰; set y = s⁰; set r⁰ = { "x": x, "y": y }; end
 
 
-// Instantiation -> the class symbol.
+// A class's annotated parameters give its fields a type, for both a private
+// (`x: Int`) and a `val` (`y: Str`) parameter. The instantiation result itself
+// is not typed from the class.
 :siret
 class Foo(x: Int)
 let foo = new Foo(123)
@@ -53,103 +36,86 @@ let foo = new Foo(123)
 //│ set foo⁰ = new Foo²(123);
 //│ end
 
-
-// Instantiation on class with `val` param -> the class symbol.
 :siret
-class Foo(val x: Str)
-let foo = new Foo(123)
+class Bar(val y: Str)
+let bar = new Bar("hi")
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define Foo³ as class Foo⁵ {
-//│   val x¹: Str;
-//│   constructor Foo⁴(x: Str) { define x¹ as val x²: Str = x; end }
+//│ define Bar⁰ as class Bar² {
+//│   val y⁰: Str;
+//│   constructor Bar¹(y: Str) { define y⁰ as val y¹: Str = y; end }
 //│ };
-//│ set foo¹ = new Foo⁵(123);
+//│ set bar⁰ = new Bar²("hi");
 //│ end
 
 
-// Call return is inferred from the callee's return type; field selection stays
-// `: ?` (resolved in a later phase).
+// An unannotated function has unknown parameter and return types, so the call
+// result and the (unresolved) field selection both stay `: ?`.
 :siret
-fun mk(a) = new Foo(a)
+fun mk(a) = new Bar(a)
 let made = mk(1)
-let sel = made.x
+let sel = made.y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define mk⁰ as fun mk¹(a: ?): Foo⁵ {
-//│   return new Foo⁵(a)
-//│ };
-//│ set made⁰ = mk¹(1);
-//│ set sel⁰ = made⁰.x﹖;
-//│ end
+//│ define mk⁰ as fun mk¹(a: ?): ? { return new Bar²(a) }; set made⁰ = mk¹(1); set sel⁰ = made⁰.y﹖; end
 
 
-// Parameter annotations. The return type is unannotated but inferred from the
-// body: `Int + Int` yields `Int`.
+// Parameter annotations are kept (`x: Int`, `y: Int`); the unannotated return
+// stays `: ?` — it is never inferred from the body.
 :siret
 fun add(x: Int, y: Int) = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define add⁰ as fun add¹(x: Int, y: Int): Int { return +⁰(x, y) }; end
+//│ define add⁰ as fun add¹(x: Int, y: Int): ? { return +⁰(x, y) }; end
 
 
-// A reassigned parameter joins with its annotation: a conflicting `set` widens
-// the annotated type (and the inferred return) to `Object`; a consistent `set`
-// keeps it.
+// A parameter keeps its annotated type regardless of a later reassignment; there
+// is no widening/join from the assigned value.
 :siret
-fun widen(x: Int) =
-  set x = "s"
-  x
 fun keep(x: Int) =
   set x = 5
   x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define widen⁰ as fun widen¹(x: Object): Object {
-//│   set x = "s";
-//│   return x
-//│ };
-//│ define keep⁰ as fun keep¹(x: Int): Int { set x = 5; return x };
-//│ end
+//│ define keep⁰ as fun keep¹(x: Int): ? { set x = 5; return x }; end
 
 
-// Return-type annotations are rendered at the `fun ...: T` definition site,
-// for both primitive and class return types.
+// Return-type annotations are rendered at the `fun ...: T` definition site, for
+// both primitive and class return types.
 :siret
 fun addUp(x: Int, y: Int): Int = x + y
-fun makeFoo(n: Int): Foo = new Foo(n)
+fun makeBar(n: Int): Bar = new Bar(n)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define addUp⁰ as fun addUp¹(x: Int, y: Int): Int {
 //│   return +⁰(x, y)
 //│ };
-//│ define makeFoo⁰ as fun makeFoo¹(n: Int): Foo⁵ { return new Foo⁵(n) };
+//│ define makeBar⁰ as fun makeBar¹(n: Int): Bar² { return new Bar²(n) };
 //│ end
 
 
-// A rest parameter binds an array of the collected arguments, so it is typed
-// `Array` regardless of any element annotation.
-:siret
-fun rest(a, ...xs) = xs
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define rest⁰ as fun rest¹(a: ?, ...xs: Array): Array { return xs }; end
-
-
-// Inferred returns from the body terminal: a builtin comparison yields `Bool`
-// (regardless of operand types), an instantiation yields the class, and an
-// unconstrained identity return stays `: ?`. (Equality `==` lowers to a
-// `Predef.equals` member call, not a builtin operator, so it stays `: ?`.)
+// Without a return annotation, the declared return stays `: ?` regardless of the
+// body's shape — a builtin comparison, an instantiation, and an identity return
+// are all left unknown.
 :siret
 fun lt(a, b) = a < b
-fun mkFoo(a) = new Foo(a)
+fun mkBar(a) = new Bar(a)
 fun ident(a) = a
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define lt⁰ as fun lt¹(a: ?, b: ?): Bool {
+//│ define lt⁰ as fun lt¹(a: ?, b: ?): ? {
 //│   return <⁰(a, b)
 //│ };
-//│ define mkFoo⁰ as fun mkFoo¹(a: ?): Foo⁵ {
-//│   return new Foo⁵(a)
+//│ define mkBar⁰ as fun mkBar¹(a: ?): ? {
+//│   return new Bar²(a)
 //│ };
 //│ define ident⁰ as fun ident¹(a: ?): ? { return a };
 //│ end
 
 
-// Method return-type annotations are rendered the same way as free functions.
+// A rest parameter has no annotation, so it stays `: ?`.
+:siret
+fun rest(a, ...xs) = xs
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define rest⁰ as fun rest¹(a: ?, ...xs: ?): ? { return xs }; end
+
+
+// Method return-type annotations are rendered like free functions; an
+// unannotated method stays `: ?`.
 :siret
 class Calc() with
   fun twice(x: Int): Int = x + x
@@ -165,8 +131,9 @@ class Calc() with
 //│ end
 
 
-// A selection resolved to a member (`this.v`) carries that member's type, so a
-// field getter's return is inferred.
+// A selection resolved to a member (`this.v`) still carries that member's
+// annotated type, but without a return annotation the field getter's declared
+// return stays `: ?`.
 :siret
 class Box(val v: Int) with
   fun get() = v
@@ -177,63 +144,13 @@ class Box(val v: Int) with
 //│     define v⁰ as val v¹: Int = v;
 //│     end
 //│   }
-//│   method get⁰ = fun get¹(): Int { return Box².this.v¹ }
+//│   method get⁰ = fun get¹(): ? { return Box².this.v¹ }
 //│ };
 //│ end
 
 
-// Optimized IR with erased types: surfaces where a type relaxes to `: ?`
-// through a transform (the relaxation gap `:soir` makes visible).
-:soir
-:siret
-fun id(a) = a
-id(new Foo(1))
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Foo⁵; define id⁰ as fun id¹(a: ?): ? { return a }; set tmp = new Foo⁵(1); return id¹(tmp)
-//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ define id⁰ as fun id¹(a: ?): ? { return a }; return new Foo⁵(1)
-
-
-// A local consumed by a *later* statement in the same (non-hoisted) block is
-// seeded before that statement is lowered, so its erased type survives: both `n`
-// and the forward use `m` stay `Int`, and the inferred return is `Int`.
-:siret
-fun laterUse() =
-  let n = 0
-  let m = n + 1
-  m
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define laterUse⁰ as fun laterUse¹(): Int {
-//│   let n: Int, m: Int;
-//│   set n = 0;
-//│   set m = +⁰(n, 1);
-//│   return m
-//│ };
-//│ end
-
-// The same holds for self-reassignment: `set n = n + 1` reads `n`, but `n` is
-// already seeded from its initializer, so it keeps `Int`.
-:siret
-fun reassign() =
-  let n = 0
-  set n = n + 1
-  n
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define reassign⁰ as fun reassign¹(): Int {
-//│   let n: Int, tmp: Int;
-//│   set n = 0;
-//│   set tmp = +⁰(n, 1);
-//│   set n = tmp;
-//│   return n
-//│ };
-//│ end
-
-
-// Closure capture (`:lift`): the symbol holding the capture object is typed as
-// the generated capture class. The capture field inherits the captured local's
-// erased type — but here `n` is reassigned from `n + 1`, whose operand type is
-// not yet known when the (hoisted) closure body is lowered, so the local (and
-// hence the field) widens to `?`.
+// Closure capture (`:lift`): the generated capture class and its field are not
+// typed from the captured local, so they stay `: ?`.
 :siret
 :lift
 fun counter() =
@@ -249,68 +166,17 @@ fun counter() =
 //│     end
 //│   }
 //│ };
-//│ define bump as fun bump⁰(scope0$cap: ?): Unit⁰ {
+//│ define bump as fun bump⁰(scope0$cap: ?): ? {
 //│   let tmp: ?;
 //│   set tmp = +⁰(scope0$cap.n$0¹, 1);
 //│   set scope0$cap.n$0¹ = tmp;
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define counter⁰ as fun counter¹(): ? {
-//│   let n: ?, scope0$cap: Capture$scope0¹;
+//│   let n: ?, scope0$cap: ?;
 //│   set scope0$cap = new mut Capture$scope0¹(n);
 //│   set scope0$cap.n$0¹ = 0;
 //│   do bump⁰(scope0$cap);
 //│   return scope0$cap.n$0¹
 //│ };
-//│ end
-
-
-// When the captured local keeps a definite erased type (here `n` is only ever
-// assigned `Int` literals), the generated capture field inherits it: both the
-// constructor parameter `n$0` and the `val n$0` field are typed `Int`.
-:siret
-:lift
-fun resetCounter() =
-  let n = 0
-  fun reset() = set n = 100
-  reset()
-  n
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let reset, Capture$scope0;
-//│ define Capture$scope0 as class Capture$scope0³ {
-//│   constructor Capture$scope0²(n$0: Int) {
-//│     define n$0² as val n$0³: Int = n$0;
-//│     end
-//│   }
-//│ };
-//│ define reset as fun reset⁰(scope0$cap: ?): Unit⁰ {
-//│   set scope0$cap.n$0³ = 100;
-//│   return runtime⁰.Unit⁰
-//│ };
-//│ define resetCounter⁰ as fun resetCounter¹(): Int {
-//│   let n: Int, scope0$cap: Capture$scope0³;
-//│   set scope0$cap = new mut Capture$scope0³(n);
-//│   set scope0$cap.n$0³ = 0;
-//│   do reset⁰(scope0$cap);
-//│   return scope0$cap.n$0³
-//│ };
-//│ end
-
-
-// A read-only capture is lifted into a by-value parameter rather than a capture
-// field; that parameter inherits the captured local's erased type (`k: Int`).
-// (`rd`'s return stays `?`: the hoisted closure body is lowered before `k` is
-// seeded, so the return-type inference cannot yet see `k`'s type.)
-:siret
-:lift
-fun reader() =
-  let k = 0
-  fun rd() = k
-  rd()
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let rd;
-//│ define rd as fun rd⁰(k: Int): ? {
-//│   return k
-//│ };
-//│ define reader⁰ as fun reader¹(): ? { let k: Int; set k = 0; return rd⁰(k) };
 //│ end

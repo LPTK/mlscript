@@ -10,7 +10,7 @@ import hkmc2.utils.*
 
 import Elaborator.State
 import Tree.Ident
-import hkmc2.codegen.{ErasedType, HasErasedType, HasManyMutableErasedType, HasOnceMutableErasedType, PrimitiveType, erasedType}
+import hkmc2.codegen.{ErasedType, HasErasedType, HasOnceMutableErasedType}
 import hkmc2.utils.SymbolSubst
 
 
@@ -249,7 +249,7 @@ class InstSymbol(val origin: Symbol)(using State) extends LocalSymbol:
 
 class VarSymbol(val id: Ident, override var erasedType: Opt[ErasedType])(using State)
     extends LocalVarSymbol(id.name)
-    with HasManyMutableErasedType
+    with HasOnceMutableErasedType
     with NamedSymbol:
   val name: Str = id.name
   var sourceAliases: Ls[Str] = Nil
@@ -284,35 +284,6 @@ class BuiltinSymbol
       case (_, _, true) => nullaryType
       case _ => Bot
     semantics.flow.Producer.Typ(typ)
-
-  /** The result [[`ErasedType`]] of applying this builtin operator to operands of the given erased types.
-    *
-    * Returns `N` if the operator is not recognized or the arguments to the operator is not sufficient to determine the
-    * result type.
-    */
-  def resultErasedType(args: Ls[Opt[ErasedType]]): Opt[ErasedType] =
-    import ErasedType.Primitive
-    def isStr(t: Opt[ErasedType]) = t.contains(Primitive(PrimitiveType.Str))
-    def isInt(t: Opt[ErasedType]) = t.contains(Primitive(PrimitiveType.Int))
-    def isNum(t: Opt[ErasedType]) = isInt(t) || t.contains(Primitive(PrimitiveType.Num))
-    nme match
-      case "==" | "!=" | "<" | "<=" | ">" | ">=" | "===" | "!==" | "&&" | "||" | "!" =>
-        S(Primitive(PrimitiveType.Bool))
-      case "typeof" => S(Primitive(PrimitiveType.Str))
-      // * `+` is overloaded (numeric add / string concat): only commit when the operands
-      // * decide it, otherwise leave it unknown (an unknown operand could be a `Str`).
-      case "+" =>
-        if args.exists(isStr) then S(Primitive(PrimitiveType.Str))
-        else if args.forall(isInt) then S(Primitive(PrimitiveType.Int))
-        else if args.forall(isNum) then S(Primitive(PrimitiveType.Num))
-        else N
-      // * The remaining arithmetic operators are numeric-only, so the result is always a
-      // * number; it is an `Int` only when every operand is known to be an `Int`.
-      case "-" | "*" | "%" =>
-        if args.forall(isInt) then S(Primitive(PrimitiveType.Int)) else S(Primitive(PrimitiveType.Num))
-      case "/" => S(Primitive(PrimitiveType.Num))
-      case "~" => S(Primitive(PrimitiveType.Int))
-      case _ => N
 
 
 /** This is the outside-facing symbol associated to a possibly-overloaded
@@ -424,7 +395,7 @@ case class Extr(isTop: Bool)(using State) extends CtorSymbol:
   override def toString: Str = nme
 
 sealed abstract case class LitSymbol(lit: Literal)(using State) extends CtorSymbol, HasErasedType:
-  override val erasedType: Opt[ErasedType] = S(lit.erasedType)
+  override val erasedType: Opt[ErasedType] = N
   def nme: Str = lit.idStr
   def toLoc: Option[Loc] = lit.toLoc
   override def prefix: Str = "lit:"
