@@ -170,6 +170,9 @@ class BlockTransformer(subst: SymbolSubst):
         applyListOf(argss, (args, k2) => applyArgs(args)(k2)): argss2 =>
           k(if (cls2 is cls) && (argss2 is argss) then r
             else Instantiate(mut, cls2, argss2)(r.metadata).withLocOf(r))
+    case r @ Cast(value, target) =>
+      applyPath(value): value2 =>
+        k(if value2 is value then r else Cast(value2, target).withLocOf(r))
     case l: Lambda => k(applyLam(l))
     case Tuple(mut, elems) =>
       applyArgs(elems): elems2 =>

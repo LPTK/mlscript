@@ -541,6 +541,8 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     case Record(_, fields) =>
       fields.foreach:
         case RcdArg(idx, value) => idx.foreach(applyPath); applyPath(value)
+    case Cast(value, _) =>
+      applyPath(value)
     case p: Path => applyPath(p)
   
   private def applyValueSimpleRef(v: Value.SimpleRef, recordAffinity: Bool) =
@@ -996,6 +998,7 @@ class FlowConstraintsCollector(
               idx.foreach(p => cc.constrain(processResult(p), UnknownCons))
               cc.constrain(processResult(value), UnknownCons)
           UnknownProd
+        case Cast(value, _) => processResult(value)
         case p: Path =>
           p match
           case refSite@FunRef(f, selectedFrom) =>

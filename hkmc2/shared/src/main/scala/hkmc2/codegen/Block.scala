@@ -947,6 +947,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Tuple(mut, elems) => s"Tuple($mut, [${elems.map(_.value.showDbg).mkString(", ")}])"
     case Instantiate(mut, cls, argss) => s"Instantiate($mut, ${cls.showDbg}, [${
       argss.map(_.map(a => a.value.showDbg).mkString("[", ", ", "]")).mkString(", ")}])"
+    case Cast(value, target) => s"Cast(${value.showDbg}, $target)"
   
   lazy val isPure: Bool = this match
     case _: Value => true
@@ -958,6 +959,17 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       ass.forall(_.forall(_.value.isPure))
     case Record(mut, args) => args.forall(_.value.isPure)
     case Tuple(mut, elems) => elems.forall(_.value.isPure)
+    // TODO(Derppening): Do we consider `Cast`s as pure? Two readings are in tension:
+    //                   My interpretation is that purity refers to strictly having no side effects, and a `Cast` is
+    //                   impure since a failed `ref.cast` traps at runtime, and a trap is observable.
+    //                   Claude reasons (based on the call sites) that `isPure` indicates if the result "is safe to
+    //                   delete when its result is dead", under which a `Cast` is pure iff its operand is. The existing
+    //                   arms favour Claude's reading: builtin `/` and `%` are pure yet trap on divide-by-zero - so the 
+    //                   invariant already admits trapping-but-referentially-transparent ops, and only genuine mutation
+    //                   (`super`) is impure. 
+    //                   We take Claude's reading for now, but this must be resolved since we may add casts on the
+    //                   surface language in the future.
+    case Cast(value, _) => value.isPure
     // case Instantiate(mut, cls, args) => // TODO?
     case _ => false
   
@@ -968,6 +980,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
   protected def children: Vector[Located] = this match
     case Call(fun, argss) => fun +: argss.iterator.flatten.map(_.value).toVector
     case Instantiate(mut, cls, argss) => cls +: argss.iterator.flatten.map(_.value).toVector
+    case Cast(value, target) => Vector.single(value)
     case Select(qual, name) => Vector.double(qual, name)
     case DynSelect(qual, fld, arrayIdx) => Vector.double(qual, fld)
     case Lambda(params, body) => Vector.single(params)
@@ -990,6 +1003,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
   lazy val freeVars: Set[FreeSymbol] = this match
     case Call(fun, argss) => fun.freeVars ++ argss.flatten.flatMap(_.value.freeVars).toSet
     case Instantiate(mut, cls, argss) => cls.freeVars ++ argss.flatten.flatMap(_.value.freeVars).toSet
+    case Cast(value, _) => value.freeVars
     case Select(qual, name) => qual.freeVars
     case Lambda(params, body) => body.freeVars -- params.paramSyms
     case Tuple(mut, elems) => elems.flatMap(_.value.freeVars).toSet
@@ -1004,6 +1018,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
   lazy val size: Int = this match
     case Call(fun, argss) => fun.size + argss.iterator.flatten.map(_.value.size).sum
     case Instantiate(mut, cls, argss) => cls.size + argss.iterator.flatten.map(_.value.size).sum
+    case Cast(value, _) => value.size
     case Select(qual, name) => qual.size
     case Lambda(params, body) => 1 + body.size
     case Tuple(mut, elems) => elems.iterator.map(_.value.size).sum
@@ -1028,6 +1043,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       case S(ts: TermSymbol) => ts.erasedType
       case S(d: (ClassSymbol | ModuleOrObjectSymbol | TypeAliasSymbol)) => d.erasedType
       case _ => N
+    case Cast(_, target) => S(target)
     case _ => N
 
 /* mayRaiseEffects indicates whether this call may raise effect (algebraic effect),
@@ -1116,6 +1132,8 @@ object InstantiateMetadata:
   def empty: InstantiateMetadata = InstantiateMetadata(Nil)
 
 case class Instantiate(mut: Bool, cls: Path, argss: Ls[Ls[Arg]])(val metadata: InstantiateMetadata) extends Result
+
+case class Cast(value: Path, target: ErasedType) extends Result
 
 case class Lambda(params: ParamList, body: Block)(val annot: Ls[Annot]) extends Result:
   lazy val affine: Bool = annot.exists(_.isInstanceOf[Annot.Affine])

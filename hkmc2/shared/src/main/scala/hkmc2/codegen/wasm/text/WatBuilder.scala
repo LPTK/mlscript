@@ -1662,6 +1662,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       val tupleValues = elems.map(argument)
       array.new_fixed(tupleArrayType(mut), tupleValues)
 
+    case Cast(value, target) =>
+      target.wasmType match
+        case S(rt) => downcastConserve(result(value), rt)
+        case N => result(value)
+
     case r =>
       errExpr(
         Ls(msg"WatBackend::result for ${r.getClass.getSimpleName} expression not implemented yet" -> r.toLoc),
