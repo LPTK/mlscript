@@ -1363,8 +1363,34 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case r =>
         val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedType)
         Assign(l, r, k(l.asSimpleRef))
-  
-  
+
+  /** Inserts a [[`Cast`]] when the lowered result `r` must be downcasted to fit the `expected` erased type of the slot 
+    * it flows into, then continues with `k`.
+    *
+    *  - If `expected` is a subtype of `r`'s type, a downcast is inserted.
+    *  - If `expected and `r` are unrelated, a compile-time error is raised and `r` continues uncast.
+    *  - Otherwise, `r` is passed through unchanged.
+    */
+  def castTo(r: Result, expected: Opt[ErasedType], loc: Opt[Loc])(k: Result => Block)(using LoweringCtx): Block =
+    expected match
+    case N => k(r)
+    case S(t) =>
+      ErasedType.castKind(r.erasedType_!, t) match
+      case CastKind.Identity | CastKind.Upcast | CastKind.Incomparable => k(r)
+      case CastKind.Downcast =>
+        r match
+        case p: Path => k(Cast(p, t))
+        case _ =>
+          val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedType)
+          Assign(l, r, k(Cast(l.asSimpleRef, t)))
+      case CastKind.Unrelated =>
+        raise(ErrorReport(
+          msg"Cannot narrow a value of type '${r.erasedType_!.sym.nme}' to unrelated type '${t.sym.nme}'" ->
+          loc :: Nil,
+          source = Diagnostic.Source.Compilation))
+        k(r)
+
+
   def program(main: st.Blk, symbolsToPreserve: Set[BoundSymbol]): Program =
     
     val (imps, funs, rest) = splitBlock(main.stats, Nil, Nil, Nil)

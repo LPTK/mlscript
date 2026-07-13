@@ -922,6 +922,40 @@ object ErasedType:
     if expected is ctx.builtins.Object then S(true)
     else loop(actual, Set.empty)
 
+  /** Classifies the cast needed to make a value of erased type `actual` fit an `expected` slot. */
+  def castKind(actual: ErasedType, expected: ErasedType)(using Ctx, State): CastKind = (actual, expected) match
+    case (Primitive(a), Primitive(b)) => if a == b then CastKind.Identity else CastKind.Unrelated
+    case _ =>
+      val a = actual.sym
+      val e = expected.sym
+      if a is e then CastKind.Identity
+      else (isSubtypeOf(a, e), isSubtypeOf(e, a)) match
+        case (S(true), _) => CastKind.Upcast
+        case (_, S(true)) => CastKind.Downcast
+        // * We cannot definitely conclude that the types are unrelated, because `isSubtypeOf` follows only the `ext`
+        // * chain and is therefore blind to relatedness via traits or multiple parents.
+        case (S(false), S(false)) => CastKind.Incomparable
+        // * Neither class has enough IR information to determine the relationship
+        case (afe, efa) => lastWords:
+          s"Cannot determine cast kind between $actual and $expected: isSubtypeOf($a, $e) = $afe, isSubtypeOf($e, $a) = $efa"
+
+/** How a value's erased type relates to the erased type of the slot it flows into. */
+enum CastKind:
+  /** The types are the same. */
+  case Identity
+  /** The value type is a subtype of the target type. */
+  case Upcast
+  /** The value type is a supertype of the target type. */
+  case Downcast
+  /** The types are provably incompatible. */
+  case Unrelated
+  /** No subtyping relation can be established by walking the inheritance chain.
+    *
+    * This is not to be treated as `Unrelated`, because the types may still be related via traits or multiple parents,
+    * which are not visible to the inheritance-only oracle.
+    */
+  case Incomparable
+
 /** A generics-erased type of the Block IR. */
 enum ErasedType:
   /** 
