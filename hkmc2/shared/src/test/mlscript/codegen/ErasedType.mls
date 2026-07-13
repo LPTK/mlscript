@@ -93,6 +93,23 @@ fun keep(x: Int) =
 //│ define keep⁰ as fun keep¹(x: Int): ? { set x = (5 as Int); return x }; end
 
 
+// An annotated mutable field narrows the assigned value at the field-assignment
+// site, exactly as a local or parameter assignment does.
+:siret
+class Ref(mut val v: Int) with
+  fun put(x) = set v = x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Ref⁰ as class Ref² {
+//│   val v⁰: Int;
+//│   constructor Ref¹(v: Int) {
+//│     define v⁰ as val v¹: Int = v;
+//│     end
+//│   }
+//│   method put⁰ = fun put¹(x: ?): ? { set Ref².this.v¹ = (x as Int); return runtime⁰.Unit⁰ }
+//│ };
+//│ end
+
+
 // Return-type annotations are rendered at the `fun ...: T` definition site, for
 // both primitive and class return types.
 :siret
@@ -158,12 +175,12 @@ class Box(val v: Int) with
   fun get() = v
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Box⁰ as class Box² {
-//│   val v⁰: Int;
+//│   val v²: Int;
 //│   constructor Box¹(v: Int) {
-//│     define v⁰ as val v¹: Int = v;
+//│     define v² as val v³: Int = v;
 //│     end
 //│   }
-//│   method get⁰ = fun get¹(): ? { return Box².this.v¹ }
+//│   method get⁰ = fun get¹(): ? { return Box².this.v³ }
 //│ };
 //│ end
 
