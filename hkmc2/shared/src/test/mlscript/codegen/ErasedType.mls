@@ -29,22 +29,32 @@ let r = {x: i, y: s}
 class Foo(x: Int)
 let foo = new Foo(123)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Int;
 //│ define Foo⁰ as class Foo² {
 //│   private val x⁰: Int;
-//│   constructor Foo¹(x: Int) { set Foo².this.x⁰ = x; end }
+//│   constructor Foo¹(x: Int) {
+//│     set Foo².this.x⁰ = x;
+//│     end
+//│   }
 //│ };
-//│ set foo⁰ = new Foo²(123);
+//│ set tmp = (123 as Int);
+//│ set foo⁰ = new Foo²(tmp);
 //│ end
 
 :siret
 class Bar(val y: Str)
 let bar = new Bar("hi")
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Str;
 //│ define Bar⁰ as class Bar² {
 //│   val y⁰: Str;
-//│   constructor Bar¹(y: Str) { define y⁰ as val y¹: Str = y; end }
+//│   constructor Bar¹(y: Str) {
+//│     define y⁰ as val y¹: Str = y;
+//│     end
+//│   }
 //│ };
-//│ set bar⁰ = new Bar²("hi");
+//│ set tmp = ("hi" as Str);
+//│ set bar⁰ = new Bar²(tmp);
 //│ end
 
 
@@ -55,7 +65,14 @@ fun mk(a) = new Bar(a)
 let made = mk(1)
 let sel = made.y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define mk⁰ as fun mk¹(a: ?): ? { return new Bar²(a) }; set made⁰ = mk¹(1); set sel⁰ = made⁰.y﹖; end
+//│ define mk⁰ as fun mk¹(a: ?): ? {
+//│   let tmp: Str;
+//│   set tmp = (a as Str);
+//│   return new Bar²(tmp)
+//│ };
+//│ set made⁰ = mk¹(1);
+//│ set sel⁰ = made⁰.y﹖;
+//│ end
 
 
 // Parameter annotations are kept (`x: Int`, `y: Int`); the unannotated return
@@ -73,19 +90,19 @@ fun keep(x: Int) =
   set x = 5
   x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define keep⁰ as fun keep¹(x: Int): ? { set x = 5; return x }; end
+//│ define keep⁰ as fun keep¹(x: Int): ? { set x = (5 as Int); return x }; end
 
 
 // Return-type annotations are rendered at the `fun ...: T` definition site, for
 // both primitive and class return types.
 :siret
 fun addUp(x: Int, y: Int): Int = x + y
-fun makeBar(n: Int): Bar = new Bar(n)
+fun makeBar(s: Str): Bar = new Bar(s)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define addUp⁰ as fun addUp¹(x: Int, y: Int): Int {
 //│   return +⁰(x, y)
 //│ };
-//│ define makeBar⁰ as fun makeBar¹(n: Int): Bar² { return new Bar²(n) };
+//│ define makeBar⁰ as fun makeBar¹(s: Str): Bar² { return new Bar²(s) };
 //│ end
 
 
@@ -101,7 +118,9 @@ fun ident(a) = a
 //│   return <⁰(a, b)
 //│ };
 //│ define mkBar⁰ as fun mkBar¹(a: ?): ? {
-//│   return new Bar²(a)
+//│   let tmp: Str;
+//│   set tmp = (a as Str);
+//│   return new Bar²(tmp)
 //│ };
 //│ define ident⁰ as fun ident¹(a: ?): ? { return a };
 //│ end

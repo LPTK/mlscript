@@ -157,6 +157,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   // type Rcd = (mut: Bool, args: List[RcdArg]) // * Better, but Scala's patmat exhaustiveness chokes on it
   type Rcd = (Bool, List[RcdArg])
   
+  // TODO(Derppening): Insert a return downcast here after `populateFunDefnType` is moved to a pre-Lowering pass
   def returnedTerm(t: st)(using LoweringCtx): Block = term(t)(Ret)(using LoweringCtx.nestFunc)
   
   def parentConstructor(parentClsPath: Path, cls: Term, args: Ls[Term])(using LoweringCtx) =
@@ -408,14 +409,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     args match
     case _ :: _ =>
       def zipArgs(remainingParamss: Ls[ParamList], args: Ls[Term], acc: Ls[Ls[Arg]]): Block = (remainingParamss, args) match
-        case (_ :: remainingParamss2, arg :: remainingArgs) => lowerArgs(arg): as =>
+        case (ps :: remainingParamss2, arg :: remainingArgs) => lowerArgs(arg, expectedParamTypes(ps)): as =>
           zipArgs(remainingParamss2, remainingArgs, as ne_:: acc)
         case (Nil, arg :: remainingArgs) =>
           if remainingArgs.isEmpty then
             raise(ErrorReport(
               msg"Too many parameter lists for parent class" -> loc :: Nil,
               source = Diagnostic.Source.Compilation))
-          lowerArgs(arg): as =>
+          lowerArgs(arg, Nil): as =>
             zipArgs(Nil, remainingArgs, as ne_:: acc)
         case (remainingParamss2, Nil) =>
           if !remainingParamss2.isEmpty then
@@ -439,7 +440,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     def zipArgs(remainingParamss: Ls[ParamList], remainingArgss: Ls[Term], acc: Ls[Ls[Arg]], mayRaiseEffects: Bool): Block =
       (remainingParamss, remainingArgss) match
       case (ps :: remainingParams, args :: remainingArgs) =>
-        lowerArgs(args)(as => zipArgs(remainingParams, remainingArgs, as :: acc, mayRaiseEffects))
+        lowerArgs(args, expectedParamTypes(ps))(as => zipArgs(remainingParams, remainingArgs, as :: acc, mayRaiseEffects))
       case (Nil, Nil) =>
         k(Call(fr, acc.reverse.ne_!)(CallMetadata(isMlsFun, mayRaiseEffects, annotations)).withLoc(loc))
       case (Nil, args :: remainingArgss) =>
@@ -461,7 +462,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   def lowerRemainingCalls(base: Path, args: Term, remainingArgss: Ls[Term], annotations: Ls[Annot], loc: Opt[Loc])
         (k: Result => Block)(using LoweringCtx): Block =
-    lowerArgs(args): as =>
+    lowerArgs(args, Nil): as =>
       val call = Call(base, as ne_:: Nil)(CallMetadata(false, true, annotations)).withLoc(loc)
       remainingArgss match
       case Nil => k(call)
@@ -486,7 +487,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     def zipArgs(remainingCtorParamss: Ls[ParamList], remainingArgss: Ls[Term], acc: Ls[Ls[Arg]]): Block =
       (remainingCtorParamss, remainingArgss) match
       case (ps :: remainingParams, args :: remainingArgs) =>
-        lowerArgs(args)(as => zipArgs(remainingParams, remainingArgs, as :: acc))
+        lowerArgs(args, expectedParamTypes(ps))(as => zipArgs(remainingParams, remainingArgs, as :: acc))
       case (Nil, Nil) =>
         k(buildInstantiate(acc.reverse))
       case (Nil, args :: remainingArgss) =>
@@ -520,7 +521,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case Nil =>
         k(buildInstantiate(Nil))
       case args :: remainingArgss =>
-        lowerArgs(args): as =>
+        lowerArgs(args, Nil): as =>
           remainingArgss match
           case Nil =>
             k(buildInstantiate(as :: Nil))
@@ -531,7 +532,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               lowerRemainingCalls(tmp.asSimpleRef, remainingArgss.head, remainingArgss.tail, annotations, N)(k))
     else zipArgs(ctorParamLists, args, Nil)
   
-  def lowerArgs(arg: Term)(k: Ls[Arg] => Block)(using LoweringCtx): Block =
+  def lowerArgs(arg: Term, expectedTypes: Ls[Opt[ErasedType]])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     arg match
     case Tup(fs) =>
       if fs.exists(e => e match
@@ -541,7 +542,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         raise(ErrorReport(
           msg"Lazy spreads are not supported in call arguments" -> arg.toLoc :: Nil, S(arg),
           source = Diagnostic.Source.Compilation))
-      args(fs)(as => k(as))
+      args(fs, expectedTypes)(as => k(as))
     case _ =>
       // Application arguments that are not tuples represent spreads, as in `f(...arg)`
       subTerm_nonTail(arg): ar =>
@@ -567,20 +568,20 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     target match
     case sym: TermSymbol if (sym.k is MutVal) || (sym.k is LetBind) =>
       sym.owner match
-      case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
+      case S(owner) => castTo(rhs, sym.erasedType, loco)(r => AssignField(owner.asThis, sym.id, r, rest)(S(sym)))
       case N => nope
     case sym: LocalVarSymbol =>
-      Assign(sym, rhs, rest)
+      castTo(rhs, sym.erasedType, loco)(r => Assign(sym, r, rest))
     case sym => nope
 
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
     sym match
     case sym: TermSymbol =>
       sym.owner match
-      case S(owner) => AssignField(owner.asThis, sym.id, rhs, rest)(S(sym))
+      case S(owner) => castTo(rhs, sym.erasedType, sym.toLoc)(r => AssignField(owner.asThis, sym.id, r, rest)(S(sym)))
       case N => lastWords(s"tried to define top-level symbol ${sym.showDbg} in a local scope")
     case sym: LocalVarSymbol =>
-      Assign(sym, rhs, rest)
+      castTo(rhs, sym.erasedType, sym.toLoc)(r => Assign(sym, r, rest))
     case sym =>
       lastWords(s"tried to define non-variable symbol ${sym.showDbg}")
   
@@ -762,12 +763,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case st.Asc(lhs, rhs) =>
       term(lhs, inStmtPos = inStmtPos)(k)
     case st.Tup(fs) =>
-      args(fs)(args => k(Tuple(mut = false, args)))
+      args(fs, Nil)(args => k(Tuple(mut = false, args)))
     case Mut(st.Tup(fs)) =>
-      args(fs)(args => k(Tuple(mut = true, args)))
+      args(fs, Nil)(args => k(Tuple(mut = true, args)))
     case st.CtxTup(fs) =>
       // * This case is currently triggered for code such as `f(using 42)`
-      args(fs)(args => k(Tuple(mut = false, args)))
+      args(fs, Nil)(args => k(Tuple(mut = false, args)))
     case t @ st.Ref(sym) =>
       ref(t, annots, N, inStmtPos = inStmtPos)(k)
     case st.Resolved(t @ st.Ref(bsym), sym) =>
@@ -953,7 +954,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case sel @ Sel(prefix, nme) =>
         subTerm(prefix): p =>
           subTerm_nonTail(rhs): r =>
-            AssignField(p, nme, r, k(unit))(resolvedSelectionSymbol)
+            castTo(r, fieldErasedType(resolvedSelectionSymbol), sel.toLoc)(cr =>
+              AssignField(p, nme, cr, k(unit))(resolvedSelectionSymbol))
       case sel @ SynthSel(prefix, nme) =>
         // * See the doc in the `term` case for `SynthSel` for why we fall back to `sel.sym` here
         val sym = resolvedSelectionSymbol match
@@ -964,7 +966,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         softAssert(sym.nonEmpty, s"Missing symbol for synthetic assignment target ${sel.showDbg}")
         subTerm(prefix): p =>
           subTerm_nonTail(rhs): r =>
-            AssignField(p, memberIdent(nme, sel.sym), r, k(unit))(sym)
+            castTo(r, fieldErasedType(sym), sel.toLoc)(cr =>
+              AssignField(p, memberIdent(nme, sel.sym), cr, k(unit))(sym))
       case sel @ DynSel(prefix, fld, ai) =>
         subTerm(prefix): p =>
           subTerm_nonTail(fld): f =>
@@ -973,7 +976,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case sel @ SelProj(prefix, _, proj) =>
         subTerm(prefix): p =>
           subTerm_nonTail(rhs): r =>
-            AssignField(p, memberIdent(proj, sel.sym), r, k(unit))(resolvedSelectionSymbol)
+            castTo(r, fieldErasedType(resolvedSelectionSymbol), sel.toLoc)(cr =>
+              AssignField(p, memberIdent(proj, sel.sym), cr, k(unit))(resolvedSelectionSymbol))
       case _ => fail:
         ErrorReport(
           msg"Unexpected left-hand side in assignment (${lhs.describe})" -> lhs.toLoc :: Nil, S(lhs),
@@ -1292,7 +1296,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     
     (mtds, publicFlds, privateFlds, ctor)
   
-  def args(elems: Ls[Elem])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
+  def args(elems: Ls[Elem], expectedTypes: Ls[Opt[ErasedType]])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     val as = elems.map:
       case sem.Fld(sem.FldFlags.benign(), value, N) => R(N -> value)
       case sem.Fld(sem.FldFlags.benign(), idx, S(rhs)) => L(idx -> rhs)
@@ -1310,20 +1314,31 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     */
     var asr: Ls[Arg] = Nil
     var fsr: Ls[RcdArg] = Nil
-    def rec(as: Ls[(Term -> Term) \/ (Opt[SpreadKind] -> st)]): Block = as match
+    // * `expected` tracks the erased types of the not-yet-consumed positional parameters.
+    // * A spread or named argument breaks positional alignment, so remaining arguments pass through uncast.
+    def rec(as: Ls[(Term -> Term) \/ (Opt[SpreadKind] -> st)], expected: Ls[Opt[ErasedType]]): Block = as match
       case Nil => End()
       case R((spd, a)) :: as =>
         subTerm_nonTail(a):
           ensureOnce: (ar: Path) =>
-              asr ::= Arg(spd, ar)
-              rec(as)
+            spd match
+              case N =>
+                val (expTy, expRest) = expected match
+                  case e :: es => (e, es)
+                  case Nil => (N, Nil)
+                castToPath(ar, expTy, a.toLoc): car =>
+                  asr ::= Arg(N, car)
+                  rec(as, expRest)
+              case S(_) =>
+                asr ::= Arg(spd, ar)
+                rec(as, Nil)
       case L((idx, t)) :: as =>
         subTerm_nonTail(idx): ir =>
           subTerm_nonTail(t):
             ensureOnce: (tr: Path) =>
               fsr ::= RcdArg(S(ir), tr)
-              rec(as)
-    val b = rec(as)
+              rec(as, Nil)
+    val b = rec(as, expectedTypes)
     if fsr.isEmpty then
       Begin(b, k(asr.reverse))
     else
@@ -1389,6 +1404,23 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           loc :: Nil,
           source = Diagnostic.Source.Compilation))
         k(r)
+
+  /** Like [[castTo]] but always continues with a `Path`, temp-binding a produced `Cast` so it can be used in
+    * argument position (a `Cast` is not itself a `Path`). */
+  def castToPath(r: Path, expected: Opt[ErasedType], loc: Opt[Loc])(k: Path => Block)(using LoweringCtx): Block =
+    castTo(r, expected, loc):
+      case p: Path => k(p)
+      case cast =>
+        val l = loweringCtx.registerTempSymbol(N, erasedType = cast.erasedType)
+        Assign(l, cast, k(l.asSimpleRef))
+
+  /** The declared erased type of the field a selection resolves to, if it is an annotated `TermSymbol`. */
+  private def fieldErasedType(s: Opt[Symbol]): Opt[ErasedType] =
+    s.collect { case t: TermSymbol => t.erasedType }.flatten
+
+  /** The declared erased types of a parameter list's fixed parameters (excluding rest params). */
+  private def expectedParamTypes(ps: ParamList): Ls[Opt[ErasedType]] =
+    ps.params.map(_.sym.erasedType)
 
 
   def program(main: st.Blk, symbolsToPreserve: Set[BoundSymbol]): Program =

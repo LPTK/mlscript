@@ -31,7 +31,15 @@ using Num = 0.42
 :sir
 let f1 = foo
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let f1; @private define f1 as fun f1⁰() { return foo⁰()(instance$Ident(Int)⁰) }; set f1¹ = f1⁰; end
+//│ let f1;
+//│ @private
+//│ define f1 as fun f1⁰() {
+//│   let tmp;
+//│   set tmp = (instance$Ident(Int)⁰ as Int);
+//│   return foo⁰()(tmp)
+//│ };
+//│ set f1¹ = f1⁰;
+//│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f1 = fun f1
 
@@ -49,7 +57,11 @@ let f2 = bar
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let f2;
 //│ @private
-//│ define f2 as fun f2⁰(x) { return bar⁰(x)(instance$Ident(Int)⁰) };
+//│ define f2 as fun f2⁰(x) {
+//│   let tmp;
+//│   set tmp = (instance$Ident(Int)⁰ as Int);
+//│   return bar⁰(x)(tmp)
+//│ };
 //│ set f2¹ = f2⁰;
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -73,7 +85,10 @@ let f3 = baz
 //│   let lambda;
 //│   @private
 //│   define lambda as fun lambda⁰(y) {
-//│     return baz⁰(x)(instance$Ident(Int)⁰)(y)(instance$Ident(Num)⁰)
+//│     let tmp, tmp1;
+//│     set tmp = (instance$Ident(Int)⁰ as Int);
+//│     set tmp1 = (instance$Ident(Num)⁰ as Num);
+//│     return baz⁰(x)(tmp)(y)(tmp1)
 //│   };
 //│   return lambda⁰
 //│ };
@@ -90,7 +105,7 @@ f3(43)(44)
 :sir
 foo()
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ return foo⁰()(instance$Ident(Int)⁰)
+//│ let tmp; set tmp = (instance$Ident(Int)⁰ as Int); return foo⁰()(tmp)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [42]
 
@@ -98,7 +113,7 @@ foo()
 :sir
 bar(0.42)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ return bar⁰(0.42)(instance$Ident(Int)⁰)
+//│ let tmp; set tmp = (instance$Ident(Int)⁰ as Int); return bar⁰(0.42)(tmp)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [0.42, 42]
 

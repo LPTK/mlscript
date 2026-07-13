@@ -111,14 +111,18 @@ callF(B())
 //│                   (local.get $receiver)))))))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null any))
+//│     (local $tmp1 (ref $A))
 //│     (local $receiver (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $tmp
 //│         (call $B_ctor))
+//│       (local.set $tmp1
+//│         (ref.cast (ref $A)
+//│           (local.get $tmp)))
 //│       (return
 //│         (block (result (ref null any))
 //│           (local.set $receiver
-//│             (local.get $tmp))
+//│             (local.get $tmp1))
 //│           (call_ref $virtual2
 //│             (ref.cast (ref $A)
 //│               (local.get $receiver))
