@@ -1342,7 +1342,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     if fsr.isEmpty then
       Begin(b, k(asr.reverse))
     else
-      val rcdSym = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.ObjectRef), "rcd")
+      val rcdSym = loweringCtx.registerTempSymbol(N, erasedType = N, "rcd")
       Begin(
         b,
         Assign(
