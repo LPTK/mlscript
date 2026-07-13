@@ -8,7 +8,7 @@ import utils.*
 import hkmc2.codegen.*
 import hkmc2.semantics.*
 import hkmc2.Message.*
-import hkmc2.semantics.Elaborator.State
+import hkmc2.semantics.Elaborator.{State, Ctx}
 import hkmc2.syntax.{Tree, SpreadKind}
 import hkmc2.ScopeData.*
 import hkmc2.Lifter.AccessInfo
@@ -68,7 +68,7 @@ connected component are tail calls.
 */
 
 // This optimization assumes the lifter has been run.
-class TailRecOpt(using State, TL, Raise):
+class TailRecOpt(using State, TL, Raise, Ctx):
   
   type AccessMap = Map[ScopedInfo, AccessInfo]
   
@@ -430,7 +430,7 @@ class TailRecOpt(using State, TL, Raise):
                     val paramList = ogParamList.params
                     val restParam = ogParamList.restParam
                     
-                    val tupleSym = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Array)), "argList")
+                    val tupleSym = TempSymbol(N, erasedType = S(ErasedType.ArrayType), "argList")
                     
                     // We can safely remove all of the symbols from this parameter list from `assignedSyms` at this stage,
                     // because the RHS of every parameter will be computed when spreading them in the tuple, which happens
@@ -446,7 +446,7 @@ class TailRecOpt(using State, TL, Raise):
                       // If the rest param exists, append a slice
                       val (initialBlk: (Block => Block), pathList: List[Path]) =
                         if restParam.isDefined then
-                          val sliceResSym = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Array)), "sliceRes")
+                          val sliceResSym = TempSymbol(N, erasedType = S(ErasedType.ArrayType), "sliceRes")
                           // runtime.Tuple.slice(tupleSym, paramList.length, 0)
                           val sliceRes = Call(
                             State.runtimeSymbol.asSimpleRef

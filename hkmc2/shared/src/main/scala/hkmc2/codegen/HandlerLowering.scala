@@ -538,7 +538,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
         .flatMap: (sym, idx) =>
           List(intLit(idx), Value.Lit(Tree.StrLit(sym.nme)))
         .map(_.asArg)
-      val debugInfoSym = freshTmp(erasedType = S(ErasedType.Primitive(PrimitiveType.Array)), s"$debugNme$$debugInfo")
+      val debugInfoSym = freshTmp(erasedType = S(ErasedType.ArrayType), s"$debugNme$$debugInfo")
       // TODO: properly support spread argument by calculating the correct length.
       val rtArgLists = intLit(fun.params.length) :: fun.params.flatMap: pl =>
         intLit(pl.params.length) :: pl.params.map(p => p.sym.asSimpleRef)

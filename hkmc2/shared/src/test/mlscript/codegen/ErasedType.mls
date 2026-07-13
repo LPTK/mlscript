@@ -216,3 +216,27 @@ fun counter() =
 //│   return scope0$cap.n$0¹
 //│ };
 //│ end
+
+
+// A primitive flowing into a non-top reference slot — here `Int` into an explicit
+// `: Object` parameter — is a genuine, oracle-independent mismatch (`Int` is `<:
+// Any`, not `<: Object`), so the cast pass rejects it rather than narrowing.
+:ge
+fun useObj(o: Object) = o
+fun f(x: Int) = useObj(x)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
+//│ ║  l.226: 	fun f(x: Int) = useObj(x)
+//│ ╙──       	                       ^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useObj⁰ as fun useObj¹(o) { return o }; define f¹ as fun f²(x) { return useObj¹(x) }; end
+
+// The reverse — a reference (`Object`) into a primitive (`Int`) slot — is the same
+// mismatch and is likewise rejected.
+:ge
+fun useInt(n: Int) = n
+fun g(o: Object) = useInt(o)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
+//│ ║  l.237: 	fun g(o: Object) = useInt(o)
+//│ ╙──       	                          ^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useInt⁰ as fun useInt¹(n) { return n }; define g⁰ as fun g¹(o) { return useInt¹(o) }; end

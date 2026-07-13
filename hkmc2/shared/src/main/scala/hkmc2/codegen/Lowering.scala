@@ -1209,7 +1209,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       def rec(ps: Ls[VarSymbol], ds: Ls[Path])(k: Result => Block)(using LoweringCtx): Block = ps match
         case Nil => quote(body): r =>
           val l = loweringCtx.registerTempSymbol(N, erasedType = N)
-          val arr = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Array)), "arr")
+          val arr = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.ArrayType), "arr")
           Assign(
             arr,
             Tuple(mut = false, ds.reverse.map(_.asArg)),
@@ -1224,7 +1224,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case App(lhs, Tup(rhs)) => quote(lhs): r1 =>
       def rec(es: Ls[Elem], xs: Ls[Path])(k: Result => Block): Block = es match
         case Nil =>
-          val arrSym = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Array)), "arr")
+          val arrSym = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.ArrayType), "arr")
           Assign(
             arrSym,
             Tuple(mut = false, xs.reverse.map(_.asArg)),
@@ -1249,7 +1249,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       loweringCtx.collectScopedSym(sym)
       setupSymbol(sym){r1 =>
         val l1, l2, l3, l4, l5 = loweringCtx.registerTempSymbol(N, erasedType = N)
-        val arrSym = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Array)), "arr")
+        val arrSym = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.ArrayType), "arr")
         blockBuilder.assign(l1, r1)
           .chain(b => setupTerm("Ref", l1.asSimpleRef :: Nil)(r => Assign(sym, r, b)))
           .chain(b => quote(rhs)(r2 => Assign(l2, r2, b)))

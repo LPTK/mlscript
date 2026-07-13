@@ -862,7 +862,7 @@ enum Case:
 
 /** A primitive type of the block IR. */
 enum PrimitiveType:
-  case Unit, Int, Int31, Num, Str, Bool, Array
+  case Unit, Int, Int31, Num, Str, Bool
 
   /** The symbol for this primitive type. */
   def sym(using Ctx, State): ClassLikeSymbol = this match
@@ -872,11 +872,13 @@ enum PrimitiveType:
     case Num => ctx.builtins.Num
     case Str => ctx.builtins.Str
     case Bool => ctx.builtins.Bool
-    case Array => ctx.builtins.Array
 
 object ErasedType:
   /** The top type `Any`. */
   def AnyType: ErasedType.AnyRef = AnyRef(rsc = false, NoSymbol)
+
+  /** The `Array` reference type. */
+  def ArrayType(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Array)
 
   /** Maps a [[`ClassLikeSymbol`]] into the canonical [[`ErasedType`]]. */
   def fromClsLikeSymbol(csym: ClassLikeSymbol, rsc: Bool)(using Ctx, State): ErasedType =
@@ -930,6 +932,8 @@ object ErasedType:
     case (_, AnyRef(_, NoSymbol)) => CastKind.Upcast
     // * ... and `Any -> T` is always a downcast
     case (AnyRef(_, NoSymbol), _) => CastKind.Downcast
+    // * Primitives are only compatible with the same primitive or `Any` (handled above)
+    case (Primitive(_), _) | (_, Primitive(_)) => CastKind.Unrelated
     case _ =>
       val a = actual.sym
       val e = expected.sym
