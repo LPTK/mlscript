@@ -1130,33 +1130,8 @@ class BlockSimplifier
       loop(body, N)(identity)
     
     def isSubtypeOf(actual: ClassLikeSymbol, expected: ClassLikeSymbol): Opt[Bool] =
-      def parentOf(sym: ClassLikeSymbol): Opt[Opt[ClassLikeSymbol]] =
-        (sym match
-          case sym: ClassSymbol => sym.irClsLikeDefn
-          case sym: ModuleOrObjectSymbol => sym.irClsLikeDefn
-        ).flatMap: defn =>
-          defn.parentPath match
-            case S(parent) => getInstCtorShape(parent).map(S(_))
-            case N => S(N)
-        .orElse:
-          // FIXME: remove this fallback once imported classes have their `irClsLikeDefn` properly linked
-          (sym match
-            case sym: ClassSymbol => sym.defn
-            case sym: ModuleOrObjectSymbol => sym.defn
-          ).flatMap: defn =>
-            defn.ext match
-              case S(parent) => parent.cls.resolvedSym.flatMap(_.asClsOrMod).map(S(_))
-              case N => S(N)
-      @tailrec
-      def loop(cur: ClassLikeSymbol, seen: Set[ClassLikeSymbol]): Opt[Bool] =
-        if cur is expected then S(true)
-        else if seen(cur) then N
-        else parentOf(cur) match
-          case S(S(parent)) => loop(parent, seen + cur)
-          case S(N) => S(false)
-          case N => N
-      loop(actual, Set.empty)
-    
+      ErasedType.isSubtypeOf(actual, expected)
+
     /** Return whether a known shape matches a case, or `None` if deciding would
       * require reasoning that this optimization deliberately does not attempt. */
     def matches(cse: Case, shape: Shape): Opt[Bool] = (cse, shape) match

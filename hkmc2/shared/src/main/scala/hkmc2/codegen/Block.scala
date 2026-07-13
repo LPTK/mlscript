@@ -15,6 +15,8 @@ import semantics.Term.*
 import sem.Elaborator.{Ctx, State, ctx}
 import sourcecode.{FileName, Line}
 
+import scala.annotation.tailrec
+
 
 /* Important design notes.
 
@@ -876,11 +878,49 @@ object ErasedType:
   def ObjectRef: ErasedType.AnyRef = AnyRef(rsc = false, NoSymbol)
 
   /** Maps a [[`ClassLikeSymbol`]] into the canonical [[`ErasedType`]]. */
-  def fromClsLikeSymbol(csym: ClassLikeSymbol, rsc: Bool)(using Ctx, State): ErasedType = 
-    PrimitiveType.values.find(_.sym === csym) match 
+  def fromClsLikeSymbol(csym: ClassLikeSymbol, rsc: Bool)(using Ctx, State): ErasedType =
+    PrimitiveType.values.find(_.sym === csym) match
       case _ if csym === ctx.builtins.Object => ObjectRef
       case S(prim) => ErasedType.Primitive(prim)
       case _ => ErasedType.AnyRef(rsc, csym)
+
+  /** Whether `actual` is a subtype of `expected`, walking the class hierarchy.
+    *
+    * Returns `S(true)`/`S(false)` when the relationship can be decided, or `N` when deciding would require
+    * information not available in the IR (e.g. an unlinked parent chain on an imported class).
+    */
+  def isSubtypeOf(actual: ClassLikeSymbol, expected: ClassLikeSymbol)(using Ctx): Opt[Bool] =
+    def parentOf(sym: ClassLikeSymbol): Opt[Opt[ClassLikeSymbol]] =
+      (sym match
+        case sym: ClassSymbol => sym.irClsLikeDefn
+        case sym: ModuleOrObjectSymbol => sym.irClsLikeDefn
+      ).flatMap: defn =>
+        defn.parentPath match
+          case S(parent) => parent.targetSymbol.collect { case s: ClassLikeSymbol => s }.map(S(_))
+          case N => S(N)
+      .orElse:
+        // FIXME: remove this fallback once imported classes have their `irClsLikeDefn` properly linked
+        (sym match
+          case sym: ClassSymbol => sym.defn
+          case sym: ModuleOrObjectSymbol => sym.defn
+        ).flatMap: defn =>
+          defn.ext match
+            case S(parent) => parent.cls.resolvedSym.flatMap(_.asClsOrMod).map(S(_))
+            case N => S(N)
+    
+    @tailrec
+    def loop(cur: ClassLikeSymbol, seen: Set[ClassLikeSymbol]): Opt[Bool] =
+      if cur is expected then S(true)
+      else if seen(cur) then N
+      else parentOf(cur) match
+        case S(S(parent)) => loop(parent, seen + cur)
+        case S(N) => S(false)
+        case N => N
+
+    // * `Object` is the top type: every class is a subtype of it, even though ordinary classes do not
+    // * explicitly extend it in the IR (so the parent-chain walk would otherwise never reach it).
+    if expected is ctx.builtins.Object then S(true)
+    else loop(actual, Set.empty)
 
 /** A generics-erased type of the Block IR. */
 enum ErasedType:
