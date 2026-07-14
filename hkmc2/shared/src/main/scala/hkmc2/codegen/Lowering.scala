@@ -248,6 +248,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             td.k match
             case knd: syntax.Val =>
               assert(td.params.isEmpty)
+              td.sign.flatMap(eraseSign).foreach(td.tsym.populateErasedType)
               val cfgOverride = td.extraAnnotations.collectFirst:
                 case Annot.Config(modify) => modify(config)
               subTerm_nonTail(bod)(r =>
