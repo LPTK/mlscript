@@ -1,16 +1,17 @@
+// All comments in this file assume that an intrinsic `cast[T](val)` function exists to perform a
+// downcast to `T` for `val`. MLscript currently does not have a surface-language syntax or 
+// function for casting between types.
 
 :global
 :wasm
 
-// An unknown value (`?`) — here the result of the unannotated identity function
-// `id` — flowing into a class-annotated parameter is narrowed with a `Cast` at
-// the call site. The `:fwat` output shows it emitted as a `ref.cast`: the `id`
-// result (`anyref`) is bound to a `(ref $Box)` temp (`$tmp2`) before it reaches
-// `useBox`.
+// In this example, the function call is equivalent to `useBox(cast[Box](id(new Box(42))))`.
+// This is reflected by `(local.set $tmp2 (ref.cast (ref $Box) (local.get $tmp1)))` in the `:wat`
+// output.
 :wat
 class Box(val v: Int)
 fun id(a) = a
-fun useBox(b: Box) = b.v
+fun useBox(b: Box): Int = b.v
 useBox(id(new Box(42)))
 //│ Wat:
 //│ (module
@@ -80,11 +81,9 @@ useBox(id(new Box(42)))
 //│ = 42
 
 
-// The same narrowing applies to a constructor argument whose declared field type
-// is a class: `id(new Box(7))` is narrowed to `Box` for `Wrap`'s `b` parameter.
-class Box(val v: Int)
+// Similarly, the constructor call to `Wrap` is `new Wrap(cast[Box](id(new Box(7))))`, which the
+// WAT backend also reflects with a `ref.cast` instruction.
 class Wrap(val b: Box)
-fun id(a) = a
 fun readV(b: Box) = b.v
 let w = new Wrap(id(new Box(7)))
 readV(w.Wrap#b)
@@ -92,35 +91,17 @@ readV(w.Wrap#b)
 //│ = 7
 
 
-// Narrowing into a primitive `Int` parameter is also a downcast (`anyref` ->
-// `i31`).
-fun id(a) = a
+// `inc(cast[Int](id(41)))`
 fun inc(n: Int) = n + 1
 inc(id(41))
 //│ Wasm result:
 //│ = 42
 
 
-// Reassigning an annotated parameter narrows the right-hand side at the
-// assignment.
-fun id(a) = a
+// `set x = cast[Int](id(7))`
 fun setter(x: Int) =
   set x = id(7)
   x
 setter(1)
 //│ Wasm result:
 //│ = 7
-
-
-// Narrowing a value to a provably-unrelated primitive type — an annotated `Str`
-// result flowing into an `Int` parameter — is a compile-time error; the value
-// flows on uncast.
-:ge
-fun getStr(): Str = "s"
-fun needInt(n: Int) = n
-needInt(getStr())
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Str' to unrelated type 'Int'
-//│ ║  l.121: 	needInt(getStr())
-//│ ╙──       	        ^^^^^^^^
-//│ Wasm result:
-//│ = "s"

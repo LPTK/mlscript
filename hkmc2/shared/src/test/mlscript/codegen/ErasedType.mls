@@ -1,35 +1,50 @@
+
+:global
 :sir
-
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ import "..." as Predef; end
-
-// Erased types come only from explicit type annotations. An unannotated local —
-// even one bound to a literal — carries no erased type.
 :siret
+
+// Erased types come only from explicit type annotations. An unannotated local - even one bound to a
+// literal - carries no erased type.
 let i = 1
 let f = 1.5
 let s = "str"
 let b = true
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ set i⁰ = 1; set f⁰ = 1.5; set s⁰ = "str"; set b⁰ = true; end
-
-
-// Tuple and record bindings are unannotated too, so they stay `: ?`.
-:siret
 let t = [i, s]
 let r = {x: i, y: s}
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let x: ?, y: ?; set t⁰ = [i⁰, s⁰]; set x = i⁰; set y = s⁰; set r⁰ = { "x": x, "y": y }; end
+//│ let x: ?, y: ?;
+//│ set i⁰ = 1;
+//│ set f⁰ = 1.5;
+//│ set s⁰ = "str";
+//│ set b⁰ = true;
+//│ set t⁰ = [i⁰, s⁰];
+//│ set x = i⁰;
+//│ set y = s⁰;
+//│ set r⁰ = { "x": x, "y": y };
+//│ end
 
 
-// A class's annotated parameters give its fields a type, for both a private
-// (`x: Int`) and a `val` (`y: Str`) parameter. The instantiation result itself
-// is not typed from the class.
-:siret
-class Foo(x: Int)
-let foo = new Foo(123)
+// Variables will be typed if they have explicit type annotations.
+// Note: `let` bindings cannot be annotated, so they are always `: ?`
+val i: Int = 1
+val f: Num = 1.5
+val s: Str = "str"
+val b: Bool = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Int;
+//│ define i¹ as val i²: Int = 1;
+//│ define f¹ as val f²: Num = 1.5;
+//│ define s¹ as val s²: Str = "str";
+//│ define b¹ as val b²: Bool = true;
+//│ end
+
+
+// A class's annotated parameters give its fields a type.
+class Foo(x: Int)
+class Bar(val y: Str)
+let foo = new Foo(123)
+let bar = new Bar("hi")
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Int, tmp1: Str;
 //│ define Foo⁰ as class Foo² {
 //│   private val x⁰: Int;
 //│   constructor Foo¹(x: Int) {
@@ -37,15 +52,6 @@ let foo = new Foo(123)
 //│     end
 //│   }
 //│ };
-//│ set tmp = (123 as Int);
-//│ set foo⁰ = new Foo²(tmp);
-//│ end
-
-:siret
-class Bar(val y: Str)
-let bar = new Bar("hi")
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Str;
 //│ define Bar⁰ as class Bar² {
 //│   val y⁰: Str;
 //│   constructor Bar¹(y: Str) {
@@ -53,14 +59,14 @@ let bar = new Bar("hi")
 //│     end
 //│   }
 //│ };
-//│ set tmp = ("hi" as Str);
-//│ set bar⁰ = new Bar²(tmp);
+//│ set tmp = (123 as Int);
+//│ set foo⁰ = new Foo²(tmp);
+//│ set tmp1 = ("hi" as Str);
+//│ set bar⁰ = new Bar²(tmp1);
 //│ end
 
 
-// An unannotated function has unknown parameter and return types, so the call
-// result and the (unresolved) field selection both stay `: ?`.
-:siret
+// An unannotated function has unknown parameter and return types.
 fun mk(a) = new Bar(a)
 let made = mk(1)
 let sel = made.y
@@ -75,17 +81,19 @@ let sel = made.y
 //│ end
 
 
-// Parameter annotations are kept (`x: Int`, `y: Int`); the unannotated return
-// stays `: ?` — it is never inferred from the body.
-:siret
-fun add(x: Int, y: Int) = x + y
+// Parameter and return annotations are kept (`x: Int`, `y: Int`); the unannotated return stays
+// `: ?` - it is never inferred from the body.
+fun add1(x: Int, y: Int) = x + y
+fun add2(x: Int, y: Int): Int = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define add⁰ as fun add¹(x: Int, y: Int): ? { return +⁰(x, y) }; end
+//│ define add1⁰ as fun add1¹(x: Int, y: Int): ? {
+//│   return +⁰(x, y)
+//│ };
+//│ define add2⁰ as fun add2¹(x: Int, y: Int): Int { return +⁰(x, y) };
+//│ end
 
 
-// A parameter keeps its annotated type regardless of a later reassignment; there
-// is no widening/join from the assigned value.
-:siret
+// A parameter keeps its annotated type regardless of a later reassignment.
 fun keep(x: Int) =
   set x = 5
   x
@@ -93,9 +101,7 @@ fun keep(x: Int) =
 //│ define keep⁰ as fun keep¹(x: Int): ? { set x = (5 as Int); return x }; end
 
 
-// An annotated mutable field narrows the assigned value at the field-assignment
-// site, exactly as a local or parameter assignment does.
-:siret
+// An annotated mutable field narrows the assigned value at the field-assignment site.
 class Ref(mut val v: Int) with
   fun put(x) = set v = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -110,9 +116,7 @@ class Ref(mut val v: Int) with
 //│ end
 
 
-// Return-type annotations are rendered at the `fun ...: T` definition site, for
-// both primitive and class return types.
-:siret
+// Return-type annotations are rendered at the `fun ...: T` definition site.
 fun addUp(x: Int, y: Int): Int = x + y
 fun makeBar(s: Str): Bar = new Bar(s)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -123,10 +127,7 @@ fun makeBar(s: Str): Bar = new Bar(s)
 //│ end
 
 
-// Without a return annotation, the declared return stays `: ?` regardless of the
-// body's shape — a builtin comparison, an instantiation, and an identity return
-// are all left unknown.
-:siret
+// Without a return annotation, the declared return stays `: ?`.
 fun lt(a, b) = a < b
 fun mkBar(a) = new Bar(a)
 fun ident(a) = a
@@ -144,15 +145,12 @@ fun ident(a) = a
 
 
 // A rest parameter has no annotation, so it stays `: ?`.
-:siret
 fun rest(a, ...xs) = xs
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define rest⁰ as fun rest¹(a: ?, ...xs: ?): ? { return xs }; end
 
 
-// Method return-type annotations are rendered like free functions; an
-// unannotated method stays `: ?`.
-:siret
+// Method return-type annotations are rendered like free functions.
 class Calc() with
   fun twice(x: Int): Int = x + x
   fun whatever(a) = a
@@ -167,10 +165,7 @@ class Calc() with
 //│ end
 
 
-// A selection resolved to a member (`this.v`) still carries that member's
-// annotated type, but without a return annotation the field getter's declared
-// return stays `: ?`.
-:siret
+// A selection resolved to a member (`this.v`) still carries that member's annotated type.
 class Box(val v: Int) with
   fun get() = v
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -187,7 +182,6 @@ class Box(val v: Int) with
 
 // Closure capture (`:lift`): the generated capture class and its field are not
 // typed from the captured local, so they stay `: ?`.
-:siret
 :lift
 fun counter() =
   let n = 0
@@ -218,25 +212,31 @@ fun counter() =
 //│ end
 
 
-// A primitive flowing into a non-top reference slot — here `Int` into an explicit
-// `: Object` parameter — is a genuine, oracle-independent mismatch (`Int` is `<:
-// Any`, not `<: Object`), so the cast pass rejects it rather than narrowing.
+// Passing a primitive (`Int`) to a slot expecting `Object` is a compilation error.
 :ge
 fun useObj(o: Object) = o
 fun f(x: Int) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
-//│ ║  l.226: 	fun f(x: Int) = useObj(x)
+//│ ║  l.218: 	fun f(x: Int) = useObj(x)
 //│ ╙──       	                       ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useObj⁰ as fun useObj¹(o) { return o }; define f¹ as fun f²(x) { return useObj¹(x) }; end
+//│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
+//│   return o
+//│ };
+//│ define f³ as fun f⁴(x: Int): ? { return useObj¹(x) };
+//│ end
 
-// The reverse — a reference (`Object`) into a primitive (`Int`) slot — is the same
-// mismatch and is likewise rejected.
+// The reverse - passing a reference (`Object`) into a slot expecting a primitive (`Int`) slot is
+// also a compilation error.
 :ge
 fun useInt(n: Int) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
-//│ ║  l.237: 	fun g(o: Object) = useInt(o)
+//│ ║  l.233: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useInt⁰ as fun useInt¹(n) { return n }; define g⁰ as fun g¹(o) { return useInt¹(o) }; end
+//│ define useInt⁰ as fun useInt¹(n: Int): ? {
+//│   return n
+//│ };
+//│ define g⁰ as fun g¹(o: Object⁰): ? { return useInt¹(o) };
+//│ end
