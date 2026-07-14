@@ -965,6 +965,9 @@ enum CastKind:
     */
   case Incomparable
 
+
+sealed trait ErasedValueType { self: ErasedType => }
+
 /** A generics-erased type of the Block IR. */
 enum ErasedType:
   /** 
@@ -974,14 +977,14 @@ enum ErasedType:
     *
     * - `rsc` is true if this reference is a resource class.
     */
-  case AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol.type)
-
+  case AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol.type) extends ErasedType, ErasedValueType
+  
   /** A reference to a function of a possibly-known shape. */
   case FuncRef(params: Ls[Opt[ErasedType]], ret: Opt[ErasedType])
-
+  
   /** An primitive type. */
-  case Primitive(prim: PrimitiveType)
-
+  case Primitive(prim: PrimitiveType) extends ErasedType, ErasedValueType
+  
   /** The symbol for this erased type. 
     *
     * Throws an exception if invoked on `ErasedType.AnyType`, as the top type has no `ClassLikeSymbol`.
@@ -991,6 +994,8 @@ enum ErasedType:
     case AnyRef(_, NoSymbol) => lastWords("top type `Any` has no class-like symbol")
     case FuncRef(_, _) => ctx.builtins.Function
     case Primitive(prim) => prim.sym
+end ErasedType
+
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:

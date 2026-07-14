@@ -5,80 +5,89 @@
 
 // Erased types come only from explicit type annotations. An unannotated local - even one bound to a
 // literal - carries no erased type.
-let i = 1
-let f = 1.5
-let s = "str"
-let b = true
-let t = [i, s]
-let r = {x: i, y: s}
+fun main =
+  let i = 1
+  let f = 1.5
+  let s = "str"
+  let b = true
+  let t = [i, s]
+  let r = {x: i, y: s}
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let x: ?, y: ?;
-//│ set i⁰ = 1;
-//│ set f⁰ = 1.5;
-//│ set s⁰ = "str";
-//│ set b⁰ = true;
-//│ set t⁰ = [i⁰, s⁰];
-//│ set x = i⁰;
-//│ set y = s⁰;
-//│ set r⁰ = { "x": x, "y": y };
+//│ define main⁰ as fun main¹(): ? {
+//│   let i: ?, f: ?, s: ?, b: ?, t: ?, r: ?, x: ?, y: ?;
+//│   set i = 1;
+//│   set f = 1.5;
+//│   set s = "str";
+//│   set b = true;
+//│   set t = [i, s];
+//│   set x = i;
+//│   set y = s;
+//│   set r = { "x": x, "y": y };
+//│   return runtime⁰.Unit⁰
+//│ };
 //│ end
 
 
-// Variables will be typed if they have explicit type annotations.
+// Value definitions are typed if they have explicit type annotations.
 // Note: `let` bindings cannot be annotated, so they are always `: ?`
 val i: Int = 1
 val f: Num = 1.5
 val s: Str = "str"
 val b: Bool = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define i¹ as val i²: Int = 1;
-//│ define f¹ as val f²: Num = 1.5;
-//│ define s¹ as val s²: Str = "str";
-//│ define b¹ as val b²: Bool = true;
+//│ define i⁰ as val i¹: Int = 1;
+//│ define f⁰ as val f¹: Num = 1.5;
+//│ define s⁰ as val s¹: Str = "str";
+//│ define b⁰ as val b¹: Bool = true;
 //│ end
 
 
 // A class's annotated parameters give its fields a type.
 class Foo(x: Int)
 class Bar(val y: Str)
-let foo = new Foo(123)
-let bar = new Bar("hi")
+fun main =
+  let foo = new Foo(123)
+  let bar = new Bar("hi")
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Int, tmp1: Str;
-//│ define Foo⁰ as class Foo² {
+//│ define main² as fun main³(): ? {
+//│   let foo: ?, bar: ?;
+//│   set foo = new Foo⁰(123);
+//│   set bar = new Bar⁰("hi");
+//│   return runtime⁰.Unit⁰
+//│ };
+//│ define Foo¹ as class Foo⁰ {
 //│   private val x⁰: Int;
-//│   constructor Foo¹(x: Int) {
-//│     set Foo².this.x⁰ = x;
+//│   constructor Foo²(x: Int) {
+//│     set Foo⁰.this.x⁰ = x;
 //│     end
 //│   }
 //│ };
-//│ define Bar⁰ as class Bar² {
+//│ define Bar¹ as class Bar⁰ {
 //│   val y⁰: Str;
-//│   constructor Bar¹(y: Str) {
-//│     define y⁰ as val y¹: Str = y;
-//│     end
-//│   }
+//│   constructor Bar²(y: Str) { define y⁰ as val y¹: Str = y; end }
 //│ };
-//│ set tmp = (123 as Int);
-//│ set foo⁰ = new Foo²(tmp);
-//│ set tmp1 = ("hi" as Str);
-//│ set bar⁰ = new Bar²(tmp1);
 //│ end
 
 
 // An unannotated function has unknown parameter and return types.
 fun mk(a) = new Bar(a)
-let made = mk(1)
-let sel = made.y
+fun main =
+  let made = mk(1)
+  made.y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define mk⁰ as fun mk¹(a: ?): ? {
 //│   let tmp: Str;
 //│   set tmp = (a as Str);
-//│   return new Bar²(tmp)
+//│   return new Bar⁰(tmp)
 //│ };
-//│ set made⁰ = mk¹(1);
-//│ set sel⁰ = made⁰.y﹖;
+//│ define main⁴ as fun main⁵(): ? { let made: ?; set made = mk¹(1); return made.y﹖ };
 //│ end
+
+
+// TODO: cast `return`s too
+fun test(x: Int): Int = "oops"
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define test⁰ as fun test¹(x: Int): Int { return "oops" }; end
 
 
 // Parameter and return annotations are kept (`x: Int`, `y: Int`); the unannotated return stays
@@ -123,7 +132,7 @@ fun makeBar(s: Str): Bar = new Bar(s)
 //│ define addUp⁰ as fun addUp¹(x: Int, y: Int): Int {
 //│   return +⁰(x, y)
 //│ };
-//│ define makeBar⁰ as fun makeBar¹(s: Str): Bar² { return new Bar²(s) };
+//│ define makeBar⁰ as fun makeBar¹(s: Str): Bar⁰ { return new Bar⁰(s) };
 //│ end
 
 
@@ -138,7 +147,7 @@ fun ident(a) = a
 //│ define mkBar⁰ as fun mkBar¹(a: ?): ? {
 //│   let tmp: Str;
 //│   set tmp = (a as Str);
-//│   return new Bar²(tmp)
+//│   return new Bar⁰(tmp)
 //│ };
 //│ define ident⁰ as fun ident¹(a: ?): ? { return a };
 //│ end
@@ -183,9 +192,9 @@ class Box(val v: Int) with
 // Closure capture (`:lift`): the generated capture class and its field are not
 // typed from the captured local, so they stay `: ?`.
 :lift
-fun counter() =
+fun counter(x: Int) =
   let n = 0
-  fun bump() = set n = n + 1
+  fun bump() = set n = n + x
   bump()
   n
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -196,17 +205,17 @@ fun counter() =
 //│     end
 //│   }
 //│ };
-//│ define bump as fun bump⁰(scope0$cap: ?): ? {
+//│ define bump as fun bump⁰(scope0$cap: ?, x: ?): ? {
 //│   let tmp: ?;
-//│   set tmp = +⁰(scope0$cap.n$0¹, 1);
+//│   set tmp = +⁰(scope0$cap.n$0¹, x);
 //│   set scope0$cap.n$0¹ = tmp;
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ define counter⁰ as fun counter¹(): ? {
+//│ define counter⁰ as fun counter¹(x: Int): ? {
 //│   let n: ?, scope0$cap: ?;
 //│   set scope0$cap = new mut Capture$scope0¹(n);
 //│   set scope0$cap.n$0¹ = 0;
-//│   do bump⁰(scope0$cap);
+//│   do bump⁰(scope0$cap, x);
 //│   return scope0$cap.n$0¹
 //│ };
 //│ end
@@ -217,13 +226,13 @@ fun counter() =
 fun useObj(o: Object) = o
 fun f(x: Int) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
-//│ ║  l.218: 	fun f(x: Int) = useObj(x)
+//│ ║  l.227: 	fun f(x: Int) = useObj(x)
 //│ ╙──       	                       ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
 //│   return o
 //│ };
-//│ define f³ as fun f⁴(x: Int): ? { return useObj¹(x) };
+//│ define f² as fun f³(x: Int): ? { return useObj¹(x) };
 //│ end
 
 // The reverse - passing a reference (`Object`) into a slot expecting a primitive (`Int`) slot is
@@ -232,7 +241,7 @@ fun f(x: Int) = useObj(x)
 fun useInt(n: Int) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
-//│ ║  l.233: 	fun g(o: Object) = useInt(o)
+//│ ║  l.242: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int): ? {
