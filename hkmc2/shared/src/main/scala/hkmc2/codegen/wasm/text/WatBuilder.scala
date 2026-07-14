@@ -2156,12 +2156,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                         wrapId = ctorFuncInfo.wrapId,
                         moduleName = SessionBinding.ReplModuleName,
                         exportName = clsLikeDefn.sym.nme,
-                        funcType = FunctionType(
-                          SignatureType(
-                            params = ctorFnCtx.params.map(p => WasmParam(p._2, RefType.anyref)),
-                            results = ctorCode.resultTypes.map(ty => Result(ty.asValType_!)),
-                          ),
-                        ),
+                        funcType = FunctionType(ctorFuncInfo.getSignatureType),
                       ))
                   end if
                   if isSingletonObj then
