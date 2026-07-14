@@ -874,6 +874,26 @@ enum PrimitiveType:
     case Bool => ctx.builtins.Bool
 
 object ErasedType:
+  /** 
+    * An reference to a class-like symbol.
+    *
+    * If `csym` is `NoSymbol`, this represents the top type (`Any`).
+    *
+    * - `rsc` is true if this reference is a resource class.
+    */
+  case class AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol.type) extends ErasedType, ErasedValueType:
+    def sym(using Ctx, State): ClassLikeSymbol = csym match
+      case csym: ClassLikeSymbol => csym
+      case NoSymbol => lastWords("top type `Any` has no class-like symbol")
+  
+  /** A reference to a function of a possibly-known shape. */
+  case class FuncRef(params: Ls[Opt[ErasedType]], ret: Opt[ErasedType]) extends ErasedType:
+    def sym(using Ctx, State): ClassLikeSymbol = ctx.builtins.Function
+  
+  /** An primitive type. */
+  case class Primitive(prim: PrimitiveType) extends ErasedType, ErasedValueType:
+    def sym(using Ctx, State): ClassLikeSymbol = prim.sym
+
   /** The top type `Any`. */
   def AnyType: ErasedType.AnyRef = AnyRef(rsc = false, NoSymbol)
 
@@ -948,54 +968,16 @@ object ErasedType:
         case (afe, efa) => lastWords:
           s"Cannot determine cast kind between $actual and $expected: isSubtypeOf($a, $e) = $afe, isSubtypeOf($e, $a) = $efa"
 
-/** How a value's erased type relates to the erased type of the slot it flows into. */
-enum CastKind:
-  /** The types are the same. */
-  case Identity
-  /** The value type is a subtype of the target type. */
-  case Upcast
-  /** The value type is a supertype of the target type. */
-  case Downcast
-  /** The types are provably incompatible. */
-  case Unrelated
-  /** No subtyping relation can be established by walking the inheritance chain.
-    *
-    * This is not to be treated as `Unrelated`, because the types may still be related via traits or multiple parents,
-    * which are not visible to the inheritance-only oracle.
-    */
-  case Incomparable
-
-
-sealed trait ErasedValueType { self: ErasedType => }
-
 /** A generics-erased type of the Block IR. */
-enum ErasedType:
-  /** 
-    * An reference to a class-like symbol.
-    *
-    * If `csym` is `NoSymbol`, this represents the top type (`Any`).
-    *
-    * - `rsc` is true if this reference is a resource class.
-    */
-  case AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol.type) extends ErasedType, ErasedValueType
-  
-  /** A reference to a function of a possibly-known shape. */
-  case FuncRef(params: Ls[Opt[ErasedType]], ret: Opt[ErasedType])
-  
-  /** An primitive type. */
-  case Primitive(prim: PrimitiveType) extends ErasedType, ErasedValueType
-  
+sealed abstract class ErasedType:
   /** The symbol for this erased type. 
     *
     * Throws an exception if invoked on `ErasedType.AnyType`, as the top type has no `ClassLikeSymbol`.
     */
-  def sym(using Ctx, State): ClassLikeSymbol = this match
-    case AnyRef(_, csym: ClassLikeSymbol) => csym
-    case AnyRef(_, NoSymbol) => lastWords("top type `Any` has no class-like symbol")
-    case FuncRef(_, _) => ctx.builtins.Function
-    case Primitive(prim) => prim.sym
-end ErasedType
+  def sym(using Ctx, State): ClassLikeSymbol
 
+/** A trait indicating that the [[`ErasedType`]] is a value type. */
+sealed trait ErasedValueType extends ErasedType
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:
@@ -1016,6 +998,24 @@ trait HasOnceMutableErasedType extends HasErasedType:
     //                   only lower each program once
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
+
+
+/** How a value's erased type relates to the erased type of the slot it flows into. */
+enum CastKind:
+  /** The types are the same. */
+  case Identity
+  /** The value type is a subtype of the target type. */
+  case Upcast
+  /** The value type is a supertype of the target type. */
+  case Downcast
+  /** The types are provably incompatible. */
+  case Unrelated
+  /** No subtyping relation can be established by walking the inheritance chain.
+    *
+    * This is not to be treated as `Unrelated`, because the types may still be related via traits or multiple parents,
+    * which are not visible to the inheritance-only oracle.
+    */
+  case Incomparable
 
 sealed trait TrivialResult extends Result
 
