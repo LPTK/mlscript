@@ -90,7 +90,7 @@ abstract class WasmDiffMaker extends InvalMLDiffMaker:
           bindings.foreach: (bindingKey, binding) =>
             sessionImports.update(bindingKey, binding)
       val CompiledWasmModule(modWat, mainFnNme, systemMemMinPages, sessionExports) = ltl.givenIn:
-        WatBuilder().program(pgrm, N, wd, sessionImports.values.toSeq, symbolsToPreserve)
+        WatBuilder.fresh.program(pgrm, N, wd, sessionImports.values.toSeq, symbolsToPreserve)
       val modWatJsLit = JSBuilder.makeStringLiteral(modWat.mkString(output.ColWidth))
 
       if wat.isSet then

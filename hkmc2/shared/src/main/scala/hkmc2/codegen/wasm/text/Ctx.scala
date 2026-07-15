@@ -199,7 +199,7 @@ class FuncInfo(
     val body: Expr,
     val exportName: Opt[Str],
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
-)(using Ctx, Elaborator.Ctx, Raise, State) extends ToWat:
+)(using Ctx, Raise, State) extends ToWat:
 
   /** Symbolic identifier for the function. */
   val id = SymIdx(summon[Ctx].funcScp.allocateOrGetNameWrapped(sym, wrapId))
@@ -369,7 +369,7 @@ class FunctionCtx(
     _params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
     paramRefTypes: Opt[Seq[RefType]] = N,
-)(using Ctx, Elaborator.Ctx, Raise, State):
+)(using Ctx, Raise, State):
 
   /** [[Scope]] for generating WAT identifiers of locals. */
   private[text] val localScp = Scope.empty(Scope.Cfg.default)
@@ -476,7 +476,7 @@ def genFuncBody[T](
     params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
     paramRefTypes: Opt[Seq[RefType]] = N,
-)(mkBody: FunctionCtx ?=> T)(using Ctx, Elaborator.Ctx, Raise, State): T -> FunctionCtx =
+)(mkBody: FunctionCtx ?=> T)(using Ctx, Raise, State): T -> FunctionCtx =
   val funcCtx = FunctionCtx(params, thisSym, paramRefTypes)
   val result = mkBody(using funcCtx)
   result -> funcCtx
@@ -535,7 +535,7 @@ object Ctx:
   val wasmIntrinsicArities: Map[Str, Int] = (binaryOps.keys.map(_ -> 2) ++ unaryOps.keys.map(_ -> 1)).toMap
   val wasmIntrinsicNameSet: Set[Str] = wasmIntrinsicArities.keySet
 
-  def empty(using State): Ctx = Ctx()
+  def empty(using Elaborator.Ctx, State): Ctx = Ctx()
 
   def ctx(using ctx: Ctx): Ctx = ctx
 
@@ -546,9 +546,12 @@ object Ctx:
 end Ctx
 
 /** Context for [[WatBuilder]]. */
-class Ctx(using State) extends ToWat:
+class Ctx(using Elaborator.Ctx, State) extends ToWat:
 
   import Ctx.prettyString
+
+  /** The [[`Elaborator.Ctx`]] associated with this instance. */
+  def elabCtx: Elaborator.Ctx = summon[Elaborator.Ctx]
 
   /** [[Scope]] for generating WAT identifiers of types. */
   private[text] val typeScp = Scope.empty(Scope.Cfg.default)
