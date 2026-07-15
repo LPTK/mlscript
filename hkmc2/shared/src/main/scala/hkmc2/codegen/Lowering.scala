@@ -730,7 +730,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           term_nonTail(body)(r => Assign(result, r, Break(label)))
         else
           val bodyResult = loweringCtx.registerTempSymbol(N, erasedType = N, "labelBodyResult")
-          val isContinue = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)), "labelContinueDispatch")
+          val isContinue = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Bool), "labelContinueDispatch")
           term_nonTail(body): r =>
             Assign(
               bodyResult,
@@ -806,7 +806,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               S(k(Value.Lit(negLit))),
               Unreachable("tail operation in branches"),
             ) else
-              val ts = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)))
+              val ts = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Bool))
               Match(
                 ar1,
                 (Case.Lit(posLit) -> term_nonTail(arg2)(Assign(ts, _, End()))) :: Nil,

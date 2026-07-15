@@ -320,7 +320,7 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
       if funsLen === 1 then funs.head.dSym
       else TermSymbol(syntax.Fun, owner, Tree.Ident(bms.nme), erasedType = N)
     val loopSym = LabelSymbol(N, "loopLabel")
-    val curIdSym = VarSymbol(Tree.Ident("id"), erasedType = S(ErasedType.Primitive(PrimitiveType.Int)))
+    val curIdSym = VarSymbol(Tree.Ident("id"), erasedType = S(ErasedType.Int))
     
     class FunRewriter(f: FunDefn) extends BlockTransformerShallow(SymbolSubst.Id):
       val params = getParamSyms(f)

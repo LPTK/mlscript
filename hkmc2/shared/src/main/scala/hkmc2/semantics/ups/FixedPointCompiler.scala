@@ -586,7 +586,7 @@ class FixedPointCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynt
     // Whether at least one contraction has fired. Only the one-or-more shape
     // (`P as (S | _)`) tracks it: it requires the first step to succeed, so a
     // run with zero contractions is a match failure.
-    val progressedSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)), "progressed")
+    val progressedSymbol = TempSymbol(N, erasedType = S(ErasedType.Bool), "progressed")
 
     def bool(value: Bool): Term = Term.Lit(BoolLit(value))
     def markProgress: Ls[Statement] =
@@ -686,7 +686,7 @@ class FixedPointCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynt
       // Plugging preserves identity: when no contraction happened below the
       // frame, the focus is still the very child we descended into, and the
       // frame's node can be reused instead of allocating a rebuilt copy.
-      val unchangedSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)), "unchanged")
+      val unchangedSymbol = TempSymbol(N, erasedType = S(ErasedType.Bool), "unchanged")
       Split.Let(unchangedSymbol, refEq(focusSymbol.safeRef, children(hole).safeRef),
         Split.Let(rebuiltSymbol,
           Term.SynthIf(

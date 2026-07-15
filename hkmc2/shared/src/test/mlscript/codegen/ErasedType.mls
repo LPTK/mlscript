@@ -35,10 +35,10 @@ val f: Num = 1.5
 val s: Str = "str"
 val b: Bool = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define i⁰ as val i¹: Int = 1;
-//│ define f⁰ as val f¹: Num = 1.5;
-//│ define s⁰ as val s¹: Str = "str";
-//│ define b⁰ as val b¹: Bool = true;
+//│ define i⁰ as val i¹: Int⁰ = 1;
+//│ define f⁰ as val f¹: Num⁰ = 1.5;
+//│ define s⁰ as val s¹: Str⁰ = "str";
+//│ define b⁰ as val b¹: Bool⁰ = true;
 //│ end
 
 
@@ -56,15 +56,15 @@ fun main =
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define Foo¹ as class Foo⁰ {
-//│   private val x⁰: Int;
-//│   constructor Foo²(x: Int) {
+//│   private val x⁰: Int⁰;
+//│   constructor Foo²(x: Int⁰) {
 //│     set Foo⁰.this.x⁰ = x;
 //│     end
 //│   }
 //│ };
 //│ define Bar¹ as class Bar⁰ {
-//│   val y⁰: Str;
-//│   constructor Bar²(y: Str) { define y⁰ as val y¹: Str = y; end }
+//│   val y⁰: Str⁰;
+//│   constructor Bar²(y: Str⁰) { define y⁰ as val y¹: Str⁰ = y; end }
 //│ };
 //│ end
 
@@ -76,8 +76,8 @@ fun main =
   made.y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define mk⁰ as fun mk¹(a: ?): ? {
-//│   let tmp: Str;
-//│   set tmp = (a as Str);
+//│   let tmp: Str⁰;
+//│   set tmp = (a as Str⁰);
 //│   return new Bar⁰(tmp)
 //│ };
 //│ define main⁴ as fun main⁵(): ? { let made: ?; set made = mk¹(1); return made.y﹖ };
@@ -87,7 +87,7 @@ fun main =
 // TODO: cast `return`s too
 fun test(x: Int): Int = "oops"
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define test⁰ as fun test¹(x: Int): Int { return "oops" }; end
+//│ define test⁰ as fun test¹(x: Int⁰): Int⁰ { return "oops" }; end
 
 
 // Parameter and return annotations are kept (`x: Int`, `y: Int`); the unannotated return stays
@@ -95,10 +95,10 @@ fun test(x: Int): Int = "oops"
 fun add1(x: Int, y: Int) = x + y
 fun add2(x: Int, y: Int): Int = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define add1⁰ as fun add1¹(x: Int, y: Int): ? {
+//│ define add1⁰ as fun add1¹(x: Int⁰, y: Int⁰): ? {
 //│   return +⁰(x, y)
 //│ };
-//│ define add2⁰ as fun add2¹(x: Int, y: Int): Int { return +⁰(x, y) };
+//│ define add2⁰ as fun add2¹(x: Int⁰, y: Int⁰): Int⁰ { return +⁰(x, y) };
 //│ end
 
 
@@ -107,7 +107,7 @@ fun keep(x: Int) =
   set x = 5
   x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define keep⁰ as fun keep¹(x: Int): ? { set x = (5 as Int); return x }; end
+//│ define keep⁰ as fun keep¹(x: Int⁰): ? { set x = (5 as Int⁰); return x }; end
 
 
 // An annotated mutable field narrows the assigned value at the field-assignment site.
@@ -115,12 +115,12 @@ class Ref(mut val v: Int) with
   fun put(x) = set v = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Ref⁰ as class Ref² {
-//│   val v⁰: Int;
-//│   constructor Ref¹(v: Int) {
-//│     define v⁰ as val v¹: Int = v;
+//│   val v⁰: Int⁰;
+//│   constructor Ref¹(v: Int⁰) {
+//│     define v⁰ as val v¹: Int⁰ = v;
 //│     end
 //│   }
-//│   method put⁰ = fun put¹(x: ?): ? { set Ref².this.v¹ = (x as Int); return runtime⁰.Unit⁰ }
+//│   method put⁰ = fun put¹(x: ?): ? { set Ref².this.v¹ = (x as Int⁰); return runtime⁰.Unit⁰ }
 //│ };
 //│ end
 
@@ -129,10 +129,10 @@ class Ref(mut val v: Int) with
 fun addUp(x: Int, y: Int): Int = x + y
 fun makeBar(s: Str): Bar = new Bar(s)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define addUp⁰ as fun addUp¹(x: Int, y: Int): Int {
+//│ define addUp⁰ as fun addUp¹(x: Int⁰, y: Int⁰): Int⁰ {
 //│   return +⁰(x, y)
 //│ };
-//│ define makeBar⁰ as fun makeBar¹(s: Str): Bar⁰ { return new Bar⁰(s) };
+//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ { return new Bar⁰(s) };
 //│ end
 
 
@@ -145,8 +145,8 @@ fun ident(a) = a
 //│   return <⁰(a, b)
 //│ };
 //│ define mkBar⁰ as fun mkBar¹(a: ?): ? {
-//│   let tmp: Str;
-//│   set tmp = (a as Str);
+//│   let tmp: Str⁰;
+//│   set tmp = (a as Str⁰);
 //│   return new Bar⁰(tmp)
 //│ };
 //│ define ident⁰ as fun ident¹(a: ?): ? { return a };
@@ -166,7 +166,7 @@ class Calc() with
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Calc⁰ as class Calc² {
 //│   constructor Calc¹
-//│   method twice⁰ = fun twice¹(x: Int): Int {
+//│   method twice⁰ = fun twice¹(x: Int⁰): Int⁰ {
 //│     return +⁰(x, x)
 //│   }
 //│   method whatever⁰ = fun whatever¹(a: ?): ? { return a }
@@ -179,9 +179,9 @@ class Box(val v: Int) with
   fun get() = v
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Box⁰ as class Box² {
-//│   val v²: Int;
-//│   constructor Box¹(v: Int) {
-//│     define v² as val v³: Int = v;
+//│   val v²: Int⁰;
+//│   constructor Box¹(v: Int⁰) {
+//│     define v² as val v³: Int⁰ = v;
 //│     end
 //│   }
 //│   method get⁰ = fun get¹(): ? { return Box².this.v³ }
@@ -211,7 +211,7 @@ fun counter(x: Int) =
 //│   set scope0$cap.n$0¹ = tmp;
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ define counter⁰ as fun counter¹(x: Int): ? {
+//│ define counter⁰ as fun counter¹(x: Int⁰): ? {
 //│   let n: ?, scope0$cap: ?;
 //│   set scope0$cap = new mut Capture$scope0¹(n);
 //│   set scope0$cap.n$0¹ = 0;
@@ -221,31 +221,54 @@ fun counter(x: Int) =
 //│ end
 
 
-// Passing a primitive (`Int`) to a slot expecting `Object` is a compilation error.
+// Passing a primitive (`Int32`) to a slot expecting `Object` is a compilation error.
 :ge
 fun useObj(o: Object) = o
-fun f(x: Int) = useObj(x)
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
-//│ ║  l.227: 	fun f(x: Int) = useObj(x)
-//│ ╙──       	                       ^
+fun f(x: Int32) = useObj(x)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
+//│ ║  l.227: 	fun f(x: Int32) = useObj(x)
+//│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
 //│   return o
 //│ };
-//│ define f² as fun f³(x: Int): ? { return useObj¹(x) };
+//│ define f² as fun f³(x: Int32): ? { return useObj¹(x) };
 //│ end
 
-// The reverse - passing a reference (`Object`) into a slot expecting a primitive (`Int`) slot is
+
+// The reverse - passing a reference (`Object`) into a slot expecting a primitive (`Int32`) slot is
 // also a compilation error.
 :ge
-fun useInt(n: Int) = n
+fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
-//│ ║  l.242: 	fun g(o: Object) = useInt(o)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
+//│ ║  l.243: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useInt⁰ as fun useInt¹(n: Int): ? {
+//│ define useInt⁰ as fun useInt¹(n: Int32): ? {
 //│   return n
 //│ };
 //│ define g⁰ as fun g¹(o: Object⁰): ? { return useInt¹(o) };
+//│ end
+
+
+// `Int <: Object` - So passing `Int -> Object` and v/v is allowed.
+fun useObj(o: Object) = o
+fun useInt(n: Int) = n
+fun f(o: Object, i: Int) = 
+  useObj(i)
+  useInt(o)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useObj² as fun useObj³(o: Object⁰): ? {
+//│   return o
+//│ };
+//│ define useInt² as fun useInt³(n: Int⁰): ? {
+//│   return n
+//│ };
+//│ define f⁴ as fun f⁵(o: Object⁰, i: Int⁰): ? {
+//│   let tmp: Int⁰;
+//│   do useObj³(i);
+//│   set tmp = (o as Int⁰);
+//│   return useInt³(tmp)
+//│ };
 //│ end

@@ -14,6 +14,10 @@ declare class TypedArray
 
 declare class BigInt
 
+declare class Int32
+declare class Int64
+declare class Float32 
+declare class Float64
 declare class Int31
 
 fun String: Any -> Str

@@ -28,13 +28,14 @@ extension (instr: FoldedInstr)
 
 extension (et: ErasedType)
   /** Returns the corresponding Wasm type for this [[`ErasedType`]]. */
-  private[text] def wasmType(using Ctx): Opt[RefType] =
+  private[text] def wasmType(using Ctx, Elaborator.Ctx): Opt[RefType] =
     import Ctx.ctx
+    val elabCtx = summon[Elaborator.Ctx]
     et match
-      case ErasedType.Primitive(PrimitiveType.Int | PrimitiveType.Int31 | PrimitiveType.Bool) =>
+      case ErasedType.AnyRef(_, tpeSym) if Set(elabCtx.builtins.Int, elabCtx.builtins.Int31, elabCtx.builtins.Bool).contains(tpeSym) =>
         S(RefType.i31ref)
-      case ErasedType.AnyRef(_, csym: ClassLikeSymbol) =>
-        csym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
+      case et @ ErasedType.AnyRef(_, tpeSym) if !et.isTop =>
+        tpeSym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
       case _ => N
 
 extension (sym: ValueSymbol)
@@ -43,7 +44,7 @@ extension (sym: ValueSymbol)
     * Use [[`FunctionCtx.slotRefType`]] for parameter slots, which handles `anyref` widening due to virtual dispatch
     * calling conventions.
     */
-  private[text] def localRefType(using Ctx, State): RefType =
+  private[text] def localRefType(using Ctx, Elaborator.Ctx, State): RefType =
     import Ctx.ctx
     sym match
       case isym: InnerSymbol =>
@@ -56,7 +57,7 @@ extension (sym: ValueSymbol)
       case _ => RefType.anyref
 
   /** The Wasm reference type a parameter slot for `sym` should be declared with, if typed parameters are enabled. */
-  private[text] def paramRefType(using Ctx, State): RefType =
+  private[text] def paramRefType(using Ctx, Elaborator.Ctx, State): RefType =
     sym match
       case s: HasErasedType =>
         s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
@@ -70,7 +71,7 @@ private[text] def resolveParamRefType(
     sym: ValueSymbol,
     idx: Int,
     overrides: Opt[Seq[RefType]],
-)(using Ctx, State): RefType =
+)(using Ctx, Elaborator.Ctx, State): RefType =
   overrides.flatMap(_.lift(idx)).getOrElse(sym.paramRefType)
 
 extension (param: ValueSymbol -> SymIdx)
@@ -79,7 +80,7 @@ extension (param: ValueSymbol -> SymIdx)
     * For [[FuncInfo]]s built without a [[FunctionCtx]]; those built from one should pass its `resolvedParams`, which
     * additionally honors the slot overrides.
     */
-  private[text] def resolvedParam(using Ctx, State): ValueSymbol -> WasmParam =
+  private[text] def resolvedParam(using Ctx, Elaborator.Ctx, State): ValueSymbol -> WasmParam =
     param._1 -> WasmParam(param._2, param._1.paramRefType)
 
 extension (exprs: Seq[Expr])
@@ -113,7 +114,7 @@ object WatBuilder:
     val StringFromUtf16ImportName = "mlx_str_from_utf16"
     val WasmPageSizeBytes = 65536
 
-class WatBuilder(using TraceLogger, State) extends CodeBuilder:
+class WatBuilder(using Elaborator.Ctx, TraceLogger, State) extends CodeBuilder:
   import Ctx.ctx
   import Ctx.{SingletonInfo, binaryOps, unaryOps, wasmIntrinsicArities, wasmIntrinsicNameSet}
   import FunctionCtx.funcCtx
@@ -133,7 +134,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
   /** Synthetic field symbol for the runtime class tag stored in RTTI. */
   private val tagFieldSym: TermSymbol =
-    TermSymbol(syntax.MutVal, owner = N, Ident("$tag"), erasedType = S(ErasedType.Primitive(PrimitiveType.Int)))
+    TermSymbol(syntax.MutVal, owner = N, Ident("$tag"), erasedType = S(ErasedType.Int))
 
   /** Synthetic field symbol for the direct-parent RTTI reference used by runtime subtype checks. */
   private val parentFieldSym: TermSymbol = TermSymbol(syntax.MutVal, owner = N, Ident("$parent"), erasedType = N)
@@ -234,7 +235,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   )(using Ctx, FunctionCtx, Raise): Expr =
     val currentTmp = mkTempLocal("currentTypeInfo", erasedType = N)
     val targetTmp = mkTempLocal("targetTypeInfo", erasedType = N)
-    val resultTmp = mkTempLocal("typeInfoMatch", erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)))
+    val resultTmp = mkTempLocal("typeInfoMatch", erasedType = S(ErasedType.Bool))
     funcCtx.withLabel(LabelSymbol(N, "typeInfo"), hasContinueLabel = true):
       case LabelTarget(breakLabel, S(continueLabel)) =>
         Seq(
@@ -1199,7 +1200,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                 extraInfo = S(errExtra),
               )
 
-        val idxTmp = mkTempLocal("idx", erasedType = S(ErasedType.Primitive(PrimitiveType.Int31)))
+        val idxTmp = mkTempLocal("idx", erasedType = S(ErasedType.Int31))
 
         tupleRef =>
           val storeIdx = local.set(idxTmp, ref.i31(idxI32))
@@ -1694,7 +1695,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       name,
       ExternType.Func(
         TypeUse(typeIdx),
-        TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), name),
+        TempSymbol(N, erasedType = S(ErasedType.Str), name),
         wrapId = N -> N,
       ),
     ))
@@ -2550,7 +2551,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
               memuse = N,
               sym = TempSymbol(
                 N,
-                erasedType = S(ErasedType.Primitive(PrimitiveType.Str)),
+                erasedType = S(ErasedType.Str),
                 s.take(WatBuilder.StringConstantIdentMaxLength),
               ),
             ))

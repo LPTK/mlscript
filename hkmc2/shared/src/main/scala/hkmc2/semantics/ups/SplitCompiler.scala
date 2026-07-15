@@ -934,15 +934,15 @@ class SplitCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynthesiz
               )
               RejectPrefixSplit
             case _ => (makeConsequent, alternative) =>
-              val nonEmptySymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)), "nonEmpty")
+              val nonEmptySymbol = TempSymbol(N, erasedType = S(ErasedType.Bool), "nonEmpty")
               val nonEmptyTerm = app(
                 this.lt.safeRef,
                 tup(fld(int(0)), fld(sel(scrutinee(), "length"))),
                 "string is not empty"
               )
-              val outputSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), "stringHead")
+              val outputSymbol = TempSymbol(N, erasedType = S(ErasedType.Str), "stringHead")
               val outputTerm = callStringGet(scrutinee(), 0, "head")
-              val remainsSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), "stringTail")
+              val remainsSymbol = TempSymbol(N, erasedType = S(ErasedType.Str), "stringTail")
               val remainsTerm = callStringDrop(scrutinee(), 1, "tail")
               Split.Let(nonEmptySymbol, nonEmptyTerm,
                 Branch(nonEmptySymbol.safeRef,
@@ -985,7 +985,7 @@ class SplitCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynthesiz
     case Wildcard() => (makeConsequent, alternative) => 
       // Because the wildcard pattern always matches, we can match the entire
       // string and returns an empty string as the remaining value.
-      val emptyStringSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), "emptyString")
+      val emptyStringSymbol = TempSymbol(N, erasedType = S(ErasedType.Str), "emptyString")
       makeConsequent(scrutinee, emptyStringSymbol.toScrut, SeqMap.empty)
       Branch(scrutinee(), FlatPattern.ClassLike(ctx.builtins.Str.safeRef, ctx.builtins.Str, N, false)(Tree.Dummy),
         Split.Let(emptyStringSymbol, str(""),
@@ -994,12 +994,12 @@ class SplitCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynthesiz
     case Literal(prefix: StrLit) => (makeConsequent, alternative) =>
       // Check if the scrutinee is the same as the literal. If so, we return
       // an empty string as the remaining value.
-      val isLeadingSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)), "isLeading")
+      val isLeadingSymbol = TempSymbol(N, erasedType = S(ErasedType.Bool), "isLeading")
       val isLeadingTerm = callStringStartsWith(
         scrutinee(), Term.Lit(prefix), "the result of startsWith")
-      val outputSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), "consumed")
+      val outputSymbol = TempSymbol(N, erasedType = S(ErasedType.Str), "consumed")
       val outputTerm = callStringTake(scrutinee(), prefix.value.length, "the consumed part of input")
-      val remainsSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), "remains")
+      val remainsSymbol = TempSymbol(N, erasedType = S(ErasedType.Str), "remains")
       val remainsTerm = callStringDrop(scrutinee(), prefix.value.length, "the remaining input")
       Split.Let(isLeadingSymbol, isLeadingTerm,
         Branch(isLeadingSymbol.safeRef,
@@ -1011,9 +1011,9 @@ class SplitCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynthesiz
     case Literal(_) => RejectPrefixSplit
     case Range(lower: StrLit, upper: StrLit, rightInclusive) => (makeConsequent, alternative) =>
       // Check if the string is not empty. Then 
-      val stringHeadSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), "stringHead")
-      val stringTailSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Str)), "stringTail")
-      val nonEmptySymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)), "nonEmpty")
+      val stringHeadSymbol = TempSymbol(N, erasedType = S(ErasedType.Str), "stringHead")
+      val stringTailSymbol = TempSymbol(N, erasedType = S(ErasedType.Str), "stringTail")
+      val nonEmptySymbol = TempSymbol(N, erasedType = S(ErasedType.Bool), "nonEmpty")
       val nonEmptyTerm = app(this.lt.safeRef, tup(fld(int(0)), fld(sel(scrutinee(), "length"))), "string is not empty")
       Split.Let(nonEmptySymbol, nonEmptyTerm, // `0 < string.length`
         Branch(nonEmptySymbol.safeRef,
@@ -1210,7 +1210,7 @@ class SplitCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynthesiz
     val (matcherSymbol, implementations) = compiler.buildMatcher(synonym, resultMode)
     val innermostSplit = resultMode match
       case ResultMode.MatchOnly =>
-        val resultSymbol = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)), "matchSuccess")
+        val resultSymbol = TempSymbol(N, erasedType = S(ErasedType.Bool), "matchSuccess")
         val resultTerm = app(matcherSymbol.safeRef, tup(fld(scrutinee())), "result of matcher function")
         Split.Let(resultSymbol, resultTerm,
           Branch(resultSymbol.safeRef, makeConsequent(scrutinee, SeqMap.empty)) ~: alternative)

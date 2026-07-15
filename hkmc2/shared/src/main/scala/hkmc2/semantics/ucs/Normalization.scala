@@ -507,7 +507,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
           // as shouldRewriteWhile is always true when effect handler lowering is on
           if config.shouldRewriteWhile then
             val loopResult = TempSymbol(N, erasedType = N)
-            val isReturned = TempSymbol(N, erasedType = S(ErasedType.Primitive(PrimitiveType.Bool)))
+            val isReturned = TempSymbol(N, erasedType = S(ErasedType.Bool))
             outerCtx.collectScopedSym(loopResult)
             outerCtx.collectScopedSym(isReturned)
             val loopEnd: Path =

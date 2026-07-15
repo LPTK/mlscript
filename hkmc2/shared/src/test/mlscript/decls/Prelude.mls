@@ -88,7 +88,6 @@ declare module BigUint64Array
 declare class Promise
 declare val Promise
 
-// MLscript-specific types
 declare class Bool
 declare class Int
 declare class Num
@@ -123,7 +122,11 @@ declare module Symbol with
   val iterator: Any
 
 // MLwasm-specific types
-declare class Int31
+declare class Int32
+declare class Int64
+declare class Float32
+declare class Float64
+declare class Int31  // `i31ref`
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 declare module Math with

@@ -610,8 +610,8 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
       return b
     val vars = if opt.debug then ctx.resumeInfo.currentLocals else computeRestoreList(parts)
 
-    val pcVar = freshTmp(erasedType = S(ErasedType.Primitive(PrimitiveType.Int)), "pc")
-    val curDepth = freshTmp(erasedType = S(ErasedType.Primitive(PrimitiveType.Int)), "curDepth")
+    val pcVar = freshTmp(erasedType = S(ErasedType.Int), "pc")
+    val curDepth = freshTmp(erasedType = S(ErasedType.Int), "curDepth")
     val mainLoopLbl = freshLabel("main")
 
     val edges = computeEdges(parts)
@@ -685,7 +685,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
           case (acc, f) => f(acc)
         Label(mainLoopLbl, true, matches, End())
         
-    val getSavedTmp = freshTmp(erasedType = S(ErasedType.Primitive(PrimitiveType.Int)), "saveOffset")
+    val getSavedTmp = freshTmp(erasedType = S(ErasedType.Int), "saveOffset")
     def getSaved(off: BigInt): (Block => Block, Path) =
       if off == 0 then
         return (id, DynSelect(paths.runtimePath.selSN("resumeArr"), paths.runtimePath.selSN("resumeIdx"), true))

@@ -862,16 +862,14 @@ enum Case:
 
 /** A primitive type of the block IR. */
 enum PrimitiveType:
-  case Unit, Int, Int31, Num, Str, Bool
+  case Int32, Int64, Float32, Float64
 
   /** The symbol for this primitive type. */
   def sym(using Ctx, State): TypeSymbol = this match
-    case Unit => summon[State].unitSymbol
-    case Int => ctx.builtins.Int
-    case Int31 => ctx.builtins.Int31
-    case Num => ctx.builtins.Num
-    case Str => ctx.builtins.Str
-    case Bool => ctx.builtins.Bool
+    case Int32 => ctx.builtins.Int32
+    case Int64 => ctx.builtins.Int64
+    case Float32 => ctx.builtins.Float32
+    case Float64 => ctx.builtins.Float64 
 
 object ErasedType:
   /** 
@@ -891,11 +889,29 @@ object ErasedType:
   case class Primitive(prim: PrimitiveType) extends ErasedValueType:
     override def sym(using Ctx, State): TypeSymbol = prim.sym
 
-  /** The top type `Anything`. */
+  /** The builtin top type `Anything`. */
   def Anything(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Anything)
 
-  /** The `Array` reference type. */
+  /** The builtin `Unit` reference type. */
+  def Unit(using State): ErasedType.AnyRef = AnyRef(rsc = false, summon[State].unitSymbol)
+
+  /** The builtin `Int` reference type. */
+  def Bool(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Bool)
+
+  /** The builtin `Int` reference type. */
+  def Int(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Int)
+  
+  /** The builtin `Int` reference type. */
+  def Num(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Num)
+
+  /** The builtin `Str` reference type. */
+  def Str(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Str)
+  
+  /** The builtin `Array` reference type. */
   def Array(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Array)
+
+  /** The builtin `Int31` reference type. */
+  def Int31(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Int31)
 
   /** Maps a [[`TypeSymbol`]] into the canonical [[`ErasedType`]]. */
   def fromTpeSymbol(tpeSym: TypeSymbol, rsc: Bool)(using Ctx, State): ErasedType =

@@ -199,7 +199,7 @@ class FuncInfo(
     val body: Expr,
     val exportName: Opt[Str],
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
-)(using Ctx, Raise, State) extends ToWat:
+)(using Ctx, Elaborator.Ctx, Raise, State) extends ToWat:
 
   /** Symbolic identifier for the function. */
   val id = SymIdx(summon[Ctx].funcScp.allocateOrGetNameWrapped(sym, wrapId))
@@ -369,7 +369,7 @@ class FunctionCtx(
     _params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
     paramRefTypes: Opt[Seq[RefType]] = N,
-)(using Ctx, Raise, State):
+)(using Ctx, Elaborator.Ctx, Raise, State):
 
   /** [[Scope]] for generating WAT identifiers of locals. */
   private[text] val localScp = Scope.empty(Scope.Cfg.default)
@@ -476,7 +476,7 @@ def genFuncBody[T](
     params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
     paramRefTypes: Opt[Seq[RefType]] = N,
-)(mkBody: FunctionCtx ?=> T)(using Ctx, Raise, State): T -> FunctionCtx =
+)(mkBody: FunctionCtx ?=> T)(using Ctx, Elaborator.Ctx, Raise, State): T -> FunctionCtx =
   val funcCtx = FunctionCtx(params, thisSym, paramRefTypes)
   val result = mkBody(using funcCtx)
   result -> funcCtx
