@@ -33,8 +33,8 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
   def print(et: ErasedType)(using Scope): Document = et match
     case ErasedType.AnyRef(rsc, csym: ClassLikeSymbol) => doc"${if rsc then "rsc " else ""}${print(csym)}"
     case ErasedType.AnyRef(rsc, NoSymbol) => doc"${if rsc then "rsc " else ""}Any"
-    case ErasedType.FuncRef(params, ret) =>
-      doc"(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
+    case ErasedType.FuncRef(rsc, params, ret) =>
+      doc"${if rsc then "rsc " else ""}(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
 
   /** Renders the type annotation for a symbol with an [[`ErasedType`]]. */
@@ -46,7 +46,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
   def returnTypeAnnot(dSym: TermSymbol)(using Scope): Document =
     if !summon[ShowCfg].showErasedTypes then doc""
     else dSym.erasedType match
-      case S(ErasedType.FuncRef(_, ret)) => doc": ${ret.fold(doc"?")(print)}"
+      case S(ErasedType.FuncRef(_, _, ret)) => doc": ${ret.fold(doc"?")(print)}"
       case _ => doc""
   
   def print(blk: Block)(using Scope): Document = blk match

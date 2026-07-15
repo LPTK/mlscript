@@ -1484,7 +1484,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     if tsym.erasedType.isEmpty then
       val params = paramLists.flatMap(_.params).map(_.sym.erasedType)
       val ret = sign.flatMap(eraseSign)
-      tsym.erasedType = S(ErasedType.FuncRef(params, ret))
+      tsym.erasedType = S(ErasedType.FuncRef(rsc = false, params, ret))
 
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =

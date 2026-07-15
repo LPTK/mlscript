@@ -887,7 +887,7 @@ object ErasedType:
       case NoSymbol => lastWords("top type `Any` has no class-like symbol")
   
   /** A reference to a function of a possibly-known shape. */
-  case class FuncRef(params: Ls[Opt[ErasedType]], ret: Opt[ErasedType]) extends ErasedType:
+  case class FuncRef(rsc: Bool, params: Ls[Opt[ErasedType]], ret: Opt[ErasedType]) extends ErasedType:
     def sym(using Ctx, State): ClassLikeSymbol = ctx.builtins.Function
   
   /** An primitive type. */
@@ -1125,7 +1125,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Value.This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => clsOrMod.erasedType
     case Call(fun, _) => fun.targetSymbol match
       case S(ts: TermSymbol) => ts.erasedType match
-        case S(ErasedType.FuncRef(_, ret)) => ret
+        case S(ErasedType.FuncRef(_, _, ret)) => ret
         case _ => N
       case _ => N
     // * A resolved selection has the type of the member it refers to (e.g. `this.field`); an

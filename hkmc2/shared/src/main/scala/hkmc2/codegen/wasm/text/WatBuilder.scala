@@ -1974,7 +1974,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     // being inferred correctly.
                     val resultTypes: Seq[Result] =
                       defn.sym.asTrm.flatMap(_.erasedType) match
-                        case S(ErasedType.FuncRef(_, S(ret))) =>
+                        case S(ErasedType.FuncRef(_, _, S(ret))) =>
                           val retType = ret.wasmType.getOrElse(RefType.anyref)
                           if bodyWat.resultTypes == Seq(retType) then Seq(Result(retType))
                           else Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref))
