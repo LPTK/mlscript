@@ -114,9 +114,133 @@ object WatBuilder:
     val StringFromUtf16ImportName = "mlx_str_from_utf16"
     val WasmPageSizeBytes = 65536
 
+  /** Creates the intrinsic definition for `name`.
+    */
+  private def createIntrinsic(name: Str, exportName: Opt[Str])(using Ctx, Elaborator.Ctx, Raise, State): FuncIdx =
+    if Ctx.binaryOps.contains(name) then createBinaryInt31Func(name, Ctx.binaryOps(name), exportName)
+    else if Ctx.unaryOps.contains(name) then createUnaryInt31Func(name, Ctx.unaryOps(name), exportName)
+    else lastWords(s"Unsupported wasm intrinsic '$name'")
+
+  private def intrinsicParamSuffixes(name: Str): Ls[Str] =
+    if Ctx.binaryOps.contains(name) then Ls("lhs", "rhs") else Ls("arg")
+
+  private def declareIntrinsicType(name: Str)(using Ctx, Raise, State): TypeIdx =
+    summon[Ctx].addType(TypeInfo(
+      sym = TempSymbol(N, erasedType = N, name),
+      compType = FunctionType(
+        params = intrinsicParamSuffixes(name).map(nme => WasmParam(SymIdx(nme), RefType.anyref)),
+        results = Seq(Result(RefType.anyref)),
+      ),
+      objectTag = N,
+    ))
+
+  /** Creates parameters for an intrinsic.
+    */
+  // TODO(Derppening): WTF? Remove `name` and add erasedType to `params`
+  private def mkIntrinsicParams(suffixes: Ls[Str])(using State): Ls[TempSymbol -> SymIdx] =
+    suffixes.map: suffix =>
+      val sym = TempSymbol(N, erasedType = N, suffix)
+      sym -> SymIdx(suffix)
+
+  /** Allocates the Wasm type and function definition for an intrinsic with the given signature.
+    */
+  private def createIntrinsicFunc(
+      name: Str,
+      params: Ls[TempSymbol -> SymIdx],
+      body: Expr,
+      exportName: Opt[Str],
+  )(using Ctx, Elaborator.Ctx, Raise, State): FuncIdx =
+    val funcTy = WatBuilder.declareIntrinsicType(name)
+    val funcInfo = FuncInfo(
+      sym = TempSymbol(N, erasedType = N, name),
+      typeUse = TypeUse(funcTy),
+      params = params.map(_.resolvedParam),
+      locals = Seq.empty,
+      body = body,
+      resultTypes = Seq(Result(RefType.anyref)),
+      exportName = exportName,
+    )
+    summon[Ctx].addFunc(funcInfo)
+
+  /** Builds the body for an Int31 binary operator.
+    */
+  private def binaryInt31Body(
+      lhsIdx: LocalIdx,
+      rhsIdx: LocalIdx,
+      op: (Expr, Expr) => Expr,
+  )(using Ctx): Expr =
+    import Instructions.*
+    val cond = i32.and(
+      ref.test(local.get(lhsIdx, RefType.anyref), RefType.i31ref),
+      ref.test(local.get(rhsIdx, RefType.anyref), RefType.i31ref),
+    )
+    val i31Op = 
+      ref.i31(
+        op(
+          i31.get_s(ref.cast(local.get(lhsIdx, RefType.anyref), RefType.i31ref)), 
+          i31.get_s(ref.cast(local.get(rhsIdx, RefType.anyref), RefType.i31ref)),
+        ),
+      )
+    `if`(
+      condition = cond,
+      ifTrue = i31Op,
+      ifFalse = S(unreachable),
+      resultTypes = Seq(Result(RefType.anyref)),
+    )
+
+  /** Creates a binary Int31 intrinsic with two parameters and body built from `op`.
+    */
+  private def createBinaryInt31Func(
+      name: Str,
+      op: (Expr, Expr) => Expr,
+      exportName: Opt[Str],
+  )(using Ctx, Elaborator.Ctx, Raise, State): FuncIdx =
+    val params = mkIntrinsicParams(Ls("lhs", "rhs"))
+    val lhsName = params.head._2
+    val rhsName = params(1)._2
+    val body = binaryInt31Body(LocalIdx(lhsName), LocalIdx(rhsName), op)
+    createIntrinsicFunc(name, params, body, exportName)
+
+  /** Builds the body for an Int31 unary operator.
+    */
+  private def unaryInt31Body(paramIdx: LocalIdx, op: Expr => Expr)(using Ctx): Expr =
+    import Instructions.*
+    val cond = ref.test(local.get(paramIdx, RefType.anyref), RefType.i31ref)
+    val i31Op = 
+      ref.i31(
+        op(
+          i31.get_s(ref.cast(local.get(paramIdx, RefType.anyref), RefType.i31ref)),
+        ),
+      )
+    `if`(
+      condition = cond,
+      ifTrue = i31Op,
+      ifFalse = S(unreachable),
+      resultTypes = Seq(Result(RefType.anyref)),
+    )
+
+  /** Creates a unary Int31 intrinsic with a single parameter and body built from `op`.
+    */
+  private def createUnaryInt31Func(
+      name: Str,
+      op: Expr => Expr,
+      exportName: Opt[Str],
+  )(using Ctx, Elaborator.Ctx, Raise, State): FuncIdx =
+    val params = mkIntrinsicParams(Ls("arg"))
+    val argName = params.head._2
+    val body = unaryInt31Body(LocalIdx(argName), op)
+    createIntrinsicFunc(name, params, body, exportName)
+
+  def IntrinsicSupportModuleWat(using Elaborator.Ctx, Raise, State): Document =
+    val ctx = Ctx.empty
+    given Ctx = ctx
+    Ctx.wasmIntrinsicNameSet.toVector.sorted.foreach: name =>
+      createIntrinsic(name, S(name))
+    ctx.toWat
+
 class WatBuilder(using Elaborator.Ctx, TraceLogger, State) extends CodeBuilder:
   import Ctx.ctx
-  import Ctx.{SingletonInfo, binaryOps, unaryOps, wasmIntrinsicArities, wasmIntrinsicNameSet}
+  import Ctx.{SingletonInfo, wasmIntrinsicArities, wasmIntrinsicNameSet}
   import FunctionCtx.funcCtx
   import Instructions.{block as blockInstr, loop as loopInstr, *}
   import WatBuilder.ExternIntrinsics
@@ -1689,7 +1813,7 @@ class WatBuilder(using Elaborator.Ctx, TraceLogger, State) extends CodeBuilder:
     ctx.getOrCreateWasmIntrinsic(name, importIntrinsic(name))
 
   private def importIntrinsic(name: Str)(using Ctx, Raise): FuncIdx =
-    val typeIdx = declareIntrinsicType(name)
+    val typeIdx = WatBuilder.declareIntrinsicType(name)
     ctx.addFunctionImport(WasmImport(
       ExternIntrinsics.SystemModule,
       name,
@@ -1699,117 +1823,6 @@ class WatBuilder(using Elaborator.Ctx, TraceLogger, State) extends CodeBuilder:
         wrapId = N -> N,
       ),
     ))
-
-  /** Creates the intrinsic definition for `name`.
-    */
-  private def createIntrinsic(name: Str, exportName: Opt[Str])(using Ctx, Raise): FuncIdx =
-    if binaryOps.contains(name) then createBinaryInt31Func(name, binaryOps(name), exportName)
-    else if unaryOps.contains(name) then createUnaryInt31Func(name, unaryOps(name), exportName)
-    else lastWords(s"Unsupported wasm intrinsic '$name'")
-
-  private def intrinsicParamSuffixes(name: Str): Ls[Str] =
-    if binaryOps.contains(name) then Ls("lhs", "rhs") else Ls("arg")
-
-  private def declareIntrinsicType(name: Str)(using Ctx, Raise): TypeIdx =
-    ctx.addType(TypeInfo(
-      sym = TempSymbol(N, erasedType = N, name),
-      compType = FunctionType(
-        params = intrinsicParamSuffixes(name).map(nme => WasmParam(SymIdx(nme), RefType.anyref)),
-        results = Seq(Result(RefType.anyref)),
-      ),
-      objectTag = N,
-    ))
-
-  /** Creates a binary Int31 intrinsic with two parameters and body built from `op`.
-    */
-  private def createBinaryInt31Func(
-      name: Str,
-      op: (Expr, Expr) => Expr,
-      exportName: Opt[Str],
-  )(using Ctx, Raise): FuncIdx =
-    val params = mkIntrinsicParams(name, Ls("lhs", "rhs"))
-    val lhsName = params.head._2
-    val rhsName = params(1)._2
-    val body = binaryInt31Body(LocalIdx(lhsName), LocalIdx(rhsName), op)
-    createIntrinsicFunc(name, params, body, exportName)
-
-  /** Creates a unary Int31 intrinsic with a single parameter and body built from `op`.
-    */
-  private def createUnaryInt31Func(
-      name: Str,
-      op: Expr => Expr,
-      exportName: Opt[Str],
-  )(using Ctx, Raise): FuncIdx =
-    val params = mkIntrinsicParams(name, Ls("arg"))
-    val argName = params.head._2
-    val body = unaryInt31Body(LocalIdx(argName), op)
-    createIntrinsicFunc(name, params, body, exportName)
-
-  /** Allocates the Wasm type and function definition for an intrinsic with the given signature.
-    */
-  private def createIntrinsicFunc(
-      name: Str,
-      params: Ls[TempSymbol -> SymIdx],
-      body: Expr,
-      exportName: Opt[Str],
-  )(using Ctx, Raise): FuncIdx =
-    val funcTy = declareIntrinsicType(name)
-    val funcInfo = FuncInfo(
-      sym = TempSymbol(N, erasedType = N, name),
-      typeUse = TypeUse(funcTy),
-      params = params.map(_.resolvedParam),
-      locals = Seq.empty,
-      body = body,
-      resultTypes = Seq(Result(RefType.anyref)),
-      exportName = exportName,
-    )
-    ctx.addFunc(funcInfo)
-
-  def intrinsicSupportModule()(using Raise): Document =
-    val ctx = Ctx.empty
-    given Ctx = ctx
-    wasmIntrinsicNameSet.toVector.sorted.foreach: name =>
-      createIntrinsic(name, S(name))
-    ctx.toWat
-
-  /** Builds the body for an Int31 binary operator.
-    */
-  private def binaryInt31Body(
-      lhsIdx: LocalIdx,
-      rhsIdx: LocalIdx,
-      op: (Expr, Expr) => Expr,
-  )(using Ctx): Expr =
-    val cond = i32.and(
-      ref.test(getLocalAnyref(lhsIdx), RefType.i31ref),
-      ref.test(getLocalAnyref(rhsIdx), RefType.i31ref),
-    )
-    val i31Op = ref.i31(op(getI32FromAnyref(lhsIdx), getI32FromAnyref(rhsIdx)))
-    `if`(
-      condition = cond,
-      ifTrue = i31Op,
-      ifFalse = S(unreachable),
-      resultTypes = Seq(Result(RefType.anyref)),
-    )
-
-  /** Builds the body for an Int31 unary operator.
-    */
-  private def unaryInt31Body(paramIdx: LocalIdx, op: Expr => Expr)(using Ctx): Expr =
-    val cond = ref.test(getLocalAnyref(paramIdx), RefType.i31ref)
-    val i31Op = ref.i31(op(getI32FromAnyref(paramIdx)))
-    `if`(
-      condition = cond,
-      ifTrue = i31Op,
-      ifFalse = S(unreachable),
-      resultTypes = Seq(Result(RefType.anyref)),
-    )
-
-  /** Creates parameters for an intrinsic.
-    */
-  // TODO(Derppening): WTF? Remove `name` and add erasedType to `params`
-  private def mkIntrinsicParams(name: Str, suffixes: Ls[Str]): Ls[TempSymbol -> SymIdx] =
-    suffixes.map: suffix =>
-      val sym = TempSymbol(N, erasedType = N, suffix)
-      sym -> SymIdx(suffix)
 
   /** Loads the local `name` as an `anyref`.
     */
