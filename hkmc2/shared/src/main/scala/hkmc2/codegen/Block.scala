@@ -881,7 +881,7 @@ object ErasedType:
     *
     * - `rsc` is true if this reference is a resource class.
     */
-  case class AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol.type) extends ErasedType, ErasedValueType:
+  case class AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol.type) extends ErasedValueType:
     def sym(using Ctx, State): ClassLikeSymbol = csym match
       case csym: ClassLikeSymbol => csym
       case NoSymbol => lastWords("top type `Any` has no class-like symbol")
@@ -891,7 +891,7 @@ object ErasedType:
     def sym(using Ctx, State): ClassLikeSymbol = ctx.builtins.Function
   
   /** An primitive type. */
-  case class Primitive(prim: PrimitiveType) extends ErasedType, ErasedValueType:
+  case class Primitive(prim: PrimitiveType) extends ErasedValueType:
     def sym(using Ctx, State): ClassLikeSymbol = prim.sym
 
   /** The top type `Any`. */
@@ -977,7 +977,7 @@ sealed abstract class ErasedType:
   def sym(using Ctx, State): ClassLikeSymbol
 
 /** A trait indicating that the [[`ErasedType`]] is a value type. */
-sealed trait ErasedValueType extends ErasedType
+sealed abstract class ErasedValueType extends ErasedType
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:
