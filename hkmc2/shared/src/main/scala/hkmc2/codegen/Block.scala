@@ -865,7 +865,7 @@ enum PrimitiveType:
   case Unit, Int, Int31, Num, Str, Bool
 
   /** The symbol for this primitive type. */
-  def sym(using Ctx, State): ClassLikeSymbol = this match
+  def sym(using Ctx, State): TypeSymbol = this match
     case Unit => summon[State].unitSymbol
     case Int => ctx.builtins.Int
     case Int31 => ctx.builtins.Int31
@@ -877,61 +877,62 @@ object ErasedType:
   /** 
     * An reference to a class-like symbol.
     *
-    * If `csym` is `NoSymbol`, this represents the top type (`Any`).
-    *
     * - `rsc` is true if this reference is a resource class.
     */
-  case class AnyRef(rsc: Bool, csym: ClassLikeSymbol | NoSymbol.type) extends ErasedValueType:
-    def sym(using Ctx, State): ClassLikeSymbol = csym match
-      case csym: ClassLikeSymbol => csym
-      case NoSymbol => lastWords("top type `Any` has no class-like symbol")
+  case class AnyRef(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType:
+    def isTop(using Ctx): Bool = tpeSym is ctx.builtins.Anything
+    override def sym(using Ctx, State): TypeSymbol = tpeSym
   
   /** A reference to a function of a possibly-known shape. */
   case class FuncRef(rsc: Bool, params: Ls[Opt[ErasedType]], ret: Opt[ErasedType]) extends ErasedType:
-    def sym(using Ctx, State): ClassLikeSymbol = ctx.builtins.Function
+    override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Function
   
   /** An primitive type. */
   case class Primitive(prim: PrimitiveType) extends ErasedValueType:
-    def sym(using Ctx, State): ClassLikeSymbol = prim.sym
+    override def sym(using Ctx, State): TypeSymbol = prim.sym
 
-  /** The top type `Any`. */
-  def AnyType: ErasedType.AnyRef = AnyRef(rsc = false, NoSymbol)
+  /** The top type `Anything`. */
+  def AnythingType(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Anything)
 
   /** The `Array` reference type. */
   def ArrayType(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Array)
 
-  /** Maps a [[`ClassLikeSymbol`]] into the canonical [[`ErasedType`]]. */
-  def fromClsLikeSymbol(csym: ClassLikeSymbol, rsc: Bool)(using Ctx, State): ErasedType =
-    PrimitiveType.values.find(_.sym === csym) match
+  /** Maps a [[`TypeSymbol`]] into the canonical [[`ErasedType`]]. */
+  def fromTpeSymbol(tpeSym: TypeSymbol, rsc: Bool)(using Ctx, State): ErasedType =
+    PrimitiveType.values.find(_.sym === tpeSym) match
       case S(prim) => ErasedType.Primitive(prim)
-      case _ => ErasedType.AnyRef(rsc, csym)
+      case _ => ErasedType.AnyRef(rsc, tpeSym)
 
   /** Whether `actual` is a subtype of `expected`, walking the class hierarchy.
     *
     * Returns `S(true)`/`S(false)` when the relationship can be decided, or `N` when deciding would require
     * information not available in the IR (e.g. an unlinked parent chain on an imported class).
     */
-  def isSubtypeOf(actual: ClassLikeSymbol, expected: ClassLikeSymbol)(using Ctx, State): Opt[Bool] =
-    def parentOf(sym: ClassLikeSymbol): Opt[Opt[ClassLikeSymbol]] =
+  def isSubtypeOf(actual: TypeSymbol, expected: TypeSymbol)(using Ctx, State): Opt[Bool] =
+    def parentOf(sym: TypeSymbol): Opt[Opt[TypeSymbol]] =
       (sym match
         case sym: ClassSymbol => sym.irClsLikeDefn
         case sym: ModuleOrObjectSymbol => sym.irClsLikeDefn
+        case sym: TypeAliasSymbol => sym.irClsLikeDefn
       ).flatMap: defn =>
         defn.parentPath match
-          case S(parent) => parent.targetSymbol.collect { case s: ClassLikeSymbol => s }.map(S(_))
+          case S(parent) => parent.targetSymbol.collect { case s: TypeSymbol => s }.map(S(_))
           case N => S(N)
       .orElse:
         // FIXME: remove this fallback once imported classes have their `irClsLikeDefn` properly linked
         (sym match
           case sym: ClassSymbol => sym.defn
           case sym: ModuleOrObjectSymbol => sym.defn
+          case sym: TypeAliasSymbol => 
+            // TODO(Derppening): General alias endpoint normalization
+            N
         ).flatMap: defn =>
           defn.ext match
             case S(parent) => parent.cls.resolvedSym.flatMap(_.asClsOrMod).map(S(_))
             case N => S(N)
     
     @tailrec
-    def loop(cur: ClassLikeSymbol, seen: Set[ClassLikeSymbol]): Opt[Bool] =
+    def loop(cur: TypeSymbol, seen: Set[TypeSymbol]): Opt[Bool] =
       if cur is expected then S(true)
       else if seen(cur) then N
       else parentOf(cur) match
@@ -939,20 +940,24 @@ object ErasedType:
         case S(N) => S(false)
         case N => N
 
-    if expected is ctx.builtins.Object then
+    if actual is expected then S(true)
+    else if expected is ctx.builtins.Anything then S(true)
+    else if actual is ctx.builtins.Anything then S(false)
+    else if expected is ctx.builtins.Object then
       // * Primitive types are `<: Any` and `</: Object`
       // * Reference types are implicitly `<: Object`
+      // TODO(Derppening): Remove this fallback once `extends Object` is explicit
       if PrimitiveType.values.exists(_.sym === actual) then S(false) else S(true)
     else loop(actual, Set.empty)
 
   /** Classifies the cast needed to make a value of erased type `actual` fit an `expected` slot. */
   def castKind(actual: ErasedType, expected: ErasedType)(using Ctx, State): CastKind = (actual, expected) match
     case (Primitive(a), Primitive(b)) => if a == b then CastKind.Identity else CastKind.Unrelated
-    // * `T -> Any` is always an upcast...
-    case (_, AnyRef(_, NoSymbol)) => CastKind.Upcast
-    // * ... and `Any -> T` is always a downcast
-    case (AnyRef(_, NoSymbol), _) => CastKind.Downcast
-    // * Primitives are only compatible with the same primitive or `Any` (handled above)
+    // * `T -> Anything` is always an upcast...
+    case (_, e: AnyRef) if e.isTop => CastKind.Upcast
+    // * ... and `Anything -> T` is always a downcast
+    case (a: AnyRef, _) if a.isTop => CastKind.Downcast
+    // * Primitives are only compatible with the same primitive or `Anything` (handled above)
     case (Primitive(_), _) | (_, Primitive(_)) => CastKind.Unrelated
     case _ =>
       val a = actual.sym
@@ -970,11 +975,8 @@ object ErasedType:
 
 /** A generics-erased type of the Block IR. */
 sealed abstract class ErasedType:
-  /** The symbol for this erased type. 
-    *
-    * Throws an exception if invoked on `ErasedType.AnyType`, as the top type has no `ClassLikeSymbol`.
-    */
-  def sym(using Ctx, State): ClassLikeSymbol
+  /** The symbol for this erased type. */
+  def sym(using Ctx, State): TypeSymbol
 
 /** A trait indicating that the [[`ErasedType`]] is a value type. */
 sealed abstract class ErasedValueType extends ErasedType
@@ -985,7 +987,7 @@ trait HasErasedType:
   def erasedType: Opt[ErasedType]
 
   /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known. */
-  def erasedType_! : ErasedType = erasedType.getOrElse(ErasedType.AnyType)
+  def erasedType_!(using Ctx) : ErasedType = erasedType.getOrElse(ErasedType.AnythingType)
 
 /** A [[`HasErasedType`]] whose erased type can be populated exactly once post-construction. */
 trait HasOnceMutableErasedType extends HasErasedType:

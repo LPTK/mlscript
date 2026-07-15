@@ -2,6 +2,7 @@
 open annotations
 
 declare class Any
+declare class Anything
 declare class Nothing
 declare class Object
 

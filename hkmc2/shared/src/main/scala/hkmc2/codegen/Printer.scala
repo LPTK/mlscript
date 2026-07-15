@@ -31,8 +31,7 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
       case N => summon[SymbolPrinter].printSymbol(l)
   
   def print(et: ErasedType)(using Scope): Document = et match
-    case ErasedType.AnyRef(rsc, csym: ClassLikeSymbol) => doc"${if rsc then "rsc " else ""}${print(csym)}"
-    case ErasedType.AnyRef(rsc, NoSymbol) => doc"${if rsc then "rsc " else ""}Any"
+    case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${if rsc then "rsc " else ""}${print(tpeSym)}"
     case ErasedType.FuncRef(rsc, params, ret) =>
       doc"${if rsc then "rsc " else ""}(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"

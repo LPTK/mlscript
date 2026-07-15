@@ -222,8 +222,8 @@ object Elaborator:
       private def assumeBuiltinMod(nme: Str): ModuleOrObjectSymbol =
         assumeBuiltin(nme).asMod.getOrElse(throw new NoSuchElementException(
           s"builtin module symbol $nme"))
+      val Anything = assumeBuiltinTpe("Anything")
       val Int = assumeBuiltinCls("Int")
-      // TODO(Derppening): Can we move the Int31 builtin in the wasm module?
       val Int31 = assumeBuiltinCls("Int31")
       val Num = assumeBuiltinCls("Num")
       val Str = assumeBuiltinCls("Str")

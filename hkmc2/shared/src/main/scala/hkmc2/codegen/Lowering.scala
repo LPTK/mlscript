@@ -1463,7 +1463,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   /** Erases a type-annotated term to an [[`ErasedType`]]. */
   private def eraseSign(sign: Term): Opt[ErasedType] = 
-    sign.symbol.flatMap(_.asClsOrMod).map(sym => ErasedType.fromClsLikeSymbol(sym, rsc = false))
+    sign.symbol.flatMap(_.asClsOrMod).map(sym => ErasedType.fromTpeSymbol(sym, rsc = false))
 
   /** Populates the [[`ErasedType`]] of a class parameter. */
   private def populateClassParamErasedType(p: Param): Unit = 
