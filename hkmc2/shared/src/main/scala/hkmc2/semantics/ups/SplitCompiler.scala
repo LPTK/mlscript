@@ -731,7 +731,7 @@ class SplitCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynthesiz
         val trailingSize = trailing.size
         val (trailSubScrutinees, makeConsequent0) = trailing.folded(makeConsequent):
           index => scrutinee.getTupleLastSubScrutinee(trailingSize - index)
-        val spreadSubScrutinee = TempSymbol(N, erasedType = S(ErasedType.ArrayType), "middleElements")
+        val spreadSubScrutinee = TempSymbol(N, erasedType = S(ErasedType.Array), "middleElements")
         val makeConsequent1: MakeConsequent = (outerOutput, outerBindings) =>
           makeMatchSplit(spreadSubScrutinee.toScrut, spread, false)(
             (spreadOutput, spreadBindings) => makeConsequent0(
@@ -966,7 +966,7 @@ class SplitCompiler(using tl: TL)(using State, Ctx, Raise) extends TermSynthesiz
       makeStringPrefixMatchSplit(scrutinee, left)(
         (leftOutput, leftRemains, leftBindings) => makeMatchSplit(scrutinee, right)(
           (rightOutput, rightBindings) => 
-            val productSymbol = TempSymbol(N, erasedType = S(ErasedType.ArrayType), "product")
+            val productSymbol = TempSymbol(N, erasedType = S(ErasedType.Array), "product")
             val productTerm = tup(leftOutput() |> fld, rightOutput() |> fld)
             Split.Let(productSymbol, productTerm, makeConsequent(
               productSymbol.toScrut, leftRemains, leftBindings ++ rightBindings)),

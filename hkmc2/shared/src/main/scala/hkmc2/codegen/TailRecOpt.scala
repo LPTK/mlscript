@@ -454,7 +454,7 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
                     val paramList = ogParamList.params
                     val restParam = ogParamList.restParam
                     
-                    val tupleSym = TempSymbol(N, erasedType = S(ErasedType.ArrayType), "argList")
+                    val tupleSym = TempSymbol(N, erasedType = S(ErasedType.Array), "argList")
                     
                     // We can safely remove all of the symbols from this parameter list from `assignedSyms` at this stage,
                     // because the RHS of every parameter will be computed when spreading them in the tuple, which happens
@@ -470,7 +470,7 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
                       // If the rest param exists, append a slice
                       val (initialBlk: (Block => Block), pathList: List[Path]) =
                         if restParam.isDefined then
-                          val sliceResSym = TempSymbol(N, erasedType = S(ErasedType.ArrayType), "sliceRes")
+                          val sliceResSym = TempSymbol(N, erasedType = S(ErasedType.Array), "sliceRes")
                           // runtime.Tuple.slice(tupleSym, paramList.length, 0)
                           val sliceRes = Call(
                             State.runtimeSymbol.asSimpleRef

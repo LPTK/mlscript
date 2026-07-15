@@ -892,10 +892,10 @@ object ErasedType:
     override def sym(using Ctx, State): TypeSymbol = prim.sym
 
   /** The top type `Anything`. */
-  def AnythingType(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Anything)
+  def Anything(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Anything)
 
   /** The `Array` reference type. */
-  def ArrayType(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Array)
+  def Array(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Array)
 
   /** Maps a [[`TypeSymbol`]] into the canonical [[`ErasedType`]]. */
   def fromTpeSymbol(tpeSym: TypeSymbol, rsc: Bool)(using Ctx, State): ErasedType =
@@ -987,7 +987,7 @@ trait HasErasedType:
   def erasedType: Opt[ErasedType]
 
   /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known. */
-  def erasedType_!(using Ctx) : ErasedType = erasedType.getOrElse(ErasedType.AnythingType)
+  def erasedType_!(using Ctx) : ErasedType = erasedType.getOrElse(ErasedType.Anything)
 
 /** A [[`HasErasedType`]] whose erased type can be populated exactly once post-construction. */
 trait HasOnceMutableErasedType extends HasErasedType:
