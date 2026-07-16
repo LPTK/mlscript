@@ -28,6 +28,9 @@ extension (instr: FoldedInstr)
 
 extension (et: ErasedType)
   /** Returns the corresponding Wasm type for this [[`ErasedType`]]. */
+  // TODO(Derppening): Resolve type aliases here (via `TypeSymbol.resolveAlias`) so an aliased slot keeps its
+  //                   precise representation (e.g. `type MyInt = Int` -> `i31ref`) instead of widening to
+  //                   `anyref`.
   private[text] def wasmType(using Ctx): Opt[RefType] =
     import Ctx.ctx
     val elabCtx = ctx.elabCtx

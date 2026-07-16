@@ -272,3 +272,66 @@ fun f(o: Object, i: Int) =
 //│   return useInt³(tmp)
 //│ };
 //│ end
+
+
+// A type alias annotation is kept as-is in the erased type. A chain of aliases is likewise preserved.
+type MyInt = Int
+val v: MyInt = 1
+type MyInt2 = MyInt
+val w: MyInt2 = 2
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define v⁴ as val v⁵: MyInt⁰ = 1; define w⁰ as val w¹: MyInt2⁰ = 2; end
+
+
+// Aliases are resolved at cast sites, so no casts are inserted when passing between `Foo` and `FooAlias`.
+class Foo(x: Int)
+type FooAlias = Foo
+fun narrow(f: FooAlias): Foo = f
+fun widen(f: Foo): FooAlias = f
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define narrow⁰ as fun narrow¹(f: FooAlias⁰): Foo³ {
+//│   return f
+//│ };
+//│ define widen⁰ as fun widen¹(f: Foo³): FooAlias⁰ {
+//│   return f
+//│ };
+//│ define Foo⁴ as class Foo³ {
+//│   private val x¹: Int⁰;
+//│   constructor Foo⁵(x: Int⁰) { set Foo³.this.x¹ = x; end }
+//│ };
+//│ end
+
+
+// Similarly, an alias to a primitive is resolved at cast sites, so no casts are inserted (nor errors emitted) when 
+// passing an aliased primitive to a function expecting the underlying primitive type (and v/v).
+fun useI32(n: Int32) = n
+type MyI32 = Int32
+fun useMyI32(x: MyI32) = useI32(x)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useI32⁰ as fun useI32¹(n: Int32): ? {
+//│   return n
+//│ };
+//│ define useMyI32⁰ as fun useMyI32¹(x: MyI32⁰): ? { return useI32¹(x) };
+//│ end
+
+
+// An alias whose right-hand side does not resolve to a single type symbol - a cycle, or a union deferred to
+// the (not-yet-implemented) LUB work - is kept as-is but behaves as the `Anything` top type during
+// hierarchy analysis.
+// TODO(Derppening): This test case should update once LUB is implemented.
+type Cyclic = Cyclic
+class P
+class Q
+type Union = P | Q
+fun useCyclic(x: Cyclic): Cyclic = x
+fun useUnion(x: Union): Union = x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useCyclic⁰ as fun useCyclic¹(x: Cyclic⁰): Cyclic⁰ {
+//│   return x
+//│ };
+//│ define useUnion⁰ as fun useUnion¹(x: Union⁰): Union⁰ {
+//│   return x
+//│ };
+//│ define P⁰ as class P¹;
+//│ define Q⁰ as class Q¹;
+//│ end

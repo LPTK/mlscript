@@ -1,6 +1,7 @@
 package hkmc2
 package semantics
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.{Set => MutSet}
 
@@ -410,6 +411,22 @@ type BaseTypeSymbol = ClassSymbol | ModuleOrObjectSymbol
 
 type TypeSymbol = BaseTypeSymbol | TypeAliasSymbol
 
+extension (sym: TypeSymbol)
+  /** Resolves through an arbitrary chain of type aliases to the canonical target symbol.
+    *
+    * If the type alias chain is not defined (e.g. in `declare type ...`) or is cyclic, `sym` is returned unchanged.
+    */
+  // TODO(Derppening): Handle LUB if RHS of the type alias is a union type.
+  def resolveAlias: TypeSymbol =
+    @tailrec
+    def loop(cur: TypeSymbol, seen: Set[TypeSymbol]): TypeSymbol = cur match
+      case als: TypeAliasSymbol if !seen(als) =>
+        als.defn.flatMap(_.rhs).flatMap(_.symbol).flatMap(_.asTpe) match
+          case S(target) => loop(target, seen + als)
+          case N => cur
+      case _ => cur
+    loop(sym, Set.empty)
+
 /**
   * ErrorSymbol is a placeholder symbol denoting error (during symbol
   * resolution in the elaborator / resolver). This helps prevent the
@@ -535,7 +552,7 @@ class TypeAliasSymbol(val id: Tree.Ident)(using State)
     with DefinitionSymbol[TypeDef]
     with HasErasedType:
 
-  override val erasedType: Opt[ErasedType] = irClsLikeDefn.flatMap(_.sym.asClsOrMod).map(ErasedType.AnyRef(rsc = false, _))
+  override val erasedType: Opt[ErasedType] = S(ErasedType.AnyRef(rsc = false, this))
   
   def nme = id.name
   def toLoc: Option[Loc] = id.toLoc // TODO track source tree of type alias here

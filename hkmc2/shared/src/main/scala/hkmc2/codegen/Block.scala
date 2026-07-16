@@ -880,6 +880,14 @@ object ErasedType:
   case class AnyRef(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType:
     def isTop(using Ctx): Bool = tpeSym is ctx.builtins.Anything
     override def sym(using Ctx, State): TypeSymbol = tpeSym
+
+    /** Returns the canonical erased type for this reference, resolving any alias references. */
+    override def dealias(using Ctx, State): ErasedType = tpeSym match
+      // * We use `fromTpeSymbol` here as an alias may resolve to a non-`AnyRef` type.
+      case _: TypeAliasSymbol => tpeSym.resolveAlias match
+        case _: TypeAliasSymbol => Anything
+        case base => fromTpeSymbol(base, rsc)
+      case _ => this
   
   /** A reference to a function of a possibly-known shape. */
   case class FuncRef(rsc: Bool, params: Ls[Opt[ErasedType]], ret: Opt[ErasedType]) extends ErasedType:
@@ -921,15 +929,17 @@ object ErasedType:
 
   /** Whether `actual` is a subtype of `expected`, walking the class hierarchy.
     *
+    * Types passed to this function are assumed to be already dealiased - Unresolved aliases are treated as the top
+    * type.
+    *
     * Returns `S(true)`/`S(false)` when the relationship can be decided, or `N` when deciding would require
     * information not available in the IR (e.g. an unlinked parent chain on an imported class).
     */
   def isSubtypeOf(actual: TypeSymbol, expected: TypeSymbol)(using Ctx, State): Opt[Bool] =
-    def parentOf(sym: TypeSymbol): Opt[Opt[TypeSymbol]] =
+    def parentOf(sym: BaseTypeSymbol): Opt[Opt[TypeSymbol]] =
       (sym match
         case sym: ClassSymbol => sym.irClsLikeDefn
         case sym: ModuleOrObjectSymbol => sym.irClsLikeDefn
-        case sym: TypeAliasSymbol => sym.irClsLikeDefn
       ).flatMap: defn =>
         defn.parentPath match
           case S(parent) => parent.targetSymbol.collect { case s: TypeSymbol => s }.map(S(_))
@@ -939,22 +949,23 @@ object ErasedType:
         (sym match
           case sym: ClassSymbol => sym.defn
           case sym: ModuleOrObjectSymbol => sym.defn
-          case sym: TypeAliasSymbol => 
-            // TODO(Derppening): General alias endpoint normalization
-            N
         ).flatMap: defn =>
           defn.ext match
             case S(parent) => parent.cls.resolvedSym.flatMap(_.asClsOrMod).map(S(_))
             case N => S(N)
-    
+
     @tailrec
     def loop(cur: TypeSymbol, seen: Set[TypeSymbol]): Opt[Bool] =
       if cur is expected then S(true)
-      else if seen(cur) then N
-      else parentOf(cur) match
-        case S(S(parent)) => loop(parent, seen + cur)
-        case S(N) => S(false)
-        case N => N
+      else cur match
+        // * Since aliases should've already been dealiased, an alias reaching here is undecidable.
+        case _: TypeAliasSymbol => N
+        case base @ (_: ClassSymbol | _: ModuleOrObjectSymbol) =>
+          if seen(base) then N
+          else parentOf(base) match
+            case S(S(parent)) => loop(parent, seen + base)
+            case S(N) => S(false)
+            case N => N
 
     if actual is expected then S(true)
     else if expected is ctx.builtins.Anything then S(true)
@@ -967,32 +978,38 @@ object ErasedType:
     else loop(actual, Set.empty)
 
   /** Classifies the cast needed to make a value of erased type `actual` fit an `expected` slot. */
-  def castKind(actual: ErasedType, expected: ErasedType)(using Ctx, State): CastKind = (actual, expected) match
-    case (Primitive(a), Primitive(b)) => if a == b then CastKind.Identity else CastKind.Unrelated
-    // * `T -> Anything` is always an upcast...
-    case (_, e: AnyRef) if e.isTop => CastKind.Upcast
-    // * ... and `Anything -> T` is always a downcast
-    case (a: AnyRef, _) if a.isTop => CastKind.Downcast
-    // * Primitives are only compatible with the same primitive or `Anything` (handled above)
-    case (Primitive(_), _) | (_, Primitive(_)) => CastKind.Unrelated
-    case _ =>
-      val a = actual.sym
-      val e = expected.sym
-      if a is e then CastKind.Identity
-      else (isSubtypeOf(a, e), isSubtypeOf(e, a)) match
-        case (S(true), _) => CastKind.Upcast
-        case (_, S(true)) => CastKind.Downcast
-        // * We cannot definitely conclude that the types are unrelated, because `isSubtypeOf` follows only the `ext`
-        // * chain and is therefore blind to relatedness via traits or multiple parents.
-        case (S(false), S(false)) => CastKind.Incomparable
-        // * Neither class has enough IR information to determine the relationship
-        case (afe, efa) => lastWords:
-          s"Cannot determine cast kind between $actual and $expected: isSubtypeOf($a, $e) = $afe, isSubtypeOf($e, $a) = $efa"
+  def castKind(actual: ErasedType, expected: ErasedType)(using Ctx, State): CastKind =
+    // * Resolve alias references to their canonical erased types first
+    (actual.dealias, expected.dealias) match
+      case (Primitive(a), Primitive(b)) => if a == b then CastKind.Identity else CastKind.Unrelated
+      // * `T -> Anything` is always an upcast...
+      case (_, e: AnyRef) if e.isTop => CastKind.Upcast
+      // * ... and `Anything -> T` is always a downcast
+      case (a: AnyRef, _) if a.isTop => CastKind.Downcast
+      // * Primitives are only compatible with the same primitive or `Anything` (handled above)
+      case (Primitive(_), _) | (_, Primitive(_)) => CastKind.Unrelated
+      case (actual, expected) =>
+        val a = actual.sym
+        val e = expected.sym
+        if a is e then CastKind.Identity
+        else (isSubtypeOf(a, e), isSubtypeOf(e, a)) match
+          case (S(true), _) => CastKind.Upcast
+          case (_, S(true)) => CastKind.Downcast
+          // * We cannot definitely conclude that the types are unrelated, because `isSubtypeOf` follows only the `ext`
+          // * chain and is therefore blind to relatedness via traits or multiple parents.
+          case (S(false), S(false)) => CastKind.Incomparable
+          // * Neither class has enough IR information to determine the relationship
+          case (afe, efa) => lastWords:
+            s"Cannot determine cast kind between $actual and $expected: isSubtypeOf($a, $e) = $afe, isSubtypeOf($e, $a) = $efa"
 
 /** A generics-erased type of the Block IR. */
 sealed abstract class ErasedType:
   /** The symbol for this erased type. */
   def sym(using Ctx, State): TypeSymbol
+
+  /** Resolves any alias reference to its canonical erased type. A non-alias type is returned unchanged; an
+    * alias with no resolvable target (e.g. cyclic) becomes the top type. */
+  def dealias(using Ctx, State): ErasedType = this
 
 /** A trait indicating that the [[`ErasedType`]] is a value type. */
 sealed abstract class ErasedValueType extends ErasedType
