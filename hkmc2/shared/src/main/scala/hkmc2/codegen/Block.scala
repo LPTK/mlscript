@@ -918,8 +918,12 @@ object ErasedType:
     override protected def computeCanonicalize(using Ctx, State): ErasedType =
       members.reduceLeft((a, b) => lub(a, b))
 
-  /** The builtin top type `Anything`. */
-  def Anything(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Anything)
+  /** The builtin top type `Anything`.
+    *
+    * This type is special-cased to allow its construction without an `Elaborator.Ctx`.
+    */
+  case object Anything extends ErasedValueType:
+    override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
 
   /** The builtin `Unit` reference type. */
   def Unit(using State): ErasedType.AnyRef = AnyRef(rsc = false, summon[State].unitSymbol)
@@ -1017,8 +1021,7 @@ object ErasedType:
     (dl, dr) match
       case _ if dl == dr => dl
       // * The top type absorbs everything.
-      case (a: AnyRef, _) if a.isTop => Anything
-      case (_, e: AnyRef) if e.isTop => Anything
+      case (Anything, _) | (_, Anything) => Anything
       // * A primitive shares no supertype but `Anything` with any distinct type (equal primitives are handled
       // * above), including a distinct primitive of a different value type.
       case (_: Primitive, _) | (_, _: Primitive) => Anything
@@ -1081,8 +1084,8 @@ object ErasedType:
     // * Reduce both sides to their canonical form first.
     (actual.canonicalize, expected.canonicalize) match
       // * `T -> Anything` needs no cast; `Anything -> T` needs a checked downcast.
-      case (_, e: AnyRef) if e.isTop => S(false)
-      case (a: AnyRef, _) if a.isTop => S(true)
+      case (_, Anything) => S(false)
+      case (Anything, _) => S(true)
       case (Primitive(a), Primitive(b)) => if a == b then S(false) else N
       // * Primitives are only compatible with the same primitive, or `Anything` (handled above)
       case (Primitive(_), _) | (_, Primitive(_)) => N
