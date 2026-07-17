@@ -1391,15 +1391,15 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     expected match
     case N => k(r)
     case S(t) =>
-      ErasedType.castKind(r.erasedType_!, t) match
-      case CastKind.Identity | CastKind.Upcast | CastKind.Incomparable => k(r)
-      case CastKind.Downcast =>
+      ErasedType.needsCast(r.erasedType_!, t) match
+      case S(false) => k(r)
+      case S(true) =>
         r match
         case p: Path => k(Cast(p, t))
         case _ =>
           val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedType)
           Assign(l, r, k(Cast(l.asSimpleRef, t)))
-      case CastKind.Unrelated =>
+      case N =>
         raise(ErrorReport(
           msg"Cannot narrow a value of type '${r.erasedType_!.sym.nme}' to unrelated type '${t.sym.nme}'" ->
           loc :: Nil,

@@ -1019,30 +1019,33 @@ object ErasedType:
       if PrimitiveType.values.exists(_.sym === actual) then S(false) else S(true)
     else loop(actual, Set.empty)
 
-  /** Classifies the cast needed to make a value of erased type `actual` fit an `expected` slot. */
-  def castKind(actual: ErasedType, expected: ErasedType)(using Ctx, State): CastKind =
+  /** Determines whether a cast is needed to make a value of erased type `actual` fit an `expected` slot.
+    *
+    * Returns `S(true)` if a cast is needed, `S(false)` if no cast is needed, or `N` if the two types are unrelated.
+    */
+  def needsCast(actual: ErasedType, expected: ErasedType)(using Ctx, State): Opt[Bool] =
     // * Resolve alias references to their canonical erased types first.
     (actual.dealias, expected.dealias) match
-      // * `T -> Anything` is always an upcast...
-      case (_, e: AnyRef) if e.isTop => CastKind.Upcast
-      // * ... and `Anything -> T` is always a downcast
-      case (a: AnyRef, _) if a.isTop => CastKind.Downcast
-      case (Primitive(a), Primitive(b)) => if a == b then CastKind.Identity else CastKind.Unrelated
+      // * `T -> Anything` needs no cast; `Anything -> T` needs a checked downcast.
+      case (_, e: AnyRef) if e.isTop => S(false)
+      case (a: AnyRef, _) if a.isTop => S(true)
+      case (Primitive(a), Primitive(b)) => if a == b then S(false) else N
       // * Primitives are only compatible with the same primitive, or `Anything` (handled above)
-      case (Primitive(_), _) | (_, Primitive(_)) => CastKind.Unrelated
+      case (Primitive(_), _) | (_, Primitive(_)) => N
       case (da, de) =>
         val a = da.sym
         val e = de.sym
-        if a is e then CastKind.Identity
+        if a is e then S(false)
         else (isSubtypeOf(a, e), isSubtypeOf(e, a)) match
-          case (S(true), _) => CastKind.Upcast
-          case (_, S(true)) => CastKind.Downcast
-          // * We cannot definitely conclude that the types are unrelated, because `isSubtypeOf` follows only the `ext`
-          // * chain and is therefore blind to relatedness via traits or multiple parents.
-          case (S(false), S(false)) => CastKind.Incomparable
-          // * Neither class has enough IR information to determine the relationship
-          case (afe, efa) => lastWords:
-            s"Cannot determine cast kind between $da and $de: isSubtypeOf($a, $e) = $afe, isSubtypeOf($e, $a) = $efa"
+          // * The value is already a subtype of the slot -> no cast needed.
+          case (S(true), _) => S(false)
+          // * The slot is a subtype of the value -> a narrowing (checked) cast.
+          case (_, S(true)) => S(true)
+          // * Provably unrelated along the `ext` chain -> narrowing is a compile error.
+          case (S(false), S(false)) => N
+          // * Undecidable (unlinked import / cyclic chain): treat the value's type as the top type `Anything`
+          // * for this decision and emit a conservative checked cast.
+          case _ => S(true)
 
 /** A generics-erased type of the Block IR. */
 sealed abstract class ErasedType:
@@ -1075,24 +1078,6 @@ trait HasOnceMutableErasedType extends HasErasedType:
     //                   only lower each program once
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
-
-
-/** How a value's erased type relates to the erased type of the slot it flows into. */
-enum CastKind:
-  /** The types are the same. */
-  case Identity
-  /** The value type is a subtype of the target type. */
-  case Upcast
-  /** The value type is a supertype of the target type. */
-  case Downcast
-  /** The types are provably incompatible. */
-  case Unrelated
-  /** No subtyping relation can be established by walking the inheritance chain.
-    *
-    * This is not to be treated as `Unrelated`, because the types may still be related via traits or multiple parents,
-    * which are not visible to the inheritance-only oracle.
-    */
-  case Incomparable
 
 sealed trait TrivialResult extends Result
 

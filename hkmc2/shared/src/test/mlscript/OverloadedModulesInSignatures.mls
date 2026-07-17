@@ -99,7 +99,11 @@ fun assertModule(module m: ClsMod): module ClsMod = m
 assertModule(ClsMod).whoami
 //│ = "module"
 
+:ge
 assertModule(TypMod).whoami
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'TypMod' to unrelated type 'ClsMod'
+//│ ║  l.103: 	assertModule(TypMod).whoami
+//│ ╙──       	             ^^^^^^
 //│ = "module"
 
 :fixme
@@ -138,10 +142,10 @@ module Foo
 :e
 fun f(x: Foo): Foo = x
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.139: 	fun f(x: Foo): Foo = x
+//│ ║  l.143: 	fun f(x: Foo): Foo = x
 //│ ╙──       	         ^^^
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.139: 	fun f(x: Foo): Foo = x
+//│ ║  l.143: 	fun f(x: Foo): Foo = x
 //│ ╙──       	               ^^^
 
 fun f(x: Foo[Int]): Foo[Int] = x
@@ -151,10 +155,10 @@ fun f(module x: Foo): module Foo = x
 :e
 fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.152: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.156: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.152: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.156: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                                  ^^^^^^^^
 
 
