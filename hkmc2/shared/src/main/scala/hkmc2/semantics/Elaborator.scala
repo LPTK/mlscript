@@ -1875,7 +1875,13 @@ extends Importer:
                 case _ =>
                   Modulefulness.none
               
-              val tsym = TermSymbol(k, owner, id, erasedType = N) // TODO?
+              val erasedTpe = k match
+                case syntax.Fun =>
+                  S(ErasedType.FuncRef(rsc = false,
+                    pss.flatMap(_.params).map(_.sym.erasedType), s.flatMap(ErasedType.eraseSign)))
+                case _: syntax.Val => s.flatMap(ErasedType.eraseSign)
+                case _ => N
+              val tsym = TermSymbol(k, owner, id, erasedType = erasedTpe)
               val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, 
                 TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations, N).withLocOf(td)
               tsym.defn = S(tdf)
@@ -1998,9 +2004,10 @@ extends Importer:
                 p.fldSym = S(fsym)
                 fsym.tsym = S(tsym)
                 tsym.defn = S(fdef)
+                p.sign.flatMap(ErasedType.eraseSign).foreach(tsym.populateErasedType)
                 fdef :: Nil
               else
-                val psym = TermSymbol(LetBind, owner, p.sym.id, erasedType = N)
+                val psym = TermSymbol(LetBind, owner, p.sym.id, erasedType = p.sign.flatMap(ErasedType.eraseSign))
                 psym.sourceAliases = p.sym.sourceAliases
                 val decl = LetDecl(psym, Nil)
                 val defn = DefineVar(psym, p.sym.ref())
@@ -2013,7 +2020,7 @@ extends Importer:
               val owner = td.symbol match
                 case s: InnerSymbol => S(s)
                 case _: TypeAliasSymbol => die
-              val psym = TermSymbol(LetBind, owner, p.sym.id, erasedType = N)
+              val psym = TermSymbol(LetBind, owner, p.sym.id, erasedType = p.sign.flatMap(ErasedType.eraseSign))
               psym.sourceAliases = p.sym.sourceAliases
               val decl = LetDecl(psym, Nil)
               val defn = DefineVar(psym, p.sym.ref())
@@ -2270,9 +2277,9 @@ extends Importer:
             new Ident(base).withLocOf(id) -> (id.name :: Nil)
           case N =>
             id -> Nil
-        val sym = VarSymbol(canonicalId, erasedType = N)
-        sym.sourceAliases = aliases
         val sig = sign.map(term(_))
+        val sym = VarSymbol(canonicalId, erasedType = sig.flatMap(ErasedType.eraseSign))
+        sym.sourceAliases = aliases
         val p = Param(flg, sym, sig, Modulefulness.ofSign(sig)(Mod in modifiers))
         sym.decl = S(p)
         (p, spd, aliases)

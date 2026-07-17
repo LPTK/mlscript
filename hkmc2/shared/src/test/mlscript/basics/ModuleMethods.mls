@@ -109,7 +109,7 @@ assertNonM(f[Int]())
 //│ ║         	           ^^^^^^^^
 //│ ╙── Module argument passed to a non-module parameter.
 
-assertM(f[Int]())
+assertMM(f[Int]())
 
 
 :todo

@@ -35,6 +35,11 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
     case ErasedType.FuncRef(rsc, params, ret) =>
       doc"${if rsc then "rsc " else ""}(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
+    // * Show the LUB if lowering has memoized it; otherwise fall back to the surface members.
+    // * (Note: `Printer` doesn't have `Elaborator.Ctx` to compute the LUB on-demand.)
+    case u @ ErasedType.Union(members) => u.canonicalizedCache match
+      case S(collapsed) => print(collapsed)
+      case N => members.map(print).mkDocument(sep = doc" | ")
 
   /** Renders the type annotation for a symbol with an [[`ErasedType`]]. */
   def erasedTypeAnnot(x: HasErasedType)(using Scope): Document =

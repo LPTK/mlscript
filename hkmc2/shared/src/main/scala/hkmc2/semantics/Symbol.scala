@@ -248,9 +248,9 @@ class InstSymbol(val origin: Symbol)(using State) extends LocalSymbol:
   def subst(using sub: SymbolSubst): InstSymbol = sub.mapInstSym(this)
 
 
-class VarSymbol(val id: Ident, override var erasedType: Opt[ErasedType])(using State)
+class VarSymbol(val id: Ident, override val erasedType: Opt[ErasedType])(using State)
     extends LocalVarSymbol(id.name)
-    with HasOnceMutableErasedType
+    with HasErasedType
     with NamedSymbol:
   val name: Str = id.name
   var sourceAliases: Ls[Str] = Nil

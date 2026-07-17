@@ -157,7 +157,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   // type Rcd = (mut: Bool, args: List[RcdArg]) // * Better, but Scala's patmat exhaustiveness chokes on it
   type Rcd = (Bool, List[RcdArg])
   
-  // TODO(Derppening): Insert a return downcast here after `populateFunDefnType` is moved to a pre-Lowering pass
+  // TODO(Derppening): Insert a return downcast here if needed
   def returnedTerm(t: st)(using LoweringCtx): Block = term(t)(Ret)(using LoweringCtx.nestFunc)
   
   def parentConstructor(parentClsPath: Path, cls: Term, args: Ls[Term])(using LoweringCtx) =
@@ -248,7 +248,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             td.k match
             case knd: syntax.Val =>
               assert(td.params.isEmpty)
-              td.sign.flatMap(eraseSign).foreach(td.tsym.populateErasedType)
               val cfgOverride = td.extraAnnotations.collectFirst:
                 case Annot.Config(modify) => modify(config)
               subTerm_nonTail(bod)(r =>
@@ -258,7 +257,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                   blockImpl(stats, res)))(using LoweringCtx.nestFunc)
             case syntax.Fun =>
               val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))
-              populateFunDefnType(td.tsym, paramLists, td.sign)
               val cfgOverride = td.extraAnnotations.collectFirst:
                 case Annot.Config(modify) => modify(config)
               Define(FunDefn(td.owner, td.sym, td.tsym, paramLists, bodyBlock)(cfgOverride, td.annotations),
@@ -299,8 +297,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 )
             case _ => _defn
           reportAnnotations(defn, defn.extraAnnotations)
-          (defn.paramsOpt.iterator ++ defn.auxParams.iterator).foreach: pl =>
-            pl.params.foreach(populateClassParamErasedType)
           val bufferableAnnots = defn.annotations.flatMap:
             case Annot.Trm(trm: SynthSel) =>
               if trm.sym.contains(ctx.builtins.annotations.buffered) then
@@ -1277,7 +1273,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       .flatMap: td =>
         td.body.map: bod =>
           val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
-          populateFunDefnType(td.tsym, paramLists, td.sign)
           reportAnnotations(td, td.extraAnnotations)
           val cfgOverride = td.extraAnnotations.collectFirst:
             case Annot.Config(modify) => modify(config)
@@ -1461,44 +1456,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val scopedSyms = loweringCtx.getCollectedSym.filterNot(syms)
       Scoped(scopedSyms, body)
   
-  /** Erases a type-annotated term to an [[`ErasedType`]]. */
-  private def eraseSign(sign: Term): Opt[ErasedType] = sign match
-    case CompType(lhs, rhs, true) =>
-      // * Union types are erased to the least upper bound of their members if both members can be erased
-      for
-        l <- eraseSign(lhs)
-        r <- eraseSign(rhs)
-      yield ErasedType.lub(l, r)
-    case UnitVal() => S(ErasedType.Unit)
-    case _ =>
-      sign.symbol.flatMap(_.asTpe).map(sym => ErasedType.fromTpeSymbol(sym, rsc = false))
-
-  /** Populates the [[`ErasedType`]] of a class parameter. */
-  private def populateClassParamErasedType(p: Param): Unit = 
-    p.sign.flatMap(eraseSign).foreach: et =>
-      p.sym.populateErasedType(et)
-      p.fldSym.foreach:
-        case fld: TermSymbol => fld.populateErasedType(et)
-        case bms: BlockMemberSymbol => bms.tsym.foreach(_.populateErasedType(et))
-        case _ =>
-  
-  /** Populates a function definition symbol's erased type with a [[`ErasedType.FuncRef`]] derived from its
-    * (already-populated) parameter symbols and return type.
-    *
-    * Both the parameter and return types come from explicit annotations; unannotated positions stay unknown.
-    */
-  // TODO(Derppening): Parameters of curried functions are currently flattened - Should we preserve the curried shape?
-  private def populateFunDefnType(tsym: TermSymbol, paramLists: Ls[ParamList], sign: Opt[Term]): Unit =
-    if tsym.erasedType.isEmpty then
-      val params = paramLists.flatMap(_.params).map(_.sym.erasedType)
-      val ret = sign.flatMap(eraseSign)
-      tsym.erasedType = S(ErasedType.FuncRef(rsc = false, params, ret))
-
   def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
       (using LoweringCtx): (List[ParamList], Block) =
-    paramLists.foreach: pl =>
-      pl.params.foreach: p =>
-        p.sign.flatMap(eraseSign).foreach(p.sym.populateErasedType)
     val scopedBody = inScopedBlock(returnedTerm(bodyTerm))
     (paramLists, scopedBody)
   
