@@ -335,3 +335,63 @@ fun useUnion(x: Union): Union = x
 //│ define P⁰ as class P¹;
 //│ define Q⁰ as class Q¹;
 //│ end
+
+
+// A (possibly nested) union annotation collapses to the least upper bound of its members, and the slot prints that
+// single type.
+class Base
+class A extends Base
+class B extends Base
+fun oneOf(x: A | B): Int = 0
+fun threeOf(x: A | B | Base): Int = 0
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define oneOf⁰ as fun oneOf¹(x: Base⁰): Int⁰ {
+//│   return 0
+//│ };
+//│ define threeOf⁰ as fun threeOf¹(x: Base⁰): Int⁰ {
+//│   return 0
+//│ };
+//│ define Base¹ as class Base⁰;
+//│ define A⁰ as class A¹ extends Base⁰ {};
+//│ define B⁰ as class B¹ extends Base⁰ {};
+//│ end
+
+
+// Casts are determined against the collapsed slot type:
+//
+// - `A | B` -> `Base` is an identity conversion since `A | B`'s LUB is `Base`.
+//   - Similarly, `Base` -> `A | B` is an identity conversion.
+// - `A` -> `A | B` is an upcast since `A <: Base`.
+// - `A | B` -> `A` is a *downcast* since `A | B`'s LUB is `Base` and `Base <: A` is false.
+fun takesBase(b: Base): () = ()
+fun takesUnion(u: A | B): () = ()
+fun takesSubtype(a: A): () = ()
+fun unionIntoBase(x: A | B) = takesBase(x)
+fun memberIntoUnion(a: A) = takesUnion(a)
+fun baseIntoUnion(b: Base) = takesUnion(b)
+fun unionIntoSubtype(x: A | B) = takesSubtype(x)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define takesBase⁰ as fun takesBase¹(b: Base⁰): ? {
+//│   return runtime⁰.Unit⁰
+//│ };
+//│ define takesUnion⁰ as fun takesUnion¹(u: Base⁰): ? {
+//│   return runtime⁰.Unit⁰
+//│ };
+//│ define takesSubtype⁰ as fun takesSubtype¹(a: A¹): ? {
+//│   return runtime⁰.Unit⁰
+//│ };
+//│ define unionIntoBase⁰ as fun unionIntoBase¹(x: Base⁰): ? {
+//│   return takesBase¹(x)
+//│ };
+//│ define memberIntoUnion⁰ as fun memberIntoUnion¹(a: A¹): ? {
+//│   return takesUnion¹(a)
+//│ };
+//│ define baseIntoUnion⁰ as fun baseIntoUnion¹(b: Base⁰): ? {
+//│   return takesUnion¹(b)
+//│ };
+//│ define unionIntoSubtype⁰ as fun unionIntoSubtype¹(x: Base⁰): ? {
+//│   let tmp: A¹;
+//│   set tmp = (x as A¹);
+//│   return takesSubtype¹(tmp)
+//│ };
+//│ end
