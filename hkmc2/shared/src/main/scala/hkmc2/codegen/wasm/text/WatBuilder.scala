@@ -1172,7 +1172,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
   /** Allocates a fresh temp local (typed `anyref`) and returns its `LocalIdx`.
     */
-  private def mkTempLocal(base: Str, erasedType: Opt[ErasedType])(using FunctionCtx, Raise): LocalIdx =
+  private def mkTempLocal(base: Str, erasedType: Opt[ErasedValueType])(using FunctionCtx, Raise): LocalIdx =
     funcCtx.addLocal(TempSymbol(N, erasedType, base))
 
   /** Binds constructor self (`thisSym`) to the Wasm local name `this` in the current function context.

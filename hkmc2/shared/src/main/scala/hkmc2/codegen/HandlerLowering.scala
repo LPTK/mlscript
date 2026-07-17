@@ -119,7 +119,7 @@ class HandlerPaths(using Elaborator.State):
 
 class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise, Elaborator.State, Elaborator.Ctx, Config):
   
-  private def freshTmp(erasedType: Opt[ErasedType], dbgNme: Str = "tmp") = new TempSymbol(N, erasedType, dbgNme)
+  private def freshTmp(erasedType: Opt[ErasedValueType], dbgNme: Str = "tmp") = new TempSymbol(N, erasedType, dbgNme)
   private def freshLabel(nme: Str) = new LabelSymbol(N, nme)
   
   private def rtThrowMsg(msg: Str) = Throw(

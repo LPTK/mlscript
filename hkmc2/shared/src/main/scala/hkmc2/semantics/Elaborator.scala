@@ -17,7 +17,7 @@ import hkmc2.Message.MessageContext
 
 import Keyword.{`and`, `case`, `do`, `else`, `if`, `is`, `let`, `or`, `set`, `then`, `while`}
 import hkmc2.utils.Scope
-import codegen.ErasedType
+import codegen.{ErasedType, ErasedValueType}
 import SimpleSplit.*
 import ucs.{error, unapply}
 
@@ -1087,7 +1087,7 @@ extends Importer:
       })(N).withLocOf(tree)
     case InfixApp(TyTup(tvs), Keywrd(Keyword.`->`), body) =>
       val boundVars = mutable.HashMap.empty[Str, VarSymbol]
-      def genSym(id: Tree.Ident, erasedType: Opt[ErasedType]) =
+      def genSym(id: Tree.Ident, erasedType: Opt[ErasedValueType]) =
         val sym = VarSymbol(id, erasedType)
         sym.decl = S(TyParam(FldFlags.empty, N, sym)) // TODO vce
         boundVars += id.name -> sym

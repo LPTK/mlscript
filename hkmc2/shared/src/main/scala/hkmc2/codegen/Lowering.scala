@@ -43,7 +43,7 @@ class LoweringCtx(
   val map = initMap
   def collectScopedSym(s: ScopedSymbol) = definedSymsDuringLowering.add(s)
   def collectScopedSyms(s: ScopedSymbol*) = definedSymsDuringLowering.addAll(s)
-  def registerTempSymbol(trm: Option[Term], erasedType: Opt[ErasedType], dbgNme: Str = "tmp")(using State) =
+  def registerTempSymbol(trm: Option[Term], erasedType: Opt[ErasedValueType], dbgNme: Str = "tmp")(using State) =
     val tmp = new TempSymbol(trm, erasedType, dbgNme)
     definedSymsDuringLowering.add(tmp)
     tmp
@@ -1389,11 +1389,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       ErasedType.needsCast(r.erasedType_!.canonicalize, t.canonicalize) match
       case S(false) => k(r)
       case S(true) =>
+        val target = t match
+          case _: ErasedType.FuncRef => ErasedType.Function
+          case v: ErasedValueType => v
         r match
-        case p: Path => k(Cast(p, t))
+        case p: Path => k(Cast(p, target))
         case _ =>
           val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedType)
-          Assign(l, r, k(Cast(l.asSimpleRef, t)))
+          Assign(l, r, k(Cast(l.asSimpleRef, target)))
       case N =>
         raise(ErrorReport(
           msg"Cannot narrow a value of type '${r.erasedType_!.sym.nme}' to unrelated type '${t.sym.nme}'" ->

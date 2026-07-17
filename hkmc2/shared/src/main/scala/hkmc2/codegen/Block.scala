@@ -921,7 +921,7 @@ object ErasedType:
     * Implementation Note: This transient type is needed to represent union types before the `Prelude` is fully
     * elaborated - See the implementation note of `ValueLike`. The IR should always operate on the canonicalized type.
     */
-  case class Union(members: Ls[ErasedType]) extends ErasedValueType:
+  case class Union(members: Ls[ErasedValueType]) extends ErasedValueType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
     override protected def computeCanonicalize(using Ctx, State): CanonicalErasedType =
       members.map(_.canonicalize).reduceLeft((a, b) => lub(a, b))
@@ -953,6 +953,9 @@ object ErasedType:
 
   /** The builtin `Int31` reference type. */
   def Int31(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Int31)
+
+  /** The builtin `Function` reference type, used as the value type of a first-class function. */
+  def Function(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Function)
 
   /** Determines the direct parent of a class-like symbol.
     *
@@ -1006,8 +1009,8 @@ object ErasedType:
     *
     * Note that the resulting union type is **not** canonicalized into the LUB of its members.
     */
-  def union(lhs: ErasedType, rhs: ErasedType): ErasedType =
-    def flatten(et: ErasedType): Ls[ErasedType] = et match
+  def union(lhs: ErasedValueType, rhs: ErasedValueType): ErasedValueType =
+    def flatten(et: ErasedValueType): Ls[ErasedValueType] = et match
       case Union(ms) => ms
       case other => other :: Nil
     (flatten(lhs) ::: flatten(rhs)).distinct match
@@ -1031,7 +1034,7 @@ object ErasedType:
     * Note that the resulting erased type is **not** canonicalized to avoid using `ctx.builtins` during elaboration
     * of `Prelude`.
     */
-  def eraseSign(sign: Term)(using State): Opt[ErasedType] = sign match
+  def eraseSign(sign: Term)(using State): Opt[ErasedValueType] = sign match
     case CompType(lhs, rhs, true) =>
       // * A union is kept as a transient `Union` surface form; `canonicalize` collapses it to the members' LUB.
       for
@@ -1156,9 +1159,14 @@ trait HasOnceMutableErasedType extends HasErasedType:
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
 
+/** A [[`HasErasedType`]] whose erased type is guaranteed to be a value type. */
+trait HasErasedValueType extends HasErasedType:
+  override def erasedType: Opt[ErasedValueType]
+  override def erasedType_!(using Ctx): ErasedValueType = erasedType.getOrElse(ErasedType.Anything)
+
 sealed trait TrivialResult extends Result
 
-sealed abstract class Result extends AutoLocated, HasErasedType:
+sealed abstract class Result extends AutoLocated, HasErasedValueType:
 // // * Used for debugging locations:
 // sealed abstract class Result extends AutoLocated with ProductWithExtraInfo:
 //   def extraInfo: Str = toLoc.toString
@@ -1258,7 +1266,10 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Value.Lit(lit) => 0
     case DynSelect(qual, fld, arrayIdx) => qual.size + fld.size
 
-  lazy val erasedType: Opt[ErasedType] = this match
+  /** The erased type of this result, retaining non-value types such as [[`ErasedType.FuncRef`]] for first-class
+    * function values. Use [[`erasedType`]] for the value-type-narrowed view.
+    */
+  lazy val rawErasedType: Opt[ErasedType] = this match
     case Value.SimpleRef(sym) => sym.erasedType
     // * A reference to a class is the class *object* (a `Class`).
     case Value.MemberRef(_, _: ClassSymbol) => N
@@ -1283,6 +1294,15 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       case _ => N
     case Cast(_, target) => S(target)
     case _ => N
+
+  // * A function value (raw type `FuncRef`) has no value-type representation here, so it collapses to `N`; its
+  // * value type `Function` is recovered by `erasedType_!` (which has the `Ctx` needed to build it).
+  override lazy val erasedType: Opt[ErasedValueType] = rawErasedType.collect:
+    case v: ErasedValueType => v
+
+  override def erasedType_!(using Ctx): ErasedValueType = rawErasedType match
+    case S(_: ErasedType.FuncRef) => ErasedType.Function
+    case _ => erasedType.getOrElse(ErasedType.Anything)
 
 /* mayRaiseEffects indicates whether this call may raise effect (algebraic effect),
  * regardless of whether the check for effect is inserted or not.
@@ -1381,7 +1401,7 @@ object InstantiateMetadata:
 
 case class Instantiate(mut: Bool, cls: Path, argss: Ls[Ls[Arg]])(val metadata: InstantiateMetadata) extends Result
 
-case class Cast(value: Path, target: ErasedType) extends Result
+case class Cast(value: Path, target: ErasedValueType) extends Result
 
 case class Lambda(params: ParamList, body: Block)(val annot: Ls[Annot]) extends Result:
   lazy val affine: Bool = annot.exists(_.isInstanceOf[Annot.Affine])

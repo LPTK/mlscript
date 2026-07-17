@@ -11,7 +11,7 @@ import hkmc2.utils.*
 
 import Elaborator.State
 import Tree.Ident
-import hkmc2.codegen.{ErasedType, HasErasedType, HasOnceMutableErasedType}
+import hkmc2.codegen.{ErasedType, ErasedValueType, HasErasedType, HasErasedValueType, HasOnceMutableErasedType}
 import hkmc2.utils.SymbolSubst
 
 
@@ -226,12 +226,12 @@ class SplitSymbol(val body: Split, name: Str = "split")(using State) extends Loc
   def toLoc = body.toLoc
   override def prefix: Str = "split:"
 
-sealed abstract class LocalVarSymbol(name: Str)(using State) extends FlowSymbol(name) with LocalSymbol with HasErasedType:
+sealed abstract class LocalVarSymbol(name: Str)(using State) extends FlowSymbol(name) with LocalSymbol with HasErasedValueType:
   self: LocalSymbol => // * using `with LocalSymbol` in the `extends` clause makes Scala think there's a bad override
   var decl: Opt[Declaration] = N
   def subst(using s: SymbolSubst): LocalVarSymbol
 
-class TempSymbol(val trm: Opt[Term], override val erasedType: Opt[ErasedType], dbgNme: Str = "tmp")(using State)
+class TempSymbol(val trm: Opt[Term], override val erasedType: Opt[ErasedValueType], dbgNme: Str = "tmp")(using State)
     extends LocalVarSymbol(dbgNme):
   // val nameHints: MutSet[Str] = MutSet.empty // * May be useful later?
   override def toLoc: Option[Loc] = trm.flatMap(_.toLoc)
@@ -248,9 +248,8 @@ class InstSymbol(val origin: Symbol)(using State) extends LocalSymbol:
   def subst(using sub: SymbolSubst): InstSymbol = sub.mapInstSym(this)
 
 
-class VarSymbol(val id: Ident, override val erasedType: Opt[ErasedType])(using State)
+class VarSymbol(val id: Ident, override val erasedType: Opt[ErasedValueType])(using State)
     extends LocalVarSymbol(id.name)
-    with HasErasedType
     with NamedSymbol:
   val name: Str = id.name
   var sourceAliases: Ls[Str] = Nil
