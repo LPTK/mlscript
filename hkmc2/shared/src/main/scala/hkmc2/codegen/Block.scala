@@ -872,57 +872,65 @@ enum PrimitiveType:
     case Float64 => ctx.builtins.Float64 
 
 object ErasedType:
-  /** 
-    * A reference to a class-like symbol.
+  /** A canonicalized reference type.
     *
     * - `rsc` is true if this reference is a resource class.
-    *
-    * Implementation Note: `AnyRef` doubles as a placeholder for `Primitive`s to workaround the typing of builtin 
-    * classes before the `Prelude` is fully elaborated. The canonicalized form of a type should be obtained via
-    * [[`ErasedType.canonicalize`]], and the IR should always operate on the canonicalized type.
     */
-  case class AnyRef(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType:
-    def isTop(using Ctx): Bool = tpeSym is ctx.builtins.Anything
+  case class AnyRef(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = tpeSym
 
-    override def dealias(using Ctx, State): ErasedType = tpeSym match
-      case _: TypeAliasSymbol => tpeSym.resolveAlias match
+  /** A value type that is not yet canonicalized.
+    *
+    * - `rsc` is true if this reference is a resource type.
+    *
+    * Implementation Note: This transient type is needed to represent value types before the `Prelude` is fully
+    * elaborated. The IR should always operate on the canonicalized type.
+    */
+  case class ValueLike(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType:
+    override def sym(using Ctx, State): TypeSymbol = tpeSym
+    override protected def computeCanonicalize(using Ctx, State): CanonicalErasedType =
+      val resolved = tpeSym match
+        case _: TypeAliasSymbol => tpeSym.resolveAlias
+        case _ => tpeSym
+      resolved match
+        // * An unresolvable alias becomes the top type.
+        // TODO(Derppening): Handle LUB if RHS of the type alias is a union type.
         case _: TypeAliasSymbol => Anything
-        case base => AnyRef(rsc, base)
-      case _ => this
+        case base => PrimitiveType.values.find(_.sym === base) match
+          case S(prim) => Primitive(prim)
+          case _ => AnyRef(rsc, base)
 
-    override protected def computeCanonicalize(using Ctx, State): ErasedType = dealias match
-      case AnyRef(rsc, sym) => PrimitiveType.values.find(_.sym === sym) match
-        case S(prim) => Primitive(prim)
-        case _ => AnyRef(rsc, sym)
-      case other => other
-  
-  /** A reference to a function of a possibly-known shape. 
+  /** A reference to a function of a possibly-known shape.
+    *
+    * Note: `params` and `ret` may be non-canonical types - Use [[`ErasedType.canonicalize`]] to compute a
+    * deeply-canonicalized version of this instance.
     *
     * - `rsc` is true if this reference is a resource function.
     */
-  case class FuncRef(rsc: Bool, params: Ls[Opt[ErasedType]], ret: Opt[ErasedType]) extends ErasedType:
+  case class FuncRef(rsc: Bool, params: Ls[Opt[ErasedType]], ret: Opt[ErasedType]) extends ErasedType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Function
-  
+    override protected def computeCanonicalize(using Ctx, State): CanonicalErasedType =
+      FuncRef(rsc, params.map(_.map(_.canonicalize)), ret.map(_.canonicalize))
+
   /** An primitive type. */
-  case class Primitive(prim: PrimitiveType) extends ErasedValueType:
+  case class Primitive(prim: PrimitiveType) extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = prim.sym
 
-  /** A union of erased types. 
+  /** A union of erased types.
     *
-    * Implementation Note: This transient type is needed to represent union types before the `Prelude` is fully 
-    * elaborated - See the implementation note of `AnyRef`. The IR should always operate on the canonicalized type.
+    * Implementation Note: This transient type is needed to represent union types before the `Prelude` is fully
+    * elaborated - See the implementation note of `ValueLike`. The IR should always operate on the canonicalized type.
     */
   case class Union(members: Ls[ErasedType]) extends ErasedValueType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
-    override protected def computeCanonicalize(using Ctx, State): ErasedType =
-      members.reduceLeft((a, b) => lub(a, b))
+    override protected def computeCanonicalize(using Ctx, State): CanonicalErasedType =
+      members.map(_.canonicalize).reduceLeft((a, b) => lub(a, b))
 
   /** The builtin top type `Anything`.
     *
     * This type is special-cased to allow its construction without an `Elaborator.Ctx`.
     */
-  case object Anything extends ErasedValueType:
+  case object Anything extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
 
   /** The builtin `Unit` reference type. */
@@ -945,14 +953,6 @@ object ErasedType:
 
   /** The builtin `Int31` reference type. */
   def Int31(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Int31)
-
-  /** Wraps a [[`TypeSymbol`]] into an [[`ErasedType.AnyRef`]].
-    *
-    * Primitive types are kept as `AnyRef` here to avoid using `ctx.builtins` during elaboration of `Prelude. The
-    * canonicalized form of a type can be obtained via [[`ErasedType.canonicalize`]].
-    */
-  def fromTpeSymbol(tpeSym: TypeSymbol, rsc: Bool): ErasedType =
-    ErasedType.AnyRef(rsc, tpeSym)
 
   /** Determines the direct parent of a class-like symbol.
     *
@@ -1014,19 +1014,17 @@ object ErasedType:
       case single :: Nil => single
       case ms => Union(ms)
 
-  /** The least upper bound of two erased types. */
-  def lub(lhs: ErasedType, rhs: ErasedType)(using Ctx, State): ErasedType =
-    val dl = lhs.canonicalize
-    val dr = rhs.canonicalize
-    (dl, dr) match
-      case _ if dl == dr => dl
+  /** The least upper bound of two canonical erased types. */
+  def lub(lhs: CanonicalErasedType, rhs: CanonicalErasedType)(using Ctx, State): CanonicalErasedType =
+    (lhs, rhs) match
+      case _ if lhs == rhs => lhs
       // * The top type absorbs everything.
       case (Anything, _) | (_, Anything) => Anything
       // * A primitive shares no supertype but `Anything` with any distinct type (equal primitives are handled
       // * above), including a distinct primitive of a different value type.
       case (_: Primitive, _) | (_, _: Primitive) => Anything
       // * Two reference types: their nearest common ancestor, at worst `Object`.
-      case _ => AnyRef(rsc = false, lubSym(dl.sym, dr.sym))
+      case _ => AnyRef(rsc = false, lubSym(lhs.sym, rhs.sym))
 
   /** Erases a type-annotated term to an [[`ErasedType`]]. 
     *
@@ -1042,11 +1040,11 @@ object ErasedType:
       yield ErasedType.union(l, r)
     case UnitVal() => S(ErasedType.Unit)
     case _ =>
-      sign.symbol.flatMap(_.asTpe).map(sym => ErasedType.fromTpeSymbol(sym, rsc = false))
+      sign.symbol.flatMap(_.asTpe).map(sym => ErasedType.ValueLike(rsc = false, sym))
 
   /** Whether `actual` is a subtype of `expected`, walking the class hierarchy.
     *
-    * Types passed to this function are assumed to be already dealiased - Unresolved aliases are treated as the top
+    * Types passed to this function are assumed to be already canonicalized - Unresolved aliases are treated as the top
     * type.
     *
     * Returns `S(true)`/`S(false)` when the relationship can be decided, or `N` when deciding would require
@@ -1057,7 +1055,7 @@ object ErasedType:
     def loop(cur: TypeSymbol, seen: Set[TypeSymbol]): Opt[Bool] =
       if cur is expected then S(true)
       else cur match
-        // * Since aliases should've already been dealiased, an alias reaching here is undecidable.
+        // * Since aliases should've already been canonicalized, an alias reaching here is undecidable.
         case _: TypeAliasSymbol => N
         case base @ (_: ClassSymbol | _: ModuleOrObjectSymbol) =>
           if seen(base) then N
@@ -1080,9 +1078,8 @@ object ErasedType:
     *
     * Returns `S(true)` if a cast is needed, `S(false)` if no cast is needed, or `N` if the two types are unrelated.
     */
-  def needsCast(actual: ErasedType, expected: ErasedType)(using Ctx, State): Opt[Bool] =
-    // * Reduce both sides to their canonical form first.
-    (actual.canonicalize, expected.canonicalize) match
+  def needsCast(actual: CanonicalErasedType, expected: CanonicalErasedType)(using Ctx, State): Opt[Bool] =
+    (actual, expected) match
       // * `T -> Anything` needs no cast; `Anything -> T` needs a checked downcast.
       case (_, Anything) => S(false)
       case (Anything, _) => S(true)
@@ -1109,29 +1106,20 @@ sealed abstract class ErasedType:
   /** The symbol for this erased type. */
   def sym(using Ctx, State): TypeSymbol
 
-  /** Resolves any alias reference to its canonical target. A non-alias type is returned unchanged; an alias
-    * with no resolvable target (e.g. cyclic) becomes the top type. 
-    *
-    * Note that this method does not reclassify primitives - see [[`canonicalize`]].
-    */
-  def dealias(using Ctx, State): ErasedType = this
-
-  private var _canonicalized: Opt[ErasedType] = N
+  private var _canonicalized: Opt[CanonicalErasedType] = N
 
   /** The memoized [[`canonicalize`]] result, if it has already been computed. */
-  final def canonicalizedCache: Opt[ErasedType] = _canonicalized
+  final def canonicalizedCache: Opt[CanonicalErasedType] = _canonicalized
 
-  /** Computes the canonical form of this type.
+  /** Computes and memoizes the canonical form of this type by:
     *
-    * This method performs several transformations to produce a canonical form of the type:
-    *
-    * - Dealiases type aliases to their target type.
+    * - Resolves type aliases to their target type.
     * - Reclassifies unboxed primitive symbols to [[`Primitive`]].
     * - Collapses unions to their least upper bound (LUB).
     *
     * Callers are encouraged to always canonicalize types before using them.
     */
-  final def canonicalize(using Ctx, State): ErasedType = _canonicalized match
+  final def canonicalize(using Ctx, State): CanonicalErasedType = _canonicalized match
     case S(n) => n
     case N =>
       val n = computeCanonicalize
@@ -1139,10 +1127,14 @@ sealed abstract class ErasedType:
       n
 
   /** Overriding implementation for computing the canonical form of this type. */
-  protected def computeCanonicalize(using Ctx, State): ErasedType = dealias
+  protected def computeCanonicalize(using Ctx, State): CanonicalErasedType
 
 /** A trait indicating that the [[`ErasedType`]] is a value type. */
 sealed abstract class ErasedValueType extends ErasedType
+
+/** An [[`ErasedType`]] that is resolved into a canonical representation. */
+sealed trait CanonicalErasedType extends ErasedType:
+  override protected def computeCanonicalize(using Ctx, State): CanonicalErasedType = this
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:

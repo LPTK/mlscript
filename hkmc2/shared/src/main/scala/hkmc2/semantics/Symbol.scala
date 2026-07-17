@@ -416,7 +416,6 @@ extension (sym: TypeSymbol)
     *
     * If the type alias chain is not defined (e.g. in `declare type ...`) or is cyclic, `sym` is returned unchanged.
     */
-  // TODO(Derppening): Handle LUB if RHS of the type alias is a union type.
   def resolveAlias: TypeSymbol =
     @tailrec
     def loop(cur: TypeSymbol, seen: Set[TypeSymbol]): TypeSymbol = cur match
@@ -517,7 +516,7 @@ class ClassSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
     with InnerSymbol
     with NamedSymbol:
 
-  override val erasedType: Opt[ErasedType] = S(ErasedType.AnyRef(rsc = false, this))
+  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = false, this))
 
   def name: Str = nme
   def nme = id.name
@@ -552,7 +551,7 @@ class TypeAliasSymbol(val id: Tree.Ident)(using State)
     with DefinitionSymbol[TypeDef]
     with HasErasedType:
 
-  override val erasedType: Opt[ErasedType] = S(ErasedType.AnyRef(rsc = false, this))
+  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = false, this))
   
   def nme = id.name
   def toLoc: Option[Loc] = id.toLoc // TODO track source tree of type alias here

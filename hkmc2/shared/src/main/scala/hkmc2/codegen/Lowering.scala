@@ -1386,7 +1386,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     expected match
     case N => k(r)
     case S(t) =>
-      ErasedType.needsCast(r.erasedType_!, t) match
+      ErasedType.needsCast(r.erasedType_!.canonicalize, t.canonicalize) match
       case S(false) => k(r)
       case S(true) =>
         r match

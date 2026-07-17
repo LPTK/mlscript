@@ -28,17 +28,14 @@ extension (instr: FoldedInstr)
 
 extension (et: ErasedType)
   /** Returns the corresponding Wasm type for this [[`ErasedType`]]. */
-  // TODO(Derppening): Resolve type aliases here (via `TypeSymbol.resolveAlias`) so an aliased slot keeps its
-  //                   precise representation (e.g. `type MyInt = Int` -> `i31ref`) instead of widening to
-  //                   `anyref`.
-  private[text] def wasmType(using Ctx): Opt[RefType] =
+  private[text] def wasmType(using Ctx, State): Opt[RefType] =
     import Ctx.ctx
     val elabCtx = ctx.elabCtx
     elabCtx.givenIn:
-      et match
+      et.canonicalize match
         case ErasedType.AnyRef(_, tpeSym) if Set(elabCtx.builtins.Int, elabCtx.builtins.Int31, elabCtx.builtins.Bool).contains(tpeSym) =>
           S(RefType.i31ref)
-        case et @ ErasedType.AnyRef(_, tpeSym) if !et.isTop =>
+        case ErasedType.AnyRef(_, tpeSym) =>
           tpeSym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
         case _ => N
 
@@ -686,9 +683,9 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case struct: StructType => struct.fields
       case other => lastWords(s"Parent type must be a struct, found ${other.toWat.mkString()}")
 
-    val classFields = (defn.publicFields.map(_._2) ++ defn.privateFields)
-      .map: f =>
-        val fieldType = f.erasedType match
+    val classFields = ctx.elabCtx.givenIn:
+      (defn.publicFields.map(_._2) ++ defn.privateFields).map: f =>
+        val fieldType = f.erasedType.map(_.canonicalize) match
           case S(ErasedType.AnyRef(_, csym: ClassLikeSymbol)) =>
             csym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = true)).getOrElse(RefType.anyref)
           case _ => RefType.anyref
