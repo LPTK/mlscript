@@ -42,6 +42,21 @@ val b: Bool = true
 //│ end
 
 
+// `()` in annotation position denotes the unit type.
+fun retUnit(): () = ()
+fun takesUnit(u: ()): () = u
+fun passUnit(): () = takesUnit(())
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define retUnit⁰ as fun retUnit¹(): Unit⁰ {
+//│   return runtime⁰.Unit⁰
+//│ };
+//│ define takesUnit⁰ as fun takesUnit¹(u: Unit⁰): Unit⁰ {
+//│   return u
+//│ };
+//│ define passUnit⁰ as fun passUnit¹(): Unit⁰ { return takesUnit¹(runtime⁰.Unit⁰) };
+//│ end
+
+
 // A class's annotated parameters give its fields a type.
 class Foo(x: Int)
 class Bar(val y: Str)
@@ -226,7 +241,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.227: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.242: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
@@ -242,7 +257,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.243: 	fun g(o: Object) = useInt(o)
+//│ ║  l.258: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
@@ -371,13 +386,13 @@ fun memberIntoUnion(a: A) = takesUnion(a)
 fun baseIntoUnion(b: Base) = takesUnion(b)
 fun unionIntoSubtype(x: A | B) = takesSubtype(x)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define takesBase⁰ as fun takesBase¹(b: Base⁰): ? {
+//│ define takesBase⁰ as fun takesBase¹(b: Base⁰): Unit⁰ {
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ define takesUnion⁰ as fun takesUnion¹(u: Base⁰): ? {
+//│ define takesUnion⁰ as fun takesUnion¹(u: Base⁰): Unit⁰ {
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ define takesSubtype⁰ as fun takesSubtype¹(a: A¹): ? {
+//│ define takesSubtype⁰ as fun takesSubtype¹(a: A¹): Unit⁰ {
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define unionIntoBase⁰ as fun unionIntoBase¹(x: Base⁰): ? {

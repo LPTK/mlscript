@@ -1469,6 +1469,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         l <- eraseSign(lhs)
         r <- eraseSign(rhs)
       yield ErasedType.lub(l, r)
+    case UnitVal() => S(ErasedType.Unit)
     case _ =>
       sign.symbol.flatMap(_.asTpe).map(sym => ErasedType.fromTpeSymbol(sym, rsc = false))
 
