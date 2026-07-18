@@ -564,7 +564,17 @@ class BlockSimplifier
         rhsRequirements: Set[LocalVar -> AssignInfo],
       )(val originalAssignment: Assign)
       case Merge(asst1: AssignInfo, asst2: AssignInfo)
-      
+
+      // * These nodes form a shared DAG (through `Merge`) and are always compared by object identity in
+      // * this analysis (see the `is` uses throughout and the `IdentityHashMap`s in dead-assignment removal).
+      // * The default *structural* `hashCode`/`equals` would re-traverse the shared substructure on every
+      // * insertion into a requirement or `assigns` set, which is exponential in the DAG's sharing.
+      // * We therefore give `AssignInfo` reference semantics, consistent with how it is otherwise compared.
+      final override def hashCode: Int = System.identityHashCode(this)
+      final override def equals(that: Any): Bool = that match
+        case that: AnyRef => this eq that
+        case _ => false
+
       override def toString: String = this match
         case Unknown => "?"
         case Uninitialized => "∅"
