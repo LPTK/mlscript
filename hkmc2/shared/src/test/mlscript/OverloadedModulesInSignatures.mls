@@ -101,7 +101,7 @@ assertModule(ClsMod).whoami
 
 :ge
 assertModule(TypMod).whoami
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'TypMod' to unrelated type 'ClsMod'
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'module ClsMod'
 //│ ║  l.103: 	assertModule(TypMod).whoami
 //│ ╙──       	             ^^^^^^
 //│ = "module"

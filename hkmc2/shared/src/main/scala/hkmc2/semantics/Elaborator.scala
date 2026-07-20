@@ -1875,11 +1875,16 @@ extends Importer:
                 case _ =>
                   Modulefulness.none
               
+              // * A moduleful signature (`fun f: module M`) denotes the module itself; `eraseSign` would resolve
+              // * the name through `asTpe`, which prefers a same-named class or type alias over the module.
+              val retTpe = mfn.msym match
+                case S(msym) => S(ErasedType.AnyRef(rsc = false, msym))
+                case N => s.flatMap(ErasedType.eraseSign)
               val erasedTpe = k match
                 case syntax.Fun =>
                   S(ErasedType.FuncRef(rsc = false,
-                    pss.flatMap(_.params).map(_.sym.erasedType), s.flatMap(ErasedType.eraseSign)))
-                case _: syntax.Val => s.flatMap(ErasedType.eraseSign)
+                    pss.flatMap(_.params).map(_.sym.erasedType), retTpe))
+                case _: syntax.Val => retTpe
                 case _ => N
               val tsym = TermSymbol(k, owner, id, erasedType = erasedTpe)
               val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, 
@@ -2004,10 +2009,10 @@ extends Importer:
                 p.fldSym = S(fsym)
                 fsym.tsym = S(tsym)
                 tsym.defn = S(fdef)
-                p.sign.flatMap(ErasedType.eraseSign).foreach(tsym.populateErasedType)
+                p.sym.erasedType.foreach(tsym.populateErasedType)
                 fdef :: Nil
               else
-                val psym = TermSymbol(LetBind, owner, p.sym.id, erasedType = p.sign.flatMap(ErasedType.eraseSign))
+                val psym = TermSymbol(LetBind, owner, p.sym.id, erasedType = p.sym.erasedType)
                 psym.sourceAliases = p.sym.sourceAliases
                 val decl = LetDecl(psym, Nil)
                 val defn = DefineVar(psym, p.sym.ref())
@@ -2020,7 +2025,7 @@ extends Importer:
               val owner = td.symbol match
                 case s: InnerSymbol => S(s)
                 case _: TypeAliasSymbol => die
-              val psym = TermSymbol(LetBind, owner, p.sym.id, erasedType = p.sign.flatMap(ErasedType.eraseSign))
+              val psym = TermSymbol(LetBind, owner, p.sym.id, erasedType = p.sym.erasedType)
               psym.sourceAliases = p.sym.sourceAliases
               val decl = LetDecl(psym, Nil)
               val defn = DefineVar(psym, p.sym.ref())
@@ -2278,9 +2283,15 @@ extends Importer:
           case N =>
             id -> Nil
         val sig = sign.map(term(_))
-        val sym = VarSymbol(canonicalId, erasedType = sig.flatMap(ErasedType.eraseSign))
+        val mfn = Modulefulness.ofSign(sig)(Mod in modifiers)
+        // * As for return signatures, a moduleful parameter (`module m: M`) denotes the module itself, which
+        // * `eraseSign` would miss by resolving the name through `asTpe`.
+        val erasedTpe = mfn.msym match
+          case S(msym) => S(ErasedType.AnyRef(rsc = false, msym))
+          case N => sig.flatMap(ErasedType.eraseSign)
+        val sym = VarSymbol(canonicalId, erasedType = erasedTpe)
         sym.sourceAliases = aliases
-        val p = Param(flg, sym, sig, Modulefulness.ofSign(sig)(Mod in modifiers))
+        val p = Param(flg, sym, sig, mfn)
         sym.decl = S(p)
         (p, spd, aliases)
   
