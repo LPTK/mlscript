@@ -388,7 +388,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
       val joinLabel = new LabelSymbol(N, sym.nme)
       sym.label = S(joinLabel)
       val transfersControl = cont match
-        case Ret | Thrw => true
+        case tailOp: TailOp => tailOp.transfersControl
         case _ => false
       if transfersControl then
         // Ret/Thrw emit `return`/`throw`, which transfer control out of the block

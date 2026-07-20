@@ -1784,9 +1784,12 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
             }"
       val ctorFuncIdx = ctx.getFunc(ctorClsBlkSym).getOrElse:
         lastWords(s"Missing constructor definition for class ${ctorClsBlkSym.toString}")
+      val ctorTypeIdx = ctx.getTypeInfo(ctx.getFuncTypeUse_!(ctorFuncIdx).typeIdx).getOrElse:
+        lastWords(s"Missing type definition for class constructor ${ctorClsBlkSym.toString}")
       val ctorClsTypeIdx = ctx.getType(ctorClsBlkSym).getOrElse:
         lastWords(s"Missing class definition for class ${ctorClsBlkSym.toString}")
-      call(funcidx = ctorFuncIdx, as.map(argument), Seq(Result(RefType(ctorClsTypeIdx, nullable = false))))
+      val ctorArgs = castArgsToParams(as.map(argument), ctorTypeIdx)
+      call(funcidx = ctorFuncIdx, operands = ctorArgs, Seq(Result(RefType(ctorClsTypeIdx, nullable = false))))
 
     case Tuple(mut, elems) =>
       val tupleValues = elems.map(argument)

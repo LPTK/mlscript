@@ -23,22 +23,23 @@ import syntax.{Literal, Tree, SpreadKind}
 import hkmc2.syntax.{Fun, Keyword, LetBind, MutVal}
 
 
-abstract class TailOp extends (Result => Block)
-object Ret extends TailOp:
+abstract class TailOp(val transfersControl: Bool) extends (Result => Block)
+object Ret extends TailOp(transfersControl = true):
   def apply(r: Result): Block = Return(r)
-object ImplctRet extends TailOp:
+object ImplctRet extends TailOp(transfersControl = false):
   def apply(r: Result): Block =
     r match
     case Value.Lit(Tree.UnitLit(false)) => End()
     case _ => Return(r)
-object Thrw extends TailOp:
+object Thrw extends TailOp(transfersControl = true):
   def apply(r: Result): Block = Throw(r)
 
 
 class LoweringCtx(
   initMap: Map[ValueSymbol, Value], // No longer in meaningful use and could be removed if we don't find a use for it
   val mayRet: Bool, // For rewriting while loop into tail recursive function, represent whether an explicit return is legal in the current block
-  private val definedSymsDuringLowering: collection.mutable.Set[ScopedSymbol] // used to create Scoped blocks
+  private val definedSymsDuringLowering: collection.mutable.Set[ScopedSymbol], // used to create Scoped blocks
+  val returnType: Opt[ErasedType], // the declared return type of the enclosing function, used to coerce `return`s
 ):
   val map = initMap
   def collectScopedSym(s: ScopedSymbol) = definedSymsDuringLowering.add(s)
@@ -62,11 +63,11 @@ class LoweringCtx(
 object LoweringCtx:
   def loweringCtx(using sub: LoweringCtx): LoweringCtx = sub
   def empty =
-    LoweringCtx(Map.empty, mayRet = false, collection.mutable.Set.empty)
-  def nestFunc(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.map, mayRet = true, sub.definedSymsDuringLowering)
+    LoweringCtx(Map.empty, mayRet = false, collection.mutable.Set.empty, returnType = N)
+  def nestFunc(returnType: Opt[ErasedType])(using sub: LoweringCtx): LoweringCtx =
+    LoweringCtx(sub.map, mayRet = true, sub.definedSymsDuringLowering, returnType)
   def nestScoped(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.map, sub.mayRet, collection.mutable.Set.empty)
+    LoweringCtx(sub.map, sub.mayRet, collection.mutable.Set.empty, sub.returnType)
 end LoweringCtx
 
 import LoweringCtx.loweringCtx
@@ -157,8 +158,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   // type Rcd = (mut: Bool, args: List[RcdArg]) // * Better, but Scala's patmat exhaustiveness chokes on it
   type Rcd = (Bool, List[RcdArg])
   
-  // TODO(Derppening): Insert a return downcast here if needed
-  def returnedTerm(t: st)(using LoweringCtx): Block = term(t)(Ret)(using LoweringCtx.nestFunc)
+  /** The declared return type projected from a function symbol's erased `FuncRef`, if any. */
+  private def declaredReturnType(tsym: TermSymbol): Opt[ErasedType] = tsym.erasedType match
+    case S(ErasedType.FuncRef(_, _, ret)) => ret
+    case _ => N
+
+  /** Lowers `t` in tail-return position, coercing the result to the enclosing function's declared return type. */
+  def returnedTerm(t: st, returnType: Opt[ErasedType])(using LoweringCtx): Block =
+    LoweringCtx.nestFunc(returnType).givenIn:
+      term(t):
+        new TailOp(transfersControl = true):
+          override def apply(k: Result): Block = castTo(k, returnType, N)(Ret)
   
   def parentConstructor(parentClsPath: Path, cls: Term, args: Ls[Term])(using LoweringCtx) =
     lowerSuperCtorCall(
@@ -254,9 +264,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 // Assign(td.sym, r,
                 //   term(st.Blk(stats, res))(k)))
                 Define(ValDefn(td.tsym, td.sym, r)(cfgOverride, td.annotations),
-                  blockImpl(stats, res)))(using LoweringCtx.nestFunc)
+                  blockImpl(stats, res)))(using LoweringCtx.nestFunc(N))
             case syntax.Fun =>
-              val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))
+              val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme), declaredReturnType(td.tsym))
               val cfgOverride = td.extraAnnotations.collectFirst:
                 case Annot.Config(modify) => modify(config)
               Define(FunDefn(td.owner, td.sym, td.tsym, paramLists, bodyBlock)(cfgOverride, td.annotations),
@@ -626,7 +636,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             N,
             FlowSymbol(sym.nme)
           ).resolve
-        val (paramLists, bodyBlock) = setupFunctionDef(ps :: Nil, bod, S(sym.nme))
+        val (paramLists, bodyBlock) = setupFunctionDef(ps :: Nil, bod, S(sym.nme), N)
         tl.log(s"Ref builtin $sym")
         assert(paramLists.length === 1)
         return k(Lambda(paramLists.head, bodyBlock)(Nil).withLocOf(ref))
@@ -641,7 +651,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             N,
             FlowSymbol(sym.nme)
           ).resolve
-        val (paramLists, bodyBlock) = setupFunctionDef(ps :: Nil, bod, S(sym.nme))
+        val (paramLists, bodyBlock) = setupFunctionDef(ps :: Nil, bod, S(sym.nme), N)
         tl.log(s"Ref builtin $sym")
         assert(paramLists.length === 1)
         return k(Lambda(paramLists.head, bodyBlock)(Nil).withLocOf(ref))
@@ -713,7 +723,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       if lit =/= Tree.UnitLit(false) then warnStmt
       k(Value.Lit(lit))
     case st.Ret(res) =>
-      returnedTerm(res)
+      returnedTerm(res, loweringCtx.returnType)
     case st.Throw(res) =>
       term(res)(Thrw)
     case st.Label(label, result, body, hasNonLocalContinueDispatch) =>
@@ -924,7 +934,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             N
           case Some(bod) =>
             reportAnnotations(td, td.annotations)
-            val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))      
+            val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme), declaredReturnType(td.tsym))
             S(Handler(td.sym, resumeSym, paramLists, bodyBlock))
       }.collect{ case Some(v) => v }
       loweringCtx.collectScopedSym(lhs)
@@ -932,7 +942,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       subTerm(rhs): par =>
         subTerms(as): asr =>
           HandleBlock(lhs, resSym, par, asr, cls, handlers,
-            inScopedBlock(returnedTerm(bod)),
+            inScopedBlock(returnedTerm(bod, N)),
             k(resSym.asSimpleRef))
     case st.Blk(sts, res) => block(sts, R(res), inStmtPos = inStmtPos)(k)
     case Assgn(lhs, rhs) =>
@@ -982,7 +992,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       
     case st.Lam(params, body) =>
       warnStmt
-      val (paramLists, bodyBlock) = setupFunctionDef(params :: Nil, body, N)
+      val (paramLists, bodyBlock) = setupFunctionDef(params :: Nil, body, N, N)
       if k.isInstanceOf[TailOp] || bodyBlock.size <= 5
       then k(Lambda(paramLists.head, bodyBlock)(Nil))
       else
@@ -1272,7 +1282,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     val mtds = clsBody.methods
       .flatMap: td =>
         td.body.map: bod =>
-          val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme))
+          val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme), declaredReturnType(td.tsym))
           reportAnnotations(td, td.extraAnnotations)
           val cfgOverride = td.extraAnnotations.collectFirst:
             case Annot.Config(modify) => modify(config)
@@ -1450,12 +1460,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         // || disamb.exists(_.defn.exists(_.hasDeclareModifier.isEmpty)) // * This checks `declare` members, which is normally unwanted
       ))
   
-  final def setupFunctionOrByNameDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
+  final def setupFunctionOrByNameDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str], returnType: Opt[ErasedType])
       (using LoweringCtx): (List[ParamList], Block) =
     val physicalParams = paramLists match
       case Nil => ParamList(ParamListFlags.empty, Nil, N) :: Nil
       case ps => ps
-    setupFunctionDef(physicalParams, bodyTerm, name)
+    setupFunctionDef(physicalParams, bodyTerm, name, returnType)
   
   def inScopedBlock(using LoweringCtx)(mkBlock: LoweringCtx ?=> Block): Block =
     inScopedBlockExcept(Set.empty)(mkBlock)
@@ -1465,9 +1475,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val scopedSyms = loweringCtx.getCollectedSym.filterNot(syms)
       Scoped(scopedSyms, body)
   
-  def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str])
+  def setupFunctionDef(paramLists: List[ParamList], bodyTerm: Term, name: Option[Str], returnType: Opt[ErasedType])
       (using LoweringCtx): (List[ParamList], Block) =
-    val scopedBody = inScopedBlock(returnedTerm(bodyTerm))
+    val scopedBody = inScopedBlock(returnedTerm(bodyTerm, returnType))
     (paramLists, scopedBody)
   
   
@@ -1544,14 +1554,14 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
   private val inspectFn = selFromGlobalThis("util", "inspect")
   
 
-  override def setupFunctionDef(paramLists: List[ParamList], bodyTerm: st, name: Option[Str])
+  override def setupFunctionDef(paramLists: List[ParamList], bodyTerm: st, name: Option[Str], returnType: Opt[ErasedType])
       (using LoweringCtx): (List[ParamList], Block) =
     if instrument then
       val (ps, bod) = handleMultipleParamLists(paramLists, bodyTerm)
-      val instrumentedBody = setupFunctionBody(ps, bod, name)
+      val instrumentedBody = setupFunctionBody(ps, bod, name, returnType)
       (ps :: Nil, instrumentedBody)
     else
-      super.setupFunctionDef(paramLists, bodyTerm, name)
+      super.setupFunctionDef(paramLists, bodyTerm, name, returnType)
 
   def handleMultipleParamLists(paramLists: List[ParamList], bod: Term) =
     def go(paramLists: List[ParamList], bod: Term): (ParamList, Term) =
@@ -1561,7 +1571,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
         case h :: t => go(t, Term.Lam(h, bod))
     go(paramLists.reverse, bod)
   
-  def setupFunctionBody(params: ParamList, bod: Term, name: Option[Str])(using LoweringCtx): Block = inScopedBlock:
+  def setupFunctionBody(params: ParamList, bod: Term, name: Option[Str], returnType: Opt[ErasedType])(using LoweringCtx): Block = inScopedBlock:
     val enterMsgSym = loweringCtx.registerTempSymbol(N, erasedType = N, dbgNme = "traceLogEnterMsg")
     val prevIndentLvlSym = loweringCtx.registerTempSymbol(N, erasedType = N, dbgNme = "traceLogPrevIndent")
     val resSym = loweringCtx.registerTempSymbol(N, erasedType = N, dbgNme = "traceLogRes")
@@ -1599,7 +1609,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
       tmp2 -> pureCall(traceLogResetFn, Arg(N, prevIndentLvlSym.asSimpleRef) :: Nil),
       tmp3 -> pureCall(traceLogFn, Arg(N, retMsgSym.asSimpleRef) :: Nil)
     ) |>:
-      Ret(resSym.asSimpleRef)
+      castTo(resSym.asSimpleRef, returnType, N)(Ret)
     )
 
 

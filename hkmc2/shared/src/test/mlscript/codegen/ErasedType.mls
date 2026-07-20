@@ -104,7 +104,7 @@ fun main =
 // TODO: cast `return`s too
 fun test(x: Int): Int = "oops"
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define test⁰ as fun test¹(x: Int⁰): Int⁰ { return "oops" }; end
+//│ define test⁰ as fun test¹(x: Int⁰): Int⁰ { return ("oops" as Int⁰) }; end
 
 
 // Parameter and return annotations are kept (`x: Int`, `y: Int`); the unannotated return stays
@@ -115,7 +115,11 @@ fun add2(x: Int, y: Int): Int = x + y
 //│ define add1⁰ as fun add1¹(x: Int⁰, y: Int⁰): ? {
 //│   return +⁰(x, y)
 //│ };
-//│ define add2⁰ as fun add2¹(x: Int⁰, y: Int⁰): Int⁰ { return +⁰(x, y) };
+//│ define add2⁰ as fun add2¹(x: Int⁰, y: Int⁰): Int⁰ {
+//│   let tmp: ?;
+//│   set tmp = +⁰(x, y);
+//│   return (tmp as Int⁰)
+//│ };
 //│ end
 
 
@@ -147,9 +151,15 @@ fun addUp(x: Int, y: Int): Int = x + y
 fun makeBar(s: Str): Bar = new Bar(s)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define addUp⁰ as fun addUp¹(x: Int⁰, y: Int⁰): Int⁰ {
-//│   return +⁰(x, y)
+//│   let tmp: ?;
+//│   set tmp = +⁰(x, y);
+//│   return (tmp as Int⁰)
 //│ };
-//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ { return new Bar⁰(s) };
+//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ {
+//│   let tmp: ?;
+//│   set tmp = new Bar⁰(s);
+//│   return (tmp as Bar⁰)
+//│ };
 //│ end
 
 
@@ -184,7 +194,9 @@ class Calc() with
 //│ define Calc⁰ as class Calc² {
 //│   constructor Calc¹
 //│   method twice⁰ = fun twice¹(x: Int⁰): Int⁰ {
-//│     return +⁰(x, x)
+//│     let tmp: ?;
+//│     set tmp = +⁰(x, x);
+//│     return (tmp as Int⁰)
 //│   }
 //│   method whatever⁰ = fun whatever¹(a: ?): ? { return a }
 //│ };
@@ -243,7 +255,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.244: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.256: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
@@ -259,7 +271,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.260: 	fun g(o: Object) = useInt(o)
+//│ ║  l.272: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32⁰): ? {
@@ -363,10 +375,10 @@ fun oneOf(x: A | B): Int = 0
 fun threeOf(x: A | B | Base): Int = 0
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define oneOf⁰ as fun oneOf¹(x: A⁰ | B⁰): Int⁰ {
-//│   return 0
+//│   return (0 as Int⁰)
 //│ };
 //│ define threeOf⁰ as fun threeOf¹(x: A⁰ | B⁰ | Base⁰): Int⁰ {
-//│   return 0
+//│   return (0 as Int⁰)
 //│ };
 //│ define Base¹ as class Base⁰;
 //│ define A¹ as class A⁰ extends Base⁰ {};
@@ -412,3 +424,40 @@ fun unionIntoSubtype(x: A | B) = takesSubtype(x)
 //│   return takesSubtype¹(tmp)
 //│ };
 //│ end
+
+
+// TODO(Derppening):
+// A resolvable return annotation on a function that tail-calls an unannotated one temp-binds the
+// call in order to cast it, destroying the `Return(Call)` shape `TailRecOpt` matches on. The tail
+// call then becomes real recursion, so `loop` overflows the stack at depth. `loopUnannotated` is
+// the control: identical, but unannotated, so it is still folded into a loop.
+//
+// Remove `:js` and `:todo` once this is fixed.
+:js
+:todo
+class C
+fun helper(n) = if n <= 0 then new C else loop(n - 1)
+fun loop(n: Int): C = helper(n)
+helper(100000)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define helper⁰ as fun helper¹(n: ?): ? {
+//│   let scrut: ?, tmp: ?, tmp1: Int⁰;
+//│   set scrut = <=⁰(n, 0);
+//│   match scrut
+//│     true =>
+//│       return new C⁰()
+//│     else
+//│       set tmp = -⁰(n, 1);
+//│       set tmp1 = (tmp as Int⁰);
+//│       return loop⁰(tmp1)
+//│   end
+//│ };
+//│ define loop¹ as fun loop⁰(n: Int⁰): C⁰ {
+//│   let tmp: ?;
+//│   set tmp = helper¹(n);
+//│   return (tmp as C⁰)
+//│ };
+//│ define C¹ as class C⁰;
+//│ return helper¹(100000)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
