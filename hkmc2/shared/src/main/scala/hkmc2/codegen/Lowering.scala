@@ -1382,11 +1382,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     *  - If `expected and `r` are unrelated, a compile-time error is raised and `r` continues uncast.
     *  - Otherwise, `r` is passed through unchanged.
     */
+  /** Names a type symbol so a module is distinguishable from a same-named class or type alias. */
+  private def describeTpe(sym: TypeSymbol): Str =
+    if sym.asMod.isDefined then s"module ${sym.nme}" else sym.nme
+
   def castTo(r: Result, expected: Opt[ErasedType], loc: Opt[Loc])(k: Result => Block)(using LoweringCtx): Block =
     expected match
     case N => k(r)
     case S(t) =>
-      ErasedType.needsCast(r.erasedType_!.canonicalize, t.canonicalize) match
+      val actual = r.erasedType_!.canonicalize
+      val declared = t.canonicalize
+      ErasedType.needsCast(actual, declared) match
       case S(false) => k(r)
       case S(true) =>
         val target = t match
@@ -1399,7 +1405,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           Assign(l, r, k(Cast(l.asSimpleRef, target)))
       case N =>
         raise(ErrorReport(
-          msg"Cannot narrow a value of type '${r.erasedType_!.sym.nme}' to unrelated type '${t.sym.nme}'" ->
+          msg"Cannot narrow a value of type '${describeTpe(actual.sym)}' to unrelated type '${describeTpe(declared.sym)}'" ->
           loc :: Nil,
           source = Diagnostic.Source.Compilation))
         k(r)

@@ -30,10 +30,14 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
       case S(str) => str
       case N => summon[SymbolPrinter].printSymbol(l)
   
+  /** A module may share its name with a class or type alias (`asTpe` resolves it last), so qualify it. */
+  def printTpe(tpeSym: TypeSymbol)(using Scope): Document =
+    if tpeSym.asMod.isDefined then doc"module ${print(tpeSym)}" else print(tpeSym)
+
   def print(et: ErasedType)(using Scope): Document = et match
     case ErasedType.Anything => doc"Anything"
-    case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${if rsc then "rsc " else ""}${print(tpeSym)}"
-    case ErasedType.ValueLike(rsc, tpeSym) => doc"${if rsc then "rsc " else ""}${print(tpeSym)}"
+    case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${if rsc then "rsc " else ""}${printTpe(tpeSym)}"
+    case ErasedType.ValueLike(rsc, tpeSym) => doc"${if rsc then "rsc " else ""}${printTpe(tpeSym)}"
     case ErasedType.FuncRef(rsc, params, ret) =>
       doc"${if rsc then "rsc " else ""}(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
