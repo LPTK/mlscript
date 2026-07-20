@@ -400,7 +400,6 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
         // the Label body into the rest. Wrap with an exit label and temp variable so every path stores its
         // result, breaks to exitLabel, then the original cont runs once.
         val exitLabel = new LabelSymbol(N, sym.nme + "$x")
-        // TODO(Derppening): Change this to `r.erasedType` when `Result.erasedType` is implemented
         val tmp = new TempSymbol(N, erasedType = N)
         LoweringCtx.loweringCtx.collectScopedSym(tmp)
         val exitCont: Result => Block = r => Assign(tmp, r, Break(exitLabel))
