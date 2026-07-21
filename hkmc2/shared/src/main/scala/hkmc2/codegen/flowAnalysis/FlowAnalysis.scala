@@ -542,7 +542,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       fields.foreach:
         case RcdArg(idx, value) => idx.foreach(applyPath); applyPath(value)
     case Cast(value, _) =>
-      applyPath(value)
+      applyResult(value)
     case p: Path => applyPath(p)
   
   private def applyValueSimpleRef(v: Value.SimpleRef, recordAffinity: Bool) =

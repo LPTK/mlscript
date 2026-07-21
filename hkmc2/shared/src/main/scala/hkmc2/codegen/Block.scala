@@ -1401,7 +1401,26 @@ object InstantiateMetadata:
 
 case class Instantiate(mut: Bool, cls: Path, argss: Ls[Ls[Arg]])(val metadata: InstantiateMetadata) extends Result
 
-case class Cast(value: Path, target: ErasedValueType) extends Result
+/** A coercion of `value` to `target`.
+  *
+  * Invariants:
+  * - `value` is not a `Cast`.
+  * - `target` must be a proper subtype of `value`'s erased type (note: currently unchecked at runtime).
+  */
+case class Cast private(value: Result, target: ErasedValueType) extends Result
+
+object Cast:
+  /** Builds a cast while collapsing a nested cast.
+    *
+    * This node is malformed if the target type is not a proper subtype of the value's erased type.
+    */
+  def apply(value: Result, target: ErasedValueType): Cast =
+    new Cast(
+      value match
+        case Cast(inner, _) => inner
+        case _ => value,
+      target,
+    )
 
 case class Lambda(params: ParamList, body: Block)(val annot: Ls[Annot]) extends Result:
   lazy val affine: Bool = annot.exists(_.isInstanceOf[Annot.Affine])
