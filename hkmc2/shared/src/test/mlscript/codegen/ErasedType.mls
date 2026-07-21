@@ -3,6 +3,13 @@
 :sir
 :siret
 
+
+// Note: Needed for `@tailrec`
+open annotations
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ end
+
+
 // Erased types come only from explicit type annotations. An unannotated local - even one bound to a
 // literal - carries no erased type.
 fun main =
@@ -243,7 +250,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.244: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.251: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
@@ -259,7 +266,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.260: 	fun g(o: Object) = useInt(o)
+//│ ║  l.267: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32⁰): ? {
@@ -414,36 +421,158 @@ fun unionIntoSubtype(x: A | B) = takesSubtype(x)
 //│ end
 
 
-// TODO(Derppening):
-// A resolvable return annotation on a function that tail-calls an unannotated one temp-binds the
-// call in order to cast it, destroying the `Return(Call)` shape `TailRecOpt` matches on. The tail
-// call then becomes real recursion, so `loop` overflows the stack at depth. `loopUnannotated` is
-// the control: identical, but unannotated, so it is still folded into a loop.
-//
-// Remove `:js` and `:todo` once this is fixed.
-:js
-:todo
-class C
-fun helper(n) = if n <= 0 then new C else loop(n - 1)
-fun loop(n: Int): C = helper(n)
-helper(100000)
+// `sccF`'s tail call is folded into the merged dispatcher, dropping its `as Int` coercion; entering at `sccF` can exit
+// through `sccG`'s arm, so the coercion is re-placed on `sccF`'s stub.
+:soir
+fun sccF(): Int = sccG()
+fun sccG(): Object = sccF() + 1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define helper⁰ as fun helper¹(n: ?): ? {
+//│ define sccF⁰ as fun sccF¹(): Int⁰ {
+//│   return (sccG⁰() as Int⁰)
+//│ };
+//│ define sccG¹ as fun sccG⁰(): Object⁰ {
+//│   let tmp: Int⁰;
+//│   set tmp = sccF¹();
+//│   return (+⁰(tmp, 1) as Object⁰)
+//│ };
+//│ end
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define sccF⁰ as fun sccF¹(): Int⁰ {
+//│   let id: ?, inlinedVal: ?;
+//│   set id = 0;
+//│   block inlinedLbl:
+//│     loop loopLabel:
+//│       match id
+//│         0 =>
+//│           set id = 1;
+//│           continue loopLabel
+//│         1 =>
+//│           let tmp: Int⁰;
+//│           set tmp = sccF¹();
+//│           set inlinedVal = (+⁰(tmp, 1) as Object⁰);
+//│           break inlinedLbl
+//│         else
+//│           end
+//│       end
+//│     end
+//│   return (inlinedVal as Int⁰)
+//│ };
+//│ define sccG¹ as fun sccG⁰(): Object⁰ {
+//│   let inlinedVal: ?;
+//│   block inlinedLbl:
+//│     loop loopLabel:
+//│       match 1
+//│         0 =>
+//│           continue loopLabel
+//│         1 =>
+//│           let tmp: Int⁰;
+//│           set tmp = sccF¹();
+//│           set inlinedVal = (+⁰(tmp, 1) as Object⁰);
+//│           break inlinedLbl
+//│         else
+//│           end
+//│       end
+//│     end
+//│   return inlinedVal
+//│ };
+//│ end
+
+
+// Checks whether `annotLoop(n - 1)` still produces a tail call even though it is wrapped in a `Cast` node.
+// Also runs the compiled JS to ensure that the tail call is preserved and does not overflow the stack.
+:js
+@tailrec
+fun annotLoop(n: Int): () = annotHelper(n)
+fun annotHelper(n) = if n <= 0 then () else annotLoop(n - 1)
+annotHelper(100000)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ @tailrec
+//│ define annotLoop⁰ as fun annotLoop¹(n: Int⁰): Unit⁰ {
+//│   return (annotHelper⁰(n) as Unit⁰)
+//│ };
+//│ define annotHelper¹ as fun annotHelper⁰(n: ?): ? {
 //│   let scrut: ?, tmp: ?, tmp1: Int⁰;
 //│   set scrut = <=⁰(n, 0);
 //│   match scrut
 //│     true =>
-//│       return new C⁰()
+//│       return runtime⁰.Unit⁰
 //│     else
 //│       set tmp = -⁰(n, 1);
 //│       set tmp1 = (tmp as Int⁰);
-//│       return loop⁰(tmp1)
+//│       return annotLoop¹(tmp1)
 //│   end
 //│ };
-//│ define loop¹ as fun loop⁰(n: Int⁰): C⁰ {
-//│   return (helper¹(n) as C⁰)
-//│ };
-//│ define C¹ as class C⁰;
-//│ return helper¹(100000)
+//│ return annotHelper⁰(100000)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] RangeError: Maximum call stack size exceeded
+
+
+// Checks whether the let-bound tail call `r` still produces a tail call even though it is wrapped in a `Cast` node.
+// A dropped return coercion is re-placed on the stub of the function that dropped it.
+// Also runs the compiled JS to ensure that the tail call is preserved and does not overflow the stack.
+:soir
+:js
+@tailrec
+fun sccLoop(n: Int): Int =
+  let r = sccHelper(n)
+  r
+fun sccHelper(n: Int): Object = if n <= 0 then 0 else sccLoop(n - 1)
+sccHelper(100000)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Int⁰;
+//│ @tailrec
+//│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {
+//│   let r: ?;
+//│   set r = sccHelper⁰(n);
+//│   return (r as Int⁰)
+//│ };
+//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
+//│   let scrut: ?, tmp1: ?, tmp2: Int⁰;
+//│   set scrut = <=⁰(n, 0);
+//│   match scrut
+//│     true =>
+//│       return (0 as Object⁰)
+//│     else
+//│       set tmp1 = -⁰(n, 1);
+//│       set tmp2 = (tmp1 as Int⁰);
+//│       return sccLoop¹(tmp2)
+//│   end
+//│ };
+//│ set tmp = (100000 as Int⁰);
+//│ return sccHelper⁰(tmp)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let tmp: Int⁰, sccLoop_sccHelper;
+//│ define sccLoop_sccHelper as fun sccLoop_sccHelper⁰(id: Int⁰, param0: ?) {
+//│   loop loopLabel:
+//│     match id
+//│       0 =>
+//│         set id = 1;
+//│         continue loopLabel
+//│       1 =>
+//│         let scrut: ?, tmp1: ?, tmp2: Int⁰;
+//│         set scrut = <=⁰(param0, 0);
+//│         match scrut
+//│           true =>
+//│             return (0 as Object⁰)
+//│           else
+//│             set tmp1 = -⁰(param0, 1);
+//│             set tmp2 = (tmp1 as Int⁰);
+//│             set param0 = tmp2;
+//│             set id = 0;
+//│             continue loopLabel
+//│         end
+//│       else
+//│         end
+//│     end
+//│   end
+//│ };
+//│ @tailrec
+//│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {
+//│   return (sccLoop_sccHelper⁰(0, n) as Int⁰)
+//│ };
+//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
+//│   return sccLoop_sccHelper⁰(1, n)
+//│ };
+//│ set tmp = (100000 as Int⁰);
+//│ return sccLoop_sccHelper⁰(1, tmp)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0

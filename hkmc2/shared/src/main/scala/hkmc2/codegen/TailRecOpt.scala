@@ -94,10 +94,19 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
         case _ => N
       case _ => N
   
+  /** Matches a tail call, yielding the callee, the call, and the return coercion wrapping it (if any).
+    *
+    * A return coercion sits between the `Return` and the call, so it must be seen through here or the call is
+    * not recognized as a tail call at all. When the call is let-bound, the coercion wraps the returned
+    * *reference* rather than the `Call` itself. Converting the call to a jump drops the coercion, so the caller
+    * re-places it on the entry point that carries the original function's contract.
+    */
   object TailCallShape:
-    def unapply(b: Block): Opt[(TermSymbol, Call)] = b match
-      case Return(c @ CallToFun(r)) => S((r, c))
-      case Assign(a, c @ CallToFun(r), Return(Value.SimpleRef(b))) if a === b => S((r, c))
+    def unapply(b: Block): Opt[(TermSymbol, Call, Opt[ErasedValueType])] = b match
+      case Return(c @ CallToFun(r)) => S((r, c, N))
+      case Return(Cast(c @ CallToFun(r), t)) => S((r, c, S(t)))
+      case Assign(a, c @ CallToFun(r), Return(Value.SimpleRef(b))) if a === b => S((r, c, N))
+      case Assign(a, c @ CallToFun(r), Return(Cast(Value.SimpleRef(b), t))) if a === b => S((r, c, S(t)))
       case _ => N
     
   
@@ -127,7 +136,7 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
       else N
     
     override def applyBlock(b: Block): Unit = b match
-      case TailCallShape(r, c) => getFun(r) match
+      case TailCallShape(r, c, _) => getFun(r) match
         case Some(value) =>
           // Only exactly saturated calls can be rewritten as direct loop jumps.
           // Under-applied calls only build closures for later argument lists;
@@ -368,9 +377,12 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
           )
       val symRewriter = new BlockTransformer(subst)
       
+      /** The return coercion dropped when converting this function's tail calls to jumps, if any. */
+      var droppedCastTarget: Opt[ErasedValueType] = N
+
       override def applyBlock(b: Block): Block = b match
         // Note: the args in `c` have already been rewritten to point to the symbols in `paramSyms`.
-        case TailCallShape(calleeSym, c) => dSymIds.get(calleeSym) match
+        case TailCallShape(calleeSym, c, castTarget) => dSymIds.get(calleeSym) match
           case None => super.applyBlock(b)
           case Some(id) =>
             val callee = dSymToDefn(calleeSym)
@@ -378,6 +390,14 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
             if !isExactlySaturatedCall(c, callee) then
               super.applyBlock(b)
             else
+              // Every coercion in a function's return position targets that function's declared return type,
+              // so a single function can only ever drop one distinct target.
+              castTarget.foreach: t =>
+                softAssert(
+                  droppedCastTarget.forall(_ == t),
+                  s"Conflicting return coercions in ${f.dSym.showDbg}: $droppedCastTarget and $t",
+                )
+                droppedCastTarget = S(t)
               val calleeParamsMap = paramSymsMap(callee.dSym)
               // The code used to continute the loop.
               val cont =
@@ -509,8 +529,11 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
           case ((ogParam, copiedParam), accBlk) => Assign(copiedParam, paramSymsArr(paramsIdxes(ogParam)).asSimpleRef, accBlk)
         Scoped(copiedParamSyms.map(_._2).toSet, withCopied)
         
-    val arms = funs.map: f =>
-      Case.Lit(Tree.IntLit(dSymIds(f.dSym))) -> FunRewriter(f).rewrite(f.body)
+    val rewriters = funs.map(f => f -> FunRewriter(f))
+    val arms = rewriters.map: (f, rw) =>
+      Case.Lit(Tree.IntLit(dSymIds(f.dSym))) -> rw.rewrite(f.body)
+    // Read only after `arms` forces every rewrite.
+    val droppedCastTargets = rewriters.iterator.map((f, rw) => f.dSym -> rw.droppedCastTarget).toMap
     
     val switch = 
       if arms.length === 1 then arms.head._2
@@ -530,9 +553,10 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
           Value.Lit(Tree.IntLit(dSymIds(f.dSym))).asArg
             :: paramArgs
             ::: List.fill(maxParamLen - paramArgs.length)(Value.Lit(Tree.UnitLit(false)).asArg)
-        val newBod = Return(
-          Call(sel, args ne_:: Nil)(CallMetadata.defaultMlsFun),
-        )
+        val dispatch = Call(sel, args ne_:: Nil)(CallMetadata.defaultMlsFun)
+        // Entering at `f` can exit through another arm's return, which coerces to *its* function's declared type.
+        // Re-place `f`'s own coercion here, where `f`'s contract with its callers lives.
+        val newBod = Return(droppedCastTargets(f.dSym).fold[Result](dispatch)(Cast(dispatch, _)))
         FunDefn(f.owner, f.sym, f.dSym, f.params, newBod)(N, f.annotations)
     
     funs match
