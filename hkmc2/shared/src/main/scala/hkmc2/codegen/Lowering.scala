@@ -1408,11 +1408,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         val target = t match
           case _: ErasedType.FuncRef => ErasedType.Function
           case v: ErasedValueType => v
-        r match
-        case p: Path => k(Cast(p, target))
-        case _ =>
-          val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedType)
-          Assign(l, r, k(Cast(l.asSimpleRef, target)))
+        k(Cast(r, target))
       case N =>
         raise(ErrorReport(
           msg"Cannot narrow a value of type '${describeTpe(actual.sym)}' to unrelated type '${describeTpe(declared.sym)}'" ->

@@ -115,11 +115,7 @@ fun add2(x: Int, y: Int): Int = x + y
 //│ define add1⁰ as fun add1¹(x: Int⁰, y: Int⁰): ? {
 //│   return +⁰(x, y)
 //│ };
-//│ define add2⁰ as fun add2¹(x: Int⁰, y: Int⁰): Int⁰ {
-//│   let tmp: ?;
-//│   set tmp = +⁰(x, y);
-//│   return (tmp as Int⁰)
-//│ };
+//│ define add2⁰ as fun add2¹(x: Int⁰, y: Int⁰): Int⁰ { return (+⁰(x, y) as Int⁰) };
 //│ end
 
 
@@ -151,15 +147,9 @@ fun addUp(x: Int, y: Int): Int = x + y
 fun makeBar(s: Str): Bar = new Bar(s)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define addUp⁰ as fun addUp¹(x: Int⁰, y: Int⁰): Int⁰ {
-//│   let tmp: ?;
-//│   set tmp = +⁰(x, y);
-//│   return (tmp as Int⁰)
+//│   return (+⁰(x, y) as Int⁰)
 //│ };
-//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ {
-//│   let tmp: ?;
-//│   set tmp = new Bar⁰(s);
-//│   return (tmp as Bar⁰)
-//│ };
+//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ { return (new Bar⁰(s) as Bar⁰) };
 //│ end
 
 
@@ -194,9 +184,7 @@ class Calc() with
 //│ define Calc⁰ as class Calc² {
 //│   constructor Calc¹
 //│   method twice⁰ = fun twice¹(x: Int⁰): Int⁰ {
-//│     let tmp: ?;
-//│     set tmp = +⁰(x, x);
-//│     return (tmp as Int⁰)
+//│     return (+⁰(x, x) as Int⁰)
 //│   }
 //│   method whatever⁰ = fun whatever¹(a: ?): ? { return a }
 //│ };
@@ -255,7 +243,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.256: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.244: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
@@ -271,7 +259,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.272: 	fun g(o: Object) = useInt(o)
+//│ ║  l.260: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32⁰): ? {
@@ -453,9 +441,7 @@ helper(100000)
 //│   end
 //│ };
 //│ define loop¹ as fun loop⁰(n: Int⁰): C⁰ {
-//│   let tmp: ?;
-//│   set tmp = helper¹(n);
-//│   return (tmp as C⁰)
+//│   return (helper¹(n) as C⁰)
 //│ };
 //│ define C¹ as class C⁰;
 //│ return helper¹(100000)
