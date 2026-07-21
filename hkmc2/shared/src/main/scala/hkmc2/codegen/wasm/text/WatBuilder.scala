@@ -685,10 +685,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
     val classFields = ctx.elabCtx.givenIn:
       (defn.publicFields.map(_._2) ++ defn.privateFields).map: f =>
-        val fieldType = f.erasedType.map(_.canonicalize) match
-          case S(ErasedType.AnyRef(_, csym: ClassLikeSymbol)) =>
-            csym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = true)).getOrElse(RefType.anyref)
-          case _ => RefType.anyref
+        // Fields need to be nullable so that `struct.new_default` has a valid value to write
+        val fieldType = f.erasedType.flatMap(_.wasmType).fold(RefType.anyref)(_.copy(nullable = true))
         f -> Field(fieldType, mutable = true, id = f.nme)
 
     val allFields = inheritedFields ++ classFields
@@ -1991,17 +1989,21 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       Return(Lambda(ps, block)(Nil))
                   val (bodyWat, fnCtx) = setupFunction(N, ps, result)
                   if sym.nameIsMeaningful then
-                    // Cross-check the erased type of the function with the WAT type of the body.
-                    // They may disagree if the WAT body contains control transfer, which keeps the WAT type from
-                    // being inferred correctly.
-                    val resultTypes: Seq[Result] =
-                      defn.sym.asTrm.flatMap(_.erasedType) match
-                        case S(ErasedType.FuncRef(_, _, S(ret))) =>
-                          val retType = ret.wasmType.getOrElse(RefType.anyref)
-                          if bodyWat.resultTypes == Seq(retType) then Seq(Result(retType))
-                          else Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref))
-                        case _ =>
-                          Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref))
+                    // The declared return type (if present) is used unless one of the following cases is encountered:
+                    //
+                    // - The erased type has no Wasm mapping (`wasmType` is `N`).
+                    // - The body's WAT type disagrees with the erased type's Wasm mapping, when:
+                    //   - The body ends with a loop whose value is dropped, leaving no value on the stack.
+                    //   - The body expression is more precise than its mapping - e.g. a field access returning
+                    //     `(ref T)` but its mapping gives `(ref null T)`.
+                    val resultTypes = Seq:
+                      Result:
+                        defn.sym.asTrm.flatMap(_.erasedType) match
+                          case S(ErasedType.FuncRef(_, _, S(ret))) =>
+                            val retType = ret.wasmType.getOrElse(RefType.anyref)
+                            if bodyWat.resultTypes == Seq(retType) then retType else RefType.anyref
+                          case S(ErasedType.FuncRef(_, _, N)) | N => RefType.anyref
+                          case et => lastWords(s"Unexpected type `$et` where `FuncRef` was expected")
                     val funcTy = ctx.addType(
                       TypeInfo(
                         sym = TempSymbol(N, erasedType = N, sym.nme),

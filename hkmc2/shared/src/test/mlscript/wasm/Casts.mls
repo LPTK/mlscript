@@ -17,7 +17,7 @@ useBox(id(new Box(42)))
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $Box (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $v (mut (ref null any))))))
+//│   (type $Box (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $v (mut (ref null i31))))))
 //│   (type $Box_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Box_init (func (param $this (ref $Box)) (param $v (ref null i31)) (result (ref $Box))))
 //│   (type $Box_ctor (func (param $v (ref null i31)) (result (ref $Box))))
@@ -41,7 +41,7 @@ useBox(id(new Box(42)))
 //│       (local.set $this
 //│         (struct.new $Box
 //│           (global.get $Box_typeinfo)
-//│           (ref.null any)))
+//│           (ref.null i31)))
 //│       (drop
 //│         (call $Box_init
 //│           (local.get $this)
@@ -53,13 +53,14 @@ useBox(id(new Box(42)))
 //│       (local.get $a)))
 //│   (func $useBox (export "useBox") (type $useBox) (param $b (ref $Box)) (result (ref null any))
 //│     (return
-//│       (struct.get $Box $v
-//│         (local.get $b))))
+//│       (ref.cast (ref i31)
+//│         (struct.get $Box $v
+//│           (local.get $b)))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null i31))
 //│     (local $tmp1 (ref null any))
 //│     (local $tmp2 (ref $Box))
-//│     (block (result (ref null any))
+//│     (block (result (ref i31))
 //│       (local.set $tmp
 //│         (ref.i31
 //│           (i32.const 42)))
@@ -70,8 +71,9 @@ useBox(id(new Box(42)))
 //│         (ref.cast (ref $Box)
 //│           (local.get $tmp1)))
 //│       (return
-//│         (struct.get $Box $v
-//│           (local.get $tmp2)))))
+//│         (ref.cast (ref i31)
+//│           (struct.get $Box $v
+//│             (local.get $tmp2))))))
 //│   (elem $Box_init declare func $Box_init)
 //│   (elem $Box_ctor declare func $Box_ctor)
 //│   (elem $id declare func $id)
@@ -105,3 +107,34 @@ fun setter(x: Int) =
 setter(1)
 //│ Wasm result:
 //│ = 7
+
+
+// A return coercion is not restricted to paths - it also wraps an instantiate...
+fun mkObj(n: Int): Object = new Box(42)
+mkObj(0)
+//│ Wasm result:
+//│ = {}
+
+
+// ...and a call, whose result is then narrowed for the `Box`-typed parameter of `useBox`.
+fun anyBox(n: Int): Object = new Box(7)
+fun narrowBox(n: Int): Box = anyBox(n)
+useBox(narrowBox(0))
+//│ Wasm result:
+//│ = 7
+
+
+// TODO(Derppening):
+// Blocked on the merged-dispatcher bug in `wasm/ControlFlow.mls`. Once that is fixed, this guards
+// the re-placement of a return coercion: only `sccF` narrows (`sccG` widens, free), so entering at
+// `sccF` can exit through `sccG`'s arm, and its coercion has to be re-placed on its own stub - else
+// `useBox` receives a value that was never narrowed to `Box`. Unlike JS, Wasm does not erase
+// casts, so a missing narrowing is observable here.
+//
+// Remove `:fixme` once the dispatcher body yields its value.
+:fixme
+fun sccF(n: Int): Box = sccG(n)
+fun sccG(n: Int): Object = if n <= 0 then new Box(42) else sccF(n - 1)
+useBox(sccF(3))
+//│ Wasm result:
+//│ ═══[RUNTIME ERROR] [object Object]
