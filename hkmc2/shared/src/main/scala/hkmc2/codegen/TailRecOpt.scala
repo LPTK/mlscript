@@ -97,7 +97,7 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
   object TailCallShape:
     def unapply(b: Block): Opt[(TermSymbol, Call)] = b match
       case Return(c @ CallToFun(r)) => S((r, c))
-      case Assign(a, c @ CallToFun(r), Return(Value.MemberRef(b, _))) if a === b => S((r, c))
+      case Assign(a, c @ CallToFun(r), Return(Value.SimpleRef(b))) if a === b => S((r, c))
       case _ => N
     
   
