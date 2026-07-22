@@ -320,33 +320,29 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def baseObjectRefType(nullable: Bool): RefType =
     RefType(baseObjectTypeIdx, nullable = nullable)
 
-  /** Casts an expression to `target` type if the result type does not match with `target`. */
-  private def castConserve(expr: Expr, target: RefType): Expr =
-    require(expr.resultTypes.size == 1, "expected single-result expression for cast")
-    if expr.resultType.contains(target) then expr else ref.cast(expr, target)
-
-  /** Casts an expression to `target` type if the result type is a supertype of `target`. */
-  private def downcastConserve(expr: Expr, target: RefType): Expr =
-    require(expr.resultTypes.size == 1, "expected single-result expression for cast")
-    target match
-      case rt: RefType if rt.heapType =/= HeapType.Any && expr.resultType.contains(RefType.anyref) =>
-        castConserve(expr, rt)
-      case rt: RefType if !rt.nullable && expr.resultType.contains(RefType(rt.heapType, nullable = true)) =>
-        castConserve(expr, rt)
-      case _ => expr
-
-  /** Casts each argument in `wasmArgs` down to the corresponding declared parameter type read from `funcTypeInfo`,
-    * narrowing `anyref` -> a concrete typed parameter.
+  /** Casts an expression to `target` type, unless its result type is already a subtype of `target`.
     *
-    * Note that this function does not cast an argument that is already narrower than the declared parameter type, since
-    * it is illegal to upcast using `ref.cast`.
+    * Emits an error if the two types have incompatible type hierarchies.
     */
-  private def castArgsToParams(wasmArgs: Seq[Expr], funcTypeInfo: TypeInfo): Seq[Expr] =
+  private def castConserve(expr: Expr, target: RefType)(using Raise): Expr =
+    require(expr.resultTypes.size == 1, "expected single-result expression for cast")
+    expr.resultType match
+      case S(ty) if ty.isSubtypeOf(target) => expr
+      case S(ty: RefType) if ty.heapType.topType === target.heapType.topType => ref.cast(expr, target)
+      case ty =>
+        errExpr(
+          Ls(msg"Cannot cast a Wasm value of type `${
+              ty.fold("(none)")(_.toWat.mkString())
+            }` to `${target.toWat.mkString()}` in a different type hierarchy" -> N),
+          extraInfo = S(expr.toWat.mkString()),
+        )
+
+  /** Casts each argument in `wasmArgs` down to the corresponding declared parameter type read from `funcTypeInfo`. */
+  private def castArgsToParams(wasmArgs: Seq[Expr], funcTypeInfo: TypeInfo)(using Raise): Seq[Expr] =
     val declParams = funcTypeInfo.compType.asInstanceOf[FunctionType].sigType.params
     wasmArgs.zip(declParams).map: (arg, p) =>
       p.valtype match
-        case rt: RefType if rt.heapType =/= HeapType.Any && arg.resultType.contains(RefType.anyref) =>
-          castConserve(arg, rt)
+        case rt: RefType => castConserve(arg, rt)
         case _ => arg
 
   /** Returns the default Wasm value for one struct field when eagerly constructing an object instance. */
@@ -1372,7 +1368,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   def getVar(l: ValueSymbol, loc: Opt[Loc])(using FunctionCtx, Raise): Expr = varIndex(l, loc) match
     case S(localIdx: LocalIdx) => local.get(localIdx, funcCtx.slotRefType(l))
     case S(globalIdx: GlobalIdx) => 
-      downcastConserve(
+      castConserve(
         global.get(globalIdx, ctx.getGlobalType_!(globalIdx).globalType.valType),
         l.localRefType,
       )
@@ -1391,10 +1387,10 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     * dual of [[getVar]].
     */
   def setVar(l: ValueSymbol, value: Expr, loc: Opt[Loc])(using FunctionCtx, Raise): Expr = varIndex(l, loc) match
-    case S(localIdx: LocalIdx) => local.set(localIdx, downcastConserve(value, funcCtx.slotRefType(l)))
+    case S(localIdx: LocalIdx) => local.set(localIdx, castConserve(value, funcCtx.slotRefType(l)))
     case S(globalIdx: GlobalIdx) =>
       val casted = ctx.getGlobalType_!(globalIdx).globalType.valType match
-        case rt: RefType => downcastConserve(value, rt)
+        case rt: RefType => castConserve(value, rt)
         case _ => value
       global.set(globalIdx, casted)
     case N =>
@@ -1795,7 +1791,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
     case Cast(value, target) =>
       target.wasmType match
-        case S(rt) => downcastConserve(result(value), rt)
+        case S(rt) => castConserve(result(value), rt)
         case N => result(value)
 
     case r =>
@@ -1890,7 +1886,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                   case st: StructType => st.fieldsBySym(fieldSym).ty
                   case other => lastWords(s"Expected struct type for $selCls, found ${other.toWat.mkString()}")
                 val rhsCasted = fieldType match
-                  case rt: RefType => downcastConserve(rhsExpr, rt)
+                  case rt: RefType => castConserve(rhsExpr, rt)
                   case _ => rhsExpr
                 struct.set(fieldidx, objRef, rhsCasted)
               case N =>
@@ -1959,7 +1955,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                   case other => lastWords(s"Expected struct type for $ownerBlkMem, found ${other.toWat.mkString()}")
                 val pExpr = result(p)
                 val pCasted = fieldType match
-                  case rt: RefType => downcastConserve(pExpr, rt)
+                  case rt: RefType => castConserve(pExpr, rt)
                   case _ => pExpr
                 val assignInstr = struct.set(
                   index = fieldIdx,
@@ -1992,16 +1988,14 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                     // The declared return type (if present) is used unless one of the following cases is encountered:
                     //
                     // - The erased type has no Wasm mapping (`wasmType` is `N`).
-                    // - The body's WAT type disagrees with the erased type's Wasm mapping, when:
-                    //   - The body ends with a loop whose value is dropped, leaving no value on the stack.
-                    //   - The body expression is more precise than its mapping - e.g. a field access returning
-                    //     `(ref T)` but its mapping gives `(ref null T)`.
+                    // - The body's WAT type is not a subtype of the erased type's Wasm mapping - e.g. the body ends
+                    //   with a loop whose value is dropped, leaving no value on the stack.
                     val resultTypes = Seq:
                       Result:
                         defn.sym.asTrm.flatMap(_.erasedType) match
                           case S(ErasedType.FuncRef(_, _, S(ret))) =>
                             val retType = ret.wasmType.getOrElse(RefType.anyref)
-                            if bodyWat.resultTypes == Seq(retType) then retType else RefType.anyref
+                            if bodyWat.resultType.exists(_.isSubtypeOf(retType)) then retType else RefType.anyref
                           case S(ErasedType.FuncRef(_, _, N)) | N => RefType.anyref
                           case et => lastWords(s"Unexpected type `$et` where `FuncRef` was expected")
                     val funcTy = ctx.addType(

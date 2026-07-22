@@ -47,6 +47,13 @@ sealed abstract class Type extends ToWat:
   def asValType_! : ValType = asValType.getOrElse:
     lastWords(s"asValType_! called on non-ValType: `$toWat` (${getClass.getName})")
 
+  /** Returns whether this type is a subtype of `parent` under the Wasm type hierarchy. */
+  def isSubtypeOf(parent: Type)(using Ctx): Bool = (this, parent) match
+    case (UnreachableType, _) => true
+    case (sub: RefType, sup: RefType) =>
+      (sup.nullable || !sub.nullable) && sub.heapType.superTypes.contains(sup.heapType)
+    case _ => this == parent
+
 private case object I32Type extends Type:
   def toWat: Document = doc"i32"
 private case object I64Type extends Type:
@@ -170,6 +177,28 @@ type AbsHeapType =
     | HeapType.NoExt.type
     | HeapType.NoFunc.type
 type HeapType = AbsHeapType | TypeIdx
+
+extension (ht: HeapType)
+  /** The chain of heap types this heap type is a subtype of, from itself up to its top type. */
+  private def superTypes(using Ctx): Ls[HeapType] =
+    import Ctx.ctx
+    val superTypes = ht match
+      case idx: TypeIdx =>
+        ctx.getTypeInfo_!(idx).compType match
+          case st: StructType if st.parents.nonEmpty => st.parents.toList.flatMap(_.superTypes)
+          case _: StructType => HeapType.Struct.superTypes
+          case _: ArrayType => HeapType.Array.superTypes
+          case _: FunctionType => HeapType.Func.superTypes
+      case HeapType.Eq => HeapType.Any :: Nil
+      case HeapType.I31 | HeapType.Struct | HeapType.Array => HeapType.Eq.superTypes
+      case _ => Ls.empty
+    ht :: superTypes
+
+  /** The top heap type of the hierarchy this heap type belongs to.
+    *
+    * `ref.cast` is only valid between two types sharing the same top heap type.
+    */
+  private def topType(using Ctx): HeapType = ht.superTypes.last
 
 case class TypeUse(typeIdx: TypeIdx) extends ToWat:
   def toWat: Document = doc"(type ${typeIdx.toWat})"
