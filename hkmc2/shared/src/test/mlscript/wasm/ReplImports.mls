@@ -62,3 +62,61 @@ unit
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
 //│ = {}
+
+// Session globals of primitive type are stored unboxed
+val typed: Int32 = 1
+fun idI32(n: Int32): Int32 = n
+//│ Wasm result:
+//│ = {}
+
+:wat
+val copied: Int32 = idI32(typed)
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Unit_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Unit (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Unit_init (func (param $this (ref $Unit)) (result (ref $Unit))))
+//│   (type $Unit_ctor (func (result (ref $Unit))))
+//│   (type $entry (func (result (ref null any))))
+//│   (type $start (func))
+//│   (import "repl" "typed" (global $typed (mut i32)))
+//│   (global $copied (export "copied") (mut i32) (i32.const 0))
+//│   (global $Unit_typeinfo (export "Unit_typeinfo") (ref $Unit_typeinfo) (struct.new $Unit_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Unit$inst (export "Unit$inst") (mut (ref null $Unit)) (ref.null $Unit))
+//│   (func $Unit_init (type $Unit_init) (param $this (ref $Unit)) (result (ref $Unit))
+//│     (return
+//│       (ref.cast (ref $Unit)
+//│         (local.get $this))))
+//│   (func $Unit_Unit (type $Unit_ctor) (result (ref $Unit))
+//│     (local $this (ref $Unit))
+//│     (block (result (ref $Unit))
+//│       (local.set $this
+//│         (struct.new $Unit
+//│           (global.get $Unit_typeinfo)))
+//│       (drop
+//│         (call $Unit_init
+//│           (local.get $this)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $start (type $start)
+//│     (global.set $Unit$inst
+//│       (call $Unit_Unit)))
+//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│     (local $tmp i32)
+//│     (block (result (ref null $Unit))
+//│       (local.set $tmp
+//│         (global.get $typed))
+//│       (global.set $copied
+//│         (local.get $tmp))
+//│       (global.get $Unit$inst)))
+//│   (elem $Unit_init declare func $Unit_init)
+//│   (elem $Unit_Unit declare func $Unit_Unit)
+//│   (elem $start declare func $start)
+//│   (elem $entry declare func $entry)
+//│   (start $start))
+//│ Wasm result:
+//│ = {}

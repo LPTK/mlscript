@@ -37,6 +37,7 @@ extension (et: ErasedType)
           S(RefType.i31ref)
         case ErasedType.AnyRef(_, tpeSym) =>
           tpeSym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
+        case ErasedType.Primitive(PrimitiveType.Int32) => S(I32Type)
         case _ => N
 
 extension (sym: ValueSymbol)
@@ -53,9 +54,11 @@ extension (sym: ValueSymbol)
           if isym eq State.unitSymbol then S(State.unitBlockMemberSymbol)
           else isym.asBlkMember
         structSym.flatMap(ctx.getType).fold(RefType.anyref)(RefType(_, nullable = false))
+      case bms: BlockMemberSymbol =>
+        // A BMS's erased type lives in its associated TermSymbol
+        bms.tsym.flatMap(_.erasedType).flatMap(_.wasmType).getOrElse(RefType.anyref)
       case s: HasErasedType =>
         s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
-      case _ => RefType.anyref
 
   /** The Wasm value type a parameter slot for `sym` should be declared with, if typed parameters are enabled. */
   private[text] def paramType(using Ctx, State): ValType =
@@ -338,6 +341,18 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           extraInfo = S(expr.toWat.mkString()),
         )
 
+  /** Compiles `r` into a slot of declared type `target`.
+    *
+    * This function handles the special case where a literal is emitted directly into a slot of the same primitive type:
+    * The literal must be emitted unboxed, otherwise `castConserve` will reject the conversion of a reference value to
+    * a primitive type.
+    */
+  // TODO(Derppening): Remove once the `wasm.*` intrinsics land and `Int32` literals can be written explicitly.
+  private def castToValType(r: codegen.Result, target: ValType)(using FunctionCtx, Raise, SessionExportCtx): Expr =
+    (r, target) match
+      case (Value.Lit(IntLit(value)), I32Type) => withValidIntLit(value, r.toLoc)(i32.const(_))
+      case _ => castConserve(result(r), target)
+
   /** Casts each argument in `wasmArgs` down to the corresponding declared parameter type read from `funcTypeInfo`. */
   private def castArgsToParams(wasmArgs: Seq[Expr], funcTypeInfo: TypeInfo)(using Raise): Seq[Expr] =
     val declParams = funcTypeInfo.compType.asInstanceOf[FunctionType].sigType.params
@@ -351,6 +366,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     case refTy: RefType if refTy.nullable => ref.`null`(refTy.heapType)
     case refTy: RefType =>
       lastWords(s"non-null ref field `${field.id}` requires an explicit initializer")
+    case I32Type => i32.const(0)
     case other =>
       lastWords(s"unsupported default field type `${other.toWat.mkString()}` for eager object construction")
 
@@ -893,12 +909,17 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   )(using Raise, SessionExportCtx): Unit =
     if ctx.containsGlobal(sym) then return
     val exportName = sym.nme
-    val refType = sym.localType match
-      case ty: RefType => ty.copy(nullable = true)
+    // Reference globals need to be nullable so that they have a valid initializer
+    val (valType, init): (ValType, Expr) = sym.localType match
+      case ty: RefType =>
+        val nullableTy = ty.copy(nullable = true)
+        nullableTy -> ref.`null`(nullableTy.heapType)
+      case I32Type => I32Type -> i32.const(0)
       case ty => lastWords(s"unsupported session global type `${ty.toWat.mkString()}` for `$exportName`")
+    val globalType = GlobalType(valType, mutable = true)
     val globalInfo = GlobalInfo(
-      globalType = GlobalType(refType, mutable = true),
-      init = ref.`null`(refType.heapType),
+      globalType = globalType,
+      init = init,
       exportName = S(exportName),
       sym,
     )
@@ -908,7 +929,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       wrapId = globalInfo.wrapId,
       moduleName = SessionBinding.ReplModuleName,
       exportName = exportName,
-      globalType = GlobalType(refType, mutable = true),
+      globalType = globalType,
     ))
   end registerSessionGlobal
 
@@ -1392,13 +1413,12 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   /** Stores `value` into the local or global slot for `l`, narrowing it to the slot's declared type. The write-side
     * dual of [[getVar]].
     */
-  def setVar(l: ValueSymbol, value: Expr, loc: Opt[Loc])(using FunctionCtx, Raise): Expr = varIndex(l, loc) match
-    case S(localIdx: LocalIdx) => local.set(localIdx, castConserve(value, funcCtx.slotType(l)))
+  def setVar(l: ValueSymbol, value: codegen.Result, loc: Opt[Loc])(
+      using FunctionCtx, Raise, SessionExportCtx,
+  ): Expr = varIndex(l, loc) match
+    case S(localIdx: LocalIdx) => local.set(localIdx, castToValType(value, funcCtx.slotType(l)))
     case S(globalIdx: GlobalIdx) =>
-      val casted = ctx.getGlobalType_!(globalIdx).globalType.valType match
-        case rt: RefType => castConserve(value, rt)
-        case _ => value
-      global.set(globalIdx, casted)
+      global.set(globalIdx, castToValType(value, ctx.getGlobalType_!(globalIdx).globalType.valType))
     case N =>
       errExpr(
         Ls(
@@ -1797,7 +1817,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
     case Cast(value, target) =>
       target.wasmType match
-        case S(rt) => castConserve(result(value), rt)
+        case S(ty) => castToValType(value, ty)
         case N => result(value)
 
     case r =>
@@ -1866,7 +1886,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         evalExpr +: rstBlk
 
       case Assign(l: ValueSymbol, r, rst) =>
-        val assignExpr = setVar(l, result(r), l.toLoc)
+        val assignExpr = setVar(l, r, l.toLoc)
         val rstBlk = returningTerm(rst)
         assignExpr +: rstBlk
 
@@ -1949,7 +1969,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
             tsym.owner match
               case N =>
                 val localStorageSym = defn.sym
-                val defineExpr = setVar(localStorageSym, result(p), localStorageSym.toLoc)
+                val defineExpr = setVar(localStorageSym, p, localStorageSym.toLoc)
                 val rstWat = returningTerm(rst)
                 defineExpr +: rstWat
               case S(owner) =>
@@ -1959,10 +1979,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                 val fieldType = structInfo.compType match
                   case st: StructType => st.fieldsBySym(tsym).ty
                   case other => lastWords(s"Expected struct type for $ownerBlkMem, found ${other.toWat.mkString()}")
-                val pExpr = result(p)
-                val pCasted = fieldType match
-                  case rt: RefType => castConserve(pExpr, rt)
-                  case _ => pExpr
+                val pCasted = castToValType(p, fieldType)
                 val assignInstr = struct.set(
                   index = fieldIdx,
                   ref = mkThis(owner),
