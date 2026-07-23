@@ -218,7 +218,7 @@ class FuncInfo(
         getSignatureType.toWat.surroundUnlessEmpty(doc" ")
       } #{ ${
         locals.map: p =>
-          doc"(local ${p._2.toWat} ${p._1.localRefType.toWat})"
+          doc"(local ${p._2.toWat} ${p._1.localType.toWat})"
         .mkDocument(doc" # ").surroundUnlessEmpty(doc" # ")
       } # ${body.toWat} #} )"""
 end FuncInfo
@@ -328,7 +328,7 @@ enum WasmIntrinsicType:
     * types, including a concretely-typed `this`. Keyed on the full param-type vector (not just arity) so distinct
     * virtual methods of the same arity on the same base class don't collide.
     */
-  case VirtualMethod(baseSym: BlockMemberSymbol, paramTypes: List[RefType])
+  case VirtualMethod(baseSym: BlockMemberSymbol, paramTypes: List[ValType])
 
 /** Class containing identifiers of labels to jump to when breaking or continuing from a control flow structure.
   *
@@ -362,13 +362,13 @@ object FunctionCtx:
   *   The parameters of this function.
   * @param thisSym
   *   The implicit `this` parameter symbol if this function is generated from a non-static method, or `N` otherwise.
-  * @param paramRefTypes
+  * @param paramTypes
   *   When set, overrides the loaded type of each param slot at its position (index 0 = `this`).
   */
 class FunctionCtx(
     _params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
-    paramRefTypes: Opt[Seq[RefType]] = N,
+    paramTypes: Opt[Seq[ValType]] = N,
 )(using Ctx, Raise, State):
 
   /** [[Scope]] for generating WAT identifiers of locals. */
@@ -384,12 +384,12 @@ class FunctionCtx(
       dis -> SymIdx(localScp.addToBindings(dis, "this", shadow = false))
     thisParam.toSeq ++ _params.flatMap(_.paramSyms).map(p => p -> SymIdx(localScp.allocateName(p)))
 
-  /** The declared Wasm reference type of each parameter slot (including implicit `$this`), resolved eagerly at
+  /** The declared Wasm value type of each parameter slot (including implicit `$this`), resolved eagerly at
     * construction (index 0 = `this`).
     */
-  private val resolvedParamTypes: Map[ValueSymbol, RefType] =
+  private val resolvedParamTypes: Map[ValueSymbol, ValType] =
     params.zipWithIndex.map:
-      case ((sym, _), idx) => sym -> resolveParamRefType(sym, idx, paramRefTypes)
+      case ((sym, _), idx) => sym -> resolveParamType(sym, idx, paramTypes)
     .toMap
 
   /** The parameters of this function with their identifiers and resolved Wasm types, ready to hand to a [[FuncInfo]].
@@ -426,14 +426,14 @@ class FunctionCtx(
     */
   def locals: Seq[ValueSymbol -> SymIdx] = _locals.map(l => l -> SymIdx(localScp.lookup_!(l, N))).toSeq
 
-  /** The declared Wasm reference type of the param/local slot for `sym`.
+  /** The declared Wasm value type of the param/local slot for `sym`.
     *
     * Parameter slot types are resolved eagerly at construction (see [[resolvedParamTypes]]): each comes from the slot's
-    * `paramRefTypes` override if present, otherwise from the symbol's erased type via [[paramRefType]]. Local slots
-    * derive their type from the symbol's erased type via [[localRefType]].
+    * `paramValTypes` override if present, otherwise from the symbol's erased type via [[paramType]]. Local slots derive 
+    * their type from the symbol's erased type via [[localType]].
     */
-  def slotRefType(sym: ValueSymbol)(using Ctx): RefType =
-    resolvedParamTypes.getOrElse(sym, sym.localRefType)
+  def slotType(sym: ValueSymbol)(using Ctx): ValType =
+    resolvedParamTypes.getOrElse(sym, sym.localType)
 
   /** Pushes a label target for the dynamic extent of `body` and pops it afterwards.
     *
@@ -475,9 +475,9 @@ end FunctionCtx
 def genFuncBody[T](
     params: Ls[ParamList],
     thisSym: Opt[InnerSymbol],
-    paramRefTypes: Opt[Seq[RefType]] = N,
+    paramTypes: Opt[Seq[ValType]] = N,
 )(mkBody: FunctionCtx ?=> T)(using Ctx, Raise, State): T -> FunctionCtx =
-  val funcCtx = FunctionCtx(params, thisSym, paramRefTypes)
+  val funcCtx = FunctionCtx(params, thisSym, paramTypes)
   val result = mkBody(using funcCtx)
   result -> funcCtx
 
@@ -499,7 +499,7 @@ object Ctx:
   case class VirtualMethodInfo(
       sym: BlockMemberSymbol,
       owner: BlockMemberSymbol,
-      paramTypes: Seq[RefType],
+      paramTypes: Seq[ValType],
   )
 
   /** Derived virtual-dispatch layout for one class.

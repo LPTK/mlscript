@@ -28,7 +28,7 @@ extension (instr: FoldedInstr)
 
 extension (et: ErasedType)
   /** Returns the corresponding Wasm type for this [[`ErasedType`]]. */
-  private[text] def wasmType(using Ctx, State): Opt[RefType] =
+  private[text] def wasmType(using Ctx, State): Opt[ValType] =
     import Ctx.ctx
     val elabCtx = ctx.elabCtx
     elabCtx.givenIn:
@@ -40,12 +40,12 @@ extension (et: ErasedType)
         case _ => N
 
 extension (sym: ValueSymbol)
-  /** The Wasm reference type a *local* slot for `sym` should be declared with.
+  /** The Wasm value type a *local* slot for `sym` should be declared with.
     *
-    * Use [[`FunctionCtx.slotRefType`]] for parameter slots, which handles `anyref` widening due to virtual dispatch
+    * Use [[`FunctionCtx.slotType`]] for parameter slots, which handles `anyref` widening due to virtual dispatch
     * calling conventions.
     */
-  private[text] def localRefType(using Ctx, State): RefType =
+  private[text] def localType(using Ctx, State): ValType =
     import Ctx.ctx
     sym match
       case isym: InnerSymbol =>
@@ -57,32 +57,32 @@ extension (sym: ValueSymbol)
         s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
       case _ => RefType.anyref
 
-  /** The Wasm reference type a parameter slot for `sym` should be declared with, if typed parameters are enabled. */
-  private[text] def paramRefType(using Ctx, State): RefType =
+  /** The Wasm value type a parameter slot for `sym` should be declared with, if typed parameters are enabled. */
+  private[text] def paramType(using Ctx, State): ValType =
     sym match
       case s: HasErasedType =>
         s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
       case _ => RefType.anyref
 end extension
 
-/** The declared Wasm reference type of the parameter slot for `sym` at position `idx`, honoring an optional
-  * per-position override (index 0 = `this`). Falls back to `sym.paramRefType` if no override is given.
+/** The declared Wasm value type of the parameter slot for `sym` at position `idx`, honoring an optional
+  * per-position override (index 0 = `this`). Falls back to `sym.paramType` if no override is given.
   */
-private[text] def resolveParamRefType(
+private[text] def resolveParamType(
     sym: ValueSymbol,
     idx: Int,
-    overrides: Opt[Seq[RefType]],
-)(using Ctx, State): RefType =
-  overrides.flatMap(_.lift(idx)).getOrElse(sym.paramRefType)
+    overrides: Opt[Seq[ValType]],
+)(using Ctx, State): ValType =
+  overrides.flatMap(_.lift(idx)).getOrElse(sym.paramType)
 
 extension (param: ValueSymbol -> SymIdx)
-  /** Resolves the parameter slot to the declared Wasm type from its own symbol's `paramRefType` (no override).
+  /** Resolves the parameter slot to the declared Wasm type from its own symbol's `paramType` (no override).
     *
     * For [[FuncInfo]]s built without a [[FunctionCtx]]; those built from one should pass its `resolvedParams`, which
     * additionally honors the slot overrides.
     */
   private[text] def resolvedParam(using Ctx, State): ValueSymbol -> WasmParam =
-    param._1 -> WasmParam(param._2, param._1.paramRefType)
+    param._1 -> WasmParam(param._2, param._1.paramType)
 
 extension (exprs: Seq[Expr])
   /** Merges a sequence of expressions to a single `block` expression if needed. */
@@ -324,12 +324,13 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     *
     * Emits an error if the two types have incompatible type hierarchies.
     */
-  private def castConserve(expr: Expr, target: RefType)(using Raise): Expr =
+  private def castConserve(expr: Expr, target: ValType)(using Raise): Expr =
     require(expr.resultTypes.size == 1, "expected single-result expression for cast")
-    expr.resultType match
-      case S(ty) if ty.isSubtypeOf(target) => expr
-      case S(ty: RefType) if ty.heapType.topType === target.heapType.topType => ref.cast(expr, target)
-      case ty =>
+    expr.resultType -> target match
+      case (S(ty), _) if ty.isSubtypeOf(target) => expr
+      case (S(ty: RefType), target: RefType) if ty.heapType.topType === target.heapType.topType =>
+        ref.cast(expr, target)
+      case (ty, _) =>
         errExpr(
           Ls(msg"Cannot cast a Wasm value of type `${
               ty.fold("(none)")(_.toWat.mkString())
@@ -652,7 +653,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           slots += Ctx.VirtualMethodInfo(
             sym = methodDef.sym,
             owner = defn.sym,
-            paramTypes = methodDef.params.headOption.fold(Nil)(_.params).map(_.sym.paramRefType),
+            paramTypes = methodDef.params.headOption.fold(Nil)(_.params).map(_.sym.paramType),
           )
           slotOf(methodDef.sym) = slot
         case N => ()
@@ -681,8 +682,11 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
     val classFields = ctx.elabCtx.givenIn:
       (defn.publicFields.map(_._2) ++ defn.privateFields).map: f =>
-        // Fields need to be nullable so that `struct.new_default` has a valid value to write
-        val fieldType = f.erasedType.flatMap(_.wasmType).fold(RefType.anyref)(_.copy(nullable = true))
+        // Reference fields need to be nullable so that `struct.new_default` has a valid value to write
+        val fieldType: ValType = f.erasedType.flatMap(_.wasmType) match
+          case S(ty: RefType) => ty.copy(nullable = true)
+          case S(ty) => ty
+          case N => RefType.anyref
         f -> Field(fieldType, mutable = true, id = f.nme)
 
     val allFields = inheritedFields ++ classFields
@@ -697,7 +701,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   
   /** Declares the shared Wasm function type used by a class-associated function placeholder.
     *
-    * @param thisRefType
+    * @param thisType
     *   When set, overrides the type of param index 0 (`this`) instead of `anyref`.
     */
   private def declareClassFuncType(
@@ -705,13 +709,13 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       suffix: Str,
       params: Seq[ValueSymbol -> SymIdx],
       results: Seq[Result],
-      thisRefType: Opt[RefType],
+      thisType: Opt[ValType],
   )(using Raise): TypeIdx =
     ctx.addType(TypeInfo(
       sym = TempSymbol(N, erasedType = N, defn.sym.nme),
       FunctionType(
         params = params.zipWithIndex.map: (p, idx) =>
-          WasmParam(p._2, resolveParamRefType(p._1, idx, thisRefType.map(Seq(_)))),
+          WasmParam(p._2, resolveParamType(p._1, idx, thisType.map(Seq(_)))),
         results = results,
       ),
       objectTag = N,
@@ -723,7 +727,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     */
   private def virtualMethodSignature(
       baseSym: BlockMemberSymbol,
-      paramTypes: Seq[RefType],
+      paramTypes: Seq[ValType],
   )(using Raise): FunctionType =
     val thisTy = RefType(ctx.getType_!(baseSym), nullable = false)
     FunctionType(
@@ -735,7 +739,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   /** Declares (and caches) the shared Wasm function type for a virtual method slot introduced by `baseSym` with the
     * given non-`this` param types.
     */
-  private def virtualMethodFuncType(baseSym: BlockMemberSymbol, paramTypes: Seq[RefType])(using Raise): TypeIdx =
+  private def virtualMethodFuncType(baseSym: BlockMemberSymbol, paramTypes: Seq[ValType])(using Raise): TypeIdx =
     ctx.getOrCreateWasmIntrinsicType(WasmIntrinsicType.VirtualMethod(baseSym, paramTypes.toList)):
       ctx.addType(TypeInfo(
         sym = TempSymbol(N, erasedType = N, s"virtual${paramTypes.size + 1}"),
@@ -756,9 +760,9 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       results: Seq[Result],
       sym: BlockMemberSymbol,
       exportName: Opt[Str],
-      thisRefType: Opt[RefType],
+      thisType: Opt[ValType],
   )(using Raise): Unit =
-    val funcTy = declareClassFuncType(defn, suffix, params, results, thisRefType)
+    val funcTy = declareClassFuncType(defn, suffix, params, results, thisType)
     predeclareClassFuncWithType(defn, suffix, params, results, sym, exportName, funcTy)
 
   /** Registers a placeholder class-associated function using a predeclared Wasm function type. */
@@ -811,7 +815,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       Seq(Result(RefType(typeIdx, nullable = false))),
       initFuncSym(defn.sym),
       N,
-      thisRefType = S(RefType(typeIdx, nullable = false)),
+      thisType = S(RefType(typeIdx, nullable = false)),
     )
 
   /** Declares one top-level class constructor. */
@@ -830,7 +834,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       Seq(Result(RefType(typeIdx, nullable = false))),
       defn.sym,
       ctorExportName,
-      thisRefType = N,
+      thisType = N,
     )
 
   /** Registers all Wasm pre-declarations needed for one top-level class, in dependency order. */
@@ -889,7 +893,9 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   )(using Raise, SessionExportCtx): Unit =
     if ctx.containsGlobal(sym) then return
     val exportName = sym.nme
-    val refType = sym.localRefType.copy(nullable = true)
+    val refType = sym.localType match
+      case ty: RefType => ty.copy(nullable = true)
+      case ty => lastWords(s"unsupported session global type `${ty.toWat.mkString()}` for `$exportName`")
     val globalInfo = GlobalInfo(
       globalType = GlobalType(refType, mutable = true),
       init = ref.`null`(refType.heapType),
@@ -1062,7 +1068,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           Seq(Result(RefType.anyref)),
           methodDefn.sym,
           exportName = N,
-          thisRefType = S(RefType(ctx.getType_!(ownerCls.sym), nullable = false)),
+          thisType = S(RefType(ctx.getType_!(ownerCls.sym), nullable = false)),
         )
     end match
   end predeclareMethod
@@ -1181,7 +1187,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     genFuncBody(
       classCtorParamList(clsLikeDefn) :: Nil,
       thisSym = S(clsLikeDefn.isym),
-      paramRefTypes = S(Seq(RefType(ctx.getType_!(clsLikeDefn.sym), nullable = false))),
+      paramTypes = S(Seq(RefType(ctx.getType_!(clsLikeDefn.sym), nullable = false))),
     ):
       val thisVar = funcCtx.lookupLocal_!(clsLikeDefn.isym, N)
       val typeref = ctx.getType_!(clsLikeDefn.sym)
@@ -1366,11 +1372,11 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         case _ => ctx.getGlobal(l)
 
   def getVar(l: ValueSymbol, loc: Opt[Loc])(using FunctionCtx, Raise): Expr = varIndex(l, loc) match
-    case S(localIdx: LocalIdx) => local.get(localIdx, funcCtx.slotRefType(l))
+    case S(localIdx: LocalIdx) => local.get(localIdx, funcCtx.slotType(l))
     case S(globalIdx: GlobalIdx) => 
       castConserve(
         global.get(globalIdx, ctx.getGlobalType_!(globalIdx).globalType.valType),
-        l.localRefType,
+        l.localType,
       )
     case N =>
       errExpr(
@@ -1387,7 +1393,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     * dual of [[getVar]].
     */
   def setVar(l: ValueSymbol, value: Expr, loc: Opt[Loc])(using FunctionCtx, Raise): Expr = varIndex(l, loc) match
-    case S(localIdx: LocalIdx) => local.set(localIdx, castConserve(value, funcCtx.slotRefType(l)))
+    case S(localIdx: LocalIdx) => local.set(localIdx, castConserve(value, funcCtx.slotType(l)))
     case S(globalIdx: GlobalIdx) =>
       val casted = ctx.getGlobalType_!(globalIdx).globalType.valType match
         case rt: RefType => castConserve(value, rt)
@@ -1531,7 +1537,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         case S(info) => singletonGlobalGet(info)
         case N =>
           castConserve(
-            local.get(funcCtx.lookupLocal_!(sym, sym.toLoc), funcCtx.slotRefType(sym)),
+            local.get(funcCtx.lookupLocal_!(sym, sym.toLoc), funcCtx.slotType(sym)),
             RefType(
               sym.asBlkMember.fold(baseObjectTypeIdx)(ctx.getType_!(_)),
               nullable = false,
@@ -2002,7 +2008,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       TypeInfo(
                         sym = TempSymbol(N, erasedType = N, sym.nme),
                         compType = FunctionType(
-                          params = fnCtx.params.map(p => WasmParam(p._2, p._1.paramRefType)),
+                          params = fnCtx.params.map(p => WasmParam(p._2, p._1.paramType)),
                           results = resultTypes,
                         ),
                         objectTag = N,
@@ -2128,10 +2134,10 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       ps: ParamList,
                       bod: Block,
                   ): Unit =
-                    val paramRefTypes = ctx.getVirtualTable(clsLikeDefn.sym).flatMap: vt =>
+                    val paramTypes = ctx.getVirtualTable(clsLikeDefn.sym).flatMap: vt =>
                       vt.slotOf.get(sym).map: slot =>
                         RefType(ctx.getType_!(vt.slots(slot).owner), nullable = false) +: vt.slots(slot).paramTypes
-                    val (bodyWat, fnCtx) = setupFunction(S(clsLikeDefn.isym), ps, bod, paramRefTypes = paramRefTypes)
+                    val (bodyWat, fnCtx) = setupFunction(S(clsLikeDefn.isym), ps, bod, paramTypes = paramTypes)
                     val predeclaredMethod = ctx.getFuncInfo_!(sym)
                     ctx.addFunc(FuncInfo(
                       sym,
@@ -2616,9 +2622,9 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       thisSym: Opt[InnerSymbol],
       params: ParamList,
       body: Block,
-      paramRefTypes: Opt[Seq[RefType]] = N,
+      paramTypes: Opt[Seq[ValType]] = N,
   )(using Raise, SessionExportCtx): (Expr, FunctionCtx) =
-    genFuncBody(params :: Nil, thisSym = thisSym, paramRefTypes = paramRefTypes):
+    genFuncBody(params :: Nil, thisSym = thisSym, paramTypes = paramTypes):
       block(body).mergeAsBlock.getOrElse(nop)
 
 end WatBuilder
