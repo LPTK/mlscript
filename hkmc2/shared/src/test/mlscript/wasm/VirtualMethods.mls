@@ -300,3 +300,36 @@ callPrim(W())
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
 //│ = 7
+
+
+// Overrides share the slot's Wasm function type, so primitives must match exactly
+:ge
+class M1() with
+  virtual fun f(m: Int32): Int32 = m
+class M2() extends M1() with
+  fun f(m: Int32): Int = 0
+M2().f(1)
+//│ ╔══[COMPILATION ERROR] Overriding method `f` declares result as `(ref null i31)`, but the method it overrides declares `i32`
+//│ ║  l.310: 	  fun f(m: Int32): Int = 0
+//│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+:ge
+class N1() with
+  virtual fun g(m: Int32): Int32 = m
+class N2() extends N1() with
+  fun g(m): Int32 = 0
+N2().g(1)
+//│ ╔══[COMPILATION ERROR] Overriding method `g` declares parameter 1 as `(ref null any)`, but the method it overrides declares `i32`
+//│ ║  l.321: 	  fun g(m): Int32 = 0
+//│ ╙──       	  ^^^^^^^^^^^^^^^^^^^
+
+
+// Reference types are bridged by casts, so they need not match
+class R1() with
+  virtual fun h(x: Int): Object = x
+class R2() extends R1() with
+  fun h(x) = x
+R2().h(3)
+//│ Wasm result:
+//│ = 3

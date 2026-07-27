@@ -650,6 +650,39 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case Annot.Modifier(syntax.Keyword.`virtual`) => true
       case _ => false
 
+  /** The declared Wasm parameter types of `methodDef`, excluding `this`. */
+  private def declaredParamTypes(methodDef: TermDefinition): Seq[ValType] =
+    methodDef.params.headOption.fold(Nil)(_.params).map(_.sym.paramType)
+
+  /** Whether a method declaring `actual` may occupy a virtual slot declared as `expected`.
+    *
+    * All overrides of a method share the slot's Wasm function type. Reference types are bridged by casts at the call
+    * site, but primitives have no conversion, so they must match exactly.
+    */
+  private def conformsToSlotType(actual: ValType, expected: ValType): Bool = (actual, expected) match
+    case (_: RefType, _: RefType) => true
+    case _ => actual === expected
+
+  /** Reports an overriding method whose primitive parameter or result types differ from the slot it occupies. */
+  private def checkOverrideSignature(
+      methodDef: TermDefinition,
+      slotInfo: Ctx.VirtualMethodInfo,
+  )(using Raise): Unit =
+    def report(what: Str, actual: ValType, expected: ValType): Unit =
+      raise(ErrorReport(
+        Ls(msg"Overriding method `${methodDef.sym.nme}` declares $what as `${
+            actual.toWat.mkString()
+          }`, but the method it overrides declares `${expected.toWat.mkString()}`" -> methodDef.sym.toLoc),
+        source = Diagnostic.Source.Compilation,
+      ))
+    declaredParamTypes(methodDef).zip(slotInfo.paramTypes).zipWithIndex.foreach:
+      case ((actual, expected), idx) =>
+        if !conformsToSlotType(actual, expected) then report(s"parameter ${idx + 1}", actual, expected)
+    val actualResult = declaredResultType(methodDef.sym)
+    if !conformsToSlotType(actualResult, slotInfo.resultType) then
+      report("result", actualResult, slotInfo.resultType)
+  end checkOverrideSignature
+
   /** Computes one derived virtual-table layout for one top-level class. */
   private def predeclareClassVirtualTable(defn: ClsLikeDefn)(using Raise): Unit =
     val parentVirtualTable = resolveParentSym(defn).flatMap(ctx.getVirtualTable)
@@ -662,6 +695,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       val slotIdx = overriddenParentMethodSym(defn, methodDef).flatMap(parentVirtualTable.slotOf.get)
       slotIdx match
         case S(slot) =>
+          checkOverrideSignature(methodDef, slots(slot))
           slots(slot) = slots(slot).copy(sym = methodDef.sym)
           slotOf(methodDef.sym) = slot
         case N if declaresVirtualSlot(methodDef) =>
@@ -669,7 +703,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           slots += Ctx.VirtualMethodInfo(
             sym = methodDef.sym,
             owner = defn.sym,
-            paramTypes = methodDef.params.headOption.fold(Nil)(_.params).map(_.sym.paramType),
+            paramTypes = declaredParamTypes(methodDef),
             resultType = declaredResultType(methodDef.sym),
           )
           slotOf(methodDef.sym) = slot
