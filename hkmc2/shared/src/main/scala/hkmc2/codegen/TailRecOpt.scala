@@ -86,6 +86,21 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
     )
     cmp === 0
   
+  /** Coerces `r` to the declared return type of `sym`, if a coercion is required.
+    *
+    * This mirrors `Lowering.castTo`, which is unavailable here: `LoweringCtx` is lowering-time state and this pass
+    * runs over already-lowered blocks.
+    */
+  private def coerceToDeclaredReturn(r: Result, sym: TermSymbol): Result =
+    sym.erasedType match
+      case S(ErasedType.FuncRef(_, _, S(ret))) =>
+        ErasedType.needsCast(r.erasedType_!.canonicalize, ret.canonicalize) match
+          case S(true) => Cast(r, ret match
+            case _: ErasedType.FuncRef => ErasedType.Function
+            case v: ErasedValueType => v)
+          case _ => r
+      case _ => r
+
   object CallToFun:
     def unapply(c: Call): Opt[TermSymbol] = c match
       case Call(fun = Value.MemberRef(_, r: TermSymbol)) => S(r)
@@ -376,13 +391,10 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
               case _ => l
           )
       val symRewriter = new BlockTransformer(subst)
-      
-      /** The return coercion dropped when converting this function's tail calls to jumps, if any. */
-      var droppedCastTarget: Opt[ErasedValueType] = N
 
       override def applyBlock(b: Block): Block = b match
         // Note: the args in `c` have already been rewritten to point to the symbols in `paramSyms`.
-        case TailCallShape(calleeSym, c, castTarget) => dSymIds.get(calleeSym) match
+        case TailCallShape(calleeSym, c, _) => dSymIds.get(calleeSym) match
           case None => super.applyBlock(b)
           case Some(id) =>
             val callee = dSymToDefn(calleeSym)
@@ -390,14 +402,6 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
             if !isExactlySaturatedCall(c, callee) then
               super.applyBlock(b)
             else
-              // Every coercion in a function's return position targets that function's declared return type,
-              // so a single function can only ever drop one distinct target.
-              castTarget.foreach: t =>
-                softAssert(
-                  droppedCastTarget.forall(_ == t),
-                  s"Conflicting return coercions in ${f.dSym.showDbg}: $droppedCastTarget and $t",
-                )
-                droppedCastTarget = S(t)
               val calleeParamsMap = paramSymsMap(callee.dSym)
               // The code used to continute the loop.
               val cont =
@@ -532,10 +536,8 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
     val rewriters = funs.map(f => f -> FunRewriter(f))
     val arms = rewriters.map: (f, rw) =>
       Case.Lit(Tree.IntLit(dSymIds(f.dSym))) -> rw.rewrite(f.body)
-    // Read only after `arms` forces every rewrite.
-    val droppedCastTargets = rewriters.iterator.map((f, rw) => f.dSym -> rw.droppedCastTarget).toMap
-    
-    val switch = 
+
+    val switch =
       if arms.length === 1 then arms.head._2
       else Match(curIdSym.asSimpleRef, arms, N, End())
     
@@ -554,9 +556,10 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
             :: paramArgs
             ::: List.fill(maxParamLen - paramArgs.length)(Value.Lit(Tree.UnitLit(false)).asArg)
         val dispatch = Call(sel, args ne_:: Nil)(CallMetadata.defaultMlsFun)
-        // Entering at `f` can exit through another arm's return, which coerces to *its* function's declared type.
-        // Re-place `f`'s own coercion here, where `f`'s contract with its callers lives.
-        val newBod = Return(droppedCastTargets(f.dSym).fold[Result](dispatch)(Cast(dispatch, _)))
+        // Entering at `f` can exit through another arm's return, which coerces to *its* function's declared type,
+        // so the dispatcher's result is only as precise as the whole SCC. Coerce it back to `f`'s own declared
+        // return type, where `f`'s contract with its callers lives.
+        val newBod = Return(coerceToDeclaredReturn(dispatch, f.dSym))
         FunDefn(f.owner, f.sym, f.dSym, f.params, newBod)(N, f.annotations)
     
     funs match

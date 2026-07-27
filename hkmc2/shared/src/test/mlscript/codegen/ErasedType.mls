@@ -473,7 +473,7 @@ fun sccG(): Object = sccF() + 1
 //│           end
 //│       end
 //│     end
-//│   return inlinedVal
+//│   return (inlinedVal as Object⁰)
 //│ };
 //│ end
 
@@ -570,8 +570,8 @@ sccHelper(100000)
 //│   return (sccLoop_sccHelper⁰(0, n) as Int⁰)
 //│ };
 //│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
-//│   return sccLoop_sccHelper⁰(1, n)
+//│   return (sccLoop_sccHelper⁰(1, n) as Object⁰)
 //│ };
-//│ return sccLoop_sccHelper⁰(1, 100000)
+//│ return (sccLoop_sccHelper⁰(1, 100000) as Object⁰)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 0
