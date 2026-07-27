@@ -204,3 +204,72 @@ A(1).get
 //│ ╔══[COMPILATION ERROR] `member:get` is neither a field access nor a callable method
 //│ ║  l.203: 	A(1).get
 //│ ╙──       	    ^^^^
+
+
+// Method result types are taken from the return annotation, so primitives stay unboxed
+:wat
+val n32: Int32 = 7
+class Prim(val v) with
+  fun take(m: Int32): Int32 = m
+Prim(0).take(n32)
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Prim (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $v (mut (ref null any))))))
+//│   (type $Prim_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Prim_init (func (param $this (ref $Prim)) (param $v (ref null any)) (result (ref $Prim))))
+//│   (type $Prim_ctor (func (param $v (ref null any)) (result (ref $Prim))))
+//│   (type $Prim_take (func (param $this (ref $Prim)) (param $m i32) (result i32)))
+//│   (type $entry (func (result i32)))
+//│   (global $n32 (export "n32") (mut i32) (i32.const 0))
+//│   (global $Prim_typeinfo (export "Prim_typeinfo") (ref $Prim_typeinfo) (struct.new $Prim_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)))
+//│   (func $Prim_init (type $Prim_init) (param $this (ref $Prim)) (param $v (ref null any)) (result (ref $Prim))
+//│     (block (result (ref $Prim))
+//│       (struct.set $Prim $v
+//│         (local.get $this)
+//│         (local.get $v))
+//│       (return
+//│         (ref.cast (ref $Prim)
+//│           (local.get $this)))))
+//│   (func $Prim_ctor (export "Prim") (type $Prim_ctor) (param $v (ref null any)) (result (ref $Prim))
+//│     (local $this (ref $Prim))
+//│     (block (result (ref $Prim))
+//│       (local.set $this
+//│         (struct.new $Prim
+//│           (global.get $Prim_typeinfo)
+//│           (ref.null any)))
+//│       (drop
+//│         (call $Prim_init
+//│           (local.get $this)
+//│           (local.get $v)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $Prim_take (type $Prim_take) (param $this (ref $Prim)) (param $m i32) (result i32)
+//│     (return
+//│       (local.get $m)))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (local $tmp (ref null any))
+//│     (local $tmp1 i32)
+//│     (block (result i32)
+//│       (global.set $n32
+//│         (i32.const 7))
+//│       (local.set $tmp
+//│         (call $Prim_ctor
+//│           (ref.i31
+//│             (i32.const 0))))
+//│       (local.set $tmp1
+//│         (global.get $n32))
+//│       (return
+//│         (call $Prim_take
+//│           (ref.cast (ref $Prim)
+//│             (local.get $tmp))
+//│           (local.get $tmp1)))))
+//│   (elem $Prim_init declare func $Prim_init)
+//│   (elem $Prim_ctor declare func $Prim_ctor)
+//│   (elem $Prim_take declare func $Prim_take)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 7

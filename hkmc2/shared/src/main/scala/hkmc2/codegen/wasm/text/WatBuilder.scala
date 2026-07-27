@@ -670,6 +670,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
             sym = methodDef.sym,
             owner = defn.sym,
             paramTypes = methodDef.params.headOption.fold(Nil)(_.params).map(_.sym.paramType),
+            resultType = declaredResultType(methodDef.sym),
           )
           slotOf(methodDef.sym) = slot
         case N => ()
@@ -738,28 +739,42 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       wrapId = N -> S(suffix),
     ))
 
+  /** Returns the declared Wasm result type of the function or method `sym`, defaulting to `anyref` when the return type
+    * is not annotated.
+    */
+  private def declaredResultType(sym: BlockMemberSymbol)(using Raise): ValType =
+    sym.asTrm.flatMap(_.erasedType) match
+      case S(ErasedType.FuncRef(_, _, S(ret))) => ret.wasmType.getOrElse(RefType.anyref)
+      case S(ErasedType.FuncRef(_, _, N)) | N => RefType.anyref
+      case et => lastWords(s"Unexpected type `$et` where `FuncRef` was expected")
+
   /** Returns the shared erased Wasm function signature for a virtual method slot introduced by `baseSym`, with the
-    * given non-`this` param types, including a concretely-typed `this`. The result stays `anyref`.
+    * given non-`this` param types, including a concretely-typed `this`.
     */
   private def virtualMethodSignature(
       baseSym: BlockMemberSymbol,
       paramTypes: Seq[ValType],
+      resultType: ValType,
   )(using Raise): FunctionType =
     val thisTy = RefType(ctx.getType_!(baseSym), nullable = false)
     FunctionType(
       params = WasmParam(SymIdx("this"), thisTy) +: paramTypes.zipWithIndex.map: (ty, idx) =>
         WasmParam(SymIdx(s"arg${idx + 1}"), ty),
-      results = Seq(Result(RefType.anyref)),
+      results = Seq(Result(resultType)),
     )
 
   /** Declares (and caches) the shared Wasm function type for a virtual method slot introduced by `baseSym` with the
-    * given non-`this` param types.
+    * given non-`this` param types and result type.
     */
-  private def virtualMethodFuncType(baseSym: BlockMemberSymbol, paramTypes: Seq[ValType])(using Raise): TypeIdx =
-    ctx.getOrCreateWasmIntrinsicType(WasmIntrinsicType.VirtualMethod(baseSym, paramTypes.toList)):
+  private def virtualMethodFuncType(
+      baseSym: BlockMemberSymbol,
+      paramTypes: Seq[ValType],
+      resultType: ValType,
+  )(using Raise): TypeIdx =
+    ctx.getOrCreateWasmIntrinsicType(WasmIntrinsicType.VirtualMethod(baseSym, paramTypes.toList, resultType)):
       ctx.addType(TypeInfo(
         sym = TempSymbol(N, erasedType = N, s"virtual${paramTypes.size + 1}"),
-        compType = virtualMethodSignature(baseSym, paramTypes),
+        compType = virtualMethodSignature(baseSym, paramTypes, resultType),
         objectTag = N,
       ))
   end virtualMethodFuncType
@@ -1018,7 +1033,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     val newSlotFields = vtSlots.zipWithIndex.drop(parentVirtualMethodCount).map: (slotInfo, slot) =>
       val fieldSym = TermSymbol(syntax.MutVal, owner = N, Ident(s"slot$slot"), erasedType = N)
       fieldSym -> Field(
-        RefType(virtualMethodFuncType(defn.sym, slotInfo.paramTypes), nullable = true),
+        RefType(virtualMethodFuncType(defn.sym, slotInfo.paramTypes, slotInfo.resultType), nullable = true),
         mutable = true,
         id = s"slot$slot",
       )
@@ -1069,24 +1084,25 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         ps.params.map: p =>
           p.sym -> SymIdx(p.sym.nme)
     ctx.getVirtualTable(ownerCls.sym).flatMap(vt =>
-      vt.slotOf.get(methodDefn.sym).map(slot => (vt.slots(slot).owner, vt.slots(slot).paramTypes)),
+      vt.slotOf.get(methodDefn.sym).map(slot => vt.slots(slot)),
     ) match
-      case S((baseSym, paramTypes)) =>
+      case S(slotInfo) =>
+        // Overrides adopt the slot's result type, not their own: all overrides share one Wasm function type.
         predeclareClassFuncWithType(
           ownerCls,
           methodDefn.sym.nme,
           methodParams,
-          Seq(Result(RefType.anyref)),
+          Seq(Result(slotInfo.resultType)),
           methodDefn.sym,
           N,
-          virtualMethodFuncType(baseSym, paramTypes),
+          virtualMethodFuncType(slotInfo.owner, slotInfo.paramTypes, slotInfo.resultType),
         )
       case N =>
         predeclareClassFunc(
           ownerCls,
           methodDefn.sym.nme,
           methodParams,
-          Seq(Result(RefType.anyref)),
+          Seq(Result(declaredResultType(methodDefn.sym))),
           methodDefn.sym,
           exportName = N,
           thisType = S(RefType(ctx.getType_!(ownerCls.sym), nullable = false)),
@@ -1482,6 +1498,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case S((vt, slot)) =>
         val baseSym = vt.slots(slot).owner
         val paramTypes = vt.slots(slot).paramTypes
+        val resultType = vt.slots(slot).resultType
         softAssert(
           args.size == paramTypes.size,
           s"Virtual call arity mismatch for $methodSym: ${args.size} args vs ${paramTypes.size} declared params",
@@ -1494,7 +1511,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           readObjectTypeInfo(receiverRef),
           RefType(ownerTypeInfoIdx, nullable = false),
         )
-        val virtualMethodTypeIdx = virtualMethodFuncType(baseSym, paramTypes)
+        val virtualMethodTypeIdx = virtualMethodFuncType(baseSym, paramTypes, resultType)
         val methodRef = struct.get(
           FieldIdx(SymIdx(s"slot$slot")),
           ownerTypeInfoRef,
@@ -1505,7 +1522,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           target = methodRef,
           operands = operands,
           typeIdx = virtualMethodTypeIdx,
-          funcType = virtualMethodSignature(baseSym, paramTypes),
+          funcType = virtualMethodSignature(baseSym, paramTypes, resultType),
         )
         Ls(receiverExpr, virtualCall)
       case N =>
@@ -1514,7 +1531,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         Ls(call(
           funcidx = ctx.getFunc_!(methodSym),
           operands = operands,
-          returnTypes = Seq(Result(RefType.anyref)),
+          returnTypes = Seq(Result(declaredResultType(methodSym))),
         ))
     end match
   end lowerClassMethodCall
@@ -2161,7 +2178,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       wrapId = S(clsLikeDefn.sym.nme) -> N,
                       typeUse = predeclaredMethod.typeUse,
                       params = fnCtx.resolvedParams,
-                      resultTypes = Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref)),
+                      resultTypes = predeclaredMethod.resultTypes,
                       locals = fnCtx.locals,
                       body = bodyWat,
                       exportName = predeclaredMethod.exportName,

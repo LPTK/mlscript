@@ -325,10 +325,10 @@ enum WasmIntrinsicType:
   case TupleArray(mutable: Bool)
   
   /** Shared erased Wasm function type for a virtual method slot introduced by `baseSym` with the given non-`this` param
-    * types, including a concretely-typed `this`. Keyed on the full param-type vector (not just arity) so distinct
-    * virtual methods of the same arity on the same base class don't collide.
+    * types, including a concretely-typed `this`. Keyed on the full param-type vector (not just arity) and the result
+    * type so distinct virtual methods of the same arity on the same base class don't collide.
     */
-  case VirtualMethod(baseSym: BlockMemberSymbol, paramTypes: List[ValType])
+  case VirtualMethod(baseSym: BlockMemberSymbol, paramTypes: List[ValType], resultType: ValType)
 
 /** Class containing identifiers of labels to jump to when breaking or continuing from a control flow structure.
   *
@@ -495,11 +495,15 @@ object Ctx:
     *   The symbol of the class that introduced this slot.
     * @param paramTypes
     *   The non-`this` parameter types of the method that introduced this slot.
+    * @param resultType
+    *   The result type of the method that introduced this slot. Overriding methods inherit it, since all overrides
+    *   share the slot's Wasm function type.
     */
   case class VirtualMethodInfo(
       sym: BlockMemberSymbol,
       owner: BlockMemberSymbol,
       paramTypes: Seq[ValType],
+      resultType: ValType,
   )
 
   /** Derived virtual-dispatch layout for one class.

@@ -168,3 +168,135 @@ fun callG(b: B) = b.g()
 callF(C()) + callG(C())
 //│ Wasm result:
 //│ = 21
+
+
+// A virtual slot's Wasm type carries the result type of the method that introduced it, so overrides share it
+:wat
+val n32: Int32 = 7
+class V() with
+  virtual fun f(m: Int32): Int32 = m
+class W() extends V() with
+  fun f(m: Int32): Int32 = m
+fun callPrim(a: V): Int32 = a.f(n32)
+callPrim(W())
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $V (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $virtual2 (func (param $this (ref $V)) (param $arg1 i32) (result i32)))
+//│   (type $V_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)) (field $slot0 (mut (ref null $virtual2))))))
+//│   (type $V_init (func (param $this (ref $V)) (result (ref $V))))
+//│   (type $V_ctor (func (result (ref $V))))
+//│   (type $W (sub $V (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $W_typeinfo (sub $V_typeinfo (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)) (field $slot0 (mut (ref null $virtual2))))))
+//│   (type $W_init (func (param $this (ref $W)) (result (ref $W))))
+//│   (type $W_ctor (func (result (ref $W))))
+//│   (type $callPrim (func (param $a (ref $V)) (result i32)))
+//│   (type $entry (func (result i32)))
+//│   (global $n32 (export "n32") (mut i32) (i32.const 0))
+//│   (global $V_typeinfo (export "V_typeinfo") (ref $V_typeinfo) (struct.new $V_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)
+//│     (ref.func $V_f)))
+//│   (global $W_typeinfo (export "W_typeinfo") (ref $W_typeinfo) (struct.new $W_typeinfo
+//│     (i32.const 2)
+//│     (global.get $V_typeinfo)
+//│     (ref.func $W_f)))
+//│   (func $V_init (type $V_init) (param $this (ref $V)) (result (ref $V))
+//│     (return
+//│       (ref.cast (ref $V)
+//│         (local.get $this))))
+//│   (func $V_ctor (export "V") (type $V_ctor) (result (ref $V))
+//│     (local $this (ref $V))
+//│     (block (result (ref $V))
+//│       (local.set $this
+//│         (struct.new $V
+//│           (global.get $V_typeinfo)))
+//│       (drop
+//│         (call $V_init
+//│           (local.get $this)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $V_f (type $virtual2) (param $this (ref $V)) (param $m i32) (result i32)
+//│     (return
+//│       (local.get $m)))
+//│   (func $W_init (type $W_init) (param $this (ref $W)) (result (ref $W))
+//│     (block (result (ref $W))
+//│       (drop
+//│         (call $V_init
+//│           (local.get $this)))
+//│       (return
+//│         (ref.cast (ref $W)
+//│           (local.get $this)))))
+//│   (func $W_ctor (export "W") (type $W_ctor) (result (ref $W))
+//│     (local $this (ref $W))
+//│     (block (result (ref $W))
+//│       (local.set $this
+//│         (struct.new $W
+//│           (global.get $W_typeinfo)))
+//│       (drop
+//│         (call $W_init
+//│           (local.get $this)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $W_f (type $virtual2) (param $this (ref $V)) (param $m i32) (result i32)
+//│     (return
+//│       (local.get $m)))
+//│   (func $callPrim (export "callPrim") (type $callPrim) (param $a (ref $V)) (result i32)
+//│     (local $tmp i32)
+//│     (local $receiver (ref null any))
+//│     (block (result i32)
+//│       (local.set $tmp
+//│         (global.get $n32))
+//│       (return
+//│         (block (result i32)
+//│           (local.set $receiver
+//│             (local.get $a))
+//│           (call_ref $virtual2
+//│             (ref.cast (ref $V)
+//│               (local.get $receiver))
+//│             (local.get $tmp)
+//│             (struct.get $V_typeinfo $slot0
+//│               (ref.cast (ref $V_typeinfo)
+//│                 (struct.get $Object $$typeinfo
+//│                   (ref.cast (ref $Object)
+//│                     (local.get $receiver))))))))))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (local $tmp (ref null any))
+//│     (local $tmp1 (ref $V))
+//│     (local $tmp2 i32)
+//│     (local $receiver (ref null any))
+//│     (block (result i32)
+//│       (global.set $n32
+//│         (i32.const 7))
+//│       (local.set $tmp
+//│         (call $W_ctor))
+//│       (local.set $tmp1
+//│         (ref.cast (ref $V)
+//│           (local.get $tmp)))
+//│       (local.set $tmp2
+//│         (global.get $n32))
+//│       (return
+//│         (block (result i32)
+//│           (local.set $receiver
+//│             (local.get $tmp1))
+//│           (call_ref $virtual2
+//│             (ref.cast (ref $V)
+//│               (local.get $receiver))
+//│             (local.get $tmp2)
+//│             (struct.get $V_typeinfo $slot0
+//│               (ref.cast (ref $V_typeinfo)
+//│                 (struct.get $Object $$typeinfo
+//│                   (ref.cast (ref $Object)
+//│                     (local.get $receiver))))))))))
+//│   (elem $V_init declare func $V_init)
+//│   (elem $V_ctor declare func $V_ctor)
+//│   (elem $V_f declare func $V_f)
+//│   (elem $W_init declare func $W_init)
+//│   (elem $W_ctor declare func $W_ctor)
+//│   (elem $W_f declare func $W_f)
+//│   (elem $callPrim declare func $callPrim)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 7
