@@ -791,10 +791,13 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def reconcileResultType(sym: BlockMemberSymbol, bodyWat: Expr, declared: ValType)(using Raise): ValType =
     bodyWat.resultType match
       case S(ty) if ty.isSubtypeOf(declared) => declared
-      case N => RefType.anyref
+      // If the body expression doesn't produce anything, we keep the declared type so that the function signature is
+      // well-formed
+      case N => declared
       case S(ty) =>
         (ty, declared) match
-          case (_: RefType, _: RefType) => RefType.anyref
+          case (_: RefType, _: RefType) => lastWords:
+            s"Function `${sym.nme}` has return type `${declared.toWat.mkString()}` but its body has return type `${ty.toWat.mkString()}`"
           case _ =>
             raise(ErrorReport(
               Ls(msg"Function `${sym.nme}` produces a Wasm value of type `${
