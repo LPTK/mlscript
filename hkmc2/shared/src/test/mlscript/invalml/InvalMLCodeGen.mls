@@ -87,7 +87,7 @@ data class Foo(x: Int)
 :sjs
 new Foo(42)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let tmp; tmp = 42; return globalThis.Object.freeze(new Foo1.class(tmp))
+//│ return globalThis.Object.freeze(new Foo1.class(42))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = Foo(42)
 //│ Type: Foo
@@ -96,7 +96,7 @@ new Foo(42)
 :sjs
 let foo = new Foo(42) in foo.Foo#x
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let foo, tmp1; tmp1 = 42; foo = globalThis.Object.freeze(new Foo1.class(tmp1)); return foo.x
+//│ let foo; foo = globalThis.Object.freeze(new Foo1.class(42)); return foo.x
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 //│ Type: Int
@@ -163,14 +163,14 @@ fun pow(x) = case
 //│ pow = function pow(x) {
 //│   let lambda2;
 //│   lambda2 = (undefined, function (caseScrut) {
-//│     let baseCall, tmp2, tmp3;
+//│     let baseCall, tmp, tmp1;
 //│     if (caseScrut === 0) {
 //│       return 1
 //│     }
 //│     baseCall = pow(x);
-//│     tmp2 = caseScrut - 1;
-//│     tmp3 = runtime.safeCall(baseCall(tmp2));
-//│     return x * tmp3;
+//│     tmp = caseScrut - 1;
+//│     tmp1 = runtime.safeCall(baseCall(tmp));
+//│     return x * tmp1;
 //│   });
 //│   return lambda2
 //│ };
@@ -223,14 +223,14 @@ fun fact = case
 //│ fact = function fact() {
 //│   let lambda2;
 //│   lambda2 = (undefined, function (caseScrut) {
-//│     let tmp2, tmp3, tmp4;
+//│     let tmp, tmp1, tmp2;
 //│     if (caseScrut === 0) {
 //│       return 1
 //│     }
-//│     tmp2 = fact();
-//│     tmp3 = caseScrut - 1;
-//│     tmp4 = runtime.safeCall(tmp2(tmp3));
-//│     return caseScrut * tmp4;
+//│     tmp = fact();
+//│     tmp1 = caseScrut - 1;
+//│     tmp2 = runtime.safeCall(tmp(tmp1));
+//│     return caseScrut * tmp2;
 //│   });
 //│   return lambda2
 //│ };

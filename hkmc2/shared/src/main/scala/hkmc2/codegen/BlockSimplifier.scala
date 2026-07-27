@@ -633,6 +633,9 @@ class BlockSimplifier
         case Assigned(lhs, rhs, opt, _) =>
           val litValue = rhs match
             case v @ Value.Lit(_) => v
+            // * A cast of a literal propagates the literal, dropping the cast's type. This is only valid while casts
+            // * carry no runtime check and the positions literals reach are typed from their slot, not the value.
+            case Cast(v @ Value.Lit(_), _) => v
             case _ => false
           val refs = opt match
             case S((r @ Value.SimpleRef(lv: LocalVar)) -> rhs) =>

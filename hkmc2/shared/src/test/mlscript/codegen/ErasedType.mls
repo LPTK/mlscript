@@ -540,7 +540,7 @@ sccHelper(100000)
 //│ set tmp = (100000 as Int⁰);
 //│ return sccHelper⁰(tmp)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let tmp: Int⁰, sccLoop_sccHelper;
+//│ let sccLoop_sccHelper;
 //│ define sccLoop_sccHelper as fun sccLoop_sccHelper⁰(id: Int⁰, param0: ?) {
 //│   loop loopLabel:
 //│     match id
@@ -548,15 +548,15 @@ sccHelper(100000)
 //│         set id = 1;
 //│         continue loopLabel
 //│       1 =>
-//│         let scrut: ?, tmp1: ?, tmp2: Int⁰;
+//│         let scrut: ?, tmp: ?, tmp1: Int⁰;
 //│         set scrut = <=⁰(param0, 0);
 //│         match scrut
 //│           true =>
 //│             return (0 as Object⁰)
 //│           else
-//│             set tmp1 = -⁰(param0, 1);
-//│             set tmp2 = (tmp1 as Int⁰);
-//│             set param0 = tmp2;
+//│             set tmp = -⁰(param0, 1);
+//│             set tmp1 = (tmp as Int⁰);
+//│             set param0 = tmp1;
 //│             set id = 0;
 //│             continue loopLabel
 //│         end
@@ -572,7 +572,6 @@ sccHelper(100000)
 //│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
 //│   return sccLoop_sccHelper⁰(1, n)
 //│ };
-//│ set tmp = (100000 as Int⁰);
-//│ return sccLoop_sccHelper⁰(1, tmp)
+//│ return sccLoop_sccHelper⁰(1, 100000)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 0
