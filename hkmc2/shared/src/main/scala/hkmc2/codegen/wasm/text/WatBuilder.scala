@@ -2564,16 +2564,22 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
       val entrySym = BlockMemberSymbol("entry", Nil)
 
+      val entryResultTypes = Seq:
+        Result:
+          entryFnExpr.resultTypes match
+            case Seq(ty: ValType) => ty
+            case _ => RefType.anyref
+
       val entryFnTy = ctx.addType(TypeInfo(
         sym = TempSymbol(N, erasedType = N, entrySym.nme),
-        FunctionType(params = Seq.empty, results = Seq(Result(RefType.anyref))),
+        FunctionType(params = Seq.empty, results = entryResultTypes),
         objectTag = N,
       ))
       val entryFnInfo = FuncInfo(
         sym = entrySym,
         typeUse = TypeUse(entryFnTy),
         params = Seq.empty,
-        resultTypes = Seq(Result(RefType.anyref)),
+        resultTypes = entryResultTypes,
         locals = entryFnCtx.locals,
         body = entryFnExpr,
         exportName = S(entrySym.nme),
