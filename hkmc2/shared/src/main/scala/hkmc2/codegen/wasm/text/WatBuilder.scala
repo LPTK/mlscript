@@ -782,6 +782,28 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case S(ErasedType.FuncRef(_, _, N)) | N => RefType.anyref
       case et => lastWords(s"Unexpected type `$et` where `FuncRef` was expected")
 
+  /** Reconciles the declared Wasm result type of `sym` with the type its compiled body actually produces.
+    *
+    * A body coarser than the declaration widens to `anyref`. Primitives have no `anyref` representation, so widening
+    * is unavailable there and the mismatch is an error; the body's own type is kept so that the emitted module stays
+    * well-formed.
+    */
+  private def reconcileResultType(sym: BlockMemberSymbol, bodyWat: Expr, declared: ValType)(using Raise): ValType =
+    bodyWat.resultType match
+      case S(ty) if ty.isSubtypeOf(declared) => declared
+      case N => RefType.anyref
+      case S(ty) =>
+        (ty, declared) match
+          case (_: RefType, _: RefType) => RefType.anyref
+          case _ =>
+            raise(ErrorReport(
+              Ls(msg"Function `${sym.nme}` produces a Wasm value of type `${
+                  ty.toWat.mkString()
+                }`, which is incompatible with its declared result type `${declared.toWat.mkString()}`" -> sym.toLoc),
+              source = Diagnostic.Source.Compilation,
+            ))
+            ty.asValType_!
+
   /** Returns the shared erased Wasm function signature for a virtual method slot introduced by `baseSym`, with the
     * given non-`this` param types, including a concretely-typed `this`.
     */
@@ -2059,19 +2081,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       Return(Lambda(ps, block)(Nil))
                   val (bodyWat, fnCtx) = setupFunction(N, ps, result)
                   if sym.nameIsMeaningful then
-                    // The declared return type (if present) is used unless one of the following cases is encountered:
-                    //
-                    // - The erased type has no Wasm mapping (`wasmType` is `N`).
-                    // - The body's WAT type is not a subtype of the erased type's Wasm mapping - e.g. the body ends
-                    //   with a loop whose value is dropped, leaving no value on the stack.
                     val resultTypes = Seq:
-                      Result:
-                        defn.sym.asTrm.flatMap(_.erasedType) match
-                          case S(ErasedType.FuncRef(_, _, S(ret))) =>
-                            val retType = ret.wasmType.getOrElse(RefType.anyref)
-                            if bodyWat.resultType.exists(_.isSubtypeOf(retType)) then retType else RefType.anyref
-                          case S(ErasedType.FuncRef(_, _, N)) | N => RefType.anyref
-                          case et => lastWords(s"Unexpected type `$et` where `FuncRef` was expected")
+                      Result(reconcileResultType(defn.sym, bodyWat, declaredResultType(defn.sym)))
                     val funcTy = ctx.addType(
                       TypeInfo(
                         sym = TempSymbol(N, erasedType = N, sym.nme),
@@ -2207,6 +2218,20 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                         RefType(ctx.getType_!(vt.slots(slot).owner), nullable = false) +: vt.slots(slot).paramTypes
                     val (bodyWat, fnCtx) = setupFunction(S(clsLikeDefn.isym), ps, bod, paramTypes = paramTypes)
                     val predeclaredMethod = ctx.getFuncInfo_!(sym)
+                    // The method's Wasm type is fixed at predeclaration, so a body that does not conform cannot be
+                    // accommodated by widening the result the way a top-level function can.
+                    val conformingBody =
+                      (bodyWat.resultTypes, predeclaredMethod.resultTypes) match
+                        case (Seq(ty), Seq(declared)) if !ty.isSubtypeOf(declared.valtype) =>
+                          errExpr(
+                            Ls(msg"Method `${sym.nme}` produces a Wasm value of type `${
+                                ty.toWat.mkString()
+                              }`, which is incompatible with its declared result type `${
+                                declared.valtype.toWat.mkString()
+                              }`" -> sym.toLoc),
+                            extraInfo = S(bodyWat.toWat.mkString()),
+                          )
+                        case _ => bodyWat
                     ctx.addFunc(FuncInfo(
                       sym,
                       wrapId = S(clsLikeDefn.sym.nme) -> N,
@@ -2214,7 +2239,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       params = fnCtx.resolvedParams,
                       resultTypes = predeclaredMethod.resultTypes,
                       locals = fnCtx.locals,
-                      body = bodyWat,
+                      body = conformingBody,
                       exportName = predeclaredMethod.exportName,
                     ))
                   end overwriteMethod

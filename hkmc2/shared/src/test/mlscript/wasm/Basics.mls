@@ -446,3 +446,12 @@ foo()()
 //│ ╔══[COMPILATION ERROR] Returning function instances is not supported
 //│ ║  l.444: 	fun foo() = bar
 //│ ╙──       	            ^^^
+
+
+// A primitive result has no `anyref` representation, so it cannot be widened and must be annotated
+:ge
+fun takeTop(m: Int32) = m
+takeTop(1)
+//│ ╔══[COMPILATION ERROR] Function `takeTop` produces a Wasm value of type `i32`, which is incompatible with its declared result type `(ref null any)`
+//│ ║  l.453: 	fun takeTop(m: Int32) = m
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^

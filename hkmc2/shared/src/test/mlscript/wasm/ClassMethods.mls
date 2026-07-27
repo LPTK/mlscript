@@ -273,3 +273,13 @@ Prim(0).take(n32)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
 //│ = 7
+
+
+// Method types are fixed at predeclaration, so a primitive result must be annotated
+:ge
+class Unannotated(val v) with
+  fun take(m: Int32) = m
+Unannotated(0).take(1)
+//│ ╔══[COMPILATION ERROR] Method `take` produces a Wasm value of type `i32`, which is incompatible with its declared result type `(ref null any)`
+//│ ║  l.281: 	  fun take(m: Int32) = m
+//│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^
