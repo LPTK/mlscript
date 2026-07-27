@@ -86,19 +86,10 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
     )
     cmp === 0
   
-  /** Coerces `r` to the declared return type of `sym`, if a coercion is required.
-    *
-    * This mirrors `Lowering.castTo`, which is unavailable here: `LoweringCtx` is lowering-time state and this pass
-    * runs over already-lowered blocks.
-    */
+  /** Coerces `r` to the declared return type of `sym`, if a coercion is required. */
   private def coerceToDeclaredReturn(r: Result, sym: TermSymbol): Result =
     sym.erasedType match
-      case S(ErasedType.FuncRef(_, _, S(ret))) =>
-        ErasedType.needsCast(r.erasedType_!.canonicalize, ret.canonicalize) match
-          case S(true) => Cast(r, ret match
-            case _: ErasedType.FuncRef => ErasedType.Function
-            case v: ErasedValueType => v)
-          case _ => r
+      case S(ErasedType.FuncRef(_, _, S(ret))) => r.coerceTo(ret, sym.toLoc)
       case _ => r
 
   object CallToFun:

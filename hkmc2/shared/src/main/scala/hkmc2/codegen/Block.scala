@@ -1304,6 +1304,29 @@ sealed abstract class Result extends AutoLocated, HasErasedValueType:
     case S(_: ErasedType.FuncRef) => ErasedType.Function
     case _ => erasedType.getOrElse(ErasedType.Anything)
 
+  /** Coerces this result to `expected`, yielding it unchanged when no coercion is required.
+    *
+    * Narrowing to an unrelated type is reported as an error, and this result is yielded unchanged.
+    */
+  def coerceTo(expected: ErasedType, loc: Opt[Loc])(using Ctx, State, Raise): Result =
+    val actual = erasedType_!.canonicalize
+    val declared = expected.canonicalize
+    ErasedType.needsCast(actual, declared) match
+      case S(false) => this
+      case S(true) => Cast(this, expected match
+        case _: ErasedType.FuncRef => ErasedType.Function
+        case v: ErasedValueType => v)
+      case N =>
+        def describe(sym: TypeSymbol): Str =
+          if sym.asMod.isDefined then s"module ${sym.nme}" else sym.nme
+        raise:
+          ErrorReport(
+            msg"Cannot narrow a value of type '${describe(actual.sym)}' to unrelated type '${describe(declared.sym)}'" ->
+            loc :: Nil,
+            source = Diagnostic.Source.Compilation,
+          )
+        this
+
 /* mayRaiseEffects indicates whether this call may raise effect (algebraic effect),
  * regardless of whether the check for effect is inserted or not.
  * Note that the check for effect is inserted during HandlerLowering and setting this to true

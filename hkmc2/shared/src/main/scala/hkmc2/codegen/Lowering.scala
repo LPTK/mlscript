@@ -1392,29 +1392,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     *  - If `expected and `r` are unrelated, a compile-time error is raised and `r` continues uncast.
     *  - Otherwise, `r` is passed through unchanged.
     */
-  /** Names a type symbol so a module is distinguishable from a same-named class or type alias. */
-  private def describeTpe(sym: TypeSymbol): Str =
-    if sym.asMod.isDefined then s"module ${sym.nme}" else sym.nme
-
-  def castTo(r: Result, expected: Opt[ErasedType], loc: Opt[Loc])(k: Result => Block)(using LoweringCtx): Block =
-    expected match
-    case N => k(r)
-    case S(t) =>
-      val actual = r.erasedType_!.canonicalize
-      val declared = t.canonicalize
-      ErasedType.needsCast(actual, declared) match
-      case S(false) => k(r)
-      case S(true) =>
-        val target = t match
-          case _: ErasedType.FuncRef => ErasedType.Function
-          case v: ErasedValueType => v
-        k(Cast(r, target))
-      case N =>
-        raise(ErrorReport(
-          msg"Cannot narrow a value of type '${describeTpe(actual.sym)}' to unrelated type '${describeTpe(declared.sym)}'" ->
-          loc :: Nil,
-          source = Diagnostic.Source.Compilation))
-        k(r)
+  def castTo(r: Result, expected: Opt[ErasedType], loc: Opt[Loc])(k: Result => Block): Block =
+    k(expected.fold(r)(r.coerceTo(_, loc)))
 
   /** Like [[castTo]] but always continues with a `Path`, temp-binding a produced `Cast` so it can be used in
     * argument position (a `Cast` is not itself a `Path`). */
