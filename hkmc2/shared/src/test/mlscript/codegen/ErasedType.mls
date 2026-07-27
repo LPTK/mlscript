@@ -473,7 +473,7 @@ fun sccG(): Object = sccF() + 1
 //│           end
 //│       end
 //│     end
-//│   return (inlinedVal as Object⁰)
+//│   return inlinedVal
 //│ };
 //│ end
 
@@ -541,7 +541,7 @@ sccHelper(100000)
 //│ return sccHelper⁰(tmp)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let sccLoop_sccHelper;
-//│ define sccLoop_sccHelper as fun sccLoop_sccHelper⁰(id: Int⁰, param0: ?) {
+//│ define sccLoop_sccHelper as fun sccLoop_sccHelper⁰(id: Int⁰, param0: ?): Object⁰ {
 //│   loop loopLabel:
 //│     match id
 //│       0 =>
@@ -570,8 +570,8 @@ sccHelper(100000)
 //│   return (sccLoop_sccHelper⁰(0, n) as Int⁰)
 //│ };
 //│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
-//│   return (sccLoop_sccHelper⁰(1, n) as Object⁰)
+//│   return sccLoop_sccHelper⁰(1, n)
 //│ };
-//│ return (sccLoop_sccHelper⁰(1, 100000) as Object⁰)
+//│ return sccLoop_sccHelper⁰(1, 100000)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 0

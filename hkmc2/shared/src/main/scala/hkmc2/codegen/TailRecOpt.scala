@@ -333,7 +333,19 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
       else BlockMemberSymbol(funs.iterator.map(_.sym.nme).mkString("_"), Nil, true)
     val dSym =
       if funsLen === 1 then funs.head.dSym
-      else TermSymbol(syntax.Fun, owner, Tree.Ident(bms.nme), erasedType = N)
+      else
+        // The dispatcher can exit through any member's return, so its result type is the LUB of its members.
+        val memberRets = funs.map(_.dSym.erasedType.collect { case ErasedType.FuncRef(_, _, ret) => ret }.flatten)
+        val ret =
+          if memberRets.exists(_.isEmpty) then N
+          else S(memberRets.flatten.map(_.canonicalize).reduce(ErasedType.lub))
+        TermSymbol(syntax.Fun, owner, Tree.Ident(bms.nme), erasedType = S(ErasedType.FuncRef(
+          rsc = false,
+          params = S(ErasedType.Int) :: List.fill(maxParamLen)(N),
+          ret = ret,
+        )))
+    // Link the dispatcher function to the BMS so that the erased type is accessible.
+    if funsLen > 1 then bms.tsym = S(dSym)
     val loopSym = LabelSymbol(N, "loopLabel")
     val curIdSym = VarSymbol(Tree.Ident("id"), erasedType = S(ErasedType.Int))
     
