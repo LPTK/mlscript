@@ -2306,17 +2306,17 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
       case Return(res) =>
         val resWat = result(res)
-        resWat.resultType match
+        val returned = resWat.resultType match
           case S(refTy: RefType) =>
             refTy.heapType match
               case HeapType.Func =>
                 errExpr(Ls(msg"Returning function instances is not supported" -> res.toLoc))
               case typeidx: TypeIdx if ctx.getTypeInfo_!(typeidx).compType.isInstanceOf[FunctionType] =>
                 errExpr(Ls(msg"Returning function instances is not supported" -> res.toLoc))
-              case _ => ()
-          case _ => ()
+              case _ => resWat
+          case _ => resWat
 
-        Vector(`return`(S(resWat)))
+        Vector(`return`(S(returned)))
 
       case Scoped(syms, body) =>
         blockPreamble(syms)
