@@ -1006,8 +1006,8 @@ object ErasedType:
 
   /** Creates a union of two erased types.
     *
-    * Unlike the `Union` constructor, this method also flattens nested unions, de-duplicates members, and collapses a
-    * singleton to its sole member.
+    * Unlike the `Union` constructor, this method also flattens nested unions, and collapses a singleton to its sole
+    * member.
     *
     * Note that the resulting union type is **not** canonicalized into the LUB of its members.
     */
@@ -1015,6 +1015,8 @@ object ErasedType:
     def flatten(et: ErasedValueType): Ls[ErasedValueType] = et match
       case Union(ms) => ms
       case other => other :: Nil
+    // Note: `distinct` has no effect on `NotResolved` types, which are identity-equal, but that is fine since they will
+    // be collapsed during canonicalization.
     (flatten(lhs) ::: flatten(rhs)).distinct match
       case single :: Nil => single
       case ms => Union(ms)
