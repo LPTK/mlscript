@@ -455,7 +455,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case Nil => lowerRemainingCalls(fr, args, remainingArgss, annotations, loc)(k)
         case acc: NELs[Ls[Arg]] =>
           val call = Call(fr, acc)(CallMetadata(isMlsFun, mayRaiseEffects, Nil)).withLoc(loc)
-          val tmp = loweringCtx.registerTempSymbol(N, erasedType = call.erasedType, "baseCall")
+          val tmp = loweringCtx.registerTempSymbol(N, erasedType = call.erasedValueType, "baseCall")
           Assign(tmp, call, lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, loc)(k))
       case (_ :: _, Nil) =>
         k(Call(fr, acc.reverse.ne_!)(CallMetadata(isMlsFun, mayRaiseEffects, annotations)).withLoc(loc))
@@ -474,7 +474,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       remainingArgss match
       case Nil => k(call)
       case args :: remainingArgss =>
-        val tmp = loweringCtx.registerTempSymbol(N, erasedType = call.erasedType, "callPrefix")
+        val tmp = loweringCtx.registerTempSymbol(N, erasedType = call.erasedValueType, "callPrefix")
         Assign(tmp, call,
           lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, loc)(k))
   
@@ -499,7 +499,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         k(buildInstantiate(acc.reverse))
       case (Nil, args :: remainingArgss) =>
         val inst = buildInstantiate(acc.reverse)
-        val tmp = loweringCtx.registerTempSymbol(N, erasedType = inst.erasedType, "baseInst")
+        val tmp = loweringCtx.registerTempSymbol(N, erasedType = inst.erasedValueType, "baseInst")
         Assign(tmp, inst,
           lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, N)(k))
       case (remainingParamss, Nil) =>
@@ -534,7 +534,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             k(buildInstantiate(as :: Nil))
           case remainingArgss =>
             val inst = buildInstantiate(as :: Nil)
-            val tmp = loweringCtx.registerTempSymbol(N, erasedType = inst.erasedType, "baseInst")
+            val tmp = loweringCtx.registerTempSymbol(N, erasedType = inst.erasedValueType, "baseInst")
             Assign(tmp, inst,
               lowerRemainingCalls(tmp.asSimpleRef, remainingArgss.head, remainingArgss.tail, annotations, N)(k))
     else zipArgs(ctorParamLists, args, Nil)
@@ -1382,7 +1382,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         val lamDef = FunDefn.withFreshSymbol(N, lamSym, params :: Nil, body)(configOverride = N, annotations = lam.annot)
         Define(lamDef, k(lamDef.asPath))
       case r =>
-        val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedType)
+        val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedValueType)
         Assign(l, r, k(l.asSimpleRef))
 
   /** Inserts a [[`Cast`]] when the lowered result `r` must be downcasted to fit the `expected` erased type of the slot 
@@ -1401,7 +1401,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     castTo(r, expected, loc):
       case p: Path => k(p)
       case cast =>
-        val l = loweringCtx.registerTempSymbol(N, erasedType = cast.erasedType)
+        val l = loweringCtx.registerTempSymbol(N, erasedType = cast.erasedValueType)
         Assign(l, cast, k(l.asSimpleRef))
 
   /** The declared erased type of the field a selection resolves to, if it is an annotated `TermSymbol`. */

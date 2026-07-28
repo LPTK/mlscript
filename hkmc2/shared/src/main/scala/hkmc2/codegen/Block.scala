@@ -16,6 +16,7 @@ import sem.Elaborator.{Ctx, State, ctx}
 import sourcecode.{FileName, Line}
 
 import scala.annotation.tailrec
+import hkmc2.codegen.ErasedType.CanonicalFuncRef
 
 
 /* Important design notes.
@@ -728,7 +729,7 @@ object ValDefn:
       annotations: Ls[Annot],
     )(using State)
     : ValDefn =
-      ValDefn(tsym = TermSymbol(k, owner, Tree.Ident(sym.nme), erasedType = rhs.erasedType), sym, rhs)(configOverride, annotations)
+      ValDefn(tsym = TermSymbol(k, owner, Tree.Ident(sym.nme), erasedType = rhs.erasedValueType), sym, rhs)(configOverride, annotations)
 
 
 /*
@@ -1171,8 +1172,31 @@ trait HasErasedType:
   /** The [[`ErasedType`]] of this element, or `N` if the erased type is not known. */
   def erasedType: Opt[ErasedType]
 
-  /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known. */
-  def erasedType_! : ErasedType = erasedType.getOrElse(ErasedType.Anything)
+  /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known.
+    *
+    * Parameter and return types of [[`ErasedFuncType`]]s are recursively coerced.
+    */
+  lazy val erasedType_! : ErasedType = erasedType.fold(ErasedType.Anything):
+    case f @ ErasedType.FuncRef(rsc, params, ret) => f.copy(
+      params = params.map(p => S(p.getOrElse(ErasedType.Anything))),
+      ret = S(ret.getOrElse(ErasedType.Anything)),
+    )
+    case f @ ErasedType.CanonicalFuncRef(rsc, params, ret) => f.copy(
+      params = params.map(p => S(p.getOrElse(ErasedType.Anything))),
+      ret = S(ret.getOrElse(ErasedType.Anything)),
+    )
+    case vt: ErasedValueType => vt
+
+  /** Returns the [[`ErasedValueType`]] of this element, or `N` if the erased type is not known.
+    *
+    * If this type is a [[`ErasedFuncType`]], the result is the [[`ErasedType`]] of a first-class function.
+    */
+  lazy val erasedValueType: Opt[ErasedValueType] = erasedType.collect:
+    case ft: ErasedFuncType => ErasedType.ValueLike(rsc = false, ctx.builtins.Function)
+    case vt: ErasedValueType => vt
+
+  /** Similar to `erasedValueType`, but coerces to the top type if the specific erased value type is not known. */
+  lazy val erasedValueType_! : ErasedValueType = erasedValueType.getOrElse(ErasedType.Anything)
 
 /** A [[`HasErasedType`]] whose erased type can be populated exactly once post-construction. */
 trait HasOnceMutableErasedType extends HasErasedType:
@@ -1186,14 +1210,9 @@ trait HasOnceMutableErasedType extends HasErasedType:
     softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
 
-/** A [[`HasErasedType`]] whose erased type is guaranteed to be a value type. */
-trait HasErasedValueType extends HasErasedType:
-  override def erasedType: Opt[ErasedValueType]
-  override def erasedType_! : ErasedValueType = erasedType.getOrElse(ErasedType.Anything)
-
 sealed trait TrivialResult extends Result
 
-sealed abstract class Result extends AutoLocated, HasErasedValueType:
+sealed abstract class Result extends AutoLocated, HasErasedType:
 // // * Used for debugging locations:
 // sealed abstract class Result extends AutoLocated with ProductWithExtraInfo:
 //   def extraInfo: Str = toLoc.toString
@@ -1293,10 +1312,7 @@ sealed abstract class Result extends AutoLocated, HasErasedValueType:
     case Value.Lit(lit) => 0
     case DynSelect(qual, fld, arrayIdx) => qual.size + fld.size
 
-  /** The erased type of this result, retaining non-value types such as [[`ErasedType.FuncRef`]] for first-class
-    * function values. Use [[`erasedType`]] for the value-type-narrowed view.
-    */
-  lazy val rawErasedType: Opt[ErasedType] = this match
+  lazy val erasedType: Opt[ErasedType] = this match
     case Value.SimpleRef(sym) => sym.erasedType
     // * A reference to a class is the class *object* (a `Class`).
     case Value.MemberRef(_, _: ClassSymbol) => N
@@ -1322,19 +1338,12 @@ sealed abstract class Result extends AutoLocated, HasErasedValueType:
     case Cast(_, target) => S(target)
     case _ => N
 
-  override lazy val erasedType: Opt[ErasedValueType] = rawErasedType.collect:
-    case v: ErasedValueType => v
-
-  override def erasedType_! : ErasedValueType = rawErasedType match
-    case S(_: ErasedFuncType) => ErasedType.Function
-    case _ => erasedType.getOrElse(ErasedType.Anything)
-
   /** Coerces this result to `expected`, yielding it unchanged when no coercion is required.
     *
     * Narrowing to an unrelated type is reported as an error, and this result is yielded unchanged.
     */
   def coerceTo(expected: ErasedType, loc: Opt[Loc])(using Ctx, State, Raise): Result =
-    val actual = erasedType_!.canonicalize
+    val actual = erasedValueType_!.canonicalize
     val declared = expected.canonicalize
     ErasedType.needsCast(actual, declared) match
       case S(false) => this
