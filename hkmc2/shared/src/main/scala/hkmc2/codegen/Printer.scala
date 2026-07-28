@@ -37,7 +37,7 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
   def print(cet: CanonicalErasedType)(using Scope): Document = cet match
     case ErasedType.Anything => doc"Anything"
     case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${if rsc then "rsc " else ""}${printTpe(tpeSym)}"
-    case ErasedType.FuncRef(rsc, params, ret) =>
+    case ErasedType.CanonicalFuncRef(rsc, params, ret) =>
       doc"${if rsc then "rsc " else ""}(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
 

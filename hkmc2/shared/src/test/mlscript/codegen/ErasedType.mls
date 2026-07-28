@@ -256,7 +256,7 @@ fun f(x: Int32) = useObj(x)
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
 //│   return o
 //│ };
-//│ define f² as fun f³(x: Int32⁰): ? { return useObj¹(x) };
+//│ define f² as fun f³(x: Int32): ? { return useObj¹(x) };
 //│ end
 
 
@@ -269,7 +269,7 @@ fun g(o: Object) = useInt(o)
 //│ ║  l.267: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useInt⁰ as fun useInt¹(n: Int32⁰): ? {
+//│ define useInt⁰ as fun useInt¹(n: Int32): ? {
 //│   return n
 //│ };
 //│ define g⁰ as fun g¹(o: Object⁰): ? { return useInt¹(o) };
@@ -304,7 +304,7 @@ val v: MyInt = 1
 type MyInt2 = MyInt
 val w: MyInt2 = 2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define v⁴ as val v⁵: MyInt⁰ = 1; define w⁰ as val w¹: MyInt2⁰ = 2; end
+//│ define v⁴ as val v⁵: Int⁰ = 1; define w⁰ as val w¹: Int⁰ = 2; end
 
 
 // Aliases are resolved at cast sites, so no casts are inserted when passing between `Foo` and `FooAlias`.
@@ -313,10 +313,10 @@ type FooAlias = Foo
 fun narrow(f: FooAlias): Foo = f
 fun widen(f: Foo): FooAlias = f
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define narrow⁰ as fun narrow¹(f: FooAlias⁰): Foo³ {
+//│ define narrow⁰ as fun narrow¹(f: Foo³): Foo³ {
 //│   return f
 //│ };
-//│ define widen⁰ as fun widen¹(f: Foo³): FooAlias⁰ {
+//│ define widen⁰ as fun widen¹(f: Foo³): Foo³ {
 //│   return f
 //│ };
 //│ define Foo⁴ as class Foo³ {
@@ -332,10 +332,10 @@ fun useI32(n: Int32) = n
 type MyI32 = Int32
 fun useMyI32(x: MyI32) = useI32(x)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useI32⁰ as fun useI32¹(n: Int32⁰): ? {
+//│ define useI32⁰ as fun useI32¹(n: Int32): ? {
 //│   return n
 //│ };
-//│ define useMyI32⁰ as fun useMyI32¹(x: MyI32⁰): ? { return useI32¹(x) };
+//│ define useMyI32⁰ as fun useMyI32¹(x: Int32): ? { return useI32¹(x) };
 //│ end
 
 
@@ -350,10 +350,10 @@ type Union = P | Q
 fun useCyclic(x: Cyclic): Cyclic = x
 fun useUnion(x: Union): Union = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useCyclic⁰ as fun useCyclic¹(x: Cyclic⁰): Cyclic⁰ {
+//│ define useCyclic⁰ as fun useCyclic¹(x: Anything): Anything {
 //│   return x
 //│ };
-//│ define useUnion⁰ as fun useUnion¹(x: Union⁰): Union⁰ {
+//│ define useUnion⁰ as fun useUnion¹(x: Anything): Anything {
 //│   return x
 //│ };
 //│ define P⁰ as class P¹;
@@ -369,15 +369,15 @@ class B extends Base
 fun oneOf(x: A | B): Int = 0
 fun threeOf(x: A | B | Base): Int = 0
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define oneOf⁰ as fun oneOf¹(x: A⁰ | B⁰): Int⁰ {
+//│ define oneOf⁰ as fun oneOf¹(x: Base⁰): Int⁰ {
 //│   return (0 as Int⁰)
 //│ };
-//│ define threeOf⁰ as fun threeOf¹(x: A⁰ | B⁰ | Base⁰): Int⁰ {
+//│ define threeOf⁰ as fun threeOf¹(x: Base⁰): Int⁰ {
 //│   return (0 as Int⁰)
 //│ };
 //│ define Base¹ as class Base⁰;
-//│ define A¹ as class A⁰ extends Base⁰ {};
-//│ define B¹ as class B⁰ extends Base⁰ {};
+//│ define A⁰ as class A¹ extends Base⁰ {};
+//│ define B⁰ as class B¹ extends Base⁰ {};
 //│ end
 
 
@@ -401,21 +401,21 @@ fun unionIntoSubtype(x: A | B) = takesSubtype(x)
 //│ define takesUnion⁰ as fun takesUnion¹(u: Base⁰): Unit⁰ {
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ define takesSubtype⁰ as fun takesSubtype¹(a: A⁰): Unit⁰ {
+//│ define takesSubtype⁰ as fun takesSubtype¹(a: A¹): Unit⁰ {
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define unionIntoBase⁰ as fun unionIntoBase¹(x: Base⁰): ? {
 //│   return takesBase¹(x)
 //│ };
-//│ define memberIntoUnion⁰ as fun memberIntoUnion¹(a: A⁰): ? {
+//│ define memberIntoUnion⁰ as fun memberIntoUnion¹(a: A¹): ? {
 //│   return takesUnion¹(a)
 //│ };
 //│ define baseIntoUnion⁰ as fun baseIntoUnion¹(b: Base⁰): ? {
 //│   return takesUnion¹(b)
 //│ };
 //│ define unionIntoSubtype⁰ as fun unionIntoSubtype¹(x: Base⁰): ? {
-//│   let tmp: A⁰;
-//│   set tmp = (x as A⁰);
+//│   let tmp: A¹;
+//│   set tmp = (x as A¹);
 //│   return takesSubtype¹(tmp)
 //│ };
 //│ end

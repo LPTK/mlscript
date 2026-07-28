@@ -887,8 +887,9 @@ object ErasedType:
     * elaborated. The IR should always operate on the canonicalized type.
     */
   case class ValueLike(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType:
+    override type Canonical = CanonicalErasedValueType
     override def sym(using Ctx, State): TypeSymbol = tpeSym
-    override protected def computeCanonicalize(using Ctx, State): CanonicalErasedType =
+    override protected def computeCanonicalize(using Ctx, State): CanonicalErasedValueType =
       val resolved = tpeSym match
         case _: TypeAliasSymbol => tpeSym.resolveAlias
         case _ => tpeSym
@@ -902,15 +903,15 @@ object ErasedType:
 
   /** A reference to a function of a possibly-known shape.
     *
-    * Note: `params` and `ret` may be non-canonical types - Use [[`ErasedType.canonicalize`]] to compute a
-    * deeply-canonicalized version of this instance.
-    *
     * - `rsc` is true if this reference is a resource function.
     */
-  case class FuncRef(rsc: Bool, params: Ls[Opt[ErasedType]], ret: Opt[ErasedType]) extends ErasedType, CanonicalErasedType:
-    override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Function
-    override protected def computeCanonicalize(using Ctx, State): CanonicalErasedType =
-      FuncRef(rsc, params.map(_.map(_.canonicalize)), ret.map(_.canonicalize))
+  case class FuncRef(override val rsc: Bool, override val params: Ls[Opt[ErasedValueType]], override val ret: Opt[ErasedValueType]) extends ErasedFuncType:
+    override type Canonical = CanonicalFuncRef
+    override protected def computeCanonicalize(using Ctx, State): CanonicalFuncRef =
+      CanonicalFuncRef(rsc, params.map(_.map(_.canonicalize)), ret.map(_.canonicalize))
+
+  /** An analogue to `FuncRef` for function types with canonicalized parameter and return types. */
+  case class CanonicalFuncRef(override val rsc: Bool, override val params: Ls[Opt[CanonicalErasedValueType]], override val ret: Opt[CanonicalErasedValueType]) extends ErasedFuncType with CanonicalErasedType
 
   /** An primitive type. */
   case class Primitive(prim: PrimitiveType) extends ErasedValueType, CanonicalErasedType:
@@ -922,8 +923,9 @@ object ErasedType:
     * elaborated - See the implementation note of `ValueLike`. The IR should always operate on the canonicalized type.
     */
   case class Union(members: Ls[ErasedValueType]) extends ErasedValueType:
+    override type Canonical = CanonicalErasedValueType
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
-    override protected def computeCanonicalize(using Ctx, State): CanonicalErasedType =
+    override protected def computeCanonicalize(using Ctx, State): CanonicalErasedValueType =
       members.map(_.canonicalize).reduceLeft((a, b) => lub(a, b))
 
   /** The builtin top type `Anything`.
@@ -1018,7 +1020,7 @@ object ErasedType:
       case ms => Union(ms)
 
   /** The least upper bound of two canonical erased types. */
-  def lub(lhs: CanonicalErasedType, rhs: CanonicalErasedType)(using Ctx, State): CanonicalErasedType =
+  def lub(lhs: CanonicalErasedValueType, rhs: CanonicalErasedValueType)(using Ctx, State): CanonicalErasedValueType =
     (lhs, rhs) match
       case _ if lhs == rhs => lhs
       // * The top type absorbs everything.
@@ -1106,13 +1108,12 @@ object ErasedType:
 
 /** A generics-erased type of the Block IR. */
 sealed abstract class ErasedType:
+  type Canonical <: CanonicalErasedType
+
   /** The symbol for this erased type. */
   def sym(using Ctx, State): TypeSymbol
 
-  private var _canonicalized: Opt[CanonicalErasedType] = N
-
-  /** The memoized [[`canonicalize`]] result, if it has already been computed. */
-  final def canonicalizedCache: Opt[CanonicalErasedType] = _canonicalized
+  private var _canonicalized: Opt[Canonical] = N
 
   /** Computes and memoizes the canonical form of this type by:
     *
@@ -1122,7 +1123,7 @@ sealed abstract class ErasedType:
     *
     * Callers are encouraged to always canonicalize types before using them.
     */
-  final def canonicalize(using Ctx, State): CanonicalErasedType = _canonicalized match
+  final def canonicalize(using Ctx, State): Canonical = _canonicalized match
     case S(n) => n
     case N =>
       val n = computeCanonicalize
@@ -1130,14 +1131,26 @@ sealed abstract class ErasedType:
       n
 
   /** Overriding implementation for computing the canonical form of this type. */
-  protected def computeCanonicalize(using Ctx, State): CanonicalErasedType
+  protected def computeCanonicalize(using Ctx, State): Canonical
 
-/** A trait indicating that the [[`ErasedType`]] is a value type. */
-sealed abstract class ErasedValueType extends ErasedType
+/** Base class indicating that the [[`ErasedType`]] is a value type. */
+sealed abstract class ErasedValueType extends ErasedType:
+  type Canonical <: CanonicalErasedValueType
+
+/** Base class indicating that the [[`ErasedType`]] is a function type. */
+sealed abstract class ErasedFuncType extends ErasedType:
+  val rsc: Bool
+  val params: Ls[Opt[ErasedValueType]]
+  val ret: Opt[ErasedValueType]
+  final override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Function
 
 /** An [[`ErasedType`]] that is resolved into a canonical representation. */
 sealed trait CanonicalErasedType extends ErasedType:
-  override protected def computeCanonicalize(using Ctx, State): CanonicalErasedType = this
+  type Canonical = this.type
+
+  override protected def computeCanonicalize(using Ctx, State): this.type = this
+
+type CanonicalErasedValueType = CanonicalErasedType & ErasedValueType
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:
@@ -1301,7 +1314,7 @@ sealed abstract class Result extends AutoLocated, HasErasedValueType:
     case v: ErasedValueType => v
 
   override def erasedType_!(using Ctx): ErasedValueType = rawErasedType match
-    case S(_: ErasedType.FuncRef) => ErasedType.Function
+    case S(_: ErasedFuncType) => ErasedType.Function
     case _ => erasedType.getOrElse(ErasedType.Anything)
 
   /** Coerces this result to `expected`, yielding it unchanged when no coercion is required.
@@ -1314,7 +1327,7 @@ sealed abstract class Result extends AutoLocated, HasErasedValueType:
     ErasedType.needsCast(actual, declared) match
       case S(false) => this
       case S(true) => Cast(this, expected match
-        case _: ErasedType.FuncRef => ErasedType.Function
+        case _: ErasedFuncType => ErasedType.Function
         case v: ErasedValueType => v)
       case N =>
         def describe(sym: TypeSymbol): Str =

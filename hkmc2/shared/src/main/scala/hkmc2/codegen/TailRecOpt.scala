@@ -335,7 +335,7 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
       if funsLen === 1 then funs.head.dSym
       else
         // The dispatcher can exit through any member's return, so its result type is the LUB of its members.
-        val memberRets = funs.map(_.dSym.erasedType.collect { case ErasedType.FuncRef(_, _, ret) => ret }.flatten)
+        val memberRets = funs.map(_.dSym.erasedType.collect { case ft: ErasedFuncType => ft.ret }.flatten)
         val ret =
           if memberRets.exists(_.isEmpty) then N
           else S(memberRets.flatten.map(_.canonicalize).reduce(ErasedType.lub))
