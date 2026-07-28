@@ -883,16 +883,26 @@ object ErasedType:
     *
     * - `rsc` is true if this reference is a resource type.
     *
-    * Implementation Note: This transient type is needed to represent value types before the `Prelude` is fully
-    * elaborated. The IR should always operate on the canonicalized type.
+    * Implementation Notes:
+    * 
+    * - This transient type is needed to represent value types before the `Prelude` is fully elaborated. The IR should 
+    *   always operate on the canonicalized type.
+    * - This type implements identity equality, so that two instances with the same `getTpeSym` function are not
+    *   considered equal - Use the canonicalized type for equality comparisons.
     */
-  case class ValueLike(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType:
+  final class ValueLike(val rsc: Bool, getTpeSym: (Ctx, State) ?=> TypeSymbol) extends ErasedValueType:
     override type Canonical = CanonicalErasedValueType
-    override def sym(using Ctx, State): TypeSymbol = tpeSym
+    private var _sym: Opt[TypeSymbol] = N
+    override def sym(using Ctx, State): TypeSymbol = _sym match
+      case S(tpeSym) => tpeSym
+      case N => 
+        val tpeSym = getTpeSym
+        _sym = S(tpeSym)
+        tpeSym
     override protected def computeCanonicalize(using Ctx, State): CanonicalErasedValueType =
-      val resolved = tpeSym match
-        case _: TypeAliasSymbol => tpeSym.resolveAlias
-        case _ => tpeSym
+      val resolved = sym match
+        case tpeAliasSym: TypeAliasSymbol => tpeAliasSym.resolveAlias
+        case tpeSym => tpeSym
       resolved match
         // * An unresolvable alias becomes the top type.
         // TODO(Derppening): Handle LUB if RHS of the type alias is a union type.
@@ -900,6 +910,8 @@ object ErasedType:
         case base => PrimitiveType.values.find(_.sym === base) match
           case S(prim) => Primitive(prim)
           case _ => AnyRef(rsc, base)
+    // Ensures `toString` returns a stable string
+    override def toString: Str = "ValueLike(?)"
 
   /** A reference to a function of a possibly-known shape.
     *
@@ -936,28 +948,28 @@ object ErasedType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
 
   /** The builtin `Unit` reference type. */
-  def Unit(using State): ErasedType.AnyRef = AnyRef(rsc = false, summon[State].unitSymbol)
+  def Unit: ErasedValueType = ErasedType.ValueLike(rsc = false, summon[State].unitSymbol)
+
+  /** The builtin `Bool` reference type. */
+  def Bool: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Bool)
 
   /** The builtin `Int` reference type. */
-  def Bool(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Bool)
-
-  /** The builtin `Int` reference type. */
-  def Int(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Int)
+  def Int: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Int)
   
-  /** The builtin `Int` reference type. */
-  def Num(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Num)
+  /** The builtin `Num` reference type. */
+  def Num: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Num)
 
   /** The builtin `Str` reference type. */
-  def Str(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Str)
+  def Str: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Str)
   
   /** The builtin `Array` reference type. */
-  def Array(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Array)
+  def Array: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Array)
 
   /** The builtin `Int31` reference type. */
-  def Int31(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Int31)
+  def Int31: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Int31)
 
   /** The builtin `Function` reference type, used as the value type of a first-class function. */
-  def Function(using Ctx): ErasedType.AnyRef = AnyRef(rsc = false, ctx.builtins.Function)
+  def Function: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Function)
 
   /** Determines the direct parent of a class-like symbol.
     *
@@ -1015,7 +1027,7 @@ object ErasedType:
     def flatten(et: ErasedValueType): Ls[ErasedValueType] = et match
       case Union(ms) => ms
       case other => other :: Nil
-    // Note: `distinct` has no effect on `NotResolved` types, which are identity-equal, but that is fine since they will
+    // Note: `distinct` has no effect on `ValueLike` types, which are identity-equal, but that is fine since they will
     // be collapsed during canonicalization.
     (flatten(lhs) ::: flatten(rhs)).distinct match
       case single :: Nil => single
@@ -1038,7 +1050,7 @@ object ErasedType:
     * Note that the resulting erased type is **not** canonicalized to avoid using `ctx.builtins` during elaboration
     * of `Prelude`.
     */
-  def eraseSign(sign: Term)(using State): Opt[ErasedValueType] = sign match
+  def eraseSign(sign: Term): Opt[ErasedValueType] = sign match
     case CompType(lhs, rhs, true) =>
       // * A union is kept as a transient `Union` surface form; `canonicalize` collapses it to the members' LUB.
       for
@@ -1160,7 +1172,7 @@ trait HasErasedType:
   def erasedType: Opt[ErasedType]
 
   /** Similar to `erasedType`, but coerces to the top type if the specific erased type is not known. */
-  def erasedType_!(using Ctx) : ErasedType = erasedType.getOrElse(ErasedType.Anything)
+  def erasedType_! : ErasedType = erasedType.getOrElse(ErasedType.Anything)
 
 /** A [[`HasErasedType`]] whose erased type can be populated exactly once post-construction. */
 trait HasOnceMutableErasedType extends HasErasedType:
@@ -1177,7 +1189,7 @@ trait HasOnceMutableErasedType extends HasErasedType:
 /** A [[`HasErasedType`]] whose erased type is guaranteed to be a value type. */
 trait HasErasedValueType extends HasErasedType:
   override def erasedType: Opt[ErasedValueType]
-  override def erasedType_!(using Ctx): ErasedValueType = erasedType.getOrElse(ErasedType.Anything)
+  override def erasedType_! : ErasedValueType = erasedType.getOrElse(ErasedType.Anything)
 
 sealed trait TrivialResult extends Result
 
@@ -1310,12 +1322,10 @@ sealed abstract class Result extends AutoLocated, HasErasedValueType:
     case Cast(_, target) => S(target)
     case _ => N
 
-  // * A function value (raw type `FuncRef`) has no value-type representation here, so it collapses to `N`; its
-  // * value type `Function` is recovered by `erasedType_!` (which has the `Ctx` needed to build it).
   override lazy val erasedType: Opt[ErasedValueType] = rawErasedType.collect:
     case v: ErasedValueType => v
 
-  override def erasedType_!(using Ctx): ErasedValueType = rawErasedType match
+  override def erasedType_! : ErasedValueType = rawErasedType match
     case S(_: ErasedFuncType) => ErasedType.Function
     case _ => erasedType.getOrElse(ErasedType.Anything)
 

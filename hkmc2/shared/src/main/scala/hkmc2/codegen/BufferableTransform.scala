@@ -14,7 +14,7 @@ import semantics.Elaborator.State
 import hkmc2.Message.MessageContext
 import hkmc2.syntax.Tree.DummyTypeDef
 
-class BufferableTransform()(using Ctx, State, Raise):
+class BufferableTransform()(using State, Raise):
   def transform(prog: Program): Program =
     val transformer = new BlockTransformer(SymbolSubst.Id):
       override def applyDefn(defn: Defn)(k: Defn => Block): Block = defn match
