@@ -875,7 +875,13 @@ enum PrimitiveType:
 object ErasedType:
   /** A canonicalized reference type.
     *
+    * Instances should be created using [[`CanonicalErasedValueType.apply`]] or [[`ValueLike`]] to ensure the correct
+    * representation is used for a given type symbol.
+    *
     * - `rsc` is true if this reference is a resource class.
+    *
+    * Implementation Note: This type should **not** be used to represent references of type aliases or the top type -
+    * [[`ValueLike`]] and [[`Anything`]] should be used instead.
     */
   case class AnyRef(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = tpeSym
@@ -893,24 +899,9 @@ object ErasedType:
     */
   final class ValueLike(val rsc: Bool, getTpeSym: (Ctx, State) ?=> TypeSymbol) extends ErasedValueType:
     override type Canonical = CanonicalErasedValueType
-    private var _sym: Opt[TypeSymbol] = N
-    override def sym(using Ctx, State): TypeSymbol = _sym match
-      case S(tpeSym) => tpeSym
-      case N => 
-        val tpeSym = getTpeSym
-        _sym = S(tpeSym)
-        tpeSym
+    override def sym(using Ctx, State): TypeSymbol = getTpeSym
     override protected def computeCanonicalize(using Ctx, State): CanonicalErasedValueType =
-      val resolved = sym match
-        case tpeAliasSym: TypeAliasSymbol => tpeAliasSym.resolveAlias
-        case tpeSym => tpeSym
-      resolved match
-        // * An unresolvable alias becomes the top type.
-        // TODO(Derppening): Handle LUB if RHS of the type alias is a union type.
-        case _: TypeAliasSymbol => Anything
-        case base => PrimitiveType.values.find(_.sym === base) match
-          case S(prim) => Primitive(prim)
-          case _ => AnyRef(rsc, base)
+      CanonicalErasedValueType(rsc, sym)
     // Ensures `toString` returns a stable string
     override def toString: Str = "ValueLike(?)"
 
@@ -1044,7 +1035,7 @@ object ErasedType:
       // * above), including a distinct primitive of a different value type.
       case (_: Primitive, _) | (_, _: Primitive) => Anything
       // * Two reference types: their nearest common ancestor, at worst `Object`.
-      case _ => AnyRef(rsc = false, lubSym(lhs.sym, rhs.sym))
+      case _ => CanonicalErasedValueType(rsc = false, lubSym(lhs.sym, rhs.sym))
 
   /** Erases a type-annotated term to an [[`ErasedType`]]. 
     *
@@ -1166,6 +1157,22 @@ sealed trait CanonicalErasedType extends ErasedType:
   override protected def computeCanonicalize(using Ctx, State): this.type = this
 
 type CanonicalErasedValueType = CanonicalErasedType & ErasedValueType
+
+object CanonicalErasedValueType:
+  /** Creates an instance with the given type symbol, canonicalizing it if needed.
+    *
+    * - `rsc` is true if this is a resource type.
+    */
+  def apply(rsc: Bool, tpeSym: TypeSymbol)(using Ctx, State): CanonicalErasedValueType =
+    tpeSym.resolveAlias match
+      // * An unresolvable alias becomes the top type.
+      // TODO(Derppening): Handle LUB if RHS of the type alias is a union type.
+      case _: TypeAliasSymbol => ErasedType.Anything
+      case base =>
+        if base is ctx.builtins.Anything then ErasedType.Anything
+        else PrimitiveType.values.find(_.sym === base) match
+          case S(prim) => ErasedType.Primitive(prim)
+          case _ => ErasedType.AnyRef(rsc, base)
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:

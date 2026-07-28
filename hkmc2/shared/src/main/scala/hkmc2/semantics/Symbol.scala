@@ -534,7 +534,7 @@ class ModuleOrObjectSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using Sta
     with InnerSymbol
     with NamedSymbol:
 
-  override val erasedType: Opt[ErasedType] = S(ErasedType.AnyRef(rsc = false, this))
+  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = false, this))
   
   def name: Str = nme
   def nme = id.name

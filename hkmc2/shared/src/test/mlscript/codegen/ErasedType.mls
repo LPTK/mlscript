@@ -575,3 +575,10 @@ sccHelper(100000)
 //│ return sccLoop_sccHelper⁰(1, 100000)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 0
+
+
+// Ensure that `Anything` is resolved to `(ErasedType.)Anything` and not `ErasedType.AnyRef(_, Anything)`
+// (which is indicated by `Anything⁰`).
+fun f(x: Anything): Anything = x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define f⁶ as fun f⁷(x: Anything): Anything { return x }; end
