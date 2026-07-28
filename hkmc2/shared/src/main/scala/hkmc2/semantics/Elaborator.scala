@@ -240,14 +240,44 @@ object Elaborator:
       val TypedArray = assumeBuiltinCls("TypedArray")
       val Symbol = assumeBuiltinCls("Symbol")
       // println(s"Builtins: $Int, $Num, $Str, $untyped")
-      class VirtualModule(val module: ModuleOrObjectSymbol):
-        val bms = getBuiltin(module.nme) match
-          case S(Ctx.RefElem(bms: BlockMemberSymbol)) => bms
-          case huh => wat(huh)
+      class VirtualModule private(val module: ModuleOrObjectSymbol, val bms: BlockMemberSymbol):
+        def this(module: ModuleOrObjectSymbol) =
+          this(
+            module,
+            getBuiltin(module.nme) match
+              case S(Ctx.RefElem(bms: BlockMemberSymbol)) => bms
+              case huh => wat(huh),
+          )
+
+        def this(parent: VirtualModule, childNme: Str) =
+          this(
+            VirtualModule.findChildModule(parent.module, childNme),
+            parent.assumeObject(childNme),
+          )
+
         protected def assumeObject(nme: Str): BlockMemberSymbol =
           module.tree.definedSymbols.get(nme).getOrElse:
             throw new NoSuchElementException(
-              s"builtin module symbol source.$nme")
+              s"builtin module symbol ${module.nme}.$nme")
+
+      object VirtualModule:
+        private def findChildModule(parent: ModuleOrObjectSymbol, nme: Str): ModuleOrObjectSymbol =
+          def underlyingTypeDef(tree: Tree): Opt[Tree.TypeDef] = tree match
+            case td: Tree.TypeDef => S(td)
+            case Tree.Annotated(_, body) => underlyingTypeDef(body)
+            case Tree.Modified(_, body) => underlyingTypeDef(body)
+            case _ => N
+
+          val stmts = parent.tree.withPart match
+            case S(Tree.Block(stmts)) => stmts
+            case _ => Nil
+          stmts.flatMap(underlyingTypeDef).collectFirst:
+            case td if (td.k is syntax.Mod) && td.name.exists(_.name === nme) =>
+              td.symbol match
+                case sym: ModuleOrObjectSymbol => sym
+                case _ => throw new NoSuchElementException(s"builtin nested module ${parent.nme}.$nme")
+          .getOrElse(throw new NoSuchElementException(s"builtin nested module ${parent.nme}.$nme"))
+
       object SymbolModule extends VirtualModule(assumeBuiltinMod("Symbol")):
         val `for` = assumeObject("for")
         val iterator = assumeObject("iterator")
