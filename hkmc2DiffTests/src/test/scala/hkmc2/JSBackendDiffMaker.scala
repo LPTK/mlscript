@@ -110,6 +110,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         showFlowSymbols = true,
         debug = debug.isSet,
       )
+      given Elaborator.Ctx = curCtx
       Printer()
     val print = (p: codegen.Program) =>
       blockPrinter.worksheet(p)(using irPrintingScp).mkString(output.ColWidth)

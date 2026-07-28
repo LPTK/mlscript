@@ -9,7 +9,7 @@ import hkmc2.Message.MessageContext
 import hkmc2.document._
 import hkmc2.semantics._
 import hkmc2.syntax._
-import hkmc2.semantics.Elaborator.State
+import hkmc2.semantics.Elaborator.{Ctx, State}
 import hkmc2.utils.Scope
 import hkmc2.utils.Scope.scope
 import hkmc2.document.Document.{braced, bracedbk}
@@ -17,7 +17,7 @@ import hkmc2.document.Document.{braced, bracedbk}
 
 /** `SymbolPrinter` is used for printing symbols that are not locally bound, so that they are consistent
   * with the debug-printed names shown in other parts of the compiler, such as showAsTreee. */
-class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
+class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
   
   val showPurity =
     false
@@ -34,18 +34,16 @@ class Printer(using Raise, ShowCfg, State, SymbolPrinter, Config):
   def printTpe(tpeSym: TypeSymbol)(using Scope): Document =
     if tpeSym.asMod.isDefined then doc"module ${print(tpeSym)}" else print(tpeSym)
 
-  def print(et: ErasedType)(using Scope): Document = et match
+  def print(cet: CanonicalErasedType)(using Scope): Document = cet match
     case ErasedType.Anything => doc"Anything"
     case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${if rsc then "rsc " else ""}${printTpe(tpeSym)}"
-    case ErasedType.ValueLike(rsc, tpeSym) => doc"${if rsc then "rsc " else ""}${printTpe(tpeSym)}"
     case ErasedType.FuncRef(rsc, params, ret) =>
       doc"${if rsc then "rsc " else ""}(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
-    // * Show the LUB if lowering has memoized it; otherwise fall back to the surface members.
-    // * (Note: `Printer` doesn't have `Elaborator.Ctx` to compute the LUB on-demand.)
-    case u @ ErasedType.Union(members) => u.canonicalizedCache match
-      case S(collapsed) => print(collapsed)
-      case N => members.map(print).mkDocument(sep = doc" | ")
+
+  def print(et: ErasedType)(using Scope): Document = et match
+    case cet: CanonicalErasedType => print(cet)
+    case _ => print(et.canonicalize)
 
   /** Renders the type annotation for a symbol with an [[`ErasedType`]]. */
   def erasedTypeAnnot(x: HasErasedType)(using Scope): Document =
