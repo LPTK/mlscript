@@ -297,6 +297,32 @@ fun g(o: Object) = useInt(o)
 //│ end
 
 
+// Same-named types are told apart by qualifying each name with its owner chain.
+:ge
+class Shape
+fun useShape(x: Shape) = x
+module Encl with
+  class Shape
+  fun bad(x: Shape) = useShape(x)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
+//│ ║  l.306: 	  fun bad(x: Shape) = useShape(x)
+//│ ╙──       	                               ^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
+//│   return x
+//│ };
+//│ define Shape¹ as class Shape⁰;
+//│ define Encl⁰ as class Encl¹
+//│ module Encl² {
+//│   constructor {
+//│     define Shape² as class Shape³;
+//│     end
+//│   }
+//│   method bad⁰ = fun bad¹(x: Shape³): ? { return useShape¹(x) }
+//│ };
+//│ end
+
+
 // `Int <: Object` - So passing `Int -> Object` and v/v is allowed.
 fun useObj(o: Object) = o
 fun useInt(n: Int) = n

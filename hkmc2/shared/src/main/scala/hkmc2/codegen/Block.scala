@@ -1358,8 +1358,16 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
         case _: ErasedFuncType => ErasedType.Function
         case v: ErasedValueType => v)
       case N =>
+        // * Qualifies a name by its owner chain, so that two same-named types are told apart.
+        def qualify(sym: TypeSymbol): Str =
+          def ownerOf(s: Symbol): Opt[InnerSymbol] = s.asClsOrMod.flatMap: s =>
+            s.irClsLikeDefn.map(_.owner).orElse(s.defn.map(_.owner)).flatten
+          def loop(s: Symbol, acc: Ls[Str]): Ls[Str] = s match
+            case _: TopLevelSymbol => acc
+            case _ => ownerOf(s).fold(s.nme :: acc)(o => loop(o, s.nme :: acc))
+          loop(sym, Nil).mkString(".")
         def describe(sym: TypeSymbol): Str =
-          if sym.asMod.isDefined then s"module ${sym.nme}" else sym.nme
+          if sym.asMod.isDefined then s"module ${qualify(sym)}" else qualify(sym)
         raise:
           ErrorReport(
             msg"Cannot narrow a value of type '${describe(actual.sym)}' to unrelated type '${describe(declared.sym)}'" ->
