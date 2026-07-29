@@ -42,10 +42,31 @@ val f: Num = 1.5
 val s: Str = "str"
 val b: Bool = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define i⁰ as val i¹: Int⁰ = 1;
-//│ define f⁰ as val f¹: Num⁰ = 1.5;
-//│ define s⁰ as val s¹: Str⁰ = "str";
-//│ define b⁰ as val b¹: Bool⁰ = true;
+//│ let tmp: Int⁰, tmp1: Num⁰, tmp2: Str⁰, tmp3: Bool⁰;
+//│ set tmp = (1 as Int⁰);
+//│ define i⁰ as val i¹: Int⁰ = tmp;
+//│ set tmp1 = (1.5 as Num⁰);
+//│ define f⁰ as val f¹: Num⁰ = tmp1;
+//│ set tmp2 = ("str" as Str⁰);
+//│ define s⁰ as val s¹: Str⁰ = tmp2;
+//│ set tmp3 = (true as Bool⁰);
+//│ define b⁰ as val b¹: Bool⁰ = tmp3;
+//│ end
+
+
+// A `val` initializer is narrowed to the declared type, like a parameter or a return.
+fun mkObj(): Object = new Object()
+val o: Object = mkObj()
+val n: Int = o
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Object⁰, tmp1: Int⁰;
+//│ define mkObj⁰ as fun mkObj¹(): Object⁰ {
+//│   return (new globalThis⁰.Object⁰() as Object⁰)
+//│ };
+//│ set tmp = mkObj¹();
+//│ define o⁰ as val o¹: Object⁰ = tmp;
+//│ set tmp1 = (o¹ as Int⁰);
+//│ define n⁰ as val n¹: Int⁰ = tmp1;
 //│ end
 
 
@@ -250,7 +271,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.251: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.272: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
@@ -266,7 +287,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.267: 	fun g(o: Object) = useInt(o)
+//│ ║  l.288: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
@@ -322,7 +343,12 @@ val v: MyInt = 1
 type MyInt2 = MyInt
 val w: MyInt2 = 2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define v⁴ as val v⁵: Int⁰ = 1; define w⁰ as val w¹: Int⁰ = 2; end
+//│ let tmp: Int⁰, tmp1: Int⁰;
+//│ set tmp = (1 as Int⁰);
+//│ define v⁴ as val v⁵: Int⁰ = tmp;
+//│ set tmp1 = (2 as Int⁰);
+//│ define w⁰ as val w¹: Int⁰ = tmp1;
+//│ end
 
 
 // Aliases are resolved at cast sites, so no casts are inserted when passing between `Foo` and `FooAlias`.

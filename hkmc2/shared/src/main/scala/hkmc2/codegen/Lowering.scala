@@ -263,8 +263,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               subTerm_nonTail(bod)(r =>
                 // Assign(td.sym, r,
                 //   term(st.Blk(stats, res))(k)))
-                Define(ValDefn(td.tsym, td.sym, r)(cfgOverride, td.annotations),
-                  blockImpl(stats, res)))(using LoweringCtx.nestFunc(N))
+                castToPath(r, td.tsym.erasedType, bod.toLoc): cr =>
+                  Define(ValDefn(td.tsym, td.sym, cr)(cfgOverride, td.annotations),
+                    blockImpl(stats, res)))(using LoweringCtx.nestFunc(N))
             case syntax.Fun =>
               val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme), declaredReturnType(td.tsym))
               val cfgOverride = td.extraAnnotations.collectFirst:
