@@ -126,7 +126,7 @@ declare class Int32
 declare class Int64
 declare class Float32
 declare class Float64
-declare class Int31  // `i31ref`
+declare class Int31 extends Int  // `i31ref`
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 declare module Math with

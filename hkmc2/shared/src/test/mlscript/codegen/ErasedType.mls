@@ -298,6 +298,24 @@ fun f(o: Object, i: Int) =
 //│ end
 
 
+// `Int31 <: Int`.
+fun useInt31(n: Int31) = n
+fun g(i: Int, i31: Int31) =
+  useInt(i31)
+  useInt31(i)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useInt31⁰ as fun useInt31¹(n: Int31⁰): ? {
+//│   return n
+//│ };
+//│ define g² as fun g³(i: Int⁰, i31: Int31⁰): ? {
+//│   let tmp: Int31⁰;
+//│   do useInt³(i31);
+//│   set tmp = (i as Int31⁰);
+//│   return useInt31¹(tmp)
+//│ };
+//│ end
+
+
 // A type alias annotation is kept as-is in the erased type. A chain of aliases is likewise preserved.
 type MyInt = Int
 val v: MyInt = 1
