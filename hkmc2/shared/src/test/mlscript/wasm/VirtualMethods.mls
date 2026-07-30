@@ -173,6 +173,7 @@ callF(C()) + callG(C())
 // A virtual slot's Wasm type carries the result type of the method that introduced it, so overrides share it
 // TODO: `Int32` has no constructable form until the `wasm.*` intrinsics land
 :todo
+:ge
 :wat
 val n32: Int32 = 7
 class V() with
@@ -182,8 +183,9 @@ class W() extends V() with
 fun callPrim(a: V): Int32 = a.f(n32)
 callPrim(W())
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.177: 	val n32: Int32 = 7
+//│ ║  l.178: 	val n32: Int32 = 7
 //│ ╙──       	                 ^
+//│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `(ref null i31)` to `i32` in a different type hierarchy
 //│ Wat:
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
@@ -274,7 +276,7 @@ callPrim(W())
 //│     (local $receiver (ref null any))
 //│     (block (result i32)
 //│       (global.set $n32
-//│         (i32.const 7))
+//│         (unreachable))
 //│       (local.set $tmp
 //│         (call $W_ctor))
 //│       (local.set $tmp1
@@ -303,8 +305,6 @@ callPrim(W())
 //│   (elem $W_f declare func $W_f)
 //│   (elem $callPrim declare func $callPrim)
 //│   (elem $entry declare func $entry))
-//│ Wasm result:
-//│ = 7
 
 
 // Overrides share the slot's Wasm function type, so primitives must match exactly

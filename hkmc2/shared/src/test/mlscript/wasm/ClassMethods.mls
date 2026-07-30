@@ -209,14 +209,16 @@ A(1).get
 // Method result types are taken from the return annotation, so primitives stay unboxed
 // TODO: `Int32` has no constructable form until the `wasm.*` intrinsics land
 :todo
+:ge
 :wat
 val n32: Int32 = 7
 class Prim(val v) with
   fun take(m: Int32): Int32 = m
 Prim(0).take(n32)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.213: 	val n32: Int32 = 7
+//│ ║  l.214: 	val n32: Int32 = 7
 //│ ╙──       	                 ^
+//│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `(ref null i31)` to `i32` in a different type hierarchy
 //│ Wat:
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
@@ -260,7 +262,7 @@ Prim(0).take(n32)
 //│     (local $tmp1 i32)
 //│     (block (result i32)
 //│       (global.set $n32
-//│         (i32.const 7))
+//│         (unreachable))
 //│       (local.set $tmp
 //│         (call $Prim_ctor
 //│           (ref.i31
@@ -276,8 +278,6 @@ Prim(0).take(n32)
 //│   (elem $Prim_ctor declare func $Prim_ctor)
 //│   (elem $Prim_take declare func $Prim_take)
 //│   (elem $entry declare func $entry))
-//│ Wasm result:
-//│ = 7
 
 
 // Method types are fixed at predeclaration, so a primitive result must be annotated

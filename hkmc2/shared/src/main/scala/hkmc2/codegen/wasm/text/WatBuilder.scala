@@ -341,17 +341,9 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           extraInfo = S(expr.toWat.mkString()),
         )
 
-  /** Compiles `r` into a slot of declared type `target`.
-    *
-    * This function handles the special case where a literal is emitted directly into a slot of the same primitive type:
-    * The literal must be emitted unboxed, otherwise `castConserve` will reject the conversion of a reference value to
-    * a primitive type.
-    */
-  // TODO(Derppening): Remove once the `wasm.*` intrinsics land and `Int32` literals can be written explicitly.
+  /** Compiles `r` and narrows it to `target`, the declared type of the slot it flows into. */
   private def castToValType(r: codegen.Result, target: ValType)(using FunctionCtx, Raise, SessionExportCtx): Expr =
-    (r, target) match
-      case (Value.Lit(IntLit(value)), I32Type) => withValidIntLit(value, r.toLoc)(i32.const(_))
-      case _ => castConserve(result(r), target)
+    castConserve(result(r), target)
 
   /** Casts each argument in `wasmArgs` down to the corresponding declared parameter type read from `funcTypeInfo`. */
   private def castArgsToParams(wasmArgs: Seq[Expr], funcTypeInfo: TypeInfo)(using Raise): Seq[Expr] =
@@ -1932,11 +1924,6 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     */
   private def getLocalAnyref(idx: LocalIdx): Expr =
     local.get(idx, RefType.anyref)
-
-  /** Extracts the signed i32 value from the Int31 stored in the local `name`.
-    */
-  private def getI32FromAnyref(idx: LocalIdx): Expr =
-    i31.get(ref.cast(getLocalAnyref(idx), RefType.i31ref), true)
 
   extension (expr: Expr)
     private def isControlTransfer: Bool =
