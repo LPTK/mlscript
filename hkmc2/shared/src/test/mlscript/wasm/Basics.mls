@@ -449,6 +449,9 @@ foo()()
 :ge
 fun takeTop(m: Int32) = m
 takeTop(1)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
+//│ ║  l.451: 	takeTop(1)
+//│ ╙──       	        ^
 //│ ╔══[COMPILATION ERROR] Function `takeTop` produces a Wasm value of type `i32`, which is incompatible with its declared result type `(ref null any)`
 //│ ║  l.450: 	fun takeTop(m: Int32) = m
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^

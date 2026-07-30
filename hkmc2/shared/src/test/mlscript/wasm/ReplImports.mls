@@ -64,8 +64,13 @@ unit
 //│ = {}
 
 // Session globals of primitive type are stored unboxed
+// TODO: `Int32` has no constructable form until the `wasm.*` intrinsics land
+:todo
 val typed: Int32 = 1
 fun idI32(n: Int32): Int32 = n
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
+//│ ║  l.69: 	val typed: Int32 = 1
+//│ ╙──      	                   ^
 //│ Wasm result:
 //│ = {}
 

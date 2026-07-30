@@ -55,7 +55,7 @@ class Box(value: Int)
 
 @special new Box(1)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp; set tmp = (1 as Int⁰); return @special new Box²(tmp)
+//│ return @special new Box²(1)
 
 
 class CurriedBox(first: Int)(second: Int)
@@ -73,8 +73,5 @@ class CurriedBox(first: Int)(second: Int)
 
 @special new CurriedBox(1)(2)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp, tmp1;
-//│ set tmp = (1 as Int⁰);
-//│ set tmp1 = (2 as Int⁰);
-//│ return @special new CurriedBox²(tmp, tmp1)
+//│ return @special new CurriedBox²(1, 2)
 

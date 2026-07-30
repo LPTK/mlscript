@@ -171,6 +171,8 @@ callF(C()) + callG(C())
 
 
 // A virtual slot's Wasm type carries the result type of the method that introduced it, so overrides share it
+// TODO: `Int32` has no constructable form until the `wasm.*` intrinsics land
+:todo
 :wat
 val n32: Int32 = 7
 class V() with
@@ -179,6 +181,9 @@ class W() extends V() with
   fun f(m: Int32): Int32 = m
 fun callPrim(a: V): Int32 = a.f(n32)
 callPrim(W())
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
+//│ ║  l.177: 	val n32: Int32 = 7
+//│ ╙──       	                 ^
 //│ Wat:
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
@@ -309,8 +314,11 @@ class M1() with
 class M2() extends M1() with
   fun f(m: Int32): Int = 0
 M2().f(1)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
+//│ ║  l.316: 	M2().f(1)
+//│ ╙──       	       ^
 //│ ╔══[COMPILATION ERROR] Overriding method `f` declares result as `(ref null i31)`, but the method it overrides declares `i32`
-//│ ║  l.310: 	  fun f(m: Int32): Int = 0
+//│ ║  l.315: 	  fun f(m: Int32): Int = 0
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^^^
 
 
@@ -320,8 +328,9 @@ class N1() with
 class N2() extends N1() with
   fun g(m): Int32 = 0
 N2().g(1)
+//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
 //│ ╔══[COMPILATION ERROR] Overriding method `g` declares parameter 1 as `(ref null any)`, but the method it overrides declares `i32`
-//│ ║  l.321: 	  fun g(m): Int32 = 0
+//│ ║  l.329: 	  fun g(m): Int32 = 0
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^
 
 

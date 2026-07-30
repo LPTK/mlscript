@@ -207,11 +207,16 @@ A(1).get
 
 
 // Method result types are taken from the return annotation, so primitives stay unboxed
+// TODO: `Int32` has no constructable form until the `wasm.*` intrinsics land
+:todo
 :wat
 val n32: Int32 = 7
 class Prim(val v) with
   fun take(m: Int32): Int32 = m
 Prim(0).take(n32)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
+//│ ║  l.213: 	val n32: Int32 = 7
+//│ ╙──       	                 ^
 //│ Wat:
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
@@ -280,6 +285,9 @@ Prim(0).take(n32)
 class Unannotated(val v) with
   fun take(m: Int32) = m
 Unannotated(0).take(1)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
+//│ ║  l.287: 	Unannotated(0).take(1)
+//│ ╙──       	                    ^
 //│ ╔══[COMPILATION ERROR] Method `take` produces a Wasm value of type `i32`, which is incompatible with its declared result type `(ref null any)`
-//│ ║  l.281: 	  fun take(m: Int32) = m
+//│ ║  l.286: 	  fun take(m: Int32) = m
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^

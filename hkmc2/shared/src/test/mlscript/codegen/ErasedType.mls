@@ -42,15 +42,13 @@ val f: Num = 1.5
 val s: Str = "str"
 val b: Bool = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Int⁰, tmp1: Num⁰, tmp2: Str⁰, tmp3: Bool⁰;
-//│ set tmp = (1 as Int⁰);
-//│ define i⁰ as val i¹: Int⁰ = tmp;
-//│ set tmp1 = (1.5 as Num⁰);
-//│ define f⁰ as val f¹: Num⁰ = tmp1;
-//│ set tmp2 = ("str" as Str⁰);
-//│ define s⁰ as val s¹: Str⁰ = tmp2;
-//│ set tmp3 = (true as Bool⁰);
-//│ define b⁰ as val b¹: Bool⁰ = tmp3;
+//│ let tmp: Str⁰, tmp1: Bool⁰;
+//│ define i⁰ as val i¹: Int⁰ = 1;
+//│ define f⁰ as val f¹: Num⁰ = 1.5;
+//│ set tmp = ("str" as Str⁰);
+//│ define s⁰ as val s¹: Str⁰ = tmp;
+//│ set tmp1 = (true as Bool⁰);
+//│ define b⁰ as val b¹: Bool⁰ = tmp1;
 //│ end
 
 
@@ -93,11 +91,10 @@ fun main =
   let bar = new Bar("hi")
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define main² as fun main³(): ? {
-//│   let foo: ?, bar: ?, tmp: Int⁰, tmp1: Str⁰;
-//│   set tmp = (123 as Int⁰);
-//│   set foo = new Foo⁰(tmp);
-//│   set tmp1 = ("hi" as Str⁰);
-//│   set bar = new Bar⁰(tmp1);
+//│   let foo: ?, bar: ?, tmp: Str⁰;
+//│   set foo = new Foo⁰(123);
+//│   set tmp = ("hi" as Str⁰);
+//│   set bar = new Bar⁰(tmp);
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define Foo¹ as class Foo⁰ {
@@ -152,7 +149,7 @@ fun keep(x: Int) =
   set x = 5
   x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define keep⁰ as fun keep¹(x: Int⁰): ? { set x = (5 as Int⁰); return x }; end
+//│ define keep⁰ as fun keep¹(x: Int⁰): ? { set x = 5; return x }; end
 
 
 // An annotated mutable field narrows the assigned value at the field-assignment site.
@@ -271,7 +268,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.272: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.269: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
@@ -287,7 +284,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.288: 	fun g(o: Object) = useInt(o)
+//│ ║  l.285: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
@@ -305,7 +302,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.306: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.303: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -369,12 +366,7 @@ val v: MyInt = 1
 type MyInt2 = MyInt
 val w: MyInt2 = 2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Int⁰, tmp1: Int⁰;
-//│ set tmp = (1 as Int⁰);
-//│ define v⁴ as val v⁵: Int⁰ = tmp;
-//│ set tmp1 = (2 as Int⁰);
-//│ define w⁰ as val w¹: Int⁰ = tmp1;
-//│ end
+//│ define v⁴ as val v⁵: Int⁰ = 1; define w⁰ as val w¹: Int⁰ = 2; end
 
 
 // Aliases are resolved at cast sites, so no casts are inserted when passing between `Foo` and `FooAlias`.
@@ -440,10 +432,10 @@ fun oneOf(x: A | B): Int = 0
 fun threeOf(x: A | B | Base): Int = 0
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define oneOf⁰ as fun oneOf¹(x: Base⁰): Int⁰ {
-//│   return (0 as Int⁰)
+//│   return 0
 //│ };
 //│ define threeOf⁰ as fun threeOf¹(x: Base⁰): Int⁰ {
-//│   return (0 as Int⁰)
+//│   return 0
 //│ };
 //│ define Base¹ as class Base⁰;
 //│ define A⁰ as class A¹ extends Base⁰ {};
@@ -588,7 +580,6 @@ fun sccLoop(n: Int): Int =
 fun sccHelper(n: Int): Object = if n <= 0 then 0 else sccLoop(n - 1)
 sccHelper(100000)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Int⁰;
 //│ @tailrec
 //│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {
 //│   let r: ?;
@@ -596,19 +587,18 @@ sccHelper(100000)
 //│   return (r as Int⁰)
 //│ };
 //│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
-//│   let scrut: ?, tmp1: ?, tmp2: Int⁰;
+//│   let scrut: ?, tmp: ?, tmp1: Int⁰;
 //│   set scrut = <=⁰(n, 0);
 //│   match scrut
 //│     true =>
-//│       return (0 as Object⁰)
+//│       return 0
 //│     else
-//│       set tmp1 = -⁰(n, 1);
-//│       set tmp2 = (tmp1 as Int⁰);
-//│       return sccLoop¹(tmp2)
+//│       set tmp = -⁰(n, 1);
+//│       set tmp1 = (tmp as Int⁰);
+//│       return sccLoop¹(tmp1)
 //│   end
 //│ };
-//│ set tmp = (100000 as Int⁰);
-//│ return sccHelper⁰(tmp)
+//│ return sccHelper⁰(100000)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let sccLoop_sccHelper;
 //│ define sccLoop_sccHelper as fun sccLoop_sccHelper⁰(id: Int⁰, param0: ?): Object⁰ {
@@ -622,7 +612,7 @@ sccHelper(100000)
 //│         set scrut = <=⁰(param0, 0);
 //│         match scrut
 //│           true =>
-//│             return (0 as Object⁰)
+//│             return 0
 //│           else
 //│             set tmp = -⁰(param0, 1);
 //│             set tmp1 = (tmp as Int⁰);
