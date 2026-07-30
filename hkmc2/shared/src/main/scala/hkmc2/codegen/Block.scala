@@ -1327,6 +1327,8 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Value.This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => clsOrMod.erasedType
     case Value.Lit(_: Tree.IntLit) => S(ErasedType.Int)
     case Value.Lit(_: Tree.DecLit) => S(ErasedType.Num)
+    case Value.Lit(_: Tree.StrLit) => S(ErasedType.Str)
+    case Value.Lit(_: Tree.BoolLit) => S(ErasedType.Bool)
     // * Note: `UnitLit` stays untyped: Neither `null` nor `undefined` can be reasonably typed as `Unit`
     case Call(fun, _) => fun.targetSymbol match
       case S(ts: TermSymbol) => ts.erasedType match

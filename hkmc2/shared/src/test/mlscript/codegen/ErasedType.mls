@@ -42,13 +42,10 @@ val f: Num = 1.5
 val s: Str = "str"
 val b: Bool = true
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Str⁰, tmp1: Bool⁰;
 //│ define i⁰ as val i¹: Int⁰ = 1;
 //│ define f⁰ as val f¹: Num⁰ = 1.5;
-//│ set tmp = ("str" as Str⁰);
-//│ define s⁰ as val s¹: Str⁰ = tmp;
-//│ set tmp1 = (true as Bool⁰);
-//│ define b⁰ as val b¹: Bool⁰ = tmp1;
+//│ define s⁰ as val s¹: Str⁰ = "str";
+//│ define b⁰ as val b¹: Bool⁰ = true;
 //│ end
 
 
@@ -91,10 +88,9 @@ fun main =
   let bar = new Bar("hi")
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define main² as fun main³(): ? {
-//│   let foo: ?, bar: ?, tmp: Str⁰;
+//│   let foo: ?, bar: ?;
 //│   set foo = new Foo⁰(123);
-//│   set tmp = ("hi" as Str⁰);
-//│   set bar = new Bar⁰(tmp);
+//│   set bar = new Bar⁰("hi");
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define Foo¹ as class Foo⁰ {
@@ -126,10 +122,11 @@ fun main =
 //│ end
 
 
-// TODO: cast `return`s too
+:ge
 fun test(x: Int): Int = "oops"
+//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Str' to unrelated type 'Int'
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define test⁰ as fun test¹(x: Int⁰): Int⁰ { return ("oops" as Int⁰) }; end
+//│ define test⁰ as fun test¹(x: Int⁰): Int⁰ { return "oops" }; end
 
 
 // Parameter and return annotations are kept (`x: Int`, `y: Int`); the unannotated return stays
@@ -268,7 +265,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.269: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.266: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
@@ -284,7 +281,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.285: 	fun g(o: Object) = useInt(o)
+//│ ║  l.282: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
@@ -302,7 +299,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.303: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.300: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
