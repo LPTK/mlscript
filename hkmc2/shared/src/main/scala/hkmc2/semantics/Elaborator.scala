@@ -406,8 +406,9 @@ object Elaborator:
     private var cachedRuntimeSymbols: Opt[RuntimeSymbols] = N
     def initRuntimeSymbolsFromBlock(blk: Term.Blk): Unit =
       cachedRuntimeSymbols = S(RuntimeSymbols.fromBlock(blk))
-    def initRuntimeSymbolsFromFile(file: io.Path, prelude: Ctx)(using TL, Raise, Config, CompilerCtx): Unit =
-      if cachedRuntimeSymbols.isEmpty then
+    // * Only initializes runtime symbols if `prelude` is available, since `Runtime.mls` depends on the prelude.
+    def initRuntimeSymbolsFromFile(file: io.Path, prelude: Opt[CompilerCache.PreludeArtifact])(using TL, Raise, Config, CompilerCtx): Unit =
+      if cachedRuntimeSymbols.isEmpty && prelude.isDefined then
         cachedRuntimeSymbols = S(RuntimeSymbols.fromBlock(CompilerCtx.get.getElaboratedBlock(file, prelude).term))
     private def runtimeSymbols: RuntimeSymbols =
       cachedRuntimeSymbols.getOrElse:
@@ -503,7 +504,7 @@ end Elaborator
 import Elaborator.*
 
 
-class Elaborator(val tl: TraceLogger, val wd: io.Path, val prelude: Ctx)
+class Elaborator(val tl: TraceLogger, val wd: io.Path, val prelude: Opt[CompilerCache.PreludeArtifact])
 (using val raise: Raise, val state: State, val cctx: CompilerCtx, val config: Config)
 extends Importer:
   import tl.*

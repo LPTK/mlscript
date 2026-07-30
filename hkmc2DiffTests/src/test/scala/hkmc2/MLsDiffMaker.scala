@@ -288,7 +288,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   /** Persistent config modification from `#config(...)` directives. */
   var configModify: Config => Config = identity
   
-  var prelude = Elaborator.Ctx.empty
+  var prelude: Opt[CompilerCache.PreludeArtifact] = N
   
   override def run(): Unit =
     if file =/= preludeFile then 
@@ -298,7 +298,7 @@ abstract class MLsDiffMaker extends DiffMaker:
         ()
       val preludeArtifact = cctx.getPrelude(preludeFile, dbgParsing.isSet)
       curCtx = preludeArtifact.ctx
-      prelude = preludeArtifact.ctx
+      prelude = S(preludeArtifact)
     super.run()
   
   
@@ -363,7 +363,7 @@ abstract class MLsDiffMaker extends DiffMaker:
     val imprtSymbol =
       semantics.TopLevelSymbol("import#"+file.baseName)
     given Elaborator.Ctx = curCtx.nestLocal("import:"+file.baseName)
-    val elab = Elaborator(etl, wd, Ctx.empty)
+    val elab = Elaborator(etl, wd, N)
     try
       val resBlk = new syntax.Tree.Block(res)
       val (e, newCtx) = elab.importFrom(resBlk)
