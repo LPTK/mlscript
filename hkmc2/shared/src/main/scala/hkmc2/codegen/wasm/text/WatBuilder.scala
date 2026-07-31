@@ -1665,18 +1665,40 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       val args = argss.flatten
       wasmIntrinsicName(fun) match
         case S(intrName) =>
-          val expectedArity = wasmIntrinsicArities(intrName)
-          if expectedArity =/= args.length then
-            return errExpr(
-              Ls(msg"Wasm intrinsic '$intrName' called with incorrect arity (${args.length})" -> c.toLoc),
-              extraInfo = S(c.toString),
-            )
-          val funcIdx = getIntrinsic(intrName)
-          call(
-            funcidx = funcIdx,
-            operands = args.map(argument),
-            returnTypes = Seq(Result(RefType.anyref)),
-          )
+          Ctx.wasmInstrIntrinsics.get(intrName) match
+            case S(body) =>
+              val declaredParams = fun.targetSymbol match
+                case S(ts: TermSymbol) => ts.erasedType.collect:
+                  case ft: ErasedFuncType => ft.params
+                case _ => N
+              val ps = declaredParams.getOrElse:
+                // * `Lowering` attaches the intrinsic's `TermSymbol` to the path it builds, so an implemented
+                // * intrinsic always has a declared signature here.
+                lastWords(s"wasm intrinsic '$intrName' is implemented but has no declared signature")
+              if ps.length =/= args.length then
+                return errExpr(
+                  Ls(msg"Wasm intrinsic '$intrName' called with incorrect arity (${args.length})" -> c.toLoc),
+                  extraInfo = S(c.toString),
+                )
+              body(ps.zip(args).zipWithIndex.map:
+                case ((declared, arg), idx) => resolveIntrinsicArg(intrName, idx, declared, arg))
+            case N =>
+              // * `Lowering` builds a `wasm.` path only for the names in its `wasmIntrinsicSymbols`, each of which is
+              // * either implemented as an instruction above or generated as an operator function here.
+              val expectedArity = wasmIntrinsicArities.getOrElse(
+                intrName,
+                lastWords(s"wasm intrinsic '$intrName' is declared but not implemented"))
+              if expectedArity =/= args.length then
+                return errExpr(
+                  Ls(msg"Wasm intrinsic '$intrName' called with incorrect arity (${args.length})" -> c.toLoc),
+                  extraInfo = S(c.toString),
+                )
+              val funcIdx = getIntrinsic(intrName)
+              call(
+                funcidx = funcIdx,
+                operands = args.map(argument),
+                returnTypes = Seq(Result(RefType.anyref)),
+              )
         case N =>
           fun match
             case Value.SimpleRef(l) =>
@@ -1897,11 +1919,41 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
   /** Returns the intrinsic name if `path` refers to a builtin under `wasm`, or `N` otherwise.
     */
-  private def wasmIntrinsicName(path: Path): Opt[Str] = path match
-    case Select(Value.SimpleRef(sym), ident)
-        if (sym eq State.wasmSymbol) && wasmIntrinsicNameSet.contains(ident.name) =>
-      S(ident.name)
-    case _ => N
+  private def wasmIntrinsicName(path: Path): Opt[Str] =
+    def loop(p: Path, acc: Ls[Str]): Opt[Str] = p match
+      case Select(Value.SimpleRef(sym), ident) if sym eq State.wasmSymbol =>
+        S((ident.name :: acc).mkString("."))
+      case Select(qual, ident) =>
+        loop(qual, ident.name :: acc)
+      case _ => N
+    loop(path, Nil)
+
+  /** Resolves the argument at position `idx` as an [[`IntrinsicArg`]], compiling it as an operand and recovering the
+    * integer literal it was written as, if it was written as one.
+    *
+    * `declared` is the type the prelude declares for the parameter. Conformance is only reported if the body actually
+    * reads the argument as an operand.
+    */
+  private def resolveIntrinsicArg(
+      intrName: Str,
+      idx: Int,
+      declared: Opt[ErasedValueType],
+      arg: Arg,
+  )(using Ctx, FunctionCtx, Raise, SessionExportCtx): IntrinsicArg =
+    val operand = argument(arg)
+    val operandXtype = declared
+      .filter(_.wasmType.exists(expected => !operand.resultType.exists(_.isSubtypeOf(expected))))
+      .map(_.describe)
+    IntrinsicArg(
+      intrName,
+      idx,
+      operand,
+      operandXtype,
+      arg.value match
+        case Value.Lit(IntLit(value)) if arg.spread.isEmpty => S(value)
+        case _ => N,
+      arg.value.toLoc,
+    )
 
   /** Gets (or creates) the intrinsic function implementing the wasm operator `name`.
     */

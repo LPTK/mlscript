@@ -15,6 +15,7 @@ import semantics.{
   Elaborator.State
 import text.Param as WasmParam
 import Instructions.*
+import Message.MessageContext
 
 import scala.collection.immutable.ListMap
 import scala.collection.mutable.{ArrayBuffer as ArrayBuf, Map as MutMap}
@@ -330,6 +331,48 @@ enum WasmIntrinsicType:
     */
   case VirtualMethod(baseSym: BlockMemberSymbol, paramTypes: List[ValType], resultType: ValType)
 
+/** An argument passed to a Wasm intrinsic function.
+  *
+  * This class also stores the parameter's kind (i.e. instruction argument vs stack argument), since some wasm
+  * intrinsics (e.g. `i32.const`) only accepts a constant literal as part of the instruction.
+  *
+  * @param intrName The name of the intrinsic this argument was passed to, for diagnostics.
+  * @param idx The zero-based position of this argument, for diagnostics.
+  * @param operand This argument compiled as an expression.
+  * @param operandTypeError A [[`Message`]] describing why the argument's type was invalid for the intrinsic.
+  * @param litValue The integer literal this argument was written as, if it was written as one.
+  * @param loc The source location of this argument.
+  */
+case class IntrinsicArg(
+    intrName: Str,
+    idx: Int,
+    private val operand: Expr,
+    private val operandXtype: Opt[Str],
+    private val litValue: Opt[BigInt],
+    private val loc: Opt[Loc],
+):
+  /** Reports `errMsg` and recovers with `recovery`, mirroring how `errExpr` recovers with `unreachable`. */
+  private def fail[T](errMsg: Message, recovery: T)(using Raise): T =
+    raise(ErrorReport(Ls(errMsg -> loc), source = Diagnostic.Source.Compilation, extraInfo = S(operand)))
+    recovery
+
+  /** This argument as a value pushed on the stack. */
+  def asOp(using Raise): Expr = operandXtype.fold(operand): xtype =>
+    fail(msg"Operand #${(idx + 1).toString} of wasm intrinsic '$intrName' must be of type '${xtype.toString}'", unreachable)
+
+  /** This argument as an instruction immediate, which must be written as an integer literal at the call site. */
+  def asImm(using Raise): Int = litValue match
+    case S(value) if value.isValidInt => value.toInt
+    case S(value) =>
+      fail(msg"Immediate #${(idx + 1).toString} of wasm intrinsic '$intrName' is outside the signed 32-bit range", 0)
+    case N => fail(msg"Wasm intrinsic '$intrName' expects an integer literal immediate", 0)
+
+/** The body of a Wasm intrinsic function: builds the instruction from its resolved arguments.
+  *
+  * The implementation body can assume that the argument count is correct.
+  */
+type IntrinsicBody = Seq[IntrinsicArg] => Raise ?=> Expr
+
 /** Class containing identifiers of labels to jump to when breaking or continuing from a control flow structure.
   *
   * @param breakLabel
@@ -538,6 +581,29 @@ object Ctx:
   )
   val wasmIntrinsicArities: Map[Str, Int] = (binaryOps.keys.map(_ -> 2) ++ unaryOps.keys.map(_ -> 1)).toMap
   val wasmIntrinsicNameSet: Set[Str] = wasmIntrinsicArities.keySet
+
+  /** The `wasm.`-prefixed intrinsics, keyed on the instruction they emit.
+    *
+    * Listed in the order the prelude declares them, so the two can be checked against each other by eye.
+    */
+  val wasmInstrIntrinsics: Map[Str, IntrinsicBody] = Map(
+    "i32.const" -> (args => i32.const(args(0).asImm)),
+    "i32.add" -> (args => i32.add(args(0).asOp, args(1).asOp)),
+    "i32.sub" -> (args => i32.sub(args(0).asOp, args(1).asOp)),
+    "i32.mul" -> (args => i32.mul(args(0).asOp, args(1).asOp)),
+    "i32.div_s" -> (args => i32.div_s(args(0).asOp, args(1).asOp)),
+    "i32.rem_s" -> (args => i32.rem_s(args(0).asOp, args(1).asOp)),
+    "i32.eq" -> (args => i32.eq(args(0).asOp, args(1).asOp)),
+    "i32.ne" -> (args => i32.ne(args(0).asOp, args(1).asOp)),
+    "i32.lt_s" -> (args => i32.lt_s(args(0).asOp, args(1).asOp)),
+    "i32.le_s" -> (args => i32.le_s(args(0).asOp, args(1).asOp)),
+    "i32.gt_s" -> (args => i32.gt_s(args(0).asOp, args(1).asOp)),
+    "i32.ge_s" -> (args => i32.ge_s(args(0).asOp, args(1).asOp)),
+    "i32.eqz" -> (args => i32.eqz(args(0).asOp)),
+    "ref.i31" -> (args => ref.i31(args(0).asOp)),
+    "i31.get_s" -> (args => i31.get_s(args(0).asOp)),
+    "i31.get_u" -> (args => i31.get_u(args(0).asOp)),
+  )
 
   def empty(using Elaborator.Ctx, State): Ctx = Ctx()
 

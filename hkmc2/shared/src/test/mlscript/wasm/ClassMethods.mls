@@ -207,18 +207,11 @@ A(1).get
 
 
 // Method result types are taken from the return annotation, so primitives stay unboxed
-// TODO: `Int32` has no constructable form until the `wasm.*` intrinsics land
-:todo
-:ge
 :wat
-val n32: Int32 = 7
+val n32: Int32 = wasm.i32.const(7)
 class Prim(val v) with
   fun take(m: Int32): Int32 = m
 Prim(0).take(n32)
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.214: 	val n32: Int32 = 7
-//│ ╙──       	                 ^
-//│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `(ref null i31)` to `i32` in a different type hierarchy
 //│ Wat:
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
@@ -258,26 +251,31 @@ Prim(0).take(n32)
 //│     (return
 //│       (local.get $m)))
 //│   (func $entry (export "entry") (type $entry) (result i32)
-//│     (local $tmp (ref null any))
-//│     (local $tmp1 i32)
+//│     (local $tmp i32)
+//│     (local $tmp1 (ref null any))
+//│     (local $tmp2 i32)
 //│     (block (result i32)
-//│       (global.set $n32
-//│         (unreachable))
 //│       (local.set $tmp
+//│         (i32.const 7))
+//│       (global.set $n32
+//│         (local.get $tmp))
+//│       (local.set $tmp1
 //│         (call $Prim_ctor
 //│           (ref.i31
 //│             (i32.const 0))))
-//│       (local.set $tmp1
+//│       (local.set $tmp2
 //│         (global.get $n32))
 //│       (return
 //│         (call $Prim_take
 //│           (ref.cast (ref $Prim)
-//│             (local.get $tmp))
-//│           (local.get $tmp1)))))
+//│             (local.get $tmp1))
+//│           (local.get $tmp2)))))
 //│   (elem $Prim_init declare func $Prim_init)
 //│   (elem $Prim_ctor declare func $Prim_ctor)
 //│   (elem $Prim_take declare func $Prim_take)
 //│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 7
 
 
 // Method types are fixed at predeclaration, so a primitive result must be annotated
@@ -286,8 +284,8 @@ class Unannotated(val v) with
   fun take(m: Int32) = m
 Unannotated(0).take(1)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.287: 	Unannotated(0).take(1)
+//│ ║  l.285: 	Unannotated(0).take(1)
 //│ ╙──       	                    ^
 //│ ╔══[COMPILATION ERROR] Method `take` produces a Wasm value of type `i32`, which is incompatible with its declared result type `(ref null any)`
-//│ ║  l.286: 	  fun take(m: Int32) = m
+//│ ║  l.284: 	  fun take(m: Int32) = m
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^

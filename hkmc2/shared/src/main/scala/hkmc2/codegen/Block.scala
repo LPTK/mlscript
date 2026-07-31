@@ -1139,6 +1139,23 @@ sealed abstract class ErasedType:
   /** Overriding implementation for computing the canonical form of this type. */
   protected def computeCanonicalize(using Ctx, State): Canonical
 
+  /** Renders this type for a user-facing diagnostic.
+    *
+    * Outputs the canonicalized name of the type symbol, qualified by its owner chain.
+    *
+    * Implementation Note: `Printer` is deliberately not used here: it needs a `Scope` and a `SymbolPrinter`, which the
+    * backends reporting these diagnostics do not have.
+    */
+  final def describe(using Ctx, State): Str =
+    def ownerOf(s: Symbol): Opt[InnerSymbol] = s.asClsOrMod.flatMap: s =>
+      s.irClsLikeDefn.map(_.owner).orElse(s.defn.map(_.owner)).flatten
+    def qualify(s: Symbol, acc: Ls[Str]): Ls[Str] = s match
+      case _: TopLevelSymbol => acc
+      case _ => ownerOf(s).fold(s.nme :: acc)(o => qualify(o, s.nme :: acc))
+    val tpeSym = canonicalize.sym
+    val name = qualify(tpeSym, Nil).mkString(".")
+    if tpeSym.asMod.isDefined then s"module $name" else name
+
 /** Base class indicating that the [[`ErasedType`]] is a value type. */
 sealed abstract class ErasedValueType extends ErasedType:
   type Canonical <: CanonicalErasedValueType
@@ -1363,19 +1380,9 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
         case _: ErasedFuncType => ErasedType.Function
         case v: ErasedValueType => v)
       case N =>
-        // * Qualifies a name by its owner chain, so that two same-named types are told apart.
-        def qualify(sym: TypeSymbol): Str =
-          def ownerOf(s: Symbol): Opt[InnerSymbol] = s.asClsOrMod.flatMap: s =>
-            s.irClsLikeDefn.map(_.owner).orElse(s.defn.map(_.owner)).flatten
-          def loop(s: Symbol, acc: Ls[Str]): Ls[Str] = s match
-            case _: TopLevelSymbol => acc
-            case _ => ownerOf(s).fold(s.nme :: acc)(o => loop(o, s.nme :: acc))
-          loop(sym, Nil).mkString(".")
-        def describe(sym: TypeSymbol): Str =
-          if sym.asMod.isDefined then s"module ${qualify(sym)}" else qualify(sym)
         raise:
           ErrorReport(
-            msg"Cannot narrow a value of type '${describe(actual.sym)}' to unrelated type '${describe(declared.sym)}'" ->
+            msg"Cannot narrow a value of type '${actual.describe}' to unrelated type '${declared.describe}'" ->
             loc :: Nil,
             source = Diagnostic.Source.Compilation,
           )

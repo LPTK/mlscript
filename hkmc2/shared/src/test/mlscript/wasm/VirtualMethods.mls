@@ -171,21 +171,14 @@ callF(C()) + callG(C())
 
 
 // A virtual slot's Wasm type carries the result type of the method that introduced it, so overrides share it
-// TODO: `Int32` has no constructable form until the `wasm.*` intrinsics land
-:todo
-:ge
 :wat
-val n32: Int32 = 7
+val n32: Int32 = wasm.i32.const(7)
 class V() with
   virtual fun f(m: Int32): Int32 = m
 class W() extends V() with
   fun f(m: Int32): Int32 = m
 fun callPrim(a: V): Int32 = a.f(n32)
 callPrim(W())
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.178: 	val n32: Int32 = 7
-//│ ╙──       	                 ^
-//│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `(ref null i31)` to `i32` in a different type hierarchy
 //│ Wat:
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
@@ -270,28 +263,31 @@ callPrim(W())
 //│                   (ref.cast (ref $Object)
 //│                     (local.get $receiver))))))))))
 //│   (func $entry (export "entry") (type $entry) (result i32)
-//│     (local $tmp (ref null any))
-//│     (local $tmp1 (ref $V))
-//│     (local $tmp2 i32)
+//│     (local $tmp i32)
+//│     (local $tmp1 (ref null any))
+//│     (local $tmp2 (ref $V))
+//│     (local $tmp3 i32)
 //│     (local $receiver (ref null any))
 //│     (block (result i32)
-//│       (global.set $n32
-//│         (unreachable))
 //│       (local.set $tmp
-//│         (call $W_ctor))
+//│         (i32.const 7))
+//│       (global.set $n32
+//│         (local.get $tmp))
 //│       (local.set $tmp1
-//│         (ref.cast (ref $V)
-//│           (local.get $tmp)))
+//│         (call $W_ctor))
 //│       (local.set $tmp2
+//│         (ref.cast (ref $V)
+//│           (local.get $tmp1)))
+//│       (local.set $tmp3
 //│         (global.get $n32))
 //│       (return
 //│         (block (result i32)
 //│           (local.set $receiver
-//│             (local.get $tmp1))
+//│             (local.get $tmp2))
 //│           (call_ref $virtual2
 //│             (ref.cast (ref $V)
 //│               (local.get $receiver))
-//│             (local.get $tmp2)
+//│             (local.get $tmp3)
 //│             (struct.get $V_typeinfo $slot0
 //│               (ref.cast (ref $V_typeinfo)
 //│                 (struct.get $Object $$typeinfo
@@ -305,6 +301,8 @@ callPrim(W())
 //│   (elem $W_f declare func $W_f)
 //│   (elem $callPrim declare func $callPrim)
 //│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 7
 
 
 // Overrides share the slot's Wasm function type, so primitives must match exactly
@@ -315,10 +313,10 @@ class M2() extends M1() with
   fun f(m: Int32): Int = 0
 M2().f(1)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.316: 	M2().f(1)
+//│ ║  l.314: 	M2().f(1)
 //│ ╙──       	       ^
 //│ ╔══[COMPILATION ERROR] Overriding method `f` declares result as `(ref null i31)`, but the method it overrides declares `i32`
-//│ ║  l.315: 	  fun f(m: Int32): Int = 0
+//│ ║  l.313: 	  fun f(m: Int32): Int = 0
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^^^
 
 
@@ -330,7 +328,7 @@ class N2() extends N1() with
 N2().g(1)
 //│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
 //│ ╔══[COMPILATION ERROR] Overriding method `g` declares parameter 1 as `(ref null any)`, but the method it overrides declares `i32`
-//│ ║  l.329: 	  fun g(m): Int32 = 0
+//│ ║  l.327: 	  fun g(m): Int32 = 0
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^
 
 

@@ -292,6 +292,25 @@ object Elaborator:
         val shl = assumeObject("shl")
         val try_catch = assumeObject("try_catch")
       object wasm extends VirtualModule(assumeBuiltinMod("wasm")):
+        object i32 extends VirtualModule(wasm, "i32"):
+          val const = assumeObject("const")
+          val add = assumeObject("add")
+          val sub = assumeObject("sub")
+          val mul = assumeObject("mul")
+          val div_s = assumeObject("div_s")
+          val rem_s = assumeObject("rem_s")
+          val eq = assumeObject("eq")
+          val ne = assumeObject("ne")
+          val lt_s = assumeObject("lt_s")
+          val le_s = assumeObject("le_s")
+          val gt_s = assumeObject("gt_s")
+          val ge_s = assumeObject("ge_s")
+          val eqz = assumeObject("eqz")
+        object ref extends VirtualModule(wasm, "ref"):
+          val i31 = assumeObject("i31")
+        object i31 extends VirtualModule(wasm, "i31"):
+          val get_s = assumeObject("get_s")
+          val get_u = assumeObject("get_u")
         val plus_impl = assumeObject("plus_impl")
         val minus_impl = assumeObject("minus_impl")
         val times_impl = assumeObject("times_impl")

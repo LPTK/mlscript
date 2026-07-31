@@ -64,24 +64,13 @@ unit
 //│ = {}
 
 // Session globals of primitive type are stored unboxed
-// TODO: `Int32` has no constructable form until the `wasm.*` intrinsics land
-:todo
-:ge
-val typed: Int32 = 1
+val typed: Int32 = wasm.i32.const(1)
 fun idI32(n: Int32): Int32 = n
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.70: 	val typed: Int32 = 1
-//│ ╙──      	                   ^
-//│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `(ref null i31)` to `i32` in a different type hierarchy
+//│ Wasm result:
+//│ = {}
 
-// TODO(Derppening): `typed` never enters the session while `Int32` has no constructable form
-:todo
-:ge
 :wat
 val copied: Int32 = idI32(typed)
-//│ ╔══[COMPILATION ERROR] Cannot find variable `member:typed` (BlockMemberSymbol) in local or global scope.
-//│ ║  l.70: 	val typed: Int32 = 1
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^
 //│ Wat:
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
@@ -92,6 +81,7 @@ val copied: Int32 = idI32(typed)
 //│   (type $Unit_ctor (func (result (ref $Unit))))
 //│   (type $entry (func (result (ref null $Unit))))
 //│   (type $start (func))
+//│   (import "repl" "typed" (global $typed (mut i32)))
 //│   (global $copied (export "copied") (mut i32) (i32.const 0))
 //│   (global $Unit_typeinfo (export "Unit_typeinfo") (ref $Unit_typeinfo) (struct.new $Unit_typeinfo
 //│     (i32.const 1)
@@ -119,7 +109,7 @@ val copied: Int32 = idI32(typed)
 //│     (local $tmp i32)
 //│     (block (result (ref null $Unit))
 //│       (local.set $tmp
-//│         (unreachable))
+//│         (global.get $typed))
 //│       (global.set $copied
 //│         (local.get $tmp))
 //│       (global.get $Unit$inst)))
@@ -128,22 +118,21 @@ val copied: Int32 = idI32(typed)
 //│   (elem $start declare func $start)
 //│   (elem $entry declare func $entry)
 //│   (start $start))
+//│ Wasm result:
+//│ = {}
 
 // Entry result types are derived from the body, including primitive types
-// TODO(Derppening): `typed` never enters the session while `Int32` has no constructable form
-:todo
-:ge
 :wat
 idI32(typed)
-//│ ╔══[COMPILATION ERROR] Cannot find variable `member:typed` (BlockMemberSymbol) in local or global scope.
-//│ ║  l.70: 	val typed: Int32 = 1
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^
 //│ Wat:
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $entry (func (result (ref null any))))
-//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│   (type $entry (func (result i32)))
+//│   (import "repl" "typed" (global $typed (mut i32)))
+//│   (func $entry (export "entry") (type $entry) (result i32)
 //│     (return
-//│       (unreachable)))
+//│       (global.get $typed)))
 //│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 1

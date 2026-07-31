@@ -118,21 +118,37 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val map = if unary then wasmUnaryIntrinsicMap else wasmBinaryIntrinsicMap
       map.get(sym.nme).map(name => State.wasmSymbol.asSimpleRef.selN(Tree.Ident(name)))
     else N
-  private lazy val wasmIntrinsicSymbols: Set[BlockMemberSymbol] = Set(
-    ctx.builtins.wasm.plus_impl,
-    ctx.builtins.wasm.minus_impl,
-    ctx.builtins.wasm.times_impl,
-    ctx.builtins.wasm.div_impl,
-    ctx.builtins.wasm.mod_impl,
-    ctx.builtins.wasm.eq_impl,
-    ctx.builtins.wasm.neq_impl,
-    ctx.builtins.wasm.lt_impl,
-    ctx.builtins.wasm.le_impl,
-    ctx.builtins.wasm.gt_impl,
-    ctx.builtins.wasm.ge_impl,
-    ctx.builtins.wasm.neg_impl,
-    ctx.builtins.wasm.pos_impl,
-    ctx.builtins.wasm.not_impl
+  private lazy val wasmIntrinsicSymbols: Map[BlockMemberSymbol, Ls[Str]] = Map(
+    ctx.builtins.wasm.i32.const -> Ls("i32", "const"),
+    ctx.builtins.wasm.i32.add -> Ls("i32", "add"),
+    ctx.builtins.wasm.i32.sub -> Ls("i32", "sub"),
+    ctx.builtins.wasm.i32.mul -> Ls("i32", "mul"),
+    ctx.builtins.wasm.i32.div_s -> Ls("i32", "div_s"),
+    ctx.builtins.wasm.i32.rem_s -> Ls("i32", "rem_s"),
+    ctx.builtins.wasm.i32.eq -> Ls("i32", "eq"),
+    ctx.builtins.wasm.i32.ne -> Ls("i32", "ne"),
+    ctx.builtins.wasm.i32.lt_s -> Ls("i32", "lt_s"),
+    ctx.builtins.wasm.i32.le_s -> Ls("i32", "le_s"),
+    ctx.builtins.wasm.i32.gt_s -> Ls("i32", "gt_s"),
+    ctx.builtins.wasm.i32.ge_s -> Ls("i32", "ge_s"),
+    ctx.builtins.wasm.i32.eqz -> Ls("i32", "eqz"),
+    ctx.builtins.wasm.ref.i31 -> Ls("ref", "i31"),
+    ctx.builtins.wasm.i31.get_s -> Ls("i31", "get_s"),
+    ctx.builtins.wasm.i31.get_u -> Ls("i31", "get_u"),
+    ctx.builtins.wasm.plus_impl -> Ls("plus_impl"),
+    ctx.builtins.wasm.minus_impl -> Ls("minus_impl"),
+    ctx.builtins.wasm.times_impl -> Ls("times_impl"),
+    ctx.builtins.wasm.div_impl -> Ls("div_impl"),
+    ctx.builtins.wasm.mod_impl -> Ls("mod_impl"),
+    ctx.builtins.wasm.eq_impl -> Ls("eq_impl"),
+    ctx.builtins.wasm.neq_impl -> Ls("neq_impl"),
+    ctx.builtins.wasm.lt_impl -> Ls("lt_impl"),
+    ctx.builtins.wasm.le_impl -> Ls("le_impl"),
+    ctx.builtins.wasm.gt_impl -> Ls("gt_impl"),
+    ctx.builtins.wasm.ge_impl -> Ls("ge_impl"),
+    ctx.builtins.wasm.neg_impl -> Ls("neg_impl"),
+    ctx.builtins.wasm.pos_impl -> Ls("pos_impl"),
+    ctx.builtins.wasm.not_impl -> Ls("not_impl"),
   )
 
   lazy val unreachableFn =
@@ -875,12 +891,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("shl")))
       case t if instantiatedResolvedBms.exists(_ is ctx.builtins.js.try_catch) =>
         conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("try_catch")))
-      case t if t.resolvedSym.exists {
-        case sym: BlockMemberSymbol => wasmIntrinsicSymbols.contains(sym)
-        case _ => false
-      } =>
-        val sym = t.resolvedSym.get.asInstanceOf[BlockMemberSymbol]
-        conclude(State.wasmSymbol.asSimpleRef.selN(Tree.Ident(sym.nme)))
+      case t if t.resolvedSym.flatMap(_.asBlkMember).exists(wasmIntrinsicSymbols.contains) =>
+        val sym = t.resolvedSym.flatMap(_.asBlkMember).get
+        // * `targetSymbol` reads the path's *outermost* `Select`, so the intrinsic's `TermSymbol` belongs there:
+        // * `lowerMultiCall` reads it for parameter types and `Call.erasedType` for the result type — without it
+        // * an unboxed result such as `i32` cannot cross a spill temp.
+        val path = wasmIntrinsicSymbols(sym).foldLeft(State.wasmSymbol.asSimpleRef: Path): (p, nme) =>
+          p.selN(Tree.Ident(nme))
+        conclude:
+          (path, sym.tsym) match
+            case (Select(qual, nme), S(tsym)) => Select(qual, nme)(sym.tsym)(false)
+            case _ => lastWords(s"wasm intrinsic `${sym.nme}` has an empty name path")
       case t if instantiatedResolvedBms.exists(_ is ctx.builtins.debug.printStack) =>
         if !config.effectHandlers.exists(_.debug) then
           return fail:
