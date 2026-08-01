@@ -2464,6 +2464,10 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         val matchResInitExpr = matchResLocal.map: localIdx =>
           local.set(localIdx, ref.`null`(HeapType.Any))
 
+        // * Whether the tail expression of this `match` is readable - If it is, then the match block must produce a
+        // * value on the stack.
+        var isMatchTailReachable = false
+
         // Compile each match arm
         val matchBlock = funcCtx.withLabel(LabelSymbol(N, "match"), hasContinueLabel = false):
           case LabelTarget(matchLabel, _) =>
@@ -2476,6 +2480,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       val bodyExpr = returningTerm(body)
                       val armBodyExpr = lowerMatchBody(bodyExpr)
                       val armIsCtrlXfer = armBodyExpr.lastOption.exists(_.isControlTransfer)
+                      isMatchTailReachable ||= !armIsCtrlXfer
                       blockInstr(
                         label = S(armLabel),
                         children = armBodyExpr ++ br(matchLabel).optionUnless(armIsCtrlXfer).toVector,
@@ -2555,6 +2560,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                 end match
 
               val defaultExpr = lowerMatchBody(dflt.toVector.flatMap(returningTerm))
+              isMatchTailReachable ||= !defaultExpr.lastOption.exists(_.isControlTransfer)
 
               // Generate the match block
               blockInstr(
@@ -2564,10 +2570,15 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
               )
 
         if tailMode then
-          Vector(
-            matchBlock,
-            local.get(matchResLocal.get, RefType.anyref),
-          )
+          if isMatchTailReachable then
+            Vector(
+              matchBlock,
+              local.get(matchResLocal.get, RefType.anyref),
+            )
+          else
+            // Every path of the match is a control transfer, so the tail (and any subsequent reads of `$matchRes` is
+            // dead. Emit `unreachable` to type the enclosing block as bottom.
+            Vector(matchBlock, unreachable)
         else
           val rstExpr = returningTerm(rst)
           matchBlock +: rstExpr

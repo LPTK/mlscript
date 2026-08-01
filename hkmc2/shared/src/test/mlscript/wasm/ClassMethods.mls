@@ -289,3 +289,14 @@ Unannotated(0).take(1)
 //│ ╔══[COMPILATION ERROR] Method `take` produces a Wasm value of type `i32`, which is incompatible with its declared result type `(ref null any)`
 //│ ║  l.284: 	  fun take(m: Int32) = m
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^
+
+
+// Mutually recursive methods, whose bodies are matches every arm of which returns. The match's result local is
+// then never read, and loading it anyway would type the body `anyref` against the declared `i31ref` - which only
+// methods notice, since they carry a precise declared result type.
+class Cx(val base: Int) with
+  fun p(n: Int): Int = this.q(n)
+  fun q(n: Int): Int = if n <= 0 then this.base else this.p(n - 1)
+(new Cx(9)).Cx#p(3)
+//│ Wasm result:
+//│ = 9

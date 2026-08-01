@@ -104,7 +104,7 @@ c.Parent#x + (c is Parent)
 //│     (local $currentTypeInfo (ref null any))
 //│     (local $targetTypeInfo (ref null any))
 //│     (local $typeInfoMatch (ref null i31))
-//│     (block (result (ref null any))
+//│     (block
 //│       (global.set $c
 //│         (call $Child_ctor
 //│           (ref.i31
@@ -170,7 +170,7 @@ c.Parent#x + (c is Parent)
 //│                 (global.get $c)))
 //│             (ref.i31
 //│               (i32.const 0)))))
-//│       (local.get $matchRes)))
+//│       (unreachable)))
 //│   (elem $Parent_init declare func $Parent_init)
 //│   (elem $Parent_ctor declare func $Parent_ctor)
 //│   (elem $Child_init declare func $Child_init)

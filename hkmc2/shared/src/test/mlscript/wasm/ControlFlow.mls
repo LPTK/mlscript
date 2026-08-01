@@ -148,7 +148,7 @@ tailMatchAllValue(1)
 //│   (type $entry (func (result (ref null any))))
 //│   (func $tailMatchAllValue (export "tailMatchAllValue") (type $tailMatchAllValue) (param $x (ref null any)) (result (ref null any))
 //│     (local $matchRes (ref null any))
-//│     (block (result (ref null any))
+//│     (block
 //│       (block $match
 //│         (local.set $matchRes
 //│           (ref.null any))
@@ -177,10 +177,10 @@ tailMatchAllValue(1)
 //│         (return
 //│           (ref.i31
 //│             (i32.const 30))))
-//│       (local.get $matchRes)))
+//│       (unreachable)))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $matchRes (ref null any))
-//│     (block (result (ref null any))
+//│     (block
 //│       (block $match
 //│         (local.set $matchRes
 //│           (ref.null any))
@@ -211,7 +211,7 @@ tailMatchAllValue(1)
 //│         (return
 //│           (ref.i31
 //│             (i32.const 30))))
-//│       (local.get $matchRes)))
+//│       (unreachable)))
 //│   (elem $tailMatchAllValue declare func $tailMatchAllValue)
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
