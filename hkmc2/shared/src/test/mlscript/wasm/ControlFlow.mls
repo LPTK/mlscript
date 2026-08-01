@@ -258,3 +258,13 @@ fun sccQ(n: Int): Int = if n <= 0 then 99 else sccP(n - 1)
 sccP(3)
 //│ Wasm result:
 //│ = 99
+
+
+// Members of differing arity, so the dispatcher pads the unused parameter slot with the unit filler.
+// `sccArityQ` also returns a parameter directly, which the merge leaves untyped - without the return
+// coercion the dispatcher would yield `anyref` against its declared `Int` and fail Wasm validation.
+fun sccArityP(n: Int): Int = sccArityQ(n, 1)
+fun sccArityQ(n: Int, k: Int): Int = if n <= 0 then k else sccArityP(n - 1)
+sccArityP(4)
+//│ Wasm result:
+//│ = 1

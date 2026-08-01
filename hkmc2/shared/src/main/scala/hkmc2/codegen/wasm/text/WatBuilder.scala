@@ -10,7 +10,7 @@ import document.*
 import document.Document
 import js.CodeBuilder
 import semantics.*, Elaborator.State
-import syntax.Tree.{BoolLit, IntLit, StrLit, Ident}
+import syntax.Tree.{BoolLit, IntLit, StrLit, UnitLit, Ident}
 import text.{Import as WasmImport, Param as WasmParam}
 import Message.MessageContext
 
@@ -1600,6 +1600,10 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         operands = Seq(ref.i31(i32.const(lit.offset)), ref.i31(i32.const(lit.byteLen))),
         returnTypes = Seq(Result(RefType.anyref)),
       )
+    case Value.Lit(UnitLit(false)) =>
+      // `undefined` is the IR's canonical "no meaningful value", so it lowers to `$Unit` (similar to
+      // `normalizeValueExprs`).
+      result(State.unitBlockMemberSymbol.asMemberRef(State.unitSymbol))
     case Value.SimpleRef(l) =>
       singletonInfoFor(l) match
         case S(info) => singletonGlobalGet(info)
