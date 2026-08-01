@@ -511,9 +511,9 @@ fun sccG(): Object = sccF() + 1
 //│           set inlinedVal = (+⁰(tmp, 1) as Object⁰);
 //│           break inlinedLbl
 //│         else
-//│           end
+//│           unreachable /* dispatch tag is always a merged member id */
 //│       end
-//│     end
+//│     unreachable /* Rest of abortive labelled block */
 //│   return (inlinedVal as Int⁰)
 //│ };
 //│ define sccG¹ as fun sccG⁰(): Object⁰ {
@@ -529,9 +529,9 @@ fun sccG(): Object = sccF() + 1
 //│           set inlinedVal = (+⁰(tmp, 1) as Object⁰);
 //│           break inlinedLbl
 //│         else
-//│           end
+//│           unreachable /* dispatch tag is always a merged member id */
 //│       end
-//│     end
+//│     unreachable /* Rest of abortive labelled block */
 //│   return inlinedVal
 //│ };
 //│ end
@@ -618,9 +618,9 @@ sccHelper(100000)
 //│             continue loopLabel
 //│         end
 //│       else
-//│         end
+//│         unreachable /* dispatch tag is always a merged member id */
 //│     end
-//│   end
+//│   unreachable /* Rest of abortive labelled block */
 //│ };
 //│ @tailrec
 //│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {

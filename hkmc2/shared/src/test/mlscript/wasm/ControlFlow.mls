@@ -252,16 +252,9 @@ nonTailStmtMatch(0)
 //│ = 1
 
 
-// TODO(Derppening):
-// Mutual tail recursion, which `TailRecOpt` merges into a single dispatcher. The dispatcher's body
-// computes its result into a block that is then `drop`ped, so the body yields nothing while the
-// function is typed as yielding a value, and Binaryen rejects the module. Self-recursion above is
-// unaffected: it becomes a loop within one function and never forms a dispatcher.
-//
-// Remove `:fixme` once the dispatcher body yields its value.
-:fixme
+// Mutual tail recursion, which `TailRecOpt` merges into a single dispatcher.
 fun sccP(n: Int): Int = sccQ(n)
 fun sccQ(n: Int): Int = if n <= 0 then 99 else sccP(n - 1)
 sccP(3)
 //│ Wasm result:
-//│ ═══[RUNTIME ERROR] [object Object]
+//│ = 99

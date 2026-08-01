@@ -2582,6 +2582,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         Vector(`throw`(exnTagIdx, Seq(excWat)))
 
       case End(_) => Vector.empty
+      case Unreachable(_) => Vector(unreachable)
 
       case t =>
         Vector(errExpr(

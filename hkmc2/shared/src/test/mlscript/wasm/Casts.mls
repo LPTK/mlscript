@@ -121,17 +121,12 @@ useBox(narrowBox(0))
 //│ = 7
 
 
-// TODO(Derppening):
-// Blocked on the merged-dispatcher bug in `wasm/ControlFlow.mls`. Once that is fixed, this guards
-// the re-placement of a return coercion: only `sccF` narrows (`sccG` widens, free), so entering at
-// `sccF` can exit through `sccG`'s arm, and its coercion has to be re-placed on its own stub - else
-// `useBox` receives a value that was never narrowed to `Box`. Unlike JS, Wasm does not erase
-// casts, so a missing narrowing is observable here.
-//
-// Remove `:fixme` once the dispatcher body yields its value.
-:fixme
+// Guards the re-placement of a return coercion across a merged dispatcher: only `sccF` narrows
+// (`sccG` widens, free), so entering at `sccF` can exit through `sccG`'s arm, and its coercion has to
+// be re-placed on its own stub - else `useBox` receives a value that was never narrowed to `Box`.
+// Unlike JS, Wasm does not erase casts, so a missing narrowing is observable here.
 fun sccF(n: Int): Box = sccG(n)
 fun sccG(n: Int): Object = if n <= 0 then new Box(42) else sccF(n - 1)
 useBox(sccF(3))
 //│ Wasm result:
-//│ ═══[RUNTIME ERROR] [object Object]
+//│ = 42

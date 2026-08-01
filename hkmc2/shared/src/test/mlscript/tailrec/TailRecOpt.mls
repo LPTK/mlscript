@@ -52,9 +52,9 @@ f(10000, 20000, 0)
 //│             end
 //│         end
 //│       else
-//│         end
+//│         unreachable /* dispatch tag is always a merged member id */
 //│     end
-//│   end
+//│   unreachable /* Rest of abortive labelled block */
 //│ };
 //│ define g⁰ as fun g¹(a, b, c, d) {
 //│   return g_f⁰(0, a, b, c, d)
@@ -183,9 +183,9 @@ fun g(n) =
 //│         set id = 0;
 //│         continue loopLabel
 //│       else
-//│         end
+//│         unreachable /* dispatch tag is always a merged member id */
 //│     end
-//│   end
+//│   unreachable /* Rest of abortive labelled block */
 //│ };
 //│ define f² as fun f³(n, a, b, c, d, ...e) {
 //│   return f_g⁰(0, n, a, b, c, d, e)

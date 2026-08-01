@@ -542,7 +542,11 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
 
     val switch =
       if arms.length === 1 then arms.head._2
-      else Match(curIdSym.asSimpleRef, arms, N, End())
+      // * The dispatch tag is only ever set by this pass, to one of the merged members' ids, so no other value can
+      // * reach the default arm. Spelling it `Unreachable` rather than `End` matters for backends that must type the
+      // * dispatcher's body: every real arm is abortive, so an `End` default would be the sole way for the loop to
+      // * exit normally, making a value-returning dispatcher appear to yield nothing.
+      else Match(curIdSym.asSimpleRef, arms, S(Unreachable("dispatch tag is always a merged member id")), End())
     
     val loop = Label(loopSym, true, switch, End())
     
