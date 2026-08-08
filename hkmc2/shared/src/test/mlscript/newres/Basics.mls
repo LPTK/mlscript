@@ -86,26 +86,20 @@ p.id
 //│ ╔══[COMPILATION ERROR] OOPS integer literal
 //│ ║  l.85: 	(1).id
 //│ ╙──      	 ^^^^^
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.85: 	(1).id
-//│ ╙──      	 ^^^^^
 
 :fixme
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.94: 	1.id
+//│ ║  l.91: 	1.id
 //│ ╙──      	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.94: 	1.id
+//│ ║  l.91: 	1.id
 //│ ╙──      	  ^^
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] OOPS string literal
-//│ ║  l.103: 	"ha ".repeat(2)
-//│ ╙──       	^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.103: 	"ha ".repeat(2)
+//│ ║  l.100: 	"ha ".repeat(2)
 //│ ╙──       	^^^^^^^^^^^^
 
 

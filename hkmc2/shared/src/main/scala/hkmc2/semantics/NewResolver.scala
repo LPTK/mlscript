@@ -104,6 +104,7 @@ class NewResolver:
               N
             case N => N
           case sh =>
+            res.isErroneous = true
             raise:
               ErrorReport(
                 msg"OOPS ${sh.describe}" -> res.toLoc :: Nil,
