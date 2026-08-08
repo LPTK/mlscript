@@ -969,8 +969,10 @@ extends Importer:
         val res = Term.Sel(preTrm, tree.name)(sym, FlowSymbol.sel(tree.name.name), N, S(summon))
         // collectedConstraints += Constraint(preTrm, res)
         // preTrm
-        preTrm.shapeListeners +=
-          (shape => selShape(shape, tree.name, res))
+        // preTrm.shapeListeners +=
+        //   (shape => selShape(shape, tree.name, res))
+        // preTrm.listen(shape => selShape(shape, tree.name, res))
+        listen(preTrm, shape => selShape(shape, tree.name, res))
         res
     
     tree.desugared match

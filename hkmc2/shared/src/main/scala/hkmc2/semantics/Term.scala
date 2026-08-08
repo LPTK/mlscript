@@ -121,6 +121,8 @@ sealed trait ResolvableImpl:
   
   import Resolvable.CallableDefinition
   
+  private[semantics] val shapes: MutSet[Shape] = MutSet.empty
+  
   /**
    * The expanded form of the term, if it exists. 
    * 
@@ -315,16 +317,23 @@ case class SrcScope(outer: Elaborator.OuterCtx, parent: Opt[SrcScope]):
 object SrcScope:
   given s: Ctx => SrcScope = summon[Ctx].scope
 
-sealed trait Shape
+// type Shape = TermShape | BlockMemberSymbol
+type Shape = TermShape
 
-case class AppShape(lhs: Shape, args: Term) extends Shape
-case class SelShape(lhs: Shape, nme: Tree.Ident) extends Shape
+sealed trait TermShape
+
+class AppShape(val lhs: Shape, val args: Term) extends TermShape:
+  override def toString: String = s"AppShape($lhs, $args)"
+class SelShape(val lhs: Shape, val nme: Tree.Ident) extends TermShape:
+  override def toString: String = s"SelShape($lhs, $nme)"
+class SymShape(val sym: BlockMemberSymbol) extends TermShape:
+  override def toString: String = s"SymShape($sym)"
 
 enum Term extends Statement:
   case Error()
   case UnitVal()
   case Missing // Placeholder terms that were not elaborated due to the "lightweight" elaboration mode `Mode.Light`
-  case Lit(lit: Literal) extends Term, Shape
+  case Lit(lit: Literal) extends Term, TermShape
   /** A term that wraps another term, indicating that the symbol of the inner term is resolved.
     * This is mainly used to disambiguate overloaded definitions. */
   case Resolved(t: Term, sym: DefinitionSymbol[?])
@@ -562,6 +571,8 @@ enum Term extends Statement:
   
   // private[semantics] val reslListeners: Buffer[Resolution] = MutSet.empty
   private[semantics] val shapeListeners: Buffer[Shape => Unit] = Buffer.empty
+  // private[semantics] def listen(f: Shape => Unit): Unit =
+  //   shapeListeners += f
   
 end Term
 

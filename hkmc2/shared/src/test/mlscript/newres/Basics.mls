@@ -18,14 +18,21 @@ id
 
 
 :elt
-:rt
+// :rt
+:de
 Predef.id
+//│ Elab block List(Sel(Ident(Predef),Ident(id))) LocalScope(block:4)
+//│ | Elab term Sel(Ident(Predef),Ident(id))
+//│ | | Elab subterm Sel(Ident(Predef),Ident(id))
+//│ | | | Elab subterm Ident(Predef)
+//│ | | | ~> Ref(member:Predef)
+//│ | | | listen: trm = Ref(member:Predef)
+//│ | | | symShape: sym = member:Predef, res = Ref(member:Predef)
+//│ | | | selShape: lhs = SymShape(member:Predef), nme = Ident(id), res = Sel(Ref(member:Predef),Ident(id))
+//│ | | ~> Sel(Ref(member:Predef),Ident(id))
+//│ | ~> Sel(Ref(member:Predef),Ident(id))
+//│ ~> Blk(List(),Sel(Ref(member:Predef),Ident(id)))
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
-//│ Blk:
-//│   res = Sel{sym=member:id⁰}:
-//│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
-//│     nme = Ident of "id"
-//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   res = Sel{sym=member:id⁰}:
 //│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
