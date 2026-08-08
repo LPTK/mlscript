@@ -966,7 +966,12 @@ extends Importer:
         val loc = tree.toLoc.getOrElse(???)
         Term.Lit(StrLit(loc.origin.fileName.toString))
       else
-        Term.Sel(preTrm, tree.name)(sym, FlowSymbol.sel(tree.name.name), N, S(summon))
+        val res = Term.Sel(preTrm, tree.name)(sym, FlowSymbol.sel(tree.name.name), N, S(summon))
+        // collectedConstraints += Constraint(preTrm, res)
+        // preTrm
+        preTrm.shapeListeners +=
+          (shape => selShape(shape, tree.name, res))
+        res
     
     tree.desugared match
     case Trm(term) => term
@@ -2564,13 +2569,13 @@ extends Importer:
         ErrorReport:
           msg"Expected a type parameter list (a tuple of identifiers), but found ${t.describe}" -> t.toLoc :: Nil
       (Nil, ctx)
-
+  
   def importFrom(sts: Block): Ctxl[(Blk, Ctx)] =
     given UnderCtx = new UnderCtx(N)
     val (res, newCtx) = block(sts, hasResult = false)
     // TODO handle name clashes
     (res, newCtx)
-
+  
   def topLevel(sts: Block): Ctxl[(Blk, Ctx)] =
     given UnderCtx = new UnderCtx(N)
     val (res, ctx) = block(sts, hasResult = false)

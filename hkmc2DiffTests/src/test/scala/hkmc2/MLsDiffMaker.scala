@@ -444,7 +444,6 @@ abstract class MLsDiffMaker extends DiffMaker:
       output(e.showAsTree)
     
     processTerm(e, inImport = false)
-      
   
   
   def processTerm(trm: semantics.Term.Blk, inImport: Bool)(using Config, Raise): Unit =
