@@ -1,0 +1,94 @@
+
+#lang(0.3.x)
+
+
+
+module Foo with
+  module Bar with
+    fun id(x) = x
+
+// :de
+:elt
+Foo.Bar
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = Sel{targets=[ObjectMember(member:Bar)]}:
+//│     prefix = Ref{sym=member:Foo⁰} of member:Foo⁰
+//│     nme = Ident of "Bar"
+
+// :de
+:elt
+Foo.Bar.id
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = Sel{targets=[ObjectMember(member:id)]}:
+//│     prefix = Sel{targets=[ObjectMember(member:Bar)]}:
+//│       prefix = Ref{sym=member:Foo⁰} of member:Foo⁰
+//│       nme = Ident of "Bar"
+//│     nme = Ident of "id"
+
+
+let
+  f = Foo
+  b = f.Bar
+
+:elt
+b.id
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = Sel{targets=[ObjectMember(member:id)]}:
+//│     prefix = Ref{sym=b⁰} of b⁰
+//│     nme = Ident of "id"
+
+
+
+module Foo {
+  module Bar {
+    fun id(x) = x
+  }
+}
+
+:de
+// :elt
+:fixme
+Foo.Bar
+//│ Elab block List(Sel(Ident(Foo),Ident(Bar))) LocalScope(block:9)
+//│ | Elab term Sel(Ident(Foo),Ident(Bar))
+//│ | | Elab subterm Sel(Ident(Foo),Ident(Bar))
+//│ | | | Elab subterm Ident(Foo)
+//│ | | | ~> Ref(member:Foo‹62›)
+//│ | | | listen: trm = Ref(member:Foo‹62›)
+//│ | | | symShape: sym = member:Foo‹62›, res = Ref(member:Foo‹62›)
+//│ | | | selShape: lhs = SymShape(member:Foo‹62›), nme = Ident(Bar), res = Sel(Ref(member:Foo‹62›),Ident(Bar))
+//│ ╔══[COMPILATION ERROR] Module 'Foo' does not contain member 'Bar'
+//│ ║  l.54: 	Foo.Bar
+//│ ╙──      	^^^^^^^
+//│ | | ~> Sel(Ref(member:Foo‹62›),Ident(Bar))
+//│ | ~> Sel(Ref(member:Foo‹62›),Ident(Bar))
+//│ ~> Blk(List(),Sel(Ref(member:Foo‹62›),Ident(Bar)))
+
+:de
+// :elt
+:fixme
+Foo.Bar.id
+//│ Elab block List(Sel(Sel(Ident(Foo),Ident(Bar)),Ident(id))) LocalScope(block:10)
+//│ | Elab term Sel(Sel(Ident(Foo),Ident(Bar)),Ident(id))
+//│ | | Elab subterm Sel(Sel(Ident(Foo),Ident(Bar)),Ident(id))
+//│ | | | Elab subterm Sel(Ident(Foo),Ident(Bar))
+//│ | | | | Elab subterm Ident(Foo)
+//│ | | | | ~> Ref(member:Foo‹62›)
+//│ | | | | listen: trm = Ref(member:Foo‹62›)
+//│ | | | | symShape: sym = member:Foo‹62›, res = Ref(member:Foo‹62›)
+//│ | | | | selShape: lhs = SymShape(member:Foo‹62›), nme = Ident(Bar), res = Sel(Ref(member:Foo‹62›),Ident(Bar))
+//│ ╔══[COMPILATION ERROR] Module 'Foo' does not contain member 'Bar'
+//│ ║  l.73: 	Foo.Bar.id
+//│ ╙──      	^^^^^^^
+//│ | | | ~> Sel(Ref(member:Foo‹62›),Ident(Bar))
+//│ | | | listen: trm = Sel(Ref(member:Foo‹62›),Ident(Bar))
+//│ | | | selShape: lhs = SelShape(SymShape(member:Foo‹62›), Ident(Bar)), nme = Ident(id), res = Sel(Sel(Ref(member:Foo‹62›),Ident(Bar)),Ident(id))
+//│ | | ~> Sel(Sel(Ref(member:Foo‹62›),Ident(Bar)),Ident(id))
+//│ | ~> Sel(Sel(Ref(member:Foo‹62›),Ident(Bar)),Ident(id))
+//│ ~> Blk(List(),Sel(Sel(Ref(member:Foo‹62›),Ident(Bar)),Ident(id)))
+
+
+

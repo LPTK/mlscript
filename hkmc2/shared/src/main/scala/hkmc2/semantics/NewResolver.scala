@@ -56,26 +56,53 @@ class NewResolver:
       // lhs match
       // case _ =>
       val sh = new SelShape(lhs, id):
+        def get(sym: BlockMemberSymbol): Opt[SelectionTarget] =
+          // log(s"?! ${sym.modOrObjTree}")
+          sym.modOrObjTree match
+          case S(cls) =>
+            // log(s"?!! ${cls.definedSymbols}")
+            cls.definedSymbols.get(nme.name) match
+            case s @ S(clsSym) =>
+              S(SelectionTarget.ObjectMember(clsSym))
+            case N =>
+              raise(ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
+                }' does not contain member '${nme.name}'" -> res.toLoc :: Nil))
+              N
+          case N =>
+            N
         val target = receiver match
           case ss: SymShape =>
+            /* 
+            log(s"?! ${ss.sym.modOrObjTree}")
             ss.sym.modOrObjTree match
             case S(cls) =>
+              log(s"?!! ${cls.definedSymbols}")
               cls.definedSymbols.get(nme.name) match
-              case s @ S(clsSym) => S(SelectionTarget.ObjectMember(clsSym))
+              case s @ S(clsSym) =>
+                S(SelectionTarget.ObjectMember(clsSym))
               case N =>
                 raise(ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
                   }' does not contain member '${nme.name}'" -> res.toLoc :: Nil))
                 N
             case N =>
               N
-            // S(SelectionTarget.ObjectMember(ss.sym))
-          case _ =>
+            */
+            get(ss.sym)
+          case sel: SelShape =>
+            // sel.target.flatMap(get)
+            sel.target match
+            case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) => get(sym)
+            case S(SelectionTarget.ObjectMember(sym)) => ???
+            case S(SelectionTarget.CompanionMember(comp, sym)) => ???
+            case N => N
+          case sh =>
             raise:
               ErrorReport(
-                msg"OOPS ${receiver.describe}" -> res.toLoc :: Nil,
+                msg"OOPS ${sh.describe}" -> res.toLoc :: Nil,
                 source = Diagnostic.Source.Compilation)
             N
-        target.foreach(tgt => res.resolvedTargets ::= tgt)
+        target.foreach: tgt =>
+          res.resolvedTargets ::= tgt
       // if res.shapes.add(sh) then
       //   res.shapeListeners.foreach(listener => listener(sh))
       sh

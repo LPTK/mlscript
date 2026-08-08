@@ -334,13 +334,13 @@ class AppShape(val lhs: Shape, val args: Term) extends TermShape:
   override def toString: String = s"AppShape($lhs, $args)"
 abstract class SelShape(val receiver: Shape, val nme: Tree.Ident) extends TermShape:
 // class SelShape(val lhs: Shape, val nme: Tree.Ident)(using Raise) extends TermShape:
-  def describe: Str = s"selection of ${nme.name} from ${receiver.describe}"
+  def describe: Str = s"selection of '${nme.name}' from ${receiver.describe}"
   override def toString: String = s"SelShape($receiver, $nme)"
   // val target = lhs match
   //   case _ => 
   def target: Opt[SelectionTarget]
 class SymShape(val sym: BlockMemberSymbol) extends TermShape:
-  def describe: Str = s"symbol ${sym.describe}"
+  def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
 
 trait ShapePublisher:
