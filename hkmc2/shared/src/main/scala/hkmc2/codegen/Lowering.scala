@@ -86,6 +86,8 @@ import Lowering.*
 
 class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
+  val newResolution: Bool = config.language.useNewResolution
+  
   extension (t: Term)
     def instantiated = t match
       case r: Resolvable =>
@@ -585,7 +587,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     sel.validResolvedTargets match
     // sel.resolvedTargets match
     case Nil =>
-      if !sel.isErroneous then raise:
+      if newResolution && !sel.isErroneous then raise:
         ErrorReport(
           msg"Selection has no resolved targets" -> sel.toLoc ::
           Nil, S(sel), source = Diagnostic.Source.Compilation)
@@ -597,14 +599,16 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       sym.asTrm orElse sym.asModOrObj match
       case s @ S(mod) => s
       case N =>
-        if !sel.isErroneous then raise:
+        if newResolution && !sel.isErroneous then raise:
           ErrorReport(
             msg"Selection target ${sym.describe} '${sym.nme}' cannot be used as a term" -> sel.toLoc ::
             Nil, S(sel), source = Diagnostic.Source.Compilation)
         N
     case ts =>
-      println(ts)
-      ???
+      if newResolution then
+        println(ts)
+        ???
+      else N
   
   def ref(ref: st.Ref, annots: List[Annot], disamb: Opt[DefinitionSymbol[?]], inStmtPos: Bool)(k: Result => Block)(using LoweringCtx): Block =
     def warnStmt = if inStmtPos then warnPureExprInStmtPos(ref.toLoc, S(ref))

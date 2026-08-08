@@ -83,7 +83,7 @@ p.id
 
 :e
 (1).id
-//│ ╔══[COMPILATION ERROR] OOPS integer literal
+//│ ╔══[COMPILATION ERROR] TODO error (integer literal)
 //│ ║  l.85: 	(1).id
 //│ ╙──      	 ^^^^^
 
@@ -98,7 +98,7 @@ p.id
 
 :fixme
 "ha ".repeat(2)
-//│ ╔══[COMPILATION ERROR] OOPS string literal
+//│ ╔══[COMPILATION ERROR] TODO error (string literal)
 //│ ║  l.100: 	"ha ".repeat(2)
 //│ ╙──       	^^^^^^^^^^^^
 

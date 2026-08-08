@@ -107,7 +107,7 @@ class NewResolver:
             res.isErroneous = true
             raise:
               ErrorReport(
-                msg"OOPS ${sh.describe}" -> res.toLoc :: Nil,
+                msg"TODO error (${sh.describe})" -> res.toLoc :: Nil,
                 source = Diagnostic.Source.Compilation)
             N
         target.foreach: tgt =>

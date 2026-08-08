@@ -510,7 +510,7 @@ extends Importer:
   import tl.*
   given TraceLogger = tl
   
-  def newResolution: Bool = config.language.useNewResolution
+  val newResolution: Bool = config.language.useNewResolution
   
   lazy val illegalMemberNameTail =
     msg"Member names must start with a letter or underscore, followed by letters, digits, or underscores." -> N
