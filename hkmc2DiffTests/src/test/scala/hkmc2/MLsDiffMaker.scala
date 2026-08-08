@@ -452,8 +452,9 @@ abstract class MLsDiffMaker extends DiffMaker:
     given Config = Config.extractConfigFromStats(trm)
     if file.toString =/= runtimeSourceFile.toString then
       State.initRuntimeSymbolsFromFile(runtimeSourceFile, prelude)
-    val resolver = Resolver(rtl)
-    curICtx = resolver.traverseBlock(trm)(using curICtx)
+    if !config.language.useNewResolution then
+      val resolver = Resolver(rtl)
+      curICtx = resolver.traverseBlock(trm)(using curICtx)
     
     if showResolve.isSet then
       output(s"Resolved: ${trm.showDbg}")

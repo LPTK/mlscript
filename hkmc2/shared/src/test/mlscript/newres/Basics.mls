@@ -1,0 +1,60 @@
+
+#lang(0.3.x)
+
+
+:elt
+:rt
+id
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = SynthSel{sym=member:id⁰}:
+//│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
+//│     nme = Ident of "id"
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = SynthSel{sym=member:id⁰}:
+//│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
+//│     nme = Ident of "id"
+
+
+:elt
+:rt
+Predef.id
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = Sel{sym=member:id⁰}:
+//│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
+//│     nme = Ident of "id"
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = Sel{sym=member:id⁰}:
+//│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
+//│     nme = Ident of "id"
+
+:elt
+:rt
+Predef.id(1)
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = App:
+//│     lhs = Sel{sym=member:id⁰}:
+//│       prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
+//│       nme = Ident of "id"
+//│     rhs = Tup of Ls of
+//│       Fld:
+//│         term = Lit of IntLit of 1
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = App:
+//│     lhs = Sel{sym=member:id⁰}:
+//│       prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
+//│       nme = Ident of "id"
+//│     rhs = Tup of Ls of
+//│       Fld:
+//│         term = Lit of IntLit of 1
+
+
+let p = Predef
+
+
+
