@@ -582,8 +582,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case _ => false
   
   def selSymbol(sel: AnySelTerm): Opt[DefinitionSymbol[?]] =
-    // sel.validResolvedTargets match
-    sel.resolvedTargets match
+    sel.validResolvedTargets match
+    // sel.resolvedTargets match
     case Nil =>
       if !sel.isErroneous then raise:
         ErrorReport(

@@ -337,7 +337,7 @@ class ErrShape(val err: ErrorReport) extends TermShape:
 class AppShape(val lhs: Shape, val args: Term) extends TermShape:
   def describe: Str = s"application of ${lhs.describe} to ${args.describe}"
   override def toString: String = s"AppShape($lhs, $args)"
-abstract class SelShape(val receiver: Shape, val nme: Tree.Ident) extends TermShape:
+abstract class SelShape(val receiver: Shape, val nme: Tree.Ident, val src: AnySel) extends TermShape:
 // class SelShape(val lhs: Shape, val nme: Tree.Ident)(using Raise) extends TermShape:
   def describe: Str = s"selection of '${nme.name}' from ${receiver.describe}"
   override def toString: String = s"SelShape($receiver, $nme)"

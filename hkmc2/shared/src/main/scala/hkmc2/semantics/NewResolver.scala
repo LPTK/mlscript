@@ -55,7 +55,7 @@ class NewResolver:
       log(s"selShape: lhs = $lhs, nme = $id, res = $res")
       // lhs match
       // case _ =>
-      val sh = new SelShape(lhs, id):
+      val sh = new SelShape(lhs, id, res):
         def get(sym: BlockMemberSymbol): Opt[SelectionTarget] =
           // log(s"?! ${sym.modOrObjTree}")
           sym.modOrObjTree match
@@ -100,6 +100,7 @@ class NewResolver:
             case S(SelectionTarget.CompanionMember(comp, sym)) => ???
             case tg @ S(SelectionTarget.Err(err)) =>
               // S(ErrShape(err))
+              sel.src.isErroneous = true
               N
             case N => N
           case sh =>
