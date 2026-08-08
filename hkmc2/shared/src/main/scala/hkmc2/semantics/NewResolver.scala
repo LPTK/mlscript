@@ -61,14 +61,14 @@ class NewResolver:
             ss.sym.modOrObjTree match
             case S(cls) =>
               cls.definedSymbols.get(nme.name) match
-              case s @ S(clsSym) => s
+              case s @ S(clsSym) => S(SelectionTarget.ObjectMember(clsSym))
               case N =>
                 raise(ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
                   }' does not contain member '${nme.name}'" -> res.toLoc :: Nil))
                 N
             case N =>
               N
-            S(SelectionTarget.ObjectMember(ss.sym))
+            // S(SelectionTarget.ObjectMember(ss.sym))
           case _ =>
             raise:
               ErrorReport(
@@ -91,6 +91,20 @@ class NewResolver:
     if res.shapes.add(sh) then
       res.shapeListeners.foreach(listener => listener(sh))
   
+  def defineVar(sym: LocalSymbol | TermSymbol, rhs: Term): DefineVar =
+    sym match
+    case sym: TermSymbol =>
+      // symShape(sym, rhs)
+      // ???
+      println(s"TODO: defineVar for TermSymbol $sym")
+    case sym: LocalSymbol =>
+      // symShape(sym, rhs)
+      listen(rhs, sh =>
+        if sym.shapes.add(sh) then
+          sym.shapeListeners.foreach(listener => listener(sh))
+      )
+    DefineVar(sym, rhs)
+  
   def listen(trm: Term, listener: Shape => Unit): Unit =
     log(s"listen: trm = $trm")
     trm.shapeListeners += listener
@@ -103,6 +117,9 @@ class NewResolver:
     // case sel: AnySelTerm =>
     //   // listen(lhs, sh => selShape(sh, nme, trm.asInstanceOf[AnySelTerm]))
     //   sel
+    case ref @ Ref(loc: LocalSymbol) =>
+      loc.shapes.foreach(listener)
+      loc.shapeListeners += listener
     case ref @ Ref(bsym: BlockMemberSymbol) =>
       // listener(ref)
       // if ref.shapes.add(bsym) then

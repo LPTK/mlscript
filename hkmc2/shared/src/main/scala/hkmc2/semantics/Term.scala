@@ -343,7 +343,12 @@ class SymShape(val sym: BlockMemberSymbol) extends TermShape:
   def describe: Str = s"symbol ${sym.describe}"
   override def toString: String = s"SymShape($sym)"
 
-enum Term extends Statement:
+trait ShapePublisher:
+  private[semantics] val shapeListeners: Buffer[Shape => Unit] = Buffer.empty
+
+
+
+enum Term extends Statement, ShapePublisher:
   case Error()
   case UnitVal()
   case Missing // Placeholder terms that were not elaborated due to the "lightweight" elaboration mode `Mode.Light`
@@ -583,10 +588,10 @@ enum Term extends Statement:
       case _ =>
         that
   
-  // private[semantics] val reslListeners: Buffer[Resolution] = MutSet.empty
-  private[semantics] val shapeListeners: Buffer[Shape => Unit] = Buffer.empty
-  // private[semantics] def listen(f: Shape => Unit): Unit =
-  //   shapeListeners += f
+  // // private[semantics] val reslListeners: Buffer[Resolution] = MutSet.empty
+  // private[semantics] val shapeListeners: Buffer[Shape => Unit] = Buffer.empty
+  // // private[semantics] def listen(f: Shape => Unit): Unit =
+  // //   shapeListeners += f
   
 end Term
 
@@ -726,6 +731,8 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       case _ => desc
   
   def extraInfo(using DebugPrinter): Str = this match
+    case s: AnySel if s.resolvedTargets.nonEmpty =>
+      s"targets=${s.resolvedTargets.map(_.showAsPlain).mkString("[", ",", "]")}"
     case r: Resolvable if r.resolvedSym.isDefined || r.resolvedTyp.isDefined => (
         r.resolvedSym.map(s => s"sym=${s.showAsPlain}") ::
         r.resolvedTyp.map(s => s"typ=${s.showDbg}") :: Nil

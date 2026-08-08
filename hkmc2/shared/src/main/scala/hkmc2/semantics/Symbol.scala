@@ -202,7 +202,8 @@ class ConcreteFlowSymbol(label: Str)(using State) extends FlowSymbol(label):
   def subst(using s: SymbolSubst): FlowSymbol = s.mapFlowSym(this)
 
 
-sealed trait LocalSymbol extends Symbol
+sealed trait LocalSymbol extends Symbol, ShapePublisher:
+  private[semantics] val shapes: MutSet[Shape] = MutSet.empty
 sealed trait NamedSymbol extends Symbol:
   def name: Str
   def id: Ident

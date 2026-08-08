@@ -34,7 +34,7 @@ Predef.id
 //│ ~> Blk(List(),Sel(Ref(member:Predef),Ident(id)))
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
-//│   res = Sel:
+//│   res = Sel{targets=[ObjectMember(member:id)]}:
 //│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
 //│     nme = Ident of "id"
 
@@ -43,7 +43,7 @@ Predef.id(1)
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   res = App:
-//│     lhs = Sel:
+//│     lhs = Sel{targets=[ObjectMember(member:id)]}:
 //│       prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
 //│       nme = Ident of "id"
 //│     rhs = Tup of Ls of
@@ -57,26 +57,50 @@ Predef.idd(1)
 //│ ╙──      	^^^^^^^^^^
 
 
+// :de
 let p = Predef
 
+:de
+:elt
 p.id
+//│ Elab block List(Sel(Ident(p),Ident(id))) LocalScope(block:8)
+//│ | Elab term Sel(Ident(p),Ident(id))
+//│ | | Elab subterm Sel(Ident(p),Ident(id))
+//│ | | | Elab subterm Ident(p)
+//│ | | | ~> Ref(p‹44›)
+//│ | | | listen: trm = Ref(p‹44›)
+//│ | | | selShape: lhs = SymShape(member:Predef), nme = Ident(id), res = Sel(Ref(p‹44›),Ident(id))
+//│ | | ~> Sel(Ref(p‹44›),Ident(id))
+//│ | ~> Sel(Ref(p‹44›),Ident(id))
+//│ ~> Blk(List(),Sel(Ref(p‹44›),Ident(id)))
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = Sel{targets=[ObjectMember(member:id)]}:
+//│     prefix = Ref{sym=p⁰‹44›} of p⁰‹44›
+//│     nme = Ident of "id"
 
 
 
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] OOPS integer literal
-//│ ║  l.67: 	(1).id
+//│ ║  l.85: 	(1).id
 //│ ╙──      	 ^^^^^
 
 :fixme
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.73: 	1.id
+//│ ║  l.91: 	1.id
 //│ ╙──      	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.73: 	1.id
+//│ ║  l.91: 	1.id
 //│ ╙──      	  ^^
+
+:fixme
+"ha ".repeat(2)
+//│ ╔══[COMPILATION ERROR] OOPS string literal
+//│ ║  l.100: 	"ha ".repeat(2)
+//│ ╙──       	^^^^^^^^^^^^
 
 
 

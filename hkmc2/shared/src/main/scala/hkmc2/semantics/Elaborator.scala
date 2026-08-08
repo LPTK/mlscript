@@ -517,7 +517,7 @@ extends Importer:
     :: Nil
   
   def mkLetBinding(kw: Tree.Keywrd[?], sym: LocalVarSymbol | TermSymbol, rhs: Term, annotations: Ls[Annot]): Ls[Statement] =
-    LetDecl(sym, annotations).mkLocWith(kw, sym) :: DefineVar(sym, rhs) :: Nil
+    LetDecl(sym, annotations).mkLocWith(kw, sym) :: defineVar(sym, rhs) :: Nil
   
   // TODO: remove in favor of new resolution logic
   def resolveField(srcTree: Tree, base: Opt[Symbol], nme: Ident): Opt[MemberSymbol] =
@@ -1023,7 +1023,7 @@ extends Importer:
         val lt = subterm(lhs)
         val sym = TempSymbol(S(lt), "old")
         Blk(
-          LetDecl(sym, Nil) :: DefineVar(sym, lt) :: Nil, Term.Try(Blk(
+          LetDecl(sym, Nil) :: defineVar(sym, lt) :: Nil, Term.Try(Blk(
             Term.Assgn(lt, subterm(rhs)) :: Nil,
             subterm(bod),
         ), Term.Assgn(lt, sym.ref())))
@@ -1764,7 +1764,7 @@ extends Importer:
             val sym = new VarSymbol(id)
             newCtx += id.name -> sym
             RcdField(Term.Lit(StrLit(id.name)).withLocOf(id), sym.ref(id))
-              :: DefineVar(sym, rhs_t)
+              :: defineVar(sym, rhs_t)
               :: LetDecl(sym, annotations)
               :: acc
           case lit: Literal =>
@@ -1808,7 +1808,7 @@ extends Importer:
           ctx.get(id.name) match
           case S(elem) =>
             elem.symbol match
-            case S(sym: (LocalSymbol | TermSymbol)) => go(sts, Nil, DefineVar(sym, r) :: acc)
+            case S(sym: (LocalSymbol | TermSymbol)) => go(sts, Nil, defineVar(sym, r) :: acc)
             case S(sym) =>
               raise(ErrorReport(msg"Symbol '${id.name}' is not a variable and cannot be reassigned" -> id.toLoc :: Nil))
               go(sts, Nil, Term.Error().withLocOf(id) :: acc)
@@ -2027,7 +2027,7 @@ extends Importer:
                 val psym = TermSymbol(LetBind, owner, p.sym.id)
                 psym.sourceAliases = p.sym.sourceAliases
                 val decl = LetDecl(psym, Nil)
-                val defn = DefineVar(psym, p.sym.ref())
+                val defn = defineVar(psym, p.sym.ref())
                 p.fldSym = S(psym)
                 decl :: defn :: Nil
           
@@ -2040,7 +2040,7 @@ extends Importer:
               val psym = TermSymbol(LetBind, owner, p.sym.id)
               psym.sourceAliases = p.sym.sourceAliases
               val decl = LetDecl(psym, Nil)
-              val defn = DefineVar(psym, p.sym.ref())
+              val defn = defineVar(psym, p.sym.ref())
               p.fldSym = S(psym)
               decl :: defn :: Nil
           
