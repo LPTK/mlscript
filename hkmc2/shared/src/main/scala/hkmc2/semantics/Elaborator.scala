@@ -510,6 +510,8 @@ extends Importer:
   import tl.*
   given TraceLogger = tl
   
+  def newResolution: Bool = config.language.useNewResolution
+  
   lazy val illegalMemberNameTail =
     msg"Member names must start with a letter or underscore, followed by letters, digits, or underscores." -> N
     :: Nil
@@ -517,6 +519,7 @@ extends Importer:
   def mkLetBinding(kw: Tree.Keywrd[?], sym: LocalVarSymbol | TermSymbol, rhs: Term, annotations: Ls[Annot]): Ls[Statement] =
     LetDecl(sym, annotations).mkLocWith(kw, sym) :: DefineVar(sym, rhs) :: Nil
   
+  // TODO: remove in favor of new resolution logic
   def resolveField(srcTree: Tree, base: Opt[Symbol], nme: Ident): Opt[MemberSymbol] =
     base match
     case S(psym: BlockMemberSymbol) =>
@@ -955,7 +958,8 @@ extends Importer:
     
     def elaborateSelection(tree: Sel): Term =
       val preTrm = subterm(tree.prefix)
-      val sym = resolveField(tree.name, preTrm.symbol, tree.name)
+      val sym = if newResolution then N
+        else resolveField(tree.name, preTrm.symbol, tree.name)
       if sym.contains(ctx.builtins.source.line) then
         val loc = tree.toLoc.getOrElse(???)
         val (line, _, _) = loc.origin.fph.getLineColAt(loc.spanStart)
@@ -972,7 +976,7 @@ extends Importer:
         // preTrm.shapeListeners +=
         //   (shape => selShape(shape, tree.name, res))
         // preTrm.listen(shape => selShape(shape, tree.name, res))
-        listen(preTrm, shape => selShape(shape, tree.name, res))
+        if newResolution then listen(preTrm, shape => selShape(shape, tree.name, res))
         res
     
     tree.desugared match

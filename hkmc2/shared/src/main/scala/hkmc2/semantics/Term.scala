@@ -14,6 +14,7 @@ import Elaborator.State
 import hkmc2.typing.Type
 import hkmc2.semantics.Elaborator.{Ctx, ctx}
 import hkmc2.Message.MessageContext
+import hkmc2.semantics.flow.SelectionTarget
 
 
 final case class QuantVar(sym: VarSymbol, ub: Opt[Term], lb: Opt[Term])
@@ -320,13 +321,26 @@ object SrcScope:
 // type Shape = TermShape | BlockMemberSymbol
 type Shape = TermShape
 
-sealed trait TermShape
+sealed trait TermShape:
+  def describe: Str
+// sealed trait TermShape:
+//   def describe: Str = this match
+//     case app: AppShape => s"application of ${app.lhs.describe} to ${app.args.describe}"
+//     case sel: SelShape => s"selection of ${sel.nme.name} from ${sel.receiver.describe}"
+//     case sym: SymShape => s"symbol ${sym.sym.describe}"
 
 class AppShape(val lhs: Shape, val args: Term) extends TermShape:
+  def describe: Str = s"application of ${lhs.describe} to ${args.describe}"
   override def toString: String = s"AppShape($lhs, $args)"
-class SelShape(val lhs: Shape, val nme: Tree.Ident) extends TermShape:
-  override def toString: String = s"SelShape($lhs, $nme)"
+abstract class SelShape(val receiver: Shape, val nme: Tree.Ident) extends TermShape:
+// class SelShape(val lhs: Shape, val nme: Tree.Ident)(using Raise) extends TermShape:
+  def describe: Str = s"selection of ${nme.name} from ${receiver.describe}"
+  override def toString: String = s"SelShape($receiver, $nme)"
+  // val target = lhs match
+  //   case _ => 
+  def target: Opt[SelectionTarget]
 class SymShape(val sym: BlockMemberSymbol) extends TermShape:
+  def describe: Str = s"symbol ${sym.describe}"
   override def toString: String = s"SymShape($sym)"
 
 enum Term extends Statement:

@@ -34,34 +34,50 @@ Predef.id
 //│ ~> Blk(List(),Sel(Ref(member:Predef),Ident(id)))
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
-//│   res = Sel{sym=member:id⁰}:
+//│   res = Sel:
 //│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
 //│     nme = Ident of "id"
 
 :elt
-:rt
 Predef.id(1)
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   res = App:
-//│     lhs = Sel{sym=member:id⁰}:
+//│     lhs = Sel:
 //│       prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
 //│       nme = Ident of "id"
 //│     rhs = Tup of Ls of
 //│       Fld:
 //│         term = Lit of IntLit of 1
-//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
-//│ Blk:
-//│   res = App:
-//│     lhs = Sel{sym=member:id⁰}:
-//│       prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
-//│       nme = Ident of "id"
-//│     rhs = Tup of Ls of
-//│       Fld:
-//│         term = Lit of IntLit of 1
+
+:e
+Predef.idd(1)
+//│ ╔══[COMPILATION ERROR] Module 'Predef' does not contain member 'idd'
+//│ ║  l.54: 	Predef.idd(1)
+//│ ╙──      	^^^^^^^^^^
 
 
 let p = Predef
+
+p.id
+
+
+
+:e
+(1).id
+//│ ╔══[COMPILATION ERROR] OOPS integer literal
+//│ ║  l.67: 	(1).id
+//│ ╙──      	 ^^^^^
+
+:fixme
+1.id
+//│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
+//│ ║  l.73: 	1.id
+//│ ╙──      	  ^
+//│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
+//│ ║  l.73: 	1.id
+//│ ╙──      	  ^^
+
 
 
 

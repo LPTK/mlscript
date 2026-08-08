@@ -15,6 +15,7 @@ import Term.*
 
 import Elaborator.*
 import hkmc2.syntax.LetBind
+import hkmc2.semantics.flow.SelectionTarget
 
 
 class NewResolver:
@@ -48,11 +49,33 @@ class NewResolver:
   // def getSelShape(lhs: Shape, nme: Tree.Ident): SelShape =
   //   selShapes.getOrElseUpdate((lhs, nme.name), SelShape(lhs, nme))
   
-  def selShape(lhs: Shape, nme: Tree.Ident, res: AnySelTerm): Unit =
+  def selShape(lhs: Shape, id: Tree.Ident, res: AnySelTerm): Unit =
     // log(s"selShape? lhs = $lhs, nme = $nme, res = $res")
-    val sh = selShapes.getOrElseUpdate((lhs, nme.name), {
-      log(s"selShape: lhs = $lhs, nme = $nme, res = $res")
-      val sh = SelShape(lhs, nme)
+    val sh = selShapes.getOrElseUpdate((lhs, id.name), {
+      log(s"selShape: lhs = $lhs, nme = $id, res = $res")
+      // lhs match
+      // case _ =>
+      val sh = new SelShape(lhs, id):
+        val target = receiver match
+          case ss: SymShape =>
+            ss.sym.modOrObjTree match
+            case S(cls) =>
+              cls.definedSymbols.get(nme.name) match
+              case s @ S(clsSym) => s
+              case N =>
+                raise(ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
+                  }' does not contain member '${nme.name}'" -> res.toLoc :: Nil))
+                N
+            case N =>
+              N
+            S(SelectionTarget.ObjectMember(ss.sym))
+          case _ =>
+            raise:
+              ErrorReport(
+                msg"OOPS ${receiver.describe}" -> res.toLoc :: Nil,
+                source = Diagnostic.Source.Compilation)
+            N
+        target.foreach(tgt => res.resolvedTargets ::= tgt)
       // if res.shapes.add(sh) then
       //   res.shapeListeners.foreach(listener => listener(sh))
       sh
