@@ -30,6 +30,7 @@ case class ConcreteProd(path: Path, ctor: ProdCtor)
 enum SelectionTarget:
   case ObjectMember(sym: MemberSymbol)
   case CompanionMember(comp: Term, sym: MemberSymbol)
+  case Err(err: ErrorReport)
 
 
 /** This is a very sketchy exploration/proof of concept of flow analysis

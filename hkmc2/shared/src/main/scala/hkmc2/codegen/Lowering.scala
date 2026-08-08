@@ -21,6 +21,7 @@ import semantics.Elaborator.{State, Ctx, ctx}
 
 import syntax.{Literal, Tree, SpreadKind}
 import hkmc2.syntax.{Fun, Keyword, LetBind, MutVal}
+import sem.flow.SelectionTarget
 
 
 abstract class TailOp extends (Result => Block)
@@ -580,6 +581,31 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case td: TermDefinition => (td.k is syntax.Fun) && td.params.isEmpty
       case _ => false
   
+  def selSymbol(sel: AnySelTerm): Opt[DefinitionSymbol[?]] =
+    // sel.validResolvedTargets match
+    sel.resolvedTargets match
+    case Nil =>
+      if !sel.isErroneous then raise:
+        ErrorReport(
+          msg"Selection has no resolved targets" -> sel.toLoc ::
+          Nil, S(sel), source = Diagnostic.Source.Compilation)
+      N
+    case SelectionTarget.ObjectMember(sym: DefinitionSymbol[?]) :: Nil =>
+      S(sym)
+    case SelectionTarget.ObjectMember(sym: BlockMemberSymbol) :: Nil =>
+      // TODO: instead, make SelectionTarget a listener that resolves to a more precise target
+      sym.asTrm orElse sym.asModOrObj match
+      case s @ S(mod) => s
+      case N =>
+        if !sel.isErroneous then raise:
+          ErrorReport(
+            msg"Selection target ${sym.describe} '${sym.nme}' cannot be used as a term" -> sel.toLoc ::
+            Nil, S(sel), source = Diagnostic.Source.Compilation)
+        N
+    case ts =>
+      println(ts)
+      ???
+  
   def ref(ref: st.Ref, annots: List[Annot], disamb: Opt[DefinitionSymbol[?]], inStmtPos: Bool)(k: Result => Block)(using LoweringCtx): Block =
     def warnStmt = if inStmtPos then warnPureExprInStmtPos(ref.toLoc, S(ref))
     
@@ -892,7 +918,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       // * are preserved in the call and not moved to a temporary variable.
       case sel @ Sel(prefix, nme) =>
         subTerm(prefix): p =>
-          conclude(Select(p, nme)(N)(false).withLocOf(sel))
+          conclude(Select(p, nme)(selSymbol(sel))(false).withLocOf(sel))
       case Resolved(sel @ Sel(prefix, nme), sym) =>
         subTerm(prefix): p =>
           conclude(Select(p, definitionIdent(nme, sym))(S(sym))(false).withLocOf(sel))
@@ -991,7 +1017,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case whltrm: st.SynthWhile => ucs.Normalization(this)(whltrm)(k)
       
     case sel @ Sel(prefix, nme) =>
-      setupSelection(prefix, nme, N)(k)
+      setupSelection(prefix, nme, selSymbol(sel))(k)
     case Resolved(sel @ Sel(prefix, nme), sym) =>
       setupSelection(prefix, nme, S(sym))(k)
     

@@ -89,6 +89,9 @@ Foo.Bar.id
 //│ | | ~> Sel(Sel(Ref(member:Foo‹62›),Ident(Bar)),Ident(id))
 //│ | ~> Sel(Sel(Ref(member:Foo‹62›),Ident(Bar)),Ident(id))
 //│ ~> Blk(List(),Sel(Sel(Ref(member:Foo‹62›),Ident(Bar)),Ident(id)))
+//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
+//│ ║  l.73: 	Foo.Bar.id
+//│ ╙──      	^^^^^^^^^^
 
 
 

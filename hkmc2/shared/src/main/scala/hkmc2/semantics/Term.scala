@@ -105,6 +105,9 @@ sealed trait AnySel extends ResolvableImpl:
   val originalCtx: Opt[SrcScope]
   
   var resolvedTargets: Ls[flow.SelectionTarget] = Nil // * filled during flow analysis
+  def validResolvedTargets = resolvedTargets.filterNot:
+    case flow.SelectionTarget.Err(_) => true
+    case _ => false
   var isErroneous: Bool = false // * to avoid reporting follow-on errors after a flow/resolution error
 end AnySel
 
@@ -329,6 +332,8 @@ sealed trait TermShape:
 //     case sel: SelShape => s"selection of ${sel.nme.name} from ${sel.receiver.describe}"
 //     case sym: SymShape => s"symbol ${sym.sym.describe}"
 
+class ErrShape(val err: ErrorReport) extends TermShape:
+  def describe: Str = s"error: ${err.mainMsg}"
 class AppShape(val lhs: Shape, val args: Term) extends TermShape:
   def describe: Str = s"application of ${lhs.describe} to ${args.describe}"
   override def toString: String = s"AppShape($lhs, $args)"

@@ -65,9 +65,13 @@ class NewResolver:
             case s @ S(clsSym) =>
               S(SelectionTarget.ObjectMember(clsSym))
             case N =>
-              raise(ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
-                }' does not contain member '${nme.name}'" -> res.toLoc :: Nil))
-              N
+              res.isErroneous = true
+              val rep = 
+                ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
+                  }' does not contain member '${nme.name}'" -> res.toLoc :: Nil)
+              raise(rep)
+              // S(ErrShape(rep))
+              S(SelectionTarget.Err(rep))
           case N =>
             N
         val target = receiver match
@@ -94,6 +98,9 @@ class NewResolver:
             case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) => get(sym)
             case S(SelectionTarget.ObjectMember(sym)) => ???
             case S(SelectionTarget.CompanionMember(comp, sym)) => ???
+            case tg @ S(SelectionTarget.Err(err)) =>
+              // S(ErrShape(err))
+              N
             case N => N
           case sh =>
             raise:
