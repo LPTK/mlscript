@@ -1,0 +1,119 @@
+// Under `:checkCasts`, each coercion inserted by lowering is expanded into a type test that throws when it
+// fails. The test a target needs depends on how the class is reached at runtime, so each shape is covered
+// below.
+:js
+
+:global
+:checkCasts
+
+class Top(x: Int)
+fun mkTop(): Object = new Top(1)
+
+
+// A user-defined top-level class is reached through its own binding.
+:sjs
+fun toTop(): Top = mkTop()
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let toTop;
+//│ toTop = function toTop() {
+//│   let inlinedVal, castScrut;
+//│   castScrut = globalThis.Object.freeze(new Top1.class(1));
+//│   if (castScrut instanceof globalThis.Object) {
+//│     inlinedVal = castScrut;
+//│     if (inlinedVal instanceof Top1.class) {
+//│       return inlinedVal
+//│     }
+//│     throw "Cast to 'Top' failed";
+//│   }
+//│   throw "Cast to 'Object' failed";
+//│ };
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+// A class nested in a module is reached through its owner.
+:sjs
+module M with
+  class Inner(y: Int)
+fun toInner(): M.Inner = mkTop()
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let M1, toInner;
+//│ toInner = function toInner() {
+//│   let inlinedVal, castScrut;
+//│   castScrut = globalThis.Object.freeze(new Top1.class(1));
+//│   if (castScrut instanceof globalThis.Object) {
+//│     inlinedVal = castScrut;
+//│     if (inlinedVal instanceof M.Inner.class) {
+//│       return inlinedVal
+//│     }
+//│     throw "Cast to 'M.Inner' failed";
+//│   }
+//│   throw "Cast to 'Object' failed";
+//│ };
+//│ (class M {
+//│   static {
+//│     M1 = this
+//│   }
+//│   static {
+//│     M.Inner = function Inner(y) {
+//│       return globalThis.Object.freeze(new Inner.class(y));
+//│     };
+//│     (class Inner {
+//│       static {
+//│         M.Inner.class = this
+//│       }
+//│       toString() { return runtime.render(this); }
+//│       static [definitionMetadata] = ["class", "Inner", [null]];
+//│     });
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "M"];
+//│ });
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+// A declared class exists at runtime but is not defined by us, so it is reached through `globalThis`.
+:sjs
+fun toObject(): Object = mkTop()
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let toObject;
+//│ toObject = function toObject() {
+//│   let castScrut;
+//│   castScrut = globalThis.Object.freeze(new Top1.class(1));
+//│   if (castScrut instanceof globalThis.Object) {
+//│     return castScrut
+//│   }
+//│   throw "Cast to 'Object' failed";
+//│ };
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+// A virtual class has no runtime representation at all; the path in its `Case.Cls` is discarded and the
+// backend emits its own test.
+:sjs
+fun toInt(): Int = mkTop()
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let toInt;
+//│ toInt = function toInt() {
+//│   let inlinedVal, castScrut;
+//│   castScrut = globalThis.Object.freeze(new Top1.class(1));
+//│   if (castScrut instanceof globalThis.Object) {
+//│     inlinedVal = castScrut;
+//│     if (globalThis.Number.isInteger(inlinedVal)) {
+//│       return inlinedVal
+//│     }
+//│     throw "Cast to 'Int' failed";
+//│   }
+//│   throw "Cast to 'Object' failed";
+//│ };
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+// A cast that holds is transparent.
+toTop() is Top
+//│ = true
+
+
+// A cast that does not hold throws instead of silently returning a value of the wrong type.
+:re
+toInt()
+//│ ═══[RUNTIME ERROR] Cast to 'Int' failed

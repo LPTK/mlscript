@@ -75,5 +75,8 @@ class CompilationPipeline(using Config, Raise, State, Ctx, SymbolPrinter):
     
     // * Final simplification pass
     runPass("BlockSimplifier 2")(BlockSimplifier(symbolsToPreserve, otl, printer).apply)
-    
+
+    // * Insert checked casts last so that no later pass can discard an inserted check.
+    runPass("CheckedCastExpansion")(blockPass(CheckedCastExpansion().applyBlock))
+
     result

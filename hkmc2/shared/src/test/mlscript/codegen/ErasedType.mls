@@ -644,8 +644,8 @@ fun f(x: Anything): Anything = x
 // Under `:checkCasts`, every coercion inserted by lowering is marked as checked, and prints as
 // `as checked T`. The flag is read once, where the coercion is introduced; it changes nothing else about
 // lowering, so the IR is otherwise identical to the unmarked casts above.
-// Note: nothing consumes the mark yet - the pass expanding a checked cast into a runtime type test that
-// throws is not implemented, so the generated code is unchanged for now.
+// The mark is consumed later, by `CheckedCastExpansion`; what it expands into is covered by
+// `CheckedCasts.mls`.
 :checkCasts
 fun mkObj2(): Object = new Object()
 val o2: Object = mkObj2()
