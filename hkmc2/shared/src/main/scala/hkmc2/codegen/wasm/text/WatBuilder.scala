@@ -26,6 +26,11 @@ extension (instr: FoldedInstr)
   private def mnemonicPrefix: Opt[Str] =
     instr.mnemonic.split('.').optionUnless(_.size == 1).map(_.head)
 
+/** Whether `sym` is one of the builtin classes boxed as `i31ref`, i.e. `Int`, `Int31`, and `Bool`. */
+private def isBoxedAsI31(sym: Symbol, ctx: Ctx): Bool =
+  val builtins = ctx.elabCtx.builtins
+  (sym eq builtins.Int) || (sym eq builtins.Int31) || (sym eq builtins.Bool)
+
 extension (et: ErasedType)
   /** Returns the corresponding Wasm type for this [[`ErasedType`]]. */
   private[text] def wasmType(using Ctx, State): Opt[ValType] =
@@ -33,7 +38,7 @@ extension (et: ErasedType)
     val elabCtx = ctx.elabCtx
     elabCtx.givenIn:
       et.canonicalize match
-        case ErasedType.AnyRef(_, tpeSym) if Set(elabCtx.builtins.Int, elabCtx.builtins.Int31, elabCtx.builtins.Bool).contains(tpeSym) =>
+        case ErasedType.AnyRef(_, tpeSym) if isBoxedAsI31(tpeSym, ctx) =>
           S(RefType.i31ref)
         case ErasedType.AnyRef(_, tpeSym) =>
           tpeSym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
@@ -2515,30 +2520,61 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                         extraInfo = S(s"ClassLikeSymbol: ${cls.toString}"),
                       ))
                     val isStructCompatible = ref.test(getScrutExpr, baseObjectRefType(nullable = false))
-                    val scrutRtti = readObjectTypeInfo(getScrutExpr)
-                    // A class only has a `typeinfo` global if it was registered as a top-level class of this
-                    // module, which requires it to have a Wasm struct representation. Builtins such as `Int`,
-                    // `Bool` and `Str` are boxed as `i31ref`/imported references instead, and `Object` is only
-                    // `declare`d, so none of them can be tested through the RTTI chain.
-                    val targetRtti = getClassTypeInfoGlobal(clsBlkMemberSym) getOrElse:
-                      break(errExpr(
-                        Ls(msg"Pattern matching against class `${clsBlkMemberSym.nme}`, which has no Wasm " +
-                          msg"runtime type information, is not implemented yet" -> scrut.toLoc),
-                        extraInfo = S(s"no `typeinfo` global is registered for `${clsBlkMemberSym}`"),
-                      ))
-                    val classMatchExpr = isSubtypeByTypeInfo(scrutRtti, targetRtti)
+                    def isArrayCompatible = ref.test(getScrutExpr, RefType(HeapType.Array, nullable = false))
 
-                    S(`if`(
-                      condition = isStructCompatible,
-                      ifTrue = `if`(
-                        condition = classMatchExpr,
+                    if cls eq ctx.elabCtx.builtins.Object then
+                      // All `Object`s are emitted as a struct that extends `$Object` - A simple `ref.test` against
+                      // `$Object` struct is enough. `Tuple` is a special case - it is emitted as a `(ref array)`, so we
+                      // also check against that.
+                      S(`if`(
+                        condition = i32.or(isStructCompatible, isArrayCompatible),
                         ifTrue = ifTrue,
                         ifFalse = N,
                         resultTypes = Seq.empty,
-                      ),
-                      ifFalse = N,
-                      resultTypes = Seq.empty,
-                    ))
+                      ))
+                    else if cls eq ctx.elabCtx.builtins.Array then
+                      // Arrays are just `(ref array)`.
+                      S(`if`(
+                        condition = isArrayCompatible,
+                        ifTrue = ifTrue,
+                        ifFalse = N,
+                        resultTypes = Seq.empty,
+                      ))
+                    else if isBoxedAsI31(cls, ctx) then
+                      // `Int`, `Int31`, and `Bool` are all boxed `i31ref`s.
+                      // 
+                      // TODO(Derppening): Ideally we should be able to tell `Int` and `Bool` apart at runtime, but
+                      //                   could we do so without introducing another (struct) type?
+                      S(`if`(
+                        condition = ref.test(getScrutExpr, RefType.i31ref),
+                        ifTrue = ifTrue,
+                        ifFalse = N,
+                        resultTypes = Seq.empty,
+                      ))
+                    else
+                      val scrutRtti = readObjectTypeInfo(getScrutExpr)
+                      // Every other class is matched by walking the scrutinee's RTTI chain, which needs the
+                      // target's `typeinfo` global - registered only for classes with a Wasm struct
+                      // representation.
+                      val targetRtti = getClassTypeInfoGlobal(clsBlkMemberSym) getOrElse:
+                        break(errExpr(
+                          Ls(msg"Pattern matching against class `${clsBlkMemberSym.nme}`, which has no Wasm " +
+                            msg"runtime type information, is not implemented yet" -> scrut.toLoc),
+                          extraInfo = S(s"no `typeinfo` global is registered for `${clsBlkMemberSym}`"),
+                        ))
+                      val classMatchExpr = isSubtypeByTypeInfo(scrutRtti, targetRtti)
+
+                      S(`if`(
+                        condition = isStructCompatible,
+                        ifTrue = `if`(
+                          condition = classMatchExpr,
+                          ifTrue = ifTrue,
+                          ifFalse = N,
+                          resultTypes = Seq.empty,
+                        ),
+                        ifFalse = N,
+                        resultTypes = Seq.empty,
+                      ))
                   case Case.Tup(len, inf) =>
                     val arrayRefType = RefType(HeapType.Array, nullable = true)
                     val isArrayTest = ref.test(getScrutExpr, arrayRefType)
