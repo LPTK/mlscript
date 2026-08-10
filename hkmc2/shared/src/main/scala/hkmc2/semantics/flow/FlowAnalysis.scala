@@ -15,6 +15,7 @@ import syntax.Tree
 import Elaborator.{State, Ctx, ctx}
 import Producer as P
 import Consumer as C
+import hkmc2.semantics.ClassSymbol
 
 
 
@@ -28,7 +29,7 @@ case class ConcreteProd(path: Path, ctor: ProdCtor)
 
 
 enum AppTarget:
-  case ObjectMember(sym: MemberSymbol)
+  case ObjectMember(sym: ClassSymbol)
   case Err(err: ErrorReport)
 
 enum SelectionTarget:

@@ -945,7 +945,9 @@ extends Importer:
     else Term.Lam(PlainParamList(params), st)
   
   private def app(lt: Term, rt: Term)(tree: Tree.App, typ: Opt[typing.Type], resSym: FlowSymbol): Term =
-    Term.App(lt, rt)(tree, typ, resSym)
+    val res = new Term.App(lt, rt)(tree, typ, resSym)
+    listen(lt, shape => appShape(shape, rt, res))
+    res
   
   def subterm(tree: Tree): Ctxl[UnderCtx ?=> Term] =
   trace[Term](s"Elab subterm ${tree.showDbg}", r => s"~> $r"):

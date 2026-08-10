@@ -58,9 +58,10 @@ class NewResolver:
       // case _ =>
       val sh = new AppShape(lhs, args, res):
         def get(sym: BlockMemberSymbol): Opt[AppTarget] =
+          // println(s"? $sym ${sym.asCls}")
           sym.asCls match
-          case S(cls) =>
-            println(s"?! $cls ${cls.tree}")
+          case S(clsSym) =>
+            // println(s"?! $cls ${cls.tree}")
             // case s @ S(clsSym) =>
             //   S(SelectionTarget.ObjectMember(clsSym))
             // case N =>
@@ -71,7 +72,8 @@ class NewResolver:
             //   raise(rep)
             //   // S(ErrShape(rep))
             //   S(SelectionTarget.Err(rep))
-            N
+            // N
+            S(AppTarget.ObjectMember(clsSym))
           case N =>
             N
         val target = receiver match
@@ -110,8 +112,25 @@ class NewResolver:
       // lhs match
       // case _ =>
       val sh = new SelShape(lhs, id, res):
+        def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
+          getFromClsTree(cls.tree)
+        // TODO: only use `getFromCls`...
+        def getFromClsTree(cls: Tree.TypeDef): Opt[SelectionTarget] =
+          // log(s"?!! ${cls.definedSymbols}")
+          cls.definedSymbols.get(nme.name) match
+          case s @ S(clsSym) =>
+            S(SelectionTarget.ObjectMember(clsSym))
+          case N =>
+            res.isErroneous = true
+            val rep = 
+              ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
+                }' does not contain member '${nme.name}'" -> res.toLoc :: Nil)
+            raise(rep)
+            // S(ErrShape(rep))
+            S(SelectionTarget.Err(rep))
         def get(sym: BlockMemberSymbol): Opt[SelectionTarget] =
           // log(s"?! ${sym.modOrObjTree}")
+          /* 
           sym.modOrObjTree match
           case S(cls) =>
             // log(s"?!! ${cls.definedSymbols}")
@@ -128,6 +147,8 @@ class NewResolver:
               S(SelectionTarget.Err(rep))
           case N =>
             N
+          */
+          sym.modOrObjTree.flatMap(getFromClsTree)
         val target = receiver match
           case ss: SymShape =>
             /* 
@@ -148,8 +169,10 @@ class NewResolver:
             get(ss.sym)
           case app: AppShape =>
             app.target match
-            case S(AppTarget.ObjectMember(sym: BlockMemberSymbol)) => get(sym)
-            case S(AppTarget.ObjectMember(sym)) => ???
+            // case S(AppTarget.ObjectMember(sym: BlockMemberSymbol)) => get(sym)
+            // case S(AppTarget.ObjectMember(sym)) => ???
+            case S(AppTarget.ObjectMember(cls)) =>
+              getFromCls(cls)
             case tg @ S(AppTarget.Err(err)) =>
               // app.src.isErroneous = true // TODO
               N
