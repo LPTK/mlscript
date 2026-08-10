@@ -97,8 +97,8 @@ addOne(41) + useIt(41)
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $plus_impl (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
 //│   (type $addOne (func (param $x (ref null i31)) (result (ref null any))))
+//│   (type $plus_impl (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
 //│   (type $useIt (func (param $v (ref null any)) (result (ref null any))))
 //│   (type $entry (func (result (ref null any))))
 //│   (import "system" "plus_impl" (func $plus_impl (type $plus_impl)))
@@ -452,6 +452,6 @@ takeTop(1)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
 //│ ║  l.451: 	takeTop(1)
 //│ ╙──       	        ^
-//│ ╔══[COMPILATION ERROR] Function `takeTop` produces a Wasm value of type `i32`, which is incompatible with its declared result type `(ref null any)`
+//│ ╔══[COMPILATION ERROR] Wasm function `takeTop` expects result to have type `(ref null any)`, but got `i32`
 //│ ║  l.450: 	fun takeTop(m: Int32) = m
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^

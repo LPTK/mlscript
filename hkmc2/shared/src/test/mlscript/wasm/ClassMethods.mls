@@ -286,7 +286,7 @@ Unannotated(0).take(1)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
 //│ ║  l.285: 	Unannotated(0).take(1)
 //│ ╙──       	                    ^
-//│ ╔══[COMPILATION ERROR] Method `take` produces a Wasm value of type `i32`, which is incompatible with its declared result type `(ref null any)`
+//│ ╔══[COMPILATION ERROR] Wasm function `take` expects result to have type `(ref null any)`, but got `i32`
 //│ ║  l.284: 	  fun take(m: Int32) = m
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^
 

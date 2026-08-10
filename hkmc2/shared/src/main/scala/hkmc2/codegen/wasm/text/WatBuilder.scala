@@ -779,30 +779,33 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case S(ErasedType.FuncRef(_, _, N)) | N => RefType.anyref
       case et => lastWords(s"Unexpected type `$et` where `FuncRef` was expected")
 
-  /** Reconciles the declared Wasm result type of `sym` with the type its compiled body actually produces.
+  /** Checks that the generated body `bodyWat` for the function/method `sym` conforms to the expected result type as
+    * declared by its placeholder, returning the body to emit.
     *
-    * A body coarser than the declaration widens to `anyref`. Primitives have no `anyref` representation, so widening
-    * is unavailable there and the mismatch is an error; the body's own type is kept so that the emitted module stays
-    * well-formed.
+    * If the result types do conform, `bodyWat` is returned unchanged. Otherwise, a poison expression that can be typed
+    * against any result type is returned instead, and an error is raised.
     */
-  private def reconcileResultType(sym: BlockMemberSymbol, bodyWat: Expr, declared: ValType)(using Raise): ValType =
-    bodyWat.resultType match
-      case S(ty) if ty.isSubtypeOf(declared) => declared
-      // If the body expression doesn't produce anything, we keep the declared type so that the function signature is
-      // well-formed
-      case N => declared
-      case S(ty) =>
-        (ty, declared) match
-          case (_: RefType, _: RefType) => lastWords:
-            s"Function `${sym.nme}` has return type `${declared.toWat.mkString()}` but its body has return type `${ty.toWat.mkString()}`"
-          case _ =>
-            raise(ErrorReport(
-              Ls(msg"Function `${sym.nme}` produces a Wasm value of type `${
-                  ty.toWat.mkString()
-                }`, which is incompatible with its declared result type `${declared.toWat.mkString()}`" -> sym.toLoc),
-              source = Diagnostic.Source.Compilation,
-            ))
-            ty.asValType_!
+  private def checkBodyRetType(
+      sym: BlockMemberSymbol,
+      bodyWat: Expr,
+      declared: Seq[Result],
+  )(using Raise): Expr =
+    (bodyWat.resultTypes, declared) match
+      case (Seq(ty), Seq(decl)) if !ty.isSubtypeOf(decl.valtype) =>
+        val msgs = Ls(
+          msg"Wasm function `${sym.nme}` expects result to have type `${
+            decl.valtype.toWat.mkString()
+          }`, but got `${ty.toWat.mkString()}`" -> sym.toLoc
+        )
+        (ty, decl.valtype) match
+          // ICE: A ref<->ref mismatch should be reconciled by a `Cast` during lowering.
+          case (_: RefType, _: RefType) => internalErrExpr(msgs, extraInfo = S(bodyWat.toWat.mkString()))
+          // A primitive is never compatible with a reference. Since this is reachable from user code
+          // (`fun takeTop(m: Int32) = m`), we report it as a user error.
+          case _ => errExpr(msgs, extraInfo = S(bodyWat.toWat.mkString()))
+      case _ =>
+        softAssert(declared.sizeIs == 1, s"Wasm function `${sym.nme}` with multiple declared results not supported yet")
+        bodyWat
 
   /** Returns the shared erased Wasm function signature for a virtual method slot introduced by `baseSym`, with the
     * given non-`this` param types, including a concretely-typed `this`.
@@ -935,6 +938,38 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     predeclareClassConstructor(defn)
     predeclareClassMethods(defn)
     predeclareClassTypeInfoGlobal(defn)
+
+  /** Registers a placeholder for a top-level function.
+    *
+    * The result type of the function is derived from the type annotations present on the function, falling back to
+    * `anyref` when there is none.
+    *
+    * Note that only top-level functions that will be lowered by the [[FuncDef]] arm of [[returningTerm]] can be
+    * pre-declared with this function. Otherwise, the function body will not be overwritten and the (`unreachable`)
+    * placeholder will remain in the final module.
+    */
+  private def predeclareTopLevelFun(sym: BlockMemberSymbol, ps: ParamList)(using Raise): Unit =
+    val params = ps.paramSyms.map(p => p -> SymIdx(p.nme))
+    val resultTypes = Seq(Result(declaredResultType(sym)))
+    val funcTy = ctx.addType(TypeInfo(
+      sym = TempSymbol(N, erasedType = N, sym.nme),
+      compType = FunctionType(
+        params = params.map((p, idx) => WasmParam(idx, p.paramType)),
+        results = resultTypes,
+      ),
+      objectTag = N,
+    ))
+    ctx.addFunc(FuncInfo(
+      sym,
+      typeUse = TypeUse(funcTy),
+      params = params.map(_.resolvedParam),
+      resultTypes = resultTypes,
+      locals = Seq.empty,
+      // Use `unreachable` as the placeholder body so that the module always remains well-formed.
+      body = unreachable,
+      exportName = sym.optionIf(_.nameIsMeaningful).map(_.nme),
+    ))
+  end predeclareTopLevelFun
 
   /** Collects the symbols that should live in mutable globals so later REPL blocks can import them.
     *
@@ -1453,6 +1488,18 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       extraInfo: => Opt[Any] = N,
   )(using Raise)(using Line): Expr =
     raise(ErrorReport(errMsgs, source = Diagnostic.Source.Compilation, extraInfo = extraInfo))
+    unreachable
+
+  /** Raises an [[InternalError]] with the given `errMsgs` and `extraInfo`, and emits an `unreachable` instruction.
+    *
+    * Used when any invariants in the [[WatBuilder]] is violated, and as such fails a difftest even if it is marked as
+    * `:ge`.
+    */
+  def internalErrExpr(
+      errMsgs: Ls[Message -> Opt[Loc]],
+      extraInfo: => Opt[Any] = N,
+  )(using Raise)(using Line): Expr =
+    raise(InternalError(errMsgs, source = Diagnostic.Source.Compilation, extraInfo = extraInfo))
     unreachable
 
   /** Returns the local or global index for a given symbol `l`. */
@@ -2127,53 +2174,48 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       extraInfo = S(defn.showAsTree),
                     )))
 
-                  val result = pss.foldRight(bod):
-                    case (ps, block) =>
-                      Return(Lambda(ps, block)(Nil))
-                  val (bodyWat, fnCtx) = setupFunction(N, ps, result)
-                  if sym.nameIsMeaningful then
-                    val resultTypes = Seq:
-                      Result(reconcileResultType(defn.sym, bodyWat, declaredResultType(defn.sym)))
-                    val funcTy = ctx.addType(
-                      TypeInfo(
-                        sym = TempSymbol(N, erasedType = N, sym.nme),
-                        compType = FunctionType(
-                          params = fnCtx.params.map(p => WasmParam(p._2, p._1.paramType)),
-                          results = resultTypes,
-                        ),
-                        objectTag = N,
-                      ),
-                    )
-
-                    val funcInfo = FuncInfo(
-                      sym,
-                      typeUse = TypeUse(funcTy),
-                      params = ps.params.zip(fnCtx.params.map(_._2)).map((p, idx) => (p.sym -> idx).resolvedParam),
-                      resultTypes = resultTypes,
-                      locals = fnCtx.locals,
-                      body = bodyWat,
-                      exportName = sym.optionIf(_.nameIsMeaningful).map(_.nme),
-                    )
-                    ctx.addFunc(funcInfo)
-                    if summon[SessionExportCtx].shouldExport(defn.sym) then
-                      summon[SessionExportCtx].emit(SessionFunc(
-                        sym = defn.sym,
-                        wrapId = funcInfo.wrapId,
-                        moduleName = SessionBinding.ReplModuleName,
-                        exportName = sym.nme,
-                        funcType = FunctionType(funcInfo.getSignatureType),
-                      ))
-
-                    N
-                  else
-                    S(errExpr(
+                  // Checked before predeclaring, since a function this lowering refuses must not leave a placeholder
+                  // behind in the module.
+                  if !sym.nameIsMeaningful then
+                    break(S(errExpr(
                       Ls(
                         msg"WatBuilder::returningTerm for FunDefn(...) where `!sym.nameIsMeaningful` not implemented yet" ->
                           defn.sym.toLoc,
                       ),
                       extraInfo = S(defn.showAsTree),
+                    )))
+
+                  val result = pss.foldRight(bod):
+                    case (ps, block) =>
+                      Return(Lambda(ps, block)(Nil))
+                  predeclareTopLevelFun(sym, ps)
+                  val (bodyWat, fnCtx) = setupFunction(N, ps, result)
+                  val predeclared = ctx.getFuncInfo_!(sym)
+
+                  val funcInfo = FuncInfo(
+                    sym,
+                    typeUse = predeclared.typeUse,
+                    params = fnCtx.resolvedParams,
+                    resultTypes = predeclared.resultTypes,
+                    locals = fnCtx.locals,
+                    body = checkBodyRetType(sym, bodyWat, predeclared.resultTypes),
+                    exportName = predeclared.exportName,
+                  )
+                  softAssert(
+                    funcInfo.id == predeclared.id,
+                    s"Function ID mismatch while overwriting body for `${sym.nme}`: Predeclared: ${predeclared.id}; Overwriting: ${funcInfo.id}"
+                  )
+                  ctx.addFunc(funcInfo)
+                  if summon[SessionExportCtx].shouldExport(defn.sym) then
+                    summon[SessionExportCtx].emit(SessionFunc(
+                      sym = defn.sym,
+                      wrapId = funcInfo.wrapId,
+                      moduleName = SessionBinding.ReplModuleName,
+                      exportName = sym.nme,
+                      funcType = FunctionType(funcInfo.getSignatureType),
                     ))
-                  end if
+
+                  N
                 case clsLikeDefn: ClsLikeDefn =>
                   // Guard against unsupported features
                   def errUnimplExpr(cond: Str): Nothing = break(S(errExpr(
@@ -2269,30 +2311,21 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                         RefType(ctx.getType_!(vt.slots(slot).owner), nullable = false) +: vt.slots(slot).paramTypes
                     val (bodyWat, fnCtx) = setupFunction(S(clsLikeDefn.isym), ps, bod, paramTypes = paramTypes)
                     val predeclaredMethod = ctx.getFuncInfo_!(sym)
-                    // The method's Wasm type is fixed at predeclaration, so a body that does not conform cannot be
-                    // accommodated by widening the result the way a top-level function can.
-                    val conformingBody =
-                      (bodyWat.resultTypes, predeclaredMethod.resultTypes) match
-                        case (Seq(ty), Seq(declared)) if !ty.isSubtypeOf(declared.valtype) =>
-                          errExpr(
-                            Ls(msg"Method `${sym.nme}` produces a Wasm value of type `${
-                                ty.toWat.mkString()
-                              }`, which is incompatible with its declared result type `${
-                                declared.valtype.toWat.mkString()
-                              }`" -> sym.toLoc),
-                            extraInfo = S(bodyWat.toWat.mkString()),
-                          )
-                        case _ => bodyWat
-                    ctx.addFunc(FuncInfo(
+                    val funcInfo = FuncInfo(
                       sym,
                       wrapId = S(clsLikeDefn.sym.nme) -> N,
                       typeUse = predeclaredMethod.typeUse,
                       params = fnCtx.resolvedParams,
                       resultTypes = predeclaredMethod.resultTypes,
                       locals = fnCtx.locals,
-                      body = conformingBody,
+                      body = checkBodyRetType(sym, bodyWat, predeclaredMethod.resultTypes),
                       exportName = predeclaredMethod.exportName,
-                    ))
+                    )
+                    softAssert(
+                      funcInfo.id == predeclaredMethod.id,
+                      s"Function ID mismatch while overwriting body for `${sym.nme}`: Predeclared: ${predeclaredMethod.id}; Overwriting: ${funcInfo.id}"
+                    )
+                    ctx.addFunc(funcInfo)
                   end overwriteMethod
 
                   clsLikeDefn.methods.foreach:
