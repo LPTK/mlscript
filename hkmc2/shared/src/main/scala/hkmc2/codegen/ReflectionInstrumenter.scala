@@ -193,7 +193,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
 
   def transformResult(r: Result)(using Context)(k: Path => Block): Block = r match
     case p: Path => transformPath(p)(k)
-    case Cast(value, _) => transformResult(value)(k)
+    case Cast(value, _, _) => transformResult(value)(k)
     case Tuple(mut, elems) =>
       assert(!mut, "mutable tuple not supported")
       transformArgs(elems): xs =>

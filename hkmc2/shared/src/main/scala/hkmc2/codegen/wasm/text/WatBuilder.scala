@@ -1909,7 +1909,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       val tupleValues = elems.map(argument)
       array.new_fixed(tupleArrayType(mut), tupleValues)
 
-    case Cast(value, target) =>
+    case Cast(value, target, _) =>
       target.wasmType match
         case S(ty) => castToValType(value, ty)
         case N => result(value)

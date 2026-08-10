@@ -639,3 +639,24 @@ sccHelper(100000)
 fun f(x: Anything): Anything = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define f⁶ as fun f⁷(x: Anything): Anything { return x }; end
+
+
+// Under `:checkCasts`, every coercion inserted by lowering is marked as checked, and prints as
+// `as checked T`. The flag is read once, where the coercion is introduced; it changes nothing else about
+// lowering, so the IR is otherwise identical to the unmarked casts above.
+// Note: nothing consumes the mark yet - the pass expanding a checked cast into a runtime type test that
+// throws is not implemented, so the generated code is unchanged for now.
+:checkCasts
+fun mkObj2(): Object = new Object()
+val o2: Object = mkObj2()
+val n2: Int = o2
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Object⁰, tmp1: Int⁰;
+//│ define mkObj2⁰ as fun mkObj2¹(): Object⁰ {
+//│   return (new globalThis⁰.Object⁰() as checked Object⁰)
+//│ };
+//│ set tmp = mkObj2¹();
+//│ define o2⁰ as val o2¹: Object⁰ = tmp;
+//│ set tmp1 = (o2¹ as checked Int⁰);
+//│ define n2⁰ as val n2¹: Int⁰ = tmp1;
+//│ end

@@ -223,8 +223,8 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
     case inst @ Instantiate(mut, cls, argss) =>
       val chainedArgs = argss.map(args => doc"(${args.map(print).mkDocument(", ")})").mkDocument("")
       doc"${printAnnotations(inst.metadata.annotations, doc" ")}new ${if mut then "mut " else ""}${print(cls)}${chainedArgs}"
-    case Cast(value, target) =>
-      doc"(${print(value)} as ${print(target)})"
+    case Cast(value, target, check) =>
+      doc"(${print(value)} as${if check then " checked" else ""} ${print(target)})"
     case Lambda(params, body) =>
       scope.nest.givenIn:
         val allParams =

@@ -68,7 +68,7 @@ connected component are tail calls.
 */
 
 // This optimization assumes the lifter has been run.
-class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
+class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
   
   type AccessMap = Map[ScopedInfo, AccessInfo]
   
@@ -110,9 +110,9 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
   object TailCallShape:
     def unapply(b: Block): Opt[(TermSymbol, Call, Opt[ErasedValueType])] = b match
       case Return(c @ CallToFun(r)) => S((r, c, N))
-      case Return(Cast(c @ CallToFun(r), t)) => S((r, c, S(t)))
+      case Return(Cast(c @ CallToFun(r), t, _)) => S((r, c, S(t)))
       case Assign(a, c @ CallToFun(r), Return(Value.SimpleRef(b))) if a === b => S((r, c, N))
-      case Assign(a, c @ CallToFun(r), Return(Cast(Value.SimpleRef(b), t))) if a === b => S((r, c, S(t)))
+      case Assign(a, c @ CallToFun(r), Return(Cast(Value.SimpleRef(b), t, _))) if a === b => S((r, c, S(t)))
       case _ => N
     
   
@@ -670,7 +670,7 @@ class TailRecOpt(checkAnnotations: Bool)(using State, TL, Raise, Ctx):
       then c
       else c.copy(methods = mtds, companion = companion)(c.configOverride, c.annotations)
   
-  def transform(prog: Program)(using Config): Program =
+  def transform(prog: Program): Program =
     if !config.tailRecOpt then return prog
     /* To avoid `x` being overridden in the following when the lifter is not run:
      * 

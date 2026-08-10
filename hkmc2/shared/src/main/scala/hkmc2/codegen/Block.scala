@@ -1256,7 +1256,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Tuple(mut, elems) => s"Tuple($mut, [${elems.map(_.value.showDbg).mkString(", ")}])"
     case Instantiate(mut, cls, argss) => s"Instantiate($mut, ${cls.showDbg}, [${
       argss.map(_.map(a => a.value.showDbg).mkString("[", ", ", "]")).mkString(", ")}])"
-    case Cast(value, target) => s"Cast(${value.showDbg}, $target)"
+    case Cast(value, target, check) => s"Cast(${value.showDbg}, $target${if check then ", checked" else ""})"
   
   lazy val isPure: Bool = this match
     case _: Value => true
@@ -1268,17 +1268,8 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       ass.forall(_.forall(_.value.isPure))
     case Record(mut, args) => args.forall(_.value.isPure)
     case Tuple(mut, elems) => elems.forall(_.value.isPure)
-    // TODO(Derppening): Do we consider `Cast`s as pure? Two readings are in tension:
-    //                   My interpretation is that purity refers to strictly having no side effects, and a `Cast` is
-    //                   impure since a failed `ref.cast` traps at runtime, and a trap is observable.
-    //                   Claude reasons (based on the call sites) that `isPure` indicates if the result "is safe to
-    //                   delete when its result is dead", under which a `Cast` is pure iff its operand is. The existing
-    //                   arms favour Claude's reading: builtin `/` and `%` are pure yet trap on divide-by-zero - so the 
-    //                   invariant already admits trapping-but-referentially-transparent ops, and only genuine mutation
-    //                   (`super`) is impure. 
-    //                   We take Claude's reading for now, but this must be resolved since we may add casts on the
-    //                   surface language in the future.
-    case Cast(value, _) => value.isPure
+    // * A *checked* cast throws on failure, which is observable under either reading below.
+    case Cast(value, _, check) => !check && value.isPure
     // case Instantiate(mut, cls, args) => // TODO?
     case _ => false
   
@@ -1289,7 +1280,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
   protected def children: Vector[Located] = this match
     case Call(fun, argss) => fun +: argss.iterator.flatten.map(_.value).toVector
     case Instantiate(mut, cls, argss) => cls +: argss.iterator.flatten.map(_.value).toVector
-    case Cast(value, target) => Vector.single(value)
+    case Cast(value, target, _) => Vector.single(value)
     case Select(qual, name) => Vector.double(qual, name)
     case DynSelect(qual, fld, arrayIdx) => Vector.double(qual, fld)
     case Lambda(params, body) => Vector.single(params)
@@ -1312,7 +1303,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
   lazy val freeVars: Set[FreeSymbol] = this match
     case Call(fun, argss) => fun.freeVars ++ argss.flatten.flatMap(_.value.freeVars).toSet
     case Instantiate(mut, cls, argss) => cls.freeVars ++ argss.flatten.flatMap(_.value.freeVars).toSet
-    case Cast(value, _) => value.freeVars
+    case Cast(value, _, _) => value.freeVars
     case Select(qual, name) => qual.freeVars
     case Lambda(params, body) => body.freeVars -- params.paramSyms
     case Tuple(mut, elems) => elems.flatMap(_.value.freeVars).toSet
@@ -1327,7 +1318,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
   lazy val size: Int = this match
     case Call(fun, argss) => fun.size + argss.iterator.flatten.map(_.value.size).sum
     case Instantiate(mut, cls, argss) => cls.size + argss.iterator.flatten.map(_.value.size).sum
-    case Cast(value, _) => value.size
+    case Cast(value, _, _) => value.size
     case Select(qual, name) => qual.size
     case Lambda(params, body) => 1 + body.size
     case Tuple(mut, elems) => elems.iterator.map(_.value.size).sum
@@ -1365,21 +1356,27 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       case S(_: ClassSymbol) => N
       case S(d: (ModuleOrObjectSymbol | TypeAliasSymbol)) => d.erasedType
       case _ => N
-    case Cast(_, target) => S(target)
+    case Cast(_, target, _) => S(target)
     case _ => N
 
   /** Coerces this result to `expected`, yielding it unchanged when no coercion is required.
     *
     * Narrowing to an unrelated type is reported as an error, and this result is yielded unchanged.
+    *
+    * This is the only place where [[Config.checkCasts]] is consulted: it fixes each cast's `check` flag at the
+    * point the coercion is introduced, so that the transformers rebuilding casts downstream need not carry a
+    * [[Config]] of their own. See [[Cast]].
     */
-  def coerceTo(expected: ErasedType, loc: Opt[Loc])(using Ctx, State, Raise): Result =
+  def coerceTo(expected: ErasedType, loc: Opt[Loc])(using Ctx, State, Raise, Config): Result =
     val actual = erasedValueType_!.canonicalize
     val declared = expected.canonicalize
     ErasedType.needsCast(actual, declared) match
       case S(false) => this
-      case S(true) => Cast(this, expected match
-        case _: ErasedFuncType => ErasedType.Function
-        case v: ErasedValueType => v)
+      case S(true) =>
+        val target = expected match
+          case _: ErasedFuncType => ErasedType.Function
+          case v: ErasedValueType => v
+        Cast(this, target, config.checkCasts)
       case N =>
         raise:
           ErrorReport(
@@ -1488,24 +1485,34 @@ case class Instantiate(mut: Bool, cls: Path, argss: Ls[Ls[Arg]])(val metadata: I
 
 /** A coercion of `value` to `target`.
   *
+  * When `check` is set, the coercion is checked at runtime: a later pass expands the node into a type test that
+  * throws when it fails. When it is unset, the coercion is a static assertion that backends may erase (as the JS
+  * backend does) or lower to a trapping instruction (as the Wasm backend does with `ref.cast`).
+  *
+  * `check` is decided once, at the sole semantic construction site [[Result.coerceTo]], which reads
+  * [[Config.checkCasts]]. Every other site that rebuilds a cast must *copy* the flag rather than re-derive it, so
+  * that the configuration does not have to be threaded through the IR transformers.
+  *
   * Invariants:
   * - `value` is not a `Cast`.
-  * - `target` must be a proper subtype of `value`'s erased type (note: currently unchecked at runtime).
+  * - `target` must be a proper subtype of `value`'s erased type.
   */
-case class Cast private(value: Result, target: ErasedValueType) extends Result
+case class Cast private(value: Result, target: ErasedValueType, check: Bool) extends Result
 
 object Cast:
   /** Builds a cast while collapsing a nested cast.
     *
     * This node is malformed if the target type is not a proper subtype of the value's erased type.
+    *
+    * Collapsing `Cast(Cast(v, T), U)` to `Cast(v, U)` discards the inner *type test* but must not discard the
+    * obligation to test. Doing so is sound because casts only ever narrow: `U` is a proper subtype of `T`, so a
+    * value passing the `U` test necessarily passes the `T` test, and the collapsed test subsumes the one dropped.
+    * The flags therefore combine by disjunction - only the failure *message* is affected, not whether we fail.
     */
-  def apply(value: Result, target: ErasedValueType): Cast =
-    new Cast(
-      value match
-        case Cast(inner, _) => inner
-        case _ => value,
-      target,
-    )
+  def apply(value: Result, target: ErasedValueType, check: Bool): Cast =
+    value match
+      case Cast(inner, _, innerCheck) => new Cast(inner, target, check || innerCheck)
+      case _ => new Cast(value, target, check)
 
 case class Lambda(params: ParamList, body: Block)(val annot: Ls[Annot]) extends Result:
   lazy val affine: Bool = annot.exists(_.isInstanceOf[Annot.Affine])

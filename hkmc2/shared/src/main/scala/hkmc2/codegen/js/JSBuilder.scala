@@ -190,7 +190,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       if l.nullary then l.nme
       else errExpr(msg"Illegal reference to builtin symbol '${l.nme}'")
     case Value.SimpleRef(l) => scope.lookup_!(l, r.toLoc)
-    case Cast(value, _) => result(value)
+    case Cast(value, _, _) => result(value)
     case Call(Value.SimpleRef(l: BuiltinSymbol), (lhs :: rhs :: Nil) :: Nil) if !l.functionLike =>
       if l.binary then
         val res = doc"${operand(lhs)} ${l.nme} ${operand(rhs)}"
