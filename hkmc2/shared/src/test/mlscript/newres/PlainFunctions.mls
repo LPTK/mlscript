@@ -14,7 +14,24 @@ class Foo(val a) {
 //│   }
 //│ whereTODO
 
+:de
 let f = Foo(1)
+//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(Ident(Foo),Tup(List(IntLit(1))))),None)) LocalScope(block:4)
+//│ | Processing `let` statement Ident(f) (f‹54›) LocalScope(block:4)
+//│ | Elab term App(Ident(Foo),Tup(List(IntLit(1))))
+//│ | | Elab subterm App(Ident(Foo),Tup(List(IntLit(1))))
+//│ | | | Elab subterm Ident(Foo)
+//│ | | | ~> Ref(member:Foo‹39›)
+//│ | | | Elab subterm Tup(List(IntLit(1)))
+//│ | | | | Elab term IntLit(1)
+//│ | | | | | Elab subterm IntLit(1)
+//│ | | | | | ~> Lit(IntLit(1))
+//│ | | | | ~> Lit(IntLit(1))
+//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
+//│ | | ~> App(Ref(member:Foo‹39›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ | ~> App(Ref(member:Foo‹39›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ | listen: trm = App(Ref(member:Foo‹39›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ ~> Blk(List(LetDecl(f‹54›,List()), DefineVar(f‹54›,App(Ref(member:Foo‹39›),Tup(List(Fld(‹›,Lit(IntLit(1)),None)))))),Lit(UnitLit(false)))
 
 :fixme
 :de
@@ -29,7 +46,7 @@ f.a
 //│ | ~> Sel(Ref(f‹54›),Ident(a))
 //│ ~> Blk(List(),Sel(Ref(f‹54›),Ident(a)))
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.21: 	f.a
+//│ ║  l.38: 	f.a
 //│ ╙──      	^^^
 
 :fixme
@@ -45,7 +62,7 @@ f.b
 //│ | ~> Sel(Ref(f‹54›),Ident(b))
 //│ ~> Blk(List(),Sel(Ref(f‹54›),Ident(b)))
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.37: 	f.b
+//│ ║  l.54: 	f.b
 //│ ╙──      	^^^
 
 :fixme
@@ -58,10 +75,10 @@ foo(f)
 //│   foo⁰(f⁰)‹app²›
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.54: 	  x.a + x.b
+//│ ║  l.71: 	  x.a + x.b
 //│ ╙──      	  ^^^
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.54: 	  x.a + x.b
+//│ ║  l.71: 	  x.a + x.b
 //│ ╙──      	        ^^^
 
 

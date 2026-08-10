@@ -14,7 +14,7 @@ import Elaborator.State
 import hkmc2.typing.Type
 import hkmc2.semantics.Elaborator.{Ctx, ctx}
 import hkmc2.Message.MessageContext
-import hkmc2.semantics.flow.SelectionTarget
+import hkmc2.semantics.flow.{SelectionTarget, AppTarget}
 
 
 final case class QuantVar(sym: VarSymbol, ub: Opt[Term], lb: Opt[Term])
@@ -117,6 +117,13 @@ object AnySel:
     case Term.SynthSel(lhs, id) => S((lhs, id, N))
     case Term.SelProj(lhs, cls, proj) => S((lhs, proj, S(cls)))
 end AnySel
+
+
+sealed trait AppImpl extends ResolvableImpl:
+  self: Term.App =>
+  var resolvedTargets: Ls[flow.AppTarget] = Nil // * filled during flow analysis
+end AppImpl
+
 
 type Resolvable = Term & ResolvableImpl
 
@@ -334,9 +341,10 @@ sealed trait TermShape:
 
 class ErrShape(val err: ErrorReport) extends TermShape:
   def describe: Str = s"error: ${err.mainMsg}"
-class AppShape(val lhs: Shape, val args: Term) extends TermShape:
-  def describe: Str = s"application of ${lhs.describe} to ${args.describe}"
-  override def toString: String = s"AppShape($lhs, $args)"
+abstract class AppShape(val receiver: Shape, val args: Term, val src: Term.App) extends TermShape:
+  def describe: Str = s"application of ${receiver.describe} to ${args.describe}"
+  override def toString: String = s"AppShape($receiver, $args)"
+  def target: Opt[AppTarget]
 abstract class SelShape(val receiver: Shape, val nme: Tree.Ident, val src: AnySel) extends TermShape:
 // class SelShape(val lhs: Shape, val nme: Tree.Ident)(using Raise) extends TermShape:
   def describe: Str = s"selection of '${nme.name}' from ${receiver.describe}"
@@ -365,7 +373,7 @@ enum Term extends Statement, ShapePublisher:
   case Ref(sym: Symbol)
     (val tree: Tree.Ident, val refNum: Int, val typ: Opt[Type]) extends Term, ResolvableImpl
   case App(lhs: Term, rhs: Term)
-    (val tree: Tree.App, val typ: Opt[Type], val resSym: FlowSymbol) extends Term, ResolvableImpl
+    (val tree: Tree.App, val typ: Opt[Type], val resSym: FlowSymbol) extends Term, AppImpl
   case TyApp(lhs: Term, targs: Ls[Term])
     (val typ: Opt[Type]) extends Term, ResolvableImpl
   case Sel(prefix: Term, nme: Tree.Ident)

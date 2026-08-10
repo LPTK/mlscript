@@ -15,7 +15,7 @@ import Term.*
 
 import Elaborator.*
 import hkmc2.syntax.LetBind
-import hkmc2.semantics.flow.SelectionTarget
+import hkmc2.semantics.flow.{SelectionTarget, AppTarget}
 
 
 class NewResolver:
@@ -44,10 +44,64 @@ class NewResolver:
   
   // TODO: index by Shape identity (change Term equals/hashCode?)
   val selShapes: mutable.Map[(Shape, Str), SelShape] = mutable.Map.empty
+  val appShapes: mutable.Map[(Shape, Term), AppShape] = mutable.Map.empty
   val symShapes: mutable.Map[BlockMemberSymbol, SymShape] = mutable.Map.empty
   
   // def getSelShape(lhs: Shape, nme: Tree.Ident): SelShape =
   //   selShapes.getOrElseUpdate((lhs, nme.name), SelShape(lhs, nme))
+  
+  def appShape(lhs: Shape, args: Term, res: App): Unit =
+    // log(s"appShape? lhs = $lhs, args = $args, res = $res")
+    val sh = appShapes.getOrElseUpdate((lhs, args), {
+      log(s"appShape: lhs = $lhs, args = $args, res = $res")
+      // lhs match
+      // case _ =>
+      val sh = new AppShape(lhs, args, res):
+        def get(sym: BlockMemberSymbol): Opt[AppTarget] =
+          sym.asCls match
+          case S(cls) =>
+            println(s"?! $cls ${cls.tree}")
+            // case s @ S(clsSym) =>
+            //   S(SelectionTarget.ObjectMember(clsSym))
+            // case N =>
+            //   // res.isErroneous = true
+            //   val rep = 
+            //     ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
+            //       }' cannot be called like a function" -> res.toLoc :: Nil)
+            //   raise(rep)
+            //   // S(ErrShape(rep))
+            //   S(SelectionTarget.Err(rep))
+            N
+          case N =>
+            N
+        val target = receiver match
+          case ss: SymShape =>
+            get(ss.sym)
+          case sel: SelShape =>
+            sel.target match
+            case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) => get(sym)
+            case S(SelectionTarget.ObjectMember(sym)) => ???
+            case S(SelectionTarget.CompanionMember(comp, sym)) => ???
+            case tg @ S(SelectionTarget.Err(err)) =>
+              // S(ErrShape(err))
+              sel.src.isErroneous = true
+              N
+            case N => N
+          case sh =>
+            // res.isErroneous = true
+            raise:
+              ErrorReport(
+                msg"TODO error (${sh.describe})" -> res.toLoc :: Nil,
+                source = Diagnostic.Source.Compilation)
+            N
+        target.foreach: tgt =>
+          res.resolvedTargets ::= tgt
+      // if res.shapes.add(sh) then
+      //   res.shapeListeners.foreach(listener => listener(sh))
+      sh
+    })
+    if res.shapes.add(sh) then
+      res.shapeListeners.foreach(listener => listener(sh))
   
   def selShape(lhs: Shape, id: Tree.Ident, res: AnySelTerm): Unit =
     // log(s"selShape? lhs = $lhs, nme = $nme, res = $res")
@@ -92,6 +146,14 @@ class NewResolver:
               N
             */
             get(ss.sym)
+          case app: AppShape =>
+            app.target match
+            case S(AppTarget.ObjectMember(sym: BlockMemberSymbol)) => get(sym)
+            case S(AppTarget.ObjectMember(sym)) => ???
+            case tg @ S(AppTarget.Err(err)) =>
+              // app.src.isErroneous = true // TODO
+              N
+            case N => N
           case sel: SelShape =>
             // sel.target.flatMap(get)
             sel.target match

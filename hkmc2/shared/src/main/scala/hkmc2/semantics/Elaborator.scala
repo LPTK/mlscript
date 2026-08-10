@@ -634,7 +634,7 @@ extends Importer:
     val rs = FlowSymbol.app()
     val mtdTree = new Ident(methodName)
     val argTree = new Tup(argTrees)
-    Term.App(
+    app(
       Term.Sel(handlerSymbol.ref(callSiteId), mtdTree)(
         S(state.nonLocalRet), FlowSymbol.sel(callSiteId.name), N, S(summon)),
       Term.Tup(argTerms.map(term => PlainFld(term)))(argTree),
@@ -841,7 +841,7 @@ extends Importer:
       val split = term(lhs).reference: lhs =>
         val mk2 = (rhs: Term) =>
           val args = Term.Tup(PlainFld(lhs()) :: PlainFld(rhs) :: Nil)(DummyTup)
-          Term.App(op, args)(Tree.DummyApp, N, FlowSymbol("‹operator-split›"))
+          app(op, args)(Tree.DummyApp, N, FlowSymbol("‹operator-split›"))
         termSplit(rhss, mk2 andThen mk)
       (ctx, split)
     case OpSplit(lhs, rhss) =>
@@ -944,6 +944,9 @@ extends Importer:
     if params.isEmpty then st
     else Term.Lam(PlainParamList(params), st)
   
+  private def app(lt: Term, rt: Term)(tree: Tree.App, typ: Opt[typing.Type], resSym: FlowSymbol): Term =
+    Term.App(lt, rt)(tree, typ, resSym)
+  
   def subterm(tree: Tree): Ctxl[UnderCtx ?=> Term] =
   trace[Term](s"Elab subterm ${tree.showDbg}", r => s"~> $r"):
     
@@ -954,7 +957,7 @@ extends Importer:
       val sym = FlowSymbol.app()
       val lt = subterm(sel)
       val rt = subterm(Tup(args))
-      Term.App(lt, rt)(tree, N, sym)
+      app(lt, rt)(tree, N, sym)
     
     def elaborateSelection(tree: Sel): Term =
       val preTrm = subterm(tree.prefix)
@@ -1151,7 +1154,7 @@ extends Importer:
     case InfixApp(lhs, Keywrd(Keyword.`:`), rhs) =>
       block(tree :: Nil, hasResult = false)._1
     case PrefixApp(kw @ Keywrd(Keyword.`not`), rhs) =>
-      Term.App(State.builtinOpsMap("!").ref(new Ident("not").withLocOf(kw)), Term.Tup(
+      app(State.builtinOpsMap("!").ref(new Ident("not").withLocOf(kw)), Term.Tup(
         PlainFld(subterm(rhs)) :: Nil)(DummyTup))(DummyApp, N, FlowSymbol("not-app"))
     case tree @ InfixApp(lhs, Keywrd(Keyword.`is` | Keyword.`and` | Keyword.`or`), rhs) =>
       Term.IfLike(Keyword.`if`, IfLikeForm.ReturningIf, shorthandSplit(tree))
@@ -1235,13 +1238,13 @@ extends Importer:
       val sym = FlowSymbol.app()
       val lt = subterm(lhs)
       val rt = subterm(rhs)
-      Term.App(lt, rt)(tree, N, sym)
+      app(lt, rt)(tree, N, sym)
     case tree @ OpApp(lhs, op, rhss) =>
       val sym = FlowSymbol.app()
       val lt = subterm(lhs)
       val ot = subterm(op)
       val rts = rhss.map(r => PlainFld(subterm(r)))
-      Term.App(ot, Term.Tup(PlainFld(lt) :: rts)(DummyTup))(
+      app(ot, Term.Tup(PlainFld(lt) :: rts)(DummyTup))(
         DummyApp, N, sym)
     case SynthSel(pre, nme) =>
       val preTrm = subterm(pre)
@@ -1306,7 +1309,7 @@ extends Importer:
       )
       val rs = FlowSymbol.app()
       Term.Lam(ps,
-        Term.App(Term.SelProj(self.ref(), c, nme)(f, FlowSymbol.selProj(nme.name), N, S(summon)), args.ref())(
+        app(Term.SelProj(self.ref(), c, nme)(f, FlowSymbol.selProj(nme.name), N, S(summon)), args.ref())(
           App(nme, Tup(Nil)) // FIXME
           , N, rs)
       )
@@ -1401,7 +1404,7 @@ extends Importer:
     case PrefixApp(kw @ Keywrd(Keyword.`yield` | Keyword.`yield*`), body) =>
       if ctx.inGenerator then
         val synthIdent = new Tree.Ident(kw.kw.name).withLocOf(kw)
-        Term.App(ident(synthIdent).get, Term.Tup(PlainFld(subterm(body)) :: Nil)(DummyTup))(DummyApp, N, FlowSymbol("yield"))
+        app(ident(synthIdent).get, Term.Tup(PlainFld(subterm(body)) :: Nil)(DummyTup))(DummyApp, N, FlowSymbol("yield"))
       else
         raise:
           ErrorReport(msg"Yield expressions are not allowed in this context." -> tree.toLoc :: Nil)
@@ -1471,12 +1474,12 @@ extends Importer:
           val res = go(acc, lhs :: Nil)
           val sym = FlowSymbol.app()
           val fl = Fld(FldFlags.empty, res, N)
-          val app = Term.App(subterm(f), Term.Tup(
+          val ap_ = app(subterm(f), Term.Tup(
             fl :: args.map(fld))(tup))(ap, N, sym)
-          go(app, trees)
+          go(ap_, trees)
         case (ap @ App(f, tup @ Tup(args))) :: trees =>
           val sym = FlowSymbol.app()
-          go(Term.App(subterm(f),
+          go(app(subterm(f),
               Term.Tup(Fld(FldFlags.empty, acc, N) :: args.map(fld))(tup)
             )(ap, N, sym), trees)
         case Block(sts) :: trees =>

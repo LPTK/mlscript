@@ -27,6 +27,10 @@ type ProdCtor = Producer.Ctor | Producer.Fun | Producer.Typ | Producer.Tup | Pro
 case class ConcreteProd(path: Path, ctor: ProdCtor)
 
 
+enum AppTarget:
+  case ObjectMember(sym: MemberSymbol)
+  case Err(err: ErrorReport)
+
 enum SelectionTarget:
   case ObjectMember(sym: MemberSymbol)
   case CompanionMember(comp: Term, sym: MemberSymbol)
