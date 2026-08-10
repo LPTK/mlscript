@@ -38,6 +38,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   val showResolve = NullaryCommand("r")
   val showResolvedTree = NullaryCommand("rt")
   val showFlows = FlagCommand(false, "sf")
+  val showResl = FlagCommand(false, "sr")
   val showLoweredTree = NullaryCommand("lot")
   val ppLoweredTreeOld = NullaryCommand("slot", () => output("Option ':slot' is deprecated, use ':sir' instead."))
   val showIR = NullaryCommand("sir")
@@ -442,6 +443,18 @@ abstract class MLsDiffMaker extends DiffMaker:
     if showElaboratedTree.isSet then
       outputSeparator(s"Elaborated tree")
       output(e.showAsTree)
+    
+    if showResl.isSet then
+      import semantics.ShowCfg
+      given ShowCfg = ShowCfg(
+        showExpansionMappings = true,
+        showFlowSymbols = true,
+        debug = debug.isSet,
+      )
+      outputSeparator(s"Resolved")
+      output:
+        import document.*
+        doc" #{ ${e.showTopLevel(using flowScp)} #} \nwhere #{ ${"TODO"} #} ".mkString()
     
     processTerm(e, inImport = false)
   

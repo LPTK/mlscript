@@ -1,0 +1,69 @@
+
+#lang(0.3.x)
+
+
+
+:sr
+class Foo(val a) {
+  val b = a + 1
+}
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   class Foo(vala⁰) {
+//│     val a¹ ‹flow:a⁰› = a⁰,
+//│     val b⁰ ‹flow:b⁰› = +(⟨Foo⁰.⟩a¹, 1)‹app⁰›
+//│   }
+//│ whereTODO
+
+let f = Foo(1)
+
+:fixme
+:de
+f.a
+//│ Elab block List(Sel(Ident(f),Ident(a))) LocalScope(block:5)
+//│ | Elab term Sel(Ident(f),Ident(a))
+//│ | | Elab subterm Sel(Ident(f),Ident(a))
+//│ | | | Elab subterm Ident(f)
+//│ | | | ~> Ref(f‹54›)
+//│ | | | listen: trm = Ref(f‹54›)
+//│ | | ~> Sel(Ref(f‹54›),Ident(a))
+//│ | ~> Sel(Ref(f‹54›),Ident(a))
+//│ ~> Blk(List(),Sel(Ref(f‹54›),Ident(a)))
+//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
+//│ ║  l.21: 	f.a
+//│ ╙──      	^^^
+
+:fixme
+:de
+f.b
+//│ Elab block List(Sel(Ident(f),Ident(b))) LocalScope(block:6)
+//│ | Elab term Sel(Ident(f),Ident(b))
+//│ | | Elab subterm Sel(Ident(f),Ident(b))
+//│ | | | Elab subterm Ident(f)
+//│ | | | ~> Ref(f‹54›)
+//│ | | | listen: trm = Ref(f‹54›)
+//│ | | ~> Sel(Ref(f‹54›),Ident(b))
+//│ | ~> Sel(Ref(f‹54›),Ident(b))
+//│ ~> Blk(List(),Sel(Ref(f‹54›),Ident(b)))
+//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
+//│ ║  l.37: 	f.b
+//│ ╙──      	^^^
+
+:fixme
+:sr
+fun foo(x) =
+  x.a + x.b
+foo(f)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a‹?›, x⁰.b‹?›)‹app¹›,
+//│   foo⁰(f⁰)‹app²›
+//│ whereTODO
+//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
+//│ ║  l.54: 	  x.a + x.b
+//│ ╙──      	  ^^^
+//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
+//│ ║  l.54: 	  x.a + x.b
+//│ ╙──      	        ^^^
+
+
+
+
