@@ -122,10 +122,7 @@ class HandlerLowering(paths: HandlerPaths, opt: EffectHandlers)(using TL, Raise,
   private def freshTmp(erasedType: Opt[ErasedValueType], dbgNme: Str = "tmp") = new TempSymbol(N, erasedType, dbgNme)
   private def freshLabel(nme: Str) = new LabelSymbol(N, nme)
   
-  private def rtThrowMsg(msg: Str) = Throw(
-    Instantiate(mut = false, State.globalThisSymbol.asThis.selN(Tree.Ident("Error")),
-    (Value.Lit(Tree.StrLit(msg)).asArg :: Nil) :: Nil)(InstantiateMetadata.empty)
-  )
+  private def rtThrowMsg(msg: Str) = Throw.error(msg)
   
   object PureCall:
     def apply(fun: Path, args: List[Path]) = Call(fun, args.map(Arg(N, _)) ne_:: Nil)(CallMetadata.defaultMlsFun)

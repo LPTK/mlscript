@@ -8,6 +8,8 @@
 
 class Top(x: Int)
 fun mkTop(): Object = new Top(1)
+// An unannotated result is `Anything`, the only source that can be narrowed *to* `Object`.
+fun anything(v) = v
 
 
 // A user-defined top-level class is reached through its own binding.
@@ -16,16 +18,12 @@ fun toTop(): Top = mkTop()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let toTop;
 //│ toTop = function toTop() {
-//│   let inlinedVal, castScrut;
-//│   castScrut = globalThis.Object.freeze(new Top1.class(1));
-//│   if (castScrut instanceof globalThis.Object) {
-//│     inlinedVal = castScrut;
-//│     if (inlinedVal instanceof Top1.class) {
-//│       return inlinedVal
-//│     }
-//│     throw "Cast to 'Top' failed";
+//│   let castScrut;
+//│   castScrut = mkTop();
+//│   if (castScrut instanceof Top1.class) {
+//│     return castScrut
 //│   }
-//│   throw "Cast to 'Object' failed";
+//│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Top'"));
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -38,16 +36,12 @@ fun toInner(): M.Inner = mkTop()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let M1, toInner;
 //│ toInner = function toInner() {
-//│   let inlinedVal, castScrut;
-//│   castScrut = globalThis.Object.freeze(new Top1.class(1));
-//│   if (castScrut instanceof globalThis.Object) {
-//│     inlinedVal = castScrut;
-//│     if (inlinedVal instanceof M.Inner.class) {
-//│       return inlinedVal
-//│     }
-//│     throw "Cast to 'M.Inner' failed";
+//│   let castScrut;
+//│   castScrut = mkTop();
+//│   if (castScrut instanceof M.Inner.class) {
+//│     return castScrut
 //│   }
-//│   throw "Cast to 'Object' failed";
+//│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'M.Inner'"));
 //│ };
 //│ (class M {
 //│   static {
@@ -73,16 +67,14 @@ fun toInner(): M.Inner = mkTop()
 
 // A declared class exists at runtime but is not defined by us, so it is reached through `globalThis`.
 :sjs
-fun toObject(): Object = mkTop()
+fun toObject(): Object = anything(1)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let toObject;
 //│ toObject = function toObject() {
-//│   let castScrut;
-//│   castScrut = globalThis.Object.freeze(new Top1.class(1));
-//│   if (castScrut instanceof globalThis.Object) {
-//│     return castScrut
+//│   if (1 instanceof globalThis.Object) {
+//│     return 1
 //│   }
-//│   throw "Cast to 'Object' failed";
+//│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Object'"));
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -94,16 +86,12 @@ fun toInt(): Int = mkTop()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let toInt;
 //│ toInt = function toInt() {
-//│   let inlinedVal, castScrut;
-//│   castScrut = globalThis.Object.freeze(new Top1.class(1));
-//│   if (castScrut instanceof globalThis.Object) {
-//│     inlinedVal = castScrut;
-//│     if (globalThis.Number.isInteger(inlinedVal)) {
-//│       return inlinedVal
-//│     }
-//│     throw "Cast to 'Int' failed";
+//│   let castScrut;
+//│   castScrut = mkTop();
+//│   if (globalThis.Number.isInteger(castScrut)) {
+//│     return castScrut
 //│   }
-//│   throw "Cast to 'Object' failed";
+//│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Int'"));
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -116,4 +104,4 @@ toTop() is Top
 // A cast that does not hold throws instead of silently returning a value of the wrong type.
 :re
 toInt()
-//│ ═══[RUNTIME ERROR] Cast to 'Int' failed
+//│ ═══[RUNTIME ERROR] Error: Cannot narrow a value to type 'Int'

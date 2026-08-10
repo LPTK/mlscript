@@ -53,7 +53,7 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
               Match(
                 scrut,
                 (cse -> k(Cast(scrut, target, false))) :: Nil,
-                S(Throw(Value.Lit(Tree.StrLit(s"Cast to '${target.describe}' failed")))),
+                S(Throw.error(s"Cannot narrow a value to type '${target.describe}'")),
                 End(),
               )
             value2 match

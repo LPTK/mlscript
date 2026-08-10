@@ -56,11 +56,11 @@ val n: Int = o
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Object⁰, tmp1: Int⁰;
 //│ define mkObj⁰ as fun mkObj¹(): Object⁰ {
-//│   return (new globalThis⁰.Object⁰() as Object⁰)
+//│   return (new globalThis⁰.Object⁰() as! Object⁰)
 //│ };
 //│ set tmp = mkObj¹();
 //│ define o⁰ as val o¹: Object⁰ = tmp;
-//│ set tmp1 = (o¹ as Int⁰);
+//│ set tmp1 = (o¹ as! Int⁰);
 //│ define n⁰ as val n¹: Int⁰ = tmp1;
 //│ end
 
@@ -115,7 +115,7 @@ fun main =
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define mk⁰ as fun mk¹(a: ?): ? {
 //│   let tmp: Str⁰;
-//│   set tmp = (a as Str⁰);
+//│   set tmp = (a as! Str⁰);
 //│   return new Bar⁰(tmp)
 //│ };
 //│ define main⁴ as fun main⁵(): ? { let made: ?; set made = mk¹(1); return made.y﹖ };
@@ -137,7 +137,7 @@ fun add2(x: Int, y: Int): Int = x + y
 //│ define add1⁰ as fun add1¹(x: Int⁰, y: Int⁰): ? {
 //│   return +⁰(x, y)
 //│ };
-//│ define add2⁰ as fun add2¹(x: Int⁰, y: Int⁰): Int⁰ { return (+⁰(x, y) as Int⁰) };
+//│ define add2⁰ as fun add2¹(x: Int⁰, y: Int⁰): Int⁰ { return (+⁰(x, y) as! Int⁰) };
 //│ end
 
 
@@ -159,7 +159,7 @@ class Ref(mut val v: Int) with
 //│     define v⁰ as val v¹: Int⁰ = v;
 //│     end
 //│   }
-//│   method put⁰ = fun put¹(x: ?): ? { set Ref².this.v¹ = (x as Int⁰); return runtime⁰.Unit⁰ }
+//│   method put⁰ = fun put¹(x: ?): ? { set Ref².this.v¹ = (x as! Int⁰); return runtime⁰.Unit⁰ }
 //│ };
 //│ end
 
@@ -169,9 +169,9 @@ fun addUp(x: Int, y: Int): Int = x + y
 fun makeBar(s: Str): Bar = new Bar(s)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define addUp⁰ as fun addUp¹(x: Int⁰, y: Int⁰): Int⁰ {
-//│   return (+⁰(x, y) as Int⁰)
+//│   return (+⁰(x, y) as! Int⁰)
 //│ };
-//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ { return (new Bar⁰(s) as Bar⁰) };
+//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ { return (new Bar⁰(s) as! Bar⁰) };
 //│ end
 
 
@@ -185,7 +185,7 @@ fun ident(a) = a
 //│ };
 //│ define mkBar⁰ as fun mkBar¹(a: ?): ? {
 //│   let tmp: Str⁰;
-//│   set tmp = (a as Str⁰);
+//│   set tmp = (a as! Str⁰);
 //│   return new Bar⁰(tmp)
 //│ };
 //│ define ident⁰ as fun ident¹(a: ?): ? { return a };
@@ -206,7 +206,7 @@ class Calc() with
 //│ define Calc⁰ as class Calc² {
 //│   constructor Calc¹
 //│   method twice⁰ = fun twice¹(x: Int⁰): Int⁰ {
-//│     return (+⁰(x, x) as Int⁰)
+//│     return (+⁰(x, x) as! Int⁰)
 //│   }
 //│   method whatever⁰ = fun whatever¹(a: ?): ? { return a }
 //│ };
@@ -333,7 +333,7 @@ fun f(o: Object, i: Int) =
 //│ define f⁴ as fun f⁵(o: Object⁰, i: Int⁰): ? {
 //│   let tmp: Int⁰;
 //│   do useObj³(i);
-//│   set tmp = (o as Int⁰);
+//│   set tmp = (o as! Int⁰);
 //│   return useInt³(tmp)
 //│ };
 //│ end
@@ -351,7 +351,7 @@ fun g(i: Int, i31: Int31) =
 //│ define g² as fun g³(i: Int⁰, i31: Int31⁰): ? {
 //│   let tmp: Int31⁰;
 //│   do useInt³(i31);
-//│   set tmp = (i as Int31⁰);
+//│   set tmp = (i as! Int31⁰);
 //│   return useInt31¹(tmp)
 //│ };
 //│ end
@@ -474,7 +474,7 @@ fun unionIntoSubtype(x: A | B) = takesSubtype(x)
 //│ };
 //│ define unionIntoSubtype⁰ as fun unionIntoSubtype¹(x: Base⁰): ? {
 //│   let tmp: A¹;
-//│   set tmp = (x as A¹);
+//│   set tmp = (x as! A¹);
 //│   return takesSubtype¹(tmp)
 //│ };
 //│ end
@@ -487,12 +487,12 @@ fun sccF(): Int = sccG()
 fun sccG(): Object = sccF() + 1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define sccF⁰ as fun sccF¹(): Int⁰ {
-//│   return (sccG⁰() as Int⁰)
+//│   return (sccG⁰() as! Int⁰)
 //│ };
 //│ define sccG¹ as fun sccG⁰(): Object⁰ {
 //│   let tmp: Int⁰;
 //│   set tmp = sccF¹();
-//│   return (+⁰(tmp, 1) as Object⁰)
+//│   return (+⁰(tmp, 1) as! Object⁰)
 //│ };
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
@@ -508,13 +508,13 @@ fun sccG(): Object = sccF() + 1
 //│         1 =>
 //│           let tmp: Int⁰;
 //│           set tmp = sccF¹();
-//│           set inlinedVal = (+⁰(tmp, 1) as Object⁰);
+//│           set inlinedVal = (+⁰(tmp, 1) as! Object⁰);
 //│           break inlinedLbl
 //│         else
 //│           unreachable /* dispatch tag is always a merged member id */
 //│       end
 //│     unreachable /* Rest of abortive labelled block */
-//│   return (inlinedVal as Int⁰)
+//│   return (inlinedVal as! Int⁰)
 //│ };
 //│ define sccG¹ as fun sccG⁰(): Object⁰ {
 //│   let inlinedVal: ?;
@@ -526,7 +526,7 @@ fun sccG(): Object = sccF() + 1
 //│         1 =>
 //│           let tmp: Int⁰;
 //│           set tmp = sccF¹();
-//│           set inlinedVal = (+⁰(tmp, 1) as Object⁰);
+//│           set inlinedVal = (+⁰(tmp, 1) as! Object⁰);
 //│           break inlinedLbl
 //│         else
 //│           unreachable /* dispatch tag is always a merged member id */
@@ -547,7 +547,7 @@ annotHelper(100000)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ @tailrec
 //│ define annotLoop⁰ as fun annotLoop¹(n: Int⁰): Unit⁰ {
-//│   return (annotHelper⁰(n) as Unit⁰)
+//│   return (annotHelper⁰(n) as! Unit⁰)
 //│ };
 //│ define annotHelper¹ as fun annotHelper⁰(n: ?): ? {
 //│   let scrut: ?, tmp: ?, tmp1: Int⁰;
@@ -557,7 +557,7 @@ annotHelper(100000)
 //│       return runtime⁰.Unit⁰
 //│     else
 //│       set tmp = -⁰(n, 1);
-//│       set tmp1 = (tmp as Int⁰);
+//│       set tmp1 = (tmp as! Int⁰);
 //│       return annotLoop¹(tmp1)
 //│   end
 //│ };
@@ -581,7 +581,7 @@ sccHelper(100000)
 //│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {
 //│   let r: ?;
 //│   set r = sccHelper⁰(n);
-//│   return (r as Int⁰)
+//│   return (r as! Int⁰)
 //│ };
 //│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
 //│   let scrut: ?, tmp: ?, tmp1: Int⁰;
@@ -591,7 +591,7 @@ sccHelper(100000)
 //│       return 0
 //│     else
 //│       set tmp = -⁰(n, 1);
-//│       set tmp1 = (tmp as Int⁰);
+//│       set tmp1 = (tmp as! Int⁰);
 //│       return sccLoop¹(tmp1)
 //│   end
 //│ };
@@ -612,7 +612,7 @@ sccHelper(100000)
 //│             return 0
 //│           else
 //│             set tmp = -⁰(param0, 1);
-//│             set tmp1 = (tmp as Int⁰);
+//│             set tmp1 = (tmp as! Int⁰);
 //│             set param0 = tmp1;
 //│             set id = 0;
 //│             continue loopLabel
@@ -624,7 +624,7 @@ sccHelper(100000)
 //│ };
 //│ @tailrec
 //│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {
-//│   return (sccLoop_sccHelper⁰(0, n) as Int⁰)
+//│   return (sccLoop_sccHelper⁰(0, n) as! Int⁰)
 //│ };
 //│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
 //│   return sccLoop_sccHelper⁰(1, n)
@@ -653,10 +653,10 @@ val n2: Int = o2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Object⁰, tmp1: Int⁰;
 //│ define mkObj2⁰ as fun mkObj2¹(): Object⁰ {
-//│   return (new globalThis⁰.Object⁰() as checked Object⁰)
+//│   return (new globalThis⁰.Object⁰() as Object⁰)
 //│ };
 //│ set tmp = mkObj2¹();
 //│ define o2⁰ as val o2¹: Object⁰ = tmp;
-//│ set tmp1 = (o2¹ as checked Int⁰);
+//│ set tmp1 = (o2¹ as Int⁰);
 //│ define n2⁰ as val n2¹: Int⁰ = tmp1;
 //│ end

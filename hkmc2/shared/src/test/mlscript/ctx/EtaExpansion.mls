@@ -35,7 +35,7 @@ let f1 = foo
 //│ @private
 //│ define f1 as fun f1⁰() {
 //│   let tmp;
-//│   set tmp = (instance$Ident(Int)⁰ as Int⁰);
+//│   set tmp = (instance$Ident(Int)⁰ as! Int⁰);
 //│   return foo⁰()(tmp)
 //│ };
 //│ set f1¹ = f1⁰;
@@ -59,7 +59,7 @@ let f2 = bar
 //│ @private
 //│ define f2 as fun f2⁰(x) {
 //│   let tmp;
-//│   set tmp = (instance$Ident(Int)⁰ as Int⁰);
+//│   set tmp = (instance$Ident(Int)⁰ as! Int⁰);
 //│   return bar⁰(x)(tmp)
 //│ };
 //│ set f2¹ = f2⁰;
@@ -86,8 +86,8 @@ let f3 = baz
 //│   @private
 //│   define lambda as fun lambda⁰(y) {
 //│     let tmp, tmp1;
-//│     set tmp = (instance$Ident(Int)⁰ as Int⁰);
-//│     set tmp1 = (instance$Ident(Num)⁰ as Num⁰);
+//│     set tmp = (instance$Ident(Int)⁰ as! Int⁰);
+//│     set tmp1 = (instance$Ident(Num)⁰ as! Num⁰);
 //│     return baz⁰(x)(tmp)(y)(tmp1)
 //│   };
 //│   return lambda⁰
@@ -105,7 +105,7 @@ f3(43)(44)
 :sir
 foo()
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp; set tmp = (instance$Ident(Int)⁰ as Int⁰); return foo⁰()(tmp)
+//│ let tmp; set tmp = (instance$Ident(Int)⁰ as! Int⁰); return foo⁰()(tmp)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [42]
 
@@ -113,7 +113,7 @@ foo()
 :sir
 bar(0.42)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp; set tmp = (instance$Ident(Int)⁰ as Int⁰); return bar⁰(0.42)(tmp)
+//│ let tmp; set tmp = (instance$Ident(Int)⁰ as! Int⁰); return bar⁰(0.42)(tmp)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [0.42, 42]
 

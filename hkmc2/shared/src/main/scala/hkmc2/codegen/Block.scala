@@ -379,6 +379,18 @@ case class Return(res: Result) extends BlockTail
 
 case class Throw(exc: Result) extends BlockTail
 
+object Throw:
+  /** Throws a runtime `Error` carrying `msg`.
+    *
+    * This is the shape compiler-inserted failures use, rather than throwing a bare string, so that they carry a
+    * stack trace and can be caught as an `Error` like any other.
+    */
+  def error(msg: Str)(using State): Throw = Throw(Instantiate(
+    mut = false,
+    State.globalThisSymbol.asThis.selN(Tree.Ident("Error")),
+    (Value.Lit(Tree.StrLit(msg)).asArg :: Nil) :: Nil,
+  )(InstantiateMetadata.empty))
+
 case class Label(label: LabelSymbol, loop: Bool, body: Block, rest: Block)
 extends Block with NonBlockTail with ProductWithTail
 
