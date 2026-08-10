@@ -1,0 +1,25 @@
+@dbg('resolution, 'lowering, 'optimizations)
+fun selected_debug(x) = x
+fun unrelated(x) = x
+//│ | Resolving definition: TermDefinition(Fun,member:selected_debug‹36›,term:selected_debug‹41›,List(ParamList(‹›,List(Param(‹›,x‹38›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹38›)),‹›,Modulefulness(None),List(Debug(...)),None)
+//│ | | Resolving function definition TermDefinition(Fun,member:selected_debug‹36›,term:selected_debug‹41›,List(ParamList(‹›,List(Param(‹›,x‹38›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹38›)),‹›,Modulefulness(None),List(Debug(...)),None)
+//│ | | Resolving parameter x‹38›
+//│ | | Traversing term: Ref(x‹38›) (expect = NonModule)
+//│ | | | Resolving resolvable term: Ref(x‹38›), (prefer = NonModule, inAppPrefix = false, inCtxPrefix = false, inTyPrefix = false)
+//│ | | | | Resolving symbol for term: Ref(x‹38›) (prefer = NonModule)
+//│ | | | | -> (sym = Some(x‹38›), typ = None)
+//│ | | | | Resolving the type for term: Ref(x‹38›) (prefer = NonModule, sym = Some(x‹38›))
+//│ | | | | | Declaration: Some(Param(‹›,x‹38›,None,Modulefulness(None)))
+//│ | | | | -> typ = None
+//│ | | | | Resolving resolvable term Ref(x‹38›) with sym = Some(x‹38›), typ = None
+//│ | | | ~> Ref(x‹38›) (sym = Some(x‹38›), typ = None)
+//│ | | | Checking Ref(x‹38›): expect NonModule, evalsToModule = false, evalsToStaticClass = false
+//│ Lowering.term x⁰‹38› – symbol x‹38›
+//│ Expanding term Ref(x‹38›)
+//│ ~> Ref(x‹38›)
+//│ Optimization TailRecOpt left selected_debug unchanged
+//│ Optimization WorkerWrapper left selected_debug unchanged
+//│ Optimization BlockSimplifier 1 left selected_debug unchanged
+//│ Optimization DeadParamElim left selected_debug unchanged
+//│ Optimization TailRecOpt left selected_debug unchanged
+//│ Optimization BlockSimplifier 2 left selected_debug unchanged

@@ -54,13 +54,21 @@ class CompilerCtx(
         (file: io.Path, prelude: Ctx)
         (using TL, Raise)
         : Artifact =
+    getElaboratedBlock(file, prelude, forceDebugParsing = false)
+
+  def getElaboratedBlock
+        (file: io.Path, prelude: Ctx, forceDebugParsing: Bool)
+        (using TL, Raise)
+        : Artifact =
     
     // println(s"Cache has: ${cache.elabCache.contains(file)} ${cache.elabCache.keys}")
     
     val lastMod = fs.getLastChangedTimestamp(file)
     
     def mk =
-      val state = new Elaborator.State
+      var stateDebug = false
+      val state = new Elaborator.State:
+        override protected def doDbg: Bool = stateDebug
       given Elaborator.State = state
 
       // * Later, we can draw this from a global root configuration,
@@ -93,22 +101,30 @@ class CompilerCtx(
           includeZero = true,
         ))
       )
-      val etl = new TraceLogger{override def doTrace: Bool = false}
-      val ltl = new TraceLogger{override def doTrace: Bool = false}
-      val dtl = new TraceLogger{override def doTrace: Bool = false}
-      // val ltl = new TraceLogger{override def doTrace: Bool = true}
-      val rtl = new TraceLogger{override def doTrace: Bool = false}
-
-
+      val outputHandler = DebugOutputHandler(fs, rootConfig.baseDir, println)
       val mainParse =
         given CompilerCtx = this
-        ParserSetup(file, dbgParsing = false)
+        ParserSetup(file, forceDebugParsing, outputHandler)
+      val phaseConfig = mainParse.effectiveConfig
+      stateDebug = phaseConfig.debug.parsing || phaseConfig.debug.elaboration ||
+        phaseConfig.debug.resolution || phaseConfig.debug.lowering || phaseConfig.debug.optimizations
+      def traceLogger(enabled: Bool) = new TraceLogger:
+        override def doTrace: Bool = enabled
+        override protected def defaultDebugOutput: Config.DebugOutput = phaseConfig.debug.out
+        override protected[hkmc2] def emitDbg(str: Str, out: Config.DebugOutput): Unit =
+          outputHandler.emit(out, str)
+      val etl = traceLogger(phaseConfig.debug.elaboration)
+      val ltl = traceLogger(phaseConfig.debug.lowering)
+      val dtl = traceLogger(phaseConfig.debug.optimizations)
+      val rtl = traceLogger(phaseConfig.debug.resolution)
+
+
       // given Elaborator.Ctx = prelude.copy(mode = Mode.Light).nestLocal("prelude")
       val artifactCtx = prelude
       given Elaborator.Ctx = artifactCtx
       val elab =
         given CompilerCtx = derive(mainParse.origin.fileName)
-        Elaborator(tl, file.up, prelude)
+        Elaborator(etl, file.up, prelude)
 
       // val elab = Elaborator(etl, wd, newCtx)
       val parsed = mainParse.resultBlk
@@ -126,7 +142,7 @@ class CompilerCtx(
       if file.toString === paths.runtimeSourceFile.toString then
         state.initRuntimeSymbolsFromBlock(blk0)
       else
-        state.initRuntimeSymbolsFromFile(paths.runtimeSourceFile, prelude)(using tl, summon[Raise], this)
+        state.initRuntimeSymbolsFromFile(paths.runtimeSourceFile, prelude)(using etl, summon[Raise], this)
 
       val artifactConfig = Config.extractConfigFromStats(blk0)
       state.compilationUnitConfig = S(artifactConfig)
@@ -214,8 +230,15 @@ class CompilerCtx(
         given Elaborator.State = state
         given Config = rootConfig
         given CompilerCtx = this
-        val parse = ParserSetup(file, dbgParsing)
-        val elab = Elaborator(tl, file.up, Ctx.empty)
+        val outputHandler = DebugOutputHandler(fs, rootConfig.baseDir, println)
+        val parse = ParserSetup(file, dbgParsing, outputHandler)
+        val phaseConfig = parse.effectiveConfig
+        val etl = new TraceLogger:
+          override def doTrace: Bool = phaseConfig.debug.elaboration
+          override protected def defaultDebugOutput: Config.DebugOutput = phaseConfig.debug.out
+          override protected[hkmc2] def emitDbg(str: Str, out: Config.DebugOutput): Unit =
+            outputHandler.emit(out, str)
+        val elab = Elaborator(etl, file.up, Ctx.empty)
         val initCtx = State.init.nestLocal("prelude")
         val (blk, ctx) = elab.importFrom(parse.resultBlk)(using initCtx)
         PreludeArtifact(parse.resultBlk, blk, ctx, state, rootConfig, lastMod)

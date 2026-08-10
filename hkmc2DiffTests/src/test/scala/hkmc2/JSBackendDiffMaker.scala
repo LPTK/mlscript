@@ -48,10 +48,14 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     override def doTrace = debugLowering.isSet || scope.exists:
       showUCS.get.getOrElse(Set.empty).contains
     override def emitDbg(str: String): Unit = output(str)
+    override protected[hkmc2] def emitDbg(str: Str, out: Config.DebugOutput): Unit =
+      debugOutputHandler.emit(out, str)
   
   val dtl = new TraceLogger:
     override def doTrace = debugOptimizations.isSet
     override def emitDbg(str: String): Unit = output(str)
+    override protected[hkmc2] def emitDbg(str: Str, out: Config.DebugOutput): Unit =
+      debugOutputHandler.emit(out, str)
   
   val replTL = new TraceLogger:
     override def doTrace = showRepl.isSet
@@ -125,8 +129,12 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         new codegen.Lowering()(using summon[Config], ltl, summon[Raise], loweringState, curCtx, summon[SymbolPrinter])
           with codegen.LoweringTraceLog(traceJS.isSet)
       
-      val lowered = ltl.givenIn:
-        low.program(blk, symbolsToPreserve = symbolsToPreserve)
+      val lowered =
+        def lower = ltl.givenIn:
+          low.program(blk, symbolsToPreserve = symbolsToPreserve)
+        if config.debug.lowering then
+          ltl.scopedDebug(enabled = true, config.debug.out)(lower)
+        else lower
       
       val optimized = ltl.givenIn:
         val customPipeline = new CompilationPipeline:
@@ -166,7 +174,10 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
                 outputSeparator("Lowered IR")
                 output(irStr)
             super.preOptimizeHook(prog)
-        customPipeline.run(lowered, print, symbolsToPreserve, dtl)
+        if config.debug.optimizations then
+          dtl.scopedDebug(enabled = true, config.debug.out):
+            customPipeline.run(lowered, print, symbolsToPreserve, dtl)
+        else customPipeline.run(lowered, print, symbolsToPreserve, dtl)
       
       if checkIR.isSet then
         BlockChecker().applyProgram(optimized)

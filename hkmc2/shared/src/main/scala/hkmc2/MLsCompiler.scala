@@ -12,25 +12,29 @@ import hkmc2.syntax.Keyword.`override`
 import semantics.Elaborator.{Ctx, State}
 
 
-class ParserSetup(file: io.Path, dbgParsing: Bool)(using state: Elaborator.State, raise: Raise, cctx: CompilerCtx):
+class ParserSetup(file: io.Path, forceDebugParsing: Bool, outputHandler: DebugOutputHandler)
+(using state: Elaborator.State, raise: Raise, cctx: CompilerCtx, config: Config):
   
   val block = cctx.fs.read(file)
   val fph = new FastParseHelpers(block)
   val origin = Origin(file, 0, fph)
   
-  val lexer = new syntax.Lexer(origin, dbg = dbgParsing)
-  val tokens = lexer.bracketedTokens
-  
-  // if showParse.isSet || dbgParsing.isSet then
-  //   output(syntax.Lexer.printTokens(tokens))
-  
-  val rules = syntax.ParseRules()
-  val parser = new syntax.Parser(origin, tokens, rules, raise, dbg = dbgParsing):
-    def doPrintDbg(msg: => Str): Unit =
-      // if dbg then output(msg)
-      if dbg then println(msg)
-  
-  val result = parser.parseAll(parser.block(allowNewlines = true))
+  private def parse(dbg: Bool, out: Config.DebugOutput): Ls[syntax.Tree] =
+    val lexer = new syntax.Lexer(origin, dbg = dbg):
+      override protected def doPrintDbg(msg: => Str): Unit = outputHandler.emit(out, msg)
+    val tokens = lexer.bracketedTokens
+    if dbg then outputHandler.emit(out, syntax.Lexer.printTokens(tokens))
+    val rules = syntax.ParseRules()
+    val parser = new syntax.Parser(origin, tokens, rules, raise, dbg = dbg):
+      def doPrintDbg(msg: => Str): Unit = if this.dbg then outputHandler.emit(out, msg)
+    parser.parseAll(parser.block(allowNewlines = true))
+
+  private val discoveryResult = parse(dbg = false, Config.DebugOutput.StdIO)
+  val effectiveConfig = ConfigParser.discoverDebugFromTrees(discoveryResult)
+  val result =
+    if forceDebugParsing || effectiveConfig.debug.parsing then
+      parse(dbg = true, effectiveConfig.debug.out)
+    else discoveryResult
   
   val resultBlk = new syntax.Tree.Block(result)
 
@@ -70,9 +74,8 @@ class MLsCompiler
     given Raise = mkRaise(file)
     
     given Elaborator.State = new Elaborator.State:
-      override def dbg: Bool = dbgElab
+      override protected def doDbg: Bool = dbgElab
     
-    // TODO adapt logic
     given SymbolPrinter = new SymbolPrinter(
       Scope.empty(Scope.Cfg.default.copy(
         escapeChars = false,
@@ -88,8 +91,6 @@ class MLsCompiler
     
     val preludeArtifact = cctx.getPrelude(preludeFile, dbgParsing)(using etl, summon[Raise])
     val preludeCtx = preludeArtifact.ctx
-    val mainParse = ParserSetup(file, dbgParsing)
-    
     preludeCtx.nestLocal("file:"+file.baseName).givenIn:
       given CompilerCtx = cctx.derive(file)
       /*
@@ -130,7 +131,7 @@ class MLsCompiler
         val printer = (p: codegen.Program) => p.showAsTree
         CompilationPipeline().run(lowered, printer, exportedSymbol.toSet, dtl)
       */
-      val artifact = cctx.getElaboratedBlock(file, preludeCtx)(using etl)
+      val artifact = cctx.getElaboratedBlock(file, preludeCtx, dbgParsing)(using etl)
       val optimized = artifact.ir
 
       val nme = file.baseName
