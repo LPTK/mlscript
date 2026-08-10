@@ -529,9 +529,20 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     ctx.addSingletonInitAction(global.set(globalIdx, ctorCall))
   end registerSingletonInit
 
-  /** Collects only top-level class definitions in `block`. */
-  private def collectTopLevelClassDefns(block: Block): List[ClsLikeDefn] =
-    val acc = ArrayBuf.empty[ClsLikeDefn]
+  /** Whether `defn` is a top-level function that may be predeclared.
+    *
+    * Mirrors what the [[FunDefn]] arm of [[returningTerm]] accepts; a function it refuses must not be predeclared,
+    * since its placeholder would then never be overwritten.
+    */
+  private def isPredeclarableTopLevelFun(defn: FunDefn): Bool =
+    defn.owner.isEmpty
+      && defn.sym.nameIsMeaningful
+      && defn.params.nonEmpty
+
+  /** Collects all top-level class and function definitions in `block`. */
+  private def collectTopLevelDefns(block: Block): (List[ClsLikeDefn], List[FunDefn]) =
+    val clsAcc = ArrayBuf.empty[ClsLikeDefn]
+    val funAcc = ArrayBuf.empty[FunDefn]
     new BlockTraverserShallow:
       applyBlock(block)
       override def applyBlock(b: Block): Unit = b match
@@ -541,9 +552,11 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         case _ => super.applyBlock(b)
       override def applyDefn(defn: Defn): Unit = defn match
         case clsLikeDefn: ClsLikeDefn =>
-          clsLikeDefn.optionIf(isSupportedTopLevelClass).foreach(acc += _)
+          clsLikeDefn.optionIf(isSupportedTopLevelClass).foreach(clsAcc += _)
+        case funDefn: FunDefn =>
+          funDefn.optionIf(isPredeclarableTopLevelFun).foreach(funAcc += _)
         case _ => ()
-    acc.toList
+    (clsAcc.toList, funAcc.toList)
 
   /** Resolves the parent symbol for a top-level class definition, if present. */
   private def resolveParentSym(defn: ClsLikeDefn)(using Raise): Opt[BlockMemberSymbol] =
@@ -941,12 +954,14 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
   /** Registers a placeholder for a top-level function.
     *
+    * `ps` is the function's first parameter list. It is the only one the [[FunDefn]] arm compiles into the Wasm
+    * function itself - the rest become lambdas in its body - so it alone determines the declared type.
+    *
     * The result type of the function is derived from the type annotations present on the function, falling back to
     * `anyref` when there is none.
     *
-    * Note that only top-level functions that will be lowered by the [[FuncDef]] arm of [[returningTerm]] can be
-    * pre-declared with this function. Otherwise, the function body will not be overwritten and the (`unreachable`)
-    * placeholder will remain in the final module.
+    * Note that only top-level functions that will be lowered by the [[FunDefn]] arm of [[returningTerm]] can be
+    * pre-declared with this function - see [[isPredeclarableTopLevelFun]].
     */
   private def predeclareTopLevelFun(sym: BlockMemberSymbol, ps: ParamList)(using Raise): Unit =
     val params = ps.paramSyms.map(p => p -> SymIdx(p.nme))
@@ -2188,7 +2203,9 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                   val result = pss.foldRight(bod):
                     case (ps, block) =>
                       Return(Lambda(ps, block)(Nil))
-                  predeclareTopLevelFun(sym, ps)
+                  // Nested functions are not predeclared in `program` - declare them now.
+                  // Note that predeclaring functions twice causes an orphaned type to be duplicated in the module.
+                  if ctx.getFunc(sym).isEmpty then predeclareTopLevelFun(sym, ps)
                   val (bodyWat, fnCtx) = setupFunction(N, ps, result)
                   val predeclared = ctx.getFuncInfo_!(sym)
 
@@ -2766,8 +2783,14 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           diag match
             case _: ErrorReport => break(compiledModule("entry"))
             case _ => ()
-        val ordered = sortTopLevelClasses(collectTopLevelClassDefns(p.main))
-        ordered.foreach(predeclareClass)
+        val (classes, funs) = collectTopLevelDefns(p.main)
+        sortTopLevelClasses(classes).foreach(predeclareClass)
+        // Top-level functions are predeclared here too, so that a call can be compiled before the
+        // definition it refers to. Functions do not need to be ordered.
+        // Note that classes must come first, since the types of parameters and return values may
+        // refer to declared class types.
+        funs.foreach: fd =>
+          predeclareTopLevelFun(fd.sym, fd.params.head)
 
       // Compile the entry function under a dedicated local scope so that any temp locals introduced
       // during codegen (e.g., via `local.tee`) are declared in the entry function.
