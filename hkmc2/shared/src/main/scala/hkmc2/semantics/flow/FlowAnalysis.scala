@@ -36,6 +36,15 @@ enum SelectionTarget:
   case ObjectMember(sym: MemberSymbol)
   case CompanionMember(comp: Term, sym: MemberSymbol)
   case Err(err: ErrorReport)
+  
+  import hkmc2.document.*
+  import hkmc2.document.Document.*
+  def show(using Scope, ShowCfg, Raise): Document =
+    this match
+    case ObjectMember(sym) => sym.showName
+    case CompanionMember(comp, sym) => doc"${comp.show}.${sym.showName}"
+    case Err(err) => err.mainMsg
+end SelectionTarget
 
 
 /** This is a very sketchy exploration/proof of concept of flow analysis

@@ -838,6 +838,13 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       subTerms // TODO more precise (include located things that aren't terms)
   
   def show(using Scope, ShowCfg, Raise): Document =
+    def showSelTargets(sel: AnySel): Document =
+      val str = sel.nme.name
+      val ts = sel.resolvedTargets
+      ts match
+      case Nil => doc"$str‹?›"
+      case t :: Nil => t.show
+      case ts => doc"$str‹" :: ts.map(_.show).mkDocument(", ") :: doc"›"
     def res: Document = this match
       case lit: Lit => lit.lit.idStr
       case r: Ref =>
@@ -846,11 +853,13 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
         case _ => r.sym.showName
       case sel: Sel =>
         if summon[ShowCfg].showFlowSymbols
-        then doc"${sel.prefix.show}.${sel.sym.fold(doc"${sel.nme.name}‹?›")(_.showName)}"
+        then doc"${sel.prefix.show}.${sel.sym.fold(doc"${
+          showSelTargets(sel)}")(_.showName)}"
         else doc"${sel.prefix.show}.${sel.nme.name}"
       case sel: SynthSel =>
         if summon[ShowCfg].showFlowSymbols
-        then doc"⟨${sel.prefix.show}.⟩${sel.sym.fold(doc"${sel.nme.name}‹?›")(_.showName)}"
+        then doc"⟨${sel.prefix.show}.⟩${sel.sym.fold(doc"${
+          showSelTargets(sel)}")(_.showName)}"
         else doc"${sel.prefix.show}.${sel.nme.name}"
       case Resolved(trm, sym) =>
         trm.show

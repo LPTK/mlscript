@@ -57,18 +57,12 @@ f.a
 //│ ~> Blk(List(),Sel(Ref(f‹54›),Ident(a)))
 
 // :fixme
-:de
+// :de
+:sr
 f.b
-//│ Elab block List(Sel(Ident(f),Ident(b))) LocalScope(block:6)
-//│ | Elab term Sel(Ident(f),Ident(b))
-//│ | | Elab subterm Sel(Ident(f),Ident(b))
-//│ | | | Elab subterm Ident(f)
-//│ | | | ~> Ref(f‹54›)
-//│ | | | listen: trm = Ref(f‹54›)
-//│ | | | selShape: lhs = AppShape(SymShape(member:Foo‹39›), Tup(List(Fld(‹›,Lit(IntLit(1)),None)))), nme = Ident(b), res = Sel(Ref(f‹54›),Ident(b))
-//│ | | ~> Sel(Ref(f‹54›),Ident(b))
-//│ | ~> Sel(Ref(f‹54›),Ident(b))
-//│ ~> Blk(List(),Sel(Ref(f‹54›),Ident(b)))
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   f⁰.b⁰
+//│ whereTODO
 
 :fixme
 :sr
@@ -80,10 +74,10 @@ foo(f)
 //│   foo⁰(f⁰)‹app²›
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.76: 	  x.a + x.b
+//│ ║  l.70: 	  x.a + x.b
 //│ ╙──      	  ^^^
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.76: 	  x.a + x.b
+//│ ║  l.70: 	  x.a + x.b
 //│ ╙──      	        ^^^
 
 
