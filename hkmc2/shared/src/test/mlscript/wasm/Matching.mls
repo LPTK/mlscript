@@ -270,3 +270,24 @@ fun getXor(f) = if f is Foo(a) then a else false
 getXor(Foo(42))
 //│ Wasm result:
 //│ = 42
+
+
+// A class is only matchable if it has a Wasm struct representation, which is what gives it a `typeinfo`
+// global. Builtins have none: `Int`/`Int31`/`Bool` box to `i31ref`, `Str` is an imported reference, and
+// `Object` is merely `declare`d. Supporting them needs a per-builtin test instead of an RTTI walk, which
+// `Int` and `Bool` further block by sharing a representation — `true` and `1` are both `(ref.i31 1)`.
+:ge
+:todo
+if 1 is Int then 1 else 0
+if 1 is Object then 1 else 0
+//│ ╔══[COMPILATION ERROR] Pattern matching against class `Object`, which has no Wasm runtime type information, is not implemented yet
+//│ ║  l.282: 	if 1 is Object then 1 else 0
+//│ ╙──       	   ^
+
+
+// A user class needs no instantiation to be matchable: its definition alone registers the global.
+class Never()
+fun isNever(v) = if v is Never then 1 else 0
+isNever(1)
+//│ Wasm result:
+//│ = 0

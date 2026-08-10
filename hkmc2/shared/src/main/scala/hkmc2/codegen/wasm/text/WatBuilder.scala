@@ -2516,7 +2516,16 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       ))
                     val isStructCompatible = ref.test(getScrutExpr, baseObjectRefType(nullable = false))
                     val scrutRtti = readObjectTypeInfo(getScrutExpr)
-                    val targetRtti = getClassTypeInfoGlobal(clsBlkMemberSym).get
+                    // A class only has a `typeinfo` global if it was registered as a top-level class of this
+                    // module, which requires it to have a Wasm struct representation. Builtins such as `Int`,
+                    // `Bool` and `Str` are boxed as `i31ref`/imported references instead, and `Object` is only
+                    // `declare`d, so none of them can be tested through the RTTI chain.
+                    val targetRtti = getClassTypeInfoGlobal(clsBlkMemberSym) getOrElse:
+                      break(errExpr(
+                        Ls(msg"Pattern matching against class `${clsBlkMemberSym.nme}`, which has no Wasm " +
+                          msg"runtime type information, is not implemented yet" -> scrut.toLoc),
+                        extraInfo = S(s"no `typeinfo` global is registered for `${clsBlkMemberSym}`"),
+                      ))
                     val classMatchExpr = isSubtypeByTypeInfo(scrutRtti, targetRtti)
 
                     S(`if`(
