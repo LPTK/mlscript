@@ -50,14 +50,35 @@ f.b
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
 
-:todo
+
 val fv = Foo(1)
-fv.a
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.55: 	fv.a
-//│ ╙──      	^^^^
-//│ = 1
 //│ fv = Foo(1)
+
+:sr
+fv.a
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fv⁰.a¹
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+
+:fixme
+:sr
+fv.a
+val fv = Foo(1)
+//│ ╔══[COMPILATION ERROR] expected a term shape, but got symbol
+//│ ║  l.67: 	fv.a
+//│ ╙──      	^^
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fv¹.a‹?›,
+//│   val fv¹ ‹flow:fv⁰› = Foo¹(1)‹app²›
+//│ whereTODO
+//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
+//│ ║  l.67: 	fv.a
+//│ ╙──      	^^^^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'a')
+//│ fv = undefined
 
 :todo
 :sr
@@ -65,14 +86,14 @@ fun foo(x) =
   x.a + x.b
 foo(f)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a‹?›, x⁰.b‹?›)‹app²›,
-//│   foo⁰(f⁰)‹app³›
+//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a‹?›, x⁰.b‹?›)‹app³›,
+//│   foo⁰(f⁰)‹app⁴›
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.65: 	  x.a + x.b
+//│ ║  l.86: 	  x.a + x.b
 //│ ╙──      	  ^^^
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.65: 	  x.a + x.b
+//│ ║  l.86: 	  x.a + x.b
 //│ ╙──      	        ^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
@@ -92,22 +113,14 @@ b.foo
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = Foo(123)
 
-:todo
-:de
+// :de
 :sr
 b.foo.a
-//│ Elab block List(Sel(Sel(Ident(b),Ident(foo)),Ident(a))) LocalScope(block:12)
-//│ | Elab term Sel(Sel(Ident(b),Ident(foo)),Ident(a))
-//│ | | Elab subterm Sel(Sel(Ident(b),Ident(foo)),Ident(a))
-//│ | | | Elab subterm Sel(Ident(b),Ident(foo))
-//│ | | | | Elab subterm Ident(b)
-//│ | | | | ~> Ref(b‹109›)
-//│ | | | | listen: trm = Ref(b‹109›)
-//│ | | | | selShape: lhs = AppShape(DefnShape(TermDefinition(Fun,member:Bar‹95›,term:Bar‹99›,List(ParamList(‹›,List(Param(‹›,a‹98›,None,Modulefulness(None))),None)),Some(List()),Some(Ref(class:Bar‹96›)),None,‹›,Modulefulness(None),List(),Some(class:Bar‹96›))), Tup(List(Fld(‹›,Lit(IntLit(123)),None)))), nme = Ident(foo), res = Sel(Ref(b‹109›),Ident(foo))
-//│ | | | ~> Sel(Ref(b‹109›),Ident(foo))
-//│ | | | listen: trm = Sel(Ref(b‹109›),Ident(foo))
-//│ | | | selShape: lhs = SelShape(AppShape(DefnShape(TermDefinition(Fun,member:Bar‹95›,term:Bar‹99›,List(ParamList(‹›,List(Param(‹›,a‹98›,None,Modulefulness(None))),None)),Some(List()),Some(Ref(class:Bar‹96›)),None,‹›,Modulefulness(None),List(),Some(class:Bar‹96›))), Tup(List(Fld(‹›,Lit(IntLit(123)),None)))), Ident(foo)), nme = Ident(a), res = Sel(Sel(Ref(b‹109›),Ident(foo)),Ident(a))
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   b¹.foo¹.a¹
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 123
 
 
 :sjs
@@ -115,8 +128,8 @@ b.foo.a
 :elt
 :de
 let f = new Foo(1)
-//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntL[...] LocalScope(block:13)
-//│ | Processing `let` statement Ident(f) (f‹118›) LocalScope(block:13)
+//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntL[...] LocalScope(block:15)
+//│ | Processing `let` statement Ident(f) (f‹132›) LocalScope(block:15)
 //│ | Elab term App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
 //│ | | Elab subterm App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
 //│ | | | Elab subterm Ident(Foo)
@@ -132,14 +145,14 @@ let f = new Foo(1)
 //│ | | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
 //│ | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
 //│ | listen: trm = New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
-//│ ~> Blk(List(LetDecl(f‹118›,List()), DefineVar(f‹118›,New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))),Lit(UnitLit(false)))
+//│ ~> Blk(List(LetDecl(f‹132›,List()), DefineVar(f‹132›,New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))),Lit(UnitLit(false)))
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
 //│     LetDecl:
-//│       sym = f⁰‹118›
+//│       sym = f⁰‹132›
 //│     DefineVar:
-//│       sym = f⁰‹118›
+//│       sym = f⁰‹132›
 //│       rhs = New:
 //│         cls = Ref{sym=member:Foo⁰‹43›} of member:Foo⁰‹43›
 //│         args = Ls of
@@ -160,7 +173,7 @@ let f = new Foo(1)
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.161: 	new 42
+//│ ║  l.174: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 

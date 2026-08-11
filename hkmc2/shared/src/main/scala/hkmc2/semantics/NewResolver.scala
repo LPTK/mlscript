@@ -135,7 +135,7 @@ class NewResolver:
       // lhs match
       // case _ =>
       val sh = new SelShape(lhs, id, res):
-        def members: Map[Str, BlockMemberSymbol] = ???
+        // def members: Map[Str, BlockMemberSymbol] = ???
         /* 
         def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
           getFromClsTree(cls.tree)
@@ -221,9 +221,25 @@ class NewResolver:
                 source = Diagnostic.Source.Compilation)
             N
         */
-        val target = receiver.members.get(id.name).map(SelectionTarget.ObjectMember(_))
+        // val target = receiver.members.get(id.name).map(SelectionTarget.ObjectMember(_))
+        val target = receiver.members.get(id.name) match
+          case S(sym) => S(SelectionTarget.ObjectMember(sym))
+          case N =>
+            res.isErroneous = true
+            raise:
+              ErrorReport(
+                msg"TODO error ('${id.name}' not in ${receiver.describe})" -> res.toLoc :: Nil,
+                source = Diagnostic.Source.Compilation)
+            N
         target.foreach: tgt =>
           res.resolvedTargets ::= tgt
+        /*
+        lazy val members: Map[Str, BlockMemberSymbol] = target match
+          case S(SelectionTarget.ObjectMember(cls)) =>
+            cls.defn.getOrElse(die // TODO
+              ).body.members
+          case _ => Map.empty
+         */
       // if res.shapes.add(sh) then
       //   res.shapeListeners.foreach(listener => listener(sh))
       sh
@@ -253,26 +269,40 @@ class NewResolver:
       )
     DefineVar(sym, rhs)
   
-  def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: DefnShape => Unit): Unit =
+  // def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: DefnShape => Unit): Unit =
+  def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: TermShape => Unit): Unit =
     sym.defn match
+    case S(td: TermDefinition) if td.params.isEmpty =>
+      td.body match
+      case S(body) =>
+        listenTerm(body, listener)
+      case N =>
+        ??? // TODO error
     case S(d) =>
       listener(defnShapes.getOrElseUpdate(sym, DefnShape(d)))
     case N =>
       sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
   def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
+    def fromBMS(bms: BlockMemberSymbol) =
+      bms.asModOrObj orElse bms.asTrm match
+      case S(sym: (ModuleOrObjectSymbol | TermSymbol)) =>
+        // listenSym(sym, defn => listener(ss))
+        listenSym(sym, listener)
+      case _ =>
+        raise:
+          ErrorReport(
+            msg"expected a term shape, but got ${bms.describe}" -> trm.toLoc :: Nil,
+            source = Diagnostic.Source.Compilation)
     listen(trm, {
       case sh: TermShape =>
         listener(sh)
+      case sels: SelShape =>
+        sels.target match
+        case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) =>
+          fromBMS(sym)
+        case _ => ??? // TODO error
       case ss: SymShape =>
-        ss.sym.asModOrObj orElse ss.sym.asTrm match
-        case S(sym: (ModuleOrObjectSymbol | TermSymbol)) =>
-          // listenSym(sym, defn => listener(ss))
-          listenSym(sym, listener)
-        case _ =>
-          raise:
-            ErrorReport(
-              msg"expected a term shape, but got ${ss.describe}" -> trm.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
+        fromBMS(ss.sym)
       case sh =>
         raise:
           ErrorReport(

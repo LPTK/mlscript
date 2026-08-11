@@ -944,6 +944,27 @@ extends Importer:
     if params.isEmpty then st
     else Term.Lam(PlainParamList(params), st)
   
+  /* 
+  private def termDefinition(
+    k: TermDefKind, // * The only reason we store it here in addition to tsym.k is for refining patmats
+    sym: BlockMemberSymbol,
+    tsym: TermSymbol,
+    params: Ls[ParamList],
+    tparams: Opt[Ls[Param]],
+    sign: Opt[Term],
+    body: Opt[Term],
+    flags: TermDefFlags,
+    modulefulness: Modulefulness,
+    annotations: Ls[Annot],
+    companion: Opt[CompanionSymbol],
+  ): TermDefinition =
+    val res = new TermDefinition(
+      k, sym, tsym, params, tparams, sign, body, flags, modulefulness, annotations, companion)
+    body.foreach: body =>
+      listenTerm(body, shape => termDefShape(shape, res))
+    res
+  */
+  
   private def app(lt: Term, rt: Term)(tree: Tree.App, typ: Opt[typing.Type], resSym: FlowSymbol): Term =
     val res = new Term.App(lt, rt)(tree, typ, resSym)
     listenTerm(lt, shape => appShape(shape, rt, res))
