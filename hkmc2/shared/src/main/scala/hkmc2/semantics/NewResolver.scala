@@ -292,6 +292,7 @@ class NewResolver:
         raise:
           ErrorReport(
             msg"expected a term shape, but got ${bms.describe}" -> trm.toLoc :: Nil,
+            // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
             source = Diagnostic.Source.Compilation)
     listen(trm, {
       case sh: TermShape =>

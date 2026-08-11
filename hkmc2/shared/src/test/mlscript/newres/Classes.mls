@@ -62,23 +62,72 @@ fv.a
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
+:de
 :fixme
 :sr
-fv.a
+:sir
+fun get = fv.a
 val fv = Foo(1)
+//│ Elab block List(TermDef(Fun,Ident(get),Some(Sel(Ident(fv),Ident(a)))), TermDef(ImmutVal,Ident(fv),Some(App(Iden[...] LocalScope(block:9)
+//│ | Processing term definition Ident(get)
+//│ | Elab term Sel(Ident(fv),Ident(a))
+//│ | | Elab subterm Sel(Ident(fv),Ident(a))
+//│ | | | Elab subterm Ident(fv)
+//│ | | | ~> Ref(member:fv‹81›)
+//│ | | | listen: trm = Ref(member:fv‹81›)
+//│ | | | symShape: sym = member:fv‹81›, res = Ref(member:fv‹81›)
 //│ ╔══[COMPILATION ERROR] expected a term shape, but got symbol
-//│ ║  l.67: 	fv.a
-//│ ╙──      	^^
+//│ ║  l.69: 	fun get = fv.a
+//│ ╙──      	          ^^
+//│ | | ~> Sel(Ref(member:fv‹81›),Ident(a))
+//│ | ~> Sel(Ref(member:fv‹81›),Ident(a))
+//│ | Processing term definition Ident(fv)
+//│ | Elab term App(Ident(Foo),Tup(List(IntLit(1))))
+//│ | | Elab subterm App(Ident(Foo),Tup(List(IntLit(1))))
+//│ | | | Elab subterm Ident(Foo)
+//│ | | | ~> Ref(member:Foo‹43›)
+//│ | | | Elab subterm Tup(List(IntLit(1)))
+//│ | | | | Elab term IntLit(1)
+//│ | | | | | Elab subterm IntLit(1)
+//│ | | | | | ~> Lit(IntLit(1))
+//│ | | | | ~> Lit(IntLit(1))
+//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
+//│ | | | listen: trm = Ref(member:Foo‹43›)
+//│ | | | symShape: sym = member:Foo‹43›, res = Ref(member:Foo‹43›)
+//│ | | | appShape: lhs = DefnShape(TermDefinition(Fun,member:Foo‹43›,term:Foo‹47›,List(ParamList(‹›,List(Param(‹val›,a‹46›,None,Modulefulness(None))),None)),Some(List()),Some(Ref(class:Foo‹44›)),None,‹›,Modulefulness(None),List(),Some(class:Foo‹44›))), args = Tup(List(Fld(‹›,Lit(IntLit(1)),None))), res = App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ | | ~> App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ | ~> App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ ~> Blk(List(TermDefinition(Fun,member:get‹82›,term:get‹86›,List(),None,None,Some(Sel(Ref(member:fv‹81›),Ident(a))),‹›,Modulefulness(None),List(),None), TermDefinition(ImmutVal,member:fv‹81›,term:fv‹90›,List(),None,None,Some(App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fv¹.a‹?›,
+//│   fun get⁰ ‹flow:get⁰› = fv¹.a‹?›,
 //│   val fv¹ ‹flow:fv⁰› = Foo¹(1)‹app²›
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.67: 	fv.a
-//│ ╙──      	^^^^
+//│ ║  l.69: 	fun get = fv.a
+//│ ╙──      	          ^^^^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp;
+//│ define get⁰ as fun get¹() { return fv⁰.a﹖ };
+//│ set tmp = Foo⁰(1);
+//│ define fv¹ as val fv⁰ = tmp;
+//│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'a')
-//│ fv = undefined
+//│ fv = Foo(1)
+
+:fixme
+:sr
+:sir
+:expect 1
+get
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   get⁰
+//│ whereTODO
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ return get¹
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] Expected: '1', got: 'fun get'
+//│ = fun get
+
 
 :todo
 :sr
@@ -90,11 +139,11 @@ foo(f)
 //│   foo⁰(f⁰)‹app⁴›
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.86: 	  x.a + x.b
-//│ ╙──      	  ^^^
+//│ ║  l.135: 	  x.a + x.b
+//│ ╙──       	  ^^^
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.86: 	  x.a + x.b
-//│ ╙──      	        ^^^
+//│ ║  l.135: 	  x.a + x.b
+//│ ╙──       	        ^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 
@@ -128,8 +177,8 @@ b.foo.a
 :elt
 :de
 let f = new Foo(1)
-//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntL[...] LocalScope(block:15)
-//│ | Processing `let` statement Ident(f) (f‹132›) LocalScope(block:15)
+//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntL[...] LocalScope(block:16)
+//│ | Processing `let` statement Ident(f) (f‹139›) LocalScope(block:16)
 //│ | Elab term App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
 //│ | | Elab subterm App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
 //│ | | | Elab subterm Ident(Foo)
@@ -145,16 +194,16 @@ let f = new Foo(1)
 //│ | | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
 //│ | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
 //│ | listen: trm = New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
-//│ ~> Blk(List(LetDecl(f‹132›,List()), DefineVar(f‹132›,New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))),Lit(UnitLit(false)))
+//│ ~> Blk(List(LetDecl(f‹139›,List()), DefineVar(f‹139›,New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))),Lit(UnitLit(false)))
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
 //│     LetDecl:
-//│       sym = f⁰‹132›
+//│       sym = f⁰‹139›
 //│     DefineVar:
-//│       sym = f⁰‹132›
+//│       sym = f⁰‹139›
 //│       rhs = New:
-//│         cls = Ref{sym=member:Foo⁰‹43›} of member:Foo⁰‹43›
+//│         cls = Ref{sym=member:Foo¹‹43›} of member:Foo¹‹43›
 //│         args = Ls of
 //│           Tup of Ls of
 //│             Fld:
@@ -173,7 +222,7 @@ let f = new Foo(1)
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.174: 	new 42
+//│ ║  l.223: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 

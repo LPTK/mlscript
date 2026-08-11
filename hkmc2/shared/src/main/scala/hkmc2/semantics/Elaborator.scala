@@ -618,8 +618,8 @@ extends Importer:
         Nil,
         N,
       )
-      tsym.defn = S(td)
       mtdSym.tsym = S(tsym)
+      tsym.defn = S(td)
       HandlerTermDefinition(resumeSym, td)
     Term.Handle(handlerSymbol, state.nonLocalRetHandlerTrm, Nil, clsSym, htds, body)
   
@@ -1933,8 +1933,8 @@ extends Importer:
               val tsym = TermSymbol(k, owner, id) // TODO?
               val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, 
                 TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations, N).withLocOf(td)
-              tsym.defn = S(tdf)
               sym.tsym = S(tsym)
+              tsym.defn = S(tdf)
               
               tdf
             go(sts, Nil, tdf :: acc)
@@ -2236,8 +2236,8 @@ extends Importer:
                     ,
                     S(clsSym),
                   )
-                ctsym.defn = S(ctdef)
                 if pss.nonEmpty then sym.tsym = S(ctsym)
+                ctsym.defn = S(ctdef)
                 // Note: do NOT set sym.tsym for constructor(...) classes; they are not callable as functions.
                 S(ctsym)
               else N
