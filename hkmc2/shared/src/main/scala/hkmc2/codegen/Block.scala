@@ -932,6 +932,11 @@ object ErasedType:
   /** An analogue to `FuncRef` for function types with canonicalized parameter and return types. */
   case class CanonicalFuncRef(override val rsc: Bool, override val paramLists: Ls[Ls[Opt[CanonicalErasedValueType]]], override val ret: Opt[CanonicalErasedValueType]) extends ErasedFuncType with CanonicalErasedType
 
+  /** Normalizes a signature's parameter lists such that an empty parameter list is represented as a single empty list.
+    */
+  def normalizeParamLists[A](paramLists: Ls[Ls[A]]): Ls[Ls[A]] =
+    if paramLists.isEmpty then Nil :: Nil else paramLists
+
   /** An primitive type. */
   case class Primitive(prim: PrimitiveType) extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = prim.sym
@@ -1357,9 +1362,18 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Value.Lit(_: Tree.StrLit) => S(ErasedType.Str)
     case Value.Lit(_: Tree.BoolLit) => S(ErasedType.Bool)
     // * Note: `UnitLit` stays untyped: Neither `null` nor `undefined` can be reasonably typed as `Unit`
-    case Call(fun, _) => fun.targetSymbol match
+    case Call(fun, argss) => fun.targetSymbol match
       case S(ts: TermSymbol) => ts.erasedType match
-        case S(ErasedType.FuncRef(_, _, ret)) => ret
+        case S(ErasedType.FuncRef(rsc, paramLists, ret)) =>
+          val declared = ErasedType.normalizeParamLists(paramLists)
+          argss.sizeCompare(declared) match
+            // * An exactly-applied call yields the function's result type.
+            case 0 => ret
+            // * An under-applied call yields a function type over the remaining parameter lists.
+            case c if c < 0 => S(ErasedType.FuncRef(rsc, declared.drop(argss.length), ret))
+            // * An over-applied call applies arguments to whatever the function returns, which the function's
+            // * signature is oblivious about.
+            case _ => N
         case _ => N
       case _ => N
     // * A resolved selection has the type of the member it refers to (e.g. `this.field`); an

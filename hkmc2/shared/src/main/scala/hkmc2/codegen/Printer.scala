@@ -42,7 +42,7 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
       // * function type it actually has.
       // * Note that definitions without a parameter list will still be rendered as `() => R` to distinguish them from
       // * a bare value of type `R`.
-      val pls = if paramLists.isEmpty then Nil :: Nil else paramLists
+      val pls = ErasedType.normalizeParamLists(paramLists)
       val sig = pls.foldRight(ret.fold(doc"?")(print)): (ps, acc) =>
         doc"(${ps.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => $acc"
       doc"${if rsc then "rsc " else ""}$sig"

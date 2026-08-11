@@ -643,6 +643,62 @@ fun f(x: Anything): Anything = x
 //│ define f⁶ as fun f⁷(x: Anything): Anything { return x }; end
 
 
+// A call is only typed as the callee's result when it is saturated. `curried(1)` supplies one of the two
+// declared parameter lists, so it is the residual function, not an `Int` — passing it to a `Function` slot
+// must therefore need no coercion. Before parameter lists were tracked, this was rejected outright with
+// "Cannot narrow a value of type 'Int' to unrelated type 'Function'".
+fun curried(a: Int)(b: Int): Int = a + b
+fun useFn(g: Function) = g(1)
+useFn(curried(1))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Function⁰;
+//│ define curried⁰ as fun curried¹(a: Int⁰)(b: Int⁰): Int⁰ {
+//│   return (+⁰(a, b) as! Int⁰)
+//│ };
+//│ define useFn⁰ as fun useFn¹(g: Function⁰): ? {
+//│   return g(1)
+//│ };
+//│ set tmp = curried¹(1);
+//│ return useFn¹(tmp)
+
+
+// Supplying every declared list still recovers the result type, so the `Int` slot takes no coercion.
+val done: Int = curried(1)(2)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Int⁰; set tmp = curried¹(1)(2); define done⁰ as val done¹: Int⁰ = tmp; end
+
+
+// Counting lists has to account for normalization: a `fun` written with no parameter list keeps `Nil` in
+// its signature, but lowering gives it one empty list and calls it with one empty argument list. `thunk()`
+// is therefore saturated, not over-applied, and keeps its declared `Function` — only the further `(2)`,
+// applied to the thunk's result, is unknown and needs the narrowing to `Int`.
+fun thunk: Function = (b: Int) => b + 1
+val over: Int = thunk(2)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Function⁰, tmp1: ?, tmp2: Int⁰;
+//│ define thunk⁰ as fun thunk¹(): Function⁰ {
+//│   let lambda;
+//│   @private
+//│   define lambda as fun lambda⁰(b: Int⁰) {
+//│     return +⁰(b, 1)
+//│   };
+//│   return (lambda⁰ as! Function⁰)
+//│ };
+//│ set tmp = thunk¹();
+//│ set tmp1 = tmp(2);
+//│ set tmp2 = (tmp1 as! Int⁰);
+//│ define over⁰ as val over¹: Int⁰ = tmp2;
+//│ end
+
+
+// Golden drift alone does not fail this file, so the normalization above is also pinned with an assertion
+// that does: the auto-invoked `thunk` is saturated, so it keeps its declared `Function`, which cannot narrow
+// to `Str`. Were the call read as over-applied instead, its type would degrade to the top type, this would
+// become an ordinary downcast, and nothing would be raised here.
+:ge
+val bad: Str = thunk
+
+
 // Under `:checkCasts`, every coercion inserted by lowering is marked as checked, and prints as
 // `as checked T`. The flag is read once, where the coercion is introduced; it changes nothing else about
 // lowering, so the IR is otherwise identical to the unmarked casts above.
