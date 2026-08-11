@@ -329,10 +329,10 @@ object SrcScope:
   given s: Ctx => SrcScope = summon[Ctx].scope
 
 // type Shape = TermShape | BlockMemberSymbol
-type Shape = TermShape
-
-sealed trait TermShape:
+// type Shape = TermShape
+sealed trait Shape:
   def describe: Str
+sealed trait TermShape extends Shape
 // sealed trait TermShape:
 //   def describe: Str = this match
 //     case app: AppShape => s"application of ${app.lhs.describe} to ${app.args.describe}"
@@ -356,9 +356,12 @@ abstract class SelShape(val receiver: Shape, val nme: Tree.Ident, val src: AnySe
   // val target = lhs match
   //   case _ => 
   def target: Opt[SelectionTarget]
-class SymShape(val sym: BlockMemberSymbol) extends TermShape:
+class SymShape(val sym: BlockMemberSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
+class DefnShape(val defn: Definition) extends TermShape:
+  def describe: Str = s"${defn.describe}"
+  override def toString: String = s"DefnShape($defn)"
 
 trait ShapePublisher:
   private[semantics] val shapeListeners: Buffer[Shape => Unit] = Buffer.empty
@@ -740,6 +743,10 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       case Missing => "missing"
       case LeadingDotSel(name) => "leading dot selection"
       case Resolved(t, sym) => t.describe
+      case td: TermDefinition => s"term definition '${td.sym.nme}'"
+      case cls: ClassDef => s"class definition '${cls.sym.nme}'"
+      case mod: ModuleOrObjectDef => s"module/object definition '${mod.sym.nme}'"
+      case td: TypeDef => s"type definition '${td.bsym.nme}'"
       case s => TODO(s)
     this match
       case self: Resolvable => self.resolvedTyp match

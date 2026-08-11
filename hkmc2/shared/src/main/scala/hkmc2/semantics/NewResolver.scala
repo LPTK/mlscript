@@ -43,14 +43,15 @@ class NewResolver:
   */
   
   // TODO: index by Shape identity (change Term equals/hashCode?)
-  val selShapes: mutable.Map[(Shape, Str), SelShape] = mutable.Map.empty
-  val appShapes: mutable.Map[(Shape, Term), AppShape] = mutable.Map.empty
+  val selShapes: mutable.Map[(TermShape, Str), SelShape] = mutable.Map.empty
+  val appShapes: mutable.Map[(TermShape, Term), AppShape] = mutable.Map.empty
   val symShapes: mutable.Map[BlockMemberSymbol, SymShape] = mutable.Map.empty
+  val defnShapes: mutable.Map[DefinitionSymbol[?], DefnShape] = mutable.Map.empty
   
   // def getSelShape(lhs: Shape, nme: Tree.Ident): SelShape =
   //   selShapes.getOrElseUpdate((lhs, nme.name), SelShape(lhs, nme))
   
-  def appShape(lhs: Shape, args: Term, res: App): Unit =
+  def appShape(lhs: TermShape, args: Term, res: App): Unit =
     // log(s"appShape? lhs = $lhs, args = $args, res = $res")
     val sh = appShapes.getOrElseUpdate((lhs, args), {
       log(s"appShape: lhs = $lhs, args = $args, res = $res")
@@ -77,6 +78,18 @@ class NewResolver:
               sel.src.isErroneous = true
               N
             case N => N
+          case ds: DefnShape =>
+            ds.defn match
+            case td: TermDefinition =>
+              td.tsym match
+              case ctd: ClassCtorSymbol =>
+                S(AppTarget.ObjectMember(ctd.associatedCls))
+              case _ =>
+                // TODO: raise error
+                N
+            case _ =>
+              // TODO: raise error
+              N
           case sh =>
             // res.isErroneous = true
             raise:
@@ -109,7 +122,7 @@ class NewResolver:
               source = Diagnostic.Source.Compilation)
           N
   
-  def selShape(lhs: Shape, id: Tree.Ident, res: AnySelTerm): Unit =
+  def selShape(lhs: TermShape, id: Tree.Ident, res: AnySelTerm): Unit =
     // log(s"selShape? lhs = $lhs, nme = $nme, res = $res")
     val sh = selShapes.getOrElseUpdate((lhs, id.name), {
       log(s"selShape: lhs = $lhs, nme = $id, res = $res")
@@ -229,6 +242,33 @@ class NewResolver:
           sym.shapeListeners.foreach(listener => listener(sh))
       )
     DefineVar(sym, rhs)
+  
+  def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: DefnShape => Unit): Unit =
+    sym.defn match
+    case S(d) =>
+      listener(defnShapes.getOrElseUpdate(sym, DefnShape(d)))
+    case N =>
+      sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
+  def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
+    listen(trm, {
+      case sh: TermShape =>
+        listener(sh)
+      case ss: SymShape =>
+        ss.sym.asModOrObj orElse ss.sym.asTrm match
+        case S(sym: (ModuleOrObjectSymbol | TermSymbol)) =>
+          // listenSym(sym, defn => listener(ss))
+          listenSym(sym, listener)
+        case _ =>
+          raise:
+            ErrorReport(
+              msg"expected a term shape, but got ${ss.describe}" -> trm.toLoc :: Nil,
+              source = Diagnostic.Source.Compilation)
+      case sh =>
+        raise:
+          ErrorReport(
+            msg"expected a term shape, but got ${sh.describe}" -> trm.toLoc :: Nil,
+            source = Diagnostic.Source.Compilation)
+    })
   
   def listen(trm: Term, listener: Shape => Unit): Unit =
     log(s"listen: trm = $trm")

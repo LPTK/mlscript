@@ -946,7 +946,7 @@ extends Importer:
   
   private def app(lt: Term, rt: Term)(tree: Tree.App, typ: Opt[typing.Type], resSym: FlowSymbol): Term =
     val res = new Term.App(lt, rt)(tree, typ, resSym)
-    listen(lt, shape => appShape(shape, rt, res))
+    listenTerm(lt, shape => appShape(shape, rt, res))
     res
   
   def subterm(tree: Tree): Ctxl[UnderCtx ?=> Term] =
@@ -986,7 +986,7 @@ extends Importer:
         // preTrm.shapeListeners +=
         //   (shape => selShape(shape, tree.name, res))
         // preTrm.listen(shape => selShape(shape, tree.name, res))
-        if newResolution then listen(preTrm, shape => selShape(shape, tree.name, res))
+        if newResolution then listenTerm(preTrm, shape => selShape(shape, tree.name, res))
         res
     
     tree.desugared match
