@@ -34,7 +34,7 @@ class CompilerCtx(
     CompilerCtx(S(newFile, this), beingCompiled + newFile, fs, cache)
   
   def getElaboratedBlock
-        (file: io.Path, prelude: Opt[PreludeArtifact])
+        (file: io.Path, prelude: Ctx)
         (using TL, Raise, Config)
         : Artifact =
     
@@ -43,26 +43,23 @@ class CompilerCtx(
     given Elaborator.State = new Elaborator.State
     
     val lastMod = fs.getLastChangedTimestamp(file)
-    val preludeCtx = prelude.fold(Ctx.empty)(_.ctx)
     
     def mk =
       val parse =
         given CompilerCtx = this
         ParserSetup(file, dbgParsing = false)
       val resBlk = parse.resultBlk
-      given Elaborator.Ctx = preludeCtx.copy(mode = Mode.Light).nestLocal("prelude")
+      given Elaborator.Ctx = prelude.copy(mode = Mode.Light).nestLocal("prelude")
       val elab =
         given CompilerCtx = derive(parse.origin.fileName)
         Elaborator(tl, file.up, prelude)
       val elabbed = elab.importFrom(resBlk)
-      Artifact(resBlk, elabbed._1, prelude, lastMod)
+      Artifact(resBlk, elabbed._1, lastMod)
     
     cache.upsert(file):
       case N => mk
       case cur @ S(art) =>
-        // * An artifact needs to be re-elaborated if the source file has changed since it was last elaborated, or if
-        // * the prelude's artifact was changed.
-        if art.lastChangedTimestamp < lastMod || art.prelude =/= prelude then mk
+        if art.lastChangedTimestamp < lastMod then mk
         else art
 
   def getPrelude
@@ -72,8 +69,6 @@ class CompilerCtx(
     // The prelude context is shared so every compilation unit sees the same prelude
     // symbols. Callers still elaborate their own files with a fresh State; the frozen
     // State remains the owner captured by the prelude symbols themselves.
-    // Note: a rebuild — on a differing `Config`, on `dbgParsing`, or on a newer prelude file —
-    // mints a new `State`, so units that do not share a `PreludeArtifact` do not share symbols.
     val lastMod = fs.getLastChangedTimestamp(file)
     cache.upsertPrelude(file):
       case cur @ S(art) if !dbgParsing && art.lastChangedTimestamp >= lastMod && art.config === config =>
@@ -83,7 +78,7 @@ class CompilerCtx(
         given Elaborator.State = state
         given CompilerCtx = this
         val parse = ParserSetup(file, dbgParsing)
-        val elab = Elaborator(tl, file.up, N)
+        val elab = Elaborator(tl, file.up, Ctx.empty)
         val initCtx = State.init.nestLocal("prelude")
         val (blk, ctx) = elab.importFrom(parse.resultBlk)(using initCtx)
         PreludeArtifact(parse.resultBlk, blk, ctx, state, config, lastMod)
@@ -101,15 +96,7 @@ end CompilerCtx
 
 object CompilerCache:
   
-  class Artifact(
-    val tree: syntax.Tree.Block,
-    val term: semantics.Term.Blk,
-    // * The prelude this artifact was elaborated against, used as a cache key: its symbols are owned by that prelude's
-    // * `State`, so reusing this artifact under a different prelude would yield symbols that compare unequal to the
-    // * caller's builtins.
-    val prelude: Opt[PreludeArtifact],
-    val lastChangedTimestamp: Long,
-  )
+  class Artifact(val tree: syntax.Tree.Block, val term: semantics.Term.Blk, val lastChangedTimestamp: Long)
 
   class PreludeArtifact(
     val tree: syntax.Tree.Block,

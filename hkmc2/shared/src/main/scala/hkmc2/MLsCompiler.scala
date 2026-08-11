@@ -90,13 +90,13 @@ class MLsCompiler
     
     preludeCtx.nestLocal("file:"+file.baseName).givenIn:
       given CompilerCtx = cctx.derive(file)
-      val elab = Elaborator(etl, wd, S(preludeArtifact))
+      val elab = Elaborator(etl, wd, preludeCtx)
       val parsed = mainParse.resultBlk
       val (blk0, _) = elab.importFrom(parsed)
       if file.toString === runtimeSourceFile.toString then
         State.initRuntimeSymbolsFromBlock(blk0)
       else
-        State.initRuntimeSymbolsFromFile(runtimeSourceFile, S(preludeArtifact))(using etl, summon[Raise], config, summon[CompilerCtx])
+        State.initRuntimeSymbolsFromFile(runtimeSourceFile, preludeCtx)(using etl, summon[Raise], config, summon[CompilerCtx])
       Config.extractConfigFromStats(blk0).givenIn {
       val resolver = Resolver(rtl)
       resolver.traverseBlock(blk0)(using Resolver.ICtx.empty)
