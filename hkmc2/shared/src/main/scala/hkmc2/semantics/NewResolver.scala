@@ -99,6 +99,11 @@ class NewResolver:
             N
         target.foreach: tgt =>
           res.resolvedTargets ::= tgt
+        lazy val members: Map[Str, BlockMemberSymbol] = target match
+          case S(AppTarget.ObjectMember(cls)) =>
+            cls.defn.getOrElse(die // TODO
+              ).body.members
+          case _ => Map.empty
       // if res.shapes.add(sh) then
       //   res.shapeListeners.foreach(listener => listener(sh))
       sh
@@ -109,6 +114,7 @@ class NewResolver:
   def newShape(lhs: Shape, args: Ls[Term], res: Term.New): Unit =
     // log(s"newShape? lhs = $lhs, args = $args, res = $res")
     val sh = new NewShape(lhs, args, res):
+      def members: Map[Str, BlockMemberSymbol] = ???
       // def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
       //   getFromClsTree(cls.tree)
       val target = receiver match
@@ -129,6 +135,8 @@ class NewResolver:
       // lhs match
       // case _ =>
       val sh = new SelShape(lhs, id, res):
+        def members: Map[Str, BlockMemberSymbol] = ???
+        /* 
         def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
           getFromClsTree(cls.tree)
         // TODO: only use `getFromCls`...
@@ -212,6 +220,8 @@ class NewResolver:
                 msg"TODO error (${sh.describe})" -> res.toLoc :: Nil,
                 source = Diagnostic.Source.Compilation)
             N
+        */
+        val target = receiver.members.get(id.name).map(SelectionTarget.ObjectMember(_))
         target.foreach: tgt =>
           res.resolvedTargets ::= tgt
       // if res.shapes.add(sh) then

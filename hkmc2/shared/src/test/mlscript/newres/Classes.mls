@@ -35,7 +35,7 @@ let f = Foo(1)
 :sr
 f.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   f⁰.a²
+//│   f⁰.a¹
 //│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
@@ -50,7 +50,16 @@ f.b
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
 
-:fixme
+:todo
+val fv = Foo(1)
+fv.a
+//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
+//│ ║  l.55: 	fv.a
+//│ ╙──      	^^^^
+//│ = 1
+//│ fv = Foo(1)
+
+:todo
 :sr
 fun foo(x) =
   x.a + x.b
@@ -60,13 +69,45 @@ foo(f)
 //│   foo⁰(f⁰)‹app³›
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.56: 	  x.a + x.b
+//│ ║  l.65: 	  x.a + x.b
 //│ ╙──      	  ^^^
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.56: 	  x.a + x.b
+//│ ║  l.65: 	  x.a + x.b
 //│ ╙──      	        ^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
+
+
+class Bar(a) with
+  val foo = Foo(a)
+
+let b = Bar(123)
+//│ b = Bar(_)
+
+:sr
+b.foo
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   b¹.foo¹
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = Foo(123)
+
+:todo
+:de
+:sr
+b.foo.a
+//│ Elab block List(Sel(Sel(Ident(b),Ident(foo)),Ident(a))) LocalScope(block:12)
+//│ | Elab term Sel(Sel(Ident(b),Ident(foo)),Ident(a))
+//│ | | Elab subterm Sel(Sel(Ident(b),Ident(foo)),Ident(a))
+//│ | | | Elab subterm Sel(Ident(b),Ident(foo))
+//│ | | | | Elab subterm Ident(b)
+//│ | | | | ~> Ref(b‹109›)
+//│ | | | | listen: trm = Ref(b‹109›)
+//│ | | | | selShape: lhs = AppShape(DefnShape(TermDefinition(Fun,member:Bar‹95›,term:Bar‹99›,List(ParamList(‹›,List(Param(‹›,a‹98›,None,Modulefulness(None))),None)),Some(List()),Some(Ref(class:Bar‹96›)),None,‹›,Modulefulness(None),List(),Some(class:Bar‹96›))), Tup(List(Fld(‹›,Lit(IntLit(123)),None)))), nme = Ident(foo), res = Sel(Ref(b‹109›),Ident(foo))
+//│ | | | ~> Sel(Ref(b‹109›),Ident(foo))
+//│ | | | listen: trm = Sel(Ref(b‹109›),Ident(foo))
+//│ | | | selShape: lhs = SelShape(AppShape(DefnShape(TermDefinition(Fun,member:Bar‹95›,term:Bar‹99›,List(ParamList(‹›,List(Param(‹›,a‹98›,None,Modulefulness(None))),None)),Some(List()),Some(Ref(class:Bar‹96›)),None,‹›,Modulefulness(None),List(),Some(class:Bar‹96›))), Tup(List(Fld(‹›,Lit(IntLit(123)),None)))), Ident(foo)), nme = Ident(a), res = Sel(Sel(Ref(b‹109›),Ident(foo)),Ident(a))
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
 
 
 :sjs
@@ -74,8 +115,8 @@ foo(f)
 :elt
 :de
 let f = new Foo(1)
-//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntL[...] LocalScope(block:8)
-//│ | Processing `let` statement Ident(f) (f‹85›) LocalScope(block:8)
+//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntL[...] LocalScope(block:13)
+//│ | Processing `let` statement Ident(f) (f‹118›) LocalScope(block:13)
 //│ | Elab term App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
 //│ | | Elab subterm App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
 //│ | | | Elab subterm Ident(Foo)
@@ -91,14 +132,14 @@ let f = new Foo(1)
 //│ | | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
 //│ | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
 //│ | listen: trm = New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
-//│ ~> Blk(List(LetDecl(f‹85›,List()), DefineVar(f‹85›,New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))),Lit(UnitLit(false)))
+//│ ~> Blk(List(LetDecl(f‹118›,List()), DefineVar(f‹118›,New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))),Lit(UnitLit(false)))
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
 //│     LetDecl:
-//│       sym = f⁰‹85›
+//│       sym = f⁰‹118›
 //│     DefineVar:
-//│       sym = f⁰‹85›
+//│       sym = f⁰‹118›
 //│       rhs = New:
 //│         cls = Ref{sym=member:Foo⁰‹43›} of member:Foo⁰‹43›
 //│         args = Ls of
@@ -119,7 +160,7 @@ let f = new Foo(1)
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.120: 	new 42
+//│ ║  l.161: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 

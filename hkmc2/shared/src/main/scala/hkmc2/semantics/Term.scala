@@ -332,7 +332,8 @@ object SrcScope:
 // type Shape = TermShape
 sealed trait Shape:
   def describe: Str
-sealed trait TermShape extends Shape
+sealed trait TermShape extends Shape:
+  def members: Map[Str, BlockMemberSymbol]
 // sealed trait TermShape:
 //   def describe: Str = this match
 //     case app: AppShape => s"application of ${app.lhs.describe} to ${app.args.describe}"
@@ -341,7 +342,8 @@ sealed trait TermShape extends Shape
 
 class ErrShape(val err: ErrorReport) extends TermShape:
   def describe: Str = s"error: ${err.mainMsg}"
-abstract class AppShape(val receiver: Shape, val args: Term, val src: Term.App) extends TermShape:
+  def members: Map[Str, BlockMemberSymbol] = Map.empty
+abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.App) extends TermShape:
   def describe: Str = s"application of ${receiver.describe}"
   override def toString: String = s"AppShape($receiver, $args)"
   def target: Opt[AppTarget]
@@ -349,7 +351,7 @@ abstract class NewShape(val receiver: Shape, val args: Ls[Term], val src: Term.N
   def describe: Str = s"instantiation of ${receiver.describe}"
   override def toString: String = s"NewShape($receiver, $args)"
   // def target: Opt[AppTarget]
-abstract class SelShape(val receiver: Shape, val nme: Tree.Ident, val src: AnySel) extends TermShape:
+abstract class SelShape(val receiver: TermShape, val nme: Tree.Ident, val src: AnySel) extends TermShape:
 // class SelShape(val lhs: Shape, val nme: Tree.Ident)(using Raise) extends TermShape:
   def describe: Str = s"selection of '${nme.name}' from ${receiver.describe}"
   override def toString: String = s"SelShape($receiver, $nme)"
@@ -362,6 +364,10 @@ class SymShape(val sym: BlockMemberSymbol) extends Shape:
 class DefnShape(val defn: Definition) extends TermShape:
   def describe: Str = s"${defn.describe}"
   override def toString: String = s"DefnShape($defn)"
+  def members: Map[Str, BlockMemberSymbol] = Map.empty
+sealed trait LitShape extends TermShape:
+  self: Term.Lit =>
+  def members: Map[Str, BlockMemberSymbol] = Map.empty // TODO: methods on literals, e.g. string methods
 
 trait ShapePublisher:
   private[semantics] val shapeListeners: Buffer[Shape => Unit] = Buffer.empty
@@ -372,7 +378,7 @@ enum Term extends Statement, ShapePublisher:
   case Error()
   case UnitVal()
   case Missing // Placeholder terms that were not elaborated due to the "lightweight" elaboration mode `Mode.Light`
-  case Lit(lit: Literal) extends Term, TermShape
+  case Lit(lit: Literal) extends Term, LitShape
   /** A term that wraps another term, indicating that the symbol of the inner term is resolved.
     * This is mainly used to disambiguate overloaded definitions. */
   case Resolved(t: Term, sym: DefinitionSymbol[?])
