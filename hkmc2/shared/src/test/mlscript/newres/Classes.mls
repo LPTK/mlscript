@@ -1,3 +1,5 @@
+:js
+
 
 #lang(0.3.x)
 
@@ -16,45 +18,27 @@ class Foo(val a) with
 //│     val b⁰ ‹flow:b⁰› = +(⟨Foo⁰.⟩a¹, 1)‹app⁰›
 //│   }
 //│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
-:de
+// :de
+:sr
 let f = Foo(1)
-//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(Ident(Foo),Tup(List(IntLit(1))))),None)) LocalScope(block:4)
-//│ | Processing `let` statement Ident(f) (f‹54›) LocalScope(block:4)
-//│ | Elab term App(Ident(Foo),Tup(List(IntLit(1))))
-//│ | | Elab subterm App(Ident(Foo),Tup(List(IntLit(1))))
-//│ | | | Elab subterm Ident(Foo)
-//│ | | | ~> Ref(member:Foo‹39›)
-//│ | | | Elab subterm Tup(List(IntLit(1)))
-//│ | | | | Elab term IntLit(1)
-//│ | | | | | Elab subterm IntLit(1)
-//│ | | | | | ~> Lit(IntLit(1))
-//│ | | | | ~> Lit(IntLit(1))
-//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
-//│ | | | listen: trm = Ref(member:Foo‹39›)
-//│ | | | symShape: sym = member:Foo‹39›, res = Ref(member:Foo‹39›)
-//│ | | | appShape: lhs = SymShape(member:Foo‹39›), args = Tup(List(Fld(‹›,Lit(IntLit(1)),None))), res = App(Ref(member:Foo‹39›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | | ~> App(Ref(member:Foo‹39›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | ~> App(Ref(member:Foo‹39›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | listen: trm = App(Ref(member:Foo‹39›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ ~> Blk(List(LetDecl(f‹54›,List()), DefineVar(f‹54›,App(Ref(member:Foo‹39›),Tup(List(Fld(‹›,Lit(IntLit(1)),None)))))),Lit(UnitLit(false)))
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   let f⁰,
+//│   f⁰ = Foo¹(1)‹app¹›
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ f = Foo(1)
 
-:fixme
-:de
+// :fixme
+// :de
+:sr
 f.a
-//│ Elab block List(Sel(Ident(f),Ident(a))) LocalScope(block:5)
-//│ | Elab term Sel(Ident(f),Ident(a))
-//│ | | Elab subterm Sel(Ident(f),Ident(a))
-//│ | | | Elab subterm Ident(f)
-//│ | | | ~> Ref(f‹54›)
-//│ | | | listen: trm = Ref(f‹54›)
-//│ | | | selShape: lhs = AppShape(SymShape(member:Foo‹39›), Tup(List(Fld(‹›,Lit(IntLit(1)),None)))), nme = Ident(a), res = Sel(Ref(f‹54›),Ident(a))
-//│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'a'
-//│ ║  l.44: 	f.a
-//│ ╙──      	^^^
-//│ | | ~> Sel(Ref(f‹54›),Ident(a))
-//│ | ~> Sel(Ref(f‹54›),Ident(a))
-//│ ~> Blk(List(),Sel(Ref(f‹54›),Ident(a)))
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   f⁰.a²
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
 
 // :fixme
 // :de
@@ -63,6 +47,8 @@ f.b
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f⁰.b⁰
 //│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 2
 
 :fixme
 :sr
@@ -70,15 +56,30 @@ fun foo(x) =
   x.a + x.b
 foo(f)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a‹?›, x⁰.b‹?›)‹app¹›,
-//│   foo⁰(f⁰)‹app²›
+//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a‹?›, x⁰.b‹?›)‹app²›,
+//│   foo⁰(f⁰)‹app³›
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.70: 	  x.a + x.b
+//│ ║  l.56: 	  x.a + x.b
 //│ ╙──      	  ^^^
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.70: 	  x.a + x.b
+//│ ║  l.56: 	  x.a + x.b
 //│ ╙──      	        ^^^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3
+
+
+:sjs
+:sr
+let f = new Foo(1)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   let f¹,
+//│   f¹ = new Foo¹(1)
+//│ whereTODO
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let f1; f1 = globalThis.Object.freeze(new Foo1(1));
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ f = Foo(1)
 
 
 

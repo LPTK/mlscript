@@ -2,7 +2,7 @@ package hkmc2
 package semantics
 
 import scala.collection.mutable
-import scala.collection.mutable.{Set => MutSet}
+import scala.collection.mutable.{Buffer, Set as MutSet}
 
 import hkmc2.utils.*, shorthands.*
 import syntax.*
@@ -428,9 +428,19 @@ sealed trait ClassLikeSymbol extends IdentifiedSymbol:
  */
 sealed trait DefinitionSymbol[Defn <: Definition] extends MemberSymbol:
   
-  var defn: Opt[Defn] = N
+  // var defn: Opt[Defn] = N
+  private var _defn: Opt[Defn] = N
+  def defn: Opt[Defn] = _defn
+  def defn_=(d: S[Defn]): Unit =
+    require(_defn.isEmpty, s"Cannot reassign defn of ${this} from ${_defn} to ${d}")
+    _defn = d
+    defnListeners.foreach(_(d.value))
+    defnListeners = null // free memory and prevent further listening
+  
   var decl: Opt[Declaration] = N // NOTE: currently only assigned for class params and only used by deforestation; may want to just remove it once deforestation is improved
   def bms: Opt[BlockMemberSymbol] = defn.map(_.bsym) 
+  
+  private[semantics] var defnListeners: Buffer[Defn => Unit] = Buffer.empty
   
   // * Although the IR is immutable,
   // * we consider that a given symbol is *owned* by the IR Defn node that defines it.

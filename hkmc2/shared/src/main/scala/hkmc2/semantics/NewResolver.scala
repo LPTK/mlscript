@@ -61,18 +61,6 @@ class NewResolver:
           // println(s"? $sym ${sym.asCls}")
           sym.asCls match
           case S(clsSym) =>
-            // println(s"?! $cls ${cls.tree}")
-            // case s @ S(clsSym) =>
-            //   S(SelectionTarget.ObjectMember(clsSym))
-            // case N =>
-            //   // res.isErroneous = true
-            //   val rep = 
-            //     ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
-            //       }' cannot be called like a function" -> res.toLoc :: Nil)
-            //   raise(rep)
-            //   // S(ErrShape(rep))
-            //   S(SelectionTarget.Err(rep))
-            // N
             S(AppTarget.ObjectMember(clsSym))
           case N =>
             N
@@ -117,7 +105,7 @@ class NewResolver:
         // TODO: only use `getFromCls`...
         def getFromClsTree(cls: Tree.TypeDef): Opt[SelectionTarget] =
           // log(s"?!! ${cls.definedSymbols}")
-          cls.definedSymbols.get(nme.name) match
+          cls.allSymbols.get(nme.name) match
           case s @ S(clsSym) =>
             S(SelectionTarget.ObjectMember(clsSym))
           case N =>
