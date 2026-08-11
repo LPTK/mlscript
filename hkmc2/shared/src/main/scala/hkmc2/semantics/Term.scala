@@ -342,9 +342,13 @@ sealed trait TermShape:
 class ErrShape(val err: ErrorReport) extends TermShape:
   def describe: Str = s"error: ${err.mainMsg}"
 abstract class AppShape(val receiver: Shape, val args: Term, val src: Term.App) extends TermShape:
-  def describe: Str = s"application of ${receiver.describe} to ${args.describe}"
+  def describe: Str = s"application of ${receiver.describe}"
   override def toString: String = s"AppShape($receiver, $args)"
   def target: Opt[AppTarget]
+abstract class NewShape(val receiver: Shape, val args: Ls[Term], val src: Term.New) extends TermShape:
+  def describe: Str = s"instantiation of ${receiver.describe}"
+  override def toString: String = s"NewShape($receiver, $args)"
+  // def target: Opt[AppTarget]
 abstract class SelShape(val receiver: Shape, val nme: Tree.Ident, val src: AnySel) extends TermShape:
 // class SelShape(val lhs: Shape, val nme: Tree.Ident)(using Raise) extends TermShape:
   def describe: Str = s"selection of '${nme.name}' from ${receiver.describe}"

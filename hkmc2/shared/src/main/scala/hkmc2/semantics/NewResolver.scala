@@ -93,6 +93,22 @@ class NewResolver:
     if res.shapes.add(sh) then
       res.shapeListeners.foreach(listener => listener(sh))
   
+  def newShape(lhs: Shape, args: Ls[Term], res: Term.New): Unit =
+    // log(s"newShape? lhs = $lhs, args = $args, res = $res")
+    val sh = new NewShape(lhs, args, res):
+      // def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
+      //   getFromClsTree(cls.tree)
+      val target = receiver match
+        case ss: SymShape =>
+          ()
+        case sh =>
+          // res.isErroneous = true
+          raise:
+            ErrorReport(
+              msg"TODO error (${sh.describe})" -> res.toLoc :: Nil,
+              source = Diagnostic.Source.Compilation)
+          N
+  
   def selShape(lhs: Shape, id: Tree.Ident, res: AnySelTerm): Unit =
     // log(s"selShape? lhs = $lhs, nme = $nme, res = $res")
     val sh = selShapes.getOrElseUpdate((lhs, id.name), {

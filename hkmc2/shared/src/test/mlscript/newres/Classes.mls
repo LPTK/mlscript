@@ -71,7 +71,41 @@ foo(f)
 
 :sjs
 :sr
+:elt
+:de
 let f = new Foo(1)
+//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntL[...] LocalScope(block:8)
+//│ | Processing `let` statement Ident(f) (f‹85›) LocalScope(block:8)
+//│ | Elab term App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
+//│ | | Elab subterm App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
+//│ | | | Elab subterm Ident(Foo)
+//│ | | | ~> Ref(member:Foo‹43›)
+//│ | | | Elab subterm Tup(List(IntLit(1)))
+//│ | | | | Elab term IntLit(1)
+//│ | | | | | Elab subterm IntLit(1)
+//│ | | | | | ~> Lit(IntLit(1))
+//│ | | | | ~> Lit(IntLit(1))
+//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
+//│ | | | listen: trm = Ref(member:Foo‹43›)
+//│ | | | symShape: sym = member:Foo‹43›, res = Ref(member:Foo‹43›)
+//│ | | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
+//│ | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
+//│ | listen: trm = New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
+//│ ~> Blk(List(LetDecl(f‹85›,List()), DefineVar(f‹85›,New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))),Lit(UnitLit(false)))
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   stats = Ls of
+//│     LetDecl:
+//│       sym = f⁰‹85›
+//│     DefineVar:
+//│       sym = f⁰‹85›
+//│       rhs = New:
+//│         cls = Ref{sym=member:Foo⁰‹43›} of member:Foo⁰‹43›
+//│         args = Ls of
+//│           Tup of Ls of
+//│             Fld:
+//│               term = Lit of IntLit of 1
+//│   res = Lit of UnitLit of false
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   let f¹,
 //│   f¹ = new Foo¹(1)
@@ -81,6 +115,13 @@ let f = new Foo(1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
+
+:e
+new 42
+//│ ╔══[COMPILATION ERROR] TODO error (integer literal)
+//│ ║  l.120: 	new 42
+//│ ╙──       	^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 
 
 

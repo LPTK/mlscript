@@ -954,6 +954,11 @@ extends Importer:
     
     def error = Term.Error().withLocOf(tree)
     
+    def mkNew(cls: Term, args: Ls[Term], rft: Opt[ClassSymbol -> ObjBody])(typ: Opt[typing.Type]): Term.New =
+      val res = new Term.New(cls, args, rft)(typ).withLocOf(tree)
+      listen(cls, shape => newShape(shape, args, res))
+      res
+    
     /** Fallback to a normal selection + application when label-specific handling does not apply. */
     def mkNonLabelSelectionApp(tree: App, sel: Sel, args: Ls[Tree]): Term =
       val sym = FlowSymbol.app()
@@ -1344,15 +1349,15 @@ extends Importer:
         val (mut, c2) = c match
           case Modified(Keywrd(Keyword.`mut`), c) => (true, c)
           case c => (false, c)
-        val inner = new Term.New(
+        val inner = mkNew(
           subterm(c2), // * Note: we'll catch bad `new` targets during type checking
           args.map(subterm(_)),
           bodo
-        )(N).withLocOf(tree)
+        )(N)
         if mut then Term.Mut(inner) else inner
       case N =>
         val objectRef = ctx.builtins.Object.bms.get.ref(Ident("Object"))
-        Term.New(objectRef, Nil, bodo)(N).withLocOf(tree)
+        mkNew(objectRef, Nil, bodo)(N)
       // case _ =>
       //   raise(ErrorReport(msg"Illegal new expression." -> tree.toLoc :: Nil))
       
