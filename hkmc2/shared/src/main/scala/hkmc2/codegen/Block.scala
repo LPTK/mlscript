@@ -924,13 +924,13 @@ object ErasedType:
     *
     * - `rsc` is true if this reference is a resource function.
     */
-  case class FuncRef(override val rsc: Bool, override val params: Ls[Opt[ErasedValueType]], override val ret: Opt[ErasedValueType]) extends ErasedFuncType:
+  case class FuncRef(override val rsc: Bool, override val paramLists: Ls[Ls[Opt[ErasedValueType]]], override val ret: Opt[ErasedValueType]) extends ErasedFuncType:
     override type Canonical = CanonicalFuncRef
     override protected def computeCanonicalize(using Ctx, State): CanonicalFuncRef =
-      CanonicalFuncRef(rsc, params.map(_.map(_.canonicalize)), ret.map(_.canonicalize))
+      CanonicalFuncRef(rsc, paramLists.map(_.map(_.map(_.canonicalize))), ret.map(_.canonicalize))
 
   /** An analogue to `FuncRef` for function types with canonicalized parameter and return types. */
-  case class CanonicalFuncRef(override val rsc: Bool, override val params: Ls[Opt[CanonicalErasedValueType]], override val ret: Opt[CanonicalErasedValueType]) extends ErasedFuncType with CanonicalErasedType
+  case class CanonicalFuncRef(override val rsc: Bool, override val paramLists: Ls[Ls[Opt[CanonicalErasedValueType]]], override val ret: Opt[CanonicalErasedValueType]) extends ErasedFuncType with CanonicalErasedType
 
   /** An primitive type. */
   case class Primitive(prim: PrimitiveType) extends ErasedValueType, CanonicalErasedType:
@@ -1175,10 +1175,14 @@ sealed abstract class ErasedType:
 sealed abstract class ErasedValueType extends ErasedType:
   type Canonical <: CanonicalErasedValueType
 
-/** Base class indicating that the [[`ErasedType`]] is a function type. */
+/** Base class indicating that the [[`ErasedType`]] is a function type.
+  *
+  * `paramLists` mirrors the definition's parameter *lists*, so that curried functions can be represented - functions
+  * that are partially applied yields a function type with fewer parameter lists.
+  */
 sealed abstract class ErasedFuncType extends ErasedType:
   val rsc: Bool
-  val params: Ls[Opt[ErasedValueType]]
+  val paramLists: Ls[Ls[Opt[ErasedValueType]]]
   val ret: Opt[ErasedValueType]
   final override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Function
 
@@ -1216,12 +1220,12 @@ trait HasErasedType:
     * Parameter and return types of [[`ErasedFuncType`]]s are recursively coerced.
     */
   lazy val erasedType_! : ErasedType = erasedType.fold(ErasedType.Anything):
-    case f @ ErasedType.FuncRef(rsc, params, ret) => f.copy(
-      params = params.map(p => S(p.getOrElse(ErasedType.Anything))),
+    case f @ ErasedType.FuncRef(rsc, paramLists, ret) => f.copy(
+      paramLists = paramLists.map(_.map(p => S(p.getOrElse(ErasedType.Anything)))),
       ret = S(ret.getOrElse(ErasedType.Anything)),
     )
-    case f @ ErasedType.CanonicalFuncRef(rsc, params, ret) => f.copy(
-      params = params.map(p => S(p.getOrElse(ErasedType.Anything))),
+    case f @ ErasedType.CanonicalFuncRef(rsc, paramLists, ret) => f.copy(
+      paramLists = paramLists.map(_.map(p => S(p.getOrElse(ErasedType.Anything)))),
       ret = S(ret.getOrElse(ErasedType.Anything)),
     )
     case vt: ErasedValueType => vt
@@ -1364,7 +1368,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       // * A zero-param-list `fun` is auto-invoked on every reference, so a reference to it yields the function's
       // * result.
       case S(ts: TermSymbol) => ts.erasedType match
-        case S(ErasedType.FuncRef(_, _, ret)) if ts.defn.exists(_.params.isEmpty) => ret
+        case S(ErasedType.FuncRef(_, paramLists, ret)) if paramLists.isEmpty => ret
         case other => other
       // * A class reference is the class object, so it stays unknown.
       case S(_: ClassSymbol) => N

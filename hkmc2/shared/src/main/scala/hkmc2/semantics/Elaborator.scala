@@ -2005,7 +2005,7 @@ extends Importer:
               val erasedTpe = k match
                 case syntax.Fun =>
                   S(ErasedType.FuncRef(rsc = false,
-                    pss.flatMap(_.params).map(_.sym.erasedType), retTpe))
+                    pss.map(_.params.map(_.sym.erasedType)), retTpe))
                 case _: syntax.Val => retTpe
                 case _ => N
               val tsym = TermSymbol(k, owner, id, erasedType = erasedTpe) // TODO?

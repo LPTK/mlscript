@@ -37,8 +37,15 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
   def print(cet: CanonicalErasedType)(using Scope): Document = cet match
     case ErasedType.Anything => doc"Anything"
     case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${if rsc then "rsc " else ""}${printTpe(tpeSym)}"
-    case ErasedType.CanonicalFuncRef(rsc, params, ret) =>
-      doc"${if rsc then "rsc " else ""}(${params.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => ${ret.fold(doc"?")(print)}"
+    case ErasedType.CanonicalFuncRef(rsc, paramLists, ret) =>
+      // * Curried functions are rendered as `(A) => (B) => R`, so that an under-applied call reads as the residual
+      // * function type it actually has.
+      // * Note that definitions without a parameter list will still be rendered as `() => R` to distinguish them from
+      // * a bare value of type `R`.
+      val pls = if paramLists.isEmpty then Nil :: Nil else paramLists
+      val sig = pls.foldRight(ret.fold(doc"?")(print)): (ps, acc) =>
+        doc"(${ps.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => $acc"
+      doc"${if rsc then "rsc " else ""}$sig"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
 
   def print(et: ErasedType)(using Scope): Document = et match

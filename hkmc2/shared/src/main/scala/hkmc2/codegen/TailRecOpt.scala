@@ -341,7 +341,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
           else S(memberRets.flatten.map(_.canonicalize).reduce(ErasedType.lub))
         TermSymbol(syntax.Fun, owner, Tree.Ident(bms.nme), erasedType = S(ErasedType.FuncRef(
           rsc = false,
-          params = S(ErasedType.Int) :: List.fill(maxParamLen)(N),
+          paramLists = (S(ErasedType.Int) :: List.fill(maxParamLen)(N)) :: Nil,
           ret = ret,
         )))
     // Link the dispatcher function to the BMS so that the erased type is accessible.

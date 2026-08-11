@@ -1740,12 +1740,18 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
             case S(body) =>
               val declaredParams = fun.targetSymbol match
                 case S(ts: TermSymbol) => ts.erasedType.collect:
-                  case ft: ErasedFuncType => ft.params
+                  case ft: ErasedFuncType => ft.paramLists
                 case _ => N
-              val ps = declaredParams.getOrElse:
+              val ps = declaredParams match
+                case S(pl :: Nil) => pl
+                // * The prelude declares every `wasm.` intrinsic with exactly one parameter list; a curried (or
+                // * parameterless) one has no meaning as an instruction.
+                case S(_) =>
+                  lastWords(s"wasm intrinsic '$intrName' must be declared with exactly one parameter list")
                 // * `Lowering` attaches the intrinsic's `TermSymbol` to the path it builds, so an implemented
                 // * intrinsic always has a declared signature here.
-                lastWords(s"wasm intrinsic '$intrName' is implemented but has no declared signature")
+                case N =>
+                  lastWords(s"wasm intrinsic '$intrName' is implemented but has no declared signature")
               if ps.length =/= args.length then
                 return errExpr(
                   Ls(msg"Wasm intrinsic '$intrName' called with incorrect arity (${args.length})" -> c.toLoc),
