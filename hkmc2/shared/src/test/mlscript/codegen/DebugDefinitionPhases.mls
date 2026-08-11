@@ -1,22 +1,39 @@
+:js
+
+
 @dbg('resolution, 'lowering)
 fun selected_debug(x) = x
 fun unrelated(x) = x
-//│ | Resolving definition: TermDefinition(Fun,member:selected_debug‹36›,term:selected_debug‹41›,List(ParamList(‹›,List(Param(‹›,x‹38›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹38›)),‹›,Modulefulness(None),List(Debug(...)),None)
-//│ | | Resolving function definition TermDefinition(Fun,member:selected_debug‹36›,term:selected_debug‹41›,List(ParamList(‹›,List(Param(‹›,x‹38›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹38›)),‹›,Modulefulness(None),List(Debug(...)),None)
-//│ | | Resolving parameter x‹38›
-//│ | | Traversing term: Ref(x‹38›) (expect = NonModule)
-//│ | | | Resolving resolvable term: Ref(x‹38›), (prefer = NonModule, inAppPrefix = false, inCtxPrefix = false, inTyPrefix = false)
-//│ | | | | Resolving symbol for term: Ref(x‹38›) (prefer = NonModule)
-//│ | | | | -> (sym = Some(x‹38›), typ = None)
-//│ | | | | Resolving the type for term: Ref(x‹38›) (prefer = NonModule, sym = Some(x‹38›))
-//│ | | | | | Declaration: Some(Param(‹›,x‹38›,None,Modulefulness(None)))
+//│ | Resolving definition: TermDefinition(Fun,member:selected_debug‹38›,term:selected_debug‹43›,List(ParamList(‹›,List(Param(‹›,x‹40›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹40›)),‹›,Modulefulness(None),List(Debug(...)),None)
+//│ | | Resolving function definition TermDefinition(Fun,member:selected_debug‹38›,term:selected_debug‹43›,List(ParamList(‹›,List(Param(‹›,x‹40›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹40›)),‹›,Modulefulness(None),List(Debug(...)),None)
+//│ | | Resolving parameter x‹40›
+//│ | | Traversing term: Ref(x‹40›) (expect = NonModule)
+//│ | | | Resolving resolvable term: Ref(x‹40›), (prefer = NonModule, inAppPrefix = false, inCtxPrefix = false, inTyPrefix = false)
+//│ | | | | Resolving symbol for term: Ref(x‹40›) (prefer = NonModule)
+//│ | | | | -> (sym = Some(x‹40›), typ = None)
+//│ | | | | Resolving the type for term: Ref(x‹40›) (prefer = NonModule, sym = Some(x‹40›))
+//│ | | | | | Declaration: Some(Param(‹›,x‹40›,None,Modulefulness(None)))
 //│ | | | | -> typ = None
-//│ | | | | Resolving resolvable term Ref(x‹38›) with sym = Some(x‹38›), typ = None
-//│ | | | ~> Ref(x‹38›) (sym = Some(x‹38›), typ = None)
-//│ | | | Checking Ref(x‹38›): expect NonModule, evalsToModule = false, evalsToStaticClass = false
-//│ Lowering.term x⁰‹38› – symbol x‹38›
-//│ Expanding term Ref(x‹38›)
-//│ ~> Ref(x‹38›)
+//│ | | | | Resolving resolvable term Ref(x‹40›) with sym = Some(x‹40›), typ = None
+//│ | | | ~> Ref(x‹40›) (sym = Some(x‹40›), typ = None)
+//│ | | | Checking Ref(x‹40›): expect NonModule, evalsToModule = false, evalsToStaticClass = false
+//│ Lowering.term x⁰‹40› – symbol x‹40›
+//│ Expanding term Ref(x‹40›)
+//│ ~> Ref(x‹40›)
+
+
+module Main with
+  // The IR of `foo1` should be shown
+  @dbg('showOptimizedIR)
+  fun foo1 = 2 + 2
+  // The IR of `foo2` should NOT be shown
+  fun foo2 = 2 + 2
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @dbg(...) define foo1⁰ as fun foo1¹ { return 4 }
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+Main.foo1
+//│ = 4
 
 
 #dbg('optimizations)
@@ -44,6 +61,7 @@ fun shown_ir(x) = x
 //│ define shown_ir⁰ as fun shown_ir¹(x) { return x }; end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define shown_ir⁰ as fun shown_ir¹(x) { return x }; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
 #dbg(showIR: false, showOptimizedIR: false)
@@ -56,3 +74,4 @@ fun command_shown_ir(x) = x
 //│ define command_shown_ir⁰ as fun command_shown_ir¹(x) { return x }; end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define command_shown_ir⁰ as fun command_shown_ir¹(x) { return x }; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

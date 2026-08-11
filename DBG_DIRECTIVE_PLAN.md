@@ -43,3 +43,5 @@
 - [x] Full prescribed test suite passes.
 - [x] Custom optimization reporting removed in favor of the existing `:dopt` trace path.
 - [x] `showIR` and `showOptimizedIR` share the existing `:sir` and `:soir` display paths.
+- [x] `@dbg` configuration overrides remain attached to lowered IR definitions, including methods.
+- [x] Definition-local IR display prints only definitions selected by `@dbg`, through the existing IR printer.

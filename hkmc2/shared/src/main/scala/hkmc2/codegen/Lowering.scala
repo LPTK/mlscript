@@ -88,6 +88,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   private def definitionConfigOverride(annotations: Ls[Annot]): Opt[Config] =
     val modifiers = annotations.collect:
       case Annot.Config(modify) => modify
+      case Annot.Debug(modify) => modify
     if modifiers.isEmpty then N
     else S(modifiers.foldLeft(config)((cfg, modify) => modify(cfg)))
 

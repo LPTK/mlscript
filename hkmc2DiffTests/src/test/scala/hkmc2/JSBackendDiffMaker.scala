@@ -126,6 +126,27 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       Printer()
     val print = (p: codegen.Program) =>
       blockPrinter.worksheet(p)(using irPrintingScp).mkString(output.ColWidth)
+    def showDefinitionDebugIR(
+        title: Str,
+        program: codegen.Program,
+        isEnabled: Config.Debug => Bool,
+    ): Unit =
+      def show(defn: Defn): Unit =
+        defn.configOverride.foreach: localConfig =>
+          if isEnabled(localConfig.debug) then
+            val ir = blockPrinter.printDefinition(defn)(using irPrintingScp).mkString(output.ColWidth)
+            outputDebugSection(title, ir, localConfig.debug.out)
+      new BlockTraverser:
+        override def applyFunDefn(fun: FunDefn): Unit =
+          show(fun)
+          super.applyFunDefn(fun)
+        override def applyValDefn(defn: ValDefn): Unit =
+          show(defn)
+          super.applyValDefn(defn)
+        override def applyClsLikeDefn(defn: ClsLikeDefn): Unit =
+          show(defn)
+          super.applyClsLikeDefn(defn)
+      .applyProgram(program)
     
     Config.extractConfigFromStats(blk).givenIn {
     val loweringState = summon[Elaborator.State]
@@ -181,6 +202,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
                 output(irStr)
               else if config.debug.showIR then
                 outputDebugSection("Lowered IR", irStr, config.debug.out)
+            else showDefinitionDebugIR("Lowered IR", prog, _.showIR)
             super.preOptimizeHook(prog)
         customPipeline.run(lowered, print, symbolsToPreserve, dtl)
       
@@ -198,6 +220,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
           outputSeparator("Optimized IR")
           output(irStr)
         else outputDebugSection("Optimized IR", irStr, config.debug.out)
+      else showDefinitionDebugIR("Optimized IR", optimized, _.showOptimizedIR)
       if showOptimizedTree.isSet then
         outputSeparator("Optimized IR Tree")
         output(optimized.showAsTree)

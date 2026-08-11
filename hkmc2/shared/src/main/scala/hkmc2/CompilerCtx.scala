@@ -173,14 +173,38 @@ class CompilerCtx(
           codegen.Printer().worksheet(p)(using irPrintingScp).mkString(100)
         def showDebugIR(title: Str, program: codegen.Program): Unit =
           outputHandler.emit(artifactConfig.debug.out, s"${title}\n${printer(program)}")
+        def showDefinitionDebugIR(
+            title: Str,
+            program: codegen.Program,
+            isEnabled: Config.Debug => Bool,
+        ): Unit =
+          val blockPrinter = codegen.Printer()
+          def show(defn: codegen.Defn): Unit =
+            defn.configOverride.foreach: localConfig =>
+              if isEnabled(localConfig.debug) then
+                val ir = blockPrinter.printDefinition(defn)(using irPrintingScp).mkString(100)
+                outputHandler.emit(localConfig.debug.out, s"${title}\n${ir}")
+          new codegen.BlockTraverser:
+            override def applyFunDefn(fun: codegen.FunDefn): Unit =
+              show(fun)
+              super.applyFunDefn(fun)
+            override def applyValDefn(defn: codegen.ValDefn): Unit =
+              show(defn)
+              super.applyValDefn(defn)
+            override def applyClsLikeDefn(defn: codegen.ClsLikeDefn): Unit =
+              show(defn)
+              super.applyClsLikeDefn(defn)
+          .applyProgram(program)
         val pipeline = new codegen.CompilationPipeline:
           override def extraSymbolsToPreserve(prog: codegen.Program): Set[codegen.BoundSymbol] =
             collectCompilationUnitSymbols(prog).toSet
           override def preOptimizeHook(prog: codegen.Program): Unit =
             if artifactConfig.debug.showIR then showDebugIR("Lowered IR", prog)
+            else showDefinitionDebugIR("Lowered IR", prog, _.showIR)
         val optimized = ltl.givenIn:
           pipeline.run(lowered, printer, exportedSymbol.toSet, dtl)
         if artifactConfig.debug.showOptimizedIR then showDebugIR("Optimized IR", optimized)
+        else showDefinitionDebugIR("Optimized IR", optimized, _.showOptimizedIR)
         optimized
 
       // Every compilation unit is lowered, so that its symbols carry the IR definitions an
