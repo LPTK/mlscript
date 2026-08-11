@@ -1,61 +1,30 @@
 :js
 
 
-// * Remove useless objects
-:soir
+import "../../mlscript-compile/FilePrivateFunctions.mls"
+
+
+// TODO: this should be inlined+folded into a constant
 :sjs
-fun f() =
-  object A
-  42
-f()
-//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ define f⁰ as fun f¹() { return 42 }; return 42
-//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f; f = function f() { return 42 }; return 42
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 42
-
-// * Do not remove objects with non-trivial constructors
 :soir
-:sjs
-fun f() =
-  object A with
-    print("Hello")
-  42
-f()
+FilePrivateFunctions.accessibleFunction1() + "?"
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ define f² as fun f³() {
-//│   let A;
-//│   define A as object A⁰ {
-//│     constructor() { do Predef⁰.print⁰("Hello"); end }
-//│   };
-//│   return 42
-//│ };
-//│ return f³()
+//│ let tmp; set tmp = inaccessibleFunction⁰(); do Predef⁰.print⁰(tmp); return "Okay??"
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f1;
-//│ f1 = function f() {
-//│   let A1;
-//│   (class A {
-//│     static {
-//│       new this
-//│     }
-//│     constructor() {
-//│       A1 = this;
-//│       Predef.print("Hello");
-//│       Object.defineProperty(this, "class", {
-//│         value: A
-//│       });
-//│       globalThis.Object.freeze(this);
-//│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["object", "A"];
-//│   });
-//│   return 42
-//│ };
-//│ return f1()
+//│ import { _$_modulePrivate_$_inaccessibleFunction as inaccessibleFunction } from "./../../mlscript-compile/FilePrivateFunctions.mjs";
+//│ let tmp;
+//│ tmp = inaccessibleFunction();
+//│ Predef.print(tmp);
+//│ return "Okay??"
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ > Hello
-//│ = 42
+//│ > This is a large string to prevent inlining.  This is a large string to prevent inlining.  This is a large string to prevent inlining.  This is a large string to prevent inlining.
+//│ > It works.
+//│ = "Okay??"
 
 
+:sjs
+FilePrivateFunctions.noInlineFunction()
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ return FilePrivateFunctions.noInlineFunction()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = "This function should not be inlined."

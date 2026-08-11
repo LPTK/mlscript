@@ -35,24 +35,15 @@ fun foo(x) =
     false
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define foo⁰ as fun foo¹(x) {
-//│   let y, f, lambda;
-//│   define lambda as fun lambda⁰(w) {
-//│     set y = w;
-//│     return runtime⁰.Unit⁰
-//│   };
-//│   set f = Predef⁰.hide⁰(lambda⁰);
 //│   match x
 //│     true =>
-//│       set y = "ok";
-//│       do f("nope");
-//│       match y
+//│       match "nope"
 //│         "ok" =>
 //│           return true
 //│         else
 //│           return false
 //│       end
 //│     else
-//│       set y = "nope";
 //│       return false
 //│   end
 //│ };
@@ -62,5 +53,3 @@ fun foo(x) =
 :expect false
 foo(true)
 //│ = false
-
-

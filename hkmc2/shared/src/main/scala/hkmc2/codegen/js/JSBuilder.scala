@@ -94,6 +94,10 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     ).mkDocument(doc" # ")
     if accessors.isEmpty then doc else doc :/: accessors
 
+  private def allocatePrivateAccessorNames()(using Raise, Scope): Unit =
+    privateAccessorSymbols.iterator.toList.sortBy(_._1.uid).foreach: (_, sym) =>
+      scope.allocateOrGetName(sym)
+
   private def collectExternalPrivateAccessors(p: Program)(using State): Unit =
     privateAccessorSymbols.clear()
     var owners: List[InnerSymbol] = Nil
@@ -141,6 +145,118 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
           applyBlock(body.ctor)
           body.methods.foreach(applyDefn)
     collector.applyBlock(p.main)
+
+  private def modulePrivateExportName(sym: BlockMemberSymbol)(using Raise): Str =
+    sym.getState.compilationUnitPrivateName(sym).getOrElse:
+      raise:
+        InternalError(
+          msg"No private export name was allocated for '${sym.nme}'" -> sym.toLoc :: Nil,
+          extraInfo = Some(sym),
+          source = Diagnostic.Source.Compilation,
+        )
+      "‹MISSING_PRIVATE_EXPORT_NAME›"
+
+  private def relativeImportPath(path: Str, wd: io.Path): Str =
+    if path.startsWith("/")
+    then "./" + io.Path(path).relativeTo(wd).map(_.toString).getOrElse(path)
+    else path
+
+  private def locallyDefinedSymbols(p: Program): Set[Symbol] =
+    p.main match
+      case Scoped(syms, _) => syms.iterator.map[Symbol](identity).toSet
+      case _ => Set.empty
+
+  private def defaultImportPath(sym: ImportSymbol): Opt[Str] =
+    val originState = sym.getState
+    originState.importedModulePath(sym) orElse
+      originState.compilationUnitModulePath.filter(_ => originState.isCompilationUnitExport(sym))
+
+  private def compilationUnitPath(sym: BlockMemberSymbol): Opt[Str] =
+    val originState = sym.getState
+    originState.compilationUnitModulePath.filter(_ => !originState.isCompilationUnitExport(sym))
+
+  private def symbolModulePath(sym: Symbol): Opt[Str] =
+    val importPath = sym match
+      case sym: TempSymbol => defaultImportPath(sym)
+      case sym: VarSymbol => defaultImportPath(sym)
+      case sym: BlockMemberSymbol => defaultImportPath(sym) orElse compilationUnitPath(sym)
+      case _ => N
+    importPath orElse sym.getState.compilationUnitModulePath
+
+  /** UIDs are unique only within one elaboration state. Module provenance must therefore come
+    * first whenever symbols from independently elaborated compilation units are ordered. */
+  private def stableSymbolSortKey(sym: Symbol, modulePath: Opt[Str]): (Str, Int, Str) =
+    val normalizedPath = modulePath.map: path =>
+      if path.startsWith("/") then io.Path(path).toString
+      else if path.startsWith(".") then io.RelPath(path).toString
+      else path // Bare JavaScript module specifiers such as "fs" or "binaryen" are not paths.
+    (normalizedPath.getOrElse(""), sym.uid.asInt, sym.nme)
+
+  private def orderedExternalSymbols[S <: Symbol](symbols: collection.Map[S, Str]): Ls[S] =
+    symbols.iterator.toList
+      .sortBy:
+        case (sym, path) => stableSymbolSortKey(sym, S(path))
+      .map(_._1)
+
+  /** Collect symbols that JS emits as values. Resolved field metadata is handled while
+    * rendering its qualifier and must not create a standalone module dependency. */
+  private class ImportDependencyTraverser extends BlockTraverser:
+    override def applyPath(p: Path): Unit = p match
+      case Select(qual, _) => applyPath(qual)
+      case _ => super.applyPath(p)
+    override def applyBlock(b: Block): Unit = b match
+      case AssignField(lhs, _, rhs, rest) =>
+        applyPath(lhs)
+        applyResult(rhs)
+        applySubBlock(rest)
+      case _ => super.applyBlock(b)
+
+  private def externalCompilationUnitSymbols(p: Program, currentModulePath: Opt[Str]): Ls[BlockMemberSymbol] =
+    val importedSymbols = p.imports.iterator.map(_._1).toSet
+    val localSymbols = locallyDefinedSymbols(p)
+    val externalSymbols = collection.mutable.Map.empty[BlockMemberSymbol, Str]
+    (new ImportDependencyTraverser:
+      override def applySymbol(sym: Symbol): Unit = sym match
+        case sym: BlockMemberSymbol
+          if !importedSymbols(sym)
+            && !localSymbols(sym)
+            && defaultImportPath(sym).isEmpty
+        =>
+          compilationUnitPath(sym).filter(path => !currentModulePath.contains(path)).foreach: path =>
+            externalSymbols(sym) = path
+        case _ =>
+    ).applyBlock(p.main)
+    orderedExternalSymbols(externalSymbols)
+
+  private def externalDefaultImportSymbols(p: Program): Ls[ImportSymbol] =
+    val importedSymbols = p.imports.iterator.map(_._1).toSet
+    val localSymbols = locallyDefinedSymbols(p)
+    val externalSymbols = collection.mutable.Map.empty[ImportSymbol, Str]
+    def note(sym: ImportSymbol): Unit =
+      if !importedSymbols(sym) && !localSymbols(sym) then
+        defaultImportPath(sym).foreach: path =>
+          externalSymbols(sym) = path
+    (new ImportDependencyTraverser:
+      override def applySymbol(sym: Symbol): Unit = sym match
+        case sym: TempSymbol => note(sym)
+        case sym: VarSymbol => note(sym)
+        case sym: BlockMemberSymbol => note(sym)
+        case _ =>
+    ).applyBlock(p.main)
+    orderedExternalSymbols(externalSymbols)
+
+  private def ownCompilationUnitSymbols(p: Program, currentModulePath: Str): Ls[BlockMemberSymbol] =
+    p.main match
+    case Scoped(syms, body) =>
+      val freeVars = body.freeVars
+      syms.iterator.collect:
+        case sym: BlockMemberSymbol
+          if freeVars(sym) && sym.getState.compilationUnitModulePath.contains(currentModulePath)
+        =>
+          sym
+      .toList
+      .sortBy(_.uid)
+    case _ => Nil
   
   def runtimeVar(using Raise, Scope): Document = scope.lookup_!(State.runtimeSymbol, N)
   
@@ -418,9 +534,13 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
               val varName = scope.lookup_!(sym, dSym.toLoc)
               scope.reverseLookup(sym.nme) match
               // * Maybe the function's internal name was already bound in scope;
-              // * in that case, we can't really use it as an inner name, as this would result in unintended capture.
-              case S(otherSym: FreeSymbol) if (otherSym isnt sym) && bod.freeVars.contains(otherSym) =>
-                doc"${varName} = $functionKeyword ($params) ${ braced(bodyDoc) };"
+              // * in that case, we need to forward it to a different variable to avoid unintended capture.
+              case S(otherSym: FreeSymbol) if (otherSym isnt sym) && bod.freeVars.contains(otherSym) => scope.nest.givenIn:
+                val externalName = scope.allocateName(otherSym, prefix = "proxy$", shadow = true)
+                val (params, bodyDoc) = setupFunction(displayName, ps, result, isLambda = false)
+                // The external binding may be assigned later in this scope; defer lookup until call time.
+                doc"const $externalName = function (...args) { return $symName.apply(this, args); }; ${
+                  varName} = $functionKeyword $symName($params) ${ braced(bodyDoc) };"
               case _ =>
                 doc"${varName} = $functionKeyword ${sym.nme}($params) ${ braced(bodyDoc) };"
             else
@@ -785,7 +905,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     case Scoped(syms, body) =>
       doc" # " :: braced:
         scope.nest.givenIn:
-          blockPreamble(syms.view.filter(body.freeVars)) :: returningTerm(body, endSemi = endSemi)
+          blockPreamble(syms.view.filter(body.freeVars), Set.empty) :: returningTerm(body, endSemi = endSemi)
     
     // case _ => ???
   
@@ -834,28 +954,43 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
   // * TODO: make JSBuilder never raise;
   // *    Currently, it may raise if the IR is invalid (symbol not defined).
   // *    Instead, run an IR well-formedness checking pass before the backend codegen.
-  def program(p: Program, exprt: Opt[BlockMemberSymbol], wd: io.Path)(using Raise, Scope): Document =
+  def program(p: Program, exprt: Opt[BlockMemberSymbol], modulePath: io.Path)(using Raise, Scope): Document =
     scope.allocateName(State.definitionMetadataSymbol)
     scope.allocateName(State.prettyPrintSymbol)
     doc"""const ${scope.lookup_!(State.definitionMetadataSymbol, N)} = globalThis.Symbol.for("mlscript.definitionMetadata");"""
       :/: doc"""const ${scope.lookup_!(State.prettyPrintSymbol, N)} = globalThis.Symbol.for("mlscript.prettyPrint");"""
-      :/: programBody(p, exprt, wd)
+      :/: programBodyImpl(p, exprt, modulePath.up, S(modulePath.toString))
   
   def programBody(p: Program, exprt: Opt[BlockMemberSymbol], wd: io.Path)(using Raise, Scope): Document =
+    programBodyImpl(p, exprt, wd, N)
+
+  private def programBodyImpl(p: Program, exprt: Opt[BlockMemberSymbol], wd: io.Path, currentModulePath: Opt[Str])
+      (using Raise, Scope): Document =
     collectExternalPrivateAccessors(p)
+    allocatePrivateAccessorNames()
     reserveNames(p)
-    // Allocate names for imported modules.
-    p.imports.foreach: i =>
-      i._1 -> scope.allocateName(i._1)
+    val imports = p.imports.filter: i =>
+      scope.bindDefaultImport(i._1, i._2)
+    val externalDefaultSymbols = externalDefaultImportSymbols(p).filter: sym =>
+      scope.bindDefaultImport(sym, defaultImportPath(sym).get)
+    val externalPrivateSymbols = externalCompilationUnitSymbols(p, currentModulePath).filter(scope.lookup(_).isEmpty)
+    externalPrivateSymbols.foreach(scope.allocateName(_))
     // Generate import statements.
-    val imps = p.imports.map: i =>
-      val path = i._2
-      val relPath = if path.startsWith("/")
-        then "./" + io.Path(path).relativeTo(wd).map(_.toString).getOrElse(path)
-        else path
+    val imps = imports.map: i =>
+      val relPath = relativeImportPath(i._2, wd)
       doc"""import ${scope.lookup_!(i._1, N)} from "${relPath}";"""
-    withPrivateAccessorDecls(imps.mkDocument(doc" # "))
-    :/: nonNestedScoped(p.main)(block(_, endSemi = false)).stripBreaks
+    val externalDefaultImps = externalDefaultSymbols.map: sym =>
+      val relPath = relativeImportPath(defaultImportPath(sym).get, wd)
+      doc"""import ${scope.lookup_!(sym, N)} from "${relPath}";"""
+    val externalPrivateImps = externalPrivateSymbols.map: sym =>
+      val relPath = relativeImportPath(compilationUnitPath(sym).get, wd)
+      doc"""import { ${modulePrivateExportName(sym)} as ${scope.lookup_!(sym, N)} } from "${relPath}";"""
+    val bodyDoc = nonNestedScoped(p.main)(block(_, endSemi = false)).stripBreaks
+    val privateExports = currentModulePath.toList.flatMap(ownCompilationUnitSymbols(p, _)).map: sym =>
+      doc"""export { ${scope.lookup_!(sym, sym.toLoc)} as ${modulePrivateExportName(sym)} };"""
+    withPrivateAccessorDecls((imps ::: externalDefaultImps ::: externalPrivateImps).mkDocument(doc" # "))
+    :/: bodyDoc
+    :: (if privateExports.isEmpty then doc"" else doc" # " :: privateExports.mkDocument(doc" # "))
     :: locally:
       exprt match
       case S(sym) =>
@@ -864,19 +999,32 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
   
   def worksheet(p: Program)(using Raise, Scope): (Document, Document) =
     collectExternalPrivateAccessors(p)
+    allocatePrivateAccessorNames()
     reserveNames(p)
-    lazy val imps = p.imports.map: i =>
-      doc"""${scope.lookup_!(i._1, N)} = await import("${i._2.toString}").then(m => m.default ?? m);"""
+    val newImports = p.imports.filter: i =>
+      scope.bindDefaultImport(i._1, i._2)
+    val externalDefaultSymbols = externalDefaultImportSymbols(p).filter: sym =>
+      scope.bindDefaultImport(sym, defaultImportPath(sym).get)
+    val externalPrivateSymbols = externalCompilationUnitSymbols(p, N).filter(scope.lookup(_).isEmpty)
+    val preallocatedDefaultImports: Set[Symbol] =
+      (newImports.iterator.map[Symbol](_._1) ++ externalDefaultSymbols).toSet
+    lazy val imps =
+      newImports.map: i =>
+        doc"""${scope.lookup_!(i._1, N)} = await import("${i._2.toString}").then(m => m.default ?? m);"""
+      ::: externalDefaultSymbols.map: sym =>
+        doc"""${scope.lookup_!(sym, N)} = await import("${defaultImportPath(sym).get}").then(m => m.default ?? m);"""
+      ::: externalPrivateSymbols.map: sym =>
+        doc"""${scope.lookup_!(sym, N)} = await import("${compilationUnitPath(sym).get}").then(m => m.${modulePrivateExportName(sym)});"""
     p.main match
     case Scoped(syms, body) =>
       val fvs = body.freeVars
-      blockPreamble(p.imports.map(_._1) ++ syms.view.filter(s =>
+      blockPreamble(newImports.map(_._1) ++ externalDefaultSymbols ++ externalPrivateSymbols ++ syms.view.filter(s =>
           !s.isInstanceOf[TempSymbol]
           // ^ VarSymbols and TermSymbols should be kept as their value will be acessed and printed by the worksheet
-          || fvs(s))) ->
+          || fvs(s)), preallocatedDefaultImports) ->
         (withPrivateAccessorDecls(imps.mkDocument(doc" # ")) :/: block(body, endSemi = false).stripBreaks)
     case body =>
-      blockPreamble(p.imports.map(_._1)) ->
+      blockPreamble(newImports.map(_._1) ++ externalDefaultSymbols ++ externalPrivateSymbols, preallocatedDefaultImports) ->
         (withPrivateAccessorDecls(imps.mkDocument(doc" # ")) :/: returningTerm(body, endSemi = false).stripBreaks)
   
   def genLetDecls(vars: Iterator[(Symbol, Str)]): Document =
@@ -886,26 +1034,28 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       .toList.mkDocument(", ")
       :: doc";"
   
-  def blockPreamble(ss: Iterable[Symbol])(using Raise, Scope): Document =
-    val vars = ss.toArray.sortBy(_.uid).iterator.map: l =>
-      whenValidatingIR:
-        if scope.lookup(l).isDefined then // * It is invalid to shadow symbols in the IR
-          raise:
-            WarningReport(msg"var ${l.toString()} in scoped is already allocated" -> N :: Nil)
-      l -> scope.allocateName(l)
+  def blockPreamble(ss: Iterable[Symbol], preallocatedSymbols: Set[Symbol])(using Raise, Scope): Document =
+    val vars = ss.toArray.sortBy(sym => stableSymbolSortKey(sym, symbolModulePath(sym))).iterator.map: l =>
+      if preallocatedSymbols(l) then l -> scope.lookup_!(l, N)
+      else
+        whenValidatingIR:
+          if scope.lookup(l).isDefined then // * It is invalid to shadow symbols in the IR
+            raise:
+              WarningReport(msg"var ${l.toString()} in scoped is already allocated" -> N :: Nil)
+        l -> scope.allocateName(l)
     genLetDecls(vars)
 
   /** Specially handle top-level Scoped node: output the bindings, but do not add another pair of braces */
   def nonBracedScoped(blk: Block)(k: Scope ?=> Block => Document)(using Raise, Scope): Document = blk match
     case Scoped(syms, body) =>
       scope.nest.givenIn:
-        blockPreamble(syms.view.filter(body.freeVars)) :: k(body)
+        blockPreamble(syms.view.filter(body.freeVars), Set.empty) :: k(body)
     case _ => k(blk)
   
   /** Like `nonBracedScoped`, but not not create a nested scope – useful in fringe JS scenarios */
   def nonNestedScoped(blk: Block)(k: Block => Document)(using Raise, Scope): Document = blk match
     case Scoped(syms, body) =>
-      blockPreamble(syms.view.filter(body.freeVars)) :: k(body)
+      blockPreamble(syms.view.filter(body.freeVars), Set.empty) :: k(body)
     case _ => k(blk)
   
   
@@ -931,6 +1081,25 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
 
 
 object JSBuilder:
+  private val modulePrivatePrefix = "_$_modulePrivate_$_"
+
+  /** Allocate the defining unit's private export namespace once so all importers reuse it.
+    *
+    * Ordinary top-level names are reserved first, then the private aliases are allocated with a
+    * distinctive prefix. `Scope` handles escaping and collision suffixes exactly as it does for
+    * other generated JavaScript names; symbol UIDs influence traversal order only and never become
+    * part of the external name. */
+  def allocateModulePrivateExportNames(p: Program)(using State, Raise): Map[BlockMemberSymbol, Str] =
+    p.main match
+    case Scoped(syms, _) =>
+      val orderedSymbols = syms.toList.sortBy(_.uid)
+      val privateNameScope = Scope.empty(Scope.Cfg.default)
+      orderedSymbols.foreach(privateNameScope.allocateName(_))
+      orderedSymbols.collect:
+        case sym: BlockMemberSymbol =>
+          sym -> privateNameScope.allocateName(sym, prefix = modulePrivatePrefix, shadow = true)
+      .toMap
+    case _ => Map.empty
   
   def isValidIdentifier(s: Str): Bool = identifierPattern.matches(s) && !keywords.contains(s)
   

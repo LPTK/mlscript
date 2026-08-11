@@ -5,7 +5,7 @@ import RuntimeJS from "./RuntimeJS.mjs";
 import Rendering from "./Rendering.mjs";
 import LazyArray from "./LazyArray.mjs";
 import Iter from "./Iter.mjs";
-let Runtime1, lambda, lambda1, lambda2, lambda$, lambda$1, Capture$scope301, lambda$2, Capture$scope321, lambda$3;
+let Runtime1, lambda, lambda1, lambda2, lambda3, lambda4, lambda$, lambda$1, Capture$scope301, lambda$2, Capture$scope321, lambda$3;
 (class Capture$scope32 {
   static {
     Capture$scope321 = this
@@ -70,10 +70,17 @@ lambda$1 = (undefined, function (Runtime2) {
     return runtime.Unit
   }
 });
+lambda4 = (undefined, function (Runtime2, k) {
+  Runtime2.stackResume = k;
+  return runtime.Unit
+});
 lambda$ = (undefined, function (Runtime2, EffectHandle1, value) {
   return () => {
     return Runtime2.resume(EffectHandle1.reified.contTrace)(value)
   }
+});
+lambda3 = (undefined, function (Runtime2, EffectHandle1, value) {
+  return Runtime2.resume(EffectHandle1.reified.contTrace)(value)
 });
 (class Runtime {
   static {
@@ -1186,4 +1193,16 @@ lambda$ = (undefined, function (Runtime2, EffectHandle1, value) {
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Runtime"];
 });
+export { Runtime1 as _$_modulePrivate_$_Runtime };
+export { lambda as _$_modulePrivate_$_lambda };
+export { lambda1 as _$_modulePrivate_$_lambda1 };
+export { lambda2 as _$_modulePrivate_$_lambda2 };
+export { lambda3 as _$_modulePrivate_$_lambda3 };
+export { lambda4 as _$_modulePrivate_$_lambda4 };
+export { lambda$ as _$_modulePrivate_$_lambda$ };
+export { lambda$1 as _$_modulePrivate_$_lambda$1 };
+export { Capture$scope301 as _$_modulePrivate_$_Capture$scope30 };
+export { lambda$2 as _$_modulePrivate_$_lambda$2 };
+export { Capture$scope321 as _$_modulePrivate_$_Capture$scope32 };
+export { lambda$3 as _$_modulePrivate_$_lambda$3 };
 let Runtime = Runtime1; export default Runtime;

@@ -343,10 +343,8 @@ print(res)
 //│ set scrut = Predef⁰.maybe⁰;
 //│ match scrut
 //│   true =>
-//│     let y;
-//│     set y = Predef⁰.hide⁰(1);
-//│     set res¹ = y;
-//│     return Predef⁰.print⁰(y)
+//│     set res¹ = 1;
+//│     return Predef⁰.print⁰(1)
 //│   else
 //│     do Predef⁰.notImplementedError⁰;
 //│     return Predef⁰.print⁰(res¹)
@@ -378,31 +376,23 @@ hide of print(res)
 //│ set tmp = Predef⁰.print⁰(res²);
 //│ return Predef⁰.hide⁰(tmp)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let scrut, tmp;
+//│ let scrut;
 //│ set scrut = Predef⁰.maybe⁰;
 //│ match scrut
 //│   true =>
-//│     let y;
-//│     set y = Predef⁰.hide⁰(1);
-//│     set res² = y;
-//│     end
+//│     set res² = 1;
+//│     return Predef⁰.print⁰(1)
 //│   else
 //│     do Predef⁰.notImplementedError⁰;
-//│     end
-//│ set tmp = Predef⁰.print⁰(res²);
-//│ return Predef⁰.hide⁰(tmp)
+//│     return Predef⁰.print⁰(res²)
+//│ end
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
-//│ let res2, scrut5, tmp3;
+//│ let res2, scrut5;
 //│ scrut5 = Predef.maybe;
 //│ if (scrut5 === true) {
-//│   let y3;
-//│   y3 = runtime.checkCall(Predef.hide(1));
-//│   res2 = y3;
-//│ } else {
-//│   Predef.notImplementedError;
-//│ }
-//│ tmp3 = runtime.checkCall(Predef.print(res2));
-//│ block$res23 = runtime.checkCall(Predef.hide(tmp3));
+//│   res2 = 1;
+//│   block$res23 = runtime.checkCall(Predef.print(1));
+//│ } else { Predef.notImplementedError; block$res23 = runtime.checkCall(Predef.print(res2)); }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 //│ res = 1
@@ -428,18 +418,17 @@ fun main =
   test
 main
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let lambda;
 //│ define main⁸ as fun main⁹() {
-//│   let lambda1;
-//│   @private
-//│   define lambda1 as fun lambda⁰(x) {
-//│     return x
+//│   let test;
+//│   define test as fun test⁰() {
+//│     let lambda;
+//│     @private
+//│     define lambda as fun lambda⁰(x) { return x };
+//│     return lambda⁰
 //│   };
-//│   return lambda⁰
+//│   return test⁰()
 //│ };
-//│ @private
-//│ define lambda as fun lambda¹(x) { return x };
-//│ return lambda¹
+//│ return main⁹()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun
 
@@ -449,18 +438,13 @@ fun main =
   test
 main
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let test;
 //│ define main¹⁰ as fun main¹¹() {
-//│   let test1;
+//│   let test;
 //│   @private
-//│   define test1 as fun test⁰(x) {
-//│     return x
-//│   };
-//│   return test⁰
+//│   define test as fun test¹(x) { return x };
+//│   return test¹
 //│ };
-//│ @private
-//│ define test as fun test¹(x) { return x };
-//│ return test¹
+//│ return main¹¹()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun test
 

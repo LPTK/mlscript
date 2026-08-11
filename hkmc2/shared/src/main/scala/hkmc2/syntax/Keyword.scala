@@ -226,4 +226,3 @@ object Keyword:
   
   type Modifier = `in`.type | `out`.type | `mut`.type | `abstract`.type | `declare`.type | `data`.type | `virtual`.type | `override`.type |
     `public`.type | `private`.type | `staged`.type
-

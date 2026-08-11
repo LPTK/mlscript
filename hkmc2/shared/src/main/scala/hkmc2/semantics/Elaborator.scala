@@ -458,11 +458,57 @@ object Elaborator:
   class State:
     val suid = new Uid.Symbol.State
     given State = this
+    private var _compilationUnitOrigin: Opt[Origin] = N
+    private var _compilationUnitExport: Opt[BlockMemberSymbol] = N
+    private var _compilationUnitPrivateNames: Opt[Map[BlockMemberSymbol, Str]] = N
+    private val importedModulePaths = mutable.Map.empty[ImportSymbol, Str]
+    /** Records the source file represented by this state and its default module export.
+      *
+      * Symbols retain their elaboration state, so this immutable-after-initialization metadata
+      * lets code generation recover their origin after cross-compilation-unit inlining without
+      * mutating shared cached symbols. Worksheet states intentionally remain uninitialized. */
+    def initializeCompilationUnit(origin: Origin, defaultExport: Opt[BlockMemberSymbol]): Unit =
+      assert(_compilationUnitOrigin.isEmpty && _compilationUnitExport.isEmpty)
+      _compilationUnitOrigin = S(origin)
+      _compilationUnitExport = defaultExport
+    def compilationUnitModulePath: Opt[Str] =
+      _compilationUnitOrigin.map: origin =>
+        val file = origin.fileName
+        (file.up / io.RelPath(file.baseName + ".mjs")).toString
+    def isCompilationUnitExport(sym: Symbol): Bool =
+      _compilationUnitExport.contains(sym)
+    /** Publish the private export names allocated for this compilation unit.
+      *
+      * The table is initialized before the artifact is cached and is immutable afterwards. Keeping
+      * it on the owning state lets separately emitted importers and exporters agree on names without
+      * putting mutable code-generation metadata on shared symbols. */
+    def initializeCompilationUnitPrivateNames(names: Map[BlockMemberSymbol, Str]): Unit =
+      assert(_compilationUnitPrivateNames.isEmpty)
+      assert(names.keysIterator.forall(_.getState is this))
+      _compilationUnitPrivateNames = S(names)
+    def compilationUnitPrivateName(sym: BlockMemberSymbol): Opt[Str] =
+      _compilationUnitPrivateNames.flatMap(_.get(sym))
+    /** Records imports whose symbols are owned by this state.
+      *
+      * Imports of `.mls` files normally reuse the exported symbol owned by the imported state;
+      * their paths are recovered from that state's compilation-unit origin instead. */
+    def noteImportedModule(sym: ImportSymbol, path: Str): Unit =
+      if sym.getState is this then
+        importedModulePaths.get(sym) match
+          case S(previous) => assert(previous === path, (sym, previous, path))
+          case N => importedModulePaths(sym) = path
+    def importedModulePath(sym: ImportSymbol): Opt[Str] =
+      importedModulePaths.get(sym)
+    /** Effective configuration of the imported compilation unit represented by this state.
+      *
+      * Root worksheet states intentionally leave this empty because their configuration can
+      * still be changed by the worksheet being compiled. */
+    var compilationUnitConfig: Opt[Config] = N
     val globalThisSymbol = TopLevelSymbol("globalThis")
     private var cachedRuntimeSymbols: Opt[RuntimeSymbols] = N
     def initRuntimeSymbolsFromBlock(blk: Term.Blk): Unit =
       cachedRuntimeSymbols = S(RuntimeSymbols.fromBlock(blk))
-    def initRuntimeSymbolsFromFile(file: io.Path, prelude: Ctx)(using TL, Raise, Config, CompilerCtx): Unit =
+    def initRuntimeSymbolsFromFile(file: io.Path, prelude: Ctx)(using TL, Raise, CompilerCtx): Unit =
       if cachedRuntimeSymbols.isEmpty then
         cachedRuntimeSymbols = S(RuntimeSymbols.fromBlock(CompilerCtx.get.getElaboratedBlock(file, prelude).term))
     private def runtimeSymbols: RuntimeSymbols =
@@ -1012,13 +1058,19 @@ extends Importer:
     def elaborateSelection(tree: Sel): Term =
       val preTrm = subterm(tree.prefix)
       val sym = resolveField(tree.name, preTrm.symbol, tree.name)
-      if sym.contains(ctx.builtins.source.line) then
+      def isSourceMember(name: Str): Bool =
+        ctx.getBuiltin("source")
+          .flatMap(_.symbol)
+          .flatMap(_.asMod)
+          .flatMap(_.tree.definedSymbols.get(name))
+          .exists(sym.contains)
+      if isSourceMember("line") then
         val loc = tree.toLoc.getOrElse(???)
         val (line, _, _) = loc.origin.fph.getLineColAt(loc.spanStart)
         Term.Lit(IntLit(loc.origin.startLineNum + line))
-      else if sym.contains(ctx.builtins.source.name) then
+      else if isSourceMember("name") then
         Term.Lit(StrLit(ctx.getOuter.map(_.nme).getOrElse("")))
-      else if sym.contains(ctx.builtins.source.file) then
+      else if isSourceMember("file") then
         val loc = tree.toLoc.getOrElse(???)
         Term.Lit(StrLit(loc.origin.fileName.toString))
       else
@@ -1093,7 +1145,7 @@ extends Importer:
         block(sts_, hasResult = false)._1
       
       elabed.res match
-      case Term.Lit(UnitLit(false)) => 
+      case Term.Lit(UnitLit(false)) =>
       case trm => raise(WarningReport(msg"Terms in handler block do nothing" -> trm.toLoc :: Nil))
       
       val tds = elabed.stats.map {
@@ -1104,11 +1156,11 @@ extends Importer:
                   raise(ErrorReport(msg"Handler function cannot be a getter" -> td.toLoc :: Nil))
                 val newTd = TermDefinition(Fun, sym, tsym, newParams.reverse, tparams, sign, body, flags, mf, annotations, comp)
                 S(HandlerTermDefinition(value.sym, newTd))
-              case _ => 
+              case _ =>
                 raise(ErrorReport(msg"Handler function is missing resumption parameter" -> td.toLoc :: Nil))
                 None
               
-          case st => 
+          case st =>
             raise(ErrorReport(msg"Only function definitions are allowed in handler blocks" -> st.toLoc :: Nil))
             None
         }.collect { case Some(x) => x }
@@ -1899,7 +1951,7 @@ extends Importer:
             val tdf = ctx.nest(OuterCtx.NonReturnContext).givenIn: newCtx ?=>
               // * Add type parameters to context
               val (tps, newCtx1) = td.typeParams match
-                case S(t) => 
+                case S(t) =>
                   val (tps, ctx) = typeParams(t)
                   (S(tps), ctx)
                 case N => (N, ctx)
@@ -1940,7 +1992,7 @@ extends Importer:
                 // st.isModified(Mod) indicates if the function marks
                 // its result as "module". e.g, `fun f: module M`
                 //                                      ^^^^^^
-                case S(st) if st.isModified(Mod) => 
+                case S(st) if st.isModified(Mod) =>
                   Modulefulness.ofSign(s)(true)
                 case _ =>
                   Modulefulness.none
@@ -1956,7 +2008,7 @@ extends Importer:
                     pss.flatMap(_.params).map(_.sym.erasedType), retTpe))
                 case _: syntax.Val => retTpe
                 case _ => N
-              val tsym = TermSymbol(k, owner, id, erasedType = erasedTpe)
+              val tsym = TermSymbol(k, owner, id, erasedType = erasedTpe) // TODO?
               val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, 
                 TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations, N).withLocOf(td)
               tsym.defn = S(tdf)
@@ -2051,7 +2103,7 @@ extends Importer:
               // For class-like types, "desugar" the parameters into additional class fields.
               
               val owner = td.symbol match
-                // Any MemberSymbol should be an InnerSymbol, except for TypeAliasSymbol, 
+                // Any MemberSymbol should be an InnerSymbol, except for TypeAliasSymbol,
                 // but type aliases should not call this function.
                 case s: InnerSymbol => S(s)
                 case _: TypeAliasSymbol => die
@@ -2258,7 +2310,7 @@ extends Importer:
                     N,
                     TermDefFlags.empty,
                     Modulefulness.none,
-                    annotations.collect: 
+                    annotations.collect:
                       case a @ Annot.Modifier(Keyword.`declare`) => a
                     ,
                     S(clsSym),
@@ -2417,7 +2469,7 @@ extends Importer:
             case S(spd) =>
               if spd is SpreadKind.Lazy then
                 raise(ErrorReport(msg"Lazy spread parameters not allowed." -> hd.toLoc :: Nil))
-              if tl.isEmpty then 
+              if tl.isEmpty then
                 (ParamList(flags, acc.reverse, S(p)).withLocOf(t), newCtx)
               else
                 raise(ErrorReport(msg"Spread parameters must be the last in the parameter list." -> hd.toLoc :: Nil))
@@ -2452,7 +2504,7 @@ extends Importer:
     /** Resolve an identifier. We need to perform a very preliminary check to
      *  determine whether this identifier refers to a pattern, a class, an
      *  object, or creates a new binding.
-     * 
+     *
      *  FIXME: This routine is insufficient to look up definitions defined
      *  later in the program. */
     def ident(id: Ident)(using Ctx): Ctxl[Opt[Term]] = scoped("ucs:pattern:resolution"):
@@ -2512,11 +2564,11 @@ extends Importer:
           // Found `...` (no following patterns), which means the spread part
           // will not be further matched. Set the spread pattern to `Wildcard`.
           (leading, S(SpreadKind.fromKw(ellipsis), Wildcard(), Nil))
-        case ((leading, N), t) => 
+        case ((leading, N), t) =>
           // Found a tuple field while the spread pattern is not set. Add the
           // elaborated pattern to the leading patterns.
           (go(t) :: leading, N)
-        case ((leading, S((spreadKind, spread, trailing))), t) => 
+        case ((leading, S((spreadKind, spread, trailing))), t) =>
           // Found a tuple field while the spread pattern has been set. Add the
           // elaborated pattern to the trailing patterns.
           (leading, S((spreadKind, spread, go(t) :: trailing)))
@@ -2749,7 +2801,7 @@ extends Importer:
         // fields.foreach(f => traverseType(pol)(f.value))
         fields.foreach(traverseType(pol))
       // case _ => ???
-      case Term.Neg(ty) => 
+      case Term.Neg(ty) =>
         traverseType(pol.!)(ty)
       case _ =>
         // TODO

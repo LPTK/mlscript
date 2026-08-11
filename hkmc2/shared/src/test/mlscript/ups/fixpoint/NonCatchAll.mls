@@ -251,5 +251,3 @@ assert t2 is AddSteps(s), s
 //│ > reduce 6 + 4 = 10
 //│ > new Lit(10)
 //│ = Add(Lit(6), Lit(4))
-
-

@@ -118,38 +118,55 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val map = if unary then wasmUnaryIntrinsicMap else wasmBinaryIntrinsicMap
       map.get(sym.nme).map(name => State.wasmSymbol.asSimpleRef.selN(Tree.Ident(name)))
     else N
-  private lazy val wasmIntrinsicSymbols: Map[BlockMemberSymbol, Ls[Str]] = Map(
-    ctx.builtins.wasm.i32.const -> Ls("i32", "const"),
-    ctx.builtins.wasm.i32.add -> Ls("i32", "add"),
-    ctx.builtins.wasm.i32.sub -> Ls("i32", "sub"),
-    ctx.builtins.wasm.i32.mul -> Ls("i32", "mul"),
-    ctx.builtins.wasm.i32.div_s -> Ls("i32", "div_s"),
-    ctx.builtins.wasm.i32.rem_s -> Ls("i32", "rem_s"),
-    ctx.builtins.wasm.i32.eq -> Ls("i32", "eq"),
-    ctx.builtins.wasm.i32.ne -> Ls("i32", "ne"),
-    ctx.builtins.wasm.i32.lt_s -> Ls("i32", "lt_s"),
-    ctx.builtins.wasm.i32.le_s -> Ls("i32", "le_s"),
-    ctx.builtins.wasm.i32.gt_s -> Ls("i32", "gt_s"),
-    ctx.builtins.wasm.i32.ge_s -> Ls("i32", "ge_s"),
-    ctx.builtins.wasm.i32.eqz -> Ls("i32", "eqz"),
-    ctx.builtins.wasm.ref.i31 -> Ls("ref", "i31"),
-    ctx.builtins.wasm.i31.get_s -> Ls("i31", "get_s"),
-    ctx.builtins.wasm.i31.get_u -> Ls("i31", "get_u"),
-    ctx.builtins.wasm.plus_impl -> Ls("plus_impl"),
-    ctx.builtins.wasm.minus_impl -> Ls("minus_impl"),
-    ctx.builtins.wasm.times_impl -> Ls("times_impl"),
-    ctx.builtins.wasm.div_impl -> Ls("div_impl"),
-    ctx.builtins.wasm.mod_impl -> Ls("mod_impl"),
-    ctx.builtins.wasm.eq_impl -> Ls("eq_impl"),
-    ctx.builtins.wasm.neq_impl -> Ls("neq_impl"),
-    ctx.builtins.wasm.lt_impl -> Ls("lt_impl"),
-    ctx.builtins.wasm.le_impl -> Ls("le_impl"),
-    ctx.builtins.wasm.gt_impl -> Ls("gt_impl"),
-    ctx.builtins.wasm.ge_impl -> Ls("ge_impl"),
-    ctx.builtins.wasm.neg_impl -> Ls("neg_impl"),
-    ctx.builtins.wasm.pos_impl -> Ls("pos_impl"),
-    ctx.builtins.wasm.not_impl -> Ls("not_impl"),
-  )
+  private def getBuiltinOpt(nme: Str): Opt[Ctx.Elem] =
+    if ctx.parent.isEmpty then N else ctx.getBuiltin(nme)
+  private def builtinModuleMember(moduleName: Str, memberName: Str): Opt[BlockMemberSymbol] =
+    getBuiltinOpt(moduleName)
+      .flatMap(_.symbol)
+      .flatMap(_.asMod)
+      .flatMap(_.tree.definedSymbols.get(memberName))
+  private def builtinModuleSymbol(moduleName: Str): Opt[BlockMemberSymbol] =
+    getBuiltinOpt(moduleName)
+      .flatMap(_.symbol)
+      .flatMap(_.asBlkMember)
+  private def builtinNestedMember(moduleName: Str, path: Ls[Str]): Opt[BlockMemberSymbol] = path match
+    case Nil => N
+    case hd :: tl =>
+     tl.foldLeft(builtinModuleMember(moduleName, hd)): (acc, nme) =>
+       acc.flatMap(_.asMod).flatMap(_.tree.definedSymbols.get(nme))
+  private lazy val wasmIntrinsicSymbols: Map[BlockMemberSymbol, Ls[Str]] =
+    Set(
+      Ls("i32", "const"),
+      Ls("i32", "add"),
+      Ls("i32", "sub"),
+      Ls("i32", "mul"),
+      Ls("i32", "div_s"),
+      Ls("i32", "rem_s"),
+      Ls("i32", "eq"),
+      Ls("i32", "ne"),
+      Ls("i32", "lt_s"),
+      Ls("i32", "le_s"),
+      Ls("i32", "gt_s"),
+      Ls("i32", "ge_s"),
+      Ls("i32", "eqz"),
+      Ls("ref", "i31"),
+      Ls("i31", "get_s"),
+      Ls("i31", "get_u"),
+      Ls("plus_impl"),
+      Ls("minus_impl"),
+      Ls("times_impl"),
+      Ls("div_impl"),
+      Ls("mod_impl"),
+      Ls("eq_impl"),
+      Ls("neq_impl"),
+      Ls("lt_impl"),
+      Ls("le_impl"),
+      Ls("gt_impl"),
+      Ls("ge_impl"),
+      Ls("neg_impl"),
+      Ls("pos_impl"),
+      Ls("not_impl"),
+    ).flatMap(path => builtinNestedMember("wasm", path).map(_ -> path)).toMap
 
   lazy val unreachableFn =
     Select(State.runtimeSymbol.asSimpleRef, Tree.Ident("unreachable"))(S(State.unreachableSymbol))(false)
@@ -310,8 +327,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               mod.classCompanion match
               case S(comp) => comp.defn.getOrElse(wat("Module companion without definition", mod.companion))
               case N =>
-                val stagedAnnots = mod.annotations.collect: 
-                  case Annot.Modifier(Keyword.`staged`) => Annot.Modifier(Keyword.`staged`) 
+                val stagedAnnots = mod.annotations.collect:
+                  case Annot.Modifier(Keyword.`staged`) => Annot.Modifier(Keyword.`staged`)
                 ClassDef.Plain(mod.owner, syntax.Cls, new ClassSymbol(Tree.DummyTypeDef(syntax.Cls), mod.sym.id),
                   mod.bsym,
                   Nil,
@@ -618,14 +635,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     def warnStmt = if inStmtPos then warnPureExprInStmtPos(ref.toLoc, S(ref))
     
     val sym = ref.sym
+    val virtualModuleSymbols = Set("source", "js", "wasm", "debug", "annotations")
+      .flatMap(builtinModuleSymbol)
     sym match
-      case
-          ctx.builtins.source.bms
-        | ctx.builtins.js.bms
-        | ctx.builtins.wasm.bms
-        | ctx.builtins.debug.bms
-        | ctx.builtins.annotations.bms
-      =>
+      case sym: BlockMemberSymbol if virtualModuleSymbols.exists(_ is sym) =>
         return fail:
           ErrorReport(
             msg"Module '${sym.nme}' is virtual (i.e., \"compiler fiction\"); cannot be used directly" -> ref.toLoc ::
@@ -879,17 +892,20 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       // * Note: now the instantiation is done by `collectAppChain`.
       val instantiated = baseF
       val instantiatedResolvedBms = instantiated.resolvedSym.flatMap(_.asBlkMember)
+      def isBuiltinModuleMember(moduleName: Str, memberName: Str): Bool =
+        instantiatedResolvedBms.exists: sym =>
+          builtinModuleMember(moduleName, memberName).exists(_ is sym)
       
       instantiated match
-      case t if instantiatedResolvedBms.exists(_ is ctx.builtins.js.bitand) =>
+      case t if isBuiltinModuleMember("js", "bitand") =>
         conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("bitand")))
-      case t if instantiatedResolvedBms.exists(_ is ctx.builtins.js.bitnot) =>
+      case t if isBuiltinModuleMember("js", "bitnot") =>
         conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("bitnot")))
-      case t if instantiatedResolvedBms.exists(_ is ctx.builtins.js.bitor) =>
+      case t if isBuiltinModuleMember("js", "bitor") =>
         conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("bitor")))
-      case t if instantiatedResolvedBms.exists(_ is ctx.builtins.js.shl) =>
+      case t if isBuiltinModuleMember("js", "shl") =>
         conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("shl")))
-      case t if instantiatedResolvedBms.exists(_ is ctx.builtins.js.try_catch) =>
+      case t if isBuiltinModuleMember("js", "try_catch") =>
         conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("try_catch")))
       case t if t.resolvedSym.flatMap(_.asBlkMember).exists(wasmIntrinsicSymbols.contains) =>
         val sym = t.resolvedSym.flatMap(_.asBlkMember).get
@@ -902,7 +918,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           (path, sym.tsym) match
             case (Select(qual, nme), S(tsym)) => Select(qual, nme)(sym.tsym)(false)
             case _ => lastWords(s"wasm intrinsic `${sym.nme}` has an empty name path")
-      case t if instantiatedResolvedBms.exists(_ is ctx.builtins.debug.printStack) =>
+      case t if isBuiltinModuleMember("debug", "printStack") =>
         if !config.effectHandlers.exists(_.debug) then
           return fail:
             ErrorReport(
@@ -910,7 +926,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               t.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
         conclude(State.runtimeSymbol.asSimpleRef.selSN("raisePrintStackEffect").withLocOf(baseF))
-      case t if instantiatedResolvedBms.exists(_ is ctx.builtins.scope.locally) =>
+      case t if isBuiltinModuleMember("scope", "locally") =>
         // scope.locally only applies to the innermost call; extra args are applied on top
         if allArgs.length > 1 then
           subTerm(baseF)(conclude)
@@ -951,7 +967,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             source = Diagnostic.Source.Compilation)
       val handlers = defs.map {
         case HandlerTermDefinition(resumeSym, td) => td.body match
-          case None => 
+          case None =>
             raise(ErrorReport(msg"Handler function definitions cannot be empty" -> td.toLoc :: Nil))
             N
           case Some(bod) =>
@@ -1332,7 +1348,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case spd: Spd => R(S(spd.k) -> spd.term)
     // * The straightforward way to lower arguments creates too much recursion depth
     // * and makes Lowering stack overflow when lowering functions with lots of arguments.
-    /* 
+    /*
     def rec(as: Ls[Bool -> st], asr: Ls[Arg]): Block = as match
       case Nil => k(Call(fr, asr.reverse)(isMlsFun, true))
       case (spd, a) :: as =>
@@ -1595,7 +1611,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
       ),
       tmp1 -> pureCall(traceLogFn, Arg(N, enterMsgSym.asSimpleRef) :: Nil),
       prevIndentLvlSym -> pureCall(traceLogIndentFn, Nil)
-    ) |>: 
+    ) |>:
     term(bod)(r =>
     assignStmts(
       resSym -> r,

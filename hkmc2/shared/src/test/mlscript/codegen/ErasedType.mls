@@ -517,11 +517,13 @@ fun sccG(): Object = sccF() + 1
 //│   return (inlinedVal as! Int⁰)
 //│ };
 //│ define sccG¹ as fun sccG⁰(): Object⁰ {
-//│   let inlinedVal: ?;
+//│   let id: ?, inlinedVal: ?;
+//│   set id = 1;
 //│   block inlinedLbl:
 //│     loop loopLabel:
-//│       match 1
+//│       match id
 //│         0 =>
+//│           set id = 1;
 //│           continue loopLabel
 //│         1 =>
 //│           let tmp: Int⁰;

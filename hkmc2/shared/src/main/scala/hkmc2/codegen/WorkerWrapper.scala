@@ -32,7 +32,7 @@ class WorkerWrapper
     params.flags == ParamListFlags.empty && params.restParam.isEmpty
   
   private def canUncurry(fun: FunDefn): Bool =
-    fun.owner.isEmpty && fun.params.lengthCompare(1) > 0 && fun.params.forall(isPlainParamList)
+    fun.owner.isEmpty && !fun.noInline && fun.params.lengthCompare(1) > 0 && fun.params.forall(isPlainParamList)
   
   private def isBelowAltInlineThreshold(body: Block): Bool =
     config.inlining.exists: cfg =>

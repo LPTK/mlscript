@@ -126,4 +126,3 @@ unwrapCycle1 of Box(Tag(0))
 :expect Bin(0)
 unwrapCycle1 of Box(Bin(0)) // Stops at `Bin`.
 //│ = Bin(0)
-
