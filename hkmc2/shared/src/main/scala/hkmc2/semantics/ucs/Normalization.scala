@@ -546,13 +546,10 @@ object Normalization:
     * Subtyping relations used in normalization and coverage checking.
     */
   def compareCasePattern(lhs: FlatPattern, rhs: FlatPattern)(using ctx: Elaborator.Ctx): Bool =
-    import FlatPattern.*, ctx.builtins as blt
+    import codegen.ErasedType, FlatPattern.*, ctx.builtins as blt
     (lhs, rhs) match
-    // `Object` is the supertype of all (non-virtual) classes and modules.
-    case (ClassLike(_, cs: ClassSymbol, _, _), ClassLike(symbol = blt.`Object`))
-        if !ctx.builtins.virtualClasses.contains(cs) => true
-    // Class and module are subtypes of `Object`.
-    case (ClassLike(_, cs: ModuleOrObjectSymbol, _, _), ClassLike(symbol = blt.`Object`)) => true
+    case (ClassLike(_, cs, _, _), ClassLike(symbol = blt.`Object`)) =>
+      ErasedType.isRuntimeSubtypeOfObject(cs)
     case (Tuple(n1, false), Tuple(n2, false)) if n1 === n2 => true
     case (Tuple(n1, _), Tuple(n2, true)) if n2 <= n1 => true
     // Note: We don't make Int31 compatible with Num, since Int31 needs to know how it should be

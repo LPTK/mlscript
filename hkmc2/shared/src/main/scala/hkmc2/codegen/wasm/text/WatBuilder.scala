@@ -38,6 +38,7 @@ extension (et: ErasedType)
     val elabCtx = ctx.elabCtx
     elabCtx.givenIn:
       et.canonicalize match
+        case ErasedType.Object => S(RefType.anyref)
         case ErasedType.AnyRef(_, tpeSym) if isBoxedAsI31(tpeSym, ctx) =>
           S(RefType.i31ref)
         case ErasedType.AnyRef(_, tpeSym) =>

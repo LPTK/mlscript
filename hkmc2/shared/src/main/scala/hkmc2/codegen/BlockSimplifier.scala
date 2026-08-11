@@ -1242,17 +1242,18 @@ class BlockSimplifier
         case _ => N
       loop(body, N)(identity)
     
-    def isSubtypeOf(actual: ClassLikeSymbol, expected: ClassLikeSymbol): Opt[Bool] = (actual, expected) match
+    // * See `ErasedType.matchesObjectPattern`.
+    def matchesPattern(actual: ClassLikeSymbol, expected: ClassLikeSymbol): Opt[Bool] = (actual, expected) match
       // ClassLikeSymbol and TypeSymbol currently represent the same set of classes, but Scala doesn't recognize this
       // (TypeSymbol is an alias of a union; ClassLikeSymbol are members of a sealed trait)
-      case (actual: TypeSymbol, expected: TypeSymbol) => ErasedType.isSubtypeOf(actual, expected)
+      case (actual: TypeSymbol, expected: TypeSymbol) => ErasedType.isRuntimeSubtypeOf(actual, expected)
 
     /** Return whether a known shape matches a case, or `None` if deciding would
       * require reasoning that this optimization deliberately does not attempt. */
     def matches(cse: Case, shape: Shape): Opt[Bool] = (cse, shape) match
       case (Case.Lit(expected), actual: Literal) => S(expected == actual)
       case (Case.Lit(_), _: ClassLikeSymbol) => S(false)
-      case (Case.Cls(expected, _), actual: ClassLikeSymbol) => isSubtypeOf(actual, expected)
+      case (Case.Cls(expected, _), actual: ClassLikeSymbol) => matchesPattern(actual, expected)
       case _ => N
     
     def select(shape: Shape, arms: Ls[Case -> Block], dflt: Opt[Block]): Opt[Selected] =

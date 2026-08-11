@@ -959,6 +959,16 @@ object ErasedType:
   case object Anything extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
 
+  /** The builtin `Object` type: the base of all reference types.
+    *
+    * This is distinct from `AnyRef(_, ctx.builtins.Object)`, which has a backend-specific meaning:
+    *
+    * - In JS: `AnyRef(_, Object)` represents the `Object` type, meaning that `Number </: Object`.
+    * - In Wasm: `AnyRef(_, Object)` represents the `$Object` type, meaning that `Int </: Object`.
+    */
+  case object Object extends ErasedValueType, CanonicalErasedType:
+    override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Object
+
   /** The builtin `Unit` reference type. */
   def Unit: ErasedValueType = ErasedType.ValueLike(rsc = false, summon[State].unitSymbol)
 
@@ -1105,6 +1115,28 @@ object ErasedType:
       if PrimitiveType.values.exists(_.sym === actual) then S(false) else S(true)
     else loop(actual, Set.empty)
 
+  /** Whether a runtime class of `sym` is a subtype of the runtime `Object` type.
+    *
+    * This differs from [[`isSubtypeOf`]] in that it returns `false` for virtual classes (e.g. `Int`), which are not
+    * subtypes of the runtime `Object` type in both JS and Wasm backends.
+    */
+  def isRuntimeSubtypeOfObject(sym: BaseTypeSymbol)(using Ctx): Bool = sym match
+    // TODO: `virtualClasses` omits `BigInt` and `Symbol`, which are also primitively represented in JS and so
+    //  also fail `instanceof Object`. Pre-existing, and shared with `JSBuilder`'s own dispatch table, which
+    //  carries the longer list. Unifying the two is left to a separate change.
+    case cls: ClassSymbol => !ctx.builtins.virtualClasses.contains(cls)
+    case _: ModuleOrObjectSymbol => true
+
+  /** The runtime counterpart of [[`isSubtypeOf`]], determining if the type `actual` is a subtype of `expected` at
+    * runtime.
+    */
+  def isRuntimeSubtypeOf(actual: TypeSymbol, expected: TypeSymbol)(using Ctx, State): Opt[Bool] =
+    if expected is ctx.builtins.Object then actual match
+      case base: BaseTypeSymbol => S(isRuntimeSubtypeOfObject(base))
+      // * Aliases are canonicalized away before reaching the IR; one arriving here is undecidable.
+      case _: TypeAliasSymbol => N
+    else isSubtypeOf(actual, expected)
+
   /** Determines whether a cast is needed to make a value of erased type `actual` fit an `expected` slot.
     *
     * Returns `S(true)` if a cast is needed, `S(false)` if no cast is needed, or `N` if the two types are unrelated.
@@ -1210,7 +1242,10 @@ object CanonicalErasedValueType:
       // TODO(Derppening): Handle LUB if RHS of the type alias is a union type.
       case _: TypeAliasSymbol => ErasedType.Anything
       case base =>
+        // * `Anything` and `Object` drop `rsc`, which is meaningless on a top type. Every construction site
+        // * passes `rsc = false` today; a future resource-type implementation must revisit both.
         if base is ctx.builtins.Anything then ErasedType.Anything
+        else if base is ctx.builtins.Object then ErasedType.Object
         else PrimitiveType.values.find(_.sym === base) match
           case S(prim) => ErasedType.Primitive(prim)
           case _ => ErasedType.AnyRef(rsc, base)

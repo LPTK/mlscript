@@ -54,12 +54,12 @@ fun mkObj(): Object = new Object()
 val o: Object = mkObj()
 val n: Int = o
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Object⁰, tmp1: Int⁰;
-//│ define mkObj⁰ as fun mkObj¹(): Object⁰ {
+//│ let tmp: Object, tmp1: Int⁰;
+//│ define mkObj⁰ as fun mkObj¹(): Object {
 //│   return new globalThis⁰.Object⁰()
 //│ };
 //│ set tmp = mkObj¹();
-//│ define o⁰ as val o¹: Object⁰ = tmp;
+//│ define o⁰ as val o¹: Object = tmp;
 //│ set tmp1 = (o¹ as! Int⁰);
 //│ define n⁰ as val n¹: Int⁰ = tmp1;
 //│ end
@@ -268,7 +268,7 @@ fun f(x: Int32) = useObj(x)
 //│ ║  l.266: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
+//│ define useObj⁰ as fun useObj¹(o: Object): ? {
 //│   return o
 //│ };
 //│ define f² as fun f³(x: Int32): ? { return useObj¹(x) };
@@ -287,7 +287,7 @@ fun g(o: Object) = useInt(o)
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
 //│   return n
 //│ };
-//│ define g⁰ as fun g¹(o: Object⁰): ? { return useInt¹(o) };
+//│ define g⁰ as fun g¹(o: Object): ? { return useInt¹(o) };
 //│ end
 
 
@@ -324,13 +324,13 @@ fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useObj² as fun useObj³(o: Object⁰): ? {
+//│ define useObj² as fun useObj³(o: Object): ? {
 //│   return o
 //│ };
 //│ define useInt² as fun useInt³(n: Int⁰): ? {
 //│   return n
 //│ };
-//│ define f⁴ as fun f⁵(o: Object⁰, i: Int⁰): ? {
+//│ define f⁴ as fun f⁵(o: Object, i: Int⁰): ? {
 //│   let tmp: Int⁰;
 //│   do useObj³(i);
 //│   set tmp = (o as! Int⁰);
@@ -489,15 +489,15 @@ fun sccG(): Object = sccF() + 1
 //│ define sccF⁰ as fun sccF¹(): Int⁰ {
 //│   return (sccG⁰() as! Int⁰)
 //│ };
-//│ define sccG¹ as fun sccG⁰(): Object⁰ {
+//│ define sccG¹ as fun sccG⁰(): Object {
 //│   let tmp: Int⁰;
 //│   set tmp = sccF¹();
-//│   return (+⁰(tmp, 1) as! Object⁰)
+//│   return (+⁰(tmp, 1) as! Object)
 //│ };
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define sccF⁰ as fun sccF¹(): Int⁰ {
-//│   let id: Int⁰, inlinedVal: Object⁰;
+//│   let id: Int⁰, inlinedVal: Object;
 //│   set id = 0;
 //│   block inlinedLbl:
 //│     loop loopLabel:
@@ -508,7 +508,7 @@ fun sccG(): Object = sccF() + 1
 //│         1 =>
 //│           let tmp: Int⁰;
 //│           set tmp = sccF¹();
-//│           set inlinedVal = (+⁰(tmp, 1) as! Object⁰);
+//│           set inlinedVal = (+⁰(tmp, 1) as! Object);
 //│           break inlinedLbl
 //│         else
 //│           unreachable /* dispatch tag is always a merged member id */
@@ -516,8 +516,8 @@ fun sccG(): Object = sccF() + 1
 //│     unreachable /* Rest of abortive labelled block */
 //│   return (inlinedVal as! Int⁰)
 //│ };
-//│ define sccG¹ as fun sccG⁰(): Object⁰ {
-//│   let id: Int⁰, inlinedVal: Object⁰;
+//│ define sccG¹ as fun sccG⁰(): Object {
+//│   let id: Int⁰, inlinedVal: Object;
 //│   set id = 1;
 //│   block inlinedLbl:
 //│     loop loopLabel:
@@ -528,7 +528,7 @@ fun sccG(): Object = sccF() + 1
 //│         1 =>
 //│           let tmp: Int⁰;
 //│           set tmp = sccF¹();
-//│           set inlinedVal = (+⁰(tmp, 1) as! Object⁰);
+//│           set inlinedVal = (+⁰(tmp, 1) as! Object);
 //│           break inlinedLbl
 //│         else
 //│           unreachable /* dispatch tag is always a merged member id */
@@ -585,7 +585,7 @@ sccHelper(100000)
 //│   set r = sccHelper⁰(n);
 //│   return (r as! Int⁰)
 //│ };
-//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
+//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object {
 //│   let scrut: ?, tmp: ?, tmp1: Int⁰;
 //│   set scrut = <=⁰(n, 0);
 //│   match scrut
@@ -600,7 +600,7 @@ sccHelper(100000)
 //│ return sccHelper⁰(100000)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let sccLoop_sccHelper;
-//│ define sccLoop_sccHelper as fun sccLoop_sccHelper⁰(id: Int⁰, param0: ?): Object⁰ {
+//│ define sccLoop_sccHelper as fun sccLoop_sccHelper⁰(id: Int⁰, param0: ?): Object {
 //│   loop loopLabel:
 //│     match id
 //│       0 =>
@@ -628,7 +628,7 @@ sccHelper(100000)
 //│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {
 //│   return (sccLoop_sccHelper⁰(0, n) as! Int⁰)
 //│ };
-//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object⁰ {
+//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object {
 //│   return sccLoop_sccHelper⁰(1, n)
 //│ };
 //│ return sccLoop_sccHelper⁰(1, 100000)
@@ -714,12 +714,12 @@ fun mkObj2(): Object = new Object()
 val o2: Object = mkObj2()
 val n2: Int = o2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Object⁰, tmp1: Int⁰;
-//│ define mkObj2⁰ as fun mkObj2¹(): Object⁰ {
+//│ let tmp: Object, tmp1: Int⁰;
+//│ define mkObj2⁰ as fun mkObj2¹(): Object {
 //│   return new globalThis⁰.Object⁰()
 //│ };
 //│ set tmp = mkObj2¹();
-//│ define o2⁰ as val o2¹: Object⁰ = tmp;
+//│ define o2⁰ as val o2¹: Object = tmp;
 //│ set tmp1 = (o2¹ as Int⁰);
 //│ define n2⁰ as val n2¹: Int⁰ = tmp1;
 //│ end
