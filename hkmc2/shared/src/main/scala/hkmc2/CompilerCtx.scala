@@ -146,9 +146,19 @@ class CompilerCtx(
 
       val artifactConfig = Config.extractConfigFromStats(blk0)
       state.compilationUnitConfig = S(artifactConfig)
+      if artifactConfig.debug.showElaboratedTree then
+        outputHandler.emit(artifactConfig.debug.out, s"Elaborated tree\n${blk0.showAsTree}")
       artifactConfig.givenIn:
         given Elaborator.State = state
-        val resolver = Resolver(rtl)
+        val resolver = new Resolver(rtl):
+          override protected def preTraverseDefn(defn: Definition): Unit =
+            if !artifactConfig.debug.showElaboratedTree then
+              val modifiers = defn.annotations.collect:
+                case Annot.Debug(modify) => modify
+              if modifiers.nonEmpty then
+                val localConfig = modifiers.foldLeft(artifactConfig)((cfg, modify) => modify(cfg))
+                if localConfig.debug.showElaboratedTree then
+                  outputHandler.emit(localConfig.debug.out, s"Elaborated tree\n${defn.showAsTree}")
         resolver.traverseBlock(blk0)(using Resolver.ICtx.empty)
 
       // Runs the compilation pipeline on a freshly lowered compilation unit.
@@ -173,32 +183,45 @@ class CompilerCtx(
           codegen.Printer().worksheet(p)(using irPrintingScp).mkString(100)
         def showDebugIR(title: Str, program: codegen.Program): Unit =
           outputHandler.emit(artifactConfig.debug.out, s"${title}\n${printer(program)}")
+        def forEachDefinitionDebug(
+            program: codegen.Program,
+            isEnabled: Config.Debug => Bool,
+        )(display: (codegen.Defn, Config) => Unit): Unit =
+          def visit(defn: codegen.Defn): Unit =
+            defn.configOverride.foreach: localConfig =>
+              if isEnabled(localConfig.debug) then display(defn, localConfig)
+          new codegen.BlockTraverser:
+            override def applyFunDefn(fun: codegen.FunDefn): Unit =
+              visit(fun)
+              super.applyFunDefn(fun)
+            override def applyValDefn(defn: codegen.ValDefn): Unit =
+              visit(defn)
+              super.applyValDefn(defn)
+            override def applyClsLikeDefn(defn: codegen.ClsLikeDefn): Unit =
+              visit(defn)
+              super.applyClsLikeDefn(defn)
+          .applyProgram(program)
         def showDefinitionDebugIR(
             title: Str,
             program: codegen.Program,
             isEnabled: Config.Debug => Bool,
         ): Unit =
           val blockPrinter = codegen.Printer()
-          def show(defn: codegen.Defn): Unit =
-            defn.configOverride.foreach: localConfig =>
-              if isEnabled(localConfig.debug) then
-                val ir = blockPrinter.printDefinition(defn)(using irPrintingScp).mkString(100)
-                outputHandler.emit(localConfig.debug.out, s"${title}\n${ir}")
-          new codegen.BlockTraverser:
-            override def applyFunDefn(fun: codegen.FunDefn): Unit =
-              show(fun)
-              super.applyFunDefn(fun)
-            override def applyValDefn(defn: codegen.ValDefn): Unit =
-              show(defn)
-              super.applyValDefn(defn)
-            override def applyClsLikeDefn(defn: codegen.ClsLikeDefn): Unit =
-              show(defn)
-              super.applyClsLikeDefn(defn)
-          .applyProgram(program)
+          forEachDefinitionDebug(program, isEnabled): (defn, localConfig) =>
+            val ir = blockPrinter.printDefinition(defn)(using irPrintingScp).mkString(100)
+            outputHandler.emit(localConfig.debug.out, s"${title}\n${ir}")
+        def showDefinitionDebugTree(title: Str, program: codegen.Program): Unit =
+          forEachDefinitionDebug(program, _.showLoweredTree): (defn, localConfig) =>
+            val tree = defn match
+              case product: Product => product.showAsTree
+            outputHandler.emit(localConfig.debug.out, s"${title}\n${tree}")
         val pipeline = new codegen.CompilationPipeline:
           override def extraSymbolsToPreserve(prog: codegen.Program): Set[codegen.BoundSymbol] =
             collectCompilationUnitSymbols(prog).toSet
           override def preOptimizeHook(prog: codegen.Program): Unit =
+            if artifactConfig.debug.showLoweredTree then
+              outputHandler.emit(artifactConfig.debug.out, s"Lowered IR Tree\n${prog.showAsTree}")
+            else showDefinitionDebugTree("Lowered IR Tree", prog)
             if artifactConfig.debug.showIR then showDebugIR("Lowered IR", prog)
             else showDefinitionDebugIR("Lowered IR", prog, _.showIR)
         val optimized = ltl.givenIn:
@@ -271,6 +294,7 @@ class CompilerCtx(
         given Elaborator.State = state
         given Config = rootConfig
         given CompilerCtx = this
+        given DebugPrinter = new DebugPrinter
         val outputHandler = DebugOutputHandler(fs, rootConfig.baseDir, println)
         val parse = ParserSetup(file, dbgParsing, outputHandler)
         val phaseConfig = parse.effectiveConfig

@@ -228,6 +228,12 @@ abstract class MLsDiffMaker extends DiffMaker:
   protected var activeDebug = Config.Debug.default
   protected lazy val debugOutputHandler = DebugOutputHandler(cctx.fs, wd, str => output(str))
 
+  protected def outputDebugSection(title: Str, contents: Str, out: Config.DebugOutput): Unit = out match
+    case Config.DebugOutput.StdIO =>
+      outputSeparator(title)
+      output(contents)
+    case _ => debugOutputHandler.emit(out, s"${title}\n${contents}")
+
   given Elaborator.State = new Elaborator.State:
     override protected def doDbg: Bool =
       dbgParsing.isSet
@@ -418,14 +424,29 @@ abstract class MLsDiffMaker extends DiffMaker:
       if dbgParsing.isSet || phaseConfig.debug.parsing then
         parse(dbg = true, phaseConfig.debug.out)
       else discoveryResult
+
+    def showSelectedParsedTrees(): Unit =
+      def visit(tree: syntax.Tree): Unit = tree match
+        case syntax.PossiblyAnnotated(annotations, target) =>
+          ConfigParser.discoverDebugFromAnnotations(annotations, phaseConfig).foreach: localConfig =>
+            if localConfig.debug.showParsedTree then
+              outputDebugSection("Parsed tree", tree.showAsTree, localConfig.debug.out)
+          target.children.foreach:
+            case child: syntax.Tree => visit(child)
+            case _ => ()
+        case _ => ()
+      res.foreach(visit)
     
     // If parsed tree is displayed, don't show the string serialization.
-    if (parseOnly.isSet || showParse.isSet) && !showParsedTree.isSet then
+    if (parseOnly.isSet || showParse.isSet) && !showParsedTree.isSet && !phaseConfig.debug.showParsedTree then
       output(s"Parsed:${res.map("\n\t"+_.showDbg).mkString}")
     
     if showParsedTree.isSet then
       outputSeparator(s"Parsed tree")
       res.foreach(t => output(t.showAsTree))
+    else if phaseConfig.debug.showParsedTree then
+      outputDebugSection("Parsed tree", res.map(_.showAsTree).mkString("\n"), phaseConfig.debug.out)
+    else showSelectedParsedTrees()
     
     // if showParse.isSet then
     //   output(s"AST: $res")
@@ -463,11 +484,13 @@ abstract class MLsDiffMaker extends DiffMaker:
       case _ => ()
     
     // If elaborated tree is displayed, don't show the string serialization.
-    if (showElab.isSet || debug.isSet) && !showElaboratedTree.isSet then
+    if (showElab.isSet || debug.isSet) && !showElaboratedTree.isSet && !phaseConfig.debug.showElaboratedTree then
       output(s"Elab: ${e.showDbg}")
     if showElaboratedTree.isSet then
       outputSeparator(s"Elaborated tree")
       output(e.showAsTree)
+    else if phaseConfig.debug.showElaboratedTree then
+      outputDebugSection("Elaborated tree", e.showAsTree, phaseConfig.debug.out)
     
     processTerm(e, inImport = false)
       
@@ -480,7 +503,15 @@ abstract class MLsDiffMaker extends DiffMaker:
     if file.toString =/= runtimeSourceFile.toString && file.toString =/= preludeFile.toString then
       summon[Elaborator.State].initRuntimeSymbolsFromFile(runtimeSourceFile, prelude)(
         using summon[TL], summon[Raise], cctx)
-    val resolver = Resolver(rtl)
+    val resolver = new Resolver(rtl):
+      override protected def preTraverseDefn(defn: semantics.Definition): Unit =
+        if showElaboratedTree.isUnset && !config.debug.showElaboratedTree then
+          val modifiers = defn.annotations.collect:
+            case semantics.Annot.Debug(modify) => modify
+          if modifiers.nonEmpty then
+            val localConfig = modifiers.foldLeft(config)((cfg, modify) => modify(cfg))
+            if localConfig.debug.showElaboratedTree then
+              outputDebugSection("Elaborated tree", defn.showAsTree, localConfig.debug.out)
     curICtx = resolver.traverseBlock(trm)(using curICtx)
     
     if showResolve.isSet then

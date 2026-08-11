@@ -11,6 +11,8 @@
   - optimizations (`:dopt`).
 - Mirror the existing IR display commands with `showIR` (`:sir`) and
   `showOptimizedIR` (`:soir`).
+- Mirror the parsed, elaborated, and lowered tree displays with `showParsedTree`
+  (`:pt`), `showElaboratedTree` (`:elt`), and `showLoweredTree` (`:lot`).
 - Accept both shorthand flags and named booleans, including:
   - `#dbg('parsing)`;
   - `#dbg(elaboration: true)`.
@@ -45,3 +47,4 @@
 - [x] `showIR` and `showOptimizedIR` share the existing `:sir` and `:soir` display paths.
 - [x] `@dbg` configuration overrides remain attached to lowered IR definitions, including methods.
 - [x] Definition-local IR display prints only definitions selected by `@dbg`, through the existing IR printer.
+- [x] Parsed, elaborated, and lowered tree displays support both `#dbg` and definition-local `@dbg`.

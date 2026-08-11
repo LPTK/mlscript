@@ -13,7 +13,7 @@ import semantics.Elaborator.{Ctx, State}
 
 
 class ParserSetup(file: io.Path, forceDebugParsing: Bool, outputHandler: DebugOutputHandler)
-(using state: Elaborator.State, raise: Raise, cctx: CompilerCtx, config: Config):
+(using state: Elaborator.State, raise: Raise, cctx: CompilerCtx, config: Config, debugPrinter: DebugPrinter):
   
   val block = cctx.fs.read(file)
   val fph = new FastParseHelpers(block)
@@ -35,6 +35,25 @@ class ParserSetup(file: io.Path, forceDebugParsing: Bool, outputHandler: DebugOu
     if forceDebugParsing || effectiveConfig.debug.parsing then
       parse(dbg = true, effectiveConfig.debug.out)
     else discoveryResult
+
+  private def showSelectedParsedTrees(trees: Ls[syntax.Tree]): Unit =
+    def visit(tree: syntax.Tree): Unit = tree match
+      case syntax.PossiblyAnnotated(annotations, target) =>
+        ConfigParser.discoverDebugFromAnnotations(annotations, effectiveConfig).foreach: localConfig =>
+          if localConfig.debug.showParsedTree then
+            outputHandler.emit(localConfig.debug.out, s"Parsed tree\n${tree.showAsTree}")
+        target.children.foreach:
+          case child: syntax.Tree => visit(child)
+          case _ => ()
+      case _ => ()
+    trees.foreach(visit)
+
+  if effectiveConfig.debug.showParsedTree then
+    outputHandler.emit(
+      effectiveConfig.debug.out,
+      s"Parsed tree\n${result.map(_.showAsTree).mkString("\n")}",
+    )
+  else showSelectedParsedTrees(result)
   
   val resultBlk = new syntax.Tree.Block(result)
 

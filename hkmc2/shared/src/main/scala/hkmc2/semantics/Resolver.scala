@@ -355,8 +355,12 @@ class Resolver(tl: TraceLogger)
           :: expect.message))
     
   end traverse
+
+  /** Hook for consumers that need to observe each definition before resolution mutates its terms. */
+  protected def preTraverseDefn(defn: Definition): Unit = ()
   
   def traverseDefn(defn: Definition)(using ICtx): ICtx =
+    preTraverseDefn(defn)
     val modifiers = defn.annotations.collect:
       case Annot.Debug(modify) => modify
     if modifiers.isEmpty then traverseDefnImpl(defn)

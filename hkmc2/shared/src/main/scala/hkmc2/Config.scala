@@ -136,9 +136,12 @@ object Config:
 
   case class Debug(
     parsing: Bool,
+    showParsedTree: Bool,
     elaboration: Bool,
+    showElaboratedTree: Bool,
     resolution: Bool,
     lowering: Bool,
+    showLoweredTree: Bool,
     optimizations: Bool,
     showIR: Bool,
     showOptimizedIR: Bool,
@@ -147,9 +150,12 @@ object Config:
   object Debug:
     val default = Debug(
       parsing = false,
+      showParsedTree = false,
       elaboration = false,
+      showElaboratedTree = false,
       resolution = false,
       lowering = false,
+      showLoweredTree = false,
       optimizations = false,
       showIR = false,
       showOptimizedIR = false,
@@ -520,9 +526,12 @@ object ConfigParser:
   private def updateDebugFlag(name: Str, value: Bool, tree: Tree)(using Raise): Config.Debug => Config.Debug =
     name match
       case "parsing" => _.copy(parsing = value)
+      case "showParsedTree" => _.copy(showParsedTree = value)
       case "elaboration" => _.copy(elaboration = value)
+      case "showElaboratedTree" => _.copy(showElaboratedTree = value)
       case "resolution" => _.copy(resolution = value)
       case "lowering" => _.copy(lowering = value)
+      case "showLoweredTree" => _.copy(showLoweredTree = value)
       case "optimizations" => _.copy(optimizations = value)
       case "showIR" => _.copy(showIR = value)
       case "showOptimizedIR" => _.copy(showOptimizedIR = value)
@@ -572,6 +581,14 @@ object ConfigParser:
   def discoverDebugFromTrees(trees: Ls[Tree])(using Config): Config =
     given Raise = _ => ()
     extractDebugFromTrees(trees)
+
+  /** Apply `@dbg(...)` syntax annotations without reporting diagnostics during the discovery parse. */
+  def discoverDebugFromAnnotations(annotations: Ls[Tree], base: Config): Opt[Config] =
+    given Raise = _ => ()
+    val modifiers = annotations.collect:
+      case App(Ident("dbg"), Tup(args)) => parseDebugDirective(args)
+    if modifiers.isEmpty then N
+    else S(modifiers.foldLeft(base)((cfg, modify) => modify(cfg)))
 
   /** Parse the `None`/`Some(...)` syntax for optional config fields.
     * Also accepts unwrapped values as a convenience (treated as `Some(value)`). */

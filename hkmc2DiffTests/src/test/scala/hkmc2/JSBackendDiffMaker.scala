@@ -65,12 +65,6 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     override def doTrace = showRepl.isSet
     override def emitDbg(str: String): Unit = output(str)
 
-  private def outputDebugSection(title: Str, contents: Str, out: Config.DebugOutput): Unit = out match
-    case Config.DebugOutput.StdIO =>
-      outputSeparator(title)
-      output(contents)
-    case _ => debugOutputHandler.emit(out, s"${title}\n${contents}")
-  
   lazy val host =
     hostCreated = true
     given TL = replTL
@@ -126,27 +120,37 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       Printer()
     val print = (p: codegen.Program) =>
       blockPrinter.worksheet(p)(using irPrintingScp).mkString(output.ColWidth)
+    def forEachDefinitionDebug(
+        program: codegen.Program,
+        isEnabled: Config.Debug => Bool,
+    )(display: (Defn, Config) => Unit): Unit =
+      def visit(defn: Defn): Unit =
+        defn.configOverride.foreach: localConfig =>
+          if isEnabled(localConfig.debug) then display(defn, localConfig)
+      new BlockTraverser:
+        override def applyFunDefn(fun: FunDefn): Unit =
+          visit(fun)
+          super.applyFunDefn(fun)
+        override def applyValDefn(defn: ValDefn): Unit =
+          visit(defn)
+          super.applyValDefn(defn)
+        override def applyClsLikeDefn(defn: ClsLikeDefn): Unit =
+          visit(defn)
+          super.applyClsLikeDefn(defn)
+      .applyProgram(program)
     def showDefinitionDebugIR(
         title: Str,
         program: codegen.Program,
         isEnabled: Config.Debug => Bool,
     ): Unit =
-      def show(defn: Defn): Unit =
-        defn.configOverride.foreach: localConfig =>
-          if isEnabled(localConfig.debug) then
-            val ir = blockPrinter.printDefinition(defn)(using irPrintingScp).mkString(output.ColWidth)
-            outputDebugSection(title, ir, localConfig.debug.out)
-      new BlockTraverser:
-        override def applyFunDefn(fun: FunDefn): Unit =
-          show(fun)
-          super.applyFunDefn(fun)
-        override def applyValDefn(defn: ValDefn): Unit =
-          show(defn)
-          super.applyValDefn(defn)
-        override def applyClsLikeDefn(defn: ClsLikeDefn): Unit =
-          show(defn)
-          super.applyClsLikeDefn(defn)
-      .applyProgram(program)
+      forEachDefinitionDebug(program, isEnabled): (defn, localConfig) =>
+        val ir = blockPrinter.printDefinition(defn)(using irPrintingScp).mkString(output.ColWidth)
+        outputDebugSection(title, ir, localConfig.debug.out)
+    def showDefinitionDebugTree(title: Str, program: codegen.Program): Unit =
+      forEachDefinitionDebug(program, _.showLoweredTree): (defn, localConfig) =>
+        val tree = defn match
+          case product: Product => product.showAsTree
+        outputDebugSection(title, tree, localConfig.debug.out)
     
     Config.extractConfigFromStats(blk).givenIn {
     val loweringState = summon[Elaborator.State]
@@ -185,9 +189,12 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
                 }
               rec(before.main, after.main)
           override def preOptimizeHook(prog: Program) =
-            if showLoweredTree.isSet then
-              outputSeparator("Lowered IR Tree")
-              output(prog.showAsTree)
+            if showLoweredTree.isSet || config.debug.showLoweredTree then
+              if showLoweredTree.isSet then
+                outputSeparator("Lowered IR Tree")
+                output(prog.showAsTree)
+              else outputDebugSection("Lowered IR Tree", prog.showAsTree, config.debug.out)
+            else showDefinitionDebugTree("Lowered IR Tree", prog)
             if showIR.isSet || showIRLines.isSet || config.debug.showIR then
               given ShowCfg = ShowCfg(
                 showExpansionMappings = false,
