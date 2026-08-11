@@ -140,6 +140,8 @@ object Config:
     resolution: Bool,
     lowering: Bool,
     optimizations: Bool,
+    showIR: Bool,
+    showOptimizedIR: Bool,
     out: DebugOutput,
   )
   object Debug:
@@ -149,6 +151,8 @@ object Config:
       resolution = false,
       lowering = false,
       optimizations = false,
+      showIR = false,
+      showOptimizedIR = false,
       out = DebugOutput.StdIO,
     )
   
@@ -520,6 +524,8 @@ object ConfigParser:
       case "resolution" => _.copy(resolution = value)
       case "lowering" => _.copy(lowering = value)
       case "optimizations" => _.copy(optimizations = value)
+      case "showIR" => _.copy(showIR = value)
+      case "showOptimizedIR" => _.copy(showOptimizedIR = value)
       case _ =>
         raise(ErrorReport(
           msg"Unknown debugging aspect '${name}'" -> tree.toLoc :: Nil,

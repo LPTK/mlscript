@@ -88,6 +88,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   private def definitionConfigOverride(annotations: Ls[Annot]): Opt[Config] =
     val modifiers = annotations.collect:
       case Annot.Config(modify) => modify
+    if modifiers.isEmpty then N
+    else S(modifiers.foldLeft(config)((cfg, modify) => modify(cfg)))
+
+  private def definitionDebugConfig(annotations: Ls[Annot]): Opt[Config] =
+    val modifiers = annotations.collect:
       case Annot.Debug(modify) => modify
     if modifiers.isEmpty then N
     else S(modifiers.foldLeft(config)((cfg, modify) => modify(cfg)))
@@ -266,7 +271,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             case knd: syntax.Val =>
               assert(td.params.isEmpty)
               val cfgOverride = definitionConfigOverride(td.extraAnnotations)
-              cfgOverride match
+              definitionDebugConfig(td.extraAnnotations) match
                 case S(localConfig) =>
                   State.scopedDebug(localConfig.debug.lowering):
                     tl.scopedDebug(localConfig.debug.lowering, localConfig.debug.out):
@@ -280,7 +285,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                       blockImpl(stats, res)))(using LoweringCtx.nestFunc)
             case syntax.Fun =>
               val cfgOverride = definitionConfigOverride(td.extraAnnotations)
-              val (paramLists, bodyBlock) = cfgOverride match
+              val (paramLists, bodyBlock) = definitionDebugConfig(td.extraAnnotations) match
                 case S(localConfig) =>
                   State.scopedDebug(localConfig.debug.lowering):
                     tl.scopedDebug(localConfig.debug.lowering, localConfig.debug.out):

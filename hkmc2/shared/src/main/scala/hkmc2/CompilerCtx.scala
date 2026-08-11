@@ -159,12 +159,29 @@ class CompilerCtx(
       // and only fully-transformed definitions are valid to splice into another unit.
       def optimize(lowered: codegen.Program): codegen.Program =
         given Config = artifactConfig
-        val printer = (p: codegen.Program) => p.showAsTree // TODO: proper printing like in diff-tests
+        given ShowCfg = ShowCfg(
+          showExpansionMappings = false,
+          showFlowSymbols = true,
+          debug = false,
+        )
+        val irPrintingScp = Scope.empty(Scope.Cfg.default.copy(
+          escapeChars = false,
+          useSuperscripts = false,
+          includeZero = false,
+        ))
+        val printer = (p: codegen.Program) =>
+          codegen.Printer().worksheet(p)(using irPrintingScp).mkString(100)
+        def showDebugIR(title: Str, program: codegen.Program): Unit =
+          outputHandler.emit(artifactConfig.debug.out, s"${title}\n${printer(program)}")
         val pipeline = new codegen.CompilationPipeline:
           override def extraSymbolsToPreserve(prog: codegen.Program): Set[codegen.BoundSymbol] =
             collectCompilationUnitSymbols(prog).toSet
-        ltl.givenIn:
+          override def preOptimizeHook(prog: codegen.Program): Unit =
+            if artifactConfig.debug.showIR then showDebugIR("Lowered IR", prog)
+        val optimized = ltl.givenIn:
           pipeline.run(lowered, printer, exportedSymbol.toSet, dtl)
+        if artifactConfig.debug.showOptimizedIR then showDebugIR("Optimized IR", optimized)
+        optimized
 
       // Every compilation unit is lowered, so that its symbols carry the IR definitions an
       // importer's inliner may splice in — and so that the importer never has to lower it itself,

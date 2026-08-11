@@ -126,7 +126,7 @@ class EtaExpansionSolver(val constraintSolver: FlowConstraintSolver):
     funShape.exists:
       case (id, shape) => checkIsEtaExpanded(id, shape)
 
-  if tl.isTracing then
+  if tl.doTrace then
     tl.log(">>> eta-expansion targets shapes >>>")
     for
       (id, shape) <- funShape

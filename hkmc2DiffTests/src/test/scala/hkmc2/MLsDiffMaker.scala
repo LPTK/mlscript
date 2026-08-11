@@ -225,7 +225,7 @@ abstract class MLsDiffMaker extends DiffMaker:
     ln.split(" ").iterator.map(x => "ucs:" + x.trim).toSet
   
   
-  private var activeDebug = Config.Debug.default
+  protected var activeDebug = Config.Debug.default
   protected lazy val debugOutputHandler = DebugOutputHandler(cctx.fs, wd, str => output(str))
 
   given Elaborator.State = new Elaborator.State:
@@ -269,8 +269,10 @@ abstract class MLsDiffMaker extends DiffMaker:
   
   
   val etl = new TraceLogger:
-    override def doTrace = dbgElab.isSet || scope.exists:
+    override def doTrace = dbgElab.isSet || activeDebug.elaboration || scope.exists:
       showUCS.get.getOrElse(Set.empty).contains
+    override protected def defaultDebugOutput: Config.DebugOutput =
+      if activeDebug.elaboration then activeDebug.out else Config.DebugOutput.StdIO
     override def emitDbg(str: String): Unit = output(str)
     override protected[hkmc2] def emitDbg(str: Str, out: Config.DebugOutput): Unit =
       debugOutputHandler.emit(out, str)
@@ -279,7 +281,9 @@ abstract class MLsDiffMaker extends DiffMaker:
       if isTracing then super.trace(pre, post)(thunk) else thunk
   
   val rtl = new TraceLogger:
-    override def doTrace = dbgResolving.isSet
+    override def doTrace = dbgResolving.isSet || activeDebug.resolution
+    override protected def defaultDebugOutput: Config.DebugOutput =
+      if activeDebug.resolution then activeDebug.out else Config.DebugOutput.StdIO
     override def emitDbg(str: String): Unit = output(str)
     override protected[hkmc2] def emitDbg(str: Str, out: Config.DebugOutput): Unit =
       debugOutputHandler.emit(out, str)
@@ -448,10 +452,7 @@ abstract class MLsDiffMaker extends DiffMaker:
     // given Elaborator.Ctx = curCtx.nest(S(blockSymbol))
     given Elaborator.Ctx = curCtx.nestLocal(s"block:${blockNum}")
     val blk = new syntax.Tree.Block(trees)
-    val (e, newCtx) =
-      if phaseConfig.debug.elaboration then
-        etl.scopedDebug(enabled = true, phaseConfig.debug.out)(elab.topLevel(blk))
-      else elab.topLevel(blk)
+    val (e, newCtx) = elab.topLevel(blk)
     curCtx = newCtx
     
     // Extract SetConfig statements and update persistent config
@@ -480,11 +481,7 @@ abstract class MLsDiffMaker extends DiffMaker:
       summon[Elaborator.State].initRuntimeSymbolsFromFile(runtimeSourceFile, prelude)(
         using summon[TL], summon[Raise], cctx)
     val resolver = Resolver(rtl)
-    curICtx =
-      if config.debug.resolution then
-        rtl.scopedDebug(enabled = true, config.debug.out):
-          resolver.traverseBlock(trm)(using curICtx)
-      else resolver.traverseBlock(trm)(using curICtx)
+    curICtx = resolver.traverseBlock(trm)(using curICtx)
     
     if showResolve.isSet then
       output(s"Resolved: ${trm.showDbg}")

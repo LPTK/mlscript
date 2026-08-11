@@ -45,14 +45,18 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
   val prettyPrintNme = baseScp.allocateName(Elaborator.State.prettyPrintSymbol)(using throw _)
   
   val ltl = new TraceLogger:
-    override def doTrace = debugLowering.isSet || scope.exists:
+    override def doTrace = debugLowering.isSet || activeDebug.lowering || scope.exists:
       showUCS.get.getOrElse(Set.empty).contains
+    override protected def defaultDebugOutput: Config.DebugOutput =
+      if activeDebug.lowering then activeDebug.out else Config.DebugOutput.StdIO
     override def emitDbg(str: String): Unit = output(str)
     override protected[hkmc2] def emitDbg(str: Str, out: Config.DebugOutput): Unit =
       debugOutputHandler.emit(out, str)
   
   val dtl = new TraceLogger:
-    override def doTrace = debugOptimizations.isSet
+    override def doTrace = debugOptimizations.isSet || activeDebug.optimizations
+    override protected def defaultDebugOutput: Config.DebugOutput =
+      if activeDebug.optimizations then activeDebug.out else Config.DebugOutput.StdIO
     override def emitDbg(str: String): Unit = output(str)
     override protected[hkmc2] def emitDbg(str: Str, out: Config.DebugOutput): Unit =
       debugOutputHandler.emit(out, str)
@@ -60,6 +64,12 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
   val replTL = new TraceLogger:
     override def doTrace = showRepl.isSet
     override def emitDbg(str: String): Unit = output(str)
+
+  private def outputDebugSection(title: Str, contents: Str, out: Config.DebugOutput): Unit = out match
+    case Config.DebugOutput.StdIO =>
+      outputSeparator(title)
+      output(contents)
+    case _ => debugOutputHandler.emit(out, s"${title}\n${contents}")
   
   lazy val host =
     hostCreated = true
@@ -129,12 +139,8 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         new codegen.Lowering()(using summon[Config], ltl, summon[Raise], loweringState, curCtx, summon[SymbolPrinter])
           with codegen.LoweringTraceLog(traceJS.isSet)
       
-      val lowered =
-        def lower = ltl.givenIn:
-          low.program(blk, symbolsToPreserve = symbolsToPreserve)
-        if config.debug.lowering then
-          ltl.scopedDebug(enabled = true, config.debug.out)(lower)
-        else lower
+      val lowered = ltl.givenIn:
+        low.program(blk, symbolsToPreserve = symbolsToPreserve)
       
       val optimized = ltl.givenIn:
         val customPipeline = new CompilationPipeline:
@@ -161,7 +167,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
             if showLoweredTree.isSet then
               outputSeparator("Lowered IR Tree")
               output(prog.showAsTree)
-            if showIR.isSet || showIRLines.isSet then
+            if showIR.isSet || showIRLines.isSet || config.debug.showIR then
               given ShowCfg = ShowCfg(
                 showExpansionMappings = false,
                 showFlowSymbols = true,
@@ -173,23 +179,25 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
               if showIR.isSet then
                 outputSeparator("Lowered IR")
                 output(irStr)
+              else if config.debug.showIR then
+                outputDebugSection("Lowered IR", irStr, config.debug.out)
             super.preOptimizeHook(prog)
-        if config.debug.optimizations then
-          dtl.scopedDebug(enabled = true, config.debug.out):
-            customPipeline.run(lowered, print, symbolsToPreserve, dtl)
-        else customPipeline.run(lowered, print, symbolsToPreserve, dtl)
+        customPipeline.run(lowered, print, symbolsToPreserve, dtl)
       
       if checkIR.isSet then
         BlockChecker().applyProgram(optimized)
       
-      if showOptimizedIR.isSet then
-        outputSeparator("Optimized IR")
+      if showOptimizedIR.isSet || config.debug.showOptimizedIR then
         given ShowCfg = ShowCfg(
           showExpansionMappings = false,
           showFlowSymbols = true,
           debug = debug.isSet,
         )
-        output(Printer().worksheet(optimized)(using irPrintingScp).mkString(output.ColWidth))
+        val irStr = Printer().worksheet(optimized)(using irPrintingScp).mkString(output.ColWidth)
+        if showOptimizedIR.isSet then
+          outputSeparator("Optimized IR")
+          output(irStr)
+        else outputDebugSection("Optimized IR", irStr, config.debug.out)
       if showOptimizedTree.isSet then
         outputSeparator("Optimized IR Tree")
         output(optimized.showAsTree)

@@ -105,7 +105,7 @@ class DeadParamElimSolver(val constraintSolver: FlowConstraintSolver):
       case None => eliminableCallSiteArgsById(consFun.concreteId) = eliminable.toSet
       case S(existing) => assert(existing.toList.sorted === eliminable)
   
-  if tl.isTracing then
+  if tl.doTrace then
     def showRefSite(resultId: ResultId): Str =
       resultId.getReferredFun match
         case Some(fun) => s"${fun.nme}@$resultId"
@@ -411,4 +411,3 @@ object DeadParamElim:
           else
             val rewrite = new Rewrite(deadParamElimSolver)
             rewrite()
-

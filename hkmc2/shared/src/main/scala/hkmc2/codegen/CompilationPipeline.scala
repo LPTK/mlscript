@@ -25,48 +25,13 @@ class CompilationPipeline(using Config, Raise, State, Ctx, SymbolPrinter):
   private inline def blockPass(inline pass: Block => Block)(prog: Program): Program =
     val blk = pass(prog.main)
     if blk is prog.main then prog else Program(prog.imports, blk)
-
-  private def collectDefinitions(block: Block): Ls[Defn] = block match
-    case Define(defn, rest) =>
-      defn :: defn.subBlocks.flatMap(collectDefinitions) ::: collectDefinitions(rest)
-    case Match(_, arms, default, rest) =>
-      arms.flatMap(arm => collectDefinitions(arm._2)) :::
-        default.toList.flatMap(collectDefinitions) ::: collectDefinitions(rest)
-    case Label(_, _, body, rest) => collectDefinitions(body) ::: collectDefinitions(rest)
-    case Begin(sub, rest) => collectDefinitions(sub) ::: collectDefinitions(rest)
-    case TryBlock(sub, finallyDo, rest) =>
-      collectDefinitions(sub) ::: collectDefinitions(finallyDo) ::: collectDefinitions(rest)
-    case Assign(_, _, rest) => collectDefinitions(rest)
-    case AssignField(_, _, _, rest) => collectDefinitions(rest)
-    case AssignDynField(_, _, _, _, rest) => collectDefinitions(rest)
-    case Scoped(_, body) => collectDefinitions(body)
-    case _: BlockTail => Nil
-
-  /** Emit a compact per-pass delta for definitions carrying `@dbg('optimizations)`.
-    * This remains definition-local even though most optimization passes operate on a whole program. */
-  private def reportDefinitionOptimizationDebug(passName: Str, before: Program, after: Program, otl: TL): Unit =
-    val afterBySymbol = collectDefinitions(after.main).map(defn => defn.sym -> defn).toMap
-    collectDefinitions(before.main).foreach: oldDefn =>
-      oldDefn.configOverride.foreach: localConfig =>
-        if localConfig.debug.optimizations then
-          otl.scopedDebug(enabled = true, localConfig.debug.out):
-            afterBySymbol.get(oldDefn.sym) match
-              case N => otl.log(s"Optimization $passName removed ${oldDefn.sym.nme}")
-              case S(newDefn) if newDefn == oldDefn =>
-                otl.log(s"Optimization $passName left ${oldDefn.sym.nme} unchanged")
-              case S(newDefn) =>
-                val details = newDefn match
-                  case product: Product => product.showAsTree
-                otl.log(s"Optimization $passName changed ${oldDefn.sym.nme}:\n${details}")
   
   def run(prog: Program, printer: Program => Str, symbolsToPreserve: Set[BoundSymbol], otl: TL)(using TL): Program =
     var result = prog
-    var reportDefinitionDebug = false
     inline def runPass(passName: Str)(inline transform: Program => Program) =
       val before = result
       result = transform(before)
       passHook(passName, before, result)
-      if reportDefinitionDebug then reportDefinitionOptimizationDebug(passName, before, result, otl)
     
     runPass("LambdaRewriter")(LambdaRewriter.desugar)
     runPass("Deforest"): prog =>
@@ -98,7 +63,6 @@ class CompilationPipeline(using Config, Raise, State, Ctx, SymbolPrinter):
     runPass("ClassParamFlattener")(ClassParamFlattener.apply)
     runPass("ReflectionInstrumenter")(ReflectionInstrumenter(using summon).apply)
     preOptimizeHook(result)
-    reportDefinitionDebug = true
     
     // * We run this pass here first, before inlining so that the @tailrec/@tailcall annotations
     // * can be properly checked.

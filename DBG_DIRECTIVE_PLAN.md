@@ -9,6 +9,8 @@
   - resolution (`:dr`),
   - lowering (`:dl`), and
   - optimizations (`:dopt`).
+- Mirror the existing IR display commands with `showIR` (`:sir`) and
+  `showOptimizedIR` (`:soir`).
 - Accept both shorthand flags and named booleans, including:
   - `#dbg('parsing)`;
   - `#dbg(elaboration: true)`.
@@ -25,9 +27,9 @@
 1. Add immutable debug settings and output-destination types to `Config`, with all phase flags disabled and `StdIO` selected by default.
 2. Extend `ConfigParser` with one parser shared by `#dbg(...)` and `@dbg(...)`; support quoted phase names, named phase booleans, and `out`.
 3. Elaborate `#dbg` into the existing persistent `SetConfig` representation and `@dbg` into a per-definition configuration annotation.
-4. Add destination-aware, dynamically scoped tracing so a definition annotation can temporarily enable only its requested phase and destination.
+4. Reuse the existing phase trace loggers, with destination-aware dynamic scoping only where a definition annotation must temporarily change their configuration.
 5. Discover module/block-level parsing debug settings after an initial parse and, when requested, repeat parsing with lexer/parser tracing sent to the selected destination.
-6. Drive elaboration, resolution, lowering, and optimization trace loggers from the effective `Config`; retain the legacy diff-test flags by combining them with the new settings.
+6. Drive elaboration, resolution, lowering, optimization, and IR display from the effective `Config`; retain the legacy diff-test commands by sharing their existing code paths.
 7. Add positive and negative diff tests covering shorthand/named syntax, persistence, destination selection, and definition-local elaboration output.
 8. Run `ctest`, focused diff tests while iterating, and finally `hkmc2AllTests/test`; review and commit all intentional golden changes.
 
@@ -39,3 +41,5 @@
 - [x] Definition-local scoping implemented.
 - [x] Regression tests and golden outputs added.
 - [x] Full prescribed test suite passes.
+- [x] Custom optimization reporting removed in favor of the existing `:dopt` trace path.
+- [x] `showIR` and `showOptimizedIR` share the existing `:sir` and `:soir` display paths.
