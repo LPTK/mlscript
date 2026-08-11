@@ -6,7 +6,12 @@
 :global
 :checkCasts
 
+open annotations
 class Top(x: Int)
+// These tests are about narrowing the result of an opaque call, so `mkTop` must stay one: typing an
+// instantiation as its class put this body under the inliner's threshold, and an inlined `new Top(1)`
+// would make every type test below statically decidable.
+@noInline
 fun mkTop(): Object = new Top(1)
 // An unannotated result is `Anything`, the only source that can be narrowed *to* `Object`.
 fun anything(v) = v

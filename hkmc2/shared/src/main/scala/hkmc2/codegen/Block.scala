@@ -1389,6 +1389,11 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       case S(d: (ModuleOrObjectSymbol | TypeAliasSymbol)) => d.erasedType
       case _ => N
     case Cast(_, target, _) => S(target)
+    // * `Instantiate` always yields an instance of the class, since the constructor is guaranteed to be fully-applied
+    // * after lowering.
+    case Instantiate(_, cls, _) => cls.targetSymbol.flatMap:
+      case ctor: ClassCtorSymbol => ctor.associatedCls.erasedType
+      case sym => sym.asCls.flatMap(_.erasedType)
     case _ => N
 
   /** Coerces this result to `expected`, yielding it unchanged when no coercion is required.

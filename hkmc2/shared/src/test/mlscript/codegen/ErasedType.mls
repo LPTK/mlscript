@@ -56,7 +56,7 @@ val n: Int = o
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Object⁰, tmp1: Int⁰;
 //│ define mkObj⁰ as fun mkObj¹(): Object⁰ {
-//│   return (new globalThis⁰.Object⁰() as! Object⁰)
+//│   return new globalThis⁰.Object⁰()
 //│ };
 //│ set tmp = mkObj¹();
 //│ define o⁰ as val o¹: Object⁰ = tmp;
@@ -171,7 +171,7 @@ fun makeBar(s: Str): Bar = new Bar(s)
 //│ define addUp⁰ as fun addUp¹(x: Int⁰, y: Int⁰): Int⁰ {
 //│   return (+⁰(x, y) as! Int⁰)
 //│ };
-//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ { return (new Bar⁰(s) as! Bar⁰) };
+//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ { return new Bar⁰(s) };
 //│ end
 
 
@@ -697,6 +697,11 @@ val over: Int = thunk(2)
 // become an ordinary downcast, and nothing would be raised here.
 :ge
 val bad: Str = thunk
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
+//│ ║  l.699: 	val bad: Str = thunk
+//│ ╙──       	               ^^^^^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
 
 
 // Under `:checkCasts`, every coercion inserted by lowering is marked as checked, and prints as
@@ -711,10 +716,27 @@ val n2: Int = o2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Object⁰, tmp1: Int⁰;
 //│ define mkObj2⁰ as fun mkObj2¹(): Object⁰ {
-//│   return (new globalThis⁰.Object⁰() as Object⁰)
+//│   return new globalThis⁰.Object⁰()
 //│ };
 //│ set tmp = mkObj2¹();
 //│ define o2⁰ as val o2¹: Object⁰ = tmp;
 //│ set tmp1 = (o2¹ as Int⁰);
 //│ define n2⁰ as val n2¹: Int⁰ = tmp1;
+//│ end
+
+
+// An instantiation is typed as an instance of the class it names, so it cannot fill a primitive slot.
+// This is asserted rather than left to the casts elided above: were the `Instantiate` type lost, it would
+// degrade to the top type and the narrowing would become an ordinary downcast, raising nothing.
+:ge
+fun badInst() = useInt(new Bar("x"))
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
+//│ ║  l.732: 	fun badInst() = useInt(new Bar("x"))
+//│ ╙──       	                       ^^^^^^^^^^^^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define badInst⁰ as fun badInst¹(): ? {
+//│   let tmp: Bar⁰;
+//│   set tmp = new Bar⁰("x");
+//│   return useInt³(tmp)
+//│ };
 //│ end

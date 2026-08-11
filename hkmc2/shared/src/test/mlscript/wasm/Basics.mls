@@ -183,7 +183,7 @@ class Foo(val a)
 //│       (return
 //│         (local.get $this))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
-//│     (local $tmp (ref null any))
+//│     (local $tmp (ref $Foo))
 //│     (block (result (ref null any))
 //│       (local.set $tmp
 //│         (call $Foo_ctor
@@ -191,8 +191,7 @@ class Foo(val a)
 //│             (i32.const 42))))
 //│       (return
 //│         (struct.get $Foo $a
-//│           (ref.cast (ref $Foo)
-//│             (local.get $tmp))))))
+//│           (local.get $tmp)))))
 //│   (elem $Foo_init declare func $Foo_init)
 //│   (elem $Foo_ctor declare func $Foo_ctor)
 //│   (elem $entry declare func $entry))
@@ -357,7 +356,7 @@ class Foo(val x) with
 //│       (return
 //│         (local.get $this))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
-//│     (local $tmp (ref null any))
+//│     (local $tmp (ref $Foo))
 //│     (block (result (ref null any))
 //│       (local.set $tmp
 //│         (call $Foo_ctor
@@ -365,8 +364,7 @@ class Foo(val x) with
 //│             (i32.const 42))))
 //│       (return
 //│         (struct.get $Foo $y
-//│           (ref.cast (ref $Foo)
-//│             (local.get $tmp))))))
+//│           (local.get $tmp)))))
 //│   (elem $Foo_init declare func $Foo_init)
 //│   (elem $Foo_ctor declare func $Foo_ctor)
 //│   (elem $entry declare func $entry))
@@ -441,7 +439,7 @@ fun bar() = 42
 fun foo() = bar
 foo()()
 //│ ╔══[COMPILATION ERROR] Returning function instances is not supported
-//│ ║  l.441: 	fun foo() = bar
+//│ ║  l.439: 	fun foo() = bar
 //│ ╙──       	            ^^^
 
 
@@ -450,8 +448,8 @@ foo()()
 fun takeTop(m: Int32) = m
 takeTop(1)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.451: 	takeTop(1)
+//│ ║  l.449: 	takeTop(1)
 //│ ╙──       	        ^
 //│ ╔══[COMPILATION ERROR] Wasm function `takeTop` expects result to have type `(ref null any)`, but got `i32`
-//│ ║  l.450: 	fun takeTop(m: Int32) = m
+//│ ║  l.448: 	fun takeTop(m: Int32) = m
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^
