@@ -1786,7 +1786,8 @@ class BlockSimplifier
                   def go(acc: Block => Block, args: List[(VarSymbol, Result)], mapping: Map[Symbol, Symbol]): Block =
                     args match
                     case Nil =>
-                      val resSym = TempSymbol(N, erasedType = N, "inlinedVal")
+                      val resSym = TempSymbol(
+                        N, erasedType = if extraArgss.isEmpty then c.erasedValueType else N, "inlinedVal")
                       val copier = Copier(resSym, mapping, thisMap)
                       val newBlk = copier.applyBlock(blk)
                       if extraArgss.isEmpty then
@@ -1798,7 +1799,7 @@ class BlockSimplifier
                               annotations = c.metadata.annotations.filterNot(_ == Annot.TailCall),
                             ))))))
                     case (sym, value) :: argRest =>
-                      val newSym = VarSymbol(sym.id, erasedType = N)
+                      val newSym = VarSymbol(sym.id, erasedType = sym.erasedType)
                       go(acc.assignScoped(newSym, value), argRest, mapping + (sym -> newSym))
                   go(blockBuilder, matchedArgs, Map.empty)
 
@@ -1832,7 +1833,8 @@ class BlockSimplifier
                   def go(acc: Block => Block, args: List[(VarSymbol, Result)], mapping: Map[Symbol, Symbol]): Block =
                     args match
                     case Nil =>
-                      val resSym = TempSymbol(N, erasedType = N, "inlinedVal")
+                      val resSym = TempSymbol(
+                        N, erasedType = if extraArgss.isEmpty then c.erasedValueType else N, "inlinedVal")
                       val copier = Copier(resSym, mapping, Map.empty)
                       val newBlk = copier.applyBlock(blk)
                       if extraArgss.isEmpty then
@@ -1844,7 +1846,7 @@ class BlockSimplifier
                               annotations = c.metadata.annotations.filterNot(_ == Annot.TailCall),
                             ))))))
                     case (sym, value) :: argRest =>
-                      val newSym = VarSymbol(sym.id, erasedType = N)
+                      val newSym = VarSymbol(sym.id, erasedType = sym.erasedType)
                       go(acc.assignScoped(newSym, value), argRest, mapping + (sym -> newSym))
                   go(blockBuilder, matchedArgs, Map.empty)
           case _ => super.applyResult(r)(k)

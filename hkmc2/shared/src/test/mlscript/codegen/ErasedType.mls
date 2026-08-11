@@ -497,7 +497,7 @@ fun sccG(): Object = sccF() + 1
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define sccF⁰ as fun sccF¹(): Int⁰ {
-//│   let id: ?, inlinedVal: ?;
+//│   let id: Int⁰, inlinedVal: Object⁰;
 //│   set id = 0;
 //│   block inlinedLbl:
 //│     loop loopLabel:
@@ -517,7 +517,7 @@ fun sccG(): Object = sccF() + 1
 //│   return (inlinedVal as! Int⁰)
 //│ };
 //│ define sccG¹ as fun sccG⁰(): Object⁰ {
-//│   let id: ?, inlinedVal: ?;
+//│   let id: Int⁰, inlinedVal: Object⁰;
 //│   set id = 1;
 //│   block inlinedLbl:
 //│     loop loopLabel:
