@@ -74,3 +74,70 @@ b.z
 //│ = 125
 
 
+module Outer with {
+// module Outer { // TODO
+  class Inner1 {
+    constructor(val x)
+  }
+  class Inner2(val x)
+}
+
+:e
+object Derived extends Outer.Inner1
+//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class 'Inner1'
+//│ ║  l.86: 	object Derived extends Outer.Inner1
+//│ ╙──      	                       ^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
+//│ ║  l.86: 	object Derived extends Outer.Inner1
+//│ ╙──      	                       ^^^^^^^^^^^^
+
+:sr
+:sir
+object Derived extends Outer.Inner1(11)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   object Derived extends new Outer⁰.Inner1⁰(11) {
+//│     
+//│   }
+//│ whereTODO
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Derived⁰ as object Derived¹ extends Outer⁰.Inner1⁰ {}; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:fixme
+Derived.x
+//│ ╔══[COMPILATION ERROR] Object 'Derived' does not contain member 'x'
+//│ ║  l.107: 	Derived.x
+//│ ╙──       	^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+Derived."x"
+
+:e
+object Derived extends Outer.Inner2
+//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of overloaded function and class 'Inner2'
+//│ ║  l.116: 	object Derived extends Outer.Inner2
+//│ ╙──       	                       ^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
+//│ ║  l.116: 	object Derived extends Outer.Inner2
+//│ ╙──       	                       ^^^^^^^^^^^^
+
+:sr
+:sir
+object Derived extends Outer.Inner2(12)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   object Derived extends new Outer⁰.Inner2⁰(12) {
+//│     
+//│   }
+//│ whereTODO
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Derived² as object Derived³ extends Outer⁰.Inner2⁰ {}; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:fixme
+Derived.x
+//│ ╔══[COMPILATION ERROR] Object 'Derived' does not contain member 'x'
+//│ ║  l.137: 	Derived.x
+//│ ╙──       	^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+

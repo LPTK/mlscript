@@ -395,6 +395,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   def classOf(trm: Term)(k: Path => Block)(using LoweringCtx): Block =
     if newResolution then
+      def fromBMS(bms: BlockMemberSymbol): ClassSymbol =
+        bms.asCls match
+        case S(cls) => cls
+        case _ =>
+          bms.asTrm match
+          case S(cc: ClassCtorSymbol) => cc.associatedCls
+          case _ => ???
       trm match
       // case rsl: Resolvable =>
       //   rsl.getShapes match
@@ -402,17 +409,27 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       //     sh.
       //   case _ => ???
       case Ref(bms: BlockMemberSymbol) =>
-        bms.asCls match
-        case S(cls) => k(Value.MemberRef(bms, cls))
-        case _ =>
-          bms.asTrm match
-          case S(cc: ClassCtorSymbol) => k(Value.MemberRef(bms, cc.associatedCls))
-          case _ => ???
-      case sel: AnySel =>
-        sel.resolvedTargets match
-        case SelectionTarget.ObjectMember(sym: TermSymbol) :: Nil =>
-          ???
-        case _ => ???
+        // bms.asCls match
+        // case S(cls) => k(Value.MemberRef(bms, cls))
+        // case _ =>
+        //   bms.asTrm match
+        //   case S(cc: ClassCtorSymbol) => k(Value.MemberRef(bms, cc.associatedCls))
+        //   case _ => ???
+        k(Value.MemberRef(bms, fromBMS(bms)))
+      case sel: Sel =>
+        subTerm(sel.prefix): pre =>
+          sel.resolvedTargets match
+          // case SelectionTarget.ObjectMember(sym: ClassCtorSymbol) :: Nil =>
+          //   val l = loweringCtx.registerTempSymbol(N)
+          //   val r = Select(pre, memberIdent(sel.nme, S(sym)))(S(sym.associatedCls))(false)
+          //   Assign(l, r, k(l |> Value.SimpleRef.apply))
+          // case SelectionTarget.ObjectMember(sym: ClassSymbol) :: Nil =>
+          //   ???
+          case SelectionTarget.ObjectMember(bms: BlockMemberSymbol) :: Nil =>
+            // val l = loweringCtx.registerTempSymbol(N)
+            // val r = Select(pre, memberIdent(sel.nme, S(bms)))(S(fromBMS(bms)))(false)
+            // Assign(l, r, k(l |> Value.SimpleRef.apply))
+            k(Select(pre, memberIdent(sel.nme, S(bms)))(S(fromBMS(bms)))(false))
       case _ => ???
     else subTerm(trm)(k)
   
