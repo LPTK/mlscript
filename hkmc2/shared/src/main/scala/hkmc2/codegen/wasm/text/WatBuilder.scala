@@ -2045,7 +2045,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       name,
       ExternType.Func(
         TypeUse(typeIdx),
-        TempSymbol(N, erasedType = S(ErasedType.Str), name),
+        TempSymbol(N, erasedType = N, name),
         wrapId = N -> N,
       ),
     ))
