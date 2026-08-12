@@ -1171,6 +1171,11 @@ sealed abstract class ErasedType:
   /** The symbol for this erased type. */
   def sym(using Ctx, State): TypeSymbol
 
+  /** Memoized canonical form, written once by [[`canonicalize`]] and read only through it.
+    *
+    * This is not keyed on `Ctx` or `State` because the canonical erased type is only valid for the `State` it is
+    * computed under.
+    */
   private var _canonicalized: Opt[Canonical] = N
 
   /** Computes and memoizes the canonical form of this type by:
@@ -1244,6 +1249,9 @@ object CanonicalErasedValueType:
       case base =>
         // * `Anything` and `Object` drop `rsc`, which is meaningless on a top type. Every construction site
         // * passes `rsc = false` today; a future resource-type implementation must revisit both.
+        // *
+        // * Note that `base is ctx.builtins.Anything` is only necessary for `InvalMLPrelude.mls` - the `Anything` type
+        // * is `declare class`-ed there (since `declare type` is not supported in `invalml`).
         if base is ctx.builtins.Anything then ErasedType.Anything
         else if base is ctx.builtins.Object then ErasedType.Object
         else PrimitiveType.values.find(_.sym === base) match
@@ -1576,10 +1584,12 @@ object Cast:
     *
     * This node is malformed if the target type is not a proper subtype of the value's erased type.
     *
-    * Collapsing `Cast(Cast(v, T), U)` to `Cast(v, U)` discards the inner *type test* but must not discard the
-    * obligation to test. Doing so is sound because casts only ever narrow: `U` is a proper subtype of `T`, so a
-    * value passing the `U` test necessarily passes the `T` test, and the collapsed test subsumes the one dropped.
-    * The flags therefore combine by disjunction - only the failure *message* is affected, not whether we fail.
+    * Collapsing `Cast(Cast(v, T), U)` to `Cast(v, U)` drops the inner test. The `T`-typed intermediate goes with it,
+    * so no value is left in a wrongly-typed slot. However, an unchecked failure *can be lost* - if a cast is
+    * undecidable a `Cast` will be inserted anyways, and determining this fact here would require threading `Ctx` and
+    * `State` wherever `Cast` nodes need to be built.
+    *
+    * Note that explicitly-checked casts are never lost to preserve the semantics of eagerly failing when casts fail.
     */
   def apply(value: Result, target: ErasedValueType, check: Bool): Cast =
     value match
