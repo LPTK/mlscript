@@ -349,7 +349,7 @@ sealed trait TermShape extends Shape:
       case defn: ClassDef => defn.paramsOpt.toList ::: defn.auxParams
       case _ => Nil
     case as: AppShape => as.receiver.unappliedParams.drop(1)
-    case ns: NewShape => ns.receiver.unappliedParams.drop(ns.args.length)
+    case ns: NewShape => ns.receiver.unappliedParams.drop(ns.argss.length)
     case _ => Nil
   def isSaturated: Bool = unappliedParams.isEmpty
 // sealed trait TermShape:
@@ -380,9 +380,9 @@ abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.A
   override def toString: String = s"AppShape($receiver, $args)"
   def target: Opt[AppTarget]
 
-abstract class NewShape(val receiver: TermShape, val args: Ls[Term], val src: Term.New) extends TermShape:
+abstract class NewShape(val receiver: TermShape, val argss: Ls[Term], val src: Term.New) extends TermShape:
   def describe: Str = s"instantiation of ${receiver.describe}"
-  override def toString: String = s"NewShape($receiver, $args)"
+  override def toString: String = s"NewShape($receiver, $argss)"
   // def target: Opt[AppTarget]
 
 // abstract class SelShape(val receiver: TermShape, val nme: Tree.Ident, val src: AnySel) extends TermShape:

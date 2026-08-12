@@ -94,3 +94,15 @@ new Foo
 
 
 
+:fixme
+class Foo(pred) {
+  val r = pred.id(42)
+  fun callId(x) = pred.id(x)
+}
+//│ ╔══[PARSE ERROR] Unexpected 'fun' keyword here
+//│ ║  l.100: 	  fun callId(x) = pred.id(x)
+//│ ╙──       	  ^^^
+
+
+
+

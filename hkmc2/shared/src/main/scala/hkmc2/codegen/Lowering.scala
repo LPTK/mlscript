@@ -1022,7 +1022,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       
     case sel @ Sel(prefix, nme) =>
       if sel.isErroneous then compError else
-      setupSelection(prefix, nme, selSymbol(sel))(k)
+        setupSelection(prefix, nme, selSymbol(sel))(k)
     case Resolved(sel @ Sel(prefix, nme), sym) =>
       setupSelection(prefix, nme, S(sym))(k)
     

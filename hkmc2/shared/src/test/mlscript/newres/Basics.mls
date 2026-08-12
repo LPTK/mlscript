@@ -59,26 +59,34 @@ p.id
 //│     nme = Ident of "id"
 
 
+val p = Predef
+
+:sr
+p.id
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   p⁰.id⁰
+//│ whereTODO
+
 
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] Integer literal does not contain member 'id'
-//│ ║  l.64: 	(1).id
+//│ ║  l.72: 	(1).id
 //│ ╙──      	 ^^^^^
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.70: 	1.id
+//│ ║  l.78: 	1.id
 //│ ╙──      	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.70: 	1.id
+//│ ║  l.78: 	1.id
 //│ ╙──      	  ^^
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] String literal does not contain member 'repeat'
-//│ ║  l.79: 	"ha ".repeat(2)
+//│ ║  l.87: 	"ha ".repeat(2)
 //│ ╙──      	^^^^^^^^^^^^
 
 

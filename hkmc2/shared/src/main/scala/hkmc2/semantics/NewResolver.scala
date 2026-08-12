@@ -52,6 +52,34 @@ class NewResolver:
   // def getSelShape(lhs: Shape, nme: Tree.Ident): SelShape =
   //   selShapes.getOrElseUpdate((lhs, nme.name), SelShape(lhs, nme))
   
+  // def zip(ps: Ls[Param], r: Opt[Param], args: Ls[Term]): Ls[(Param, Term)] =
+  def zip(ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term): Unit =
+    (ps, args) match
+    case (Nil, Nil) => ()
+    // case (Nil, Spd(k, t) :: args) =>
+    //   zip(Nil, r, args)
+    case (Nil, args) =>
+      r match
+      case N =>
+        raise:
+          ErrorReport(
+            msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> src.toLoc :: Nil,
+            source = Diagnostic.Source.Compilation)
+      case S(p) =>
+        ??? // TODO: r
+    case (p :: ps, Fld(fls, trm, asc) :: args) =>
+      // (p, a) :: zip(ps, r, args)
+      listenTerm(trm, sh =>
+        if p.sym.shapes.add(sh) then
+          p.sym.shapeListeners.foreach(listener => listener(sh))
+      )
+      zip(ps, r, args, src)
+    case _ =>
+      raise:
+        ErrorReport(
+          msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> src.toLoc :: Nil,
+          source = Diagnostic.Source.Compilation)
+          
   def appShape(lhs: TermShape, args: Term, res: App): Unit =
     // log(s"appShape? lhs = $lhs, args = $args, res = $res")
     val sh = appShapes.getOrElseUpdate((lhs, args), {
@@ -120,34 +148,7 @@ class NewResolver:
       // )
       args match
       case args: Tup =>
-        // def zip(ps: Ls[Param], r: Opt[Param], args: Ls[Term]): Ls[(Param, Term)] =
-        def zip(ps: Ls[Param], r: Opt[Param], args: Ls[Elem]): Unit =
-          (ps, args) match
-          case (Nil, Nil) => ()
-          // case (Nil, Spd(k, t) :: args) =>
-          //   zip(Nil, r, args)
-          case (Nil, args) =>
-            r match
-            case N =>
-              raise:
-                ErrorReport(
-                  msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> res.toLoc :: Nil,
-                  source = Diagnostic.Source.Compilation)
-            case S(p) =>
-              ??? // TODO: r
-          case (p :: ps, Fld(fls, trm, asc) :: args) =>
-            // (p, a) :: zip(ps, r, args)
-            listenTerm(trm, sh =>
-              if p.sym.shapes.add(sh) then
-                p.sym.shapeListeners.foreach(listener => listener(sh))
-            )
-            zip(ps, r, args)
-          case _ =>
-            raise:
-              ErrorReport(
-                msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> res.toLoc :: Nil,
-                source = Diagnostic.Source.Compilation)
-        zip(ps.params, ps.restParam, args.fields)
+        zip(ps.params, ps.restParam, args.fields, res)
       case _ => ???
     log(s"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead}")
     def register = if res.shapes.add(sh) then
@@ -170,23 +171,33 @@ class NewResolver:
                 if res.shapes.add(sh) then
                   res.shapeListeners.foreach(listener => listener(sh))
               )
-      //   case _ => ???
+        case _ =>
+          raise:
+            ErrorReport(
+              msg"${ds.describe.capitalize} cannot be applied." -> res.toLoc :: Nil,
+              source = Diagnostic.Source.Compilation)
       // case _ => ???
     else register
   
-  def newShape(lhs: TermShape, args: Ls[Term], res: Term.New): Unit =
+  def newShape(lhs: TermShape, ass: Ls[Term], res: Term.New): Unit =
     // log(s"newShape? lhs = $lhs, args = $args, res = $res")
-    val sh = newShapes.getOrElseUpdate((lhs, args), {
-      log(s"newShape: lhs = $lhs, args = $args, res = $res")
-      new NewShape(lhs, args, res):
+    val sh = newShapes.getOrElseUpdate((lhs, ass), {
+      log(s"newShape: lhs = $lhs, args = $ass, res = $res")
+      new NewShape(lhs, ass, res):
         log(s"newShape isSaturated? ${isSaturated}; head? ${applicationHead}")
         if !isSaturated then
           raise:
             ErrorReport(
               msg"Missing argument list(s) in instantiation of ${lhs.applicationHead.describe}" -> res.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
+        log(s"Zipping ${receiver.unappliedParams} with $argss")
+        receiver.unappliedParams.lazyZip(argss).foreach: (ps, args) =>
+          args match
+          case args: Tup =>
+            zip(ps.params, ps.restParam, args.fields, res)
+          case _ => ???
         lazy val members: Map[Str, BlockMemberSymbol] =
-          lhs match
+          receiver match
           case ds: DefnShape =>
             ds.defn match
             case cd: ClassDef =>

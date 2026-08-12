@@ -78,7 +78,7 @@ f.b
 //│ = 1
 
 
-:todo
+:e
 class Foo {
   constructor(val a) {
     val b = a + 1
@@ -91,5 +91,55 @@ class Foo {
 //│ ║        	^^^^^^^^^^^^^^^^^
 //│ ║  l.85: 	  }
 //│ ╙──      	^^^
+
+
+:breakme // `val` in ctor param list should be compiled or explicitly disallowed
+:sr
+class Foo with {
+// class Foo { // TODO
+  constructor(val a)
+  val b = a + 1
+}
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   class Foo(val a⁰) {
+//│     let a¹,
+//│     a¹ = a⁰,
+//│     val b¹ ‹flow:b⁰› = +(a¹, 1)‹app⁰›
+//│   }
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+:e
+let f = Foo(1)
+//│ ╔══[COMPILATION ERROR] Class 'Foo' cannot be applied.
+//│ ║  l.114: 	let f = Foo(1)
+//│ ╙──       	        ^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo4 cannot be invoked without 'new'
+//│ f = undefined
+
+
+let f = new Foo(1)
+//│ f = Foo { b: 2 }
+
+:fixme
+:sr
+f.a
+//│ ╔══[COMPILATION ERROR] Instantiation of class 'Foo' does not contain member 'a'
+//│ ║  l.127: 	f.a
+//│ ╙──       	^^^
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   f².a‹?›
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:sr
+f.b
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   f².b¹
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 2
 
 
