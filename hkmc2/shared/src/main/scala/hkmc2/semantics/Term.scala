@@ -494,6 +494,14 @@ enum Term extends Statement, ShapePublisher:
       val originalCtx: Opt[SrcScope]
     ) (using State) extends Term, ResolvableImpl, LeadingDotSelImpl
   
+  // TODO: once the UCS/UPS stop using terms as keys
+  /* 
+  override def equals(that: Any): Bool = that match
+    case that: Term => this eq that
+    case _ => false
+  override def hashCode: Int = System.identityHashCode(this)
+  */
+  
   def expanded: Term = this match
     case t: Resolvable => t.expansion match
       case S(S(t)) => t.expanded
@@ -905,7 +913,9 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       val str = sel.nme.name
       val ts = sel.resolvedTargets
       ts match
-      case Nil => doc"$str‹?›"
+      case Nil =>
+        // doc"$str‹?›"
+        doc"${str}ˀ"
       case t :: Nil => t.show
       case ts => doc"$str‹" :: ts.map(_.show).mkDocument(", ") :: doc"›"
     def res: Document = this match

@@ -243,21 +243,44 @@ let f = new Foo(Predef)
 :sr
 // class Foo(pred) { // TODO
 class Foo(pred) with {
+  pred.id(1)
+  pred.id(2)
+}
+let f = Foo(Predef)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   class Foo(pred²) {
+//│     @privateval pred³ ‹flow:pred¹› = pred²,
+//│     ⟨Foo⁵.⟩pred³.id⁰(1)‹app⁷›,
+//│     ⟨Foo⁵.⟩pred³.idˀ(2)‹app⁸›
+//│   },
+//│   let f³,
+//│   f³ = Foo⁶(Predef⁰)‹app⁹›
+//│ whereTODO
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.247: 	  pred.id(2)
+//│ ╙──       	  ^^^^^^^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ f = Foo(_)
+
+:fixme
+:sr
+// class Foo(pred) { // TODO
+class Foo(pred) with {
   val r = pred.id(42)
   fun callId(x) = pred.id(x)
 }
 let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(pred²) {
-//│     @privateval pred³ ‹flow:pred¹› = pred²,
-//│     val r⁰ ‹flow:r⁰› = ⟨Foo⁵.⟩pred³.id⁰(42)‹app⁷›,
-//│     fun callId⁰(x¹) ‹flow:callId⁰› = ⟨Foo⁵.⟩pred³.id‹?›(x¹)‹app⁸›
+//│   class Foo(pred⁴) {
+//│     @privateval pred⁵ ‹flow:pred²› = pred⁴,
+//│     val r⁰ ‹flow:r⁰› = ⟨Foo⁷.⟩pred⁵.id⁰(42)‹app¹⁰›,
+//│     fun callId⁰(x¹) ‹flow:callId⁰› = ⟨Foo⁷.⟩pred⁵.idˀ(x¹)‹app¹¹›
 //│   },
-//│   let f³,
-//│   f³ = new Foo⁶(Predef⁰)
+//│   let f⁴,
+//│   f⁴ = new Foo⁸(Predef⁰)
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.247: 	  fun callId(x) = pred.id(x)
+//│ ║  l.270: 	  fun callId(x) = pred.id(x)
 //│ ╙──       	                  ^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(_)
