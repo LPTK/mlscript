@@ -242,7 +242,7 @@ object WatBuilder:
     val body = unaryInt31Body(LocalIdx(argName), op)
     createIntrinsicFunc(name, params, body, exportName)
 
-  def IntrinsicSupportModuleWat(using Elaborator.Ctx, Raise, State): Document =
+  def intrinsicSupportModuleWat(using Elaborator.Ctx, Raise, State): Document =
     val ctx = Ctx.empty
     given Ctx = ctx
     Ctx.wasmIntrinsicNameSet.toVector.sorted.foreach: name =>

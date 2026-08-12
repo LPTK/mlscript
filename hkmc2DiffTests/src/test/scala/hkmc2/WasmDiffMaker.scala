@@ -160,7 +160,7 @@ abstract class WasmDiffMaker extends InvalMLDiffMaker:
         val intrinsicWatJsLit = JSBuilder.makeStringLiteral(
           ltl.givenIn:
             baseScp.nest.givenIn:
-              WatBuilder.IntrinsicSupportModuleWat.mkString(output.ColWidth),
+              WatBuilder.intrinsicSupportModuleWat.mkString(output.ColWidth),
         )
         host.execute(
           doc"""(() => {
