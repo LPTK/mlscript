@@ -154,7 +154,7 @@ sealed trait ResolvableImpl:
       case t: Term.SynthSel => t.copy()(t.sym, t.resSym, t.typ, t.originalCtx)
       case t: Term.LeadingDotSel => t.copy()(t.originalCtx)
       case t: Term.SelProj => t.copy()(t.sym, t.resSym, t.typ, t.originalCtx)
-      case t: Term.New => t.copy()(t.typ)
+      case t: Term.New => t.copy()(t.resSym, t.typ)
     .withLocOf(this)
     .asInstanceOf
   
@@ -177,7 +177,7 @@ sealed trait ResolvableImpl:
       case t: Term.SynthSel => t.copy()(t.sym, t.resSym, S(typ), t.originalCtx)
       case _: Term.LeadingDotSel => lastWords(s"Cannot attach a type to leading dot selection: ${this.showDbg}")
       case t: Term.SelProj => t.copy()(t.sym, t.resSym, S(typ), t.originalCtx)
-      case t: Term.New => t.copy()(S(typ))
+      case t: Term.New => t.copy()(t.resSym, S(typ))
     .withLocOf(this)
     .asInstanceOf
   
@@ -470,7 +470,7 @@ enum Term extends Statement, ShapePublisher:
   case Quoted(body: Term)
   case Unquoted(body: Term)
   case New(cls: Term, args: Ls[Term], rft: Opt[ClassSymbol -> ObjBody])
-    (val typ: Opt[Type]) extends Term, ResolvableImpl
+    (val resSym: FlowSymbol, val typ: Opt[Type]) extends Term, ResolvableImpl
   case DynNew(cls: Term, args: Ls[Term])
   case Asc(term: Term, ty: Term)
   case CompType(lhs: Term, rhs: Term, pol: Bool)
@@ -640,7 +640,7 @@ enum Term extends Statement, ShapePublisher:
       case Quoted(body) => Quoted(body.mkClone)
       case Unquoted(body) => Unquoted(body.mkClone)
       case term @ New(cls, args, rft) =>
-        New(cls.mkClone, args.map(_.mkClone), rft.map { case (cs, ob) => cs -> ObjBody(ob.blk.mkBlkClone) })(term.typ)
+        New(cls.mkClone, args.map(_.mkClone), rft.map { case (cs, ob) => cs -> ObjBody(ob.blk.mkBlkClone) })(term.resSym, term.typ)
       case DynNew(cls, args) => DynNew(cls.mkClone, args.map(_.mkClone))
       case term @ SelProj(prefix, cls, proj) =>
         SelProj(prefix.mkClone, cls.mkClone, Tree.Ident(proj.name))(term.sym, term.resSym, term.typ, term.originalCtx)

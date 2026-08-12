@@ -58,75 +58,12 @@ getPredef().id
 //│ whereTODO
 
 
-:de
+// :de
 :sr
 fun foo(pred) =
   let p = pred
   val r = p.id(1)
 foo(Predef)
-//│ Elab block List(TermDef(Fun,App(Ident(foo),Tup(List(Ident(pred)))),Some(Block(List(LetLike(Keywrd(keyword 'let'[...] LocalScope(block:12)
-//│ | Processing term definition App(Ident(foo),Tup(List(Ident(pred))))
-//│ | Elaborating ParamTree: ParamTree(‹›,Ident(pred),None,None,Set())
-//│ | Elab term Block(List(LetLike(Keywrd(keyword 'let'),Ident(p),Some(Ident(pred)),None), TermDef(ImmutVal,Ident(r),Some(App(Sel(Ident(p),Ident(id)),Tup(List(IntLit(1))))))))
-//│ | | Elab subterm Block(List(LetLike(Keywrd(keyword 'let'),Ident(p),Some(Ident(pred)),None), TermDef(ImmutVal,Ident(r),Some(App(Sel(Ident(p),Ident(id)),Tup(List(IntLit(1))))))))
-//│ | | | Elab block List(LetLike(Keywrd(keyword 'let'),Ident(p),Some(Ident(pred)),None), TermDef(ImmutVal,Ident(r),Some([...] LocalScope(‹block›)
-//│ | | | | Processing `let` statement Ident(p) (p‹91›) LocalScope(‹block›)
-//│ | | | | Elab term Ident(pred)
-//│ | | | | | Elab subterm Ident(pred)
-//│ | | | | | ~> Ref(pred‹89›)
-//│ | | | | ~> Ref(pred‹89›)
-//│ | | | | listen: trm = pred⁰‹89›
-//│ | | | | Processing term definition Ident(r)
-//│ | | | | Elab term App(Sel(Ident(p),Ident(id)),Tup(List(IntLit(1))))
-//│ | | | | | Elab subterm App(Sel(Ident(p),Ident(id)),Tup(List(IntLit(1))))
-//│ | | | | | | Elab subterm Sel(Ident(p),Ident(id))
-//│ | | | | | | | Elab subterm Ident(p)
-//│ | | | | | | | ~> Ref(p‹91›)
-//│ | | | | | | | listen: trm = p⁰‹91›
-//│ | | | | | | ~> Sel(Ref(p‹91›),Ident(id))
-//│ | | | | | | Elab subterm Tup(List(IntLit(1)))
-//│ | | | | | | | Elab term IntLit(1)
-//│ | | | | | | | | Elab subterm IntLit(1)
-//│ | | | | | | | | ~> Lit(IntLit(1))
-//│ | | | | | | | ~> Lit(IntLit(1))
-//│ | | | | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
-//│ | | | | | | listen: trm = p⁰‹91›.id
-//│ | | | | | ~> App(Sel(Ref(p‹91›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | | | | ~> App(Sel(Ref(p‹91›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | | | ~> Blk(List(LetDecl(p‹91›,List()), DefineVar(p‹91›,Ref(pred‹89›)), TermDefinition(ImmutVal,member:r‹87›,term:r‹96›,List(),None,None,Some(App(Sel(Ref(p‹91›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))),‹›,Modulefulness(None),List(),None)),UnitVal())
-//│ | | ~> Blk(List(LetDecl(p‹91›,List()), DefineVar(p‹91›,Ref(pred‹89›)), TermDefinition(ImmutVal,member:r‹87›,term:r‹96›,List(),None,None,Some(App(Sel(Ref(p‹91›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))),‹›,Modulefulness(None),List(),None)),UnitVal())
-//│ | ~> Blk(List(LetDecl(p‹91›,List()), DefineVar(p‹91›,Ref(pred‹89›)), TermDefinition(ImmutVal,member:r‹87›,term:r‹96›,List(),None,None,Some(App(Sel(Ref(p‹91›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))),‹›,Modulefulness(None),List(),None)),UnitVal())
-//│ | Elab term App(Ident(foo),Tup(List(Ident(Predef))))
-//│ | | Elab subterm App(Ident(foo),Tup(List(Ident(Predef))))
-//│ | | | Elab subterm Ident(foo)
-//│ | | | ~> Ref(member:foo‹88›)
-//│ | | | Elab subterm Tup(List(Ident(Predef)))
-//│ | | | | Elab term Ident(Predef)
-//│ | | | | | Elab subterm Ident(Predef)
-//│ | | | | | ~> Ref(member:Predef)
-//│ | | | | ~> Ref(member:Predef)
-//│ | | | ~> Tup(List(Fld(‹›,Ref(member:Predef),None)))
-//│ | | | listen: trm = member:foo⁰‹88›
-//│ | | | symShape: sym = member:foo‹88›, res = Ref(member:foo‹88›)
-//│ | | ~> App(Ref(member:foo‹88›),Tup(List(Fld(‹›,Ref(member:Predef),None))))
-//│ | ~> App(Ref(member:foo‹88›),Tup(List(Fld(‹›,Ref(member:Predef),None))))
-//│ | appShape: lhs = DefnShape(term definition 'foo'), args = Tup(List(Fld(‹›,Ref(member:Predef),None))), res = App(Ref(member:foo‹88›),Tup(List(Fld(‹›,Ref(member:Predef),None))))
-//│ | Zipping ParamList(‹›,List(Param(‹›,pred‹89›,None,Modulefulness(None))),None) with List(Fld(‹›,Ref(member:Predef),None))
-//│ | listen: trm = member:Predef⁰
-//│ | symShape: sym = member:Predef, res = Ref(member:Predef)
-//│ | zipArg: p = pred‹89›, trm = member:Predef⁰, sh = DefnShape(module/object definition 'Predef'), ArrayBuffer(hkmc2.semantics.NewResolver$$Lambda/0x0000000801338950@7100dea)
-//│ | selShape: lhs = DefnShape(module/object definition 'Predef'), nme = Ident(id), res = Sel(Ref(p‹91›),Ident(id))
-//│ | appShape: lhs = DefnShape(term definition 'id'), args = Tup(List(Fld(‹›,Lit(IntLit(1)),None))), res = App(Sel(Ref(p‹91›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | Zipping ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None) with List(Fld(‹›,Lit(IntLit(1)),None))
-//│ | listen: trm = 1
-//│ | zipArg: p = x, trm = 1, sh = Lit(IntLit(1)), ArrayBuffer()
-//│ | appShape isSaturated? true; head? DefnShape(term definition 'id')
-//│ | appShape: td.body = Some(Missing)
-//│ | listen: trm = missing
-//│ | appShape isSaturated? true; head? DefnShape(term definition 'foo')
-//│ | appShape: td.body = Some(Blk(List(LetDecl(p‹91›,List()), DefineVar(p‹91›,Ref(pred‹89›)), TermDefinition(ImmutVal,member:r‹87›,term:r‹96›,List(),None,None,Some(App(Sel(Ref(p‹91›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))),‹›,Modulefulness(None),List(),None)),UnitVal()))
-//│ | listen: trm = { let p‹91›; p‹91› = pred⁰‹89›; val member:r‹87› = p⁰‹91›.id(1); () }
-//│ ~> Blk(List(TermDefinition(Fun,member:foo‹88›,term:foo‹98›,List(ParamList(‹›,List(Param(‹›,pred‹89›,None,Modulefulness(None))),None)),None,None,Some(Blk(List(LetDecl(p‹91›,List()), DefineVar(p‹91›,Ref(pred‹89›)), TermDefinition(ImmutVal,member:r‹87›,term:r‹96›,List(),None,None,Some(App(Sel(Ref(p‹91›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))),‹›,Modulefulness(None),List(),None)),UnitVal())),‹›,Modulefulness(None),List(),None)),App(Ref(member:foo‹88›),Tup(List(Fld(‹›,Ref(member:Predef),None)))))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun foo⁰(pred⁰) ‹flow:foo⁰› = {
 //│     let p²,

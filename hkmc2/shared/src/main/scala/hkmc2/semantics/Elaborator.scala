@@ -977,7 +977,7 @@ extends Importer:
     def error = Term.Error().withLocOf(tree)
     
     def mkNew(cls: Term, args: Ls[Term], rft: Opt[ClassSymbol -> ObjBody])(typ: Opt[typing.Type]): Term.New =
-      val res = new Term.New(cls, args, rft)(typ).withLocOf(tree)
+      val res = new Term.New(cls, args, rft)(FlowSymbol.neww(), typ).withLocOf(tree)
       if newResolution then listenTerm(cls, shape => newShape(shape, args, res))
       res
     

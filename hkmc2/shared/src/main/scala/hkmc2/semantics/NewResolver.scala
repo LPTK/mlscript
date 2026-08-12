@@ -42,10 +42,10 @@ class NewResolver:
   val collectedConstraints: mutable.Buffer[Constraint] = mutable.Buffer.empty
   */
   
-  // TODO: index by Shape identity (change Term equals/hashCode?)
-  val selShapes: mutable.Map[(TermShape, Str), SelShape] = mutable.Map.empty
-  val appShapes: mutable.Map[(TermShape, Term), AppShape] = mutable.Map.empty
-  val newShapes: mutable.Map[(TermShape, Ls[Term]), NewShape] = mutable.Map.empty
+  // * The `FlowSymbol`s are currently used to uniquely identify terms
+  val selShapes: mutable.Map[(TermShape, FlowSymbol), SelShape] = mutable.Map.empty
+  val appShapes: mutable.Map[(TermShape, FlowSymbol), AppShape] = mutable.Map.empty
+  val newShapes: mutable.Map[(TermShape, FlowSymbol), NewShape] = mutable.Map.empty
   val symShapes: mutable.Map[BlockMemberSymbol, SymShape] = mutable.Map.empty
   val defnShapes: mutable.Map[DefinitionSymbol[?], DefnShape] = mutable.Map.empty
   
@@ -83,7 +83,7 @@ class NewResolver:
           
   def appShape(lhs: TermShape, args: Term, res: App): Unit =
     // log(s"appShape? lhs = $lhs, args = $args, res = $res")
-    val sh = appShapes.getOrElseUpdate((lhs, args), {
+    val sh = appShapes.getOrElseUpdate((lhs, res.resSym), {
       log(s"appShape: lhs = $lhs, args = $args, res = $res")
       // lhs match
       // case _ =>
@@ -183,7 +183,7 @@ class NewResolver:
   
   def newShape(lhs: TermShape, ass: Ls[Term], res: Term.New): Unit =
     // log(s"newShape? lhs = $lhs, args = $args, res = $res")
-    val sh = newShapes.getOrElseUpdate((lhs, ass), {
+    val sh = newShapes.getOrElseUpdate((lhs, res.resSym), {
       log(s"newShape: lhs = $lhs, args = $ass, res = $res")
       new NewShape(lhs, ass, res):
         log(s"newShape isSaturated? ${isSaturated}; head? ${applicationHead}")
@@ -236,7 +236,7 @@ class NewResolver:
   
   def selShape(lhs: TermShape, id: Tree.Ident, res: AnySelTerm): Unit =
     log(s"selShape? lhs = $lhs, nme = $id, res = $res")
-    val sh = selShapes.getOrElseUpdate((lhs, id.name), {
+    val sh = selShapes.getOrElseUpdate((lhs, res.resSym), {
       log(s"selShape: lhs = $lhs, nme = $id, res = $res")
       // lhs match
       // case _ =>

@@ -58,35 +58,45 @@ p.id
 //│     prefix = Ref{sym=p⁰} of p⁰
 //│     nme = Ident of "id"
 
+p.id
+
+:sr
+p.id
+p.id
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   p⁰.id⁰,
+//│   p⁰.id⁰
+//│ whereTODO
+
 
 val p = Predef
 
 :sr
 p.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   p⁰.id⁰
+//│   p¹.id⁰
 //│ whereTODO
 
 
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] Integer literal does not contain member 'id'
-//│ ║  l.72: 	(1).id
+//│ ║  l.82: 	(1).id
 //│ ╙──      	 ^^^^^
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.78: 	1.id
+//│ ║  l.88: 	1.id
 //│ ╙──      	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.78: 	1.id
+//│ ║  l.88: 	1.id
 //│ ╙──      	  ^^
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] String literal does not contain member 'repeat'
-//│ ║  l.87: 	"ha ".repeat(2)
+//│ ║  l.97: 	"ha ".repeat(2)
 //│ ╙──      	^^^^^^^^^^^^
 
 

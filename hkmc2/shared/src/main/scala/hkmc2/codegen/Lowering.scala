@@ -1070,7 +1070,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           val pctor = parentConstructor(sr, cls, as)
           val clsDef = ClsLikeDefn(N, isym, sym, N, syntax.Cls, N, Nil, S(sr),
             mtds, privateFlds, publicFlds, pctor, ctor, N, N)(N, Nil)
-          val inner = new New(sym.ref().resolved(isym), Nil, N)(N)
+          val inner = new New(sym.ref().resolved(isym), Nil, N)(FlowSymbol.neww(), N)
           Define(clsDef, term_nonTail(if mut then Mut(inner) else inner)(k))
       
     case Try(sub, finallyDo) =>

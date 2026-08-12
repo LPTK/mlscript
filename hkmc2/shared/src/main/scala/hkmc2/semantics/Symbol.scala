@@ -185,7 +185,10 @@ object FlowSymbol:
     // FlowSymbol("‹app-res›")
     // FlowSymbol("@")
     FlowSymbol("app")
-
+  
+  def neww()(using State) =
+    FlowSymbol("new")
+  
   def sel(nme: Str)(using State) =
     FlowSymbol(s"⋅$nme")
   def synthSel(nme: Str)(using State) =
