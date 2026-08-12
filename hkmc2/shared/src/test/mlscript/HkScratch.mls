@@ -24,15 +24,15 @@ class Foo(a)
 //│       params = ParamList:
 //│         params = Ls of
 //│           Param:
-//│             sym = a¹
+//│             sym = a⁰
 //│             modulefulness = Modulefulness of N
 //│       body = ObjBody of Blk:
 //│         stats = Ls of
 //│           LetDecl:
-//│             sym = term:Foo⁰/a⁰
+//│             sym = term:Foo⁰/a¹
 //│           DefineVar:
-//│             sym = term:Foo⁰/a⁰
-//│             rhs = Ref{sym=a¹} of a¹
+//│             sym = term:Foo⁰/a¹
+//│             rhs = Ref{sym=a⁰} of a⁰
 //│         res = Lit of UnitLit of false
 //│   res = Lit of UnitLit of false
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
@@ -47,14 +47,14 @@ class Foo(a)
 //│         ParamList:
 //│           params = Ls of
 //│             Param:
-//│               sym = a¹
+//│               sym = a⁰
 //│               modulefulness = Modulefulness of N
 //│       privateFields = Ls of
-//│         term:Foo⁰/a⁰
+//│         term:Foo⁰/a¹
 //│       ctor = AssignField:
 //│         lhs = This of class:Foo⁰
 //│         nme = Ident of "a"
-//│         rhs = SimpleRef of a¹
+//│         rhs = SimpleRef of a⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :rt

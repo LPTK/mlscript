@@ -21,6 +21,43 @@ pattern Steps = @compile (Step as Steps | _)
 //│   method unapply⁰ = fun unapply¹(input) {
 //│     let output, inlinedVal, matcher0$, matcher1$, matcher2$, matcher3$, matcher4$, matcher__Lit$, mode, focus, stack, finalResult, lambda, lambda1, lambda2, lambda3, lambda4, lambda5;
 //│     define lambda as fun lambda⁰(input1) {
+//│       let value, value1, result4$, output4$, fieldBindings, bindings, tmp, tmp1;
+//│       match input1
+//│         Lit⁰ =>
+//│           set value = input1.value⁰;
+//│           set tmp = matcher4$(value);
+//│           set value1 = { "input": value, "result": tmp };
+//│           set result4$ = value1.result﹖;
+//│           match result4$
+//│             MatchSuccess⁰ =>
+//│               set output4$ = result4$.output⁰;
+//│               set bindings = result4$.bindings⁰;
+//│               set fieldBindings = { "b": output4$ };
+//│               set tmp1 = { ...fieldBindings, ...bindings };
+//│               return new runtime⁰.MatchSuccess⁰(input1, tmp1)
+//│             else
+//│               return new runtime⁰.MatchFailure⁰("topmost")
+//│           end
+//│         else
+//│           return new runtime⁰.MatchFailure⁰("never")
+//│       end
+//│     };
+//│     set matcher2$ = lambda⁰;
+//│     @private
+//│     define lambda4 as fun lambda¹(input1) {
+//│       let tmp;
+//│       set tmp = { "a": input1 };
+//│       return new runtime⁰.MatchSuccess⁰(input1, tmp)
+//│     };
+//│     set matcher3$ = lambda¹;
+//│     @private
+//│     define lambda5 as fun lambda²(input1) {
+//│       let tmp;
+//│       set tmp = { "b": input1 };
+//│       return new runtime⁰.MatchSuccess⁰(input1, tmp)
+//│     };
+//│     set matcher4$ = lambda²;
+//│     define lambda1 as fun lambda³(input1) {
 //│       let lhs, rhs, lhs1, rhs1, result2$, result1$, bindings, bindings1, tmp, tmp1, tmp2;
 //│       match input1
 //│         Add⁰ =>
@@ -49,7 +86,7 @@ pattern Steps = @compile (Step as Steps | _)
 //│                   set tmp6 = +⁰(tmp5, " = ");
 //│                   set tmp7 = +⁰(tmp6, c);
 //│                   do Predef⁰.print⁰(tmp7);
-//│                   set inlinedVal1 = Lit⁰(c);
+//│                   set inlinedVal1 = Lit¹(c);
 //│                   return new runtime⁰.MatchSuccess⁰(inlinedVal1, null)
 //│                 else
 //│                   return new runtime⁰.MatchFailure⁰("topmost")
@@ -61,25 +98,11 @@ pattern Steps = @compile (Step as Steps | _)
 //│           return new runtime⁰.MatchFailure⁰("never")
 //│       end
 //│     };
-//│     set matcher0$ = lambda⁰;
-//│     @private
-//│     define lambda4 as fun lambda¹(input1) {
-//│       let tmp;
-//│       set tmp = { "b": input1 };
-//│       return new runtime⁰.MatchSuccess⁰(input1, tmp)
-//│     };
-//│     set matcher4$ = lambda¹;
-//│     @private
-//│     define lambda5 as fun lambda²(input1) {
-//│       let tmp;
-//│       set tmp = { "a": input1 };
-//│       return new runtime⁰.MatchSuccess⁰(input1, tmp)
-//│     };
-//│     set matcher3$ = lambda²;
-//│     define lambda1 as fun lambda³(input1) {
+//│     set matcher0$ = lambda³;
+//│     define lambda2 as fun lambda⁴(input1) {
 //│       let value, value1, result3$, output3$, fieldBindings, bindings, tmp, tmp1;
 //│       match input1
-//│         Lit¹ =>
+//│         Lit⁰ =>
 //│           set value = input1.value⁰;
 //│           set tmp = matcher3$(value);
 //│           set value1 = { "input": value, "result": tmp };
@@ -98,33 +121,10 @@ pattern Steps = @compile (Step as Steps | _)
 //│           return new runtime⁰.MatchFailure⁰("never")
 //│       end
 //│     };
-//│     set matcher1$ = lambda³;
-//│     define lambda2 as fun lambda⁴(input1) {
-//│       let value, value1, result4$, output4$, fieldBindings, bindings, tmp, tmp1;
-//│       match input1
-//│         Lit¹ =>
-//│           set value = input1.value⁰;
-//│           set tmp = matcher4$(value);
-//│           set value1 = { "input": value, "result": tmp };
-//│           set result4$ = value1.result﹖;
-//│           match result4$
-//│             MatchSuccess⁰ =>
-//│               set output4$ = result4$.output⁰;
-//│               set bindings = result4$.bindings⁰;
-//│               set fieldBindings = { "b": output4$ };
-//│               set tmp1 = { ...fieldBindings, ...bindings };
-//│               return new runtime⁰.MatchSuccess⁰(input1, tmp1)
-//│             else
-//│               return new runtime⁰.MatchFailure⁰("topmost")
-//│           end
-//│         else
-//│           return new runtime⁰.MatchFailure⁰("never")
-//│       end
-//│     };
-//│     set matcher2$ = lambda⁴;
+//│     set matcher1$ = lambda⁴;
 //│     define lambda3 as fun lambda⁵(input1) {
 //│       match input1
-//│         Lit¹ =>
+//│         Lit⁰ =>
 //│           return true
 //│         else
 //│           return false

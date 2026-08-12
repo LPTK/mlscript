@@ -2145,7 +2145,9 @@ extends Importer:
                 // All flags are `false`.
                 case p @ Param(flags = FldFlags(false, false, false, false)) => S(p)
                 case Param(flags, sym, _, _) =>
-                  raise(ErrorReport(msg"Unexpected pattern parameter ${sym.name} with modifiers: ${flags.show}" -> sym.toLoc :: Nil))
+                  raise:
+                    ErrorReport(msg"Unexpected pattern parameter ${sym.name} with modifiers: ${
+                      flags.show.stripTrailing}" -> sym.toLoc :: Nil)
                   N
             // The following iteration filters out:
             // 1. pattern parameters, e.g., `T` in `pattern Nullable(pattern T) = ...`;

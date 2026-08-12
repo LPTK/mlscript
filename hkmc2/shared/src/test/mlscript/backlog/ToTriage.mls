@@ -82,7 +82,7 @@ fun main() =
 :ssjs
 object Cls(val x) with
   fun huh = x
-//│ ╔══[INTERNAL ERROR] Compiler reached an unsupported state: Some(ParamList(‹›,List(Param(‹val›,x,None,Modulefulness(None))),None)).isDefined =/= false
+//│ ╔══[INTERNAL ERROR] Compiler reached an unsupported state: Some(ParamList(‹›,List(Param(‹val ›,x,None,Modulefulness(None))),None)).isDefined =/= false
 //│ ╟── The compilation result may be incorrect.
 //│ ╙── This is a known compiler limitation; if it is a blocker for you, please report it to the maintainers.
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————

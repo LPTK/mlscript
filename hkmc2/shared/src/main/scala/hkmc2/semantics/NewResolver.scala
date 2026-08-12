@@ -361,18 +361,18 @@ class NewResolver:
       res.shapeListeners.foreach(listener => listener(sh))
   
   def defineVar(sym: LocalSymbol | TermSymbol, rhs: Term): DefineVar =
-    sym match
-    case sym: TermSymbol =>
-      // symShape(sym, rhs)
-      // ???
-      // sym.defn.get
-      println(s"TODO: defineVar for TermSymbol ${sym.showDbg}")
-    case sym: LocalSymbol =>
-      // symShape(sym, rhs)
-      listen(rhs, sh =>
-        if sym.shapes.add(sh) then
-          sym.shapeListeners.foreach(listener => listener(sh))
-      )
+    if newResolution then sym match
+      case sym: TermSymbol =>
+        // symShape(sym, rhs)
+        // ???
+        // sym.defn.get
+        println(s"TODO: defineVar for TermSymbol ${sym.showDbg}")
+      case sym: LocalSymbol =>
+        // symShape(sym, rhs)
+        listen(rhs, sh =>
+          if sym.shapes.add(sh) then
+            sym.shapeListeners.foreach(listener => listener(sh))
+        )
     DefineVar(sym, rhs)
   
   /* 
