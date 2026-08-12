@@ -2054,6 +2054,7 @@ extends Importer:
                 p.fldSym = S(fsym)
                 fsym.tsym = S(tsym)
                 tsym.defn = S(fdef)
+                fsym.complete()
                 fdef :: Nil
               else
                 val psym = TermSymbol(LetBind, owner, p.sym.id)

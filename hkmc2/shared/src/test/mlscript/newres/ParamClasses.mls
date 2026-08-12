@@ -3,6 +3,23 @@
 #lang(0.3.x)
 
 
+:sr
+class Foo(val a)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   class Foo(val a⁰) {
+//│     val a¹ ‹flow:a⁰› = a⁰
+//│   }
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:sr
+Foo(Predef).a.id
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   Foo⁰(Predef⁰)‹app⁰›.a¹.id⁰
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun id
+
 
 :sr
 // TODO
@@ -13,9 +30,9 @@ class Foo(val a) {
   val b = a + 1
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(val a⁰) {
-//│     val a¹ ‹flow:a⁰› = a⁰,
-//│     val b⁰ ‹flow:b⁰› = +(⟨Foo⁰.⟩a¹, 1)‹app⁰›
+//│   class Foo(val a²) {
+//│     val a³ ‹flow:a¹› = a²,
+//│     val b⁰ ‹flow:b⁰› = +(⟨Foo¹.⟩a³, 1)‹app¹›
 //│   }
 //│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -25,7 +42,7 @@ class Foo(val a) {
 let f = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   let f⁰,
-//│   f⁰ = Foo¹(1)‹app¹›
+//│   f⁰ = Foo²(1)‹app²›
 //│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
@@ -35,7 +52,7 @@ let f = Foo(1)
 :sr
 f.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   f⁰.a¹
+//│   f⁰.a³
 //│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
@@ -57,7 +74,7 @@ val fv = Foo(1)
 :sr
 fv.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fv⁰.a¹
+//│   fv⁰.a³
 //│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
@@ -68,8 +85,8 @@ fv.a
 fun get = fv.a
 val fv = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun get⁰ ‹flow:get⁰› = fv¹.a¹,
-//│   val fv¹ ‹flow:fv⁰› = Foo¹(1)‹app²›
+//│   fun get⁰ ‹flow:get⁰› = fv¹.a³,
+//│   val fv¹ ‹flow:fv⁰› = Foo²(1)‹app³›
 //│ whereTODO
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp;
@@ -100,62 +117,11 @@ fun foo(x) =
   x.a + x.b
 foo(f)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a¹, x⁰.b⁰)‹app³›,
-//│   foo⁰(f⁰)‹app⁴›
+//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a³, x⁰.b⁰)‹app⁴›,
+//│   foo⁰(f⁰)‹app⁵›
 //│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
-
-
-:de
-:sr
-Foo(Predef).a.id
-//│ Elab block List(Sel(Sel(App(Ident(Foo),Tup(List(Ident(Predef)))),Ident(a)),Ident(id))) LocalScope(block:12)
-//│ | Elab term Sel(Sel(App(Ident(Foo),Tup(List(Ident(Predef)))),Ident(a)),Ident(id))
-//│ | | Elab subterm Sel(Sel(App(Ident(Foo),Tup(List(Ident(Predef)))),Ident(a)),Ident(id))
-//│ | | | Elab subterm Sel(App(Ident(Foo),Tup(List(Ident(Predef)))),Ident(a))
-//│ | | | | Elab subterm App(Ident(Foo),Tup(List(Ident(Predef))))
-//│ | | | | | Elab subterm Ident(Foo)
-//│ | | | | | ~> Ref(member:Foo‹43›)
-//│ | | | | | Elab subterm Tup(List(Ident(Predef)))
-//│ | | | | | | Elab term Ident(Predef)
-//│ | | | | | | | Elab subterm Ident(Predef)
-//│ | | | | | | | ~> Ref(member:Predef)
-//│ | | | | | | ~> Ref(member:Predef)
-//│ | | | | | ~> Tup(List(Fld(‹›,Ref(member:Predef),None)))
-//│ | | | | | listen: trm = Ref(member:Foo‹43›)
-//│ | | | | | symShape: sym = member:Foo‹43›, res = Ref(member:Foo‹43›)
-//│ | | | | | appShape: lhs = DefnShape(term definition 'Foo'), args = Tup(List(Fld(‹›,Ref(member:Predef),None))), res = App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Ref(member:Predef),None))))
-//│ | | | | | listen: trm = Ref(member:Predef)
-//│ | | | | | symShape: sym = member:Predef, res = Ref(member:Predef)
-//│ | | | | | appShape isSaturated? true; head? DefnShape(term definition 'Foo')
-//│ | | | | ~> App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Ref(member:Predef),None))))
-//│ | | | | listen: trm = App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Ref(member:Predef),None))))
-//│ | | | | selShape: lhs = AppShape(DefnShape(term definition 'Foo'), Tup(List(Fld(‹›,Ref(member:Predef),None)))), nme = Ident(a), res = Sel(App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Ref(member:Predef),None)))),Ident(a))
-//│ | | | ~> Sel(App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Ref(member:Predef),None)))),Ident(a))
-//│ | | | listen: trm = Sel(App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Ref(member:Predef),None)))),Ident(a))
-//│ | | ~> Sel(Sel(App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Ref(member:Predef),None)))),Ident(a)),Ident(id))
-//│ | ~> Sel(Sel(App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Ref(member:Predef),None)))),Ident(a)),Ident(id))
-//│ ~> Blk(List(),Sel(Sel(App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Ref(member:Predef),None)))),Ident(a)),Ident(id)))
-//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo¹(Predef⁰)‹app⁵›.a¹.id‹?›
-//│ whereTODO
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:591)
-//│ FAILURE INFO: Sel:
-//│   prefix = Sel{targets=[ObjectMember(member:a‹49›)]}:
-//│     prefix = App:
-//│       lhs = Ref{sym=member:Foo¹‹43›} of member:Foo¹‹43›
-//│       rhs = Tup of Ls of
-//│         Fld:
-//│           term = Ref{sym=member:Predef⁰} of member:Predef⁰
-//│     nme = Ident of "a"
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.112: 	Foo(Predef).a.id
-//│ ╙──       	^^^^^^^^^^^^^^^^
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = fun id
 
 
 class Bar(a) with
@@ -176,7 +142,7 @@ b.foo
 :sr
 b.foo.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   b¹.foo¹.a¹
+//│   b¹.foo¹.a³
 //│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 123
@@ -189,7 +155,7 @@ b.foo.a
 let f = new Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   let f¹,
-//│   f¹ = new Foo¹(1)
+//│   f¹ = new Foo²(1)
 //│ whereTODO
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
@@ -206,7 +172,7 @@ let f = new Foo(1)
 //│               term = Lit of IntLit of 1
 //│   res = Lit of UnitLit of false
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f1; f1 = globalThis.Object.freeze(new Foo1(1));
+//│ let f1; f1 = globalThis.Object.freeze(new Foo3(1));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
@@ -214,14 +180,14 @@ let f = new Foo(1)
 :e
 let f = new Foo
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of overloaded function and class 'Foo'
-//│ ║  l.215: 	let f = new Foo
+//│ ║  l.181: 	let f = new Foo
 //│ ╙──       	        ^^^^^^^
 //│ f = Foo(undefined)
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.222: 	let f = new Foo()
+//│ ║  l.188: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
 //│ f = Foo(undefined)
 
@@ -229,7 +195,7 @@ let f = new Foo()
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.230: 	new 42
+//│ ║  l.196: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 
@@ -238,71 +204,72 @@ new 42
 :sr
 // class Foo(pred) { // TODO
 class Foo(pred) with {
-  val r = pred.id(42)
+  // val r = pred.id(42)
+  pred.id(42)
 }
 let f = new Foo(Predef)
-//│ Elab block List(TypeDef(Cls,InfixApp(App(Ident(Foo),Tup(List(Ident(pred)))),Keywrd(keyword 'with'),Block(List(T[...] LocalScope(block:21)
+//│ Elab block List(TypeDef(Cls,InfixApp(App(Ident(Foo),Tup(List(Ident(pred)))),Keywrd(keyword 'with'),Block(List(A[...] LocalScope(block:22)
 //│ | Elaborating ParamTree: ParamTree(‹›,Ident(pred),None,None,Set())
 //│ | Processing class definition Ident(Foo)
 //│ | | Companion: None
-//│ | | Elab block List(TermDef(ImmutVal,Ident(r),Some(App(Sel(Ident(pred),Ident(id)),Tup(List(IntLit(42))))))) InnerScope(class:Foo‹158›)
-//│ | | | Processing term definition Ident(r)
+//│ | | Elab block List(App(Sel(Ident(pred),Ident(id)),Tup(List(IntLit(42))))) InnerScope(class:Foo‹167›)
 //│ | | | Elab term App(Sel(Ident(pred),Ident(id)),Tup(List(IntLit(42))))
 //│ | | | | Elab subterm App(Sel(Ident(pred),Ident(id)),Tup(List(IntLit(42))))
 //│ | | | | | Elab subterm Sel(Ident(pred),Ident(id))
 //│ | | | | | | Elab subterm Ident(pred)
-//│ | | | | | | ~> Ref(term:Foo/pred‹163›)
-//│ | | | | | | listen: trm = Ref(term:Foo/pred‹163›)
-//│ | | | | | ~> Sel(Ref(term:Foo/pred‹163›),Ident(id))
+//│ | | | | | | ~> Ref(term:Foo/pred‹172›)
+//│ | | | | | | listen: trm = term:Foo²/pred⁰‹172›
+//│ | | | | | ~> Sel(Ref(term:Foo/pred‹172›),Ident(id))
 //│ | | | | | Elab subterm Tup(List(IntLit(42)))
 //│ | | | | | | Elab term IntLit(42)
 //│ | | | | | | | Elab subterm IntLit(42)
 //│ | | | | | | | ~> Lit(IntLit(42))
 //│ | | | | | | ~> Lit(IntLit(42))
 //│ | | | | | ~> Tup(List(Fld(‹›,Lit(IntLit(42)),None)))
-//│ | | | | | listen: trm = Sel(Ref(term:Foo/pred‹163›),Ident(id))
-//│ | | | | ~> App(Sel(Ref(term:Foo/pred‹163›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None))))
-//│ | | | ~> App(Sel(Ref(term:Foo/pred‹163›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None))))
-//│ | | ~> Blk(List(TermDefinition(ImmutVal,member:r‹156›,term:Foo/r‹168›,List(),None,None,Some(App(Sel(Ref(term:Foo/pred‹163›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None))))),‹method ›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))
-//│ | Processing `let` statement Ident(f) (f‹169›) LocalScope(block:21)
+//│ | | | | | listen: trm = term:Foo²/pred⁰‹172›.id
+//│ | | | | ~> App(Sel(Ref(term:Foo/pred‹172›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None))))
+//│ | | | ~> App(Sel(Ref(term:Foo/pred‹172›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None))))
+//│ | | ~> Blk(List(),App(Sel(Ref(term:Foo/pred‹172›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None)))))
+//│ | Processing `let` statement Ident(f) (f‹175›) LocalScope(block:22)
 //│ | Elab term App(LexicalNew(Some(Ident(Foo)),None),Tup(List(Ident(Predef))))
 //│ | | Elab subterm App(LexicalNew(Some(Ident(Foo)),None),Tup(List(Ident(Predef))))
 //│ | | | Elab subterm Ident(Foo)
-//│ | | | ~> Ref(member:Foo‹157›)
+//│ | | | ~> Ref(member:Foo‹166›)
 //│ | | | Elab subterm Tup(List(Ident(Predef)))
 //│ | | | | Elab term Ident(Predef)
 //│ | | | | | Elab subterm Ident(Predef)
 //│ | | | | | ~> Ref(member:Predef)
 //│ | | | | ~> Ref(member:Predef)
 //│ | | | ~> Tup(List(Fld(‹›,Ref(member:Predef),None)))
-//│ | | | listen: trm = Ref(member:Foo‹157›)
-//│ | | | symShape: sym = member:Foo‹157›, res = Ref(member:Foo‹157›)
-//│ | | ~> New(Ref(member:Foo‹157›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
-//│ | ~> New(Ref(member:Foo‹157›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
-//│ | listen: trm = New(Ref(member:Foo‹157›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
-//│ | newShape: lhs = DefnShape(term definition 'Foo'), args = List(Tup(List(Fld(‹›,Ref(member:Predef),None)))), res = New(Ref(member:Foo‹157›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
+//│ | | | listen: trm = member:Foo³‹166›
+//│ | | | symShape: sym = member:Foo‹166›, res = Ref(member:Foo‹166›)
+//│ | | ~> New(Ref(member:Foo‹166›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
+//│ | ~> New(Ref(member:Foo‹166›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
+//│ | listen: trm = new member:Foo³‹166›(member:Predef⁰)
+//│ | newShape: lhs = DefnShape(term definition 'Foo'), args = List(Tup(List(Fld(‹›,Ref(member:Predef),None)))), res = New(Ref(member:Foo‹166›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
 //│ | newShape isSaturated? true; head? DefnShape(term definition 'Foo')
-//│ | Zipping List(ParamList(‹›,List(Param(‹›,pred‹160›,None,Modulefulness(None))),None)) with List(Tup(List(Fld(‹›,Ref(member:Predef),None))))
-//│ | listen: trm = Ref(member:Predef)
+//│ | Zipping List(ParamList(‹›,List(Param(‹›,pred‹169›,None,Modulefulness(None))),None)) with List(Tup(List(Fld(‹›,Ref(member:Predef),None))))
+//│ | listen: trm = member:Predef⁰
 //│ | symShape: sym = member:Predef, res = Ref(member:Predef)
-//│ ~> Blk(List(Parameterized(None,Cls,class:Foo‹158›,member:Foo‹157›,Some(term:Foo‹161›),List(),ParamList(‹›,List(Param(‹›,pred‹160›,None,Modulefulness(None))),None),List(),None,ObjBody(Blk(List(LetDecl(term:Foo/pred‹163›,List()), DefineVar(term:Foo/pred‹163›,Ref(pred‹160›)), TermDefinition(ImmutVal,member:r‹156›,term:Foo/r‹168›,List(),None,None,Some(App(Sel(Ref(term:Foo/pred‹163›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None))))),‹method ›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))),None,List()), LetDecl(f‹169›,List()), DefineVar(f‹169›,New(Ref(member:Foo‹157›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None))),Lit(UnitLit(false)))
+//│ | zipArg: p = pred‹169›, trm = member:Predef⁰, sh = DefnShape(module/object definition 'Predef'), ArrayBuffer()
+//│ ~> Blk(List(Parameterized(None,Cls,class:Foo‹167›,member:Foo‹166›,Some(term:Foo‹170›),List(),ParamList(‹›,List(Param(‹›,pred‹169›,None,Modulefulness(None))),None),List(),None,ObjBody(Blk(List(LetDecl(term:Foo/pred‹172›,List()), DefineVar(term:Foo/pred‹172›,Ref(pred‹169›))),App(Sel(Ref(term:Foo/pred‹172›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None)))))),None,List()), LetDecl(f‹175›,List()), DefineVar(f‹175›,New(Ref(member:Foo‹166›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None))),Lit(UnitLit(false)))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo(pred⁰) {
 //│     let pred¹,
 //│     pred¹ = pred⁰,
-//│     val r⁰ ‹flow:r⁰› = pred¹.id‹?›(42)‹app⁶›
+//│     pred¹.id‹?›(42)‹app⁶›
 //│   },
 //│   let f²,
-//│   f² = new Foo²(Predef⁰)
+//│   f² = new Foo³(Predef⁰)
 //│ whereTODO
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: selSymbol (Lowering.scala:591)
 //│ FAILURE INFO: Sel:
-//│   prefix = Ref{sym=term:Foo²/pred⁰‹163›} of term:Foo²/pred⁰‹163›
+//│   prefix = Ref{sym=term:Foo²/pred⁰‹172›} of term:Foo²/pred⁰‹172›
 //│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.241: 	  val r = pred.id(42)
-//│ ╙──       	          ^^^^^^^
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.208: 	  pred.id(42)
+//│ ╙──       	  ^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(_)
 
@@ -318,27 +285,27 @@ let f = new Foo(Predef)
 //│   class Foo(pred²) {
 //│     let pred³,
 //│     pred³ = pred²,
-//│     val r¹ ‹flow:r¹› = pred³.id‹?›(42)‹app⁷›,
+//│     val r⁰ ‹flow:r⁰› = pred³.id‹?›(42)‹app⁷›,
 //│     fun callId⁰(x¹) ‹flow:callId⁰› = pred³.id‹?›(x¹)‹app⁸›
 //│   },
 //│   let f³,
-//│   f³ = new Foo³(Predef⁰)
+//│   f³ = new Foo⁴(Predef⁰)
 //│ whereTODO
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: selSymbol (Lowering.scala:591)
 //│ FAILURE INFO: Sel:
-//│   prefix = Ref{sym=term:Foo³/pred¹} of term:Foo³/pred¹
+//│   prefix = Ref{sym=term:Foo⁴/pred¹} of term:Foo⁴/pred¹
 //│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.314: 	  fun callId(x) = pred.id(x)
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.281: 	  fun callId(x) = pred.id(x)
 //│ ╙──       	                  ^^^^^^^
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: selSymbol (Lowering.scala:591)
 //│ FAILURE INFO: Sel:
-//│   prefix = Ref{sym=term:Foo³/pred¹} of term:Foo³/pred¹
+//│   prefix = Ref{sym=term:Foo⁴/pred¹} of term:Foo⁴/pred¹
 //│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.313: 	  val r = pred.id(42)
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.280: 	  val r = pred.id(42)
 //│ ╙──       	          ^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(_)

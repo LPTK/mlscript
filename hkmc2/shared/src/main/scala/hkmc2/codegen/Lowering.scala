@@ -589,7 +589,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case Nil =>
       if newResolution && !sel.isErroneous then raise:
         ErrorReport(
-          msg"Selection has no resolved targets" -> sel.toLoc ::
+          msg"This selection of member '${sel.nme.name}' has no resolved target" -> sel.toLoc ::
           Nil, S(sel), source = Diagnostic.Source.Compilation)
       N
     case SelectionTarget.ObjectMember(sym: DefinitionSymbol[?]) :: Nil =>

@@ -53,7 +53,7 @@ class NewResolver:
   //   selShapes.getOrElseUpdate((lhs, nme.name), SelShape(lhs, nme))
   
   // def zip(ps: Ls[Param], r: Opt[Param], args: Ls[Term]): Ls[(Param, Term)] =
-  def zip(ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term): Unit =
+  def zipArgs(ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term): Unit =
     (ps, args) match
     case (Nil, Nil) => ()
     // case (Nil, Spd(k, t) :: args) =>
@@ -70,10 +70,11 @@ class NewResolver:
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
       // (p, a) :: zip(ps, r, args)
       listenTerm(trm, sh =>
+        log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = $sh, ${p.sym.shapeListeners}")
         if p.sym.shapes.add(sh) then
           p.sym.shapeListeners.foreach(listener => listener(sh))
       )
-      zip(ps, r, args, src)
+      zipArgs(ps, r, args, src)
     case _ =>
       raise:
         ErrorReport(
@@ -148,7 +149,8 @@ class NewResolver:
       // )
       args match
       case args: Tup =>
-        zip(ps.params, ps.restParam, args.fields, res)
+        log(s"Zipping ${ps} with ${args.fields}")
+        zipArgs(ps.params, ps.restParam, args.fields, res)
       case _ => ???
     log(s"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead}")
     def register = if res.shapes.add(sh) then
@@ -194,7 +196,7 @@ class NewResolver:
         receiver.unappliedParams.lazyZip(argss).foreach: (ps, args) =>
           args match
           case args: Tup =>
-            zip(ps.params, ps.restParam, args.fields, res)
+            zipArgs(ps.params, ps.restParam, args.fields, res)
           case _ => ???
         lazy val members: Map[Str, BlockMemberSymbol] =
           receiver match
@@ -232,7 +234,7 @@ class NewResolver:
       res.shapeListeners.foreach(listener => listener(sh))
   
   def selShape(lhs: TermShape, id: Tree.Ident, res: AnySelTerm): Unit =
-    // log(s"selShape? lhs = $lhs, nme = $nme, res = $res")
+    log(s"selShape? lhs = $lhs, nme = $id, res = $res")
     val sh = selShapes.getOrElseUpdate((lhs, id.name), {
       log(s"selShape: lhs = $lhs, nme = $id, res = $res")
       // lhs match
@@ -444,7 +446,7 @@ class NewResolver:
     })
   
   def listen(trm: Term, listener: Shape => Unit): Unit =
-    log(s"listen: trm = $trm")
+    log(s"listen: trm = ${trm.showDbg}")
     trm.shapeListeners += listener
     trm match
     case sh: Lit =>
