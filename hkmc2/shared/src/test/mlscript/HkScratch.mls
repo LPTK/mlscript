@@ -10,9 +10,9 @@
 
 
 
-:elt
+:rt
 class Foo(val a)
-//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
 //│     Parameterized:
@@ -37,6 +37,60 @@ class Foo(val a)
 //│         res = Lit of UnitLit of false
 //│   res = Lit of UnitLit of false
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:rt
+:sjs
+new Foo(1)
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = New{typ=class:Foo⁰}:
+//│     cls = Resolved{sym=class:Foo⁰}:
+//│       t = Ref{sym=member:Foo¹} of member:Foo¹
+//│       sym = class:Foo⁰
+//│     args = Ls of
+//│       Tup of Ls of
+//│         Fld:
+//│           term = Lit of IntLit of 1
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ return globalThis.Object.freeze(new Foo1.class(1))
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = Foo(1)
+
+
+:rt
+class Foo {
+  val b = 1
+}
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   stats = Ls of
+//│     Plain:
+//│       kind = Cls
+//│       sym = class:Foo³
+//│       bsym = member:Foo⁴
+//│       body = ObjBody of Blk:
+//│         stats = Ls of
+//│           TermDefinition:
+//│             k = ImmutVal
+//│             sym = member:b⁰
+//│             tsym = term:Foo³/b¹
+//│             body = S of Lit of IntLit of 1
+//│             flags = (method)
+//│             modulefulness = Modulefulness of N
+//│         res = Lit of UnitLit of false
+//│   res = Lit of UnitLit of false
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:rt
+new Foo
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   res = New{typ=class:Foo³}:
+//│     cls = Resolved{sym=class:Foo³}:
+//│       t = Ref{sym=member:Foo⁴} of member:Foo⁴
+//│       sym = class:Foo³
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = Foo { b: 1 }
 
 
 

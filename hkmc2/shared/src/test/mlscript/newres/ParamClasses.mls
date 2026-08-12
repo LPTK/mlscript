@@ -1,6 +1,5 @@
 :js
 
-
 #lang(0.3.x)
 
 
@@ -132,16 +131,16 @@ b.foo.a
 //│ = 123
 
 
-:fixme
 :sjs
 :sr
-:elt
+:rt
 // :de
 let f = new Foo(1)
-//│ ╔══[COMPILATION ERROR] TODO error (term definition 'Foo')
-//│ ║  l.140: 	let f = new Foo(1)
-//│ ╙──       	        ^^^^^^^^^^
-//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   let f¹,
+//│   f¹ = new Foo¹(1)
+//│ whereTODO
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
 //│     LetDecl:
@@ -155,10 +154,6 @@ let f = new Foo(1)
 //│             Fld:
 //│               term = Lit of IntLit of 1
 //│   res = Lit of UnitLit of false
-//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let f¹,
-//│   f¹ = new Foo¹(1)
-//│ whereTODO
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f1; f1 = globalThis.Object.freeze(new Foo1(1));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -168,7 +163,7 @@ let f = new Foo(1)
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.169: 	new 42
+//│ ║  l.164: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 

@@ -45,6 +45,7 @@ class NewResolver:
   // TODO: index by Shape identity (change Term equals/hashCode?)
   val selShapes: mutable.Map[(TermShape, Str), SelShape] = mutable.Map.empty
   val appShapes: mutable.Map[(TermShape, Term), AppShape] = mutable.Map.empty
+  val newShapes: mutable.Map[(TermShape, Ls[Term]), NewShape] = mutable.Map.empty
   val symShapes: mutable.Map[BlockMemberSymbol, SymShape] = mutable.Map.empty
   val defnShapes: mutable.Map[DefinitionSymbol[?], DefnShape] = mutable.Map.empty
   
@@ -168,20 +169,27 @@ class NewResolver:
   
   def newShape(lhs: TermShape, args: Ls[Term], res: Term.New): Unit =
     // log(s"newShape? lhs = $lhs, args = $args, res = $res")
-    val sh = new NewShape(lhs, args, res):
-      def members: Map[Str, BlockMemberSymbol] = ???
-      // def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
-      //   getFromClsTree(cls.tree)
-      val target = receiver match
-        case ss: SymShape =>
-          ()
-        case sh =>
-          // res.isErroneous = true
-          raise:
-            ErrorReport(
-              msg"TODO error (${sh.describe})" -> res.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
-          N
+    val sh = newShapes.getOrElseUpdate((lhs, args), {
+      log(s"newShape: lhs = $lhs, args = $args, res = $res")
+      new NewShape(lhs, args, res):
+        def members: Map[Str, BlockMemberSymbol] = ???
+        // def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
+        //   getFromClsTree(cls.tree)
+        val target = receiver match
+          // case ss: SymShape =>
+          //   ()
+          case ds: DefnShape =>
+            ()
+          case sh =>
+            // res.isErroneous = true
+            raise:
+              ErrorReport(
+                msg"TODO error (${sh.describe})" -> res.toLoc :: Nil,
+                source = Diagnostic.Source.Compilation)
+            N
+    })
+    if res.shapes.add(sh) then
+      res.shapeListeners.foreach(listener => listener(sh))
   
   def selShape(lhs: TermShape, id: Tree.Ident, res: AnySelTerm): Unit =
     // log(s"selShape? lhs = $lhs, nme = $nme, res = $res")
@@ -354,8 +362,8 @@ class NewResolver:
             source = Diagnostic.Source.Compilation)
       */
       bms.onComplete: () =>
-        bms.asModOrObj orElse bms.asTrm match
-        case S(sym: (ModuleOrObjectSymbol | TermSymbol)) =>
+        bms.asModOrObj orElse bms.asTrm orElse bms.asCls match
+        case S(sym: (ModuleOrObjectSymbol | TermSymbol | ClassSymbol)) =>
           sym.defn match
           case S(td: TermDefinition) if td.params.isEmpty =>
             td.body match
@@ -371,7 +379,7 @@ class NewResolver:
         case _ =>
           raise:
             ErrorReport(
-              msg"expected a term shape, but got ${bms.describe}" -> trm.toLoc :: Nil,
+              msg"Expected a term; got ${bms.describe} '${bms.nme}'" -> trm.toLoc :: Nil,
               // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
     listen(trm, {

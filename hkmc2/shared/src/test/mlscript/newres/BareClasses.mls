@@ -1,0 +1,60 @@
+:js
+
+#lang(0.3.x)
+
+
+:elt
+class Foo {
+  val b = 1
+}
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   stats = Ls of
+//│     Plain:
+//│       kind = Cls
+//│       sym = class:Foo⁰
+//│       bsym = member:Foo¹
+//│       body = ObjBody of Blk:
+//│         stats = Ls of
+//│           TermDefinition:
+//│             k = ImmutVal
+//│             sym = member:b⁰
+//│             tsym = term:Foo⁰/b¹
+//│             body = S of Lit of IntLit of 1
+//│             flags = (method)
+//│             modulefulness = Modulefulness of N
+//│         res = Lit of UnitLit of false
+//│   res = Lit of UnitLit of false
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:sr
+:sjs
+let f = new Foo
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   let f⁰,
+//│   f⁰ = new Foo⁰
+//│ whereTODO
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let f; f = globalThis.Object.freeze(new Foo1());
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ f = Foo { b: 1 }
+
+let f = new Foo()
+//│ f = Foo { b: 1 }
+
+
+:todo
+class Foo {
+  constructor(val a) {
+    val b = a + 1
+  }
+}
+//│ ╔══[COMPILATION ERROR] Unsupported constructor in this position.
+//│ ║  l.48: 	  constructor(val a) {
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.49: 	    val b = a + 1
+//│ ║        	^^^^^^^^^^^^^^^^^
+//│ ║  l.50: 	  }
+//│ ╙──      	^^^
+
+
