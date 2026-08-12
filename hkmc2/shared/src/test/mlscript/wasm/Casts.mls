@@ -129,3 +129,25 @@ fun sccG(n: Int): Object = if n <= 0 then new Box(42) else sccF(n - 1)
 useBox(sccF(3))
 //│ Wasm result:
 //│ = 42
+
+
+// Under `:checkCasts`, the narrowing becomes a runtime type test instead of a bare `ref.cast`. The
+// class must be defined in this block: one from an earlier block has no `typeinfo` global registered,
+// so no test can be emitted for it.
+:checkCasts
+class Crate(val v: Int)
+fun useCrate(c: Crate): Int = c.v
+useCrate(id(new Crate(42)))
+//│ Wasm result:
+//│ = 42
+
+
+// The failing test throws, rather than trapping as `ref.cast` would.
+:checkCasts
+:re
+class Crate2(val v: Int)
+class NotACrate(val w: Int)
+fun useCrate2(c: Crate2): Int = c.v
+useCrate2(id(new NotACrate(1)))
+//│ Wasm result:
+//│ ═══[RUNTIME ERROR] Cannot narrow a value to type 'Crate2'
