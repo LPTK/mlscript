@@ -148,7 +148,6 @@ object WatBuilder:
 
   /** Creates parameters for an intrinsic.
     */
-  // TODO(Derppening): WTF? Remove `name` and add erasedType to `params`
   private def mkIntrinsicParams(suffixes: Ls[Str])(using State): Ls[TempSymbol -> SymIdx] =
     suffixes.map: suffix =>
       val sym = TempSymbol(N, erasedType = N, suffix)
