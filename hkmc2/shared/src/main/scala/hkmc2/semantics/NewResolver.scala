@@ -326,7 +326,11 @@ class NewResolver:
         sels.target match
         case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) =>
           fromBMS(sym)
-        case _ => ??? // TODO error
+        case S(SelectionTarget.Err(_)) =>
+          ()
+        // case _ => ??? // TODO error
+        case N =>
+          softAssert(sels.src.isErroneous)
       case ss: SymShape =>
         fromBMS(ss.sym)
       case sh =>

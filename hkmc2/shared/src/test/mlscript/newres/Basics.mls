@@ -44,40 +44,18 @@ Predef.idd(1)
 //│ ╔══[COMPILATION ERROR] TODO error ('idd' not in module/object definition 'Predef')
 //│ ║  l.43: 	Predef.idd(1)
 //│ ╙──      	^^^^^^^^^^
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:383)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$1(NewResolver.scala:329)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.collection.mutable.HashSet$Node.foreach(HashSet.scala:452)
-//│ 	at: scala.collection.mutable.HashSet.foreach(HashSet.scala:379)
-//│ 	at: hkmc2.semantics.NewResolver.listen(NewResolver.scala:360)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm(NewResolver.scala:322)
-//│ 	at: hkmc2.semantics.Elaborator.app(Elaborator.scala:970)
-//│ 	at: hkmc2.semantics.Elaborator.subterm$$anonfun$3(Elaborator.scala:1269)
 
 
 // :de
 let p = Predef
 
-:de
+// :de
 :elt
 p.id
-//│ Elab block List(Sel(Ident(p),Ident(id))) LocalScope(block:8)
-//│ | Elab term Sel(Ident(p),Ident(id))
-//│ | | Elab subterm Sel(Ident(p),Ident(id))
-//│ | | | Elab subterm Ident(p)
-//│ | | | ~> Ref(p‹44›)
-//│ | | | listen: trm = Ref(p‹44›)
-//│ | | | selShape: lhs = DefnShape(module/object definition 'Predef'), nme = Ident(id), res = Sel(Ref(p‹44›),Ident(id))
-//│ | | ~> Sel(Ref(p‹44›),Ident(id))
-//│ | ~> Sel(Ref(p‹44›),Ident(id))
-//│ ~> Blk(List(),Sel(Ref(p‹44›),Ident(id)))
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   res = Sel{targets=[ObjectMember(member:id)]}:
-//│     prefix = Ref{sym=p⁰‹44›} of p⁰‹44›
+//│     prefix = Ref{sym=p⁰} of p⁰
 //│     nme = Ident of "id"
 
 
@@ -85,24 +63,23 @@ p.id
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] TODO error ('id' not in integer literal)
-//│ ║  l.86: 	(1).id
+//│ ║  l.64: 	(1).id
 //│ ╙──      	 ^^^^^
 
-:fixme
+:fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.92: 	1.id
+//│ ║  l.70: 	1.id
 //│ ╙──      	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.92: 	1.id
+//│ ║  l.70: 	1.id
 //│ ╙──      	  ^^
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] TODO error ('repeat' not in string literal)
-//│ ║  l.101: 	"ha ".repeat(2)
-//│ ╙──       	^^^^^^^^^^^^
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ ║  l.79: 	"ha ".repeat(2)
+//│ ╙──      	^^^^^^^^^^^^
 
 
 
