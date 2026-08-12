@@ -10,8 +10,9 @@
 // class Foo(val a) {
 //   val b = a + 1
 // }
-class Foo(val a) with
+class Foo(val a) {
   val b = a + 1
+}
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo(vala⁰) {
 //│     val a¹ ‹flow:a⁰› = a⁰,
@@ -105,10 +106,10 @@ foo(f)
 //│   foo⁰(f⁰)‹app⁴›
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.101: 	  x.a + x.b
+//│ ║  l.102: 	  x.a + x.b
 //│ ╙──       	  ^^^
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.101: 	  x.a + x.b
+//│ ║  l.102: 	  x.a + x.b
 //│ ╙──       	        ^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
@@ -141,35 +142,17 @@ b.foo.a
 :sjs
 :sr
 :elt
-:de
+// :de
 let f = new Foo(1)
-//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(f),Some(App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntL[...] LocalScope(block:16)
-//│ | Processing `let` statement Ident(f) (f‹139›) LocalScope(block:16)
-//│ | Elab term App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
-//│ | | Elab subterm App(LexicalNew(Some(Ident(Foo)),None),Tup(List(IntLit(1))))
-//│ | | | Elab subterm Ident(Foo)
-//│ | | | ~> Ref(member:Foo‹43›)
-//│ | | | Elab subterm Tup(List(IntLit(1)))
-//│ | | | | Elab term IntLit(1)
-//│ | | | | | Elab subterm IntLit(1)
-//│ | | | | | ~> Lit(IntLit(1))
-//│ | | | | ~> Lit(IntLit(1))
-//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
-//│ | | | listen: trm = Ref(member:Foo‹43›)
-//│ | | | symShape: sym = member:Foo‹43›, res = Ref(member:Foo‹43›)
-//│ | | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
-//│ | ~> New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
-//│ | listen: trm = New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None)
-//│ ~> Blk(List(LetDecl(f‹139›,List()), DefineVar(f‹139›,New(Ref(member:Foo‹43›),List(Tup(List(Fld(‹›,Lit(IntLit(1)),None)))),None))),Lit(UnitLit(false)))
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
 //│     LetDecl:
-//│       sym = f⁰‹139›
+//│       sym = f⁰
 //│     DefineVar:
-//│       sym = f⁰‹139›
+//│       sym = f⁰
 //│       rhs = New:
-//│         cls = Ref{sym=member:Foo¹‹43›} of member:Foo¹‹43›
+//│         cls = Ref{sym=member:Foo¹} of member:Foo¹
 //│         args = Ls of
 //│           Tup of Ls of
 //│             Fld:
@@ -188,7 +171,7 @@ let f = new Foo(1)
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.189: 	new 42
+//│ ║  l.172: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 

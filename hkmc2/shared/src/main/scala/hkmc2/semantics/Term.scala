@@ -369,8 +369,12 @@ class SymShape(val sym: BlockMemberSymbol) extends Shape:
   override def toString: String = s"SymShape($sym)"
 class DefnShape(val defn: Definition) extends TermShape:
   def describe: Str = s"${defn.describe}"
-  override def toString: String = s"DefnShape($defn)"
-  def members: Map[Str, BlockMemberSymbol] = Map.empty
+  // override def toString: String = s"DefnShape(${defn.describe} ${defn.bsym.nme})"
+  override def toString: String = s"DefnShape(${defn.describe})"
+  def members: Map[Str, BlockMemberSymbol] = defn match
+    case defn: ModuleOrObjectDef => defn.body.members
+    case defn: TermDefinition => ???
+    case _ => Map.empty
 sealed trait LitShape extends TermShape:
   self: Term.Lit =>
   def members: Map[Str, BlockMemberSymbol] = Map.empty // TODO: methods on literals, e.g. string methods
