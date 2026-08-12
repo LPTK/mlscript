@@ -990,8 +990,11 @@ object ErasedType:
   /** The builtin `Int31` reference type. */
   def Int31: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Int31)
 
-  /** The builtin `Function` reference type, used as the value type of a first-class function. */
-  def Function: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Function)
+  /** The builtin `Function` reference type, used as the value type of a first-class function.
+    *
+    * - `rsc` is true if this reference is a resource function.
+    */
+  def Function(rsc: Bool): ErasedValueType = ErasedType.ValueLike(rsc, ctx.builtins.Function)
 
   /** Determines the direct parent of a class-like symbol.
     *
@@ -1283,7 +1286,7 @@ trait HasErasedType:
     * If this type is a [[`ErasedFuncType`]], the result is the [[`ErasedType`]] of a first-class function.
     */
   lazy val erasedValueType: Opt[ErasedValueType] = erasedType.collect:
-    case ft: ErasedFuncType => ErasedType.ValueLike(rsc = false, ctx.builtins.Function)
+    case ft: ErasedFuncType => ErasedType.Function(ft.rsc)
     case vt: ErasedValueType => vt
 
   /** Similar to `erasedValueType`, but coerces to the top type if the specific erased value type is not known. */
@@ -1454,7 +1457,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       case S(false) => this
       case S(true) =>
         val target = expected match
-          case _: ErasedFuncType => ErasedType.Function
+          case ft: ErasedFuncType => ErasedType.Function(ft.rsc)
           case v: ErasedValueType => v
         Cast(this, target, config.checkCasts)
       case N =>
