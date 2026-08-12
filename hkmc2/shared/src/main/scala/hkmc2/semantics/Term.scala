@@ -429,13 +429,15 @@ class SymShape(val sym: BlockMemberSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
 
+/* 
 class ThisShape(val defn: Definition) extends NonAppTermShape:
   def describe: Str = s"Self-reference to ${defn.bsym.describe} '${defn.bsym.nme}'"
   override def toString: String = s"ThisShape(${defn.describe})"
   def members: Map[Str, BlockMemberSymbol] = ???
+*/
 
 // TODO: make it not a TermShape?
-class BaseShape(val defn: ClassDef, val ext: Opt[TermShape]) extends NonAppTermShape:
+class BaseShape(val defn: ClassLikeDef, val ext: Opt[TermShape]) extends NonAppTermShape:
   def describe: Str = ???
   lazy val members: Map[Str, BlockMemberSymbol] =
     ext.fold(Map.empty)(_.members) ++ defn.body.members

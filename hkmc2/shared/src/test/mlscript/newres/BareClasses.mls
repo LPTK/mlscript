@@ -27,7 +27,6 @@ class Foo {
 //│   res = Lit of UnitLit of false
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
-:fixme
 :sr
 class Foo {
   val b = 1
@@ -36,12 +35,9 @@ class Foo {
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo {
 //│     val b⁰ ‹flow:b⁰› = 1,
-//│     Foo⁰.bˀ
+//│     Foo⁰.b⁰
 //│   }
 //│ whereTODO
-//│ ╔══[COMPILATION ERROR] This selection of member 'b' has no resolved target
-//│ ║  l.34: 	  this.b
-//│ ╙──      	  ^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -56,7 +52,7 @@ Foo
 :e
 Foo.b
 //│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
-//│ ║  l.57: 	Foo.b
+//│ ║  l.53: 	Foo.b
 //│ ╙──      	^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -66,7 +62,7 @@ let f = Foo
 :e
 f.b
 //│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
-//│ ║  l.67: 	f.b
+//│ ║  l.63: 	f.b
 //│ ╙──      	^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -102,12 +98,12 @@ class Foo {
   }
 }
 //│ ╔══[COMPILATION ERROR] Unsupported constructor in this position.
-//│ ║  l.100: 	  constructor(val a) {
-//│ ║         	  ^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.101: 	    val b = a + 1
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.102: 	  }
-//│ ╙──       	^^^
+//│ ║  l.96: 	  constructor(val a) {
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.97: 	    val b = a + 1
+//│ ║        	^^^^^^^^^^^^^^^^^
+//│ ║  l.98: 	  }
+//│ ╙──      	^^^
 
 
 :breakme // `val` in ctor param list should be compiled or explicitly disallowed
@@ -130,7 +126,7 @@ class Foo with {
 :e
 let f = Foo(1)
 //│ ╔══[COMPILATION ERROR] Class 'Foo' cannot be applied.
-//│ ║  l.131: 	let f = Foo(1)
+//│ ║  l.127: 	let f = Foo(1)
 //│ ╙──       	        ^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo6 cannot be invoked without 'new'
 //│ f = undefined
@@ -143,7 +139,7 @@ let f = new Foo(1)
 :sr
 f.a
 //│ ╔══[COMPILATION ERROR] Instance of class 'Foo' does not contain member 'a'
-//│ ║  l.144: 	f.a
+//│ ║  l.140: 	f.a
 //│ ╙──       	^^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f².aˀ

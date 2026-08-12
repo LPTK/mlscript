@@ -2292,6 +2292,22 @@ extends Importer:
       go(blk.desugStmts, Nil, Nil)
     
     members.valuesIterator.foreach(_.complete())
+    members.valuesIterator.foreach: bms =>
+      bms.symbols.foreach:
+        case sym: (ClassLikeSymbol & InnerSymbol) =>
+          val d = sym.defn.get
+          d.ext match
+          case S(ext) =>
+            listenTerm(ext, esh => {
+              val sh = BaseShape(d, S(esh)) // TODO actually use applied shape providing generics?
+              sym.shapeListeners.foreach(_(sh))
+            })
+          case N =>
+            val sh = BaseShape(d, N) // TODO actually use applied shape providing generics?
+            sym.shapeListeners.foreach(_(sh))
+        case sym: InnerSymbol =>
+          ???
+        case _ => ()
     
     res
   

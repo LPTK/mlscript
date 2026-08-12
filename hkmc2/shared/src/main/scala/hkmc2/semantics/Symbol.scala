@@ -307,9 +307,9 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
   
   def toLoc: Option[Loc] = Loc(trees)
   
+  def symbols = tsym.toList ::: trees.collect:
+    case t: Tree.TypeDef => t.symbol
   def describe: Str =
-    val symbols = tsym.toList ::: trees.collect:
-      case t: Tree.TypeDef => t.symbol
     symbols match
     case Nil => s"symbol"
     case sym :: Nil => s"${sym.describeKind}"
@@ -428,6 +428,7 @@ case class ErrorSymbol(val nme: Str, tree: Tree)(using State) extends MemberSymb
 
 sealed trait ClassLikeSymbol extends IdentifiedSymbol:
   self: MemberSymbol & DefinitionSymbol[? <: ClassDef | ModuleOrObjectDef] =>
+  def defn: Opt[ClassLikeDef]
   val tree: Tree.TypeDef
   def subst(using sub: SymbolSubst): ClassLikeSymbol
 
@@ -494,7 +495,7 @@ end DefinitionSymbol
   * One overloaded `BlockMemberSymbol` may correspond to multiple `InnerSymbol`s
   * A `Ref(_: InnerSymbol)` represents a `this`-like reference to the current object. */
   // TODO prevent from appearing in Ref
-sealed trait InnerSymbol(using State) extends Symbol:
+sealed trait InnerSymbol(using State) extends Symbol, ShapePublisher:
   // Ideally, InnerSymbol should extend DefinitionSymbol, but that requires us to specify the type
   // parameter to all occurrences of InnerSymbol. So, we use a self-type annotation instead to
   // ensure that any implementation of InnerSymbol is also a DefinitionSymbol.

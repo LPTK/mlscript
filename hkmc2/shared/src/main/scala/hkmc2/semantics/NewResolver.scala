@@ -330,7 +330,7 @@ class NewResolver:
         */
         // val target = receiver.members.get(id.name).map(SelectionTarget.ObjectMember(_))
         val target = receiver.members.get(id.name) match
-          case S(sym) => S(SelectionTarget.ObjectMember(sym))
+          case S(sym) => S(SelectionTarget.ObjectMember(sym)) // TODO: catch private accesses
           case N =>
             res.isErroneous = true
             raise:
@@ -510,6 +510,15 @@ class NewResolver:
     case ref @ Ref(loc: LocalSymbol) =>
       loc.shapes.foreach(listener)
       loc.shapeListeners += listener
+    case ref @ Ref(sym: InnerSymbol) =>
+      // sym.asBlkMember match
+      // case S(bms) =>
+      //   bms.onComplete: () =>
+      //     ???
+      // case _ => ???
+      // sym.asDefnSym
+      // ???
+      sym.shapeListeners += listener
     case ref @ Ref(bsym: BlockMemberSymbol) =>
       // listener(ref)
       // if ref.shapes.add(bsym) then
