@@ -916,8 +916,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           p.selN(Tree.Ident(nme))
         conclude:
           (path, sym.tsym) match
-            case (Select(qual, nme), S(tsym)) => Select(qual, nme)(sym.tsym)(false)
-            case _ => lastWords(s"wasm intrinsic `${sym.nme}` has an empty name path")
+            case (Select(qual, nme), tsym @ S(_)) => Select(qual, nme)(tsym)(false)
+            case _ => lastWords(s"wasm intrinsic `${sym.nme}` has an empty name path or no `TermSymbol`")
       case t if isBuiltinModuleMember("debug", "printStack") =>
         if !config.effectHandlers.exists(_.debug) then
           return fail:
