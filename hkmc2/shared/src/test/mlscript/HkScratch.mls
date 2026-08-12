@@ -141,28 +141,15 @@ new Foo
 
 
 
-:fixme
 class Foo(pred) {
   val r = pred.id(42)
   fun callId(x) = pred.id(x)
 }
-//│ ╔══[PARSE ERROR] Unexpected 'fun' keyword here
-//│ ║  l.147: 	  fun callId(x) = pred.id(x)
-//│ ╙──       	  ^^^
 
-:fixme
 class Foo {
   // a
   fun f = 1
 }
-//│ ╔══[WARNING] This 'fun' keyword should be indented
-//│ ║  l.156: 	  fun f = 1
-//│ ║         	  ^^^
-//│ ╟── since it is a continuation of the new line here
-//│ ║  l.155: 	  // a
-//│ ║         	      ^
-//│ ║  l.156: 	  fun f = 1
-//│ ╙──       	^^
 
 :sir
 :soir
