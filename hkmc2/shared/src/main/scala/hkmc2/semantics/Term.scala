@@ -108,7 +108,7 @@ sealed trait AnySel extends ResolvableImpl:
   def validResolvedTargets = resolvedTargets.filterNot:
     case flow.SelectionTarget.Err(_) => true
     case _ => false
-  var isErroneous: Bool = false // * to avoid reporting follow-on errors after a flow/resolution error
+  // var isErroneous: Bool = false // * to avoid reporting follow-on errors after a flow/resolution error
 end AnySel
 
 object AnySel:
@@ -131,6 +131,8 @@ sealed trait ResolvableImpl:
   this: Term =>
   
   import Resolvable.CallableDefinition
+  
+  var isErroneous: Bool = false // * to avoid reporting follow-on errors after a flow/resolution error
   
   private[semantics] val shapes: MutSet[Shape] = MutSet.empty
   def getShapes: Ls[Shape] = shapes.toList
@@ -472,7 +474,7 @@ enum Term extends Statement, ShapePublisher:
   case Unquoted(body: Term)
   case New(cls: Term, args: Ls[Term], rft: Opt[ClassSymbol -> ObjBody])
     (val resSym: FlowSymbol, val typ: Opt[Type]) extends Term, ResolvableImpl
-  case DynNew(cls: Term, args: Ls[Term])
+  case DynNew(cls: Term, args: Ls[Term]) extends Term, ResolvableImpl
   case Asc(term: Term, ty: Term)
   case CompType(lhs: Term, rhs: Term, pol: Bool)
   case Neg(rhs: Term)

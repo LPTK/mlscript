@@ -172,7 +172,7 @@ let f = new Foo(1)
 //│               term = Lit of IntLit of 1
 //│   res = Lit of UnitLit of false
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f1; f1 = globalThis.Object.freeze(new Foo3(1));
+//│ let f1; f1 = globalThis.Object.freeze(new Foo3.class(1));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
@@ -182,7 +182,7 @@ let f = new Foo
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of overloaded function and class 'Foo'
 //│ ║  l.181: 	let f = new Foo
 //│ ╙──       	        ^^^^^^^
-//│ f = Foo(undefined)
+//│ f = fun f
 
 :e
 let f = new Foo()
@@ -194,10 +194,10 @@ let f = new Foo()
 
 :e
 new 42
-//│ ╔══[COMPILATION ERROR] TODO error (integer literal)
+//│ ╔══[COMPILATION ERROR] Integer literal cannot be instantiated with keyword 'new'.
 //│ ║  l.196: 	new 42
 //│ ╙──       	^^^^^^
-//│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 // :de
@@ -218,7 +218,7 @@ let f = new Foo(Predef)
 //│   f² = new Foo⁴(Predef⁰)
 //│ whereTODO
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let Foo5, f4;
+//│ let Foo5, f5;
 //│ Foo5 = function Foo(pred) {
 //│   return globalThis.Object.freeze(new Foo.class(pred));
 //│ };
@@ -234,7 +234,7 @@ let f = new Foo(Predef)
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", [null]];
 //│ });
-//│ f4 = globalThis.Object.freeze(new Foo5(Predef));
+//│ f5 = globalThis.Object.freeze(new Foo5.class(Predef));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(_)
 

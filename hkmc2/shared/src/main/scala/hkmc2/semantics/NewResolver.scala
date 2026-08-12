@@ -123,10 +123,10 @@ class NewResolver:
               // TODO: raise error
               N
           case sh =>
-            // res.isErroneous = true
+            res.isErroneous = true
             raise:
               ErrorReport(
-                msg"TODO error (${sh.describe})" -> res.toLoc :: Nil,
+                msg"${sh.describe.capitalize} cannot be applied." -> res.toLoc :: Nil,
                 source = Diagnostic.Source.Compilation)
             N
         target.foreach: tgt =>
@@ -224,10 +224,10 @@ class NewResolver:
           case ds: DefnShape =>
             ()
           case sh =>
-            // res.isErroneous = true
+            res.isErroneous = true
             raise:
               ErrorReport(
-                msg"TODO error (${sh.describe})" -> res.toLoc :: Nil,
+                msg"${sh.describe.capitalize} cannot be instantiated with keyword 'new'." -> res.toLoc :: Nil,
                 source = Diagnostic.Source.Compilation)
             N
     })

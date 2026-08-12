@@ -41,16 +41,16 @@ class Bar(y) extends Foo(y + 1) {
 let b = Bar(123)
 //│ b = Bar(_)
 
-:breakme
-:e
-b.y
-
 :fixme
 b.x
 //│ ╔══[COMPILATION ERROR] Application of overloaded function and class 'Bar' does not contain member 'x'
-//│ ║  l.49: 	b.x
+//│ ║  l.45: 	b.x
 //│ ╙──      	^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:breakme
+:e
+b.y
 
 b.z
 //│ = 125

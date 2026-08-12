@@ -379,7 +379,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             assert(k isnt syntax.Mod) // modules can't extend things and can't have super calls
             val cfgOverride = defn.extraAnnotations.collectFirst:
               case Annot.Config(modify) => modify(config)
-            classOf(ext.cls): clsp =>
+            classOf(ext.cls, ext): clsp =>
               val pctor = inScopedBlock(parentConstructor(clsp, ext.cls, ext.args, ext.toLoc))
               Define(
                 ClsLikeDefn(
@@ -393,7 +393,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     
     blockImpl(imps ::: funs ::: rest, res)
   
-  def classOf(trm: Term)(k: Path => Block)(using LoweringCtx): Block =
+  def classOf(trm: Term, nw: Resolvable)(k: Path => Block)(using LoweringCtx): Block =
     if newResolution then
       def fromBMS(bms: BlockMemberSymbol): ClassSymbol =
         bms.asCls match
@@ -430,7 +430,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             // val r = Select(pre, memberIdent(sel.nme, S(bms)))(S(fromBMS(bms)))(false)
             // Assign(l, r, k(l |> Value.SimpleRef.apply))
             k(Select(pre, memberIdent(sel.nme, S(bms)))(S(fromBMS(bms)))(false))
-      case _ => ???
+      case _ =>
+        softAssert(nw.isErroneous, "Unexpected class term shape")
+        compError
     else subTerm(trm)(k)
   
   def getClassParamLists(cls: Path): Ls[ParamList] =
@@ -1094,13 +1096,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       
       
     case nw @ (_: New | _: DynNew | Mut(_: New | _: DynNew)) =>
-      val (mut, cls, as, rft) = nw match
-        case New(c, a, r) => (false, c, a, r)
-        case Mut(New(c, a, r)) => (true, c, a, r)
-        case DynNew(c, a) => (false, c, a, N)
-        case Mut(DynNew(c, a)) => (true, c, a, N)
+      val (mut, cls, as, rft, nwtrm) = nw match
+        case nwtrm @ New(c, a, r) => (false, c, a, r, nwtrm)
+        case Mut(nwtrm @ New(c, a, r)) => (true, c, a, r, nwtrm)
+        case nwtrm @ DynNew(c, a) => (false, c, a, N, nwtrm)
+        case Mut(nwtrm @ DynNew(c, a)) => (true, c, a, N, nwtrm)
         case _ => spuriousWarning
-      subTerm(cls): sr =>
+      classOf(cls, nwtrm): sr =>
         rft match
         case N => lowerMultiInstantiate(mut, sr, as, annots)(k)
         case S((isym, rft)) =>
