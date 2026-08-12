@@ -704,9 +704,9 @@ val bad: Str = thunk
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
 
 
-// Under `:checkCasts`, every coercion inserted by lowering is marked as checked, and prints as
-// `as checked T`. The flag is read once, where the coercion is introduced; it changes nothing else about
-// lowering, so the IR is otherwise identical to the unmarked casts above.
+// Under `:checkCasts`, every coercion inserted by lowering is marked as checked; the printer spells a checked
+// cast `as T` and an unchecked one `as! T`. The flag is read once, where the coercion is introduced; it changes
+// nothing else about lowering, so the IR is otherwise identical to the unmarked casts above.
 // The mark is consumed later, by `CheckedCastExpansion`; what it expands into is covered by
 // `CheckedCasts.mls`.
 :checkCasts
