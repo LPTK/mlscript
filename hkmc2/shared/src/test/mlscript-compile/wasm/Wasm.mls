@@ -20,6 +20,10 @@ fun dumpWasmInstImpExp(wasmInst) =
   console.log of "Exports: %s", wasmInst.exports
 
 // Binaryen helpers
+//
+// The `Features.All` argument to `parseText` is load-bearing: without it binaryen parses under MVP, leaving GC
+// off during type canonicalization, and distinct rec groups that erase identically are rejected. `index.d.ts`
+// declares `parseText` as taking only the text, so the argument looks droppable - it is not.
 fun binaryenFmtWat(wat, foldExprs): String =
   let mod = binaryen.parseText of wat, binaryen.Features.All
   
