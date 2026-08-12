@@ -300,6 +300,11 @@ final class TypeInfo(
   /** Symbolic identifier for the type. */
   val id = SymIdx(summon[Ctx].typeScp.allocateOrGetNameWrapped(sym, wrapId))
 
+  /** Returns this composite type as a [[FunctionType]], throwing an exception if it is not. */
+  def asFunctionType_! : FunctionType = compType match
+    case funcType: FunctionType => funcType
+    case _ => lastWords(s"type `${id.id}` is not a function type")
+
   def toWat: Document = doc"(type ${id.toWat} ${compType.toWat})"
 
 /** A WebAssembly exception tag declaration.

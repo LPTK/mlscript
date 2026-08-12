@@ -353,7 +353,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
   /** Casts each argument in `wasmArgs` down to the corresponding declared parameter type read from `funcTypeInfo`. */
   private def castArgsToParams(wasmArgs: Seq[Expr], funcTypeInfo: TypeInfo)(using Raise): Seq[Expr] =
-    val declParams = funcTypeInfo.compType.asInstanceOf[FunctionType].sigType.params
+    val declParams = funcTypeInfo.asFunctionType_!.sigType.params
     wasmArgs.zip(declParams).map: (arg, p) =>
       p.valtype match
         case rt: RefType => castConserve(arg, rt)
@@ -1796,7 +1796,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
               call(
                 funcidx = baseFuncIdx,
                 operands = wasmArgs,
-                returnTypes = baseTypeInfo.compType.asInstanceOf[FunctionType].sigType.results,
+                returnTypes = baseTypeInfo.asFunctionType_!.sigType.results,
               )
             case Value.MemberRef(l, _) =>
               val base = ctx.getFunc(l)
@@ -1812,7 +1812,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
               call(
                 funcidx = baseFuncIdx,
                 operands = wasmArgs,
-                returnTypes = baseTypeInfo.compType.asInstanceOf[FunctionType].sigType.results,
+                returnTypes = baseTypeInfo.asFunctionType_!.sigType.results,
               )
             case _ =>
               val base = subexpression(fun)
@@ -1840,7 +1840,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                 target = base,
                 operands = wasmArgs,
                 typeIdx = baseTypeIdx,
-                funcType = baseTypeInfo.compType.asInstanceOf[FunctionType],
+                funcType = baseTypeInfo.asFunctionType_!,
               )
       end match
 
