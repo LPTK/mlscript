@@ -269,6 +269,7 @@ class NewResolver:
       )
     DefineVar(sym, rhs)
   
+  /* 
   // def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: DefnShape => Unit): Unit =
   def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: TermShape => Unit): Unit =
     sym.defn match
@@ -282,8 +283,10 @@ class NewResolver:
       listener(defnShapes.getOrElseUpdate(sym, DefnShape(d)))
     case N =>
       sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
+  */
   def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
     def fromBMS(bms: BlockMemberSymbol) =
+      /* 
       bms.asModOrObj orElse bms.asTrm match
       case S(sym: (ModuleOrObjectSymbol | TermSymbol)) =>
         // listenSym(sym, defn => listener(ss))
@@ -294,6 +297,28 @@ class NewResolver:
             msg"expected a term shape, but got ${bms.describe}" -> trm.toLoc :: Nil,
             // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
             source = Diagnostic.Source.Compilation)
+      */
+      bms.onComplete: () =>
+        bms.asModOrObj orElse bms.asTrm match
+        case S(sym: (ModuleOrObjectSymbol | TermSymbol)) =>
+          sym.defn match
+          case S(td: TermDefinition) if td.params.isEmpty =>
+            td.body match
+            case S(body) =>
+              listenTerm(body, listener)
+            case N =>
+              ??? // TODO error
+          case S(d) =>
+            listener(defnShapes.getOrElseUpdate(sym, DefnShape(d)))
+          case N =>
+            // sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
+            softAssert(false, s"Symbol definition of ${sym} is not set upon completion of ${bms}")
+        case _ =>
+          raise:
+            ErrorReport(
+              msg"expected a term shape, but got ${bms.describe}" -> trm.toLoc :: Nil,
+              // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
+              source = Diagnostic.Source.Compilation)
     listen(trm, {
       case sh: TermShape =>
         listener(sh)

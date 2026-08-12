@@ -2281,8 +2281,12 @@ extends Importer:
         case _ => go(sts, Nil, res :: acc)
     end go
     
-    ctx.withMembers(members).givenIn:
+    val res = ctx.withMembers(members).givenIn:
       go(blk.desugStmts, Nil, Nil)
+    
+    members.valuesIterator.foreach(_.complete())
+    
+    res
   
   
   def mkBlk(acc: Ls[Statement], res: Opt[Term], hasResult: Bool): Blk | Rcd =

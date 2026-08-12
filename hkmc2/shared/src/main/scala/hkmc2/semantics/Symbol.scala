@@ -291,6 +291,17 @@ class BlockMemberSymbol(val nme: Str, val trees: Ls[TypeOrTermDef], val nameIsMe
   var tsym: Opt[TermSymbol] = N
   var sourceAliases: Ls[Str] = Nil
   
+  private var defnListeners: Buffer[() => Unit] = Buffer.empty
+  def complete(): Unit = if defnListeners isnt null then
+    defnListeners.foreach(_())
+    defnListeners = null // free memory and prevent further listening
+  /** Called when all the symbols covered by this BMS are present, with their definitions set. */
+  def onComplete(f: () => Unit): Unit =
+    if defnListeners is null then
+      f()
+    else
+      defnListeners += f
+  
   def toLoc: Option[Loc] = Loc(trees)
   
   def describe: Str =
@@ -440,6 +451,7 @@ sealed trait DefinitionSymbol[Defn <: Definition] extends MemberSymbol:
   var decl: Opt[Declaration] = N // NOTE: currently only assigned for class params and only used by deforestation; may want to just remove it once deforestation is improved
   def bms: Opt[BlockMemberSymbol] = defn.map(_.bsym) 
   
+  // TODO: rm
   private[semantics] var defnListeners: Buffer[Defn => Unit] = Buffer.empty
   
   // * Although the IR is immutable,

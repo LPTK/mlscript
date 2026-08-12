@@ -62,52 +62,18 @@ fv.a
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
-:de
-:fixme
+// :de
 :sr
 :sir
 fun get = fv.a
 val fv = Foo(1)
-//│ Elab block List(TermDef(Fun,Ident(get),Some(Sel(Ident(fv),Ident(a)))), TermDef(ImmutVal,Ident(fv),Some(App(Iden[...] LocalScope(block:9)
-//│ | Processing term definition Ident(get)
-//│ | Elab term Sel(Ident(fv),Ident(a))
-//│ | | Elab subterm Sel(Ident(fv),Ident(a))
-//│ | | | Elab subterm Ident(fv)
-//│ | | | ~> Ref(member:fv‹81›)
-//│ | | | listen: trm = Ref(member:fv‹81›)
-//│ | | | symShape: sym = member:fv‹81›, res = Ref(member:fv‹81›)
-//│ ╔══[COMPILATION ERROR] expected a term shape, but got symbol
-//│ ║  l.69: 	fun get = fv.a
-//│ ╙──      	          ^^
-//│ | | ~> Sel(Ref(member:fv‹81›),Ident(a))
-//│ | ~> Sel(Ref(member:fv‹81›),Ident(a))
-//│ | Processing term definition Ident(fv)
-//│ | Elab term App(Ident(Foo),Tup(List(IntLit(1))))
-//│ | | Elab subterm App(Ident(Foo),Tup(List(IntLit(1))))
-//│ | | | Elab subterm Ident(Foo)
-//│ | | | ~> Ref(member:Foo‹43›)
-//│ | | | Elab subterm Tup(List(IntLit(1)))
-//│ | | | | Elab term IntLit(1)
-//│ | | | | | Elab subterm IntLit(1)
-//│ | | | | | ~> Lit(IntLit(1))
-//│ | | | | ~> Lit(IntLit(1))
-//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
-//│ | | | listen: trm = Ref(member:Foo‹43›)
-//│ | | | symShape: sym = member:Foo‹43›, res = Ref(member:Foo‹43›)
-//│ | | | appShape: lhs = DefnShape(TermDefinition(Fun,member:Foo‹43›,term:Foo‹47›,List(ParamList(‹›,List(Param(‹val›,a‹46›,None,Modulefulness(None))),None)),Some(List()),Some(Ref(class:Foo‹44›)),None,‹›,Modulefulness(None),List(),Some(class:Foo‹44›))), args = Tup(List(Fld(‹›,Lit(IntLit(1)),None))), res = App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | | ~> App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | ~> App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ ~> Blk(List(TermDefinition(Fun,member:get‹82›,term:get‹86›,List(),None,None,Some(Sel(Ref(member:fv‹81›),Ident(a))),‹›,Modulefulness(None),List(),None), TermDefinition(ImmutVal,member:fv‹81›,term:fv‹90›,List(),None,None,Some(App(Ref(member:Foo‹43›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun get⁰ ‹flow:get⁰› = fv¹.a‹?›,
+//│   fun get⁰ ‹flow:get⁰› = fv¹.a¹,
 //│   val fv¹ ‹flow:fv⁰› = Foo¹(1)‹app²›
 //│ whereTODO
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.69: 	fun get = fv.a
-//│ ╙──      	          ^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp;
-//│ define get⁰ as fun get¹() { return fv⁰.a﹖ };
+//│ define get⁰ as fun get¹() { return fv⁰.a⁰ };
 //│ set tmp = Foo⁰(1);
 //│ define fv¹ as val fv⁰ = tmp;
 //│ end
@@ -139,10 +105,10 @@ foo(f)
 //│   foo⁰(f⁰)‹app⁴›
 //│ whereTODO
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.135: 	  x.a + x.b
+//│ ║  l.101: 	  x.a + x.b
 //│ ╙──       	  ^^^
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.135: 	  x.a + x.b
+//│ ║  l.101: 	  x.a + x.b
 //│ ╙──       	        ^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
@@ -222,7 +188,7 @@ let f = new Foo(1)
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.223: 	new 42
+//│ ║  l.189: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 
