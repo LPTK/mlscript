@@ -344,7 +344,8 @@ enum WasmIntrinsicType:
   * @param intrName The name of the intrinsic this argument was passed to, for diagnostics.
   * @param idx The zero-based position of this argument, for diagnostics.
   * @param operand This argument compiled as an expression.
-  * @param operandTypeError A [[`Message`]] describing why the argument's type was invalid for the intrinsic.
+  * @param operandXtype The name of the type the intrinsic declares for this parameter, present only if the compiled
+  *                     operand does not conform to it.
   * @param litValue The integer literal this argument was written as, if it was written as one.
   * @param loc The source location of this argument.
   */
