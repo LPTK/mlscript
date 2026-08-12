@@ -131,11 +131,13 @@ class NewResolver:
             N
         target.foreach: tgt =>
           res.resolvedTargets ::= tgt
+        /* 
         lazy val members: Map[Str, BlockMemberSymbol] = target match
           case S(AppTarget.ObjectMember(cls)) =>
             cls.defn.getOrElse(die // TODO
               ).body.members
           case _ => Map.empty
+        */
       // if res.shapes.add(sh) then
       //   res.shapeListeners.foreach(listener => listener(sh))
       sh
@@ -417,8 +419,35 @@ class NewResolver:
               listenTerm(body, listener)
             case N =>
               ??? // TODO error
-          case S(d) =>
-            listener(defnShapes.getOrElseUpdate(sym, DefnShape(d)))
+          case S(d: TermDefinition) =>
+            d.tsym match
+            case ccs: ClassCtorSymbol =>
+              // listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
+              // listener(defnShapes.getOrElseUpdate(sym, DefnShape(ccs.associatedCls.defn.get, N)))
+              val cls = ccs.associatedCls.defn.get
+              // val bse = DefnShape(cls, S(sh))
+              cls.ext match
+              case N =>
+                listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, S(BaseShape(cls, N)))))
+              case S(nw) =>
+                listenTerm(nw, sh =>
+                  defnShapes.get(sym).foreach: existing =>
+                    ??? // TODO error?
+                  listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, S(BaseShape(cls, S(sh))))))
+                )
+            case _ =>
+              listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
+          case S(d: ClassLikeDef) =>
+            d.ext match
+            case N =>
+              listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
+            case S(nw) =>
+              listenTerm(nw, sh =>
+                defnShapes.get(sym).foreach: existing =>
+                  ??? // TODO error?
+                listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, S(sh))))
+              )
+              // listener(defnShapes.getOrElseUpdate(sym, DefnShape(d)))
           case N =>
             // sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
             softAssert(false, s"Symbol definition of ${sym} is not set upon completion of ${bms}")

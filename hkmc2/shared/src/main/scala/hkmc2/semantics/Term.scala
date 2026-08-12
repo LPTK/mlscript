@@ -365,11 +365,12 @@ class ErrShape(val err: ErrorReport) extends NonAppTermShape:
   def describe: Str = s"error: ${err.mainMsg}"
   def members: Map[Str, BlockMemberSymbol] = Map.empty
 
-abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.App) extends TermShape:
+abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.App)(using DebugPrinter) extends TermShape:
   // def isConcrete: Bool = receiver match
   //   case ds: DefnShape => ds.defn match
   //     case defn: TermDefinition => defn.isConcrete
   //   case _ => false
+  /* 
   def isConcrete: Bool =
     applicationHead match
       case ds: DefnShape => ds.defn match
@@ -379,12 +380,36 @@ abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.A
           !isSaturated
         case _ => false
       case _ => false
-  def describe: Str = s"application of ${receiver.describe}"
-  override def toString: String = s"AppShape($receiver, $args)"
+  */
+  lazy val members: Map[Str, BlockMemberSymbol] =
+    // An unsaturated term definition is just a concrete function shape
+    if !isSaturated then Map.empty
+    else
+      applicationHead match
+      case ds: DefnShape =>
+        // ds.members
+        // ds.defn match
+        // case td: TermDefinition => td.sym match
+        //   case cs: ClassCtorSymbol =>
+        //     val cd = cs.associatedCls.defn.get
+        //     cd.ext.fold(Map.empty)(_.members) ++ cd.body.members
+        //   case _ => ??? // TODO: add softRequire on ction – should not be possible
+        // case cd: ClassDef => cd.ext.fold(Map.empty)(_.members) ++ cd.body.members
+        ds.defn match
+        case cd: ClassDef => ds.ext.fold(Map.empty)(_.members) ++ cd.body.members
+        case td: TermDefinition =>
+          ds.ext.fold(Map.empty)(_.members)
+      case _ => Map.empty
+  def describe: Str =
+    // s"application of ${receiver.describe}"
+    s"instance of ${applicationHead.describe}"
+  override def toString: String = s"AppShape($receiver, ${args.showDbg})"
   def target: Opt[AppTarget]
 
 abstract class NewShape(val receiver: TermShape, val argss: Ls[Term], val src: Term.New) extends TermShape:
-  def describe: Str = s"instantiation of ${receiver.describe}"
+  def describe: Str =
+    // s"instantiation of ${receiver.describe}"
+    s"instance of ${receiver.describe}"
   override def toString: String = s"NewShape($receiver, $argss)"
   // def target: Opt[AppTarget]
 
@@ -404,13 +429,40 @@ class SymShape(val sym: BlockMemberSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
 
-class DefnShape(val defn: Definition) extends NonAppTermShape:
+class ThisShape(val defn: Definition) extends NonAppTermShape:
+  def describe: Str = s"Self-reference to ${defn.bsym.describe} '${defn.bsym.nme}'"
+  override def toString: String = s"ThisShape(${defn.describe})"
+  def members: Map[Str, BlockMemberSymbol] = ???
+
+// TODO: make it not a TermShape?
+class BaseShape(val defn: ClassDef, val ext: Opt[TermShape]) extends NonAppTermShape:
+  def describe: Str = ???
+  lazy val members: Map[Str, BlockMemberSymbol] =
+    ext.fold(Map.empty)(_.members) ++ defn.body.members
+
+class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends NonAppTermShape:
   // def describe: Str = s"${defn.describe}"
-  def describe: Str = s"${defn.bsym.describe} '${defn.bsym.nme}'"
+  def describe: Str =
+    // s"${defn.bsym.describe} '${defn.bsym.nme}'"
+    // s"${defn.describe}"
+    // s"${defn.bsym.asCls.fold("")(_.defn.get.kind.desc+" ")}'${defn.bsym.nme}'"
+    s"${defn match
+      case defn: TypeLikeDef => defn.kind.desc + " "
+      case defn: TermDefinition =>
+        defn.tsym match
+        case _: ClassCtorSymbol => "class constructor "
+        case s => s.k.desc + " "
+      case _ => ""
+    }'${defn.bsym.nme}'"
   // override def toString: String = s"DefnShape(${defn.describe} ${defn.bsym.nme})"
   override def toString: String = s"DefnShape(${defn.describe})"
-  def members: Map[Str, BlockMemberSymbol] = defn match
-    case defn: ModuleOrObjectDef => defn.body.members
+  lazy val members: Map[Str, BlockMemberSymbol] =
+    // println((ext, ext.map(_.members)))
+    // ext.fold(Map.empty)(_.members) ++ defn.match
+    defn match
+    case defn: ModuleOrObjectDef =>
+      // println(defn.ext.map(_.cls.members))
+      ext.fold(Map.empty)(_.members) ++ defn.body.members
     case defn: TermDefinition => ???
     case _ => Map.empty
 
@@ -1290,6 +1342,7 @@ type ModuleCompanionSymbol = TypeAliasSymbol | ClassSymbol
 
 
 sealed abstract class TypeLikeDef extends Definition:
+  val kind: ObjDefKind
   val bsym: BlockMemberSymbol
   val tparams: Ls[TyParam]
   val annotations: Ls[Annot]
@@ -1456,7 +1509,8 @@ case class TypeDef(
   rhs: Opt[Term],
   companion: Opt[CompanionValue],
   annotations: Ls[Annot],
-) extends TypeLikeDef
+) extends TypeLikeDef:
+  val kind: ObjDefKind = Als
 
 
 // TODO Store optional source locations for the flags instead of booleans

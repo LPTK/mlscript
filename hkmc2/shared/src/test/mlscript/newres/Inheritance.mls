@@ -41,12 +41,14 @@ class Bar(y) extends Foo(y + 1) {
 let b = Bar(123)
 //│ b = Bar(_)
 
-:fixme
+// :de
+:sr
 b.x
-//│ ╔══[COMPILATION ERROR] Application of overloaded function and class 'Bar' does not contain member 'x'
-//│ ║  l.45: 	b.x
-//│ ╙──      	^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   b⁰.x⁰
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 124
 
 :breakme
 :e
@@ -65,8 +67,8 @@ b.y
 
 :fixme
 b.x
-//│ ╔══[COMPILATION ERROR] Instantiation of overloaded function and class 'Bar' does not contain member 'x'
-//│ ║  l.67: 	b.x
+//│ ╔══[COMPILATION ERROR] Instance of class constructor 'Bar' does not contain member 'x'
+//│ ║  l.69: 	b.x
 //│ ╙──      	^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -74,8 +76,7 @@ b.z
 //│ = 125
 
 
-module Outer with {
-// module Outer { // TODO
+module Outer {
   class Inner1 {
     constructor(val x)
   }
@@ -85,10 +86,10 @@ module Outer with {
 :e
 object Derived extends Outer.Inner1
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class 'Inner1'
-//│ ║  l.86: 	object Derived extends Outer.Inner1
+//│ ║  l.87: 	object Derived extends Outer.Inner1
 //│ ╙──      	                       ^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
-//│ ║  l.86: 	object Derived extends Outer.Inner1
+//│ ║  l.87: 	object Derived extends Outer.Inner1
 //│ ╙──      	                       ^^^^^^^^^^^^
 
 :sr
@@ -106,7 +107,7 @@ object Derived extends Outer.Inner1(11)
 :fixme
 Derived.x
 //│ ╔══[COMPILATION ERROR] Object 'Derived' does not contain member 'x'
-//│ ║  l.107: 	Derived.x
+//│ ║  l.108: 	Derived.x
 //│ ╙──       	^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -114,11 +115,11 @@ Derived."x"
 
 :e
 object Derived extends Outer.Inner2
-//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of overloaded function and class 'Inner2'
-//│ ║  l.116: 	object Derived extends Outer.Inner2
+//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Inner2'
+//│ ║  l.117: 	object Derived extends Outer.Inner2
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
-//│ ║  l.116: 	object Derived extends Outer.Inner2
+//│ ║  l.117: 	object Derived extends Outer.Inner2
 //│ ╙──       	                       ^^^^^^^^^^^^
 
 :sr
@@ -133,11 +134,7 @@ object Derived extends Outer.Inner2(12)
 //│ define Derived² as object Derived³ extends Outer⁰.Inner2⁰ {}; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
-:fixme
 Derived.x
-//│ ╔══[COMPILATION ERROR] Object 'Derived' does not contain member 'x'
-//│ ║  l.137: 	Derived.x
-//│ ╙──       	^^^^^^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = 12
 
 

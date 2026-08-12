@@ -18,14 +18,14 @@ class Foo(val a)(val b) {
 
 :e
 let f = new Foo
-//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of overloaded function and class 'Foo'
+//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Foo'
 //│ ║  l.20: 	let f = new Foo
 //│ ╙──      	        ^^^^^^^
 //│ f = fun f
 
 :e
 let f = new Foo(1)
-//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of overloaded function and class 'Foo'
+//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Foo'
 //│ ║  l.27: 	let f = new Foo(1)
 //│ ╙──      	        ^^^^^^^^^^
 //│ f = fun f
