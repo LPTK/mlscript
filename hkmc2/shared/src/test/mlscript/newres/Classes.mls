@@ -14,7 +14,7 @@ class Foo(val a) {
   val b = a + 1
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(vala⁰) {
+//│   class Foo(val a⁰) {
 //│     val a¹ ‹flow:a⁰› = a⁰,
 //│     val b⁰ ‹flow:b⁰› = +(⟨Foo⁰.⟩a¹, 1)‹app⁰›
 //│   }
@@ -96,21 +96,14 @@ get
 //│ = fun get
 
 
-:todo
 :sr
 fun foo(x) =
   x.a + x.b
 foo(f)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a‹?›, x⁰.b‹?›)‹app³›,
+//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a¹, x⁰.b⁰)‹app³›,
 //│   foo⁰(f⁰)‹app⁴›
 //│ whereTODO
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.102: 	  x.a + x.b
-//│ ╙──       	  ^^^
-//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.102: 	  x.a + x.b
-//│ ╙──       	        ^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 
@@ -146,7 +139,7 @@ b.foo.a
 // :de
 let f = new Foo(1)
 //│ ╔══[COMPILATION ERROR] TODO error (term definition 'Foo')
-//│ ║  l.147: 	let f = new Foo(1)
+//│ ║  l.140: 	let f = new Foo(1)
 //│ ╙──       	        ^^^^^^^^^^
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
@@ -175,7 +168,7 @@ let f = new Foo(1)
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.176: 	new 42
+//│ ║  l.169: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 

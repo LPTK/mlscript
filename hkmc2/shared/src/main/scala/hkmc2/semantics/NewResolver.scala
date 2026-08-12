@@ -110,6 +110,37 @@ class NewResolver:
       //   res.shapeListeners.foreach(listener => listener(sh))
       sh
     })
+    lhs.unappliedParams match
+    case Nil => ()
+    case ps :: pss =>
+      // listenTerm(args, sh =>
+      //   if res.shapes.add(sh) then
+      //     res.shapeListeners.foreach(listener => listener(sh))
+      // )
+      args match
+      case args: Tup =>
+        // def zip(ps: Ls[Param], r: Opt[Param], args: Ls[Term]): Ls[(Param, Term)] =
+        def zip(ps: Ls[Param], r: Opt[Param], args: Ls[Elem]): Unit =
+          (ps, args) match
+          case (Nil, Nil) => ()
+          // case (Nil, Spd(k, t) :: args) =>
+          //   zip(Nil, r, args)
+          case (Nil, args) =>
+            ??? // TODO: r
+          case (p :: ps, Fld(fls, trm, asc) :: args) =>
+            // (p, a) :: zip(ps, r, args)
+            listenTerm(trm, sh =>
+              if p.sym.shapes.add(sh) then
+                p.sym.shapeListeners.foreach(listener => listener(sh))
+            )
+            zip(ps, r, args)
+          case _ =>
+            raise:
+              ErrorReport(
+                msg"arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> res.toLoc :: Nil,
+                source = Diagnostic.Source.Compilation)
+        zip(ps.params, ps.restParam, args.fields)
+      case _ => ???
     log(s"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead}")
     def register = if res.shapes.add(sh) then
       res.shapeListeners.foreach(listener => listener(sh))

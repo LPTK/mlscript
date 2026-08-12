@@ -1441,13 +1441,20 @@ case class TypeDef(
 
 // TODO Store optional source locations for the flags instead of booleans
 final case class FldFlags(mut: Bool, spec: Bool, pat: Bool, isVal: Bool):
+  // def show: Str =
+  //   val flags = Buffer.empty[String]
+  //   if mut then flags += "mut"
+  //   if spec then flags += "spec"
+  //   if pat then flags += "pattern"
+  //   if isVal then flags += "val"
+  //   flags.mkString(" ")
   def show: Str =
     val flags = Buffer.empty[String]
-    if mut then flags += "mut"
-    if spec then flags += "spec"
-    if pat then flags += "pattern"
-    if isVal then flags += "val"
-    flags.mkString(" ")
+    if mut then flags += "mut "
+    if spec then flags += "spec "
+    if pat then flags += "pattern "
+    if isVal then flags += "val "
+    flags.mkString
   override def toString: String = "‹" + show + "›"
 
 object FldFlags:
