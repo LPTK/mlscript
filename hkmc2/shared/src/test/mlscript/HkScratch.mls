@@ -10,3 +10,33 @@
 
 
 
+:elt
+class Foo(val a)
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   stats = Ls of
+//│     Parameterized:
+//│       kind = Cls
+//│       sym = class:Foo⁰
+//│       bsym = member:Foo¹
+//│       ctorSym = S of term:Foo²
+//│       params = ParamList:
+//│         params = Ls of
+//│           Param:
+//│             flags = (val)
+//│             sym = a⁰
+//│             modulefulness = Modulefulness of N
+//│       body = ObjBody of Blk:
+//│         stats = Ls of
+//│           TermDefinition:
+//│             k = ImmutVal
+//│             sym = member:a¹
+//│             tsym = term:Foo⁰/a²
+//│             body = S of Ref{sym=a⁰} of a⁰
+//│             modulefulness = Modulefulness of N
+//│         res = Lit of UnitLit of false
+//│   res = Lit of UnitLit of false
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+

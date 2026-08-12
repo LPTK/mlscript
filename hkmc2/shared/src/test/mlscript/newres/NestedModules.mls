@@ -3,9 +3,11 @@
 
 
 
-module Foo with
-  module Bar with
+module Foo {
+  module Bar {
     fun id(x) = x
+  }
+}
 
 // :de
 :elt
@@ -39,32 +41,5 @@ b.id
 //│   res = Sel{targets=[ObjectMember(member:id)]}:
 //│     prefix = Ref{sym=b⁰} of b⁰
 //│     nme = Ident of "id"
-
-
-
-module Foo {
-  module Bar {
-    fun id(x) = x
-  }
-}
-
-// :de
-// :elt
-// :fixme
-:sr
-Foo.Bar
-//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo⁰.Bar⁰
-//│ whereTODO
-
-// :de
-// :elt
-// :fixme
-:sr
-Foo.Bar.id
-//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo⁰.Bar⁰.id⁰
-//│ whereTODO
-
 
 

@@ -332,22 +332,52 @@ object SrcScope:
 // type Shape = TermShape
 sealed trait Shape:
   def describe: Str
+
+sealed trait NonAppTermShape extends TermShape
+
 sealed trait TermShape extends Shape:
   def members: Map[Str, BlockMemberSymbol]
+  lazy val applicationHead: NonAppTermShape = this match
+    // case ds: DefnShape => ds
+    // case as: AppShape => as.receiver.applicationHead
+    case as: AppShape => as.receiver.applicationHead
+    case ns: NewShape => ns.receiver.applicationHead
+    case na: NonAppTermShape => na
+  lazy val unappliedParams: Ls[ParamList] = this match
+    case ds: DefnShape => ds.defn match
+      case defn: TermDefinition => defn.params
+      case _ => Nil
+    case as: AppShape => as.receiver.unappliedParams.tailOption.toList.flatten
+    case ns: NewShape => ns.receiver.unappliedParams.tailOption.toList.flatten
+    case _ => Nil
+  def isSaturated: Bool = unappliedParams.isEmpty
 // sealed trait TermShape:
 //   def describe: Str = this match
 //     case app: AppShape => s"application of ${app.lhs.describe} to ${app.args.describe}"
 //     case sel: SelShape => s"selection of ${sel.nme.name} from ${sel.receiver.describe}"
 //     case sym: SymShape => s"symbol ${sym.sym.describe}"
 
-class ErrShape(val err: ErrorReport) extends TermShape:
+class ErrShape(val err: ErrorReport) extends NonAppTermShape:
   def describe: Str = s"error: ${err.mainMsg}"
   def members: Map[Str, BlockMemberSymbol] = Map.empty
 abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.App) extends TermShape:
+  // def isConcrete: Bool = receiver match
+  //   case ds: DefnShape => ds.defn match
+  //     case defn: TermDefinition => defn.isConcrete
+  //   case _ => false
+  def isConcrete: Bool =
+    applicationHead match
+      case ds: DefnShape => ds.defn match
+        case defn: ModuleOrObjectDef => true
+        case td: TermDefinition =>
+          // An unsaturated term definition is just a concrete function shape
+          !isSaturated
+        case _ => false
+      case _ => false
   def describe: Str = s"application of ${receiver.describe}"
   override def toString: String = s"AppShape($receiver, $args)"
   def target: Opt[AppTarget]
-abstract class NewShape(val receiver: Shape, val args: Ls[Term], val src: Term.New) extends TermShape:
+abstract class NewShape(val receiver: TermShape, val args: Ls[Term], val src: Term.New) extends TermShape:
   def describe: Str = s"instantiation of ${receiver.describe}"
   override def toString: String = s"NewShape($receiver, $args)"
   // def target: Opt[AppTarget]
@@ -367,7 +397,7 @@ abstract class SelShape(val receiver: TermShape, val nme: Tree.Ident, val src: A
 class SymShape(val sym: BlockMemberSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
-class DefnShape(val defn: Definition) extends TermShape:
+class DefnShape(val defn: Definition) extends NonAppTermShape:
   def describe: Str = s"${defn.describe}"
   // override def toString: String = s"DefnShape(${defn.describe} ${defn.bsym.nme})"
   override def toString: String = s"DefnShape(${defn.describe})"
@@ -375,7 +405,7 @@ class DefnShape(val defn: Definition) extends TermShape:
     case defn: ModuleOrObjectDef => defn.body.members
     case defn: TermDefinition => ???
     case _ => Map.empty
-sealed trait LitShape extends TermShape:
+sealed trait LitShape extends NonAppTermShape:
   self: Term.Lit =>
   def members: Map[Str, BlockMemberSymbol] = Map.empty // TODO: methods on literals, e.g. string methods
 

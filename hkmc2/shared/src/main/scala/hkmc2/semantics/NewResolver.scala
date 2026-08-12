@@ -66,6 +66,7 @@ class NewResolver:
           case N =>
             N
         val target = receiver match
+          /* 
           case ss: SymShape =>
             get(ss.sym)
           case sel: SelShape =>
@@ -78,6 +79,7 @@ class NewResolver:
               sel.src.isErroneous = true
               N
             case N => N
+          */
           case ds: DefnShape =>
             ds.defn match
             case td: TermDefinition =>
@@ -108,10 +110,32 @@ class NewResolver:
       //   res.shapeListeners.foreach(listener => listener(sh))
       sh
     })
-    if res.shapes.add(sh) then
+    log(s"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead}")
+    def register = if res.shapes.add(sh) then
       res.shapeListeners.foreach(listener => listener(sh))
+    if sh.isSaturated then
+      sh.applicationHead match
+      case ds: DefnShape =>
+        ds.defn match
+        case td: TermDefinition =>
+          // listenTerm(td.body, sh => newShape(sh, args, res))
+          td.tsym match
+          case ccs: ClassCtorSymbol =>
+            softAssert(td.body.isEmpty)
+            // ccs.associatedCls
+            register
+          case _ =>
+            log(s"appShape: td.body = ${td.body}")
+            td.body.foreach: body =>
+              listenTerm(body, sh =>
+                if res.shapes.add(sh) then
+                  res.shapeListeners.foreach(listener => listener(sh))
+              )
+      //   case _ => ???
+      // case _ => ???
+    else register
   
-  def newShape(lhs: Shape, args: Ls[Term], res: Term.New): Unit =
+  def newShape(lhs: TermShape, args: Ls[Term], res: Term.New): Unit =
     // log(s"newShape? lhs = $lhs, args = $args, res = $res")
     val sh = new NewShape(lhs, args, res):
       def members: Map[Str, BlockMemberSymbol] = ???

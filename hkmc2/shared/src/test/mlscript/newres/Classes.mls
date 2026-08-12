@@ -139,11 +139,15 @@ b.foo.a
 //│ = 123
 
 
+:fixme
 :sjs
 :sr
 :elt
 // :de
 let f = new Foo(1)
+//│ ╔══[COMPILATION ERROR] TODO error (term definition 'Foo')
+//│ ║  l.147: 	let f = new Foo(1)
+//│ ╙──       	        ^^^^^^^^^^
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
@@ -171,7 +175,7 @@ let f = new Foo(1)
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.172: 	new 42
+//│ ║  l.176: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 

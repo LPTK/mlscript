@@ -977,7 +977,7 @@ extends Importer:
     
     def mkNew(cls: Term, args: Ls[Term], rft: Opt[ClassSymbol -> ObjBody])(typ: Opt[typing.Type]): Term.New =
       val res = new Term.New(cls, args, rft)(typ).withLocOf(tree)
-      listen(cls, shape => newShape(shape, args, res))
+      listenTerm(cls, shape => newShape(shape, args, res))
       res
     
     /** Fallback to a normal selection + application when label-specific handling does not apply. */

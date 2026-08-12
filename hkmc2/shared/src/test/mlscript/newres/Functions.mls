@@ -1,0 +1,37 @@
+
+#lang(0.3.x)
+
+
+
+:sr
+id
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   ⟨Predef⁰.⟩id⁰
+//│ whereTODO
+
+
+:todo
+fun callid(p) = p.id(1)
+callid(Predef)
+//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
+//│ ║  l.14: 	fun callid(p) = p.id(1)
+//│ ╙──      	                ^^^^
+
+
+:todo
+callid2(Predef)
+fun callid2(p) = p.id(1)
+//│ ╔══[COMPILATION ERROR] Selection has no resolved targets
+//│ ║  l.23: 	fun callid2(p) = p.id(1)
+//│ ╙──      	                 ^^^^
+
+
+fun getPredef() = Predef
+
+:sr
+getPredef().id
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   getPredef⁰()‹app⁰›.id⁰
+//│ whereTODO
+
+
