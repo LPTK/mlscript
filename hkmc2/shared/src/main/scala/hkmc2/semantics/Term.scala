@@ -133,6 +133,7 @@ sealed trait ResolvableImpl:
   import Resolvable.CallableDefinition
   
   private[semantics] val shapes: MutSet[Shape] = MutSet.empty
+  def getShapes: Ls[Shape] = shapes.toList
   
   /**
    * The expanded form of the term, if it exists. 

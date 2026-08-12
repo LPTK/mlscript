@@ -6,63 +6,22 @@
 class Foo(val x)
 
 
-:elt
-:sr
+// :elt
+// :sr
 :sjs
-class Bar(y) extends Foo(y + 1)
-//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
-//│ Blk:
-//│   stats = Ls of
-//│     Parameterized:
-//│       kind = Cls
-//│       sym = class:Bar⁰
-//│       bsym = member:Bar¹
-//│       ctorSym = S of term:Bar²
-//│       params = ParamList:
-//│         params = Ls of
-//│           Param:
-//│             sym = y⁰
-//│             modulefulness = Modulefulness of N
-//│       ext = S of New:
-//│         cls = Ref{sym=member:Foo⁰} of member:Foo⁰
-//│         args = Ls of
-//│           Tup of Ls of
-//│             Fld:
-//│               term = App:
-//│                 lhs = Ref{sym=builtin:+⁰} of builtin:+⁰
-//│                 rhs = Tup of Ls of
-//│                   Fld:
-//│                     term = Ref{sym=y⁰} of y⁰
-//│                   Fld:
-//│                     term = Lit of IntLit of 1
-//│       body = ObjBody of Blk:
-//│         stats = Ls of
-//│           TermDefinition:
-//│             k = ImmutVal
-//│             sym = member:y¹
-//│             tsym = term:Bar⁰/y²
-//│             body = S of Ref{sym=y⁰} of y⁰
-//│             modulefulness = Modulefulness of N
-//│             annotations = Ls of
-//│               Modifier of keyword 'private'
-//│         res = Lit of UnitLit of false
-//│   res = Lit of UnitLit of false
-//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Bar(y⁰) extends new Foo⁰(+(y⁰, 1)‹app⁰›) {
-//│     @privateval y¹ ‹flow:y⁰› = y⁰
-//│   }
-//│ whereTODO
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: zipArgs (Lowering.scala:412)
-//│ ╔══[COMPILATION ERROR] Too many parameter lists for parent class
-//│ ║  l.12: 	class Bar(y) extends Foo(y + 1)
-//│ ╙──      	                     ^^^^^^^^^^
+:fixme
+class Bar(y) extends Foo(y + 1) {
+  val z = this.x + 1
+}
+//│ ╔══[COMPILATION ERROR] This selection of member 'x' has no resolved target
+//│ ║  l.14: 	  val z = this.x + 1
+//│ ╙──      	          ^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Bar1;
 //│ Bar1 = function Bar(y) {
 //│   return globalThis.Object.freeze(new Bar.class(y));
 //│ };
-//│ (class Bar extends Foo1 {
+//│ (class Bar extends Foo1.class {
 //│   static {
 //│     Bar1.class = this
 //│   }
@@ -70,11 +29,48 @@ class Bar(y) extends Foo(y + 1)
 //│     let tmp;
 //│     tmp = y + 1;
 //│     super(tmp);
+//│     let tmp1;
+//│     tmp1 = this.x + 1;
+//│     this.z = tmp1;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Bar", [null]];
 //│ });
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+let b = Bar(123)
+//│ b = Bar(_)
+
+:breakme
+:e
+b.y
+
+:fixme
+b.x
+//│ ╔══[COMPILATION ERROR] Application of overloaded function and class 'Bar' does not contain member 'x'
+//│ ║  l.49: 	b.x
+//│ ╙──      	^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+b.z
+//│ = 125
+
+
+let b = new Bar(123)
+//│ b = Bar(_)
+
+:breakme
+:e
+b.y
+
+:fixme
+b.x
+//│ ╔══[COMPILATION ERROR] Instantiation of overloaded function and class 'Bar' does not contain member 'x'
+//│ ║  l.67: 	b.x
+//│ ╙──      	^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+b.z
+//│ = 125
 
 

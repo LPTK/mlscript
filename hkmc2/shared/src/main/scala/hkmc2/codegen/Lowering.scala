@@ -379,7 +379,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             assert(k isnt syntax.Mod) // modules can't extend things and can't have super calls
             val cfgOverride = defn.extraAnnotations.collectFirst:
               case Annot.Config(modify) => modify(config)
-            subTerm(ext.cls): clsp =>
+            classOf(ext.cls): clsp =>
               val pctor = inScopedBlock(parentConstructor(clsp, ext.cls, ext.args, ext.toLoc))
               Define(
                 ClsLikeDefn(
@@ -392,6 +392,29 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           blockImpl(stats, res)
     
     blockImpl(imps ::: funs ::: rest, res)
+  
+  def classOf(trm: Term)(k: Path => Block)(using LoweringCtx): Block =
+    if newResolution then
+      trm match
+      // case rsl: Resolvable =>
+      //   rsl.getShapes match
+      //   case (sh: TermShape) :: Nil =>
+      //     sh.
+      //   case _ => ???
+      case Ref(bms: BlockMemberSymbol) =>
+        bms.asCls match
+        case S(cls) => k(Value.MemberRef(bms, cls))
+        case _ =>
+          bms.asTrm match
+          case S(cc: ClassCtorSymbol) => k(Value.MemberRef(bms, cc.associatedCls))
+          case _ => ???
+      case sel: AnySel =>
+        sel.resolvedTargets match
+        case SelectionTarget.ObjectMember(sym: TermSymbol) :: Nil =>
+          ???
+        case _ => ???
+      case _ => ???
+    else subTerm(trm)(k)
   
   def getClassParamLists(cls: Path): Ls[ParamList] =
     cls.targetSymbol match
