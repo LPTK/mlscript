@@ -1,5 +1,9 @@
 :js
 
+
+fun pr(x) = print(x)
+
+
 #lang(0.3.x)
 
 
@@ -29,24 +33,133 @@ class Bar(a)
 //│ });
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+
+:sr
+:rt
+:sir
+:soir
+:sjs
+class Bar(a) with
+  let x = a
+  pr(x)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   class Bar(a⁰) {
+//│     @privateval a¹ ‹flow:a⁰› = a⁰,
+//│     let x⁰,
+//│     x⁰ = ⟨Bar⁰.⟩a¹,
+//│     pr⁰(x⁰)‹app⁰›
+//│   }
+//│ whereTODO
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   stats = Ls of
+//│     Parameterized:
+//│       kind = Cls
+//│       sym = class:Bar³
+//│       bsym = member:Bar⁴
+//│       ctorSym = S of term:Bar⁵
+//│       params = ParamList:
+//│         params = Ls of
+//│           Param:
+//│             sym = a²
+//│             modulefulness = Modulefulness of N
+//│       body = ObjBody of Blk:
+//│         stats = Ls of
+//│           TermDefinition:
+//│             k = ImmutVal
+//│             sym = member:a³
+//│             tsym = term:Bar³/a⁴
+//│             body = S of Ref{sym=a²} of a²
+//│             modulefulness = Modulefulness of N
+//│             annotations = Ls of
+//│               Modifier of keyword 'private'
+//│           LetDecl:
+//│             sym = term:Bar³/x⁰
+//│           DefineVar:
+//│             sym = term:Bar³/x⁰
+//│             rhs = SynthSel{sym=member:a³}:
+//│               prefix = Ref{sym=class:Bar³} of class:Bar³
+//│               nme = Ident of "a"
+//│         res = App:
+//│           lhs = Ref{sym=member:pr⁰} of member:pr⁰
+//│           rhs = Tup of Ls of
+//│             Fld:
+//│               term = Ref{sym=term:Bar³/x⁰} of term:Bar³/x⁰
+//│   res = Lit of UnitLit of false
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Bar⁴ as class Bar³ {
+//│   private val a⁴;
+//│   private val x⁰;
+//│   constructor Bar⁵(a) {
+//│     @private
+//│     define a³ as val a⁴ = a;
+//│     set Bar³.this.x⁰ = Bar³.this.a⁴;
+//│     do pr¹(Bar³.this.x⁰);
+//│     end
+//│   }
+//│ };
+//│ end
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define Bar⁴ as class Bar³ {
+//│   private val a⁴;
+//│   private val x⁰;
+//│   constructor Bar⁵(a) {
+//│     let x;
+//│     @private
+//│     define a³ as val a⁴ = a;
+//│     set Bar³.this.x⁰ = Bar³.this.a⁴;
+//│     set x = Bar³.this.x⁰;
+//│     do Predef⁰.print⁰(x);
+//│     end
+//│   }
+//│ };
+//│ end
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Bar3;
+//│ Bar3 = function Bar(a) {
+//│   return globalThis.Object.freeze(new Bar.class(a));
+//│ };
+//│ (class Bar2 {
+//│   static {
+//│     Bar3.class = this
+//│   }
+//│   constructor(a) {
+//│     let x;
+//│     this.#a = a;
+//│     this.#x = this.#a;
+//│     x = this.#x;
+//│     Predef.print(x);
+//│   }
+//│   #a;
+//│   #x;
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Bar", [null]];
+//│ });
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+Bar(123)
+//│ > 123
+//│ = Bar(_)
+
+
 :sir
 :soir
 :sjs
 class Bar with
   private val a = 1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define Bar³ as class Bar⁴ {
-//│   private val a²;
-//│   constructor() { @private define a³ as val a² = 1; end }
+//│ define Bar⁶ as class Bar⁷ {
+//│   private val a⁵;
+//│   constructor() { @private define a⁶ as val a⁵ = 1; end }
 //│ };
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ define Bar³ as class Bar⁴; end
+//│ define Bar⁶ as class Bar⁷; end
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let Bar3;
-//│ (class Bar2 {
+//│ let Bar5;
+//│ (class Bar4 {
 //│   static {
-//│     Bar3 = this
+//│     Bar5 = this
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Bar"];

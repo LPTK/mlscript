@@ -150,6 +150,52 @@ class Foo(pred) {
 //│ ║  l.147: 	  fun callId(x) = pred.id(x)
 //│ ╙──       	  ^^^
 
+:fixme
+class Foo {
+  // a
+  fun f = 1
+}
+//│ ╔══[WARNING] This 'fun' keyword should be indented
+//│ ║  l.156: 	  fun f = 1
+//│ ║         	  ^^^
+//│ ╟── since it is a continuation of the new line here
+//│ ║  l.155: 	  // a
+//│ ║         	      ^
+//│ ║  l.156: 	  fun f = 1
+//│ ╙──       	^^
 
+:sir
+:soir
+:sjs
+class Bar with
+  private val a = 1
+  print(a)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Bar⁰ as class Bar¹ {
+//│   private val a⁵;
+//│   constructor() { @private define a⁶ as val a⁵ = 1; do Predef⁰.print⁰(Bar¹.this.a⁵); end }
+//│ };
+//│ end
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define Bar⁰ as class Bar¹ {
+//│   private val a⁵;
+//│   constructor() { @private define a⁶ as val a⁵ = 1; do Predef⁰.print⁰(Bar¹.this.a⁵); end }
+//│ };
+//│ end
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Bar1;
+//│ (class Bar {
+//│   static {
+//│     Bar1 = this
+//│   }
+//│   constructor() {
+//│     this.#a = 1;
+//│     Predef.print(this.#a);
+//│   }
+//│   #a;
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Bar"];
+//│ });
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

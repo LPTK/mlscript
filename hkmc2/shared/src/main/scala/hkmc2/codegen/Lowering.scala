@@ -1027,6 +1027,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       setupSelection(prefix, nme, S(sym))(k)
     
     case sel @ SynthSel(prefix, nme) =>
+      // System.out.println(sel)
+      // System.out.println(sel.sym)
       // * Not using `setupSelection` as these selections are not meant to be sanity-checked
       // * Unlike source `Sel`s, compiler-synthesized selections may carry a known
       // * member symbol directly in `sel.sym` without being wrapped in `Resolved`.
@@ -1035,8 +1037,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       // * definition when one exists. Do not use this fallback for ordinary `Sel`
       // * lowering unless that convention is changed at the source.
       subTerm(prefix): p =>
-        k(Select(p, memberIdent(nme, sel.sym))(sel.sym.collect:
-          case s: DefinitionSymbol[?] => s
+        k(Select(p, memberIdent(nme, sel.sym))(sel.sym.flatMap:
+          case s: DefinitionSymbol[?] => S(s)
+          case bms: BlockMemberSymbol => bms.asTrm // TODO: clean up logic
+          case err: ErrorSymbol => N
         )(false))
     case Resolved(sel @ SynthSel(prefix, nme), sym) =>
       // * Not using `setupSelection` as these selections are not meant to be sanity-checked

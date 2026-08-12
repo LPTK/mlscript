@@ -217,6 +217,7 @@ class NewResolver:
             Map.empty
         // def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
         //   getFromClsTree(cls.tree)
+        // def members: Map[Str, BlockMemberSymbol] = ???
         val target = receiver match
           // case ss: SymShape =>
           //   ()
@@ -240,7 +241,6 @@ class NewResolver:
       // lhs match
       // case _ =>
       val sh = new SelShape(lhs, id, res):
-        // def members: Map[Str, BlockMemberSymbol] = ???
         /* 
         def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
           getFromClsTree(cls.tree)
@@ -365,6 +365,7 @@ class NewResolver:
     case sym: TermSymbol =>
       // symShape(sym, rhs)
       // ???
+      // sym.defn.get
       println(s"TODO: defineVar for TermSymbol ${sym.showDbg}")
     case sym: LocalSymbol =>
       // symShape(sym, rhs)

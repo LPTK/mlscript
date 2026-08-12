@@ -2032,7 +2032,9 @@ extends Importer:
                 case _: TypeAliasSymbol => die
               
               val isPublicField = p.flags.isVal || isDataClass
-              if isPublicField || newResolution // TODO: rm `|| newResolution`
+              if isPublicField
+                // TODO:
+                || newResolution // TODO: rm `|| newResolution`
               then
                 val k = if p.flags.mut then MutVal else ImmutVal
                 val fsym = BlockMemberSymbol(p.sym.nme, Nil)
