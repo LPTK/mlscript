@@ -2031,7 +2031,8 @@ extends Importer:
                 case s: InnerSymbol => S(s)
                 case _: TypeAliasSymbol => die
               
-              if p.flags.isVal || isDataClass
+              val isPublicField = p.flags.isVal || isDataClass
+              if isPublicField || newResolution // TODO: rm `|| newResolution`
               then
                 val k = if p.flags.mut then MutVal else ImmutVal
                 val fsym = BlockMemberSymbol(p.sym.nme, Nil)
@@ -2045,9 +2046,9 @@ extends Importer:
                   tsym,
                   Nil, N, N,
                   S(p.sym.ref()),
-                  TermDefFlags.empty.copy(isMethod = (k is Cls)),
+                  TermDefFlags.empty.copy(isMethod = (k is Cls)), // FIXME?!
                   p.modulefulness,
-                  Nil,
+                  if isPublicField then Nil else Annot.Private :: Nil,
                   N,
                 ).withLocOf(p)
                 assert(p.fldSym.isEmpty)
@@ -2059,7 +2060,7 @@ extends Importer:
               else
                 val psym = TermSymbol(LetBind, owner, p.sym.id)
                 psym.sourceAliases = p.sym.sourceAliases
-                val decl = LetDecl(psym, Nil)
+                val decl = LetDecl(psym, Nil) // TODO: never use term symbols on LetDecl LHS
                 val defn = defineVar(psym, p.sym.ref())
                 p.fldSym = S(psym)
                 decl :: defn :: Nil

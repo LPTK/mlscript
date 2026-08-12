@@ -136,7 +136,7 @@ b.foo
 //│   b¹.foo¹
 //│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = Foo(123)
+//│ = Foo(undefined)
 
 // :de
 :sr
@@ -145,7 +145,6 @@ b.foo.a
 //│   b¹.foo¹.a³
 //│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 123
 
 
 :sjs
@@ -180,14 +179,14 @@ let f = new Foo(1)
 :e
 let f = new Foo
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of overloaded function and class 'Foo'
-//│ ║  l.181: 	let f = new Foo
+//│ ║  l.180: 	let f = new Foo
 //│ ╙──       	        ^^^^^^^
 //│ f = Foo(undefined)
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.188: 	let f = new Foo()
+//│ ║  l.187: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
 //│ f = Foo(undefined)
 
@@ -195,83 +194,59 @@ let f = new Foo()
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.196: 	new 42
+//│ ║  l.195: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 
 
-:de
+// :de
 :sr
+:sjs
 // class Foo(pred) { // TODO
 class Foo(pred) with {
   // val r = pred.id(42)
   pred.id(42)
 }
 let f = new Foo(Predef)
-//│ Elab block List(TypeDef(Cls,InfixApp(App(Ident(Foo),Tup(List(Ident(pred)))),Keywrd(keyword 'with'),Block(List(A[...] LocalScope(block:22)
-//│ | Elaborating ParamTree: ParamTree(‹›,Ident(pred),None,None,Set())
-//│ | Processing class definition Ident(Foo)
-//│ | | Companion: None
-//│ | | Elab block List(App(Sel(Ident(pred),Ident(id)),Tup(List(IntLit(42))))) InnerScope(class:Foo‹167›)
-//│ | | | Elab term App(Sel(Ident(pred),Ident(id)),Tup(List(IntLit(42))))
-//│ | | | | Elab subterm App(Sel(Ident(pred),Ident(id)),Tup(List(IntLit(42))))
-//│ | | | | | Elab subterm Sel(Ident(pred),Ident(id))
-//│ | | | | | | Elab subterm Ident(pred)
-//│ | | | | | | ~> Ref(term:Foo/pred‹172›)
-//│ | | | | | | listen: trm = term:Foo²/pred⁰‹172›
-//│ | | | | | ~> Sel(Ref(term:Foo/pred‹172›),Ident(id))
-//│ | | | | | Elab subterm Tup(List(IntLit(42)))
-//│ | | | | | | Elab term IntLit(42)
-//│ | | | | | | | Elab subterm IntLit(42)
-//│ | | | | | | | ~> Lit(IntLit(42))
-//│ | | | | | | ~> Lit(IntLit(42))
-//│ | | | | | ~> Tup(List(Fld(‹›,Lit(IntLit(42)),None)))
-//│ | | | | | listen: trm = term:Foo²/pred⁰‹172›.id
-//│ | | | | ~> App(Sel(Ref(term:Foo/pred‹172›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None))))
-//│ | | | ~> App(Sel(Ref(term:Foo/pred‹172›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None))))
-//│ | | ~> Blk(List(),App(Sel(Ref(term:Foo/pred‹172›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None)))))
-//│ | Processing `let` statement Ident(f) (f‹175›) LocalScope(block:22)
-//│ | Elab term App(LexicalNew(Some(Ident(Foo)),None),Tup(List(Ident(Predef))))
-//│ | | Elab subterm App(LexicalNew(Some(Ident(Foo)),None),Tup(List(Ident(Predef))))
-//│ | | | Elab subterm Ident(Foo)
-//│ | | | ~> Ref(member:Foo‹166›)
-//│ | | | Elab subterm Tup(List(Ident(Predef)))
-//│ | | | | Elab term Ident(Predef)
-//│ | | | | | Elab subterm Ident(Predef)
-//│ | | | | | ~> Ref(member:Predef)
-//│ | | | | ~> Ref(member:Predef)
-//│ | | | ~> Tup(List(Fld(‹›,Ref(member:Predef),None)))
-//│ | | | listen: trm = member:Foo³‹166›
-//│ | | | symShape: sym = member:Foo‹166›, res = Ref(member:Foo‹166›)
-//│ | | ~> New(Ref(member:Foo‹166›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
-//│ | ~> New(Ref(member:Foo‹166›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
-//│ | listen: trm = new member:Foo³‹166›(member:Predef⁰)
-//│ | newShape: lhs = DefnShape(term definition 'Foo'), args = List(Tup(List(Fld(‹›,Ref(member:Predef),None)))), res = New(Ref(member:Foo‹166›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None)
-//│ | newShape isSaturated? true; head? DefnShape(term definition 'Foo')
-//│ | Zipping List(ParamList(‹›,List(Param(‹›,pred‹169›,None,Modulefulness(None))),None)) with List(Tup(List(Fld(‹›,Ref(member:Predef),None))))
-//│ | listen: trm = member:Predef⁰
-//│ | symShape: sym = member:Predef, res = Ref(member:Predef)
-//│ | zipArg: p = pred‹169›, trm = member:Predef⁰, sh = DefnShape(module/object definition 'Predef'), ArrayBuffer()
-//│ ~> Blk(List(Parameterized(None,Cls,class:Foo‹167›,member:Foo‹166›,Some(term:Foo‹170›),List(),ParamList(‹›,List(Param(‹›,pred‹169›,None,Modulefulness(None))),None),List(),None,ObjBody(Blk(List(LetDecl(term:Foo/pred‹172›,List()), DefineVar(term:Foo/pred‹172›,Ref(pred‹169›))),App(Sel(Ref(term:Foo/pred‹172›),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(42)),None)))))),None,List()), LetDecl(f‹175›,List()), DefineVar(f‹175›,New(Ref(member:Foo‹166›),List(Tup(List(Fld(‹›,Ref(member:Predef),None)))),None))),Lit(UnitLit(false)))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo(pred⁰) {
-//│     let pred¹,
-//│     pred¹ = pred⁰,
-//│     pred¹.id‹?›(42)‹app⁶›
+//│     @privateval pred¹ ‹flow:pred⁰› = pred⁰,
+//│     ⟨Foo³.⟩pred¹.id⁰(42)‹app⁶›
 //│   },
 //│   let f²,
-//│   f² = new Foo³(Predef⁰)
+//│   f² = new Foo⁴(Predef⁰)
 //│ whereTODO
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:591)
-//│ FAILURE INFO: Sel:
-//│   prefix = Ref{sym=term:Foo²/pred⁰‹172›} of term:Foo²/pred⁰‹172›
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.208: 	  pred.id(42)
-//│ ╙──       	  ^^^^^^^
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Foo5, f4;
+//│ Foo5 = function Foo(pred) {
+//│   return globalThis.Object.freeze(new Foo.class(pred));
+//│ };
+//│ (class Foo4 {
+//│   static {
+//│     Foo5.class = this
+//│   }
+//│   constructor(pred) {
+//│     runtime.safeCall(this.pred.id(42));
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Foo", [null]];
+//│ });
+//│ f4 = globalThis.Object.freeze(new Foo5(Predef));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ f = Foo(_)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'id')
+//│     at new Foo4 (REPL77:1:235)
+//│     at new Foo (REPL77:1:82)
+//│     at REPL77:1:386
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│ f = undefined
 
 
 :sr
@@ -283,32 +258,38 @@ class Foo(pred) with {
 let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo(pred²) {
-//│     let pred³,
-//│     pred³ = pred²,
-//│     val r⁰ ‹flow:r⁰› = pred³.id‹?›(42)‹app⁷›,
-//│     fun callId⁰(x¹) ‹flow:callId⁰› = pred³.id‹?›(x¹)‹app⁸›
+//│     @privateval pred³ ‹flow:pred¹› = pred²,
+//│     val r⁰ ‹flow:r⁰› = ⟨Foo⁵.⟩pred³.id⁰(42)‹app⁷›,
+//│     fun callId⁰(x¹) ‹flow:callId⁰› = ⟨Foo⁵.⟩pred³.id‹?›(x¹)‹app⁸›
 //│   },
 //│   let f³,
-//│   f³ = new Foo⁴(Predef⁰)
+//│   f³ = new Foo⁶(Predef⁰)
 //│ whereTODO
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: selSymbol (Lowering.scala:591)
 //│ FAILURE INFO: Sel:
-//│   prefix = Ref{sym=term:Foo⁴/pred¹} of term:Foo⁴/pred¹
+//│   prefix = SynthSel{sym=member:pred⁰}:
+//│     prefix = Ref{sym=class:Foo²} of class:Foo²
+//│     nme = Ident of "pred"
 //│   nme = Ident of "id"
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.281: 	  fun callId(x) = pred.id(x)
+//│ ║  l.256: 	  fun callId(x) = pred.id(x)
 //│ ╙──       	                  ^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:591)
-//│ FAILURE INFO: Sel:
-//│   prefix = Ref{sym=term:Foo⁴/pred¹} of term:Foo⁴/pred¹
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.280: 	  val r = pred.id(42)
-//│ ╙──       	          ^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ f = Foo(_)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'id')
+//│     at new Foo6 (REPL81:1:256)
+//│     at new Foo (REPL81:1:82)
+//│     at REPL81:1:625
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│ f = undefined
 
 
 

@@ -11,7 +11,8 @@
 
 
 :rt
-class Foo(val a)
+:lot
+class Foo(a)
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
@@ -23,16 +24,62 @@ class Foo(val a)
 //│       params = ParamList:
 //│         params = Ls of
 //│           Param:
+//│             sym = a¹
+//│             modulefulness = Modulefulness of N
+//│       body = ObjBody of Blk:
+//│         stats = Ls of
+//│           LetDecl:
+//│             sym = term:Foo⁰/a⁰
+//│           DefineVar:
+//│             sym = term:Foo⁰/a⁰
+//│             rhs = Ref{sym=a¹} of a¹
+//│         res = Lit of UnitLit of false
+//│   res = Lit of UnitLit of false
+//│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Define:
+//│     defn = ClsLikeDefn:
+//│       isym = class:Foo⁰
+//│       sym = member:Foo¹
+//│       ctorSym = S of term:Foo²
+//│       k = Cls
+//│       auxParams = Ls of
+//│         ParamList:
+//│           params = Ls of
+//│             Param:
+//│               sym = a¹
+//│               modulefulness = Modulefulness of N
+//│       privateFields = Ls of
+//│         term:Foo⁰/a⁰
+//│       ctor = AssignField:
+//│         lhs = This of class:Foo⁰
+//│         nme = Ident of "a"
+//│         rhs = SimpleRef of a¹
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:rt
+class Foo(val a)
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   stats = Ls of
+//│     Parameterized:
+//│       kind = Cls
+//│       sym = class:Foo³
+//│       bsym = member:Foo⁴
+//│       ctorSym = S of term:Foo⁵
+//│       params = ParamList:
+//│         params = Ls of
+//│           Param:
 //│             flags = (val)
-//│             sym = a⁰
+//│             sym = a²
 //│             modulefulness = Modulefulness of N
 //│       body = ObjBody of Blk:
 //│         stats = Ls of
 //│           TermDefinition:
 //│             k = ImmutVal
-//│             sym = member:a¹
-//│             tsym = term:Foo⁰/a²
-//│             body = S of Ref{sym=a⁰} of a⁰
+//│             sym = member:a³
+//│             tsym = term:Foo³/a⁴
+//│             body = S of Ref{sym=a²} of a²
 //│             modulefulness = Modulefulness of N
 //│         res = Lit of UnitLit of false
 //│   res = Lit of UnitLit of false
@@ -43,16 +90,16 @@ class Foo(val a)
 new Foo(1)
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
-//│   res = New{typ=class:Foo⁰}:
-//│     cls = Resolved{sym=class:Foo⁰}:
-//│       t = Ref{sym=member:Foo¹} of member:Foo¹
-//│       sym = class:Foo⁰
+//│   res = New{typ=class:Foo³}:
+//│     cls = Resolved{sym=class:Foo³}:
+//│       t = Ref{sym=member:Foo⁴} of member:Foo⁴
+//│       sym = class:Foo³
 //│     args = Ls of
 //│       Tup of Ls of
 //│         Fld:
 //│           term = Lit of IntLit of 1
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ return globalThis.Object.freeze(new Foo1.class(1))
+//│ return globalThis.Object.freeze(new Foo3.class(1))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = Foo(1)
 
@@ -66,14 +113,14 @@ class Foo {
 //│   stats = Ls of
 //│     Plain:
 //│       kind = Cls
-//│       sym = class:Foo³
-//│       bsym = member:Foo⁴
+//│       sym = class:Foo⁶
+//│       bsym = member:Foo⁷
 //│       body = ObjBody of Blk:
 //│         stats = Ls of
 //│           TermDefinition:
 //│             k = ImmutVal
 //│             sym = member:b⁰
-//│             tsym = term:Foo³/b¹
+//│             tsym = term:Foo⁶/b¹
 //│             body = S of Lit of IntLit of 1
 //│             flags = (method)
 //│             modulefulness = Modulefulness of N
@@ -85,10 +132,10 @@ class Foo {
 new Foo
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
-//│   res = New{typ=class:Foo³}:
-//│     cls = Resolved{sym=class:Foo³}:
-//│       t = Ref{sym=member:Foo⁴} of member:Foo⁴
-//│       sym = class:Foo³
+//│   res = New{typ=class:Foo⁶}:
+//│     cls = Resolved{sym=class:Foo⁶}:
+//│       t = Ref{sym=member:Foo⁷} of member:Foo⁷
+//│       sym = class:Foo⁶
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = Foo { b: 1 }
 
@@ -100,7 +147,7 @@ class Foo(pred) {
   fun callId(x) = pred.id(x)
 }
 //│ ╔══[PARSE ERROR] Unexpected 'fun' keyword here
-//│ ║  l.100: 	  fun callId(x) = pred.id(x)
+//│ ║  l.147: 	  fun callId(x) = pred.id(x)
 //│ ╙──       	  ^^^
 
 

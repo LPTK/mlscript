@@ -1,0 +1,57 @@
+:js
+
+#lang(0.3.x)
+
+
+:sir
+:soir
+:sjs
+class Bar(a)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Bar⁰ as class Bar² {
+//│   private val a⁰;
+//│   constructor Bar¹(a) { @private define a¹ as val a⁰ = a; end }
+//│ };
+//│ end
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define Bar⁰ as class Bar² { constructor Bar¹ }; end
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Bar1;
+//│ Bar1 = function Bar(a) {
+//│   return globalThis.Object.freeze(new Bar.class(a));
+//│ };
+//│ (class Bar {
+//│   static {
+//│     Bar1.class = this
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Bar", [null]];
+//│ });
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:sir
+:soir
+:sjs
+class Bar with
+  private val a = 1
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Bar³ as class Bar⁴ {
+//│   private val a²;
+//│   constructor() { @private define a³ as val a² = 1; end }
+//│ };
+//│ end
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define Bar³ as class Bar⁴; end
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Bar3;
+//│ (class Bar2 {
+//│   static {
+//│     Bar3 = this
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Bar"];
+//│ });
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+

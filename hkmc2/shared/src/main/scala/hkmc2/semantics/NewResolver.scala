@@ -365,7 +365,7 @@ class NewResolver:
     case sym: TermSymbol =>
       // symShape(sym, rhs)
       // ???
-      println(s"TODO: defineVar for TermSymbol $sym")
+      println(s"TODO: defineVar for TermSymbol ${sym.showDbg}")
     case sym: LocalSymbol =>
       // symShape(sym, rhs)
       listen(rhs, sh =>
@@ -390,6 +390,7 @@ class NewResolver:
       sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
   */
   def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
+    log(s"listenTerm: trm = ${trm.showDbg}")
     def fromBMS(bms: BlockMemberSymbol) =
       /* 
       bms.asModOrObj orElse bms.asTrm match
@@ -403,11 +404,13 @@ class NewResolver:
             // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
             source = Diagnostic.Source.Compilation)
       */
+      log(s"listenBMS: bms = ${bms.describe}, trm = ${trm.showDbg}")
       bms.onComplete: () =>
         bms.asModOrObj orElse bms.asTrm orElse bms.asCls match
         case S(sym: (ModuleOrObjectSymbol | TermSymbol | ClassSymbol)) =>
           sym.defn match
           case S(td: TermDefinition) if td.params.isEmpty =>
+            log(s"listenTerm: td.body = ${td.body}")
             td.body match
             case S(body) =>
               listenTerm(body, listener)
@@ -424,6 +427,23 @@ class NewResolver:
               msg"Expected a term; got ${bms.describe} '${bms.nme}'" -> trm.toLoc :: Nil,
               // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
+    trm match
+    // * Synthetic selections are not really selections from the POV of the resolver.
+    // * Eg: a plain member reference or plain reference to imported symbol
+    // * Later, we should make Terms more closely aligned wiht the source and remove SynthSel
+    case ss: SynthSel =>
+      ss.sym match
+      case S(ts: TermSymbol) =>
+        ???
+        ts.defn.get.body match
+        case S(body) =>
+          listenTerm(body, listener)
+        case N =>
+          ??? // TODO error? use sig
+      case S(bms: BlockMemberSymbol) =>
+        fromBMS(bms)
+      case N => ???
+    case _ =>
     listen(trm, {
       case sh: TermShape =>
         listener(sh)
