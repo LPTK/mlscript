@@ -88,6 +88,7 @@ declare module BigUint64Array
 declare class Promise
 declare val Promise
 
+// MLscript-specific types
 declare class Bool
 declare class Int
 declare class Num
