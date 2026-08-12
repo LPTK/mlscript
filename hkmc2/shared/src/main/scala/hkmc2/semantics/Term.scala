@@ -975,6 +975,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
             else doc"[${cld.tparams.map(_.sym.showName).mkDocument(", ")}]")
           :: cld.paramsOpt.map(_.show).toList.mkDocument()
           :: cld.auxParams.map(_.show).mkDocument()
+          :: cld.ext.fold(doc"")(e => doc" extends ${e.show}")
           :: doc" ${cld.body.blk.show}"
       case imp: Import =>
         doc"import ${"\""}.../${imp.file.last}${"\""} as ${imp.sym.showName}"

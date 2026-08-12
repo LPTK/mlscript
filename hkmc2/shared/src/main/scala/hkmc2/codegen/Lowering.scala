@@ -162,13 +162,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   def returnedTerm(t: st)(using LoweringCtx): Block = term(t)(Ret)(using LoweringCtx.nestFunc)
   
-  def parentConstructor(parentClsPath: Path, cls: Term, args: Ls[Term])(using LoweringCtx) =
+  def parentConstructor(parentClsPath: Path, cls: Term, args: Ls[Term], loc: Opt[Loc])(using LoweringCtx) =
     lowerSuperCtorCall(
       parentClsPath,
       State.builtinOpsMap("super").asSimpleRef,
       isMlsFun = true,
       args,
-      N, // TODO: location?
+      loc,
     )(c => Assign(NoSymbol, c, End()))
   
   // * Used to work around Scala's @tailrec annotation for those few calls that are not in tail position.
@@ -380,7 +380,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             val cfgOverride = defn.extraAnnotations.collectFirst:
               case Annot.Config(modify) => modify(config)
             subTerm(ext.cls): clsp =>
-              val pctor = inScopedBlock(parentConstructor(clsp, ext.cls, ext.args))
+              val pctor = inScopedBlock(parentConstructor(clsp, ext.cls, ext.args, ext.toLoc))
               Define(
                 ClsLikeDefn(
                   defn.owner, defn.sym, defn.bsym, defn.ctorSym, defn.kind, defn.paramsOpt, defn.auxParams, S(clsp),
@@ -1067,7 +1067,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           val sym = new BlockMemberSymbol(isym.name, Nil)
           loweringCtx.collectScopedSym(sym)
           val (mtds, publicFlds, privateFlds, ctor) = gatherMembers(rft)
-          val pctor = parentConstructor(sr, cls, as)
+          val pctor = parentConstructor(sr, cls, as, nw.toLoc)
           val clsDef = ClsLikeDefn(N, isym, sym, N, syntax.Cls, N, Nil, S(sr),
             mtds, privateFlds, publicFlds, pctor, ctor, N, N)(N, Nil)
           val inner = new New(sym.ref().resolved(isym), Nil, N)(FlowSymbol.neww(), N)

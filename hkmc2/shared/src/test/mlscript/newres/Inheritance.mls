@@ -1,0 +1,80 @@
+:js
+
+#lang(0.3.x)
+
+
+class Foo(val x)
+
+
+:elt
+:sr
+:sjs
+class Bar(y) extends Foo(y + 1)
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   stats = Ls of
+//│     Parameterized:
+//│       kind = Cls
+//│       sym = class:Bar⁰
+//│       bsym = member:Bar¹
+//│       ctorSym = S of term:Bar²
+//│       params = ParamList:
+//│         params = Ls of
+//│           Param:
+//│             sym = y⁰
+//│             modulefulness = Modulefulness of N
+//│       ext = S of New:
+//│         cls = Ref{sym=member:Foo⁰} of member:Foo⁰
+//│         args = Ls of
+//│           Tup of Ls of
+//│             Fld:
+//│               term = App:
+//│                 lhs = Ref{sym=builtin:+⁰} of builtin:+⁰
+//│                 rhs = Tup of Ls of
+//│                   Fld:
+//│                     term = Ref{sym=y⁰} of y⁰
+//│                   Fld:
+//│                     term = Lit of IntLit of 1
+//│       body = ObjBody of Blk:
+//│         stats = Ls of
+//│           TermDefinition:
+//│             k = ImmutVal
+//│             sym = member:y¹
+//│             tsym = term:Bar⁰/y²
+//│             body = S of Ref{sym=y⁰} of y⁰
+//│             modulefulness = Modulefulness of N
+//│             annotations = Ls of
+//│               Modifier of keyword 'private'
+//│         res = Lit of UnitLit of false
+//│   res = Lit of UnitLit of false
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   class Bar(y⁰) extends new Foo⁰(+(y⁰, 1)‹app⁰›) {
+//│     @privateval y¹ ‹flow:y⁰› = y⁰
+//│   }
+//│ whereTODO
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: zipArgs (Lowering.scala:412)
+//│ ╔══[COMPILATION ERROR] Too many parameter lists for parent class
+//│ ║  l.12: 	class Bar(y) extends Foo(y + 1)
+//│ ╙──      	                     ^^^^^^^^^^
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Bar1;
+//│ Bar1 = function Bar(y) {
+//│   return globalThis.Object.freeze(new Bar.class(y));
+//│ };
+//│ (class Bar extends Foo1 {
+//│   static {
+//│     Bar1.class = this
+//│   }
+//│   constructor(y) {
+//│     let tmp;
+//│     tmp = y + 1;
+//│     super(tmp);
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Bar", [null]];
+//│ });
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+
