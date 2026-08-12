@@ -127,7 +127,14 @@ class NewResolver:
           // case (Nil, Spd(k, t) :: args) =>
           //   zip(Nil, r, args)
           case (Nil, args) =>
-            ??? // TODO: r
+            r match
+            case N =>
+              raise:
+                ErrorReport(
+                  msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> res.toLoc :: Nil,
+                  source = Diagnostic.Source.Compilation)
+            case S(p) =>
+              ??? // TODO: r
           case (p :: ps, Fld(fls, trm, asc) :: args) =>
             // (p, a) :: zip(ps, r, args)
             listenTerm(trm, sh =>
@@ -138,7 +145,7 @@ class NewResolver:
           case _ =>
             raise:
               ErrorReport(
-                msg"arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> res.toLoc :: Nil,
+                msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> res.toLoc :: Nil,
                 source = Diagnostic.Source.Compilation)
         zip(ps.params, ps.restParam, args.fields)
       case _ => ???
@@ -172,7 +179,29 @@ class NewResolver:
     val sh = newShapes.getOrElseUpdate((lhs, args), {
       log(s"newShape: lhs = $lhs, args = $args, res = $res")
       new NewShape(lhs, args, res):
-        def members: Map[Str, BlockMemberSymbol] = ???
+        log(s"newShape isSaturated? ${isSaturated}; head? ${applicationHead}")
+        if !isSaturated then
+          raise:
+            ErrorReport(
+              msg"Missing argument list(s) in instantiation of ${lhs.applicationHead.describe}" -> res.toLoc :: Nil,
+              source = Diagnostic.Source.Compilation)
+        lazy val members: Map[Str, BlockMemberSymbol] =
+          lhs match
+          case ds: DefnShape =>
+            ds.defn match
+            case cd: ClassDef =>
+              cd.body.members
+            case td: TermDefinition =>
+              td.tsym match
+              case ccs: ClassCtorSymbol =>
+                ccs.associatedCls.defn.getOrElse(die // TODO
+                  ).body.members
+              case _ =>
+                Map.empty
+            case _ =>
+              Map.empty
+          case _ =>
+            Map.empty
         // def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
         //   getFromClsTree(cls.tree)
         val target = receiver match
@@ -291,7 +320,7 @@ class NewResolver:
             res.isErroneous = true
             raise:
               ErrorReport(
-                msg"TODO error ('${id.name}' not in ${receiver.describe})" -> res.toLoc :: Nil,
+                msg"${receiver.describe.capitalize} does not contain member '${id.name}'" -> res.toLoc :: Nil,
                 source = Diagnostic.Source.Compilation)
             N
         target.foreach: tgt =>

@@ -161,9 +161,22 @@ let f = new Foo(1)
 
 
 :e
+let f = new Foo
+//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of overloaded function and class 'Foo'
+//│ ║  l.164: 	let f = new Foo
+//│ ╙──       	        ^^^^^^^
+//│ f = Foo(undefined)
+
+:breakme
+:e
+let f = new Foo()
+//│ f = Foo(undefined)
+
+
+:e
 new 42
 //│ ╔══[COMPILATION ERROR] TODO error (integer literal)
-//│ ║  l.164: 	new 42
+//│ ║  l.177: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a constructor
 

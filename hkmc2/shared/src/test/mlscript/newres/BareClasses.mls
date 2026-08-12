@@ -27,6 +27,33 @@ class Foo {
 //│   res = Lit of UnitLit of false
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+
+:sr
+Foo
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   Foo⁰
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = class Foo
+
+:e
+Foo.b
+//│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
+//│ ║  l.40: 	Foo.b
+//│ ╙──      	^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+let f = Foo
+//│ f = class Foo
+
+:e
+f.b
+//│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
+//│ ║  l.50: 	f.b
+//│ ╙──      	^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 :sr
 :sjs
 let f = new Foo
@@ -35,12 +62,20 @@ let f = new Foo
 //│   f⁰ = new Foo⁰
 //│ whereTODO
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f; f = globalThis.Object.freeze(new Foo1());
+//│ let f1; f1 = globalThis.Object.freeze(new Foo1());
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo { b: 1 }
 
 let f = new Foo()
 //│ f = Foo { b: 1 }
+
+:sr
+f.b
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   f¹.b⁰
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
 
 
 :todo
@@ -50,11 +85,11 @@ class Foo {
   }
 }
 //│ ╔══[COMPILATION ERROR] Unsupported constructor in this position.
-//│ ║  l.48: 	  constructor(val a) {
+//│ ║  l.83: 	  constructor(val a) {
 //│ ║        	  ^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.49: 	    val b = a + 1
+//│ ║  l.84: 	    val b = a + 1
 //│ ║        	^^^^^^^^^^^^^^^^^
-//│ ║  l.50: 	  }
+//│ ║  l.85: 	  }
 //│ ╙──      	^^^
 
 

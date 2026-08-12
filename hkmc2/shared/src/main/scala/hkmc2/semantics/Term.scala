@@ -346,9 +346,10 @@ sealed trait TermShape extends Shape:
   lazy val unappliedParams: Ls[ParamList] = this match
     case ds: DefnShape => ds.defn match
       case defn: TermDefinition => defn.params
+      case defn: ClassDef => defn.paramsOpt.toList ::: defn.auxParams
       case _ => Nil
-    case as: AppShape => as.receiver.unappliedParams.tailOption.toList.flatten
-    case ns: NewShape => ns.receiver.unappliedParams.tailOption.toList.flatten
+    case as: AppShape => as.receiver.unappliedParams.drop(1)
+    case ns: NewShape => ns.receiver.unappliedParams.drop(ns.args.length)
     case _ => Nil
   def isSaturated: Bool = unappliedParams.isEmpty
 // sealed trait TermShape:
@@ -360,6 +361,7 @@ sealed trait TermShape extends Shape:
 class ErrShape(val err: ErrorReport) extends NonAppTermShape:
   def describe: Str = s"error: ${err.mainMsg}"
   def members: Map[Str, BlockMemberSymbol] = Map.empty
+
 abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.App) extends TermShape:
   // def isConcrete: Bool = receiver match
   //   case ds: DefnShape => ds.defn match
@@ -377,6 +379,7 @@ abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.A
   def describe: Str = s"application of ${receiver.describe}"
   override def toString: String = s"AppShape($receiver, $args)"
   def target: Opt[AppTarget]
+
 abstract class NewShape(val receiver: TermShape, val args: Ls[Term], val src: Term.New) extends TermShape:
   def describe: Str = s"instantiation of ${receiver.describe}"
   override def toString: String = s"NewShape($receiver, $args)"
@@ -397,14 +400,17 @@ abstract class SelShape(val receiver: TermShape, val nme: Tree.Ident, val src: A
 class SymShape(val sym: BlockMemberSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
+
 class DefnShape(val defn: Definition) extends NonAppTermShape:
-  def describe: Str = s"${defn.describe}"
+  // def describe: Str = s"${defn.describe}"
+  def describe: Str = s"${defn.bsym.describe} '${defn.bsym.nme}'"
   // override def toString: String = s"DefnShape(${defn.describe} ${defn.bsym.nme})"
   override def toString: String = s"DefnShape(${defn.describe})"
   def members: Map[Str, BlockMemberSymbol] = defn match
     case defn: ModuleOrObjectDef => defn.body.members
     case defn: TermDefinition => ???
     case _ => Map.empty
+
 sealed trait LitShape extends NonAppTermShape:
   self: Term.Lit =>
   def members: Map[Str, BlockMemberSymbol] = Map.empty // TODO: methods on literals, e.g. string methods

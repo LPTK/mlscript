@@ -2,6 +2,20 @@
 #lang(0.3.x)
 
 
+fun foo(x) = x + 1
+
+:e
+foo()
+//│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
+//│ ║  l.8: 	foo()
+//│ ╙──     	^^^^^
+
+:e
+foo(1, 2)
+//│ ╔══[COMPILATION ERROR] Arity mismatch: expected 0 arguments, but got 1
+//│ ║  l.14: 	foo(1, 2)
+//│ ╙──      	^^^^^^^^^
+
 
 :sr
 id
@@ -13,7 +27,7 @@ id
 :e
 fun callid0(p) = p.id(1)
 //│ ╔══[COMPILATION ERROR] Selection has no resolved targets
-//│ ║  l.14: 	fun callid0(p) = p.id(1)
+//│ ║  l.28: 	fun callid0(p) = p.id(1)
 //│ ╙──      	                 ^^^^
 
 

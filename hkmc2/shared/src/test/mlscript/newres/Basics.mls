@@ -41,7 +41,7 @@ Predef.id(1)
 
 :e
 Predef.idd(1)
-//│ ╔══[COMPILATION ERROR] TODO error ('idd' not in module/object definition 'Predef')
+//│ ╔══[COMPILATION ERROR] Module 'Predef' does not contain member 'idd'
 //│ ║  l.43: 	Predef.idd(1)
 //│ ╙──      	^^^^^^^^^^
 
@@ -62,7 +62,7 @@ p.id
 
 :e
 (1).id
-//│ ╔══[COMPILATION ERROR] TODO error ('id' not in integer literal)
+//│ ╔══[COMPILATION ERROR] Integer literal does not contain member 'id'
 //│ ║  l.64: 	(1).id
 //│ ╙──      	 ^^^^^
 
@@ -77,7 +77,7 @@ p.id
 
 :fixme
 "ha ".repeat(2)
-//│ ╔══[COMPILATION ERROR] TODO error ('repeat' not in string literal)
+//│ ╔══[COMPILATION ERROR] String literal does not contain member 'repeat'
 //│ ║  l.79: 	"ha ".repeat(2)
 //│ ╙──      	^^^^^^^^^^^^
 
