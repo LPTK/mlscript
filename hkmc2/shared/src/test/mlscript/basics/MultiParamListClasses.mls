@@ -87,13 +87,12 @@ let f = Foo // should compile to `(x, y) => Foo(x, y)(use[Int])`
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f, f1;
 //│ f1 = function f(x, y) {
-//│   let tmp4, tmp5;
-//│   tmp4 = instance$Ident$_Int$_;
-//│   tmp5 = new Foo03();
-//│   tmp5.x = x;
-//│   tmp5.y = y;
-//│   tmp5.z = tmp4;
-//│   return tmp5
+//│   let tmp2;
+//│   tmp2 = new Foo03();
+//│   tmp2.x = x;
+//│   tmp2.y = y;
+//│   tmp2.z = instance$Ident$_Int$_;
+//│   return tmp2
 //│ };
 //│ f = f1;
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

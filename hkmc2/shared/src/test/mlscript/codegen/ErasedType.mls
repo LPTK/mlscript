@@ -65,6 +65,20 @@ val n: Int = o
 //│ end
 
 
+// A `val` is a block member, so a reference to it is a `MemberRef` carrying its type on its `TermSymbol`.
+// Reading one into a same-typed slot therefore takes no coercion. The block above cannot pin this: it
+// narrows either way, so its output is identical whether or not the reference carries a type.
+fun takeInt(m: Int): Int = m
+val vi: Int = 1
+takeInt(vi)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define takeInt⁰ as fun takeInt¹(m: Int⁰): Int⁰ {
+//│   return m
+//│ };
+//│ define vi⁰ as val vi¹: Int⁰ = 1;
+//│ return takeInt¹(vi¹)
+
+
 // `()` in annotation position denotes the unit type.
 fun retUnit(): () = ()
 fun takesUnit(u: ()): () = u
@@ -265,7 +279,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.266: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.280: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object): ? {
@@ -281,7 +295,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.282: 	fun g(o: Object) = useInt(o)
+//│ ║  l.296: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
@@ -299,7 +313,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.300: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.314: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -698,10 +712,28 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.699: 	val bad: Str = thunk
+//│ ║  l.713: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
+
+
+// The counting has to keep *no* parameter list apart from *one empty* one: only the former is auto-invoked,
+// so a bare reference to `called` is the function itself rather than its result. Asserted rather than left to
+// the golden, and for the same reason as above: were the two conflated, this reference would take `called`'s
+// unknown result type, the narrowing would become an ordinary downcast, and nothing would be raised.
+:ge
+fun called() = 3
+val notCalled: Str = called
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
+//│ ║  l.727: 	val notCalled: Str = called
+//│ ╙──       	                     ^^^^^^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define called⁰ as fun called¹(): ? {
+//│   return 3
+//│ };
+//│ define notCalled⁰ as val notCalled¹: Str⁰ = called¹;
+//│ end
 
 
 // Under `:checkCasts`, every coercion inserted by lowering is marked as checked; the printer spells a checked
@@ -731,7 +763,7 @@ val n2: Int = o2
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.732: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.764: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {

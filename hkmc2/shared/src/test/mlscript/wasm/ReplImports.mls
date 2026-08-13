@@ -106,12 +106,9 @@ val copied: Int32 = idI32(typed)
 //│     (global.set $Unit$inst
 //│       (call $Unit_Unit)))
 //│   (func $entry (export "entry") (type $entry) (result (ref null $Unit))
-//│     (local $tmp i32)
 //│     (block (result (ref null $Unit))
-//│       (local.set $tmp
-//│         (global.get $typed))
 //│       (global.set $copied
-//│         (local.get $tmp))
+//│         (global.get $typed))
 //│       (global.get $Unit$inst)))
 //│   (elem $Unit_init declare func $Unit_init)
 //│   (elem $Unit_Unit declare func $Unit_Unit)

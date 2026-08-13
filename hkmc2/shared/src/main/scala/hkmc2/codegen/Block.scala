@@ -1395,11 +1395,23 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Value.Lit(lit) => 0
     case DynSelect(qual, fld, arrayIdx) => qual.size + fld.size
 
+  /** The erased type of a reference to a member defined by `ts`.
+    *
+    * A zero-param-list `fun` is auto-invoked on every reference, so a reference to it yields the function's
+    * result rather than the function itself.
+    */
+  private def memberErasedType(ts: TermSymbol): Opt[ErasedType] = ts.erasedType match
+    case S(ErasedType.FuncRef(_, paramLists, ret)) if paramLists.isEmpty => ret
+    case other => other
+
   lazy val erasedType: Opt[ErasedType] = this match
     case Value.SimpleRef(sym) => sym.erasedType
     // * A reference to a class is the class *object* (a `Class`).
     case Value.MemberRef(_, _: ClassSymbol) => N
     case Value.MemberRef(_, disamb: (ModuleOrObjectSymbol | TypeAliasSymbol)) => disamb.erasedType
+    // * A `val` or `fun` is a block *member*, so its references are `MemberRef`s rather than `SimpleRef`s, and
+    // * its declared type lives on the associated `TermSymbol` - the same shape `Select` reads below.
+    case Value.MemberRef(_, disamb: TermSymbol) => memberErasedType(disamb)
     case Value.This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => clsOrMod.erasedType
     case Value.Lit(_: Tree.IntLit) => S(ErasedType.Int)
     case Value.Lit(_: Tree.DecLit) => S(ErasedType.Num)
@@ -1423,11 +1435,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     // * A resolved selection has the type of the member it refers to (e.g. `this.field`); an
     // * unresolved selection (dynamic field access) stays unknown.
     case sel @ Select(_, _) => sel.symbol match
-      // * A zero-param-list `fun` is auto-invoked on every reference, so a reference to it yields the function's
-      // * result.
-      case S(ts: TermSymbol) => ts.erasedType match
-        case S(ErasedType.FuncRef(_, paramLists, ret)) if paramLists.isEmpty => ret
-        case other => other
+      case S(ts: TermSymbol) => memberErasedType(ts)
       // * A class reference is the class object, so it stays unknown.
       case S(_: ClassSymbol) => N
       case S(d: (ModuleOrObjectSymbol | TypeAliasSymbol)) => d.erasedType
