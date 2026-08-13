@@ -468,6 +468,29 @@ class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends NonAppTer
     case defn: TermDefinition => ???
     case _ => Map.empty
 
+/* 
+class RefinedShape(val base: TermShape, val refinements: Ls[Str -> Term]) extends NonAppTermShape:
+  def describe: Str = base.describe
+  lazy val members: Map[Str, BlockMemberSymbol] =
+    base.members ++ refinements.iterator.map: (nme, trm) =>
+      // nme -> BlockMemberSymbol(nme, trm)
+      ???
+*/
+type IntroTerm = Term.Tup | Term.Lam | Term.Rcd //| Term.New
+class IntroShape(val trm: IntroTerm) extends NonAppTermShape:
+  def describe: Str = trm.describe
+  lazy val members: Map[Str, BlockMemberSymbol] = trm match
+    case tup: Term.Tup =>
+      // tup.fields.iterator.map:
+      ???
+    case lam: Term.Lam => Map.empty // TODO: methods on lambdas
+    case rcd: Term.Rcd =>
+      // rcd.stats.iterator.collect:
+      // TODO: handler RcdField, RcdSpread
+      ???
+    // case newTerm: Term.New =>
+    //   Map.empty // TODO
+
 sealed trait LitShape extends NonAppTermShape:
   self: Term.Lit =>
   def members: Map[Str, BlockMemberSymbol] = Map.empty // TODO: methods on literals, e.g. string methods
@@ -843,7 +866,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       case Blk(stats, res) => "block"
       case Quoted(term) => "quoted term"
       case Unquoted(term) => "unquoted term"
-      case New(cls, args, rft) => "object creation"
+      case New(cls, args, rft) => "object instantiation"
       case SelProj(pre, cls, proj) => "field selection"
       case Asc(term, ty) => "type ascription"
       case CompType(lhs, rhs, pol) => if pol then "alternation" else "composition"
@@ -1553,12 +1576,15 @@ enum IfLikeForm:
     case ImperativeIf | While => true
 
 
-sealed abstract class Elem:
+sealed abstract class Elem extends AutoLocated:
   def subTerms: Ls[Term] = this match
     case Fld(_, term, asc) => term :: asc.toList
     case Spd(_, term) => term :: Nil
   def show(using Scope, ShowCfg, Raise): Document
   def showDbg(using DebugPrinter): Str
+  // def toLoc: Opt[Loc] = this match
+  //   case Fld(_, term, _) => term.toLoc
+  //   case Spd(_, term) => term.toLoc
 object Elem:
   given Conversion[Term, Elem] = PlainFld(_)
 final case class Fld(flags: FldFlags, term: Term, asc: Opt[Term]) extends Elem, FldImpl
@@ -1568,6 +1594,7 @@ object PlainFld:
 final case class Spd(k: SpreadKind, term: Term) extends Elem:
   def show(using Scope, ShowCfg, Raise): Document = k.str :: term.show
   def showDbg(using DebugPrinter): Str = k.str + term.showDbg
+  def children: Vector[Located] = Vector.single(term)
 
 final case class TyParam(flags: FldFlags, vce: Opt[Bool], sym: VarSymbol) extends Declaration:
   
@@ -1658,7 +1685,8 @@ object ParamListFlags:
   val empty = ParamListFlags(false)
 
 
-trait FldImpl extends AutoLocated:
+// trait FldImpl extends AutoLocated:
+trait FldImpl:
   self: Fld =>
   def children: Vector[Located] = self.term +: self.asc.toVector
   def show(using Scope, ShowCfg, Raise): Document = flags.show :: self.term.show

@@ -46,6 +46,7 @@ class NewResolver:
   val selShapes: mutable.Map[(TermShape, FlowSymbol), SelShape] = mutable.Map.empty
   val appShapes: mutable.Map[(TermShape, FlowSymbol), AppShape] = mutable.Map.empty
   val newShapes: mutable.Map[(TermShape, FlowSymbol), NewShape] = mutable.Map.empty
+  val introShapes: mutable.Map[IntroTerm, IntroShape] = mutable.Map.empty // TODO use symbols for faster lookup?
   val symShapes: mutable.Map[BlockMemberSymbol, SymShape] = mutable.Map.empty
   val defnShapes: mutable.Map[DefinitionSymbol[?], DefnShape] = mutable.Map.empty
   
@@ -66,7 +67,17 @@ class NewResolver:
             msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> src.toLoc :: Nil,
             source = Diagnostic.Source.Compilation)
       case S(p) =>
-        ??? // TODO: r
+        // ??? // TODO: r
+        val packaged = new Tup(args)(Tree.DummyTup).withLoc(Loc.mk(args.iterator.flatMap(_.toLoc)))
+        /* 
+        listenTerm(packaged, sh =>
+          log(s"zipArg: r = ${p.showDbg}, packaged = ${packaged.showDbg}, sh = $sh, ${p.sym.shapeListeners}")
+          if p.sym.shapes.add(sh) then
+            p.sym.shapeListeners.foreach(listener => listener(sh))
+        )
+        */
+        val sh = IntroShape(packaged)
+        p.sym.shapeListeners.foreach(_(sh))
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
       // (p, a) :: zip(ps, r, args)
       listenTerm(trm, sh =>
@@ -508,6 +519,12 @@ class NewResolver:
     trm.shapeListeners += listener
     trm match
     case sh: Lit =>
+      listener(sh)
+    case intro: IntroTerm =>
+      val sh = introShapes.getOrElseUpdate(intro, {
+        log(s"introShape: intro = $intro")
+        IntroShape(intro)
+      })
       listener(sh)
     // case Term.App(lhs, args) =>
     //   // listen(lhs, sh => listener(AppShape(sh, args)))
