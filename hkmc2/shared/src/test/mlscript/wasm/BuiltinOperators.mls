@@ -67,8 +67,8 @@ wasm.i32.const(1, 2)
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^
 
 
-// Immediates must be literals and will be rejected by the compiler.
-// Note: A `let`-bound literal would be constant-propagated before reaching the backend, so it does not test this.
+// Immediates must be literals. Note: a `let`-bound literal would be constant-propagated before reaching the
+// backend, so it would not test this.
 :ge
 fun constOf(x: Int) = wasm.ref.i31(wasm.i32.const(x))
 //│ ╔══[COMPILATION ERROR] Wasm intrinsic 'i32.const' expects an integer literal immediate
@@ -84,7 +84,6 @@ wasm.i32.const(-1)
 //│ ═══[COMPILATION ERROR] Wasm intrinsic 'i32.const' expects an integer literal immediate
 
 
-// The remaining arithmetic instructions.
 wasm.i32.sub(wasm.i32.const(1), wasm.i32.const(2))
 //│ Wasm result:
 //│ = -1
@@ -141,7 +140,8 @@ wasm.i32.eqz(wasm.i32.const(0))
 //│ = 1
 
 
-// `get_s`/`get_u` differ only on the sign bit - Tested using `2147483647` (0x7FFF_FFFF).
+// `2147483647` does not fit in an i31 and is truncated to all 31 bits set, which `get_s` reads as -1 and
+// `get_u` as 2147483647.
 wasm.i31.get_s(2147483647)
 //│ Wasm result:
 //│ = -1

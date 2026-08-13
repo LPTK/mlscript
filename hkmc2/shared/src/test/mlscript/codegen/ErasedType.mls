@@ -35,8 +35,6 @@ fun main =
 //│ end
 
 
-// Value definitions are typed if they have explicit type annotations.
-// Note: `let` bindings cannot be annotated, so they are always `: ?`
 val i: Int = 1
 val f: Num = 1.5
 val s: Str = "str"
@@ -49,7 +47,6 @@ val b: Bool = true
 //│ end
 
 
-// A `val` initializer is narrowed to the declared type, like a parameter or a return.
 fun mkObj(): Object = new Object()
 val o: Object = mkObj()
 val n: Int = o
@@ -79,7 +76,6 @@ takeInt(vi)
 //│ return takeInt¹(vi¹)
 
 
-// `()` in annotation position denotes the unit type.
 fun retUnit(): () = ()
 fun takesUnit(u: ()): () = u
 fun passUnit(): () = takesUnit(())
@@ -94,7 +90,6 @@ fun passUnit(): () = takesUnit(())
 //│ end
 
 
-// A class's annotated parameters give its fields a type.
 class Foo(x: Int)
 class Bar(val y: Str)
 fun main =
@@ -121,7 +116,6 @@ fun main =
 //│ end
 
 
-// An unannotated function has unknown parameter and return types.
 fun mk(a) = new Bar(a)
 fun main =
   let made = mk(1)
@@ -143,8 +137,6 @@ fun test(x: Int): Int = "oops"
 //│ define test⁰ as fun test¹(x: Int⁰): Int⁰ { return "oops" }; end
 
 
-// Parameter and return annotations are kept (`x: Int`, `y: Int`); the unannotated return stays
-// `: ?` - it is never inferred from the body.
 fun add1(x: Int, y: Int) = x + y
 fun add2(x: Int, y: Int): Int = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -163,7 +155,6 @@ fun keep(x: Int) =
 //│ define keep⁰ as fun keep¹(x: Int⁰): ? { set x = 5; return x }; end
 
 
-// An annotated mutable field narrows the assigned value at the field-assignment site.
 class Ref(mut val v: Int) with
   fun put(x) = set v = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -178,13 +169,11 @@ class Ref(mut val v: Int) with
 //│ end
 
 
-// A rest parameter has no annotation, so it stays `: ?`.
 fun rest(a, ...xs) = xs
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define rest⁰ as fun rest¹(a: ?, ...xs: ?): ? { return xs }; end
 
 
-// Method return-type annotations are rendered like free functions.
 class Calc() with
   fun twice(x: Int): Int = x + x
   fun whatever(a) = a
@@ -246,12 +235,11 @@ fun counter(x: Int) =
 //│ end
 
 
-// Passing a primitive (`Int32`) to a slot expecting `Object` is a compilation error.
 :ge
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.252: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.240: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object): ? {
@@ -261,13 +249,11 @@ fun f(x: Int32) = useObj(x)
 //│ end
 
 
-// The reverse - passing a reference (`Object`) into a slot expecting a primitive (`Int32`) slot is
-// also a compilation error.
 :ge
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.268: 	fun g(o: Object) = useInt(o)
+//│ ║  l.254: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
@@ -277,7 +263,6 @@ fun g(o: Object) = useInt(o)
 //│ end
 
 
-// Same-named types are told apart by qualifying each name with its owner chain.
 :ge
 class Shape
 fun useShape(x: Shape) = x
@@ -285,7 +270,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.286: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.271: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -343,8 +328,7 @@ fun g(i: Int, i31: Int31) =
 //│ end
 
 
-// Aliases are resolved at cast sites, so no casts are inserted when passing between `Foo` and `FooAlias`, nor down a
-// chain of aliases.
+// Aliases are resolved at cast sites, so passing between `Foo` and `FooAlias` - or down a chain - is free.
 // The erased type itself keeps the alias symbol and resolves it lazily, but `print` canonicalizes every erased type
 // before rendering, so an alias always prints as its target.
 class Foo(x: Int)
@@ -369,8 +353,8 @@ fun widen(f: Foo): FooAlias = f
 //│ end
 
 
-// Similarly, an alias to a primitive is resolved at cast sites, so no casts are inserted (nor errors emitted) when 
-// passing an aliased primitive to a function expecting the underlying primitive type (and v/v).
+// An alias to a primitive resolves the same way - notably without raising the `Unrelated` error a primitive
+// mismatch would.
 fun useI32(n: Int32) = n
 type MyI32 = Int32
 fun useMyI32(x: MyI32) = useI32(x)
@@ -404,8 +388,6 @@ fun useUnion(x: Union): Union = x
 //│ end
 
 
-// A (possibly nested) union annotation collapses to the least upper bound of its members, and the slot prints that
-// single type.
 class Base
 class A extends Base
 class B extends Base
@@ -420,12 +402,8 @@ fun threeOf(x: A | B | Base): Int = 0
 //│ end
 
 
-// Casts are determined against the collapsed slot type:
-//
-// - `A | B` -> `Base` is an identity conversion since `A | B`'s LUB is `Base`.
-//   - Similarly, `Base` -> `A | B` is an identity conversion.
-// - `A` -> `A | B` is an upcast since `A <: Base`.
-// - `A | B` -> `A` is a *downcast* since `A | B`'s LUB is `Base` and `Base <: A` is false.
+// Casts are decided against the collapsed slot type: `A | B` erases to `Base`, so only `A | B -> A` is a
+// downcast.
 fun takesBase(b: Base): () = ()
 fun takesUnion(u: A | B): () = ()
 fun takesSubtype(a: A): () = ()
@@ -520,7 +498,6 @@ fun sccG(): Object = sccF() + 1
 
 
 // Checks whether `annotLoop(n - 1)` still produces a tail call even though it is wrapped in a `Cast` node.
-// Also runs the compiled JS to ensure that the tail call is preserved and does not overflow the stack.
 :js
 @tailrec
 fun annotLoop(n: Int): () = annotHelper(n)
@@ -549,7 +526,6 @@ annotHelper(100000)
 
 // Checks whether the let-bound tail call `r` still produces a tail call even though it is wrapped in a `Cast` node.
 // A dropped return coercion is re-placed on the stub of the function that dropped it.
-// Also runs the compiled JS to ensure that the tail call is preserved and does not overflow the stack.
 :soir
 :js
 @tailrec
@@ -623,10 +599,8 @@ fun f(x: Anything): Anything = x
 //│ define f⁶ as fun f⁷(x: Anything): Anything { return x }; end
 
 
-// A call is only typed as the callee's result when it is saturated. `curried(1)` supplies one of the two
-// declared parameter lists, so it is the residual function, not an `Int` — passing it to a `Function` slot
-// must therefore need no coercion. Before parameter lists were tracked, this was rejected outright with
-// "Cannot narrow a value of type 'Int' to unrelated type 'Function'".
+// A call is typed as the callee's result only when saturated: `curried(1)` supplies one of two declared
+// parameter lists, so it is the residual function, not an `Int`.
 fun curried(a: Int)(b: Int): Int = a + b
 fun useFn(g: Function) = g(1)
 useFn(curried(1))
@@ -642,16 +616,14 @@ useFn(curried(1))
 //│ return useFn¹(tmp)
 
 
-// Supplying every declared list still recovers the result type, so the `Int` slot takes no coercion.
 val done: Int = curried(1)(2)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Int⁰; set tmp = curried¹(1)(2); define done⁰ as val done¹: Int⁰ = tmp; end
 
 
-// Counting lists has to account for normalization: a `fun` written with no parameter list keeps `Nil` in
-// its signature, but lowering gives it one empty list and calls it with one empty argument list. `thunk()`
-// is therefore saturated, not over-applied, and keeps its declared `Function` — only the further `(2)`,
-// applied to the thunk's result, is unknown and needs the narrowing to `Int`.
+// Counting lists must account for normalization: a `fun` with no parameter list keeps `Nil` in its
+// signature, but lowering gives it one empty list and calls it with one empty argument list. `thunk()` is
+// therefore saturated, and only the further `(2)` needs narrowing to `Int`.
 fun thunk: Function = (b: Int) => b + 1
 val over: Int = thunk(2)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -671,28 +643,25 @@ val over: Int = thunk(2)
 //│ end
 
 
-// Golden drift alone does not fail this file, so the normalization above is also pinned with an assertion
-// that does: the auto-invoked `thunk` is saturated, so it keeps its declared `Function`, which cannot narrow
-// to `Str`. Were the call read as over-applied instead, its type would degrade to the top type, this would
-// become an ordinary downcast, and nothing would be raised here.
+// Complements the lowered IR from the block above: This block asserts that a saturated `thunk` keeps
+// `Function` and cannot narrow to `Str`, where an over-applied reading would take the top type and
+// raise nothing.
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.679: 	val bad: Str = thunk
+//│ ║  l.650: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
 
 
-// The counting has to keep *no* parameter list apart from *one empty* one: only the former is auto-invoked,
-// so a bare reference to `called` is the function itself rather than its result. Asserted rather than left to
-// the golden, and for the same reason as above: were the two conflated, this reference would take `called`'s
-// unknown result type, the narrowing would become an ordinary downcast, and nothing would be raised.
+// The counterpart: *no* parameter list must stay distinct from *one empty* one, since only the former is
+// auto-invoked, so a bare `called` is the function itself. Asserted for the same reason as above.
 :ge
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.693: 	val notCalled: Str = called
+//│ ║  l.662: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -702,11 +671,9 @@ val notCalled: Str = called
 //│ end
 
 
-// Under `:checkCasts`, every coercion inserted by lowering is marked as checked; the printer spells a checked
-// cast `as T` and an unchecked one `as! T`. The flag is read once, where the coercion is introduced; it changes
-// nothing else about lowering, so the IR is otherwise identical to the unmarked casts above.
-// The mark is consumed later, by `CheckedCastExpansion`; what it expands into is covered by
-// `CheckedCasts.mls`.
+// Under `:checkCasts` the printer spells a checked cast `as T` and an unchecked one `as! T`. The flag is read
+// once, where the coercion is introduced, so the IR is otherwise identical to the casts above. What the mark
+// expands into is covered by `CheckedCasts.mls`.
 :checkCasts
 fun mkObj2(): Object = new Object()
 val o2: Object = mkObj2()
@@ -723,13 +690,12 @@ val n2: Int = o2
 //│ end
 
 
-// An instantiation is typed as an instance of the class it names, so it cannot fill a primitive slot.
-// This is asserted rather than left to the casts elided above: were the `Instantiate` type lost, it would
-// degrade to the top type and the narrowing would become an ordinary downcast, raising nothing.
+// An instantiation is typed as its class, so it cannot fill a primitive slot. Asserted rather than left to
+// the elided casts above: were the `Instantiate` type lost, this would silently become an ordinary downcast.
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.730: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.696: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {

@@ -85,7 +85,6 @@ foo(41)
 //│ = 42
 
 
-// Tests whether cast elision and insertion works correctly:
 // - `addOne(41)` in the top-level elides a cast since `41: i31` and `(ref i31) <: (ref null i31)`
 // - `addOne(v)` in `useIt` inserts a cast since `v: anyref` and `(ref null any) :> (ref null i31)`
 :noInline
@@ -205,8 +204,7 @@ getX(Foo(42))
 //│ = 42
 
 
-// Checks that `f` in `getX` is typed as `(ref $Foo)` (evident by the type annotation)
-// and that field `bar` is typed `(ref null $Bar)` (not `anyref`).
+// Field `bar` is typed `(ref null $Bar)`, not `anyref`.
 :noInline
 :wat
 class Bar(val x)
@@ -439,7 +437,7 @@ fun bar() = 42
 fun foo() = bar
 foo()()
 //│ ╔══[COMPILATION ERROR] Returning function instances is not supported
-//│ ║  l.439: 	fun foo() = bar
+//│ ║  l.437: 	fun foo() = bar
 //│ ╙──       	            ^^^
 
 
@@ -448,8 +446,8 @@ foo()()
 fun takeTop(m: Int32) = m
 takeTop(1)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.449: 	takeTop(1)
+//│ ║  l.447: 	takeTop(1)
 //│ ╙──       	        ^
 //│ ╔══[COMPILATION ERROR] Wasm function `takeTop` expects result to have type `(ref null any)`, but got `i32`
-//│ ║  l.448: 	fun takeTop(m: Int32) = m
+//│ ║  l.446: 	fun takeTop(m: Int32) = m
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -97,7 +97,6 @@ toTop() is Top
 //│ = true
 
 
-// A cast that does not hold throws instead of silently returning a value of the wrong type.
 :re
 toInt()
 //│ ═══[RUNTIME ERROR] Error: Cannot narrow a value to type 'Int'

@@ -85,8 +85,7 @@ useBox(id(new Box(42)))
 //│ = 42
 
 
-// Similarly, the constructor call to `Wrap` is `new Wrap(cast[Box](id(new Box(7))))`, which the
-// WAT backend also reflects with a `ref.cast` instruction.
+// Similarly, the constructor call is `new Wrap(cast[Box](id(new Box(7))))`.
 :noInline
 class Wrap(val b: Box)
 fun readV(b: Box) = b.v
@@ -114,8 +113,7 @@ setter(1)
 //│ = 7
 
 
-// A return coercion is not restricted to paths - it also wraps a call, whose result is then narrowed for
-// the `Box`-typed parameter of `useBox`.
+// A return coercion also wraps a call, whose result is then narrowed for `useBox`'s `Box` parameter.
 fun anyBox(n: Int): Object = new Box(7)
 fun narrowBox(n: Int): Box = anyBox(n)
 useBox(narrowBox(0))
