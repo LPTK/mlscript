@@ -715,13 +715,13 @@ extends Importer:
       t.split match
       case block: Block => termSplit(block.desugStmts, identity)
       case other: Tree => termSplit(Ls(other), identity)
-    new Term.IfLike(t.kw.kw, form, split).withLocOf(t)
+    ifLike(t.kw.kw, form, split, t.toLoc)
   
   /** Elaborate `case` expressions */
   protected def caseSplit(scrut: VarSymbol, tree: Case): Ctxl[Term.IfLike] =
     val (form, split) = withScopedConnectives(tree.kw):
       patternBranch(() => scrut.ref(), tree.branches, identity)
-    new Term.IfLike(tree.kw.kw, form, split).withLocOf(tree)
+    ifLike(tree.kw.kw, form, split, tree.toLoc)
   
   /** Elaborate shorthand expressions. */
   protected def shorthandSplit(tree: Tree)(using UnderCtx): Ctxl[SimpleSplit] =
@@ -970,6 +970,14 @@ extends Importer:
     if newResolution then listenTerm(lt, shape => appShape(shape, rt, res))
     res
   
+  def ifLike(kw: Keyword.SplitLike, form: IfLikeForm, split: SimpleSplit, loc: Opt[Loc]): Term.IfLike =
+    val res = new Term.IfLike(kw, form, split).withLoc(loc)
+    if newResolution then
+      // log(s"Listening to if-like split ${res.showDbg}")
+      split.results.foreach: trm =>
+        pipeTerm(trm, res)
+    res
+  
   
   def subterm(tree: Tree): Ctxl[UnderCtx ?=> Term] =
   trace[Term](s"Elab subterm ${tree.showDbg}", r => s"~> $r"):
@@ -1186,7 +1194,7 @@ extends Importer:
       app(State.builtinOpsMap("!").ref(new Ident("not").withLocOf(kw)), Term.Tup(
         PlainFld(subterm(rhs)) :: Nil)(DummyTup))(DummyApp, N, FlowSymbol("not-app"))
     case tree @ InfixApp(lhs, Keywrd(Keyword.`is` | Keyword.`and` | Keyword.`or`), rhs) =>
-      Term.IfLike(Keyword.`if`, IfLikeForm.ReturningIf, shorthandSplit(tree))
+      ifLike(Keyword.`if`, IfLikeForm.ReturningIf, shorthandSplit(tree), tree.toLoc)
     case InfixApp(Sel(pre, idn: Ident), Keywrd(Keyword.`#`), idp: Ident) =>
       val c = subterm(idn)
       val f = c.symbol.flatMap(_.asCls) match
@@ -2291,22 +2299,24 @@ extends Importer:
     val res = ctx.withMembers(members).givenIn:
       go(blk.desugStmts, Nil, Nil)
     
+    // if newResolution then
     members.valuesIterator.foreach(_.complete())
     members.valuesIterator.foreach: bms =>
       bms.symbols.foreach:
         case sym: (ClassLikeSymbol & InnerSymbol) =>
-          val d = sym.defn.get
-          d.ext match
-          case S(ext) =>
-            listenTerm(ext, esh => {
-              val sh = BaseShape(d, S(esh)) // TODO actually use applied shape providing generics?
+          sym.defn.foreach: d => // erroneous code may not have a defn even after the BMS is completed
+            d.ext match
+            case S(ext) =>
+              listenTerm(ext, esh => {
+                val sh = BaseShape(d, S(esh)) // TODO actually use applied shape providing generics?
+                sym.shapeListeners.foreach(_(sh))
+              })
+            case N =>
+              val sh = BaseShape(d, N) // TODO actually use applied shape providing generics?
               sym.shapeListeners.foreach(_(sh))
-            })
-          case N =>
-            val sh = BaseShape(d, N) // TODO actually use applied shape providing generics?
-            sym.shapeListeners.foreach(_(sh))
         case sym: InnerSymbol =>
-          ???
+          // println(">>> "+sym)
+          // TODO: patterns
         case _ => ()
     
     res

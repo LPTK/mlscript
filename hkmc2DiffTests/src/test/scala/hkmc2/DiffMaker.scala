@@ -131,7 +131,7 @@ abstract class DiffMaker:
   val strw = new java.io.StringWriter
   val out = new java.io.PrintWriter(strw)
   val output = Outputter(out)
-  val report = ReportFormatter(output(_), colorize = false)
+  val report = ReportFormatter(output(_), file.up, colorize = false)
   
   private def emitOutputSeparator(): Unit =
     output.linesDelta += 1

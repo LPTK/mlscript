@@ -1,7 +1,7 @@
 package hkmc2
 package semantics
 
-import scala.collection.mutable.{Buffer, Set as MutSet}
+import scala.collection.mutable.{Buffer, Set as MutSet, LinkedHashSet}
 
 import hkmc2.utils.*, shorthands.*
 import syntax.*
@@ -127,14 +127,14 @@ end AppImpl
 
 type Resolvable = Term & ResolvableImpl
 
-sealed trait ResolvableImpl:
+sealed trait ResolvableImpl extends ShapeHost:
   this: Term =>
   
   import Resolvable.CallableDefinition
   
   var isErroneous: Bool = false // * to avoid reporting follow-on errors after a flow/resolution error
   
-  private[semantics] val shapes: MutSet[Shape] = MutSet.empty
+  // private[semantics] val shapes: MutSet[Shape] = MutSet.empty
   def getShapes: Ls[Shape] = shapes.toList
   
   /**
@@ -475,6 +475,10 @@ sealed trait LitShape extends NonAppTermShape:
 trait ShapePublisher:
   private[semantics] val shapeListeners: Buffer[Shape => Unit] = Buffer.empty
 
+trait ShapeHost extends ShapePublisher:
+  private[semantics] val shapes: LinkedHashSet[Shape] = LinkedHashSet.empty
+  def showDbg(using DebugPrinter): Str
+
 
 
 enum Term extends Statement, ShapePublisher:
@@ -505,7 +509,7 @@ enum Term extends Statement, ShapePublisher:
   case Tup(fields: Ls[Elem])(val tree: Tree.Tup)
   case Mut(underlying: Tup | Rcd | New | DynNew)
   case CtxTup(fields: Ls[Elem])(val tree: Tree.Tup)
-  case IfLike(kw: Keyword.SplitLike, form: IfLikeForm, split: SimpleSplit)
+  case IfLike(kw: Keyword.SplitLike, form: IfLikeForm, split: SimpleSplit) extends Term, ShapeHost
   /** `If` expressions synthesized by the pattern compiler. It should only be
    *  created and used in `Lowering`. One must make sure that all terms in the
    *  split are correctly resolved. In the future, we might look for a way to
@@ -1165,7 +1169,8 @@ final case class DefineVar(sym: LocalSymbol | TermSymbol, rhs: Term) extends Sta
 
 /** A global configuration change directive (`#config(...)`).
   * Records a function that modifies the current compiler configuration. */
-final case class SetConfig(modify: hkmc2.Config => hkmc2.Config) extends Statement
+final case class SetConfig(modify: hkmc2.Config => hkmc2.Config) extends Statement:
+  override def toString: String = "#config(...)"
 
 enum Visibility:
   case Public, Private

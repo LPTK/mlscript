@@ -113,7 +113,7 @@ class Watcher(dirs: Ls[File]):
             val runtimeFile = testBasePath/"mlscript-compile"/"Runtime.mjs"
             val runtimeSourceFile = testBasePath/"mlscript-compile"/"Runtime.mls"
             val termFile = testBasePath/"mlscript-compile"/"Term.mjs",
-          mkRaise = ReportFormatter(System.out.println, colorize = true).mkRaise
+          mkRaise = ReportFormatter(System.out.println, rootPath, colorize = true).mkRaise
         ).compileModule(path)
       else
         val dm = new MainDiffMaker(rootPath.toString, path, preludePath, predefPath, relativeName):

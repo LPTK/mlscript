@@ -1,38 +1,70 @@
-
+:js
+// :showRepl
+// :de
 #lang(0.3.x)
 
 
 
+:sr
+:sir
 module Foo {
   module Bar {
     fun id(x) = x
   }
 }
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   module Foo {
+//│     module Bar {
+//│       fun id⁰(x⁰) ‹flow:id⁰› = x⁰
+//│     }
+//│   }
+//│ whereTODO
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Foo⁰ as class Foo¹
+//│ module Foo² {
+//│   constructor {
+//│     define Bar⁰ as class Bar¹
+//│     module Bar² { method id⁰ = fun id¹(x) { return x } };
+//│     end
+//│   }
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // :de
-:elt
+:sr
+:sir
+:lot
 Foo.Bar
-//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
-//│ Blk:
-//│   res = Sel{targets=[ObjectMember(member:Bar)]}:
-//│     prefix = Ref{sym=member:Foo⁰} of member:Foo⁰
-//│     nme = Ident of "Bar"
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   Foo⁰.Bar⁰
+//│ whereTODO
+//│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Return of Select{sym=module:Bar²}:
+//│     qual = MemberRef{disamb=module:Foo²}:
+//│       bms = member:Foo⁰
+//│       disamb = module:Foo²
+//│     name = Ident of "Bar"
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ return Foo².Bar²
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = class Bar
 
-// :de
-:elt
+:sr
 Foo.Bar.id
-//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
-//│ Blk:
-//│   res = Sel{targets=[ObjectMember(member:id)]}:
-//│     prefix = Sel{targets=[ObjectMember(member:Bar)]}:
-//│       prefix = Ref{sym=member:Foo⁰} of member:Foo⁰
-//│       nme = Ident of "Bar"
-//│     nme = Ident of "id"
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   Foo⁰.Bar⁰.id⁰
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun id
 
 
 let
   f = Foo
   b = f.Bar
+//│ b = class Bar
+//│ f = class Foo { Bar: class Bar }
 
 :elt
 b.id
@@ -41,5 +73,37 @@ b.id
 //│   res = Sel{targets=[ObjectMember(member:id)]}:
 //│     prefix = Ref{sym=b⁰} of b⁰
 //│     nme = Ident of "id"
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun id
+
+
+// :de
+:sr
+let m = if maybe then Foo.Bar else Predef
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   let m⁰,
+//│   m⁰ = TODO[show:IfLike](IfLike(keyword 'if',ReturningIf,Cons(Let(tmp:scrut,SynthSel(Ref(member:Predef),Ident(maybe))),Cons(Match(Ref(tmp:scrut),Literal(BoolLit(true)),Else(Sel(Ref(member:Foo),Ident(Bar)))),Else(Ref(member:Predef))))))
+//│ whereTODO
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ m = class Bar
+
+:sr
+:e
+m.id
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   m⁰.id‹id⁰, id¹›
+//│ whereTODO
+//│ ╔══[COMPILATION ERROR] Selection of member 'id' is ambiguous, as it has multiple resolved targets
+//│ ║  l.92: 	m.id
+//│ ║        	^^^^
+//│ ╟── target: member id
+//│ ║  l.12: 	    fun id(x) = x
+//│ ║        	    ^^^^^^^^^^^^^
+//│ ╟── target: member id
+//│ ║  in ../../mlscript-compile/Predef.mls
+//│ ║  l.16: 	fun id(x) = x
+//│ ╙──      	^^^^^^^^^^^^^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun id
 
 

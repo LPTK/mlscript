@@ -4,6 +4,7 @@
 
 :elt
 :rt
+:sir
 id
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
@@ -15,17 +16,18 @@ id
 //│   res = SynthSel{sym=member:id⁰}:
 //│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
 //│     nme = Ident of "id"
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ return Predef¹.id¹
 
 
-:elt
-// :rt
-// :de
+:sr
+:sir
 Predef.id
-//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
-//│ Blk:
-//│   res = Sel{targets=[ObjectMember(member:id)]}:
-//│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
-//│     nme = Ident of "id"
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   Predef⁰.id⁰
+//│ whereTODO
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ return Predef¹.id¹
 
 :elt
 Predef.id(1)
@@ -42,7 +44,7 @@ Predef.id(1)
 :e
 Predef.idd(1)
 //│ ╔══[COMPILATION ERROR] Module 'Predef' does not contain member 'idd'
-//│ ║  l.43: 	Predef.idd(1)
+//│ ║  l.45: 	Predef.idd(1)
 //│ ╙──      	^^^^^^^^^^
 
 
@@ -50,13 +52,16 @@ Predef.idd(1)
 let p = Predef
 
 // :de
-:elt
+:rt
+:sir
 p.id
-//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   res = Sel{targets=[ObjectMember(member:id)]}:
 //│     prefix = Ref{sym=p⁰} of p⁰
 //│     nme = Ident of "id"
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ return p⁰.id¹
 
 p.id
 
@@ -81,23 +86,23 @@ p.id
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] Integer literal does not contain member 'id'
-//│ ║  l.82: 	(1).id
+//│ ║  l.87: 	(1).id
 //│ ╙──      	 ^^^^^
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.88: 	1.id
+//│ ║  l.93: 	1.id
 //│ ╙──      	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.88: 	1.id
+//│ ║  l.93: 	1.id
 //│ ╙──      	  ^^
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] String literal does not contain member 'repeat'
-//│ ║  l.97: 	"ha ".repeat(2)
-//│ ╙──      	^^^^^^^^^^^^
+//│ ║  l.102: 	"ha ".repeat(2)
+//│ ╙──       	^^^^^^^^^^^^
 
 
 

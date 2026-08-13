@@ -392,6 +392,13 @@ class NewResolver:
     case N =>
       sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
   */
+  def pipeTerm(from: Term, to: ShapeHost): Unit =
+    log(s"pipeTerm: from = ${from.showDbg}, to = ${to.showDbg}; ${to.shapes}")
+    listenTerm(from, sh =>
+      if to.shapes.add(sh) then
+        to.shapeListeners.foreach(listener => listener(sh))
+    )
+  
   def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
     log(s"listenTerm: trm = ${trm.showDbg}")
     def fromBMS(bms: BlockMemberSymbol) =
@@ -409,6 +416,7 @@ class NewResolver:
       */
       log(s"listenBMS: bms = ${bms.describe}, trm = ${trm.showDbg}")
       bms.onComplete: () =>
+        log(s"listenedBMS: bms = ${bms.describe}, trm = ${trm.showDbg}")
         bms.asModOrObj orElse bms.asTrm orElse bms.asCls match
         case S(sym: (ModuleOrObjectSymbol | TermSymbol | ClassSymbol)) =>
           sym.defn match
@@ -526,6 +534,9 @@ class NewResolver:
       symShape(bsym, ref)
     case res: ResolvableImpl =>
       res.shapes.foreach(listener)
+    case sh: ShapeHost =>
+      sh.shapes.foreach(listener)
+      sh.shapeListeners += listener
     case _ =>
       println("oops")
       ()

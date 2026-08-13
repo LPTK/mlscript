@@ -14,8 +14,9 @@ import hkmc2.utils.*, shorthands.*
   */
 class ReportFormatter(
   output: Str => Unit,
+  basePath: io.Path,
   val colorize: Bool,
-  val wrap: Opt[(=> Unit) => Unit] = N
+  val wrap: Opt[(=> Unit) => Unit] = N,
 ):
   val MaxLineCount = 5
   
@@ -65,6 +66,7 @@ class ReportFormatter(
           s"$headChar══[INTERNAL ERROR] "
       val lastMsgNum = diag.allMsgs.size - 1
       var globalLineNum = blockLineNum
+      var curPath: io.Path = null
       diag.allMsgs.zipWithIndex.foreach { case ((msg, loco), msgNum) =>
         val isLastMsg = msgNum =:= lastMsgNum
         val msgStr = msg.showIn(using sctx)
@@ -73,6 +75,18 @@ class ReportFormatter(
           if !onlyOneLine then text("╙──")
         else text(s"${if isLastMsg && loco.isEmpty then "╙──" else "╟──"} ${msgStr}")
         loco.foreach { loc =>
+          val org = loc.origin
+          val path = loc.origin.fileName
+          // println(s"loc: $loc, org: $org, curOrigin: $curOrigin")
+          if (curPath isnt null) && curPath =/= path then
+            // println(s"loc!!")
+            // text(s"║  ${org.fileName}${if org.startLineNum > 0 then s":${org.startLineNum}" else ""}")
+            text(s"║  in ${path.relativeTo(basePath).getOrElse(path)}${if org.startLineNum > 0 then s":${org.startLineNum}" else ""}")
+            // text(s"║  ${org.fileName.relativeTo(os.pwd.toNIO)}${if org.startLineNum > 0 then s":${org.startLineNum}" else ""}:")
+            // println(os.pwd.toNIO.toAbsolutePath())
+            // text(s"║  ${org.fileName.toString.stripPrefix(os.pwd.toNIO.toAbsolutePath().toString)}${if org.startLineNum > 0 then s":${org.startLineNum}" else ""}:")
+          // curOrigin = org
+          curPath = path
           val (startLineNum, startLineStr, startLineCol) =
             loc.origin.fph.getLineColAt(loc.spanStart)
           badLines += startLineNum

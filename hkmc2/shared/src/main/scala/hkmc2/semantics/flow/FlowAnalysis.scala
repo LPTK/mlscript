@@ -37,6 +37,16 @@ enum SelectionTarget:
   case CompanionMember(comp: Term, sym: MemberSymbol)
   case Err(err: ErrorReport)
   
+  def describe: Str = this match
+    case ObjectMember(sym) => s"member ${sym.nme}" // TODO: more info
+    case CompanionMember(_, sym) => s"companion member ${sym.nme}"
+    case Err(err) => s"erroneous selection (${err.mainMsg})"
+  
+  def loc: Opt[Loc] = this match
+    case ObjectMember(sym) => sym.toLoc
+    case CompanionMember(_, sym) => sym.toLoc
+    case Err(err) => N
+  
   import hkmc2.document.*
   import hkmc2.document.Document.*
   def show(using Scope, ShowCfg, Raise): Document =

@@ -647,10 +647,15 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             Nil, S(sel), source = Diagnostic.Source.Compilation)
         N
     case ts =>
-      if newResolution then
-        println(ts)
-        ???
-      else N
+      if newResolution && !sel.isErroneous then raise:
+        // println(ts)
+        // ???
+        ErrorReport(
+          msg"Selection of member '${sel.nme.name}' is ambiguous, as it has multiple resolved targets" -> sel.toLoc ::
+            ts.map: t =>
+              msg"target: ${t.describe}" -> t.loc
+            , S(sel), source = Diagnostic.Source.Compilation)
+      N
   
   def ref(ref: st.Ref, annots: List[Annot], disamb: Opt[DefinitionSymbol[?]], inStmtPos: Bool)(k: Result => Block)(using LoweringCtx): Block =
     def warnStmt = if inStmtPos then warnPureExprInStmtPos(ref.toLoc, S(ref))
