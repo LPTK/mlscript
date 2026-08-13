@@ -151,3 +151,11 @@ fun useCrate2(c: Crate2): Int = c.v
 useCrate2(id(new NotACrate(1)))
 //│ Wasm result:
 //│ ═══[RUNTIME ERROR] Cannot narrow a value to type 'Crate2'
+
+
+// A primitive target takes no runtime test: `Int32` is unboxed, so there is nothing to test against. The
+// cast comes from `id`'s unannotated result, which stays untyped by design.
+:checkCasts
+wasm.ref.i31(id(wasm.i32.const(7)))
+//│ Wasm result:
+//│ = 7
