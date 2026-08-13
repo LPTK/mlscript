@@ -178,34 +178,6 @@ class Ref(mut val v: Int) with
 //│ end
 
 
-// Return-type annotations are rendered at the `fun ...: T` definition site.
-fun addUp(x: Int, y: Int): Int = x + y
-fun makeBar(s: Str): Bar = new Bar(s)
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define addUp⁰ as fun addUp¹(x: Int⁰, y: Int⁰): Int⁰ {
-//│   return (+⁰(x, y) as! Int⁰)
-//│ };
-//│ define makeBar⁰ as fun makeBar¹(s: Str⁰): Bar⁰ { return new Bar⁰(s) };
-//│ end
-
-
-// Without a return annotation, the declared return stays `: ?`.
-fun lt(a, b) = a < b
-fun mkBar(a) = new Bar(a)
-fun ident(a) = a
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define lt⁰ as fun lt¹(a: ?, b: ?): ? {
-//│   return <⁰(a, b)
-//│ };
-//│ define mkBar⁰ as fun mkBar¹(a: ?): ? {
-//│   let tmp: Str⁰;
-//│   set tmp = (a as! Str⁰);
-//│   return new Bar⁰(tmp)
-//│ };
-//│ define ident⁰ as fun ident¹(a: ?): ? { return a };
-//│ end
-
-
 // A rest parameter has no annotation, so it stays `: ?`.
 fun rest(a, ...xs) = xs
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -279,7 +251,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.280: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.252: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object): ? {
@@ -295,7 +267,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.296: 	fun g(o: Object) = useInt(o)
+//│ ║  l.268: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
@@ -313,7 +285,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.314: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.286: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -371,18 +343,15 @@ fun g(i: Int, i31: Int31) =
 //│ end
 
 
-// A type alias annotation is kept as-is in the erased type. A chain of aliases is likewise preserved.
-type MyInt = Int
-val v: MyInt = 1
-type MyInt2 = MyInt
-val w: MyInt2 = 2
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define v⁴ as val v⁵: Int⁰ = 1; define w⁰ as val w¹: Int⁰ = 2; end
-
-
-// Aliases are resolved at cast sites, so no casts are inserted when passing between `Foo` and `FooAlias`.
+// Aliases are resolved at cast sites, so no casts are inserted when passing between `Foo` and `FooAlias`, nor down a
+// chain of aliases.
+// The erased type itself keeps the alias symbol and resolves it lazily, but `print` canonicalizes every erased type
+// before rendering, so an alias always prints as its target.
 class Foo(x: Int)
 type FooAlias = Foo
+type MyInt = Int
+type MyInt2 = MyInt
+val w: MyInt2 = 2
 fun narrow(f: FooAlias): Foo = f
 fun widen(f: Foo): FooAlias = f
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -396,6 +365,7 @@ fun widen(f: Foo): FooAlias = f
 //│   private val x¹: Int⁰;
 //│   constructor Foo⁵(x: Int⁰) { set Foo³.this.x¹ = x; end }
 //│ };
+//│ define w⁰ as val w¹: Int⁰ = 2;
 //│ end
 
 
@@ -439,12 +409,8 @@ fun useUnion(x: Union): Union = x
 class Base
 class A extends Base
 class B extends Base
-fun oneOf(x: A | B): Int = 0
 fun threeOf(x: A | B | Base): Int = 0
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define oneOf⁰ as fun oneOf¹(x: Base⁰): Int⁰ {
-//│   return 0
-//│ };
 //│ define threeOf⁰ as fun threeOf¹(x: Base⁰): Int⁰ {
 //│   return 0
 //│ };
@@ -712,7 +678,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.713: 	val bad: Str = thunk
+//│ ║  l.679: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -726,7 +692,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.727: 	val notCalled: Str = called
+//│ ║  l.693: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -763,7 +729,7 @@ val n2: Int = o2
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.764: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.730: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {

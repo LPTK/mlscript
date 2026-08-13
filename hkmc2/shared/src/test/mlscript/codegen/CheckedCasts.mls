@@ -15,6 +15,8 @@ class Top(x: Int)
 fun mkTop(): Object = new Top(1)
 // An unannotated result is `Anything`, the only source that can be narrowed *to* `Object`.
 fun anything(v) = v
+module M with
+  class Inner(y: Int)
 
 
 // A user-defined top-level class is reached through its own binding.
@@ -35,11 +37,9 @@ fun toTop(): Top = mkTop()
 
 // A class nested in a module is reached through its owner.
 :sjs
-module M with
-  class Inner(y: Int)
 fun toInner(): M.Inner = mkTop()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let M1, toInner;
+//│ let toInner;
 //│ toInner = function toInner() {
 //│   let castScrut;
 //│   castScrut = mkTop();
@@ -48,25 +48,6 @@ fun toInner(): M.Inner = mkTop()
 //│   }
 //│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'M.Inner'"));
 //│ };
-//│ (class M {
-//│   static {
-//│     M1 = this
-//│   }
-//│   static {
-//│     M.Inner = function Inner(y) {
-//│       return globalThis.Object.freeze(new Inner.class(y));
-//│     };
-//│     (class Inner {
-//│       static {
-//│         M.Inner.class = this
-//│       }
-//│       toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["class", "Inner", [null]];
-//│     });
-//│   }
-//│   toString() { return runtime.render(this); }
-//│   static [definitionMetadata] = ["class", "M"];
-//│ });
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

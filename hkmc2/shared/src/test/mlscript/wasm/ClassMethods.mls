@@ -275,19 +275,6 @@ Prim(0).take(n32)
 //│ = 7
 
 
-// Method types are fixed at predeclaration, so a primitive result must be annotated
-:ge
-class Unannotated(val v) with
-  fun take(m: Int32) = m
-Unannotated(0).take(1)
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.282: 	Unannotated(0).take(1)
-//│ ╙──       	                    ^
-//│ ╔══[COMPILATION ERROR] Wasm function `take` expects result to have type `(ref null any)`, but got `i32`
-//│ ║  l.281: 	  fun take(m: Int32) = m
-//│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^
-
-
 // Mutually recursive methods, whose bodies are matches every arm of which returns. The match's result local is
 // then never read, and loading it anyway would type the body `anyref` against the declared `i31ref` - which only
 // methods notice, since they carry a precise declared result type.

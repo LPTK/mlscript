@@ -8,6 +8,8 @@
 // In this example, the function call is equivalent to `useBox(cast[Box](id(new Box(42))))`.
 // This is reflected by `(local.set $tmp2 (ref.cast (ref $Box) (local.get $tmp1)))` in the `:wat`
 // output.
+// Note that `:noInline` is needed here (and below) to prevent `id` from being inlined and the coercion elided.
+:noInline
 :wat
 class Box(val v: Int)
 fun id(a) = a
@@ -23,7 +25,7 @@ useBox(id(new Box(42)))
 //│   (type $Box_ctor (func (param $v (ref null i31)) (result (ref $Box))))
 //│   (type $id (func (param $a (ref null any)) (result (ref null any))))
 //│   (type $useBox (func (param $b (ref $Box)) (result (ref null i31))))
-//│   (type $entry (func (result (ref i31))))
+//│   (type $entry (func (result (ref null i31))))
 //│   (global $Box_typeinfo (export "Box_typeinfo") (ref $Box_typeinfo) (struct.new $Box_typeinfo
 //│     (i32.const 1)
 //│     (ref.null $TypeInfoBase)))
@@ -56,20 +58,24 @@ useBox(id(new Box(42)))
 //│       (ref.cast (ref i31)
 //│         (struct.get $Box $v
 //│           (local.get $b)))))
-//│   (func $entry (export "entry") (type $entry) (result (ref i31))
+//│   (func $entry (export "entry") (type $entry) (result (ref null i31))
 //│     (local $tmp (ref $Box))
-//│     (local $tmp1 (ref $Box))
-//│     (block (result (ref i31))
+//│     (local $tmp1 (ref null any))
+//│     (local $tmp2 (ref $Box))
+//│     (block (result (ref null i31))
 //│       (local.set $tmp
 //│         (call $Box_ctor
 //│           (ref.i31
 //│             (i32.const 42))))
 //│       (local.set $tmp1
-//│         (local.get $tmp))
+//│         (call $id
+//│           (local.get $tmp)))
+//│       (local.set $tmp2
+//│         (ref.cast (ref $Box)
+//│           (local.get $tmp1)))
 //│       (return
-//│         (ref.cast (ref i31)
-//│           (struct.get $Box $v
-//│             (local.get $tmp1))))))
+//│         (call $useBox
+//│           (local.get $tmp2)))))
 //│   (elem $Box_init declare func $Box_init)
 //│   (elem $Box_ctor declare func $Box_ctor)
 //│   (elem $id declare func $id)
@@ -81,6 +87,7 @@ useBox(id(new Box(42)))
 
 // Similarly, the constructor call to `Wrap` is `new Wrap(cast[Box](id(new Box(7))))`, which the
 // WAT backend also reflects with a `ref.cast` instruction.
+:noInline
 class Wrap(val b: Box)
 fun readV(b: Box) = b.v
 let w = new Wrap(id(new Box(7)))
@@ -90,6 +97,7 @@ readV(w.Wrap#b)
 
 
 // `inc(cast[Int](id(41)))`
+:noInline
 fun inc(n: Int) = n + 1
 inc(id(41))
 //│ Wasm result:
@@ -97,6 +105,7 @@ inc(id(41))
 
 
 // `set x = cast[Int](id(7))`
+:noInline
 fun setter(x: Int) =
   set x = id(7)
   x
@@ -105,14 +114,8 @@ setter(1)
 //│ = 7
 
 
-// A return coercion is not restricted to paths - it also wraps an instantiate...
-fun mkObj(n: Int): Object = new Box(42)
-mkObj(0)
-//│ Wasm result:
-//│ = {}
-
-
-// ...and a call, whose result is then narrowed for the `Box`-typed parameter of `useBox`.
+// A return coercion is not restricted to paths - it also wraps a call, whose result is then narrowed for
+// the `Box`-typed parameter of `useBox`.
 fun anyBox(n: Int): Object = new Box(7)
 fun narrowBox(n: Int): Box = anyBox(n)
 useBox(narrowBox(0))

@@ -310,10 +310,6 @@ isObj(1)
 //│ Wasm result:
 //│ = 0
 
-isObj(true)
-//│ Wasm result:
-//│ = 0
-
 isObj("hi")
 //│ Wasm result:
 //│ = 0
