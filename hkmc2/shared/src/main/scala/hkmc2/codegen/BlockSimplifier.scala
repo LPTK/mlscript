@@ -803,7 +803,10 @@ class BlockSimplifier
       val lhs2 = applyLocalAssignLhs(lhs)
       val varAsst = rhs.match
         case r @ Value.SimpleRef(sym: LocalVar) =>
-          if capturedVars(sym) then N
+          // * Cross-unit inlining may expose a local owned by another compilation unit. This
+          // * intraprocedural analysis does not see that unit's assignments or captures, so only
+          // * locals declared in the program being analyzed may participate in alias propagation.
+          if !localVars(sym) || capturedVars(sym) then N
           else S(r -> accessAssignedResults(sym))
         case r: Value.RefLike => S(r -> Unknown)
         case _ => N
@@ -1492,6 +1495,8 @@ class BlockSimplifier
         
         // Whether this method belongs to a true module (as opposed to a class or
         // an instance-based singleton object).
+        // Inlining non-virtual (ie final) methods might be done in the future,
+        // but will need to be careful about `super` calls and `this` references.
         def isModuleMethod: Bool = defn.dSym.owner match
           case S(owner: ModuleOrObjectSymbol) => owner.tree.k is syntax.Mod
           case _ => false
@@ -1551,6 +1556,12 @@ class BlockSimplifier
         val useCnt = MutMap.WithDefault(MutMap.empty[TermSymbol, Int], _ => 0)
         val usages = MutMap.WithDefault(MutMap.empty[TermSymbol, List[(Option[TermSymbol], Call)]], _ => Nil)
         val disallowElimination = MutMap.WithDefault(MutMap.empty[TermSymbol, Bool], _ => false)
+        // * Referenced definitions not encountered in the local block are registered before being
+        // * appended to this worklist. Recursive references therefore terminate immediately, while
+        // * advancing an index discovers the transitive closure without rescanning symbols.
+        val pendingReferencedFunctionBodies = Buffer.empty[FunDefn]
+        var nextReferencedFunctionBody = 0
+        val analyzedFunctionBodies = MutSet.empty[TermSymbol]
         var contextList: List[FunLikeContext] = FunLikeContext(N, false) :: Nil
         
         def currentContext = contextList.head
@@ -1564,10 +1575,45 @@ class BlockSimplifier
           contextList = contextList.tail
           res
         
-        def addFunctionAndApplyBody(f: FunDefn, isMethod: Bool) =
-          val r = nested(S(f.dSym), f.inline):
-            applyBlock(f.body)
-          map = map + (f.dSym -> InlinerFunInfo(f, isMethod, 0, false, false))
+        def registerFunction(f: FunDefn, isMethod: Bool, isReferenced: Bool): Bool =
+          if !map.contains(f.dSym) then
+            // * A referenced definition cannot be eliminated from the local block. This is based
+            // * on where the definition was encountered, rather than symbol state: incremental
+            // * worksheet blocks can share a state while still having distinct function bodies.
+            map = map + (f.dSym -> InlinerFunInfo(f, isMethod, 0, isReferenced, false))
+            true
+          else
+            val info = map(f.dSym)
+            softAssert((info.defn is f) && info.isMethod === isMethod,
+              s"Inconsistent definitions registered for ${f.dSym.showDbg}")
+            if !isReferenced then
+              // * A forward reference may have registered this definition before its local
+              // * `Define` node was reached. Its local occurrence makes elimination eligible again.
+              info.disallowElimination = false
+            false
+
+        def applyFunctionBody(f: FunDefn): Unit =
+          if analyzedFunctionBodies.add(f.dSym) then
+            nested(S(f.dSym), f.inline):
+              applyBlock(f.body)
+
+        def addFunctionAndApplyBody(f: FunDefn, isMethod: Bool): Unit =
+          applyFunctionBody(f)
+          registerFunction(f, isMethod, false)
+
+        def registerReferencedFunction(sym: TermSymbol): Unit =
+          if !map.contains(sym) then
+            sym.irDefn.foreach:
+              case fd: FunDefn =>
+                if registerFunction(fd, fd.owner.nonEmpty, true) then
+                  pendingReferencedFunctionBodies.append(fd)
+              case _ =>
+
+        def applyPendingReferencedFunctionBodies(): Unit =
+          while nextReferencedFunctionBody < pendingReferencedFunctionBodies.size do
+            val f = pendingReferencedFunctionBodies(nextReferencedFunctionBody)
+            nextReferencedFunctionBody += 1
+            applyFunctionBody(f)
         
         override def applyDefn(defn: Defn): Unit = defn match
           case f: FunDefn =>
@@ -1594,6 +1640,7 @@ class BlockSimplifier
               disallowElimination(ts) = true
             useCnt(ts) += 1
             usages(ts) ::= (currentFunSym, c)
+            registerReferencedFunction(ts)
             argss.foreach(_.foreach(applyArg))
           case _ => super.applyResult(r)
         
@@ -1611,11 +1658,7 @@ class BlockSimplifier
         
         def analyze(blk: Block): InlinerMap =
           applyBlock(blk)
-          map = map ++
-            useCnt.keysIterator.filterNot(map.contains).flatMap: sym =>
-              sym.irDefn.collect:
-                case fd: FunDefn =>
-                  sym -> InlinerFunInfo(fd, fd.owner.nonEmpty, 0, true, false)
+          applyPendingReferencedFunctionBodies()
           map.foreach: (sym, info) =>
             info.useCount = useCnt(sym)
             info.disallowElimination = info.disallowElimination || disallowElimination(sym)
@@ -1627,6 +1670,8 @@ class BlockSimplifier
                   map(sym).defn.params.isEmpty ||
                   matchAllArgs(call.argss, map(sym).defn.params).isEmpty
                 caller.foreach: caller =>
+                  softAssert(map.contains(caller),
+                    s"Call-graph source ${caller.showDbg} was not registered before traversal")
                   edges.append((caller, sym))
 
           def pickLoopBreaker(sccComp: Ls[TermSymbol]): TermSymbol =
