@@ -138,3 +138,31 @@ toObject()
 // inhabits the `Object` type but does not match the `Object` pattern.
 1 is Object
 //│ = false
+
+
+// A primitive target emits no test: JS erases the primitive types, so nothing distinguishes an `Int32` at
+// runtime. `useInt` is the contrast - the reference type `Int` still gets one. The gap is deliberate, but
+// real: this slot goes unchecked.
+:sjs
+fun useI32(n: Int32): Int32 = n
+fun callI32(): Int32 = useI32(anything(1))
+fun useInt(n: Int): Int = n
+fun callInt(): Int = useInt(anything(1))
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let useInt, callInt, callI32, useI32;
+//│ useI32 = function useI32(n) {
+//│   return n
+//│ };
+//│ callI32 = function callI32() {
+//│   return 1
+//│ };
+//│ useInt = function useInt(n) {
+//│   return n
+//│ };
+//│ callInt = function callInt() {
+//│   if (globalThis.Number.isInteger(1)) {
+//│     return 1
+//│   }
+//│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Int'"));
+//│ };
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
