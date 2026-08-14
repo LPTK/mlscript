@@ -6,10 +6,7 @@
 :sr
 class Foo(val x)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(val x⁰) {
-//│     val x¹ ‹flow:x⁰› = x⁰
-//│   }
-//│ whereTODO
+//│   class Foo(val x⁰) { val x¹ ‹flow:x⁰› = x⁰ }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -20,11 +17,10 @@ class Bar(y) extends Foo(y + 1) {
   val z = this.x + 1
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Bar(y⁰) extends new Foo⁰(+(y⁰, 1)‹app⁰›) {
+//│   class Bar(y⁰) extends new Foo(+(y⁰, 1)‹app⁰›) {
 //│     @privateval y¹ ‹flow:y⁰› = y⁰,
 //│     val z⁰ ‹flow:z⁰› = +(Bar⁰.x¹, 1)‹app¹›
 //│   }
-//│ whereTODO
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Bar1;
 //│ Bar1 = function Bar(y) {
@@ -55,7 +51,6 @@ let b = Bar(123)
 b.x
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   b⁰.x¹
-//│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 124
 
@@ -77,8 +72,8 @@ b.y
 :fixme
 b.x
 //│ ╔══[COMPILATION ERROR] Instance of class constructor 'Bar' does not contain member 'x'
-//│ ║  l.78: 	b.x
-//│ ╙──      	^^^
+//│ ║  l.73: 	b.x
+//│ ╙──      	 ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 b.z
@@ -95,20 +90,17 @@ module Outer {
 :e
 object Derived extends Outer.Inner1
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class 'Inner1'
-//│ ║  l.96: 	object Derived extends Outer.Inner1
+//│ ║  l.91: 	object Derived extends Outer.Inner1
 //│ ╙──      	                       ^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
-//│ ║  l.96: 	object Derived extends Outer.Inner1
+//│ ║  l.91: 	object Derived extends Outer.Inner1
 //│ ╙──      	                       ^^^^^^^^^^^^
 
 :sr
 :sir
 object Derived extends Outer.Inner1(11)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   object Derived extends new Outer⁰.Inner1⁰(11) {
-//│     
-//│   }
-//│ whereTODO
+//│   object Derived extends new Outer.Inner1⁰(11) {  }
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Derived⁰ as object Derived¹ extends Outer⁰.Inner1⁰ {}; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -116,8 +108,8 @@ object Derived extends Outer.Inner1(11)
 :fixme
 Derived.x
 //│ ╔══[COMPILATION ERROR] Object 'Derived' does not contain member 'x'
-//│ ║  l.117: 	Derived.x
-//│ ╙──       	^^^^^^^^^
+//│ ║  l.109: 	Derived.x
+//│ ╙──       	       ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 Derived."x"
@@ -125,20 +117,17 @@ Derived."x"
 :e
 object Derived extends Outer.Inner2
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Inner2'
-//│ ║  l.126: 	object Derived extends Outer.Inner2
+//│ ║  l.118: 	object Derived extends Outer.Inner2
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
-//│ ║  l.126: 	object Derived extends Outer.Inner2
+//│ ║  l.118: 	object Derived extends Outer.Inner2
 //│ ╙──       	                       ^^^^^^^^^^^^
 
 :sr
 :sir
 object Derived extends Outer.Inner2(12)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   object Derived extends new Outer⁰.Inner2⁰(12) {
-//│     
-//│   }
-//│ whereTODO
+//│   object Derived extends new Outer.Inner2⁰(12) {  }
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Derived² as object Derived³ extends Outer⁰.Inner2⁰ {}; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

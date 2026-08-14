@@ -268,6 +268,10 @@ class NewResolver:
           // N
     })
   
+  def resolveNew(nw: Term.New): Unit =
+    log(s"resolveNew? res = ${nw.showDbg}")
+    listenTerm(nw.cls, shape => newShape(shape, nw.args, nw))
+  
   def selShape(lhs: TermShape, id: Tree.Ident, res: AnySelTerm): Unit =
     log(s"selShape? lhs = $lhs, nme = $id, res = $res")
     val sh = selShapes.getOrElseUpdate((lhs, res.resSym), {

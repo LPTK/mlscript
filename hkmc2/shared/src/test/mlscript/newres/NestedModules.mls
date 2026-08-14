@@ -74,7 +74,8 @@ b.id
 :sr
 let m = if maybe then Foo.Bar else Predef
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let m⁰, m⁰ = TODO[show:IfLike](IfLike(keyword 'if',ReturningIf,Cons(Let(tmp:scrut,SynthSel(MemberRef(member:Predef),Ident(maybe))),Cons(Match(Ref(tmp:scrut),Literal(BoolLit(true)),Else(NewSel(MemberRef(member:Foo),Ident(Bar)))),Else(MemberRef(member:Predef))))))
+//│   let m⁰,
+//│   m⁰ = TODO[show:IfLike](IfLike(keyword 'if',ReturningIf,Cons(Let(tmp:scrut,SynthSel(MemberRef(member:Predef),Ident(maybe))),Cons(Match(Ref(tmp:scrut),Literal(BoolLit(true)),Else(NewSel(MemberRef(member:Foo),Ident(Bar)))),Else(MemberRef(member:Predef))))))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ m = class Bar
 
@@ -82,18 +83,17 @@ let m = if maybe then Foo.Bar else Predef
 :e
 m.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   m⁰.id‹id¹, id⁰›
+//│   m⁰.id‹id⁰, id¹›
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
-//│ ║  l.83: 	m.id
+//│ ║  l.84: 	m.id
 //│ ║        	^^^^
+//│ ╟── target: function 'id'
+//│ ║  l.12: 	    fun id(x) = x
+//│ ║        	    ^^^^^^^^^^^^^
 //│ ╟── target: function 'id'
 //│ ║  in ../../mlscript-compile/Predef.mls
 //│ ║  l.16: 	fun id(x) = x
-//│ ║        	^^^^^^^^^^^^^
-//│ ╟── target: function 'id'
-//│ ║  in NestedModules.mls:10
-//│ ║  l.12: 	    fun id(x) = x
-//│ ╙──      	    ^^^^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

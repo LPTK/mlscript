@@ -41,8 +41,7 @@ Predef.id
 //│ | ~> NewSel(MemberRef(member:Predef),Ident(id))
 //│ ~> Blk(List(),NewSel(MemberRef(member:Predef),Ident(id)))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   TODO[show:NewSel](NewSel(MemberRef(member:Predef),Ident(id)))
-//│ whereTODO
+//│   Predef.id⁰
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ return Predef¹.id¹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -65,7 +64,7 @@ Predef.id(1)
 :e
 Predef.idd(1)
 //│ ╔══[COMPILATION ERROR] Module 'Predef' does not contain member 'idd'
-//│ ║  l.66: 	Predef.idd(1)
+//│ ║  l.65: 	Predef.idd(1)
 //│ ╙──      	      ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -95,9 +94,7 @@ p.id
 p.id
 p.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   TODO[show:NewSel](NewSel(SimpleRef(p),Ident(id))),
-//│   TODO[show:NewSel](NewSel(SimpleRef(p),Ident(id)))
-//│ whereTODO
+//│   p⁰.id⁰, p⁰.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -108,8 +105,7 @@ val p = Predef
 :sr
 p.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   TODO[show:NewSel](NewSel(MemberRef(member:p),Ident(id)))
-//│ whereTODO
+//│   p.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -117,24 +113,24 @@ p.id
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] Integer literal does not contain member 'id'
-//│ ║  l.118: 	(1).id
+//│ ║  l.114: 	(1).id
 //│ ╙──       	   ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.125: 	1.id
+//│ ║  l.121: 	1.id
 //│ ╙──       	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.125: 	1.id
+//│ ║  l.121: 	1.id
 //│ ╙──       	  ^^
 //│ = 1
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] String literal does not contain member 'repeat'
-//│ ║  l.135: 	"ha ".repeat(2)
+//│ ║  l.131: 	"ha ".repeat(2)
 //│ ╙──       	     ^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

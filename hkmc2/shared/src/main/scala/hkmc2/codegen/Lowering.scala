@@ -403,6 +403,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           case S(cc: ClassCtorSymbol) => cc.associatedCls
           case _ => ???
       trm match
+      case MemberRef(bms) =>
+        k(Value.MemberRef(bms, fromBMS(bms)))
+      case sel: NewSel =>
+        subTerm(sel.prefix): pre =>
+          sel.resolvedMembers match
+          case bms :: Nil =>
+            k(Select(pre, memberIdent(sel.id, S(bms)))(S(fromBMS(bms)))(false))
       // case rsl: Resolvable =>
       //   rsl.getShapes match
       //   case (sh: TermShape) :: Nil =>

@@ -454,7 +454,7 @@ abstract class MLsDiffMaker extends DiffMaker:
       outputSeparator(s"Resolved")
       output:
         import document.*
-        doc" #{ ${e.showTopLevel(using flowScp)} #} ".mkString()
+        doc" #{ ${e.showTopLevel(using flowScp)} #} ".mkString(output.ColWidth)
         // doc" #{ ${e.showTopLevel(using flowScp)} #} \nwhere #{ ${"TODO"} #} ".mkString()
     
     processTerm(e, inImport = false)

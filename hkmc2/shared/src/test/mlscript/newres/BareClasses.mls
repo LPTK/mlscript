@@ -67,48 +67,20 @@ f.b
 let f = new Foo
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   let f⁰, f⁰ = new Foo
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:434)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:434': Unexpected class term shape
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ throw "This code cannot be run as its compilation yielded an error."
+//│ let f1; f1 = globalThis.Object.freeze(new Foo3());
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ f = undefined
+//│ f = Foo { b: 1 }
 
 let f = new Foo()
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:434)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:434': Unexpected class term shape
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ f = undefined
+//│ f = Foo { b: 1 }
 
 :sr
 f.b
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f¹.b⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'b')
-//│     at REPL40:1:24
-//│     at ContextifyScript.runInThisContext (node:vm:137:12)
-//│     at REPLServer.defaultEval (node:repl:598:22)
-//│     at bound (node:domain:433:15)
-//│     at REPLServer.runBound [as eval] (node:domain:444:12)
-//│     at REPLServer.onLine (node:repl:927:10)
-//│     at REPLServer.emit (node:events:518:28)
-//│     at REPLServer.emit (node:domain:489:12)
-//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
-//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+//│ = 1
 
 
 :e
@@ -118,50 +90,34 @@ class Foo {
   }
 }
 //│ ╔══[COMPILATION ERROR] Unsupported constructor in this position.
-//│ ║  l.116: 	  constructor(val a) {
-//│ ║         	  ^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.117: 	    val b = a + 1
-//│ ║         	^^^^^^^^^^^^^^^^^
-//│ ║  l.118: 	  }
-//│ ╙──       	^^^
+//│ ║  l.88: 	  constructor(val a) {
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.89: 	    val b = a + 1
+//│ ║        	^^^^^^^^^^^^^^^^^
+//│ ║  l.90: 	  }
+//│ ╙──      	^^^
 
 
+:fixme
 :breakme // `val` in ctor param list should be compiled or explicitly disallowed
 :sr
-class Foo with {
-// class Foo { // TODO
+class Foo {
   constructor(val a)
   val b = a + 1
 }
-//│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: scala.MatchError: term:Foo/a (of class hkmc2.semantics.TermSymbol)
-//│ 	at: hkmc2.semantics.Elaborator$Ctx$RefElem.ref(Elaborator.scala:324)
-//│ 	at: hkmc2.semantics.Elaborator.ident(Elaborator.scala:2457)
-//│ 	at: hkmc2.semantics.Elaborator.subterm$$anonfun$3(Elaborator.scala:1149)
-//│ 	at: hkmc2.MLsDiffMaker$$anon$2.trace(MLsDiffMaker.scala:272)
-//│ 	at: hkmc2.semantics.Elaborator.subterm(Elaborator.scala:1589)
-//│ 	at: hkmc2.semantics.Elaborator.subterm$$anonfun$3(Elaborator.scala:1299)
-//│ 	at: hkmc2.MLsDiffMaker$$anon$2.trace(MLsDiffMaker.scala:272)
-//│ 	at: hkmc2.semantics.Elaborator.subterm(Elaborator.scala:1589)
-//│ 	at: hkmc2.semantics.Elaborator.term$$anonfun$3(Elaborator.scala:951)
-//│ 	at: hkmc2.MLsDiffMaker$$anon$2.trace(MLsDiffMaker.scala:272)
 
 
 :e
 let f = Foo(1)
 //│ ╔══[COMPILATION ERROR] Class 'Foo' cannot be applied.
-//│ ║  l.151: 	let f = Foo(1)
+//│ ║  l.112: 	let f = Foo(1)
 //│ ╙──       	        ^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo4 cannot be invoked without 'new'
 //│ f = undefined
 
 
 let f = new Foo(1)
-//│ FAILURE: Unexpected internal error
-//│ FAILURE LOCATION: softAssert (Lowering.scala:434)
-//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:434': Unexpected class term shape
-//│ ╟── The compilation result may be incorrect.
-//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ FAILURE: Unexpected runtime error
 //│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -171,7 +127,7 @@ let f = new Foo(1)
 :sr
 f.a
 //│ ╔══[COMPILATION ERROR] Instance of class 'Foo' does not contain member 'a'
-//│ ║  l.172: 	f.a
+//│ ║  l.128: 	f.a
 //│ ╙──       	 ^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f².aˀ
@@ -183,7 +139,7 @@ f.b
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: newSel (NewResolver.scala:265)
 //│ ╔══[COMPILATION ERROR] Instance of class 'Foo' does not contain member 'b'
-//│ ║  l.182: 	f.b
+//│ ║  l.138: 	f.b
 //│ ╙──       	 ^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f².bˀ

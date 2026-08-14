@@ -11,31 +11,28 @@ class Foo(val a)(val b) {
 //│   class Foo(val a⁰)(val b⁰) {
 //│     val a¹ ‹flow:a⁰› = a⁰,
 //│     val b¹ ‹flow:b⁰› = b⁰,
-//│     val c⁰ ‹flow:c⁰› = +(⟨Foo⁰.⟩a¹, ⟨Foo⁰.⟩b¹)‹app⁰›
+//│     val c⁰ ‹flow:c⁰› = +(⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩a¹, ⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩b¹)‹app⁰›
 //│   }
-//│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :e
 let f = new Foo
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Foo'
-//│ ║  l.20: 	let f = new Foo
+//│ ║  l.19: 	let f = new Foo
 //│ ╙──      	        ^^^^^^^
 //│ f = fun f
 
 :e
 let f = new Foo(1)
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Foo'
-//│ ║  l.27: 	let f = new Foo(1)
+//│ ║  l.26: 	let f = new Foo(1)
 //│ ╙──      	        ^^^^^^^^^^
 //│ f = fun f
 
 :sr
 let f = new Foo(1)(2)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let f⁰,
-//│   f⁰ = new Foo¹(1)(2)
-//│ whereTODO
+//│   let f⁰, f⁰ = new Foo(1)(2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
@@ -43,7 +40,6 @@ let f = new Foo(1)(2)
 f.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f⁰.a¹
-//│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -51,7 +47,6 @@ f.a
 f.b
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f⁰.b¹
-//│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
 
@@ -59,7 +54,6 @@ f.b
 f.c
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f⁰.c⁰
-//│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 
