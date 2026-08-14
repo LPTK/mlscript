@@ -318,6 +318,10 @@ object Elaborator:
             Term.SimpleRef(sym)(id)
           case sym: BlockMemberSymbol =>
             Term.MemberRef(sym)(id)
+          // case sym: TermSymbol => // FIXME: should never happen... (currently happens for ref to ctor let)
+          //   Term.MemberRef(sym)(id)
+          case sym: InnerSymbol =>
+            Term.SelfRef(sym)(id)
         else
           // * Note: due to symbolic ops, we may have `id.name =/= nme`;
           // * e.g., we can have `id.name = "|>"` and `nme = "pipe"`.

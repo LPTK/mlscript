@@ -265,7 +265,7 @@ class NewResolver:
             ErrorReport(
               msg"${shape.describe.capitalize} does not contain member '${sel.id.name}'" -> sel.id.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
-          N
+          // N
     })
   
   def selShape(lhs: TermShape, id: Tree.Ident, res: AnySelTerm): Unit =

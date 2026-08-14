@@ -6,17 +6,13 @@
 :sr
 class Foo(val a)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(val a⁰) {
-//│     val a¹ ‹flow:a⁰› = a⁰
-//│   }
-//│ whereTODO
+//│   class Foo(val a⁰) { val a¹ ‹flow:a⁰› = a⁰ }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :sr
 Foo(Predef).a.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo⁰(Predef⁰)‹app⁰›.a¹.id⁰
-//│ whereTODO
+//│   Foo(Predef)‹app⁰›.a¹.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -30,20 +26,14 @@ class Foo(val a) {
   val b = a + 1
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(val a²) {
-//│     val a³ ‹flow:a¹› = a²,
-//│     val b⁰ ‹flow:b⁰› = +(⟨Foo¹.⟩a³, 1)‹app¹›
-//│   }
-//│ whereTODO
+//│   class Foo(val a²) { val a³ ‹flow:a¹› = a², val b⁰ ‹flow:b⁰› = +(⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩a³, 1)‹app¹› }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // :de
 :sr
 let f = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let f⁰,
-//│   f⁰ = Foo²(1)‹app²›
-//│ whereTODO
+//│   let f⁰, f⁰ = Foo(1)‹app²›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
@@ -53,7 +43,6 @@ let f = Foo(1)
 f.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f⁰.a³
-//│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -63,7 +52,6 @@ f.a
 f.b
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f⁰.b⁰
-//│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
 
@@ -74,8 +62,7 @@ val fv = Foo(1)
 :sr
 fv.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fv⁰.a³
-//│ whereTODO
+//│   fv.a³
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -85,9 +72,7 @@ fv.a
 fun get = fv.a
 val fv = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun get⁰ ‹flow:get⁰› = fv¹.a³,
-//│   val fv¹ ‹flow:fv⁰› = Foo²(1)‹app³›
-//│ whereTODO
+//│   fun get⁰ ‹flow:get⁰› = fv.a³, val fv⁰ ‹flow:fv⁰› = Foo(1)‹app³›
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp;
 //│ define get⁰ as fun get¹() { return fv⁰.a⁰ };
@@ -103,13 +88,12 @@ val fv = Foo(1)
 :expect 1
 get
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   get⁰
-//│ whereTODO
+//│   get
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ return get¹
+//│ return get¹()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] Expected: '1', got: 'fun get'
-//│ = fun get
+//│ = 1
+//│ FAILURE: Unexpected lack of error to fix
 
 
 :sr
@@ -117,9 +101,7 @@ fun foo(x) =
   x.a + x.b
 foo(f)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a³, x⁰.b⁰)‹app⁴›,
-//│   foo⁰(f⁰)‹app⁵›
-//│ whereTODO
+//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰.a³, x⁰.b⁰)‹app⁴›, foo(f⁰)‹app⁵›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 
@@ -134,7 +116,6 @@ let b = Bar(123)
 b.foo
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   b¹.foo¹
-//│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = Foo(123)
 
@@ -143,7 +124,6 @@ b.foo
 b.foo.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   b¹.foo¹.a³
-//│ whereTODO
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 123
 
@@ -154,9 +134,7 @@ b.foo.a
 // :de
 let f = new Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let f¹,
-//│   f¹ = new Foo²(1)
-//│ whereTODO
+//│   let f¹, f¹ = new Foo(1)
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
@@ -165,37 +143,57 @@ let f = new Foo(1)
 //│     DefineVar:
 //│       sym = f⁰
 //│       rhs = New:
-//│         cls = Ref{sym=member:Foo¹} of member:Foo¹
+//│         cls = MemberRef of member:Foo¹
 //│         args = Ls of
 //│           Tup of Ls of
 //│             Fld:
 //│               term = Lit of IntLit of 1
 //│   res = Lit of UnitLit of false
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: softAssert (Lowering.scala:434)
+//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:434': Unexpected class term shape
+//│ ╟── The compilation result may be incorrect.
+//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f1; f1 = globalThis.Object.freeze(new Foo3.class(1));
+//│ throw "This code cannot be run as its compilation yielded an error."
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ f = Foo(1)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ f = undefined
 
 
 :e
 let f = new Foo
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Foo'
-//│ ║  l.181: 	let f = new Foo
+//│ ║  l.167: 	let f = new Foo
 //│ ╙──       	        ^^^^^^^
-//│ f = fun f
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: softAssert (Lowering.scala:434)
+//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:434': Unexpected class term shape
+//│ ╟── The compilation result may be incorrect.
+//│ ╙── This is a compiler bug; please report it to the maintainers.
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ f = undefined
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.188: 	let f = new Foo()
+//│ ║  l.180: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
-//│ f = Foo(undefined)
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: softAssert (Lowering.scala:434)
+//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:434': Unexpected class term shape
+//│ ╟── The compilation result may be incorrect.
+//│ ╙── This is a compiler bug; please report it to the maintainers.
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ f = undefined
 
 
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] Integer literal cannot be instantiated with keyword 'new'.
-//│ ║  l.196: 	new 42
+//│ ║  l.194: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -210,15 +208,14 @@ class Foo(pred) with {
 }
 let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(pred⁰) {
-//│     @privateval pred¹ ‹flow:pred⁰› = pred⁰,
-//│     ⟨Foo³.⟩pred¹.id⁰(42)‹app⁶›
-//│   },
-//│   let f²,
-//│   f² = new Foo⁴(Predef⁰)
-//│ whereTODO
+//│   class Foo(pred⁰) { @privateval pred¹ ‹flow:pred⁰› = pred⁰, ⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩pred¹.id⁰(42)‹app⁶› }, let f², f² = new Foo(Predef)
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: softAssert (Lowering.scala:434)
+//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:434': Unexpected class term shape
+//│ ╟── The compilation result may be incorrect.
+//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let Foo5, f5;
+//│ let Foo5;
 //│ Foo5 = function Foo(pred) {
 //│   return globalThis.Object.freeze(new Foo.class(pred));
 //│ };
@@ -234,9 +231,12 @@ let f = new Foo(Predef)
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", [null]];
 //│ });
-//│ f5 = globalThis.Object.freeze(new Foo5.class(Predef));
+//│ throw "This code cannot be run as its compilation yielded an error."
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ f = Foo(_)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ f = undefined
 
 
 :sr
@@ -247,14 +247,7 @@ class Foo(pred) with {
 }
 let f = Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(pred²) {
-//│     @privateval pred³ ‹flow:pred¹› = pred²,
-//│     ⟨Foo⁵.⟩pred³.id⁰(1)‹app⁷›,
-//│     ⟨Foo⁵.⟩pred³.id⁰(2)‹app⁸›
-//│   },
-//│   let f³,
-//│   f³ = Foo⁶(Predef⁰)‹app⁹›
-//│ whereTODO
+//│   class Foo(pred²) { @privateval pred³ ‹flow:pred¹› = pred², ⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩pred³.id⁰(1)‹app⁷›, ⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩pred³.id⁰(2)‹app⁸› }, let f³, f³ = Foo(Predef)‹app⁹›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(_)
 
@@ -266,16 +259,17 @@ class Foo(pred) with {
 }
 let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(pred⁴) {
-//│     @privateval pred⁵ ‹flow:pred²› = pred⁴,
-//│     val r⁰ ‹flow:r⁰› = ⟨Foo⁷.⟩pred⁵.id⁰(42)‹app¹⁰›,
-//│     fun callId⁰(x¹) ‹flow:callId⁰› = ⟨Foo⁷.⟩pred⁵.id⁰(x¹)‹app¹¹›
-//│   },
-//│   let f⁴,
-//│   f⁴ = new Foo⁸(Predef⁰)
-//│ whereTODO
+//│   class Foo(pred⁴) { @privateval pred⁵ ‹flow:pred²› = pred⁴, val r⁰ ‹flow:r⁰› = ⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩pred⁵.id⁰(42)‹app¹⁰›, fun callId⁰(x¹) ‹flow:callId⁰› = ⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩pred⁵.id⁰(x¹)‹app¹¹› }, let f⁴, f⁴ = new Foo(Predef)
+//│ FAILURE: Unexpected internal error
+//│ FAILURE LOCATION: softAssert (Lowering.scala:434)
+//│ ╔══[INTERNAL ERROR] Compiler reached an unexpected state at 'Lowering.scala:434': Unexpected class term shape
+//│ ╟── The compilation result may be incorrect.
+//│ ╙── This is a compiler bug; please report it to the maintainers.
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ f = Foo(_)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ f = undefined
 
 
 

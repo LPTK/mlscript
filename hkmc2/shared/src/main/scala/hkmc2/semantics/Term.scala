@@ -503,10 +503,10 @@ trait ShapeHost extends ShapePublisher:
   def showDbg(using DebugPrinter): Str
 
 
-type AnyRef = AnyRefImpl & Term
+type AnyRef_ = AnyRefImpl & Term
 
 sealed trait AnyRefImpl:
-  self: Term.Ref | Term.SimpleRef | Term.MemberRef =>
+  self: Term.Ref | Term.SimpleRef | Term.MemberRef | Term.SelfRef =>
   def tree: Tree.Ident
   // val refNum: Int
   // val typ: Opt[Type]
@@ -515,7 +515,7 @@ sealed trait AnyRefImpl:
   def sym: Symbol
 
 sealed trait NewRefImpl extends AnyRefImpl:
-  self: Term.SimpleRef | Term.MemberRef =>
+  self: Term.SimpleRef | Term.MemberRef | Term.SelfRef =>
   // def tree: Tree.Ident = Tree.Dummy
   def refNum: Int = 0 // TODO
 
@@ -532,6 +532,7 @@ enum Term extends Statement, ShapePublisher:
   
   // --- NEW ---
   case SimpleRef(sym: codegen.SimpleSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
+  case SelfRef(sym: InnerSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
   case MemberRef(sym: BlockMemberSymbol)(val tree: Tree.Ident) extends Term, NewResolvableImpl, NewRefImpl
   case NewSel(prefix: Term, id: Tree.Ident) extends Term, NewSelImpl, ShapeHost
   // --- LEGACY ---
@@ -942,7 +943,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case Blk(stats, res) => stats.toVector :+ res
     case _ => subTerms
   def subTerms: Vector[Term] = this match
-    case Error() | Missing | _: Lit | _: Ref | _: SimpleRef | _: MemberRef | _: UnitVal => Vector.empty
+    case Error() | Missing | _: Lit | _: AnyRef_ | _: UnitVal => Vector.empty
     case Resolved(t, sym) => Vector.single(t)
     case App(lhs, rhs) => Vector.double(lhs, rhs)
     case RcdField(lhs, rhs) => Vector.double(lhs, rhs)
@@ -1156,6 +1157,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case r @ Ref(symbol) => symbol.toString + symbol.getState.dbgRefNum(r.refNum)
     case r @ SimpleRef(symbol) => symbol.toString + symbol.getState.dbgRefNum(r.refNum)
     case r @ MemberRef(symbol) => symbol.toString + symbol.getState.dbgRefNum(r.refNum)
+    case r @ SelfRef(sym) => sym.toString + sym.getState.dbgRefNum(r.refNum)
     case App(lhs, rhs) => s"${lhs.showDbg}${rhs.showDbgAsParams}"
     case RcdField(lhs, rhs) => s"${lhs.showDbg}: ${rhs.showDbg}"
     case RcdSpread(bod) => s"...${bod.showDbg}"

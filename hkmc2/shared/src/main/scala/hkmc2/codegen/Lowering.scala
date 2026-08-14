@@ -657,7 +657,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             , S(sel), source = Diagnostic.Source.Compilation)
       N
   
-  def ref(ref: AnyRef, annots: List[Annot], disamb: Opt[DefinitionSymbol[?]], inStmtPos: Bool)(k: Result => Block)(using LoweringCtx): Block =
+  def ref(ref: AnyRef_, annots: List[Annot], disamb: Opt[DefinitionSymbol[?]], inStmtPos: Bool)(k: Result => Block)(using LoweringCtx): Block =
     def warnStmt = if inStmtPos then warnPureExprInStmtPos(ref.toLoc, S(ref))
     
     val sym = ref.sym
@@ -837,6 +837,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       // * This case is currently triggered for code such as `f(using 42)`
       args(fs)(args => k(Tuple(mut = false, args)))
     case t @ st.SimpleRef(sym) =>
+      ref(t, annots, N, inStmtPos = inStmtPos)(k)
+    case t @ st.SelfRef(sym) =>
       ref(t, annots, N, inStmtPos = inStmtPos)(k)
     case t @ st.MemberRef(bms) =>
       t.resolvedTargets match
