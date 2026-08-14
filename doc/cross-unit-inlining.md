@@ -51,18 +51,37 @@ across its simplification passes, and fuel is spent only after every argument li
 
 ## Reachable call graph
 
-Loop-breaker selection uses the complete reachable call graph, including functions defined in
-other compilation units. Local definitions retain their established traversal order. A referenced
-definition not already encountered in the local block is registered before being appended to a
+Loop-breaker selection uses the reachable graph of functions that are plausible inline candidates,
+including functions defined in other compilation units. Local definitions retain their established
+traversal order. A non-local definition is rejected before graph traversal when the available
+eligibility checks prove it ineligible: `noInline`, pattern-helper ownership, an unsupported method
+receiver, an incompatible compilation policy, or an automatic-inlining body larger than the
+applicable threshold. This uses the body's standard lazy `size` value; explicit `@inline` functions
+are not size-limited.
+
+An eligible non-local definition not already encountered is registered before being appended to a
 worklist, so self- and mutual-recursive references terminate immediately. Traversing a body may
-append previously unseen cross-unit callees; advancing an index through the append-only worklist
-therefore computes the transitive closure without rescanning symbols. A separate visited-body set
-ensures that every local or reachable referenced body is traversed exactly once.
+append previously unseen eligible callees; advancing an index through the append-only worklist
+therefore computes the candidate closure without rescanning symbols. A separate visited-body set
+ensures that every local or eligible non-local body is traversed exactly once. Calls in non-local
+bodies contribute graph edges but not local use counts.
+
+Each traversed `FunDefn` publishes an immutable `InlinerBodySummary` containing its direct call
+occurrences and nested function definitions. A dedicated, configuration-independent traverser
+computes this value without sharing mutable state with the inliner analysis that consumes it.
+The summary belongs to that exact immutable IR node, so replacing a definition naturally
+invalidates it. Later importing units replay the summary rather than walking the body, while still
+applying their own eligibility checks and rebuilding their own candidate closure and SCCs.
+Publication uses an unsynchronized reference slot: computing a summary is pure, JVM reference
+writes are atomic, and racing threads may harmlessly compute and publish the same immutable value
+more than once.
 
 This is not incremental SCC maintenance. SCC and loop-breaker analysis starts only after the
-worklist is exhausted and the reachable graph is complete. The worklist phase is linear in the
-reachable IR and call edges, with expected constant-time symbol lookup. Generic inline fuel remains
-a defense against excessive acyclic growth, not a substitute for recursion detection.
+worklist is exhausted and the candidate graph is complete. With populated body summaries, its work
+is linear in the eligible reachable functions and call edges, plus computing the lazy sizes of
+non-local automatic-inline candidates, with expected constant-time symbol lookup. A summary miss
+adds one structural traversal of that function body. Generic inline fuel remains a defense against
+excessive acyclic growth, not a substitute for recursion detection.
 
 
 ## Safe bodies
