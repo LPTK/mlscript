@@ -517,6 +517,7 @@ sealed trait AnyRefImpl:
 sealed trait NewRefImpl extends AnyRefImpl:
   self: Term.SimpleRef | Term.MemberRef =>
   // def tree: Tree.Ident = Tree.Dummy
+  def refNum: Int = 0 // TODO
 
 sealed trait NewSelImpl extends NewResolvableImpl:
   self: Term.NewSel =>
@@ -532,7 +533,7 @@ enum Term extends Statement, ShapePublisher:
   // --- NEW ---
   case SimpleRef(sym: codegen.SimpleSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
   case MemberRef(sym: BlockMemberSymbol)(val tree: Tree.Ident) extends Term, NewResolvableImpl, NewRefImpl
-  case NewSel(prefix: Term, id: Tree.Ident) extends Term, NewSelImpl
+  case NewSel(prefix: Term, id: Tree.Ident) extends Term, NewSelImpl, ShapeHost
   // --- LEGACY ---
   /** A term that wraps another term, indicating that the symbol of the inner term is resolved.
     * This is mainly used to disambiguate overloaded definitions. */
@@ -873,6 +874,8 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       case UnitVal() => "unit value"
       case Lit(lit) => lit.describeLit
       case Ref(sym) => "reference"
+      case SimpleRef(sym) => "reference"
+      case MemberRef(sym) => "member reference"
       case App(lhs, rhs) => "application"
       case TyApp(lhs, targs) => "type application"
       case Sel(pre, nme) => "selection"
@@ -1032,10 +1035,26 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       case ts => doc"$str‹" :: ts.map(_.show).mkDocument(", ") :: doc"›"
     def res: Document = this match
       case lit: Lit => lit.lit.idStr
+      case UnitVal() => doc"()"
+      case r: SimpleRef =>
+        r.sym match
+        case _: BuiltinSymbol => r.sym.nme
+        case _ => r.sym.showName
+      case r: MemberRef => r.sym.nme
       case r: Ref =>
         r.sym match
         case _: BuiltinSymbol => r.sym.nme
         case _ => r.sym.showName
+      case sel: NewSel =>
+        val str = sel.id.name
+        if summon[ShowCfg].showFlowSymbols
+        then doc"${sel.prefix.show}.${
+            sel.resolvedMembers match
+            case Nil => doc"${str}ˀ"
+            case t :: Nil => t.showName
+            case ts => doc"$str‹" :: ts.map(_.showName).mkDocument(", ") :: doc"›"
+          }"
+        else doc"${sel.prefix.show}.$str"
       case sel: Sel =>
         if summon[ShowCfg].showFlowSymbols
         then doc"${sel.prefix.show}.${sel.sym.fold(doc"${
@@ -1135,6 +1154,8 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case Lit(lit) => lit.idStr
     case Resolved(t, sym) => t.showPlain
     case r @ Ref(symbol) => symbol.toString + symbol.getState.dbgRefNum(r.refNum)
+    case r @ SimpleRef(symbol) => symbol.toString + symbol.getState.dbgRefNum(r.refNum)
+    case r @ MemberRef(symbol) => symbol.toString + symbol.getState.dbgRefNum(r.refNum)
     case App(lhs, rhs) => s"${lhs.showDbg}${rhs.showDbgAsParams}"
     case RcdField(lhs, rhs) => s"${lhs.showDbg}: ${rhs.showDbg}"
     case RcdSpread(bod) => s"...${bod.showDbg}"
@@ -1149,6 +1170,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case WildcardTy(in, out) => s"in ${in.map(_.toString).getOrElse("⊥")} out ${out.map(_.toString).getOrElse("⊤")}"
     case Sel(pre, nme) => s"${pre.showDbg}.${nme.name}"
     case SynthSel(pre, nme) => s"(${pre.showDbg}.)${nme.name}"
+    case NewSel(pre, nme) => s"${pre.showDbg}.${nme.name}"
     case DynSel(pre, fld, _) => s"${pre.showDbg}[${fld.showDbg}]"
     case IfLike(kw, _, split) => s"${kw.name} { ${split.showDbg} }"
     case SynthIf(split) => s"if { ${split.showDbg} }"

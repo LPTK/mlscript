@@ -1006,7 +1006,7 @@ extends Importer:
     def elaborateSelection(tree: Sel): Term =
       val preTrm = subterm(tree.prefix)
       if newResolution then
-        val res = new Term.NewSel(preTrm, tree.name)
+        val res = new Term.NewSel(preTrm, tree.name).withLocOf(tree)
         // listenTerm(preTrm, shape => selShape2(shape, tree.name, res))
         newSel(res)
         res

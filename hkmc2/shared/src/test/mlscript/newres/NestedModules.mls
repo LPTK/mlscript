@@ -13,12 +13,7 @@ module Foo {
   }
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   module Foo {
-//│     module Bar {
-//│       fun id⁰(x⁰) ‹flow:id⁰› = x⁰
-//│     }
-//│   }
-//│ whereTODO
+//│   module Foo { module Bar { fun id⁰(x⁰) ‹flow:id⁰› = x⁰ } }
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Foo⁰ as class Foo¹
 //│ module Foo² {
@@ -37,8 +32,7 @@ module Foo {
 :lot
 Foo.Bar
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo⁰.Bar⁰
-//│ whereTODO
+//│   Foo.Bar⁰
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
 //│   main = Return of Select{sym=module:Bar²}:
@@ -54,8 +48,7 @@ Foo.Bar
 :sr
 Foo.Bar.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo⁰.Bar⁰.id⁰
-//│ whereTODO
+//│   Foo.Bar⁰.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -70,9 +63,9 @@ let
 b.id
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
-//│   res = Sel{targets=[ObjectMember(member:id)]}:
-//│     prefix = Ref{sym=b⁰} of b⁰
-//│     nme = Ident of "id"
+//│   res = NewSel:
+//│     prefix = SimpleRef of b⁰
+//│     id = Ident of "id"
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -81,9 +74,7 @@ b.id
 :sr
 let m = if maybe then Foo.Bar else Predef
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let m⁰,
-//│   m⁰ = TODO[show:IfLike](IfLike(keyword 'if',ReturningIf,Cons(Let(tmp:scrut,SynthSel(Ref(member:Predef),Ident(maybe))),Cons(Match(Ref(tmp:scrut),Literal(BoolLit(true)),Else(Sel(Ref(member:Foo),Ident(Bar)))),Else(Ref(member:Predef))))))
-//│ whereTODO
+//│   let m⁰, m⁰ = TODO[show:IfLike](IfLike(keyword 'if',ReturningIf,Cons(Let(tmp:scrut,SynthSel(MemberRef(member:Predef),Ident(maybe))),Cons(Match(Ref(tmp:scrut),Literal(BoolLit(true)),Else(NewSel(MemberRef(member:Foo),Ident(Bar)))),Else(MemberRef(member:Predef))))))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ m = class Bar
 
@@ -91,19 +82,19 @@ let m = if maybe then Foo.Bar else Predef
 :e
 m.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   m⁰.id‹id⁰, id¹›
-//│ whereTODO
-//│ ╔══[COMPILATION ERROR] Selection of member 'id' is ambiguous, as it has multiple resolved targets
-//│ ║  l.92: 	m.id
+//│   m⁰.id‹id¹, id⁰›
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
+//│ ║  l.83: 	m.id
 //│ ║        	^^^^
-//│ ╟── target: member id
-//│ ║  l.12: 	    fun id(x) = x
-//│ ║        	    ^^^^^^^^^^^^^
-//│ ╟── target: member id
+//│ ╟── target: function 'id'
 //│ ║  in ../../mlscript-compile/Predef.mls
 //│ ║  l.16: 	fun id(x) = x
-//│ ╙──      	^^^^^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^
+//│ ╟── target: function 'id'
+//│ ║  in NestedModules.mls:10
+//│ ║  l.12: 	    fun id(x) = x
+//│ ╙──      	    ^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = fun id
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

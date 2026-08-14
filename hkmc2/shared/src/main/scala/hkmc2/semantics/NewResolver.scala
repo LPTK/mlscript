@@ -251,9 +251,14 @@ class NewResolver:
   //   log(s"selShape? lhs = $lhs, nme = $id, res = $res")
   //   listenTerm(lhs, sh => selShape(sh, id, res))
   def newSel(sel: NewSel): Unit =
+    log(s"newSel? sel = ${sel.showDbg}")
     listenTerm(sel.prefix, shape => {
       shape.members.get(sel.id.name) match
-        case S(sym) => 
+        case S(bms) =>
+          sel.resolvedMembers ::= bms
+          val sh = symShapes.getOrElseUpdate(bms, SymShape(bms))
+          if sel.shapes.add(sh) then
+            sel.shapeListeners.foreach(listener => listener(sh))
         case N =>
           sel.isErroneous = true
           raise:
@@ -551,6 +556,18 @@ class NewResolver:
     case ref @ Ref(loc: LocalSymbol) =>
       loc.shapes.foreach(listener)
       loc.shapeListeners += listener
+    case ref @ SimpleRef(sym) =>
+      sym match
+      case loc: LocalSymbol =>
+        loc.shapes.foreach(listener)
+        loc.shapeListeners += listener
+    case ref @ MemberRef(sym) =>
+      val sh = symShapes.getOrElseUpdate(sym, SymShape(sym))
+      // // ref.shapes.foreach(listener)
+      // // ref.shapeListeners += listener
+      // if ref.shapes.add(sh) then
+      //   ref.shapeListeners.foreach(listener => listener(sh))
+      listener(sh)
     case ref @ Ref(sym: InnerSymbol) =>
       // sym.asBlkMember match
       // case S(bms) =>
@@ -571,7 +588,7 @@ class NewResolver:
       sh.shapes.foreach(listener)
       sh.shapeListeners += listener
     case _ =>
-      println("oops")
+      println(s"TODO: listen for ${trm.describe} (${trm.getClass})")
       ()
   
 end NewResolver

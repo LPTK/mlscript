@@ -1123,14 +1123,15 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           case trgt :: Nil => setupSelection(prefix, id, S(trgt))(k)
           case ts => ???
         case ts =>
-          // if t.isErroneous then raise:
-          //   ErrorReport(
-          //     msg"Member reference '${bms.nme}' is ambiguous, as it has multiple resolved targets" -> t.toLoc ::
-          //       ts.map: t =>
-          //         msg"target: ${t.describeKind}" -> t.toLoc
-          //       , S(t), source = Diagnostic.Source.Compilation)
+          // if t.isErroneous then 
+          fail:
+            ErrorReport(
+              msg"This selection of member '${sel.id.name}' is ambiguous, as it has multiple resolved targets" -> t.toLoc ::
+                ts.map: t =>
+                  msg"target: ${t.describe} '${t.nme}'" -> t.toLoc
+                , S(t), source = Diagnostic.Source.Compilation)
           // compError
-          ???
+          // ???
         // */
         
     
