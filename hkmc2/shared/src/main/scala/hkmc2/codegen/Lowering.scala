@@ -1423,7 +1423,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedValueType)
         Assign(l, r, k(l.asSimpleRef))
 
-  /** Inserts a [[`Cast`]] when the lowered result `r` must be downcasted to fit the `expected` erased type of the slot 
+  /** Inserts a [[`Cast`]] when the lowered result `r` must be downcasted to fit the `expected` erased type of the slot
     * it flows into, then continues with `k`.
     *
     *  - If `expected` is a subtype of `r`'s type, a downcast is inserted.

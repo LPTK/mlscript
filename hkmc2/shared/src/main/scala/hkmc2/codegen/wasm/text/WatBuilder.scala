@@ -185,10 +185,10 @@ object WatBuilder:
       ref.test(local.get(lhsIdx, RefType.anyref), RefType.i31ref),
       ref.test(local.get(rhsIdx, RefType.anyref), RefType.i31ref),
     )
-    val i31Op = 
+    val i31Op =
       ref.i31(
         op(
-          i31.get_s(ref.cast(local.get(lhsIdx, RefType.anyref), RefType.i31ref)), 
+          i31.get_s(ref.cast(local.get(lhsIdx, RefType.anyref), RefType.i31ref)),
           i31.get_s(ref.cast(local.get(rhsIdx, RefType.anyref), RefType.i31ref)),
         ),
       )
@@ -217,7 +217,7 @@ object WatBuilder:
   private def unaryInt31Body(paramIdx: LocalIdx, op: Expr => Expr)(using Ctx): Expr =
     import Instructions.*
     val cond = ref.test(local.get(paramIdx, RefType.anyref), RefType.i31ref)
-    val i31Op = 
+    val i31Op =
       ref.i31(
         op(
           i31.get_s(ref.cast(local.get(paramIdx, RefType.anyref), RefType.i31ref)),
@@ -1528,7 +1528,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
   def getVar(l: ValueSymbol, loc: Opt[Loc])(using FunctionCtx, Raise): Expr = varIndex(l, loc) match
     case S(localIdx: LocalIdx) => local.get(localIdx, funcCtx.slotType(l))
-    case S(globalIdx: GlobalIdx) => 
+    case S(globalIdx: GlobalIdx) =>
       castConserve(
         global.get(globalIdx, ctx.getGlobalType_!(globalIdx).globalType.valType),
         l.localType,
@@ -2598,7 +2598,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       ))
                     else if isBoxedAsI31(cls, ctx) then
                       // `Int`, `Int31`, and `Bool` are all boxed `i31ref`s.
-                      // 
+                      //
                       // TODO(Derppening): Ideally we should be able to tell `Int` and `Bool` apart at runtime, but
                       //                   could we do so without introducing another (struct) type?
                       S(`if`(

@@ -1207,7 +1207,7 @@ extends Importer:
         case id: Tree.Ident => (genSym(id, erasedType = N), N, N)
         case InfixApp(id: Tree.Ident, Keywrd(Keyword.`extends`), ub) => (genSym(id, erasedType = N), S(ub), N)
         case InfixApp(id: Tree.Ident, Keywrd(Keyword.`restricts`), lb) => (genSym(id, erasedType = N), N, S(lb))
-        case InfixApp(InfixApp(id: Tree.Ident, Keywrd(Keyword.`extends`), ub), Keywrd(Keyword.`restricts`), lb) => 
+        case InfixApp(InfixApp(id: Tree.Ident, Keywrd(Keyword.`extends`), ub), Keywrd(Keyword.`restricts`), lb) =>
           (genSym(id, erasedType = N), S(ub), S(lb))
       )
       val outer = (tvs.collect:

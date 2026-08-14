@@ -478,7 +478,7 @@ class FunctionCtx(
   /** The declared Wasm value type of the param/local slot for `sym`.
     *
     * Parameter slot types are resolved eagerly at construction (see [[resolvedParamTypes]]): each comes from the slot's
-    * `paramValTypes` override if present, otherwise from the symbol's erased type via [[paramType]]. Local slots derive 
+    * `paramValTypes` override if present, otherwise from the symbol's erased type via [[paramType]]. Local slots derive
     * their type from the symbol's erased type via [[localType]].
     */
   def slotType(sym: ValueSymbol)(using Ctx): ValType =

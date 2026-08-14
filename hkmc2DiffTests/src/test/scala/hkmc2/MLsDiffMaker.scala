@@ -47,8 +47,8 @@ abstract class MLsDiffMaker extends DiffMaker:
   val showOptimizedTree = NullaryCommand("olot")
   val debugOptimizations = NullaryCommand("dopt")
   val noOptimizations = NullaryCommand("noOpt")
-  val showIRErasedTypes = NullaryCommand("siret", () => 
-    if showIR.isUnset && showOptimizedIR.isUnset then 
+  val showIRErasedTypes = NullaryCommand("siret", () =>
+    if showIR.isUnset && showOptimizedIR.isUnset then
       output("Option ':siret' only has an effect if ':sir' or ':soir' is also set")
   )
   val showContext = NullaryCommand("ctx")

@@ -883,7 +883,7 @@ enum PrimitiveType:
     case Int32 => ctx.builtins.Int32
     case Int64 => ctx.builtins.Int64
     case Float32 => ctx.builtins.Float32
-    case Float64 => ctx.builtins.Float64 
+    case Float64 => ctx.builtins.Float64
 
 object ErasedType:
   /** A canonicalized reference type.
@@ -904,8 +904,8 @@ object ErasedType:
     * - `rsc` is true if this reference is a resource type.
     *
     * Implementation Notes:
-    * 
-    * - This transient type is needed to represent value types before the `Prelude` is fully elaborated. The IR should 
+    *
+    * - This transient type is needed to represent value types before the `Prelude` is fully elaborated. The IR should
     *   always operate on the canonicalized type.
     * - This type implements identity equality, so that two instances with the same `getTpeSym` function are not
     *   considered equal - Use the canonicalized type for equality comparisons.
@@ -1016,7 +1016,7 @@ object ErasedType:
 
   /** The chain of a symbol's ancestors, nearest first, starting with the symbol itself and following its single
     * parent chain.
-    * 
+    *
     * Note that this method does not include implicit supertypes (`Object` and `Anything`).
     */
   private def ancestorChain(sym: TypeSymbol)(using Ctx, State): Ls[TypeSymbol] =
@@ -1030,7 +1030,7 @@ object ErasedType:
         case _ => cur :: Nil
     loop(sym, Set.empty)
 
-  /** The least upper bound of two reference symbols. 
+  /** The least upper bound of two reference symbols.
     *
     * Returns `Object` if the two symbols are unrelated, and `Anything` if the relationship to `Object` is undecidable.
     */
@@ -1068,7 +1068,7 @@ object ErasedType:
       // * Two reference types: their nearest common ancestor, at worst `Object`.
       case _ => CanonicalErasedValueType(rsc = false, lubSym(lhs.sym, rhs.sym))
 
-  /** Erases a type-annotated term to an [[`ErasedType`]]. 
+  /** Erases a type-annotated term to an [[`ErasedType`]].
     *
     * Note that the resulting erased type is **not** canonicalized to avoid using `ctx.builtins` during elaboration
     * of `Prelude`.

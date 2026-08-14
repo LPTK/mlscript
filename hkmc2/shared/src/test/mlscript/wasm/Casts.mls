@@ -1,5 +1,5 @@
 // All comments in this file assume that an intrinsic `cast[T](val)` function exists to perform a
-// downcast to `T` for `val`. MLscript currently does not have a surface-language syntax or 
+// downcast to `T` for `val`. MLscript currently does not have a surface-language syntax or
 // function for casting between types.
 
 :global

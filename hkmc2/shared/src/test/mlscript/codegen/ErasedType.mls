@@ -291,7 +291,7 @@ module Encl with
 // `Int <: Object` - So passing `Int -> Object` and v/v is allowed.
 fun useObj(o: Object) = o
 fun useInt(n: Int) = n
-fun f(o: Object, i: Int) = 
+fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
