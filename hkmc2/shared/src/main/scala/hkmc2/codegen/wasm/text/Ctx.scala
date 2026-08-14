@@ -341,13 +341,19 @@ enum WasmIntrinsicType:
   * This class also stores the parameter's kind (i.e. instruction argument vs stack argument), since some wasm
   * intrinsics (e.g. `i32.const`) only accepts a constant literal as part of the instruction.
   *
-  * @param intrName The name of the intrinsic this argument was passed to, for diagnostics.
-  * @param idx The zero-based position of this argument, for diagnostics.
-  * @param operand This argument compiled as an expression.
-  * @param operandXtype The name of the type the intrinsic declares for this parameter, present only if the compiled
-  *                     operand does not conform to it.
-  * @param litValue The integer literal this argument was written as, if it was written as one.
-  * @param loc The source location of this argument.
+  * @param intrName
+  *   The name of the intrinsic this argument was passed to, for diagnostics.
+  * @param idx
+  *   The zero-based position of this argument, for diagnostics.
+  * @param operand
+  *   This argument compiled as an expression.
+  * @param operandXtype
+  *   The name of the type the intrinsic declares for this parameter, present only if the compiled operand does not
+  *   conform to it.
+  * @param litValue
+  *   The integer literal this argument was written as, if it was written as one.
+  * @param loc
+  *   The source location of this argument.
   */
 case class IntrinsicArg(
     intrName: Str,
@@ -364,7 +370,10 @@ case class IntrinsicArg(
 
   /** This argument as a value pushed on the stack. */
   def asOp(using Raise): Expr = operandXtype.fold(operand): xtype =>
-    fail(msg"Operand #${(idx + 1).toString} of wasm intrinsic '$intrName' must be of type '${xtype.toString}'", unreachable)
+    fail(
+      msg"Operand #${(idx + 1).toString} of wasm intrinsic '$intrName' must be of type '${xtype.toString}'",
+      unreachable,
+    )
 
   /** This argument as an instruction immediate, which must be written as an integer literal at the call site. */
   def asImm(using Raise): Int = litValue match
@@ -372,6 +381,7 @@ case class IntrinsicArg(
     case S(value) =>
       fail(msg"Immediate #${(idx + 1).toString} of wasm intrinsic '$intrName' is outside the signed 32-bit range", 0)
     case N => fail(msg"Wasm intrinsic '$intrName' expects an integer literal immediate", 0)
+end IntrinsicArg
 
 /** The body of a Wasm intrinsic function: builds the instruction from its resolved arguments.
   *
@@ -433,8 +443,8 @@ class FunctionCtx(
       dis -> SymIdx(localScp.addToBindings(dis, "this", shadow = false))
     thisParam.toSeq ++ _params.flatMap(_.paramSyms).map(p => p -> SymIdx(localScp.allocateName(p)))
 
-  /** The declared Wasm value type of each parameter slot (including implicit `$this`), resolved eagerly at
-    * construction (index 0 = `this`).
+  /** The declared Wasm value type of each parameter slot (including implicit `$this`), resolved eagerly at construction
+    * (index 0 = `this`).
     */
   private val resolvedParamTypes: Map[ValueSymbol, ValType] =
     params.zipWithIndex.map:

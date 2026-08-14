@@ -199,6 +199,7 @@ extension (ht: HeapType)
     * `ref.cast` is only valid between two types sharing the same top heap type.
     */
   private def topType(using Ctx): HeapType = ht.superTypes.last
+end extension
 
 case class TypeUse(typeIdx: TypeIdx) extends ToWat:
   def toWat: Document = doc"(type ${typeIdx.toWat})"

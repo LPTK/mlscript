@@ -74,8 +74,8 @@ extension (sym: ValueSymbol)
       case _ => RefType.anyref
 end extension
 
-/** The declared Wasm value type of the parameter slot for `sym` at position `idx`, honoring an optional
-  * per-position override (index 0 = `this`). Falls back to `sym.paramType` if no override is given.
+/** The declared Wasm value type of the parameter slot for `sym` at position `idx`, honoring an optional per-position
+  * override (index 0 = `this`). Falls back to `sym.paramType` if no override is given.
   */
 private[text] def resolveParamType(
     sym: ValueSymbol,
@@ -198,6 +198,7 @@ object WatBuilder:
       ifFalse = S(unreachable),
       resultTypes = Seq(Result(RefType.anyref)),
     )
+  end binaryInt31Body
 
   /** Creates a binary Int31 intrinsic with two parameters and body built from `op`.
     */
@@ -248,6 +249,7 @@ object WatBuilder:
     Ctx.wasmIntrinsicNameSet.toVector.sorted.foreach: name =>
       createIntrinsic(name, S(name))
     ctx.toWat
+end WatBuilder
 
 class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBuilder:
   import Ctx.{SingletonInfo, wasmIntrinsicArities, wasmIntrinsicNameSet}
@@ -807,8 +809,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case (Seq(ty), Seq(decl)) if !ty.isSubtypeOf(decl.valtype) =>
         val msgs = Ls(
           msg"Wasm function `${sym.nme}` expects result to have type `${
-            decl.valtype.toWat.mkString()
-          }`, but got `${ty.toWat.mkString()}`" -> sym.toLoc
+              decl.valtype.toWat.mkString()
+            }`, but got `${ty.toWat.mkString()}`" -> sym.toLoc,
         )
         (ty, decl.valtype) match
           // ICE: A ref<->ref mismatch should be reconciled by a `Cast` during lowering.
@@ -1547,9 +1549,11 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   /** Stores `value` into the local or global slot for `l`, narrowing it to the slot's declared type. The write-side
     * dual of [[getVar]].
     */
-  def setVar(l: ValueSymbol, value: codegen.Result, loc: Opt[Loc])(
-      using FunctionCtx, Raise, SessionExportCtx,
-  ): Expr = varIndex(l, loc) match
+  def setVar(
+      l: ValueSymbol,
+      value: codegen.Result,
+      loc: Opt[Loc],
+  )(using FunctionCtx, Raise, SessionExportCtx): Expr = varIndex(l, loc) match
     case S(localIdx: LocalIdx) => local.set(localIdx, castToValType(value, funcCtx.slotType(l)))
     case S(globalIdx: GlobalIdx) =>
       global.set(globalIdx, castToValType(value, ctx.getGlobalType_!(globalIdx).globalType.valType))
@@ -1739,8 +1743,9 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           Ctx.wasmInstrIntrinsics.get(intrName) match
             case S(body) =>
               val declaredParams = fun.targetSymbol match
-                case S(ts: TermSymbol) => ts.erasedType.collect:
-                  case ft: ErasedFuncType => ft.paramLists
+                case S(ts: TermSymbol) =>
+                  ts.erasedType.collect:
+                    case ft: ErasedFuncType => ft.paramLists
                 case _ => N
               val ps = declaredParams match
                 case S(pl :: Nil) => pl
@@ -1764,7 +1769,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
               // * either implemented as an instruction above or generated as an operator function here.
               val expectedArity = wasmIntrinsicArities.getOrElse(
                 intrName,
-                lastWords(s"wasm intrinsic '$intrName' is declared but not implemented"))
+                lastWords(s"wasm intrinsic '$intrName' is declared but not implemented"),
+              )
               if expectedArity =/= args.length then
                 return errExpr(
                   Ls(msg"Wasm intrinsic '$intrName' called with incorrect arity (${args.length})" -> c.toLoc),
@@ -2031,6 +2037,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         case _ => N,
       arg.value.toLoc,
     )
+  end resolveIntrinsicArg
 
   /** Gets (or creates) the intrinsic function implementing the wasm operator `name`.
     */
@@ -2226,7 +2233,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                   )
                   softAssert(
                     funcInfo.id == predeclared.id,
-                    s"Function ID mismatch while overwriting body for `${sym.nme}`: Predeclared: ${predeclared.id}; Overwriting: ${funcInfo.id}"
+                    s"Function ID mismatch while overwriting body for `${sym.nme}`: Predeclared: ${predeclared.id}; Overwriting: ${funcInfo.id}",
                   )
                   ctx.addFunc(funcInfo)
                   if summon[SessionExportCtx].shouldExport(defn.sym) then
@@ -2346,7 +2353,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                     )
                     softAssert(
                       funcInfo.id == predeclaredMethod.id,
-                      s"Function ID mismatch while overwriting body for `${sym.nme}`: Predeclared: ${predeclaredMethod.id}; Overwriting: ${funcInfo.id}"
+                      s"Function ID mismatch while overwriting body for `${sym.nme}`: Predeclared: ${predeclaredMethod.id}; Overwriting: ${funcInfo.id}",
                     )
                     ctx.addFunc(funcInfo)
                   end overwriteMethod
@@ -2631,6 +2638,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                         ifFalse = N,
                         resultTypes = Seq.empty,
                       ))
+                    end if
                   case Case.Tup(len, inf) =>
                     val arrayRefType = RefType(HeapType.Array, nullable = true)
                     val isArrayTest = ref.test(getScrutExpr, arrayRefType)
