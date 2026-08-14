@@ -98,36 +98,35 @@ class Foo {
 //│ ╙──      	^^^
 
 
-:fixme
+// :fixme
 :breakme // `val` in ctor param list should be compiled or explicitly disallowed
 :sr
 class Foo {
   constructor(val a)
   val b = a + 1
 }
-//│ /!!!\ Uncaught error: scala.MatchError: term:Foo/a (of class hkmc2.semantics.TermSymbol)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   class Foo(val a⁰) { let a¹, a¹ = a⁰, val b¹ ‹flow:b¹› = +(a, 1)‹app⁰› }
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
 :e
 let f = Foo(1)
 //│ ╔══[COMPILATION ERROR] Class 'Foo' cannot be applied.
-//│ ║  l.112: 	let f = Foo(1)
+//│ ║  l.114: 	let f = Foo(1)
 //│ ╙──       	        ^^^^^^
-//│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo4 cannot be invoked without 'new'
+//│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo6 cannot be invoked without 'new'
 //│ f = undefined
 
 
 let f = new Foo(1)
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ f = undefined
+//│ f = Foo { b: 2 }
 
 :fixme
 :sr
 f.a
 //│ ╔══[COMPILATION ERROR] Instance of class 'Foo' does not contain member 'a'
-//│ ║  l.128: 	f.a
+//│ ║  l.127: 	f.a
 //│ ╙──       	 ^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f².aˀ
@@ -136,16 +135,9 @@ f.a
 
 :sr
 f.b
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: newSel (NewResolver.scala:265)
-//│ ╔══[COMPILATION ERROR] Instance of class 'Foo' does not contain member 'b'
-//│ ║  l.138: 	f.b
-//│ ╙──       	 ^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   f².bˀ
+//│   f².b¹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = 2
 
 

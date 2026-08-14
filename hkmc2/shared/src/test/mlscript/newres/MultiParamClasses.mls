@@ -11,7 +11,7 @@ class Foo(val a)(val b) {
 //│   class Foo(val a⁰)(val b⁰) {
 //│     val a¹ ‹flow:a⁰› = a⁰,
 //│     val b¹ ‹flow:b⁰› = b⁰,
-//│     val c⁰ ‹flow:c⁰› = +(⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩a¹, ⟨TODO[show:SelfRef](SelfRef(class:Foo)).⟩b¹)‹app⁰›
+//│     val c⁰ ‹flow:c⁰› = +(⟨Foo.⟩a¹, ⟨Foo.⟩b¹)‹app⁰›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

@@ -316,7 +316,7 @@ object Elaborator:
           sym match
           case sym: codegen.SimpleSymbol =>
             Term.SimpleRef(sym)(id)
-          case sym: BlockMemberSymbol =>
+          case sym: MemberSymbol =>
             Term.MemberRef(sym)(id)
           // case sym: TermSymbol => // FIXME: should never happen... (currently happens for ref to ctor let)
           //   Term.MemberRef(sym)(id)

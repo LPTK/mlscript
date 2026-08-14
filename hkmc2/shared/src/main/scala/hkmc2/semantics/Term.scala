@@ -533,7 +533,7 @@ enum Term extends Statement, ShapePublisher:
   // --- NEW ---
   case SimpleRef(sym: codegen.SimpleSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
   case SelfRef(sym: InnerSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
-  case MemberRef(sym: BlockMemberSymbol)(val tree: Tree.Ident) extends Term, NewResolvableImpl, NewRefImpl
+  case MemberRef(sym: MemberSymbol)(val tree: Tree.Ident) extends Term, NewResolvableImpl, NewRefImpl
   case NewSel(prefix: Term, id: Tree.Ident) extends Term, NewSelImpl, ShapeHost
   // --- LEGACY ---
   /** A term that wraps another term, indicating that the symbol of the inner term is resolved.

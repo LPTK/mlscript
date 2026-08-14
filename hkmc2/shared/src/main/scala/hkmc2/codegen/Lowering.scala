@@ -403,8 +403,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           case S(cc: ClassCtorSymbol) => cc.associatedCls
           case _ => ???
       trm match
-      case MemberRef(bms) =>
+      case MemberRef(bms: BlockMemberSymbol) =>
         k(Value.MemberRef(bms, fromBMS(bms)))
+      case MemberRef(tr: TermSymbol) =>
+        ???
       case sel: NewSel =>
         subTerm(sel.prefix): pre =>
           sel.resolvedMembers match

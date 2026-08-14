@@ -81,7 +81,7 @@ class NewResolver:
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
       // (p, a) :: zip(ps, r, args)
       listenTerm(trm, sh =>
-        log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = $sh, ${p.sym.shapeListeners}")
+        log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = $sh")
         if p.sym.shapes.add(sh) then
           p.sym.shapeListeners.foreach(listener => listener(sh))
       )
@@ -413,9 +413,10 @@ class NewResolver:
         )
     DefineVar(sym, rhs)
   
-  /* 
+  // /* 
   // def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: DefnShape => Unit): Unit =
-  def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: TermShape => Unit): Unit =
+  // def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: TermShape => Unit): Unit =
+  def listenDefn(sym: TermSymbol, listener: TermShape => Unit): Unit =
     sym.defn match
     case S(td: TermDefinition) if td.params.isEmpty =>
       td.body match
@@ -424,10 +425,10 @@ class NewResolver:
       case N =>
         ??? // TODO error
     case S(d) =>
-      listener(defnShapes.getOrElseUpdate(sym, DefnShape(d)))
+      listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
     case N =>
-      sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
-  */
+      sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N))))
+  // */
   def pipeTerm(from: Term, to: ShapeHost): Unit =
     log(s"pipeTerm: from = ${from.showDbg}, to = ${to.showDbg}; ${to.shapes}")
     listenTerm(from, sh =>
@@ -565,7 +566,12 @@ class NewResolver:
       case loc: LocalSymbol =>
         loc.shapes.foreach(listener)
         loc.shapeListeners += listener
-    case ref @ MemberRef(sym) =>
+    case ref @ MemberRef(sym: TermSymbol) =>
+      // println(sym.decl.get)
+      // sym.defn.get
+      // ???
+      listenDefn(sym, listener)
+    case ref @ MemberRef(sym: BlockMemberSymbol) =>
       val sh = symShapes.getOrElseUpdate(sym, SymShape(sym))
       // // ref.shapes.foreach(listener)
       // // ref.shapeListeners += listener
@@ -591,6 +597,8 @@ class NewResolver:
     case sh: ShapeHost =>
       sh.shapes.foreach(listener)
       sh.shapeListeners += listener
+    case Missing =>
+      () // FIXME: Currently get this from light-elaborated Predef import
     case _ =>
       println(s"TODO: listen for ${trm.describe} (${trm.getClass})")
       ()
