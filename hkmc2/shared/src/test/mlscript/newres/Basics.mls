@@ -10,12 +10,12 @@ id
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   res = SynthSel{sym=member:id⁰}:
-//│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
+//│     prefix = MemberRef of member:Predef⁰
 //│     nme = Ident of "id"
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   res = SynthSel{sym=member:id⁰}:
-//│     prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
+//│     prefix = MemberRef of member:Predef⁰
 //│     nme = Ident of "id"
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ return Predef¹.id¹
@@ -27,10 +27,18 @@ id
 :sir
 Predef.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Predef⁰.id⁰
+//│   TODO[show:MemberRef](MemberRef(member:Predef)).idˀ
 //│ whereTODO
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
+//│ FAILURE INFO: Sel:
+//│   prefix = MemberRef of member:Predef⁰
+//│   nme = Ident of "id"
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.28: 	Predef.id
+//│ ╙──      	      ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ return Predef¹.id¹
+//│ return Predef¹.id﹖
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -39,20 +47,28 @@ Predef.id(1)
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   res = App:
-//│     lhs = Sel{targets=[ObjectMember(member:id)]}:
-//│       prefix = Ref{sym=member:Predef⁰} of member:Predef⁰
+//│     lhs = Sel:
+//│       prefix = MemberRef of member:Predef⁰
 //│       nme = Ident of "id"
 //│     rhs = Tup of Ls of
 //│       Fld:
 //│         term = Lit of IntLit of 1
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
+//│ FAILURE INFO: Sel:
+//│   prefix = MemberRef of member:Predef⁰
+//│   nme = Ident of "id"
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.46: 	Predef.id(1)
+//│ ╙──      	      ^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
 :e
 Predef.idd(1)
-//│ ╔══[COMPILATION ERROR] Module 'Predef' does not contain member 'idd'
-//│ ║  l.52: 	Predef.idd(1)
-//│ ╙──      	^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] This selection of member 'idd' has no resolved target
+//│ ║  l.68: 	Predef.idd(1)
+//│ ╙──      	      ^^^^
 //│ ═══[RUNTIME ERROR] TypeError: Predef.idd is not a function
 
 
@@ -66,24 +82,56 @@ let p = Predef
 p.id
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
-//│   res = Sel{targets=[ObjectMember(member:id)]}:
-//│     prefix = Ref{sym=p⁰} of p⁰
+//│   res = Sel:
+//│     prefix = SimpleRef of p⁰
 //│     nme = Ident of "id"
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
+//│ FAILURE INFO: Sel:
+//│   prefix = SimpleRef of p⁰
+//│   nme = Ident of "id"
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.82: 	p.id
+//│ ╙──      	 ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ return p⁰.id¹
+//│ return p⁰.id﹖
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
 p.id
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
+//│ FAILURE INFO: Sel:
+//│   prefix = SimpleRef of p⁰
+//│   nme = Ident of "id"
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.101: 	p.id
+//│ ╙──       	 ^^^
 //│ = fun id
 
 :sr
 p.id
 p.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   p⁰.id⁰,
-//│   p⁰.id⁰
+//│   TODO[show:SimpleRef](SimpleRef(p)).idˀ,
+//│   TODO[show:SimpleRef](SimpleRef(p)).idˀ
 //│ whereTODO
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
+//│ FAILURE INFO: Sel:
+//│   prefix = SimpleRef of p⁰
+//│   nme = Ident of "id"
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.113: 	p.id
+//│ ╙──       	 ^^^
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
+//│ FAILURE INFO: Sel:
+//│   prefix = SimpleRef of p⁰
+//│   nme = Ident of "id"
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.114: 	p.id
+//│ ╙──       	 ^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -94,8 +142,16 @@ val p = Predef
 :sr
 p.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   p¹.id⁰
+//│   TODO[show:MemberRef](MemberRef(member:p)).idˀ
 //│ whereTODO
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
+//│ FAILURE INFO: Sel:
+//│   prefix = MemberRef of member:p¹
+//│   nme = Ident of "id"
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.143: 	p.id
+//│ ╙──       	 ^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -103,24 +159,24 @@ p.id
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] Integer literal does not contain member 'id'
-//│ ║  l.104: 	(1).id
+//│ ║  l.160: 	(1).id
 //│ ╙──       	 ^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.111: 	1.id
+//│ ║  l.167: 	1.id
 //│ ╙──       	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.111: 	1.id
+//│ ║  l.167: 	1.id
 //│ ╙──       	  ^^
 //│ = 1
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] String literal does not contain member 'repeat'
-//│ ║  l.121: 	"ha ".repeat(2)
+//│ ║  l.177: 	"ha ".repeat(2)
 //│ ╙──       	^^^^^^^^^^^^
 //│ = "ha ha "
 

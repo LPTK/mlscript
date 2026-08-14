@@ -503,22 +503,39 @@ trait ShapeHost extends ShapePublisher:
   def showDbg(using DebugPrinter): Str
 
 
+type AnyRef = AnyRefImpl & Term
+
+sealed trait AnyRefImpl:
+  self: Term.Ref | Term.SimpleRef | Term.MemberRef =>
+  def tree: Tree.Ident
+  // val refNum: Int
+  // val typ: Opt[Type]
+  // val sym: Symbol
+  // val resSym: FlowSymbol
+  def sym: Symbol
+
+sealed trait NewRefImpl extends AnyRefImpl:
+  self: Term.SimpleRef | Term.MemberRef =>
+  // def tree: Tree.Ident = Tree.Dummy
+
 
 enum Term extends Statement, ShapePublisher:
   case Error()
   case UnitVal()
   case Missing // Placeholder terms that were not elaborated due to the "lightweight" elaboration mode `Mode.Light`
   case Lit(lit: Literal) extends Term, LitShape
+  
+  // --- NEW ---
+  case SimpleRef(sym: codegen.SimpleSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
+  case MemberRef(sym: BlockMemberSymbol)(val tree: Tree.Ident) extends Term, NewResolvableImpl, NewRefImpl
+  case NewSel(prefix: Term, id: Tree.Ident) extends Term, NewResolvableImpl
+  // --- LEGACY ---
   /** A term that wraps another term, indicating that the symbol of the inner term is resolved.
     * This is mainly used to disambiguate overloaded definitions. */
   case Resolved(t: Term, sym: DefinitionSymbol[?])
     (val typ: Opt[Type]) extends Term, ResolvableImpl
   case Ref(sym: Symbol)
-    (val tree: Tree.Ident, val refNum: Int, val typ: Opt[Type]) extends Term, ResolvableImpl
-  case App(lhs: Term, rhs: Term)
-    (val tree: Tree.App, val typ: Opt[Type], val resSym: FlowSymbol) extends Term, AppImpl
-  case TyApp(lhs: Term, targs: Ls[Term])
-    (val typ: Opt[Type]) extends Term, ResolvableImpl
+    (val tree: Tree.Ident, val refNum: Int, val typ: Opt[Type]) extends Term, ResolvableImpl, AnyRefImpl
   case Sel(prefix: Term, nme: Tree.Ident)
     (val sym: Opt[MemberSymbol], val resSym: FlowSymbol, val typ: Opt[Type], val originalCtx: Opt[SrcScope])
     extends Term, AnySel
@@ -528,6 +545,12 @@ enum Term extends Statement, ShapePublisher:
   case SelProj(prefix: Term, cls: Term, nme: Tree.Ident)
     (val sym: Opt[MemberSymbol], val resSym: FlowSymbol, val typ: Opt[Type], val originalCtx: Opt[SrcScope])
     extends Term, AnySel
+  // --- END ---
+  
+  case App(lhs: Term, rhs: Term)
+    (val tree: Tree.App, val typ: Opt[Type], val resSym: FlowSymbol) extends Term, AppImpl
+  case TyApp(lhs: Term, targs: Ls[Term])
+    (val typ: Opt[Type]) extends Term, ResolvableImpl
   case DynSel(prefix: Term, fld: Term, arrayIdx: Bool)
   case Tup(fields: Ls[Elem])(val tree: Tree.Tup)
   case Mut(underlying: Tup | Rcd | New | DynNew)
@@ -912,7 +935,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case Blk(stats, res) => stats.toVector :+ res
     case _ => subTerms
   def subTerms: Vector[Term] = this match
-    case Error() | Missing | _: Lit | _: Ref | _: UnitVal => Vector.empty
+    case Error() | Missing | _: Lit | _: Ref | _: SimpleRef | _: MemberRef | _: UnitVal => Vector.empty
     case Resolved(t, sym) => Vector.single(t)
     case App(lhs, rhs) => Vector.double(lhs, rhs)
     case RcdField(lhs, rhs) => Vector.double(lhs, rhs)

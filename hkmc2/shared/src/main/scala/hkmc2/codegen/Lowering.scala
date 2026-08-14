@@ -657,7 +657,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             , S(sel), source = Diagnostic.Source.Compilation)
       N
   
-  def ref(ref: st.Ref, annots: List[Annot], disamb: Opt[DefinitionSymbol[?]], inStmtPos: Bool)(k: Result => Block)(using LoweringCtx): Block =
+  def ref(ref: AnyRef, annots: List[Annot], disamb: Opt[DefinitionSymbol[?]], inStmtPos: Bool)(k: Result => Block)(using LoweringCtx): Block =
     def warnStmt = if inStmtPos then warnPureExprInStmtPos(ref.toLoc, S(ref))
     
     val sym = ref.sym
@@ -836,6 +836,32 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case st.CtxTup(fs) =>
       // * This case is currently triggered for code such as `f(using 42)`
       args(fs)(args => k(Tuple(mut = false, args)))
+    case t @ st.SimpleRef(sym) =>
+      ref(t, annots, N, inStmtPos = inStmtPos)(k)
+    case t @ st.MemberRef(bms) =>
+      t.resolvedTargets match
+      case Nil =>
+        // fail:
+        //   ErrorReport(
+        //     msg"Member reference '${sym.nme}' has no resolved target" -> t.toLoc :: Nil, S(t),
+        //     source = Diagnostic.Source.Compilation)
+        bms.asTrm orElse bms.asModOrObj orElse bms.asCls match
+        case s @ S(_) =>
+          ref(t, annots, s, inStmtPos = inStmtPos)(k)
+        case N =>
+          fail:
+            ErrorReport(
+              msg"Member reference '${bms.nme}' cannot be used as a term" -> t.toLoc :: Nil, S(t),
+              source = Diagnostic.Source.Compilation)
+      case trgt :: Nil =>
+        ref(t, annots, S(trgt), inStmtPos = inStmtPos)(k)
+      case ts =>
+        fail:
+          ErrorReport(
+            msg"Member reference '${bms.nme}' is ambiguous, as it has multiple resolved targets" -> t.toLoc ::
+              ts.map: t =>
+                msg"target: ${t.describeKind}" -> t.toLoc
+              , S(t), source = Diagnostic.Source.Compilation)
     case t @ st.Ref(sym) =>
       ref(t, annots, N, inStmtPos = inStmtPos)(k)
     case st.Resolved(t @ st.Ref(bsym), sym) =>

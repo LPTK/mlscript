@@ -306,19 +306,26 @@ object Elaborator:
   object Ctx:
     abstract class Elem:
       def nme: Str
-      def ref(id: Ident)(using Elaborator.State, Ctx): Resolvable
+      def ref(id: Ident)(using Elaborator.State, Ctx, Config): Term
       def symbol: Opt[Symbol]
       def isImport: Bool
     final case class RefElem(sym: Symbol) extends Elem:
       val nme = sym.nme
-      def ref(id: Ident)(using Elaborator.State, Ctx): Resolvable =
-        // * Note: due to symbolic ops, we may have `id.name =/= nme`;
-        // * e.g., we can have `id.name = "|>"` and `nme = "pipe"`.
-        Term.Ref(sym)(id, 666, N) // FIXME: 666 is a temporary placeholder
+      def ref(id: Ident)(using Elaborator.State, Ctx, Config): Term =
+        if config.language.useNewResolution then
+          sym match
+          case sym: codegen.SimpleSymbol =>
+            Term.SimpleRef(sym)(id)
+          case sym: BlockMemberSymbol =>
+            Term.MemberRef(sym)(id)
+        else
+          // * Note: due to symbolic ops, we may have `id.name =/= nme`;
+          // * e.g., we can have `id.name = "|>"` and `nme = "pipe"`.
+          Term.Ref(sym)(id, 666, N) // FIXME: 666 is a temporary placeholder
       def symbol = S(sym)
       def isImport: Bool = false
     final case class SelElem(base: Elem, nme: Str, symOpt: Opt[MemberSymbol], isImport: Bool) extends Elem:
-      def ref(id: Ident)(using Elaborator.State, Ctx): Resolvable =
+      def ref(id: Ident)(using Elaborator.State, Ctx, Config): Term =
         // * Same remark as in RefElem#ref
         Term.SynthSel(base.ref(Ident(base.nme)),
           new Ident(nme).withLocOf(id))(symOpt, FlowSymbol.synthSel(nme), N, S(summon))
