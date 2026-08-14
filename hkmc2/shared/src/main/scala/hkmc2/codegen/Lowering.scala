@@ -849,19 +849,21 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case s @ S(_) =>
           ref(t, annots, s, inStmtPos = inStmtPos)(k)
         case N =>
-          fail:
+          if t.isErroneous then raise:
             ErrorReport(
               msg"Member reference '${bms.nme}' cannot be used as a term" -> t.toLoc :: Nil, S(t),
               source = Diagnostic.Source.Compilation)
+          compError
       case trgt :: Nil =>
         ref(t, annots, S(trgt), inStmtPos = inStmtPos)(k)
       case ts =>
-        fail:
+        if t.isErroneous then raise:
           ErrorReport(
             msg"Member reference '${bms.nme}' is ambiguous, as it has multiple resolved targets" -> t.toLoc ::
               ts.map: t =>
                 msg"target: ${t.describeKind}" -> t.toLoc
               , S(t), source = Diagnostic.Source.Compilation)
+        compError
     case t @ st.Ref(sym) =>
       ref(t, annots, N, inStmtPos = inStmtPos)(k)
     case st.Resolved(t @ st.Ref(bsym), sym) =>
@@ -1093,6 +1095,45 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
 
     case whltrm: st.SynthWhile => ucs.Normalization(this)(whltrm)(k)
       
+    case sel @ NewSel(prefix, id) =>
+      if sel.isErroneous then compError else
+        // /* 
+        // TODO dedup with MemberRef
+        sel.resolvedMembers match
+        case Nil =>
+          fail:
+            // ErrorReport(
+            //   msg"Member reference '${sym.nme}' has no resolved target" -> t.toLoc :: Nil, S(t),
+            //   source = Diagnostic.Source.Compilation)
+            ErrorReport(
+              msg"This selection of member '${sel.id.name}' has no resolved target" -> sel.toLoc ::
+              Nil, S(sel), source = Diagnostic.Source.Compilation)
+        case bms :: Nil =>
+          sel.resolvedTargets match
+          case Nil =>
+            bms.asTrm orElse bms.asModOrObj orElse bms.asCls match
+            case s @ S(_) =>
+              setupSelection(prefix, id, s)(k)
+            case N =>
+              if sel.isErroneous then raise:
+                ErrorReport(
+                  msg"Member reference '${bms.nme}' cannot be used as a term" -> sel.toLoc :: Nil, S(sel),
+                  source = Diagnostic.Source.Compilation)
+              compError
+          case trgt :: Nil => setupSelection(prefix, id, S(trgt))(k)
+          case ts => ???
+        case ts =>
+          // if t.isErroneous then raise:
+          //   ErrorReport(
+          //     msg"Member reference '${bms.nme}' is ambiguous, as it has multiple resolved targets" -> t.toLoc ::
+          //       ts.map: t =>
+          //         msg"target: ${t.describeKind}" -> t.toLoc
+          //       , S(t), source = Diagnostic.Source.Compilation)
+          // compError
+          ???
+        // */
+        
+    
     case sel @ Sel(prefix, nme) =>
       if sel.isErroneous then compError else
         setupSelection(prefix, nme, selSymbol(sel))(k)

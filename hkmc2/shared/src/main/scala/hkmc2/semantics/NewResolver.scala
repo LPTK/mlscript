@@ -247,6 +247,22 @@ class NewResolver:
     if res.shapes.add(sh) then
       res.shapeListeners.foreach(listener => listener(sh))
   
+  // def selShape2(lhs: TermShape, id: Tree.Ident, res: NewSel): Unit =
+  //   log(s"selShape? lhs = $lhs, nme = $id, res = $res")
+  //   listenTerm(lhs, sh => selShape(sh, id, res))
+  def newSel(sel: NewSel): Unit =
+    listenTerm(sel.prefix, shape => {
+      shape.members.get(sel.id.name) match
+        case S(sym) => 
+        case N =>
+          sel.isErroneous = true
+          raise:
+            ErrorReport(
+              msg"${shape.describe.capitalize} does not contain member '${sel.id.name}'" -> sel.id.toLoc :: Nil,
+              source = Diagnostic.Source.Compilation)
+          N
+    })
+  
   def selShape(lhs: TermShape, id: Tree.Ident, res: AnySelTerm): Unit =
     log(s"selShape? lhs = $lhs, nme = $id, res = $res")
     val sh = selShapes.getOrElseUpdate((lhs, res.resSym), {

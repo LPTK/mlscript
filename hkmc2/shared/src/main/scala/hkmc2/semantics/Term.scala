@@ -518,6 +518,10 @@ sealed trait NewRefImpl extends AnyRefImpl:
   self: Term.SimpleRef | Term.MemberRef =>
   // def tree: Tree.Ident = Tree.Dummy
 
+sealed trait NewSelImpl extends NewResolvableImpl:
+  self: Term.NewSel =>
+  var resolvedMembers: Ls[BlockMemberSymbol] = Nil // * filled during resolution
+
 
 enum Term extends Statement, ShapePublisher:
   case Error()
@@ -528,7 +532,7 @@ enum Term extends Statement, ShapePublisher:
   // --- NEW ---
   case SimpleRef(sym: codegen.SimpleSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
   case MemberRef(sym: BlockMemberSymbol)(val tree: Tree.Ident) extends Term, NewResolvableImpl, NewRefImpl
-  case NewSel(prefix: Term, id: Tree.Ident) extends Term, NewResolvableImpl
+  case NewSel(prefix: Term, id: Tree.Ident) extends Term, NewSelImpl
   // --- LEGACY ---
   /** A term that wraps another term, indicating that the symbol of the inner term is resolved.
     * This is mainly used to disambiguate overloaded definitions. */
@@ -944,6 +948,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case TyApp(pre, tarsg) => pre +: tarsg.toVector
     case Sel(pre, _) => Vector.single(pre)
     case SynthSel(pre, _) => Vector.single(pre)
+    case NewSel(pre, _) => Vector.single(pre)
     case DynSel(o, f, _) => Vector.double(o, f)
     case Tup(fields) => fields.flatMap(_.subTerms).toVector
     case Mut(und) => Vector.single(und)

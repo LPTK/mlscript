@@ -1005,26 +1005,33 @@ extends Importer:
     
     def elaborateSelection(tree: Sel): Term =
       val preTrm = subterm(tree.prefix)
-      val sym = if newResolution then N
-        else resolveField(tree.name, preTrm.symbol, tree.name)
-      if sym.contains(ctx.builtins.source.line) then
-        val loc = tree.toLoc.getOrElse(???)
-        val (line, _, _) = loc.origin.fph.getLineColAt(loc.spanStart)
-        Term.Lit(IntLit(loc.origin.startLineNum + line))
-      else if sym.contains(ctx.builtins.source.name) then
-        Term.Lit(StrLit(ctx.getOuter.map(_.nme).getOrElse("")))
-      else if sym.contains(ctx.builtins.source.file) then
-        val loc = tree.toLoc.getOrElse(???)
-        Term.Lit(StrLit(loc.origin.fileName.toString))
-      else
-        val res = Term.Sel(preTrm, tree.name)(sym, FlowSymbol.sel(tree.name.name), N, S(summon))
-        // collectedConstraints += Constraint(preTrm, res)
-        // preTrm
-        // preTrm.shapeListeners +=
-        //   (shape => selShape(shape, tree.name, res))
-        // preTrm.listen(shape => selShape(shape, tree.name, res))
-        if newResolution then listenTerm(preTrm, shape => selShape(shape, tree.name, res))
+      if newResolution then
+        val res = new Term.NewSel(preTrm, tree.name)
+        // listenTerm(preTrm, shape => selShape2(shape, tree.name, res))
+        newSel(res)
         res
+      else
+        val sym = if newResolution then N
+          else resolveField(tree.name, preTrm.symbol, tree.name)
+        if sym.contains(ctx.builtins.source.line) then
+          val loc = tree.toLoc.getOrElse(???)
+          val (line, _, _) = loc.origin.fph.getLineColAt(loc.spanStart)
+          Term.Lit(IntLit(loc.origin.startLineNum + line))
+        else if sym.contains(ctx.builtins.source.name) then
+          Term.Lit(StrLit(ctx.getOuter.map(_.nme).getOrElse("")))
+        else if sym.contains(ctx.builtins.source.file) then
+          val loc = tree.toLoc.getOrElse(???)
+          Term.Lit(StrLit(loc.origin.fileName.toString))
+        else
+          ??? // FIXME dead code
+          val res = Term.Sel(preTrm, tree.name)(sym, FlowSymbol.sel(tree.name.name), N, S(summon))
+          // collectedConstraints += Constraint(preTrm, res)
+          // preTrm
+          // preTrm.shapeListeners +=
+          //   (shape => selShape(shape, tree.name, res))
+          // preTrm.listen(shape => selShape(shape, tree.name, res))
+          if newResolution then listenTerm(preTrm, shape => selShape(shape, tree.name, res))
+          res
     
     tree.desugared match
     case Trm(term) => term

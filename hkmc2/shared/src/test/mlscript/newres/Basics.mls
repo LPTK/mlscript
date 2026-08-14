@@ -27,49 +27,47 @@ id
 :sir
 Predef.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   TODO[show:MemberRef](MemberRef(member:Predef)).idˀ
+//│   TODO[show:NewSel](NewSel(MemberRef(member:Predef),Ident(id)))
 //│ whereTODO
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
-//│ FAILURE INFO: Sel:
+//│ FAILURE LOCATION: term (Lowering.scala:1108)
+//│ FAILURE INFO: NewSel:
 //│   prefix = MemberRef of member:Predef⁰
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.28: 	Predef.id
-//│ ╙──      	      ^^^
+//│   id = Ident of "id"
+//│ ═══[COMPILATION ERROR] This selection of member 'id' has no resolved target
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ return Predef¹.id﹖
+//│ throw "This code cannot be run as its compilation yielded an error."
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = fun id
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :elt
 Predef.id(1)
 //│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   res = App:
-//│     lhs = Sel:
+//│     lhs = NewSel:
 //│       prefix = MemberRef of member:Predef⁰
-//│       nme = Ident of "id"
+//│       id = Ident of "id"
 //│     rhs = Tup of Ls of
 //│       Fld:
 //│         term = Lit of IntLit of 1
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
-//│ FAILURE INFO: Sel:
+//│ FAILURE LOCATION: term (Lowering.scala:1108)
+//│ FAILURE INFO: NewSel:
 //│   prefix = MemberRef of member:Predef⁰
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.46: 	Predef.id(1)
-//│ ╙──      	      ^^^
+//│   id = Ident of "id"
+//│ ═══[COMPILATION ERROR] This selection of member 'id' has no resolved target
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 1
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :e
 Predef.idd(1)
-//│ ╔══[COMPILATION ERROR] This selection of member 'idd' has no resolved target
-//│ ║  l.68: 	Predef.idd(1)
-//│ ╙──      	      ^^^^
-//│ ═══[RUNTIME ERROR] TypeError: Predef.idd is not a function
+//│ ═══[COMPILATION ERROR] This selection of member 'idd' has no resolved target
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 // :de
@@ -82,58 +80,50 @@ let p = Predef
 p.id
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
-//│   res = Sel:
+//│   res = NewSel:
 //│     prefix = SimpleRef of p⁰
-//│     nme = Ident of "id"
+//│     id = Ident of "id"
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
-//│ FAILURE INFO: Sel:
+//│ FAILURE LOCATION: term (Lowering.scala:1108)
+//│ FAILURE INFO: NewSel:
 //│   prefix = SimpleRef of p⁰
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.82: 	p.id
-//│ ╙──      	 ^^^
+//│   id = Ident of "id"
+//│ ═══[COMPILATION ERROR] This selection of member 'id' has no resolved target
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ return p⁰.id﹖
+//│ throw "This code cannot be run as its compilation yielded an error."
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = fun id
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 p.id
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
-//│ FAILURE INFO: Sel:
+//│ FAILURE LOCATION: term (Lowering.scala:1108)
+//│ FAILURE INFO: NewSel:
 //│   prefix = SimpleRef of p⁰
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.101: 	p.id
-//│ ╙──       	 ^^^
-//│ = fun id
+//│   id = Ident of "id"
+//│ ═══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :sr
 p.id
 p.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   TODO[show:SimpleRef](SimpleRef(p)).idˀ,
-//│   TODO[show:SimpleRef](SimpleRef(p)).idˀ
+//│   TODO[show:NewSel](NewSel(SimpleRef(p),Ident(id))),
+//│   TODO[show:NewSel](NewSel(SimpleRef(p),Ident(id)))
 //│ whereTODO
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
-//│ FAILURE INFO: Sel:
+//│ FAILURE LOCATION: term (Lowering.scala:1108)
+//│ FAILURE INFO: NewSel:
 //│   prefix = SimpleRef of p⁰
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.113: 	p.id
-//│ ╙──       	 ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
-//│ FAILURE INFO: Sel:
-//│   prefix = SimpleRef of p⁰
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.114: 	p.id
-//│ ╙──       	 ^^^
+//│   id = Ident of "id"
+//│ ═══[COMPILATION ERROR] This selection of member 'id' has no resolved target
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = fun id
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 :silent
@@ -142,43 +132,43 @@ val p = Predef
 :sr
 p.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   TODO[show:MemberRef](MemberRef(member:p)).idˀ
+//│   TODO[show:NewSel](NewSel(MemberRef(member:p),Ident(id)))
 //│ whereTODO
 //│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: selSymbol (Lowering.scala:633)
-//│ FAILURE INFO: Sel:
+//│ FAILURE LOCATION: term (Lowering.scala:1108)
+//│ FAILURE INFO: NewSel:
 //│   prefix = MemberRef of member:p¹
-//│   nme = Ident of "id"
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.143: 	p.id
-//│ ╙──       	 ^^^
+//│   id = Ident of "id"
+//│ ═══[COMPILATION ERROR] This selection of member 'id' has no resolved target
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = fun id
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:255)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] Integer literal does not contain member 'id'
-//│ ║  l.160: 	(1).id
-//│ ╙──       	 ^^^^^
+//│ ║  l.150: 	(1).id
+//│ ╙──       	   ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.167: 	1.id
+//│ ║  l.157: 	1.id
 //│ ╙──       	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.167: 	1.id
+//│ ║  l.157: 	1.id
 //│ ╙──       	  ^^
 //│ = 1
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] String literal does not contain member 'repeat'
-//│ ║  l.177: 	"ha ".repeat(2)
-//│ ╙──       	^^^^^^^^^^^^
-//│ = "ha ha "
+//│ ║  l.167: 	"ha ".repeat(2)
+//│ ╙──       	     ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 print(1)

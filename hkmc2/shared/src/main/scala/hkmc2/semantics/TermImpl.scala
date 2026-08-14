@@ -31,6 +31,8 @@ trait NewResolvableImpl:
   self: MemberRef | NewSel =>
   var resolvedTargets: Ls[DefinitionSymbol[?]] = Nil // * filled during flow analysis
   // val resSym: FlowSymbol = FlowSymbol.simpleRef(self.sym.name)
+  // var disamb: Opt[Disambiguation] = None // * filled during flow analysis
+  var isErroneous: Boolean = false // * filled during resolution
 
 
 
