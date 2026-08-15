@@ -46,6 +46,7 @@ class NewResolver:
   val selShapes: mutable.Map[(TermShape, FlowSymbol), SelShape] = mutable.Map.empty
   val appShapes: mutable.Map[(TermShape, FlowSymbol), AppShape] = mutable.Map.empty
   val newShapes: mutable.Map[(TermShape, FlowSymbol), NewShape] = mutable.Map.empty
+  val newNewShapes: mutable.Map[(ClassLikeSymbol, FlowSymbol), NewNewShape] = mutable.Map.empty
   val introShapes: mutable.Map[IntroTerm, IntroShape] = mutable.Map.empty // TODO use symbols for faster lookup?
   val symShapes: mutable.Map[BlockMemberSymbol, SymShape] = mutable.Map.empty
   val defnShapes: mutable.Map[DefinitionSymbol[?], DefnShape] = mutable.Map.empty
@@ -106,6 +107,7 @@ class NewResolver:
             S(AppTarget.ObjectMember(clsSym))
           case N =>
             N
+        // TODO: rm this logic:
         val target = receiver match
           /* 
           case ss: SymShape =>
@@ -121,6 +123,10 @@ class NewResolver:
               N
             case N => N
           */
+          case _ =>
+            N // TODO
+          case ns: NewNewShape =>
+            N // TODO
           case ds: DefnShape =>
             ds.defn match
             case td: TermDefinition =>
@@ -168,10 +174,23 @@ class NewResolver:
     log(s"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead}")
     def register = if res.shapes.add(sh) then
       res.shapeListeners.foreach(listener => listener(sh))
+    log(s"lhs ${lhs.isSaturated} ${lhs.unappliedParams}")
+    if lhs.isSaturated then raise:
+      if lhs.applicationHead is lhs
+      then ErrorReport(
+        msg"${lhs.describe.capitalize} cannot called like a function." -> res.toLoc :: Nil,
+        source = Diagnostic.Source.Compilation)
+      else ErrorReport(
+        msg"${lhs.describe.capitalize} cannot receive more argument lists." -> res.toLoc :: Nil,
+        source = Diagnostic.Source.Compilation)
     if sh.isSaturated then
       sh.applicationHead match
       case ds: DefnShape =>
         ds.defn match
+        case cd: ClassDef =>
+          // ???
+          // TODO: resolve ctor?
+          register
         case td: TermDefinition =>
           // listenTerm(td.body, sh => newShape(sh, args, res))
           td.tsym match
@@ -270,7 +289,73 @@ class NewResolver:
   
   def resolveNew(nw: Term.New): Unit =
     log(s"resolveNew? res = ${nw.showDbg}")
-    listenTerm(nw.cls, shape => newShape(shape, nw.args, nw))
+    // listenTerm(nw.cls, shape => newShape(shape, nw.args, nw))
+    nw.cls match
+    case trm: NewResolvable =>
+      listen(trm, shape => {
+        def reject =
+          nw.isErroneous = true
+          raise:
+            ErrorReport(
+              msg"${shape.describe.capitalize} cannot be instantiated with keyword 'new'." -> nw.toLoc :: Nil,
+              source = Diagnostic.Source.Compilation)
+        shape match
+        case ss: SymShape =>
+          val bms = ss.sym
+          bms.onComplete: () =>
+            bms.asCls match
+            case S(cls) =>
+              trm.resolvedTargets ::= cls
+              val cd = cls.defn.get
+              listenExt(cd.ext, extsh => {
+                val dsh = DefnShape(cd, extsh)
+                val sh = newNewShapes.getOrElseUpdate((cls, nw.resSym),
+                  new NewNewShape(dsh, cls, nw.args, nw):
+                    /* 
+                    if !isSaturated then
+                      raise:
+                        ErrorReport(
+                          msg"Missing argument list(s) in instantiation of ${
+                            receiver.applicationHead.describe}" -> src.toLoc :: Nil,
+                          source = Diagnostic.Source.Compilation)
+                    */
+                    receiver.unappliedParams.lazyZip(argss).foreach: (ps, args) =>
+                      args match
+                      case args: Tup =>
+                        zipArgs(ps.params, ps.restParam, args.fields, src)
+                      case _ => ???
+                    lazy val members: Map[Str, BlockMemberSymbol] =
+                      receiver match
+                      case ds: DefnShape =>
+                        ds.defn match
+                        case cd: ClassDef =>
+                          cd.body.members
+                        case td: TermDefinition =>
+                          td.tsym match
+                          case ccs: ClassCtorSymbol =>
+                            ccs.associatedCls.defn.getOrElse(die // TODO
+                              ).body.members
+                          case _ =>
+                            Map.empty
+                        case _ =>
+                          Map.empty
+                      case _ =>
+                        Map.empty
+                )
+                if nw.shapes.add(sh) then
+                  nw.shapeListeners.foreach(listener => listener(sh))
+              })
+            case N =>
+              reject
+        case _ =>
+          reject
+      })
+    case _ =>
+      nw.isErroneous = true
+      raise:
+        ErrorReport(
+          msg"Invalid class expression in 'new' instantiation." -> nw.toLoc :: Nil,
+          source = Diagnostic.Source.Compilation)
   
   def selShape(lhs: TermShape, id: Tree.Ident, res: AnySelTerm): Unit =
     log(s"selShape? lhs = $lhs, nme = $id, res = $res")
@@ -436,6 +521,13 @@ class NewResolver:
         to.shapeListeners.foreach(listener => listener(sh))
     )
   
+  def listenExt(ext: Opt[Term], listener: Opt[TermShape] => Unit): Unit =
+    ext match
+    case S(trm) =>
+      listenTerm(trm, sh => listener(S(sh)))
+    case N =>
+      listener(N)
+  
   def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
     log(s"listenTerm: trm = ${trm.showDbg}")
     def fromBMS(bms: BlockMemberSymbol) =
@@ -519,26 +611,27 @@ class NewResolver:
         fromBMS(bms)
       case N => ???
     case _ =>
-    listen(trm, {
-      case sh: TermShape =>
-        listener(sh)
-      case sels: SelShape =>
-        sels.target match
-        case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) =>
-          fromBMS(sym)
-        case S(SelectionTarget.Err(_)) =>
-          ()
-        // case _ => ??? // TODO error
-        case N =>
-          softAssert(sels.src.isErroneous)
-      case ss: SymShape =>
-        fromBMS(ss.sym)
-      case sh =>
-        raise:
-          ErrorReport(
-            msg"expected a term shape, but got ${sh.describe}" -> trm.toLoc :: Nil,
-            source = Diagnostic.Source.Compilation)
-    })
+      listen(trm, {
+        case sh: TermShape =>
+          listener(sh)
+        case sels: SelShape =>
+          ???
+          sels.target match
+          case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) =>
+            fromBMS(sym)
+          case S(SelectionTarget.Err(_)) =>
+            ()
+          // case _ => ??? // TODO error
+          case N =>
+            softAssert(sels.src.isErroneous)
+        case ss: SymShape =>
+          fromBMS(ss.sym)
+        case sh =>
+          raise:
+            ErrorReport(
+              msg"expected a term shape, but got ${sh.describe}" -> trm.toLoc :: Nil,
+              source = Diagnostic.Source.Compilation)
+      })
   
   def listen(trm: Term, listener: Shape => Unit): Unit =
     log(s"listen: trm = ${trm.showDbg}")

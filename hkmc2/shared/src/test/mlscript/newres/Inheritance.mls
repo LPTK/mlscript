@@ -69,7 +69,7 @@ b.y
 
 :fixme
 b.x
-//│ ╔══[COMPILATION ERROR] Instance of class constructor 'Bar' does not contain member 'x'
+//│ ╔══[COMPILATION ERROR] Instance of class definition 'Bar' does not contain member 'x'
 //│ ║  l.71: 	b.x
 //│ ╙──      	 ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -87,9 +87,6 @@ module Outer {
 
 :e
 object Derived extends Outer.Inner1
-//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class 'Inner1'
-//│ ║  l.89: 	object Derived extends Outer.Inner1
-//│ ╙──      	                       ^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
 //│ ║  l.89: 	object Derived extends Outer.Inner1
 //│ ╙──      	                       ^^^^^^^^^^^^
@@ -106,7 +103,7 @@ object Derived extends Outer.Inner1(11)
 :fixme
 Derived.x
 //│ ╔══[COMPILATION ERROR] Object 'Derived' does not contain member 'x'
-//│ ║  l.107: 	Derived.x
+//│ ║  l.104: 	Derived.x
 //│ ╙──       	       ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -114,11 +111,8 @@ Derived."x"
 
 :e
 object Derived extends Outer.Inner2
-//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Inner2'
-//│ ║  l.116: 	object Derived extends Outer.Inner2
-//│ ╙──       	                       ^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
-//│ ║  l.116: 	object Derived extends Outer.Inner2
+//│ ║  l.113: 	object Derived extends Outer.Inner2
 //│ ╙──       	                       ^^^^^^^^^^^^
 
 :sr

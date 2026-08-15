@@ -26,12 +26,15 @@ class Foo {
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :sr
+:sir
 class Foo {
   val b = 1
   this.b
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo { val b⁰ ‹flow:b⁰› = 1, Foo⁰.b⁰ }
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Foo² as class Foo³ { val b²; constructor() { define b² as val b³ = 1; end } }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -45,7 +48,7 @@ Foo
 :e
 Foo.b
 //│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
-//│ ║  l.46: 	Foo.b
+//│ ║  l.49: 	Foo.b
 //│ ╙──      	   ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -55,16 +58,19 @@ let f = Foo
 :e
 f.b
 //│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
-//│ ║  l.56: 	f.b
+//│ ║  l.59: 	f.b
 //│ ╙──      	 ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 :sr
+:sir
 :sjs
 let f = new Foo
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   let f⁰, f⁰ = new Foo
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ set f⁰ = new Foo³(); end
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f1; f1 = globalThis.Object.freeze(new Foo3());
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -88,11 +94,11 @@ class Foo {
   }
 }
 //│ ╔══[COMPILATION ERROR] Unsupported constructor in this position.
-//│ ║  l.86: 	  constructor(val a) {
+//│ ║  l.92: 	  constructor(val a) {
 //│ ║        	  ^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.87: 	    val b = a + 1
+//│ ║  l.93: 	    val b = a + 1
 //│ ║        	^^^^^^^^^^^^^^^^^
-//│ ║  l.88: 	  }
+//│ ║  l.94: 	  }
 //│ ╙──      	^^^
 
 
@@ -110,8 +116,8 @@ class Foo {
 
 :e
 let f = Foo(1)
-//│ ╔══[COMPILATION ERROR] Class 'Foo' cannot be applied.
-//│ ║  l.112: 	let f = Foo(1)
+//│ ╔══[COMPILATION ERROR] Class 'Foo' cannot called like a function.
+//│ ║  l.118: 	let f = Foo(1)
 //│ ╙──       	        ^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo6 cannot be invoked without 'new'
 //│ f = undefined
@@ -123,8 +129,8 @@ let f = new Foo(1)
 :fixme
 :sr
 f.a
-//│ ╔══[COMPILATION ERROR] Instance of class 'Foo' does not contain member 'a'
-//│ ║  l.125: 	f.a
+//│ ╔══[COMPILATION ERROR] Instance of class definition 'Foo' does not contain member 'a'
+//│ ║  l.131: 	f.a
 //│ ╙──       	 ^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f².aˀ

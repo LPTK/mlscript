@@ -152,25 +152,31 @@ let f = new Foo(1)
 //│ f = Foo(1)
 
 
-:e
 let f = new Foo
-//│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Foo'
-//│ ║  l.156: 	let f = new Foo
-//│ ╙──       	        ^^^^^^^
 //│ f = fun f
+
+let g = f(1)
+//│ g = Foo(1)
+
+:e
+g(2)
+//│ ╔══[COMPILATION ERROR] Instance of class 'Foo' cannot receive more argument lists.
+//│ ║  l.162: 	g(2)
+//│ ╙──       	^^^^
+//│ ═══[RUNTIME ERROR] TypeError: g is not a function
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.163: 	let f = new Foo()
+//│ ║  l.169: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
 //│ f = Foo(undefined)
 
 
 :e
 new 42
-//│ ╔══[COMPILATION ERROR] Integer literal cannot be instantiated with keyword 'new'.
-//│ ║  l.171: 	new 42
+//│ ╔══[COMPILATION ERROR] Invalid class expression in 'new' instantiation.
+//│ ║  l.177: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

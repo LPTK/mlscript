@@ -53,7 +53,7 @@ f
 :e
 fun f(using Int) = use[Num]
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type Num (type parameter T) for call: 
-//│ ║  l.62: 	fun f(using Int) = use[Num]
+//│ ║  l.54: 	fun f(using Int) = use[Num]
 //│ ║        	                   ^^^^^^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  in ../../mlscript-compile/Predef.mls
@@ -75,7 +75,7 @@ f
 :re
 use{[Some[Int]].value}
 //│ ╔══[COMPILATION ERROR] Unsupported refinement in this position.
-//│ ║  l.92: 	use{[Some[Int]].value}
+//│ ║  l.76: 	use{[Some[Int]].value}
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -83,8 +83,8 @@ use{[Some[Int]].value}
 :re
 use([Some[Int]].value)
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter T) for call: 
-//│ ║  l.100: 	use([Some[Int]].value)
-//│ ║         	^^^
+//│ ║  l.84: 	use([Some[Int]].value)
+//│ ║        	^^^
 //│ ╟── Required by contextual parameter declaration: 
 //│ ║  in ../../mlscript-compile/Predef.mls
 //│ ║  l.133: 	fun use[T](using instance: T) = instance
@@ -103,11 +103,11 @@ f[Int]
 :re
 f
 //│ ╔══[COMPILATION ERROR] Cannot query instance of type ‹unspecified› (type parameter T) for call: 
-//│ ║  l.128: 	f
+//│ ║  l.104: 	f
 //│ ║         	^
 //│ ╟── Required by contextual parameter declaration: 
-//│ ║  l.121: 	fun f[T](using T) = use[T]
-//│ ║         	               ^
+//│ ║  l.97: 	fun f[T](using T) = use[T]
+//│ ║        	               ^
 //│ ╙── Illegal query for an unspecified type variable T.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
