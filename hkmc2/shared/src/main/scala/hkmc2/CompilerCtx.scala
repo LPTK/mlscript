@@ -68,6 +68,7 @@ class CompilerCtx(
     
     def mk =
       val dependencies = new CompilerCtx.DependencyRecorder
+      val modulePath = (file.up / io.RelPath(file.baseName + ".mjs")).toString
       val state = new Elaborator.State
       given Elaborator.State = state
 
@@ -95,7 +96,6 @@ class CompilerCtx(
       val parsed = parse.resultBlk
       val nme = file.baseName
       val exportedSymbol = parsed.definedSymbols.find(_._1 === nme).map(_._2)
-      state.initializeCompilationUnit(parse.origin, exportedSymbol)
       def collectCompilationUnitSymbols(program: codegen.Program): Set[codegen.BoundSymbol] =
         program.main match
         case codegen.Scoped(syms, _) =>
@@ -111,11 +111,32 @@ class CompilerCtx(
           using tl, summon[Raise], artifactCtx)
 
       val artifactConfig = Config.extractConfigFromStats(blk0)
-      state.compilationUnitConfig = S(artifactConfig)
       artifactConfig.givenIn:
         given Elaborator.State = state
         val resolver = Resolver(backendTL)
         resolver.traverseBlock(blk0)(using Resolver.ICtx.empty)
+      def findQuote(t: semantics.Statement): Bool = t match
+        case Term.Quoted(_) | Term.Unquoted(_) => true
+        case Term.Ref(sym) => sym === State.termSymbol
+        case _ => t.subTerms.exists(findQuote)
+      val hasQuote = findQuote(blk0)
+      val blk = new Term.Blk(
+        Import(State.runtimeSymbol, paths.runtimeFile.toString, paths.runtimeFile) ::
+          // Only import `Term.mls` when necessary.
+          (if hasQuote then
+            Import(State.termSymbol, paths.termFile.toString, paths.termFile) :: blk0.stats
+          else
+            blk0.stats),
+        blk0.res
+      )
+      val importedModulePaths = CompilerCtx.collectImportedModulePaths(blk)(using state)
+      val compilationUnit = CompilationUnit(
+        modulePath,
+        exportedSymbol,
+        artifactConfig,
+        importedModulePaths,
+      )
+      state.publishCompilationUnit(compilationUnit)
 
       // Runs the compilation pipeline on a freshly lowered compilation unit.
       // The unit's own top-level symbols are preserved as a private ABI, because other
@@ -127,7 +148,7 @@ class CompilerCtx(
         given Config = artifactConfig
         val printer = (p: codegen.Program) => p.showAsTree // TODO: proper printing like in diff-tests
         val pipeline = new codegen.CompilationPipeline:
-          override def extraSymbolsToPreserve(prog: codegen.Program): Set[codegen.BoundSymbol] =
+          override def extraSymbolsToPreserveFrom(prog: codegen.Program): Set[codegen.BoundSymbol] =
             collectCompilationUnitSymbols(prog)
         backendTL.givenIn:
           pipeline.run(lowered, printer, exportedSymbol.toSet, backendTL)
@@ -138,29 +159,14 @@ class CompilerCtx(
       val ir =
         artifactConfig.givenIn:
           given Elaborator.State = state
-          def findQuote(t: semantics.Statement): Bool = t match
-            case Term.Quoted(_) | Term.Unquoted(_) => true
-            case Term.Ref(sym) => sym === State.termSymbol
-            case _ => t.subTerms.exists(findQuote)
-          val hasQuote = findQuote(blk0)
-          val blk = new Term.Blk(
-            Import(State.runtimeSymbol, paths.runtimeFile.toString, paths.runtimeFile) ::
-              // Only import `Term.mls` when necessary.
-              (if hasQuote then
-                Import(State.termSymbol, paths.termFile.toString, paths.termFile) :: blk0.stats
-              else
-                blk0.stats),
-            blk0.res
-          )
-          state.noteImportedModule(State.runtimeSymbol, paths.runtimeFile.toString)
-          if hasQuote then state.noteImportedModule(State.termSymbol, paths.termFile.toString)
           val low = backendTL.givenIn:
             new codegen.Lowering()(using artifactConfig, backendTL, summon[Raise], state, prelude, summon[SymbolPrinter])
           optimize(low.program(blk, Set.empty))
 
-      state.initializeCompilationUnitPrivateNames:
-        codegen.js.JSBuilder.allocateModulePrivateExportNames(ir)(using state, summon[Raise])
-      Artifact(parsed, blk0, ir, artifactConfig, prelude, state, rootConfig, dependencies.result, lastMod)
+      state.publishCompilationUnitAbi:
+        CompilationUnitAbi:
+          CompilerCtx.allocateModulePrivateExportNames(ir)(using state, summon[Raise])
+      Artifact(parsed, blk0, ir, artifactConfig, prelude, state, compilationUnit, rootConfig, dependencies.result, lastMod)
     
     val artifact = cache.upsert(file)(
       isCurrent = (cachedFile, art) =>
@@ -217,7 +223,26 @@ class CompilerCtx(
 object CompilerCtx:
   
   inline def get(using cctx: CompilerCtx) = cctx
-  
+
+
+  /** Collect import provenance after elaboration has assembled all user and synthetic imports.
+    *
+    * Only locally-owned symbols belong in the table. An unaliased `.mls` import retains the
+    * imported compilation unit's symbol, whose defining-unit provenance must remain authoritative.
+    */
+  private def collectImportedModulePaths(blk: Term.Blk)(using state: State): Map[ImportSymbol, Str] =
+    var paths = Map.empty[ImportSymbol, Str]
+    def collect(statement: semantics.Statement): Unit =
+      statement match
+      case Import(sym, path, _) if sym.getState is state =>
+        paths.get(sym) match
+        case S(previous) => assert(previous === path, (sym, previous, path))
+        case N => paths = paths.updated(sym, path)
+      case _ =>
+      statement.subStatements.foreach(collect)
+    collect(blk)
+    paths
+
   def fresh(fs: io.FileSystem, paths: MLsCompiler.Paths, rootConfig: Config): CompilerCtx =
     CompilerCtx(N, Set.empty, fs, new PlatformCompilerCache, N, paths, rootConfig)
 
@@ -233,6 +258,29 @@ object CompilerCtx:
 
     def result: Set[SourceDependency] = dependencies.toSet
   
+  
+  private val modulePrivatePrefix = "_$_modulePrivate_$_"
+  
+  import codegen.*
+  
+  /** Allocate the defining unit's private export namespace once so all importers reuse it.
+    *
+    * Ordinary top-level names are reserved first, then the private aliases are allocated with a
+    * distinctive prefix. `Scope` handles escaping and collision suffixes exactly as it does for
+    * other generated JavaScript names; symbol UIDs influence traversal order only and never become
+    * part of the external name. */
+  def allocateModulePrivateExportNames(p: Program)(using State, Raise): Map[BlockMemberSymbol, Str] =
+    p.main match
+    case Scoped(syms, _) =>
+      val orderedSymbols = syms.toList.sortBy(_.uid)
+      val privateNameScope = Scope.empty(Scope.Cfg.default)
+      orderedSymbols.foreach(privateNameScope.allocateName(_))
+      orderedSymbols.collect:
+        case sym: BlockMemberSymbol =>
+          sym -> privateNameScope.allocateName(sym, prefix = modulePrivatePrefix, shadow = true)
+      .toMap
+    case _ => Map.empty
+  
 end CompilerCtx
 
 
@@ -246,6 +294,7 @@ object CompilerCache:
     val config: Config,
     val ctx: Elaborator.Ctx,
     val state: Elaborator.State,
+    val compilationUnit: Elaborator.CompilationUnit,
     val rootConfig: Config,
     val dependencies: Set[SourceDependency],
     val lastChangedTimestamp: Long,

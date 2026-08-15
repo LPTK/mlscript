@@ -118,58 +118,61 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val map = if unary then wasmUnaryIntrinsicMap else wasmBinaryIntrinsicMap
       map.get(sym.nme).map(name => State.wasmSymbol.asSimpleRef.selN(Tree.Ident(name)))
     else N
-  private def getBuiltinOpt(nme: Str): Opt[Ctx.Elem] =
-    if ctx.parent.isEmpty then N else ctx.getBuiltin(nme)
-  private def builtinModuleMember(moduleName: Str, memberName: Str): Opt[BlockMemberSymbol] =
-    getBuiltinOpt(moduleName)
-      .flatMap(_.symbol)
-      .flatMap(_.asMod)
-      .flatMap(_.tree.definedSymbols.get(memberName))
-  private def builtinModuleSymbol(moduleName: Str): Opt[BlockMemberSymbol] =
-    getBuiltinOpt(moduleName)
-      .flatMap(_.symbol)
-      .flatMap(_.asBlkMember)
-  private def builtinNestedMember(moduleName: Str, path: Ls[Str]): Opt[BlockMemberSymbol] = path match
-    case Nil => N
-    case hd :: tl =>
-     tl.foldLeft(builtinModuleMember(moduleName, hd)): (acc, nme) =>
-       acc.flatMap(_.asMod).flatMap(_.tree.definedSymbols.get(nme))
   private lazy val virtualModuleSymbols: Set[BlockMemberSymbol] =
-    Set("source", "js", "wasm", "debug", "annotations").flatMap(builtinModuleSymbol)
+    val blt = ctx.builtins
+    Set(blt.source.bms, blt.js.bms, blt.wasm.bms, blt.debug.bms, blt.annotations.bms)
+  // * The name path is spelled out alongside each symbol because `WatBuilder.wasmIntrinsicName` recovers an
+  // * intrinsic's name by walking the nested `Select` chain: `wasm.i32.add` must not be flattened to `wasm.add`.
   private lazy val wasmIntrinsicSymbols: Map[BlockMemberSymbol, Ls[Str]] =
-    Set(
-      Ls("i32", "const"),
-      Ls("i32", "add"),
-      Ls("i32", "sub"),
-      Ls("i32", "mul"),
-      Ls("i32", "div_s"),
-      Ls("i32", "rem_s"),
-      Ls("i32", "eq"),
-      Ls("i32", "ne"),
-      Ls("i32", "lt_s"),
-      Ls("i32", "le_s"),
-      Ls("i32", "gt_s"),
-      Ls("i32", "ge_s"),
-      Ls("i32", "eqz"),
-      Ls("ref", "i31"),
-      Ls("i31", "get_s"),
-      Ls("i31", "get_u"),
-      Ls("plus_impl"),
-      Ls("minus_impl"),
-      Ls("times_impl"),
-      Ls("div_impl"),
-      Ls("mod_impl"),
-      Ls("eq_impl"),
-      Ls("neq_impl"),
-      Ls("lt_impl"),
-      Ls("le_impl"),
-      Ls("gt_impl"),
-      Ls("ge_impl"),
-      Ls("neg_impl"),
-      Ls("pos_impl"),
-      Ls("not_impl"),
-    ).flatMap(path => builtinNestedMember("wasm", path).map(_ -> path)).toMap
-
+    val wasm = ctx.builtins.wasm
+    Map(
+      wasm.i32.const -> Ls("i32", "const"),
+      wasm.i32.add -> Ls("i32", "add"),
+      wasm.i32.sub -> Ls("i32", "sub"),
+      wasm.i32.mul -> Ls("i32", "mul"),
+      wasm.i32.div_s -> Ls("i32", "div_s"),
+      wasm.i32.rem_s -> Ls("i32", "rem_s"),
+      wasm.i32.eq -> Ls("i32", "eq"),
+      wasm.i32.ne -> Ls("i32", "ne"),
+      wasm.i32.lt_s -> Ls("i32", "lt_s"),
+      wasm.i32.le_s -> Ls("i32", "le_s"),
+      wasm.i32.gt_s -> Ls("i32", "gt_s"),
+      wasm.i32.ge_s -> Ls("i32", "ge_s"),
+      wasm.i32.eqz -> Ls("i32", "eqz"),
+      wasm.ref.i31 -> Ls("ref", "i31"),
+      wasm.i31.get_s -> Ls("i31", "get_s"),
+      wasm.i31.get_u -> Ls("i31", "get_u"),
+      wasm.plus_impl -> Ls("plus_impl"),
+      wasm.minus_impl -> Ls("minus_impl"),
+      wasm.times_impl -> Ls("times_impl"),
+      wasm.div_impl -> Ls("div_impl"),
+      wasm.mod_impl -> Ls("mod_impl"),
+      wasm.eq_impl -> Ls("eq_impl"),
+      wasm.neq_impl -> Ls("neq_impl"),
+      wasm.lt_impl -> Ls("lt_impl"),
+      wasm.le_impl -> Ls("le_impl"),
+      wasm.gt_impl -> Ls("gt_impl"),
+      wasm.ge_impl -> Ls("ge_impl"),
+      wasm.neg_impl -> Ls("neg_impl"),
+      wasm.pos_impl -> Ls("pos_impl"),
+      wasm.not_impl -> Ls("not_impl"),
+    )
+  private enum SpecialBuiltin:
+    case RuntimeIntrinsic(runtimeName: Str)
+    case DebugPrintStack
+    case ScopeLocally
+  private lazy val specialBuiltinSymbols: Map[BlockMemberSymbol, SpecialBuiltin] =
+    val blt = ctx.builtins
+    Map(
+      blt.js.bitand -> SpecialBuiltin.RuntimeIntrinsic("bitand"),
+      blt.js.bitnot -> SpecialBuiltin.RuntimeIntrinsic("bitnot"),
+      blt.js.bitor -> SpecialBuiltin.RuntimeIntrinsic("bitor"),
+      blt.js.shl -> SpecialBuiltin.RuntimeIntrinsic("shl"),
+      blt.js.try_catch -> SpecialBuiltin.RuntimeIntrinsic("try_catch"),
+      blt.debug.printStack -> SpecialBuiltin.DebugPrintStack,
+      blt.scope.locally -> SpecialBuiltin.ScopeLocally,
+    )
+  
   lazy val unreachableFn =
     Select(State.runtimeSymbol.asSimpleRef, Tree.Ident("unreachable"))(S(State.unreachableSymbol))(false)
   
@@ -892,33 +895,27 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       // * Note: now the instantiation is done by `collectAppChain`.
       val instantiated = baseF
       val instantiatedResolvedBms = instantiated.resolvedSym.flatMap(_.asBlkMember)
-      def isBuiltinModuleMember(moduleName: Str, memberName: Str): Bool =
-        instantiatedResolvedBms.exists: sym =>
-          builtinModuleMember(moduleName, memberName).exists(_ is sym)
+      val specialBuiltin = instantiatedResolvedBms.flatMap(specialBuiltinSymbols.get)
+      val runtimeIntrinsic = specialBuiltin.collect:
+        case SpecialBuiltin.RuntimeIntrinsic(runtimeName) => runtimeName
+      val wasmIntrinsic = instantiatedResolvedBms.flatMap: sym =>
+        wasmIntrinsicSymbols.get(sym).map(sym -> _)
       
       instantiated match
-      case t if isBuiltinModuleMember("js", "bitand") =>
-        conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("bitand")))
-      case t if isBuiltinModuleMember("js", "bitnot") =>
-        conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("bitnot")))
-      case t if isBuiltinModuleMember("js", "bitor") =>
-        conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("bitor")))
-      case t if isBuiltinModuleMember("js", "shl") =>
-        conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("shl")))
-      case t if isBuiltinModuleMember("js", "try_catch") =>
-        conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident("try_catch")))
-      case t if t.resolvedSym.flatMap(_.asBlkMember).exists(wasmIntrinsicSymbols.contains) =>
-        val sym = t.resolvedSym.flatMap(_.asBlkMember).get
+      case _ if runtimeIntrinsic.isDefined =>
+        conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident(runtimeIntrinsic.get)))
+      case _ if wasmIntrinsic.isDefined =>
+        val (sym, nmePath) = wasmIntrinsic.get
         // * `targetSymbol` reads the path's *outermost* `Select`, so the intrinsic's `TermSymbol` belongs there:
         // * `lowerMultiCall` reads it for parameter types and `Call.erasedType` for the result type — without it
         // * an unboxed result such as `i32` cannot cross a spill temp.
-        val path = wasmIntrinsicSymbols(sym).foldLeft(State.wasmSymbol.asSimpleRef: Path): (p, nme) =>
+        val path = nmePath.foldLeft(State.wasmSymbol.asSimpleRef: Path): (p, nme) =>
           p.selN(Tree.Ident(nme))
         conclude:
           (path, sym.tsym) match
             case (Select(qual, nme), tsym @ S(_)) => Select(qual, nme)(tsym)(false)
             case _ => lastWords(s"wasm intrinsic `${sym.nme}` has an empty name path or no `TermSymbol`")
-      case t if isBuiltinModuleMember("debug", "printStack") =>
+      case t if specialBuiltin.contains(SpecialBuiltin.DebugPrintStack) =>
         if !config.effectHandlers.exists(_.debug) then
           return fail:
             ErrorReport(
@@ -926,7 +923,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               t.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
         conclude(State.runtimeSymbol.asSimpleRef.selSN("raisePrintStackEffect").withLocOf(baseF))
-      case t if isBuiltinModuleMember("scope", "locally") =>
+      case t if specialBuiltin.contains(SpecialBuiltin.ScopeLocally) =>
         // scope.locally only applies to the innermost call; extra args are applied on top
         if allArgs.length > 1 then
           subTerm(baseF)(conclude)

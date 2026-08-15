@@ -1398,6 +1398,8 @@ class BlockSimplifier
         ).applyBlock(blk)
         found
 
+      // * TODO: once bad actors like the current pattern compiler stop duplicating symbols,
+      // *  we can remove this ugly workaround.
       def hasDuplicateBoundSymbols(fun: FunDefn): Bool =
         val seen = MutSet.empty[BoundSymbol | LabelSymbol | ClassCtorSymbol]
         var found = false
@@ -1419,13 +1421,17 @@ class BlockSimplifier
             case _ => super.applyBlock(b)
 
           override def applyFunDefn(fun: FunDefn): Unit =
-            register(fun.sym)
+            // Local function member symbols are introduced by `Scoped`. Method member symbols
+            // have no enclosing `Scoped` and are registered by their owning class below.
             register(fun.dSym)
             fun.params.foreach(registerParamList)
             applyBlock(fun.body)
 
           override def applyClsLikeDefn(defn: ClsLikeDefn): Unit =
-            register(defn.sym)
+            // Like local functions, local class-like member symbols are introduced by `Scoped`.
+            // Methods, on the other hand, bind their member symbols directly in the class body.
+            defn.methods.foreach(method => register(method.sym))
+            defn.companion.foreach(_.methods.foreach(method => register(method.sym)))
             defn.ctorSym.foreach(register)
             defn.paramsOpt.foreach(registerParamList)
             defn.auxParams.foreach(registerParamList)
@@ -1567,6 +1573,7 @@ class BlockSimplifier
         var map: InlinerMap = Map.empty
         val useCnt = MutMap.WithDefault(MutMap.empty[TermSymbol, Int], _ => 0)
         val usages = MutMap.WithDefault(MutMap.empty[TermSymbol, List[(Option[TermSymbol], Call)]], _ => Nil)
+        val summaryEdges = Buffer.empty[(TermSymbol, TermSymbol)]
         val disallowElimination = MutMap.WithDefault(MutMap.empty[TermSymbol, Bool], _ => false)
         // * Non-local definitions are registered before being appended to this worklist. Recursive
         // * references therefore terminate immediately, while advancing an index discovers the
@@ -1625,6 +1632,9 @@ class BlockSimplifier
         def applyFunctionBody(f: FunDefn, isNonLocal: Bool): Unit =
           if analyzedFunctionBodies.add(f.dSym) then
             val summary = f.getOrComputeInlinerBodySummary
+            summary.transitiveCallTargets.foreach: callee =>
+              summaryEdges.append((f.dSym, callee))
+              registerNonLocalFunction(callee)
             nested(S(f.dSym), f.inline, isNonLocal):
               if isNonLocal then replayBodySummary(summary)
               else applyBlock(f.body)
@@ -1703,7 +1713,7 @@ class BlockSimplifier
           map.foreach: (sym, info) =>
             info.useCount = useCnt(sym)
             info.disallowElimination = info.disallowElimination || disallowElimination(sym)
-          val edges: Buffer[(TermSymbol, TermSymbol)] = Buffer.empty
+          val edges = summaryEdges.filter((from, to) => map.contains(from) && map.contains(to))
           usages.foreach: (sym, calls) =>
             calls.foreach: (caller, call) =>
               if map.contains(sym) then

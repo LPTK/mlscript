@@ -10,7 +10,7 @@ import document.Document.{braced, bracketed}
 import hkmc2.Message.MessageContext
 import hkmc2.syntax.{Tree, MutVal, ImmutVal, SpreadKind}
 import hkmc2.semantics.*
-import Elaborator.{State, Ctx}
+import Elaborator.{State, Ctx, ExternalModuleImport}
 import hkmc2.codegen.Lambda
 
 import Scope.scope
@@ -201,28 +201,17 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
     val defaultImports = collection.mutable.Map.empty[ImportSymbol, Str]
     val privateImports = collection.mutable.Map.empty[BlockMemberSymbol, Str]
     
-    /** Import provenance has two sources:
-      *
-      *  - `importedModulePath` records default imports introduced while elaborating the symbol's
-      *    compilation unit. These include user imports and compiler-provided `TempSymbol`s.
-      *  - `compilationUnitModulePath` identifies symbols defined by another MLscript unit. Its
-      *    declared export is imported as the module default; other block members use the stable
-      *    private names allocated when that unit was compiled.
-      *
-      * State identity, rather than equal path strings, is the compilation-unit ownership invariant:
-      * all symbols belonging to the current artifact were created by this builder's `State`.
-      */
+    /** State identity, rather than equal path strings, is the compilation-unit ownership
+      * invariant: all symbols belonging to the current artifact were created by this builder's
+      * `State`. The symbol's owner encapsulates whether it denotes an imported default, the
+      * defining unit's default export, or one of that unit's private exports. */
     def note(sym: ImportSymbol): Unit =
       if !localSymbols(sym) then
         val originState = sym.getState
-        originState.importedModulePath(sym) match
-        case S(path) => defaultImports(sym) = path
-        case N => originState.compilationUnitModulePath.foreach: path =>
-          if originState.isCompilationUnitExport(sym) then
-            defaultImports(sym) = path
-          else sym match
-            case sym: BlockMemberSymbol if originState isnt State => privateImports(sym) = path
-            case _ =>
+        originState.externalModuleImport(sym, State) match
+        case S(ExternalModuleImport.Default(sym, path)) => defaultImports(sym) = path
+        case S(ExternalModuleImport.Private(sym, path)) => privateImports(sym) = path
+        case N =>
     
     /** Only value references require JavaScript bindings. In particular, symbols occurring solely
       * in definitions, assignments, or metadata must not become imports. `VarSymbol` and
@@ -280,6 +269,14 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
   def operand(a: Arg)(using Raise, Scope): Document =
     if a.spread.nonEmpty then die else subexpression(a.value)
   
+  private def curriedFunctionBody(paramLists: Ls[ParamList], body: Block, generator: Bool): Block =
+    paramLists match
+    case Nil => body
+    case params :: Nil =>
+      Return(Lambda(params, body)(if generator then Annot.Generator :: Nil else Nil))
+    case params :: rest =>
+      Return(Lambda(params, curriedFunctionBody(rest, body, generator))(Nil))
+
   def subexpression(r: Result)(using Raise, Scope): Document = r match
     case _: Lambda => doc"(${result(r)})"
     case _ => result(r)
@@ -346,9 +343,14 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         then doc"$runtimeVar.checkCall(${calls})"
         else doc"${calls}"
       else doc"$runtimeVar.safeCall(${calls})"
-    case Lambda(ps, bod) => scope.nest givenIn:
+    case lam @ Lambda(ps, bod) => scope.nest givenIn:
       val (params, bodyDoc) = setupFunction(none, ps, bod, isLambda = true)
-      doc"($params) => ${ braced(bodyDoc) }"
+      if lam.annot.contains(Annot.Generator)
+      then
+        // JavaScript has no generator arrows, so bind `this` to preserve the
+        // lexical-`this` behavior of the Lambda IR.
+        doc"(function* ($params) ${ braced(bodyDoc) }).bind(this)"
+      else doc"($params) => ${ braced(bodyDoc) }"
     case s @ Select(qual, id) => 
       val checkCurrentSelection = checkSelections && s.sanitize
       val dotClass = s.symbol match
@@ -526,11 +528,9 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
           case FunDefn(params = Nil) =>
             lastWords("cannot generate function with no parameter list")
           case defn @ FunDefn(own, sym, dSym, ps :: pss, bod) =>
-            val result = pss.foldRight(bod):
-              case (ps, block) =>
-                Return(Lambda(ps, block)(Nil))
+            val result = curriedFunctionBody(pss, bod, defn.generator)
             val displayName = if sym.nameIsMeaningful then S(dSym.name) else N
-            val functionKeyword = if defn.generator then doc"function*" else doc"function"
+            val functionKeyword = if defn.generator && pss.isEmpty then doc"function*" else doc"function"
             
             // * We may need to set up the function in a nested scope in one case below, so this is marked as lazy.
             lazy val (params, bodyDoc) = setupFunction(displayName, ps, result, isLambda = false)
@@ -582,12 +582,10 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
             def mkMethods(mtds: Ls[FunDefn], mtdPrefix: Str, owner: InnerSymbol)(using Scope): Document =
               mtds.map:
                 case td @ FunDefn(params = ps :: pss, body = bod) =>
-                  val result = pss.foldRight(bod):
-                    case (ps, block) =>
-                      Return(Lambda(ps, block)(Nil))
+                  val result = curriedFunctionBody(pss, bod, td.generator)
                   val (params, bodyDoc) = scope.nest.givenIn:
                     setupFunction(S(td.sym.nme), ps, result, isLambda = false)
-                  val generatorPrefix = if td.generator then "*" else ""
+                  val generatorPrefix = if td.generator && pss.isEmpty then "*" else ""
                   doc" # $mtdPrefix$generatorPrefix${mkMethodName(td, owner)}($params) ${ braced(bodyDoc) }"
                 case td @ FunDefn(params = Nil, body = bod) =>
                   doc" # ${mtdPrefix}get ${mkMethodName(td, owner)}() ${ braced(body(bod, endSemi = true)) }"
@@ -1076,25 +1074,6 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
 
 
 object JSBuilder:
-  private val modulePrivatePrefix = "_$_modulePrivate_$_"
-
-  /** Allocate the defining unit's private export namespace once so all importers reuse it.
-    *
-    * Ordinary top-level names are reserved first, then the private aliases are allocated with a
-    * distinctive prefix. `Scope` handles escaping and collision suffixes exactly as it does for
-    * other generated JavaScript names; symbol UIDs influence traversal order only and never become
-    * part of the external name. */
-  def allocateModulePrivateExportNames(p: Program)(using State, Raise): Map[BlockMemberSymbol, Str] =
-    p.main match
-    case Scoped(syms, _) =>
-      val orderedSymbols = syms.toList.sortBy(_.uid)
-      val privateNameScope = Scope.empty(Scope.Cfg.default)
-      orderedSymbols.foreach(privateNameScope.allocateName(_))
-      orderedSymbols.collect:
-        case sym: BlockMemberSymbol =>
-          sym -> privateNameScope.allocateName(sym, prefix = modulePrivatePrefix, shadow = true)
-      .toMap
-    case _ => Map.empty
   
   def isValidIdentifier(s: Str): Bool = identifierPattern.matches(s) && !keywords.contains(s)
   

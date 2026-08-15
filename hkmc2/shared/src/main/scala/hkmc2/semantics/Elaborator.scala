@@ -455,55 +455,59 @@ object Elaborator:
         matchFailureTrm = term("MatchFailure"),
       )
 
+  /** Immutable semantic metadata published before a compilation unit is optimized. */
+  final case class CompilationUnit(
+    modulePath: Str,
+    defaultExport: Opt[BlockMemberSymbol],
+    config: Config,
+    importedModulePaths: Map[ImportSymbol, Str],
+  ):
+    def externalImport(sym: ImportSymbol, isForeign: Bool): Opt[ExternalModuleImport] =
+      importedModulePaths.get(sym) match
+      case S(path) => S(ExternalModuleImport.Default(sym, path))
+      case N if defaultExport.contains(sym) =>
+        S(ExternalModuleImport.Default(sym, modulePath))
+      case N => sym match
+        case sym: BlockMemberSymbol if isForeign =>
+          S(ExternalModuleImport.Private(sym, modulePath))
+        case _ => N
+
+  end CompilationUnit
+
+  /** Immutable JavaScript ABI published after optimization has fixed the emitted definitions. */
+  final case class CompilationUnitAbi(
+    privateExportNames: Map[BlockMemberSymbol, Str],
+  )
+
+  enum ExternalModuleImport:
+    case Default(sym: ImportSymbol, modulePath: Str)
+    case Private(sym: BlockMemberSymbol, modulePath: Str)
+
   class State:
     val suid = new Uid.Symbol.State
     given State = this
-    private var _compilationUnitOrigin: Opt[Origin] = N
-    private var _compilationUnitExport: Opt[BlockMemberSymbol] = N
-    private var _compilationUnitPrivateNames: Opt[Map[BlockMemberSymbol, Str]] = N
-    private val importedModulePaths = mutable.Map.empty[ImportSymbol, Str]
-    /** Records the source file represented by this state and its default module export.
-      *
-      * Symbols retain their elaboration state, so this immutable-after-initialization metadata
-      * lets code generation recover their origin after cross-compilation-unit inlining without
-      * mutating shared cached symbols. Worksheet states intentionally remain uninitialized. */
-    def initializeCompilationUnit(origin: Origin, defaultExport: Opt[BlockMemberSymbol]): Unit =
-      assert(_compilationUnitOrigin.isEmpty && _compilationUnitExport.isEmpty)
-      _compilationUnitOrigin = S(origin)
-      _compilationUnitExport = defaultExport
-    def compilationUnitModulePath: Opt[Str] =
-      _compilationUnitOrigin.map: origin =>
-        val file = origin.fileName
-        (file.up / io.RelPath(file.baseName + ".mjs")).toString
-    def isCompilationUnitExport(sym: Symbol): Bool =
-      _compilationUnitExport.contains(sym)
-    /** Publish the private export names allocated for this compilation unit.
-      *
-      * The table is initialized before the artifact is cached and is immutable afterwards. Keeping
-      * it on the owning state lets separately emitted importers and exporters agree on names without
-      * putting mutable code-generation metadata on shared symbols. */
-    def initializeCompilationUnitPrivateNames(names: Map[BlockMemberSymbol, Str]): Unit =
-      assert(_compilationUnitPrivateNames.isEmpty)
-      assert(names.keysIterator.forall(_.getState is this))
-      _compilationUnitPrivateNames = S(names)
+    private var _compilationUnit: Opt[CompilationUnit] = N
+    private var _compilationUnitAbi: Opt[CompilationUnitAbi] = N
+    /** Publish semantic provenance before optimizing this compilation unit. */
+    private[hkmc2] def publishCompilationUnit(unit: CompilationUnit): Unit =
+      assert(_compilationUnit.isEmpty)
+      assert(unit.defaultExport.forall(_.getState is this))
+      assert(unit.importedModulePaths.keysIterator.forall(_.getState is this))
+      _compilationUnit = S(unit)
+    /** Publish the separately staged JavaScript ABI before caching this compilation unit. */
+    private[hkmc2] def publishCompilationUnitAbi(abi: CompilationUnitAbi): Unit =
+      assert(_compilationUnit.nonEmpty && _compilationUnitAbi.isEmpty)
+      assert(abi.privateExportNames.keysIterator.forall(_.getState is this))
+      _compilationUnitAbi = S(abi)
+    /** Resolve the one JavaScript import represented by an external symbol reference. */
+    def externalModuleImport(sym: ImportSymbol, importingState: State): Opt[ExternalModuleImport] =
+      assert(sym.getState is this)
+      _compilationUnit.flatMap(_.externalImport(sym, this isnt importingState))
     def compilationUnitPrivateName(sym: BlockMemberSymbol): Opt[Str] =
-      _compilationUnitPrivateNames.flatMap(_.get(sym))
-    /** Records imports whose symbols are owned by this state.
-      *
-      * Imports of `.mls` files normally reuse the exported symbol owned by the imported state;
-      * their paths are recovered from that state's compilation-unit origin instead. */
-    def noteImportedModule(sym: ImportSymbol, path: Str): Unit =
-      if sym.getState is this then
-        importedModulePaths.get(sym) match
-          case S(previous) => assert(previous === path, (sym, previous, path))
-          case N => importedModulePaths(sym) = path
-    def importedModulePath(sym: ImportSymbol): Opt[Str] =
-      importedModulePaths.get(sym)
-    /** Effective configuration of the imported compilation unit represented by this state.
-      *
-      * Root worksheet states intentionally leave this empty because their configuration can
-      * still be changed by the worksheet being compiled. */
-    var compilationUnitConfig: Opt[Config] = N
+      _compilationUnitAbi.flatMap(_.privateExportNames.get(sym))
+    /** Root worksheet states have no fixed compilation-unit configuration. */
+    def compilationUnitConfig: Opt[Config] =
+      _compilationUnit.map(_.config)
     val globalThisSymbol = TopLevelSymbol("globalThis")
     private var cachedRuntimeSymbols: Opt[RuntimeSymbols] = N
     def initRuntimeSymbolsFromBlock(blk: Term.Blk): Unit =
@@ -1058,19 +1062,13 @@ extends Importer:
     def elaborateSelection(tree: Sel): Term =
       val preTrm = subterm(tree.prefix)
       val sym = resolveField(tree.name, preTrm.symbol, tree.name)
-      def isSourceMember(name: Str): Bool =
-        ctx.getBuiltin("source")
-          .flatMap(_.symbol)
-          .flatMap(_.asMod)
-          .flatMap(_.tree.definedSymbols.get(name))
-          .exists(sym.contains)
-      if isSourceMember("line") then
+      if sym.contains(ctx.builtins.source.line) then
         val loc = tree.toLoc.getOrElse(???)
         val (line, _, _) = loc.origin.fph.getLineColAt(loc.spanStart)
         Term.Lit(IntLit(loc.origin.startLineNum + line))
-      else if isSourceMember("name") then
+      else if sym.contains(ctx.builtins.source.name) then
         Term.Lit(StrLit(ctx.getOuter.map(_.nme).getOrElse("")))
-      else if isSourceMember("file") then
+      else if sym.contains(ctx.builtins.source.file) then
         val loc = tree.toLoc.getOrElse(???)
         Term.Lit(StrLit(loc.origin.fileName.toString))
       else
