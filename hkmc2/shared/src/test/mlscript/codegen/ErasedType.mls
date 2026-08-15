@@ -380,7 +380,7 @@ fun useUnion(x: Union): Union = x
 //│ define useCyclic⁰ as fun useCyclic¹(x: Anything): Anything {
 //│   return x
 //│ };
-//│ define useUnion⁰ as fun useUnion¹(x: Anything): Anything {
+//│ define useUnion⁰ as fun useUnion¹(x: Object): Object {
 //│   return x
 //│ };
 //│ define P⁰ as class P¹;

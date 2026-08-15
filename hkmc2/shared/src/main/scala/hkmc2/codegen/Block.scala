@@ -1326,21 +1326,25 @@ object CanonicalErasedValueType:
     * - `rsc` is true if this is a resource type.
     */
   def apply(rsc: Bool, tpeSym: TypeSymbol)(using Ctx, State): CanonicalErasedValueType =
-    tpeSym.resolveAlias match
-      // * An unresolvable alias becomes the top type.
-      // TODO(Derppening): Handle LUB if RHS of the type alias is a union type.
-      case _: TypeAliasSymbol => ErasedType.Anything
-      case base =>
-        // * `Anything` and `Object` drop `rsc`, which is meaningless on a top type. Every construction site
-        // * passes `rsc = false` today; a future resource-type implementation must revisit both.
-        // *
-        // * Note that `base is ctx.builtins.Anything` is only necessary for `InvalMLPrelude.mls` - the `Anything` type
-        // * is `declare class`-ed there (since `declare type` is not supported in `invalml`).
-        if base is ctx.builtins.Anything then ErasedType.Anything
-        else if base is ctx.builtins.Object then ErasedType.Object
-        else PrimitiveType.values.find(_.sym === base) match
-          case S(prim) => ErasedType.Primitive(prim)
-          case _ => ErasedType.AnyRef(rsc, base)
+    // * A union alias denotes each of its members, and erases to their LUB; every other symbol resolves to itself
+    // * or to a single alias target.
+    tpeSym.resolveAlias.map(resolved(rsc, _)).reduceLeft((lhs, rhs) => ErasedType.lub(lhs, rhs))
+
+  /** Creates an instance from a symbol already resolved by `resolveAlias`. */
+  private def resolved(rsc: Bool, sym: TypeSymbol)(using Ctx, State): CanonicalErasedValueType = sym match
+    // * An unresolvable alias becomes the top type.
+    case _: TypeAliasSymbol => ErasedType.Anything
+    case base =>
+      // * `Anything` and `Object` drop `rsc`, which is meaningless on a top type. Every construction site
+      // * passes `rsc = false` today; a future resource-type implementation must revisit both.
+      // *
+      // * Note that `base is ctx.builtins.Anything` is only necessary for `InvalMLPrelude.mls` - the `Anything` type
+      // * is `declare class`-ed there (since `declare type` is not supported in `invalml`).
+      if base is ctx.builtins.Anything then ErasedType.Anything
+      else if base is ctx.builtins.Object then ErasedType.Object
+      else PrimitiveType.values.find(_.sym === base) match
+        case S(prim) => ErasedType.Primitive(prim)
+        case _ => ErasedType.AnyRef(rsc, base)
 
 /** Trait representing a Block IR element that has an [[`ErasedType`]]. */
 trait HasErasedType:
