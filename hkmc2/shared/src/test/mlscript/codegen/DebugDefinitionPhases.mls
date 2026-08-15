@@ -4,22 +4,22 @@
 @dbg('resolution, 'lowering)
 fun selected_debug(x) = x
 fun unrelated(x) = x
-//│ | Resolving definition: TermDefinition(Fun,member:selected_debug‹38›,term:selected_debug‹43›,List(ParamList(‹›,List(Param(‹›,x‹40›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹40›)),‹›,Modulefulness(None),List(Debug(...)),None)
-//│ | | Resolving function definition TermDefinition(Fun,member:selected_debug‹38›,term:selected_debug‹43›,List(ParamList(‹›,List(Param(‹›,x‹40›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹40›)),‹›,Modulefulness(None),List(Debug(...)),None)
-//│ | | Resolving parameter x‹40›
-//│ | | Traversing term: Ref(x‹40›) (expect = NonModule)
-//│ | | | Resolving resolvable term: Ref(x‹40›), (prefer = NonModule, inAppPrefix = false, inCtxPrefix = false, inTyPrefix = false)
-//│ | | | | Resolving symbol for term: Ref(x‹40›) (prefer = NonModule)
-//│ | | | | -> (sym = Some(x‹40›), typ = None)
-//│ | | | | Resolving the type for term: Ref(x‹40›) (prefer = NonModule, sym = Some(x‹40›))
-//│ | | | | | Declaration: Some(Param(‹›,x‹40›,None,Modulefulness(None)))
+//│ | Resolving definition: TermDefinition(Fun,member:selected_debug‹40›,term:selected_debug‹45›,List(ParamList(‹›,List(Param(‹›,x‹42›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹42›)),‹›,Modulefulness(None),List(Debug(...)),None)
+//│ | | Resolving function definition TermDefinition(Fun,member:selected_debug‹40›,term:selected_debug‹45›,List(ParamList(‹›,List(Param(‹›,x‹42›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹42›)),‹›,Modulefulness(None),List(Debug(...)),None)
+//│ | | Resolving parameter x‹42›
+//│ | | Traversing term: Ref(x‹42›) (expect = NonModule)
+//│ | | | Resolving resolvable term: Ref(x‹42›), (prefer = NonModule, inAppPrefix = false, inCtxPrefix = false, inTyPrefix = false)
+//│ | | | | Resolving symbol for term: Ref(x‹42›) (prefer = NonModule)
+//│ | | | | -> (sym = Some(x‹42›), typ = None)
+//│ | | | | Resolving the type for term: Ref(x‹42›) (prefer = NonModule, sym = Some(x‹42›))
+//│ | | | | | Declaration: Some(Param(‹›,x‹42›,None,Modulefulness(None)))
 //│ | | | | -> typ = None
-//│ | | | | Resolving resolvable term Ref(x‹40›) with sym = Some(x‹40›), typ = None
-//│ | | | ~> Ref(x‹40›) (sym = Some(x‹40›), typ = None)
-//│ | | | Checking Ref(x‹40›): expect NonModule, evalsToModule = false, evalsToStaticClass = false
-//│ Lowering.term x⁰‹40› – symbol x‹40›
-//│ Expanding term Ref(x‹40›)
-//│ ~> Ref(x‹40›)
+//│ | | | | Resolving resolvable term Ref(x‹42›) with sym = Some(x‹42›), typ = None
+//│ | | | ~> Ref(x‹42›) (sym = Some(x‹42›), typ = None)
+//│ | | | Checking Ref(x‹42›): expect NonModule, evalsToModule = false, evalsToStaticClass = false
+//│ Lowering.term x⁰‹42› – symbol x‹42›
+//│ Expanding term Ref(x‹42›)
+//│ ~> Ref(x‹42›)
 
 
 module Main with

@@ -29,8 +29,9 @@ object Elaborator:
     "==", "!=", "<", "<=", ">", ">=",
     "===", "!==",
     "&&", "||")
-  val unaryOps = Set("-", "+", "!", "~", "typeof")
+  val unaryOps = Set("-", "+", "!", "~", "typeof", "yield", "yield*")
   val anyOps = Set("super")
+  val impureOps = Set("super", "yield", "yield*")
   val builtins = binaryOps ++ unaryOps ++ anyOps
   val aliasOps = Map(
     ";" -> ",",
@@ -45,14 +46,14 @@ object Elaborator:
   
   // TODO: rename to ScopeKind?
   enum OuterCtx:
-    case Function(returnHandlerSymbol: TempSymbol)
+    case Function(returnHandlerSymbol: TempSymbol, isGenerator: Bool)
     case InnerScope(innerSymbol: InnerSymbol)
     case LocalScope(nameHint: Str)
     case LambdaOrHandlerBlock
     case NonReturnContext
     
     def showDbg: Str = this match
-      case Function(sym) => s"fun:${sym.nme}"
+      case Function(sym, _) => s"fun:${sym.nme}"
       case InnerScope(inner) => inner.toString
       case LocalScope(hint) => hint
       case LambdaOrHandlerBlock => "LambdaOrHandlerBlock"
@@ -177,15 +178,20 @@ object Elaborator:
       go(S(this), false, false)
     def getOuter: Opt[InnerSymbol] = outer.inner.orElse(parent.flatMap(_.getOuter))
     def getNonLocalRetHandler: Opt[TempSymbol] = outer match
-      case OuterCtx.Function(sym) => S(sym)
+      case OuterCtx.Function(sym, _) => S(sym)
       case _ => parent.flatMap(_.getNonLocalRetHandler)
     def getRetHandler: ReturnHandler = outer match
-      case OuterCtx.Function(sym) => ReturnHandler.Direct
+      case OuterCtx.Function(sym, _) => ReturnHandler.Direct
       case _: (OuterCtx.LambdaOrHandlerBlock.type | OuterCtx.InnerScope) =>
         getNonLocalRetHandler.fold(ReturnHandler.NotInFunction)(ReturnHandler.Required(_))
       case OuterCtx.NonReturnContext => ReturnHandler.Forbidden
       case _: OuterCtx.LocalScope =>
         parent.fold(ReturnHandler.NotInFunction)(_.getRetHandler)
+    def inGenerator: Bool = outer match
+      case OuterCtx.Function(_, isGenerator) => isGenerator
+      case _: OuterCtx.LocalScope =>
+        parent.fold(false)(_.inGenerator)
+      case _: (OuterCtx.LambdaOrHandlerBlock.type | OuterCtx.InnerScope | OuterCtx.NonReturnContext.type) => false
     
     // * Invariant: We expect that the top-level context only contain hard-coded symbols like `globalThis`
     // * and that built-in symbols like Int and Str be imported into another nested context on top of it.
@@ -279,6 +285,7 @@ object Elaborator:
         val tailcall = assumeObject("tailcall")
         val inline = assumeObject("inline")
         val noInline = assumeObject("noInline")
+        val generator = assumeObject("generator")
         val compile = assumeObject("compile")
         val buffered = assumeObject("buffered")
         val bufferable = assumeObject("bufferable")
@@ -394,43 +401,59 @@ object Elaborator:
         matchFailureTrm = term("MatchFailure"),
       )
 
+  /** Immutable semantic metadata published before a compilation unit is optimized. */
+  final case class CompilationUnit(
+    modulePath: Str,
+    defaultExport: Opt[BlockMemberSymbol],
+    config: Config,
+    importedModulePaths: Map[ImportSymbol, Str],
+  ):
+    def externalImport(sym: ImportSymbol, isForeign: Bool): Opt[ExternalModuleImport] =
+      importedModulePaths.get(sym) match
+      case S(path) => S(ExternalModuleImport.Default(sym, path))
+      case N if defaultExport.contains(sym) =>
+        S(ExternalModuleImport.Default(sym, modulePath))
+      case N => sym match
+        case sym: BlockMemberSymbol if isForeign =>
+          S(ExternalModuleImport.Private(sym, modulePath))
+        case _ => N
+
+  end CompilationUnit
+
+  /** Immutable JavaScript ABI published after optimization has fixed the emitted definitions. */
+  final case class CompilationUnitAbi(
+    privateExportNames: Map[BlockMemberSymbol, Str],
+  )
+
+  enum ExternalModuleImport:
+    case Default(sym: ImportSymbol, modulePath: Str)
+    case Private(sym: BlockMemberSymbol, modulePath: Str)
+
   class State:
     val suid = new Uid.Symbol.State
     given State = this
-    private var _compilationUnitOrigin: Opt[Origin] = N
-    private var _compilationUnitExport: Opt[BlockMemberSymbol] = N
-    private val importedModulePaths = mutable.Map.empty[ImportSymbol, Str]
-    /** Records the source file represented by this state and its default module export.
-      *
-      * Symbols retain their elaboration state, so this immutable-after-initialization metadata
-      * lets code generation recover their origin after cross-compilation-unit inlining without
-      * mutating shared cached symbols. Worksheet states intentionally remain uninitialized. */
-    def initializeCompilationUnit(origin: Origin, defaultExport: Opt[BlockMemberSymbol]): Unit =
-      assert(_compilationUnitOrigin.isEmpty && _compilationUnitExport.isEmpty)
-      _compilationUnitOrigin = S(origin)
-      _compilationUnitExport = defaultExport
-    def compilationUnitModulePath: Opt[Str] =
-      _compilationUnitOrigin.map: origin =>
-        val file = origin.fileName
-        (file.up / io.RelPath(file.baseName + ".mjs")).toString
-    def isCompilationUnitExport(sym: Symbol): Bool =
-      _compilationUnitExport.contains(sym)
-    /** Records imports whose symbols are owned by this state.
-      *
-      * Imports of `.mls` files normally reuse the exported symbol owned by the imported state;
-      * their paths are recovered from that state's compilation-unit origin instead. */
-    def noteImportedModule(sym: ImportSymbol, path: Str): Unit =
-      if sym.getState is this then
-        importedModulePaths.get(sym) match
-          case S(previous) => assert(previous === path, (sym, previous, path))
-          case N => importedModulePaths(sym) = path
-    def importedModulePath(sym: ImportSymbol): Opt[Str] =
-      importedModulePaths.get(sym)
-    /** Effective configuration of the imported compilation unit represented by this state.
-      *
-      * Root worksheet states intentionally leave this empty because their configuration can
-      * still be changed by the worksheet being compiled. */
-    var compilationUnitConfig: Opt[Config] = N
+    private var _compilationUnit: Opt[CompilationUnit] = N
+    private var _compilationUnitAbi: Opt[CompilationUnitAbi] = N
+    /** Publish semantic provenance before optimizing this compilation unit. */
+    private[hkmc2] def publishCompilationUnit(unit: CompilationUnit): Unit =
+      assert(_compilationUnit.isEmpty)
+      assert(unit.defaultExport.forall(_.getState is this))
+      assert(unit.importedModulePaths.keysIterator.forall(_.getState is this))
+      _compilationUnit = S(unit)
+    /** Publish the separately staged JavaScript ABI before caching this compilation unit. */
+    private[hkmc2] def publishCompilationUnitAbi(abi: CompilationUnitAbi): Unit =
+      assert(_compilationUnit.nonEmpty && _compilationUnitAbi.isEmpty)
+      assert(abi.privateExportNames.keysIterator.forall(_.getState is this))
+      _compilationUnitAbi = S(abi)
+    /** Resolve the one JavaScript import represented by an external symbol reference. */
+    def externalModuleImport(sym: ImportSymbol, importingState: State): Opt[ExternalModuleImport] =
+      assert(sym.getState is this)
+      _compilationUnit.flatMap(_.externalImport(sym, this isnt importingState))
+    def compilationUnitPrivateName(sym: BlockMemberSymbol): Opt[Str] =
+      _compilationUnitAbi.flatMap(_.privateExportNames.get(sym))
+    /** Root worksheet states have no fixed compilation-unit configuration. */
+    def compilationUnitConfig: Opt[Config] =
+      _compilationUnit.map(_.config)
     val globalThisSymbol = TopLevelSymbol("globalThis")
     private var cachedRuntimeSymbols: Opt[RuntimeSymbols] = N
     def initRuntimeSymbolsFromBlock(blk: Term.Blk): Unit =
@@ -485,7 +508,8 @@ object Elaborator:
             binary = binaryOps(op),
             unary = unaryOps(op),
             nullary = false,
-            functionLike = anyOps(op))
+            functionLike = anyOps(op),
+            isPure = !impureOps(op))
         .toMap
       baseBuiltins ++ aliasOps.map:
         case (alias, base) => alias -> baseBuiltins(base)
@@ -604,6 +628,8 @@ extends Importer:
             return S(Annot.Inline)
           case ctx.builtins.annotations.noInline =>
             return S(Annot.NoInline)
+          case ctx.builtins.annotations.generator =>
+            return S(Annot.Generator)
           case ctx.builtins.annotations.mayNotRaiseEffects =>
             return S(Annot.MayNotRaiseEffects)
           case _ => ()
@@ -997,19 +1023,13 @@ extends Importer:
     def elaborateSelection(tree: Sel): Term =
       val preTrm = subterm(tree.prefix)
       val sym = resolveField(tree.name, preTrm.symbol, tree.name)
-      def isSourceMember(name: Str): Bool =
-        ctx.getBuiltin("source")
-          .flatMap(_.symbol)
-          .flatMap(_.asMod)
-          .flatMap(_.tree.definedSymbols.get(name))
-          .exists(sym.contains)
-      if isSourceMember("line") then
+      if sym.contains(ctx.builtins.source.line) then
         val loc = tree.toLoc.getOrElse(???)
         val (line, _, _) = loc.origin.fph.getLineColAt(loc.spanStart)
         Term.Lit(IntLit(loc.origin.startLineNum + line))
-      else if isSourceMember("name") then
+      else if sym.contains(ctx.builtins.source.name) then
         Term.Lit(StrLit(ctx.getOuter.map(_.nme).getOrElse("")))
-      else if isSourceMember("file") then
+      else if sym.contains(ctx.builtins.source.file) then
         val loc = tree.toLoc.getOrElse(???)
         Term.Lit(StrLit(loc.origin.fileName.toString))
       else
@@ -1434,6 +1454,14 @@ extends Importer:
         error
     case PrefixApp(kw @ Keywrd(Keyword.`throw`), body) =>
       Term.Throw(subterm(body)).mkLocWith(kw)
+    case PrefixApp(kw @ Keywrd(Keyword.`yield` | Keyword.`yield*`), body) =>
+      if ctx.inGenerator then
+        val synthIdent = new Tree.Ident(kw.kw.name).withLocOf(kw)
+        Term.App(ident(synthIdent).get, Term.Tup(PlainFld(subterm(body)) :: Nil)(DummyTup))(DummyApp, N, FlowSymbol("yield"))
+      else
+        raise:
+          ErrorReport(msg"Yield expressions are not allowed in this context." -> tree.toLoc :: Nil)
+        subterm(body)
     case PrefixApp(kw @ Keywrd(Keyword.`do`), InfixApp(labelId: Ident, Keywrd(Keyword.`:`), body)) =>
       val labelSym = new LabelSymbol(N, labelId.name)
       val resultSym = new TempSymbol(N, s"${labelId.name}$$result")
@@ -1905,7 +1933,10 @@ extends Importer:
                   case _ if ctx.mode is Mode.Light => S(Term.Missing)
                   case S(rhs) => S:
                     val nonLocalRetHandler = TempSymbol(N, s"nonLocalRetHandler$$${id.name}")
-                    newCtx.nest(OuterCtx.Function(nonLocalRetHandler)).givenIn: newCtx ?=>
+                    val hasGeneratorAnnotation = annotations.contains(Annot.Generator)
+                    if pss.isEmpty && hasGeneratorAnnotation then
+                      raise(ErrorReport(msg"Generators are not supported on functions without a parameter list" -> td.toLoc :: Nil))
+                    newCtx.nest(OuterCtx.Function(nonLocalRetHandler, pss.nonEmpty && hasGeneratorAnnotation)).givenIn: newCtx ?=>
                       val b = term(rhs)(using newCtx)
                       if nonLocalRetHandler.directRefs.isEmpty then b else
                         mkEffectHandleAbortive(

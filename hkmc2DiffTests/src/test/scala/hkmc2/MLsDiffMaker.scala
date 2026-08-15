@@ -312,7 +312,7 @@ abstract class MLsDiffMaker extends DiffMaker:
       given Raise = d =>
         output(s"Error: $d")
         ()
-      val preludeArtifact = cctx.getPrelude(preludeFile, dbgParsing.isSet)
+      val preludeArtifact = cctx.getPrelude(preludeFile)
       curCtx = preludeArtifact.ctx
       prelude = preludeArtifact.ctx
     super.run()

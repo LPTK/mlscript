@@ -8,8 +8,8 @@ fun do_not_debug_me(x) = x
 //│ Elaborating ParamTree: ParamTree(‹›,Ident(x),None,None,Set())
 //│ Elab term Ident(x)
 //│ | Elab subterm Ident(x)
-//│ | ~> Ref(x‹38›)
-//│ ~> Ref(x‹38›)
+//│ | ~> Ref(x‹40›)
+//│ ~> Ref(x‹40›)
 
 
 // Named flags can be explicitly disabled, and StdIO is the default destination.
@@ -35,8 +35,8 @@ fun persistently_debugged(x) = x
 //│ | Elaborating ParamTree: ParamTree(‹›,Ident(x),None,None,Set())
 //│ | Elab term Ident(x)
 //│ | | Elab subterm Ident(x)
-//│ | | ~> Ref(x‹57›)
-//│ | ~> Ref(x‹57›)
-//│ ~> Blk(List(TermDefinition(Fun,member:persistently_debugged‹56›,term:persistently_debugged‹60›,List(ParamList(‹›,List(Param(‹›,x‹57›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹57›)),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))
+//│ | | ~> Ref(x‹59›)
+//│ | ~> Ref(x‹59›)
+//│ ~> Blk(List(TermDefinition(Fun,member:persistently_debugged‹58›,term:persistently_debugged‹62›,List(ParamList(‹›,List(Param(‹›,x‹59›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹59›)),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))
 
 #dbg(elaboration: false)

@@ -102,8 +102,13 @@ private[io] object VirtualPath:
           case ".." =>
             // Parent directory, pop the last segment if possible
             // (`acc` is in reverse order, so the last segment added is its head)
-            if acc.isEmpty || acc.head == ".." then seg :: acc
-            else acc.drop(1)
+            acc match
+              case Nil =>
+                // Absolute paths cannot escape above their root. Keeping the `..` would make
+                // `/../a` a different cache key from the same POSIX location spelled `/a`.
+                if isAbs then acc else seg :: Nil
+              case ".." :: _ => seg :: acc
+              case _ :: tl => tl
           case _ => seg :: acc
       
       val normalized = normalizedRev.reverse
