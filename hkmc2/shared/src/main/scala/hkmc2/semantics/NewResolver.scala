@@ -43,7 +43,6 @@ class NewResolver:
   */
   
   // * The `FlowSymbol`s are currently used to uniquely identify terms
-  val selShapes: mutable.Map[(TermShape, FlowSymbol), SelShape] = mutable.Map.empty
   val appShapes: mutable.Map[(TermShape, FlowSymbol), AppShape] = mutable.Map.empty
   val newShapes: mutable.Map[(TermShape, FlowSymbol), NewShape] = mutable.Map.empty
   val newNewShapes: mutable.Map[(ClassLikeSymbol, FlowSymbol), NewNewShape] = mutable.Map.empty
@@ -357,124 +356,6 @@ class NewResolver:
           msg"Invalid class expression in 'new' instantiation." -> nw.toLoc :: Nil,
           source = Diagnostic.Source.Compilation)
   
-  def selShape(lhs: TermShape, id: Tree.Ident, res: AnySelTerm): Unit =
-    log(s"selShape? lhs = $lhs, nme = $id, res = $res")
-    val sh = selShapes.getOrElseUpdate((lhs, res.resSym), {
-      log(s"selShape: lhs = $lhs, nme = $id, res = $res")
-      // lhs match
-      // case _ =>
-      val sh = new SelShape(lhs, id, res):
-        /* 
-        def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
-          getFromClsTree(cls.tree)
-        // TODO: only use `getFromCls`...
-        def getFromClsTree(cls: Tree.TypeDef): Opt[SelectionTarget] =
-          // log(s"?!! ${cls.definedSymbols}")
-          cls.allSymbols.get(nme.name) match
-          case s @ S(clsSym) =>
-            S(SelectionTarget.ObjectMember(clsSym))
-          case N =>
-            res.isErroneous = true
-            val rep = 
-              ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
-                }' does not contain member '${nme.name}'" -> res.toLoc :: Nil)
-            raise(rep)
-            // S(ErrShape(rep))
-            S(SelectionTarget.Err(rep))
-        def get(sym: BlockMemberSymbol): Opt[SelectionTarget] =
-          // log(s"?! ${sym.modOrObjTree}")
-          /* 
-          sym.modOrObjTree match
-          case S(cls) =>
-            // log(s"?!! ${cls.definedSymbols}")
-            cls.definedSymbols.get(nme.name) match
-            case s @ S(clsSym) =>
-              S(SelectionTarget.ObjectMember(clsSym))
-            case N =>
-              res.isErroneous = true
-              val rep = 
-                ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
-                  }' does not contain member '${nme.name}'" -> res.toLoc :: Nil)
-              raise(rep)
-              // S(ErrShape(rep))
-              S(SelectionTarget.Err(rep))
-          case N =>
-            N
-          */
-          sym.modOrObjTree.flatMap(getFromClsTree)
-        val target = receiver match
-          case ss: SymShape =>
-            /* 
-            log(s"?! ${ss.sym.modOrObjTree}")
-            ss.sym.modOrObjTree match
-            case S(cls) =>
-              log(s"?!! ${cls.definedSymbols}")
-              cls.definedSymbols.get(nme.name) match
-              case s @ S(clsSym) =>
-                S(SelectionTarget.ObjectMember(clsSym))
-              case N =>
-                raise(ErrorReport(msg"${cls.k.desc.capitalize} '${cls.symbol.nme
-                  }' does not contain member '${nme.name}'" -> res.toLoc :: Nil))
-                N
-            case N =>
-              N
-            */
-            get(ss.sym)
-          case app: AppShape =>
-            app.target match
-            // case S(AppTarget.ObjectMember(sym: BlockMemberSymbol)) => get(sym)
-            // case S(AppTarget.ObjectMember(sym)) => ???
-            case S(AppTarget.ObjectMember(cls)) =>
-              getFromCls(cls)
-            case tg @ S(AppTarget.Err(err)) =>
-              // app.src.isErroneous = true // TODO
-              N
-            case N => N
-          case sel: SelShape =>
-            // sel.target.flatMap(get)
-            sel.target match
-            case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) => get(sym)
-            case S(SelectionTarget.ObjectMember(sym)) => ???
-            case S(SelectionTarget.CompanionMember(comp, sym)) => ???
-            case tg @ S(SelectionTarget.Err(err)) =>
-              // S(ErrShape(err))
-              sel.src.isErroneous = true
-              N
-            case N => N
-          case sh =>
-            res.isErroneous = true
-            raise:
-              ErrorReport(
-                msg"TODO error (${sh.describe})" -> res.toLoc :: Nil,
-                source = Diagnostic.Source.Compilation)
-            N
-        */
-        // val target = receiver.members.get(id.name).map(SelectionTarget.ObjectMember(_))
-        val target = receiver.members.get(id.name) match
-          case S(sym) => S(SelectionTarget.ObjectMember(sym)) // TODO: catch private accesses
-          case N =>
-            res.isErroneous = true
-            raise:
-              ErrorReport(
-                msg"${receiver.describe.capitalize} does not contain member '${id.name}'" -> res.toLoc :: Nil,
-                source = Diagnostic.Source.Compilation)
-            N
-        target.foreach: tgt =>
-          res.resolvedTargets ::= tgt
-        /*
-        lazy val members: Map[Str, BlockMemberSymbol] = target match
-          case S(SelectionTarget.ObjectMember(cls)) =>
-            cls.defn.getOrElse(die // TODO
-              ).body.members
-          case _ => Map.empty
-         */
-      // if res.shapes.add(sh) then
-      //   res.shapeListeners.foreach(listener => listener(sh))
-      sh
-    })
-    if res.shapes.add(sh) then
-      res.shapeListeners.foreach(listener => listener(sh))
-  
   def symShape(sym: BlockMemberSymbol, res: Ref): Unit =
     val sh = symShapes.getOrElseUpdate(sym, {
       log(s"symShape: sym = $sym, res = $res")
@@ -498,9 +379,6 @@ class NewResolver:
         )
     DefineVar(sym, rhs)
   
-  // /* 
-  // def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: DefnShape => Unit): Unit =
-  // def listenSym(sym: ModuleOrObjectSymbol | TermSymbol, listener: TermShape => Unit): Unit =
   def listenDefn(sym: TermSymbol, listener: TermShape => Unit): Unit =
     sym.defn match
     case S(td: TermDefinition) if td.params.isEmpty =>
@@ -531,18 +409,6 @@ class NewResolver:
   def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
     log(s"listenTerm: trm = ${trm.showDbg}")
     def fromBMS(bms: BlockMemberSymbol) =
-      /* 
-      bms.asModOrObj orElse bms.asTrm match
-      case S(sym: (ModuleOrObjectSymbol | TermSymbol)) =>
-        // listenSym(sym, defn => listener(ss))
-        listenSym(sym, listener)
-      case _ =>
-        raise:
-          ErrorReport(
-            msg"expected a term shape, but got ${bms.describe}" -> trm.toLoc :: Nil,
-            // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
-            source = Diagnostic.Source.Compilation)
-      */
       log(s"listenBMS: bms = ${bms.describe}, trm = ${trm.showDbg}")
       bms.onComplete: () =>
         log(s"listenedBMS: bms = ${bms.describe}, trm = ${trm.showDbg}")
@@ -559,32 +425,20 @@ class NewResolver:
           case S(d: TermDefinition) =>
             d.tsym match
             case ccs: ClassCtorSymbol =>
-              // listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
-              // listener(defnShapes.getOrElseUpdate(sym, DefnShape(ccs.associatedCls.defn.get, N)))
               val cls = ccs.associatedCls.defn.get
-              // val bse = DefnShape(cls, S(sh))
-              cls.ext match
-              case N =>
-                listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, S(BaseShape(cls, N)))))
-              case S(nw) =>
-                listenTerm(nw, sh =>
-                  defnShapes.get(sym).foreach: existing =>
-                    ??? // TODO error?
-                  listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, S(BaseShape(cls, S(sh))))))
-                )
+              listenExt(cls.ext, extsh =>
+                defnShapes.get(sym).foreach: existing =>
+                  ??? // TODO error?
+                listener(defnShapes.getOrElseUpdate(sym, DefnShape(d,  S(BaseShape(cls, extsh)))))
+              )
             case _ =>
               listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
           case S(d: ClassLikeDef) =>
-            d.ext match
-            case N =>
-              listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
-            case S(nw) =>
-              listenTerm(nw, sh =>
-                defnShapes.get(sym).foreach: existing =>
-                  ??? // TODO error?
-                listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, S(sh))))
-              )
-              // listener(defnShapes.getOrElseUpdate(sym, DefnShape(d)))
+            listenExt(d.ext, extsh =>
+              // defnShapes.get(sym).foreach: existing =>
+              //   ??? // TODO error?
+              listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, extsh)))
+            )
           case N =>
             // sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
             softAssert(false, s"Symbol definition of ${sym} is not set upon completion of ${bms}")
@@ -614,16 +468,6 @@ class NewResolver:
       listen(trm, {
         case sh: TermShape =>
           listener(sh)
-        case sels: SelShape =>
-          ???
-          sels.target match
-          case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) =>
-            fromBMS(sym)
-          case S(SelectionTarget.Err(_)) =>
-            ()
-          // case _ => ??? // TODO error
-          case N =>
-            softAssert(sels.src.isErroneous)
         case ss: SymShape =>
           fromBMS(ss.sym)
         case sh =>

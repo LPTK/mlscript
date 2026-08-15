@@ -426,18 +426,6 @@ abstract class NewShape(val receiver: TermShape, val argss: Ls[Term], val src: T
   override def toString: String = s"NewShape($receiver, $argss)"
   // def target: Opt[AppTarget]
 
-// abstract class SelShape(val receiver: TermShape, val nme: Tree.Ident, val src: AnySel) extends TermShape:
-// // class SelShape(val lhs: Shape, val nme: Tree.Ident)(using Raise) extends TermShape:
-//   def describe: Str = s"selection of '${nme.name}' from ${receiver.describe}"
-//   override def toString: String = s"SelShape($receiver, $nme)"
-//   // val target = lhs match
-//   //   case _ => 
-//   def target: Opt[SelectionTarget]
-abstract class SelShape(val receiver: TermShape, val nme: Tree.Ident, val src: AnySel) extends Shape:
-  def describe: Str = s"selection of '${nme.name}' from ${receiver.describe}"
-  override def toString: String = s"SelShape($receiver, $nme)"
-  def target: Opt[SelectionTarget]
-
 class SymShape(val sym: BlockMemberSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
@@ -451,7 +439,7 @@ class ThisShape(val defn: Definition) extends NonAppTermShape:
 
 // TODO: make it not a TermShape?
 class BaseShape(val defn: ClassLikeDef, val ext: Opt[TermShape]) extends NonAppTermShape:
-  def describe: Str = ???
+  def describe: Str = s"${defn.describe}"
   lazy val members: Map[Str, BlockMemberSymbol] =
     ext.fold(Map.empty)(_.members) ++ defn.body.members
 

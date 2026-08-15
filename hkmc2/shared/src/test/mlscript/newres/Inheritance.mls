@@ -78,6 +78,17 @@ b.z
 //│ = 125
 
 
+:fixme
+class Baz extends Bar(42) {
+  val a = [this.z, this.x]
+}
+//│ ╔══[COMPILATION ERROR] Class definition 'Baz' does not contain member 'x'
+//│ ║  l.83: 	  val a = [this.z, this.x]
+//│ ╙──      	                       ^^
+
+
+
+
 module Outer {
   class Inner1 {
     constructor(val x)
@@ -88,8 +99,8 @@ module Outer {
 :e
 object Derived extends Outer.Inner1
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
-//│ ║  l.89: 	object Derived extends Outer.Inner1
-//│ ╙──      	                       ^^^^^^^^^^^^
+//│ ║  l.100: 	object Derived extends Outer.Inner1
+//│ ╙──       	                       ^^^^^^^^^^^^
 
 :sr
 :sir
@@ -103,7 +114,7 @@ object Derived extends Outer.Inner1(11)
 :fixme
 Derived.x
 //│ ╔══[COMPILATION ERROR] Object 'Derived' does not contain member 'x'
-//│ ║  l.104: 	Derived.x
+//│ ║  l.115: 	Derived.x
 //│ ╙──       	       ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -112,7 +123,7 @@ Derived."x"
 :e
 object Derived extends Outer.Inner2
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
-//│ ║  l.113: 	object Derived extends Outer.Inner2
+//│ ║  l.124: 	object Derived extends Outer.Inner2
 //│ ╙──       	                       ^^^^^^^^^^^^
 
 :sr
