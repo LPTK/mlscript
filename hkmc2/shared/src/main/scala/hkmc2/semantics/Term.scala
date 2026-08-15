@@ -370,22 +370,7 @@ class ErrShape(val err: ErrorReport) extends NonAppTermShape:
   def describe: Str = s"error: ${err.mainMsg}"
   def members: Map[Str, BlockMemberSymbol] = Map.empty
 
-abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.App)(using DebugPrinter) extends TermShape:
-  // def isConcrete: Bool = receiver match
-  //   case ds: DefnShape => ds.defn match
-  //     case defn: TermDefinition => defn.isConcrete
-  //   case _ => false
-  /* 
-  def isConcrete: Bool =
-    applicationHead match
-      case ds: DefnShape => ds.defn match
-        case defn: ModuleOrObjectDef => true
-        case td: TermDefinition =>
-          // An unsaturated term definition is just a concrete function shape
-          !isSaturated
-        case _ => false
-      case _ => false
-  */
+class AppShape(val receiver: TermShape, val args: Term, val src: Term.App)(using DebugPrinter) extends TermShape:
   lazy val members: Map[Str, BlockMemberSymbol] =
     // An unsaturated term definition is just a concrete function shape
     if !isSaturated then Map.empty
@@ -409,7 +394,7 @@ abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.A
     // s"application of ${receiver.describe}"
     s"instance of ${applicationHead.describe}"
   override def toString: String = s"AppShape($receiver, ${args.showDbg})"
-  def target: Opt[AppTarget]
+  // def target: Opt[AppTarget]
 
 abstract class NewShape(val receiver: TermShape, val cls: ClassLikeSymbol, val argss: Ls[Term], val src: Term.New)(using DebugPrinter) extends TermShape:
   def describe: Str =

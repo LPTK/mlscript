@@ -15,7 +15,6 @@ import Term.*
 
 import Elaborator.*
 import hkmc2.syntax.LetBind
-import hkmc2.semantics.flow.{SelectionTarget, AppTarget}
 
 
 class NewResolver:
@@ -82,75 +81,11 @@ class NewResolver:
     // log(s"appShape? lhs = $lhs, args = $args, res = $res")
     val sh = appShapes.getOrElseUpdate((lhs, res.resSym), {
       log(s"appShape: lhs = $lhs, args = $args, res = $res")
-      // lhs match
-      // case _ =>
-      val sh = new AppShape(lhs, args, res):
-        def get(sym: BlockMemberSymbol): Opt[AppTarget] =
-          // println(s"? $sym ${sym.asCls}")
-          sym.asCls match
-          case S(clsSym) =>
-            S(AppTarget.ObjectMember(clsSym))
-          case N =>
-            N
-        // TODO: rm this logic:
-        val target = receiver match
-          /* 
-          case ss: SymShape =>
-            get(ss.sym)
-          case sel: SelShape =>
-            sel.target match
-            case S(SelectionTarget.ObjectMember(sym: BlockMemberSymbol)) => get(sym)
-            case S(SelectionTarget.ObjectMember(sym)) => ???
-            case S(SelectionTarget.CompanionMember(comp, sym)) => ???
-            case tg @ S(SelectionTarget.Err(err)) =>
-              // S(ErrShape(err))
-              sel.src.isErroneous = true
-              N
-            case N => N
-          */
-          case _ =>
-            N // TODO
-          case ns: NewShape =>
-            N // TODO
-          case ds: DefnShape =>
-            ds.defn match
-            case td: TermDefinition =>
-              td.tsym match
-              case ctd: ClassCtorSymbol =>
-                S(AppTarget.ObjectMember(ctd.associatedCls))
-              case _ =>
-                // TODO: raise error
-                N
-            case _ =>
-              // TODO: raise error
-              N
-          case sh =>
-            res.isErroneous = true
-            raise:
-              ErrorReport(
-                msg"${sh.describe.capitalize} cannot be applied." -> res.toLoc :: Nil,
-                source = Diagnostic.Source.Compilation)
-            N
-        target.foreach: tgt =>
-          res.resolvedTargets ::= tgt
-        /* 
-        lazy val members: Map[Str, BlockMemberSymbol] = target match
-          case S(AppTarget.ObjectMember(cls)) =>
-            cls.defn.getOrElse(die // TODO
-              ).body.members
-          case _ => Map.empty
-        */
-      // if res.shapes.add(sh) then
-      //   res.shapeListeners.foreach(listener => listener(sh))
-      sh
+      new AppShape(lhs, args, res)
     })
     lhs.unappliedParams match
     case Nil => ()
     case ps :: pss =>
-      // listenTerm(args, sh =>
-      //   if res.shapes.add(sh) then
-      //     res.shapeListeners.foreach(listener => listener(sh))
-      // )
       args match
       case args: Tup =>
         log(s"Zipping ${ps} with ${args.fields}")
@@ -179,7 +114,7 @@ class NewResolver:
         case td: TermDefinition =>
           // listenTerm(td.body, sh => newShape(sh, args, res))
           td.tsym match
-          case ccs: ClassCtorSymbol =>
+          case ccs: ClassCtorSymbol => // TOOD: to avoid the special case, give this the actual body?
             softAssert(td.body.isEmpty)
             // ccs.associatedCls
             register
@@ -240,14 +175,6 @@ class NewResolver:
                 val dsh = DefnShape(cd, extsh)
                 val sh = newShapes.getOrElseUpdate((cls, nw.resSym),
                   new NewShape(dsh, cls, nw.args, nw):
-                    /* 
-                    if !isSaturated then
-                      raise:
-                        ErrorReport(
-                          msg"Missing argument list(s) in instantiation of ${
-                            receiver.applicationHead.describe}" -> src.toLoc :: Nil,
-                          source = Diagnostic.Source.Compilation)
-                    */
                     receiver.unappliedParams.lazyZip(argss).foreach: (ps, args) =>
                       args match
                       case args: Tup =>
@@ -302,7 +229,6 @@ class NewResolver:
         // sym.defn.get
         println(s"TODO: defineVar for TermSymbol ${sym.showDbg}")
       case sym: LocalSymbol =>
-        // symShape(sym, rhs)
         listen(rhs, sh =>
           if sym.shapes.add(sh) then
             sym.shapeListeners.foreach(listener => listener(sh))
@@ -321,7 +247,7 @@ class NewResolver:
       listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
     case N =>
       sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N))))
-  // */
+  
   def pipeTerm(from: Term, to: ShapeHost): Unit =
     log(s"pipeTerm: from = ${from.showDbg}, to = ${to.showDbg}; ${to.shapes}")
     listenTerm(from, sh =>
