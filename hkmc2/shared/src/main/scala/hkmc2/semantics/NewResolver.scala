@@ -48,6 +48,9 @@ class NewResolver:
   val symShapes: mutable.Map[BlockMemberSymbol, SymShape] = mutable.Map.empty
   val defnShapes: mutable.Map[DefinitionSymbol[?], DefnShape] = mutable.Map.empty
   
+  def isOwnedSym(sym: Symbol): Bool =
+    sym.getState is state
+  
   def zipArgs(ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term): Unit =
     (ps, args) match
     case (Nil, Nil) => ()
@@ -67,7 +70,7 @@ class NewResolver:
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
       listenTerm(trm, sh =>
         log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = $sh")
-        if p.sym.shapes.add(sh) then
+        if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
           p.sym.shapeListeners.foreach(listener => listener(sh))
       )
       zipArgs(ps, r, args, src)
@@ -230,6 +233,7 @@ class NewResolver:
         println(s"TODO: defineVar for TermSymbol ${sym.showDbg}")
       case sym: LocalSymbol =>
         listen(rhs, sh =>
+          assert(isOwnedSym(sym), s"defineVar: sym = ${sym.showDbg}, rhs = ${rhs.showDbg}")
           if sym.shapes.add(sh) then
             sym.shapeListeners.foreach(listener => listener(sh))
         )

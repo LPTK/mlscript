@@ -417,7 +417,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     if newResolution then
       trm match
       case resl: NewResolvable =>
-        resl.resolvedTargets match
+        resl.resolvedTargets.distinct match
         case cls :: Nil =>
           cls.defn match
           case S(clsDef: ClassLikeDef) =>
@@ -846,7 +846,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case t @ st.SelfRef(sym) =>
       ref(t, annots, N, inStmtPos = inStmtPos)(k)
     case t @ st.MemberRef(bms) =>
-      t.resolvedTargets match
+      t.resolvedTargets.distinct match
       case Nil =>
         // fail:
         //   ErrorReport(
@@ -1101,7 +1101,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       if sel.isErroneous then compError else
         // /* 
         // TODO dedup with MemberRef
-        sel.resolvedMembers match
+        sel.resolvedMembers.distinct match
         case Nil =>
           fail:
             // ErrorReport(
@@ -1111,7 +1111,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               msg"This selection of member '${sel.id.name}' has no resolved target" -> sel.toLoc ::
               Nil, S(sel), source = Diagnostic.Source.Compilation)
         case bms :: Nil =>
-          sel.resolvedTargets match
+          sel.resolvedTargets.distinct match
           case Nil =>
             bms.asTrm orElse bms.asModOrObj orElse bms.asCls match
             case s @ S(_) =>
@@ -1131,7 +1131,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               msg"This selection of member '${sel.id.name}' is ambiguous, as it has multiple resolved targets" -> t.toLoc ::
                 ts.map: t =>
                   msg"target: ${t.describe} '${t.nme}'" -> t.toLoc
-                , S(t), source = Diagnostic.Source.Compilation)
+                , S(ts.map(s => s.showDbg + " " + s.tsym.map(_.showDbg))), source = Diagnostic.Source.Compilation)
           // compError
           // ???
         // */

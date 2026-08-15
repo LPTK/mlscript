@@ -1,0 +1,46 @@
+:..
+
+
+:sr
+module A {
+  val u = 1
+}
+module B {
+  val u = 2
+}
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   module A { val u⁰ ‹flow:u⁰› = 1 }, module B { val u¹ ‹flow:u¹› = 2 }
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+fun foo(x) = x
+
+:sr
+foo(A).u
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   foo(A)‹app⁰›.u⁰
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+
+foo(A).u
+//│ = 1
+
+// * We don't currently preserve context sensitivity
+:todo
+:sr
+foo(B).u
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   foo(B)‹app¹›.u‹u⁰, u¹, u⁰›
+//│ ╔══[COMPILATION ERROR] This selection of member 'u' is ambiguous, as it has multiple resolved targets
+//│ ║  l.31: 	foo(B).u
+//│ ║        	^^^^^^^^
+//│ ╟── target: value 'u'
+//│ ║  l.6: 	  val u = 1
+//│ ║       	  ^^^^^^^^^
+//│ ╟── target: value 'u'
+//│ ║  l.9: 	  val u = 2
+//│ ╙──     	  ^^^^^^^^^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
