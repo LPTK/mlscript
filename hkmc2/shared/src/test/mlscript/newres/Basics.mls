@@ -33,8 +33,8 @@ Predef.id
 //│ | | | newSel? sel = member:Predef.id
 //│ | | | listenTerm: trm = member:Predef
 //│ | | | listen: trm = member:Predef
-//│ | | | listenBMS: bms = module, trm = member:Predef
-//│ | | | listenedBMS: bms = module, trm = member:Predef
+//│ | | | listenBMS: bms = module
+//│ | | | listenedBMS: bms = module
 //│ | | ~> NewSel(MemberRef(member:Predef),Ident(id))
 //│ | ~> NewSel(MemberRef(member:Predef),Ident(id))
 //│ ~> Blk(List(),NewSel(MemberRef(member:Predef),Ident(id)))

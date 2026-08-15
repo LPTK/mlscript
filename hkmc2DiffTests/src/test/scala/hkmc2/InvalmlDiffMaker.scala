@@ -27,6 +27,7 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
 
   lazy val invalCtx =
     given Elaborator.Ctx = curCtx
+    given Config = mkConfig
     invalml.InvalCtx.init(_ => die)
   
   var invalmlTyper: Opt[InvalTyper] = None

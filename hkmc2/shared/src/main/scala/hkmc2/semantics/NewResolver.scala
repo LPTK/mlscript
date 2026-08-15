@@ -266,48 +266,83 @@ class NewResolver:
     case N =>
       listener(N)
   
+  def fromBMS(bms: BlockMemberSymbol, listener: TermShape => Unit, trm: Term) =
+    log(s"listenBMS: bms = ${bms.describe}")
+    bms.onComplete: () =>
+      log(s"listenedBMS: bms = ${bms.describe}")
+      bms.asModOrObj orElse bms.asTrm orElse bms.asCls match
+      case S(sym: (ModuleOrObjectSymbol | TermSymbol | ClassSymbol)) =>
+        sym.defn match
+        case S(td: TermDefinition) if td.params.isEmpty =>
+          log(s"listenTerm: td.body = ${td.body}")
+          td.body match
+          case S(body) =>
+            listenTerm(body, listener)
+          case N =>
+            ??? // TODO error
+        case S(d: TermDefinition) =>
+          d.tsym match
+          case ccs: ClassCtorSymbol =>
+            val cls = ccs.associatedCls.defn.get
+            listenExt(cls.ext, extsh =>
+              defnShapes.get(sym).foreach: existing =>
+                ??? // TODO error?
+              listener(defnShapes.getOrElseUpdate(sym, DefnShape(d,  S(BaseShape(cls, extsh)))))
+            )
+          case _ =>
+            listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
+        case S(d: ClassLikeDef) =>
+          listenExt(d.ext, extsh =>
+            // defnShapes.get(sym).foreach: existing =>
+            //   ??? // TODO error?
+            listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, extsh)))
+          )
+        case N =>
+          // sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
+          softAssert(false, s"Symbol definition of ${sym} is not set upon completion of ${bms}")
+      case _ =>
+        raise:
+          ErrorReport(
+            msg"Expected a term; got ${bms.describe} '${bms.nme}'" -> trm.toLoc :: Nil,
+            // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
+            source = Diagnostic.Source.Compilation)
+  
   def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
     log(s"listenTerm: trm = ${trm.showDbg}")
-    def fromBMS(bms: BlockMemberSymbol) =
-      log(s"listenBMS: bms = ${bms.describe}, trm = ${trm.showDbg}")
-      bms.onComplete: () =>
-        log(s"listenedBMS: bms = ${bms.describe}, trm = ${trm.showDbg}")
-        bms.asModOrObj orElse bms.asTrm orElse bms.asCls match
-        case S(sym: (ModuleOrObjectSymbol | TermSymbol | ClassSymbol)) =>
-          sym.defn match
-          case S(td: TermDefinition) if td.params.isEmpty =>
-            log(s"listenTerm: td.body = ${td.body}")
-            td.body match
-            case S(body) =>
-              listenTerm(body, listener)
-            case N =>
-              ??? // TODO error
-          case S(d: TermDefinition) =>
-            d.tsym match
-            case ccs: ClassCtorSymbol =>
-              val cls = ccs.associatedCls.defn.get
-              listenExt(cls.ext, extsh =>
-                defnShapes.get(sym).foreach: existing =>
-                  ??? // TODO error?
-                listener(defnShapes.getOrElseUpdate(sym, DefnShape(d,  S(BaseShape(cls, extsh)))))
-              )
-            case _ =>
-              listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
-          case S(d: ClassLikeDef) =>
-            listenExt(d.ext, extsh =>
-              // defnShapes.get(sym).foreach: existing =>
-              //   ??? // TODO error?
-              listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, extsh)))
-            )
-          case N =>
-            // sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
-            softAssert(false, s"Symbol definition of ${sym} is not set upon completion of ${bms}")
-        case _ =>
+    trm match
+    /* 
+    // * Synthetic selections are not really selections from the POV of the resolver.
+    // * Eg: a plain member reference or plain reference to imported symbol
+    // * Later, we should make Terms more closely aligned wiht the source and remove SynthSel
+    case ss: SynthSel =>
+      ss.sym match
+      case S(ts: TermSymbol) =>
+        ???
+        ts.defn.get.body match
+        case S(body) =>
+          listenTerm(body, listener)
+        case N =>
+          ??? // TODO error? use sig
+      case S(bms: BlockMemberSymbol) =>
+        fromBMS(bms, listener, trm)
+      case N => ???
+    */
+    case _ =>
+      listen(trm, {
+        case sh: TermShape =>
+          listener(sh)
+        case ss: SymShape =>
+          fromBMS(ss.sym, listener, trm)
+        case sh =>
           raise:
             ErrorReport(
-              msg"Expected a term; got ${bms.describe} '${bms.nme}'" -> trm.toLoc :: Nil,
-              // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
+              msg"expected a term shape, but got ${sh.describe}" -> trm.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
+      })
+  
+  def listen(trm: Term, listener: Shape => Unit): Unit =
+    log(s"listen: trm = ${trm.showDbg}")
+    trm.shapeListeners += listener
     trm match
     // * Synthetic selections are not really selections from the POV of the resolver.
     // * Eg: a plain member reference or plain reference to imported symbol
@@ -322,25 +357,8 @@ class NewResolver:
         case N =>
           ??? // TODO error? use sig
       case S(bms: BlockMemberSymbol) =>
-        fromBMS(bms)
+        fromBMS(bms, listener, trm)
       case N => ???
-    case _ =>
-      listen(trm, {
-        case sh: TermShape =>
-          listener(sh)
-        case ss: SymShape =>
-          fromBMS(ss.sym)
-        case sh =>
-          raise:
-            ErrorReport(
-              msg"expected a term shape, but got ${sh.describe}" -> trm.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
-      })
-  
-  def listen(trm: Term, listener: Shape => Unit): Unit =
-    log(s"listen: trm = ${trm.showDbg}")
-    trm.shapeListeners += listener
-    trm match
     case sh: Lit =>
       listener(sh)
     case intro: IntroTerm =>
@@ -375,6 +393,9 @@ class NewResolver:
       // if ref.shapes.add(sh) then
       //   ref.shapeListeners.foreach(listener => listener(sh))
       listener(sh)
+    case Capture(base, thru) =>
+      // TODO
+      listen(base, listener)
     case ref @ Ref(sym: InnerSymbol) =>
       // sym.asBlkMember match
       // case S(bms) =>
@@ -384,13 +405,16 @@ class NewResolver:
       // sym.asDefnSym
       // ???
       sym.shapeListeners += listener
+      // ???
     case ref @ Ref(bsym: BlockMemberSymbol) =>
       // listener(ref)
       // if ref.shapes.add(bsym) then
       //   ref.shapeListeners.foreach(listener => listener(bsym))
       symShape(bsym, ref)
+      // ???
     case res: ResolvableImpl =>
       res.shapes.foreach(listener)
+      // ???
     case sh: ShapeHost =>
       sh.shapes.foreach(listener)
       sh.shapeListeners += listener

@@ -512,6 +512,7 @@ enum Term extends Statement, ShapePublisher:
   case SelfRef(sym: InnerSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
   case MemberRef(sym: MemberSymbol)(val tree: Tree.Ident) extends Term, NewResolvableImpl, NewRefImpl
   case NewSel(prefix: Term, id: Tree.Ident) extends Term, NewSelImpl, ShapeHost
+  case Capture(base: Term, thru: InnerSymbol) extends Term
   // --- LEGACY ---
   /** A term that wraps another term, indicating that the symbol of the inner term is resolved.
     * This is mainly used to disambiguate overloaded definitions. */
@@ -852,6 +853,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       case UnitVal() => "unit value"
       case Lit(lit) => lit.describeLit
       case Ref(sym) => "reference"
+      case Capture(base, thru) => base.describe
       case SimpleRef(sym) => "reference"
       case MemberRef(sym) => "member reference"
       case App(lhs, rhs) => "application"
@@ -921,6 +923,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case _ => subTerms
   def subTerms: Vector[Term] = this match
     case Error() | Missing | _: Lit | _: AnyRef_ | _: UnitVal => Vector.empty
+    case Capture(base, thru) => Vector.single(base)
     case Resolved(t, sym) => Vector.single(t)
     case App(lhs, rhs) => Vector.double(lhs, rhs)
     case RcdField(lhs, rhs) => Vector.double(lhs, rhs)
@@ -1002,6 +1005,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       subTerms // TODO more precise (include located things that aren't terms)
   
   def show(using Scope, ShowCfg, Raise): Document =
+    
     def showSelTargets(sel: AnySel): Document =
       val str = sel.nme.name
       val ts = sel.resolvedTargets
@@ -1011,6 +1015,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
         doc"${str}ˀ"
       case t :: Nil => t.show
       case ts => doc"$str‹" :: ts.map(_.show).mkDocument(", ") :: doc"›"
+    
     def res: Document = this match
       case lit: Lit => lit.lit.idStr
       case UnitVal() => doc"()"
@@ -1019,6 +1024,9 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
         case _: BuiltinSymbol => r.sym.nme
         case _ => r.sym.showName
       case r: MemberRef => r.sym.nme
+      case Capture(base, thru) =>
+        // doc"${base.show}⟨${thru.showName}⟩"
+        doc"${base.show}^${thru.showName}"
       case r: Ref =>
         r.sym match
         case _: BuiltinSymbol => r.sym.nme
@@ -1079,7 +1087,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
           :: td.body.fold(doc"")(b => doc" = ${b.show}")
       case cld: ClassLikeDef =>
           cld.annotations.map(_.show).mkDocument()
-          :: doc"${cld.kind.str} ${cld.sym.nme}"
+          :: doc"${cld.kind.str} ${cld.sym.showName}"
           :: (if cld.tparams.isEmpty then doc""
             else doc"[${cld.tparams.map(_.sym.showName).mkDocument(", ")}]")
           :: cld.paramsOpt.map(_.show).toList.mkDocument()
@@ -1092,6 +1100,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       case Error() => doc"‹error›"
       case _ =>
         doc"TODO[show:${getClass.getSimpleName}](${toString})"
+    
     this match
     case t: Resolvable => t.expansion match
       case S(S(exp)) =>
@@ -1104,6 +1113,8 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
         else exp.show
       case _ => res
     case _ => res
+  
+  end show
   
   def size: Int = this match
     case Lit(Tree.StrLit(str)) => str.size / 4 + 1
@@ -1135,6 +1146,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
     case r @ SimpleRef(symbol) => symbol.toString + symbol.getState.dbgRefNum(r.refNum)
     case r @ MemberRef(symbol) => symbol.toString + symbol.getState.dbgRefNum(r.refNum)
     case r @ SelfRef(sym) => sym.toString + sym.getState.dbgRefNum(r.refNum)
+    case Capture(base, thru) => s"${base.showDbg}^${thru.showDbg}"
     case App(lhs, rhs) => s"${lhs.showDbg}${rhs.showDbgAsParams}"
     case RcdField(lhs, rhs) => s"${lhs.showDbg}: ${rhs.showDbg}"
     case RcdSpread(bod) => s"...${bod.showDbg}"

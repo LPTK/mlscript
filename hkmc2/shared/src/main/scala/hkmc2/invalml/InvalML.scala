@@ -26,7 +26,7 @@ final case class InvalCtx(
   env: HashMap[Uid[Symbol], GeneralType],
   outRegAcc: Type,
   symbolCache: HashMap[Str, TypeSymbol],
-):
+)(using Config):
   def +=(p: Symbol -> GeneralType): Unit = env += p._1.uid -> p._2
   def get(sym: Symbol): Option[GeneralType] = env.get(sym.uid) orElse parent.dlof(_.get(sym))(None)
   def getCls(name: Str): TypeSymbol = symbolCache.getOrElseUpdate(name,
@@ -62,7 +62,7 @@ object InvalCtx:
     ClassLikeType(ctx.getCls("Region"), Wildcard.out(sk) :: Nil)
   def refTy(ct: Type, sk: Type)(using ctx: InvalCtx): Type =
     ClassLikeType(ctx.getCls("Ref"), Wildcard(ct, ct) :: Wildcard.out(sk) :: Nil)
-  def init(raise: Raise)(using Elaborator.State, Elaborator.Ctx): InvalCtx =
+  def init(raise: Raise)(using Elaborator.State, Elaborator.Ctx)(using Config): InvalCtx =
     new InvalCtx(raise, summon, None, 1, HashMap.empty, Bot, HashMap.empty)
 
   val builtinOps = Elaborator.binaryOps ++ Elaborator.unaryOps ++ Elaborator.aliasOps.keySet

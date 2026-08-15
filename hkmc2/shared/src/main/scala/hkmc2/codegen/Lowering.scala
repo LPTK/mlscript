@@ -871,6 +871,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 msg"target: ${t.describeKind}" -> t.toLoc
               , S(t), source = Diagnostic.Source.Compilation)
         compError
+    case Capture(base, thru) =>
+      term(base, inStmtPos = inStmtPos)(k)
     case t @ st.Ref(sym) =>
       ref(t, annots, N, inStmtPos = inStmtPos)(k)
     case st.Resolved(t @ st.Ref(bsym), sym) =>

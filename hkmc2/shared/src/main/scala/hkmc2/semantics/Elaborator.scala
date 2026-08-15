@@ -140,8 +140,17 @@ object Elaborator:
     def nestLocal(nameHint: Str): Ctx = nest(OuterCtx.LocalScope(nameHint))
     def nestInner(inner: InnerSymbol): Ctx = nest(OuterCtx.InnerScope(inner))
     
-    def get(name: Str): Opt[Ctx.Elem] =
-      env.get(name).orElse(parent.flatMap(_.get(name)))
+    def get(name: Str)(using Config): Opt[Ctx.Elem] =
+      env.get(name).orElse:
+        // val res = parent.flatMap(_.get(name))
+        // if config.language.useNewResolution
+        // then res.map(Ctx.CaptElem(_))
+        // else res
+        parent match
+        case S(p @ Ctx(outer = OuterCtx.InnerScope(inner))) => // TODO: also OuterCtx.Function
+          p.get(name).map(Ctx.CaptElem(_, inner))
+        case _ => parent.flatMap(_.get(name))
+    
     def lookupLabel(name: Str): LabelLookup =
       @tailrec
       def go(
@@ -176,6 +185,7 @@ object Elaborator:
                 case _ => false)
               go(ctx.parent, nextCrossedFunction, nextCrossedLambdaOrHandler)
       go(S(this), false, false)
+    
     def getOuter: Opt[InnerSymbol] = outer.inner.orElse(parent.flatMap(_.getOuter))
     def getNonLocalRetHandler: Opt[TempSymbol] = outer match
       case OuterCtx.Function(sym, _) => S(sym)
@@ -334,6 +344,12 @@ object Elaborator:
         Term.SynthSel(base.ref(Ident(base.nme)),
           new Ident(nme).withLocOf(id))(symOpt, FlowSymbol.synthSel(nme), N, S(summon))
       def symbol = symOpt
+    final case class CaptElem(base: Elem, thru: InnerSymbol) extends Elem:
+      def ref(id: Ident)(using Elaborator.State, Ctx, Config): Term =
+        Term.Capture(base.ref(Ident(base.nme)), thru)
+      def symbol = base.symbol
+      def isImport: Bool = false
+      def nme: Str = base.nme
     given Conversion[Symbol, Elem] = RefElem(_)
     val empty: Ctx = Ctx(OuterCtx.LocalScope("top-level"), N, Map.empty, Mode.Full, Map.empty)
     

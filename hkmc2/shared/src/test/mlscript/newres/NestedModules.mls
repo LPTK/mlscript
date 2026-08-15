@@ -9,7 +9,7 @@ module Foo {
   }
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   module Foo { module Bar { fun id⁰(x⁰) ‹flow:id⁰› = x⁰ } }
+//│   module Foo⁰ { module Bar⁰ { fun id⁰(x⁰) ‹flow:id⁰› = x⁰ } }
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Foo⁰ as class Foo¹
 //│ module Foo² {
@@ -28,7 +28,7 @@ module Foo {
 :lot
 Foo.Bar
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo.Bar⁰
+//│   Foo.Bar¹
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
 //│   main = Return of Select{sym=module:Bar²}:
@@ -44,7 +44,7 @@ Foo.Bar
 :sr
 Foo.Bar.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo.Bar⁰.id⁰
+//│   Foo.Bar¹.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -118,12 +118,13 @@ localid(Predef).id
 //│ ║  l.116: 	localid(Predef).id
 //│ ║         	^^^^^^^^^^^^^^^^^^
 //│ ╟── target: function 'id'
-//│ ║  l.8: 	    fun id(x) = x
-//│ ║       	    ^^^^^^^^^^^^^
-//│ ╟── target: function 'id'
 //│ ║  in ../../mlscript-compile/Predef.mls
 //│ ║  l.18: 	fun id(x) = x
-//│ ╙──      	^^^^^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^
+//│ ╟── target: function 'id'
+//│ ║  in NestedModules.mls:6
+//│ ║  l.8: 	    fun id(x) = x
+//│ ╙──     	    ^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

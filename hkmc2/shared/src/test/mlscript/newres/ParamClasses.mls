@@ -4,7 +4,7 @@
 :sr
 class Foo(val a)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(val a⁰) { val a¹ ‹flow:a⁰› = a⁰ }
+//│   class Foo⁰(val a⁰) { val a¹ ‹flow:a⁰› = a⁰ }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :sr
@@ -24,7 +24,7 @@ class Foo(val a) {
   val b = a + 1
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(val a²) { val a³ ‹flow:a¹› = a², val b⁰ ‹flow:b⁰› = +(⟨Foo.⟩a³, 1)‹app¹› }
+//│   class Foo¹(val a²) { val a³ ‹flow:a¹› = a², val b⁰ ‹flow:b⁰› = +(⟨Foo.⟩a³^Foo¹, 1)‹app¹› }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // :de
@@ -191,7 +191,7 @@ class Foo(pred) with {
 }
 let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(pred⁰) {
+//│   class Foo²(pred⁰) {
 //│     @privateval pred¹ ‹flow:pred⁰› = pred⁰,
 //│     ⟨Foo.⟩pred¹.id⁰(42)‹app⁶›
 //│   },
@@ -222,7 +222,7 @@ class Foo(pred) with {
 }
 let f = Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(pred²) {
+//│   class Foo³(pred²) {
 //│     @privateval pred³ ‹flow:pred¹› = pred²,
 //│     ⟨Foo.⟩pred³.id⁰(1)‹app⁷›,
 //│     ⟨Foo.⟩pred³.id⁰(2)‹app⁸›
@@ -233,17 +233,16 @@ let f = Foo(Predef)
 //│ f = Foo(_)
 
 :sr
-// class Foo(pred) { // TODO
-class Foo(pred) with {
+class Foo(pred) {
   val r = pred.id(42)
   fun callId(x) = pred.id(x)
 }
 let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo(pred⁴) {
+//│   class Foo⁴(pred⁴) {
 //│     @privateval pred⁵ ‹flow:pred²› = pred⁴,
-//│     val r⁰ ‹flow:r⁰› = ⟨Foo.⟩pred⁵.id⁰(42)‹app¹⁰›,
-//│     fun callId⁰(x¹) ‹flow:callId⁰› = ⟨Foo.⟩pred⁵.id⁰(x¹)‹app¹¹›
+//│     val r⁰ ‹flow:r⁰› = ⟨Foo.⟩pred⁵^Foo⁴.id⁰(42)‹app¹⁰›,
+//│     fun callId⁰(x¹) ‹flow:callId⁰› = ⟨Foo.⟩pred⁵^Foo⁴.id⁰(x¹)‹app¹¹›
 //│   },
 //│   let f⁴,
 //│   f⁴ = new Foo(Predef)

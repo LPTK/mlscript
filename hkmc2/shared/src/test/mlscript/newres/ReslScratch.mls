@@ -37,7 +37,7 @@ class Bar(a) with
   let x = a
   print(x)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Bar(a⁰) { @privateval a¹ ‹flow:a⁰› = a⁰, let x⁰, x⁰ = ⟨Bar.⟩a¹, ⟨Predef.⟩print⁰(x)‹app⁰› }
+//│   class Bar⁰(a⁰) { @privateval a¹ ‹flow:a⁰› = a⁰, let x⁰, x⁰ = ⟨Bar.⟩a¹, ⟨Predef.⟩print⁰(x)‹app⁰› }
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of

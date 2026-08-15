@@ -9,7 +9,7 @@ module B {
   val u = 2
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   module A { val u⁰ ‹flow:u⁰› = 1 }, module B { val u¹ ‹flow:u¹› = 2 }
+//│   module A⁰ { val u⁰ ‹flow:u⁰› = 1 }, module B⁰ { val u¹ ‹flow:u¹› = 2 }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -30,7 +30,7 @@ foo(A).u
 :sr
 foo(B).u
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   foo(B)‹app¹›.u‹u⁰, u¹, u⁰›
+//│   foo(B)‹app¹›.u‹u⁰, u⁰, u¹›
 //│ ╔══[COMPILATION ERROR] This selection of member 'u' is ambiguous, as it has multiple resolved targets
 //│ ║  l.31: 	foo(B).u
 //│ ║        	^^^^^^^^
