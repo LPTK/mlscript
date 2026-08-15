@@ -1,6 +1,4 @@
-:js
-
-#lang(0.3.x)
+:..
 
 
 :sr
@@ -157,14 +155,14 @@ let f = new Foo(1)
 :e
 let f = new Foo
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Foo'
-//│ ║  l.158: 	let f = new Foo
+//│ ║  l.156: 	let f = new Foo
 //│ ╙──       	        ^^^^^^^
 //│ f = fun f
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.165: 	let f = new Foo()
+//│ ║  l.163: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
 //│ f = Foo(undefined)
 
@@ -172,7 +170,7 @@ let f = new Foo()
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] Integer literal cannot be instantiated with keyword 'new'.
-//│ ║  l.173: 	new 42
+//│ ║  l.171: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

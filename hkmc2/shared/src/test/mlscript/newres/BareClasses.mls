@@ -1,6 +1,4 @@
-:js
-
-#lang(0.3.x)
+:..
 
 
 :elt
@@ -47,7 +45,7 @@ Foo
 :e
 Foo.b
 //│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
-//│ ║  l.48: 	Foo.b
+//│ ║  l.46: 	Foo.b
 //│ ╙──      	   ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -57,7 +55,7 @@ let f = Foo
 :e
 f.b
 //│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
-//│ ║  l.58: 	f.b
+//│ ║  l.56: 	f.b
 //│ ╙──      	 ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -90,11 +88,11 @@ class Foo {
   }
 }
 //│ ╔══[COMPILATION ERROR] Unsupported constructor in this position.
-//│ ║  l.88: 	  constructor(val a) {
+//│ ║  l.86: 	  constructor(val a) {
 //│ ║        	  ^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.89: 	    val b = a + 1
+//│ ║  l.87: 	    val b = a + 1
 //│ ║        	^^^^^^^^^^^^^^^^^
-//│ ║  l.90: 	  }
+//│ ║  l.88: 	  }
 //│ ╙──      	^^^
 
 
@@ -113,7 +111,7 @@ class Foo {
 :e
 let f = Foo(1)
 //│ ╔══[COMPILATION ERROR] Class 'Foo' cannot be applied.
-//│ ║  l.114: 	let f = Foo(1)
+//│ ║  l.112: 	let f = Foo(1)
 //│ ╙──       	        ^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo6 cannot be invoked without 'new'
 //│ f = undefined
@@ -126,7 +124,7 @@ let f = new Foo(1)
 :sr
 f.a
 //│ ╔══[COMPILATION ERROR] Instance of class 'Foo' does not contain member 'a'
-//│ ║  l.127: 	f.a
+//│ ║  l.125: 	f.a
 //│ ╙──       	 ^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f².aˀ

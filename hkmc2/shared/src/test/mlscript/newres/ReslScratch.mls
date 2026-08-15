@@ -1,10 +1,4 @@
-:js
-
-
-fun pr(x) = print(x)
-
-
-#lang(0.3.x)
+:..
 
 
 :sir
@@ -41,9 +35,9 @@ class Bar(a)
 :sjs
 class Bar(a) with
   let x = a
-  pr(x)
+  print(x)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Bar(a⁰) { @privateval a¹ ‹flow:a⁰› = a⁰, let x⁰, x⁰ = ⟨Bar.⟩a¹, pr(x)‹app⁰› }
+//│   class Bar(a⁰) { @privateval a¹ ‹flow:a⁰› = a⁰, let x⁰, x⁰ = ⟨Bar.⟩a¹, ⟨Predef.⟩print⁰(x)‹app⁰› }
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
@@ -75,7 +69,9 @@ class Bar(a) with
 //│               prefix = MemberRef of class:Bar³
 //│               nme = Ident of "a"
 //│         res = App:
-//│           lhs = MemberRef of member:pr⁰
+//│           lhs = SynthSel{sym=member:print⁰}:
+//│             prefix = MemberRef of member:Predef⁰
+//│             nme = Ident of "print"
 //│           rhs = Tup of Ls of
 //│             Fld:
 //│               term = MemberRef of term:Bar³/x⁰
@@ -88,7 +84,7 @@ class Bar(a) with
 //│     @private
 //│     define a³ as val a⁴ = a;
 //│     set Bar³.this.x⁰ = Bar³.this.a⁴;
-//│     do pr¹(Bar³.this.x⁰);
+//│     do Predef¹.print¹(Bar³.this.x⁰);
 //│     end
 //│   }
 //│ };
@@ -98,12 +94,10 @@ class Bar(a) with
 //│   private val a⁴;
 //│   private val x⁰;
 //│   constructor Bar⁵(a) {
-//│     let x;
 //│     @private
 //│     define a³ as val a⁴ = a;
 //│     set Bar³.this.x⁰ = Bar³.this.a⁴;
-//│     set x = Bar³.this.x⁰;
-//│     do Predef⁰.print⁰(x);
+//│     do Predef¹.print¹(Bar³.this.x⁰);
 //│     end
 //│   }
 //│ };
@@ -118,11 +112,9 @@ class Bar(a) with
 //│     Bar3.class = this
 //│   }
 //│   constructor(a) {
-//│     let x;
 //│     this.#a = a;
 //│     this.#x = this.#a;
-//│     x = this.#x;
-//│     Predef.print(x);
+//│     Predef.print(this.#x);
 //│   }
 //│   #a;
 //│   #x;

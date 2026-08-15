@@ -1,5 +1,4 @@
-
-#lang(0.3.x)
+:..
 
 
 fun foo(x) = x + 1
@@ -7,26 +6,30 @@ fun foo(x) = x + 1
 :e
 foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.8: 	foo()
+//│ ║  l.7: 	foo()
 //│ ╙──     	^^^^^
+//│ ═══[RUNTIME ERROR] Error: Function 'foo' expected 1 argument but got 0
 
 :e
 foo(1, 2)
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 0 arguments, but got 1
 //│ ║  l.14: 	foo(1, 2)
 //│ ╙──      	^^^^^^^^^
+//│ ═══[RUNTIME ERROR] Error: Function 'foo' expected 1 argument but got 2
 
 
 :sr
 id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   ⟨Predef.⟩id⁰
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun id
 
 
 :e
 fun callid0(p) = p.id(1)
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.27: 	fun callid0(p) = p.id(1)
+//│ ║  l.30: 	fun callid0(p) = p.id(1)
 //│ ╙──      	                 ^^^^
 
 
@@ -35,6 +38,8 @@ fun callid1(p) = p.id(1)
 callid1(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun callid1⁰(p⁰) ‹flow:callid1⁰› = p⁰.id⁰(1)‹app⁰›, callid1(Predef)‹app¹›
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
 
 
 :sr
@@ -42,6 +47,7 @@ callid2(Predef)
 fun callid2(p) = p.id(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   callid2(Predef)‹app²›, fun callid2⁰(p¹) ‹flow:callid2⁰› = p¹.id⁰(1)‹app³›
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
 fun getPredef() = Predef
@@ -50,6 +56,8 @@ fun getPredef() = Predef
 getPredef().id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   getPredef()‹app⁴›.id⁰
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun id
 
 
 // :de
@@ -66,5 +74,6 @@ foo(Predef)
 //│     ()
 //│   },
 //│   foo(Predef)‹app⁶›
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

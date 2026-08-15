@@ -1,6 +1,4 @@
-:js
-
-#lang(0.3.x)
+:..
 
 
 :elt
@@ -27,7 +25,7 @@ id
 :sr
 :sir
 Predef.id
-//│ Elab block List(Sel(Ident(Predef),Ident(id))) LocalScope(block:4)
+//│ Elab block List(Sel(Ident(Predef),Ident(id))) LocalScope(block:3)
 //│ | Elab term Sel(Ident(Predef),Ident(id))
 //│ | | Elab subterm Sel(Ident(Predef),Ident(id))
 //│ | | | Elab subterm Ident(Predef)
@@ -64,7 +62,7 @@ Predef.id(1)
 :e
 Predef.idd(1)
 //│ ╔══[COMPILATION ERROR] Module 'Predef' does not contain member 'idd'
-//│ ║  l.65: 	Predef.idd(1)
+//│ ║  l.63: 	Predef.idd(1)
 //│ ╙──      	      ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -113,24 +111,24 @@ p.id
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] Integer literal does not contain member 'id'
-//│ ║  l.114: 	(1).id
+//│ ║  l.112: 	(1).id
 //│ ╙──       	   ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.121: 	1.id
+//│ ║  l.119: 	1.id
 //│ ╙──       	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.121: 	1.id
+//│ ║  l.119: 	1.id
 //│ ╙──       	  ^^
 //│ = 1
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] String literal does not contain member 'repeat'
-//│ ║  l.131: 	"ha ".repeat(2)
+//│ ║  l.129: 	"ha ".repeat(2)
 //│ ╙──       	     ^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

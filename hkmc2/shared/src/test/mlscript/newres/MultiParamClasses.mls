@@ -1,6 +1,4 @@
-:js
-
-#lang(0.3.x)
+:..
 
 
 :sr
@@ -18,14 +16,14 @@ class Foo(val a)(val b) {
 :e
 let f = new Foo
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Foo'
-//│ ║  l.19: 	let f = new Foo
+//│ ║  l.17: 	let f = new Foo
 //│ ╙──      	        ^^^^^^^
 //│ f = fun f
 
 :e
 let f = new Foo(1)
 //│ ╔══[COMPILATION ERROR] Missing argument list(s) in instantiation of class constructor 'Foo'
-//│ ║  l.26: 	let f = new Foo(1)
+//│ ║  l.24: 	let f = new Foo(1)
 //│ ╙──      	        ^^^^^^^^^^
 //│ f = fun f
 

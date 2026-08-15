@@ -1,8 +1,4 @@
-:js
-// :showRepl
-// :de
-#lang(0.3.x)
-
+:..
 
 
 :sr
@@ -85,11 +81,11 @@ m.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   m⁰.id‹id⁰, id¹›
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
-//│ ║  l.84: 	m.id
+//│ ║  l.80: 	m.id
 //│ ║        	^^^^
 //│ ╟── target: function 'id'
-//│ ║  l.12: 	    fun id(x) = x
-//│ ║        	    ^^^^^^^^^^^^^
+//│ ║  l.8: 	    fun id(x) = x
+//│ ║       	    ^^^^^^^^^^^^^
 //│ ╟── target: function 'id'
 //│ ║  in ../../mlscript-compile/Predef.mls
 //│ ║  l.18: 	fun id(x) = x
