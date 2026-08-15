@@ -245,6 +245,7 @@ abstract class MLsDiffMaker extends DiffMaker:
       || activeDebug.lowering
       || activeDebug.optimizations
       || debug.isSet
+    override protected def doShowUids: Bool = activeDebug.showUids
   
   
   protected lazy val dbgScp: utils.Scope = // for unique symbol debug-printing only
@@ -466,7 +467,8 @@ abstract class MLsDiffMaker extends DiffMaker:
   def processTrees(trees: Ls[syntax.Tree])(using Config, Raise): Unit =
     val phaseConfig = ConfigParser.discoverDebugFromTrees(trees)
     activeDebug = phaseConfig.debug
-    val elab = Elaborator(etl, file.up, prelude)
+    val elab = phaseConfig.givenIn:
+      Elaborator(etl, file.up, prelude)
     // val blockSymbol =
     //   semantics.TopLevelSymbol("block#"+blockNum)
     blockNum += 1

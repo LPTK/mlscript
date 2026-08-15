@@ -76,8 +76,10 @@ class CompilerCtx(
       val dependencies = new CompilerCtx.DependencyRecorder
       val modulePath = (file.up / io.RelPath(file.baseName + ".mjs")).toString
       var stateDebug = false
+      var stateShowUids = true
       val state = new Elaborator.State:
         override protected def doDbg: Bool = stateDebug
+        override protected def doShowUids: Bool = stateShowUids
       given Elaborator.State = state
 
       given Config = rootConfig
@@ -94,8 +96,8 @@ class CompilerCtx(
         given CompilerCtx = this
         ParserSetup(file, forceDebugParsing, outputHandler)
       val phaseConfig = parse.effectiveConfig
-      stateDebug = phaseConfig.debug.parsing || phaseConfig.debug.elaboration ||
-        phaseConfig.debug.resolution || phaseConfig.debug.lowering || phaseConfig.debug.optimizations
+      stateDebug = CompilerCtx.debugTracingEnabled(phaseConfig.debug)
+      stateShowUids = phaseConfig.debug.showUids
       def traceLogger(enabled: Bool) = new TraceLogger:
         override def doTrace: Bool = enabled
         override protected def defaultDebugOutput: Config.DebugOutput = phaseConfig.debug.out
@@ -108,7 +110,7 @@ class CompilerCtx(
 
       given Elaborator.Ctx = prelude
       val artifactCtx = derive(parse.origin.fileName, dependencies)
-      val elab =
+      val elab = phaseConfig.givenIn:
         given CompilerCtx = artifactCtx
         Elaborator(etl, file.up, prelude)
 
@@ -297,7 +299,11 @@ class CompilerCtx(
           s"Cached prelude for $file was elaborated under a different root configuration")
         !forceDebugParsing && art.lastChangedTimestamp >= lastMod,
       create =
-        val state = new Elaborator.State
+        var stateDebug = false
+        var stateShowUids = true
+        val state = new Elaborator.State:
+          override protected def doDbg: Bool = stateDebug
+          override protected def doShowUids: Bool = stateShowUids
         given Elaborator.State = state
         given Config = rootConfig
         given CompilerCtx = this
@@ -305,12 +311,15 @@ class CompilerCtx(
         val outputHandler = DebugOutputHandler(fs, rootConfig.baseDir, println)
         val parse = ParserSetup(file, forceDebugParsing, outputHandler)
         val phaseConfig = parse.effectiveConfig
+        stateDebug = CompilerCtx.debugTracingEnabled(phaseConfig.debug)
+        stateShowUids = phaseConfig.debug.showUids
         val etl = new TraceLogger:
           override def doTrace: Bool = phaseConfig.debug.elaboration
           override protected def defaultDebugOutput: Config.DebugOutput = phaseConfig.debug.out
           override protected[hkmc2] def emitDbg(str: Str, out: Config.DebugOutput): Unit =
             outputHandler.emit(out, str)
-        val elab = Elaborator(etl, file.up, Ctx.empty)
+        val elab = phaseConfig.givenIn:
+          Elaborator(etl, file.up, Ctx.empty)
         val initCtx = State.init.nestLocal("prelude")
         val (blk, ctx) = elab.importFrom(parse.resultBlk)(using initCtx)
         PreludeArtifact(parse.resultBlk, blk, ctx, state, rootConfig, lastMod),
@@ -320,6 +329,9 @@ class CompilerCtx(
 object CompilerCtx:
   
   inline def get(using cctx: CompilerCtx) = cctx
+
+  private def debugTracingEnabled(debug: Config.Debug): Bool =
+    debug.parsing || debug.elaboration || debug.resolution || debug.lowering || debug.optimizations
 
 
   /** Collect import provenance after elaboration has assembled all user and synthetic imports.

@@ -145,6 +145,7 @@ object Config:
     optimizations: Bool,
     showIR: Bool,
     showOptimizedIR: Bool,
+    showUids: Bool,
     out: DebugOutput,
   )
   object Debug:
@@ -159,6 +160,7 @@ object Config:
       optimizations = false,
       showIR = false,
       showOptimizedIR = false,
+      showUids = true,
       out = DebugOutput.StdIO,
     )
   
@@ -535,6 +537,7 @@ object ConfigParser:
       case "optimizations" => _.copy(optimizations = value)
       case "showIR" => _.copy(showIR = value)
       case "showOptimizedIR" => _.copy(showOptimizedIR = value)
+      case "showUids" => _.copy(showUids = value)
       case _ =>
         raise(ErrorReport(
           msg"Unknown debugging aspect '${name}'" -> tree.toLoc :: Nil,

@@ -283,7 +283,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               val cfgOverride = definitionConfigOverride(td.extraAnnotations)
               definitionDebugConfig(td.extraAnnotations) match
                 case S(localConfig) =>
-                  State.scopedDebug(localConfig.debug.lowering):
+                  State.scopedDebug(localConfig.debug.lowering, localConfig.debug.showUids):
                     tl.scopedDebug(localConfig.debug.lowering, localConfig.debug.out):
                       subTerm_nonTail(bod)(r =>
                         tl.inOuterDebugScope:
@@ -297,7 +297,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               val cfgOverride = definitionConfigOverride(td.extraAnnotations)
               val (paramLists, bodyBlock) = definitionDebugConfig(td.extraAnnotations) match
                 case S(localConfig) =>
-                  State.scopedDebug(localConfig.debug.lowering):
+                  State.scopedDebug(localConfig.debug.lowering, localConfig.debug.showUids):
                     tl.scopedDebug(localConfig.debug.lowering, localConfig.debug.out):
                       setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))
                 case N => setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme))

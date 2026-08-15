@@ -1,25 +1,26 @@
 :js
 
 
+#dbg(showUids: false)
 @dbg('resolution, 'lowering)
 fun selected_debug(x) = x
 fun unrelated(x) = x
-//│ | Resolving definition: TermDefinition(Fun,member:selected_debug‹40›,term:selected_debug‹45›,List(ParamList(‹›,List(Param(‹›,x‹42›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹42›)),‹›,Modulefulness(None),List(Debug(...)),None)
-//│ | | Resolving function definition TermDefinition(Fun,member:selected_debug‹40›,term:selected_debug‹45›,List(ParamList(‹›,List(Param(‹›,x‹42›,None,Modulefulness(None))),None)),None,None,Some(Ref(x‹42›)),‹›,Modulefulness(None),List(Debug(...)),None)
-//│ | | Resolving parameter x‹42›
-//│ | | Traversing term: Ref(x‹42›) (expect = NonModule)
-//│ | | | Resolving resolvable term: Ref(x‹42›), (prefer = NonModule, inAppPrefix = false, inCtxPrefix = false, inTyPrefix = false)
-//│ | | | | Resolving symbol for term: Ref(x‹42›) (prefer = NonModule)
-//│ | | | | -> (sym = Some(x‹42›), typ = None)
-//│ | | | | Resolving the type for term: Ref(x‹42›) (prefer = NonModule, sym = Some(x‹42›))
-//│ | | | | | Declaration: Some(Param(‹›,x‹42›,None,Modulefulness(None)))
+//│ | Resolving definition: TermDefinition(Fun,member:selected_debug,term:selected_debug,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),None,None,Some(Ref(x)),‹›,Modulefulness(None),List(Debug(...)),None)
+//│ | | Resolving function definition TermDefinition(Fun,member:selected_debug,term:selected_debug,List(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None)),None,None,Some(Ref(x)),‹›,Modulefulness(None),List(Debug(...)),None)
+//│ | | Resolving parameter x
+//│ | | Traversing term: Ref(x) (expect = NonModule)
+//│ | | | Resolving resolvable term: Ref(x), (prefer = NonModule, inAppPrefix = false, inCtxPrefix = false, inTyPrefix = false)
+//│ | | | | Resolving symbol for term: Ref(x) (prefer = NonModule)
+//│ | | | | -> (sym = Some(x), typ = None)
+//│ | | | | Resolving the type for term: Ref(x) (prefer = NonModule, sym = Some(x))
+//│ | | | | | Declaration: Some(Param(‹›,x,None,Modulefulness(None)))
 //│ | | | | -> typ = None
-//│ | | | | Resolving resolvable term Ref(x‹42›) with sym = Some(x‹42›), typ = None
-//│ | | | ~> Ref(x‹42›) (sym = Some(x‹42›), typ = None)
-//│ | | | Checking Ref(x‹42›): expect NonModule, evalsToModule = false, evalsToStaticClass = false
-//│ Lowering.term x⁰‹42› – symbol x‹42›
-//│ Expanding term Ref(x‹42›)
-//│ ~> Ref(x‹42›)
+//│ | | | | Resolving resolvable term Ref(x) with sym = Some(x), typ = None
+//│ | | | ~> Ref(x) (sym = Some(x), typ = None)
+//│ | | | Checking Ref(x): expect NonModule, evalsToModule = false, evalsToStaticClass = false
+//│ Lowering.term x⁰ – symbol x
+//│ Expanding term Ref(x)
+//│ ~> Ref(x)
 
 
 module Main with

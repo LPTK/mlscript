@@ -366,7 +366,7 @@ class Resolver(tl: TraceLogger)
     if modifiers.isEmpty then traverseDefnImpl(defn)
     else
       val localConfig = modifiers.foldLeft(cfg)((config, modify) => modify(config))
-      state.scopedDebug(localConfig.debug.resolution):
+      state.scopedDebug(localConfig.debug.resolution, localConfig.debug.showUids):
         tl.scopedDebug(localConfig.debug.resolution, localConfig.debug.out):
           traverseDefnImpl(defn)
 

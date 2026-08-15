@@ -519,17 +519,20 @@ object Elaborator:
       "globalThis" -> globalThisSymbol,
     ))
     val superSymbol = builtinOpsMap("super")
-    private var debugOverrides = Ls.empty[Bool]
+    // Definition-local debug annotations may independently change whether tracing is active and
+    // whether symbol identities are useful in that trace, so both settings share the same scope.
+    private var debugOverrides = Ls.empty[(Bool, Bool)]
     protected def doDbg: Bool = false
-    final def dbg: Bool = debugOverrides.headOption.getOrElse(doDbg)
-    def scopedDebug[T](enabled: Bool)(thunk: => T): T =
-      debugOverrides ::= enabled
+    protected def doShowUids: Bool = true
+    final def dbg: Bool = debugOverrides.headOption.map(_._1).getOrElse(doDbg)
+    final def showUids: Bool = debugOverrides.headOption.map(_._2).getOrElse(doShowUids)
+    def scopedDebug[T](enabled: Bool, showUids: Bool)(thunk: => T): T =
+      debugOverrides ::= enabled -> showUids
       try thunk finally debugOverrides = debugOverrides.tail
     def dbgRefNum(num: Int): Str =
       if dbg then s"#$num" else ""
     def dbgUid(uid: Uid[Symbol]): Str =
-      if dbg then s"‹$uid›" else ""
-      // ^ we do not display the uid by default to avoid polluting diff-test outputs
+      if dbg && showUids then s"‹$uid›" else ""
   transparent inline def State(using state: State): State = state
   
   /** Extracts all parameter lists from a `constructor(...)...` declaration.
@@ -571,7 +574,7 @@ extends Importer:
     if modifiers.isEmpty then thunk
     else
       val localConfig = modifiers.foldLeft(config)((cfg, modify) => modify(cfg))
-      state.scopedDebug(localConfig.debug.elaboration):
+      state.scopedDebug(localConfig.debug.elaboration, localConfig.debug.showUids):
         tl.scopedDebug(localConfig.debug.elaboration, localConfig.debug.out)(thunk)
   
   lazy val illegalMemberNameTail =
