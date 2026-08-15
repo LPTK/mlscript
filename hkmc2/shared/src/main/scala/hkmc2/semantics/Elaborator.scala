@@ -456,12 +456,16 @@ object Elaborator:
   class State:
     val suid = new Uid.Symbol.State
     given State = this
+    
+    // TODO?
     /** Import-local reference numbering for symbols owned by cached compilation artifacts. */
-    private val externalRefCounts = mutable.Map.empty[Symbol, Int]
+    // private val externalRefCounts = mutable.Map.empty[Symbol, Int]
     private[semantics] def allocateExternalRefNum(sym: Symbol, firstExternalRefNum: Int): Int =
-      val next = externalRefCounts.getOrElse(sym, firstExternalRefNum)
-      externalRefCounts(sym) = next + 1
-      next
+      // val next = externalRefCounts.getOrElse(sym, firstExternalRefNum)
+      // externalRefCounts(sym) = next + 1
+      // next
+      -1
+    
     private var _compilationUnit: Opt[CompilationUnit] = N
     private var _compilationUnitAbi: Opt[CompilationUnitAbi] = N
     /** Publish semantic provenance before optimizing this compilation unit. */
