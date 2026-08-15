@@ -232,8 +232,8 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
       val chainedArgs = argss.map(args => doc"(${args.map(print).mkDocument(", ")})").mkDocument("")
       doc"${printAnnotations(inst.metadata.annotations, doc" ")}new ${if mut then "mut " else ""}${print(cls)}${chainedArgs}"
     case Cast(value, target, check) =>
-      // * `as!` marks a cast asserted without a runtime check, the way an unchecked assertion is written.
-      doc"(${print(value)} as${if check then "" else "!"} ${print(target)})"
+      // * `as!` and `as!!` marks a cast asserted with and without a runtime check respectively.
+      doc"(${print(value)} as${if check then "!" else "!!"} ${print(target)})"
     case Lambda(params, body) =>
       scope.nest.givenIn:
         val allParams =
