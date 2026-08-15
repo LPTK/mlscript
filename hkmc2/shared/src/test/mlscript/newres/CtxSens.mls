@@ -30,15 +30,15 @@ foo(A).u
 :sr
 foo(B).u
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   foo(B)‹app¹›.u‹u⁰, u⁰, u¹›
+//│   foo(B)‹app¹›.u‹u¹, u⁰, u⁰›
 //│ ╔══[COMPILATION ERROR] This selection of member 'u' is ambiguous, as it has multiple resolved targets
 //│ ║  l.31: 	foo(B).u
 //│ ║        	^^^^^^^^
 //│ ╟── target: value 'u'
-//│ ║  l.6: 	  val u = 1
+//│ ║  l.9: 	  val u = 2
 //│ ║       	  ^^^^^^^^^
 //│ ╟── target: value 'u'
-//│ ║  l.9: 	  val u = 2
+//│ ║  l.6: 	  val u = 1
 //│ ╙──     	  ^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

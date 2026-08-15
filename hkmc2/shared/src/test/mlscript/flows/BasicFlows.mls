@@ -36,7 +36,7 @@ x => x
 class Foo with
   val m = 1
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
-//│   class Foo {
+//│   class Foo⁰ {
 //│     val m⁰ ‹flow:m⁰› = 1
 //│   }
 //│ where
@@ -60,7 +60,7 @@ fun test(x) = x.m
 // :df
 fun test(x: Foo) = x.m
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
-//│   fun test¹(x²: Foo⁰{ ~> Foo⁰ }) ‹flow:test¹› = x².mˀ{ ~> x².m⁰ }
+//│   fun test¹(x²: Foo¹{ ~> Foo¹ }) ‹flow:test¹› = x².mˀ{ ~> x².m⁰ }
 //│ where
 //│     x²  <~  type Foo
 //│     flow:test¹  <~  ((type Foo) -> flow:m⁰)
@@ -69,7 +69,7 @@ fun test(x: Foo) = x.m
 let f = (x: Foo) => x.m
 //│ —————————————————| Flowed |—————————————————————————————————————————————————————————————————————————
 //│   let f⁰,
-//│   f⁰ = (x³: Foo⁰{ ~> Foo⁰ }) => x³.mˀ{ ~> x³.m⁰ }
+//│   f⁰ = (x³: Foo¹{ ~> Foo¹ }) => x³.mˀ{ ~> x³.m⁰ }
 //│ where
 //│     f⁰  <~  ((type Foo) -> flow:m⁰)
 //│     x³  <~  type Foo

@@ -20,7 +20,7 @@ package object ucs:
      *  function because we generate a lot of `Ref`s after implicit resolution.
      *  Writing `.resolve` is too verbose.
      */
-    def safeRef: Term.Ref = symbol.ref().resolve
+    def safeRef(using Elaborator.State): Term.Ref = symbol.ref().resolve
   
   extension (op: Keyword.Infix)
     infix def unapply(tree: Tree): Opt[(Tree, Tree)] = tree match

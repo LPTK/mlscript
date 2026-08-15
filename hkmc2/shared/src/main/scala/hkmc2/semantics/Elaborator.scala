@@ -140,14 +140,11 @@ object Elaborator:
     def nestLocal(nameHint: Str): Ctx = nest(OuterCtx.LocalScope(nameHint))
     def nestInner(inner: InnerSymbol): Ctx = nest(OuterCtx.InnerScope(inner))
     
-    def get(name: Str)(using Config): Opt[Ctx.Elem] =
+    def get(name: Str)(using config: Config): Opt[Ctx.Elem] =
       env.get(name).orElse:
-        // val res = parent.flatMap(_.get(name))
-        // if config.language.useNewResolution
-        // then res.map(Ctx.CaptElem(_))
-        // else res
         parent match
-        case S(p @ Ctx(outer = OuterCtx.InnerScope(inner))) => // TODO: also OuterCtx.Function
+        case S(p @ Ctx(outer = OuterCtx.InnerScope(inner))) if config.language.useNewResolution =>
+          // TODO: also capture across OuterCtx.Function.
           p.get(name).map(Ctx.CaptElem(_, inner))
         case _ => parent.flatMap(_.get(name))
     
@@ -459,6 +456,12 @@ object Elaborator:
   class State:
     val suid = new Uid.Symbol.State
     given State = this
+    /** Import-local reference numbering for symbols owned by cached compilation artifacts. */
+    private val externalRefCounts = mutable.Map.empty[Symbol, Int]
+    private[semantics] def allocateExternalRefNum(sym: Symbol, firstExternalRefNum: Int): Int =
+      val next = externalRefCounts.getOrElse(sym, firstExternalRefNum)
+      externalRefCounts(sym) = next + 1
+      next
     private var _compilationUnit: Opt[CompilationUnit] = N
     private var _compilationUnitAbi: Opt[CompilationUnitAbi] = N
     /** Publish semantic provenance before optimizing this compilation unit. */

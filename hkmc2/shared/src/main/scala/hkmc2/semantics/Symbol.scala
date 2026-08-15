@@ -2,7 +2,7 @@ package hkmc2
 package semantics
 
 import scala.collection.mutable
-import scala.collection.mutable.{Buffer, Set as MutSet}
+import scala.collection.mutable.{Buffer, LinkedHashSet}
 
 import hkmc2.utils.*, shorthands.*
 import syntax.*
@@ -23,9 +23,9 @@ sealed abstract class MaybeSymbol:
 end MaybeSymbol
 
 
-abstract class Symbol(using State) extends MaybeSymbol with Located:
+abstract class Symbol(using ownerState: State) extends MaybeSymbol with Located:
   
-  def getState: State = summon
+  def getState: State = ownerState
   
   val uid: Uid[Symbol] = State.suid.nextUid
   
@@ -54,9 +54,15 @@ abstract class Symbol(using State) extends MaybeSymbol with Located:
   val directRefs: mutable.Buffer[Term.Ref] = mutable.Buffer.empty
   def ref(id: Tree.Ident =
     Tree.Ident("") // FIXME hack
-  ): Term.Ref =
-    val res = new Term.Ref(this)(id, directRefs.size, N).withLocOf(id)
-    directRefs += res
+  )(using currentState: State): Term.Ref =
+    // Imported symbols belong to immutable cached artifacts. Their references are local to the
+    // importing compilation and must not change the defining artifact's reference numbering.
+    val isLocal = currentState is ownerState
+    val refNum =
+      if isLocal then directRefs.size
+      else currentState.allocateExternalRefNum(this, directRefs.size)
+    val res = new Term.Ref(this)(id, refNum, N).withLocOf(id)
+    if isLocal then directRefs += res
     res
   def refsNumber: Int = directRefs.size
   
@@ -206,7 +212,10 @@ class ConcreteFlowSymbol(label: Str)(using State) extends FlowSymbol(label):
 
 
 sealed trait LocalSymbol extends Symbol, ShapePublisher:
-  private[semantics] val shapes: MutSet[Shape] = MutSet.empty
+  /** Shapes are published in discovery order. Resolution replays this collection to late
+    * listeners, so an unordered set would make ambiguous-target diagnostics depend on hash and
+    * parallel compilation timing. */
+  private[semantics] val shapes: LinkedHashSet[Shape] = LinkedHashSet.empty
 sealed trait NamedSymbol extends Symbol:
   def name: Str
   def id: Ident

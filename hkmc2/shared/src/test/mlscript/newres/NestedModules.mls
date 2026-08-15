@@ -79,17 +79,18 @@ let m = if maybe then Foo.Bar else Predef
 :e
 m.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   m⁰.id‹id⁰, id¹›
+//│   m⁰.id‹id¹, id⁰›
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
 //│ ║  l.80: 	m.id
 //│ ║        	^^^^
 //│ ╟── target: function 'id'
-//│ ║  l.8: 	    fun id(x) = x
-//│ ║       	    ^^^^^^^^^^^^^
-//│ ╟── target: function 'id'
 //│ ║  in ../../mlscript-compile/Predef.mls
 //│ ║  l.18: 	fun id(x) = x
-//│ ╙──      	^^^^^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^
+//│ ╟── target: function 'id'
+//│ ║  in NestedModules.mls:6
+//│ ║  l.8: 	    fun id(x) = x
+//│ ╙──     	    ^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -101,7 +102,7 @@ let x = id(Foo.Bar)
 :todo
 x.id
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.102: 	x.id
+//│ ║  l.103: 	x.id
 //│ ╙──       	^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -115,7 +116,7 @@ localid(Foo.Bar).id
 :todo
 localid(Predef).id
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
-//│ ║  l.116: 	localid(Predef).id
+//│ ║  l.117: 	localid(Predef).id
 //│ ║         	^^^^^^^^^^^^^^^^^^
 //│ ╟── target: function 'id'
 //│ ║  in ../../mlscript-compile/Predef.mls
