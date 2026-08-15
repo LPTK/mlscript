@@ -412,14 +412,64 @@ object Elaborator:
         matchFailureTrm = term("MatchFailure"),
       )
 
+  /** Immutable semantic metadata published before a compilation unit is optimized. */
+  final case class CompilationUnit(
+    modulePath: Str,
+    defaultExport: Opt[BlockMemberSymbol],
+    config: Config,
+    importedModulePaths: Map[ImportSymbol, Str],
+  ):
+    def externalImport(sym: ImportSymbol, isForeign: Bool): Opt[ExternalModuleImport] =
+      importedModulePaths.get(sym) match
+      case S(path) => S(ExternalModuleImport.Default(sym, path))
+      case N if defaultExport.contains(sym) =>
+        S(ExternalModuleImport.Default(sym, modulePath))
+      case N => sym match
+        case sym: BlockMemberSymbol if isForeign =>
+          S(ExternalModuleImport.Private(sym, modulePath))
+        case _ => N
+
+  end CompilationUnit
+
+  /** Immutable JavaScript ABI published after optimization has fixed the emitted definitions. */
+  final case class CompilationUnitAbi(
+    privateExportNames: Map[BlockMemberSymbol, Str],
+  )
+
+  enum ExternalModuleImport:
+    case Default(sym: ImportSymbol, modulePath: Str)
+    case Private(sym: BlockMemberSymbol, modulePath: Str)
+
   class State:
     val suid = new Uid.Symbol.State
     given State = this
+    private var _compilationUnit: Opt[CompilationUnit] = N
+    private var _compilationUnitAbi: Opt[CompilationUnitAbi] = N
+    /** Publish semantic provenance before optimizing this compilation unit. */
+    private[hkmc2] def publishCompilationUnit(unit: CompilationUnit): Unit =
+      assert(_compilationUnit.isEmpty)
+      assert(unit.defaultExport.forall(_.getState is this))
+      assert(unit.importedModulePaths.keysIterator.forall(_.getState is this))
+      _compilationUnit = S(unit)
+    /** Publish the separately staged JavaScript ABI before caching this compilation unit. */
+    private[hkmc2] def publishCompilationUnitAbi(abi: CompilationUnitAbi): Unit =
+      assert(_compilationUnit.nonEmpty && _compilationUnitAbi.isEmpty)
+      assert(abi.privateExportNames.keysIterator.forall(_.getState is this))
+      _compilationUnitAbi = S(abi)
+    /** Resolve the one JavaScript import represented by an external symbol reference. */
+    def externalModuleImport(sym: ImportSymbol, importingState: State): Opt[ExternalModuleImport] =
+      assert(sym.getState is this)
+      _compilationUnit.flatMap(_.externalImport(sym, this isnt importingState))
+    def compilationUnitPrivateName(sym: BlockMemberSymbol): Opt[Str] =
+      _compilationUnitAbi.flatMap(_.privateExportNames.get(sym))
+    /** Root worksheet states have no fixed compilation-unit configuration. */
+    def compilationUnitConfig: Opt[Config] =
+      _compilationUnit.map(_.config)
     val globalThisSymbol = TopLevelSymbol("globalThis")
     private var cachedRuntimeSymbols: Opt[RuntimeSymbols] = N
     def initRuntimeSymbolsFromBlock(blk: Term.Blk): Unit =
       cachedRuntimeSymbols = S(RuntimeSymbols.fromBlock(blk))
-    def initRuntimeSymbolsFromFile(file: io.Path, prelude: Ctx)(using TL, Raise, Config, CompilerCtx): Unit =
+    def initRuntimeSymbolsFromFile(file: io.Path, prelude: Ctx)(using TL, Raise, CompilerCtx): Unit =
       if cachedRuntimeSymbols.isEmpty then
         cachedRuntimeSymbols = S(RuntimeSymbols.fromBlock(CompilerCtx.get.getElaboratedBlock(file, prelude).term))
     private def runtimeSymbols: RuntimeSymbols =
@@ -1028,14 +1078,15 @@ extends Importer:
           val loc = tree.toLoc.getOrElse(???)
           Term.Lit(StrLit(loc.origin.fileName.toString))
         else
-          ??? // FIXME dead code
           val res = Term.Sel(preTrm, tree.name)(sym, FlowSymbol.sel(tree.name.name), N, S(summon))
           // collectedConstraints += Constraint(preTrm, res)
           // preTrm
           // preTrm.shapeListeners +=
           //   (shape => selShape(shape, tree.name, res))
           // preTrm.listen(shape => selShape(shape, tree.name, res))
-          if newResolution then listenTerm(preTrm, shape => selShape(shape, tree.name, res))
+          if newResolution then
+            ??? // FIXME dead code
+            listenTerm(preTrm, shape => selShape(shape, tree.name, res))
           res
     
     tree.desugared match
@@ -1107,7 +1158,7 @@ extends Importer:
         block(sts_, hasResult = false)._1
       
       elabed.res match
-      case Term.Lit(UnitLit(false)) => 
+      case Term.Lit(UnitLit(false)) =>
       case trm => raise(WarningReport(msg"Terms in handler block do nothing" -> trm.toLoc :: Nil))
       
       val tds = elabed.stats.map {
@@ -1118,11 +1169,11 @@ extends Importer:
                   raise(ErrorReport(msg"Handler function cannot be a getter" -> td.toLoc :: Nil))
                 val newTd = TermDefinition(Fun, sym, tsym, newParams.reverse, tparams, sign, body, flags, mf, annotations, comp)
                 S(HandlerTermDefinition(value.sym, newTd))
-              case _ => 
+              case _ =>
                 raise(ErrorReport(msg"Handler function is missing resumption parameter" -> td.toLoc :: Nil))
                 None
               
-          case st => 
+          case st =>
             raise(ErrorReport(msg"Only function definitions are allowed in handler blocks" -> st.toLoc :: Nil))
             None
         }.collect { case Some(x) => x }
@@ -1912,7 +1963,7 @@ extends Importer:
             val tdf = ctx.nest(OuterCtx.NonReturnContext).givenIn: newCtx ?=>
               // * Add type parameters to context
               val (tps, newCtx1) = td.typeParams match
-                case S(t) => 
+                case S(t) =>
                   val (tps, ctx) = typeParams(t)
                   (S(tps), ctx)
                 case N => (N, ctx)
@@ -1953,13 +2004,13 @@ extends Importer:
                 // st.isModified(Mod) indicates if the function marks
                 // its result as "module". e.g, `fun f: module M`
                 //                                      ^^^^^^
-                case S(st) if st.isModified(Mod) => 
+                case S(st) if st.isModified(Mod) =>
                   Modulefulness.ofSign(s)(true)
                 case _ =>
                   Modulefulness.none
               
               val tsym = TermSymbol(k, owner, id) // TODO?
-              val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, 
+              val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body,
                 TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations, N).withLocOf(td)
               sym.tsym = S(tsym)
               tsym.defn = S(tdf)
@@ -2053,7 +2104,7 @@ extends Importer:
               // For class-like types, "desugar" the parameters into additional class fields.
               
               val owner = td.symbol match
-                // Any MemberSymbol should be an InnerSymbol, except for TypeAliasSymbol, 
+                // Any MemberSymbol should be an InnerSymbol, except for TypeAliasSymbol,
                 // but type aliases should not call this function.
                 case s: InnerSymbol => S(s)
                 case _: TypeAliasSymbol => die
@@ -2265,7 +2316,7 @@ extends Importer:
                     N,
                     TermDefFlags.empty,
                     Modulefulness.none,
-                    annotations.collect: 
+                    annotations.collect:
                       case a @ Annot.Modifier(Keyword.`declare`) => a
                     ,
                     S(clsSym),
@@ -2440,7 +2491,7 @@ extends Importer:
             case S(spd) =>
               if spd is SpreadKind.Lazy then
                 raise(ErrorReport(msg"Lazy spread parameters not allowed." -> hd.toLoc :: Nil))
-              if tl.isEmpty then 
+              if tl.isEmpty then
                 (ParamList(flags, acc.reverse, S(p)).withLocOf(t), newCtx)
               else
                 raise(ErrorReport(msg"Spread parameters must be the last in the parameter list." -> hd.toLoc :: Nil))
@@ -2475,7 +2526,7 @@ extends Importer:
     /** Resolve an identifier. We need to perform a very preliminary check to
      *  determine whether this identifier refers to a pattern, a class, an
      *  object, or creates a new binding.
-     * 
+     *
      *  FIXME: This routine is insufficient to look up definitions defined
      *  later in the program. */
     def ident(id: Ident)(using Ctx): Ctxl[Opt[Term]] = scoped("ucs:pattern:resolution"):
@@ -2535,11 +2586,11 @@ extends Importer:
           // Found `...` (no following patterns), which means the spread part
           // will not be further matched. Set the spread pattern to `Wildcard`.
           (leading, S(SpreadKind.fromKw(ellipsis), Wildcard(), Nil))
-        case ((leading, N), t) => 
+        case ((leading, N), t) =>
           // Found a tuple field while the spread pattern is not set. Add the
           // elaborated pattern to the leading patterns.
           (go(t) :: leading, N)
-        case ((leading, S((spreadKind, spread, trailing))), t) => 
+        case ((leading, S((spreadKind, spread, trailing))), t) =>
           // Found a tuple field while the spread pattern has been set. Add the
           // elaborated pattern to the trailing patterns.
           (leading, S((spreadKind, spread, go(t) :: trailing)))
@@ -2772,7 +2823,7 @@ extends Importer:
         // fields.foreach(f => traverseType(pol)(f.value))
         fields.foreach(traverseType(pol))
       // case _ => ???
-      case Term.Neg(ty) => 
+      case Term.Neg(ty) =>
         traverseType(pol.!)(ty)
       case _ =>
         // TODO

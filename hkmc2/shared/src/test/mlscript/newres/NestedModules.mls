@@ -92,7 +92,7 @@ m.id
 //│ ║        	    ^^^^^^^^^^^^^
 //│ ╟── target: function 'id'
 //│ ║  in ../../mlscript-compile/Predef.mls
-//│ ║  l.16: 	fun id(x) = x
+//│ ║  l.18: 	fun id(x) = x
 //│ ╙──      	^^^^^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

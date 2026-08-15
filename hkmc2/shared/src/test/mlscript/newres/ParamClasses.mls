@@ -202,11 +202,6 @@ let f = new Foo(Predef)
 //│   static {
 //│     Foo5.class = this
 //│   }
-//│   constructor(pred) {
-//│     this.#pred = pred;
-//│     runtime.safeCall(this.#pred.id(42));
-//│   }
-//│   #pred;
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", [null]];
 //│ });
