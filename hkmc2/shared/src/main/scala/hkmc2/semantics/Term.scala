@@ -345,7 +345,6 @@ sealed trait TermShape extends Shape:
     // case as: AppShape => as.receiver.applicationHead
     case as: AppShape => as.receiver.applicationHead
     case ns: NewShape => ns.receiver.applicationHead
-    case ns: NewNewShape => ns.receiver.applicationHead
     case na: NonAppTermShape => na
   lazy val unappliedParams: Ls[ParamList] = this match
     case ds: DefnShape => ds.defn match
@@ -359,7 +358,6 @@ sealed trait TermShape extends Shape:
       case _ => Nil
     case as: AppShape => as.receiver.unappliedParams.drop(1)
     case ns: NewShape => ns.receiver.unappliedParams.drop(ns.argss.length)
-    case ns: NewNewShape => ns.receiver.unappliedParams.drop(ns.argss.length)
     case _ => Nil
   def isSaturated: Bool = unappliedParams.isEmpty
 // sealed trait TermShape:
@@ -413,18 +411,11 @@ abstract class AppShape(val receiver: TermShape, val args: Term, val src: Term.A
   override def toString: String = s"AppShape($receiver, ${args.showDbg})"
   def target: Opt[AppTarget]
 
-abstract class NewNewShape(val receiver: TermShape, val cls: ClassLikeSymbol, val argss: Ls[Term], val src: Term.New)(using DebugPrinter) extends TermShape:
+abstract class NewShape(val receiver: TermShape, val cls: ClassLikeSymbol, val argss: Ls[Term], val src: Term.New)(using DebugPrinter) extends TermShape:
   def describe: Str =
     // s"instantiation of ${receiver.describe}"
     s"instance of ${cls.defn.get.describe}"
   override def toString: String = s"NewNewShape(${cls.showDbg}, $argss)"
-
-abstract class NewShape(val receiver: TermShape, val argss: Ls[Term], val src: Term.New) extends TermShape:
-  def describe: Str =
-    // s"instantiation of ${receiver.describe}"
-    s"instance of ${receiver.describe}"
-  override def toString: String = s"NewShape($receiver, $argss)"
-  // def target: Opt[AppTarget]
 
 class SymShape(val sym: BlockMemberSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"

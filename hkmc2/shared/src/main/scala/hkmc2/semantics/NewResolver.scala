@@ -44,16 +44,11 @@ class NewResolver:
   
   // * The `FlowSymbol`s are currently used to uniquely identify terms
   val appShapes: mutable.Map[(TermShape, FlowSymbol), AppShape] = mutable.Map.empty
-  val newShapes: mutable.Map[(TermShape, FlowSymbol), NewShape] = mutable.Map.empty
-  val newNewShapes: mutable.Map[(ClassLikeSymbol, FlowSymbol), NewNewShape] = mutable.Map.empty
+  val newShapes: mutable.Map[(ClassLikeSymbol, FlowSymbol), NewShape] = mutable.Map.empty
   val introShapes: mutable.Map[IntroTerm, IntroShape] = mutable.Map.empty // TODO use symbols for faster lookup?
   val symShapes: mutable.Map[BlockMemberSymbol, SymShape] = mutable.Map.empty
   val defnShapes: mutable.Map[DefinitionSymbol[?], DefnShape] = mutable.Map.empty
   
-  // def getSelShape(lhs: Shape, nme: Tree.Ident): SelShape =
-  //   selShapes.getOrElseUpdate((lhs, nme.name), SelShape(lhs, nme))
-  
-  // def zip(ps: Ls[Param], r: Opt[Param], args: Ls[Term]): Ls[(Param, Term)] =
   def zipArgs(ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term): Unit =
     (ps, args) match
     case (Nil, Nil) => ()
@@ -67,19 +62,10 @@ class NewResolver:
             msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> src.toLoc :: Nil,
             source = Diagnostic.Source.Compilation)
       case S(p) =>
-        // ??? // TODO: r
         val packaged = new Tup(args)(Tree.DummyTup).withLoc(Loc.mk(args.iterator.flatMap(_.toLoc)))
-        /* 
-        listenTerm(packaged, sh =>
-          log(s"zipArg: r = ${p.showDbg}, packaged = ${packaged.showDbg}, sh = $sh, ${p.sym.shapeListeners}")
-          if p.sym.shapes.add(sh) then
-            p.sym.shapeListeners.foreach(listener => listener(sh))
-        )
-        */
         val sh = IntroShape(packaged)
         p.sym.shapeListeners.foreach(_(sh))
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
-      // (p, a) :: zip(ps, r, args)
       listenTerm(trm, sh =>
         log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = $sh")
         if p.sym.shapes.add(sh) then
@@ -124,7 +110,7 @@ class NewResolver:
           */
           case _ =>
             N // TODO
-          case ns: NewNewShape =>
+          case ns: NewShape =>
             N // TODO
           case ds: DefnShape =>
             ds.defn match
@@ -212,62 +198,6 @@ class NewResolver:
       // case _ => ???
     else register
   
-  def newShape(lhs: TermShape, ass: Ls[Term], res: Term.New): Unit =
-    // log(s"newShape? lhs = $lhs, args = $args, res = $res")
-    val sh = newShapes.getOrElseUpdate((lhs, res.resSym), {
-      log(s"newShape: lhs = $lhs, args = $ass, res = $res")
-      new NewShape(lhs, ass, res):
-        log(s"newShape isSaturated? ${isSaturated}; head? ${applicationHead}")
-        if !isSaturated then
-          raise:
-            ErrorReport(
-              msg"Missing argument list(s) in instantiation of ${lhs.applicationHead.describe}" -> res.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
-        log(s"Zipping ${receiver.unappliedParams} with $argss")
-        receiver.unappliedParams.lazyZip(argss).foreach: (ps, args) =>
-          args match
-          case args: Tup =>
-            zipArgs(ps.params, ps.restParam, args.fields, res)
-          case _ => ???
-        lazy val members: Map[Str, BlockMemberSymbol] =
-          receiver match
-          case ds: DefnShape =>
-            ds.defn match
-            case cd: ClassDef =>
-              cd.body.members
-            case td: TermDefinition =>
-              td.tsym match
-              case ccs: ClassCtorSymbol =>
-                ccs.associatedCls.defn.getOrElse(die // TODO
-                  ).body.members
-              case _ =>
-                Map.empty
-            case _ =>
-              Map.empty
-          case _ =>
-            Map.empty
-        // def getFromCls(cls: ClassSymbol): Opt[SelectionTarget] =
-        //   getFromClsTree(cls.tree)
-        // def members: Map[Str, BlockMemberSymbol] = ???
-        val target = receiver match
-          // case ss: SymShape =>
-          //   ()
-          case ds: DefnShape =>
-            ()
-          case sh =>
-            res.isErroneous = true
-            raise:
-              ErrorReport(
-                msg"${sh.describe.capitalize} cannot be instantiated with keyword 'new'." -> res.toLoc :: Nil,
-                source = Diagnostic.Source.Compilation)
-            N
-    })
-    if res.shapes.add(sh) then
-      res.shapeListeners.foreach(listener => listener(sh))
-  
-  // def selShape2(lhs: TermShape, id: Tree.Ident, res: NewSel): Unit =
-  //   log(s"selShape? lhs = $lhs, nme = $id, res = $res")
-  //   listenTerm(lhs, sh => selShape(sh, id, res))
   def newSel(sel: NewSel): Unit =
     log(s"newSel? sel = ${sel.showDbg}")
     listenTerm(sel.prefix, shape => {
@@ -308,8 +238,8 @@ class NewResolver:
               val cd = cls.defn.get
               listenExt(cd.ext, extsh => {
                 val dsh = DefnShape(cd, extsh)
-                val sh = newNewShapes.getOrElseUpdate((cls, nw.resSym),
-                  new NewNewShape(dsh, cls, nw.args, nw):
+                val sh = newShapes.getOrElseUpdate((cls, nw.resSym),
+                  new NewShape(dsh, cls, nw.args, nw):
                     /* 
                     if !isSaturated then
                       raise:
