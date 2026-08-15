@@ -415,50 +415,32 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   def classOf(trm: Term, nw: Resolvable)(k: Path => Block)(using LoweringCtx): Block =
     if newResolution then
-      def fromBMS(bms: BlockMemberSymbol): ClassSymbol =
-        bms.asCls match
-        case S(cls) => cls
-        case _ =>
-          bms.asTrm match
-          case S(cc: ClassCtorSymbol) => cc.associatedCls
-          case _ => ???
       trm match
-      case MemberRef(bms: BlockMemberSymbol) =>
-        k(Value.MemberRef(bms, fromBMS(bms)))
-      case MemberRef(tr: TermSymbol) =>
-        ???
-      case sel: NewSel =>
-        subTerm(sel.prefix): pre =>
-          sel.resolvedMembers match
-          case bms :: Nil =>
-            k(Select(pre, memberIdent(sel.id, S(bms)))(S(fromBMS(bms)))(false))
-      // case rsl: Resolvable =>
-      //   rsl.getShapes match
-      //   case (sh: TermShape) :: Nil =>
-      //     sh.
-      //   case _ => ???
-      case Ref(bms: BlockMemberSymbol) =>
-        // bms.asCls match
-        // case S(cls) => k(Value.MemberRef(bms, cls))
-        // case _ =>
-        //   bms.asTrm match
-        //   case S(cc: ClassCtorSymbol) => k(Value.MemberRef(bms, cc.associatedCls))
-        //   case _ => ???
-        k(Value.MemberRef(bms, fromBMS(bms)))
-      case sel: Sel =>
-        subTerm(sel.prefix): pre =>
-          sel.resolvedTargets match
-          // case SelectionTarget.ObjectMember(sym: ClassCtorSymbol) :: Nil =>
-          //   val l = loweringCtx.registerTempSymbol(N)
-          //   val r = Select(pre, memberIdent(sel.nme, S(sym)))(S(sym.associatedCls))(false)
-          //   Assign(l, r, k(l |> Value.SimpleRef.apply))
-          // case SelectionTarget.ObjectMember(sym: ClassSymbol) :: Nil =>
-          //   ???
-          case SelectionTarget.ObjectMember(bms: BlockMemberSymbol) :: Nil =>
-            // val l = loweringCtx.registerTempSymbol(N)
-            // val r = Select(pre, memberIdent(sel.nme, S(bms)))(S(fromBMS(bms)))(false)
-            // Assign(l, r, k(l |> Value.SimpleRef.apply))
-            k(Select(pre, memberIdent(sel.nme, S(bms)))(S(fromBMS(bms)))(false))
+      case resl: NewResolvable =>
+        resl.resolvedTargets match
+        case cls :: Nil =>
+          cls.defn match
+          case S(clsDef: ClassLikeDef) =>
+            resl match
+            case MemberRef(bms: BlockMemberSymbol) =>
+              k(Value.MemberRef(bms, clsDef.sym))
+            case MemberRef(tr: TermSymbol) =>
+              ???
+            case MemberRef(_) => die // FIXME: should make this unreachable
+            case sel: NewSel =>
+              subTerm(sel.prefix): pre =>
+                k(Select(pre, memberIdent(sel.id, S(clsDef.bsym)))(S(clsDef.sym))(false))
+          case _ =>
+            softAssert(resl.isErroneous, s"Unexpected `new` target: ${cls.showDbg}")
+            compError
+        case Nil =>
+          if !resl.isErroneous then raise:
+            ErrorReport(
+              msg"Cannot resolve the class instantiated here" -> trm.toLoc :: Nil,
+              source = Diagnostic.Source.Compilation)
+          compError
+        case _ =>
+          ???
       case _ =>
         softAssert(nw.isErroneous, "Unexpected class term shape")
         compError
