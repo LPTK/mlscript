@@ -9,7 +9,7 @@ module Foo {
   }
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   module Foo⁰ { class Bar⁰ { fun id⁰(x⁰) ‹flow:id⁰› = x⁰ } }
+//│   module Foo⁰ { class Bar⁰ { fun id⁰(x⁰) ‹flow:id⁰› = x⁰^id¹ } }
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Foo⁰ as class Foo¹
 //│ module Foo² {

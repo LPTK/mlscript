@@ -140,6 +140,7 @@ object Elaborator:
     def nestLocal(nameHint: Str): Ctx = nest(OuterCtx.LocalScope(nameHint))
     def nestInner(inner: InnerSymbol): Ctx = nest(OuterCtx.InnerScope(inner))
     
+    /* 
     def get(name: Str)(using config: Config): Opt[Ctx.Elem] =
       env.get(name).orElse:
         val nr = config.language.useNewResolution
@@ -150,6 +151,22 @@ object Elaborator:
             symo match
             case S(inner) =>
               p.get(name).map(Ctx.CaptElem(_, inner))
+            case N =>
+              // TODO: also capture across lambdas.
+              ???
+          case _ => parent.flatMap(_.get(name))
+        else parent.flatMap(_.get(name))
+    */
+    def get(name: Str)(using config: Config): Opt[Ctx.Elem] =
+      env.get(name).orElse:
+        val nr = config.language.useNewResolution
+        if nr then outer match
+          case OuterCtx.InnerScope(inner) =>
+            parent.flatMap(_.get(name)).map(Ctx.CaptElem(_, inner.asDefnSym))
+          case OuterCtx.Function(_, _, symo) =>
+            symo match
+            case S(inner) =>
+              parent.flatMap(_.get(name)).map(Ctx.CaptElem(_, inner))
             case N =>
               // TODO: also capture across lambdas.
               ???

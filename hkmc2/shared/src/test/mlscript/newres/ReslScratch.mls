@@ -37,7 +37,12 @@ class Bar(a) with
   let x = a
   print(x)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Bar⁰(a⁰) { @privateval a¹ ‹flow:a⁰› = a⁰, let x⁰, x⁰ = ⟨Bar.⟩a¹, ⟨Predef.⟩print⁰(x)‹app⁰› }
+//│   class Bar⁰(a⁰) {
+//│     @privateval a¹ ‹flow:a⁰› = a⁰,
+//│     let x⁰,
+//│     x⁰ = ⟨Bar.⟩a¹,
+//│     ⟨Predef.⟩print⁰^Bar⁰(x)‹app⁰›
+//│   }
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
@@ -69,9 +74,11 @@ class Bar(a) with
 //│               prefix = MemberRef of class:Bar³
 //│               nme = Ident of "a"
 //│         res = App:
-//│           lhs = SynthSel{sym=member:print⁰}:
-//│             prefix = MemberRef of member:Predef⁰
-//│             nme = Ident of "print"
+//│           lhs = Capture:
+//│             base = SynthSel{sym=member:print⁰}:
+//│               prefix = MemberRef of member:Predef⁰
+//│               nme = Ident of "print"
+//│             thru = class:Bar³
 //│           rhs = Tup of Ls of
 //│             Fld:
 //│               term = MemberRef of term:Bar³/x⁰
@@ -114,7 +121,7 @@ class Bar(a) with
 //│   constructor(a) {
 //│     this.#a = a;
 //│     this.#x = this.#a;
-//│     Predef.print(this.#x);
+//│     runtime.safeCall(Predef.print(this.#x));
 //│   }
 //│   #a;
 //│   #x;

@@ -9,7 +9,7 @@ class Foo(val a)(val b) {
 //│   class Foo⁰(val a⁰)(val b⁰) {
 //│     val a¹ ‹flow:a⁰› = a⁰,
 //│     val b¹ ‹flow:b⁰› = b⁰,
-//│     val c⁰ ‹flow:c⁰› = +(⟨Foo.⟩a¹^Foo⁰, ⟨Foo.⟩b¹^Foo⁰)‹app⁰›
+//│     val c⁰ ‹flow:c⁰› = +(⟨Foo.⟩a¹^c¹, ⟨Foo.⟩b¹^c¹)‹app⁰›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

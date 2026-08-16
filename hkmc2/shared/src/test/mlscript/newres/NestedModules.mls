@@ -9,7 +9,7 @@ module Foo {
   }
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   module Foo⁰ { module Bar⁰ { fun id⁰(x⁰) ‹flow:id⁰› = x⁰ } }
+//│   module Foo⁰ { module Bar⁰ { fun id⁰(x⁰) ‹flow:id⁰› = x⁰^id¹ } }
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Foo⁰ as class Foo¹
 //│ module Foo² {
@@ -79,7 +79,7 @@ let m = if maybe then Foo.Bar else Predef
 :e
 m.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   m⁰.id‹id¹, id⁰›
+//│   m⁰.id‹id², id⁰›
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
 //│ ║  l.80: 	m.id
 //│ ║        	^^^^

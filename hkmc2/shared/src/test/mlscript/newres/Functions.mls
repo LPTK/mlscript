@@ -37,7 +37,7 @@ fun callid0(p) = p.id(1)
 fun callid1(p) = p.id(1)
 callid1(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun callid1⁰(p⁰) ‹flow:callid1⁰› = p⁰.id⁰(1)‹app⁰›, callid1(Predef)‹app¹›
+//│   fun callid1⁰(p⁰) ‹flow:callid1⁰› = p⁰^callid1¹.id⁰(1)‹app⁰›, callid1(Predef)‹app¹›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -46,7 +46,7 @@ callid1(Predef)
 callid2(Predef)
 fun callid2(p) = p.id(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   callid2(Predef)‹app²›, fun callid2⁰(p¹) ‹flow:callid2⁰› = p¹.id⁰(1)‹app³›
+//│   callid2(Predef)‹app²›, fun callid2⁰(p¹) ‹flow:callid2⁰› = p¹^callid2¹.id⁰(1)‹app³›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -70,7 +70,7 @@ foo(Predef)
 //│   fun foo⁰(pred⁰) ‹flow:foo⁰› = {
 //│     let p²,
 //│     p² = pred⁰^foo¹,
-//│     val r⁰ ‹flow:r⁰› = p².id⁰(1)‹app⁵›,
+//│     val r⁰ ‹flow:r⁰› = p²^r¹.id⁰(1)‹app⁵›,
 //│     ()
 //│   },
 //│   foo(Predef)‹app⁶›
