@@ -46,14 +46,14 @@ object Elaborator:
   
   // TODO: rename to ScopeKind?
   enum OuterCtx:
-    case Function(returnHandlerSymbol: TempSymbol, isGenerator: Bool)
+    case Function(returnHandlerSymbol: TempSymbol, isGenerator: Bool, sym: Opt[DefinitionSymbol[?]])
     case InnerScope(innerSymbol: InnerSymbol)
     case LocalScope(nameHint: Str)
     case LambdaOrHandlerBlock
     case NonReturnContext
     
     def showDbg: Str = this match
-      case Function(sym, _) => s"fun:${sym.nme}"
+      case Function(retSym, _, sym) => s"fun:${retSym.nme}${sym.fold("")(s => s"‹${s}›")}"
       case InnerScope(inner) => inner.toString
       case LocalScope(hint) => hint
       case LambdaOrHandlerBlock => "LambdaOrHandlerBlock"
@@ -142,11 +142,19 @@ object Elaborator:
     
     def get(name: Str)(using config: Config): Opt[Ctx.Elem] =
       env.get(name).orElse:
-        parent match
-        case S(p @ Ctx(outer = OuterCtx.InnerScope(inner))) if config.language.useNewResolution =>
-          // TODO: also capture across OuterCtx.Function.
-          p.get(name).map(Ctx.CaptElem(_, inner))
-        case _ => parent.flatMap(_.get(name))
+        val nr = config.language.useNewResolution
+        if nr then parent match
+          case S(p @ Ctx(outer = OuterCtx.InnerScope(inner))) if nr =>
+            p.get(name).map(Ctx.CaptElem(_, inner.asDefnSym))
+          case S(p @ Ctx(outer = OuterCtx.Function(_, _, symo))) if nr =>
+            symo match
+            case S(inner) =>
+              p.get(name).map(Ctx.CaptElem(_, inner))
+            case N =>
+              // TODO: also capture across lambdas.
+              ???
+          case _ => parent.flatMap(_.get(name))
+        else parent.flatMap(_.get(name))
     
     def lookupLabel(name: Str): LabelLookup =
       @tailrec
@@ -185,17 +193,17 @@ object Elaborator:
     
     def getOuter: Opt[InnerSymbol] = outer.inner.orElse(parent.flatMap(_.getOuter))
     def getNonLocalRetHandler: Opt[TempSymbol] = outer match
-      case OuterCtx.Function(sym, _) => S(sym)
+      case OuterCtx.Function(rsym, _, _) => S(rsym)
       case _ => parent.flatMap(_.getNonLocalRetHandler)
     def getRetHandler: ReturnHandler = outer match
-      case OuterCtx.Function(sym, _) => ReturnHandler.Direct
+      case OuterCtx.Function(rsym, _, _) => ReturnHandler.Direct
       case _: (OuterCtx.LambdaOrHandlerBlock.type | OuterCtx.InnerScope) =>
         getNonLocalRetHandler.fold(ReturnHandler.NotInFunction)(ReturnHandler.Required(_))
       case OuterCtx.NonReturnContext => ReturnHandler.Forbidden
       case _: OuterCtx.LocalScope =>
         parent.fold(ReturnHandler.NotInFunction)(_.getRetHandler)
     def inGenerator: Bool = outer match
-      case OuterCtx.Function(_, isGenerator) => isGenerator
+      case OuterCtx.Function(_, isGenerator, _) => isGenerator
       case _: OuterCtx.LocalScope =>
         parent.fold(false)(_.inGenerator)
       case _: (OuterCtx.LambdaOrHandlerBlock.type | OuterCtx.InnerScope | OuterCtx.NonReturnContext.type) => false
@@ -341,7 +349,7 @@ object Elaborator:
         Term.SynthSel(base.ref(Ident(base.nme)),
           new Ident(nme).withLocOf(id))(symOpt, FlowSymbol.synthSel(nme), N, S(summon))
       def symbol = symOpt
-    final case class CaptElem(base: Elem, thru: InnerSymbol) extends Elem:
+    final case class CaptElem(base: Elem, thru: DefinitionSymbol[?]) extends Elem:
       def ref(id: Ident)(using Elaborator.State, Ctx, Config): Term =
         Term.Capture(base.ref(Ident(base.nme)), thru)
       def symbol = base.symbol
@@ -1995,6 +2003,9 @@ extends Importer:
                 //              ^^^^^^
                 case TypeDef(Mod, st, N) => term(st)(using newCtx)
                 case st => term(st)(using newCtx)
+              
+              val tsym = TermSymbol(k, owner, id) // TODO?
+              
               val body: Opt[Term] = rhs match
                 case N => N
                 case _ if ctx.mode is Mode.Light => S(Term.Missing)
@@ -2003,7 +2014,7 @@ extends Importer:
                   val hasGeneratorAnnotation = annotations.contains(Annot.Generator)
                   if pss.isEmpty && hasGeneratorAnnotation then
                     raise(ErrorReport(msg"Generators are not supported on functions without a parameter list" -> td.toLoc :: Nil))
-                  newCtx.nest(OuterCtx.Function(nonLocalRetHandler, pss.nonEmpty && hasGeneratorAnnotation)).givenIn: newCtx ?=>
+                  newCtx.nest(OuterCtx.Function(nonLocalRetHandler, pss.nonEmpty && hasGeneratorAnnotation, S(tsym))).givenIn: newCtx ?=>
                     val b = term(rhs)(using newCtx)
                     if nonLocalRetHandler.directRefs.isEmpty then b else
                       mkEffectHandleAbortive(
@@ -2023,7 +2034,6 @@ extends Importer:
                 case _ =>
                   Modulefulness.none
               
-              val tsym = TermSymbol(k, owner, id) // TODO?
               val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body,
                 TermDefFlags.empty.copy(isMethod = isMethod), mfn, annotations, N).withLocOf(td)
               sym.tsym = S(tsym)
