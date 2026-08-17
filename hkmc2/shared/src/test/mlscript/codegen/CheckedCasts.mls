@@ -78,14 +78,14 @@ fun toObject(): Object = anything(1)
 // A virtual class has no runtime representation at all; the path in its `Case.Cls` is discarded and the
 // backend emits its own test.
 :sjs
-fun toInt(): Int = mkTop()
+fun toInt(): Int = anything(mkTop())
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let toInt;
 //│ toInt = function toInt() {
-//│   let castScrut;
-//│   castScrut = mkTop();
-//│   if (globalThis.Number.isInteger(castScrut)) {
-//│     return castScrut
+//│   let tmp;
+//│   tmp = mkTop();
+//│   if (globalThis.Number.isInteger(tmp)) {
+//│     return tmp
 //│   }
 //│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Int'"));
 //│ };
@@ -97,6 +97,7 @@ toTop() is Top
 //│ = true
 
 
+// A user-defined class and an `Int` have distinct runtime representations, so this one throws.
 :re
 toInt()
 //│ ═══[RUNTIME ERROR] Error: Cannot narrow a value to type 'Int'

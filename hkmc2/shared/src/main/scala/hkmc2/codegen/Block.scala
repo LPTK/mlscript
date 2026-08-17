@@ -1115,11 +1115,16 @@ object ErasedType:
 
   /** The least upper bound of two reference symbols.
     *
-    * Returns `Object` if the two symbols are unrelated, and `Anything` if the relationship to `Object` is undecidable.
+    * Returns `Object` if the two symbols are unrelated but both sit under it, and `Anything` if they share no
+    * common ancestor at all - which is now the case whenever either side is represented as a host primitive.
     */
   private def lubSym(a: TypeSymbol, b: TypeSymbol)(using Ctx, State): TypeSymbol =
+    // * `Object` is only a candidate when `a` is itself under it: appending it unconditionally would return
+    // * `Object` for a pair like `Int` and some class, which is not an upper bound of `Int` at all.
     // TODO(Derppening): Skip appending `Object` and/or `Anything` if the symbols explicitly extend either of them
-    val candidates = ancestorChain(a) ::: ctx.builtins.Object :: ctx.builtins.Anything :: Nil
+    val objectCandidate =
+      if isSubtypeOf(a, ctx.builtins.Object).contains(true) then ctx.builtins.Object :: Nil else Nil
+    val candidates = ancestorChain(a) ::: objectCandidate ::: ctx.builtins.Anything :: Nil
     candidates.find(anc => isSubtypeOf(b, anc).contains(true)).getOrElse(ctx.builtins.Anything)
 
   /** Creates a union of two erased types.
@@ -1193,10 +1198,16 @@ object ErasedType:
     else if expected is ctx.builtins.Anything then S(true)
     else if actual is ctx.builtins.Anything then S(false)
     else if expected is ctx.builtins.Object then
-      // * Primitive types are `<: Any` and `</: Object`
-      // * Reference types are implicitly `<: Object`
+      // * `Object` is the base of the types whose identity can be tested at runtime. That excludes both the
+      // * unboxed primitives and the classes represented as host primitives (`Num`/`Str`/`Bool` and their
+      // * descendants, notably `Int`); every other reference type is implicitly `<: Object`.
+      // * The second test walks the parent chain instead of testing the roots directly, so that the exclusion
+      // * stays descendant-closed: a user class extending `Int` must be excluded along with `Int` itself.
       // TODO(Derppening): Remove this fallback once `extends Object` is explicit
-      if PrimitiveType.values.exists(_.sym === actual) then S(false) else S(true)
+      if PrimitiveType.values.exists(_.sym === actual)
+        || ancestorChain(actual).exists(ctx.builtins.primitivelyRepresentedRoots)
+      then S(false)
+      else S(true)
     else loop(actual, Set.empty)
 
   /** Whether a runtime class of `sym` is a subtype of the runtime `Object` type.

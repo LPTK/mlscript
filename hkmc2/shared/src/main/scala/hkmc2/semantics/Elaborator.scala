@@ -356,6 +356,17 @@ object Elaborator:
           getBuiltinOp(id.name)
       /** Classes that do not use `instanceof` in pattern matching. */
       val virtualClasses = Set(Int, Num, Str, Bool, TypedArray)
+      /** Classes whose values are represented as host primitives, and which are therefore siblings of
+        * `Object` rather than its descendants.
+        *
+        * Only the roots of the primitively represented chains are listed: `Int` and `Int31` are covered by
+        * descending from `Num`. Consumers must walk the parent chain rather than test membership directly,
+        * so that the exclusion stays descendant-closed - a flat set would silently readmit any subclass.
+        *
+        * TODO: `BigInt` and `Symbol` are also primitively represented in JS, but are not yet excluded here;
+        *  they are equally missing from `virtualClasses`, and unifying the two is left to a separate change.
+        */
+      val primitivelyRepresentedRoots: Set[TypeSymbol] = Set(Num, Str, Bool)
   
   object Ctx:
     abstract class Elem:

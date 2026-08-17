@@ -325,9 +325,9 @@ N2().g(1)
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^
 
 
-// Reference types are bridged by casts, so they need not match
+// Boxed types are bridged by casts, so they need not match
 class R1() with
-  virtual fun h(x: Int): Object = x
+  virtual fun h(x: Int): Anything = x
 class R2() extends R1() with
   fun h(x) = x
 R2().h(3)

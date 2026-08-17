@@ -47,18 +47,28 @@ val b: Bool = true
 //│ end
 
 
-fun mkObj(): Object = new Object()
+// The narrowing target must be a reference type: `Int` is not under `Object`, so narrowing to it would be
+// an unrelated-types error rather than a cast.
+class Boxed(v: Int)
+fun mkObj(): Object = new Boxed(1)
 val o: Object = mkObj()
-val n: Int = o
+val n: Boxed = o
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Object, tmp1: Int⁰;
+//│ let tmp: Object, tmp1: Boxed⁰;
 //│ define mkObj⁰ as fun mkObj¹(): Object {
-//│   return new globalThis⁰.Object⁰()
+//│   return new Boxed⁰(1)
+//│ };
+//│ define Boxed¹ as class Boxed⁰ {
+//│   private val v⁰: Int⁰;
+//│   constructor Boxed²(v: Int⁰) {
+//│     set Boxed⁰.this.v⁰ = v;
+//│     end
+//│   }
 //│ };
 //│ set tmp = mkObj¹();
 //│ define o⁰ as val o¹: Object = tmp;
-//│ set tmp1 = (o¹ as!! Int⁰);
-//│ define n⁰ as val n¹: Int⁰ = tmp1;
+//│ set tmp1 = (o¹ as!! Boxed⁰);
+//│ define n⁰ as val n¹: Boxed⁰ = tmp1;
 //│ end
 
 
@@ -159,12 +169,12 @@ class Ref(mut val v: Int) with
   fun put(x) = set v = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Ref⁰ as class Ref² {
-//│   val v⁰: Int⁰;
+//│   val v¹: Int⁰;
 //│   constructor Ref¹(v: Int⁰) {
-//│     define v⁰ as val v¹: Int⁰ = v;
+//│     define v¹ as val v²: Int⁰ = v;
 //│     end
 //│   }
-//│   method put⁰ = fun put¹(x: ?): ? { set Ref².this.v¹ = (x as!! Int⁰); return runtime⁰.Unit⁰ }
+//│   method put⁰ = fun put¹(x: ?): ? { set Ref².this.v² = (x as!! Int⁰); return runtime⁰.Unit⁰ }
 //│ };
 //│ end
 
@@ -193,12 +203,12 @@ class Box(val v: Int) with
   fun get() = v
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Box⁰ as class Box² {
-//│   val v²: Int⁰;
+//│   val v³: Int⁰;
 //│   constructor Box¹(v: Int⁰) {
-//│     define v² as val v³: Int⁰ = v;
+//│     define v³ as val v⁴: Int⁰ = v;
 //│     end
 //│   }
-//│   method get⁰ = fun get¹(): ? { return Box².this.v³ }
+//│   method get⁰ = fun get¹(): ? { return Box².this.v⁴ }
 //│ };
 //│ end
 
@@ -239,7 +249,7 @@ fun counter(x: Int) =
 fun useObj(o: Object) = o
 fun f(x: Int32) = useObj(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.240: 	fun f(x: Int32) = useObj(x)
+//│ ║  l.250: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object): ? {
@@ -253,7 +263,7 @@ fun f(x: Int32) = useObj(x)
 fun useInt(n: Int32) = n
 fun g(o: Object) = useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.254: 	fun g(o: Object) = useInt(o)
+//│ ║  l.264: 	fun g(o: Object) = useInt(o)
 //│ ╙──       	                          ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
@@ -270,7 +280,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.271: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.281: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -288,12 +298,21 @@ module Encl with
 //│ end
 
 
-// `Int <: Object` - So passing `Int -> Object` and v/v is allowed.
+// `Int` is represented as a host primitive, so it is a sibling of `Object` rather than one of its
+// descendants: neither direction is a widening or a narrowing, and both are rejected. This is what makes
+// the type `Object` agree with the runtime test `_ is Object`, which primitives have always failed.
+:ge
 fun useObj(o: Object) = o
 fun useInt(n: Int) = n
 fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
+//│ ║  l.308: 	  useObj(i)
+//│ ╙──       	         ^
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
+//│ ║  l.309: 	  useInt(o)
+//│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj² as fun useObj³(o: Object): ? {
 //│   return o
@@ -301,12 +320,7 @@ fun f(o: Object, i: Int) =
 //│ define useInt² as fun useInt³(n: Int⁰): ? {
 //│   return n
 //│ };
-//│ define f⁴ as fun f⁵(o: Object, i: Int⁰): ? {
-//│   let tmp: Int⁰;
-//│   do useObj³(i);
-//│   set tmp = (o as!! Int⁰);
-//│   return useInt³(tmp)
-//│ };
+//│ define f⁴ as fun f⁵(o: Object, i: Int⁰): ? { do useObj³(i); return useInt³(o) };
 //│ end
 
 
@@ -442,20 +456,20 @@ fun unionIntoSubtype(x: A | B) = takesSubtype(x)
 // through `sccG`'s arm, so the coercion is re-placed on `sccF`'s stub.
 :soir
 fun sccF(): Int = sccG()
-fun sccG(): Object = sccF() + 1
+fun sccG(): Num = sccF() + 1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define sccF⁰ as fun sccF¹(): Int⁰ {
 //│   return (sccG⁰() as!! Int⁰)
 //│ };
-//│ define sccG¹ as fun sccG⁰(): Object {
+//│ define sccG¹ as fun sccG⁰(): Num⁰ {
 //│   let tmp: Int⁰;
 //│   set tmp = sccF¹();
-//│   return (+⁰(tmp, 1) as!! Object)
+//│   return (+⁰(tmp, 1) as!! Num⁰)
 //│ };
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define sccF⁰ as fun sccF¹(): Int⁰ {
-//│   let id: Int⁰, inlinedVal: Object;
+//│   let id: Int⁰, inlinedVal: Num⁰;
 //│   set id = 0;
 //│   block inlinedLbl:
 //│     loop loopLabel:
@@ -466,7 +480,7 @@ fun sccG(): Object = sccF() + 1
 //│         1 =>
 //│           let tmp: Int⁰;
 //│           set tmp = sccF¹();
-//│           set inlinedVal = (+⁰(tmp, 1) as!! Object);
+//│           set inlinedVal = (+⁰(tmp, 1) as!! Num⁰);
 //│           break inlinedLbl
 //│         else
 //│           unreachable /* dispatch tag is always a merged member id */
@@ -474,8 +488,8 @@ fun sccG(): Object = sccF() + 1
 //│     unreachable /* Rest of abortive labelled block */
 //│   return (inlinedVal as!! Int⁰)
 //│ };
-//│ define sccG¹ as fun sccG⁰(): Object {
-//│   let id: Int⁰, inlinedVal: Object;
+//│ define sccG¹ as fun sccG⁰(): Num⁰ {
+//│   let id: Int⁰, inlinedVal: Num⁰;
 //│   set id = 1;
 //│   block inlinedLbl:
 //│     loop loopLabel:
@@ -486,7 +500,7 @@ fun sccG(): Object = sccF() + 1
 //│         1 =>
 //│           let tmp: Int⁰;
 //│           set tmp = sccF¹();
-//│           set inlinedVal = (+⁰(tmp, 1) as!! Object);
+//│           set inlinedVal = (+⁰(tmp, 1) as!! Num⁰);
 //│           break inlinedLbl
 //│         else
 //│           unreachable /* dispatch tag is always a merged member id */
@@ -532,7 +546,7 @@ annotHelper(100000)
 fun sccLoop(n: Int): Int =
   let r = sccHelper(n)
   r
-fun sccHelper(n: Int): Object = if n <= 0 then 0 else sccLoop(n - 1)
+fun sccHelper(n: Int): Num = if n <= 0 then 0 else sccLoop(n - 1)
 sccHelper(100000)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ @tailrec
@@ -541,7 +555,7 @@ sccHelper(100000)
 //│   set r = sccHelper⁰(n);
 //│   return (r as!! Int⁰)
 //│ };
-//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object {
+//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Num⁰ {
 //│   let scrut: ?, tmp: ?, tmp1: Int⁰;
 //│   set scrut = <=⁰(n, 0);
 //│   match scrut
@@ -556,7 +570,7 @@ sccHelper(100000)
 //│ return sccHelper⁰(100000)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let sccLoop_sccHelper;
-//│ define sccLoop_sccHelper as fun sccLoop_sccHelper⁰(id: Int⁰, param0: ?): Object {
+//│ define sccLoop_sccHelper as fun sccLoop_sccHelper⁰(id: Int⁰, param0: ?): Num⁰ {
 //│   loop loopLabel:
 //│     match id
 //│       0 =>
@@ -584,7 +598,7 @@ sccHelper(100000)
 //│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {
 //│   return (sccLoop_sccHelper⁰(0, n) as!! Int⁰)
 //│ };
-//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Object {
+//│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Num⁰ {
 //│   return sccLoop_sccHelper⁰(1, n)
 //│ };
 //│ return sccLoop_sccHelper⁰(1, 100000)
@@ -649,7 +663,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.650: 	val bad: Str = thunk
+//│ ║  l.664: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -661,7 +675,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.662: 	val notCalled: Str = called
+//│ ║  l.676: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -675,18 +689,18 @@ val notCalled: Str = called
 // once, where the coercion is introduced, so the IR is otherwise identical to the casts above. What the mark
 // expands into is covered by `CheckedCasts.mls`.
 :checkCasts
-fun mkObj2(): Object = new Object()
+fun mkObj2(): Object = new Boxed(1)
 val o2: Object = mkObj2()
-val n2: Int = o2
+val n2: Boxed = o2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Object, tmp1: Int⁰;
+//│ let tmp: Object, tmp1: Boxed⁰;
 //│ define mkObj2⁰ as fun mkObj2¹(): Object {
-//│   return new globalThis⁰.Object⁰()
+//│   return new Boxed⁰(1)
 //│ };
 //│ set tmp = mkObj2¹();
 //│ define o2⁰ as val o2¹: Object = tmp;
-//│ set tmp1 = (o2¹ as! Int⁰);
-//│ define n2⁰ as val n2¹: Int⁰ = tmp1;
+//│ set tmp1 = (o2¹ as! Boxed⁰);
+//│ define n2⁰ as val n2¹: Boxed⁰ = tmp1;
 //│ end
 
 
@@ -695,7 +709,7 @@ val n2: Int = o2
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.696: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.710: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {
