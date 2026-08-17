@@ -143,6 +143,25 @@ useCrate(id(new Crate(42)))
 //│ = 42
 
 
+// TODO(Derppening): Check if the `[object Object] has any information regarding the cast error
+:re
+class Crate2(val v: Int)
+class NotACrate(val w: Int, val x: Int)
+fun useCrate2(c: Crate2): Int = c.v
+useCrate2(id(new NotACrate(1)))
+//│ Wasm result:
+//│ ═══[RUNTIME ERROR] [object Object]
+
+
+// This is fine - Wasm doesn't differentiate between `Crate2` and `NotACrate` at runtime.
+class Crate2(val v: Int)
+class NotACrate(val w: Int)
+fun useCrate2(c: Crate2): Int = c.v
+useCrate2(id(new NotACrate(1)))
+//│ Wasm result:
+//│ = 1
+
+
 // The failing test throws, rather than trapping as `ref.cast` would.
 :checkCasts
 :re
