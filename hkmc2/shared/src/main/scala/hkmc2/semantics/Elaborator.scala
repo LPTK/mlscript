@@ -50,14 +50,14 @@ object Elaborator:
     case InnerScope(innerSymbol: InnerSymbol)
     case LocalScope(nameHint: Str)
     case LambdaOrHandlerBlock
-    case NonReturnContext
+    case NonReturnContext(sym: Opt[DefinitionSymbol[?]])
     
     def showDbg: Str = this match
       case Function(retSym, _, sym) => s"fun:${retSym.nme}${sym.fold("")(s => s"‹${s}›")}"
       case InnerScope(inner) => inner.toString
       case LocalScope(hint) => hint
       case LambdaOrHandlerBlock => "LambdaOrHandlerBlock"
-      case NonReturnContext => "NonReturnContext"
+      case NonReturnContext(sym) => s"NonReturnContext(${sym})"
     
     def inner: Opt[InnerSymbol] = this match
       case InnerScope(inner) => S(inner)
@@ -140,7 +140,7 @@ object Elaborator:
     def nestLocal(nameHint: Str): Ctx = nest(OuterCtx.LocalScope(nameHint))
     def nestInner(inner: InnerSymbol): Ctx = nest(OuterCtx.InnerScope(inner))
     
-    /* 
+    /*
     def get(name: Str)(using config: Config): Opt[Ctx.Elem] =
       env.get(name).orElse:
         val nr = config.language.useNewResolution
@@ -157,6 +157,7 @@ object Elaborator:
           case _ => parent.flatMap(_.get(name))
         else parent.flatMap(_.get(name))
     */
+    /*
     def get(name: Str)(using config: Config): Opt[Ctx.Elem] =
       env.get(name).orElse:
         val nr = config.language.useNewResolution
@@ -170,6 +171,15 @@ object Elaborator:
             case N =>
               // TODO: also capture across lambdas.
               ???
+          case _ => parent.flatMap(_.get(name))
+        else parent.flatMap(_.get(name))
+    */
+    def get(name: Str)(using config: Config): Opt[Ctx.Elem] =
+      env.get(name).orElse:
+        val nr = config.language.useNewResolution
+        if nr then outer match
+          case OuterCtx.NonReturnContext(S(sym)) =>
+            parent.flatMap(_.get(name)).map(Ctx.CaptElem(_, sym))
           case _ => parent.flatMap(_.get(name))
         else parent.flatMap(_.get(name))
     
@@ -1999,7 +2009,10 @@ extends Importer:
                   :: illegalMemberNameTail
               return go(sts, Nil, acc)
             val isMethod = owner.exists(_.isInstanceOf[ClassSymbol])
-            val tdf = ctx.nest(OuterCtx.NonReturnContext).givenIn: newCtx ?=>
+            
+            val tsym = TermSymbol(k, owner, id) // TODO?
+            
+            val tdf = ctx.nest(OuterCtx.NonReturnContext(S(tsym))).givenIn: newCtx ?=>
               // * Add type parameters to context
               val (tps, newCtx1) = td.typeParams match
                 case S(t) =>
@@ -2020,8 +2033,6 @@ extends Importer:
                 //              ^^^^^^
                 case TypeDef(Mod, st, N) => term(st)(using newCtx)
                 case st => term(st)(using newCtx)
-              
-              val tsym = TermSymbol(k, owner, id) // TODO?
               
               val body: Opt[Term] = rhs match
                 case N => N
@@ -2095,7 +2106,7 @@ extends Importer:
         
         var newCtx = S(td.symbol).collectFirst:
             case s: InnerSymbol => s
-          .fold(ctx.nest(OuterCtx.NonReturnContext))(ctx.nestInner(_))
+          .fold(ctx.nest(OuterCtx.NonReturnContext(S(td.symbol))))(ctx.nestInner(_))
         
         val tps = td.typeParams match
           case S(ts) =>

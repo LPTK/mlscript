@@ -5,7 +5,7 @@
 fun foo(x) =
   print(x)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰(x⁰) ‹flow:foo⁰› = ⟨Predef.⟩print⁰^foo¹(x⁰^foo¹)‹app⁰›
+//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = ⟨Predef⁰.⟩print⁰^foo¹(x⁰)‹app⁰›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -15,11 +15,11 @@ fun foo(x) =
     print(x)
     foo(x - 1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo²(x¹) ‹flow:foo¹› = if {
-//│     let scrut⁰ = >(x¹^foo³, 0)‹app¹›;
+//│   fun foo²::foo³(x¹) ‹flow:foo¹› = if {
+//│     let scrut⁰ = >(x¹, 0)‹app¹›;
 //│     scrut⁰ is true do {
-//│       ⟨Predef.⟩print⁰^foo³(x¹^foo³)‹app²›,
-//│       foo^foo³(-(x¹^foo³, 1)‹app³›)‹app⁴›
+//│       ⟨Predef⁰.⟩print⁰^foo³(x¹)‹app²›,
+//│       foo²^foo³(-(x¹, 1)‹app³›)‹app⁴›
 //│     };
 //│     else ()
 //│   }
@@ -32,10 +32,10 @@ fun foo(x) =
   fun bar(y) = x + y
   bar
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁴(x²) ‹flow:foo²› = {
-//│     ⟨Predef.⟩print⁰^foo⁵(x²^foo⁵)‹app⁵›,
-//│     fun bar⁰(y⁰) ‹flow:bar⁰› = +(x²^foo⁵^bar¹, y⁰^bar¹)‹app⁶›,
-//│     bar
+//│   fun foo⁴::foo⁵(x²) ‹flow:foo²› = {
+//│     ⟨Predef⁰.⟩print⁰^foo⁵(x²)‹app⁵›,
+//│     fun bar⁰::bar¹(y⁰) ‹flow:bar⁰› = +(x²^bar¹, y⁰)‹app⁶›,
+//│     bar⁰
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -46,10 +46,10 @@ class foo(x) {
   fun bar(y) = x + y
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class foo⁶(x³) {
-//│     @privateval x⁴ ‹flow:x⁰› = x³,
-//│     ⟨Predef.⟩print⁰^foo⁶(⟨foo.⟩x⁴)‹app⁷›,
-//│     fun bar²(y¹) ‹flow:bar¹› = +(⟨foo.⟩x⁴^bar³, y¹^bar³)‹app⁸›
+//│   class foo⁶::foo⁷(x³) {
+//│     @privateval x⁴::x⁵ ‹flow:x⁰› = x³,
+//│     ⟨Predef⁰.⟩print⁰(⟨foo⁷.⟩x⁴)‹app⁷›,
+//│     fun bar²::bar³(y¹) ‹flow:bar¹› = +(⟨foo⁷.⟩x⁴^bar³, y¹)‹app⁸›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -58,7 +58,7 @@ class foo(x) {
 fun foo(x) = y =>
   x + y
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁷(x⁵) ‹flow:foo³› = (y²) => +(x⁵^foo⁸, y²)‹app⁹›
+//│   fun foo⁸::foo⁹(x⁶) ‹flow:foo³› = (y²) => +(x⁶, y²)‹app⁹›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

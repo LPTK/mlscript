@@ -9,7 +9,7 @@ module Foo {
   }
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   module Foo⁰ { class Bar⁰ { fun id⁰(x⁰) ‹flow:id⁰› = x⁰^id¹ } }
+//│   module Foo⁰::Foo¹ { class Bar⁰::Bar¹ { fun id⁰::id¹(x⁰) ‹flow:id⁰› = x⁰ } }
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Foo⁰ as class Foo¹
 //│ module Foo² {
@@ -23,7 +23,7 @@ module Foo {
 :lot
 let x = new Foo.Bar
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let x¹, x¹ = new Foo.Bar¹
+//│   let x¹, x¹ = new Foo⁰.Bar⁰
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
 //│   main = Assign:

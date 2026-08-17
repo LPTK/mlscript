@@ -1027,7 +1027,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
         r.sym match
         case _: BuiltinSymbol => r.sym.nme
         case _ => r.sym.showName
-      case r: MemberRef => r.sym.nme
+      case r: MemberRef => r.sym.showName
       case Capture(base, thru) =>
         // doc"${base.show}⟨${thru.showName}⟩"
         doc"${base.show}^${thru.showName}"
@@ -1082,7 +1082,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
         doc"${df.sym.showName} = ${df.rhs.show}"
       case td: TermDefinition =>
           td.annotations.map(_.show).mkDocument()
-          :: doc"${td.k.str} ${td.sym.showName}"
+          :: doc"${td.k.str} ${td.bsym.showName}::${td.tsym.showName}"
           :: (if td.tparams.isEmpty then doc""
             else doc"[${td.tparams.get.map(_.sym.showName).mkDocument(", ")}]")
           :: td.params.map(_.show).mkDocument()
@@ -1091,7 +1091,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
           :: td.body.fold(doc"")(b => doc" = ${b.show}")
       case cld: ClassLikeDef =>
           cld.annotations.map(_.show).mkDocument()
-          :: doc"${cld.kind.str} ${cld.sym.showName}"
+          :: doc"${cld.kind.str} ${cld.bsym.showName}::${cld.sym.showName}"
           :: (if cld.tparams.isEmpty then doc""
             else doc"[${cld.tparams.map(_.sym.showName).mkDocument(", ")}]")
           :: cld.paramsOpt.map(_.show).toList.mkDocument()

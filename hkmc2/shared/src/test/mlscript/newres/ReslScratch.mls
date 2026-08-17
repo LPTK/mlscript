@@ -37,11 +37,11 @@ class Bar(a) with
   let x = a
   print(x)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Bar⁰(a⁰) {
-//│     @privateval a¹ ‹flow:a⁰› = a⁰,
+//│   class Bar⁰::Bar¹(a⁰) {
+//│     @privateval a¹::a² ‹flow:a⁰› = a⁰,
 //│     let x⁰,
-//│     x⁰ = ⟨Bar.⟩a¹,
-//│     ⟨Predef.⟩print⁰^Bar⁰(x)‹app⁰›
+//│     x⁰ = ⟨Bar¹.⟩a¹,
+//│     ⟨Predef⁰.⟩print⁰(x⁰)‹app⁰›
 //│   }
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
@@ -74,11 +74,9 @@ class Bar(a) with
 //│               prefix = MemberRef of class:Bar³
 //│               nme = Ident of "a"
 //│         res = App:
-//│           lhs = Capture:
-//│             base = SynthSel{sym=member:print⁰}:
-//│               prefix = MemberRef of member:Predef⁰
-//│               nme = Ident of "print"
-//│             thru = class:Bar³
+//│           lhs = SynthSel{sym=member:print⁰}:
+//│             prefix = MemberRef of member:Predef⁰
+//│             nme = Ident of "print"
 //│           rhs = Tup of Ls of
 //│             Fld:
 //│               term = MemberRef of term:Bar³/x⁰
@@ -121,7 +119,7 @@ class Bar(a) with
 //│   constructor(a) {
 //│     this.#a = a;
 //│     this.#x = this.#a;
-//│     runtime.safeCall(Predef.print(this.#x));
+//│     Predef.print(this.#x);
 //│   }
 //│   #a;
 //│   #x;
@@ -168,8 +166,8 @@ fun foo(x) =
     0 then 2
   else 3
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰(x¹) ‹flow:foo⁰› = if {
-//│     let scrut⁰ = x¹^foo¹;
+//│   fun foo⁰::foo¹(x¹) ‹flow:foo⁰› = if {
+//│     let scrut⁰ = x¹;
 //│     scrut⁰ is [_ as y] and {
 //│       let scrut¹ = >(y⁰, 0)‹app¹›;
 //│       scrut¹ is true then 1

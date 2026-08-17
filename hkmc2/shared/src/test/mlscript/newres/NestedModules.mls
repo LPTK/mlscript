@@ -9,7 +9,7 @@ module Foo {
   }
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   module Foo⁰ { module Bar⁰ { fun id⁰(x⁰) ‹flow:id⁰› = x⁰^id¹ } }
+//│   module Foo⁰::Foo¹ { module Bar⁰::Bar¹ { fun id⁰::id¹(x⁰) ‹flow:id⁰› = x⁰ } }
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Foo⁰ as class Foo¹
 //│ module Foo² {
@@ -28,7 +28,7 @@ module Foo {
 :lot
 Foo.Bar
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo.Bar¹
+//│   Foo⁰.Bar⁰
 //│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
 //│ Program:
 //│   main = Return of Select{sym=module:Bar²}:
@@ -44,7 +44,7 @@ Foo.Bar
 :sr
 Foo.Bar.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo.Bar¹.id⁰
+//│   Foo⁰.Bar⁰.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -70,7 +70,7 @@ b.id
 :sr
 let m = if maybe then Foo.Bar else Predef
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let m⁰, m⁰ = if { let scrut⁰ = ⟨Predef.⟩maybe⁰; scrut⁰ is true then Foo.Bar¹; else Predef }
+//│   let m⁰, m⁰ = if { let scrut⁰ = ⟨Predef⁰.⟩maybe⁰; scrut⁰ is true then Foo⁰.Bar⁰; else Predef⁰ }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ m = class Bar
 

@@ -4,13 +4,13 @@
 :sr
 class Foo(val a)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo⁰(val a⁰) { val a¹ ‹flow:a⁰› = a⁰ }
+//│   class Foo⁰::Foo¹(val a⁰) { val a¹::a² ‹flow:a⁰› = a⁰ }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :sr
 Foo(Predef).a.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo(Predef)‹app⁰›.a¹.id⁰
+//│   Foo⁰(Predef⁰)‹app⁰›.a¹.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -24,14 +24,17 @@ class Foo(val a) {
   val b = a + 1
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo¹(val a²) { val a³ ‹flow:a¹› = a², val b⁰ ‹flow:b⁰› = +(⟨Foo.⟩a³^b¹, 1)‹app¹› }
+//│   class Foo²::Foo³(val a³) {
+//│     val a⁴::a⁵ ‹flow:a¹› = a³,
+//│     val b⁰::b¹ ‹flow:b⁰› = +(⟨Foo³.⟩a⁴^b¹, 1)‹app¹›
+//│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // :de
 :sr
 let f = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let f⁰, f⁰ = Foo(1)‹app²›
+//│   let f⁰, f⁰ = Foo²(1)‹app²›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
@@ -40,7 +43,7 @@ let f = Foo(1)
 :sr
 f.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   f⁰.a³
+//│   f⁰.a⁴
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -60,7 +63,7 @@ val fv = Foo(1)
 :sr
 fv.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fv.a³
+//│   fv⁰.a⁴
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
@@ -70,7 +73,7 @@ fv.a
 fun get = fv.a
 val fv = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun get⁰ ‹flow:get⁰› = fv^get¹.a³, val fv⁰ ‹flow:fv⁰› = Foo^fv¹(1)‹app³›
+//│   fun get⁰::get¹ ‹flow:get⁰› = fv¹^get¹.a⁴, val fv¹::fv² ‹flow:fv⁰› = Foo²^fv²(1)‹app³›
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp;
 //│ define get⁰ as fun get¹() { return fv⁰.a⁰ };
@@ -86,7 +89,7 @@ val fv = Foo(1)
 :expect 1
 get
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   get
+//│   get⁰
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ return get¹()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -98,7 +101,7 @@ fun foo(x) =
   x.a + x.b
 foo(f)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰(x⁰) ‹flow:foo⁰› = +(x⁰^foo¹.a³, x⁰^foo¹.b⁰)‹app⁴›, foo(f⁰)‹app⁵›
+//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = +(x⁰.a⁴, x⁰.b⁰)‹app⁴›, foo⁰(f⁰)‹app⁵›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 
@@ -120,7 +123,7 @@ b.foo
 :sr
 b.foo.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   b².foo².a³
+//│   b².foo².a⁴
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 123
 
@@ -131,7 +134,7 @@ b.foo.a
 // :de
 let f = new Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let f¹, f¹ = new Foo(1)
+//│   let f¹, f¹ = new Foo²(1)
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
 //│ Blk:
 //│   stats = Ls of
@@ -161,14 +164,14 @@ let g = f(1)
 :e
 g(2)
 //│ ╔══[COMPILATION ERROR] Instance of class 'Foo' cannot receive more argument lists.
-//│ ║  l.162: 	g(2)
+//│ ║  l.165: 	g(2)
 //│ ╙──       	^^^^
 //│ ═══[RUNTIME ERROR] TypeError: g is not a function
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.169: 	let f = new Foo()
+//│ ║  l.172: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
 //│ f = Foo(undefined)
 
@@ -176,7 +179,7 @@ let f = new Foo()
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] Invalid class expression in 'new' instantiation.
-//│ ║  l.177: 	new 42
+//│ ║  l.180: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -191,12 +194,12 @@ class Foo(pred) with {
 }
 let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo²(pred⁰) {
-//│     @privateval pred¹ ‹flow:pred⁰› = pred⁰,
-//│     ⟨Foo.⟩pred¹.id⁰(42)‹app⁶›
+//│   class Foo⁴::Foo⁵(pred⁰) {
+//│     @privateval pred¹::pred² ‹flow:pred⁰› = pred⁰,
+//│     ⟨Foo⁵.⟩pred¹.id⁰(42)‹app⁶›
 //│   },
 //│   let f²,
-//│   f² = new Foo(Predef)
+//│   f² = new Foo⁴(Predef⁰)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Foo5, f5;
 //│ Foo5 = function Foo(pred) {
@@ -222,13 +225,13 @@ class Foo(pred) with {
 }
 let f = Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo³(pred²) {
-//│     @privateval pred³ ‹flow:pred¹› = pred²,
-//│     ⟨Foo.⟩pred³.id⁰(1)‹app⁷›,
-//│     ⟨Foo.⟩pred³.id⁰(2)‹app⁸›
+//│   class Foo⁶::Foo⁷(pred³) {
+//│     @privateval pred⁴::pred⁵ ‹flow:pred¹› = pred³,
+//│     ⟨Foo⁷.⟩pred⁴.id⁰(1)‹app⁷›,
+//│     ⟨Foo⁷.⟩pred⁴.id⁰(2)‹app⁸›
 //│   },
 //│   let f³,
-//│   f³ = Foo(Predef)‹app⁹›
+//│   f³ = Foo⁶(Predef⁰)‹app⁹›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(_)
 
@@ -239,13 +242,13 @@ class Foo(pred) {
 }
 let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo⁴(pred⁴) {
-//│     @privateval pred⁵ ‹flow:pred²› = pred⁴,
-//│     val r⁰ ‹flow:r⁰› = ⟨Foo.⟩pred⁵^r¹.id⁰(42)‹app¹⁰›,
-//│     fun callId⁰(x¹) ‹flow:callId⁰› = ⟨Foo.⟩pred⁵^callId¹.id⁰(x¹^callId¹)‹app¹¹›
+//│   class Foo⁸::Foo⁹(pred⁶) {
+//│     @privateval pred⁷::pred⁸ ‹flow:pred²› = pred⁶,
+//│     val r⁰::r¹ ‹flow:r⁰› = ⟨Foo⁹.⟩pred⁷^r¹.id⁰(42)‹app¹⁰›,
+//│     fun callId⁰::callId¹(x¹) ‹flow:callId⁰› = ⟨Foo⁹.⟩pred⁷^callId¹.id⁰(x¹)‹app¹¹›
 //│   },
 //│   let f⁴,
-//│   f⁴ = new Foo(Predef)
+//│   f⁴ = new Foo⁸(Predef⁰)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(_)
 
