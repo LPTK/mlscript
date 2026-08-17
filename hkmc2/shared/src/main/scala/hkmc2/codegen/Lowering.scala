@@ -121,44 +121,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   private lazy val virtualModuleSymbols: Set[BlockMemberSymbol] =
     val blt = ctx.builtins
     Set(blt.source.bms, blt.js.bms, blt.wasm.bms, blt.debug.bms, blt.annotations.bms)
-  // * The name path is spelled out alongside each symbol because `WatBuilder.wasmIntrinsicName` recovers an
-  // * intrinsic's name by walking the nested `Select` chain: `wasm.i32.add` must not be flattened to `wasm.add`.
-  private lazy val wasmIntrinsicSymbols: Map[BlockMemberSymbol, Ls[Str]] =
-    val wasm = ctx.builtins.wasm
-    Map(
-      wasm.i32.const -> Ls("i32", "const"),
-      wasm.i32.add -> Ls("i32", "add"),
-      wasm.i32.sub -> Ls("i32", "sub"),
-      wasm.i32.mul -> Ls("i32", "mul"),
-      wasm.i32.div_s -> Ls("i32", "div_s"),
-      wasm.i32.rem_s -> Ls("i32", "rem_s"),
-      wasm.i32.eq -> Ls("i32", "eq"),
-      wasm.i32.ne -> Ls("i32", "ne"),
-      wasm.i32.lt_s -> Ls("i32", "lt_s"),
-      wasm.i32.le_s -> Ls("i32", "le_s"),
-      wasm.i32.gt_s -> Ls("i32", "gt_s"),
-      wasm.i32.ge_s -> Ls("i32", "ge_s"),
-      wasm.i32.eqz -> Ls("i32", "eqz"),
-      wasm.ref.i31 -> Ls("ref", "i31"),
-      wasm.i31.get_s -> Ls("i31", "get_s"),
-      wasm.i31.get_u -> Ls("i31", "get_u"),
-      wasm.plus_impl -> Ls("plus_impl"),
-      wasm.minus_impl -> Ls("minus_impl"),
-      wasm.times_impl -> Ls("times_impl"),
-      wasm.div_impl -> Ls("div_impl"),
-      wasm.mod_impl -> Ls("mod_impl"),
-      wasm.eq_impl -> Ls("eq_impl"),
-      wasm.neq_impl -> Ls("neq_impl"),
-      wasm.lt_impl -> Ls("lt_impl"),
-      wasm.le_impl -> Ls("le_impl"),
-      wasm.gt_impl -> Ls("gt_impl"),
-      wasm.ge_impl -> Ls("ge_impl"),
-      wasm.neg_impl -> Ls("neg_impl"),
-      wasm.pos_impl -> Ls("pos_impl"),
-      wasm.not_impl -> Ls("not_impl"),
-    )
   private enum SpecialBuiltin:
     case RuntimeIntrinsic(runtimeName: Str)
+    case WasmIntrinsic(path: Ls[Str])
     case DebugPrintStack
     case ScopeLocally
   private lazy val specialBuiltinSymbols: Map[BlockMemberSymbol, SpecialBuiltin] =
@@ -171,6 +136,36 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       blt.js.try_catch -> SpecialBuiltin.RuntimeIntrinsic("try_catch"),
       blt.debug.printStack -> SpecialBuiltin.DebugPrintStack,
       blt.scope.locally -> SpecialBuiltin.ScopeLocally,
+      blt.wasm.i32.const -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "const")),
+      blt.wasm.i32.add -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "add")),
+      blt.wasm.i32.sub -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "sub")),
+      blt.wasm.i32.mul -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "mul")),
+      blt.wasm.i32.div_s -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "div_s")),
+      blt.wasm.i32.rem_s -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "rem_s")),
+      blt.wasm.i32.eq -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "eq")),
+      blt.wasm.i32.ne -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "ne")),
+      blt.wasm.i32.lt_s -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "lt_s")),
+      blt.wasm.i32.le_s -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "le_s")),
+      blt.wasm.i32.gt_s -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "gt_s")),
+      blt.wasm.i32.ge_s -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "ge_s")),
+      blt.wasm.i32.eqz -> SpecialBuiltin.WasmIntrinsic(Ls("i32", "eqz")),
+      blt.wasm.ref.i31 -> SpecialBuiltin.WasmIntrinsic(Ls("ref", "i31")),
+      blt.wasm.i31.get_s -> SpecialBuiltin.WasmIntrinsic(Ls("i31", "get_s")),
+      blt.wasm.i31.get_u -> SpecialBuiltin.WasmIntrinsic(Ls("i31", "get_u")),
+      blt.wasm.plus_impl -> SpecialBuiltin.WasmIntrinsic(Ls("plus_impl")),
+      blt.wasm.minus_impl -> SpecialBuiltin.WasmIntrinsic(Ls("minus_impl")),
+      blt.wasm.times_impl -> SpecialBuiltin.WasmIntrinsic(Ls("times_impl")),
+      blt.wasm.div_impl -> SpecialBuiltin.WasmIntrinsic(Ls("div_impl")),
+      blt.wasm.mod_impl -> SpecialBuiltin.WasmIntrinsic(Ls("mod_impl")),
+      blt.wasm.eq_impl -> SpecialBuiltin.WasmIntrinsic(Ls("eq_impl")),
+      blt.wasm.neq_impl -> SpecialBuiltin.WasmIntrinsic(Ls("neq_impl")),
+      blt.wasm.lt_impl -> SpecialBuiltin.WasmIntrinsic(Ls("lt_impl")),
+      blt.wasm.le_impl -> SpecialBuiltin.WasmIntrinsic(Ls("le_impl")),
+      blt.wasm.gt_impl -> SpecialBuiltin.WasmIntrinsic(Ls("gt_impl")),
+      blt.wasm.ge_impl -> SpecialBuiltin.WasmIntrinsic(Ls("ge_impl")),
+      blt.wasm.neg_impl -> SpecialBuiltin.WasmIntrinsic(Ls("neg_impl")),
+      blt.wasm.pos_impl -> SpecialBuiltin.WasmIntrinsic(Ls("pos_impl")),
+      blt.wasm.not_impl -> SpecialBuiltin.WasmIntrinsic(Ls("not_impl")),
     )
   
   lazy val unreachableFn =
@@ -642,10 +637,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     val sym = ref.sym
     sym match
       case sym: BlockMemberSymbol if virtualModuleSymbols.exists(_ is sym) =>
-        return fail:
-          ErrorReport(
-            msg"Module '${sym.nme}' is virtual (i.e., \"compiler fiction\"); cannot be used directly" -> ref.toLoc ::
-            Nil, S(ref), source = Diagnostic.Source.Compilation)
+        if !((sym is ctx.builtins.wasm.bms) && (config.target is CompilationTarget.Wasm)) then
+          return fail:
+            ErrorReport(
+              msg"Module '${sym.nme}' is virtual (i.e., \"compiler fiction\"); cannot be used directly" -> ref.toLoc ::
+              Nil, S(ref), source = Diagnostic.Source.Compilation)
       case sym if sym.asCls.exists(ctx.builtins.virtualClasses) =>
         return fail:
           ErrorReport(
@@ -896,25 +892,20 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       val instantiated = baseF
       val instantiatedResolvedBms = instantiated.resolvedSym.flatMap(_.asBlkMember)
       val specialBuiltin = instantiatedResolvedBms.flatMap(specialBuiltinSymbols.get)
-      val runtimeIntrinsic = specialBuiltin.collect:
-        case SpecialBuiltin.RuntimeIntrinsic(runtimeName) => runtimeName
-      val wasmIntrinsic = instantiatedResolvedBms.flatMap: sym =>
-        wasmIntrinsicSymbols.get(sym).map(sym -> _)
+      
+      specialBuiltin match
+        case S(SpecialBuiltin.RuntimeIntrinsic(runtimeName)) =>
+          return conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident(runtimeName)))
+        case S(SpecialBuiltin.WasmIntrinsic(wasmName)) =>
+          val path = wasmName.foldLeft(State.wasmSymbol.asSimpleRef: Path): (p, nme) =>
+            p.selN(Tree.Ident(nme))
+          return conclude:
+            (path, instantiatedResolvedBms.flatMap(_.tsym)) match
+              case (Select(qual, nme), S(tsym)) => qual.sel(nme, tsym)
+              case _ => lastWords(s"wasm intrinsic `$wasmName` has an empty name path or a missing `TermSymbol`")
+        case _ =>
       
       instantiated match
-      case _ if runtimeIntrinsic.isDefined =>
-        conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident(runtimeIntrinsic.get)))
-      case _ if wasmIntrinsic.isDefined =>
-        val (sym, nmePath) = wasmIntrinsic.get
-        // * `targetSymbol` reads the path's *outermost* `Select`, so the intrinsic's `TermSymbol` belongs there:
-        // * `lowerMultiCall` reads it for parameter types and `Call.erasedType` for the result type — without it
-        // * an unboxed result such as `i32` cannot cross a spill temp.
-        val path = nmePath.foldLeft(State.wasmSymbol.asSimpleRef: Path): (p, nme) =>
-          p.selN(Tree.Ident(nme))
-        conclude:
-          (path, sym.tsym) match
-            case (Select(qual, nme), tsym @ S(_)) => Select(qual, nme)(tsym)(false)
-            case _ => lastWords(s"wasm intrinsic `${sym.nme}` has an empty name path or no `TermSymbol`")
       case t if specialBuiltin.contains(SpecialBuiltin.DebugPrintStack) =>
         if !config.effectHandlers.exists(_.debug) then
           return fail:
