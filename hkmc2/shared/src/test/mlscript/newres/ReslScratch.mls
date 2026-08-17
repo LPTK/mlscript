@@ -161,3 +161,22 @@ class Bar with
 
 
 
+:sr
+fun foo(x) =
+  if x is
+    [y] and y > 0 then 1
+    0 then 2
+  else 3
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fun foo⁰(x¹) ‹flow:foo⁰› = if {
+//│     let scrut⁰ = x¹^foo¹;
+//│     scrut⁰ is [_ as y] and {
+//│       let scrut¹ = >(y⁰, 0)‹app¹›;
+//│       scrut¹ is true then 1
+//│     };
+//│     scrut⁰ is 0 then 2;
+//│     else 3
+//│   }
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+

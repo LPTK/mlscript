@@ -301,6 +301,32 @@ enum Pattern extends AutoLocated:
         case p: Pattern => p.varNamesUsedInGuards
       .foldLeft(Set.empty[Str])(_ ++ _)
   
+  def show(using Scope, ShowCfg, Raise): Str = this match
+    // case Constructor(target, arguments) =>
+    //   target.show + arguments.fold(""):
+    //     args => s"(${args.map(_.show).mkString(", ")})"
+    case Composition(true, left, right) => s"${left.show} | ${right.show}"
+    case Composition(false, left, right) => s"${left.show} & ${right.show}"
+    case Negation(pattern) => s"not ${pattern.show}"
+    case Wildcard() => "_"
+    case Literal(literal) => literal.idStr
+    case Range(lower, upper, rightInclusive) =>
+      s"${lower.idStr} ${if rightInclusive then "to" else "until"} ${upper.idStr}"
+    case Concatenation(left, right) => s"${left.show} ~ ${right.show}"
+    case Tuple(leading, spread) =>
+      (leading.iterator.map(_.show) ++ spread.fold(Iterator.empty):
+        case (_, middle, trailing) =>
+          Iterator.single(middle.show) ++ trailing.iterator.map(_.show)).mkString("[", ", ", "]")
+    case Record(fields) => s"{${fields.map((k, v) => s"${k.name}: ${v.show}").mkString(", ")}}"
+    case Chain(first, second) => s"${first.show} as ${second.show}"
+    case Alias(pattern, alias) => s"${pattern.show} as ${alias.name}"
+    case Transform(pattern, _, transform) => s"${pattern.show} => ${transform.show}"
+    case Annotated(pattern, annotations) => annotations.iterator.map:
+        case L(errorLoc) => "error"
+        case R(term) => term.show
+      .mkString("@", " @", " ") + pattern.show
+    case Guarded(pattern, guard) => pattern.show + " where " + guard.show
+  
   def children: Vector[Located] = this match
     case Constructor(target, arguments) => target +: arguments.fold(Vector.empty)(_.toVector)
     case Composition(polarity, left, right) => Vector.double(left, right)

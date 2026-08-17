@@ -70,8 +70,7 @@ b.id
 :sr
 let m = if maybe then Foo.Bar else Predef
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let m⁰,
-//│   m⁰ = TODO[show:IfLike](IfLike(keyword 'if',ReturningIf,Cons(Let(tmp:scrut,SynthSel(MemberRef(member:Predef),Ident(maybe))),Cons(Match(Ref(tmp:scrut),Literal(BoolLit(true)),Else(NewSel(MemberRef(member:Foo),Ident(Bar)))),Else(MemberRef(member:Predef))))))
+//│   let m⁰, m⁰ = if { let scrut⁰ = ⟨Predef.⟩maybe⁰; scrut⁰ is true then Foo.Bar¹; else Predef }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ m = class Bar
 
@@ -81,7 +80,7 @@ m.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   m⁰.id‹id², id⁰›
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
-//│ ║  l.80: 	m.id
+//│ ║  l.79: 	m.id
 //│ ║        	^^^^
 //│ ╟── target: function 'id'
 //│ ║  in ../../mlscript-compile/Predef.mls
@@ -102,7 +101,7 @@ let x = id(Foo.Bar)
 :todo
 x.id
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.103: 	x.id
+//│ ║  l.102: 	x.id
 //│ ╙──       	^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -116,7 +115,7 @@ localid(Foo.Bar).id
 :todo
 localid(Predef).id
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
-//│ ║  l.117: 	localid(Predef).id
+//│ ║  l.116: 	localid(Predef).id
 //│ ║         	^^^^^^^^^^^^^^^^^^
 //│ ╟── target: function 'id'
 //│ ║  in ../../mlscript-compile/Predef.mls

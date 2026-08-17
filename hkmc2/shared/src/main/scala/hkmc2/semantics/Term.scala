@@ -1102,6 +1102,11 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
         doc"import ${"\""}.../${imp.file.last}${"\""} as ${imp.sym.showName}"
       case LeadingDotSel(name) => doc"_?_.${name.name}"
       case Error() => doc"‹error›"
+      case IfLike(kw, form, split) =>
+        // doc"${kw.name} ${form.headStr} ${split.show}"
+        given IfLikeForm = form
+        doc"${form.headStr} { #{  # ${split.show} #}  # }"
+        // val fs = fomr match
       case _ =>
         doc"TODO[show:${getClass.getSimpleName}](${toString})"
     
@@ -1619,6 +1624,11 @@ enum IfLikeForm:
   def isImperative: Bool = this match
     case ReturningIf => false
     case ImperativeIf | While => true
+  def headStr: Str = this match
+    case ReturningIf => "if"
+    case ImperativeIf => "if"
+    case While => "while"
+  def midStr: Str =  if isImperative then "do" else "then"
 
 
 sealed abstract class Elem extends AutoLocated:
