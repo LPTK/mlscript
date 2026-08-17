@@ -593,6 +593,10 @@ enum Term extends Statement, ShapePublisher:
   override def hashCode: Int = System.identityHashCode(this)
   */
   
+  def withoutCaptures: Term = this match
+    case Capture(base, _) => base.withoutCaptures
+    case _ => this
+  
   def expanded: Term = this match
     case t: Resolvable => t.expansion match
       case S(S(t)) => t.expanded

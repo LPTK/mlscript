@@ -157,7 +157,7 @@ class NewResolver:
   def resolveNew(nw: Term.New): Unit =
     log(s"resolveNew? res = ${nw.showDbg}")
     // listenTerm(nw.cls, shape => newShape(shape, nw.args, nw))
-    nw.cls match
+    nw.cls.withoutCaptures match
     case trm: NewResolvable =>
       listen(trm, shape => {
         def reject =

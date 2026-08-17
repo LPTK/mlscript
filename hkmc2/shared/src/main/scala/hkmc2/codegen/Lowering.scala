@@ -415,7 +415,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   
   def classOf(trm: Term, nw: Resolvable)(k: Path => Block)(using LoweringCtx): Block =
     if newResolution then
-      trm match
+      trm.withoutCaptures match
       case resl: NewResolvable =>
         resl.resolvedTargets.distinct match
         case cls :: Nil =>
