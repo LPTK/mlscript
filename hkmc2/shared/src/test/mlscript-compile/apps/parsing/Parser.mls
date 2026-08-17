@@ -229,7 +229,7 @@ fun parse(tokens) =
         acc
     Nil then acc
   
-  fun handleDirective(tree: TreeT, acc: TreeT) = if tree is
+  fun handleDirective(tree: TreeT, acc: StackT[TreeT]) = if tree is
     // Call the corresponding handler for the directive.
     Tree.Define(Tree.DefineKind.Directive, [name, body] :: Nil) as tree and name is
       Tree.Ident("newKeyword", _) then

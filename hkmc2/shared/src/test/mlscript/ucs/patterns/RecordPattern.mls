@@ -149,7 +149,7 @@ foo(1 :: Nil)
 
 :ge
 foo(1 :: "this is invalid")
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Str' to unrelated type 'Object'
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Str' to unrelated type 'Stack.Base'
 //│ ║  l.151: 	foo(1 :: "this is invalid")
 //│ ╙──       	         ^^^^^^^^^^^^^^^^^
 //│ = "yeah we're done"
