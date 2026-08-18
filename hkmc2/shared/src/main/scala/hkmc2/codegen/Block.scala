@@ -1035,16 +1035,10 @@ object ErasedType:
     override protected def computeCanonicalize(using Ctx, State): CanonicalErasedValueType =
       members.map(_.canonicalize).reduceLeft((a, b) => lub(a, b))
 
-  /** The uniform representation: any value on JS and `anyref` on Wasm.
+  /** The top type of reference types, i.e. any value on JS and `anyref` on Wasm.
     *
     * Reached by an absent annotation (`erasedType_!` folds `N` here), by an alias the IR cannot resolve, and
     * by the surface top `Anything`, which has no erased counterpart of its own.
-    *
-    * It is still the lattice's top type - `lub` lets it absorb everything and `needsCast` allows a checked
-    * downcast out of it to any target, primitives included. Rejecting the primitive targets, so that a value
-    * of this type has no observable identity, is left to a follow-up.
-    *
-    * This type is special-cased to allow its construction without an `Elaborator.Ctx`.
     */
   case object Unknown extends ErasedValueType, CanonicalErasedType:
     // * No symbol denotes this type: `Anything` is the surface top, which is a different thing.
@@ -1165,12 +1159,11 @@ object ErasedType:
       // * conflict worth reporting, rather than whichever type happened to be folded in last.
       case (i: Incompatible, _) => i
       case (_, i: Incompatible) => i
-      // * The top type absorbs everything.
-      case (Unknown, _) | (_, Unknown) => Unknown
-      // * A primitive is a root of its own: it shares no supertype with any distinct type.
-      // TODO(Derppening): `Unknown` is not an upper bound of a primitive either, so the arm above belongs below
-      //  this one - but it has to move together with the matching `needsCast` arms, so the two never disagree.
+      // * A primitive is a root of its own: it shares no supertype with any distinct type - the `Unknown` type
+      // * included.
       case (_: Primitive, _) | (_, _: Primitive) => Incompatible(lhs, rhs)
+      // * The top type absorbs every reference type.
+      case (Unknown, _) | (_, Unknown) => Unknown
       // * Two reference types: their nearest common ancestor, at worst `Object`.
       case _ => (lhs.sym, rhs.sym) match
         // * `Unknown` is the only symbol-less canonical type today, and it is absorbed above.
@@ -1263,12 +1256,12 @@ object ErasedType:
       // * A type with no upper bound has no representation of its own, so nothing can be coerced into or out of
       // * it - not even widened into the top type.
       case (_: Incompatible, _) | (_, _: Incompatible) => N
+      case (Primitive(a), Primitive(b)) => if a == b then S(false) else N
+      // * A primitive is compatible only with the same primitive in either direction.
+      case (Primitive(_), _) | (_, Primitive(_)) => N
       // * `T -> Unknown` needs no cast; `Unknown -> T` needs a checked downcast.
       case (_, Unknown) => S(false)
       case (Unknown, _) => S(true)
-      case (Primitive(a), Primitive(b)) => if a == b then S(false) else N
-      // * Primitives are only compatible with the same primitive, or `Unknown` (handled above)
-      case (Primitive(_), _) | (_, Primitive(_)) => N
       case (da, de) => (da.sym, de.sym) match
         // * `Unknown` is the only symbol-less canonical type today, and both its directions are decided above.
         case (NoSymbol, _) | (_, NoSymbol) =>

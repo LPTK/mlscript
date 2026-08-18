@@ -441,13 +441,15 @@ foo()()
 //│ ╙──       	            ^^^
 
 
-// A primitive result has no `anyref` representation, so it cannot be widened and must be annotated
+// A primitive result has no `anyref` representation, so it cannot be widened and must be annotated. The IR
+// rejects the widening; the backend reports it again, since a rejected value is left in place uncast.
 :ge
 fun takeTop(m: Int32) = m
 takeTop(1)
+//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.447: 	takeTop(1)
+//│ ║  l.448: 	takeTop(1)
 //│ ╙──       	        ^
 //│ ╔══[COMPILATION ERROR] Wasm function `takeTop` expects result to have type `(ref null any)`, but got `i32`
-//│ ║  l.446: 	fun takeTop(m: Int32) = m
+//│ ║  l.447: 	fun takeTop(m: Int32) = m
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^

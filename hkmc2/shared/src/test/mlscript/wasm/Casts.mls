@@ -173,12 +173,27 @@ useCrate2(id(new NotACrate(1)))
 //│ ═══[RUNTIME ERROR] Cannot narrow a value to type 'Crate2'
 
 
-// A primitive target takes no runtime test: `Int32` is unboxed, so there is nothing to test against. The
-// cast comes from `id`'s unannotated result, which stays untyped by design.
+// Boxing is an intrinsic and takes no runtime test on the way in: an `Int32` has nothing to test against.
 :checkCasts
-wasm.ref.i31(id(wasm.i32.const(7)))
+wasm.ref.i31(wasm.i32.const(7))
 //│ Wasm result:
 //│ = 7
+
+
+// The same value cannot round-trip through an untyped slot: `id` leaves its parameter and result unannotated.
+// `:noInline` keeps `id` in place; inlining elides the crossing.
+:ge
+:noInline
+:checkCasts
+wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
+//│ ║  l.188: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ╙──       	                ^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Unknown' to unrelated type 'Int32'
+//│ ║  l.188: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ╙──       	             ^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
+//│ ═══[COMPILATION ERROR] Operand #1 of wasm intrinsic 'ref.i31' must be of type 'Int32'
 
 
 // A narrowing *to* `Object`, which `anyBox` above does not exercise: widening into an `Object` slot is

@@ -129,7 +129,7 @@ topToObject() is Top
 //│ = true
 
 
-// An `Int` and an `Object` are separate in the hierarchy, so this narrowing now throws instead of passing the value 
+// An `Int` and an `Object` are separate in the hierarchy, so this narrowing now throws instead of passing the value
 // through.
 :re
 toObject()
@@ -142,14 +142,18 @@ toObject()
 //│ = false
 
 
-// A primitive target emits no test: JS erases the primitive types, so nothing distinguishes an `Int32` at
-// runtime. `useInt` is the contrast - the reference type `Int` still gets one. The gap is deliberate, but
-// real: this slot goes unchecked.
+// An unannotated value cannot reach an `Int32` slot, so the coercion is rejected instead of compiling to an
+// untested pass-through. `useInt` is the contrast: `Int` is a reference type, so the same call narrows and
+// gets a real test.
+:ge
 :sjs
 fun useI32(n: Int32): Int32 = n
 fun callI32(): Int32 = useI32(anything(1))
 fun useInt(n: Int): Int = n
 fun callInt(): Int = useInt(anything(1))
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Unknown' to unrelated type 'Int32'
+//│ ║  l.151: 	fun callI32(): Int32 = useI32(anything(1))
+//│ ╙──       	                              ^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let useInt, callInt, callI32, useI32;
 //│ useI32 = function useI32(n) {

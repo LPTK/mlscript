@@ -1417,9 +1417,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     *  - If `expected` is a subtype of `r`'s type, a downcast is inserted.
     *  - If `expected and `r` are unrelated, a compile-time error is raised and `r` continues uncast.
     *  - Otherwise, `r` is passed through unchanged.
+    *
+    * An absent `expected` is an unannotated slot, which holds the top reference type rather than no type at all.
     */
   def castTo(r: Result, expected: Opt[ErasedType], loc: Opt[Loc])(k: Result => Block): Block =
-    k(expected.fold(r)(r.coerceTo(_, loc)))
+    k(r.coerceTo(expected.getOrElse(ErasedType.Unknown), loc))
 
   /** Like [[castTo]] but always continues with a `Path`, temp-binding a produced `Cast` so it can be used in
     * argument position (a `Cast` is not itself a `Path`). */
