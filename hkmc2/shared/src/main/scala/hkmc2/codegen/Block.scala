@@ -1029,7 +1029,9 @@ object ErasedType:
     */
   case class Union(members: Ls[ErasedValueType]) extends ErasedValueType:
     override type Canonical = CanonicalErasedValueType
-    override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
+    override def sym(using Ctx, State): NoSymbol =
+      // * Only canonicalized unions have a symbol, so this is always `NoSymbol`.
+      NoSymbol
     override protected def computeCanonicalize(using Ctx, State): CanonicalErasedValueType =
       members.map(_.canonicalize).reduceLeft((a, b) => lub(a, b))
 
@@ -1045,7 +1047,8 @@ object ErasedType:
     * This type is special-cased to allow its construction without an `Elaborator.Ctx`.
     */
   case object Unknown extends ErasedValueType, CanonicalErasedType:
-    override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
+    // * No symbol denotes this type: `Anything` is the surface top, which is a different thing.
+    override def sym(using Ctx, State): NoSymbol = NoSymbol
 
   /** The builtin `Unit` reference type. */
   def Unit: ErasedValueType = ErasedType.ValueLike(rsc = false, summon[State].unitSymbol)
@@ -1151,7 +1154,11 @@ object ErasedType:
       // * above), including a distinct primitive of a different value type.
       case (_: Primitive, _) | (_, _: Primitive) => Unknown
       // * Two reference types: their nearest common ancestor, at worst `Object`.
-      case _ => CanonicalErasedValueType(rsc = false, lubSym(lhs.sym, rhs.sym))
+      case _ => (lhs.sym, rhs.sym) match
+        // * `Unknown` is the only symbol-less canonical type today, and it is absorbed above.
+        case (NoSymbol, _) | (_, NoSymbol) =>
+          lastWords(s"no upper bound is defined for '$lhs' and '$rhs'")
+        case (l: TypeSymbol, r: TypeSymbol) => CanonicalErasedValueType(rsc = false, lubSym(l, r))
 
   /** Erases a type-annotated term to an [[`ErasedType`]].
     *
@@ -1241,27 +1248,33 @@ object ErasedType:
       case (Primitive(a), Primitive(b)) => if a == b then S(false) else N
       // * Primitives are only compatible with the same primitive, or `Unknown` (handled above)
       case (Primitive(_), _) | (_, Primitive(_)) => N
-      case (da, de) =>
-        val a = da.sym
-        val e = de.sym
-        if a is e then S(false)
-        else (isSubtypeOf(a, e), isSubtypeOf(e, a)) match
-          // * The value is already a subtype of the slot -> no cast needed.
-          case (S(true), _) => S(false)
-          // * The slot is a subtype of the value -> a narrowing (checked) cast.
-          case (_, S(true)) => S(true)
-          // * Provably unrelated along the `ext` chain -> narrowing is a compile error.
-          case (S(false), S(false)) => N
-          // * Undecidable (unlinked import / cyclic chain): treat the value's type as the top type `Unknown`
-          // * for this decision and emit a conservative checked cast.
-          case _ => S(true)
+      case (da, de) => (da.sym, de.sym) match
+        // * `Unknown` is the only symbol-less canonical type today, and both its directions are decided above.
+        case (NoSymbol, _) | (_, NoSymbol) =>
+          lastWords(s"no cast is defined from '$da' to '$de'")
+        case (a: TypeSymbol, e: TypeSymbol) =>
+          if a is e then S(false)
+          else (isSubtypeOf(a, e), isSubtypeOf(e, a)) match
+            // * The value is already a subtype of the slot -> no cast needed.
+            case (S(true), _) => S(false)
+            // * The slot is a subtype of the value -> a narrowing (checked) cast.
+            case (_, S(true)) => S(true)
+            // * Provably unrelated along the `ext` chain -> narrowing is a compile error.
+            case (S(false), S(false)) => N
+            // * Undecidable (unlinked import / cyclic chain): treat the value's type as the top type `Unknown`
+            // * for this decision and emit a conservative checked cast.
+            case _ => S(true)
 
 /** A generics-erased type of the Block IR. */
 sealed abstract class ErasedType:
   type Canonical <: CanonicalErasedType
 
-  /** The symbol for this erased type. */
-  def sym(using Ctx, State): TypeSymbol
+  /** The symbol denoting this erased type, or `NoSymbol` when none does.
+    *
+    * The lattice is keyed on `TypeSymbol`, so `NoSymbol` means this type has no place in it: no ancestor chain to
+    * walk and no name to report.
+    */
+  def sym(using Ctx, State): TypeSymbol | NoSymbol
 
   /** Memoized canonical form, written once by [[`canonicalize`]] and read only through it.
     *
@@ -1290,7 +1303,8 @@ sealed abstract class ErasedType:
 
   /** Renders this type for a user-facing diagnostic.
     *
-    * Outputs the canonicalized name of the type symbol, qualified by its owner chain.
+    * Outputs the canonicalized name of the type symbol, qualified by its owner chain, or the node's own name when
+    * no symbol denotes it.
     *
     * Implementation Note: `Printer` is deliberately not used here: it needs a `Scope` and a `SymbolPrinter`, which the
     * backends reporting these diagnostics do not have.
@@ -1301,9 +1315,12 @@ sealed abstract class ErasedType:
     def qualify(s: Symbol, acc: Ls[Str]): Ls[Str] = s match
       case _: TopLevelSymbol => acc
       case _ => ownerOf(s).fold(s.nme :: acc)(o => qualify(o, s.nme :: acc))
-    val tpeSym = canonicalize.sym
-    val name = qualify(tpeSym, Nil).mkString(".")
-    if tpeSym.asMod.isDefined then s"module $name" else name
+    canonicalize.sym match
+      // * Kept in step with `Printer.print(CanonicalErasedType)`, which spells the same node `Unknown`.
+      case NoSymbol => "Unknown"
+      case tpeSym: TypeSymbol =>
+        val name = qualify(tpeSym, Nil).mkString(".")
+        if tpeSym.asMod.isDefined then s"module $name" else name
 
 /** Base class indicating that the [[`ErasedType`]] is a value type. */
 sealed abstract class ErasedValueType extends ErasedType:
