@@ -391,7 +391,7 @@ type Union = P | Q
 fun useCyclic(x: Cyclic): Cyclic = x
 fun useUnion(x: Union): Union = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useCyclic⁰ as fun useCyclic¹(x: Anything): Anything {
+//│ define useCyclic⁰ as fun useCyclic¹(x: Unknown): Unknown {
 //│   return x
 //│ };
 //│ define useUnion⁰ as fun useUnion¹(x: Object): Object {
@@ -606,11 +606,11 @@ sccHelper(100000)
 //│ = 0
 
 
-// Ensure that `Anything` is resolved to `(ErasedType.)Anything` and not `ErasedType.AnyRef(_, Anything)`
+// Ensure that the surface `Anything` erases to `ErasedType.Unknown` and not `ErasedType.AnyRef(_, Anything)`
 // (which is indicated by `Anything⁰`).
 fun f(x: Anything): Anything = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define f⁶ as fun f⁷(x: Anything): Anything { return x }; end
+//│ define f⁶ as fun f⁷(x: Unknown): Unknown { return x }; end
 
 
 // A call is typed as the callee's result only when saturated: `curried(1)` supplies one of two declared

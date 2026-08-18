@@ -35,7 +35,7 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
     if tpeSym.asMod.isDefined then doc"module ${print(tpeSym)}" else print(tpeSym)
 
   def print(cet: CanonicalErasedType)(using Scope): Document = cet match
-    case ErasedType.Anything => doc"Anything"
+    case ErasedType.Unknown => doc"Unknown"
     case ErasedType.Object => doc"Object"
     case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${if rsc then "rsc " else ""}${printTpe(tpeSym)}"
     case ErasedType.CanonicalFuncRef(rsc, paramLists, ret) =>

@@ -977,7 +977,7 @@ object ErasedType:
     * - `rsc` is true if this reference is a resource class.
     *
     * Implementation Note: This type should **not** be used to represent references of type aliases or the top type -
-    * [[`ValueLike`]] and [[`Anything`]] should be used instead.
+    * [[`ValueLike`]] and [[`Unknown`]] should be used instead.
     */
   case class AnyRef(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = tpeSym
@@ -1033,11 +1033,18 @@ object ErasedType:
     override protected def computeCanonicalize(using Ctx, State): CanonicalErasedValueType =
       members.map(_.canonicalize).reduceLeft((a, b) => lub(a, b))
 
-  /** The builtin top type `Anything`.
+  /** The uniform representation: any value on JS and `anyref` on Wasm.
+    *
+    * Reached by an absent annotation (`erasedType_!` folds `N` here), by an alias the IR cannot resolve, and
+    * by the surface top `Anything`, which has no erased counterpart of its own.
+    *
+    * It is still the lattice's top type - `lub` lets it absorb everything and `needsCast` allows a checked
+    * downcast out of it to any target, primitives included. Rejecting the primitive targets, so that a value
+    * of this type has no observable identity, is left to a follow-up.
     *
     * This type is special-cased to allow its construction without an `Elaborator.Ctx`.
     */
-  case object Anything extends ErasedValueType, CanonicalErasedType:
+  case object Unknown extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
 
   /** The builtin `Object` type: the base of the types whose identity can be tested at runtime.
@@ -1148,10 +1155,10 @@ object ErasedType:
     (lhs, rhs) match
       case _ if lhs == rhs => lhs
       // * The top type absorbs everything.
-      case (Anything, _) | (_, Anything) => Anything
-      // * A primitive shares no supertype but `Anything` with any distinct type (equal primitives are handled
+      case (Unknown, _) | (_, Unknown) => Unknown
+      // * A primitive shares no supertype but `Unknown` with any distinct type (equal primitives are handled
       // * above), including a distinct primitive of a different value type.
-      case (_: Primitive, _) | (_, _: Primitive) => Anything
+      case (_: Primitive, _) | (_, _: Primitive) => Unknown
       // * Two reference types: their nearest common ancestor, at worst `Object`.
       case _ => CanonicalErasedValueType(rsc = false, lubSym(lhs.sym, rhs.sym))
 
@@ -1237,11 +1244,11 @@ object ErasedType:
     */
   def needsCast(actual: CanonicalErasedType, expected: CanonicalErasedType)(using Ctx, State): Opt[Bool] =
     (actual, expected) match
-      // * `T -> Anything` needs no cast; `Anything -> T` needs a checked downcast.
-      case (_, Anything) => S(false)
-      case (Anything, _) => S(true)
+      // * `T -> Unknown` needs no cast; `Unknown -> T` needs a checked downcast.
+      case (_, Unknown) => S(false)
+      case (Unknown, _) => S(true)
       case (Primitive(a), Primitive(b)) => if a == b then S(false) else N
-      // * Primitives are only compatible with the same primitive, or `Anything` (handled above)
+      // * Primitives are only compatible with the same primitive, or `Unknown` (handled above)
       case (Primitive(_), _) | (_, Primitive(_)) => N
       case (da, de) =>
         val a = da.sym
@@ -1254,7 +1261,7 @@ object ErasedType:
           case (_, S(true)) => S(true)
           // * Provably unrelated along the `ext` chain -> narrowing is a compile error.
           case (S(false), S(false)) => N
-          // * Undecidable (unlinked import / cyclic chain): treat the value's type as the top type `Anything`
+          // * Undecidable (unlinked import / cyclic chain): treat the value's type as the top type `Unknown`
           // * for this decision and emit a conservative checked cast.
           case _ => S(true)
 
@@ -1343,14 +1350,14 @@ object CanonicalErasedValueType:
   /** Creates an instance from a symbol already resolved by `resolveAlias`. */
   private def resolved(rsc: Bool, sym: TypeSymbol)(using Ctx, State): CanonicalErasedValueType = sym match
     // * An unresolvable alias becomes the top type.
-    case _: TypeAliasSymbol => ErasedType.Anything
+    case _: TypeAliasSymbol => ErasedType.Unknown
     case base =>
-      // * `Anything` and `Object` drop `rsc`, which is meaningless on a top type. Every construction site
+      // * `Unknown` and `Object` drop `rsc`, which is meaningless on a top type. Every construction site
       // * passes `rsc = false` today; a future resource-type implementation must revisit both.
       // *
       // * Note that `base is ctx.builtins.Anything` is only necessary for `InvalMLPrelude.mls` - the `Anything` type
       // * is `declare class`-ed there (since `declare type` is not supported in `invalml`).
-      if base is ctx.builtins.Anything then ErasedType.Anything
+      if base is ctx.builtins.Anything then ErasedType.Unknown
       else if base is ctx.builtins.Object then ErasedType.Object
       else PrimitiveType.values.find(_.sym === base) match
         case S(prim) => ErasedType.Primitive(prim)
@@ -1365,14 +1372,14 @@ trait HasErasedType:
     *
     * Parameter and return types of [[`ErasedFuncType`]]s are recursively coerced.
     */
-  lazy val erasedType_! : ErasedType = erasedType.fold(ErasedType.Anything):
+  lazy val erasedType_! : ErasedType = erasedType.fold(ErasedType.Unknown):
     case f @ ErasedType.FuncRef(rsc, paramLists, ret) => f.copy(
-      paramLists = paramLists.map(_.map(p => S(p.getOrElse(ErasedType.Anything)))),
-      ret = S(ret.getOrElse(ErasedType.Anything)),
+      paramLists = paramLists.map(_.map(p => S(p.getOrElse(ErasedType.Unknown)))),
+      ret = S(ret.getOrElse(ErasedType.Unknown)),
     )
     case f @ ErasedType.CanonicalFuncRef(rsc, paramLists, ret) => f.copy(
-      paramLists = paramLists.map(_.map(p => S(p.getOrElse(ErasedType.Anything)))),
-      ret = S(ret.getOrElse(ErasedType.Anything)),
+      paramLists = paramLists.map(_.map(p => S(p.getOrElse(ErasedType.Unknown)))),
+      ret = S(ret.getOrElse(ErasedType.Unknown)),
     )
     case vt: ErasedValueType => vt
 
@@ -1385,7 +1392,7 @@ trait HasErasedType:
     case vt: ErasedValueType => vt
 
   /** Similar to `erasedValueType`, but coerces to the top type if the specific erased value type is not known. */
-  lazy val erasedValueType_! : ErasedValueType = erasedValueType.getOrElse(ErasedType.Anything)
+  lazy val erasedValueType_! : ErasedValueType = erasedValueType.getOrElse(ErasedType.Unknown)
 
 /** A [[`HasErasedType`]] whose erased type can be populated exactly once post-construction. */
 trait HasOnceMutableErasedType extends HasErasedType:

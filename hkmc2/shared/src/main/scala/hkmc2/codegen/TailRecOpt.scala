@@ -527,7 +527,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
                 requiredTmps.toList.foldRight(assignments):
                   case ((v, l), acc) => Assign(l, v.asSimpleRef, acc))
         // Coerce the result of the return to the declared return type of the dispatcher - This is needed since
-        // parameters of merged dispatchers carry no erased type and yields `Anything`, and returning the value
+        // parameters of merged dispatchers carry no erased type and yields `Unknown`, and returning the value
         // produces a result that is wider than the declared return type of the merged function.
         // Tail calls are matched above and become `continue`, so they never reach here.
         case Return(res) =>

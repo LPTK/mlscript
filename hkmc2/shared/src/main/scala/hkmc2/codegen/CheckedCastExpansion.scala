@@ -35,7 +35,7 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
     case Test(cse: Case)
     /** Emit no test: no runtime test for an unboxed primitive is implemented.
       *
-      * The value is always statically `Anything` (any other conversions to primitives either need no cast or are rejected as unrelated) so the
+      * The value is always statically `Unknown` (any other conversions to primitives either need no cast or are rejected as unrelated) so the
       * cast recovers a lost static type rather than narrowing one, e.g. in `consumeInt32(id(1))` (where `id` is
       * unannotated).
       *
@@ -60,8 +60,8 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
       case ErasedType.Object => testFor(ctx.builtins.Object)
       case ErasedType.AnyRef(_, tpeSym) => testFor(tpeSym)
       case _: ErasedType.Primitive => CheckKind.PrimitiveTarget
-      // * `Anything` here only to cover exhaustivity - a `Cast` to the top type is malformed (identity or upcasts are disallowed).
-      case ErasedType.Anything => CheckKind.Inexpressible
+      // * `Unknown` here only to cover exhaustivity - a `Cast` to the top type is malformed (identity or upcasts are disallowed).
+      case ErasedType.Unknown => CheckKind.Inexpressible
 
   override def applyResult(r: Result)(k: Result => Block): Block = r match
     case Cast(value, target, true) =>
