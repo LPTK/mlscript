@@ -57,7 +57,6 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
 
   private def checkFor(target: ErasedValueType): CheckKind =
     target.canonicalize match
-      case ErasedType.Object => testFor(ctx.builtins.Object)
       case ErasedType.AnyRef(_, tpeSym) => testFor(tpeSym)
       case _: ErasedType.Primitive => CheckKind.PrimitiveTarget
       // * `Unknown` here only to cover exhaustivity - a `Cast` to the top type is malformed (identity or upcasts are disallowed).

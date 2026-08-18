@@ -1047,15 +1047,6 @@ object ErasedType:
   case object Unknown extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
 
-  /** The builtin `Object` type: the base of the types whose identity can be tested at runtime.
-    *
-    * This is the only spelling of that type - `CanonicalErasedValueType.resolved` maps `ctx.builtins.Object`
-    * to this case object, so `AnyRef(_, ctx.builtins.Object)` has no producer. A checked cast to `Object`
-    * therefore takes the host's own `Object` test, like any other declared class.
-    */
-  case object Object extends ErasedValueType, CanonicalErasedType:
-    override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Object
-
   /** The builtin `Unit` reference type. */
   def Unit: ErasedValueType = ErasedType.ValueLike(rsc = false, summon[State].unitSymbol)
 
@@ -1352,13 +1343,12 @@ object CanonicalErasedValueType:
     // * An unresolvable alias becomes the top type.
     case _: TypeAliasSymbol => ErasedType.Unknown
     case base =>
-      // * `Unknown` and `Object` drop `rsc`, which is meaningless on a top type. Every construction site
-      // * passes `rsc = false` today; a future resource-type implementation must revisit both.
+      // * `Unknown` drops `rsc`, which is meaningless on the top type. Every construction site passes
+      // * `rsc = false` today; a future resource-type implementation must revisit this.
       // *
       // * Note that `base is ctx.builtins.Anything` is only necessary for `InvalMLPrelude.mls` - the `Anything` type
       // * is `declare class`-ed there (since `declare type` is not supported in `invalml`).
       if base is ctx.builtins.Anything then ErasedType.Unknown
-      else if base is ctx.builtins.Object then ErasedType.Object
       else PrimitiveType.values.find(_.sym === base) match
         case S(prim) => ErasedType.Primitive(prim)
         case _ => ErasedType.AnyRef(rsc, base)

@@ -54,8 +54,8 @@ fun mkObj(): Object = new Boxed(1)
 val o: Object = mkObj()
 val n: Boxed = o
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Object, tmp1: Boxed⁰;
-//│ define mkObj⁰ as fun mkObj¹(): Object {
+//│ let tmp: Object⁰, tmp1: Boxed⁰;
+//│ define mkObj⁰ as fun mkObj¹(): Object⁰ {
 //│   return new Boxed⁰(1)
 //│ };
 //│ define Boxed¹ as class Boxed⁰ {
@@ -66,7 +66,7 @@ val n: Boxed = o
 //│   }
 //│ };
 //│ set tmp = mkObj¹();
-//│ define o⁰ as val o¹: Object = tmp;
+//│ define o⁰ as val o¹: Object⁰ = tmp;
 //│ set tmp1 = (o¹ as!! Boxed⁰);
 //│ define n⁰ as val n¹: Boxed⁰ = tmp1;
 //│ end
@@ -252,7 +252,7 @@ fun f(x: Int32) = useObj(x)
 //│ ║  l.250: 	fun f(x: Int32) = useObj(x)
 //│ ╙──       	                         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useObj⁰ as fun useObj¹(o: Object): ? {
+//│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
 //│   return o
 //│ };
 //│ define f² as fun f³(x: Int32): ? { return useObj¹(x) };
@@ -269,7 +269,7 @@ fun g(o: Object) = useInt(o)
 //│ define useInt⁰ as fun useInt¹(n: Int32): ? {
 //│   return n
 //│ };
-//│ define g⁰ as fun g¹(o: Object): ? { return useInt¹(o) };
+//│ define g⁰ as fun g¹(o: Object⁰): ? { return useInt¹(o) };
 //│ end
 
 
@@ -314,13 +314,13 @@ fun f(o: Object, i: Int) =
 //│ ║  l.309: 	  useInt(o)
 //│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useObj² as fun useObj³(o: Object): ? {
+//│ define useObj² as fun useObj³(o: Object⁰): ? {
 //│   return o
 //│ };
 //│ define useInt² as fun useInt³(n: Int⁰): ? {
 //│   return n
 //│ };
-//│ define f⁴ as fun f⁵(o: Object, i: Int⁰): ? { do useObj³(i); return useInt³(o) };
+//│ define f⁴ as fun f⁵(o: Object⁰, i: Int⁰): ? { do useObj³(i); return useInt³(o) };
 //│ end
 
 
@@ -394,7 +394,7 @@ fun useUnion(x: Union): Union = x
 //│ define useCyclic⁰ as fun useCyclic¹(x: Unknown): Unknown {
 //│   return x
 //│ };
-//│ define useUnion⁰ as fun useUnion¹(x: Object): Object {
+//│ define useUnion⁰ as fun useUnion¹(x: Object⁰): Object⁰ {
 //│   return x
 //│ };
 //│ define P⁰ as class P¹;
@@ -693,12 +693,12 @@ fun mkObj2(): Object = new Boxed(1)
 val o2: Object = mkObj2()
 val n2: Boxed = o2
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Object, tmp1: Boxed⁰;
-//│ define mkObj2⁰ as fun mkObj2¹(): Object {
+//│ let tmp: Object⁰, tmp1: Boxed⁰;
+//│ define mkObj2⁰ as fun mkObj2¹(): Object⁰ {
 //│   return new Boxed⁰(1)
 //│ };
 //│ set tmp = mkObj2¹();
-//│ define o2⁰ as val o2¹: Object = tmp;
+//│ define o2⁰ as val o2¹: Object⁰ = tmp;
 //│ set tmp1 = (o2¹ as! Boxed⁰);
 //│ define n2⁰ as val n2¹: Boxed⁰ = tmp1;
 //│ end

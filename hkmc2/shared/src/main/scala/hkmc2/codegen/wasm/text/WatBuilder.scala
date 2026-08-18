@@ -38,11 +38,13 @@ extension (et: ErasedType)
     val elabCtx = ctx.elabCtx
     elabCtx.givenIn:
       et.canonicalize match
-        case ErasedType.Object => S(RefType.anyref)
-        case ErasedType.AnyRef(_, tpeSym) if isBoxedAsI31(tpeSym, ctx) =>
-          S(RefType.i31ref)
         case ErasedType.AnyRef(_, tpeSym) =>
-          tpeSym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
+          if tpeSym eq elabCtx.builtins.Object then
+            S(RefType.anyref)
+          else if isBoxedAsI31(tpeSym, ctx) then
+            S(RefType.i31ref)
+          else
+            tpeSym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
         case ErasedType.Primitive(PrimitiveType.Int32) => S(I32Type)
         case _ => N
 

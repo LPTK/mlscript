@@ -179,3 +179,16 @@ useCrate2(id(new NotACrate(1)))
 wasm.ref.i31(id(wasm.i32.const(7)))
 //│ Wasm result:
 //│ = 7
+
+
+// A narrowing *to* `Object`, which `anyBox` above does not exercise: widening into an `Object` slot is
+// free, so only an erased source makes the coercion real. Pins the Wasm representation of an `Object`
+// slot, which is uniform rather than the `$Object` struct - tuples are `Object`s but sit outside that
+// struct family.
+:noInline
+class Pack(val v: Int)
+fun unpack(p: Pack): Int = p.v
+fun toObj(): Object = id(new Pack(7))
+unpack(toObj())
+//│ Wasm result:
+//│ = 7
