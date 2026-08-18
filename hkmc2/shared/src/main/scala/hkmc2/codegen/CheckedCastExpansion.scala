@@ -59,8 +59,9 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
     target.canonicalize match
       case ErasedType.AnyRef(_, tpeSym) => testFor(tpeSym)
       case _: ErasedType.Primitive => CheckKind.PrimitiveTarget
-      // * `Unknown` here only to cover exhaustivity - a `Cast` to the top type is malformed (identity or upcasts are disallowed).
-      case ErasedType.Unknown => CheckKind.Inexpressible
+      // * Both here only to cover exhaustivity - a `Cast` to the top type is malformed (identity or upcasts are
+      // * disallowed), and `coerceTo` rejects a coercion to an `Incompatible` rather than building a `Cast`.
+      case ErasedType.Unknown | _: ErasedType.Incompatible => CheckKind.Inexpressible
 
   override def applyResult(r: Result)(k: Result => Block): Block = r match
     case Cast(value, target, true) =>

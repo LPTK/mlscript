@@ -1050,6 +1050,19 @@ object ErasedType:
     // * No symbol denotes this type: `Anything` is the surface top, which is a different thing.
     override def sym(using Ctx, State): NoSymbol = NoSymbol
 
+  /** Two types with no common upper bound.
+    *
+    * The erased types form a forest rather than a lattice: an unboxed primitive is a root of its own, so a union
+    * mixing one with a distinct type has nothing to erase to.
+    *
+    * Writing such a type is not itself an error - the error is raised wherever a value has to be coerced into or
+    * out of it, by [[`Result.coerceTo`]]. Both members are carried so that the diagnostic can name them at that use
+    * site.
+    */
+  case class Incompatible(lhs: CanonicalErasedValueType, rhs: CanonicalErasedValueType)
+      extends ErasedValueType, CanonicalErasedType:
+    override def sym(using Ctx, State): NoSymbol = NoSymbol
+
   /** The builtin `Unit` reference type. */
   def Unit: ErasedValueType = ErasedType.ValueLike(rsc = false, summon[State].unitSymbol)
 
@@ -1148,11 +1161,16 @@ object ErasedType:
   def lub(lhs: CanonicalErasedValueType, rhs: CanonicalErasedValueType)(using Ctx, State): CanonicalErasedValueType =
     (lhs, rhs) match
       case _ if lhs == rhs => lhs
+      // * An incompatibility absorbs everything, keeping the pair that first had no upper bound: that is the
+      // * conflict worth reporting, rather than whichever type happened to be folded in last.
+      case (i: Incompatible, _) => i
+      case (_, i: Incompatible) => i
       // * The top type absorbs everything.
       case (Unknown, _) | (_, Unknown) => Unknown
-      // * A primitive shares no supertype but `Unknown` with any distinct type (equal primitives are handled
-      // * above), including a distinct primitive of a different value type.
-      case (_: Primitive, _) | (_, _: Primitive) => Unknown
+      // * A primitive is a root of its own: it shares no supertype with any distinct type.
+      // TODO(Derppening): `Unknown` is not an upper bound of a primitive either, so the arm above belongs below
+      //  this one - but it has to move together with the matching `needsCast` arms, so the two never disagree.
+      case (_: Primitive, _) | (_, _: Primitive) => Incompatible(lhs, rhs)
       // * Two reference types: their nearest common ancestor, at worst `Object`.
       case _ => (lhs.sym, rhs.sym) match
         // * `Unknown` is the only symbol-less canonical type today, and it is absorbed above.
@@ -1242,6 +1260,9 @@ object ErasedType:
     */
   def needsCast(actual: CanonicalErasedType, expected: CanonicalErasedType)(using Ctx, State): Opt[Bool] =
     (actual, expected) match
+      // * A type with no upper bound has no representation of its own, so nothing can be coerced into or out of
+      // * it - not even widened into the top type.
+      case (_: Incompatible, _) | (_, _: Incompatible) => N
       // * `T -> Unknown` needs no cast; `Unknown -> T` needs a checked downcast.
       case (_, Unknown) => S(false)
       case (Unknown, _) => S(true)
@@ -1315,12 +1336,14 @@ sealed abstract class ErasedType:
     def qualify(s: Symbol, acc: Ls[Str]): Ls[Str] = s match
       case _: TopLevelSymbol => acc
       case _ => ownerOf(s).fold(s.nme :: acc)(o => qualify(o, s.nme :: acc))
-    canonicalize.sym match
-      // * Kept in step with `Printer.print(CanonicalErasedType)`, which spells the same node `Unknown`.
-      case NoSymbol => "Unknown"
-      case tpeSym: TypeSymbol =>
-        val name = qualify(tpeSym, Nil).mkString(".")
-        if tpeSym.asMod.isDefined then s"module $name" else name
+    canonicalize match
+      case ErasedType.Unknown => "Unknown"
+      case ErasedType.Incompatible(l, r) => s"‹incompatible(${l.describe}, ${r.describe})›"
+      case cet => cet.sym match
+        case NoSymbol => lastWords(s"no name is defined for '$cet'")
+        case tpeSym: TypeSymbol =>
+          val name = qualify(tpeSym, Nil).mkString(".")
+          if tpeSym.asMod.isDefined then s"module $name" else name
 
 /** Base class indicating that the [[`ErasedType`]] is a value type. */
 sealed abstract class ErasedValueType extends ErasedType:
@@ -1578,12 +1601,15 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
           case v: ErasedValueType => v
         Cast(this, target, config.checkCasts)
       case N =>
+        // * An `Incompatible` side is not an unrelated type but an unrepresentable one, so it gets its own message.
+        def membersOf(et: CanonicalErasedType): Opt[(CanonicalErasedValueType, CanonicalErasedValueType)] = et match
+          case ErasedType.Incompatible(l, r) => S(l -> r)
+          case _ => N
+        val message = membersOf(actual).orElse(membersOf(declared)) match
+          case S((l, r)) => msg"Types '${l.describe}' and '${r.describe}' have no common representation"
+          case N => msg"Cannot narrow a value of type '${actual.describe}' to unrelated type '${declared.describe}'"
         raise:
-          ErrorReport(
-            msg"Cannot narrow a value of type '${actual.describe}' to unrelated type '${declared.describe}'" ->
-            loc :: Nil,
-            source = Diagnostic.Source.Compilation,
-          )
+          ErrorReport(message -> loc :: Nil, source = Diagnostic.Source.Compilation)
         this
 
 /* mayRaiseEffects indicates whether this call may raise effect (algebraic effect),

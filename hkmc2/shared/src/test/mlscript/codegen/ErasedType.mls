@@ -380,10 +380,8 @@ fun useMyI32(x: MyI32) = useI32(x)
 //│ end
 
 
-// An alias whose right-hand side does not resolve to a single type symbol - a cycle, or a union deferred to
-// the (not-yet-implemented) LUB work - is kept as-is but behaves as the `Anything` top type during
-// hierarchy analysis.
-// TODO(Derppening): This test case should update once LUB is implemented.
+// An alias whose right-hand side does not resolve to a single type symbol behaves as the top type during
+// hierarchy analysis. A cycle is such a case; a union is not, since it erases to its members' LUB.
 type Cyclic = Cyclic
 class P
 class Q
@@ -448,6 +446,55 @@ fun unionIntoSubtype(x: A | B) = takesSubtype(x)
 //│   let tmp: A¹;
 //│   set tmp = (x as!! A¹);
 //│   return takesSubtype¹(tmp)
+//│ };
+//│ end
+
+
+// A union mixing an unboxed primitive with any distinct type has no upper bound at all: the primitives are
+// roots of the erased hierarchy rather than descendants of a top type, so there is nothing for such a union to
+// erase to. Two distinct primitives are no better off than a primitive and a reference type.
+fun mixed(x: Int32 | Str) = x
+fun twoPrims(x: Int32 | Int64) = x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define mixed⁰ as fun mixed¹(x: ‹incompatible(Int32, Str⁰)›): ? {
+//│   return x
+//│ };
+//│ define twoPrims⁰ as fun twoPrims¹(x: ‹incompatible(Int32, Int64)›): ? { return x };
+//│ end
+
+
+// Folding a third member in keeps the pair that first had no upper bound, rather than whichever type was
+// folded in last.
+fun mixedThree(x: Int32 | Str | Bool) = x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define mixedThree⁰ as fun mixedThree¹(x: ‹incompatible(Int32, Str⁰)›): ? { return x }; end
+
+
+// Writing the type is not itself an error - it is reported wherever a value has to cross into or out of such a
+// slot, because the LUB is computed inside `canonicalize`, which cannot report anything.
+:ge
+fun intoMixed(n: Int32) = mixed(n)
+//│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
+//│ ║  l.476: 	fun intoMixed(n: Int32) = mixed(n)
+//│ ╙──       	                                ^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
+
+
+// Both directions fail, and widening is no exception: a value with no representation cannot be moved into an
+// `Object` slot either. Both errors come out unlocated because `returnedTerm` passes no location to `castTo` -
+// pre-existing, and shared by every diagnostic raised on a return coercion.
+:ge
+fun outOfMixed(x: Int32 | Str): Str = x
+fun mixedIntoObject(x: Int32 | Str): Object = x
+//│ ═══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
+//│ ═══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define outOfMixed⁰ as fun outOfMixed¹(x: ‹incompatible(Int32, Str⁰)›): Str⁰ {
+//│   return x
+//│ };
+//│ define mixedIntoObject⁰ as fun mixedIntoObject¹(x: ‹incompatible(Int32, Str⁰)›): Object⁰ {
+//│   return x
 //│ };
 //│ end
 
@@ -663,7 +710,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.664: 	val bad: Str = thunk
+//│ ║  l.711: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -675,7 +722,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.676: 	val notCalled: Str = called
+//│ ║  l.723: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -709,7 +756,7 @@ val n2: Boxed = o2
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.710: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.757: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {

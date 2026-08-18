@@ -35,8 +35,8 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
     if tpeSym.asMod.isDefined then doc"module ${print(tpeSym)}" else print(tpeSym)
 
   def print(cet: CanonicalErasedType)(using Scope): Document = cet match
-    // * `ErasedType.describe` spells this node the same way; keep the two in step.
     case ErasedType.Unknown => doc"Unknown"
+    case ErasedType.Incompatible(lhs, rhs) => doc"‹incompatible(${print(lhs)}, ${print(rhs)})›"
     case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${if rsc then "rsc " else ""}${printTpe(tpeSym)}"
     case ErasedType.CanonicalFuncRef(rsc, paramLists, ret) =>
       // * Curried functions are rendered as `(A) => (B) => R`, so that an under-applied call reads as the residual
