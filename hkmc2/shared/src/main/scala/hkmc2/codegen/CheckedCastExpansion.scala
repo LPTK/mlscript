@@ -33,32 +33,32 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
   private enum CheckKind:
     /** Test the value with `cse`, throwing when it fails. */
     case Test(cse: Case)
-    /** Emit no test: the target admits every value the IR can produce. */
-    case Vacuous
     /** Emit no test: no runtime test for an unboxed primitive is implemented.
       *
       * The value is always statically `Anything` (any other conversions to primitives either need no cast or are rejected as unrelated) so the
       * cast recovers a lost static type rather than narrowing one, e.g. in `consumeInt32(id(1))` (where `id` is
       * unannotated).
       *
-      * Unlike [[`Vacuous`]] the slot then goes genuinely unchecked on JS, which has no representation to test; Wasm
-      * rejects a mismatched one while lowering.
+      * The slot then goes genuinely unchecked on JS, which has no representation to test; Wasm rejects a
+      * mismatched one while lowering.
       */
     case PrimitiveTarget
     /** Emit no test: none can be expressed for this target - this should be an internal compiler error. */
     case Inexpressible
 
+  /** The check that narrowing to a class-like symbol needs, or `Inexpressible` when its runtime path is lost. */
+  private def testFor(tpeSym: TypeSymbol): CheckKind =
+    val cse =
+      for
+        cls <- tpeSym.asClsOrMod
+        path <- classPath(cls)
+      yield CheckKind.Test(Case.Cls(cls, path))
+    cse.getOrElse(CheckKind.Inexpressible)
+
   private def checkFor(target: ErasedValueType): CheckKind =
     target.canonicalize match
-      // * `Object` is the top type of references, so there is nothing to test.
-      case ErasedType.Object => CheckKind.Vacuous
-      case ErasedType.AnyRef(_, tpeSym) =>
-        val cse =
-          for
-            cls <- tpeSym.asClsOrMod
-            path <- classPath(cls)
-          yield CheckKind.Test(Case.Cls(cls, path))
-        cse.getOrElse(CheckKind.Inexpressible)
+      case ErasedType.Object => testFor(ctx.builtins.Object)
+      case ErasedType.AnyRef(_, tpeSym) => testFor(tpeSym)
       case _: ErasedType.Primitive => CheckKind.PrimitiveTarget
       // * `Anything` here only to cover exhaustivity - a `Cast` to the top type is malformed (identity or upcasts are disallowed).
       case ErasedType.Anything => CheckKind.Inexpressible
@@ -67,8 +67,8 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
     case Cast(value, target, true) =>
       super.applyResult(value): value2 =>
         checkFor(target) match
-          // * Both kinds drop the check - see the corresponding doc.
-          case CheckKind.Vacuous | CheckKind.PrimitiveTarget => k(Cast(value2, target, false))
+          // * The check is dropped - see the corresponding doc.
+          case CheckKind.PrimitiveTarget => k(Cast(value2, target, false))
           case CheckKind.Inexpressible =>
             // * Failing to express the test leaves the cast as it would have been without `checkCasts`, which is
             // * the status quo rather than a miscompilation.

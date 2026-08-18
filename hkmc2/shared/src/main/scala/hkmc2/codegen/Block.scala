@@ -1040,12 +1040,11 @@ object ErasedType:
   case object Anything extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Anything
 
-  /** The builtin `Object` type: the base of all reference types.
+  /** The builtin `Object` type: the base of the types whose identity can be tested at runtime.
     *
-    * This is distinct from `AnyRef(_, ctx.builtins.Object)`, which has a backend-specific meaning:
-    *
-    * - In JS: `AnyRef(_, Object)` represents the `Object` type, meaning that `Number </: Object`.
-    * - In Wasm: `AnyRef(_, Object)` represents the `$Object` type, meaning that `Int </: Object`.
+    * This is the only spelling of that type - `CanonicalErasedValueType.resolved` maps `ctx.builtins.Object`
+    * to this case object, so `AnyRef(_, ctx.builtins.Object)` has no producer. A checked cast to `Object`
+    * therefore takes the host's own `Object` test, like any other declared class.
     */
   case object Object extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Object

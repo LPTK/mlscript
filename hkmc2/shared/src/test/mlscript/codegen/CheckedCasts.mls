@@ -65,13 +65,26 @@ fun toNumber(): Number = anything(1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
-// `Object` is the top of the reference lattice, so every value already inhabits it and no test is emitted.
-// It must *not* be reached through `globalThis` like the declared class above: the host's `Object` rejects
-// primitives, so that test would throw on values the type system accepts. See `ErasedType.Object`.
+// `Object` is a declared class like `Number` above, and is reached the same way.
 :sjs
 fun toObject(): Object = anything(1)
+fun topToObject(): Object = anything(mkTop())
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let toObject; toObject = function toObject() { return 1 };
+//│ let topToObject, toObject;
+//│ toObject = function toObject() {
+//│   if (1 instanceof globalThis.Object) {
+//│     return 1
+//│   }
+//│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Object'"));
+//│ };
+//│ topToObject = function topToObject() {
+//│   let tmp;
+//│   tmp = mkTop();
+//│   if (tmp instanceof globalThis.Object) {
+//│     return tmp
+//│   }
+//│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Object'"));
+//│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -109,14 +122,22 @@ toNumber()
 //│ ═══[RUNTIME ERROR] Error: Cannot narrow a value to type 'Number'
 
 
-// Narrowing to `Object` succeeds. Pinned by *calling* it: the emitted JS alone is not enough, since a wrong
-// test stays invisible until the function runs — which is how `1 instanceof globalThis.Object` survived here.
+// Both directions are pinned by *calling* them: the emitted JS alone is not enough, since a wrong test stays
+// invisible until the function runs — which is how `1 instanceof globalThis.Object` once survived here,
+// back when `Object` still admitted primitives.
+topToObject() is Top
+//│ = true
+
+
+// An `Int` and an `Object` are separate in the hierarchy, so this narrowing now throws instead of passing the value 
+// through.
+:re
 toObject()
-//│ = 1
+//│ ═══[RUNTIME ERROR] Error: Cannot narrow a value to type 'Object'
 
 
-// The `Object` *pattern* keeps its host meaning, and so deliberately disagrees with the type above: `1`
-// inhabits the `Object` type but does not match the `Object` pattern.
+// The `Object` *pattern* and the `Object` type now agree: `1` neither inhabits the type nor matches the
+// pattern.
 1 is Object
 //│ = false
 
