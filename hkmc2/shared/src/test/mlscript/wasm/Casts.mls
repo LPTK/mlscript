@@ -130,6 +130,37 @@ useBox(sccF(3))
 //│ = 42
 
 
+// An adapted example of the above, but with `Int31` and `Int32` instead.
+// This will result in a compilation error as the two `Int{31,32}` types have no common representation, causing
+// `TailRecOpt` to emit errors when inserting casts to reconcile the types, and `WatBuilder` to also emit errors since
+// the types are incompatible.
+:ge
+fun sccF(): Int31 = wasm.ref.i31(sccG())
+fun sccG(): Int32 = wasm.i31.get_s(sccF()) + wasm.i32.const(1)
+//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Unknown' to unrelated type 'Int32'
+//│ ═══[COMPILATION ERROR] Types 'Int31' and 'Int32' have no common representation
+//│ ╔══[COMPILATION ERROR] Types 'Int31' and 'Int32' have no common representation
+//│ ║  l.138: 	fun sccF(): Int31 = wasm.ref.i31(sccG())
+//│ ╙──       	    ^^^^
+//│ ╔══[COMPILATION ERROR] Types 'Int31' and 'Int32' have no common representation
+//│ ║  l.139: 	fun sccG(): Int32 = wasm.i31.get_s(sccF()) + wasm.i32.const(1)
+//│ ╙──       	    ^^^^
+//│ ═══[COMPILATION ERROR] Types 'Int31' and 'Int32' have no common representation
+//│ ═══[COMPILATION ERROR] Types 'Int31' and 'Int32' have no common representation
+//│ ╔══[COMPILATION ERROR] Types 'Int31' and 'Int32' have no common representation
+//│ ║  l.138: 	fun sccF(): Int31 = wasm.ref.i31(sccG())
+//│ ╙──       	    ^^^^
+//│ ╔══[COMPILATION ERROR] Types 'Int31' and 'Int32' have no common representation
+//│ ║  l.139: 	fun sccG(): Int32 = wasm.i31.get_s(sccF()) + wasm.i32.const(1)
+//│ ╙──       	    ^^^^
+//│ ╔══[COMPILATION ERROR] Wasm function `sccF` expects result to have type `(ref null i31)`, but got `(ref null any)`
+//│ ║  l.138: 	fun sccF(): Int31 = wasm.ref.i31(sccG())
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Wasm function `sccG` expects result to have type `i32`, but got `(ref null any)`
+//│ ║  l.139: 	fun sccG(): Int32 = wasm.i31.get_s(sccF()) + wasm.i32.const(1)
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
 // The class must be defined in this block: one from an earlier block has no `typeinfo` global
 // registered, so no test can be emitted for it. That `:checkCasts` really replaces the bare `ref.cast`
 // with a runtime test is what the pair below observes; here the test only has to pass.
@@ -191,10 +222,10 @@ wasm.ref.i31(wasm.i32.const(7))
 :checkCasts
 wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
-//│ ║  l.192: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.223: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	                ^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Unknown' to unrelated type 'Int32'
-//│ ║  l.192: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.223: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	             ^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
 //│ ═══[COMPILATION ERROR] Operand #1 of wasm intrinsic 'ref.i31' must be of type 'Int32'

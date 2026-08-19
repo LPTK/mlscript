@@ -810,17 +810,16 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   )(using Raise): Expr =
     (bodyWat.resultTypes, declared) match
       case (Seq(ty), Seq(decl)) if !ty.isSubtypeOf(decl.valtype) =>
-        val msgs = Ls(
-          msg"Wasm function `${sym.nme}` expects result to have type `${
-              decl.valtype.toWat.mkString()
-            }`, but got `${ty.toWat.mkString()}`" -> sym.toLoc,
+        // The IR should already contain a `Cast` if the coercion was representable, so this is a type mismatch that
+        // cannot be reconciled.
+        errExpr(
+          Ls(
+            msg"Wasm function `${sym.nme}` expects result to have type `${
+                decl.valtype.toWat.mkString()
+              }`, but got `${ty.toWat.mkString()}`" -> sym.toLoc,
+          ),
+          extraInfo = S(bodyWat.toWat.mkString()),
         )
-        (ty, decl.valtype) match
-          // ICE: A ref<->ref mismatch should be reconciled by a `Cast` during lowering.
-          case (_: RefType, _: RefType) => internalErrExpr(msgs, extraInfo = S(bodyWat.toWat.mkString()))
-          // A primitive is never compatible with a reference. Since this is reachable from user code
-          // (`fun takeTop(m: Int32) = m`), we report it as a user error.
-          case _ => errExpr(msgs, extraInfo = S(bodyWat.toWat.mkString()))
       case _ =>
         softAssert(declared.sizeIs == 1, s"Wasm function `${sym.nme}` with multiple declared results not supported yet")
         bodyWat
@@ -1508,18 +1507,6 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       extraInfo: => Opt[Any] = N,
   )(using Raise)(using Line): Expr =
     raise(ErrorReport(errMsgs, source = Diagnostic.Source.Compilation, extraInfo = extraInfo))
-    unreachable
-
-  /** Raises an [[InternalError]] with the given `errMsgs` and `extraInfo`, and emits an `unreachable` instruction.
-    *
-    * Used when any invariants in the [[WatBuilder]] is violated, and as such fails a difftest even if it is marked as
-    * `:ge`.
-    */
-  def internalErrExpr(
-      errMsgs: Ls[Message -> Opt[Loc]],
-      extraInfo: => Opt[Any] = N,
-  )(using Raise)(using Line): Expr =
-    raise(InternalError(errMsgs, source = Diagnostic.Source.Compilation, extraInfo = extraInfo))
     unreachable
 
   /** Returns the local or global index for a given symbol `l`. */
