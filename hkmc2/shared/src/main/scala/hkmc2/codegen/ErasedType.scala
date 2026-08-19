@@ -279,28 +279,6 @@ object ErasedType:
       else S(true)
     else loop(actual, Set.empty)
 
-  /** Whether a runtime class of `sym` is a subtype of the runtime `Object` type.
-    *
-    * This differs from [[`isSubtypeOf`]] in that it returns `false` for virtual classes (e.g. `Int`), which are not
-    * subtypes of the runtime `Object` type in both JS and Wasm backends.
-    */
-  def isRuntimeSubtypeOfObject(sym: BaseTypeSymbol)(using Ctx): Bool = sym match
-    // TODO: `virtualClasses` omits `BigInt` and `Symbol`, which are also primitively represented in JS and so
-    //  also fail `instanceof Object`. Pre-existing, and shared with `JSBuilder`'s own dispatch table, which
-    //  carries the longer list. Unifying the two is left to a separate change.
-    case cls: ClassSymbol => !ctx.builtins.virtualClasses.contains(cls)
-    case _: ModuleOrObjectSymbol => true
-
-  /** The runtime counterpart of [[`isSubtypeOf`]], determining if the type `actual` is a subtype of `expected` at
-    * runtime.
-    */
-  def isRuntimeSubtypeOf(actual: TypeSymbol, expected: TypeSymbol)(using Ctx, State): Opt[Bool] =
-    if expected is ctx.builtins.Object then actual match
-      case base: BaseTypeSymbol => S(isRuntimeSubtypeOfObject(base))
-      // * Aliases are canonicalized away before reaching the IR; one arriving here is undecidable.
-      case _: TypeAliasSymbol => N
-    else isSubtypeOf(actual, expected)
-
   /** Determines whether a cast is needed to make a value of erased type `actual` fit an `expected` slot.
     *
     * Returns `S(true)` if a cast is needed, `S(false)` if no cast is needed, or `N` if the two types are unrelated.

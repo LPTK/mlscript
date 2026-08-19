@@ -547,11 +547,10 @@ object Normalization:
   /**
     * Subtyping relations used in normalization and coverage checking.
     */
-  def compareCasePattern(lhs: FlatPattern, rhs: FlatPattern)(using ctx: Elaborator.Ctx): Bool =
+  def compareCasePattern(lhs: FlatPattern, rhs: FlatPattern)(using ctx: Elaborator.Ctx)(using State): Bool =
     import codegen.ErasedType, FlatPattern.*, ctx.builtins as blt
     (lhs, rhs) match
-    case (ClassLike(_, cs, _, _), ClassLike(symbol = blt.`Object`)) =>
-      ErasedType.isRuntimeSubtypeOfObject(cs)
+    case (ClassLike(_, cs, _, _), ClassLike(symbol = blt.`Object`)) => ErasedType.isSubtypeOf(cs, blt.Object).contains(true)
     case (Tuple(n1, false), Tuple(n2, false)) if n1 === n2 => true
     case (Tuple(n1, _), Tuple(n2, true)) if n2 <= n1 => true
     // TODO(Derppening): Do we limit IntLit to (1 << 31) - 1 for `Int31`?
@@ -584,7 +583,7 @@ object Normalization:
     * Returns `true` for clear-cut cases (e.g., different literals,
     * incompatible tuple sizes, sibling classes under single inheritance).
     */
-  def areProvablyDisjoint(lhs: FlatPattern, rhs: FlatPattern)(using ctx: Elaborator.Ctx): Bool =
+  def areProvablyDisjoint(lhs: FlatPattern, rhs: FlatPattern)(using ctx: Elaborator.Ctx)(using State): Bool =
     import FlatPattern.*
     (lhs, rhs) match
     case (Lit(l1), Lit(l2)) => !(l1 === l2)
