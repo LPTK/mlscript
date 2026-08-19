@@ -69,9 +69,12 @@ b.y
 
 :fixme
 b.x
-//│ ╔══[COMPILATION ERROR] Instance of class definition 'Bar' does not contain member 'x'
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.71: 	b.x
-//│ ╙──      	 ^^
+//│ ║        	 ^^
+//│ ╟── Instance of class 'Bar' does not contain member 'x'
+//│ ║  l.63: 	let b = new Bar(123)
+//│ ╙──      	        ^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 b.z
@@ -82,9 +85,12 @@ b.z
 class Baz extends Bar(42) {
   val a = [this.z, this.x]
 }
-//│ ╔══[COMPILATION ERROR] Class definition 'Baz' does not contain member 'x'
-//│ ║  l.83: 	  val a = [this.z, this.x]
-//│ ╙──      	                       ^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.86: 	  val a = [this.z, this.x]
+//│ ║        	                       ^^
+//│ ╟── Class definition 'Baz' does not contain member 'x'
+//│ ║  l.86: 	  val a = [this.z, this.x]
+//│ ╙──      	          ^^^^^^^^^^^^^^^^
 
 
 
@@ -99,7 +105,7 @@ module Outer {
 :e
 object Derived extends Outer.Inner1
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
-//│ ║  l.100: 	object Derived extends Outer.Inner1
+//│ ║  l.106: 	object Derived extends Outer.Inner1
 //│ ╙──       	                       ^^^^^^^^^^^^
 
 :sr
@@ -113,9 +119,12 @@ object Derived extends Outer.Inner1(11)
 
 :fixme
 Derived.x
-//│ ╔══[COMPILATION ERROR] Object 'Derived' does not contain member 'x'
-//│ ║  l.115: 	Derived.x
-//│ ╙──       	       ^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.121: 	Derived.x
+//│ ║         	       ^^
+//│ ╟── Object 'Derived' does not contain member 'x'
+//│ ║  l.113: 	object Derived extends Outer.Inner1(11)
+//│ ╙──       	       ^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 Derived."x"
@@ -123,7 +132,7 @@ Derived."x"
 :e
 object Derived extends Outer.Inner2
 //│ ╔══[COMPILATION ERROR] Extending a partially applied class is not supported
-//│ ║  l.124: 	object Derived extends Outer.Inner2
+//│ ║  l.133: 	object Derived extends Outer.Inner2
 //│ ╙──       	                       ^^^^^^^^^^^^
 
 :sr

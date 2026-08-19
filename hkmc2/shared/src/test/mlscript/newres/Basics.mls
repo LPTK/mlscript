@@ -61,9 +61,13 @@ Predef.id(1)
 
 :e
 Predef.idd(1)
-//│ ╔══[COMPILATION ERROR] Module 'Predef' does not contain member 'idd'
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.63: 	Predef.idd(1)
-//│ ╙──      	      ^^^^
+//│ ║        	      ^^^^
+//│ ╟── Module 'Predef' does not contain member 'idd'
+//│ ║  in ../../mlscript-compile/Predef.mls
+//│ ║  l.15: 	module Predef with ...
+//│ ╙──      	       ^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
@@ -110,26 +114,32 @@ p.id
 
 :e
 (1).id
-//│ ╔══[COMPILATION ERROR] Integer literal does not contain member 'id'
-//│ ║  l.112: 	(1).id
-//│ ╙──       	   ^^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.116: 	(1).id
+//│ ║         	   ^^^
+//│ ╟── Integer literal does not contain member 'id'
+//│ ║  l.116: 	(1).id
+//│ ╙──       	 ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.119: 	1.id
+//│ ║  l.126: 	1.id
 //│ ╙──       	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.119: 	1.id
+//│ ║  l.126: 	1.id
 //│ ╙──       	  ^^
 //│ = 1
 
 :fixme
 "ha ".repeat(2)
-//│ ╔══[COMPILATION ERROR] String literal does not contain member 'repeat'
-//│ ║  l.129: 	"ha ".repeat(2)
-//│ ╙──       	     ^^^^^^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.136: 	"ha ".repeat(2)
+//│ ║         	     ^^^^^^^
+//│ ╟── String literal does not contain member 'repeat'
+//│ ║  l.136: 	"ha ".repeat(2)
+//│ ╙──       	^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

@@ -149,7 +149,8 @@ class NewResolver:
           sel.isErroneous = true
           raise:
             ErrorReport(
-              msg"${shape.describe.capitalize} does not contain member '${sel.id.name}'" -> sel.id.toLoc :: Nil,
+              msg"Resolution error in ${sel.describe}" -> sel.id.toLoc ::
+              msg"${shape.describe.capitalize} does not contain member '${sel.id.name}'" -> shape.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
           // N
     })
@@ -183,6 +184,7 @@ class NewResolver:
                       case args: Tup =>
                         zipArgs(ps.params, ps.restParam, args.fields, src)
                       case _ => ???
+                    // TODO: mv to NewShape def
                     lazy val members: Map[Str, BlockMemberSymbol] =
                       receiver match
                       case ds: DefnShape =>
@@ -418,6 +420,8 @@ class NewResolver:
     case sh: ShapeHost =>
       sh.shapes.foreach(listener)
       sh.shapeListeners += listener
+    case Blk(sts, rs) =>
+      listen(rs, listener)
     case Missing =>
       () // FIXME: Currently get this from light-elaborated Predef import
     case _ =>

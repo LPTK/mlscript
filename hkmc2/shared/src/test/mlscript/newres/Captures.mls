@@ -4,9 +4,59 @@
 :sr
 fun foo(x) =
   print(x)
+  x
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = ⟨Predef⁰.⟩print⁰^foo¹(x⁰)‹app⁰›
+//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = { ⟨Predef⁰.⟩print⁰^foo¹(x⁰)‹app⁰›, x⁰ }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+:de
+:sr
+foo(1)
+//│ Elab block List(App(Ident(foo),Tup(List(IntLit(1))))) LocalScope(block:3)
+//│ | Elab term App(Ident(foo),Tup(List(IntLit(1))))
+//│ | | Elab subterm App(Ident(foo),Tup(List(IntLit(1))))
+//│ | | | Elab subterm Ident(foo)
+//│ | | | ~> MemberRef(member:foo‹44›)
+//│ | | | Elab subterm Tup(List(IntLit(1)))
+//│ | | | | Elab term IntLit(1)
+//│ | | | | | Elab subterm IntLit(1)
+//│ | | | | | ~> Lit(IntLit(1))
+//│ | | | | ~> Lit(IntLit(1))
+//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
+//│ | | | listenTerm: trm = member:foo‹44›#0
+//│ | | | listen: trm = member:foo‹44›#0
+//│ | | | listenBMS: bms = function
+//│ | | | listenedBMS: bms = function
+//│ | | | appShape: lhs = DefnShape(term definition 'foo'), args = Tup(List(Fld(‹›,Lit(IntLit(1)),None))), res = App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ | | | Zipping ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None) with List(Fld(‹›,Lit(IntLit(1)),None))
+//│ | | | listenTerm: trm = 1
+//│ | | | listen: trm = 1
+//│ | | | zipArg: p = x‹46›, trm = 1, sh = Lit(IntLit(1))
+//│ | | | appShape isSaturated? true; head? DefnShape(term definition 'foo')
+//│ | | | lhs false List(ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None))
+//│ | | | appShape: td.body = Some(Blk(List(App(Capture(SynthSel(MemberRef(member:Predef),Ident(print)),term:foo‹45›),Tup(List(Fld(‹›,SimpleRef(x‹46›),None))))),SimpleRef(x‹46›)))
+//│ | | | listenTerm: trm = { (member:Predef.)print‹member:print›^term:foo⁰‹45›(x‹46›#0); x‹46›#0 }
+//│ | | | listen: trm = { (member:Predef.)print‹member:print›^term:foo⁰‹45›(x‹46›#0); x‹46›#0 }
+//│ | | | listen: trm = x‹46›#0
+//│ | | ~> App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ | ~> App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ ~> Blk(List(),App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None)))))
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   foo⁰(1)‹app¹›
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 1
+//│ = 1
+
+:fixme
+foo(Predef).id
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.52: 	foo(Predef).id
+//│ ║        	           ^^^
+//│ ╟── Integer literal does not contain member 'id'
+//│ ║  l.15: 	foo(1)
+//│ ╙──      	    ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 :sr
@@ -16,10 +66,10 @@ fun foo(x) =
     foo(x - 1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun foo²::foo³(x¹) ‹flow:foo¹› = if {
-//│     let scrut⁰ = >(x¹, 0)‹app¹›;
+//│     let scrut⁰ = >(x¹, 0)‹app²›;
 //│     scrut⁰ is true do {
-//│       ⟨Predef⁰.⟩print⁰^foo³(x¹)‹app²›,
-//│       foo²^foo³(-(x¹, 1)‹app³›)‹app⁴›
+//│       ⟨Predef⁰.⟩print⁰^foo³(x¹)‹app³›,
+//│       foo²^foo³(-(x¹, 1)‹app⁴›)‹app⁵›
 //│     };
 //│     else ()
 //│   }
@@ -33,8 +83,8 @@ fun foo(x) =
   bar
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun foo⁴::foo⁵(x²) ‹flow:foo²› = {
-//│     ⟨Predef⁰.⟩print⁰^foo⁵(x²)‹app⁵›,
-//│     fun bar⁰::bar¹(y⁰) ‹flow:bar⁰› = +(x²^bar¹, y⁰)‹app⁶›,
+//│     ⟨Predef⁰.⟩print⁰^foo⁵(x²)‹app⁶›,
+//│     fun bar⁰::bar¹(y⁰) ‹flow:bar⁰› = +(x²^bar¹, y⁰)‹app⁷›,
 //│     bar⁰
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -48,8 +98,8 @@ class foo(x) {
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class foo⁶::foo⁷(x³) {
 //│     @privateval x⁴::x⁵ ‹flow:x⁰› = x³,
-//│     ⟨Predef⁰.⟩print⁰(⟨foo⁷.⟩x⁴)‹app⁷›,
-//│     fun bar²::bar³(y¹) ‹flow:bar¹› = +(⟨foo⁷.⟩x⁴^bar³, y¹)‹app⁸›
+//│     ⟨Predef⁰.⟩print⁰(⟨foo⁷.⟩x⁴)‹app⁸›,
+//│     fun bar²::bar³(y¹) ‹flow:bar¹› = +(⟨foo⁷.⟩x⁴^bar³, y¹)‹app⁹›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -58,7 +108,7 @@ class foo(x) {
 fun foo(x) = y =>
   x + y
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁸::foo⁹(x⁶) ‹flow:foo³› = (y²) => +(x⁶, y²)‹app⁹›
+//│   fun foo⁸::foo⁹(x⁶) ‹flow:foo³› = (y²) => +(x⁶, y²)‹app¹⁰›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

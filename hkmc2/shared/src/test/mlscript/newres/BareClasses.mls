@@ -47,9 +47,12 @@ Foo
 
 :e
 Foo.b
-//│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.49: 	Foo.b
-//│ ╙──      	   ^^
+//│ ║        	   ^^
+//│ ╟── Class 'Foo' does not contain member 'b'
+//│ ║  l.30: 	class Foo {
+//│ ╙──      	      ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 let f = Foo
@@ -57,9 +60,12 @@ let f = Foo
 
 :e
 f.b
-//│ ╔══[COMPILATION ERROR] Class 'Foo' does not contain member 'b'
-//│ ║  l.59: 	f.b
-//│ ╙──      	 ^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.62: 	f.b
+//│ ║        	 ^^
+//│ ╟── Class 'Foo' does not contain member 'b'
+//│ ║  l.30: 	class Foo {
+//│ ╙──      	      ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
@@ -94,12 +100,12 @@ class Foo {
   }
 }
 //│ ╔══[COMPILATION ERROR] Unsupported constructor in this position.
-//│ ║  l.92: 	  constructor(val a) {
+//│ ║  l.98: 	  constructor(val a) {
 //│ ║        	  ^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.93: 	    val b = a + 1
+//│ ║  l.99: 	    val b = a + 1
 //│ ║        	^^^^^^^^^^^^^^^^^
-//│ ║  l.94: 	  }
-//│ ╙──      	^^^
+//│ ║  l.100: 	  }
+//│ ╙──       	^^^
 
 
 // :fixme
@@ -117,7 +123,7 @@ class Foo {
 :e
 let f = Foo(1)
 //│ ╔══[COMPILATION ERROR] Class 'Foo' cannot called like a function.
-//│ ║  l.118: 	let f = Foo(1)
+//│ ║  l.124: 	let f = Foo(1)
 //│ ╙──       	        ^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo6 cannot be invoked without 'new'
 //│ f = undefined
@@ -129,9 +135,12 @@ let f = new Foo(1)
 :fixme
 :sr
 f.a
-//│ ╔══[COMPILATION ERROR] Instance of class definition 'Foo' does not contain member 'a'
-//│ ║  l.131: 	f.a
-//│ ╙──       	 ^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.137: 	f.a
+//│ ║         	 ^^
+//│ ╟── Instance of class 'Foo' does not contain member 'a'
+//│ ║  l.132: 	let f = new Foo(1)
+//│ ╙──       	        ^^^^^^^^^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f².aˀ
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

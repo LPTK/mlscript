@@ -360,6 +360,7 @@ sealed trait TermShape extends Shape:
     case ns: NewShape => ns.receiver.unappliedParams.drop(ns.argss.length)
     case _ => Nil
   def isSaturated: Bool = unappliedParams.isEmpty
+  def toLoc: Opt[Loc]
 // sealed trait TermShape:
 //   def describe: Str = this match
 //     case app: AppShape => s"application of ${app.lhs.describe} to ${app.args.describe}"
@@ -369,6 +370,7 @@ sealed trait TermShape extends Shape:
 class ErrShape(val err: ErrorReport) extends NonAppTermShape:
   def describe: Str = s"error: ${err.mainMsg}"
   def members: Map[Str, BlockMemberSymbol] = Map.empty
+  def toLoc: Opt[Loc] = N
 
 class AppShape(val receiver: TermShape, val args: Term, val src: Term.App)(using DebugPrinter) extends TermShape:
   lazy val members: Map[Str, BlockMemberSymbol] =
@@ -393,14 +395,16 @@ class AppShape(val receiver: TermShape, val args: Term, val src: Term.App)(using
   def describe: Str =
     // s"application of ${receiver.describe}"
     s"instance of ${applicationHead.describe}"
+  def toLoc: Opt[Loc] = src.toLoc
   override def toString: String = s"AppShape($receiver, ${args.showDbg})"
   // def target: Opt[AppTarget]
 
 abstract class NewShape(val receiver: TermShape, val cls: ClassLikeSymbol, val argss: Ls[Term], val src: Term.New)(using DebugPrinter) extends TermShape:
   def describe: Str =
     // s"instantiation of ${receiver.describe}"
-    s"instance of ${cls.defn.get.describe}"
+    s"instance of ${cls.defn.get.describeRef}"
   override def toString: String = s"NewNewShape(${cls.showDbg}, $argss)"
+  def toLoc: Opt[Loc] = src.toLoc
 
 class SymShape(val sym: BlockMemberSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
@@ -418,6 +422,7 @@ class BaseShape(val defn: ClassLikeDef, val ext: Opt[TermShape]) extends NonAppT
   def describe: Str = s"${defn.describe}"
   lazy val members: Map[Str, BlockMemberSymbol] =
     ext.fold(Map.empty)(_.members) ++ defn.body.members
+  def toLoc: Opt[Loc] = defn.toLoc
 
 class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends NonAppTermShape:
   // def describe: Str = s"${defn.describe}"
@@ -444,6 +449,7 @@ class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends NonAppTer
       ext.fold(Map.empty)(_.members) ++ defn.body.members
     case defn: TermDefinition => ???
     case _ => Map.empty
+  def toLoc: Opt[Loc] = defn.sym.toLoc
 
 /* 
 class RefinedShape(val base: TermShape, val refinements: Ls[Str -> Term]) extends NonAppTermShape:
@@ -467,6 +473,7 @@ class IntroShape(val trm: IntroTerm) extends NonAppTermShape:
       ???
     // case newTerm: Term.New =>
     //   Map.empty // TODO
+  def toLoc: Opt[Loc] = trm.toLoc
 
 sealed trait LitShape extends NonAppTermShape:
   self: Term.Lit =>
@@ -862,6 +869,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       case MemberRef(sym) => "member reference"
       case App(lhs, rhs) => "application"
       case TyApp(lhs, targs) => "type application"
+      case NewSel(pre, nme) => "selection"
       case Sel(pre, nme) => "selection"
       case SynthSel(pre, nme) => "selection"
       case DynSel(o, f, _) => "dynamic selection"
@@ -1413,6 +1421,14 @@ sealed abstract class Definition extends Declaration, Statement:
     case mod @ Annot.Modifier(Keyword.`declare`) => mod
   def hasStagedModifier: Opt[Annot.Modifier] = annotations.collectFirst:
     case mod @ Annot.Modifier(Keyword.`staged`) => mod
+  def describeRef: Str = this match
+    case td: TermDefinition => s"term '${td.sym.nme}'"
+    case cls: ClassDef => s"class '${cls.sym.nme}'"
+    case mod: ModuleOrObjectDef =>
+      if mod.kind is Mod then s"module '${mod.sym.nme}'"
+      else s"object '${mod.sym.nme}'"
+    case td: TypeDef => s"type '${td.bsym.nme}'"
+    case pat: PatternDef => s"pattern '${pat.sym.nme}'"
 
 sealed trait CompanionValue extends Definition
 
