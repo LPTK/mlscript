@@ -435,9 +435,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         case td: TypeDef => // * Type definitions are erased
           blockImpl(stats, res)
     
-    // TODO(Derppening): Functions are hoisted ahead of `rest` so mutually-recursive definitions resolve. A consequence
-    //                   is that a hoisted closure body may observe a `rest`-bound local before its initializer seeds
-    //                   it, permanently poisoning its erased type
     blockImpl(imps ::: funs ::: rest, res)
   
   def getClassParamLists(cls: Path): Ls[ParamList] =
