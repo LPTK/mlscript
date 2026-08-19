@@ -319,5 +319,3 @@ assert term3 is Steps as r
 //│ > new Add(Lit(10), Lit(5))
 //│ > reduce 10 + 5 = 15
 //│ > new Lit(15)
-
-
