@@ -10,7 +10,7 @@ import hkmc2.utils.*
 
 import Elaborator.State
 import Tree.Ident
-import hkmc2.codegen.{ErasedType, ErasedValueType, HasErasedType, HasOnceMutableErasedType}
+import hkmc2.codegen.{ErasedType, ErasedFuncType, ErasedValueType, HasErasedType, HasOnceMutableErasedType}
 import hkmc2.utils.SymbolSubst
 
 
@@ -256,8 +256,10 @@ class VarSymbol(val id: Ident, override val erasedType: Opt[ErasedValueType])(us
   // override def toString: Str = s"$name@$uid"
   override def subst(using s: SymbolSubst): VarSymbol = s.mapVarSym(this)
 
+// TODO(Derppening): `BuiltinSymbol` should have more than one `erasedType` for each `binary`, `unary`, and `nullary`
+//                   case.
 class BuiltinSymbol
-    (val nme: Str, val binary: Bool, val unary: Bool, val nullary: Bool, val functionLike: Bool, val isPure: Bool, override val erasedType: Opt[ErasedType])(using State)
+    (val nme: Str, val binary: Bool, val unary: Bool, val nullary: Bool, val functionLike: Bool, val isPure: Bool, override val erasedType: Opt[ErasedFuncType])(using State)
     extends Symbol with HasErasedType:
   def toLoc: Option[Loc] = N
   override def prefix: Str = "builtin:"
