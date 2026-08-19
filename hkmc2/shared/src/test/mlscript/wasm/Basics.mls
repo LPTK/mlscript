@@ -108,14 +108,10 @@ addOne(41) + useIt(41)
 //│         (ref.i31
 //│           (i32.const 1)))))
 //│   (func $useIt (export "useIt") (type $useIt) (param $v (ref null any)) (result (ref null any))
-//│     (local $tmp (ref null i31))
-//│     (block (result (ref null any))
-//│       (local.set $tmp
+//│     (return
+//│       (call $addOne
 //│         (ref.cast (ref null i31)
-//│           (local.get $v)))
-//│       (return
-//│         (call $addOne
-//│           (local.get $tmp)))))
+//│           (local.get $v)))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null any))
 //│     (local $tmp1 (ref null any))
@@ -281,26 +277,20 @@ getX(Foo(Bar(42)))
 //│             (local.get $f))))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null any))
-//│     (local $tmp1 (ref $Bar))
-//│     (local $tmp2 (ref null any))
-//│     (local $tmp3 (ref $Foo))
+//│     (local $tmp1 (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $tmp
 //│         (call $Bar_ctor
 //│           (ref.i31
 //│             (i32.const 42))))
 //│       (local.set $tmp1
-//│         (ref.cast (ref $Bar)
-//│           (local.get $tmp)))
-//│       (local.set $tmp2
 //│         (call $Foo_ctor
-//│           (local.get $tmp1)))
-//│       (local.set $tmp3
-//│         (ref.cast (ref $Foo)
-//│           (local.get $tmp2)))
+//│           (ref.cast (ref $Bar)
+//│             (local.get $tmp))))
 //│       (return
 //│         (call $getX
-//│           (local.get $tmp3)))))
+//│           (ref.cast (ref $Foo)
+//│             (local.get $tmp1))))))
 //│   (elem $Bar_init declare func $Bar_init)
 //│   (elem $Bar_ctor declare func $Bar_ctor)
 //│   (elem $Foo_init declare func $Foo_init)
@@ -437,7 +427,7 @@ fun bar() = 42
 fun foo() = bar
 foo()()
 //│ ╔══[COMPILATION ERROR] Returning function instances is not supported
-//│ ║  l.437: 	fun foo() = bar
+//│ ║  l.427: 	fun foo() = bar
 //│ ╙──       	            ^^^
 
 
@@ -449,8 +439,8 @@ fun takeTop(m: Int32) = m
 takeTop(1)
 //│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.449: 	takeTop(1)
+//│ ║  l.439: 	takeTop(1)
 //│ ╙──       	        ^
 //│ ╔══[COMPILATION ERROR] Wasm function `takeTop` expects result to have type `(ref null any)`, but got `i32`
-//│ ║  l.448: 	fun takeTop(m: Int32) = m
+//│ ║  l.438: 	fun takeTop(m: Int32) = m
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^

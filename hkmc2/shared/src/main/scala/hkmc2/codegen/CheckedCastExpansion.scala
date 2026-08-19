@@ -54,7 +54,12 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
       case _: ErasedType.Primitive | ErasedType.Unknown | _: ErasedType.Incompatible =>
         CheckKind.Inexpressible
 
-  override def applyResult(r: Result)(k: Result => Block): Block = r match
+  override def applyResult(r: Result)(k: Result => Block): Block =
+    r match 
+      case p: Path => applyPath(p)(k)
+      case _ => super.applyResult(r)(k)
+
+  override def applyPath(p: Path)(k: Path => Block): Block = p match
     case Cast(value, target, true) =>
       super.applyResult(value): value2 =>
         checkFor(target) match
@@ -77,6 +82,6 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
                 // * The scrutinee of a `Match` must be a path, and it must be evaluated only once.
                 val sym = TempSymbol(N, erasedType = res.erasedValueType, "castScrut")
                 Scoped(Set(sym), Assign(sym, res, guarded(sym.asSimpleRef)))
-    case _ => super.applyResult(r)(k)
+    case _ => super.applyPath(p)(k)
 
 end CheckedCastExpansion

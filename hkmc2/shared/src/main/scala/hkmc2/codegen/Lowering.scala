@@ -201,7 +201,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     LoweringCtx.nestFunc(returnType).givenIn:
       term(t):
         new TailOp(transfersControl = true):
-          override def apply(k: Result): Block = castTo(k, returnType, N)(Ret)
+          override def apply(k: Result): Block = Ret(castTo(k, returnType, N))
   
   def parentConstructor(parentClsPath: Path, cls: Term, args: Ls[Term])(using LoweringCtx) =
     lowerSuperCtorCall(
@@ -296,9 +296,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
               subTerm_nonTail(bod)(r =>
                 // Assign(td.sym, r,
                 //   term(st.Blk(stats, res))(k)))
-                castToPath(r, td.tsym.erasedType, bod.toLoc): cr =>
-                  Define(ValDefn(td.tsym, td.sym, cr)(cfgOverride, td.annotations),
-                    blockImpl(stats, res)))(using LoweringCtx.nestFunc(N))
+                Define(
+                  ValDefn(td.tsym, td.sym, castTo(r, td.tsym.erasedType, bod.toLoc))(cfgOverride, td.annotations),
+                  blockImpl(stats, res),
+                ),
+              )(using LoweringCtx.nestFunc(N))
             case syntax.Fun =>
               val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme), declaredReturnType(td.tsym))
               val cfgOverride = td.extraAnnotations.collectFirst:
@@ -609,20 +611,20 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     target match
     case sym: TermSymbol if (sym.k is MutVal) || (sym.k is LetBind) =>
       sym.owner match
-      case S(owner) => castTo(rhs, sym.erasedType, loco)(r => AssignField(owner.asThis, sym.id, r, rest)(S(sym)))
+      case S(owner) => AssignField(owner.asThis, sym.id, castTo(rhs, sym.erasedType, loco), rest)(S(sym))
       case N => nope
     case sym: LocalVarSymbol =>
-      castTo(rhs, sym.erasedType, loco)(r => Assign(sym, r, rest))
+      Assign(sym, castTo(rhs, sym.erasedType, loco), rest)
     case sym => nope
 
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
     sym match
     case sym: TermSymbol =>
       sym.owner match
-      case S(owner) => castTo(rhs, sym.erasedType, sym.toLoc)(r => AssignField(owner.asThis, sym.id, r, rest)(S(sym)))
+      case S(owner) => AssignField(owner.asThis, sym.id, castTo(rhs, sym.erasedType, sym.toLoc), rest)(S(sym))
       case N => lastWords(s"tried to define top-level symbol ${sym.showDbg} in a local scope")
     case sym: LocalVarSymbol =>
-      castTo(rhs, sym.erasedType, sym.toLoc)(r => Assign(sym, r, rest))
+      Assign(sym, castTo(rhs, sym.erasedType, sym.toLoc), rest)
     case sym =>
       lastWords(s"tried to define non-variable symbol ${sym.showDbg}")
   
@@ -987,8 +989,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case sel @ Sel(prefix, nme) =>
         subTerm(prefix): p =>
           subTerm_nonTail(rhs): r =>
-            castTo(r, fieldErasedType(resolvedSelectionSymbol), sel.toLoc)(cr =>
-              AssignField(p, nme, cr, k(unit))(resolvedSelectionSymbol))
+            AssignField(
+              p,
+              nme,
+              castTo(r, fieldErasedType(resolvedSelectionSymbol), sel.toLoc),
+              k(unit),
+            )(resolvedSelectionSymbol)
       case sel @ SynthSel(prefix, nme) =>
         // * See the doc in the `term` case for `SynthSel` for why we fall back to `sel.sym` here
         val sym = resolvedSelectionSymbol match
@@ -999,8 +1005,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         softAssert(sym.nonEmpty, s"Missing symbol for synthetic assignment target ${sel.showDbg}")
         subTerm(prefix): p =>
           subTerm_nonTail(rhs): r =>
-            castTo(r, fieldErasedType(sym), sel.toLoc)(cr =>
-              AssignField(p, memberIdent(nme, sel.sym), cr, k(unit))(sym))
+            AssignField(p, memberIdent(nme, sel.sym), castTo(r, fieldErasedType(sym), sel.toLoc), k(unit))(sym)
       case sel @ DynSel(prefix, fld, ai) =>
         subTerm(prefix): p =>
           subTerm_nonTail(fld): f =>
@@ -1009,8 +1014,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case sel @ SelProj(prefix, _, proj) =>
         subTerm(prefix): p =>
           subTerm_nonTail(rhs): r =>
-            castTo(r, fieldErasedType(resolvedSelectionSymbol), sel.toLoc)(cr =>
-              AssignField(p, memberIdent(proj, sel.sym), cr, k(unit))(resolvedSelectionSymbol))
+            AssignField(
+              p,
+              memberIdent(proj, sel.sym),
+              castTo(r, fieldErasedType(resolvedSelectionSymbol), sel.toLoc),
+              k(unit),
+            )(resolvedSelectionSymbol)
       case _ => fail:
         ErrorReport(
           msg"Unexpected left-hand side in assignment (${lhs.describe})" -> lhs.toLoc :: Nil, S(lhs),
@@ -1358,9 +1367,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 val (expTy, expRest) = expected match
                   case e :: es => (e, es)
                   case Nil => (N, Nil)
-                castToPath(ar, expTy, a.toLoc): car =>
-                  asr ::= Arg(N, car)
-                  rec(as, expRest)
+                asr ::= Arg(N, castTo(ar, expTy, a.toLoc))
+                rec(as, expRest)
               case S(_) =>
                 asr ::= Arg(spd, ar)
                 rec(as, Nil)
@@ -1411,26 +1419,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedValueType)
         Assign(l, r, k(l.asSimpleRef))
 
-  /** Inserts a [[`Cast`]] when the lowered result `r` must be downcasted to fit the `expected` erased type of the slot
-    * it flows into, then continues with `k`.
+  /** Wraps the lowered result `r` with a [[`Cast`]] when it must be downcasted to fit the `expected` erased type of the
+    * slot it flows into.
     *
-    *  - If `expected` is a subtype of `r`'s type, a downcast is inserted.
-    *  - If `expected and `r` are unrelated, a compile-time error is raised and `r` continues uncast.
-    *  - Otherwise, `r` is passed through unchanged.
+    *  - If `expected` is a subtype of `r`'s type, a `r` is wrapped with a downcast.
+    *  - If `expected and `r` are unrelated, a compile-time error is raised and `r` returns uncast.
+    *  - Otherwise, `r` is returned unchanged.
     *
     * An absent `expected` is an unannotated slot, which holds the top reference type rather than no type at all.
     */
-  def castTo(r: Result, expected: Opt[ErasedType], loc: Opt[Loc])(k: Result => Block): Block =
-    k(r.coerceTo(expected.getOrElse(ErasedType.Unknown), loc))
-
-  /** Like [[castTo]] but always continues with a `Path`, temp-binding a produced `Cast` so it can be used in
-    * argument position (a `Cast` is not itself a `Path`). */
-  def castToPath(r: Path, expected: Opt[ErasedType], loc: Opt[Loc])(k: Path => Block)(using LoweringCtx): Block =
-    castTo(r, expected, loc):
-      case p: Path => k(p)
-      case cast =>
-        val l = loweringCtx.registerTempSymbol(N, erasedType = cast.erasedValueType)
-        Assign(l, cast, k(l.asSimpleRef))
+  def castTo[R <: Result](r: R, expected: Opt[ErasedType], loc: Opt[Loc]): (R | Cast) =
+    r.coerceTo(expected.getOrElse(ErasedType.Unknown), loc)
 
   /** The declared erased type of the field a selection resolves to, if it is an annotated `TermSymbol`. */
   private def fieldErasedType(s: Opt[Symbol]): Opt[ErasedType] =
@@ -1613,7 +1612,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
       tmp2 -> pureCall(traceLogResetFn, Arg(N, prevIndentLvlSym.asSimpleRef) :: Nil),
       tmp3 -> pureCall(traceLogFn, Arg(N, retMsgSym.asSimpleRef) :: Nil)
     ) |>:
-      castTo(resSym.asSimpleRef, returnType, N)(Ret)
+      Ret(castTo(resSym.asSimpleRef, returnType, N))
     )
 
 

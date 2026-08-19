@@ -1105,9 +1105,9 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     *
     * This is the only place where [[Config.checkCasts]] is consulted: it fixes each cast's `check` flag at the
     * point the coercion is introduced, so that the transformers rebuilding casts downstream need not carry a
-    * [[Config]] of their own. See [[Cast]].
+    * [[Config]] of their own.
     */
-  def coerceTo(expected: ErasedType, loc: Opt[Loc])(using Ctx, State, Raise, Config): Result =
+  def coerceTo(expected: ErasedType, loc: Opt[Loc])(using Ctx, State, Raise, Config): this.type | Cast =
     val actual = erasedValueType_!.canonicalize
     val declared = expected.canonicalize
     ErasedType.needsCast(actual, declared) match
@@ -1240,7 +1240,7 @@ case class Instantiate(mut: Bool, cls: Path, argss: Ls[Ls[Arg]])(val metadata: I
   * - `value` is not a `Cast`.
   * - `target` must be a proper subtype of `value`'s erased type.
   */
-case class Cast private(value: Result, target: ErasedValueType, check: Bool) extends Result
+case class Cast private(value: Result, target: ErasedValueType, check: Bool) extends Path
 
 object Cast:
   /** Builds a cast while collapsing a nested cast.

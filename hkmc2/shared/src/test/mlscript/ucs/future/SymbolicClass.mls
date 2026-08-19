@@ -41,7 +41,7 @@ new 1 :: 2
 //│ ║  l.35: 	new 1 :: 2
 //│ ╙──      	         ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let tmp, tmp1; tmp = globalThis.Object.freeze(new 1()); tmp1 = tmp; return Cons1(tmp1, 2)
+//│ let tmp; tmp = globalThis.Object.freeze(new 1()); return Cons1(tmp, 2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] TypeError: 1 is not a constructor
 
@@ -58,9 +58,9 @@ new (1 :: 2)
 //│ ║  l.52: 	new (1 :: 2)
 //│ ╙──      	          ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let tmp2; tmp2 = Cons1(1, 2); return globalThis.Object.freeze(new tmp2())
+//│ let tmp1; tmp1 = Cons1(1, 2); return globalThis.Object.freeze(new tmp1())
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] TypeError: tmp2 is not a constructor
+//│ ═══[RUNTIME ERROR] TypeError: tmp1 is not a constructor
 
 :ge
 new ::(1, 2)

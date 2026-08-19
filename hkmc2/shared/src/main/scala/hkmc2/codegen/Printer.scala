@@ -220,6 +220,9 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
     case DynSelect(qual, fld, arrayIdx) =>
       doc"${print(qual)}${if arrayIdx then "." else "!"}${print(fld)}"
     case x: Value => print(x)
+    case Cast(value, target, check) =>
+      // * `as!` and `as!!` marks a cast asserted with and without a runtime check respectively.
+      doc"(${print(value)} as${if check then "!" else "!!"} ${print(target)})"
     // case _ => TODO(path)
   
   def print(result: Result)(using Scope): Document =
@@ -231,9 +234,6 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
     case inst @ Instantiate(mut, cls, argss) =>
       val chainedArgs = argss.map(args => doc"(${args.map(print).mkDocument(", ")})").mkDocument("")
       doc"${printAnnotations(inst.metadata.annotations, doc" ")}new ${if mut then "mut " else ""}${print(cls)}${chainedArgs}"
-    case Cast(value, target, check) =>
-      // * `as!` and `as!!` marks a cast asserted with and without a runtime check respectively.
-      doc"(${print(value)} as${if check then "!" else "!!"} ${print(target)})"
     case Lambda(params, body) =>
       scope.nest.givenIn:
         val allParams =

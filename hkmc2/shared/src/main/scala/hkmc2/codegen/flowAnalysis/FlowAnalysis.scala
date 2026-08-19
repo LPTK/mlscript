@@ -575,6 +575,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       case _ => applyPath(qual)
     case p: Select =>
       super.applyPath(p)
+    case c: Cast => applyResult(c.value)
     case v: Value => applyValue(v)
   
   override def applyValue(v: Value): Unit = v match
@@ -998,7 +999,6 @@ class FlowConstraintsCollector(
               idx.foreach(p => cc.constrain(processResult(p), UnknownCons))
               cc.constrain(processResult(value), UnknownCons)
           UnknownProd
-        case Cast(value, _, _) => processResult(value)
         case p: Path =>
           p match
           case refSite@FunRef(f, selectedFrom) =>
@@ -1016,6 +1016,7 @@ class FlowConstraintsCollector(
             cc.constrain(processResult(qual), UnknownCons)
             cc.constrain(processResult(fld), UnknownCons)
             UnknownProd
+          case Cast(value, _, _) => processResult(value)
           case Value.MemberRef(_, disamb) => generatedProdVars(disamb).asProdStrat
           case Value.SimpleRef(sym) => generatedProdVars(sym).asProdStrat
           case Value.This(_) => UnknownProd

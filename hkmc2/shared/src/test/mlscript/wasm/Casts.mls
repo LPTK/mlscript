@@ -61,7 +61,6 @@ useBox(id(new Box(42)))
 //│   (func $entry (export "entry") (type $entry) (result (ref null i31))
 //│     (local $tmp (ref $Box))
 //│     (local $tmp1 (ref null any))
-//│     (local $tmp2 (ref $Box))
 //│     (block (result (ref null i31))
 //│       (local.set $tmp
 //│         (call $Box_ctor
@@ -70,12 +69,10 @@ useBox(id(new Box(42)))
 //│       (local.set $tmp1
 //│         (call $id
 //│           (local.get $tmp)))
-//│       (local.set $tmp2
-//│         (ref.cast (ref $Box)
-//│           (local.get $tmp1)))
 //│       (return
 //│         (call $useBox
-//│           (local.get $tmp2)))))
+//│           (ref.cast (ref $Box)
+//│             (local.get $tmp1))))))
 //│   (elem $Box_init declare func $Box_init)
 //│   (elem $Box_ctor declare func $Box_ctor)
 //│   (elem $id declare func $id)
@@ -193,10 +190,10 @@ wasm.ref.i31(wasm.i32.const(7))
 :checkCasts
 wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
-//│ ║  l.194: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.191: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	                ^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Unknown' to unrelated type 'Int32'
-//│ ║  l.194: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.191: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	             ^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
 //│ ═══[COMPILATION ERROR] Operand #1 of wasm intrinsic 'ref.i31' must be of type 'Int32'

@@ -54,7 +54,7 @@ fun mkObj(): Object = new Boxed(1)
 val o: Object = mkObj()
 val n: Boxed = o
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Object⁰, tmp1: Boxed⁰;
+//│ let tmp: Object⁰;
 //│ define mkObj⁰ as fun mkObj¹(): Object⁰ {
 //│   return new Boxed⁰(1)
 //│ };
@@ -67,8 +67,7 @@ val n: Boxed = o
 //│ };
 //│ set tmp = mkObj¹();
 //│ define o⁰ as val o¹: Object⁰ = tmp;
-//│ set tmp1 = (o¹ as!! Boxed⁰);
-//│ define n⁰ as val n¹: Boxed⁰ = tmp1;
+//│ define n⁰ as val n¹: Boxed⁰ = (o¹ as!! Boxed⁰);
 //│ end
 
 
@@ -132,9 +131,7 @@ fun main =
   made.y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define mk⁰ as fun mk¹(a: ?): ? {
-//│   let tmp: Str⁰;
-//│   set tmp = (a as!! Str⁰);
-//│   return new Bar⁰(tmp)
+//│   return new Bar⁰((a as!! Str⁰))
 //│ };
 //│ define main⁴ as fun main⁵(): ? { let made: ?; set made = mk¹(1); return made.y﹖ };
 //│ end
@@ -256,10 +253,10 @@ fun f(x: Int32, o: Object) =
   useObj(x)
   useInt32(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.256: 	  useObj(x)
+//│ ║  l.253: 	  useObj(x)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.257: 	  useInt32(o)
+//│ ║  l.254: 	  useInt32(o)
 //│ ╙──       	           ^
 //│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -280,7 +277,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.281: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.278: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -308,10 +305,10 @@ fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
-//│ ║  l.308: 	  useObj(i)
+//│ ║  l.305: 	  useObj(i)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
-//│ ║  l.309: 	  useInt(o)
+//│ ║  l.306: 	  useInt(o)
 //│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj² as fun useObj³(o: Object⁰): ? {
@@ -334,10 +331,8 @@ fun g(i: Int, i31: Int31) =
 //│   return n
 //│ };
 //│ define g⁰ as fun g¹(i: Int⁰, i31: Int31⁰): ? {
-//│   let tmp: Int31⁰;
 //│   do useInt¹(i31);
-//│   set tmp = (i as!! Int31⁰);
-//│   return useInt31¹(tmp)
+//│   return useInt31¹((i as!! Int31⁰))
 //│ };
 //│ end
 
@@ -443,9 +438,7 @@ fun unionIntoSubtype(x: A | B) = takesSubtype(x)
 //│   return takesUnion¹(b)
 //│ };
 //│ define unionIntoSubtype⁰ as fun unionIntoSubtype¹(x: Base⁰): ? {
-//│   let tmp: A¹;
-//│   set tmp = (x as!! A¹);
-//│   return takesSubtype¹(tmp)
+//│   return takesSubtype¹((x as!! A¹))
 //│ };
 //│ end
 
@@ -474,7 +467,7 @@ fun mixedThree(x: Int32 | Str | Bool) = 0
 :ge
 fun intoMixed(n: Int32) = mixed(n)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
-//│ ║  l.475: 	fun intoMixed(n: Int32) = mixed(n)
+//│ ║  l.468: 	fun intoMixed(n: Int32) = mixed(n)
 //│ ╙──       	                                ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
@@ -568,15 +561,14 @@ annotHelper(100000)
 //│   return (annotHelper⁰(n) as!! Unit⁰)
 //│ };
 //│ define annotHelper¹ as fun annotHelper⁰(n: ?): ? {
-//│   let scrut: ?, tmp: ?, tmp1: Int⁰;
+//│   let scrut: ?, tmp: ?;
 //│   set scrut = <=⁰(n, 0);
 //│   match scrut
 //│     true =>
 //│       return runtime⁰.Unit⁰
 //│     else
 //│       set tmp = -⁰(n, 1);
-//│       set tmp1 = (tmp as!! Int⁰);
-//│       return annotLoop¹(tmp1)
+//│       return annotLoop¹((tmp as!! Int⁰))
 //│   end
 //│ };
 //│ return annotHelper⁰(100000)
@@ -601,15 +593,14 @@ sccHelper(100000)
 //│   return (r as!! Int⁰)
 //│ };
 //│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Num⁰ {
-//│   let scrut: ?, tmp: ?, tmp1: Int⁰;
+//│   let scrut: ?, tmp: ?;
 //│   set scrut = <=⁰(n, 0);
 //│   match scrut
 //│     true =>
 //│       return 0
 //│     else
 //│       set tmp = -⁰(n, 1);
-//│       set tmp1 = (tmp as!! Int⁰);
-//│       return sccLoop¹(tmp1)
+//│       return sccLoop¹((tmp as!! Int⁰))
 //│   end
 //│ };
 //│ return sccHelper⁰(100000)
@@ -622,15 +613,14 @@ sccHelper(100000)
 //│         set id = 1;
 //│         continue loopLabel
 //│       1 =>
-//│         let scrut: ?, tmp: ?, tmp1: Int⁰;
+//│         let scrut: ?, tmp: ?;
 //│         set scrut = <=⁰(param0, 0);
 //│         match scrut
 //│           true =>
 //│             return 0
 //│           else
 //│             set tmp = -⁰(param0, 1);
-//│             set tmp1 = (tmp as!! Int⁰);
-//│             set param0 = tmp1;
+//│             set param0 = (tmp as!! Int⁰);
 //│             set id = 0;
 //│             continue loopLabel
 //│         end
@@ -686,7 +676,7 @@ val done: Int = curried(1)(2)
 fun thunk: Function = (b: Int) => b + 1
 val over: Int = thunk(2)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Function⁰, tmp1: ?, tmp2: Int⁰;
+//│ let tmp: Function⁰, tmp1: ?;
 //│ define thunk⁰ as fun thunk¹(): Function⁰ {
 //│   let lambda;
 //│   @private
@@ -697,8 +687,7 @@ val over: Int = thunk(2)
 //│ };
 //│ set tmp = thunk¹();
 //│ set tmp1 = tmp(2);
-//│ set tmp2 = (tmp1 as!! Int⁰);
-//│ define over⁰ as val over¹: Int⁰ = tmp2;
+//│ define over⁰ as val over¹: Int⁰ = (tmp1 as!! Int⁰);
 //│ end
 
 
@@ -708,7 +697,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.709: 	val bad: Str = thunk
+//│ ║  l.698: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -720,7 +709,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.721: 	val notCalled: Str = called
+//│ ║  l.710: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -737,7 +726,7 @@ val notCalled: Str = called
 :checkCasts
 val n2: Boxed = o
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Boxed⁰; set tmp = (o¹ as! Boxed⁰); define n2⁰ as val n2¹: Boxed⁰ = tmp; end
+//│ define n2⁰ as val n2¹: Boxed⁰ = (o¹ as! Boxed⁰); end
 
 
 // An instantiation is typed as its class, so it cannot fill a primitive slot. Were the `Instantiate` type
@@ -745,7 +734,7 @@ val n2: Boxed = o
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.746: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.735: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {

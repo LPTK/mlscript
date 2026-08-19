@@ -37,7 +37,7 @@ pattern Steps = @compile (Step as Steps | _)
 //│               set result2$ = rhs1.result﹖;
 //│               match result2$
 //│                 MatchSuccess⁰ =>
-//│                   let inlinedVal1, a, b, c, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
+//│                   let inlinedVal1, a, b, c, tmp3, tmp4, tmp5, tmp6, tmp7;
 //│                   set bindings1 = result2$.bindings⁰;
 //│                   set tmp2 = { ...bindings, ...bindings1 };
 //│                   set a = tmp2.a﹖;
@@ -49,8 +49,7 @@ pattern Steps = @compile (Step as Steps | _)
 //│                   set tmp6 = +⁰(tmp5, " = ");
 //│                   set tmp7 = +⁰(tmp6, c);
 //│                   do Predef⁰.print⁰(tmp7);
-//│                   set tmp8 = (c as!! Int⁰);
-//│                   set inlinedVal1 = Lit⁰(tmp8);
+//│                   set inlinedVal1 = Lit⁰((c as!! Int⁰));
 //│                   return new runtime⁰.MatchSuccess⁰(inlinedVal1, null)
 //│                 else
 //│                   return new runtime⁰.MatchFailure⁰("topmost")

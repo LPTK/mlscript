@@ -111,18 +111,18 @@ callF(B())
 //│                   (local.get $receiver)))))))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null any))
-//│     (local $tmp1 (ref $A))
+//│     (local $a (ref $A))
 //│     (local $receiver (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $tmp
 //│         (call $B_ctor))
-//│       (local.set $tmp1
+//│       (local.set $a
 //│         (ref.cast (ref $A)
 //│           (local.get $tmp)))
 //│       (return
 //│         (block (result (ref null any))
 //│           (local.set $receiver
-//│             (local.get $tmp1))
+//│             (local.get $a))
 //│           (call_ref $virtual2
 //│             (ref.cast (ref $A)
 //│               (local.get $receiver))
@@ -261,7 +261,7 @@ callPrim(W())
 //│   (func $entry (export "entry") (type $entry) (result i32)
 //│     (local $tmp i32)
 //│     (local $tmp1 (ref null any))
-//│     (local $tmp2 (ref $V))
+//│     (local $a (ref $V))
 //│     (local $receiver (ref null any))
 //│     (block (result i32)
 //│       (local.set $tmp
@@ -270,13 +270,13 @@ callPrim(W())
 //│         (local.get $tmp))
 //│       (local.set $tmp1
 //│         (call $W_ctor))
-//│       (local.set $tmp2
+//│       (local.set $a
 //│         (ref.cast (ref $V)
 //│           (local.get $tmp1)))
 //│       (return
 //│         (block (result i32)
 //│           (local.set $receiver
-//│             (local.get $tmp2))
+//│             (local.get $a))
 //│           (call_ref $virtual2
 //│             (ref.cast (ref $V)
 //│               (local.get $receiver))
