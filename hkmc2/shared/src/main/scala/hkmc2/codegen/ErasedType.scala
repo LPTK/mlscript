@@ -434,7 +434,7 @@ object CanonicalErasedValueType:
     // * or to a single alias target.
     resolveTpeSymAlias.map(resolved(rsc, _)).reduceLeft((lhs, rhs) => ErasedType.lub(lhs, rhs))
 
-  /** Creates an instance from a symbol already resolved by `resolveAlias`. */
+  /** Creates an instance from an already-resolved symbol. */
   private def resolved(rsc: Bool, sym: TypeSymbol)(using Ctx, State): CanonicalErasedValueType = sym match
     // * An unresolvable alias becomes the top type.
     case _: TypeAliasSymbol => ErasedType.Unknown
