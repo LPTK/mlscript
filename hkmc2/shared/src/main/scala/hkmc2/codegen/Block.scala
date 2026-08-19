@@ -1056,7 +1056,12 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case other => other
 
   lazy val erasedType: Opt[ErasedType] = this match
-    case Value.SimpleRef(sym) => sym.erasedType
+    case Value.SimpleRef(sym) => sym match
+      case hasErasedType: HasErasedType => hasErasedType.erasedType
+      case _ => 
+        // * Some symbols may not have an erased type (e.g. `BuiltinSymbol`, where it may represent more than one
+        // * function).
+        N
     // * A reference to a class is the class *object* (a `Class`).
     case Value.MemberRef(_, _: ClassSymbol) => N
     case Value.MemberRef(_, disamb: (ModuleOrObjectSymbol | TypeAliasSymbol)) => disamb.erasedType

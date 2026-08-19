@@ -67,6 +67,7 @@ extension (sym: ValueSymbol)
         bms.tsym.flatMap(_.erasedType).flatMap(_.wasmType).getOrElse(RefType.anyref)
       case s: HasErasedType =>
         s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
+      case _ => RefType.anyref
 
   /** The Wasm value type a parameter slot for `sym` should be declared with, if typed parameters are enabled. */
   private[text] def paramType(using Ctx, State): ValType =

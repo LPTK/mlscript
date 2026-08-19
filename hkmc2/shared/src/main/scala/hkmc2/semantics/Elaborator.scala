@@ -575,8 +575,7 @@ object Elaborator:
             unary = unaryOps(op),
             nullary = false,
             functionLike = anyOps(op),
-            isPure = !impureOps(op),
-            erasedType = N)
+            isPure = !impureOps(op))
         .toMap
       baseBuiltins ++ aliasOps.map:
         case (alias, base) => alias -> baseBuiltins(base)

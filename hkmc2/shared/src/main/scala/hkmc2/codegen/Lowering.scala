@@ -652,13 +652,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     case sym: BuiltinSymbol =>
       warnStmt
       if sym.binary then
-        val (pet1, pet2) = sym.erasedType match
-          case S(ErasedType.FuncRef(_, (param1 :: param2 :: Nil) :: _, _)) => (param1, param2)
-          case _ => (N, N)
         val t1 = new Tree.Ident("arg1")
         val t2 = new Tree.Ident("arg2")
-        val p1 = Param(FldFlags.empty, VarSymbol(t1, erasedType = pet1), N, Modulefulness.none)
-        val p2 = Param(FldFlags.empty, VarSymbol(t2, erasedType = pet2), N, Modulefulness.none)
+        val p1 = Param(FldFlags.empty, VarSymbol(t1, erasedType = N), N, Modulefulness.none)
+        val p2 = Param(FldFlags.empty, VarSymbol(t2, erasedType = N), N, Modulefulness.none)
         val ps = PlainParamList(p1 :: p2 :: Nil)
         val bod = st.App(ref, st.Tup(List(st.Ref(p1.sym)(t1, 666, N).resolve, st.Ref(p2.sym)(t2, 666, N).resolve))
           (Tree.Tup(Nil // FIXME should not be required (using dummy value)
@@ -672,11 +669,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         assert(paramLists.length === 1)
         return k(Lambda(paramLists.head, bodyBlock)(Nil).withLocOf(ref))
       if sym.unary then
-        val pet1 = sym.erasedType match
-          case S(ErasedType.FuncRef(_, (param1 :: Nil) :: _, _)) => param1
-          case _ => N
         val t1 = new Tree.Ident("arg")
-        val p1 = Param(FldFlags.empty, VarSymbol(t1, erasedType = pet1), N, Modulefulness.none)
+        val p1 = Param(FldFlags.empty, VarSymbol(t1, erasedType = N), N, Modulefulness.none)
         val ps = PlainParamList(p1 :: Nil)
         val bod = st.App(ref, st.Tup(List(st.Ref(p1.sym)(t1, 666, N).resolve))
           (Tree.Tup(Nil // FIXME should not be required (using dummy value)

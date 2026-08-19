@@ -256,11 +256,9 @@ class VarSymbol(val id: Ident, override val erasedType: Opt[ErasedValueType])(us
   // override def toString: Str = s"$name@$uid"
   override def subst(using s: SymbolSubst): VarSymbol = s.mapVarSym(this)
 
-// TODO(Derppening): `BuiltinSymbol` should have more than one `erasedType` for each `binary`, `unary`, and `nullary`
-//                   case.
 class BuiltinSymbol
-    (val nme: Str, val binary: Bool, val unary: Bool, val nullary: Bool, val functionLike: Bool, val isPure: Bool, override val erasedType: Opt[ErasedFuncType])(using State)
-    extends Symbol with HasErasedType:
+    (val nme: Str, val binary: Bool, val unary: Bool, val nullary: Bool, val functionLike: Bool, val isPure: Bool)(using State)
+    extends Symbol:
   def toLoc: Option[Loc] = N
   override def prefix: Str = "builtin:"
   
