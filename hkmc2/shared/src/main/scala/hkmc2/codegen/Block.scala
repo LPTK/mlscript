@@ -1097,6 +1097,8 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Instantiate(_, cls, _) => cls.targetSymbol.flatMap:
       case ctor: ClassCtorSymbol => ctor.associatedCls.erasedType
       case sym => sym.asCls.flatMap(_.erasedType)
+    // * A tuple literal is typed as `Array` at runtime.
+    case Tuple(_, _) => S(ErasedType.Array)
     case _ => N
 
   /** Coerces this result to `expected`, yielding it unchanged when no coercion is required.

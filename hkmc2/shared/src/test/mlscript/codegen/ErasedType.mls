@@ -39,11 +39,42 @@ val i: Int = 1
 val f: Num = 1.5
 val s: Str = "str"
 val b: Bool = true
+val a: Array[Int] = [1, 2, 3]
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Array⁰;
 //│ define i⁰ as val i¹: Int⁰ = 1;
 //│ define f⁰ as val f¹: Num⁰ = 1.5;
 //│ define s⁰ as val s¹: Str⁰ = "str";
 //│ define b⁰ as val b¹: Bool⁰ = true;
+//│ set tmp = [1, 2, 3];
+//│ define a⁰ as val a¹: Array⁰ = tmp;
+//│ end
+
+
+// The `Array` erasure is shared by every annotated slot, so an array literal needs no cast into a
+// parameter, result, or field of an array-annotated type. Only `Array` itself is annotated here: the
+// element type is erased along with the rest.
+fun firstOf(a: Array[Int]): Int = 0
+firstOf([9])
+class ArrBox(val arr: Array[Str])
+val box: ArrBox = new ArrBox(["x"])
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Array⁰, tmp1: Array⁰, tmp2: ArrBox⁰;
+//│ define firstOf⁰ as fun firstOf¹(a: Array⁰): Int⁰ {
+//│   return 0
+//│ };
+//│ set tmp = [9];
+//│ do firstOf¹(tmp);
+//│ define ArrBox¹ as class ArrBox⁰ {
+//│   val arr⁰: Array⁰;
+//│   constructor ArrBox²(arr: Array⁰) {
+//│     define arr⁰ as val arr¹: Array⁰ = arr;
+//│     end
+//│   }
+//│ };
+//│ set tmp1 = ["x"];
+//│ set tmp2 = new ArrBox⁰(tmp1);
+//│ define box⁰ as val box¹: ArrBox⁰ = tmp2;
 //│ end
 
 
@@ -253,10 +284,10 @@ fun f(x: Int32, o: Object) =
   useObj(x)
   useInt32(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.253: 	  useObj(x)
+//│ ║  l.284: 	  useObj(x)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.254: 	  useInt32(o)
+//│ ║  l.285: 	  useInt32(o)
 //│ ╙──       	           ^
 //│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -277,7 +308,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.278: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.309: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -305,10 +336,10 @@ fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
-//│ ║  l.305: 	  useObj(i)
+//│ ║  l.336: 	  useObj(i)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
-//│ ║  l.306: 	  useInt(o)
+//│ ║  l.337: 	  useInt(o)
 //│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj² as fun useObj³(o: Object⁰): ? {
@@ -467,7 +498,7 @@ fun mixedThree(x: Int32 | Str | Bool) = 0
 :ge
 fun intoMixed(n: Int32) = mixed(n)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
-//│ ║  l.468: 	fun intoMixed(n: Int32) = mixed(n)
+//│ ║  l.499: 	fun intoMixed(n: Int32) = mixed(n)
 //│ ╙──       	                                ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
@@ -697,7 +728,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.698: 	val bad: Str = thunk
+//│ ║  l.729: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -709,7 +740,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.710: 	val notCalled: Str = called
+//│ ║  l.741: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -734,7 +765,7 @@ val n2: Boxed = o
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.735: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.766: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {
