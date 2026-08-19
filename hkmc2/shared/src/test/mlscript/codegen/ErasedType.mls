@@ -327,8 +327,7 @@ module Encl with
 
 
 // `Int` is represented as a host primitive, so it is a sibling of `Object` rather than one of its
-// descendants: neither direction is a widening or a narrowing, and both are rejected. This is what makes
-// the type `Object` agree with the runtime test `_ is Object`, which primitives have always failed.
+// descendants: neither direction is a widening or a narrowing, and both are rejected.
 :ge
 fun useObj(o: Object) = o
 fun useInt(n: Int) = n
@@ -336,10 +335,10 @@ fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
-//│ ║  l.336: 	  useObj(i)
+//│ ║  l.335: 	  useObj(i)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
-//│ ║  l.337: 	  useInt(o)
+//│ ║  l.336: 	  useInt(o)
 //│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj² as fun useObj³(o: Object⁰): ? {
@@ -498,7 +497,7 @@ fun mixedThree(x: Int32 | Str | Bool) = 0
 :ge
 fun intoMixed(n: Int32) = mixed(n)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
-//│ ║  l.499: 	fun intoMixed(n: Int32) = mixed(n)
+//│ ║  l.498: 	fun intoMixed(n: Int32) = mixed(n)
 //│ ╙──       	                                ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
@@ -728,7 +727,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.729: 	val bad: Str = thunk
+//│ ║  l.728: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -740,7 +739,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.741: 	val notCalled: Str = called
+//│ ║  l.740: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -765,7 +764,7 @@ val n2: Boxed = o
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.766: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.765: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {
