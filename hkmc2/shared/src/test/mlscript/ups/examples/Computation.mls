@@ -14,34 +14,34 @@ pattern ToCelsius =
   | (Fahrenheit(f)) => Celsius((f - 32) * 5 / 9)
   | (Celsius as c) => c
 
-Celsius(0.0) is ToFahrenheit(Fahrenheit(32.0))
+Celsius(0) is ToFahrenheit(Fahrenheit(32))
 //│ = true
 
-Fahrenheit(212.0) is ToCelsius(Celsius(100.0))
+Fahrenheit(212) is ToCelsius(Celsius(100))
 //│ = true
 
-Celsius(100.0) is ToFahrenheit(Fahrenheit(212.0))
+Celsius(100) is ToFahrenheit(Fahrenheit(212))
 //│ = true
 
-Fahrenheit(32.0) is ToCelsius(Celsius(0.0))
+Fahrenheit(32) is ToCelsius(Celsius(0))
 //│ = true
 
-Celsius(-40.0) is ToFahrenheit(Fahrenheit(-40.0))
+Celsius(-40) is ToFahrenheit(Fahrenheit(-40))
 //│ = true
 
-Fahrenheit(-40.0) is ToCelsius(Celsius(-40.0))
+Fahrenheit(-40) is ToCelsius(Celsius(-40))
 //│ = true
 
 fun toFahrenheit(c) =
   if c is (@compile ToFahrenheit) as output then output else "What's this?"
 
-toFahrenheit of Celsius(100.0)
+toFahrenheit of Celsius(100)
 //│ = Fahrenheit(212)
 
-toFahrenheit of Fahrenheit(100.0)
+toFahrenheit of Fahrenheit(100)
 //│ = Fahrenheit(100)
 
-toFahrenheit of Celsius(-40.0)
+toFahrenheit of Celsius(-40)
 //│ = Fahrenheit(-40)
 
 toFahrenheit of "Cheers!"
@@ -50,10 +50,10 @@ toFahrenheit of "Cheers!"
 fun toCelsius(f) =
   if f is (@compile ToCelsius) as output then output else "What's this?"
 
-toCelsius of Fahrenheit(100.0)
+toCelsius of Fahrenheit(100)
 //│ = Celsius(37.77777777777778)
 
-toCelsius of Celsius(100.0)
+toCelsius of Celsius(100)
 //│ = Celsius(100)
 
 toCelsius of "Cheers!"
