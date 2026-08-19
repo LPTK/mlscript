@@ -407,34 +407,6 @@ type BaseTypeSymbol = ClassSymbol | ModuleOrObjectSymbol
 
 type TypeSymbol = BaseTypeSymbol | TypeAliasSymbol
 
-extension (sym: TypeSymbol)
-  /** Resolves through an arbitrary chain of type aliases to the type symbols the alias denotes.
-    *
-    * A union alias denotes each of its members, so the result is a list; every other resolvable alias denotes a
-    * single symbol. Type arguments are erased along the way, so `type Opt[A] = Some[A] | None` resolves to
-    * `Some :: None :: Nil`.
-    *
-    * If the chain is not defined (e.g. in `declare type ...`), is cyclic, or contains a member that is itself
-    * unresolvable, `sym` is returned unchanged.
-    */
-  def resolveAlias: Ls[TypeSymbol] =
-    // * Resolves a single type symbol, or `N` if it is an alias that cannot be resolved.
-    def loop(cur: TypeSymbol, seen: Set[TypeSymbol]): Opt[Ls[TypeSymbol]] = cur match
-      case als: TypeAliasSymbol =>
-        if seen(als) then N
-        else als.defn.flatMap(_.rhs).flatMap(alternatives(_, seen + als))
-      case base => S(base :: Nil)
-    // * Resolves the alternatives denoted by the right-hand side of an alias, flattening nested unions.
-    // * Only unions are expanded: an intersection would call for a GLB, which the erased lattice cannot express.
-    def alternatives(tpe: Term, seen: Set[TypeSymbol]): Opt[Ls[TypeSymbol]] = tpe match
-      case Term.CompType(lhs, rhs, true) =>
-        for
-          ls <- alternatives(lhs, seen)
-          rs <- alternatives(rhs, seen)
-        yield ls ::: rs
-      case _ => tpe.symbol.flatMap(_.asTpe).flatMap(loop(_, seen))
-    loop(sym, Set.empty).getOrElse(sym :: Nil)
-
 /**
   * ErrorSymbol is a placeholder symbol denoting error (during symbol
   * resolution in the elaborator / resolver). This helps prevent the
