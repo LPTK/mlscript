@@ -6,20 +6,6 @@
 :wasm
 
 
-// Passing a primitive value into a function that accepts anything is a compilation error - `Int32` and `Anything`
-// (`Unknown` in the erased type system) are unrelated.
-// Note that this function is not in `ErasedType.mls` because there is no way to create a value of `Int32` without
-// the use of Wasm intrinsics.
-:ge
-fun id(x: Anything) = ()
-id(wasm.i32.const(0))
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
-//│ ║  l.15: 	id(wasm.i32.const(0))
-//│ ╙──      	   ^^^^^^^^^^^^^^^^^
-//│ Wasm result:
-//│ = {}
-
-
 // In this example, the function call is equivalent to `useBox(cast[Box](id(new Box(42))))`.
 // The `:wat` output below shows this as a `ref.cast` to `(ref $Box)` applied to the result of `id`,
 // which is what the round-trip through an unannotated `id` makes necessary.
@@ -205,10 +191,10 @@ wasm.ref.i31(wasm.i32.const(7))
 :checkCasts
 wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
-//│ ║  l.206: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.192: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	                ^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Unknown' to unrelated type 'Int32'
-//│ ║  l.206: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.192: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	             ^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
 //│ ═══[COMPILATION ERROR] Operand #1 of wasm intrinsic 'ref.i31' must be of type 'Int32'

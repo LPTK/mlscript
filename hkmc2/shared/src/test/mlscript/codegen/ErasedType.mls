@@ -301,6 +301,21 @@ fun f(x: Int32, o: Object) =
 //│ end
 
 
+// Similar to the above test case, but passing `Int32` into `Anything` instead of `Object.
+:ge
+fun id(x: Anything) = ()
+fun f(x: Int32) = id(x)
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
+//│ ║  l.307: 	fun f(x: Int32) = id(x)
+//│ ╙──       	                     ^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define id⁰ as fun id¹(x: Unknown): ? {
+//│   return runtime⁰.Unit⁰
+//│ };
+//│ define f⁴ as fun f⁵(x: Int32): ? { return id¹(x) };
+//│ end
+
+
 :ge
 class Shape
 fun useShape(x: Shape) = x
@@ -308,7 +323,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.309: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.324: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -335,10 +350,10 @@ fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
-//│ ║  l.335: 	  useObj(i)
+//│ ║  l.350: 	  useObj(i)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
-//│ ║  l.336: 	  useInt(o)
+//│ ║  l.351: 	  useInt(o)
 //│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj² as fun useObj³(o: Object⁰): ? {
@@ -347,7 +362,7 @@ fun f(o: Object, i: Int) =
 //│ define useInt⁰ as fun useInt¹(n: Int⁰): ? {
 //│   return n
 //│ };
-//│ define f⁴ as fun f⁵(o: Object⁰, i: Int⁰): ? { do useObj³(i); return useInt¹(o) };
+//│ define f⁶ as fun f⁷(o: Object⁰, i: Int⁰): ? { do useObj³(i); return useInt¹(o) };
 //│ end
 
 
@@ -497,7 +512,7 @@ fun mixedThree(x: Int32 | Str | Bool) = 0
 :ge
 fun intoMixed(n: Int32) = mixed(n)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
-//│ ║  l.498: 	fun intoMixed(n: Int32) = mixed(n)
+//│ ║  l.513: 	fun intoMixed(n: Int32) = mixed(n)
 //│ ╙──       	                                ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
@@ -675,7 +690,7 @@ sccHelper(100000)
 // (which is indicated by `Anything⁰`).
 fun f(x: Anything): Anything = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define f⁶ as fun f⁷(x: Unknown): Unknown { return x }; end
+//│ define f⁸ as fun f⁹(x: Unknown): Unknown { return x }; end
 
 
 // A call is typed as the callee's result only when saturated: `curried(1)` supplies one of two declared
@@ -727,7 +742,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.728: 	val bad: Str = thunk
+//│ ║  l.743: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -739,7 +754,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.740: 	val notCalled: Str = called
+//│ ║  l.755: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -764,7 +779,7 @@ val n2: Boxed = o
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.765: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.780: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {
