@@ -487,7 +487,5 @@ trait HasOnceMutableErasedType extends HasErasedType:
 
   /** Populates the erased type, or raises a soft assertion if the type was already populated. */
   def populateErasedType(newType: ErasedType)(using Line, FileName, Raise): Unit =
-    // TODO(Derppening): Restore `erasedType.isEmpty` once JS sanitization is converted into a pass, allowing us to
-    //                   only lower each program once
-    softAssert(erasedType.forall(_ == newType), s"Cannot refine already-refined erased type $erasedType to $newType")
+    softAssert(erasedType.isEmpty, s"Cannot refine already-refined erased type $erasedType to $newType")
     if erasedType.isEmpty then erasedType = S(newType)
