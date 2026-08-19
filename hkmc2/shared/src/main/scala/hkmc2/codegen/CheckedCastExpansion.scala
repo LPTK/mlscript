@@ -54,11 +54,6 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
       case _: ErasedType.Primitive | ErasedType.Unknown | _: ErasedType.Incompatible =>
         CheckKind.Inexpressible
 
-  override def applyResult(r: Result)(k: Result => Block): Block =
-    r match 
-      case p: Path => applyPath(p)(k)
-      case _ => super.applyResult(r)(k)
-
   override def applyPath(p: Path)(k: Path => Block): Block = p match
     case Cast(value, target, true) =>
       super.applyResult(value): value2 =>
