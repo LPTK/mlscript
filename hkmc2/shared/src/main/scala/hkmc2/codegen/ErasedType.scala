@@ -158,21 +158,35 @@ object ErasedType:
             case S(parent) => parent.cls.resolvedSym.flatMap(_.asClsOrMod).map(S(_))
             case N => S(N)
 
-  /** The chain of a symbol's ancestors, nearest first, starting with the symbol itself and following its single
-    * parent chain.
+  /** A symbol's ancestors, nearest first, starting with the symbol itself and following its single parent chain.
     *
-    * Note that this method does not include implicit supertypes (`Object` and `Anything`).
+    * `complete` may be false if the walk ran out of information first: the parent chain is not available in the IR
+    * (e.g. an unlinked import), it cycles back onto an already-visited symbol, or it reaches a type alias, which the
+    * walk cannot step through.
+    *
+    * When `complete` is false, the *absence* of a symbol from `ancestors` proves nothing.
+    *
+    * Note that this does not include implicit supertypes (`Object` and `Anything`).
     */
-  private def ancestorChain(sym: TypeSymbol)(using Ctx, State): Ls[TypeSymbol] =
-    def loop(cur: TypeSymbol, seen: Set[TypeSymbol]): Ls[TypeSymbol] =
-      if seen(cur) then Nil
+  private case class AncestorChain(ancestors: Ls[TypeSymbol], complete: Bool):
+    /** Whether `sym` is on this chain, or `N` when the chain ran out of information before deciding. */
+    def hasAncestor(sym: TypeSymbol): Opt[Bool] =
+      if ancestors.exists(_ is sym) then S(true)
+      else if complete then S(false)
+      else N
+
+  /** Walks the parent chain of `sym`. See [[`AncestorChain`]]. */
+  private def ancestorChain(sym: TypeSymbol)(using Ctx, State): AncestorChain =
+    @tailrec
+    def loop(cur: TypeSymbol, seen: Set[TypeSymbol], acc: Ls[TypeSymbol]): AncestorChain =
+      if seen(cur) then AncestorChain(acc.reverse, complete = false)
       else cur match
-        case base @ (_: ClassSymbol | _: ModuleOrObjectSymbol) =>
-          cur :: (parentOf(base) match
-            case S(S(parent)) => loop(parent, seen + cur)
-            case _ => Nil)
-        case _ => cur :: Nil
-    loop(sym, Set.empty)
+        case base @ (_: ClassSymbol | _: ModuleOrObjectSymbol) => parentOf(base) match
+          case S(S(parent)) => loop(parent, seen + cur, cur :: acc)
+          case S(N) => AncestorChain((cur :: acc).reverse, complete = true)
+          case N => AncestorChain((cur :: acc).reverse, complete = false)
+        case _: TypeAliasSymbol => AncestorChain((cur :: acc).reverse, complete = false)
+    loop(sym, Set.empty, Nil)
 
   /** The least upper bound of two reference symbols.
     *
@@ -185,7 +199,7 @@ object ErasedType:
     // TODO(Derppening): Skip appending `Object` and/or `Anything` if the symbols explicitly extend either of them
     val objectCandidate =
       if isSubtypeOf(a, ctx.builtins.Object).contains(true) then ctx.builtins.Object :: Nil else Nil
-    val candidates = ancestorChain(a) ::: objectCandidate ::: ctx.builtins.Anything :: Nil
+    val candidates = ancestorChain(a).ancestors ::: objectCandidate ::: ctx.builtins.Anything :: Nil
     candidates.find(anc => isSubtypeOf(b, anc).contains(true)).getOrElse(ctx.builtins.Anything)
 
   /** Creates a union of two erased types.
@@ -250,19 +264,6 @@ object ErasedType:
     * information not available in the IR (e.g. an unlinked parent chain on an imported class).
     */
   def isSubtypeOf(actual: TypeSymbol, expected: TypeSymbol)(using Ctx, State): Opt[Bool] =
-    @tailrec
-    def loop(cur: TypeSymbol, seen: Set[TypeSymbol]): Opt[Bool] =
-      if cur is expected then S(true)
-      else cur match
-        // * Since aliases should've already been canonicalized, an alias reaching here is undecidable.
-        case _: TypeAliasSymbol => N
-        case base @ (_: ClassSymbol | _: ModuleOrObjectSymbol) =>
-          if seen(base) then N
-          else parentOf(base) match
-            case S(S(parent)) => loop(parent, seen + base)
-            case S(N) => S(false)
-            case N => N
-
     if actual is expected then S(true)
     else if expected is ctx.builtins.Anything then S(true)
     else if actual is ctx.builtins.Anything then S(false)
@@ -272,12 +273,15 @@ object ErasedType:
       // * descendants, notably `Int`); every other reference type is implicitly `<: Object`.
       // * The second test walks the parent chain instead of testing the roots directly, so that the exclusion
       // * stays descendant-closed: a user class extending `Int` must be excluded along with `Int` itself.
+      // * Unlike the general case below, the chain's `complete` flag is deliberately ignored: a chain truncated
+      // * before reaching a root does not make this undecidable, which is the answer this branch has always given.
       // TODO(Derppening): Remove this fallback once `extends Object` is explicit
       if PrimitiveType.values.exists(_.sym === actual)
-        || ancestorChain(actual).exists(ctx.builtins.primitivelyRepresentedRoots)
+        || ancestorChain(actual).ancestors.exists(ctx.builtins.primitivelyRepresentedRoots)
       then S(false)
       else S(true)
-    else loop(actual, Set.empty)
+    // * Otherwise, consult the ancestor chain and see if the expected symbol is on it.
+    else ancestorChain(actual).hasAncestor(expected)
 
   /** Determines whether a cast is needed to make a value of erased type `actual` fit an `expected` slot.
     *
