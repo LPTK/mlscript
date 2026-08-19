@@ -73,8 +73,8 @@ val n: Boxed = o
 
 
 // A `val` is a block member, so a reference to it is a `MemberRef` carrying its type on its `TermSymbol`.
-// Reading one into a same-typed slot therefore takes no coercion. The block above cannot pin this: it
-// narrows either way, so its output is identical whether or not the reference carries a type.
+// Reading one into a same-typed slot therefore takes no coercion: the call below lowers with no cast on the
+// reference, so a typed reference that still coerced would be visible here.
 fun takeInt(m: Int): Int = m
 val vi: Int = 1
 takeInt(vi)
@@ -245,32 +245,31 @@ fun counter(x: Int) =
 //│ end
 
 
+// `Int32` is a root of the erased hierarchy rather than a descendant of `Object`, so neither direction is a
+// widening or a narrowing - the same sibling relationship the `Int` block below describes. What separates
+// the two: an `Int` is boxed and still reaches the top type, while an `Int32` cannot, which is the third
+// error here, raised on the unannotated result of `f`.
 :ge
 fun useObj(o: Object) = o
-fun f(x: Int32) = useObj(x)
+fun useInt32(n: Int32): Int32 = n
+fun f(x: Int32, o: Object) =
+  useObj(x)
+  useInt32(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
-//│ ║  l.250: 	fun f(x: Int32) = useObj(x)
-//│ ╙──       	                         ^
+//│ ║  l.256: 	  useObj(x)
+//│ ╙──       	         ^
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
+//│ ║  l.257: 	  useInt32(o)
+//│ ╙──       	           ^
+//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
 //│   return o
 //│ };
-//│ define f² as fun f³(x: Int32): ? { return useObj¹(x) };
-//│ end
-
-
-:ge
-fun useInt(n: Int32): Int32 = n
-fun g(o: Object) = useInt(o)
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
-//│ ║  l.264: 	fun g(o: Object) = useInt(o)
-//│ ╙──       	                          ^
-//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useInt⁰ as fun useInt¹(n: Int32): Int32 {
+//│ define useInt32⁰ as fun useInt32¹(n: Int32): Int32 {
 //│   return n
 //│ };
-//│ define g⁰ as fun g¹(o: Object⁰): ? { return useInt¹(o) };
+//│ define f² as fun f³(x: Int32, o: Object⁰): ? { do useObj¹(x); return useInt32¹(o) };
 //│ end
 
 
@@ -281,7 +280,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
-//│ ║  l.282: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.281: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -309,19 +308,19 @@ fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
-//│ ║  l.309: 	  useObj(i)
+//│ ║  l.308: 	  useObj(i)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
-//│ ║  l.310: 	  useInt(o)
+//│ ║  l.309: 	  useInt(o)
 //│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj² as fun useObj³(o: Object⁰): ? {
 //│   return o
 //│ };
-//│ define useInt² as fun useInt³(n: Int⁰): ? {
+//│ define useInt⁰ as fun useInt¹(n: Int⁰): ? {
 //│   return n
 //│ };
-//│ define f⁴ as fun f⁵(o: Object⁰, i: Int⁰): ? { do useObj³(i); return useInt³(o) };
+//│ define f⁴ as fun f⁵(o: Object⁰, i: Int⁰): ? { do useObj³(i); return useInt¹(o) };
 //│ end
 
 
@@ -334,9 +333,9 @@ fun g(i: Int, i31: Int31) =
 //│ define useInt31⁰ as fun useInt31¹(n: Int31⁰): ? {
 //│   return n
 //│ };
-//│ define g² as fun g³(i: Int⁰, i31: Int31⁰): ? {
+//│ define g⁰ as fun g¹(i: Int⁰, i31: Int31⁰): ? {
 //│   let tmp: Int31⁰;
-//│   do useInt³(i31);
+//│   do useInt¹(i31);
 //│   set tmp = (i as!! Int31⁰);
 //│   return useInt31¹(tmp)
 //│ };
@@ -475,14 +474,14 @@ fun mixedThree(x: Int32 | Str | Bool) = 0
 :ge
 fun intoMixed(n: Int32) = mixed(n)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
-//│ ║  l.476: 	fun intoMixed(n: Int32) = mixed(n)
+//│ ║  l.475: 	fun intoMixed(n: Int32) = mixed(n)
 //│ ╙──       	                                ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
 
 
 // Widening fails too: an unrepresentable value cannot enter an `Object` slot either. Both errors are
-// unlocated - `returnedTerm` passes no location to `castTo`, which predates this and affects every return.
+// unlocated - `returnedTerm` passes no location to `castTo`, a pre-existing gap that affects every return.
 :ge
 fun outOfMixed(x: Int32 | Str): Str = x
 fun mixedIntoObject(x: Int32 | Str): Object = x
@@ -703,25 +702,25 @@ val over: Int = thunk(2)
 //│ end
 
 
-// Complements the lowered IR from the block above: This block asserts that a saturated `thunk` keeps
-// `Function` and cannot narrow to `Str`, where an over-applied reading would take the top type and
-// raise nothing.
+// A saturated `thunk` keeps the type `Function`, so narrowing it to `Str` is an unrelated-types error. Read
+// as over-applied instead, the result would take the top type and nothing would be raised - which is what
+// makes the presence of this error, rather than its absence, the thing worth asserting.
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.710: 	val bad: Str = thunk
+//│ ║  l.709: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
 
 
-// The counterpart: *no* parameter list must stay distinct from *one empty* one, since only the former is
-// auto-invoked, so a bare `called` is the function itself. Asserted for the same reason as above.
+// *No* parameter list must stay distinct from *one empty* one: only the former is auto-invoked, so a bare
+// `called` is the function itself rather than its result, and narrowing it to `Str` is likewise an error.
 :ge
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
-//│ ║  l.722: 	val notCalled: Str = called
+//│ ║  l.721: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -731,36 +730,27 @@ val notCalled: Str = called
 //│ end
 
 
-// Under `:checkCasts` the printer spells a checked cast `as T` and an unchecked one `as! T`. The flag is read
-// once, where the coercion is introduced, so the IR is otherwise identical to the casts above. What the mark
-// expands into is covered by `CheckedCasts.mls`.
+// Under `:checkCasts` the printer spells a checked cast `as!` and an unchecked one `as!!`. Narrowing the
+// same `o` that the unchecked block near the top of this file narrows makes the contrast direct: the flag is
+// read where the coercion is introduced, so only the mark differs. What the mark expands into is covered by
+// `CheckedCasts.mls`.
 :checkCasts
-fun mkObj2(): Object = new Boxed(1)
-val o2: Object = mkObj2()
-val n2: Boxed = o2
+val n2: Boxed = o
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Object⁰, tmp1: Boxed⁰;
-//│ define mkObj2⁰ as fun mkObj2¹(): Object⁰ {
-//│   return new Boxed⁰(1)
-//│ };
-//│ set tmp = mkObj2¹();
-//│ define o2⁰ as val o2¹: Object⁰ = tmp;
-//│ set tmp1 = (o2¹ as! Boxed⁰);
-//│ define n2⁰ as val n2¹: Boxed⁰ = tmp1;
-//│ end
+//│ let tmp: Boxed⁰; set tmp = (o¹ as! Boxed⁰); define n2⁰ as val n2¹: Boxed⁰ = tmp; end
 
 
-// An instantiation is typed as its class, so it cannot fill a primitive slot. Asserted rather than left to
-// the elided casts above: were the `Instantiate` type lost, this would silently become an ordinary downcast.
+// An instantiation is typed as its class, so it cannot fill a primitive slot. Were the `Instantiate` type
+// lost, this would silently become an ordinary downcast instead of the error below.
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
-//│ ║  l.756: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.746: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {
 //│   let tmp: Bar⁰;
 //│   set tmp = new Bar⁰("x");
-//│   return useInt³(tmp)
+//│   return useInt¹(tmp)
 //│ };
 //│ end

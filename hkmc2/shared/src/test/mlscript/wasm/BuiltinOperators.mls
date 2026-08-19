@@ -104,8 +104,31 @@ wasm.i32.rem_s(wasm.i32.const(7), wasm.i32.const(2))
 //│ = 1
 
 
-// Comparisons yield an `i32` of 0 or 1, not a `Bool`.
+// Comparisons yield an `i32` of 0 or 1, not a `Bool`. Each is run on `(1, 2)`, `(2, 1)` and `(1, 1)`: that
+// is the smallest operand set giving all six distinct result triples, so a registration wired to the wrong
+// comparison cannot reproduce the expected output everywhere. A single pair cannot - on any one pair the
+// six collapse into two groups of three.
+wasm.i32.eq(wasm.i32.const(1), wasm.i32.const(2))
+//│ Wasm result:
+//│ = 0
+
+
+wasm.i32.eq(wasm.i32.const(2), wasm.i32.const(1))
+//│ Wasm result:
+//│ = 0
+
+
 wasm.i32.eq(wasm.i32.const(1), wasm.i32.const(1))
+//│ Wasm result:
+//│ = 1
+
+
+wasm.i32.ne(wasm.i32.const(1), wasm.i32.const(2))
+//│ Wasm result:
+//│ = 1
+
+
+wasm.i32.ne(wasm.i32.const(2), wasm.i32.const(1))
 //│ Wasm result:
 //│ = 1
 
@@ -120,6 +143,26 @@ wasm.i32.lt_s(wasm.i32.const(1), wasm.i32.const(2))
 //│ = 1
 
 
+wasm.i32.lt_s(wasm.i32.const(2), wasm.i32.const(1))
+//│ Wasm result:
+//│ = 0
+
+
+wasm.i32.lt_s(wasm.i32.const(1), wasm.i32.const(1))
+//│ Wasm result:
+//│ = 0
+
+
+wasm.i32.le_s(wasm.i32.const(1), wasm.i32.const(2))
+//│ Wasm result:
+//│ = 1
+
+
+wasm.i32.le_s(wasm.i32.const(2), wasm.i32.const(1))
+//│ Wasm result:
+//│ = 0
+
+
 wasm.i32.le_s(wasm.i32.const(1), wasm.i32.const(1))
 //│ Wasm result:
 //│ = 1
@@ -130,14 +173,40 @@ wasm.i32.gt_s(wasm.i32.const(1), wasm.i32.const(2))
 //│ = 0
 
 
+wasm.i32.gt_s(wasm.i32.const(2), wasm.i32.const(1))
+//│ Wasm result:
+//│ = 1
+
+
+wasm.i32.gt_s(wasm.i32.const(1), wasm.i32.const(1))
+//│ Wasm result:
+//│ = 0
+
+
+wasm.i32.ge_s(wasm.i32.const(1), wasm.i32.const(2))
+//│ Wasm result:
+//│ = 0
+
+
+wasm.i32.ge_s(wasm.i32.const(2), wasm.i32.const(1))
+//│ Wasm result:
+//│ = 1
+
+
 wasm.i32.ge_s(wasm.i32.const(1), wasm.i32.const(1))
 //│ Wasm result:
 //│ = 1
 
 
+// `eqz` is unary, so both of its inputs are covered instead.
 wasm.i32.eqz(wasm.i32.const(0))
 //│ Wasm result:
 //│ = 1
+
+
+wasm.i32.eqz(wasm.i32.const(1))
+//│ Wasm result:
+//│ = 0
 
 
 // `2147483647` does not fit in an i31 and is truncated to all 31 bits set, which `get_s` reads as -1 and

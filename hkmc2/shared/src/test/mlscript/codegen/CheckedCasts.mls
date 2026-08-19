@@ -65,7 +65,9 @@ fun toNumber(): Number = anything(1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
-// `Object` is a declared class like `Number` above, and is reached the same way.
+// `Object` is a declared class, so it is reached through `globalThis` too - but the test is the point:
+// narrowing to `Object` is a real `instanceof`, not an elided no-op. A primitive source and a reference
+// source are both defined here because the runtime calls below discriminate them.
 :sjs
 fun toObject(): Object = anything(1)
 fun topToObject(): Object = anything(mkTop())
@@ -123,20 +125,20 @@ toNumber()
 
 
 // Both directions are pinned by *calling* them: the emitted JS alone is not enough, since a wrong test stays
-// invisible until the function runs — which is how `1 instanceof globalThis.Object` once survived here,
-// back when `Object` still admitted primitives.
+// invisible until the function runs - the concrete hazard being a `1 instanceof globalThis.Object` that
+// reads as correct JS on the page and only misbehaves once evaluated.
 topToObject() is Top
 //│ = true
 
 
-// An `Int` and an `Object` are separate in the hierarchy, so this narrowing now throws instead of passing the value
-// through.
+// An `Int` and an `Object` are separate in the hierarchy, so this narrowing throws instead of passing the
+// value through.
 :re
 toObject()
 //│ ═══[RUNTIME ERROR] Error: Cannot narrow a value to type 'Object'
 
 
-// The `Object` *pattern* and the `Object` type now agree: `1` neither inhabits the type nor matches the
+// The `Object` *pattern* and the `Object` type agree: `1` neither inhabits the type nor matches the
 // pattern.
 1 is Object
 //│ = false
@@ -152,7 +154,7 @@ fun callI32(): Int32 = useI32(anything(1))
 fun useInt(n: Int): Int = n
 fun callInt(): Int = useInt(anything(1))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Unknown' to unrelated type 'Int32'
-//│ ║  l.151: 	fun callI32(): Int32 = useI32(anything(1))
+//│ ║  l.153: 	fun callI32(): Int32 = useI32(anything(1))
 //│ ╙──       	                              ^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let useInt, callInt, callI32, useI32;

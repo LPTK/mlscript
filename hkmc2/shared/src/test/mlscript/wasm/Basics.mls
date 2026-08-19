@@ -442,14 +442,15 @@ foo()()
 
 
 // A primitive result has no `anyref` representation, so it cannot be widened and must be annotated. The IR
-// rejects the widening; the backend reports it again, since a rejected value is left in place uncast.
+// rejects the widening; the backend reports it again, since a rejected value is left in place uncast. This is
+// the unannotated-*result* case; `wasm/Casts.mls` covers the same rule for a value crossing an opaque call.
 :ge
 fun takeTop(m: Int32) = m
 takeTop(1)
 //│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Int32'
-//│ ║  l.448: 	takeTop(1)
+//│ ║  l.449: 	takeTop(1)
 //│ ╙──       	        ^
 //│ ╔══[COMPILATION ERROR] Wasm function `takeTop` expects result to have type `(ref null any)`, but got `i32`
-//│ ║  l.447: 	fun takeTop(m: Int32) = m
+//│ ║  l.448: 	fun takeTop(m: Int32) = m
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^
