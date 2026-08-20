@@ -184,7 +184,7 @@ module Whoops with
   module Whoops with
     val w: module Whoops = this
     fun g() = f()
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'module Whoops' to unrelated type 'module Whoops.Whoops'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'module Whoops' expecting unrelated type 'module Whoops.Whoops'
 //│ ║  l.182: 	  val v: module Whoops = this
 //│ ╙──       	                         ^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————

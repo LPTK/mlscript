@@ -153,7 +153,7 @@ fun useI32(n: Int32): Int32 = n
 fun callI32(): Int32 = useI32(anything(1))
 fun useInt(n: Int): Int = n
 fun callInt(): Int = useInt(anything(1))
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Unknown' to unrelated type 'Int32'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Unknown' expecting unrelated type 'Int32'
 //│ ║  l.153: 	fun callI32(): Int32 = useI32(anything(1))
 //│ ╙──       	                              ^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————

@@ -170,7 +170,7 @@ fun main =
 
 :ge
 fun test(x: Int): Int = "oops"
-//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Str' to unrelated type 'Int'
+//│ ═══[COMPILATION ERROR] Cannot use a value of type 'Str' expecting unrelated type 'Int'
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define test⁰ as fun test¹(x: Int⁰): Int⁰ { return "oops" }; end
 
@@ -283,13 +283,13 @@ fun useInt32(n: Int32): Int32 = n
 fun f(x: Int32, o: Object) =
   useObj(x)
   useInt32(o)
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Object'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int32' expecting unrelated type 'Object'
 //│ ║  l.284: 	  useObj(x)
 //│ ╙──       	         ^
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int32'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Object' expecting unrelated type 'Int32'
 //│ ║  l.285: 	  useInt32(o)
 //│ ╙──       	           ^
-//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
+//│ ═══[COMPILATION ERROR] Cannot use a value of type 'Int32' expecting unrelated type 'Unknown'
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj⁰ as fun useObj¹(o: Object⁰): ? {
 //│   return o
@@ -305,7 +305,7 @@ fun f(x: Int32, o: Object) =
 :ge
 fun id(x: Anything) = ()
 fun f(x: Int32) = id(x)
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int32' expecting unrelated type 'Unknown'
 //│ ║  l.307: 	fun f(x: Int32) = id(x)
 //│ ╙──       	                     ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -322,7 +322,7 @@ fun useShape(x: Shape) = x
 module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Encl.Shape' to unrelated type 'Shape'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Encl.Shape' expecting unrelated type 'Shape'
 //│ ║  l.324: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -349,10 +349,10 @@ fun useInt(n: Int) = n
 fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int' to unrelated type 'Object'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' expecting unrelated type 'Object'
 //│ ║  l.350: 	  useObj(i)
 //│ ╙──       	         ^
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Object' to unrelated type 'Int'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Object' expecting unrelated type 'Int'
 //│ ║  l.351: 	  useInt(o)
 //│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -741,7 +741,7 @@ val over: Int = thunk(2)
 // makes the presence of this error, rather than its absence, the thing worth asserting.
 :ge
 val bad: Str = thunk
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Function' expecting unrelated type 'Str'
 //│ ║  l.743: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -753,7 +753,7 @@ val bad: Str = thunk
 :ge
 fun called() = 3
 val notCalled: Str = called
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Function' to unrelated type 'Str'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Function' expecting unrelated type 'Str'
 //│ ║  l.755: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -778,7 +778,7 @@ val n2: Boxed = o
 // lost, this would silently become an ordinary downcast instead of the error below.
 :ge
 fun badInst() = useInt(new Bar("x"))
-//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Bar' to unrelated type 'Int'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Bar' expecting unrelated type 'Int'
 //│ ║  l.780: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
