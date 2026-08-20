@@ -85,7 +85,9 @@ wasm.i32.const
 
 :fixme
 wasm.i32.const(42)
-//│ ═══[COMPILATION ERROR] No definition found in scope for member 'wasm'
-//│ ═══[RUNTIME ERROR] ReferenceError: wasm is not defined
+//│ ╔══[COMPILATION ERROR] WebAssembly intrinsics are not available when targeting JS
+//│ ║  l.87: 	wasm.i32.const(42)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

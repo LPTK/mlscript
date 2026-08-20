@@ -899,6 +899,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
           case S(SpecialBuiltin.RuntimeIntrinsic(runtimeName)) =>
             return conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident(runtimeName)))
           case S(SpecialBuiltin.WasmIntrinsic(wasmName)) =>
+            val compileTarget = config.target
+            if compileTarget != CompilationTarget.Wasm then return fail:
+              ErrorReport(
+                msg"WebAssembly intrinsics are not available when targeting ${compileTarget.toString}"
+                  -> t.toLoc :: Nil,
+                source = Diagnostic.Source.Compilation,
+              )
             val path = wasmName.foldLeft(State.wasmSymbol.asSimpleRef: Path): (p, nme) =>
               p.selN(Tree.Ident(nme))
             return conclude:
