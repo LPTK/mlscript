@@ -397,7 +397,11 @@ class NewResolver:
       listener(sh)
     case Capture(base, thru) =>
       // TODO
-      listen(base, listener)
+      // listen(base, listener)
+      // listen(base, sh =>
+      //   listener(MarkedShape.enter(sh, thru)))
+      listenTerm(base, sh =>
+        listener(MarkedShape.enter(sh, thru, N)))
     case ref @ Ref(sym: InnerSymbol) =>
       // sym.asBlkMember match
       // case S(bms) =>

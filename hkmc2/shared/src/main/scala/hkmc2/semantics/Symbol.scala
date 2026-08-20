@@ -442,6 +442,8 @@ sealed trait ClassLikeSymbol extends IdentifiedSymbol:
   def subst(using sub: SymbolSubst): ClassLikeSymbol
 
 
+type AnyDefinitionSymbol = DefinitionSymbol[?]
+
 /**
  * A symbol for entities with a definition.
  *
