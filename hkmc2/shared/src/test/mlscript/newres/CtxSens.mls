@@ -25,22 +25,26 @@ foo(A).u
 foo(A).u
 //│ = 1
 
-// * We don't currently preserve context sensitivity
-:todo
+// * We now preserve context sensitivity
 :sr
 foo(B).u
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   foo⁰(B⁰)‹app¹›.u‹u², u⁰, u⁰›
-//│ ╔══[COMPILATION ERROR] This selection of member 'u' is ambiguous, as it has multiple resolved targets
-//│ ║  l.31: 	foo(B).u
-//│ ║        	^^^^^^^^
-//│ ╟── target: value 'u'
-//│ ║  l.9: 	  val u = 2
-//│ ║       	  ^^^^^^^^^
-//│ ╟── target: value 'u'
-//│ ║  l.6: 	  val u = 1
-//│ ╙──     	  ^^^^^^^^^
+//│   foo⁰(B⁰)‹app¹›.u²
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = 2
+
+
+fun bar(x) =
+  foo(x)
+
+:fixme
+:sr
+bar(A).u
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+
+:fixme
+:sr
+bar(B).u
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
 
 

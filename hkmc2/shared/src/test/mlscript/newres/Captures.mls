@@ -10,110 +10,31 @@ fun foo(x) =
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
-:de
+// :de
 :sr
 foo(1)
-//│ Elab block List(App(Ident(foo),Tup(List(IntLit(1))))) LocalScope(block:3)
-//│ | Elab term App(Ident(foo),Tup(List(IntLit(1))))
-//│ | | Elab subterm App(Ident(foo),Tup(List(IntLit(1))))
-//│ | | | Elab subterm Ident(foo)
-//│ | | | ~> MemberRef(member:foo‹44›)
-//│ | | | Elab subterm Tup(List(IntLit(1)))
-//│ | | | | Elab term IntLit(1)
-//│ | | | | | Elab subterm IntLit(1)
-//│ | | | | | ~> Lit(IntLit(1))
-//│ | | | | ~> Lit(IntLit(1))
-//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
-//│ | | | listenTerm: trm = member:foo‹44›#0
-//│ | | | listen: trm = member:foo‹44›#0
-//│ | | | listenBMS: bms = function
-//│ | | | listenedBMS: bms = function
-//│ | | | fromBMS: bms = function, sh = member:foo⁰‹44›, flow = foo¹‹53›
-//│ | | | PUSH MarkedShape(member:foo⁰‹44›, +⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
-//│ | | | appShape: lhs = MarkedShape(member:foo⁰‹44›, +⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ), args = [1], res = member:foo‹44›#0(1)
-//│ | | | Zipping ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None) (List(+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)) with List(Fld(‹›,Lit(IntLit(1)),None))
-//│ | | | listenTerm: trm = 1
-//│ | | | listen: trm = 1
-//│ | | | .enter 1 (+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
-//│ | | | | .enter MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ) (ϵ)
-//│ | | | | = MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
-//│ | | | = MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
-//│ | | | zipArg: p = x‹46›, trm = 1, sh = MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
-//│ | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo‹45›,Some(foo‹53›),NoMarks)))
-//│ | | | lhs false List(((x‹46›),List(+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)))
-//│ | | | appShape: td.body = Some(SimpleRef(x‹46›))
-//│ | | | listenTerm: trm = x‹46›#0
-//│ | | | listen: trm = x‹46›#0
-//│ | | | .exit MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
-//│ | | | = NoShape
-//│ | | ~> App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | ~> App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ ~> Blk(List(),App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None)))))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   foo⁰(1)‹app⁰›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 
+// :de
 :sr
-:de
-:fixme
 foo(Predef).id
-//│ Elab block List(Sel(App(Ident(foo),Tup(List(Ident(Predef)))),Ident(id))) LocalScope(block:4)
-//│ | Elab term Sel(App(Ident(foo),Tup(List(Ident(Predef)))),Ident(id))
-//│ | | Elab subterm Sel(App(Ident(foo),Tup(List(Ident(Predef)))),Ident(id))
-//│ | | | Elab subterm App(Ident(foo),Tup(List(Ident(Predef))))
-//│ | | | | Elab subterm Ident(foo)
-//│ | | | | ~> MemberRef(member:foo‹44›)
-//│ | | | | Elab subterm Tup(List(Ident(Predef)))
-//│ | | | | | Elab term Ident(Predef)
-//│ | | | | | | Elab subterm Ident(Predef)
-//│ | | | | | | ~> MemberRef(member:Predef)
-//│ | | | | | ~> MemberRef(member:Predef)
-//│ | | | | ~> Tup(List(Fld(‹›,MemberRef(member:Predef),None)))
-//│ | | | | listenTerm: trm = member:foo‹44›#0
-//│ | | | | listen: trm = member:foo‹44›#0
-//│ | | | | listenBMS: bms = function
-//│ | | | | listenedBMS: bms = function
-//│ | | | | fromBMS: bms = function, sh = member:foo⁰‹44›, flow = foo³‹60›
-//│ | | | | PUSH MarkedShape(member:foo⁰‹44›, +⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)
-//│ | | | | appShape: lhs = MarkedShape(member:foo⁰‹44›, +⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ), args = [member:Predef], res = member:foo‹44›#0(member:Predef)
-//│ | | | | Zipping ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None) (List(+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)) with List(Fld(‹›,MemberRef(member:Predef),None))
-//│ | | | | listenTerm: trm = member:Predef
-//│ | | | | listen: trm = member:Predef
-//│ | | | | listenBMS: bms = module
-//│ | | | | listenedBMS: bms = module
-//│ | | | | fromBMS: bms = module, sh = module:Predef⁰, flow = Predef¹‹61›
-//│ | | | | PUSH MarkedShape(module:Predef⁰, +⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ)
-//│ | | | | .enter MarkedShape(module:Predef⁰, +⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)
-//│ | | | | | .enter MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ) (ϵ)
-//│ | | | | | = MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ)
-//│ | | | | = MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ)
-//│ | | | | zipArg: p = x‹46›, trm = member:Predef, sh = MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ)
-//│ | | | | .exit MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
-//│ | | | | = NoShape
-//│ | | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo‹45›,Some(foo‹60›),NoMarks)))
-//│ | | | | lhs false List(((x‹46›),List(+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)))
-//│ | | | | appShape: td.body = Some(SimpleRef(x‹46›))
-//│ | | | | listenTerm: trm = x‹46›#0
-//│ | | | | listen: trm = x‹46›#0
-//│ | | | | .exit MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)
-//│ | | | | = NoShape
-//│ | | | | .exit MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)
-//│ | | | | = NoShape
-//│ | | | ~> App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,MemberRef(member:Predef),None))))
-//│ | | | newSel? sel = member:foo‹44›#0(member:Predef).id
-//│ | | | listenTerm: trm = member:foo‹44›#0(member:Predef)
-//│ | | | listen: trm = member:foo‹44›#0(member:Predef)
-//│ | | ~> NewSel(App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,MemberRef(member:Predef),None)))),Ident(id))
-//│ | ~> NewSel(App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,MemberRef(member:Predef),None)))),Ident(id))
-//│ ~> Blk(List(),NewSel(App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,MemberRef(member:Predef),None)))),Ident(id)))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   foo⁰(Predef⁰)‹app¹›.idˀˀˀ
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
-//│ ║  l.60: 	foo(Predef).id
-//│ ╙──      	^^^^^^^^^^^^^^
+//│   foo⁰(Predef⁰)‹app¹›.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = fun id
+
+:sr
+object Foo {
+  val id = 42
+}
+foo(Foo).id
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   object Foo⁰::Foo¹ { val id¹::id² ‹flow:id⁰› = 42 }, foo⁰(Foo⁰)‹app²›.id¹
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 42
 
 
 :sr
@@ -123,10 +44,10 @@ fun foo(x) =
     foo(x - 1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun foo²::foo³(x¹) ‹flow:foo¹› = if {
-//│     let scrut⁰ = >(x¹, 0)‹app²›;
+//│     let scrut⁰ = >(x¹, 0)‹app³›;
 //│     scrut⁰ is true do {
-//│       ⟨Predef⁰.⟩print⁰^foo³(x¹)‹app³›,
-//│       foo²^foo³(-(x¹, 1)‹app⁴›)‹app⁵›
+//│       ⟨Predef⁰.⟩print⁰^foo³(x¹)‹app⁴›,
+//│       foo²^foo³(-(x¹, 1)‹app⁵›)‹app⁶›
 //│     };
 //│     else ()
 //│   }
@@ -140,8 +61,8 @@ fun foo(x) =
   bar
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun foo⁴::foo⁵(x²) ‹flow:foo²› = {
-//│     ⟨Predef⁰.⟩print⁰^foo⁵(x²)‹app⁶›,
-//│     fun bar⁰::bar¹(y⁰) ‹flow:bar⁰› = +(x²^bar¹, y⁰)‹app⁷›,
+//│     ⟨Predef⁰.⟩print⁰^foo⁵(x²)‹app⁷›,
+//│     fun bar⁰::bar¹(y⁰) ‹flow:bar⁰› = +(x²^bar¹, y⁰)‹app⁸›,
 //│     bar⁰
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -155,8 +76,8 @@ class foo(x) {
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class foo⁶::foo⁷(x³) {
 //│     @privateval x⁴::x⁵ ‹flow:x⁰› = x³,
-//│     ⟨Predef⁰.⟩print⁰(⟨foo⁷.this.⟩x⁴)‹app⁸›,
-//│     fun bar²::bar³(y¹) ‹flow:bar¹› = +(⟨foo⁷.this.⟩x⁴^bar³, y¹)‹app⁹›
+//│     ⟨Predef⁰.⟩print⁰(⟨foo⁷.this.⟩x⁴)‹app⁹›,
+//│     fun bar²::bar³(y¹) ‹flow:bar¹› = +(⟨foo⁷.this.⟩x⁴^bar³, y¹)‹app¹⁰›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -165,7 +86,7 @@ class foo(x) {
 fun foo(x) = y =>
   x + y
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁸::foo⁹(x⁶) ‹flow:foo³› = (y²) => +(x⁶, y²)‹app¹⁰›
+//│   fun foo⁸::foo⁹(x⁶) ‹flow:foo³› = (y²) => +(x⁶, y²)‹app¹¹›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

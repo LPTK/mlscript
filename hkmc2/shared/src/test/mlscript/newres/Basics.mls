@@ -35,6 +35,9 @@ Predef.id
 //│ | | | listen: trm = member:Predef
 //│ | | | listenBMS: bms = module
 //│ | | | listenedBMS: bms = module
+//│ | | | fromBMS: bms = module, sh = module:Predef¹, flow = Predef²‹48›
+//│ | | | PUSH MarkedShape(module:Predef¹, +⟨module:Predef¹⟩%⟨Predef²‹48›⟩ϵ)
+//│ | | | newSel: sel = member:Predef.id, shape = module 'Predef'
 //│ | | ~> NewSel(MemberRef(member:Predef),Ident(id))
 //│ | ~> NewSel(MemberRef(member:Predef),Ident(id))
 //│ ~> Blk(List(),NewSel(MemberRef(member:Predef),Ident(id)))
@@ -62,7 +65,7 @@ Predef.id(1)
 :e
 Predef.idd(1)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.63: 	Predef.idd(1)
+//│ ║  l.66: 	Predef.idd(1)
 //│ ║        	      ^^^^
 //│ ╟── Module 'Predef' does not contain member 'idd'
 //│ ║  in ../../mlscript-compile/Predef.mls
@@ -106,47 +109,39 @@ val p = Predef
 
 :sr
 p.id
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:383)
-//│ 	at: hkmc2.semantics.MarkedShape.members(Term.scala:358)
-//│ 	at: hkmc2.semantics.NewResolver.newSel$$anonfun$2(NewResolver.scala:142)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:335)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listen$$anonfun$2(NewResolver.scala:404)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   p¹.id⁰
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun id
 
 
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.124: 	(1).id
+//│ ║  l.119: 	(1).id
 //│ ║         	   ^^^
 //│ ╟── Integer literal does not contain member 'id'
-//│ ║  l.124: 	(1).id
+//│ ║  l.119: 	(1).id
 //│ ╙──       	 ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.134: 	1.id
+//│ ║  l.129: 	1.id
 //│ ╙──       	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.134: 	1.id
+//│ ║  l.129: 	1.id
 //│ ╙──       	  ^^
 //│ = 1
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.144: 	"ha ".repeat(2)
+//│ ║  l.139: 	"ha ".repeat(2)
 //│ ║         	     ^^^^^^^
 //│ ╟── String literal does not contain member 'repeat'
-//│ ║  l.144: 	"ha ".repeat(2)
+//│ ║  l.139: 	"ha ".repeat(2)
 //│ ╙──       	^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

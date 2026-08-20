@@ -408,7 +408,8 @@ object MarkedShape:
       case EntryMark(sym2, id2, rest) =>
         require(sym2 is sym, s"Expected symbol ${sym} but got ${sym2}")
         id2 match
-        case S(`id`) | N =>
+        // case S(`id`) | N =>
+        case `id` | N =>
           rest match
           case NoMarks => sh
           case rest: SomeMarks => MarkedShape(sh, rest)
