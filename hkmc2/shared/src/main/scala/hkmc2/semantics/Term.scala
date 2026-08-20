@@ -426,19 +426,19 @@ sealed trait TermShape extends Shape:
     case ns: NewShape => ns.receiver.applicationHead
     case na: NonAppTermShape => (na, Nil)
     case MarkedShape(sh, mark) => sh.applicationHead.mapSecond(mark :: _)
-  lazy val unappliedParams: Ls[ParamList] = this match
+  lazy val unappliedParams: Ls[(ParamList, Ls[Marks])] = this match
     case ds: DefnShape => ds.defn match
-      case defn: TermDefinition => defn.params
+      case defn: TermDefinition => defn.params.map(_ -> Nil)
       case defn: ClassDef =>
         // println(defn.ctorSym)
         // if defn.ctorSym.isDefined then
         if defn.paramsOpt.isDefined then // whether the class can receive direct applications
-          defn.paramsOpt.toList ::: defn.auxParams
+          (defn.paramsOpt.toList ::: defn.auxParams).map(_ -> Nil)
         else Nil
       case _ => Nil
     case as: AppShape => as.receiver.unappliedParams.drop(1)
     case ns: NewShape => ns.receiver.unappliedParams.drop(ns.argss.length)
-    case MarkedShape(sh, mark) => sh.unappliedParams
+    case MarkedShape(sh, mark) => sh.unappliedParams.map(p => p._1 -> (mark :: p._2))
     case _ => Nil
   
   def exit(marks: Marks): TermShape | NoShape =
@@ -453,6 +453,23 @@ sealed trait TermShape extends Shape:
     case Nil => this
     case mark :: rest =>
       exit(mark).exit(rest)
+  
+  def enter(marks: Marks): TermShape =
+    marks match
+    case NoMarks => this
+    case EntryMark(sym, id, rest) =>
+      // MarkedShape.enter(this, sym, id).enter(rest)
+      ???
+    case ExitMark(sym, id, rest) =>
+      // MarkedShape.exit(this, sym, id) match
+      // case NoShape => this // TODO: should this be an error?
+      // case sh => sh.enter(rest)
+      MarkedShape.enter(this, sym, id).enter(rest)
+  
+  def enter(revMarkss: Ls[Marks]): TermShape = revMarkss match
+    case Nil => this
+    case mark :: rest =>
+      enter(mark).enter(rest)
   
   def isSaturated: Bool = unappliedParams.isEmpty
   def toLoc: Opt[Loc]

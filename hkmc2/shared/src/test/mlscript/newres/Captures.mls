@@ -36,7 +36,7 @@ foo(1)
 //│ | | | listen: trm = 1
 //│ | | | zipArg: p = x‹46›, trm = 1, sh = 1
 //│ | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo‹45›,Some(foo‹56›),NoMarks)))
-//│ | | | lhs false List(ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None))
+//│ | | | lhs false List((ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None),List(ExitMark(term:foo‹45›,Some(foo‹56›),NoMarks))))
 //│ | | | appShape: td.body = Some(Blk(List(App(Capture(SynthSel(MemberRef(member:Predef),Ident(print)),term:foo‹45›),Tup(List(Fld(‹›,SimpleRef(x‹46›),None))))),SimpleRef(x‹46›)))
 //│ | | | listenTerm: trm = { (member:Predef.)print‹member:print›^term:foo²‹45›(x‹46›#0); x‹46›#0 }
 //│ | | | listen: trm = { (member:Predef.)print‹member:print›^term:foo²‹45›(x‹46›#0); x‹46›#0 }
@@ -81,7 +81,7 @@ foo(Predef).id
 //│ | | | | Matched shape MarkedShape(DefnShape(module/object definition 'Predef' module:Predef⁰), -⟨module:Predef⁰⟩%⟨Predef¹‹64›⟩) for module with flow Predef¹‹64›
 //│ | | | | zipArg: p = x‹46›, trm = member:Predef, sh = MarkedShape(DefnShape(module/object definition 'Predef' module:Predef⁰), -⟨module:Predef⁰⟩%⟨Predef¹‹64›⟩)
 //│ | | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo‹45›,Some(foo‹63›),NoMarks)))
-//│ | | | | lhs false List(ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None))
+//│ | | | | lhs false List((ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None),List(ExitMark(term:foo‹45›,Some(foo‹63›),NoMarks))))
 //│ | | | | appShape: td.body = Some(Blk(List(App(Capture(SynthSel(MemberRef(member:Predef),Ident(print)),term:foo‹45›),Tup(List(Fld(‹›,SimpleRef(x‹46›),None))))),SimpleRef(x‹46›)))
 //│ | | | | listenTerm: trm = { (member:Predef.)print‹member:print›^term:foo²‹45›(x‹46›#0); x‹46›#0 }
 //│ | | | | listen: trm = { (member:Predef.)print‹member:print›^term:foo²‹45›(x‹46›#0); x‹46›#0 }

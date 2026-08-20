@@ -51,7 +51,7 @@ class NewResolver:
   def isOwnedSym(sym: Symbol): Bool =
     sym.getState is state
   
-  def zipArgs(ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term): Unit =
+  def zipArgs(mss: Ls[Marks], ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term): Unit =
     (ps, args) match
     case (Nil, Nil) => ()
     // case (Nil, Spd(k, t) :: args) =>
@@ -68,12 +68,13 @@ class NewResolver:
         val sh = IntroShape(packaged)
         p.sym.shapeListeners.foreach(_(sh))
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
+    // case ((p, mss) :: ps, Fld(fls, trm, asc) :: args) =>
       listenTerm(trm, sh =>
         log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = ${sh.shwDbg}")
         if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
-          p.sym.shapeListeners.foreach(listener => listener(sh))
+          p.sym.shapeListeners.foreach(listener => listener(sh.enter(mss)))
       )
-      zipArgs(ps, r, args, src)
+      zipArgs(mss, ps, r, args, src)
     case _ =>
       raise:
         ErrorReport(
@@ -88,11 +89,11 @@ class NewResolver:
     })
     lhs.unappliedParams match
     case Nil => ()
-    case ps :: pss =>
+    case (ps, mss) :: pss =>
       args match
       case args: Tup =>
         log(s"Zipping ${ps} with ${args.fields}")
-        zipArgs(ps.params, ps.restParam, args.fields, res)
+        zipArgs(mss, ps.params, ps.restParam, args.fields, res)
       case _ => ???
     log(s"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead}")
     def register = if res.shapes.add(sh) then
@@ -185,11 +186,12 @@ class NewResolver:
                 val dsh = DefnShape(cd, extsh)
                 val sh = newShapes.getOrElseUpdate((cls, nw.resSym),
                   new NewShape(dsh, cls, nw.args, nw):
-                    receiver.unappliedParams.lazyZip(argss).foreach: (ps, args) =>
-                      args match
-                      case args: Tup =>
-                        zipArgs(ps.params, ps.restParam, args.fields, src)
-                      case _ => ???
+                    receiver.unappliedParams.lazyZip(argss).foreach:
+                      case ((ps, mss), args) =>
+                        args match
+                        case args: Tup =>
+                          zipArgs(mss, ps.params, ps.restParam, args.fields, src)
+                        case _ => ???
                     // TODO: mv to NewShape def
                     lazy val members: Map[Str, BlockMemberSymbol] =
                       receiver match
