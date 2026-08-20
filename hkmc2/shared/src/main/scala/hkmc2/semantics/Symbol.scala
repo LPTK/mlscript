@@ -201,7 +201,12 @@ object FlowSymbol:
     FlowSymbol(s"(⋅)$nme")
   def selProj(nme: Str)(using State) =
     FlowSymbol(s"#⋅$nme")
-
+  
+  // def memSym(sym: MemberSymbol, nme: Str)(using State) =
+  //   FlowSymbol(s"$nme(${sym.nme})")
+  def memSym(sym: MemberSymbol)(using State) =
+    FlowSymbol(sym.nme)
+  
   def lds(nme: Str)(using State) =
     FlowSymbol(s"Ɛ⋅$nme")
   

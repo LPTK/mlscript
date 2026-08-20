@@ -45,7 +45,7 @@ class NewResolver:
   val appShapes: mutable.Map[(TermShape, FlowSymbol), AppShape] = mutable.Map.empty
   val newShapes: mutable.Map[(ClassLikeSymbol, FlowSymbol), NewShape] = mutable.Map.empty
   val introShapes: mutable.Map[IntroTerm, IntroShape] = mutable.Map.empty // TODO use symbols for faster lookup?
-  val symShapes: mutable.Map[BlockMemberSymbol, SymShape] = mutable.Map.empty
+  val symShapes: mutable.Map[(BlockMemberSymbol, FlowSymbol), SymShape] = mutable.Map.empty
   val defnShapes: mutable.Map[DefinitionSymbol[?], DefnShape] = mutable.Map.empty
   
   def isOwnedSym(sym: Symbol): Bool =
@@ -69,7 +69,7 @@ class NewResolver:
         p.sym.shapeListeners.foreach(_(sh))
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
       listenTerm(trm, sh =>
-        log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = $sh")
+        log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = ${sh.shwDbg}")
         if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
           p.sym.shapeListeners.foreach(listener => listener(sh))
       )
@@ -83,7 +83,7 @@ class NewResolver:
   def appShape(lhs: TermShape, args: Term, res: App): Unit =
     // log(s"appShape? lhs = $lhs, args = $args, res = $res")
     val sh = appShapes.getOrElseUpdate((lhs, res.resSym), {
-      log(s"appShape: lhs = $lhs, args = $args, res = $res")
+      log(s"appShape: lhs = ${lhs.shwDbg}, args = ${args.showDbg}, res = ${res.showDbg}")
       new AppShape(lhs, args, res)
     })
     lhs.unappliedParams match
@@ -99,7 +99,7 @@ class NewResolver:
       res.shapeListeners.foreach(listener => listener(sh))
     log(s"lhs ${lhs.isSaturated} ${lhs.unappliedParams}")
     if lhs.isSaturated then raise:
-      if lhs.applicationHead is lhs
+      if lhs.applicationHead._1 is lhs
       then ErrorReport(
         msg"${lhs.describe.capitalize} cannot called like a function." -> res.toLoc :: Nil,
         source = Diagnostic.Source.Compilation)
@@ -108,11 +108,11 @@ class NewResolver:
         source = Diagnostic.Source.Compilation)
     if sh.isSaturated then
       sh.applicationHead match
-      case ds: DefnShape =>
+      case (ds: DefnShape, mss) =>
         ds.defn match
         case cd: ClassDef =>
-          // ???
           // TODO: resolve ctor?
+          // TODO: handle `mss`
           register
         case td: TermDefinition =>
           // listenTerm(td.body, sh => newShape(sh, args, res))
@@ -120,13 +120,17 @@ class NewResolver:
           case ccs: ClassCtorSymbol => // TOOD: to avoid the special case, give this the actual body?
             softAssert(td.body.isEmpty)
             // ccs.associatedCls
+            // TODO: handle `mss`
             register
           case _ =>
             log(s"appShape: td.body = ${td.body}")
             td.body.foreach: body =>
               listenTerm(body, sh =>
-                if res.shapes.add(sh) then
-                  res.shapeListeners.foreach(listener => listener(sh))
+                sh.exit(mss) match
+                case NoShape =>
+                case sh: TermShape =>
+                  if res.shapes.add(sh) then
+                    res.shapeListeners.foreach(listener => listener(sh))
               )
         case _ =>
           raise:
@@ -139,10 +143,11 @@ class NewResolver:
   def newSel(sel: NewSel): Unit =
     log(s"newSel? sel = ${sel.showDbg}")
     listenTerm(sel.prefix, shape => {
+      log(s"newSel: sel = ${sel.showDbg}, shape = ${shape.describe}")
       shape.members.get(sel.id.name) match
         case S(bms) =>
           sel.resolvedMembers ::= bms
-          val sh = symShapes.getOrElseUpdate(bms, SymShape(bms))
+          val sh = symShapes.getOrElseUpdate((bms, sel.resSym), SymShape(bms, sel.resSym))
           if sel.shapes.add(sh) then
             sel.shapeListeners.foreach(listener => listener(sh))
         case N =>
@@ -169,6 +174,7 @@ class NewResolver:
               source = Diagnostic.Source.Compilation)
         shape match
         case ss: SymShape =>
+          // TODO handle ss.resSym
           val bms = ss.sym
           bms.onComplete: () =>
             bms.asCls match
@@ -218,13 +224,13 @@ class NewResolver:
           msg"Invalid class expression in 'new' instantiation." -> nw.toLoc :: Nil,
           source = Diagnostic.Source.Compilation)
   
-  def symShape(sym: BlockMemberSymbol, res: Ref): Unit =
-    val sh = symShapes.getOrElseUpdate(sym, {
-      log(s"symShape: sym = $sym, res = $res")
-      SymShape(sym)
-    })
-    if res.shapes.add(sh) then
-      res.shapeListeners.foreach(listener => listener(sh))
+  // def symShape(sym: BlockMemberSymbol, res: Ref): Unit =
+  //   val sh = symShapes.getOrElseUpdate(sym, {
+  //     log(s"symShape: sym = $sym, res = $res")
+  //     SymShape(sym)
+  //   })
+  //   if res.shapes.add(sh) then
+  //     res.shapeListeners.foreach(listener => listener(sh))
   
   def defineVar(sym: LocalSymbol | TermSymbol, rhs: Term): DefineVar =
     if newResolution then sym match
@@ -268,18 +274,26 @@ class NewResolver:
     case N =>
       listener(N)
   
-  def fromBMS(bms: BlockMemberSymbol, listener: TermShape => Unit, trm: Term) =
+  def fromBMS(bms: BlockMemberSymbol, resSym: FlowSymbol, listener: TermShape => Unit, trm: Term) =
     log(s"listenBMS: bms = ${bms.describe}")
     bms.onComplete: () =>
       log(s"listenedBMS: bms = ${bms.describe}")
       bms.asModOrObj orElse bms.asTrm orElse bms.asCls match
       case S(sym: (ModuleOrObjectSymbol | TermSymbol | ClassSymbol)) =>
+        val wrappedListener: TermShape => Unit = sh =>
+          log(s"fromBMS: bms = ${bms.describe}, sh = ${sh.shwDbg}, flow = ${resSym.showDbg}")
+          MarkedShape.exit(sh, sym, S(resSym)) match
+          case NoShape =>
+            log(s"Filtered out shape ${sh.shwDbg} for ${bms.describe} with flow ${resSym.showDbg}")
+          case sh: TermShape =>
+            log(s"Matched shape ${sh.shwDbg} for ${bms.describe} with flow ${resSym.showDbg}")
+            listener(sh)
         sym.defn match
         case S(td: TermDefinition) if td.params.isEmpty =>
           log(s"listenTerm: td.body = ${td.body}")
           td.body match
           case S(body) =>
-            listenTerm(body, listener)
+            listenTerm(body, wrappedListener)
           case N =>
             ??? // TODO error
         case S(d: TermDefinition) =>
@@ -289,15 +303,15 @@ class NewResolver:
             listenExt(cls.ext, extsh =>
               defnShapes.get(sym).foreach: existing =>
                 ??? // TODO error?
-              listener(defnShapes.getOrElseUpdate(sym, DefnShape(d,  S(BaseShape(cls, extsh)))))
+              wrappedListener(defnShapes.getOrElseUpdate(sym, DefnShape(d,  S(BaseShape(cls, extsh)))))
             )
           case _ =>
-            listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
+            wrappedListener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
         case S(d: ClassLikeDef) =>
           listenExt(d.ext, extsh =>
             // defnShapes.get(sym).foreach: existing =>
             //   ??? // TODO error?
-            listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, extsh)))
+            wrappedListener(defnShapes.getOrElseUpdate(sym, DefnShape(d, extsh)))
           )
         case N =>
           // sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
@@ -334,7 +348,10 @@ class NewResolver:
         case sh: TermShape =>
           listener(sh)
         case ss: SymShape =>
-          fromBMS(ss.sym, listener, trm)
+          fromBMS(ss.sym, ss.resSym, listener, trm)
+          // fromBMS(ss.sym, sh => {
+          //   listener(MarkedShape.enter(sh, ss.sym, S(trm.resSym)))
+          // }, trm)
         case sh =>
           raise:
             ErrorReport(
@@ -359,7 +376,8 @@ class NewResolver:
         case N =>
           ??? // TODO error? use sig
       case S(bms: BlockMemberSymbol) =>
-        fromBMS(bms, listener, trm)
+        // TODO: add mark
+        fromBMS(bms, ss.resSym, listener, trm)
       case N => ???
     case sh: Lit =>
       listener(sh)
@@ -386,10 +404,13 @@ class NewResolver:
     case ref @ MemberRef(sym: TermSymbol) =>
       // println(sym.decl.get)
       // sym.defn.get
-      // ???
-      listenDefn(sym, listener)
+      ???
+      // listenDefn(sym, listener)
+      listenDefn(sym, sh =>
+        listener(MarkedShape.enter(sh, sym, S(ref.resSym))))
     case ref @ MemberRef(sym: BlockMemberSymbol) =>
-      val sh = symShapes.getOrElseUpdate(sym, SymShape(sym))
+      val fs = ref.resSym
+      val sh = symShapes.getOrElseUpdate((sym, fs), SymShape(sym, fs))
       // // ref.shapes.foreach(listener)
       // // ref.shapeListeners += listener
       // if ref.shapes.add(sh) then
@@ -403,21 +424,21 @@ class NewResolver:
       listenTerm(base, sh =>
         listener(MarkedShape.enter(sh, thru, N)))
     case ref @ Ref(sym: InnerSymbol) =>
-      // sym.asBlkMember match
-      // case S(bms) =>
-      //   bms.onComplete: () =>
-      //     ???
-      // case _ => ???
-      // sym.asDefnSym
-      // ???
-      sym.shapeListeners += listener
-      // ???
+      // // sym.asBlkMember match
+      // // case S(bms) =>
+      // //   bms.onComplete: () =>
+      // //     ???
+      // // case _ => ???
+      // // sym.asDefnSym
+      // // ???
+      // sym.shapeListeners += listener
+      ???
     case ref @ Ref(bsym: BlockMemberSymbol) =>
-      // listener(ref)
-      // if ref.shapes.add(bsym) then
-      //   ref.shapeListeners.foreach(listener => listener(bsym))
-      symShape(bsym, ref)
-      // ???
+      // // listener(ref)
+      // // if ref.shapes.add(bsym) then
+      // //   ref.shapeListeners.foreach(listener => listener(bsym))
+      // symShape(bsym, ref)
+      ???
     case res: ResolvableImpl =>
       res.shapes.foreach(listener)
       // ???

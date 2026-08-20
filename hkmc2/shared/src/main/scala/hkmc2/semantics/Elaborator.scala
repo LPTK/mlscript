@@ -358,12 +358,13 @@ object Elaborator:
           sym match
           case sym: codegen.SimpleSymbol =>
             Term.SimpleRef(sym)(id)
-          case sym: MemberSymbol =>
-            Term.MemberRef(sym)(id)
-          // case sym: TermSymbol => // FIXME: should never happen... (currently happens for ref to ctor let)
-          //   Term.MemberRef(sym)(id)
           case sym: InnerSymbol =>
             Term.SelfRef(sym)(id)
+          case sym: MemberSymbol =>
+            // Term.MemberRef(sym)(id, FlowSymbol.memSym(sym, id.name))
+            Term.MemberRef(sym)(id, FlowSymbol.memSym(sym))
+          // case sym: TermSymbol => // FIXME: should never happen... (currently happens for ref to ctor let)
+          //   Term.MemberRef(sym)(id)
         else
           // * Note: due to symbolic ops, we may have `id.name =/= nme`;
           // * e.g., we can have `id.name = "|>"` and `nme = "pipe"`.
@@ -1119,7 +1120,7 @@ extends Importer:
     def elaborateSelection(tree: Sel): Term =
       val preTrm = subterm(tree.prefix)
       if newResolution then
-        val res = new Term.NewSel(preTrm, tree.name).withLocOf(tree)
+        val res = new Term.NewSel(preTrm, tree.name)(FlowSymbol.sel(tree.name.name)).withLocOf(tree)
         // listenTerm(preTrm, shape => selShape2(shape, tree.name, res))
         newSel(res)
         res

@@ -333,8 +333,15 @@ object SrcScope:
 
 // type Shape = TermShape | BlockMemberSymbol
 // type Shape = TermShape
-sealed trait Shape:
+sealed trait Shape extends ShapeLike:
   def describe: Str
+  def shwDbg(using DebugPrinter): Str = this match
+    case ds: DefnShape => s"DefnShape(${ds.defn.describe} ${ds.defn.sym.showDbg})"
+    case as: AppShape => s"AppShape(${as.receiver.shwDbg}, ${as.args.showDbg})"
+    case ms: MarkedShape => s"MarkedShape(${ms.sh.shwDbg}, ${ms.mark.showDbg})"
+    case ns: SymShape => s"SymShape(${ns.sym.showDbg})"
+    case ns: NewShape => s"NewShape(${ns.cls.showDbg}, ${ns.argss.map(_.showDbg).mkString(", ")})"
+    case lit: Term.Lit => lit.showDbg
 
 sealed trait NonMarkedShape extends TermShape
 sealed trait NonAppTermShape extends NonMarkedShape
@@ -344,18 +351,29 @@ sealed trait NonAppTermShape extends NonMarkedShape
 // sealed abstract class Marks
 // case class MoreMarks(sym: Opt[AnyDefinitionSymbol], entry: Bool, rest: Marks) extends Marks
 // case object NoMark extends Marks
-sealed abstract class Marks
+sealed abstract class Marks:
+  def showDbg(using DebugPrinter): Str = this match
+    case EntryMark(sym, id, rest) => s"+⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}"
+    case ExitMark(sym, id, rest) => s"-⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}"
+    case NoMarks => "ϵ"
 type SomeMarks = EntryMark | ExitMark
 case class EntryMark(sym: AnyDefinitionSymbol, id: Opt[FlowSymbol], rest: Marks) extends Marks
 sealed abstract class ExitMarks extends Marks
 case class ExitMark(sym: AnyDefinitionSymbol, id: Opt[FlowSymbol], rest: ExitMarks) extends ExitMarks
 case object NoMarks extends ExitMarks
 
-case object NoShape
+sealed trait ShapeLike:
+  def exit(revMarkss: Ls[Marks]): TermShape | NoShape
+
+case object NoShape extends ShapeLike:
+  def exit(revMarkss: Ls[Marks]): TermShape | NoShape = NoShape
+
 type NoShape = NoShape.type
 
 case class MarkedShape(sh: NonMarkedShape, mark: SomeMarks) extends TermShape:
-  def members: Map[Str, BlockMemberSymbol] = ??? // FIXME
+  lazy val members: Map[Str, BlockMemberSymbol] =
+    // sh.members.view.mapValues(m => MarkedShape.exit(m, mark)).toMap
+    sh.members // FIXME: add marks to tuple result
   def describe: Str = sh.describe
   def toLoc: Opt[Loc] = sh.toLoc
 object MarkedShape:
@@ -385,7 +403,7 @@ object MarkedShape:
       marks match
       case marks: ExitMark => MarkedShape(sh, ExitMark(sym, id, marks))
       case EntryMark(sym2, id2, rest) =>
-        require(sym2 is sym)
+        require(sym2 is sym, s"Expected symbol ${sym} but got ${sym2}")
         id2 match
         case S(`id`) | N =>
           rest match
@@ -400,13 +418,14 @@ end MarkedShape
 
 sealed trait TermShape extends Shape:
   def members: Map[Str, BlockMemberSymbol]
-  lazy val applicationHead: NonAppTermShape = this match
+  
+  lazy val applicationHead: (NonAppTermShape, Ls[Marks]) = this match
     // case ds: DefnShape => ds
     // case as: AppShape => as.receiver.applicationHead
     case as: AppShape => as.receiver.applicationHead
     case ns: NewShape => ns.receiver.applicationHead
-    case na: NonAppTermShape => na
-    case MarkedShape(sh, mark) => sh.applicationHead
+    case na: NonAppTermShape => (na, Nil)
+    case MarkedShape(sh, mark) => sh.applicationHead.mapSecond(mark :: _)
   lazy val unappliedParams: Ls[ParamList] = this match
     case ds: DefnShape => ds.defn match
       case defn: TermDefinition => defn.params
@@ -421,8 +440,25 @@ sealed trait TermShape extends Shape:
     case ns: NewShape => ns.receiver.unappliedParams.drop(ns.argss.length)
     case MarkedShape(sh, mark) => sh.unappliedParams
     case _ => Nil
+  
+  def exit(marks: Marks): TermShape | NoShape =
+    marks match
+    case NoMarks => this
+    case EntryMark(sym, id, rest) =>
+      MarkedShape.enter(this, sym, id)
+    case ExitMark(sym, id, rest) =>
+      MarkedShape.exit(this, sym, id)
+  
+  def exit(revMarkss: Ls[Marks]): TermShape | NoShape = revMarkss match
+    case Nil => this
+    case mark :: rest =>
+      exit(mark).exit(rest)
+  
   def isSaturated: Bool = unappliedParams.isEmpty
   def toLoc: Opt[Loc]
+  
+end TermShape
+
 // sealed trait TermShape:
 //   def describe: Str = this match
 //     case app: AppShape => s"application of ${app.lhs.describe} to ${app.args.describe}"
@@ -440,7 +476,9 @@ class AppShape(val receiver: TermShape, val args: Term, val src: Term.App)(using
     if !isSaturated then Map.empty
     else
       applicationHead match
-      case ds: DefnShape =>
+      case (ds: DefnShape, mss) =>
+        // TODO: handle `mss`
+        
         // ds.members
         // ds.defn match
         // case td: TermDefinition => td.sym match
@@ -456,7 +494,7 @@ class AppShape(val receiver: TermShape, val args: Term, val src: Term.App)(using
       case _ => Map.empty
   def describe: Str =
     // s"application of ${receiver.describe}"
-    s"instance of ${applicationHead.describe}"
+    s"instance of ${applicationHead._1.describe}"
   def toLoc: Opt[Loc] = src.toLoc
   override def toString: String = s"AppShape($receiver, ${args.showDbg})"
   // def target: Opt[AppTarget]
@@ -468,9 +506,10 @@ abstract class NewShape(val receiver: TermShape, val cls: ClassLikeSymbol, val a
   override def toString: String = s"NewNewShape(${cls.showDbg}, $argss)"
   def toLoc: Opt[Loc] = src.toLoc
 
-class SymShape(val sym: BlockMemberSymbol) extends Shape:
+class SymShape(val sym: BlockMemberSymbol, val resSym: FlowSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
+  def exit(revMarkss: Ls[Marks]): TermShape | NoShape = ???
 
 /* 
 class ThisShape(val defn: Definition) extends NonAppTermShape:
@@ -579,8 +618,8 @@ enum Term extends Statement, ShapePublisher:
   // --- NEW ---
   case SimpleRef(sym: codegen.SimpleSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
   case SelfRef(sym: InnerSymbol)(val tree: Tree.Ident) extends Term, NewRefImpl
-  case MemberRef(sym: MemberSymbol)(val tree: Tree.Ident) extends Term, NewResolvableImpl, NewRefImpl
-  case NewSel(prefix: Term, id: Tree.Ident) extends Term, NewSelImpl, ShapeHost
+  case MemberRef(sym: MemberSymbol)(val tree: Tree.Ident, val resSym: FlowSymbol) extends Term, NewResolvableImpl, NewRefImpl
+  case NewSel(prefix: Term, id: Tree.Ident)(val resSym: FlowSymbol) extends Term, NewSelImpl, ShapeHost
   case Capture(base: Term, thru: AnyDefinitionSymbol) extends Term
   // --- LEGACY ---
   /** A term that wraps another term, indicating that the symbol of the inner term is resolved.
@@ -1098,6 +1137,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
         case _: BuiltinSymbol => r.sym.nme
         case _ => r.sym.showName
       case r: MemberRef => r.sym.showName
+      case sr: SelfRef => s"${sr.sym.showName}.this"
       case Capture(base, thru) =>
         // doc"${base.show}⟨${thru.showName}⟩"
         doc"${base.show}^${thru.showName}"
