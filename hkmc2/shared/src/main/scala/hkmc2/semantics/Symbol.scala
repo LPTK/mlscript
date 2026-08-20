@@ -497,7 +497,7 @@ class ClassSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
     with InnerSymbol
     with NamedSymbol:
 
-  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = false, this))
+  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = S(false), this))
 
   def name: Str = nme
   def nme = id.name
@@ -516,7 +516,7 @@ class ModuleOrObjectSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using Sta
     with InnerSymbol
     with NamedSymbol:
 
-  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = false, this))
+  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = S(false), this))
   
   def name: Str = nme
   def nme = id.name
@@ -532,7 +532,7 @@ class TypeAliasSymbol(val id: Tree.Ident)(using State)
     with DefinitionSymbol[TypeDef]
     with HasErasedType:
 
-  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = false, this))
+  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = S(false), this))
   
   def nme = id.name
   def toLoc: Option[Loc] = id.toLoc // TODO track source tree of type alias here

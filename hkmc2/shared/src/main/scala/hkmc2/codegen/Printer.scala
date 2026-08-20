@@ -37,7 +37,7 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
   def print(cet: CanonicalErasedType)(using Scope): Document = cet match
     case ErasedType.Unknown => doc"Unknown"
     case ErasedType.Incompatible(lhs, rhs) => doc"‹incompatible(${print(lhs)}, ${print(rhs)})›"
-    case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${if rsc then "rsc " else ""}${printTpe(tpeSym)}"
+    case ErasedType.AnyRef(rsc, tpeSym: TypeSymbol) => doc"${rsc.fold("rsc? ")(if _ then "rsc " else "")}${printTpe(tpeSym)}"
     case ErasedType.CanonicalFuncRef(rsc, paramLists, ret) =>
       // * Curried functions are rendered as `(A) => (B) => R`, so that an under-applied call reads as the residual
       // * function type it actually has.
@@ -46,7 +46,7 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
       val pls = ErasedType.normalizeParamLists(paramLists)
       val sig = pls.foldRight(ret.fold(doc"?")(print)): (ps, acc) =>
         doc"(${ps.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => $acc"
-      doc"${if rsc then "rsc " else ""}$sig"
+      doc"${rsc.fold("rsc? ")(if _ then "rsc " else "")}$sig"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
 
   def print(et: ErasedType)(using Scope): Document = et match

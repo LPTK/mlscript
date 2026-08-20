@@ -2008,11 +2008,11 @@ extends Importer:
               // * A moduleful signature (`fun f: module M`) denotes the module itself; `eraseSign` would resolve
               // * the name through `asTpe`, which prefers a same-named class or type alias over the module.
               val retTpe = mfn.msym match
-                case S(msym) => S(ErasedType.ValueLike(rsc = false, msym))
+                case S(msym) => S(ErasedType.ValueLike(rsc = S(false), msym))
                 case N => s.flatMap(ErasedType.eraseSign)
               val erasedTpe = k match
                 case syntax.Fun =>
-                  S(ErasedType.FuncRef(rsc = false,
+                  S(ErasedType.FuncRef(rsc = S(false),
                     pss.map(_.params.map(_.sym.erasedType)), retTpe))
                 case _: syntax.Val => retTpe
                 case _ => N
@@ -2417,7 +2417,7 @@ extends Importer:
         // * As for return signatures, a moduleful parameter (`module m: M`) denotes the module itself, which
         // * `eraseSign` would miss by resolving the name through `asTpe`.
         val erasedTpe = mfn.msym match
-          case S(msym) => S(ErasedType.ValueLike(rsc = false, msym))
+          case S(msym) => S(ErasedType.ValueLike(rsc = S(false), msym))
           case N => sig.flatMap(ErasedType.eraseSign)
         val sym = VarSymbol(canonicalId, erasedType = erasedTpe)
         sym.sourceAliases = aliases

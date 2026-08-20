@@ -340,7 +340,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
           if memberRets.exists(_.isEmpty) then N
           else S(memberRets.flatten.map(_.canonicalize).reduce(ErasedType.lub))
         TermSymbol(syntax.Fun, owner, Tree.Ident(bms.nme), erasedType = S(ErasedType.FuncRef(
-          rsc = false,
+          rsc = S(false),
           paramLists = (S(ErasedType.Int) :: List.fill(maxParamLen)(N)) :: Nil,
           ret = ret,
         )))

@@ -33,7 +33,7 @@ object ErasedType:
     * Implementation Note: This type should **not** be used to represent references of type aliases or the top type -
     * [[`ValueLike`]] and [[`Unknown`]] should be used instead.
     */
-  case class AnyRef(rsc: Bool, tpeSym: TypeSymbol) extends ErasedValueType, CanonicalErasedType:
+  case class AnyRef(rsc: Opt[Bool], tpeSym: TypeSymbol) extends ErasedValueType, CanonicalErasedType:
     override def sym(using Ctx, State): TypeSymbol = tpeSym
 
   /** A value type that is not yet canonicalized.
@@ -47,7 +47,7 @@ object ErasedType:
     * - This type implements identity equality, so that two instances with the same `getTpeSym` function are not
     *   considered equal - Use the canonicalized type for equality comparisons.
     */
-  final class ValueLike(val rsc: Bool, getTpeSym: (Ctx, State) ?=> TypeSymbol) extends ErasedValueType:
+  final class ValueLike(val rsc: Opt[Bool], getTpeSym: (Ctx, State) ?=> TypeSymbol) extends ErasedValueType:
     override type Canonical = CanonicalErasedValueType
     override def sym(using Ctx, State): TypeSymbol = getTpeSym
     override protected def computeCanonicalize(using Ctx, State): CanonicalErasedValueType =
@@ -59,13 +59,13 @@ object ErasedType:
     *
     * - `rsc` is true if this reference is a resource function.
     */
-  case class FuncRef(override val rsc: Bool, override val paramLists: Ls[Ls[Opt[ErasedValueType]]], override val ret: Opt[ErasedValueType]) extends ErasedFuncType:
+  case class FuncRef(override val rsc: Opt[Bool], override val paramLists: Ls[Ls[Opt[ErasedValueType]]], override val ret: Opt[ErasedValueType]) extends ErasedFuncType:
     override type Canonical = CanonicalFuncRef
     override protected def computeCanonicalize(using Ctx, State): CanonicalFuncRef =
       CanonicalFuncRef(rsc, paramLists.map(_.map(_.map(_.canonicalize))), ret.map(_.canonicalize))
 
   /** An analogue to `FuncRef` for function types with canonicalized parameter and return types. */
-  case class CanonicalFuncRef(override val rsc: Bool, override val paramLists: Ls[Ls[Opt[CanonicalErasedValueType]]], override val ret: Opt[CanonicalErasedValueType]) extends ErasedFuncType with CanonicalErasedType
+  case class CanonicalFuncRef(override val rsc: Opt[Bool], override val paramLists: Ls[Ls[Opt[CanonicalErasedValueType]]], override val ret: Opt[CanonicalErasedValueType]) extends ErasedFuncType with CanonicalErasedType
 
   /** Normalizes a signature's parameter lists such that an empty parameter list is represented as a single empty list.
     */
@@ -112,31 +112,31 @@ object ErasedType:
     override def sym(using Ctx, State): NoSymbol = NoSymbol
 
   /** The builtin `Unit` reference type. */
-  def Unit: ErasedValueType = ErasedType.ValueLike(rsc = false, summon[State].unitSymbol)
+  def Unit: ErasedValueType = ErasedType.ValueLike(rsc = S(false), summon[State].unitSymbol)
 
   /** The builtin `Bool` reference type. */
-  def Bool: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Bool)
+  def Bool: ErasedValueType = ErasedType.ValueLike(rsc = S(false), ctx.builtins.Bool)
 
   /** The builtin `Int` reference type. */
-  def Int: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Int)
+  def Int: ErasedValueType = ErasedType.ValueLike(rsc = S(false), ctx.builtins.Int)
   
   /** The builtin `Num` reference type. */
-  def Num: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Num)
+  def Num: ErasedValueType = ErasedType.ValueLike(rsc = S(false), ctx.builtins.Num)
 
   /** The builtin `Str` reference type. */
-  def Str: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Str)
+  def Str: ErasedValueType = ErasedType.ValueLike(rsc = S(false), ctx.builtins.Str)
   
   /** The builtin `Array` reference type. */
-  def Array: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Array)
+  def Array: ErasedValueType = ErasedType.ValueLike(rsc = S(false), ctx.builtins.Array)
 
   /** The builtin `Int31` reference type. */
-  def Int31: ErasedValueType = ErasedType.ValueLike(rsc = false, ctx.builtins.Int31)
+  def Int31: ErasedValueType = ErasedType.ValueLike(rsc = S(false), ctx.builtins.Int31)
 
   /** The builtin `Function` reference type, used as the value type of a first-class function.
     *
     * - `rsc` is true if this reference is a resource function.
     */
-  def Function(rsc: Bool): ErasedValueType = ErasedType.ValueLike(rsc, ctx.builtins.Function)
+  def Function(rsc: Opt[Bool]): ErasedValueType = ErasedType.ValueLike(rsc, ctx.builtins.Function)
 
   /** Determines the direct parent of a class-like symbol.
     *
@@ -237,7 +237,7 @@ object ErasedType:
         // * `Unknown` is the only symbol-less canonical type today, and it is absorbed above.
         case (NoSymbol, _) | (_, NoSymbol) =>
           lastWords(s"no upper bound is defined for '$lhs' and '$rhs'")
-        case (l: TypeSymbol, r: TypeSymbol) => CanonicalErasedValueType(rsc = false, lubSym(l, r))
+        case (l: TypeSymbol, r: TypeSymbol) => CanonicalErasedValueType(rsc = S(false), lubSym(l, r))
 
   /** Erases a type-annotated term to an [[`ErasedType`]].
     *
@@ -253,7 +253,7 @@ object ErasedType:
       yield ErasedType.union(l, r)
     case UnitVal() => S(ErasedType.Unit)
     case _ =>
-      sign.symbol.flatMap(_.asTpe).map(sym => ErasedType.ValueLike(rsc = false, sym))
+      sign.symbol.flatMap(_.asTpe).map(sym => ErasedType.ValueLike(rsc = S(false), sym))
 
   /** Whether `actual` is a subtype of `expected`, walking the class hierarchy.
     *
@@ -384,7 +384,7 @@ sealed abstract class ErasedValueType extends ErasedType:
   * that are partially applied yields a function type with fewer parameter lists.
   */
 sealed abstract class ErasedFuncType extends ErasedType:
-  val rsc: Bool
+  val rsc: Opt[Bool]
   val paramLists: Ls[Ls[Opt[ErasedValueType]]]
   val ret: Opt[ErasedValueType]
   final override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Function
@@ -402,7 +402,7 @@ object CanonicalErasedValueType:
     *
     * - `rsc` is true if this is a resource type.
     */
-  def apply(rsc: Bool, tpeSym: TypeSymbol)(using Ctx, State): CanonicalErasedValueType =
+  def apply(rsc: Opt[Bool], tpeSym: TypeSymbol)(using Ctx, State): CanonicalErasedValueType =
     /** Resolves through an arbitrary chain of type aliases to the type symbols the alias denotes.
       *
       * A union alias denotes each of its members, so the result is a list; every other resolvable alias denotes a
@@ -435,7 +435,7 @@ object CanonicalErasedValueType:
     resolveTpeSymAlias.map(resolved(rsc, _)).reduceLeft((lhs, rhs) => ErasedType.lub(lhs, rhs))
 
   /** Creates an instance from an already-resolved symbol. */
-  private def resolved(rsc: Bool, sym: TypeSymbol)(using Ctx, State): CanonicalErasedValueType = sym match
+  private def resolved(rsc: Opt[Bool], sym: TypeSymbol)(using Ctx, State): CanonicalErasedValueType = sym match
     // * An unresolvable alias becomes the top type.
     case _: TypeAliasSymbol => ErasedType.Unknown
     case base =>
