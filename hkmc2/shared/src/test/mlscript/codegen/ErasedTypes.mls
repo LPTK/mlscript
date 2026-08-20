@@ -301,7 +301,7 @@ fun f(x: Int32, o: Object) =
 //│ end
 
 
-// Similar to the above test case, but passing `Int32` into `Anything` instead of `Object.
+// Similar to the above test case, but passing `Int32` into `Anything` instead of `Object`.
 :ge
 fun id(x: Anything) = ()
 fun f(x: Int32) = id(x)
@@ -316,6 +316,18 @@ fun f(x: Int32) = id(x)
 //│ end
 
 
+// Passing `Int31` or `Int` to `id(Anything)` is legal, since `Anything` erased to `Unknown` (which is the top type for
+// all reference types).
+fun f1(x: Int31) = id(x)
+fun f2(x: Int) = id(x)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define f1⁰ as fun f1¹(x: Int31⁰): ? {
+//│   return id¹(x)
+//│ };
+//│ define f2⁰ as fun f2¹(x: Int⁰): ? { return id¹(x) };
+//│ end
+
+
 :ge
 class Shape
 fun useShape(x: Shape) = x
@@ -323,7 +335,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Encl.Shape' expecting unrelated type 'Shape'
-//│ ║  l.324: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.336: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -350,10 +362,10 @@ fun f(o: Object, i: Int) =
   useObj(i)
   useInt(o)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' expecting unrelated type 'Object'
-//│ ║  l.350: 	  useObj(i)
+//│ ║  l.362: 	  useObj(i)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Object' expecting unrelated type 'Int'
-//│ ║  l.351: 	  useInt(o)
+//│ ║  l.363: 	  useInt(o)
 //│ ╙──       	         ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useObj² as fun useObj³(o: Object⁰): ? {
@@ -512,7 +524,7 @@ fun mixedThree(x: Int32 | Str | Bool) = 0
 :ge
 fun intoMixed(n: Int32) = mixed(n)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
-//│ ║  l.513: 	fun intoMixed(n: Int32) = mixed(n)
+//│ ║  l.525: 	fun intoMixed(n: Int32) = mixed(n)
 //│ ╙──       	                                ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
@@ -742,7 +754,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Function' expecting unrelated type 'Str'
-//│ ║  l.743: 	val bad: Str = thunk
+//│ ║  l.755: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -754,7 +766,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Function' expecting unrelated type 'Str'
-//│ ║  l.755: 	val notCalled: Str = called
+//│ ║  l.767: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -779,7 +791,7 @@ val n2: Boxed = o
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Bar' expecting unrelated type 'Int'
-//│ ║  l.780: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.792: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {
