@@ -906,12 +906,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                   -> t.toLoc :: Nil,
                 source = Diagnostic.Source.Compilation,
               )
-            val path = wasmName.foldLeft(State.wasmSymbol.asSimpleRef: Path): (p, nme) =>
-              p.selN(Tree.Ident(nme))
+            def wasmIntrinsicSubterm(owner: Opt[InnerSymbol]): Path = owner match
+              case S(mod: ModuleOrObjectSymbol) =>
+                if mod is ctx.builtins.wasm.module then
+                  State.wasmSymbol.asSimpleRef
+                else
+                  wasmIntrinsicSubterm(mod.defn.flatMap(_.owner)).sel(mod.id, mod)
+              case _ => lastWords(s"Unexpected owner '$owner' while traversing wasm intrinsic path")
+            val tsym = ms.tsym.getOrElse:
+              lastWords(s"wasm intrinsic `${ms.nme}` has a missing `TermSymbol`")
             return conclude:
-              (path, ms.tsym) match
-                case (Select(qual, nme), S(tsym)) => qual.sel(nme, tsym)
-                case _ => lastWords(s"wasm intrinsic `$wasmName` has an empty name path or a missing `TermSymbol`")
+              wasmIntrinsicSubterm(tsym.owner).sel(Tree.Ident(ms.nme), tsym)
           case S(SpecialBuiltin.DebugPrintStack) =>
             if !config.effectHandlers.exists(_.debug) then
               return fail:

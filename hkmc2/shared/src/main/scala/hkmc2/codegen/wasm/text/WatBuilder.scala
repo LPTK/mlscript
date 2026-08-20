@@ -1753,7 +1753,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
               body(ps.zip(args).zipWithIndex.map:
                 case ((declared, arg), idx) => resolveIntrinsicArg(intrName, idx, declared, arg))
             case N =>
-              // * `Lowering` builds a `wasm.` path only for the names in its `wasmIntrinsicSymbols`, each of which is
+              // * `Lowering` builds a `wasm.` path only for the names in its `specialBuiltinSymbols`, each of which is
               // * either implemented as an instruction above or generated as an operator function here.
               val expectedArity = wasmIntrinsicArities.getOrElse(
                 intrName,
