@@ -321,10 +321,10 @@ renderAsStr of Point
 renderAsStr of Point.class
 //│ = "class Point"
 
-renderAsStr of Point(1.0, 2.0)
+renderAsStr of Point(1, 2)
 //│ = "Point(1, 2)"
 
-renderAsStr of Point(1.0, 2.0)
+renderAsStr of Point(1, 2)
 //│ = "Point(1, 2)"
 
 class Bar(x: Int, val a: Int)
@@ -359,7 +359,7 @@ class Point(x: Num, y: Num) with
 
 // Note that we do not display members defined in the body.
 // Some classes define lots of members, so doing so could be problematic.
-renderAsStr of new Point(0.0, 1.0)
+renderAsStr of new Point(0, 1)
 //│ = "Point(_, _)"
 
 class SelfRef with
@@ -389,7 +389,7 @@ renderAsStr of new Shape with
 renderAsStr of Rectangle
 //│ = "fun Rectangle { class: class Rectangle }"
 
-renderAsStr of Rectangle(0.0, 0.0, 5.0, 5.0)
+renderAsStr of Rectangle(0, 0, 5, 5)
 //│ = "Rectangle(0, 0, 5, 5)"
 
 pattern Null = null
