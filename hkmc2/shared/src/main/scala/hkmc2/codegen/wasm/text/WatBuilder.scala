@@ -432,7 +432,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       && defn.companion.isEmpty
 
   /** Returns singleton metadata when `sym` resolves to a registered singleton object. */
-  private def singletonInfoFor(sym: ValueSymbol): Opt[SingletonInfo] =
+  private def singletonInfoFor(sym: BlockMemberSymbol | InnerSymbol): Opt[SingletonInfo] =
     ctx.getSingletonInfo(sym)
 
   /** Loads the singleton object reference from its backing mutable global. */
@@ -997,7 +997,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def collectSessionGlobalSymbols(
       b: Block,
       sessionExportCtx: SessionExportCtx,
-  ): Set[WasmSlotSymbol] =
+  ): Set[ScopedSymbol] =
     def restOf(block: Block): Opt[Block] = block match
       case Define(_, rst) => S(rst)
       case Assign(_, _, rst) => S(rst)
@@ -1008,7 +1008,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case Label(_, _, _, rst) => S(rst)
       case _ => N
 
-    def recur(block: Block): Set[WasmSlotSymbol] = block match
+    def recur(block: Block): Set[ScopedSymbol] = block match
       case Scoped(_, body) =>
         recur(body)
       case Begin(sub, rst) =>
@@ -1017,7 +1017,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         recur(rst) + defn.sym
       case Define(_, rst) =>
         recur(rst)
-      case Assign(sym: WasmSlotSymbol, _, rst) if sessionExportCtx.shouldExport(sym) =>
+      case Assign(sym: LocalVarSymbol, _, rst) if sessionExportCtx.shouldExport(sym) =>
         recur(rst) + sym
       case _: BlockTail =>
         Set.empty
@@ -1028,7 +1028,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   end collectSessionGlobalSymbols
 
   /** Declares a mutable exported global for a REPL-visible binding produced by the current block. */
-  private def registerSessionGlobal(sym: WasmSlotSymbol)(using Raise, SessionExportCtx): Unit =
+  private def registerSessionGlobal(sym: ScopedSymbol)(using Raise, SessionExportCtx): Unit =
     if ctx.containsGlobal(sym) then return
     val exportName = sym.nme
     // Reference globals need to be nullable so that they have a valid initializer
@@ -1508,9 +1508,9 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
   /** Returns the local or global index for a given symbol `l`. */
   def varIndex(l: WasmSlotSymbol, loc: Opt[Loc])(using FunctionCtx, Raise): Opt[LocalIdx | GlobalIdx] = l match
-    case ts: semantics.InnerSymbol =>
+    case ts: InnerSymbol =>
       lastWords(s"InnerSymbol `$ts` (${ts.getClass.getSimpleName}) cannot be resolved as a variable")
-    case l =>
+    case l: ScopedSymbol =>
       funcCtx.lookupLocal(l) match
         case S(localIdx) => S(localIdx)
         case _ => ctx.getGlobal(l)
@@ -1662,18 +1662,14 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       // `undefined` is the IR's canonical "no meaningful value", so it lowers to `$Unit` (similar to
       // `normalizeValueExprs`).
       result(State.unitBlockMemberSymbol.asMemberRef(State.unitSymbol))
-    case Value.SimpleRef(l) =>
-      singletonInfoFor(l) match
-        case S(info) => singletonGlobalGet(info)
-        case N =>
-          ctx.getFunc(l) match
-            case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
-            case N => l match
-              case l: LocalVarSymbol => getVar(l, r.toLoc)
-              case bs: BuiltinSymbol => errExpr(
-                  Ls(msg"Unexpected reference to a builtin symbol '${bs.nme}' in result position" -> r.toLoc),
-                  extraInfo = S(r.toString),
-                )
+    case Value.SimpleRef(l) => l match
+      case l: LocalVarSymbol => ctx.getFunc(l) match
+        case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
+        case N => getVar(l, r.toLoc)
+      case bs: BuiltinSymbol => errExpr(
+          Ls(msg"Unexpected reference to a builtin symbol '${bs.nme}' in result position" -> r.toLoc),
+          extraInfo = S(r.toString),
+        )
     case Value.MemberRef(bms, disamb) =>
       if (bms is State.unitSymbol) || (disamb is State.unitSymbol) then
         RegisterUnitSingleton()
@@ -1778,7 +1774,12 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           fun match
             case Value.SimpleRef(l) =>
               val base = fun match
-                case Value.SimpleRef(l) => ctx.getFunc(l)
+                case Value.SimpleRef(l) => l match
+                  case l: LocalVarSymbol => ctx.getFunc(l)
+                  case bs: BuiltinSymbol => return errExpr(
+                    Ls(msg"Unexpected reference to builtin symbol '${bs.nme}' in Call(...) position" -> fun.toLoc),
+                    extraInfo = S(fun.toString),
+                  )
                 case Value.MemberRef(l, _) => ctx.getFunc(l)
                 case _ => N
               val baseFuncIdx = base match

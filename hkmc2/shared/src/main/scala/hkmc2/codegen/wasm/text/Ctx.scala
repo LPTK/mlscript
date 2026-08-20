@@ -10,7 +10,7 @@ import document.*
 import document.Document
 import semantics.{
   BlockMemberSymbol, Elaborator,
-  InnerSymbol, LabelSymbol, ModuleOrObjectSymbol, ParamList, TempSymbol,
+  InnerSymbol, LabelSymbol, LocalVarSymbol, ModuleOrObjectSymbol, ParamList, TempSymbol,
 },
   Elaborator.State
 import text.Param as WasmParam
@@ -30,7 +30,7 @@ sealed trait SessionBinding:
   def bindingKey: Str
 
   /** Returns the symbols that should resolve to this binding. */
-  def bindingSyms: Seq[ValueSymbol]
+  def bindingSyms: Seq[SlotSymbol]
 
   /** Returns the export name if this binding is re-exported. */
   def exportNameOpt: Opt[Str] = N
@@ -57,7 +57,7 @@ final case class SessionFunc(
     funcType: FunctionType,
 ) extends SessionBinding:
   def bindingKey: Str = s"func:$moduleName:$exportName"
-  def bindingSyms: Seq[ValueSymbol] = sym :: Nil
+  def bindingSyms: Seq[SlotSymbol] = sym :: Nil
   override def exportNameOpt: Opt[Str] = S(exportName)
 
 /** Metadata for an exported global that later Wasm REPL modules can import.
@@ -72,14 +72,14 @@ final case class SessionFunc(
   *   The Wasm global type expected by the import.
   */
 final case class SessionGlobal(
-    sym: ValueSymbol,
+    sym: ScopedSymbol,
     wrapId: Opt[Str] -> Opt[Str],
     moduleName: Str,
     exportName: Str,
     globalType: GlobalType,
 ) extends SessionBinding:
   def bindingKey: Str = s"global:$moduleName:$exportName"
-  def bindingSyms: Seq[ValueSymbol] = sym :: Nil
+  def bindingSyms: Seq[SlotSymbol] = sym :: Nil
   override def exportNameOpt: Opt[Str] = S(exportName)
 
 /** Metadata for a class type made visible to later Wasm REPL modules.
@@ -106,10 +106,10 @@ final case class SessionClass(
     objectTag: Opt[Int],
     rttiTypeInfo: TypeInfo,
     rttiGlobalExportName: Str,
-    aliasSyms: Seq[ValueSymbol] = Nil,
+    aliasSyms: Seq[SlotSymbol] = Nil,
 ) extends SessionBinding:
   def bindingKey: Str = s"class:${sym.uid}"
-  def bindingSyms: Seq[ValueSymbol] = sym +: aliasSyms
+  def bindingSyms: Seq[SlotSymbol] = sym +: aliasSyms
   override def exportNameOpt: Opt[Str] = S(rttiGlobalExportName)
 
 /** Metadata for a singleton object's backing global made visible to later Wasm REPL modules.
@@ -134,7 +134,7 @@ final case class SessionSingleton(
     globalTy: RefType,
 ) extends SessionBinding:
   def bindingKey: Str = s"singleton:$moduleName:$exportName"
-  def bindingSyms: Ls[ValueSymbol] = blockSym +: objectSym.toList
+  def bindingSyms: Ls[SlotSymbol] = blockSym +: objectSym.toList
   override def exportNameOpt: Opt[Str] = S(exportName)
 
 /** The emitted Wasm module together with REPL/session export metadata.
@@ -166,7 +166,7 @@ final class SessionExportCtx(
     val symbolsToExport: Set[BoundSymbol],
     val collectedBindings: ArrayBuf[SessionBinding],
 ):
-  def shouldExport(sym: ValueSymbol): Bool = sym matches:
+  def shouldExport(sym: ScopedSymbol): Bool = sym matches:
     case sym: BoundSymbol => symbolsToExport(sym)
 
   def emit(binding: SessionBinding): Unit =
@@ -178,7 +178,7 @@ final class SessionExportCtx(
 /** A Wasm function and its associated information.
   *
   * @param sym
-  *   The source [[ValueSymbol]] which this function is generated from.
+  *   The source [[SlotSymbol]] which this function is generated from.
   * @param typeUse
   *   [[TypeUse]] of the function's type in the module's type section.
   * @param params
@@ -197,7 +197,7 @@ final class SessionExportCtx(
 class FuncInfo(
     val sym: BlockMemberSymbol | TempSymbol,
     val typeUse: TypeUse,
-    val params: Seq[ValueSymbol -> WasmParam],
+    val params: Seq[SlotSymbol -> WasmParam],
     val resultTypes: Seq[Result],
     val locals: Seq[SlotSymbol -> SymIdx],
     val body: Expr,
@@ -238,7 +238,7 @@ end FuncInfo
   * @param exportName
   *   Optional export name.
   * @param sym
-  *   The source [[ValueSymbol]] which this global is generated from.
+  *   The source [[ScopedSymbol]] which this global is generated from.
   * @param wrapId
   *   An pair of optional strings for adding a prefix and suffix to the generated identifier of this global.
   */
@@ -246,7 +246,7 @@ class GlobalInfo(
     val globalType: GlobalType,
     val init: Expr,
     val exportName: Opt[Str],
-    val sym: ValueSymbol,
+    val sym: ScopedSymbol,
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
 )(using Ctx, Raise) extends ToWat:
 
@@ -285,7 +285,7 @@ end MemInfo
   * Each instance of [[TypeInfo]] represents a single type definition in a WebAssembly module.
   *
   * @param sym
-  *   The source [[ValueSymbol]] which this type is generated from.
+  *   The source [[Symbol]] which this type is generated from.
   * @param wrapId
   *   An pair of optional strings for adding a prefix and suffix to the generated identifier of this type.
   * @param compType
@@ -318,9 +318,9 @@ final class TypeInfo(
   * @param typeUse
   *   The function type referenced by this tag.
   * @param sym
-  *   The source [[ValueSymbol]] which this tag is generated from.
+  *   The source [[LocalVarSymbol]] which this tag is generated from.
   */
-class TagInfo(val typeUse: TypeUse, val sym: ValueSymbol, val wrapId: Opt[Str] -> Opt[Str] = N -> N)(using Ctx, Raise)
+class TagInfo(val typeUse: TypeUse, val sym: LocalVarSymbol, val wrapId: Opt[Str] -> Opt[Str] = N -> N)(using Ctx, Raise)
     extends ToWat:
 
   /** Symbolic identifier for the tag. */
@@ -670,7 +670,7 @@ class Ctx(using Elaborator.Ctx, State) extends ToWat:
   private var funcs = ListMap.empty[SymIdx, FuncInfo | Import[ExternType.Func]]
 
   /** [[MutMap]] containing function symbols mapped to the corresponding [[FuncInfo]] or [[Import]] instance. */
-  private val namedFuncs = MutMap.empty[ValueSymbol, FuncInfo | Import[ExternType.Func]]
+  private val namedFuncs = MutMap.empty[ScopedSymbol, FuncInfo | Import[ExternType.Func]]
 
   /** [[Scope]] for generating WAT identifiers of memories. */
   private[text] val memoryScp = Scope.empty(Scope.Cfg.default)
@@ -691,7 +691,7 @@ class Ctx(using Elaborator.Ctx, State) extends ToWat:
   private var globals = ListMap.empty[SymIdx, GlobalInfo | Import[ExternType.Global]]
 
   /** [[MutMap]] containing global symbols mapped to their corresponding [[GlobalInfo]] or [[Import]] instance. */
-  private val namedGlobals = MutMap.empty[ValueSymbol, GlobalInfo | Import[ExternType.Global]]
+  private val namedGlobals = MutMap.empty[ScopedSymbol, GlobalInfo | Import[ExternType.Global]]
 
   private var startFunc = N: Opt[FuncIdx]
 
@@ -870,77 +870,77 @@ class Ctx(using Elaborator.Ctx, State) extends ToWat:
 
   /** Returns the [[FuncIdx]] of the given `funcref`.
     */
-  def getFunc(funcref: FuncIdx | ValueSymbol): Opt[FuncIdx] = funcref match
+  def getFunc(funcref: FuncIdx | ScopedSymbol): Opt[FuncIdx] = funcref match
     case funcidx: FuncIdx => S(funcidx)
-    case sym: ValueSymbol =>
+    case sym: ScopedSymbol =>
       namedFuncs.get(sym).map: funcInfo =>
         funcInfo match
           case fi: FuncInfo => FuncIdx(fi.id)
           case imp: Import[ExternType.Func] => FuncIdx(imp.externType.id)
 
   /** Same as [[getFunc]] but throws an exception when the `funcref` is not found. */
-  def getFunc_!(funcref: FuncIdx | ValueSymbol): FuncIdx =
+  def getFunc_!(funcref: FuncIdx | ScopedSymbol): FuncIdx =
     getFunc(funcref).getOrElse:
       lastWords(s"Missing function definition for ${funcref.prettyString}")
 
-  private def getFuncEntry(funcref: FuncIdx | ValueSymbol): Opt[FuncInfo | Import[ExternType.Func]] = funcref match
+  private def getFuncEntry(funcref: FuncIdx | ScopedSymbol): Opt[FuncInfo | Import[ExternType.Func]] = funcref match
     case FuncIdx(idx @ SymIdx(_)) => funcs.get(idx)
-    case funcref: ValueSymbol => namedFuncs.get(funcref)
+    case funcref: ScopedSymbol => namedFuncs.get(funcref)
 
   /** Returns the [[FuncInfo]] instance associated with the given `funcref`. */
-  def getFuncInfo(funcref: FuncIdx | ValueSymbol): Opt[FuncInfo] =
+  def getFuncInfo(funcref: FuncIdx | ScopedSymbol): Opt[FuncInfo] =
     getFuncEntry(funcref).collect:
       case funcInfo: FuncInfo => funcInfo
 
   /** Same as [[getFuncInfo]] but throws an exception when the `funcref` is not found. */
-  def getFuncInfo_!(funcref: FuncIdx | ValueSymbol): FuncInfo =
+  def getFuncInfo_!(funcref: FuncIdx | ScopedSymbol): FuncInfo =
     getFuncInfo(funcref).getOrElse:
       lastWords(s"Missing function definition for ${funcref.prettyString}")
 
   /** Returns the type use associated with the given `funcref`, whether it is a definition or an import. */
-  def getFuncTypeUse(funcref: FuncIdx | ValueSymbol): Opt[TypeUse] =
+  def getFuncTypeUse(funcref: FuncIdx | ScopedSymbol): Opt[TypeUse] =
     getFuncEntry(funcref).map:
       case funcInfo: FuncInfo => funcInfo.typeUse
       case funcImport: Import[ExternType.Func] => funcImport.externType.typeUse
 
   /** Same as [[getFuncTypeUse]] but throws an exception when the `funcref` is not found. */
-  def getFuncTypeUse_!(funcref: FuncIdx | ValueSymbol): TypeUse =
+  def getFuncTypeUse_!(funcref: FuncIdx | ScopedSymbol): TypeUse =
     getFuncTypeUse(funcref).getOrElse:
       lastWords(s"Missing function definition for ${funcref.prettyString}")
 
   /** Returns the [[GlobalIdx]] of the given `globalref`. */
-  def getGlobal(globalref: GlobalIdx | ValueSymbol)(using Ctx, Raise): Opt[GlobalIdx] = globalref match
+  def getGlobal(globalref: GlobalIdx | ScopedSymbol)(using Ctx, Raise): Opt[GlobalIdx] = globalref match
     case globalidx: GlobalIdx => S(globalidx)
-    case sym: ValueSymbol =>
+    case sym: ScopedSymbol =>
       namedGlobals.get(sym).map: globalEntry =>
         GlobalIdx(globalExternType(globalEntry).id)
 
   /** Same as [[getGlobal]] but throws an exception when the `globalref` is not found. */
-  def getGlobal_!(globalref: GlobalIdx | ValueSymbol)(using Ctx, Raise): GlobalIdx =
+  def getGlobal_!(globalref: GlobalIdx | ScopedSymbol)(using Ctx, Raise): GlobalIdx =
     getGlobal(globalref).getOrElse:
       lastWords(s"Missing global definition for ${globalref.prettyString}")
 
-  private def getGlobalEntry(globalref: GlobalIdx | ValueSymbol): Opt[GlobalInfo | Import[ExternType.Global]] =
+  private def getGlobalEntry(globalref: GlobalIdx | ScopedSymbol): Opt[GlobalInfo | Import[ExternType.Global]] =
     globalref match
       case GlobalIdx(idx @ SymIdx(_)) => globals.get(idx)
-      case sym: ValueSymbol => namedGlobals.get(sym)
+      case sym: ScopedSymbol => namedGlobals.get(sym)
 
   /** Returns the global extern metadata associated with the given `globalref`. */
-  def getGlobalType(globalref: GlobalIdx | ValueSymbol)(using Ctx, Raise): Opt[ExternType.Global] =
+  def getGlobalType(globalref: GlobalIdx | ScopedSymbol)(using Ctx, Raise): Opt[ExternType.Global] =
     getGlobalEntry(globalref).map(globalExternType)
 
   /** Same as [[getGlobalType]] but throws an exception when the `globalref` is not found. */
-  def getGlobalType_!(globalref: GlobalIdx | ValueSymbol)(using Ctx, Raise): ExternType.Global =
+  def getGlobalType_!(globalref: GlobalIdx | ScopedSymbol)(using Ctx, Raise): ExternType.Global =
     getGlobalType(globalref).getOrElse:
       lastWords(s"Missing global definition for ${globalref.prettyString}")
 
   /** Returns the [[GlobalInfo]] instance associated with the given `globalref` when it is a definition. */
-  def getGlobalInfo(globalref: GlobalIdx | ValueSymbol): Opt[GlobalInfo] =
+  def getGlobalInfo(globalref: GlobalIdx | ScopedSymbol): Opt[GlobalInfo] =
     getGlobalEntry(globalref).collect:
       case globalInfo: GlobalInfo => globalInfo
 
   /** Same as [[getGlobalInfo]] but throws an exception when the `globalref` is not found. */
-  def getGlobalInfo_!(globalref: GlobalIdx | ValueSymbol): GlobalInfo =
+  def getGlobalInfo_!(globalref: GlobalIdx | ScopedSymbol): GlobalInfo =
     getGlobalInfo(globalref).getOrElse:
       lastWords(s"Missing global definition for ${globalref.prettyString}")
 
@@ -956,10 +956,10 @@ class Ctx(using Elaborator.Ctx, State) extends ToWat:
     globalDefs.map(addGlobal)
 
   /** Checks whether the global variable scope contains the variable `sym`. */
-  def containsGlobal(sym: ValueSymbol): Bool = namedGlobals.contains(sym)
+  def containsGlobal(sym: ScopedSymbol): Bool = namedGlobals.contains(sym)
   
   /** Returns all globals in this context. */
-  def getGlobals: Seq[ValueSymbol] = namedGlobals.keys.toSeq
+  def getGlobals: Seq[ScopedSymbol] = namedGlobals.keys.toSeq
 
   /** Checks whether singleton metadata has been registered for class symbol `sym`. */
   def containsSingleton(sym: BlockMemberSymbol): Bool = singletonByBms.contains(sym)
@@ -967,10 +967,10 @@ class Ctx(using Elaborator.Ctx, State) extends ToWat:
   /** Returns singleton metadata for `sym` when it resolves to either the block-member symbol or module/object symbol
     * used during singleton registration.
     */
-  def getSingletonInfo(sym: ValueSymbol): Opt[Ctx.SingletonInfo] = sym match
+  def getSingletonInfo(sym: BlockMemberSymbol | InnerSymbol): Opt[Ctx.SingletonInfo] = sym match
     case bms: BlockMemberSymbol => singletonByBms.get(bms)
     case isym: ModuleOrObjectSymbol => singletonByIsym.get(isym)
-    case _ => N
+    case _: InnerSymbol => N
 
   /** Registers singleton metadata under both its block-member symbol and optional module/object symbol alias.
     */
