@@ -365,10 +365,16 @@ case object NoMarks extends ExitMarks
 
 sealed trait ShapeLike:
   def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape
+  def exit(marks: Marks)(using TL): TermShape | NoShape
+  def enter(revMarkss: Ls[Marks])(using TL): TermShape | NoShape
+  def enter(marks: Marks)(using TL): TermShape | NoShape
   def shwDbg(using DebugPrinter): Str
 
 case object NoShape extends ShapeLike:
   def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = NoShape
+  def exit(marks: Marks)(using TL): TermShape | NoShape = NoShape
+  def enter(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = NoShape
+  def enter(marks: Marks)(using TL): TermShape | NoShape = NoShape
   def shwDbg(using DebugPrinter): Str = toString
 
 type NoShape = NoShape.type
@@ -450,29 +456,40 @@ sealed trait TermShape extends Shape:
     marks match
     case NoMarks => this
     case EntryMark(sym, id, rest) =>
-      MarkedShape.enter(this, sym, id)
+      MarkedShape.enter(this, sym, id).exit(rest)
     case ExitMark(sym, id, rest) =>
-      MarkedShape.exit(this, sym, id)
+      MarkedShape.exit(this, sym, id).exit(rest)
   
   def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = revMarkss match
     case Nil => this
     case mark :: rest =>
       exit(mark).exit(rest)
   
-  def enter(marks: Marks)(using tl: TL): TermShape =
-  tl.trace[TermShape](s".enter $shwDbg (${marks.showDbg})", res => s"= ${res.shwDbg}"):
+  def enter(marks: Marks)(using tl: TL): TermShape | NoShape =
+  tl.trace[TermShape | NoShape](s".enter $shwDbg (${marks.showDbg})", res => s"= ${res.shwDbg}"):
     marks match
     case NoMarks => this
     case EntryMark(sym, id, rest) =>
       // MarkedShape.enter(this, sym, id).enter(rest)
-      ???
+      // ???
+      // MarkedShape.exit(this, sym, id) match
+      // case NoShape => this // TODO: should this be an error?
+      // case sh: TermShape => sh.enter(rest)
+      MarkedShape.exit(this, sym, id).enter(rest)
     case ExitMark(sym, id, rest) =>
       // MarkedShape.exit(this, sym, id) match
       // case NoShape => this // TODO: should this be an error?
       // case sh => sh.enter(rest)
       MarkedShape.enter(this, sym, id).enter(rest)
+    // marks match
+    // case NoMarks => this
+    // case marks: SomeMarks =>
+    //   this match
+    //   case sh: NonMarkedShape => MarkedShape(sh, marks)
+    //   case MarkedShape(sh, mark) =>
+    //     ???
   
-  def enter(revMarkss: Ls[Marks])(using TL): TermShape = revMarkss match
+  def enter(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = revMarkss match
     case Nil => this
     case mark :: rest =>
       enter(mark).enter(rest)
@@ -533,6 +550,9 @@ class SymShape(val sym: BlockMemberSymbol, val resSym: FlowSymbol) extends Shape
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
   def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = ???
+  def exit(marks: Marks)(using TL): TermShape | NoShape = ???
+  def enter(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = ???
+  def enter(marks: Marks)(using TL): TermShape | NoShape = ???
 
 /* 
 class ThisShape(val defn: Definition) extends NonAppTermShape:

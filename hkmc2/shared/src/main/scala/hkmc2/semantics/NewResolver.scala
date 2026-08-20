@@ -70,10 +70,16 @@ class NewResolver:
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
     // case ((p, mss) :: ps, Fld(fls, trm, asc) :: args) =>
       listenTerm(trm, sh0 =>
-        val sh = sh0.enter(mss)
-        log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = ${sh.shwDbg}")
-        if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
-          p.sym.shapeListeners.foreach(listener => listener(sh))
+        // val sh = sh0.enter(mss)
+        // log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = ${sh.shwDbg}")
+        // if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
+        //   p.sym.shapeListeners.foreach(listener => listener(sh))
+        sh0.enter(mss) match
+        case NoShape =>
+        case sh: TermShape =>
+          log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = ${sh.shwDbg}")
+          if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
+            p.sym.shapeListeners.foreach(listener => listener(sh))
       )
       zipArgs(mss, ps, r, args, src)
     case _ =>
@@ -430,6 +436,8 @@ class NewResolver:
       //   listener(MarkedShape.enter(sh, thru)))
       listenTerm(base, sh =>
         listener(MarkedShape.enter(sh, thru, N)))
+      // listenTerm(base, sh =>
+      //   listener(MarkedShape.exit(sh, thru, N).asInstanceOf))
     case ref @ Ref(sym: InnerSymbol) =>
       // // sym.asBlkMember match
       // // case S(bms) =>
