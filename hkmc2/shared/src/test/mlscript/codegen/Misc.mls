@@ -83,7 +83,7 @@ wasm.i32.const
 //│ ╙──      	^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:fixme
+:e
 wasm.i32.const(42)
 //│ ╔══[COMPILATION ERROR] WebAssembly intrinsics are not available when targeting JS
 //│ ║  l.87: 	wasm.i32.const(42)
