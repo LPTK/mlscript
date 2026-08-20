@@ -1131,7 +1131,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
           case _ => N
         val message = membersOf(actual).orElse(membersOf(declared)) match
           case S((l, r)) => msg"Types '${l.describe}' and '${r.describe}' have no common representation"
-          case N => msg"Cannot use a value of type '${actual.describe}' expecting unrelated type '${declared.describe}'"
+          case N => msg"Cannot use a value of type '${actual.describe}' at an unrelated type '${declared.describe}'"
         raise:
           ErrorReport(message -> loc :: Nil, source = Diagnostic.Source.Compilation)
         this

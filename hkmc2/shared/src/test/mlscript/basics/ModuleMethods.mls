@@ -36,7 +36,7 @@ fun f(module m: M)
 
 :e
 f(42)
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' expecting unrelated type 'module M'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'module M'
 //│ ║  l.38: 	f(42)
 //│ ╙──      	  ^^
 
@@ -56,7 +56,7 @@ fun f[T](module m: MM[T])
 
 :e
 f[Int](42)
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' expecting unrelated type 'module MM'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'module MM'
 //│ ║  l.58: 	f[Int](42)
 //│ ╙──      	       ^^
 

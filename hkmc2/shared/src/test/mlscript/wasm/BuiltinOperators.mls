@@ -42,10 +42,10 @@ wasm.ref.i31(wasm.i32.add(wasm.i32.const(1), wasm.i32.const(2)))
 // value in place, so the backend reports it again rather than emitting an `i32.add` on a reference.
 :ge
 wasm.i32.add(1, 2)
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' expecting unrelated type 'Int32'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Int32'
 //│ ║  l.44: 	wasm.i32.add(1, 2)
 //│ ╙──      	             ^
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' expecting unrelated type 'Int32'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Int32'
 //│ ║  l.44: 	wasm.i32.add(1, 2)
 //│ ╙──      	                ^
 //│ ╔══[COMPILATION ERROR] Operand #1 of wasm intrinsic 'i32.add' must be of type 'Int32'

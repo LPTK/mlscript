@@ -25,7 +25,7 @@ module TrmMod with
 
 :e
 fun f: ClsMod = 42
-//│ ═══[COMPILATION ERROR] Cannot use a value of type 'Int' expecting unrelated type 'ClsMod'
+//│ ═══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'ClsMod'
 
 :rt
 f
@@ -79,7 +79,7 @@ fun f: TrmMod = 42
 //│ ║  l.77: 	fun f: TrmMod = 42
 //│ ║        	       ^^^^^^
 //│ ╙── Function must be marked as returning a 'module' in order to have a module return type.
-//│ ═══[COMPILATION ERROR] Cannot use a value of type 'Int' expecting unrelated type 'module TrmMod'
+//│ ═══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'module TrmMod'
 
 :sjs
 fun f = TrmMod
@@ -104,7 +104,7 @@ assertModule(ClsMod).whoami
 
 :ge
 assertModule(TypMod).whoami
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' expecting unrelated type 'module ClsMod'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'module ClsMod'
 //│ ║  l.106: 	assertModule(TypMod).whoami
 //│ ╙──       	             ^^^^^^
 //│ = "module"

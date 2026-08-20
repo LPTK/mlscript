@@ -42,7 +42,7 @@ Nil()
 
 :e
 Cons("1", Nil)
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' expecting unrelated type 'Int'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int'
 //│ ║  l.44: 	Cons("1", Nil)
 //│ ╙──      	     ^^^
 //│ ╔══[COMPILATION ERROR] Type error in string literal with expected type Int
@@ -90,7 +90,7 @@ BoolVal(false)
 
 :e
 IntVal("1")
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' expecting unrelated type 'Int'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int'
 //│ ║  l.92: 	IntVal("1")
 //│ ╙──      	       ^^^
 //│ ╔══[COMPILATION ERROR] Type error in string literal with expected type Int

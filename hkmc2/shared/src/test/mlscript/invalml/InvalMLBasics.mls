@@ -101,7 +101,7 @@ new Point(0.0, 0.0, 0.0)
 
 :e
 new Foo("1!5!")
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' expecting unrelated type 'Int'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int'
 //│ ║  l.103: 	new Foo("1!5!")
 //│ ╙──       	        ^^^^^^
 //│ ╔══[COMPILATION ERROR] Type error in string literal with expected type Int
