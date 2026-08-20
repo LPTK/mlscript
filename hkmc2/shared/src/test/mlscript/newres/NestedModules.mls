@@ -82,11 +82,11 @@ m.id
 //│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
 //│ ║  l.79: 	m.id
 //│ ║        	^^^^
-//│ ╟── target: function 'id'
+//│ ╟── target: function 'id' in module 'Predef'
 //│ ║  in ../../mlscript-compile/Predef.mls
 //│ ║  l.18: 	fun id(x) = x
 //│ ║        	^^^^^^^^^^^^^
-//│ ╟── target: function 'id'
+//│ ╟── target: function 'id' in module 'Bar'
 //│ ║  in NestedModules.mls:6
 //│ ║  l.8: 	    fun id(x) = x
 //│ ╙──     	    ^^^^^^^^^^^^^
@@ -111,20 +111,8 @@ fun localid(x) = x
 localid(Foo.Bar).id
 //│ = fun id
 
-// * We don't currently preserve context sensitivity
-:todo
+// * We preserve context sensitivity
 localid(Predef).id
-//│ ╔══[COMPILATION ERROR] This selection of member 'id' is ambiguous, as it has multiple resolved targets
-//│ ║  l.116: 	localid(Predef).id
-//│ ║         	^^^^^^^^^^^^^^^^^^
-//│ ╟── target: function 'id'
-//│ ║  in ../../mlscript-compile/Predef.mls
-//│ ║  l.18: 	fun id(x) = x
-//│ ║        	^^^^^^^^^^^^^
-//│ ╟── target: function 'id'
-//│ ║  in NestedModules.mls:6
-//│ ║  l.8: 	    fun id(x) = x
-//│ ╙──     	    ^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = fun id
 
 

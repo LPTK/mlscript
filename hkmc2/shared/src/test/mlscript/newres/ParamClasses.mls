@@ -9,10 +9,18 @@ class Foo(val a)
 
 :sr
 Foo(Predef).a.id
-//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo⁰(Predef⁰)‹app⁰›.a¹.id⁰
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = fun id
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:Foo/a but got term:Foo
+//│ 	at: scala.Predef$.require(Predef.scala:376)
+//│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:415)
+//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:295)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:362)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: scala.collection.mutable.LinkedHashSet.foreach(LinkedHashSet.scala:132)
+//│ 	at: hkmc2.semantics.NewResolver.listen(NewResolver.scala:410)
 
 
 :sr
@@ -26,7 +34,7 @@ class Foo(val a) {
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo²::Foo³(val a³) {
 //│     val a⁴::a⁵ ‹flow:a¹› = a³,
-//│     val b⁰::b¹ ‹flow:b⁰› = +(⟨Foo³.⟩a⁴^b¹, 1)‹app¹›
+//│     val b⁰::b¹ ‹flow:b⁰› = +(⟨Foo³.this.⟩a⁴^b¹, 1)‹app⁰›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -34,7 +42,7 @@ class Foo(val a) {
 :sr
 let f = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let f⁰, f⁰ = Foo²(1)‹app²›
+//│   let f⁰, f⁰ = Foo²(1)‹app¹›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
@@ -72,40 +80,28 @@ fv.a
 :sir
 fun get = fv.a
 val fv = Foo(1)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:383)
-//│ 	at: hkmc2.semantics.MarkedShape.members(Term.scala:358)
-//│ 	at: hkmc2.semantics.NewResolver.newSel$$anonfun$2(NewResolver.scala:142)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:335)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listen$$anonfun$2(NewResolver.scala:404)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fun get⁰::get¹ ‹flow:get⁰› = fv¹^get¹.a⁴, val fv¹::fv² ‹flow:fv⁰› = Foo²^fv²(1)‹app²›
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp;
+//│ define get⁰ as fun get¹() { return fv⁰.a⁰ };
+//│ set tmp = Foo⁰(1);
+//│ define fv¹ as val fv⁰ = tmp;
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ fv = Foo(1)
 
 // :fixme
 :sr
 :sir
 :expect 1
 get
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:1251)
-//│ ╔══[COMPILATION ERROR] Name not found: get
-//│ ║  l.92: 	get
-//│ ╙──      	^^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   ‹error›
+//│   get⁰
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ throw "This code cannot be run as its compilation yielded an error."
+//│ return get¹()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: processIRBlock (JSBackendDiffMaker.scala:299)
-//│ ═══[RUNTIME ERROR] Expected: '1', got: 'undefined'
+//│ = 1
 
 
 :sr
@@ -122,22 +118,65 @@ class Bar(a) with
   val foo = Foo(a)
 
 let b = Bar(123)
-//│ b = Bar(_)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:Bar/a but got term:Bar
+//│ 	at: scala.Predef$.require(Predef.scala:376)
+//│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:415)
+//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:295)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:362)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: hkmc2.semantics.NewResolver.zipArgs$$anonfun$3$$anonfun$2(NewResolver.scala:82)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 
 :sr
 b.foo
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:1252)
+//│ ╔══[COMPILATION ERROR] Name not found: b
+//│ ║  l.135: 	b.foo
+//│ ╙──       	^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   b².foo²
+//│   ‹error›.fooˀˀˀ
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: term (Lowering.scala:1112)
+//│ FAILURE INFO: NewSel:
+//│   prefix = Error
+//│   id = Ident of "foo"
+//│ ╔══[COMPILATION ERROR] This selection of member 'foo' has no resolved target
+//│ ║  l.135: 	b.foo
+//│ ╙──       	^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = Foo(123)
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // :de
 :sr
 b.foo.a
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:1252)
+//│ ╔══[COMPILATION ERROR] Name not found: b
+//│ ║  l.158: 	b.foo.a
+//│ ╙──       	^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   b².foo².a⁴
+//│   ‹error›.fooˀˀˀ.aˀˀˀ
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: term (Lowering.scala:1112)
+//│ FAILURE INFO: NewSel:
+//│   prefix = NewSel:
+//│     prefix = Error
+//│     id = Ident of "foo"
+//│   id = Ident of "a"
+//│ ╔══[COMPILATION ERROR] This selection of member 'a' has no resolved target
+//│ ║  l.158: 	b.foo.a
+//│ ╙──       	^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = 123
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 :sjs
@@ -155,7 +194,7 @@ let f = new Foo(1)
 //│     DefineVar:
 //│       sym = f⁰
 //│       rhs = New:
-//│         cls = MemberRef of member:Foo⁰
+//│         cls = MemberRef of member:Foo¹
 //│         args = Ls of
 //│           Tup of Ls of
 //│             Fld:
@@ -176,14 +215,14 @@ let g = f(1)
 :e
 g(2)
 //│ ╔══[COMPILATION ERROR] Instance of class 'Foo' cannot receive more argument lists.
-//│ ║  l.177: 	g(2)
+//│ ║  l.216: 	g(2)
 //│ ╙──       	^^^^
 //│ ═══[RUNTIME ERROR] TypeError: g is not a function
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.184: 	let f = new Foo()
+//│ ║  l.223: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
 //│ f = Foo(undefined)
 
@@ -191,7 +230,7 @@ let f = new Foo()
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] Invalid class expression in 'new' instantiation.
-//│ ║  l.192: 	new 42
+//│ ║  l.231: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -208,7 +247,7 @@ let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo⁴::Foo⁵(pred⁰) {
 //│     @privateval pred¹::pred² ‹flow:pred⁰› = pred⁰,
-//│     ⟨Foo⁵.⟩pred¹.id⁰(42)‹app⁵›
+//│     ⟨Foo⁵.this.⟩pred¹.id⁰(42)‹app⁵›
 //│   },
 //│   let f²,
 //│   f² = new Foo⁴(Predef⁰)
@@ -236,16 +275,18 @@ class Foo(pred) with {
   pred.id(2)
 }
 let f = Foo(Predef)
-//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Foo⁶::Foo⁷(pred³) {
-//│     @privateval pred⁴::pred⁵ ‹flow:pred¹› = pred³,
-//│     ⟨Foo⁷.⟩pred⁴.id⁰(1)‹app⁶›,
-//│     ⟨Foo⁷.⟩pred⁴.id⁰(2)‹app⁷›
-//│   },
-//│   let f³,
-//│   f³ = Foo⁶(Predef⁰)‹app⁸›
-//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ f = Foo(_)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:Foo/pred but got term:Foo
+//│ 	at: scala.Predef$.require(Predef.scala:376)
+//│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:415)
+//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:295)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:362)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at: hkmc2.semantics.NewResolver.zipArgs$$anonfun$3$$anonfun$2(NewResolver.scala:82)
+//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 
 :sr
 class Foo(pred) {
@@ -253,18 +294,16 @@ class Foo(pred) {
   fun callId(x) = pred.id(x)
 }
 let f = new Foo(Predef)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:383)
-//│ 	at: hkmc2.semantics.MarkedShape.members(Term.scala:358)
-//│ 	at: hkmc2.semantics.NewResolver.newSel$$anonfun$2(NewResolver.scala:142)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:335)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listen$$anonfun$2(NewResolver.scala:404)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   class Foo⁶::Foo⁷(pred³) {
+//│     @privateval pred⁴::pred⁵ ‹flow:pred¹› = pred³,
+//│     val r⁰::r¹ ‹flow:r⁰› = ⟨Foo⁷.this.⟩pred⁴^r¹.id⁰(42)‹app⁶›,
+//│     fun callId⁰::callId¹(x¹) ‹flow:callId⁰› = ⟨Foo⁷.this.⟩pred⁴^callId¹.id⁰(x¹)‹app⁷›
+//│   },
+//│   let f³,
+//│   f³ = new Foo⁶(Predef⁰)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ f = Foo(_)
 
 
 

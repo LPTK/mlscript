@@ -38,7 +38,7 @@ enum SelectionTarget:
   case Err(err: ErrorReport)
   
   def describe: Str = this match
-    case ObjectMember(sym) => s"member ${sym.nme}" // TODO: more info
+    case ObjectMember(sym) => s"member ${sym.nme}" // TODO: more info (owner)
     case CompanionMember(_, sym) => s"companion member ${sym.nme}"
     case Err(err) => s"erroneous selection (${err.mainMsg})"
   

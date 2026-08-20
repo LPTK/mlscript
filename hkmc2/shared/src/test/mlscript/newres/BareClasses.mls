@@ -122,7 +122,7 @@ class Foo {
 
 :e
 let f = Foo(1)
-//│ ╔══[COMPILATION ERROR] Class 'Foo' cannot called like a function.
+//│ ╔══[COMPILATION ERROR] Class 'Foo' cannot receive more argument lists.
 //│ ║  l.124: 	let f = Foo(1)
 //│ ╙──       	        ^^^^^^
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor Foo6 cannot be invoked without 'new'
@@ -142,7 +142,7 @@ f.a
 //│ ║  l.132: 	let f = new Foo(1)
 //│ ╙──       	        ^^^^^^^^^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   f².aˀ
+//│   f².aˀˀˀ
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

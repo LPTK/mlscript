@@ -57,10 +57,10 @@ bar(B).u
 //│ ╔══[COMPILATION ERROR] This selection of member 'u' is ambiguous, as it has multiple resolved targets
 //│ ║  l.54: 	bar(B).u
 //│ ║        	^^^^^^^^
-//│ ╟── target: value 'u'
+//│ ╟── target: value 'u' in module 'B'
 //│ ║  l.9: 	  val u = 2
 //│ ║       	  ^^^^^^^^^
-//│ ╟── target: value 'u'
+//│ ╟── target: value 'u' in module 'A'
 //│ ║  l.6: 	  val u = 1
 //│ ╙──     	  ^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

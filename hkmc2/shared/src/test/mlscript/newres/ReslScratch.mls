@@ -40,7 +40,7 @@ class Bar(a) with
 //│   class Bar⁰::Bar¹(a⁰) {
 //│     @privateval a¹::a² ‹flow:a⁰› = a⁰,
 //│     let x⁰,
-//│     x⁰ = ⟨Bar¹.⟩a¹,
+//│     x⁰ = ⟨Bar¹.this.⟩a¹,
 //│     ⟨Predef⁰.⟩print⁰(x⁰)‹app⁰›
 //│   }
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————
@@ -71,7 +71,7 @@ class Bar(a) with
 //│           DefineVar:
 //│             sym = term:Bar³/x⁰
 //│             rhs = SynthSel{sym=member:a³}:
-//│               prefix = MemberRef of class:Bar³
+//│               prefix = SelfRef of class:Bar³
 //│               nme = Ident of "a"
 //│         res = App:
 //│           lhs = SynthSel{sym=member:print⁰}:

@@ -1132,7 +1132,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             ErrorReport(
               msg"This selection of member '${sel.id.name}' is ambiguous, as it has multiple resolved targets" -> t.toLoc ::
                 ts.map: t =>
-                  msg"target: ${t.describe} '${t.nme}'" -> t.toLoc
+                  msg"target: ${t.describe} '${t.nme}'${
+                    t.asTrm.fold("")(_.owner.fold("")(o => s" in ${o.asBlkMember.get.describe} '${o.nme}'")) // TOOD other kinds of owned symbols
+                  }" -> t.toLoc
                 , S(ts.map(s => s.showDbg + " " + s.tsym.map(_.showDbg))), source = Diagnostic.Source.Compilation)
           // compError
           // ???

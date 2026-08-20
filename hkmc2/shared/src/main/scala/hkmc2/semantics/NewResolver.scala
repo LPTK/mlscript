@@ -438,16 +438,16 @@ class NewResolver:
         listener(MarkedShape.enter(sh, thru, N)))
       // listenTerm(base, sh =>
       //   listener(MarkedShape.exit(sh, thru, N).asInstanceOf))
-    case ref @ Ref(sym: InnerSymbol) =>
-      // // sym.asBlkMember match
-      // // case S(bms) =>
-      // //   bms.onComplete: () =>
-      // //     ???
-      // // case _ => ???
-      // // sym.asDefnSym
-      // // ???
-      // sym.shapeListeners += listener
-      ???
+    case ref @ Ref(sym: InnerSymbol) => // TODO: remove remaining occurrences of such refs
+      // sym.asBlkMember match
+      // case S(bms) =>
+      //   bms.onComplete: () =>
+      //     ???
+      // case _ => ???
+      // sym.asDefnSym
+      // ???
+      sym.shapeListeners += listener
+      // ???
     case ref @ Ref(bsym: BlockMemberSymbol) =>
       // // listener(ref)
       // // if ref.shapes.add(bsym) then
