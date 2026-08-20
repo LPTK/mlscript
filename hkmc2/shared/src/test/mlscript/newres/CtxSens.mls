@@ -15,57 +15,9 @@ module B {
 
 fun foo(x) = x
 
-:de
+// :de
 :sr
 foo(A).u
-//│ Elab block List(Sel(App(Ident(foo),Tup(List(Ident(A)))),Ident(u))) LocalScope(block:4)
-//│ | Elab term Sel(App(Ident(foo),Tup(List(Ident(A)))),Ident(u))
-//│ | | Elab subterm Sel(App(Ident(foo),Tup(List(Ident(A)))),Ident(u))
-//│ | | | Elab subterm App(Ident(foo),Tup(List(Ident(A))))
-//│ | | | | Elab subterm Ident(foo)
-//│ | | | | ~> MemberRef(member:foo‹66›)
-//│ | | | | Elab subterm Tup(List(Ident(A)))
-//│ | | | | | Elab term Ident(A)
-//│ | | | | | | Elab subterm Ident(A)
-//│ | | | | | | ~> MemberRef(member:A‹46›)
-//│ | | | | | ~> MemberRef(member:A‹46›)
-//│ | | | | ~> Tup(List(Fld(‹›,MemberRef(member:A‹46›),None)))
-//│ | | | | listenTerm: trm = member:foo‹66›#0
-//│ | | | | listen: trm = member:foo‹66›#0
-//│ | | | | listenBMS: bms = function
-//│ | | | | listenedBMS: bms = function
-//│ | | | | fromBMS: bms = function, sh = member:foo⁰‹66›, flow = foo¹‹74›
-//│ | | | | PUSH MarkedShape(member:foo⁰‹66›, +⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩ϵ)
-//│ | | | | appShape: lhs = MarkedShape(member:foo⁰‹66›, +⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩ϵ), args = [member:A‹46›#0], res = member:foo‹66›#0(member:A‹46›#0)
-//│ | | | | Zipping ParamList(‹›,List(Param(‹›,x‹68›,None,Modulefulness(None))),None) (List(+⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩ϵ)) with List(Fld(‹›,MemberRef(member:A‹46›),None))
-//│ | | | | listenTerm: trm = member:A‹46›#0
-//│ | | | | listen: trm = member:A‹46›#0
-//│ | | | | listenBMS: bms = module
-//│ | | | | listenedBMS: bms = module
-//│ | | | | fromBMS: bms = module, sh = module:A⁰‹48›, flow = A¹‹75›
-//│ | | | | PUSH MarkedShape(module:A⁰‹48›, +⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ)
-//│ | | | | .enter MarkedShape(module:A⁰‹48›, +⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ) (+⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩ϵ)
-//│ | | | | | .enter MarkedShape(module:A⁰‹48›, -⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩+⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ) (ϵ)
-//│ | | | | | = MarkedShape(module:A⁰‹48›, -⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩+⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ)
-//│ | | | | = MarkedShape(module:A⁰‹48›, -⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩+⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ)
-//│ | | | | zipArg: p = x‹68›, trm = member:A‹46›#0, sh = MarkedShape(module:A⁰‹48›, -⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩+⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ)
-//│ | | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo‹67›,Some(foo‹74›),NoMarks)))
-//│ | | | | lhs false List(((x‹68›),List(+⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩ϵ)))
-//│ | | | | appShape: td.body = Some(SimpleRef(x‹68›))
-//│ | | | | listenTerm: trm = x‹68›#0
-//│ | | | | listen: trm = x‹68›#0
-//│ | | | | .exit MarkedShape(module:A⁰‹48›, -⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩+⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ) (+⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩ϵ)
-//│ | | | | | .exit MarkedShape(module:A⁰‹48›, +⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ) (ϵ)
-//│ | | | | | = MarkedShape(module:A⁰‹48›, +⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ)
-//│ | | | | = MarkedShape(module:A⁰‹48›, +⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ)
-//│ | | | ~> App(MemberRef(member:foo‹66›),Tup(List(Fld(‹›,MemberRef(member:A‹46›),None))))
-//│ | | | newSel? sel = member:foo‹66›#0(member:A‹46›#0).u
-//│ | | | listenTerm: trm = member:foo‹66›#0(member:A‹46›#0)
-//│ | | | listen: trm = member:foo‹66›#0(member:A‹46›#0)
-//│ | | | newSel: sel = member:foo‹66›#0(member:A‹46›#0).u, shape = module 'A'
-//│ | | ~> NewSel(App(MemberRef(member:foo‹66›),Tup(List(Fld(‹›,MemberRef(member:A‹46›),None)))),Ident(u))
-//│ | ~> NewSel(App(MemberRef(member:foo‹66›),Tup(List(Fld(‹›,MemberRef(member:A‹46›),None)))),Ident(u))
-//│ ~> Blk(List(),NewSel(App(MemberRef(member:foo‹66›),Tup(List(Fld(‹›,MemberRef(member:A‹46›),None)))),Ident(u)))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   foo⁰(A⁰)‹app⁰›.u⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -83,96 +35,34 @@ foo(B).u
 //│ = 2
 
 
-:de
+// :de
 fun bar(y) =
   foo(y)
-//│ Elab block List(TermDef(Fun,App(Ident(bar),Tup(List(Ident(y)))),Some(Block(List(App(Ident(foo),Tup(List(Ident(y[...] LocalScope(block:7)
-//│ | Processing term definition App(Ident(bar),Tup(List(Ident(y))))
-//│ | Elaborating ParamTree: ParamTree(‹›,Ident(y),None,None,Set())
-//│ | Elab term Block(List(App(Ident(foo),Tup(List(Ident(y))))))
-//│ | | Elab subterm Block(List(App(Ident(foo),Tup(List(Ident(y))))))
-//│ | | | Elab block List(App(Ident(foo),Tup(List(Ident(y))))) LocalScope(‹block›)
-//│ | | | | Elab term App(Ident(foo),Tup(List(Ident(y))))
-//│ | | | | | Elab subterm App(Ident(foo),Tup(List(Ident(y))))
-//│ | | | | | | Elab subterm Ident(foo)
-//│ | | | | | | ~> Capture(MemberRef(member:foo‹66›),term:bar‹104›)
-//│ | | | | | | Elab subterm Tup(List(Ident(y)))
-//│ | | | | | | | Elab term Ident(y)
-//│ | | | | | | | | Elab subterm Ident(y)
-//│ | | | | | | | | ~> SimpleRef(y‹105›)
-//│ | | | | | | | ~> SimpleRef(y‹105›)
-//│ | | | | | | ~> Tup(List(Fld(‹›,SimpleRef(y‹105›),None)))
-//│ | | | | | | listenTerm: trm = member:foo‹66›#0^term:bar⁰‹104›
-//│ | | | | | | listen: trm = member:foo‹66›#0^term:bar⁰‹104›
-//│ | | | | | | listenTerm: trm = member:foo‹66›#0
-//│ | | | | | | listen: trm = member:foo‹66›#0
-//│ | | | | | | listenBMS: bms = function
-//│ | | | | | | listenedBMS: bms = function
-//│ | | | | | | fromBMS: bms = function, sh = member:foo⁰‹66›, flow = foo³‹108›
-//│ | | | | | | PUSH MarkedShape(member:foo⁰‹66›, +⟨term:foo²‹67›⟩%⟨foo³‹108›⟩ϵ)
-//│ | | | | | | appShape: lhs = MarkedShape(member:foo⁰‹66›, -⟨term:bar⁰‹104›⟩+⟨term:foo²‹67›⟩%⟨foo³‹108›⟩ϵ), args = [y‹105›#0], res = member:foo‹66›#0^term:bar⁰‹104›(y‹105›#0)
-//│ | | | | | | Zipping ParamList(‹›,List(Param(‹›,x‹68›,None,Modulefulness(None))),None) (List(-⟨term:bar⁰‹104›⟩+⟨term:foo²‹67›⟩%⟨foo³‹108›⟩ϵ)) with List(Fld(‹›,SimpleRef(y‹105›),None))
-//│ | | | | | | listenTerm: trm = y‹105›#0
-//│ | | | | | | listen: trm = y‹105›#0
-//│ | | | | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(EntryMark(term:bar‹104›,None,ExitMark(term:foo‹67›,Some(foo‹108›),NoMarks))))
-//│ | | | | | | lhs false List(((x‹68›),List(-⟨term:bar⁰‹104›⟩+⟨term:foo²‹67›⟩%⟨foo³‹108›⟩ϵ)))
-//│ | | | | | | appShape: td.body = Some(SimpleRef(x‹68›))
-//│ | | | | | | listenTerm: trm = x‹68›#0
-//│ | | | | | | listen: trm = x‹68›#0
-//│ | | | | | | .exit MarkedShape(module:A⁰‹48›, -⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩+⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ) (-⟨term:bar⁰‹104›⟩+⟨term:foo²‹67›⟩%⟨foo³‹108›⟩ϵ)
-//│ | | | | | | | .exit MarkedShape(module:A⁰‹48›, -⟨term:bar⁰‹104›⟩-⟨term:foo²‹67›⟩%⟨foo¹‹74›⟩+⟨module:A⁰‹48›⟩%⟨A¹‹75›⟩ϵ) (+⟨term:foo²‹67›⟩%⟨foo³‹108›⟩ϵ)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:foo‹67› but got term:bar‹104›
-//│ 	at: scala.Predef$.require(Predef.scala:376)
-//│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:415)
-//│ 	at: hkmc2.semantics.TermShape.exit$$anonfun$4(Term.scala:461)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:20)
-//│ 	at: hkmc2.MLsDiffMaker$$anon$2.trace(MLsDiffMaker.scala:276)
-//│ 	at: hkmc2.semantics.TermShape.exit(Term.scala:461)
-//│ 	at: hkmc2.semantics.TermShape.exit$(Term.scala:429)
-//│ 	at: hkmc2.semantics.MarkedShape.exit(Term.scala:382)
-//│ 	at: hkmc2.semantics.TermShape.exit$$anonfun$4(Term.scala:459)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:20)
 
-:fixme
-
+// :de
+// :fixme
 :sr
 bar(A).u
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:1252)
-//│ ╔══[COMPILATION ERROR] Name not found: bar
-//│ ║  l.140: 	bar(A).u
-//│ ╙──       	^^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   ‹error›(A⁰)‹app²›.uˀˀˀ
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: term (Lowering.scala:1112)
-//│ FAILURE INFO: NewSel:
-//│   prefix = App:
-//│     lhs = Error
-//│     rhs = Tup of Ls of
-//│       Fld:
-//│         term = MemberRef of member:A²
-//│   id = Ident of "u"
-//│ ╔══[COMPILATION ERROR] This selection of member 'u' has no resolved target
-//│ ║  l.140: 	bar(A).u
-//│ ╙──       	^^^^^^^^
+//│   bar⁰(A⁰)‹app²›.u⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = 1
 
+// * As expected, we currently lose context sensitivity when going through the call of a captured function (foo)
 :fixme
 :sr
 bar(B).u
-//│ ╔══[COMPILATION ERROR] Name not found: bar
-//│ ║  l.167: 	bar(B).u
-//│ ╙──       	^^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   ‹error›(B⁰)‹app³›.uˀˀˀ
-//│ ╔══[COMPILATION ERROR] This selection of member 'u' has no resolved target
-//│ ║  l.167: 	bar(B).u
-//│ ╙──       	^^^^^^^^
+//│   bar⁰(B⁰)‹app³›.u‹u², u⁰›
+//│ ╔══[COMPILATION ERROR] This selection of member 'u' is ambiguous, as it has multiple resolved targets
+//│ ║  l.54: 	bar(B).u
+//│ ║        	^^^^^^^^
+//│ ╟── target: value 'u'
+//│ ║  l.9: 	  val u = 2
+//│ ║       	  ^^^^^^^^^
+//│ ╟── target: value 'u'
+//│ ║  l.6: 	  val u = 1
+//│ ╙──     	  ^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

@@ -405,7 +405,7 @@ object MarkedShape:
       //   // MarkedShape(sh, EntryMark(sym, marks))
       //   ???
       MarkedShape(sh, EntryMark(sym, id, marks))
-  def exit(sh: TermShape, sym: AnyDefinitionSymbol, id: Opt[FlowSymbol]): TermShape | NoShape =
+  def exit(sh: TermShape, sym: AnyDefinitionSymbol, id: Opt[FlowSymbol])(using TL): TermShape | NoShape =
     sh match
     case sh: NonMarkedShape => MarkedShape(sh, ExitMark(sym, id, NoMarks))
     case MarkedShape(sh, marks) =>
@@ -413,17 +413,26 @@ object MarkedShape:
       case marks: ExitMark => MarkedShape(sh, ExitMark(sym, id, marks))
       case EntryMark(sym2, id2, rest) =>
         require(sym2 is sym, s"Expected symbol ${sym} but got ${sym2}")
-        id2 match
-        // case S(`id`) | N =>
-        case `id` | N =>
+        // tl.log(s"!? ${id} vs ${id2}")
+        // // id2 match
+        // (id,id2) match
+        // // case S(`id`) | N =>
+        // // case `id` | N =>
+        // case (N, _) | (_, N) | (S(_), S(_)) if id === id2 =>
+        //   rest match
+        //   case NoMarks => sh
+        //   case rest: SomeMarks => MarkedShape(sh, rest)
+        // // case S(id2) =>
+        // case _ =>
+        //   // MarkedShape(sh, ExitMark(sym, id, marks))
+        //   NoShape
+        // // MarkedShape(sh, EntryMark(sym, marks))
+        // // ???
+        if id.forall(i1 => id2.forall(i2 => i1 is i2)) then
           rest match
           case NoMarks => sh
           case rest: SomeMarks => MarkedShape(sh, rest)
-        case S(id2) =>
-          // MarkedShape(sh, ExitMark(sym, id, marks))
-          NoShape
-        // MarkedShape(sh, EntryMark(sym, marks))
-        // ???
+        else NoShape
 end MarkedShape
 
 sealed trait TermShape extends Shape:
@@ -455,10 +464,18 @@ sealed trait TermShape extends Shape:
   tl.trace[TermShape | NoShape](s".exit $shwDbg (${marks.showDbg})", res => s"= ${res.shwDbg}"):
     marks match
     case NoMarks => this
+    // case EntryMark(sym, id, rest) =>
+    //   MarkedShape.enter(this, sym, id).exit(rest)
+    // case ExitMark(sym, id, rest) =>
+    //   MarkedShape.exit(this, sym, id).exit(rest)
     case EntryMark(sym, id, rest) =>
-      MarkedShape.enter(this, sym, id).exit(rest)
+      exit(rest) match
+      case NoShape =>  NoShape
+      case ex: TermShape => MarkedShape.enter(ex, sym, id)
     case ExitMark(sym, id, rest) =>
-      MarkedShape.exit(this, sym, id).exit(rest)
+      exit(rest) match
+      case NoShape =>  NoShape
+      case ex: TermShape => MarkedShape.exit(ex, sym, id)
   
   def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = revMarkss match
     case Nil => this
