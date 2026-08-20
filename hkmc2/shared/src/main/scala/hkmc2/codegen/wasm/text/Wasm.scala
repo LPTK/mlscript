@@ -6,11 +6,16 @@ package text
 import hkmc2.utils.*, shorthands.*
 
 import document.*
-import semantics.{DefinitionSymbol, Elaborator, TempSymbol}, Elaborator.State
+import semantics.{BlockMemberSymbol, DefinitionSymbol, Elaborator, InnerSymbol, LocalVarSymbol, TempSymbol}, Elaborator.State
 import utils.Scope
 
 import scala.collection.Map
-import hkmc2.semantics.LocalVarSymbol
+
+/** Symbols that can represent an importable or exportable Wasm construct. */
+private[text] type ExternSymbol = BlockMemberSymbol | TempSymbol
+
+/** Symbols that can be lowered into a global or local slot in a Wasm function (i.e. parameters and locals). */
+private[text] type SlotSymbol = InnerSymbol | ScopedSymbol
 
 extension (doc: Document)
   /** Surrounds a document by the given `prefix` and `suffix`, unless the document is empty. */
@@ -269,7 +274,7 @@ object ExternType:
   /** An linear memory entry that is externally addressable. */
   case class Mem(
       memType: MemType,
-      override val sym: ScopedSymbol,
+      override val sym: ExternSymbol,
       wrapId: Opt[Str] -> Opt[Str] = N -> N,
   )(using Ctx, Raise) extends ExternType(sym):
 
@@ -280,7 +285,7 @@ object ExternType:
   /** An function entry that is externally addressable. */
   case class Func(
       typeUse: TypeUse,
-      override val sym: ScopedSymbol,
+      override val sym: ExternSymbol,
       wrapId: Opt[Str] -> Opt[Str] = N -> N,
   )(using Ctx, Raise) extends ExternType(sym):
 
@@ -326,7 +331,7 @@ object DataSegment:
     */
   case class Passive(
       bytes: Seq[Str],
-      override val sym: ScopedSymbol,
+      override val sym: ExternSymbol,
       wrapId: Opt[Str] -> Opt[Str] = N -> N,
   )(using Ctx, Raise) extends DataSegment(bytes, sym, wrapId):
 
@@ -339,7 +344,7 @@ object DataSegment:
       offset: Expr,
       bytes: Seq[Str],
       memuse: Opt[MemUse],
-      override val sym: ScopedSymbol,
+      override val sym: ExternSymbol,
       wrapId: Opt[Str] -> Opt[Str] = N -> N,
   )(using Ctx, Raise) extends DataSegment(bytes, sym, wrapId):
 
@@ -354,7 +359,7 @@ end DataSegment
 /** A data segment entry. */
 sealed abstract class DataSegment(
     bytes: Seq[Str],
-    val sym: ScopedSymbol,
+    val sym: ExternSymbol,
     wrapId: Opt[Str] -> Opt[Str],
 )(using Ctx, Raise) extends ToWat:
 
@@ -367,7 +372,7 @@ object ElemSegment:
     */
   case class Passive(
       override val elemlist: RefType -> Seq[Expr],
-      override val sym: ScopedSymbol,
+      override val sym: ExternSymbol,
       wrapId: Opt[Str] -> Opt[Str] = N -> N,
   )(using Ctx, Raise) extends ElemSegment(elemlist, sym, wrapId):
     
@@ -378,7 +383,7 @@ object ElemSegment:
       offset: Expr,
       override val elemlist: RefType -> Seq[Expr],
       // TODO(Derppening): Add `tableuse` here if/when we support multiple tables.
-      override val sym: ScopedSymbol,
+      override val sym: ExternSymbol,
       wrapId: Opt[Str] -> Opt[Str] = N -> N,
   )(using Ctx, Raise) extends ElemSegment(elemlist, sym, wrapId):
     
@@ -389,7 +394,7 @@ object ElemSegment:
     */
   case class Declare(
       override val elemlist: RefType -> Seq[Expr],
-      override val sym: ScopedSymbol,
+      override val sym: ExternSymbol,
       wrapId: Opt[Str] -> Opt[Str] = N -> N,
   )(using Ctx, Raise) extends ElemSegment(elemlist, sym, wrapId):
     
@@ -399,7 +404,7 @@ end ElemSegment
 /** An element segment entry. */
 sealed abstract class ElemSegment(
     val elemlist: RefType -> Seq[Expr],
-    val sym: ScopedSymbol,
+    val sym: ExternSymbol,
     wrapId: Opt[Str] -> Opt[Str],
 )(using Ctx, Raise) extends ToWat:
 

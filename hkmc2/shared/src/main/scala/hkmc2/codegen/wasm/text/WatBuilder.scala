@@ -1663,9 +1663,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       // `normalizeValueExprs`).
       result(State.unitBlockMemberSymbol.asMemberRef(State.unitSymbol))
     case Value.SimpleRef(l) => l match
-      case l: LocalVarSymbol => ctx.getFunc(l) match
-        case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
-        case N => getVar(l, r.toLoc)
+      case l: LocalVarSymbol => getVar(l, r.toLoc)
       case bs: BuiltinSymbol => errExpr(
           Ls(msg"Unexpected reference to a builtin symbol '${bs.nme}' in result position" -> r.toLoc),
           extraInfo = S(r.toString),
@@ -1772,30 +1770,6 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
               )
         case N =>
           fun match
-            case Value.SimpleRef(l) =>
-              val base = fun match
-                case Value.SimpleRef(l) => l match
-                  case l: LocalVarSymbol => ctx.getFunc(l)
-                  case bs: BuiltinSymbol => return errExpr(
-                    Ls(msg"Unexpected reference to builtin symbol '${bs.nme}' in Call(...) position" -> fun.toLoc),
-                    extraInfo = S(fun.toString),
-                  )
-                case Value.MemberRef(l, _) => ctx.getFunc(l)
-                case _ => N
-              val baseFuncIdx = base match
-                case S(idx) => idx
-                case N => return errExpr(
-                    Ls(msg"Expected static function reference in Call(...) expression" -> fun.toLoc),
-                    extraInfo = S(fun.toString),
-                  )
-              val baseTypeInfo = ctx.getTypeInfo_!(ctx.getFuncTypeUse_!(baseFuncIdx).typeIdx)
-              val wasmArgs = castArgsToParams(args.map(argument), baseTypeInfo)
-
-              call(
-                funcidx = baseFuncIdx,
-                operands = wasmArgs,
-                returnTypes = baseTypeInfo.asFunctionType_!.sigType.results,
-              )
             case Value.MemberRef(l, _) =>
               val base = ctx.getFunc(l)
               val baseFuncIdx = base match
@@ -2868,7 +2842,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
   def blockPreamble(ss: Iterable[ScopedSymbol])(using FunctionCtx, Raise): Unit =
     ss.toVector.sortBy(_.uid).filter: sym =>
-      !ctx.containsGlobal(sym) && ctx.getFunc(sym).isEmpty
+      !ctx.containsGlobal(sym)
     .foreach: sym =>
       funcCtx.addLocal(sym)
 

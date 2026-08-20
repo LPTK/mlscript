@@ -21,9 +21,6 @@ import scala.collection.immutable.ListMap
 import scala.collection.mutable.{ArrayBuffer as ArrayBuf, Map as MutMap}
 import scala.reflect.ClassTag
 
-/** Symbols that can be lowered into a global or local slot in a Wasm function (i.e. parameters and locals). */
-private[text] type SlotSymbol = InnerSymbol | ScopedSymbol
-
 /** Metadata for a REPL binding that can be imported by later Wasm modules. */
 sealed trait SessionBinding:
   /** Returns the deduplication key for this binding. */
@@ -166,8 +163,7 @@ final class SessionExportCtx(
     val symbolsToExport: Set[BoundSymbol],
     val collectedBindings: ArrayBuf[SessionBinding],
 ):
-  def shouldExport(sym: ScopedSymbol): Bool = sym matches:
-    case sym: BoundSymbol => symbolsToExport(sym)
+  def shouldExport(sym: BoundSymbol): Bool = symbolsToExport(sym)
 
   def emit(binding: SessionBinding): Unit =
     collectedBindings += binding
@@ -178,7 +174,7 @@ final class SessionExportCtx(
 /** A Wasm function and its associated information.
   *
   * @param sym
-  *   The source [[SlotSymbol]] which this function is generated from.
+  *   The source [[ExternSymbol]] which this function is generated from.
   * @param typeUse
   *   [[TypeUse]] of the function's type in the module's type section.
   * @param params
@@ -195,7 +191,7 @@ final class SessionExportCtx(
   *   An pair of optional strings for adding a prefix and suffix to the generated identifier of this function.
   */
 class FuncInfo(
-    val sym: BlockMemberSymbol | TempSymbol,
+    val sym: ExternSymbol,
     val typeUse: TypeUse,
     val params: Seq[SlotSymbol -> WasmParam],
     val resultTypes: Seq[Result],
@@ -265,13 +261,13 @@ end GlobalInfo
   * Each instance of [[MemInfo]] represents a single memory definition in a WebAssembly module.
   *
   * @param sym
-  *   The source [[TempSymbol]] which this memory is generated from.
+  *   The source [[ExternSymbol]] which this memory is generated from.
   * @param memType
   *   The type of the memory.
   * @param wrapId
   *   An pair of optional strings for adding a prefix and suffix to the generated identifier of this memory.
   */
-class MemInfo(val sym: TempSymbol, val memType: MemType, val wrapId: Opt[Str] -> Opt[Str] = N -> N)(using Ctx, Raise)
+class MemInfo(val sym: ExternSymbol, val memType: MemType, val wrapId: Opt[Str] -> Opt[Str] = N -> N)(using Ctx, Raise)
     extends ToWat:
 
   /** Symbolic identifier for the global. */
@@ -285,7 +281,7 @@ end MemInfo
   * Each instance of [[TypeInfo]] represents a single type definition in a WebAssembly module.
   *
   * @param sym
-  *   The source [[Symbol]] which this type is generated from.
+  *   The source [[ExternSymbol]] which this type is generated from.
   * @param wrapId
   *   An pair of optional strings for adding a prefix and suffix to the generated identifier of this type.
   * @param compType
@@ -294,7 +290,7 @@ end MemInfo
   *   An optional object tag number associated with this type.
   */
 final class TypeInfo(
-    val sym: BlockMemberSymbol | TempSymbol,
+    val sym: ExternSymbol,
     val compType: CompType,
     val objectTag: Opt[Int],
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
@@ -670,7 +666,7 @@ class Ctx(using Elaborator.Ctx, State) extends ToWat:
   private var funcs = ListMap.empty[SymIdx, FuncInfo | Import[ExternType.Func]]
 
   /** [[MutMap]] containing function symbols mapped to the corresponding [[FuncInfo]] or [[Import]] instance. */
-  private val namedFuncs = MutMap.empty[ScopedSymbol, FuncInfo | Import[ExternType.Func]]
+  private val namedFuncs = MutMap.empty[ExternSymbol, FuncInfo | Import[ExternType.Func]]
 
   /** [[Scope]] for generating WAT identifiers of memories. */
   private[text] val memoryScp = Scope.empty(Scope.Cfg.default)
@@ -870,41 +866,41 @@ class Ctx(using Elaborator.Ctx, State) extends ToWat:
 
   /** Returns the [[FuncIdx]] of the given `funcref`.
     */
-  def getFunc(funcref: FuncIdx | ScopedSymbol): Opt[FuncIdx] = funcref match
+  def getFunc(funcref: FuncIdx | ExternSymbol): Opt[FuncIdx] = funcref match
     case funcidx: FuncIdx => S(funcidx)
-    case sym: ScopedSymbol =>
+    case sym: ExternSymbol =>
       namedFuncs.get(sym).map: funcInfo =>
         funcInfo match
           case fi: FuncInfo => FuncIdx(fi.id)
           case imp: Import[ExternType.Func] => FuncIdx(imp.externType.id)
 
   /** Same as [[getFunc]] but throws an exception when the `funcref` is not found. */
-  def getFunc_!(funcref: FuncIdx | ScopedSymbol): FuncIdx =
+  def getFunc_!(funcref: FuncIdx | ExternSymbol): FuncIdx =
     getFunc(funcref).getOrElse:
       lastWords(s"Missing function definition for ${funcref.prettyString}")
 
-  private def getFuncEntry(funcref: FuncIdx | ScopedSymbol): Opt[FuncInfo | Import[ExternType.Func]] = funcref match
+  private def getFuncEntry(funcref: FuncIdx | ExternSymbol): Opt[FuncInfo | Import[ExternType.Func]] = funcref match
     case FuncIdx(idx @ SymIdx(_)) => funcs.get(idx)
-    case funcref: ScopedSymbol => namedFuncs.get(funcref)
+    case funcref: ExternSymbol => namedFuncs.get(funcref)
 
   /** Returns the [[FuncInfo]] instance associated with the given `funcref`. */
-  def getFuncInfo(funcref: FuncIdx | ScopedSymbol): Opt[FuncInfo] =
+  def getFuncInfo(funcref: FuncIdx | ExternSymbol): Opt[FuncInfo] =
     getFuncEntry(funcref).collect:
       case funcInfo: FuncInfo => funcInfo
 
   /** Same as [[getFuncInfo]] but throws an exception when the `funcref` is not found. */
-  def getFuncInfo_!(funcref: FuncIdx | ScopedSymbol): FuncInfo =
+  def getFuncInfo_!(funcref: FuncIdx | ExternSymbol): FuncInfo =
     getFuncInfo(funcref).getOrElse:
       lastWords(s"Missing function definition for ${funcref.prettyString}")
 
   /** Returns the type use associated with the given `funcref`, whether it is a definition or an import. */
-  def getFuncTypeUse(funcref: FuncIdx | ScopedSymbol): Opt[TypeUse] =
+  def getFuncTypeUse(funcref: FuncIdx | ExternSymbol): Opt[TypeUse] =
     getFuncEntry(funcref).map:
       case funcInfo: FuncInfo => funcInfo.typeUse
       case funcImport: Import[ExternType.Func] => funcImport.externType.typeUse
 
   /** Same as [[getFuncTypeUse]] but throws an exception when the `funcref` is not found. */
-  def getFuncTypeUse_!(funcref: FuncIdx | ScopedSymbol): TypeUse =
+  def getFuncTypeUse_!(funcref: FuncIdx | ExternSymbol): TypeUse =
     getFuncTypeUse(funcref).getOrElse:
       lastWords(s"Missing function definition for ${funcref.prettyString}")
 
