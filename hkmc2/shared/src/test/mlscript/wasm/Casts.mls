@@ -161,6 +161,22 @@ fun sccG(): Int32 = wasm.i31.get_s(sccF()) + wasm.i32.const(1)
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
+fun bar(m: Int32) =
+  wasm.ref.i31(m)
+//│ Wasm result:
+//│ = {}
+
+:fixme // Currently, `TailRecOpt` forgets erased types and mixes parameter lists without checking compatibility
+fun foo(n: Int31) =
+  if n > 0 do bar(wasm.i31.get_s(n - 1))
+fun bar(m: Int32) =
+  foo(wasm.ref.i31(m))
+//│ ╔══[COMPILATION ERROR] Operand #1 of wasm intrinsic 'ref.i31' must be of type 'Int32'
+//│ ║  l.173: 	  foo(wasm.ref.i31(m))
+//│ ╙──       	                   ^
+//│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
+
+
 // The class must be defined in this block: one from an earlier block has no `typeinfo` global
 // registered, so no test can be emitted for it. That `:checkCasts` really replaces the bare `ref.cast`
 // with a runtime test is what the pair below observes; here the test only has to pass.
@@ -222,10 +238,10 @@ wasm.ref.i31(wasm.i32.const(7))
 :checkCasts
 wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
-//│ ║  l.223: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.239: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	                ^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Unknown' to unrelated type 'Int32'
-//│ ║  l.223: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.239: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	             ^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
 //│ ═══[COMPILATION ERROR] Operand #1 of wasm intrinsic 'ref.i31' must be of type 'Int32'
@@ -241,3 +257,56 @@ fun toObj(): Object = id(new Pack(7))
 unpack(toObj())
 //│ Wasm result:
 //│ = 7
+
+
+:e
+fun test: Function = id
+//│ ╔══[COMPILATION ERROR] Returning function instances is not supported
+//│ ║  l.263: 	fun test: Function = id
+//│ ╙──       	                     ^^
+
+:fixme
+fun test: Function = new Object
+//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Missing constructor definition for class member:Object
+
+class C
+//│ Wasm result:
+//│ = {}
+
+:e
+fun test: Function = new C
+//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'C' to unrelated type 'Function'
+//│ Wasm result:
+//│ = {}
+
+:e
+fun test: Function = (new C) as Object
+//│ ═══[COMPILATION ERROR] Cannot narrow a value of type 'C' to unrelated type 'Function'
+//│ Wasm result:
+//│ = {}
+
+fun castToObj(x): Object = x
+//│ Wasm result:
+//│ = {}
+
+fun test: Function = castToObj(new C)
+//│ Wasm result:
+//│ = {}
+
+fun castToA[A](x: A): A = x
+//│ Wasm result:
+//│ = {}
+
+fun test: Function = castToA(123)
+//│ Wasm result:
+//│ = {}
+
+:e
+castToA(wasm.i32.const(123))
+//│ ╔══[COMPILATION ERROR] Cannot narrow a value of type 'Int32' to unrelated type 'Unknown'
+//│ ║  l.305: 	castToA(wasm.i32.const(123))
+//│ ╙──       	        ^^^^^^^^^^^^^^^^^^^
+//│ Wasm result:
+//│ = 123
+
+

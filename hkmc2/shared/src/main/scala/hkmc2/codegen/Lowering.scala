@@ -888,48 +888,53 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       // * We have to instantiate `f` again because, if `f` is a Sel, the `term`
       // * function is not called again with f. See below `Sel` and `SelProj` cases.
       // * Note: now the instantiation is done by `collectAppChain`.
+      // * EDIT: seems it's no longer needed
       val instantiated = baseF
-      val instantiatedResolvedBms = instantiated.resolvedSym.flatMap(_.asBlkMember)
-      val specialBuiltin = instantiatedResolvedBms.flatMap(specialBuiltinSymbols.get)
       
-      specialBuiltin match
-        case S(SpecialBuiltin.RuntimeIntrinsic(runtimeName)) =>
-          return conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident(runtimeName)))
-        case S(SpecialBuiltin.WasmIntrinsic(wasmName)) =>
-          val path = wasmName.foldLeft(State.wasmSymbol.asSimpleRef: Path): (p, nme) =>
-            p.selN(Tree.Ident(nme))
-          return conclude:
-            (path, instantiatedResolvedBms.flatMap(_.tsym)) match
-              case (Select(qual, nme), S(tsym)) => qual.sel(nme, tsym)
-              case _ => lastWords(s"wasm intrinsic `$wasmName` has an empty name path or a missing `TermSymbol`")
-        case _ =>
+      instantiated.resolvedSym match
+      case S(sym) =>
+        sym.asBlkMember match
+        case S(ms) =>
+          specialBuiltinSymbols.get(ms) match
+          case S(SpecialBuiltin.RuntimeIntrinsic(runtimeName)) =>
+            return conclude(State.runtimeSymbol.asSimpleRef.selN(Tree.Ident(runtimeName)))
+          case S(SpecialBuiltin.WasmIntrinsic(wasmName)) =>
+            val path = wasmName.foldLeft(State.wasmSymbol.asSimpleRef: Path): (p, nme) =>
+              p.selN(Tree.Ident(nme))
+            return conclude:
+              (path, ms.tsym) match
+                case (Select(qual, nme), S(tsym)) => qual.sel(nme, tsym)
+                case _ => lastWords(s"wasm intrinsic `$wasmName` has an empty name path or a missing `TermSymbol`")
+          case S(SpecialBuiltin.DebugPrintStack) =>
+            if !config.effectHandlers.exists(_.debug) then
+              return fail:
+                ErrorReport(
+                  msg"Debugging functions are not enabled" ->
+                    t.toLoc :: Nil,
+                  source = Diagnostic.Source.Compilation)
+            return conclude(State.runtimeSymbol.asSimpleRef.selSN("raisePrintStackEffect").withLocOf(baseF))
+          case S(SpecialBuiltin.ScopeLocally) => return
+            // scope.locally only applies to the innermost call; extra args are applied on top
+            if allArgs.length > 1 then
+              subTerm(baseF)(conclude)
+            else
+              arg match
+              case Tup(Fld(FldFlags.benign(), body, N) :: Nil) =>
+                LoweringCtx.nestScoped.givenIn:
+                  val res = block(Nil, R(body))(k)
+                  val scopedSyms = loweringCtx.getCollectedSym
+                  // Put the Scoped in the rest, so that the returned result can be found correctly
+                  Scoped(scopedSyms, res)
+              case _ => fail:
+                ErrorReport(
+                  msg"Unsupported form for scope.locally." ->
+                    t.toLoc :: Nil,
+                  source = Diagnostic.Source.Compilation)
+          case N =>
+        case N =>
+      case N =>
       
       instantiated match
-      case t if specialBuiltin.contains(SpecialBuiltin.DebugPrintStack) =>
-        if !config.effectHandlers.exists(_.debug) then
-          return fail:
-            ErrorReport(
-              msg"Debugging functions are not enabled" ->
-              t.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
-        conclude(State.runtimeSymbol.asSimpleRef.selSN("raisePrintStackEffect").withLocOf(baseF))
-      case t if specialBuiltin.contains(SpecialBuiltin.ScopeLocally) =>
-        // scope.locally only applies to the innermost call; extra args are applied on top
-        if allArgs.length > 1 then
-          subTerm(baseF)(conclude)
-        else
-          arg match
-          case Tup(Fld(FldFlags.benign(), body, N) :: Nil) =>
-            LoweringCtx.nestScoped.givenIn:
-              val res = block(Nil, R(body))(k)
-              val scopedSyms = loweringCtx.getCollectedSym
-              // Put the Scoped in the rest, so that the returned result can be found correctly
-              Scoped(scopedSyms, res)
-          case _ => return fail:
-            ErrorReport(
-              msg"Unsupported form for scope.locally." ->
-              t.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
       // * Due to whacky JS semantics, we need to make sure that selections leading to a call
       // * are preserved in the call and not moved to a temporary variable.
       case sel @ Sel(prefix, nme) =>

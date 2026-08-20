@@ -788,3 +788,14 @@ fun badInst() = useInt(new Bar("x"))
 //│   return useInt¹(tmp)
 //│ };
 //│ end
+
+
+fun test: Function = id
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define test² as fun test³(): Function⁰ { return id¹ }; end
+
+fun test: Function = new Object
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define test⁴ as fun test⁵(): Function⁰ { return (new globalThis⁰.Object⁰() as!! Function⁰) }; end
+
+
