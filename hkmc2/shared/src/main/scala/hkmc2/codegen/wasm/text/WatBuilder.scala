@@ -11,7 +11,7 @@ import document.Document
 import js.CodeBuilder
 import semantics.*, Elaborator.State
 import syntax.Tree.{BoolLit, IntLit, StrLit, UnitLit, Ident}
-import text.{Import as WasmImport, Param as WasmParam}
+import text.{Import as WasmImport, SlotSymbol as WasmSlotSymbol, Param as WasmParam}
 import Message.MessageContext
 
 import scala.collection.mutable.{ArrayBuffer as ArrayBuf, LinkedHashMap, Queue}
@@ -48,7 +48,7 @@ extension (et: ErasedType)
         case ErasedType.Primitive(PrimitiveType.Int32) => S(I32Type)
         case _ => N
 
-extension (sym: ValueSymbol)
+extension (sym: WasmSlotSymbol)
   /** The Wasm value type a *local* slot for `sym` should be declared with.
     *
     * Use [[`FunctionCtx.slotType`]] for parameter slots, which handles `anyref` widening due to virtual dispatch
@@ -67,33 +67,32 @@ extension (sym: ValueSymbol)
         bms.tsym.flatMap(_.erasedType).flatMap(_.wasmType).getOrElse(RefType.anyref)
       case s: HasErasedType =>
         s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
-      case _ => RefType.anyref
 
+extension (sym: WasmSlotSymbol)
   /** The Wasm value type a parameter slot for `sym` should be declared with, if typed parameters are enabled. */
   private[text] def paramType(using Ctx, State): ValType =
     sym match
       case s: HasErasedType =>
         s.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
       case _ => RefType.anyref
-end extension
 
 /** The declared Wasm value type of the parameter slot for `sym` at position `idx`, honoring an optional per-position
   * override (index 0 = `this`). Falls back to `sym.paramType` if no override is given.
   */
 private[text] def resolveParamType(
-    sym: ValueSymbol,
+    sym: WasmSlotSymbol,
     idx: Int,
     overrides: Opt[Seq[ValType]],
 )(using Ctx, State): ValType =
   overrides.flatMap(_.lift(idx)).getOrElse(sym.paramType)
 
-extension (param: ValueSymbol -> SymIdx)
+extension (param: WasmSlotSymbol -> SymIdx)
   /** Resolves the parameter slot to the declared Wasm type from its own symbol's `paramType` (no override).
     *
     * For [[FuncInfo]]s built without a [[FunctionCtx]]; those built from one should pass its `resolvedParams`, which
     * additionally honors the slot overrides.
     */
-  private[text] def resolvedParam(using Ctx, State): ValueSymbol -> WasmParam =
+  private[text] def resolvedParam(using Ctx, State): WasmSlotSymbol -> WasmParam =
     param._1 -> WasmParam(param._2, param._1.paramType)
 
 extension (exprs: Seq[Expr])
@@ -773,7 +772,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def declareClassFuncType(
       defn: ClsLikeDefn,
       suffix: Str,
-      params: Seq[ValueSymbol -> SymIdx],
+      params: Seq[WasmSlotSymbol -> SymIdx],
       results: Seq[Result],
       thisType: Opt[ValType],
   )(using Raise): TypeIdx =
@@ -863,7 +862,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def predeclareClassFunc(
       defn: ClsLikeDefn,
       suffix: Str,
-      params: Seq[ValueSymbol -> SymIdx],
+      params: Seq[WasmSlotSymbol -> SymIdx],
       results: Seq[Result],
       sym: BlockMemberSymbol,
       exportName: Opt[Str],
@@ -876,7 +875,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def predeclareClassFuncWithType(
       defn: ClsLikeDefn,
       suffix: Str,
-      params: Seq[ValueSymbol -> SymIdx],
+      params: Seq[WasmSlotSymbol -> SymIdx],
       resultTypes: Seq[Result],
       sym: BlockMemberSymbol,
       exportName: Opt[Str],
@@ -998,7 +997,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def collectSessionGlobalSymbols(
       b: Block,
       sessionExportCtx: SessionExportCtx,
-  ): Set[ValueSymbol] =
+  ): Set[WasmSlotSymbol] =
     def restOf(block: Block): Opt[Block] = block match
       case Define(_, rst) => S(rst)
       case Assign(_, _, rst) => S(rst)
@@ -1009,7 +1008,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case Label(_, _, _, rst) => S(rst)
       case _ => N
 
-    def recur(block: Block): Set[ValueSymbol] = block match
+    def recur(block: Block): Set[WasmSlotSymbol] = block match
       case Scoped(_, body) =>
         recur(body)
       case Begin(sub, rst) =>
@@ -1018,7 +1017,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         recur(rst) + defn.sym
       case Define(_, rst) =>
         recur(rst)
-      case Assign(sym: ValueSymbol, _, rst) if sessionExportCtx.shouldExport(sym) =>
+      case Assign(sym: WasmSlotSymbol, _, rst) if sessionExportCtx.shouldExport(sym) =>
         recur(rst) + sym
       case _: BlockTail =>
         Set.empty
@@ -1029,9 +1028,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   end collectSessionGlobalSymbols
 
   /** Declares a mutable exported global for a REPL-visible binding produced by the current block. */
-  private def registerSessionGlobal(
-      sym: ValueSymbol,
-  )(using Raise, SessionExportCtx): Unit =
+  private def registerSessionGlobal(sym: WasmSlotSymbol)(using Raise, SessionExportCtx): Unit =
     if ctx.containsGlobal(sym) then return
     val exportName = sym.nme
     // Reference globals need to be nullable so that they have a valid initializer
@@ -1324,7 +1321,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
   /** Binds constructor self (`thisSym`) to the Wasm local name `this` in the current function context.
     */
-  private def bindCtorThis(thisSym: ValueSymbol)(using FunctionCtx, Raise): LocalIdx =
+  private def bindCtorThis(thisSym: InnerSymbol)(using FunctionCtx, Raise): LocalIdx =
     funcCtx.addLocal(thisSym, S("this"))
 
   /** Compiles a class init body under its own Wasm-local frame with explicit `this`. */
@@ -1510,15 +1507,15 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     unreachable
 
   /** Returns the local or global index for a given symbol `l`. */
-  def varIndex(l: ValueSymbol, loc: Opt[Loc])(using FunctionCtx, Raise): Opt[LocalIdx | GlobalIdx] = l match
+  def varIndex(l: WasmSlotSymbol, loc: Opt[Loc])(using FunctionCtx, Raise): Opt[LocalIdx | GlobalIdx] = l match
     case ts: semantics.InnerSymbol =>
-      lastWords(s"ValueSymbol `$ts` (${ts.getClass.getSimpleName}) cannot be resolved as a variable")
+      lastWords(s"InnerSymbol `$ts` (${ts.getClass.getSimpleName}) cannot be resolved as a variable")
     case l =>
       funcCtx.lookupLocal(l) match
         case S(localIdx) => S(localIdx)
         case _ => ctx.getGlobal(l)
 
-  def getVar(l: ValueSymbol, loc: Opt[Loc])(using FunctionCtx, Raise): Expr = varIndex(l, loc) match
+  def getVar(l: WasmSlotSymbol, loc: Opt[Loc])(using FunctionCtx, Raise): Expr = varIndex(l, loc) match
     case S(localIdx: LocalIdx) => local.get(localIdx, funcCtx.slotType(l))
     case S(globalIdx: GlobalIdx) =>
       castConserve(
@@ -1540,7 +1537,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     * dual of [[getVar]].
     */
   def setVar(
-      l: ValueSymbol,
+      l: WasmSlotSymbol,
       value: codegen.Result,
       loc: Opt[Loc],
   )(using FunctionCtx, Raise, SessionExportCtx): Expr = varIndex(l, loc) match
@@ -1671,7 +1668,12 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         case N =>
           ctx.getFunc(l) match
             case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
-            case N => getVar(l, r.toLoc)
+            case N => l match
+              case l: LocalVarSymbol => getVar(l, r.toLoc)
+              case bs: BuiltinSymbol => errExpr(
+                  Ls(msg"Unexpected reference to a builtin symbol '${bs.nme}' in result position" -> r.toLoc),
+                  extraInfo = S(r.toString),
+                )
     case Value.MemberRef(bms, disamb) =>
       if (bms is State.unitSymbol) || (disamb is State.unitSymbol) then
         RegisterUnitSingleton()
@@ -2074,7 +2076,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         val rstBlk = returningTerm(rst)
         evalExpr +: rstBlk
 
-      case Assign(l: ValueSymbol, r, rst) =>
+      case Assign(l: LocalVarSymbol, r, rst) =>
         val assignExpr = setVar(l, r, l.toLoc)
         val rstBlk = returningTerm(rst)
         assignExpr +: rstBlk
@@ -2863,7 +2865,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       compiledModule(entrySym.nme)
   end program
 
-  def blockPreamble(ss: Iterable[ValueSymbol])(using FunctionCtx, Raise): Unit =
+  def blockPreamble(ss: Iterable[ScopedSymbol])(using FunctionCtx, Raise): Unit =
     ss.toVector.sortBy(_.uid).filter: sym =>
       !ctx.containsGlobal(sym) && ctx.getFunc(sym).isEmpty
     .foreach: sym =>

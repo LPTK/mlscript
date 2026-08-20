@@ -21,6 +21,9 @@ import scala.collection.immutable.ListMap
 import scala.collection.mutable.{ArrayBuffer as ArrayBuf, Map as MutMap}
 import scala.reflect.ClassTag
 
+/** Symbols that can be lowered into a global or local slot in a Wasm function (i.e. parameters and locals). */
+private[text] type SlotSymbol = InnerSymbol | ScopedSymbol
+
 /** Metadata for a REPL binding that can be imported by later Wasm modules. */
 sealed trait SessionBinding:
   /** Returns the deduplication key for this binding. */
@@ -196,7 +199,7 @@ class FuncInfo(
     val typeUse: TypeUse,
     val params: Seq[ValueSymbol -> WasmParam],
     val resultTypes: Seq[Result],
-    val locals: Seq[ValueSymbol -> SymIdx],
+    val locals: Seq[SlotSymbol -> SymIdx],
     val body: Expr,
     val exportName: Opt[Str],
     val wrapId: Opt[Str] -> Opt[Str] = N -> N,
@@ -436,7 +439,7 @@ class FunctionCtx(
   /** The parameter of this function, represented by a tuple of the symbol representing the parameter and its symbolic
     * identifier.
     */
-  val params: Seq[ValueSymbol -> SymIdx] =
+  val params: Seq[SlotSymbol -> SymIdx] =
     if _params.length > 1 then
       lastWords("Multiple parameter lists are not yet supported")
     val thisParam = thisSym.map: dis =>
@@ -446,17 +449,17 @@ class FunctionCtx(
   /** The declared Wasm value type of each parameter slot (including implicit `$this`), resolved eagerly at construction
     * (index 0 = `this`).
     */
-  private val resolvedParamTypes: Map[ValueSymbol, ValType] =
+  private val resolvedParamTypes: Map[SlotSymbol, ValType] =
     params.zipWithIndex.map:
       case ((sym, _), idx) => sym -> resolveParamType(sym, idx, paramTypes)
     .toMap
 
   /** The parameters of this function with their identifiers and resolved Wasm types, ready to hand to a [[FuncInfo]].
     */
-  val resolvedParams: Seq[ValueSymbol -> WasmParam] =
+  val resolvedParams: Seq[SlotSymbol-> WasmParam] =
     params.map:
       case (sym, idx) => sym -> WasmParam(idx, resolvedParamTypes(sym))
-  private val _locals = ArrayBuf.empty[ValueSymbol]
+  private val _locals = ArrayBuf.empty[SlotSymbol]
   private var labels = ListMap.empty[LabelSymbol, FunctionCtx.ControlFlowCtx]
 
   /** Adds a Wasm local into this context.
@@ -465,7 +468,7 @@ class FunctionCtx(
     *   An optional name for the local variable. If provided, the local will be emitted with the given name instead of
     *   an auto-generated one.
     */
-  def addLocal(local: ValueSymbol, customName: Opt[Str] = N): LocalIdx =
+  def addLocal(local: SlotSymbol, customName: Opt[Str] = N): LocalIdx =
     customName match
       case S(name) => localScp.addToBindings(local, name, shadow = false)
       case N => localScp.allocateName(local)
@@ -473,17 +476,17 @@ class FunctionCtx(
     LocalIdx(SymIdx(localScp.lookup_!(local, N)))
 
   /** Looks up the given `sym` in this function context, returning its [[LocalIdx]] if it exists. */
-  def lookupLocal(sym: ValueSymbol): Opt[LocalIdx] =
+  def lookupLocal(sym: SlotSymbol): Opt[LocalIdx] =
     localScp.lookup(sym).map(idx => LocalIdx(SymIdx(idx)))
 
   /** Similar to [[lookupLocal]], but throws an exception if `sym` is not in this context. */
-  def lookupLocal_!(sym: ValueSymbol, loc: Opt[Loc]): LocalIdx =
+  def lookupLocal_!(sym: SlotSymbol, loc: Opt[Loc]): LocalIdx =
     LocalIdx(SymIdx(localScp.lookup_!(sym, loc)))
 
   /** The locals of this function, represented by a tuple of the symbol representing the parameter and its symbolic
     * identifier.
     */
-  def locals: Seq[ValueSymbol -> SymIdx] = _locals.map(l => l -> SymIdx(localScp.lookup_!(l, N))).toSeq
+  def locals: Seq[SlotSymbol -> SymIdx] = _locals.map(l => l -> SymIdx(localScp.lookup_!(l, N))).toSeq
 
   /** The declared Wasm value type of the param/local slot for `sym`.
     *
@@ -491,7 +494,7 @@ class FunctionCtx(
     * `paramValTypes` override if present, otherwise from the symbol's erased type via [[paramType]]. Local slots derive
     * their type from the symbol's erased type via [[localType]].
     */
-  def slotType(sym: ValueSymbol)(using Ctx): ValType =
+  def slotType(sym: SlotSymbol)(using Ctx): ValType =
     resolvedParamTypes.getOrElse(sym, sym.localType)
 
   /** Pushes a label target for the dynamic extent of `body` and pops it afterwards.
