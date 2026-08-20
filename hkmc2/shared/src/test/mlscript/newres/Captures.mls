@@ -3,10 +3,10 @@
 
 :sr
 fun foo(x) =
-  print(x)
+  // print(x)
   x
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = { ⟨Predef⁰.⟩print⁰^foo¹(x⁰)‹app⁰›, x⁰ }
+//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = x⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -28,28 +28,33 @@ foo(1)
 //│ | | | listen: trm = member:foo‹44›#0
 //│ | | | listenBMS: bms = function
 //│ | | | listenedBMS: bms = function
-//│ | | | fromBMS: bms = function, sh = DefnShape(term definition 'foo' member:foo⁰‹44›), flow = foo¹‹56›
-//│ | | | Matched shape MarkedShape(DefnShape(term definition 'foo' member:foo⁰‹44›), -⟨term:foo²‹45›⟩%⟨foo¹‹56›⟩) for function with flow foo¹‹56›
-//│ | | | appShape: lhs = MarkedShape(DefnShape(term definition 'foo' member:foo⁰‹44›), -⟨term:foo²‹45›⟩%⟨foo¹‹56›⟩), args = [1], res = member:foo‹44›#0(1)
-//│ | | | Zipping ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None) with List(Fld(‹›,Lit(IntLit(1)),None))
+//│ | | | fromBMS: bms = function, sh = member:foo⁰‹44›, flow = foo¹‹53›
+//│ | | | PUSH MarkedShape(member:foo⁰‹44›, +⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
+//│ | | | appShape: lhs = MarkedShape(member:foo⁰‹44›, +⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ), args = [1], res = member:foo‹44›#0(1)
+//│ | | | Zipping ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None) (List(+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)) with List(Fld(‹›,Lit(IntLit(1)),None))
 //│ | | | listenTerm: trm = 1
 //│ | | | listen: trm = 1
-//│ | | | zipArg: p = x‹46›, trm = 1, sh = 1
-//│ | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo‹45›,Some(foo‹56›),NoMarks)))
-//│ | | | lhs false List((ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None),List(ExitMark(term:foo‹45›,Some(foo‹56›),NoMarks))))
-//│ | | | appShape: td.body = Some(Blk(List(App(Capture(SynthSel(MemberRef(member:Predef),Ident(print)),term:foo‹45›),Tup(List(Fld(‹›,SimpleRef(x‹46›),None))))),SimpleRef(x‹46›)))
-//│ | | | listenTerm: trm = { (member:Predef.)print‹member:print›^term:foo²‹45›(x‹46›#0); x‹46›#0 }
-//│ | | | listen: trm = { (member:Predef.)print‹member:print›^term:foo²‹45›(x‹46›#0); x‹46›#0 }
+//│ | | | .enter 1 (+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
+//│ | | | | .enter MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ) (ϵ)
+//│ | | | | = MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
+//│ | | | = MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
+//│ | | | zipArg: p = x‹46›, trm = 1, sh = MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
+//│ | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo‹45›,Some(foo‹53›),NoMarks)))
+//│ | | | lhs false List(((x‹46›),List(+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)))
+//│ | | | appShape: td.body = Some(SimpleRef(x‹46›))
+//│ | | | listenTerm: trm = x‹46›#0
 //│ | | | listen: trm = x‹46›#0
+//│ | | | .exit MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
+//│ | | | = NoShape
 //│ | | ~> App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
 //│ | ~> App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
 //│ ~> Blk(List(),App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,Lit(IntLit(1)),None)))))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   foo⁰(1)‹app¹›
+//│   foo⁰(1)‹app⁰›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ > 1
 //│ = 1
 
+:sr
 :de
 :fixme
 foo(Predef).id
@@ -69,38 +74,45 @@ foo(Predef).id
 //│ | | | | listen: trm = member:foo‹44›#0
 //│ | | | | listenBMS: bms = function
 //│ | | | | listenedBMS: bms = function
-//│ | | | | fromBMS: bms = function, sh = DefnShape(term definition 'foo' member:foo⁰‹44›), flow = foo³‹63›
-//│ | | | | Matched shape MarkedShape(DefnShape(term definition 'foo' member:foo⁰‹44›), -⟨term:foo²‹45›⟩%⟨foo³‹63›⟩) for function with flow foo³‹63›
-//│ | | | | appShape: lhs = MarkedShape(DefnShape(term definition 'foo' member:foo⁰‹44›), -⟨term:foo²‹45›⟩%⟨foo³‹63›⟩), args = [member:Predef], res = member:foo‹44›#0(member:Predef)
-//│ | | | | Zipping ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None) with List(Fld(‹›,MemberRef(member:Predef),None))
+//│ | | | | fromBMS: bms = function, sh = member:foo⁰‹44›, flow = foo³‹60›
+//│ | | | | PUSH MarkedShape(member:foo⁰‹44›, +⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)
+//│ | | | | appShape: lhs = MarkedShape(member:foo⁰‹44›, +⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ), args = [member:Predef], res = member:foo‹44›#0(member:Predef)
+//│ | | | | Zipping ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None) (List(+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)) with List(Fld(‹›,MemberRef(member:Predef),None))
 //│ | | | | listenTerm: trm = member:Predef
 //│ | | | | listen: trm = member:Predef
 //│ | | | | listenBMS: bms = module
 //│ | | | | listenedBMS: bms = module
-//│ | | | | fromBMS: bms = module, sh = DefnShape(module/object definition 'Predef' module:Predef⁰), flow = Predef¹‹64›
-//│ | | | | Matched shape MarkedShape(DefnShape(module/object definition 'Predef' module:Predef⁰), -⟨module:Predef⁰⟩%⟨Predef¹‹64›⟩) for module with flow Predef¹‹64›
-//│ | | | | zipArg: p = x‹46›, trm = member:Predef, sh = MarkedShape(DefnShape(module/object definition 'Predef' module:Predef⁰), -⟨module:Predef⁰⟩%⟨Predef¹‹64›⟩)
-//│ | | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo‹45›,Some(foo‹63›),NoMarks)))
-//│ | | | | lhs false List((ParamList(‹›,List(Param(‹›,x‹46›,None,Modulefulness(None))),None),List(ExitMark(term:foo‹45›,Some(foo‹63›),NoMarks))))
-//│ | | | | appShape: td.body = Some(Blk(List(App(Capture(SynthSel(MemberRef(member:Predef),Ident(print)),term:foo‹45›),Tup(List(Fld(‹›,SimpleRef(x‹46›),None))))),SimpleRef(x‹46›)))
-//│ | | | | listenTerm: trm = { (member:Predef.)print‹member:print›^term:foo²‹45›(x‹46›#0); x‹46›#0 }
-//│ | | | | listen: trm = { (member:Predef.)print‹member:print›^term:foo²‹45›(x‹46›#0); x‹46›#0 }
+//│ | | | | fromBMS: bms = module, sh = module:Predef⁰, flow = Predef¹‹61›
+//│ | | | | PUSH MarkedShape(module:Predef⁰, +⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ)
+//│ | | | | .enter MarkedShape(module:Predef⁰, +⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)
+//│ | | | | | .enter MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ) (ϵ)
+//│ | | | | | = MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ)
+//│ | | | | = MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ)
+//│ | | | | zipArg: p = x‹46›, trm = member:Predef, sh = MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ)
+//│ | | | | .exit MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ)
+//│ | | | | = NoShape
+//│ | | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo‹45›,Some(foo‹60›),NoMarks)))
+//│ | | | | lhs false List(((x‹46›),List(+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)))
+//│ | | | | appShape: td.body = Some(SimpleRef(x‹46›))
+//│ | | | | listenTerm: trm = x‹46›#0
 //│ | | | | listen: trm = x‹46›#0
+//│ | | | | .exit MarkedShape(1, -⟨term:foo²‹45›⟩%⟨foo¹‹53›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)
+//│ | | | | = NoShape
+//│ | | | | .exit MarkedShape(module:Predef⁰, -⟨term:foo²‹45›⟩%⟨foo³‹60›⟩+⟨module:Predef⁰⟩%⟨Predef¹‹61›⟩ϵ) (+⟨term:foo²‹45›⟩%⟨foo³‹60›⟩ϵ)
+//│ | | | | = NoShape
 //│ | | | ~> App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,MemberRef(member:Predef),None))))
 //│ | | | newSel? sel = member:foo‹44›#0(member:Predef).id
 //│ | | | listenTerm: trm = member:foo‹44›#0(member:Predef)
 //│ | | | listen: trm = member:foo‹44›#0(member:Predef)
-//│ | | | newSel: sel = member:foo‹44›#0(member:Predef).id, shape = integer literal
-//│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.55: 	foo(Predef).id
-//│ ║        	           ^^^
-//│ ╟── Integer literal does not contain member 'id'
-//│ ║  l.15: 	foo(1)
-//│ ╙──      	    ^
-//│ | | | newSel: sel = member:foo‹44›#0(member:Predef).id, shape = module 'Predef'
 //│ | | ~> NewSel(App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,MemberRef(member:Predef),None)))),Ident(id))
 //│ | ~> NewSel(App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,MemberRef(member:Predef),None)))),Ident(id))
 //│ ~> Blk(List(),NewSel(App(MemberRef(member:foo‹44›),Tup(List(Fld(‹›,MemberRef(member:Predef),None)))),Ident(id)))
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   foo⁰(Predef⁰)‹app¹›.idˀˀˀ
+//│ ╔══[COMPILATION ERROR] This selection of member 'id' has no resolved target
+//│ ║  l.60: 	foo(Predef).id
+//│ ╙──      	^^^^^^^^^^^^^^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

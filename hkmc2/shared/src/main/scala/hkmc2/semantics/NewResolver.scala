@@ -69,10 +69,11 @@ class NewResolver:
         p.sym.shapeListeners.foreach(_(sh))
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
     // case ((p, mss) :: ps, Fld(fls, trm, asc) :: args) =>
-      listenTerm(trm, sh =>
+      listenTerm(trm, sh0 =>
+        val sh = sh0.enter(mss)
         log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = ${sh.shwDbg}")
         if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
-          p.sym.shapeListeners.foreach(listener => listener(sh.enter(mss)))
+          p.sym.shapeListeners.foreach(listener => listener(sh))
       )
       zipArgs(mss, ps, r, args, src)
     case _ =>
@@ -92,13 +93,13 @@ class NewResolver:
     case (ps, mss) :: pss =>
       args match
       case args: Tup =>
-        log(s"Zipping ${ps} with ${args.fields}")
+        log(s"Zipping ${ps} (${mss.map(_.showDbg)}) with ${args.fields}")
         zipArgs(mss, ps.params, ps.restParam, args.fields, res)
       case _ => ???
     log(s"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead}")
     def register = if res.shapes.add(sh) then
       res.shapeListeners.foreach(listener => listener(sh))
-    log(s"lhs ${lhs.isSaturated} ${lhs.unappliedParams}")
+    log(s"lhs ${lhs.isSaturated} ${lhs.unappliedParams.map(_.mapFirst(_.showDbg).mapSecond(_.map(_.showDbg)))}")
     if lhs.isSaturated then raise:
       if lhs.applicationHead._1 is lhs
       then ErrorReport(
@@ -284,11 +285,15 @@ class NewResolver:
       case S(sym: (ModuleOrObjectSymbol | TermSymbol | ClassSymbol)) =>
         val wrappedListener: TermShape => Unit = sh =>
           log(s"fromBMS: bms = ${bms.describe}, sh = ${sh.shwDbg}, flow = ${resSym.showDbg}")
+          val sh0 = sh
           MarkedShape.exit(sh, sym, S(resSym)) match
           case NoShape =>
-            log(s"Filtered out shape ${sh.shwDbg} for ${bms.describe} with flow ${resSym.showDbg}")
+            log(s"FILTER OUT ${sh.shwDbg} for ${sym.showDbg} % ${resSym.showDbg}")
           case sh: TermShape =>
-            log(s"Matched shape ${sh.shwDbg} for ${bms.describe} with flow ${resSym.showDbg}")
+            // if sh is sh0
+            if sh0.isInstanceOf[MarkedShape]
+            then log(s"MATCH ${sh.shwDbg} for ${sym.showDbg} % ${resSym.showDbg}")
+            else log(s"PUSH ${sh.shwDbg}")
             listener(sh)
         sym.defn match
         case S(td: TermDefinition) if td.params.isEmpty =>

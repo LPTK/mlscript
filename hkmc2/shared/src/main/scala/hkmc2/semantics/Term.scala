@@ -336,7 +336,8 @@ object SrcScope:
 sealed trait Shape extends ShapeLike:
   def describe: Str
   def shwDbg(using DebugPrinter): Str = this match
-    case ds: DefnShape => s"DefnShape(${ds.defn.describe} ${ds.defn.sym.showDbg})"
+    // case ds: DefnShape => s"DefnShape(${ds.defn.describe} ${ds.defn.sym.showDbg})"
+    case ds: DefnShape => ds.defn.sym.showDbg
     case as: AppShape => s"AppShape(${as.receiver.shwDbg}, ${as.args.showDbg})"
     case ms: MarkedShape => s"MarkedShape(${ms.sh.shwDbg}, ${ms.mark.showDbg})"
     case ns: SymShape => s"SymShape(${ns.sym.showDbg})"
@@ -353,8 +354,8 @@ sealed trait NonAppTermShape extends NonMarkedShape
 // case object NoMark extends Marks
 sealed abstract class Marks:
   def showDbg(using DebugPrinter): Str = this match
-    case EntryMark(sym, id, rest) => s"+⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}"
-    case ExitMark(sym, id, rest) => s"-⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}"
+    case EntryMark(sym, id, rest) => s"-⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}${rest.showDbg}"
+    case ExitMark(sym, id, rest) => s"+⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}${rest.showDbg}"
     case NoMarks => "ϵ"
 type SomeMarks = EntryMark | ExitMark
 case class EntryMark(sym: AnyDefinitionSymbol, id: Opt[FlowSymbol], rest: Marks) extends Marks
@@ -363,10 +364,12 @@ case class ExitMark(sym: AnyDefinitionSymbol, id: Opt[FlowSymbol], rest: ExitMar
 case object NoMarks extends ExitMarks
 
 sealed trait ShapeLike:
-  def exit(revMarkss: Ls[Marks]): TermShape | NoShape
+  def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape
+  def shwDbg(using DebugPrinter): Str
 
 case object NoShape extends ShapeLike:
-  def exit(revMarkss: Ls[Marks]): TermShape | NoShape = NoShape
+  def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = NoShape
+  def shwDbg(using DebugPrinter): Str = toString
 
 type NoShape = NoShape.type
 
@@ -377,7 +380,7 @@ case class MarkedShape(sh: NonMarkedShape, mark: SomeMarks) extends TermShape:
   def describe: Str = sh.describe
   def toLoc: Opt[Loc] = sh.toLoc
 object MarkedShape:
-  def enter(sh: TermShape, sym: AnyDefinitionSymbol, id: Opt[FlowSymbol]): MarkedShape =
+  def enter(sh: TermShape, sym: AnyDefinitionSymbol, id: Opt[FlowSymbol])(using TL): MarkedShape =
     sh match
     case sh: NonMarkedShape => MarkedShape(sh, EntryMark(sym, id, NoMarks))
     case MarkedShape(sh, marks) =>
@@ -441,7 +444,8 @@ sealed trait TermShape extends Shape:
     case MarkedShape(sh, mark) => sh.unappliedParams.map(p => p._1 -> (mark :: p._2))
     case _ => Nil
   
-  def exit(marks: Marks): TermShape | NoShape =
+  def exit(marks: Marks)(using TL): TermShape | NoShape =
+  tl.trace[TermShape | NoShape](s".exit $shwDbg (${marks.showDbg})", res => s"= ${res.shwDbg}"):
     marks match
     case NoMarks => this
     case EntryMark(sym, id, rest) =>
@@ -449,12 +453,13 @@ sealed trait TermShape extends Shape:
     case ExitMark(sym, id, rest) =>
       MarkedShape.exit(this, sym, id)
   
-  def exit(revMarkss: Ls[Marks]): TermShape | NoShape = revMarkss match
+  def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = revMarkss match
     case Nil => this
     case mark :: rest =>
       exit(mark).exit(rest)
   
-  def enter(marks: Marks): TermShape =
+  def enter(marks: Marks)(using tl: TL): TermShape =
+  tl.trace[TermShape](s".enter $shwDbg (${marks.showDbg})", res => s"= ${res.shwDbg}"):
     marks match
     case NoMarks => this
     case EntryMark(sym, id, rest) =>
@@ -466,7 +471,7 @@ sealed trait TermShape extends Shape:
       // case sh => sh.enter(rest)
       MarkedShape.enter(this, sym, id).enter(rest)
   
-  def enter(revMarkss: Ls[Marks]): TermShape = revMarkss match
+  def enter(revMarkss: Ls[Marks])(using TL): TermShape = revMarkss match
     case Nil => this
     case mark :: rest =>
       enter(mark).enter(rest)
@@ -526,7 +531,7 @@ abstract class NewShape(val receiver: TermShape, val cls: ClassLikeSymbol, val a
 class SymShape(val sym: BlockMemberSymbol, val resSym: FlowSymbol) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
-  def exit(revMarkss: Ls[Marks]): TermShape | NoShape = ???
+  def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = ???
 
 /* 
 class ThisShape(val defn: Definition) extends NonAppTermShape:
@@ -1142,7 +1147,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
       ts match
       case Nil =>
         // doc"$str‹?›"
-        doc"${str}ˀ"
+        doc"${str}ˀˀˀ"
       case t :: Nil => t.show
       case ts => doc"$str‹" :: ts.map(_.show).mkDocument(", ") :: doc"›"
     
@@ -1167,7 +1172,7 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
         if summon[ShowCfg].showFlowSymbols
         then doc"${sel.prefix.show}.${
             sel.resolvedMembers match
-            case Nil => doc"${str}ˀ"
+            case Nil => doc"${str}ˀˀˀ"
             case t :: Nil => t.showName
             case ts => doc"$str‹" :: ts.map(_.showName).mkDocument(", ") :: doc"›"
           }"
