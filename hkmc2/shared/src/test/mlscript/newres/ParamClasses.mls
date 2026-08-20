@@ -7,20 +7,37 @@ class Foo(val a)
 //│   class Foo⁰::Foo¹(val a⁰) { val a¹::a² ‹flow:a⁰› = a⁰ }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+
+let f = Foo(123)
+//│ f = Foo(123)
+
+
+// :de
+let p = Foo(Predef).a
+//│ p = class Predef {
+//│   Symbols: Symbols {
+//│     prettyPrint: Symbol("mlscript.prettyPrint"),
+//│     definitionMetadata: Symbol("mlscript.definitionMetadata"),
+//│     class: object Symbols
+//│   },
+//│   Sub: class Sub,
+//│   Eq: class Eq,
+//│   Refl: Refl,
+//│   js_assert: fun assert,
+//│   foldl: fun fold,
+//│   meta: class meta
+//│ }
+
+// :de
+p.id
+//│ = fun id
+
 :sr
 Foo(Predef).a.id
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:Foo/a but got term:Foo
-//│ 	at: scala.Predef$.require(Predef.scala:376)
-//│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:415)
-//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:295)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:362)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: scala.collection.mutable.LinkedHashSet.foreach(LinkedHashSet.scala:132)
-//│ 	at: hkmc2.semantics.NewResolver.listen(NewResolver.scala:410)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   Foo⁰(Predef⁰)‹app⁰›.a¹.id⁰
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun id
 
 
 :sr
@@ -34,7 +51,7 @@ class Foo(val a) {
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo²::Foo³(val a³) {
 //│     val a⁴::a⁵ ‹flow:a¹› = a³,
-//│     val b⁰::b¹ ‹flow:b⁰› = +(⟨Foo³.this.⟩a⁴^b¹, 1)‹app⁰›
+//│     val b⁰::b¹ ‹flow:b⁰› = +(⟨Foo³.this.⟩a⁴^b¹, 1)‹app¹›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -42,7 +59,7 @@ class Foo(val a) {
 :sr
 let f = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let f⁰, f⁰ = Foo²(1)‹app¹›
+//│   let f⁰, f⁰ = Foo²(1)‹app²›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
@@ -81,7 +98,7 @@ fv.a
 fun get = fv.a
 val fv = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun get⁰::get¹ ‹flow:get⁰› = fv¹^get¹.a⁴, val fv¹::fv² ‹flow:fv⁰› = Foo²^fv²(1)‹app²›
+//│   fun get⁰::get¹ ‹flow:get⁰› = fv¹^get¹.a⁴, val fv¹::fv² ‹flow:fv⁰› = Foo²^fv²(1)‹app³›
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp;
 //│ define get⁰ as fun get¹() { return fv⁰.a⁰ };
@@ -109,7 +126,7 @@ fun foo(x) =
   x.a + x.b
 foo(f)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = +(x⁰.a⁴, x⁰.b⁰)‹app³›, foo⁰(f⁰)‹app⁴›
+//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = +(x⁰.a⁴, x⁰.b⁰)‹app⁴›, foo⁰(f⁰)‹app⁵›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 
@@ -122,10 +139,10 @@ let b = Bar(123)
 //│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:Bar/a but got term:Bar
 //│ 	at: scala.Predef$.require(Predef.scala:376)
 //│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:415)
-//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:295)
+//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:305)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:362)
+//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:372)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 //│ 	at: hkmc2.semantics.NewResolver.zipArgs$$anonfun$3$$anonfun$2(NewResolver.scala:82)
@@ -136,7 +153,7 @@ b.foo
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: subterm (Elaborator.scala:1252)
 //│ ╔══[COMPILATION ERROR] Name not found: b
-//│ ║  l.135: 	b.foo
+//│ ║  l.152: 	b.foo
 //│ ╙──       	^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   ‹error›.fooˀˀˀ
@@ -146,7 +163,7 @@ b.foo
 //│   prefix = Error
 //│   id = Ident of "foo"
 //│ ╔══[COMPILATION ERROR] This selection of member 'foo' has no resolved target
-//│ ║  l.135: 	b.foo
+//│ ║  l.152: 	b.foo
 //│ ╙──       	^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ FAILURE: Unexpected runtime error
@@ -159,7 +176,7 @@ b.foo.a
 //│ FAILURE: Unexpected compilation error
 //│ FAILURE LOCATION: subterm (Elaborator.scala:1252)
 //│ ╔══[COMPILATION ERROR] Name not found: b
-//│ ║  l.158: 	b.foo.a
+//│ ║  l.175: 	b.foo.a
 //│ ╙──       	^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   ‹error›.fooˀˀˀ.aˀˀˀ
@@ -171,7 +188,7 @@ b.foo.a
 //│     id = Ident of "foo"
 //│   id = Ident of "a"
 //│ ╔══[COMPILATION ERROR] This selection of member 'a' has no resolved target
-//│ ║  l.158: 	b.foo.a
+//│ ║  l.175: 	b.foo.a
 //│ ╙──       	^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ FAILURE: Unexpected runtime error
@@ -201,7 +218,7 @@ let f = new Foo(1)
 //│               term = Lit of IntLit of 1
 //│   res = Lit of UnitLit of false
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f1; f1 = globalThis.Object.freeze(new Foo3.class(1));
+//│ let f2; f2 = globalThis.Object.freeze(new Foo3.class(1));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
@@ -215,14 +232,14 @@ let g = f(1)
 :e
 g(2)
 //│ ╔══[COMPILATION ERROR] Instance of class 'Foo' cannot receive more argument lists.
-//│ ║  l.216: 	g(2)
+//│ ║  l.233: 	g(2)
 //│ ╙──       	^^^^
 //│ ═══[RUNTIME ERROR] TypeError: g is not a function
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.223: 	let f = new Foo()
+//│ ║  l.240: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
 //│ f = Foo(undefined)
 
@@ -230,7 +247,7 @@ let f = new Foo()
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] Invalid class expression in 'new' instantiation.
-//│ ║  l.231: 	new 42
+//│ ║  l.248: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -247,12 +264,12 @@ let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo⁴::Foo⁵(pred⁰) {
 //│     @privateval pred¹::pred² ‹flow:pred⁰› = pred⁰,
-//│     ⟨Foo⁵.this.⟩pred¹.id⁰(42)‹app⁵›
+//│     ⟨Foo⁵.this.⟩pred¹.id⁰(42)‹app⁶›
 //│   },
 //│   let f²,
 //│   f² = new Foo⁴(Predef⁰)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let Foo5, f5;
+//│ let Foo5, f6;
 //│ Foo5 = function Foo(pred) {
 //│   return globalThis.Object.freeze(new Foo.class(pred));
 //│ };
@@ -263,7 +280,7 @@ let f = new Foo(Predef)
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", [null]];
 //│ });
-//│ f5 = globalThis.Object.freeze(new Foo5.class(Predef));
+//│ f6 = globalThis.Object.freeze(new Foo5.class(Predef));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(_)
 
@@ -279,10 +296,10 @@ let f = Foo(Predef)
 //│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:Foo/pred but got term:Foo
 //│ 	at: scala.Predef$.require(Predef.scala:376)
 //│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:415)
-//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:295)
+//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:305)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:362)
+//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:372)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 //│ 	at: hkmc2.semantics.NewResolver.zipArgs$$anonfun$3$$anonfun$2(NewResolver.scala:82)
@@ -297,8 +314,8 @@ let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   class Foo⁶::Foo⁷(pred³) {
 //│     @privateval pred⁴::pred⁵ ‹flow:pred¹› = pred³,
-//│     val r⁰::r¹ ‹flow:r⁰› = ⟨Foo⁷.this.⟩pred⁴^r¹.id⁰(42)‹app⁶›,
-//│     fun callId⁰::callId¹(x¹) ‹flow:callId⁰› = ⟨Foo⁷.this.⟩pred⁴^callId¹.id⁰(x¹)‹app⁷›
+//│     val r⁰::r¹ ‹flow:r⁰› = ⟨Foo⁷.this.⟩pred⁴^r¹.id⁰(42)‹app⁷›,
+//│     fun callId⁰::callId¹(x¹) ‹flow:callId⁰› = ⟨Foo⁷.this.⟩pred⁴^callId¹.id⁰(x¹)‹app⁸›
 //│   },
 //│   let f³,
 //│   f³ = new Foo⁶(Predef⁰)

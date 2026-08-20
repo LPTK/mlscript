@@ -380,7 +380,7 @@ case object NoShape extends ShapeLike:
 type NoShape = NoShape.type
 
 case class MarkedShape(sh: NonMarkedShape, mark: SomeMarks) extends TermShape:
-  lazy val members: Map[Str, BlockMemberSymbol] =
+  lazy val members: Map[Str, MemberInfo] =
     // sh.members.view.mapValues(m => MarkedShape.exit(m, mark)).toMap
     sh.members // FIXME: add marks to tuple result
   def describe: Str = sh.describe
@@ -436,7 +436,7 @@ object MarkedShape:
 end MarkedShape
 
 sealed trait TermShape extends Shape:
-  def members: Map[Str, BlockMemberSymbol]
+  def members: Map[Str, MemberInfo]
   
   lazy val applicationHead: (NonAppTermShape, Ls[Marks]) = this match
     // case ds: DefnShape => ds
@@ -522,13 +522,15 @@ end TermShape
 //     case sel: SelShape => s"selection of ${sel.nme.name} from ${sel.receiver.describe}"
 //     case sym: SymShape => s"symbol ${sym.sym.describe}"
 
+type MemberInfo = (BlockMemberSymbol, Ls[Marks])
+
 class ErrShape(val err: ErrorReport) extends NonAppTermShape:
   def describe: Str = s"error: ${err.mainMsg}"
-  def members: Map[Str, BlockMemberSymbol] = Map.empty
+  def members: Map[Str, MemberInfo] = Map.empty
   def toLoc: Opt[Loc] = N
 
 class AppShape(val receiver: TermShape, val args: Term, val src: Term.App)(using DebugPrinter) extends NonMarkedShape:
-  lazy val members: Map[Str, BlockMemberSymbol] =
+  lazy val members: Map[Str, MemberInfo] =
     // An unsaturated term definition is just a concrete function shape
     if !isSaturated then Map.empty
     else
@@ -545,9 +547,10 @@ class AppShape(val receiver: TermShape, val args: Term, val src: Term.App)(using
         //   case _ => ??? // TODO: add softRequire on ction – should not be possible
         // case cd: ClassDef => cd.ext.fold(Map.empty)(_.members) ++ cd.body.members
         ds.defn match
-        case cd: ClassDef => ds.ext.fold(Map.empty)(_.members) ++ cd.body.members
+        case cd: ClassDef => ds.ext.fold(Map.empty)(_.members).mapValues(_.mapSecond(_ ::: mss)).toMap ++
+          cd.body.members.mapValues(_ -> mss).toMap
         case td: TermDefinition =>
-          ds.ext.fold(Map.empty)(_.members)
+          ds.ext.fold(Map.empty)(_.members).mapValues(_.mapSecond(_ ::: mss)).toMap
       case _ => Map.empty
   def describe: Str =
     // s"application of ${receiver.describe}"
@@ -563,7 +566,7 @@ abstract class NewShape(val receiver: TermShape, val cls: ClassLikeSymbol, val a
   override def toString: String = s"NewNewShape(${cls.showDbg}, $argss)"
   def toLoc: Opt[Loc] = src.toLoc
 
-class SymShape(val sym: BlockMemberSymbol, val resSym: FlowSymbol) extends Shape:
+class SymShape(val sym: BlockMemberSymbol, val resSym: FlowSymbol, val markss: Ls[Marks]) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
   override def toString: String = s"SymShape($sym)"
   def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = ???
@@ -575,14 +578,14 @@ class SymShape(val sym: BlockMemberSymbol, val resSym: FlowSymbol) extends Shape
 class ThisShape(val defn: Definition) extends NonAppTermShape:
   def describe: Str = s"Self-reference to ${defn.bsym.describe} '${defn.bsym.nme}'"
   override def toString: String = s"ThisShape(${defn.describe})"
-  def members: Map[Str, BlockMemberSymbol] = ???
+  def members: Map[Str, MemberInfo] = ???
 */
 
 // TODO: make it not a TermShape?
 class BaseShape(val defn: ClassLikeDef, val ext: Opt[TermShape]) extends NonAppTermShape:
   def describe: Str = s"${defn.describe}"
-  lazy val members: Map[Str, BlockMemberSymbol] =
-    ext.fold(Map.empty)(_.members) ++ defn.body.members
+  lazy val members: Map[Str, MemberInfo] =
+    ext.fold(Map.empty)(_.members) ++ defn.body.members.mapValues(_ -> Nil).toMap
   def toLoc: Opt[Loc] = defn.toLoc
 
 class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends NonAppTermShape:
@@ -601,13 +604,13 @@ class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends NonAppTer
     }'${defn.bsym.nme}'"
   // override def toString: String = s"DefnShape(${defn.describe} ${defn.bsym.nme})"
   override def toString: String = s"DefnShape(${defn.describe})"
-  lazy val members: Map[Str, BlockMemberSymbol] =
+  lazy val members: Map[Str, MemberInfo] =
     // println((ext, ext.map(_.members)))
     // ext.fold(Map.empty)(_.members) ++ defn.match
     defn match
     case defn: ModuleOrObjectDef =>
       // println(defn.ext.map(_.cls.members))
-      ext.fold(Map.empty)(_.members) ++ defn.body.members
+      ext.fold(Map.empty)(_.members) ++ defn.body.members.mapValues(_ -> Nil).toMap
     case defn: TermDefinition => ???
     case _ => Map.empty
   def toLoc: Opt[Loc] = defn.sym.toLoc
@@ -615,7 +618,7 @@ class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends NonAppTer
 /* 
 class RefinedShape(val base: TermShape, val refinements: Ls[Str -> Term]) extends NonAppTermShape:
   def describe: Str = base.describe
-  lazy val members: Map[Str, BlockMemberSymbol] =
+  lazy val members: Map[Str, MemberInfo] =
     base.members ++ refinements.iterator.map: (nme, trm) =>
       // nme -> BlockMemberSymbol(nme, trm)
       ???
@@ -623,7 +626,7 @@ class RefinedShape(val base: TermShape, val refinements: Ls[Str -> Term]) extend
 type IntroTerm = Term.Tup | Term.Lam | Term.Rcd //| Term.New
 class IntroShape(val trm: IntroTerm) extends NonAppTermShape:
   def describe: Str = trm.describe
-  lazy val members: Map[Str, BlockMemberSymbol] = trm match
+  lazy val members: Map[Str, MemberInfo] = trm match
     case tup: Term.Tup =>
       // tup.fields.iterator.map:
       ???
@@ -638,7 +641,7 @@ class IntroShape(val trm: IntroTerm) extends NonAppTermShape:
 
 sealed trait LitShape extends NonAppTermShape:
   self: Term.Lit =>
-  def members: Map[Str, BlockMemberSymbol] = Map.empty // TODO: methods on literals, e.g. string methods
+  def members: Map[Str, MemberInfo] = Map.empty // TODO: methods on literals, e.g. string methods
 
 trait ShapePublisher:
   private[semantics] val shapeListeners: Buffer[Shape => Unit] = Buffer.empty

@@ -153,11 +153,17 @@ class NewResolver:
     listenTerm(sel.prefix, shape => {
       log(s"newSel: sel = ${sel.showDbg}, shape = ${shape.describe}")
       shape.members.get(sel.id.name) match
-        case S(bms) =>
+        case S((bms, mss)) =>
           sel.resolvedMembers ::= bms
-          val sh = symShapes.getOrElseUpdate((bms, sel.resSym), SymShape(bms, sel.resSym))
+          val sh = symShapes.getOrElseUpdate((bms, sel.resSym), SymShape(bms, sel.resSym, mss))
           if sel.shapes.add(sh) then
             sel.shapeListeners.foreach(listener => listener(sh))
+          // symShapes.getOrElseUpdate((bms, sel.resSym), SymShape(bms, sel.resSym))
+          //   .exit(mss) match
+          //     case NoShape =>
+          //     case sh: TermShape =>
+          //       if sel.shapes.add(sh) then
+          //         sel.shapeListeners.foreach(listener => listener(sh))
         case N =>
           sel.isErroneous = true
           raise:
@@ -200,17 +206,17 @@ class NewResolver:
                           zipArgs(mss, ps.params, ps.restParam, args.fields, src)
                         case _ => ???
                     // TODO: mv to NewShape def
-                    lazy val members: Map[Str, BlockMemberSymbol] =
+                    lazy val members: Map[Str, MemberInfo] =
                       receiver match
                       case ds: DefnShape =>
                         ds.defn match
                         case cd: ClassDef =>
-                          cd.body.members
+                          cd.body.members.mapValues(_ -> ss.markss).toMap
                         case td: TermDefinition =>
                           td.tsym match
                           case ccs: ClassCtorSymbol =>
                             ccs.associatedCls.defn.getOrElse(die // TODO
-                              ).body.members
+                              ).body.members.mapValues(_ -> ss.markss).toMap
                           case _ =>
                             Map.empty
                         case _ =>
@@ -283,24 +289,28 @@ class NewResolver:
     case N =>
       listener(N)
   
-  def fromBMS(bms: BlockMemberSymbol, resSym: FlowSymbol, listener: TermShape => Unit, trm: Term) =
+  def fromBMS(bms: BlockMemberSymbol, resSym: FlowSymbol, markss: Ls[Marks], listener: TermShape => Unit, trm: Term) =
     log(s"listenBMS: bms = ${bms.describe}")
     bms.onComplete: () =>
       log(s"listenedBMS: bms = ${bms.describe}")
       bms.asModOrObj orElse bms.asTrm orElse bms.asCls match
       case S(sym: (ModuleOrObjectSymbol | TermSymbol | ClassSymbol)) =>
         val wrappedListener: TermShape => Unit = sh =>
-          log(s"fromBMS: bms = ${bms.describe}, sh = ${sh.shwDbg}, flow = ${resSym.showDbg}")
+          log(s"fromBMS: bms = ${bms.showDbg}, sh = ${sh.shwDbg}, flow = ${resSym.showDbg}, markss = ${markss.map(_.showDbg)}")
           val sh0 = sh
-          MarkedShape.exit(sh, sym, S(resSym)) match
+          // MarkedShape.exit(sh, sym, S(resSym)).exit(markss) match
+          sh.exit(markss) match
           case NoShape =>
-            log(s"FILTER OUT ${sh.shwDbg} for ${sym.showDbg} % ${resSym.showDbg}")
           case sh: TermShape =>
-            // if sh is sh0
-            if sh0.isInstanceOf[MarkedShape]
-            then log(s"MATCH ${sh.shwDbg} for ${sym.showDbg} % ${resSym.showDbg}")
-            else log(s"PUSH ${sh.shwDbg}")
-            listener(sh)
+            MarkedShape.exit(sh, sym, S(resSym)) match
+            case NoShape =>
+              log(s"FILTER OUT ${sh.shwDbg} for ${sym.showDbg} % ${resSym.showDbg}")
+            case sh: TermShape =>
+              // if sh is sh0
+              if sh0.isInstanceOf[MarkedShape]
+              then log(s"MATCH ${sh.shwDbg} for ${sym.showDbg} % ${resSym.showDbg}")
+              else log(s"PUSH ${sh.shwDbg}")
+              listener(sh)
         sym.defn match
         case S(td: TermDefinition) if td.params.isEmpty =>
           log(s"listenTerm: td.body = ${td.body}")
@@ -361,7 +371,7 @@ class NewResolver:
         case sh: TermShape =>
           listener(sh)
         case ss: SymShape =>
-          fromBMS(ss.sym, ss.resSym, listener, trm)
+          fromBMS(ss.sym, ss.resSym, ss.markss, listener, trm)
           // fromBMS(ss.sym, sh => {
           //   listener(MarkedShape.enter(sh, ss.sym, S(trm.resSym)))
           // }, trm)
@@ -390,7 +400,8 @@ class NewResolver:
           ??? // TODO error? use sig
       case S(bms: BlockMemberSymbol) =>
         // TODO: add mark
-        fromBMS(bms, ss.resSym, listener, trm)
+        fromBMS(bms, ss.resSym, Nil//TODO?
+          , listener, trm)
       case N => ???
     case sh: Lit =>
       listener(sh)
@@ -423,7 +434,7 @@ class NewResolver:
         listener(MarkedShape.enter(sh, sym, S(ref.resSym))))
     case ref @ MemberRef(sym: BlockMemberSymbol) =>
       val fs = ref.resSym
-      val sh = symShapes.getOrElseUpdate((sym, fs), SymShape(sym, fs))
+      val sh = symShapes.getOrElseUpdate((sym, fs), SymShape(sym, fs, Nil))
       // // ref.shapes.foreach(listener)
       // // ref.shapeListeners += listener
       // if ref.shapes.add(sh) then
