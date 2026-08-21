@@ -256,9 +256,12 @@ let f = new Foo()
 
 :e
 new 42
-//│ ╔══[COMPILATION ERROR] Invalid class expression in 'new' instantiation.
+//│ ╔══[COMPILATION ERROR] Resolution error in object instantiation
 //│ ║  l.258: 	new 42
-//│ ╙──       	^^^^^^
+//│ ║         	^^^^^^
+//│ ╟── Invalid class expression: integer literal
+//│ ║  l.258: 	new 42
+//│ ╙──       	    ^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

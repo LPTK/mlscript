@@ -62,12 +62,9 @@ class NewResolver:
     case (Nil, args) =>
       r match
       case N =>
-        raise:
-          ErrorReport(
-            msg"Resolution error in ${src.describe}" -> src.toLoc ::
-              msg"${funSh.describe.capitalize} expected ${ps.length} ${
-                "argument".pluralized(ps.length)}, but got ${args.length}" -> funSh.toLoc :: Nil,
-            source = Diagnostic.Source.Compilation)
+        resolError(src,
+          msg"${funSh.describe.capitalize} expected ${ps.length} ${
+            "argument".pluralized(ps.length)}, but got ${args.length}" -> funSh.toLoc :: Nil)
       case S(p) =>
         val packaged = new Tup(args)(Tree.DummyTup).withLoc(Loc.mk(args.iterator.flatMap(_.toLoc)))
         val sh = IntroShape(packaged)
@@ -88,12 +85,9 @@ class NewResolver:
       )
       zipArgs(mss, ps, r, args, src, funSh)
     case _ =>
-      raise:
-        ErrorReport(
-          msg"Resolution error in ${src.describe}" -> src.toLoc ::
-            msg"${funSh.describe.capitalize} expected ${ps.length} ${
-              "argument".pluralized(ps.length)}, but got ${args.length}" -> funSh.toLoc :: Nil,
-          source = Diagnostic.Source.Compilation)
+      resolError(src,
+        msg"${funSh.describe.capitalize} expected ${ps.length} ${
+          "argument".pluralized(ps.length)}, but got ${args.length}" -> funSh.toLoc :: Nil)
           
   def appShape(lhs: TermShape, args: Term, res: App): Unit =
     // log(s"appShape? lhs = $lhs, args = $args, res = $res")
@@ -113,17 +107,13 @@ class NewResolver:
     def register = if res.shapes.add(sh) then
       res.shapeListeners.foreach(listener => listener(sh))
     log(s"lhs ${lhs.isSaturated} ${lhs.unappliedParams.map(_.mapFirst(_.showDbg).mapSecond(_.map(_.showDbg)))}")
-    if lhs.isSaturated && !res.isErroneous then raise:
+    if lhs.isSaturated && !res.isErroneous then
       res.isErroneous = true
       if lhs.applicationHead._1 is lhs
-      then ErrorReport(
-        msg"Resolution error in ${res.describe}" -> res.toLoc ::
-          msg"${lhs.describe.capitalize} cannot be called like a function." -> lhs.toLoc :: Nil,
-        source = Diagnostic.Source.Compilation)
-      else ErrorReport(
-        msg"Resolution error in ${res.describe}" -> res.toLoc ::
-          msg"${lhs.describe.capitalize} cannot receive more argument lists." -> lhs.toLoc :: Nil,
-        source = Diagnostic.Source.Compilation)
+      then resolError(res,
+          msg"${lhs.describe.capitalize} cannot be called like a function." -> lhs.toLoc :: Nil)
+      else resolError(res,
+          msg"${lhs.describe.capitalize} cannot receive more argument lists." -> lhs.toLoc :: Nil)
     if sh.isSaturated then
       def go(body: Term, mss: Ls[Marks]) =
         listenTerm(body, sh =>
@@ -154,20 +144,6 @@ class NewResolver:
               go(body, mss)
         case _ =>
           softAssert(res.isErroneous)
-          // raise:
-          //   ErrorReport(
-          //     msg"Resolution error in ${res.describe}" -> res.toLoc ::
-          //       msg"${ds.describe.capitalize} cannot be called like a function." -> ds.toLoc :: Nil,
-          //     source = Diagnostic.Source.Compilation)
-      // case (sh: IntroShape, _) if sh.trm.isInstanceOf[Lam] =>
-      //   go(sh.trm.asInstanceOf[Lam].body, Nil)
-      // case (sh: TermShape, _) =>
-      //   if !res.isErroneous then raise:
-      //     ErrorReport(
-      //       msg"Resolution error in ${res.describe}" -> res.toLoc ::
-      //         msg"${sh.describe.capitalize} cannot be called like a function." -> sh.toLoc :: Nil,
-      //       source = Diagnostic.Source.Compilation)
-      // case _ => ???
       case (sh: IntroShape, _) =>
         sh.trm match
         case Lam(params, body) =>
@@ -197,12 +173,7 @@ class NewResolver:
           //         sel.shapeListeners.foreach(listener => listener(sh))
         case N =>
           sel.isErroneous = true
-          raise:
-            ErrorReport(
-              msg"Resolution error in ${sel.describe}" -> sel.id.toLoc ::
-              msg"${shape.describe.capitalize} does not contain member '${sel.id.name}'" -> shape.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
-          // N
+          resolError(sel, msg"${shape.describe.capitalize} does not contain member '${sel.id.name}'" -> shape.toLoc :: Nil)
     })
   
   def resolveNew(nw: Term.New): Unit =
@@ -213,10 +184,8 @@ class NewResolver:
       listen(trm, shape => {
         def reject =
           nw.isErroneous = true
-          raise:
-            ErrorReport(
-              msg"${shape.describe.capitalize} cannot be instantiated with keyword 'new'." -> nw.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
+          resolError(nw,
+            msg"${shape.describe.capitalize} cannot be instantiated with keyword 'new'." -> trm.toLoc :: Nil)
         shape match
         case ss: SymShape =>
           // TODO handle ss.resSym
@@ -265,10 +234,8 @@ class NewResolver:
       })
     case _ =>
       nw.isErroneous = true
-      raise:
-        ErrorReport(
-          msg"Invalid class expression in 'new' instantiation." -> nw.toLoc :: Nil,
-          source = Diagnostic.Source.Compilation)
+      resolError(nw,
+        msg"Invalid class expression: ${nw.cls.describe}" -> nw.cls.toLoc :: Nil)
   
   // def symShape(sym: BlockMemberSymbol, res: Ref): Unit =
   //   val sh = symShapes.getOrElseUpdate(sym, {
@@ -371,11 +338,10 @@ class NewResolver:
           // sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
           softAssert(false, s"Symbol definition of ${sym} is not set upon completion of ${bms}")
       case _ =>
-        raise:
-          ErrorReport(
-            msg"Expected a term; got ${bms.describe} '${bms.nme}'" -> trm.toLoc :: Nil,
-            // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
-            source = Diagnostic.Source.Compilation)
+        resolError(trm,
+          msg"Expected a term; got ${bms.describe} '${bms.nme}'" -> N :: Nil,
+          // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
+        )
   
   def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
     log(s"listenTerm: trm = ${trm.showDbg}")
@@ -403,14 +369,6 @@ class NewResolver:
           listener(sh)
         case ss: SymShape =>
           fromBMS(ss.sym, ss.resSym, ss.markss, listener, trm)
-          // fromBMS(ss.sym, sh => {
-          //   listener(MarkedShape.enter(sh, ss.sym, S(trm.resSym)))
-          // }, trm)
-        case sh =>
-          raise:
-            ErrorReport(
-              msg"expected a term shape, but got ${sh.describe}" -> trm.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
       })
   
   def listen(trm: Term, listener: Shape => Unit): Unit =
@@ -442,12 +400,6 @@ class NewResolver:
         IntroShape(intro)
       })
       listener(sh)
-    // case Term.App(lhs, args) =>
-    //   // listen(lhs, sh => listener(AppShape(sh, args)))
-    //   ???
-    // case sel: AnySelTerm =>
-    //   // listen(lhs, sh => selShape(sh, nme, trm.asInstanceOf[AnySelTerm]))
-    //   sel
     case ref @ Ref(loc: LocalSymbol) =>
       loc.shapes.foreach(listener)
       loc.shapeListeners += listener
@@ -457,44 +409,19 @@ class NewResolver:
         loc.shapes.foreach(listener)
         loc.shapeListeners += listener
     case ref @ MemberRef(sym: TermSymbol) =>
-      // println(sym.decl.get)
-      // sym.defn.get
       ???
-      // listenDefn(sym, listener)
-      listenDefn(sym, sh =>
-        listener(MarkedShape.enter(sh, sym, S(ref.resSym))))
+      // listenDefn(sym, sh =>
+      //   listener(MarkedShape.enter(sh, sym, S(ref.resSym))))
     case ref @ MemberRef(sym: BlockMemberSymbol) =>
       val fs = ref.resSym
       val sh = symShapes.getOrElseUpdate((sym, fs, Nil), SymShape(sym, fs, Nil))
-      // // ref.shapes.foreach(listener)
-      // // ref.shapeListeners += listener
-      // if ref.shapes.add(sh) then
-      //   ref.shapeListeners.foreach(listener => listener(sh))
       listener(sh)
     case Capture(base, thru) =>
-      // TODO
-      // listen(base, listener)
-      // listen(base, sh =>
-      //   listener(MarkedShape.enter(sh, thru)))
       listenTerm(base, sh =>
         listener(MarkedShape.enter(sh, thru, N)))
-      // listenTerm(base, sh =>
-      //   listener(MarkedShape.exit(sh, thru, N).asInstanceOf))
     case ref @ Ref(sym: InnerSymbol) => // TODO: remove remaining occurrences of such refs
-      // sym.asBlkMember match
-      // case S(bms) =>
-      //   bms.onComplete: () =>
-      //     ???
-      // case _ => ???
-      // sym.asDefnSym
-      // ???
       sym.shapeListeners += listener
-      // ???
     case ref @ Ref(bsym: BlockMemberSymbol) =>
-      // // listener(ref)
-      // // if ref.shapes.add(bsym) then
-      // //   ref.shapeListeners.foreach(listener => listener(bsym))
-      // symShape(bsym, ref)
       ???
     case res: ResolvableImpl =>
       res.shapes.foreach(listener)

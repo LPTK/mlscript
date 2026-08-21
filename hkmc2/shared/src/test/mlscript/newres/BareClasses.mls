@@ -49,7 +49,7 @@ Foo
 Foo.b
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.49: 	Foo.b
-//│ ║        	   ^^
+//│ ║        	^^^^^
 //│ ╟── Class 'Foo' does not contain member 'b'
 //│ ║  l.30: 	class Foo {
 //│ ╙──      	      ^^^
@@ -62,7 +62,7 @@ let f = Foo
 f.b
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.62: 	f.b
-//│ ║        	 ^^
+//│ ║        	^^^
 //│ ╟── Class 'Foo' does not contain member 'b'
 //│ ║  l.30: 	class Foo {
 //│ ╙──      	      ^^^
@@ -140,7 +140,7 @@ let f = new Foo(1)
 f.a
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.140: 	f.a
-//│ ║         	 ^^
+//│ ║         	^^^
 //│ ╟── Instance of class 'Foo' does not contain member 'a'
 //│ ║  l.135: 	let f = new Foo(1)
 //│ ╙──       	        ^^^^^^^^^^
