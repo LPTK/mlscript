@@ -94,14 +94,9 @@ data class Some[out T](x: T) extends Option[T]
 //│ = [true, true, false, false]
 
 
-// `z / 10` is not an integer, so the checked default would reject it entering the `Int` parameter;
-// this block is about multi-parameter-list constructors with inheritance, not about the coercion.
-:noCheckCasts
 data class Barr(x: Int)(y: Int) with
   fun f = x + y
 
-// Same rationale as above - Needed for `Bazz(42)` to be accepted.
-:noCheckCasts
 data class Bazz(z: Int) extends Barr(z % 10)(z / 10) with
   fun g = z
 

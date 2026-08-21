@@ -809,22 +809,12 @@ val notCalled: Str = called
 //│ end
 
 
-// Under `:checkCasts` the printer spells a checked cast `as!` and an unchecked one `as!!`. Narrowing the
-// same `o` that the unchecked block near the top of this file narrows makes the contrast direct: the flag is
-// read where the coercion is introduced, so only the mark differs. What the mark expands into is covered by
-// `CheckedCasts.mls`.
-:checkCasts
-val n2: Boxed = o
-//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define n2⁰ as val n2¹: Boxed⁰ = (o¹ as! Boxed⁰); end
-
-
 // An instantiation is typed as its class, so it cannot fill a primitive slot. Were the `Instantiate` type
 // lost, this would silently become an ordinary downcast instead of the error below.
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Bar' at an unrelated type 'Int'
-//│ ║  l.825: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.815: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {
@@ -877,7 +867,7 @@ fun mk: Int -> Int = (x: Int) => x
 :ge
 fun badFn() = applyF(42)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Function'
-//│ ║  l.878: 	fun badFn() = applyF(42)
+//│ ║  l.897: 	fun badFn() = applyF(42)
 //│ ╙──       	                     ^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badFn⁰ as fun badFn¹(): ? { return applyF¹(42) }; end

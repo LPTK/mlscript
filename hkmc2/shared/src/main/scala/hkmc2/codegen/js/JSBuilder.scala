@@ -852,8 +852,6 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
               doc"$sd === ${result(pth)}"
             else
               doc"$sd instanceof ${result(pth)}.class"
-              // * ^ Note that modules are currently not valid patterns;
-              // *    this case is just for objects, which have their class stored in a `.class` property.
           case _ => doc"$sd instanceof ${result(pth)}"
         case Case.Tup(len, inf) => doc"$runtimeVar.Tuple.isArrayLike($sd) && $sdProp.length ${if inf then ">=" else "==="} ${len}"
         case Case.Field(name = n, safe = false) =>
