@@ -976,6 +976,20 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       argss.map(_.map(a => a.value.showDbg).mkString("[", ", ", "]")).mkString(", ")}])"
     case Cast(value, target, check) => s"Cast(${value.showDbg}, $target${if check then ", checked" else ""})"
   
+  /** The literal underneath any number of *unchecked* casts, or `N` if this result is not one.
+    *
+    * An unchecked cast does not change what its operand denotes, so a consumer that wants to *read* a literal must
+    * look through one. Matching `Value.Lit` directly instead stops matching, silently, as soon as a cast is interposed,
+    * which is what the simplifier does when it propagates a cast literal to its use sites.
+    *
+    * A *checked* cast is deliberately opaque here: it can throw, so its operand does not stand in for it.
+    */
+  @annotation.tailrec
+  final def litThroughUncheckedCasts: Opt[Value.Lit] = this match
+    case lit: Value.Lit => S(lit)
+    case Cast(value, _, false) => value.litThroughUncheckedCasts
+    case _ => N
+  
   lazy val isPure: Bool = this match
     case _: Value => true
     case sel @ Select(q, n) =>

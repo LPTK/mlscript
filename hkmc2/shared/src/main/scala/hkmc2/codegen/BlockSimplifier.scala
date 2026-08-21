@@ -535,8 +535,8 @@ class BlockSimplifier
     // *   - `false` means no known value.
     // *   - `true` means definitely uninitialized,
     // *     meaning any variable access can be replaced by `undefined`, ie, `Value.Lit(UnitLit(false))`.
-    // *   - `Value` means this exact value is still available for propagation.
-    type KnownValue = Bool | Value
+    // *   - `Value`/`Cast` means this exact value is still available for propagation.
+    type KnownValue = Bool | Value | Cast
     
     // * The propagated value fact for an assignment, plus equivalent
     // * references that could be substituted while their requirements hold.
@@ -551,9 +551,9 @@ class BlockSimplifier
         (l, r) match
         case (false, _) | (_, false) => false
         case (true, true) => true
-        case (true, v: Value) => v
-        case (v: Value, true) => v
-        case (v1: Value, v2: Value) if v1 === v2 => v1
+        case (true, v: (Value | Cast)) => v
+        case (v: (Value | Cast), true) => v
+        case (v1: (Value | Cast), v2: (Value | Cast)) if v1 === v2 => v1
         case _ => false
       
       def mergeRefs(l: List[TrackedRef], r: List[TrackedRef]): List[TrackedRef] =
@@ -659,10 +659,12 @@ class BlockSimplifier
         case Assigned(lhs, rhs, opt, _) =>
           val litValue = rhs match
             case v @ Value.Lit(_) => v
-            // * A cast of a literal propagates the literal, dropping the cast's type. This is only valid while the
-            // * cast carries no runtime check and the positions literals reach are typed from their slot, not the
-            // * value: propagating through a *checked* cast would discard a test that can throw.
-            case Cast(v @ Value.Lit(_), _, false) => v
+            // * A cast of a literal propagates as the whole `Cast`, not as the bare literal: dropping the node
+            // * would lose its target in the one position a backend reads off the value rather than off the
+            // * slot - a `return`, which Wasm validates against the declared result instead of coercing into it.
+            // * Consumers wanting the literal look through the cast with `litThroughUncheckedCasts`.
+            // * A *checked* cast is excluded: propagating it would duplicate a test that can throw.
+            case c @ Cast(Value.Lit(_), _, false) => c
             case _ => false
           val refs = opt match
             case S((r @ Value.SimpleRef(lv: LocalVar)) -> rhs) =>
@@ -1121,7 +1123,7 @@ class BlockSimplifier
         super.applyScopedBlock(b)
     
     
-    override def applyValue(v: Value)(k: Value => Block): Block =
+    override def applyPath(v: Path)(k: Path => Block): Block =
       v match
       case Value.SimpleRef(loc: LocalVar) if !inDryRun && !capturedVars(loc) =>
         
@@ -1136,7 +1138,7 @@ class BlockSimplifier
         case true =>
           registerChange(s"${loc.showDbg} ~> undefined")
           return k(Value.Lit(syntax.Tree.UnitLit(false)))
-        case lit: Value =>
+        case lit: (Value | Cast) =>
           registerChange(s"${loc.showDbg} ~> ${lit.showDbg}")
           return k(lit)
         case false =>
@@ -1147,7 +1149,7 @@ class BlockSimplifier
             registerChange(s"${loc.showDbg} ~> ${v2.showDbg} (via ${refs.map(_.showDbg).mkString(", ")})")
             k(v2)
         
-      case _ => super.applyValue(v)(k)
+      case _ => super.applyPath(v)(k)
     
     
     private def assignedPureCallPrefix(loc: LocalVar): Opt[Call] =

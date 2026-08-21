@@ -810,4 +810,75 @@ fun test: Function = new Object
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define test⁴ as fun test⁵(): Function⁰ { return (new globalThis⁰.Object⁰() as!! Function⁰) }; end
 
+// The simplifier propagates a cast literal to its use sites as the whole `Cast` node rather than as the bare
+// literal, so the cast's target survives into the positions a backend reads off the value instead of off the
+// slot - notably a `return`, which Wasm validates against the declared result rather than coercing into it.
+// The price is that a `Cast` now sits between a literal and its consumers, so a consumer that wants the
+// *literal* has to look through it (`Result.litThroughUncheckedCasts`); matching `Value.Lit` directly stops
+// matching, silently.
+// The two sites below are where that is a correctness matter rather than a lost optimization: without the
+// look-through they emit `42.whoami` and `42.length`, which are syntax errors - the `.` parses as a decimal
+// point. `fortyTwo` is deliberately unannotated so that the coercion into `asWrapper`'s parameter is a real
+// narrowing, and `Wrapper` is never actually instantiated: only the emitted JS matters here.
+:js
+class Wrapper with
+  val whoami = "wrapper"
+fun fortyTwo = 42
+fun asWrapper(x: Wrapper): Wrapper = x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define fortyTwo⁰ as fun fortyTwo¹(): ? {
+//│   return 42
+//│ };
+//│ define asWrapper⁰ as fun asWrapper¹(x: Wrapper⁰): Wrapper⁰ {
+//│   return x
+//│ };
+//│ define Wrapper¹ as class Wrapper⁰ {
+//│   val whoami⁰: ?;
+//│   constructor() { define whoami⁰ as val whoami¹: ? = "wrapper"; end }
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+// A cast literal as a property-access receiver.
+:js
+:sjs
+asWrapper(fortyTwo).whoami
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: ?, tmp1: Wrapper⁰;
+//│ set tmp = fortyTwo¹();
+//│ set tmp1 = asWrapper¹((tmp as!! Wrapper⁰));
+//│ return tmp1.whoami¹
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ return (42).whoami
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+// A cast literal as a tuple-pattern scrutinee, whose test reads `.length` off it.
+:js
+:sjs
+if asWrapper(fortyTwo) is
+  [a, b] then "pair"
+  else "other"
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let scrut: ?, a: ?, b: ?, element1$: ?, element0$: ?, tmp: ?;
+//│ set tmp = fortyTwo¹();
+//│ set scrut = asWrapper¹((tmp as!! Wrapper⁰));
+//│ match scrut
+//│   Array(2) =>
+//│     set element0$ = runtime⁰.Tuple⁰.get²(scrut, 0);
+//│     set element1$ = runtime⁰.Tuple⁰.get²(scrut, 1);
+//│     set b = element1$;
+//│     set a = element0$;
+//│     return "pair"
+//│   else
+//│     return "other"
+//│ end
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ if (runtime.Tuple.isArrayLike(42) && (42).length === 2) {
+//│   runtime.Tuple.get(42, 0);
+//│   runtime.Tuple.get(42, 1);
+//│   return "pair"
+//│ }
+//│ return "other";
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = "other"
 

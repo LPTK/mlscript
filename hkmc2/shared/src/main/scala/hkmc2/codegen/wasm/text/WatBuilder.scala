@@ -1999,8 +1999,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       idx,
       operand,
       operandXtype,
-      arg.value match
-        case Value.Lit(IntLit(value)) if arg.spread.isEmpty => S(value)
+      arg.value.litThroughUncheckedCasts match
+        case S(Value.Lit(IntLit(value))) if arg.spread.isEmpty => S(value)
         case _ => N,
       arg.value.toLoc,
     )
