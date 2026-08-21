@@ -810,6 +810,57 @@ fun test: Function = new Object
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define test⁴ as fun test⁵(): Function⁰ { return (new globalThis⁰.Object⁰() as!! Function⁰) }; end
 
+
+// A written arrow type erases to `Function` rather than to nothing: a parameter so annotated is a function
+// value, and a lambda (or any untyped value) flowing into it is narrowed to `Function`. The parameter and
+// return shapes are erased along with everything else - only the reference matters.
+fun applyF(f: Int -> Int): Int = f(1)
+applyF((x: Int) => x)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let lambda;
+//│ define applyF⁰ as fun applyF¹(f: Function⁰): Int⁰ {
+//│   return (f(1) as!! Int⁰)
+//│ };
+//│ define lambda as fun lambda¹(x: Int⁰) { return x };
+//│ return applyF¹((lambda¹ as!! Function⁰))
+
+
+// A result annotation that is a written arrow is likewise a function-typed result: `mk` returns a function
+// value, so its body (a lambda) is narrowed to `Function` - the same coercion the explicitly-annotated
+// `thunk` above gets.
+fun mk: Int -> Int = (x: Int) => x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define mk² as fun mk³(): Function⁰ {
+//│   let lambda;
+//│   @private
+//│   define lambda as fun lambda²(x: Int⁰) { return x };
+//│   return (lambda² as!! Function⁰)
+//│ };
+//│ end
+
+
+// The narrowing is what makes an arrow-annotated slot *typed*: a non-function value is rejected where it
+// crosses the slot, exactly as for `thunk` above. Without the erasure this would silently pass as `Unknown`.
+:ge
+fun badFn() = applyF(42)
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Function'
+//│ ║  l.845: 	fun badFn() = applyF(42)
+//│ ╙──       	                     ^^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define badFn⁰ as fun badFn¹(): ? { return applyF¹(42) }; end
+
+
+// A `val` annotated with an arrow type has the function value as its type, just like a parameter.
+val g: Int -> Int = (x: Int) => x
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let lambda;
+//│ define lambda as fun lambda³(x: Int⁰) {
+//│   return x
+//│ };
+//│ define g² as val g³: Function⁰ = (lambda³ as!! Function⁰);
+//│ end
+
+
 // The simplifier propagates a cast literal to its use sites as the whole `Cast` node rather than as the bare
 // literal, so the cast's target survives into the positions a backend reads off the value instead of off the
 // slot - notably a `return`, which Wasm validates against the declared result rather than coercing into it.

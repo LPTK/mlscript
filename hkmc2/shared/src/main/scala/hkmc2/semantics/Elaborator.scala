@@ -2009,7 +2009,36 @@ extends Importer:
               // * the name through `asTpe`, which prefers a same-named class or type alias over the module.
               val retTpe = mfn.msym match
                 case S(msym) => S(ErasedType.ValueLike(rsc = S(false), msym))
-                case N => s.flatMap(ErasedType.eraseSign)
+                case N => s.flatMap: s =>
+                  // * A function's result annotation is its whole signature: `fun f: A -> B -> C` declares a function
+                  // * taking `A` and `B` and returning `C`. Where the erased result type lands depends on the def's
+                  // * shape:
+                  // *
+                  // * - an implementation inheriting a signature (`fun foo(x) = ...` next to `fun foo: A -> B`)
+                  // *   consumes the leading arrows with its own parameter lists, so the result is what remains -
+                  // *   `fun baz: Int -> ((X), Int) -> Int` with a one-parameter implementation has the remaining
+                  // *   arrow as its result;
+                  // * - a parameterless implementation (`fun foo = x => ...`) is the function value itself, and a
+                  // *   directly written result annotation (`fun f(x): A -> B`, or a `val v: A -> B`) is the value's
+                  // *   type as written - both erase a written arrow to `Function`;
+                  // * - a bodiless declaration with an arrow signature (`declare fun (+): (Int, Int) -> Int`) keeps
+                  // *   its result untyped: its arrows describe the function's own parameters rather than a
+                  // *   function-typed result, and neither the whole chain (which would type every call's result as
+                  // *   `Function`) nor the last component (which would reject `@untyped` bodies feeding the result
+                  // *   into other types) preserves existing programs. A bodiless declaration with a plain result
+                  // *   annotation (`fun const(c: Int): Int32`) erases normally - the annotation is the result type.
+                  def stripSignatureParams(s: Term, n: Int): Term = (s, n) match
+                    case (Term.Forall(_, _, body), _) => stripSignatureParams(body, n)
+                    case (Term.FunTy(_, rhs, _), n) if n > 0 => stripSignatureParams(rhs, n - 1)
+                    case _ => s
+                  val isChainSignature = s match
+                    case _: (Term.Forall | Term.FunTy) => true
+                    case _ => false
+                  val resultSign: Opt[Term] =
+                    if (k is syntax.Fun) && td.annotatedResultType.isEmpty then S(stripSignatureParams(s, pss.length))
+                    else if (k is syntax.Fun) && body.isEmpty && isChainSignature then N
+                    else S(s)
+                  resultSign.flatMap(ErasedType.eraseSign)
               val erasedTpe = k match
                 case syntax.Fun =>
                   S(ErasedType.FuncRef(rsc = S(false),
