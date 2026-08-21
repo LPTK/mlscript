@@ -354,8 +354,8 @@ sealed trait NonAppTermShape extends NonMarkedShape
 // case object NoMark extends Marks
 sealed abstract class Marks:
   def showDbg(using DebugPrinter): Str = this match
-    case EntryMark(sym, id, rest) => s"-⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}${rest.showDbg}"
-    case ExitMark(sym, id, rest) => s"+⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}${rest.showDbg}"
+    case EntryMark(sym, id, rest) => s"↘⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}${rest.showDbg}"
+    case ExitMark(sym, id, rest) => s"↗⟨${sym.showDbg}⟩${id.fold("")("%⟨"+_.showDbg+"⟩")}${rest.showDbg}"
     case NoMarks => "ϵ"
 type SomeMarks = EntryMark | ExitMark
 case class EntryMark(sym: AnyDefinitionSymbol, id: Opt[FlowSymbol], rest: Marks) extends Marks
@@ -406,13 +406,18 @@ object MarkedShape:
       //   ???
       MarkedShape(sh, EntryMark(sym, id, marks))
   def exit(sh: TermShape, sym: AnyDefinitionSymbol, id: Opt[FlowSymbol])(using TL): TermShape | NoShape =
+  tl.trace[TermShape | NoShape](s".exit MarkedShape (${sh.shwDbg}, ${sym.showDbg}, ${id.fold("")(_.showDbg)})", res => s"= ${res.shwDbg}"):
+    tl.log(s"${sym.getClass} ${sym match
+      case sym: TermSymbol => sym.owner.map(_.showDbg)
+      case _ => "?"
+    }")
     sh match
     case sh: NonMarkedShape => MarkedShape(sh, ExitMark(sym, id, NoMarks))
     case MarkedShape(sh, marks) =>
       marks match
       case marks: ExitMark => MarkedShape(sh, ExitMark(sym, id, marks))
       case EntryMark(sym2, id2, rest) =>
-        require(sym2 is sym, s"Expected symbol ${sym} but got ${sym2}")
+        require(sym2 is sym, s"Expected symbol ${sym.showDbg} but got ${sym2.showDbg}")
         // tl.log(s"!? ${id} vs ${id2}")
         // // id2 match
         // (id,id2) match
@@ -1250,11 +1255,11 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
             case res => res :: Nil
           ).map(_.show).mkDocument(doc", # ")
       case ld: LetDecl =>
-        (ld.annotations.map(_.show) ::: doc"let ${ld.sym.showName}" :: Nil).mkDocument()
+        (ld.annotations.map(_.show :: " ") ::: doc"let ${ld.sym.showName}" :: Nil).mkDocument()
       case df: DefineVar =>
         doc"${df.sym.showName} = ${df.rhs.show}"
       case td: TermDefinition =>
-          td.annotations.map(_.show).mkDocument()
+          td.annotations.map(_.show :: " ").mkDocument()
           :: doc"${td.k.str} ${td.bsym.showName}::${td.tsym.showName}"
           :: (if td.tparams.isEmpty then doc""
             else doc"[${td.tparams.get.map(_.sym.showName).mkDocument(", ")}]")
@@ -1263,8 +1268,8 @@ sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
           :: (if summon[ShowCfg].showFlowSymbols then doc" ‹${td.bsym.flow.showName}›" else doc"")
           :: td.body.fold(doc"")(b => doc" = ${b.show}")
       case cld: ClassLikeDef =>
-          cld.annotations.map(_.show).mkDocument()
-          :: doc"${cld.kind.str} ${cld.bsym.showName}::${cld.sym.showName}"
+          cld.annotations.map(_.show :: " ").mkDocument()
+          :: doc"${cld.ctorSym.fold(doc"")("fun "::_.showName::doc" # ")}${cld.kind.str} ${cld.bsym.showName}::${cld.sym.showName}"
           :: (if cld.tparams.isEmpty then doc""
             else doc"[${cld.tparams.map(_.sym.showName).mkDocument(", ")}]")
           :: cld.paramsOpt.map(_.show).toList.mkDocument()

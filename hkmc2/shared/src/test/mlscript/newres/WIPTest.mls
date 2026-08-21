@@ -1,0 +1,22 @@
+:..
+
+
+:elt
+:sr
+fun foo = 1
+//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
+//│ Blk:
+//│   stats = Ls of
+//│     TermDefinition:
+//│       k = Fun
+//│       sym = member:foo⁰
+//│       tsym = term:foo¹
+//│       body = S of Lit of IntLit of 1
+//│       modulefulness = Modulefulness of N
+//│   res = Lit of UnitLit of false
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fun foo⁰::foo¹ ‹flow:foo⁰› = 1
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+

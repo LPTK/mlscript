@@ -10,9 +10,47 @@ fun foo(x) =
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
-// :de
+:de
 :sr
 foo(1)
+//│ Elab block List(App(Ident(foo),Tup(List(IntLit(1))))) LocalScope(block:3)
+//│ | Elab term App(Ident(foo),Tup(List(IntLit(1))))
+//│ | | Elab subterm App(Ident(foo),Tup(List(IntLit(1))))
+//│ | | | Elab subterm Ident(foo)
+//│ | | | ~> MemberRef(member:foo)
+//│ | | | Elab subterm Tup(List(IntLit(1)))
+//│ | | | | Elab term IntLit(1)
+//│ | | | | | Elab subterm IntLit(1)
+//│ | | | | | ~> Lit(IntLit(1))
+//│ | | | | ~> Lit(IntLit(1))
+//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
+//│ | | | listenTerm: trm = member:foo
+//│ | | | listen: trm = member:foo
+//│ | | | listenBMS: bms = function
+//│ | | | listenedBMS: bms = function
+//│ | | | fromBMS: bms = member:foo⁰, sh = member:foo⁰, flow = foo¹, markss = List()
+//│ | | | PUSH MarkedShape(member:foo⁰, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | appShape: lhs = MarkedShape(member:foo⁰, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ), args = [1], res = member:foo(1)
+//│ | | | Zipping ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None) (List(↘⟨term:foo²⟩%⟨foo¹⟩ϵ)) with List(Fld(‹›,Lit(IntLit(1)),None))
+//│ | | | listenTerm: trm = 1
+//│ | | | listen: trm = 1
+//│ | | | .enter 1 (↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | | .enter MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ) (ϵ)
+//│ | | | | = MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | = MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | zipArg: p = x, trm = 1, sh = MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo,Some(foo),NoMarks)))
+//│ | | | lhs false List(((x),List(↘⟨term:foo²⟩%⟨foo¹⟩ϵ)))
+//│ | | | appShape: td.body = Some(SimpleRef(x))
+//│ | | | listenTerm: trm = x
+//│ | | | listen: trm = x
+//│ | | | .exit MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ) (↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | | .exit MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ) (ϵ)
+//│ | | | | = MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | = 1
+//│ | | ~> App(MemberRef(member:foo),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ | ~> App(MemberRef(member:foo),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ ~> Blk(List(),App(MemberRef(member:foo),Tup(List(Fld(‹›,Lit(IntLit(1)),None)))))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   foo⁰(1)‹app⁰›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

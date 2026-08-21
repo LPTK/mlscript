@@ -673,6 +673,7 @@ trait TypeDefImpl(using State) extends TypeOrTermDef:
         case pt @ ParamTree(ident = id, spd = N) =>
           val k = if pt.flags.mut then MutVal else ImmutVal
           TermSymbol(k, symbol.asClsLike, id)
+          // TermSymbol(k, symbol.match{case i: InnerSymbol=>S(i); case _ => N}, id)
       .toList
     
   lazy val allSymbols = definedSymbols ++

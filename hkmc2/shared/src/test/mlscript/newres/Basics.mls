@@ -35,7 +35,7 @@ Predef.id
 //│ | | | listen: trm = member:Predef
 //│ | | | listenBMS: bms = module
 //│ | | | listenedBMS: bms = module
-//│ | | | fromBMS: bms = module, sh = module:Predef¹, flow = Predef²‹48›
+//│ | | | fromBMS: bms = member:Predef⁰, sh = module:Predef¹, flow = Predef²‹48›, markss = List()
 //│ | | | PUSH MarkedShape(module:Predef¹, +⟨module:Predef¹⟩%⟨Predef²‹48›⟩ϵ)
 //│ | | | newSel: sel = member:Predef.id, shape = module 'Predef'
 //│ | | ~> NewSel(MemberRef(member:Predef),Ident(id))
