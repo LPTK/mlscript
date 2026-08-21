@@ -51,7 +51,10 @@ class NewResolver:
   def isOwnedSym(sym: Symbol): Bool =
     sym.getState is state
   
-  def zipArgs(mss: Ls[Marks], ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term): Unit =
+  def resolError(src: Term, msgs: Ls[(Message, Opt[Loc])]): Unit = raise:
+    ErrorReport(msg"Resolution error in ${src.describe}" -> src.toLoc ::msgs, source = Diagnostic.Source.Compilation)
+  
+  def zipArgs(mss: Ls[Marks], ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term, funSh: TermShape): Unit =
     (ps, args) match
     case (Nil, Nil) => ()
     // case (Nil, Spd(k, t) :: args) =>
@@ -61,7 +64,9 @@ class NewResolver:
       case N =>
         raise:
           ErrorReport(
-            msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> src.toLoc :: Nil,
+            msg"Resolution error in ${src.describe}" -> src.toLoc ::
+              msg"${funSh.describe.capitalize} expected ${ps.length} ${
+                "argument".pluralized(ps.length)}, but got ${args.length}" -> funSh.toLoc :: Nil,
             source = Diagnostic.Source.Compilation)
       case S(p) =>
         val packaged = new Tup(args)(Tree.DummyTup).withLoc(Loc.mk(args.iterator.flatMap(_.toLoc)))
@@ -81,11 +86,13 @@ class NewResolver:
           if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
             p.sym.shapeListeners.foreach(listener => listener(sh))
       )
-      zipArgs(mss, ps, r, args, src)
+      zipArgs(mss, ps, r, args, src, funSh)
     case _ =>
       raise:
         ErrorReport(
-          msg"Arity mismatch: expected ${ps.length} arguments, but got ${args.length}" -> src.toLoc :: Nil,
+          msg"Resolution error in ${src.describe}" -> src.toLoc ::
+            msg"${funSh.describe.capitalize} expected ${ps.length} ${
+              "argument".pluralized(ps.length)}, but got ${args.length}" -> funSh.toLoc :: Nil,
           source = Diagnostic.Source.Compilation)
           
   def appShape(lhs: TermShape, args: Term, res: App): Unit =
@@ -100,17 +107,18 @@ class NewResolver:
       args match
       case args: Tup =>
         log(s"Zipping ${ps} (${mss.map(_.showDbg)}) with ${args.fields}")
-        zipArgs(mss, ps.params, ps.restParam, args.fields, res)
+        zipArgs(mss, ps.params, ps.restParam, args.fields, res, lhs)
       case _ => ???
     log(s"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead}")
     def register = if res.shapes.add(sh) then
       res.shapeListeners.foreach(listener => listener(sh))
     log(s"lhs ${lhs.isSaturated} ${lhs.unappliedParams.map(_.mapFirst(_.showDbg).mapSecond(_.map(_.showDbg)))}")
-    if lhs.isSaturated then raise:
+    if lhs.isSaturated && !res.isErroneous then raise:
+      res.isErroneous = true
       if lhs.applicationHead._1 is lhs
       then ErrorReport(
         msg"Resolution error in ${res.describe}" -> res.toLoc ::
-          msg"${lhs.describe.capitalize} cannot called like a function." -> lhs.toLoc :: Nil,
+          msg"${lhs.describe.capitalize} cannot be called like a function." -> lhs.toLoc :: Nil,
         source = Diagnostic.Source.Compilation)
       else ErrorReport(
         msg"Resolution error in ${res.describe}" -> res.toLoc ::
@@ -145,20 +153,29 @@ class NewResolver:
             td.body.foreach: body =>
               go(body, mss)
         case _ =>
-          raise:
-            ErrorReport(
-              msg"Resolution error in ${res.describe}" -> res.toLoc ::
-                msg"${ds.describe.capitalize} cannot be applied." -> ds.toLoc :: Nil,
-              source = Diagnostic.Source.Compilation)
-      case (sh: IntroShape, _) if sh.trm.isInstanceOf[Lam] =>
-        go(sh.trm.asInstanceOf[Lam].body, Nil)
-      case (sh: TermShape, _) =>
-        if !res.isErroneous then raise:
-          ErrorReport(
-            msg"Resolution error in ${res.describe}" -> res.toLoc ::
-              msg"${sh.describe.capitalize} cannot be applied." -> sh.toLoc :: Nil,
-            source = Diagnostic.Source.Compilation)
+          softAssert(res.isErroneous)
+          // raise:
+          //   ErrorReport(
+          //     msg"Resolution error in ${res.describe}" -> res.toLoc ::
+          //       msg"${ds.describe.capitalize} cannot be called like a function." -> ds.toLoc :: Nil,
+          //     source = Diagnostic.Source.Compilation)
+      // case (sh: IntroShape, _) if sh.trm.isInstanceOf[Lam] =>
+      //   go(sh.trm.asInstanceOf[Lam].body, Nil)
+      // case (sh: TermShape, _) =>
+      //   if !res.isErroneous then raise:
+      //     ErrorReport(
+      //       msg"Resolution error in ${res.describe}" -> res.toLoc ::
+      //         msg"${sh.describe.capitalize} cannot be called like a function." -> sh.toLoc :: Nil,
+      //       source = Diagnostic.Source.Compilation)
       // case _ => ???
+      case (sh: IntroShape, _) =>
+        sh.trm match
+        case Lam(params, body) =>
+          go(body, Nil)
+        case _ =>
+          softAssert(res.isErroneous)
+      case _ =>
+        softAssert(res.isErroneous)
     else register
   
   def newSel(sel: NewSel): Unit =
@@ -217,7 +234,7 @@ class NewResolver:
                       case ((ps, mss), args) =>
                         args match
                         case args: Tup =>
-                          zipArgs(mss, ps.params, ps.restParam, args.fields, src)
+                          zipArgs(mss, ps.params, ps.restParam, args.fields, src, dsh)
                         case _ => ???
                     // TODO: mv to NewShape def
                     lazy val members: Map[Str, MemberInfo] =

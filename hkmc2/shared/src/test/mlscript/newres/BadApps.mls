@@ -8,13 +8,7 @@
 //│ ╔══[COMPILATION ERROR] Resolution error in application
 //│ ║  l.7: 	42()
 //│ ║       	^^^^
-//│ ╟── Integer literal cannot called like a function.
-//│ ║  l.7: 	42()
-//│ ╙──     	^^
-//│ ╔══[COMPILATION ERROR] Resolution error in application
-//│ ║  l.7: 	42()
-//│ ║       	^^^^
-//│ ╟── Integer literal cannot be applied.
+//│ ╟── Integer literal cannot be called like a function.
 //│ ║  l.7: 	42()
 //│ ╙──     	^^
 //│ ═══[RUNTIME ERROR] TypeError: 42 is not a function
@@ -26,16 +20,10 @@ let x = 123
 :e
 x(456)
 //│ ╔══[COMPILATION ERROR] Resolution error in application
-//│ ║  l.27: 	x(456)
+//│ ║  l.21: 	x(456)
 //│ ║        	^^^^^^
-//│ ╟── Integer literal cannot called like a function.
-//│ ║  l.23: 	let x = 123
-//│ ╙──      	        ^^^
-//│ ╔══[COMPILATION ERROR] Resolution error in application
-//│ ║  l.27: 	x(456)
-//│ ║        	^^^^^^
-//│ ╟── Integer literal cannot be applied.
-//│ ║  l.23: 	let x = 123
+//│ ╟── Integer literal cannot be called like a function.
+//│ ║  l.17: 	let x = 123
 //│ ╙──      	        ^^^
 //│ ═══[RUNTIME ERROR] TypeError: x is not a function
 

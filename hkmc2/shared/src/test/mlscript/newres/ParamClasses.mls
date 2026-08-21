@@ -245,16 +245,19 @@ g(2)
 
 :e
 let f = new Foo()
-//│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
+//│ ╔══[COMPILATION ERROR] Resolution error in object instantiation
 //│ ║  l.247: 	let f = new Foo()
-//│ ╙──       	        ^^^^^^^^^
+//│ ║         	        ^^^^^^^^^
+//│ ╟── Class 'Foo' expected 1 argument, but got 0
+//│ ║  l.84: 	class Foo(val a) {
+//│ ╙──      	      ^^^
 //│ f = Foo(undefined)
 
 
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] Invalid class expression in 'new' instantiation.
-//│ ║  l.255: 	new 42
+//│ ║  l.258: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
