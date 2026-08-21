@@ -590,7 +590,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
         
         val loopBms = BlockMemberSymbol(bms.nme + "$tailrec", Nil, true)
         // * The internal loop stands for the same function as `f` with its parameter lists
-        // * flattened, so it must carry an equivalent `FuncRef`.
+        // * flattened - construct a new `FuncRef` to reflect this.
         val loopDSym = TermSymbol(syntax.Fun, owner, Tree.Ident(loopBms.nme), f.dSym.erasedType match
           case S(ft: ErasedFuncType) =>
             S(ErasedType.FuncRef(ft.rsc, (paramSyms.map(_.erasedType)) :: Nil, ft.ret))

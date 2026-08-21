@@ -343,8 +343,6 @@ class Rewrite(val deadParamElimSolver: DeadParamElimSolver)(using Raise):
         case ParamList(flags, params, restParam) =>
           val params2 = params.map:
             case p =>
-              // * A refreshed parameter stands for the same slot as `p`, so it must carry its
-              // * erased type: a slot that loses it does not widen to `Unknown` for primitives.
               val newSym = new VarSymbol(Tree.Ident(p.sym.name), erasedType = p.sym.erasedType)
               refreshParamMap(p.sym) = newSym
               Param(p.flags, newSym, p.sign, p.modulefulness)

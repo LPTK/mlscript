@@ -834,9 +834,8 @@ fun test: Function = new Object
 //│ define test⁴ as fun test⁵(): Function⁰ { return (new globalThis⁰.Object⁰() as!! Function⁰) }; end
 
 
-// A written arrow type erases to `Function` rather than to nothing: a parameter so annotated is a function
-// value, and a lambda (or any untyped value) flowing into it is narrowed to `Function`. The parameter and
-// return shapes are erased along with everything else - only the reference matters.
+// A written arrow type erases to `Function`: a parameter so annotated is a function value, and a lambda flowing into
+// it is cast into a `Function`. The parameter and return shapes are erased.
 fun applyF(f: Int -> Int): Int = f(1)
 applyF((x: Int) => x)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -848,9 +847,8 @@ applyF((x: Int) => x)
 //│ return applyF¹((lambda¹ as!! Function⁰))
 
 
-// A result annotation that is a written arrow is likewise a function-typed result: `mk` returns a function
-// value, so its body (a lambda) is narrowed to `Function` - the same coercion the explicitly-annotated
-// `thunk` above gets.
+// A result annotation that is a written arrow is likewise a function-typed result: `mk` returns a function value, so
+// its body (a lambda) is typed as `Function`.
 fun mk: Int -> Int = (x: Int) => x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define mk² as fun mk³(): Function⁰ {
@@ -862,12 +860,11 @@ fun mk: Int -> Int = (x: Int) => x
 //│ end
 
 
-// The narrowing is what makes an arrow-annotated slot *typed*: a non-function value is rejected where it
-// crosses the slot, exactly as for `thunk` above. Without the erasure this would silently pass as `Unknown`.
+// A non-function value is rejected where a `Function` value is expected.
 :ge
 fun badFn() = applyF(42)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Function'
-//│ ║  l.897: 	fun badFn() = applyF(42)
+//│ ║  l.865: 	fun badFn() = applyF(42)
 //│ ╙──       	                     ^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badFn⁰ as fun badFn¹(): ? { return applyF¹(42) }; end

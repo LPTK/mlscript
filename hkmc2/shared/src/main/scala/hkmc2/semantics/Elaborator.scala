@@ -2010,23 +2010,33 @@ extends Importer:
               val retTpe = mfn.msym match
                 case S(msym) => S(ErasedType.ValueLike(rsc = S(false), msym))
                 case N => s.flatMap: s =>
-                  // * A function's result annotation is its whole signature: `fun f: A -> B -> C` declares a function
-                  // * taking `A` and `B` and returning `C`. Where the erased result type lands depends on the def's
-                  // * shape:
+                  // * The return type of a function or a value can be annotated in three different ways:
                   // *
-                  // * - an implementation inheriting a signature (`fun foo(x) = ...` next to `fun foo: A -> B`)
-                  // *   consumes the leading arrows with its own parameter lists, so the result is what remains -
-                  // *   `fun baz: Int -> ((X), Int) -> Int` with a one-parameter implementation has the remaining
-                  // *   arrow as its result;
-                  // * - a parameterless implementation (`fun foo = x => ...`) is the function value itself, and a
-                  // *   directly written result annotation (`fun f(x): A -> B`, or a `val v: A -> B`) is the value's
-                  // *   type as written - both erase a written arrow to `Function`;
-                  // * - a bodiless declaration with an arrow signature (`declare fun (+): (Int, Int) -> Int`) keeps
-                  // *   its result untyped: its arrows describe the function's own parameters rather than a
-                  // *   function-typed result, and neither the whole chain (which would type every call's result as
-                  // *   `Function`) nor the last component (which would reject `@untyped` bodies feeding the result
-                  // *   into other types) preserves existing programs. A bodiless declaration with a plain result
-                  // *   annotation (`fun const(c: Int): Int32`) erases normally - the annotation is the result type.
+                  // * - An implementation inheriting a signature, e.g.
+                  // *   ```
+                  // *   fun foo: A -> B
+                  // *   fun foo(x) = ...
+                  // *   ```
+                  // *   discards the leading parameter lists, leaving what remains as the result type.
+                  // *
+                  // * - An arrow declaration without a body, e.g.
+                  // *   ```
+                  // *   declare fun (+): (Int, Int) -> Int
+                  // *   ```
+                  // *   leaves the result untyped. This avoids the ambiguity of whether the arrows describe the
+                  // *   parameters of the function or the return type. Moreover, this is necessary to support
+                  // *   `@untyped`, which is honored by the InvalML type checker but not by erasure:
+                  // *   ```
+                  // *   fun concat: (Str, Str) -> Str
+                  // *   fun concat(x, y) = @untyped x + y
+                  // *   ```
+                  // *
+                  // * - Otherwise, the annotation is the result as written, e.g.
+                  // *   ```
+                  // *   fun foo(x): A -> B = ... // types as `Function`
+                  // *   val v: A -> B = ...      // types as `Function`
+                  // *   fun const(c: Int): Int32 // types as `Int32`
+                  // *   ```
                   def stripSignatureParams(s: Term, n: Int): Term = (s, n) match
                     case (Term.Forall(_, _, body), _) => stripSignatureParams(body, n)
                     case (Term.FunTy(_, rhs, _), n) if n > 0 => stripSignatureParams(rhs, n - 1)
