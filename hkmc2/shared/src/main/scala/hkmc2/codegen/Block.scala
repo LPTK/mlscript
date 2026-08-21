@@ -1252,8 +1252,10 @@ case class Instantiate(mut: Bool, cls: Path, argss: Ls[Ls[Arg]])(val metadata: I
 /** A coercion of `value` to `target`.
   *
   * The coercion is a static assertion that backends may erase (as the JS backend does) or lower to a trapping
-  * instruction (as the Wasm backend does with `ref.cast`). `check` is currently unused - it is used to indicate
-  * whether the coercion should be checked at runtime.
+  * instruction (as the Wasm backend does with `ref.cast`).
+  *
+  * `check` records whether the coercion is meant to be verified at runtime. No pass expands it into a type test
+  * yet, so a checked cast currently generates the same code as an unchecked one.
   *
   * `check` is decided once, at the sole semantic construction site [[Result.coerceTo]], which reads
   * [[Config.checkCasts]]. Every other site that rebuilds a cast must *copy* the flag rather than re-derive it, so
