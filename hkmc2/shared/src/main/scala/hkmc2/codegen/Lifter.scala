@@ -572,7 +572,9 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         val capturedType: Opt[ErasedValueType] = sym match
           case s: VarSymbol => s.erasedType
           case s: TempSymbol => s.erasedType
-          case _ => N
+          case sym: ScopedOrInnerSymbol =>
+            softAssert(false, s"Unexpected symbol type for captured local `$sym` ${sym.getClass.getName}")
+            N
         val varSym = VarSymbol(ident, erasedType = capturedType)
         val fldSym = BlockMemberSymbol(nme, Nil)
         val tSym = TermSymbol(syntax.MutVal, S(clsSym), ident, erasedType = capturedType)
@@ -1014,13 +1016,14 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
   class LiftedFunc(override val obj: ScopedObject.Func)(using ctx: LifterCtxNew) extends LiftedScope[FunDefn](obj) with GenericRewrittenScope[FunDefn]:
     private val passedSymsMap_ : Map[ValueSymbol, VarSymbol] = passedSymsOrdered.map: s =>
         // * The auxiliary parameter stands for the same slot as the passed local, so it takes the local's
-        // * type (propagation of a declared annotation through an identical slot, not inference). Without
-        // * it, a captured `Int32` param arrives as an `anyref` and a Wasm program that uses it as an
-        // * `Int32` operand is rejected.
+        // * type.
         val erasedType: Opt[ErasedValueType] = s match
           case v: VarSymbol => v.erasedType
           case t: TempSymbol => t.erasedType
-          case _ => N
+          case c: ClassLikeSymbol => N
+          case s: ValueSymbol => 
+            softAssert(false, s"Unexpected symbol type for passed local `$s:` ${s.getClass.getName}")
+            N
         s -> VarSymbol(Tree.Ident(s.nme), erasedType)
       .toMap
     private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = capturesOrdered.map: i =>
