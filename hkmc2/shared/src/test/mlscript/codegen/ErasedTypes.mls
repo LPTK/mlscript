@@ -834,8 +834,8 @@ fun test: Function = new Object
 //│ define test⁴ as fun test⁵(): Function⁰ { return (new globalThis⁰.Object⁰() as! Function⁰) }; end
 
 
-// A written arrow type erases to `Function`: a parameter so annotated is a function value, and a lambda flowing into
-// it is cast into a `Function`. The parameter and return shapes are erased.
+// A written arrow type erases to `Function`: a parameter so annotated holds a function value, and a lambda
+// flowing into it is cast into one. The parameter and result shapes erase away with it.
 fun applyF(f: Int -> Int): Int = f(1)
 applyF((x: Int) => x)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -847,8 +847,7 @@ applyF((x: Int) => x)
 //│ return applyF¹((lambda¹ as! Function⁰))
 
 
-// A result annotation that is a written arrow is likewise a function-typed result: `mk` returns a function value, so
-// its body (a lambda) is typed as `Function`.
+// A written arrow as the result annotation is likewise a function-typed result.
 fun mk: Int -> Int = (x: Int) => x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define mk² as fun mk³(): Function⁰ {
@@ -860,11 +859,11 @@ fun mk: Int -> Int = (x: Int) => x
 //│ end
 
 
-// A non-function value is rejected where a `Function` value is expected.
+// The narrowing is what makes an arrow-annotated slot *typed*: without it this would pass as `Unknown`.
 :ge
 fun badFn() = applyF(42)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Function'
-//│ ║  l.865: 	fun badFn() = applyF(42)
+//│ ║  l.864: 	fun badFn() = applyF(42)
 //│ ╙──       	                     ^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badFn⁰ as fun badFn¹(): ? { return applyF¹(42) }; end
@@ -878,6 +877,176 @@ val g: Int -> Int = (x: Int) => x
 //│   return x
 //│ };
 //│ define g² as val g³: Function⁰ = (lambda³ as! Function⁰);
+//│ end
+
+
+fun useStr(s: Str) = s
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useStr⁰ as fun useStr¹(s: Str⁰): ? { return s }; end
+
+
+// A `declare`d function is never auto-invoked - `Lowering.ref` lowers the reference to a `globalThis`
+// selection - so its arrows are *its own parameter lists*, and the chain's last component is its result.
+declare fun addInts: (Int, Int) -> Int
+fun useAdd() = useInt(addInts(1, 2))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useAdd⁰ as fun useAdd¹(): ? {
+//│   let tmp: Int⁰;
+//│   set tmp = globalThis⁰.addInts⁰(1, 2);
+//│   return useInt¹(tmp)
+//│ };
+//│ end
+
+
+// That result is genuinely typed, so a wrong use is rejected rather than silently accepted.
+:ge
+fun badAdd() = useStr(addInts(1, 2))
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Str'
+//│ ║  l.903: 	fun badAdd() = useStr(addInts(1, 2))
+//│ ╙──       	                      ^^^^^^^^^^^^^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define badAdd⁰ as fun badAdd¹(): ? {
+//│   let tmp: Int⁰;
+//│   set tmp = globalThis⁰.addInts⁰(1, 2);
+//│   return useStr¹(tmp)
+//│ };
+//│ end
+
+
+// An unparenthesized left-hand side is a single parameter, as in `declare fun log: Str -> Any`.
+declare fun showInt: Int -> Str
+fun useShow() = useStr(showInt(1))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useShow⁰ as fun useShow¹(): ? {
+//│   let tmp: Str⁰;
+//│   set tmp = globalThis⁰.showInt⁰(1);
+//│   return useStr¹(tmp)
+//│ };
+//│ end
+
+
+// Each arrow is a separate parameter list, so an under-applied call yields a function over those remaining.
+// A local's slot holds an erased *value* type, which cannot carry them, so `useCurried`'s intermediate is
+// only a `Function` and its final application still needs a cast.
+declare fun curried: Int -> Int -> Int
+fun useCurried() = useInt(curried(1)(2))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useCurried⁰ as fun useCurried¹(): ? {
+//│   let callPrefix: Function⁰, tmp: ?;
+//│   set callPrefix = globalThis⁰.curried²(1);
+//│   set tmp = callPrefix(2);
+//│   return useInt¹((tmp as! Int⁰))
+//│ };
+//│ end
+
+fun usePartial() = useFn(curried(1))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define usePartial⁰ as fun usePartial¹(): ? {
+//│   let tmp: Function⁰;
+//│   set tmp = globalThis⁰.curried²(1);
+//│   return useFn¹(tmp)
+//│ };
+//│ end
+
+
+// A `declare`d function writing its own parameter lists keeps them, and its annotation is the result.
+declare fun parseIt(s: Str, radix: Int): Int
+fun useParse() = useInt(parseIt("1", 10))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useParse⁰ as fun useParse¹(): ? {
+//│   let tmp: Int⁰;
+//│   set tmp = globalThis⁰.parseIt⁰("1", 10);
+//│   return useInt¹(tmp)
+//│ };
+//│ end
+
+
+// A *non*-`declare`d `fun` writing no parameter lists is a getter: referencing it calls it, so its arrows
+// are the *result*. Reading them as parameters would type `getFn` as `Int` when it yields a function.
+fun getFn: Int -> Int
+fun useGetFn() = useFn(getFn)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useGetFn⁰ as fun useGetFn¹(): ? {
+//│   let tmp: Function⁰;
+//│   set tmp = getFn⁰();
+//│   return useFn¹(tmp)
+//│ };
+//│ end
+
+
+// `@untyped` disclaims the callee's declared result, so the call erases to the top type and reaches a
+// differently-typed slot as a checked downcast. This is what lets an interop body call a mistyped operator.
+fun viaUntyped(x, y): Str = @untyped addInts(x, y)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define viaUntyped⁰ as fun viaUntyped¹(x: ?, y: ?): Str⁰ {
+//│   return (@untyped globalThis⁰.addInts⁰(x, y) as! Str⁰)
+//│ };
+//│ end
+
+
+// Without the annotation the same body is rejected - the guard rail doing its job.
+:ge
+fun viaTyped(x, y): Str = addInts(x, y)
+//│ ═══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Str'
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define viaTyped⁰ as fun viaTyped¹(x: ?, y: ?): Str⁰ { return globalThis⁰.addInts⁰(x, y) }; end
+
+
+// A member is reached by *selection*, which - unlike a bare reference - is never auto-invoked, so its
+// signature is its own type.
+module Plain with
+  fun f: Int -> Int
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Plain⁰ as class Plain¹ module Plain²; end
+
+declare module Ext with
+  fun member: Int -> Int
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ end
+
+
+// Selecting the member yields the function value the signature describes.
+fun useExt() = useFn(Ext.member)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define useExt⁰ as fun useExt¹(): ? { return useFn¹(globalThis⁰.Ext⁰.member⁰) }; end
+
+fun usePlain() = useFn(Plain.f)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define usePlain⁰ as fun usePlain¹(): ? { return useFn¹(Plain².f¹⁰) }; end
+
+
+// *Applying* it must not be mistaken for a getter's nullary call. A member declares no parameter lists, which
+// `normalizeParamLists` turns into one empty list, so without the emptiness check in `Call.erasedType` these
+// would score as exact and take `Function` as the result of a call that in truth returns `Int`.
+fun applyExt() = useInt(Ext.member(1))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define applyExt⁰ as fun applyExt¹(): ? {
+//│   let tmp: ?;
+//│   set tmp = globalThis⁰.Ext⁰.member⁰(1);
+//│   return useInt¹((tmp as! Int⁰))
+//│ };
+//│ end
+
+fun applyPlain() = useInt(Plain.f(1))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define applyPlain⁰ as fun applyPlain¹(): ? {
+//│   let tmp: ?;
+//│   set tmp = Plain².f¹⁰(1);
+//│   return useInt¹((tmp as! Int⁰))
+//│ };
+//│ end
+
+
+// The bare-reference case *is* auto-invoked and keeps its result type; applying that result goes through a
+// local, which carries no parameter lists to match.
+fun applyGetFn() = useInt(getFn(1))
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define applyGetFn⁰ as fun applyGetFn¹(): ? {
+//│   let tmp: Function⁰, tmp1: ?;
+//│   set tmp = getFn⁰();
+//│   set tmp1 = tmp(1);
+//│   return useInt¹((tmp1 as! Int⁰))
+//│ };
 //│ end
 
 
@@ -987,8 +1156,8 @@ fun tagged(x: Int) =
   fun describe() = Tag.label()
   describe()
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.985: 	  object Tag with
-//│ ╙──       	         ^^^
+//│ ║  l.1154: 	  object Tag with
+//│ ╙──        	         ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let describe;
 //│ define describe as fun describe⁰(Tag: Tag⁰): ? {
@@ -1014,7 +1183,7 @@ fun mk() =
     fun get() = Tag.label()
   new Holder
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.1011: 	  object Tag with
+//│ ║  l.1180: 	  object Tag with
 //│ ╙──        	         ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let Holder;

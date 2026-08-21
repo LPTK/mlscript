@@ -2005,54 +2005,62 @@ extends Importer:
                 case _ =>
                   Modulefulness.none
               
-              // * A moduleful signature (`fun f: module M`) denotes the module itself; `eraseSign` would resolve
-              // * the name through `asTpe`, which prefers a same-named class or type alias over the module.
+              /** Splits a signature's arrow chain into the parameter lists it describes and the type it returns.
+                * Yields `N` if the signature is not an arrow or if some parameter list's arity cannot be read.
+                */
+              def splitSignature(sign: Term): Opt[(Ls[Ls[Opt[ErasedValueType]]], Term)] =
+                def paramsOf(lhs: Term): Opt[Ls[Opt[ErasedValueType]]] = lhs match
+                  // * A spread parameter leaves the list's arity unknown, so the signature is left unsplit.
+                  case Term.Tup(fields) =>
+                    val noParams: Opt[Ls[Opt[ErasedValueType]]] = S(Nil)
+                    fields.foldRight(noParams): (fld, acc) =>
+                      (fld, acc) match
+                        case (Fld(_, t, _), S(rest)) => S(ErasedType.eraseSign(t) :: rest)
+                        case _ => N
+                  // * An unparenthesized type is a single parameter.
+                  case single => S(ErasedType.eraseSign(single) :: Nil)
+                sign match
+                  case Term.Forall(_, _, body) => splitSignature(body)
+                  case Term.FunTy(lhs, rhs, _) => paramsOf(lhs).map: ps =>
+                    splitSignature(rhs) match
+                      case S((rest, ret)) => (ps :: rest, ret)
+                      case N => (ps :: Nil, rhs)
+                  case _ => N
+              
+              // * A signature's arrows are the definition's own parameter lists when a reference to it is not
+              // * auto-invoked.
+              // *
+              // * - A `fun` writing no parameter lists is a getter, so `fun bar: A -> Int` yields
+              // *   the arrow itself;
+              // * - A `declare`d `fun` becomes a `globalThis` selection, so its arrows are its parameters.
+              val sigShape: Opt[(Ls[Ls[Opt[ErasedValueType]]], Term)] =
+                if (k is syntax.Fun) && pss.isEmpty && Annot.declareModifierOf(annotations).isDefined
+                then s.flatMap(splitSignature)
+                else N
+              
+              // * A moduleful signature (`fun f: module M`) denotes the module itself.
               val retTpe = mfn.msym match
                 case S(msym) => S(ErasedType.ValueLike(rsc = S(false), msym))
                 case N => s.flatMap: s =>
-                  // * The return type of a function or a value can be annotated in three different ways:
-                  // *
-                  // * - An implementation inheriting a signature, e.g.
-                  // *   ```
-                  // *   fun foo: A -> B
-                  // *   fun foo(x) = ...
-                  // *   ```
-                  // *   discards the leading parameter lists, leaving what remains as the result type.
-                  // *
-                  // * - An arrow declaration without a body, e.g.
-                  // *   ```
-                  // *   declare fun (+): (Int, Int) -> Int
-                  // *   ```
-                  // *   leaves the result untyped. This avoids the ambiguity of whether the arrows describe the
-                  // *   parameters of the function or the return type. Moreover, this is necessary to support
-                  // *   `@untyped`, which is honored by the InvalML type checker but not by erasure:
-                  // *   ```
-                  // *   fun concat: (Str, Str) -> Str
-                  // *   fun concat(x, y) = @untyped x + y
-                  // *   ```
-                  // *
-                  // * - Otherwise, the annotation is the result as written, e.g.
-                  // *   ```
-                  // *   fun foo(x): A -> B = ... // types as `Function`
-                  // *   val v: A -> B = ...      // types as `Function`
-                  // *   fun const(c: Int): Int32 // types as `Int32`
-                  // *   ```
+                  // * A function that inherits a signature with leading arrows consumes those arrows as its own
+                  // * parameter lists. The exception is a `declare`d function, whose arrows are always its own
+                  // * parameters (see `sigShape`).
                   def stripSignatureParams(s: Term, n: Int): Term = (s, n) match
                     case (Term.Forall(_, _, body), _) => stripSignatureParams(body, n)
                     case (Term.FunTy(_, rhs, _), n) if n > 0 => stripSignatureParams(rhs, n - 1)
                     case _ => s
-                  val isChainSignature = s match
-                    case _: (Term.Forall | Term.FunTy) => true
-                    case _ => false
-                  val resultSign: Opt[Term] =
-                    if (k is syntax.Fun) && td.annotatedResultType.isEmpty then S(stripSignatureParams(s, pss.length))
-                    else if (k is syntax.Fun) && body.isEmpty && isChainSignature then N
-                    else S(s)
-                  resultSign.flatMap(ErasedType.eraseSign)
+                  val resultSign: Term =
+                    if (k is syntax.Fun) && td.annotatedResultType.isEmpty
+                    then stripSignatureParams(s, pss.length)
+                    else sigShape.map(_._2).getOrElse(s)
+                  ErasedType.eraseSign(resultSign)
               val erasedTpe = k match
                 case syntax.Fun =>
-                  S(ErasedType.FuncRef(rsc = S(false),
-                    pss.map(_.params.map(_.sym.erasedType)), retTpe))
+                  // * A `declare`d function's parameter lists is derived from its signature if it doesn't have one.
+                  val paramLists = sigShape match
+                    case S((ps, _)) => ps
+                    case N => pss.map(_.params.map(_.sym.erasedType))
+                  S(ErasedType.FuncRef(rsc = S(false), paramLists, retTpe))
                 case _: syntax.Val => retTpe
                 case _ => N
               val tsym = TermSymbol(k, owner, id, erasedType = erasedTpe) // TODO?

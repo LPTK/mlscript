@@ -1062,14 +1062,21 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
 
   /** The erased type of a reference to a member defined by `ts`.
     *
-    * A zero-param-list `fun` is auto-invoked on every reference, so a reference to it yields the function's
-    * result rather than the function itself.
+    * A `fun` with no parameter lists yields its result rather than the function itself.
     */
   private def memberErasedType(ts: TermSymbol): Opt[ErasedType] = ts.erasedType match
     case S(ErasedType.FuncRef(_, paramLists, ret)) if paramLists.isEmpty => ret
     case other => other
 
+  /** Whether the term this result came from carried an `@untyped` annotation. */
+  private def hasUntypedAnnot: Bool = this match
+    case c: Call => c.metadata.annotations.contains(Annot.Untyped)
+    case i: Instantiate => i.metadata.annotations.contains(Annot.Untyped)
+    case _ => false
+
   lazy val erasedType: Opt[ErasedType] = this match
+    // * `@untyped` forces the erasure to `Unknown` regardless of the declared type of the term.
+    case _ if hasUntypedAnnot => S(ErasedType.Unknown)
     case Value.SimpleRef(sym) => sym match
       case hasErasedType: HasErasedType => hasErasedType.erasedType
       case _ => 
@@ -1095,6 +1102,8 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
         case S(ErasedType.FuncRef(rsc, paramLists, ret)) =>
           val declared = ErasedType.normalizeParamLists(paramLists)
           argss.sizeCompare(declared) match
+            // * A callee declaring *no* parameter lists but called with *some* arguments is an over-applied call.
+            case 0 if paramLists.isEmpty && argss.exists(_.nonEmpty) => N
             // * An exactly-applied call yields the function's result type.
             case 0 => ret
             // * An under-applied call yields a function type over the remaining parameter lists.

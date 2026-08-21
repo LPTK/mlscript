@@ -254,8 +254,8 @@ object ErasedType:
     case UnitVal() => S(ErasedType.Unit)
     // * A written arrow denotes a function value, and every function value is a `Function`.
     case FunTy(_, _, _) => S(ErasedType.Function(rsc = S(false)))
-    // * Quantification erases away: a `forall`-wrapped arrow still denotes function values, so erase the
-    // * body. A bare `forall a. a` still erases to `Unknown`.
+    // * A `forall`-wrapped arrow still denotes function values, so erase the body. A bare `forall a. a` has no
+    // * arrow and falls through below.
     case Forall(_, _, body) => eraseSign(body)
     case _ =>
       sign.symbol.flatMap(_.asTpe).map(sym => ErasedType.ValueLike(rsc = S(false), sym))
