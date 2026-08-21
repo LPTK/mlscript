@@ -114,7 +114,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
             val name = path.mkFunName + s"$$${f.nme}"
             f -> (
               new BlockMemberSymbol(name, Nil, true),
-              new TermSymbol(Fun, N, Tree.Ident(name), erasedType = N))
+              new TermSymbol(Fun, N, Tree.Ident(name), erasedType = f.erasedType))
           .toMap)
     end mkNewPolyFnSyms
     
@@ -531,7 +531,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise):
               ParamList(
                 pl.flags,
                 pl.params.map: p =>
-                  val newSym = new VarSymbol(Tree.Ident(p.sym.name), erasedType = N)
+                  val newSym = new VarSymbol(Tree.Ident(p.sym.name), erasedType = p.sym.erasedType)
                   refreshParamMap(p.sym) = newSym
                   Param(p.flags, newSym, p.sign, p.modulefulness),
                 pl.restParam)
