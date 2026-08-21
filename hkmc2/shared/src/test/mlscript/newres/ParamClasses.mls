@@ -1,35 +1,9 @@
 :..
 
 
-:elt
+// :elt
 :sr
 class Foo(val a)
-//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
-//│ Blk:
-//│   stats = Ls of
-//│     Parameterized:
-//│       kind = Cls
-//│       sym = class:Foo⁰
-//│       bsym = member:Foo¹
-//│       ctorSym = S of term:Foo²
-//│       params = ParamList:
-//│         params = Ls of
-//│           Param:
-//│             flags = (val)
-//│             sym = a⁰
-//│             modulefulness = Modulefulness of N
-//│       body = ObjBody of Blk:
-//│         stats = Ls of
-//│           TermDefinition:
-//│             k = ImmutVal
-//│             sym = member:a¹
-//│             tsym = term:Foo⁰/a²
-//│             body = S of Capture:
-//│               base = SimpleRef of a⁰
-//│               thru = term:Foo⁰/a²
-//│             modulefulness = Modulefulness of N
-//│         res = Lit of UnitLit of false
-//│   res = Lit of UnitLit of false
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun Foo⁰ class Foo¹::Foo²(val a⁰) { val a¹::a² ‹flow:a⁰› = a⁰^a² }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -45,34 +19,9 @@ val f = Foo(Predef)
 //│   val f⁰::f¹ ‹flow:f⁰› = Foo¹^f¹(Predef⁰^f¹)‹app⁰›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
-:de
+// :de
 :sr
 let tmp = f.a
-//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(tmp),Some(Sel(Ident(f),Ident(a))),None)) LocalScope(block:4)
-//│ | Processing `let` statement Ident(tmp) (tmp) LocalScope(block:4)
-//│ | Elab term Sel(Ident(f),Ident(a))
-//│ | | Elab subterm Sel(Ident(f),Ident(a))
-//│ | | | Elab subterm Ident(f)
-//│ | | | ~> MemberRef(member:f)
-//│ | | | newSel? sel = member:f.a
-//│ | | | listenTerm: trm = member:f
-//│ | | | listen: trm = member:f
-//│ | | | listenBMS: bms = value
-//│ | | | listenedBMS: bms = value
-//│ | | | listenTerm: td.body = Some(App(Capture(MemberRef(member:Foo),term:f),Tup(List(Fld(‹›,Capture(MemberRef(member:Predef),term:f),None)))))
-//│ | | | listenTerm: trm = member:Foo^term:f⁰(member:Predef^term:f⁰)
-//│ | | | listen: trm = member:Foo^term:f⁰(member:Predef^term:f⁰)
-//│ | | | fromBMS: bms = member:f¹, sh = AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), flow = f², markss = List()
-//│ | | | .exit MarkedShape (AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), term:f⁰, f²)
-//│ | | | | class hkmc2.semantics.TermSymbol None
-//│ | | | = MarkedShape(AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), ↗⟨term:f⁰⟩%⟨f²⟩ϵ)
-//│ | | | PUSH MarkedShape(AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), ↗⟨term:f⁰⟩%⟨f²⟩ϵ)
-//│ | | | newSel: sel = member:f.a, shape = MarkedShape(AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), ↗⟨term:f⁰⟩%⟨f²⟩ϵ)
-//│ | | | newSel member: bms = member:a¹, mss = List(↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ, ↗⟨term:f⁰⟩%⟨f²⟩ϵ)
-//│ | | ~> NewSel(MemberRef(member:f),Ident(a))
-//│ | ~> NewSel(MemberRef(member:f),Ident(a))
-//│ | listen: trm = member:f.a
-//│ ~> Blk(List(LetDecl(tmp,List()), DefineVar(tmp,NewSel(MemberRef(member:f),Ident(a)))),Lit(UnitLit(false)))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   let tmp⁰, tmp⁰ = f⁰.a¹
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -90,112 +39,13 @@ let tmp = f.a
 //│   meta: class meta
 //│ }
 
-:de
+// :de
 tmp.id
-//│ Elab block List(Sel(Ident(tmp),Ident(id))) LocalScope(block:5)
-//│ | Elab term Sel(Ident(tmp),Ident(id))
-//│ | | Elab subterm Sel(Ident(tmp),Ident(id))
-//│ | | | Elab subterm Ident(tmp)
-//│ | | | ~> SimpleRef(tmp)
-//│ | | | newSel? sel = tmp.id
-//│ | | | listenTerm: trm = tmp
-//│ | | | listen: trm = tmp
-//│ | | | listenBMS: bms = value
-//│ | | | listenedBMS: bms = value
-//│ | | | listenTerm: td.body = Some(Capture(SimpleRef(a),term:Foo/a))
-//│ | | | listenTerm: trm = a^term:Foo⁰/a²
-//│ | | | listen: trm = a^term:Foo⁰/a²
-//│ | | | listenTerm: trm = a
-//│ | | | listen: trm = a
-//│ | | | fromBMS: bms = member:a¹, sh = MarkedShape(module:Predef⁰, ↘⟨term:Foo⁰/a²⟩↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), flow = ⋅a⁰, markss = List(↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ, ↗⟨term:f⁰⟩%⟨f²⟩ϵ)
-//│ | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↘⟨term:Foo⁰/a²⟩↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:Foo⁰/a², ⋅a⁰)
-//│ | | | | class hkmc2.semantics.TermSymbol Some(class:Foo⁰)
-//│ | | | = MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ)
-//│ | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↗⟨term:Foo²⟩%⟨Foo³⟩ϵ)
-//│ | | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (ϵ)
-//│ | | | | | = MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:Foo², Foo³)
-//│ | | | | | | class hkmc2.semantics.ClassCtorSymbol None
-//│ | | | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | = MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↗⟨term:f⁰⟩%⟨f²⟩ϵ)
-//│ | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (ϵ)
-//│ | | | | = MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:f⁰, f²)
-//│ | | | | | class hkmc2.semantics.TermSymbol None
-//│ | | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | MATCH MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) for term:Foo⁰/a² % ⋅a⁰
-//│ | | | newSel: sel = tmp.id, shape = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | ~> NewSel(SimpleRef(tmp),Ident(id))
-//│ | ~> NewSel(SimpleRef(tmp),Ident(id))
-//│ ~> Blk(List(),NewSel(SimpleRef(tmp),Ident(id)))
 //│ = fun id
 
-:de
+// :de
 :sr
 f.a.id
-//│ Elab block List(Sel(Sel(Ident(f),Ident(a)),Ident(id))) LocalScope(block:6)
-//│ | Elab term Sel(Sel(Ident(f),Ident(a)),Ident(id))
-//│ | | Elab subterm Sel(Sel(Ident(f),Ident(a)),Ident(id))
-//│ | | | Elab subterm Sel(Ident(f),Ident(a))
-//│ | | | | Elab subterm Ident(f)
-//│ | | | | ~> MemberRef(member:f)
-//│ | | | | newSel? sel = member:f.a
-//│ | | | | listenTerm: trm = member:f
-//│ | | | | listen: trm = member:f
-//│ | | | | listenBMS: bms = value
-//│ | | | | listenedBMS: bms = value
-//│ | | | | listenTerm: td.body = Some(App(Capture(MemberRef(member:Foo),term:f),Tup(List(Fld(‹›,Capture(MemberRef(member:Predef),term:f),None)))))
-//│ | | | | listenTerm: trm = member:Foo^term:f⁰(member:Predef^term:f⁰)
-//│ | | | | listen: trm = member:Foo^term:f⁰(member:Predef^term:f⁰)
-//│ | | | | fromBMS: bms = member:f¹, sh = AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), flow = f³, markss = List()
-//│ | | | | .exit MarkedShape (AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), term:f⁰, f³)
-//│ | | | | | class hkmc2.semantics.TermSymbol None
-//│ | | | | = MarkedShape(AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), ↗⟨term:f⁰⟩%⟨f³⟩ϵ)
-//│ | | | | PUSH MarkedShape(AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), ↗⟨term:f⁰⟩%⟨f³⟩ϵ)
-//│ | | | | newSel: sel = member:f.a, shape = MarkedShape(AppShape(MarkedShape(member:Foo¹, ↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ), [member:Predef^term:f⁰]), ↗⟨term:f⁰⟩%⟨f³⟩ϵ)
-//│ | | | | newSel member: bms = member:a¹, mss = List(↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ, ↗⟨term:f⁰⟩%⟨f³⟩ϵ)
-//│ | | | ~> NewSel(MemberRef(member:f),Ident(a))
-//│ | | | newSel? sel = member:f.a.id
-//│ | | | listenTerm: trm = member:f.a
-//│ | | | listen: trm = member:f.a
-//│ | | | listenBMS: bms = value
-//│ | | | listenedBMS: bms = value
-//│ | | | listenTerm: td.body = Some(Capture(SimpleRef(a),term:Foo/a))
-//│ | | | listenTerm: trm = a^term:Foo⁰/a²
-//│ | | | listen: trm = a^term:Foo⁰/a²
-//│ | | | listenTerm: trm = a
-//│ | | | listen: trm = a
-//│ | | | fromBMS: bms = member:a¹, sh = MarkedShape(module:Predef⁰, ↘⟨term:Foo⁰/a²⟩↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), flow = ⋅a¹, markss = List(↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ, ↗⟨term:f⁰⟩%⟨f³⟩ϵ)
-//│ | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↘⟨term:Foo⁰/a²⟩↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:Foo⁰/a², ⋅a¹)
-//│ | | | | class hkmc2.semantics.TermSymbol Some(class:Foo⁰)
-//│ | | | = MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ)
-//│ | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↗⟨term:Foo²⟩%⟨Foo³⟩ϵ)
-//│ | | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (ϵ)
-//│ | | | | | = MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:Foo², Foo³)
-//│ | | | | | | class hkmc2.semantics.ClassCtorSymbol None
-//│ | | | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | = MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↗⟨term:f⁰⟩%⟨f³⟩ϵ)
-//│ | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (ϵ)
-//│ | | | | = MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↘⟨term:f⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:f⁰, f³)
-//│ | | | | | class hkmc2.semantics.TermSymbol None
-//│ | | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | MATCH MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) for term:Foo⁰/a² % ⋅a¹
-//│ | | | newSel: sel = member:f.a.id, shape = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | ~> NewSel(NewSel(MemberRef(member:f),Ident(a)),Ident(id))
-//│ | ~> NewSel(NewSel(MemberRef(member:f),Ident(a)),Ident(id))
-//│ ~> Blk(List(),NewSel(NewSel(MemberRef(member:f),Ident(a)),Ident(id)))
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   f⁰.a¹.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -203,29 +53,25 @@ f.a.id
 
 
 // :de
+:silent
+:sr
 let p = Foo(Predef).a
-//│ p = class Predef {
-//│   Symbols: Symbols {
-//│     prettyPrint: Symbol("mlscript.prettyPrint"),
-//│     definitionMetadata: Symbol("mlscript.definitionMetadata"),
-//│     class: object Symbols
-//│   },
-//│   Sub: class Sub,
-//│   Eq: class Eq,
-//│   Refl: Refl,
-//│   js_assert: fun assert,
-//│   foldl: fun fold,
-//│   meta: class meta
-//│ }
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   let p⁰, p⁰ = Foo¹(Predef⁰)‹app¹›.a¹
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // :de
+:sr
 p.id
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   p⁰.id⁰
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
 :sr
 Foo(Predef).a.id
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   Foo¹(Predef⁰)‹app¹›.a¹.id⁰
+//│   Foo¹(Predef⁰)‹app²›.a¹.id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun id
 
@@ -242,7 +88,7 @@ class Foo(val a) {
 //│   fun Foo³
 //│   class Foo⁴::Foo⁵(val a³) {
 //│     val a⁴::a⁵ ‹flow:a¹› = a³^a⁵,
-//│     val b⁰::b¹ ‹flow:b⁰› = +(⟨Foo⁵.this.⟩a⁴^b¹, 1)‹app²›
+//│     val b⁰::b¹ ‹flow:b⁰› = +(⟨Foo⁵.this.⟩a⁴^b¹, 1)‹app³›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -250,7 +96,7 @@ class Foo(val a) {
 :sr
 let f = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   let f², f² = Foo⁴(1)‹app³›
+//│   let f², f² = Foo⁴(1)‹app⁴›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(1)
 
@@ -289,11 +135,11 @@ fv.a
 fun get = fv.a
 val fv = Foo(1)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun get⁰::get¹ ‹flow:get⁰› = fv¹^get¹.a⁴, val fv¹::fv² ‹flow:fv⁰› = Foo⁴^fv²(1)‹app⁴›
+//│   fun get⁰::get¹ ‹flow:get⁰› = fv¹^get¹.a⁴, val fv¹::fv² ‹flow:fv⁰› = Foo⁴^fv²(1)‹app⁵›
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp;
-//│ define get⁰ as fun get¹() { return fv⁰.a³ };
-//│ set tmp = Foo⁴(1);
+//│ define get⁰ as fun get¹() { return fv⁰.a⁰ };
+//│ set tmp = Foo⁰(1);
 //│ define fv¹ as val fv⁰ = tmp;
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -317,120 +163,25 @@ fun foo(x) =
   x.a + x.b
 foo(f)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = +(x⁰.a⁴, x⁰.b⁰)‹app⁵›, foo⁰(f²)‹app⁶›
+//│   fun foo⁰::foo¹(x⁰) ‹flow:foo⁰› = +(x⁰.a⁴, x⁰.b⁰)‹app⁶›, foo⁰(f²)‹app⁷›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 
 
-:elt
+// :elt
 :sr
 class Bar(b) with
   val foo = Foo(b)
-//│ —————————————| Elaborated tree |————————————————————————————————————————————————————————————————————
-//│ Blk:
-//│   stats = Ls of
-//│     Parameterized:
-//│       kind = Cls
-//│       sym = class:Bar⁰
-//│       bsym = member:Bar¹
-//│       ctorSym = S of term:Bar²
-//│       params = ParamList:
-//│         params = Ls of
-//│           Param:
-//│             sym = b⁰
-//│             modulefulness = Modulefulness of N
-//│       body = ObjBody of Blk:
-//│         stats = Ls of
-//│           TermDefinition:
-//│             k = ImmutVal
-//│             sym = member:b¹
-//│             tsym = term:Bar⁰/b²
-//│             body = S of Capture:
-//│               base = SimpleRef of b⁰
-//│               thru = term:Bar⁰/b²
-//│             modulefulness = Modulefulness of N
-//│             annotations = Ls of
-//│               Modifier of keyword 'private'
-//│           TermDefinition:
-//│             k = ImmutVal
-//│             sym = member:foo⁰
-//│             tsym = term:Bar⁰/foo¹
-//│             body = S of App:
-//│               lhs = Capture:
-//│                 base = MemberRef of member:Foo⁵
-//│                 thru = term:Bar⁰/foo¹
-//│               rhs = Tup of Ls of
-//│                 Fld:
-//│                   term = Capture:
-//│                     base = SynthSel{sym=member:b¹}:
-//│                       prefix = SelfRef of class:Bar⁰
-//│                       nme = Ident of "b"
-//│                     thru = term:Bar⁰/foo¹
-//│             flags = (method)
-//│             modulefulness = Modulefulness of N
-//│         res = Lit of UnitLit of false
-//│   res = Lit of UnitLit of false
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun Bar⁰
 //│   class Bar¹::Bar²(b²) {
 //│     @private val b³::b⁴ ‹flow:b¹› = b²^b⁴,
-//│     val foo²::foo³ ‹flow:foo¹› = Foo⁴^foo³(⟨Bar².this.⟩b³^foo³)‹app⁷›
+//│     val foo²::foo³ ‹flow:foo¹› = Foo⁴^foo³(⟨Bar².this.⟩b³^foo³)‹app⁸›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
-:de
+// :de
 let y = Bar(123)
-//│ Elab block List(LetLike(Keywrd(keyword 'let'),Ident(y),Some(App(Ident(Bar),Tup(List(IntLit(123))))),None)) LocalScope(block:20)
-//│ | Processing `let` statement Ident(y) (y) LocalScope(block:20)
-//│ | Elab term App(Ident(Bar),Tup(List(IntLit(123))))
-//│ | | Elab subterm App(Ident(Bar),Tup(List(IntLit(123))))
-//│ | | | Elab subterm Ident(Bar)
-//│ | | | ~> MemberRef(member:Bar)
-//│ | | | Elab subterm Tup(List(IntLit(123)))
-//│ | | | | Elab term IntLit(123)
-//│ | | | | | Elab subterm IntLit(123)
-//│ | | | | | ~> Lit(IntLit(123))
-//│ | | | | ~> Lit(IntLit(123))
-//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(123)),None)))
-//│ | | | listenTerm: trm = member:Bar
-//│ | | | listen: trm = member:Bar
-//│ | | | listenBMS: bms = overloaded function and class
-//│ | | | listenedBMS: bms = overloaded function and class
-//│ | | | fromBMS: bms = member:Bar¹, sh = member:Bar¹, flow = Bar³, markss = List()
-//│ | | | .exit MarkedShape (member:Bar¹, term:Bar², Bar³)
-//│ | | | | class hkmc2.semantics.ClassCtorSymbol None
-//│ | | | = MarkedShape(member:Bar¹, ↗⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | PUSH MarkedShape(member:Bar¹, ↗⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | appShape: lhs = MarkedShape(member:Bar¹, ↗⟨term:Bar²⟩%⟨Bar³⟩ϵ), args = [123], res = member:Bar(123)
-//│ | | | Zipping ParamList(‹›,List(Param(‹›,b,None,Modulefulness(None))),None) (List(↗⟨term:Bar²⟩%⟨Bar³⟩ϵ)) with List(Fld(‹›,Lit(IntLit(123)),None))
-//│ | | | listenTerm: trm = 123
-//│ | | | listen: trm = 123
-//│ | | | .enter 123 (↗⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | | .enter MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ) (ϵ)
-//│ | | | | = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | zipArg: p = b, trm = 123, sh = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | fromBMS: bms = member:b¹, sh = MarkedShape(123, ↘⟨term:Bar⁰/b²⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ), flow = (⋅)b⁰, markss = List()
-//│ | | | .exit MarkedShape (MarkedShape(123, ↘⟨term:Bar⁰/b²⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ), term:Bar⁰/b², (⋅)b⁰)
-//│ | | | | class hkmc2.semantics.TermSymbol Some(class:Bar⁰)
-//│ | | | = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | MATCH MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ) for term:Bar⁰/b² % (⋅)b⁰
-//│ | | | .enter MarkedShape(123, ↘⟨term:Bar⁰/foo¹⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ) (↘⟨term:Bar⁰/foo¹⟩↗⟨term:Foo⁴⟩%⟨Foo⁶⟩ϵ)
-//│ | | | | .exit MarkedShape (MarkedShape(123, ↘⟨term:Bar⁰/foo¹⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ), term:Bar⁰/foo¹, )
-//│ | | | | | class hkmc2.semantics.TermSymbol Some(class:Bar⁰)
-//│ | | | | = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | | .enter MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ) (↗⟨term:Foo⁴⟩%⟨Foo⁶⟩ϵ)
-//│ | | | | | .enter MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ) (ϵ)
-//│ | | | | | = MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | | = MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | = MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | zipArg: p = val a, trm = (class:Bar.)b‹member:b›^term:Bar⁰/foo¹, sh = MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | appShape isSaturated? true; head? (DefnShape(term definition 'Bar'),List(ExitMark(term:Bar,Some(Bar),NoMarks)))
-//│ | | | lhs false List(((b),List(↗⟨term:Bar²⟩%⟨Bar³⟩ϵ)))
-//│ | | ~> App(MemberRef(member:Bar),Tup(List(Fld(‹›,Lit(IntLit(123)),None))))
-//│ | ~> App(MemberRef(member:Bar),Tup(List(Fld(‹›,Lit(IntLit(123)),None))))
-//│ | listen: trm = member:Bar(123)
-//│ ~> Blk(List(LetDecl(y,List()), DefineVar(y,App(MemberRef(member:Bar),Tup(List(Fld(‹›,Lit(IntLit(123)),None)))))),Lit(UnitLit(false)))
 //│ y = Bar(_)
 
 :sr
@@ -460,11 +211,11 @@ let f = new Foo(1)
 //│ Blk:
 //│   stats = Ls of
 //│     LetDecl:
-//│       sym = f⁴
+//│       sym = f⁰
 //│     DefineVar:
-//│       sym = f⁴
+//│       sym = f⁰
 //│       rhs = New:
-//│         cls = MemberRef of member:Foo⁵
+//│         cls = MemberRef of member:Foo¹
 //│         args = Ls of
 //│           Tup of Ls of
 //│             Fld:
@@ -484,15 +235,18 @@ let g = f(1)
 
 :e
 g(2)
-//│ ╔══[COMPILATION ERROR] Instance of class 'Foo' cannot receive more argument lists.
-//│ ║  l.486: 	g(2)
-//│ ╙──       	^^^^
+//│ ╔══[COMPILATION ERROR] Resolution error in application
+//│ ║  l.237: 	g(2)
+//│ ║         	^^^^
+//│ ╟── Instance of class 'Foo' cannot receive more argument lists.
+//│ ║  l.233: 	let g = f(1)
+//│ ╙──       	        ^^^^
 //│ ═══[RUNTIME ERROR] TypeError: g is not a function
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.493: 	let f = new Foo()
+//│ ║  l.247: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
 //│ f = Foo(undefined)
 
@@ -500,7 +254,7 @@ let f = new Foo()
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] Invalid class expression in 'new' instantiation.
-//│ ║  l.501: 	new 42
+//│ ║  l.255: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -518,7 +272,7 @@ let f = new Foo(Predef)
 //│   fun Foo⁶
 //│   class Foo⁷::Foo⁸(pred⁰) {
 //│     @private val pred¹::pred² ‹flow:pred⁰› = pred⁰^pred²,
-//│     ⟨Foo⁸.this.⟩pred¹.id⁰(42)‹app⁸›
+//│     ⟨Foo⁸.this.⟩pred¹.id⁰(42)‹app⁹›
 //│   },
 //│   let f⁴,
 //│   f⁴ = new Foo⁷(Predef⁰)
@@ -549,11 +303,11 @@ let f = Foo(Predef)
 //│   fun Foo⁹
 //│   class Foo¹⁰::Foo¹¹(pred³) {
 //│     @private val pred⁴::pred⁵ ‹flow:pred¹› = pred³^pred⁵,
-//│     ⟨Foo¹¹.this.⟩pred⁴.id⁰(1)‹app⁹›,
-//│     ⟨Foo¹¹.this.⟩pred⁴.id⁰(2)‹app¹⁰›
+//│     ⟨Foo¹¹.this.⟩pred⁴.id⁰(1)‹app¹⁰›,
+//│     ⟨Foo¹¹.this.⟩pred⁴.id⁰(2)‹app¹¹›
 //│   },
 //│   let f⁵,
-//│   f⁵ = Foo¹⁰(Predef⁰)‹app¹¹›
+//│   f⁵ = Foo¹⁰(Predef⁰)‹app¹²›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ f = Foo(_)
 
@@ -567,8 +321,8 @@ let f = new Foo(Predef)
 //│   fun Foo¹²
 //│   class Foo¹³::Foo¹⁴(pred⁶) {
 //│     @private val pred⁷::pred⁸ ‹flow:pred²› = pred⁶^pred⁸,
-//│     val r⁰::r¹ ‹flow:r⁰› = ⟨Foo¹⁴.this.⟩pred⁷^r¹.id⁰(42)‹app¹²›,
-//│     fun callId⁰::callId¹(x¹) ‹flow:callId⁰› = ⟨Foo¹⁴.this.⟩pred⁷^callId¹.id⁰(x¹)‹app¹³›
+//│     val r⁰::r¹ ‹flow:r⁰› = ⟨Foo¹⁴.this.⟩pred⁷^r¹.id⁰(42)‹app¹³›,
+//│     fun callId⁰::callId¹(x¹) ‹flow:callId⁰› = ⟨Foo¹⁴.this.⟩pred⁷^callId¹.id⁰(x¹)‹app¹⁴›
 //│   },
 //│   let f⁶,
 //│   f⁶ = new Foo¹³(Predef⁰)

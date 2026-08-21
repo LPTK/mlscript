@@ -109,12 +109,22 @@ class NewResolver:
     if lhs.isSaturated then raise:
       if lhs.applicationHead._1 is lhs
       then ErrorReport(
-        msg"${lhs.describe.capitalize} cannot called like a function." -> res.toLoc :: Nil,
+        msg"Resolution error in ${res.describe}" -> res.toLoc ::
+          msg"${lhs.describe.capitalize} cannot called like a function." -> lhs.toLoc :: Nil,
         source = Diagnostic.Source.Compilation)
       else ErrorReport(
-        msg"${lhs.describe.capitalize} cannot receive more argument lists." -> res.toLoc :: Nil,
+        msg"Resolution error in ${res.describe}" -> res.toLoc ::
+          msg"${lhs.describe.capitalize} cannot receive more argument lists." -> lhs.toLoc :: Nil,
         source = Diagnostic.Source.Compilation)
     if sh.isSaturated then
+      def go(body: Term, mss: Ls[Marks]) =
+        listenTerm(body, sh =>
+          sh.exit(mss) match
+          case NoShape =>
+          case sh: TermShape =>
+            if res.shapes.add(sh) then
+              res.shapeListeners.foreach(listener => listener(sh))
+        )
       sh.applicationHead match
       case (ds: DefnShape, mss) =>
         ds.defn match
@@ -133,18 +143,21 @@ class NewResolver:
           case _ =>
             log(s"appShape: td.body = ${td.body}")
             td.body.foreach: body =>
-              listenTerm(body, sh =>
-                sh.exit(mss) match
-                case NoShape =>
-                case sh: TermShape =>
-                  if res.shapes.add(sh) then
-                    res.shapeListeners.foreach(listener => listener(sh))
-              )
+              go(body, mss)
         case _ =>
           raise:
             ErrorReport(
-              msg"${ds.describe.capitalize} cannot be applied." -> res.toLoc :: Nil,
+              msg"Resolution error in ${res.describe}" -> res.toLoc ::
+                msg"${ds.describe.capitalize} cannot be applied." -> ds.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
+      case (sh: IntroShape, _) if sh.trm.isInstanceOf[Lam] =>
+        go(sh.trm.asInstanceOf[Lam].body, Nil)
+      case (sh: TermShape, _) =>
+        if !res.isErroneous then raise:
+          ErrorReport(
+            msg"Resolution error in ${res.describe}" -> res.toLoc ::
+              msg"${sh.describe.capitalize} cannot be applied." -> sh.toLoc :: Nil,
+            source = Diagnostic.Source.Compilation)
       // case _ => ???
     else register
   
@@ -474,6 +487,7 @@ class NewResolver:
       sh.shapeListeners += listener
     case Blk(sts, rs) =>
       listen(rs, listener)
+    // case u: UnitVal =>
     case Missing =>
       () // FIXME: Currently get this from light-elaborated Predef import
     case _ =>

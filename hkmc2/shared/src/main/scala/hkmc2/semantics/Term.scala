@@ -465,6 +465,12 @@ sealed trait TermShape extends Shape:
     case as: AppShape => as.receiver.unappliedParams.drop(1)
     case ns: NewShape => ns.receiver.unappliedParams.drop(ns.argss.length)
     case MarkedShape(sh, mark) => sh.unappliedParams.map(p => p._1 -> (mark :: p._2))
+    case is: IntroShape =>
+      is.trm match
+      case Term.Lam(params, body) => (params -> Nil) :: 
+        // body.unappliedParams
+        Nil
+      case _ => Nil
     case _ => Nil
   
   def exit(marks: Marks)(using TL): TermShape | NoShape =
@@ -630,7 +636,7 @@ class RefinedShape(val base: TermShape, val refinements: Ls[Str -> Term]) extend
       // nme -> BlockMemberSymbol(nme, trm)
       ???
 */
-type IntroTerm = Term.Tup | Term.Lam | Term.Rcd //| Term.New
+type IntroTerm = Term.UnitVal | Term.Tup | Term.Lam | Term.Rcd //| Term.New
 class IntroShape(val trm: IntroTerm) extends NonAppTermShape:
   def describe: Str = trm.describe
   lazy val members: Map[Str, MemberInfo] = trm match
@@ -645,6 +651,7 @@ class IntroShape(val trm: IntroTerm) extends NonAppTermShape:
     // case newTerm: Term.New =>
     //   Map.empty // TODO
   def toLoc: Opt[Loc] = trm.toLoc
+  override def toString: Str = s"IntroShape(${trm})"
 
 sealed trait LitShape extends NonAppTermShape:
   self: Term.Lit =>
