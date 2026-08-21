@@ -1,0 +1,25 @@
+// `CheckedCastExpansion` runs last, after the staged-module compiler (`ReflectionInstrumenter`),
+// so a checked cast in a staged function is still pending when it is instrumented. The staged
+// mirror (`Block.mls`) has a `Cast` node, so the instrumenter keeps the cast as data instead of
+// dropping it - which would silently skip the type test `:checkCasts` promised. The check itself
+// cannot run at construction time (the scrutinee is a mirrored `Result`, not a value), so it runs
+// only when a consumer evaluates the produced IR, same as every other node.
+// The two blocks differ only in `:checkCasts`, which is read where the coercion is introduced: a
+// checked cast prints `as!`, an unchecked one `as!!`.
+
+:js
+:staging
+:checkCasts
+class Top(x: Int)
+fun anything(v) = v
+staged module M with
+  fun mk(): Top = anything(1)
+//│ > fun ctor_() = ()
+//│ > fun mk() = (anything(1) as! Top)
+
+:js
+:staging
+staged module N with
+  fun mk(): Top = anything(1)
+//│ > fun ctor_() = ()
+//│ > fun mk() = (anything(1) as!! Top)
