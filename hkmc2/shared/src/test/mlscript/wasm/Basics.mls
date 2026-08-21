@@ -99,8 +99,13 @@ addOne(41) + useIt(41)
 //│   (type $addOne (func (param $x (ref null i31)) (result (ref null any))))
 //│   (type $useIt (func (param $v (ref null any)) (result (ref null any))))
 //│   (type $plus_impl (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
+//│   (type $mlx_str_from_utf16 (func (param $glob_offset (ref null any)) (param $len (ref null any)) (result (ref null any))))
+//│   (type $mlx_exn (func (param $ex (ref null any))))
 //│   (type $entry (func (result (ref null any))))
 //│   (import "system" "plus_impl" (func $plus_impl (type $plus_impl)))
+//│   (import "system" "mlx_str_from_utf16" (func $mlx_str_from_utf16 (type $mlx_str_from_utf16)))
+//│   (import "system" "mem" (memory $mem 1))
+//│   (tag $mlx_exn (export "mlx_exn") (type $mlx_exn))
 //│   (func $addOne (export "addOne") (type $addOne) (param $x (ref null i31)) (result (ref null any))
 //│     (return
 //│       (call $plus_impl
@@ -108,10 +113,27 @@ addOne(41) + useIt(41)
 //│         (ref.i31
 //│           (i32.const 1)))))
 //│   (func $useIt (export "useIt") (type $useIt) (param $v (ref null any)) (result (ref null any))
-//│     (return
-//│       (call $addOne
-//│         (ref.cast (ref null i31)
-//│           (local.get $v)))))
+//│     (local $matchRes (ref null any))
+//│     (block
+//│       (block $match
+//│         (local.set $matchRes
+//│           (ref.null any))
+//│         (if
+//│           (ref.test (ref null i31)
+//│             (local.get $v))
+//│           (then
+//│             (block $arm
+//│               (return
+//│                 (call $addOne
+//│                   (ref.cast (ref null i31)
+//│                     (local.get $v)))))))
+//│         (throw $mlx_exn
+//│           (call $mlx_str_from_utf16
+//│             (ref.i31
+//│               (i32.const 0))
+//│             (ref.i31
+//│               (i32.const 70)))))
+//│       (unreachable)))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null any))
 //│     (local $tmp1 (ref null any))
@@ -128,6 +150,7 @@ addOne(41) + useIt(41)
 //│         (call $plus_impl
 //│           (local.get $tmp)
 //│           (local.get $tmp1)))))
+//│   (data $Cannot$_narrow$_a$_ (i32.const 0) "\43\00\61\00\6e\00\6e\00\6f\00\74\00\20\00\6e\00\61\00\72\00\72\00\6f\00\77\00\20\00\61\00\20\00\76\00\61\00\6c\00\75\00\65\00\20\00\74\00\6f\00\20\00\74\00\79\00\70\00\65\00\20\00\27\00\49\00\6e\00\74\00\27\00")
 //│   (elem $addOne declare func $addOne)
 //│   (elem $useIt declare func $useIt)
 //│   (elem $entry declare func $entry))
@@ -220,7 +243,12 @@ getX(Foo(Bar(42)))
 //│   (type $Foo_init (func (param $this (ref $Foo)) (param $bar (ref $Bar)) (result (ref $Foo))))
 //│   (type $Foo_ctor (func (param $bar (ref $Bar)) (result (ref $Foo))))
 //│   (type $getX (func (param $f (ref $Foo)) (result (ref null any))))
+//│   (type $mlx_str_from_utf16 (func (param $glob_offset (ref null any)) (param $len (ref null any)) (result (ref null any))))
+//│   (type $mlx_exn (func (param $ex (ref null any))))
 //│   (type $entry (func (result (ref null any))))
+//│   (import "system" "mlx_str_from_utf16" (func $mlx_str_from_utf16 (type $mlx_str_from_utf16)))
+//│   (import "system" "mem" (memory $mem 1))
+//│   (tag $mlx_exn (export "mlx_exn") (type $mlx_exn))
 //│   (global $Bar_typeinfo (export "Bar_typeinfo") (ref $Bar_typeinfo) (struct.new $Bar_typeinfo
 //│     (i32.const 1)
 //│     (ref.null $TypeInfoBase)))
@@ -278,19 +306,137 @@ getX(Foo(Bar(42)))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null any))
 //│     (local $tmp1 (ref null any))
-//│     (block (result (ref null any))
+//│     (local $matchRes (ref null any))
+//│     (local $currentTypeInfo (ref null any))
+//│     (local $targetTypeInfo (ref null any))
+//│     (local $typeInfoMatch (ref null i31))
+//│     (local $matchRes1 (ref null any))
+//│     (local $currentTypeInfo1 (ref null any))
+//│     (local $targetTypeInfo1 (ref null any))
+//│     (local $typeInfoMatch1 (ref null i31))
+//│     (block
 //│       (local.set $tmp
 //│         (call $Bar_ctor
 //│           (ref.i31
 //│             (i32.const 42))))
-//│       (local.set $tmp1
-//│         (call $Foo_ctor
-//│           (ref.cast (ref $Bar)
-//│             (local.get $tmp))))
-//│       (return
-//│         (call $getX
-//│           (ref.cast (ref $Foo)
-//│             (local.get $tmp1))))))
+//│       (block $match
+//│         (local.set $matchRes
+//│           (ref.null any))
+//│         (if
+//│           (ref.test (ref $Object)
+//│             (local.get $tmp))
+//│           (then
+//│             (if
+//│               (block (result i32)
+//│                 (local.set $currentTypeInfo
+//│                   (struct.get $Object $$typeinfo
+//│                     (ref.cast (ref $Object)
+//│                       (local.get $tmp))))
+//│                 (local.set $targetTypeInfo
+//│                   (global.get $Bar_typeinfo))
+//│                 (local.set $typeInfoMatch
+//│                   (ref.i31
+//│                     (i32.const 0)))
+//│                 (block $typeInfo
+//│                   (loop $typeInfo_cont
+//│                     (if
+//│                       (ref.is_null
+//│                         (local.get $currentTypeInfo))
+//│                       (then
+//│                         (br $typeInfo)))
+//│                     (if
+//│                       (ref.eq
+//│                         (ref.cast (ref null eq)
+//│                           (local.get $currentTypeInfo))
+//│                         (ref.cast (ref null eq)
+//│                           (local.get $targetTypeInfo)))
+//│                       (then
+//│                         (block
+//│                           (local.set $typeInfoMatch
+//│                             (ref.i31
+//│                               (i32.const 1)))
+//│                           (br $typeInfo))))
+//│                     (local.set $currentTypeInfo
+//│                       (struct.get $TypeInfoBase $$parent
+//│                         (ref.cast (ref $TypeInfoBase)
+//│                           (local.get $currentTypeInfo))))
+//│                     (br $typeInfo_cont)))
+//│                 (i31.get_s
+//│                   (ref.cast (ref null i31)
+//│                     (local.get $typeInfoMatch))))
+//│               (then
+//│                 (block $arm
+//│                   (local.set $tmp1
+//│                     (call $Foo_ctor
+//│                       (ref.cast (ref $Bar)
+//│                         (local.get $tmp))))
+//│                   (block $match1
+//│                     (local.set $matchRes1
+//│                       (ref.null any))
+//│                     (if
+//│                       (ref.test (ref $Object)
+//│                         (local.get $tmp1))
+//│                       (then
+//│                         (if
+//│                           (block (result i32)
+//│                             (local.set $currentTypeInfo1
+//│                               (struct.get $Object $$typeinfo
+//│                                 (ref.cast (ref $Object)
+//│                                   (local.get $tmp1))))
+//│                             (local.set $targetTypeInfo1
+//│                               (global.get $Foo_typeinfo))
+//│                             (local.set $typeInfoMatch1
+//│                               (ref.i31
+//│                                 (i32.const 0)))
+//│                             (block $typeInfo
+//│                               (loop $typeInfo_cont
+//│                                 (if
+//│                                   (ref.is_null
+//│                                     (local.get $currentTypeInfo1))
+//│                                   (then
+//│                                     (br $typeInfo)))
+//│                                 (if
+//│                                   (ref.eq
+//│                                     (ref.cast (ref null eq)
+//│                                       (local.get $currentTypeInfo1))
+//│                                     (ref.cast (ref null eq)
+//│                                       (local.get $targetTypeInfo1)))
+//│                                   (then
+//│                                     (block
+//│                                       (local.set $typeInfoMatch1
+//│                                         (ref.i31
+//│                                           (i32.const 1)))
+//│                                       (br $typeInfo))))
+//│                                 (local.set $currentTypeInfo1
+//│                                   (struct.get $TypeInfoBase $$parent
+//│                                     (ref.cast (ref $TypeInfoBase)
+//│                                       (local.get $currentTypeInfo1))))
+//│                                 (br $typeInfo_cont)))
+//│                             (i31.get_s
+//│                               (ref.cast (ref null i31)
+//│                                 (local.get $typeInfoMatch1))))
+//│                           (then
+//│                             (block $arm1
+//│                               (return
+//│                                 (call $getX
+//│                                   (ref.cast (ref $Foo)
+//│                                     (local.get $tmp1)))))))))
+//│                     (throw $mlx_exn
+//│                       (call $mlx_str_from_utf16
+//│                         (ref.i31
+//│                           (i32.const 0))
+//│                         (ref.i31
+//│                           (i32.const 70)))))
+//│                   (unreachable))))))
+//│         (throw $mlx_exn
+//│           (call $mlx_str_from_utf16
+//│             (ref.i31
+//│               (i32.const 70))
+//│             (ref.i31
+//│               (i32.const 70)))))
+//│       (unreachable)))
+//│   (data $Cannot$_narrow$_a$_ (i32.const 0) "\43\00\61\00\6e\00\6e\00\6f\00\74\00\20\00\6e\00\61\00\72\00\72\00\6f\00\77\00\20\00\61\00\20\00\76\00\61\00\6c\00\75\00\65\00\20\00\74\00\6f\00\20\00\74\00\79\00\70\00\65\00\20\00\27\00\46\00\6f\00\6f\00\27\00")
+//│   (data $Cannot$_narrow$_a$_1 (i32.const 70) "\43\00\61\00\6e\00\6e\00\6f\00\74\00\20\00\6e\00\61\00\72\00\72\00\6f\00\77\00\20\00\61\00\20\00\76\00\61\00\6c\00\75\00\65\00\20\00\74\00\6f\00\20\00\74\00\79\00\70\00\65\00\20\00\27\00\42\00\61\00\72\00\27\00")
 //│   (elem $Bar_init declare func $Bar_init)
 //│   (elem $Bar_ctor declare func $Bar_ctor)
 //│   (elem $Foo_init declare func $Foo_init)
@@ -427,7 +573,7 @@ fun bar() = 42
 fun foo() = bar
 foo()()
 //│ ╔══[COMPILATION ERROR] Returning function instances is not supported
-//│ ║  l.427: 	fun foo() = bar
+//│ ║  l.573: 	fun foo() = bar
 //│ ╙──       	            ^^^
 
 
@@ -439,8 +585,8 @@ fun takeTop(m: Int32) = m
 takeTop(1)
 //│ ═══[COMPILATION ERROR] Cannot use a value of type 'Int32' at an unrelated type 'Unknown'
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Int32'
-//│ ║  l.439: 	takeTop(1)
+//│ ║  l.585: 	takeTop(1)
 //│ ╙──       	        ^
 //│ ╔══[COMPILATION ERROR] Wasm function `takeTop` expects result to have type `(ref null any)`, but got `i32`
-//│ ║  l.438: 	fun takeTop(m: Int32) = m
+//│ ║  l.584: 	fun takeTop(m: Int32) = m
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^

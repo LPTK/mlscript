@@ -49,8 +49,13 @@ pattern Steps = @compile (Step as Steps | _)
 //│                   set tmp6 = +⁰(tmp5, " = ");
 //│                   set tmp7 = +⁰(tmp6, c);
 //│                   do Predef⁰.print⁰(tmp7);
-//│                   set inlinedVal1 = Lit⁰((c as!! Int⁰));
-//│                   return new runtime⁰.MatchSuccess⁰(inlinedVal1, null)
+//│                   match c
+//│                     Int⁰ =>
+//│                       set inlinedVal1 = Lit⁰((c as!! Int⁰));
+//│                       return new runtime⁰.MatchSuccess⁰(inlinedVal1, null)
+//│                     else
+//│                       throw new globalThis⁰.Error﹖("Cannot narrow a value to type 'Int'")
+//│                   end
 //│                 else
 //│                   return new runtime⁰.MatchFailure⁰("topmost")
 //│               end

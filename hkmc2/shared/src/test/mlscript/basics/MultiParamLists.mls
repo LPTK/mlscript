@@ -21,7 +21,18 @@ f(42)
 
 fun f(n1: Int)(n2: Int): Int =  (10 * n1 + n2)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f1; f1 = function f(n1) { return (n2) => { let tmp; tmp = 10 * n1; return tmp + n2 } };
+//│ let f1;
+//│ f1 = function f(n1) {
+//│   return (n2) => {
+//│     let tmp, castScrut;
+//│     tmp = 10 * n1;
+//│     castScrut = tmp + n2;
+//│     if (globalThis.Number.isInteger(castScrut)) {
+//│       return castScrut
+//│     }
+//│     throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Int'"));
+//│   }
+//│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 // TODO compile this to
@@ -29,7 +40,10 @@ fun f(n1: Int)(n2: Int): Int =  (10 * n1 + n2)
 
 f(4)(2)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ return 42
+//│ if (globalThis.Number.isInteger(42)) {
+//│   return 42
+//│ }
+//│ throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Int'"));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 
@@ -44,17 +58,21 @@ fun f(n1: Int)(n2: Int)(n3: Int): Int = 10 * (10 * n1 + n2) + n3
 //│   }
 //│ };
 //│ f$worker = function f$worker(n1, n2, n3) {
-//│   let tmp, tmp1, tmp2;
+//│   let tmp, tmp1, tmp2, castScrut;
 //│   tmp = 10 * n1;
 //│   tmp1 = tmp + n2;
 //│   tmp2 = 10 * tmp1;
-//│   return tmp2 + n3
+//│   castScrut = tmp2 + n3;
+//│   if (globalThis.Number.isInteger(castScrut)) {
+//│     return castScrut
+//│   }
+//│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Int'"));
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 f(4)(2)(0)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ return 420
+//│ return f$worker(4, 2, 0)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 420
 
@@ -71,19 +89,23 @@ fun f(n1: Int)(n2: Int)(n3: Int)(n4: Int): Int = 10 * (10 * (10 * n1 + n2) + n3)
 //│   }
 //│ };
 //│ f$worker1 = function f$worker(n1, n2, n3, n4) {
-//│   let tmp, tmp1, tmp2, tmp3, tmp4;
+//│   let tmp, tmp1, tmp2, tmp3, tmp4, castScrut;
 //│   tmp = 10 * n1;
 //│   tmp1 = tmp + n2;
 //│   tmp2 = 10 * tmp1;
 //│   tmp3 = tmp2 + n3;
 //│   tmp4 = 10 * tmp3;
-//│   return tmp4 + n4
+//│   castScrut = tmp4 + n4;
+//│   if (globalThis.Number.isInteger(castScrut)) {
+//│     return castScrut
+//│   }
+//│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'Int'"));
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 f(3)(0)(3)(1)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ return 3031
+//│ return f$worker1(3, 0, 3, 1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3031
 

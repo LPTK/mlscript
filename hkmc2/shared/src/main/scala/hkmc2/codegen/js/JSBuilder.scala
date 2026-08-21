@@ -845,9 +845,15 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
           case Elaborator.ctx.builtins.Symbol => doc"typeof $sd === 'symbol'"
           case Elaborator.ctx.builtins.TypedArray =>
             doc"globalThis.ArrayBuffer.isView($sd) && !($sd instanceof globalThis.DataView)"
-          case _: ModuleOrObjectSymbol => doc"$sd instanceof ${result(pth)}.class"
-            // * ^ Note that modules are currently not valid patterns;
-            // *    this case is just for objects, which have their class stored in a `.class` property.
+          case modOrObj: ModuleOrObjectSymbol =>
+            if modOrObj.tree.k is syntax.Mod then
+              // * A module value is the module's singleton binding, so the test is identity rather than `instanceof`
+              // * (`M.class` does not exist for modules).
+              doc"$sd === ${result(pth)}"
+            else
+              doc"$sd instanceof ${result(pth)}.class"
+              // * ^ Note that modules are currently not valid patterns;
+              // *    this case is just for objects, which have their class stored in a `.class` property.
           case _ => doc"$sd instanceof ${result(pth)}"
         case Case.Tup(len, inf) => doc"$runtimeVar.Tuple.isArrayLike($sd) && $sdProp.length ${if inf then ">=" else "==="} ${len}"
         case Case.Field(name = n, safe = false) =>

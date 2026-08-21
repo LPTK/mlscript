@@ -25,6 +25,10 @@ class CheckedCastExpansion(using Ctx, Raise, State) extends BlockTransformer(Sym
       case S(defn) if defn.hasDeclareModifier.isDefined =>
         S(State.globalThisSymbol.asThis.sel(cls.id, cls))
       case S(defn) => defn.owner match
+        case S(owner: ModuleOrObjectSymbol) =>
+          // * A class nested in a module is reached through the module's *BMS* - `This(module)` is only bound inside
+          // * the module's own compilation, so a `This`-qualified path would fail to print on import.
+          owner.asBlkMember.fold(S(owner.asThis.sel(cls.id, cls)))(bms => S(bms.asMemberRef(owner).sel(cls.id, cls)))
         case S(owner) => S(owner.asThis.sel(cls.id, cls))
         case N => S(defn.bsym.asMemberRef(cls))
       case N => N

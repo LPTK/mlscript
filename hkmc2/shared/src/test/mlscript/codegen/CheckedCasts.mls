@@ -1,10 +1,9 @@
-// Under `:checkCasts`, each coercion inserted by lowering is expanded into a type test that throws when it
+// By default, each coercion inserted by lowering is expanded into a type test that throws when it
 // fails. The test a target needs depends on how the class is reached at runtime, so each shape is covered
 // below.
 :js
 
 :global
-:checkCasts
 
 open annotations
 class Top(x: Int)
@@ -43,7 +42,7 @@ fun toInner(): M.Inner = mkTop()
 //│ toInner = function toInner() {
 //│   let castScrut;
 //│   castScrut = mkTop();
-//│   if (castScrut instanceof M.Inner.class) {
+//│   if (castScrut instanceof M1.Inner.class) {
 //│     return castScrut
 //│   }
 //│   throw globalThis.Object.freeze(new globalThis.Error("Cannot narrow a value to type 'M.Inner'"));
@@ -154,7 +153,7 @@ fun callI32(): Int32 = useI32(anything(1))
 fun useInt(n: Int): Int = n
 fun callInt(): Int = useInt(anything(1))
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Unknown' at an unrelated type 'Int32'
-//│ ║  l.153: 	fun callI32(): Int32 = useI32(anything(1))
+//│ ║  l.152: 	fun callI32(): Int32 = useI32(anything(1))
 //│ ╙──       	                              ^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let useInt, callInt, callI32, useI32;

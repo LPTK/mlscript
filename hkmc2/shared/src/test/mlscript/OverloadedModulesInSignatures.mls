@@ -115,8 +115,9 @@ print(assertModule(TrmMod).whoami)
 //│ ═══[RUNTIME ERROR] TypeError: Class constructor TrmMod cannot be invoked without 'new'
 
 // TODO: handle
+:re
 print(assertModule(TrmMod).whoami)
-//│ > undefined
+//│ ═══[RUNTIME ERROR] Error: Cannot narrow a value to type 'module ClsMod'
 
 
 fun assertNonModule(m) = m
@@ -145,10 +146,10 @@ module Foo
 :e
 fun f(x: Foo): Foo = x
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.146: 	fun f(x: Foo): Foo = x
+//│ ║  l.147: 	fun f(x: Foo): Foo = x
 //│ ╙──       	         ^^^
 //│ ╔══[COMPILATION ERROR] Expected 1 type arguments, got none
-//│ ║  l.146: 	fun f(x: Foo): Foo = x
+//│ ║  l.147: 	fun f(x: Foo): Foo = x
 //│ ╙──       	               ^^^
 
 fun f(x: Foo[Int]): Foo[Int] = x
@@ -158,10 +159,10 @@ fun f(module x: Foo): module Foo = x
 :e
 fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.159: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.160: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected no type arguments, got 1
-//│ ║  l.159: 	fun f(module x: Foo[Int]): module Foo[Int] = x
+//│ ║  l.160: 	fun f(module x: Foo[Int]): module Foo[Int] = x
 //│ ╙──       	                                  ^^^^^^^^
 
 
