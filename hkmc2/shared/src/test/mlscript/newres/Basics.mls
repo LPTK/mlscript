@@ -35,9 +35,13 @@ Predef.id
 //│ | | | listen: trm = member:Predef
 //│ | | | listenBMS: bms = module
 //│ | | | listenedBMS: bms = module
-//│ | | | fromBMS: bms = member:Predef⁰, sh = module:Predef¹, flow = Predef²‹48›, markss = List()
-//│ | | | PUSH MarkedShape(module:Predef¹, +⟨module:Predef¹⟩%⟨Predef²‹48›⟩ϵ)
-//│ | | | newSel: sel = member:Predef.id, shape = module 'Predef'
+//│ | | | fromBMS: bms = member:Predef⁰, sh = module:Predef¹, flow = Predef², markss = List()
+//│ | | | .exit MarkedShape (module:Predef¹, module:Predef¹, Predef²)
+//│ | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
+//│ | | | = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | PUSH MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | newSel: sel = member:Predef.id, shape = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
 //│ | | ~> NewSel(MemberRef(member:Predef),Ident(id))
 //│ | ~> NewSel(MemberRef(member:Predef),Ident(id))
 //│ ~> Blk(List(),NewSel(MemberRef(member:Predef),Ident(id)))
@@ -65,7 +69,7 @@ Predef.id(1)
 :e
 Predef.idd(1)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.66: 	Predef.idd(1)
+//│ ║  l.70: 	Predef.idd(1)
 //│ ║        	      ^^^^
 //│ ╟── Module 'Predef' does not contain member 'idd'
 //│ ║  in ../../mlscript-compile/Predef.mls
@@ -118,30 +122,30 @@ p.id
 :e
 (1).id
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.119: 	(1).id
+//│ ║  l.123: 	(1).id
 //│ ║         	   ^^^
 //│ ╟── Integer literal does not contain member 'id'
-//│ ║  l.119: 	(1).id
+//│ ║  l.123: 	(1).id
 //│ ╙──       	 ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :fixme // parse
 1.id
 //│ ╔══[LEXICAL ERROR] Expected at least one digit after the  decimal point
-//│ ║  l.129: 	1.id
+//│ ║  l.133: 	1.id
 //│ ╙──       	  ^
 //│ ╔══[COMPILATION ERROR] Illegal juxtaposition right-hand side (identifier).
-//│ ║  l.129: 	1.id
+//│ ║  l.133: 	1.id
 //│ ╙──       	  ^^
 //│ = 1
 
 :fixme
 "ha ".repeat(2)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.139: 	"ha ".repeat(2)
+//│ ║  l.143: 	"ha ".repeat(2)
 //│ ║         	     ^^^^^^^
 //│ ╟── String literal does not contain member 'repeat'
-//│ ║  l.139: 	"ha ".repeat(2)
+//│ ║  l.143: 	"ha ".repeat(2)
 //│ ╙──       	^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

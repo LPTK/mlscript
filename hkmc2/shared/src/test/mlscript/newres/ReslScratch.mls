@@ -37,10 +37,11 @@ class Bar(a) with
   let x = a
   print(x)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class Bar⁰::Bar¹(a⁰) {
-//│     @privateval a¹::a² ‹flow:a⁰› = a⁰,
+//│   fun Bar⁰
+//│   class Bar¹::Bar²(a⁰) {
+//│     @private val a¹::a² ‹flow:a⁰› = a⁰,
 //│     let x⁰,
-//│     x⁰ = ⟨Bar¹.this.⟩a¹,
+//│     x⁰ = ⟨Bar².this.⟩a¹,
 //│     ⟨Predef⁰.⟩print⁰(x⁰)‹app⁰›
 //│   }
 //│ ——————————————| Resolved tree |—————————————————————————————————————————————————————————————————————

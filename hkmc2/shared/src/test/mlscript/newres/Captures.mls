@@ -29,24 +29,30 @@ foo(1)
 //│ | | | listenBMS: bms = function
 //│ | | | listenedBMS: bms = function
 //│ | | | fromBMS: bms = member:foo⁰, sh = member:foo⁰, flow = foo¹, markss = List()
-//│ | | | PUSH MarkedShape(member:foo⁰, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
-//│ | | | appShape: lhs = MarkedShape(member:foo⁰, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ), args = [1], res = member:foo(1)
-//│ | | | Zipping ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None) (List(↘⟨term:foo²⟩%⟨foo¹⟩ϵ)) with List(Fld(‹›,Lit(IntLit(1)),None))
+//│ | | | .exit MarkedShape (member:foo⁰, term:foo², foo¹)
+//│ | | | | class hkmc2.semantics.TermSymbol None
+//│ | | | = MarkedShape(member:foo⁰, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | PUSH MarkedShape(member:foo⁰, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | appShape: lhs = MarkedShape(member:foo⁰, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ), args = [1], res = member:foo(1)
+//│ | | | Zipping ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None))),None) (List(↗⟨term:foo²⟩%⟨foo¹⟩ϵ)) with List(Fld(‹›,Lit(IntLit(1)),None))
 //│ | | | listenTerm: trm = 1
 //│ | | | listen: trm = 1
-//│ | | | .enter 1 (↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
-//│ | | | | .enter MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ) (ϵ)
-//│ | | | | = MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
-//│ | | | = MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
-//│ | | | zipArg: p = x, trm = 1, sh = MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | .enter 1 (↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | | .enter MarkedShape(1, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ) (ϵ)
+//│ | | | | = MarkedShape(1, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | = MarkedShape(1, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | zipArg: p = x, trm = 1, sh = MarkedShape(1, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
 //│ | | | appShape isSaturated? true; head? (DefnShape(term definition 'foo'),List(ExitMark(term:foo,Some(foo),NoMarks)))
-//│ | | | lhs false List(((x),List(↘⟨term:foo²⟩%⟨foo¹⟩ϵ)))
+//│ | | | lhs false List(((x),List(↗⟨term:foo²⟩%⟨foo¹⟩ϵ)))
 //│ | | | appShape: td.body = Some(SimpleRef(x))
 //│ | | | listenTerm: trm = x
 //│ | | | listen: trm = x
-//│ | | | .exit MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ) (↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
-//│ | | | | .exit MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ) (ϵ)
-//│ | | | | = MarkedShape(1, ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | .exit MarkedShape(1, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ) (↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | | .exit MarkedShape(1, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ) (ϵ)
+//│ | | | | = MarkedShape(1, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | | .exit MarkedShape (MarkedShape(1, ↘⟨term:foo²⟩%⟨foo¹⟩ϵ), term:foo², foo¹)
+//│ | | | | | class hkmc2.semantics.TermSymbol None
+//│ | | | | = 1
 //│ | | | = 1
 //│ | | ~> App(MemberRef(member:foo),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
 //│ | ~> App(MemberRef(member:foo),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
@@ -112,10 +118,11 @@ class foo(x) {
   fun bar(y) = x + y
 }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   class foo⁶::foo⁷(x³) {
-//│     @privateval x⁴::x⁵ ‹flow:x⁰› = x³,
-//│     ⟨Predef⁰.⟩print⁰(⟨foo⁷.this.⟩x⁴)‹app⁹›,
-//│     fun bar²::bar³(y¹) ‹flow:bar¹› = +(⟨foo⁷.this.⟩x⁴^bar³, y¹)‹app¹⁰›
+//│   fun foo⁶
+//│   class foo⁷::foo⁸(x³) {
+//│     @private val x⁴::x⁵ ‹flow:x⁰› = x³,
+//│     ⟨Predef⁰.⟩print⁰(⟨foo⁸.this.⟩x⁴)‹app⁹›,
+//│     fun bar²::bar³(y¹) ‹flow:bar¹› = +(⟨foo⁸.this.⟩x⁴^bar³, y¹)‹app¹⁰›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -124,7 +131,7 @@ class foo(x) {
 fun foo(x) = y =>
   x + y
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun foo⁸::foo⁹(x⁶) ‹flow:foo³› = (y²) => +(x⁶, y²)‹app¹¹›
+//│   fun foo⁹::foo¹⁰(x⁶) ‹flow:foo³› = (y²) => +(x⁶, y²)‹app¹¹›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

@@ -45,7 +45,7 @@ class NewResolver:
   val appShapes: mutable.Map[(TermShape, FlowSymbol), AppShape] = mutable.Map.empty
   val newShapes: mutable.Map[(ClassLikeSymbol, FlowSymbol), NewShape] = mutable.Map.empty
   val introShapes: mutable.Map[IntroTerm, IntroShape] = mutable.Map.empty // TODO use symbols for faster lookup?
-  val symShapes: mutable.Map[(BlockMemberSymbol, FlowSymbol), SymShape] = mutable.Map.empty
+  val symShapes: mutable.Map[(BlockMemberSymbol, FlowSymbol, Ls[Marks]), SymShape] = mutable.Map.empty
   val defnShapes: mutable.Map[DefinitionSymbol[?], DefnShape] = mutable.Map.empty
   
   def isOwnedSym(sym: Symbol): Bool =
@@ -151,11 +151,12 @@ class NewResolver:
   def newSel(sel: NewSel): Unit =
     log(s"newSel? sel = ${sel.showDbg}")
     listenTerm(sel.prefix, shape => {
-      log(s"newSel: sel = ${sel.showDbg}, shape = ${shape.describe}")
+      log(s"newSel: sel = ${sel.showDbg}, shape = ${shape.shwDbg}")
       shape.members.get(sel.id.name) match
         case S((bms, mss)) =>
+          log(s"newSel member: bms = ${bms.showDbg}, mss = ${mss.map(_.showDbg)}")
           sel.resolvedMembers ::= bms
-          val sh = symShapes.getOrElseUpdate((bms, sel.resSym), SymShape(bms, sel.resSym, mss))
+          val sh = symShapes.getOrElseUpdate((bms, sel.resSym, mss), SymShape(bms, sel.resSym, mss))
           if sel.shapes.add(sh) then
             sel.shapeListeners.foreach(listener => listener(sh))
           // symShapes.getOrElseUpdate((bms, sel.resSym), SymShape(bms, sel.resSym))
@@ -434,7 +435,7 @@ class NewResolver:
         listener(MarkedShape.enter(sh, sym, S(ref.resSym))))
     case ref @ MemberRef(sym: BlockMemberSymbol) =>
       val fs = ref.resSym
-      val sh = symShapes.getOrElseUpdate((sym, fs), SymShape(sym, fs, Nil))
+      val sh = symShapes.getOrElseUpdate((sym, fs, Nil), SymShape(sym, fs, Nil))
       // // ref.shapes.foreach(listener)
       // // ref.shapeListeners += listener
       // if ref.shapes.add(sh) then

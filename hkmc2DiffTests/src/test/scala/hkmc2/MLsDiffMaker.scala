@@ -233,7 +233,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   given Elaborator.State = new Elaborator.State:
     override def dbg: Bool =
       dbgParsing.isSet
-      || dbgElab.isSet
+      // || dbgElab.isSet
       || dbgResolving.isSet
       || debug.isSet
   

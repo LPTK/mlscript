@@ -19,4 +19,152 @@ fun foo = 1
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
+:sr
+:de
+val p = Predef
+//│ Elab block List(TermDef(ImmutVal,Ident(p),Some(Ident(Predef)))) LocalScope(block:3)
+//│ | Processing term definition Ident(p)
+//│ | Elab term Ident(Predef)
+//│ | | Elab subterm Ident(Predef)
+//│ | | ~> Capture(MemberRef(member:Predef),term:p)
+//│ | ~> Capture(MemberRef(member:Predef),term:p)
+//│ ~> Blk(List(TermDefinition(ImmutVal,member:p,term:p,List(),None,None,Some(Capture(MemberRef(member:Predef),term:p)),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   val p⁰::p¹ ‹flow:p⁰› = Predef⁰^p¹
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ p = class Predef {
+//│   Symbols: Symbols {
+//│     prettyPrint: Symbol("mlscript.prettyPrint"),
+//│     definitionMetadata: Symbol("mlscript.definitionMetadata"),
+//│     class: object Symbols
+//│   },
+//│   Sub: class Sub,
+//│   Eq: class Eq,
+//│   Refl: Refl,
+//│   js_assert: fun assert,
+//│   foldl: fun fold,
+//│   meta: class meta
+//│ }
+
+:sr
+:de
+p.id
+//│ Elab block List(Sel(Ident(p),Ident(id))) LocalScope(block:4)
+//│ | Elab term Sel(Ident(p),Ident(id))
+//│ | | Elab subterm Sel(Ident(p),Ident(id))
+//│ | | | Elab subterm Ident(p)
+//│ | | | ~> MemberRef(member:p)
+//│ | | | newSel? sel = member:p.id
+//│ | | | listenTerm: trm = member:p
+//│ | | | listen: trm = member:p
+//│ | | | listenBMS: bms = value
+//│ | | | listenedBMS: bms = value
+//│ | | | listenTerm: td.body = Some(Capture(MemberRef(member:Predef),term:p))
+//│ | | | listenTerm: trm = member:Predef^term:p⁰
+//│ | | | listen: trm = member:Predef^term:p⁰
+//│ | | | listenTerm: trm = member:Predef
+//│ | | | listen: trm = member:Predef
+//│ | | | listenBMS: bms = module
+//│ | | | listenedBMS: bms = module
+//│ | | | fromBMS: bms = member:Predef⁰, sh = module:Predef¹, flow = Predef², markss = List()
+//│ | | | .exit MarkedShape (module:Predef¹, module:Predef¹, Predef²)
+//│ | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
+//│ | | | = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | PUSH MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | fromBMS: bms = member:p¹, sh = MarkedShape(module:Predef¹, ↘⟨term:p⁰⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ), flow = p², markss = List()
+//│ | | | .exit MarkedShape (MarkedShape(module:Predef¹, ↘⟨term:p⁰⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ), term:p⁰, p²)
+//│ | | | | class hkmc2.semantics.TermSymbol None
+//│ | | | = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | MATCH MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ) for term:p⁰ % p²
+//│ | | | newSel: sel = member:p.id, shape = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | ~> NewSel(MemberRef(member:p),Ident(id))
+//│ | ~> NewSel(MemberRef(member:p),Ident(id))
+//│ ~> Blk(List(),NewSel(MemberRef(member:p),Ident(id)))
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   p⁰.id⁰
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = fun id
+
+
+:sr
+:de
+module M with
+  val p = Predef
+//│ Elab block List(TypeDef(Mod,InfixApp(Ident(M),Keywrd(keyword 'with'),Block(List(TermDef(ImmutVal,Ident(p),Some([...] LocalScope(block:5)
+//│ | Processing module/object definition Ident(M)
+//│ | | Companion: None
+//│ | | Elab block List(TermDef(ImmutVal,Ident(p),Some(Ident(Predef)))) InnerScope(module:M)
+//│ | | | Processing term definition Ident(p)
+//│ | | | Elab term Ident(Predef)
+//│ | | | | Elab subterm Ident(Predef)
+//│ | | | | ~> Capture(MemberRef(member:Predef),term:M/p)
+//│ | | | ~> Capture(MemberRef(member:Predef),term:M/p)
+//│ | | ~> Blk(List(TermDefinition(ImmutVal,member:p,term:M/p,List(),None,None,Some(Capture(MemberRef(member:Predef),term:M/p)),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))
+//│ ~> Blk(List(ModuleOrObjectDef(None,module:M,member:M,List(),None,List(),None,Mod,ObjBody(Blk(List(TermDefinition(ImmutVal,member:p,term:M/p,List(),None,None,Some(Capture(MemberRef(member:Predef),term:M/p)),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))),None,List())),Lit(UnitLit(false)))
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   module M⁰::M¹ { val p²::p³ ‹flow:p¹› = Predef⁰^p³ }
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:sr
+:de
+M.p.id
+//│ Elab block List(Sel(Sel(Ident(M),Ident(p)),Ident(id))) LocalScope(block:6)
+//│ | Elab term Sel(Sel(Ident(M),Ident(p)),Ident(id))
+//│ | | Elab subterm Sel(Sel(Ident(M),Ident(p)),Ident(id))
+//│ | | | Elab subterm Sel(Ident(M),Ident(p))
+//│ | | | | Elab subterm Ident(M)
+//│ | | | | ~> MemberRef(member:M)
+//│ | | | | newSel? sel = member:M.p
+//│ | | | | listenTerm: trm = member:M
+//│ | | | | listen: trm = member:M
+//│ | | | | listenBMS: bms = module
+//│ | | | | listenedBMS: bms = module
+//│ | | | | fromBMS: bms = member:M⁰, sh = module:M¹, flow = M², markss = List()
+//│ | | | | .exit MarkedShape (module:M¹, module:M¹, M²)
+//│ | | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
+//│ | | | | = MarkedShape(module:M¹, ↗⟨module:M¹⟩%⟨M²⟩ϵ)
+//│ | | | | PUSH MarkedShape(module:M¹, ↗⟨module:M¹⟩%⟨M²⟩ϵ)
+//│ | | | | newSel: sel = member:M.p, shape = MarkedShape(module:M¹, ↗⟨module:M¹⟩%⟨M²⟩ϵ)
+//│ | | | | newSel member: bms = member:p³, mss = List(↗⟨module:M¹⟩%⟨M²⟩ϵ)
+//│ | | | ~> NewSel(MemberRef(member:M),Ident(p))
+//│ | | | newSel? sel = member:M.p.id
+//│ | | | listenTerm: trm = member:M.p
+//│ | | | listen: trm = member:M.p
+//│ | | | listenBMS: bms = value
+//│ | | | listenedBMS: bms = value
+//│ | | | listenTerm: td.body = Some(Capture(MemberRef(member:Predef),term:M/p))
+//│ | | | listenTerm: trm = member:Predef^term:M¹/p⁴
+//│ | | | listen: trm = member:Predef^term:M¹/p⁴
+//│ | | | listenTerm: trm = member:Predef
+//│ | | | listen: trm = member:Predef
+//│ | | | listenBMS: bms = module
+//│ | | | listenedBMS: bms = module
+//│ | | | fromBMS: bms = member:Predef⁰, sh = module:Predef¹, flow = Predef³, markss = List()
+//│ | | | .exit MarkedShape (module:Predef¹, module:Predef¹, Predef³)
+//│ | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
+//│ | | | = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef³⟩ϵ)
+//│ | | | PUSH MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef³⟩ϵ)
+//│ | | | fromBMS: bms = member:p³, sh = MarkedShape(module:Predef¹, ↘⟨term:M¹/p⁴⟩↗⟨module:Predef¹⟩%⟨Predef³⟩ϵ), flow = ⋅p⁰, markss = List(↗⟨module:M¹⟩%⟨M²⟩ϵ)
+//│ | | | .exit MarkedShape(module:Predef¹, ↘⟨term:M¹/p⁴⟩↗⟨module:Predef¹⟩%⟨Predef³⟩ϵ) (↗⟨module:M¹⟩%⟨M²⟩ϵ)
+//│ | | | | .exit MarkedShape(module:Predef¹, ↘⟨term:M¹/p⁴⟩↗⟨module:Predef¹⟩%⟨Predef³⟩ϵ) (ϵ)
+//│ | | | | = MarkedShape(module:Predef¹, ↘⟨term:M¹/p⁴⟩↗⟨module:Predef¹⟩%⟨Predef³⟩ϵ)
+//│ | | | | .exit MarkedShape (MarkedShape(module:Predef¹, ↘⟨term:M¹/p⁴⟩↗⟨module:Predef¹⟩%⟨Predef³⟩ϵ), module:M¹, M²)
+//│ | | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol module:M¹ but got term:M¹/p⁴
+//│ 	at: scala.Predef$.require(Predef.scala:376)
+//│ 	at: hkmc2.semantics.MarkedShape$.exit$$anonfun$3(Term.scala:422)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:20)
+//│ 	at: hkmc2.MLsDiffMaker$$anon$2.trace(MLsDiffMaker.scala:276)
+//│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:442)
+//│ 	at: hkmc2.semantics.TermShape.exit$$anonfun$6(Term.scala:485)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:20)
+//│ 	at: hkmc2.MLsDiffMaker$$anon$2.trace(MLsDiffMaker.scala:276)
+//│ 	at: hkmc2.semantics.TermShape.exit(Term.scala:485)
+//│ 	at: hkmc2.semantics.TermShape.exit$(Term.scala:445)
+
+
+
+
 

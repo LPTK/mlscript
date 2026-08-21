@@ -382,7 +382,9 @@ type NoShape = NoShape.type
 case class MarkedShape(sh: NonMarkedShape, mark: SomeMarks) extends TermShape:
   lazy val members: Map[Str, MemberInfo] =
     // sh.members.view.mapValues(m => MarkedShape.exit(m, mark)).toMap
-    sh.members // FIXME: add marks to tuple result
+    // sh.members // FIXME: add marks to tuple result
+    sh.members.mapValues(_.mapSecond(_ ::: mark :: Nil)).toMap
+    // sh.members.mapValues(_.mapSecond(mark :: _)).toMap
   def describe: Str = sh.describe
   def toLoc: Opt[Loc] = sh.toLoc
 object MarkedShape:
