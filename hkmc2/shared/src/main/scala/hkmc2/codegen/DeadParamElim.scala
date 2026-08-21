@@ -164,9 +164,17 @@ class Rewrite(val deadParamElimSolver: DeadParamElimSolver)(using Raise):
         groupFuns
           .map: f =>
             val name = instId.mkFunName + s"$$${f.nme}"
+            val specializedErasedType = f.erasedType match
+              case S(fr: ErasedType.FuncRef) =>
+                S(fr.copy(
+                  paramLists = ErasedType.normalizeParamLists(fr.paramLists).zipWithIndex.map: (pl, i) =>
+                    val eliminable = deadParamElimSolver.eliminableParamsById(ConcreteId((f, i), instId))
+                    pl.zipWithIndex.collect:
+                      case (t, j) if !eliminable(j) => t))
+              case other => other
             f -> (
               new BlockMemberSymbol(name, Nil, true),
-              new TermSymbol(Fun, N, Tree.Ident(name), erasedType = N))
+              new TermSymbol(Fun, N, Tree.Ident(name), erasedType = specializedErasedType))
           .toMap)
     end mkNewPolyFnSyms
     
@@ -335,12 +343,14 @@ class Rewrite(val deadParamElimSolver: DeadParamElimSolver)(using Raise):
         case ParamList(flags, params, restParam) =>
           val params2 = params.map:
             case p =>
-              val newSym = new VarSymbol(Tree.Ident(p.sym.name), erasedType = N)
+              // * A refreshed parameter stands for the same slot as `p`, so it must carry its
+              // * erased type: a slot that loses it does not widen to `Unknown` for primitives.
+              val newSym = new VarSymbol(Tree.Ident(p.sym.name), erasedType = p.sym.erasedType)
               refreshParamMap(p.sym) = newSym
               Param(p.flags, newSym, p.sign, p.modulefulness)
           val rest2 = restParam.map:
             case p =>
-              val newSym = new VarSymbol(Tree.Ident(p.sym.name), erasedType = N)
+              val newSym = new VarSymbol(Tree.Ident(p.sym.name), erasedType = p.sym.erasedType)
               refreshParamMap(p.sym) = newSym
               Param(p.flags, newSym, p.sign, p.modulefulness)
           ParamList(flags, params2, rest2)
