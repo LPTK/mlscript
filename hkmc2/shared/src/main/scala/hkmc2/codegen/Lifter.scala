@@ -894,7 +894,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       else b
   
   // some helpers
-  private def dupParam(p: Param): Param = p.copy(sym = VarSymbol(Tree.Ident(p.sym.nme), erasedType = N))
+  private def dupParam(p: Param): Param = p.copy(sym = VarSymbol(Tree.Ident(p.sym.nme), erasedType = p.sym.erasedType))
   private def dupParams(plist: List[Param]): List[Param] = plist.map(dupParam)
   private def dupParamList(plist: ParamList): ParamList =
     plist.copy(params = dupParams(plist.params), restParam = plist.restParam.map(dupParam))
@@ -1037,7 +1037,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     val (mainSym, mainDsym) = (fun.sym, fun.dSym)
     val auxSym = BlockMemberSymbol(fun.sym.nme + "$", Nil, fun.sym.nameIsMeaningful)
-    val auxDsym = TermSymbol.fromFunBms(auxSym, fun.owner, erasedType = N)
+    val auxDsym = TermSymbol.fromFunBms(auxSym, fun.owner, erasedType = fun.dSym.erasedType)
     
     // Definition with the auxiliary parameters merged into the first parameter list.
     private def mkFlattenedDefn: LifterResult[FunDefn] =  
