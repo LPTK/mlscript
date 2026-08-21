@@ -1078,7 +1078,9 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
         N
     // * A reference to a class is the class *object* (a `Class`).
     case Value.MemberRef(_, _: ClassSymbol) => N
-    case Value.MemberRef(_, disamb: (ModuleOrObjectSymbol | TypeAliasSymbol)) => disamb.erasedType
+    case Value.MemberRef(_, disamb: ModuleOrObjectSymbol) => disamb.erasedType
+    case Value.MemberRef(bms, disamb: TypeAliasSymbol) =>
+      bms.asMod.fold(disamb.erasedType)(_.erasedType)
     // * A `val` or `fun` is a block *member*, so its references are `MemberRef`s rather than `SimpleRef`s, and
     // * its declared type lives on the associated `TermSymbol` - the same shape `Select` reads below.
     case Value.MemberRef(_, disamb: TermSymbol) => memberErasedType(disamb)

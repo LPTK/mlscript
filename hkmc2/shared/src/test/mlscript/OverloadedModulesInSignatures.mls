@@ -102,9 +102,9 @@ fun assertModule(module m: ClsMod): module ClsMod = m
 assertModule(ClsMod).whoami
 //│ = "module"
 
-:ge
+:e
 assertModule(TypMod).whoami
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'module ClsMod'
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'module TypMod' at an unrelated type 'module ClsMod'
 //│ ║  l.106: 	assertModule(TypMod).whoami
 //│ ╙──       	             ^^^^^^
 //│ = "module"
