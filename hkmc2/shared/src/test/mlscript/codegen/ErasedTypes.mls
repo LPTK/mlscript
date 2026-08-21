@@ -953,3 +953,86 @@ if asWrapper(fortyTwo) is
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = "other"
 
+
+// A lifted function that refers to the enclosing class's `this` receives it as an auxiliary parameter. That parameter
+// stands for the same slot as the `this` passed into it, so it takes the enclosing class's type.
+:lift
+class Box(content: Int) with
+  fun unwrap() =
+    fun peek() = this
+    peek()
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let peek;
+//│ define peek as fun peek⁰(Box: Box³): ? {
+//│   return Box
+//│ };
+//│ define Box⁴ as class Box³ {
+//│   private val content⁰: Int⁰;
+//│   constructor Box⁵(content: Int⁰) {
+//│     set Box³.this.content⁰ = content;
+//│     end
+//│   }
+//│   method unwrap⁰ = fun unwrap¹(): ? { return peek⁰(Box³.this) }
+//│ };
+//│ end
+
+
+// The same holds for a local `object` reached by name: the lifted function receives the object's symbol as an
+// auxiliary parameter, typed with the object's own type.
+:w
+:lift
+fun tagged(x: Int) =
+  object Tag with
+    fun label() = "tag"
+  fun describe() = Tag.label()
+  describe()
+//│ ╔══[WARNING] Objects are not yet lifted.
+//│ ║  l.985: 	  object Tag with
+//│ ╙──       	         ^^^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let describe;
+//│ define describe as fun describe⁰(Tag: Tag⁰): ? {
+//│   return Tag.label⁰()
+//│ };
+//│ define tagged⁰ as fun tagged¹(x: Int⁰): ? {
+//│   let Tag;
+//│   define Tag as object Tag⁰ {
+//│     method label¹ = fun label⁰(): ? { return "tag" }
+//│   };
+//│   return describe⁰(Tag⁰)
+//│ };
+//│ end
+
+
+// A lifted *class* takes its passed locals as constructor parameters and private fields, which are typed the same way.
+:w
+:lift
+fun mk() =
+  object Tag with
+    fun label() = "tag"
+  class Holder with
+    fun get() = Tag.label()
+  new Holder
+//│ ╔══[WARNING] Objects are not yet lifted.
+//│ ║  l.1011: 	  object Tag with
+//│ ╙──        	         ^^^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let Holder;
+//│ define Holder as class Holder⁰ {
+//│   private val Tag¹: Tag²;
+//│   constructor(Tag: Tag²) {
+//│     set Holder⁰.this.Tag¹ = Tag;
+//│     end
+//│   }
+//│   method get³ = fun get⁴(): ? {
+//│     return Holder⁰.this.Tag¹.label²()
+//│   }
+//│ };
+//│ define mk⁴ as fun mk⁵(): ? {
+//│   let Tag;
+//│   define Tag as object Tag² {
+//│     method label³ = fun label²(): ? { return "tag" }
+//│   };
+//│   return new Holder⁰(Tag²)
+//│ };
+//│ end

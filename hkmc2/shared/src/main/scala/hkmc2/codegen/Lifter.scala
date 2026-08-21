@@ -29,6 +29,16 @@ object Lifter:
       case l: Lazy[?] if !l.isEmpty => l.force_!
       case d: Defn => d
 
+  extension (s: ValueSymbol)
+    /** Maps the symbol to its erased value type, if it has one. */
+    private def mapErasedValueType(using Raise): Opt[ErasedValueType] = s match
+      case v: VarSymbol => v.erasedType
+      case t: TempSymbol => t.erasedType
+      case c: (ClassSymbol | ModuleOrObjectSymbol) => c.erasedValueType
+      case s: ValueSymbol => 
+        softAssert(false, s"Unexpected symbol type for symbol `$s`: ${s.getClass.getName}")
+        N
+
   /**
     * Describes previously defined locals and definitions which could possibly be accessed or mutated by particular definition.
     * Here, a "previously defined" local or definition means it is accessible to the particular definition (which we call `d`), 
@@ -569,12 +579,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         
         val ident = new Tree.Ident(nme)
         // * The capture field stands for the same slot as the captured local, so it takes the local's type.
-        val capturedType: Opt[ErasedValueType] = sym match
-          case s: VarSymbol => s.erasedType
-          case s: TempSymbol => s.erasedType
-          case sym: ScopedOrInnerSymbol =>
-            softAssert(false, s"Unexpected symbol type for captured local `$sym` ${sym.getClass.getName}")
-            N
+        val capturedType = sym.mapErasedValueType
         val varSym = VarSymbol(ident, erasedType = capturedType)
         val fldSym = BlockMemberSymbol(nme, Nil)
         val tSym = TermSymbol(syntax.MutVal, S(clsSym), ident, erasedType = capturedType)
@@ -1017,14 +1022,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     private val passedSymsMap_ : Map[ValueSymbol, VarSymbol] = passedSymsOrdered.map: s =>
         // * The auxiliary parameter stands for the same slot as the passed local, so it takes the local's
         // * type.
-        val erasedType: Opt[ErasedValueType] = s match
-          case v: VarSymbol => v.erasedType
-          case t: TempSymbol => t.erasedType
-          case c: ClassLikeSymbol => N
-          case s: ValueSymbol => 
-            softAssert(false, s"Unexpected symbol type for passed local `$s:` ${s.getClass.getName}")
-            N
-        s -> VarSymbol(Tree.Ident(s.nme), erasedType)
+        s -> VarSymbol(Tree.Ident(s.nme), erasedType = s.mapErasedValueType)
       .toMap
     private val capSymsMap_ : Map[ScopedInfo, VarSymbol] = capturesOrdered.map: i =>
         val nme = data.getNode(i).obj.nme
@@ -1128,10 +1126,11 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     override lazy val capturePath: Path = Select(obj.cls.isym.asThis, captureSym.id)(S(captureSym))(false)
     
     private val passedSymsMap_ : Map[ValueSymbol, (vs: VarSymbol, ts: TermSymbol)] = passedSymsOrdered.map: s =>
+        val erasedType = s.mapErasedValueType
         s ->
           (
-            VarSymbol(Tree.Ident(s.nme), erasedType = N),
-            TermSymbol(syntax.LetBind, S(obj.cls.isym), Tree.Ident(s.nme), erasedType = N)
+            VarSymbol(Tree.Ident(s.nme), erasedType),
+            TermSymbol(syntax.LetBind, S(obj.cls.isym), Tree.Ident(s.nme), erasedType)
           )
       .toMap
     private val capSymsMap_ : Map[ScopedInfo, (vs: VarSymbol, ts: TermSymbol)] = capturesOrdered.map: i =>

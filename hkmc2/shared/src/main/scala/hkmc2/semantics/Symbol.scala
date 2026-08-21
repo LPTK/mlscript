@@ -497,7 +497,7 @@ class ClassSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using State)
     with InnerSymbol
     with NamedSymbol:
 
-  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = S(false), this))
+  override val erasedType: Opt[ErasedValueType] = S(ErasedType.ValueLike(rsc = S(false), this))
 
   def name: Str = nme
   def nme = id.name
@@ -516,7 +516,7 @@ class ModuleOrObjectSymbol(val tree: Tree.TypeDef, val id: Tree.Ident)(using Sta
     with InnerSymbol
     with NamedSymbol:
 
-  override val erasedType: Opt[ErasedType] = S(ErasedType.ValueLike(rsc = S(false), this))
+  override val erasedType: Opt[ErasedValueType] = S(ErasedType.ValueLike(rsc = S(false), this))
   
   def name: Str = nme
   def nme = id.name
