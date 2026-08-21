@@ -28,6 +28,7 @@ class BufferableTransform()(using State, Raise):
             val fieldMap: Map[Symbol, Int] = fields.zipWithIndex.toMap
             def mkSymbolReplacer(params: List[ParamList]): (List[ParamList], Map[SimpleSymbol, SimpleSymbol]) =
               val allVars = params.flatMap(_.allParams).map(_.sym)
+              // TODO: https://github.com/hkust-taco/mlscript/pull/504#discussion_r3827173721
               val varMap = allVars
                 .map: sym =>
                   (sym, VarSymbol(sym.id, erasedType = N))
