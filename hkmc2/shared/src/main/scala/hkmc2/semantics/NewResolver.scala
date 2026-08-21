@@ -299,11 +299,11 @@ class NewResolver:
         val wrappedListener: TermShape => Unit = sh =>
           log(s"fromBMS: bms = ${bms.showDbg}, sh = ${sh.shwDbg}, flow = ${resSym.showDbg}, markss = ${markss.map(_.showDbg)}")
           val sh0 = sh
-          // MarkedShape.exit(sh, sym, S(resSym)).exit(markss) match
-          sh.exit(markss) match
-          case NoShape =>
-          case sh: TermShape =>
-            MarkedShape.exit(sh, sym, S(resSym)) match
+          MarkedShape.exit(sh, sym, S(resSym)).exit(markss) match
+          // sh.exit(markss) match
+          // case NoShape =>
+          // case sh: TermShape =>
+          //   MarkedShape.exit(sh, sym, S(resSym)) match
             case NoShape =>
               log(s"FILTER OUT ${sh.shwDbg} for ${sym.showDbg} % ${resSym.showDbg}")
             case sh: TermShape =>

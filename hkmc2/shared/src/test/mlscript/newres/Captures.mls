@@ -120,7 +120,7 @@ class foo(x) {
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun foo⁶
 //│   class foo⁷::foo⁸(x³) {
-//│     @private val x⁴::x⁵ ‹flow:x⁰› = x³,
+//│     @private val x⁴::x⁵ ‹flow:x⁰› = x³^x⁵,
 //│     ⟨Predef⁰.⟩print⁰(⟨foo⁸.this.⟩x⁴)‹app⁹›,
 //│     fun bar²::bar³(y¹) ‹flow:bar¹› = +(⟨foo⁸.this.⟩x⁴^bar³, y¹)‹app¹⁰›
 //│   }

@@ -2178,7 +2178,10 @@ extends Importer:
                   fsym,
                   tsym,
                   Nil, N, N,
-                  S(p.sym.ref()),
+                  if newResolution then
+                    S(Term.Capture(Term.SimpleRef(p.sym)(Ident(p.sym.name)), tsym))
+                  else S(p.sym.ref())
+                  ,
                   TermDefFlags.empty.copy(isMethod = (k is Cls)), // FIXME?!
                   p.modulefulness,
                   if isPublicField then Nil else Annot.Private :: Nil,

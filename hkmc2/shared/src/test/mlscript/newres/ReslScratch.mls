@@ -39,7 +39,7 @@ class Bar(a) with
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun Bar⁰
 //│   class Bar¹::Bar²(a⁰) {
-//│     @private val a¹::a² ‹flow:a⁰› = a⁰,
+//│     @private val a¹::a² ‹flow:a⁰› = a⁰^a²,
 //│     let x⁰,
 //│     x⁰ = ⟨Bar².this.⟩a¹,
 //│     ⟨Predef⁰.⟩print⁰(x⁰)‹app⁰›
@@ -63,7 +63,9 @@ class Bar(a) with
 //│             k = ImmutVal
 //│             sym = member:a³
 //│             tsym = term:Bar³/a⁴
-//│             body = S of Ref{sym=a²} of a²
+//│             body = S of Capture:
+//│               base = SimpleRef of a²
+//│               thru = term:Bar³/a⁴
 //│             modulefulness = Modulefulness of N
 //│             annotations = Ls of
 //│               Modifier of keyword 'private'

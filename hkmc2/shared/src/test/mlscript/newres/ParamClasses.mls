@@ -24,12 +24,14 @@ class Foo(val a)
 //│             k = ImmutVal
 //│             sym = member:a¹
 //│             tsym = term:Foo⁰/a²
-//│             body = S of Ref{sym=a⁰} of a⁰
+//│             body = S of Capture:
+//│               base = SimpleRef of a⁰
+//│               thru = term:Foo⁰/a²
 //│             modulefulness = Modulefulness of N
 //│         res = Lit of UnitLit of false
 //│   res = Lit of UnitLit of false
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   fun Foo⁰ class Foo¹::Foo²(val a⁰) { val a¹::a² ‹flow:a⁰› = a⁰ }
+//│   fun Foo⁰ class Foo¹::Foo²(val a⁰) { val a¹::a² ‹flow:a⁰› = a⁰^a² }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -100,10 +102,15 @@ tmp.id
 //│ | | | listen: trm = tmp
 //│ | | | listenBMS: bms = value
 //│ | | | listenedBMS: bms = value
-//│ | | | listenTerm: td.body = Some(Ref(a))
-//│ | | | listenTerm: trm = a⁰
-//│ | | | listen: trm = a⁰
-//│ | | | fromBMS: bms = member:a¹, sh = MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), flow = ⋅a⁰, markss = List(↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ, ↗⟨term:f⁰⟩%⟨f²⟩ϵ)
+//│ | | | listenTerm: td.body = Some(Capture(SimpleRef(a),term:Foo/a))
+//│ | | | listenTerm: trm = a^term:Foo⁰/a²
+//│ | | | listen: trm = a^term:Foo⁰/a²
+//│ | | | listenTerm: trm = a
+//│ | | | listen: trm = a
+//│ | | | fromBMS: bms = member:a¹, sh = MarkedShape(module:Predef⁰, ↘⟨term:Foo⁰/a²⟩↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), flow = ⋅a⁰, markss = List(↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ, ↗⟨term:f⁰⟩%⟨f²⟩ϵ)
+//│ | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↘⟨term:Foo⁰/a²⟩↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:Foo⁰/a², ⋅a⁰)
+//│ | | | | class hkmc2.semantics.TermSymbol Some(class:Foo⁰)
+//│ | | | = MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
 //│ | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ)
 //│ | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↗⟨term:Foo²⟩%⟨Foo³⟩ϵ)
 //│ | | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (ϵ)
@@ -120,12 +127,9 @@ tmp.id
 //│ | | | | | class hkmc2.semantics.TermSymbol None
 //│ | | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
 //│ | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:Foo⁰/a², ⋅a⁰)
-//│ | | | | class hkmc2.semantics.TermSymbol Some(class:Foo⁰)
-//│ | | | = MarkedShape(module:Predef⁰, ↗⟨term:Foo⁰/a²⟩%⟨⋅a⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | MATCH MarkedShape(module:Predef⁰, ↗⟨term:Foo⁰/a²⟩%⟨⋅a⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) for term:Foo⁰/a² % ⋅a⁰
-//│ | | | newSel: sel = tmp.id, shape = MarkedShape(module:Predef⁰, ↗⟨term:Foo⁰/a²⟩%⟨⋅a⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨term:Foo⁰/a²⟩%⟨⋅a⁰⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
+//│ | | | MATCH MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) for term:Foo⁰/a² % ⋅a⁰
+//│ | | | newSel: sel = tmp.id, shape = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
+//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
 //│ | | ~> NewSel(SimpleRef(tmp),Ident(id))
 //│ | ~> NewSel(SimpleRef(tmp),Ident(id))
 //│ ~> Blk(List(),NewSel(SimpleRef(tmp),Ident(id)))
@@ -161,10 +165,15 @@ f.a.id
 //│ | | | listen: trm = member:f.a
 //│ | | | listenBMS: bms = value
 //│ | | | listenedBMS: bms = value
-//│ | | | listenTerm: td.body = Some(Ref(a))
-//│ | | | listenTerm: trm = a⁰
-//│ | | | listen: trm = a⁰
-//│ | | | fromBMS: bms = member:a¹, sh = MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), flow = ⋅a¹, markss = List(↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ, ↗⟨term:f⁰⟩%⟨f³⟩ϵ)
+//│ | | | listenTerm: td.body = Some(Capture(SimpleRef(a),term:Foo/a))
+//│ | | | listenTerm: trm = a^term:Foo⁰/a²
+//│ | | | listen: trm = a^term:Foo⁰/a²
+//│ | | | listenTerm: trm = a
+//│ | | | listen: trm = a
+//│ | | | fromBMS: bms = member:a¹, sh = MarkedShape(module:Predef⁰, ↘⟨term:Foo⁰/a²⟩↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), flow = ⋅a¹, markss = List(↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ, ↗⟨term:f⁰⟩%⟨f³⟩ϵ)
+//│ | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↘⟨term:Foo⁰/a²⟩↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:Foo⁰/a², ⋅a¹)
+//│ | | | | class hkmc2.semantics.TermSymbol Some(class:Foo⁰)
+//│ | | | = MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
 //│ | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↘⟨term:f⁰⟩↗⟨term:Foo²⟩%⟨Foo³⟩ϵ)
 //│ | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (↗⟨term:Foo²⟩%⟨Foo³⟩ϵ)
 //│ | | | | | .exit MarkedShape(module:Predef⁰, ↘⟨term:Foo²⟩%⟨Foo³⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) (ϵ)
@@ -181,12 +190,9 @@ f.a.id
 //│ | | | | | class hkmc2.semantics.TermSymbol None
 //│ | | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
 //│ | | | = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | .exit MarkedShape (MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ), term:Foo⁰/a², ⋅a¹)
-//│ | | | | class hkmc2.semantics.TermSymbol Some(class:Foo⁰)
-//│ | | | = MarkedShape(module:Predef⁰, ↗⟨term:Foo⁰/a²⟩%⟨⋅a¹⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | MATCH MarkedShape(module:Predef⁰, ↗⟨term:Foo⁰/a²⟩%⟨⋅a¹⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) for term:Foo⁰/a² % ⋅a¹
-//│ | | | newSel: sel = member:f.a.id, shape = MarkedShape(module:Predef⁰, ↗⟨term:Foo⁰/a²⟩%⟨⋅a¹⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
-//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨term:Foo⁰/a²⟩%⟨⋅a¹⟩↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
+//│ | | | MATCH MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ) for term:Foo⁰/a² % ⋅a¹
+//│ | | | newSel: sel = member:f.a.id, shape = MarkedShape(module:Predef⁰, ↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
+//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨module:Predef⁰⟩%⟨Predef¹⟩ϵ)
 //│ | | ~> NewSel(NewSel(MemberRef(member:f),Ident(a)),Ident(id))
 //│ | ~> NewSel(NewSel(MemberRef(member:f),Ident(a)),Ident(id))
 //│ ~> Blk(List(),NewSel(NewSel(MemberRef(member:f),Ident(a)),Ident(id)))
@@ -235,7 +241,7 @@ class Foo(val a) {
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun Foo³
 //│   class Foo⁴::Foo⁵(val a³) {
-//│     val a⁴::a⁵ ‹flow:a¹› = a³,
+//│     val a⁴::a⁵ ‹flow:a¹› = a³^a⁵,
 //│     val b⁰::b¹ ‹flow:b⁰› = +(⟨Foo⁵.this.⟩a⁴^b¹, 1)‹app²›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -339,7 +345,9 @@ class Bar(b) with
 //│             k = ImmutVal
 //│             sym = member:b¹
 //│             tsym = term:Bar⁰/b²
-//│             body = S of Ref{sym=b⁰} of b⁰
+//│             body = S of Capture:
+//│               base = SimpleRef of b⁰
+//│               thru = term:Bar⁰/b²
 //│             modulefulness = Modulefulness of N
 //│             annotations = Ls of
 //│               Modifier of keyword 'private'
@@ -365,7 +373,7 @@ class Bar(b) with
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun Bar⁰
 //│   class Bar¹::Bar²(b²) {
-//│     @private val b³::b⁴ ‹flow:b¹› = b²,
+//│     @private val b³::b⁴ ‹flow:b¹› = b²^b⁴,
 //│     val foo²::foo³ ‹flow:foo¹› = Foo⁴^foo³(⟨Bar².this.⟩b³^foo³)‹app⁷›
 //│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -402,68 +410,43 @@ let y = Bar(123)
 //│ | | | | = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
 //│ | | | = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
 //│ | | | zipArg: p = b, trm = 123, sh = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
-//│ | | | fromBMS: bms = member:b¹, sh = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ), flow = (⋅)b⁰, markss = List()
-//│ | | | .exit MarkedShape (MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ), term:Bar⁰/b², (⋅)b⁰)
+//│ | | | fromBMS: bms = member:b¹, sh = MarkedShape(123, ↘⟨term:Bar⁰/b²⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ), flow = (⋅)b⁰, markss = List()
+//│ | | | .exit MarkedShape (MarkedShape(123, ↘⟨term:Bar⁰/b²⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ), term:Bar⁰/b², (⋅)b⁰)
 //│ | | | | class hkmc2.semantics.TermSymbol Some(class:Bar⁰)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:Bar⁰/b² but got term:Bar²
-//│ 	at: scala.Predef$.require(Predef.scala:376)
-//│ 	at: hkmc2.semantics.MarkedShape$.exit$$anonfun$3(Term.scala:422)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:20)
-//│ 	at: hkmc2.MLsDiffMaker$$anon$2.trace(MLsDiffMaker.scala:276)
-//│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:442)
-//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:306)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:373)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ | | | = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
+//│ | | | MATCH MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ) for term:Bar⁰/b² % (⋅)b⁰
+//│ | | | .enter MarkedShape(123, ↘⟨term:Bar⁰/foo¹⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ) (↘⟨term:Bar⁰/foo¹⟩↗⟨term:Foo⁴⟩%⟨Foo⁶⟩ϵ)
+//│ | | | | .exit MarkedShape (MarkedShape(123, ↘⟨term:Bar⁰/foo¹⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ), term:Bar⁰/foo¹, )
+//│ | | | | | class hkmc2.semantics.TermSymbol Some(class:Bar⁰)
+//│ | | | | = MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
+//│ | | | | .enter MarkedShape(123, ↘⟨term:Bar²⟩%⟨Bar³⟩ϵ) (↗⟨term:Foo⁴⟩%⟨Foo⁶⟩ϵ)
+//│ | | | | | .enter MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ) (ϵ)
+//│ | | | | | = MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
+//│ | | | | = MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
+//│ | | | = MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
+//│ | | | zipArg: p = val a, trm = (class:Bar.)b‹member:b›^term:Bar⁰/foo¹, sh = MarkedShape(123, ↘⟨term:Foo⁴⟩%⟨Foo⁶⟩↘⟨term:Bar²⟩%⟨Bar³⟩ϵ)
+//│ | | | appShape isSaturated? true; head? (DefnShape(term definition 'Bar'),List(ExitMark(term:Bar,Some(Bar),NoMarks)))
+//│ | | | lhs false List(((b),List(↗⟨term:Bar²⟩%⟨Bar³⟩ϵ)))
+//│ | | ~> App(MemberRef(member:Bar),Tup(List(Fld(‹›,Lit(IntLit(123)),None))))
+//│ | ~> App(MemberRef(member:Bar),Tup(List(Fld(‹›,Lit(IntLit(123)),None))))
+//│ | listen: trm = member:Bar(123)
+//│ ~> Blk(List(LetDecl(y,List()), DefineVar(y,App(MemberRef(member:Bar),Tup(List(Fld(‹›,Lit(IntLit(123)),None)))))),Lit(UnitLit(false)))
+//│ y = Bar(_)
 
 :sr
-b.foo
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:1252)
-//│ ╔══[COMPILATION ERROR] Name not found: b
-//│ ║  l.422: 	b.foo
-//│ ╙──       	^
+y.foo
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   ‹error›.fooˀˀˀ
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: term (Lowering.scala:1112)
-//│ FAILURE INFO: NewSel:
-//│   prefix = Error
-//│   id = Ident of "foo"
-//│ ╔══[COMPILATION ERROR] This selection of member 'foo' has no resolved target
-//│ ║  l.422: 	b.foo
-//│ ╙──       	^^^^^
+//│   y⁰.foo²
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = Foo(123)
 
 // :de
 :sr
-b.foo.a
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:1252)
-//│ ╔══[COMPILATION ERROR] Name not found: b
-//│ ║  l.445: 	b.foo.a
-//│ ╙──       	^
+y.foo.a
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
-//│   ‹error›.fooˀˀˀ.aˀˀˀ
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: term (Lowering.scala:1112)
-//│ FAILURE INFO: NewSel:
-//│   prefix = NewSel:
-//│     prefix = Error
-//│     id = Ident of "foo"
-//│   id = Ident of "a"
-//│ ╔══[COMPILATION ERROR] This selection of member 'a' has no resolved target
-//│ ║  l.445: 	b.foo.a
-//│ ╙──       	^^^^^^^
+//│   y⁰.foo².a⁴
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ FAILURE: Unexpected runtime error
-//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = 123
 
 
 :sjs
@@ -502,14 +485,14 @@ let g = f(1)
 :e
 g(2)
 //│ ╔══[COMPILATION ERROR] Instance of class 'Foo' cannot receive more argument lists.
-//│ ║  l.503: 	g(2)
+//│ ║  l.486: 	g(2)
 //│ ╙──       	^^^^
 //│ ═══[RUNTIME ERROR] TypeError: g is not a function
 
 :e
 let f = new Foo()
 //│ ╔══[COMPILATION ERROR] Arity mismatch: expected 1 arguments, but got 0
-//│ ║  l.510: 	let f = new Foo()
+//│ ║  l.493: 	let f = new Foo()
 //│ ╙──       	        ^^^^^^^^^
 //│ f = Foo(undefined)
 
@@ -517,7 +500,7 @@ let f = new Foo()
 :e
 new 42
 //│ ╔══[COMPILATION ERROR] Invalid class expression in 'new' instantiation.
-//│ ║  l.518: 	new 42
+//│ ║  l.501: 	new 42
 //│ ╙──       	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -534,7 +517,7 @@ let f = new Foo(Predef)
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun Foo⁶
 //│   class Foo⁷::Foo⁸(pred⁰) {
-//│     @private val pred¹::pred² ‹flow:pred⁰› = pred⁰,
+//│     @private val pred¹::pred² ‹flow:pred⁰› = pred⁰^pred²,
 //│     ⟨Foo⁸.this.⟩pred¹.id⁰(42)‹app⁸›
 //│   },
 //│   let f⁴,
@@ -562,18 +545,17 @@ class Foo(pred) {
   pred.id(2)
 }
 let f = Foo(Predef)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:Foo⁶/pred⁰ but got term:Foo⁷
-//│ 	at: scala.Predef$.require(Predef.scala:376)
-//│ 	at: hkmc2.semantics.MarkedShape$.exit$$anonfun$3(Term.scala:422)
-//│ 	at: hkmc2.MLsDiffMaker$$anon$2.trace(MLsDiffMaker.scala:277)
-//│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:442)
-//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:306)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.listenTerm$$anonfun$2(NewResolver.scala:373)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fun Foo⁹
+//│   class Foo¹⁰::Foo¹¹(pred³) {
+//│     @private val pred⁴::pred⁵ ‹flow:pred¹› = pred³^pred⁵,
+//│     ⟨Foo¹¹.this.⟩pred⁴.id⁰(1)‹app⁹›,
+//│     ⟨Foo¹¹.this.⟩pred⁴.id⁰(2)‹app¹⁰›
+//│   },
+//│   let f⁵,
+//│   f⁵ = Foo¹⁰(Predef⁰)‹app¹¹›
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ f = Foo(_)
 
 :sr
 class Foo(pred) {
@@ -581,18 +563,17 @@ class Foo(pred) {
   fun callId(x) = pred.id(x)
 }
 let f = new Foo(Predef)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.IllegalArgumentException: requirement failed: Expected symbol term:Predef⁰/id¹ but got term:Foo⁸/r⁰
-//│ 	at: scala.Predef$.require(Predef.scala:376)
-//│ 	at: hkmc2.semantics.MarkedShape$.exit$$anonfun$3(Term.scala:422)
-//│ 	at: hkmc2.MLsDiffMaker$$anon$2.trace(MLsDiffMaker.scala:277)
-//│ 	at: hkmc2.semantics.MarkedShape$.exit(Term.scala:442)
-//│ 	at: hkmc2.semantics.NewResolver.$anonfun$5(NewResolver.scala:306)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at: scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at: hkmc2.semantics.NewResolver.fromBMS$$anonfun$2(NewResolver.scala:333)
-//│ 	at: hkmc2.semantics.BlockMemberSymbol.onComplete(Symbol.scala:318)
-//│ 	at: hkmc2.semantics.NewResolver.fromBMS(NewResolver.scala:295)
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fun Foo¹²
+//│   class Foo¹³::Foo¹⁴(pred⁶) {
+//│     @private val pred⁷::pred⁸ ‹flow:pred²› = pred⁶^pred⁸,
+//│     val r⁰::r¹ ‹flow:r⁰› = ⟨Foo¹⁴.this.⟩pred⁷^r¹.id⁰(42)‹app¹²›,
+//│     fun callId⁰::callId¹(x¹) ‹flow:callId⁰› = ⟨Foo¹⁴.this.⟩pred⁷^callId¹.id⁰(x¹)‹app¹³›
+//│   },
+//│   let f⁶,
+//│   f⁶ = new Foo¹³(Predef⁰)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ f = Foo(_)
 
 
 
