@@ -589,7 +589,12 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
         val params = paramSyms.map(Param.simple(_))
         
         val loopBms = BlockMemberSymbol(bms.nme + "$tailrec", Nil, true)
-        val loopDSym = TermSymbol(syntax.Fun, owner, Tree.Ident(loopBms.nme), erasedType = N)
+        // * The internal loop stands for the same function as `f` with its parameter lists
+        // * flattened, so it must carry an equivalent `FuncRef`.
+        val loopDSym = TermSymbol(syntax.Fun, owner, Tree.Ident(loopBms.nme), f.dSym.erasedType match
+          case S(ft: ErasedFuncType) =>
+            S(ErasedType.FuncRef(ft.rsc, (paramSyms.map(_.erasedType)) :: Nil, ft.ret))
+          case other => other)
         val loopAnnots =
           if f.inline then Annot.Inline :: Annot.Private :: Nil
           else Annot.Private :: Nil
