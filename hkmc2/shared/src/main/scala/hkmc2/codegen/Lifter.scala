@@ -672,6 +672,15 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     private final lazy val captureInfo: (ClsLikeDefn, List[(ValueSymbol, TermSymbol)]) = createCaptureCls(obj)
     
     lazy val captureClass = captureInfo._1
+    
+    /** The erased type of the capture class, which types the symbols that hold a reference to it.
+      * Like [[captureClass]], this is lazy: forcing it would create a capture for a scope that may not need one. */
+    protected final lazy val captureType: Opt[ErasedValueType] = captureClass.isym match
+      case cls: ClassSymbol => cls.erasedValueType
+      case sym =>
+        softAssert(false, s"capture class inner symbol is not a class: `$sym`")
+        N
+    
     lazy val captureMap = captureInfo._2.toMap
     lazy val liftedObjsMap: Map[InnerSymbol, LocalPath]
     
@@ -689,7 +698,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         )(InstantiateMetadata.empty)
       else lastWords("tried to instantiate an empty capture")
     
-    protected final def addExtraSyms(b: Block, captureSym: LocalVarSymbol, objSyms: Iterable[ScopedSymbol]): Block =
+    protected final def addExtraSyms(b: Block, captureSym: => LocalVarSymbol, objSyms: Iterable[ScopedSymbol]): Block =
       if hasCapture then
         val inst = instantiateCapture
         Scoped(
@@ -866,7 +875,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     * A rewritten scope with a generic VarSymbol capture symbol.
     */
   sealed trait GenericRewrittenScope[T] extends RewrittenScope[T]:
-    lazy val captureSym = VarSymbol(Tree.Ident(obj.nme + "$cap"), erasedType = N)
+    lazy val captureSym = VarSymbol(Tree.Ident(obj.nme + "$cap"), erasedType = captureType)
     override lazy val capturePath = captureSym.asSimpleRef
     protected val liftedObjsOrdered: List[InnerSymbol] = node.liftedObjSyms.toList.sortBy(_.uid)
     protected val liftedObjsSyms: Map[InnerSymbol, VarSymbol] = liftedObjsOrdered.map: s =>
@@ -881,7 +890,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     * A rewritten scope with a TermSymbol capture symbol.
     */
   sealed trait ClsLikeRewrittenScope[T](sym: InnerSymbol) extends RewrittenScope[T]:
-    lazy val captureSym = TermSymbol(syntax.ImmutVal, S(sym), Tree.Ident(obj.nme + "$cap"), erasedType = N)
+    lazy val captureSym = TermSymbol(syntax.ImmutVal, S(sym), Tree.Ident(obj.nme + "$cap"), erasedType = captureType)
     override lazy val capturePath = Select(sym.asThis, captureSym.id)(S(captureSym))(false)
     protected val liftedObjsOrdered: List[InnerSymbol] = node.liftedObjSyms.toList.sortBy(_.uid)
     protected val liftedObjsSyms: Map[InnerSymbol, TermSymbol] = liftedObjsOrdered.map: s =>
@@ -1181,7 +1190,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     // Contains *all* parameters, and applies them all at once in a single `Instantiate`
     def mkFlattenedDefn: FunDefn =
       // Symbols for the aux parameter list
-      val auxSyms = auxParams.map(p => VarSymbol(Tree.Ident(p.sym.nme), erasedType = N))
+      val auxSyms = auxParams.map(p => VarSymbol(Tree.Ident(p.sym.nme), erasedType = p.sym.erasedType))
       val auxParamListLocal = PlainParamList(auxSyms.map(Param.simple(_)))
       
       val dupedClsAuxParams = cls.auxParams.map(dupParamList(_))

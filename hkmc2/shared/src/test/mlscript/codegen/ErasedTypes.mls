@@ -264,7 +264,7 @@ fun counter(x: Int) =
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define counter⁰ as fun counter¹(x: Int⁰): ? {
-//│   let n: ?, scope0$cap: ?;
+//│   let n: ?, scope0$cap: Capture$scope0¹;
 //│   set scope0$cap = new mut Capture$scope0¹(n);
 //│   set scope0$cap.n$0¹ = 0;
 //│   do bump⁰(scope0$cap, x);
@@ -298,7 +298,7 @@ resetCounter(41)
 //│   }
 //│ };
 //│ define resetCounter⁰ as fun resetCounter¹(x: Int⁰): Int⁰ {
-//│   let resetCounter$cap: ?;
+//│   let resetCounter$cap: Capture$resetCounter¹;
 //│   set resetCounter$cap = new mut Capture$resetCounter¹(x);
 //│   do reset⁰(resetCounter$cap);
 //│   return resetCounter$cap.x$0⁰
