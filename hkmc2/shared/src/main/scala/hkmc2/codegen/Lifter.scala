@@ -29,13 +29,17 @@ object Lifter:
       case l: Lazy[?] if !l.isEmpty => l.force_!
       case d: Defn => d
 
-  extension (s: ValueSymbol)
+  extension (s: ValueSymbol | DefinitionSymbol[?])
     /** Maps the symbol to its erased value type, if it has one. */
     private def mapErasedValueType(using Raise): Opt[ErasedValueType] = s match
       case v: VarSymbol => v.erasedType
       case t: TempSymbol => t.erasedType
       case c: (ClassSymbol | ModuleOrObjectSymbol) => c.erasedValueType
-      case s: ValueSymbol => 
+      case t: TermSymbol => t.erasedValueType
+      // * A pattern is not a value and carries no erased type of its own, so a reference to one is
+      // * left unknown rather than treated as an unexpected symbol.
+      case _: PatternSymbol => N
+      case s =>
         softAssert(false, s"Unexpected symbol type for symbol `$s`: ${s.getClass.getName}")
         N
 
@@ -1043,7 +1047,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       .toMap
     private val defnSymsMap_ : Map[DefinitionSymbol[?], VarSymbol] = reqDefnsOrdered.sortBy(_.uid).map: i =>
         val nme = data.getNode(i).obj.nme
-        i -> VarSymbol(Tree.Ident(nme + "$"), erasedType = N)
+        i -> VarSymbol(Tree.Ident(nme + "$"), erasedType = i.mapErasedValueType)
       .toMap
     
     override protected val passedSymsMap = passedSymsMap_.view.mapValues(_.asLocalPath).toMap
@@ -1155,10 +1159,11 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           )
       .toMap
     private val defnSymsMap_ : Map[DefinitionSymbol[?], (vs: VarSymbol, ts: TermSymbol)] = reqDefnsOrdered.map: i =>
+        val erasedType = i.mapErasedValueType
         i -> 
           (
-            VarSymbol(Tree.Ident(i.nme + "$"), erasedType = N),
-            TermSymbol(syntax.LetBind, S(obj.cls.isym), Tree.Ident(i.nme + "$"), erasedType = N)
+            VarSymbol(Tree.Ident(i.nme + "$"), erasedType),
+            TermSymbol(syntax.LetBind, S(obj.cls.isym), Tree.Ident(i.nme + "$"), erasedType)
           )
       .toMap
     
