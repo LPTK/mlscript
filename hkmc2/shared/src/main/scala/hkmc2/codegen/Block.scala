@@ -1060,15 +1060,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Value.Lit(lit) => 0
     case DynSelect(qual, fld, arrayIdx) => qual.size + fld.size
 
-  /** Whether the term this result came from carried an `@untyped` annotation. */
-  private def hasUntypedAnnot: Bool = this match
-    case c: Call => c.metadata.annotations.contains(Annot.Untyped)
-    case i: Instantiate => i.metadata.annotations.contains(Annot.Untyped)
-    case _ => false
-
   lazy val erasedType: Opt[ErasedType] = this match
-    // * `@untyped` forces the erasure to `Unknown` regardless of the declared type of the term.
-    case _ if hasUntypedAnnot => S(ErasedType.Unknown)
     case Value.SimpleRef(sym) => sym match
       case hasErasedType: HasErasedType => hasErasedType.erasedType
       case _ => 

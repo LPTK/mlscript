@@ -724,7 +724,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
         lastWords(s"Unexpected symbol kind ${sym.getClass.getSimpleName}: $sym")
   
   @tailrec
-  final def term(t: st, inStmtPos: Bool = false)(k: Result => Block)(using LoweringCtx): Block =
+  final def term(t: st, inStmtPos: Bool = false)(k0: Result => Block)(using LoweringCtx): Block =
     tl.log(s"Lowering.term ${t.showDbg.truncate(100, "[...]")}${
       if inStmtPos then " (in stmt)" else ""}${
       t.resolvedSym.fold("")(" – symbol " + _)}")
@@ -737,8 +737,19 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
       case _ => (acc, t)
     
     val insted = t.instantiated
-    val (annots, trm) = extractAnnots(insted, Nil)
-    reportAnnotations(trm, annots)
+    val (allAnnots, trm) = extractAnnots(insted, Nil)
+    reportAnnotations(trm, allAnnots)
+    
+    // * `@untyped` discards the term's declared type by binding its value to a local declared with `Unknown`.
+    // * Done here rather than on the IR node so that it reaches every shape of term, not just annotatable ones.
+    val isUntyped = allAnnots.contains(Annot.Untyped)
+    val annots = if isUntyped then allAnnots.filterNot(_ === Annot.Untyped) else allAnnots
+    val k: Result => Block =
+      if !isUntyped then k0
+      else r =>
+        val l = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Unknown))
+        // TODO: Does `@untyped` on a primitive make sense? How should be handle it?
+        Assign(l, r, k0(l.asSimpleRef))
     
     trm match
     case st.UnitVal() => k(unit)
