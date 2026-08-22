@@ -791,10 +791,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     * is not annotated.
     */
   private def declaredResultType(sym: BlockMemberSymbol)(using Raise): ValType =
-    sym.asTrm.flatMap(_.erasedType) match
-      case S(ErasedType.FuncRef(_, _, S(ret))) => ret.wasmType.getOrElse(RefType.anyref)
-      case S(ErasedType.FuncRef(_, _, N)) | N => RefType.anyref
-      case et => lastWords(s"Unexpected type `$et` where `FuncRef` was expected")
+    sym.asTrm.flatMap(_.declaredResultType).flatMap(_.wasmType).getOrElse(RefType.anyref)
 
   /** Checks that the generated body `bodyWat` for the function/method `sym` conforms to the expected result type as
     * declared by its placeholder, returning the body to emit.

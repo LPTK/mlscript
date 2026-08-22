@@ -2060,7 +2060,11 @@ extends Importer:
                   val paramLists = sigShape match
                     case S((ps, _)) => ps
                     case N => pss.map(_.params.map(_.sym.erasedType))
-                  S(ErasedType.FuncRef(rsc = S(false), paramLists, retTpe))
+                  // * A `fun` with no parameter lists is a getter, which is auto-invoked on every reference or
+                  // * compiled into a getter method when selected, so it never denotes a function value.
+                  // * Its erased type is therefore the type of the getter's result.
+                  if paramLists.isEmpty then retTpe
+                  else S(ErasedType.FuncRef(rsc = S(false), paramLists, retTpe))
                 case _: syntax.Val => retTpe
                 case _ => N
               val tsym = TermSymbol(k, owner, id, erasedType = erasedTpe) // TODO?

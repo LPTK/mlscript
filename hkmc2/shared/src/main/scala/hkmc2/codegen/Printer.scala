@@ -41,10 +41,7 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
     case ErasedType.CanonicalFuncRef(rsc, paramLists, ret) =>
       // * Curried functions are rendered as `(A) => (B) => R`, so that an under-applied call reads as the residual
       // * function type it actually has.
-      // * Note that definitions without a parameter list will still be rendered as `() => R` to distinguish them from
-      // * a bare value of type `R`.
-      val pls = ErasedType.normalizeParamLists(paramLists)
-      val sig = pls.foldRight(ret.fold(doc"?")(print)): (ps, acc) =>
+      val sig = paramLists.foldRight(ret.fold(doc"?")(print)): (ps, acc) =>
         doc"(${ps.map(_.fold(doc"?")(print)).mkDocument(sep = doc", ")}) => $acc"
       doc"${rsc.fold("rsc? ")(if _ then "rsc " else "")}$sig"
     case ErasedType.Primitive(prim) => doc"${prim.toString}"
@@ -58,12 +55,10 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
     if !summon[ShowCfg].showErasedTypes then doc""
     else doc": ${x.erasedType.fold(doc"?")(print)}"
 
-  /** Renders a function's return type, projected from the `FuncRef` carried by its definition symbol. */
+  /** Renders a function's return type, as declared by its definition symbol. */
   def returnTypeAnnot(dSym: TermSymbol)(using Scope): Document =
-    if !summon[ShowCfg].showErasedTypes then doc""
-    else dSym.erasedType match
-      case S(ErasedType.FuncRef(_, _, ret)) => doc": ${ret.fold(doc"?")(print)}"
-      case _ => doc""
+    if !summon[ShowCfg].showErasedTypes || !(dSym.k is syntax.Fun) then doc""
+    else doc": ${dSym.declaredResultType.fold(doc"?")(print)}"
   
   def print(blk: Block)(using Scope): Document = blk match
     case Match(scrut, arms, dflt, rest) =>

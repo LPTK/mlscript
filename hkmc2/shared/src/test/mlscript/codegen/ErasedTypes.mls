@@ -770,7 +770,7 @@ val over: Int = thunk(2)
 //│ define thunk⁰ as fun thunk¹(): Function⁰ {
 //│   let lambda;
 //│   @private
-//│   define lambda as fun lambda⁰(b: Int⁰) {
+//│   define lambda as fun lambda⁰(b: Int⁰): ? {
 //│     return +⁰(b, 1)
 //│   };
 //│   return (lambda⁰ as! Function⁰)
@@ -843,7 +843,7 @@ applyF((x: Int) => x)
 //│ define applyF⁰ as fun applyF¹(f: Function⁰): Int⁰ {
 //│   return (f(1) as! Int⁰)
 //│ };
-//│ define lambda as fun lambda¹(x: Int⁰) { return x };
+//│ define lambda as fun lambda¹(x: Int⁰): ? { return x };
 //│ return applyF¹((lambda¹ as! Function⁰))
 
 
@@ -853,7 +853,7 @@ fun mk: Int -> Int = (x: Int) => x
 //│ define mk² as fun mk³(): Function⁰ {
 //│   let lambda;
 //│   @private
-//│   define lambda as fun lambda²(x: Int⁰) { return x };
+//│   define lambda as fun lambda²(x: Int⁰): ? { return x };
 //│   return (lambda² as! Function⁰)
 //│ };
 //│ end
@@ -873,7 +873,7 @@ fun badFn() = applyF(42)
 val g: Int -> Int = (x: Int) => x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let lambda;
-//│ define lambda as fun lambda³(x: Int⁰) {
+//│ define lambda as fun lambda³(x: Int⁰): ? {
 //│   return x
 //│ };
 //│ define g² as val g³: Function⁰ = (lambda³ as! Function⁰);
@@ -1015,9 +1015,8 @@ fun usePlain() = useFn(Plain.f)
 //│ define usePlain⁰ as fun usePlain¹(): ? { return useFn¹(Plain².f¹⁰) }; end
 
 
-// *Applying* it must not be mistaken for a getter's nullary call. A member declares no parameter lists, which
-// `normalizeParamLists` turns into one empty list, so without the emptiness check in `Call.erasedType` these
-// would score as exact and take `Function` as the result of a call that in truth returns `Int`.
+// *Applying* the selected member is a call on that function value, and since `Function` does not store its
+// result types, a checked downcast is inserted at the use site.
 fun applyExt() = useInt(Ext.member(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define applyExt⁰ as fun applyExt¹(): ? {
@@ -1156,7 +1155,7 @@ fun tagged(x: Int) =
   fun describe() = Tag.label()
   describe()
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.1154: 	  object Tag with
+//│ ║  l.1153: 	  object Tag with
 //│ ╙──        	         ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let describe;
@@ -1183,7 +1182,7 @@ fun mk() =
     fun get() = Tag.label()
   new Holder
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.1180: 	  object Tag with
+//│ ║  l.1179: 	  object Tag with
 //│ ╙──        	         ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let Holder;

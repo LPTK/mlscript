@@ -360,6 +360,16 @@ class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.I
     owner.exists(!_.isInstanceOf[TopLevelSymbol]) &&
       ((k is LetBind) || isExplicitlyPrivate)
   
+  /** The erased type of this term's return value.
+    *
+    * This method differs for `fun` definitions with parameter lists, whose `erasedType` is the function type rather
+    * than its result type.
+    */
+  def declaredResultType: Opt[ErasedValueType] = erasedType match
+    case S(ft: ErasedFuncType) => ft.ret
+    case S(vt: ErasedValueType) => S(vt)
+    case N => N
+
   def subst(using sub: SymbolSubst): TermSymbol = sub.mapTermSym(this)
   def mayRaiseEffects(using Config) =
     defn.forall(_.mayRaiseEffects)

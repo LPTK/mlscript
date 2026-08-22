@@ -88,9 +88,9 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
   
   /** Coerces `r` to the declared return type of `sym`, if a coercion is required. */
   private def coerceToDeclaredReturn(r: Result, sym: TermSymbol): Result =
-    sym.erasedType match
-      case S(ErasedType.FuncRef(_, _, S(ret))) => r.coerceTo(ret, sym.toLoc)
-      case _ => r
+    sym.declaredResultType match
+      case S(ret) => r.coerceTo(ret, sym.toLoc)
+      case N => r
 
   object CallToFun:
     def unapply(c: Call): Opt[TermSymbol] = c match
@@ -335,7 +335,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
       if funsLen === 1 then funs.head.dSym
       else
         // The dispatcher can exit through any member's return, so its result type is the LUB of its members.
-        val memberRets = funs.map(_.dSym.erasedType.collect { case ft: ErasedFuncType => ft.ret }.flatten)
+        val memberRets = funs.map(_.dSym.declaredResultType)
         val ret =
           if memberRets.exists(_.isEmpty) then N
           else S(memberRets.flatten.map(_.canonicalize).reduce(ErasedType.lub))

@@ -60,17 +60,14 @@ object ErasedType:
     * - `rsc` is true if this reference is a resource function.
     */
   case class FuncRef(override val rsc: Opt[Bool], override val paramLists: Ls[Ls[Opt[ErasedValueType]]], override val ret: Opt[ErasedValueType]) extends ErasedFuncType:
+    ErasedFuncType.assertHasParamLists(paramLists)
     override type Canonical = CanonicalFuncRef
     override protected def computeCanonicalize(using Ctx, State): CanonicalFuncRef =
       CanonicalFuncRef(rsc, paramLists.map(_.map(_.map(_.canonicalize))), ret.map(_.canonicalize))
 
   /** An analogue to `FuncRef` for function types with canonicalized parameter and return types. */
-  case class CanonicalFuncRef(override val rsc: Opt[Bool], override val paramLists: Ls[Ls[Opt[CanonicalErasedValueType]]], override val ret: Opt[CanonicalErasedValueType]) extends ErasedFuncType with CanonicalErasedType
-
-  /** Normalizes a signature's parameter lists such that an empty parameter list is represented as a single empty list.
-    */
-  def normalizeParamLists[A](paramLists: Ls[Ls[A]]): Ls[Ls[A]] =
-    if paramLists.isEmpty then Nil :: Nil else paramLists
+  case class CanonicalFuncRef(override val rsc: Opt[Bool], override val paramLists: Ls[Ls[Opt[CanonicalErasedValueType]]], override val ret: Opt[CanonicalErasedValueType]) extends ErasedFuncType with CanonicalErasedType:
+    ErasedFuncType.assertHasParamLists(paramLists)
 
   /** An primitive type. */
   case class Primitive(prim: PrimitiveType) extends ErasedValueType, CanonicalErasedType:
@@ -254,8 +251,7 @@ object ErasedType:
     case UnitVal() => S(ErasedType.Unit)
     // * A written arrow denotes a function value, and every function value is a `Function`.
     case FunTy(_, _, _) => S(ErasedType.Function(rsc = S(false)))
-    // * A `forall`-wrapped arrow still denotes function values, so erase the body. A bare `forall a. a` has no
-    // * arrow and falls through below.
+    // * Quantification erases away: what a `forall` denotes is what its body denotes.
     case Forall(_, _, body) => eraseSign(body)
     case _ =>
       sign.symbol.flatMap(_.asTpe).map(sym => ErasedType.ValueLike(rsc = S(false), sym))
@@ -383,10 +379,21 @@ sealed abstract class ErasedType:
 sealed abstract class ErasedValueType extends ErasedType:
   type Canonical <: CanonicalErasedValueType
 
+object ErasedFuncType:
+  /** Enforces the invariant that `paramLists` must be non-empty.
+    *
+    * See the documentation of [[`ErasedFuncType`]] for the rationale.
+    */
+  def assertHasParamLists(paramLists: Ls[Ls[?]]): Unit =
+    assert(paramLists.nonEmpty, "a function type must describe at least one parameter list")
+
 /** Base class indicating that the [[`ErasedType`]] is a function type.
   *
   * `paramLists` mirrors the definition's parameter *lists*, so that curried functions can be represented - functions
   * that are partially applied yields a function type with fewer parameter lists.
+  * 
+  * Note that `paramLists` should never be empty: a member declaring no parameter list at all is a getter, and is erased
+  * to its result instead.
   */
 sealed abstract class ErasedFuncType extends ErasedType:
   val rsc: Opt[Bool]

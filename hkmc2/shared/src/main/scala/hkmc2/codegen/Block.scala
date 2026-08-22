@@ -1060,14 +1060,6 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Value.Lit(lit) => 0
     case DynSelect(qual, fld, arrayIdx) => qual.size + fld.size
 
-  /** The erased type of a reference to a member defined by `ts`.
-    *
-    * A `fun` with no parameter lists yields its result rather than the function itself.
-    */
-  private def memberErasedType(ts: TermSymbol): Opt[ErasedType] = ts.erasedType match
-    case S(ErasedType.FuncRef(_, paramLists, ret)) if paramLists.isEmpty => ret
-    case other => other
-
   /** Whether the term this result came from carried an `@untyped` annotation. */
   private def hasUntypedAnnot: Bool = this match
     case c: Call => c.metadata.annotations.contains(Annot.Untyped)
@@ -1091,7 +1083,7 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
       N
     // * A `val` or `fun` is a block *member*, so its references are `MemberRef`s rather than `SimpleRef`s, and
     // * its declared type lives on the associated `TermSymbol` - the same shape `Select` reads below.
-    case Value.MemberRef(_, disamb: TermSymbol) => memberErasedType(disamb)
+    case Value.MemberRef(_, disamb: TermSymbol) => disamb.erasedType
     case Value.This(clsOrMod: (ClassSymbol | ModuleOrObjectSymbol)) => clsOrMod.erasedType
     case Value.Lit(_: Tree.IntLit) => S(ErasedType.Int)
     case Value.Lit(_: Tree.DecLit) => S(ErasedType.Num)
@@ -1101,23 +1093,24 @@ sealed abstract class Result extends AutoLocated, HasErasedType:
     case Call(fun, argss) => fun.targetSymbol match
       case S(ts: TermSymbol) => ts.erasedType match
         case S(ErasedType.FuncRef(rsc, paramLists, ret)) =>
-          val declared = ErasedType.normalizeParamLists(paramLists)
-          argss.sizeCompare(declared) match
-            // * A callee declaring *no* parameter lists but called with *some* arguments is an over-applied call.
-            case 0 if paramLists.isEmpty && argss.exists(_.nonEmpty) => N
+          argss.sizeCompare(paramLists) match
             // * An exactly-applied call yields the function's result type.
             case 0 => ret
             // * An under-applied call yields a function type over the remaining parameter lists.
-            case c if c < 0 => S(ErasedType.FuncRef(rsc, declared.drop(argss.length), ret))
+            case c if c < 0 => S(ErasedType.FuncRef(rsc, paramLists.drop(argss.length), ret))
             // * An over-applied call applies arguments to whatever the function returns, which the function's
             // * signature is oblivious about.
             case _ => N
+        // * A `fun` with no parameter lists is a getter, so it has no `FuncRef` and `Lowering.ref` auto-invokes it
+        // * with one empty argument list - the getter's own type is the result type of the call.
+        // * Any further application is handled as an over-applied call.
+        case other if (ts.k is syntax.Fun) && argss.sizeIs == 1 && argss.head.isEmpty => other
         case _ => N
       case _ => N
     // * A resolved selection has the type of the member it refers to (e.g. `this.field`); an
     // * unresolved selection (dynamic field access) stays unknown.
     case sel @ Select(_, _) => sel.symbol match
-      case S(ts: TermSymbol) => memberErasedType(ts)
+      case S(ts: TermSymbol) => ts.erasedType
       // * A class reference is the class object, so it stays unknown.
       case S(_: ClassSymbol) => N
       case S(d: (ModuleOrObjectSymbol | TypeAliasSymbol)) => d.erasedType

@@ -191,11 +191,6 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
   // type Rcd = (mut: Bool, args: List[RcdArg]) // * Better, but Scala's patmat exhaustiveness chokes on it
   type Rcd = (Bool, List[RcdArg])
   
-  /** The declared return type projected from a function symbol's erased `FuncRef`, if any. */
-  private def declaredReturnType(tsym: TermSymbol): Opt[ErasedType] = tsym.erasedType match
-    case S(ErasedType.FuncRef(_, _, ret)) => ret
-    case _ => N
-
   /** Lowers `t` in tail-return position, coercing the result to the enclosing function's declared return type. */
   def returnedTerm(t: st, returnType: Opt[ErasedType])(using LoweringCtx): Block =
     LoweringCtx.nestFunc(returnType).givenIn:
@@ -302,7 +297,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 ),
               )(using LoweringCtx.nestFunc(N))
             case syntax.Fun =>
-              val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme), declaredReturnType(td.tsym))
+              val (paramLists, bodyBlock) = setupFunctionOrByNameDef(td.params, bod, S(td.sym.nme), td.tsym.declaredResultType)
               val cfgOverride = td.extraAnnotations.collectFirst:
                 case Annot.Config(modify) => modify(config)
               Define(FunDefn(td.owner, td.sym, td.tsym, paramLists, bodyBlock)(cfgOverride, td.annotations),
@@ -976,7 +971,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
             N
           case Some(bod) =>
             reportAnnotations(td, td.annotations)
-            val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme), declaredReturnType(td.tsym))
+            val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme), td.tsym.declaredResultType)
             S(Handler(td.sym, resumeSym, paramLists, bodyBlock))
       }.collect{ case Some(v) => v }
       loweringCtx.collectScopedSym(lhs)
@@ -1331,7 +1326,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
     val mtds = clsBody.methods
       .flatMap: td =>
         td.body.map: bod =>
-          val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme), declaredReturnType(td.tsym))
+          val (paramLists, bodyBlock) = setupFunctionDef(td.params, bod, S(td.sym.nme), td.tsym.declaredResultType)
           reportAnnotations(td, td.extraAnnotations)
           val cfgOverride = td.extraAnnotations.collectFirst:
             case Annot.Config(modify) => modify(config)

@@ -167,7 +167,7 @@ class Rewrite(val deadParamElimSolver: DeadParamElimSolver)(using Raise):
             val specializedErasedType = f.erasedType match
               case S(fr: ErasedType.FuncRef) =>
                 S(fr.copy(
-                  paramLists = ErasedType.normalizeParamLists(fr.paramLists).zipWithIndex.map: (pl, i) =>
+                  paramLists = fr.paramLists.zipWithIndex.map: (pl, i) =>
                     val eliminable = deadParamElimSolver.eliminableParamsById(ConcreteId((f, i), instId))
                     pl.zipWithIndex.collect:
                       case (t, j) if !eliminable(j) => t))
