@@ -131,6 +131,10 @@ class NewResolver:
                       case ccs: ClassCtorSymbol => ccs.associatedCls.defn.get
                       case _ => ???
                   log(s"Pattern's class: $cls")
+                  lhs match
+                  case trm: NewResolvable =>
+                    trm.resolvedTargets ::= cls.sym
+                  res.resolvedSym = S(cls.sym)
                   cls.paramsOpt match
                   case N =>
                     res.isErroneous = true

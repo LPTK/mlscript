@@ -69,7 +69,7 @@ object InvalCtx:
 end InvalCtx
 
 
-class InvalTyper(using elState: Elaborator.State, tl: TL)(using Ctx):
+class InvalTyper(using elState: Elaborator.State, tl: TL)(using Ctx, Config):
   import tl.{trace, log}
   
   private val infVarState = new InfVarUid.State()

@@ -329,10 +329,12 @@ enum Pattern extends AutoLocated, Describable, PatternShapePublisher:
     case Tuple(leading, spread) =>
       (leading.iterator.map(_.show) ++ spread.fold(Iterator.empty):
         case (_, middle, trailing) =>
-          Iterator.single(middle.show) ++ trailing.iterator.map(_.show)).mkString("[", ", ", "]")
+          Iterator.single(middle.show) ++ trailing.iterator.map(_.show)
+      ).toList.mkDocument("[", ", ", "]")
     case Record(fields) => doc"{${fields.map((k, v) => doc"${k.name}: ${v.show}").mkString(", ")}}"
-    case Chain(first, second) => doc"${first.show} as ${second.show}"
-    case Alias(pattern, alias) => doc"${pattern.show} as ${alias.name}"
+    case Chain(first, second) => doc"${first.show} >> ${second.show}"
+    // case al @ Alias(pattern, alias) => doc"${pattern.show} as ${alias.name}‹${al.symbolOption.fold("")(_.showName)}›"
+    case al @ Alias(pattern, alias) => doc"${pattern.show} as ${al.symbolOption.fold(alias.name)(_.showName)}"
     case Transform(pattern, _, transform) => doc"${pattern.show} => ${transform.show}"
     case Annotated(pattern, annotations) => annotations.iterator.map:
         case L(errorLoc) => "error"
@@ -423,9 +425,9 @@ enum Pattern extends AutoLocated, Describable, PatternShapePublisher:
           Iterator.single(spreadKind.str + middle.showDbg) ++
             trailing.iterator.map(_.showDbg)).mkString("[", ", ", "]")
     case Record(fields) => s"{${fields.map((k, v) => s"${k.name}: ${v.showDbg}").mkString(", ")}}"
-    case Chain(first, second) => s"${first.showDbgWithPar} as ${second.showDbgWithPar}"
+    case Chain(first, second) => s"${first.showDbgWithPar} >> ${second.showDbgWithPar}"
     case Alias(Wildcard(), alias) => alias.name
-    case Alias(pattern, alias) => s"${pattern.showDbgWithPar} as ${alias.name}"
+    case al @ Alias(pattern, alias) => s"${pattern.showDbgWithPar} as ${alias.name}‹${al.symbolOption.fold("")(_.showDbg)}"
     case Transform(pattern, _, transform) => s"${pattern.showDbgWithPar} => ${transform.showDbg}"
     case Annotated(pattern, annotations) => annotations.iterator.map:
         case L(errorLoc) => "error"

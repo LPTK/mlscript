@@ -171,7 +171,7 @@ fun foo(x) =
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun foo⁰::foo¹(x¹) ‹flow:foo⁰› = if {
 //│     let scrut⁰ = x¹;
-//│     scrut⁰ is [_ as y] and {
+//│     scrut⁰ is [_ as y⁰] and {
 //│       let scrut¹ = >(y⁰, 0)‹app¹›;
 //│       scrut¹ is true then 1
 //│     };

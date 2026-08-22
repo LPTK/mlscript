@@ -91,7 +91,7 @@ enum SimpleSplit extends AutoLocated with ProductWithTail:
   private var _expandedSplit: Opt[Split] = N
   
   /**  */
-  def getExpandedSplit(using TL, Ctx, State, Raise): Split = _expandedSplit.getOrElse:
+  def getExpandedSplit(using TL, Ctx, State, Raise, Config): Split = _expandedSplit.getOrElse:
     val split = Split.from(this)
     _expandedSplit = S(split)
     split
