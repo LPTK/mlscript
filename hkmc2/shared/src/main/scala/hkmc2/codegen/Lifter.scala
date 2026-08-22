@@ -39,6 +39,14 @@ object Lifter:
         softAssert(false, s"Unexpected symbol type for symbol `$s`: ${s.getClass.getName}")
         N
 
+  extension (d: ClsLikeDefn)
+    /** Maps the definition to the erased type of its instances. */
+    private def instanceType(using Raise): Opt[ErasedValueType] = d.isym match
+      case cls: ClassLikeSymbol => cls.erasedValueType
+      case sym =>
+        softAssert(false, s"Class-like definition's inner symbol is not class-like: `$sym`")
+        N
+
   /**
     * Describes previously defined locals and definitions which could possibly be accessed or mutated by particular definition.
     * Here, a "previously defined" local or definition means it is accessible to the particular definition (which we call `d`), 
@@ -675,11 +683,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     /** The erased type of the capture class, which types the symbols that hold a reference to it.
       * Like [[captureClass]], this is lazy: forcing it would create a capture for a scope that may not need one. */
-    protected final lazy val captureType: Opt[ErasedValueType] = captureClass.isym match
-      case cls: ClassSymbol => cls.erasedValueType
-      case sym =>
-        softAssert(false, s"capture class inner symbol is not a class: `$sym`")
-        N
+    protected final lazy val captureType: Opt[ErasedValueType] = captureClass.instanceType
     
     lazy val captureMap = captureInfo._2.toMap
     lazy val liftedObjsMap: Map[InnerSymbol, LocalPath]
@@ -1200,6 +1204,14 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         case None => dupedClsAuxParams
       // Contains aux param list
       val allParamLists = auxParamListLocal :: clsParamLists
+      
+      // * The flattened definition takes every parameter list at once and returns an instance of the
+      // * class, so its erased type is only known here, once the parameter lists are assembled.
+      flattenedDSym.populateErasedType(ErasedType.FuncRef(
+        rsc = S(false),
+        paramLists = allParamLists.map(_.params.map(_.sym.erasedType)),
+        ret = cls.instanceType,
+      ))
       
       // Uses the symbols from pl1.
       def applyPlToPl(pl1: ParamList, pl2: ParamList): List[Arg] = (pl1.restParam, pl2.restParam) match
