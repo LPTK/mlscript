@@ -1,16 +1,23 @@
 :..
 
 
-
 :sr
 class Foo(val a)
 object Bar { val b = 123 }
+class Baz(c) { fun b = c }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun Foo⁰
 //│   class Foo¹::Foo²(val a⁰) {
 //│     val a¹::a² ‹flow:a⁰› = a⁰^a²
 //│   },
-//│   object Bar⁰::Bar¹ { val b⁰::b¹ ‹flow:b⁰› = 123 }
+//│   object Bar⁰::Bar¹ {
+//│     val b⁰::b¹ ‹flow:b⁰› = 123
+//│   },
+//│   fun Baz⁰
+//│   class Baz¹::Baz²(c⁰) {
+//│     @private val c¹::c² ‹flow:c⁰› = c⁰^c²,
+//│     fun b²::b³ ‹flow:b¹› = ⟨Baz².this.⟩c¹^b³
+//│   }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -31,5 +38,91 @@ if x is
 //│   if { let scrut⁰ = x⁰; scrut⁰ is Foo¹(_ as y⁰) then y⁰.b⁰ }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 123
+
+:e
+if x is
+  Foo(y) then y.id
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.44: 	  Foo(y) then y.id
+//│ ║        	              ^^^^
+//│ ╟── Object 'Bar' does not contain member 'id'
+//│ ║  l.6: 	object Bar { val b = 123 }
+//│ ╙──     	       ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+let bz = Baz(Bar)
+//│ bz = Baz(_)
+
+
+:todo
+fun test(x) =
+  if x is
+    Foo(y) then y.b
+test(bz)
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+
+
+:todo
+set x = bz
+//│ ═══[COMPILATION ERROR] Unexpected left-hand side in assignment (reference)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:breakme // Note: if compiled together with it, this would make the previous code ambiguous
+x = bz
+
+
+let x = if maybe then Bar else bz
+//│ x = Bar { b: 123, class: object Bar }
+
+:e
+x.b
+//│ ╔══[COMPILATION ERROR] This selection of member 'b' is ambiguous, as it has multiple resolved targets
+//│ ║  l.79: 	x.b
+//│ ║        	^^^
+//│ ╟── target: function 'b' in overloaded function and class 'Baz'
+//│ ║  l.7: 	class Baz(c) { fun b = c }
+//│ ║       	               ^^^^^^^^^
+//│ ╟── target: value 'b' in object 'Bar'
+//│ ║  l.6: 	object Bar { val b = 123 }
+//│ ╙──     	             ^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:todo
+if x is
+  Baz as y then y.b
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+
+:todo
+if x is
+  Baz as y then y.b
+  Bar as z then z.b
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+
+
+
+
+:silent
+let x2 = Foo(Predef)
+
+if x2 is
+  Foo(y2) then y2.id
+//│ = fun id
+
+
+:todo
+if Foo(Predef) is
+  Foo(y) then y.id
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+
+
+:todo
+val f = case
+  Foo(y) then y.b
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+
+
+
+
 
 
