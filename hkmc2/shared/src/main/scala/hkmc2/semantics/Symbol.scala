@@ -192,6 +192,9 @@ object FlowSymbol:
     // FlowSymbol("@")
     FlowSymbol("app")
   
+  def pat()(using State) =
+    FlowSymbol("pat")
+  
   def neww()(using State) =
     FlowSymbol("new")
   
@@ -216,11 +219,13 @@ class ConcreteFlowSymbol(label: Str)(using State) extends FlowSymbol(label):
   def subst(using s: SymbolSubst): FlowSymbol = s.mapFlowSym(this)
 
 
-sealed trait LocalSymbol extends Symbol, ShapePublisher:
-  /** Shapes are published in discovery order. Resolution replays this collection to late
-    * listeners, so an unordered set would make ambiguous-target diagnostics depend on hash and
-    * parallel compilation timing. */
-  private[semantics] val shapes: LinkedHashSet[Shape] = LinkedHashSet.empty
+// sealed trait LocalSymbol extends Symbol, ShapePublisher:
+//   /** Shapes are published in discovery order. Resolution replays this collection to late
+//     * listeners, so an unordered set would make ambiguous-target diagnostics depend on hash and
+//     * parallel compilation timing. */
+//   private[semantics] val shapes: LinkedHashSet[Shape] = LinkedHashSet.empty
+sealed trait LocalSymbol extends Symbol, ShapeHost
+
 sealed trait NamedSymbol extends Symbol:
   def name: Str
   def id: Ident

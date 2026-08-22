@@ -1,0 +1,162 @@
+:..
+
+
+
+:sr
+class Foo(val a)
+object Bar { val b = 123 }
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fun Foo⁰
+//│   class Foo¹::Foo²(val a⁰) {
+//│     val a¹::a² ‹flow:a⁰› = a⁰^a²
+//│   },
+//│   object Bar⁰::Bar¹ { val b⁰::b¹ ‹flow:b⁰› = 123 }
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+
+let x = Foo(Bar)
+//│ x = Foo(Bar { b: 123, class: object Bar })
+
+:dl
+:de
+:sr
+// :elt
+if x is
+  Foo(y) then y.b
+//│ Elab block List(IfLike(Keywrd(keyword 'if'),InfixApp(Ident(x),Keywrd(keyword 'is'),Block(List(InfixApp(App(Iden[...] LocalScope(block:4)
+//│ | Elab term IfLike(Keywrd(keyword 'if'),InfixApp(Ident(x),Keywrd(keyword 'is'),Block(List(InfixApp(App(Ident(Foo),Tup(List(Ident(y)))),Keywrd(keyword 'then'),Sel(Ident(y),Ident(b)))))))
+//│ | | Elab subterm IfLike(Keywrd(keyword 'if'),InfixApp(Ident(x),Keywrd(keyword 'is'),Block(List(InfixApp(App(Ident(Foo),Tup(List(Ident(y)))),Keywrd(keyword 'then'),Sel(Ident(y),Ident(b)))))))
+//│ | | | Elab term Ident(x)
+//│ | | | | Elab subterm Ident(x)
+//│ | | | | ~> SimpleRef(x)
+//│ | | | ~> SimpleRef(x)
+//│ | | | pipeTerm: from = x, to = tmp:scrut⁰; LinkedHashSet()
+//│ | | | listenTerm: trm = x
+//│ | | | listen: trm = x
+//│ | | | Elab pattern App(Ident(Foo),Tup(List(Ident(y))))
+//│ | | | | Elab term Ident(Foo)
+//│ | | | | | Elab subterm Ident(Foo)
+//│ | | | | | ~> MemberRef(member:Foo)
+//│ | | | | ~> MemberRef(member:Foo)
+//│ | | | | Elab pattern Ident(y)
+//│ | | | | ~> Alias(Wildcard(),Ident(y))
+//│ | | | | listen: trm = member:Foo
+//│ | | | | patApp: lhs = member:Foo, args = List(y), res = member:Foo(y), sh = SymShape(member:Foo⁰)
+//│ | | | | listenBMS: bms = overloaded function and class
+//│ | | | | listenedBMS: bms = overloaded function and class
+//│ | | | | fromBMS: bms = member:Foo⁰, sh = member:Foo⁰, flow = app⁰, markss = List()
+//│ | | | | .exit MarkedShape (member:Foo⁰, term:Foo¹, app⁰)
+//│ | | | | | class hkmc2.semantics.ClassCtorSymbol None
+//│ | | | | = MarkedShape(member:Foo⁰, ↗⟨term:Foo¹⟩%⟨app⁰⟩ϵ)
+//│ | | | | PUSH MarkedShape(member:Foo⁰, ↗⟨term:Foo¹⟩%⟨app⁰⟩ϵ)
+//│ | | | | Pattern's class: Parameterized(None,Cls,class:Foo,member:Foo,Some(term:Foo),List(),ParamList(‹›,List(Param(‹val ›,a,None,Modulefulness(None))),None),List(),None,ObjBody(Blk(List(TermDefinition(ImmutVal,member:a,term:Foo/a,List(),None,None,Some(Capture(SimpleRef(a),term:Foo/a)),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))),None,List())
+//│ | | | | Pattern's param: val a (Some(member:a)), arg: y
+//│ | | | ~> Constructor(MemberRef(member:Foo),Some(List(Alias(Wildcard(),Ident(y)))))
+//│ | | | Elab term Sel(Ident(y),Ident(b))
+//│ | | | | Elab subterm Sel(Ident(y),Ident(b))
+//│ | | | | | Elab subterm Ident(y)
+//│ | | | | | ~> SimpleRef(y)
+//│ | | | | | newSel? sel = y.b
+//│ | | | | | listenTerm: trm = y
+//│ | | | | | listen: trm = y
+//│ | | | | ~> NewSel(SimpleRef(y),Ident(b))
+//│ | | | ~> NewSel(SimpleRef(y),Ident(b))
+//│ | | | matchScrutPat? scrutinee = tmp:scrut⁰, pattern = member:Foo(y)
+//│ | | | listenTerm: trm = tmp:scrut⁰
+//│ | | | listen: trm = tmp:scrut⁰
+//│ | | | listenPattern: pat = member:Foo(y)
+//│ | | | matchScrutPat: scrutinee = tmp:scrut⁰, pattern = member:Foo(y), sh = AppShape(MarkedShape(member:Foo⁰, ↗⟨term:Foo¹⟩%⟨Foo²⟩ϵ), [member:Bar]), psh = member:Foo(y)
+//│ | | | | Subclass: member:Foo⁰ of class:Foo³
+//│ | | | | TODO: Ident(y) y
+//│ | | | | listenBMS: bms = value
+//│ | | | | listenedBMS: bms = value
+//│ | | | | listenTerm: td.body = Some(Capture(SimpleRef(a),term:Foo/a))
+//│ | | | | listenTerm: trm = a^term:Foo³/a⁰
+//│ | | | | listen: trm = a^term:Foo³/a⁰
+//│ | | | | listenTerm: trm = a
+//│ | | | | listen: trm = a
+//│ | | | | fromBMS: bms = member:a¹, sh = MarkedShape(object:Bar⁰, ↘⟨term:Foo³/a⁰⟩↘⟨term:Foo¹⟩%⟨Foo²⟩↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ), flow = pat⁰, markss = List(↗⟨term:Foo¹⟩%⟨Foo²⟩ϵ)
+//│ | | | | .exit MarkedShape (MarkedShape(object:Bar⁰, ↘⟨term:Foo³/a⁰⟩↘⟨term:Foo¹⟩%⟨Foo²⟩↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ), term:Foo³/a⁰, pat⁰)
+//│ | | | | | class hkmc2.semantics.TermSymbol Some(class:Foo³)
+//│ | | | | = MarkedShape(object:Bar⁰, ↘⟨term:Foo¹⟩%⟨Foo²⟩↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ)
+//│ | | | | .exit MarkedShape(object:Bar⁰, ↘⟨term:Foo¹⟩%⟨Foo²⟩↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ) (↗⟨term:Foo¹⟩%⟨Foo²⟩ϵ)
+//│ | | | | | .exit MarkedShape(object:Bar⁰, ↘⟨term:Foo¹⟩%⟨Foo²⟩↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ) (ϵ)
+//│ | | | | | = MarkedShape(object:Bar⁰, ↘⟨term:Foo¹⟩%⟨Foo²⟩↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ)
+//│ | | | | | .exit MarkedShape (MarkedShape(object:Bar⁰, ↘⟨term:Foo¹⟩%⟨Foo²⟩↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ), term:Foo¹, Foo²)
+//│ | | | | | | class hkmc2.semantics.ClassCtorSymbol None
+//│ | | | | | = MarkedShape(object:Bar⁰, ↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ)
+//│ | | | | = MarkedShape(object:Bar⁰, ↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ)
+//│ | | | | MATCH MarkedShape(object:Bar⁰, ↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ) for term:Foo³/a⁰ % pat⁰
+//│ | | | | newSel: sel = y.b, shape = MarkedShape(object:Bar⁰, ↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ)
+//│ | | | | newSel member: bms = member:b⁰, mss = List(↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ)
+//│ | | | pipeTerm: from = y.b, to = if { let scrut = x; tmp:scrut⁰ is member:Foo(y) then y.b;  }; LinkedHashSet()
+//│ | | | listenTerm: trm = y.b
+//│ | | | listen: trm = y.b
+//│ | | | listenBMS: bms = value
+//│ | | | listenedBMS: bms = value
+//│ | | | listenTerm: td.body = Some(Lit(IntLit(123)))
+//│ | | | listenTerm: trm = 123
+//│ | | | listen: trm = 123
+//│ | | | fromBMS: bms = member:b⁰, sh = 123, flow = ⋅b⁰, markss = List(↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ)
+//│ | | | .exit MarkedShape (123, term:Bar⁰/b¹, ⋅b⁰)
+//│ | | | | class hkmc2.semantics.TermSymbol Some(object:Bar⁰)
+//│ | | | = MarkedShape(123, ↗⟨term:Bar⁰/b¹⟩%⟨⋅b⁰⟩ϵ)
+//│ | | | .exit MarkedShape(123, ↗⟨term:Bar⁰/b¹⟩%⟨⋅b⁰⟩ϵ) (↗⟨object:Bar⁰⟩%⟨Bar¹⟩ϵ)
+//│ | | | | .exit MarkedShape(123, ↗⟨term:Bar⁰/b¹⟩%⟨⋅b⁰⟩ϵ) (ϵ)
+//│ | | | | = MarkedShape(123, ↗⟨term:Bar⁰/b¹⟩%⟨⋅b⁰⟩ϵ)
+//│ | | | | .exit MarkedShape (MarkedShape(123, ↗⟨term:Bar⁰/b¹⟩%⟨⋅b⁰⟩ϵ), object:Bar⁰, Bar¹)
+//│ | | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
+//│ | | | | = MarkedShape(123, ↗⟨object:Bar⁰⟩%⟨Bar¹⟩↗⟨term:Bar⁰/b¹⟩%⟨⋅b⁰⟩ϵ)
+//│ | | | = MarkedShape(123, ↗⟨object:Bar⁰⟩%⟨Bar¹⟩↗⟨term:Bar⁰/b¹⟩%⟨⋅b⁰⟩ϵ)
+//│ | | | PUSH MarkedShape(123, ↗⟨object:Bar⁰⟩%⟨Bar¹⟩↗⟨term:Bar⁰/b¹⟩%⟨⋅b⁰⟩ϵ)
+//│ | | ~> IfLike(keyword 'if',ReturningIf,Cons(Let(tmp:scrut,SimpleRef(x)),Cons(Match(Ref(tmp:scrut),Constructor(MemberRef(member:Foo),Some(List(Alias(Wildcard(),Ident(y))))),Else(NewSel(SimpleRef(y),Ident(b)))),End)))
+//│ | ~> IfLike(keyword 'if',ReturningIf,Cons(Let(tmp:scrut,SimpleRef(x)),Cons(Match(Ref(tmp:scrut),Constructor(MemberRef(member:Foo),Some(List(Alias(Wildcard(),Ident(y))))),Else(NewSel(SimpleRef(y),Ident(b)))),End)))
+//│ ~> Blk(List(),IfLike(keyword 'if',ReturningIf,Cons(Let(tmp:scrut,SimpleRef(x)),Cons(Match(Ref(tmp:scrut),Constructor(MemberRef(member:Foo),Some(List(Alias(Wildcard(),Ident(y))))),Else(NewSel(SimpleRef(y),Ident(b)))),End))))
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   if { let scrut⁰ = x⁰; scrut⁰ is Foo¹(_ as y) then y⁰.b⁰ }
+//│ Lowering.term if { let scrut = x; tmp:scrut⁰ is member:Foo(y) then y.b;  }
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: makeMatchSplit (SplitCompiler.scala:662)
+//│ ═══[COMPILATION ERROR] Cannot use this member reference as a pattern.
+//│ Split with nested patterns:
+//│ >  if
+//│ >    let tmp:scrut = x
+//│ >    tmp:scrut is member:Foo(y) then y.b
+//│ Expanded split with flattened patterns:
+//│ >  ‹if|while› let tmp:scrut = x
+//│ normalize <<< ‹if|while› let tmp:scrut = x
+//│ | LET: tmp:scrut
+//│ normalize >>> ‹if|while› let tmp:scrut = x
+//│ Normalized:
+//│ >  ‹if|while› let tmp:scrut = x
+//│ Lowering.term x
+//│ Lowered:
+//│ >  Assign:
+//│ >    lhs = tmp:scrut⁰
+//│ >    rhs = SimpleRef of x⁰
+//│ >    rest = Throw of Instantiate:
+//│ >      mut = false
+//│ >      cls = Select{sym=class:Error⁰}:
+//│ >        qual = This of globalThis:globalThis⁰
+//│ >        name = Ident of "Error"
+//│ >      argss = Ls of
+//│ >        Ls of
+//│ >          Arg:
+//│ >            value = Lit of StrLit of "match error"
+//│ avoidNames Throw(Instantiate(false,Select(This(globalThis:globalThis),Ident(Error)),List(List(Arg(None,Lit(StrL...
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:259)
+//│ ═══[RUNTIME ERROR] Error: match error
+//│     at REPL20:1:38
+//│     at ContextifyScript.runInThisContext (node:vm:137:12)
+//│     at REPLServer.defaultEval (node:repl:598:22)
+//│     at bound (node:domain:433:15)
+//│     at REPLServer.runBound [as eval] (node:domain:444:12)
+//│     at REPLServer.onLine (node:repl:927:10)
+//│     at REPLServer.emit (node:events:518:28)
+//│     at REPLServer.emit (node:domain:489:12)
+//│     at [_onLine] [as _onLine] (node:internal/readline/interface:415:12)
+//│     at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:609:22)
+
+

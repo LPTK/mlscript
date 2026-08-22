@@ -51,7 +51,7 @@ class NewResolver:
   def isOwnedSym(sym: Symbol): Bool =
     sym.getState is state
   
-  def resolError(src: Term, msgs: Ls[(Message, Opt[Loc])]): Unit = raise:
+  def resolError(src: Term | Pattern, msgs: Ls[(Message, Opt[Loc])]): Unit = raise:
     ErrorReport(msg"Resolution error in ${src.describe}" -> src.toLoc ::msgs, source = Diagnostic.Source.Compilation)
   
   def zipArgs(mss: Ls[Marks], ps: Ls[Param], r: Opt[Param], args: Ls[Elem], src: Term, funSh: TermShape): Unit =
@@ -89,6 +89,125 @@ class NewResolver:
         msg"${funSh.describe.capitalize} expected ${ps.length} ${
           "argument".pluralized(ps.length)}, but got ${args.length}" -> funSh.toLoc :: Nil)
           
+  // def patAppShape(lhs: Shape, args: Ls[Pattern], res: Pattern.Constructor): Unit =
+  //   // listen(lhs, sh =>
+  //   //   sh match
+  //   //   case sh: TermShape =>
+  //   //     zipArgs(sh.unappliedParams.map(_._2), args, N, res.args, res, lhs)
+  //   //   case _ =>
+  //   //     softAssert(res.isErroneous)
+  //   // )
+  //   ???
+  def patApp(lhs: Term, args: Ls[Pattern], res: Pattern.Constructor): Unit = if newResolution then
+    listen(lhs, sh =>
+      log(s"patApp: lhs = ${lhs.showDbg}, args = ${args.map(_.showDbg)}, res = ${res.showDbg}, sh = ${sh.shwDbg}")
+      def checkEmpty = () // TODO
+      sh match
+      case sh: TermShape =>
+        // zipArgs(sh.unappliedParams.map(_._2), args, N, res.args, res, lhs)
+        ???
+      case sh: SymShape =>
+        // softAssert(res.isErroneous)
+        val bms = sh.sym
+        bms.onComplete: () =>
+          bms.asPat match
+          case S(pat) =>
+            checkEmpty
+            res.resolvedSym = S(pat)
+          case N =>
+            val flow = FlowSymbol.app()
+            fromBMS(bms, flow, sh.markss, sh =>
+              sh match
+              case sh: TermShape =>
+                // zipArgs(sh.unappliedParams.map(_._2), args, N, res.args, res, lhs)
+                // sh.unappliedParams
+                // ???FlowSymbol.app
+                sh.applicationHead match
+                case (ds: DefnShape, mss) =>
+                  val cls = ds.defn match
+                    case cd: ClassDef => cd
+                    case td: TermDefinition =>
+                      td.tsym match
+                      case ccs: ClassCtorSymbol => ccs.associatedCls.defn.get
+                      case _ => ???
+                  log(s"Pattern's class: $cls")
+                  cls.paramsOpt match
+                  case N =>
+                    res.isErroneous = true
+                    resolError(res,
+                      msg"${sh.describe.capitalize} does not take pattern arguments." -> sh.toLoc :: Nil)
+                  case S(ps) =>
+                    if ps.restParam.nonEmpty then TODO(ps.restParam)
+                    if args.sizeCompare(ps.params) =/= 0 then
+                      res.isErroneous = true
+                      resolError(res,
+                        msg"${sh.describe.capitalize} expected ${ps.params.length} ${
+                          "pattern argument".pluralized(ps.params.length)}, but got ${args.length}" -> sh.toLoc :: Nil)
+                    val assoc = ps.params.lazyZip(args).map: (p, a) =>
+                      log(s"Pattern's param: ${p.showDbg} (${p.fldSym}), arg: ${a.showDbg}")
+                      p.fldSym match
+                      case S(fldSym: BlockMemberSymbol) =>
+                        (fldSym, a)
+                      case S(fldSym) => die
+                      case N => ???
+                    val psh = CtorPatternShape(cls, assoc, res, FlowSymbol.pat())
+                    if res.shapes.add(psh) then
+                      res.shapeListeners.foreach(listener => listener(psh))
+                case _ =>
+                  res.isErroneous = true
+                  resolError(res,
+                    msg"${sh.describe.capitalize} cannot used like an applied pattern." -> sh.toLoc :: Nil)
+            , lhs)
+    )
+  
+  def listenPattern(pat: Pattern)(listener: PatternShape => Unit): Unit =
+    log(s"listenPattern: pat = ${pat.showDbg}")
+    pat.shapeListeners += listener
+    pat match
+    case pat: PatternShapeHost =>
+      pat.shapes.foreach(listener)
+    case _ => ???
+  
+  def matchShapePat(shape: Shape, pattern: Pattern): Unit =
+    pattern match
+    case al @ Pattern.Alias(pat, id) =>
+      matchShapePat(shape, pat)
+      log(s"TODO: $id ${al.symbol}")
+      if al.symbol.shapes.add(shape) then
+        al.symbol.shapeListeners.foreach(listener => listener(shape))
+      // pipeTerm(id, shape)
+    case Pattern.Wildcard() =>
+    // case _ => ???
+  
+  def matchScrutPat(scrutinee: Term.Ref, pattern: Pattern): Unit =
+    log(s"matchScrutPat? scrutinee = ${scrutinee.showDbg}, pattern = ${pattern.showDbg}")
+    if newResolution then
+      listenTerm(scrutinee, sh =>
+        if !sh.isSaturated then
+          ???
+        listenPattern(pattern): psh =>
+          trace(s"matchScrutPat: scrutinee = ${scrutinee.showDbg}, pattern = ${pattern.showDbg}, sh = ${sh.shwDbg}, psh = ${psh.showDbg}"):
+            psh match
+            case CtorPatternShape(cls, fs, src, resSym) =>
+              sh.applicationHead match
+              case (ds: DefnShape, mss) =>
+                if ds.extendsCls(cls) then
+                  log(s"Subclass: ${ds.defn.sym.showDbg} of ${cls.sym.showDbg}")
+                  fs.foreach: (bms, pat) =>
+                    // bms.onComplete: () =>
+                    val nme = bms.nme
+                    sh.members.get(nme) match
+                    case S((sym, mss)) =>
+                      val sh = symShapes.getOrElseUpdate((bms, resSym, mss), SymShape(bms, resSym, mss))
+                      // if src.trmHost.shapes.add(sh) then
+                      //   src.trmHost.shapeListeners.foreach(listener => listener(sh))
+                      matchShapePat(sh, pat)
+                    case N =>
+                      ???
+                else
+                  log(s"Not a subclass: ${ds.defn.sym.showDbg} of ${cls.sym.showDbg}")
+      )
+  
   def appShape(lhs: TermShape, args: Term, res: App): Unit =
     // log(s"appShape? lhs = $lhs, args = $args, res = $res")
     val sh = appShapes.getOrElseUpdate((lhs, res.resSym), {

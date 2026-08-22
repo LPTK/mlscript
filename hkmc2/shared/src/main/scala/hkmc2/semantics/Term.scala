@@ -445,6 +445,8 @@ end MarkedShape
 sealed trait TermShape extends Shape:
   def members: Map[Str, MemberInfo]
   
+  def extendsCls(cls: ClassLikeDef): Bool = false
+  
   lazy val applicationHead: (NonAppTermShape, Ls[Marks]) = this match
     // case ds: DefnShape => ds
     // case as: AppShape => as.receiver.applicationHead
@@ -602,6 +604,15 @@ class BaseShape(val defn: ClassLikeDef, val ext: Opt[TermShape]) extends NonAppT
   def toLoc: Opt[Loc] = defn.toLoc
 
 class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends NonAppTermShape:
+  override def extendsCls(cls: ClassLikeDef): Bool =
+    clsDef.contains(cls) || ext.exists(_.extendsCls(cls))
+  lazy val clsDef = defn match
+    case defn: ClassLikeDef => S(defn)
+    case defn: TermDefinition =>
+      defn.tsym match
+      case ts: ClassCtorSymbol => S(ts.associatedCls.defn.get)
+      case _ => N
+    case _ => N
   // def describe: Str = s"${defn.describe}"
   def describe: Str =
     // s"${defn.bsym.describe} '${defn.bsym.nme}'"
@@ -657,11 +668,22 @@ sealed trait LitShape extends NonAppTermShape:
   self: Term.Lit =>
   def members: Map[Str, MemberInfo] = Map.empty // TODO: methods on literals, e.g. string methods
 
+/* 
 trait ShapePublisher:
   private[semantics] val shapeListeners: Buffer[Shape => Unit] = Buffer.empty
 
 trait ShapeHost extends ShapePublisher:
   private[semantics] val shapes: LinkedHashSet[Shape] = LinkedHashSet.empty
+  def showDbg(using DebugPrinter): Str
+*/
+type ShapePublisher = Publisher[Shape]
+type ShapeHost = Host[Shape]
+
+trait Publisher[A]:
+  private[semantics] val shapeListeners: Buffer[A => Unit] = Buffer.empty
+
+trait Host[A] extends Publisher[A]:
+  private[semantics] val shapes: LinkedHashSet[A] = LinkedHashSet.empty
   def showDbg(using DebugPrinter): Str
 
 
@@ -1024,7 +1046,12 @@ object ShowCfg:
 end ShowCfg
 
 
-sealed trait Statement extends AutoLocated, ProductWithExtraInfo:
+// TODO: mv to other file
+trait Describable:
+  def describe: Str
+
+
+sealed trait Statement extends AutoLocated, ProductWithExtraInfo, Describable:
   
   def mkClone(using State): Statement = this match
     case t: Term => lastWords(s"overridden implementation")

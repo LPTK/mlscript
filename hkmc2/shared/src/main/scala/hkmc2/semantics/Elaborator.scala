@@ -843,6 +843,18 @@ extends Importer:
       patternBranch(() => scrut.ref(), tree.branches, identity)
     ifLike(tree.kw.kw, form, split, tree.toLoc)
   
+  protected def mkSplitLet(binding: LocalVarSymbol, term: Term): Head.Let =
+    if newResolution then
+      binding match
+      case binding: ShapeHost =>
+        if newResolution then pipeTerm(term, binding)
+      // case _ => ???
+    Head.Let(binding, term)
+  
+  protected def mkMatch(scrutinee: Term.Ref, pattern: Pattern, consequent: SimpleSplit) =
+    matchScrutPat(scrutinee, pattern)
+    Head.Match(scrutinee, pattern, consequent)
+  
   /** Elaborate shorthand expressions. */
   protected def shorthandSplit(tree: Tree)(using UnderCtx): Ctxl[SimpleSplit] =
     val affirmative = Else(Term.Lit(BoolLit(true)))(N)
@@ -853,15 +865,15 @@ extends Importer:
       pattern match
         case Block(Nil) =>
           val recordPattern = Pattern.Record(Nil).withLocOf(pattern)
-          Head.Match(scrutinee(), recordPattern, innerSplit) ~: negative
+          mkMatch(scrutinee(), recordPattern, innerSplit) ~: negative
         case Block(trees) => trees.foldRight(negative):
           case (pattern, alternative) =>
-            Head.Match(scrutinee(), this.pattern(pattern), innerSplit) ~: alternative
+            mkMatch(scrutinee(), this.pattern(pattern), innerSplit) ~: alternative
         case _ =>
           val firstPattern = this.pattern(pattern)
           firstPattern.variables.report
           (ctx ++ firstPattern.variables.allocate).givenIn:
-            Head.Match(scrutinee(), firstPattern, innerSplit) ~: negative
+            mkMatch(scrutinee(), firstPattern, innerSplit) ~: negative
   
   /** Desugar a list of trees as a term split. The returned function takes a
     * function, which takes a `Ctx` and returns a `SimpleSplit` representing
@@ -911,11 +923,11 @@ extends Importer:
     // Interleaved-`let` bindings like `{ x is A then 0; let x = 1; ... }`.
     case LetLike(Keywrd(`let`), ident: Ident, S(rhsTree), N) =>
       val symbol = VarSymbol(ident)
-      val head = Head.Let(symbol, term(rhsTree))
+      val head = mkSplitLet(symbol, term(rhsTree))
       ((ctx + (ident.name -> symbol)), head ~: End)
     // Interleaved-`do` statements like `{ x is A then 0; do log(1); ... }`.
     case PrefixApp(Keywrd(`do`), rhsTree) =>
-      (ctx, Head.Let(TempSymbol(N, "unused"), term(rhsTree)) ~: End)
+      (ctx, mkSplitLet(TempSymbol(N, "unused"), term(rhsTree)) ~: End)
     // Although the `else`-clause marks the end of the split, we cannot
     // stop and still have to elaborate the remaining trees.
     case PrefixApp(kwTree @ Keywrd(`else`), elseTree) =>
@@ -935,7 +947,7 @@ extends Importer:
     val split = matches.foldLeft(consequent(using innerCtx)):
       case (innerSplit, (scrutinee, pattern)) =>
         scrutinee.reference: scrutineeRef =>
-          Head.Match(scrutineeRef(), pattern, innerSplit) ~: End
+          mkMatch(scrutineeRef(), pattern, innerSplit) ~: End
     split
   
   private def termBranch(t: Tree, mk: Term => Term): Ctxl[(Ctx, SimpleSplit)] = branch.appOrElse(t):
@@ -953,7 +965,7 @@ extends Importer:
         case coda => mk(term(coda)).reference: scrutinee =>
           val pattern = this.pattern(patternTree)
           val innerCtx = ctx ++ pattern.variables.allocate
-          Head.Match(scrutinee(), pattern, innerSplit(using innerCtx)) ~: End
+          mkMatch(scrutinee(), pattern, innerSplit(using innerCtx)) ~: End
       (ctx, split)
     // Handle splits on binary operators.
     case OpApp(lhs, ident: Ident, rhss) =>
@@ -1003,7 +1015,7 @@ extends Importer:
             case L(tree) =>
               termSplit(Ls(tree), identity)
             case R((kw, tree)) => Else(term(tree))(S(kw))
-        Head.Match(scrutinee(), firstPattern, split) ~: End
+        mkMatch(scrutinee(), firstPattern, split) ~: End
     case _ =>
       error(msg"Unrecognized pattern split (${t.describe})." -> t.toLoc)
       Else(Term.Error().withLocOf(t))(N).withLocOf(t) // To inspect the source of errors.
@@ -1016,7 +1028,7 @@ extends Importer:
         // Otherwise, we need to create a temporary symbol holding the term.
         case term: Term =>
           val symbol = TempSymbol(N, "scrut")
-          Head.Let(symbol, term) ~: continuation(() => symbol.ref())
+          mkSplitLet(symbol, term) ~: continuation(() => symbol.ref())
   
   private type TT = (Tree, Tree)
   
@@ -2691,7 +2703,12 @@ extends Importer:
         Composition(op is Keyword.`|`, go(lhs), go(rhs))
       // Constructor patterns with pattern arguments and arguments.
       case App(ctor: Ctor, Tup(argTrees)) =>
-        Constructor(term(ctor), S(argTrees.map(go(_))))
+        val lt = term(ctor)
+        val rt = argTrees.map(go(_))
+        val res = new Constructor(lt, S(rt))
+        // if newResolution then listenTerm(lt, shape => patAppShape(shape, rt, res))
+        patApp(lt, rt, res)
+        res
       // `[p1, p2, ...ps, pn] => term`: All patterns are in the `TyTup`.
       case (lhs: TyTup) `=>` rhs => arrow(lhs, rhs)
       // `pattern => term`: Note that `pattern` is wrapped in a `Tup`.
