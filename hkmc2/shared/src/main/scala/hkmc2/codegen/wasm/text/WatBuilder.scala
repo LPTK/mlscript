@@ -10,7 +10,7 @@ import document.*
 import document.Document
 import js.CodeBuilder
 import semantics.*, Elaborator.State
-import syntax.Tree.{BoolLit, IntLit, StrLit, UnitLit, Ident}
+import syntax.Tree.{BoolLit, DecLit, IntLit, StrLit, UnitLit, Ident}
 import text.{Import as WasmImport, SlotSymbol as WasmSlotSymbol, Param as WasmParam}
 import Message.MessageContext
 
@@ -31,6 +31,27 @@ private def isBoxedAsI31(sym: Symbol, ctx: Ctx): Bool =
   val builtins = ctx.elabCtx.builtins
   (sym eq builtins.Int) || (sym eq builtins.Int31) || (sym eq builtins.Bool)
 
+extension (prim: PrimitiveType)
+  /** The Wasm numeric type this unboxed primitive is represented as. */
+  private[text] def wasmType: NumType = prim match
+    case PrimitiveType.Int32 => I32Type
+    case PrimitiveType.Int64 => I64Type
+    case PrimitiveType.Float32 => F32Type
+    case PrimitiveType.Float64 => F64Type
+
+  /** The neutral value of this primitive, used to initialize a slot that has no explicit initializer. */
+  private[text] def zeroValue: Expr = prim match
+    case PrimitiveType.Int32 => Instructions.i32.const(0)
+    case PrimitiveType.Int64 => Instructions.i64.const(0)
+    case PrimitiveType.Float32 => Instructions.f32.const(0)
+    case PrimitiveType.Float64 => Instructions.f64.const(0)
+
+extension (ty: ValType)
+  /** The neutral value of this Wasm value type, or `N` if it has none, i.e. it is a non-nullable reference. */
+  private[text] def zeroValue: Opt[Expr] = ty match
+    case refTy: RefType => Option.when(refTy.nullable)(Instructions.ref.`null`(refTy.heapType))
+    case _ => PrimitiveType.values.find(_.wasmType == ty).map(_.zeroValue)
+
 extension (et: ErasedType)
   /** Returns the corresponding Wasm type for this [[`ErasedType`]]. */
   private[text] def wasmType(using Ctx, State): Opt[ValType] =
@@ -45,7 +66,7 @@ extension (et: ErasedType)
             S(RefType.i31ref)
           else
             tpeSym.asBlkMember.flatMap(ctx.getType).map(RefType(_, nullable = false))
-        case ErasedType.Primitive(PrimitiveType.Int32) => S(I32Type)
+        case ErasedType.Primitive(prim) => S(prim.wasmType)
         case _ => N
 
 extension (sym: WasmSlotSymbol)
@@ -363,13 +384,12 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         case _ => arg
 
   /** Returns the default Wasm value for one struct field when eagerly constructing an object instance. */
-  private def defaultStructFieldValue(field: Field)(using Raise): Expr = field.ty match
-    case refTy: RefType if refTy.nullable => ref.`null`(refTy.heapType)
-    case refTy: RefType =>
-      lastWords(s"non-null ref field `${field.id}` requires an explicit initializer")
-    case I32Type => i32.const(0)
-    case other =>
-      lastWords(s"unsupported default field type `${other.toWat.mkString()}` for eager object construction")
+  private def defaultStructFieldValue(field: Field)(using Raise): Expr = field.ty.zeroValue.getOrElse:
+    field.ty match
+      case _: RefType =>
+        lastWords(s"non-null ref field `${field.id}` requires an explicit initializer")
+      case other =>
+        lastWords(s"unsupported default field type `${other.toWat.mkString()}` for eager object construction")
 
   /** Returns `1` when `scrutTypeInfo` is equal to or descends from `targetTypeInfo`, else `0`. */
   private def isSubtypeByTypeInfo(
@@ -1029,12 +1049,11 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     if ctx.containsGlobal(sym) then return
     val exportName = sym.nme
     // Reference globals need to be nullable so that they have a valid initializer
-    val (valType, init): (ValType, Expr) = sym.localType match
-      case ty: RefType =>
-        val nullableTy = ty.copy(nullable = true)
-        nullableTy -> ref.`null`(nullableTy.heapType)
-      case I32Type => I32Type -> i32.const(0)
-      case ty => lastWords(s"unsupported session global type `${ty.toWat.mkString()}` for `$exportName`")
+    val valType: ValType = sym.localType match
+      case ty: RefType => ty.copy(nullable = true)
+      case ty => ty
+    val init = valType.zeroValue.getOrElse:
+      lastWords(s"unsupported session global type `${valType.toWat.mkString()}` for `$exportName`")
     val globalType = GlobalType(valType, mutable = true)
     val globalInfo = GlobalInfo(
       globalType = globalType,
@@ -1977,11 +1996,11 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case _ => N
     loop(path, Nil)
 
-  /** Resolves the argument at position `idx` as an [[`IntrinsicArg`]], compiling it as an operand and recovering the
-    * integer literal it was written as, if it was written as one.
+  /** Resolves the argument at position `idx` as an [[`IntrinsicArg`]], recovering the numeric literal it was written
+    * as, if it was written as one.
     *
-    * `declared` is the type the prelude declares for the parameter. Conformance is only reported if the body actually
-    * reads the argument as an operand.
+    * `declared` is the type the prelude declares for the parameter. The argument is only compiled as an operand - and
+    * its conformance to `declared` only reported - if the intrinsic's body actually reads it as one.
     */
   private def resolveIntrinsicArg(
       intrName: Str,
@@ -1989,19 +2008,21 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       declared: Opt[ErasedValueType],
       arg: Arg,
   )(using Ctx, FunctionCtx, Raise, SessionExportCtx): IntrinsicArg =
-    val operand = argument(arg)
-    val operandXtype = declared
-      .filter(_.wasmType.exists(expected => !operand.resultType.exists(_.isSubtypeOf(expected))))
-      .map(_.describe)
+    def compileOperand: (Expr, Opt[Str]) =
+      val operand = argument(arg)
+      operand -> declared
+        .filter(_.wasmType.exists(expected => !operand.resultType.exists(_.isSubtypeOf(expected))))
+        .map(_.describe)
     IntrinsicArg(
       intrName,
       idx,
-      operand,
-      operandXtype,
+      compileOperand,
       arg.value.litThroughUncheckedCasts match
         case S(Value.Lit(IntLit(value))) if arg.spread.isEmpty => S(value)
+        case S(Value.Lit(DecLit(value))) if arg.spread.isEmpty => S(value)
         case _ => N,
       arg.value.toLoc,
+      arg.value.toString,
     )
   end resolveIntrinsicArg
 
