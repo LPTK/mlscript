@@ -1747,24 +1747,26 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                 )
               body(ps.zip(args).zipWithIndex.map:
                 case ((declared, arg), idx) => resolveIntrinsicArg(intrName, idx, declared, arg))
-            case N =>
-              // * `Lowering` builds a `wasm.` path only for the names in its `specialBuiltinSymbols`, each of which is
-              // * either implemented as an instruction above or generated as an operator function here.
-              val expectedArity = wasmIntrinsicArities.getOrElse(
-                intrName,
-                lastWords(s"wasm intrinsic '$intrName' is declared but not implemented"),
-              )
-              if expectedArity =/= args.length then
-                return errExpr(
+            // * `Lowering` marks every function the prelude declares under `wasm` as an intrinsic, so a name that is
+            // * neither implemented as an instruction above nor generated as an operator function here is one the
+            // * prelude declares and the backend does not implement.
+            case N => wasmIntrinsicArities.get(intrName) match
+              case N =>
+                errExpr(
+                  Ls(msg"Wasm intrinsic '$intrName' is declared but not implemented" -> c.toLoc),
+                  extraInfo = S(c.toString),
+                )
+              case S(expectedArity) if expectedArity =/= args.length =>
+                errExpr(
                   Ls(msg"Wasm intrinsic '$intrName' called with incorrect arity (${args.length})" -> c.toLoc),
                   extraInfo = S(c.toString),
                 )
-              val funcIdx = getIntrinsic(intrName)
-              call(
-                funcidx = funcIdx,
-                operands = args.map(argument),
-                returnTypes = Seq(Result(RefType.anyref)),
-              )
+              case S(_) =>
+                call(
+                  funcidx = getIntrinsic(intrName),
+                  operands = args.map(argument),
+                  returnTypes = Seq(Result(RefType.anyref)),
+                )
         case N =>
           fun match
             case Value.MemberRef(l, _) =>
