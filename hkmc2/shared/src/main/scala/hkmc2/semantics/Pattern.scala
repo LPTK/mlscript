@@ -427,7 +427,7 @@ enum Pattern extends AutoLocated, Describable, PatternShapePublisher:
     case Record(fields) => s"{${fields.map((k, v) => s"${k.name}: ${v.showDbg}").mkString(", ")}}"
     case Chain(first, second) => s"${first.showDbgWithPar} >> ${second.showDbgWithPar}"
     case Alias(Wildcard(), alias) => alias.name
-    case al @ Alias(pattern, alias) => s"${pattern.showDbgWithPar} as ${alias.name}‹${al.symbolOption.fold("")(_.showDbg)}"
+    case al @ Alias(pattern, alias) => s"${pattern.showDbgWithPar} as ${alias.name}‹${al.symbolOption.fold("")(_.showDbg)}›"
     case Transform(pattern, _, transform) => s"${pattern.showDbgWithPar} => ${transform.showDbg}"
     case Annotated(pattern, annotations) => annotations.iterator.map:
         case L(errorLoc) => "error"

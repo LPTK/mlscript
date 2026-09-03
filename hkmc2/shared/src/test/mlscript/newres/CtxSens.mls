@@ -53,7 +53,7 @@ bar(A).u
 //│ = 1
 
 // * As expected, we currently lose context sensitivity when going through the call of a captured function (foo)
-:fixme
+:todo
 :sr
 bar(B).u
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————

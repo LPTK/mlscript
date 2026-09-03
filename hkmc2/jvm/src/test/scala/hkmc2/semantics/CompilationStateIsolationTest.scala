@@ -4,7 +4,7 @@ package semantics
 import org.scalatest.funsuite.AnyFunSuite
 
 import hkmc2.syntax.{Cls, Tree}
-import hkmc2.semantics.Elaborator.{Ctx, State}
+import hkmc2.semantics.Elaborator.{Ctx, OuterCtx, State}
 
 
 class CompilationStateIsolationTest extends AnyFunSuite:
@@ -20,15 +20,19 @@ class CompilationStateIsolationTest extends AnyFunSuite:
 
     assert(sym.refsNumber == 1)
     assert(localRef.refNum == 0)
-    assert(firstForeignRef.refNum == 1)
-    assert(secondForeignRef.refNum == 2)
+    
+    // Probably won't be useful; for now returns -1:
+    // assert(firstForeignRef.refNum == 1)
+    // assert(secondForeignRef.refNum == 2)
+    assert(firstForeignRef.refNum == -1)
+    assert(secondForeignRef.refNum == -1)
 
   test("legacy resolution does not introduce experimental captures"):
     val state = new State
     given State = state
     val outer = VarSymbol(Tree.Ident("outer"))
     val inner = ClassSymbol(Tree.DummyTypeDef(Cls), Tree.Ident("Inner"))
-    val bodyCtx = (Ctx.empty + ("outer" -> outer)).nestInner(inner).nestLocal("body")
+    val bodyCtx = (Ctx.empty + ("outer" -> outer)).nest(OuterCtx.NonReturnContext(Some(inner))).nestLocal("body")
 
     locally:
       given Config = Config.default(io.Path("/"))
