@@ -78,10 +78,10 @@ module M with
 //│ | | | Processing term definition Ident(p)
 //│ | | | Elab term Ident(Predef)
 //│ | | | | Elab subterm Ident(Predef)
-//│ | | | | ~> Capture(MemberRef(member:Predef),term:M/p)
-//│ | | | ~> Capture(MemberRef(member:Predef),term:M/p)
-//│ | | ~> Blk(List(TermDefinition(ImmutVal,member:p,term:M/p,List(),None,None,Some(Capture(MemberRef(member:Predef),term:M/p)),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))
-//│ ~> Blk(List(ModuleOrObjectDef(None,module:M,member:M,List(),None,List(),None,Mod,ObjBody(Blk(List(TermDefinition(ImmutVal,member:p,term:M/p,List(),None,None,Some(Capture(MemberRef(member:Predef),term:M/p)),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))),None,List())),Lit(UnitLit(false)))
+//│ | | | | ~> member:Predef^term:M⁰/p⁰
+//│ | | | ~> member:Predef^term:M⁰/p⁰
+//│ | | ~> { val member:p = member:Predef^term:M⁰/p⁰; }
+//│ ~> { Mod M ObjBody(Blk(List(TermDefinition(ImmutVal,member:p,term:M/p,List(),None,None,Some(Capture(MemberRef(member:Predef),term:M/p)),‹›,Modulefulness(None),List(),None)),Lit(UnitLit(false)))); }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   module M⁰::M¹ { val p²::p³ ‹flow:p¹› = Predef⁰^p³ }
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -94,28 +94,28 @@ M.p.id
 //│ | | Elab subterm Sel(Sel(Ident(M),Ident(p)),Ident(id))
 //│ | | | Elab subterm Sel(Ident(M),Ident(p))
 //│ | | | | Elab subterm Ident(M)
-//│ | | | | ~> MemberRef(member:M)
+//│ | | | | ~> member:M
 //│ | | | | newSel? sel = member:M.p
 //│ | | | | listenTerm: trm = member:M
 //│ | | | | listen: trm = member:M
 //│ | | | | listenBMS: bms = module
 //│ | | | | listenedBMS: bms = module
-//│ | | | | fromBMS: bms = member:M⁰, sh = module:M¹, flow = M², markss = List()
-//│ | | | | .exit MarkedShape (module:M¹, module:M¹, M²)
+//│ | | | | fromBMS: bms = member:M¹, sh = module:M⁰, flow = M², markss = List()
+//│ | | | | .exit MarkedShape (module:M⁰, module:M⁰, M²)
 //│ | | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
-//│ | | | | = MarkedShape(module:M¹, ↗⟨module:M¹⟩%⟨M²⟩ϵ)
-//│ | | | | PUSH MarkedShape(module:M¹, ↗⟨module:M¹⟩%⟨M²⟩ϵ)
-//│ | | | | newSel: sel = member:M.p, shape = MarkedShape(module:M¹, ↗⟨module:M¹⟩%⟨M²⟩ϵ)
-//│ | | | | newSel member: bms = member:p⁰, mss = List(↗⟨module:M¹⟩%⟨M²⟩ϵ)
-//│ | | | ~> NewSel(MemberRef(member:M),Ident(p))
+//│ | | | | = MarkedShape(module:M⁰, ↗⟨module:M⁰⟩%⟨M²⟩ϵ)
+//│ | | | | PUSH MarkedShape(module:M⁰, ↗⟨module:M⁰⟩%⟨M²⟩ϵ)
+//│ | | | | newSel: sel = member:M.p, shape = MarkedShape(module:M⁰, ↗⟨module:M⁰⟩%⟨M²⟩ϵ)
+//│ | | | | newSel member: bms = member:p¹, mss = List(↗⟨module:M⁰⟩%⟨M²⟩ϵ)
+//│ | | | ~> member:M.p
 //│ | | | newSel? sel = member:M.p.id
 //│ | | | listenTerm: trm = member:M.p
 //│ | | | listen: trm = member:M.p
 //│ | | | listenBMS: bms = value
 //│ | | | listenedBMS: bms = value
 //│ | | | listenTerm: td.body = Some(Capture(MemberRef(member:Predef),term:M/p))
-//│ | | | listenTerm: trm = member:Predef^term:M¹/p¹
-//│ | | | listen: trm = member:Predef^term:M¹/p¹
+//│ | | | listenTerm: trm = member:Predef^term:M⁰/p⁰
+//│ | | | listen: trm = member:Predef^term:M⁰/p⁰
 //│ | | | listenTerm: trm = member:Predef
 //│ | | | listen: trm = member:Predef
 //│ | | | listenBMS: bms = module
@@ -125,23 +125,23 @@ M.p.id
 //│ | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
 //│ | | | = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
 //│ | | | PUSH MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
-//│ | | | fromBMS: bms = member:p⁰, sh = MarkedShape(module:Predef¹, ↘⟨term:M¹/p¹⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ), flow = ⋅p⁰, markss = List(↗⟨module:M¹⟩%⟨M²⟩ϵ)
-//│ | | | .exit MarkedShape (MarkedShape(module:Predef¹, ↘⟨term:M¹/p¹⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ), term:M¹/p¹, ⋅p⁰)
-//│ | | | | class hkmc2.semantics.TermSymbol Some(module:M¹)
+//│ | | | fromBMS: bms = member:p¹, sh = MarkedShape(module:Predef¹, ↘⟨term:M⁰/p⁰⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ), flow = ⋅p⁰, markss = List(↗⟨module:M⁰⟩%⟨M²⟩ϵ)
+//│ | | | .exit MarkedShape (MarkedShape(module:Predef¹, ↘⟨term:M⁰/p⁰⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ), term:M⁰/p⁰, ⋅p⁰)
+//│ | | | | class hkmc2.semantics.TermSymbol Some(module:M⁰)
 //│ | | | = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
-//│ | | | .exit MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ) (↗⟨module:M¹⟩%⟨M²⟩ϵ)
+//│ | | | .exit MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ) (↗⟨module:M⁰⟩%⟨M²⟩ϵ)
 //│ | | | | .exit MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ) (ϵ)
 //│ | | | | = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
-//│ | | | | .exit MarkedShape (MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ), module:M¹, M²)
+//│ | | | | .exit MarkedShape (MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ), module:M⁰, M²)
 //│ | | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
-//│ | | | | = MarkedShape(module:Predef¹, ↗⟨module:M¹⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
-//│ | | | = MarkedShape(module:Predef¹, ↗⟨module:M¹⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
-//│ | | | MATCH MarkedShape(module:Predef¹, ↗⟨module:M¹⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ) for term:M¹/p¹ % ⋅p⁰
-//│ | | | newSel: sel = member:M.p.id, shape = MarkedShape(module:Predef¹, ↗⟨module:M¹⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
-//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨module:M¹⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
-//│ | | ~> NewSel(NewSel(MemberRef(member:M),Ident(p)),Ident(id))
-//│ | ~> NewSel(NewSel(MemberRef(member:M),Ident(p)),Ident(id))
-//│ ~> Blk(List(),NewSel(NewSel(MemberRef(member:M),Ident(p)),Ident(id)))
+//│ | | | | = MarkedShape(module:Predef¹, ↗⟨module:M⁰⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | = MarkedShape(module:Predef¹, ↗⟨module:M⁰⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | MATCH MarkedShape(module:Predef¹, ↗⟨module:M⁰⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ) for term:M⁰/p⁰ % ⋅p⁰
+//│ | | | newSel: sel = member:M.p.id, shape = MarkedShape(module:Predef¹, ↗⟨module:M⁰⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨module:M⁰⟩%⟨M²⟩↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
+//│ | | ~> member:M.p.id
+//│ | ~> member:M.p.id
+//│ ~> { member:M.p.id }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   M⁰.p².id⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

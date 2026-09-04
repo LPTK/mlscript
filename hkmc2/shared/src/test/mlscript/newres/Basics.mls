@@ -29,7 +29,7 @@ Predef.id
 //│ | Elab term Sel(Ident(Predef),Ident(id))
 //│ | | Elab subterm Sel(Ident(Predef),Ident(id))
 //│ | | | Elab subterm Ident(Predef)
-//│ | | | ~> MemberRef(member:Predef)
+//│ | | | ~> member:Predef
 //│ | | | newSel? sel = member:Predef.id
 //│ | | | listenTerm: trm = member:Predef
 //│ | | | listen: trm = member:Predef
@@ -42,9 +42,9 @@ Predef.id
 //│ | | | PUSH MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
 //│ | | | newSel: sel = member:Predef.id, shape = MarkedShape(module:Predef¹, ↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
 //│ | | | newSel member: bms = member:id⁰, mss = List(↗⟨module:Predef¹⟩%⟨Predef²⟩ϵ)
-//│ | | ~> NewSel(MemberRef(member:Predef),Ident(id))
-//│ | ~> NewSel(MemberRef(member:Predef),Ident(id))
-//│ ~> Blk(List(),NewSel(MemberRef(member:Predef),Ident(id)))
+//│ | | ~> member:Predef.id
+//│ | ~> member:Predef.id
+//│ ~> { member:Predef.id }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   Predef⁰.id⁰
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————

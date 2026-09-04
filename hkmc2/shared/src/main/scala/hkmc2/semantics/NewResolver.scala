@@ -71,7 +71,7 @@ class NewResolver:
         p.sym.shapeListeners.foreach(_(sh))
     case (p :: ps, Fld(fls, trm, asc) :: args) =>
     // case ((p, mss) :: ps, Fld(fls, trm, asc) :: args) =>
-      listenTerm(trm, sh0 =>
+      listenTerm(trm): sh0 =>
         // val sh = sh0.enter(mss)
         // log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = ${sh.shwDbg}")
         // if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
@@ -82,7 +82,6 @@ class NewResolver:
           log(s"zipArg: p = ${p.showDbg}, trm = ${trm.showDbg}, sh = ${sh.shwDbg}")
           if isOwnedSym(p.sym) && p.sym.shapes.add(sh) then
             p.sym.shapeListeners.foreach(listener => listener(sh))
-      )
       zipArgs(mss, ps, r, args, src, funSh)
     case _ =>
       resolError(src,
@@ -99,7 +98,7 @@ class NewResolver:
   //   // )
   //   ???
   def patApp(lhs: Term, args: Ls[Pattern], res: Pattern.Constructor): Unit = if newResolution then
-    listen(lhs, sh =>
+    listen(lhs, discardMarks = true): sh =>
       log(s"patApp: lhs = ${lhs.showDbg}, args = ${args.map(_.showDbg)}, res = ${res.showDbg}, sh = ${sh.shwDbg}")
       def checkEmpty = () // TODO
       sh match
@@ -131,7 +130,7 @@ class NewResolver:
                       case ccs: ClassCtorSymbol => ccs.associatedCls.defn.get
                       case _ => ???
                   log(s"Pattern's class: $cls")
-                  lhs match
+                  lhs.withoutCaptures match
                   case trm: NewResolvable =>
                     trm.resolvedTargets ::= cls.sym
                   res.resolvedSym = S(cls.sym)
@@ -162,7 +161,6 @@ class NewResolver:
                   resolError(res,
                     msg"${sh.describe.capitalize} cannot used like an applied pattern." -> sh.toLoc :: Nil)
             , lhs)
-    )
   
   def listenPattern(pat: Pattern)(listener: PatternShape => Unit): Unit =
     log(s"listenPattern: pat = ${pat.showDbg}")
@@ -186,7 +184,7 @@ class NewResolver:
   def matchScrutPat(scrutinee: Term.Ref, pattern: Pattern): Unit =
     log(s"matchScrutPat? scrutinee = ${scrutinee.showDbg}, pattern = ${pattern.showDbg}")
     if newResolution then
-      listenTerm(scrutinee, sh =>
+      listenTerm(scrutinee): sh =>
         if !sh.isSaturated then
           ???
         listenPattern(pattern): psh =>
@@ -210,7 +208,6 @@ class NewResolver:
                       ???
                 else
                   log(s"Not a subclass: ${ds.defn.sym.showDbg} of ${cls.sym.showDbg}")
-      )
   
   def appShape(lhs: TermShape, args: Term, res: App): Unit =
     // log(s"appShape? lhs = $lhs, args = $args, res = $res")
@@ -239,13 +236,12 @@ class NewResolver:
           msg"${lhs.describe.capitalize} cannot receive more argument lists." -> lhs.toLoc :: Nil)
     if sh.isSaturated then
       def go(body: Term, mss: Ls[Marks]) =
-        listenTerm(body, sh =>
+        listenTerm(body): sh =>
           sh.exit(mss) match
           case NoShape =>
           case sh: TermShape =>
             if res.shapes.add(sh) then
               res.shapeListeners.foreach(listener => listener(sh))
-        )
       sh.applicationHead match
       case (ds: DefnShape, mss) =>
         ds.defn match
@@ -279,7 +275,7 @@ class NewResolver:
   
   def newSel(sel: NewSel): Unit =
     log(s"newSel? sel = ${sel.showDbg}")
-    listenTerm(sel.prefix, shape => {
+    listenTerm(sel.prefix): shape =>
       log(s"newSel: sel = ${sel.showDbg}, shape = ${shape.shwDbg}")
       shape.members.get(sel.id.name) match
         case S((bms, mss)) =>
@@ -297,14 +293,13 @@ class NewResolver:
         case N =>
           sel.isErroneous = true
           resolError(sel, msg"${shape.describe.capitalize} does not contain member '${sel.id.name}'" -> shape.toLoc :: Nil)
-    })
   
   def resolveNew(nw: Term.New): Unit =
     log(s"resolveNew? res = ${nw.showDbg}")
     // listenTerm(nw.cls, shape => newShape(shape, nw.args, nw))
     nw.cls.withoutCaptures match
     case trm: NewResolvable =>
-      listen(trm, shape => {
+      listen(trm): shape =>
         def reject =
           nw.isErroneous = true
           resolError(nw,
@@ -354,7 +349,6 @@ class NewResolver:
               reject
         case _ =>
           reject
-      })
     case _ =>
       nw.isErroneous = true
       resolError(nw,
@@ -376,11 +370,10 @@ class NewResolver:
         // sym.defn.get
         println(s"TODO: defineVar for TermSymbol ${sym.showDbg}")
       case sym: LocalSymbol =>
-        listen(rhs, sh =>
+        listen(rhs): sh =>
           assert(isOwnedSym(sym), s"defineVar: sym = ${sym.showDbg}, rhs = ${rhs.showDbg}")
           if sym.shapes.add(sh) then
             sym.shapeListeners.foreach(listener => listener(sh))
-        )
     DefineVar(sym, rhs)
   
   def listenDefn(sym: TermSymbol, listener: TermShape => Unit): Unit =
@@ -388,7 +381,7 @@ class NewResolver:
     case S(td: TermDefinition) if td.params.isEmpty =>
       td.body match
       case S(body) =>
-        listenTerm(body, listener)
+        listenTerm(body)(listener)
       case N =>
         ??? // TODO error
     case S(d) =>
@@ -398,15 +391,15 @@ class NewResolver:
   
   def pipeTerm(from: Term, to: ShapeHost): Unit =
     log(s"pipeTerm: from = ${from.showDbg}, to = ${to.showDbg}; ${to.shapes}")
-    listenTerm(from, sh =>
+    listenTerm(from): sh =>
       if to.shapes.add(sh) then
         to.shapeListeners.foreach(listener => listener(sh))
-    )
   
   def listenExt(ext: Opt[Term], listener: Opt[TermShape] => Unit): Unit =
     ext match
     case S(trm) =>
-      listenTerm(trm, sh => listener(S(sh)))
+      listenTerm(trm): sh =>
+        listener(S(sh))
     case N =>
       listener(N)
   
@@ -437,7 +430,7 @@ class NewResolver:
           log(s"listenTerm: td.body = ${td.body}")
           td.body match
           case S(body) =>
-            listenTerm(body, wrappedListener)
+            listenTerm(body)(wrappedListener)
           case N =>
             ??? // TODO error
         case S(d: TermDefinition) =>
@@ -466,7 +459,7 @@ class NewResolver:
           // msg"expected a term shape, but got ${bms.describe} (${bms.toString})" -> trm.toLoc :: Nil,
         )
   
-  def listenTerm(trm: Term, listener: TermShape => Unit): Unit =
+  def listenTerm(trm: Term)(listener: TermShape => Unit): Unit =
     log(s"listenTerm: trm = ${trm.showDbg}")
     trm match
     /* 
@@ -487,14 +480,13 @@ class NewResolver:
       case N => ???
     */
     case _ =>
-      listen(trm, {
+      listen(trm):
         case sh: TermShape =>
           listener(sh)
         case ss: SymShape =>
           fromBMS(ss.sym, ss.resSym, ss.markss, listener, trm)
-      })
   
-  def listen(trm: Term, listener: Shape => Unit): Unit =
+  def listen(trm: Term, discardMarks: Bool = false)(listener: Shape => Unit): Unit =
     log(s"listen: trm = ${trm.showDbg}")
     trm.shapeListeners += listener
     trm match
@@ -507,7 +499,7 @@ class NewResolver:
         ???
         ts.defn.get.body match
         case S(body) =>
-          listenTerm(body, listener)
+          listenTerm(body)(listener)
         case N =>
           ??? // TODO error? use sig
       case S(bms: BlockMemberSymbol) =>
@@ -540,8 +532,10 @@ class NewResolver:
       val sh = symShapes.getOrElseUpdate((sym, fs, Nil), SymShape(sym, fs, Nil))
       listener(sh)
     case Capture(base, thru) =>
-      listenTerm(base, sh =>
-        listener(MarkedShape.enter(sh, thru, N)))
+      if discardMarks then
+        listen(base)(listener)
+      else listenTerm(base): sh =>
+        listener(MarkedShape.enter(sh, thru, N))
     case ref @ Ref(sym: InnerSymbol) => // TODO: remove remaining occurrences of such refs
       sym.shapeListeners += listener
     case ref @ Ref(bsym: BlockMemberSymbol) =>
@@ -553,7 +547,7 @@ class NewResolver:
       sh.shapes.foreach(listener)
       sh.shapeListeners += listener
     case Blk(sts, rs) =>
-      listen(rs, listener)
+      listen(rs)(listener)
     // case u: UnitVal =>
     case Missing =>
       () // FIXME: Currently get this from light-elaborated Predef import

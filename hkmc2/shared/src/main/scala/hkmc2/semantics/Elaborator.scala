@@ -1077,7 +1077,7 @@ extends Importer:
     go(tree, ::(_, Nil))()
   
   def term(tree: Tree): Ctxl[Term] =
-  trace[Term](s"Elab term ${tree.showDbg}", r => s"~> $r"):
+  trace[Term](s"Elab term ${tree.showDbg}", r => s"~> ${r.showDbg}"):
     val unders = mutable.ArrayBuffer.empty[VarSymbol]
     given UnderCtx = new UnderCtx(S(unders))
     val st = subterm(tree)
@@ -1110,7 +1110,7 @@ extends Importer:
   
   private def app(lt: Term, rt: Term)(tree: Tree.App, typ: Opt[typing.Type], resSym: FlowSymbol): Term =
     val res = new Term.App(lt, rt)(tree, typ, resSym)
-    if newResolution then listenTerm(lt, shape => appShape(shape, rt, res))
+    if newResolution then listenTerm(lt)(shape => appShape(shape, rt, res))
     res
   
   def ifLike(kw: Keyword.SplitLike, form: IfLikeForm, split: SimpleSplit, loc: Opt[Loc]): Term.IfLike =
@@ -1123,7 +1123,7 @@ extends Importer:
   
   
   def subterm(tree: Tree): Ctxl[UnderCtx ?=> Term] =
-  trace[Term](s"Elab subterm ${tree.showDbg}", r => s"~> $r"):
+  trace[Term](s"Elab subterm ${tree.showDbg}", r => s"~> ${r.showDbg}"):
     
     def error = Term.Error().withLocOf(tree)
     
@@ -1763,7 +1763,7 @@ extends Importer:
   def blockOrRcd(blk: Block, hasResult: Bool)(using UnderCtx)
     : Ctxl[(Blk | Rcd, Ctx)]
     = trace[(Blk | Rcd, Ctx)](
-        pre = s"Elab block ${blk.desugStmts.toString.truncate(100, "[...]")} ${ctx.outer}", r => s"~> ${r._1}"
+        pre = s"Elab block ${blk.desugStmts.toString.truncate(100, "[...]")} ${ctx.outer}", r => s"~> ${r._1.showDbg}"
       ):
     
     val members = blk.definedSymbols.toMap
@@ -2457,10 +2457,9 @@ extends Importer:
           sym.defn.foreach: d => // erroneous code may not have a defn even after the BMS is completed
             d.ext match
             case S(ext) =>
-              listenTerm(ext, esh => {
+              listenTerm(ext): esh =>
                 val sh = BaseShape(d, S(esh)) // TODO actually use applied shape providing generics?
                 sym.shapeListeners.foreach(_(sh))
-              })
             case N =>
               val sh = BaseShape(d, N) // TODO actually use applied shape providing generics?
               sym.shapeListeners.foreach(_(sh))
@@ -2690,7 +2689,7 @@ extends Importer:
     def arg(t: Tree): Ctxl[Pattern \/ Pattern] = t match
       case TypeDef(syntax.Pat, body, N) => L(go(body))
       case _ => R(go(t))
-    def go(t: Tree): Ctxl[Pattern] = trace[Pattern](s"Elab pattern ${t.showDbg}", r => s"~> $r"):
+    def go(t: Tree): Ctxl[Pattern] = trace[Pattern](s"Elab pattern ${t.showDbg}", r => s"~> ${r.showDbg}"):
       t match
       // Annotated patterns like `@compile P`.
       case Tree.Annotated(annotation, target) =>
@@ -2714,7 +2713,7 @@ extends Importer:
       case InfixApp(lhs, Keywrd(op @ (Keyword.`|` | Keyword.`&`)), rhs) =>
         Composition(op is Keyword.`|`, go(lhs), go(rhs))
       // Constructor patterns with pattern arguments and arguments.
-      case App(ctor: Ctor, Tup(argTrees)) =>
+      case App(ctor: Ctor, Tup(argTrees)) => // TODO: rm this weird `: Ctor` guard
         val lt = term(ctor)
         val rt = argTrees.map(go(_))
         val res = new Constructor(lt, S(rt))

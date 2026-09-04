@@ -50,36 +50,36 @@ callid1(Predef)
 //│ | | Elab subterm App(Sel(Ident(p),Ident(id)),Tup(List(IntLit(1))))
 //│ | | | Elab subterm Sel(Ident(p),Ident(id))
 //│ | | | | Elab subterm Ident(p)
-//│ | | | | ~> SimpleRef(p)
+//│ | | | | ~> p
 //│ | | | | newSel? sel = p.id
 //│ | | | | listenTerm: trm = p
 //│ | | | | listen: trm = p
-//│ | | | ~> NewSel(SimpleRef(p),Ident(id))
+//│ | | | ~> p.id
 //│ | | | Elab subterm Tup(List(IntLit(1)))
 //│ | | | | Elab term IntLit(1)
 //│ | | | | | Elab subterm IntLit(1)
-//│ | | | | | ~> Lit(IntLit(1))
-//│ | | | | ~> Lit(IntLit(1))
-//│ | | | ~> Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
+//│ | | | | | ~> 1
+//│ | | | | ~> 1
+//│ | | | ~> [1]
 //│ | | | listenTerm: trm = p.id
 //│ | | | listen: trm = p.id
-//│ | | ~> App(NewSel(SimpleRef(p),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
-//│ | ~> App(NewSel(SimpleRef(p),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))
+//│ | | ~> p.id(1)
+//│ | ~> p.id(1)
 //│ | Elab term App(Ident(callid1),Tup(List(Ident(Predef))))
 //│ | | Elab subterm App(Ident(callid1),Tup(List(Ident(Predef))))
 //│ | | | Elab subterm Ident(callid1)
-//│ | | | ~> MemberRef(member:callid1)
+//│ | | | ~> member:callid1
 //│ | | | Elab subterm Tup(List(Ident(Predef)))
 //│ | | | | Elab term Ident(Predef)
 //│ | | | | | Elab subterm Ident(Predef)
-//│ | | | | | ~> MemberRef(member:Predef)
-//│ | | | | ~> MemberRef(member:Predef)
-//│ | | | ~> Tup(List(Fld(‹›,MemberRef(member:Predef),None)))
+//│ | | | | | ~> member:Predef
+//│ | | | | ~> member:Predef
+//│ | | | ~> [member:Predef]
 //│ | | | listenTerm: trm = member:callid1
 //│ | | | listen: trm = member:callid1
 //│ | | | listenBMS: bms = function
-//│ | | ~> App(MemberRef(member:callid1),Tup(List(Fld(‹›,MemberRef(member:Predef),None))))
-//│ | ~> App(MemberRef(member:callid1),Tup(List(Fld(‹›,MemberRef(member:Predef),None))))
+//│ | | ~> member:callid1(member:Predef)
+//│ | ~> member:callid1(member:Predef)
 //│ | listenedBMS: bms = function
 //│ | fromBMS: bms = member:callid1⁰, sh = member:callid1⁰, flow = callid1¹, markss = List()
 //│ | .exit MarkedShape (member:callid1⁰, term:callid1², callid1¹)
@@ -182,7 +182,7 @@ callid1(Predef)
 //│ | appShape: td.body = Some(App(NewSel(SimpleRef(p),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None)))))
 //│ | listenTerm: trm = p.id(1)
 //│ | listen: trm = p.id(1)
-//│ ~> Blk(List(TermDefinition(Fun,member:callid1,term:callid1,List(ParamList(‹›,List(Param(‹›,p,None,Modulefulness(None))),None)),None,None,Some(App(NewSel(SimpleRef(p),Ident(id)),Tup(List(Fld(‹›,Lit(IntLit(1)),None))))),‹›,Modulefulness(None),List(),None)),App(MemberRef(member:callid1),Tup(List(Fld(‹›,MemberRef(member:Predef),None)))))
+//│ ~> { fun member:callid1(p) = p.id(1); member:callid1(member:Predef) }
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
 //│   fun callid1⁰::callid1¹(p⁰) ‹flow:callid1⁰› = p⁰.id⁰(1)‹app⁰›, callid1⁰(Predef⁰)‹app¹›
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

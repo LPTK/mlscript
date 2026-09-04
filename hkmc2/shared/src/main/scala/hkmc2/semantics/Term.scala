@@ -385,6 +385,13 @@ case object NoShape extends ShapeLike:
 
 type NoShape = NoShape.type
 
+object Marked:
+  def unapply(sh: TermShape): S[(NonMarkedShape, Marks)] =
+    sh match
+    case sh: NonMarkedShape => S((sh, NoMarks))
+    case MarkedShape(sh, mark) => S((sh, mark))
+end Marked
+
 case class MarkedShape(sh: NonMarkedShape, mark: SomeMarks) extends TermShape:
   lazy val members: Map[Str, MemberInfo] =
     // sh.members.view.mapValues(m => MarkedShape.exit(m, mark)).toMap

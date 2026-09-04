@@ -54,13 +54,64 @@ if x is
 let bz = Baz(Bar)
 //│ bz = Baz(_)
 
+let x2 = Foo(bz)
+//│ x2 = Foo(Baz(_))
+
+:sr
+if x2 is
+  Foo(y) then y.b
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   if { let scrut¹ = x2⁰; scrut¹ is Foo¹(_ as y¹) then y¹.b² }
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = Bar { b: 123, class: object Bar }
+
+
+// :de
+:sr
+fun test =
+  case
+    Foo(y) then y
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   fun test⁰::test¹ ‹flow:test⁰› = (caseScrut⁰) => if { caseScrut⁰ is Foo¹^test¹(_ as y²) then y² }
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:sr
+test(x).b
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   test⁰(x⁰)‹app⁰›.b⁰
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 123
+
+:fixme
+:sr
+test(x2).b
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   test⁰(x2⁰)‹app¹›.b‹b², b⁰›
+//│ ╔══[COMPILATION ERROR] This selection of member 'b' is ambiguous, as it has multiple resolved targets
+//│ ║  l.87: 	test(x2).b
+//│ ║        	^^^^^^^^^^
+//│ ╟── target: function 'b' in overloaded function and class 'Baz'
+//│ ║  l.7: 	class Baz(c) { fun b = c }
+//│ ║       	               ^^^^^^^^^
+//│ ╟── target: value 'b' in object 'Bar'
+//│ ║  l.6: 	object Bar { val b = 123 }
+//│ ╙──     	             ^^^^^^^^^^^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+let bz = Baz(Bar)
+//│ bz = Baz(_)
 
 :todo
 fun test(x) =
   if x is
     Foo(y) then y.b
 test(bz)
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ ╔══[COMPILATION ERROR] This selection of member 'b' has no resolved target
+//│ ║  l.109: 	    Foo(y) then y.b
+//│ ╙──       	                ^^^
+//│ ═══[RUNTIME ERROR] Error: match error
 
 
 :todo
@@ -78,8 +129,8 @@ let x = if maybe then Bar else bz
 :e
 x.b
 //│ ╔══[COMPILATION ERROR] This selection of member 'b' is ambiguous, as it has multiple resolved targets
-//│ ║  l.79: 	x.b
-//│ ║        	^^^
+//│ ║  l.130: 	x.b
+//│ ║         	^^^
 //│ ╟── target: function 'b' in overloaded function and class 'Baz'
 //│ ║  l.7: 	class Baz(c) { fun b = c }
 //│ ║       	               ^^^^^^^^^
@@ -119,7 +170,10 @@ if Foo(Predef) is
 :todo
 val f = case
   Foo(y) then y.b
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ ╔══[COMPILATION ERROR] This selection of member 'b' has no resolved target
+//│ ║  l.172: 	  Foo(y) then y.b
+//│ ╙──       	              ^^^
+//│ f = fun
 
 
 

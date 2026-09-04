@@ -25,11 +25,11 @@ pattern PlainList(pattern T) = (null => Nil) | (Pair(T as hd, PlainList(T) as tl
 // TODO: Decide on the relative operator precedence between `as` and `=>`.
 //  This is elaborated into `T as (x => x)`, which might not be what we want.
 pattern Identity(pattern T) = T as x => x
-//│ elaborated pattern body: T >> (x => x⁰)
+//│ elaborated pattern body: T >> (x‹x⁰› => x¹)
 
 :ucs ups
 pattern Identity(pattern T) = (T as x) => x
-//│ elaborated pattern body: (T as x‹x¹›) => x²
+//│ elaborated pattern body: (T as x‹x²›) => x³
 
 pattern Identity = x => x
 
@@ -39,11 +39,11 @@ pattern Sick = (0 as a as b as c as d as e as f) => a + b + c + d + e + f
 
 :ucs ups
 pattern PairLike = [fst, snd] => Pair(fst, snd)
-//│ elaborated pattern body: [fst, snd] => member:Pair⁰(fst⁰, snd⁰)
+//│ elaborated pattern body: [fst‹fst⁰›, snd‹snd⁰›] => member:Pair⁰(fst¹, snd¹)
 
 :ucs ups
 pattern PairLike(fst, snd) = Pair(fst, snd) | [fst, snd]
-//│ elaborated pattern body: Pair(fst, snd) ∨ [fst, snd]
+//│ elaborated pattern body: Pair(fst‹fst²›, snd‹snd²›) ∨ [fst‹fst²›, snd‹snd²›]
 
 :w
 pattern UselessParameter = x
@@ -57,7 +57,7 @@ pattern PlainList(pattern T) = (null => Nil) | ([T as hd, PlainList(T) as tl] =>
 
 :ucs ups
 pattern Consistent = ((Int as x) | (Str as x)) => x.toString()
-//│ elaborated pattern body: (Int as x‹x³› ∨ Str as x‹x³›) => x⁴.toString()
+//│ elaborated pattern body: (Int as x‹x⁴› ∨ Str as x‹x⁴›) => x⁵.toString()
 
 :e
 pattern Inconsistent = ~(~(Int as x) | Str) => x.toString()
@@ -127,7 +127,7 @@ pattern BadNegated = (~Pair(Int, x)) => x
 //│ ╔══[COMPILATION ERROR] Name not found: x
 //│ ║  l.120: 	pattern BadNegated = (~Pair(Int, x)) => x
 //│ ╙──       	                                        ^
-//│ elaborated pattern body: ¬Pair(Int, x) => <error>
+//│ elaborated pattern body: ¬Pair(Int, x‹?›) => <error>
 
 :ucs ups
 pattern DoubleNegated = ~(~Int)
@@ -147,11 +147,11 @@ pattern Origin = (x: 0, y: 0, z: 0)
 
 :ucs ups
 pattern PointLike = ((x: x, y: y)) => x + y
-//│ elaborated pattern body: {x: x, y: y} => builtin:+⁰(x⁵, y⁰)
+//│ elaborated pattern body: {x: x‹x⁶›, y: y‹y⁰›} => builtin:+⁰(x⁷, y¹)
 
 :ucs ups
 pattern PointLike = ((:x, :y, :z)) => x + y
-//│ elaborated pattern body: {x: x, y: y, z: z} => builtin:+⁰(x⁶, y¹)
+//│ elaborated pattern body: {x: x‹x⁸›, y: y‹y²›, z: z‹z⁰›} => builtin:+⁰(x⁹, y³)
 
 :ucs ups
 pattern NestedTuple = [[[]]]
@@ -166,7 +166,7 @@ class SecretPair(a: Int, val b: Int)
 
 :ucs ups
 pattern KeepSecret(b) = SecretPair(_, b)
-//│ elaborated pattern body: SecretPair(_, b)
+//│ elaborated pattern body: SecretPair(_, b‹b²›)
 
 :e
 pattern RebuildSecret = SecretPair(_, b => b + 1)

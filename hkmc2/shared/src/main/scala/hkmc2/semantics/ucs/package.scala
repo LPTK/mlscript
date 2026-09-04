@@ -27,6 +27,7 @@ package object ucs:
       case InfixApp(lhs, Keywrd(`op`), rhs) => S((lhs, rhs))
       case _ => N
   
+  // TOOD: rm
   type Ctor = SynthSel | Sel | Ident
   
   /** A helper extractor for matching the tree of `x | y`. */  
