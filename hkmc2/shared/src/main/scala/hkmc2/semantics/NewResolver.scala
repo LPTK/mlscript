@@ -168,7 +168,12 @@ class NewResolver:
     pat match
     case pat: PatternShapeHost =>
       pat.shapes.foreach(listener)
-    case _ => ???
+    case pat: Pattern.Alias =>
+      // TODO: also handle the alias symbol's shape listeners?
+      listenPattern(pat.pattern)(listener)
+    case Pattern.Wildcard() =>
+      ()
+    // case _ => ???
   
   def matchShapePat(shape: Shape, pattern: Pattern): Unit =
     pattern match
@@ -427,7 +432,7 @@ class NewResolver:
               listener(sh)
         sym.defn match
         case S(td: TermDefinition) if td.params.isEmpty =>
-          log(s"listenTerm: td.body = ${td.body}")
+          log(s"listenTerm: td.body = ${td.body.fold("N")(_.showDbg)}")
           td.body match
           case S(body) =>
             listenTerm(body)(wrappedListener)

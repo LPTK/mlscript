@@ -1,0 +1,135 @@
+:..
+
+
+:sr
+module A {
+  val u = 1
+}
+module B {
+  val u = 2
+}
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   module A⁰::A¹ { val u⁰::u¹ ‹flow:u⁰› = 1 }, module B⁰::B¹ { val u²::u³ ‹flow:u¹› = 2 }
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+val foo = case x then x
+//│ foo = fun
+
+:de
+:sr
+foo(A).u
+//│ Elab block List(Sel(App(Ident(foo),Tup(List(Ident(A)))),Ident(u))) LocalScope(block:4)
+//│ | Elab term Sel(App(Ident(foo),Tup(List(Ident(A)))),Ident(u))
+//│ | | Elab subterm Sel(App(Ident(foo),Tup(List(Ident(A)))),Ident(u))
+//│ | | | Elab subterm App(Ident(foo),Tup(List(Ident(A))))
+//│ | | | | Elab subterm Ident(foo)
+//│ | | | | ~> member:foo
+//│ | | | | Elab subterm Tup(List(Ident(A)))
+//│ | | | | | Elab term Ident(A)
+//│ | | | | | | Elab subterm Ident(A)
+//│ | | | | | | ~> member:A
+//│ | | | | | ~> member:A
+//│ | | | | ~> [member:A]
+//│ | | | | listenTerm: trm = member:foo
+//│ | | | | listen: trm = member:foo
+//│ | | | | listenBMS: bms = value
+//│ | | | | listenedBMS: bms = value
+//│ | | | | listenTerm: td.body = λ(caseScrut). case { caseScrut⁰ is x‹x⁰› then x;  }
+//│ | | | | listenTerm: trm = λ(caseScrut). case { caseScrut⁰ is x‹x⁰› then x;  }
+//│ | | | | listen: trm = λ(caseScrut). case { caseScrut⁰ is x‹x⁰› then x;  }
+//│ | | | | introShape: intro = Lam(ParamList(‹›,List(Param(‹›,caseScrut,None,Modulefulness(None))),None),IfLike(keyword 'case',ReturningIf,Cons(Match(Ref(caseScrut),Alias(Wildcard(),Ident(x)),Else(SimpleRef(x))),End)))
+//│ | | | | fromBMS: bms = member:foo⁰, sh = IntroShape(λ(caseScrut). case { caseScrut⁰ is x‹x⁰› then x;  }), flow = foo¹, markss = List()
+//│ | | | | .exit MarkedShape (IntroShape(λ(caseScrut). case { caseScrut⁰ is x‹x⁰› then x;  }), term:foo², foo¹)
+//│ | | | | | class hkmc2.semantics.TermSymbol None
+//│ | | | | = MarkedShape(IntroShape(λ(caseScrut). case { caseScrut⁰ is x‹x⁰› then x;  }), ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | | PUSH MarkedShape(IntroShape(λ(caseScrut). case { caseScrut⁰ is x‹x⁰› then x;  }), ↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | | appShape: lhs = MarkedShape(IntroShape(λ(caseScrut). case { caseScrut⁰ is x‹x⁰› then x;  }), ↗⟨term:foo²⟩%⟨foo¹⟩ϵ), args = [member:A], res = member:foo(member:A)
+//│ | | | | Zipping ParamList(‹›,List(Param(‹›,caseScrut,None,Modulefulness(None))),None) (List(↗⟨term:foo²⟩%⟨foo¹⟩ϵ)) with List(Fld(‹›,MemberRef(member:A),None))
+//│ | | | | listenTerm: trm = member:A
+//│ | | | | listen: trm = member:A
+//│ | | | | listenBMS: bms = module
+//│ | | | | listenedBMS: bms = module
+//│ | | | | fromBMS: bms = member:A⁰, sh = module:A¹, flow = A², markss = List()
+//│ | | | | .exit MarkedShape (module:A¹, module:A¹, A²)
+//│ | | | | | class hkmc2.semantics.ModuleOrObjectSymbol ?
+//│ | | | | = MarkedShape(module:A¹, ↗⟨module:A¹⟩%⟨A²⟩ϵ)
+//│ | | | | PUSH MarkedShape(module:A¹, ↗⟨module:A¹⟩%⟨A²⟩ϵ)
+//│ | | | | .enter MarkedShape(module:A¹, ↗⟨module:A¹⟩%⟨A²⟩ϵ) (↗⟨term:foo²⟩%⟨foo¹⟩ϵ)
+//│ | | | | | .enter MarkedShape(module:A¹, ↘⟨term:foo²⟩%⟨foo¹⟩↗⟨module:A¹⟩%⟨A²⟩ϵ) (ϵ)
+//│ | | | | | = MarkedShape(module:A¹, ↘⟨term:foo²⟩%⟨foo¹⟩↗⟨module:A¹⟩%⟨A²⟩ϵ)
+//│ | | | | = MarkedShape(module:A¹, ↘⟨term:foo²⟩%⟨foo¹⟩↗⟨module:A¹⟩%⟨A²⟩ϵ)
+//│ | | | | zipArg: p = caseScrut, trm = member:A, sh = MarkedShape(module:A¹, ↘⟨term:foo²⟩%⟨foo¹⟩↗⟨module:A¹⟩%⟨A²⟩ϵ)
+//│ | | | | listenPattern: pat = x‹x⁰›
+//│ | | | | listenPattern: pat = _
+//│ | | | | appShape isSaturated? true; head? (IntroShape(Lam(ParamList(‹›,List(Param(‹›,caseScrut,None,Modulefulness(None))),None),IfLike(keyword 'case',ReturningIf,Cons(Match(Ref(caseScrut),Alias(Wildcard(),Ident(x)),Else(SimpleRef(x))),End)))),List(ExitMark(term:foo,Some(foo),NoMarks)))
+//│ | | | | lhs false List(((caseScrut),List(↗⟨term:foo²⟩%⟨foo¹⟩ϵ)))
+//│ | | | | listenTerm: trm = case { caseScrut⁰ is x‹x⁰› then x;  }
+//│ | | | | listen: trm = case { caseScrut⁰ is x‹x⁰› then x;  }
+//│ | | | ~> member:foo(member:A)
+//│ | | | newSel? sel = member:foo(member:A).u
+//│ | | | listenTerm: trm = member:foo(member:A)
+//│ | | | listen: trm = member:foo(member:A)
+//│ | | ~> member:foo(member:A).u
+//│ | ~> member:foo(member:A).u
+//│ ~> { member:foo(member:A).u }
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   foo⁰(A⁰)‹app⁰›.uˀˀˀ
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: term (Lowering.scala:1134)
+//│ FAILURE INFO: NewSel:
+//│   prefix = App:
+//│     lhs = MemberRef of member:foo⁰
+//│     rhs = Tup of Ls of
+//│       Fld:
+//│         term = MemberRef of member:A⁰
+//│   id = Ident of "u"
+//│ ╔══[COMPILATION ERROR] This selection of member 'u' has no resolved target
+//│ ║  l.20: 	foo(A).u
+//│ ╙──      	^^^^^^^^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:260)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+foo(A).u
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: term (Lowering.scala:1134)
+//│ FAILURE INFO: NewSel:
+//│   prefix = App:
+//│     lhs = MemberRef of member:foo⁰
+//│     rhs = Tup of Ls of
+//│       Fld:
+//│         term = MemberRef of member:A⁰
+//│   id = Ident of "u"
+//│ ╔══[COMPILATION ERROR] This selection of member 'u' has no resolved target
+//│ ║  l.94: 	foo(A).u
+//│ ╙──      	^^^^^^^^
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:260)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// * We now preserve context sensitivity
+:sr
+foo(B).u
+//│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————
+//│   foo⁰(B⁰)‹app¹›.uˀˀˀ
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: term (Lowering.scala:1134)
+//│ FAILURE INFO: NewSel:
+//│   prefix = App:
+//│     lhs = MemberRef of member:foo⁰
+//│     rhs = Tup of Ls of
+//│       Fld:
+//│         term = MemberRef of member:B⁰
+//│   id = Ident of "u"
+//│ ╔══[COMPILATION ERROR] This selection of member 'u' has no resolved target
+//│ ║  l.113: 	foo(B).u
+//│ ╙──       	^^^^^^^^
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ FAILURE: Unexpected runtime error
+//│ FAILURE LOCATION: mkQuery (JSBackendDiffMaker.scala:260)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+
+

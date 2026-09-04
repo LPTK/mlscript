@@ -349,6 +349,7 @@ sealed trait Shape extends ShapeLike:
     case ns: SymShape => s"SymShape(${ns.sym.showDbg})"
     case ns: NewShape => s"NewShape(${ns.cls.showDbg}, ${ns.argss.map(_.showDbg).mkString(", ")})"
     case lit: Term.Lit => lit.showDbg
+    case is: IntroShape => s"IntroShape(${is.trm.showDbg})"
 
 sealed trait NonMarkedShape extends TermShape
 sealed trait NonAppTermShape extends NonMarkedShape
