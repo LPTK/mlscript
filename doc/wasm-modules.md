@@ -45,12 +45,23 @@ ctest
 cwtest
 wdtest FileImports
 wdtest HostImports
-hkmc2JVM/testOnly hkmc2.WasmModuleCompilationTest
+wdtest Modules
+wdtest DiamondImports
+wdtest ModuleErrors
 hkmc2AllTests/test
 ```
 
 The `wasm/Box.mls` compilation fixture includes its generated WAT and loader as
 a reviewable output example. Other generated modules are ignored.
+
+Separate-compilation examples live in `mlscript-compile/wasm/modules/` and run
+through the normal `cwtest` compilation tests. `Modules.mls` exercises their loaders
+using `:js` and `:expect`; `DiamondImports.mls` checks the four-file diamond in
+`modules/diamond/`: both branches exchange instances of shared classes, access
+their fields, check nominal identity, and share module initialization state.
+Cache identity, output restoration, and concurrent requests
+are tested by `CompilerCacheTest` because they require controlling the compiler
+session and filesystem.
 
 ## Source and host boundaries
 
@@ -61,7 +72,9 @@ a reviewable output example. Other generated modules are ignored.
 - Functions and constructors cross file boundaries as WASM function imports.
   Globals, singleton storage, and class RTTI retain their defining instance.
   Standalone modules are static namespaces: their fields have global storage and
-  their methods are static functions. Their constructors run in source order.
+  their methods are static functions. Module initialization runs in source order.
+  Classes declared inside them have no enclosing instance and use the same ABI as
+  top-level classes.
 - Classes support the backend's existing field layouts, constructors, imported
   base initializers, direct methods, virtual methods, and nominal class tests.
   Structurally equal classes from different sources retain different RTTI objects.

@@ -420,8 +420,8 @@ result; checking for text in generated files cannot establish correct linking.
 
 Suggested locations:
 
-- A focused JVM compiler test file for temporary dependency graphs, cache behavior,
-  and Node execution.
+- Normal compilation fixtures for dependency graphs, with Node execution through
+  the existing diff tests. Keep cache/concurrency checks in the compiler API tests.
 - `hkmc2/js/src/test/scala/hkmc2/CompilerTest.scala` for in-memory filesystem and
   cross-platform artifact behavior.
 - `hkmc2/shared/src/test/mlscript-compile/wasm/` for durable source fixtures.

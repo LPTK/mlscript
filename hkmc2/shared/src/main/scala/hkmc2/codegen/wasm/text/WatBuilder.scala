@@ -135,6 +135,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
             staticBindings(ts) = ts
             registerSessionGlobal(ts)
           body.methods.foreach(function)
+          applyBlock(body.ctor)
         case _ => ()
     .applyBlock(b)
 
@@ -280,9 +281,14 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         lastWords("unreachable: loop-based RTTI traversal expects a continue label")
   end isSubtypeByTypeInfo
 
-  /** True if this top-level class can be declared as a Wasm struct type. */
+  /** Static module members have no enclosing instance to capture, so their classes
+    * use the same representation as top-level classes. Instance-owned classes do not. */
+  private def hasStaticOwner(defn: ClsLikeDefn): Bool =
+    defn.owner.forall(namespaces.contains)
+
+  /** True if this statically owned class can be declared as a Wasm struct type. */
   private def isSupportedTopLevelClass(defn: ClsLikeDefn): Bool =
-    defn.owner.isEmpty
+    hasStaticOwner(defn)
       && ((defn.k is syntax.Cls) || (defn.k is syntax.Obj))
       && (!(defn.k is syntax.Obj) || defn.parentPath.isEmpty)
       && (!(defn.k is syntax.Obj) || defn.methods.isEmpty)
@@ -393,7 +399,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     else ctx.addSingletonInitAction(action)
   end registerSingletonInit
 
-  /** Collects only top-level class definitions in `block`. */
+  /** Collects class definitions at top level and inside static module constructors. */
   private def collectTopLevelClassDefns(block: Block): List[ClsLikeDefn] =
     val acc = ArrayBuf.empty[ClsLikeDefn]
     new BlockTraverserShallow:
@@ -404,6 +410,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         case TryBlock(_, _, rst) => applySubBlock(rst)
         case _ => super.applyBlock(b)
       override def applyDefn(defn: Defn): Unit = defn match
+        case cls: ClsLikeDefn if localNamespaces(cls.sym) && cls.companion.nonEmpty =>
+          applyBlock(cls.companion.get.ctor)
         case clsLikeDefn: ClsLikeDefn =>
           clsLikeDefn.optionIf(isSupportedTopLevelClass).foreach(acc += _)
         case _ => ()
@@ -1939,7 +1947,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     extraInfo = S(defn.showAsTree),
                   )))
                   val isSingletonObj = clsLikeDefn.k is syntax.Obj
-                  if clsLikeDefn.owner.nonEmpty then
+                  if !hasStaticOwner(clsLikeDefn) then
                     break(errUnimplExpr("owner.nonEmpty"))
                   if !(clsLikeDefn.k is syntax.Cls) && !isSingletonObj then
                     break(errUnimplExpr("unsupported ClsLikeDefn kind"))
@@ -2352,9 +2360,12 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       preservedSessionSymbols: Set[BoundSymbol],
   )(using Raise): CompiledWasmModule =
     for imprt <- p.imports if fileCompilation.isEmpty || !fileCompilation.get.aliases.contains(imprt._1) do
+      val displayPath = if imprt._2.startsWith("/") then
+        io.Path(imprt._2).relativeTo(wd).fold(imprt._2)(_.toString)
+      else imprt._2
       raise(
         ErrorReport(
-          msg"Import of symbol `${imprt._2}` not implemented yet" -> imprt._1.toLoc :: Nil,
+          msg"Import of symbol `$displayPath` not implemented yet" -> imprt._1.toLoc :: Nil,
           extraInfo = S(imprt),
           source = Diagnostic.Source.Compilation,
         ),

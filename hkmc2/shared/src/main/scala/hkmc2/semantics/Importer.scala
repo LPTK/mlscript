@@ -60,7 +60,7 @@ class Importer:
               given TL = tl
               cctx.getElaboratedBlock(file, prelude)
             val importedSym = artifact.compilationUnit.defaultExport.getOrElse:
-              raise(ErrorReport(msg"File '${file.toString}' does not define a default export named '$nme'" -> id.toLoc :: Nil))
+              raise(ErrorReport(msg"File '$path' does not define a default export named '$nme'" -> id.toLoc :: Nil))
               BlockMemberSymbol(nme, Nil)
             // An alias changes the lexical binding, not the imported definition's identity.
             // Keeping its symbol also preserves statically known class/module information.
