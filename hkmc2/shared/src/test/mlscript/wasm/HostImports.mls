@@ -1,3 +1,4 @@
+
 :global
 :js
 
@@ -18,4 +19,3 @@ Shared.next()
 :re
 Shared.fail()
 //│ ═══[RUNTIME ERROR] 42
-//│ ═══[RUNTIME ERROR] Expected: '2', got: 'undefined'

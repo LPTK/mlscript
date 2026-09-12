@@ -24,65 +24,30 @@ callF(B())
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $TypeInfoBase1 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
-//│   (type $Object1 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $Unit_typeinfo (sub $TypeInfoBase1 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
-//│   (type $Unit (sub $Object1 (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $Unit_init (func (param $this (ref null any)) (result (ref null any))))
-//│   (type $Unit_ctor (func (result (ref null any))))
-//│   (type $TypeInfoBase2 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase2)))))
-//│   (type $Object2 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase2))))))
+//│   (type $callF (func (param $a (ref null any)) (result (ref null any))))
 //│   (type $virtual2 (func (param $this (ref null any)) (param $arg1 (ref null any)) (result (ref null any))))
-//│   (type $A_typeinfo (sub $TypeInfoBase2 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase2)) (field $slot0 (mut (ref null $virtual2))))))
-//│   (type $A (sub $Object2 (struct (field $$typeinfo (mut (ref $TypeInfoBase2))))))
+//│   (type $A_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)) (field $slot0 (mut (ref null $virtual2))))))
+//│   (type $A (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
 //│   (type $A_init (func (param $this (ref null any)) (result (ref null any))))
 //│   (type $A_ctor (func (result (ref null any))))
-//│   (type $virtual1 (func (param $this (ref null any)) (result (ref null any))))
-//│   (type $B_typeinfo (sub $A_typeinfo (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase2)) (field $slot0 (mut (ref null $virtual2))) (field $slot1 (mut (ref null $virtual1))))))
-//│   (type $B (sub $A (struct (field $$typeinfo (mut (ref $TypeInfoBase2))))))
+//│   (type $B_typeinfo (sub $A_typeinfo (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)) (field $slot0 (mut (ref null $virtual2))))))
+//│   (type $B (sub $A (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
 //│   (type $B_init (func (param $this (ref null any)) (result (ref null any))))
 //│   (type $B_ctor (func (result (ref null any))))
+//│   (type $callF1 (func (param $a (ref null any)) (result (ref null any))))
 //│   (type $plus_impl (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
 //│   (type $times_impl (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
 //│   (type $entry (func (result (ref null any))))
-//│   (type $callF (func (param $a (ref null any)) (result (ref null any))))
-//│   (type $virtual21 (func (param $this (ref null any)) (param $arg1 (ref null any)) (result (ref null any))))
-//│   (type $A_typeinfo1 (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)) (field $slot0 (mut (ref null $virtual21))))))
-//│   (type $A1 (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $A_init1 (func (param $this (ref null any)) (result (ref null any))))
-//│   (type $A_ctor1 (func (result (ref null any))))
-//│   (type $B_typeinfo1 (sub $A_typeinfo1 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)) (field $slot0 (mut (ref null $virtual21))))))
-//│   (type $B1 (sub $A1 (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $B_init1 (func (param $this (ref null any)) (result (ref null any))))
-//│   (type $B_ctor1 (func (result (ref null any))))
-//│   (type $callF1 (func (param $a (ref null any)) (result (ref null any))))
-//│   (type $plus_impl1 (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
-//│   (type $times_impl1 (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
-//│   (type $entry1 (func (result (ref null any))))
-//│   (import "system" "Unit_init" (func $Unit_init (type $Unit_init)))
-//│   (import "system" "Unit_Unit" (func $Unit_Unit (type $Unit_ctor)))
-//│   (import "repl0" "A_init" (func $A_init (type $A_init)))
-//│   (import "repl0" "A_ctor" (func $A_ctor (type $A_ctor)))
-//│   (import "repl0" "A_f" (func $A_f (type $virtual2)))
-//│   (import "repl0" "B_init" (func $B_init (type $B_init)))
-//│   (import "repl0" "B_ctor" (func $B_ctor (type $B_ctor)))
-//│   (import "repl0" "B_g" (func $B_g (type $virtual1)))
-//│   (import "repl0" "B_f" (func $B_f (type $virtual2)))
-//│   (import "repl0" "entry" (func $entry (type $entry)))
-//│   (import "system" "plus_impl" (func $plus_impl (type $plus_impl1)))
-//│   (import "system" "times_impl" (func $times_impl (type $times_impl1)))
-//│   (import "system" "Unit_typeinfo" (global $Unit_typeinfo (ref $Unit_typeinfo)))
-//│   (import "system" "Unit$inst" (global $Unit$inst (mut (ref null $Unit))))
-//│   (import "repl0" "A_typeinfo" (global $A_typeinfo (ref $A_typeinfo)))
-//│   (import "repl0" "B_typeinfo" (global $B_typeinfo (ref $B_typeinfo)))
-//│   (global $A_typeinfo1 (export "A_typeinfo") (ref $A_typeinfo1) (struct.new $A_typeinfo1
+//│   (import "system" "plus_impl" (func $plus_impl (type $plus_impl)))
+//│   (import "system" "times_impl" (func $times_impl (type $times_impl)))
+//│   (global $A_typeinfo (export "A_typeinfo") (ref $A_typeinfo) (struct.new $A_typeinfo
 //│     (i32.const 1)
 //│     (ref.null $TypeInfoBase)
-//│     (ref.func $A_f1)))
-//│   (global $B_typeinfo1 (export "B_typeinfo") (ref $B_typeinfo1) (struct.new $B_typeinfo1
+//│     (ref.func $A_f)))
+//│   (global $B_typeinfo (export "B_typeinfo") (ref $B_typeinfo) (struct.new $B_typeinfo
 //│     (i32.const 2)
-//│     (global.get $A_typeinfo1)
-//│     (ref.func $B_f1)))
+//│     (global.get $A_typeinfo)
+//│     (ref.func $B_f)))
 //│   (func $callF (export "callF") (type $callF1) (param $a (ref null any)) (result (ref null any))
 //│     (local $receiver (ref null any))
 //│     (block
@@ -90,31 +55,31 @@ callF(B())
 //│         (block (result (ref null any))
 //│           (local.set $receiver
 //│             (local.get $a))
-//│           (call_ref $virtual21
+//│           (call_ref $virtual2
 //│             (local.get $receiver)
 //│             (ref.i31
 //│               (i32.const 5))
-//│             (struct.get $A_typeinfo1 $slot0
-//│               (ref.cast (ref $A_typeinfo1)
-//│                 (struct.get $Object $$typeinfo
+//│             (struct.get $A_typeinfo 2
+//│               (ref.cast (ref $A_typeinfo)
+//│                 (struct.get $Object 0
 //│                   (ref.cast (ref $Object)
 //│                     (local.get $receiver))))))))
 //│       (unreachable)))
-//│   (func $A_init1 (export "A_init") (type $A_init1) (param $this (ref null any)) (result (ref null any))
+//│   (func $A_init (export "A_init") (type $A_init) (param $this (ref null any)) (result (ref null any))
 //│     (return
 //│       (local.get $this)))
-//│   (func $A_ctor1 (export "A_ctor") (type $A_ctor1) (result (ref null any))
+//│   (func $A_ctor (export "A_ctor") (type $A_ctor) (result (ref null any))
 //│     (local $this (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $this
-//│         (struct.new $A1
-//│           (global.get $A_typeinfo1)))
+//│         (struct.new $A
+//│           (global.get $A_typeinfo)))
 //│       (drop
-//│         (call $A_init1
+//│         (call $A_init
 //│           (local.get $this)))
 //│       (return
 //│         (local.get $this))))
-//│   (func $A_f1 (export "A_f") (type $virtual21) (param $this (ref null any)) (param $x (ref null any)) (result (ref null any))
+//│   (func $A_f (export "A_f") (type $virtual2) (param $this (ref null any)) (param $x (ref null any)) (result (ref null any))
 //│     (block
 //│       (return
 //│         (call $plus_impl
@@ -122,25 +87,25 @@ callF(B())
 //│           (ref.i31
 //│             (i32.const 1))))
 //│       (unreachable)))
-//│   (func $B_init1 (export "B_init") (type $B_init1) (param $this (ref null any)) (result (ref null any))
+//│   (func $B_init (export "B_init") (type $B_init) (param $this (ref null any)) (result (ref null any))
 //│     (block (result (ref null any))
 //│       (drop
-//│         (call $A_init1
+//│         (call $A_init
 //│           (local.get $this)))
 //│       (return
 //│         (local.get $this))))
-//│   (func $B_ctor1 (export "B_ctor") (type $B_ctor1) (result (ref null any))
+//│   (func $B_ctor (export "B_ctor") (type $B_ctor) (result (ref null any))
 //│     (local $this (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $this
-//│         (struct.new $B1
-//│           (global.get $B_typeinfo1)))
+//│         (struct.new $B
+//│           (global.get $B_typeinfo)))
 //│       (drop
-//│         (call $B_init1
+//│         (call $B_init
 //│           (local.get $this)))
 //│       (return
 //│         (local.get $this))))
-//│   (func $B_f1 (export "B_f") (type $virtual21) (param $this (ref null any)) (param $x (ref null any)) (result (ref null any))
+//│   (func $B_f (export "B_f") (type $virtual2) (param $this (ref null any)) (param $x (ref null any)) (result (ref null any))
 //│     (block
 //│       (return
 //│         (call $times_impl
@@ -148,33 +113,33 @@ callF(B())
 //│           (ref.i31
 //│             (i32.const 2))))
 //│       (unreachable)))
-//│   (func $entry1 (export "entry") (type $entry1) (result (ref null any))
+//│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null any))
 //│     (local $receiver (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $tmp
-//│         (call $B_ctor1))
+//│         (call $B_ctor))
 //│       (return
 //│         (block (result (ref null any))
 //│           (local.set $receiver
 //│             (local.get $tmp))
-//│           (call_ref $virtual21
+//│           (call_ref $virtual2
 //│             (local.get $receiver)
 //│             (ref.i31
 //│               (i32.const 5))
-//│             (struct.get $A_typeinfo1 $slot0
-//│               (ref.cast (ref $A_typeinfo1)
-//│                 (struct.get $Object $$typeinfo
+//│             (struct.get $A_typeinfo 2
+//│               (ref.cast (ref $A_typeinfo)
+//│                 (struct.get $Object 0
 //│                   (ref.cast (ref $Object)
 //│                     (local.get $receiver))))))))))
 //│   (elem $callF declare func $callF)
-//│   (elem $A_init declare func $A_init1)
-//│   (elem $A_ctor declare func $A_ctor1)
-//│   (elem $A_f declare func $A_f1)
-//│   (elem $B_init declare func $B_init1)
-//│   (elem $B_ctor declare func $B_ctor1)
-//│   (elem $B_f declare func $B_f1)
-//│   (elem $entry declare func $entry1))
+//│   (elem $A_init declare func $A_init)
+//│   (elem $A_ctor declare func $A_ctor)
+//│   (elem $A_f declare func $A_f)
+//│   (elem $B_init declare func $B_init)
+//│   (elem $B_ctor declare func $B_ctor)
+//│   (elem $B_f declare func $B_f)
+//│   (elem $entry declare func $entry))
 //│ Wasm result:
 //│ = 10
 

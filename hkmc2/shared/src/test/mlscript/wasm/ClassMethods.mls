@@ -12,12 +12,6 @@ a.A#get() + A(2).get()
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $TypeInfoBase1 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
-//│   (type $Object1 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $Unit_typeinfo (sub $TypeInfoBase1 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
-//│   (type $Unit (sub $Object1 (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $Unit_init (func (param $this (ref null any)) (result (ref null any))))
-//│   (type $Unit_ctor (func (result (ref null any))))
 //│   (type $A_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $A (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $x (mut (ref null any))))))
 //│   (type $A_init (func (param $this (ref null any)) (param $x (ref null any)) (result (ref null any))))
@@ -25,18 +19,14 @@ a.A#get() + A(2).get()
 //│   (type $A_get (func (param $this (ref null any)) (result (ref null any))))
 //│   (type $plus_impl (func (param $lhs (ref null any)) (param $rhs (ref null any)) (result (ref null any))))
 //│   (type $entry (func (result (ref null any))))
-//│   (import "system" "Unit_init" (func $Unit_init (type $Unit_init)))
-//│   (import "system" "Unit_Unit" (func $Unit_Unit (type $Unit_ctor)))
 //│   (import "system" "plus_impl" (func $plus_impl (type $plus_impl)))
-//│   (import "system" "Unit_typeinfo" (global $Unit_typeinfo (ref $Unit_typeinfo)))
-//│   (import "system" "Unit$inst" (global $Unit$inst (mut (ref null $Unit))))
 //│   (global $a (export "a") (mut (ref null any)) (ref.null any))
 //│   (global $A_typeinfo (export "A_typeinfo") (ref $A_typeinfo) (struct.new $A_typeinfo
 //│     (i32.const 1)
 //│     (ref.null $TypeInfoBase)))
 //│   (func $A_init (export "A_init") (type $A_init) (param $this (ref null any)) (param $x (ref null any)) (result (ref null any))
 //│     (block (result (ref null any))
-//│       (struct.set $A $x
+//│       (struct.set $A 1
 //│         (ref.cast (ref $A)
 //│           (local.get $this))
 //│         (local.get $x))
@@ -58,7 +48,7 @@ a.A#get() + A(2).get()
 //│   (func $A_get (export "A_get") (type $A_get) (param $this (ref null any)) (result (ref null any))
 //│     (block
 //│       (return
-//│         (struct.get $A $x
+//│         (struct.get $A 1
 //│           (ref.cast (ref $A)
 //│             (local.get $this))))
 //│       (unreachable)))
@@ -212,5 +202,5 @@ class A(val x) with
   fun get() = x
 A(1).get
 //│ ╔══[COMPILATION ERROR] `member:get` is neither a field access nor a callable method
-//│ ║  l.213: 	A(1).get
+//│ ║  l.203: 	A(1).get
 //│ ╙──       	    ^^^^

@@ -182,30 +182,35 @@ sealed abstract class Index extends ToWat
 case class SymIdx(val id: Str) extends Index:
   def toWat: Document = doc"$$$id"
 
+/** A numeric index, used for field offsets whose names are only debug information. */
+case class NumIdx(value: Int) extends Index:
+  require(value >= 0)
+  def toWat: Document = doc"$value"
+
 /** An index that is bound to an index space. */
 sealed abstract class CtxIdx(idx: Index) extends ToWat:
   def toWat: Document = idx.toWat
 
 /** An index bound to the ''types'' index space. */
-case class TypeIdx(idx: Index) extends CtxIdx(idx)
+case class TypeIdx(idx: SymIdx) extends CtxIdx(idx)
 
 /** An index bound to the ''global'' index space. */
-case class GlobalIdx(idx: Index) extends CtxIdx(idx)
+case class GlobalIdx(idx: SymIdx) extends CtxIdx(idx)
 
 /** An index bound to the ''memory'' index space. */
-case class MemIdx(idx: Index) extends CtxIdx(idx)
+case class MemIdx(idx: SymIdx) extends CtxIdx(idx)
 
 /** An index bound to the ''funcs'' index space. */
-case class FuncIdx(idx: Index) extends CtxIdx(idx)
+case class FuncIdx(idx: SymIdx) extends CtxIdx(idx)
 
 /** An index bound to the ''locals'' index space. */
-case class LocalIdx(idx: Index) extends CtxIdx(idx)
+case class LocalIdx(idx: SymIdx) extends CtxIdx(idx)
 
 /** An index bound to the ''fields'' index space. */
 case class FieldIdx(idx: Index) extends CtxIdx(idx)
 
 /** An index bound to the ''tags'' index space. */
-case class TagIdx(idx: Index) extends CtxIdx(idx)
+case class TagIdx(idx: SymIdx) extends CtxIdx(idx)
 
 /** An import entry. */
 case class Import[ET <: ExternType](module: Str, name: Str, externType: ET) extends ToWat:

@@ -115,7 +115,7 @@ abstract class WasmDiffMaker extends InvalMLDiffMaker:
         case d => outerRaise(d)
       val compiled = ltl.givenIn:
         val runtime = new WasmCompiler(using cctx, ltl).runtime()
-        val fileImports = Vector(FileImport("system", runtime.compiled.interface.runtimeValues)) ++
+        val fileImports = Vector(FileImport("system", runtime.compiled.interface)) ++
           linkedFiles.values.toVector.zipWithIndex.map { case ((_, compiled), i) => FileImport(s"module$i", compiled.interface) } ++
           worksheetInterfaces.toVector.zipWithIndex.map((abi, i) => FileImport(s"repl$i", abi))
         WatBuilder().worksheetModule(pgrm, wd, symbolsToPreserve,
@@ -229,6 +229,11 @@ abstract class WasmDiffMaker extends InvalMLDiffMaker:
           case n if n >= 0 => out.substring(0, n)
           case _ => ""
         worksheetInterfaces += compiled.interface
+        expect.get match
+          case S(expected) if result =/= expected => raise:
+            ErrorReport(msg"Expected: '$expected', got: '$result'" -> N :: Nil,
+              source = Source.Runtime)
+          case _ => ()
         output(s"= $result")
     end if
 

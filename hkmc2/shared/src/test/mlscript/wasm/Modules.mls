@@ -10,6 +10,7 @@ import "../../mlscript-compile/wasm/modules/Strings.mjs"
 import "../../mlscript-compile/wasm/modules/PrivateImport.mjs"
 import "../../mlscript-compile/wasm/modules/TransitiveImport.mjs"
 import "../../mlscript-compile/wasm/modules/Classes.mjs"
+import "../../mlscript-compile/wasm/modules/FieldLayouts.mjs"
 import "../../mlscript-compile/wasm/modules/Virtual.mjs"
 import "../../mlscript-compile/wasm/modules/ObjectValue.mjs"
 import "../../mlscript-compile/wasm/modules/ObjectImport.mjs"
@@ -64,6 +65,18 @@ TransitiveImport()
 :expect 42
 Classes.field()
 //│ = 42
+
+:expect 84
+FieldLayouts.inherited()
+//│ = 84
+
+:expect 42
+FieldLayouts.own()
+//│ = 42
+
+:expect 30
+FieldLayouts.earlier()
+//│ = 30
 
 :expect 42
 Classes.inherited()

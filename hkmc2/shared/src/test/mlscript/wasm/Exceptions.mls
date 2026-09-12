@@ -10,18 +10,8 @@ throw 1
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $TypeInfoBase1 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
-//│   (type $Object1 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $Unit_typeinfo (sub $TypeInfoBase1 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
-//│   (type $Unit (sub $Object1 (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $Unit_init (func (param $this (ref null any)) (result (ref null any))))
-//│   (type $Unit_ctor (func (result (ref null any))))
 //│   (type $mlx_exn (func (param $ex (ref null any))))
 //│   (type $entry (func (result (ref null any))))
-//│   (import "system" "Unit_init" (func $Unit_init (type $Unit_init)))
-//│   (import "system" "Unit_Unit" (func $Unit_Unit (type $Unit_ctor)))
-//│   (import "system" "Unit_typeinfo" (global $Unit_typeinfo (ref $Unit_typeinfo)))
-//│   (import "system" "Unit$inst" (global $Unit$inst (mut (ref null $Unit))))
 //│   (import "system" "mlx_exn" (tag $mlx_exn (type $mlx_exn)))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (throw $mlx_exn

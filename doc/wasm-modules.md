@@ -106,12 +106,18 @@ definitions that foreign inlined bodies can still reference.
 
 `FileInterface` is an immutable backend snapshot. Symbols are origin identities
 within a compiler session; source type indices are only edges within that
-snapshot. Importing first allocates destination names, then relocates every type
-edge, including parents, fields, arrays, function signatures, and RTTI. The
+snapshot. Importing registers a catalog; only bindings demanded by code generation
+receive WAT names and declarations. Each demanded binding brings in its transitive
+type dependencies, including parents, fields, arrays, function signatures, and RTTI. The
 interface also carries initialization functions, singleton globals, namespaces,
 and virtual tables. Diamond imports deduplicate types by origin and representation.
 Internal names and external names are allocated separately; neither depends on
 global uniqueness of source names or state-local UIDs.
+
+Field accesses use numeric layout offsets. Classes with equal WASM layouts can
+give different names to the same offsets; Binaryen's type canonicalization can
+misresolve symbolic field accesses in that case. Numeric accesses preserve the
+compiler's resolved field identity through assembly.
 
 Files currently export all their defined backend functions and globals, including
 private helpers, and snapshot the complete type table. This deliberately favors

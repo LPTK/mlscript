@@ -508,7 +508,10 @@ class Ctx(using State) extends ToWat:
   import Ctx.prettyString
 
   private var fileNames: Opt[FileExportNames] = N
-  private val importedTypes = scala.collection.mutable.Set.empty[(ValueSymbol, Opt[Str] -> Opt[Str])]
+  private val importedTypes = MutMap.empty[(ValueSymbol, Opt[Str] -> Opt[Str]), TypeIdx]
+  private val pendingTypes = MutMap.empty[BlockMemberSymbol, () => TypeInfo]
+  private val pendingFunctions = MutMap.empty[ValueSymbol, () => Import[ExternType.Func]]
+  private val pendingGlobals = MutMap.empty[ValueSymbol, () => Import[ExternType.Global]]
 
   def enableFileExports(): Unit = fileNames = S(new FileExportNames)
 
@@ -530,25 +533,48 @@ class Ctx(using State) extends ToWat:
       classes, namespaces, defaultExport,
     )
 
-  def importFile(dep: FileImport)(using Ctx, Raise): (TypeRelocation, Map[GlobalIdx, GlobalIdx]) =
-    val indices = dep.interface.types.map: ty =>
-      ty.index -> TypeIdx(SymIdx(typeScp.allocateOrGetNameWrapped(ty.sym, ty.wrap)))
-    .toMap
-    val relocate = new TypeRelocation(indices)
-    dep.interface.types.foreach: ty =>
-      if importedTypes.add(ty.sym -> ty.wrap) then
+  /** Register the complete interface for lookup, without emitting unused imports or
+    * reserving their WAT names. Code generation demands individual bindings; each
+    * binding brings in the transitive closure of its signature/layout types. */
+  def importFile(dep: FileImport)(using Ctx, Raise): (TypeRelocation, GlobalIdx => GlobalIdx) =
+    val byIndex = dep.interface.types.map(t => t.index -> t).toMap
+    lazy val relocate: TypeRelocation = new TypeRelocation(index =>
+      val ty = byIndex.getOrElse(index, lastWords(s"WASM interface has an unbound type edge: $index"))
+      importedTypes.getOrElse(ty.sym -> ty.wrap, {
+        val result = TypeIdx(SymIdx(typeScp.allocateOrGetNameWrapped(ty.sym, ty.wrap)))
+        // Reserve the index before traversing edges, including self-references.
+        importedTypes(ty.sym -> ty.wrap) = result
         addType(TypeInfo(ty.sym, relocate.body(ty.body), ty.tag, ty.wrap))
+        result
+      }))
+    dep.interface.types.foreach: ty =>
+      ty.sym match
+        case sym: BlockMemberSymbol if ty.wrap == (N -> N) =>
+          pendingTypes.getOrElseUpdate(sym, () => getTypeInfo_!(relocate.index(ty.index)))
+        case _ => ()
     dep.interface.functions.foreach: f =>
-      addFunctionImport(Import(dep.name, f.name, ExternType.Func(TypeUse(relocate.index(f.ty)), f.sym, f.wrap)))
+      lazy val imported =
+        val binding = Import(dep.name, f.name, ExternType.Func(TypeUse(relocate.index(f.ty)), f.sym, f.wrap))
+        addFunctionImport(binding)
+        binding
+      pendingFunctions.getOrElseUpdate(f.sym, () => imported)
     val globals = dep.interface.globals.map: g =>
-      g.index -> addGlobalImport(Import(dep.name, g.name, ExternType.Global(relocate.global(g.ty), g.sym, g.wrap)))
+      lazy val imported =
+        val binding = Import(dep.name, g.name, ExternType.Global(relocate.global(g.ty), g.sym, g.wrap))
+        addGlobalImport(binding)
+        binding
+      val binding = pendingGlobals.getOrElseUpdate(g.sym, () => imported)
+      g.index -> (() => GlobalIdx(binding().externType.id))
     .toMap
-    (relocate, globals)
+    (relocate, index => globals.getOrElse(index,
+      lastWords(s"WASM interface has an unbound global edge: $index"))())
 
   /** Aliases refer to the same imported storage/function, never to a copied value. */
   def aliasBinding(alias: ValueSymbol, original: ValueSymbol): Unit =
     namedFuncs.get(original).foreach(namedFuncs(alias) = _)
     namedGlobals.get(original).foreach(namedGlobals(alias) = _)
+    pendingFunctions.get(original).foreach(pendingFunctions(alias) = _)
+    pendingGlobals.get(original).foreach(pendingGlobals(alias) = _)
 
   /** [[Scope]] for generating WAT identifiers of types. */
   private[text] val typeScp = new WasmScope
@@ -614,8 +640,8 @@ class Ctx(using State) extends ToWat:
   private val cachedFunctionImports = MutMap.empty[(Str, Str), FuncIdx]
   private val cachedGlobalImports = MutMap.empty[(Str, Str), GlobalIdx]
 
-  private val singletonByBms = MutMap.empty[BlockMemberSymbol, Ctx.SingletonInfo]
-  private val singletonByIsym = MutMap.empty[ModuleOrObjectSymbol, Ctx.SingletonInfo]
+  private val singletonByBms = MutMap.empty[BlockMemberSymbol, () => Ctx.SingletonInfo]
+  private val singletonByIsym = MutMap.empty[ModuleOrObjectSymbol, () => Ctx.SingletonInfo]
   private val singletonInitActions = ArrayBuf.empty[Expr]
   private val virtualTables = MutMap.empty[BlockMemberSymbol, Ctx.VirtualTable]
   private def imports: Seq[Import[?]] =
@@ -666,7 +692,7 @@ class Ctx(using State) extends ToWat:
   /** Returns the [[TypeInfo]] instance associated with the given `typeref`. */
   def getTypeInfo(typeref: TypeIdx | BlockMemberSymbol): Opt[TypeInfo] = typeref match
     case TypeIdx(idx @ SymIdx(nme)) => types.get(idx)
-    case sym: BlockMemberSymbol => namedTypes.get(sym)
+    case sym: BlockMemberSymbol => namedTypes.get(sym).orElse(pendingTypes.get(sym).map(_()))
 
   /** Same as [[getTypeInfo]] but throws an exception when the `typeref` is not found. */
   def getTypeInfo_!(typeref: TypeIdx | BlockMemberSymbol): TypeInfo =
@@ -785,12 +811,11 @@ class Ctx(using State) extends ToWat:
   /** Returns the [[FuncIdx]] of the given `funcref`.
     */
   def getFunc(funcref: FuncIdx | ValueSymbol): Opt[FuncIdx] = funcref match
-    case funcidx: FuncIdx => S(funcidx)
+    case idx: FuncIdx => S(idx)
     case sym: ValueSymbol =>
-      namedFuncs.get(sym).map: funcInfo =>
-        funcInfo match
-          case fi: FuncInfo => FuncIdx(fi.id)
-          case imp: Import[ExternType.Func] => FuncIdx(imp.externType.id)
+      getFuncEntry(sym).map:
+        case fi: FuncInfo => FuncIdx(fi.id)
+        case imp: Import[ExternType.Func] => FuncIdx(imp.externType.id)
 
   /** Same as [[getFunc]] but throws an exception when the `funcref` is not found. */
   def getFunc_!(funcref: FuncIdx | ValueSymbol): FuncIdx =
@@ -799,7 +824,7 @@ class Ctx(using State) extends ToWat:
 
   private def getFuncEntry(funcref: FuncIdx | ValueSymbol): Opt[FuncInfo | Import[ExternType.Func]] = funcref match
     case FuncIdx(idx @ SymIdx(_)) => funcs.get(idx)
-    case funcref: ValueSymbol => namedFuncs.get(funcref)
+    case funcref: ValueSymbol => namedFuncs.get(funcref).orElse(pendingFunctions.get(funcref).map(_()))
 
   /** Returns the [[FuncInfo]] instance associated with the given `funcref`. */
   def getFuncInfo(funcref: FuncIdx | ValueSymbol): Opt[FuncInfo] =
@@ -826,7 +851,7 @@ class Ctx(using State) extends ToWat:
   def getGlobal(globalref: GlobalIdx | ValueSymbol)(using Ctx, Raise): Opt[GlobalIdx] = globalref match
     case globalidx: GlobalIdx => S(globalidx)
     case sym: ValueSymbol =>
-      namedGlobals.get(sym).map: globalEntry =>
+      getGlobalEntry(sym).map: globalEntry =>
         GlobalIdx(globalExternType(globalEntry).id)
 
   /** Same as [[getGlobal]] but throws an exception when the `globalref` is not found. */
@@ -837,7 +862,7 @@ class Ctx(using State) extends ToWat:
   private def getGlobalEntry(globalref: GlobalIdx | ValueSymbol): Opt[GlobalInfo | Import[ExternType.Global]] =
     globalref match
       case GlobalIdx(idx @ SymIdx(_)) => globals.get(idx)
-      case sym: ValueSymbol => namedGlobals.get(sym)
+      case sym: ValueSymbol => namedGlobals.get(sym).orElse(pendingGlobals.get(sym).map(_()))
 
   /** Returns the global extern metadata associated with the given `globalref`. */
   def getGlobalType(globalref: GlobalIdx | ValueSymbol)(using Ctx, Raise): Opt[ExternType.Global] =
@@ -870,7 +895,7 @@ class Ctx(using State) extends ToWat:
     globalDefs.map(addGlobal)
 
   /** Checks whether the global variable scope contains the variable `sym`. */
-  def containsGlobal(sym: ValueSymbol): Bool = namedGlobals.contains(sym)
+  def containsGlobal(sym: ValueSymbol): Bool = namedGlobals.contains(sym) || pendingGlobals.contains(sym)
   
   /** Returns all globals in this context. */
   def getGlobals: Seq[ValueSymbol] = namedGlobals.keys.toSeq
@@ -882,19 +907,21 @@ class Ctx(using State) extends ToWat:
     * used during singleton registration.
     */
   def getSingletonInfo(sym: ValueSymbol): Opt[Ctx.SingletonInfo] = sym match
-    case bms: BlockMemberSymbol => singletonByBms.get(bms)
-    case isym: ModuleOrObjectSymbol => singletonByIsym.get(isym)
+    case bms: BlockMemberSymbol => singletonByBms.get(bms).map(_())
+    case isym: ModuleOrObjectSymbol => singletonByIsym.get(isym).map(_())
     case _ => N
 
   /** Registers singleton metadata under both its block-member symbol and optional module/object symbol alias.
+    * Delay resolving imported storage and its types until the singleton is actually used.
     */
   def registerSingleton(
       bms: BlockMemberSymbol,
       isym: Opt[ModuleOrObjectSymbol],
-      info: Ctx.SingletonInfo,
+      info: => Ctx.SingletonInfo,
   ): Unit =
-    singletonByBms(bms) = info
-    isym.foreach(singletonByIsym(_) = info)
+    lazy val cached = info
+    singletonByBms(bms) = () => cached
+    isym.foreach(singletonByIsym(_) = () => cached)
 
   /** Appends one eager singleton initialization action for synthesized module start code. */
   def addSingletonInitAction(action: Expr): Unit =

@@ -13,12 +13,6 @@ Bar.y
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $TypeInfoBase1 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
-//│   (type $Object1 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $Unit_typeinfo (sub $TypeInfoBase1 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
-//│   (type $Unit (sub $Object1 (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $Unit_init (func (param $this (ref null any)) (result (ref null any))))
-//│   (type $Unit_ctor (func (result (ref null any))))
 //│   (type $Foo_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Foo (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $x (mut (ref null any))))))
 //│   (type $Foo_init (func (param $this (ref null any)) (result (ref null any))))
@@ -28,10 +22,6 @@ Bar.y
 //│   (type $Bar_init (func (param $this (ref null any)) (result (ref null any))))
 //│   (type $Bar_ctor (func (result (ref null any))))
 //│   (type $entry (func (result (ref null any))))
-//│   (import "system" "Unit_init" (func $Unit_init (type $Unit_init)))
-//│   (import "system" "Unit_Unit" (func $Unit_Unit (type $Unit_ctor)))
-//│   (import "system" "Unit_typeinfo" (global $Unit_typeinfo (ref $Unit_typeinfo)))
-//│   (import "system" "Unit$inst" (global $Unit$inst (mut (ref null $Unit))))
 //│   (global $Foo_typeinfo (export "Foo_typeinfo") (ref $Foo_typeinfo) (struct.new $Foo_typeinfo
 //│     (i32.const 1)
 //│     (ref.null $TypeInfoBase)))
@@ -42,7 +32,7 @@ Bar.y
 //│   (global $Bar$inst (export "Bar$inst") (mut (ref null $Bar)) (ref.null $Bar))
 //│   (func $Foo_init (export "Foo_init") (type $Foo_init) (param $this (ref null any)) (result (ref null any))
 //│     (block (result (ref null any))
-//│       (struct.set $Foo $x
+//│       (struct.set $Foo 1
 //│         (ref.cast (ref $Foo)
 //│           (local.get $this))
 //│         (ref.i31
@@ -63,7 +53,7 @@ Bar.y
 //│         (local.get $this))))
 //│   (func $Bar_init (export "Bar_init") (type $Bar_init) (param $this (ref null any)) (result (ref null any))
 //│     (block (result (ref null any))
-//│       (struct.set $Bar $y
+//│       (struct.set $Bar 1
 //│         (ref.cast (ref $Bar)
 //│           (local.get $this))
 //│         (ref.i31
@@ -91,7 +81,7 @@ Bar.y
 //│         (ref.cast (ref null $Bar)
 //│           (call $Bar_ctor)))
 //│       (return
-//│         (struct.get $Bar $y
+//│         (struct.get $Bar 1
 //│           (ref.cast (ref $Bar)
 //│             (global.get $Bar$inst))))))
 //│   (elem $Foo_init declare func $Foo_init)

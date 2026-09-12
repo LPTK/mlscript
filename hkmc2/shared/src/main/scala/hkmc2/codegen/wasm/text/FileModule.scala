@@ -35,29 +35,7 @@ final case class FileInterface(
     classes: Vector[AbiClass],
     namespaces: Vector[AbiNamespace],
     defaultExport: Opt[BlockMemberSymbol],
-):
-  /** Worksheets need the runtime's identity-bearing values, while arithmetic intrinsics are
-    * requested lazily by normal code generation. Keep the type dependency closure intact. */
-  def runtimeValues: FileInterface =
-    val keptFunctions = functions.filter(f => classes.exists(c => c.sym == f.sym || c.initializer == f.sym))
-    val needed = mutable.Set.empty[TypeIdx]
-    val byIndex = types.map(t => t.index -> t).toMap
-    def value(t: ValType): Unit = t match
-      case RefType(i: TypeIdx, _) => index(i)
-      case _ => ()
-    def index(i: TypeIdx): Unit =
-      if needed.add(i) then byIndex(i).body match
-        case StructType(fields, parents, _) =>
-          parents.foreach(index)
-          fields.foreach((_, f) => value(f.ty))
-        case ArrayType(elem, _) => value(elem)
-        case FunctionType(SignatureType(params, results)) =>
-          params.foreach(p => value(p.valtype))
-          results.foreach(r => value(r.valtype))
-    globals.foreach(g => value(g.ty.valType))
-    keptFunctions.foreach(f => index(f.ty))
-    classes.foreach(c => { index(c.rttiType); c.singleton.foreach((_, _, ty) => value(ty)) })
-    copy(types = types.filter(t => needed(t.index)), functions = keptFunctions)
+)
 
 final case class CompiledWasmFile(module: CompiledWasmModule, interface: FileInterface)
 final case class FileImport(name: Str, interface: FileInterface)
@@ -73,9 +51,8 @@ final class FileExportNames(using State):
 
 /** Relocation is deliberately exhaustive over the WASM type algebra. New ABI-bearing type
   * forms must extend this traversal rather than accidentally retaining an exporting index. */
-final class TypeRelocation(indices: Map[TypeIdx, TypeIdx]):
-  def index(idx: TypeIdx): TypeIdx = indices.getOrElse(idx,
-    lastWords(s"WASM interface has an unbound type edge: $idx"))
+final class TypeRelocation(resolve: TypeIdx => TypeIdx):
+  def index(idx: TypeIdx): TypeIdx = resolve(idx)
   def value(ty: ValType): ValType = ty match
     case RefType(idx: TypeIdx, nullable) => RefType(index(idx), nullable)
     case other => other
