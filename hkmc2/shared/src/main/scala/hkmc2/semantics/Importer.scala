@@ -56,16 +56,19 @@ class Importer:
           reportCycle(cctx.allFilesBeingImported :+ file)
         else
           cctx.withActiveDependency(file)(reportCycle):
-            val importedSym = tl.trace(s">>> Importing $file"):
+            val artifact = tl.trace(s">>> Importing $file"):
               given TL = tl
-              val artifact = cctx.getElaboratedBlock(file, prelude)
-              artifact.compilationUnit.defaultExport.getOrElse:
-                lastWords(s"File $file does not define a symbol named $nme")
-            val sym: VarSymbol | BlockMemberSymbol = alias.fold(importedSym): alias =>
-              VarSymbol(alias)
+              cctx.getElaboratedBlock(file, prelude)
+            val importedSym = artifact.compilationUnit.defaultExport.getOrElse:
+              raise(ErrorReport(msg"File '${file.toString}' does not define a default export named '$nme'" -> id.toLoc :: Nil))
+              BlockMemberSymbol(nme, Nil)
+            // An alias changes the lexical binding, not the imported definition's identity.
+            // Keeping its symbol also preserves statically known class/module information.
+            val sym = importedSym
 
             val jsFile = file.up / io.RelPath(file.baseName + ".mjs")
-            Import(sym, jsFile.toString, jsFile)
+            cctx.recordSourceImport(sym, file, artifact)
+            Import(sym, jsFile.toString, file)
         
       case _ =>
         if file.ext =/= "mls" then raise:

@@ -1787,7 +1787,7 @@ extends Importer:
         val (newCtx, newAcc) = pathAndAlias match
           case S((StrLit(path), alias)) =>
             val stmt = importPath(path, alias).withLocOf(m)
-            (ctx + (stmt.sym.nme -> stmt.sym),
+            (ctx + (alias.fold(stmt.sym.nme)(_.name) -> stmt.sym),
               stmt :: acc)
           case S((pathArg, _)) =>
             raise(ErrorReport(

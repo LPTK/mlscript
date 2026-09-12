@@ -20,15 +20,17 @@ extension (doc: Document)
     doc.optionUnless(_.isEmpty).fold(doc): doc =>
       doc"$prefix$doc$postfix"
 
-extension (scp: Scope)
-  /** Convenience function for [[Scope.allocateOrGetName]] with an optional prefix and suffix. */
-  private[text] def allocateOrGetNameWrapped(sym: ValueSymbol, wrapId: Opt[Str] -> Opt[Str])(using Raise): Str =
-    val prefix = wrapId._1.fold("")(prefix => s"${prefix}_")
-    wrapId._2 match
-      case S(suffix) =>
-        scp.lookup(sym).getOrElse:
-          scp.addToBindings(sym, s"$prefix${sym.nme}_$suffix", shadow = false)
-      case N => scp.allocateOrGetName(sym, prefix)
+/** Each WAT namespace owns bindings for (origin symbol, representation). Wrapped names must
+  * use the same allocator as ordinary names: a suffix is not a reservation of that spelling. */
+private[text] final class WasmScope(using State):
+  private val scope = Scope.empty(Scope.Cfg.default)
+  private val bindings = scala.collection.mutable.Map.empty[(ValueSymbol, Opt[Str] -> Opt[Str]), Str]
+  def allocateOrGetNameWrapped(sym: ValueSymbol, wrap: Opt[Str] -> Opt[Str])(using Raise): Str =
+    bindings.getOrElseUpdate((sym, wrap), {
+      val hint = wrap._1.fold("")(_ + "_") + sym.nme + wrap._2.fold("")("_" + _)
+      val ascii = hint.flatMap(c => if c <= 127 then c.toString else f"_u${c.toInt}%04x")
+      scope.allocateName(TempSymbol(N, ascii))
+    })
 
 /** Trait indicating a WAT representation is available. */
 trait ToWat:
@@ -261,6 +263,9 @@ object ExternType:
     val id: SymIdx = SymIdx(summon[Ctx].globalScp.allocateOrGetNameWrapped(sym, wrapId))
 
     def toWat: Document = doc"""(global ${id.toWat} ${globalType.toWat})"""
+  case class Tag(typeUse: TypeUse, override val sym: ValueSymbol)(using Ctx, Raise) extends ExternType(sym):
+    val id: SymIdx = SymIdx(summon[Ctx].tagScp.allocateOrGetNameWrapped(sym, N -> N))
+    def toWat: Document = doc"(tag ${id.toWat} ${typeUse.toWat})"
 end ExternType
 
 sealed abstract class ExternType(val sym: ValueSymbol) extends ToWat:

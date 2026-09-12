@@ -55,7 +55,10 @@ fun unwrapWasmException(err, tag) =
 
 fun binaryenRunFunc(wat, importObject, func): Any =
   let wasmInst = binaryenCompileToModule of wat, importObject
-  let exnTag = wasmInst.exports.mlx_exn
+  let exnTag =
+    if wasmInst.exports.mlx_exn === undefined
+    then importObject.system.mlx_exn
+    else wasmInst.exports.mlx_exn
   Runtime.try_catch of
     () => func(wasmInst.exports)
     err => throw unwrapWasmException(err, exnTag)

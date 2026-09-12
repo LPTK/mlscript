@@ -66,6 +66,88 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
   type Context = Ctx
 
+  // File emission owns these tables; the cached MIR and its symbols are never rewritten.
+  private var fileCompilation: Opt[FileCompilation] = N
+  private var emittedInterface: Opt[FileInterface] = N
+  private val fileSingletonActions = LinkedHashMap.empty[BlockMemberSymbol, Expr]
+  private val namespaces = LinkedHashMap.empty[ValueSymbol, AbiNamespace]
+  private val localNamespaces = scala.collection.mutable.Set.empty[ValueSymbol]
+  private val staticBindings = LinkedHashMap.empty[Symbol, ValueSymbol]
+
+  def fileModule(p: Program, exprt: Opt[BlockMemberSymbol], wd: io.Path, linking: FileCompilation)
+        (using Raise): CompiledWasmFile =
+    assert(fileCompilation.isEmpty)
+    fileCompilation = S(linking)
+    val preserved: Set[BoundSymbol] = p.main match
+      case Scoped(syms, _) => syms.toSet
+      case _ => Set.empty
+    val module = program(p, exprt, wd, Nil, preserved)
+    CompiledWasmFile(module, emittedInterface.get)
+
+  def worksheetModule(p: Program, wd: io.Path, preserved: Set[BoundSymbol], linking: FileCompilation)
+        (using Raise): CompiledWasmFile =
+    assert(!linking.runtime && fileCompilation.isEmpty)
+    fileCompilation = S(linking)
+    val module = program(p, N, wd, Nil, preserved)
+    CompiledWasmFile(module, emittedInterface.get)
+
+  private def namespace(path: Path): Opt[AbiNamespace] = path match
+    case Value.MemberRef(sym, _) => namespaces.get(sym)
+    case Value.SimpleRef(sym) => namespaces.get(sym)
+    case Value.This(sym) => namespaces.get(sym)
+    case _ => N
+
+  private def staticSelection(sel: Select): Opt[ValueSymbol] =
+    sel match
+      case Select(qual, name) => namespace(qual).flatMap: ns =>
+        sel.symbol.flatMap(staticBindings.get).orElse(ns.members.get(name.name))
+
+  private def registerNamespace(ns: AbiNamespace): Unit =
+    namespaces(ns.sym) = ns
+    namespaces(ns.owner) = ns
+    ns.members.values.foreach(sym => staticBindings(sym) = sym)
+    staticBindings ++= ns.storage
+
+  private def predeclareFileMembers(b: Block)(using Ctx, Raise, SessionExportCtx): Unit =
+    def function(fd: FunDefn): Unit =
+      if fd.params.size != 1 then
+        raise(ErrorReport(Ls(msg"WASM functions require exactly one parameter list" -> fd.sym.toLoc),
+          source = Diagnostic.Source.Compilation))
+      val ps = fd.params.headOption.getOrElse(PlainParamList(Nil))
+      val ty = ctx.addType(TypeInfo(TempSymbol(N, fd.sym.nme),
+        FunctionType(ps.params.map(p => WasmParam(SymIdx(p.sym.nme), RefType.anyref)), Seq(Result(RefType.anyref))), N))
+      ctx.addFunc(FuncInfo(fd.sym, TypeUse(ty), ps.params.map(p => p.sym -> SymIdx(p.sym.nme)),
+        Seq(Result(RefType.anyref)), Seq.empty, Instructions.unreachable, S(fd.sym.nme)))
+    new BlockTraverserShallow:
+      override def applyDefn(d: Defn): Unit = d match
+        case fd: FunDefn => function(fd)
+        case cls: ClsLikeDefn if cls.sym.asMod.nonEmpty && cls.companion.nonEmpty =>
+          val body = cls.companion.get
+          val members = body.publicFields.map((bms, ts) => ts.nme -> bms) ++ body.methods.map(m => m.sym.nme -> m.sym)
+          val storage = body.publicFields.map((bms, ts) => ts -> (bms: ValueSymbol)) ++ body.privateFields.map(ts => ts -> (ts: ValueSymbol))
+          registerNamespace(AbiNamespace(cls.sym, body.isym, members.toMap, storage.toMap))
+          localNamespaces += cls.sym
+          body.publicFields.foreach: (bms, ts) =>
+            staticBindings(ts) = bms
+            registerSessionGlobal(bms)
+            ctx.aliasBinding(ts, bms)
+          body.privateFields.foreach: ts =>
+            staticBindings(ts) = ts
+            registerSessionGlobal(ts)
+          body.methods.foreach(function)
+        case _ => ()
+    .applyBlock(b)
+
+  private def fileClasses(using Ctx, Raise): Vector[AbiClass] =
+    typeInfoTypeIdxs.iterator.flatMap: (sym, ty) =>
+      val glob = typeInfoGlobals(sym)
+      ctx.getGlobalInfo(glob).map: _ =>
+        val singleton = ctx.getSingletonInfo(sym).map: info =>
+          val owner = if sym == State.unitBlockMemberSymbol then S(State.unitSymbol) else sym.asModOrObj
+          (owner, GlobalIdx(SymIdx(info.globalName)), info.globalTy)
+        AbiClass(sym, ty, glob, initFuncSym(sym), ctx.getVirtualTable(sym).getOrElse(Ctx.VirtualTable(Nil, Map.empty)), singleton)
+    .toVector
+
   /** Synthetic base struct symbol for shared runtime type information objects. */
   private val typeInfoBaseSym: BlockMemberSymbol = BlockMemberSymbol("TypeInfoBase", Nil)
 
@@ -236,11 +318,12 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
   /** Registers the synthetic `Unit` singleton. */
   private def RegisterUnitSingleton()(using Ctx, FunctionCtx, Raise, SessionExportCtx): Unit =
+    // Avoid constructing a synthetic IR definition when the runtime already supplies Unit.
+    if ctx.containsSingleton(State.unitBlockMemberSymbol) then return
     val unitDefn = syntheticUnitDefn
     val singletonOwner = unitDefn.isym match
       case mos: ModuleOrObjectSymbol => S(mos)
       case _ => N
-    if ctx.containsSingleton(unitDefn.sym) then return
 
     if ctx.getType(unitDefn.sym).isEmpty then
       predeclareClassTypeInfoType(unitDefn)
@@ -305,7 +388,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       operands = Seq.empty,
       returnTypes = Seq(Result(RefType.anyref)),
     )
-    ctx.addSingletonInitAction(global.set(globalIdx, ref.cast(ctorCall, globalTy)))
+    val action = global.set(globalIdx, ref.cast(ctorCall, globalTy))
+    if fileCompilation.exists(!_.runtime) then fileSingletonActions(clsLikeDefn.sym) = action
+    else ctx.addSingletonInitAction(action)
   end registerSingletonInit
 
   /** Collects only top-level class definitions in `block`. */
@@ -345,7 +430,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         unsupportedParent()
 
   /** Orders top-level classes using a Kahn topological sort. */
-  private def sortTopLevelClasses(defns: List[ClsLikeDefn])(using Raise): List[ClsLikeDefn] =
+  private def sortTopLevelClasses(defns: List[ClsLikeDefn])(using Ctx, Raise): List[ClsLikeDefn] =
     val defnsBySym = defns.iterator.map(defn => defn.sym -> defn).toMap
     val childrenBySym = LinkedHashMap.empty[BlockMemberSymbol, ArrayBuf[BlockMemberSymbol]]
     val indegrees = LinkedHashMap.empty[BlockMemberSymbol, Int]
@@ -360,7 +445,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         if defnsBySym.contains(parentSym) then
           childrenBySym(parentSym) += defn.sym
           indegrees(defn.sym) += 1
-        else
+        else if ctx.getType(parentSym).isEmpty then
           raise(ErrorReport(
             msg"Wasm inheritance ordering requires parent classes to be supported top-level classes." ->
               defn.parentPath.flatMap(_.toLoc) :: Nil,
@@ -593,6 +678,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     predeclareClassConstructor(defn)
     predeclareClassMethods(defn)
     predeclareClassTypeInfoGlobal(defn)
+    if fileCompilation.nonEmpty && (defn.k is syntax.Obj) then
+      registerSingletonInit(defn, ctx.getType_!(defn.sym))
 
   /** Collects the symbols that should live in mutable globals so later REPL blocks can import them.
     *
@@ -774,7 +861,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       globalType = GlobalType(RefType(typeInfoTypeIdx, nullable = false), mutable = false),
       init = struct.`new`(typeInfoTypeIdx, initFields),
       exportName =
-        if summon[SessionExportCtx].shouldExport(defn.sym) || defn.sym == syntheticUnitDefn.sym
+        if summon[SessionExportCtx].shouldExport(defn.sym) || defn.sym == State.unitBlockMemberSymbol
         then S(s"${defn.sym.nme}_typeinfo")
         else N,
       sym = defn.sym,
@@ -819,17 +906,13 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
   /** Gets (and caches) the exception tag used for MLX `throw`. */
   private def exnTagIdx(using Ctx, Raise): TagIdx =
     val sym = TempSymbol(N, "mlx_exn")
-    ctx.getOrCreateWasmIntrinsicTag(
-      "mlx_exn",
-      ctx.addTag(TagInfo(
-        typeUse = TypeUse(ctx.addType(TypeInfo(
-          sym,
-          FunctionType(params = Seq(WasmParam(SymIdx("ex"), RefType.anyref)), results = Seq.empty),
-          objectTag = S(ctx.getFreshObjectTag()),
-        ))),
-        sym = sym,
-      )),
-    )
+    ctx.getOrCreateWasmIntrinsicTag("mlx_exn", {
+      val ty = TypeUse(ctx.addType(TypeInfo(sym,
+        FunctionType(params = Seq(WasmParam(SymIdx("ex"), RefType.anyref)), results = Seq.empty), N)))
+      if fileCompilation.exists(!_.runtime) then
+        ctx.addTagImport(WasmImport("system", "mlx_exn", ExternType.Tag(ty, sym)))
+      else ctx.addTag(TagInfo(ty, sym))
+    })
 
   /** Returns (and caches) string literal data metadata, allocating data-segment space on first use.
     */
@@ -1198,6 +1281,11 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         operands = Seq(ref.i31(i32.const(lit.offset)), ref.i31(i32.const(lit.byteLen))),
         returnTypes = Seq(Result(RefType.anyref)),
       )
+    case sel: Select if staticSelection(sel).nonEmpty =>
+      val sym = staticSelection(sel).get
+      ctx.getFunc(sym) match
+        case S(idx) => ref.func(idx, RefType(ctx.getFuncTypeUse_!(sym).typeIdx, nullable = false))
+        case N => getVar(sym, sel.toLoc)
     case Value.SimpleRef(l) =>
       singletonInfoFor(l) match
         case S(info) => singletonGlobalGet(info)
@@ -1205,10 +1293,14 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           ctx.getFunc(l) match
             case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(l).typeIdx, nullable = false))
             case N => getVar(l, r.toLoc)
+    case r: Path if namespace(r).nonEmpty =>
+      errExpr(Ls(msg"First-class module values are not supported by the WASM backend" -> r.toLoc))
     case Value.MemberRef(bms, disamb) =>
-      if (bms is State.unitSymbol) || (disamb is State.unitSymbol) then
+      val binding = if (bms is State.unitSymbol) || (disamb is State.unitSymbol) then
         RegisterUnitSingleton()
-      singletonInfoFor(bms) match
+        State.unitBlockMemberSymbol
+      else bms
+      singletonInfoFor(binding) match
         case S(info) => singletonGlobalGet(info)
         case N =>
           if disamb.isInstanceOf[ClassSymbol] then
@@ -1219,7 +1311,9 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
               case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(bms).typeIdx, nullable = false))
               case N => getVar(bms, r.toLoc)
     case Value.This(sym) =>
-      singletonInfoFor(sym) match
+      // In a singleton constructor, `this` is the new instance, not the backing global
+      // (which is still null until construction finishes).
+      singletonInfoFor(sym).filter(_ => funcCtx.lookupLocal(sym).isEmpty) match
         case S(info) => singletonGlobalGet(info)
         case N =>
           // TODO(Derppening): Remove `ref.cast` once erased-typed IR is implemented
@@ -1442,6 +1536,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       end match
       val ctorClsSymOpt = cls match
         case ref: Value.MemberRef => S(ref.disamb)
+        case Value.SimpleRef(sym) => fileCompilation.flatMap(_.aliases.get(sym)).flatMap(_.asBlkMember)
         case sel: Select => sel.symbol
         case cls => return errExpr(
             Ls(
@@ -1483,7 +1578,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
     */
   private def wasmIntrinsicName(path: Path): Opt[Str] = path match
     case Select(Value.SimpleRef(sym), ident)
-        if (sym eq State.wasmSymbol) && wasmIntrinsicNameSet.contains(ident.name) =>
+        if (sym eq sym.getState.wasmSymbol) && wasmIntrinsicNameSet.contains(ident.name) =>
       S(ident.name)
     case _ => N
 
@@ -1659,6 +1754,13 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
         val rstBlk = returningTerm(rst)
         assignExpr +: rstBlk
 
+      case assign @ AssignField(lhs, nme, rhs, rst) if namespace(lhs).nonEmpty =>
+        val storage = assign.symbol.flatMap(staticBindings.get).orElse(namespace(lhs).flatMap(_.members.get(nme.name)))
+        val expr = storage match
+          case S(sym) => global.set(ctx.getGlobal_!(sym), result(rhs))
+          case N => errExpr(Ls(msg"Unknown WASM module field '${nme.name}'" -> nme.toLoc))
+        expr +: returningTerm(rst)
+
       case assign @ AssignField(lhs, nme, rhs, rst) =>
         val lhsExpr = result(lhs)
         val rhsExpr = result(rhs)
@@ -1725,6 +1827,8 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       case Define(defn, rst) =>
         def mkThis(sym: InnerSymbol): Expr = result(sym.asThis)
         defn match
+          case ValDefn(tsym, sym, p) if staticBindings.contains(tsym) =>
+            global.set(ctx.getGlobal_!(staticBindings(tsym)), result(p)) +: returningTerm(rst)
           case ValDefn(tsym, sym, p) =>
             // * Currently we allow `val` outside of object/module scopes,
             // * in which case it has no owner and is just a glorified local variable rather than a field
@@ -1753,6 +1857,15 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                 val rstWat = returningTerm(rst)
                 assignInstr +: rstWat
 
+          case cls: ClsLikeDefn if namespaces.contains(cls.sym) && cls.companion.nonEmpty =>
+            val body = cls.companion.get
+            body.methods.foreach: fd =>
+              val ps = fd.params.headOption.getOrElse(PlainParamList(Nil))
+              val (wat, fc) = setupFunction(N, ps, fd.body)
+              val declared = ctx.getFuncInfo_!(fd.sym)
+              ctx.addFunc(FuncInfo(fd.sym, declared.typeUse, fc.params, Seq(Result(RefType.anyref)), fc.locals,
+                wat, S(fd.sym.nme)))
+            returningTerm(body.ctor) ++ returningTerm(rst)
           case defn: (FunDefn | ClsLikeDefn) =>
             val res: Opt[Expr] = boundary:
               defn match
@@ -1773,12 +1886,15 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       Return(Lambda(ps, block)(Nil))
                   val (bodyWat, fnCtx) = setupFunction(N, ps, result)
                   if sym.nameIsMeaningful then
+                    // All source functions use the boxed-value ABI, including a function
+                    // whose body only returns through branches or never returns at all.
+                    val results = Seq(Result(RefType.anyref))
                     val funcTy = ctx.addType(
                       TypeInfo(
                         sym = TempSymbol(N, sym.nme),
                         compType = FunctionType(
                           params = fnCtx.params.map(p => WasmParam(p._2, RefType.anyref)),
-                          results = Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref)),
+                          results = results,
                         ),
                         objectTag = N,
                       ),
@@ -1788,7 +1904,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                       sym,
                       typeUse = TypeUse(funcTy),
                       params = ps.params.zip(fnCtx.params.map(_._2)).map((p, idx) => p.sym -> idx),
-                      resultTypes = Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref)),
+                      resultTypes = results,
                       locals = fnCtx.locals,
                       body = bodyWat,
                       exportName = sym.optionIf(_.nameIsMeaningful).map(_.nme),
@@ -1878,7 +1994,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                   val predeclaredInit = ctx.getFuncInfo_!(initFuncRef)
                   ctx.addFunc(FuncInfo(
                     sym = initFuncRef,
-                    wrapId = S(clsLikeDefn.sym.nme) -> N,
+                    wrapId = predeclaredInit.wrapId,
                     typeUse = predeclaredInit.typeUse,
                     params = initFnCtx.params,
                     resultTypes = initWat.resultTypes.map(ty => Result(ty.asValType_!)),
@@ -1890,7 +2006,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                   val predeclaredCtor = ctx.getFuncInfo_!(clsLikeDefn.sym)
                   val ctorFuncInfo = FuncInfo(
                     sym = clsLikeDefn.sym,
-                    wrapId = S(clsLikeDefn.sym.nme) -> N,
+                    wrapId = predeclaredCtor.wrapId,
                     typeUse = predeclaredCtor.typeUse,
                     params = ctorFnCtx.params,
                     resultTypes = ctorCode.resultTypes.map(ty => Result(ty.asValType_!)),
@@ -1909,10 +2025,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                     val predeclaredMethod = ctx.getFuncInfo_!(sym)
                     ctx.addFunc(FuncInfo(
                       sym,
-                      wrapId = S(clsLikeDefn.sym.nme) -> N,
+                      wrapId = predeclaredMethod.wrapId,
                       typeUse = predeclaredMethod.typeUse,
                       params = fnCtx.params,
-                      resultTypes = Seq.fill(bodyWat.resultTypes.length)(Result(RefType.anyref)),
+                      resultTypes = predeclaredMethod.resultTypes,
                       locals = fnCtx.locals,
                       body = bodyWat,
                       exportName = predeclaredMethod.exportName,
@@ -1970,7 +2086,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
                           exportName = info.globalName,
                           globalTy = info.globalTy,
                         ))
-                  N
+                  if fileCompilation.exists(!_.runtime) && isSingletonObj then S(fileSingletonActions(clsLikeDefn.sym)) else N
 
                 case defn =>
                   S(errExpr(
@@ -2235,7 +2351,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       sessionImports: Seq[SessionBinding],
       preservedSessionSymbols: Set[BoundSymbol],
   )(using Raise): CompiledWasmModule =
-    for imprt <- p.imports do
+    for imprt <- p.imports if fileCompilation.isEmpty || !fileCompilation.get.aliases.contains(imprt._1) do
       raise(
         ErrorReport(
           msg"Import of symbol `${imprt._2}` not implemented yet" -> imprt._1.toLoc :: Nil,
@@ -2243,7 +2359,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
           source = Diagnostic.Source.Compilation,
         ),
       )
-    exprt.foreach: exprt =>
+    exprt.filter(_ => fileCompilation.isEmpty).foreach: exprt =>
       raise(
         ErrorReport(
           msg"Export of symbol `${exprt.nme}` not implemented yet" -> exprt.toLoc :: Nil,
@@ -2260,6 +2376,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
     val ctx = Ctx.empty
     given Ctx = ctx
+    if fileCompilation.nonEmpty then ctx.enableFileExports()
 
     def systemMemMinPages: Int =
       ctx.getMemoryImport(
@@ -2268,7 +2385,12 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       ).fold(0)(_.memType.lim.min)
 
     def compiledModule(entryName: Str): CompiledWasmModule =
-      CompiledWasmModule(ctx.toWat, entryName, systemMemMinPages, sessionExportCtx.collectedBindings.toVector)
+      if fileCompilation.nonEmpty then
+        emittedInterface = S(ctx.fileInterface(fileClasses, namespaces.values.toVector.distinct.filter(ns => localNamespaces(ns.sym)), exprt))
+      // Legacy session records contain TypeInfo objects tied to this Ctx. The relocated
+      // interface replaces them for files and worksheets; do not retain both in the cache.
+      val sessionExports = if fileCompilation.isEmpty then sessionExportCtx.collectedBindings.toVector else Vector.empty
+      CompiledWasmModule(ctx.toWat, entryName, systemMemMinPages, sessionExports)
 
     // Create the two Wasm intrinsic struct types shared across class lowering:
     // the base RTTI layout (`TypeInfoBase`) and the base object layout (`Object`).
@@ -2292,6 +2414,26 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       )),
       objectTag = S(ctx.getFreshObjectTag() ensuring (_ == 0)),
     ))
+
+    fileCompilation.foreach: linking =>
+      linking.imports.foreach: dep =>
+        val (relocate, globals) = ctx.importFile(dep)
+        dep.interface.classes.foreach: cls =>
+          typeInfoTypeIdxs(cls.sym) = relocate.index(cls.rttiType)
+          typeInfoGlobals(cls.sym) = globals(cls.rttiGlobal)
+          initFuncSyms(cls.sym) = cls.initializer
+          ctx.registerVirtualTable(cls.sym, cls.virtualTable)
+          cls.singleton.foreach: (owner, index, ty) =>
+            val GlobalIdx(SymIdx(name)) = globals(index).runtimeChecked
+            val info = SingletonInfo(name, relocate.reference(ty))
+            ctx.registerSingleton(cls.sym, owner, info)
+            if owner.contains(State.unitSymbol) then
+              ctx.registerSingleton(State.unitBlockMemberSymbol, owner, info)
+        dep.interface.namespaces.foreach(registerNamespace)
+      linking.aliases.foreach: (alias, original) =>
+        ctx.aliasBinding(alias, original)
+        namespaces.get(original).foreach(namespaces(alias) = _)
+      predeclareFileMembers(p.main)
 
     registerSessionImports(sessionImports)
 
@@ -2318,6 +2460,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       // Compile the entry function under a dedicated local scope so that any temp locals introduced
       // during codegen (e.g., via `local.tee`) are declared in the entry function.
       val (entryFnExpr, entryFnCtx) = genFuncBody(Nil, thisSym = N):
+        if fileCompilation.exists(_.runtime) then
+          RegisterUnitSingleton()
+          wasmIntrinsicNameSet.toVector.sorted.foreach(name => createIntrinsic(name, S(name)))
+          exnTagIdx
         normalizeValueExprs(block(p.main), p.main.isAbortive).mergeAsBlock.getOrElse(nop)
 
       val entrySym = BlockMemberSymbol("entry", Nil)
@@ -2369,7 +2515,7 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
 
       ctx.addFunc(entryFnInfo)
 
-      compiledModule(entrySym.nme)
+      compiledModule(entryFnInfo.emittedExportName.get)
   end program
 
   def blockPreamble(ss: Iterable[ValueSymbol])(using Ctx, FunctionCtx, Raise): Unit =
@@ -2395,6 +2541,10 @@ class WatBuilder(using TraceLogger, State) extends CodeBuilder:
       body: Block,
   )(using Ctx, Raise, SessionExportCtx): (Expr, FunctionCtx) =
     genFuncBody(params :: Nil, thisSym = thisParam):
-      block(body).mergeAsBlock.getOrElse(nop)
+      val emitted = normalizeValueExprs(block(body), body.isAbortive)
+      // Structured WASM validation does not infer that a lowered tail-recursion loop
+      // always returns or continues. Make the IR's no-fallthrough invariant explicit.
+      val terminated = if body.isAbortive then emitted :+ unreachable else emitted
+      terminated.mergeAsBlock.getOrElse(nop)
 
 end WatBuilder

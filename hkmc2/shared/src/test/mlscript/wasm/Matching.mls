@@ -45,64 +45,133 @@ if Bar(true) is
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $Bar_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
-//│   (type $Bar (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $y (mut (ref null any))))))
+//│   (type $TypeInfoBase1 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
+//│   (type $Object1 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
+//│   (type $Unit_typeinfo (sub $TypeInfoBase1 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
+//│   (type $Unit (sub $Object1 (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
+//│   (type $Unit_init (func (param $this (ref null any)) (result (ref null any))))
+//│   (type $Unit_ctor (func (result (ref null any))))
+//│   (type $TypeInfoBase2 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase2)))))
+//│   (type $Object2 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase2))))))
+//│   (type $entry (func (result (ref null any))))
+//│   (type $TypeInfoBase3 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase3)))))
+//│   (type $Object3 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase3))))))
+//│   (type $entry1 (func (result (ref null any))))
+//│   (type $TypeInfoBase4 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase4)))))
+//│   (type $Object4 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase4))))))
+//│   (type $Foo_typeinfo (sub $TypeInfoBase4 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase4)))))
+//│   (type $Foo (sub $Object4 (struct (field $$typeinfo (mut (ref $TypeInfoBase4))) (field $x (mut (ref null any))))))
+//│   (type $Foo_init (func (param $this (ref null any)) (param $x (ref null any)) (result (ref null any))))
+//│   (type $Foo_ctor (func (param $x (ref null any)) (result (ref null any))))
+//│   (type $entry2 (func (result (ref null any))))
+//│   (type $TypeInfoBase5 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase5)))))
+//│   (type $Object5 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase5))))))
+//│   (type $Foo_typeinfo1 (sub $TypeInfoBase5 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase5)))))
+//│   (type $Foo1 (sub $Object5 (struct (field $$typeinfo (mut (ref $TypeInfoBase5))) (field $x (mut (ref null any))))))
+//│   (type $Foo_init1 (func (param $this (ref null any)) (param $x (ref null any)) (result (ref null any))))
+//│   (type $Foo_ctor1 (func (param $x (ref null any)) (result (ref null any))))
+//│   (type $entry3 (func (result (ref null any))))
+//│   (type $TypeInfoBase6 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase6)))))
+//│   (type $Object6 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase6))))))
+//│   (type $Foo_typeinfo2 (sub $TypeInfoBase6 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase6)))))
+//│   (type $Foo2 (sub $Object6 (struct (field $$typeinfo (mut (ref $TypeInfoBase6))) (field $x (mut (ref null any))))))
+//│   (type $Foo_init2 (func (param $this (ref null any)) (param $x (ref null any)) (result (ref null any))))
+//│   (type $Foo_ctor2 (func (param $x (ref null any)) (result (ref null any))))
+//│   (type $entry4 (func (result (ref null any))))
+//│   (type $TypeInfoBase7 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase7)))))
+//│   (type $Object7 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase7))))))
+//│   (type $Bar_typeinfo (sub $TypeInfoBase7 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase7)))))
+//│   (type $Bar (sub $Object7 (struct (field $$typeinfo (mut (ref $TypeInfoBase7))) (field $y (mut (ref null any))))))
 //│   (type $Bar_init (func (param $this (ref null any)) (param $y (ref null any)) (result (ref null any))))
 //│   (type $Bar_ctor (func (param $y (ref null any)) (result (ref null any))))
-//│   (type $Baz_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
-//│   (type $Baz (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $z (mut (ref null any))))))
+//│   (type $Baz_typeinfo (sub $TypeInfoBase7 (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase7)))))
+//│   (type $Baz (sub $Object7 (struct (field $$typeinfo (mut (ref $TypeInfoBase7))) (field $z (mut (ref null any))))))
 //│   (type $Baz_init (func (param $this (ref null any)) (param $z (ref null any)) (result (ref null any))))
 //│   (type $Baz_ctor (func (param $z (ref null any)) (result (ref null any))))
-//│   (type $entry (func (result (ref null any))))
-//│   (global $Bar_typeinfo (export "Bar_typeinfo") (ref $Bar_typeinfo) (struct.new $Bar_typeinfo
+//│   (type $entry5 (func (result (ref null any))))
+//│   (type $Bar_typeinfo1 (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Bar1 (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $y (mut (ref null any))))))
+//│   (type $Bar_init1 (func (param $this (ref null any)) (param $y (ref null any)) (result (ref null any))))
+//│   (type $Bar_ctor1 (func (param $y (ref null any)) (result (ref null any))))
+//│   (type $Baz_typeinfo1 (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Baz1 (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $z (mut (ref null any))))))
+//│   (type $Baz_init1 (func (param $this (ref null any)) (param $z (ref null any)) (result (ref null any))))
+//│   (type $Baz_ctor1 (func (param $z (ref null any)) (result (ref null any))))
+//│   (type $entry6 (func (result (ref null any))))
+//│   (import "system" "Unit_init" (func $Unit_init (type $Unit_init)))
+//│   (import "system" "Unit_Unit" (func $Unit_Unit (type $Unit_ctor)))
+//│   (import "repl0" "entry" (func $entry (type $entry)))
+//│   (import "repl1" "entry" (func $entry1 (type $entry1)))
+//│   (import "repl2" "Foo_init" (func $Foo_init (type $Foo_init)))
+//│   (import "repl2" "Foo_ctor" (func $Foo_ctor (type $Foo_ctor)))
+//│   (import "repl2" "entry" (func $entry2 (type $entry2)))
+//│   (import "repl3" "Foo_init" (func $Foo_init1 (type $Foo_init1)))
+//│   (import "repl3" "Foo_ctor" (func $Foo_ctor1 (type $Foo_ctor1)))
+//│   (import "repl3" "entry" (func $entry3 (type $entry3)))
+//│   (import "repl4" "Foo_init" (func $Foo_init2 (type $Foo_init2)))
+//│   (import "repl4" "Foo_ctor" (func $Foo_ctor2 (type $Foo_ctor2)))
+//│   (import "repl4" "entry" (func $entry4 (type $entry4)))
+//│   (import "repl5" "Bar_init" (func $Bar_init (type $Bar_init)))
+//│   (import "repl5" "Bar_ctor" (func $Bar_ctor (type $Bar_ctor)))
+//│   (import "repl5" "Baz_init" (func $Baz_init (type $Baz_init)))
+//│   (import "repl5" "Baz_ctor" (func $Baz_ctor (type $Baz_ctor)))
+//│   (import "repl5" "entry" (func $entry5 (type $entry5)))
+//│   (import "system" "Unit_typeinfo" (global $Unit_typeinfo (ref $Unit_typeinfo)))
+//│   (import "system" "Unit$inst" (global $Unit$inst (mut (ref null $Unit))))
+//│   (import "repl2" "Foo_typeinfo" (global $Foo_typeinfo (ref $Foo_typeinfo)))
+//│   (import "repl3" "Foo_typeinfo" (global $Foo_typeinfo1 (ref $Foo_typeinfo1)))
+//│   (import "repl4" "Foo_typeinfo" (global $Foo_typeinfo2 (ref $Foo_typeinfo2)))
+//│   (import "repl5" "Bar_typeinfo" (global $Bar_typeinfo (ref $Bar_typeinfo)))
+//│   (import "repl5" "Baz_typeinfo" (global $Baz_typeinfo (ref $Baz_typeinfo)))
+//│   (global $Bar_typeinfo1 (export "Bar_typeinfo") (ref $Bar_typeinfo1) (struct.new $Bar_typeinfo1
 //│     (i32.const 1)
 //│     (ref.null $TypeInfoBase)))
-//│   (global $Baz_typeinfo (export "Baz_typeinfo") (ref $Baz_typeinfo) (struct.new $Baz_typeinfo
+//│   (global $Baz_typeinfo1 (export "Baz_typeinfo") (ref $Baz_typeinfo1) (struct.new $Baz_typeinfo1
 //│     (i32.const 2)
 //│     (ref.null $TypeInfoBase)))
-//│   (func $Bar_init (type $Bar_init) (param $this (ref null any)) (param $y (ref null any)) (result (ref null any))
+//│   (func $Bar_init1 (export "Bar_init") (type $Bar_init1) (param $this (ref null any)) (param $y (ref null any)) (result (ref null any))
 //│     (block (result (ref null any))
-//│       (struct.set $Bar $y
-//│         (ref.cast (ref $Bar)
+//│       (struct.set $Bar1 $y
+//│         (ref.cast (ref $Bar1)
 //│           (local.get $this))
 //│         (local.get $y))
 //│       (return
 //│         (local.get $this))))
-//│   (func $Bar_ctor (export "Bar") (type $Bar_ctor) (param $y (ref null any)) (result (ref null any))
+//│   (func $Bar_ctor1 (export "Bar_ctor") (type $Bar_ctor1) (param $y (ref null any)) (result (ref null any))
 //│     (local $this (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $this
-//│         (struct.new $Bar
-//│           (global.get $Bar_typeinfo)
+//│         (struct.new $Bar1
+//│           (global.get $Bar_typeinfo1)
 //│           (ref.null any)))
 //│       (drop
-//│         (call $Bar_init
+//│         (call $Bar_init1
 //│           (local.get $this)
 //│           (local.get $y)))
 //│       (return
 //│         (local.get $this))))
-//│   (func $Baz_init (type $Baz_init) (param $this (ref null any)) (param $z (ref null any)) (result (ref null any))
+//│   (func $Baz_init1 (export "Baz_init") (type $Baz_init1) (param $this (ref null any)) (param $z (ref null any)) (result (ref null any))
 //│     (block (result (ref null any))
-//│       (struct.set $Baz $z
-//│         (ref.cast (ref $Baz)
+//│       (struct.set $Baz1 $z
+//│         (ref.cast (ref $Baz1)
 //│           (local.get $this))
 //│         (local.get $z))
 //│       (return
 //│         (local.get $this))))
-//│   (func $Baz_ctor (export "Baz") (type $Baz_ctor) (param $z (ref null any)) (result (ref null any))
+//│   (func $Baz_ctor1 (export "Baz_ctor") (type $Baz_ctor1) (param $z (ref null any)) (result (ref null any))
 //│     (local $this (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $this
-//│         (struct.new $Baz
-//│           (global.get $Baz_typeinfo)
+//│         (struct.new $Baz1
+//│           (global.get $Baz_typeinfo1)
 //│           (ref.null any)))
 //│       (drop
-//│         (call $Baz_init
+//│         (call $Baz_init1
 //│           (local.get $this)
 //│           (local.get $z)))
 //│       (return
 //│         (local.get $this))))
-//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│   (func $entry6 (export "entry") (type $entry6) (result (ref null any))
 //│     (local $scrut (ref null any))
 //│     (local $arg$Bar$0$ (ref null any))
 //│     (local $matchRes (ref null any))
@@ -115,7 +184,7 @@ if Bar(true) is
 //│     (local $typeInfoMatch1 (ref null any))
 //│     (block (result (ref null any))
 //│       (local.set $scrut
-//│         (call $Bar_ctor
+//│         (call $Bar_ctor1
 //│           (ref.i31
 //│             (i32.const 1))))
 //│       (block $match
@@ -132,7 +201,7 @@ if Bar(true) is
 //│                     (ref.cast (ref $Object)
 //│                       (local.get $scrut))))
 //│                 (local.set $targetTypeInfo
-//│                   (global.get $Bar_typeinfo))
+//│                   (global.get $Bar_typeinfo1))
 //│                 (local.set $typeInfoMatch
 //│                   (ref.i31
 //│                     (i32.const 0)))
@@ -168,8 +237,8 @@ if Bar(true) is
 //│                   (local.set $matchRes
 //│                     (block (result (ref null any))
 //│                       (local.set $arg$Bar$0$
-//│                         (struct.get $Bar $y
-//│                           (ref.cast (ref $Bar)
+//│                         (struct.get $Bar1 $y
+//│                           (ref.cast (ref $Bar1)
 //│                             (local.get $scrut))))
 //│                       (block $match1
 //│                         (local.set $matchRes1
@@ -201,7 +270,7 @@ if Bar(true) is
 //│                     (ref.cast (ref $Object)
 //│                       (local.get $scrut))))
 //│                 (local.set $targetTypeInfo1
-//│                   (global.get $Baz_typeinfo))
+//│                   (global.get $Baz_typeinfo1))
 //│                 (local.set $typeInfoMatch1
 //│                   (ref.i31
 //│                     (i32.const 0)))
@@ -235,18 +304,18 @@ if Bar(true) is
 //│               (then
 //│                 (block $arm
 //│                   (return
-//│                     (struct.get $Baz $z
-//│                       (ref.cast (ref $Baz)
+//│                     (struct.get $Baz1 $z
+//│                       (ref.cast (ref $Baz1)
 //│                         (local.get $scrut)))))))))
 //│         (return
 //│           (ref.i31
 //│             (i32.const 2))))
 //│       (local.get $matchRes)))
-//│   (elem $Bar_init declare func $Bar_init)
-//│   (elem $Bar_ctor declare func $Bar_ctor)
-//│   (elem $Baz_init declare func $Baz_init)
-//│   (elem $Baz_ctor declare func $Baz_ctor)
-//│   (elem $entry declare func $entry))
+//│   (elem $Bar_init declare func $Bar_init1)
+//│   (elem $Bar_ctor declare func $Bar_ctor1)
+//│   (elem $Baz_init declare func $Baz_init1)
+//│   (elem $Baz_ctor declare func $Baz_ctor1)
+//│   (elem $entry declare func $entry6))
 //│ Wasm result:
 //│ = 3
 

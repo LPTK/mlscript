@@ -212,9 +212,11 @@ class FuncInfo(
     results = resultTypes,
   )
 
+  def emittedExportName: Opt[Str] = summon[Ctx].fileExportName(sym, "func", wrapId, exportName)
+
   def toWat: Document =
     doc"""(func ${id.toWat}${
-        exportName.fold(doc""): e =>
+        emittedExportName.fold(doc""): e =>
           doc""" (export "$e")"""
       } ${typeUse.toWat}${
         getSignatureType.toWat.surroundUnlessEmpty(doc" ")
@@ -251,9 +253,11 @@ class GlobalInfo(
   /** Symbolic identifier for the global. */
   val id: SymIdx = SymIdx(summon[Ctx].globalScp.allocateOrGetNameWrapped(sym, wrapId))
 
+  def emittedExportName: Opt[Str] = summon[Ctx].fileExportName(sym, "global", wrapId, exportName)
+
   def toWat: Document =
     doc"""(global ${id.toWat}${
-        exportName.fold(doc""): name =>
+        emittedExportName.fold(doc""): name =>
           doc""" (export "$name")"""
       } ${globalType.toWat} ${init.toWat})"""
 end GlobalInfo
@@ -503,8 +507,51 @@ class Ctx(using State) extends ToWat:
 
   import Ctx.prettyString
 
+  private var fileNames: Opt[FileExportNames] = N
+  private val importedTypes = scala.collection.mutable.Set.empty[(ValueSymbol, Opt[Str] -> Opt[Str])]
+
+  def enableFileExports(): Unit = fileNames = S(new FileExportNames)
+
+  def fileExportName(sym: ValueSymbol, kind: Str, wrap: Opt[Str] -> Opt[Str], requested: Opt[Str])
+        (using Raise): Opt[Str] =
+    fileNames.fold(requested)(names => S(names(sym, kind, wrap)))
+
+  /** Capture definitions only; dependency interfaces retain ownership of imported bindings. */
+  def fileInterface(classes: Vector[AbiClass], namespaces: Vector[AbiNamespace], defaultExport: Opt[BlockMemberSymbol])
+        (using Raise): FileInterface =
+    FileInterface(
+      types.valuesIterator.map(t => AbiType(TypeIdx(t.id), t.sym, t.wrapId, t.compType, t.objectTag)).toVector,
+      funcs.valuesIterator.collect:
+        case f: FuncInfo => AbiFunction(f.sym, f.wrapId, f.emittedExportName.get, f.typeUse.typeIdx)
+      .toVector,
+      globals.valuesIterator.collect:
+        case g: GlobalInfo => AbiGlobal(GlobalIdx(g.id), g.sym, g.wrapId, g.emittedExportName.get, g.globalType)
+      .toVector,
+      classes, namespaces, defaultExport,
+    )
+
+  def importFile(dep: FileImport)(using Ctx, Raise): (TypeRelocation, Map[GlobalIdx, GlobalIdx]) =
+    val indices = dep.interface.types.map: ty =>
+      ty.index -> TypeIdx(SymIdx(typeScp.allocateOrGetNameWrapped(ty.sym, ty.wrap)))
+    .toMap
+    val relocate = new TypeRelocation(indices)
+    dep.interface.types.foreach: ty =>
+      if importedTypes.add(ty.sym -> ty.wrap) then
+        addType(TypeInfo(ty.sym, relocate.body(ty.body), ty.tag, ty.wrap))
+    dep.interface.functions.foreach: f =>
+      addFunctionImport(Import(dep.name, f.name, ExternType.Func(TypeUse(relocate.index(f.ty)), f.sym, f.wrap)))
+    val globals = dep.interface.globals.map: g =>
+      g.index -> addGlobalImport(Import(dep.name, g.name, ExternType.Global(relocate.global(g.ty), g.sym, g.wrap)))
+    .toMap
+    (relocate, globals)
+
+  /** Aliases refer to the same imported storage/function, never to a copied value. */
+  def aliasBinding(alias: ValueSymbol, original: ValueSymbol): Unit =
+    namedFuncs.get(original).foreach(namedFuncs(alias) = _)
+    namedGlobals.get(original).foreach(namedGlobals(alias) = _)
+
   /** [[Scope]] for generating WAT identifiers of types. */
-  private[text] val typeScp = Scope.empty(Scope.Cfg.default)
+  private[text] val typeScp = new WasmScope
 
   /** [[ListMap]] containing all type definitions in the module mapped by their symbolic identifiers. */
   private var types = ListMap.empty[SymIdx, TypeInfo]
@@ -513,19 +560,19 @@ class Ctx(using State) extends ToWat:
   private val namedTypes = MutMap.empty[BlockMemberSymbol, TypeInfo]
   
   /** [[Scope]] for generating WAT identifiers of data segments. */
-  private[text] val dataSegmentScp = Scope.empty(Scope.Cfg.default)
+  private[text] val dataSegmentScp = new WasmScope
 
   /** [[ListMap]] containing all data segments in the module. */
   private var dataSegments = ListMap.empty[SymIdx, DataSegment]
   
   /** [[Scope]] for generating WAT identifiers of element segments. */
-  private[text] val elemSegmentScp = Scope.empty(Scope.Cfg.default)
+  private[text] val elemSegmentScp = new WasmScope
 
   /** [[ListMap]] containing all element segments in the module. */
   private var elemSegments = ListMap.empty[SymIdx, ElemSegment]
 
   /** [[Scope]] for generating WAT identifiers of functions. */
-  private[text] val funcScp = Scope.empty(Scope.Cfg.default)
+  private[text] val funcScp = new WasmScope
 
   /** [[ListMap]] containing all function definitions and imports in the module mapped by their symbolic identifiers. */
   private var funcs = ListMap.empty[SymIdx, FuncInfo | Import[ExternType.Func]]
@@ -534,19 +581,19 @@ class Ctx(using State) extends ToWat:
   private val namedFuncs = MutMap.empty[ValueSymbol, FuncInfo | Import[ExternType.Func]]
 
   /** [[Scope]] for generating WAT identifiers of memories. */
-  private[text] val memoryScp = Scope.empty(Scope.Cfg.default)
+  private[text] val memoryScp = new WasmScope
 
   /** [[ListMap]] containing all memory definitions and imports in the module mapped by their symbolic identifiers. */
   private var memories = ListMap.empty[SymIdx, MemInfo | Import[ExternType.Mem]]
   
   /** [[Scope]] for generating WAT identifiers of tags. */
-  private[text] val tagScp = Scope.empty(Scope.Cfg.default)
+  private[text] val tagScp = new WasmScope
 
   /** [[ListMap]] containing all tag definitions in the module. */
-  private var tags = ListMap.empty[SymIdx, TagInfo]
+  private var tags = ListMap.empty[SymIdx, TagInfo | Import[ExternType.Tag]]
 
   /** [[Scope]] for generating WAT identifiers of globals. */
-  private[text] val globalScp = Scope.empty(Scope.Cfg.default)
+  private[text] val globalScp = new WasmScope
 
   /** [[ListMap]] containing all global definitions and imports in the module. */
   private var globals = ListMap.empty[SymIdx, GlobalInfo | Import[ExternType.Global]]
@@ -578,14 +625,16 @@ class Ctx(using State) extends ToWat:
       case (_, imp: Import[ExternType.Global]) => imp
     val importedMems = memories.collect:
       case (_, imp: Import[ExternType.Mem]) => imp
-    (importedFuncs ++ importedGlobals ++ importedMems).toSeq
+    val importedTags = tags.valuesIterator.collect:
+      case imp @ Import(_, _, _: ExternType.Tag) => imp
+    (importedFuncs ++ importedGlobals ++ importedMems).toSeq ++ importedTags
 
   private def globalExternType(globalEntry: GlobalInfo | Import[ExternType.Global])(using
       Ctx,
       Raise,
   ): ExternType.Global =
     globalEntry match
-      case globalInfo: GlobalInfo => ExternType.Global(globalInfo.globalType, globalInfo.sym)
+      case globalInfo: GlobalInfo => ExternType.Global(globalInfo.globalType, globalInfo.sym, globalInfo.wrapId)
       case globalImport: Import[ExternType.Global] => globalImport.externType
 
   /** Returns a new number to be used as an object tag. */
@@ -711,6 +760,10 @@ class Ctx(using State) extends ToWat:
     dataSegments = dataSegments + (seg.id -> seg)
 
   /** Adds a tag into this context. */
+  def addTagImport(imp: Import[ExternType.Tag]): TagIdx =
+    tags += imp.externType.id -> imp
+    TagIdx(imp.externType.id)
+
   def addTag(tagInfo: TagInfo): TagIdx =
     val id = tagInfo.id
     tags = tags + (id -> tagInfo)
@@ -881,7 +934,7 @@ class Ctx(using State) extends ToWat:
         (
           types.valuesIterator.map(_.toWat)
             ++ imports.iterator.map(_.toWat)
-            ++ tags.valuesIterator.map(_.toWat)
+            ++ tags.valuesIterator.collect { case t: TagInfo => t.toWat }
             ++ definedGlobals
             ++ memDefns
             ++ funcDefns

@@ -1,8 +1,9 @@
 # Separate WASM compilation and imports
 
-Status: design and implementation plan, 2026-09-08. Backend implementation has
-not started. The compilation-target parsing and placement changes already made
-in `Config.scala` and `semantics/Elaborator.scala` are retained by request.
+Status: original design and implementation plan, 2026-09-08; implemented in
+September 2026. See [WASM modules](wasm-modules.md) for the implemented contract,
+architecture, test commands, and limitations. The sections below retain the
+planning rationale and proposed sequence.
 
 Base: upstream `hkust-taco/hkmc2`, commit
 `1a86e1cffe509c826a04c7828c0c6e520653dc2a`. The local `hkmc2` commit is excluded.
@@ -476,5 +477,6 @@ There should be no duplicate elaboration pipeline, mutable ABI fields on semanti
 symbols, empty cached-result placeholders, embedded duplicate WAT, or broad
 unrelated refactoring. Focused runtime tests and the required full suite must pass.
 
-This document deliberately stops before those implementation phases. Only the
-explicitly retained compilation-target changes accompany it.
+The implementation uses an in-process relocated type snapshot and static module
+namespaces. Files and worksheet blocks share that interface. Host loading targets
+Node, with opaque GC objects and explicit rejection of first-class module values.
