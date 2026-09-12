@@ -50,12 +50,12 @@ class Child(x) extends BoxAlias(x) with
 //│ = {}
 
 :expect 42
-(new Child(41)).answer()
+new Child(41).answer()
 //│ Wasm result:
 //│ = 42
 
 :expect 42
-(new BoxAlias(42)).value
+new BoxAlias(42).value
 //│ Wasm result:
 //│ = 42
 
