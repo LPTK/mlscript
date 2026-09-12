@@ -4,7 +4,7 @@ module Shared with
   let count = 0
   val greeting = "separate λ module"
   fun next() =
-    set count = count + 1
+    set count += 1
     count
   fun word() = greeting
   fun unit() = ()

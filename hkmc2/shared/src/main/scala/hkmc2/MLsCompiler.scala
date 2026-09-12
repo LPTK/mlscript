@@ -63,7 +63,7 @@ class MLsCompiler
     if failed then return
     if artifact.config.target is CompilationTarget.Wasm then
       try
-        (new codegen.wasm.WasmCompiler(using cctx, compilerTL)).compile(file, artifact, mkRaise)
+        new codegen.wasm.WasmCompiler(using cctx, compilerTL).compile(file, artifact, mkRaise)
       catch case _: Diagnostic => () // Already reported with the dependency's source path.
       return
     val exportedSymbol = artifact.compilationUnit.defaultExport

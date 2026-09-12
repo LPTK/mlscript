@@ -6,5 +6,5 @@ module Counter with
   class Other(val value)
   let count = 0
   fun next() =
-    set count = count + 1
+    set count += 1
     count
