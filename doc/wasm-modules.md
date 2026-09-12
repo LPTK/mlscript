@@ -47,6 +47,7 @@ wdtest FileImports
 wdtest HostImports
 wdtest Modules
 wdtest DiamondImports
+wdtest FileInheritance
 wdtest ModuleErrors
 hkmc2AllTests/test
 ```
@@ -59,6 +60,9 @@ through the normal `cwtest` compilation tests. `Modules.mls` exercises their loa
 using `:js` and `:expect`; `DiamondImports.mls` checks the four-file diamond in
 `modules/diamond/`: both branches exchange instances of shared classes, access
 their fields, check nominal identity, and share module initialization state.
+`FileInheritance.mls` extends a separately compiled subclass from a worksheet,
+then extends it again in a later block. Compiled callers check inherited fields,
+type tests, and virtual dispatch on these worksheet instances with inlining disabled.
 Cache identity, output restoration, and concurrent requests
 are tested by `CompilerCacheTest` because they require controlling the compiler
 session and filesystem.

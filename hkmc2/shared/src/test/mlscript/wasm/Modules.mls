@@ -11,6 +11,7 @@ import "../../mlscript-compile/wasm/modules/PrivateImport.mjs"
 import "../../mlscript-compile/wasm/modules/TransitiveImport.mjs"
 import "../../mlscript-compile/wasm/modules/Classes.mjs"
 import "../../mlscript-compile/wasm/modules/FieldLayouts.mjs"
+import "../../mlscript-compile/wasm/modules/inheritance/Operations.mjs"
 import "../../mlscript-compile/wasm/modules/Virtual.mjs"
 import "../../mlscript-compile/wasm/modules/ObjectValue.mjs"
 import "../../mlscript-compile/wasm/modules/ObjectImport.mjs"
@@ -77,6 +78,35 @@ FieldLayouts.own()
 :expect 30
 FieldLayouts.earlier()
 //│ = 30
+
+// The subclass, base initializer, and callers belong to three compiled files.
+:expect 42
+Operations.readBase(Operations.make(21))
+//│ = 42
+
+:expect 21
+Operations.readDerived(Operations.make(21))
+//│ = 21
+
+:expect 42
+Operations.baseMethod(Operations.make(21))
+//│ = 42
+
+:expect 23
+Operations.dispatchBase(Operations.make(21))
+//│ = 23
+
+:expect 63
+Operations.dispatchDerived(Operations.make(21))
+//│ = 63
+
+:expect 1
+Operations.isBase(Operations.make(21))
+//│ = 1
+
+:expect 1
+Operations.isDerived(Operations.make(21))
+//│ = 1
 
 :expect 42
 Classes.inherited()
