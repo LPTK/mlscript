@@ -40,14 +40,18 @@ Operations.dispatchBase(child)
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $dispatchBase (func (param $x (ref null any)) (result (ref null any))))
+//│   (type $TypeInfoBase1 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
+//│   (type $Object1 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
+//│   (type $Base (sub $Object1 (struct (field $$typeinfo (mut (ref $TypeInfoBase1))) (field $baseValue (mut (ref null any))))))
+//│   (type $dispatchBase (func (param $x (ref $Base)) (result (ref null any))))
 //│   (type $entry (func (result (ref null any))))
 //│   (import "module2" "dispatchBase" (func $dispatchBase (type $dispatchBase)))
 //│   (import "repl1" "child" (global $child (mut (ref null any))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (return
 //│       (call_ref $dispatchBase
-//│         (global.get $child)
+//│         (ref.cast (ref $Base)
+//│           (global.get $child))
 //│         (ref.func $dispatchBase))))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:

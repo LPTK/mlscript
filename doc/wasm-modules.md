@@ -34,7 +34,7 @@ console.log(main()); // 42
 ```
 
 Run `npm install` at the repository root to install the pinned Binaryen build.
-The loaders use its `parseTextWithFeatures` API, `node:fs/promises`, and an engine
+The loaders use its `parseText` API, `node:fs/promises`, and an engine
 with WASM GC and exception-tag support. Tests execute them using Node 22.11.0.
 Browser loading and direct `.wasm` emission are not provided by this loader.
 
@@ -48,6 +48,7 @@ wdtest HostImports
 wdtest Modules
 wdtest DiamondImports
 wdtest FileInheritance
+wdtest TypedFileImports
 wdtest ModuleErrors
 hkmc2AllTests/test
 ```
@@ -63,6 +64,8 @@ their fields, check nominal identity, and share module initialization state.
 `FileInheritance.mls` extends a separately compiled subclass from a worksheet,
 then extends it again in a later block. Compiled callers check inherited fields,
 type tests, and virtual dispatch on these worksheet instances with inlining disabled.
+`TypedFileImports.mls` covers concrete reference and unboxed numeric signatures,
+typed globals, and recursive class layouts across those same boundaries.
 Cache identity, output restoration, and concurrent requests
 are tested by `CompilerCacheTest` because they require controlling the compiler
 session and filesystem.
@@ -86,10 +89,11 @@ session and filesystem.
   are live getters. Class constructor defaults return opaque WASM GC objects;
   object defaults are opaque GC objects themselves. This is not a JavaScript
   object-field or prototype mapping. Host getters do not expose assignment.
-- The boxed-value ABI supports the values already implemented by the WASM
-  backend. Arbitrary JavaScript objects, callbacks, and numeric representations
-  are not automatically marshalled. MLscript exceptions crossing a host wrapper
-  are unwrapped using the shared exception tag.
+- Signatures and storage retain the typed IR representation, including concrete
+  class references and unboxed `Int32`, `Int64`, `Float32`, and `Float64` values.
+  JavaScript callers use `BigInt` for `Int64` arguments and results. Arbitrary
+  JavaScript objects and callbacks are not automatically marshalled. MLscript
+  exceptions crossing a host wrapper are unwrapped using the shared exception tag.
 - First-class standalone module values, arbitrary `.mjs`/bare imports from WASM
   source, mixed source targets, and precompiled imports without source interfaces
   are rejected. Existing unsupported backend features, including class companions,
@@ -114,7 +118,10 @@ snapshot. Importing registers a catalog; only bindings demanded by code generati
 receive WAT names and declarations. Each demanded binding brings in its transitive
 type dependencies, including parents, fields, arrays, function signatures, and RTTI. The
 interface also carries initialization functions, singleton globals, namespaces,
-and virtual tables. Diamond imports deduplicate types by origin and representation.
+and typed virtual tables. Recursive groups retain their original member order,
+which is part of WASM type identity; demanding a member imports the entire group.
+Declarations are ordered by all their type dependencies. Diamond imports
+deduplicate types by origin and representation.
 Internal names and external names are allocated separately; neither depends on
 global uniqueness of source names or state-local UIDs.
 

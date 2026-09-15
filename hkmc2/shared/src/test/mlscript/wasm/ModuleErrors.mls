@@ -69,9 +69,6 @@ module Multiple with
 //│ ╔══[COMPILATION ERROR] WASM functions require exactly one parameter list
 //│ ║  l.68: 	  fun f(x)(y) = x + y
 //│ ╙──      	  ^^^^^^^^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] Cannot find variable `y` (VarSymbol) in local or global scope.
-//│ ║  l.68: 	  fun f(x)(y) = x + y
-//│ ╙──      	           ^
 
 :e
 :ge

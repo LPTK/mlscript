@@ -54,11 +54,84 @@ unit
 //│   (type $TypeInfoBase1 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
 //│   (type $Object1 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
 //│   (type $Unit (sub $Object1 (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $entry (func (result (ref null any))))
+//│   (type $entry (func (result (ref $Unit))))
 //│   (import "system" "Unit$inst" (global $Unit$inst (mut (ref null $Unit))))
-//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│   (func $entry (export "entry") (type $entry) (result (ref $Unit))
 //│     (return
+//│       (ref.cast (ref $Unit)
+//│         (global.get $Unit$inst))))
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = {}
+
+// Session globals of primitive type are stored unboxed
+val typed: Int32 = wasm.i32.const(1)
+fun idI32(n: Int32): Int32 = n
+//│ Wasm result:
+//│ = {}
+
+:wat
+val copied: Int32 = idI32(typed)
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $TypeInfoBase1 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
+//│   (type $Object1 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
+//│   (type $Unit (sub $Object1 (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
+//│   (type $entry (func (result (ref null any))))
+//│   (import "repl6" "typed" (global $typed (mut i32)))
+//│   (import "system" "Unit$inst" (global $Unit$inst (mut (ref null $Unit))))
+//│   (global $copied (export "copied") (mut i32) (i32.const 0))
+//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│     (block (result (ref null $Unit))
+//│       (global.set $copied
+//│         (global.get $typed))
 //│       (global.get $Unit$inst)))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
 //│ = {}
+
+// Entry result types are derived from the body, including primitive types
+:wat
+idI32(typed)
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $entry (func (result i32)))
+//│   (import "repl6" "typed" (global $typed (mut i32)))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (return
+//│       (global.get $typed)))
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 1
+
+
+// A cast can be the only reference to a class declared in an earlier block. Import its runtime type
+// whether the cast is returned from a function or bound directly to a val.
+class CastBox(val n: Int)
+val castBox = new CastBox(7)
+//│ Wasm result:
+//│ = {}
+
+:noInline
+fun castBoxResult(x): CastBox = x
+castBoxResult(castBox)
+//│ Wasm result:
+//│ = {}
+
+:noInline
+val narrowedBox: CastBox = castBox
+narrowedBox
+//│ Wasm result:
+//│ = {}
+
+// The imported type must also enforce the cast, rather than just avoiding a missing-type diagnostic.
+:noInline
+:re
+fun rejectNonBox(x): CastBox = x
+rejectNonBox(42)
+//│ Wasm result:
+//│ ═══[RUNTIME ERROR] RuntimeError: illegal cast

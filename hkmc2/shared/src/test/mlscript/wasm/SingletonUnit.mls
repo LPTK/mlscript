@@ -11,11 +11,12 @@
 //│   (type $TypeInfoBase1 (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase1)))))
 //│   (type $Object1 (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
 //│   (type $Unit (sub $Object1 (struct (field $$typeinfo (mut (ref $TypeInfoBase1))))))
-//│   (type $entry (func (result (ref null any))))
+//│   (type $entry (func (result (ref $Unit))))
 //│   (import "system" "Unit$inst" (global $Unit$inst (mut (ref null $Unit))))
-//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│   (func $entry (export "entry") (type $entry) (result (ref $Unit))
 //│     (return
-//│       (global.get $Unit$inst)))
+//│       (ref.cast (ref $Unit)
+//│         (global.get $Unit$inst))))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
 //│ = {}
@@ -58,9 +59,9 @@ x
 //│ (module
 //│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
 //│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
-//│   (type $entry (func (result (ref null any))))
+//│   (type $entry (func (result (ref null i31))))
 //│   (global $x (export "x") (mut (ref null any)) (ref.null any))
-//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│   (func $entry (export "entry") (type $entry) (result (ref null i31))
 //│     (block (result (ref null i31))
 //│       (global.set $x
 //│         (ref.i31

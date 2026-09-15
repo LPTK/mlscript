@@ -18,7 +18,7 @@ final case class AbiType(
     tag: Opt[Int],
 )
 final case class AbiFunction(sym: BlockMemberSymbol | TempSymbol, wrap: Opt[Str] -> Opt[Str], name: Str, ty: TypeIdx)
-final case class AbiGlobal(index: GlobalIdx, sym: ValueSymbol, wrap: Opt[Str] -> Opt[Str], name: Str, ty: GlobalType)
+final case class AbiGlobal(index: GlobalIdx, sym: ScopedSymbol, wrap: Opt[Str] -> Opt[Str], name: Str, ty: GlobalType)
 final case class AbiClass(
     sym: BlockMemberSymbol,
     rttiType: TypeIdx,
@@ -27,9 +27,10 @@ final case class AbiClass(
     virtualTable: Ctx.VirtualTable,
     singleton: Opt[(Opt[ModuleOrObjectSymbol], GlobalIdx, RefType)],
 )
-final case class AbiNamespace(sym: BlockMemberSymbol, owner: InnerSymbol, members: Map[Str, ValueSymbol], storage: Map[TermSymbol, ValueSymbol])
+final case class AbiNamespace(sym: BlockMemberSymbol, owner: InnerSymbol, members: Map[Str, BlockMemberSymbol], storage: Map[TermSymbol, ScopedSymbol])
 final case class FileInterface(
     types: Vector[AbiType],
+    typeGroups: Vector[Vector[TypeIdx]],
     functions: Vector[AbiFunction],
     globals: Vector[AbiGlobal],
     classes: Vector[AbiClass],
@@ -39,15 +40,15 @@ final case class FileInterface(
 
 final case class CompiledWasmFile(module: CompiledWasmModule, interface: FileInterface)
 final case class FileImport(name: Str, interface: FileInterface)
-final case class FileCompilation(imports: Vector[FileImport], aliases: Map[ValueSymbol, ValueSymbol], runtime: Bool)
+final case class FileCompilation(imports: Vector[FileImport], aliases: Map[ScopedSymbol, ScopedSymbol], runtime: Bool)
 
 /** One export namespace, independent of internal WAT scopes and state-local UIDs. */
 final class FileExportNames(using State):
   private val scope = utils.Scope.empty(utils.Scope.Cfg.default)
   private val names = mutable.Map.empty[(ValueSymbol, Str, Opt[Str] -> Opt[Str]), Str]
-  def apply(sym: ValueSymbol, kind: Str, wrap: Opt[Str] -> Opt[Str])(using Raise): Str =
+  def apply(sym: ScopedSymbol, kind: Str, wrap: Opt[Str] -> Opt[Str])(using Raise): Str =
     names.getOrElseUpdate((sym, kind, wrap),
-      scope.allocateName(TempSymbol(N, wrap._1.fold("")(_ + "_") + sym.nme + wrap._2.fold("")("_" + _))))
+      scope.allocateName(TempSymbol(N, erasedType = N, wrap._1.fold("")(_ + "_") + sym.nme + wrap._2.fold("")("_" + _))))
 
 /** Relocation is deliberately exhaustive over the WASM type algebra. New ABI-bearing type
   * forms must extend this traversal rather than accidentally retaining an exporting index. */

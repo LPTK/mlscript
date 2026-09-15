@@ -38,7 +38,8 @@ final class WasmCompiler(using cctx: CompilerCtx, tl: TraceLogger):
     val wat = source.up / "RuntimeWasm.wat"
     val compiled = artifact.compiledWasm(runtime = true):
       given State = artifact.state
-      WatBuilder().fileModule(Program(Nil, End()), N, source.up,
+      given Elaborator.Ctx = artifact.ctx
+      WatBuilder.fresh.fileModule(Program(Nil, End()), N, source.up,
         FileCompilation(Vector.empty, Map.empty, runtime = true))
     artifact.materializeWasm(Ls(wat -> compiled.module.wat.mkString(100),
       path -> runtimeLoader(specifier(wat, path.up), compiled.module.entryName)))
@@ -74,16 +75,17 @@ final class WasmCompiler(using cctx: CompilerCtx, tl: TraceLogger):
           val bindings = FileImport("system", runtime.interface) +:
             imported.zipWithIndex.map { case ((_, compiled), i) => FileImport(s"module$i", compiled.interface) }
           val aliases = (art +: dependencies.keys.toVector).flatMap(_.sourceImports).flatMap: dep =>
-            dep.artifact.compilationUnit.defaultExport.map(sym => (dep.sym: ValueSymbol) -> (sym: ValueSymbol))
+            dep.artifact.compilationUnit.defaultExport.map(sym => (dep.sym: ScopedSymbol) -> (sym: ScopedSymbol))
           .toMap
           val compiled = art.compiledWasm(runtime = false):
             given State = art.state
+            given Elaborator.Ctx = art.ctx
             val sourceSymbols = art.sourceImports.map(_.sym).toSet
             art.ir.imports.foreach: (sym, importedPath) =>
               if !sourceSymbols(sym) && sym != State.runtimeSymbol then
                 raise(ErrorReport(msg"JavaScript import '$importedPath' is not supported in WASM source" -> sym.toLoc :: Nil,
                   source = Diagnostic.Source.Compilation))
-            WatBuilder().fileModule(art.ir.copy(imports = art.ir.imports.filterNot(_._1 == State.runtimeSymbol)), art.compilationUnit.defaultExport, path.up,
+            WatBuilder.fresh.fileModule(art.ir.copy(imports = art.ir.imports.filterNot(_._1 == State.runtimeSymbol)), art.compilationUnit.defaultExport, path.up,
               FileCompilation(bindings, aliases, runtime = false))
           val out = output(path, ".mjs")
           val watPath = output(path, ".wat")
@@ -140,7 +142,7 @@ export async function instantiate(url, imports, pages) {
     mem: memory,
     mlx_str_from_utf16: (ptr, length) => decoder.decode(new Uint8Array(memory.buffer, ptr, length)),
   };
-  const module = binaryen.parseTextWithFeatures(await readFile(url, "utf8"), binaryen.Features.All);
+  const module = binaryen.parseText(await readFile(url, "utf8"), binaryen.Features.All);
   let binary;
   try {
     if (!module.validate()) throw new Error("Invalid generated WASM module: " + url);
