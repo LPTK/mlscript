@@ -80,7 +80,12 @@ object ShapeIdentity:
     case _: DynShape => DynShape
     case _ => new Identity(shape)
 
-sealed trait NonMarkedShape extends TermShape
+sealed trait NonMarkedShape extends TermShape:
+  /** Whether nothing reachable from this shape (members, call results, captured
+    * values, or type arguments) depends on the lexical scope where the value was
+    * produced. Such shapes do not record scope exits (see MarkedShape.exit).
+    */
+  def isSelfContained: Bool = false
 sealed trait NonAppTermShape extends NonMarkedShape
 
 /** A lexical resolution boundary, independent of a definition's term/type interpretation.
@@ -173,6 +178,15 @@ object MarkedShape:
   def exit(sh: TermShape, boundary: ResolutionBoundary, id: Opt[FlowSymbol])(using TL): TermShape | NoShape =
   tl.trace[TermShape | NoShape](s".exit MarkedShape (${sh.shwDbg}, ${boundary.showDbg}, ${id.fold("")(_.showDbg)})", res => s"= ${res.shwDbg}"):
     sh match
+    // Exits are only ever prepended to a path's trailing exits, never compared
+    // against them; they locate what a value refers to. A self-contained value
+    // refers to nothing, so its exits carry no information. Recording them would
+    // make every route that a dynamic or unknown value takes out of recursive
+    // functions a distinct candidate: this multiplied candidates across
+    // FingerTreeList. Entries still decide which activations it can leave.
+    case sh: NonMarkedShape if sh.isSelfContained => sh
+    case MarkedShape(sh, _: ExitMark) if sh.isSelfContained =>
+      lastWords("A self-contained shape does not record exits")
     case sh: NonMarkedShape => MarkedShape(sh, ExitMark(boundary, id, NoMarks))
     case MarkedShape(sh, marks) =>
       marks match
@@ -363,6 +377,7 @@ extension (member: BlockMemberSymbol | RecordMember)
     case member: RecordMember => member.field.sym
 
 class ErrShape(val err: ErrorReport) extends NonAppTermShape:
+  override def isSelfContained: Bool = true
   def describe: Str = s"error: ${err.mainMsg}"
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup = MemberLookup.Missing
   def toLoc: Opt[Loc] = N
@@ -536,6 +551,7 @@ final case class CallableTypeShape(source: Term, paramLists: Ls[DeclaredParams],
 
 /** An abstract annotation authorizes no operations based on the implementation. */
 final case class OpaqueTypeShape(source: Term) extends NonAppTermShape:
+  override def isSelfContained: Bool = true
   def describe: Str = "value of abstract type"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
@@ -649,6 +665,7 @@ final case class TupleShape(source: Term, elements: Ls[TupleShape.Element],
   * by JavaScript interop and explicit `dyn` types, not by failed inference.
   */
 final case class DynShape() extends NonAppTermShape:
+  override def isSelfContained: Bool = true
   def describe: Str = "dynamic value"
   def toLoc: Opt[Loc] = N
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup = MemberLookup.Dynamic(Nil)
@@ -672,6 +689,7 @@ object ShapeProvenance:
   * not turn the same unknown into a new inference candidate.
   */
 final case class UnknownValueShape(source: Term)(val provenance: ShapeProvenance) extends NonAppTermShape:
+  override def isSelfContained: Bool = true
   def describe: Str = "value of unknown shape"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
@@ -681,6 +699,7 @@ final case class UnknownValueShape(source: Term)(val provenance: ShapeProvenance
   * checking witness is not an inferred bound on any call-site parameter.
   */
 final case class RigidTypeShape(parameter: VarSymbol, source: Term) extends NonAppTermShape:
+  override def isSelfContained: Bool = true
   def describe: Str = "value of a type parameter"
   def toLoc: Opt[Loc] = source.toLoc
   def provenance: ShapeProvenance = ShapeProvenance(
@@ -832,6 +851,8 @@ object RecordShape:
 type IntroTerm = Term.Lit | Term.UnitVal | Term.Lam //| Term.New
 class IntroShape(val trm: IntroTerm, val primitive: Opt[NominalInstanceView]) extends NonAppTermShape:
   def describe: Str = trm.describe
+  // Literals have global primitive interfaces; lambdas capture their scopes.
+  override def isSelfContained: Bool = !trm.isInstanceOf[Term.Lam]
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup = trm match
     case _: Term.Lit | _: Term.UnitVal => primitive.fold[MemberLookup](MemberLookup.Missing)(_.getMember(name))
     case lam: Term.Lam => MemberLookup.Missing // TODO: methods on lambdas

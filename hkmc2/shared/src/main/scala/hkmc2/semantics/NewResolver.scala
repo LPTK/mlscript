@@ -1855,12 +1855,15 @@ class NewResolver:
             tupleBindings(TupleShape(unknown.source,
               TupleShape.Unknown(unknown.source, Nil, unknown) :: Nil)(this), marks)
           case Marked(nominal: NominalInstanceView, marks) =>
-            nominal.ancestor(prelude.builtins.Array.defn.get).foreach: array =>
-              array.bindings.get(prelude.builtins.Array.defn.get.tparams.head.sym).foreach: element =>
-                listenTypeViews(element):
-                  case Marked(shape, inner) =>
-                    tupleBindings(TupleShape(element.resolution.source,
-                      TupleShape.Unknown(element.resolution.source, inner :: Nil, shape) :: Nil)(this), marks)
+            // Bind the elements as instances of the declared element type:
+            // binding a pattern variable does not request the type's interface,
+            // which its uses observe on demand. Expanding the interface here
+            // would bind a separate tuple for each candidate of a type parameter
+            // such as FingerTreeList's `Deep[T]`, and each such tuple creates
+            // further rest views and Array interfaces.
+            arrayElementType(nominal).foreach: element =>
+              tupleBindings(TupleShape(element.resolution.source,
+                TupleShape.Unknown(element.resolution.source, Nil, instanceShape(element)) :: Nil)(this), marks)
           case _ => ()
         shape match
           case value: TermShape => narrow(value)
@@ -2726,11 +2729,26 @@ class NewResolver:
                   val spread = TupleShape(term, TupleShape.Unknown(term, Nil, DynShape()) :: Nil)(this)
                   expand(rest, TupleShape.Spread(spread, marks) :: reversed)
                 case shape @ Marked(_, marks) =>
-                  val typed = listenArrayElements(shape):
-                    case Marked(element, context) =>
-                      val spread = TupleShape(term, TupleShape.Unknown(term, context :: Nil, element) :: Nil)(this)
+                  // An array spread contributes an unknown number of elements,
+                  // so its candidates would differ only in their element values.
+                  // Distinct element types (e.g. one annotation observed through
+                  // different activations) must not each become an operand: a
+                  // literal enumerates every combination of its operands, and
+                  // with several spreads this product makes resolution of
+                  // recursive code such as FingerTreeList's `concatMiddle`
+                  // intractable. Instead, all elements of this spread flow into
+                  // one inferred element type, as for a tuple's Array interface.
+                  // Combinations of independent operands carry no correlation
+                  // between their element values, so no information is lost.
+                  val elements = rstate.spreadElementType(term):
+                    new TypeResolution(term, messages => resolError(term, messages))
+                  val typed = listenArrayElements(shape)(element => elements.publish(TypeShape.Inferred(element)))
+                  if typed then
+                    val value = instanceShape(declaredType(elements, Map.empty))
+                    val spread = TupleShape(term, TupleShape.Unknown(term, Nil, value) :: Nil)(this)
+                    if rstate.spreadInputs.getOrElseUpdate(spreadKey, mutable.Set.empty).add(ShapeIdentity.key(spread)) then
                       expand(rest, TupleShape.Spread(spread, NoMarks) :: reversed)
-                  if !typed then
+                  else
                     // Other opaque iterables have no known element type. Their
                     // runtime spread remains permitted without authorizing calls.
                     val unknown = TupleShape(term, TupleShape.Unknown(term, Nil, UnknownValueShape.spread(term, shape)) :: Nil)(this)

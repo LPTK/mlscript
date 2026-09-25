@@ -224,6 +224,11 @@ final class NewResolverState private (
     canonical(tpe.resolution, _.instanceShapes, tpe)(make)
   def canonicalView(key: (Any, Map[VarSymbol, TypeParameterInstance]))(make: => TermShape): TermShape =
     canonical(null, _.shapeViews, key)(make)
+  // The inferred element type of each array spread (see the tuple listener).
+  private val spreadElements: Cache[Identity[Term], TypeResolution] =
+    new Cache(inherited.map(_.spreadElements), identity)
+  def spreadElementType(spread: Term)(make: => TypeResolution): TypeResolution =
+    canonical(spread, _.spreadElements, new Identity(spread))(make)
   val introShapes: Cache[Identity[IntroTerm], IntroShape] =
     new Cache(inherited.map(_.introShapes), identity)
   val symShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks]), SymShape] =
