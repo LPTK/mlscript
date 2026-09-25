@@ -399,6 +399,32 @@ configure_jvm_network() {
   fi
 }
 
+# Claude Code only starts the servers of a project's .mcp.json once they are approved, and nobody
+# answers its approval dialog in cloud sessions. It ignores approvals in the project's own
+# .claude/settings.json (a repository must not approve its own servers), so the Metals server,
+# named "metals" in .mcp.json, is approved in the user settings of the environment.
+approve_metals_mcp_server() {
+  python3 - "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json" <<'PYTHON'
+import json
+import os
+import sys
+
+path = sys.argv[1]
+try:
+    with open(path) as f:
+        settings = json.load(f)
+except FileNotFoundError:
+    settings = {}
+servers = settings.setdefault("enabledMcpjsonServers", [])
+if "metals" not in servers:
+    servers.append("metals")
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path, "w") as f:
+    json.dump(settings, f, indent=2)
+    f.write("\n")
+PYTHON
+}
+
 
 # The repository is normally cloned before this script runs, but its location is not documented.
 find_checkout() {
@@ -557,6 +583,7 @@ step "Install sbt $SBT_VERSION" install_sbt
 step "Install Coursier" install_coursier
 step "Configure the Maven Central mirror" configure_maven_mirror
 step "Configure the JVMs' network access" configure_jvm_network
+step "Approve the Metals MCP server" approve_metals_mcp_server
 
 # The PIDs of the warm-up steps run in parallel are waited for explicitly: a plain `wait` would
 # also wait for the `tee` process substitution that saves the output, which never ends before the script.
