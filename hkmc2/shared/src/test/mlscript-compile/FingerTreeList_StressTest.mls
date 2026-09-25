@@ -1,7 +1,8 @@
-// A copy of FingerTreeList whose `__markerConcat` reads its arguments with the
-// dynamic access `arr![idx]` instead of the static index `arr.[idx]`. The dynamic
-// values it inserts reach every recursive function of the finger tree, which makes
-// this module a stress test for new resolution.
+// A copy of FingerTreeList without type annotations, whose `__markerConcat` reads
+// its arguments with the dynamic access `arr![idx]` instead of the static index
+// `arr.[idx]`. Without signatures, calls between its mutually recursive functions
+// follow their implementations, and the dynamic values it inserts reach all of
+// them, which makes this module a stress test for new resolution.
 
 import "./Option.mls"
 import "./Iter.mls"

@@ -28,11 +28,11 @@ imply that its dependencies have been migrated.
 
 | Compilation suite | New resolution | Legacy resolution | Total |
 | --- | ---: | ---: | ---: |
-| Main (including quotes, UPS, and regression fixtures) | 26 | 23 | 49 |
+| Main (including quotes, UPS, and regression fixtures) | 27 | 22 | 49 |
 | Applications | 8 | 12 | 20 |
 | Nofib | 12 | 27 | 39 |
 | WASM | 0 | 1 | 1 |
-| Total | 46 | 63 | 109 |
+| Total | 47 | 62 | 109 |
 
 These totals include the new-resolution `NamedFieldLibrary` regression fixture.
 
@@ -76,7 +76,7 @@ The remaining option consumers have these blockers when compiled with
 | --- | --- |
 | `Block`, `Shape` | Missing nominal members and callback arity mismatches; `Block` also needs a public interface for `showArm`. |
 | `Iter`, `MutMap`, `ups/EvaluationContext` | Missing public parameter interfaces and unresolved member selections. |
-| `FingerTreeList`, `FingerTreeList_StressTest` | Resolution overflows the stack. Values without a known shape reach elements of the finger tree and are transported through its mutually recursive functions along many call paths, across tens of thousands of inference nodes. In `FingerTreeList`, `__markerConcat` reads its exposed rest parameter with the static index `arr.[idx]`, whose elements exposure checking seeds with unknown values. The stress-test copy reads it with the dynamic access `arr![idx]`, producing dynamic values. |
+| `FingerTreeList_StressTest` | Resolution overflows the stack. This unannotated copy of `FingerTreeList` reads `__markerConcat`'s arguments with the dynamic access `arr![idx]`. Exposure checking seeds the parameters of its exported functions with unknown values, and these, like the dynamic values, reach the finger tree's elements. Calls between its mutually recursive functions follow their implementations, so these values are transported along many call paths, across tens of thousands of inference nodes. `FingerTreeList` compiles because its exported functions have signatures, through which internal calls observe only declared results. |
 | `parsing/Extension`, `ParseRule`, `Test` | Selections on values imported from legacy-resolution modules, such as `Parser.tracer`, have no resolved target. `TreeHelpers` compiles standalone; its consumers remain to be checked. |
 | `parsing/Lexer` | Opened binary `~` conflicts with the builtin; calls with trailing contextual parameters leave function values where tokens are expected. |
 | `parsing/Parser` | Pattern-field flow and unresolved nominal members. |
