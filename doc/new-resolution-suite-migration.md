@@ -28,11 +28,11 @@ imply that its dependencies have been migrated.
 
 | Compilation suite | New resolution | Legacy resolution | Total |
 | --- | ---: | ---: | ---: |
-| Main (including quotes, UPS, and regression fixtures) | 26 | 22 | 48 |
+| Main (including quotes, UPS, and regression fixtures) | 26 | 23 | 49 |
 | Applications | 8 | 12 | 20 |
 | Nofib | 12 | 27 | 39 |
 | WASM | 0 | 1 | 1 |
-| Total | 46 | 62 | 108 |
+| Total | 46 | 63 | 109 |
 
 These totals include the new-resolution `NamedFieldLibrary` regression fixture.
 
@@ -76,7 +76,7 @@ The remaining option consumers have these blockers when compiled with
 | --- | --- |
 | `Block`, `Shape` | Missing nominal members and callback arity mismatches; `Block` also needs a public interface for `showArm`. |
 | `Iter`, `MutMap`, `ups/EvaluationContext` | Missing public parameter interfaces and unresolved member selections. |
-| `FingerTreeList` | Resolution overflows the stack. One host receives over a thousand distinct results of `toNodes` (`[Branch3(...), ...toNodes(rest)]` and `[Branch2(...), ...toNodes(rest)]`), with spreads nested at least seven deep and not widened. `concatMiddle`'s `[...ay1, ...middle, ...ax2]` feeds these results back through each combination of its operand candidates. Determine why these recursive spreads evade widening. |
+| `FingerTreeList`, `FingerTreeList_StressTest` | Resolution overflows the stack. Values without a known shape reach elements of the finger tree and are transported through its mutually recursive functions along many call paths, across tens of thousands of inference nodes. In `FingerTreeList`, `__markerConcat` reads its exposed rest parameter with the static index `arr.[idx]`, whose elements exposure checking seeds with unknown values. The stress-test copy reads it with the dynamic access `arr![idx]`, producing dynamic values. |
 | `parsing/Extension`, `ParseRule`, `Test` | Selections on values imported from legacy-resolution modules, such as `Parser.tracer`, have no resolved target. `TreeHelpers` compiles standalone; its consumers remain to be checked. |
 | `parsing/Lexer` | Opened binary `~` conflicts with the builtin; calls with trailing contextual parameters leave function values where tokens are expected. |
 | `parsing/Parser` | Pattern-field flow and unresolved nominal members. |
