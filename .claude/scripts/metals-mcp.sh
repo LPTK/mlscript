@@ -1,7 +1,8 @@
 #!/bin/bash
 # Starts the Metals MCP server (stdio transport) for the checkout containing this script.
 # Used by .mcp.json; .codex/config.toml configures the same server for Codex.
-# The cloud environment setup script (.claude/cloud-environment/setup.sh) pre-fetches this version.
+# The cloud environment setup script (.claude/cloud-environment/setup.sh) pre-fetches this version
+# and imports the build with it, so that sessions' servers start within Metals' time limit.
 
 set -euo pipefail
 

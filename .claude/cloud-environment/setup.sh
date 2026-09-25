@@ -6,25 +6,40 @@
 # As described in https://code.claude.com/docs/en/cloud-environments#setup-scripts,
 # the script runs as root on Ubuntu 24.04 when the environment's cache is built,
 # must exit with status 0, and must finish within about five minutes.
+# Its output is also saved to $LOG_FILE, which outlives the setup run: the SessionStart hook
+# (.claude/hooks/cloud-session-start.sh) tells each session's agent about the steps that failed.
 #
 # It provides what .github/workflows/copilot-setup-steps.yml sets up for GitHub's agent.
 # The image already has a JDK (OpenJDK 21), Node.js (22) and npm, so this script installs sbt,
 # Coursier (to launch the Metals MCP server of .mcp.json), and jvm-proxy-relay,
-# and then pre-fetches dependencies into the environment cache.
+# points Coursier-based downloads at a mirror of Maven Central, and then fills the environment
+# cache: it pre-fetches dependencies, compiles the compiler, and imports the build in Metals.
 #
-# jvm-proxy-relay: cloud sessions reach the internet only through an HTTP proxy whose URL,
-# given in HTTPS_PROXY, embeds credentials. curl and npm use it, but JVMs ignore proxy
-# environment variables, and even when given the proxy as system properties they do not send
-# credentials when opening HTTPS tunnels (CONNECT requests). The relay listens on
-# 127.0.0.1:$RELAY_PORT without authentication and forwards requests to the session's proxy,
-# adding its credentials; JAVA_TOOL_OPTIONS in variables.env points every JVM at the relay.
+# jvm-proxy-relay: cloud sessions reach the internet only through an HTTP proxy given in
+# HTTPS_PROXY, whose port differs between sessions and whose URL may embed credentials.
+# curl and npm use it, but JVMs ignore proxy environment variables, and even when given the proxy
+# as system properties they do not send credentials when opening HTTPS tunnels (CONNECT requests).
+# The relay listens on the fixed address 127.0.0.1:$RELAY_PORT without authentication and forwards
+# requests to the proxy of the environment it was started from, adding its credentials, if any;
+# JAVA_TOOL_OPTIONS in variables.env points every JVM at the relay.
 # Processes started by this script do not survive into sessions, so the sbt, cs and coursier
 # commands installed here start the relay (`jvm-proxy-relay ensure`) whenever they run.
+# Which proxy, if any, this script itself runs behind is not documented, so it only points its own
+# JVMs at the relay when there is a proxy to relay to, and otherwise lets them connect directly;
+# $LOG_FILE records which case applied.
 #
-# Everything is downloaded from hosts on the default "Trusted" network allowlist:
-# Maven Central, and raw.githubusercontent.com for scripts pinned by tag or commit and by checksum.
-# GitHub release assets are avoided: the sessions' GitHub proxy only serves them for the
-# repositories attached to the session.
+# Maven Central mirror: repo1.maven.org, Maven Central's CDN, answers HTTP 429 (Too Many Requests)
+# to a large share of concurrent downloads from cloud sessions (a quarter of 40 parallel requests
+# for the same file, when measured), presumably because sessions share their egress addresses.
+# Coursier-based tools (the Coursier launcher itself, the sbt launcher, sbt's dependency resolution,
+# Metals and Bloop) give up on such files, so the first launch of each of them usually fails.
+# Google's mirror of Maven Central answered all of the same 40 requests, so Coursier's mirror
+# configuration, which all of these tools read, redirects Maven Central to it (see configure_maven_mirror).
+#
+# Everything is downloaded from Google's mirror of Maven Central and from raw.githubusercontent.com,
+# for scripts pinned by tag or commit and by checksum; both are reachable with this environment's
+# network access settings. GitHub release assets are avoided: the sessions' GitHub proxy only serves
+# them for the repositories attached to the session.
 
 set -uo pipefail
 
@@ -36,17 +51,46 @@ readonly SBT_RUNNER_SHA256=d9ff24213ac4df2d10febf94098e5b634e01e8d179d13eeba4704
 # (The 2.1.25 JVM launchers crash: they put both the Scala 2.13 and Scala 3 builds of cats on the classpath.)
 readonly COURSIER_LAUNCHERS_COMMIT=15f36c167c30be237105f923151adaf177e7ee61
 readonly COURSIER_SHA256=c62c6feb15bf9cb9374dc61431c8f96f1d9cfd84ea79b40aa239b29f293623bf
-# Only pre-fetched here: keep in sync with .claude/scripts/metals-mcp.sh, which launches it.
+# Keep in sync with .claude/scripts/metals-mcp.sh, which launches the same version in sessions.
 readonly METALS_VERSION=1.6.9
 # Must match the proxy ports in JAVA_TOOL_OPTIONS in variables.env.
 readonly RELAY_PORT=18080
+# Google's mirror of Maven Central; see "Maven Central mirror" above.
+readonly MAVEN_CENTRAL_MIRROR=https://maven-central.storage-download.googleapis.com/maven2
+# Read by .claude/hooks/cloud-session-start.sh, which looks for the $FAILED_STEP_PREFIX lines.
+readonly LOG_FILE=/var/log/mlscript-cloud-setup.log
+readonly FAILED_STEP_PREFIX="SETUP STEP FAILED:"
+# The warm-up steps must be done this many seconds after the script starts, which leaves a margin
+# before the time limit of about five minutes for the installation steps and the final cleanup.
+readonly WARM_UP_DEADLINE=$((SECONDS + 270))
 
+
+exec > >(tee "$LOG_FILE") 2>&1
+echo "==> mlscript cloud environment setup, $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+# Steps may run in background subshells, so their failures are collected in a file.
+failed_steps_file=$(mktemp)
 
 step() { # description command...
-  local description=$1
+  local description=$1 status
   shift
   echo "==> $description"
-  "$@" || echo "WARNING: $description failed (exit status $?); continuing" >&2
+  "$@"
+  status=$?
+  if [ "$status" -ne 0 ]; then
+    echo "$FAILED_STEP_PREFIX $description (exit status $status); continuing"
+    echo "$description" >> "$failed_steps_file"
+  fi
+}
+
+# Prints the number of seconds left before WARM_UP_DEADLINE, minus the argument, and fails if
+# that is less than 30s, too little for any warm-up step to be useful.
+time_left() { # margin
+  local left=$((WARM_UP_DEADLINE - SECONDS - $1))
+  if [ "$left" -lt 30 ]; then
+    echo "not enough time left before the deadline (${left}s)" >&2
+    return 1
+  fi
+  echo "$left"
 }
 
 fetch() { # url sha256 destination
@@ -298,7 +342,7 @@ install_sbt() (
   sed -i "s/^declare init_sbt_version=_to_be_replaced\$/declare init_sbt_version=$SBT_VERSION/" /opt/sbt/bin/sbt
   chmod +x /opt/sbt/bin/sbt
   # The runner looks for the launcher next to itself.
-  fetch "https://repo1.maven.org/maven2/org/scala-sbt/sbt-launch/$SBT_VERSION/sbt-launch-$SBT_VERSION.jar" \
+  fetch "$MAVEN_CENTRAL_MIRROR/org/scala-sbt/sbt-launch/$SBT_VERSION/sbt-launch-$SBT_VERSION.jar" \
     "$SBT_LAUNCHER_SHA256" /opt/sbt/bin/sbt-launch.jar
   write_wrapper sbt /opt/sbt/bin/sbt
 )
@@ -313,6 +357,48 @@ install_coursier() (
   write_wrapper coursier /opt/coursier/coursier
 )
 
+# Coursier-based tools read mirror.properties from Coursier's configuration directory.
+# Each mirror redirects a single repository URL: the Coursier launcher does not understand
+# the comma-separated lists of URLs that the `from` property of Coursier's library accepts.
+configure_maven_mirror() (
+  set -e
+  local dir="${XDG_CONFIG_HOME:-$HOME/.config}/coursier"
+  mkdir -p "$dir"
+  cat > "$dir/mirror.properties" <<EOF
+# Written by the mlscript cloud environment setup script (.claude/cloud-environment/setup.sh),
+# whose "Maven Central mirror" comment explains it. If an artifact that is on Maven Central cannot
+# be found (a mirror can lag behind), deleting this file makes downloads go to Maven Central again.
+central.from=https://repo1.maven.org/maven2
+central.to=$MAVEN_CENTRAL_MIRROR
+apache.from=https://repo.maven.apache.org/maven2
+apache.to=$MAVEN_CENTRAL_MIRROR
+EOF
+)
+
+# Points the JVMs started by this script at jvm-proxy-relay if there is a proxy to relay to,
+# and otherwise lets them connect directly (see "jvm-proxy-relay" above).
+# JAVA_TOOL_OPTIONS may already hold the relay settings of variables.env, if these also apply
+# to this script, so they are removed first: with no relay running, they make JVMs' connections fail.
+configure_jvm_network() {
+  local proxy=${HTTPS_PROXY:-${https_proxy:-${HTTP_PROXY:-${http_proxy:-}}}}
+  JAVA_TOOL_OPTIONS=$(sed -E 's/(^| )-Dhttps?\.proxy(Host|Port)=[^ ]*//g; s/^ +//' <<< "${JAVA_TOOL_OPTIONS:-}")
+  if [ -z "$proxy" ]; then
+    echo "No proxy is configured: JVMs connect directly"
+  else
+    # The proxy URL may contain credentials, which must not be logged.
+    echo "Proxy: $(sed -E 's#//[^@/]*@#//<credentials>@#' <<< "$proxy")"
+    jvm-proxy-relay ensure || return
+    JAVA_TOOL_OPTIONS+="${JAVA_TOOL_OPTIONS:+ }-Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=$RELAY_PORT"
+    JAVA_TOOL_OPTIONS+=" -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=$RELAY_PORT"
+  fi
+  if [ -n "$JAVA_TOOL_OPTIONS" ]; then
+    export JAVA_TOOL_OPTIONS
+    echo "JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+  else
+    unset JAVA_TOOL_OPTIONS
+  fi
+}
+
 
 # The repository is normally cloned before this script runs, but its location is not documented.
 find_checkout() {
@@ -325,46 +411,178 @@ find_checkout() {
   done
 }
 
-# The warm-up steps below run in parallel, each with a time limit, to stay within the time budget.
-# They only speed up the first commands of each session, so it is fine if they time out.
-
-warm_up_sbt() {
-  if [ -n "$checkout" ]; then
-    (cd "$checkout" && timeout 210 sbt -batch update)
-  else
-    local project
-    project=$(mktemp -d)
-    mkdir "$project/project"
-    echo "sbt.version=$SBT_VERSION" > "$project/project/build.properties"
-    (cd "$project" && timeout 210 sbt -batch about)
-    rm -rf "$project"
-  fi
-}
-
-warm_up_metals() {
-  timeout 210 cs fetch "org.scalameta:metals-mcp_2.13:$METALS_VERSION" > /dev/null
-}
+# The warm-up steps below fill the environment cache so that sessions start faster.
+# Each is bounded by WARM_UP_DEADLINE, to stay within the time limit of this script.
 
 warm_up_npm() {
-  # Fills npm's cache; the SessionStart hook in .claude/settings.json runs `npm ci` in each session.
-  [ -z "$checkout" ] || (cd "$checkout" && timeout 210 npm ci --no-audit --no-fund)
+  # Fills npm's cache; the SessionStart hook runs `npm ci` in each session.
+  local left
+  left=$(time_left 0) && (cd "$checkout" && timeout "$left" npm ci --no-audit --no-fund)
+}
+
+fetch_metals() {
+  local left
+  left=$(time_left 0) && timeout "$left" cs fetch "org.scalameta:metals-mcp_2.13:$METALS_VERSION" > /dev/null
+}
+
+# Downloads sbt and the build's dependencies, and compiles the compiler (hkmc2JVM), so that
+# import_build_in_metals, which runs next, fits in its time limit: Metals' build import runs
+# `sbt bloopInstall`, which compiles hkmc2JVM when it is not already compiled.
+warm_up_sbt() {
+  local left
+  # Leaves at least 100s for import_build_in_metals.
+  left=$(time_left 100) && (cd "$checkout" && timeout "$left" sbt -batch update hkmc2JVM/compile)
+}
+
+# Without a checkout, at least downloads sbt itself, using an empty project.
+warm_up_sbt_launcher() {
+  local project left
+  left=$(time_left 0) || return
+  project=$(mktemp -d)
+  mkdir "$project/project"
+  echo "sbt.version=$SBT_VERSION" > "$project/project/build.properties"
+  (cd "$project" && timeout "$left" sbt -batch about)
+  local status=$?
+  rm -rf "$project"
+  return "$status"
+}
+
+# Metals imports the build when its MCP server starts: it runs `sbt bloopInstall`, then starts
+# a Bloop server and connects to it. A server that has not finished importing within two minutes
+# exits with a fatal error (see `start` in Metals' StandaloneMcpService), and the first import in
+# a checkout takes about that long. Importing the build here leaves the Bloop configuration (.bloop),
+# Metals' database (.metals) and the downloaded Bloop and Metals components in the environment cache,
+# so that the Metals servers of sessions only need to start Bloop and connect to it.
+import_build_in_metals() {
+  local left
+  left=$(time_left 0) || return
+  (cd "$checkout" && python3 - "$left" cs launch "org.scalameta:metals-mcp_2.13:$METALS_VERSION" -- \
+    --workspace "$checkout" --transport stdio) <<'PYTHON'
+"""Starts the Metals MCP server whose command follows the time limit (in seconds) in the arguments,
+waits until it has imported the build, and stops it."""
+
+import json
+import queue
+import subprocess
+import sys
+import threading
+import time
+
+started = time.monotonic()
+deadline = started + float(sys.argv[1])
+server = subprocess.Popen(sys.argv[2:], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+lines = queue.Queue()
+
+
+def read_lines():
+    for line in server.stdout:
+        lines.put(line)
+    lines.put(None)
+
+
+threading.Thread(target=read_lines, daemon=True).start()
+last_id = 0
+
+
+def send(message):
+    server.stdin.write(json.dumps({"jsonrpc": "2.0", **message}).encode() + b"\n")
+    server.stdin.flush()
+
+
+def request(method, params):
+    """Returns the result of an MCP request; raises queue.Empty when the deadline passes."""
+    global last_id
+    last_id += 1
+    send({"id": last_id, "method": method, "params": params})
+    while True:
+        line = lines.get(timeout=max(0.0, deadline - time.monotonic()))
+        if line is None:
+            raise EOFError(f"the server exited with status {server.wait()}")
+        try:
+            message = json.loads(line)
+        except ValueError:
+            continue  # Not an MCP message: stray output of the server
+        if message.get("id") == last_id:
+            if "error" in message:
+                raise RuntimeError(f"{method} failed: {message['error']}")
+            return message["result"]
+
+
+status = 1
+try:
+    request("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
+                           "clientInfo": {"name": "mlscript-cloud-setup", "version": "1"}})
+    send({"method": "notifications/initialized"})
+    while True:
+        # Until the build is imported, list-modules answers "No modules (build targets) found".
+        result = request("tools/call", {"name": "list-modules", "arguments": {}})
+        text = "".join(item.get("text", "") for item in result.get("content", []))
+        if text.startswith("Available modules"):
+            print(f"Metals imported the build in {time.monotonic() - started:.0f}s")
+            status = 0
+            break
+        time.sleep(5)
+except queue.Empty:
+    print("Metals did not finish importing the build before the deadline", file=sys.stderr)
+except (EOFError, OSError, RuntimeError) as e:
+    print(f"Metals failed to import the build: {e}", file=sys.stderr)
+finally:
+    server.terminate()  # Metals shuts down cleanly on SIGTERM.
+    try:
+        server.wait(30)
+    except subprocess.TimeoutExpired:
+        server.kill()
+sys.exit(status)
+PYTHON
+}
+
+# The Bloop server that Metals starts outlives Metals. It would not survive into sessions anyway,
+# but it could keep this script's output open, and so keep the script from finishing.
+stop_bloop() {
+  local pid
+  pid=$(cat "${XDG_DATA_HOME:-$HOME/.local/share}/scalacli/bloop/daemon/pid" 2>/dev/null) || return 0
+  # Guards against the PID file being stale and its PID reused by another process.
+  grep -q BloopServer "/proc/$pid/cmdline" 2>/dev/null || return 0
+  kill "$pid"
+  for _ in $(seq 50); do
+    [ -d "/proc/$pid" ] || return 0
+    sleep 0.2
+  done
+  kill -9 "$pid"
 }
 
 
 step "Install jvm-proxy-relay" install_relay
 step "Install sbt $SBT_VERSION" install_sbt
 step "Install Coursier" install_coursier
+step "Configure the Maven Central mirror" configure_maven_mirror
+step "Configure the JVMs' network access" configure_jvm_network
 
-# Sessions get JAVA_TOOL_OPTIONS from variables.env, which may not be set for this script.
-export JAVA_TOOL_OPTIONS="-Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=$RELAY_PORT -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=$RELAY_PORT"
-step "Start jvm-proxy-relay" jvm-proxy-relay ensure
-
+# The PIDs of the warm-up steps run in parallel are waited for explicitly: a plain `wait` would
+# also wait for the `tee` process substitution that saves the output, which never ends before the script.
 checkout=$(find_checkout)
 echo "==> mlscript checkout: ${checkout:-not found, skipping its dependencies}"
-step "Pre-fetch sbt and the build's dependencies" warm_up_sbt &
-step "Pre-fetch Metals MCP $METALS_VERSION" warm_up_metals &
-step "Pre-fetch npm packages" warm_up_npm &
-wait
+warm_ups=()
+if [ -n "$checkout" ]; then
+  step "Pre-fetch npm packages" warm_up_npm & warm_ups+=($!)
+  step "Pre-fetch Metals MCP $METALS_VERSION" fetch_metals & warm_ups+=($!)
+  step "Pre-fetch the build's dependencies and compile hkmc2JVM" warm_up_sbt & warm_ups+=($!)
+  wait "${warm_ups[@]}"
+  step "Import the build in Metals" import_build_in_metals
+  step "Stop Bloop" stop_bloop
+else
+  step "Pre-fetch sbt $SBT_VERSION" warm_up_sbt_launcher & warm_ups+=($!)
+  step "Pre-fetch Metals MCP $METALS_VERSION" fetch_metals & warm_ups+=($!)
+  wait "${warm_ups[@]}"
+fi
 
 step "Stop jvm-proxy-relay" jvm-proxy-relay stop
+
+if [ -s "$failed_steps_file" ]; then
+  echo "==> Setup finished after ${SECONDS}s; failed steps:"
+  sed 's/^/  - /' "$failed_steps_file"
+else
+  echo "==> Setup finished after ${SECONDS}s; all steps succeeded"
+fi
+rm -f "$failed_steps_file"
 exit 0
