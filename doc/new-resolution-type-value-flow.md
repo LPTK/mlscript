@@ -155,6 +155,33 @@ to instance-symbol substitutions through deferred tuples, records, callbacks, an
 closures. They do not copy expanded argument candidates into a new body graph.
 Shape substitution is memoized so repeated observations reuse aggregate identities.
 
+A view retains only the part of an ambient substitution that the value can
+observe, its *binder support* (`NewResolver.shapeSupport`): the explicit type
+binders in scope where a lambda, tuple, record, application, or construction is
+written (recorded by the elaborator before any listener can build its shape), the
+own binders of an applied class or partially applied function, the binders
+enclosing a definition, and the free binders of a declared type together with
+those of the types bound to its formals. This is a conservative lexical analysis,
+never an inspection of inference candidates or bounds. Bindings the value already
+captured take precedence over ambient ones, and an application that changes
+nothing returns the existing shape. Views are canonical in their source and
+effective substitution, not in the sequence of substitutions that produced them.
+A value produced outside every generic scope therefore keeps one identity across
+all the generic callers it passes through; otherwise each combination of unrelated
+caller bindings became a distinct candidate, multiplying downstream work along
+branching call paths (`SubstitutionGrowthTest` measures this).
+
+The bounds published to a binder instance are templates written at its
+instantiation site, and so are the elements of an inferred host and the bounds
+of an omitted-argument hole. Reading them through a substitution reads the
+binders in scope at that site, so each `TypeParameterInstance` records its
+site's binders, template hosts record their scope
+(`NewResolverState.templateBinders`), and a support is closed over the sites of
+the instances it selects (`NewResolver.closure`). Activation environments
+(`withInstances`, `ActivatedShape`, listener compatibility) are not projected:
+they decide which activation's events a listener accepts, and can require
+bindings that the delivered value itself does not use.
+
 `ActivatedShape` records the body activation that produced an event.
 `ContextualShape` carries the value's caller-side view. These substitutions must
 remain separate: recursion can bind the same original parameter differently in
@@ -259,6 +286,13 @@ own saved environments. Synthetic formula/argument/selection nodes follow their
 saved references instead of reading an ambient binding map. This removes irrelevant
 bindings without freezing inference candidates or treating forward references as closed.
 
+Instances are projected by a second analysis over the same graph
+(`NewResolver.instanceDependencies`): synthesized reference nodes do instantiate
+their retained references with the ambient instances, so those references' free
+binders and retained instance sites count, as do the template scopes of inferred
+and omitted-argument hosts and of generic type uses that omit arguments. A pending
+target leaves this set unbounded, which retains every binding.
+
 [Regular structural types](new-resolution-regular-types.md) specifies alias reduction,
 Boolean normalization, and the conservative constructor-cycle rejection check.
 Accepted recursive references must share graph edges rather than grow substituted
@@ -282,9 +316,11 @@ targets and value shapes; runtime values acquire no type-argument objects.
 Graph tests cover bounded instance allocation and replay (`TypeInstantiationTest`), directed
 relations, delayed targets and consumer isolation (`TypeRelationTest`), and Boolean
 normalization (`TypeFormulaTest`). `PublisherTest` checks exporter immutability.
+`SubstitutionGrowthTest` bounds the views and activation contexts allocated for
+generated chains of generic identities, and checks the substitution laws on shapes.
 
 Worksheet coverage under `newres` includes `MutableArrays`, `ContextualInference`,
 `InstantiationSites`, `StoredSpecializations`, `SpecializationCaptures`,
-`TypeArgumentVariance`, `VarianceSubstitution`, `AnnotationContexts`, and
-`TypeGraphTermination`. Deferred cases retain explicit regression expectations;
+`TypeArgumentVariance`, `VarianceSubstitution`, `AnnotationContexts`,
+`TypeGraphTermination`, and `IrrelevantBinders`. Deferred cases retain explicit regression expectations;
 see the [future-work reference](new-resolution-future-work.md).

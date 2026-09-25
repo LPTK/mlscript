@@ -186,40 +186,97 @@ class NewResolver:
     * synthetic nodes that can receive more candidates use no ambient bindings.
     */
   private def typeDependencies(resolution: TypeResolution)(using NewResolverState)
-      : Either[Set[TypeResolution], Set[VarSymbol]] = rstate.typeDependencies.get(resolution) match
+      : Either[Set[TypeResolution], Set[VarSymbol]] =
+    dependencies(resolution, throughReferences = false).map(_.getOrElse(
+      lastWords("Binding dependencies are finite: only template hosts are unbounded")))
+
+  /** The binders whose call-site instances an observation of the type can read,
+    * or N when the source graph does not fix them. These are the free binders
+    * above, plus those of the references retained by the synthesized nodes: such
+    * a node reads no ambient binding, but it does instantiate its retained
+    * reference with the ambient instances, so the reference's own free binders
+    * count (see instantiateShape). An inferred-element or omitted-argument host
+    * contributes the scope of its templates (NewResolverState.templateBinders).
+    */
+  private def instanceDependencies(resolution: TypeResolution)(using NewResolverState)
+      : Either[Set[TypeResolution], Opt[Set[VarSymbol]]] = dependencies(resolution, throughReferences = true)
+
+  // N is the unbounded set: binding dependencies never produce it.
+  private type Binders = Opt[Set[VarSymbol]]
+  private def union(left: Binders, right: => Binders): Binders =
+    left.flatMap(binders => right.map(binders ++ _))
+  private def hide(binders: Binders, bound: Set[VarSymbol]): Binders = binders.map(_ -- bound)
+
+  private def dependencies(resolution: TypeResolution, throughReferences: Bool)(using NewResolverState)
+      : Either[Set[TypeResolution], Binders] =
+    def cached(res: TypeResolution)(using NewResolverState): Opt[Binders] =
+      if throughReferences then rstate.typeInstanceDependencies.get(res)
+      else rstate.typeDependencies.get(res).map(S(_))
+    def store(res: TypeResolution, binders: Binders)(using NewResolverState): Unit =
+      if throughReferences then rstate.typeInstanceDependencies(res) = binders
+      else rstate.typeDependencies(res) = binders.getOrElse(
+        lastWords("Binding dependencies are finite: only template hosts are unbounded"))
+    cached(resolution) match
     case S(binders) => R(binders)
     case N =>
-      val graph = mutable.LinkedHashMap.empty[TypeResolution, (Set[VarSymbol], Ls[(TypeResolution, Set[VarSymbol])])]
+      val graph = mutable.LinkedHashMap.empty[TypeResolution, (Binders, Ls[(TypeResolution, Set[VarSymbol])])]
       val argumentUses = mutable.Map.empty[TypeResolution, Ls[(TypeResolution, VarSymbol, TypeResolution)]]
       val pending = mutable.Set.empty[TypeResolution]
+      // Instance mode: a generic type use that omits arguments expands them to
+      // holes (see omittedType) whose bounds are templates written where the
+      // use is. Its scope is the use's, whether the use is bare or the base of
+      // an application with fewer arguments than formals; bases are recorded
+      // before they are visited, so a fully applied base adds nothing.
+      val appliedBases = mutable.Set.empty[TypeResolution]
+      def useScope(res: TypeResolution)(using NewResolverState): Binders = rstate.lexicalBindersOf(res.source)
+      @tailrec def head(res: TypeResolution): TypeResolution = res.currentShapes.toList match
+        case TypeShape.Captured(inner, _) :: Nil => head(inner)
+        case _ => res
+      def formals(res: TypeResolution): Int = res.currentShapes.toList match
+        case TypeShape.Nominal(defn) :: Nil => defn.tparams.length
+        case TypeShape.Alias(symbol, _) :: Nil => symbol.defn.fold(0)(_.tparams.length)
+        case _ => 0
       def visit(res: TypeResolution): Unit = if !graph.contains(res) then
-        graph(res) = (Set.empty, Nil)
-        rstate.typeDependencies.get(res) match
+        graph(res) = (S(Set.empty), Nil)
+        cached(res) match
           case S(binders) => graph(res) = (binders, Nil)
           case N =>
             val shapes = res.currentShapes.toList
             if shapes.isEmpty then pending += res
-            var direct = Set.empty[VarSymbol]
+            // A host of templates reads the binders of their scope (instance mode).
+            val templates = if throughReferences then rstate.templateBindersOf(res) else N
+            var direct: Binders = templates.getOrElse(S(Set.empty))
             var edges = List.empty[(TypeResolution, Set[VarSymbol])]
             def edge(child: TypeResolution, hidden: Set[VarSymbol]): Unit =
               edges ::= child -> hidden
               visit(child)
             def child(res: TypeResolution): Unit = edge(res, Set.empty)
             def reference(tpe: DeclaredType): Unit =
-              visit(tpe.resolution)
+              if throughReferences then
+                child(tpe.resolution)
+                // Reading through the instances the reference already retains
+                // reads the templates written at their sites (see closure).
+                direct = tpe.instances.values.foldLeft(direct)((acc, instance) => union(acc, instance.siteBinders))
+              else visit(tpe.resolution)
               tpe.bindings.values.foreach(reference)
             shapes.foreach:
-              case TypeShape.Parameter(symbol, _) => direct += symbol
+              case TypeShape.Parameter(symbol, _) => direct = union(direct, S(Set(symbol)))
               case TypeShape.Nominal(defn) =>
                 // This immutable declaration metadata belongs to the original
                 // graph, even when the type was reached through an imported AST.
-                direct ++= defn.sym.getState.newResolverState.lexicalTypeBinders.get(defn.sym).getOrElse(
-                  lastWords(s"Nominal declaration ${defn.sym.nme} must record its enclosing type binders"))
+                direct = union(direct, S(defn.sym.getState.newResolverState.lexicalTypeBinders.get(defn.sym).getOrElse(
+                  lastWords(s"Nominal declaration ${defn.sym.nme} must record its enclosing type binders"))))
+                if throughReferences && defn.tparams.nonEmpty && !appliedBases(res) then direct = union(direct, useScope(res))
               case TypeShape.Alias(symbol, rhs) =>
                 val bound = symbol.defn.get.tparams.map(_.sym).toSet
                 rhs.foreach(edge(_, bound))
+                if throughReferences && bound.nonEmpty && !appliedBases(res) then direct = union(direct, useScope(res))
               case TypeShape.Captured(base, _) => child(base)
               case TypeShape.Applied(base, args) =>
+                if throughReferences then
+                  val applied = head(base)
+                  appliedBases += applied
+                  if formals(applied) > args.length then direct = union(direct, useScope(applied))
                 child(base)
                 // An alias argument contributes dependencies only if the body
                 // uses its formal. Solve this with the other equations: a cycle
@@ -256,8 +313,10 @@ class NewResolver:
               case TypeShape.Argument(parts) => reference(parts.input); reference(parts.output)
               case TypeShape.SelectedArgument(argument, _) => reference(argument)
               case TypeShape.Contextual(context) => reference(context.tpe)
-              case TypeShape.Inferred(_) | TypeShape.Hole(_) | TypeShape.Unit | TypeShape.Dynamic | TypeShape.Abstract |
-                  TypeShape.Top | TypeShape.Bottom => ()
+              case TypeShape.Inferred(_) | TypeShape.Hole(_) =>
+                if throughReferences && templates.isEmpty then
+                  lastWords(s"Template host for ${res.source.describe} must record its scope")
+              case TypeShape.Unit | TypeShape.Dynamic | TypeShape.Abstract | TypeShape.Top | TypeShape.Bottom => ()
             graph(res) = (direct, edges)
       visit(resolution)
       if pending.nonEmpty then L(pending.toSet) else
@@ -267,13 +326,14 @@ class NewResolver:
           changed = false
           graph.foreach: (res, node) =>
             val direct = argumentUses.getOrElse(res, Nil).foldLeft(node._1): (acc, use) =>
-              if dependencies(use._1)(use._2) then acc ++ dependencies(use._3) else acc
+              // An unbounded body may use the formal.
+              if dependencies(use._1).forall(_(use._2)) then union(acc, dependencies(use._3)) else acc
             val next = node._2.foldLeft(direct): (acc, edge) =>
-              acc ++ (dependencies(edge._1) -- edge._2)
+              union(acc, hide(dependencies(edge._1), edge._2))
             if next != dependencies(res) then
               dependencies(res) = next
               changed = true
-        dependencies.foreach((res, binders) => rstate.typeDependencies(res) = binders)
+        dependencies.foreach((res, binders) => store(res, binders))
         R(dependencies(resolution))
 
   /** Check recursive substitutions on the finite source graph, before observing
@@ -582,6 +642,10 @@ class NewResolver:
     rstate.omittedTypes.getOrElseUpdate((source, parameter), {
       val resolution = new TypeResolution(source.source, source.fail)
       val bounds = new TermShapeHost
+      // The hole's bounds are templates written where the type use is; an
+      // unrecorded type use (a synthesized or legacy annotation) gives them no
+      // fixed scope.
+      rstate.recordTemplateBinders(resolution, rstate.lexicalBindersOf(source.source))
       resolution.publish(TypeShape.Hole(bounds.inferenceHost))
       declaredType(resolution, Map.empty)
     })
@@ -676,9 +740,13 @@ class NewResolver:
   def listenTypeInstances(sign: Term)(listener: Listener)(using NewResolverState): Unit =
     listenTypeInstances(declaredType(typeResolution(sign), Map.empty))(listener)
 
-  /** Instances of a type are compared by identity (see ShapeIdentity). */
+  /** Instances of a type are compared by identity (see ShapeIdentity). The type
+    * is first projected onto its support, so instances that differ only in
+    * bindings the type cannot observe share one shape (see instantiateShape).
+    */
   private[semantics] def instanceShape(tpe: DeclaredType)(using NewResolverState): InstanceShape =
-    rstate.canonicalInstance(tpe)(InstanceShape(tpe))
+    val projected = projectType(tpe)
+    rstate.canonicalInstance(projected)(InstanceShape(projected))
 
   private[semantics] def listenTypeInstances(tpe: DeclaredType)(listener: Listener)(using NewResolverState): Unit =
     listener(instanceShape(tpe.instantiate(rstate.instances)))
@@ -697,38 +765,242 @@ class NewResolver:
 
   /** Substitution changes a deferred observation, not its source graph. Compound
     * children inherit the same flat map when they are subsequently observed.
+    *
+    * Only the part of `instances` that the value can observe is retained (its
+    * binder support, see shapeSupport), and bindings the value already captured
+    * take precedence over the ambient ones. Substitutions therefore stay bounded
+    * by the value's own dependencies, however many activations a value passes
+    * through: a value produced in a non-generic scope keeps its identity across
+    * every generic caller, instead of becoming a distinct candidate per caller
+    * environment. Views are canonical in their source and effective substitution,
+    * not in the sequence of substitutions that produced them, since inference
+    * hosts compare tuples, records, and contextual wrappers by identity.
     */
   private[semantics] def instantiateShape(value: TermShape, instances: Map[VarSymbol, TypeParameterInstance])(using NewResolverState): TermShape =
-    if instances.isEmpty then value else rstate.canonicalView((ShapeIdentity.key(value), instances)) {
+    if instances.isEmpty then value else
       val Marked(source, marks) = value
       val instantiated: NonMarkedShape = source match
-        case instance: InstanceShape => instanceShape(instance.tpe.instantiate(instances))
+        case contextual: ContextualShape => contextualView(contextual, contextual.source, contextual.instances, instances)
+        case instance: InstanceShape => instanceShape(instantiateType(instance.tpe, instances))
         case rigid: RigidTypeShape => instances.get(rigid.parameter).fold[NonMarkedShape](rigid)(p => instanceShape(instanceType(p)))
-        case tuple: TupleShape => tuple.copy(instances = instances ++ tuple.instances)(this)
-        case record: RecordShape => record.copy(instances = instances ++ record.instances)
+        case tuple: TupleShape =>
+          val projected = project(instances, tupleSupport(tuple), tuple.instances)
+          if projected.isEmpty then tuple else TupleShape.view(tuple, projected ++ tuple.instances)(this)
+        case record: RecordShape =>
+          val projected = project(instances, recordSupport(record), record.instances)
+          if projected.isEmpty then record else RecordShape.view(record, projected ++ record.instances)
         case nominal: NominalInstanceView =>
-          val bindings = instances.map((parameter, instance) => parameter -> instanceType(instance)) ++
-            nominal.bindings.map((parameter, bound) => parameter -> bound.instantiate(instances))
-          nominal.copy(bindings = bindings, parent = nominal.parent.map(instantiateShape(_, instances)))(nominal.annotation)(this)
+          val projected = project(instances, shapeSupport(nominal), Map.empty)
+          if projected.isEmpty then nominal else rstate.canonicalView((ShapeIdentity.key(nominal), projected)):
+            val bindings = projected.map((parameter, instance) => parameter -> instanceType(instance)) ++
+              nominal.bindings.map((parameter, bound) => parameter -> instantiateType(bound, projected))
+            nominal.copy(bindings = bindings, parent = nominal.parent.map(instantiateShape(_, projected)))(nominal.annotation)(this)
         case record: RecordTypeShape =>
-          val bindings = instances.map((parameter, instance) => parameter -> instanceType(instance)) ++
-            record.bindings.map((parameter, bound) => parameter -> bound.instantiate(instances))
-          record.copy(bindings = bindings)
-        case contextual: ContextualShape => contextual.copy(instances = instances ++ contextual.instances)
-        case specialized: SpecializedShape => specialized.copy(
-          arguments = specialized.arguments.map(_.instantiate(instances)), instances = instances ++ specialized.instances)
+          val projected = project(instances, shapeSupport(record), Map.empty)
+          if projected.isEmpty then record else rstate.canonicalView((ShapeIdentity.key(record), projected)):
+            val bindings = projected.map((parameter, instance) => parameter -> instanceType(instance)) ++
+              record.bindings.map((parameter, bound) => parameter -> instantiateType(bound, projected))
+            record.copy(bindings = bindings)
+        case specialized: SpecializedShape =>
+          val projected = project(instances, shapeSupport(specialized), specialized.instances)
+          if projected.isEmpty then specialized else rstate.canonicalView((ShapeIdentity.key(specialized), projected)):
+            specialized.copy(arguments = specialized.arguments.map(instantiateType(_, projected)),
+              instances = projected ++ specialized.instances)
         case callable: CallableTypeShape =>
-          val captured = instances -- callable.tparams.map(_.parameter.symbol)
-          callable.copy(paramLists = callable.paramLists.map: params =>
-            DeclaredParams(params.params.map(_.map(_.instantiate(captured))), params.hasRest, params.rest.map(_.instantiate(captured)))
-          , result = callable.result.map(_.instantiate(captured)))
+          // A callable's own quantified parameters are bound at its instantiation site.
+          val captured = project(instances -- callable.tparams.map(_.parameter.symbol), shapeSupport(callable), Map.empty)
+          if captured.isEmpty then callable else rstate.canonicalView((ShapeIdentity.key(callable), captured)):
+            callable.copy(paramLists = callable.paramLists.map: params =>
+              DeclaredParams(params.params.map(_.map(instantiateType(_, captured))), params.hasRest, params.rest.map(instantiateType(_, captured)))
+            , result = callable.result.map(instantiateType(_, captured)))
         case literal: IntroShape if !literal.trm.isInstanceOf[Lam] => literal
         case _: (UnknownValueShape | DynShape | OpaqueTypeShape | ErrShape) => source
-        case _ => ContextualShape(source, instances)
+        case _ => contextualView(source, source, Map.empty, instances)
       marks match
         case NoMarks => instantiated
         case marks: SomeMarks => MarkedShape(instantiated, marks)
-    }
+
+  /** The view of `source` through `captured` and the observable part of `incoming`;
+    * `original` is the existing view of `source` through `captured` alone.
+    */
+  private def contextualView(original: NonMarkedShape, source: NonMarkedShape, captured: Map[VarSymbol, TypeParameterInstance],
+      incoming: Map[VarSymbol, TypeParameterInstance])(using NewResolverState): NonMarkedShape =
+    val projected = project(incoming, shapeSupport(source), captured)
+    if projected.isEmpty then original else
+      val effective = projected ++ captured
+      rstate.canonicalView((ShapeIdentity.key(source), effective))(ContextualShape(source, effective))
+
+  /** The part of an ambient substitution that a value with the given support can
+    * observe and that the value's `captured` substitution does not already bind.
+    * An unbounded support (N) retains every binding not already captured.
+    */
+  private def project(incoming: Map[VarSymbol, TypeParameterInstance], support: Opt[Set[VarSymbol]],
+      captured: Map[VarSymbol, TypeParameterInstance]): Map[VarSymbol, TypeParameterInstance] =
+    closure(support, binder => captured.get(binder).orElse(incoming.get(binder))) match
+      case N => incoming.filter((binder, _) => !captured.contains(binder))
+      case S(relevant) => incoming.filter((binder, _) => !captured.contains(binder) && relevant(binder))
+
+  /** Close a support over the sites of the instances that the substitution
+    * selects for it. The bounds of an instance are templates written at its
+    * site: a supplied type argument, or an argument shape observed there, can
+    * mention any binder in scope at that site, and is instantiated with the same
+    * substitution when the instance is read. An instance of an unknown site
+    * makes the support unbounded.
+    */
+  private def closure(support: Opt[Set[VarSymbol]], instanceOf: VarSymbol => Opt[TypeParameterInstance]): Opt[Set[VarSymbol]] =
+    @tailrec def loop(relevant: Set[VarSymbol], frontier: Ls[VarSymbol]): Opt[Set[VarSymbol]] = frontier match
+      case Nil => S(relevant)
+      case binder :: rest => instanceOf(binder) match
+        case N => loop(relevant, rest)
+        case S(instance) => instance.siteBinders match
+          case N => N
+          case S(site) =>
+            val fresh = site -- relevant
+            loop(relevant ++ fresh, fresh.toList ::: rest)
+    support.flatMap(binders => loop(binders, binders.toList))
+
+  /** The original type binders whose call-site instances can change what a
+    * deferred observation of `shape` sees: the members it exposes, the fields it
+    * stores, the arguments already bound to its parameters, or the body it runs
+    * when called. `N` means the support is not fixed and no binding may be dropped.
+    *
+    * This is a conservative lexical analysis, not a free-variable analysis of the
+    * value: it never inspects inference candidates or parameter bounds, and it
+    * retains every binder in scope whether or not the value mentions it.
+    *
+    * - A lambda, tuple, record, application, or construction reads its source
+    *   expression, so every explicit type binder in scope where that expression
+    *   is written counts (the elaborator records them, see lexicalBinders).
+    * - A constructed instance, or a partial application, also depends on the
+    *   binders of the class or function applied: the arguments were bound to its
+    *   parameter symbols in the activation carrying this application's own
+    *   instances of those binders, and its fields, methods, and remaining
+    *   parameter lists are read back through that activation. The class's
+    *   binders are not in scope at the application site, so the site's lexical
+    *   scope alone would drop them; likewise a synthesized aggregate view carries
+    *   values whose dependencies its source term does not describe, so contents
+    *   contribute their own support.
+    * - A definition value depends on the binders enclosing its definition; its own
+    *   binders are excluded since every application or specialization binds them
+    *   afresh, and an inherited binding for them is always overridden. A class
+    *   base (a this-value) does include them: its inherited members are
+    *   interpreted through them without another instantiation.
+    * - A declared type depends on the free binders of its finite source graph and
+    *   on the types bound to its formals (typeSupport), and on the scopes of the
+    *   templates it reads: the bounds of the binder instances it selects, the
+    *   elements of an inferred host, and the bounds of an omitted-argument hole
+    *   are all written at a site whose binders the reader must supply.
+    */
+  private def shapeSupport(shape: TermShape)(using NewResolverState): Opt[Set[VarSymbol]] = shape match
+    case MarkedShape(inner, _) => shapeSupport(inner)
+    case contextual: ContextualShape => shapeSupport(contextual.source)
+    case _: (UnknownValueShape | DynShape | OpaqueTypeShape | ErrShape) => S(Set.empty)
+    case rigid: RigidTypeShape => S(Set(rigid.parameter))
+    case intro: IntroShape => intro.trm match
+      case lam: Lam => S(lexicalBinders(lam))
+      case _ => S(Set.empty)
+    case definition: DefnShape =>
+      union(S(lexicalBinders(definitionSymbol(definition.defn))), definition.ext.fold(S(Set.empty))(shapeSupport))
+    case base: BaseShape =>
+      union(S(lexicalBinders(base.defn.sym) ++ ownBinders(base.defn)), base.ext.fold(S(Set.empty))(shapeSupport))
+    case application: AppShape =>
+      union(S(lexicalBinders(application.src) ++ headBinders(application)), shapeSupport(application.receiver))
+    case construction: NewShape =>
+      union(S(lexicalBinders(construction.src) ++ ownBinders(construction.cls.defn.get)), shapeSupport(construction.receiver))
+    case tuple: TupleShape => tupleSupport(tuple)
+    case record: RecordShape => recordSupport(record)
+    case specialized: SpecializedShape =>
+      specialized.arguments.foldLeft(shapeSupport(specialized.declaration))((acc, argument) => union(acc, typeSupport(argument)))
+    case instance: InstanceShape => typeSupport(instance.tpe)
+    case nominal: NominalInstanceView =>
+      // Member signatures may use the binders enclosing the class; the class's
+      // own formals are always bound by the view's bindings.
+      val declared = nominal.bindings.values.foldLeft[Opt[Set[VarSymbol]]](S(lexicalBinders(nominal.defn.sym)))((acc, bound) => union(acc, typeSupport(bound)))
+      union(declared, nominal.parent.fold(S(Set.empty))(shapeSupport))
+    case record: RecordTypeShape =>
+      val fields = record.fields.foldLeft[Opt[Set[VarSymbol]]](S(Set.empty)): (acc, field) =>
+        union(acc, instanceDependencies(field._2).toOption.flatten)
+      record.bindings.values.foldLeft(fields)((acc, bound) => union(acc, typeSupport(bound)))
+    case callable: CallableTypeShape =>
+      val types = callable.paramLists.flatMap(params => params.params.flatten ::: params.rest.toList) :::
+        callable.result.toList ::: callable.supplied.toList.flatten :::
+        callable.scheme.toList.flatMap(_.parameters.flatMap(parameter => parameter.lower.toList ::: parameter.upper.toList))
+      types.foldLeft[Opt[Set[VarSymbol]]](S(Set.empty))((acc, tpe) => union(acc, typeSupport(tpe)))
+        .map(_ -- callable.tparams.map(_.parameter.symbol))
+    case _: ActivatedShape => lastWords("Activation events must be unpacked before substitution")
+
+  private def headBinders(application: AppShape): Set[VarSymbol] = application.applicationHead._1 match
+    case definition: DefnShape => ownBinders(definition.defn)
+    case _ => Set.empty
+
+  /** The binders a definition instantiates at each of its applications. */
+  private def ownBinders(defn: Definition): Set[VarSymbol] = defn match
+    case td: TermDefinition => definitionBinders(td).toSet
+    case td: TypeLikeDef => td.tparams.iterator.map(_.sym).toSet
+
+  private def definitionSymbol(defn: Definition): AnyDefinitionSymbol = defn match
+    case td: TermDefinition => td.tsym
+    case cls: ClassLikeDef => cls.sym
+    case alias: TypeDef => alias.sym
+
+  private def tupleSupport(tuple: TupleShape)(using NewResolverState): Opt[Set[VarSymbol]] =
+    // Rest views and spreads retain their fields' original tuple sources.
+    def segmentSupport(segment: TupleShape.Segment): Opt[Set[VarSymbol]] = segment match
+      case TupleShape.Field(_, _) => S(lexicalBinders(tuple.source))
+      case TupleShape.ValueField(value, _) => shapeSupport(value)
+      case TupleShape.TypedField(tpe, _) => typeSupport(tpe)
+      case TupleShape.UnknownField(_, _) => S(Set.empty)
+      case TupleShape.ViewedField(source, instances, _) => segmentSupport(source).map(_ -- instances.keySet)
+      case TupleShape.Unknown(_, _, value) => shapeSupport(value)
+    tuple.elements.foldLeft[Opt[Set[VarSymbol]]](S(Set.empty)): (acc, element) =>
+      union(acc, element match
+        case segment: TupleShape.Segment => segmentSupport(segment)
+        case TupleShape.Spread(shape, _) => shapeSupport(shape)
+        case TupleShape.Rest(shape, segments) => segments.foldLeft(shapeSupport(shape))((acc, rest) => union(acc, segmentSupport(rest))))
+
+  private def recordSupport(record: RecordShape)(using NewResolverState): Opt[Set[VarSymbol]] =
+    record.elements.foldLeft[Opt[Set[VarSymbol]]](S(Set.empty)): (acc, element) =>
+      union(acc, element match
+        case RecordShape.Field(_) => S(lexicalBinders(record.source))
+        case RecordShape.Spread(shape, _) => shapeSupport(shape)
+        case _ => S(Set.empty))
+
+  /** The original binders whose instances a declared type can observe, or N
+    * while a forward source target is still unresolved. The type's own bound
+    * formals need no instance, but the types bound to them may.
+    */
+  private def typeSupport(tpe: DeclaredType)(using NewResolverState): Opt[Set[VarSymbol]] =
+    instanceDependencies(tpe.resolution) match
+      case L(_) => N
+      case R(binders) =>
+        tpe.bindings.values.foldLeft(binders)((acc, bound) => union(acc, typeSupport(bound)))
+
+  /** `tpe` instantiated by the observable part of an ambient substitution. */
+  private def instantiateType(tpe: DeclaredType, instances: Map[VarSymbol, TypeParameterInstance])(using NewResolverState): DeclaredType =
+    val projected = project(instances, typeSupport(tpe), tpe.instances)
+    if projected.isEmpty then tpe else tpe.instantiate(projected)
+
+  /** `tpe` without the retained instances it cannot observe. */
+  private def projectType(tpe: DeclaredType)(using NewResolverState): DeclaredType =
+    if tpe.instances.isEmpty then tpe else closure(typeSupport(tpe), tpe.instances.get) match
+      case N => tpe
+      case S(support) =>
+        val relevant = tpe.instances.filter((binder, _) => support(binder))
+        if relevant.size == tpe.instances.size then tpe else tpe.copy(instances = relevant)
+
+  private def lexicalBinders(term: Term)(using NewResolverState): Set[VarSymbol] =
+    rstate.lexicalBindersOf(term).getOrElse(
+      lastWords(s"${term.describe.capitalize} must record its enclosing type binders before it is observed"))
+
+  /** A class and its constructor share one definition site (see ResolutionBoundary). */
+  private def lexicalBinders(symbol: AnyDefinitionSymbol): Set[VarSymbol] =
+    val origin = symbol match
+      case ctor: ClassCtorSymbol => ctor.associatedCls
+      case symbol => symbol
+    // This immutable declaration metadata belongs to the original graph, even
+    // when the definition was reached through an imported reference.
+    origin.getState.newResolverState.lexicalTypeBinders.get(origin).getOrElse(
+      lastWords(s"Definition ${origin.nme} must record its enclosing type binders"))
 
   private def contextualParts(value: TermShape): (TermShape, Map[VarSymbol, TypeParameterInstance]) = value match
     case Marked(ContextualShape(source, instances), marks) =>
@@ -944,7 +1216,7 @@ class NewResolver:
           val td = symbol.defn.get
           val crossesValueScope = !(td.k is syntax.RecordField) && !td.tsym.decl.exists(_.isInstanceOf[Param])
           val callerInstances = rstate.instances
-          val instances = if isByName(td) then instantiateByName(td, flow,
+          val instances = if isByName(td) then instantiateByName(td, flow, source,
             ExitMark(ResolutionBoundary(td.tsym), S(flow), NoMarks) :: receiverMarks, specialization) else callerInstances
           // A selected generic method binds its own parameters anew. Receiver
           // bindings can mention an earlier call of that same source method in
@@ -1045,7 +1317,7 @@ class NewResolver:
   /** Consume the scheme at its authoritative site. Specialized values and curried
     * tails carry instantiated references and no scheme, so later calls reuse it.
     */
-  private def instantiateCallable(callable: CallableTypeShape, site: FlowSymbol,
+  private def instantiateCallable(callable: CallableTypeShape, site: FlowSymbol, siteBinders: Opt[Set[VarSymbol]],
       marks: Ls[Marks])(using NewResolverState): CallableTypeShape = callable.scheme match
     case N => callable
     case S(scheme) =>
@@ -1053,7 +1325,7 @@ class NewResolver:
       rstate.instantiatedCallables.get(key) match
         case S(instantiated) => instantiated
         case N =>
-          val substitution = rstate.instantiateTypeParameters(scheme.owner, site, scheme.parameters.map(_.parameter.symbol))
+          val substitution = rstate.instantiateTypeParameters(scheme.owner, site, scheme.parameters.map(_.parameter.symbol), siteBinders)
           def instantiate(tpe: DeclaredType): DeclaredType = tpe.instantiate(substitution)
           val instantiated = callable.copy(
             paramLists = callable.paramLists.map: params =>
@@ -1324,6 +1596,8 @@ class NewResolver:
         val cls = prelude.builtins.Array.defn.get
         softAssert(cls.tparams.length == 1, "The builtin Array must have one element type parameter")
         val elements = new TypeResolution(tuple.source, messages => resolError(tuple.source, messages))
+        // The elements are the tuple's own contents, observed in its scope.
+        rstate.recordTemplateBinders(elements, tupleSupport(tuple))
         val parent = NominalInstanceView(cls, Map(cls.tparams.head.sym -> declaredType(elements, Map.empty)), implicitParent(cls))(N)(this)
         tupleArrayParents(new Identity(tuple)) = parent
         tuple.segments.foreach:
@@ -1349,6 +1623,9 @@ class NewResolver:
         val site = FlowSymbol("mutable array")(using rstate.owner)
         val context = ExitMark(ResolutionBoundary(cls.sym), S(site), NoMarks)
         val elements = new TypeResolution(source, messages => resolError(source, messages))
+        // The parameter host receives this allocation's elements as templates
+        // written at the literal, distinguished from other allocations by marks.
+        rstate.recordTemplateBinders(elements, S(lexicalBinders(underlying)))
         elements.publish(TypeShape.Parameter(param, param.inferenceHost))
         // A nominal interface lives at the literal's use site. Its element
         // reference points back into the allocation; putting the allocation exit
@@ -1791,6 +2068,8 @@ class NewResolver:
                 val base = new TypeResolution(ctor.target, messages => resolError(ctor.target, messages))
                 base.publish(TypeShape.Nominal(cls))
                 val arg = new TypeResolution(unknown.source, messages => resolError(unknown.source, messages))
+                // An unknown value has no dependencies.
+                rstate.recordTemplateBinders(arg, S(Set.empty))
                 arg.publish(TypeShape.Inferred(sh))
                 val applied = new TypeResolution(ctor.target, messages => resolError(ctor.target, messages))
                 applied.publish(TypeShape.Applied(base, cls.tparams.map(_ => arg)))
@@ -1904,16 +2183,16 @@ class NewResolver:
         case td: TermDefinition => (td.tsym, definitionBinders(td))
         case _ => lastWords("A callable definition must have a class or term owner")
 
-  private def instantiateDefinition(definition: DefnShape, site: FlowSymbol, marks: Ls[Marks],
+  private def instantiateDefinition(definition: DefnShape, site: FlowSymbol, siteBinders: Opt[Set[VarSymbol]], marks: Ls[Marks],
       captured: Map[VarSymbol, TypeParameterInstance], supplied: Opt[Ls[DeclaredType]])
       (using NewResolverState): Map[VarSymbol, TypeParameterInstance] =
     val (owner, parameters) = definitionParameters(definition)
-    instantiateParameters(owner, parameters, site, marks, captured, supplied)
+    instantiateParameters(owner, parameters, site, siteBinders, marks, captured, supplied)
 
   private def instantiateParameters(owner: AnyDefinitionSymbol, parameters: Ls[VarSymbol], site: FlowSymbol,
-      marks: Ls[Marks], captured: Map[VarSymbol, TypeParameterInstance], supplied: Opt[Ls[DeclaredType]])
-      (using NewResolverState): Map[VarSymbol, TypeParameterInstance] =
-    val substitution = captured ++ rstate.instantiateTypeParameters(owner, site, parameters)
+      siteBinders: Opt[Set[VarSymbol]], marks: Ls[Marks], captured: Map[VarSymbol, TypeParameterInstance],
+      supplied: Opt[Ls[DeclaredType]])(using NewResolverState): Map[VarSymbol, TypeParameterInstance] =
+    val substitution = captured ++ rstate.instantiateTypeParameters(owner, site, parameters, siteBinders)
     supplied.foreach: arguments =>
       bindTypeArguments(parameters.map: parameter =>
         val instance = substitution(parameter)
@@ -1934,9 +2213,9 @@ class NewResolver:
     val captured = callerInstances ++ lexical
     val instances = lhs match
       case Marked(definition: DefnShape, _) if !specialized =>
-        instantiateDefinition(definition, res.resSym, lhs.applicationHead._2, captured, N)
+        instantiateDefinition(definition, res.resSym, S(lexicalBinders(res)), lhs.applicationHead._2, captured, N)
       case Marked(construction: NewShape, _) if construction.argss.isEmpty && !construction.isSaturated && construction.supplied.isEmpty =>
-        instantiateDefinition(construction.receiver, res.resSym, lhs.applicationHead._2, captured, N)
+        instantiateDefinition(construction.receiver, res.resSym, S(lexicalBinders(res)), lhs.applicationHead._2, captured, N)
       case _ => captured
     def publish(value: TermShape)(using NewResolverState): Unit =
       publishViewed(res, value, instances)(using rstate.withInstances(callerInstances))
@@ -1958,7 +2237,7 @@ class NewResolver:
         val viewed = instantiateShape(original, instances) match
           case callable: CallableTypeShape => callable
           case _ => lastWords("A callable view must remain callable")
-        val callable = instantiateCallable(viewed, res.resSym, context :: Nil)
+        val callable = instantiateCallable(viewed, res.resSym, S(lexicalBinders(res)), context :: Nil)
         val ps = callable.paramLists.head
         zipArgumentShapes(context :: Nil, ps.params.length, ps.hasRest, args, res, lhs): (index, value) =>
           (if index < ps.params.length then ps.params(index) else ps.rest).foreach: tpe =>
@@ -2178,7 +2457,8 @@ class NewResolver:
         if ref.supplied.nonEmpty then select(ref)
         else
           val instances = instantiateParameters(ref.definition.sym, ref.definition.tparams.map(_.sym),
-            rstate.typeApplicationSite(application), ref.marks, rstate.instances ++ ref.instances, S(supplied))
+            rstate.typeApplicationSite(application), S(lexicalBinders(application)), ref.marks,
+            rstate.instances ++ ref.instances, S(supplied))
           select(ref.copy(instances = instances, supplied = S(supplied)))
       , reject)
       case Capture(base, thru) =>
@@ -2309,7 +2589,7 @@ class NewResolver:
         // Explicit type arguments already consumed this scheme. Otherwise an
         // unapplied constructor waits for its first term application.
         val instances = if ref.supplied.nonEmpty || (nw.args.isEmpty && dsh.unappliedParams.nonEmpty) then captured
-          else instantiateDefinition(dsh, nw.resSym, marks, captured, N)
+          else instantiateDefinition(dsh, nw.resSym, S(lexicalBinders(nw)), marks, captured, N)
         val sh = newShapes.getOrElseUpdate((cd.sym, marks, nw.resSym, ref.supplied),
           NewShape(dsh, cd.sym, marks, nw.args, nw, ref.supplied))
         if rstate.constructorApplications.add((sh, instances)) then
@@ -2415,10 +2695,12 @@ class NewResolver:
     td.tparams.toList.flatten.map(_.sym) :::
       (if td.flags.hasResultAnnotation then Nil else td.sign.toList.flatMap(signatureBinders))
 
-  private def instantiateByName(td: TermDefinition, site: FlowSymbol, marks: Ls[Marks],
+  /** `source` is the reference or selection invoking the definition; a synthesized
+    * reference has no recorded scope, which leaves the instances' site unknown. */
+  private def instantiateByName(td: TermDefinition, site: FlowSymbol, source: Term, marks: Ls[Marks],
       specialization: Opt[(FlowSymbol, Ls[DeclaredType])])(using NewResolverState): Map[VarSymbol, TypeParameterInstance] =
     instantiateParameters(td.tsym, definitionBinders(td), specialization.fold(site)(_._1),
-      marks, rstate.instances, specialization.map(_._2))
+      rstate.lexicalBindersOf(source), marks, rstate.instances, specialization.map(_._2))
 
   private def fromBMSAt(bms: BlockMemberSymbol, resSym: FlowSymbol, markss: Ls[Marks], listener: Listener,
       trm: Term, selected: ShapeListener[DefinitionSymbol[?]], receiver: Bool,
@@ -2455,7 +2737,7 @@ class NewResolver:
         case S(td: TermDefinition) if td.params.isEmpty =>
           log(s"listenTerm: td.body = ${td.body.fold("N")(_.showDbg)}")
           val callerInstances = rstate.instances
-          val instances = if isByName(td) then instantiateByName(td, resSym,
+          val instances = if isByName(td) then instantiateByName(td, resSym, trm,
             ExitMark(ResolutionBoundary(td.tsym), S(resSym), NoMarks) :: markss, specialization)
             else callerInstances -- td.tparams.toList.flatten.map(_.sym)
           def receive(shape: TermShape)(using NewResolverState): Unit =
@@ -2646,7 +2928,7 @@ class NewResolver:
             checkArity(callable, callable.tparams.length)
             val supplied = args.map(arg => declaredType(typeResolution(arg), Map.empty).instantiate(rstate.instances))
             instantiateCallable(callable.copy(supplied = S(supplied)),
-              rstate.typeApplicationSite(application), marks).exit(marks) match
+              rstate.typeApplicationSite(application), S(lexicalBinders(application)), marks).exit(marks) match
               case value: TermShape => receive(value)
               case NoShape => ()
           case (callee: DefnShape, marks) =>
@@ -2662,8 +2944,8 @@ class NewResolver:
             if !unapplied then receive(value)
             else
               val supplied = args.map(arg => declaredType(typeResolution(arg), Map.empty).instantiate(rstate.instances))
-              val instances = instantiateDefinition(callee, rstate.typeApplicationSite(application), marks,
-                rstate.instances ++ captured, S(supplied))
+              val instances = instantiateDefinition(callee, rstate.typeApplicationSite(application),
+                S(lexicalBinders(application)), marks, rstate.instances ++ captured, S(supplied))
               SpecializedShape(callee, supplied, instances).exit(marks) match
                 case specialized: TermShape => receive(specialized)
                 case NoShape => ()
@@ -2708,6 +2990,9 @@ class NewResolver:
           val record = defining.namedTupleRecords.getOrElseUpdate(new Identity(tuple), {
             val record: Rcd = Rcd(false, fields.map((key, value) => RcdField(key, value)(using rstate.owner)))
             record.withLocOf(tuple)
+            // The record's fields are the tuple's own field expressions, so its
+            // lexical scope is the tuple's.
+            defining.recordLexicalBinders(record, lexicalBinders(tuple))
             record
           })
           // The synthesized record has no owning graph of its own; share the
@@ -2762,7 +3047,10 @@ class NewResolver:
                   // Combinations of independent operands carry no correlation
                   // between their element values, so no information is lost.
                   val elements = rstate.spreadElementType(term):
-                    new TypeResolution(term, messages => resolError(term, messages))
+                    val host = new TypeResolution(term, messages => resolError(term, messages))
+                    // Elements of every operand shape are observed in the tuple's scope.
+                    rstate.recordTemplateBinders(host, S(lexicalBinders(tuple)))
+                    host
                   val typed = listenArrayElements(shape)(element => elements.publish(TypeShape.Inferred(element)))
                   if typed then
                     val value = instanceShape(declaredType(elements, Map.empty))

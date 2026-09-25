@@ -53,7 +53,10 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
 
   private def source(symbol: BlockMemberSymbol): MemberRef =
     val flow = flows.getOrElseUpdate(symbol, FlowSymbol("exposed"))
-    MemberRef(symbol)(new syntax.Tree.Ident(symbol.nme).withLocOf(symbol), flow)
+    val ref: MemberRef = MemberRef(symbol)(new syntax.Tree.Ident(symbol.nme).withLocOf(symbol), flow)
+    // An exported definition is invoked from outside the unit, where no binder is in scope.
+    rstate.recordLexicalBinders(ref, Set.empty)
+    ref
 
   private def member(symbol: BlockMemberSymbol, marks: Ls[Marks], path: Path)(using NewResolverState): Unit =
     if (symbol.getState is rstate.owner) && (symbol.asModOrObj.isDefined || symbol.asTrm.isDefined || symbol.asCls.isDefined) then

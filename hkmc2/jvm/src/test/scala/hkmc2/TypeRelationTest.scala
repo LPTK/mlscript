@@ -485,7 +485,7 @@ class TypeRelationTest extends AnyFunSuite:
     val h = new Harness
     import h.given
     val (a, at) = h.parameter("A")
-    val substitution = h.state.instantiateTypeParameters(at.resolution, FlowSymbol.app(), List(a))
+    val substitution = h.state.instantiateTypeParameters(at.resolution, FlowSymbol.app(), List(a), None)
     val tuple = TupleShape(Term.UnitVal(), TupleShape.TypedField(at, Nil) :: Nil)(h.resolver)
     val view = h.resolver.instantiateShape(tuple, substitution)
     (1 to 1000).foreach: _ =>

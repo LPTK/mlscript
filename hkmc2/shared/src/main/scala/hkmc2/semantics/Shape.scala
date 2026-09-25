@@ -722,8 +722,17 @@ object TupleShape:
   /** Tuple candidates are compared by identity (see ShapeIdentity), so each
     * distinct tuple is constructed once per source node and element list. */
   def apply(source: Term, elements: Ls[Element])(resolver: NewResolver)(using state: NewResolverState): TupleShape =
-    state.canonicalTuple((new Identity(source), elements.map(elementKey))):
+    state.canonicalTuple((new Identity(source), elements.map(elementKey), Map.empty)):
       new TupleShape(source, elements, Map.empty)(resolver)
+  /** The view of `tuple` through the complete effective substitution `instances`,
+    * canonical like the tuple itself: one identity per source, element list, and
+    * substitution, whichever sequence of substitutions produced the view. Copying
+    * a tuple instead would make each route to the same view a distinct candidate.
+    * NewResolver.instantiateShape composes the substitution before calling this. */
+  def view(tuple: TupleShape, instances: Map[VarSymbol, TypeParameterInstance])(resolver: NewResolver)
+      (using state: NewResolverState): TupleShape =
+    state.canonicalTuple((new Identity(tuple.source), tuple.elements.map(elementKey), instances)):
+      new TupleShape(tuple.source, tuple.elements, instances)(resolver)
   /** A shallow key: nested shapes are canonical and compared by identity. */
   private def elementKey(element: Element): Any = element match
     case segment: Segment => segmentKey(segment)
@@ -832,8 +841,13 @@ object RecordShape:
   /** Record candidates are compared by identity (see ShapeIdentity), so each
     * distinct record is constructed once per source node and element list. */
   def apply(source: Term.Rcd, elements: Ls[Element])(using state: NewResolverState): RecordShape =
-    state.canonicalRecord((new Identity(source), elements.map(elementKey))):
+    state.canonicalRecord((new Identity(source), elements.map(elementKey), Map.empty)):
       new RecordShape(source, elements, Map.empty)
+  /** The canonical view of `record` through the complete effective substitution
+    * `instances`; see TupleShape.view. */
+  def view(record: RecordShape, instances: Map[VarSymbol, TypeParameterInstance])(using state: NewResolverState): RecordShape =
+    state.canonicalRecord((new Identity(record.source), record.elements.map(elementKey), instances)):
+      new RecordShape(record.source, record.elements, instances)
   /** A shallow key: nested shapes are canonical and compared by identity. */
   private def elementKey(element: Element): Any = element match
     case Field(field) => (Field, new Identity(field))

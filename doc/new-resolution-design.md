@@ -164,7 +164,10 @@ they refer to, and recomputing them dominated resolution of large recursive
 definitions such as `FingerTreeList`. Most shapes are compared by identity, so
 resolution must construct each one once. Tuples, records, and instances of a
 `DeclaredType` have canonical constructors keyed shallowly by source identity,
-element keys, or type. `instantiateShape` memoizes its views the same way. These
+element keys, or type. `instantiateShape` memoizes its views the same way, keyed
+by the effective substitution after projecting the ambient one onto the value's
+binder support (see [instance types](new-resolution-type-value-flow.md#shared-bodies-and-contextual-constraints)),
+so equal views reached by different substitution sequences share one identity. These
 caches live in the consumer's root state, since activation views share its hosts,
 and adopt the shape of the unit that owns the source syntax.
 

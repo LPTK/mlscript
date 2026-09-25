@@ -1,3 +1,5 @@
+#lang(0.3.x)
+
 // A copy of FingerTreeList without type annotations, whose `__markerConcat` reads
 // its arguments with the dynamic access `arr![idx]` instead of the static index
 // `arr.[idx]`. Without signatures, calls between its mutually recursive functions
