@@ -156,6 +156,26 @@ disambiguation. Class projections, constructor patterns, and type references req
 known, unambiguous identities. See `newres/Dynamic.mls`, `Records.mls`,
 `SpreadCalls.mls`, and `loose/Targets.mls`.
 
+## Candidate identity
+
+Inference hosts compare candidates with `ShapeIdentity.candidateKey`, never with
+case-class equality: structural hashes traverse nested shapes and the syntax trees
+they refer to, and recomputing them dominated resolution of large recursive
+definitions such as `FingerTreeList`. Most shapes are compared by identity, so
+resolution must construct each one once. Tuples, records, and instances of a
+`DeclaredType` have canonical constructors keyed shallowly by source identity,
+element keys, or type. `instantiateShape` memoizes its views the same way. These
+caches live in the consumer's root state, since activation views share its hosts,
+and adopt the shape of the unit that owns the source syntax.
+
+Some shapes are keyed without canonical construction. Marked, contextual, and
+activated shapes view an inner shape through a normalized path or a binder
+substitution. Leaf shapes such as unknown and opaque values are determined by their
+source nodes, and nominal, callable, and record interface views by their type-level
+contents. Caches keyed by shapes use the same keys. A shape type added without
+either a canonical constructor or a key makes every rebuilt copy a new candidate,
+which can prevent a recursive flow from reaching its fixed point.
+
 ## Normal results of control flow
 
 Resolution must agree with lowering about which expressions produce values.

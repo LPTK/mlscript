@@ -611,7 +611,7 @@ class NewResolver:
     */
   private[semantics] def exposeTypeHoles(tpe: DeclaredType, unknown: TermShape, marks: Ls[Marks])
       (using NewResolverState): Unit =
-    if !rstate.exposedTypeHoles.add((tpe, unknown, marks)) then return
+    if !rstate.exposedTypeHoles.add((tpe, ShapeIdentity.key(unknown), marks)) then return
     def follow(current: DeclaredType, args: TypeApplication, captures: Ls[Marks], seen: Set[TypeResolution])
         (using NewResolverState): Unit = if !seen(current.resolution) then
       val next = seen + current.resolution
@@ -676,8 +676,12 @@ class NewResolver:
   def listenTypeInstances(sign: Term)(listener: Listener)(using NewResolverState): Unit =
     listenTypeInstances(declaredType(typeResolution(sign), Map.empty))(listener)
 
+  /** Instances of a type are compared by identity (see ShapeIdentity). */
+  private[semantics] def instanceShape(tpe: DeclaredType)(using NewResolverState): InstanceShape =
+    rstate.canonicalInstance(tpe)(InstanceShape(tpe))
+
   private[semantics] def listenTypeInstances(tpe: DeclaredType)(listener: Listener)(using NewResolverState): Unit =
-    listener(InstanceShape(tpe.instantiate(rstate.instances)))
+    listener(instanceShape(tpe.instantiate(rstate.instances)))
 
   /** Expanding a type is an observation, not a type-argument constraint. Cache
     * observations before following parameters so recursive interfaces reach the
@@ -695,11 +699,11 @@ class NewResolver:
     * children inherit the same flat map when they are subsequently observed.
     */
   private[semantics] def instantiateShape(value: TermShape, instances: Map[VarSymbol, TypeParameterInstance])(using NewResolverState): TermShape =
-    if instances.isEmpty then value else rstate.shapeViews.getOrElseUpdate((value, instances), {
+    if instances.isEmpty then value else rstate.canonicalView((ShapeIdentity.key(value), instances)) {
       val Marked(source, marks) = value
       val instantiated: NonMarkedShape = source match
-        case instance: InstanceShape => InstanceShape(instance.tpe.instantiate(instances))
-        case rigid: RigidTypeShape => instances.get(rigid.parameter).fold[NonMarkedShape](rigid)(p => InstanceShape(instanceType(p)))
+        case instance: InstanceShape => instanceShape(instance.tpe.instantiate(instances))
+        case rigid: RigidTypeShape => instances.get(rigid.parameter).fold[NonMarkedShape](rigid)(p => instanceShape(instanceType(p)))
         case tuple: TupleShape => tuple.copy(instances = instances ++ tuple.instances)(this)
         case record: RecordShape => record.copy(instances = instances ++ record.instances)
         case nominal: NominalInstanceView =>
@@ -724,7 +728,7 @@ class NewResolver:
       marks match
         case NoMarks => instantiated
         case marks: SomeMarks => MarkedShape(instantiated, marks)
-    })
+    }
 
   private def contextualParts(value: TermShape): (TermShape, Map[VarSymbol, TypeParameterInstance]) = value match
     case Marked(ContextualShape(source, instances), marks) =>
@@ -927,7 +931,7 @@ class NewResolver:
     */
   private def transportShape(value: TermShape, marks: Ls[Marks])(using NewResolverState): TermShape | NoShape = value match
     case Marked(instance: InstanceShape, inner) =>
-      InstanceShape(transportType(instance.tpe, inner :: marks))
+      instanceShape(transportType(instance.tpe, inner :: marks))
     case _ => value.exit(marks)
 
   private def listenDeclaredMember(member: BlockMemberSymbol, bindings: Map[VarSymbol, DeclaredType], flow: FlowSymbol,
@@ -953,7 +957,7 @@ class NewResolver:
                 val parameters = td.tparams.toList.flatten.map(p => declaredParameter(p.sym)) ::: callable.tparams
                 callable.copy(scheme = if parameters.isEmpty then N else S(TypeScheme(td.tsym, parameters)), declaration = S(td))
               case instance: InstanceShape if !isByName(td) =>
-                InstanceShape(quantifiedType(instance.tpe, td.tparams.toList.flatten.map(_.sym)))
+                instanceShape(quantifiedType(instance.tpe, td.tparams.toList.flatten.map(_.sym)))
               case _ => interface
             // Constructor fields keep their parameter scope; structural fields
             // follow their written type directly. Other members leave their own
@@ -1036,7 +1040,7 @@ class NewResolver:
     // constraints or trigger observations of a mutually dependent parameter.
     parameters.zip(arguments).foreach((p, _) => rstate.markExplicitTypeArgument(p.symbol))
     parameters.zip(arguments).foreach: (parameter, argument) =>
-      publishParameter(parameter.host, InstanceShape(argument).enter(marks))
+      publishParameter(parameter.host, instanceShape(argument).enter(marks))
 
   /** Consume the scheme at its authoritative site. Specialized values and curried
     * tails carry instantiated references and no scheme, so later calls reuse it.
@@ -1045,7 +1049,7 @@ class NewResolver:
       marks: Ls[Marks])(using NewResolverState): CallableTypeShape = callable.scheme match
     case N => callable
     case S(scheme) =>
-      val key = (callable, site, marks)
+      val key = (ShapeIdentity.key(callable), site, marks)
       rstate.instantiatedCallables.get(key) match
         case S(instantiated) => instantiated
         case N =>
@@ -1079,20 +1083,17 @@ class NewResolver:
     listenTerm(body): shape =>
       inferTypeArguments(expected.instantiate(rstate.instances), shape, Nil)
 
-  // Install each constraint edge before subscribing: callback parameter/result
-  // flow can revisit it immediately. Distinct instantiations retain their marks.
-  private def typeConstraints(using rs: NewResolverState) = rs.typeConstraints
   /** Keep both endpoints symbolic. Register before following either endpoint,
     * so recursive references reuse the relation even before any bound exists.
     */
   private[semantics] def constrainTypes(lower: ContextualType, upper: ContextualType)(using NewResolverState): Unit =
     if rstate.typeRelations.add((lower, upper)) then
-      InstanceShape(lower.tpe).exit(lower.marks).enter(upper.marks) match
+      instanceShape(lower.tpe).exit(lower.marks).enter(upper.marks) match
         case value: TermShape => inferTypeArguments(upper.tpe, value, upper.marks)
         case NoShape => ()
 
   private def inferTypeArguments(tpe: DeclaredType, value: TermShape, marks: Ls[Marks])(using NewResolverState): Unit =
-    if !typeConstraints.add((tpe, value, marks)) then return
+    if !rstate.addTypeConstraint(tpe, value, marks) then return
     def follow(tpe: DeclaredType, args: TypeApplication, captures: Ls[Marks],
         seen: Set[TypeResolution])(using NewResolverState): Unit = if !seen(tpe.resolution) then
       val next = seen + tpe.resolution
@@ -1953,7 +1954,7 @@ class NewResolver:
         return
       case _ => ()
     // log(s"appShape? lhs = $lhs, args = $args, res = $res")
-    val sh = appShapes.getOrElseUpdate((lhs, res.resSym), {
+    val sh = appShapes.getOrElseUpdate((ShapeIdentity.key(lhs), res.resSym), {
       log(s"appShape: lhs = ${lhs.shwDbg}, args = ${args.showDbg}, res = ${res.showDbg}")
       new AppShape(lhs, args, res)
     })
@@ -2679,14 +2680,17 @@ class NewResolver:
           // is observed directly, as well as when its copied listeners fire.
           val graph = tuple.originalData.owner
           assert(graph != null, "A tuple producer must have an inference owner")
-          val record = rstate.inGraph(graph.nn).namedTupleRecords.getOrElseUpdate(new Identity(tuple), {
+          val defining = rstate.inGraph(graph.nn)
+          val record = defining.namedTupleRecords.getOrElseUpdate(new Identity(tuple), {
             val record: Rcd = Rcd(false, fields.map((key, value) => RcdField(key, value)(using rstate.owner)))
             record.withLocOf(tuple)
             record
           })
+          // The synthesized record has no owning graph of its own; share the
+          // defining graph's canonical shape for it, like its property symbols.
           TupleShape.ValueField(RecordShape(record, record.stats.collect {
             case field: RcdField => RecordShape.Field(field)
-          }), Nil) :: Nil
+          })(using defining), Nil) :: Nil
         def expand(elems: Ls[Elem], reversed: Ls[TupleShape.Element])(using NewResolverState): Unit = elems match
           case Nil =>
             // A sole spread preserves its operand's shape and context exactly.
@@ -2704,7 +2708,7 @@ class NewResolver:
           case Spd(_, term) :: rest =>
             val spreadKey = new Object
             listenTermViews(term): sh =>
-              if rstate.spreadInputs.getOrElseUpdate(spreadKey, mutable.Set.empty).add(sh) then sh match
+              if rstate.spreadInputs.getOrElseUpdate(spreadKey, mutable.Set.empty).add(ShapeIdentity.key(sh)) then sh match
                 case Marked(shape: TupleShape, marks) =>
                   // Widen an incoming candidate that already contains its own
                   // producer in this context. For `fun growing(n) = ‹...› [n, ...growing(n - 1)] ‹...›`,
@@ -2741,7 +2745,7 @@ class NewResolver:
           case RcdSpread(term) :: rest =>
             val spreadKey = new Object
             listenTermViews(term): shape =>
-              if rstate.spreadInputs.getOrElseUpdate(spreadKey, mutable.Set.empty).add(shape) then shape match
+              if rstate.spreadInputs.getOrElseUpdate(spreadKey, mutable.Set.empty).add(ShapeIdentity.key(shape)) then shape match
                 case Marked(shape: RecordShape, marks) =>
                   // Bound recursive record producers just as for tuple spreads.
                   // Keep surrounding explicit fields even when the spread widens.

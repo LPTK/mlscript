@@ -70,7 +70,7 @@ final class TypeResolution(val source: Term, report: Ls[(Message, Opt[Loc])] => 
       case sel: Term.NewSel => sel.hasAmbiguousClass
       case _ => false
     if shapes.isEmpty then fail(msg"This type has no resolved target" -> source.toLoc :: Nil)
-    else if ambiguousReceiver || shapes.sizeCompare(1) > 0 then
+    else if ambiguousReceiver || shapes.size > 1 then
       val candidates = source.withoutCaptures match
         case ref: Term.UnresolvedRef => ref.resolvedMembers.distinct.map: (prefix, member) =>
           msg"candidate: ${member.describe}" -> member.toLoc

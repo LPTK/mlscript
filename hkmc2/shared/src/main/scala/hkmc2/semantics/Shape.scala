@@ -37,6 +37,49 @@ sealed trait Shape extends ShapeLike:
     case bs: BaseShape => s"BaseShape(${bs.defn.sym.showDbg})"
     case es: ErrShape => es.describe
 
+/** How inference hosts deduplicate their candidates (see utils.Candidates).
+  *
+  * Shapes are case classes whose structural hashes traverse nested shapes, marks,
+  * and the syntax trees they refer to. Recomputing these hashes whenever a host
+  * receives a candidate dominated the resolution time of large recursive
+  * definitions. Hosts therefore compare shapes by identity, and resolution must
+  * construct each shape once, reusing a cached shape wherever it rebuilds an
+  * existing candidate. Two kinds of shapes are cheap to identify without such
+  * caches. A marked shape is a view of its base shape through a normalized path,
+  * whose length is bounded by the lexical nesting depth; contextual and activated
+  * shapes view their inner shape through a binder substitution. Unknown, opaque, rigid,
+  * and dynamic shapes are determined by their source nodes, and interface views of
+  * types by their type-level contents. An inferred type shape is identified by its
+  * value. Other type shapes, binder sets, and pattern shapes are small values that
+  * remain structural.
+  */
+object ShapeIdentity:
+  def candidateKey(candidate: Any): Any = candidate match
+    case shape: Shape => key(shape)
+    case TypeShape.Inferred(value) => (TypeShape.Inferred, key(value))
+    case other => other
+  private[semantics] def key(shape: Shape): Any = shape match
+    // Wrappers view their inner shape through a normalized path or a finite
+    // binder substitution; wrappers do not nest beyond a fixed depth.
+    case MarkedShape(base, marks) => (key(base), marks)
+    case ContextualShape(source, instances) => (ContextualShape, key(source), instances)
+    case ActivatedShape(value, instances) => (ActivatedShape, key(value), instances)
+    // Interface views of types are determined by their type-level contents, like
+    // the InstanceShape of a DeclaredType. Each observation of a type in an
+    // activation view expands it anew.
+    case view: NominalInstanceView => (NominalInstanceView, new Identity(view.defn), view.bindings, view.parent.map(key))
+    case callable: CallableTypeShape => (CallableTypeShape, new Identity(callable.source), callable.paramLists,
+      callable.result, callable.scheme, callable.supplied, callable.declaration.map(new Identity(_)))
+    case record: RecordTypeShape => (RecordTypeShape, new Identity(record.source),
+      record.fields.map((field, tpe) => (new Identity(field), tpe)), record.bindings, record.positive)
+    case specialized: SpecializedShape => (SpecializedShape, key(specialized.declaration),
+      specialized.arguments, specialized.instances)
+    case unknown: UnknownValueShape => (UnknownValueShape, new Identity(unknown.source))
+    case opaque: OpaqueTypeShape => (OpaqueTypeShape, new Identity(opaque.source))
+    case rigid: RigidTypeShape => (RigidTypeShape, rigid.parameter, new Identity(rigid.source))
+    case _: DynShape => DynShape
+    case _ => new Identity(shape)
+
 sealed trait NonMarkedShape extends TermShape
 sealed trait NonAppTermShape extends NonMarkedShape
 
@@ -657,8 +700,23 @@ object UnknownValueShape:
     })
 
 object TupleShape:
-  def apply(source: Term, elements: Ls[Element])(resolver: NewResolver): TupleShape =
-    new TupleShape(source, elements, Map.empty)(resolver)
+  /** Tuple candidates are compared by identity (see ShapeIdentity), so each
+    * distinct tuple is constructed once per source node and element list. */
+  def apply(source: Term, elements: Ls[Element])(resolver: NewResolver)(using state: NewResolverState): TupleShape =
+    state.canonicalTuple((new Identity(source), elements.map(elementKey))):
+      new TupleShape(source, elements, Map.empty)(resolver)
+  /** A shallow key: nested shapes are canonical and compared by identity. */
+  private def elementKey(element: Element): Any = element match
+    case segment: Segment => segmentKey(segment)
+    case Spread(shape, marks) => (Spread, ShapeIdentity.key(shape), marks)
+    case Rest(shape, segments) => (Rest, ShapeIdentity.key(shape), segments.map(segmentKey))
+  private def segmentKey(segment: Segment): Any = segment match
+    case Field(field, marks) => (Field, new Identity(field), marks)
+    case ValueField(value, marks) => (ValueField, ShapeIdentity.key(value), marks)
+    case TypedField(tpe, marks) => (TypedField, tpe, marks)
+    case UnknownField(source, marks) => (UnknownField, new Identity(source), marks)
+    case ViewedField(source, instances, marks) => (ViewedField, segmentKey(source), instances, marks)
+    case Unknown(source, marks, value) => (Unknown, new Identity(source), marks, ShapeIdentity.key(value))
   sealed trait Element
   sealed trait Segment extends Element
   sealed trait Fixed extends Segment:
@@ -686,7 +744,7 @@ object TupleShape:
     * shape was lost through widening; `source` supplies diagnostic locations. */
   final case class Unknown(source: Term, marks: Ls[Marks], value: NonMarkedShape) extends Segment
   final case class Spread(shape: TupleShape, marks: Marks) extends Element
-  def unknown(source: Term)(resolver: NewResolver): TupleShape =
+  def unknown(source: Term)(resolver: NewResolver)(using NewResolverState): TupleShape =
     TupleShape(source, Unknown(source, Nil, UnknownValueShape.at(source)) :: Nil)(resolver)
   /** Retain the original candidate as well as the selected residual segments:
     * flattening away the parent would hide recursive producer dependencies from
@@ -699,7 +757,7 @@ object TupleShape:
     * would make the candidate's identity record the order in which fields were
     * removed. For `if xs is [x, ...rest] then f(rest); [...rest, x] then f(rest)`
     * on an n-tuple, that yields 2^n candidates for only O(n^2) distinct layouts. */
-  def restView(tuple: TupleShape, segments: Ls[Segment])(resolver: NewResolver): TupleShape =
+  def restView(tuple: TupleShape, segments: Ls[Segment])(resolver: NewResolver)(using NewResolverState): TupleShape =
     val parent = tuple.elements match
       case Rest(parent, _) :: Nil => parent
       case _ => tuple
@@ -752,7 +810,17 @@ final case class RecordShape(source: Term.Rcd, elements: Ls[RecordShape.Element]
     case _ => false
 
 object RecordShape:
-  def apply(source: Term.Rcd, elements: Ls[Element]): RecordShape = new RecordShape(source, elements, Map.empty)
+  /** Record candidates are compared by identity (see ShapeIdentity), so each
+    * distinct record is constructed once per source node and element list. */
+  def apply(source: Term.Rcd, elements: Ls[Element])(using state: NewResolverState): RecordShape =
+    state.canonicalRecord((new Identity(source), elements.map(elementKey))):
+      new RecordShape(source, elements, Map.empty)
+  /** A shallow key: nested shapes are canonical and compared by identity. */
+  private def elementKey(element: Element): Any = element match
+    case Field(field) => (Field, new Identity(field))
+    case Spread(shape, marks) => (Spread, ShapeIdentity.key(shape), marks)
+    case Unknown(source) => (Unknown, new Identity(source))
+    case Dynamic(marks) => (Dynamic, marks)
   enum Element:
     case Field(field: RcdField)
     case Spread(shape: RecordShape, marks: Marks)

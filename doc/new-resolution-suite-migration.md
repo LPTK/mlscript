@@ -76,7 +76,7 @@ The remaining option consumers have these blockers when compiled with
 | --- | --- |
 | `Block`, `Shape` | Missing nominal members and callback arity mismatches; `Block` also needs a public interface for `showArm`. |
 | `Iter`, `MutMap`, `ups/EvaluationContext` | Missing public parameter interfaces and unresolved member selections. |
-| `FingerTreeList` | Compilation exceeds the 25-second test limit. Tuple literals with several spreads, such as `concatMiddle`'s `[...ay1, ...middle, ...ax2]`, produce one candidate per combination of operand candidates, and each is matched again by `toNodes`. Candidate sets compare shapes structurally, which rehashes these deep shapes; identity-based candidate storage is the next step. |
+| `FingerTreeList` | Resolution overflows the stack. One host receives over a thousand distinct results of `toNodes` (`[Branch3(...), ...toNodes(rest)]` and `[Branch2(...), ...toNodes(rest)]`), with spreads nested at least seven deep and not widened. `concatMiddle`'s `[...ay1, ...middle, ...ax2]` feeds these results back through each combination of its operand candidates. Determine why these recursive spreads evade widening. |
 | `parsing/Extension`, `ParseRule`, `Test` | Selections on values imported from legacy-resolution modules, such as `Parser.tracer`, have no resolved target. `TreeHelpers` compiles standalone; its consumers remain to be checked. |
 | `parsing/Lexer` | Opened binary `~` conflicts with the builtin; calls with trailing contextual parameters leave function values where tokens are expected. |
 | `parsing/Parser` | Pattern-field flow and unresolved nominal members. |

@@ -184,16 +184,46 @@ final class NewResolverState private (
 
   val membersCache: Cache[(Identity[TermShape], Str), MemberLookup] =
     new Cache(inherited.map(_.membersCache), identity)
-  val spreadInputs: Cache[Object, mutable.Set[TermShape]] =
+  // Shape components of cache keys use ShapeIdentity.key, like hosts' candidates.
+  val spreadInputs: Cache[Object, mutable.Set[Any]] =
     new Cache(inherited.map(_.spreadInputs), _.clone())
   val reportedArities: Cache[Object, mutable.Set[Int]] =
     new Cache(inherited.map(_.reportedArities), _.clone())
-  val appShapes: Cache[(TermShape, FlowSymbol), AppShape] =
+  val appShapes: Cache[(Any, FlowSymbol), AppShape] =
     new Cache(inherited.map(_.appShapes), identity)
   val newShapes: Cache[(ClassLikeSymbol, Ls[Marks], FlowSymbol, Opt[Ls[DeclaredType]]), NewShape] =
     new Cache(inherited.map(_.newShapes), identity)
   val constructorApplications: Seen[(NewShape, Map[VarSymbol, TypeParameterInstance])] =
     new Seen(inherited.map(_.constructorApplications))
+  // Canonical shapes: inference hosts compare candidates by identity (see
+  // ShapeIdentity), so these are only accessed through `canonical`.
+  private val tupleShapes: Cache[(Identity[Term], Ls[Any]), TupleShape] =
+    new Cache(inherited.map(_.tupleShapes), identity)
+  private val recordShapes: Cache[(Identity[Term.Rcd], Ls[Any]), RecordShape] =
+    new Cache(inherited.map(_.recordShapes), identity)
+  private val instanceShapes: Cache[DeclaredType, InstanceShape] =
+    new Cache(inherited.map(_.instanceShapes), identity)
+  private val shapeViews: Cache[(Any, Map[VarSymbol, TypeParameterInstance]), TermShape] =
+    new Cache(inherited.map(_.shapeViews), identity)
+  /** Activation views share their consumer's hosts, so they must also share its
+    * canonical shapes. As for type instances, adopt an inherited shape before
+    * constructing one, and record either result in the consumer's cache.
+    * A shape built from another unit's syntax is looked up through that syntax's
+    * owning graph, as for named tuple records, so importers reuse the exporter's
+    * shape instead of adding an equal copy to imported hosts.
+    */
+  private def canonical[K, V](origin: Publisher[?] | Null, cache: NewResolverState => Cache[K, V], key: K)(make: => V): V =
+    val graph = if origin == null then null else origin.originalData.owner
+    val state = if graph == null then this else inGraph(graph)
+    cache(root).getOrElseUpdate(key, cache(state).get(key).getOrElse(make))
+  def canonicalTuple(key: (Identity[Term], Ls[Any]))(make: => TupleShape): TupleShape =
+    canonical(key._1.value, _.tupleShapes, key)(make)
+  def canonicalRecord(key: (Identity[Term.Rcd], Ls[Any]))(make: => RecordShape): RecordShape =
+    canonical(key._1.value, _.recordShapes, key)(make)
+  def canonicalInstance(tpe: DeclaredType)(make: => InstanceShape): InstanceShape =
+    canonical(tpe.resolution, _.instanceShapes, tpe)(make)
+  def canonicalView(key: (Any, Map[VarSymbol, TypeParameterInstance]))(make: => TermShape): TermShape =
+    canonical(null, _.shapeViews, key)(make)
   val introShapes: Cache[Identity[IntroTerm], IntroShape] =
     new Cache(inherited.map(_.introShapes), identity)
   val symShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks]), SymShape] =
@@ -226,12 +256,10 @@ final class NewResolverState private (
     new Seen(inherited.map(_.dependencySubscriptions))
   val quantifiedTypes: Cache[(TypeResolution, Ls[VarSymbol]), TypeResolution] =
     new Cache(inherited.map(_.quantifiedTypes), identity)
-  val instantiatedCallables: Cache[(CallableTypeShape, FlowSymbol, Ls[Marks]), CallableTypeShape] =
+  val instantiatedCallables: Cache[(Any, FlowSymbol, Ls[Marks]), CallableTypeShape] =
     new Cache(inherited.map(_.instantiatedCallables), identity)
   val contextualSymbols: Cache[(SymShape, Map[VarSymbol, TypeParameterInstance]), ContextualSymShape] =
     new Cache(inherited.map(_.contextualSymbols), identity)
-  val shapeViews: Cache[(TermShape, Map[VarSymbol, TypeParameterInstance]), TermShape] =
-    new Cache(inherited.map(_.shapeViews), identity)
   val activatedSymbols: Cache[(SymShape, Map[VarSymbol, TypeParameterInstance]), ActivatedSymShape] =
     new Cache(inherited.map(_.activatedSymbols), identity)
   val inferredInstantiations: Seen[(AnyDefinitionSymbol, FlowSymbol, Map[VarSymbol, TypeParameterInstance], Ls[Marks])] =
@@ -287,7 +315,7 @@ final class NewResolverState private (
     new Cache(inherited.map(_.abstractTypes), identity)
   val omittedTypes: Cache[(TypeResolution, VarSymbol), DeclaredType] =
     new Cache(inherited.map(_.omittedTypes), identity)
-  val exposedTypeHoles: Seen[(DeclaredType, TermShape, Ls[Marks])] =
+  val exposedTypeHoles: Seen[(DeclaredType, Any, Ls[Marks])] =
     new Seen(inherited.map(_.exposedTypeHoles))
   val signatureParameters: Cache[VarSymbol, DeclaredType] =
     new Cache(inherited.map(_.signatureParameters), identity)
@@ -315,8 +343,16 @@ final class NewResolverState private (
     root.explicitTypeArguments += symbol
   def hasExplicitTypeArgument(symbol: VarSymbol): Bool =
     root.explicitTypeArguments(symbol) || source.exists(_.hasExplicitTypeArgument(symbol))
-  val typeConstraints: Seen[(DeclaredType, TermShape, Ls[Marks])] =
+  private val typeConstraints: Seen[(DeclaredType, Any, Ls[Marks])] =
     new Seen(inherited.map(_.typeConstraints))
+  /** Whether this constraint is new; values are keyed like inference candidates.
+    * Install each constraint edge before subscribing: callback parameter/result
+    * flow can revisit it immediately. Distinct instantiations retain their marks.
+    */
+  def addTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks]): Bool =
+    typeConstraints.add((tpe, ShapeIdentity.key(value), marks))
+  def hasTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks]): Bool =
+    typeConstraints((tpe, ShapeIdentity.key(value), marks))
   val typeRelations: Seen[(ContextualType, ContextualType)] =
     new Seen(inherited.map(_.typeRelations))
   val typeArgumentArityErrors: Seen[(Identity[TyApp], Int)] =
