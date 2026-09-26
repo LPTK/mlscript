@@ -1,0 +1,65 @@
+:.
+
+// FIXME: Calling a method of a generic instance must preserve the shape passed
+// through its generic wrapper. The two calls must keep distinct instantiations.
+:fixme
+:expect [1, 2]
+class First(val first: Int)
+class Second(val second: Int)
+class Box[T](val value: T) with
+  fun get(): T = value
+private fun wrap[B](x: B) = Box(x).get()
+[wrap(First(1)).first, wrap(Second(2)).second]
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.12: 	[wrap(First(1)).first, wrap(Second(2)).second]
+//│ ║        	 ^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'first' of a value with unknown shape.
+//│ ╟── This type annotation supplies the value's shape.
+//│ ║  l.11: 	private fun wrap[B](x: B) = Box(x).get()
+//│ ║        	                       ^
+//│ ╟── Type parameter 'B' does not specify a member interface.
+//│ ║  l.11: 	private fun wrap[B](x: B) = Box(x).get()
+//│ ╙──      	                 ^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.12: 	[wrap(First(1)).first, wrap(Second(2)).second]
+//│ ║        	                       ^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'second' of a value with unknown shape.
+//│ ╟── This type annotation supplies the value's shape.
+//│ ║  l.11: 	private fun wrap[B](x: B) = Box(x).get()
+//│ ║        	                       ^
+//│ ╟── Type parameter 'B' does not specify a member interface.
+//│ ║  l.11: 	private fun wrap[B](x: B) = Box(x).get()
+//│ ╙──      	                 ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ ═══[RUNTIME ERROR] Expected: '[1, 2]', got: 'undefined'
+
+// The corresponding by-name method preserves the wrapper's argument shape.
+:expect [3, 4]
+class First(val first: Int)
+class Second(val second: Int)
+class Box[T](val value: T) with
+  fun get: T = value
+private fun wrap[B](x: B) = Box(x).get
+[wrap(First(3)).first, wrap(Second(4)).second]
+//│ = [3, 4]
+
+// FIXME: Spreading a generic tuple must preserve the element's shape through
+// the wrapper's type parameter.
+:fixme
+:expect 5
+class Item(val value: Int)
+private fun tuple[A](x: A): [A] = [x]
+private fun wrap[B](x: B) = [...tuple(x)]
+wrap(Item(5)).0.value
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.53: 	wrap(Item(5)).0.value
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ╟── This type annotation supplies the value's shape.
+//│ ║  l.52: 	private fun wrap[B](x: B) = [...tuple(x)]
+//│ ║        	                       ^
+//│ ╟── Type parameter 'B' does not specify a member interface.
+//│ ║  l.52: 	private fun wrap[B](x: B) = [...tuple(x)]
+//│ ╙──      	                 ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ ═══[RUNTIME ERROR] Expected: '5', got: 'undefined'
