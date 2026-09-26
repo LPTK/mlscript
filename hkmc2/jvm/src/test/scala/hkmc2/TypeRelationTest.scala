@@ -343,8 +343,8 @@ class TypeRelationTest extends AnyFunSuite:
     assert(h.resolver.omittedType(source, parameter)(using right) eq hole)
     val leftValues = ArrayBuffer.empty[TermShape]
     val rightValues = ArrayBuffer.empty[TermShape]
-    h.resolver.listenInstanceViews(InstanceShape(hole))(leftValues += _)(using left)
-    h.resolver.listenInstanceViews(InstanceShape(hole))(rightValues += _)(using right)
+    h.resolver.listenInstanceViews(InstanceShape(hole)(using left))(leftValues += _)(using left)
+    h.resolver.listenInstanceViews(InstanceShape(hole)(using right))(rightValues += _)(using right)
     val first = IntroShape(Term.UnitVal(), N)
     val second = DynShape()
     h.resolver.constrainTypes(ContextualType(h.tpe(TypeShape.Inferred(first)), Nil), ContextualType(hole, Nil))(using left)
@@ -508,8 +508,8 @@ class TypeRelationTest extends AnyFunSuite:
     val right = new Elaborator.State().newResolverState.inGraph(h.state)
     val leftValues = ArrayBuffer.empty[TermShape]
     val rightValues = ArrayBuffer.empty[TermShape]
-    h.resolver.listenInstanceViews(InstanceShape(bt))(leftValues += _)(using left)
-    h.resolver.listenInstanceViews(InstanceShape(bt))(rightValues += _)(using right)
+    h.resolver.listenInstanceViews(InstanceShape(bt)(using left))(leftValues += _)(using left)
+    h.resolver.listenInstanceViews(InstanceShape(bt)(using right))(rightValues += _)(using right)
     val first = IntroShape(Term.UnitVal(), N)
     val second = DynShape()
     h.resolver.publishParameter(a, first)(using left)

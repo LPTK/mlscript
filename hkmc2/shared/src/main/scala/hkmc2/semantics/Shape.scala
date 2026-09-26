@@ -39,8 +39,8 @@ sealed trait Shape extends ShapeLike:
 
 /** How inference hosts deduplicate their candidates (see utils.Candidates).
   *
-  * Shapes are case classes whose structural hashes traverse nested shapes, marks,
-  * and the syntax trees they refer to. Recomputing these hashes whenever a host
+  * Structural shape hashes can traverse nested shapes, marks, and the syntax
+  * trees they refer to. Recomputing these hashes whenever a host
   * receives a candidate dominated the resolution time of large recursive
   * definitions. Hosts therefore compare shapes by identity, and resolution must
   * construct each shape once, reusing a cached shape wherever it rebuilds an
@@ -475,11 +475,21 @@ final case class RecordTypeShape(source: Term.Rcd, fields: Ls[(RcdField, TypeRes
   * candidates would lose negative uses of generic arguments and compound types.
   * Operations obtain concrete member/call views through listenInstanceViews.
   */
-final case class InstanceShape(tpe: DeclaredType) extends NonAppTermShape:
+final class InstanceShape private (val tpe: DeclaredType) extends NonAppTermShape:
   def describe: Str = "value with a declared type"
   def toLoc: Opt[Loc] = tpe.resolution.source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
     lastWords("Instance member lookup requires interpreting its type first")
+
+object InstanceShape:
+  /** Intern the reference in the consuming graph, adopting an inherited instance
+    * when available. NewResolver.instanceShape first projects substitutions onto
+    * the type's support. The constructor is private and there is no case-class
+    * copy: a second object for the same reference would be a distinct candidate.
+    */
+  def apply(tpe: DeclaredType)(using state: NewResolverState): InstanceShape =
+    state.canonicalInstance(tpe)(new InstanceShape(tpe))
+  def unapply(instance: InstanceShape): S[DeclaredType] = S(instance.tpe)
 
 /** A deferred value observation shares its source shape and keeps a flat binder
   * substitution. Members and function bodies are observed in that same view.
@@ -617,8 +627,8 @@ class RefinedShape(val base: TermShape, val refinements: Ls[Str -> Term]) extend
   * lazy. Recursive spreads can have unknown length; retain the known fields around
   * them instead of discarding either those fields or the unresolved possibilities.
   */
-final case class TupleShape(source: Term, elements: Ls[TupleShape.Element],
-    instances: Map[VarSymbol, TypeParameterInstance])(resolver: NewResolver) extends NonAppTermShape:
+final class TupleShape private (val source: Term, val elements: Ls[TupleShape.Element],
+    val instances: Map[VarSymbol, TypeParameterInstance])(resolver: NewResolver) extends NonAppTermShape:
   def arrayParent(using NewResolverState): NominalInstanceView = resolver.tupleArrayParent(this)
   override def isInstanceOfClass(cls: ClassLikeDef)(using NewResolverState): Bool = arrayParent.isInstanceOfClass(cls)
   private lazy val sourceSegments: Ls[TupleShape.Segment] = elements.flatMap:
@@ -730,7 +740,10 @@ object UnknownValueShape:
 
 object TupleShape:
   /** Tuple candidates are compared by identity (see ShapeIdentity), so each
-    * distinct tuple is constructed once per source node and element list. */
+    * distinct tuple is constructed once per source node and element list.
+    * Only these factories can construct a tuple; a case-class copy would bypass
+    * interning and create a distinct inference candidate for the same tuple.
+    */
   def apply(source: Term, elements: Ls[Element])(resolver: NewResolver)(using state: NewResolverState): TupleShape =
     state.canonicalTuple((new Identity(source), elements.map(elementKey), Map.empty)):
       new TupleShape(source, elements, Map.empty)(resolver)
@@ -743,6 +756,8 @@ object TupleShape:
       (using state: NewResolverState): TupleShape =
     state.canonicalTuple((new Identity(tuple.source), tuple.elements.map(elementKey), instances)):
       new TupleShape(tuple.source, tuple.elements, instances)(resolver)
+  def unapply(tuple: TupleShape): S[(Term, Ls[Element], Map[VarSymbol, TypeParameterInstance])] =
+    S((tuple.source, tuple.elements, tuple.instances))
   /** A shallow key: nested shapes are canonical and compared by identity. */
   private def elementKey(element: Element): Any = element match
     case segment: Segment => segmentKey(segment)
@@ -817,8 +832,8 @@ final case class RecordMember(field: RcdField, mutable: Bool)
   * provenance. Lookup follows runtime's last-write-wins order. Unknown entries
   * are barriers: an opaque spread or computed key can overwrite earlier fields.
   */
-final case class RecordShape(source: Term.Rcd, elements: Ls[RecordShape.Element],
-    instances: Map[VarSymbol, TypeParameterInstance]) extends NonAppTermShape:
+final class RecordShape private (val source: Term.Rcd, val elements: Ls[RecordShape.Element],
+    val instances: Map[VarSymbol, TypeParameterInstance]) extends NonAppTermShape:
   def describe: Str = "record literal"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
@@ -853,7 +868,10 @@ final case class RecordShape(source: Term.Rcd, elements: Ls[RecordShape.Element]
 
 object RecordShape:
   /** Record candidates are compared by identity (see ShapeIdentity), so each
-    * distinct record is constructed once per source node and element list. */
+    * distinct record is constructed once per source node and element list.
+    * As for TupleShape, private construction without a case-class copy keeps
+    * every record candidate behind these canonical factories.
+    */
   def apply(source: Term.Rcd, elements: Ls[Element])(using state: NewResolverState): RecordShape =
     state.canonicalRecord((new Identity(source), elements.map(elementKey), Map.empty)):
       new RecordShape(source, elements, Map.empty)
@@ -862,6 +880,8 @@ object RecordShape:
   def view(record: RecordShape, instances: Map[VarSymbol, TypeParameterInstance])(using state: NewResolverState): RecordShape =
     state.canonicalRecord((new Identity(record.source), record.elements.map(elementKey), instances)):
       new RecordShape(record.source, record.elements, instances)
+  def unapply(record: RecordShape): S[(Term.Rcd, Ls[Element], Map[VarSymbol, TypeParameterInstance])] =
+    S((record.source, record.elements, record.instances))
   /** A shallow key: nested shapes are canonical and compared by identity. */
   private def elementKey(element: Element): Any = element match
     case Field(field) => (Field, new Identity(field))

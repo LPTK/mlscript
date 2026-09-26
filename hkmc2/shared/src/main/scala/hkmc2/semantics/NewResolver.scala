@@ -742,8 +742,7 @@ class NewResolver:
     * bindings the type cannot observe share one shape (see instantiateShape).
     */
   private[semantics] def instanceShape(tpe: DeclaredType)(using NewResolverState): InstanceShape =
-    val projected = projectType(tpe)
-    rstate.canonicalInstance(projected)(InstanceShape(projected))
+    InstanceShape(projectType(tpe))
 
   private[semantics] def listenTypeInstances(tpe: DeclaredType)(listener: Listener)(using NewResolverState): Unit =
     listener(instanceShape(tpe.instantiate(rstate.instances)))
@@ -1202,6 +1201,13 @@ class NewResolver:
     case S(p: Param) => p.sign
     case _ => td.resultSignature
 
+  /** Normalize paths with ordinary value transport. An unobserved bottom instance
+    * is a reusable carrier that retains scope exits, unlike self-contained shapes.
+    * Its type is independent of the transported reference, so composing marks
+    * does not intern that reference just to discard the resulting shape.
+    */
+  private def markCarrier(using NewResolverState): InstanceShape = instanceShape(extremeType(false))
+
   /** Retain a scope transfer on the reference, including deferred fields and
     * both argument parts. Flatten existing transfers before interning, so a
     * recursive projection cannot build a tower of transport wrappers.
@@ -1217,7 +1223,7 @@ class NewResolver:
     // A wildcard exit followed by an entry is not an identity: the exit
     // consumes a candidate's entry site and the new entry supplies its own.
     // Deferred references use exactly the same transport as ordinary values.
-    InstanceShape(base).exit(previous).exit(marks) match
+    markCarrier.exit(previous).exit(marks) match
       case Marked(_, NoMarks) => base
       case Marked(_, path: SomeMarks) =>
         val reference = ContextualType(base, path :: Nil)
@@ -1232,7 +1238,7 @@ class NewResolver:
     // Reverse directions using ordinary mark operations, not a reordered list
     // of scopes. This is not an inverse on candidates: a wildcard exit can lose
     // a call-site ID, which the reversed path cannot reconstruct.
-    InstanceShape(extremeType(false)).enter(marks) match
+    markCarrier.enter(marks) match
       case Marked(_, NoMarks) => Nil
       case Marked(_, path: SomeMarks) => path :: Nil
       case NoShape => lastWords("Inverting a scope path cannot reject a candidate")
@@ -1734,7 +1740,7 @@ class NewResolver:
             val exit = scope.fold[Marks](NoMarks)(ExitMark(_, N, NoMarks))
             val inherited = view.parent.fold[MemberLookup](MemberLookup.Missing): parent =>
               val Marked(parentView, inner) = parent
-              InstanceShape(extremeType(false)).exit(inner).exit(exit).exit(receiver) match
+              markCarrier.exit(inner).exit(exit).exit(receiver) match
                 case Marked(_, path) => parentView.getMemberThrough(name, path)
                 // The parent interface is not reachable through this receiver;
                 // applying these marks to its members yields no candidates.
