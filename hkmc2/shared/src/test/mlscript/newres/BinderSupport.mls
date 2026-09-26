@@ -31,3 +31,12 @@ private fun tuple[A](x: A): [A] = [x]
 private fun wrap[B](x: B) = [...tuple(x)]
 wrap(Item(5)).0.value
 //│ = 5
+
+// The Array interface synthesized for a tuple keeps its fields' retained instances.
+:expect [15, 16]
+class First(val first: Int)
+class Second(val second: Int)
+private fun tuple[A](x: A): [A] = [x]
+private fun wrap[B](x: B) = tuple(x).map((v, ...) => v)
+[wrap(First(15)).0.first, wrap(Second(16)).0.second]
+//│ = [15, 16]

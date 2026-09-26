@@ -78,7 +78,10 @@ object ShapeIdentity:
     case opaque: OpaqueTypeShape => (OpaqueTypeShape, new Identity(opaque.source))
     case rigid: RigidTypeShape => (RigidTypeShape, rigid.parameter, new Identity(rigid.source))
     case _: DynShape => DynShape
-    case _ => new Identity(shape)
+    // These producers reuse canonical objects. Keep the list explicit so a new
+    // shape variant requires a decision about identity and deduplication.
+    case _: (InstanceShape | TupleShape | RecordShape | IntroShape | DefnShape | BaseShape |
+        AppShape | NewShape | SymShape | ErrShape) => new Identity(shape)
 
 sealed trait NonMarkedShape extends TermShape:
   /** Whether nothing reachable from this shape (members, call results, captured
@@ -336,7 +339,8 @@ enum MemberLookup:
   // Declared members expose signatures only. Their marks transport dependent
   // type arguments; they never authorize reading an implementation's value flow.
   case Declared(member: BlockMemberSymbol, bindings: Map[VarSymbol, DeclaredType], marks: Ls[Marks], annotation: Opt[Term], positive: Bool)
-  case Indexed(field: TupleShape.Fixed, marks: Ls[Marks])
+  // A preceding spread can place several different fields at the same index.
+  case Indexed(fields: Ls[TupleShape.Fixed], marks: Ls[Marks])
   case Dynamic(marks: Ls[Marks])
   case Missing
   case Unknown(reason: MemberLookup.Uncertainty, provenance: ShapeProvenance)
@@ -345,7 +349,7 @@ enum MemberLookup:
     case Contextual(source, instances) => Contextual(source.withMarks(marks), instances)
     case Found(member, inner) => Found(member, inner ::: marks)
     case Declared(member, bindings, inner, annotation, positive) => Declared(member, bindings, inner ::: marks, annotation, positive)
-    case Indexed(field, inner) => Indexed(field, inner ::: marks)
+    case Indexed(fields, inner) => Indexed(fields, inner ::: marks)
     case Dynamic(inner) => Dynamic(inner ::: marks)
     case _ => this
 
@@ -622,10 +626,10 @@ final case class TupleShape(source: Term, elements: Ls[TupleShape.Element],
     case TupleShape.Rest(_, segments) => segments
     case TupleShape.Spread(shape, marks) => shape.segments.map:
       case field: TupleShape.Fixed => field.withMarks(marks :: Nil)
-      case TupleShape.Unknown(source, inner, value) => TupleShape.Unknown(source, inner ::: marks :: Nil, value)
+      case TupleShape.Unknown(source, element) => TupleShape.Unknown(source, element.withMarks(marks :: Nil))
   lazy val segments: Ls[TupleShape.Segment] = sourceSegments.map:
     case field: TupleShape.Fixed => field.instantiate(instances)
-    case other => other
+    case TupleShape.Unknown(source, element) => TupleShape.Unknown(source, element.instantiate(instances))
   /** Does this candidate already depend on the given producer in the given context?
     * `source` identifies the producer by syntax-node identity; `marks` distinguish
     * its spread contexts. Inspect the selected dependency tree, not flattened
@@ -646,15 +650,21 @@ final case class TupleShape(source: Term, elements: Ls[TupleShape.Element],
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup = name.toIntOption match
     case S(index) if index >= 0 =>
-      def loop(rest: Ls[TupleShape.Segment], index: Int): MemberLookup = rest match
+      // An unknown-length segment can be empty. After reaching one, every
+      // following field whose minimum position is at most `index` is possible.
+      // Keep an exact prefix precise, and stop once fixed fields alone have
+      // passed the index; later segments cannot move those fields backwards.
+      def loop(rest: Ls[TupleShape.Segment], index: Int, uncertain: Bool): Ls[TupleShape.Fixed] = rest match
         case (field: TupleShape.Fixed) :: tail =>
-          if index == 0 then MemberLookup.Indexed(field, Nil) else loop(tail, index - 1)
-        case (segment: TupleShape.Unknown) :: _ =>
-          // The position is a valid array operation even when a spread or
-          // mutation has erased the element layout. Its value remains unknown.
-          MemberLookup.Indexed(TupleShape.ValueField(segment.value, segment.marks), Nil)
+          if index == 0 then field :: Nil
+          else if uncertain then field :: loop(tail, index - 1, true)
+          else loop(tail, index - 1, false)
+        case (segment: TupleShape.Unknown) :: tail =>
+          segment.element :: loop(tail, index, true)
+        case Nil => Nil
+      loop(segments, index, false) match
         case Nil => MemberLookup.Missing
-      loop(segments, index)
+        case fields => MemberLookup.Indexed(fields, Nil)
     case _ => arrayParent.getMember(name)
   override def getMemberThrough(name: Str, receiver: Marks)(using NewResolverState): MemberLookup = name.toIntOption match
     case S(index) if index >= 0 => super.getMemberThrough(name, receiver)
@@ -744,10 +754,13 @@ object TupleShape:
     case TypedField(tpe, marks) => (TypedField, tpe, marks)
     case UnknownField(source, marks) => (UnknownField, new Identity(source), marks)
     case ViewedField(source, instances, marks) => (ViewedField, segmentKey(source), instances, marks)
-    case Unknown(source, marks, value) => (Unknown, new Identity(source), marks, ShapeIdentity.key(value))
+    case Unknown(source, element) => (Unknown, new Identity(source), segmentKey(element))
   sealed trait Element
-  sealed trait Segment extends Element
+  sealed trait Segment extends Element:
+    /** The deferred value of one element, independently of the segment's length. */
+    def element: Fixed
   sealed trait Fixed extends Segment:
+    final def element: Fixed = this
     def marks: Ls[Marks]
     def withMarks(outer: Ls[Marks]): Fixed = this match
       case Field(field, inner) => Field(field, inner ::: outer)
@@ -766,14 +779,15 @@ object TupleShape:
   // Mutable tuple slots retain their positions, but their initializer cannot
   // supply the shape of later reads (including reads through a spread copy).
   final case class UnknownField(source: Term, marks: Ls[Marks]) extends Fixed
-  /** An arbitrary number of arbitrary values. Use this for opaque layouts and
-    * recursive widening, never for a spread whose shape has not arrived yet.
-    * `value` distinguishes dynamically typed JS elements from values whose
-    * shape was lost through widening; `source` supplies diagnostic locations. */
-  final case class Unknown(source: Term, marks: Ls[Marks], value: NonMarkedShape) extends Segment
+  /** An unknown number of elements described by the same deferred field as a
+    * fixed position. Its marks and retained substitution must survive tuple
+    * views, rest slicing, and spreading, even when its length is unknown.
+    * Use this for typed arrays, opaque layouts, and recursive widening, never
+    * for a spread whose shape has not arrived yet. */
+  final case class Unknown(source: Term, element: Fixed) extends Segment
   final case class Spread(shape: TupleShape, marks: Marks) extends Element
   def unknown(source: Term)(resolver: NewResolver)(using NewResolverState): TupleShape =
-    TupleShape(source, Unknown(source, Nil, UnknownValueShape.at(source)) :: Nil)(resolver)
+    TupleShape(source, Unknown(source, UnknownField(source, Nil)) :: Nil)(resolver)
   /** Retain the original candidate as well as the selected residual segments:
     * flattening away the parent would hide recursive producer dependencies from
     * containsSpread, allowing recursion through rest slicing to evade widening. */
@@ -887,4 +901,3 @@ sealed trait LitShape extends NonAppTermShape:
 
 type ShapePublisher = Publisher[Shape]
 type ShapeHost = Host[Shape]
-

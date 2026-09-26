@@ -185,7 +185,6 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val substitution = Map(a -> a1, b -> b1, c -> c1, d -> d1)
     assert(h.resolver.instantiateShape(tuple, substitution) eq TupleShape.view(tuple, substitution - d)(h.resolver))
     // A site of unknown scope retains everything.
-    val unknown = h.instanceAt(a, Set.empty).origin
     val opaque = h.state.instantiateTypeParameters(h.scheme, FlowSymbol.app(), List(a), N)(a)
     assert(h.resolver.instantiateShape(tuple, substitution + (a -> opaque)) eq
       TupleShape.view(tuple, substitution + (a -> opaque))(h.resolver))
@@ -261,7 +260,8 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       (DeclaredType(bare, Map.empty, Map.empty, true), DeclaredType(application, Map.empty, Map.empty, true), b)
     def observe(h: Harness, tpe: DeclaredType, b: VarSymbol): Map[VarSymbol, TypeParameterInstance] =
       import h.given
-      h.instancesOf(h.resolver.instantiateShape(h.instanceOf(tpe), Map(b -> h.instance(b), h.binder("D") -> h.instance(h.binder("D")))))
+      val d = h.binder("D")
+      h.instancesOf(h.resolver.instantiateShape(h.instanceOf(tpe), Map(b -> h.instance(b), d -> h.instance(d))))
     // Bare first, then applied.
     locally:
       val h = new Harness

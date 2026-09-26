@@ -338,5 +338,5 @@ published after a view exists, and observation-order independence.
 Worksheet coverage under `newres` includes `MutableArrays`, `ContextualInference`,
 `InstantiationSites`, `StoredSpecializations`, `SpecializationCaptures`,
 `TypeArgumentVariance`, `VarianceSubstitution`, `AnnotationContexts`,
-`TypeGraphTermination`, `IrrelevantBinders`, and `BinderSupport`. Deferred cases retain explicit regression expectations;
+`TypeGraphTermination`, `IrrelevantBinders`, `BinderSupport`, and `ArraySpreadViews`. Deferred cases retain explicit regression expectations;
 see the [future-work reference](new-resolution-future-work.md).
