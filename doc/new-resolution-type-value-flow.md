@@ -176,11 +176,24 @@ instantiation site, and so are the elements of an inferred host and the bounds
 of an omitted-argument hole. Reading them through a substitution reads the
 binders in scope at that site, so each `TypeParameterInstance` records its
 site's binders, template hosts record their scope
-(`NewResolverState.templateBinders`), and a support is closed over the sites of
-the instances it selects (`NewResolver.closure`). Activation environments
-(`withInstances`, `ActivatedShape`, listener compatibility) are not projected:
-they decide which activation's events a listener accepts, and can require
-bindings that the delivered value itself does not use.
+(`NewResolverState.templateBinders`), and a set of dependencies is closed over
+the sites of the instances selected for them (`NewResolver.closure`). A direct
+reference to an instance contributes that instance's site without any ambient
+lookup. Two questions are kept apart: which of its retained bindings a view must
+keep is the closure of its dependencies over the substitution it retains
+(`projectType`); which further ambient bindings it needs continues that closure
+through the ambient substitution and drops what is retained (`project`). A
+nested value contributes the latter (`shapeSupport`, `typeSupport`), so the
+site of an instance saved in a captured substitution, a tuple view's field, a
+bound type, or a spread is required by every enclosing value. Whether a generic
+type reference is bare or the base of an application, and with how many
+arguments, is recorded when the application is interpreted
+(`NewResolverState.appliedTypeArguments`), so a cached dependency summary is
+intrinsic to its node rather than to the traversal that first reached it.
+Activation environments (`withInstances`, `ActivatedShape`, listener
+compatibility) are not projected: they decide which activation's events a
+listener accepts, and can require bindings that the delivered value itself does
+not use.
 
 `ActivatedShape` records the body activation that produced an event.
 `ContextualShape` carries the value's caller-side view. These substitutions must
@@ -289,9 +302,10 @@ bindings without freezing inference candidates or treating forward references as
 Instances are projected by a second analysis over the same graph
 (`NewResolver.instanceDependencies`): synthesized reference nodes do instantiate
 their retained references with the ambient instances, so those references' free
-binders and retained instance sites count, as do the template scopes of inferred
-and omitted-argument hosts and of generic type uses that omit arguments. A pending
-target leaves this set unbounded, which retains every binding.
+binders and retained instance sites count, as do the sites of directly referenced
+instances and the template scopes of inferred and omitted-argument hosts and of
+generic type uses that omit arguments. A pending target leaves this set
+unbounded, which retains every binding.
 
 [Regular structural types](new-resolution-regular-types.md) specifies alias reduction,
 Boolean normalization, and the conservative constructor-cycle rejection check.
@@ -317,10 +331,12 @@ Graph tests cover bounded instance allocation and replay (`TypeInstantiationTest
 relations, delayed targets and consumer isolation (`TypeRelationTest`), and Boolean
 normalization (`TypeFormulaTest`). `PublisherTest` checks exporter immutability.
 `SubstitutionGrowthTest` bounds the views and activation contexts allocated for
-generated chains of generic identities, and checks the substitution laws on shapes.
+generated chains of generic identities, and checks the substitution laws on
+shapes: transitive site dependencies, nested and captured instances, bounds
+published after a view exists, and observation-order independence.
 
 Worksheet coverage under `newres` includes `MutableArrays`, `ContextualInference`,
 `InstantiationSites`, `StoredSpecializations`, `SpecializationCaptures`,
 `TypeArgumentVariance`, `VarianceSubstitution`, `AnnotationContexts`,
-`TypeGraphTermination`, and `IrrelevantBinders`. Deferred cases retain explicit regression expectations;
+`TypeGraphTermination`, `IrrelevantBinders`, and `BinderSupport`. Deferred cases retain explicit regression expectations;
 see the [future-work reference](new-resolution-future-work.md).

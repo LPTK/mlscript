@@ -97,8 +97,24 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       val symbol = VarSymbol(Tree.Ident(name))
       symbol.decl = S(TyParam(FldFlags.empty, N, symbol))
       symbol
-    def instance(binder: VarSymbol): TypeParameterInstance =
-      state.instantiateTypeParameters(scheme, FlowSymbol.app(), List(binder), S(Set.empty))(binder)
+    def instance(binder: VarSymbol): TypeParameterInstance = instanceAt(binder, Set.empty)
+    /** An instance of `binder` at a site where `site` are the binders in scope. */
+    def instanceAt(binder: VarSymbol, site: Set[VarSymbol]): TypeParameterInstance =
+      state.instantiateTypeParameters(scheme, FlowSymbol.app(), List(binder), S(site))(binder)
+    /** The type denoted by a binder or instance reference. */
+    def typeOf(symbol: VarSymbol): DeclaredType =
+      val resolution = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
+      resolution.publish(TypeShape.Parameter(symbol, symbol.inferenceHost))
+      DeclaredType(resolution, Map.empty, Map.empty, true)
+    def instanceOf(tpe: DeclaredType): InstanceShape = resolver.instanceShape(tpe)
+    def instancesOf(shape: TermShape): Map[VarSymbol, TypeParameterInstance] = shape match
+      case InstanceShape(tpe) => tpe.instances
+      case other => fail(s"Expected an instance, got ${other.describe}")
+    /** A tuple holding `value`, written where no binder is in scope. */
+    def holding(value: TermShape): TupleShape =
+      val source = Term.Tup(Fld(FldFlags.empty, Term.UnitVal(), N) :: Nil)(Tree.DummyTup)
+      state.recordLexicalBinders(source, Set.empty)
+      TupleShape(source, TupleShape.ValueField(value, Nil) :: Nil)(resolver)
     /** A tuple literal `[()]` written where `binders` are in scope. */
     def tuple(binders: Set[VarSymbol]): TupleShape =
       val source = Term.Tup(Fld(FldFlags.empty, Term.UnitVal(), N) :: Nil)(Tree.DummyTup)
@@ -153,3 +169,113 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     assert(composed eq TupleShape.view(tuple, Map(a -> first, b -> other))(h.resolver))
     // The route to a view does not change its identity.
     assert(h.resolver.instantiateShape(h.resolver.instantiateShape(tuple, Map(b -> other)), Map(a -> first)) eq composed)
+
+  // The bounds of an instance are templates written at its site (see
+  // NewResolver.closure): selecting an instance requires the binders in scope
+  // there, and their instances' sites in turn.
+  test("selecting an instance requires the binders of its site, transitively"):
+    val h = new Harness
+    import h.given
+    val (a, b, c, d) = (h.binder("A"), h.binder("B"), h.binder("C"), h.binder("D"))
+    val c1 = h.instanceAt(c, Set.empty)
+    val b1 = h.instanceAt(b, Set(c))
+    val a1 = h.instanceAt(a, Set(b))
+    val d1 = h.instanceAt(d, Set.empty)
+    val tuple = h.tuple(Set(a))
+    val substitution = Map(a -> a1, b -> b1, c -> c1, d -> d1)
+    assert(h.resolver.instantiateShape(tuple, substitution) eq TupleShape.view(tuple, substitution - d)(h.resolver))
+    // A site of unknown scope retains everything.
+    val unknown = h.instanceAt(a, Set.empty).origin
+    val opaque = h.state.instantiateTypeParameters(h.scheme, FlowSymbol.app(), List(a), N)(a)
+    assert(h.resolver.instantiateShape(tuple, substitution + (a -> opaque)) eq
+      TupleShape.view(tuple, substitution + (a -> opaque))(h.resolver))
+
+  test("a nested value's retained instance requires its site from the enclosing value"):
+    val h = new Harness
+    import h.given
+    val (a, b, d) = (h.binder("A"), h.binder("B"), h.binder("D"))
+    val a1 = h.instanceAt(a, Set(b))
+    val (a2, b1, d1) = (h.instance(a), h.instance(b), h.instance(d))
+    // The field already selected a1 for A: the outer value needs B, not A.
+    val field = h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, Map(a -> a1), true))
+    assert(h.instancesOf(field) == Map(a -> a1))
+    val tuple = h.holding(field)
+    val view = h.resolver.instantiateShape(tuple, Map(a -> a2, b -> b1, d -> d1))
+    assert(view eq TupleShape.view(tuple, Map(b -> b1))(h.resolver))
+    // A captured substitution composes the same way.
+    val written = h.tuple(Set(a))
+    val captured = h.resolver.instantiateShape(written, Map(a -> a1))
+    assert(h.resolver.instantiateShape(captured, Map(a -> a2, b -> b1, d -> d1)) eq
+      TupleShape.view(written, Map(a -> a1, b -> b1))(h.resolver))
+
+  test("a direct reference to an instance requires its site"):
+    val h = new Harness
+    import h.given
+    val (a, b, d) = (h.binder("A"), h.binder("B"), h.binder("D"))
+    val a1 = h.instanceAt(a, Set(b))
+    val (b1, d1) = (h.instance(b), h.instance(d))
+    val direct = h.instanceOf(h.typeOf(a1))
+    assert(h.instancesOf(h.resolver.instantiateShape(direct, Map(b -> b1, d -> d1))) == Map(b -> b1))
+    val nested = h.holding(direct)
+    assert(h.resolver.instantiateShape(nested, Map(b -> b1, d -> d1)) eq
+      TupleShape.view(nested, Map(b -> b1))(h.resolver))
+
+  test("bounds published after a view was built still resolve through its retained sites"):
+    val h = new Harness
+    import h.given
+    val (a, b) = (h.binder("A"), h.binder("B"))
+    val a1 = h.instanceAt(a, Set(b))
+    val b1 = h.instance(b)
+    val view = h.resolver.instantiateShape(h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, Map(a -> a1), true)), Map(b -> b1))
+    assert(h.instancesOf(view) == Map(a -> a1, b -> b1))
+    val seen = ArrayBuffer.empty[TermShape]
+    h.resolver.listenInstanceViews(view)(seen += _)
+    assert(seen.isEmpty)
+    // A template mentioning B reaches a1 only now; B is bound later still.
+    h.resolver.publishParameter(a1, h.instanceOf(h.typeOf(b)))
+    assert(seen.isEmpty)
+    val value = DynShape()
+    h.resolver.publishParameter(b1, value)
+    assert(seen.toList == List(value))
+
+  // A generic type use that omits arguments reads holes whose bounds are
+  // written at the use, so its scope counts. Whether a use applies arguments is
+  // recorded when the application is interpreted, not discovered by the
+  // traversal that first analyzes the node (see NewResolver.dependencies).
+  test("the support of a shared generic use does not depend on observation order"):
+    def alias(h: Harness, applied: Bool): (DeclaredType, DeclaredType, VarSymbol) =
+      import h.given
+      val (b, formal) = (h.binder("B"), h.binder("X"))
+      val symbol = TypeAliasSymbol(Tree.Ident("Identity"))
+      val member = BlockMemberSymbol("Identity", Nil)
+      val body = h.typeOf(formal)
+      symbol.defn = S(TypeDef(symbol, member, List(TyParam(FldFlags.empty, N, formal)), S(body.resolution.source), N, Nil))
+      // The use is written where B is in scope.
+      val use = Term.UnitVal()
+      h.state.recordLexicalBinders(use, Set(b))
+      if applied then h.state.recordAppliedTypeArguments(use, 1)
+      val bare = new TypeResolution(use, _ => fail("Unexpected type error"))
+      bare.publish(TypeShape.Alias(symbol, S(body.resolution)))
+      val application = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
+      application.publish(TypeShape.Applied(bare, List(h.typeOf(h.binder("C")).resolution)))
+      (DeclaredType(bare, Map.empty, Map.empty, true), DeclaredType(application, Map.empty, Map.empty, true), b)
+    def observe(h: Harness, tpe: DeclaredType, b: VarSymbol): Map[VarSymbol, TypeParameterInstance] =
+      import h.given
+      h.instancesOf(h.resolver.instantiateShape(h.instanceOf(tpe), Map(b -> h.instance(b), h.binder("D") -> h.instance(h.binder("D")))))
+    // Bare first, then applied.
+    locally:
+      val h = new Harness
+      val (bare, application, b) = alias(h, applied = false)
+      assert(observe(h, bare, b).keySet == Set(b))
+      assert(observe(h, application, b).keySet == Set(b))
+    // Applied first, then bare: the bare use still reads B.
+    locally:
+      val h = new Harness
+      val (bare, application, b) = alias(h, applied = false)
+      assert(observe(h, application, b).keySet == Set(b))
+      assert(observe(h, bare, b).keySet == Set(b))
+    // A use recorded as fully applied has no hole and reads no scope.
+    locally:
+      val h = new Harness
+      val (_, application, b) = alias(h, applied = true)
+      assert(observe(h, application, b).isEmpty)

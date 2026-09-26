@@ -290,6 +290,20 @@ final class NewResolverState private (
   // N when not fixed by the source graph (see NewResolver.instanceDependencies).
   val typeInstanceDependencies: Cache[TypeResolution, Opt[Set[VarSymbol]]] =
     new Cache(inherited.map(_.typeInstanceDependencies), identity)
+  // How many type arguments a type reference receives where it is the base of
+  // a type application, recorded when the application is interpreted. A generic
+  // reference without a record is a bare use. Either is intrinsic to the
+  // reference, so a cached dependency summary of its resolution does not depend
+  // on which traversal reached it first (see NewResolver.dependencies). Read
+  // through the reference's owning graph, like lexicalTermBinders.
+  private val appliedTypeArguments: Cache[Identity[Term], Int] =
+    new Cache(inherited.map(_.appliedTypeArguments), identity)
+  def recordAppliedTypeArguments(base: Term, count: Int): Unit =
+    root.appliedTypeArguments(new Identity(base)) = count
+  private[semantics] def appliedTypeArgumentsOf(base: Term): Opt[Int] =
+    val key = new Identity(base)
+    val graph = base.originalData.owner
+    (if graph == null then N else inGraph(graph).appliedTypeArguments.get(key)).orElse(appliedTypeArguments.get(key))
   // The scope of the templates that a synthesized inferred-element or
   // omitted-argument host receives: the binders that reading its values through
   // a substitution can require, or N when that scope is not known. Recorded by
