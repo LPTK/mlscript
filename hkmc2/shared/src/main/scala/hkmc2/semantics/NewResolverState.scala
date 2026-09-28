@@ -38,18 +38,18 @@ object NewResolverState:
   */
 final class NewResolverState private (
     val owner: Elaborator.State, private val consumer: Opt[NewResolverState], private val source: Opt[NewResolverState],
-    private val contextBase: Opt[NewResolverState], val instances: Map[VarSymbol, TypeParameterInstance]):
+    private val contextBase: Opt[NewResolverState], val instances: TypeSubstitution):
   import NewResolverState.{Cache, Seen}
 
-  def this(owner: Elaborator.State) = this(owner, N, N, N, Map.empty)
+  def this(owner: Elaborator.State) = this(owner, N, N, N, TypeSubstitution.empty)
   private def root: NewResolverState = consumer.getOrElse(this)
   private def inherited: Opt[NewResolverState] = contextBase.orElse(source)
-  private val contexts = mutable.Map.empty[(NewResolverState, Map[VarSymbol, TypeParameterInstance]), NewResolverState]
+  private val contexts = mutable.Map.empty[(NewResolverState, TypeSubstitution), NewResolverState]
   /** Activations share the consuming unit's hosts and memoized source graph.
     * Only the finite substitution varies; composing views never adds a parent
     * context or changes either endpoint's originating graph.
     */
-  def withInstances(substitution: Map[VarSymbol, TypeParameterInstance]): NewResolverState =
+  def withInstances(substitution: TypeSubstitution): NewResolverState =
     val base = contextBase.getOrElse(this)
     if substitution.isEmpty then base
     else root.contexts.getOrElseUpdate((base, substitution),
@@ -75,12 +75,12 @@ final class NewResolverState private (
     val origin = source.fold(graph)(_.rebase(graph, destination))
     if origin.root eq root then origin
     else if root eq destination then
-      root.views.getOrElseUpdate(origin, new NewResolverState(owner, S(root), S(origin), N, Map.empty))
+      root.views.getOrElseUpdate(origin, new NewResolverState(owner, S(root), S(origin), N, TypeSubstitution.empty))
     else root.views.get(origin).getOrElse:
       // A previously unused path can require a view of an intermediate exporter.
       // Memoize that read-only view in the consumer, never in the exporter.
       destination.inheritedViews.getOrElseUpdate((root, origin),
-        new NewResolverState(owner, S(root), S(origin), N, Map.empty))
+        new NewResolverState(owner, S(root), S(origin), N, TypeSubstitution.empty))
 
   private val copies = mutable.Map.empty[Publisher.Data[?], Publisher.Data[?]]
   private val pending = mutable.Map.empty[Identity[Publisher[?]], Publisher.Data[?]]
@@ -193,25 +193,25 @@ final class NewResolverState private (
     new Cache(inherited.map(_.appShapes), identity)
   val newShapes: Cache[(ClassLikeSymbol, Ls[Marks], FlowSymbol, Opt[Ls[DeclaredType]]), NewShape] =
     new Cache(inherited.map(_.newShapes), identity)
-  val constructorApplications: Seen[(NewShape, Map[VarSymbol, TypeParameterInstance])] =
+  val constructorApplications: Seen[(NewShape, TypeSubstitution)] =
     new Seen(inherited.map(_.constructorApplications))
   // Canonical shapes: inference hosts compare candidates by identity (see
   // ShapeIdentity), so these are only accessed through `canonical`. Tuple and
   // record views are keyed by their effective binder substitution, so the same
   // view has one identity whichever sequence of substitutions produced it.
-  private val tupleShapes: Cache[(Identity[Term], Ls[Any], Map[VarSymbol, TypeParameterInstance]), TupleShape] =
+  private val tupleShapes: Cache[(Identity[Term], Ls[Any], TypeSubstitution), TupleShape] =
     new Cache(inherited.map(_.tupleShapes), identity)
-  private val recordShapes: Cache[(Identity[Term.Rcd], Ls[Any], Map[VarSymbol, TypeParameterInstance]), RecordShape] =
+  private val recordShapes: Cache[(Identity[Term.Rcd], Ls[Any], TypeSubstitution), RecordShape] =
     new Cache(inherited.map(_.recordShapes), identity)
   private val instanceShapes: Cache[DeclaredType, InstanceShape] =
     new Cache(inherited.map(_.instanceShapes), identity)
-  private val shapeViews: Cache[(Any, Map[VarSymbol, TypeParameterInstance]), NonMarkedShape] =
+  private val shapeViews: Cache[(Any, TypeSubstitution), NonMarkedShape] =
     new Cache(inherited.map(_.shapeViews), identity)
   // Views constructed by this consumer, for growth regressions: cache hits and
   // adopted imported views are not counted (see canonical).
   private var allocatedShapeViews: Int = 0
   private var largestShapeViewSubstitution: Int = 0
-  private def countView[A](substitution: Map[VarSymbol, TypeParameterInstance])(make: => A): A =
+  private def countView[A](substitution: TypeSubstitution)(make: => A): A =
     if substitution.nonEmpty then
       root.allocatedShapeViews += 1
       root.largestShapeViewSubstitution = root.largestShapeViewSubstitution.max(substitution.size)
@@ -234,13 +234,13 @@ final class NewResolverState private (
     val graph = if origin == null then null else origin.originalData.owner
     val state = if graph == null then this else inGraph(graph)
     cache(root).getOrElseUpdate(key, cache(state).get(key).getOrElse(make))
-  def canonicalTuple(key: (Identity[Term], Ls[Any], Map[VarSymbol, TypeParameterInstance]))(make: => TupleShape): TupleShape =
+  def canonicalTuple(key: (Identity[Term], Ls[Any], TypeSubstitution))(make: => TupleShape): TupleShape =
     canonical(key._1.value, _.tupleShapes, key)(countView(key._3)(make))
-  def canonicalRecord(key: (Identity[Term.Rcd], Ls[Any], Map[VarSymbol, TypeParameterInstance]))(make: => RecordShape): RecordShape =
+  def canonicalRecord(key: (Identity[Term.Rcd], Ls[Any], TypeSubstitution))(make: => RecordShape): RecordShape =
     canonical(key._1.value, _.recordShapes, key)(countView(key._3)(make))
   def canonicalInstance(tpe: DeclaredType)(make: => InstanceShape): InstanceShape =
     canonical(tpe.resolution, _.instanceShapes, tpe)(countView(tpe.instances)(make))
-  def canonicalView(key: (Any, Map[VarSymbol, TypeParameterInstance]))(make: => NonMarkedShape): NonMarkedShape =
+  def canonicalView(key: (Any, TypeSubstitution))(make: => NonMarkedShape): NonMarkedShape =
     canonical(null, _.shapeViews, key)(countView(key._2)(make))
   // The inferred element type of each array spread (see the tuple listener).
   private val spreadElements: Cache[Identity[Term], TypeResolution] =
@@ -249,7 +249,7 @@ final class NewResolverState private (
     canonical(spread, _.spreadElements, new Identity(spread))(make)
   val introShapes: Cache[Identity[IntroTerm], IntroShape] =
     new Cache(inherited.map(_.introShapes), identity)
-  val symShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks]), SymShape] =
+  val symShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks]), CoreSymShape] =
     new Cache(inherited.map(_.symShapes), identity)
   val declaredSymShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks], Map[VarSymbol, DeclaredType], Bool), DeclaredSymShape] =
     new Cache(inherited.map(_.declaredSymShapes), identity)
@@ -316,10 +316,14 @@ final class NewResolverState private (
   private[semantics] def templateBindersOf(host: TypeResolution): Opt[Opt[Set[VarSymbol]]] =
     val graph = host.originalData.owner
     if graph == null then N else inGraph(graph).templateBinders.get(host)
+  val unguardedTypeDependencies: Cache[TypeResolution, Set[VarSymbol]] =
+    new Cache(inherited.map(_.unguardedTypeDependencies), identity)
   val regularTypes: Cache[TypeResolution, Bool] =
     new Cache(inherited.map(_.regularTypes), identity)
   val combinedTypes: Cache[TypeFormula[DeclaredType], DeclaredType] =
     new Cache(inherited.map(_.combinedTypes), identity)
+  val wildcardTypes: Cache[(TypeResolution, TypeArgument), DeclaredType] =
+    new Cache(inherited.map(_.wildcardTypes), identity)
   val pendingTypeDependencies: Cache[TypeResolution, TypeDependencyHost] =
     new Cache(inherited.map(_.pendingTypeDependencies), identity)
   val dependencySubscriptions: Seen[(TypeResolution, TypeResolution)] =
@@ -328,15 +332,13 @@ final class NewResolverState private (
     new Cache(inherited.map(_.quantifiedTypes), identity)
   val instantiatedCallables: Cache[(Any, FlowSymbol, Ls[Marks]), CallableTypeShape] =
     new Cache(inherited.map(_.instantiatedCallables), identity)
-  val contextualSymbols: Cache[(SymShape, Map[VarSymbol, TypeParameterInstance]), ContextualSymShape] =
+  val contextualSymbols: Cache[(CoreSymShape, TypeSubstitution), ContextualSymShape] =
     new Cache(inherited.map(_.contextualSymbols), identity)
-  val activatedSymbols: Cache[(SymShape, Map[VarSymbol, TypeParameterInstance]), ActivatedSymShape] =
-    new Cache(inherited.map(_.activatedSymbols), identity)
-  val inferredInstantiations: Seen[(AnyDefinitionSymbol, FlowSymbol, Map[VarSymbol, TypeParameterInstance], Ls[Marks])] =
+  val inferredInstantiations: Seen[(AnyDefinitionSymbol, FlowSymbol, TypeSubstitution, Ls[Marks])] =
     new Seen(inherited.map(_.inferredInstantiations))
   // A scheme is owned by its source definition, or by the original interpretation
   // of an anonymous quantified annotation. Neither a view nor an instance is an owner.
-  private val typeInstances: Cache[(AnyDefinitionSymbol | TypeResolution, FlowSymbol), Map[VarSymbol, TypeParameterInstance]] =
+  private val typeInstances: Cache[(AnyDefinitionSymbol | TypeResolution, FlowSymbol), TypeSubstitution] =
     new Cache(inherited.map(_.typeInstances), identity)
   private var allocatedTypeInstances: Int = 0
   private[hkmc2] def allocatedTypeInstanceCount: Int = root.allocatedTypeInstances
@@ -349,8 +351,17 @@ final class NewResolverState private (
     val key = new Identity(application)
     root.typeApplicationSites.getOrElseUpdate(key, typeApplicationSites.get(key).getOrElse(
       FlowSymbol("type application")(using owner)))
+  private val fieldProjectionSites: Cache[BlockMemberSymbol, FlowSymbol] =
+    new Cache(inherited.map(_.fieldProjectionSites), identity)
+  /** A structural field constraint is a static projection site. Recursive
+    * observations share it across substitution views; ordinary receiver marks
+    * distinguish activations, as they do for a written member selection.
+    */
+  def fieldProjectionSite(field: BlockMemberSymbol): FlowSymbol =
+    root.fieldProjectionSites.getOrElseUpdate(field, fieldProjectionSites.get(field).getOrElse(
+      FlowSymbol.memSym(field)(using owner)))
   private[hkmc2] def instantiateTypeParameters(scheme: AnyDefinitionSymbol | TypeResolution,
-      site: FlowSymbol, parameters: Ls[VarSymbol], siteBinders: Opt[Set[VarSymbol]]): Map[VarSymbol, TypeParameterInstance] =
+      site: FlowSymbol, parameters: Ls[VarSymbol], siteBinders: Opt[Set[VarSymbol]]): TypeSubstitution =
     require(parameters.distinct.length == parameters.length, "A scheme cannot bind a parameter twice")
     val origin = scheme match
       case constructor: ClassCtorSymbol => constructor.associatedCls
@@ -363,9 +374,9 @@ final class NewResolverState private (
       // Construct the complete group without activating constraints. Recursive
       // subscribers may use it only after the cache contains every binder.
       val result = parameters.map: parameter =>
-        parameter -> new TypeParameterInstance(parameter, siteBinders)(using owner)
+        new TypeParameterInstance(parameter, siteBinders)(using owner)
       root.allocatedTypeInstances += result.length
-      result.toMap
+      TypeSubstitution(result)
     })
     assert(instances.keySet == parameters.toSet, "A source scheme's binders must remain stable")
     instances
@@ -375,7 +386,7 @@ final class NewResolverState private (
     new Cache(inherited.map(_.patternTypes), identity)
   val primitiveTypes: Cache[ClassSymbol, DeclaredType] =
     new Cache(inherited.map(_.primitiveTypes), identity)
-  val extremeTypes: Cache[Bool, DeclaredType] =
+  val extremeTypes: Cache[(Bool, Opt[TypeResolution]), DeclaredType] =
     new Cache(inherited.map(_.extremeTypes), identity)
   val variantTypes: Cache[(DeclaredType, Bool), DeclaredType] =
     new Cache(inherited.map(_.variantTypes), identity)

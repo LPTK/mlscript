@@ -12,6 +12,9 @@ enum TypeShape:
   case Alias(symbol: TypeAliasSymbol, rhs: Opt[TypeResolution])
   case Union(left: TypeResolution, right: TypeResolution)
   case Intersection(left: TypeResolution, right: TypeResolution)
+  // Negated interfaces remain opaque, but their dependencies must participate
+  // in source validation, including the rejection of unguarded alias cycles.
+  case Negation(base: TypeResolution)
   // Substituted unions/intersections retain whole interpreted endpoints. Keeping
   // their lattice normal form prevents repeated Boolean substitutions from
   // nesting environments, without expanding bounds or changing endpoint marks.
@@ -32,7 +35,7 @@ enum TypeShape:
   case Contextual(reference: ContextualType)
   // The same third-party symbol can have different inference in two exporters.
   // Retain its originating host so importing a result needs no whole-state copy.
-  case Parameter(symbol: VarSymbol, host: Publisher.Data[Shape])
+  case Parameter(symbol: VarSymbol, host: Publisher.Data[ShapeEvent])
   // An omitted argument owns one source inference node. It is not a quantified
   // binder and is never instantiated at a call site; marks distinguish its flows.
   case Hole(host: Publisher.Data[TermShape])
@@ -109,24 +112,23 @@ final class TypeResolution(val source: Term, report: Ls[(Message, Opt[Loc])] => 
       case Record(_, fields) => fields.foreach(_._2.validate(next))
       case Union(left, right) => left.validate(next); right.validate(next)
       case Intersection(left, right) => left.validate(next); right.validate(next)
+      case Negation(base) => base.validate(next)
       case Combined(formula) => formula.orderedAtoms.foreach(_.resolution.validate(next))
       case _ => ()
 
 /** A type with its lexical type-parameter bindings. These bindings describe declared
   * interfaces, not constructor arguments or value-flow capture paths.
+  * `positive` interprets substitutions in the source expression; it is not the
+  * direction of a constraint subsequently applied to the interpreted type.
   */
 final case class DeclaredType(resolution: TypeResolution, bindings: Map[VarSymbol, DeclaredType],
-    instances: Map[VarSymbol, TypeParameterInstance], positive: Bool):
-  // This polarity interprets substitutions in the source expression; it is not
-  // the direction of a constraint subsequently applied to the interpreted type.
-  require(instances.forall((source, instance) => instance.origin eq source),
-    "A substitution must map original binders to their call-site instances")
+    instances: TypeSubstitution, positive: Bool):
   /** Instantiation changes references to source binders, never expands their bounds.
     * A reference already interpreted in another call retains that interpretation.
     * The finite map contains original binders and canonical site instances only.
     */
-  def instantiate(substitution: Map[VarSymbol, TypeParameterInstance]): DeclaredType =
-    copy(instances = substitution ++ instances)
+  def instantiate(substitution: TypeSubstitution): DeclaredType =
+    copy(instances = substitution.withOverrides(instances))
 
 /** A type reference observed from a common comparison scope. The marks belong
   * to this endpoint: reversing a constraint swaps endpoints, not an expanded

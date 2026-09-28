@@ -74,14 +74,23 @@ subscribing to constraints so reentrant observation finds it. Recursion reuses
 the group; marks distinguish enclosing activations of a shared inner site.
 No other observation, projection, or recursive traversal allocates fresh binders.
 `App.resSym`, `New.resSym`, and reference/selection sites provide stable identities;
-`typeApplicationSite` memoizes one identity per original `TyApp`. Class and
+`typeApplicationSite` memoizes one identity per original `TyApp`. Structural
+field constraints likewise reuse one projection site per source field across
+recursive and activated views (`TypeGraphProjectionSites.mls`). Class and
 constructor views use the same original owner. An anonymous polymorphic annotation
 uses its source scheme, and each alternative of an overload has its own owner.
 
 `TypeShape.Polymorphic` and `DeclaredTypeParameter` retain the original binders and
-their bounds. Apply the site's substitution to bounds, inputs, results, and nested
-callbacks before interface expansion. Enclosing binders remain lexical captures,
-not binders of the nested definition being instantiated.
+their bounds. Inputs, results, and nested callbacks receive the site's substitution
+before interface expansion. The same substitution is applied to bounds, including
+captured enclosing binders. Instantiation connects `lower <: instance <: upper`
+after recording explicit supplied arguments, so a lower bound cannot widen a
+supplied interface. By-name invocations install these relations when their scheme
+is consumed. Recursive and dependent bounds share the existing relation graph.
+Using an upper guarantee as an interface for an unconstrained result or a generic
+checking body remains a [design issue](new-resolution-future-work.md#upper-bound-interfaces).
+Enclosing binders remain lexical captures, not binders of the nested definition
+being instantiated.
 
 ### Partial application and explicit specialization
 
@@ -115,6 +124,12 @@ Declaration variance applies to an unqualified argument. A written wildcard
 supplies its own parts and overrides declaration variance. Comparing actual `a`
 with expected `b` installs `a.output <: b.output` and `b.input <: a.input`.
 Missing wildcard parts are actual top/bottom types, not inference holes.
+
+A subclass contributes the arguments of the requested nominal ancestor. Each
+parent step preserves the child's binder substitution and the parent's scope
+marks before installing both variance directions. This applies to constructed
+receivers and declared nominal views, including multiple inheritance steps and
+captured enclosing binders (`InheritedTypeArguments.mls`).
 
 ### Substitute at the occurrence before applying argument variance
 
@@ -190,19 +205,158 @@ type reference is bare or the base of an application, and with how many
 arguments, is recorded when the application is interpreted
 (`NewResolverState.appliedTypeArguments`), so a cached dependency summary is
 intrinsic to its node rather than to the traversal that first reached it.
-Activation environments (`withInstances`, `ActivatedShape`, listener
+Activation environments (`withInstances`, `ActivatedShapeEvent`, listener
 compatibility) are not projected: they decide which activation's events a
 listener accepts, and can require bindings that the delivered value itself does
 not use.
 
-`ActivatedShape` records the body activation that produced an event.
-`ContextualShape` carries the value's caller-side view. These substitutions must
-remain separate: recursion can bind the same original parameter differently in
-the callee body and in a captured caller value. Composition keeps a fixed base
-state and flat maps, not a chain of activation environments. Source listeners
-accept all activations; contextual observations accept compatible ones.
-`NewResolverState.withInstances` shares consumer hosts, and `inGraph` preserves
-the incoming activation when invoking an imported listener.
+### Value views, consumed schemes, and activation events
+
+The similarly named forms in
+[`Shape.scala`](../hkmc2/shared/src/main/scala/hkmc2/semantics/Shape.scala)
+answer different questions. A **scheme** is a callable's explicitly quantified
+binders and their bounds. Consuming it chooses the canonical parameter instances
+for an authoritative instantiation site; it does not imply that a term argument
+list has been applied.
+
+| Form | Meaning | How it is consumed |
+| --- | --- | --- |
+| `ContextualShape(source, instances)` | Observe a shared value using these bindings for references inside it. This does not consume the value's own generic scheme. | Member/body observation uses the substitution; `shapeParts` extracts it before application. |
+| `SpecializedShape(declaration, arguments, instances)` | This declaration's scheme has already been consumed by explicit type application. Retain its supplied type references and chosen instance group. | `shapeParts` retains the supplied arguments, so `appShape` reuses the consumed group. |
+| `ActivatedShapeEvent(value, instances)` | Deliver an inference event to operations running in this body activation. The enclosed value retains its own, independent substitution. | `listen` checks compatibility, unwraps the envelope, and invokes the receiver in that activation. |
+
+All three `instances` fields map original binders to `TypeParameterInstance`
+symbols, but the first two describe the value, whereas the third describes the
+receiving operation. `ContextualSymShape` retains a value's substitution while
+an overload remains a `SymShape`, before selection produces a term shape.
+`ActivatedShapeEvent` accepts either a term shape or a symbolic shape as its payload.
+
+For a schematic nested definition:
+
+```text
+outer[A](a: A) defines inner[B](b: B) = (a, b), and returns inner.
+```
+
+The returned `inner` captures an instance of `A`; its own `B` remains quantified.
+A contextual view retains the captured `A` without selecting an instance for `B`.
+Two later calls can instantiate `B` at their respective sites. Treating every
+contextual view as specialized would prevent that instantiation.
+
+Conversely, in `let g = f[Int]`, the type application has already consumed `f`'s
+scheme, even if `g` has not received term arguments. `SpecializedShape` preserves
+that fact for an inferred declaration. Subsequent calls through `g` or its aliases
+reuse the chosen group. Treating this as only a contextual view would let
+`appShape` instantiate the declaration again. A complete annotated
+`CallableTypeShape` records the same transition differently: `instantiateCallable`
+substitutes its parameter/result references and clears `scheme`. Remaining curried
+lists retain those references; a separately quantified result has its own scheme.
+
+The activation envelope is independent of both cases. Suppose a recursive
+`f[A]` passes a value mentioning its caller's `A` into another call of `f`.
+Write `A@p` and `A@q` for the instances chosen at two static sites (these are
+explanatory names, not additional runtime identities). The incoming value must
+still refer to `A@p`, while operations on the callee's shared body run with
+`A -> A@q`. Schematically, delivery can therefore carry:
+
+```text
+ActivatedShapeEvent(
+  ContextualShape(value, {A -> A@p}),
+  {A -> A@q})
+```
+
+Replacing either map with the other would confuse the incoming value's type
+references with the callee's parameters. Marks still distinguish lexical
+activations when recursion revisits the same static site; these substitutions do
+not replace, cancel, or otherwise change mark operations.
+
+`publishViewed` first applies the value substitution with `instantiateShape`,
+then `publishActivated` records the current `NewResolverState.instances` on the
+event. `listen` accepts an event when its map and the requested activation agree
+on every shared key; absent keys do not conflict. A source listener with an empty
+requested map therefore accepts all activations. On delivery, the receiver runs
+with the combined compatible activation maps, while the enclosed value keeps its
+own references. `NewResolverState.withInstances` shares consumer hosts, and
+`inGraph` preserves the incoming activation when invoking an imported listener.
+Publishers store `ShapeEvent`, a shared base with two alternatives: an ordinary
+`Shape` or an `ActivatedShapeEvent`. The envelope is not a `Shape` or `TermShape`,
+so it cannot enter member lookup, application, or mark transport. Its payload is
+a `Shape`, preventing nested event envelopes. Semantic listeners receive shapes
+only after dispatch. Ordinary shapes remain unwrapped when no activation is
+attached; dispatch contextualizes those values using the observing state.
+
+Event equality includes both the payload and activation. Repeated publication of
+one event is deduplicated, while the same shape in distinct activations remains
+separate. Publisher replay and imported-host copying retain the complete events;
+they do not replace saved activations with the state active during replay.
+
+### Related interfaces and representation invariants
+
+The view normal form is enforced by the Scala types. `CoreShape` excludes
+`ContextualShape` and `SpecializedShape`, and `MarkedShape[T]` retains its core's
+type parameter. `AppShape.receiver` has type
+`CoreTermShape = CoreShape | MarkedShape[CoreShape]`: an application cannot contain
+a contextual or specialized receiver, even beneath marks or earlier applications.
+`ContextualShape.source` accepts only the shapes that defer substitution through
+a view (`AppShape`, `NewShape`, `DefnShape`, `BaseShape`, and `IntroShape`). It
+cannot contain another view, a marked shape, or a shape that stores substitutions
+directly. `SpecializedShape.declaration` is a `DefnShape`.
+
+The symbolic counterpart follows the same rule: `ContextualSymShape.source` is
+a `CoreSymShape` (plain or declared), so it cannot wrap another contextual symbol.
+`CallableTypeShape.paramLists` is a `NELs[DeclaredParams]`: every callable view
+has a next argument list, even when that list itself accepts zero arguments.
+Consuming the last list exposes the result instead of constructing an empty
+callable view. Mapping parameter types preserves nonemptiness with `ne_map`.
+
+Value captures and body activations use the opaque `TypeSubstitution`, whose
+underlying immutable map remains available for reads. Its constructor derives
+each key from the instance's original binder. `withOverrides` combines two valid
+substitutions with the right operand taking precedence, `without` removes
+shadowed binders, and `restrictTo` retains only the binders in a view's support.
+These operations preserve the substitution type; arbitrary map updates do not.
+This rules out mismatched binder/instance pairs without runtime validation
+at every `DeclaredType` construction.
+
+Consequently, `shapeParts` can decode one outer marking and one view with an
+exhaustive match. It returns a `CoreTermShape`, its captured instances, and any
+consumed type arguments. It preserves the application chain: peeling applications
+would forget consumed term lists and could mistake a constructed object for a
+constructor. Application, callback checking, constructor lookup, and constructor
+patterns share this decoder. `ShapeViews.mls` exercises nested captures,
+specialized curried values, callback constraints, and constructor-pattern controls.
+
+These roles must also be distinguished from interpreting an annotated instance:
+
+| Form | Role |
+| --- | --- |
+| `InstanceShape` | Preserve a `DeclaredType` reference in a value constraint, including its input and output uses. `listenInstanceViews` interprets it when an operation requests an interface. |
+| `NominalInstanceView` | Expose a nominal type's declared members and inherited interface with their argument bindings. |
+| `RecordTypeShape` | Expose a structural annotation's declared fields and their argument bindings. |
+| `CallableTypeShape` | Expose a declared calling interface. `scheme` records whether quantified binders remain available for instantiation. |
+
+`ContextualShape` is the general deferred value view, not a mandatory wrapper
+around every substituted shape. Tuples and records store their substitutions
+directly; `InstanceShape` stores one inside its `DeclaredType`; declared interfaces
+substitute their references. `instantiateShape` centralizes these cases and
+memoizes their results. Applying another substitution composes flat maps rather
+than nesting contextual wrappers. Entries already captured by a value take
+precedence over a later observation's map. For an open `CallableTypeShape`, its
+own quantified binders are excluded from capture substitution.
+
+The semantic requirements are independent value and activation substitutions,
+and an explicit distinction between open and consumed schemes. The first two
+value forms express scheme status separately; the event envelope belongs to the
+publisher protocol and shares no value operations with them.
+
+Keeping both maps does not itself introduce a chain of environments. Their keys
+are original binders and their values are canonical instance symbols, not further
+substitutions. `withInstances` reuses a fixed base state; `listen` removes the event
+envelope before handing its value to the operation. For a fixed finite set of
+binders and instantiation sites, there are finitely many such maps and map pairs.
+This is a local bound, not a proof of termination of the entire type graph; see
+[canonical references and termination obligations](#canonical-references-and-termination-obligations).
+
+### Checking witnesses and constraint edges
 
 Generic bodies also receive a checking activation containing `RigidTypeShape`
 witnesses. Those witnesses enforce generic opacity even in private/non-strict
@@ -235,6 +389,15 @@ The relevant scope crossings are:
   captured into that class.
 - Constructor invocation: use the same instance boundary for its class and
   constructor, including later parameter lists.
+
+`Marks` stores the most recent crossing first. `shape.exit(path)` applies the
+tail before the head; a list of path fragments is applied from left to right.
+`shape.enter(fragments)` reverses both directions and fragment order. Thus
+`shape.enter(p :: q :: Nil)` agrees with `shape.enter(q).enter(p)`.
+For one boundary, entering at site `i` and then exiting at site `j` cancels when
+either site is absent or the sites agree, and rejects the candidate otherwise.
+Exiting and then entering retains both crossings. Associativity of composition
+does not make these two operations mutual inverses.
 
 Alias qualification and structural type-field projection introduce no value scope.
 Modules introduce no invocation boundary. Transport must follow the source
@@ -307,20 +470,29 @@ instances and the template scopes of inferred and omitted-argument hosts and of
 generic type uses that omit arguments. A pending target leaves this set
 unbounded, which retains every binding.
 
-[Regular structural types](new-resolution-regular-types.md) specifies alias reduction,
-Boolean normalization, and the conservative constructor-cycle rejection check.
+[Regular structural types](new-resolution-regular-types.md) specifies guarded alias
+recursion, alias reduction, Boolean normalization, and the conservative
+constructor-cycle rejection check.
 Accepted recursive references must share graph edges rather than grow substituted
 environments. Structural recursion and recursive generic function constraints are
 different: a call can add an edge to a reusable parameter instance without eagerly
 unfolding its accumulated bounds.
 
-The following local bounds hold: finitely many definition/site binder instances,
-source holes, flat binder substitutions, and normalized paths over distinct lexical
-boundaries. Formula normalization is finite for a fixed atom set. These bounds do
-not alone establish finiteness of nested binding environments or the atom set.
-A whole-graph termination argument still needs to bound all accepted reference keys
-and demonstrate listener convergence. Cache keys must never contain growing
-substitution histories; depth limits and dropped marks do not establish a fixed point.
+For a fixed set of instantiation sites, the binder cache allocates finitely many
+instances, so flat substitutions over the original binders also have a finite range.
+Source holes have stable identities. Normalized paths contain distinct lexical
+boundaries in each direction; their bounded length gives finitely many paths only
+when their site labels also range over a finite set.
+Formula normalization is finite for a fixed atom set. These bounds do not alone
+establish finiteness of nested binding environments or the atom set.
+
+Structural field constraints now reuse source projection sites, and partial
+forwarding aliases share deferred interpretation's source-hole binding rules.
+Wildcard normalization similarly retains canonical argument parts rather than
+nested substitution histories. Their regressions establish these local bounds;
+a [whole-graph termination argument](new-resolution-future-work.md#whole-graph-convergence-audit)
+must still cover all accepted contextual references, formula atoms, and listener
+convergence. Depth limits and dropped marks do not establish a fixed point.
 
 These representations are internal to resolution. Lowering consumes completed
 targets and value shapes; runtime values acquire no type-argument objects.
@@ -329,7 +501,11 @@ targets and value shapes; runtime values acquire no type-argument objects.
 
 Graph tests cover bounded instance allocation and replay (`TypeInstantiationTest`), directed
 relations, delayed targets and consumer isolation (`TypeRelationTest`), and Boolean
-normalization (`TypeFormulaTest`). `PublisherTest` checks exporter immutability.
+normalization, including substitutions that identify atoms (`TypeFormulaTest`).
+`MarksTest` checks activation matching, normalized composition, regrouping, reverse
+transport, and wildcard identity loss across nested and sibling scopes.
+These algebraic checks cover combinations that worksheet examples cannot exhaust.
+`PublisherTest` checks exporter immutability.
 `SubstitutionGrowthTest` bounds the views and activation contexts allocated for
 generated chains of generic identities, and checks the substitution laws on
 shapes: transitive site dependencies, nested and captured instances, bounds

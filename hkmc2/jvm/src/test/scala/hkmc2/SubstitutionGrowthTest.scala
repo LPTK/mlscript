@@ -105,7 +105,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     def typeOf(symbol: VarSymbol): DeclaredType =
       val resolution = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
       resolution.publish(TypeShape.Parameter(symbol, symbol.inferenceHost))
-      DeclaredType(resolution, Map.empty, Map.empty, true)
+      DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true)
     def instanceOf(tpe: DeclaredType): InstanceShape = resolver.instanceShape(tpe)
     def instancesOf(shape: TermShape): Map[VarSymbol, TypeParameterInstance] = shape match
       case InstanceShape(tpe) => tpe.instances
@@ -125,7 +125,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val h = new Harness
     import h.given
     val (a, b) = (h.binder("A"), h.binder("B"))
-    val irrelevant = Map(b -> h.instance(b))
+    val irrelevant = TypeSubstitution(List(h.instance(b)))
     val literal = IntroShape(Term.UnitVal(), N)
     val rigid = RigidTypeShape(a, Term.UnitVal())
     val tuple = h.tuple(Set(a))
@@ -142,16 +142,16 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val h = new Harness
     import h.given
     val (a, b) = (h.binder("A"), h.binder("B"))
-    val substitution = Map(a -> h.instance(a), b -> h.instance(b))
+    val substitution = TypeSubstitution(List(h.instance(a), h.instance(b)))
     val tuple = h.tuple(Set(a))
     val view = h.resolver.instantiateShape(tuple, substitution)
-    val expected = TupleShape.view(tuple, Map(a -> substitution(a)))(h.resolver)
+    val expected = TupleShape.view(tuple, TypeSubstitution(List(substitution(a))))(h.resolver)
     assert(view eq expected)
     val before = h.state.allocatedShapeViewCount
     (1 to 100).foreach: _ =>
       assert(h.resolver.instantiateShape(view, substitution) eq view)
       assert(h.resolver.instantiateShape(tuple, substitution) eq view)
-      assert(h.resolver.instantiateShape(tuple, Map(a -> substitution(a))) eq view)
+      assert(h.resolver.instantiateShape(tuple, TypeSubstitution(List(substitution(a)))) eq view)
     assert(h.state.allocatedShapeViewCount == before)
 
   test("composed substitutions keep captured bindings and compare by effective view"):
@@ -161,14 +161,14 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val (first, second) = (h.instance(a), h.instance(a))
     val other = h.instance(b)
     val tuple = h.tuple(Set(a, b))
-    val captured = h.resolver.instantiateShape(tuple, Map(a -> first))
+    val captured = h.resolver.instantiateShape(tuple, TypeSubstitution(List(first)))
     // A later binding for a captured binder is ignored; a new binder is composed.
-    assert(h.resolver.instantiateShape(captured, Map(a -> second)) eq captured)
-    val composed = h.resolver.instantiateShape(captured, Map(a -> second, b -> other))
-    assert(composed eq h.resolver.instantiateShape(tuple, Map(a -> first, b -> other)))
-    assert(composed eq TupleShape.view(tuple, Map(a -> first, b -> other))(h.resolver))
+    assert(h.resolver.instantiateShape(captured, TypeSubstitution(List(second))) eq captured)
+    val composed = h.resolver.instantiateShape(captured, TypeSubstitution(List(second, other)))
+    assert(composed eq h.resolver.instantiateShape(tuple, TypeSubstitution(List(first, other))))
+    assert(composed eq TupleShape.view(tuple, TypeSubstitution(List(first, other)))(h.resolver))
     // The route to a view does not change its identity.
-    assert(h.resolver.instantiateShape(h.resolver.instantiateShape(tuple, Map(b -> other)), Map(a -> first)) eq composed)
+    assert(h.resolver.instantiateShape(h.resolver.instantiateShape(tuple, TypeSubstitution(List(other))), TypeSubstitution(List(first))) eq composed)
 
   // The bounds of an instance are templates written at its site (see
   // NewResolver.closure): selecting an instance requires the binders in scope
@@ -182,12 +182,12 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val a1 = h.instanceAt(a, Set(b))
     val d1 = h.instanceAt(d, Set.empty)
     val tuple = h.tuple(Set(a))
-    val substitution = Map(a -> a1, b -> b1, c -> c1, d -> d1)
-    assert(h.resolver.instantiateShape(tuple, substitution) eq TupleShape.view(tuple, substitution - d)(h.resolver))
+    val substitution = TypeSubstitution(List(a1, b1, c1, d1))
+    assert(h.resolver.instantiateShape(tuple, substitution) eq TupleShape.view(tuple, substitution.without(List(d)))(h.resolver))
     // A site of unknown scope retains everything.
     val opaque = h.state.instantiateTypeParameters(h.scheme, FlowSymbol.app(), List(a), N)(a)
-    assert(h.resolver.instantiateShape(tuple, substitution + (a -> opaque)) eq
-      TupleShape.view(tuple, substitution + (a -> opaque))(h.resolver))
+    assert(h.resolver.instantiateShape(tuple, substitution.withOverrides(TypeSubstitution(List(opaque)))) eq
+      TupleShape.view(tuple, substitution.withOverrides(TypeSubstitution(List(opaque))))(h.resolver))
 
   test("a nested value's retained instance requires its site from the enclosing value"):
     val h = new Harness
@@ -196,16 +196,16 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val a1 = h.instanceAt(a, Set(b))
     val (a2, b1, d1) = (h.instance(a), h.instance(b), h.instance(d))
     // The field already selected a1 for A: the outer value needs B, not A.
-    val field = h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, Map(a -> a1), true))
+    val field = h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, TypeSubstitution(List(a1)), true))
     assert(h.instancesOf(field) == Map(a -> a1))
     val tuple = h.holding(field)
-    val view = h.resolver.instantiateShape(tuple, Map(a -> a2, b -> b1, d -> d1))
-    assert(view eq TupleShape.view(tuple, Map(b -> b1))(h.resolver))
+    val view = h.resolver.instantiateShape(tuple, TypeSubstitution(List(a2, b1, d1)))
+    assert(view eq TupleShape.view(tuple, TypeSubstitution(List(b1)))(h.resolver))
     // A captured substitution composes the same way.
     val written = h.tuple(Set(a))
-    val captured = h.resolver.instantiateShape(written, Map(a -> a1))
-    assert(h.resolver.instantiateShape(captured, Map(a -> a2, b -> b1, d -> d1)) eq
-      TupleShape.view(written, Map(a -> a1, b -> b1))(h.resolver))
+    val captured = h.resolver.instantiateShape(written, TypeSubstitution(List(a1)))
+    assert(h.resolver.instantiateShape(captured, TypeSubstitution(List(a2, b1, d1))) eq
+      TupleShape.view(written, TypeSubstitution(List(a1, b1)))(h.resolver))
 
   test("a direct reference to an instance requires its site"):
     val h = new Harness
@@ -214,10 +214,10 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val a1 = h.instanceAt(a, Set(b))
     val (b1, d1) = (h.instance(b), h.instance(d))
     val direct = h.instanceOf(h.typeOf(a1))
-    assert(h.instancesOf(h.resolver.instantiateShape(direct, Map(b -> b1, d -> d1))) == Map(b -> b1))
+    assert(h.instancesOf(h.resolver.instantiateShape(direct, TypeSubstitution(List(b1, d1)))) == Map(b -> b1))
     val nested = h.holding(direct)
-    assert(h.resolver.instantiateShape(nested, Map(b -> b1, d -> d1)) eq
-      TupleShape.view(nested, Map(b -> b1))(h.resolver))
+    assert(h.resolver.instantiateShape(nested, TypeSubstitution(List(b1, d1))) eq
+      TupleShape.view(nested, TypeSubstitution(List(b1)))(h.resolver))
 
   test("bounds published after a view was built still resolve through its retained sites"):
     val h = new Harness
@@ -225,7 +225,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val (a, b) = (h.binder("A"), h.binder("B"))
     val a1 = h.instanceAt(a, Set(b))
     val b1 = h.instance(b)
-    val view = h.resolver.instantiateShape(h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, Map(a -> a1), true)), Map(b -> b1))
+    val view = h.resolver.instantiateShape(h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, TypeSubstitution(List(a1)), true)), TypeSubstitution(List(b1)))
     assert(h.instancesOf(view) == Map(a -> a1, b -> b1))
     val seen = ArrayBuffer.empty[TermShape]
     h.resolver.listenInstanceViews(view)(seen += _)
@@ -257,11 +257,11 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       bare.publish(TypeShape.Alias(symbol, S(body.resolution)))
       val application = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
       application.publish(TypeShape.Applied(bare, List(h.typeOf(h.binder("C")).resolution)))
-      (DeclaredType(bare, Map.empty, Map.empty, true), DeclaredType(application, Map.empty, Map.empty, true), b)
+      (DeclaredType(bare, Map.empty, TypeSubstitution.empty, true), DeclaredType(application, Map.empty, TypeSubstitution.empty, true), b)
     def observe(h: Harness, tpe: DeclaredType, b: VarSymbol): Map[VarSymbol, TypeParameterInstance] =
       import h.given
       val d = h.binder("D")
-      h.instancesOf(h.resolver.instantiateShape(h.instanceOf(tpe), Map(b -> h.instance(b), d -> h.instance(d))))
+      h.instancesOf(h.resolver.instantiateShape(h.instanceOf(tpe), TypeSubstitution(List(h.instance(b), h.instance(d)))))
     // Bare first, then applied.
     locally:
       val h = new Harness
