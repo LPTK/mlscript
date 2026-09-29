@@ -8,7 +8,7 @@ private fun copy[A](xs: Array[A]) = [...xs]
 [copy([First(1)]).0.first, copy([Second(2)]).0.second]
 //│ = [1, 2]
 
-// Joining the elements of a spread keeps separate callers' interfaces distinct.
+// Spreading a declared array keeps separate callers' interfaces distinct.
 :expect [3, 4]
 class First(val first: Int)
 class Second(val second: Int)
@@ -26,7 +26,7 @@ private fun head[A](xs: Array[A]) = if xs is [x, ...rest] then x else throw "emp
 [head([First(5)]).first, head([Second(6)]).second]
 //│ = [5, 6]
 
-// A static array index also sees substitutions through an enclosing generic call.
+// A checked array index also sees substitutions through an enclosing generic call.
 :expect [7, 8]
 class First(val first: Int)
 class Second(val second: Int)

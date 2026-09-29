@@ -197,6 +197,11 @@ which can prevent a recursive flow from reaching its fixed point.
 `ShapeIdentity.key` lists the identity-based variants explicitly, so adding a
 shape variant requires choosing its candidate-identity policy.
 
+Instance references retain diagnostic origins on separately interned views of
+the same origin-free reference. These views share its candidate identity, so
+observing a different annotation keeps the correct source witness without
+adding an inference alternative merely because its diagnostic evidence differs.
+
 ## Normal results of control flow
 
 Resolution must agree with lowering about which expressions produce values.

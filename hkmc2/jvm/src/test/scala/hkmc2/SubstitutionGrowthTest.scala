@@ -105,7 +105,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     def typeOf(symbol: VarSymbol): DeclaredType =
       val resolution = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
       resolution.publish(TypeShape.Parameter(symbol, symbol.inferenceHost))
-      DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true)
+      DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true)(N)
     def instanceOf(tpe: DeclaredType): InstanceShape = resolver.instanceShape(tpe)
     def instancesOf(shape: TermShape): Map[VarSymbol, TypeParameterInstance] = shape match
       case InstanceShape(tpe) => tpe.instances
@@ -196,7 +196,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val a1 = h.instanceAt(a, Set(b))
     val (a2, b1, d1) = (h.instance(a), h.instance(b), h.instance(d))
     // The field already selected a1 for A: the outer value needs B, not A.
-    val field = h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, TypeSubstitution(List(a1)), true))
+    val field = h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, TypeSubstitution(List(a1)), true)(N))
     assert(h.instancesOf(field) == Map(a -> a1))
     val tuple = h.holding(field)
     val view = h.resolver.instantiateShape(tuple, TypeSubstitution(List(a2, b1, d1)))
@@ -225,7 +225,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val (a, b) = (h.binder("A"), h.binder("B"))
     val a1 = h.instanceAt(a, Set(b))
     val b1 = h.instance(b)
-    val view = h.resolver.instantiateShape(h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, TypeSubstitution(List(a1)), true)), TypeSubstitution(List(b1)))
+    val view = h.resolver.instantiateShape(h.instanceOf(DeclaredType(h.typeOf(a).resolution, Map.empty, TypeSubstitution(List(a1)), true)(N)), TypeSubstitution(List(b1)))
     assert(h.instancesOf(view) == Map(a -> a1, b -> b1))
     val seen = ArrayBuffer.empty[TermShape]
     h.resolver.listenInstanceViews(view)(seen += _)
@@ -257,7 +257,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       bare.publish(TypeShape.Alias(symbol, S(body.resolution)))
       val application = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
       application.publish(TypeShape.Applied(bare, List(h.typeOf(h.binder("C")).resolution)))
-      (DeclaredType(bare, Map.empty, TypeSubstitution.empty, true), DeclaredType(application, Map.empty, TypeSubstitution.empty, true), b)
+      (DeclaredType(bare, Map.empty, TypeSubstitution.empty, true)(N), DeclaredType(application, Map.empty, TypeSubstitution.empty, true)(N), b)
     def observe(h: Harness, tpe: DeclaredType, b: VarSymbol): Map[VarSymbol, TypeParameterInstance] =
       import h.given
       val d = h.binder("D")

@@ -203,7 +203,7 @@ final class NewResolverState private (
     new Cache(inherited.map(_.tupleShapes), identity)
   private val recordShapes: Cache[(Identity[Term.Rcd], Ls[Any], TypeSubstitution), RecordShape] =
     new Cache(inherited.map(_.recordShapes), identity)
-  private val instanceShapes: Cache[DeclaredType, InstanceShape] =
+  private val instanceShapes: Cache[(DeclaredType, Opt[TypeInterfaceReason]), InstanceShape] =
     new Cache(inherited.map(_.instanceShapes), identity)
   private val shapeViews: Cache[(Any, TypeSubstitution), NonMarkedShape] =
     new Cache(inherited.map(_.shapeViews), identity)
@@ -239,7 +239,7 @@ final class NewResolverState private (
   def canonicalRecord(key: (Identity[Term.Rcd], Ls[Any], TypeSubstitution))(make: => RecordShape): RecordShape =
     canonical(key._1.value, _.recordShapes, key)(countView(key._3)(make))
   def canonicalInstance(tpe: DeclaredType)(make: => InstanceShape): InstanceShape =
-    canonical(tpe.resolution, _.instanceShapes, tpe)(countView(tpe.instances)(make))
+    canonical(tpe.resolution, _.instanceShapes, (tpe, tpe.origin))(countView(tpe.instances)(make))
   def canonicalView(key: (Any, TypeSubstitution))(make: => NonMarkedShape): NonMarkedShape =
     canonical(null, _.shapeViews, key)(countView(key._2)(make))
   // The inferred element type of each array spread (see the tuple listener).

@@ -20,7 +20,7 @@ class MarksTest extends AnyFunSuite:
     // omit those exits because they carry no references into their source scope.
     val resolution = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
     resolution.publish(TypeShape.Bottom)
-    val value = InstanceShape(DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true))
+    val value = InstanceShape(DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true)(N))
     val outer = ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident("outer")))
     val left = ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident("left")))
     val right = ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident("right")))
