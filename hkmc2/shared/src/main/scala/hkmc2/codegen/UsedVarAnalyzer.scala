@@ -148,8 +148,7 @@ class UsedVarAnalyzer(b: Block, scopeData: ScopeData)(using State):
       case ScopedObject.Companion(c, _) =>
         // There likely won't be nested companion classes in the future, but for now,
         // just assume they may access all their methods
-        val res = blkAccessesShallow(c.ctor)
-        res.copy(refdDefns = res.refdDefns ++ c.methods.map(_.dSym))
+        AccessInfo.empty.copy(refdDefns = c.methods.map(_.dSym).toSet)
       case ScopedObject.Loop(_, b) => blkAccessesShallow(b)
       case ScopedObject.ValDef(v) => AccessInfo.empty
     // Variables introduced by this scoped object do not belong to a parent scope, so
@@ -265,7 +264,7 @@ class UsedVarAnalyzer(b: Block, scopeData: ScopeData)(using State):
     val (blk, parentCls) = s.obj match
       case ScopedObject.Top(b) => lastWords("reqdCaptureLocals called on top block")
       case ScopedObject.Class(cls, _) => (Begin(cls.preCtor, cls.ctor), getParentCls(cls))
-      case ScopedObject.Companion(comp, _) => (comp.ctor, N)
+      case ScopedObject.Companion(comp, _) => (End(), N)
       case ScopedObject.Func(fun, _) => (fun.body, N)
       case ScopedObject.ScopedBlock(uid, block) => (block, N)
       case ScopedObject.Loop(sym, block) => (block, N)

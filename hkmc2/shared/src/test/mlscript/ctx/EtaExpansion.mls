@@ -112,16 +112,23 @@ module Test with
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Test⁰ as class Test¹
 //│ module Test² {
+//│   method init⁰ = fun init¹() {
+//│     do globalThis⁰.Object﹖.freeze⁰(Test².this);
+//│     return null
+//│   }
 //│   method test⁰ = fun test¹(j)(tmp) {
 //│     return 0
 //│   }
 //│   method main⁰ = fun main¹(tmp) {
 //│     let lambda;
 //│     @private
-//│     define lambda as fun lambda¹(j) { return Test².this.test¹(j)(tmp) };
+//│     define lambda as fun lambda¹(j) {
+//│       return Test².this.test¹(j)(tmp)
+//│     };
 //│     return lambda¹
 //│   }
 //│ };
+//│ do Test².init¹();
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

@@ -247,8 +247,8 @@ class BlockTransformer(subst: SymbolSubst):
     val methods2 = defn.methods.mapConserve(applyFunDefn)
     val privateFields2 = defn.privateFields.mapConserve(_.subst)
     val publicFields2 = defn.publicFields.mapConserve(applyPublicField)
-    val ctor2 = applyFunBodyLikeBlock(defn.ctor)
-    if (methods2 is defn.methods) &&
+    val ctor2 = applyPublicField(defn.ctor)
+    if (isym2 is defn.isym) && (methods2 is defn.methods) &&
         (privateFields2 is defn.privateFields) &&
         (publicFields2 is defn.publicFields) &&
         (ctor2 is defn.ctor)

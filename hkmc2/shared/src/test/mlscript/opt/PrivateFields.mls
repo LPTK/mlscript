@@ -63,9 +63,10 @@ module Bar with
 //│ define Bar⁰ as class Bar¹
 //│ module Bar² {
 //│   private val state¹;
-//│   constructor {
+//│   method init⁰ = fun init¹() {
 //│     set Bar².this.state¹ = 1;
-//│     end
+//│     do globalThis⁰.Object﹖.freeze⁰(Bar².this);
+//│     return null
 //│   }
 //│   method test1² = fun test1³ {
 //│     let res, tmp;
@@ -80,6 +81,8 @@ module Bar with
 //│     return Bar².this.state¹
 //│   }
 //│ };
+//│ set Bar².state¹ = 1;
+//│ do globalThis⁰.Object﹖.freeze⁰(Bar²);
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -120,13 +123,19 @@ module UnusedModulePrivate with
 //│ define UnusedModulePrivate⁰ as class UnusedModulePrivate¹
 //│ module UnusedModulePrivate² {
 //│   private val used¹;
-//│   constructor {
+//│   method init² = fun init³() {
 //│     set UnusedModulePrivate².this.used¹ = Predef⁰.print⁰(3);
 //│     do Predef⁰.print⁰(4);
-//│     end
+//│     do globalThis⁰.Object﹖.freeze¹(UnusedModulePrivate².this);
+//│     return null
 //│   }
-//│   method get² = fun get³ { return UnusedModulePrivate².this.used¹ }
+//│   method get² = fun get³ {
+//│     return UnusedModulePrivate².this.used¹
+//│   }
 //│ };
+//│ set UnusedModulePrivate².used¹ = Predef⁰.print⁰(3);
+//│ do Predef⁰.print⁰(4);
+//│ do globalThis⁰.Object﹖.freeze¹(UnusedModulePrivate²);
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1

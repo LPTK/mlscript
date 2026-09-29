@@ -64,7 +64,7 @@ f(1,2)(-3)
 //│ REPL> Sending: runtime.TraceLogger.enabled = true; runtime.TraceLogger.resetIndent(0)
 //│ REPL> Collected:
 //│ >  Unit {}
-//│ REPL> Sending: block$res9 = undefined
+//│ REPL> Sending: var block$res9 = undefined
 //│ REPL> Collected:
 //│ >  undefined
 //│ REPL> Sending: let tmp2;try { tmp2 = runtime.checkCall(g(-3)); block$res9 = 3 + tmp2;; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }
@@ -104,7 +104,7 @@ f(1,2)(-3)
 
 :showRepl
 f(1,2)(-4)
-//│ REPL> Sending: block$res10 = undefined
+//│ REPL> Sending: var block$res10 = undefined
 //│ REPL> Collected:
 //│ >  undefined
 //│ REPL> Sending: let tmp3;try { tmp3 = runtime.checkCall(g(-4)); block$res10 = 3 + tmp3;; undefined } catch (e) { console.log('\u200B' + (e.stack ?? e) + '\u200B'); }

@@ -14,12 +14,12 @@ import semantics.Elaborator.State
 import hkmc2.Message.MessageContext
 import hkmc2.syntax.Tree.DummyTypeDef
 
-class BufferableTransform()(using State, Raise):
+class BufferableTransform()(using State, Raise, Config):
   def transform(prog: Program): Program =
     val transformer = new BlockTransformer(SymbolSubst.Id):
-      override def applyDefn(defn: Defn)(k: Defn => Block): Block = defn match
-        case cls: ClsLikeDefn if cls.k is syntax.Cls =>
-          cls.bufferable.fold(super.applyDefn(defn)(k)): bufferable =>
+      override def applyBlock(block: Block): Block = block match
+        case Define(cls: ClsLikeDefn, rest) if cls.k is syntax.Cls =>
+          cls.bufferable.fold(super.applyBlock(block)): bufferable =>
             val companionSym = ModuleOrObjectSymbol(DummyTypeDef(syntax.Mod), new Tree.Ident(cls.sym.nme))
             val clsSizeSym = BlockMemberSymbol("size", Nil, false)
             val clsSizeTermSym = TermSymbol(syntax.ImmutVal, S(companionSym), new Tree.Ident("size"), erasedType = S(ErasedType.Int))
@@ -87,7 +87,7 @@ class BufferableTransform()(using State, Raise):
                 cls.paramsOpt.toList ::: cls.auxParams,
                 Begin(cls.preCtor, cls.ctor),
               )(N, annotations = Nil), true)
-            val fakeCompanion = ClsLikeBody(
+            val fakeCompanion = ClsLikeBody.withCtor(
               companionSym,
               fakeCtor :: cls.methods.map(transformFunDefn(_, false)),
               Nil,
@@ -95,8 +95,7 @@ class BufferableTransform()(using State, Raise):
               Define(ValDefn(clsSizeTermSym, clsSizeSym, Value.Lit(Tree.IntLit(fields.size)))(N, Nil), End()),
               annotations = Nil,
             )
-            k:
-              ClsLikeDefn(
+            val transformed = ClsLikeDefn(
                 cls.owner,
                 cls.isym,
                 cls.sym,
@@ -113,5 +112,9 @@ class BufferableTransform()(using State, Raise):
                 S(fakeCompanion),
                 cls.bufferable,
               )(cls.configOverride, cls.annotations)
-        case _ => super.applyDefn(defn)(k)
+            // This pass creates a new module after lowering, so it must also emit its initializer call.
+            val receiver = cls.owner.fold[Path](cls.sym.asMemberRef(cls.isym)):
+              _.asThis.sel(companionSym.id, cls.isym)
+            Define(transformed, fakeCompanion.initialize(receiver, applyBlock(rest)))
+        case _ => super.applyBlock(block)
     transformer.applyProgram(prog)

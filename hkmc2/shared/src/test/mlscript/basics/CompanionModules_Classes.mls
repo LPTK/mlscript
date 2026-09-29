@@ -112,10 +112,12 @@ module Foo with
 //│   static {
 //│     Foo1.class = this
 //│   }
-//│   static {
+//│   static init() {
 //│     let tmp1;
 //│     tmp1 = Foo1();
 //│     Foo.res = tmp1.foo;
+//│     runtime.safeCall(globalThis.Object.freeze(Foo));
+//│     return null
 //│   }
 //│   get foo() {
 //│     return state;
@@ -123,6 +125,7 @@ module Foo with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo", []];
 //│ });
+//│ Foo1.class.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :expect 11

@@ -1,7 +1,7 @@
 package hkmc2
 package codegen
 
-import scala.collection.mutable.Buffer
+import scala.collection.mutable.{Buffer, Set as MutSet}
 
 import hkmc2.utils.*, shorthands.*
 import utils.*
@@ -329,10 +329,8 @@ sealed abstract class Block extends Product:
               if newBody is body then f else f.copy(body = newBody)(configOverride = f.configOverride, annotations = f.annotations)
           val newMethods = flattenMethods(c.methods)
           val newCompanion = c.companion.mapConserve: c =>
-            val newCtor = c.ctor.flattened
             val newMethods = flattenMethods(c.methods)
-            if (newCtor is c.ctor) && (newMethods is c.methods) then c
-              else c.copy(ctor = newCtor, methods = newMethods)
+            if newMethods is c.methods then c else c.copy(methods = newMethods)
           if (newPreCtor is c.preCtor)
           && (newCtor is c.ctor)
           && (newMethods is c.methods)
@@ -716,6 +714,25 @@ final case class FunDefn(
       case Annot.Affine(whichParamList) => whichParamList
   lazy val allParamSyms: Ls[VarSymbol] = params.flatMap(_.paramSyms)
 
+  /** Copying a member definition requires copying its owner as well. In particular, a module
+    * initializer can define public fields and nested classes belonging to an existing module;
+    * those symbols must keep their identity, so such a body cannot be duplicated by inlining or specialization.
+    */
+  lazy val definesExternalMembers: Bool =
+    val owners = MutSet.empty[InnerSymbol]
+    val memberOwners = MutSet.empty[InnerSymbol]
+    (new BlockTraverser:
+      override def applyDefn(defn: Defn): Unit =
+        defn.owner.foreach(memberOwners.add)
+        defn match
+          case cls: ClsLikeDefn =>
+            owners += cls.isym
+            cls.companion.foreach(comp => owners += comp.isym)
+          case _ =>
+        super.applyDefn(defn)
+    ).applyBlock(body)
+    memberOwners.exists(!owners(_))
+
   // * This deliberately is not a lazy val: its initialization would synchronize on the JVM.
   // * Computing the summary is pure, and a reference write is atomic, so concurrent traversals may
   // * harmlessly compute equal immutable summaries and overwrite this slot in either order.
@@ -799,9 +816,7 @@ private[codegen] object InlinerBodySummary:
             applySubBlock(cls.ctor)
           cls.companion.foreach: module =>
             module.methods.foreach(recordFunction(_, true))
-            // The module constructor is run with the enclosing constructor and therefore inherits
-            // whether its surrounding block has a call-graph source.
-            applySubBlock(module.ctor)
+            // Initialization is an ordinary call in the enclosing block.
         case _ => super.applyDefn(defn)
 
       override def applyResult(result: Result): Unit = result match
@@ -914,17 +929,56 @@ final case class ClsLikeBody(
     methods: Ls[FunDefn],
     privateFields: Ls[TermSymbol],
     publicFields: Ls[BlockMemberSymbol -> TermSymbol],
-    ctor: Block,
+    // Identifies the initializer in `methods`; the enclosing block is responsible for calling it.
+    ctor: BlockMemberSymbol -> TermSymbol,
     annotations: Ls[Annot],
 ):
+  require(methods.count(m => (m.sym is ctor._1) && (m.dSym is ctor._2)) == 1,
+    "A module must contain exactly one definition of its initializer")
   def isStaged: Bool = annotations.exists:
     case Annot.Modifier(Keyword.`staged`) => true
     case _ => false
   def subBlocks: Ls[Block] =
-    ctor :: methods.flatMap(_.subBlocks)
+    methods.flatMap(_.subBlocks)
   lazy val freeVars: Set[FreeSymbol] =
-    ctor.freeVars ++ methods.flatMap(_.freeVars)
-  lazy val size = 1 + methods.map(_.size).sum + ctor.size
+    methods.iterator.flatMap(_.freeVars).toSet
+  lazy val size = 1 + methods.map(_.size).sum
+
+  /** Initialization is explicit in the enclosing block, so passes see its effects and ordering. */
+  def initialize(receiver: Path, rest: Block)(using State): Block =
+    Assign.discard(Call(receiver.sel(ctor._2.id, ctor._2), Nil ne_:: Nil)(CallMetadata.mlsFunWithEffect), rest)
+
+object ClsLikeBody:
+  /** Keep the initializer in the ordinary method pipeline, with a name distinct from source members. */
+  def withCtor(
+      isym: DefinitionSymbol[? <: ModuleOrObjectDef] & InnerSymbol,
+      methods: Ls[FunDefn],
+      privateFields: Ls[TermSymbol],
+      publicFields: Ls[BlockMemberSymbol -> TermSymbol],
+      ctor: Block,
+      annotations: Ls[Annot],
+  )(using State, Config): ClsLikeBody =
+    val names = methods.map(_.sym.nme).toSet ++ publicFields.map(_._1.nme) ++ privateFields.map(_.nme)
+    val nestedNames = Buffer.empty[Str]
+    (new BlockTraverserShallow:
+      override def applyDefn(defn: Defn): Unit =
+        if defn.owner.contains(isym) then nestedNames += defn.sym.nme
+    ).applyBlock(ctor)
+    val allNames = names ++ nestedNames
+    val name = Iterator.iterate("init")(_ + "$init").find(!allNames(_)).get
+    // Sanity checking freezes definitions only once their fields have been initialized. Making this
+    // part of the body also puts freezing after any suspended-and-resumed initialization effects.
+    // The result is discarded; use the runtime-independent null value during bootstrap.
+    val done = Return(Value.Lit(Tree.UnitLit(true)))
+    val finish = if summon[Config].sanityChecks.isDefined && !summon[Config].noFreeze then
+      // Give this external function a symbol so function-object conversion knows its calling convention.
+      val freeze = TermSymbol(syntax.Fun, N, Tree.Ident("freeze"), erasedType = N)
+      Assign.discard(Call(State.globalThisSymbol.asThis.selSN("Object").sel(freeze.id, freeze),
+        isym.asThis.asArg :: Nil ne_:: Nil)(CallMetadata.defaultFun), done)
+    else done
+    val init = FunDefn.withFreshSymbol(S(isym), BlockMemberSymbol(name, Nil), PlainParamList(Nil) :: Nil,
+      Begin(ctor, finish))(N, Nil)
+    ClsLikeBody(isym, init :: methods, privateFields, publicFields, init.sym -> init.dSym, annotations)
 
 /*
 object ClsLikeBody:

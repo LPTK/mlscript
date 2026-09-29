@@ -32,19 +32,20 @@ module Outer with
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define Outer⁰ as class Outer¹
 //│ module Outer² {
-//│   constructor {
+//│   method init⁰ = fun init⁵() {
 //│     let tmp;
 //│     define Mid⁰ as class Mid¹
 //│     module Mid² {
-//│       constructor {
+//│       method init¹ = fun init⁴() {
 //│         let tmp1, tmp2;
 //│         define Inner⁰ as class Inner¹
 //│         module Inner² {
-//│           constructor {
+//│           method init² = fun init³() {
 //│             let tmp3;
 //│             set tmp3 = Inner².this.f⁰(1);
 //│             do Predef⁰.print⁰(tmp3);
-//│             end
+//│             do globalThis⁰.Object﹖.freeze⁰(Inner².this);
+//│             return null
 //│           }
 //│           method f¹ = fun f⁰(x) {
 //│             let tmp3;
@@ -52,11 +53,13 @@ module Outer with
 //│             return +⁰(tmp3, 1)
 //│           }
 //│         };
+//│         do Mid².this.Inner².init³();
 //│         set tmp1 = Mid².this.h⁰(2);
 //│         do Predef⁰.print⁰(tmp1);
 //│         set tmp2 = Mid².this.Inner².f⁰(3);
 //│         do Predef⁰.print⁰(tmp2);
-//│         end
+//│         do globalThis⁰.Object﹖.freeze¹(Mid².this);
+//│         return null
 //│       }
 //│       method h¹ = fun h⁰(x) {
 //│         let tmp1;
@@ -64,12 +67,15 @@ module Outer with
 //│         return *⁰(tmp1, 2)
 //│       }
 //│     };
+//│     do Outer².this.Mid².init⁴();
 //│     set tmp = Outer².this.Mid².Inner².f⁰(4);
 //│     do Predef⁰.print⁰(tmp);
-//│     end
+//│     do globalThis⁰.Object﹖.freeze²(Outer².this);
+//│     return null
 //│   }
 //│   method g¹ = fun g⁰(x) { return *⁰(x, 2) }
 //│ };
+//│ do Outer².init⁵();
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 3

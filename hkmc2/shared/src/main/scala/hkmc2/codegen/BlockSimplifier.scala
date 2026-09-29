@@ -1503,6 +1503,7 @@ class BlockSimplifier
         def isPrivate = !symbolsToPreserve.contains(defn.sym)
         private lazy val isPatternHelper = defn.owner.exists(_.isInstanceOf[PatternSymbol])
         private lazy val hasDuplicateBindings = hasDuplicateBoundSymbols(defn)
+        private lazy val hasExternalMemberDefinitions = defn.definesExternalMembers
         private lazy val hasPrivateMemberAccesses = accessesPrivateMembers(defn.body)
         
         inline def isLoopBreaker = _isLoopBreaker
@@ -1537,7 +1538,7 @@ class BlockSimplifier
         // i.e. the original definition can be removed and there is only one usage.
         def canBeInlineEliminated: Bool =
           isPrivate && !isMethod && !defn.noInline && useCount <= 1 && !disallowElimination && !isLoopBreaker
-            && !isPatternHelper && !hasDuplicateBindings
+            && !isPatternHelper && !hasDuplicateBindings && !hasExternalMemberDefinitions
           // false
         
         def inlineCost(newBlk: Block, threshold: Int): Opt[Int] =
@@ -1545,7 +1546,7 @@ class BlockSimplifier
           // Pattern compiler helpers may intentionally reuse source pattern variables across
           // mutually-exclusive generated blocks. Symbol-refreshing them as ordinary inline
           // bodies is not sound, so reject the same shape wherever duplicate bindings occur.
-          if hasDuplicateBindings then return N
+          if hasDuplicateBindings || hasExternalMemberDefinitions then return N
           // Accessors for JS-private members use a fresh Symbol shared by the owner
           // definition and its out-of-owner references within one emitted module.
           // There is deliberately no cross-module accessor ABI, so keep such accesses
@@ -1689,8 +1690,7 @@ class BlockSimplifier
             c.companion.foreach: m =>
               m.methods.foreach: f =>
                 addFunctionAndApplyBody(f, true)
-              // This inherits the previous context as the module ctor is run with the constructor.
-              applySubBlock(m.ctor)
+              // The explicit initializer call is visited in its enclosing block.
           case _ => super.applyDefn(defn)
         
         def observeCall(ts: TermSymbol, call: Call, source: Opt[TermSymbol]): Unit =

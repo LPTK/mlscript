@@ -382,9 +382,15 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 case N =>
                 val (mtds, publicFlds, privateFlds, ctor) =
                   gatherMembers(mod.body)
-                S(ClsLikeBody(mod.sym, mtds, privateFlds, publicFlds, ctor, mod.annotations))
+                S(ClsLikeBody.withCtor(mod.sym, mtds, privateFlds, publicFlds, ctor, mod.annotations))
               case _ => N
             case _ => N
+          def initializedRest: Block =
+            val rest = blockImpl(stats, res)
+            mod.fold(rest): mod =>
+              val receiver = defn.owner.fold[Path](defn.bsym.asMemberRef(mod.isym)):
+                _.asThis.sel(Tree.Ident(defn.bsym.nme), mod.isym)
+              mod.initialize(receiver, rest)
           defn.ext match
           case N =>
             val cfgOverride = defn.extraAnnotations.collectFirst:
@@ -399,7 +405,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                 mod,
                 bufferable,
               )(cfgOverride, defn.annotations),
-              blockImpl(stats, res))
+              initializedRest)
           case S(ext) =>
             assert(k isnt syntax.Mod) // modules can't extend things and can't have super calls
             val cfgOverride = defn.extraAnnotations.collectFirst:
@@ -411,7 +417,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter):
                   defn.owner, defn.sym, defn.bsym, defn.ctorSym, defn.kind, defn.paramsOpt, defn.auxParams, S(clsp),
                   mtds, privateFlds, publicFlds, pctor, ctor, mod, bufferable,
                 )(cfgOverride, defn.annotations),
-                blockImpl(stats, res)
+                initializedRest
               )
         case td: TypeDef => // * Type definitions are erased
           blockImpl(stats, res)

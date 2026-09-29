@@ -10,12 +10,15 @@ module Foo with
 //│   static {
 //│     Foo1 = this
 //│   }
-//│   static {
+//│   static init() {
 //│     Foo.self = Foo1;
+//│     runtime.safeCall(globalThis.Object.freeze(Foo));
+//│     return null
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"];
 //│ });
+//│ Foo1.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 Foo.self
@@ -33,7 +36,7 @@ Foo.self
 module Foo with
   val self = this
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type Foo.
-//│ ║  l.34: 	  val self = this
+//│ ║  l.37: 	  val self = this
 //│ ║        	             ^^^^
 //│ ╙── Value must be marked as returning a 'module' in order to return a module.
 

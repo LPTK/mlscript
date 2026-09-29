@@ -85,16 +85,20 @@ module Test with
 //│ ╙──      	  ^^^^^^^^^
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
 //│ let Test4;
-//│ globalThis.Object.freeze(class Test3 {
+//│ (class Test3 {
 //│   static {
 //│     Test4 = this
 //│   }
-//│   static {
+//│   static init() {
+//│     runtime.checkArgs("init", 0, true, arguments.length);
 //│     Test3.x = 1;
+//│     runtime.safeCall(globalThis.Object.freeze(Test3));
+//│     return null
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Test"];
 //│ });
+//│ runtime.checkCall(Test4.init());
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 Test.x
@@ -185,7 +189,7 @@ module Whoops with
     val w: module Whoops = this
     fun g() = f()
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'module Whoops' at an unrelated type 'module Whoops.Whoops'
-//│ ║  l.182: 	  val v: module Whoops = this
+//│ ║  l.186: 	  val v: module Whoops = this
 //│ ╙──       	                         ^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Whoops2;
@@ -193,14 +197,16 @@ module Whoops with
 //│   static {
 //│     Whoops2 = this
 //│   }
-//│   static {
+//│   static init() {
 //│     Whoops.v = Whoops;
 //│     (class Whoops1 {
 //│       static {
 //│         Whoops.Whoops = this
 //│       }
-//│       static {
+//│       static init() {
 //│         Whoops1.w = Whoops1;
+//│         runtime.safeCall(globalThis.Object.freeze(Whoops1));
+//│         return null
 //│       }
 //│       static g() {
 //│         return Whoops.f()
@@ -208,6 +214,9 @@ module Whoops with
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Whoops"];
 //│     });
+//│     Whoops.Whoops.init();
+//│     runtime.safeCall(globalThis.Object.freeze(Whoops));
+//│     return null
 //│   }
 //│   static f() {
 //│     return "Hello"
@@ -215,6 +224,7 @@ module Whoops with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Whoops"];
 //│ });
+//│ Whoops2.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 Whoops.f()
@@ -230,7 +240,7 @@ Whoops.Whoops.g()
 :e
 Runtime
 //│ ╔══[COMPILATION ERROR] Name not found: Runtime
-//│ ║  l.231: 	Runtime
+//│ ║  l.241: 	Runtime
 //│ ╙──       	^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -248,13 +258,15 @@ module AA with
 //│   static {
 //│     AA1 = this
 //│   }
-//│   static {
+//│   static init() {
 //│     (class BB {
 //│       static {
 //│         AA.BB = this
 //│       }
-//│       static {
+//│       static init() {
 //│         BB.y = 2;
+//│         runtime.safeCall(globalThis.Object.freeze(BB));
+//│         return null
 //│       }
 //│       static get test() {
 //│         return BB.y;
@@ -262,10 +274,14 @@ module AA with
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "BB"];
 //│     });
+//│     AA.BB.init();
+//│     runtime.safeCall(globalThis.Object.freeze(AA));
+//│     return null
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "AA"];
 //│ });
+//│ AA1.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

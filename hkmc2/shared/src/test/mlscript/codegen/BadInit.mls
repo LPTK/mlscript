@@ -26,12 +26,15 @@ object Bar with
 //│       static {
 //│         this$Bar.Baz = this
 //│       }
-//│       static {
+//│       static init() {
 //│         Baz.a = Bar1.x;
+//│         runtime.safeCall(globalThis.Object.freeze(Baz));
+//│         return null
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Baz"];
 //│     });
+//│     this.Baz.init();
 //│     Object.defineProperty(this, "class", {
 //│       value: Bar
 //│     });
@@ -57,22 +60,28 @@ module Bar with
 //│   static {
 //│     Bar3 = this
 //│   }
-//│   static {
+//│   static init() {
 //│     Bar2.x = 1;
 //│     (class Baz1 {
 //│       static {
 //│         Bar2.Baz = this
 //│       }
-//│       static {
+//│       static init() {
 //│         Baz1.a = Bar3.x;
+//│         runtime.safeCall(globalThis.Object.freeze(Baz1));
+//│         return null
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "Baz"];
 //│     });
+//│     Bar2.Baz.init();
+//│     runtime.safeCall(globalThis.Object.freeze(Bar2));
+//│     return null
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Bar"];
 //│ });
+//│ Bar3.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

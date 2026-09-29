@@ -12,8 +12,10 @@ let t = [0, 1, 2]
 t.push(4)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot add property 3, object is not extensible
 
-// Has no effect, as t is frozen
+:re
+// Reject writes to frozen arrays.
 set t.[1] = 5
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property '1' of object '[object Array]'
 
 t
 //│ = [0, 1, 2]

@@ -21,8 +21,10 @@ let
 let s12 = s1 ::: s2
 //│ s12 = Cons(1, Cons(2, Cons(3, Cons("a", Cons("b", Cons("c", Nil))))))
 
-// * Should not have any effect
+:re
+// * Reject writes to the frozen result.
 set s12.tail = Nil
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'tail' of object '[object Object]'
 
 :expect false
 s12.tail isEmpty()

@@ -22,22 +22,41 @@ staged module A
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define A⁰ as class A¹
 //│ staged module A² {
-//│   constructor {
+//│   method init⁰ = fun init¹() {
 //│     let tmp, tmp1;
-//│     set tmp = A².this.ctor$_instr﹖();
+//│     do globalThis⁰.Object﹖.freeze⁰(A².this);
+//│     set tmp = A².this.init_instr﹖();
 //│     set tmp1 = Block⁰.printCode﹖(tmp);
-//│     end
+//│     return null
 //│   }
-//│   method ctor$_instr⁰ = fun ctor$_instr¹() {
-//│     let end, tmp, tmp1, tmp2, tmp3;
-//│     set end = Block⁰.End﹖();
-//│     set tmp = Block⁰.Symbol﹖("ctor$");
-//│     set tmp1 = [];
+//│   method init_instr⁰ = fun init_instr¹() {
+//│     let sym, global, tmp, sel, sym1, sel1, sym2, module, tmp1, tmp2, app, sym3, tmp3, lit, return1, assign, tmp4, tmp5, tmp6, tmp7;
+//│     set sym = Block⁰.Symbol﹖("globalThis");
+//│     set global = Block⁰.ValueMemberRef﹖(sym);
+//│     set tmp = Block⁰.Symbol﹖("Object");
+//│     set sel = Block⁰.Select﹖(global, tmp);
+//│     set sym1 = Block⁰.Symbol﹖("freeze");
+//│     set sel1 = Block⁰.Select﹖(sel, sym1);
+//│     set sym2 = Block⁰.ModuleSymbol﹖("A", A².this);
+//│     set module = Block⁰.ValueMemberRef﹖(sym2);
+//│     set tmp1 = Block⁰.Arg﹖(module);
 //│     set tmp2 = [tmp1];
-//│     set tmp3 = Block⁰.FunDefn﹖(tmp, tmp2, end, true);
-//│     return tmp3
+//│     set app = Block⁰.Call﹖(sel1, tmp2);
+//│     set sym3 = Block⁰.NoSymbol﹖();
+//│     set tmp3 = Block⁰.ValueSimpleRef﹖(sym3);
+//│     set lit = Block⁰.ValueLit﹖(null);
+//│     set return1 = Block⁰.Return﹖(lit);
+//│     set assign = Block⁰.Assign﹖(sym3, app, return1);
+//│     set tmp4 = Block⁰.Symbol﹖("init");
+//│     set tmp5 = [];
+//│     set tmp6 = [tmp5];
+//│     set tmp7 = Block⁰.FunDefn﹖(tmp4, tmp6, assign, true);
+//│     return tmp7
 //│   }
 //│ };
+//│ do A².init¹();
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ > fun ctor_() = ()
+//│ > fun init() =
+//│ >   globalThis.Object.freeze(A)
+//│ >   null

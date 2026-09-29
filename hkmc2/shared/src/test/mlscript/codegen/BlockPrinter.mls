@@ -166,7 +166,7 @@ A.x
 //│ module A² {
 //│   private val y⁰;
 //│   val x⁶;
-//│   constructor {
+//│   method init⁰ = fun init¹() {
 //│     define x⁶ as val x⁷ = 2;
 //│     set A².this.y⁰ = 3;
 //│     define C³ as class C⁵ {
@@ -179,10 +179,12 @@ A.x
 //│         return 2
 //│       }
 //│     };
-//│     end
+//│     do globalThis⁰.Object﹖.freeze⁰(A².this);
+//│     return null
 //│   }
 //│   method g⁰ = fun g¹(x) { return 3 }
 //│ };
+//│ do A².init¹();
 //│ return A².x⁷
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
@@ -192,7 +194,15 @@ module A with
 A.x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define A³ as class A⁴
-//│ module A⁵ { val x⁹; constructor { define x⁹ as val x¹⁰ = 3; end } };
+//│ module A⁵ {
+//│   val x⁹;
+//│   method init² = fun init³() {
+//│     define x⁹ as val x¹⁰ = 3;
+//│     do globalThis⁰.Object﹖.freeze¹(A⁵.this);
+//│     return null
+//│   }
+//│ };
+//│ do A⁵.init³();
 //│ return A⁵.x¹⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3

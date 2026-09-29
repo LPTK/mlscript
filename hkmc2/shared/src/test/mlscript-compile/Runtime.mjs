@@ -140,7 +140,7 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
   static set stackHandler(value) { Runtime.#stackHandler = value; }
   static get stackResume() { return Runtime.#stackResume; }
   static set stackResume(value) { Runtime.#stackResume = value; }
-  static {
+  static init() {
     (class Unit {
       static {
         new this
@@ -248,8 +248,9 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
       static {
         Runtime.Tuple = this
       }
-      static {
+      static init() {
         Tuple.split = LazyArray.__split;
+        return null
       }
       static slice(xs, i, j) {
         let tmp;
@@ -283,9 +284,13 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "Tuple"];
     });
+    Runtime.Tuple.init();
     (class Str {
       static {
         Runtime.Str = this
+      }
+      static init() {
+        return null
       }
       static startsWith(string, prefix) {
         return runtime.safeCall(string.startsWith(prefix))
@@ -318,9 +323,10 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
       static set enabled(value) { TraceLogger.#enabled = value; }
       static get indentLvl() { return TraceLogger.#indentLvl; }
       static set indentLvl(value) { TraceLogger.#indentLvl = value; }
-      static {
+      static init() {
         TraceLogger.enabled = false;
         TraceLogger.indentLvl = 0;
+        return null
       }
       static indent() {
         let scrut, prev, tmp;
@@ -358,6 +364,7 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "TraceLogger"];
     });
+    Runtime.TraceLogger.init();
     Runtime.curEffect = null;
     Runtime.resumeValue = null;
     Runtime.resumeArr = null;
@@ -657,6 +664,7 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "Int31", [null]];
     });
+    return null
   }
   static get unreachable() {
     throw runtime.safeCall(globalThis.Error("unreachable"));
@@ -1260,6 +1268,7 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Runtime"];
 });
+Runtime1.init();
 export { continuation as _$_modulePrivate_$_continuation };
 export { Runtime1 as _$_modulePrivate_$_Runtime };
 export { lambda as _$_modulePrivate_$_lambda };

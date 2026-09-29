@@ -81,6 +81,10 @@ A.sum(20000)
 //│   static {
 //│     A1 = this
 //│   }
+//│   static init() {
+//│     runtime.safeCall(globalThis.Object.freeze(A));
+//│     return null
+//│   }
 //│   static sum_impl(n, acc) {
 //│     loopLabel: while (true) {
 //│       let scrut, tmp, tmp1;
@@ -101,6 +105,7 @@ A.sum(20000)
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"];
 //│ });
+//│ runtime.safeCall(globalThis.Object.freeze(A1));
 //│ return A1.sum_impl(20000, 0)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 200010000
@@ -213,7 +218,7 @@ fun f(x) =
     @tailcall f(x)
   @tailcall g()
 //│ ╔══[COMPILATION ERROR] This call is not in tail position.
-//│ ║  l.212: 	    @tailcall f(x)
+//│ ║  l.217: 	    @tailcall f(x)
 //│ ╙──       	              ^^^^
 
 :lift
@@ -358,11 +363,16 @@ module M with
 //│       end
 //│     unreachable /* Rest of abortive labelled block */
 //│   }
+//│   method init⁰ = fun init¹() {
+//│     do globalThis⁰.Object﹖.freeze⁰(M².this);
+//│     return null
+//│   }
 //│   method f⁸ = fun f⁹(x) {
 //│     return M².this.f_g³(0, x)
 //│   }
 //│   method g⁶ = fun g⁷(x) { return M².this.f_g³(1, x) }
 //│ };
+//│ do globalThis⁰.Object﹖.freeze⁰(M²);
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -405,10 +415,10 @@ module A with
     @tailcall g(x - 1)
 A.f(10000)
 //│ ╔══[COMPILATION ERROR] This tail call exits the current scope and is not optimized.
-//│ ║  l.404: 	    fun g(x) = if x < 0 then 0 else @tailcall f(x)
+//│ ║  l.414: 	    fun g(x) = if x < 0 then 0 else @tailcall f(x)
 //│ ╙──       	                                              ^^^^
 //│ ╔══[COMPILATION ERROR] This tail call exits the current scope and is not optimized.
-//│ ║  l.405: 	    @tailcall g(x - 1)
+//│ ║  l.415: 	    @tailcall g(x - 1)
 //│ ╙──       	              ^^^^^^^^
 //│ = 0
 
@@ -435,12 +445,12 @@ class A with
   fun g(x) = if x == 0 then 1 else @tailcall f(x - 1)
 (new A).f(10)
 //│ ╔══[COMPILATION ERROR] Calls from class methods cannot yet be marked @tailcall.
-//│ ║  l.434: 	  @tailrec fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
+//│ ║  l.444: 	  @tailrec fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
 //│ ╙──       	                                                      ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Class methods may not yet be marked @tailrec.
-//│ ║  l.434: 	  @tailrec fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
+//│ ║  l.444: 	  @tailrec fun f(x) = if x == 0 then 0 else @tailcall g(x - 1)
 //│ ╙──       	               ^
 //│ ╔══[COMPILATION ERROR] Calls from class methods cannot yet be marked @tailcall.
-//│ ║  l.435: 	  fun g(x) = if x == 0 then 1 else @tailcall f(x - 1)
+//│ ║  l.445: 	  fun g(x) = if x == 0 then 1 else @tailcall f(x - 1)
 //│ ╙──       	                                             ^^^^^^^^
 //│ = 0

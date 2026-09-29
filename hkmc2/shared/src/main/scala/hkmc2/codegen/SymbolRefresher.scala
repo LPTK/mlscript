@@ -126,16 +126,17 @@ class SymbolRefresherWalker(mapping: MutMap[Symbol, Symbol])(using State) extend
     isym match
       case s: ModuleOrObjectSymbol => refreshModuleOrObjectSymbol(s)
       case s: TopLevelSymbol => refreshTopLevelSymbol(s)
-    methods.foreach: mtd =>
-      // For methods, the BlockMemberSymbol is owned by the class itself
-      refreshBlockMemberSymbol(mtd.sym)
-      applyFunDefn(mtd)
     privateFields.foreach(refreshTermSymbol)
     publicFields.foreach: p =>
       refreshBlockMemberSymbol(p._1)
       // For public fields, we have ValDefn for defining the variable
       // refreshTermSymbol(p._2)
-    applyBlock(ctor)
+    // Refresh field names before the initializer, whose ValDefns refer to those names.
+    methods.foreach: mtd =>
+      // For methods, the BlockMemberSymbol is owned by the class itself
+      refreshBlockMemberSymbol(mtd.sym)
+      applyFunDefn(mtd)
+    // The initializer's symbols and body have already been refreshed with the methods.
 
 object SymbolRefresher:
   

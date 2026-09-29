@@ -299,13 +299,27 @@ module A with
   fun g() = A.f()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define A⁰ as class A¹
-//│ module A² { method f²⁰ = fun f²¹() { return 1 } method g² = fun g³() { return 1 } };
+//│ module A² {
+//│   method init⁰ = fun init¹() {
+//│     do globalThis⁰.Object﹖.freeze⁰(A².this);
+//│     return null
+//│   }
+//│   method f²⁰ = fun f²¹() {
+//│     return 1
+//│   }
+//│   method g² = fun g³() { return 1 }
+//│ };
+//│ do globalThis⁰.Object﹖.freeze⁰(A²);
 //│ end
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let A1;
 //│ (class A {
 //│   static {
 //│     A1 = this
+//│   }
+//│   static init() {
+//│     runtime.safeCall(globalThis.Object.freeze(A));
+//│     return null
 //│   }
 //│   static f() {
 //│     return 1
@@ -316,6 +330,7 @@ module A with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"];
 //│ });
+//│ runtime.safeCall(globalThis.Object.freeze(A1));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -395,16 +410,26 @@ scope.locally of (
 //│ let A, B, lambda;
 //│ define A as class A³
 //│ module A⁴ {
+//│   method init² = fun init³() {
+//│     do globalThis⁰.Object﹖.freeze¹(A⁴.this);
+//│     return null
+//│   }
 //│   method foo² = fun foo³ {
 //│     return A⁴.foo³
 //│   }
 //│ };
+//│ do globalThis⁰.Object﹖.freeze¹(A⁴);
 //│ define B as class B⁰
 //│ module B¹ {
+//│   method init⁴ = fun init⁵() {
+//│     do globalThis⁰.Object﹖.freeze²(B¹.this);
+//│     return null
+//│   }
 //│   method bar⁰ = fun bar¹() {
 //│     return A⁴.foo³
 //│   }
 //│ };
+//│ do globalThis⁰.Object﹖.freeze²(B¹);
 //│ @private
 //│ define lambda as fun lambda⁰() { return A⁴.foo³ };
 //│ return lambda⁰

@@ -39,15 +39,20 @@ module Test with
   fun foo() = print(s)
   fun bar() = foo()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ const s$accessorSymbol = globalThis.Symbol("s");
 //│ let Test1;
 //│ (class Test {
 //│   static {
 //│     Test1 = this
 //│   }
 //│   static #s;
-//│   static {
+//│   static get [s$accessorSymbol]() { return Test.#s; }
+//│   static set [s$accessorSymbol](value) { Test.#s = value; }
+//│   static init() {
 //│     Test.#s = 1;
 //│     Predef.print(Test.#s);
+//│     runtime.safeCall(globalThis.Object.freeze(Test));
+//│     return null
 //│   }
 //│   static foo() {
 //│     return Predef.print(Test.#s)
@@ -58,6 +63,9 @@ module Test with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Test"];
 //│ });
+//│ Test1[s$accessorSymbol] = 1;
+//│ Predef.print(Test1[s$accessorSymbol]);
+//│ runtime.safeCall(globalThis.Object.freeze(Test1));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 

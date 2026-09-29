@@ -73,11 +73,13 @@ module T with
 //│   static {
 //│     T1 = this
 //│   }
-//│   static {
+//│   static init() {
 //│     T.a = T.t;
 //│     T.b = T.t;
 //│     T.c = T.p;
 //│     T.d = T.p;
+//│     runtime.safeCall(globalThis.Object.freeze(T));
+//│     return null
 //│   }
 //│   static t() {
 //│     return 1
@@ -88,6 +90,7 @@ module T with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "T"];
 //│ });
+//│ T1.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -113,12 +116,17 @@ module M with
 //│   static {
 //│     M1 = this
 //│   }
+//│   static init() {
+//│     runtime.safeCall(globalThis.Object.freeze(M));
+//│     return null
+//│   }
 //│   static get t() {
 //│     return 0;
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"];
 //│ });
+//│ M1.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

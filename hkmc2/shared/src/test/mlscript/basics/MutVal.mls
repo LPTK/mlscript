@@ -20,7 +20,9 @@ object O with
   fun gy = y
   fun sy = set y += 1
 
+:re
 set O.x = 2
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'x' of object '[object Object]'
 
 O.x
 //│ = 1

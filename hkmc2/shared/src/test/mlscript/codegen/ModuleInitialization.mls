@@ -1,0 +1,161 @@
+:js
+
+open annotations { inline }
+
+
+// Initializers run once, in definition order, and finish before the following statement.
+:sir
+:sjs
+let order = 0
+module First with
+  set order = order * 10 + 1
+  val value = order
+module Second with
+  val value = First.value + 1
+  set order = order * 10 + value
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ set order⁰ = 0;
+//│ define First⁰ as class First¹
+//│ module First² {
+//│   val value⁰;
+//│   method init⁰ = fun init¹() {
+//│     let tmp, tmp1;
+//│     set tmp = *⁰(order⁰, 10);
+//│     set tmp1 = +⁰(tmp, 1);
+//│     set order⁰ = tmp1;
+//│     define value⁰ as val value¹ = order⁰;
+//│     do globalThis⁰.Object﹖.freeze⁰(First².this);
+//│     return null
+//│   }
+//│ };
+//│ do First².init¹();
+//│ define Second⁰ as class Second¹
+//│ module Second² {
+//│   val value²;
+//│   method init² = fun init³() {
+//│     let tmp, tmp1, tmp2;
+//│     set tmp = +⁰(First².value¹, 1);
+//│     define value² as val value³ = tmp;
+//│     set tmp1 = *⁰(order⁰, 10);
+//│     set tmp2 = +⁰(tmp1, Second².this.value³);
+//│     set order⁰ = tmp2;
+//│     do globalThis⁰.Object﹖.freeze¹(Second².this);
+//│     return null
+//│   }
+//│ };
+//│ do Second².init³();
+//│ end
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let Second1, First1, order;
+//│ order = 0;
+//│ (class First {
+//│   static {
+//│     First1 = this
+//│   }
+//│   static init() {
+//│     let tmp, tmp1;
+//│     tmp = order * 10;
+//│     tmp1 = tmp + 1;
+//│     order = tmp1;
+//│     First.value = order;
+//│     runtime.safeCall(globalThis.Object.freeze(First));
+//│     return null
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "First"];
+//│ });
+//│ First1.init();
+//│ (class Second {
+//│   static {
+//│     Second1 = this
+//│   }
+//│   static init() {
+//│     let tmp, tmp1, tmp2;
+//│     tmp = First1.value + 1;
+//│     Second.value = tmp;
+//│     tmp1 = order * 10;
+//│     tmp2 = tmp1 + Second.value;
+//│     order = tmp2;
+//│     runtime.safeCall(globalThis.Object.freeze(Second));
+//│     return null
+//│   }
+//│   toString() { return runtime.render(this); }
+//│   static [definitionMetadata] = ["class", "Second"];
+//│ });
+//│ Second1.init();
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ order = 12
+
+:expect [12, 1, 2]
+[order, First.value, Second.value]
+//│ = [12, 1, 2]
+
+
+// Source methods and fields named init must not replace the generated initializer.
+module MethodCollision with
+  val value = 10
+  fun init() = value + 1
+module FieldCollision with
+  val init = 20
+
+:expect [11, 20]
+[MethodCollision.init(), FieldCollision.init]
+//│ = [11, 20]
+
+
+// Nested modules initialize before their enclosing module continues.
+module Outer with
+  module Inner with
+    val value = 3
+    set order = order * 10 + value
+  val value = Inner.value + 1
+  set order = order * 10 + value
+
+:expect [1234, 4]
+[order, Outer.value]
+//│ = [1234, 4]
+
+
+// A parameterized companion initializes the static class, before instances use its fields.
+class WithCompanion(x) with
+  fun get() = x + WithCompanion.offset
+module WithCompanion with
+  val offset = 5
+
+:expect 12
+WithCompanion(7).get()
+//│ = 12
+
+
+// Initializers in instance constructors must run for each fresh enclosing instance.
+class Container(x) with
+  module M with
+    val value = x + 1
+  fun get() = M.value
+
+:expect [2, 3]
+[Container(1).get(), Container(2).get()]
+//│ = [2, 3]
+
+
+// The whole owner can be copied by inlining, including its initializer and member symbols.
+@inline
+fun locallyDefined(x) =
+  module Local with
+    let hidden = x
+    val value = hidden + 1
+  Local.value
+
+:expect [8, 9]
+[locallyDefined(7), locallyDefined(8)]
+//│ = [8, 9]
+
+
+// Class-like members also participate in initializer-name allocation.
+module NestedCollision with
+  module init with
+    val value = 30
+
+:expect 30
+NestedCollision.init.value
+//│ = 30

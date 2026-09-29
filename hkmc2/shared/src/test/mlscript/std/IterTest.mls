@@ -75,10 +75,12 @@ ys.toArray()
 //│ > 3!
 //│ = ["1!", "2!", "3!"]
 
+:re
 set ys.toArray().[0] = "??"
 //│ > 1!
 //│ > 2!
 //│ > 3!
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property '0' of object '[object Array]'
 
 ys.toArray()
 //│ > 1!

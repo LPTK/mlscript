@@ -19,9 +19,17 @@ fun f(x) =
 //│ define f⁰ as fun f¹(x) {
 //│   let A;
 //│   define A as class A⁰ {
-//│     method get⁰ = fun get¹ { return x }
+//│     method get⁰ = fun get¹ {
+//│       return x
+//│     }
 //│   }
-//│   module A¹;
+//│   module A¹ {
+//│     method init⁰ = fun init¹() {
+//│       do globalThis⁰.Object﹖.freeze⁰(A¹.this);
+//│       return null
+//│     }
+//│   };
+//│   do A¹.init¹();
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ end

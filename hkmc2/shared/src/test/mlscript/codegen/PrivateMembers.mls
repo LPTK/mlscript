@@ -8,7 +8,15 @@ module M with
   g(2)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define M⁰ as class M¹
-//│ module M² { constructor { do M².this.g⁰(); end } method g¹ = fun g⁰() { return undefined } };
+//│ module M² {
+//│   method init⁰ = fun init¹() {
+//│     do M².this.g⁰();
+//│     do globalThis⁰.Object﹖.freeze⁰(M².this);
+//│     return null
+//│   }
+//│   method g¹ = fun g⁰() { return undefined }
+//│ };
+//│ do globalThis⁰.Object﹖.freeze⁰(M²);
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -124,19 +132,19 @@ LiftedPrivateObject.mkInc(41)
 :e
 PrivateObject.x
 //│ ╔══[COMPILATION ERROR] Cannot access private member 'x' outside its declaring owner
-//│ ║  l.125: 	PrivateObject.x
+//│ ║  l.133: 	PrivateObject.x
 //│ ║         	             ^^
 //│ ╟── private member declared here
-//│ ║  l.110: 	  private val x = 40
+//│ ║  l.118: 	  private val x = 40
 //│ ╙──       	              ^
 
 :e
 PrivateObject.inc()
 //│ ╔══[COMPILATION ERROR] Cannot access private member 'inc' outside its declaring owner
-//│ ║  l.134: 	PrivateObject.inc()
+//│ ║  l.142: 	PrivateObject.inc()
 //│ ║         	             ^^^^
 //│ ╟── private member declared here
-//│ ║  l.111: 	  private fun inc() = x + 2
+//│ ║  l.119: 	  private fun inc() = x + 2
 //│ ╙──       	              ^^^
 //│ ═══[RUNTIME ERROR] TypeError: PrivateObject1[inc$accessorSymbol1] is not a function
 

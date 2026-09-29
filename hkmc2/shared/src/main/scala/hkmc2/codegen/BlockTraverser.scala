@@ -124,7 +124,7 @@ class BlockTraverser:
     b.privateFields.foreach(_.traverse)
     b.publicFields.foreach: f =>
       f._1.traverse; f._2.traverse
-    applySubBlock(b.ctor)
+    b.ctor._1.traverse; b.ctor._2.traverse
 
   def applyArg(arg: Arg): Unit =
     applyPath(arg.value)

@@ -285,7 +285,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
           s"$runtimeNme.TraceLogger.resetIndent(0)")
       
       // * Sometimes the JS block won't execute due to a syntax or runtime error so we always set this first
-      host.execute(s"$resNme = undefined")
+      host.execute(s"var $resNme = undefined")
       
       val awaitResult = (if await.isSet then s"; $resNme = await $resNme" else "")
       mkQuery(preStr, jsStr + awaitResult): stdout =>

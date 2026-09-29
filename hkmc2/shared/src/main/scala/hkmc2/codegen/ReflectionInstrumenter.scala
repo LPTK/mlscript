@@ -191,6 +191,13 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
           transformResult(value): v =>
             blockCtor("Symbol", Ls(toValue(target.describe)), "target"): t =>
               blockCtor("Cast", Ls(v, t, toValue(check)), "cast")(k)
+        // Module self references denote a static value, unlike an instance method's dynamic receiver.
+        case Value.This(sym: ModuleOrObjectSymbol) if sym.tree.k is syntax.Mod =>
+          transformSymbol(sym, S(p)): sym =>
+            blockCtor("ValueMemberRef", Ls(sym), "module")(k)
+        case Value.This(sym: TopLevelSymbol) =>
+          transformSymbol(sym): sym =>
+            blockCtor("ValueMemberRef", Ls(sym), "global")(k)
         case _: Value.This =>
           raise(ErrorReport(msg"Value.This not supported in staged module." -> p.toLoc :: Nil))
           End()
@@ -395,10 +402,8 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
       val (stagedMethods, debugPrintCode) = companion.methods
         .map(applyFunDefnInner)
         .unzip
-      val ctor = FunDefn.withFreshSymbol(S(companion.isym), BlockMemberSymbol("ctor$", Nil), Ls(PlainParamList(Nil)), companion.ctor)(N, Nil)
-      val (stagedCtor, ctorPrint) = applyFunDefnInner(ctor)
 
-      val debugBlock = (ctorPrint :: debugPrintCode)
+      val debugBlock = debugPrintCode
         .foldRight(End(): Block)(_(_))
       def debugCont(rest: Block) =
         Begin(debugBlock, rest)
@@ -414,11 +419,14 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
               case _ => true)
             Define(newModule, rest)
           case b => b
-      val newCtor = genCls.applyBlock(companion.ctor)
-      val newCompanion = companion.copy(
-        methods = stagedCtor :: companion.methods ++ stagedMethods,
-        ctor = Begin(newCtor, debugCont(End())),
-      )
+      val newMethods = companion.methods.mapConserve: method =>
+        if method.dSym is companion.ctor._2 then
+          val body = genCls.applyBlock(method.body)
+          // Print after initialization, including paths ending in an explicit return.
+          val withDebug = body.mapReturn(debugCont)
+          method.copy(body = withDebug)(method.configOverride, method.annotations)
+        else method
+      val newCompanion = companion.copy(methods = newMethods ++ stagedMethods)
       val newModule = c.copy(sym = sym, companion = S(newCompanion))(c.configOverride, c.annotations.filter:
         case Annot.Modifier(Keyword.`staged`) => false
         case _ => true)

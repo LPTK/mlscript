@@ -11,6 +11,10 @@ module A with
 //│   static {
 //│     A1 = this
 //│   }
+//│   static init() {
+//│     runtime.safeCall(globalThis.Object.freeze(A));
+//│     return null
+//│   }
 //│   static f(x) {
 //│     if (x instanceof Option.Some.class) {
 //│       return true
@@ -20,5 +24,6 @@ module A with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A"];
 //│ });
+//│ runtime.safeCall(globalThis.Object.freeze(A1));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

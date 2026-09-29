@@ -13,9 +13,10 @@ module Foo with { val x = 1 }
 //│ ╟── with module of the same name
 //│ ║  l.9: 	module Foo with { val x = 1 }
 //│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'init')
 
 Foo
-//│ = class Foo { x: 1 }
+//│ = class Foo
 
 Foo()
 //│ = 1

@@ -1,0 +1,42 @@
+:js
+:effectHandlers
+:lift
+
+
+abstract class InitEffect with
+  fun get()
+
+
+// The initializer is an ordinary method: it can install a handler and resume its body.
+module Resuming with
+  val value =
+    handle h = InitEffect with
+      fun get()(resume) = resume(40)
+    h.get() + 2
+
+:expect 42
+Resuming.value
+//│ = 42
+
+
+// A handler enclosing initialization resumes the initializer before running the next statement.
+:fixme // Local modules are not lifted yet, so their binding cannot survive an enclosing resumption.
+:w
+fun initialize() =
+  handle h = InitEffect with
+    fun get()(resume) = resume(20)
+  module Local with
+    val value = h.get() + 1
+  Local.value + 1
+//│ ╔══[WARNING] Modules are not yet lifted.
+//│ ║  l.28: 	  module Local with
+//│ ╙──      	         ^^^^^
+//│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
+//│ ║  l.28: 	  module Local with
+//│ ╙──      	         ^^^^^
+
+:fixme // The enclosing continuation currently loses the unlifted Local binding.
+:expect 22
+initialize()
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'value')
+//│ ═══[RUNTIME ERROR] Expected: '22', got: 'undefined'

@@ -54,7 +54,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver)(using Raise)
       case dtorId: ResultId => pre.res.matchScrutToMatchBlock(dtorId).rest
     def it = ctx.iterator
       .takeWhile:
-        case _: (pre.InCtx.Fn | pre.InCtx.ModCtor | pre.InCtx.Cls | pre.InCtx.ClsPreCtor | pre.InCtx.ClsCtor | pre.InCtx.TopLvl) => false
+        case _: (pre.InCtx.Fn | pre.InCtx.Cls | pre.InCtx.ClsPreCtor | pre.InCtx.ClsCtor | pre.InCtx.TopLvl) => false
         case _ => true
       .collect:
         case pre.InCtx.LblBody(l) => l

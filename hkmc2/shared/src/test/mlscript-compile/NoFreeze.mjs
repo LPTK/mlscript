@@ -6,7 +6,7 @@ let NoFreeze1;
   static {
     NoFreeze1 = this
   }
-  static {
+  static init() {
     NoFreeze.Foo = function Foo(x) {
       return (new Foo.class(x));
     };
@@ -20,6 +20,7 @@ let NoFreeze1;
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "Foo", ["x"]];
     });
+    return null
   }
   static foo() {
     return (new NoFreeze.Foo.class(0))
@@ -30,5 +31,6 @@ let NoFreeze1;
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "NoFreeze"];
 });
+NoFreeze1.init();
 export { NoFreeze1 as _$_modulePrivate_$_NoFreeze };
 let NoFreeze = NoFreeze1; export default NoFreeze;

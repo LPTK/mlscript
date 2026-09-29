@@ -306,20 +306,36 @@ module Foo(x) with
 //│ ╟── which references the symbol introduced here
 //│ ║  l.303: 	module Foo(x) with
 //│ ╙──       	           ^
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.303: 	module Foo(x) with
+//│ ╙──       	           ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ const x$accessorSymbol = globalThis.Symbol("x");
 //│ let Foo5;
 //│ (class Foo4 {
 //│   static {
 //│     Foo5 = this
 //│   }
 //│   static #x;
-//│   static {
+//│   static get [x$accessorSymbol]() { return Foo4.#x; }
+//│   static set [x$accessorSymbol](value) { Foo4.#x = value; }
+//│   static init() {
 //│     Foo4.#x = x;
 //│     Predef.print(Foo4.#x);
+//│     runtime.safeCall(globalThis.Object.freeze(Foo4));
+//│     return null
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"];
 //│ });
+//│ Foo5[x$accessorSymbol] = x;
+//│ Predef.print(Foo5[x$accessorSymbol]);
+//│ runtime.safeCall(globalThis.Object.freeze(Foo5));
+//│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
+//│ ╟── which references the symbol introduced here
+//│ ║  l.303: 	module Foo(x) with
+//│ ╙──       	           ^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
 //│ ║  l.303: 	module Foo(x) with
@@ -332,7 +348,7 @@ module Foo(x) with
 module Foo(val x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.332: 	module Foo(val x)
+//│ ║  l.348: 	module Foo(val x)
 //│ ╙──       	               ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Foo7;
@@ -340,15 +356,18 @@ module Foo(val x)
 //│   static {
 //│     Foo7 = this
 //│   }
-//│   static {
+//│   static init() {
 //│     Foo6.x = x;
+//│     runtime.safeCall(globalThis.Object.freeze(Foo6));
+//│     return null
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"];
 //│ });
+//│ Foo7.init();
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.332: 	module Foo(val x)
+//│ ║  l.348: 	module Foo(val x)
 //│ ╙──       	               ^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -357,7 +376,7 @@ module Foo(val x)
 // TODO support syntax?
 data class Foo(mut x)
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found 'mut'-modified identifier
-//│ ║  l.358: 	data class Foo(mut x)
+//│ ║  l.377: 	data class Foo(mut x)
 //│ ╙──       	                   ^
 
 // ——— ——— ———
@@ -377,16 +396,16 @@ class Foo
 :e
 class Id(name: UnboundName)
 //│ ╔══[COMPILATION ERROR] Name not found: UnboundName
-//│ ║  l.378: 	class Id(name: UnboundName)
+//│ ║  l.397: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
-//│ ║  l.378: 	class Id(name: UnboundName)
+//│ ║  l.397: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a type, got ‹error›
-//│ ║  l.378: 	class Id(name: UnboundName)
+//│ ║  l.397: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
-//│ ║  l.378: 	class Id(name: UnboundName)
+//│ ║  l.397: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 
 // ——— ——— ———

@@ -425,7 +425,7 @@ class ScopeData(b: Block)(using State, IgnoredScopes):
         finder.applyBlock(cls.preCtor)
         finder.applyBlock(cls.ctor)
       case ScopedObject.Companion(comp, cls) =>
-        finder.applyBlock(comp.ctor)
+        () // The initializer is an ordinary method scope.
       case ScopedObject.Func(fun, _) =>
         finder.applyBlock(fun.body)
       case ScopedObject.ScopedBlock(_, block) =>

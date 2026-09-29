@@ -56,7 +56,7 @@ lambda = (undefined, function (Predef2, a, b, field) {
   static {
     Predef1 = this
   }
-  static {
+  static init() {
     (class Symbols {
       static {
         new this
@@ -114,6 +114,9 @@ lambda = (undefined, function (Predef2, a, b, field) {
       static {
         Predef.meta = this
       }
+      static init() {
+        return null
+      }
       static codegen(t, file) {
         return runtime.safeCall(Term.codegen(t, file))
       }
@@ -123,6 +126,7 @@ lambda = (undefined, function (Predef2, a, b, field) {
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "meta"];
     });
+    return null
   }
   static id(x) {
     return x
@@ -342,6 +346,7 @@ lambda = (undefined, function (Predef2, a, b, field) {
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Predef"];
 });
+Predef1.init();
 export { Predef1 as _$_modulePrivate_$_Predef };
 export { lambda as _$_modulePrivate_$_lambda };
 export { lambda1 as _$_modulePrivate_$_lambda1 };

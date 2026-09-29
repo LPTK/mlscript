@@ -43,15 +43,13 @@ object HandlerLowering:
   private enum HandlerCtx:
     case FunctionLike(ctx: FunctionCtx)
     case Ctor
-    case ModCtor(trulyNested: Bool)
     case TopLevel
 
     // Since constructors are not named, they cannot be resumed
-    def inCtor = this === Ctor || this.isInstanceOf[ModCtor]
+    def inCtor = this === Ctor
     def currentBlockIsTrulyNested = this match
       case FunctionLike(_) => true
       case Ctor => true
-      case ModCtor(trulyNested) => trulyNested
       case TopLevel => false
     def inAsync = this match
       case FunctionLike(ctx) => ctx.inAsync
@@ -552,9 +550,22 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
         FunDefn(fun.owner, fun.sym, fun.dSym, fun.params, bod2)(fun.configOverride, fun.annotations)
       (debugInfoSym, debugInfo, fun2)
 
+    // Runtime bootstrap modules must not call the runtime while it is itself being initialized.
+    // Keep this policy attached to both the method and its now-explicit call.
+    val skipModuleInit = opt.exists(_.doNotInstrumentTopLevelModCtor) && !h.currentBlockIsTrulyNested
+    val uninstrumentedInitializers = mutable.HashSet.empty[TermSymbol]
+    if skipModuleInit then
+      (new BlockTraverserShallow:
+        override def applyDefn(defn: Defn): Unit = defn match
+          case cls: ClsLikeDefn => cls.companion.foreach(mod => uninstrumentedInitializers += mod.ctor._2)
+          case _ =>
+      ).applyBlock(blk)
+
     // transform inner function/class and effect handler intrinsics to the runtime functions.
     val preTransform = new BlockTransformer(SymbolSubst.Id):
       override def applyResult(r: Result)(k: Result => Block): Block = r match
+        case call @ Call(TermSymbolPath(sym), args) if uninstrumentedInitializers(sym) =>
+          k(Call.raw(call.fun, args)(call.metadata.copy(mayRaiseEffects = false)))
         case Call(Value.MemberRef(sym, _), args) if sym is Elaborator.ctx.builtins.runtime.suspend =>
           k(Call(paths.mkEffectPath, args)(CallMetadata.mlsFunWithEffect))
         case Call(Value.MemberRef(sym, _), args) if sym is Elaborator.ctx.builtins.runtime.handle_suspension =>
@@ -567,7 +578,8 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
           val (debugInfoSym, debugInfo, fun2) = translateFunLike(fun, fun.sym.asMemberRef(fun.dSym), N, fun.sym.nme)
           if debugEnabled then Scoped(Set.single(debugInfoSym), Assign(debugInfoSym, Tuple(false, debugInfo), k(fun2))) else k(fun2)
         case defn @ ClsLikeDefn(owner, isym, sym, ctorSym, kind, paramsOpt, auxParams, parentPath, methods, privateFields, publicFields, preCtor, ctor, companion, bufferable) =>
-          if h.currentBlockIsTrulyNested && opt.isDefined then
+          // Module members keep their static owner even though their definitions now occur in init.
+          if h.currentBlockIsTrulyNested && opt.isDefined && !owner.exists(_.asMod.isDefined) then
             raise(lifterReport(msg"Unexpected nested class: lambdas may not function correctly." -> isym.toLoc :: Nil))
           val debugInfos = mutable.ArrayBuffer.empty[(TempSymbol, List[Arg])]
           val newMtds = methods.mapConserve: f =>
@@ -577,24 +589,15 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
             fun2
           val companion2 = companion.mapConserve: bod =>
             val newMtds = bod.methods.mapConserve: f =>
-              val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, bod.isym.asThis.sel(new Tree.Ident(f.sym.nme), f.dSym),
-                S(bod.isym.asThis), s"${sym.nme}.${f.sym.nme}")
-              debugInfos += debugInfoSym -> debugInfo
-              fun2
-            // We cannot use this bc there is no subblock transform...
-            // val newCtor = translateTrivialOrTopLevel(bod.ctor)
-            // TODO: Companion's ctor is more well behaved so it is possible to handle it
-            // However, JSBuilder inserts extra statements between preCtor and ctor and it's not possible to replicate the exact behavior
-            // without many special handling.
-            val newCtor = if opt.fold(true)(_.doNotInstrumentTopLevelModCtor) && !h.currentBlockIsTrulyNested then bod.ctor else
-              translateCtorLike(bod.ctor, bod.isym.asThis, true)
+              if skipModuleInit && (f.dSym is bod.ctor._2) then f else
+                val (debugInfoSym, debugInfo, fun2) = translateFunLike(f, bod.isym.asThis.sel(new Tree.Ident(f.sym.nme), f.dSym),
+                  S(bod.isym.asThis), s"${sym.nme}.${f.sym.nme}")
+                debugInfos += debugInfoSym -> debugInfo
+                fun2
             tl.log(s"companion name: ${bod.isym.nme}")
-            if (bod.methods is newMtds) && (bod.ctor is newCtor) then
-              bod
-            else
-              ClsLikeBody(bod.isym, newMtds, bod.privateFields, bod.publicFields, newCtor, bod.annotations)
-          val newPreCtor = translateCtorLike(preCtor, isym.asThis, false)
-          val newCtor = translateCtorLike(ctor, isym.asThis, false)
+            if bod.methods is newMtds then bod else bod.copy(methods = newMtds)
+          val newPreCtor = translateCtorLike(preCtor)
+          val newCtor = translateCtorLike(ctor)
           val c2 =
             if (methods is newMtds) && (preCtor is newPreCtor) && (ctor is newCtor) && (companion is companion2) then
               defn
@@ -739,8 +742,8 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
       scopedVars ++ extraVars,
       mainBody)
   
-  private def translateCtorLike(b: Block, thisPath: Path, isModCtor: Bool)(using h: HandlerCtx): Block =
-    translateBlock(b, if isModCtor then HandlerCtx.ModCtor(h.currentBlockIsTrulyNested) else HandlerCtx.Ctor, Set.empty)
+  private def translateCtorLike(b: Block): Block =
+    translateBlock(b, HandlerCtx.Ctor, Set.empty)
     
   /**
    * These functions does not recurse into nested definitions

@@ -408,12 +408,14 @@ module Encl with
 //│ define Shape¹ as class Shape⁰;
 //│ define Encl⁰ as class Encl¹
 //│ module Encl² {
-//│   constructor {
+//│   method init⁰ = fun init¹(): ? {
 //│     define Shape² as class Shape³;
-//│     end
+//│     do globalThis⁰.Object﹖.freeze⁰(Encl².this);
+//│     return null
 //│   }
 //│   method bad⁰ = fun bad¹(x: Shape³): ? { return useShape¹(x) }
 //│ };
+//│ do Encl².init¹();
 //│ end
 
 
@@ -558,7 +560,7 @@ fun mixedThree(x: Int32 | Str | Bool) = 0
 :ge
 fun intoMixed(n: Int32) = mixed(n)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
-//│ ║  l.559: 	fun intoMixed(n: Int32) = mixed(n)
+//│ ║  l.561: 	fun intoMixed(n: Int32) = mixed(n)
 //│ ╙──       	                                ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
@@ -807,7 +809,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Function' at an unrelated type 'Str'
-//│ ║  l.808: 	val bad: Str = thunk
+//│ ║  l.810: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -819,7 +821,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Function' at an unrelated type 'Str'
-//│ ║  l.820: 	val notCalled: Str = called
+//│ ║  l.822: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -840,7 +842,16 @@ fun localGetter: Int = 1
 module M with
   fun memberGetter: Int = 1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define M⁰ as class M¹ module M² { method memberGetter⁰ = fun memberGetter¹: Int⁰ { return 1 } }; end
+//│ define M⁰ as class M¹
+//│ module M² {
+//│   method init² = fun init³(): ? {
+//│     do globalThis⁰.Object﹖.freeze¹(M².this);
+//│     return null
+//│   }
+//│   method memberGetter⁰ = fun memberGetter¹: Int⁰ { return 1 }
+//│ };
+//│ do M².init³();
+//│ end
 
 fun useLocal: Int = localGetter
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -863,7 +874,7 @@ fun callMember: Int = M.memberGetter()
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Bar' at an unrelated type 'Int'
-//│ ║  l.864: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.875: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {
@@ -920,7 +931,7 @@ val g: Int -> Int = (x: Int) => x
 :ge
 fun badFn() = applyF(42)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Function'
-//│ ║  l.921: 	fun badFn() = applyF(42)
+//│ ║  l.932: 	fun badFn() = applyF(42)
 //│ ╙──       	                     ^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badFn⁰ as fun badFn¹(): ? { return applyF¹(42) }; end
@@ -949,7 +960,7 @@ fun useAdd() = useInt(addInts(1, 2))
 :ge
 fun badAdd() = useStr(addInts(1, 2))
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Str'
-//│ ║  l.950: 	fun badAdd() = useStr(addInts(1, 2))
+//│ ║  l.961: 	fun badAdd() = useStr(addInts(1, 2))
 //│ ╙──       	                      ^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badAdd⁰ as fun badAdd¹(): ? {
@@ -1046,7 +1057,15 @@ fun viaTyped(x, y): Str = addInts(x, y)
 module Plain with
   fun f: Int -> Int
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define Plain⁰ as class Plain¹ module Plain²; end
+//│ define Plain⁰ as class Plain¹
+//│ module Plain² {
+//│   method init⁴ = fun init⁵(): ? {
+//│     do globalThis⁰.Object﹖.freeze²(Plain².this);
+//│     return null
+//│   }
+//│ };
+//│ do Plain².init⁵();
+//│ end
 
 declare module Ext with
   fun member: Int -> Int
@@ -1253,7 +1272,7 @@ fun tagged(x: Int) =
   fun describe() = Tag.label()
   describe()
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.1251: 	  object Tag with
+//│ ║  l.1270: 	  object Tag with
 //│ ╙──        	         ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let describe;
@@ -1280,7 +1299,7 @@ fun mk() =
     fun get() = Tag.label()
   new Holder
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.1277: 	  object Tag with
+//│ ║  l.1296: 	  object Tag with
 //│ ╙──        	         ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let Holder;

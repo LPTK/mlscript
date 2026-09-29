@@ -160,7 +160,9 @@ class Foo
 renderAsStr of Foo
 //│ = "class Foo"
 
+:re
 set Foo.bar = (direction: "vertical")
+//│ ═══[RUNTIME ERROR] TypeError: Cannot add property bar, object is not extensible
 
 renderAsStr of Foo
 //│ = "class Foo"
@@ -339,7 +341,7 @@ open Stack
 :ge
 renderAsStr of 1 :: 2 :: 3 :: 4
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Stack.Base'
-//│ ║  l.340: 	renderAsStr of 1 :: 2 :: 3 :: 4
+//│ ║  l.342: 	renderAsStr of 1 :: 2 :: 3 :: 4
 //│ ╙──       	                              ^
 //│ = "Cons(1, Cons(2, Cons(3, 4)))"
 

@@ -304,6 +304,10 @@ fun main() =
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+:re
+main()
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'a' of object '[object Object]'
+
 // * Notice that the lifted class above behaves the same as the equivalent top-level class below:
 
 class C(val a)
@@ -312,12 +316,18 @@ let c = new mut C(123)
 set c.a = 0
 set c.b = "hi"
 let d = new C(456)
-set d.a = 0
 let e = C(789)
-set e.a = 0
 //│ c = C(0)
 //│ d = C(456)
 //│ e = C(789)
+
+:re
+set d.a = 0
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'a' of object '[object Object]'
+
+:re
+set e.a = 0
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'a' of object '[object Object]'
 
 :expect [0, "hi", 456, 789]
 [c.a, c.b, d.a, e.a]
@@ -365,9 +375,9 @@ fun main(x) =
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
-:expect [0, "hi", 456, 789, 42, 498, 831]
+:re
 main(42)
-//│ = [0, "hi", 456, 789, 42, 498, 831]
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'a' of object '[object Object]'
 
 // * The lifted class above should behave the same as the equivalent top-level class below:
 
@@ -380,12 +390,18 @@ let c = new mut C(123)
 set c.a = 0
 set c.b = "hi"
 let d = new C(456)
-set d.a = 0
 let e = C(789)
-set e.a = 0
 //│ c = C(0)
 //│ d = C(456)
 //│ e = C(789)
+
+:re
+set d.a = 0
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'a' of object '[object Object]'
+
+:re
+set e.a = 0
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'a' of object '[object Object]'
 
 :expect [0, "hi", 456, 789, 42, 498, 831]
 [c.a, c.b, d.a, e.a, c.get, d.get, e.get]

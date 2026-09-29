@@ -1005,21 +1005,21 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     override lazy val capturePath: Path = Select(obj.clsBody.isym.asThis, captureSym.id)(S(captureSym))(false)
       
     override def rewriteImpl: LifterResult[ClsLikeBody] =
-      val rewriterCtor = new BlockRewriter(N)
-      val rewrittenCtor = rewriterCtor.rewrite(obj.clsBody.ctor)
-      val ctorWithCap = initCaptureField(rewrittenCtor)
       val rewrittenPrivateFields = appendCaptureField(liftedObjsOrdered.map(liftedObjsSyms) ::: obj.clsBody.privateFields)
-      val LifterResult(newMtds, extras) = rewriteMethods(node, obj.clsBody.methods)
-      if (obj.clsBody.ctor is ctorWithCap) && (obj.clsBody.privateFields is rewrittenPrivateFields) &&
-          (obj.clsBody.methods is newMtds)
+      val LifterResult(methods, extras) = rewriteMethods(node, obj.clsBody.methods)
+      val newMtds = methods.mapConserve: method =>
+        if method.dSym is obj.clsBody.ctor._2 then
+          val body = initCaptureField(method.body)
+          if body is method.body then method else method.copy(body = body)(method.configOverride, method.annotations)
+        else method
+      if (obj.clsBody.privateFields is rewrittenPrivateFields) && (obj.clsBody.methods is newMtds)
       then LifterResult(obj.clsBody, Nil)
       else
         val newComp = obj.clsBody.copy(
-          ctor = ctorWithCap,
           privateFields = rewrittenPrivateFields,
           methods = newMtds
         )
-        LifterResult(newComp, rewriterCtor.extraDefns.toList ::: extras)
+        LifterResult(newComp, extras)
   
   class LiftedFunc(override val obj: ScopedObject.Func)(using ctx: LifterCtxNew) extends LiftedScope[FunDefn](obj) with GenericRewrittenScope[FunDefn]:
     private val passedSymsMap_ : Map[ValueSymbol, VarSymbol] = passedSymsOrdered.map: s =>

@@ -143,7 +143,6 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         case _ => super.applyDefn(defn)
       def applyClsLikeBody(body: ClsLikeBody): Unit =
         withOwner(body.isym):
-          applyBlock(body.ctor)
           body.methods.foreach(applyDefn)
     collector.applyBlock(p.main)
 
@@ -565,6 +564,8 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
           case ClsLikeDefn(ownr, isym, sym, ctorSym, kind, paramsOpt, auxParams, par, mtds,
               privFlds, pubFlds, preCtor, ctor, modo, bufferable)
           =>
+            // A companion's explicit initializer freezes the definition after its field writes.
+            val freezeDefns = if modo.isDefined then "" else this.freezeDefns
             // After ClassParamFlattener, all classes have paramsOpt = N and exactly one auxParams entry.
             assert(paramsOpt.isEmpty,
               s"JSBuilder: expected paramsOpt to be None after flattening for class ${sym.nme}")
@@ -653,9 +654,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
                 val (thisProxy, res) = outerScope.nestRebindThis(S(mod.isym)):
                   val mtdPrefix = "static "
                   val privs = mkPrivs(mod.publicFields, mod.privateFields, mod.methods, mtdPrefix, mod.isym)
-                  val ctorCode = if mod.ctor.isEmpty then doc"" else doc" # static " :: braced:
-                    body(mod.ctor, endSemi = true)
-                  privs :: ctorCode :: {
+                  privs :: {
                     mkMethods(mod.methods, mtdPrefix, mod.isym)
                   }
                 // * Note that `thisProxy` might be defined at this point,

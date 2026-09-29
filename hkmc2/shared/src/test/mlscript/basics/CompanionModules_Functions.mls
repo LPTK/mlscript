@@ -14,6 +14,7 @@ module foo with
 //│ ║       	^^^^^^^^^^^^^^^
 //│ ║  l.8: 	  val zero = foo(0)
 //│ ╙──     	^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'init')
 
 foo(123)
 //│ = 124

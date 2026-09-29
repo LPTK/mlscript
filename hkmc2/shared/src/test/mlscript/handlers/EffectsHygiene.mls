@@ -32,25 +32,65 @@ fun foo(h): Object =
 //│ runtime.checkCall(runtime.resetEffects());
 //│ foo = function foo(h) {
 //│   runtime.checkArgs("foo", 1, true, arguments.length);
-//│   let A2, A3;
-//│   if (false === true) {
-//│     globalThis.Object.freeze(class A {
-//│       static {
-//│         A2 = this
-//│       }
-//│       toString() { return runtime.render(this); }
-//│       static [definitionMetadata] = ["class", "A"];
-//│     });
-//│     return A2
+//│   let A2, A3, pc;
+//│   if (runtime.resumePc === -1) {
+//│     pc = 0;
+//│   } else {
+//│     pc = runtime.resumePc;
+//│     runtime.resumePc = -1;
 //│   }
-//│   globalThis.Object.freeze(class A1 {
-//│     static {
-//│       A3 = this
+//│   main: while (true) {
+//│     switch (pc) {
+//│       case 2:
+//│         runtime.resumeValue;
+//│         return A3;
+//│       case 1:
+//│         runtime.resumeValue;
+//│         return A2;
+//│       case 0:
+//│         if (false === true) {
+//│           (class A {
+//│             static {
+//│               A2 = this
+//│             }
+//│             static init() {
+//│               runtime.checkArgs("init", 0, true, arguments.length);
+//│               runtime.safeCall(globalThis.Object.freeze(A));
+//│               return null
+//│             }
+//│             toString() { return runtime.render(this); }
+//│             static [definitionMetadata] = ["class", "A"];
+//│           });
+//│           runtime.safeCall(globalThis.Object.freeze(A2));
+//│           runtime.resumeValue = null;
+//│           if (runtime.curEffect === null) {
+//│             pc = 1;
+//│             continue main
+//│           }
+//│           return runtime.checkCall(runtime.unwind(foo, 1, null, null, null, 1, 1, h, 0));
+//│         }
+//│         (class A1 {
+//│           static {
+//│             A3 = this
+//│           }
+//│           static init() {
+//│             runtime.checkArgs("init", 0, true, arguments.length);
+//│             runtime.safeCall(globalThis.Object.freeze(A1));
+//│             return null
+//│           }
+//│           toString() { return runtime.render(this); }
+//│           static [definitionMetadata] = ["class", "A"];
+//│         });
+//│         runtime.safeCall(globalThis.Object.freeze(A3));
+//│         runtime.resumeValue = null;
+//│         if (runtime.curEffect === null) {
+//│           pc = 2;
+//│           continue main
+//│         }
+//│         return runtime.checkCall(runtime.unwind(foo, 2, null, null, null, 1, 1, h, 0));
 //│     }
-//│     toString() { return runtime.render(this); }
-//│     static [definitionMetadata] = ["class", "A"];
-//│   });
-//│   return A3;
+//│     break;
+//│   }
 //│ };
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 

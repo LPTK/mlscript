@@ -232,6 +232,10 @@ class Test(a) with
 //│ };
 //│ define M¹ as class M²
 //│ module M⁰ {
+//│   method init⁰ = fun init¹() {
+//│     do globalThis⁰.Object﹖.freeze⁰(M⁰.this);
+//│     return null
+//│   }
 //│   method ping⁷ = fun ping⁶(n, unused) {
 //│     let scrut, tmp;
 //│     set scrut = Predef⁰.equals⁰(n, 0);
@@ -244,6 +248,7 @@ class Test(a) with
 //│     end
 //│   }
 //│ };
+//│ do M⁰.init¹();
 //│ define Test⁰ as class Test² { constructor Test¹ method f⁰ = fun f¹() { return pong⁷(3) } };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

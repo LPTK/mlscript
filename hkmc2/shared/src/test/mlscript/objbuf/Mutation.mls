@@ -35,8 +35,10 @@ class A(x) with
 //│     this.#x = x;
 //│     this.z = this.#x;
 //│   }
-//│   static {
+//│   static init() {
 //│     A2.size = 2;
+//│     runtime.safeCall(globalThis.Object.freeze(A2));
+//│     return null
 //│   }
 //│   static ctor(buf, idx) {
 //│     return (x) => {
@@ -79,6 +81,7 @@ class A(x) with
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "A", [null]];
 //│ });
+//│ A3.class.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

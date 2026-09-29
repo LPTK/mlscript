@@ -332,7 +332,6 @@ class FlowPreAnalyzer(val pgrm: Program)(using
   enum InCtx:
     case TopLvl()
     case Mod(mod: ClsLikeBody)
-    case ModCtor(mod: ClsLikeBody)
     case Cls(cls: ClsLikeDefn)
     case ClsPreCtor(cls: ClsLikeDefn)
     case ClsCtor(cls: ClsLikeDefn)
@@ -349,7 +348,6 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       ctx0.forall:
         case InCtx.TopLvl() => true
         case InCtx.Mod(_) => true
-        case InCtx.ModCtor(_) => true
         case InCtx.BegnBody(_) => true
         case InCtx.Scped(_) => true
         case _ => false
@@ -363,7 +361,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
         case _ => false
     def registerStratVar(sym: Symbol, nme: String): Unit =
       val currentRootFun = ctx.tails.collectFirst:
-        case InCtx.Fn(fun) :: tl if isTopLvlLikeFunCtx(tl) => fun.dSym
+        case InCtx.Fn(fun) :: tl if isTopLvlLikeFunCtx(tl) && !fun.definesExternalMembers => fun.dSym
       res.generatedVars.getOrElseUpdate(sym, freshVar(nme, currentRootFun))
     
     private inline def withCtx(newCtx: InCtx)(inline body: => Any)(after: => Unit = ()): Unit =
@@ -384,7 +382,9 @@ class FlowPreAnalyzer(val pgrm: Program)(using
         pl.restParam.foreach(p => locallyDefined += p.sym)
       withCtx(InCtx.Fn(fun))(withCaptureInfo(fun.dSym, locallyDefined)(body)):
         res.funSymToFunDefn(fun.dSym) = fun
-        if isTopLvlLikeFunCtx(ctx) then
+        // Generative initializers define symbols owned outside the function. Specializing them
+        // would duplicate those definitions independently of their owner, so analyze them monomorphically.
+        if isTopLvlLikeFunCtx(ctx) && !fun.definesExternalMembers then
           res.rootFunDefns.addOne(fun.dSym -> fun)
     
     inline def inLabelBody(label: Label)(inline body: => Any) =
@@ -422,10 +422,6 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       withCtx(InCtx.TopLvl())(body):
         assert(ctx.isEmpty)
     
-    inline def inModCtor(mod: ClsLikeBody)(inline body: => Any) =
-      assert(ctx.head.matches{ case _: InCtx.Mod => true })
-      withCtx(InCtx.ModCtor(mod))(body):
-        assert(ctx.head.matches{ case _: InCtx.Mod => true })
     
     inline def inCls(cls: ClsLikeDefn)(inline body: => Any) =
       withCtx(InCtx.Cls(cls))(body)()
@@ -642,8 +638,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
           b.publicFields.foreach: (_, tsym) =>
             ctxTracker.registerStratVar(tsym, tsym.nme)
           b.methods.foreach(applyFunDefn)
-          ctxTracker.inModCtor(b):
-            applyBlock(b.ctor)
+          // The initializer is analyzed as a method and reached through its explicit call.
       
   override def applyCompanionModule(b: ClsLikeBody): Unit =
     lastWords("handled inline in `applyDefn`")
@@ -888,7 +883,7 @@ class FlowConstraintsCollector(
           generatedVars(tsym).constrainOpaque
         mod.methods.foreach: fun =>
           processFunctionDefn(fun)
-        processBlock(mod.ctor)(using cc, UnknownCons)
+        // Initialization flows through the ordinary function-call constraints.
     
     def constrainOpaqueResult(r: Result)(using cc: ConstraintsCollector): Unit =
       cc.constrain(processResult(r), UnknownCons)

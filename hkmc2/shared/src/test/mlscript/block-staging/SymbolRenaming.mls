@@ -6,14 +6,18 @@ staged module TempVariable with
     let x
     let x
     x
-//│ > fun ctor_() = ()
+//│ > fun init() =
+//│ >   globalThis.Object.freeze(TempVariable)
+//│ >   null
 //│ > fun f() =
 //│ >   let {x, x1}
 //│ >   x1
 
 staged module DupeFunctionName with
   fun f() = 1
-//│ > fun ctor_() = ()
+//│ > fun init() =
+//│ >   globalThis.Object.freeze(DupeFunctionName)
+//│ >   null
 //│ > fun f() = 1
 
 class C(val x)
@@ -22,7 +26,9 @@ staged module Selection with
   fun f(x) =
     x.call()
     C(1).x is Bool
-//│ > fun ctor_() = ()
+//│ > fun init() =
+//│ >   globalThis.Object.freeze(Selection)
+//│ >   null
 //│ > fun f(x) =
 //│ >   let {scrut, tmp}
 //│ >   x.call()
@@ -32,11 +38,14 @@ staged module Selection with
 //│ >     Bool then true
 //│ >     else false
 
-:fixme
 staged module DupeClass with
   class C(val y)
   fun f() = C(1).y
-//│ ═══[COMPILATION ERROR] Value.This not supported in staged module.
-//│ > fun ctor_() =
+//│ > fun init() =
 //│ >   class C(y)
-//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
+//│ >   globalThis.Object.freeze(DupeClass)
+//│ >   null
+//│ > fun f() =
+//│ >   let {tmp}
+//│ >   tmp = DupeClass.C_gen(1)
+//│ >   tmp.y

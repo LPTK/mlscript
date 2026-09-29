@@ -186,7 +186,7 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
       val docModule = mod match
         case Some(mod) =>
           val docStaged = if mod.isStaged then doc"staged " else doc""
-          val docBody = print(mod.privateFields, mod.publicFields, mod.methods, Nil, N, mod.ctor, N)
+          val docBody = print(mod.privateFields, mod.publicFields, mod.methods, Nil, N, End(), N)
           doc" # ${docStaged}module ${print(mod.isym)}${docBody}"
         case None => doc""
       doc"${docCls}${docModule}"

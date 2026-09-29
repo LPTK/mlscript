@@ -10,7 +10,9 @@ class Top(x: Int)
 fun anything(v) = v
 staged module M with
   fun mk(): Top = anything(1)
-//│ > fun ctor_() = ()
+//│ > fun init() =
+//│ >   globalThis.Object.freeze(M)
+//│ >   null
 //│ > fun mk() = (anything(1) as! Top)
 
 
@@ -19,5 +21,7 @@ staged module M with
 :noCheckCasts
 staged module N with
   fun mk(): Top = anything(1)
-//│ > fun ctor_() = ()
+//│ > fun init() =
+//│ >   globalThis.Object.freeze(N)
+//│ >   null
 //│ > fun mk() = (anything(1) as!! Top)

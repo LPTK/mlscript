@@ -9,9 +9,14 @@ module None
 //│   static {
 //│     None1 = this
 //│   }
+//│   static init() {
+//│     runtime.safeCall(globalThis.Object.freeze(None));
+//│     return null
+//│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "None"];
 //│ });
+//│ runtime.safeCall(globalThis.Object.freeze(None1));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :sjs
@@ -32,7 +37,7 @@ None()
 :e
 new None
 //│ ╔══[COMPILATION ERROR] Expected a statically known class; found reference of type None.
-//│ ║  l.33: 	new None
+//│ ║  l.38: 	new None
 //│ ║        	    ^^^^
 //│ ╙── The 'new' keyword requires a statically known class; use the 'new!' operator for dynamic instantiation.
 //│ = None
@@ -41,7 +46,7 @@ new None
 :e
 new! None
 //│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type None.
-//│ ║  l.42: 	new! None
+//│ ║  l.47: 	new! None
 //│ ╙──      	     ^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ return globalThis.Object.freeze(new None1())
@@ -61,7 +66,7 @@ module M with
 //│   static {
 //│     M1 = this
 //│   }
-//│   static {
+//│   static init() {
 //│     let tmp;
 //│     (class C {
 //│       static {
@@ -83,10 +88,13 @@ module M with
 //│     M.x = 1;
 //│     tmp = M.x + 1;
 //│     M.y = tmp;
+//│     runtime.safeCall(globalThis.Object.freeze(M));
+//│     return null
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"];
 //│ });
+//│ M1.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 M.C
@@ -108,7 +116,7 @@ M.y
 :re
 M.oops
 //│ ╔══[COMPILATION ERROR] Module 'M' does not contain member 'oops'
-//│ ║  l.109: 	M.oops
+//│ ║  l.117: 	M.oops
 //│ ╙──       	 ^^^^^
 //│ ═══[RUNTIME ERROR] Error: Access to required field 'oops' yielded 'undefined'
 
@@ -123,12 +131,15 @@ module M with
 //│   static {
 //│     M3 = this
 //│   }
-//│   static {
+//│   static init() {
 //│     M2.m = M3;
+//│     runtime.safeCall(globalThis.Object.freeze(M2));
+//│     return null
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "M"];
 //│ });
+//│ M3.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :sjs
@@ -155,22 +166,28 @@ module AA with
 //│   static {
 //│     AA1 = this
 //│   }
-//│   static {
+//│   static init() {
 //│     AA.x = 1;
 //│     (class BB {
 //│       static {
 //│         AA.BB = this
 //│       }
-//│       static {
+//│       static init() {
 //│         BB.y = 2;
+//│         runtime.safeCall(globalThis.Object.freeze(BB));
+//│         return null
 //│       }
 //│       toString() { return runtime.render(this); }
 //│       static [definitionMetadata] = ["class", "BB"];
 //│     });
+//│     AA.BB.init();
+//│     runtime.safeCall(globalThis.Object.freeze(AA));
+//│     return null
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "AA"];
 //│ });
+//│ AA1.init();
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 

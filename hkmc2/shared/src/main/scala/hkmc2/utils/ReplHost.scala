@@ -12,7 +12,8 @@ class ReplHost(rootPath: Str)(using TL):
   
   private val builder = new java.lang.ProcessBuilder()
   // `--interactive` always enters the REPL even if stdin is not a terminal.
-  builder.command("node", "--interactive")
+  // Match generated ES modules, including initializer code inlined out of strict class bodies.
+  builder.command("node", "--use-strict", "--interactive")
   private val proc = builder.start()
 
   private val stdin = new BufferedWriter(new OutputStreamWriter(proc.getOutputStream))

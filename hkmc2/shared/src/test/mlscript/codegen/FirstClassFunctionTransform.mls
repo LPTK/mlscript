@@ -264,7 +264,7 @@ module Foo with
 //│ };
 //│ define Foo¹ as class Foo²
 //│ module Foo³ {
-//│   constructor {
+//│   method init⁰ = fun init¹() {
 //│     define Bar¹ as class Bar³ {
 //│       private val y⁰;
 //│       constructor Bar²(y) {
@@ -277,9 +277,11 @@ module Foo with
 //│         return tmp
 //│       }
 //│     };
-//│     end
+//│     do globalThis⁰.Object﹖.freeze⁰(Foo³.this);
+//│     return null
 //│   }
 //│ };
+//│ do Foo³.init¹();
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -396,7 +398,7 @@ foo.Foo#x
 :ge
 foo.f(0)
 //│ ╔══[COMPILATION ERROR] Cannot determine if f is a function object.
-//│ ║  l.397: 	foo.f(0)
+//│ ║  l.399: 	foo.f(0)
 //│ ╙──       	^^^^^
 //│ = 1
 
@@ -414,7 +416,7 @@ foo.Foo#f(0)
 :ge
 foo.x(0)
 //│ ╔══[COMPILATION ERROR] Cannot determine if x is a function object.
-//│ ║  l.415: 	foo.x(0)
+//│ ║  l.417: 	foo.x(0)
 //│ ╙──       	^^^^^
 
 

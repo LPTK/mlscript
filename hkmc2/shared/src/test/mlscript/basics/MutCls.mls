@@ -6,7 +6,9 @@ class C(val x)
 let c = C(1)
 //│ c = C(1)
 
+:re
 set c.x = 2
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'x' of object '[object Object]'
 
 c
 //│ = C(1)
@@ -20,7 +22,9 @@ let f = Foo(1)(2)
 f.y
 //│ = 2
 
+:re
 set f.y = 3
+//│ ═══[RUNTIME ERROR] TypeError: Cannot assign to read only property 'y' of object '[object Object]'
 
 f.y
 //│ = 2
@@ -38,7 +42,10 @@ set f.foo = () => 3
 f.foo()
 //│ = 3
 
+:re
 set f.bar = 3
+//│ ═══[RUNTIME ERROR] TypeError: Cannot set property bar of [object Object] which has only a getter
+
 f.bar
 //│ = 2
 
@@ -46,11 +53,17 @@ f.bar
 let f = new Foo
 //│ f = Foo
 
+:re
 set f.foo = () => 3
+//│ ═══[RUNTIME ERROR] TypeError: Cannot add property foo, object is not extensible
+
 f.foo()
 //│ = 1
 
+:re
 set f.bar = 3
+//│ ═══[RUNTIME ERROR] TypeError: Cannot set property bar of [object Object] which has only a getter
+
 f.bar
 //│ = 2
 
