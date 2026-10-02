@@ -18,7 +18,7 @@ Foo(1, 2)(3)(4)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let baseCall; set baseCall = new Foo⁰(1, 2, 3); return baseCall(4)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] TypeError: baseCall is not a function
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
 
 
 new Foo(1, 2)
@@ -33,7 +33,7 @@ new Foo(1, 2)(3)(4)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let baseInst; set baseInst = new Foo⁰(1, 2, 3); return baseInst(4)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] TypeError: baseInst is not a function
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
 
 
 :sir

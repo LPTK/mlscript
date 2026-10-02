@@ -101,3 +101,31 @@ concat of id of
 //│ deforest > >>> fusing >>>
 //│ deforest > <<< fusing <<<
 //│ = Cons(1, Cons(2, Cons(3, Cons(4, Cons(5, Cons(6, Nil))))))
+
+
+// a public function of an earlier block is specialized here, so its match fuses with this block's list
+fun sumList(xs) = if xs is
+  h :: t then h + sumList(t)
+  Nil then 0
+//│ deforest > >>> fusing >>>
+//│ deforest > <<< fusing <<<
+
+:soir
+:expect 3
+sumList(1 :: 2 :: Nil)
+//│ deforest > >>> fusing >>>
+//│ deforest > Cons⁰(1, tmp²) ->
+//│ deforest > 	match: xs¹
+//│ deforest > 	fields: xs¹.h¹
+//│ deforest > 	fields: xs¹.t⁰
+//│ deforest > Cons⁰(2, Nil⁰) ->
+//│ deforest > 	match: xs¹
+//│ deforest > 	fields: xs¹.h¹
+//│ deforest > 	fields: xs¹.t⁰
+//│ deforest > Nil⁰ ->
+//│ deforest > 	match: xs¹
+//│ deforest > <<< fusing <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ return 3
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3

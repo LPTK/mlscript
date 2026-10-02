@@ -20,6 +20,6 @@ foo(id of x => 1, id of y => 2)
 //│ ╔══[COMPILATION ERROR] Expected 1 arguments, got 2
 //│ ║  l.16: 	foo(id of x => 1, id of y => 2) 
 //│ ╙──      	          ^^^^^^^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] Error: Function 'id' expected 1 argument but got 2
+//│ ═══[RUNTIME ERROR] Error: Function 'foo' expected 2 arguments but got 1
 
 
